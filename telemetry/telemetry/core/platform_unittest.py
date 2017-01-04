@@ -13,14 +13,18 @@ from telemetry.testing import tab_test_case
 
 class PlatformScreenshotTest(tab_test_case.TabTestCase):
 
+  # https://github.com/catapult-project/catapult/issues/3099
+  @decorators.Disabled('android')
   def testScreenshotSupported(self):
     if self._platform.GetOSName() == 'android':
       self.assertTrue(self._platform.CanTakeScreenshot())
 
   # Run this test in serial to avoid multiple browsers pop up on the screen.
+  # https://github.com/catapult-project/catapult/issues/3099 (Android)
+  # crbug.com/563656 (Linux)
+  # crbug.com/660587 (Mac)
   @decorators.Isolated
-  @decorators.Disabled('linux')  # crbug.com/563656
-  @decorators.Disabled('mac')  # crbug.com/660587
+  @decorators.Disabled('android', 'linux', 'mac')
   def testScreenshot(self):
     if not self._platform.CanTakeScreenshot():
       self.skipTest('Platform does not support screenshots, skipping test.')

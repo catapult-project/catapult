@@ -16,7 +16,9 @@ class CacheTempeartureTests(browser_test_case.BrowserTestCase):
         cache_temperature=cache_temperature.ANY)
     cache_temperature.EnsurePageCacheTemperature(page, self._browser)
 
+  # https://github.com/catapult-project/catapult/issues/3099 (Android)
   @decorators.Enabled('has tabs')
+  @decorators.Disabled('android')
   def testEnsurePCv1Cold(self):
     story_set = story.StorySet()
     page = page_module.Page('http://google.com', page_set=story_set,

@@ -4,6 +4,7 @@
 
 import time
 
+from telemetry import decorators
 from telemetry.internal.actions import key_event
 from telemetry.internal.actions import utils
 from telemetry.testing import tab_test_case
@@ -30,6 +31,8 @@ class KeyPressActionTest(tab_test_case.TabTestCase):
     self.Navigate('blank.html')
     utils.InjectJavaScript(self._tab, 'gesture_common.js')
 
+  # https://github.com/catapult-project/catapult/issues/3099
+  @decorators.Disabled('android')
   def testPressEndAndHome(self):
     # Make page taller than the window so it's scrollable.
     self._tab.ExecuteJavaScript('document.body.style.height ='

@@ -7,12 +7,15 @@ import shutil
 import tempfile
 import zipfile
 
+from telemetry import decorators
 from telemetry.internal.platform.profiler import trace_profiler
 from telemetry.testing import tab_test_case
 
 
 class TestTraceProfiler(tab_test_case.TabTestCase):
 
+  # https://github.com/catapult-project/catapult/issues/3099
+  @decorators.Disabled('android')
   def testTraceProfiler(self):
     try:
       out_dir = tempfile.mkdtemp()

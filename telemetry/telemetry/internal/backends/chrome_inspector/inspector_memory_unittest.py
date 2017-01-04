@@ -8,7 +8,9 @@ from telemetry.testing import tab_test_case
 
 class InspectorMemoryTest(tab_test_case.TabTestCase):
 
+  # https://github.com/catapult-project/catapult/issues/3099 (Android)
   @decorators.Enabled('has tabs')
+  @decorators.Disabled('android')
   def testGetDOMStats(self):
     # Due to an issue with CrOS, we create a new tab here rather than
     # using the existing tab to get a consistent starting page on all platforms.

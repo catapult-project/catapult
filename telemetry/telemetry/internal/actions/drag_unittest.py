@@ -17,7 +17,9 @@ class DragActionTest(tab_test_case.TabTestCase):
     error_range = abs(expected * error_ratio)
     return abs(value - expected) <= error_range
 
-  @decorators.Disabled('chromeos')  # crbug.com/483212
+  # https://github.com/catapult-project/catapult/issues/3099 (Android)
+  # crbug.com/483212 (CrOS)
+  @decorators.Disabled('android', 'chromeos')
   def testDragAction(self):
     self.Navigate('draggable.html')
 

@@ -169,7 +169,8 @@ class TestAndroidProfilingHelperTabTestCase(tab_test_case.TabTestCase):
     browser_backend = self._browser._browser_backend
     self._device = browser_backend.device()
 
-  @decorators.Enabled('android')
+  # https://github.com/catapult-project/catapult/issues/3099 (Android)
+  @decorators.Disabled('all')
   def testCreateSymFs(self):
     # pylint: disable=protected-access
     browser_pid = self._browser._browser_backend.pid

@@ -112,6 +112,9 @@ class ActionRunnerMeasureMemoryTest(tab_test_case.TabTestCase):
 
 
 class ActionRunnerTest(tab_test_case.TabTestCase):
+
+  # https://github.com/catapult-project/catapult/issues/3099
+  @decorators.Disabled('android')
   def testExecuteJavaScript(self):
     action_runner = action_runner_module.ActionRunner(self._tab,
                                                       skip_waits=True)
@@ -166,6 +169,8 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
     action_runner.WaitForJavaScriptCondition(
         'document.location.pathname === "/page_with_link.html"')
 
+  # https://github.com/catapult-project/catapult/issues/3099
+  @decorators.Disabled('android')
   def testWait(self):
     action_runner = action_runner_module.ActionRunner(self._tab)
     self.Navigate('blank.html')
@@ -180,6 +185,8 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
     action_runner.Wait(0.2)
     self.assertEqual(102, self._tab.EvaluateJavaScript('window.testing'))
 
+  # https://github.com/catapult-project/catapult/issues/3099
+  @decorators.Disabled('android')
   def testWaitForJavaScriptCondition(self):
     action_runner = action_runner_module.ActionRunner(self._tab,
                                                       skip_waits=True)
@@ -194,6 +201,8 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
         'window.testing == 220', timeout_in_seconds=0.1)
     self.assertEqual(220, self._tab.EvaluateJavaScript('window.testing'))
 
+  # https://github.com/catapult-project/catapult/issues/3099
+  @decorators.Disabled('android')
   def testWaitForElement(self):
     action_runner = action_runner_module.ActionRunner(self._tab,
                                                       skip_waits=True)
@@ -295,7 +304,8 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
       action_runner.TapElement('#notfound')
     self.assertRaises(exceptions.EvaluateException, WillFail)
 
-
+  # https://github.com/catapult-project/catapult/issues/3099
+  @decorators.Disabled('android')
   def testScrollToElement(self):
     self.Navigate('page_with_swipeables.html')
     action_runner = action_runner_module.ActionRunner(self._tab,

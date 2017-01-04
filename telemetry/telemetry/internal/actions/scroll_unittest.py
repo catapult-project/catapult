@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from telemetry import decorators
 from telemetry.internal.actions import scroll
 from telemetry.internal.actions import utils
 from telemetry.testing import tab_test_case
@@ -48,6 +49,8 @@ class ScrollActionTest(tab_test_case.TabTestCase):
     self.assertTrue(scroll_position != 0,
                     msg='scroll_position=%d;' % (scroll_position))
 
+  # https://github.com/catapult-project/catapult/issues/3099
+  @decorators.Disabled('android')
   def testDiagonalScrollAction(self):
     # Diagonal scrolling was not supported in the ScrollAction until Chrome
     # branch number 2332

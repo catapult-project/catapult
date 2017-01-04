@@ -4,6 +4,7 @@
 
 import os
 
+from telemetry import decorators
 from telemetry.core import util
 from telemetry.testing import tab_test_case
 
@@ -16,6 +17,8 @@ class MemoryCacheHTTPServerTest(tab_test_case.TabTestCase):
     _test_file = os.path.join(util.GetUnittestDataDir(), 'bear.webm')
     self._test_file_size = os.stat(_test_file).st_size
 
+  # https://github.com/catapult-project/catapult/issues/3099
+  @decorators.Disabled('android')
   def testBasicHostingAndRangeRequests(self):
     self.Navigate('blank.html')
     x = self._tab.EvaluateJavaScript('document.body.innerHTML')

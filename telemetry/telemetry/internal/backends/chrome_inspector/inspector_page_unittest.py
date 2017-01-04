@@ -11,6 +11,8 @@ class InspectorPageTest(tab_test_case.TabTestCase):
   def testPageNavigateToNormalUrl(self):
     self.Navigate('blank.html')
 
+  # https://github.com/catapult-project/catapult/issues/3099
+  @decorators.Disabled('android')
   def testCustomActionToNavigate(self):
     self.Navigate('page_with_link.html')
     self.assertEquals(

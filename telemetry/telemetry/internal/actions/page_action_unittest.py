@@ -4,12 +4,15 @@
 
 """Tests for page_action."""
 
+from telemetry import decorators
 from telemetry.internal.actions import page_action
 from telemetry.testing import tab_test_case
 
 
 class PageActionTest(tab_test_case.TabTestCase):
 
+  # https://github.com/catapult-project/catapult/issues/3099
+  @decorators.Disabled('android')
   def testEvaluateCallbackWithElement(self):
     self.Navigate('blank.html')
     self._tab.action_runner.ExecuteJavaScript('''

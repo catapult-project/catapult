@@ -5,7 +5,7 @@
 import mock
 import unittest
 
-
+from telemetry import decorators
 from telemetry.internal.backends.chrome_inspector import inspector_websocket
 from telemetry.internal.backends.chrome_inspector import memory_backend
 from telemetry.testing import fakes
@@ -40,6 +40,8 @@ class MemoryBackendTest(tab_test_case.TabTestCase):
     PerformCheck(True)
     PerformCheck(False)
 
+  # https://github.com/catapult-project/catapult/issues/3099
+  @decorators.Disabled('android')
   def testSimulateMemoryPressureNotification(self):
     def PerformCheck(pressure_level):
       # Check that the method sends the correct DevTools request.

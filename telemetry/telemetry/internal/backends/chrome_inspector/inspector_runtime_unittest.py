@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from telemetry import decorators
 from telemetry.core import exceptions
 from telemetry.testing import tab_test_case
 
@@ -9,6 +10,8 @@ import py_utils
 
 
 class InspectorRuntimeTest(tab_test_case.TabTestCase):
+  # https://github.com/catapult-project/catapult/issues/3099
+  @decorators.Disabled('android')
   def testRuntimeEvaluateSimple(self):
     res = self._tab.EvaluateJavaScript('1+1')
     assert res == 2

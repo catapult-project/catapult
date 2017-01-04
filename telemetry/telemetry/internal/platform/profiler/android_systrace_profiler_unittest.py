@@ -12,7 +12,8 @@ from telemetry.testing import tab_test_case
 
 
 class TestAndroidSystraceProfiler(tab_test_case.TabTestCase):
-  @decorators.Enabled('android')
+  # https://github.com/catapult-project/catapult/issues/3099 (Android)
+  @decorators.Disabled('all')
   def testSystraceProfiler(self):
     try:
       out_dir = tempfile.mkdtemp()

@@ -55,6 +55,8 @@ class TabTest(tab_test_case.TabTestCase):
     self._tab.Navigate(self.UrlOfUnittestFile('blank.html'))
     self._tab.WaitForDocumentReadyStateToBeComplete()
 
+  # https://github.com/catapult-project/catapult/issues/3099
+  @decorators.Disabled('android')
   def testNavigateAndWaitForInteractiveState(self):
     self._tab.Navigate(self.UrlOfUnittestFile('blank.html'))
     self._tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
@@ -62,6 +64,8 @@ class TabTest(tab_test_case.TabTestCase):
   def testTabBrowserIsRightBrowser(self):
     self.assertEquals(self._tab.browser, self._browser)
 
+  # https://github.com/catapult-project/catapult/issues/3099
+  @decorators.Disabled('android')
   def testRendererCrash(self):
     self.assertRaises(exceptions.DevtoolsTargetCrashException,
                       lambda: self._tab.Navigate('chrome://crash',
@@ -86,7 +90,9 @@ class TabTest(tab_test_case.TabTestCase):
         'of undefined\n'),
         context.exception.message)
 
+  # https://github.com/catapult-project/catapult/issues/3099
   @decorators.Enabled('has tabs')
+  @decorators.Disabled('android')
   def testActivateTab(self):
     py_utils.WaitFor(lambda: _IsDocumentVisible(self._tab), timeout=5)
     new_tab = self._browser.tabs.New()

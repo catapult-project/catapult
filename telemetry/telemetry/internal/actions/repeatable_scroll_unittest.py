@@ -29,6 +29,8 @@ class RepeatableScrollActionTest(tab_test_case.TabTestCase):
     self._window_height = int(self._tab.EvaluateJavaScript(
         '__GestureCommon_GetWindowHeight()'))
 
+  # https://github.com/catapult-project/catapult/issues/3099
+  @decorators.Disabled('android')
   def testRepeatableScrollActionNoRepeats(self):
     if not self._browser_info.HasRepeatableSynthesizeScrollGesture():
       return
@@ -47,6 +49,8 @@ class RepeatableScrollActionTest(tab_test_case.TabTestCase):
                     msg='scroll_position=%d;expected %d' % (scroll_position,
                                                             expected_scroll))
 
+  # https://github.com/catapult-project/catapult/issues/3099
+  @decorators.Disabled('android')
   def testRepeatableScrollActionTwoRepeats(self):
     if not self._browser_info.HasRepeatableSynthesizeScrollGesture():
       return

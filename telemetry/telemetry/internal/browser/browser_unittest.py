@@ -49,6 +49,8 @@ class BrowserTest(browser_test_case.BrowserTestCase):
     self.assertEquals(1, len(self._browser.tabs))
     self.assertEquals(existing_tab.url, existing_tab_url)
 
+  # https://github.com/catapult-project/catapult/issues/3099
+  @decorators.Disabled('android')
   def testMultipleTabCalls(self):
     self._browser.tabs[0].Navigate(self.UrlOfUnittestFile('blank.html'))
     self._browser.tabs[0].WaitForDocumentReadyStateToBeInteractiveOrBetter()
@@ -66,7 +68,9 @@ class BrowserTest(browser_test_case.BrowserTestCase):
     tab.Close()
     self.assertEquals(1, len(self._browser.tabs))
 
+  # https://github.com/catapult-project/catapult/issues/3099 (Android)
   @decorators.Enabled('has tabs')
+  @decorators.Disabled('android')
   def testForegroundTab(self):
     # Should be only one tab at this stage, so that must be the foreground tab
     original_tab = self._browser.tabs[0]
@@ -92,6 +96,8 @@ class BrowserTest(browser_test_case.BrowserTestCase):
     crash_minidump_path = self._browser.GetMostRecentMinidumpPath()
     self.assertIsNotNone(crash_minidump_path)
 
+  # https://github.com/catapult-project/catapult/issues/3099
+  @decorators.Disabled('android')
   def testGetSystemInfo(self):
     if not self._browser.supports_system_info:
       logging.warning(
@@ -156,7 +162,9 @@ class DirtyProfileBrowserTest(browser_test_case.BrowserTestCase):
   def CustomizeBrowserOptions(cls, options):
     options.profile_type = 'small_profile'
 
-  @decorators.Disabled('chromeos')  # crbug.com/243912
+  # https://github.com/catapult-project/catapult/issues/3099 (Android)
+  # crbug.com/243912 (CrOS)
+  @decorators.Disabled('android', 'chromeos')
   def testDirtyProfileCreation(self):
     self.assertEquals(1, len(self._browser.tabs))
 

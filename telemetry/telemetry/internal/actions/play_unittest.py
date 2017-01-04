@@ -61,8 +61,9 @@ class PlayActionTest(tab_test_case.TabTestCase):
     self.assertTrue(self._tab.EvaluateJavaScript(VIDEO_1_PLAYING_CHECK))
     self.assertTrue(self._tab.EvaluateJavaScript(AUDIO_1_PLAYING_CHECK))
 
-  # http://crbug.com/273887
-  @decorators.Disabled('linux')  # crbug.com/418577
+  # https://github.com/catapult-project/catapult/issues/3099 (Android)
+  # crbug.com/418577 (Linux)
+  @decorators.Disabled('android', 'linux')
   def testPlayWaitForPlayTimeout(self):
     """Tests that wait_for_playing timeouts if video does not play."""
     action = play.PlayAction(selector='#video_1',

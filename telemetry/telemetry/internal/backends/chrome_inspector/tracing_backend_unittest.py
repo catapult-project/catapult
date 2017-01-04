@@ -39,9 +39,10 @@ class TracingBackendTest(tab_test_case.TabTestCase):
     if not self._browser.supports_memory_dumping:
       self.skipTest('Browser does not support memory dumping, skipping test.')
 
-  # win-reference: https://github.com/catapult-project/catapult/issues/2409.
+  # android: https://github.com/catapult-project/catapult/issues/3099.
   # chromeos: http://crbug.com/622836.
-  @decorators.Disabled('win-reference', 'chromeos')
+  # win-reference: https://github.com/catapult-project/catapult/issues/2409.
+  @decorators.Disabled('android', 'chromeos', 'win-reference')
   def testDumpMemorySuccess(self):
     # Check that dumping memory before tracing starts raises an exception.
     self.assertRaises(Exception, self._browser.DumpMemory)

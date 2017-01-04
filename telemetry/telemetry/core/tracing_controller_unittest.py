@@ -16,7 +16,9 @@ from telemetry.timeline import trace_data as trace_data_module
 
 class TracingControllerTest(tab_test_case.TabTestCase):
 
+  # https://github.com/catapult-project/catapult/issues/3099 (Android)
   @decorators.Isolated
+  @decorators.Disabled('android')
   def testExceptionRaisedInStopTracing(self):
     tracing_controller = self._tab.browser.platform.tracing_controller
     config = tracing_config.TracingConfig()
@@ -38,7 +40,9 @@ class TracingControllerTest(tab_test_case.TabTestCase):
     self.assertFalse(tracing_controller.is_tracing_running)
 
 
+  # https://github.com/catapult-project/catapult/issues/3099 (Android)
   @decorators.Isolated
+  @decorators.Disabled('android')
   def testGotTrace(self):
     tracing_controller = self._browser.platform.tracing_controller
     config = tracing_config.TracingConfig()
@@ -50,7 +54,9 @@ class TracingControllerTest(tab_test_case.TabTestCase):
     model = model_module.TimelineModel(trace_data)
     assert len(model.processes) > 0
 
+  # https://github.com/catapult-project/catapult/issues/3099 (Android)
   @decorators.Isolated
+  @decorators.Disabled('android')
   def testStartAndStopTraceMultipleTimes(self):
     tracing_controller = self._browser.platform.tracing_controller
     config = tracing_config.TracingConfig()
@@ -65,7 +71,9 @@ class TracingControllerTest(tab_test_case.TabTestCase):
     # Calling stop again will raise exception
     self.assertRaises(Exception, tracing_controller.StopTracing)
 
+  # https://github.com/catapult-project/catapult/issues/3099 (Android)
   @decorators.Isolated
+  @decorators.Disabled('android')
   def testFlushTracing(self):
     SUBTRACE_COUNT = 5
 
@@ -152,7 +160,8 @@ class TracingControllerTest(tab_test_case.TabTestCase):
         self._browser.Close()
         self._browser = None
 
-  @decorators.Enabled('android')
+  # https://github.com/catapult-project/catapult/issues/3099 (Android)
+  @decorators.Disabled('all')
   @decorators.Isolated
   def testStartupTracingOnAndroid(self):
     self._StartupTracing(self._browser.platform)

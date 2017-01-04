@@ -125,6 +125,8 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
 
   # When the RecorderPageTest is created from a Benchmark, the benchmark will
   # have a PageTest, specified by its test attribute.
+  # https://github.com/catapult-project/catapult/issues/3099 (Android)
+  @decorators.Disabled('android')
   def testRunPage_OnlyRunBenchmarkAction(self):
     record_page_test = record_wpr.RecorderPageTest()
     record_page_test.page_test = MockBenchmark().test()
@@ -148,7 +150,9 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
       flags += ['--chrome-root', self._test_options.chrome_root]
     return flags
 
-  @decorators.Disabled('chromeos') # crbug.com/404868.
+  # https://github.com/catapult-project/catapult/issues/3099 (Android)
+  # crbug.com/404868 (CrOS)
+  @decorators.Disabled('android', 'chromeos')
   def testWprRecorderWithPageSet(self):
     flags = self.GetBrowserDeviceFlags()
     mock_story_set = MockStorySet(url=self._url)
@@ -169,6 +173,8 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
     self.assertEqual(set(mock_benchmark.mock_story_set.stories),
                      results.pages_that_succeeded)
 
+  # https://github.com/catapult-project/catapult/issues/3099
+  @decorators.Disabled('android')
   def testWprRecorderWithTimelineBasedMeasurementBenchmark(self):
     flags = self.GetBrowserDeviceFlags()
     flags.extend(['--mock-benchmark-url', self._url])
@@ -180,6 +186,8 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
     self.assertEqual(set(mock_benchmark.mock_story_set.stories),
                      results.pages_that_succeeded)
 
+  # https://github.com/catapult-project/catapult/issues/3099
+  @decorators.Disabled('android')
   def testPageSetBaseDirFlag(self):
     flags = self.GetBrowserDeviceFlags()
     flags.extend(['--page-set-base-dir', self._test_data_dir,
@@ -218,6 +226,8 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
 
   # When the RecorderPageTest CustomizeBrowserOptions/WillStartBrowser/
   # DidStartBrowser function is called, it forwards the call to the PageTest
+  # https://github.com/catapult-project/catapult/issues/3099
+  @decorators.Disabled('android')
   def testRecorderPageTest_BrowserMethods(self):
     flags = ['--mock-benchmark-url', self._url]
     record_page_test = record_wpr.RecorderPageTest()

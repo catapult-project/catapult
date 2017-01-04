@@ -101,7 +101,7 @@ _CATAPULT_TESTS = [
         'path': 'systrace/bin/run_tests',
     },
     {
-        'name': 'Telemetry Tests with Stable Browser',
+        'name': 'Telemetry Tests with Stable Browser (Desktop)',
         'path': 'telemetry/bin/run_tests',
         'additional_args': [
             '--browser=reference',
@@ -109,6 +109,17 @@ _CATAPULT_TESTS = [
         ],
         'uses_sandbox_env': True,
         'disabled': ['android'],
+    },
+    {
+        'name': 'Telemetry Tests with Stable Browser (Android)',
+        'path': 'telemetry/bin/run_tests',
+        'additional_args': [
+            '--browser=reference',
+            '--device=android',
+            '--jobs=1'
+        ],
+        'uses_sandbox_env': True,
+        'disabled': ['win', 'mac', 'linux']
     },
     {
         'name': 'Telemetry Integration Tests with Stable Browser',

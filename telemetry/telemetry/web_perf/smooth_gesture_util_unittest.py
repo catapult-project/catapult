@@ -111,7 +111,9 @@ class ScrollingPage(page_module.Page):
 
 class SmoothGestureTest(page_test_test_case.PageTestTestCase):
 
-  @decorators.Disabled('chromeos')  # crbug.com/483212
+  # https://github.com/catapult-project/catapult/issues/3099 (Android)
+  # crbug.com/483212 (CrOS)
+  @decorators.Disabled('android', 'chromeos')
   @decorators.Isolated  # Needed because of py_trace_event
   def testSmoothGestureAdjusted(self):
     ps = self.CreateEmptyPageSet()
