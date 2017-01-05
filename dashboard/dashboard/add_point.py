@@ -124,14 +124,14 @@ class AddPointHandler(post_data_handler.PostDataHandler):
       # TODO(qyearsley): Add test coverage. See catapult:#1346.
       return
 
-    data = self.request.get('data')
-    if not data:
+    data_str = self.request.get('data')
+    if not data_str:
       # TODO(qyearsley): Add test coverage. See catapult:#1346.
       self.ReportError('Missing "data" parameter.', status=400)
       return
 
     try:
-      data = json.loads(self.request.get('data'))
+      data = json.loads(data_str)
     except ValueError:
       self.ReportError('Invalid JSON string.', status=400)
       return
