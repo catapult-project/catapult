@@ -17,20 +17,42 @@ found in the LICENSE file.
 
 function getMetricValueCount(values, name) {
   for (var value of values)
-    if (value.name === name)
-      return value.numValues;
+    if (value.name === name && value.running !== undefined)
+      return value.running.count;
+
+  return undefined;
 }
 
 function getMetricValueSum(values, name) {
   for (var value of values)
-    if (value.name === name)
-      return value.sum;
+    if (value.name === name && value.running !== undefined)
+      return value.running.sum;
+
+  return undefined;
+}
+
+function getMetricValueMin(values, name) {
+  for (var value of values)
+    if (value.name === name && value.running !== undefined)
+      return value.running.min;
+
+  return undefined;
 }
 
 function getMetricValueAvg(values, name) {
   for (var value of values)
-    if (value.name === name)
-      return value.average;
+    if (value.name === name && value.running !== undefined)
+      return value.running.mean;
+
+  return undefined;
+}
+
+function getMetricValueMax(values, name) {
+  for (var value of values)
+    if (value.name === name && value.running !== undefined)
+      return value.running.max;
+
+  return undefined;
 }
 
 tr.b.unittest.testSuite(function() {
@@ -224,6 +246,42 @@ tr.b.unittest.testSuite(function() {
         'idle:power'), 750, 0.5);
     assert.closeTo(getMetricValueAvg(valueSet,
         'story:power'), 500, 0.5);
+  });
+
+  test('powerMetric_story_minAvgMax', function() {
+    var model = tr.c.TestUtils.newModel(function(model) {
+      var rendererProcess = model.getOrCreateProcess(1234);
+      var mainThread = rendererProcess.getOrCreateThread(1);
+      mainThread.name = 'CrRendererMain';
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+          cat: 'blink.user_timing',
+          title: 'navigationStart',
+          start: 0,
+          duration: 0.0,
+          args: {frame: '0xdeadbeef'}
+        }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+          cat: 'blink.user_timing',
+          title: 'navigationStart',
+          start: 1000,
+          duration: 0.0,
+          args: {frame: '0xdeadbeef'}
+        }));
+      model.device.powerSeries = new tr.model.PowerSeries(model.device);
+      for (var i = 0; i <= 1000; i++) {
+          model.device.powerSeries.addPowerSample(i.toString(), i.toString());
+      }
+      model.userModel.expectations.push(new tr.model.um.ResponseExpectation(
+          model, tr.importer.INITIATOR_TYPE.SCROLL, 0, 500));
+      model.userModel.expectations.push(new tr.model.um.IdleExpectation(
+          model, 500, 1500));
+    });
+    var valueSet = new tr.v.HistogramSet();
+    tr.metrics.sh.powerMetric(valueSet, model);
+
+    assert.closeTo(getMetricValueMin(valueSet, 'story:power'), 0, .01);
+    assert.closeTo(getMetricValueAvg(valueSet, 'story:power'), 499.5, .01);
+    assert.closeTo(getMetricValueMax(valueSet, 'story:power'), 999, .01);
   });
 
   test('powerMetric_generic_oneUEBeforeChrome', function() {
@@ -456,7 +514,7 @@ tr.b.unittest.testSuite(function() {
     tr.metrics.sh.powerMetric(valueSet, model);
     // Energy for first load is 20 W * 15.2 s
     // (interval from 0.2 s to 15.4 s)
-    assert.equal(getMetricValueCount(valueSet, 'after_load:power'), 0);
+    assert.equal(getMetricValueCount(valueSet, 'after_load:power'), undefined);
   });
 
   test('powerMetric_scroll_oneStageEachType', function() {
