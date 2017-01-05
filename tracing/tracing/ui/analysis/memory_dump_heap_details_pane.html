@@ -181,11 +181,11 @@ tr.exportTo('tr.ui.analysis', function() {
 
       // Child title (list index) -> Child HeapDumpTreeNode.
       var dimensionChildNodes = [];
-      tr.b.iterItems(dimensionChildTitleToStackFrameNodes,
-          function(childTitle, childStackFrameNodes) {
-            dimensionChildNodes.push(new HeapDumpTreeNode(childStackFrameNodes,
-                dimension, childTitle, this.heavyView_, this));
-          }, this);
+      for (var [childTitle, childStackFrameNodes] of
+          Object.entries(dimensionChildTitleToStackFrameNodes)) {
+        dimensionChildNodes.push(new HeapDumpTreeNode(childStackFrameNodes,
+            dimension, childTitle, this.heavyView_, this));
+      }
       this.lazyChildNodes_.set(dimension, dimensionChildNodes);
     },
 

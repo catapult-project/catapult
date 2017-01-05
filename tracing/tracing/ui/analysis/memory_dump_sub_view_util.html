@@ -215,11 +215,12 @@ tr.exportTo('tr.ui.analysis', function() {
           return;
         var fieldCells = row[config.cellKey];
         if (fieldCells !== undefined) {
-          tr.b.iterItems(fieldCells, function(fieldName, fieldCell) {
-            if (fieldCell === undefined || fieldCell.fields === undefined)
-              return;
+          for (var [fieldName, fieldCell] of Object.entries(fieldCells)) {
+            if (fieldCell === undefined || fieldCell.fields === undefined) {
+              continue;
+            }
             cellNames.add(fieldName);
-          });
+          }
         }
         var subRows = row.subRows;
         if (subRows !== undefined)

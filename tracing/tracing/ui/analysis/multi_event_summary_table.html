@@ -295,15 +295,12 @@ Polymer({
 
     var allEvents = new tr.model.EventSet();
     var rows = [];
-    tr.b.iterItems(
-        eventsByTitle,
-        function(title, eventsOfSingleTitle) {
-          for (var event of allEvents)
-            allEvents.push(event);
-          var row = new tr.ui.analysis.MultiEventSummary(
-            title, eventsOfSingleTitle);
-          rows.push(row);
-        });
+    for (var [title, eventsOfSingleTitle] of Object.entries(eventsByTitle)) {
+      for (var event of allEvents) allEvents.push(event);
+      var row = new tr.ui.analysis.MultiEventSummary(
+          title, eventsOfSingleTitle);
+      rows.push(row);
+    }
 
     this.updateTableColumns_(rows);
     this.$.table.tableRows = rows;

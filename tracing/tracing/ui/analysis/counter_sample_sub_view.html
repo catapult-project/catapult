@@ -85,17 +85,15 @@ found in the LICENSE file.
      * are shown. In the collapsed state, only the first sample is displayed.
      */
     getRows_: function(samples) {
-      var samplesByCounter = tr.b.group(samples, function(sample) {
-        return sample.series.counter.guid;
-      });
+      var samplesByCounter = tr.b.groupIntoMap(
+          samples, sample => sample.series.counter.guid);
 
       var rows = [];
-      tr.b.iterItems(samplesByCounter, function(unused, counterSamples) {
-        var samplesBySeries = tr.b.group(counterSamples, function(sample) {
-          return sample.series.guid;
-        });
+      for (var counterSamples of samplesByCounter.values()) {
+        var samplesBySeries = tr.b.groupIntoMap(
+            counterSamples, sample => sample.series.guid);
 
-        tr.b.iterItems(samplesBySeries, function(unused, seriesSamples) {
+        for (var seriesSamples of samplesBySeries.values()) {
           var seriesRows = this.getRowsForSamples_(seriesSamples);
           seriesRows[0].counter = seriesSamples[0].series.counter.name;
           seriesRows[0].series = seriesSamples[0].series.name;
@@ -106,8 +104,8 @@ found in the LICENSE file.
           }
 
           rows.push(seriesRows[0]);
-        }, this);
-      }, this);
+        }
+      }
 
       return rows;
     },

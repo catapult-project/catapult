@@ -603,19 +603,18 @@ tr.exportTo('tr.ui.analysis', function() {
               var totals = dump.totals;
               if (totals !== undefined) {
                 // Common totals.
-                tr.b.iterItems(UsedMemoryColumn.TOTALS_MAP,
-                    function(totalName, cellName) {
-                      var total = totals[totalName];
-                      if (total === undefined)
-                        return;
-                      sizes[cellName] = new ScalarNumeric(
-                          sizeInBytes_smallerIsBetter, total);
-                    });
+                for (var [totalName, cellName] of
+                    Object.entries(UsedMemoryColumn.TOTALS_MAP)) {
+                  var total = totals[totalName];
+                  if (total === undefined) continue;
+                  sizes[cellName] = new ScalarNumeric(
+                      sizeInBytes_smallerIsBetter, total);
+                }
 
                 // Platform-specific totals (e.g. private resident on Mac).
                 var platformSpecific = totals.platformSpecific;
                 if (platformSpecific !== undefined) {
-                  tr.b.iterItems(platformSpecific, function(name, size) {
+                  for (var [name, size] of Object.entries(platformSpecific)) {
                     // Change raw OS-specific total name to a user-friendly
                     // column title (e.g. 'private_bytes' -> 'Private').
                     if (name.endsWith(PLATFORM_SPECIFIC_TOTAL_NAME_SUFFIX)) {
@@ -626,21 +625,20 @@ tr.exportTo('tr.ui.analysis', function() {
                     name = name.charAt(0).toUpperCase() + name.slice(1);
                     sizes[name] = new ScalarNumeric(
                         sizeInBytes_smallerIsBetter, size);
-                  });
+                  }
                 }
               }
 
               // VM regions byte stats.
               var vmRegions = dump.mostRecentVmRegions;
               if (vmRegions !== undefined) {
-                tr.b.iterItems(UsedMemoryColumn.BYTE_STAT_MAP,
-                    function(byteStatName, cellName) {
-                      var byteStat = vmRegions.byteStats[byteStatName];
-                      if (byteStat === undefined)
-                        return;
-                      sizes[cellName] = new ScalarNumeric(
-                          sizeInBytes_smallerIsBetter, byteStat);
-                    });
+                for (var [byteStatName, cellName] of
+                     Object.entries(UsedMemoryColumn.BYTE_STAT_MAP)) {
+                  var byteStat = vmRegions.byteStats[byteStatName];
+                  if (byteStat === undefined) continue;
+                  sizes[cellName] = new ScalarNumeric(
+                      sizeInBytes_smallerIsBetter, byteStat);
+                }
               }
 
               return sizes;
