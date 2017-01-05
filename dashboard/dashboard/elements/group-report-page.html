@@ -117,7 +117,8 @@ found in the LICENSE file.
                     xsrf-token="{{xsrfToken}}"
                     alert-list="{{alertList}}"
                     extra-columns="{{extraColumns}}"
-                    on-changeselection="onAlertSelectionChange"></alerts-table>
+                    on-changeselection="onAlertSelectionChange"
+                    selected-keys="{{selectedKeys}}"></alerts-table>
     </div>
 
     <div id="bottom">
@@ -189,6 +190,11 @@ found in the LICENSE file.
         isInternalUser: {
           type: Boolean,
           value: false
+        },
+
+        selectedKeys: {
+          type: Array,
+          value: () => []
         },
 
         testSuites: {
@@ -409,9 +415,17 @@ found in the LICENSE file.
         }
       },
 
+      /**
+       * The url params determine what data to request from
+       * /group_report. sid is a hash of a group of keys.
+       */
       ready: function() {
         this.graphElements_ = {};
         var params = {};
+        var sid = uri.getParameter('sid');
+        if (sid) {
+          params['sid'] = sid;
+        }
         var keys = uri.getParameter('keys');
         if (keys) {
           params['keys'] = keys;
@@ -435,6 +449,7 @@ found in the LICENSE file.
             this.warningBug = response['warning_bug'];
             this.warningMessage = response['warning_message'];
             this.alertList = response['alert_list'];
+            this.selectedKeys = response['selected_keys'];
             if (this.warningMessage) {
               this.fire('display-toast', {
                   'content': this.$.warningtoast,

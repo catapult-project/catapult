@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import json
 import unittest
 
 import webapp2
@@ -10,10 +11,12 @@ import webtest
 from google.appengine.ext import ndb
 
 from dashboard import group_report
+from dashboard import short_uri
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import bug_data
+from dashboard.models import page_state
 from dashboard.models import sheriff
 from dashboard.models import stoppage_alert
 
@@ -92,6 +95,31 @@ class GroupReportTest(testing_common.TestCase):
     # Expect selected alerts + overlapping alerts,
     # but not the non-overlapping alert.
     self.assertEqual(5, len(alert_list))
+
+  def testPost_WithInvalidSidParameter_ShowsError(self):
+    response = self.testapp.post('/group_report?sid=foobar')
+    error = self.GetJsonValue(response, 'error')
+    self.assertIn('No anomalies specified', error)
+
+  def testPost_WithValidSidParameter(self):
+    sheriff_key = self._AddSheriff()
+    test_keys = self._AddTests()
+    selected_ranges = [(400, 900), (200, 700)]
+    selected_keys = self._AddAnomalyEntities(
+        selected_ranges, test_keys[0], sheriff_key)
+
+    json_keys = json.dumps(selected_keys)
+    state_id = short_uri.GenerateHash(','.join(selected_keys))
+    page_state.PageState(id=state_id, value=json_keys).put()
+
+    response = self.testapp.post('/group_report?sid=%s' % state_id)
+    alert_list = self.GetJsonValue(response, 'alert_list')
+
+    self.assertEqual(unicode(selected_keys[1], 'utf-8'),
+                     alert_list[0].get('key'))
+    self.assertEqual(unicode(selected_keys[0], 'utf-8'),
+                     alert_list[1].get('key'))
+    self.assertEqual(2, len(alert_list))
 
   def testPost_WithKeyOfNonExistentAlert_ShowsError(self):
     key = ndb.Key('Anomaly', 123)

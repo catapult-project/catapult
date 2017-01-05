@@ -13,6 +13,7 @@ found in the LICENSE file.
 <link rel="import" href="/dashboard/elements/bug-info-span.html">
 <link rel="import" href="/dashboard/elements/revision-range.html">
 <link rel="import" href="/dashboard/elements/triage-dialog.html">
+<link rel="import" href="/dashboard/static/simple_xhr.html">
 <link rel="import" href="/dashboard/static/uri.html">
 
 <link rel="import" href="/tracing/base/unit.html">
@@ -292,7 +293,15 @@ found in the LICENSE file.
         margin-top: 30px;
         z-index: 1000;
       }
+
+      .error {
+        color: #dd4b39;
+        font-weight: bold;
+      }
     </style>
+    <template is="dom-if" if="{{error}}">
+      <div class="error">{{error}}</div>
+    </template>
     <div>
       <triage-dialog id="triage" on-triaged="onTriaged" xsrf-token="{{xsrfToken}}">
       </triage-dialog>
@@ -390,19 +399,6 @@ found in the LICENSE file.
   (function() {
 
     /**
-     * Constructs a URI for the report page for this group of alerts.
-     * @param {Array.<Object>} group The group of alerts to graph.
-     * @return {string} The URI of the graph.
-     */
-    function getGraphUri(alerts) {
-      var keys = [];
-      for (var i = 0; i < alerts.length; i++) {
-        keys.push(alerts[i]['key']);
-      }
-      return '/group_report?keys=' + keys.join(',');
-    }
-
-    /**
      * Returns the intersection of the two ranges.
      *
      * @param {Object} range1 An range in the form:
@@ -443,6 +439,11 @@ found in the LICENSE file.
         extraColumns: {
           type: Array,
           notify: true,
+          value: () => []
+        },
+
+        selectedKeys: {
+          type: Array,
           value: () => []
         },
 
@@ -692,14 +693,14 @@ found in the LICENSE file.
        * @param {array} alerts The array of alerts to modify.
        */
       selectAlertsInKeysParameter: function(alerts) {
-        var keys = uri.getParameter('keys');
-        if (!keys)
+        if (!this.selectedKeys)
           return;
+        var keys = this.selectedKeys;
 
         var keySet = {};
-        keys.split(',').forEach(function(k) {
+        for (var k of keys) {
           keySet[k] = true;
-        });
+        }
         for (var i = 0; i < alerts.length; i++) {
           var alert = alerts[i];
           if (keySet[alerts[i].key]) {
@@ -1078,11 +1079,22 @@ found in the LICENSE file.
       },
 
       /**
-       * Opens a new window on the /report page for the currently checked
-       * alerts.
+       * Opens a new tab to be populated. Then sends a POST request
+       * to /short_uri with the keys. The reply is a hash of
+       * the keys, which we redirect the new tab to.
        */
       showGraphs: function() {
-        window.open(getGraphUri(this.checkedAlerts));
+        var newTab = window.open('about:blank');
+
+        simple_xhr.send('/short_uri',
+          {'page_state': JSON.stringify(this.checkedAlerts.map(
+            alert => alert.key))},
+          response => {
+            newTab.location.replace('/group_report?sid=' + response.sid);
+          },
+          msg => {
+            this.error = msg;
+          });
       },
 
       /**
