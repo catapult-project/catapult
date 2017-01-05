@@ -47,8 +47,8 @@ tr.exportTo('tr.model.um', function() {
     // |loadFinishedEvent|, if present, signals that this is a main frame.
     this.loadFinishedEvent = undefined;
 
-    // Startup LoadIRs do not have renderProcess, routingId, or
-    // parentRoutingId. Maybe RenderLoadIR should be a separate class?
+    // Startup LoadExpectations do not have renderProcess, routingId, or
+    // parentRoutingId. Maybe RenderLoadExpectation should be a separate class?
   }
 
   LoadExpectation.prototype = {

@@ -19,7 +19,7 @@ tr.exportTo('tr.importer', function() {
 
   function UserExpectationVerifier() {
     this.customizeModelCallback_ = undefined;
-    this.expectedIRs_ = undefined;
+    this.expectedUEs_ = undefined;
   }
 
   UserExpectationVerifier.prototype = {
@@ -27,9 +27,9 @@ tr.exportTo('tr.importer', function() {
       this.customizeModelCallback_ = cmc;
     },
 
-    // |irs| must be sorted by start time.
-    set expectedIRs(irs) {
-      this.expectedIRs_ = irs;
+    // |ues| must be sorted by start time.
+    set expectedUEs(ues) {
+      this.expectedUEs_ = ues;
     },
 
     verify: function() {
@@ -40,21 +40,21 @@ tr.exportTo('tr.importer', function() {
       try {
         var i = 0;
         assert.lengthOf(model.userModel.expectations,
-            this.expectedIRs_.length);
+            this.expectedUEs_.length);
         var actualUEIterator = model.userModel.expectations[Symbol.iterator]();
-        for (var expectedIR of this.expectedIRs_) {
+        for (var expectedUE of this.expectedUEs_) {
           var actualUE = actualUEIterator.next();
           assert.equal(false, actualUE.done);
-          var at = 'IRs[' + (i++) + '].';
-          assert.equal(expectedIR.title, actualUE.value.title, at + 'title');
-          if (expectedIR.name !== undefined)
-            assert.equal(expectedIR.name, actualUE.value.name, at + 'name');
-          assert.equal(expectedIR.start, actualUE.value.start, at + 'start');
-          assert.equal(expectedIR.end, actualUE.value.end, at + 'end');
-          assert.equal(expectedIR.eventCount,
+          var at = 'UEs[' + (i++) + '].';
+          assert.equal(expectedUE.title, actualUE.value.title, at + 'title');
+          if (expectedUE.name !== undefined)
+            assert.equal(expectedUE.name, actualUE.value.name, at + 'name');
+          assert.equal(expectedUE.start, actualUE.value.start, at + 'start');
+          assert.equal(expectedUE.end, actualUE.value.end, at + 'end');
+          assert.equal(expectedUE.eventCount,
               actualUE.value.associatedEvents.length, at + 'eventCount');
           if (actualUE instanceof tr.model.um.ResponseExpectation) {
-            assert.equal(expectedIR.isAnimationBegin || false,
+            assert.equal(expectedUE.isAnimationBegin || false,
                 actualUEs.isAnimationBegin, at + 'isAnimationBegin');
           }
         }

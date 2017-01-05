@@ -39,7 +39,7 @@ tr.b.unittest.testSuite(function() {
           {parentModel: model, start: 50, duration: 100}));
       model.userModel.expectations.push(new tr.model.um.StubExpectation(
           {parentModel: model, start: 0, duration: 50}));
-      // Model.createImportTracesTask() automatically sorts IRs by start time.
+      // Model.createImportTracesTask() automatically sorts UEs by start time.
     });
     assert.equal(2, track.subRows_.length);
     assert.equal(2, track.subRows_[0].length);

@@ -216,7 +216,7 @@ tr.exportTo('tr.importer', function() {
    * mouse, or by a touch-drag gesture on a track-pad. The physical wheel
    * causes MouseWheel events that are much more spaced out, and have no
    * chance of hitting 60fps, so they are each turned into separate Response
-   * IRs. The track-pad causes MouseWheel events that are much closer
+   * UEs. The track-pad causes MouseWheel events that are much closer
    * together, and are expected to be 60fps, so the first event in a sequence
    * is turned into a Response, and the rest are merged into an Animation.
    * NB this threshold uses the two events' start times, unlike
@@ -235,7 +235,7 @@ tr.exportTo('tr.importer', function() {
 
       if (currentPE &&
           (prevEvent.start + MOUSE_WHEEL_THRESHOLD_MS) >= event.start) {
-        if (currentPE.irType === ProtoExpectation.ANIMATION_TYPE) {
+        if (currentPE.type === ProtoExpectation.ANIMATION_TYPE) {
           currentPE.pushEvent(event);
         } else {
           currentPE = new ProtoExpectation(ProtoExpectation.ANIMATION_TYPE,
@@ -289,11 +289,11 @@ tr.exportTo('tr.importer', function() {
 
           // There may be more than 100ms between the start of the mouse down
           // and the start of the mouse up. Chrome and the web don't start to
-          // respond until the mouse up. ResponseIRs start deducting comfort
+          // respond until the mouse up. Responses start deducting comfort
           // at 100ms duration. If more than that 100ms duration is burned
           // through while waiting for the user to release the
-          // mouse button, then ResponseIR will unfairly start deducting
-          // comfort before Chrome even has a mouse up to respond to.
+          // mouse button, then ResponseExpectation will unfairly start
+          // deducting comfort before Chrome even has a mouse up to respond to.
           // It is technically possible for a site to afford one response on
           // mouse down and another on mouse up, but that is an edge case. The
           // vast majority of mouse downs are not responses.
@@ -319,7 +319,7 @@ tr.exportTo('tr.importer', function() {
             protoExpectations.push(currentPE);
           } else {
             // Merge this event into an Animation.
-            if (currentPE.irType === ProtoExpectation.ANIMATION_TYPE) {
+            if (currentPE.type === ProtoExpectation.ANIMATION_TYPE) {
               currentPE.pushEvent(event);
             } else {
               currentPE = new ProtoExpectation(
@@ -378,7 +378,7 @@ tr.exportTo('tr.importer', function() {
    * TapCancels are part of Responses, which seems strange. They always go
    * with scrolls, so they'll probably be merged with scroll Responses.
    * TapCancels can take a significant amount of time and account for a
-   * significant amount of work, which should be grouped with the scroll IRs
+   * significant amount of work, which should be grouped with the scroll UEs
    * if possible.
    *
    * RRRRRRR
@@ -468,7 +468,7 @@ tr.exportTo('tr.importer', function() {
           // middle of an extended pinch gesture, then multiple Animations
           // will be created.
           if (!currentPE ||
-              ((currentPE.irType === ProtoExpectation.RESPONSE_TYPE) &&
+              ((currentPE.type === ProtoExpectation.RESPONSE_TYPE) &&
                 sawFirstUpdate) ||
               !currentPE.isNear(event, INPUT_MERGE_THRESHOLD_MS)) {
             currentPE = new ProtoExpectation(
@@ -563,7 +563,7 @@ tr.exportTo('tr.importer', function() {
             // chrome acknowledges them, not when they update the screen. So
             // there might be one more frame during the FlingCancel, after
             // this Animation ends. That won't affect the scoring algorithms,
-            // and it will make the IRs look more correct if they don't
+            // and it will make the UEs look more correct if they don't
             // overlap unnecessarily.
             currentPE.end = event.start;
             currentPE = undefined;
@@ -632,7 +632,7 @@ tr.exportTo('tr.importer', function() {
           // TouchStart plus the first TouchMove, then the rest of the
           // TouchMoves constitute an Animation.
           if ((sawFirstMove &&
-              (currentPE.irType === ProtoExpectation.RESPONSE_TYPE)) ||
+              (currentPE.type === ProtoExpectation.RESPONSE_TYPE)) ||
               !currentPE.isNear(event, INPUT_MERGE_THRESHOLD_MS)) {
             // If there's already a touchmove in the currentPE or it's not
             // near event, then finish it and start a new animation.
@@ -641,7 +641,7 @@ tr.exportTo('tr.importer', function() {
                 ProtoExpectation.ANIMATION_TYPE, INITIATOR_TYPE.TOUCH);
             currentPE.pushEvent(event);
             // It's possible for there to be a gap between TouchMoves, but
-            // that doesn't mean that there should be an Idle IR there.
+            // that doesn't mean that there should be an Idle UE there.
             currentPE.start = prevEnd;
             protoExpectations.push(currentPE);
           } else {
@@ -698,7 +698,7 @@ tr.exportTo('tr.importer', function() {
         case INPUT_TYPE.SCROLL_UPDATE:
           if (currentPE) {
             if (currentPE.isNear(event, INPUT_MERGE_THRESHOLD_MS) &&
-                ((currentPE.irType === ProtoExpectation.ANIMATION_TYPE) ||
+                ((currentPE.type === ProtoExpectation.ANIMATION_TYPE) ||
                 !sawFirstUpdate)) {
               currentPE.pushEvent(event);
               sawFirstUpdate = true;
@@ -980,13 +980,13 @@ tr.exportTo('tr.importer', function() {
       newPEs.push(pe);
 
       // Only consider Responses for now.
-      if (pe.irType !== ProtoExpectation.RESPONSE_TYPE)
+      if (pe.type !== ProtoExpectation.RESPONSE_TYPE)
         continue;
 
       for (var i = 0; i < protoExpectations.length; ++i) {
         var otherPE = protoExpectations[i];
 
-        if (otherPE.irType !== pe.irType)
+        if (otherPE.type !== pe.type)
           continue;
 
         if (!otherPE.intersects(pe))
@@ -1030,7 +1030,7 @@ tr.exportTo('tr.importer', function() {
       newPEs.push(pe);
 
       // Only consider Animations for now.
-      if (pe.irType !== ProtoExpectation.ANIMATION_TYPE)
+      if (pe.type !== ProtoExpectation.ANIMATION_TYPE)
         continue;
 
       var isCSS = pe.containsSliceTitle(CSS_ANIMATION_TITLE);
@@ -1040,7 +1040,7 @@ tr.exportTo('tr.importer', function() {
       for (var i = 0; i < protoExpectations.length; ++i) {
         var otherPE = protoExpectations[i];
 
-        if (otherPE.irType !== pe.irType)
+        if (otherPE.type !== pe.type)
           continue;
 
         // Don't merge CSS Animations with any other types.
@@ -1086,12 +1086,12 @@ tr.exportTo('tr.importer', function() {
   function fixResponseAnimationStarts(protoExpectations) {
     protoExpectations.forEach(function(ape) {
       // Only consider animations for now.
-      if (ape.irType !== ProtoExpectation.ANIMATION_TYPE)
+      if (ape.type !== ProtoExpectation.ANIMATION_TYPE)
         return;
 
       protoExpectations.forEach(function(rpe) {
         // Only consider responses for now.
-        if (rpe.irType !== ProtoExpectation.RESPONSE_TYPE)
+        if (rpe.type !== ProtoExpectation.RESPONSE_TYPE)
           return;
 
         // Only consider responses that end during the animation.
@@ -1115,11 +1115,11 @@ tr.exportTo('tr.importer', function() {
    */
   function fixTapResponseTouchAnimations(protoExpectations) {
     function isTapResponse(pe) {
-      return (pe.irType === ProtoExpectation.RESPONSE_TYPE) &&
+      return (pe.type === ProtoExpectation.RESPONSE_TYPE) &&
               pe.containsTypeNames([INPUT_TYPE.TAP]);
     }
     function isTouchAnimation(pe) {
-      return (pe.irType === ProtoExpectation.ANIMATION_TYPE) &&
+      return (pe.type === ProtoExpectation.ANIMATION_TYPE) &&
               pe.containsTypeNames([INPUT_TYPE.TOUCH_MOVE]) &&
               !pe.containsTypeNames([
                   INPUT_TYPE.SCROLL_UPDATE, INPUT_TYPE.PINCH_UPDATE]);
@@ -1150,7 +1150,7 @@ tr.exportTo('tr.importer', function() {
 
         // pe might be the Touch Animation, but the merged ProtoExpectation
         // should be a Response.
-        pe.irType = ProtoExpectation.RESPONSE_TYPE;
+        pe.type = ProtoExpectation.RESPONSE_TYPE;
 
         pe.merge(otherPE);
         protoExpectations.splice(i, 1);
@@ -1166,7 +1166,7 @@ tr.exportTo('tr.importer', function() {
     var frameEventsByPid = getSortedFrameEventsByProcess(modelHelper);
 
     for (var pe of protoExpectations) {
-      if (pe.irType !== ProtoExpectation.ANIMATION_TYPE) {
+      if (pe.type !== ProtoExpectation.ANIMATION_TYPE) {
         newPEs.push(pe);
         continue;
       }
@@ -1190,7 +1190,7 @@ tr.exportTo('tr.importer', function() {
       // use here is.
       if (frameEvents.length === 0 &&
               !(pe.initiatorType === INITIATOR_TYPE.WEBGL)) {
-        pe.irType = ProtoExpectation.IGNORED_TYPE;
+        pe.type = ProtoExpectation.IGNORED_TYPE;
         newPEs.push(pe);
         continue;
       }
@@ -1233,7 +1233,7 @@ tr.exportTo('tr.importer', function() {
   }
 
   /**
-   * Find ProtoExpectations, post-process them, convert them to real IRs.
+   * Find ProtoExpectations, post-process them, convert them to real UEs.
    */
   function findInputExpectations(modelHelper) {
     var sortedInputEvents = getSortedInputEvents(modelHelper);
@@ -1243,13 +1243,13 @@ tr.exportTo('tr.importer', function() {
         modelHelper, protoExpectations);
     checkAllInputEventsHandled(sortedInputEvents, protoExpectations);
 
-    var irs = [];
+    var expectations = [];
     protoExpectations.forEach(function(protoExpectation) {
       var ir = protoExpectation.createInteractionRecord(modelHelper.model);
       if (ir)
-        irs.push(ir);
+        expectations.push(ir);
     });
-    return irs;
+    return expectations;
   }
 
   return {

@@ -72,19 +72,19 @@ tr.exportTo('tr.importer', function() {
     },
 
     // Find all unassociated top-level ThreadSlices. If they start during an
-    // Idle or Load IR, then add their entire hierarchy to that IR.
-    collectUnassociatedEvents_: function(rirs) {
-      var vacuumIRs = [];
-      rirs.forEach(function(ir) {
+    // Idle or Load UE, then add their entire hierarchy to that UE.
+    collectUnassociatedEvents_: function(expectations) {
+      var vacuumUEs = [];
+      expectations.forEach(function(ir) {
         if (ir instanceof tr.model.um.IdleExpectation ||
             ir instanceof tr.model.um.LoadExpectation ||
             ir instanceof tr.model.um.StartupExpectation)
-          vacuumIRs.push(ir);
+          vacuumUEs.push(ir);
       });
-      if (vacuumIRs.length === 0)
+      if (vacuumUEs.length === 0)
         return;
 
-      var allAssociatedEvents = tr.model.getAssociatedEvents(rirs);
+      var allAssociatedEvents = tr.model.getAssociatedEvents(expectations);
       var unassociatedEvents = tr.model.getUnassociatedEvents(
           this.model, allAssociatedEvents);
 
@@ -95,8 +95,8 @@ tr.exportTo('tr.importer', function() {
         if (!event.isTopLevel)
           return;
 
-        for (var iri = 0; iri < vacuumIRs.length; ++iri) {
-          var ir = vacuumIRs[iri];
+        for (var iri = 0; iri < vacuumUEs.length; ++iri) {
+          var ir = vacuumUEs[iri];
 
           if ((event.start >= ir.start) &&
               (event.start < ir.end)) {
@@ -107,23 +107,23 @@ tr.exportTo('tr.importer', function() {
       });
     },
 
-    // Fill in the empty space between IRs with IdleIRs.
-    findIdleExpectations: function(otherIRs) {
+    // Fill in the empty space between UEs with IdleUEs.
+    findIdleExpectations: function(otherUEs) {
       if (this.model.bounds.isEmpty)
         return;
       var emptyRanges = tr.b.findEmptyRangesBetweenRanges(
-          tr.b.convertEventsToRanges(otherIRs),
+          tr.b.convertEventsToRanges(otherUEs),
           this.model.bounds);
-      var irs = [];
+      var expectations = [];
       var model = this.model;
       emptyRanges.forEach(function(range) {
         // Ignore insignificantly tiny idle ranges.
         if (range.max < (range.min + INSIGNIFICANT_MS))
           return;
-        irs.push(new tr.model.um.IdleExpectation(
+        expectations.push(new tr.model.um.IdleExpectation(
             model, range.min, range.max - range.min));
       });
-      return irs;
+      return expectations;
     }
   };
 
@@ -177,7 +177,7 @@ tr.exportTo('tr.importer', function() {
     return modelLines;
   }
 
-  function createExpectedIRLinesFromModel(model) {
+  function createExpectedUELinesFromModel(model) {
     var expectedLines = [];
     var irCount = model.userModel.expectations.length;
     model.userModel.expectations.forEach(function(ir, index) {
@@ -194,7 +194,7 @@ tr.exportTo('tr.importer', function() {
     return expectedLines;
   }
 
-  function createIRFinderTestCaseStringFromModel(model) {
+  function createUEFinderTestCaseStringFromModel(model) {
     var filename = window.location.hash.substr(1);
     var testName = filename.substr(filename.lastIndexOf('/') + 1);
     testName = testName.substr(0, testName.indexOf('.'));
@@ -213,8 +213,8 @@ tr.exportTo('tr.importer', function() {
       testLines.push.apply(testLines,
           createCustomizeModelLinesFromModel(model));
       testLines.push('    };');
-      testLines.push('    verifier.expectedIRs = [');
-      testLines.push.apply(testLines, createExpectedIRLinesFromModel(model));
+      testLines.push('    verifier.expectedUEs = [');
+      testLines.push.apply(testLines, createExpectedUELinesFromModel(model));
       testLines.push('    ];');
       testLines.push('    verifier.verify();');
       testLines.push('  });');
@@ -226,7 +226,7 @@ tr.exportTo('tr.importer', function() {
 
   return {
     UserModelBuilder,
-    createIRFinderTestCaseStringFromModel,
+    createUEFinderTestCaseStringFromModel,
   };
 });
 </script>

@@ -33,7 +33,7 @@ tr.b.unittest.testSuite(function() {
     var verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
     };
-    verifier.expectedIRs = [
+    verifier.expectedUEs = [
     ];
     verifier.verify();
   });
@@ -48,7 +48,7 @@ tr.b.unittest.testSuite(function() {
           {title: 'VideoPlayback', start: 200, end: 300, isTopLevel: true}));
       ChromeTestUtils.addFrameEvent(model, {start: 210, end: 220});
     };
-    verifier.expectedIRs = [
+    verifier.expectedUEs = [
       {title: 'Video Animation', start: 0, end: 100, eventCount: 2},
       {title: 'Idle', start: 100, end: 200, eventCount: 0},
       {title: 'Video Animation', start: 200, end: 300, eventCount: 2},
@@ -66,7 +66,7 @@ tr.b.unittest.testSuite(function() {
           {title: 'VideoPlayback', start: 100, end: 300, isTopLevel: true}));
       ChromeTestUtils.addFrameEvent(model, {start: 210, end: 220});
     };
-    verifier.expectedIRs = [
+    verifier.expectedUEs = [
       {title: 'Video Animation', start: 0, end: 300, eventCount: 4},
     ];
     verifier.verify();
@@ -82,7 +82,7 @@ tr.b.unittest.testSuite(function() {
           {title: 'VideoPlayback', start: 100, end: 200, isTopLevel: true}));
       ChromeTestUtils.addFrameEvent(model, {start: 110, end: 120});
     };
-    verifier.expectedIRs = [
+    verifier.expectedUEs = [
       {title: 'Video Animation', start: 0, end: 300, eventCount: 4},
     ];
     verifier.verify();
@@ -105,7 +105,7 @@ tr.b.unittest.testSuite(function() {
           model, INPUT_TYPE.MOUSE_MOVE, {start: 130, end: 140, id: '0x102'});
       addFrameEventForInput(model, mouseMove);
     };
-    verifier.expectedIRs = [
+    verifier.expectedUEs = [
       {title: 'Idle', start: 0, end: 10, eventCount: 0},
       {title: 'Mouse Response', start: 10, end: 20, eventCount: 4},
       {title: 'Idle', start: 20, end: 70, eventCount: 0},
@@ -131,7 +131,7 @@ tr.b.unittest.testSuite(function() {
           model, INPUT_TYPE.MOUSE_MOVE, {start: 200, end: 250, id: '0x102'});
       addFrameEventForInput(model, mouseMove);
     };
-    verifier.expectedIRs = [
+    verifier.expectedUEs = [
       {title: 'Mouse Response', start: 0, end: 50, eventCount: 3},
       {title: 'Mouse Response', start: 50, end: 100, eventCount: 3},
       {title: 'Idle', start: 100, end: 200, eventCount: 0},
@@ -148,7 +148,7 @@ tr.b.unittest.testSuite(function() {
       ChromeTestUtils.addInputEvent(model, INPUT_TYPE.MOUSE_DOWN,
           {start: 50, end: 100});
     };
-    verifier.expectedIRs = [
+    verifier.expectedUEs = [
       {title: 'Idle', start: 0, end: 100, eventCount: 0}
     ];
     verifier.verify();
@@ -156,8 +156,8 @@ tr.b.unittest.testSuite(function() {
 
   test('unassociatedEvents', function() {
     // Unassociated ThreadSlices that start during an Idle should be associated
-    // with it. Expect the Idle IR to have 2 associated events: both of the
-    // ThreadSlices in the model.
+    // with it. Expect the IdleExpectation to have 2 associated events: both of
+    // the ThreadSlices in the model.
     var verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       var start = tr.c.TestUtils.newSliceEx(
@@ -170,7 +170,7 @@ tr.b.unittest.testSuite(function() {
       end.isTopLevel = true;
       model.browserMain.sliceGroup.pushSlice(end);
     };
-    verifier.expectedIRs = [
+    verifier.expectedUEs = [
       {title: 'Idle', start: 0, end: 10, eventCount: 2}
     ];
     verifier.verify();
@@ -183,7 +183,7 @@ tr.b.unittest.testSuite(function() {
       ChromeTestUtils.addNavigationStartEvent(model, {start: 10});
       ChromeTestUtils.addFrameEvent(model, {start: 19, end: 20});
     };
-    verifier.expectedIRs = [
+    verifier.expectedUEs = [
       {title: 'Idle', start: 0, end: 10, eventCount: 1},
       {title: 'Successful Load', start: 10, end: 20, eventCount: 1}
     ];
@@ -204,7 +204,7 @@ tr.b.unittest.testSuite(function() {
       // 1 Idle event.
       ChromeTestUtils.addRenderingEvent(model, {start: 35, end: 36});
     };
-    verifier.expectedIRs = [
+    verifier.expectedUEs = [
       {title: 'Idle', start: 0, end: 10, eventCount: 4},
       {title: 'Successful Load', start: 10, end: 30, eventCount: 0},
       {title: 'Idle', start: 30, end: 40, eventCount: 2}
@@ -279,7 +279,7 @@ tr.b.unittest.testSuite(function() {
           {start: 1627, end: 2310});
       ChromeTestUtils.addFrameEvent(model, {start: 2990, end: 3000});
     };
-    verifier.expectedIRs = [
+    verifier.expectedUEs = [
       {title: 'Idle', start: 0, end: 919, eventCount: 1},
       {title: 'Scroll Response', start: 919, end: 1054,
           eventCount: 6, isAnimationBegin: true},
@@ -305,7 +305,7 @@ tr.b.unittest.testSuite(function() {
       ChromeTestUtils.addInputEvent(model, INPUT_TYPE.CHAR,
           {start: 10, end: 50});
     };
-    verifier.expectedIRs = [
+    verifier.expectedUEs = [
       {title: 'Keyboard Response', start: 0, end: 50, eventCount: 2}
     ];
     verifier.verify();
@@ -321,7 +321,7 @@ tr.b.unittest.testSuite(function() {
       ChromeTestUtils.addInputEvent(model, INPUT_TYPE.MOUSE_WHEEL,
           {start: 400, end: 500});
     };
-    verifier.expectedIRs = [
+    verifier.expectedUEs = [
       {title: 'Mouse Response', start: 0, end: 100, eventCount: 1},
       {title: 'Idle', start: 100, end: 200, eventCount: 0},
       {title: 'Mouse Response', start: 200, end: 300, eventCount: 1},
@@ -362,7 +362,7 @@ tr.b.unittest.testSuite(function() {
       ChromeTestUtils.addFrameEvent(model,
           {start: 199, end: 200, isTopLevel: true});
     };
-    verifier.expectedIRs = [
+    verifier.expectedUEs = [
       {title: 'MouseWheel Response', start: 0, end: 20, eventCount: 1},
       {title: 'MouseWheel Animation', start: 20, end: 75,
           eventCount: 5},
@@ -385,7 +385,7 @@ tr.b.unittest.testSuite(function() {
       ChromeTestUtils.addInputEvent(model, INPUT_TYPE.MOUSE_UP,
           {start: 200, end: 210});
     };
-    verifier.expectedIRs = [
+    verifier.expectedUEs = [
       {title: 'Idle', start: 0, end: 200, eventCount: 0},
       {title: 'Mouse Response', start: 200, end: 210, eventCount: 2}
     ];
@@ -398,7 +398,7 @@ tr.b.unittest.testSuite(function() {
       ChromeTestUtils.addInputEvent(model, INPUT_TYPE.MOUSE_MOVE,
           {start: 0, end: 100});
     };
-    verifier.expectedIRs = [
+    verifier.expectedUEs = [
       {title: 'Idle', start: 0, end: 100, eventCount: 0}
     ];
     verifier.verify();
@@ -419,7 +419,7 @@ tr.b.unittest.testSuite(function() {
           model, INPUT_TYPE.MOUSE_MOVE, {start: 221, end: 240});
       addFrameEventForInput(model, mouseMove);
     };
-    verifier.expectedIRs = [
+    verifier.expectedUEs = [
       {title: 'Idle', start: 0, end: 200, eventCount: 0},
       {title: 'Mouse Response', start: 200, end: 215, eventCount: 4},
       {title: 'Mouse Animation', start: 215, end: 240, eventCount: 6}
@@ -457,7 +457,7 @@ tr.b.unittest.testSuite(function() {
       ChromeTestUtils.addInputEvent(model, INPUT_TYPE.SCROLL_END,
           {start: 360, end: 500});
     };
-    verifier.expectedIRs = [
+    verifier.expectedUEs = [
       {title: 'Scroll Response', start: 0, end: 100, eventCount: 2,
           isAnimationBegin: true},
       {title: 'Scroll Animation', start: 100, end: 150, eventCount: 5},
@@ -490,7 +490,7 @@ tr.b.unittest.testSuite(function() {
       ChromeTestUtils.addEvent(model.rendererMain, {
           title: 'DrawingBuffer::prepareMailbox', start: 60, end: 62});
     };
-    verifier.expectedIRs = [
+    verifier.expectedUEs = [
       {title: 'WebGL Animation', start: 0, end: 62, eventCount: 4},
     ];
     verifier.verify();
@@ -532,7 +532,7 @@ tr.b.unittest.testSuite(function() {
       ChromeTestUtils.addEvent(model.rendererMain, {
           title: 'DrawingBuffer::prepareMailbox', start: 260, end: 262});
     };
-    verifier.expectedIRs = [
+    verifier.expectedUEs = [
       {title: 'WebGL Animation', start: 0, end: 62, eventCount: 4},
       {title: 'Idle', start: 62, end: 220, eventCount: 0},
       {title: 'WebGL Animation', start: 220, end: 262, eventCount: 3}
@@ -567,7 +567,7 @@ tr.b.unittest.testSuite(function() {
       ChromeTestUtils.addEvent(model.rendererMain, {
           title: 'DrawingBuffer::prepareMailbox', start: 260, end: 262});
     };
-    verifier.expectedIRs = [
+    verifier.expectedUEs = [
       {title: 'WebGL Animation', start: 0, end: 62, eventCount: 4},
       {title: 'Idle', start: 62, end: 262, eventCount: 0},
     ];
@@ -592,7 +592,7 @@ tr.b.unittest.testSuite(function() {
       ChromeTestUtils.addEvent(model.rendererMain, {
           title: 'DrawingBuffer::prepareMailbox', start: 260, end: 262});
     };
-    verifier.expectedIRs = [
+    verifier.expectedUEs = [
       {title: 'Idle', start: 0, end: 262, eventCount: 0},
     ];
     verifier.verify();
@@ -611,7 +611,7 @@ tr.b.unittest.testSuite(function() {
           title: 'PageAnimator::serviceScriptedAnimations',
           start: 40, end: 42});
     };
-    verifier.expectedIRs = [
+    verifier.expectedUEs = [
       {title: 'Idle', start: 0, end: 42, eventCount: 0},
     ];
     verifier.verify();
@@ -626,7 +626,7 @@ tr.b.unittest.testSuite(function() {
         title: 'PageAnimator::serviceScriptedAnimations',
         start: 4, end: 6});
     };
-    verifier.expectedIRs = [
+    verifier.expectedUEs = [
       {title: 'WebGL Animation', start: 0, end: 2, eventCount: 1},
       {title: 'Idle', start: 2, end: 6, eventCount: 0},
     ];
@@ -649,7 +649,7 @@ tr.b.unittest.testSuite(function() {
           {start: 150, end: 180});
       ChromeTestUtils.addFrameEvent(model, {start: 290, end: 300});
     };
-    verifier.expectedIRs = [
+    verifier.expectedUEs = [
       {title: 'CSS Animation', start: 0, end: 200, eventCount: 4},
       {title: 'Fling Animation', start: 150, end: 300, eventCount: 3}
     ];
@@ -681,7 +681,7 @@ tr.b.unittest.testSuite(function() {
       // at the end of the top-level event, not tne end of the whole trace,
       ChromeTestUtils.addFrameEvent(model, {start: 1050, end: 1060});
     };
-    verifier.expectedIRs = [
+    verifier.expectedUEs = [
       {title: 'Idle', start: 0, end: 100, eventCount: 1},
       {title: 'CSS Animation', start: 100, end: 200, eventCount: 5},
       {title: 'Idle', start: 200, end: 300, eventCount: 1},
@@ -746,7 +746,7 @@ tr.b.unittest.testSuite(function() {
       ChromeTestUtils.addFrameEvent(model, {start: 10, end: 20});
       ChromeTestUtils.addFrameEvent(model, {start: 390, end: 400});
     };
-    verifier.expectedIRs = [
+    verifier.expectedUEs = [
       {title: 'CSS Animation', start: 0, end: 350, eventCount: 16},
       {title: 'Idle', start: 350, end: 382, eventCount: 0},
       {title: 'CSS Animation', start: 382, end: 500, eventCount: 4},
@@ -763,7 +763,7 @@ tr.b.unittest.testSuite(function() {
       ChromeTestUtils.addFrameEvent(model, {start: 199, end: 200});
       ChromeTestUtils.addFrameEvent(model, {start: 290, end: 300});
     };
-    verifier.expectedIRs = [
+    verifier.expectedUEs = [
       {title: 'Fling Animation', start: 32, end: 200, eventCount: 3},
       {title: 'Idle', start: 200, end: 300, eventCount: 1}
     ];
@@ -780,7 +780,7 @@ tr.b.unittest.testSuite(function() {
       ChromeTestUtils.addFrameEvent(model, {start: 104, end: 105});
       ChromeTestUtils.addFrameEvent(model, {start: 149, end: 150});
     };
-    verifier.expectedIRs = [
+    verifier.expectedUEs = [
       {title: 'Fling Animation', start: 32, end: 105, eventCount: 3},
       {title: 'Idle', start: 105, end: 150, eventCount: 1}
     ];
@@ -809,7 +809,7 @@ tr.b.unittest.testSuite(function() {
           {start: 200, end: 220});
       ChromeTestUtils.addFrameEvent(model, {start: 230, end: 240});
     };
-    verifier.expectedIRs = [
+    verifier.expectedUEs = [
       {title: 'Fling Animation', start: 0, end: 100, eventCount: 3},
       {title: 'Touch Response', start: 100, end: 140, eventCount: 2,
           isAnimationBegin: true},
@@ -825,7 +825,7 @@ tr.b.unittest.testSuite(function() {
       ChromeTestUtils.addNavigationStartEvent(model, {start: 0});
       ChromeTestUtils.addFirstContentfulPaintEvent(model, {start: 20});
     };
-    verifier.expectedIRs = [
+    verifier.expectedUEs = [
       {title: 'Successful Load', start: 0, end: 20, eventCount: 0}
     ];
     verifier.verify();
@@ -840,7 +840,7 @@ tr.b.unittest.testSuite(function() {
       ChromeTestUtils.addCreateThreadsEvent(model, {start: 25, end: 30});
       ChromeTestUtils.addFrameEvent(model, {start: 11, end: 20});
     };
-    verifier.expectedIRs = [
+    verifier.expectedUEs = [
       {title: 'Startup', start: 2, end: 20, eventCount: 3},
       {title: 'Idle', start: 20, end: 30, eventCount: 1}
     ];
@@ -852,7 +852,7 @@ tr.b.unittest.testSuite(function() {
     verifier.customizeModelCallback = function(model) {
       ChromeTestUtils.addFrameEvent(model, {start: 0, end: 10});
     };
-    verifier.expectedIRs = [
+    verifier.expectedUEs = [
       {title: 'Idle', start: 0, end: 10, eventCount: 1}
     ];
     verifier.verify();
@@ -866,7 +866,7 @@ tr.b.unittest.testSuite(function() {
       ChromeTestUtils.addFirstContentfulPaintEvent(model, {start: 4});
       ChromeTestUtils.addFrameEvent(model, {start: 12, end: 13});
     };
-    verifier.expectedIRs = [
+    verifier.expectedUEs = [
       {title: 'Idle', start: 0, end: 1, eventCount: 1},
       {title: 'Successful Load', start: 1, end: 4, eventCount: 0},
       {title: 'Idle', start: 4, end: 13, eventCount: 1}
@@ -882,7 +882,7 @@ tr.b.unittest.testSuite(function() {
       ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_END,
           {start: 200, end: 210});
     };
-    verifier.expectedIRs = [
+    verifier.expectedUEs = [
       {title: 'Touch Response', start: 0, end: 210, eventCount: 2,
           isAnimationBegin: true}
     ];
@@ -902,7 +902,7 @@ tr.b.unittest.testSuite(function() {
           {start: 200, end: 300});
       ChromeTestUtils.addFrameEvent(model, {start: 299, end: 300});
     };
-    verifier.expectedIRs = [
+    verifier.expectedUEs = [
       {title: 'Touch Response', start: 0, end: 100, eventCount: 2,
           isAnimationBegin: true},
       {title: 'Touch Animation', start: 100, end: 300, eventCount: 3}
@@ -920,7 +920,7 @@ tr.b.unittest.testSuite(function() {
       ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TAP,
           {start: 320, end: 350});
     };
-    verifier.expectedIRs = [
+    verifier.expectedUEs = [
       {title: 'Tap Response', start: 0, end: 50, eventCount: 1},
       {title: 'Idle', start: 50, end: 300, eventCount: 0},
       {title: 'Tap Response', start: 300, end: 350, eventCount: 2}
@@ -936,7 +936,7 @@ tr.b.unittest.testSuite(function() {
       ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TAP_CANCEL,
           {start: 300, end: 350});
     };
-    verifier.expectedIRs = [
+    verifier.expectedUEs = [
       {title: 'Tap Response', start: 0, end: 100, eventCount: 1},
       {title: 'Idle', start: 100, end: 300, eventCount: 0},
       {title: 'Tap Response', start: 300, end: 350, eventCount: 1}
@@ -952,7 +952,7 @@ tr.b.unittest.testSuite(function() {
       ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TAP_CANCEL,
           {start: 150, end: 200});
     };
-    verifier.expectedIRs = [
+    verifier.expectedUEs = [
       {title: 'Tap Response', start: 0, end: 200, eventCount: 2}
     ];
     verifier.verify();
@@ -983,7 +983,7 @@ tr.b.unittest.testSuite(function() {
       ChromeTestUtils.addInputEvent(model, INPUT_TYPE.PINCH_END,
           {start: 460, end: 500});
     };
-    verifier.expectedIRs = [
+    verifier.expectedUEs = [
       {title: 'Idle', start: 0, end: 100, eventCount: 1},
       {title: 'Pinch Response', start: 100, end: 160, eventCount: 2,
           isAnimationBegin: true},
@@ -1010,7 +1010,7 @@ tr.b.unittest.testSuite(function() {
           {start: 180, end: 200});
       ChromeTestUtils.addFrameEvent(model, {start: 199, end: 200});
     };
-    verifier.expectedIRs = [
+    verifier.expectedUEs = [
       {title: 'Touch Response', start: 0, end: 100, eventCount: 2,
           isAnimationBegin: true},
       {title: 'Touch Response', start: 50, end: 150, eventCount: 2,
@@ -1062,7 +1062,7 @@ tr.b.unittest.testSuite(function() {
           {start: 190, end: 210});
       ChromeTestUtils.addFrameEvent(model, {start: 215, end: 220});
     };
-    verifier.expectedIRs = [
+    verifier.expectedUEs = [
       {title: 'Idle', start: 0, end: 20, eventCount: 1},
       {title: 'Pinch Response', start: 20, end: 110,
           eventCount: 9, isAnimationBegin: true},
@@ -1085,7 +1085,7 @@ tr.b.unittest.testSuite(function() {
           {start: 80, end: 100});
       ChromeTestUtils.addFrameEvent(model, {start: 190, end: 200});
     };
-    verifier.expectedIRs = [
+    verifier.expectedUEs = [
       {title: 'Scroll Animation', start: 0, end: 100, eventCount: 3},
       {title: 'Fling Animation', start: 80, end: 200, eventCount: 3}
     ];
@@ -1141,7 +1141,7 @@ tr.b.unittest.testSuite(function() {
       ChromeTestUtils.addEvent(model.browserMain,
           {title: 'model end', start: 3184, end: 3185});
     };
-    verifier.expectedIRs = [
+    verifier.expectedUEs = [
       {title: 'Idle', start: 0, end: 1274, eventCount: 0},
       {title: 'Scroll Response', start: 1274, end: 1387,
           eventCount: 6, isAnimationBegin: true},
@@ -1167,7 +1167,7 @@ tr.b.unittest.testSuite(function() {
       ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TAP,
           {start: 15, end: 100});
     };
-    verifier.expectedIRs = [
+    verifier.expectedUEs = [
       {title: 'Tap Response', start: 0, end: 100,
           eventCount: 5}
     ];
