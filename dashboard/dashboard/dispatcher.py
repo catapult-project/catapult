@@ -6,6 +6,7 @@
 
 import webapp2
 
+from dashboard import add_dates_to_stoppage_alerts
 from dashboard import add_point
 from dashboard import add_point_queue
 from dashboard import alerts
@@ -56,6 +57,8 @@ from dashboard import update_test_suites
 
 
 _URL_MAPPING = [
+    ('add_dates_to_stoppage_alerts',
+     add_dates_to_stoppage_alerts.AddDatesToStoppageAlertsHandler),
     ('/add_point', add_point.AddPointHandler),
     ('/add_point_queue', add_point_queue.AddPointQueueHandler),
     ('/alerts', alerts.AlertsHandler),

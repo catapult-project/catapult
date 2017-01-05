@@ -4,6 +4,7 @@
 
 """URL endpoint to add new graph data to the datastore."""
 
+import datetime
 import json
 import logging
 
@@ -316,6 +317,7 @@ def _GetOrCreateTest(name, parent_test_path, properties):
     alert = existing.stoppage_alert.get()
     if alert:
       alert.recovered = True
+      alert.last_row_timestamp = datetime.datetime.now()
       alert.put()
     else:
       logging.warning('Stoppage alert %s not found.', existing.stoppage_alert)

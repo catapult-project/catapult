@@ -37,6 +37,7 @@ class StoppageAlertTest(testing_common.TestCase):
     self.assertFalse(alert.mail_sent)
     self.assertIsNone(alert.bug_id)
     self.assertIsNotNone(alert.timestamp)
+    self.assertEqual(row.timestamp, alert.last_row_timestamp)
 
   def testCreateStoppageAlert_InternalOnly(self):
     test, row = self._AddSampleData()

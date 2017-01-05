@@ -72,6 +72,7 @@ class GetOrCreateAncestorsTest(testing_common.TestCase):
     add_point_queue._GetOrCreateAncestors('M', 'b', 'suite/foo')
     self.assertIsNone(test.key.get().stoppage_alert)
     self.assertTrue(alert_key.get().recovered)
+    self.assertIsNotNone(alert_key.get().last_row_timestamp)
 
 
 if __name__ == '__main__':

@@ -34,6 +34,10 @@ class StoppageAlert(alert.Alert):
   # Whether new points have been received for the test after this alert.
   recovered = ndb.BooleanProperty(indexed=True, default=False)
 
+  # The time the last row added was seen.
+  # This deprecates last_row_date.
+  last_row_timestamp = ndb.DateTimeProperty()
+
   # Computed properties are treated like member variables, so they have
   # lowercase names, even though they look like methods to pylint.
   # pylint: disable=invalid-name
@@ -98,7 +102,8 @@ def CreateStoppageAlert(test, row):
       parent=ndb.Key('StoppageAlertParent', test.test_path),
       id=row.revision,
       internal_only=test.internal_only,
-      sheriff=test.sheriff)
+      sheriff=test.sheriff,
+      last_row_timestamp=row.timestamp)
   alert_group.GroupAlerts([new_alert], test.suite_name, 'StoppageAlert')
   grouped_alert_keys = StoppageAlert.query(
       StoppageAlert.group == new_alert.group).fetch(keys_only=True)
