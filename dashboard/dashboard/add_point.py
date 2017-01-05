@@ -130,6 +130,9 @@ class AddPointHandler(post_data_handler.PostDataHandler):
       self.ReportError('Missing "data" parameter.', status=400)
       return
 
+    self.AddData(data_str)
+
+  def AddData(self, data_str):
     try:
       data = json.loads(data_str)
     except ValueError:
