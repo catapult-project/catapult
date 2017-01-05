@@ -1217,11 +1217,10 @@ tr.b.unittest.testSuite(function() {
 
     var cells = createCells(values, function(dict) {
       var fields = {};
-      tr.b.iterItems(dict, function(key, value) {
-        if (value === undefined)
-          return;
+      for (var [key, value] of Object.entries(dict)) {
+        if (value === undefined) continue;
         fields[key] = new ScalarNumeric(sizeInBytes_smallerIsBetter, value);
-      });
+      }
       return fields;
     });
     assert.deepEqual(Object.keys(cells), ['a', 'b', 'd']);

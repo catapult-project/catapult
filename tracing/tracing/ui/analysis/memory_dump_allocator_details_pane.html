@@ -677,7 +677,7 @@ tr.exportTo('tr.ui.analysis', function() {
       // Recursively create sub-rows for children (if applicable).
       var subRows = [];
       var suballocationClassificationRootNode = undefined;
-      tr.b.iterItems(childDumpNameToDumps, function(childName, childDumps) {
+      for (var childDumps of Object.values(childDumpNameToDumps)) {
         var childRow = this.createAllocatorRowRecursively_(childDumps);
         if (childRow.suballocatedBy === undefined) {
           // Not a suballocation row: just append it.
@@ -688,7 +688,7 @@ tr.exportTo('tr.ui.analysis', function() {
               this.classifySuballocationRow_(
                   childRow, suballocationClassificationRootNode);
         }
-      }, this);
+      }
 
       // Build the tree of suballocations (if applicable).
       if (suballocationClassificationRootNode !== undefined) {
@@ -743,17 +743,13 @@ tr.exportTo('tr.ui.analysis', function() {
           existingRow.contexts[i] = newContext;
           ['numericCells', 'diagnosticCells'].forEach(function(cellKey) {
             var suballocationCells = suballocationRow[cellKey];
-            if (suballocationCells === undefined)
-              return;
-            tr.b.iterItems(suballocationCells, function(cellName, cell) {
-              if (cell === undefined)
-                return;
+            if (suballocationCells === undefined) return;
+            for (var [cellName, cell] of Object.entries(suballocationCells)) {
+              if (cell === undefined) continue;
               var fields = cell.fields;
-              if (fields === undefined)
-                return;
+              if (fields === undefined) continue;
               var field = fields[i];
-              if (field === undefined)
-                return;
+              if (field === undefined) continue;
               var existingCells = existingRow[cellKey];
               if (existingCells === undefined) {
                 existingCells = {};
@@ -766,7 +762,7 @@ tr.exportTo('tr.ui.analysis', function() {
                 existingCells[cellName] = existingCell;
               }
               existingCell.fields[i] = field;
-            });
+            }
           });
         }
         existingRow.fullNames.push.apply(

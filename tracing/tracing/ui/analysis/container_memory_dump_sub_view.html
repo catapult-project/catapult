@@ -53,14 +53,11 @@ tr.exportTo('tr.ui.analysis', function() {
 
       // Group the selected memory dumps by container name and sort them
       // chronologically.
-      this.dumpsByContainerName_ = tr.b.group(this.currentSelection_.toArray(),
-          function(dump) {
-            return dump.containerName;
-          });
-      tr.b.iterItems(this.dumpsByContainerName_,
-          function(containerName, dumps) {
-            dumps.sort(function(a, b) { return a.start - b.start; });
-          });
+      this.dumpsByContainerName_ = tr.b.group(
+          this.currentSelection_.toArray(), dump => dump.containerName);
+      for (var dumps of Object.values(this.dumpsByContainerName_)) {
+        dumps.sort((a, b) => a.start - b.start);
+      }
 
       this.updateContents_();
     },
