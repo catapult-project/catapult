@@ -171,7 +171,6 @@ Bisect Details
   Configuration: staging_android_nexus5X_perf_bisect
   Benchmark    : foo
   Metric       : Total/Score
-  Change       : 7.35% | 0 -> 1
 
 Revision      Exit Code      N
 100           0 +- 0         10      good
@@ -213,6 +212,7 @@ Bisect Details
   Configuration: staging_android_nexus5X_perf_bisect
   Benchmark    : foo
   Metric       : Total/Score
+  Change       : 7.35% | 100 -> 200
 
 Revision      Result        N
 100           100 +- 0      10      good
@@ -259,6 +259,7 @@ Bisect Details
   Configuration: staging_android_nexus5X_perf_bisect
   Benchmark    : foo
   Metric       : Total/Score
+  Change       : 7.35% | 1 -> 2
 
 Suspected Commit Range
   1 commits in range
@@ -362,6 +363,7 @@ Bisect Details
   Configuration: staging_android_nexus5X_perf_bisect
   Benchmark    : foo
   Metric       : Total/Score
+  Change       : 7.35% | 100 -> 200
 
 Suspected Commit Range
   3 commits in range
@@ -426,6 +428,7 @@ Bisect Details
   Configuration: staging_android_nexus5X_perf_bisect
   Benchmark    : foo
   Metric       : Total/Score
+  Change       : 7.35% | 100 -> 200
 
 Suspected Commit Range
   13 commits in range
@@ -546,6 +549,7 @@ Bisect Details
   Configuration: staging_android_nexus5X_perf_bisect
   Benchmark    : foo
   Metric       : Total/Score
+  Change       : 7.35% | 100 -> 200
 
 Revision      Result        N
 100           100 +- 0      10      good
@@ -595,6 +599,7 @@ Bisect Details
   Configuration: staging_android_nexus5X_perf_bisect
   Benchmark    : foo
   Metric       : Total/Score
+  Change       : 7.35% | 100 -> 200
 
 Revision      Result        N
 100           100 +- 0      10      good
@@ -646,6 +651,7 @@ Bisect Details
   Configuration: staging_android_nexus5X_perf_bisect
   Benchmark    : foo
   Metric       : Total/Score
+  Change       : 7.35% | 1 -> 2
 
 Revision      Result      N
 100           1 +- 0      10      good
@@ -690,6 +696,7 @@ Bisect Details
   Configuration: staging_android_nexus5X_perf_bisect
   Benchmark    : foo
   Metric       : Total/Score
+  Change       : 7.35%% | 100 -> 200
 
 Suspected Commit Range
   1 commits in range

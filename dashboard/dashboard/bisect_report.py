@@ -257,18 +257,19 @@ def _GenerateReport(results_data):
 
   # Print out the suspect commit info
   if results_data.get('culprit_data'):
-    results_data['good_mean'] = '?'
-    results_data['bad_mean'] = '?'
-    for r in results_data.get('revision_data', []):
-      if r.get('commit_hash') == results_data.get('good_revision'):
-        results_data['good_mean'] = r.get('mean_value', '?')
-      if r.get('commit_hash') == results_data.get('bad_revision'):
-        results_data['bad_mean'] = r.get('mean_value', '?')
     result += _BISECT_SUSPECTED_COMMIT % results_data.get('culprit_data')
   result += _BISECT_DETAILS % results_data
 
-  if message == STATUS_REPRO_WITH_CULPRIT:
-    result += _BISECT_DETAILS_CHANGE % results_data
+  if results_data.get('test_type') == 'perf':
+    results_data['good_mean'] = None
+    results_data['bad_mean'] = None
+    for r in results_data.get('revision_data', []):
+      if r.get('commit_hash') == results_data.get('good_revision'):
+        results_data['good_mean'] = r.get('mean_value')
+      if r.get('commit_hash') == results_data.get('bad_revision'):
+        results_data['bad_mean'] = r.get('mean_value')
+    if results_data['good_mean'] and results_data['bad_mean']:
+      result += _BISECT_DETAILS_CHANGE % results_data
 
   # If we're unable to narrow for whatever reason, try to print out a link to
   # a log containing all entries in the suspected range.
