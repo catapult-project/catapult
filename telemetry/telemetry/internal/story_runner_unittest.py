@@ -38,10 +38,15 @@ from telemetry.wpr import archive_info
 # This linter complains if we define classes nested inside functions.
 # pylint: disable=bad-super-call
 
+# pylint: disable=too-many-lines
+
 
 class FakePlatform(object):
   def CanMonitorThermalThrottling(self):
     return False
+
+  def GetOSName(self):
+    pass
 
   def WaitForTemperature(self, _):
     pass
@@ -810,13 +815,15 @@ class StoryRunnerTest(unittest.TestCase):
         root_mock.story, root_mock.results, root_mock.state, root_mock.test)
 
     self.assertEquals(root_mock.method_calls, [
+      mock.call.state.platform.GetOSName(),
       mock.call.test.WillRunStory(root_mock.state.platform),
       mock.call.state.WillRunStory(root_mock.story),
       mock.call.state.CanRunStory(root_mock.story),
       mock.call.state.RunStory(root_mock.results),
       mock.call.test.Measure(root_mock.state.platform, root_mock.results),
       mock.call.state.DidRunStory(root_mock.results),
-      mock.call.test.DidRunStory(root_mock.state.platform)
+      mock.call.test.DidRunStory(root_mock.state.platform),
+      mock.call.state.platform.GetOSName(),
     ])
 
   def testRunStoryAndProcessErrorIfNeeded_successLegacy(self):
@@ -826,11 +833,13 @@ class StoryRunnerTest(unittest.TestCase):
         root_mock.story, root_mock.results, root_mock.state, root_mock.test)
 
     self.assertEquals(root_mock.method_calls, [
+      mock.call.state.platform.GetOSName(),
       mock.call.state.WillRunStory(root_mock.story),
       mock.call.state.CanRunStory(root_mock.story),
       mock.call.state.RunStory(root_mock.results),
       mock.call.state.DidRunStory(root_mock.results),
-      mock.call.test.DidRunPage(root_mock.state.platform)
+      mock.call.test.DidRunPage(root_mock.state.platform),
+      mock.call.state.platform.GetOSName(),
     ])
 
   def testRunStoryAndProcessErrorIfNeeded_tryTimeout(self):
@@ -842,12 +851,14 @@ class StoryRunnerTest(unittest.TestCase):
         root_mock.story, root_mock.results, root_mock.state, root_mock.test)
 
     self.assertEquals(root_mock.method_calls, [
+      mock.call.state.platform.GetOSName(),
       mock.call.test.WillRunStory(root_mock.state.platform),
       mock.call.state.WillRunStory(root_mock.story),
       mock.call.state.DumpStateUponFailure(root_mock.story, root_mock.results),
       mock.call.results.AddValue(FailureValueMatcher('foo')),
       mock.call.state.DidRunStory(root_mock.results),
-      mock.call.test.DidRunStory(root_mock.state.platform)
+      mock.call.test.DidRunStory(root_mock.state.platform),
+      mock.call.state.platform.GetOSName(),
     ])
 
   def testRunStoryAndProcessErrorIfNeeded_tryError(self):
@@ -860,13 +871,15 @@ class StoryRunnerTest(unittest.TestCase):
           root_mock.story, root_mock.results, root_mock.state, root_mock.test)
 
     self.assertEquals(root_mock.method_calls, [
+      mock.call.state.platform.GetOSName(),
       mock.call.test.WillRunStory(root_mock.state.platform),
       mock.call.state.WillRunStory(root_mock.story),
       mock.call.state.CanRunStory(root_mock.story),
       mock.call.state.DumpStateUponFailure(root_mock.story, root_mock.results),
       mock.call.results.AddValue(FailureValueMatcher('foo')),
       mock.call.state.DidRunStory(root_mock.results),
-      mock.call.test.DidRunStory(root_mock.state.platform)
+      mock.call.test.DidRunStory(root_mock.state.platform),
+      mock.call.state.platform.GetOSName(),
     ])
 
   def testRunStoryAndProcessErrorIfNeeded_tryUnsupportedAction(self):
@@ -878,13 +891,15 @@ class StoryRunnerTest(unittest.TestCase):
         root_mock.story, root_mock.results, root_mock.state, root_mock.test)
 
     self.assertEquals(root_mock.method_calls, [
+      mock.call.state.platform.GetOSName(),
       mock.call.test.WillRunStory(root_mock.state.platform),
       mock.call.state.WillRunStory(root_mock.story),
       mock.call.state.CanRunStory(root_mock.story),
       mock.call.state.RunStory(root_mock.results),
       mock.call.results.AddValue(SkipValueMatcher()),
       mock.call.state.DidRunStory(root_mock.results),
-      mock.call.test.DidRunStory(root_mock.state.platform)
+      mock.call.test.DidRunStory(root_mock.state.platform),
+      mock.call.state.platform.GetOSName(),
     ])
 
   def testRunStoryAndProcessErrorIfNeeded_tryUnhandlable(self):
@@ -897,11 +912,13 @@ class StoryRunnerTest(unittest.TestCase):
           root_mock.story, root_mock.results, root_mock.state, root_mock.test)
 
     self.assertEquals(root_mock.method_calls, [
+      mock.call.state.platform.GetOSName(),
       mock.call.test.WillRunStory(root_mock.state.platform),
       mock.call.state.DumpStateUponFailure(root_mock.story, root_mock.results),
       mock.call.results.AddValue(FailureValueMatcher('foo')),
       mock.call.state.DidRunStory(root_mock.results),
-      mock.call.test.DidRunStory(root_mock.state.platform)
+      mock.call.test.DidRunStory(root_mock.state.platform),
+      mock.call.state.platform.GetOSName(),
     ])
 
   def testRunStoryAndProcessErrorIfNeeded_finallyException(self):
@@ -914,6 +931,7 @@ class StoryRunnerTest(unittest.TestCase):
           root_mock.story, root_mock.results, root_mock.state, root_mock.test)
 
     self.assertEquals(root_mock.method_calls, [
+      mock.call.state.platform.GetOSName(),
       mock.call.test.WillRunStory(root_mock.state.platform),
       mock.call.state.WillRunStory(root_mock.story),
       mock.call.state.CanRunStory(root_mock.story),
@@ -933,6 +951,7 @@ class StoryRunnerTest(unittest.TestCase):
         root_mock.story, root_mock.results, root_mock.state, root_mock.test)
 
     self.assertEquals(root_mock.method_calls, [
+      mock.call.state.platform.GetOSName(),
       mock.call.test.WillRunStory(root_mock.state.platform),
       mock.call.state.WillRunStory(root_mock.story),
       mock.call.state.CanRunStory(root_mock.story),
@@ -953,6 +972,7 @@ class StoryRunnerTest(unittest.TestCase):
           root_mock.story, root_mock.results, root_mock.state, root_mock.test)
 
     self.assertEquals(root_mock.method_calls, [
+      mock.call.state.platform.GetOSName(),
       mock.call.test.WillRunStory(root_mock.state.platform),
       mock.call.state.WillRunStory(root_mock.story),
       mock.call.state.DumpStateUponFailure(root_mock.story, root_mock.results),
@@ -972,6 +992,7 @@ class StoryRunnerTest(unittest.TestCase):
         root_mock.story, root_mock.results, root_mock.state, root_mock.test)
 
     self.assertEquals(root_mock.method_calls, [
+      mock.call.state.platform.GetOSName(),
       mock.call.test.WillRunStory(root_mock.state.platform),
       mock.call.results.AddValue(SkipValueMatcher()),
       mock.call.state.DidRunStory(root_mock.results)
@@ -988,6 +1009,7 @@ class StoryRunnerTest(unittest.TestCase):
           root_mock.story, root_mock.results, root_mock.state, root_mock.test)
 
     self.assertEquals(root_mock.method_calls, [
+      mock.call.state.platform.GetOSName(),
       mock.call.test.WillRunStory(root_mock.state.platform),
       mock.call.state.WillRunStory(root_mock.story),
       mock.call.state.CanRunStory(root_mock.story),
