@@ -36,14 +36,6 @@ _COMMIT_HASH_CACHE_KEY = 'commit_hash_%s'
 # Amount of time to pass before deleting a try job.
 _STALE_TRYJOB_DELTA = datetime.timedelta(days=7)
 
-_TEST_TYPE_PERF_REGRESSION = 'PERF REGRESSION'
-_TEST_TYPE_TEST_FAILURE = 'TEST FAILURE'
-
-_AUTO_ASSIGN_HEADER = """
-<b>=== %(test_type)s ===</b>
-
-"""
-
 _AUTO_ASSIGN_MSG = """
 === Auto-CCing suspected CL author %(author)s ===
 
@@ -220,19 +212,6 @@ def _SendPerfTryJobEmail(job):
                  html=email_report['html'])
 
 
-def _GetAutoAssignHeader(results_data):
-  """Returns auto assign message header based on test type.
-
-  Args:
-    results_data: Bisect results data.
-  """
-  test_type = _TEST_TYPE_PERF_REGRESSION
-  if results_data.get('test_type') == 'return_code':
-    test_type = _TEST_TYPE_TEST_FAILURE
-
-  return _AUTO_ASSIGN_HEADER % {'test_type': test_type}
-
-
 def _PostSuccessfulResult(job, issue_tracker):
   """Posts successful bisect results on issue tracker."""
   # From the results, get the list of people to CC (if applicable), the bug
@@ -254,8 +233,7 @@ def _PostSuccessfulResult(job, issue_tracker):
   # Add a friendly message to author of culprit CL.
   owner = None
   if authors_to_cc:
-    comment = '%s%s%s' % (
-        _GetAutoAssignHeader(results_data),
+    comment = '%s%s' % (
         _AUTO_ASSIGN_MSG % {'author': authors_to_cc[0]},
         comment)
     owner = authors_to_cc[0]

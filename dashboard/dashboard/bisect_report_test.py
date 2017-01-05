@@ -83,6 +83,7 @@ class BisectReportTest(testing_common.TestCase):
       if 'mean' in r:
         data['mean_value'] = r.get('mean', 0)
         data['std_dev'] = r.get('std_dev', 0)
+      data['depot_name'] = r.get('depot_name', 'chromium')
       revision_data.append(data)
     return revision_data
 
@@ -110,41 +111,86 @@ class BisectReportTest(testing_common.TestCase):
     job = self._AddTryJob(results_data)
 
     log_with_culprit = r"""
-===== BISECT JOB RESULTS =====
-Status: completed
+=== BISECT JOB RESULTS ===
+<b>Perf regression found with culprit</b>
 
+Suspected Commit
+  Author : author
+  Commit : 102
+  Date   : Thu Dec 08 01:25:35 2016
+  Subject: subject
 
-===== SUSPECTED CL(s) =====
-Subject : subject
-Author  : author
-Commit description:
-  commit_info
-Commit  : 102
-Date    : Thu Dec 08 01:25:35 2016
+Bisect Details
+  Configuration: staging_android_nexus5X_perf_bisect
+  Benchmark    : foo
+  Metric       : Total/Score
+  Change       : 7.35% | 100 -> 200
 
+Revision      Result        N
+100           100 +- 0      10      good
+101           100 +- 0      10      good
+102           200 +- 0      10      bad       <--
+103           200 +- 0      10      bad
 
-===== TESTED REVISIONS =====
-Revision  Mean  Std Dev  N   Good?
-100       100   0        10  good
-101       100   0        10  good
-102       200   0        10  bad    <--
-103       200   0        10  bad
+To Run This Test
+  src/tools/perf/run_benchmark foo
 
-Bisect job ran on: staging_android_nexus5X_perf_bisect
-Bug ID: 12345
-
-Test Command: src/tools/perf/run_benchmark foo
-Test Metric: Total/Score
-Relative Change: 7.35%
-
-Buildbot stdio: http://build.chromium.org/513
-Job details: https://test-rietveld.appspot.com/200039
+Debug Info
+  https://test-rietveld.appspot.com/200039
 
 
 | O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
 |  X  | for more information addressing perf regression bugs. For feedback,
 | / \ | file a bug with component Tests>AutoBisect.  Thank you!"""
     self.assertEqual(log_with_culprit, bisect_report.GetReport(job))
+
+  def testGetReport_CompletedWithCulpritReturnCode(self):
+    results_data = self._BisectResults(
+        revision_data=self._Revisions(
+            [
+                {'commit': 100, 'mean': 0, 'num': 10, 'result': 'good'},
+                {'commit': 101, 'mean': 0, 'num': 10, 'result': 'good'},
+                {'commit': 102, 'mean': 1, 'num': 10, 'result': 'bad'},
+                {'commit': 103, 'mean': 1, 'num': 10, 'result': 'bad'},
+            ]),
+        culprit_data=self._Culprit(cl=102),
+        good_revision=100, bad_revision=103, test_type='return_code')
+    job = self._AddTryJob(results_data)
+
+    expected_output = r"""
+=== BISECT JOB RESULTS ===
+<b>Test failure found with culprit</b>
+
+Suspected Commit
+  Author : author
+  Commit : 102
+  Date   : Thu Dec 08 01:25:35 2016
+  Subject: subject
+
+Bisect Details
+  Configuration: staging_android_nexus5X_perf_bisect
+  Benchmark    : foo
+  Metric       : Total/Score
+  Change       : 7.35% | 0 -> 1
+
+Revision      Exit Code      N
+100           0 +- 0         10      good
+101           0 +- 0         10      good
+102           1 +- 0         10      bad       <--
+103           1 +- 0         10      bad
+
+To Run This Test
+  src/tools/perf/run_benchmark foo
+
+Debug Info
+  https://test-rietveld.appspot.com/200039
+
+
+| O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
+|  X  | for more information addressing perf regression bugs. For feedback,
+| / \ | file a bug with component Tests>AutoBisect.  Thank you!"""
+
+    self.assertEqual(expected_output, bisect_report.GetReport(job))
 
   def testGetReport_CompletedWithoutCulprit(self):
     results_data = self._BisectResults(
@@ -160,24 +206,23 @@ Job details: https://test-rietveld.appspot.com/200039
     job = self._AddTryJob(results_data)
 
     log_without_culprit = r"""
-===== BISECT JOB RESULTS =====
-Status: completed
+=== BISECT JOB RESULTS ===
+<b>NO Perf regression found</b>
 
+Bisect Details
+  Configuration: staging_android_nexus5X_perf_bisect
+  Benchmark    : foo
+  Metric       : Total/Score
 
-===== TESTED REVISIONS =====
-Revision  Mean  Std Dev  N   Good?
-100       100   0        10  good
-103       200   0        10  bad
+Revision      Result        N
+100           100 +- 0      10      good
+103           200 +- 0      10      bad
 
-Bisect job ran on: staging_android_nexus5X_perf_bisect
-Bug ID: 12345
+To Run This Test
+  src/tools/perf/run_benchmark foo
 
-Test Command: src/tools/perf/run_benchmark foo
-Test Metric: Total/Score
-Relative Change: 7.35%
-
-Buildbot stdio: http://build.chromium.org/513
-Job details: https://test-rietveld.appspot.com/200039
+Debug Info
+  https://test-rietveld.appspot.com/200039
 
 
 | O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
@@ -185,6 +230,59 @@ Job details: https://test-rietveld.appspot.com/200039
 | / \ | file a bug with component Tests>AutoBisect.  Thank you!"""
 
     self.assertEqual(log_without_culprit, bisect_report.GetReport(job))
+
+  def testGetReport_CompletedWithoutCulpritUnknownDepot(self):
+    results_data = self._BisectResults(
+        revision_data=self._Revisions(
+            [
+                {'commit': 100, 'mean': 1, 'num': 10,
+                 'depot_name': 'a', 'result': 'good'},
+                {'commit': 101, 'mean': 1, 'num': 10,
+                 'depot_name': 'a', 'result': 'good'},
+                {'commit': 102, 'mean': 2, 'num': 10,
+                 'depot_name': 'a', 'result': 'bad'},
+                {'commit': 103, 'mean': 2, 'num': 10,
+                 'depot_name': 'a', 'result': 'bad'},
+            ]),
+        culprit_data=None,
+        good_revision=100, bad_revision=103)
+    job = self._AddTryJob(results_data)
+
+    expected_output = r"""
+=== BISECT JOB RESULTS ===
+<b>Perf regression found but unable to narrow commit range</b>
+
+Build failures prevented the bisect from narrowing the range further.
+
+
+Bisect Details
+  Configuration: staging_android_nexus5X_perf_bisect
+  Benchmark    : foo
+  Metric       : Total/Score
+
+Suspected Commit Range
+  1 commits in range
+  Unknown depot, please contact team to have this added.
+
+
+Revision      Result      N
+100           1 +- 0      10      good
+101           1 +- 0      10      good
+102           2 +- 0      10      bad
+103           2 +- 0      10      bad
+
+To Run This Test
+  src/tools/perf/run_benchmark foo
+
+Debug Info
+  https://test-rietveld.appspot.com/200039
+
+
+| O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
+|  X  | for more information addressing perf regression bugs. For feedback,
+| / \ | file a bug with component Tests>AutoBisect.  Thank you!"""
+
+    self.assertEqual(expected_output, bisect_report.GetReport(job))
 
   def testGetReport_CompletedWithBuildFailures(self):
     results_data = self._BisectResults(
@@ -202,36 +300,33 @@ Job details: https://test-rietveld.appspot.com/200039
     job = self._AddTryJob(results_data)
 
     log_without_culprit = r"""
-===== BISECT JOB RESULTS =====
-Status: completed
+=== BISECT JOB RESULTS ===
+<b>Perf regression found with culprit</b>
 
+Suspected Commit
+  Author : author
+  Commit : 104
+  Date   : Thu Dec 08 01:25:35 2016
+  Subject: subject
 
-===== SUSPECTED CL(s) =====
-Subject : subject
-Author  : author
-Commit description:
-  commit_info
-Commit  : 104
-Date    : Thu Dec 08 01:25:35 2016
+Bisect Details
+  Configuration: staging_android_nexus5X_perf_bisect
+  Benchmark    : foo
+  Metric       : Total/Score
+  Change       : 7.35% | 100 -> 200
 
+Revision      Result        N
+100           100 +- 0      10      good
+102           100 +- 0      10      good
+103           100 +- 0      10      good
+104           200 +- 0      10      bad       <--
+105           200 +- 0      10      bad
 
-===== TESTED REVISIONS =====
-Revision  Mean  Std Dev  N   Good?
-100       100   0        10  good
-102       100   0        10  good
-103       100   0        10  good
-104       200   0        10  bad    <--
-105       200   0        10  bad
+To Run This Test
+  src/tools/perf/run_benchmark foo
 
-Bisect job ran on: staging_android_nexus5X_perf_bisect
-Bug ID: 12345
-
-Test Command: src/tools/perf/run_benchmark foo
-Test Metric: Total/Score
-Relative Change: 7.35%
-
-Buildbot stdio: http://build.chromium.org/513
-Job details: https://test-rietveld.appspot.com/200039
+Debug Info
+  https://test-rietveld.appspot.com/200039
 
 
 | O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
@@ -256,36 +351,43 @@ Job details: https://test-rietveld.appspot.com/200039
         good_revision=100, bad_revision=106)
     job = self._AddTryJob(results_data)
 
-    log_without_culprit = r"""
-===== BISECT JOB RESULTS =====
-Status: completed
+    expected_output = r"""
+=== BISECT JOB RESULTS ===
+<b>Perf regression found but unable to narrow commit range</b>
+
+Build failures prevented the bisect from narrowing the range further.
 
 
-===== TESTED REVISIONS =====
-Revision  Mean  Std Dev  N    Good?
-100       100   0        10   good
-102       100   0        10   good
-103       ---   ---      ---  build failure
-104       ---   ---      ---  build failure
-105       200   0        10   bad
-106       200   0        10   bad
+Bisect Details
+  Configuration: staging_android_nexus5X_perf_bisect
+  Benchmark    : foo
+  Metric       : Total/Score
 
-Bisect job ran on: staging_android_nexus5X_perf_bisect
-Bug ID: 12345
+Suspected Commit Range
+  3 commits in range
+  https://chromium.googlesource.com/chromium/src/+log/102..105
 
-Test Command: src/tools/perf/run_benchmark foo
-Test Metric: Total/Score
-Relative Change: 7.35%
 
-Buildbot stdio: http://build.chromium.org/513
-Job details: https://test-rietveld.appspot.com/200039
+Revision      Result        N
+100           100 +- 0      10       good
+102           100 +- 0      10       good
+103           ---           ---      build failure
+104           ---           ---      build failure
+105           200 +- 0      10       bad
+106           200 +- 0      10       bad
+
+To Run This Test
+  src/tools/perf/run_benchmark foo
+
+Debug Info
+  https://test-rietveld.appspot.com/200039
 
 
 | O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
 |  X  | for more information addressing perf regression bugs. For feedback,
 | / \ | file a bug with component Tests>AutoBisect.  Thank you!"""
 
-    self.assertEqual(log_without_culprit, bisect_report.GetReport(job))
+    self.assertEqual(expected_output, bisect_report.GetReport(job))
 
   def testGetReport_CompletedMoreThan10BuildFailures(self):
     results_data = self._BisectResults(
@@ -313,99 +415,111 @@ Job details: https://test-rietveld.appspot.com/200039
         good_revision=100, bad_revision=116)
     job = self._AddTryJob(results_data)
 
-    log_without_culprit = r"""
-===== BISECT JOB RESULTS =====
-Status: completed
+    expected_output = r"""
+=== BISECT JOB RESULTS ===
+<b>Perf regression found but unable to narrow commit range</b>
+
+Build failures prevented the bisect from narrowing the range further.
 
 
-===== TESTED REVISIONS =====
-Revision  Mean  Std Dev  N    Good?
-100       100   0        10   good
-102       100   0        10   good
-103       ---   ---      ---  build failure
----       ---   ---      ---  too many build failures to list
-114       ---   ---      ---  build failure
-115       200   0        10   bad
-116       200   0        10   bad
+Bisect Details
+  Configuration: staging_android_nexus5X_perf_bisect
+  Benchmark    : foo
+  Metric       : Total/Score
 
-Bisect job ran on: staging_android_nexus5X_perf_bisect
-Bug ID: 12345
+Suspected Commit Range
+  13 commits in range
+  https://chromium.googlesource.com/chromium/src/+log/102..115
 
-Test Command: src/tools/perf/run_benchmark foo
-Test Metric: Total/Score
-Relative Change: 7.35%
 
-Buildbot stdio: http://build.chromium.org/513
-Job details: https://test-rietveld.appspot.com/200039
+Revision      Result        N
+100           100 +- 0      10       good
+102           100 +- 0      10       good
+103           ---           ---      build failure
+---           ---           ---      too many build failures to list
+114           ---           ---      build failure
+115           200 +- 0      10       bad
+116           200 +- 0      10       bad
+
+To Run This Test
+  src/tools/perf/run_benchmark foo
+
+Debug Info
+  https://test-rietveld.appspot.com/200039
 
 
 | O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
 |  X  | for more information addressing perf regression bugs. For feedback,
 | / \ | file a bug with component Tests>AutoBisect.  Thank you!"""
 
-    self.assertEqual(log_without_culprit, bisect_report.GetReport(job))
+    self.assertEqual(expected_output, bisect_report.GetReport(job))
 
   def testGetReport_FailedBisect(self):
     results_data = self._BisectResults(
         good_revision=100, bad_revision=110, status='failed')
     job = self._AddTryJob(results_data)
 
-    log_failed_bisect = r"""
-===== BISECT JOB RESULTS =====
-Status: failed
+    expected_output = r"""
+=== BISECT JOB RESULTS ===
+<b>Bisect failed for unknown reasons</b>
+
+Please contact the team (see below) and report the error.
 
 
+Bisect Details
+  Configuration: staging_android_nexus5X_perf_bisect
+  Benchmark    : foo
+  Metric       : Total/Score
 
-Bisect job ran on: staging_android_nexus5X_perf_bisect
-Bug ID: 12345
 
-Test Command: src/tools/perf/run_benchmark foo
-Test Metric: Total/Score
-Relative Change: 7.35%
+To Run This Test
+  src/tools/perf/run_benchmark foo
 
-Buildbot stdio: http://build.chromium.org/513
-Job details: https://test-rietveld.appspot.com/200039
+Debug Info
+  https://test-rietveld.appspot.com/200039
 
 
 | O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
 |  X  | for more information addressing perf regression bugs. For feedback,
 | / \ | file a bug with component Tests>AutoBisect.  Thank you!"""
 
-    self.assertEqual(log_failed_bisect, bisect_report.GetReport(job))
+    self.assertEqual(expected_output, bisect_report.GetReport(job))
 
   def testGetReport_BisectWithWarnings(self):
     results_data = self._BisectResults(
         status='failed', good_revision=100, bad_revision=103,
-        warnings=['A warning.'])
+        warnings=['A warning.', 'Another warning.'])
     job = self._AddTryJob(results_data)
 
-    log_failed_bisect = r"""
-===== BISECT JOB RESULTS =====
-Status: failed
+    expected_output = r"""
+=== BISECT JOB RESULTS ===
+<b>Bisect failed for unknown reasons</b>
 
+Please contact the team (see below) and report the error.
 
-=== Warnings ===
 The following warnings were raised by the bisect job:
-
  * A warning.
+ * Another warning.
 
 
-Bisect job ran on: staging_android_nexus5X_perf_bisect
-Bug ID: 12345
+Bisect Details
+  Configuration: staging_android_nexus5X_perf_bisect
+  Benchmark    : foo
+  Metric       : Total/Score
 
-Test Command: src/tools/perf/run_benchmark foo
-Test Metric: Total/Score
-Relative Change: 7.35%
 
-Buildbot stdio: http://build.chromium.org/513
-Job details: https://test-rietveld.appspot.com/200039
+To Run This Test
+  src/tools/perf/run_benchmark foo
+
+Debug Info
+  https://test-rietveld.appspot.com/200039
 
 
 | O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
 |  X  | for more information addressing perf regression bugs. For feedback,
 | / \ | file a bug with component Tests>AutoBisect.  Thank you!"""
 
-    self.assertEqual(log_failed_bisect, bisect_report.GetReport(job))
+    self.assertEqual(expected_output, bisect_report.GetReport(job))
 
   def testGetReport_BisectWithAbortedReason(self):
     results_data = self._BisectResults(
@@ -420,38 +534,37 @@ Job details: https://test-rietveld.appspot.com/200039
         status='aborted', aborted_reason='Something terrible happened.')
     job = self._AddTryJob(results_data)
 
-    log_failed_bisect = r"""
-===== BISECT JOB RESULTS =====
-Status: aborted
+    expected_output = r"""
+=== BISECT JOB RESULTS ===
+<b>Bisect failed unexpectedly</b>
+
+Bisect was aborted with the following:
+  Something terrible happened.
 
 
-=== Bisection aborted ===
-The bisect was aborted because Something terrible happened.
-Please contact the the team (see below) if you believe this is in error.
+Bisect Details
+  Configuration: staging_android_nexus5X_perf_bisect
+  Benchmark    : foo
+  Metric       : Total/Score
 
-===== TESTED REVISIONS =====
-Revision  Mean  Std Dev  N   Good?
-100       100   0        10  good
-101       100   0        10  good
-102       200   0        10  bad
-103       200   0        10  bad
+Revision      Result        N
+100           100 +- 0      10      good
+101           100 +- 0      10      good
+102           200 +- 0      10      bad
+103           200 +- 0      10      bad
 
-Bisect job ran on: staging_android_nexus5X_perf_bisect
-Bug ID: 12345
+To Run This Test
+  src/tools/perf/run_benchmark foo
 
-Test Command: src/tools/perf/run_benchmark foo
-Test Metric: Total/Score
-Relative Change: 7.35%
-
-Buildbot stdio: http://build.chromium.org/513
-Job details: https://test-rietveld.appspot.com/200039
+Debug Info
+  https://test-rietveld.appspot.com/200039
 
 
 | O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
 |  X  | for more information addressing perf regression bugs. For feedback,
 | / \ | file a bug with component Tests>AutoBisect.  Thank you!"""
 
-    self.assertEqual(log_failed_bisect, bisect_report.GetReport(job))
+    self.assertEqual(expected_output, bisect_report.GetReport(job))
 
   def testGetReport_StatusStarted(self):
     results_data = self._BisectResults(
@@ -459,42 +572,99 @@ Job details: https://test-rietveld.appspot.com/200039
             [
                 {'commit': 100, 'mean': 100, 'num': 10, 'result': 'good'},
                 {'commit': 101, 'mean': 100, 'num': 10, 'result': 'good'},
-                {'commit': 102, 'mean': 200, 'num': 10, 'result': 'bad'},
-                {'commit': 103, 'mean': 200, 'num': 10, 'result': 'bad'},
+                {'commit': 105, 'mean': 200, 'num': 10, 'result': 'bad'},
+                {'commit': 106, 'mean': 200, 'num': 10, 'result': 'bad'},
             ]),
-        good_revision=100, bad_revision=103,
+        good_revision=100, bad_revision=106,
         status='started')
     job = self._AddTryJob(results_data)
 
-    log_failed_bisect = r"""
-===== BISECT JOB RESULTS =====
-Status: started
+    expected_output = r"""
+=== BISECT JOB RESULTS ===
+<b>Bisect was unable to run to completion</b>
+
+The bisect was able to narrow the range, you can try running with:
+  good_revision: 101
+  bad_revision : 105
 
 
-===== TESTED REVISIONS =====
-Revision  Mean  Std Dev  N   Good?
-100       100   0        10  good
-101       100   0        10  good
-102       200   0        10  bad
-103       200   0        10  bad
+If failures persist contact the team (see below) and report the error.
 
-Bisect job ran on: staging_android_nexus5X_perf_bisect
-Bug ID: 12345
 
-Test Command: src/tools/perf/run_benchmark foo
-Test Metric: Total/Score
-Relative Change: 7.35%
+Bisect Details
+  Configuration: staging_android_nexus5X_perf_bisect
+  Benchmark    : foo
+  Metric       : Total/Score
 
-Buildbot stdio: http://build.chromium.org/513
-Job details: https://test-rietveld.appspot.com/200039
+Revision      Result        N
+100           100 +- 0      10      good
+101           100 +- 0      10      good
+105           200 +- 0      10      bad
+106           200 +- 0      10      bad
+
+To Run This Test
+  src/tools/perf/run_benchmark foo
+
+Debug Info
+  https://test-rietveld.appspot.com/200039
 
 
 | O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
 |  X  | for more information addressing perf regression bugs. For feedback,
 | / \ | file a bug with component Tests>AutoBisect.  Thank you!"""
 
-    self.assertEqual(log_failed_bisect, bisect_report.GetReport(job))
-    # print bisect_report.GetReport(job)
+    self.assertEqual(expected_output, bisect_report.GetReport(job))
+
+  def testGetReport_StatusStartedDepotMismatch(self):
+    results_data = self._BisectResults(
+        revision_data=self._Revisions(
+            [
+                {'commit': 100, 'mean': 1, 'num': 10,
+                 'depot_name': 'a', 'result': 'good'},
+                {'commit': 101, 'mean': 1, 'num': 10,
+                 'depot_name': 'a', 'result': 'good'},
+                {'commit': 102, 'mean': 2, 'num': 10,
+                 'depot_name': 'b', 'result': 'bad'},
+                {'commit': 103, 'mean': 2, 'num': 10,
+                 'depot_name': 'b', 'result': 'bad'},
+            ]),
+        good_revision=100, bad_revision=103,
+        status='started')
+    job = self._AddTryJob(results_data)
+
+    expected_output = r"""
+=== BISECT JOB RESULTS ===
+<b>Bisect was unable to run to completion</b>
+
+Please try rerunning the bisect.
+
+
+If failures persist contact the team (see below) and report the error.
+
+
+Bisect Details
+  Configuration: staging_android_nexus5X_perf_bisect
+  Benchmark    : foo
+  Metric       : Total/Score
+
+Revision      Result      N
+100           1 +- 0      10      good
+101           1 +- 0      10      good
+102           2 +- 0      10      bad
+103           2 +- 0      10      bad
+
+To Run This Test
+  src/tools/perf/run_benchmark foo
+
+Debug Info
+  https://test-rietveld.appspot.com/200039
+
+
+| O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
+|  X  | for more information addressing perf regression bugs. For feedback,
+| / \ | file a bug with component Tests>AutoBisect.  Thank you!"""
+
+    self.assertEqual(expected_output, bisect_report.GetReport(job))
 
   def testGetReport_WithBugIdBadBisectFeedback(self):
     results_data = self._BisectResults(
@@ -509,37 +679,44 @@ Job details: https://test-rietveld.appspot.com/200039
     job = self._AddTryJob(results_data, bug_id=6789)
     job_id = job.key.id()
 
-    log_without_culprit = r"""
-===== BISECT JOB RESULTS =====
-Status: completed
+    expected_output = r"""
+=== BISECT JOB RESULTS ===
+<b>Perf regression found but unable to narrow commit range</b>
+
+Build failures prevented the bisect from narrowing the range further.
 
 
-===== TESTED REVISIONS =====
-Revision  Mean  Std Dev  N   Good?
-100       100   0        10  good
-101       100   0        10  good
-102       200   0        10  bad
-103       200   0        10  bad
+Bisect Details
+  Configuration: staging_android_nexus5X_perf_bisect
+  Benchmark    : foo
+  Metric       : Total/Score
 
-Bisect job ran on: staging_android_nexus5X_perf_bisect
-Bug ID: 6789
-
-Test Command: src/tools/perf/run_benchmark foo
-Test Metric: Total/Score
-Relative Change: 7.35%%
-
-Buildbot stdio: http://build.chromium.org/513
-Job details: https://test-rietveld.appspot.com/200039
+Suspected Commit Range
+  1 commits in range
+  https://chromium.googlesource.com/chromium/src/+log/101..102
 
 
-Not what you expected? We'll investigate and get back to you!
+Revision      Result        N
+100           100 +- 0      10      good
+101           100 +- 0      10      good
+102           200 +- 0      10      bad
+103           200 +- 0      10      bad
+
+To Run This Test
+  src/tools/perf/run_benchmark foo
+
+Debug Info
+  https://test-rietveld.appspot.com/200039
+
+Is this bisect wrong?
   https://chromeperf.appspot.com/bad_bisect?try_job_id=%s
+
 
 | O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
 |  X  | for more information addressing perf regression bugs. For feedback,
 | / \ | file a bug with component Tests>AutoBisect.  Thank you!""" % job_id
 
-    self.assertEqual(log_without_culprit, bisect_report.GetReport(job))
+    self.assertEqual(expected_output, bisect_report.GetReport(job))
 
 if __name__ == '__main__':
   unittest.main()

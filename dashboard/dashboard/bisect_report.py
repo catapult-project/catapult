@@ -7,52 +7,72 @@
 import copy
 import math
 
-_CONFIDENCE_THRESHOLD = 99.5
 
-_BISECT_REPORT_TEMPLATE = """
-===== BISECT JOB RESULTS =====
-Status: %(status)s
-
-%(result)s
-
-Bisect job ran on: %(bisect_bot)s
-Bug ID: %(bug_id)s
-
-Test Command: %(command)s
-Test Metric: %(metric)s
-Relative Change: %(change)s
-
-Buildbot stdio: %(buildbot_log_url)s
-Job details: %(issue_url)s
-
+_BISECT_HEADER = """
+=== BISECT JOB RESULTS ===
+<b>%s</b>
 """
 
-_RESULTS_REVISION_INFO = """
-===== SUSPECTED CL(s) =====
-Subject : %(subject)s
-Author  : %(author)s
-Commit description:
-  %(commit_info)s
-Commit  : %(cl)s
-Date    : %(cl_date)s
-
+_BISECT_TO_RUN = """
+To Run This Test
+  %(command)s
 """
 
-_ABORTED_REASON_TEMPLATE = """
-=== Bisection aborted ===
-The bisect was aborted because %s
-Please contact the the team (see below) if you believe this is in error.
+_BISECT_DEBUG_INFO = """
+Debug Info
+  %(issue_url)s
 """
 
-_WARNINGS_TEMPLATE = """
-=== Warnings ===
-The following warnings were raised by the bisect job:
-
- * %s
+_BISECT_TRY_JOB = """
+Is this bisect wrong?
+  https://chromeperf.appspot.com/bad_bisect?try_job_id=%(_tryjob_id)s
 """
+
+_BISECT_FOOTER = """
+| O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
+|  X  | for more information addressing perf regression bugs. For feedback,
+| / \\ | file a bug with component Tests>AutoBisect.  Thank you!"""
+
+_BISECT_SUSPECTED_COMMIT = """
+Suspected Commit
+  Author : %(author)s
+  Commit : %(cl)s
+  Date   : %(cl_date)s
+  Subject: %(subject)s
+"""
+
+_BISECT_SUSPECTED_RANGE = """
+Suspected Commit Range
+  %(num)d commits in range
+"""
+
+_BISECT_SUSPECTED_RANGE_URL = "  %(url)s%(lkgr)s..%(fkbr)s\n"
+
+_BISECT_SUSPECTED_RANGE_MISMATCH =\
+"""  Mismatching LKGR/FKBR depots, unable to provide handy url.
+  good_revision: %(lkgr)s
+  bad_revision : %(fkbr)s
+"""
+
+_BISECT_SUSPECTED_RANGE_UNSUPPORTED =\
+    "  Unknown depot, please contact team to have this added.\n"
+
+_BISECT_DETAILS = """
+Bisect Details
+  Configuration: %(bisect_bot)s
+  Benchmark    : %(benchmark)s
+  Metric       : %(metric)s
+"""
+
+_BISECT_DETAILS_CHANGE =\
+    '  Change       : %(change)s | %(good_mean)s -> %(bad_mean)s\n'
+
+_BISECT_WARNING_HEADER =\
+    'The following warnings were raised by the bisect job:\n'
+
+_BISECT_WARNING = ' * %s\n'
 
 _REVISION_TABLE_TEMPLATE = """
-===== TESTED REVISIONS =====
 %(table)s"""
 
 _RESULTS_THANK_YOU = """
@@ -60,10 +80,233 @@ _RESULTS_THANK_YOU = """
 |  X  | for more information addressing perf regression bugs. For feedback,
 | / \\ | file a bug with component Tests>AutoBisect.  Thank you!"""
 
-_REPORT_BAD_BISECT_TEMPLATE = """
-Not what you expected? We'll investigate and get back to you!
-  https://chromeperf.appspot.com/bad_bisect?try_job_id=%s
+COMMIT_RANGE_URL_BY_DEPOT = {
+    'chromium': 'https://chromium.googlesource.com/chromium/src/+log/',
+    'angle': 'https://chromium.googlesource.com/angle/angle/+log/',
+    'v8': 'https://chromium.googlesource.com/v8/v8.git/+log/',
+    'skia': 'https://chromium.googlesource.com/skia/+log/',
+}
+
+STATUS_REPRO_WITH_CULPRIT = '%(test_type)s found with culprit'
+
+STATUS_REPRO_UNABLE_NARROW =\
+    '%(test_type)s found but unable to narrow commit range'
+
+STATUS_REPRO_BUT_UNDECIDED = \
+    '%(test_type)s found but unable to continue'
+
+STATUS_NO_REPRO = 'NO %(test_type)s found'
+
+STATUS_NO_VALUES = 'NO %(test_type)s found, tests failed to produce values'
+
+STATUS_FAILED_UNEXPECTED = 'Bisect failed unexpectedly'
+
+STATUS_INCOMPLETE = 'Bisect was unable to run to completion'
+
+STATUS_UNKNOWN = 'Bisect failed for unknown reasons'
+
+MESSAGE_REPRO_BUT_UNDECIDED = """
+Bisect was stopped because a commit couldn't be classified as either
+good or bad."""
+
+MESSAGE_CONTACT_TEAM = """
+Please contact the team (see below) and report the error."""
+
+MESSAGE_FAILED_UNEXPECTED = """
+Bisect was aborted with the following:
+  %s"""
+
+MESSAGE_INCOMPLETE = """%s
+
+If failures persist contact the team (see below) and report the error."""
+
+MESSAGE_RERUN = """
+Please try rerunning the bisect.
 """
+
+MESSAGE_RERUN_FROM_PARTIAL_RESULTS = """
+The bisect was able to narrow the range, you can try running with:
+  good_revision: %(lkgr)s
+  bad_revision : %(fkbr)s
+"""
+
+MESSAGE_REPRO_BUILD_FAILURES = """
+Build failures prevented the bisect from narrowing the range further."""
+
+_NON_TELEMETRY_TEST_COMMANDS = {
+    'angle_perftests': 'angle_perftests',
+    'cc_perftests': 'cc_perftests',
+    'idb_perf': 'performance_ui_tests',
+    'load_library_perf_tests': 'load_library_perf_tests',
+    'media_perftests': 'media_perftests',
+    'performance_browser_tests': 'performance_browser_tests',
+    'resource_sizes': 'resource_sizes.py',
+}
+
+def _GuessBenchmarkFromRunCommand(run_command):
+  if 'run_benchmark' in run_command:
+    return run_command.split()[-1]
+  for k, v in _NON_TELEMETRY_TEST_COMMANDS.iteritems():
+    if v in run_command:
+      return k
+  return '???'
+
+
+def _GenerateReport(results_data):
+  revision_data = results_data.get('revision_data', [])
+
+  lkgr_index = -1
+  fkbr_index = -1
+  lkgr = {}
+  fkbr = {}
+  for i in xrange(len(revision_data)):
+    r = revision_data[i]
+    if r.get('result') == 'good':
+      lkgr_index = i
+      lkgr = revision_data[i]
+    if r.get('result') == 'bad':
+      fkbr_index = i
+      fkbr = revision_data[i]
+      break
+
+  test_type = 'Perf regression'
+  if results_data.get('test_type') == 'return_code':
+    test_type = 'Test failure'
+
+  # Generally bisects end a few ways:
+  # 1 - Success, found a culprit
+  # 2 - Unexpected failure, bisect aborts suddenly with an exception
+  # 3 - Interrupted, bisect didn't finish and we only got partial results
+  # 4 - Semi-success, found a range but couldn't narrow further
+  message = STATUS_UNKNOWN
+  message_details = ''
+
+  # 1 - Easiest case, bisect named a culprit.
+  if results_data.get('culprit_data'):
+    message = STATUS_REPRO_WITH_CULPRIT
+
+  # 2 - Unexpected failure in the recipe, could be a master restart, exception
+  # thrown, etc.
+  if message == STATUS_UNKNOWN:
+    aborted_reason = results_data.get('aborted_reason', '')
+    if aborted_reason:
+      # TODO(simonhatch); Ideally the recipe would only set the "aborted"
+      # field on an unexpected failure. We have to wait until the dashbaord
+      # changes are live to remove that, so for now we'll just filter those.
+      if ('The metric values for the initial' in aborted_reason or
+          'Bisect failed to reproduce the regression' in aborted_reason):
+        message = STATUS_NO_REPRO
+      elif 'Bisect cannot identify a culprit' in aborted_reason:
+        message = STATUS_REPRO_BUT_UNDECIDED
+        message_details = MESSAGE_REPRO_BUT_UNDECIDED
+      else:
+        message = STATUS_FAILED_UNEXPECTED
+        message_details = MESSAGE_FAILED_UNEXPECTED % aborted_reason
+
+  # 3 - Incomplete bisects, try to print out a useful narrowed range and ask
+  # them to try rerunning.
+  if message == STATUS_UNKNOWN:
+    if results_data.get('status') == 'started':
+      # Try to provide some useful info on where to restart the bisect from
+      rerun_info = MESSAGE_RERUN
+      if lkgr_index > 0 or fkbr_index < (len(revision_data) - 1):
+        if lkgr.get('depot_name') == fkbr.get('depot_name'):
+          rerun_info = MESSAGE_RERUN_FROM_PARTIAL_RESULTS % {
+              'lkgr': lkgr.get('commit_hash'),
+              'fkbr': fkbr.get('commit_hash'),
+          }
+      message = STATUS_INCOMPLETE
+      message_details = MESSAGE_INCOMPLETE % rerun_info
+
+  # 4 - Semi-successful in that they were able to run the tests, but failed to
+  # either repro the regression or narrow it to a single commit.
+  if message == STATUS_UNKNOWN:
+    if revision_data:
+      if lkgr_index == 0 and fkbr_index == len(revision_data) - 1:
+        # The bisect never got past the initial testing.
+        if (lkgr.get('n_observations') == 0 and
+            fkbr.get('n_observations') == 0):
+          message = STATUS_NO_VALUES
+        else:
+          message = STATUS_NO_REPRO
+      else:
+        message = STATUS_REPRO_UNABLE_NARROW
+        commits = revision_data[lkgr_index+1:fkbr_index-1]
+        if all([c.get('failed') for c in commits]):
+          message_details = MESSAGE_REPRO_BUILD_FAILURES
+
+  # No idea what happened, ask them to file a bug.
+  if message == STATUS_UNKNOWN:
+    message_details = MESSAGE_CONTACT_TEAM
+
+  # Start constructing the full output.
+  result = ''
+  result += _BISECT_HEADER % (message % {'test_type': test_type})
+  if message_details:
+    result += '%s\n\n' % message_details
+
+  warnings = results_data.get('warnings')
+  if warnings:
+    result += _BISECT_WARNING_HEADER
+    for w in warnings:
+      result += _BISECT_WARNING % w
+    result += '\n'
+
+  results_data['benchmark'] = _GuessBenchmarkFromRunCommand(
+      results_data.get('command'))
+
+  # Print out the suspect commit info
+  if results_data.get('culprit_data'):
+    results_data['good_mean'] = '?'
+    results_data['bad_mean'] = '?'
+    for r in results_data.get('revision_data', []):
+      if r.get('commit_hash') == results_data.get('good_revision'):
+        results_data['good_mean'] = r.get('mean_value', '?')
+      if r.get('commit_hash') == results_data.get('bad_revision'):
+        results_data['bad_mean'] = r.get('mean_value', '?')
+    result += _BISECT_SUSPECTED_COMMIT % results_data.get('culprit_data')
+  result += _BISECT_DETAILS % results_data
+
+  if message == STATUS_REPRO_WITH_CULPRIT:
+    result += _BISECT_DETAILS_CHANGE % results_data
+
+  # If we're unable to narrow for whatever reason, try to print out a link to
+  # a log containing all entries in the suspected range.
+  if message == STATUS_REPRO_UNABLE_NARROW:
+    depot_name = lkgr.get('depot_name')
+    depot_url = COMMIT_RANGE_URL_BY_DEPOT.get(depot_name)
+    result += _BISECT_SUSPECTED_RANGE % {'num': fkbr_index - lkgr_index}
+    if depot_url and lkgr.get('depot_name') == fkbr.get('depot_name'):
+      result += _BISECT_SUSPECTED_RANGE_URL % {
+          'url': depot_url,
+          'lkgr': lkgr.get('commit_hash'),
+          'fkbr': fkbr.get('commit_hash')}
+    elif not depot_url:
+      result += _BISECT_SUSPECTED_RANGE_UNSUPPORTED
+    else:
+      result += _BISECT_SUSPECTED_RANGE_MISMATCH % {
+          'lkgr': '%s@%s' % (
+              lkgr.get('depot_name'), lkgr.get('commit_hash')),
+          'fkbr': '%s@%s' % (
+              fkbr.get('depot_name'), fkbr.get('commit_hash'))}
+    result += '\n'
+
+  # Print out a nice table of all the tested commits.
+  if results_data.get('revision_data'):
+    result += _RevisionTable(results_data)
+
+  # Print out common footer stuff for all bisects, info like the command line,
+  # and how to contact the team.
+  result += '\n'
+  result += _BISECT_TO_RUN % results_data
+  result += _BISECT_DEBUG_INFO % results_data
+
+  if '_tryjob_id' in results_data:
+    result += _BISECT_TRY_JOB % results_data
+  result += '\n'
+  result += _BISECT_FOOTER
+
+  return result
 
 
 def GetReport(try_job_entity):
@@ -80,26 +323,11 @@ def GetReport(try_job_entity):
   results_data = copy.deepcopy(try_job_entity.results_data)
   if not results_data:
     return ''
-  result = ''
-  if results_data.get('aborted_reason'):
-    result += _ABORTED_REASON_TEMPLATE % results_data['aborted_reason']
 
-  if results_data.get('warnings'):
-    warnings = '\n'.join(results_data['warnings'])
-    result += _WARNINGS_TEMPLATE % warnings
-
-  if results_data.get('culprit_data'):
-    result += _RESULTS_REVISION_INFO % results_data['culprit_data']
-
-  if results_data.get('revision_data'):
-    result += _RevisionTable(results_data)
-
-  results_data['result'] = result
-  report = _BISECT_REPORT_TEMPLATE % results_data
   if try_job_entity.bug_id > 0:
-    report += _REPORT_BAD_BISECT_TEMPLATE % try_job_entity.key.id()
-  report += _RESULTS_THANK_YOU
-  return report
+    results_data['_tryjob_id'] = try_job_entity.key.id()
+
+  return  _GenerateReport(results_data)
 
 
 def _MakeLegacyRevisionString(r):
@@ -137,8 +365,9 @@ def _RevisionTable(results_data):
     if not r.get('failed') and number_of_observations:
       result = [
           r.get('revision_string', _MakeLegacyRevisionString(r)),
-          _FormatNumber(r['mean_value']),
-          _FormatNumber(r['std_dev']),
+          '%s +- %s' % (
+              _FormatNumber(r['mean_value']),
+              _FormatNumber(r['std_dev'])),
           _FormatNumber(number_of_observations),
           r['result'],
           '<--' if r['commit_hash'] == culprit_commit_hash  else '',
@@ -152,7 +381,6 @@ def _RevisionTable(results_data):
                 r.get('revision_string', _MakeLegacyRevisionString(r)),
                 '---',
                 '---',
-                '---',
                 'build failure',
                 '',
             ]
@@ -163,14 +391,12 @@ def _RevisionTable(results_data):
                 '---',
                 '---',
                 '---',
-                '---',
                 'too many build failures to list',
                 '',
             ]
         else:
           result = [
               r.get('revision_string', _MakeLegacyRevisionString(r)),
-              '---',
               '---',
               '---',
               'build failure',
@@ -183,10 +409,9 @@ def _RevisionTable(results_data):
 
   headers_row = [[
       'Revision',
-      'Mean' if not is_return_code else 'Exit Code',
-      'Std Dev',
+      'Result' if not is_return_code else 'Exit Code',
       'N',
-      'Good?',
+      '',
       '',
   ]]
   all_rows = headers_row + revision_rows
@@ -214,5 +439,5 @@ def _PrettyTable(data):
     formatted_elements = []
     for element_length, element in zip(column_lengths, row):
       formatted_elements.append(element.ljust(element_length))
-    formatted_rows.append('  '.join(formatted_elements).strip())
+    formatted_rows.append('      '.join(formatted_elements).strip())
   return '\n'.join(formatted_rows)
