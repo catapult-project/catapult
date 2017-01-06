@@ -164,7 +164,7 @@ def _MakeBisectTryJob(bug_id, run_count=0):
   story_filter = start_try_job.GuessStoryFilter(test.test_path)
 
   bisect_bot = start_try_job.GuessBisectBot(test.master_name, test.bot_name)
-  if not bisect_bot or '_' not in bisect_bot:
+  if not bisect_bot:
     raise NotBisectableError(
         'Could not select a bisect bot: %s for (%s, %s)' % (
             bisect_bot, test.master_name, test.bot_name))
