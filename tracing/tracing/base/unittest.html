@@ -22,6 +22,9 @@ found in the LICENSE file.
     for (var exportName in chaiModule)
       global[exportName] = chaiModule[exportName];
   } else {
+    // https://github.com/catapult-project/catapult/issues/3097
+    chai.config.includeStack = true;
+
     /**
      * Catapult presubmit wanted me to put a jsdoc here. So nduca did.
      */
@@ -31,12 +34,5 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/unittest/suite_loader.html">
 <link rel="import" href="/tracing/base/unittest/test_case.html">
-<link rel="import" href="/tracing/base/unittest/test_suite.html">
 <link rel="import" href="/tracing/base/unittest/test_runner.html">
-<script>
-'use strict';
-tr.exportTo('tr.b.unittest', function() {
-  return {
-  };
-});
-</script>
+<link rel="import" href="/tracing/base/unittest/test_suite.html">
