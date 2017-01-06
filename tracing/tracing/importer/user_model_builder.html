@@ -22,17 +22,17 @@ found in the LICENSE file.
 tr.exportTo('tr.importer', function() {
   var INSIGNIFICANT_MS = 1;
 
-  function UserModelBuilder(model) {
-    this.model = model;
-    this.modelHelper = model.getOrCreateHelper(
-        tr.model.helpers.ChromeModelHelper);
-  }
+  class UserModelBuilder {
+    constructor(model) {
+      this.model = model;
+      this.modelHelper = model.getOrCreateHelper(
+          tr.model.helpers.ChromeModelHelper);
+    }
 
-  UserModelBuilder.supportsModelHelper = function(modelHelper) {
-    return modelHelper.browserHelper !== undefined;
-  };
+    static supportsModelHelper(modelHelper) {
+      return modelHelper.browserHelper !== undefined;
+    }
 
-  UserModelBuilder.prototype = {
     buildUserModel() {
       if (!this.modelHelper || !this.modelHelper.browserHelper) return;
 
@@ -53,7 +53,7 @@ tr.exportTo('tr.importer', function() {
       }
 
       // TODO(benjhayden) Find Gestures here.
-    },
+    }
 
     findUserExpectations() {
       var expectations = [];
@@ -68,7 +68,7 @@ tr.exportTo('tr.importer', function() {
           expectations, this.findIdleExpectations(expectations));
       this.collectUnassociatedEvents_(expectations);
       return expectations;
-    },
+    }
 
     // Find all unassociated top-level ThreadSlices. If they start during an
     // Idle or Load UE, then add their entire hierarchy to that UE.
@@ -102,7 +102,7 @@ tr.exportTo('tr.importer', function() {
           }
         }
       }
-    },
+    }
 
     // Fill in the empty space between UEs with IdleUEs.
     findIdleExpectations(otherUEs) {
@@ -122,7 +122,7 @@ tr.exportTo('tr.importer', function() {
       }
       return expectations;
     }
-  };
+  }
 
   function createCustomizeModelLinesFromModel(model) {
     var modelLines = [];
