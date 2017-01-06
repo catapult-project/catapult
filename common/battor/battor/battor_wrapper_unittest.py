@@ -298,6 +298,7 @@ class BattOrWrapperTest(unittest.TestCase):
     self._cmd_helper_return = (1, 'Fail')
     self._battor = battor_wrapper.BattOrWrapper('win')
     self._DefaultBattOrReplacements()
+    self._battor._target_platform = 'unsupported_platform'
     self.assertFalse(self._battor.FlashFirmware('hex_path', 'config_path'))
 
   def testFlashFirmwareShellRunning(self):

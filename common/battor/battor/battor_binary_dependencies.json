@@ -18,6 +18,27 @@
           "local_paths": [
             "../bin/override/avrdude"
           ]
+        },
+        "win32_AMD64": {
+          "cloud_storage_hash": "517aa73b093e254007076cf5ac7afb94151df2ed",
+          "download_path": "../bin/win/x86_64/avrdude.exe",
+          "local_paths": [
+            "../bin/override/avrdude.exe"
+          ]
+        },
+        "win32_x86": {
+          "cloud_storage_hash": "517aa73b093e254007076cf5ac7afb94151df2ed",
+          "download_path": "../bin/win/x86_64/avrdude.exe",
+          "local_paths": [
+            "../bin/override/avrdude.exe"
+          ]
+        },
+        "win_AMD64": {
+          "cloud_storage_hash": "517aa73b093e254007076cf5ac7afb94151df2ed",
+          "download_path": "../bin/win/x86_64/avrdude.exe",
+          "local_paths": [
+            "../bin/override/avrdude.exe"
+          ]
         }
       }
     },

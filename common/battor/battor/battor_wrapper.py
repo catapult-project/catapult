@@ -80,7 +80,7 @@ class BattOrWrapper(object):
   _RECORD_CLOCKSYNC_CMD = 'RecordClockSyncMarker'
   _SUPPORTED_PLATFORMS = ['android', 'chromeos', 'linux', 'mac', 'win']
 
-  _SUPPORTED_AUTOFLASHING_PLATFORMS = ['linux', 'mac']
+  _SUPPORTED_AUTOFLASHING_PLATFORMS = ['linux', 'mac', 'win']
   _BATTOR_PARTNO = 'x192a3u'
   _BATTOR_PROGRAMMER = 'avr109'
   _BATTOR_BAUDRATE = '115200'
