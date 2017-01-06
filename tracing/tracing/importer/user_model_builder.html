@@ -33,9 +33,8 @@ tr.exportTo('tr.importer', function() {
   };
 
   UserModelBuilder.prototype = {
-    buildUserModel: function() {
-      if (!this.modelHelper || !this.modelHelper.browserHelper)
-        return;
+    buildUserModel() {
+      if (!this.modelHelper || !this.modelHelper.browserHelper) return;
 
       var expectations = undefined;
       try {
@@ -49,14 +48,14 @@ tr.exportTo('tr.importer', function() {
         });
         return;
       }
-      expectations.forEach(function(expectation) {
+      for (var expectation of expectations) {
         this.model.userModel.expectations.push(expectation);
-      }, this);
+      }
 
       // TODO(benjhayden) Find Gestures here.
     },
 
-    findUserExpectations: function() {
+    findUserExpectations() {
       var expectations = [];
       expectations.push.apply(expectations, tr.importer.findStartupExpectations(
           this.modelHelper));
@@ -73,56 +72,54 @@ tr.exportTo('tr.importer', function() {
 
     // Find all unassociated top-level ThreadSlices. If they start during an
     // Idle or Load UE, then add their entire hierarchy to that UE.
-    collectUnassociatedEvents_: function(expectations) {
+    collectUnassociatedEvents_(expectations) {
       var vacuumUEs = [];
-      expectations.forEach(function(ir) {
-        if (ir instanceof tr.model.um.IdleExpectation ||
-            ir instanceof tr.model.um.LoadExpectation ||
-            ir instanceof tr.model.um.StartupExpectation)
-          vacuumUEs.push(ir);
-      });
-      if (vacuumUEs.length === 0)
-        return;
+      for (var expectation of expectations) {
+        if (expectation instanceof tr.model.um.IdleExpectation ||
+            expectation instanceof tr.model.um.LoadExpectation ||
+            expectation instanceof tr.model.um.StartupExpectation) {
+          vacuumUEs.push(expectation);
+        }
+      }
+      if (vacuumUEs.length === 0) return;
 
       var allAssociatedEvents = tr.model.getAssociatedEvents(expectations);
       var unassociatedEvents = tr.model.getUnassociatedEvents(
           this.model, allAssociatedEvents);
 
-      unassociatedEvents.forEach(function(event) {
-        if (!(event instanceof tr.model.ThreadSlice))
-          return;
+      for (var event of unassociatedEvents) {
+        if (!(event instanceof tr.model.ThreadSlice)) continue;
 
-        if (!event.isTopLevel)
-          return;
+        if (!event.isTopLevel) continue;
 
-        for (var iri = 0; iri < vacuumUEs.length; ++iri) {
-          var ir = vacuumUEs[iri];
+        for (var index = 0; index < vacuumUEs.length; ++index) {
+          var expectation = vacuumUEs[index];
 
-          if ((event.start >= ir.start) &&
-              (event.start < ir.end)) {
-            ir.associatedEvents.addEventSet(event.entireHierarchy);
-            return;
+          if ((event.start >= expectation.start) &&
+              (event.start < expectation.end)) {
+            expectation.associatedEvents.addEventSet(event.entireHierarchy);
+            break;
           }
         }
-      });
+      }
     },
 
     // Fill in the empty space between UEs with IdleUEs.
-    findIdleExpectations: function(otherUEs) {
-      if (this.model.bounds.isEmpty)
-        return;
+    findIdleExpectations(otherUEs) {
+      if (this.model.bounds.isEmpty) return;
+
       var emptyRanges = tr.b.findEmptyRangesBetweenRanges(
           tr.b.convertEventsToRanges(otherUEs),
           this.model.bounds);
       var expectations = [];
       var model = this.model;
-      emptyRanges.forEach(function(range) {
+      for (var range of emptyRanges) {
         // Ignore insignificantly tiny idle ranges.
-        if (range.max < (range.min + INSIGNIFICANT_MS))
-          return;
+        if (range.max < (range.min + INSIGNIFICANT_MS)) continue;
+
         expectations.push(new tr.model.um.IdleExpectation(
             model, range.min, range.max - range.min));
-      });
+      }
       return expectations;
     }
   };
@@ -138,13 +135,13 @@ tr.exportTo('tr.importer', function() {
     }
 
     var modelEvents = new tr.model.EventSet();
-    model.userModel.expectations.forEach(function(ir, index) {
-      modelEvents.addEventSet(ir.sourceEvents);
-    });
+    for (var ue of model.userModel.expectations) {
+      modelEvents.addEventSet(ue.sourceEvents);
+    }
     modelEvents = modelEvents.toArray();
     modelEvents.sort(tr.importer.compareEvents);
 
-    modelEvents.forEach(function(event) {
+    for (var event of modelEvents) {
       var startAndEnd = 'start: ' + parseInt(event.start) + ', ' +
                         'end: ' + parseInt(event.end) + '});';
       if (event instanceof tr.e.cc.InputLatencyAsyncSlice) {
@@ -167,7 +164,7 @@ tr.exportTo('tr.importer', function() {
             'to support this event:\n' + event.title + '\n');
       }
       modelLines.push('          {' + startAndEnd);
-    });
+    }
 
     modelLines.push('      audits.addEvent(model.browserMain,');
     modelLines.push('          {' +
@@ -179,18 +176,18 @@ tr.exportTo('tr.importer', function() {
 
   function createExpectedUELinesFromModel(model) {
     var expectedLines = [];
-    var irCount = model.userModel.expectations.length;
-    model.userModel.expectations.forEach(function(ir, index) {
-      var irString = '      {';
-      irString += 'title: \'' + ir.title + '\', ';
-      irString += 'start: ' + parseInt(ir.start) + ', ';
-      irString += 'end: ' + parseInt(ir.end) + ', ';
-      irString += 'eventCount: ' + ir.sourceEvents.length;
-      irString += '}';
-      if (index < (irCount - 1))
-        irString += ',';
-      expectedLines.push(irString);
-    });
+    var ueCount = model.userModel.expectations.length;
+    for (var index = 0; index < ueCount; ++index) {
+      var expectation = model.userModel.expectations[index];
+      var ueString = '      {';
+      ueString += 'title: \'' + expectation.title + '\', ';
+      ueString += 'start: ' + parseInt(expectation.start) + ', ';
+      ueString += 'end: ' + parseInt(expectation.end) + ', ';
+      ueString += 'eventCount: ' + expectation.sourceEvents.length;
+      ueString += '}';
+      if (index < (ueCount - 1)) ueString += ',';
+      expectedLines.push(ueString);
+    }
     return expectedLines;
   }
 
