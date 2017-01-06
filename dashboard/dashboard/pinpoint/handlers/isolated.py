@@ -52,17 +52,17 @@ class IsolatedHandler(webapp2.RequestHandler):
       return
 
     # Get parameters.
+    for parameter in ('builder_name', 'git_hash', 'isolated_map'):
+      if not self.request.get(parameter):
+        self.response.set_status(400)
+        self.response.write('Missing parameter: %s' % parameter)
+        return
+
     builder_name = self.request.get('builder_name')
     git_hash = self.request.get('git_hash')
     isolated_map = self.request.get('isolated_map')
 
     # Validate parameters.
-    for parameter in builder_name, git_hash, isolated_map:
-      if not parameter:
-        self.response.set_status(400)
-        self.response.write('Missing parameter: %s' % parameter)
-        return
-
     try:
       isolated_map = json.loads(isolated_map)
     except ValueError:
