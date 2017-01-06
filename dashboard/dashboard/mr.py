@@ -168,6 +168,13 @@ def DeprecateTestsMapper(entity):
     yield operation
 
 
+def _IsRef(test):
+  if test.test_path.endswith('/ref') or test.test_path.endswith('_ref'):
+    return True
+
+  return False
+
+
 def _CreateStoppageAlerts(test, last_row):
   """Yields put operations for any StoppageAlert that may be created.
 
@@ -184,7 +191,7 @@ def _CreateStoppageAlerts(test, last_row):
   Yields:
     Either one op.db.Put, or nothing.
   """
-  if not test.sheriff:
+  if not test.sheriff or _IsRef(test):
     return
   sheriff_entity = test.sheriff.get()
   warn_sheriff_delay_days = sheriff_entity.stoppage_alert_delay
