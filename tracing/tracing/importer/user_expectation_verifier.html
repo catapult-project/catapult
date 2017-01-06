@@ -12,27 +12,26 @@ found in the LICENSE file.
 'use strict';
 tr.exportTo('tr.importer', function() {
   function compareEvents(x, y) {
-    if (x.start !== y.start)
-      return x.start - y.start;
+    if (x.start !== y.start) return x.start - y.start;
     return x.guid - y.guid;
   }
 
-  function UserExpectationVerifier() {
-    this.customizeModelCallback_ = undefined;
-    this.expectedUEs_ = undefined;
-  }
+  class UserExpectationVerifier {
+    constructor() {
+      this.customizeModelCallback_ = undefined;
+      this.expectedUEs_ = undefined;
+    }
 
-  UserExpectationVerifier.prototype = {
     set customizeModelCallback(cmc) {
       this.customizeModelCallback_ = cmc;
-    },
+    }
 
     // |ues| must be sorted by start time.
     set expectedUEs(ues) {
       this.expectedUEs_ = ues;
-    },
+    }
 
-    verify: function() {
+    verify() {
       var model = tr.e.chrome.ChromeTestUtils.newChromeModel(
           this.customizeModelCallback_);
 
@@ -47,8 +46,9 @@ tr.exportTo('tr.importer', function() {
           assert.equal(false, actualUE.done);
           var at = 'UEs[' + (i++) + '].';
           assert.equal(expectedUE.title, actualUE.value.title, at + 'title');
-          if (expectedUE.name !== undefined)
+          if (expectedUE.name !== undefined) {
             assert.equal(expectedUE.name, actualUE.value.name, at + 'name');
+          }
           assert.equal(expectedUE.start, actualUE.value.start, at + 'start');
           assert.equal(expectedUE.end, actualUE.value.end, at + 'end');
           assert.equal(expectedUE.eventCount,
@@ -67,14 +67,13 @@ tr.exportTo('tr.importer', function() {
 
       var debug = !tr.isHeadless && (
           location.search.split('&').indexOf('debug') >= 0);
-      if (!failure && !debug)
-        return;
-
-      if (failure)
-        throw failure;
+      if (!failure && !debug) return;
+      if (failure) throw failure;
     }
-  };
+  }
 
-  return {UserExpectationVerifier: UserExpectationVerifier};
+  return {
+    UserExpectationVerifier,
+  };
 });
 </script>
