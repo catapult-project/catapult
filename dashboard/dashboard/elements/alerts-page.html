@@ -109,7 +109,7 @@ found in the LICENSE file.
           <template is="dom-if" if="{{anomalies.length}}">
             <h2>Performance alerts</h2>
             <p id='num-alerts'>
-              {{anomalies.length}} alert<span hidden$="{{computeIsSingular(anomalies)}}">s</span>.
+              {{totalAnomalyCount}} alert<span hidden$="{{computeIsSingular(totalAnomalyCount)}}">s</span>.
             </p>
             <alerts-table id="anomaly-table"
                           xsrf-token="{{xsrfToken}}"
@@ -124,7 +124,7 @@ found in the LICENSE file.
           <template is="dom-if" if="{{stoppageAlerts.length}}">
             <h2>Data stoppage alerts</h2>
             <p>
-              {{stoppageAlerts.length}} alert<span hidden$="{{computeIsSingular(stoppageAlerts)}}">s</span>.
+              {{totalStoppageAlertCount}} alert<span hidden$="{{computeIsSingular(totalStoppageAlertCount)}}">s</span>.
             </p>
             <alerts-table id="stoppage-alert-table"
                           xsrf-token="{{xsrfToken}}"
@@ -154,9 +154,21 @@ found in the LICENSE file.
           type: Array,
           value: () => []
         },
+        totalAnomalyCount: {
+          // The total count may be different from the array length if there
+          // were too many anomalies to pull from the datastore.
+          type: Number,
+          value: 0
+        },
         stoppageAlerts: {
           type: Array,
           value: () => []
+        },
+        totalStoppageAlertCount: {
+          // The total count may be different from the array length if there
+          // were too many stoppage alerts to pull from the datastore.
+          type: Number,
+          value: 0
         },
         loading: {
           type: Boolean,
@@ -222,7 +234,7 @@ found in the LICENSE file.
         }
       },
 
-      computeIsSingular: array => array.length === 1,
+      computeIsSingular: count => count === 1,
 
       getLabel: toggleState => (toggleState ? 'hide' : 'show'),
 
@@ -311,7 +323,9 @@ found in the LICENSE file.
         simple_xhr.send('/alerts', params,
           function(response) {
             this.anomalies = response['anomaly_list'];
+            this.totalAnomalyCount = response['anomaly_count'];
             this.stoppageAlerts = response['stoppage_alert_list'];
+            this.totalStoppageAlertCount = response['stoppage_alert_count'];
             this.sheriffList = response['sheriff_list'];
             this.xsrfToken = response['xsrf_token'];
             this.loading = false;

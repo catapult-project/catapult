@@ -4,8 +4,6 @@
 
 """The datastore model for alerts when data is no longer received for a test."""
 
-import logging
-
 from google.appengine.ext import ndb
 
 from dashboard.common import utils
@@ -35,7 +33,6 @@ class StoppageAlert(alert.Alert):
   recovered = ndb.BooleanProperty(indexed=True, default=False)
 
   # The time the last row added was seen.
-  # This deprecates last_row_date.
   last_row_timestamp = ndb.DateTimeProperty()
 
   # Computed properties are treated like member variables, so they have
@@ -62,14 +59,6 @@ class StoppageAlert(alert.Alert):
   @ndb.ComputedProperty
   def end_revision(self):
     return self.revision
-
-  @ndb.ComputedProperty
-  def last_row_date(self):
-    row = self.row.get()
-    if not row:
-      logging.warning('No Row with key %s', self.row)
-      return None
-    return row.timestamp
 
 
 def GetStoppageAlert(test_path, revision):

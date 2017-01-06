@@ -18,9 +18,6 @@ from dashboard.models import stoppage_alert
 
 _MAX_ANOMALIES_TO_COUNT = 5000
 _MAX_ANOMALIES_TO_SHOW = 500
-# TODO(sullivan): Up this back to 500 when this bug is fixed:
-# https://github.com/catapult-project/catapult/issues/2818
-_MAX_STOPPAGE_ALERTS = 50
 
 
 class AlertsHandler(request_handler.RequestHandler):
@@ -55,11 +52,15 @@ class AlertsHandler(request_handler.RequestHandler):
     anomaly_keys = _FetchAnomalyKeys(
         sheriff_key, include_improvements, include_triaged)
     anomalies = ndb.get_multi(anomaly_keys[:_MAX_ANOMALIES_TO_SHOW])
-    stoppage_alerts = _FetchStoppageAlerts(sheriff_key, include_triaged)
+    stoppage_alert_keys = _FetchStoppageAlertKeys(sheriff_key, include_triaged)
+    stoppage_alerts = ndb.get_multi(
+        stoppage_alert_keys[:_MAX_ANOMALIES_TO_SHOW])
 
     values = {
         'anomaly_list': AnomalyDicts(anomalies),
+        'anomaly_count': len(anomaly_keys),
         'stoppage_alert_list': StoppageAlertDicts(stoppage_alerts),
+        'stoppage_alert_count': len(stoppage_alert_keys),
         'sheriff_list': _GetSheriffList(),
     }
     self.GetDynamicVariables(values)
@@ -105,7 +106,7 @@ def _FetchAnomalyKeys(sheriff_key, include_improvements, include_triaged):
   return query.fetch(limit=_MAX_ANOMALIES_TO_COUNT, keys_only=True)
 
 
-def _FetchStoppageAlerts(sheriff_key, include_triaged):
+def _FetchStoppageAlertKeys(sheriff_key, include_triaged):
   """Fetches the list of Anomaly keys that may be shown.
 
   Args:
@@ -125,7 +126,7 @@ def _FetchStoppageAlerts(sheriff_key, include_triaged):
         stoppage_alert.StoppageAlert.recovered == False)
 
   query = query.order(-stoppage_alert.StoppageAlert.timestamp)
-  return query.fetch(limit=_MAX_STOPPAGE_ALERTS)
+  return query.fetch(limit=_MAX_ANOMALIES_TO_COUNT, keys_only=True)
 
 
 def _GetSheriffList():
@@ -172,7 +173,7 @@ def GetAnomalyDict(anomaly_entity, bisect_status=None):
 def _GetStoppageAlertDict(stoppage_alert_entity):
   """Returns a dictionary of properties of a stoppage alert."""
   alert_dict = _AlertDict(stoppage_alert_entity)
-  last_row_date = stoppage_alert_entity.last_row_date
+  last_row_date = stoppage_alert_entity.last_row_timestamp
   if not last_row_date:
     logging.error('No date for StoppageAlert:\n%s', stoppage_alert_entity)
   alert_dict.update({
