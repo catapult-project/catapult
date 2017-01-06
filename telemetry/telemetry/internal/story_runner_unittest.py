@@ -51,6 +51,9 @@ class FakePlatform(object):
   def WaitForTemperature(self, _):
     pass
 
+  def GetDeviceTypeName(self):
+    return "GetDeviceTypeName"
+
 
 class TestSharedState(story_module.SharedState):
 
