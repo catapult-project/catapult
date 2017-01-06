@@ -68,9 +68,6 @@ class Page(story.Story):
     self.skip_waits = False
     self.script_to_evaluate_on_commit = None
     self._SchemeErrorCheck()
-    # Confirm that the display name length that is used to generate the trace
-    # filename isn't too long. See crbug.com/662941.
-    assert len(self.display_name) <= 180
 
   @property
   def credentials_path(self):
