@@ -771,11 +771,26 @@ class GraphJsonHelperFunctionTest(testing_common.TestCase):
     test.buildername = 'MyBuilder'
     test_container_key = utils.GetTestContainerKey(test)
     row = graph_data.Row(id=345, buildnumber=456, parent=test_container_key)
-    row.a_stdio_uri = ('[Build stdio](http://build.chromium.org/p/my.master.id/'
-                       'builders/MyBuilder/builds/456/steps/my_suite/logs/'
-                       'stdio)')
+    # Test buildbot format
+    row.a_stdio_uri = ('[Buildbot stdio]('
+                       'http://build.chromium.org/p/my.master.id/'
+                       'builders/MyBuilder%20%281%29/builds/456/steps/'
+                       'my_suite/logs/stdio)')
+    point_info = graph_json._PointInfoDict(row, {})
+    self.assertEqual(
+        '[Buildbot stdio](https://luci-logdog.appspot.com/v/?s='
+        'chrome%2Fbb%2Fmy.master.id%2FMyBuilder__1_%2F456%2F%2B%2F'
+        'recipes%2Fsteps%2Fmy_suite%2F0%2Fstdout)', point_info['a_stdio_uri'])
+    self.assertEqual(
+        '[Buildbot status page](http://build.chromium.org/p/my.master.id/'
+        'builders/MyBuilder%20%281%29/builds/456)',
+        point_info['a_buildbot_status_page'])
+
+    # Test non-buildbot format
+    row.a_stdio_uri = '[Buildbot stdio](http://unkonwn/type)'
     point_info = graph_json._PointInfoDict(row, {})
     self.assertEqual(row.a_stdio_uri, point_info['a_stdio_uri'])
+    self.assertIsNone(point_info.get('a_buildbot_status_page'))
 
   def testPointInfoDict_RowHasNoTracingUri_ResultHasNoTracingUri(self):
     testing_common.AddTests(['Master'], ['b'], {'my_suite': {}})
