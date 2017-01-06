@@ -12,9 +12,7 @@ class MobileUserAgentTest(tab_test_case.TabTestCase):
   def CustomizeBrowserOptions(cls, options):
     options.browser_user_agent_type = 'mobile'
 
-  # https://github.com/catapult-project/catapult/issues/3099 (Android)
-  # crbug.com/483212 (CrOS)
-  @decorators.Disabled('android', 'chromeos')
+  @decorators.Disabled('chromeos')  # crbug.com/483212
   def testUserAgent(self):
     ua = self._tab.EvaluateJavaScript('window.navigator.userAgent')
     self.assertEquals(ua, user_agent.UA_TYPE_MAPPING['mobile'])

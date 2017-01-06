@@ -96,9 +96,8 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
     self.assertEquals(len(v), 1)
     self.assertGreater(v[0].value, 0)
 
-  # android: https://github.com/catapult-project/catapult/issues/3099
   # win: crbug.com/520781, chromeos: crbug.com/483212.
-  @decorators.Disabled('android', 'win', 'chromeos')
+  @decorators.Disabled('win', 'chromeos')
   @decorators.Isolated  # Needed because of py_trace_event
   def testTimelineBasedMeasurementGestureAdjustmentSmoke(self):
     ps = self.CreateEmptyPageSet()
@@ -115,9 +114,8 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
         'Gesture_Scroll', 'frame_time_discrepancy')
     self.assertEquals(len(v), 1)
 
-  # https://github.com/catapult-project/catapult/issues/3099 (Android)
   # Fails on chromeos: crbug.com/483212
-  @decorators.Disabled('android', 'chromeos')
+  @decorators.Disabled('chromeos')
   @decorators.Isolated
   def testTBM2ForSmoke(self):
     ps = self.CreateEmptyPageSet()
@@ -150,8 +148,7 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
     self.assertEquals(v_foo[0].value, 50)
     self.assertIsNotNone(v_foo[0].page)
 
-  # https://github.com/catapult-project/catapult/issues/3099 (Android)
-  @decorators.Disabled('android', 'chromeos')
+  @decorators.Disabled('chromeos')
   def testFirstPaintMetricSmoke(self):
     ps = self.CreateEmptyPageSet()
     ps.AddStory(TestTimelinebasedMeasurementPage(ps, ps.base_dir))

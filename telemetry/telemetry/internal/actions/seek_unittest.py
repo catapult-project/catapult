@@ -19,9 +19,7 @@ class SeekActionTest(tab_test_case.TabTestCase):
     tab_test_case.TabTestCase.setUp(self)
     self.Navigate('video_test.html')
 
-  # https://github.com/catapult-project/catapult/issues/3099 (Android)
-  # crbug.com/418577 (Linux)
-  @decorators.Disabled('android', 'linux')
+  @decorators.Disabled('linux')  # crbug.com/418577
   def testSeekWithNoSelector(self):
     """Tests that with no selector Seek  action seeks first media element."""
     action = seek.SeekAction(seconds=1, timeout_in_seconds=5)
@@ -31,9 +29,7 @@ class SeekActionTest(tab_test_case.TabTestCase):
     self.assertTrue(self._tab.EvaluateJavaScript(VIDEO_1_SEEKED_CHECK))
     self.assertFalse(self._tab.EvaluateJavaScript(AUDIO_1_SEEKED_CHECK))
 
-  # https://github.com/catapult-project/catapult/issues/3099 (Android)
-  # crbug.com/418577 (Linux)
-  @decorators.Disabled('android', 'linux')
+  @decorators.Disabled('linux')  # crbug.com/418577
   def testSeekWithVideoSelector(self):
     """Tests that Seek action seeks video element matching selector."""
     action = seek.SeekAction(seconds=1, selector='#video_1',

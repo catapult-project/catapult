@@ -51,9 +51,7 @@ class LoadMediaActionTest(tab_test_case.TabTestCase):
     self.assertFalse(self.eventFired('#video_1', 'canplaythrough'))
     self.assertTrue(self.eventFired('#audio_1', 'canplaythrough'))
 
-  # https://github.com/catapult-project/catapult/issues/3099 (Android)
-  # crbug.com/418577 (Linux)
-  @decorators.Disabled('android', 'linux')
+  @decorators.Disabled('linux')  # crbug.com/418577
   def testLoadWithAllSelector(self):
     """Both elements are loaded with selector='all'."""
     action = LoadMediaAction(selector='all', timeout_in_seconds=5)
@@ -62,9 +60,7 @@ class LoadMediaActionTest(tab_test_case.TabTestCase):
     self.assertTrue(self.eventFired('#video_1', 'canplaythrough'))
     self.assertTrue(self.eventFired('#audio_1', 'canplaythrough'))
 
-  # https://github.com/catapult-project/catapult/issues/3099 (Android)
-  # crbug.com/418577 (Linux)
-  @decorators.Disabled('android', 'linux')
+  @decorators.Disabled('linux')  # crbug.com/418577
   def testLoadRaisesAnExceptionOnTimeout(self):
     """The load action times out if the event does not fire."""
     action = LoadMediaAction(selector='#video_1', timeout_in_seconds=0.1,

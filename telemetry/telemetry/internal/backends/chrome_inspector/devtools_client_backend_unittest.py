@@ -18,15 +18,11 @@ class DevToolsClientBackendTest(browser_test_case.BrowserTestCase):
   def _devtools_client(self):
     return self._browser_backend.devtools_client
 
-  # https://github.com/catapult-project/catapult/issues/3099
-  @decorators.Disabled('android')
   def testGetChromeBranchNumber(self):
     branch_num = self._devtools_client.GetChromeBranchNumber()
     self.assertIsInstance(branch_num, int)
     self.assertGreater(branch_num, 0)
 
-  # https://github.com/catapult-project/catapult/issues/3099
-  @decorators.Disabled('android')
   def testIsAlive(self):
     self.assertTrue(self._devtools_client.IsAlive())
 
@@ -68,7 +64,9 @@ class DevToolsClientBackendTest(browser_test_case.BrowserTestCase):
     self.assertEqual(tabs4[0], tabs3[0])
     self.assertEqual(tabs4[1], tabs3[2])
 
-  @decorators.Disabled('chromeos')  # crbug.com/483212
+  # https://github.com/catapult-project/catapult/issues/3099 (Android)
+  # crbug.com/483212 (CrOS)
+  @decorators.Disabled('android', 'chromeos')
   def testGetUpdatedInspectableContextsUpdateContextsData(self):
     c1 = self._devtools_client.GetUpdatedInspectableContexts()
     self.assertEqual(len(c1.contexts), 1)

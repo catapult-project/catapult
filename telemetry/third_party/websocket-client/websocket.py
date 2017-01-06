@@ -452,12 +452,6 @@ class WebSocket(object):
             else:
                 raise WebSocketException("SSL not available.")
 
-        print "STARTING HANDSHAKE: %s" % time.time()
-        print "  hostname: %s" % hostname
-        print "  port: %s" % port
-        print "  START TRACEBACK"
-        import traceback; traceback.print_stack()
-        print "END TRACEBACK"
         self._handshake(hostname, port, resource, **options)
 
     def _handshake(self, host, port, resource, **options):
@@ -495,7 +489,6 @@ class WebSocket(object):
 
         status, resp_headers = self._read_headers()
         if status != 101:
-            print "FAILED HANDSHAKE: %s" % time.time()
             self.close()
             raise WebSocketException("Handshake Status %d" % status)
 
@@ -504,7 +497,6 @@ class WebSocket(object):
             self.close()
             raise WebSocketException("Invalid WebSocket Header")
 
-        print "HANDSHAKE SUCCEEDED"
         self.connected = True
 
     def _validate_header(self, headers, key):

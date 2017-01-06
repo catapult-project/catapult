@@ -154,7 +154,8 @@ class RunTestsCommand(command_line.OptparseCommand):
     if platform.GetOSName() == 'chromeos':
       runner.args.jobs = 1
     elif platform.GetOSName() == 'android':
-      runner.args.jobs = 1
+      android_devs = android_device.FindAllAvailableDevices(args)
+      runner.args.jobs = len(android_devs)
       if runner.args.jobs == 0:
         raise RuntimeError("No Android device found")
       print 'Running tests with %d Android device(s).' % runner.args.jobs

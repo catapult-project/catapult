@@ -184,8 +184,6 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     self.assertEquals(1, len(results.failures))
     self.assertFormattedExceptionIsEmpty()
 
-  # https://github.com/catapult-project/catapult/issues/3099
-  @decorators.Disabled('android')
   def testNeedsBrowserRestartAfterEachPage(self):
     self.CaptureFormattedException()
     story_set = story.StorySet()
@@ -305,9 +303,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     self.assertTrue(hasattr(test, 'hasRun') and test.hasRun)
 
   # Ensure that story_runner forces exactly 1 tab before running a page.
-  # https://github.com/catapult-project/catapult/issues/3099 (Android)
   @decorators.Enabled('has tabs')
-  @decorators.Disabled('android')
   def testOneTab(self):
     story_set = story.StorySet()
     page = page_module.Page(
@@ -400,8 +396,6 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
 
   # Ensure that story_runner allows the test to customize the browser
   # before it launches.
-  # https://github.com/catapult-project/catapult/issues/3099 (Android)
-  @decorators.Disabled('android')
   def testBrowserBeforeLaunch(self):
     story_set = story.StorySet()
     page = page_module.Page(
@@ -434,8 +428,6 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
     story_runner.Run(test, story_set, options, results)
 
-  # https://github.com/catapult-project/catapult/issues/3099
-  @decorators.Disabled('android')
   def testRunPageWithStartupUrl(self):
     num_times_browser_closed = [0]
 
@@ -476,8 +468,6 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     self.assertEquals(num_times_browser_closed[0], 2)
 
   # Ensure that story_runner calls cleanUp when a page run fails.
-  # https://github.com/catapult-project/catapult/issues/3099
-  @decorators.Disabled('android')
   def testCleanUpPage(self):
     story_set = story.StorySet()
     page = page_module.Page(
@@ -507,8 +497,6 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     assert test.did_call_clean_up
 
   # Ensure skipping the test if shared state cannot be run on the browser.
-  # https://github.com/catapult-project/catapult/issues/3099 (Android)
-  @decorators.Disabled('android')
   def testSharedPageStateCannotRunOnBrowser(self):
     story_set = story.StorySet()
 
@@ -601,8 +589,6 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
                      max_failures=max_failures)
     return results
 
-  # https://github.com/catapult-project/catapult/issues/3099
-  @decorators.Disabled('android')
   def testSingleTabMeansCrashWillCauseFailureValue(self):
     self.CaptureFormattedException()
 
@@ -637,8 +623,6 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
       self._RunPageTestThatRaisesAppCrashException(test, max_failures=1)
     self.assertFormattedExceptionOnlyHas('AppCrashException')
 
-  # https://github.com/catapult-project/catapult/issues/3099 (Android)
-  @decorators.Disabled('android')
   def testWebPageReplay(self):
     story_set = example_domain.ExampleDomainPageSet()
     body = []
