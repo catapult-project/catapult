@@ -6,7 +6,9 @@ Unless stated below, we follow the conventions listed in the [Chromium style
 guide](https://www.chromium.org/developers/coding-style) and [Google JavaScript
 style guide](http://google.github.io/styleguide/javascriptguide.xml).
 
-## Files
+## JavaScript
+
+### Files
 File names `should_look_like_this.html`.
 
 Keep to one concept per file, always. In practice, this usually means one
@@ -59,7 +61,7 @@ touch tracing/model/access_point.html
 touch tracing/model/access_point_test.html
 ```
 
-## Namespacing and element names
+### Namespacing and element names
 
 All symbols that exist in the global namespace should be exported using the
 `exportTo` method.
@@ -86,7 +88,7 @@ Polymer element names should use the convention
 </dom-module>
 ```
 
-## Classes and objects
+### Classes and objects
 
 Classes should expose public fields only if those fields represent a part of the
 class’s public interface.
@@ -119,7 +121,7 @@ Line.prototype = {
 };
 ```
 
-## Blocks
+### Blocks
 
 From the [Blocks section of the airbnb style
 guide](https://github.com/airbnb/javascript#blocks):
@@ -169,7 +171,7 @@ if (test) {
 }
 ```
 
-## Polymer elements
+### Polymer elements
 The `<script>` block for the Polymer element can go either inside or outside of
 the element’s definition. Generally, the block outside is placed outside when
 the script is sufficiently complex that having 2 fewer spaces of indentation
@@ -206,7 +208,7 @@ Style sheets should be inline rather than in external .css files.
 </dom-module>
 ```
 
-## `undefined` and `null`
+### `undefined` and `null`
 Prefer use of `undefined` over `null`.
 
 ```javascript
@@ -218,12 +220,12 @@ function Line() {
 }
 ```
 
-## Tests
+### Tests
 UI element tests that make sure that an element is instantiable should have
 names that start with “`instantiate`”. These tests should, as a general rule,
 should not make assertions.
 
-## ECMAScript 2015 (ES6) features
+### ECMAScript 2015 (ES6) features
 
 **Use of ES6 features is prohibited unless explicitly approved in the table below.** However, we're currently working to allow them.
 
@@ -250,7 +252,7 @@ should not make assertions.
 | [Binary and octal literals](https://github.com/lukehoban/es6features#binary-and-octal-literals)                                             | To be discussed                                                                 |
 | [Reflect API](https://github.com/lukehoban/es6features#reflect-api)                                                                         | To be discussed                                                                 |
 
-## ECMAScript 2016 (ES7) features
+### ECMAScript 2016 (ES7) features
 
 **Use of ES7 features is prohibited unless explicitly approved in the table below.** However, we're currently working to allow them.
 
@@ -259,7 +261,7 @@ should not make assertions.
 | [Array.prototype.includes](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/includes) | To be discussed |
 | [Exponentiation operator](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Exponentiation_(**))  | To be discussed |
 
-## ECMAScript 2017 (ES8) features
+### ECMAScript 2017 (ES8) features
 
 **Use of ES8 features is prohibited unless explicitly approved in the table below.** Generally, ES8 features are still experimental and liable to change and therefore not fit for use in Catapult. However, in a few rare cases, features may be stable enough for use.
 
