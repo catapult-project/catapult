@@ -7,7 +7,7 @@ import unittest
 
 from telemetry.core import exceptions
 from telemetry.testing import gtest_progress_reporter
-from telemetry.testing import simple_mock
+from telemetry.testing import fakes
 from telemetry.testing import stream
 
 
@@ -40,11 +40,10 @@ class GTestProgressReporterTest(unittest.TestCase):
     self._stream = stream.TestOutputStream()
     self._formatter = gtest_progress_reporter.GTestProgressReporter(
         self._stream)
-
-    self._mock_timer = simple_mock.MockTimer(gtest_progress_reporter)
+    self._fake_timer = fakes.FakeTimer(gtest_progress_reporter)
 
   def tearDown(self):
-    self._mock_timer.Restore()
+    self._fake_timer.Restore()
 
   def testTestSuiteWithWrapperSuite(self):
     suite = unittest.TestSuite()
@@ -58,7 +57,7 @@ class GTestProgressReporterTest(unittest.TestCase):
     suite = unittest.TestSuite()
     suite.addTest(TestFoo(methodName='runTezt'))
     self._formatter.StartTestSuite(suite)
-    self._mock_timer.SetTime(0.042)
+    self._fake_timer.SetTime(0.042)
     self._formatter.StopTestSuite(suite)
 
     expected = ('[----------] 1 test\n'
@@ -68,7 +67,7 @@ class GTestProgressReporterTest(unittest.TestCase):
   def testCaseFailure(self):
     test = TestFoo(methodName='runTezt')
     self._formatter.StartTest(test)
-    self._mock_timer.SetTime(0.042)
+    self._fake_timer.SetTime(0.042)
     self._formatter.Failure(test, INTENTIONAL_EXCEPTION)
 
     expected = (
@@ -80,7 +79,7 @@ class GTestProgressReporterTest(unittest.TestCase):
   def testCaseSuccess(self):
     test = TestFoo(methodName='runTezt')
     self._formatter.StartTest(test)
-    self._mock_timer.SetTime(0.042)
+    self._fake_timer.SetTime(0.042)
     self._formatter.Success(test)
 
     expected = (

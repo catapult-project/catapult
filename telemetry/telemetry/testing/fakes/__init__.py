@@ -16,6 +16,7 @@ from telemetry.internal.platform import system_info
 from telemetry.page import shared_page_state
 from telemetry.util import image_util
 from telemetry.testing.internal import fake_gpu_info
+from types import ModuleType
 
 
 # Classes and functions which are intended to be part of the public
@@ -489,3 +490,37 @@ class FakeInspectorWebsocket(object):
       callback(response)
     else:
       raise Exception('Unexpected response type')
+
+
+class FakeTimer(object):
+  """ A fake timer to fake out the timing for a module.
+    Args:
+      module: module to fake out the time
+  """
+  def __init__(self, module=None):
+    self._elapsed_time = 0
+    self._module = module
+    self._actual_time = None
+    if module:
+      assert isinstance(module, ModuleType)
+      self._actual_time = module.time
+      self._module.time = self
+
+  def sleep(self, time):
+    self._elapsed_time += time
+
+  def time(self):
+    return self._elapsed_time
+
+  def SetTime(self, time):
+    self._elapsed_time = time
+
+  def __del__(self):
+    self.Restore()
+
+  def Restore(self):
+    if self._module:
+      self._module.time = self._actual_time
+      self._module = None
+      self._actual_time = None
+

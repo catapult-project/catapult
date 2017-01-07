@@ -9,7 +9,6 @@ import unittest
 from telemetry.internal.backends.chrome_inspector import inspector_websocket
 from telemetry.internal.backends.chrome_inspector import memory_backend
 from telemetry.testing import fakes
-from telemetry.testing import simple_mock
 from telemetry.testing import tab_test_case
 
 
@@ -63,11 +62,11 @@ class MemoryBackendTest(tab_test_case.TabTestCase):
 class MemoryBackendUnitTest(unittest.TestCase):
 
   def setUp(self):
-    self._mock_timer = simple_mock.MockTimer()
-    self._inspector_socket = fakes.FakeInspectorWebsocket(self._mock_timer)
+    self._fake_timer = fakes.FakeTimer()
+    self._inspector_socket = fakes.FakeInspectorWebsocket(self._fake_timer)
 
   def tearDown(self):
-    self._mock_timer.Restore()
+    self._fake_timer.Restore()
 
   def testSetMemoryPressureNotificationsSuppressedSuccess(self):
     response_handler = mock.Mock(return_value={'result': {}})

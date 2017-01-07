@@ -9,7 +9,6 @@ from telemetry import decorators
 from telemetry.internal.backends.chrome_inspector import tracing_backend
 from telemetry.internal.backends.chrome_inspector.tracing_backend import _DevToolsStreamReader
 from telemetry.testing import fakes
-from telemetry.testing import simple_mock
 from telemetry.testing import tab_test_case
 from telemetry.timeline import chrome_trace_config
 from telemetry.timeline import model as model_module
@@ -113,13 +112,12 @@ class TracingBackendTest(tab_test_case.TabTestCase):
 
 
 class TracingBackendUnitTest(unittest.TestCase):
-
   def setUp(self):
-    self._mock_timer = simple_mock.MockTimer(tracing_backend)
-    self._inspector_socket = fakes.FakeInspectorWebsocket(self._mock_timer)
+    self._fake_timer = fakes.FakeTimer(tracing_backend)
+    self._inspector_socket = fakes.FakeInspectorWebsocket(self._fake_timer)
 
   def tearDown(self):
-    self._mock_timer.Restore()
+    self._fake_timer.Restore()
 
   def testCollectTracingDataTimeout(self):
     self._inspector_socket.AddEvent(
@@ -236,14 +234,14 @@ class TracingBackendUnitTest(unittest.TestCase):
 
 class DevToolsStreamPerformanceTest(unittest.TestCase):
   def setUp(self):
-    self._mock_timer = simple_mock.MockTimer(tracing_backend)
-    self._inspector_socket = fakes.FakeInspectorWebsocket(self._mock_timer)
+    self._fake_timer = fakes.FakeTimer(tracing_backend)
+    self._inspector_socket = fakes.FakeInspectorWebsocket(self._fake_timer)
 
   def _MeasureReadTime(self, count):
-    mock_time = self._mock_timer.time() + 1
+    fake_time = self._fake_timer.time() + 1
     payload = ','.join(['{}'] * 5000)
     self._inspector_socket.AddAsyncResponse('IO.read', {'data': '[' + payload},
-                                            mock_time)
+                                            fake_time)
     startClock = timeit.default_timer()
 
     done = {'done': False}
@@ -254,13 +252,13 @@ class DevToolsStreamPerformanceTest(unittest.TestCase):
     reader = _DevToolsStreamReader(self._inspector_socket, 'dummy')
     reader.Read(mark_done)
     while not done['done']:
-      mock_time += 1
+      fake_time += 1
       if count > 0:
         self._inspector_socket.AddAsyncResponse('IO.read', {'data': payload},
-            mock_time)
+            fake_time)
       elif count == 0:
         self._inspector_socket.AddAsyncResponse('IO.read',
-            {'data': payload + ']', 'eof': True}, mock_time)
+            {'data': payload + ']', 'eof': True}, fake_time)
       count -= 1
       self._inspector_socket.DispatchNotifications(10)
     return timeit.default_timer() - startClock
