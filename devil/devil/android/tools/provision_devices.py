@@ -39,6 +39,7 @@ from devil.android import device_utils
 from devil.android import settings
 from devil.android.constants import chrome
 from devil.android.sdk import adb_wrapper
+from devil.android.sdk import intent
 from devil.android.sdk import keyevent
 from devil.android.sdk import version_codes
 from devil.android.tools import script_common
@@ -455,6 +456,8 @@ def SetDate(device):
         _set_and_verify_date, wait_period=1, max_tries=2):
       raise device_errors.CommandFailedError(
           'Failed to set date & time.', device_serial=str(device))
+    device.BroadcastIntent(
+        intent.Intent(action='android.intent.action.TIME_SET'))
 
 
 def LogDeviceProperties(device):
