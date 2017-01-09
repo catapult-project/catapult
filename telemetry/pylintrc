@@ -23,6 +23,7 @@ disable=
   no-self-use,
   protected-access,
   star-args,
+  too-many-function-args
 
 
 [REPORTS]
