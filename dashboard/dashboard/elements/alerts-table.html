@@ -377,15 +377,15 @@ found in the LICENSE file.
           <td class="revision_range">
             <revision-range start="{{item.start_revision}}" end="{{item.end_revision}}"></revision-range>
           </td>
-          <td class="master"><label>{{item.master}}</label></td>
-          <td class="bot"><label>{{item.bot}}</label></td>
-          <td class="testsuite"><label>{{item.testsuite}}</label></td>
-          <td class="test"><label>{{item.test}}</label></td>
+          <td class="master">{{item.master}}</td>
+          <td class="bot">{{item.bot}}</td>
+          <td class="testsuite">{{item.testsuite}}</td>
+          <td class="test">{{item.test}}</td>
 
           <template is="dom-repeat" items="{{extraColumns}}" as="column" 
                     index-as="colnum">
             <td class$="{{column.key}}" hidden$={{hideUnitsColumn(column.key)}}>
-              <label>{{computeExtraColumnValue(item, column.key)}}</label>
+              {{computeExtraColumnValue(item, column.key)}}
             </td>
           </template>
         </tr>
