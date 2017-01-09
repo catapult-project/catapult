@@ -252,6 +252,59 @@ class UtilsTest(testing_common.TestCase):
   def testValidate_TypeConversion_Passes(self):
     utils.Validate([1], '1')
 
+  def testGetBuildDetailsFromStdioLink_InvalidLink(self):
+    base_url, master, bot, number, step = utils.GetBuildDetailsFromStdioLink(
+        '[Buildbot stdio](http://notquite/builders/whatever/234)')
+    self.assertIsNone(base_url)
+    self.assertIsNone(master)
+    self.assertIsNone(bot)
+    self.assertIsNone(number)
+    self.assertIsNone(step)
+
+  def testGetBuildDetailsFromStdioLink(self):
+    base_url, master, bot, number, step = utils.GetBuildDetailsFromStdioLink((
+        '[Buildbot stdio](https://build.chromium.org/p/chromium.perf/builders/'
+        'Android%20One%20Perf%20%282%29/builds/5365/steps/'
+        'blink_style.top_25/logs/stdio)'))
+    self.assertEqual('https://build.chromium.org/p/chromium.perf/builders/',
+                     base_url)
+    self.assertEqual('chromium.perf', master)
+    self.assertEqual('Android One Perf (2)', bot)
+    self.assertEqual('5365', number)
+    self.assertEqual('blink_style.top_25', step)
+
+  def testGetBuildDetailsFromStdioLink_DifferentBaseUrl(self):
+    base_url, master, bot, number, step = utils.GetBuildDetailsFromStdioLink((
+        '[Buildbot stdio]('
+        'https://uberchromegw.corp.google.com/i/new.master/builders/Builder/'
+        'builds/3486/steps/new_test/logs/stdio)'))
+    self.assertEqual(
+        'https://uberchromegw.corp.google.com/i/new.master/builders/',
+        base_url)
+    self.assertEqual('new.master', master)
+    self.assertEqual('Builder', bot)
+    self.assertEqual('3486', number)
+    self.assertEqual('new_test', step)
+
+  def testGetBuildbotStatusPageUriFromStdioLink(self):
+    buildbot_status_page = utils.GetBuildbotStatusPageUriFromStdioLink((
+        '[Buildbot stdio](https://build.chromium.org/p/chromium.perf/builders/'
+        'Android%20One%20Perf%20%282%29/builds/5365/steps/'
+        'blink_style.top_25/logs/stdio)'))
+    self.assertEqual((
+        'https://build.chromium.org/p/chromium.perf/builders/'
+        'Android%20One%20Perf%20%282%29/builds/5365'), buildbot_status_page)
+
+  def testGetLogdogLogUriFromStdioLink(self):
+    logdog_uri = utils.GetLogdogLogUriFromStdioLink((
+        '[Buildbot stdio](https://build.chromium.org/p/chromium.perf/builders/'
+        'Android%20One%20Perf%20%282%29/builds/5365/steps/'
+        'blink_style.top_25/logs/stdio)'))
+    self.assertEqual((
+        'https://luci-logdog.appspot.com/v/?s='
+        'chrome%2Fbb%2Fchromium.perf%2FAndroid_One_Perf__2_%2F5365%2F%2B%2F'
+        'recipes%2Fsteps%2Fblink_style.top_25%2F0%2Fstdout'), logdog_uri)
+
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   @mock.patch('common.utils.discovery.build')
   def testIsGroupMember_PositiveCase(self, mock_discovery_build):

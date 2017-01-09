@@ -13,7 +13,6 @@ import datetime
 import json
 import logging
 import re
-import urllib
 
 from google.appengine.ext import ndb
 
@@ -276,25 +275,16 @@ def _IsMarkdownLink(value):
 
 
 def _GetUpdatedBuildbotLinks(old_stdio_link):
-  m = re.match(r'\[(.+?)\]\((.+?)\)', old_stdio_link)
-  if not m:
-    # This wasn't the markdown-style link we were expecting.
-    return None, None
-  title, link = m.groups()
-  m = re.match(
-      r'(https{0,1}://.*/([^\/]*)/builders/)'
-      r'([^\/]+)/builds/(\d+)/steps/([^\/]+)', link)
-  if not m:
-    # This wasn't a buildbot formatted link.
-    return None, None
-  base_url, master, bot, buildnumber, step = m.groups()
-  logdog_bot = re.sub(r'[ \(\)]', '_', urllib.unquote(bot))
-  s_param = urllib.quote('chrome/bb/%s/%s/%s/+/recipes/steps/%s/0/stdout' % (
-      master, logdog_bot, buildnumber, step), safe='')
-  logdog_link = 'https://luci-logdog.appspot.com/v/?s=%s' % s_param
-  logdog_markdown = '[%s](%s)' % (title, logdog_link)
-  buildbot_status_page = '%s%s/builds/%s' % (base_url, bot, buildnumber)
-  buildbot_status_markdown = '[Buildbot status page](%s)' % buildbot_status_page
+  # Links take a markdown format, [title](url)
+  logdog_markdown = None
+  logdog_link = utils.GetLogdogLogUriFromStdioLink(old_stdio_link)
+  if logdog_link:
+    logdog_markdown = '[Buildbot stdio](%s)' % logdog_link
+  buildbot_status_markdown = None
+  buildbot_link = utils.GetBuildbotStatusPageUriFromStdioLink(
+      old_stdio_link)
+  if buildbot_link:
+    buildbot_status_markdown = '[Buildbot status page](%s)' % buildbot_link
   return logdog_markdown, buildbot_status_markdown
 
 
