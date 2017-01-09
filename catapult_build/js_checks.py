@@ -20,39 +20,6 @@ class JSChecker(object):
     else:
       self.file_filter = lambda x: True
 
-  def RegexCheck(self, line_number, line, regex, message):
-    """Searches for |regex| in |line| to check for a style violation.
-
-    The |regex| must have exactly one capturing group so that the relevant
-    part of |line| can be highlighted. If more groups are needed, use
-    "(?:...)" to make a non-capturing group. Sample message:
-
-    Returns a message like the one below if the regex matches.
-       line 6: Use var instead of const.
-           const foo = bar();
-           ^^^^^
-    """
-    match = re.search(regex, line)
-    if match:
-      assert len(match.groups()) == 1
-      start = match.start(1)
-      length = match.end(1) - start
-      return '  line %d: %s\n%s\n%s' % (
-          line_number,
-          message,
-          line,
-          _ErrorHighlight(start, length))
-    return ''
-
-  def ConstCheck(self, i, line):
-    """Checks for use of the 'const' keyword."""
-    if re.search(r'\*\s+@const', line):
-      # Probably a JsDoc line.
-      return ''
-
-    return self.RegexCheck(
-        i, line, r'(?:^|\s|\()(const)\s', 'Use var instead of const.')
-
   def RunChecks(self):
     """Checks for violations of the Chromium JavaScript style guide.
 
@@ -79,9 +46,6 @@ class JSChecker(object):
       error_lines += CheckStrictMode(
           '\n'.join(contents),
           is_html_file=f.LocalPath().endswith('.html'))
-
-      for i, line in enumerate(contents, start=1):
-        error_lines += filter(None, [self.ConstCheck(i, line)])
 
     if affected_js_files:
       success, eslint_output = eslint.RunEslint(
