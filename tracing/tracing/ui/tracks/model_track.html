@@ -37,11 +37,12 @@ tr.exportTo('tr.ui.tracks', function() {
    */
   var ModelTrack = tr.ui.b.define('model-track', tr.ui.tracks.ContainerTrack);
 
-    ModelTrack.VSYNC_HIGHLIGHT_ALPHA = 0.1;
-    ModelTrack.VSYNC_DENSITY_TRANSPARENT = 0.20;
-    ModelTrack.VSYNC_DENSITY_OPAQUE = 0.10;
-    ModelTrack.VSYNC_DENSITY_RANGE =
-        ModelTrack.VSYNC_DENSITY_TRANSPARENT - ModelTrack.VSYNC_DENSITY_OPAQUE;
+  ModelTrack.VSYNC_HIGHLIGHT_ALPHA = 0.1;
+  ModelTrack.VSYNC_DENSITY_TRANSPARENT = 0.20;
+  ModelTrack.VSYNC_DENSITY_OPAQUE = 0.10;
+  ModelTrack.VSYNC_DENSITY_RANGE =
+      ModelTrack.VSYNC_DENSITY_TRANSPARENT - ModelTrack.VSYNC_DENSITY_OPAQUE;
+
   /**
    * Generate a zebra striping from a list of times.
    *
@@ -176,6 +177,16 @@ tr.exportTo('tr.ui.tracks', function() {
       this.vSyncTimes_ = this.model_.device.vSyncTimestamps;
 
       this.updateAnnotations_();
+    },
+
+    getContentBounds: function() { return this.model.bounds; },
+
+    addAnnotation: function(annotation) {
+      this.model.addAnnotation(annotation);
+    },
+
+    removeAnnotation: function(annotation) {
+      this.model.removeAnnotation(annotation);
     },
 
     updateAnnotations_: function() {
