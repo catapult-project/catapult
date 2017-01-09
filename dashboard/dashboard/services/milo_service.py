@@ -44,7 +44,9 @@ def GetBuildbotBuildInfo(master, builder, build_num):
   if response.status_code != 200:
     return None
 
-  # Unwrap the gRPC message
+  # Unwrap the gRPC message.
+  # Start by removing the jsonp prefix
+  # (see http://security.stackexchange.com/questions/110539).
   resp = json.loads(response.content[5:])  # Remove the jsonp header.
   # Decompress and unmarshal the json message.
   data = base64.b64decode(resp['data'])
