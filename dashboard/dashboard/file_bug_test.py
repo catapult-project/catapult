@@ -87,6 +87,24 @@ class FileBugTest(testing_common.TestCase):
     anomaly_key2 = self._AddAnomaly(112000, 112010, test_key2, sheriff_key)
     return (anomaly_key1, anomaly_key2)
 
+  def _AddSampleAlertsV8(self):
+    """Adds sample data and returns a dict of rev to anomaly key."""
+    # Add sample sheriff, masters, bots, and tests.
+    sheriff_key = sheriff.Sheriff(
+        id='Sheriff',
+        labels=['Performance-Sheriff', 'Cr-Blink-Javascript']).put()
+    testing_common.AddTests(['v8'], ['linux'], {
+        'scrolling': {
+            'first_paint': {},
+            'mean_frame_time': {},
+        }
+    })
+    test_key1 = utils.TestKey('v8/linux/scrolling/first_paint')
+    test_key2 = utils.TestKey('v8/linux/scrolling/mean_frame_time')
+    anomaly_key1 = self._AddAnomaly(111995, 112005, test_key1, sheriff_key)
+    anomaly_key2 = self._AddAnomaly(112000, 112010, test_key2, sheriff_key)
+    return (anomaly_key1, anomaly_key2)
+
   def _AddAnomaly(self, start_rev, end_rev, test_key, sheriff_key):
     return anomaly.Anomaly(
         start_revision=start_rev, end_revision=end_rev, test=test_key,
@@ -145,8 +163,11 @@ class FileBugTest(testing_common.TestCase):
   @mock.patch.object(
       file_bug.auto_bisect, 'StartNewBisectForBug',
       mock.MagicMock(return_value={'issue_id': 123, 'issue_url': 'foo.com'}))
-  def _PostSampleBug(self):
-    alert_keys = self._AddSampleAlerts()
+  def _PostSampleBug(self, is_v8=False):
+    if is_v8:
+      alert_keys = self._AddSampleAlertsV8()
+    else:
+      alert_keys = self._AddSampleAlerts()
     response = self.testapp.post(
         '/file_bug',
         [
@@ -239,6 +260,28 @@ class FileBugTest(testing_common.TestCase):
     # (M-3) AND M-2 is lower than M-3.
     self._PostSampleBug()
     self.assertIn('M-2', self.service.new_bug_kwargs['labels'])
+
+  @mock.patch.object(
+      file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
+      mock.MagicMock(return_value=[
+          {
+              'versions': [
+                  {'branch_base_position': '112000', 'current_version': '2.0'},
+                  {'branch_base_position': '111990', 'current_version': '1.0'}
+              ]
+          }
+      ]))
+  @mock.patch.object(
+      file_bug.auto_bisect, 'StartNewBisectForBug',
+      mock.MagicMock(return_value={'issue_id': 123, 'issue_url': 'foo.com'}))
+  def testGet_WithFinish_LabelsBugWithNoMilestoneBecauseNotChromium(self):
+    # Here, we expect to return no Milestone label because the alerts are
+    # not of master 'ChromiumPerf' or 'ChromiumPerfFyi'. Assuming
+    # testGet_WithFinish_LabelsBugWithMilestone passes, M-2
+    # would be the label that it would get if the alert was Chromium.
+    self._PostSampleBug(is_v8=True)
+    labels = self.service.new_bug_kwargs['labels']
+    self.assertEqual(0, len([x for x in labels if x.startswith(u'M-')]))
 
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
