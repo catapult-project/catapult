@@ -56,10 +56,10 @@ class FormBasedCredentialsBackend(object):
 
   def _WaitForLoginState(self, action_runner):
     """Waits until it can detect either the login form, or already logged in."""
-    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
-    condition = '(document.querySelector("#%s") !== null) || (%s)' % (
-        self.login_form_id, self.logged_in_javascript)
-    action_runner.WaitForJavaScriptCondition(condition, 60)
+    action_runner.WaitForJavaScriptCondition(
+        '(document.querySelector({{ form_id }}) !== null) || ({{ @code }})',
+        form_id=self.login_form_id, code=self.logged_in_javascript,
+        timeout_in_seconds=60)
 
   def _SubmitLoginFormAndWait(self, action_runner, tab, username, password):
     """Submits the login form and waits for the navigation."""

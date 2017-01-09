@@ -19,6 +19,7 @@ class FormBasedCredentialsBackendUnitTestBase(unittest.TestCase):
   def _LoginUsingMock(self, backend, login_page_url, email_element_id,
                       password_element_id, form_element_id,
                       already_logged_in_js): # pylint: disable=no-self-use
+    del form_element_id  # Unused.
     tab = simple_mock.MockObject()
     ar = simple_mock.MockObject()
 
@@ -29,9 +30,9 @@ class FormBasedCredentialsBackendUnitTestBase(unittest.TestCase):
     tab.ExpectCall('EvaluateJavaScript', already_logged_in_js).WillReturn(False)
     tab.ExpectCall('WaitForDocumentReadyStateToBeInteractiveOrBetter')
 
-    ar.ExpectCall('WaitForJavaScriptCondition',
-                  '(document.querySelector("#%s") !== null) || (%s)' % (
-                      form_element_id, already_logged_in_js), 60)
+    ar.ExpectCall(
+        'WaitForJavaScriptCondition',
+        '(document.querySelector({{ form_id }}) !== null) || ({{ @code }})')
     ar.ExpectCall('WaitForNavigate')
 
     def VerifyEmail(js):

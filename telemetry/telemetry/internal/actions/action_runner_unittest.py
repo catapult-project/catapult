@@ -304,42 +304,36 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
 
     off_screen_element = 'document.querySelectorAll("#off-screen")[0]'
     top_bottom_element = 'document.querySelector("#top-bottom")'
-    viewport_comparator_js_template = '''
-      (function(elem) {
-        var rect = elem.getBoundingClientRect();
 
-        if (rect.bottom < 0) {
-          // The bottom of the element is above the viewport.
-          return -1;
-        }
-        if (rect.top - window.innerHeight > 0) {
-          // rect.top provides the pixel offset of the element from the
-          // top of the page. Because that exceeds the viewport's height,
-          // we know that the element is below the viewport.
-          return 1;
-        }
-        return 0;
-      })(
-    '''
-    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
-    viewport_comparator_off_screen_js = (
-        viewport_comparator_js_template + '%s);' % off_screen_element)
-    viewport_comparator_top_bottom_js = (
-        viewport_comparator_js_template + '%s);' % top_bottom_element)
+    def viewport_comparator(element):
+      return action_runner.EvaluateJavaScript('''
+          (function(elem) {
+            var rect = elem.getBoundingClientRect();
 
-    self.assertEqual(
-        action_runner.EvaluateJavaScript(viewport_comparator_off_screen_js), 1)
+            if (rect.bottom < 0) {
+              // The bottom of the element is above the viewport.
+              return -1;
+            }
+            if (rect.top - window.innerHeight > 0) {
+              // rect.top provides the pixel offset of the element from the
+              // top of the page. Because that exceeds the viewport's height,
+              // we know that the element is below the viewport.
+              return 1;
+            }
+            return 0;
+          })({{ @element }});
+          ''', element=element)
+
+
+    self.assertEqual(viewport_comparator(off_screen_element), 1)
     action_runner.ScrollPageToElement(selector='#off-screen',
                                       speed_in_pixels_per_second=5000)
-    self.assertEqual(
-        action_runner.EvaluateJavaScript(viewport_comparator_off_screen_js), 0)
+    self.assertEqual(viewport_comparator(off_screen_element), 0)
 
-    self.assertEqual(
-        action_runner.EvaluateJavaScript(viewport_comparator_top_bottom_js), -1)
+    self.assertEqual(viewport_comparator(top_bottom_element), -1)
     action_runner.ScrollPageToElement(selector='#top-bottom',
                                       speed_in_pixels_per_second=5000)
-    self.assertEqual(
-        action_runner.EvaluateJavaScript(viewport_comparator_top_bottom_js), 0)
+    self.assertEqual(viewport_comparator(top_bottom_element), 0)
 
 
   @decorators.Disabled('android',   # crbug.com/437065.
@@ -432,14 +426,19 @@ class InteractionTest(unittest.TestCase):
   def setUp(self):
     self.mock_action_runner = mock.Mock(action_runner_module.ActionRunner)
 
+    def expected_js_call(method):
+      return mock.call.ExecuteJavaScript(
+          '%s({{ marker }});' % method, marker='Interaction.ABC')
+
+    self.expected_calls = [
+        expected_js_call('console.time'),
+        expected_js_call('console.timeEnd')]
+
   def testIssuingInteractionRecordCommand(self):
     with action_runner_module.Interaction(
         self.mock_action_runner, label='ABC', flags=[]):
       pass
-    expected_calls = [
-        mock.call.ExecuteJavaScript('console.time("Interaction.ABC");'),
-        mock.call.ExecuteJavaScript('console.timeEnd("Interaction.ABC");')]
-    self.assertEqual(expected_calls, self.mock_action_runner.mock_calls)
+    self.assertEqual(self.expected_calls, self.mock_action_runner.mock_calls)
 
   def testExceptionRaisedInWithInteraction(self):
     class FooException(Exception):
@@ -453,6 +452,5 @@ class InteractionTest(unittest.TestCase):
 
     # Test that the end console.timeEnd(...) isn't called because exception was
     # raised.
-    expected_calls = [
-        mock.call.ExecuteJavaScript('console.time("Interaction.ABC");')]
-    self.assertEqual(expected_calls, self.mock_action_runner.mock_calls)
+    self.assertEqual(
+        self.expected_calls[:1], self.mock_action_runner.mock_calls)

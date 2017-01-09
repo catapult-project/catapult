@@ -28,6 +28,7 @@ from telemetry.internal.actions.seek import SeekAction
 from telemetry.internal.actions.swipe import SwipeAction
 from telemetry.internal.actions.tap import TapAction
 from telemetry.internal.actions.wait import WaitForElementAction
+from telemetry.util import js_template
 from telemetry.web_perf import timeline_interaction_record
 
 from py_trace_event import trace_event
@@ -86,7 +87,7 @@ class ActionRunner(object):
     if repeatable:
       flags.append(timeline_interaction_record.REPEATABLE)
 
-    return Interaction(self._tab, label, flags)
+    return Interaction(self, label, flags)
 
   def CreateGestureInteraction(self, label, repeatable=False):
     """ Create an action.Interaction object that issues gesture-based
@@ -195,20 +196,22 @@ class ActionRunner(object):
     self._tab.ExecuteJavaScript('window.location.reload()')
     self._tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
 
-  def ExecuteJavaScript(self, statement):
+  def ExecuteJavaScript(self, statement, **kwargs):
     """Executes a given JavaScript expression. Does not return the result.
 
-    Example: runner.ExecuteJavaScript('var foo = 1;');
+    Example: runner.ExecuteJavaScript('var foo = {{ value }};', value=1);
 
     Args:
       statement: The statement to execute (provided as string).
+      **kwargs: Additional keyword arguments are interpolated within the
+          statement. See telemetry.util.js_template for details.
 
     Raises:
       EvaluationException: The statement failed to execute.
     """
-    self._tab.ExecuteJavaScript(statement)
+    self._tab.ExecuteJavaScript(js_template.Render(statement, **kwargs))
 
-  def EvaluateJavaScript(self, expression):
+  def EvaluateJavaScript(self, expression, **kwargs):
     """Returns the evaluation result of the given JavaScript expression.
 
     The evaluation results must be convertible to JSON. If the result
@@ -218,12 +221,15 @@ class ActionRunner(object):
 
     Args:
       expression: The expression to evaluate (provided as string).
+      **kwargs: Additional keyword arguments are interpolated within the
+          statement. See telemetry.util.js_template for details.
 
     Raises:
       EvaluationException: The statement expression failed to execute
           or the evaluation result can not be JSON-ized.
     """
-    return self._tab.EvaluateJavaScript(expression)
+    return self._tab.EvaluateJavaScript(
+        js_template.Render(expression, **kwargs))
 
   def Wait(self, seconds):
     """Wait for the number of seconds specified.
@@ -234,7 +240,7 @@ class ActionRunner(object):
     if not self._skip_waits:
       time.sleep(seconds)
 
-  def WaitForJavaScriptCondition(self, condition, timeout_in_seconds=60):
+  def WaitForJavaScriptCondition(self, condition, **kwargs):
     """Wait for a JavaScript condition to become true.
 
     Example: runner.WaitForJavaScriptCondition('window.foo == 10');
@@ -242,8 +248,12 @@ class ActionRunner(object):
     Args:
       condition: The JavaScript condition (as string).
       timeout_in_seconds: The timeout in seconds (default to 60).
+      **kwargs: Additional keyword arguments are interpolated within the
+          statement. See telemetry.util.js_template for details.
     """
-    self._tab.WaitForJavaScriptExpression(condition, timeout_in_seconds)
+    timeout = kwargs.get('timeout_in_seconds', 60)
+    self._tab.WaitForJavaScriptExpression(
+        js_template.Render(condition, **kwargs), timeout=timeout)
 
   def WaitForElement(self, selector=None, text=None, element_function=None,
                      timeout_in_seconds=60):
@@ -817,17 +827,15 @@ class Interaction(object):
   def Begin(self):
     assert not self._started
     self._started = True
-    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     self._action_runner.ExecuteJavaScript(
-        'console.time("%s");' %
-        timeline_interaction_record.GetJavaScriptMarker(
-        self._label, self._flags))
+        'console.time({{ marker }});',
+        marker=timeline_interaction_record.GetJavaScriptMarker(
+            self._label, self._flags))
 
   def End(self):
     assert self._started
     self._started = False
-    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     self._action_runner.ExecuteJavaScript(
-        'console.timeEnd("%s");' %
-        timeline_interaction_record.GetJavaScriptMarker(
-        self._label, self._flags))
+        'console.timeEnd({{ marker }});',
+        marker=timeline_interaction_record.GetJavaScriptMarker(
+            self._label, self._flags))
