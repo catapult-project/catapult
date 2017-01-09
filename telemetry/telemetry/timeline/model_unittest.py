@@ -10,7 +10,7 @@ from telemetry.timeline import trace_data
 
 class TimelineModelUnittest(unittest.TestCase):
   def testEmptyImport(self):
-    model_module.TimelineModel(trace_data.TraceData())
+    model_module.TimelineModel(trace_data.CreateTraceDataFromRawData({}))
 
   def testBrowserProcess(self):
     builder = trace_data.TraceDataBuilder()

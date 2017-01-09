@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import codecs
+import json
 import os
 import shutil
 import tempfile
@@ -67,7 +68,8 @@ class TestDefaultDict(object):
 
 class ValueTest(TestBase):
   def testRepr(self):
-    v = trace.TraceValue(self.pages[0], trace_data.TraceData({'test': 1}),
+    v = trace.TraceValue(
+        self.pages[0], trace_data.CreateTraceDataFromRawData([{'test': 1}]),
                          important=True, description='desc')
 
     self.assertEquals('TraceValue(http://www.bar.com/, trace)', str(v))
@@ -75,7 +77,8 @@ class ValueTest(TestBase):
   def testTraceSerializationContainStoryName(self):
     tempdir = tempfile.mkdtemp()
     try:
-      v = trace.TraceValue(self.pages[0], trace_data.TraceData({'test': 1}))
+      v = trace.TraceValue(self.pages[0],
+                           trace_data.CreateTraceDataFromRawData([{'test': 1}]))
       fh = v.Serialize(tempdir)
       self.assertTrue(os.path.basename(fh.GetAbsPath()).startswith(
           'http___www_bar_com'))
@@ -85,7 +88,8 @@ class ValueTest(TestBase):
   def testAsDictWhenTraceSerializedAndUploaded(self):
     tempdir = tempfile.mkdtemp()
     try:
-      v = trace.TraceValue(None, trace_data.TraceData({'test': 1}))
+      v = trace.TraceValue(None,
+                           trace_data.CreateTraceDataFromRawData([{'test': 1}]))
       fh = v.Serialize(tempdir)
       # pylint: disable=no-member
       trace.cloud_storage.SetCalculatedHashesForTesting(
@@ -102,7 +106,8 @@ class ValueTest(TestBase):
   def testAsDictWhenTraceIsNotSerializedAndUploaded(self):
     test_temp_file = tempfile.NamedTemporaryFile(delete=False)
     try:
-      v = trace.TraceValue(None, trace_data.TraceData({'test': 1}))
+      v = trace.TraceValue(None,
+                           trace_data.CreateTraceDataFromRawData([{'test': 1}]))
       # pylint: disable=no-member
       trace.cloud_storage.SetCalculatedHashesForTesting(
           TestDefaultDict(123))
@@ -119,10 +124,10 @@ class ValueTest(TestBase):
   def testFindTraceParts(self):
     raw_data = {
       'powerTraceAsString': 'BattOr Data',
-      'traceEvents': 'Chrome Data',
+      'traceEvents': [{'trace': 1}],
       'tabIds': 'Tab Data',
     }
-    data = trace_data.TraceData(raw_data)
+    data = trace_data.CreateTraceDataFromRawData(raw_data)
     v = trace.TraceValue(None, data)
     tempdir = tempfile.mkdtemp()
     temp_path = os.path.join(tempdir, 'test.json')
@@ -135,10 +140,11 @@ class ValueTest(TestBase):
       for f in trace_files:
         with open(f, 'r') as trace_file:
           d = trace_file.read()
+          print d
           if d == raw_data['powerTraceAsString']:
             self.assertFalse(battor_seen)
             battor_seen = True
-          elif d == raw_data['traceEvents']:
+          elif d == json.dumps({'traceEvents': raw_data['traceEvents']}):
             self.assertFalse(chrome_seen)
             chrome_seen = True
           elif d == raw_data['tabIds']:
@@ -166,12 +172,14 @@ class NoLeakedTempfilesTests(TestBase):
     trace.tempfile.tempdir = self.temp_test_dir
 
   def testNoLeakedTempFileOnImplicitCleanUp(self):
-    with trace.TraceValue(None, trace_data.TraceData({'test': 1})):
+    with trace.TraceValue(
+        None, trace_data.CreateTraceDataFromRawData([{'test': 1}])):
       pass
     self.assertTrue(_IsEmptyDir(self.temp_test_dir))
 
   def testNoLeakedTempFileWhenUploadingTrace(self):
-    v = trace.TraceValue(None, trace_data.TraceData({'test': 1}))
+    v = trace.TraceValue(
+        None, trace_data.CreateTraceDataFromRawData([{'test': 1}]))
     v.CleanUp()
     self.assertTrue(_IsEmptyDir(self.temp_test_dir))
 

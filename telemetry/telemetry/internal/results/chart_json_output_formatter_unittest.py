@@ -200,7 +200,8 @@ class ChartJsonTest(unittest.TestCase):
     self.assertTrue(d['enabled'])
 
   def testAsChartDictWithTraceValuesThatHasTirLabel(self):
-    v = trace.TraceValue(self._story_set[0], trace_data.TraceData({'test': 1}))
+    v = trace.TraceValue(self._story_set[0],
+                         trace_data.CreateTraceDataFromRawData([{'test': 1}]))
     v.tir_label = 'background'
 
     d = chart_json_output_formatter.ResultsAsChartDict(

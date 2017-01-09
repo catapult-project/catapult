@@ -314,11 +314,13 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
   def testTraceValue(self):
     results = page_test_results.PageTestResults()
     results.WillRunPage(self.pages[0])
-    results.AddValue(trace.TraceValue(None, trace_data.TraceData({'test' : 1})))
+    results.AddValue(trace.TraceValue(
+        None, trace_data.CreateTraceDataFromRawData([[{'test': 1}]])))
     results.DidRunPage(self.pages[0])
 
     results.WillRunPage(self.pages[1])
-    results.AddValue(trace.TraceValue(None, trace_data.TraceData({'test' : 2})))
+    results.AddValue(trace.TraceValue(
+        None, trace_data.CreateTraceDataFromRawData([[{'test': 2}]])))
     results.DidRunPage(self.pages[1])
 
     results.PrintSummary()
@@ -328,8 +330,10 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
 
   def testCleanUpCleansUpTraceValues(self):
     results = page_test_results.PageTestResults()
-    v0 = trace.TraceValue(None, trace_data.TraceData({'test': 1}))
-    v1 = trace.TraceValue(None, trace_data.TraceData({'test': 2}))
+    v0 = trace.TraceValue(
+        None, trace_data.CreateTraceDataFromRawData([{'test': 1}]))
+    v1 = trace.TraceValue(
+        None, trace_data.CreateTraceDataFromRawData([{'test': 2}]))
 
     results.WillRunPage(self.pages[0])
     results.AddValue(v0)
@@ -345,8 +349,10 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
 
   def testNoTracesLeftAfterCleanUp(self):
     results = page_test_results.PageTestResults()
-    v0 = trace.TraceValue(None, trace_data.TraceData({'test': 1}))
-    v1 = trace.TraceValue(None, trace_data.TraceData({'test': 2}))
+    v0 = trace.TraceValue(None,
+                          trace_data.CreateTraceDataFromRawData([{'test': 1}]))
+    v1 = trace.TraceValue(None,
+                          trace_data.CreateTraceDataFromRawData([{'test': 2}]))
 
     results.WillRunPage(self.pages[0])
     results.AddValue(v0)

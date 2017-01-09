@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import copy
 import json
 import os
 import tempfile
@@ -36,6 +37,12 @@ class TraceDataPart(object):
   def raw_field_name(self):
     return self._raw_field_name
 
+  def __eq__(self, other):
+    return self.raw_field_name == other.raw_field_name
+
+  def __hash__(self):
+    return hash(self.raw_field_name)
+
 
 ATRACE_PART = TraceDataPart('systemTraceEvents')
 BATTOR_TRACE_PART = TraceDataPart('powerTraceAsString')
@@ -55,6 +62,7 @@ ALL_TRACE_PARTS = {ATRACE_PART,
                    TAB_ID_PART,
                    TELEMETRY_PART}
 
+ALL_TRACE_PARTS_RAW_NAMES = set(k.raw_field_name for k in ALL_TRACE_PARTS)
 
 def _HasTraceFor(part, raw):
   assert isinstance(part, TraceDataPart)
@@ -64,49 +72,15 @@ def _HasTraceFor(part, raw):
 
 
 class TraceData(object):
-  """Validates, parses, and serializes raw data.
+  """ TraceData holds a collection of traces from multiple sources.
 
-  NOTE: raw data must only include primitive objects!
-  By design, TraceData must contain only data that is BOTH json-serializable
-  to a file, AND restorable once again from that file into TraceData without
-  assistance from other classes.
-
-  Raw data can be one of three standard trace_event formats:
-  1. Trace container format: a json-parseable dict.
-  2. A json-parseable array: assumed to be chrome trace data.
-  3. A json-parseable array missing the final ']': assumed to be chrome trace
-     data.
+  A TraceData can have multiple active parts. Each part represents traces
+  collected from a different trace agent.
   """
-  def __init__(self, raw_data=None):
+  def __init__(self):
     """Creates TraceData from the given data."""
     self._raw_data = {}
     self._events_are_safely_mutable = False
-    if not raw_data:
-      return
-    _ValidateRawData(raw_data)
-
-    if isinstance(raw_data, basestring):
-      if raw_data.startswith('[') and not raw_data.endswith(']'):
-        if raw_data.endswith(','):
-          raw_data = raw_data[:-1]
-        raw_data += ']'
-      json_data = json.loads(raw_data)
-      # The parsed data isn't shared with anyone else, so we mark this value
-      # as safely mutable.
-      self._events_are_safely_mutable = True
-    else:
-      json_data = raw_data
-
-    if isinstance(json_data, dict):
-      self._raw_data = json_data
-    elif isinstance(json_data, list):
-      if len(json_data) == 0:
-        self._raw_data = {}
-      self._raw_data = {CHROME_TRACE_PART.raw_field_name: {
-        'traceEvents': json_data
-      }}
-    else:
-      raise Exception('Unrecognized data format.')
 
   def _SetFromBuilder(self, d):
     self._raw_data = d
@@ -209,10 +183,15 @@ class TraceDataBuilder(object):
     target_events.extend(events)
 
   def SetTraceFor(self, part, trace):
-    assert isinstance(part, TraceDataPart)
+    assert isinstance(part, TraceDataPart), (
+        '%s is not type TraceDataPart' % part)
+    assert part in ALL_TRACE_PARTS, ('%s is not a supported trace part' %
+                                     part)
     assert (isinstance(trace, basestring) or
             isinstance(trace, dict) or
             isinstance(trace, list))
+    if part == CHROME_TRACE_PART:
+      assert isinstance(trace, dict)
 
     if self._raw_data == None:
       raise Exception('Already called AsData() on this builder.')
@@ -230,3 +209,43 @@ class TraceDataBuilder(object):
 
   def HasTraceFor(self, part):
     return _HasTraceFor(part, self._raw_data)
+
+
+def CreateTraceDataFromRawData(raw_data):
+  """Convenient method for creating a TraceData object from |raw_data|.
+     This is mostly used for testing.
+
+     Args:
+        raw_data can be:
+            + A dictionary that repsents multiple trace parts. Keys of the
+            dictionary must always contain 'traceEvents', as chrome trace
+            must always present.
+            + A list that represents Chrome trace events.
+            + JSON string of either above.
+
+  """
+  raw_data = copy.deepcopy(raw_data)
+  if isinstance(raw_data, basestring):
+    json_data = json.loads(raw_data)
+  else:
+    json_data = raw_data
+
+  b = TraceDataBuilder()
+  if not json_data:
+    return b.AsData()
+  if isinstance(json_data, dict):
+    assert 'traceEvents' in json_data, 'Only raw chrome trace is supported'
+    trace_parts_keys = []
+    for k in json_data:
+      if k != 'traceEvents' and k in ALL_TRACE_PARTS_RAW_NAMES:
+        trace_parts_keys.append(k)
+        b.SetTraceFor(TraceDataPart(k), json_data[k])
+    # Delete the data for extra keys to form trace data for Chrome part only.
+    for k in trace_parts_keys:
+      del json_data[k]
+    b.SetTraceFor(CHROME_TRACE_PART, json_data)
+  elif isinstance(json_data, list):
+    b.SetTraceFor(CHROME_TRACE_PART, {'traceEvents': json_data})
+  else:
+    raise NonSerializableTraceData('Unrecognized data format.')
+  return b.AsData()

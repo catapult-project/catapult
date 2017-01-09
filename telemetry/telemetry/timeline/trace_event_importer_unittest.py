@@ -35,7 +35,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
        'tid': 53, 'ph': 'E'}
     ]
 
-    trace_data = trace_data_module.TraceData(events)
+    trace_data = trace_data_module.CreateTraceDataFromRawData(events)
     m = timeline_model.TimelineModel(trace_data)
     processes = m.GetAllProcesses()
     self.assertEqual(1, len(processes))
@@ -87,7 +87,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
        'tid': 1, 'ph': 'E'}
     ]
 
-    trace_data = trace_data_module.TraceData(events)
+    trace_data = trace_data_module.CreateTraceDataFromRawData(events)
     m = timeline_model.TimelineModel(trace_data)
     processes = m.GetAllProcesses()
     t = processes[0].threads[1]
@@ -104,7 +104,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
        'tid': 53, 'ph': 'E'}
     ]
 
-    trace_data = trace_data_module.TraceData(events)
+    trace_data = trace_data_module.CreateTraceDataFromRawData(events)
     m = timeline_model.TimelineModel(trace_data)
     processes = m.GetAllProcesses()
     self.assertEqual(1, len(processes))
@@ -130,7 +130,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
       {'name': 'a', 'args': {}, 'pid': 1, 'ts': 7, 'tts': 5, 'cat': 'foo',
        'tid': 1, 'ph': 'E'}
     ]
-    trace_data = trace_data_module.TraceData(events)
+    trace_data = trace_data_module.CreateTraceDataFromRawData(events)
     m = timeline_model.TimelineModel(trace_data, shift_world_to_zero=False)
     t = m.GetAllProcesses()[0].threads[1]
 
@@ -170,7 +170,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
       {'name': 'd', 'args': {}, 'pid': 1, 'ts': 7, 'tts': 5, 'cat': 'bar',
        'tid': 2, 'ph': 'E'}
     ]
-    trace_data = trace_data_module.TraceData(events)
+    trace_data = trace_data_module.CreateTraceDataFromRawData(events)
     m = timeline_model.TimelineModel(trace_data)
     p = m.GetAllProcesses()[0]
     t1 = p.threads[1]
@@ -199,7 +199,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
       {'name': 'a', 'args': {}, 'pid': 1, 'ts': 1, 'tts': 1, 'cat': 'foo',
        'tid': 1, 'ph': 'B'}
     ]
-    trace_data = trace_data_module.TraceData(events)
+    trace_data = trace_data_module.CreateTraceDataFromRawData(events)
     m = timeline_model.TimelineModel(trace_data)
     p = m.GetAllProcesses()[0]
     t = p.threads[1]
@@ -223,7 +223,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
       {'name': 'b2', 'args': {}, 'pid': 1, 'ts': 3, 'cat': 'foo',
        'tid': 1, 'ph': 'B'}
     ]
-    trace_data = trace_data_module.TraceData(events)
+    trace_data = trace_data_module.CreateTraceDataFromRawData(events)
     m = timeline_model.TimelineModel(trace_data, shift_world_to_zero=False)
     t = m.GetAllProcesses()[0].threads[1]
 
@@ -249,7 +249,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
       {'name': 'c', 'args': {}, 'pid': 1, 'ts': 4, 'tts': 2, 'cat': 'bar',
        'tid': 2, 'ph': 'E'}
     ]
-    trace_data = trace_data_module.TraceData(events)
+    trace_data = trace_data_module.CreateTraceDataFromRawData(events)
     m = timeline_model.TimelineModel(trace_data, shift_world_to_zero=False)
     p = m.GetAllProcesses()[0]
     t1 = p.threads[1]
@@ -297,7 +297,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
       {'name': 'b', 'args': {}, 'pid': 1, 'ts': 2, 'cat': 'foo',
        'tid': 2, 'ph': 'E'}
     ]
-    trace_data = trace_data_module.TraceData(events)
+    trace_data = trace_data_module.CreateTraceDataFromRawData(events)
     m = timeline_model.TimelineModel(trace_data, shift_world_to_zero=False)
     t1 = m.GetAllProcesses()[0].threads[1]
     t2 = m.GetAllProcesses()[0].threads[2]
@@ -320,7 +320,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
       {'name': 'b', 'args': {}, 'pid': 1, 'ts': 8, 'tts': 4, 'cat': 'bar',
        'tid': 2, 'ph': 'E'}
     ]
-    trace_data = trace_data_module.TraceData(events)
+    trace_data = trace_data_module.CreateTraceDataFromRawData(events)
     m = timeline_model.TimelineModel(trace_data)
     processes = m.GetAllProcesses()
     self.assertEqual(1, len(processes))
@@ -366,7 +366,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
        'tid': 2, 'ph': 'E'}
     ]
 
-    trace_data = trace_data_module.TraceData(events)
+    trace_data = trace_data_module.CreateTraceDataFromRawData(events)
     m = timeline_model.TimelineModel(trace_data)
     processes = m.GetAllProcesses()
     self.assertEqual(2, len(processes))
@@ -425,7 +425,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
       {'name': 'thread_name', 'args': {'name': 'Thread 2'},
         'pid': 2, 'ts': 0, 'tid': 2, 'ph': 'M'}
     ]
-    trace_data = trace_data_module.TraceData(events)
+    trace_data = trace_data_module.CreateTraceDataFromRawData(events)
     m = timeline_model.TimelineModel(trace_data)
     processes = m.GetAllProcesses()
     self.assertEqual('Thread 1', processes[0].threads[1].name)
@@ -440,7 +440,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
       {'name': 'a', 'args': {}, 'pid': 1, 'ts': 5, 'tts': 5, 'cat': 'foo',
        'tid': 1, 'ph': 'E'}
     ]
-    trace_data = trace_data_module.TraceData(events)
+    trace_data = trace_data_module.CreateTraceDataFromRawData(events)
     m = timeline_model.TimelineModel(trace_data, shift_world_to_zero=False)
     p = m.GetAllProcesses()[0]
     t = p.threads[1]
@@ -466,7 +466,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
       {'name': 'a', 'args': {}, 'pid': 1, 'ts': 8, 'tts': 4, 'cat': 'foo',
        'tid': 1, 'ph': 'E'}
     ]
-    trace_data = trace_data_module.TraceData(events)
+    trace_data = trace_data_module.CreateTraceDataFromRawData(events)
     m = timeline_model.TimelineModel(trace_data, shift_world_to_zero=False)
     p = m.GetAllProcesses()[0]
     t = p.threads[1]
@@ -502,7 +502,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
       {'name': 'ctr', 'args': {'value': 0}, 'pid': 1, 'ts': 20, 'cat': 'foo',
        'tid': 1, 'ph': 'C'}
     ]
-    trace_data = trace_data_module.TraceData(events)
+    trace_data = trace_data_module.CreateTraceDataFromRawData(events)
     m = timeline_model.TimelineModel(trace_data)
     p = m.GetAllProcesses()[0]
     ctr = p.counters['foo.ctr']
@@ -539,7 +539,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
        'tid': 1,
        'ph': 'C', 'id': 2}
     ]
-    trace_data = trace_data_module.TraceData(events)
+    trace_data = trace_data_module.CreateTraceDataFromRawData(events)
     m = timeline_model.TimelineModel(trace_data)
     p = m.GetAllProcesses()[0]
     ctr = p.counters['foo.ctr[0]']
@@ -599,7 +599,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
       {'name': 'ctr', 'args': {'value1': 0, 'value2': 1}, 'pid': 1, 'ts': 20,
        'cat': 'foo', 'tid': 1, 'ph': 'C'}
     ]
-    trace_data = trace_data_module.TraceData(events)
+    trace_data = trace_data_module.CreateTraceDataFromRawData(events)
     m = timeline_model.TimelineModel(trace_data)
     p = m.GetAllProcesses()[0]
     ctr = p.counters['foo.ctr']
@@ -628,7 +628,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
          'ph': 'S', 'id': 72, 'args': {'foo': 'bar'}}
     ]
 
-    trace_data = trace_data_module.TraceData(events)
+    trace_data = trace_data_module.CreateTraceDataFromRawData(events)
     m = timeline_model.TimelineModel(trace_data)
 
     events = list(m.IterAllEvents())
@@ -655,7 +655,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
        'tid': 53, 'ph': 'E'}
     ]
 
-    trace_data = trace_data_module.TraceData(events)
+    trace_data = trace_data_module.CreateTraceDataFromRawData(events)
     m = timeline_model.TimelineModel(trace_data)
     processes = m.GetAllProcesses()
     self.assertEqual(1, len(processes))
@@ -680,7 +680,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
        'tid': 53, 'ph': 'E'}
     ]
 
-    trace_data = trace_data_module.TraceData(events)
+    trace_data = trace_data_module.CreateTraceDataFromRawData(events)
     m = timeline_model.TimelineModel(trace_data)
     processes = m.GetAllProcesses()
     self.assertEqual(1, len(processes))
@@ -722,7 +722,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
       {'name': 'e', 'args': {}, 'pid': 52, 'ts': 165, 'cat': 'foo',
        'tid': 53, 'ph': 'E'}
     ]
-    trace_data = trace_data_module.TraceData(events)
+    trace_data = trace_data_module.CreateTraceDataFromRawData(events)
     m = timeline_model.TimelineModel(trace_data, shift_world_to_zero=False)
     processes = m.GetAllProcesses()
     self.assertEqual(1, len(processes))
@@ -759,7 +759,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
          'ph': 'S', 'id': 72}
     ]
 
-    trace_data = trace_data_module.TraceData(events)
+    trace_data = trace_data_module.CreateTraceDataFromRawData(events)
     m = timeline_model.TimelineModel(trace_data)
     t = m.GetAllProcesses()[0].threads[53]
     self.assertEqual(1, len(t.async_slices))
@@ -783,7 +783,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
          'ph': 'S', 'id': 72}
     ]
 
-    trace_data = trace_data_module.TraceData(events)
+    trace_data = trace_data_module.CreateTraceDataFromRawData(events)
     m = timeline_model.TimelineModel(trace_data)
     t = m.GetAllProcesses()[0].threads[53]
     self.assertEqual(1, len(t.async_slices))
@@ -806,7 +806,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
        'tid': 53, 'ph': 'S', 'id': 72, 'tts': 17}
     ]
 
-    trace_data = trace_data_module.TraceData(events)
+    trace_data = trace_data_module.CreateTraceDataFromRawData(events)
     m = timeline_model.TimelineModel(trace_data)
     t = m.GetAllProcesses()[0].threads[53]
     self.assertEqual(1, len(t.async_slices))
@@ -844,7 +844,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
        'cat': 'foo', 'tid': 53, 'ph': 'T', 'id': 72}
     ]
 
-    trace_data = trace_data_module.TraceData(events)
+    trace_data = trace_data_module.CreateTraceDataFromRawData(events)
     m = timeline_model.TimelineModel(trace_data)
     t = m.GetAllProcesses()[0].threads[53]
     self.assertTrue(t is not None)
@@ -858,7 +858,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
        'tid': 53, 'ph': 'S', 'id': 72}
     ]
 
-    trace_data = trace_data_module.TraceData(events)
+    trace_data = trace_data_module.CreateTraceDataFromRawData(events)
     m = timeline_model.TimelineModel(trace_data)
     t = m.GetAllProcesses()[0].threads[53]
     self.assertTrue(t is not None)
@@ -872,7 +872,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
       {'name': 'c', 'args': {}, 'pid': 52, 'ts': 558, 'cat': 'test',
        'tid': 53, 'ph': 'P'}
     ]
-    trace_data = trace_data_module.TraceData(events)
+    trace_data = trace_data_module.CreateTraceDataFromRawData(events)
     m = timeline_model.TimelineModel(trace_data)
     p = m.GetAllProcesses()[0]
     t = p.threads[53]
@@ -894,7 +894,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
       {'name': 'c', 'pid': 52, 'ts': 549, 'cat': 'test',
        'tid': 53, 'ph': 'P'}
     ]
-    trace_data = trace_data_module.TraceData(events)
+    trace_data = trace_data_module.CreateTraceDataFromRawData(events)
     m = timeline_model.TimelineModel(trace_data)
     p = m.GetAllProcesses()[0]
     t = p.threads[53]
@@ -910,7 +910,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
       {'name': 'c', 'args': {}, 'pid': 52, 'ts': 740, 'tts': 625, 'cat': 'baz',
        'tid': 53, 'ph': 'X'},
     ]
-    trace_data = trace_data_module.TraceData(events)
+    trace_data = trace_data_module.CreateTraceDataFromRawData(events)
     m = timeline_model.TimelineModel(trace_data)
     p = m.GetAllProcesses()[0]
     t = p.threads[53]
@@ -950,7 +950,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
       {'name': 'b', 'pid': 52, 'ts': 730, 'cat': 'foo', 'tid': 53, 'ph': 'R'},
       {'name': 'c', 'pid': 52, 'ts': 740, 'cat': 'baz', 'tid': 53, 'ph': 'R'},
     ]
-    trace_data = trace_data_module.TraceData(events)
+    trace_data = trace_data_module.CreateTraceDataFromRawData(events)
     m = timeline_model.TimelineModel(trace_data)
     p = m.GetAllProcesses()[0]
     t = p.threads[53]
@@ -987,7 +987,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
        'ph': 'f', 'args': {}},
     ]
 
-    trace_data = trace_data_module.TraceData(events)
+    trace_data = trace_data_module.CreateTraceDataFromRawData(events)
     m = timeline_model.TimelineModel(trace_data)
     p = m.GetAllProcesses()[0]
     t = p.threads[53]
@@ -1031,7 +1031,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
     ]
 
     expected = [[0.4, 0.412], [0.0, 0.422], [0.412, 0.432]]
-    trace_data = trace_data_module.TraceData(events)
+    trace_data = trace_data_module.CreateTraceDataFromRawData(events)
     m = timeline_model.TimelineModel(trace_data)
     self.assertEqual(3, len(m.flow_events))
 
@@ -1051,7 +1051,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
        'ph': 't', 'args': {}},
     ]
 
-    trace_data = trace_data_module.TraceData(events)
+    trace_data = trace_data_module.CreateTraceDataFromRawData(events)
     m = timeline_model.TimelineModel(trace_data)
     self.assertEqual(0, len(m.flow_events))
 
@@ -1073,7 +1073,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
 
     expected_processes = set([52, 54])
     expected_results = [['1234ABCD', 0, 21], ['1234ABDF', 110, 23]]
-    trace_data = trace_data_module.TraceData(events)
+    trace_data = trace_data_module.CreateTraceDataFromRawData(events)
     m = timeline_model.TimelineModel(trace_data)
     assert set(p.pid for p in m.GetAllProcesses()) == expected_processes
 
@@ -1100,7 +1100,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
     ]
 
     expected = [['1234ABCD', 0, 11], ['1234ABDF', 122, 11]]
-    trace_data = trace_data_module.TraceData(events)
+    trace_data = trace_data_module.CreateTraceDataFromRawData(events)
     m = timeline_model.TimelineModel(trace_data)
     memory_dumps = list(m.IterGlobalMemoryDumps())
     self.assertEqual(len(expected), len(memory_dumps))
@@ -1123,7 +1123,7 @@ class TraceEventTimelineImporterTest(unittest.TestCase):
       [None, 'Browser'],
       ['huge image - Google Search', 'process 23828']
     ]
-    trace_data = trace_data_module.TraceData(events)
+    trace_data = trace_data_module.CreateTraceDataFromRawData(events)
     m = timeline_model.TimelineModel(trace_data)
     processes = m.GetAllProcesses()
 

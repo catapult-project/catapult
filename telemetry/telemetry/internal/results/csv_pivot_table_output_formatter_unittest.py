@@ -76,7 +76,8 @@ class CsvPivotTableOutputFormatterTest(unittest.TestCase):
   @mock.patch('py_utils.cloud_storage.Insert')
   def testMultiplePagesAndValues(self, cs_insert_mock):
     cs_insert_mock.return_value = 'https://cloud_storage_url/foo'
-    trace_value = trace.TraceValue(None, trace_data.TraceData('{"events": 0}'))
+    trace_value = trace.TraceValue(
+        None, trace_data.CreateTraceDataFromRawData('{"traceEvents": []}'))
     trace_value.UploadToCloud(bucket='foo')
     self.SimulateBenchmarkRun([
         (self._story_set[0], [

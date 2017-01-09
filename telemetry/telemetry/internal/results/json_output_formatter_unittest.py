@@ -85,7 +85,7 @@ class JsonOutputFormatterTest(unittest.TestCase):
       results.WillRunPage(self._story_set[0])
       v0 = trace.TraceValue(
           results.current_page,
-          trace_data.TraceData({'event': 'test'}))
+          trace_data.CreateTraceDataFromRawData([{'event': 'test'}]))
       results.AddValue(v0)
       results.DidRunPage(self._story_set[0])
       results._SerializeTracesToDirPath(tempdir)
@@ -100,8 +100,6 @@ class JsonOutputFormatterTest(unittest.TestCase):
       self.assertTrue(os.path.exists(output_trace_path))
     finally:
       shutil.rmtree(tempdir)
-
-
 
   def testAsDictWithTwoPages(self):
     results = page_test_results.PageTestResults()
