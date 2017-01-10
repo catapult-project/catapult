@@ -152,6 +152,11 @@ def _GuessBenchmarkFromRunCommand(run_command):
   return '???'
 
 
+def _WasCommitTested(commit):
+  return commit.get('failed') or commit.get(
+      'n_observations', len(commit.get('values', [])))
+
+
 def _GenerateReport(results_data):
   revision_data = results_data.get('revision_data', [])
 
@@ -222,16 +227,21 @@ def _GenerateReport(results_data):
   # either repro the regression or narrow it to a single commit.
   if message == STATUS_UNKNOWN:
     if revision_data:
+      commits = revision_data[lkgr_index+1:fkbr_index-1]
       if lkgr_index == 0 and fkbr_index == len(revision_data) - 1:
         # The bisect never got past the initial testing.
         if (lkgr.get('n_observations') == 0 and
             fkbr.get('n_observations') == 0):
           message = STATUS_NO_VALUES
         else:
-          message = STATUS_NO_REPRO
+          if all([_WasCommitTested(c) for c in commits]):
+            message = STATUS_REPRO_UNABLE_NARROW
+          else:
+            message = STATUS_NO_REPRO
       else:
         message = STATUS_REPRO_UNABLE_NARROW
-        commits = revision_data[lkgr_index+1:fkbr_index-1]
+
+      if message == STATUS_REPRO_UNABLE_NARROW:
         if all([c.get('failed') for c in commits]):
           message_details = MESSAGE_REPRO_BUILD_FAILURES
 

@@ -231,6 +231,54 @@ Debug Info
 
     self.assertEqual(log_without_culprit, bisect_report.GetReport(job))
 
+  def testGetReport_CompletedWithoutCulpritBuildFailuresAfterReference(self):
+    results_data = self._BisectResults(
+        revision_data=self._Revisions(
+            [
+                {'commit': 100, 'mean': 100, 'num': 10, 'result': 'good'},
+                {'commit': 102, 'failed': True, 'failure_reason': 'reason'},
+                {'commit': 103, 'mean': 200, 'num': 10, 'result': 'bad'},
+            ]),
+        culprit_data=None,
+        good_revision=100, bad_revision=103)
+    job = self._AddTryJob(results_data)
+
+    log_without_culprit = r"""
+=== BISECT JOB RESULTS ===
+<b>Perf regression found but unable to narrow commit range</b>
+
+Build failures prevented the bisect from narrowing the range further.
+
+
+Bisect Details
+  Configuration: staging_android_nexus5X_perf_bisect
+  Benchmark    : foo
+  Metric       : Total/Score
+  Change       : 7.35% | 100 -> 200
+
+Suspected Commit Range
+  2 commits in range
+  https://chromium.googlesource.com/chromium/src/+log/100..103
+
+
+Revision      Result        N
+100           100 +- 0      10       good
+102           ---           ---      build failure
+103           200 +- 0      10       bad
+
+To Run This Test
+  src/tools/perf/run_benchmark foo
+
+Debug Info
+  https://test-rietveld.appspot.com/200039
+
+
+| O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
+|  X  | for more information addressing perf regression bugs. For feedback,
+| / \ | file a bug with component Tests>AutoBisect.  Thank you!"""
+
+    self.assertEqual(log_without_culprit, bisect_report.GetReport(job))
+
   def testGetReport_CompletedWithoutCulpritUnknownDepot(self):
     results_data = self._BisectResults(
         revision_data=self._Revisions(
