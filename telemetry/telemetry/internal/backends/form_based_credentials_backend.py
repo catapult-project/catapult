@@ -58,7 +58,7 @@ class FormBasedCredentialsBackend(object):
     """Waits until it can detect either the login form, or already logged in."""
     action_runner.WaitForJavaScriptCondition(
         '(document.querySelector({{ form_id }}) !== null) || ({{ @code }})',
-        form_id=self.login_form_id, code=self.logged_in_javascript,
+        form_id='#' + self.login_form_id, code=self.logged_in_javascript,
         timeout_in_seconds=60)
 
   def _SubmitLoginFormAndWait(self, action_runner, tab, username, password):
