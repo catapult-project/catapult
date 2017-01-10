@@ -165,6 +165,7 @@ def GetAnomalyDict(anomaly_entity, bisect_status=None):
       'improvement': anomaly_entity.is_improvement,
       'bisect_status': bisect_status,
       'recovered': anomaly_entity.recovered,
+      'type': 'anomaly',
       'units': anomaly_entity.units
   })
   return alert_dict
@@ -180,6 +181,7 @@ def _GetStoppageAlertDict(stoppage_alert_entity):
       'mail_sent': stoppage_alert_entity.mail_sent,
       'last_row_date': str(last_row_date.date()) if last_row_date else 'N/A',
       'recovered': stoppage_alert_entity.recovered,
+      'type': 'stoppage_alert',
   })
   return alert_dict
 
