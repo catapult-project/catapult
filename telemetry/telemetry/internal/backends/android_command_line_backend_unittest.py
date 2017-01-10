@@ -22,6 +22,11 @@ class _MockBackendSettings(object):
     return self._path
 
 
+# TODO(catapult:#3112): Remove when no longer needed by tests below.
+def _dummyArgsParse(cmdline):
+  return set(cmdline.strip().split()[1:])
+
+
 class AndroidCommandLineBackendTest(unittest.TestCase):
 
   def _GetDeviceForTest(self):
@@ -56,6 +61,7 @@ class AndroidCommandLineBackendTest(unittest.TestCase):
     self.assertEqual(expected_output,
                      android_command_line_backend._QuoteIfNeeded(string))
 
+  # TODO(catapult:#3112): Move tests to flag_changer in devil.
   @decorators.Enabled('android')
   def testSetUpCommandLineFlagsCmdRestored(self):
     """Test that a previous command line file is restored.
@@ -75,13 +81,14 @@ class AndroidCommandLineBackendTest(unittest.TestCase):
                        device.ReadFile(cmd_file).strip())
       with android_command_line_backend.SetUpCommandLineFlags(
           device, backend_settings, startup_args):
-        self.assertEqual('chrome --some --test --args',
-                         device.ReadFile(cmd_file).strip())
-      self.assertEqual('chrome --args --to --save',
-                       device.ReadFile(cmd_file).strip())
+        self.assertItemsEqual(['--some', '--test', '--args'],
+                              _dummyArgsParse(device.ReadFile(cmd_file)))
+      self.assertItemsEqual(['--args', '--to', '--save'],
+                            _dummyArgsParse(device.ReadFile(cmd_file)))
     finally:
       device.RunShellCommand(['rm', '-f', cmd_file], check_return=True)
 
+  # TODO(catapult:#3112): Move tests to flag_changer in devil.
   @decorators.Enabled('android')
   def testSetUpCommandLineFlagsCmdRemoved(self):
     """Test that the command line file is removed if it did not exist before.
@@ -98,6 +105,6 @@ class AndroidCommandLineBackendTest(unittest.TestCase):
     device.RunShellCommand(['rm', '-f', cmd_file], check_return=True)
     with android_command_line_backend.SetUpCommandLineFlags(
         device, backend_settings, startup_args):
-      self.assertEqual('chrome --some --test --args',
-                       device.ReadFile(cmd_file).strip())
+      self.assertItemsEqual(['--some', '--test', '--args'],
+                            _dummyArgsParse(device.ReadFile(cmd_file)))
     self.assertFalse(device.FileExists(cmd_file))

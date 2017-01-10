@@ -2,11 +2,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import logging
 import pipes
-import sys
 
-from devil.android import device_errors  # pylint: disable=import-error
+from devil.android import flag_changer  # pylint: disable=import-error
 
 
 def _QuoteIfNeeded(arg):
@@ -36,77 +34,12 @@ class SetUpCommandLineFlags(object):
         # Something to run while the command line flags are set appropriately.
   """
   def __init__(self, device, backend_settings, startup_args):
-    self._android_command_line_backend = _AndroidCommandLineBackend(
-        device, backend_settings, startup_args)
+    cmdline_file = backend_settings.GetCommandLineFile(device.IsUserBuild())
+    self._flag_changer = flag_changer.FlagChanger(device, cmdline_file)
+    self._args = [_QuoteIfNeeded(arg) for arg in startup_args]
 
   def __enter__(self):
-    self._android_command_line_backend.SetUpCommandLineFlags()
+    self._flag_changer.ReplaceFlags(self._args)
 
   def __exit__(self, *args):
-    self._android_command_line_backend.RestoreCommandLineFlags()
-
-
-class _AndroidCommandLineBackend(object):
-  """The backend for providing command line flags on android.
-
-  There are command line flags that Chromium accept in order to enable
-  particular features or modify otherwise default functionality. To set the
-  flags for Chrome on Android, specific files on the device must be updated
-  with the flags to enable. This class provides a wrapper around this
-  functionality.
-  """
-
-  def __init__(self, device, backend_settings, startup_args):
-    self._device = device
-    self._backend_settings = backend_settings
-    self._startup_args = startup_args
-    self._saved_command_line_file_contents = None
-
-  @property
-  def command_line_file(self):
-    return self._backend_settings.GetCommandLineFile(self._device.IsUserBuild())
-
-  def SetUpCommandLineFlags(self):
-    args = [self._backend_settings.pseudo_exec_name]
-    args.extend(self._startup_args)
-    content = ' '.join(_QuoteIfNeeded(arg) for arg in args)
-
-    try:
-      # Save the current command line to restore later, except if it appears to
-      # be a  Telemetry created one. This is to prevent a common bug where
-      # --host-resolver-rules borks people's browsers if something goes wrong
-      # with Telemetry.
-      self._saved_command_line_file_contents = self._ReadFile()
-      if (self._saved_command_line_file_contents and
-          '--host-resolver-rules' in self._saved_command_line_file_contents):
-        self._saved_command_line_file_contents = None
-    except device_errors.CommandFailedError:
-      self._saved_command_line_file_contents = None
-
-    try:
-      self._WriteFile(content)
-    except device_errors.CommandFailedError as exc:
-      logging.critical(exc)
-      logging.critical('Cannot set Chrome command line. '
-                       'Fix this by flashing to a userdebug build.')
-      sys.exit(1)
-
-  def RestoreCommandLineFlags(self):
-    if self._saved_command_line_file_contents is None:
-      self._RemoveFile()
-    else:
-      self._WriteFile(self._saved_command_line_file_contents)
-
-  def _ReadFile(self):
-    if self._device.PathExists(self.command_line_file):
-      return self._device.ReadFile(self.command_line_file, as_root=True)
-    else:
-      return None
-
-  def _WriteFile(self, contents):
-    logging.info('Android app/browser startup args: %s', contents)
-    self._device.WriteFile(self.command_line_file, contents, as_root=True)
-
-  def _RemoveFile(self):
-    self._device.RunShellCommand(['rm', '-f', self.command_line_file],
-                                 as_root=True, check_return=True)
+    self._flag_changer.Restore()
