@@ -485,7 +485,18 @@ def _GetTestPathFromDict(test_path_dict):
   Returns:
     List of test paths with rows.
   """
+  # TODO(sullivan): This codepath should be much, much faster!
+  # This hack works around the massive slowdowns which prevent v8 from viewing
+  # any charts.
+  # See https://github.com/catapult-project/catapult/issues/2830
   test_paths_with_rows = []
+  if len(test_path_dict.keys()) == 1 and '/v8/' in test_path_dict.keys()[0]:
+    paths = list_tests.GetTestsMatchingPattern(
+        test_path_dict.keys()[0], only_with_rows=True)
+    paths += list_tests.GetTestsMatchingPattern(
+        test_path_dict.keys()[0] + '/*', only_with_rows=True)
+    return paths
+
   for test_path in test_path_dict:
     parent_test_name = test_path.split('/')[-1]
     selected_traces = test_path_dict[test_path]
