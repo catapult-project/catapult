@@ -82,7 +82,7 @@ the bisect process after the user clicks on the bisect button.
             <td>
               <select id="metric" value="{{metric::input}}">
                 <template is="dom-repeat" items="{{metricList}}" as="name">
-                <option value="{{name}}">{{name}}</option>
+                <option value="{{name}}" selected="{{computeIsSelected(name, metric)}}">{{name}}</option>
                 </template>
               </select>
             </td>
@@ -221,8 +221,8 @@ the bisect process after the user clicks on the bisect button.
           return !!e;
         },
 
-        computeIsSelected: function(name, bot) {
-          return name == bot;
+        computeIsSelected: function(name, reference) {
+          return name == reference;
         },
 
         /**
