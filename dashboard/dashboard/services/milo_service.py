@@ -11,6 +11,9 @@ The API basically returns the same thing as the buildbot JSON API. We use the
 milo API instead of raw buildbot json because this is the method supported by
 Chrome infra team; the data is available longer and pinging the API does not
 DOS buildbot pages.
+
+There is some documentation on the buildbot JSON API here:
+https://buildbot.buildbot.net/json/help
 """
 
 import base64

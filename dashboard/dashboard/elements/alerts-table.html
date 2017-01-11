@@ -12,6 +12,7 @@ found in the LICENSE file.
 <link rel="import" href="/dashboard/elements/bisect-status.html">
 <link rel="import" href="/dashboard/elements/bug-info-span.html">
 <link rel="import" href="/dashboard/elements/revision-range.html">
+<link rel="import" href="/dashboard/elements/stoppage-alert-debug-button.html">
 <link rel="import" href="/dashboard/elements/triage-dialog.html">
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 <link rel="import" href="/dashboard/static/uri.html">
@@ -70,19 +71,19 @@ found in the LICENSE file.
 
       #alerts #test {
         max-width:50%;
-        min-width: 20%; 
+        min-width: 20%;
         width: 30%;
       }
 
       #alerts #testsuite {
         max-width:20%;
-        min-width: 10%; 
+        min-width: 10%;
         width: 15%;
       }
 
       #alerts #bot {
         max-width:20%;
-        min-width: 10%; 
+        min-width: 10%;
         width: 10%;
       }
 
@@ -382,10 +383,15 @@ found in the LICENSE file.
           <td class="testsuite">{{item.testsuite}}</td>
           <td class="test">{{item.test}}</td>
 
-          <template is="dom-repeat" items="{{extraColumns}}" as="column" 
+          <template is="dom-repeat" items="{{extraColumns}}" as="column"
                     index-as="colnum">
             <td class$="{{column.key}}" hidden$={{hideUnitsColumn(column.key)}}>
               {{computeExtraColumnValue(item, column.key)}}
+              <template is="dom-if" if="{{isDebugButtonKey(column.key)}}">
+                <stoppage-alert-debug-button
+                    alert-key="{{item.key}}"
+                    bug-id="{{item.bug_id}}"></stoppage-alert-debug-button>
+              </template>
             </td>
           </template>
         </tr>
@@ -546,6 +552,8 @@ found in the LICENSE file.
        * format the unit.
        */
       hideUnitsColumn: key => key === 'units',
+
+      isDebugButtonKey: key => key === 'debug_button',
 
       setAlertList: function(i, property, value) {
         this.set('alertList.' + i + '.' + property, value);

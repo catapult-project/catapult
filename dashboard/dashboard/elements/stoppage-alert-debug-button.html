@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/components/paper-button/paper-button.html">
+<link rel="import" href="/components/paper-dialog/paper-dialog.html">
+<link rel="import" href="/dashboard/elements/bisect-button.html">
+<link rel="import" href="/dashboard/static/simple_xhr.html">
+
+<dom-module id="stoppage-alert-debug-button">
+  <style>
+    .build-status-cell {
+      padding: 5px;
+      text-align: center;
+    }
+    .failed {
+      background-color: #F44336;
+    }
+    .succeeded {
+      background-color: #4CAF50;
+    }
+    .unknown {
+      background-color: #9E9E9E;
+    }
+    .exception {
+      .background-color: #9C27B0;
+    }
+    #container {
+      padding: 20px;
+    }
+    .error {
+      color: #dd4b39;
+      font-weight: bold;
+    }
+
+    paper-dialog.button-dialog {
+      position: absolute;
+      left: -500px;
+      top: 15px;
+      width: 550px;
+      height: 350px;
+      max-height: 350px;
+    }
+
+    paper-button {
+      background-color: white;
+    }
+  </style>
+  <template>
+    <paper-button id="debug-button"
+                  raised
+                  on-click="open">Debug</paper-button>
+    <paper-dialog id="debug-dialog" class="button-dialog">
+      <div id="container">
+        <template is="dom-if" if="{{loading}}">
+          <div id="loading-spinner"><img src="//www.google.com/images/loading.gif"></div>
+        </template>
+        <template is="dom-if" if="{{!loading}}">
+          <template is="dom-if" if="{{error}}">
+            <div class="error">{{error}}</div>
+          </template>
+          <template is="dom-if" if="{{!error}}">
+            <p>{{testPath}}</p>
+            <table>
+              <tr>
+                <td><b>Last revision uploaded:</b></td>
+                <td><b>r{{currentCommitPos}}</b></td>
+                <td><a href="{{currentBuildbotStatusPage}}"
+                       target="_blank">Buildbot status page</a></td>
+                <td><a href="{{currentLogdogUri}}"
+                       target="_blank">Logs</a></td>
+                <td class$="{{currentResult}} build-status-cell">{{currentResult}}</td>
+              </tr>
+              <tr>
+                <td><b>Next revison built:</b></td>
+                <td>
+                  <template is="dom-if" if="{{!nextCommitPos}}">
+                    <!-- Could not get this data from milo API -->
+                    <b>Unknown</b>
+                  </template>
+                  <template is="dom-if" if="{{nextCommitPos}}">
+                    <b>r{{nextCommitPos}}</b>
+                  </template>
+                </td>
+                <td><a href="{{nextBuildbotStatusPage}}"
+                       target="_blank">Buildbot status page</a></td>
+                <td><a href="{{nextLogdogUri}}"
+                       target="_blank">Logs</a></td>
+                <template is="dom-if" if="{{!nextCommitPos}}">
+                  <!-- Could not get this data from milo API -->
+                  <td class="build-status-cell unknown">unknown</td>
+                </template>
+                <template is="dom-if" if="{{nextCommitPos}}">
+                  <td class$="{{nextResult}} build-status-cell">{{nextResult}}</td>
+                </template>
+              </tr>
+            </table>
+            <p><a href="http://test-results.appspot.com/revision_range?start={{currentCommitPos}}&amp;end={{nextCommitPos}}"
+               target="_blank">View commit log from r{{currentCommitPos}} to r{{nextCommitPos}}.</a></p>
+          </template>
+        </template>
+      </div>
+    </paper-dialog>
+  </template>
+  <script>
+    'use strict';
+    Polymer({
+      is: 'stoppage-alert-debug-button',
+      properties: {
+        alertKey: {
+          type: String,
+          notify: true
+        },
+        bugId: {
+          type: Number,
+          value: -1
+        },
+        error: {
+          type: Boolean,
+          value: false,
+          notify: true
+        },
+        loading: {
+          type: Boolean,
+          value: true
+        },
+        testPath: {
+          type: String,
+          notify: true
+        },
+        testRev: {
+          type: String,
+          notify: true
+        }
+      },
+
+      getTestResultFromBuildbotStepResult: function(buildbotStepResult) {
+        // The buildbot step result comes from the buildbot JSON API via milo
+        // service. The buildbot JSON API is documented here:
+        // https://buildbot.buildbot.net/json/help with a specific build
+        // example here:
+        // https://buildbot.buildbot.net/json?select=slaves/buildbot.net/
+        //        &select=project&select=builders/builds/builds/556&as_text=1
+        // Each step has a `results` field, which we are inspecting here. It
+        // is in the form:
+        // [result_num, [result_string, more_info]]
+        // Where we see the following for success:
+        // [0, ['', '']]
+        // And for failure (where 1 may be replaced by any number > 0):
+        // [1, ['failed', 'sunspider']]
+        // And for exception (usually 2, but may be a different number > 0):
+        // [2, ['exception', 'sunspider']]
+        // If there are other possible failure types, they'll be a string
+        // where 'failed' and 'exception' are.
+        // This function tries to get the correct string for the result,
+        // defaulting to "unknown".
+        var testResult = 'unknown';
+        if (buildbotStepResult) {
+          if (buildbotStepResult[0] == '0') {
+            testResult = 'succeeded';
+          } else if (buildbotStepResult[1][0]) {
+            testResult = buildbotStepResult[1][0];
+          } else {
+            stepResult = 'failed';
+          }
+        }
+        return testResult;
+      },
+
+      open: function() {
+        var dialog = this.$['debug-dialog'];
+        dialog.open();
+        this.loading = true;
+        this.error = false;
+
+        var params = {};
+        if (this.alertKey) {
+          params['key'] = this.alertKey;
+        } else if (this.testPath && this.testRev) {
+          params['test_path'] = this.testPath;
+          params['rev'] = this.testRev;
+        } else {
+          this.error = 'No alert or test specified.';
+          return;
+        }
+        simple_xhr.send('/stoppage_alert_debugging_info', params,
+          function(response) {
+            this.testPath = response['test_path'];
+            this.currentCommitPos = response['current_commit_pos'];
+            this.nextCommitPos = response['next_commit_pos'];
+            this.currentLogdogUri = response['current_logdog_uri'];
+            this.nextLogdogUri = response['next_logdog_uri'];
+            this.currentBuildbotStatusPage =
+                response['current_buildbot_status_page'];
+            this.nextBuildbotStatusPage = response['next_buildbot_status_page'];
+            this.currentResult = this.getTestResultFromBuildbotStepResult(
+                response['current_result']);
+            this.nextResult = this.getTestResultFromBuildbotStepResult(
+                response['next_result']);
+            this.loading = false;
+          }.bind(this),
+          function(msg) {
+            this.loading = false;
+            this.error = msg;
+          }.bind(this));
+      }
+    });
+  </script>
+</dom-module>

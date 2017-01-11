@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/dashboard/elements/stoppage-alert-debug-button.html">
+<link rel="import" href="/dashboard/static/testing_common.html">
+
+<link rel="import" href="/tracing/core/test_utils.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+
+  var testOptions = {
+    tearDown: function() {
+      testing_common.clearXhrMock();
+    }
+  };
+
+  test('instantiation', function() {
+    var mockResponse = {
+      'test_path': 'ChromiumPerf/android-nexus-5/sunspider/Total',
+      'current_commit_pos': '426441',
+      'next_commit_pos': '426480',
+      'current_logdog_uri': 'https://luci-logdog.appspot.com/v/?current',
+      'next_logdog_uri': 'https://luci-logdog.appspot.com/v/?s=next',
+      'current_buildbot_status_page': 'http://build.chromium.org/p/current',
+      'next_buildbot_status_page': 'http://build.chromium.org/p/next',
+      'current_result': [0, []],
+      'next_result': [1, ['failed', 'blah-blah']]
+    };
+    testing_common.addXhrMock('*', JSON.stringify(mockResponse));
+    var button = document.createElement('stoppage-alert-debug-button');
+    button.alertKey = '12345';
+    // Styles are different inside/outside the rest of the polymer elements.
+    button.$['debug-dialog'].style.position = 'static';
+    button.open();
+    this.addHTMLOutput(button);
+  }, testOptions);
+
+});
+</script>

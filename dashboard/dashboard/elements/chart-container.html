@@ -1991,6 +1991,8 @@ triaging functionality in the chart.
           var yValue = pointFromJson[1];
 
           this.$.tooltip.testPath = series.path;
+          this.$.tooltip.isLastPoint =
+              dataIndex === seriesFromJson.data.length - 1;
           this.$.tooltip.value = formatNumber(yValue);
           if (annotation.error > 0) {
             this.$.tooltip.stddev = formatNumber(annotation.error);
