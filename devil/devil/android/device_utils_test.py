@@ -1671,6 +1671,45 @@ class DeviceUtilsPathExistsTest(DeviceUtilsTest):
       self.assertFalse(self.device.FileExists('/path/file.not.exists'))
 
 
+class DeviceUtilsRemovePathTest(DeviceUtilsTest):
+
+  def testRemovePath_regular(self):
+    with self.assertCall(
+        self.call.device.RunShellCommand(
+            ['rm', 'some file'], as_root=False, check_return=True),
+        []):
+      self.device.RemovePath('some file')
+
+  def testRemovePath_withForce(self):
+    with self.assertCall(
+        self.call.device.RunShellCommand(
+            ['rm', '-f', 'some file'], as_root=False, check_return=True),
+        []):
+      self.device.RemovePath('some file', force=True)
+
+  def testRemovePath_recursively(self):
+    with self.assertCall(
+        self.call.device.RunShellCommand(
+            ['rm', '-r', '/remove/this/dir'], as_root=False, check_return=True),
+        []):
+      self.device.RemovePath('/remove/this/dir', recursive=True)
+
+  def testRemovePath_withRoot(self):
+    with self.assertCall(
+        self.call.device.RunShellCommand(
+            ['rm', 'some file'], as_root=True, check_return=True),
+        []):
+      self.device.RemovePath('some file', as_root=True)
+
+  def testRemovePath_manyPaths(self):
+    with self.assertCall(
+        self.call.device.RunShellCommand(
+            ['rm', 'eeny', 'meeny', 'miny', 'moe'],
+            as_root=False, check_return=True),
+        []):
+      self.device.RemovePath(['eeny', 'meeny', 'miny', 'moe'])
+
+
 class DeviceUtilsPullFileTest(DeviceUtilsTest):
 
   def testPullFile_existsOnDevice(self):

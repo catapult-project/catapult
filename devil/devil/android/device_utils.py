@@ -1506,6 +1506,33 @@ class DeviceUtils(object):
       return False
 
   @decorators.WithTimeoutAndRetriesFromInstance()
+  def RemovePath(self, device_path, force=False, recursive=False,
+                 as_root=False, timeout=None, retries=None):
+    """Removes the given path(s) from the device.
+
+    Args:
+      device_path: A string containing the absolute path to the file on the
+                   device, or an iterable of paths to check.
+      force: Whether to remove the path(s) with force (-f).
+      recursive: Whether to remove any directories in the path(s) recursively.
+      as_root: Whether root permissions should be use to remove the given
+               path(s).
+      timeout: timeout in seconds
+      retries: number of retries
+    """
+    args = ['rm']
+    if force:
+      args.append('-f')
+    if recursive:
+      args.append('-r')
+    if isinstance(device_path, basestring):
+      args.append(device_path)
+    else:
+      args.extend(device_path)
+    self.RunShellCommand(args, as_root=as_root, check_return=True)
+
+
+  @decorators.WithTimeoutAndRetriesFromInstance()
   def PullFile(self, device_path, host_path, timeout=None, retries=None):
     """Pull a file from the device.
 
