@@ -391,10 +391,14 @@ tr.exportTo('tr.ui.analysis', function() {
       var actualColumn = columns[i];
       var expectedColumn = expectedColumns[i];
       var expectedTitle = expectedColumn.title;
-      if (typeof expectedTitle === 'function')
+      if (typeof expectedTitle === 'function') {
         expectedTitle(actualColumn.title);  // Custom title matcher.
-      else
+      } else if (actualColumn.title.innerText) {
+        // HTML title.
+        assert.strictEqual(actualColumn.title.innerText, expectedTitle);
+      } else {
         assert.strictEqual(actualColumn.title, expectedTitle);  // String title.
+      }
       assert.instanceOf(actualColumn, expectedColumn.type);
       assert.strictEqual(actualColumn.aggregationMode,
           expectedColumn.noAggregation ? undefined : expectedAggregationMode);

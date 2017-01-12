@@ -52,6 +52,32 @@ tr.exportTo('tr.ui.b', function() {
     return spanEl;
   }
 
+  function createLink(opt_args) {
+    var ownerDocument = document;
+    if (opt_args && opt_args.ownerDocument) {
+      ownerDocument = opt_args.ownerDocument;
+    }
+    var linkEl = ownerDocument.createElement('a');
+    if (opt_args) {
+      if (opt_args.href) linkEl.href = opt_args.href;
+      if (opt_args.tooltip) linkEl.title = opt_args.tooltip;
+      if (opt_args.color) linkEl.style.color = opt_args.color;
+      if (opt_args.bold) linkEl.style.fontWeight = 'bold';
+      if (opt_args.italic) linkEl.style.fontStyle = 'italic';
+      if (opt_args.className) linkEl.className = opt_args.className;
+      if (opt_args.parent) Polymer.dom(opt_args.parent).appendChild(linkEl);
+      if (opt_args.marginLeft) linkEl.style.marginLeft = opt_args.marginLeft;
+      if (opt_args.marginRight) linkEl.style.marginRight = opt_args.marginRight;
+      if (opt_args.backgroundColor) {
+        linkEl.style.backgroundColor = opt_args.backgroundColor;
+      }
+      if (opt_args.textContent) {
+        Polymer.dom(linkEl).textContent = opt_args.textContent;
+      }
+    }
+    return linkEl;
+  }
+
   function createDiv(opt_dictionary) {
     var divEl = document.createElement('div');
     if (opt_dictionary) {
@@ -332,6 +358,7 @@ tr.exportTo('tr.ui.b', function() {
 
   return {
     createSpan,
+    createLink,
     createDiv,
     createScopedStyle,
     createSelector,

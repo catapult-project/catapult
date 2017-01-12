@@ -36,6 +36,20 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(spanEl.ownerDocument, THIS_DOC);
   });
 
+  test('createLink', function() {
+    var linkEl = tr.ui.b.createLink({
+      parent: document.body,
+      className: 'a-link-class',
+      textContent: 'Google',
+      href: 'http://www.google.com/'
+    });
+    var eltInDocument = Polymer.dom(document)
+        .querySelector('.a-link-class');
+    assert.equal(Polymer.dom(eltInDocument).textContent, 'Google');
+    assert.equal(eltInDocument.href, 'http://www.google.com/');
+    Polymer.dom(eltInDocument.parentElement).removeChild(eltInDocument);
+  });
+
   test('checkboxFromDefaults', function() {
     var target = {foo: undefined};
     var cb = tr.ui.b.createCheckBox(target, 'foo', 'myCheckBox', false, 'Foo');

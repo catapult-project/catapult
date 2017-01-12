@@ -67,6 +67,8 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.analysis', function() {
+  // Link to docs.
+  var URL_TO_SIZE_VS_EFFECTIVE_SIZE = 'https://chromium.googlesource.com/chromium/src/+/master/docs/memory-infra/README.md#effective_size-vs_size';
 
   // Constant representing the context in suballocation rows.
   var SUBALLOCATION_CONTEXT = true;
@@ -232,6 +234,14 @@ tr.exportTo('tr.ui.analysis', function() {
   EffectiveSizeColumn.prototype = {
     __proto__: tr.ui.analysis.DetailsNumericMemoryColumn.prototype,
 
+    get title() {
+      return tr.ui.b.createLink({
+        textContent: this.name,
+        tooltip: 'Memory used by this component',
+        href: URL_TO_SIZE_VS_EFFECTIVE_SIZE
+      });
+    },
+
     addInfos: function(numerics, memoryAllocatorDumps, infos) {
       if (memoryAllocatorDumps === undefined)
         return;
@@ -356,6 +366,14 @@ tr.exportTo('tr.ui.analysis', function() {
 
   SizeColumn.prototype = {
     __proto__: tr.ui.analysis.DetailsNumericMemoryColumn.prototype,
+
+    get title() {
+      return tr.ui.b.createLink({
+        textContent: this.name,
+        tooltip: 'Memory requested by this component',
+        href: URL_TO_SIZE_VS_EFFECTIVE_SIZE
+      });
+    },
 
     addInfos: function(numerics, memoryAllocatorDumps, infos) {
       if (memoryAllocatorDumps === undefined)
