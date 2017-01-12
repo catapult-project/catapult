@@ -180,6 +180,8 @@ _CATAPULT_TESTS = [
     },
 ]
 
+_STALE_FILE_TYPES = ['.pyc', '.pseudo_lock']
+
 
 def main(args=None):
   """Send list of test to run to recipes generator_script.
@@ -197,13 +199,13 @@ def main(args=None):
   args = parser.parse_args(args)
 
   steps = [{
-      # Always remove stale pyc files first. Not listed as a test above
+      # Always remove stale files first. Not listed as a test above
       # because it is a step and not a test, and must be first.
-      'name': 'Remove Stale PYC files',
+      'name': 'Remove Stale files',
       'cmd': ['python',
               os.path.join(args.api_path_checkout,
-                           'catapult_build', 'remove_stale_pyc_files.py'),
-              args.api_path_checkout]
+                           'catapult_build', 'remove_stale_files.py'),
+              args.api_path_checkout, ','.join(_STALE_FILE_TYPES)]
   }]
   if args.platform == 'android':
     # On Android, we need to prepare the devices a bit before using them in
