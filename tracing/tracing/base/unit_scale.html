@@ -28,16 +28,9 @@ tr.exportTo('tr.b', function() {
     if (UnitPrefixScale[name] !== undefined)
       throw new Error('Unit prefix scale \'' + name + '\' already exists');
     if (prefixes.AUTO !== undefined) {
-      throw new Error('\'AUTO\' unit prefix will be added automatically ' +
-          'for unit prefix scale \'' + name + '\'');
+      throw new Error('The \'AUTO\' unit prefix is not supported for unit' +
+          'prefix scales and cannot be added to scale \'' + name + '\'');
     }
-
-    // If the 'AUTO' unit prefix is used, the prefix that results in
-    // the absolute formatted value being as close to the [1, 1024) interval as
-    // possible is used. Example: 1023 and 1024 bytes are displayed as
-    // "1,023.0 B" and "1.0 KiB", respectively.
-    prefixes.AUTO = tr.b.dictionaryValues(prefixes);
-    prefixes.AUTO.sort((a, b) => a.value - b.value);
 
     UnitPrefixScale[name] = prefixes;
   }
@@ -45,11 +38,24 @@ tr.exportTo('tr.b', function() {
   UnitScale.defineUnitScale = function(name, unitScale) {
     if (UnitScale[name] !== undefined)
       throw new Error('Unit scale \'' + name + '\' already exists');
-    UnitScale[name] = unitScale;
+    if (unitScale.AUTO !== undefined) {
+      throw new Error('\'AUTO\' unit scale will be added automatically ' +
+          'for unit scale \'' + name + '\'');
+    }
+
+    // The 'AUTO' unit scale is used in auto formatting Units. In units using
+    // the 'BINARY' UnitScale the absolute formatted value closest to the
+    // [1, 1024) interval as possible is used. So 1023 and 1024 bytes are
+    // displayed as "1,023.0 B" and "1.0 KiB", respectively.
+    unitScale.AUTO = tr.b.dictionaryValues(unitScale);
+    unitScale.AUTO.sort((a, b) => a.value - b.value);
+
+    if (name) UnitScale[name] = unitScale;
+    return unitScale;
   };
 
   UnitScale.defineUnitScaleFromPrefixScale = function(
-      scaleName, baseSymbol, baseName, prefixScale) {
+      baseSymbol, baseName, prefixScale, opt_scaleName) {
     if (baseSymbol === undefined) {
       throw new Error('Cannot create UnitScale with undefined baseSymbol.');
     }
@@ -61,9 +67,6 @@ tr.exportTo('tr.b', function() {
     }
     var unitScale = {};
     for (var curPrefix of Object.keys(prefixScale)) {
-      // TODO (aiolos): the AUTO scale should be moved from UnitPrefixScale to
-      //   UnitScale in a future cl.
-      if (curPrefix === 'AUTO') continue;
       var curScale = prefixScale[curPrefix];
       if (curScale.symbol === undefined || !curScale.value) {
         throw new Error(
@@ -76,7 +79,7 @@ tr.exportTo('tr.b', function() {
         baseSymbol: baseSymbol
       };
     }
-    UnitScale.defineUnitScale(scaleName, unitScale);
+    return UnitScale.defineUnitScale(opt_scaleName, unitScale);
   };
 
  /**
@@ -139,7 +142,7 @@ tr.exportTo('tr.b', function() {
   });
 
   UnitScale.defineUnitScaleFromPrefixScale(
-      'MEMORY', 'B', 'BYTE', UnitPrefixScale.BINARY);
+      'B', 'BYTE', UnitPrefixScale.BINARY, 'MEMORY');
 
   return {
     UnitPrefixScale,

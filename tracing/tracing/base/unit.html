@@ -36,11 +36,11 @@ tr.exportTo('tr.b', function() {
   };
 
   /** @constructor */
-  function Unit(unitName, jsonName, basePrefix, isDelta, improvementDirection,
-      formatSpec) {
+  function Unit(unitName, jsonName, scaleBaseUnit, isDelta,
+      improvementDirection, formatSpec) {
     this.unitName = unitName;
     this.jsonName = jsonName;
-    this.basePrefix = basePrefix;
+    this.scaleBaseUnit = scaleBaseUnit;
     this.isDelta = isDelta;
     this.improvementDirection = improvementDirection;
     this.formatSpec_ = formatSpec;
@@ -58,46 +58,53 @@ tr.exportTo('tr.b', function() {
       return this.jsonName;
     },
 
-    get unitString() {
-      // TODO(benjhayden): Refactor with format() and test.
+    getUnitScale_: function(opt_context) {
       var formatSpec = this.formatSpec_;
-      if (typeof formatSpec === 'function')
+      var formatSpecWasFunction = false;
+      if (typeof formatSpec === 'function') {
+        formatSpecWasFunction = true;
         formatSpec = formatSpec();
-      if (!formatSpec.unit) {
-        return '';
       }
+      var context = opt_context || {};
 
-      var unitString = '';
-      var unitPrefix = formatSpec.unitPrefix;
-      if (unitPrefix !== undefined) {
-        var selectedPrefix;
-        if (unitPrefix instanceof Array) {
-          selectedPrefix = unitPrefix[0];
-        } else {
-          selectedPrefix = unitPrefix;
+      var scale = undefined;
+      if (context.unitScale) {
+        scale = context.unitScale;
+      } else if (context.unitPrefix) {
+        // TODO(aiolos): Switch all calls to format to use UnitScales instead
+        // of UnitPrefixScales. UnitPrefixeScales use in Unit is deprecated.
+        var symbol = formatSpec.baseSymbol ?
+            formatSpec.baseSymbol : this.scaleBaseUnit.baseSymbol;
+        scale = tr.b.UnitScale.defineUnitScaleFromPrefixScale(
+            symbol, symbol, [context.unitPrefix]).AUTO;
+      } else {
+        scale = formatSpec.unitScale;
+        if (!scale) {
+          // Unit has no conversion value(s). Ex: Watts, count.
+          scale = [{
+            value: 1,
+            symbol: formatSpec.baseSymbol || '',
+            baseSymbol: formatSpec.baseSymbol || ''
+          }];
+          if (!formatSpecWasFunction) formatSpec.unitScale = scale;
         }
-        unitString += selectedPrefix.symbol || '';
       }
-      unitString += formatSpec.unit;
+      if (!(scale instanceof Array)) {
+        throw new Error('Unit has a malformed unit scale.');
+      }
+      return scale;
+    },
 
-      return unitString;
+    get unitString() {
+      var scale = this.getUnitScale_();
+      if (!scale) {
+        throw new Error(
+            'A UnitScale could not be found for Unit ' + this.unitName);
+      }
+      return scale[0].baseSymbol || scale[0].symbol;
     },
 
     format: function(value, opt_context) {
-      var context = opt_context || {};
-      var formatSpec = this.formatSpec_;
-      if (typeof formatSpec === 'function')
-        formatSpec = formatSpec();
-
-      function resolveProperty(propertyName) {
-        if (propertyName in context)
-          return context[propertyName];
-        else if (propertyName in formatSpec)
-          return formatSpec[propertyName];
-        else
-          return undefined;
-      }
-
       var signString = '';
       if (value < 0) {
         signString = '-';
@@ -106,34 +113,29 @@ tr.exportTo('tr.b', function() {
         signString = value === 0 ? PLUS_MINUS_SIGN : '+';
       }
 
+      var context = opt_context || {};
+      var scale = this.getUnitScale_(context);
+      var i = 0;
+      while (i < scale.length - 1 &&
+             value / scale[i + 1].value >= 1) {
+        i++;
+      }
+      var selectedSubUnit = scale[i];
+
+      var formatSpec = this.formatSpec_;
+      if (typeof formatSpec === 'function') formatSpec = formatSpec();
       var unitString = '';
-      if (formatSpec.unit) {
-        if (formatSpec.unitHasPrecedingSpace !== false)
-          unitString += ' ';
-        var unitPrefix = resolveProperty('unitPrefix');
-        if (unitPrefix !== undefined) {
-          var selectedPrefix;
-          if (unitPrefix instanceof Array) {
-            var i = 0;
-            while (i < unitPrefix.length - 1 &&
-                   value / unitPrefix[i + 1].value >= 1) {
-              i++;
-            }
-            selectedPrefix = unitPrefix[i];
-          } else {
-            selectedPrefix = unitPrefix;
-          }
-          unitString += selectedPrefix.symbol || '';
-          value = tr.b.convertUnit(value, this.basePrefix, selectedPrefix);
-        } else {
-          value = tr.b.convertUnit(value, this.basePrefix,
-              tr.b.UnitPrefixScale.METRIC.NONE);
-        }
-        unitString += formatSpec.unit;
+      if (selectedSubUnit.symbol) {
+        if (!formatSpec.avoidSpacePrecedingUnit) unitString = ' ';
+        unitString += selectedSubUnit.symbol;
       }
 
-      var minimumFractionDigits = resolveProperty('minimumFractionDigits');
-      var maximumFractionDigits = resolveProperty('maximumFractionDigits');
+      var minimumFractionDigits =
+          context.minimumFractionDigits !== undefined ?
+          context.minimumFractionDigits : formatSpec.minimumFractionDigits;
+      var maximumFractionDigits =
+          context.maximumFractionDigits !== undefined ?
+          context.maximumFractionDigits : formatSpec.maximumFractionDigits;
 
       // If the context overrides only one of the two |*FractionDigits|
       // properties and the other one is provided by the unit, we might need to
@@ -151,6 +153,7 @@ tr.exportTo('tr.b', function() {
         }
       }
 
+      value = tr.b.convertUnit(value, this.scaleBaseUnit, selectedSubUnit);
       var numberString = value.toLocaleString(undefined, {
         minimumFractionDigits: minimumFractionDigits,
         maximumFractionDigits: maximumFractionDigits
@@ -278,9 +281,15 @@ tr.exportTo('tr.b', function() {
     if (Unit.byJSONName[jsonName] !== undefined)
       throw new Error('JSON unit \'' + jsonName + '\' alread exists');
 
-    var basePrefix = params.basePrefix ?
-        params.basePrefix : tr.b.UnitPrefixScale.METRIC.NONE;
-    var unit = new Unit(unitName, jsonName, basePrefix,
+    var scaleBaseUnit = params.scaleBaseUnit;
+    if (!scaleBaseUnit) {
+      var formatSpec = params.formatSpec;
+      if (typeof formatSpec === 'function') formatSpec = formatSpec();
+      var baseSymbol = formatSpec.unitScale ?
+          formatSpec.unitScale[0].baseSymbol : (formatSpec.baseSymbol || '');
+      scaleBaseUnit = { value: 1, symbol: baseSymbol, baseSymbol: baseSymbol };
+    }
+    var unit = new Unit(unitName, jsonName, scaleBaseUnit,
         isDelta, improvementDirection, params.formatSpec);
     Unit.byName[unitName] = unit;
     Unit.byJSONName[jsonName] = unit;
@@ -295,9 +304,20 @@ tr.exportTo('tr.b', function() {
   //////////////////////////////////////////////////////////////////////////////
 
   Unit.define({
+    baseUnitName: 'timeInMsAutoFormat',
+    baseJsonName: 'msBestFitFormat',
+    scaleBaseUnit: tr.b.UnitScale.TIME.MILLI_SEC,
+    formatSpec: {
+      unitScale: tr.b.UnitScale.TIME.AUTO,
+      minimumFractionDigits: 3,
+      maximumFractionDigits: 3
+    }
+  });
+
+  Unit.define({
     baseUnitName: 'timeDurationInMs',
     baseJsonName: 'ms',
-    basePrefix: tr.b.UnitPrefixScale.METRIC.MILLI,
+    scaleBaseUnit: tr.b.UnitScale.TIME.MILLI_SEC,
     formatSpec: function() {
       return Unit.currentTimeDisplayMode_.formatSpec;
     }
@@ -306,7 +326,7 @@ tr.exportTo('tr.b', function() {
   Unit.define({
     baseUnitName: 'timeStampInMs',
     baseJsonName: 'tsMs',
-    basePrefix: tr.b.UnitPrefixScale.METRIC.MILLI,
+    scaleBaseUnit: tr.b.UnitScale.TIME.MILLI_SEC,
     formatSpec: function() {
       return Unit.currentTimeDisplayMode_.formatSpec;
     }
@@ -316,9 +336,8 @@ tr.exportTo('tr.b', function() {
     baseUnitName: 'normalizedPercentage',
     baseJsonName: 'n%',
     formatSpec: {
-      unit: '%',
-      unitPrefix: { value: 0.01 },
-      unitHasPrecedingSpace: false,
+      unitScale: [{value: 0.01, symbol: '%'}],
+      avoidSpacePrecedingUnit: true,
       minimumFractionDigits: 3,
       maximumFractionDigits: 3
     }
@@ -328,8 +347,7 @@ tr.exportTo('tr.b', function() {
     baseUnitName: 'sizeInBytes',
     baseJsonName: 'sizeInBytes',
     formatSpec: {
-      unit: 'B',
-      unitPrefix: tr.b.UnitPrefixScale.BINARY.AUTO,
+      unitScale: tr.b.UnitScale.MEMORY.AUTO,
       minimumFractionDigits: 1,
       maximumFractionDigits: 1
     }
@@ -339,7 +357,7 @@ tr.exportTo('tr.b', function() {
     baseUnitName: 'energyInJoules',
     baseJsonName: 'J',
     formatSpec: {
-      unit: 'J',
+      baseSymbol: 'J',
       minimumFractionDigits: 3
     }
   });
@@ -348,7 +366,7 @@ tr.exportTo('tr.b', function() {
     baseUnitName: 'powerInWatts',
     baseJsonName: 'W',
     formatSpec: {
-      unit: 'W',
+      baseSymbol: 'W',
       minimumFractionDigits: 3
     }
   });
@@ -375,7 +393,7 @@ tr.exportTo('tr.b', function() {
     baseUnitName: 'sigma',
     baseJsonName: 'sigma',
     formatSpec: {
-      unit: String.fromCharCode(963),
+      baseSymbol: String.fromCharCode(963),
       minimumFractionDigits: 1,
       maximumFractionDigits: 1
     }

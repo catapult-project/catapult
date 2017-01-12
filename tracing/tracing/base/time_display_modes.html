@@ -22,8 +22,7 @@ tr.exportTo('tr.b', function() {
       return Math.round(a * 1000) < Math.round(b * 1000);
     },
     formatSpec: {
-      unit: 's',
-      unitPrefix: tr.b.UnitPrefixScale.METRIC.MILLI,
+      unitScale: [tr.b.UnitScale.TIME.MILLI_SEC],
       minimumFractionDigits: 3,
     }
   };
@@ -36,8 +35,7 @@ tr.exportTo('tr.b', function() {
       return Math.round(a * 1000000) < Math.round(b * 1000000);
     },
     formatSpec: {
-      unit: 's',
-      unitPrefix: tr.b.UnitPrefixScale.METRIC.NANO,
+      unitScale: [tr.b.UnitScale.TIME.NANO_SEC],
       maximumFractionDigits: 0
     }
   };

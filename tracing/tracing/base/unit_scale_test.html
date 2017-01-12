@@ -116,7 +116,7 @@ tr.b.unittest.testSuite(function() {
     test('defineUnitScaleFromPrefixScale', function() {
       assert.strictEqual(UnitPrefixScale.BUNNY, undefined);
       UnitScale.defineUnitScaleFromPrefixScale(
-          'BUNNY', 'H', 'HOPS', UnitPrefixScale.METRIC);
+          'H', 'HOPS', UnitPrefixScale.METRIC, 'BUNNY');
       assert.strictEqual(tr.b.convertUnit(
           32.1, UnitScale.BUNNY.HOPS, UnitScale.BUNNY.MILLI_HOPS),
           32100);
