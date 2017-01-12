@@ -380,16 +380,16 @@ Polymer({
     this.addKeyPressHotKeys_();
   },
 
-  addKeyPressHotKeys_: function() {
-    var addBinding = function(dict) {
-      dict.eventType = 'keypress';
-      dict.useCapture = false;
-      dict.thisArg = this;
-      var binding = new tr.ui.b.HotKey(dict);
-      this.$.hotkey_controller.addHotKey(binding);
-    }.bind(this);
+  addKeyPressHotKey: function(dict) {
+    dict.eventType = 'keypress';
+    dict.useCapture = false;
+    dict.thisArg = this;
+    var binding = new tr.ui.b.HotKey(dict);
+    this.$.hotkey_controller.addHotKey(binding);
+  },
 
-    addBinding({
+  addKeyPressHotKeys_: function() {
+    this.addKeyPressHotKey({
       keyCodes: ['w'.charCodeAt(0), ','.charCodeAt(0)],
       callback: function(e) {
         this.zoomBy_(1.5, true);
@@ -397,7 +397,7 @@ Polymer({
       }
     });
 
-    addBinding({
+    this.addKeyPressHotKey({
       keyCodes: ['s'.charCodeAt(0), 'o'.charCodeAt(0)],
       callback: function(e) {
         this.zoomBy_(1 / 1.5, true);
@@ -405,7 +405,7 @@ Polymer({
       }
     });
 
-    addBinding({
+    this.addKeyPressHotKey({
       keyCode: 'g'.charCodeAt(0),
       callback: function(e) {
         this.onGridToggle_(true);
@@ -413,7 +413,7 @@ Polymer({
       }
     });
 
-    addBinding({
+    this.addKeyPressHotKey({
       keyCode: 'G'.charCodeAt(0),
       callback: function(e) {
         this.onGridToggle_(false);
@@ -421,7 +421,7 @@ Polymer({
       }
     });
 
-    addBinding({
+    this.addKeyPressHotKey({
       keyCodes: ['W'.charCodeAt(0), '<'.charCodeAt(0)],
       callback: function(e) {
         this.zoomBy_(10, true);
@@ -429,7 +429,7 @@ Polymer({
       }
     });
 
-    addBinding({
+    this.addKeyPressHotKey({
       keyCodes: ['S'.charCodeAt(0), 'O'.charCodeAt(0)],
       callback: function(e) {
         this.zoomBy_(1 / 10, true);
@@ -437,7 +437,7 @@ Polymer({
       }
     });
 
-    addBinding({
+    this.addKeyPressHotKey({
       keyCode: 'a'.charCodeAt(0),
       callback: function(e) {
         this.queueSmoothPan_(this.viewWidth_ * 0.3, 0);
@@ -445,7 +445,7 @@ Polymer({
       }
     });
 
-    addBinding({
+    this.addKeyPressHotKey({
       keyCodes: ['d'.charCodeAt(0), 'e'.charCodeAt(0)],
       callback: function(e) {
         this.queueSmoothPan_(this.viewWidth_ * -0.3, 0);
@@ -453,7 +453,7 @@ Polymer({
       }
     });
 
-    addBinding({
+    this.addKeyPressHotKey({
       keyCode: 'A'.charCodeAt(0),
       callback: function(e) {
         this.queueSmoothPan_(viewWidth * 0.5, 0);
@@ -461,7 +461,7 @@ Polymer({
       }
     });
 
-    addBinding({
+    this.addKeyPressHotKey({
       keyCode: 'D'.charCodeAt(0),
       callback: function(e) {
         this.queueSmoothPan_(viewWidth * -0.5, 0);
@@ -469,7 +469,7 @@ Polymer({
       }
     });
 
-    addBinding({
+    this.addKeyPressHotKey({
       keyCode: '0'.charCodeAt(0),
       callback: function(e) {
         this.setInitialViewport_();
@@ -477,7 +477,7 @@ Polymer({
       }
     });
 
-    addBinding({
+    this.addKeyPressHotKey({
       keyCode: 'f'.charCodeAt(0),
       callback: function(e) {
         this.zoomToSelection();
@@ -485,7 +485,7 @@ Polymer({
       }
     });
 
-    addBinding({
+    this.addKeyPressHotKey({
       keyCode: 'm'.charCodeAt(0),
       callback: function(e) {
         this.setCurrentSelectionAsInterestRange_();
@@ -493,7 +493,7 @@ Polymer({
       }
     });
 
-    addBinding({
+    this.addKeyPressHotKey({
       keyCode: 'p'.charCodeAt(0),
       callback: function(e) {
         this.selectPowerSamplesInCurrentTimeRange_();
@@ -501,7 +501,7 @@ Polymer({
       }
     });
 
-    addBinding({
+    this.addKeyPressHotKey({
       keyCode: 'h'.charCodeAt(0),
       callback: function(e) {
         this.toggleHighDetails_();
