@@ -28,6 +28,19 @@ Is this bisect wrong?
   https://chromeperf.appspot.com/bad_bisect?try_job_id=%(_tryjob_id)s
 """
 
+_MEMORY_BENCHMARKS = [
+    'system_health.memory_',
+    'memory.top_10_mobile'
+]
+
+_MEMORY_DOC_URL = ('https://chromium.googlesource.com/chromium/src/+/'\
+    'master/docs/memory-infra/memory_benchmarks.md')
+
+_BISECT_MEMORY_DOC_INFO = """
+Please refer to the following doc on diagnosing memory regressions:
+  %s
+""" % _MEMORY_DOC_URL
+
 _BISECT_FOOTER = """
 | O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
 |  X  | for more information addressing perf regression bugs. For feedback,
@@ -142,6 +155,7 @@ _NON_TELEMETRY_TEST_COMMANDS = {
     'performance_browser_tests': 'performance_browser_tests',
     'resource_sizes': 'resource_sizes.py',
 }
+
 
 def _GuessBenchmarkFromRunCommand(run_command):
   if 'run_benchmark' in run_command:
@@ -311,6 +325,13 @@ def _GenerateReport(results_data):
   # Print out common footer stuff for all bisects, info like the command line,
   # and how to contact the team.
   result += '\n'
+
+  # (github:3128): Requested that all memory benchmarks include a doc url.
+  # TODO(eakuefner): Replace this with a generic property in TestMetadata
+  # when data pipe is available.
+  if any(results_data['benchmark'].startswith(b) for b in _MEMORY_BENCHMARKS):
+    result += _BISECT_MEMORY_DOC_INFO
+
   result += _BISECT_TO_RUN % results_data
   result += _BISECT_DEBUG_INFO % results_data
 

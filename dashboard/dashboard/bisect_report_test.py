@@ -147,6 +147,57 @@ Debug Info
 | / \ | file a bug with component Tests>AutoBisect.  Thank you!"""
     self.assertEqual(log_with_culprit, bisect_report.GetReport(job))
 
+  def testGetReport_CompletedWithCulprit_Memory(self):
+    results_data = self._BisectResults(
+        revision_data=self._Revisions(
+            [
+                {'commit': 100, 'mean': 100, 'num': 10, 'result': 'good'},
+                {'commit': 101, 'mean': 100, 'num': 10, 'result': 'good'},
+                {'commit': 102, 'mean': 200, 'num': 10, 'result': 'bad'},
+                {'commit': 103, 'mean': 200, 'num': 10, 'result': 'bad'},
+            ]),
+        command='src/tools/perf/run_benchmark system_health.memory_foo',
+        culprit_data=self._Culprit(cl=102),
+        good_revision=100, bad_revision=103)
+    job = self._AddTryJob(results_data)
+
+    log_with_culprit = r"""
+=== BISECT JOB RESULTS ===
+<b>Perf regression found with culprit</b>
+
+Suspected Commit
+  Author : author
+  Commit : 102
+  Date   : Thu Dec 08 01:25:35 2016
+  Subject: subject
+
+Bisect Details
+  Configuration: staging_android_nexus5X_perf_bisect
+  Benchmark    : system_health.memory_foo
+  Metric       : Total/Score
+  Change       : 7.35% | 100 -> 200
+
+Revision      Result        N
+100           100 +- 0      10      good
+101           100 +- 0      10      good
+102           200 +- 0      10      bad       <--
+103           200 +- 0      10      bad
+
+Please refer to the following doc on diagnosing memory regressions:
+  https://chromium.googlesource.com/chromium/src/+/master/docs/memory-infra/memory_benchmarks.md
+
+To Run This Test
+  src/tools/perf/run_benchmark system_health.memory_foo
+
+Debug Info
+  https://test-rietveld.appspot.com/200039
+
+
+| O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
+|  X  | for more information addressing perf regression bugs. For feedback,
+| / \ | file a bug with component Tests>AutoBisect.  Thank you!"""
+    self.assertEqual(log_with_culprit, bisect_report.GetReport(job))
+
   def testGetReport_CompletedWithCulpritReturnCode(self):
     results_data = self._BisectResults(
         revision_data=self._Revisions(
