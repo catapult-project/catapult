@@ -5,9 +5,9 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/ui/extras/about_tracing/inspector_connection.html">
 <link rel="import"
       href="/tracing/ui/extras/about_tracing/tracing_controller_client.html">
-<link rel="import" href="/tracing/ui/extras/about_tracing/inspector_connection.html">
 
 <script>
 'use strict';
@@ -180,8 +180,8 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
   };
 
   return {
-    InspectorTracingControllerClient: InspectorTracingControllerClient,
-    appendTraceChunksTo: appendTraceChunksTo
+    InspectorTracingControllerClient,
+    appendTraceChunksTo,
   };
 });
 </script>
