@@ -59,6 +59,9 @@ _SAMPLE_BISECT_CULPRIT_JSON = json.loads("""
   }
 """)
 
+_ABORTED_NO_VALUES = ('Bisect cannot identify a culprit: No values were found '\
+    'while testing the reference range.')
+
 
 class BisectReportTest(testing_common.TestCase):
 
@@ -370,6 +373,40 @@ Revision      Result        N
 103           100 +- 0      10      good
 104           200 +- 0      10      bad       <--
 105           200 +- 0      10      bad
+
+To Run This Test
+  src/tools/perf/run_benchmark foo
+
+Debug Info
+  https://test-rietveld.appspot.com/200039
+
+
+| O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
+|  X  | for more information addressing perf regression bugs. For feedback,
+| / \ | file a bug with component Tests>AutoBisect.  Thank you!"""
+
+    self.assertEqual(log_without_culprit, bisect_report.GetReport(job))
+
+  def testGetReport_Completed_AbortedWithNoValues(self):
+    results_data = self._BisectResults(
+        revision_data=self._Revisions(
+            [
+                {'commit': 100},
+                {'commit': 105},
+            ]),
+        aborted=True, aborted_reason=_ABORTED_NO_VALUES,
+        good_revision=100, bad_revision=105)
+    job = self._AddTryJob(results_data)
+
+    log_without_culprit = r"""
+=== BISECT JOB RESULTS ===
+<b>NO Perf regression found, tests failed to produce values</b>
+
+Bisect Details
+  Configuration: staging_android_nexus5X_perf_bisect
+  Benchmark    : foo
+  Metric       : Total/Score
+
 
 To Run This Test
   src/tools/perf/run_benchmark foo
