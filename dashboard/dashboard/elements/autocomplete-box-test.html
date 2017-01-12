@@ -244,7 +244,6 @@ tr.b.unittest.testSuite(function() {
     var fixture = document.createElement('autocomplete-box-test-fixture');
     fixture.set('items', [this.foo, this.fooish, this.bar]);
     fixture.set('multi', true);
-    console.log('get', fixture.get('multi'));
     assert.strictEqual(fixture.get('selectedItem'), null);
     assert.strictEqual(fixture.get('selectedName'), null);
     fixture.set('selectedItems', [this.foo]);
