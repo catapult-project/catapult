@@ -7,6 +7,7 @@ found in the LICENSE file.
 <link rel="import" href="/dashboard/elements/chart-container.html">
 <link rel="import" href="/dashboard/elements/login-warning.html">
 <link rel="import" href="/dashboard/elements/test-picker.html">
+<link rel="import" href="/dashboard/static/events.html">
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 <link rel="import" href="/dashboard/static/uri.html">
 
@@ -112,14 +113,14 @@ found in the LICENSE file.
 
           }.bind(this));
 
-        window.addEventListener('pagestaterequest',
+        events.addEventListener(window, 'pagestaterequest',
                                 this.onPageStateRequest.bind(this));
 
         this.testPicker = this.$['test-picker'];
         this.testPicker.addEventListener(
             'add', this.onAddChartButtonClicked.bind(this));
 
-        window.addEventListener('uriload', this.onUriLoad.bind(this));
+        events.addEventListener(window, 'uriload', this.onUriLoad.bind(this));
         this.uriController = new uri.Controller(this.getPageState.bind(this));
         this.uriController.load();
       },

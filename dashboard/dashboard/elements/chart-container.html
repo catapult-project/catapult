@@ -20,6 +20,7 @@ triaging functionality in the chart.
 <link rel="import" href="/dashboard/elements/chart-slider.html">
 <link rel="import" href="/dashboard/elements/chart-title.html">
 <link rel="import" href="/dashboard/elements/chart-tooltip.html">
+<link rel="import" href="/dashboard/static/events.html">
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 <link rel="import" href="/dashboard/static/testselection.html">
 <link rel="import" href="/dashboard/static/uri.html">
@@ -611,11 +612,12 @@ triaging functionality in the chart.
           this.$.title.addEventListener(
               'titleclicked', this.onTitleClicked.bind(this), true);
 
-          window.addEventListener('resize', this.resizeHandler);
+          events.addEventListener(window, 'resize', this.resizeHandler);
 
           this.initializePlotEventListeners();
 
-          window.addEventListener('urichange', this.onUriChanged.bind(this));
+          events.addEventListener(
+              window, 'urichange', this.onUriChanged.bind(this));
         },
 
         /**

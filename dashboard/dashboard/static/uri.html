@@ -5,6 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/dashboard/static/events.html">
+
 <script>
 'use strict';
 
@@ -21,7 +23,7 @@ var uri = (function() {
     this.pageStateCallback_ = pageStateCallback;
     this.stateRequest_ = null;
     this.stateRequestStatus_ = null;
-    window.addEventListener('popstate', this.onPopstate_, true);
+    events.addEventListener(window, 'popstate', this.onPopstate_, true);
   };
 
   /**
