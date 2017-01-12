@@ -131,6 +131,11 @@ class CompareSamplesUnittest(unittest.TestCase):
       charts['charts'][chart_name][trace_name]['grouping_keys'] = grouping_keys
     return self.NewJsonTempfile(charts)
 
+  def MakeCharts(self, metric, seed, mu, sigma, n, keys=None):
+    return [
+        self.MakeChartJSONScalar(metric, seed + '%d' % i, mu, sigma, keys)
+        for i in xrange(n)]
+
   def MakeChartJSONScalar(self, metric, seed, mu, sigma, keys=None):
     """Creates a normally distributed pseudo-random sample. (continuous).
 
@@ -161,10 +166,10 @@ class CompareSamplesUnittest(unittest.TestCase):
 
   def testCompareClearRegressionListOfScalars(self):
     metric = ('some_chart', 'some_trace')
-    lower_values = ','.join([self.MakeChart(metric=metric, seed='lower',
-                                            mu=10, sigma=1, n=10)])
-    higher_values = ','.join([self.MakeChart(metric=metric, seed='higher',
-                                             mu=20, sigma=2, n=10)])
+    lower_values = ','.join(self.MakeCharts(metric=metric, seed='lower',
+                                            mu=10, sigma=1, n=10))
+    higher_values = ','.join(self.MakeCharts(metric=metric, seed='higher',
+                                             mu=20, sigma=2, n=10))
     result = json.loads(compare_samples.CompareSamples(
         lower_values, higher_values, '/'.join(metric)).stdout)
     self.assertEqual(result['result']['significance'], REJECT)
@@ -183,14 +188,12 @@ class CompareSamplesUnittest(unittest.TestCase):
 
   def testCompareUnlikelyRegressionWithMultipleRuns(self):
     metric = ('some_chart', 'some_trace')
-    lower_values = ','.join([
-        self.MakeChart(
-            metric=metric, seed='lower%d' % i, mu=10, sigma=1, n=5)
-        for i in range(4)])
-    higher_values = ','.join([
-        self.MakeChart(
-            metric=metric, seed='higher%d' % i, mu=10.01, sigma=0.95, n=5)
-        for i in range(4)])
+    lower_values = ','.join(
+        self.MakeCharts(
+            metric=metric, seed='lower', mu=10, sigma=1, n=20))
+    higher_values = ','.join(
+        self.MakeCharts(
+            metric=metric, seed='higher', mu=10.01, sigma=0.95, n=20))
     result = json.loads(compare_samples.CompareSamples(
         lower_values, higher_values, '/'.join(metric)).stdout)
     self.assertEqual(result['result']['significance'], FAIL_TO_REJECT)
@@ -198,10 +201,10 @@ class CompareSamplesUnittest(unittest.TestCase):
   def testCompareTIRLabel(self):
     tir_metric = ('some_chart', 'some_label', 'some_trace')
     tir_metric_name = ('%s@@%s' % (tir_metric[1], tir_metric[0]), tir_metric[2])
-    lower_values = ','.join([self.MakeChart(
-        metric=tir_metric_name, seed='lower', mu=10, sigma=1, n=10)])
-    higher_values = ','.join([self.MakeChart(
-        metric=tir_metric_name, seed='higher', mu=20, sigma=2, n=10)])
+    lower_values = ','.join(self.MakeCharts(
+        metric=tir_metric_name, seed='lower', mu=10, sigma=1, n=10))
+    higher_values = ','.join(self.MakeCharts(
+        metric=tir_metric_name, seed='higher', mu=20, sigma=2, n=10))
     result = json.loads(compare_samples.CompareSamples(
         lower_values, higher_values, '/'.join(tir_metric)).stdout)
     self.assertEqual(result['result']['significance'], REJECT)
@@ -209,10 +212,10 @@ class CompareSamplesUnittest(unittest.TestCase):
   def testCompareTIRLabelMissingSummary(self):
     tir_metric = ('some_chart', 'some_label')
     tir_metric_name = ('%s@@%s' % (tir_metric[1], tir_metric[0]), 'summary')
-    lower_values = ','.join([self.MakeChart(
-        metric=tir_metric_name, seed='lower', mu=10, sigma=1, n=10)])
-    higher_values = ','.join([self.MakeChart(
-        metric=tir_metric_name, seed='higher', mu=20, sigma=2, n=10)])
+    lower_values = ','.join(self.MakeCharts(
+        metric=tir_metric_name, seed='lower', mu=10, sigma=1, n=10))
+    higher_values = ','.join(self.MakeCharts(
+        metric=tir_metric_name, seed='higher', mu=20, sigma=2, n=10))
     result = json.loads(compare_samples.CompareSamples(
         lower_values, higher_values, '/'.join(tir_metric)).stdout)
     self.assertEqual(result['result']['significance'], REJECT)
@@ -298,10 +301,10 @@ class CompareSamplesUnittest(unittest.TestCase):
     trace_name = 'blank:about:blank'
     metric = chart_name, trace_name
     keys = 'blank', 'about'
-    lower_values = ','.join([self.MakeChart(metric=metric, seed='lower',
-                                            mu=10, sigma=1, n=10, keys=keys)])
-    higher_values = ','.join([self.MakeChart(metric=metric, seed='higher',
-                                             mu=20, sigma=2, n=10, keys=keys)])
+    lower_values = ','.join(self.MakeCharts(metric=metric, seed='lower',
+                                            mu=10, sigma=1, n=10, keys=keys))
+    higher_values = ','.join(self.MakeCharts(metric=metric, seed='higher',
+                                             mu=20, sigma=2, n=10, keys=keys))
     result = compare_samples.CompareSamples(
         lower_values, higher_values, full_metric_name).stdout
     print result
