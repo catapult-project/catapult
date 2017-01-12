@@ -53,9 +53,14 @@ class IsolatedHandler(webapp2.RequestHandler):
 
     # Get parameters.
     for parameter in ('builder_name', 'git_hash', 'isolated_map'):
-      if not self.request.get(parameter):
+      if parameter not in self.request.POST:
         self.response.set_status(400)
         self.response.write('Missing parameter: %s' % parameter)
+        return
+
+      if not self.request.get(parameter):
+        self.response.set_status(400)
+        self.response.write('Empty parameter: %s' % parameter)
         return
 
     builder_name = self.request.get('builder_name')
