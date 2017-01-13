@@ -134,7 +134,7 @@ def GetGraphJson(
 
   test_keys = map(utils.TestKey, test_paths)
   test_entities = ndb.get_multi(test_keys)
-  test_entities = [t for t in test_entities if t is not None]
+  test_entities = [t for t in test_entities if t is not None and t.has_rows]
 
   # Filter out deprecated tests, but only if not all the tests are deprecated.
   all_deprecated = all(t.deprecated for t in test_entities)
@@ -477,145 +477,57 @@ def _GetTestPathFromDict(test_path_dict):
   """Gets a list of test paths from a test path dictionary.
 
   This function looks up series and the corresponding list of selected
-  series and returns test paths of those that contain rows.
+  series.
 
   Args:
     test_path_dict: Dictionary of test path to list of selected series.
 
   Returns:
-    List of test paths with rows.
+    List of test paths.
   """
-  # TODO(sullivan): This codepath should be much, much faster!
-  # This hack works around the massive slowdowns which prevent v8 from viewing
-  # any charts.
-  # See https://github.com/catapult-project/catapult/issues/2830
-  test_paths_with_rows = []
-  if len(test_path_dict.keys()) == 1 and '/v8/' in test_path_dict.keys()[0]:
-    paths = list_tests.GetTestsMatchingPattern(
-        test_path_dict.keys()[0], only_with_rows=True)
-    paths += list_tests.GetTestsMatchingPattern(
-        test_path_dict.keys()[0] + '/*', only_with_rows=True)
-    return paths
-
-  for test_path in test_path_dict:
-    parent_test_name = test_path.split('/')[-1]
-    selected_traces = test_path_dict[test_path]
-    if not selected_traces:
-      sub_test_dict = _GetSubTestDict([test_path])
-      selected_traces = _GetTraces(test_path, sub_test_dict)
-    for trace in selected_traces:
-      if trace == parent_test_name:
-        test_paths_with_rows.append(test_path)
-      else:
-        test_paths_with_rows.append(test_path + '/' + trace)
-  return test_paths_with_rows
+  test_paths = []
+  for test_path, selected in test_path_dict.iteritems():
+    if selected:
+      # With an explicit selection, just add all the test_paths listed.
+      parent_test_name = test_path.split('/')[-1]
+      for selection in selected:
+        if selection == parent_test_name:
+          # When the element in the selected list is the same as the last part
+          # of the test_path, it's meant to mean just the test_path.
+          test_paths.append(test_path)
+        else:
+          # Generally the selected element is intended to be the last part of
+          # the test path.
+          test_paths.append('%s/%s' % (test_path, selection))
+    else:
+      # Without an explicit selection, add this test_path and any children.
+      test_paths.append(test_path)
+      test_paths.extend(list_tests.GetTestsMatchingPattern(
+          '%s/*' % test_path, only_with_rows=True))
+  return test_paths
 
 
 def _GetUnselectedTestPathFromDict(test_path_dict):
   """Gets a list of test paths for unselected series for a test path dictionary.
 
-  This function looks up series that are directly under provided test path
+  This function looks up series that are directly under the provided test path
   that are also not in the list of selected series.
 
   Args:
     test_path_dict: Dictionary of test path to list of selected sub-series.
 
   Returns:
-    List of test paths of Tests that have rows.
+    List of test paths.
   """
   test_paths = []
-  sub_test_dict = _GetSubTestDict(t for t in test_path_dict)
-  for test_path in test_path_dict:
-    parent_test_name = test_path.split('/')[-1]
-    selected_traces = test_path_dict[test_path]
-    # Add sub-tests not in selected traces.
-    unselected_traces = _GetTraces(test_path, sub_test_dict)
-    for trace in unselected_traces:
-      if trace not in selected_traces:
-        if trace == parent_test_name:
-          test_paths.append(test_path)
-        else:
-          test_paths.append(test_path + '/' + trace)
+  for test_path, selected in test_path_dict.iteritems():
+    parent = test_path.split('/')[-1]
+    if not parent in selected:
+      test_paths.append(test_path)
+    children = list_tests.GetTestsMatchingPattern(
+        '%s/*' % test_path, only_with_rows=True)
+    for child in children:
+      selection = child.split('/')[-1]
+      if selection not in selected:
+        test_paths.append(child)
   return test_paths
-
-
-def _GetSubTestDict(test_paths):
-  """Gets a dict of test suite path to sub test dict.
-
-  Args:
-    test_paths: List of test paths.
-
-  Returns:
-    Dictionary of test suite path to sub-test tree (see
-    list_tests.GetSubTests).
-  """
-  subtests = {}
-  for test_path in test_paths:
-    path_parts = test_path.split('/')
-    bot_path = '/'.join(path_parts[0:2])
-    test_suite_path = '/'.join(path_parts[0:3])
-    test_suite = path_parts[2]
-    if test_suite_path not in subtests:
-      subtests[test_suite_path] = {}
-    subtests[test_suite_path] = list_tests.GetSubTests(test_suite, [bot_path])
-  return subtests
-
-
-def _GetTraces(test_path, sub_test_dict):
-  """Gets summary and sub-test traces directly underneath test_path.
-
-  Args:
-    test_path: A test path.
-    sub_test_dict: Dictionary of test suite path to sub-test tree.
-
-  Returns:
-    List of trace names.
-  """
-  traces = []
-  test_parts = test_path.split('/')
-  test_suite_path = '/'.join(test_parts[0:3])
-
-  if test_suite_path not in sub_test_dict:
-    return []
-  sub_test_tree = sub_test_dict[test_suite_path]
-
-  if len(test_parts) > 3:
-    return _GetSubTestTraces(test_parts, sub_test_tree)
-
-  for key, value in sub_test_tree.iteritems():
-    if value['has_rows']:
-      traces.append(key)
-  return traces
-
-
-def _GetSubTestTraces(test_parts, sub_test_tree):
-  """Gets summary and sub-test traces after the test suite.
-
-  Args:
-    test_parts: List of parts of a test path.
-    sub_test_tree: Nested dictionary of test data (see list_tests.GetSubTests).
-
-  Returns:
-    List of trace names.
-  """
-  traces = []
-  target_trace = test_parts[-1]
-
-  for part in test_parts[3:-1]:
-    if part in sub_test_tree:
-      sub_test_tree = sub_test_tree[part]['sub_tests']
-    else:
-      return []
-  if target_trace not in sub_test_tree:
-    return []
-
-  # Add target trace.
-  target_sub_test_tree = sub_test_tree[target_trace]
-  if target_sub_test_tree['has_rows']:
-    traces.append(target_trace)
-
-  # Add direct sub-tests.
-  for key, value in target_sub_test_tree['sub_tests'].iteritems():
-    if value['has_rows']:
-      traces.append(key)
-  return traces
