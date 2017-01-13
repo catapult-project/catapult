@@ -10,7 +10,6 @@ from google.appengine.ext import ndb
 
 from dashboard import alerts
 from dashboard import chart_handler
-from dashboard import list_tests
 from dashboard import update_test_suites
 from dashboard.common import request_handler
 from dashboard.common import utils
@@ -182,11 +181,6 @@ class GroupReportHandler(chart_handler.ChartHandler):
 
     values = {
         'alert_list': alert_dicts[:_DISPLAY_LIMIT],
-        # This code for getting the subtests is supposed to be used to sort out
-        # which metrics are "core" vs "non-core". But it's extremely slow, and
-        # also doesn't seem to work very well. Turn it off for now:
-        # https://github.com/catapult-project/catapult/issues/2877
-        #'subtests': _GetSubTestsForAlerts(alert_dicts),
         'bug_id': bug_id,
         'test_suites': update_test_suites.FetchCachedTestSuites(),
         'selected_keys': selected_keys,
@@ -203,20 +197,6 @@ def _IsInt(x):
     return True
   except ValueError:
     return False
-
-
-def _GetSubTestsForAlerts(alert_list):
-  """Gets subtest dict for list of alerts."""
-  subtests = {}
-  for alert in alert_list:
-    bot_name = alert['master'] + '/' + alert['bot']
-    testsuite = alert['testsuite']
-    if bot_name not in subtests:
-      subtests[bot_name] = {}
-    if testsuite not in subtests[bot_name]:
-      subtests[bot_name][testsuite] = list_tests.GetSubTests(
-          testsuite, [bot_name])
-  return subtests
 
 
 def _GetOverlaps(anomalies, start, end):

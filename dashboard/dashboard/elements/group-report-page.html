@@ -159,11 +159,6 @@ found in the LICENSE file.
           value: () => { return {}; }
         },
 
-        subtests: {
-          type: Object,
-          value: () => { return {}; }
-        },
-
         revisionInfo: {
           type: Object,
           value: () => { return {}; }
@@ -273,27 +268,6 @@ found in the LICENSE file.
         delete this.graphElements_[key];
       },
 
-      getSubtestsEntry: function(testPath) {
-        var testPathParts = testPath.split('/');
-        var botName = testPathParts[0] + '/' + testPathParts[1];
-        var subtestParts = testPathParts.splice(3);
-        var subtestDict = null;
-        if (this.subtests && this.subtests[botName]) {
-          subtestDict = this.subtests[botName][testPathParts[2]];
-        }
-        if (!subtestDict) {
-          return null;
-        }
-        for (var level = 0; level < subtestParts.length - 1; level++) {
-          var name = subtestParts[level];
-          if (!(name in subtestDict)) {
-            return null;
-          }
-          subtestDict = subtestDict[name]['sub_tests'];
-        }
-        return subtestDict[subtestParts[subtestParts.length - 1]];
-      },
-
       getTestPath: function(alert) {
         return [
           alert['master'],
@@ -305,34 +279,15 @@ found in the LICENSE file.
 
       getTestPathAndSelectedSeries: function(alert) {
         var testPath = this.getTestPath(alert);
-        var subtestsEntry = this.getSubtestsEntry(testPath);
         var traceName = testPath.split('/').pop();
-
-        // If the "subtests" property of |subtestsEntry| is an empty object,
-        // that implies that this test has no subtests. In this case, show a
-        // chart for the parent test, with this particular child selected.
-        if (subtestsEntry && subtestsEntry['sub_tests'] &&
-            Object.keys(subtestsEntry['sub_tests']).length == 0) {
-          testPath = testPath.split('/').slice(0, -1).join('/');
-          subtestsEntry = this.getSubtestsEntry(testPath);
-        }
 
         // Get a list of selected traces. This should include the series that
         // the alert was on, as well as any related reference build result
         // series.
         var selectedTraces = [traceName];
-        if (subtestsEntry && subtestsEntry['sub_tests']) {
-          if ('ref' in subtestsEntry['sub_tests']) {
-            selectedTraces.push('ref');
-          }
-          if (traceName + '_ref' in subtestsEntry['sub_tests']) {
-            selectedTraces.push(traceName + '_ref');
-          }
-        }
+        // TODO(sullivan): Add in ref trace when available.
+        // https://github.com/catapult-project/catapult/issues/2887
 
-        // Otherwise, the test is either not found in the SUBTESTS dict, or it
-        // is a test with children (e.g. a summary metric). In either of these
-        // cases, we want to return the test path and trace found on the alert.
         return [testPath, selectedTraces];
       },
 
@@ -472,7 +427,6 @@ found in the LICENSE file.
         }
         simple_xhr.send('/group_report', params,
           function(response) {
-            this.subtests = response['subtests'];
             this.revisionInfo = response['revision_info'];
             this.loginLink = response['login_url'];
             this.isInternalUser = response['is_internal_user'];
