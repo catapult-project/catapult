@@ -254,8 +254,6 @@ tr.exportTo('tr.ui.analysis', function() {
               var count = countValue.total;
               numerics['Count'] = new ScalarNumeric(
                   count_smallerIsBetter, count);
-              numerics['Average size per allocation'] = new ScalarNumeric(
-                  sizeInBytes_smallerIsBetter, count === 0 ? 0 : size / count);
             }
             return numerics;
           }, this);

@@ -77,18 +77,13 @@ tr.exportTo('tr.ui.analysis', function() {
   var HEAP_DETAILS_COLUMN_RULES = [
     {
       condition: 'Size',
-      importance: 3,
+      importance: 2,
       columnConstructor: tr.ui.analysis.DetailsNumericMemoryColumn
     },
     {
       condition: 'Count',
-      importance: 2,
-      columnConstructor: AllocationCountColumn
-    },
-    {
-      condition: 'Average size per allocation',
       importance: 1,
-      columnConstructor: tr.ui.analysis.DetailsNumericMemoryColumn
+      columnConstructor: AllocationCountColumn
     },
     {
       importance: 0,

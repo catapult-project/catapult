@@ -198,10 +198,9 @@ tr.b.unittest.testSuite(function() {
 
   var EXPECTED_COLUMNS_WITH_COUNT = EXPECTED_COLUMNS_WITHOUT_COUNT.concat([
     { title: 'Count', type: NumericMemoryColumn },
-    { title: 'Average size per allocation', type: NumericMemoryColumn }
   ]);
 
-  var EXPECTED_CELLS = ['Size', 'Count', 'Average size per allocation'];
+  var EXPECTED_CELLS = ['Size', 'Count'];
 
   function checkNode(node, expectedNodeStructure, expectedParentNode) {
     assert.strictEqual(node.title, expectedNodeStructure.title);
@@ -220,12 +219,6 @@ tr.b.unittest.testSuite(function() {
     var countFields = countCell ? countCell.fields : undefined;
     checkNumericFields(countFields, undefined, expectedNodeStructure.count,
         count_smallerIsBetter);
-
-    var averageSizeCell = cells['Average size per allocation'];
-    var averageSizeFields = averageSizeCell ? averageSizeCell.fields :
-        undefined;
-    checkSizeNumericFields(averageSizeFields, undefined,
-        expectedNodeStructure.averageSize);
 
     assert.strictEqual(node.childNodes.size, 2);
 
