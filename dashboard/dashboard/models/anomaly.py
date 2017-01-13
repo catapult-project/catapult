@@ -8,6 +8,7 @@ import sys
 
 from google.appengine.ext import ndb
 
+from dashboard.common import utils
 from dashboard.models import alert
 
 # A string to describe the magnitude of a change from zero to non-zero.
@@ -55,6 +56,9 @@ class Anomaly(alert.Alert):
   # is a corresponding step up later on, or vice versa.)
   recovered = ndb.BooleanProperty(indexed=True, default=False)
 
+  # If the TestMetadata alerted upon has a ref build, store the ref build.
+  ref_test = ndb.KeyProperty(indexed=False)
+
   # The corresponding units from the TestMetaData entity.
   units = ndb.StringProperty(indexed=False)
 
@@ -91,6 +95,11 @@ class Anomaly(alert.Alert):
       return FREAKIN_HUGE
     else:
       return '%f' % abs(self.absolute_delta)
+
+  def GetRefTestPath(self):
+    if not self.ref_test:
+      return None
+    return utils.TestPath(self.ref_test)
 
   def SetIsImprovement(self, test=None):
     """Sets whether the alert is an improvement for the given test."""

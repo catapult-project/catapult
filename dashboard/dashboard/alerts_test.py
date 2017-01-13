@@ -36,7 +36,9 @@ class AlertsTest(testing_common.TestCase):
     testing_common.AddTests(['ChromiumGPU'], ['linux-release'], {
         'scrolling-benchmark': {
             'first_paint': {},
+            'first_paint_ref': {},
             'mean_frame_time': {},
+            'mean_frame_time_ref': {},
         }
     })
     first_paint = utils.TestKey(
@@ -56,10 +58,11 @@ class AlertsTest(testing_common.TestCase):
     # Add some (12) non-triaged alerts.
     for end_rev in range(10000, 10120, 10):
       test_key = first_paint if end_rev % 20 == 0 else mean_frame_time
+      ref_test_key = utils.TestKey('%s_ref' % utils.TestPath(test_key))
       anomaly_entity = anomaly.Anomaly(
           start_revision=end_rev - 5, end_revision=end_rev, test=test_key,
           median_before_anomaly=100, median_after_anomaly=200,
-          sheriff=sheriff_key)
+          ref_test=ref_test_key, sheriff=sheriff_key)
       anomaly_entity.SetIsImprovement()
       anomaly_key = anomaly_entity.put()
       key_map[end_rev] = anomaly_key.urlsafe()
@@ -67,11 +70,12 @@ class AlertsTest(testing_common.TestCase):
     # Add some (2) already-triaged alerts.
     for end_rev in range(10120, 10140, 10):
       test_key = first_paint if end_rev % 20 == 0 else mean_frame_time
+      ref_test_key = utils.TestKey('%s_ref' % utils.TestPath(test_key))
       bug_id = -1 if end_rev % 20 == 0 else 12345
       anomaly_entity = anomaly.Anomaly(
           start_revision=end_rev - 5, end_revision=end_rev, test=test_key,
           median_before_anomaly=100, median_after_anomaly=200,
-          bug_id=bug_id, sheriff=sheriff_key)
+          ref_test=ref_test_key, bug_id=bug_id, sheriff=sheriff_key)
       anomaly_entity.SetIsImprovement()
       anomaly_key = anomaly_entity.put()
       key_map[end_rev] = anomaly_key.urlsafe()
@@ -81,10 +85,11 @@ class AlertsTest(testing_common.TestCase):
     # Add some (6) non-triaged improvements.
     for end_rev in range(10140, 10200, 10):
       test_key = mean_frame_time
+      ref_test_key = utils.TestKey('%s_ref' % utils.TestPath(test_key))
       anomaly_entity = anomaly.Anomaly(
           start_revision=end_rev - 5, end_revision=end_rev, test=test_key,
           median_before_anomaly=200, median_after_anomaly=100,
-          sheriff=sheriff_key)
+          ref_test=ref_test_key, sheriff=sheriff_key)
       anomaly_entity.SetIsImprovement()
       anomaly_key = anomaly_entity.put()
       self.assertTrue(anomaly_entity.is_improvement)
@@ -115,8 +120,14 @@ class AlertsTest(testing_common.TestCase):
       self.assertEqual('scrolling-benchmark', alert['testsuite'])
       if expected_end_rev % 20 == 0:
         self.assertEqual('first_paint', alert['test'])
+        self.assertEqual(
+            'ChromiumGPU/linux-release/scrolling-benchmark/first_paint_ref',
+            alert['ref_test'])
       else:
         self.assertEqual('mean_frame_time', alert['test'])
+        self.assertEqual(
+            'ChromiumGPU/linux-release/scrolling-benchmark/mean_frame_time_ref',
+            alert['ref_test'])
       self.assertEqual('100.0%', alert['percent_changed'])
       self.assertIsNone(alert['bug_id'])
       expected_end_rev -= 10

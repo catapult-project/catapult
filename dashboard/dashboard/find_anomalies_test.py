@@ -370,6 +370,67 @@ class ProcessAlertsTest(testing_common.TestCase):
     ]
     mock_logging_error.assert_has_calls(calls, any_order=True)
 
+  def testMakeAnomalyEntity_NoRefBuild(self):
+    testing_common.AddTests(
+        ['ChromiumPerf'],
+        ['linux'], {
+            'page_cycler_v2': {
+                'cnn': {},
+                'yahoo': {},
+                'nytimes': {},
+            },
+        })
+    test = utils.TestKey('ChromiumPerf/linux/page_cycler_v2').get()
+    testing_common.AddRows(test.test_path, [100, 200, 300, 400])
+
+    alert = find_anomalies._MakeAnomalyEntity(
+        _MakeSampleChangePoint(10011, 50, 100),
+        test,
+        list(graph_data.Row.query()))
+    self.assertIsNone(alert.ref_test)
+
+  def testMakeAnomalyEntity_RefBuildSlash(self):
+    testing_common.AddTests(
+        ['ChromiumPerf'],
+        ['linux'], {
+            'page_cycler_v2': {
+                'ref': {},
+                'cnn': {},
+                'yahoo': {},
+                'nytimes': {},
+            },
+        })
+    test = utils.TestKey('ChromiumPerf/linux/page_cycler_v2').get()
+    testing_common.AddRows(test.test_path, [100, 200, 300, 400])
+
+    alert = find_anomalies._MakeAnomalyEntity(
+        _MakeSampleChangePoint(10011, 50, 100),
+        test,
+        list(graph_data.Row.query()))
+    self.assertEqual(alert.ref_test.string_id(),
+                     'ChromiumPerf/linux/page_cycler_v2/ref')
+
+  def testMakeAnomalyEntity_RefBuildUnderscore(self):
+    testing_common.AddTests(
+        ['ChromiumPerf'],
+        ['linux'], {
+            'page_cycler_v2': {
+                'cnn': {},
+                'cnn_ref': {},
+                'yahoo': {},
+                'nytimes': {},
+            },
+        })
+    test = utils.TestKey('ChromiumPerf/linux/page_cycler_v2/cnn').get()
+    testing_common.AddRows(test.test_path, [100, 200, 300, 400])
+
+    alert = find_anomalies._MakeAnomalyEntity(
+        _MakeSampleChangePoint(10011, 50, 100),
+        test,
+        list(graph_data.Row.query()))
+    self.assertEqual(alert.ref_test.string_id(),
+                     'ChromiumPerf/linux/page_cycler_v2/cnn_ref')
+
 
 if __name__ == '__main__':
   unittest.main()

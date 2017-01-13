@@ -165,6 +165,7 @@ def GetAnomalyDict(anomaly_entity, bisect_status=None):
       'improvement': anomaly_entity.is_improvement,
       'bisect_status': bisect_status,
       'recovered': anomaly_entity.recovered,
+      'ref_test': anomaly_entity.GetRefTestPath(),
       'type': 'anomaly',
       'units': anomaly_entity.units
   })

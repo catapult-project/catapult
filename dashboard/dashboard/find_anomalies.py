@@ -222,6 +222,26 @@ def _GetImmediatelyPreviousRevisionNumber(later_revision, rows):
   assert False, 'No matching revision found in |rows|.'
 
 
+def _GetRefBuildKeyForTest(test):
+  """TestMetadata key of the reference build for the given test, if one exists.
+
+  Args:
+    test: the TestMetadata entity to get the ref build for.
+
+  Returns:
+    A TestMetadata key if found, or None if not.
+  """
+  potential_path = '%s/ref' % test.test_path
+  potential_test = utils.TestKey(potential_path).get()
+  if potential_test:
+    return potential_test.key
+  potential_path = '%s_ref' % test.test_path
+  potential_test = utils.TestKey(potential_path).get()
+  if potential_test:
+    return potential_test.key
+  return None
+
+
 def _MakeAnomalyEntity(change_point, test, rows):
   """Creates an Anomaly entity.
 
@@ -250,6 +270,7 @@ def _MakeAnomalyEntity(change_point, test, rows):
       degrees_of_freedom=change_point.degrees_of_freedom,
       p_value=change_point.p_value,
       is_improvement=_IsImprovement(test, median_before, median_after),
+      ref_test=_GetRefBuildKeyForTest(test),
       test=test.key,
       sheriff=test.sheriff,
       internal_only=test.internal_only,
