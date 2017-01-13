@@ -48,8 +48,11 @@ class Browser(app.App):
               self._browser_backend.profile_directory)
           self.platform.FlushSystemCacheForDirectory(
               self._browser_backend.browser_directory)
-        else:
+        elif self.platform.SupportFlushEntireSystemCache():
           self.platform.FlushEntireSystemCache()
+        else:
+          logging.warning('Flush system cache is not supported. ' +
+              'Did not flush system cache.')
 
       self._browser_backend.SetBrowser(self)
       self._browser_backend.Start()
