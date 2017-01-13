@@ -6,8 +6,14 @@
 import argparse
 import fcntl
 import logging
+import os
 import re
 import sys
+
+if __name__ == '__main__':
+  sys.path.append(
+      os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                   '..', '..')))
 
 from devil.android import device_errors
 from devil.utils import lsusb
