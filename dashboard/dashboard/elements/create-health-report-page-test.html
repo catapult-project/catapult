@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/dashboard/elements/create-health-report-page.html">
+<link rel="import" href="/dashboard/static/testing_common.html">
+
+<link rel="import" href="/tracing/base/unit.html">
+<link rel="import" href="/tracing/core/test_utils.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+
+  var testOptions = {
+    tearDown: function() {
+      testing_common.clearXhrMock();
+    }
+  };
+
+  test('onSubmit sends request with parameters', function() {
+    var tokenParams = {
+      getToken: true
+    };
+    var mockTokenResponse = {
+      'xsrf_token': 'fakeToken'
+    };
+    var query = '/create_health_report?' +
+        testing_common.paramString(tokenParams);
+    testing_common.addXhrMock(query, JSON.stringify(mockTokenResponse));
+
+    var tableParams = {
+      tableBots: 'testBot',
+      tableLayout: 'testLayout',
+      tableName: 'testName',
+      tableTests: 'testTest',
+      xsrf_token: 'fakeToken'
+    };
+    var mockTableResponse = {
+      'xsrf_token': 'fakeToken',
+      'name': 'testName'
+    };
+    var tableQuery = '/create_health_report?' +
+        testing_common.paramString(tableParams);
+    testing_common.addXhrMock(tableQuery, JSON.stringify(mockTableResponse));
+
+    var page = document.createElement('create-health-report-page');
+    page.name = 'testName';
+    page.bots = 'testBot';
+    page.tests = 'testTest';
+    page.layout = 'testLayout';
+    this.addHTMLOutput(page);
+    page.checkToken();
+  }, testOptions);
+
+  test('instantiation', function() {
+    var page = document.createElement('create-health-report-page');
+    this.addHTMLOutput(page);
+  }, testOptions);
+
+});
+</script>
