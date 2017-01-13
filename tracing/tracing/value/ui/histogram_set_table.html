@@ -27,7 +27,7 @@ found in the LICENSE file.
       margin-top: 5px;
       display: flex;
       min-height: 0px;
-      overflow-y: auto;
+      overflow: auto;
     }
 
     #help {
@@ -465,8 +465,10 @@ tr.exportTo('tr.v.ui', function() {
       this.updatingContents_ = true;
 
       this.$.zero.style.display = 'none';
-      this.$.container.style.display = 'block';
+      this.$.container.style.display = 'flex';
       this.$.table.style.display = '';
+
+      this.$.container.style.maxHeight = (window.innerHeight - 16) + 'px';
 
       this.updateReferenceColumnSelector_();
       this.updateGroups_();

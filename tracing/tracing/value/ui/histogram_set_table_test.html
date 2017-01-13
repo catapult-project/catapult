@@ -214,7 +214,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual('none', getComputedStyle(
         tr.b.findDeepElementMatchingPredicate(
             table, e => e.textContent === 'zero Histograms')).display);
-    assert.strictEqual('block', getComputedStyle(
+    assert.strictEqual('flex', getComputedStyle(
         tr.b.findDeepElementMatchingPredicate(
             table, e => e.id === 'container')).display);
     assert.isDefined(tr.b.findDeepElementMatchingPredicate(
