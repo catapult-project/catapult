@@ -90,13 +90,20 @@ class FakeTracingAgentNoStartAndClockSync(FakeTracingAgentBase):
 
 class TracingControllerBackendTest(unittest.TestCase):
   def _getControllerEventsAslist(self, data):
-    telemetry_trace = data.GetTraceFor(trace_data.TELEMETRY_PART)
-    if not telemetry_trace:
+    traces = data.GetTracesFor(trace_data.TELEMETRY_PART)
+    if not traces:
       return []
+    assert len(traces) == 1
+    telemetry_trace = traces[0]
     return telemetry_trace["traceEvents"]
 
   def _getControllerClockDomain(self, data):
-    telemetry_trace = data.GetTraceFor(trace_data.TELEMETRY_PART)
+    traces = data.GetTracesFor(trace_data.TELEMETRY_PART)
+    if not traces:
+      return []
+    assert len(traces) == 1
+    telemetry_trace = traces[0]
+    telemetry_trace = data.GetTracesFor(trace_data.TELEMETRY_PART)[0]
     if not telemetry_trace or not telemetry_trace["metadata"]:
       return ""
     return telemetry_trace["metadata"]["clock-domain"]

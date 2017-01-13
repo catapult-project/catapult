@@ -169,9 +169,9 @@ class BattOrTracingAgentTest(unittest.TestCase):
     self.android_agent.CollectAgentTraceData(builder)
     self.assertTrue(self.android_agent._battor._collect_trace_data_called)
     builder = builder.AsData()
-    self.assertTrue(builder.HasTraceFor(trace_data.BATTOR_TRACE_PART))
-    data_from_builder = builder.GetTraceFor(trace_data.BATTOR_TRACE_PART)
-    self.assertEqual(_BATTOR_RETURN, data_from_builder)
+    self.assertTrue(builder.HasTracesFor(trace_data.BATTOR_TRACE_PART))
+    data_from_builder = builder.GetTracesFor(trace_data.BATTOR_TRACE_PART)
+    self.assertEqual([_BATTOR_RETURN], data_from_builder)
 
   def testAndroidCharging(self):
     self.assertTrue(self.android_agent._battery.GetCharging())

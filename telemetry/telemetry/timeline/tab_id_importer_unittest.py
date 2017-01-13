@@ -11,7 +11,7 @@ from telemetry.timeline import trace_data as trace_data_module
 class TabIdImporterUnitTest(unittest.TestCase):
   def testImportOverflowedTrace(self):
     builder = trace_data_module.TraceDataBuilder()
-    builder.AddEventsTo(trace_data_module.CHROME_TRACE_PART, [
+    builder.AddTraceFor(trace_data_module.CHROME_TRACE_PART, {'traceEvents': [
       {'name': 'a', 'args': {}, 'pid': 1, 'ts': 7, 'cat': 'foo',
        'tid': 1, 'ph': 'B'},
       {'name': 'a', 'args': {}, 'pid': 1, 'ts': 8, 'cat': 'foo',
@@ -23,8 +23,8 @@ class TabIdImporterUnitTest(unittest.TestCase):
       {'name': 'trace_buffer_overflowed',
        'args': {'overflowed_at_ts': 12},
         'pid': 2, 'ts': 0, 'tid': 2, 'ph': 'M'}
-    ])
-    builder.AddEventsTo(
+    ]})
+    builder.AddTraceFor(
         trace_data_module.TAB_ID_PART, ['tab-id-1', 'tab-id-2'])
 
     with self.assertRaises(tab_id_importer.TraceBufferOverflowException) \
@@ -36,7 +36,7 @@ class TabIdImporterUnitTest(unittest.TestCase):
 
   def testTraceEventsWithTabIdsMarkers(self):
     builder = trace_data_module.TraceDataBuilder()
-    builder.AddEventsTo(trace_data_module.CHROME_TRACE_PART, [
+    builder.AddTraceFor(trace_data_module.CHROME_TRACE_PART, {'traceEvents': [
       {'name': 'a', 'args': {}, 'pid': 1, 'ts': 20, 'tts': 10, 'cat': 'foo',
        'tid': 1, 'ph': 'B'},
       # tab-id-1
@@ -55,8 +55,8 @@ class TabIdImporterUnitTest(unittest.TestCase):
       {'name': 'tab-id-2', 'args': {}, 'pid': 1, 'ts': 26, 'cat': 'foo',
        'tid': 2,
          'ph': 'F', 'id': 72},
-     ])
-    builder.AddEventsTo(
+     ]})
+    builder.AddTraceFor(
         trace_data_module.TAB_ID_PART, ['tab-id-1', 'tab-id-2'])
 
     m = timeline_model.TimelineModel(builder.AsData())

@@ -249,7 +249,7 @@ class TracingControllerBackend(object):
     assert not trace_event.trace_is_enabled(), 'Stop tracing before collection.'
     with open(self._trace_log, 'r') as fp:
       data = ast.literal_eval(fp.read() + ']')
-    trace_data_builder.SetTraceFor(trace_data_module.TELEMETRY_PART, {
+    trace_data_builder.AddTraceFor(trace_data_module.TELEMETRY_PART, {
         "traceEvents": data,
         "metadata": {
             # TODO(charliea): For right now, we use "TELEMETRY" as the clock

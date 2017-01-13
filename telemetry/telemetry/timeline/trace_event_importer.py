@@ -29,8 +29,9 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
     self._all_flow_events = []
     self._all_memory_dumps_by_dump_id = collections.defaultdict(list)
 
-    trace = trace_data.GetTraceFor(trace_data_module.CHROME_TRACE_PART)
-    self._events = trace.get('traceEvents', [])
+    self._events = []
+    for trace in trace_data.GetTracesFor(trace_data_module.CHROME_TRACE_PART):
+      self._events.extend(trace['traceEvents'])
 
   @staticmethod
   def GetSupportedPart():

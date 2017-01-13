@@ -111,7 +111,7 @@ class InspectorEventParsingTest(unittest.TestCase):
 
   def testOutOfOrderData(self):
     builder = trace_data.TraceDataBuilder()
-    builder.AddEventsTo(
+    builder.AddTraceFor(
       trace_data.INSPECTOR_TRACE_PART, [{
       'startTime': 5295.004, 'endTime': 5305.004,
       'data': {}, 'type': 'Program',
@@ -132,7 +132,7 @@ class InspectorEventParsingTest(unittest.TestCase):
 class InspectorImporterTest(unittest.TestCase):
   def testImport(self):
     builder = trace_data.TraceDataBuilder()
-    builder.AddEventsTo(trace_data.INSPECTOR_TRACE_PART,
+    builder.AddTraceFor(trace_data.INSPECTOR_TRACE_PART,
                         [_BACKGROUND_MESSAGE, _SAMPLE_MESSAGE])
     m = model.TimelineModel(builder.AsData(), shift_world_to_zero=False)
     self.assertEquals(1, len(m.processes))

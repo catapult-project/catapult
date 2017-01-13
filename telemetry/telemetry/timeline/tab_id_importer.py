@@ -45,8 +45,9 @@ class TabIdImporter(importer.TimelineImporter):
              repr(self._trace_data)))
 
   def _CreateTabIdsToThreadsMap(self):
-    tab_id_events = self._trace_data.GetTraceFor(
-        trace_data_module.TAB_ID_PART)
+    tab_id_events = []
+    for tab_ids in self._trace_data.GetTracesFor(trace_data_module.TAB_ID_PART):
+      tab_id_events.extend(tab_ids)
 
     for tab_id in tab_id_events:
       try:

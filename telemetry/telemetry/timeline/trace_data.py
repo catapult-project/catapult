@@ -13,15 +13,6 @@ class NonSerializableTraceData(Exception):
   pass
 
 
-def _ValidateRawData(raw):
-  try:
-    json.dumps(raw)
-  except TypeError as e:
-    raise NonSerializableTraceData('TraceData is not serilizable: %s' % e)
-  except ValueError as e:
-    raise NonSerializableTraceData('TraceData is not serilizable: %s' % e)
-
-
 class TraceDataPart(object):
   """TraceData can have a variety of events.
 
@@ -108,19 +99,20 @@ class TraceData(object):
   @property
   def metadata_records(self):
     part_field_names = {p.raw_field_name for p in ALL_TRACE_PARTS}
-    for k, v in self._raw_data.iteritems():
-      if k in part_field_names:
-        continue
-      yield {
-        'name': k,
-        'value': v
-      }
+    for chrome_trace in self.GetTracesFor(CHROME_TRACE_PART):
+      for k, v in chrome_trace.iteritems():
+        if k in part_field_names:
+          continue
+        yield {
+          'name': k,
+          'value': v
+        }
 
-  def HasTraceFor(self, part):
+  def HasTracesFor(self, part):
     return _HasTraceFor(part, self._raw_data)
 
-  def GetTraceFor(self, part):
-    if not self.HasTraceFor(part):
+  def GetTracesFor(self, part):
+    if not self.HasTracesFor(part):
       return []
     assert isinstance(part, TraceDataPart)
     return self._raw_data[part.raw_field_name]
@@ -159,34 +151,13 @@ class TraceDataBuilder(object):
   def AsData(self):
     if self._raw_data == None:
       raise Exception('Can only AsData once')
-
     data = TraceData()
     data._SetFromBuilder(self._raw_data)
     self._raw_data = None
     return data
 
-  def AddEventsTo(self, part, events):
-    """Note: this won't work when called from multiple browsers.
-
-    Each browser's trace_event_impl zeros its timestamps when it writes them
-    out and doesn't write a timebase that can be used to re-sync them.
-    """
+  def AddTraceFor(self, part, trace):
     assert isinstance(part, TraceDataPart)
-    assert isinstance(events, list)
-    if self._raw_data == None:
-      raise Exception('Already called AsData() on this builder.')
-    if part == CHROME_TRACE_PART:
-      target_events = self._raw_data.setdefault(
-          part.raw_field_name, {}).setdefault('traceEvents', [])
-    else:
-      target_events = self._raw_data.setdefault(part.raw_field_name, [])
-    target_events.extend(events)
-
-  def SetTraceFor(self, part, trace):
-    assert isinstance(part, TraceDataPart), (
-        '%s is not type TraceDataPart' % part)
-    assert part in ALL_TRACE_PARTS, ('%s is not a supported trace part' %
-                                     part)
     assert (isinstance(trace, basestring) or
             isinstance(trace, dict) or
             isinstance(trace, list))
@@ -196,18 +167,10 @@ class TraceDataBuilder(object):
     if self._raw_data == None:
       raise Exception('Already called AsData() on this builder.')
 
-    if part.raw_field_name in self._raw_data:
-      raise Exception('Trace part %s is already set.' % part.raw_field_name)
+    self._raw_data.setdefault(part.raw_field_name, [])
+    self._raw_data[part.raw_field_name].append(trace)
 
-    self._raw_data[part.raw_field_name] = trace
-
-  def SetMetadataFor(self, part, metadata):
-    if part != CHROME_TRACE_PART:
-      raise Exception('Metadata are only supported for %s'
-                      % CHROME_TRACE_PART.raw_field_name)
-    self._raw_data.setdefault(part.raw_field_name, {})['metadata'] = metadata
-
-  def HasTraceFor(self, part):
+  def HasTracesFor(self, part):
     return _HasTraceFor(part, self._raw_data)
 
 
@@ -239,13 +202,13 @@ def CreateTraceDataFromRawData(raw_data):
     for k in json_data:
       if k != 'traceEvents' and k in ALL_TRACE_PARTS_RAW_NAMES:
         trace_parts_keys.append(k)
-        b.SetTraceFor(TraceDataPart(k), json_data[k])
+        b.AddTraceFor(TraceDataPart(k), json_data[k])
     # Delete the data for extra keys to form trace data for Chrome part only.
     for k in trace_parts_keys:
       del json_data[k]
-    b.SetTraceFor(CHROME_TRACE_PART, json_data)
+    b.AddTraceFor(CHROME_TRACE_PART, json_data)
   elif isinstance(json_data, list):
-    b.SetTraceFor(CHROME_TRACE_PART, {'traceEvents': json_data})
+    b.AddTraceFor(CHROME_TRACE_PART, {'traceEvents': json_data})
   else:
     raise NonSerializableTraceData('Unrecognized data format.')
   return b.AsData()

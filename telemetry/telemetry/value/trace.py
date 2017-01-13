@@ -46,9 +46,9 @@ class TraceValue(value_module.Value):
       return self._serialized_file_handle.GetAbsPath()
 
   def _GetTraceParts(self, trace_data):
-    return [(trace_data.GetTraceFor(p), p)
+    return [(trace_data.GetTracesFor(p), p)
             for p in trace_data_module.ALL_TRACE_PARTS
-            if trace_data.HasTraceFor(p)]
+            if trace_data.HasTracesFor(p)]
 
   @staticmethod
   def _DumpTraceToFile(trace, path):
@@ -66,12 +66,14 @@ class TraceValue(value_module.Value):
     counter = 0
     try:
       trace_size_data = {}
-      for trace, part in self._GetTraceParts(trace_data):
-        file_path = os.path.join(temp_dir, '%s.trace' % counter)
-        self._DumpTraceToFile(trace, file_path)
-        trace_size_data[part] = os.path.getsize(file_path)
-        trace_files.append(file_path)
-        counter += 1
+      for traces_list, part in self._GetTraceParts(trace_data):
+        for trace in traces_list:
+          file_path = os.path.join(temp_dir, '%s.trace' % counter)
+          self._DumpTraceToFile(trace, file_path)
+          trace_size_data.setdefault(part, 0)
+          trace_size_data[part] += os.path.getsize(file_path)
+          trace_files.append(file_path)
+          counter += 1
       logging.info('Trace sizes in bytes: %s', trace_size_data)
       tf = tempfile.NamedTemporaryFile(delete=False, suffix='.html')
       tf.close()

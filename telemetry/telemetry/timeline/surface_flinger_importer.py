@@ -9,8 +9,9 @@ class SurfaceFlingerTimelineImporter(importer.TimelineImporter):
   def __init__(self, model, trace_data):
     super(SurfaceFlingerTimelineImporter, self).__init__(
         model, trace_data, import_order=2)
-    self._events = trace_data.GetTraceFor(
-        trace_data_module.SURFACE_FLINGER_PART)
+    traces = trace_data.GetTracesFor(trace_data_module.SURFACE_FLINGER_PART)
+    assert len(traces) == 1
+    self._events = traces[0]
     self._surface_flinger_process = None
 
   @staticmethod

@@ -110,4 +110,4 @@ class BattOrTracingAgent(tracing_agent.TracingAgent):
 
   def CollectAgentTraceData(self, trace_data_builder, timeout=None):
     data = self._battor.CollectTraceData(timeout=timeout)
-    trace_data_builder.SetTraceFor(trace_data.BATTOR_TRACE_PART, data)
+    trace_data_builder.AddTraceFor(trace_data.BATTOR_TRACE_PART, data)

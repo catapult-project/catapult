@@ -28,5 +28,5 @@ class DisplayTracingAgent(tracing_agent.TracingAgent):
     # TODO: Move stopping to StopAgentTracing.
     del timeout
     surface_flinger_trace_data = self._platform_backend.StopDisplayTracing()
-    trace_data_builder.AddEventsTo(
+    trace_data_builder.AddTraceFor(
           trace_data.SURFACE_FLINGER_PART, surface_flinger_trace_data)

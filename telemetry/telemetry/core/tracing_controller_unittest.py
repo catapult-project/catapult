@@ -186,4 +186,4 @@ class TracingControllerTest(tab_test_case.TabTestCase):
     time.sleep(1)
     trace_data = tracing_controller.StopTracing()
     self.assertTrue(
-        trace_data.HasTraceFor(trace_data_module.BATTOR_TRACE_PART))
+        trace_data.HasTracesFor(trace_data_module.BATTOR_TRACE_PART))

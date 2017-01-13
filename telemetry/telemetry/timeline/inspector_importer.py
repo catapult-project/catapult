@@ -14,8 +14,10 @@ class InspectorTimelineImporter(importer.TimelineImporter):
     super(InspectorTimelineImporter, self).__init__(model,
                                                     trace_data,
                                                     import_order=1)
-    self._events = trace_data.GetTraceFor(
+    traces = trace_data.GetTracesFor(
       trace_data_module.INSPECTOR_TRACE_PART)
+    assert len(traces) == 1
+    self._events = traces[0]
 
   @staticmethod
   def GetSupportedPart():

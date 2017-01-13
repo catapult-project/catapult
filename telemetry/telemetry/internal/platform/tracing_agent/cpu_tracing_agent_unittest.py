@@ -99,7 +99,7 @@ class CpuTracingAgentTest(unittest.TestCase):
     self._agent.CollectAgentTraceData(builder)
     self.assertFalse(self._agent._snapshot_ongoing)
     builder = builder.AsData()
-    self.assertTrue(builder.HasTraceFor(trace_data.CPU_TRACE_DATA))
+    self.assertTrue(builder.HasTracesFor(trace_data.CPU_TRACE_DATA))
 
   @decorators.Enabled('linux', 'mac', 'win')
   def testCollectAgentTraceDataFormat(self):
@@ -109,7 +109,7 @@ class CpuTracingAgentTest(unittest.TestCase):
     self._agent.StopAgentTracing()
     self._agent.CollectAgentTraceData(builder)
     builder = builder.AsData()
-    data = json.loads(builder.GetTraceFor(trace_data.CPU_TRACE_DATA))
+    data = json.loads(builder.GetTracesFor(trace_data.CPU_TRACE_DATA)[0])
     self.assertTrue(data)
     self.assertEquals(set(data[0].keys()), set(TRACE_EVENT_KEYS))
     self.assertEquals(set(data[0]['args']['snapshot'].keys()),
@@ -126,7 +126,7 @@ class CpuTracingAgentTest(unittest.TestCase):
     self._agent.StopAgentTracing()
     self._agent.CollectAgentTraceData(builder)
     builder = builder.AsData()
-    data = json.loads(builder.GetTraceFor(trace_data.CPU_TRACE_DATA))
+    data = json.loads(builder.GetTracesFor(trace_data.CPU_TRACE_DATA)[0])
     self.assertTrue(data)
     for snapshot in data:
       found_unittest_process = False

@@ -45,7 +45,7 @@ class TraceDataTest(unittest.TestCase):
   def testEmptyArrayValue(self):
     # We can import empty lists and empty string.
     d = trace_data.CreateTraceDataFromRawData([])
-    self.assertFalse(d.HasTraceFor(trace_data.CHROME_TRACE_PART))
+    self.assertFalse(d.HasTracesFor(trace_data.CHROME_TRACE_PART))
 
   def testInvalidTrace(self):
     with self.assertRaises(AssertionError):
@@ -53,28 +53,31 @@ class TraceDataTest(unittest.TestCase):
 
   def testListForm(self):
     d = trace_data.CreateTraceDataFromRawData([{'ph': 'B'}])
-    self.assertTrue(d.HasTraceFor(trace_data.CHROME_TRACE_PART))
-    events = d.GetTraceFor(trace_data.CHROME_TRACE_PART).get('traceEvents', [])
+    self.assertTrue(d.HasTracesFor(trace_data.CHROME_TRACE_PART))
+    events = d.GetTracesFor(trace_data.CHROME_TRACE_PART)[0].get(
+        'traceEvents', [])
     self.assertEquals(1, len(events))
 
   def testStringForm(self):
     d = trace_data.CreateTraceDataFromRawData('[{"ph": "B"}]')
-    self.assertTrue(d.HasTraceFor(trace_data.CHROME_TRACE_PART))
-    events = d.GetTraceFor(trace_data.CHROME_TRACE_PART).get('traceEvents', [])
+    self.assertTrue(d.HasTracesFor(trace_data.CHROME_TRACE_PART))
+    events = d.GetTracesFor(trace_data.CHROME_TRACE_PART)[0].get(
+        'traceEvents', [])
     self.assertEquals(1, len(events))
 
 
 class TraceDataBuilderTest(unittest.TestCase):
   def testBasicChrome(self):
     builder = trace_data.TraceDataBuilder()
-    builder.AddEventsTo(trace_data.CHROME_TRACE_PART, [1, 2, 3])
-    builder.AddEventsTo(trace_data.TAB_ID_PART, ['tab-7'])
-    builder.SetTraceFor(trace_data.BATTOR_TRACE_PART, 'battor data here')
+    builder.AddTraceFor(trace_data.CHROME_TRACE_PART,
+                        {'traceEvents': [1, 2, 3]})
+    builder.AddTraceFor(trace_data.TAB_ID_PART, ['tab-7'])
+    builder.AddTraceFor(trace_data.BATTOR_TRACE_PART, 'battor data here')
 
     d = builder.AsData()
-    self.assertTrue(d.HasTraceFor(trace_data.CHROME_TRACE_PART))
-    self.assertTrue(d.HasTraceFor(trace_data.TAB_ID_PART))
-    self.assertTrue(d.HasTraceFor(trace_data.BATTOR_TRACE_PART))
+    self.assertTrue(d.HasTracesFor(trace_data.CHROME_TRACE_PART))
+    self.assertTrue(d.HasTracesFor(trace_data.TAB_ID_PART))
+    self.assertTrue(d.HasTracesFor(trace_data.BATTOR_TRACE_PART))
 
     self.assertRaises(Exception, builder.AsData)
 
@@ -87,33 +90,27 @@ class TraceDataBuilderTest(unittest.TestCase):
     }
 
     builder = trace_data.TraceDataBuilder()
-    builder.SetTraceFor(trace_data.TELEMETRY_PART, telemetry_trace)
+    builder.AddTraceFor(trace_data.TELEMETRY_PART, telemetry_trace)
     d = builder.AsData()
 
-    self.assertEqual(d.GetTraceFor(trace_data.TELEMETRY_PART), telemetry_trace)
+    self.assertEqual(d.GetTracesFor(trace_data.TELEMETRY_PART),
+                     [telemetry_trace])
 
   def testSetTraceForRaisesWithInvalidPart(self):
     builder = trace_data.TraceDataBuilder()
 
     self.assertRaises(exceptions.AssertionError,
-                      lambda: builder.SetTraceFor('not_a_trace_part', {}))
+                      lambda: builder.AddTraceFor('not_a_trace_part', {}))
 
   def testSetTraceForRaisesWithInvalidTrace(self):
     builder = trace_data.TraceDataBuilder()
 
     self.assertRaises(exceptions.AssertionError, lambda:
-        builder.SetTraceFor(trace_data.TELEMETRY_PART, datetime.time.min))
-
-  def testSetTraceForRaisesWithAlreadySetPart(self):
-    builder = trace_data.TraceDataBuilder()
-    builder.SetTraceFor(trace_data.TELEMETRY_PART, {})
-
-    self.assertRaises(exceptions.Exception,
-        lambda: builder.SetTraceFor(trace_data.TELEMETRY_PART, {}))
+        builder.AddTraceFor(trace_data.TELEMETRY_PART, datetime.time.min))
 
   def testSetTraceForRaisesAfterAsData(self):
     builder = trace_data.TraceDataBuilder()
     builder.AsData()
 
     self.assertRaises(exceptions.Exception,
-        lambda: builder.SetTraceFor(trace_data.TELEMETRY_PART, {}))
+        lambda: builder.AddTraceFor(trace_data.TELEMETRY_PART, {}))
