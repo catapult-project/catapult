@@ -8,6 +8,7 @@ import unittest
 
 from telemetry.core import discover
 from telemetry.internal.browser import browser_credentials
+from telemetry.internal import story_runner
 from telemetry import page
 from telemetry import story as story_module
 from telemetry.wpr import archive_info
@@ -127,6 +128,17 @@ class StorySetSmokeTest(unittest.TestCase):
             'story set %s disallows having mixed states' %
             (story, story_set))
 
+  def CheckPassingStoryRunnerValidation(self, story_set):
+    errors = []
+    for s in story_set:
+      try:
+        story_runner.ValidateStory(s)
+      except ValueError as e:
+        errors.append(e)
+    self.assertFalse(
+        errors, 'Errors validating user stories in %s:\n %s' % (
+            story_set, '\n'.join(e.message for e in errors)))
+
   def RunSmokeTest(self, story_sets_dir, top_level_dir):
     """Run smoke test on all story sets in story_sets_dir.
 
@@ -136,8 +148,8 @@ class StorySetSmokeTest(unittest.TestCase):
     story_sets = self.GetAllStorySetClasses(story_sets_dir, top_level_dir)
     for story_set_class in story_sets:
       story_set = story_set_class()
-      logging.info('Testing %s', story_set.file_path)
       self.CheckArchive(story_set)
       self.CheckCredentials(story_set)
       self.CheckAttributes(story_set)
       self.CheckSharedStates(story_set)
+      self.CheckPassingStoryRunnerValidation(story_set)

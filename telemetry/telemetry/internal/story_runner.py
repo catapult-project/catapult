@@ -194,6 +194,9 @@ def Run(test, story_set, finder_options, results, max_failures=None,
   We "white list" certain exceptions for which the story runner
   can continue running the remaining stories.
   """
+  for s in story_set:
+    ValidateStory(s)
+
   # Filter page set based on options.
   stories = filter(story_module.StoryFilter.IsSelected, story_set)
 
@@ -292,6 +295,13 @@ def Run(test, story_set, finder_options, results, max_failures=None,
               msg='Exception from TearDownState:')
 
 
+def ValidateStory(story):
+  if len(story.display_name) > 180:
+    raise ValueError(
+        'User story has display name exceeding 180 characters: %s' %
+        story.display_name)
+
+
 def RunBenchmark(benchmark, finder_options):
   """Run this test with the given options.
 
@@ -337,6 +347,7 @@ def RunBenchmark(benchmark, finder_options):
     pt._enabled_strings = benchmark._enabled_strings
 
   stories = benchmark.CreateStorySet(finder_options)
+
   if isinstance(pt, legacy_page_test.LegacyPageTest):
     if any(not isinstance(p, page.Page) for p in stories.stories):
       raise Exception(
@@ -351,7 +362,6 @@ def RunBenchmark(benchmark, finder_options):
   if (possible_browser.platform.GetOSName() == 'chromeos' and
       not benchmark.IsShouldTearDownStateAfterEachStoryRunOverriden()):
     should_tear_down_state_after_each_story_run = False
-
 
   with results_options.CreateResults(
       benchmark_metadata, finder_options,

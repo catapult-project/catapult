@@ -277,6 +277,20 @@ class StoryRunnerTest(unittest.TestCase):
     self.assertRaises(ValueError, story_runner.Run, test, story_set,
                       self.options, self.results)
 
+  def testRunStoryWithLongName(self):
+    story_set = story_module.StorySet()
+    story_set.AddStory(DummyLocalStory(FooStoryState, name='l' * 182))
+    test = DummyTest()
+    self.assertRaises(ValueError, story_runner.Run, test, story_set,
+                      self.options, self.results)
+
+  def testRunStoryWithLongURLPage(self):
+    story_set = story_module.StorySet()
+    story_set.AddStory(page_module.Page('file://long' + 'g' * 180, story_set))
+    test = DummyTest()
+    self.assertRaises(ValueError, story_runner.Run, test, story_set,
+                      self.options, self.results)
+
   def testSuccessfulTimelineBasedMeasurementTest(self):
     """Check that PageTest is not required for story_runner.Run.
 
