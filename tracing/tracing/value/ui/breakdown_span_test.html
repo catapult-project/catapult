@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/fixed_color_scheme.html">
 <link rel="import" href="/tracing/value/diagnostics/breakdown.html">
 <link rel="import" href="/tracing/value/diagnostics/related_histogram_breakdown.html">
 <link rel="import" href="/tracing/value/histogram.html">
@@ -49,6 +50,30 @@ tr.b.unittest.testSuite(function() {
 
     var span = tr.v.ui.createDiagnosticSpan(breakdown);
     assert.strictEqual('TR-V-UI-BREAKDOWN-SPAN', span.tagName);
+    this.addHTMLOutput(span);
+  });
+
+  test('instantiate_BreakdownWithFixedColorScheme', function() {
+    var colorScheme = tr.b.FixedColorScheme.fromNames([
+        'foo',
+        'bar',
+    ]);
+    tr.b.FixedColorSchemeRegistry.register(() => colorScheme, {
+      'name': 'myColorScheme',
+    });
+
+    var breakdown = new tr.v.d.Breakdown();
+    breakdown.colorScheme = 'myColorScheme';
+    breakdown.set('foo', 42);
+    breakdown.set('bar', 57);
+
+    // Test round-tripping.
+    breakdown = tr.v.d.Diagnostic.fromDict(breakdown.asDict());
+
+    var span = tr.v.ui.createDiagnosticSpan(breakdown);
+    span.updateContents_();
+    assert.strictEqual(
+        span.chart_.getDataSeries('foo').color, colorScheme.getColor('foo'));
     this.addHTMLOutput(span);
   });
 

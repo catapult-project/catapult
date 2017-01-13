@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/fixed_color_scheme.html">
 <link rel="import" href="/tracing/extras/chrome/chrome_user_friendly_category_driver.html">
 <link rel="import" href="/tracing/ui/base/column_chart.html">
 <link rel="import" href="/tracing/ui/base/drag_handle.html">
@@ -118,6 +119,15 @@ Polymer({
         var cat = name.split(' ');
         cat = cat[cat.length - 1];
         var color = tr.e.chrome.ChromeUserFriendlyCategoryDriver.getColor(cat);
+        var hsl = color.toHSL();
+        hsl.l *= 0.85;
+        var highlightedColor = tr.b.Color.fromHSL(hsl);
+        dataSeries.highlightedColor = highlightedColor;
+        dataSeries.color = color;
+      } else if (this.diagnostic.colorScheme !== undefined) {
+        var schemeName = this.diagnostic.colorScheme;
+        var scheme = tr.b.FixedColorSchemeRegistry.lookUp(schemeName);
+        var color = scheme.getColor(name);
         var hsl = color.toHSL();
         hsl.l *= 0.85;
         var highlightedColor = tr.b.Color.fromHSL(hsl);

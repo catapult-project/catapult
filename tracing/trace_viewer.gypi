@@ -42,6 +42,7 @@
       'tracing/base/extension_registry_base.html',
       'tracing/base/extension_registry_basic.html',
       'tracing/base/extension_registry_type_based.html',
+      'tracing/base/fixed_color_scheme.html',
       'tracing/base/guid.html',
       'tracing/base/interval_tree.html',
       'tracing/base/iteration_helpers.html',

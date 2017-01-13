@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/fixed_color_scheme.html">
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/base/multi_dimensional_view.html">
 <link rel="import" href="/tracing/base/range.html">
@@ -13,6 +14,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/container_memory_dump.html">
 <link rel="import" href="/tracing/model/helpers/chrome_model_helper.html">
 <link rel="import" href="/tracing/model/memory_allocator_dump.html">
+<link rel="import" href="/tracing/value/diagnostics/breakdown.html">
 <link rel="import" href="/tracing/value/histogram.html">
 
 <script>
@@ -44,6 +46,30 @@ tr.exportTo('tr.metrics.sh', function() {
       new tr.v.HistogramBinBoundaries(0)
           .addBinBoundary(1024 /* 1 KiB */)
           .addExponentialBins(16 * 1024 * 1024 * 1024 /* 16 GiB */, 4 * 24));
+
+  var BROWSER_PROCESS_NAME = 'browser_process';
+  var RENDERER_PROCESSES_NAME = 'renderer_processes'; // Intentionally plural.
+  var ALL_PROCESSES_NAME = 'all_processes';
+  var GPU_PROCESS_NAME = 'gpu_process';
+  var PPAPI_PROCESS_NAME = 'ppapi_process';
+  var UNKNOWN_PROCESSES_NAME = 'unknown_processes';
+  // When adding a new process id update KNOWN_PROCESS_NAMES.
+
+  var KNOWN_PROCESS_NAMES = [
+    BROWSER_PROCESS_NAME,
+    RENDERER_PROCESSES_NAME,
+    ALL_PROCESSES_NAME,
+    GPU_PROCESS_NAME,
+    PPAPI_PROCESS_NAME,
+    UNKNOWN_PROCESSES_NAME
+  ];
+
+  var PROCESS_COLOR_SCHEME_NAME = 'ChromeProcessNames';
+  var PROCESS_COLOR_SCHEME =
+      tr.b.FixedColorScheme.fromNames(KNOWN_PROCESS_NAMES);
+  tr.b.FixedColorSchemeRegistry.register(() => PROCESS_COLOR_SCHEME, {
+    'name': PROCESS_COLOR_SCHEME_NAME,
+  });
 
   function memoryMetric(values, model, opt_options) {
     var rangeOfInterest = opt_options ? opt_options.rangeOfInterest : undefined;
@@ -154,14 +180,24 @@ tr.exportTo('tr.metrics.sh', function() {
 
   function canonicalizeProcessName(rawProcessName) {
     if (!rawProcessName)
-      return 'unknown_processes';
+      return UNKNOWN_PROCESSES_NAME;
     var baseCanonicalName = canonicalizeName(rawProcessName);
     switch (baseCanonicalName) {
       case 'renderer':
-        return 'renderer_processes';  // Intentionally plural.
+        return RENDERER_PROCESSES_NAME;
       case 'browser':
-        return 'browser_process';
+        return BROWSER_PROCESS_NAME;
       default:
+        if (KNOWN_PROCESS_NAMES.indexOf(baseCanonicalName) === -1) {
+          // In the very rare case where a new process type has been added
+          // and this file has not yet been updated add it to the list of known
+          // process ids so we can give it a consistent color in the UI.
+          console.warn('Unknown process id "' + baseCanonicalName + '".' +
+            ' Please add it to |KNOWN_PROCESS_NAMES| in memory_metric.html.');
+          KNOWN_PROCESS_NAMES.push(baseCanonicalName);
+          PROCESS_COLOR_SCHEME =
+            tr.b.FixedColorScheme.fromNames(KNOWN_PROCESS_NAMES);
+        }
         return baseCanonicalName;
     }
   }
@@ -173,17 +209,17 @@ tr.exportTo('tr.metrics.sh', function() {
   function convertProcessNameToUserFriendlyName(processName,
       opt_requirePlural) {
     switch (processName) {
-      case 'browser_process':
+      case BROWSER_PROCESS_NAME:
         return opt_requirePlural ? 'browser processes' : 'the browser process';
-      case 'renderer_processes':
+      case RENDERER_PROCESSES_NAME:
         return 'renderer processes';
-      case 'gpu_process':
+      case GPU_PROCESS_NAME:
         return opt_requirePlural ? 'GPU processes' : 'the GPU process';
-      case 'ppapi_process':
+      case PPAPI_PROCESS_NAME:
         return opt_requirePlural ? 'PPAPI processes' : 'the PPAPI process';
-      case 'all_processes':
+      case ALL_PROCESSES_NAME:
         return 'all processes';
-      case 'unknown_processes':
+      case UNKNOWN_PROCESSES_NAME:
         return 'unknown processes';
       default:
         return '\'' + processName + '\' processes';
@@ -1052,6 +1088,7 @@ tr.exportTo('tr.metrics.sh', function() {
       componentPath, tree, values, customComponentTreeModifier) {
 
     var breakdown = new tr.v.d.RelatedHistogramBreakdown();
+    breakdown.colorScheme = PROCESS_COLOR_SCHEME_NAME;
 
     // For each process report the value for this component.
     tree.children[0].forEach(function(processTree, processName) {
