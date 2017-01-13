@@ -10,57 +10,118 @@ a test run.
 API explorer: https://goo.gl/uxPUZo
 """
 
-# TODO(dtu): This module is very much a work in progress. It's not clear whether
-# the parameters are the right ones to pass, whether it's the right way to pass
-# the parameters (as opposed to having a data object, whether the functions
-# should be encapsulated in the data object, or whether this is at the right
-# abstraction level.
+import json
+import urllib
 
-from apiclient import discovery
-
-from dashboard import utils
+from dashboard.common import utils
 
 
-_DISCOVERY_URL = ('https://chromium-swarm.appspot.com/_ah/api'
-                  '/discovery/v1/apis/{api}/{apiVersion}/rest')
+API_BASE_URL = 'https://chromium-swarm.appspot.com/_ah/api/swarming/v1/'
 
 
-def New(name, user, bot_id, isolated_hash, extra_args=None):
-  """Create a new Swarming task."""
-  if not extra_args:
-    extra_args = []
-
-  swarming = _DiscoverService()
-  request = swarming.tasks().new(body={
-      'name': name,
-      'user': user,
-      'priority': '100',
-      'expiration_secs': '600',
-      'properties': {
-          'inputs_ref': {
-              'isolated': isolated_hash,
-          },
-          'extra_args': extra_args,
-          'dimensions': [
-              {'key': 'id', 'value': bot_id},
-              {'key': 'pool', 'value': 'Chrome-perf'},
-          ],
-          'execution_timeout_secs': '3600',
-          'io_timeout_secs': '3600',
-      },
-      'tags': [
-          'id:%s-b1' % bot_id,
-          'pool:Chrome-perf',
-      ],
-  })
-  return request.execute()
+class SwarmingError(Exception):
+  pass
 
 
-def Get(task_id):
-  del task_id
-  raise NotImplementedError()
+class Bot(object):
+
+  def __init__(self, bot_id):
+    self._bot_id = bot_id
+
+  def Get(self):
+    """Returns information about a known bot.
+
+    This includes its state and dimensions, and if it is currently running a
+    task."""
+    return self._Request('get')
+
+  def Tasks(self):
+    """Lists a given bot's tasks within the specified date range."""
+    return self._Request('tasks')
+
+  def _Request(self, path, method='GET', body=None, **parameters):
+    return _Request('bot/%s/%s' % (self._bot_id, path),
+                    method, body, **parameters)
 
 
-def _DiscoverService():
-  return discovery.build('swarming', 'v1', discoveryServiceUrl=_DISCOVERY_URL,
-                         http=utils.ServiceAccountHttp())
+class Bots(object):
+
+  def List(self, cursor=None, dimensions=None, is_dead=None, limit=None,
+           quarantined=None):
+    """Provides list of known bots. Deleted bots will not be listed."""
+    if dimensions:
+      dimensions = tuple(':'.join(dimension)
+                         for dimension in dimensions.iteritems())
+
+    return _Request('bots/list', cursor=cursor, dimensions=dimensions,
+                    is_dead=is_dead, limit=limit, quarantined=quarantined)
+
+
+class Task(object):
+
+  def __init__(self, task_id):
+    self._task_id = task_id
+
+  def Cancel(self):
+    """Cancels a task.
+
+    If a bot was running the task, the bot will forcibly cancel the task."""
+    return self._Request('cancel', 'POST')
+
+  def Request(self):
+    """Returns the task request corresponding to a task ID."""
+    return self._Request('request')
+
+  def Result(self, include_performance_stats=False):
+    """Reports the result of the task corresponding to a task ID.
+
+    It can be a 'run' ID specifying a specific retry or a 'summary' ID hiding
+    the fact that a task may have been retried transparently, when a bot reports
+    BOT_DIED. A summary ID ends with '0', a run ID ends with '1' or '2'."""
+    if include_performance_stats:
+      return self._Request('result', include_performance_stats=True)
+    else:
+      return self._Request('result')
+
+  def Stdout(self):
+    """Returns the output of the task corresponding to a task ID."""
+    return self._Request('stdout')
+
+  def _Request(self, path, method='GET', body=None, **parameters):
+    return _Request('task/%s/%s' % (self._task_id, path),
+                    method, body, **parameters)
+
+
+class Tasks(object):
+
+  def New(self, body):
+    """Creates a new task.
+
+    The task will be enqueued in the tasks list and will be executed at the
+    earliest opportunity by a bot that has at least the dimensions as described
+    in the task request.
+    """
+    return _Request('tasks/new', 'POST', body)
+
+
+def _Request(path, method='GET', body=None, **parameters):
+  if parameters:
+    for key, value in parameters.iteritems():
+      if value is None:
+        del parameters[key]
+      if isinstance(value, bool):
+        parameters[key] = str(value).lower()
+    path += '?' + urllib.urlencode(sorted(parameters.iteritems()), doseq=True)
+
+  http = utils.ServiceAccountHttp()
+  if body:
+    body = json.dumps(body)
+    headers = {'Content-Type': 'application/json'}
+    response, content = http.request(API_BASE_URL + path, method, headers, body)
+  else:
+    response, content = http.request(API_BASE_URL + path, method)
+
+  if not response['status'].startswith('2'):
+    raise SwarmingError(content)
+
+  return json.loads(content)
