@@ -11,16 +11,33 @@ class ScrollToElementAction(page_action.PageAction):
 
 
   def __init__(self, selector=None, element_function=None,
+               container_selector=None, container_element_function=None,
                speed_in_pixels_per_second=800):
-    """
+    """Perform scroll gesture on container until an element is in view.
+
+    Both the element and the container can be specified by a CSS selector
+    xor a JavaScript function, provided as a string, which returns an element.
+    The element is required so exactly one of selector and element_function
+    must be provided. The container is optional so at most one of
+    container_selector and container_element_function can be provided.
+    The container defaults to document.scrollingElement or document.body if
+    scrollingElement is not set.
+
     Args:
-      selector: Css selector to find element with.
-      element_function: js string that evaluates to an element.
-      speed_in_pixels_per_second: Speed in pixels per second to scroll.
+      selector: A CSS selector describing the element.
+      element_function: A JavaScript function (as string) that is used
+          to retrieve the element. For example:
+          'function() { return foo.element; }'.
+      container_selector: A CSS selector describing the container element.
+      container_element_function: A JavaScript function (as a string) that is
+          used to retrieve the container element.
+      speed_in_pixels_per_second: Speed to scroll.
     """
     super(ScrollToElementAction, self).__init__()
     self._selector = selector
     self._element_function = element_function
+    self._container_selector = container_selector
+    self._container_element_function = container_element_function
     self._speed = speed_in_pixels_per_second
     self._distance = None
     self._direction = None
@@ -57,9 +74,12 @@ class ScrollToElementAction(page_action.PageAction):
     self._distance = tab.EvaluateJavaScript(get_distance_js)
     self._direction = 'down' if self._distance > 0 else 'up'
     self._distance = abs(self._distance)
-    self._scroller = ScrollAction(direction=self._direction,
-                                  distance=self._distance,
-                                  speed_in_pixels_per_second=self._speed)
+    self._scroller = ScrollAction(
+        direction=self._direction,
+        selector=self._container_selector,
+        element_function=self._container_element_function,
+        distance=self._distance,
+        speed_in_pixels_per_second=self._speed)
 
   def RunAction(self, tab):
     if self._distance == 0:  # Element is already in view.

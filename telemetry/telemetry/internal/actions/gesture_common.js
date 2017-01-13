@@ -50,37 +50,24 @@
     return getPageScaleFactor() * chrome.gpuBenchmarking.visualViewportWidth();
   }
 
+  function clamp(min, value, max) {
+    return Math.min(Math.max(min, value), max);
+  }
+
   function getBoundingVisibleRect(el) {
     // Get the element bounding rect.
     var rect = getBoundingRect(el);
 
-    // Then clip the rect to the screen size.
-    if (rect.top < 0) {
-      rect.height += rect.top;
-      rect.top = 0;
-      if (rect.height < 0) {
-        rect.height = 0;  // The whole of the element is out of screen.
-      }
-    }
-    if (rect.left < 0) {
-      rect.width += rect.left;
-      rect.left = 0;
-      if (rect.width < 0) {
-        rect.width = 0;  // The whole of the element is out of screen.
-      }
-    }
-
+    // Get the window dimensions.
     var windowHeight = getWindowHeight();
     var windowWidth = getWindowWidth();
-    var outsideHeight = (rect.top + rect.height) - windowHeight;
-    var outsideWidth = (rect.left + rect.width) - windowWidth;
 
-    if (outsideHeight > 0) {
-      rect.height -= outsideHeight;
-    }
-    if (outsideWidth > 0) {
-      rect.width -= outsideWidth;
-    }
+    // Then clip the rect to the screen size.
+    rect.top = clamp(0, rect.top, windowHeight);
+    rect.left = clamp(0, rect.left, windowWidth);
+    rect.height = clamp(0, rect.height, windowHeight - rect.top);
+    rect.width = clamp(0, rect.width, windowWidth - rect.left);
+
     return rect;
   }
 

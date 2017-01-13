@@ -430,18 +430,33 @@ class ActionRunner(object):
         use_touch=use_touch, synthetic_gesture_source=synthetic_gesture_source))
 
   def ScrollPageToElement(self, selector=None, element_function=None,
+                          container_selector=None,
+                          container_element_function=None,
                           speed_in_pixels_per_second=800):
-    """Perform scroll gesture on page until an element is in view.
+    """Perform scroll gesture on container until an element is in view.
+
+    Both the element and the container can be specified by a CSS selector
+    xor a JavaScript function, provided as a string, which returns an element.
+    The element is required so exactly one of selector and element_function
+    must be provided. The container is optional so at most one of
+    container_selector and container_element_function can be provided.
+    The container defaults to document.scrollingElement or document.body if
+    scrollingElement is not set.
 
     Args:
       selector: A CSS selector describing the element.
       element_function: A JavaScript function (as string) that is used
           to retrieve the element. For example:
           'function() { return foo.element; }'.
+      container_selector: A CSS selector describing the container element.
+      container_element_function: A JavaScript function (as a string) that is
+          used to retrieve the container element.
       speed_in_pixels_per_second: Speed to scroll.
     """
     self._RunAction(ScrollToElementAction(
         selector=selector, element_function=element_function,
+        container_selector=container_selector,
+        container_element_function=container_element_function,
         speed_in_pixels_per_second=speed_in_pixels_per_second))
 
   def RepeatableBrowserDrivenScroll(self, x_scroll_distance_ratio=0.0,

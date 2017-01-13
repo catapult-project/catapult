@@ -332,9 +332,9 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
 
     self.assertEqual(viewport_comparator(top_bottom_element), -1)
     action_runner.ScrollPageToElement(selector='#top-bottom',
+                                      container_selector='body',
                                       speed_in_pixels_per_second=5000)
     self.assertEqual(viewport_comparator(top_bottom_element), 0)
-
 
   @decorators.Disabled('android',   # crbug.com/437065.
                        'chromeos')  # crbug.com/483212.
