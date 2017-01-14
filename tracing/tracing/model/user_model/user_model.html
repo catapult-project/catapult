@@ -49,9 +49,9 @@ tr.exportTo('tr.model.um', function() {
 
     updateBounds() {
       this.bounds.reset();
-      this.expectations.forEach(function(expectation) {
+      for (var expectation of this.expectations) {
         expectation.addBoundsToRange(this.bounds);
-      }, this);
+      }
     }
   }
 
