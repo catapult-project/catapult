@@ -69,7 +69,8 @@ tr.exportTo('tr.v.d', function() {
           continue;
         }
 
-        diagnostic = histograms.lookupDiagnostic(diagnostic.guid);
+        var guid = diagnostic.guid;
+        diagnostic = histograms.lookupDiagnostic(guid);
         if (diagnostic instanceof tr.v.d.Diagnostic) {
           this.set(name, diagnostic);
         } else if (opt_required) {
