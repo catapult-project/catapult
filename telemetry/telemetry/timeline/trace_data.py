@@ -117,6 +117,12 @@ class TraceData(object):
     assert isinstance(part, TraceDataPart)
     return self._raw_data[part.raw_field_name]
 
+  def GetTraceFor(self, part):
+    assert isinstance(part, TraceDataPart)
+    traces = self._raw_data[part.raw_field_name]
+    assert len(traces) == 1
+    return traces[0]
+
   def Serialize(self, f, gzip_result=False):
     """Serializes the trace result to a file-like object.
 
