@@ -252,29 +252,6 @@ tr.exportTo('tr.v', function() {
       return hist;
     }
 
-    /**
-     * Build a Histogram from a set of samples in order to effectively merge a
-     * set of ScalarNumerics.
-     * The range of the resulting histogram is determined by the smallest and
-     * largest sample value, which is unpredictable.
-     * https://github.com/catapult-project/catapult/issues/2685
-     *
-     * @param {!tr.b.Unit} unit
-     * @param {!Array.<number>} samples
-     * @return {!Histogram}
-     */
-    static buildFromSamples(unit, samples) {
-      var boundaries = HistogramBinBoundaries.createFromSamples(samples);
-      var result = new Histogram(unit, boundaries);
-      result.maxNumSampleValues = 1000;
-
-      // TODO(eakuefner): Propagate diagnosticMaps?
-      for (var sample of samples)
-        result.addSample(sample);
-
-      return result;
-    }
-
     get numValues() {
       return this.running_ ? this.running_.count : 0;
     }
@@ -761,27 +738,6 @@ tr.exportTo('tr.v', function() {
       var builder = new HistogramBinBoundaries(binBoundaries[0]);
       for (var boundary of binBoundaries.slice(1))
         builder.addBinBoundary(boundary);
-      return builder;
-    }
-
-    static createFromSamples(samples) {
-      var range = new tr.b.Range();
-      // Prevent non-numeric samples from introducing NaNs into the range.
-      for (var sample of samples)
-        if (!isNaN(Math.max(sample)))
-          range.addValue(sample);
-
-      // HistogramBinBoundaries.addLinearBins() requires this.
-      if (range.isEmpty)
-        range.addValue(1);
-      if (range.min === range.max)
-        range.addValue(range.min - 1);
-
-      // This optimizes the resolution when samples are uniformly distributed
-      // (which is almost never the case).
-      var numBins = Math.ceil(Math.sqrt(samples.length));
-      var builder = new HistogramBinBoundaries(range.min);
-      builder.addLinearBins(range.max, numBins);
       return builder;
     }
 
