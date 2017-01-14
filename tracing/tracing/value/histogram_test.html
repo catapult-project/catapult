@@ -211,9 +211,6 @@ tr.b.unittest.testSuite(function() {
     assert.equal(n0.numValues, 10);
     assert.closeTo(n0.average, 349.7, 0.1);
 
-    assert.equal(2, n0.maxCount);
-    assert.equal(2, n1.maxCount);
-
     var n02 = n0.clone();
     assert.instanceOf(n02.allBins[0].diagnosticMaps[0], tr.v.d.DiagnosticMap);
     assert.instanceOf(n02.allBins[0].diagnosticMaps[0].get('foo'),

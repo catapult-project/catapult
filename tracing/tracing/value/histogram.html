@@ -151,7 +151,6 @@ tr.exportTo('tr.v', function() {
       this.allBins = [];
       this.description = '';
       this.diagnostics = new tr.v.d.DiagnosticMap();
-      this.maxCount_ = 0;
       this.name_ = name;
       this.nanDiagnosticMaps = [];
       this.numNans = 0;
@@ -226,9 +225,6 @@ tr.exportTo('tr.v', function() {
           });
         }
       }
-      for (var bin of hist.allBins) {
-        hist.maxCount_ = Math.max(hist.maxCount_, bin.count);
-      }
       if (dict.running) {
         hist.running_ = tr.b.RunningStatistics.fromDict(dict.running);
       }
@@ -270,10 +266,6 @@ tr.exportTo('tr.v', function() {
 
     get sum() {
       return this.running_ ? this.running_.sum : 0;
-    }
-
-    get maxCount() {
-      return this.maxCount_;
     }
 
     /**
@@ -377,8 +369,6 @@ tr.exportTo('tr.v', function() {
         bin.addSample(value);
         if (opt_diagnostics)
           bin.addDiagnosticMap(opt_diagnostics);
-        if (bin.count > this.maxCount_)
-          this.maxCount_ = bin.count;
       }
 
       tr.b.Statistics.uniformlySampleStream(this.sampleValues_,
