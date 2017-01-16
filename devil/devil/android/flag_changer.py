@@ -3,10 +3,15 @@
 # found in the LICENSE file.
 
 import logging
+import posixpath
 
 from devil.android import device_errors
 
 logger = logging.getLogger(__name__)
+
+
+_CMDLINE_DIR = '/data/local/tmp'
+_CMDLINE_DIR_LEGACY = '/data/local'
 
 
 class FlagChanger(object):
@@ -22,22 +27,34 @@ class FlagChanger(object):
 
     Args:
       device: A DeviceUtils instance.
-      cmdline_file: Path to the command line file on the device.
+      cmdline_file: Name of the command line file where to store flags.
     """
     self._device = device
 
-    # Unrooted devices have limited access to the file system.
-    # Place files in /data/local/tmp/ rather than /data/local/
-    if not device.HasRoot() and not '/data/local/tmp/' in cmdline_file:
-      self._cmdline_file = cmdline_file.replace('/data/local/',
-                                                '/data/local/tmp/')
-    else:
-      self._cmdline_file = cmdline_file
+    unused_dir, basename = posixpath.split(cmdline_file)
+    self._cmdline_path = posixpath.join(_CMDLINE_DIR, basename)
+
+    # TODO(catapult:#3112): Make this fail instead of warn after all clients
+    # have been switched.
+    if unused_dir:
+      logging.warning(
+          'cmdline_file argument of %s() should be a file name only (not a'
+          ' full path).', type(self))
+      if cmdline_file != self._cmdline_path:
+        logging.warning(
+            'Client supplied %r, but %r will be used instead.',
+            cmdline_file, self._cmdline_path)
+
+    cmdline_path_legacy = posixpath.join(_CMDLINE_DIR_LEGACY, basename)
+    if self._device.PathExists(cmdline_path_legacy):
+      logging.warning(
+            'Removing legacy command line file %r.', cmdline_path_legacy)
+      self._device.RemovePath(cmdline_path_legacy, as_root=True)
 
     stored_flags = ''
-    if self._device.PathExists(self._cmdline_file):
+    if self._device.PathExists(self._cmdline_path):
       try:
-        stored_flags = self._device.ReadFile(self._cmdline_file).strip()
+        stored_flags = self._device.ReadFile(self._cmdline_path).strip()
       except device_errors.CommandFailedError:
         pass
     # Store the flags as a set to facilitate adding and removing flags.
@@ -117,22 +134,20 @@ class FlagChanger(object):
     current_flags = list(self._state_stack[-1])
     logger.info('Current flags: %s', current_flags)
     # Root is not required to write to /data/local/tmp/.
-    use_root = '/data/local/tmp/' not in self._cmdline_file
     if current_flags:
       # The first command line argument doesn't matter as we are not actually
       # launching the chrome executable using this command line.
       cmd_line = ' '.join(['_'] + current_flags)
       self._device.WriteFile(
-          self._cmdline_file, cmd_line, as_root=use_root)
+          self._cmdline_path, cmd_line)
       file_contents = self._device.ReadFile(
-          self._cmdline_file, as_root=use_root).rstrip()
+          self._cmdline_path).rstrip()
       assert file_contents == cmd_line, (
-          'Failed to set the command line file at %s' % self._cmdline_file)
+          'Failed to set the command line file at %s' % self._cmdline_path)
     else:
-      self._device.RunShellCommand('rm ' + self._cmdline_file,
-                                   as_root=use_root)
-      assert not self._device.FileExists(self._cmdline_file), (
-          'Failed to remove the command line file at %s' % self._cmdline_file)
+      self._device.RunShellCommand('rm ' + self._cmdline_path)
+      assert not self._device.FileExists(self._cmdline_path), (
+          'Failed to remove the command line file at %s' % self._cmdline_path)
 
   @staticmethod
   def _TokenizeFlags(line):
