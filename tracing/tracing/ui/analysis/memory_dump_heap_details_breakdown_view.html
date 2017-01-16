@@ -253,7 +253,7 @@ tr.exportTo('tr.ui.analysis', function() {
     createColumns_: function(rows) {
       var titleColumn = new tr.ui.analysis.HeapDetailsTitleColumn(
           this.dimensionLabel_);
-      titleColumn.width = '200px';
+      titleColumn.width = '400px';
 
       var numericColumns = tr.ui.analysis.MemoryColumn.fromRows(rows, {
         cellKey: 'cells',
