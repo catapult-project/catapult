@@ -157,7 +157,7 @@ def _MakeBisectTryJob(bug_id, run_count=0):
   if not test or not can_bisect.IsValidTestForBisect(test.test_path):
     raise NotBisectableError('Could not select a test.')
 
-  good_revision = _GetRevisionForBisect(test_anomaly.start_revision, test)
+  good_revision = _GetRevisionForBisect(test_anomaly.start_revision - 1, test)
   bad_revision = _GetRevisionForBisect(test_anomaly.end_revision, test)
   if not can_bisect.IsValidRevisionForBisect(good_revision):
     raise NotBisectableError('Invalid "good" revision: %s.' % good_revision)

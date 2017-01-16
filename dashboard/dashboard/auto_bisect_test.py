@@ -131,7 +131,7 @@ class StartNewBisectForBugTest(testing_common.TestCase):
         start_revision=1200, end_revision=1250,
         median_before_anomaly=100, median_after_anomaly=200).put()
     result = auto_bisect.StartNewBisectForBug(222)
-    self.assertEqual({'error': 'Invalid "good" revision: 1200.'}, result)
+    self.assertEqual({'error': 'Invalid "good" revision: 1199.'}, result)
 
   @mock.patch.object(
       auto_bisect.start_try_job, 'PerformBisect',
