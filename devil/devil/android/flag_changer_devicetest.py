@@ -48,7 +48,7 @@ class FlagChangerTest(device_test_case.DeviceTestCase):
 
     # Write some custom chrome command line flags.
     self.device.WriteFile(
-        self.cmdline_path, 'chrome --custom --flags')
+        self.cmdline_path, 'chrome --some --old --flags')
 
     # Write some more flags on a command line file in the legacy location.
     self.device.WriteFile(
@@ -61,11 +61,16 @@ class FlagChangerTest(device_test_case.DeviceTestCase):
     # right file.
     self.assertFalse(self.device.PathExists(self.cmdline_path_legacy))
 
-    changer.ReplaceFlags(['--my', '--new', '--flags'])
-    # TODO(perezju): assert that new flags are now set.
+    # Write some new files, and check they are set.
+    new_flags = ['--my', '--new', '--flags=with special value']
+    self.assertItemsEqual(
+        changer.ReplaceFlags(new_flags),
+        new_flags)
 
-    changer.Restore()
-    # TODO(perezju): assert that flags are back to --custom --flags.
+    # Restore and go back to the old flags.
+    self.assertItemsEqual(
+        changer.Restore(),
+        ['--some', '--old', '--flags'])
 
 
 if __name__ == '__main__':
