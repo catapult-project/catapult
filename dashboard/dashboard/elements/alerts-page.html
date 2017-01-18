@@ -109,7 +109,7 @@ found in the LICENSE file.
           <template is="dom-if" if="{{anomalies.length}}">
             <h2>Performance alerts</h2>
             <p id='num-alerts'>
-              {{totalAnomalyCount}} alert<span hidden$="{{computeIsSingular(totalAnomalyCount)}}">s</span>.
+              {{getAlertCount()}} alert<span hidden$="{{computeIsSingular(totalAnomalyCount)}}">s</span>.
             </p>
             <alerts-table id="anomaly-table"
                           xsrf-token="{{xsrfToken}}"
@@ -124,7 +124,7 @@ found in the LICENSE file.
           <template is="dom-if" if="{{stoppageAlerts.length}}">
             <h2>Data stoppage alerts</h2>
             <p>
-              {{totalStoppageAlertCount}} alert<span hidden$="{{computeIsSingular(totalStoppageAlertCount)}}">s</span>.
+              {{getStoppageCount()}} alert<span hidden$="{{computeIsSingular(totalStoppageAlertCount)}}">s</span>.
             </p>
             <alerts-table id="stoppage-alert-table"
                           xsrf-token="{{xsrfToken}}"
@@ -309,6 +309,25 @@ found in the LICENSE file.
             uri.getParameter('sheriff', 'Chromium Perf Sheriff'));
         this.showingImprovements = uri.getParameter('improvements', false);
         this.showingTriaged = uri.getParameter('triaged', false);
+      },
+
+      getAlertCount: function() {
+        return this.getCount(false);
+      },
+
+      getStoppageCount: function() {
+        return this.getCount(true);
+      },
+
+      getCount: function(isStoppage) {
+        var trueLength = isStoppage ? this.stoppageAlerts.length :
+          this.anomalies.length;
+        var totalCount = isStoppage ? this.totalStoppageAlertCount :
+          this.totalAnomalyCount;
+        if (trueLength < totalCount) {
+          return trueLength + ' of ' + totalCount;
+        }
+        return totalCount;
       },
 
       ready: function() {
