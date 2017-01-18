@@ -29,15 +29,6 @@ class Attempt(object):
     self._executions = []
 
   @property
-  def blocked(self):
-    """Returns True iff the Attempt is waiting on an Execution to finish.
-
-    This accessor doesn't contact external servers. Call _Poll() to update the
-    Attempt's blocked status.
-    """
-    return self._executions and self._last_execution.blocked
-
-  @property
   def completed(self):
     """Returns True iff the Attempt is completed. Otherwise, it is in progress.
 
@@ -57,15 +48,10 @@ class Attempt(object):
 
   def ScheduleWork(self):
     """Run this Attempt and update its status."""
-    while not self.completed:
-      self._StartNextExecutionIfReady()
-      # Call _Poll() before checking blocked, because _Poll() is needed to
-      # update the Attempt status. Call completed before _Poll(), because
-      # completed may be cached by the Execution.
-      self._Poll()
+    assert not self.completed
 
-      if self.blocked:
-        break
+    self._StartNextExecutionIfReady()
+    self._Poll()
 
   def _Poll(self):
     """Update the Attempt status."""

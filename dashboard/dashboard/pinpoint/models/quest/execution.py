@@ -18,20 +18,10 @@ class Execution(object):
   """
 
   def __init__(self):
-    self._blocked = False
     self._completed = False
     self._failed = False
     self._result_values = ()
     self._result_arguments = {}
-
-  @property
-  def blocked(self):
-    """Returns True iff the Execution is waiting on an external task to finish.
-
-    This accessor doesn't contact external servers. Call Poll() to update the
-    Execution's blocked status.
-    """
-    return self._blocked
 
   @property
   def completed(self):
@@ -80,7 +70,6 @@ class Execution(object):
     except Exception as e:  # pylint: disable=broad-except
       # We allow broad exception handling here, because we log the exception and
       # display it in the UI.
-      self._blocked = False
       self._completed = True
       self._failed = True
       self._result_values = (e,)
@@ -89,7 +78,6 @@ class Execution(object):
     raise NotImplementedError()
 
   def _Complete(self, result_values=None, result_arguments=None):
-    self._blocked = False
     self._completed = True
     self._failed = False
     self._result_values = result_values or (0,)

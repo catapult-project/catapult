@@ -16,10 +16,9 @@ class RunHandler(webapp2.RequestHandler):
     job = job_module.JobFromId(job_id)
 
     # Run!
-    work_left = job.ScheduleWork()
     if job.auto_explore:
       job.Explore()
-      work_left = job.ScheduleWork()
+    work_left = job.ScheduleWork()
 
     # Schedule moar task.
     if work_left:

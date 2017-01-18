@@ -28,7 +28,6 @@ class _FindIsolatedTest(unittest.TestCase):
     self.testbed.deactivate()
 
   def assertExecutionFailure(self, execution):
-    self.assertFalse(execution.blocked)
     self.assertTrue(execution.completed)
     self.assertTrue(execution.failed)
     self.assertEqual(len(execution.result_values), 1)
@@ -36,7 +35,6 @@ class _FindIsolatedTest(unittest.TestCase):
     self.assertEqual(execution.result_arguments, {})
 
   def assertExecutionSuccess(self, execution):
-    self.assertFalse(execution.blocked)
     self.assertTrue(execution.completed)
     self.assertFalse(execution.failed)
     self.assertEqual(execution.result_values, (0,))

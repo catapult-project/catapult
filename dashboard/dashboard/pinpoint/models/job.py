@@ -101,8 +101,10 @@ class _JobState(object):
     work_left = False
     for attempts in self._attempts.itervalues():
       for attempt in attempts:
+        if attempt.completed:
+          continue
+
         attempt.ScheduleWork()
-        if attempt.blocked:
-          work_left = True
+        work_left = True
 
     return work_left
