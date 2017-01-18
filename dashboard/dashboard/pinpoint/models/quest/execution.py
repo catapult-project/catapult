@@ -73,4 +73,24 @@ class Execution(object):
 
   def Poll(self):
     """Update the Execution status."""
+    assert not self.completed
+
+    try:
+      self._Poll()
+    except Exception as e:  # pylint: disable=broad-except
+      # We allow broad exception handling here, because we log the exception and
+      # display it in the UI.
+      self._blocked = False
+      self._completed = True
+      self._failed = True
+      self._result_values = (e,)
+
+  def _Poll(self):
     raise NotImplementedError()
+
+  def _Complete(self, result_values=None, result_arguments=None):
+    self._blocked = False
+    self._completed = True
+    self._failed = False
+    self._result_values = result_values or (0,)
+    self._result_arguments = result_arguments or {}

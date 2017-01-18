@@ -31,7 +31,8 @@ class _FindIsolatedTest(unittest.TestCase):
     self.assertFalse(execution.blocked)
     self.assertTrue(execution.completed)
     self.assertTrue(execution.failed)
-    self.assertEqual(execution.result_values, (1,))
+    self.assertEqual(len(execution.result_values), 1)
+    self.assertIsInstance(execution.result_values[0], Exception)
     self.assertEqual(execution.result_arguments, {})
 
   def assertExecutionSuccess(self, execution):
@@ -108,5 +109,5 @@ class BuilderLookupTest(_FindIsolatedTest):
     change = change_module.Change(change_module.Dep('chromium/src', 'f9f2b720'))
     execution = find_isolated.FindIsolated('Unix Perf').Start(change)
 
-    with self.assertRaises(NotImplementedError):
-      execution.Poll()
+    execution.Poll()
+    self.assertExecutionFailure(execution)

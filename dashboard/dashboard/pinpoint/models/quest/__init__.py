@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 from dashboard.pinpoint.models.quest.quest import Quest
+from dashboard.pinpoint.models.quest.execution import Execution
 
 from dashboard.pinpoint.models.quest.find_isolated import FindIsolated
 from dashboard.pinpoint.models.quest.run_test import RunTest

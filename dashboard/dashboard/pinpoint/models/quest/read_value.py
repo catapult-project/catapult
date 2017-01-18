@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from dashboard.pinpoint.models import execution
+from dashboard.pinpoint.models.quest import execution
 from dashboard.pinpoint.models.quest import quest
 
 
@@ -22,7 +22,6 @@ class _ReadValueExecution(execution.Execution):
     self._metric = metric
     self._file_path = file_path
 
-  def Poll(self):
+  def _Poll(self):
     # TODO
-    self._completed = True
-    self._result_values = (0,)
+    self._Complete()

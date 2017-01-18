@@ -2,8 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from dashboard.pinpoint.models import execution
 from dashboard.pinpoint.models import isolated
+from dashboard.pinpoint.models.quest import execution
 from dashboard.pinpoint.models.quest import quest
 
 
@@ -27,21 +27,16 @@ class _FindIsolatedExecution(execution.Execution):
     self._configuration = configuration
     self._change = change
 
-  def Poll(self):
-    assert not self.completed
-
+  def _Poll(self):
     # Look for the .isolated in our cache.
     isolated_hash = _LookUpIsolated(self._configuration, self._change)
     if isolated_hash:
-      self._completed = True
-      self._result_arguments = {'isolated_hash': isolated_hash}
-      self._result_values = (0,)  # Success.
+      self._Complete(result_arguments={'isolated_hash': isolated_hash})
       return
 
     # TODO: Request a fresh build using Buildbucket.
-    self._completed = True
-    self._failed = True
-    self._result_values = (1,)  # Failure.
+    raise NotImplementedError('Building commits outside of the Perf '
+                              'waterfall is not implemented yet.')
 
 
 def _LookUpIsolated(configuration, change):
