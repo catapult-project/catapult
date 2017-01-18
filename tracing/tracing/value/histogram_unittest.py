@@ -8,6 +8,27 @@ import unittest
 from tracing.value import histogram
 
 
+class PercentToStringUnittest(unittest.TestCase):
+  def testPercentToString(self):
+    with self.assertRaises(Exception) as ex:
+      histogram.PercentToString(-1)
+    self.assertEqual(ex.exception.message, 'percent must be in [0,1]')
+
+    with self.assertRaises(Exception) as ex:
+      histogram.PercentToString(2)
+    self.assertEqual(ex.exception.message, 'percent must be in [0,1]')
+
+    self.assertEqual(histogram.PercentToString(0), '000')
+    self.assertEqual(histogram.PercentToString(1), '100')
+
+    with self.assertRaises(Exception) as ex:
+      histogram.PercentToString(float('nan'))
+    self.assertEqual(ex.exception.message, 'Unexpected percent')
+
+    self.assertEqual(histogram.PercentToString(0.50), '050')
+    self.assertEqual(histogram.PercentToString(0.95), '095')
+
+
 class RangeUnittest(unittest.TestCase):
   def testAddValue(self):
     r = histogram.Range()

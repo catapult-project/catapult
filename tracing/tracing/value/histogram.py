@@ -11,6 +11,27 @@ import math
 JS_MAX_VALUE = 1.7976931348623157e+308
 
 
+# Converts the given percent to a string in the following format:
+# 0.x produces '0x0',
+# 0.xx produces '0xx',
+# 0.xxy produces '0xx_y',
+# 1.0 produces '100'.
+def PercentToString(percent):
+  if percent < 0 or percent > 1:
+    raise Exception('percent must be in [0,1]')
+  if percent == 0:
+    return '000'
+  if percent == 1:
+    return '100'
+  s = str(percent)
+  if s[1] != '.':
+    raise Exception('Unexpected percent')
+  s += '0' * max(4 - len(s), 0)
+  if len(s) > 4:
+    s = s[:4] + '_' + s[4:]
+  return '0' + s[2:]
+
+
 class Range(object):
   def __init__(self):
     self._empty = True
