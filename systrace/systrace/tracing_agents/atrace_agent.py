@@ -347,9 +347,17 @@ def extract_thread_list(trace_text):
   """
 
   threads = {}
-  # start at line 1 to skip the top of the ps dump:
+  # Assume any line that starts with USER is the header
   text = trace_text.splitlines()
-  for line in text[1:]:
+  header = -1
+  for i, line in enumerate(text):
+    cols = line.split()
+    if len(cols) >= 8 and cols[0] == 'USER':
+      header = i
+      break
+  if header == -1:
+    return threads
+  for line in text[header + 1:]:
     cols = line.split(None, 8)
     if len(cols) == 9:
       tid = int(cols[1])
