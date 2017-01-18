@@ -10,6 +10,13 @@ class BaseError(Exception):
     super(BaseError, self).__init__(message)
     self._is_infra_error = is_infra_error
 
+  def __eq__(self, other):
+    return (self.message == other.message
+            and self.is_infra_error == other.is_infra_error)
+
+  def __ne__(self, other):
+    return not self == other
+
   @property
   def is_infra_error(self):
     """Property to indicate if error was caused by an infrastructure issue."""

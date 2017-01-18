@@ -15,10 +15,18 @@ class CommandFailedError(base_error.BaseError):
   """Exception for command failures."""
 
   def __init__(self, message, device_serial=None):
-    if device_serial is not None:
-      message = '(device: %s) %s' % (device_serial, message)
+    device_leader = '(device: %s)' % device_serial
+    if device_serial is not None and not message.startswith(device_leader):
+      message = '%s %s' % (device_leader, message)
     self.device_serial = device_serial
     super(CommandFailedError, self).__init__(message)
+
+  def __eq__(self, other):
+    return (super(CommandFailedError, self).__eq__(other)
+            and self.device_serial == other.device_serial)
+
+  def __ne__(self, other):
+    return not self == other
 
 
 class _BaseCommandFailedError(CommandFailedError):
@@ -41,6 +49,27 @@ class _BaseCommandFailedError(CommandFailedError):
         message.append('and no output.')
       message = ''.join(message)
     super(_BaseCommandFailedError, self).__init__(message, device_serial)
+
+  def __eq__(self, other):
+    return (super(_BaseCommandFailedError, self).__eq__(other)
+            and self.args == other.args
+            and self.output == other.output
+            and self.status == other.status)
+
+  def __ne__(self, other):
+    return not self == other
+
+  def __reduce__(self):
+    """Support pickling."""
+    result = [None, None, None, None, None]
+    super_result = super(_BaseCommandFailedError, self).__reduce__()
+    for i in range(len(super_result)):
+      result[i] = super_result[i]
+
+    # Update the args used to reconstruct this exception.
+    result[1] = (
+        self.args, self.output, self.status, self.device_serial, self.message)
+    return tuple(result)
 
 
 class AdbCommandFailedError(_BaseCommandFailedError):
@@ -91,6 +120,17 @@ class AdbShellCommandFailedError(AdbCommandFailedError):
     super(AdbShellCommandFailedError, self).__init__(
       ['shell', command], output, status, device_serial, message)
 
+  def __reduce__(self):
+    """Support pickling."""
+    result = [None, None, None, None, None]
+    super_result = super(AdbShellCommandFailedError, self).__reduce__()
+    for i in range(len(super_result)):
+      result[i] = super_result[i]
+
+    # Update the args used to reconstruct this exception.
+    result[1] = (self.command, self.output, self.status, self.device_serial)
+    return tuple(result)
+
 
 class CommandTimeoutError(base_error.BaseError):
   """Exception for command timeouts."""
@@ -105,9 +145,9 @@ class DeviceUnreachableError(base_error.BaseError):
 class NoDevicesError(base_error.BaseError):
   """Exception for having no devices attached."""
 
-  def __init__(self):
+  def __init__(self, msg=None):
     super(NoDevicesError, self).__init__(
-        'No devices attached.', is_infra_error=True)
+        msg or 'No devices attached.', is_infra_error=True)
 
 
 class MultipleDevicesError(base_error.BaseError):

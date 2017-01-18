@@ -26,21 +26,17 @@ def _RunUnitTests(input_api, output_api):
     'PYTHONPATH': ':'.join([J(), J('..')]),
   })
 
-  return input_api.canned_checks.RunUnitTests(
-      input_api,
-      output_api,
-      unit_tests=[
-          J('devil_env_test.py'),
-          J('android', 'battery_utils_test.py'),
-          J('android', 'device_utils_test.py'),
-          J('android', 'fastboot_utils_test.py'),
-          J('android', 'md5sum_test.py'),
-          J('android', 'logcat_monitor_test.py'),
-          J('android', 'tools', 'script_common_test.py'),
-          J('utils', 'cmd_helper_test.py'),
-          J('utils', 'timeout_retry_unittest.py'),
-      ],
-      env=test_env)
+  message_type = (output_api.PresubmitError if input_api.is_committing
+                  else output_api.PresubmitPromptWarning)
+
+  return input_api.RunTests([
+      input_api.Command(
+          name='devil/bin/run_py_tests',
+          cmd=[
+            input_api.os_path.join(
+                input_api.PresubmitLocalPath(), 'bin', 'run_py_tests')],
+          kwargs={'env': test_env},
+          message=message_type)])
 
 
 def _EnsureNoPylibUse(input_api, output_api):
