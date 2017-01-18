@@ -427,7 +427,7 @@ class InteractionTest(unittest.TestCase):
     self.mock_action_runner = mock.Mock(action_runner_module.ActionRunner)
 
     def expected_js_call(method):
-      return mock.call.ExecuteJavaScript(
+      return mock.call.ExecuteJavaScript2(
           '%s({{ marker }});' % method, marker='Interaction.ABC')
 
     self.expected_calls = [

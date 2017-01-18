@@ -7,6 +7,7 @@ import time
 import urlparse
 
 from telemetry.core import exceptions
+from telemetry import decorators
 from telemetry.internal.actions.drag import DragAction
 from telemetry.internal.actions.javascript_click import ClickElementAction
 from telemetry.internal.actions.key_event import KeyPressAction
@@ -71,7 +72,7 @@ class ActionRunner(object):
     e.g:
       with action_runner.CreateInteraction('Animation-1'):
         action_runner.TapElement(...)
-        action_runner.WaitForJavaScriptCondition(...)
+        action_runner.WaitForJavaScriptCondition2(...)
 
     Args:
       label: A label for this particular interaction. This can be any
@@ -179,7 +180,7 @@ class ActionRunner(object):
 
   def NavigateBack(self):
     """ Navigate back to the previous page."""
-    self.ExecuteJavaScript('window.history.back()')
+    self.ExecuteJavaScript2('window.history.back()')
 
   def WaitForNavigate(self, timeout_in_seconds_seconds=60):
     start_time = time.time()
@@ -193,42 +194,78 @@ class ActionRunner(object):
 
   def ReloadPage(self):
     """Reloads the page."""
-    self._tab.ExecuteJavaScript('window.location.reload()')
+    self._tab.ExecuteJavaScript2('window.location.reload()')
     self._tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
 
-  def ExecuteJavaScript(self, statement, **kwargs):
-    """Executes a given JavaScript expression. Does not return the result.
+  def ExecuteJavaScript2(self, *args, **kwargs):
+    """Executes a given JavaScript statement. Does not return the result.
 
-    Example: runner.ExecuteJavaScript('var foo = {{ value }};', value=1);
+    Example: runner.ExecuteJavaScript2('var foo = {{ value }};', value='hi');
 
     Args:
-      statement: The statement to execute (provided as string).
-      **kwargs: Additional keyword arguments are interpolated within the
-          statement. See telemetry.util.js_template for details.
+      statement: The statement to execute (provided as a string).
+
+    Optional keyword args:
+      timeout: The number of seconds to wait for the statement to execute.
+      Additional keyword arguments provide values to be interpolated within
+          the statement. See telemetry.util.js_template for details.
 
     Raises:
       EvaluationException: The statement failed to execute.
     """
-    self._tab.ExecuteJavaScript(js_template.Render(statement, **kwargs))
+    return self._tab.ExecuteJavaScript2(*args, **kwargs)
 
-  def EvaluateJavaScript(self, expression, **kwargs):
-    """Returns the evaluation result of the given JavaScript expression.
+  def EvaluateJavaScript2(self, *args, **kwargs):
+    """Returns the result of evaluating a given JavaScript expression.
 
     The evaluation results must be convertible to JSON. If the result
-    is not needed, use ExecuteJavaScript instead.
+    is not needed, use ExecuteJavaScript2 instead.
 
-    Example: num = runner.EvaluateJavaScript('document.location.href')
+    Example: runner.ExecuteJavaScript2('document.location.href');
 
     Args:
-      expression: The expression to evaluate (provided as string).
-      **kwargs: Additional keyword arguments are interpolated within the
-          statement. See telemetry.util.js_template for details.
+      expression: The expression to execute (provided as a string).
+
+    Optional keyword args:
+      timeout: The number of seconds to wait for the expression to evaluate.
+      Additional keyword arguments provide values to be interpolated within
+          the expression. See telemetry.util.js_template for details.
 
     Raises:
       EvaluationException: The statement expression failed to execute
           or the evaluation result can not be JSON-ized.
     """
-    return self._tab.EvaluateJavaScript(
+    return self._tab.EvaluateJavaScript2(*args, **kwargs)
+
+  def WaitForJavaScriptCondition2(self, *args, **kwargs):
+    """Wait for a JavaScript condition to become true.
+
+    Example: runner.WaitForJavaScriptCondition2('window.foo == 10');
+
+    Args:
+      condition: The JavaScript condition (provided as string).
+
+    Optional keyword args:
+      timeout: The number in seconds to wait for the condition to become
+          True (default to 60).
+      Additional keyword arguments provide values to be interpolated within
+          the expression. See telemetry.util.js_template for details.
+    """
+    return self._tab.WaitForJavaScriptCondition2(*args, **kwargs)
+
+  @decorators.Deprecated(
+      2017, 2, 28,
+      'New clients should use ExecuteJavaScript2. See go/catabug/3028')
+  def ExecuteJavaScript(self, statement, **kwargs):
+    """Executes a given JavaScript expression. Does not return the result."""
+    self._tab.ExecuteJavaScript2(js_template.Render(statement, **kwargs))
+
+  @decorators.Deprecated(
+      2017, 2, 28,
+      'New clients should use EvaluateJavaScript2. See go/catabug/3028')
+  def EvaluateJavaScript(self, expression, **kwargs):
+    """Returns the evaluation result of the given JavaScript expression."""
+    return self._tab.EvaluateJavaScript2(
         js_template.Render(expression, **kwargs))
 
   def Wait(self, seconds):
@@ -240,19 +277,13 @@ class ActionRunner(object):
     if not self._skip_waits:
       time.sleep(seconds)
 
+  @decorators.Deprecated(
+      2017, 2, 28,
+      'New clients should use WaitForJavaScriptCondition2. See go/catabug/3028')
   def WaitForJavaScriptCondition(self, condition, **kwargs):
-    """Wait for a JavaScript condition to become true.
-
-    Example: runner.WaitForJavaScriptCondition('window.foo == 10');
-
-    Args:
-      condition: The JavaScript condition (as string).
-      timeout_in_seconds: The timeout in seconds (default to 60).
-      **kwargs: Additional keyword arguments are interpolated within the
-          statement. See telemetry.util.js_template for details.
-    """
+    """Wait for a JavaScript condition to become true."""
     timeout = kwargs.get('timeout_in_seconds', 60)
-    self._tab.WaitForJavaScriptExpression(
+    self._tab.WaitForJavaScriptCondition2(
         js_template.Render(condition, **kwargs), timeout=timeout)
 
   def WaitForElement(self, selector=None, text=None, element_function=None,
@@ -842,7 +873,7 @@ class Interaction(object):
   def Begin(self):
     assert not self._started
     self._started = True
-    self._action_runner.ExecuteJavaScript(
+    self._action_runner.ExecuteJavaScript2(
         'console.time({{ marker }});',
         marker=timeline_interaction_record.GetJavaScriptMarker(
             self._label, self._flags))
@@ -850,7 +881,7 @@ class Interaction(object):
   def End(self):
     assert self._started
     self._started = False
-    self._action_runner.ExecuteJavaScript(
+    self._action_runner.ExecuteJavaScript2(
         'console.timeEnd({{ marker }});',
         marker=timeline_interaction_record.GetJavaScriptMarker(
             self._label, self._flags))

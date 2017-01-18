@@ -19,6 +19,7 @@ from telemetry.internal.backends.chrome_inspector import inspector_page
 from telemetry.internal.backends.chrome_inspector import inspector_runtime
 from telemetry.internal.backends.chrome_inspector import inspector_websocket
 from telemetry.internal.backends.chrome_inspector import websocket
+from telemetry.util import js_template
 
 import py_utils
 
@@ -187,27 +188,115 @@ class InspectorBackend(object):
   # Runtime public methods.
 
   @_HandleInspectorWebSocketExceptions
-  def ExecuteJavaScript(self, expr, context_id=None, timeout=60):
-    """Executes a javascript expression without returning the result.
+  def ExecuteJavaScript2(self, statement, **kwargs):
+    """Executes a given JavaScript statement. Does not return the result.
+
+    Example: runner.ExecuteJavaScript2('var foo = {{ value }};', value='hi');
+
+    Args:
+      statement: The statement to execute (provided as a string).
+
+    Optional keyword args:
+      timeout: The number of seconds to wait for the statement to execute.
+      context_id: The id of an iframe where to execute the code; the main page
+          has context_id=1, the first iframe context_id=2, etc.
+      Additional keyword arguments provide values to be interpolated within
+          the statement. See telemetry.util.js_template for details.
 
     Raises:
-      exceptions.EvaluateException
-      exceptions.WebSocketDisconnected
-      exceptions.TimeoutException
+      py_utils.TimeoutException
+      exceptions.EvaluationException
+      exceptions.WebSocketException
       exceptions.DevtoolsTargetCrashException
     """
+    # Use the default both when timeout=None or the option is ommited.
+    timeout = kwargs.get('timeout') or 60
+    context_id = kwargs.get('context_id')
+    statement = js_template.Render(statement, **kwargs)
+    self._runtime.Execute(statement, context_id, timeout)
+
+  @_HandleInspectorWebSocketExceptions
+  def EvaluateJavaScript2(self, expression, **kwargs):
+    """Returns the result of evaluating a given JavaScript expression.
+
+    Example: runner.ExecuteJavaScript2('document.location.href');
+
+    Args:
+      expression: The expression to execute (provided as a string).
+
+    Optional keyword args:
+      timeout: The number of seconds to wait for the expression to evaluate.
+      context_id: The id of an iframe where to execute the code; the main page
+          has context_id=1, the first iframe context_id=2, etc.
+      Additional keyword arguments provide values to be interpolated within
+          the expression. See telemetry.util.js_template for details.
+
+    Raises:
+      py_utils.TimeoutException
+      exceptions.EvaluationException
+      exceptions.WebSocketException
+      exceptions.DevtoolsTargetCrashException
+    """
+    # Use the default both when timeout=None or the option is ommited.
+    timeout = kwargs.get('timeout') or 60
+    context_id = kwargs.get('context_id')
+    expression = js_template.Render(expression, **kwargs)
+    return self._runtime.Evaluate(expression, context_id, timeout)
+
+  def WaitForJavaScriptCondition2(self, condition, **kwargs):
+    """Wait for a JavaScript condition to become true.
+
+    Example: runner.WaitForJavaScriptCondition2('window.foo == 10');
+
+    Args:
+      condition: The JavaScript condition (provided as string).
+
+    Optional keyword args:
+      timeout: The number in seconds to wait for the condition to become
+          True (default to 60).
+      context_id: The id of an iframe where to execute the code; the main page
+          has context_id=1, the first iframe context_id=2, etc.
+      Additional keyword arguments provide values to be interpolated within
+          the expression. See telemetry.util.js_template for details.
+
+    Raises:
+      py_utils.TimeoutException
+      exceptions.EvaluationException
+      exceptions.WebSocketException
+      exceptions.DevtoolsTargetCrashException
+    """
+    # Use the default both when timeout=None or the option is ommited.
+    timeout = kwargs.get('timeout') or 60
+    context_id = kwargs.get('context_id')
+    condition = js_template.Render(condition, **kwargs)
+
+    def IsJavaScriptExpressionTrue():
+      return bool(self._runtime.Evaluate(condition, context_id, timeout))
+
+    try:
+      py_utils.WaitFor(IsJavaScriptExpressionTrue, timeout)
+    except py_utils.TimeoutException as e:
+      # Try to make timeouts a little more actionable by dumping console output.
+      debug_message = None
+      try:
+        debug_message = (
+            'Console output:\n%s' %
+            self.GetCurrentConsoleOutputBuffer())
+      except Exception as e:
+        debug_message = (
+            'Exception thrown when trying to capture console output: %s' %
+            repr(e))
+      raise py_utils.TimeoutException(
+          e.message + '\n' + debug_message)
+
+  @_HandleInspectorWebSocketExceptions
+  def ExecuteJavaScript(self, expr, context_id=None, timeout=60):
+    """Executes a javascript expression without returning the result."""
     self._runtime.Execute(expr, context_id, timeout)
 
   @_HandleInspectorWebSocketExceptions
   def EvaluateJavaScript(self, expr, context_id=None, timeout=60):
-    """Evaluates a javascript expression and returns the result.
-
-    Raises:
-      exceptions.EvaluateException
-      exceptions.WebSocketDisconnected
-      exceptions.TimeoutException
-      exceptions.DevtoolsTargetCrashException
-    """
+    """Evaluates a javascript expression and returns the result."""
     return self._runtime.Evaluate(expr, context_id, timeout)
 
   @_HandleInspectorWebSocketExceptions
