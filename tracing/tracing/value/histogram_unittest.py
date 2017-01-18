@@ -29,6 +29,41 @@ class PercentToStringUnittest(unittest.TestCase):
     self.assertEqual(histogram.PercentToString(0.95), '095')
 
 
+class StatisticsUnittest(unittest.TestCase):
+  def testFindHighIndexInSortedArray(self):
+    self.assertEqual(histogram.FindHighIndexInSortedArray(
+        range(0, -10, -1), lambda x: x + 5), 6)
+
+  def testUniformlySampleArray(self):
+    self.assertEqual(len(histogram.UniformlySampleArray(
+        range(10), 5)), 5)
+
+  def testUniformlySampleStream(self):
+    samples = []
+    histogram.UniformlySampleStream(samples, 1, 'A', 5)
+    self.assertEqual(samples, ['A'])
+    histogram.UniformlySampleStream(samples, 2, 'B', 5)
+    histogram.UniformlySampleStream(samples, 3, 'C', 5)
+    histogram.UniformlySampleStream(samples, 4, 'D', 5)
+    histogram.UniformlySampleStream(samples, 5, 'E', 5)
+    self.assertEqual(samples, ['A', 'B', 'C', 'D', 'E'])
+    histogram.UniformlySampleStream(samples, 6, 'F', 5)
+    self.assertEqual(len(samples), 5)
+
+    samples = [0, 0, 0]
+    histogram.UniformlySampleStream(samples, 1, 'G', 5)
+    self.assertEqual(samples, ['G', 0, 0])
+
+  def testMergeSampledStreams(self):
+    samples = []
+    histogram.MergeSampledStreams(samples, 0, ['A'], 1, 5)
+    self.assertEqual(samples, ['A'])
+    histogram.MergeSampledStreams(samples, 1, ['B', 'C', 'D', 'E'], 4, 5)
+    self.assertEqual(samples, ['A', 'B', 'C', 'D', 'E'])
+    histogram.MergeSampledStreams(samples, 9, ['F', 'G', 'H', 'I', 'J'], 7, 5)
+    self.assertEqual(len(samples), 5)
+
+
 class RangeUnittest(unittest.TestCase):
   def testAddValue(self):
     r = histogram.Range()

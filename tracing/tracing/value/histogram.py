@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import math
+import random
 
 
 # This should be equal to sys.float_info.max, but that value might differ
@@ -30,6 +31,79 @@ def PercentToString(percent):
   if len(s) > 4:
     s = s[:4] + '_' + s[4:]
   return '0' + s[2:]
+
+
+# This variation of binary search returns the index |hi| into |ary| for which
+# callback(ary[hi]) < 0 and callback(ary[hi-1]) >= 0
+# This function assumes that map(callback, ary) is sorted descending.
+def FindHighIndexInSortedArray(ary, callback):
+  lo = 0
+  hi = len(ary)
+  while lo < hi:
+    mid = (lo + hi) >> 1
+    if callback(ary[mid]) >= 0:
+      lo = mid + 1
+    else:
+      hi = mid
+  return hi
+
+
+# Modifies |samples| in-place to reduce its length to |count|, discarding random
+# elements.
+def UniformlySampleArray(samples, count):
+  while len(samples) > count:
+    samples.pop(int(random.uniform(0, len(samples))))
+  return samples
+
+
+# When processing a stream of samples, call this method for each new sample in
+# order to decide whether to keep it in |samples|.
+# Modifies |samples| in-place such that its length never exceeds |num_samples|.
+# After |stream_length| samples have been processed, each sample has equal
+# probability of being retained in |samples|.
+# The order of samples is not preserved after |stream_length| exceeds
+# |num_samples|.
+def UniformlySampleStream(samples, stream_length, new_element, num_samples):
+  if stream_length <= num_samples:
+    if len(samples) >= stream_length:
+      samples[stream_length - 1] = new_element
+    else:
+      samples.append(new_element)
+    return
+
+  prob_keep = num_samples / stream_length
+  if random.random() > prob_keep:
+    # reject new_sample
+    return
+
+  # replace a random element
+  samples[math.floor(random.random() * num_samples)] = new_element
+
+
+# Merge two sets of samples that were assembled using UniformlySampleStream().
+# Modify |a_samples| in-place such that all of the samples in |a_samples| and
+# |b_samples| have equal probability of being retained in |a_samples|.
+def MergeSampledStreams(a_samples, a_stream_length,
+                        b_samples, b_stream_length, num_samples):
+  if b_stream_length < num_samples:
+    for i in xrange(min(b_stream_length, len(b_samples))):
+      UniformlySampleStream(
+          a_samples, a_stream_length + i + 1, b_samples[i], num_samples)
+    return
+
+  if a_stream_length < num_samples:
+    temp_samples = list(b_samples)
+    for i in xrange(min(a_stream_length, len(a_samples))):
+      UniformlySampleStream(
+          temp_samples, b_stream_length + i + 1, a_samples[i], num_samples)
+    for i in xrange(len(temp_samples)):
+      a_samples[i] = temp_samples[i]
+    return
+
+  prob_swap = b_stream_length / (a_stream_length + b_stream_length)
+  for i in xrange(min(num_samples, len(b_samples))):
+    if random.random() < prob_swap:
+      a_samples[i] = b_samples[i]
 
 
 class Range(object):
