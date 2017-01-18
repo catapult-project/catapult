@@ -327,6 +327,74 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
   @mock.patch.object(
+      update_bug_with_results,
+      '_MapAnomaliesToMergeIntoBug')
+  @mock.patch.object(
+      update_bug_with_results.issue_tracker_service.IssueTrackerService,
+      'AddBugComment')
+  @mock.patch.object(
+      update_bug_with_results.issue_tracker_service.IssueTrackerService,
+      'GetIssue',
+      mock.MagicMock(return_value={'id': 111222}))
+  @mock.patch.object(
+      update_bug_with_results, '_IsJobCompleted',
+      mock.MagicMock(return_value=True))
+  def testGet_BisectCulpritHasAuthor_MergesBugWithExisting(
+      self, mock_update_bug, mock_merge_anomalies):
+    layered_cache.SetExternal('commit_hash_2a1781d64d', 111222)
+    self._AddTryJob(12345, 'started', 'win_perf',
+                    results_data=_SAMPLE_BISECT_RESULTS_JSON)
+
+    self.testapp.get('/update_bug_with_results')
+    mock_update_bug.assert_called_once_with(
+        mock.ANY, mock.ANY,
+        cc_list=[], merge_issue=111222, labels=None, owner=None)
+    # Should have skipped updating cache.
+    self.assertEqual(
+        layered_cache.GetExternal('commit_hash_2a1781d64d'), 111222)
+    mock_merge_anomalies.assert_called_once_with(111222, 12345)
+
+  @mock.patch(
+      'google.appengine.api.urlfetch.fetch',
+      mock.MagicMock(side_effect=_MockFetch))
+  @mock.patch.object(
+      update_bug_with_results,
+      '_MapAnomaliesToMergeIntoBug')
+  @mock.patch.object(
+      update_bug_with_results.issue_tracker_service.IssueTrackerService,
+      'AddBugComment')
+  @mock.patch.object(
+      update_bug_with_results.issue_tracker_service.IssueTrackerService,
+      'GetIssue',
+      mock.MagicMock(
+          return_value={
+              'id': 111222,
+              'status': 'Duplicate'
+          }))
+  @mock.patch.object(
+      update_bug_with_results, '_IsJobCompleted',
+      mock.MagicMock(return_value=True))
+  def testGet_BisectCulpritHasAuthor_DoesNotMergeDuplicate(
+      self, mock_update_bug, mock_merge_anomalies):
+    layered_cache.SetExternal('commit_hash_2a1781d64d', 111222)
+    self._AddTryJob(12345, 'started', 'win_perf',
+                    results_data=_SAMPLE_BISECT_RESULTS_JSON)
+
+    self.testapp.get('/update_bug_with_results')
+    mock_update_bug.assert_called_once_with(
+        mock.ANY, mock.ANY,
+        cc_list=['author@email.com', 'prasadv@google.com'],
+        merge_issue=None, labels=None, owner='author@email.com')
+    # Should have skipped updating cache.
+    self.assertEqual(
+        layered_cache.GetExternal('commit_hash_2a1781d64d'), 111222)
+    # Should have skipped mapping anomalies.
+    self.assertEqual(0, mock_merge_anomalies.call_count)
+
+  @mock.patch(
+      'google.appengine.api.urlfetch.fetch',
+      mock.MagicMock(side_effect=_MockFetch))
+  @mock.patch.object(
       update_bug_with_results.issue_tracker_service.IssueTrackerService,
       'AddBugComment')
   @mock.patch.object(

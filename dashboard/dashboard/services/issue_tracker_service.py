@@ -13,6 +13,8 @@ from apiclient import errors
 _DISCOVERY_URI = ('https://monorail-prod.appspot.com'
                   '/_ah/api/discovery/v1/apis/{api}/{apiVersion}/rest')
 
+STATUS_DUPLICATE = 'Duplicate'
+
 
 class IssueTrackerService(object):
   """Class for updating bug issues."""
@@ -59,7 +61,7 @@ class IssueTrackerService(object):
     # Mark issue as duplicate when relevant bug ID is found in the datastore.
     # Avoid marking an issue as duplicate of itself.
     if merge_issue and int(merge_issue) != bug_id:
-      status = 'Duplicate'
+      status = STATUS_DUPLICATE
       updates['mergedInto'] = merge_issue
       logging.info('Bug %s marked as duplicate of %s', bug_id, merge_issue)
     if status:
@@ -77,6 +79,11 @@ class IssueTrackerService(object):
   def List(self, **kwargs):
     """Makes a request to the issue tracker to list bugs."""
     request = self._service.issues().list(projectId='chromium', **kwargs)
+    return self._ExecuteRequest(request)
+
+  def GetIssue(self, issue_id):
+    """Makes a request to the issue tracker to get an issue."""
+    request = self._service.issues().get(projectId='chromium', issueId=issue_id)
     return self._ExecuteRequest(request)
 
   def _MakeCommentRequest(self, bug_id, body, retry=True, send_email=False):
