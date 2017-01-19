@@ -5,6 +5,10 @@ api_version: 1
 threadsafe: true
 instance_class: F1
 
+libraries:
+- name: pycrypto
+  version: "2.6"
+
 handlers:
 
 - url: /run/.*

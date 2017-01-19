@@ -16,11 +16,11 @@ class NewHandler(webapp2.RequestHandler):
   def post(self):
     # TODO(dtu): Read the parameters from the request object.
     # Not doing it for now because it's easier to run tests this way.
-    configuration = 'linux'
+    configuration = 'Mac Pro 10.11 Perf'
     test_suite = 'tab_switching.typical_25'
     test = 'http://www.airbnb.com/'
     metric = 'asdf'
-    commits = (('chromium/src', 'a'), ('chromium/src', 'b'))
+    commits = (('chromium/src', '653e80aeeaac895c6f9bfb6181655f15f29cb0be'),)
 
     # Validate parameters.
     if metric and not test_suite:
