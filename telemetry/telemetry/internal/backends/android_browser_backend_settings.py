@@ -34,8 +34,8 @@ class AndroidBrowserBackendSettings(object):
   def supports_tab_control(self):
     return self._supports_tab_control
 
-  def GetCommandLineFile(self, is_user_debug_build):
-    del is_user_debug_build  # unused
+  @property
+  def command_line_name(self):
     return self._cmdline_file
 
   def GetDevtoolsRemotePort(self, device):
@@ -51,16 +51,10 @@ class ChromeBackendSettings(AndroidBrowserBackendSettings):
   # Stores a default Preferences file, re-used to speed up "--page-repeat".
   _default_preferences_file = None
 
-  def GetCommandLineFile(self, is_user_debug_build):
-    if is_user_debug_build:
-      return '/data/local/tmp/chrome-command-line'
-    else:
-      return '/data/local/chrome-command-line'
-
   def __init__(self, package):
     super(ChromeBackendSettings, self).__init__(
         activity='com.google.android.apps.chrome.Main',
-        cmdline_file=None,
+        cmdline_file='chrome-command-line',
         package=package,
         pseudo_exec_name='chrome',
         supports_tab_control=True)
@@ -73,7 +67,7 @@ class ContentShellBackendSettings(AndroidBrowserBackendSettings):
   def __init__(self, package):
     super(ContentShellBackendSettings, self).__init__(
         activity='org.chromium.content_shell_apk.ContentShellActivity',
-        cmdline_file='/data/local/tmp/content-shell-command-line',
+        cmdline_file='content-shell-command-line',
         package=package,
         pseudo_exec_name='content_shell',
         supports_tab_control=False)
@@ -86,7 +80,7 @@ class WebviewBackendSettings(AndroidBrowserBackendSettings):
   def __init__(self,
                package,
                activity='org.chromium.webview_shell.TelemetryActivity',
-               cmdline_file='/data/local/tmp/webview-command-line'):
+               cmdline_file='webview-command-line'):
     super(WebviewBackendSettings, self).__init__(
         activity=activity,
         cmdline_file=cmdline_file,
@@ -125,5 +119,5 @@ class WebviewShellBackendSettings(WebviewBackendSettings):
   def __init__(self, package):
     super(WebviewShellBackendSettings, self).__init__(
         activity='org.chromium.android_webview.shell.AwShellActivity',
-        cmdline_file='/data/local/tmp/android-webview-command-line',
+        cmdline_file='android-webview-command-line',
         package=package)

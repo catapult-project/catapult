@@ -6,10 +6,10 @@ import re
 
 from telemetry.internal.app import android_process
 from telemetry.internal.backends import android_browser_backend_settings
-from telemetry.internal.backends import android_command_line_backend
 from telemetry.internal.backends import app_backend
 
 from devil.android import app_ui
+from devil.android import flag_changer
 from devil.android.sdk import intent
 
 import py_utils
@@ -67,11 +67,11 @@ class AndroidAppBackend(app_backend.AppBackend):
     """
     if self._app_has_webviews:
       webview_startup_args = self.GetWebviewStartupArgs()
-      backend_settings = (
+      command_line_name = (
           android_browser_backend_settings.WebviewBackendSettings(
-              'android-webview'))
-      with android_command_line_backend.SetUpCommandLineFlags(
-          self.device, backend_settings, webview_startup_args):
+              'android-webview')).command_line_name
+      with flag_changer.CustomCommandLineFlags(
+          self.device, command_line_name, webview_startup_args):
         self._LaunchAndWaitForApplication()
     else:
       self._LaunchAndWaitForApplication()

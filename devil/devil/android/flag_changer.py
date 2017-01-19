@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import contextlib
 import logging
 import posixpath
 import re
@@ -14,6 +15,30 @@ _CMDLINE_DIR_LEGACY = '/data/local'
 _RE_NEEDS_QUOTING = re.compile(r'[^\w-]')  # Not in: alphanumeric or hyphens.
 _QUOTES = '"\''  # Either a single or a double quote.
 _ESCAPE = '\\'  # A backslash.
+
+
+@contextlib.contextmanager
+def CustomCommandLineFlags(device, cmdline_name, flags):
+  """Context manager to change Chrome's command line temporarily.
+
+  Example:
+
+      with flag_changer.TemporaryCommandLineFlags(device, name, flags):
+        # Launching Chrome will use the provided flags.
+
+      # Previous set of flags on the device is now restored.
+
+  Args:
+    device: A DeviceUtils instance.
+    cmdline_name: Name of the command line file where to store flags.
+    flags: A sequence of command line flags to set.
+  """
+  changer = FlagChanger(device, cmdline_name)
+  try:
+    changer.ReplaceFlags(flags)
+    yield
+  finally:
+    changer.Restore()
 
 
 class FlagChanger(object):

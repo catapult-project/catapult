@@ -42,7 +42,7 @@ class FlagChangerTest(device_test_case.DeviceTestCase):
     self.device.RemovePath(
         [self.cmdline_path, self.cmdline_path_legacy], force=True, as_root=True)
 
-  def testFlagChanger(self):
+  def testFlagChanger_restoreFlags(self):
     if not self.device.HasRoot():
       self.skipTest('Test needs a rooted device')
 
@@ -71,6 +71,16 @@ class FlagChangerTest(device_test_case.DeviceTestCase):
     self.assertItemsEqual(
         changer.Restore(),
         ['--some', '--old', '--flags'])
+
+  def testFlagChanger_removeFlags(self):
+    self.device.RemovePath(self.cmdline_path, force=True)
+    self.assertFalse(self.device.PathExists(self.cmdline_path))
+
+    with flag_changer.CustomCommandLineFlags(
+        self.device, _CMDLINE_FILE, ['--some', '--flags']):
+      self.assertTrue(self.device.PathExists(self.cmdline_path))
+
+    self.assertFalse(self.device.PathExists(self.cmdline_path))
 
 
 if __name__ == '__main__':
