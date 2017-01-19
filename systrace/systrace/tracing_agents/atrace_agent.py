@@ -269,7 +269,7 @@ class AtraceAgent(tracing_agents.TracingAgent):
 
     if _FIX_THREAD_IDS:
       # Issue ps command to device and patch thread names
-      ps_dump = ''.join(self._device_utils.RunShellCommand(
+      ps_dump = '\n'.join(self._device_utils.RunShellCommand(
           'ps -T -o USER,TID,PPID,VSIZE,RSS,WCHAN,ADDR=PC,S,CMD || ps -t'))
       if ps_dump is not None:
         thread_names = extract_thread_list(ps_dump)
@@ -277,7 +277,7 @@ class AtraceAgent(tracing_agents.TracingAgent):
 
     if _FIX_MISSING_TGIDS:
       # Issue printf command to device and patch tgids
-      procfs_dump = ''.join(self._device_utils.RunShellCommand(
+      procfs_dump = '\n'.join(self._device_utils.RunShellCommand(
           'printf "%s\n" /proc/[0-9]*/task/[0-9]*'))
       if procfs_dump is not None:
         pid2_tgid = extract_tgids(procfs_dump)
