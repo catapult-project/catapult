@@ -520,3 +520,23 @@ class HistogramUnittest(unittest.TestCase):
     self.assertEqual(2, hist.GetApproximatePercentile(0.7))
     self.assertEqual(3, hist.GetApproximatePercentile(0.9))
     self.assertEqual(4, hist.GetApproximatePercentile(1))
+
+
+class HistogramSetUnittest(unittest.TestCase):
+  def testImportDicts(self):
+    hist = histogram.Histogram('', 'unitless')
+    hists = histogram.HistogramSet([hist])
+    hists2 = histogram.HistogramSet()
+    hists2.ImportDicts(hists.AsDicts())
+    self.assertEqual(len(hists), len(hists2))
+
+  def testAddHistogramRaises(self):
+    hist = histogram.Histogram('', 'unitless')
+    hists = histogram.HistogramSet([hist])
+    with self.assertRaises(Exception):
+      hists.AddHistogram(hist)
+    hist2 = histogram.Histogram('', 'unitless')
+    # Do not ever do this in real code:
+    hist2.guid = hist.guid
+    with self.assertRaises(Exception):
+      hists.AddHistogram(hist2)

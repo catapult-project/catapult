@@ -867,3 +867,30 @@ DEFAULT_BOUNDARIES_FOR_UNIT = {
     'count': HistogramBinBoundaries.CreateExponential(1, 1e3, 20),
     'sigma': HistogramBinBoundaries.CreateLinear(-5, 5, 50),
 }
+
+
+class HistogramSet(object):
+  def __init__(self, histograms=()):
+    self._histograms_by_guid = {}
+    for hist in histograms:
+      self.AddHistogram(hist)
+
+  def AddHistogram(self, hist):
+    if hist.guid in self._histograms_by_guid:
+      raise 'Cannot add same Histogram twice'
+
+    self._histograms_by_guid[hist.guid] = hist
+
+  def __len__(self):
+    return len(self._histograms_by_guid)
+
+  def __iter__(self):
+    for hist in self._histograms_by_guid.itervalues():
+      yield hist
+
+  def ImportDicts(self, dicts):
+    for d in dicts:
+      self.AddHistogram(Histogram.FromDict(d))
+
+  def AsDicts(self):
+    return [h.AsDict() for h in self]
