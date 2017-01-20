@@ -30,14 +30,11 @@ tr.exportTo('tr.v', function() {
    * @return {string}
    */
   function percentToString(percent) {
-    if (percent < 0 || percent > 1)
-      throw new Error('Percent must be between 0.0 and 1.0');
-    switch (percent) {
-      case 0:
-        return '000';
-      case 1:
-        return '100';
+    if (percent < 0 || percent > 1) {
+      throw new Error('percent must be in [0,1]');
     }
+    if (percent === 0) return '000';
+    if (percent === 1) return '100';
     var str = percent.toString();
     if (str[1] !== '.')
       throw new Error('Unexpected percent');
@@ -308,8 +305,8 @@ tr.exportTo('tr.v', function() {
      * @param {number} percent The percent must be between 0.0 and 1.0.
      */
     getApproximatePercentile(percent) {
-      if (!(percent >= 0 && percent <= 1)) {
-        throw new Error('percent must be [0,1]');
+      if (percent < 0 || percent > 1) {
+        throw new Error('percent must be in [0,1]');
       }
       if (this.numValues === 0) {
         return 0;
