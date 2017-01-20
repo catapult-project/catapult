@@ -118,12 +118,14 @@ class FakeHTTPServer(object):
 
 
 class FakePossibleBrowser(object):
-  def __init__(self, execute_on_startup=None):
+  def __init__(self, execute_on_startup=None,
+               execute_after_browser_creation=None):
     self._returned_browser = _FakeBrowser(FakeLinuxPlatform())
     self.browser_type = 'linux'
     self.supports_tab_control = False
     self.is_remote = False
     self.execute_on_startup = execute_on_startup
+    self.execute_after_browser_creation = execute_after_browser_creation
 
   @property
   def returned_browser(self):
@@ -134,6 +136,8 @@ class FakePossibleBrowser(object):
     if self.execute_on_startup is not None:
       self.execute_on_startup()
     del finder_options  # unused
+    if self.execute_after_browser_creation is not None:
+      self.execute_after_browser_creation(self._returned_browser)
     return self.returned_browser
 
   @property
@@ -184,15 +188,21 @@ class FakeSystemInfo(system_info.SystemInfo):
 
 
 class _FakeBrowserFinderOptions(browser_options.BrowserFinderOptions):
-  def __init__(self, execute_on_startup=None, *args, **kwargs):
+  def __init__(self, execute_on_startup=None,
+               execute_after_browser_creation=None, *args, **kwargs):
     browser_options.BrowserFinderOptions.__init__(self, *args, **kwargs)
     self.fake_possible_browser = \
-      FakePossibleBrowser(execute_on_startup=execute_on_startup)
+      FakePossibleBrowser(
+        execute_on_startup=execute_on_startup,
+        execute_after_browser_creation=execute_after_browser_creation)
 
-def CreateBrowserFinderOptions(browser_type=None, execute_on_startup=None):
+def CreateBrowserFinderOptions(browser_type=None, execute_on_startup=None,
+                               execute_after_browser_creation=None):
   """Creates fake browser finder options for discovering a browser."""
-  return _FakeBrowserFinderOptions(browser_type=browser_type, \
-    execute_on_startup=execute_on_startup)
+  return _FakeBrowserFinderOptions(
+    browser_type=browser_type,
+    execute_on_startup=execute_on_startup,
+    execute_after_browser_creation=execute_after_browser_creation)
 
 
 # Internal classes. Note that end users may still need to both call
