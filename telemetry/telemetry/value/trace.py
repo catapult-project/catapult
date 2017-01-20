@@ -68,8 +68,11 @@ class TraceValue(value_module.Value):
       trace_size_data = {}
       for traces_list, part in self._GetTraceParts(trace_data):
         for trace in traces_list:
-          file_path = os.path.join(temp_dir, '%s.trace' % counter)
-          self._DumpTraceToFile(trace, file_path)
+          if isinstance(trace, trace_data_module.TraceFileHandle):
+            file_path = trace.file_path
+          else:
+            file_path = os.path.join(temp_dir, '%s.trace' % counter)
+            self._DumpTraceToFile(trace, file_path)
           trace_size_data.setdefault(part, 0)
           trace_size_data[part] += os.path.getsize(file_path)
           trace_files.append(file_path)

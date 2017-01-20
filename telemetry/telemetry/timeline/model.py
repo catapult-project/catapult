@@ -153,8 +153,6 @@ class TimelineModel(event_container.TimelineEventContainer):
     for importer in importers:
       # TODO: catch exceptions here and add it to error list
       importer.ImportEvents()
-    for record in trace_data.metadata_records:
-      self.metadata.append(record)
     self.FinalizeImport(shift_world_to_zero, importers)
 
   def FinalizeImport(self, shift_world_to_zero=False, importers=None):

@@ -10,6 +10,7 @@ from tracing.metrics import metric_runner
 from telemetry.timeline import chrome_trace_category_filter
 from telemetry.timeline import model as model_module
 from telemetry.timeline import tracing_config
+from telemetry.timeline import trace_data as trace_data_module
 from telemetry.value import trace
 from telemetry.value import common_value_helpers
 from telemetry.web_perf.metrics import timeline_based_metric
@@ -295,7 +296,16 @@ class TimelineBasedMeasurement(story_test.StoryTest):
       self._ComputeTimelineBasedMetrics(results, trace_value)
       # Legacy metrics can be computed, but only if explicitly specified.
       if self._tbm_options.GetLegacyTimelineBasedMetrics():
+        # Since this imports the trace model in python, it will also clean up
+        # the trace handles for us.
         self._ComputeLegacyTimelineBasedMetrics(results, trace_result)
+      else:
+        # Clean up the trace handles ourselves if we did not use the python
+        # trace importer.
+        for data in trace_result.GetTracesFor(
+            trace_data_module.CHROME_TRACE_PART):
+          if isinstance(data, trace_data_module.TraceFileHandle):
+            data.Clean()
     else:
       # Run all TBMv1 metrics if no other metric is specified (legacy behavior)
       if not self._tbm_options.GetLegacyTimelineBasedMetrics():

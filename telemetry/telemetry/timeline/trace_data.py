@@ -96,18 +96,6 @@ class TraceData(object):
   def active_parts(self):
     return {p for p in ALL_TRACE_PARTS if p.raw_field_name in self._raw_data}
 
-  @property
-  def metadata_records(self):
-    part_field_names = {p.raw_field_name for p in ALL_TRACE_PARTS}
-    for chrome_trace in self.GetTracesFor(CHROME_TRACE_PART):
-      for k, v in chrome_trace.iteritems():
-        if k in part_field_names:
-          continue
-        yield {
-          'name': k,
-          'value': v
-        }
-
   def HasTracesFor(self, part):
     return _HasTraceFor(part, self._raw_data)
 
@@ -123,12 +111,27 @@ class TraceData(object):
     assert len(traces) == 1
     return traces[0]
 
+  # TODO(nedn): unifying this code with
+  # telemetry.value.trace.TraceValue._GetTempFileHandle so that we have one
+  # single space efficient method to Serialize this to trace.
   def Serialize(self, f, gzip_result=False):
     """Serializes the trace result to a file-like object.
 
     Write in trace container format if gzip_result=False.
     Writes to a .zip file if gzip_result=True.
     """
+    raw_data = {}
+    for k, v in self._raw_data.iteritems():
+      for data in v:
+        if isinstance(data, TraceFileHandle):
+          with open(data.file_path) as trace_file:
+            trace = json.load(trace_file)
+        else:
+          trace = data
+        if k not in raw_data:
+          raw_data[k] = trace
+        else:
+          raw_data[k] += trace
     if gzip_result:
       zip_file = zipfile.ZipFile(f, mode='w')
       try:
@@ -136,13 +139,59 @@ class TraceData(object):
           tmp_file_name = None
           with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
             tmp_file_name = tmp_file.name
-            tmp_file.write(str(self._raw_data[part.raw_field_name]))
+            tmp_file.write(str(raw_data[part.raw_field_name]))
           zip_file.write(tmp_file_name, arcname=part.raw_field_name)
           os.remove(tmp_file_name)
       finally:
         zip_file.close()
     else:
-      json.dump(self._raw_data, f)
+      json.dump(raw_data, f)
+
+
+class TraceFileHandle(object):
+  """A trace file handle object allows storing trace data on disk.
+
+  TraceFileHandle API allows one to collect traces from Chrome into disk instead
+  of keeping them in memory. This is important for keeping memory usage of
+  Telemetry low to avoid OOM (see:
+  https://github.com/catapult-project/catapult/issues/3119).
+
+  The fact that this uses a file underneath to store tracing data means the
+  callsite is repsonsible for discarding the file when they no longer need the
+  tracing data. Call TraceFileHandle.Clean when you done using this object.
+  """
+  def __init__(self):
+    self._backing_file = None
+    self._file_path = None
+
+  def Open(self):
+    assert not self._backing_file and not self._file_path
+    self._backing_file = tempfile.NamedTemporaryFile(delete=False, mode='a')
+
+  def AppendTraceData(self, partial_trace_data):
+    assert isinstance(partial_trace_data, basestring)
+    self._backing_file.write(partial_trace_data)
+
+  @property
+  def file_path(self):
+    assert self._file_path, (
+        'Either the handle need to be closed first or this handle is cleaned')
+    return self._file_path
+
+  def Close(self):
+    assert self._backing_file
+    self._backing_file.close()
+    self._file_path = self._backing_file.name
+    self._backing_file = None
+
+  def Clean(self):
+    """Remove the backing file used for storing trace on disk.
+
+    This should be called when and only when you no longer need to use
+    TraceFileHandle.
+    """
+    os.remove(self._file_path)
+    self._file_path = None
 
 
 class TraceDataBuilder(object):
@@ -164,11 +213,13 @@ class TraceDataBuilder(object):
 
   def AddTraceFor(self, part, trace):
     assert isinstance(part, TraceDataPart)
-    assert (isinstance(trace, basestring) or
-            isinstance(trace, dict) or
-            isinstance(trace, list))
     if part == CHROME_TRACE_PART:
-      assert isinstance(trace, dict)
+      assert (isinstance(trace, dict) or
+              isinstance(trace, TraceFileHandle))
+    else:
+      assert (isinstance(trace, basestring) or
+              isinstance(trace, dict) or
+              isinstance(trace, list))
 
     if self._raw_data == None:
       raise Exception('Already called AsData() on this builder.')

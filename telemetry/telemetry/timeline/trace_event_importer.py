@@ -9,6 +9,7 @@ https://code.google.com/p/trace-viewer/
 
 import collections
 import copy
+import json
 
 import telemetry.timeline.async_slice as tracing_async_slice
 import telemetry.timeline.flow_event as tracing_flow_event
@@ -30,8 +31,38 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
     self._all_memory_dumps_by_dump_id = collections.defaultdict(list)
 
     self._events = []
+    self._metadata = []
     for trace in trace_data.GetTracesFor(trace_data_module.CHROME_TRACE_PART):
+      if isinstance(trace, trace_data_module.TraceFileHandle):
+        trace_handle = trace
+        file_path = trace_handle.file_path
+        try:
+          with open(file_path, 'r') as f:
+            trace = json.load(f)
+        finally:
+          # HACK: during the effort of converting chrome trace's representation
+          # from in-memory to disk, we need to either:
+          # 1) Audit all the clients of python trace importer to explictly
+          # cleaned up the trace handle after use.
+          # 2) Clean up the trace handle for them.
+          # We decide to clean up the trace handle for them here (option 2) as
+          # it's lots of work to fix all the call sites. Once all the trace
+          # converting code are converted to use the Javascript engine, this
+          # problem also goes away as we only have a single trace parser
+          # engine.
+          # https://bugs.chromium.org/p/chromium/issues/detail?id=682355
+          trace_handle.Clean()
       self._events.extend(trace['traceEvents'])
+      self.CollectMetadataRecords(trace)
+
+  def CollectMetadataRecords(self, trace):
+    part_field_names = {p.raw_field_name for p in
+                        trace_data_module.ALL_TRACE_PARTS}
+    for k, v in trace.iteritems():
+      if k in part_field_names:
+        continue
+      self._metadata.append({'name': k, 'value': v})
+
 
   @staticmethod
   def GetSupportedPart():
@@ -215,6 +246,8 @@ class TraceEventTimelineImporter(importer.TimelineImporter):
     """Walks through the events_ list and outputs the structures discovered to
     model_.
     """
+    for r in self._metadata:
+      self._model.metadata.append(r)
     memory_dump_events = []
     for event in self._events:
       phase = event.get('ph', None)
