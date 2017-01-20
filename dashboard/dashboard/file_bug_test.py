@@ -69,7 +69,7 @@ class FileBugTest(testing_common.TestCase):
     file_bug.issue_tracker_service.IssueTrackerService = self.original_service
     self.UnsetCurrentUser()
 
-  def _AddSampleAlerts(self):
+  def _AddSampleAlerts(self, is_chromium=True):
     """Adds sample data and returns a dict of rev to anomaly key."""
     # Add sample sheriff, masters, bots, and tests.
     sheriff_key = sheriff.Sheriff(
@@ -81,28 +81,49 @@ class FileBugTest(testing_common.TestCase):
             'mean_frame_time': {},
         }
     })
-    test_key1 = utils.TestKey('ChromiumPerf/linux/scrolling/first_paint')
-    test_key2 = utils.TestKey('ChromiumPerf/linux/scrolling/mean_frame_time')
+    test_path1 = 'ChromiumPerf/linux/scrolling/first_paint'
+    test_path2 = 'ChromiumPerf/linux/scrolling/mean_frame_time'
+    test_key1 = utils.TestKey(test_path1)
+    test_key2 = utils.TestKey(test_path2)
     anomaly_key1 = self._AddAnomaly(111995, 112005, test_key1, sheriff_key)
     anomaly_key2 = self._AddAnomaly(112000, 112010, test_key2, sheriff_key)
+    rows_1 = testing_common.AddRows(test_path1, [112005])
+    rows_2 = testing_common.AddRows(test_path2, [112010])
+    if is_chromium:
+      rows_1[0].r_commit_pos = 112005
+      rows_2[0].r_commit_pos = 112010
     return (anomaly_key1, anomaly_key2)
 
-  def _AddSampleAlertsV8(self):
-    """Adds sample data and returns a dict of rev to anomaly key."""
-    # Add sample sheriff, masters, bots, and tests.
+  def _AddSampleClankAlerts(self):
+    """Adds sample data and returns a dict of rev to anomaly key.
+
+    The biggest difference here is that the start/end revs aren't chromium
+    commit positions. This tests the _MilestoneLabel function to make sure
+    it will update the end_revision if r_commit_pos is found.
+    """
+    # Add sample sheriff, masters, bots, and tests. Doesn't need to be Clank.
     sheriff_key = sheriff.Sheriff(
         id='Sheriff',
         labels=['Performance-Sheriff', 'Cr-Blink-Javascript']).put()
-    testing_common.AddTests(['v8'], ['linux'], {
+    testing_common.AddTests(['ChromiumPerf'], ['linux'], {
         'scrolling': {
             'first_paint': {},
             'mean_frame_time': {},
         }
     })
-    test_key1 = utils.TestKey('v8/linux/scrolling/first_paint')
-    test_key2 = utils.TestKey('v8/linux/scrolling/mean_frame_time')
-    anomaly_key1 = self._AddAnomaly(111995, 112005, test_key1, sheriff_key)
-    anomaly_key2 = self._AddAnomaly(112000, 112010, test_key2, sheriff_key)
+    test_path1 = 'ChromiumPerf/linux/scrolling/first_paint'
+    test_path2 = 'ChromiumPerf/linux/scrolling/mean_frame_time'
+    test_key1 = utils.TestKey(test_path1)
+    test_key2 = utils.TestKey(test_path2)
+    anomaly_key1 = self._AddAnomaly(1476193324, 1476201840,
+                                    test_key1, sheriff_key)
+    anomaly_key2 = self._AddAnomaly(1476193320, 1476201870,
+                                    test_key2, sheriff_key)
+    rows_1 = testing_common.AddRows(test_path1, [1476201840])
+    rows_2 = testing_common.AddRows(test_path2, [1476201870])
+    # These will be the revisions used to determine label.
+    rows_1[0].r_commit_pos = 112005
+    rows_2[0].r_commit_pos = 112010
     return (anomaly_key1, anomaly_key2)
 
   def _AddAnomaly(self, start_rev, end_rev, test_key, sheriff_key):
@@ -163,11 +184,11 @@ class FileBugTest(testing_common.TestCase):
   @mock.patch.object(
       file_bug.auto_bisect, 'StartNewBisectForBug',
       mock.MagicMock(return_value={'issue_id': 123, 'issue_url': 'foo.com'}))
-  def _PostSampleBug(self, is_v8=False):
-    if is_v8:
-      alert_keys = self._AddSampleAlertsV8()
+  def _PostSampleBug(self, is_chromium=True, is_clankium=False):
+    if is_clankium:
+      alert_keys = self._AddSampleClankAlerts()
     else:
-      alert_keys = self._AddSampleAlerts()
+      alert_keys = self._AddSampleAlerts(is_chromium)
     response = self.testapp.post(
         '/file_bug',
         [
@@ -228,11 +249,11 @@ class FileBugTest(testing_common.TestCase):
       file_bug.auto_bisect, 'StartNewBisectForBug',
       mock.MagicMock(return_value={'issue_id': 123, 'issue_url': 'foo.com'}))
   def testGet_WithFinish_LabelsBugWithMilestone(self):
-    # Here, we expect the bug to have the following start revisions:
-    # [111995, 112005] and the milestones are M-1 for rev 111990 and
+    # Here, we expect the bug to have the following end revisions:
+    # [112005, 112010] and the milestones are M-1 for rev 111990 and
     # M-2 for 11200. Hence the expected behavior is to label the bug
     # M-2 since 111995 (lowest possible revision introducing regression)
-    # is less than 112000 (revision for M-2).
+    # is less than 112010 (revision for M-2).
     self._PostSampleBug()
     self.assertIn('M-2', self.service.new_bug_kwargs['labels'])
 
@@ -275,13 +296,36 @@ class FileBugTest(testing_common.TestCase):
       file_bug.auto_bisect, 'StartNewBisectForBug',
       mock.MagicMock(return_value={'issue_id': 123, 'issue_url': 'foo.com'}))
   def testGet_WithFinish_LabelsBugWithNoMilestoneBecauseNotChromium(self):
-    # Here, we expect to return no Milestone label because the alerts are
-    # not of master 'ChromiumPerf' or 'ChromiumPerfFyi'. Assuming
+    # Here, we expect to return no Milestone label because the alerts do not
+    # contain r_commit_pos (and therefore aren't chromium). Assuming
     # testGet_WithFinish_LabelsBugWithMilestone passes, M-2
     # would be the label that it would get if the alert was Chromium.
-    self._PostSampleBug(is_v8=True)
+    self._PostSampleBug(is_chromium=False)
     labels = self.service.new_bug_kwargs['labels']
     self.assertEqual(0, len([x for x in labels if x.startswith(u'M-')]))
+
+  @mock.patch.object(
+      file_bug, '_GetAllCurrentVersionsFromOmahaProxy',
+      mock.MagicMock(return_value=[
+          {
+              'versions': [
+                  {'branch_base_position': '113000', 'current_version': '2.0'},
+                  {'branch_base_position': '112000', 'current_version': '2.0'},
+                  {'branch_base_position': '111990', 'current_version': '1.0'}
+              ]
+          }
+      ]))
+  @mock.patch.object(
+      file_bug.auto_bisect, 'StartNewBisectForBug',
+      mock.MagicMock(return_value={'issue_id': 123, 'issue_url': 'foo.com'}))
+  def testGet_WithFinish_LabelsBugForClank(self):
+    # Here, we expect to return M-2 even though the alert revisions aren't
+    # even close to the branching points. We use r_commmit_pos to determine
+    # which revision to check. There are 3 branching points to ensure we are
+    # actually changing the revision that is checked to r_commit_pos instead
+    # of just displaying the highest one (previous behavior).
+    self._PostSampleBug(is_clankium=True)
+    self.assertIn('M-2', self.service.new_bug_kwargs['labels'])
 
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',

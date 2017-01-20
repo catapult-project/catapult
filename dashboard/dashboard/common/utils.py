@@ -504,3 +504,7 @@ def GetLogdogLogUriFromStdioLink(stdio_link):
   s_param = urllib.quote('chrome/bb/%s/%s/%s/+/recipes/steps/%s/0/stdout' % (
       master, bot, buildnumber, step), safe='')
   return 'https://luci-logdog.appspot.com/v/?s=%s' % s_param
+
+def GetRowKey(testmetadata_key, revision):
+  test_container_key = GetTestContainerKey(testmetadata_key)
+  return ndb.Key('Row', revision, parent=test_container_key)
