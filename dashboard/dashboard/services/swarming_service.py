@@ -11,6 +11,7 @@ API explorer: https://goo.gl/uxPUZo
 """
 
 import json
+import logging
 import urllib
 
 from dashboard.common import utils
@@ -114,12 +115,15 @@ def _Request(path, method='GET', body=None, **parameters):
     path += '?' + urllib.urlencode(sorted(parameters.iteritems()), doseq=True)
 
   http = utils.ServiceAccountHttp()
+  url = API_BASE_URL + path
+  logging.debug('Swarming request: %s', url)
   if body:
     body = json.dumps(body)
     headers = {'Content-Type': 'application/json'}
-    response, content = http.request(API_BASE_URL + path, method, headers, body)
+    response, content = http.request(url, method, body=body, headers=headers)
   else:
-    response, content = http.request(API_BASE_URL + path, method)
+    response, content = http.request(url, method)
+  logging.debug('Swarming response: %s', content)
 
   if not response['status'].startswith('2'):
     raise SwarmingError(content)

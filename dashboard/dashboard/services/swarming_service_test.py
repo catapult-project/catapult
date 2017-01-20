@@ -129,8 +129,8 @@ class TasksTest(_SwarmingTest):
     response = swarming_service.Tasks().New(body)
     self._Assert200Response(response)
     self._AssertRequestMade('tasks/new', 'POST',
-                            {'Content-Type': 'application/json'},
-                            json.dumps(body))
+                            body=json.dumps(body),
+                            headers={'Content-Type': 'application/json'})
 
 
 class FailureTest(_SwarmingTest):
