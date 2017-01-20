@@ -27,6 +27,7 @@ _INTERNAL_ONLY_KINDS = [
     'Anomaly',
     'StoppageAlert',
     'TryJob',
+    'TableConfig',
 ]
 
 # Permissions namespaces.

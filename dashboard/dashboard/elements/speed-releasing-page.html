@@ -13,6 +13,10 @@ found in the LICENSE file.
 <link rel="import" href="/components/paper-listbox/paper-listbox.html">
 <link rel="import" href="/components/polymer/polymer.html">
 
+<link rel="import" href="/dashboard/elements/speed-releasing-landing-page.html">
+<link rel="import" href="/dashboard/elements/speed-releasing-table.html">
+<link rel="import" href="/dashboard/static/uri.html">
+
 <dom-module id="speed-releasing-page">
   <template>
     <style>
@@ -50,7 +54,14 @@ found in the LICENSE file.
       </template>
       <template is="dom-if" if="{{!error}}">
         <div id="content">
-          <p>Coming soon.</p>
+          <template is="dom-if" if="{{!showList}}">
+            <speed-releasing-table table-name="{{tableName}}">
+            </speed-releasing-table>
+          </template>
+          <template is="dom-if" if="{{showList}}">
+            <speed-releasing-landing-page list="{{tableList}}">
+            </speed-releasing-landing-page>
+          </template>
         </div>
       </template>
     </template>
@@ -71,23 +82,41 @@ found in the LICENSE file.
           value: '',
           notify: true
         },
-        xsrfToken: {
+        showList: {
+          type: Boolean,
+          notify: true,
+        },
+        tableList: {
+          type: Array,
+          notify: true,
+        },
+        tableName: {
           type: String,
-          value: ''
+          notify: true,
         },
       },
 
       ready: function() {
         var params = {};
-        simple_xhr.send('/speed_releasing', params,
+        var path = uri.getPathName();
+        if (!path) { // Go get the list.
+          path = '';
+          simple_xhr.send('/speed_releasing/' + path, params,
             function(response) {
-              this.xsrfToken = response['xsrf_token'];
               this.loading = false;
+              this.tableName = response['name'];
+              this.showList = response['show_list'];
+              this.tableList = response['list'];
             }.bind(this),
             function(msg) {
               this.error = msg;
               this.loading = false;
             }.bind(this));
+        } else { // POST in speed-releasing-table will get the values.
+          this.tableName = path;
+          this.showList = false;
+          this.loading = false;
+        }
       }
 
     });

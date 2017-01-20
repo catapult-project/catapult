@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link type="text/css" rel="stylesheet" href="/dashboard/static/base.css">
+
+<link rel="import" href="/components/paper-button/paper-button.html">
+<link rel="import" href="/components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="/components/paper-item/paper-item.html">
+<link rel="import" href="/components/paper-listbox/paper-listbox.html">
+<link rel="import" href="/components/polymer/polymer.html">
+<link rel="import" href="/dashboard/static/uri.html">
+
+<dom-module id="speed-releasing-table">
+  <template>
+    <style>
+    .error {
+      color: #dd4b39;
+      font-weight: bold;
+    }
+
+    .center {
+      margin: auto;
+      padding: 10px;
+    }
+
+    #loading-spinner {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+    </style>
+
+    <template is="dom-if" if="{{loading}}">
+      <div id="loading-spinner"><img src="//www.google.com/images/loading.gif">
+      </div>
+    </template>
+    <template is="dom-if" if="{{!loading}}">
+      <template is="dom-if" if="{{error}}">
+        <div class="error">{{error}}</div>
+      </template>
+      <template is="dom-if" if="{{!error}}">
+        <div id="content">
+          <table id="speed-releasing">
+            <thead>{{tableConfig.name}}</thead>
+              <template is="dom-repeat" items="{{tableConfig.tableBots}}">
+                <tr>
+                  <td>{{item}}</td>
+                  <template is="dom-repeat" 
+                            items="{{tableConfig.tableTests}}" as="tests">
+                    <td>{{tests}}</td>
+                  </template>
+                </tr>
+              </template>
+            </table>
+        </div>
+      </template>
+    </template>
+
+  </template>
+  <script>
+    'use strict';
+    Polymer({
+
+      is: 'speed-releasing-table',
+      properties: {
+        tableConfig: {
+          type: Object,
+          value: {},
+          notify: true,
+        },
+        tableName: {
+          type: String,
+          notify: true,
+        },
+        loading: {
+          type: Boolean,
+          value: false,
+          notify: true
+        },
+        error: {
+          type: String,
+          value: '',
+          notify: true
+        },
+        xsrfToken: {
+          type: String,
+          value: ''
+        },
+      },
+
+      ready: function() {
+        var params = {};
+        var path = this.tableName;
+        this.loading = true;
+        simple_xhr.send('/speed_releasing/' + path, params,
+          function(response) {
+            this.tableConfig.tableBots = response['table_bots'];
+            this.tableConfig.tableTests = response['table_tests'];
+            this.tableConfig.tableLayout = response['table_layout'];
+            this.tableConfig.name = response['name'];
+            this.xsrfToken = response['xsrf_token'];
+            this.loading = false;
+          }.bind(this),
+          function(msg) {
+            this.error = msg;
+            this.loading = false;
+          }.bind(this));
+      }
+    });
+  </script>
+</dom-module>

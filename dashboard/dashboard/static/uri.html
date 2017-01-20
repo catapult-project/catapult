@@ -264,12 +264,22 @@ var uri = (function() {
     return window.location.pathname + '?' + pairs.join('&');
   };
 
+  /**
+   * Gets the second argument after the .com/.
+   * @return {string} second path element.
+   */
+  var getPathName = function() {
+    return window.location.pathname.split('/')[2];
+  };
+
+
   return {
     Controller: Controller,
     getParameter: getParameter,
     getAllParameters: getAllParameters,
     getCurrentPathWithParams: getCurrentPathWithParams,
-    getQueryString: getQueryString
+    getQueryString: getQueryString,
+    getPathName: getPathName,
   };
 })();
 

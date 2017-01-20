@@ -104,6 +104,8 @@ _URL_MAPPING = [
      send_stoppage_alert_emails.SendStoppageAlertEmailsHandler),
     ('/set_warning_message', set_warning_message.SetWarningMessageHandler),
     ('/short_uri', short_uri.ShortUriHandler),
+    (r'/speed_releasing/(.*)',
+     speed_releasing.SpeedReleasingHandler),
     ('/speed_releasing', speed_releasing.SpeedReleasingHandler),
     ('/start_try_job', start_try_job.StartBisectHandler),
     ('/stoppage_alert_debugging_info',
