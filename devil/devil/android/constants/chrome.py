@@ -12,46 +12,46 @@ PACKAGE_INFO = {
     'chrome_document': PackageInfo(
         'com.google.android.apps.chrome.document',
         'com.google.android.apps.chrome.document.ChromeLauncherActivity',
-        '/data/local/chrome-command-line',
+        'chrome-command-line',
         'chrome_devtools_remote'),
     'chrome': PackageInfo(
         'com.google.android.apps.chrome',
         'com.google.android.apps.chrome.Main',
-        '/data/local/chrome-command-line',
+        'chrome-command-line',
         'chrome_devtools_remote'),
     'chrome_beta': PackageInfo(
         'com.chrome.beta',
         'com.google.android.apps.chrome.Main',
-        '/data/local/chrome-command-line',
+        'chrome-command-line',
         'chrome_devtools_remote'),
     'chrome_stable': PackageInfo(
         'com.android.chrome',
         'com.google.android.apps.chrome.Main',
-        '/data/local/chrome-command-line',
+        'chrome-command-line',
         'chrome_devtools_remote'),
     'chrome_dev': PackageInfo(
         'com.chrome.dev',
         'com.google.android.apps.chrome.Main',
-        '/data/local/chrome-command-line',
+        'chrome-command-line',
         'chrome_devtools_remote'),
     'chrome_canary': PackageInfo(
         'com.chrome.canary',
         'com.google.android.apps.chrome.Main',
-        '/data/local/chrome-command-line',
+        'chrome-command-line',
         'chrome_devtools_remote'),
     'chrome_work': PackageInfo(
         'com.chrome.work',
         'com.google.android.apps.chrome.Main',
-        '/data/local/chrome-command-line',
+        'chrome-command-line',
         'chrome_devtools_remote'),
     'chromium': PackageInfo(
         'org.chromium.chrome',
         'com.google.android.apps.chrome.Main',
-        '/data/local/chrome-command-line',
+        'chrome-command-line',
         'chrome_devtools_remote'),
     'content_shell': PackageInfo(
         'org.chromium.content_shell_apk',
         '.ContentShellActivity',
-        '/data/local/tmp/content-shell-command-line',
+        'content-shell-command-line',
         'content_shell_devtools_remote'),
 }
