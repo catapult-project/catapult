@@ -2,8 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import json
 import math
 import random
+import uuid
 
 
 # This should be equal to sys.float_info.max, but that value might differ
@@ -106,6 +108,14 @@ def MergeSampledStreams(a_samples, a_stream_length,
       a_samples[i] = b_samples[i]
 
 
+def Percentile(ary, percent):
+  if percent < 0 or percent > 1:
+    raise 'percent must be in [0,1]'
+  ary = list(ary)
+  ary.sort()
+  return ary[int((len(ary) - 1) * percent)]
+
+
 class Range(object):
   def __init__(self):
     self._empty = True
@@ -150,14 +160,14 @@ class Range(object):
 # This class computes statistics online in O(1).
 class RunningStatistics(object):
   def __init__(self):
-    self._mean = 0
     self._count = 0
+    self._mean = 0.0
     self._max = -JS_MAX_VALUE
     self._min = JS_MAX_VALUE
-    self._sum = 0
-    self._variance = 0
+    self._sum = 0.0
+    self._variance = 0.0
     # Mean of logarithms of samples, or undefined if any samples were <= 0.
-    self._meanlogs = 0
+    self._meanlogs = 0.0
 
   @property
   def count(self):
@@ -203,11 +213,12 @@ class RunningStatistics(object):
 
   def Add(self, x):
     self._count += 1
+    x = float(x)
     self._max = max(self._max, x)
     self._min = min(self._min, x)
     self._sum += x
 
-    if x <= 0:
+    if x <= 0.0:
       self._meanlogs = None
     elif self._meanlogs is not None:
       self._meanlogs += (math.log(abs(x)) - self._meanlogs) / self.count
@@ -216,7 +227,7 @@ class RunningStatistics(object):
     # variance. See http://www.johndcook.com/blog/standard_deviation.
     if self.count == 1:
       self._mean = x
-      self._variance = 0
+      self._variance = 0.0
     else:
       old_mean = self._mean
       old_variance = self._variance
@@ -237,14 +248,14 @@ class RunningStatistics(object):
     result._min = min(self._min, other._min)
     result._max = max(self._max, other._max)
     if result._count == 0:
-      result._mean = 0
-      result._variance = 0
-      result._meanlogs = 0
+      result._mean = 0.0
+      result._variance = 0.0
+      result._meanlogs = 0.0
     else:
       # Combine the mean and the variance using the formulas from
       # https://goo.gl/ddcAep.
       result._mean = float(result._sum) / result._count
-      delta_mean = (self._mean or 0) - (other._mean or 0)
+      delta_mean = (self._mean or 0.0) - (other._mean or 0.0)
       result._variance = self._variance + other._variance + (
           self._count * other._count * delta_mean * delta_mean / result._count)
 
@@ -260,17 +271,25 @@ class RunningStatistics(object):
   def AsDict(self):
     if self._count == 0:
       return []
+
+    # Javascript automatically converts between ints and floats.
+    # It's more efficient to serialize integers as ints than floats.
+    def FloatAsFloatOrInt(x):
+      if x is not None and x.is_integer():
+        return int(x)
+      return x
+
     # It's more efficient to serialize these fields in an array. If you add any
     # other fields, you should re-evaluate whether it would be more efficient to
     # serialize as a dict.
     return [
         self._count,
-        self._max,
-        self._meanlogs,
-        self._mean,
-        self._min,
-        self._sum,
-        self._variance,
+        FloatAsFloatOrInt(self._max),
+        FloatAsFloatOrInt(self._meanlogs),
+        FloatAsFloatOrInt(self._mean),
+        FloatAsFloatOrInt(self._min),
+        FloatAsFloatOrInt(self._sum),
+        FloatAsFloatOrInt(self._variance),
     ]
 
   @staticmethod
@@ -278,6 +297,573 @@ class RunningStatistics(object):
     result = RunningStatistics()
     if len(dct) != 7:
       return result
+    def AsFloatOrNone(x):
+      if x is None:
+        return x
+      return float(x)
     [result._count, result._max, result._meanlogs, result._mean, result._min,
-     result._sum, result._variance] = dct
+     result._sum, result._variance] = [int(dct[0])] + [
+         AsFloatOrNone(x) for x in dct[1:]]
     return result
+
+
+class HistogramBin(object):
+  def __init__(self, rang):
+    self._range = rang
+    self._count = 0
+
+  def AddSample(self, unused_x):
+    self._count += 1
+
+  @property
+  def count(self):
+    return self._count
+
+  @property
+  def range(self):
+    return self._range
+
+  def FromDict(self, dct):
+    self._count = dct[0]
+
+  def AsDict(self):
+    return [self.count]
+
+  def AddBin(self, other):
+    self._count += other.count
+
+
+# TODO(benjhayden): Presubmit to compare with unit.html.
+UNIT_NAMES = [
+    'ms',
+    'tsMs',
+    'n%',
+    'sizeInBytes',
+    'J',
+    'W',
+    'unitless',
+    'count',
+    'sigma',
+]
+
+def ExtendUnitNames():
+  # Use a function in order to avoid cluttering the global namespace with a loop
+  # variable.
+  for name in list(UNIT_NAMES):
+    UNIT_NAMES.append(name + '_biggerIsBetter')
+    UNIT_NAMES.append(name + '_smallerIsBetter')
+
+ExtendUnitNames()
+
+
+class Scalar(object):
+  def __init__(self, unit, value):
+    assert unit in UNIT_NAMES
+    self._unit = unit
+    self._value = value
+
+  @property
+  def unit(self):
+    return self._unit
+
+  @property
+  def value(self):
+    return self._value
+
+  def AsDict(self):
+    return {'type': 'scalar', 'unit': self.unit, 'value': self.value}
+
+  @staticmethod
+  def FromDict(dct):
+    return Scalar(dct['unit'], dct['value'])
+
+
+DEFAULT_SUMMARY_OPTIONS = {
+    'avg': True,
+    'geometricMean': False,
+    'std': True,
+    'count': True,
+    'sum': True,
+    'min': True,
+    'max': True,
+    'nans': False,
+    # Don't include 'percentile' here. Its default value is [], which is
+    # modifiable. Callers may push to it, so there must be a different Array
+    # instance for each Histogram instance.
+}
+
+
+class Histogram(object):
+  def __init__(self, name, unit, bin_boundaries=None):
+    assert unit in UNIT_NAMES
+
+    if bin_boundaries is None:
+      bin_boundaries = DEFAULT_BOUNDARIES_FOR_UNIT[unit]
+
+    self._guid = None
+
+    self._bin_boundaries_dict = bin_boundaries.AsDict()
+
+    self._bins = []
+    self._description = ''
+    self._name = name
+    self._num_nans = 0
+    self._running = None
+    self._sample_values = []
+    self._short_name = None
+    self._summary_options = {
+        'avg': True,
+        'geometricMean': False,
+        'std': True,
+        'count': True,
+        'sum': True,
+        'min': True,
+        'max': True,
+        'nans': False,
+        'percentile': [],
+    }
+    self._unit = unit
+
+    for rang in bin_boundaries.bin_ranges:
+      self._bins.append(HistogramBin(rang))
+
+    self._max_num_sample_values = self._GetDefaultMaxNumSampleValues()
+
+  @property
+  def unit(self):
+    return self._unit
+
+  @property
+  def running(self):
+    return self._running
+
+  @property
+  def max_num_sample_values(self):
+    return self._max_num_sample_values
+
+  @max_num_sample_values.setter
+  def max_num_sample_values(self, n):
+    self._max_num_sample_values = n
+    UniformlySampleArray(self._sample_values, self._max_num_sample_values)
+
+  @property
+  def sample_values(self):
+    return self._sample_values
+
+  @property
+  def name(self):
+    return self._name
+
+  @property
+  def short_name(self):
+    return self._short_name
+
+  @property
+  def guid(self):
+    if self._guid is None:
+      self._guid = str(uuid.uuid4())
+    return self._guid
+
+  @guid.setter
+  def guid(self, g):
+    assert self._guid is None
+    self._guid = g
+
+  @property
+  def bins(self):
+    return self._bins
+
+  @staticmethod
+  def FromDict(dct):
+    boundaries = HistogramBinBoundaries.FromDict(dct.get('binBoundaries'))
+    hist = Histogram(dct['name'], dct['unit'], boundaries)
+    hist.guid = dct['guid']
+    if 'shortName' in dct:
+      hist._short_name = dct['shortName']
+    if 'description' in dct:
+      hist._description = dct['description']
+    if 'allBins' in dct:
+      if isinstance(dct['allBins'], list):
+        for i, bin_dct in enumerate(dct['allBins']):
+          hist._bins[i].FromDict(bin_dct)
+      else:
+        for i, bin_dct in dct['allBins'].iteritems():
+          hist._bins[int(i)].FromDict(bin_dct)
+    if 'running' in dct:
+      hist._running = RunningStatistics.FromDict(dct['running'])
+    if 'summaryOptions' in dct:
+      hist.CustomizeSummaryOptions(dct['summaryOptions'])
+    if 'maxNumSampleValues' in dct:
+      hist._max_num_sample_values = dct['maxNumSampleValues']
+    if 'sampleValues' in dct:
+      hist._sample_values = dct['sampleValues']
+    if 'numNans' in dct:
+      hist._num_nans = dct['numNans']
+    return hist
+
+  @property
+  def num_values(self):
+    if self._running is None:
+      return 0
+    return self._running.count
+
+  @property
+  def num_nans(self):
+    return self._num_nans
+
+  @property
+  def average(self):
+    if self._running is None:
+      return None
+    return self._running.mean
+
+  @property
+  def standard_deviation(self):
+    if self._running is None:
+      return None
+    return self._running.stddev
+
+  @property
+  def geometric_mean(self):
+    if self._running is None:
+      return 0
+    return self._running.geometric_mean
+
+  @property
+  def sum(self):
+    if self._running is None:
+      return 0
+    return self._running.sum
+
+  def GetApproximatePercentile(self, percent):
+    if percent < 0 or percent > 1:
+      raise Exception('percent must be in [0,1]')
+    if self.num_values == 0:
+      return 0
+    if len(self._bins) == 1:
+      sorted_sample_values = list(self._sample_values)
+      sorted_sample_values.sort()
+      return sorted_sample_values[
+          int((len(sorted_sample_values) - 1) * percent)]
+    values_to_skip = math.floor((self.num_values - 1) * percent)
+    for hbin in self._bins:
+      values_to_skip -= hbin.count
+      if values_to_skip >= 0:
+        continue
+      if hbin.range.min == -JS_MAX_VALUE:
+        return hbin.range.max
+      elif hbin.range.max == JS_MAX_VALUE:
+        return hbin.range.min
+      else:
+        return hbin.range.center
+    return self._bins[len(self._bins) - 1].range.min
+
+  def GetBinForValue(self, value):
+    index = FindHighIndexInSortedArray(
+        self._bins, lambda b: (-1 if (value < b.range.max) else 1))
+    if 0 <= index < len(self._bins):
+      return self._bins[index]
+    return self._bins[len(self._bins) - 1]
+
+  def AddSample(self, value):
+    if not isinstance(value, (int, float)) or math.isnan(value):
+      self._num_nans += 1
+    else:
+      if self._running is None:
+        self._running = RunningStatistics()
+      self._running.Add(value)
+
+      hbin = self.GetBinForValue(value)
+      hbin.AddSample(value)
+    UniformlySampleStream(self._sample_values, self.num_values + self.num_nans,
+                          value, self.max_num_sample_values)
+
+  def CanAddHistogram(self, other):
+    if self.unit != other.unit:
+      return False
+    return self._bin_boundaries_dict == other._bin_boundaries_dict
+
+  def AddHistogram(self, other):
+    if not self.CanAddHistogram(other):
+      raise 'Merging incompatible Histograms'
+
+    MergeSampledStreams(
+        self.sample_values, self.num_values,
+        other.sample_values, other.num_values,
+        (self.max_num_sample_values + other.max_num_sample_values) / 2)
+    self._num_nans += other._num_nans
+
+    if other.running is not None:
+      if self.running is None:
+        self._running = RunningStatistics()
+      self._running = self._running.Merge(other.running)
+
+    for i, hbin in enumerate(other.bins):
+      self.bins[i].AddBin(hbin)
+
+  def CustomizeSummaryOptions(self, options):
+    for key, value in options.iteritems():
+      self._summary_options[key] = value
+
+  def Clone(self):
+    return Histogram.FromDict(self.AsDict())
+
+  def CloneEmpty(self):
+    return Histogram(self.name, self.unit, HistogramBinBoundaries.FromDict(
+        self._bin_boundaries_dict))
+
+  @property
+  def statistics_scalars(self):
+    results = {}
+    for stat_name, option in self._summary_options.iteritems():
+      if not option:
+        continue
+      if stat_name == 'percentile':
+        for percent in option:
+          percentile = self.GetApproximatePercentile(percent)
+          results['pct_' + PercentToString(percent)] = Scalar(
+              self.unit, percentile)
+      elif stat_name == 'nans':
+        results['nans'] = Scalar('count', self.num_nans)
+      else:
+        if stat_name == 'count':
+          stat_unit = 'count'
+        else:
+          stat_unit = self.unit
+        if stat_name == 'std':
+          key = 'stddev'
+        elif stat_name == 'avg':
+          key = 'mean'
+        elif stat_name == 'geometricMean':
+          key = 'geometric_mean'
+        else:
+          key = stat_name
+        if self._running is None:
+          self._running = RunningStatistics()
+        stat_value = getattr(self._running, key)
+        if isinstance(stat_value, (int, float)):
+          results[stat_name] = Scalar(stat_unit, stat_value)
+    return results
+
+  def AsDict(self):
+    dct = {'name': self.name, 'unit': self.unit, 'guid': self.guid}
+    if self._bin_boundaries_dict is not None:
+      dct['binBoundaries'] = self._bin_boundaries_dict
+    if self._short_name:
+      dct['shortName'] = self._short_name
+    if self._description:
+      dct['description'] = self._description
+    if self.max_num_sample_values != self._GetDefaultMaxNumSampleValues():
+      dct['maxNumSampleValues'] = self.max_num_sample_values
+    if self.num_nans:
+      dct['numNans'] = self.num_nans
+    if self.num_values:
+      dct['sampleValues'] = list(self.sample_values)
+      dct['running'] = self._running.AsDict()
+      dct['allBins'] = self._GetAllBinsAsDict()
+      if dct['allBins'] is None:
+        del dct['allBins']
+
+    summary_options = {}
+    any_overridden_summary_options = False
+    for name, option in self._summary_options.iteritems():
+      if name == 'percentile':
+        if len(option) == 0:
+          continue
+      elif option == DEFAULT_SUMMARY_OPTIONS[name]:
+        continue
+      summary_options[name] = option
+      any_overridden_summary_options = True
+    if any_overridden_summary_options:
+      dct['summaryOptions'] = summary_options
+    return dct
+
+  def _GetAllBinsAsDict(self):
+    num_bins = len(self._bins)
+    empty_bins = 0
+    for hbin in self._bins:
+      if hbin.count == 0:
+        empty_bins += 1
+    if empty_bins == num_bins:
+      return None
+
+    if empty_bins > (num_bins / 2):
+      all_bins_dict = {}
+      for i, hbin in enumerate(self._bins):
+        if hbin.count > 0:
+          all_bins_dict[i] = hbin.AsDict()
+      return all_bins_dict
+
+    all_bins_list = []
+    for hbin in self._bins:
+      all_bins_list.append(hbin.AsDict())
+    return all_bins_list
+
+  def _GetDefaultMaxNumSampleValues(self):
+    return len(self._bins) * 10
+
+
+class HistogramBinBoundaries(object):
+  CACHE = {}
+  SLICE_TYPE_LINEAR = 0
+  SLICE_TYPE_EXPONENTIAL = 1
+
+  def __init__(self, min_bin_boundary):
+    self._builder = [min_bin_boundary]
+    self._range = Range()
+    self._range.AddValue(min_bin_boundary)
+    self._bin_ranges = None
+
+  @property
+  def range(self):
+    return self._range
+
+  @staticmethod
+  def FromDict(dct):
+    if dct is None:
+      return HistogramBinBoundaries.SINGULAR
+
+    cache_key = json.dumps(dct)
+    if cache_key in HistogramBinBoundaries.CACHE:
+      return HistogramBinBoundaries.CACHE[cache_key]
+
+    bin_boundaries = HistogramBinBoundaries(dct[0])
+    for slic in dct[1:]:
+      if not isinstance(slic, list):
+        bin_boundaries.AddBinBoundary(slic)
+        continue
+      if slic[0] == HistogramBinBoundaries.SLICE_TYPE_LINEAR:
+        bin_boundaries.AddLinearBins(slic[1], slic[2])
+      elif slic[0] == HistogramBinBoundaries.SLICE_TYPE_EXPONENTIAL:
+        bin_boundaries.AddExponentialBins(slic[1], slic[2])
+      else:
+        raise 'Unrecognized HistogramBinBoundaries slice type'
+
+    HistogramBinBoundaries.CACHE[cache_key] = bin_boundaries
+    return bin_boundaries
+
+  def AsDict(self):
+    if len(self._builder) == 1 and self._builder[0] == JS_MAX_VALUE:
+      return None
+    return self._builder
+
+  @staticmethod
+  def CreateExponential(lower, upper, num_bins):
+    return HistogramBinBoundaries(lower).AddExponentialBins(upper, num_bins)
+
+  @staticmethod
+  def CreateLinear(lower, upper, num_bins):
+    return HistogramBinBoundaries(lower).AddLinearBins(upper, num_bins)
+
+  def _PushBuilderSlice(self, slic):
+    self._builder += [slic]
+
+  def AddBinBoundary(self, next_max_bin_boundary):
+    if next_max_bin_boundary <= self.range.max:
+      raise ('The added max bin boundary must be larger than ' +
+             'the current max boundary')
+    self._bin_ranges = None
+    self._PushBuilderSlice(next_max_bin_boundary)
+    self.range.AddValue(next_max_bin_boundary)
+    return self
+
+  def AddLinearBins(self, next_max_bin_boundary, bin_count):
+    if bin_count <= 0:
+      raise 'Bin count must be positive'
+    if next_max_bin_boundary <= self.range.max:
+      raise ('The new max bin boundary must be greater than ' +
+             'the previous max bin boundary')
+
+    self._bin_ranges = None
+    self._PushBuilderSlice([
+        HistogramBinBoundaries.SLICE_TYPE_LINEAR,
+        next_max_bin_boundary, bin_count])
+    self.range.AddValue(next_max_bin_boundary)
+    return self
+
+  def AddExponentialBins(self, next_max_bin_boundary, bin_count):
+    if bin_count <= 0:
+      raise 'Bin count must be positive'
+    if self.range.max <= 0:
+      raise 'Current max bin boundary must be positive'
+    if self.range.max >= next_max_bin_boundary:
+      raise ('The last added max boundary must be greater than ' +
+             'the current max boundary boundary')
+
+    self._bin_ranges = None
+
+    self._PushBuilderSlice([
+        HistogramBinBoundaries.SLICE_TYPE_EXPONENTIAL,
+        next_max_bin_boundary, bin_count])
+    self.range.AddValue(next_max_bin_boundary)
+    return self
+
+  @property
+  def bin_ranges(self):
+    if self._bin_ranges is None:
+      self._Build()
+    return self._bin_ranges
+
+  def _Build(self):
+    if not isinstance(self._builder[0], (int, float)):
+      raise 'Invalid start of builder_'
+
+    self._bin_ranges = []
+    prev_boundary = self._builder[0]
+    if prev_boundary > -JS_MAX_VALUE:
+      # underflow bin
+      self._bin_ranges.append(Range.FromExplicitRange(
+          -JS_MAX_VALUE, prev_boundary))
+
+    for slic in self._builder[1:]:
+      if not isinstance(slic, list):
+        self._bin_ranges.append(Range.FromExplicitRange(
+            prev_boundary, slic))
+        prev_boundary = slic
+        continue
+
+      next_max_bin_boundary = float(slic[1])
+      bin_count = slic[2]
+      slice_min_bin_boundary = float(prev_boundary)
+
+      if slic[0] == self.SLICE_TYPE_LINEAR:
+        bin_width = (next_max_bin_boundary - prev_boundary) / bin_count
+        for i in xrange(1, bin_count):
+          boundary = slice_min_bin_boundary + (i * bin_width)
+          self._bin_ranges.append(Range.FromExplicitRange(
+              prev_boundary, boundary))
+          prev_boundary = boundary
+      elif slic[0] == self.SLICE_TYPE_EXPONENTIAL:
+        bin_exponent_width = (
+            math.log(next_max_bin_boundary / prev_boundary) / bin_count)
+        for i in xrange(1, bin_count):
+          boundary = slice_min_bin_boundary * math.exp(i * bin_exponent_width)
+          self._bin_ranges.append(Range.FromExplicitRange(
+              prev_boundary, boundary))
+          prev_boundary = boundary
+      else:
+        raise 'Unrecognized HistogramBinBoundaries slice type'
+
+      self._bin_ranges.append(Range.FromExplicitRange(
+          prev_boundary, next_max_bin_boundary))
+      prev_boundary = next_max_bin_boundary
+
+    if prev_boundary < JS_MAX_VALUE:
+      # overflow bin
+      self._bin_ranges.append(Range.FromExplicitRange(
+          prev_boundary, JS_MAX_VALUE))
+
+
+HistogramBinBoundaries.SINGULAR = HistogramBinBoundaries(JS_MAX_VALUE)
+
+DEFAULT_BOUNDARIES_FOR_UNIT = {
+    'ms': HistogramBinBoundaries.CreateExponential(1e-3, 1e6, 1e2),
+    'tsMs': HistogramBinBoundaries.CreateLinear(0, 1e10, 1e3),
+    'n%': HistogramBinBoundaries.CreateLinear(0, 1.0, 20),
+    'sizeInBytes': HistogramBinBoundaries.CreateExponential(1, 1e12, 1e2),
+    'J': HistogramBinBoundaries.CreateExponential(1e-3, 1e3, 50),
+    'W': HistogramBinBoundaries.CreateExponential(1e-3, 1, 50),
+    'unitless': HistogramBinBoundaries.CreateExponential(1e-3, 1e3, 50),
+    'count': HistogramBinBoundaries.CreateExponential(1, 1e3, 20),
+    'sigma': HistogramBinBoundaries.CreateLinear(-5, 5, 50),
+}
