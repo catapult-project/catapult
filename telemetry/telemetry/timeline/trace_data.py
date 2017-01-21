@@ -109,7 +109,11 @@ class TraceData(object):
     assert isinstance(part, TraceDataPart)
     traces = self._raw_data[part.raw_field_name]
     assert len(traces) == 1
-    return traces[0]
+    if isinstance(traces[0], TraceFileHandle):
+      return traces[0].AsTraceData()
+    else:
+      return traces[0]
+
 
   # TODO(nedn): unifying this code with
   # telemetry.value.trace.TraceValue._GetTempFileHandle so that we have one
@@ -163,6 +167,7 @@ class TraceFileHandle(object):
   def __init__(self):
     self._backing_file = None
     self._file_path = None
+    self._trace_data = None
 
   def Open(self):
     assert not self._backing_file and not self._file_path
@@ -184,12 +189,30 @@ class TraceFileHandle(object):
     self._file_path = self._backing_file.name
     self._backing_file = None
 
+  def AsTraceData(self):
+    """Get the object form of trace data that this handle manages.
+
+    *Warning: this can have large memory footprint if the trace data is big.
+
+    Since this requires the in-memory form of the trace, it is no longer useful
+    to still keep the backing file underneath, invoking this will also discard
+    the file to avoid the risk of leaking the backing trace file.
+    """
+    if self._trace_data:
+      return self._trace_data
+    assert self._file_path
+    with open(self._file_path) as f:
+      self._trace_data = json.load(f)
+    self.Clean()
+    return self._trace_data
+
   def Clean(self):
     """Remove the backing file used for storing trace on disk.
 
     This should be called when and only when you no longer need to use
     TraceFileHandle.
     """
+    assert self._file_path
     os.remove(self._file_path)
     self._file_path = None
 
