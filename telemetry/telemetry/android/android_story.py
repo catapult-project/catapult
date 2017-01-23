@@ -7,20 +7,19 @@ from telemetry import story
 
 class AndroidStory(story.Story):
   def __init__(self, start_intent, is_app_ready_predicate=None,
-               name='', labels=None, tags=None, is_local=False):
+               name='', tags=None, is_local=False):
     """Creates a new story for Android app.
 
     Args:
       start_intent: See AndroidPlatform.LaunchAndroidApplication.
       is_app_ready_predicate: See AndroidPlatform.LaunchAndroidApplication.
       name: See Story.__init__.
-      labels: See Story.__init__.
       tags: See Story.__init__
       is_app_ready_predicate: See Story.__init__.
     """
     super(AndroidStory, self).__init__(
-        shared_android_state.SharedAndroidState, name=name, labels=labels,
-        tags=tags, is_local=is_local)
+        shared_android_state.SharedAndroidState, name=name, tags=tags,
+        is_local=is_local)
     self.start_intent = start_intent
     self.is_app_ready_predicate = is_app_ready_predicate
 

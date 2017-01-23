@@ -29,12 +29,9 @@ class FilterTest(unittest.TestCase):
     class Options(object):
       def __init__(
           self, story_filter=None, story_filter_exclude=None,
-          story_label_filter=None, story_label_filter_exclude=None,
           story_tag_filter=None, story_tag_filter_exclude=None):
         self.story_filter = story_filter
         self.story_filter_exclude = story_filter_exclude
-        self.story_label_filter = story_label_filter
-        self.story_label_filter_exclude = story_label_filter_exclude
         self.story_tag_filter = story_tag_filter
         self.story_tag_filter_exclude = story_tag_filter_exclude
     story_filter_module.StoryFilter.ProcessCommandLineArgs(
