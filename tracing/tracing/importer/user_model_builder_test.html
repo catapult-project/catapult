@@ -33,8 +33,8 @@ tr.b.unittest.testSuite(function() {
     var verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
     };
-    verifier.expectedUEs = [
-    ];
+    verifier.expectedUEs = [];
+    verifier.expectedSegments = [];
     verifier.verify();
   });
 
@@ -53,6 +53,11 @@ tr.b.unittest.testSuite(function() {
       {title: 'Idle', start: 100, end: 200, eventCount: 0},
       {title: 'Video Animation', start: 200, end: 300, eventCount: 2},
     ];
+    verifier.expectedSegments = [
+      {start: 0, end: 100, expectations: [verifier.expectedUEs[0]]},
+      {start: 100, end: 200, expectations: [verifier.expectedUEs[1]]},
+      {start: 200, end: 300, expectations: [verifier.expectedUEs[2]]},
+    ];
     verifier.verify();
   });
 
@@ -69,6 +74,9 @@ tr.b.unittest.testSuite(function() {
     verifier.expectedUEs = [
       {title: 'Video Animation', start: 0, end: 300, eventCount: 4},
     ];
+    verifier.expectedSegments = [
+      {start: 0, end: 300, expectations: [verifier.expectedUEs[0]]},
+    ];
     verifier.verify();
   });
 
@@ -84,6 +92,9 @@ tr.b.unittest.testSuite(function() {
     };
     verifier.expectedUEs = [
       {title: 'Video Animation', start: 0, end: 300, eventCount: 4},
+    ];
+    verifier.expectedSegments = [
+      {start: 0, end: 300, expectations: [verifier.expectedUEs[0]]},
     ];
     verifier.verify();
   });
@@ -113,6 +124,14 @@ tr.b.unittest.testSuite(function() {
       {title: 'Idle', start: 80, end: 130, eventCount: 0},
       {title: 'Mouse Response', start: 130, end: 140, eventCount: 3}
     ];
+    verifier.expectedSegments = [
+      {start: 0, end: 10, expectations: [verifier.expectedUEs[0]]},
+      {start: 10, end: 20, expectations: [verifier.expectedUEs[1]]},
+      {start: 20, end: 70, expectations: [verifier.expectedUEs[2]]},
+      {start: 70, end: 80, expectations: [verifier.expectedUEs[3]]},
+      {start: 80, end: 130, expectations: [verifier.expectedUEs[4]]},
+      {start: 130, end: 140, expectations: [verifier.expectedUEs[5]]}
+    ];
     verifier.verify();
   });
 
@@ -137,6 +156,12 @@ tr.b.unittest.testSuite(function() {
       {title: 'Idle', start: 100, end: 200, eventCount: 0},
       {title: 'Mouse Response', start: 200, end: 250, eventCount: 3}
     ];
+    verifier.expectedSegments = [
+      {start: 0, end: 50, expectations: [verifier.expectedUEs[0]]},
+      {start: 50, end: 100, expectations: [verifier.expectedUEs[1]]},
+      {start: 100, end: 200, expectations: [verifier.expectedUEs[2]]},
+      {start: 200, end: 250, expectations: [verifier.expectedUEs[3]]}
+    ];
     verifier.verify();
   });
 
@@ -150,6 +175,9 @@ tr.b.unittest.testSuite(function() {
     };
     verifier.expectedUEs = [
       {title: 'Idle', start: 0, end: 100, eventCount: 0}
+    ];
+    verifier.expectedSegments = [
+      {start: 0, end: 100, expectations: [verifier.expectedUEs[0]]}
     ];
     verifier.verify();
   });
@@ -173,6 +201,9 @@ tr.b.unittest.testSuite(function() {
     verifier.expectedUEs = [
       {title: 'Idle', start: 0, end: 10, eventCount: 2}
     ];
+    verifier.expectedSegments = [
+      {start: 0, end: 10, expectations: [verifier.expectedUEs[0]]}
+    ];
     verifier.verify();
   });
 
@@ -186,6 +217,10 @@ tr.b.unittest.testSuite(function() {
     verifier.expectedUEs = [
       {title: 'Idle', start: 0, end: 10, eventCount: 1},
       {title: 'Successful Load', start: 10, end: 20, eventCount: 1}
+    ];
+    verifier.expectedSegments = [
+      {start: 0, end: 10, expectations: [verifier.expectedUEs[0]]},
+      {start: 10, end: 20, expectations: [verifier.expectedUEs[1]]},
     ];
     verifier.verify();
   });
@@ -208,6 +243,11 @@ tr.b.unittest.testSuite(function() {
       {title: 'Idle', start: 0, end: 10, eventCount: 4},
       {title: 'Successful Load', start: 10, end: 30, eventCount: 0},
       {title: 'Idle', start: 30, end: 40, eventCount: 2}
+    ];
+    verifier.expectedSegments = [
+      {start: 0, end: 10, expectations: [verifier.expectedUEs[0]]},
+      {start: 10, end: 30, expectations: [verifier.expectedUEs[1]]},
+      {start: 30, end: 40, expectations: [verifier.expectedUEs[2]]},
     ];
     verifier.verify();
   });
@@ -294,6 +334,22 @@ tr.b.unittest.testSuite(function() {
       {title: 'Fling Animation', start: 2605, end: 3000,
           eventCount: 4}
     ];
+    verifier.expectedSegments = [
+      {start: 0, end: 919, expectations: [verifier.expectedUEs[0]]},
+      {start: 919, end: 1054, expectations: [verifier.expectedUEs[1]]},
+      {start: 1054, end: 1068, expectations: [
+        verifier.expectedUEs[2],
+        verifier.expectedUEs[3],
+      ]},
+      {start: 1068, end: 1432, expectations: [verifier.expectedUEs[3]]},
+      {start: 1432, end: 1549, expectations: [verifier.expectedUEs[4]]},
+      {start: 1549, end: 2310, expectations: [
+        verifier.expectedUEs[4],
+        verifier.expectedUEs[5],
+      ]},
+      {start: 2310, end: 2605, expectations: [verifier.expectedUEs[4]]},
+      {start: 2605, end: 3000, expectations: [verifier.expectedUEs[6]]},
+    ];
     verifier.verify();
   });
 
@@ -307,6 +363,9 @@ tr.b.unittest.testSuite(function() {
     };
     verifier.expectedUEs = [
       {title: 'Keyboard Response', start: 0, end: 50, eventCount: 2}
+    ];
+    verifier.expectedSegments = [
+      {start: 0, end: 50, expectations: [verifier.expectedUEs[0]]}
     ];
     verifier.verify();
   });
@@ -328,6 +387,13 @@ tr.b.unittest.testSuite(function() {
       {title: 'Idle', start: 300, end: 400, eventCount: 0},
       {title: 'MouseWheel Response', start: 400, end: 500,
           eventCount: 1}
+    ];
+    verifier.expectedSegments = [
+      {start: 0, end: 100, expectations: [verifier.expectedUEs[0]]},
+      {start: 100, end: 200, expectations: [verifier.expectedUEs[1]]},
+      {start: 200, end: 300, expectations: [verifier.expectedUEs[2]]},
+      {start: 300, end: 400, expectations: [verifier.expectedUEs[3]]},
+      {start: 400, end: 500, expectations: [verifier.expectedUEs[4]]},
     ];
     verifier.verify();
   });
@@ -374,6 +440,22 @@ tr.b.unittest.testSuite(function() {
       {title: 'MouseWheel Response', start: 182, end: 200,
           eventCount: 1}
     ];
+    verifier.expectedSegments = [
+      {start: 0, end: 20, expectations: [verifier.expectedUEs[0]]},
+      {start: 20, end: 75, expectations: [verifier.expectedUEs[1]]},
+      {start: 75, end: 100, expectations: [verifier.expectedUEs[2]]},
+      {start: 100, end: 141, expectations: [verifier.expectedUEs[3]]},
+      {start: 141, end: 150, expectations: [
+        verifier.expectedUEs[3],
+        verifier.expectedUEs[4],
+      ]},
+      {start: 150, end: 182, expectations: [verifier.expectedUEs[4]]},
+      {start: 182, end: 191, expectations: [
+        verifier.expectedUEs[4],
+        verifier.expectedUEs[5],
+      ]},
+      {start: 191, end: 200, expectations: [verifier.expectedUEs[5]]},
+    ];
     verifier.verify();
   });
 
@@ -389,6 +471,10 @@ tr.b.unittest.testSuite(function() {
       {title: 'Idle', start: 0, end: 200, eventCount: 0},
       {title: 'Mouse Response', start: 200, end: 210, eventCount: 2}
     ];
+    verifier.expectedSegments = [
+      {start: 0, end: 200, expectations: [verifier.expectedUEs[0]]},
+      {start: 200, end: 210, expectations: [verifier.expectedUEs[1]]},
+    ];
     verifier.verify();
   });
 
@@ -400,6 +486,9 @@ tr.b.unittest.testSuite(function() {
     };
     verifier.expectedUEs = [
       {title: 'Idle', start: 0, end: 100, eventCount: 0}
+    ];
+    verifier.expectedSegments = [
+      {start: 0, end: 100, expectations: [verifier.expectedUEs[0]]}
     ];
     verifier.verify();
   });
@@ -423,6 +512,11 @@ tr.b.unittest.testSuite(function() {
       {title: 'Idle', start: 0, end: 200, eventCount: 0},
       {title: 'Mouse Response', start: 200, end: 215, eventCount: 4},
       {title: 'Mouse Animation', start: 215, end: 240, eventCount: 6}
+    ];
+    verifier.expectedSegments = [
+      {start: 0, end: 200, expectations: [verifier.expectedUEs[0]]},
+      {start: 200, end: 215, expectations: [verifier.expectedUEs[1]]},
+      {start: 215, end: 240, expectations: [verifier.expectedUEs[2]]},
     ];
     verifier.verify();
   });
@@ -466,6 +560,13 @@ tr.b.unittest.testSuite(function() {
           isAnimationBegin: true},
       {title: 'Scroll Animation', start: 400, end: 500, eventCount: 5}
     ];
+    verifier.expectedSegments = [
+      {start: 0, end: 100, expectations: [verifier.expectedUEs[0]]},
+      {start: 100, end: 150, expectations: [verifier.expectedUEs[1]]},
+      {start: 150, end: 300, expectations: [verifier.expectedUEs[2]]},
+      {start: 300, end: 400, expectations: [verifier.expectedUEs[3]]},
+      {start: 400, end: 500, expectations: [verifier.expectedUEs[4]]},
+    ];
     verifier.verify();
   });
 
@@ -492,6 +593,9 @@ tr.b.unittest.testSuite(function() {
     };
     verifier.expectedUEs = [
       {title: 'WebGL Animation', start: 0, end: 62, eventCount: 4},
+    ];
+    verifier.expectedSegments = [
+      {start: 0, end: 62, expectations: [verifier.expectedUEs[0]]}
     ];
     verifier.verify();
   });
@@ -537,6 +641,11 @@ tr.b.unittest.testSuite(function() {
       {title: 'Idle', start: 62, end: 220, eventCount: 0},
       {title: 'WebGL Animation', start: 220, end: 262, eventCount: 3}
     ];
+    verifier.expectedSegments = [
+      {start: 0, end: 62, expectations: [verifier.expectedUEs[0]]},
+      {start: 62, end: 220, expectations: [verifier.expectedUEs[1]]},
+      {start: 220, end: 262, expectations: [verifier.expectedUEs[2]]},
+    ];
     verifier.verify();
   });
 
@@ -571,6 +680,10 @@ tr.b.unittest.testSuite(function() {
       {title: 'WebGL Animation', start: 0, end: 62, eventCount: 4},
       {title: 'Idle', start: 62, end: 262, eventCount: 0},
     ];
+    verifier.expectedSegments = [
+      {start: 0, end: 62, expectations: [verifier.expectedUEs[0]]},
+      {start: 62, end: 262, expectations: [verifier.expectedUEs[1]]},
+    ];
     verifier.verify();
   });
 
@@ -595,6 +708,9 @@ tr.b.unittest.testSuite(function() {
     verifier.expectedUEs = [
       {title: 'Idle', start: 0, end: 262, eventCount: 0},
     ];
+    verifier.expectedSegments = [
+      {start: 0, end: 262, expectations: [verifier.expectedUEs[0]]},
+    ];
     verifier.verify();
   });
 
@@ -614,6 +730,9 @@ tr.b.unittest.testSuite(function() {
     verifier.expectedUEs = [
       {title: 'Idle', start: 0, end: 42, eventCount: 0},
     ];
+    verifier.expectedSegments = [
+      {start: 0, end: 42, expectations: [verifier.expectedUEs[0]]},
+    ];
     verifier.verify();
   });
 
@@ -629,6 +748,10 @@ tr.b.unittest.testSuite(function() {
     verifier.expectedUEs = [
       {title: 'WebGL Animation', start: 0, end: 2, eventCount: 1},
       {title: 'Idle', start: 2, end: 6, eventCount: 0},
+    ];
+    verifier.expectedSegments = [
+      {start: 0, end: 2, expectations: [verifier.expectedUEs[0]]},
+      {start: 2, end: 6, expectations: [verifier.expectedUEs[1]]},
     ];
     verifier.verify();
   });
@@ -652,6 +775,14 @@ tr.b.unittest.testSuite(function() {
     verifier.expectedUEs = [
       {title: 'CSS Animation', start: 0, end: 200, eventCount: 4},
       {title: 'Fling Animation', start: 150, end: 300, eventCount: 3}
+    ];
+    verifier.expectedSegments = [
+      {start: 0, end: 150, expectations: [verifier.expectedUEs[0]]},
+      {start: 150, end: 200, expectations: [
+        verifier.expectedUEs[0],
+        verifier.expectedUEs[1],
+      ]},
+      {start: 200, end: 300, expectations: [verifier.expectedUEs[1]]},
     ];
     verifier.verify();
   });
@@ -687,6 +818,13 @@ tr.b.unittest.testSuite(function() {
       {title: 'Idle', start: 200, end: 300, eventCount: 1},
       {title: 'CSS Animation', start: 300, end: 500, eventCount: 6},
       {title: 'Idle', start: 500, end: 1060, eventCount: 1},
+    ];
+    verifier.expectedSegments = [
+      {start: 0, end: 100, expectations: [verifier.expectedUEs[0]]},
+      {start: 100, end: 200, expectations: [verifier.expectedUEs[1]]},
+      {start: 200, end: 300, expectations: [verifier.expectedUEs[2]]},
+      {start: 300, end: 500, expectations: [verifier.expectedUEs[3]]},
+      {start: 500, end: 1060, expectations: [verifier.expectedUEs[4]]},
     ];
     verifier.verify();
   });
@@ -751,6 +889,11 @@ tr.b.unittest.testSuite(function() {
       {title: 'Idle', start: 350, end: 382, eventCount: 0},
       {title: 'CSS Animation', start: 382, end: 500, eventCount: 4},
     ];
+    verifier.expectedSegments = [
+      {start: 0, end: 350, expectations: [verifier.expectedUEs[0]]},
+      {start: 350, end: 382, expectations: [verifier.expectedUEs[1]]},
+      {start: 382, end: 500, expectations: [verifier.expectedUEs[2]]},
+    ];
     verifier.verify();
   });
 
@@ -766,6 +909,10 @@ tr.b.unittest.testSuite(function() {
     verifier.expectedUEs = [
       {title: 'Fling Animation', start: 32, end: 200, eventCount: 3},
       {title: 'Idle', start: 200, end: 300, eventCount: 1}
+    ];
+    verifier.expectedSegments = [
+      {start: 32, end: 200, expectations: [verifier.expectedUEs[0]]},
+      {start: 200, end: 300, expectations: [verifier.expectedUEs[1]]},
     ];
     verifier.verify();
   });
@@ -783,6 +930,10 @@ tr.b.unittest.testSuite(function() {
     verifier.expectedUEs = [
       {title: 'Fling Animation', start: 32, end: 105, eventCount: 3},
       {title: 'Idle', start: 105, end: 150, eventCount: 1}
+    ];
+    verifier.expectedSegments = [
+      {start: 32, end: 105, expectations: [verifier.expectedUEs[0]]},
+      {start: 105, end: 150, expectations: [verifier.expectedUEs[1]]},
     ];
     verifier.verify();
   });
@@ -816,6 +967,16 @@ tr.b.unittest.testSuite(function() {
       {title: 'Touch Animation', start: 140, end: 210, eventCount: 3},
       {title: 'Fling Animation', start: 200, end: 240, eventCount: 2}
     ];
+    verifier.expectedSegments = [
+      {start: 0, end: 100, expectations: [verifier.expectedUEs[0]]},
+      {start: 100, end: 140, expectations: [verifier.expectedUEs[1]]},
+      {start: 140, end: 200, expectations: [verifier.expectedUEs[2]]},
+      {start: 200, end: 210, expectations: [
+        verifier.expectedUEs[2],
+        verifier.expectedUEs[3],
+      ]},
+      {start: 210, end: 240, expectations: [verifier.expectedUEs[3]]},
+    ];
     verifier.verify();
   });
 
@@ -828,6 +989,9 @@ tr.b.unittest.testSuite(function() {
     verifier.expectedUEs = [
       {title: 'Successful Load', start: 0, end: 20, eventCount: 0}
     ];
+    verifier.expectedSegments = [
+      {start: 0, end: 20, expectations: [verifier.expectedUEs[0]]},
+    ];
     verifier.verify();
   });
 
@@ -836,13 +1000,18 @@ tr.b.unittest.testSuite(function() {
     verifier.customizeModelCallback = function(model) {
       ChromeTestUtils.addRenderingEvent(model, {start: 2, end: 3});
       ChromeTestUtils.addCreateThreadsEvent(model, {start: 5, end: 10});
-      // Throw an second one in there, just to try to confuse the algo.
+      // findStartupExpectations() should ignore subsequent CreateThreads
+      // events.
       ChromeTestUtils.addCreateThreadsEvent(model, {start: 25, end: 30});
       ChromeTestUtils.addFrameEvent(model, {start: 11, end: 20});
     };
     verifier.expectedUEs = [
       {title: 'Startup', start: 2, end: 20, eventCount: 3},
       {title: 'Idle', start: 20, end: 30, eventCount: 1}
+    ];
+    verifier.expectedSegments = [
+      {start: 2, end: 20, expectations: [verifier.expectedUEs[0]]},
+      {start: 20, end: 30, expectations: [verifier.expectedUEs[1]]},
     ];
     verifier.verify();
   });
@@ -854,6 +1023,9 @@ tr.b.unittest.testSuite(function() {
     };
     verifier.expectedUEs = [
       {title: 'Idle', start: 0, end: 10, eventCount: 1}
+    ];
+    verifier.expectedSegments = [
+      {start: 0, end: 10, expectations: [verifier.expectedUEs[0]]},
     ];
     verifier.verify();
   });
@@ -871,6 +1043,11 @@ tr.b.unittest.testSuite(function() {
       {title: 'Successful Load', start: 1, end: 4, eventCount: 0},
       {title: 'Idle', start: 4, end: 13, eventCount: 1}
     ];
+    verifier.expectedSegments = [
+      {start: 0, end: 1, expectations: [verifier.expectedUEs[0]]},
+      {start: 1, end: 4, expectations: [verifier.expectedUEs[1]]},
+      {start: 4, end: 13, expectations: [verifier.expectedUEs[2]]},
+    ];
     verifier.verify();
   });
 
@@ -885,6 +1062,9 @@ tr.b.unittest.testSuite(function() {
     verifier.expectedUEs = [
       {title: 'Touch Response', start: 0, end: 210, eventCount: 2,
           isAnimationBegin: true}
+    ];
+    verifier.expectedSegments = [
+      {start: 0, end: 210, expectations: [verifier.expectedUEs[0]]},
     ];
     verifier.verify();
   });
@@ -907,6 +1087,10 @@ tr.b.unittest.testSuite(function() {
           isAnimationBegin: true},
       {title: 'Touch Animation', start: 100, end: 300, eventCount: 3}
     ];
+    verifier.expectedSegments = [
+      {start: 0, end: 100, expectations: [verifier.expectedUEs[0]]},
+      {start: 100, end: 300, expectations: [verifier.expectedUEs[1]]},
+    ];
     verifier.verify();
   });
 
@@ -925,6 +1109,11 @@ tr.b.unittest.testSuite(function() {
       {title: 'Idle', start: 50, end: 300, eventCount: 0},
       {title: 'Tap Response', start: 300, end: 350, eventCount: 2}
     ];
+    verifier.expectedSegments = [
+      {start: 0, end: 50, expectations: [verifier.expectedUEs[0]]},
+      {start: 50, end: 300, expectations: [verifier.expectedUEs[1]]},
+      {start: 300, end: 350, expectations: [verifier.expectedUEs[2]]},
+    ];
     verifier.verify();
   });
 
@@ -941,6 +1130,11 @@ tr.b.unittest.testSuite(function() {
       {title: 'Idle', start: 100, end: 300, eventCount: 0},
       {title: 'Tap Response', start: 300, end: 350, eventCount: 1}
     ];
+    verifier.expectedSegments = [
+      {start: 0, end: 100, expectations: [verifier.expectedUEs[0]]},
+      {start: 100, end: 300, expectations: [verifier.expectedUEs[1]]},
+      {start: 300, end: 350, expectations: [verifier.expectedUEs[2]]},
+    ];
     verifier.verify();
   });
 
@@ -954,6 +1148,9 @@ tr.b.unittest.testSuite(function() {
     };
     verifier.expectedUEs = [
       {title: 'Tap Response', start: 0, end: 200, eventCount: 2}
+    ];
+    verifier.expectedSegments = [
+      {start: 0, end: 200, expectations: [verifier.expectedUEs[0]]},
     ];
     verifier.verify();
   });
@@ -991,6 +1188,13 @@ tr.b.unittest.testSuite(function() {
       {title: 'Idle', start: 220, end: 421, eventCount: 0},
       {title: 'Pinch Animation', start: 421, end: 500, eventCount: 3}
     ];
+    verifier.expectedSegments = [
+      {start: 0, end: 100, expectations: [verifier.expectedUEs[0]]},
+      {start: 100, end: 160, expectations: [verifier.expectedUEs[1]]},
+      {start: 160, end: 220, expectations: [verifier.expectedUEs[2]]},
+      {start: 220, end: 421, expectations: [verifier.expectedUEs[3]]},
+      {start: 421, end: 500, expectations: [verifier.expectedUEs[4]]},
+    ];
     verifier.verify();
   });
 
@@ -1016,6 +1220,15 @@ tr.b.unittest.testSuite(function() {
       {title: 'Touch Response', start: 50, end: 150, eventCount: 2,
           isAnimationBegin: true},
       {title: 'Touch Animation', start: 150, end: 200, eventCount: 2}
+    ];
+    verifier.expectedSegments = [
+      {start: 0, end: 50, expectations: [verifier.expectedUEs[0]]},
+      {start: 50, end: 100, expectations: [
+        verifier.expectedUEs[0],
+        verifier.expectedUEs[1],
+      ]},
+      {start: 100, end: 150, expectations: [verifier.expectedUEs[1]]},
+      {start: 150, end: 200, expectations: [verifier.expectedUEs[2]]},
     ];
     verifier.verify();
   });
@@ -1070,6 +1283,16 @@ tr.b.unittest.testSuite(function() {
           eventCount: 7},
       {title: 'Fling Animation', start: 180, end: 220, eventCount: 4}
     ];
+    verifier.expectedSegments = [
+      {start: 0, end: 20, expectations: [verifier.expectedUEs[0]]},
+      {start: 20, end: 110, expectations: [verifier.expectedUEs[1]]},
+      {start: 110, end: 180, expectations: [verifier.expectedUEs[2]]},
+      {start: 180, end: 210, expectations: [
+        verifier.expectedUEs[2],
+        verifier.expectedUEs[3],
+      ]},
+      {start: 210, end: 220, expectations: [verifier.expectedUEs[3]]},
+    ];
     verifier.verify();
   });
 
@@ -1088,6 +1311,14 @@ tr.b.unittest.testSuite(function() {
     verifier.expectedUEs = [
       {title: 'Scroll Animation', start: 0, end: 100, eventCount: 3},
       {title: 'Fling Animation', start: 80, end: 200, eventCount: 3}
+    ];
+    verifier.expectedSegments = [
+      {start: 0, end: 80, expectations: [verifier.expectedUEs[0]]},
+      {start: 80, end: 100, expectations: [
+        verifier.expectedUEs[0],
+        verifier.expectedUEs[1],
+      ]},
+      {start: 100, end: 200, expectations: [verifier.expectedUEs[1]]},
     ];
     verifier.verify();
   });
@@ -1151,6 +1382,17 @@ tr.b.unittest.testSuite(function() {
           eventCount: 4},
       {title: 'Idle', start: 2300, end: 3185, eventCount: 0}
     ];
+    verifier.expectedSegments = [
+      {start: 0, end: 1274, expectations: [verifier.expectedUEs[0]]},
+      {start: 1274, end: 1387, expectations: [verifier.expectedUEs[1]]},
+      {start: 1387, end: 1427, expectations: [verifier.expectedUEs[2]]},
+      {start: 1427, end: 1474, expectations: [
+        verifier.expectedUEs[2],
+        verifier.expectedUEs[3],
+      ]},
+      {start: 1474, end: 2300, expectations: [verifier.expectedUEs[3]]},
+      {start: 2300, end: 3185, expectations: [verifier.expectedUEs[4]]},
+    ];
     verifier.verify();
   });
 
@@ -1170,6 +1412,9 @@ tr.b.unittest.testSuite(function() {
     verifier.expectedUEs = [
       {title: 'Tap Response', start: 0, end: 100,
           eventCount: 5}
+    ];
+    verifier.expectedSegments = [
+      {start: 0, end: 100, expectations: [verifier.expectedUEs[0]]},
     ];
     verifier.verify();
   });

@@ -15,6 +15,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/event_info.html">
 <link rel="import" href="/tracing/model/ir_coverage.html">
 <link rel="import" href="/tracing/model/user_model/idle_expectation.html">
+<link rel="import" href="/tracing/model/user_model/segment.html">
 
 <script>
 'use strict';
@@ -33,28 +34,75 @@ tr.exportTo('tr.importer', function() {
       return modelHelper.browserHelper !== undefined;
     }
 
+    /**
+     * This is called during the trace model import process.
+     */
     buildUserModel() {
       if (!this.modelHelper || !this.modelHelper.browserHelper) return;
 
-      var expectations = undefined;
       try {
-        expectations = this.findUserExpectations();
-        // There are not currently any known cases when this could throw.
+        for (var ue of this.findUserExpectations()) {
+          // This is an EventSet, not an Array, so it can't use push(...).
+          // https://github.com/catapult-project/catapult/issues/3157
+          this.model.userModel.expectations.push(ue);
+        }
+        this.model.userModel.segments.push(...this.findSegments());
+        // There are not currently any known cases when this could throw,
+        // but there have been in the past and there could be again, so
+        // keep handling exceptions here to be friendly to the future.
       } catch (error) {
         this.model.importWarning({
           type: 'UserModelBuilder',
           message: error,
           showToUser: true
         });
-        return;
       }
-      for (var expectation of expectations) {
-        this.model.userModel.expectations.push(expectation);
-      }
-
-      // TODO(benjhayden) Find Gestures here.
     }
 
+    /**
+     * Returns an array of Segments covering the trace Model. A Segment
+     * represents a range of time during which the set of active
+     * UserExpectations does not change. Because of this, segments are
+     * guaranteed to not overlap, whereas UserExpectations can.
+     *
+     * @return {!Array.<!tr.model.um.Segment>}
+     */
+    findSegments() {
+      var timestamps = new Set();
+      for (var expectation of this.model.userModel.expectations) {
+        timestamps.add(expectation.start);
+        timestamps.add(expectation.end);
+      }
+      timestamps = [...timestamps];
+      timestamps.sort((x, y) => x - y);
+      var segments = [];
+      for (var i = 0; i < timestamps.length - 1; ++i) {
+        var segment = new tr.model.um.Segment(
+            timestamps[i], timestamps[i + 1] - timestamps[i]);
+        segments.push(segment);
+        var segmentRange = tr.b.Range.fromExplicitRange(
+            segment.start, segment.end);
+        for (var expectation of this.model.userModel.expectations) {
+          var expectationRange = tr.b.Range.fromExplicitRange(
+              expectation.start, expectation.end);
+          if (segmentRange.intersectsRangeExclusive(expectationRange)) {
+            segment.expectations.push(expectation);
+          }
+        }
+      }
+      return segments;
+    }
+
+    /**
+     * Returns an array of UserExpectations covering the trace Model. A
+     * UserExpectation represents a range of time during which the user is
+     * expecting something from Chrome, either to startup or load a page or
+     * respond to input or play an animation, or just sit there idle. Users can
+     * have multiple expectations at any given time, so UserExpectations can
+     * overlap.
+     *
+     * @return {!Array.<!tr.model.um.UserExpectation>}
+     */
     findUserExpectations() {
       var expectations = [];
       expectations.push.apply(expectations, tr.importer.findStartupExpectations(

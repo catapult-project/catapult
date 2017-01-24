@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/model/event_container.html">
+<link rel="import" href="/tracing/model/user_model/segment.html">
 
 <script>
 'use strict';
@@ -16,6 +17,7 @@ tr.exportTo('tr.model.um', function() {
       super();
       this.parentModel_ = parentModel;
       this.expectations_ = new tr.model.EventSet();
+      this.segments_ = [];
     }
 
     get stableId() {
@@ -38,6 +40,10 @@ tr.exportTo('tr.model.um', function() {
     }
 
     addCategoriesToDict(categoriesDict) {
+    }
+
+    get segments() {
+      return this.segments_;
     }
 
     * childEvents() {

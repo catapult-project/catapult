@@ -269,6 +269,7 @@
       'tracing/model/user_model/idle_expectation.html',
       'tracing/model/user_model/load_expectation.html',
       'tracing/model/user_model/response_expectation.html',
+      'tracing/model/user_model/segment.html',
       'tracing/model/user_model/startup_expectation.html',
       'tracing/model/user_model/user_expectation.html',
       'tracing/model/user_model/user_model.html',
