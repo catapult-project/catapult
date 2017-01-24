@@ -53,7 +53,7 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
     renderer_process = renderer_thread.parent
     stats = rendering_stats.RenderingStats(
       renderer_process, model.browser_process, model.surface_flinger_process,
-      [r.GetBounds() for r in interaction_records])
+      model.gpu_process, [r.GetBounds() for r in interaction_records])
     has_surface_flinger_stats = model.surface_flinger_process is not None
     self._PopulateResultsFromStats(results, stats, has_surface_flinger_stats)
 

@@ -34,6 +34,27 @@ class MockTimer(object):
     return self.milliseconds
 
 
+class MockVblankTimer(object):
+  """A mock vblank timer class which can generate random durations.
+
+  An instance of this class is used as a vblank timer to generate random
+  durations for drm stats and consistent timeval for mock trace drm events.
+  The unit of time is microseconds.
+  """
+
+  def __init__(self):
+    self.microseconds = 200000000
+
+  def TvAdvance(self, low=100, high=1000):
+    delta = random.randint(low, high)
+    self.microseconds += delta
+    return delta
+
+  def TvAdvanceAndGet(self, low=100, high=1000):
+    self.TvAdvance(low, high)
+    return self.microseconds
+
+
 class ReferenceRenderingStats(object):
   """ Stores expected data for comparison with actual RenderingStats """
 
@@ -66,7 +87,7 @@ def AddSurfaceFlingerStats(mock_timer, thread, first_frame,
   first_frame: Is this the first frame within the bounds of an action?
   ref_stats: A ReferenceRenderingStats object to record expected values.
   """
-  # Create randonm data and timestap for impl thread rendering stats.
+  # Create random data and timestamp for impl thread rendering stats.
   data = {'frame_count': 1,
           'refresh_period': 16.6666}
   timestamp = mock_timer.AdvanceAndGet()
@@ -90,6 +111,42 @@ def AddSurfaceFlingerStats(mock_timer, thread, first_frame,
     ref_stats.frame_timestamps[-1].append(timestamp)
 
 
+def AddDrmEventFlipStats(mock_timer, vblank_timer, thread,
+                         first_frame, ref_stats=None):
+  """ Adds a random drm flip complete event.
+
+  thread: The timeline model thread to which the event will be added.
+  first_frame: Is this the first frame within the bounds of an action?
+  ref_stats: A ReferenceRenderingStats object to record expected values.
+  """
+  # Create random data and timestamp for drm thread flip complete stats.
+  vblank_timeval = vblank_timer.TvAdvanceAndGet()
+  vblank_tv_sec = vblank_timeval / 1000000
+  vblank_tv_usec = vblank_timeval % 1000000
+  data = {'frame_count': 1,
+          'vblank.tv_usec': vblank_tv_usec,
+          'vblank.tv_sec': vblank_tv_sec}
+  timestamp = mock_timer.AdvanceAndGet()
+
+  # Add a slice with the event data to the given thread.
+  thread.PushCompleteSlice(
+      'benchmark,drm', 'DrmEventFlipComplete',
+      timestamp, duration=0.0, thread_timestamp=None, thread_duration=None,
+      args={'data': data})
+
+  if not ref_stats:
+    return
+
+  # Add vblank timeval only if a frame was output.
+  cur_timestamp = vblank_tv_sec * 1000.0 + vblank_tv_usec / 1000.0
+  if not first_frame:
+    # Add frame_time if this is not the first frame in within the bounds of an
+    # action.
+    prev_timestamp = ref_stats.frame_timestamps[-1][-1]
+    ref_stats.frame_times[-1].append(cur_timestamp - prev_timestamp)
+  ref_stats.frame_timestamps[-1].append(cur_timestamp)
+
+
 def AddDisplayRenderingStats(mock_timer, thread, first_frame,
                              ref_stats=None):
   """ Adds a random display rendering stats event.
@@ -98,7 +155,7 @@ def AddDisplayRenderingStats(mock_timer, thread, first_frame,
   first_frame: Is this the first frame within the bounds of an action?
   ref_stats: A ReferenceRenderingStats object to record expected values.
   """
-  # Create randonm data and timestap for main thread rendering stats.
+  # Create random data and timestamp for main thread rendering stats.
   data = {'frame_count': 1}
   timestamp = mock_timer.AdvanceAndGet()
 
@@ -128,7 +185,7 @@ def AddImplThreadRenderingStats(mock_timer, thread, first_frame,
   first_frame: Is this the first frame within the bounds of an action?
   ref_stats: A ReferenceRenderingStats object to record expected values.
   """
-  # Create randonm data and timestap for impl thread rendering stats.
+  # Create random data and timestamp for impl thread rendering stats.
   data = {'frame_count': 1,
           'visible_content_area': random.uniform(0, 100),
           'approximated_visible_content_area': random.uniform(0, 5),
@@ -270,6 +327,24 @@ class RenderingStatsUnitTest(unittest.TestCase):
     process_with_frames.FinalizeImport()
     self.assertTrue(rendering_stats.HasRenderingStats(thread_with_frames))
 
+  def testHasDrmStats(self):
+    timeline = model.TimelineModel()
+    timer = MockTimer()
+    vblank_timer = MockVblankTimer()
+
+    # A process without drm stats
+    process_without_stats = timeline.GetOrCreateProcess(pid=5)
+    thread_without_stats = process_without_stats.GetOrCreateThread(tid=51)
+    process_without_stats.FinalizeImport()
+    self.assertFalse(rendering_stats.HasDrmStats(thread_without_stats))
+
+    # A process with drm stats and frames in them
+    process_with_frames = timeline.GetOrCreateProcess(pid=6)
+    thread_with_frames = process_with_frames.GetOrCreateThread(tid=61)
+    AddDrmEventFlipStats(timer, vblank_timer, thread_with_frames, True, None)
+    process_with_frames.FinalizeImport()
+    self.assertTrue(rendering_stats.HasDrmStats(thread_with_frames))
+
   def testBothSurfaceFlingerAndDisplayStats(self):
     timeline = model.TimelineModel()
     timer = MockTimer()
@@ -305,9 +380,57 @@ class RenderingStatsUnitTest(unittest.TestCase):
     timeline_ranges = [bounds.Bounds.CreateFromEvent(marker)
                        for marker in timeline_markers]
     stats = rendering_stats.RenderingStats(
-        renderer, browser, surface_flinger, timeline_ranges)
+        renderer, browser, surface_flinger, None, timeline_ranges)
 
     # Compare rendering stats to reference - Only SurfaceFlinger stats should
+    # count
+    self.assertEquals(stats.frame_timestamps, ref_stats.frame_timestamps)
+    self.assertEquals(stats.frame_times, ref_stats.frame_times)
+
+  def testBothDrmAndDisplayStats(self):
+    timeline = model.TimelineModel()
+    timer = MockTimer()
+    vblank_timer = MockVblankTimer()
+
+    ref_stats = ReferenceRenderingStats()
+    ref_stats.AppendNewRange()
+    gpu = timeline.GetOrCreateProcess(pid=6)
+    gpu.name = 'GPU Process'
+    gpu_drm_thread = gpu.GetOrCreateThread(tid=61)
+    renderer = timeline.GetOrCreateProcess(pid=2)
+    browser = timeline.GetOrCreateProcess(pid=3)
+    browser_main = browser.GetOrCreateThread(tid=31)
+    browser_main.BeginSlice('webkit.console', 'ActionA',
+                            timer.AdvanceAndGet(2, 4), '')
+    vblank_timer.TvAdvance(2000, 4000)
+
+    # Create drm flip stats and display rendering stats.
+    for i in xrange(0, 10):
+      first = (i == 0)
+      AddDrmEventFlipStats(timer, vblank_timer, gpu_drm_thread,
+                           first, ref_stats)
+      timer.Advance(2, 4)
+      vblank_timer.TvAdvance(2000, 4000)
+
+    for i in xrange(0, 10):
+      first = (i == 0)
+      AddDisplayRenderingStats(timer, browser_main, first, None)
+      timer.Advance(5, 10)
+      vblank_timer.TvAdvance(5000, 10000)
+
+    browser_main.EndSlice(timer.AdvanceAndGet())
+    timer.Advance(2, 4)
+    vblank_timer.TvAdvance(2000, 4000)
+
+    browser.FinalizeImport()
+    renderer.FinalizeImport()
+    timeline_markers = timeline.FindTimelineMarkers(['ActionA'])
+    timeline_ranges = [bounds.Bounds.CreateFromEvent(marker)
+                       for marker in timeline_markers]
+    stats = rendering_stats.RenderingStats(
+        renderer, browser, None, gpu, timeline_ranges)
+
+    # Compare rendering stats to reference - Only drm flip stats should
     # count
     self.assertEquals(stats.frame_timestamps, ref_stats.frame_timestamps)
     self.assertEquals(stats.frame_times, ref_stats.frame_times)
@@ -344,7 +467,7 @@ class RenderingStatsUnitTest(unittest.TestCase):
     timeline_ranges = [bounds.Bounds.CreateFromEvent(marker)
                        for marker in timeline_markers]
     stats = rendering_stats.RenderingStats(
-        renderer, browser, None, timeline_ranges)
+        renderer, browser, None, None, timeline_ranges)
 
     # Compare rendering stats to reference - Only display stats should count
     self.assertEquals(stats.frame_timestamps, ref_stats.frame_timestamps)
@@ -386,7 +509,7 @@ class RenderingStatsUnitTest(unittest.TestCase):
                        for marker in timeline_markers]
 
     stats = rendering_stats.RenderingStats(
-        renderer, None, None, timeline_ranges)
+        renderer, None, None, None, timeline_ranges)
     self.assertEquals(0, len(stats.frame_timestamps[1]))
 
   def testFromTimeline(self):
@@ -458,7 +581,7 @@ class RenderingStatsUnitTest(unittest.TestCase):
     timeline_ranges = [bounds.Bounds.CreateFromEvent(marker)
                        for marker in timeline_markers]
     stats = rendering_stats.RenderingStats(
-        renderer, browser, None, timeline_ranges)
+        renderer, browser, None, None, timeline_ranges)
 
     # Compare rendering stats to reference.
     self.assertEquals(stats.frame_timestamps,
@@ -528,7 +651,7 @@ class RenderingStatsUnitTest(unittest.TestCase):
                       ref_latency.input_event_latency)
 
     stats = rendering_stats.RenderingStats(
-        renderer, browser, None, timeline_ranges)
+        renderer, browser, None, None, timeline_ranges)
     self.assertEquals(
         perf_tests_helper.FlattenList(stats.input_event_latency),
         [latency for name, latency in ref_latency.input_event_latency

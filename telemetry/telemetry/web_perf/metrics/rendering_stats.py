@@ -105,6 +105,16 @@ def ComputeEventLatencies(input_events):
   return [(name, latency) for _, name, latency in input_event_latencies]
 
 
+def HasDrmStats(process):
+  """ Return True if the process contains DrmEventFlipComplete event.
+  """
+  if not process:
+    return False
+  for event in process.IterAllSlicesOfName('DrmEventFlipComplete'):
+    if 'data' in event.args and event.args['data']['frame_count'] == 1:
+      return True
+  return False
+
 def HasRenderingStats(process):
   """ Returns True if the process contains at least one
       BenchmarkInstrumentation::*RenderingStats event with a frame.
@@ -126,6 +136,9 @@ def GetTimestampEventName(process):
   if process.name == 'SurfaceFlinger':
     return 'vsync_before'
 
+  if process.name == 'GPU Process':
+    return 'DrmEventFlipComplete'
+
   event_name = 'BenchmarkInstrumentation::DisplayRenderingStats'
   for event in process.IterAllSlicesOfName(event_name):
     if 'data' in event.args and event.args['data']['frame_count'] == 1:
@@ -135,7 +148,7 @@ def GetTimestampEventName(process):
 
 class RenderingStats(object):
   def __init__(self, renderer_process, browser_process, surface_flinger_process,
-               timeline_ranges):
+               gpu_process, timeline_ranges):
     """
     Utility class for extracting rendering statistics from the timeline (or
     other loggin facilities), and providing them in a common format to classes
@@ -153,6 +166,8 @@ class RenderingStats(object):
     if surface_flinger_process:
       timestamp_process = surface_flinger_process
       self._GetRefreshPeriodFromSurfaceFlingerProcess(surface_flinger_process)
+    elif HasDrmStats(gpu_process):
+      timestamp_process = gpu_process
     elif HasRenderingStats(browser_process):
       timestamp_process = browser_process
     else:
@@ -237,8 +252,13 @@ class RenderingStats(object):
     if frame_count > 1:
       raise ValueError('trace contains multi-frame render stats')
     if frame_count == 1:
-      self.frame_timestamps[-1].append(
-          event.start)
+      if event.name == 'DrmEventFlipComplete':
+        self.frame_timestamps[-1].append(
+            event.args['data']['vblank.tv_sec'] * 1000.0 +
+            event.args['data']['vblank.tv_usec'] / 1000.0)
+      else:
+        self.frame_timestamps[-1].append(
+            event.start)
       if len(self.frame_timestamps[-1]) >= 2:
         self.frame_times[-1].append(
             self.frame_timestamps[-1][-1] - self.frame_timestamps[-1][-2])
