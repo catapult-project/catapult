@@ -147,7 +147,7 @@ tr.exportTo('tr.e.tquery', function() {
     // model.
     selectEverythingAsTask_: function(selection) {
       var filterTask = new tr.b.Task();
-      for (var container of this.model_.getDescendantEventContainers()) {
+      for (let container of this.model_.getDescendantEventContainers()) {
         filterTask.subTask(() => {
           for (var event of container.childEvents())
             addEventTreeToSelection(selection, event);
