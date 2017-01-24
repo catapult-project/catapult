@@ -215,7 +215,8 @@ def _GenerateReport(results_data):
       if ('The metric values for the initial' in aborted_reason or
           'Bisect failed to reproduce the regression' in aborted_reason):
         message = STATUS_NO_REPRO
-      elif 'No values were found while testing' in aborted_reason:
+      elif ('No values were found while testing' in aborted_reason or
+            'Test runs failed to produce output' in aborted_reason):
         message = STATUS_NO_VALUES
       elif 'Bisect cannot identify a culprit' in aborted_reason:
         message = STATUS_REPRO_BUT_UNDECIDED
