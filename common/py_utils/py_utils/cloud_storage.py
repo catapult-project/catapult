@@ -57,7 +57,7 @@ DISABLE_CLOUD_STORAGE_IO = 'DISABLE_CLOUD_STORAGE_IO'
 
 # The maximum number of seconds to wait to acquire the pseudo lock for a cloud
 # storage file before raising an exception.
-PSEUDO_LOCK_ACQUISITION_TIMEOUT = 10
+LOCK_ACQUISITION_TIMEOUT = 10
 
 
 class CloudStorageError(Exception):
@@ -238,30 +238,88 @@ def _FileLock(base_path):
   pseudo_lock_path = '%s.pseudo_lock' % base_path
   _CreateDirectoryIfNecessary(os.path.dirname(pseudo_lock_path))
 
-  # We need to make sure that there is no other process which is acquiring the
-  # lock on |base_path| and has not finished before proceeding further to create
-  # the |pseudo_lock_path|. Otherwise, |pseudo_lock_path| may be deleted by
-  # that other process after we create it in this process.
-  py_utils.WaitFor(lambda: not os.path.exists(pseudo_lock_path),
-                   PSEUDO_LOCK_ACQUISITION_TIMEOUT)
+  # Make sure that we guard the creation, acquisition, release, and removal of
+  # the pseudo lock all with the same guard (_CLOUD_STORAGE_GLOBAL_LOCK).
+  # Otherwise, we can get nasty interleavings that result in multiple processes
+  # thinking they have an exclusive lock, like:
+  #
+  # (Process 1) Create and acquire the pseudo lock
+  # (Process 1) Release the pseudo lock
+  # (Process 1) Release the file lock
+  # (Process 2) Open and acquire the existing pseudo lock
+  # (Process 1) Delete the (existing) pseudo lock
+  # (Process 3) Create and acquire a new pseudo lock
+  #
+  # Using the same guard for creation and removal of the pseudo lock guarantees
+  # that all processes are referring to the same lock.
+  pseudo_lock_fd = None
+  pseudo_lock_fd_return = []
+  py_utils.WaitFor(lambda: _AttemptPseudoLockAcquisition(pseudo_lock_path,
+                                                         pseudo_lock_fd_return),
+                   LOCK_ACQUISITION_TIMEOUT)
+  pseudo_lock_fd = pseudo_lock_fd_return[0]
 
-  # Guard the creation & acquiring lock of |pseudo_lock_path| by the global lock
-  # to make sure that there is no race condition on creating the file.
-  with open(_CLOUD_STORAGE_GLOBAL_LOCK) as global_file:
-    with lock.FileLock(global_file, lock.LOCK_EX):
-      fd = open(pseudo_lock_path, 'w')
-      lock.AcquireFileLock(fd, lock.LOCK_EX)
   try:
     yield
   finally:
-    lock.ReleaseFileLock(fd)
-    try:
-      fd.close()
-      os.remove(pseudo_lock_path)
-    except OSError:
-      # We don't care if the pseudo-lock gets removed elsewhere before we have
-      # a chance to do so.
-      pass
+    py_utils.WaitFor(lambda: _AttemptPseudoLockRelease(pseudo_lock_fd),
+                     LOCK_ACQUISITION_TIMEOUT)
+
+def _AttemptPseudoLockAcquisition(pseudo_lock_path, pseudo_lock_fd_return):
+  """Try to acquire the lock and return a boolean indicating whether the attempt
+  was successful. If the attempt was successful, pseudo_lock_fd_return, which
+  should be an empty array, will be modified to contain a single entry: the file
+  descriptor of the (now acquired) lock file.
+
+  This whole operation is guarded with the global cloud storage lock, which
+  prevents race conditions that might otherwise cause multiple processes to
+  believe they hold the same pseudo lock (see _FileLock for more details).
+  """
+  pseudo_lock_fd = None
+  try:
+    with open(_CLOUD_STORAGE_GLOBAL_LOCK) as global_file:
+      with lock.FileLock(global_file, lock.LOCK_EX | lock.LOCK_NB):
+        # Attempt to acquire the lock in a non-blocking manner. If we block,
+        # then we'll cause deadlock because another process will be unable to
+        # acquire the cloud storage global lock in order to release the pseudo
+        # lock.
+        pseudo_lock_fd = open(pseudo_lock_path, 'w')
+        lock.AcquireFileLock(pseudo_lock_fd, lock.LOCK_EX | lock.LOCK_NB)
+        pseudo_lock_fd_return.append(pseudo_lock_fd)
+        return True
+  except (lock.LockException, IOError):
+    # We failed to acquire either the global cloud storage lock or the pseudo
+    # lock.
+    if pseudo_lock_fd:
+      pseudo_lock_fd.close()
+    return False
+
+
+def _AttemptPseudoLockRelease(pseudo_lock_fd):
+  """Try to release the pseudo lock and return a boolean indicating whether
+  the release was succesful.
+
+  This whole operation is guarded with the global cloud storage lock, which
+  prevents race conditions that might otherwise cause multiple processes to
+  believe they hold the same pseudo lock (see _FileLock for more details).
+  """
+  pseudo_lock_path = pseudo_lock_fd.name
+  try:
+    with open(_CLOUD_STORAGE_GLOBAL_LOCK) as global_file:
+      with lock.FileLock(global_file, lock.LOCK_EX | lock.LOCK_NB):
+        lock.ReleaseFileLock(pseudo_lock_fd)
+        pseudo_lock_fd.close()
+        try:
+          os.remove(pseudo_lock_path)
+        except OSError:
+          # We don't care if the pseudo lock gets removed elsewhere before
+          # we have a chance to do so.
+          pass
+        return True
+  except (lock.LockException, IOError):
+    # We failed to acquire the global cloud storage lock and are thus unable to
+    # release the pseudo lock.
+    return False
 
 
 def _CreateDirectoryIfNecessary(directory):

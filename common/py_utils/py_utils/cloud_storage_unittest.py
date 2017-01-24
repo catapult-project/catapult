@@ -3,7 +3,9 @@
 # found in the LICENSE file.
 
 import os
+import shutil
 import sys
+import tempfile
 import unittest
 
 import mock
@@ -11,7 +13,10 @@ from pyfakefs import fake_filesystem_unittest
 
 import py_utils
 from py_utils import cloud_storage
+from py_utils import lock
 
+_CLOUD_STORAGE_GLOBAL_LOCK_PATH = os.path.join(
+    os.path.dirname(__file__), 'cloud_storage_global_lock.py')
 
 def _FakeReadHash(_):
   return 'hashthis!'
@@ -25,7 +30,7 @@ def _FakeCalulateHashNewHash(_):
   return 'omgnewhash'
 
 
-class CloudStorageUnitTest(fake_filesystem_unittest.TestCase):
+class CloudStorageFakeFsUnitTest(fake_filesystem_unittest.TestCase):
 
   def setUp(self):
     self.original_environ = os.environ.copy()
@@ -238,10 +243,25 @@ class CloudStorageUnitTest(fake_filesystem_unittest.TestCase):
       cloud_storage.GetFilesInDirectoryIfChanged(dir_path, 'bucket')
 
 
-  @mock.patch('py_utils.cloud_storage.PSEUDO_LOCK_ACQUISITION_TIMEOUT', .005)
-  def testPseudoLockTimeout(self):
-    self.fs.CreateFile('/tmp/test-file-path.wpr.pseudo_lock')
-    file_path = '/tmp/test-file-path.wpr'
+class CloudStorageRealFsUnitTest(unittest.TestCase):
+  @mock.patch('py_utils.cloud_storage.LOCK_ACQUISITION_TIMEOUT', .005)
+  def testGetPseudoLockUnavailableCausesTimeout(self):
+    os.environ['DISABLE_CLOUD_STORAGE_IO'] = ''
+    with tempfile.NamedTemporaryFile(suffix='.pseudo_lock') as pseudo_lock_fd:
+      with lock.FileLock(pseudo_lock_fd, lock.LOCK_EX | lock.LOCK_NB):
+        with self.assertRaises(py_utils.TimeoutException):
+          file_path = pseudo_lock_fd.name.replace('.pseudo_lock', '')
+          cloud_storage.GetIfChanged(file_path, cloud_storage.PUBLIC_BUCKET)
 
-    with self.assertRaises(py_utils.TimeoutException):
-      cloud_storage.GetIfChanged(file_path, cloud_storage.PUBLIC_BUCKET)
+  @mock.patch('py_utils.cloud_storage.LOCK_ACQUISITION_TIMEOUT', .005)
+  def testGetGlobalLockUnavailableCausesTimeout(self):
+    os.environ['DISABLE_CLOUD_STORAGE_IO'] = ''
+    with open(_CLOUD_STORAGE_GLOBAL_LOCK_PATH) as global_lock_fd:
+      with lock.FileLock(global_lock_fd, lock.LOCK_EX | lock.LOCK_NB):
+        tmp_dir = tempfile.mkdtemp()
+        try:
+          file_path = os.path.join(tmp_dir, 'foo')
+          with self.assertRaises(py_utils.TimeoutException):
+            cloud_storage.GetIfChanged(file_path, cloud_storage.PUBLIC_BUCKET)
+        finally:
+          shutil.rmtree(tmp_dir)
