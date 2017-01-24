@@ -36,7 +36,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     get defaultGraphHeight() {
-      return 10 * this.data_.length;
+      return Math.max(20, 10 * this.data_.length);
     },
 
     get defaultGraphWidth() {
@@ -83,23 +83,35 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     drawHoverValueBox_(rect) {
+      var rectHoverEvent = new tr.b.Event('rect-mouseenter');
+      rectHoverEvent.rect = rect;
+      this.dispatchEvent(rectHoverEvent);
+
+      if (!this.enableHoverBox) return;
+
       var seriesKeys = [...this.seriesByKey_.keys()];
       var chartAreaSel = d3.select(this.chartAreaElement);
       chartAreaSel.selectAll('.hover').remove();
       var keyWidthPx = 0;
       var keyHeightPx = 0;
+      var xWidthPx = 0;
+      var xHeightPx = 0;
       if (seriesKeys.length > 1) {
         keyWidthPx = tr.ui.b.getSVGTextSize(
             this.chartAreaElement, rect.key).width;
-        keyHeightPx = 16;
+        keyHeightPx = this.textHeightPx_;
       }
-      var xWidthPx = tr.ui.b.getSVGTextSize(
-          this.chartAreaElement, '' + rect.datum.x).width;
+      if (this.data.length > 1) {
+        xWidthPx = tr.ui.b.getSVGTextSize(
+            this.chartAreaElement, '' + rect.datum.x).width;
+        xHeightPx = this.textHeightPx_;
+      }
       var valueWidthPx = tr.ui.b.getSVGTextSize(
           this.chartAreaElement, rect.value).width;
-      var valueHeightPx = 16;
-      var xHeightPx = 16;
-      var hoverWidthPx = Math.max(keyWidthPx, xWidthPx, valueWidthPx) + 5;
+      var valueHeightPx = this.textHeightPx_;
+      var hoverWidthPx = Math.min(
+          Math.max(keyWidthPx, xWidthPx, valueWidthPx) + 5,
+          Math.max(50, rect.widthPx));
       var hoverTopPx = rect.topPx + (rect.heightPx / 2);
       var hoverLeftPx = rect.leftPx + rect.widthPx - hoverWidthPx;
 
@@ -121,14 +133,15 @@ tr.exportTo('tr.ui.b', function() {
           .attr('y', hoverTopPx + keyHeightPx - 3)
           .text(rect.key);
       }
-
-      chartAreaSel
-        .append('text')
-        .attr('class', 'hover')
-        .attr('fill', rect.color)
-        .attr('x', hoverLeftPx + 2)
-        .attr('y', hoverTopPx + keyHeightPx + valueHeightPx - 3)
-        .text('' + rect.datum.x);
+      if (this.data.length > 1) {
+        chartAreaSel
+          .append('text')
+          .attr('class', 'hover')
+          .attr('fill', rect.color)
+          .attr('x', hoverLeftPx + 2)
+          .attr('y', hoverTopPx + keyHeightPx + valueHeightPx - 3)
+          .text('' + rect.datum.x);
+      }
 
       chartAreaSel
         .append('text')
@@ -178,7 +191,7 @@ tr.exportTo('tr.ui.b', function() {
         .attr('width', 10)
         .attr('height', rect.widthPx)
         .on('mouseenter', () => this.drawHoverValueBox_(this.flipRect_(rect)))
-        .on('mouseleave', () => this.clearHoverValueBox_());
+        .on('mouseleave', () => this.clearHoverValueBox_(rect));
       sel.exit().remove();
     },
 

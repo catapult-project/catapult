@@ -31,6 +31,8 @@ tr.exportTo('tr.ui.b', function() {
       this.xCushion_ = 1;
 
       this.isStacked_ = false;
+
+      this.enableHoverBox = true;
     },
 
     set isStacked(stacked) {
@@ -154,6 +156,12 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     drawHoverValueBox_(rect) {
+      var rectHoverEvent = new tr.b.Event('rect-mouseenter');
+      rectHoverEvent.rect = rect;
+      this.dispatchEvent(rectHoverEvent);
+
+      if (!this.enableHoverBox) return;
+
       var seriesKeys = [...this.seriesByKey_.keys()];
       var chartAreaSel = d3.select(this.chartAreaElement);
       chartAreaSel.selectAll('.hover').remove();
@@ -197,7 +205,11 @@ tr.exportTo('tr.ui.b', function() {
         .text(rect.value);
     },
 
-    clearHoverValueBox_() {
+    clearHoverValueBox_(rect) {
+      var rectHoverEvent = new tr.b.Event('rect-mouseleave');
+      rectHoverEvent.rect = rect;
+      this.dispatchEvent(rectHoverEvent);
+
       d3.select(this.chartAreaElement).selectAll('.hover').remove();
     },
 
@@ -210,7 +222,7 @@ tr.exportTo('tr.ui.b', function() {
         .attr('width', rect.widthPx)
         .attr('height', rect.heightPx)
         .on('mouseenter', this.drawHoverValueBox_.bind(this, rect))
-        .on('mouseleave', this.clearHoverValueBox_.bind(this));
+        .on('mouseleave', this.clearHoverValueBox_.bind(this, rect));
       sel.exit().remove();
     },
 
@@ -222,7 +234,7 @@ tr.exportTo('tr.ui.b', function() {
         .attr('x', rect.leftPx + (rect.widthPx / 2))
         .attr('y', this.graphHeight)
         .on('mouseenter', this.drawHoverValueBox_.bind(this, rect))
-        .on('mouseleave', this.clearHoverValueBox_.bind(this));
+        .on('mouseleave', this.clearHoverValueBox_.bind(this, rect));
       sel.exit().remove();
     },
 
