@@ -190,7 +190,7 @@
       "cloud_storage_bucket": "chromium-telemetry",
       "file_info": {
         "android_arm64-v8a": {
-          "cloud_storage_hash": "7c747a52782b627a6cc1cfb55bf2ba9138dcd21c",
+          "cloud_storage_hash": "c80618de34416bb095562df1c4d2fcf725576ba6",
           "download_path": "bin/android/arm64-v8a/memtrack_helper"
         },
         "android_armeabi-v7a": {
