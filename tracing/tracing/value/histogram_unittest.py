@@ -578,6 +578,26 @@ class TelemetryInfoUnittest(unittest.TestCase):
     self.assertEqual(clone.legacy_tir_label, 'tir')
 
 
+class DeviceInfoUnittest(unittest.TestCase):
+  def testRoundtrip(self):
+    info = histogram.DeviceInfo()
+    info.chrome_version = '1.2.3.4'
+    info.os_name = 'linux'
+    info.os_version = '5.6.7'
+    info.gpu_info = {'some': 'stuff'}
+    info.arch = {'more': 'stuff'}
+    info.ram = 42
+    d = info.AsDict()
+    clone = histogram.DeviceInfo.FromDict(d)
+    self.assertEqual(ToJSON(d), ToJSON(clone.AsDict()))
+    self.assertEqual(clone.chrome_version, '1.2.3.4')
+    self.assertEqual(clone.os_name, 'linux')
+    self.assertEqual(clone.os_version, '5.6.7')
+    self.assertEqual(clone.gpu_info['some'], 'stuff')
+    self.assertEqual(clone.arch['more'], 'stuff')
+    self.assertEqual(clone.ram, 42)
+
+
 class HistogramSetUnittest(unittest.TestCase):
   def assertDeepEqual(self, a, b):
     self.assertEqual(ToJSON(a), ToJSON(b))

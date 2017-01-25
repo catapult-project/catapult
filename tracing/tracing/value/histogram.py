@@ -514,6 +514,84 @@ class TelemetryInfo(Diagnostic):
     return info
 
 
+class DeviceInfo(Diagnostic):
+  def __init__(self):
+    Diagnostic.__init__(self)
+    self._chrome_version = ''
+    self._os_name = ''
+    self._os_version = ''
+    self._gpu_info = None
+    self._arch = None
+    self._ram = 0
+
+  @staticmethod
+  def FromDict(d):
+    info = DeviceInfo()
+    info.chrome_version = d.get('chromeVersion', '')
+    info.os_name = d.get('osName', '')
+    info.os_version = d.get('osVersion', '')
+    info.gpu_info = d.get('gpuInfo')
+    info.arch = d.get('arch')
+    info.ram = d.get('ram', 0)
+    return info
+
+  def _AsDictInto(self, d):
+    d['chromeVersion'] = self.chrome_version
+    d['osName'] = self.os_name
+    d['osVersion'] = self.os_version
+    d['gpuInfo'] = self.gpu_info
+    d['arch'] = self.arch
+    d['ram'] = self.ram
+
+  @property
+  def chrome_version(self):
+    return self._chrome_version
+
+  @chrome_version.setter
+  def chrome_version(self, v):
+    self._chrome_version = v
+
+  @property
+  def os_name(self):
+    return self._os_name
+
+  @os_name.setter
+  def os_name(self, v):
+    self._os_name = v
+
+  @property
+  def os_version(self):
+    return self._os_version
+
+  @os_version.setter
+  def os_version(self, v):
+    self._os_version = v
+
+  @property
+  def gpu_info(self):
+    return self._gpu_info
+
+  @gpu_info.setter
+  def gpu_info(self, v):
+    self._gpu_info = v
+
+  @property
+  def arch(self):
+    return self._arch
+
+  @arch.setter
+  def arch(self, v):
+    self._arch = v
+
+  @property
+  def ram(self):
+    return self._ram
+
+  @ram.setter
+  def ram(self, v):
+    self._ram = v
+
+
 RegisterDiagnosticTypes()
 
 
