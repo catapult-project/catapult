@@ -17,15 +17,25 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('instantiate_RelatedHistogramBreakdown', function() {
+    var breakdown = new tr.v.d.RelatedHistogramBreakdown();
+
+    var qux = new tr.v.Histogram('qux', tr.b.Unit.byName.timeDurationInMs);
+    qux.addSample(1);
+    breakdown.add(qux);
+
+    // The title of the analysis-link should match the histogram name, not the
+    // breakdown key.
     var foo = new tr.v.Histogram('foo', tr.b.Unit.byName.timeDurationInMs);
+    breakdown.set('f', foo);
+
     var bar = new tr.v.Histogram('bar', tr.b.Unit.byName.timeDurationInMs);
+    breakdown.add(bar);
+
     for (var i = 0; i < 1e2; ++i) {
       foo.addSample(Math.random());
       bar.addSample(Math.random());
     }
-    var breakdown = new tr.v.d.RelatedHistogramBreakdown();
-    breakdown.add(foo);
-    breakdown.add(bar);
+
     var span = tr.v.ui.createDiagnosticSpan(breakdown);
     assert.strictEqual('TR-V-UI-BREAKDOWN-SPAN', span.tagName);
     this.addHTMLOutput(span);
@@ -44,6 +54,11 @@ tr.b.unittest.testSuite(function() {
     breakdown.set('-inf', -Infinity);
     breakdown.set('goose egg', 0);
     breakdown.set('<0', -1);
+
+    // Test lots of categories
+    for (var i = 0; i < 10; ++i) {
+      breakdown.set('cat ' + i, i);
+    }
 
     // Test round-tripping.
     breakdown = tr.v.d.Diagnostic.fromDict(breakdown.asDict());
