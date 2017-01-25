@@ -375,6 +375,55 @@ class Generic(Diagnostic):
     return Generic(dct['value'])
 
 
+class BuildbotInfo(Diagnostic):
+  NAME = 'buildbot'
+
+  def __init__(self, info):
+    Diagnostic.__init__(self)
+    self._display_master_name = info.get('displayMasterName', '')
+    self._display_bot_name = info.get('displayBotName', '')
+    self._buildbot_master_name = info.get('buildbotMasterName', '')
+    self._buildbot_name = info.get('buildbotName', '')
+    self._build_number = info.get('buildNumber', 0)
+    self._log_uri = info.get('logUri', '')
+
+  def _AsDictInto(self, d):
+    d['displayMasterName'] = self.display_master_name
+    d['displayBotName'] = self.display_bot_name
+    d['buildbotMasterName'] = self.buildbot_master_name
+    d['buildbotName'] = self.buildbot_name
+    d['buildNumber'] = self.build_number
+    d['logUri'] = self.log_uri
+
+  @staticmethod
+  def FromDict(d):
+    return BuildbotInfo(d)
+
+  @property
+  def display_master_name(self):
+    return self._display_master_name
+
+  @property
+  def display_bot_name(self):
+    return self._display_bot_name
+
+  @property
+  def buildbot_master_name(self):
+    return self._buildbot_master_name
+
+  @property
+  def buildbot_name(self):
+    return self._buildbot_name
+
+  @property
+  def build_number(self):
+    return self._build_number
+
+  @property
+  def log_uri(self):
+    return self._log_uri
+
+
 RegisterDiagnosticTypes()
 
 

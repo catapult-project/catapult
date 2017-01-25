@@ -529,6 +529,27 @@ class HistogramUnittest(unittest.TestCase):
     self.assertEqual(4, hist.GetApproximatePercentile(1))
 
 
+class BuildbotInfoUnittest(unittest.TestCase):
+  def testRoundtrip(self):
+    info = histogram.BuildbotInfo({
+        'displayMasterName': 'dmn',
+        'displayBotName': 'dbn',
+        'buildbotMasterName': 'bbmn',
+        'buildbotName': 'bbn',
+        'buildNumber': 42,
+        'logUri': 'uri',
+    })
+    d = info.AsDict()
+    clone = histogram.BuildbotInfo.FromDict(d)
+    self.assertEqual(ToJSON(d), ToJSON(clone.AsDict()))
+    self.assertEqual(clone.display_master_name, 'dmn')
+    self.assertEqual(clone.display_bot_name, 'dbn')
+    self.assertEqual(clone.buildbot_master_name, 'bbmn')
+    self.assertEqual(clone.buildbot_name, 'bbn')
+    self.assertEqual(clone.build_number, 42)
+    self.assertEqual(clone.log_uri, 'uri')
+
+
 class HistogramSetUnittest(unittest.TestCase):
   def assertDeepEqual(self, a, b):
     self.assertEqual(ToJSON(a), ToJSON(b))
