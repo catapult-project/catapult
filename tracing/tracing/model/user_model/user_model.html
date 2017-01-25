@@ -59,6 +59,33 @@ tr.exportTo('tr.model.um', function() {
         expectation.addBoundsToRange(this.bounds);
       }
     }
+
+    /**
+     * Return a new array of new Segments by merging adjacent segments when
+     * |getKeyForSegment| returns identical keys.
+     * |getKeyForSegment| is called with each Segment and the index of that
+     * Segment.
+     *
+     * @param {!function(!tr.model.um.Segment, number):*} getKeyForSegment
+     * @return {!Array.<!tr.model.um.Segment>}
+     */
+    resegment(getKeyForSegment) {
+      var newSegments = [];
+      var prevKey = undefined;
+      var prevSegment = undefined;
+      for (var i = 0; i < this.segments.length; ++i) {
+        var segment = this.segments[i];
+        var key = getKeyForSegment(segment, i);
+        if (prevSegment !== undefined && key === prevKey) {
+          prevSegment.addSegment(segment);
+        } else {
+          prevSegment = segment.clone();
+          newSegments.push(prevSegment);
+        }
+        prevKey = key;
+      }
+      return newSegments;
+    }
   }
 
   return {
