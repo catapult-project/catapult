@@ -107,9 +107,14 @@ def WriteHTMLForTracesToFile(trace_filenames, output_file, title='',
                              config_name=None):
   trace_data_list = []
   for filename in trace_filenames:
-    with open(filename, 'r') as f:
-      trace_data = f.read()
-      trace_data_list.append(trace_data)
+    try:
+      with gzip.GzipFile(filename, 'r') as f:
+        # If filename is not gzipped, then read() will raise IOError.
+        trace_data = f.read()
+    except IOError:
+      with open(filename, 'r') as f:
+        trace_data = f.read()
+    trace_data_list.append(trace_data)
   if not title:
     title = "Trace from %s" % ','.join(trace_filenames)
   WriteHTMLForTraceDataToFile(trace_data_list, title, output_file, config_name)
