@@ -278,17 +278,29 @@ found in the LICENSE file.
       },
 
       getTestPathAndSelectedSeries: function(alert) {
+        // Show the test for the alert, as well as the corresponding ref build
+        // if possible.
         var testPath = this.getTestPath(alert);
-        var traceName = testPath.split('/').pop();
-
-        // Get a list of selected traces. This should include the series that
-        // the alert was on, as well as any related reference build result
-        // series.
-        var selectedTraces = [traceName];
-        // TODO(sullivan): Add in ref trace when available.
-        // https://github.com/catapult-project/catapult/issues/2887
-
-        return [testPath, selectedTraces];
+        var testPathParts = testPath.split('/');
+        var testName = testPathParts[testPathParts.length - 1];
+        var refPath = alert.ref_test;
+        if (refPath) {
+          var refPathParts = refPath.split('/');
+          var refName = refPathParts[refPathParts.length - 1];
+          if (testPathParts.length == refPathParts.length) {
+            // Main test and ref are siblings. List them as:
+            // [shared_test_path, [test_name, ref_name]]
+            testPathParts.pop();
+            return [testPathParts.join('/'), [testName, refName]];
+          } else if (testPathParts.length == refPathParts.length - 1) {
+            // Ref is a child of the main test. List them as:
+            // [full_main_test_path, [test_name, ref_name]]
+            // The server 'un-doubles' the main test name when listed this way.
+            return [testPath, [testName, refName]];
+          }
+        }
+        // No ref build or malformed ref build name, only show selected test.
+        return [testPath, [testName]];
       },
 
       setChartData: function(chart) {
