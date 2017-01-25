@@ -27,7 +27,7 @@ of alerts:
    means the code failed, and we send an alert. You'll want to search the code
    for the call to tick the metric with that name, so you can understand where
    the likely failure is.
-2. **Metric Threshold on Task Queue add-point-queue**. When this happens, we are
+2. **Metric Threshold on Task Queue new-points-queue**. When this happens, we are
    seeing too many errors adding data to the datastore in `add_point_queue.py`.
 
 **Analyze the logs for errors**. Once you have a basic idea what codepath is
