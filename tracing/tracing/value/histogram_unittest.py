@@ -136,32 +136,39 @@ class RunningStatisticsUnittest(unittest.TestCase):
     Compare([1, 1, 1, 1, 1], [10, 20, 10, 40])
 
 
+def ToJSON(x):
+  return json.dumps(x, separators=(',', ':'))
+
+
 class HistogramUnittest(unittest.TestCase):
   TEST_BOUNDARIES = histogram.HistogramBinBoundaries.CreateLinear(0, 1000, 10)
 
-  def _ToJSON(self, x):
-    return json.dumps(x, separators=(',', ':'))
-
   def assertDeepEqual(self, a, b):
-    self.assertEqual(self._ToJSON(a), self._ToJSON(b))
+    self.assertEqual(ToJSON(a), ToJSON(b))
 
   def testSerializationSize(self):
     hist = histogram.Histogram('', 'unitless', self.TEST_BOUNDARIES)
     d = hist.AsDict()
-    self.assertEqual(107, len(self._ToJSON(d)))
+    self.assertEqual(107, len(ToJSON(d)))
     self.assertIsNone(d.get('allBins'))
     self.assertDeepEqual(d, histogram.Histogram.FromDict(d).AsDict())
 
     hist.AddSample(100)
     d = hist.AsDict()
-    self.assertEqual(198, len(self._ToJSON(d)))
+    self.assertEqual(198, len(ToJSON(d)))
     self.assertIsInstance(d['allBins'], dict)
     self.assertDeepEqual(d, histogram.Histogram.FromDict(d).AsDict())
 
     hist.AddSample(100)
     d = hist.AsDict()
     # SAMPLE_VALUES grew by "100,"
-    self.assertEqual(202, len(self._ToJSON(d)))
+    self.assertEqual(202, len(ToJSON(d)))
+    self.assertIsInstance(d['allBins'], dict)
+    self.assertDeepEqual(d, histogram.Histogram.FromDict(d).AsDict())
+
+    hist.AddSample(271, {'foo': histogram.Generic('bar')})
+    d = hist.AsDict()
+    self.assertEqual(262, len(ToJSON(d)))
     self.assertIsInstance(d['allBins'], dict)
     self.assertDeepEqual(d, histogram.Histogram.FromDict(d).AsDict())
 
@@ -170,7 +177,7 @@ class HistogramUnittest(unittest.TestCase):
     for i in xrange(10, 100):
       hist.AddSample(10 * i)
     d = hist.AsDict()
-    self.assertEqual(644, len(self._ToJSON(d)))
+    self.assertEqual(691, len(ToJSON(d)))
     self.assertIsInstance(d['allBins'], list)
     self.assertDeepEqual(d, histogram.Histogram.FromDict(d).AsDict())
 
@@ -180,7 +187,7 @@ class HistogramUnittest(unittest.TestCase):
     # retained.
     hist.max_num_sample_values = 10
     d = hist.AsDict()
-    self.assertEqual(340, len(self._ToJSON(d)))
+    self.assertEqual(383, len(ToJSON(d)))
     self.assertIsInstance(d['allBins'], list)
     self.assertDeepEqual(d, histogram.Histogram.FromDict(d).AsDict())
 
@@ -523,6 +530,9 @@ class HistogramUnittest(unittest.TestCase):
 
 
 class HistogramSetUnittest(unittest.TestCase):
+  def assertDeepEqual(self, a, b):
+    self.assertEqual(ToJSON(a), ToJSON(b))
+
   def testImportDicts(self):
     hist = histogram.Histogram('', 'unitless')
     hists = histogram.HistogramSet([hist])
@@ -540,3 +550,34 @@ class HistogramSetUnittest(unittest.TestCase):
     hist2.guid = hist.guid
     with self.assertRaises(Exception):
       hists.AddHistogram(hist2)
+
+  def testSharedDiagnostic(self):
+    hist = histogram.Histogram('', 'unitless')
+    hists = histogram.HistogramSet([hist])
+    diag = histogram.Generic('shared')
+    hists.AddSharedDiagnostic('generic', diag)
+
+    # Serializing a single Histogram with a single shared diagnostic should
+    # produce 2 dicts.
+    ds = hists.AsDicts()
+    self.assertEqual(len(ds), 2)
+    self.assertDeepEqual(diag.AsDict(), ds[0])
+
+    # The serialized Histogram should refer to the shared diagnostic by its
+    # guid.
+    self.assertEqual(ds[1]['diagnostics']['generic'], diag.guid)
+
+    # Deserialize ds.
+    hists2 = histogram.HistogramSet()
+    hists2.ImportDicts(ds)
+    self.assertEqual(len(hists2), 1)
+    hist2 = [h for h in hists2][0]
+
+    # The diagnostic reference should be deserialized as a DiagnosticRef until
+    # resolveRelatedHistograms is called.
+    self.assertIsInstance(
+        hist2.diagnostics.get('generic'), histogram.DiagnosticRef)
+    hists2.ResolveRelatedHistograms()
+    self.assertIsInstance(
+        hist2.diagnostics.get('generic'), histogram.Generic)
+    self.assertEqual(diag.value, hist2.diagnostics.get('generic').value)

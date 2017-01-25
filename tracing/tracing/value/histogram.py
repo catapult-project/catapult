@@ -8,6 +8,10 @@ import random
 import uuid
 
 
+# pylint: disable=too-many-lines
+# TODO(benjhayden): Split this file up.
+
+
 # This should be equal to sys.float_info.max, but that value might differ
 # between platforms, whereas ECMA Script specifies this value for all platforms.
 # The specific value should not matter in normal practice.
@@ -297,6 +301,7 @@ class RunningStatistics(object):
     result = RunningStatistics()
     if len(dct) != 7:
       return result
+
     def AsFloatOrNone(x):
       if x is None:
         return x
@@ -307,10 +312,124 @@ class RunningStatistics(object):
     return result
 
 
+class Diagnostic(object):
+  def __init__(self):
+    self._guid = None
+
+  @property
+  def guid(self):
+    if self._guid is None:
+      self._guid = str(uuid.uuid4())
+    return self._guid
+
+  @guid.setter
+  def guid(self, g):
+    assert self._guid is None
+    self._guid = g
+
+  def AsDictOrReference(self):
+    if self._guid:
+      return self._guid
+    return self.AsDict()
+
+  def AsDict(self):
+    dct = {'type': self.__class__.__name__}
+    if self._guid:
+      dct['guid'] = self._guid
+    self._AsDictInto(dct)
+    return dct
+
+  def _AsDictInto(self, unused_dct):
+    raise NotImplementedError
+
+  @staticmethod
+  def FromDict(dct):
+    if dct['type'] not in Diagnostic.REGISTRY:
+      raise 'Unrecognized diagnostic type: ' + dct['type']
+    return Diagnostic.REGISTRY[dct['type']].FromDict(dct)
+
+
+Diagnostic.REGISTRY = {}
+
+def RegisterDiagnosticTypes():
+  for subclass in Diagnostic.__subclasses__():  # pylint: disable=no-member
+    Diagnostic.REGISTRY[subclass.__name__] = subclass
+
+
+# A Generic diagnostic can contain any Plain-Ol'-Data objects that can be
+# serialized using JSON.stringify(): null, boolean, number, string, array, dict.
+class Generic(Diagnostic):
+  def __init__(self, value):
+    Diagnostic.__init__(self)
+    self._value = value
+
+  @property
+  def value(self):
+    return self._value
+
+  def _AsDictInto(self, dct):
+    dct['value'] = self.value
+
+  @staticmethod
+  def FromDict(dct):
+    return Generic(dct['value'])
+
+
+RegisterDiagnosticTypes()
+
+
+class DiagnosticRef(object):
+  def __init__(self, guid):
+    self._guid = guid
+
+  @property
+  def guid(self):
+    return self._guid
+
+  def AsDict(self):
+    return self.guid
+
+
+class DiagnosticMap(dict):
+  @staticmethod
+  def FromDict(dct):
+    dm = DiagnosticMap()
+    dm.AddDicts(dct)
+    return dm
+
+  def AddDicts(self, dct):
+    for name, diagnostic_dict in dct.iteritems():
+      if isinstance(diagnostic_dict, basestring):
+        self[name] = DiagnosticRef(diagnostic_dict)
+      else:
+        self[name] = Diagnostic.FromDict(diagnostic_dict)
+
+  def ResolveSharedDiagnostics(self, histograms, required=False):
+    for name, diagnostic in self.iteritems():
+      if not isinstance(diagnostic, DiagnosticRef):
+        continue
+      guid = diagnostic.guid
+      diagnostic = histograms.LookupDiagnostic(guid)
+      if isinstance(diagnostic, Diagnostic):
+        self[name] = diagnostic
+      elif required:
+        raise 'Unable to find shared Diagnostic ' + guid
+
+  def AsDict(self):
+    dct = {}
+    for name, diagnostic in self.iteritems():
+      dct[name] = diagnostic.AsDictOrReference()
+    return dct
+
+
+MAX_DIAGNOSTIC_MAPS = 16
+
+
 class HistogramBin(object):
   def __init__(self, rang):
     self._range = rang
     self._count = 0
+    self._diagnostic_maps = []
 
   def AddSample(self, unused_x):
     self._count += 1
@@ -323,14 +442,28 @@ class HistogramBin(object):
   def range(self):
     return self._range
 
-  def FromDict(self, dct):
-    self._count = dct[0]
-
-  def AsDict(self):
-    return [self.count]
-
   def AddBin(self, other):
     self._count += other.count
+
+  @property
+  def diagnostic_maps(self):
+    return self._diagnostic_maps
+
+  def AddDiagnosticMap(self, diagnostics):
+    UniformlySampleStream(
+        self._diagnostic_maps, self.count, diagnostics, MAX_DIAGNOSTIC_MAPS)
+
+  def FromDict(self, dct):
+    self._count = dct[0]
+    if len(dct) > 1:
+      for diagnostic_map_dict in dct[1]:
+        self._diagnostic_maps.append(DiagnosticMap.FromDict(
+            diagnostic_map_dict))
+
+  def AsDict(self):
+    if len(self._diagnostic_maps) == 0:
+      return [self.count]
+    return [self.count, [d.AsDict() for d in self._diagnostic_maps]]
 
 
 # TODO(benjhayden): Presubmit to compare with unit.html.
@@ -407,27 +540,24 @@ class Histogram(object):
     self._bins = []
     self._description = ''
     self._name = name
+    self._diagnostics = DiagnosticMap()
+    self._nan_diagnostic_maps = []
     self._num_nans = 0
     self._running = None
     self._sample_values = []
     self._short_name = None
-    self._summary_options = {
-        'avg': True,
-        'geometricMean': False,
-        'std': True,
-        'count': True,
-        'sum': True,
-        'min': True,
-        'max': True,
-        'nans': False,
-        'percentile': [],
-    }
+    self._summary_options = dict(DEFAULT_SUMMARY_OPTIONS)
+    self._summary_options['percentile'] = []
     self._unit = unit
 
     for rang in bin_boundaries.bin_ranges:
       self._bins.append(HistogramBin(rang))
 
     self._max_num_sample_values = self._GetDefaultMaxNumSampleValues()
+
+  @property
+  def nan_diagnostic_maps(self):
+    return self._nan_diagnostic_maps
 
   @property
   def unit(self):
@@ -473,6 +603,10 @@ class Histogram(object):
   def bins(self):
     return self._bins
 
+  @property
+  def diagnostics(self):
+    return self._diagnostics
+
   @staticmethod
   def FromDict(dct):
     boundaries = HistogramBinBoundaries.FromDict(dct.get('binBoundaries'))
@@ -482,6 +616,8 @@ class Histogram(object):
       hist._short_name = dct['shortName']
     if 'description' in dct:
       hist._description = dct['description']
+    if 'diagnostics' in dct:
+      hist._diagnostics.AddDicts(dct['diagnostics'])
     if 'allBins' in dct:
       if isinstance(dct['allBins'], list):
         for i, bin_dct in enumerate(dct['allBins']):
@@ -499,6 +635,9 @@ class Histogram(object):
       hist._sample_values = dct['sampleValues']
     if 'numNans' in dct:
       hist._num_nans = dct['numNans']
+    if 'nanDiagnostics' in dct:
+      for map_dct in dct['nanDiagnostics']:
+        hist._nan_diagnostic_maps.append(DiagnosticMap.FromDict(map_dct))
     return hist
 
   @property
@@ -540,11 +679,13 @@ class Histogram(object):
       raise Exception('percent must be in [0,1]')
     if self.num_values == 0:
       return 0
+
     if len(self._bins) == 1:
       sorted_sample_values = list(self._sample_values)
       sorted_sample_values.sort()
       return sorted_sample_values[
           int((len(sorted_sample_values) - 1) * percent)]
+
     values_to_skip = math.floor((self.num_values - 1) * percent)
     for hbin in self._bins:
       values_to_skip -= hbin.count
@@ -565,9 +706,16 @@ class Histogram(object):
       return self._bins[index]
     return self._bins[len(self._bins) - 1]
 
-  def AddSample(self, value):
+  def AddSample(self, value, diagnostic_map=None):
+    if (diagnostic_map is not None and
+        not isinstance(diagnostic_map, DiagnosticMap)):
+      diagnostic_map = DiagnosticMap(diagnostic_map)
+
     if not isinstance(value, (int, float)) or math.isnan(value):
       self._num_nans += 1
+      if diagnostic_map:
+        UniformlySampleStream(self._nan_diagnostic_maps, self.num_nans,
+                              diagnostic_map, MAX_DIAGNOSTIC_MAPS)
     else:
       if self._running is None:
         self._running = RunningStatistics()
@@ -575,6 +723,9 @@ class Histogram(object):
 
       hbin = self.GetBinForValue(value)
       hbin.AddSample(value)
+      if diagnostic_map:
+        hbin.AddDiagnosticMap(diagnostic_map)
+
     UniformlySampleStream(self._sample_values, self.num_values + self.num_nans,
                           value, self.max_num_sample_values)
 
@@ -653,10 +804,14 @@ class Histogram(object):
       dct['shortName'] = self._short_name
     if self._description:
       dct['description'] = self._description
+    if len(self.diagnostics):
+      dct['diagnostics'] = self.diagnostics.AsDict()
     if self.max_num_sample_values != self._GetDefaultMaxNumSampleValues():
       dct['maxNumSampleValues'] = self.max_num_sample_values
     if self.num_nans:
       dct['numNans'] = self.num_nans
+    if len(self.nan_diagnostic_maps):
+      dct['nanDiagnostics'] = [m.AsDict() for m in self.nan_diagnostic_maps]
     if self.num_values:
       dct['sampleValues'] = list(self.sample_values)
       dct['running'] = self._running.AsDict()
@@ -856,6 +1011,7 @@ class HistogramBinBoundaries(object):
 
 HistogramBinBoundaries.SINGULAR = HistogramBinBoundaries(JS_MAX_VALUE)
 
+
 DEFAULT_BOUNDARIES_FOR_UNIT = {
     'ms': HistogramBinBoundaries.CreateExponential(1e-3, 1e6, 1e2),
     'tsMs': HistogramBinBoundaries.CreateLinear(0, 1e10, 1e3),
@@ -872,14 +1028,35 @@ DEFAULT_BOUNDARIES_FOR_UNIT = {
 class HistogramSet(object):
   def __init__(self, histograms=()):
     self._histograms_by_guid = {}
+    self._shared_diagnostics_by_guid = {}
     for hist in histograms:
       self.AddHistogram(hist)
 
-  def AddHistogram(self, hist):
+  def AddHistogram(self, hist, diagnostics=None):
     if hist.guid in self._histograms_by_guid:
       raise 'Cannot add same Histogram twice'
 
+    if diagnostics:
+      for name, diagnostic in diagnostics.iteritems():
+        hist.diagnostics[name] = diagnostic
+
     self._histograms_by_guid[hist.guid] = hist
+
+  def AddSharedDiagnostic(self, name, diagnostic):
+    self._shared_diagnostics_by_guid[diagnostic.guid] = diagnostic
+
+    for hist in self:
+      hist.diagnostics[name] = diagnostic
+
+  def LookupHistogram(self, guid):
+    return self._histograms_by_guid.get(guid)
+
+  def LookupDiagnostic(self, guid):
+    return self._shared_diagnostics_by_guid.get(guid)
+
+  def ResolveRelatedHistograms(self):
+    for hist in self:
+      hist.diagnostics.ResolveSharedDiagnostics(self)
 
   def __len__(self):
     return len(self._histograms_by_guid)
@@ -890,7 +1067,15 @@ class HistogramSet(object):
 
   def ImportDicts(self, dicts):
     for d in dicts:
-      self.AddHistogram(Histogram.FromDict(d))
+      if 'type' in d and d['type'] in Diagnostic.REGISTRY:
+        self._shared_diagnostics_by_guid[d['guid']] = Diagnostic.FromDict(d)
+      else:
+        self.AddHistogram(Histogram.FromDict(d))
 
   def AsDicts(self):
-    return [h.AsDict() for h in self]
+    dcts = []
+    for d in self._shared_diagnostics_by_guid.itervalues():
+      dcts.append(d.AsDict())
+    for h in self:
+      dcts.append(h.AsDict())
+    return dcts
