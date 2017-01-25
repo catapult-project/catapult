@@ -550,6 +550,34 @@ class BuildbotInfoUnittest(unittest.TestCase):
     self.assertEqual(clone.log_uri, 'uri')
 
 
+class TelemetryInfoUnittest(unittest.TestCase):
+  def testRoundtrip(self):
+    info = histogram.TelemetryInfo()
+    info.AddInfo({
+        'benchmarkName': 'foo',
+        'benchmarkStartMs': 42,
+        'label': 'lbl',
+        'storyDisplayName': 'story',
+        'storyGroupingKeys': {'a': 'b'},
+        'storyRepeatCounter': 0,
+        'storysetRepeatCounter': 1,
+        'storyUrl': 'url',
+        'legacyTIRLabel': 'tir',
+    })
+    d = info.AsDict()
+    clone = histogram.TelemetryInfo.FromDict(d)
+    self.assertEqual(ToJSON(d), ToJSON(clone.AsDict()))
+    self.assertEqual(clone.benchmark_name, 'foo')
+    self.assertEqual(clone.benchmark_start, 42)
+    self.assertEqual(clone.label, 'lbl')
+    self.assertEqual(clone.story_display_name, 'story')
+    self.assertEqual(clone.story_grouping_keys['a'], 'b')
+    self.assertEqual(clone.story_repeat_counter, 0)
+    self.assertEqual(clone.storyset_repeat_counter, 1)
+    self.assertEqual(clone.story_url, 'url')
+    self.assertEqual(clone.legacy_tir_label, 'tir')
+
+
 class HistogramSetUnittest(unittest.TestCase):
   def assertDeepEqual(self, a, b):
     self.assertEqual(ToJSON(a), ToJSON(b))

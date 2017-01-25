@@ -170,7 +170,7 @@ class RunningStatistics(object):
     self._min = JS_MAX_VALUE
     self._sum = 0.0
     self._variance = 0.0
-    # Mean of logarithms of samples, or undefined if any samples were <= 0.
+    # Mean of logarithms of samples, or None if any samples were <= 0.
     self._meanlogs = 0.0
 
   @property
@@ -422,6 +422,96 @@ class BuildbotInfo(Diagnostic):
   @property
   def log_uri(self):
     return self._log_uri
+
+
+# TODO(benjhayden): Unify this with telemetry's IterationInfo.
+class TelemetryInfo(Diagnostic):
+  NAME = 'telemetry'
+
+  def __init__(self):
+    Diagnostic.__init__(self)
+    self._benchmark_name = ''
+    self._benchmark_start = None
+    self._label = ''
+    self._legacy_tir_label = ''
+    self._story_display_name = ''
+    self._story_grouping_keys = {}
+    self._story_repeat_counter = None
+    self._story_url = ''
+    self._storyset_repeat_counter = None
+
+  def AddInfo(self, info):
+    if 'benchmarkName' in info:
+      self._benchmark_name = info['benchmarkName']
+    if 'benchmarkStartMs' in info:
+      self._benchmark_start = info['benchmarkStartMs']
+    if 'label' in info:
+      self._label = info['label']
+    if 'storyDisplayName' in info:
+      self._story_display_name = info['storyDisplayName']
+    if 'storyGroupingKeys' in info:
+      self._story_grouping_keys = info['storyGroupingKeys']
+    if 'storyRepeatCounter' in info:
+      self._story_repeat_counter = info['storyRepeatCounter']
+    if 'storyUrl' in info:
+      self._story_url = info['storyUrl']
+    if 'storysetRepeatCounter' in info:
+      self._storyset_repeat_counter = info['storysetRepeatCounter']
+    if 'legacyTIRLabel' in info:
+      self._legacy_tir_label = info['legacyTIRLabel']
+
+  def _AsDictInto(self, d):
+    d['benchmarkName'] = self.benchmark_name
+    d['benchmarkStartMs'] = self.benchmark_start
+    d['label'] = self.label
+    d['storyDisplayName'] = self.story_display_name
+    d['storyGroupingKeys'] = self.story_grouping_keys
+    d['storyRepeatCounter'] = self.story_repeat_counter
+    d['storysetRepeatCounter'] = self.storyset_repeat_counter
+    d['storyUrl'] = self.story_url
+    d['legacyTIRLabel'] = self.legacy_tir_label
+
+  @property
+  def benchmark_name(self):
+    return self._benchmark_name
+
+  @property
+  def benchmark_start(self):
+    return self._benchmark_start
+
+  @property
+  def label(self):
+    return self._label
+
+  @property
+  def story_display_name(self):
+    return self._story_display_name
+
+  @property
+  def story_grouping_keys(self):
+    return self._story_grouping_keys
+
+  @property
+  def story_repeat_counter(self):
+    return self._story_repeat_counter
+
+  @property
+  def storyset_repeat_counter(self):
+    return self._storyset_repeat_counter
+
+  @property
+  def story_url(self):
+    return self._story_url
+
+  @property
+  def legacy_tir_label(self):
+    return self._legacy_tir_label
+
+  @staticmethod
+  def FromDict(d):
+    info = TelemetryInfo()
+    info.AddInfo(d)
+    return info
 
 
 RegisterDiagnosticTypes()
