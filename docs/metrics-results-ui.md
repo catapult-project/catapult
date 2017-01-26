@@ -141,9 +141,9 @@ small control elements. Let's start at the left.
 
 ### The Search box
 
-Type a string in the Search box to filter Histograms out of the displayed
-HistogramSet whose name, shortName, and description do not contain the search
-query.
+Type a [regex](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions)
+in the Search box to filter Histograms out of the displayed HistogramSet whose
+name do not match the regex.
 
 For example, the v8 metric produces Histograms whose names end with either
 "duration" or "count". The "duration" Histograms cannot be merged with the

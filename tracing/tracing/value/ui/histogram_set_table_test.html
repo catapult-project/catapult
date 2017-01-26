@@ -139,6 +139,23 @@ tr.b.unittest.testSuite(function() {
           (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
           (elem.histogram === barHist)));
     assert.isUndefined(barCell);
+
+    // As users type in regexes, some intermediate forms may be invalid regexes.
+    // When the search is an invalid regex, just ignore it.
+    search.value = '[a-';
+    table.onSearch_();
+
+    fooCell = tr.b.findDeepElementMatchingPredicate(
+        table, elem => (
+          (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
+          (elem.histogram === fooHist)));
+    assert.isDefined(fooCell);
+
+    barCell = tr.b.findDeepElementMatchingPredicate(
+        table, elem => (
+          (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
+          (elem.histogram === barHist)));
+    assert.isDefined(barCell);
   });
 
   test('implicitUndefinedValues', function() {

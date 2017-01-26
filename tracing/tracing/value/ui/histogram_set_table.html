@@ -546,8 +546,15 @@ tr.exportTo('tr.v.ui', function() {
       var histogramSet = this.$.show_all.checked ?
           this.histograms : this.sourceValues_;
       if (this.$.search.value) {
-        histogramSet = new tr.v.HistogramSet([...histogramSet].filter(
-            hist => hist.name.indexOf(this.$.search.value) >= 0));
+        var query = undefined;
+        try {
+          query = new RegExp(this.$.search.value);
+        } catch (e) {
+        }
+        if (query !== undefined) {
+          histogramSet = new tr.v.HistogramSet([...histogramSet].filter(
+              hist => hist.name.match(query)));
+        }
       }
 
       var groupings = this.$.picker.currentGroups.slice();
