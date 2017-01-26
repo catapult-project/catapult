@@ -1,0 +1,12 @@
+{
+  "Mac Air 10.11 Perf": [
+    {"key": "cores", "value": "4"},
+    {"key": "gpu", "value": "8086:1626"},
+    {"key": "os", "value": "Mac-10.11"}
+  ],
+  "Mac Pro 10.11 Perf": [
+    {"key": "cores", "value": "8"},
+    {"key": "gpu", "value": "1002:6821"},
+    {"key": "os", "value": "Mac-10.11"}
+  ]
+}

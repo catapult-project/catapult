@@ -11,16 +11,16 @@ class ReadValue(quest.Quest):
   def __init__(self, metric):
     self._metric = metric
 
-  def Start(self, file_path):
-    return _ReadValueExecution(self._metric, file_path)
+  def Start(self, isolated_hash):
+    return _ReadValueExecution(self._metric, isolated_hash)
 
 
 class _ReadValueExecution(execution.Execution):
 
-  def __init__(self, metric, file_path):
+  def __init__(self, metric, isolated_hash):
     super(_ReadValueExecution, self).__init__()
     self._metric = metric
-    self._file_path = file_path
+    self._isolated_hash = isolated_hash
 
   def _Poll(self):
     # TODO

@@ -43,11 +43,11 @@ class Job(ndb.Model):
   @classmethod
   def New(cls, configuration, test_suite, test, metric, auto_explore):
     # Get list of quests.
-    quests = [quest.FindIsolated(configuration=configuration)]
+    quests = [quest.FindIsolated(configuration)]
     if test_suite:
-      quests.append(quest.RunTest(test_suite=test_suite, test=test))
+      quests.append(quest.RunTest(configuration, test_suite, test))
     if metric:
-      quests.append(quest.ReadValue(metric=metric))
+      quests.append(quest.ReadValue(metric))
 
     # Create job.
     return cls(

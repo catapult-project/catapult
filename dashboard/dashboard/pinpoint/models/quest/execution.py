@@ -50,6 +50,7 @@ class Execution(object):
     or 1 representing success or failure. For a ReadValue Execution, this is a
     list of numbers with the values.
     """
+    assert self.completed
     return self._result_values
 
   @property
@@ -59,6 +60,7 @@ class Execution(object):
     For example, the Build Execution passes the isolated hash to the Test
     Execution.
     """
+    assert self.completed
     return self._result_arguments
 
   def Poll(self):
@@ -73,6 +75,7 @@ class Execution(object):
       self._completed = True
       self._failed = True
       self._result_values = (e,)
+
 
   def _Poll(self):
     raise NotImplementedError()
