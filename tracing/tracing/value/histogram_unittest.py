@@ -529,6 +529,24 @@ class HistogramUnittest(unittest.TestCase):
     self.assertEqual(4, hist.GetApproximatePercentile(1))
 
 
+class BreakdownUnittest(unittest.TestCase):
+  def testRoundtrip(self):
+    bd = histogram.Breakdown()
+    bd.Set('one', 1)
+    bd.Set('m1', -1)
+    bd.Set('inf', float('inf'))
+    bd.Set('nun', float('nan'))
+    bd.Set('ninf', float('-inf'))
+    d = bd.AsDict()
+    clone = histogram.Breakdown.FromDict(d)
+    self.assertEqual(ToJSON(d), ToJSON(clone.AsDict()))
+    self.assertEqual(clone.Get('one'), 1)
+    self.assertEqual(clone.Get('m1'), -1)
+    self.assertEqual(clone.Get('inf'), float('inf'))
+    self.assertTrue(math.isnan(clone.Get('nun')))
+    self.assertEqual(clone.Get('ninf'), float('-inf'))
+
+
 class BuildbotInfoUnittest(unittest.TestCase):
   def testRoundtrip(self):
     info = histogram.BuildbotInfo({
