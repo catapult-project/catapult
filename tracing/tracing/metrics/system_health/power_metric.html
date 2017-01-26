@@ -117,6 +117,10 @@ tr.exportTo('tr.metrics.sh', function() {
   function createHistograms_(model, values) {
     var hists = {};
 
+    // Whole trace average power metric.
+    hists.wholeTracePowerHist = makePowerHistogram_(values, 'story',
+        'user story');
+
     // "Generic" RAIL stage metrics. These give time, energy, and power
     // for each RAIL stage, indexed by name. For instance, "Tap Animation"
     // is different from "Scroll Animation". There is one histogram
@@ -132,10 +136,6 @@ tr.exportTo('tr.metrics.sh', function() {
     hists.loadEnergyHist = makeEnergyHistogram_(values, 'load', 'page loads');
     hists.afterLoadPowerHist = makePowerHistogram_(values, 'after_load',
         'period after load');
-
-    // Whole trace average power metric.
-    hists.wholeTracePowerHist = makePowerHistogram_(values, 'story',
-        'user story');
 
     for (var exp of model.userModel.expectations) {
       var currTitle = exp.title.toLowerCase().replace(' ', '_');
@@ -222,8 +222,8 @@ tr.exportTo('tr.metrics.sh', function() {
     }
   }
 
-  function computeWholeTracePowerMetric_(model, hists, chromeBounds) {
-    var traceData = getPowerData_(model, chromeBounds.min, chromeBounds.max);
+  function computeWholeTracePowerMetric_(model, hists) {
+    var traceData = getPowerData_(model, model.bounds.min, model.bounds.max);
     for (var sample of traceData.samples) {
       hists.wholeTracePowerHist.addSample(sample.powerInW);
     }
@@ -251,10 +251,22 @@ tr.exportTo('tr.metrics.sh', function() {
   function powerMetric(values, model) {
     var chromeHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
+
     var powerSeries = model.device.powerSeries;
-    if (chromeHelper === undefined || powerSeries === undefined ||
+    if (powerSeries === undefined ||
         powerSeries.samples.length === 0) {
-      // There's no Chrome trace or no power trace.
+      // There's no power trace.
+      return;
+    }
+
+    var hists = createHistograms_(model, values);
+    computeWholeTracePowerMetric_(model, hists);
+
+    var powerSeriesBoundsWithGracePeriod = tr.b.Range.fromExplicitRange(
+        powerSeries.bounds.min - 1, powerSeries.bounds.max + 1);
+
+    if (chromeHelper === undefined) {
+      // There's no Chrome trace.
       return;
     }
 
@@ -264,19 +276,16 @@ tr.exportTo('tr.metrics.sh', function() {
       return;
     }
 
-    var powerSeriesBoundsWithGracePeriod = tr.b.Range.fromExplicitRange(
-        powerSeries.bounds.min - 1, powerSeries.bounds.max + 1);
     if (!powerSeriesBoundsWithGracePeriod.containsRangeExclusive(
         chromeBounds)) {
       // The power series doesn't cover the entire Chrome trace.
+      // In this case, the results will be bogus, so just present
+      // no data rather than bogus data.
       return;
     }
 
-    var hists = createHistograms_(model, values);
-
     computeRailStageMetrics_(model, hists, chromeBounds);
     computeLoadingMetric_(model, hists, chromeBounds);
-    computeWholeTracePowerMetric_(model, hists, chromeBounds);
   }
 
   tr.metrics.MetricRegistry.register(powerMetric);

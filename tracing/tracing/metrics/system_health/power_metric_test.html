@@ -15,6 +15,14 @@ found in the LICENSE file.
 <script>
 'use strict';
 
+function containsData(values, name) {
+  for (var value of values)
+    if (value.name === name)
+      return (value.running !== undefined);
+
+  return undefined;
+}
+
 function getMetricValueCount(values, name) {
   for (var value of values)
     if (value.name === name && value.running !== undefined)
@@ -119,26 +127,32 @@ tr.b.unittest.testSuite(function() {
     var valueSet = new tr.v.HistogramSet();
     tr.metrics.sh.powerMetric(valueSet, model);
 
-    assert.lengthOf(valueSet, 0);
+    // Only the whole trace power metric should contain data.
+    assert(containsData(valueSet, 'story:power'));
+    assert(!containsData(valueSet, 'load:energy'));
+    assert(!containsData(valueSet, 'after_load:power'));
   });
 
   test('powerMetric_emptyChromeTrace', function() {
-    var model = new tr.Model();
     var valueSet = new tr.v.HistogramSet();
-    var rendererProcess = model.getOrCreateProcess(1234);
-    var mainThread = rendererProcess.getOrCreateThread(1);
-    mainThread.name = 'CrRendererMain';
-    model.device.powerSeries = new tr.model.PowerSeries(model.device);
-    for (var i = 0; i <= 1000; i++) {
-        model.device.powerSeries.addPowerSample(i.toString(), i.toString());
-    }
-    model.userModel.expectations.push(new tr.model.um.LoadExpectation(
-        model, tr.model.um.LOAD_SUBTYPE_NAMES.SUCCESSFUL, 0, 500));
-    model.userModel.expectations.push(new tr.model.um.IdleExpectation(
-        model, 500, 500));
+    var model = tr.c.TestUtils.newModel(function(model) {
+      var rendererProcess = model.getOrCreateProcess(1234);
+      var mainThread = rendererProcess.getOrCreateThread(1);
+      mainThread.name = 'CrRendererMain';
+      model.device.powerSeries = new tr.model.PowerSeries(model.device);
+      for (var i = 0; i <= 1000; i++) {
+          model.device.powerSeries.addPowerSample(i.toString(), i.toString());
+      }
+      model.userModel.expectations.push(new tr.model.um.LoadExpectation(
+          model, tr.model.um.LOAD_SUBTYPE_NAMES.SUCCESSFUL, 0, 500));
+      model.userModel.expectations.push(new tr.model.um.IdleExpectation(
+          model, 500, 500));
+    });
     tr.metrics.sh.powerMetric(valueSet, model);
 
-    assert.lengthOf(valueSet, 0);
+    assert(containsData(valueSet, 'story:power'));
+    assert(!containsData(valueSet, 'load:energy'));
+    assert(!containsData(valueSet, 'after_load:power'));
   });
 
   test('powerMetric_powerSeriesStartsLate', function() {
@@ -172,7 +186,9 @@ tr.b.unittest.testSuite(function() {
     var valueSet = new tr.v.HistogramSet();
     tr.metrics.sh.powerMetric(valueSet, model);
 
-    assert.lengthOf(valueSet, 0);
+    assert(containsData(valueSet, 'story:power'));
+    assert(!containsData(valueSet, 'load:energy'));
+    assert(!containsData(valueSet, 'after_load:power'));
   });
 
   test('powerMetric_powerSeriesEndsEarly', function() {
@@ -206,7 +222,9 @@ tr.b.unittest.testSuite(function() {
     var valueSet = new tr.v.HistogramSet();
     tr.metrics.sh.powerMetric(valueSet, model);
 
-    assert.lengthOf(valueSet, 0);
+    assert(containsData(valueSet, 'story:power'));
+    assert(!containsData(valueSet, 'load:energy'));
+    assert(!containsData(valueSet, 'after_load:power'));
   });
 
   test('powerMetric_generic_oneStageEachType_irBeyondChrome', function() {
@@ -280,8 +298,8 @@ tr.b.unittest.testSuite(function() {
     tr.metrics.sh.powerMetric(valueSet, model);
 
     assert.closeTo(getMetricValueMin(valueSet, 'story:power'), 0, .01);
-    assert.closeTo(getMetricValueAvg(valueSet, 'story:power'), 499.5, .01);
-    assert.closeTo(getMetricValueMax(valueSet, 'story:power'), 999, .01);
+    assert.closeTo(getMetricValueAvg(valueSet, 'story:power'), 500, .01);
+    assert.closeTo(getMetricValueMax(valueSet, 'story:power'), 1000, .01);
   });
 
   test('powerMetric_generic_oneUEBeforeChrome', function() {
