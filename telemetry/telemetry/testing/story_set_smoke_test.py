@@ -92,13 +92,13 @@ class StorySetSmokeTest(unittest.TestCase):
        isinstance(story.name, str),
        msg='story %s \'s name field must have type string' % story.display_name)
     self.assertTrue(
-       isinstance(story.labels, set),
-       msg='story %s \'s labels field must have type set' % story.display_name)
-    for l in story.labels:
+       isinstance(story.tags, set),
+       msg='story %s \'s tags field must have type set' % story.display_name)
+    for t in story.tags:
       self.assertTrue(
-         isinstance(l, str),
-         msg='label %s in story %s \'s labels must have type string'
-         % (str(l), story.display_name))
+         isinstance(t, str),
+         msg='tag %s in story %s \'s tags must have type string'
+         % (str(t), story.display_name))
     if not isinstance(story, page.Page):
       return
     self.assertTrue(
