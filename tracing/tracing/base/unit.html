@@ -18,7 +18,40 @@ found in the LICENSE file.
 tr.exportTo('tr.b', function() {
   var TimeDisplayModes = tr.b.TimeDisplayModes;
 
+
   var PLUS_MINUS_SIGN = String.fromCharCode(177);
+
+  var CACHED_FORMATTERS = {};
+  function getNumberFormatter(minSpec, maxSpec, minCtx, maxCtx) {
+    var key = minSpec + '-' + maxSpec + '-' + minCtx + '-' + maxCtx;
+    var formatter = CACHED_FORMATTERS[key];
+    if (formatter === undefined) {
+      var minimumFractionDigits = minCtx !== undefined ? minCtx : minSpec;
+      var maximumFractionDigits = maxCtx !== undefined ? maxCtx : maxSpec;
+
+      // If the context overrides only one of the two |*FractionDigits|
+      // properties and the other one is provided by the unit, we might need to
+      // shift the other property so that
+      // |minimumFractionDigits| <= |maximumFractionDigits|.
+      if (minimumFractionDigits > maximumFractionDigits) {
+        if (minCtx !== undefined && maxCtx === undefined) {
+          // Only minimumFractionDigits was overriden by context.
+          maximumFractionDigits = minimumFractionDigits;
+        } else if (minCtx === undefined && maxCtx !== undefined) {
+          // Only maximumFractionDigits was overriden by context.
+          minimumFractionDigits = maximumFractionDigits;
+        }
+      }
+
+      formatter = new Intl.NumberFormat(undefined, {
+        minimumFractionDigits,
+        maximumFractionDigits,
+      });
+
+      CACHED_FORMATTERS[key] = formatter;
+    }
+    return formatter;
+  }
 
   function max(a, b) {
     if (a === undefined)
@@ -130,34 +163,12 @@ tr.exportTo('tr.b', function() {
         unitString += selectedSubUnit.symbol;
       }
 
-      var minimumFractionDigits =
-          context.minimumFractionDigits !== undefined ?
-          context.minimumFractionDigits : formatSpec.minimumFractionDigits;
-      var maximumFractionDigits =
-          context.maximumFractionDigits !== undefined ?
-          context.maximumFractionDigits : formatSpec.maximumFractionDigits;
-
-      // If the context overrides only one of the two |*FractionDigits|
-      // properties and the other one is provided by the unit, we might need to
-      // shift the other property so that
-      // |minimumFractionDigits| <= |maximumFractionDigits|.
-      if (minimumFractionDigits > maximumFractionDigits) {
-        if ('minimumFractionDigits' in context &&
-            !('maximumFractionDigits' in context)) {
-          // Only minimumFractionDigits was overriden by context.
-          maximumFractionDigits = minimumFractionDigits;
-        } else if ('maximumFractionDigits' in context &&
-            !('minimumFractionDigits' in context)) {
-          // Only maximumFractionDigits was overriden by context.
-          minimumFractionDigits = maximumFractionDigits;
-        }
-      }
-
       value = tr.b.convertUnit(value, this.scaleBaseUnit, selectedSubUnit);
-      var numberString = value.toLocaleString(undefined, {
-        minimumFractionDigits: minimumFractionDigits,
-        maximumFractionDigits: maximumFractionDigits
-      });
+      var numberString = getNumberFormatter(
+          formatSpec.minimumFractionDigits,
+          formatSpec.maximumFractionDigits,
+          context.minimumFractionDigits,
+          context.maximumFractionDigits).format(value);
 
       return signString + numberString + unitString;
     }

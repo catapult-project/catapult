@@ -22,6 +22,12 @@ tr.b.unittest.testSuite(function() {
   var Unit = tr.b.Unit;
   var THIS_DOC = document.currentScript.ownerDocument;
 
+  var EXAMPLE_MEMORY_FORMATTING_CONTEXT = {
+    unitPrefix: tr.b.UnitPrefixScale.BINARY.KIBI,
+  };
+  var EXAMPLE_MEMORY_NUMERIC = new ScalarNumeric(
+      Unit.byName.sizeInBytesDelta_smallerIsBetter, 256 * 1024 * 1024);
+
   function checkSignificance(span, expectedSignificance) {
     assert.strictEqual(span.$.insignificant.style.display,
         expectedSignificance === 'insignificant' ? 'inline' : '');
@@ -1008,5 +1014,15 @@ tr.b.unittest.testSuite(function() {
       customContextRange: tr.b.Range.fromExplicitRange(-100, 100)
     }));
   });
+
+  timedPerfTest('memory_scalar_spans', function() {
+    tr.v.ui.createScalarSpan(EXAMPLE_MEMORY_NUMERIC, {
+      context: EXAMPLE_MEMORY_FORMATTING_CONTEXT,
+      inline: true,
+    });
+  }, {
+    iterations: 1000,
+  });
+
 });
 </script>
