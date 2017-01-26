@@ -375,6 +375,58 @@ class Generic(Diagnostic):
     return Generic(dct['value'])
 
 
+class HistogramRef(object):
+  def __init__(self, guid):
+    self._guid = guid
+
+  @property
+  def guid(self):
+    return self._guid
+
+
+class RelatedHistogramSet(Diagnostic):
+  def __init__(self, histograms=()):
+    Diagnostic.__init__(self)
+    self._histograms_by_guid = {}
+    for hist in histograms:
+      self.Add(hist)
+
+  def Add(self, hist):
+    assert isinstance(hist, (Histogram, HistogramRef))
+    assert not self.Has(hist)
+    self._histograms_by_guid[hist.guid] = hist
+
+  def Has(self, hist):
+    return hist.guid in self._histograms_by_guid
+
+  def __len__(self):
+    return len(self._histograms_by_guid)
+
+  def __iter__(self):
+    for hist in self._histograms_by_guid.itervalues():
+      yield hist
+
+  def Resolve(self, histograms, required=False):
+    for hist in self:
+      if isinstance(hist, Histogram):
+        continue
+      guid = hist.guid
+      hist = histograms.LookupHistogram(guid)
+      if isinstance(hist, Histogram):
+        self._histograms_by_guid[guid] = hist
+      else:
+        assert not required, guid
+
+  def _AsDictInto(self, d):
+    d['guids'] = []
+    for hist in self:
+      d['guids'].append(hist.guid)
+
+  @staticmethod
+  def FromDict(d):
+    return RelatedHistogramSet(HistogramRef(guid) for guid in d['guids'])
+
+
 class BuildbotInfo(Diagnostic):
   NAME = 'buildbot'
 
@@ -1291,6 +1343,9 @@ class HistogramSet(object):
     for hist in self:
       hist.diagnostics[name] = diagnostic
 
+  def GetHistogramsNamed(self, name):
+    return [h for h in self if h.name == name]
+
   def LookupHistogram(self, guid):
     return self._histograms_by_guid.get(guid)
 
@@ -1298,8 +1353,20 @@ class HistogramSet(object):
     return self._shared_diagnostics_by_guid.get(guid)
 
   def ResolveRelatedHistograms(self):
+    histograms = self
+    def HandleDiagnosticMap(dm):
+      for diagnostic in dm.itervalues():
+        if isinstance(diagnostic, RelatedHistogramSet):
+          diagnostic.Resolve(histograms)
+
     for hist in self:
       hist.diagnostics.ResolveSharedDiagnostics(self)
+      HandleDiagnosticMap(hist.diagnostics)
+      for dm in hist.nan_diagnostic_maps:
+        HandleDiagnosticMap(dm)
+      for hbin in hist.bins:
+        for dm in hbin.diagnostic_maps:
+          HandleDiagnosticMap(dm)
 
   def __len__(self):
     return len(self._histograms_by_guid)
