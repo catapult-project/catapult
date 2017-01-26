@@ -516,7 +516,6 @@
       'tracing/value/diagnostics/revision_info.html',
       'tracing/value/diagnostics/scalar.html',
       'tracing/value/diagnostics/telemetry_info.html',
-      'tracing/value/generic_table.html',
       'tracing/value/histogram.html',
       'tracing/value/histogram_set.html',
       'tracing/value/numeric.html',

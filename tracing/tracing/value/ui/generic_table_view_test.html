@@ -5,7 +5,6 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/value/generic_table.html">
 <link rel="import" href="/tracing/value/ui/generic_table_view.html">
 
 <script>
@@ -110,30 +109,6 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual(totalsItem.values, [1, 2, 3]);
   });
 
-
-  test('usingGenericTable', function() {
-    var table = document.createElement('tr-v-ui-generic-table-view');
-    table.items = new tr.v.GenericTable([
-      {
-        a: 1
-      }
-    ]);
-    assert.equal(table.items.length, 1);
-  });
-
-  test('valueIsObject', function() {
-    var table = document.createElement('tr-v-ui-generic-table-view');
-    table.items = new tr.v.GenericTable([
-      {
-        a: {x: 1, y: 'string'}
-      },
-      {
-        a: 'something'
-      }
-    ]);
-    this.addHTMLOutput(table);
-    assert.equal(table.items.length, 2);
-  });
 
   test('mixedTypeTable', function() {
     var table = document.createElement('tr-v-ui-generic-table-view');

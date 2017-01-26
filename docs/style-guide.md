@@ -72,8 +72,8 @@ abbreviation - just enough to resolve naming conflicts. All files in the same
 directory should share the same package.
 
 ```html
-<!-- tracing/base/units/generic_table.html →
-tr.exportTo(‘tr.b.u’, function() {
+<!-- tracing/extras/chrome/cc/input_latency_async_slice.html →
+tr.exportTo(‘tr.e.cc’, function() {
    // ...
 });
 ```
