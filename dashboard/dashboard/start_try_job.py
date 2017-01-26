@@ -459,13 +459,18 @@ def _GuessCommandTelemetry(suite, bisect_bot, story_filter, rerun_option):
 
   test_cmd = 'src/tools/perf/run_benchmark'
 
+  # TODO(simonhatch): Workaround for crbug.com/677843
+  pageset_repeat = 1
+  if 'startup.warm' in suite:
+    pageset_repeat = 2
+
   command.extend([
       test_cmd,
       '-v',
       '--browser=%s' % _GuessBrowserName(bisect_bot),
       '--output-format=chartjson',
       '--upload-results',
-      '--pageset-repeat=1',
+      '--pageset-repeat=%d' % pageset_repeat,
       '--also-run-disabled-tests',
   ])
   if story_filter:
