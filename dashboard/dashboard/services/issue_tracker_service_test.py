@@ -90,7 +90,7 @@ class IssueTrackerServiceTest(testing_common.TestCase):
     service = issue_tracker_service.IssueTrackerService(mock.MagicMock())
     service._MakeCreateRequest = mock.Mock()
     service.NewBug('Bug title', 'body', owner='someone@chromium.org',
-                   cc='somebody@chromium.org,nobody@chromium.org')
+                   cc='somebody@chromium.org, nobody@chromium.org')
     service._MakeCreateRequest.assert_called_with(
         {
             'title': 'Bug title',

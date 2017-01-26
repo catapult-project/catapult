@@ -146,7 +146,8 @@ class IssueTrackerService(object):
     if owner:
       body['owner'] = {'name': owner}
     if cc:
-      body['cc'] = [{'name': account} for account in cc.split(',') if account]
+      body['cc'] = [{'name': account.strip()}
+                    for account in cc.split(',') if account.strip()]
     return self._MakeCreateRequest(body)
 
   def _MakeCreateRequest(self, body):
