@@ -244,9 +244,16 @@ class CloudStorageFakeFsUnitTest(fake_filesystem_unittest.TestCase):
 
 
 class CloudStorageRealFsUnitTest(unittest.TestCase):
+
+  def setUp(self):
+    self.original_environ = os.environ.copy()
+    os.environ['DISABLE_CLOUD_STORAGE_IO'] = ''
+
+  def tearDown(self):
+    os.environ = self.original_environ
+
   @mock.patch('py_utils.cloud_storage.LOCK_ACQUISITION_TIMEOUT', .005)
   def testGetPseudoLockUnavailableCausesTimeout(self):
-    os.environ['DISABLE_CLOUD_STORAGE_IO'] = ''
     with tempfile.NamedTemporaryFile(suffix='.pseudo_lock') as pseudo_lock_fd:
       with lock.FileLock(pseudo_lock_fd, lock.LOCK_EX | lock.LOCK_NB):
         with self.assertRaises(py_utils.TimeoutException):
@@ -255,7 +262,6 @@ class CloudStorageRealFsUnitTest(unittest.TestCase):
 
   @mock.patch('py_utils.cloud_storage.LOCK_ACQUISITION_TIMEOUT', .005)
   def testGetGlobalLockUnavailableCausesTimeout(self):
-    os.environ['DISABLE_CLOUD_STORAGE_IO'] = ''
     with open(_CLOUD_STORAGE_GLOBAL_LOCK_PATH) as global_lock_fd:
       with lock.FileLock(global_lock_fd, lock.LOCK_EX | lock.LOCK_NB):
         tmp_dir = tempfile.mkdtemp()
