@@ -598,6 +598,26 @@ class DeviceInfoUnittest(unittest.TestCase):
     self.assertEqual(clone.ram, 42)
 
 
+class RelatedEventSetUnittest(unittest.TestCase):
+  def testRoundtrip(self):
+    events = histogram.RelatedEventSet()
+    events.Add({
+        'stableId': '0.0',
+        'title': 'foo',
+        'start': 0,
+        'duration': 1,
+    })
+    d = events.AsDict()
+    clone = histogram.RelatedEventSet.FromDict(d)
+    self.assertEqual(ToJSON(d), ToJSON(clone.AsDict()))
+    self.assertEqual(len(events), 1)
+    event = list(events)[0]
+    self.assertEqual(event['stableId'], '0.0')
+    self.assertEqual(event['title'], 'foo')
+    self.assertEqual(event['start'], 0)
+    self.assertEqual(event['duration'], 1)
+
+
 class HistogramSetUnittest(unittest.TestCase):
   def assertDeepEqual(self, a, b):
     self.assertEqual(ToJSON(a), ToJSON(b))

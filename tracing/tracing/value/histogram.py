@@ -592,6 +592,32 @@ class DeviceInfo(Diagnostic):
     self._ram = v
 
 
+class RelatedEventSet(Diagnostic):
+  def __init__(self):
+    Diagnostic.__init__(self)
+    self._events_by_stable_id = {}
+
+  def Add(self, event):
+    self._events_by_stable_id[event['stableId']] = event
+
+  def __len__(self):
+    return len(self._events_by_stable_id)
+
+  def __iter__(self):
+    for event in self._events_by_stable_id.itervalues():
+      yield event
+
+  @staticmethod
+  def FromDict(d):
+    result = RelatedEventSet()
+    for event in d['events']:
+      result.Add(event)
+    return result
+
+  def _AsDictInto(self, d):
+    d['events'] = [event for event in self]
+
+
 RegisterDiagnosticTypes()
 
 
