@@ -60,27 +60,27 @@ tr.b.unittest.testSuite(function() {
       ];
       var actual = run(slices);
 
-      var value = tr.b.getOnlyElement(actual.getValuesNamed(telemetryName));
+      var value = tr.b.getOnlyElement(actual.getHistogramsNamed(telemetryName));
       assert.strictEqual(value.running.sum, 100);
       assert.strictEqual(value.numValues, 1);
       assert.strictEqual(value.average, 100);
       assert.strictEqual(value.running.max, 100);
       assert.closeTo(value.getApproximatePercentile(0.90), 100, 1);
 
-      value = tr.b.getOnlyElement(actual.getValuesNamed(
+      value = tr.b.getOnlyElement(actual.getHistogramsNamed(
           telemetryName + '_idle_deadline_overrun'));
       assert.strictEqual(value.running.sum, 0);
       assert.strictEqual(value.numValues, 1);
       assert.strictEqual(value.average, 0);
       assert.strictEqual(value.running.max, 0);
 
-      value = tr.b.getOnlyElement(actual.getValuesNamed(
+      value = tr.b.getOnlyElement(actual.getHistogramsNamed(
           telemetryName + '_outside_idle'));
       assert.strictEqual(value.running.sum, 100);
       assert.strictEqual(value.numValues, 1);
       assert.strictEqual(value.average, 100);
 
-      value = tr.b.getOnlyElement(actual.getValuesNamed(
+      value = tr.b.getOnlyElement(actual.getHistogramsNamed(
           telemetryName + '_percentage_idle'));
       assert.strictEqual(value.average, 0);
     });
@@ -101,25 +101,26 @@ tr.b.unittest.testSuite(function() {
     ];
     var actual = run(slices);
 
-    var value = tr.b.getOnlyElement(actual.getValuesNamed('blink-gc-marking'));
+    var value = tr.b.getOnlyElement(
+        actual.getHistogramsNamed('blink-gc-marking'));
     assert.strictEqual(value.running.sum, 80);
     assert.strictEqual(value.numValues, 1);
     assert.strictEqual(value.average, 80);
     assert.strictEqual(value.running.max, 80);
 
-    value = tr.b.getOnlyElement(actual.getValuesNamed(
+    value = tr.b.getOnlyElement(actual.getHistogramsNamed(
         'blink-gc-marking_idle_deadline_overrun'));
     assert.strictEqual(value.running.sum, 0);
     assert.strictEqual(value.average, 0);
     assert.strictEqual(value.running.max, 0);
 
-    value = tr.b.getOnlyElement(actual.getValuesNamed(
+    value = tr.b.getOnlyElement(actual.getHistogramsNamed(
         'blink-gc-marking_outside_idle'));
     assert.strictEqual(value.running.sum, 0);
     assert.strictEqual(value.average, 0);
     assert.strictEqual(value.running.max, 0);
 
-    value = tr.b.getOnlyElement(actual.getValuesNamed(
+    value = tr.b.getOnlyElement(actual.getHistogramsNamed(
         'blink-gc-marking_percentage_idle'));
     assert.strictEqual(value.average, 1);
   });
@@ -139,25 +140,26 @@ tr.b.unittest.testSuite(function() {
     ];
     var actual = run(slices);
 
-    var value = tr.b.getOnlyElement(actual.getValuesNamed('blink-gc-marking'));
+    var value = tr.b.getOnlyElement(
+        actual.getHistogramsNamed('blink-gc-marking'));
     assert.strictEqual(value.running.sum, 80);
     assert.strictEqual(value.numValues, 1);
     assert.strictEqual(value.average, 80);
     assert.strictEqual(value.running.max, 80);
 
-    value = tr.b.getOnlyElement(actual.getValuesNamed(
+    value = tr.b.getOnlyElement(actual.getHistogramsNamed(
         'blink-gc-marking_idle_deadline_overrun'));
     assert.strictEqual(value.running.sum, 70);
     assert.strictEqual(value.average, 70);
     assert.strictEqual(value.running.max, 70);
 
-    value = tr.b.getOnlyElement(actual.getValuesNamed(
+    value = tr.b.getOnlyElement(actual.getHistogramsNamed(
         'blink-gc-marking_outside_idle'));
     assert.strictEqual(value.running.sum, 70);
     assert.strictEqual(value.average, 70);
     assert.strictEqual(value.running.max, 70);
 
-    value = tr.b.getOnlyElement(actual.getValuesNamed(
+    value = tr.b.getOnlyElement(actual.getHistogramsNamed(
         'blink-gc-marking_percentage_idle'));
     assert.closeTo(value.average, 1 / 8, 1e-6);
   });
@@ -176,25 +178,26 @@ tr.b.unittest.testSuite(function() {
     ];
     var actual = run(slices);
 
-    var value = tr.b.getOnlyElement(actual.getValuesNamed('blink-gc-total'));
+    var value = tr.b.getOnlyElement(
+        actual.getHistogramsNamed('blink-gc-total'));
     assert.strictEqual(value.running.sum, 180);
     assert.strictEqual(value.numValues, 2);
     assert.strictEqual(value.average, 90);
     assert.strictEqual(value.running.max, 100);
 
-    value = tr.b.getOnlyElement(actual.getValuesNamed(
+    value = tr.b.getOnlyElement(actual.getHistogramsNamed(
         'blink-gc-total_idle_deadline_overrun'));
     assert.strictEqual(value.running.sum, 0);
     assert.strictEqual(value.average, 0);
     assert.strictEqual(value.running.max, 0);
 
-    value = tr.b.getOnlyElement(actual.getValuesNamed(
+    value = tr.b.getOnlyElement(actual.getHistogramsNamed(
         'blink-gc-total_outside_idle'));
     assert.strictEqual(value.running.sum, 180);
     assert.strictEqual(value.average, 90);
     assert.strictEqual(value.running.max, 100);
 
-    value = tr.b.getOnlyElement(actual.getValuesNamed(
+    value = tr.b.getOnlyElement(actual.getHistogramsNamed(
         'blink-gc-total_percentage_idle'));
     assert.strictEqual(value.average, 0);
   });

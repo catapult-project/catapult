@@ -29,7 +29,7 @@ tr.b.unittest.testSuite(function() {
   }
 
   function checkDurationValue(allValues, metricName, expected) {
-    var value = tr.b.getOnlyElement(allValues.getValuesNamed(metricName));
+    var value = tr.b.getOnlyElement(allValues.getHistogramsNamed(metricName));
     assert.closeTo(1000 * value.average, expected, 0.1);
   }
 
@@ -61,7 +61,7 @@ tr.b.unittest.testSuite(function() {
     tr.metrics.tracingMetric(allValues, model);
 
     var eventStringSize = getEventStringSize(events, [0, 1]);
-    var value = tr.b.getOnlyElement(allValues.getValuesNamed(
+    var value = tr.b.getOnlyElement(allValues.getHistogramsNamed(
         'Total trace size in bytes'));
     assert.strictEqual(value.average, eventStringSize);
   });
@@ -81,12 +81,12 @@ tr.b.unittest.testSuite(function() {
     tr.metrics.tracingMetric(allValues, model);
 
     var maxEventCountPerSec = 3;
-    var value = tr.b.getOnlyElement(allValues.getValuesNamed(
+    var value = tr.b.getOnlyElement(allValues.getHistogramsNamed(
         'Max number of events per second'));
     assert.strictEqual(value.average, maxEventCountPerSec);
 
     var maxEventBytesPerSec = getEventStringSize(events, [2, 3, 5]);
-    value = tr.b.getOnlyElement(allValues.getValuesNamed(
+    value = tr.b.getOnlyElement(allValues.getHistogramsNamed(
         'Max event size in bytes per second'));
     assert.strictEqual(value.average, maxEventBytesPerSec);
   });
@@ -139,10 +139,10 @@ tr.b.unittest.testSuite(function() {
     var memoryCategorySize = events.filter(
         slice => slice['cat'] === MEMORY_INFRA_TRACING_CATEGORY).reduce(
             (acc, slice) => acc + JSON.stringify(slice).length, 0);
-    var totalSizeValue = tr.b.getOnlyElement(allValues.getValuesNamed(
+    var totalSizeValue = tr.b.getOnlyElement(allValues.getHistogramsNamed(
         'Total trace size of memory-infra dumps in bytes'));
     assert.strictEqual(totalSizeValue.average, memoryCategorySize);
-    var sizePerDumpValue = tr.b.getOnlyElement(allValues.getValuesNamed(
+    var sizePerDumpValue = tr.b.getOnlyElement(allValues.getHistogramsNamed(
         'Average trace size of memory-infra dumps in bytes'));
     assert.strictEqual(sizePerDumpValue.average, memoryCategorySize);
 

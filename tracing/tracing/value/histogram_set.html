@@ -95,7 +95,7 @@ tr.exportTo('tr.v', function() {
      * @param {string} name Histogram name.
      * @return {!Array.<!tr.v.Histogram>}
      */
-    getValuesNamed(name) {
+    getHistogramsNamed(name) {
       return [...this].filter(h => h.name === name);
     }
 

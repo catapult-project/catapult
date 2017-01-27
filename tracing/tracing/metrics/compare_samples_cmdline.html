@@ -117,12 +117,12 @@ function rawValuesByMetricName(valueSet, metricName) {
     [interactionRecord, ...valueName] = itrPlusChart.split('-');
     valueName = valueName.join('');
   } else valueName = itrPlusChart;
-  var values = valueSet.getValuesNamed(valueName);
+  var values = valueSet.getHistogramsNamed(valueName);
   if (!values || values.length === 0) {
     // If there was a dash in the chart name, but it wasn't an
     // interaction record.
     valueName = itrPlusChart;
-    values = valueSet.getValuesNamed(valueName);
+    values = valueSet.getHistogramsNamed(valueName);
     interactionRecord = undefined;
     if (!values || values.length === 0) {
       throw new Error('No values with name ' + valueName);

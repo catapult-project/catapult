@@ -64,7 +64,7 @@ tr.b.unittest.testSuite(function() {
     var valueSet = new tr.v.HistogramSet();
     tr.metrics.sh.longTasksMetric(valueSet, model);
     var longTaskHist = tr.b.getOnlyElement(
-        valueSet.getValuesNamed('long tasks'));
+        valueSet.getHistogramsNamed('long tasks'));
     assert.strictEqual(1, longTaskHist.numValues);
     assert.strictEqual(1, longTaskHist.allBins[1].count);
     assert.lengthOf(longTaskHist.allBins[1].diagnosticMaps, 1);
@@ -79,32 +79,32 @@ tr.b.unittest.testSuite(function() {
 
     var hist = breakdown.get('layout');
     assert.instanceOf(hist, tr.v.Histogram);
-    assert.strictEqual(tr.b.getOnlyElement(valueSet.getValuesNamed(hist.name)),
-        hist);
+    assert.strictEqual(
+        tr.b.getOnlyElement(valueSet.getHistogramsNamed(hist.name)), hist);
     assert.strictEqual(0, hist.name.indexOf(longTaskHist.name));
     assert.strictEqual(1, hist.numValues);
     assert.strictEqual(1, hist.allBins[1].count);
 
     hist = breakdown.get('gc');
     assert.instanceOf(hist, tr.v.Histogram);
-    assert.strictEqual(tr.b.getOnlyElement(valueSet.getValuesNamed(hist.name)),
-        hist);
+    assert.strictEqual(
+        tr.b.getOnlyElement(valueSet.getHistogramsNamed(hist.name)), hist);
     assert.strictEqual(0, hist.name.indexOf(longTaskHist.name));
     assert.strictEqual(1, hist.numValues);
     assert.strictEqual(1, hist.allBins[1].count);
 
     hist = breakdown.get('composite');
     assert.instanceOf(hist, tr.v.Histogram);
-    assert.strictEqual(tr.b.getOnlyElement(valueSet.getValuesNamed(hist.name)),
-        hist);
+    assert.strictEqual(
+        tr.b.getOnlyElement(valueSet.getHistogramsNamed(hist.name)), hist);
     assert.strictEqual(0, hist.name.indexOf(longTaskHist.name));
     assert.strictEqual(1, hist.numValues);
     assert.strictEqual(1, hist.allBins[1].count);
 
     hist = breakdown.get('imageDecode');
     assert.instanceOf(hist, tr.v.Histogram);
-    assert.strictEqual(tr.b.getOnlyElement(valueSet.getValuesNamed(hist.name)),
-        hist);
+    assert.strictEqual(
+        tr.b.getOnlyElement(valueSet.getHistogramsNamed(hist.name)), hist);
     assert.strictEqual(0, hist.name.indexOf(longTaskHist.name));
     assert.strictEqual(1, hist.numValues);
     assert.strictEqual(1, hist.allBins[1].count);

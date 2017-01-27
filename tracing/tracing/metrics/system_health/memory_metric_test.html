@@ -3273,7 +3273,7 @@ tr.b.unittest.testSuite(function() {
 
     var values = new tr.v.HistogramSet();
     function get(name) {
-      return tr.b.getOnlyElement(values.getValuesNamed(name));
+      return tr.b.getOnlyElement(values.getHistogramsNamed(name));
     }
     tr.metrics.sh.memoryMetric(values, model);
     var prefix = 'memory:chrome:';

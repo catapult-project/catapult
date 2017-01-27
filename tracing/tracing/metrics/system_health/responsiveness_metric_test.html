@@ -53,7 +53,7 @@ tr.b.unittest.testSuite(function() {
     var model = createModel([[]]);
     var valueList = new tr.v.HistogramSet();
     tr.metrics.sh.responsivenessMetric(valueList, model);
-    var value = tr.b.getOnlyElement(valueList.getValuesNamed(
+    var value = tr.b.getOnlyElement(valueList.getHistogramsNamed(
         'animation throughput'));
     assert.strictEqual(value.numValues, 0);
   });
@@ -62,7 +62,7 @@ tr.b.unittest.testSuite(function() {
     var model = createModel([[0, 100], []]);
     var valueList = new tr.v.HistogramSet();
     tr.metrics.sh.responsivenessMetric(valueList, model);
-    var value = tr.b.getOnlyElement(valueList.getValuesNamed(
+    var value = tr.b.getOnlyElement(valueList.getHistogramsNamed(
         'animation throughput'));
     assert.strictEqual(value.average, 20);
   });

@@ -53,7 +53,7 @@ tr.b.unittest.testSuite(function() {
         tr.b.Unit.byName.timeDurationInMs, sampleForEvent, TEST_BOUNDARIES);
 
     assert.lengthOf(diagnostic, 2);
-    var scriptValue = values.getValuesNamed('foo-script_execute')[0];
+    var scriptValue = values.getHistogramsNamed('foo-script_execute')[0];
     assert.instanceOf(scriptValue, tr.v.Histogram);
     assert.lengthOf(scriptValue.allBins[2].diagnosticMaps, 1);
     assert.strictEqual(scriptValue, diagnostic.get('script_execute'));
@@ -70,7 +70,7 @@ tr.b.unittest.testSuite(function() {
         [...scriptValue.allBins[3].diagnosticMaps[0]
         .get('relatedEvents')][0]);
 
-    var styleValue = values.getValuesNamed('foo-style')[0];
+    var styleValue = values.getHistogramsNamed('foo-style')[0];
     assert.instanceOf(styleValue, tr.v.Histogram);
     assert.lengthOf(styleValue.allBins[4].diagnosticMaps, 1);
     relatedEvents = styleValue.allBins[4].diagnosticMaps[0]
