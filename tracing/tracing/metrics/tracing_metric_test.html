@@ -28,13 +28,13 @@ tr.b.unittest.testSuite(function() {
     }, 0);
   }
 
-  function checkDurationValue(allValues, metricName, expected) {
-    var value = allValues.getHistogramNamed(metricName);
-    assert.closeTo(1000 * value.average, expected, 0.1);
+  function checkDurationHistogram(histograms, metricName, expected) {
+    var histogram = histograms.getHistogramNamed(metricName);
+    assert.closeTo(1000 * histogram.average, expected, 0.1);
   }
 
   test('hasEventSizesInBytes', function() {
-    var allValues = new tr.v.HistogramSet();
+    var histograms = new tr.v.HistogramSet();
     var events = [
       {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53, ph: 'B'},
       {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'B'}
@@ -43,26 +43,26 @@ tr.b.unittest.testSuite(function() {
     var model = makeModel(JSON.stringify(events), false);
     assert.isFalse(model.importOptions.trackDetailedModelStats);
     assert.throws(function() {
-      tr.metrics.tracingMetric(allValues, model);
+      tr.metrics.tracingMetric(histograms, model);
     }, 'Please enable ImportOptions.trackDetailedModelStats.');
 
     model = makeModel(JSON.stringify(events), true);
     assert.isTrue(model.importOptions.trackDetailedModelStats);
-    tr.metrics.tracingMetric(allValues, model);
+    tr.metrics.tracingMetric(histograms, model);
   });
 
   test('totalTraceSize', function() {
-    var allValues = new tr.v.HistogramSet();
+    var histograms = new tr.v.HistogramSet();
     var events = [
       {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53, ph: 'B'},
       {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'B'}
     ];
     var model = makeModel(JSON.stringify(events), true);
-    tr.metrics.tracingMetric(allValues, model);
+    tr.metrics.tracingMetric(histograms, model);
 
     var eventStringSize = getEventStringSize(events, [0, 1]);
-    var value = allValues.getHistogramNamed('Total trace size in bytes');
-    assert.strictEqual(value.average, eventStringSize);
+    var histogram = histograms.getHistogramNamed('Total trace size in bytes');
+    assert.strictEqual(histogram.average, eventStringSize);
   });
 
   test('maxValuePerSec', function() {
@@ -76,20 +76,22 @@ tr.b.unittest.testSuite(function() {
       {name: 'a', pid: 52, ts: 2 * ONE_SEC_IN_US + 2, cat: 'foo', ph: 'B'}
     ];
     var model = makeModel(JSON.stringify(events), true);
-    var allValues = new tr.v.HistogramSet();
-    tr.metrics.tracingMetric(allValues, model);
+    var histograms = new tr.v.HistogramSet();
+    tr.metrics.tracingMetric(histograms, model);
 
     var maxEventCountPerSec = 3;
-    var value = allValues.getHistogramNamed('Max number of events per second');
-    assert.strictEqual(value.average, maxEventCountPerSec);
+    var histogram = histograms.getHistogramNamed(
+        'Max number of events per second');
+    assert.strictEqual(histogram.average, maxEventCountPerSec);
 
     var maxEventBytesPerSec = getEventStringSize(events, [2, 3, 5]);
-    value = allValues.getHistogramNamed('Max event size in bytes per second');
-    assert.strictEqual(value.average, maxEventBytesPerSec);
+    histogram = histograms.getHistogramNamed(
+        'Max event size in bytes per second');
+    assert.strictEqual(histogram.average, maxEventBytesPerSec);
   });
 
   test('diagnostics', function() {
-    var allValues = new tr.v.HistogramSet();
+    var histograms = new tr.v.HistogramSet();
     var events = [
       {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53, ph: 'B'},
       {name: 'a', args: {}, pid: 52, ts: 535, cat: 'foo', tid: 53, ph: 'B'},
@@ -98,10 +100,10 @@ tr.b.unittest.testSuite(function() {
       {name: 'bb', args: {}, pid: 52, ts: 578, cat: 'bar', tid: 53, ph: 'E'}
     ];
     var model = makeModel(JSON.stringify(events), true);
-    tr.metrics.tracingMetric(allValues, model);
+    tr.metrics.tracingMetric(histograms, model);
 
-    for (var value of allValues) {
-      var d = value.diagnostics.get('category_with_max_event_size').value;
+    for (var histogram of histograms) {
+      var d = histogram.diagnostics.get('category_with_max_event_size').value;
       assert.strictEqual(d.name, 'foo');
       assert.strictEqual(d.size_in_bytes, getEventStringSize(
           events, [0, 1, 3]));
@@ -111,7 +113,7 @@ tr.b.unittest.testSuite(function() {
   test('testMemoryInfraTracingMetrics', function() {
     var MEMORY_INFRA_TRACING_CATEGORY =
         tr.metrics.MEMORY_INFRA_TRACING_CATEGORY;
-    var allValues = new tr.v.HistogramSet();
+    var histograms = new tr.v.HistogramSet();
     var events = [
       {name: 'OnMemoryDump', pid: 1, ts: 510, tid: 1, ph: 'X', cat: MEMORY_INFRA_TRACING_CATEGORY, args: {'dump_provider.name': 'mdp1'}, dur: 4}, // @suppress longLineCheck
       {name: 'OnMemoryDump', pid: 1, ts: 520, tid: 7, ph: 'X', cat: MEMORY_INFRA_TRACING_CATEGORY, args: {'dump_provider.name': 'mdp2'}, dur: 15}, // @suppress longLineCheck
@@ -131,31 +133,31 @@ tr.b.unittest.testSuite(function() {
 
     var model = makeModel(JSON.stringify(events), true);
     tr.model.MemoryDumpTestUtils.addGlobalMemoryDump(model, {ts: 550});
-    tr.metrics.tracingMetric(allValues, model);
+    tr.metrics.tracingMetric(histograms, model);
 
     var memoryCategorySize = events.filter(
         slice => slice['cat'] === MEMORY_INFRA_TRACING_CATEGORY).reduce(
             (acc, slice) => acc + JSON.stringify(slice).length, 0);
-    var totalSizeValue = allValues.getHistogramNamed(
+    var totalSizeHistogram = histograms.getHistogramNamed(
         'Total trace size of memory-infra dumps in bytes');
-    assert.strictEqual(totalSizeValue.average, memoryCategorySize);
-    var sizePerDumpValue = allValues.getHistogramNamed(
+    assert.strictEqual(totalSizeHistogram.average, memoryCategorySize);
+    var sizePerDumpHistogram = histograms.getHistogramNamed(
         'Average trace size of memory-infra dumps in bytes');
-    assert.strictEqual(sizePerDumpValue.average, memoryCategorySize);
+    assert.strictEqual(sizePerDumpHistogram.average, memoryCategorySize);
 
-    checkDurationValue(allValues,
+    checkDurationHistogram(histograms,
         'Average CPU overhead of mdp1 per OnMemoryDump call', 6.5);
-    checkDurationValue(allValues,
+    checkDurationHistogram(histograms,
         'Average CPU overhead of mdp2 per OnMemoryDump call', 16);
-    checkDurationValue(allValues,
+    checkDurationHistogram(histograms,
         'Average CPU overhead of mdp3 per OnMemoryDump call', 6);
-    checkDurationValue(allValues,
+    checkDurationHistogram(histograms,
         'Average CPU overhead of mdp4 per OnMemoryDump call', 8);
-    checkDurationValue(allValues,
+    checkDurationHistogram(histograms,
         'Average CPU overhead on non-memory-infra threads per memory-infra ' +
             'dump',
         47);
-    checkDurationValue(allValues,
+    checkDurationHistogram(histograms,
         'Average CPU overhead on all threads per memory-infra dump', 91);
   });
 

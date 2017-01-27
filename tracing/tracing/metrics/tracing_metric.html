@@ -25,15 +25,16 @@ tr.exportTo('tr.metrics', function() {
   var COUNT_BOUNDARIES = tr.v.HistogramBinBoundaries.createExponential(
       1, 1e5, 30);
 
-  function addTimeDurationValue(valueName, duration, allValues) {
-    var hist = new tr.v.Histogram(valueName,
+  function addTimeDurationHistogram(histogramName, duration, histograms) {
+    var hist = new tr.v.Histogram(histogramName,
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TIME_BOUNDARIES);
     hist.addSample(duration);
-    allValues.addHistogram(hist);
+    histograms.addHistogram(hist);
   }
 
-  // Adds values specific to memory-infra dumps.
-  function addMemoryInfraValues(values, model, categoryNamesToTotalEventSizes) {
+  // Adds histograms specific to memory-infra dumps.
+  function addMemoryInfraHistograms(
+      histograms, model, categoryNamesToTotalEventSizes) {
     var memoryDumpCount = model.globalMemoryDumps.length;
     if (memoryDumpCount === 0)
       return;
@@ -63,17 +64,17 @@ tr.exportTo('tr.metrics', function() {
       });
     });
 
-    addTimeDurationValue(
+    addTimeDurationHistogram(
         'Average CPU overhead on all threads per memory-infra dump',
-        totalOverhead / memoryDumpCount, values);
-    addTimeDurationValue(
+        totalOverhead / memoryDumpCount, histograms);
+    addTimeDurationHistogram(
         'Average CPU overhead on non-memory-infra threads per memory-infra ' +
             'dump',
-        nonMemoryInfraThreadOverhead / memoryDumpCount, values);
+        nonMemoryInfraThreadOverhead / memoryDumpCount, histograms);
     tr.b.iterItems(overheadByProvider, function(providerName, overhead) {
-      addTimeDurationValue(
+      addTimeDurationHistogram(
           'Average CPU overhead of ' + providerName + ' per OnMemoryDump call',
-          overhead.duration / overhead.count, values);
+          overhead.duration / overhead.count, histograms);
     });
 
     var memoryInfraEventsSize =
@@ -82,16 +83,16 @@ tr.exportTo('tr.metrics', function() {
         'Total trace size of memory-infra dumps in bytes',
         tr.b.Unit.byName.sizeInBytes_smallerIsBetter, BYTE_BOUNDARIES);
     memoryInfraTraceBytesValue.addSample(memoryInfraEventsSize);
-    values.addHistogram(memoryInfraTraceBytesValue);
+    histograms.addHistogram(memoryInfraTraceBytesValue);
 
     var traceBytesPerDumpValue = new tr.v.Histogram(
         'Average trace size of memory-infra dumps in bytes',
         tr.b.Unit.byName.sizeInBytes_smallerIsBetter, BYTE_BOUNDARIES);
     traceBytesPerDumpValue.addSample(memoryInfraEventsSize / memoryDumpCount);
-    values.addHistogram(traceBytesPerDumpValue);
+    histograms.addHistogram(traceBytesPerDumpValue);
   }
 
-  function tracingMetric(values, model) {
+  function tracingMetric(histograms, model) {
     if (!model.stats.hasEventSizesinBytes) {
       throw new Error('Model stats does not have event size information. ' +
                       'Please enable ImportOptions.trackDetailedModelStats.');
@@ -154,7 +155,7 @@ tr.exportTo('tr.metrics', function() {
     // Determine the category with the highest total event size.
     var maxCatNameAndBytes = Array.from(
         categoryNamesToTotalEventSizes.entries()).reduce(
-            (a, b) => (b[1] >= a[1]) ? b : a);
+            (a, b) => ((b[1] >= a[1]) ? b : a));
     var maxEventBytesPerCategory = maxCatNameAndBytes[1];
     var categoryWithMaxEventBytes = maxCatNameAndBytes[0];
 
@@ -179,17 +180,17 @@ tr.exportTo('tr.metrics', function() {
 
     totalTraceBytesValue.diagnostics.set(
         'category_with_max_event_size', new tr.v.d.Generic(biggestCategory));
-    values.addHistogram(totalTraceBytesValue);
+    histograms.addHistogram(totalTraceBytesValue);
 
     maxEventCountPerSecValue.diagnostics.set(
         'category_with_max_event_size', new tr.v.d.Generic(biggestCategory));
-    values.addHistogram(maxEventCountPerSecValue);
+    histograms.addHistogram(maxEventCountPerSecValue);
 
     maxEventBytesPerSecValue.diagnostics.set(
         'category_with_max_event_size', new tr.v.d.Generic(biggestCategory));
-    values.addHistogram(maxEventBytesPerSecValue);
+    histograms.addHistogram(maxEventBytesPerSecValue);
 
-    addMemoryInfraValues(values, model, categoryNamesToTotalEventSizes);
+    addMemoryInfraHistograms(histograms, model, categoryNamesToTotalEventSizes);
   }
 
   tr.metrics.MetricRegistry.register(tracingMetric);
