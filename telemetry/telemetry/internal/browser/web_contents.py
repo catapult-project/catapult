@@ -174,6 +174,16 @@ class WebContents(object):
     """
     return self._inspector_backend.EvaluateJavaScript2(*args, **kwargs)
 
+  def WaitForJavaScriptCondition(self, expr, timeout=None):
+    """Method made available to ease the migration of ChromeOS clients.
+
+    Chromium/catapult clients should use WaitForJavaScriptCondition2
+    until the process of migration is over.
+
+    See: crbug.com/682812, catapult:#3028.
+    """
+    self._inspector_backend.WaitForJavaScriptCondition2(expr, timeout=timeout)
+
   def WaitForJavaScriptCondition2(self, *args, **kwargs):
     """Wait for a JavaScript condition to become true.
 
