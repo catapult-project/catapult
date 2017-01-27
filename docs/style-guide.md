@@ -237,7 +237,7 @@ should not make assertions.
 | [Template strings](https://github.com/lukehoban/es6features#template-strings)                                                               | Approved                                                                        |
 | [Destructuring](https://github.com/lukehoban/es6features#destructuring)                                                                     | Approved                                                                        |
 | [Default, rest, and spread](https://github.com/lukehoban/es6features#default--rest--spread)                                                 | To be discussed                                                                 |
-| [`let` and `const`](https://github.com/lukehoban/es6features#let--const)                                                                    | `const` Approved, `let` pending discussion
+| [`let` and `const`](https://github.com/lukehoban/es6features#let--const)                                                                    | Approved and required for new code
 | [Iterators and `for...of`](https://github.com/lukehoban/es6features#iterators--forof)                                                       | Approved                                                                        |
 | [Generators](https://github.com/lukehoban/es6features#generators)                                                                           | Approved                                                                        |
 | [Unicode](https://github.com/lukehoban/es6features#unicode)                                                                                 | To be discussed                                                                 |
