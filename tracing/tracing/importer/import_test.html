@@ -9,8 +9,8 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/extras/importer/linux_perf/ftrace_importer.html">
 <link rel="import" href="/tracing/extras/importer/trace_event_importer.html">
-<link rel="import" href="/tracing/extras/importer/zip_importer.html">
 <link rel="import" href="/tracing/extras/importer/v8/v8_log_importer.html">
+<link rel="import" href="/tracing/extras/importer/zip_importer.html">
 <link rel="import" href="/tracing/model/model.html">
 
 <script>
@@ -211,6 +211,18 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(
         p.memoryDumps[1].mostRecentVmRegions,
         p.memoryDumps[2].mostRecentVmRegions);
+  });
+
+  test('setsModelStatsTraceImportDurationMs', function() {
+    var traceEvents = [
+      {ts: 1000, pid: 1, tid: 3, ph: 'B', cat: 'c', name: 'taskB', args: {
+        my_object: {id_ref: '0x1000'}
+      }},
+      {ts: 2000, pid: 1, tid: 3, ph: 'E', cat: 'c', name: 'taskB', args: {}}
+    ];
+    var m = tr.c.TestUtils.newModelWithEvents(JSON.stringify({traceEvents}));
+
+    assert.isAbove(m.stats.traceImportDurationMs, 0);
   });
 });
 </script>

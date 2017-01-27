@@ -23,6 +23,8 @@ tr.exportTo('tr.model', function() {
     this.allTraceEventStatsInTimeIntervals_ = [];
 
     this.hasEventSizesinBytes_ = false;
+
+    this.traceImportDurationMs_ = undefined;
   }
 
   ModelStats.prototype = {
@@ -78,6 +80,14 @@ tr.exportTo('tr.model', function() {
 
     get hasEventSizesinBytes() {
       return this.hasEventSizesinBytes_;
+    },
+
+    get traceImportDurationMs() {
+      return this.traceImportDurationMs_;
+    },
+
+    set traceImportDurationMs(traceImportDurationMs) {
+      this.traceImportDurationMs_ = traceImportDurationMs;
     }
   };
 

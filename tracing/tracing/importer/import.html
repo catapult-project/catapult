@@ -109,6 +109,7 @@ tr.exportTo('tr.importer', function() {
      * importTraces.
      */
     createImportTracesTask: function(progressMeter, traces) {
+      var importStartTimeMs = performance.now();
       if (this.importing_)
         throw new Error('Already importing.');
       this.importing_ = true;
@@ -365,6 +366,8 @@ tr.exportTo('tr.importer', function() {
       // Cleanup.
       lastTask.after(function() {
         this.importing_ = false;
+        this.model_.stats.traceImportDurationMs =
+            performance.now() - importStartTimeMs;
       }, this);
       return importTask;
     },
