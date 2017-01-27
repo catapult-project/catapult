@@ -478,6 +478,53 @@ class RelatedHistogramSet(Diagnostic):
     return RelatedHistogramSet(HistogramRef(guid) for guid in d['guids'])
 
 
+class RelatedHistogramMap(Diagnostic):
+  def __init__(self):
+    Diagnostic.__init__(self)
+    self._histograms_by_name = {}
+
+  def Get(self, name):
+    return self._histograms_by_name.get(name)
+
+  def Set(self, name, hist):
+    assert isinstance(hist, (Histogram, HistogramRef))
+    self._histograms_by_name[name] = hist
+
+  def Add(self, hist):
+    self.Set(hist.name, hist)
+
+  def __len__(self):
+    return len(self._histograms_by_name)
+
+  def __iter__(self):
+    for name, hist in self._histograms_by_name.iteritems():
+      yield name, hist
+
+  def Resolve(self, histograms, required=False):
+    for name, hist in self:
+      if not isinstance(hist, HistogramRef):
+        continue
+
+      guid = hist.guid
+      hist = histograms.LookupHistogram(guid)
+      if isinstance(hist, Histogram):
+        self._histograms_by_name[name] = hist
+      else:
+        assert not required, guid
+
+  def _AsDictInto(self, d):
+    d['values'] = {}
+    for name, hist in self:
+      d['values'][name] = hist.guid
+
+  @staticmethod
+  def FromDict(d):
+    result = RelatedHistogramMap()
+    for name, guid in d['values'].iteritems():
+      result.Set(name, HistogramRef(guid))
+    return result
+
+
 class BuildbotInfo(Diagnostic):
   NAME = 'buildbot'
 
@@ -1407,7 +1454,7 @@ class HistogramSet(object):
     histograms = self
     def HandleDiagnosticMap(dm):
       for diagnostic in dm.itervalues():
-        if isinstance(diagnostic, RelatedHistogramSet):
+        if isinstance(diagnostic, (RelatedHistogramSet, RelatedHistogramMap)):
           diagnostic.Resolve(histograms)
 
     for hist in self:
