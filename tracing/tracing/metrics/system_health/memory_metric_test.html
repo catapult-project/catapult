@@ -3272,15 +3272,15 @@ tr.b.unittest.testSuite(function() {
     });
 
     var values = new tr.v.HistogramSet();
-    function get(name) {
-      return tr.b.getOnlyElement(values.getHistogramsNamed(name));
-    }
     tr.metrics.sh.memoryMetric(values, model);
     var prefix = 'memory:chrome:';
     var suffix = ':reported_by_chrome:malloc:effective_size';
-    var allHistogram = get(prefix + 'all_processes' + suffix);
-    var rendererHistogram = get(prefix + 'renderer_processes' + suffix);
-    var browserHistogram = get(prefix + 'browser_process' + suffix);
+    var allHistogram =
+        values.getHistogramNamed(`${prefix}all_processes${suffix}`);
+    var rendererHistogram =
+        values.getHistogramNamed(`${prefix}renderer_processes${suffix}`);
+    var browserHistogram =
+        values.getHistogramNamed(`${prefix}browser_process${suffix}`);
 
     var breakdown = allHistogram.diagnostics.get('processes');
     assert.strictEqual(breakdown.get('browser_process'), browserHistogram);

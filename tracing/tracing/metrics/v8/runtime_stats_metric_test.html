@@ -17,11 +17,9 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   function checkRuntimeHistogram_(values, name, count, duration,
     breakdownHistograms) {
-    var countHistogram = tr.b.getOnlyElement(values.getHistogramsNamed(name +
-      ':count'));
+    var countHistogram = values.getHistogramNamed(`${name}:count`);
     assert.equal(tr.b.getOnlyElement(countHistogram.sampleValues), count);
-    var durationHistogram = tr.b.getOnlyElement(values.getHistogramsNamed(name +
-      ':duration'));
+    var durationHistogram = values.getHistogramNamed(`${name}:duration`);
     assert.equal(tr.b.getOnlyElement(durationHistogram.sampleValues), duration);
 
     if (breakdownHistograms === undefined) return;

@@ -38,8 +38,7 @@ tr.b.unittest.testSuite(function() {
     });
     var values = new tr.v.HistogramSet();
     tr.metrics.sh.loadingMetric(values, model);
-    var numeric = tr.b.getOnlyElement(values.getHistogramsNamed(
-        'timeToFirstContentfulPaint'));
+    var numeric = values.getHistogramNamed('timeToFirstContentfulPaint');
     assert.equal(1, numeric.running.count);
     assert.equal(800, numeric.running.mean);
   });
@@ -102,8 +101,7 @@ tr.b.unittest.testSuite(function() {
     });
     var values = new tr.v.HistogramSet();
     tr.metrics.sh.loadingMetric(values, model);
-    var numeric = tr.b.getOnlyElement(values.getHistogramsNamed(
-        'timeToFirstContentfulPaint'));
+    var numeric = values.getHistogramNamed('timeToFirstContentfulPaint');
     assert.equal(1, numeric.running.count);
     assert.equal(400, numeric.running.mean);
   });
@@ -140,8 +138,7 @@ tr.b.unittest.testSuite(function() {
     });
     var values = new tr.v.HistogramSet();
     tr.metrics.sh.loadingMetric(values, model);
-    var numeric = tr.b.getOnlyElement(values.getHistogramsNamed(
-        'timeToFirstMeaningfulPaint'));
+    var numeric = values.getHistogramNamed('timeToFirstMeaningfulPaint');
     assert.equal(1, numeric.running.count);
     assert.equal(800, numeric.running.mean);
   });
@@ -223,8 +220,7 @@ tr.b.unittest.testSuite(function() {
     });
     var values = new tr.v.HistogramSet();
     tr.metrics.sh.loadingMetric(values, model);
-    var numeric = tr.b.getOnlyElement(values.getHistogramsNamed(
-        'timeToFirstInteractive'));
+    var numeric = values.getHistogramNamed('timeToFirstInteractive');
     assert.equal(1, numeric.running.count);
     assert.equal(15200, numeric.running.mean);
     var binsWithSampleDiagnosticMaps = numeric.allBins.filter(
@@ -328,8 +324,7 @@ tr.b.unittest.testSuite(function() {
     });
     var values = new tr.v.HistogramSet();
     tr.metrics.sh.loadingMetric(values, model);
-    var numeric = tr.b.getOnlyElement(values.getHistogramsNamed(
-        'timeToFirstInteractive'));
+    var numeric = values.getHistogramNamed('timeToFirstInteractive');
     assert.equal(2, numeric.running.count);
     assert.equal(4000, numeric.running.min);
     assert.equal(15200, numeric.running.max);
@@ -371,12 +366,10 @@ tr.b.unittest.testSuite(function() {
     });
     var values = new tr.v.HistogramSet();
     tr.metrics.sh.loadingMetric(values, model);
-    var fcp = tr.b.getOnlyElement(values.getHistogramsNamed(
-        'timeToFirstContentfulPaint'));
+    var fcp = values.getHistogramNamed('timeToFirstContentfulPaint');
     assert.equal(1, fcp.running.count);
     assert.equal(400, fcp.running.mean);
-    var fmp = tr.b.getOnlyElement(values.getHistogramsNamed(
-        'timeToFirstMeaningfulPaint'));
+    var fmp = values.getHistogramNamed('timeToFirstMeaningfulPaint');
     assert.equal(1, fmp.running.count);
     assert.equal(800, fmp.running.mean);
   });

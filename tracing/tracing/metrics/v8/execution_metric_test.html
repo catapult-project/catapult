@@ -42,7 +42,7 @@ tr.b.unittest.testSuite(function() {
       'v8_deoptimize_code_cpu_total',
       'v8_deoptimize_code_wall_total',
     ].forEach(function(name) {
-      assert.strictEqual(values.getHistogramsNamed(name).length, 1);
+      assert.isDefined(values.getHistogramNamed(name));
     });
   });
 
@@ -64,7 +64,7 @@ tr.b.unittest.testSuite(function() {
     var values = new tr.v.HistogramSet();
     tr.metrics.v8.executionMetric(values, model);
 
-    var value = values.getHistogramsNamed('v8_execution_wall_total')[0];
+    var value = values.getHistogramNamed('v8_execution_wall_total');
     assert.closeTo(value.running.sum, 0.1, 1e-5);
   });
 });

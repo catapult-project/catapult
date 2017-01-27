@@ -100,6 +100,25 @@ tr.exportTo('tr.v', function() {
     }
 
     /**
+     * Filters to find the Histogram that matches the specified name exactly.
+     * If no Histogram with that name exists, undefined is returned. If multiple
+     * Histograms with the name exist, an error is thrown.
+     *
+     * @param {string} name Histogram name.
+     * @return {tr.v.Histogram}
+     */
+    getHistogramNamed(name) {
+      var histograms = this.getHistogramsNamed(name);
+      if (histograms.length === 0) return undefined;
+      if (histograms.length > 1) {
+        throw new Error(
+            `Unexpectedly found multiple histograms named "${name}"`);
+      }
+
+      return histograms[0];
+    }
+
+    /**
      * Lookup a Histogram by its guid.
      *
      * @param {string} guid

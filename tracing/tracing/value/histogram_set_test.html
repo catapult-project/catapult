@@ -23,7 +23,7 @@ tr.b.unittest.testSuite(function() {
     var values = new tr.v.HistogramSet([n]);
     var values2 = new tr.v.HistogramSet();
     values2.importDicts(values.asDicts());
-    assert.lengthOf(values2.getHistogramsNamed('foo'), 1);
+    assert.isDefined(values2.getHistogramNamed('foo'));
   });
 
   test('addValueFromDictsWithSampleDiagnostic', function() {
@@ -33,8 +33,8 @@ tr.b.unittest.testSuite(function() {
     var values = new tr.v.HistogramSet([n]);
     var values2 = new tr.v.HistogramSet();
     values2.importDicts(values.asDicts());
-    assert.lengthOf(values2.getHistogramsNamed('foo'), 1);
-    var v = values2.getHistogramsNamed('foo')[0];
+    assert.isDefined(values2.getHistogramNamed('foo'));
+    var v = values2.getHistogramNamed('foo');
     assert.lengthOf(v.getBinForValue(10).diagnosticMaps, 1);
     var dm = v.getBinForValue(10).diagnosticMaps[0];
     assert.strictEqual(dm.size, 1);
@@ -59,16 +59,14 @@ tr.b.unittest.testSuite(function() {
     values2.importDicts(values.asDicts());
     values2.resolveRelatedHistograms();
 
-    var a2 = values2.getHistogramsNamed('a');
-    assert.lengthOf(a2, 1);
-    a2 = a2[0];
+    var a2 = values2.getHistogramNamed('a');
+    assert.isDefined(a2);
     assert.strictEqual(a2.guid, a.guid);
     assert.instanceOf(a2, tr.v.Histogram);
     assert.notStrictEqual(a2, a);
 
-    var b2 = values2.getHistogramsNamed('b');
-    assert.lengthOf(b2, 1);
-    b2 = b2[0];
+    var b2 = values2.getHistogramNamed('b');
+    assert.isDefined(b2);
     assert.strictEqual(b2.guid, b.guid);
     assert.instanceOf(b2, tr.v.Histogram);
     assert.notStrictEqual(b2, b);
@@ -93,9 +91,8 @@ tr.b.unittest.testSuite(function() {
     values2.importDicts([c.asDict()]);
     values2.resolveRelatedHistograms();
 
-    var c2 = values2.getHistogramsNamed('c');
-    assert.lengthOf(c2, 1);
-    c2 = c2[0];
+    var c2 = values2.getHistogramNamed('c');
+    assert.isDefined(c2);
     assert.strictEqual(c2.guid, c.guid);
     assert.notStrictEqual(c2, c);
 
@@ -128,16 +125,14 @@ tr.b.unittest.testSuite(function() {
     values2.importDicts(values.asDicts());
     values2.resolveRelatedHistograms();
 
-    var a2 = values2.getHistogramsNamed('a');
-    assert.lengthOf(a2, 1);
-    a2 = a2[0];
+    var a2 = values2.getHistogramNamed('a');
+    assert.isDefined(a2);
     assert.strictEqual(a2.guid, a.guid);
     assert.instanceOf(a2, tr.v.Histogram);
     assert.notStrictEqual(a2, a);
 
-    var b2 = values2.getHistogramsNamed('b');
-    assert.lengthOf(b2, 1);
-    b2 = b2[0];
+    var b2 = values2.getHistogramNamed('b');
+    assert.isDefined(b2);
     assert.strictEqual(b2.guid, b.guid);
     assert.instanceOf(b2, tr.v.Histogram);
     assert.notStrictEqual(b2, b);
@@ -157,9 +152,8 @@ tr.b.unittest.testSuite(function() {
     values2.importDicts([c.asDict()]);
     values2.resolveRelatedHistograms();
 
-    var c2 = values2.getHistogramsNamed('c');
-    assert.lengthOf(c2, 1);
-    c2 = c2[0];
+    var c2 = values2.getHistogramNamed('c');
+    assert.isDefined(c2);
     assert.strictEqual(c2.guid, c.guid);
     assert.instanceOf(c2, tr.v.Histogram);
     assert.notStrictEqual(c2, c);
@@ -204,8 +198,7 @@ tr.b.unittest.testSuite(function() {
     var histograms2 = new tr.v.HistogramSet();
     histograms2.importDicts(dicts);
     assert.lengthOf(histograms2, 1);
-    var aHist2 = tr.b.getOnlyElement(
-        histograms2.getHistogramsNamed(aHist.name));
+    var aHist2 = histograms2.getHistogramNamed(aHist.name);
 
     // The diagnostic reference should be deserialized as a DiagnosticRef until
     // resolveRelatedHistograms is called.
@@ -214,6 +207,29 @@ tr.b.unittest.testSuite(function() {
     assert.instanceOf(aHist2.diagnostics.get('generic'), tr.v.d.Generic);
     assert.strictEqual(diagnostic.value,
         aHist2.diagnostics.get('generic').value);
+  });
+
+  test('getHistogramNamed_noHistogramFound', function() {
+    var aHist = new tr.v.Histogram('aHist', tr.b.Unit.byName.count);
+    var histograms = new tr.v.HistogramSet([aHist]);
+
+    assert.isUndefined(histograms.getHistogramNamed('bHist'));
+  });
+
+  test('getHistogramNamed_oneHistogramFound', function() {
+    var aHist = new tr.v.Histogram('aHist', tr.b.Unit.byName.count);
+    var histograms = new tr.v.HistogramSet([aHist]);
+
+    assert.equal(histograms.getHistogramNamed('aHist'), aHist);
+  });
+
+  test('getHistogramNamed_multipleHistogramsFound', function() {
+    var aHist1 = new tr.v.Histogram('aHist', tr.b.Unit.byName.count);
+    var aHist2 = new tr.v.Histogram('aHist', tr.b.Unit.byName.count);
+    var histograms = new tr.v.HistogramSet([aHist1, aHist2]);
+
+    assert.throws(() => histograms.getHistogramNamed('aHist'),
+        Error, 'Unexpectedly found multiple histograms named "aHist"');
   });
 });
 </script>

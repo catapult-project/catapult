@@ -32,28 +32,29 @@ tr.b.unittest.testSuite(function() {
   test('cpuProcessMetric_singleSnapshots', function() {
     var values = new tr.v.HistogramSet();
     var events = [
-        {
-          'name': 'CPUSnapshots',
-          'args': {
-            'snapshot': {
-              'processes': [
-                {'path': '/usr/sbin/crudd', 'pCpu': '99.0', 'pid': '13495',
-                 'pMem': '0.0', 'name': 'crudd'},
-                {'path': '/opt/chrome/chrome', 'pCpu': '0.8',
-                 'pid': '29660', 'pMem': '0.9', 'name': 'chrome'},
-                 {'path': '/opt/chrome/chrome', 'pCpu': '0.3',
-                  'pid': '29661', 'pMem': '0.9', 'name': 'chrome'}
-              ]
-            }
-          },
-          'pid': 52, 'ts': '2226221225693.658', 'tid': 53, 'ph': 'O',
-          'local': true, 'id': '0x1000'
-        }
+      {
+        'name': 'CPUSnapshots',
+        'args': {
+          'snapshot': {
+            'processes': [
+              {'path': '/usr/sbin/crudd', 'pCpu': '99.0', 'pid': '13495',
+               'pMem': '0.0', 'name': 'crudd'},
+              {'path': '/opt/chrome/chrome', 'pCpu': '0.8',
+               'pid': '29660', 'pMem': '0.9', 'name': 'chrome'},
+              {'path': '/opt/chrome/chrome', 'pCpu': '0.3',
+               'pid': '29661', 'pMem': '0.9', 'name': 'chrome'}
+            ]
+          }
+        },
+        'pid': 52, 'ts': '2226221225693.658', 'tid': 53, 'ph': 'O',
+        'local': true, 'id': '0x1000'
+      }
     ];
     tr.metrics.sh.cpuProcessMetric(values, makeModel(events));
-    assert.lengthOf(values.getHistogramsNamed('cpu:percent:chrome'), 1);
-    assert.lengthOf(values.getHistogramsNamed('cpu:percent:crudd'), 1);
-    var chromeValue = values.getHistogramsNamed('cpu:percent:chrome')[0];
+
+    assert.isDefined(values.getHistogramNamed('cpu:percent:chrome'));
+    assert.isDefined(values.getHistogramNamed('cpu:percent:crudd'));
+    var chromeValue = values.getHistogramNamed('cpu:percent:chrome');
     var chromeStatistics = chromeValue.running;
     assert.strictEqual(chromeStatistics.count, 1);
     assert.closeTo(chromeStatistics.mean, 0.011, 1e-5);
@@ -103,10 +104,10 @@ tr.b.unittest.testSuite(function() {
         }
     ];
     tr.metrics.sh.cpuProcessMetric(values, makeModel(events));
-    assert.lengthOf(values.getHistogramsNamed('cpu:percent:chrome'), 1);
-    assert.lengthOf(values.getHistogramsNamed('cpu:percent:crudd'), 1);
-    assert.lengthOf(values.getHistogramsNamed('cpu:percent:mnp_logger'), 1);
-    var chromeValue = values.getHistogramsNamed('cpu:percent:chrome')[0];
+    assert.isDefined(values.getHistogramNamed('cpu:percent:chrome'));
+    assert.isDefined(values.getHistogramNamed('cpu:percent:crudd'));
+    assert.isDefined(values.getHistogramNamed('cpu:percent:mnp_logger'));
+    var chromeValue = values.getHistogramNamed('cpu:percent:chrome');
     var chromeStatistics = chromeValue.running;
     assert.strictEqual(chromeStatistics.count, 2);
     assert.closeTo(chromeStatistics.mean, 0.0075, 1e-5);
