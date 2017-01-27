@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/rect.html">
+<link rel="import" href="/tracing/base/scalar.html">
 <link rel="import" href="/tracing/base/utils.html">
 <link rel="import" href="/tracing/model/event_set.html">
 <link rel="import" href="/tracing/model/object_instance.html">
@@ -13,7 +14,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/analysis/analysis_link.html">
 <link rel="import" href="/tracing/ui/base/table.html">
 <link rel="import" href="/tracing/ui/base/ui.html">
-<link rel="import" href="/tracing/value/numeric.html">
 <link rel="import" href="/tracing/value/ui/scalar_span.html">
 
 <dom-module id='tr-ui-a-generic-object-view'>
@@ -176,7 +176,7 @@ Polymer({
       return;
     }
 
-    if (object instanceof tr.v.ScalarNumeric) {
+    if (object instanceof tr.b.Scalar) {
       var el = this.ownerDocument.createElement('tr-v-ui-scalar-span');
       el.value = object;
       el.inline = true;

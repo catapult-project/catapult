@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/base/range_utils.html">
+<link rel="import" href="/tracing/base/scalar.html">
 <link rel="import" href="/tracing/base/statistics.html">
 <link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/core/auditor.html">
@@ -15,7 +16,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/helpers/android_model_helper.html">
 <link rel="import" href="/tracing/model/thread_time_slice.html">
 <link rel="import" href="/tracing/model/user_model/response_expectation.html">
-<link rel="import" href="/tracing/value/numeric.html">
 
 <script>
 'use strict';
@@ -32,7 +32,7 @@ tr.exportTo('tr.e.audits', function() {
   var FRAME_PERF_CLASS = tr.model.FRAME_PERF_CLASS;
   var Alert = tr.model.Alert;
   var EventInfo = tr.model.EventInfo;
-  var ScalarNumeric = tr.v.ScalarNumeric;
+  var Scalar = tr.b.Scalar;
   var timeDurationInMs = tr.b.Unit.byName.timeDurationInMs;
 
   // TODO: extract from VSYNC, since not all devices have vsync near 60fps
@@ -173,7 +173,7 @@ tr.exportTo('tr.e.audits', function() {
 
     events.push(frame);
     return new Alert(AndroidAuditor.pathAlertInfo_, start, events,
-        { 'Time spent': new ScalarNumeric(timeDurationInMs, duration) });
+        { 'Time spent': new Scalar(timeDurationInMs, duration) });
   };
 
 
@@ -201,7 +201,7 @@ tr.exportTo('tr.e.audits', function() {
 
     var mPixels = (pixelsUploaded / 1000000).toFixed(2) + ' million';
     var args = { 'Pixels uploaded': mPixels,
-                 'Time spent': new ScalarNumeric(timeDurationInMs, duration) };
+                 'Time spent': new Scalar(timeDurationInMs, duration) };
     events.push(frame);
     return new Alert(AndroidAuditor.uploadAlertInfo_, start, events, args);
   };
@@ -233,7 +233,7 @@ tr.exportTo('tr.e.audits', function() {
         hasInflation = true;
 
     var start = Statistics.min(events, getStart);
-    var args = { 'Time spent': new ScalarNumeric(timeDurationInMs, duration) };
+    var args = { 'Time spent': new Scalar(timeDurationInMs, duration) };
     args['ListView items ' + (hasInflation ? 'inflated' : 'rebound')] =
         events.length / 2;
     var eventInfo = hasInflation ? AndroidAuditor.ListViewInflateAlertInfo_ :
@@ -261,7 +261,7 @@ tr.exportTo('tr.e.audits', function() {
     var start = Statistics.min(events, getStart);
     events.push(frame);
     return new Alert(AndroidAuditor.measureLayoutAlertInfo_, start, events,
-        { 'Time spent': new ScalarNumeric(timeDurationInMs, duration) });
+        { 'Time spent': new Scalar(timeDurationInMs, duration) });
   };
 
 
@@ -286,7 +286,7 @@ tr.exportTo('tr.e.audits', function() {
       return undefined;
     return new Alert(AndroidAuditor.viewDrawAlertInfo_, slice.start,
         [slice, frame],
-        { 'Time spent': new ScalarNumeric(
+        { 'Time spent': new Scalar(
             timeDurationInMs, getCpuDuration(slice)) });
   };
 
@@ -314,7 +314,7 @@ tr.exportTo('tr.e.audits', function() {
     var start = Statistics.min(events, getStart);
     events.push(frame);
     return new Alert(AndroidAuditor.blockingGcAlertInfo_, start, events,
-        { 'Blocked duration': new ScalarNumeric(
+        { 'Blocked duration': new Scalar(
             timeDurationInMs, blockedDuration) });
   };
 
@@ -334,7 +334,7 @@ tr.exportTo('tr.e.audits', function() {
     var start = Statistics.min(events, getStart);
     events.push(frame);
     return new Alert(AndroidAuditor.lockContentionAlertInfo_, start, events,
-        { 'Blocked duration': new ScalarNumeric(
+        { 'Blocked duration': new Scalar(
             timeDurationInMs, blockedDuration) });
   };
 
@@ -367,7 +367,7 @@ tr.exportTo('tr.e.audits', function() {
         key = 'Not scheduled, but runnable';
       else if (key === SCHEDULING_STATE.UNINTR_SLEEP)
         key = 'Blocking I/O delay';
-      args[key] = new ScalarNumeric(timeDurationInMs, value);
+      args[key] = new Scalar(timeDurationInMs, value);
     });
 
     return new Alert(AndroidAuditor.schedulingAlertInfo_, frame.start, [frame],

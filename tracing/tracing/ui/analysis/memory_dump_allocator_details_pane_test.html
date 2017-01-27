@@ -6,24 +6,22 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
+<link rel="import" href="/tracing/base/scalar.html">
 <link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/model/heap_dump.html">
 <link rel="import" href="/tracing/model/memory_allocator_dump.html">
 <link rel="import" href="/tracing/model/memory_dump_test_utils.html">
-<link rel="import"
-    href="/tracing/ui/analysis/memory_dump_allocator_details_pane.html">
-<link rel="import"
-    href="/tracing/ui/analysis/memory_dump_sub_view_test_utils.html">
+<link rel="import" href="/tracing/ui/analysis/memory_dump_allocator_details_pane.html">
+<link rel="import" href="/tracing/ui/analysis/memory_dump_sub_view_test_utils.html">
 <link rel="import" href="/tracing/ui/analysis/memory_dump_sub_view_util.html">
-<link rel="import" href="/tracing/value/numeric.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
   var MemoryAllocatorDump = tr.model.MemoryAllocatorDump;
-  var ScalarNumeric = tr.v.ScalarNumeric;
+  var Scalar = tr.b.Scalar;
   var unitlessNumber_smallerIsBetter =
       tr.b.Unit.byName.unitlessNumber_smallerIsBetter;
   var sizeInBytes_smallerIsBetter =
@@ -84,7 +82,7 @@ tr.b.unittest.testSuite(function() {
         var v8Dump = newAllocatorDump(pmd1, 'v8', {numerics: {
           size: 1073741824 /* 1 GiB */,
           inner_size: 2097152 /* 2 MiB */,
-          objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 204)
+          objects_count: new Scalar(unitlessNumber_smallerIsBetter, 204)
         }});
 
         var v8HeapsDump = addChildDump(v8Dump, 'heaps',
@@ -137,7 +135,7 @@ tr.b.unittest.testSuite(function() {
         var v8Dump = newAllocatorDump(pmd2, 'v8', {numerics: {
           size: 1073741824 /* 1 GiB */,
           inner_size: 2097152 /* 2 MiB */,
-          objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 204)
+          objects_count: new Scalar(unitlessNumber_smallerIsBetter, 204)
         }});
 
         var v8ObjectsDump = addChildDump(v8Dump, 'objects');
@@ -167,7 +165,7 @@ tr.b.unittest.testSuite(function() {
     return values.map(function(value) {
       if (value === undefined)
         return undefined;
-      return new ScalarNumeric(sizeInBytes_smallerIsBetter, value);
+      return new Scalar(sizeInBytes_smallerIsBetter, value);
     });
   }
 

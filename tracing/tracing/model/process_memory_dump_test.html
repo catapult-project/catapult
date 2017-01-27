@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/scalar.html">
 <link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/model/global_memory_dump.html">
@@ -12,7 +13,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/model.html">
 <link rel="import" href="/tracing/model/process_memory_dump.html">
 <link rel="import" href="/tracing/model/vm_region.html">
-<link rel="import" href="/tracing/value/numeric.html">
 
 <script>
 'use strict';
@@ -22,7 +22,7 @@ tr.b.unittest.testSuite(function() {
   var ProcessMemoryDump = tr.model.ProcessMemoryDump;
   var VMRegion = tr.model.VMRegion;
   var VMRegionClassificationNode = tr.model.VMRegionClassificationNode;
-  var ScalarNumeric = tr.v.ScalarNumeric;
+  var Scalar = tr.b.Scalar;
   var unitlessNumber_smallerIsBetter =
       tr.b.Unit.byName.unitlessNumber_smallerIsBetter;
   var newAllocatorDump = tr.model.MemoryDumpTestUtils.newAllocatorDump;
@@ -98,12 +98,12 @@ tr.b.unittest.testSuite(function() {
     dump2.memoryAllocatorDumps = [
       newAllocatorDump(dump2, 'oilpan', {numerics: {
         size: 1024,
-        objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 7),
+        objects_count: new Scalar(unitlessNumber_smallerIsBetter, 7),
         inner_size: 768
       }}),
       newAllocatorDump(dump2, 'v8', {numerics: {
         size: 2048,
-        objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 15),
+        objects_count: new Scalar(unitlessNumber_smallerIsBetter, 15),
         inner_size: 1999
       }})
     ];
@@ -113,12 +113,12 @@ tr.b.unittest.testSuite(function() {
     dump3.memoryAllocatorDumps = [
       newAllocatorDump(dump3, 'malloc', {numerics: {
         size: 1024,
-        objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 7),
+        objects_count: new Scalar(unitlessNumber_smallerIsBetter, 7),
         inner_size: 768
       }}),
       newAllocatorDump(dump3, 'v8', {numerics: {
         size: 2048,
-        objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 15),
+        objects_count: new Scalar(unitlessNumber_smallerIsBetter, 15),
         inner_size: 1999
       }})
     ];

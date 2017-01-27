@@ -6,9 +6,9 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
+<link rel="import" href="/tracing/base/scalar.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
 <link rel="import" href="/tracing/ui/base/table.html">
-<link rel="import" href="/tracing/value/numeric.html">
 <link rel="import" href="/tracing/value/ui/scalar_span.html">
 
 <script>
@@ -415,7 +415,7 @@ tr.exportTo('tr.ui.analysis', function() {
      * Format a single defined field.
      *
      * This method is intended to be overriden by field type specific columns
-     * (e.g. show '1.0 KiB' instead of '1024' for ScalarNumeric(s) representing
+     * (e.g. show '1.0 KiB' instead of '1024' for Scalar(s) representing
      * bytes).
      */
     formatSingleField: function(field) {
@@ -768,7 +768,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
     getDiffField_: function(firstNumeric, lastNumeric) {
       var definedNumeric = firstNumeric || lastNumeric;
-      return new tr.v.ScalarNumeric(definedNumeric.unit.correspondingDeltaUnit,
+      return new tr.b.Scalar(definedNumeric.unit.correspondingDeltaUnit,
           this.getDiffFieldValue_(firstNumeric, lastNumeric));
     },
 

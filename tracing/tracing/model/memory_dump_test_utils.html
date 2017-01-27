@@ -5,13 +5,13 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/scalar.html">
 <link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/model/container_memory_dump.html">
 <link rel="import" href="/tracing/model/global_memory_dump.html">
 <link rel="import" href="/tracing/model/memory_allocator_dump.html">
 <link rel="import" href="/tracing/model/process_memory_dump.html">
 <link rel="import" href="/tracing/model/vm_region.html">
-<link rel="import" href="/tracing/value/numeric.html">
 
 <script>
 'use strict';
@@ -26,15 +26,15 @@ tr.exportTo('tr.model', function() {
   var MemoryAllocatorDumpLink = tr.model.MemoryAllocatorDumpLink;
   var VMRegion = tr.model.VMRegion;
   var VMRegionClassificationNode = tr.model.VMRegionClassificationNode;
-  var ScalarNumeric = tr.v.ScalarNumeric;
+  var Scalar = tr.b.Scalar;
   var sizeInBytes_smallerIsBetter =
       tr.b.Unit.byName.sizeInBytes_smallerIsBetter;
   var LIGHT = tr.model.ContainerMemoryDump.LevelOfDetail.LIGHT;
 
-  function castToScalarNumeric(value) {
+  function castToScalar(value) {
     if (typeof value === 'number')
-      return new ScalarNumeric(sizeInBytes_smallerIsBetter, value);
-    assert.instanceOf(value, ScalarNumeric);
+      return new Scalar(sizeInBytes_smallerIsBetter, value);
+    assert.instanceOf(value, Scalar);
     return value;
   }
 
@@ -108,7 +108,7 @@ tr.exportTo('tr.model', function() {
    *     (including ancestors).
    * @param {!{
    *     guid: (number|undefined),
-   *     numerics: (!Object<string, (number|!tr.v.ScalarNumeric)>|undefined)
+   *     numerics: (!Object<string, (number|!tr.b.Scalar)>|undefined)
    * }=} opt_options Options for creating the new allocator dump.
    * @return {!tr.model.MemoryAllocatorDump} The newly created memory allocator
    *     dump.
@@ -120,7 +120,7 @@ tr.exportTo('tr.model', function() {
     var numerics = getOption(opt_options, 'numerics');
     if (numerics) {
       tr.b.iterItems(numerics, function(numericName, value) {
-        dump.addNumeric(numericName, castToScalarNumeric(value));
+        dump.addNumeric(numericName, castToScalar(value));
       });
     }
     return dump;
@@ -136,7 +136,7 @@ tr.exportTo('tr.model', function() {
    *     ancestors).
    * @param {!{
    *     guid: (number|undefined),
-   *     numerics: (!Object<string, (number|!tr.v.ScalarNumeric)>|undefined)
+   *     numerics: (!Object<string, (number|!tr.b.Scalar)>|undefined)
    * }=} opt_options Options for creating the child allocator dump.
    * @return {!tr.model.MemoryAllocatorDump} The newly created child memory
    *     allocator dump.
@@ -167,8 +167,8 @@ tr.exportTo('tr.model', function() {
         Object.keys(actualNumerics), Object.keys(expectedNumerics));
     for (var numericName in actualNumerics) {
       var actualNumeric = actualNumerics[numericName];
-      var expectedNumeric = castToScalarNumeric(expectedNumerics[numericName]);
-      assert.instanceOf(actualNumeric, tr.v.ScalarNumeric);
+      var expectedNumeric = castToScalar(expectedNumerics[numericName]);
+      assert.instanceOf(actualNumeric, tr.b.Scalar);
       assert.strictEqual(actualNumeric.unit, expectedNumeric.unit);
       assert.closeTo(actualNumeric.value, expectedNumeric.value,
           MemoryDumpTestUtils.SIZE_DELTA);

@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
+<link rel="import" href="/tracing/base/scalar.html">
 <link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/importer/import.html">
@@ -14,7 +15,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/memory_dump_test_utils.html">
 <link rel="import" href="/tracing/model/model.html">
 <link rel="import" href="/tracing/model/process_memory_dump.html">
-<link rel="import" href="/tracing/value/numeric.html">
 
 <script>
 'use strict';
@@ -25,7 +25,7 @@ tr.b.unittest.testSuite(function() {
   var ProcessMemoryDump = tr.model.ProcessMemoryDump;
   var MemoryAllocatorDump = tr.model.MemoryAllocatorDump;
   var MemoryAllocatorDumpLink = tr.model.MemoryAllocatorDumpLink;
-  var ScalarNumeric = tr.v.ScalarNumeric;
+  var Scalar = tr.b.Scalar;
   var sizeInBytes_smallerIsBetter =
       tr.b.Unit.byName.sizeInBytes_smallerIsBetter;
   var newAllocatorDump = tr.model.MemoryDumpTestUtils.newAllocatorDump;
@@ -63,8 +63,8 @@ tr.b.unittest.testSuite(function() {
         '\' of memory allocator dump \'' + dump.fullName + '\' in ' +
         dump.containerMemoryDump.userFriendlyName + ' to ';
 
-    assert.instanceOf(numeric, ScalarNumeric,
-        errorMessagePrefix + 'be an instance of ScalarNumeric');
+    assert.instanceOf(numeric, Scalar,
+        errorMessagePrefix + 'be an instance of Scalar');
     assert.equal(numeric.unit, expectedUnit,
         errorMessagePrefix + 'have unit \'' + expectedUnit.unitName +
         '\' but got \'' + numeric.unit.unitName + '\' instead');
@@ -218,7 +218,7 @@ tr.b.unittest.testSuite(function() {
 
         if (size !== undefined) {
           dump.addNumeric(
-              'size', new ScalarNumeric(sizeInBytes_smallerIsBetter, size));
+              'size', new Scalar(sizeInBytes_smallerIsBetter, size));
         }
         if (guid !== undefined) {
           assert.notProperty(guid, ownableDumps);
@@ -3451,7 +3451,7 @@ tr.b.unittest.testSuite(function() {
               {
                 'name': 'owned_child1',
                 'numerics': {
-                  'summed': new ScalarNumeric(sizeInBytes_smallerIsBetter, 12)
+                  'summed': new Scalar(sizeInBytes_smallerIsBetter, 12)
                 },
                 'diagnostics': {
                   'url2': 'http://not.aggregated.to/owned/parent/dump'
@@ -3460,7 +3460,7 @@ tr.b.unittest.testSuite(function() {
               {
                 'name': 'owned_child2',
                 'numerics': {
-                  'summed': new ScalarNumeric(sizeInBytes_smallerIsBetter, 15)
+                  'summed': new Scalar(sizeInBytes_smallerIsBetter, 15)
                 }
               }
             ]
@@ -3486,7 +3486,7 @@ tr.b.unittest.testSuite(function() {
                 'name': 'sibling',
                 'size': 5,
                 'numerics': {
-                  'summed': new ScalarNumeric(sizeInBytes_smallerIsBetter, 13)
+                  'summed': new Scalar(sizeInBytes_smallerIsBetter, 13)
                 }
               }
             ]
@@ -3495,7 +3495,7 @@ tr.b.unittest.testSuite(function() {
             'name': 'precedent_owner',
             'owns': 1,
             'numerics': {
-              'summed': new ScalarNumeric(sizeInBytes_smallerIsBetter, 0)
+              'summed': new Scalar(sizeInBytes_smallerIsBetter, 0)
             }
           },
           {

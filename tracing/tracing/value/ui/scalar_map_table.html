@@ -22,7 +22,7 @@ Polymer({
   is: 'tr-v-ui-scalar-map-table',
 
   created: function() {
-    /** @type {!Map.<string, !tr.v.ScalarNumeric>} */
+    /** @type {!Map.<string, !tr.b.Scalar>} */
     this.scalarMap_ = new Map();
 
     /** @type {!Map.<string, !tr.b.Statistics.Significance>} */
@@ -58,7 +58,7 @@ Polymer({
   },
 
   /**
-   * @param {!Map.<string,!tr.v.ScalarNumeric>} map
+   * @param {!Map.<string,!tr.b.Scalar>} map
    */
   set scalarMap(map) {
     this.scalarMap_ = map;

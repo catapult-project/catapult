@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/color.html">
 <link rel="import" href="/tracing/base/color_scheme.html">
+<link rel="import" href="/tracing/base/scalar.html">
 <link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/model/global_memory_dump.html">
@@ -14,7 +15,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/memory_dump_test_utils.html">
 <link rel="import" href="/tracing/model/process_memory_dump.html">
 <link rel="import" href="/tracing/model/vm_region.html">
-<link rel="import" href="/tracing/value/numeric.html">
 
 <script>
 'use strict';
@@ -29,7 +29,7 @@ tr.exportTo('tr.ui.analysis', function() {
   var ProcessMemoryDump = tr.model.ProcessMemoryDump;
   var VMRegion = tr.model.VMRegion;
   var VMRegionClassificationNode = tr.model.VMRegionClassificationNode;
-  var ScalarNumeric = tr.v.ScalarNumeric;
+  var Scalar = tr.b.Scalar;
   var sizeInBytes_smallerIsBetter =
       tr.b.Unit.byName.sizeInBytes_smallerIsBetter;
   var unitlessNumber_smallerIsBetter =
@@ -120,12 +120,12 @@ tr.exportTo('tr.ui.analysis', function() {
         var oilpanDump = newAllocatorDump(pmd1C, 'oilpan', {numerics: {
           size: 3221225472 /* 3 GiB */,
           inner_size: 5242880 /* 5 MiB */,
-          objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 2015)
+          objects_count: new Scalar(unitlessNumber_smallerIsBetter, 2015)
         }});
         var v8Dump = newAllocatorDump(pmd1C, 'v8', {numerics: {
           size: 1073741824 /* 1 GiB */,
           inner_size: 2097152 /* 2 MiB */,
-          objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 204)
+          objects_count: new Scalar(unitlessNumber_smallerIsBetter, 204)
         }});
 
         addOwnershipLink(v8Dump, oilpanDump);
@@ -278,12 +278,12 @@ tr.exportTo('tr.ui.analysis', function() {
         var oilpanDump = newAllocatorDump(pmd3C, 'oilpan', {numerics: {
           size: 3221225472 /* 3 GiB */,
           inner_size: 5242880 /* 5 MiB */,
-          objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 2015)
+          objects_count: new Scalar(unitlessNumber_smallerIsBetter, 2015)
         }});
         var v8Dump = newAllocatorDump(pmd3C, 'v8', {numerics: {
           size: 2147483648 /* 2 GiB */,
           inner_size: 2097152 /* 2 MiB */,
-          objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 204)
+          objects_count: new Scalar(unitlessNumber_smallerIsBetter, 204)
         }});
 
         addOwnershipLink(v8Dump, oilpanDump);
@@ -352,7 +352,7 @@ tr.exportTo('tr.ui.analysis', function() {
         assert.isUndefined(field);
       } else {
         assert.isDefined(expectedUnit);  // Test sanity check.
-        assert.instanceOf(field, ScalarNumeric);
+        assert.instanceOf(field, Scalar);
         assert.equal(field.value, expectedValue);
         assert.equal(field.unit, expectedUnit);
       }

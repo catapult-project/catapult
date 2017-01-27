@@ -7,20 +7,18 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/color_scheme.html">
 <link rel="import" href="/tracing/base/iteration_helpers.html">
+<link rel="import" href="/tracing/base/scalar.html">
 <link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/base/unit_scale.html">
 <link rel="import" href="/tracing/model/memory_allocator_dump.html">
-<link rel="import"
-    href="/tracing/ui/analysis/memory_dump_allocator_details_pane.html">
+<link rel="import" href="/tracing/ui/analysis/memory_dump_allocator_details_pane.html">
 <link rel="import" href="/tracing/ui/analysis/memory_dump_sub_view_util.html">
-<link rel="import"
-    href="/tracing/ui/analysis/memory_dump_vm_regions_details_pane.html">
+<link rel="import" href="/tracing/ui/analysis/memory_dump_vm_regions_details_pane.html">
 <link rel="import" href="/tracing/ui/analysis/stacked_pane.html">
 <link rel="import" href="/tracing/ui/base/color_legend.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
 <link rel="import" href="/tracing/ui/base/table.html">
 <link rel="import" href="/tracing/ui/view_specific_brushing_state.html">
-<link rel="import" href="/tracing/value/numeric.html">
 
 <dom-module id='tr-ui-a-memory-dump-overview-pane'>
   <template>
@@ -79,7 +77,7 @@ found in the LICENSE file.
 tr.exportTo('tr.ui.analysis', function() {
 
   var ColorScheme = tr.b.ColorScheme;
-  var ScalarNumeric = tr.v.ScalarNumeric;
+  var Scalar = tr.b.Scalar;
   var sizeInBytes_smallerIsBetter =
       tr.b.Unit.byName.sizeInBytes_smallerIsBetter;
 
@@ -607,7 +605,7 @@ tr.exportTo('tr.ui.analysis', function() {
                     Object.entries(UsedMemoryColumn.TOTALS_MAP)) {
                   var total = totals[totalName];
                   if (total === undefined) continue;
-                  sizes[cellName] = new ScalarNumeric(
+                  sizes[cellName] = new Scalar(
                       sizeInBytes_smallerIsBetter, total);
                 }
 
@@ -623,7 +621,7 @@ tr.exportTo('tr.ui.analysis', function() {
                     }
                     name = name.replace('_', ' ').trim();
                     name = name.charAt(0).toUpperCase() + name.slice(1);
-                    sizes[name] = new ScalarNumeric(
+                    sizes[name] = new Scalar(
                         sizeInBytes_smallerIsBetter, size);
                   }
                 }
@@ -636,7 +634,7 @@ tr.exportTo('tr.ui.analysis', function() {
                      Object.entries(UsedMemoryColumn.BYTE_STAT_MAP)) {
                   var byteStat = vmRegions.byteStats[byteStatName];
                   if (byteStat === undefined) continue;
-                  sizes[cellName] = new ScalarNumeric(
+                  sizes[cellName] = new Scalar(
                       sizeInBytes_smallerIsBetter, byteStat);
                 }
               }
@@ -656,7 +654,7 @@ tr.exportTo('tr.ui.analysis', function() {
                     DISPLAYED_SIZE_NUMERIC_NAME];
                 if (rootDisplayedSizeNumeric === undefined) {
                   rootDisplayedSizeNumeric =
-                      new ScalarNumeric(sizeInBytes_smallerIsBetter, 0);
+                      new Scalar(sizeInBytes_smallerIsBetter, 0);
                 }
                 sizes[allocatorDump.fullName] = rootDisplayedSizeNumeric;
               });

@@ -14,7 +14,7 @@ found in the LICENSE file.
 'use strict';
 tr.exportTo('tr.v.ui', function() {
   /**
-   * @param {undefined|tr.v.ScalarNumeric|tr.v.Histogram} value
+   * @param {undefined|tr.b.Scalar|tr.v.Histogram} value
    * @param {Object=} opt_config
    * @param {!tr.b.Range=} opt_config.customContextRange
    * @param {boolean=} opt_config.leftAlign
@@ -33,7 +33,7 @@ tr.exportTo('tr.v.ui', function() {
     var span = ownerDocument.createElement('tr-v-ui-scalar-span');
 
     var numericValue;
-    if (value instanceof tr.v.ScalarNumeric) {
+    if (value instanceof tr.b.Scalar) {
       span.value = value;
       numericValue = value.value;
     } else if (value instanceof tr.v.Histogram) {
@@ -269,7 +269,7 @@ Polymer({
   },
 
   set value(value) {
-    if (value instanceof tr.v.ScalarNumeric) {
+    if (value instanceof tr.b.Scalar) {
       this.value_ = value.value;
       this.unit_ = value.unit;
     } else {

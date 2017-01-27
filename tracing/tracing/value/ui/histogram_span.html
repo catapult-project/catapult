@@ -271,28 +271,28 @@ Polymer({
 
     var absDeltaAvg = this.histogram.average -
       this.referenceHistogram.average;
-    scalarMap.set(ABS_DELTA_AVG_NAME, new tr.v.ScalarNumeric(
+    scalarMap.set(ABS_DELTA_AVG_NAME, new tr.b.Scalar(
         this.histogram.unit.correspondingDeltaUnit,
         absDeltaAvg));
 
     var suffix = tr.b.Unit.nameSuffixForImprovementDirection(
         this.histogram.unit.improvementDirection);
 
-    scalarMap.set('%' + DELTA + 'avg', new tr.v.ScalarNumeric(
+    scalarMap.set('%' + DELTA + 'avg', new tr.b.Scalar(
         tr.b.Unit.byName['normalizedPercentageDelta' + suffix],
         absDeltaAvg / this.referenceHistogram.average));
 
-    scalarMap.set('z-score', new tr.v.ScalarNumeric(
+    scalarMap.set('z-score', new tr.b.Scalar(
         tr.b.Unit.byName['sigmaDelta' + suffix],
         absDeltaAvg / this.referenceHistogram.standardDeviation));
 
     var mwu = tr.b.Statistics.mwu(
         this.histogram.sampleValues, this.referenceHistogram.sampleValues);
-    scalarMap.set('p-value', new tr.v.ScalarNumeric(
+    scalarMap.set('p-value', new tr.b.Scalar(
         tr.b.Unit.byName.unitlessNumber,
         mwu.p));
 
-    scalarMap.set('U', new tr.v.ScalarNumeric(
+    scalarMap.set('U', new tr.b.Scalar(
         tr.b.Unit.byName.unitlessNumber,
         mwu.U));
 
@@ -391,10 +391,10 @@ Polymer({
     for (var bin of this.histogram.allBins) {
       var x = bin.range.min;
       if (x === -Number.MAX_VALUE) {
-        x = '<' + new tr.v.ScalarNumeric(
+        x = '<' + new tr.b.Scalar(
             this.histogram.unit, bin.range.max).toString();
       } else {
-        x = new tr.v.ScalarNumeric(this.histogram.unit, x).toString();
+        x = new tr.b.Scalar(this.histogram.unit, x).toString();
       }
       chartData.push({x: x, y: bin.count});
       binCounts.push(bin.count);

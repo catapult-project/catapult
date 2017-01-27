@@ -5,8 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/scalar.html">
 <link rel="import" href="/tracing/value/diagnostics/diagnostic.html">
-<link rel="import" href="/tracing/value/numeric.html">
 
 <script>
 'use strict';
@@ -14,12 +14,12 @@ found in the LICENSE file.
 tr.exportTo('tr.v.d', function() {
   class Scalar extends tr.v.d.Diagnostic {
     /**
-     * @param {!tr.v.ScalarNumeric} value
+     * @param {!tr.b.Scalar} value
      */
     constructor(value) {
       super();
-      if (!(value instanceof tr.v.ScalarNumeric))
-        throw new Error('expected ScalarNumeric');
+      if (!(value instanceof tr.b.Scalar))
+        throw new Error('expected Scalar');
       this.value = value;
     }
 
@@ -28,7 +28,7 @@ tr.exportTo('tr.v.d', function() {
     }
 
     static fromDict(d) {
-      return new Scalar(tr.v.ScalarNumeric.fromDict(d.value));
+      return new Scalar(tr.b.Scalar.fromDict(d.value));
     }
   }
 

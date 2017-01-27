@@ -18,14 +18,14 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var ScalarNumeric = tr.v.ScalarNumeric;
+  var Scalar = tr.b.Scalar;
   var Unit = tr.b.Unit;
   var THIS_DOC = document.currentScript.ownerDocument;
 
   var EXAMPLE_MEMORY_FORMATTING_CONTEXT = {
     unitPrefix: tr.b.UnitPrefixScale.BINARY.KIBI,
   };
-  var EXAMPLE_MEMORY_NUMERIC = new ScalarNumeric(
+  var EXAMPLE_MEMORY_NUMERIC = new Scalar(
       Unit.byName.sizeInBytesDelta_smallerIsBetter, 256 * 1024 * 1024);
 
   function checkSignificance(span, expectedSignificance) {
@@ -39,7 +39,7 @@ tr.b.unittest.testSuite(function() {
 
   function checkScalarSpan(test, value, unit, expectedContent, opt_options) {
     var options = opt_options || {};
-    var span = tr.v.ui.createScalarSpan(new tr.v.ScalarNumeric(unit, value),
+    var span = tr.v.ui.createScalarSpan(new tr.b.Scalar(unit, value),
         {significance: options.significance});
 
     test.addHTMLOutput(span);
@@ -287,7 +287,7 @@ tr.b.unittest.testSuite(function() {
   test('createScalarSpan', function() {
     // No config.
     var span = tr.v.ui.createScalarSpan(
-        new ScalarNumeric(Unit.byName.powerInWatts, 3.14));
+        new Scalar(Unit.byName.powerInWatts, 3.14));
     assert.strictEqual(Polymer.dom(span.$.content).textContent, '3.140 W');
     assert.strictEqual(span.ownerDocument, document);
     assert.strictEqual(span.tagName, 'TR-V-UI-SCALAR-SPAN');
@@ -303,7 +303,7 @@ tr.b.unittest.testSuite(function() {
     var div = document.createElement('div');
     this.addHTMLOutput(div);
     var inlineSpan = tr.v.ui.createScalarSpan(
-        new ScalarNumeric(Unit.byName.powerInWatts, 3.14),
+        new Scalar(Unit.byName.powerInWatts, 3.14),
         {inline: true});
     assert.strictEqual(Polymer.dom(inlineSpan.$.content).textContent,
         '3.140 W');
@@ -323,7 +323,7 @@ tr.b.unittest.testSuite(function() {
 
     // Custom owner document and right align.
     var span = tr.v.ui.createScalarSpan(
-        new ScalarNumeric(Unit.byName.energyInJoules, 2.72),
+        new Scalar(Unit.byName.energyInJoules, 2.72),
         { ownerDocument: THIS_DOC, leftAlign: true});
     assert.strictEqual(Polymer.dom(span.$.content).textContent, '2.720 J');
     assert.strictEqual(span.ownerDocument, THIS_DOC);
@@ -355,7 +355,7 @@ tr.b.unittest.testSuite(function() {
 
     // Custom context.
     var span = tr.v.ui.createScalarSpan(
-        new ScalarNumeric(Unit.byName.sizeInBytesDelta_smallerIsBetter,
+        new Scalar(Unit.byName.sizeInBytesDelta_smallerIsBetter,
             256 * 1024 * 1024), { context: {
               unitPrefix: tr.b.UnitPrefixScale.BINARY.KIBI,
               minimumFractionDigits: 2
@@ -386,21 +386,21 @@ tr.b.unittest.testSuite(function() {
 
   test('instantiate_withCustomContextRange', function() {
     var span = document.createElement('tr-v-ui-scalar-span');
-    span.value = new ScalarNumeric(Unit.byName.unitlessNumber, 0.99);
+    span.value = new Scalar(Unit.byName.unitlessNumber, 0.99);
     span.customContextRange = tr.b.Range.fromExplicitRange(0, 3);
     this.addHTMLOutput(span);
   });
 
   test('instantiate_withRightAlign', function() {
     var span = document.createElement('tr-v-ui-scalar-span');
-    span.value = new ScalarNumeric(Unit.byName.timeStampInMs, 5.777);
+    span.value = new Scalar(Unit.byName.timeStampInMs, 5.777);
     span.leftAlign = true;
     this.addHTMLOutput(span);
   });
 
   test('instantiate_withContext', function() {
     var span = document.createElement('tr-v-ui-scalar-span');
-    span.value = new ScalarNumeric(
+    span.value = new Scalar(
         Unit.byName.unitlessNumberDelta_smallerIsBetter, 42);
     span.context = { maximumFractionDigits: 2 };
     assert.strictEqual(Polymer.dom(span.$.content).textContent, '+42.00');

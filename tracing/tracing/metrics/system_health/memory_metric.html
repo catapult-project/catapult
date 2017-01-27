@@ -1021,10 +1021,10 @@ tr.exportTo('tr.metrics.sh', function() {
           }
 
           var value;
-          if (spec.value instanceof tr.v.ScalarNumeric) {
+          if (spec.value instanceof tr.b.Scalar) {
             value = spec.value.value;
             if (spec.value.unit !== spec.property.unit) {
-              throw new Error('ScalarNumeric unit for ' +
+              throw new Error('Scalar unit for ' +
                   createDetailsForErrorMessage() + ' (' +
                   spec.value.unit.unitName +
                   ') doesn\'t match the unit of the property (' +

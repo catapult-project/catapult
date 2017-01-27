@@ -20,7 +20,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var ScalarNumeric = tr.v.ScalarNumeric;
+  var Scalar = tr.b.Scalar;
   var sizeInBytes_smallerIsBetter =
       tr.b.Unit.byName.sizeInBytes_smallerIsBetter;
   var MemoryAllocatorDump = tr.model.MemoryAllocatorDump;
@@ -156,7 +156,7 @@ tr.b.unittest.testSuite(function() {
       dumpCreatedCallback, expectedInfos, expectedColorReservedName) {
     var fields = fieldAndDumpMask.map(function(mask, index) {
       return mask & FIELD ?
-          new ScalarNumeric(sizeInBytes_smallerIsBetter, 1024 + 32 * index) :
+          new Scalar(sizeInBytes_smallerIsBetter, 1024 + 32 * index) :
           undefined;
     });
 
@@ -689,7 +689,7 @@ tr.b.unittest.testSuite(function() {
             var mad = new MemoryAllocatorDump(pmd, 'Allocator');
             if (!(mask & MISSING_SIZE)) {
               mad.addNumeric('size',
-                  new ScalarNumeric(sizeInBytes_smallerIsBetter, 7));
+                  new Scalar(sizeInBytes_smallerIsBetter, 7));
             }
             pmd.memoryAllocatorDumps = [mad];
           },

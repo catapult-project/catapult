@@ -5,11 +5,11 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/scalar.html">
 <link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/model/container_memory_dump.html">
 <link rel="import" href="/tracing/model/memory_allocator_dump.html">
 <link rel="import" href="/tracing/model/memory_dump_test_utils.html">
-<link rel="import" href="/tracing/value/numeric.html">
 
 <script>
 'use strict';
@@ -17,7 +17,7 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   var ContainerMemoryDump = tr.model.ContainerMemoryDump;
   var MemoryAllocatorDump = tr.model.MemoryAllocatorDump;
-  var ScalarNumeric = tr.v.ScalarNumeric;
+  var Scalar = tr.b.Scalar;
   var unitlessNumber_smallerIsBetter =
       tr.b.Unit.byName.unitlessNumber_smallerIsBetter;
   var newAllocatorDump = tr.model.MemoryDumpTestUtils.newAllocatorDump;
@@ -43,12 +43,12 @@ tr.b.unittest.testSuite(function() {
 
     var oilpanDump = newAllocatorDump(md, 'oilpan', {
       size: 1024,
-      objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 7),
+      objects_count: new Scalar(unitlessNumber_smallerIsBetter, 7),
       inner_size: 768
     });
     var v8Dump = newAllocatorDump(md, 'v8', {
       size: 2048,
-      objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 15),
+      objects_count: new Scalar(unitlessNumber_smallerIsBetter, 15),
       inner_size: 1999
     });
     md.memoryAllocatorDumps = [oilpanDump, v8Dump];
@@ -67,31 +67,31 @@ tr.b.unittest.testSuite(function() {
 
     var oilpanDump = newAllocatorDump(md, 'oilpan', {
       size: 1024,
-      objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 7),
+      objects_count: new Scalar(unitlessNumber_smallerIsBetter, 7),
       inner_size: 768
     });
 
     var oilpanBucket1Dump = addChildDump(oilpanDump, 'bucket1', {
       size: 512,
-      objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 3),
+      objects_count: new Scalar(unitlessNumber_smallerIsBetter, 3),
       inner_size: 256
     });
 
     var oilpanBucket2Dump = addChildDump(oilpanDump, 'bucket2', {
       size: 512,
-      objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 4),
+      objects_count: new Scalar(unitlessNumber_smallerIsBetter, 4),
       inner_size: 512
     });
 
     var oilpanBucket2StringsDump = addChildDump(oilpanBucket2Dump, 'strings', {
       size: 512,
-      objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 4),
+      objects_count: new Scalar(unitlessNumber_smallerIsBetter, 4),
       inner_size: 512
     });
 
     var v8Dump = newAllocatorDump(md, 'v8', {
       size: 2048,
-      objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 15),
+      objects_count: new Scalar(unitlessNumber_smallerIsBetter, 15),
       inner_size: 1999
     });
 

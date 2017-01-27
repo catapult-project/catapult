@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/base64.html">
 <link rel="import" href="/tracing/base/color_scheme.html">
 <link rel="import" href="/tracing/base/range.html">
+<link rel="import" href="/tracing/base/scalar.html">
 <link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/base/utils.html">
 <link rel="import" href="/tracing/extras/importer/heap_dump_trace_event_importer.html">
@@ -33,7 +34,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/slice_group.html">
 <link rel="import" href="/tracing/model/vm_region.html">
 <link rel="import" href="/tracing/model/x_marker_annotation.html">
-<link rel="import" href="/tracing/value/numeric.html">
 
 <script>
 'use strict';
@@ -2871,7 +2871,7 @@ tr.exportTo('tr.e.importer', function() {
                   tr.b.Unit.byName.unitlessNumber_smallerIsBetter;
               var value = parseInt(attrValue, 16);
               allocatorDump.addNumeric(attrName,
-                  new tr.v.ScalarNumeric(unit, value));
+                  new tr.b.Scalar(unit, value));
               break;
 
             case 'string':

@@ -48,14 +48,7 @@ tr.exportTo('tr.v.d', function() {
     asDictInto_(d) {
       d.values = {};
       for (var [name, value] of this) {
-        if (isNaN(value)) {
-          value = 'NaN';
-        } else if (value === Infinity) {
-          value = 'Infinity';
-        } else if (value === -Infinity) {
-          value = '-Infinity';
-        }
-        d.values[name] = value;
+        d.values[name] = tr.b.numberToJson(value);
       }
       if (this.colorScheme) {
         d.colorScheme = this.colorScheme;
@@ -65,18 +58,7 @@ tr.exportTo('tr.v.d', function() {
     static fromDict(d) {
       var breakdown = new Breakdown();
       tr.b.iterItems(d.values, (name, value) => {
-        if (typeof(value) === 'string') {
-          if (value === '-Infinity') {
-            value = -Infinity;
-          } else if (value === 'Infinity') {
-            value = Infinity;
-          } else if (value === 'NaN') {
-            value = NaN;
-          }
-        } else if (value === null) {
-          value = NaN;
-        }
-        breakdown.set(name, value);
+        breakdown.set(name, tr.b.numberFromJson(value));
       });
       if (d.colorScheme) {
         breakdown.colorScheme = d.colorScheme;

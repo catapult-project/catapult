@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/scalar.html">
 <link rel="import" href="/tracing/base/time_display_modes.html">
 <link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/core/test_utils.html">
@@ -17,7 +18,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/memory_dump_test_utils.html">
 <link rel="import" href="/tracing/model/scoped_id.html">
 <link rel="import" href="/tracing/model/vm_region.html">
-<link rel="import" href="/tracing/value/numeric.html">
 
 <script>
 'use strict';
@@ -29,7 +29,7 @@ tr.b.unittest.testSuite(function() {
   var MeasureAsyncSlice = tr.e.measure.MeasureAsyncSlice;
   var ScopedId = tr.model.ScopedId;
   var VMRegion = tr.model.VMRegion;
-  var ScalarNumeric = tr.v.ScalarNumeric;
+  var Scalar = tr.b.Scalar;
   var unitlessNumber_smallerIsBetter =
       tr.b.Unit.byName.unitlessNumber_smallerIsBetter;
   var checkDumpNumericsAndDiagnostics =
@@ -3315,7 +3315,7 @@ tr.b.unittest.testSuite(function() {
     assert.include(d.memoryAllocatorDumps, v8Root);
 
     checkDumpNumericsAndDiagnostics(oilpanRoot, {
-      'objects_count': new ScalarNumeric(unitlessNumber_smallerIsBetter, 47),
+      'objects_count': new Scalar(unitlessNumber_smallerIsBetter, 47),
       'size': 32768,
       'effective_size': 32768,
       'inner_size': 4096
@@ -3328,7 +3328,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(oilpanBucket1.fullName, 'oilpan/heap2/bucket1');
     assert.equal(oilpanBucket1.name, 'bucket1');
     checkDumpNumericsAndDiagnostics(oilpanBucket1, {
-      'objects_count': new ScalarNumeric(unitlessNumber_smallerIsBetter, 31),
+      'objects_count': new Scalar(unitlessNumber_smallerIsBetter, 31),
       'size': 8192,
       'effective_size': 8192,
       'inner_size': 8192
@@ -3415,7 +3415,7 @@ tr.b.unittest.testSuite(function() {
     assert.include(d.memoryAllocatorDumps, v8Root);
 
     checkDumpNumericsAndDiagnostics(oilpanRoot, {
-      'objects_count': new ScalarNumeric(unitlessNumber_smallerIsBetter, 94),
+      'objects_count': new Scalar(unitlessNumber_smallerIsBetter, 94),
       'size': 24576,
       'effective_size': 24576,
       'inner_size': 20480
@@ -3428,7 +3428,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(oilpanBucket1.fullName, 'oilpan/heap2/bucket1');
     assert.equal(oilpanBucket1.name, 'bucket1');
     checkDumpNumericsAndDiagnostics(oilpanBucket1, {
-      'objects_count': new ScalarNumeric(unitlessNumber_smallerIsBetter, 31),
+      'objects_count': new Scalar(unitlessNumber_smallerIsBetter, 31),
       'size': 8192,
       'effective_size': 8192,
       'inner_size': 8192
@@ -3517,7 +3517,7 @@ tr.b.unittest.testSuite(function() {
     assert.include(gmd.memoryAllocatorDumps, sharedBitmapManager);
 
     checkDumpNumericsAndDiagnostics(sharedBitmapManager, {
-      'objects_count': new ScalarNumeric(unitlessNumber_smallerIsBetter, 31),
+      'objects_count': new Scalar(unitlessNumber_smallerIsBetter, 31),
       'size': 8192,
       'effective_size': 8192,
       'inner_size': 8192
@@ -3531,7 +3531,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(bitmap2.parent, sharedBitmapManager);
 
     checkDumpNumericsAndDiagnostics(bitmap2, {
-      'objects_count': new ScalarNumeric(unitlessNumber_smallerIsBetter, 31),
+      'objects_count': new Scalar(unitlessNumber_smallerIsBetter, 31),
       'size': 8192,
       'effective_size': 8192,
       'inner_size': 8192
@@ -3549,7 +3549,7 @@ tr.b.unittest.testSuite(function() {
     assert.isUndefined(tileManagerRoot.parent);
 
     checkDumpNumericsAndDiagnostics(tileManagerRoot, {
-      'objects_count': new ScalarNumeric(unitlessNumber_smallerIsBetter, 63),
+      'objects_count': new Scalar(unitlessNumber_smallerIsBetter, 63),
       'size': 16384,
       'effective_size': 16384,
       'inner_size': 12288
@@ -3563,7 +3563,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(tile1.parent, tileManagerRoot);
 
     checkDumpNumericsAndDiagnostics(tile1, {
-      'objects_count': new ScalarNumeric(unitlessNumber_smallerIsBetter, 63),
+      'objects_count': new Scalar(unitlessNumber_smallerIsBetter, 63),
       'size': 16384,
       'effective_size': 16384,
       'inner_size': 12288
@@ -3727,7 +3727,7 @@ tr.b.unittest.testSuite(function() {
     assert.isDefined(globalDumpShared);
     assert.include(globalDump.memoryAllocatorDumps, globalDumpShared);
     checkDumpNumericsAndDiagnostics(globalDumpShared, {
-      'area': new ScalarNumeric(unitlessNumber_smallerIsBetter, 9)
+      'area': new Scalar(unitlessNumber_smallerIsBetter, 9)
     }, { 'color': 'blue' });
     assert.lengthOf(globalDumpShared.children, 0);
     assert.isUndefined(globalDumpShared.parent);
@@ -3745,7 +3745,7 @@ tr.b.unittest.testSuite(function() {
     assert.isDefined(browserDumpLocal);
     assert.include(browserDump.memoryAllocatorDumps, browserDumpLocal);
     checkDumpNumericsAndDiagnostics(browserDumpLocal, {
-      'area': new ScalarNumeric(unitlessNumber_smallerIsBetter, 9)
+      'area': new Scalar(unitlessNumber_smallerIsBetter, 9)
     }, { 'color': 'blue', 'mood': 'very good' });
     assert.lengthOf(browserDumpLocal.children, 0);
     assert.isUndefined(browserDumpLocal.parent);
@@ -3769,7 +3769,7 @@ tr.b.unittest.testSuite(function() {
     assert.isDefined(rendererDumpLocal);
     assert.include(rendererDump.memoryAllocatorDumps, rendererDumpLocal);
     checkDumpNumericsAndDiagnostics(rendererDumpLocal, {
-      'area': new ScalarNumeric(unitlessNumber_smallerIsBetter, 9),
+      'area': new Scalar(unitlessNumber_smallerIsBetter, 9),
       'length': 3
     }, { 'color': 'blue' });
     assert.lengthOf(rendererDumpLocal.children, 0);
@@ -3793,7 +3793,7 @@ tr.b.unittest.testSuite(function() {
     assert.isDefined(gpuDumpLocal1);
     assert.include(gpuDump.memoryAllocatorDumps, gpuDumpLocal1);
     checkDumpNumericsAndDiagnostics(gpuDumpLocal1, {
-      'area': new ScalarNumeric(unitlessNumber_smallerIsBetter, 9)
+      'area': new Scalar(unitlessNumber_smallerIsBetter, 9)
     }, { 'state': 'ON', 'color': 'blue' });
     assert.lengthOf(gpuDumpLocal1.children, 0);
     assert.isUndefined(gpuDumpLocal1.parent);
@@ -3819,7 +3819,7 @@ tr.b.unittest.testSuite(function() {
     assert.isDefined(gpuDumpLocal2);
     assert.include(gpuDump.memoryAllocatorDumps, gpuDumpLocal2);
     checkDumpNumericsAndDiagnostics(gpuDumpLocal2, {
-      'temperature': new ScalarNumeric(unitlessNumber_smallerIsBetter, 100)
+      'temperature': new Scalar(unitlessNumber_smallerIsBetter, 100)
     }, {});
     assert.lengthOf(gpuDumpLocal2.children, 0);
     assert.isUndefined(gpuDumpLocal2.parent);

@@ -128,6 +128,36 @@ tr.exportTo('tr.b', function() {
     return date.toISOString().replace('T', ' ').slice(0, 19);
   }
 
+  /**
+   * Infinity and NaN are left out of JSON for security reasons that do not
+   * apply to our use cases. This helper function allows serializing them
+   * independently of null.
+   *
+   * @param {!number} n
+   * @return {!(number|string)}
+   */
+  function numberToJson(n) {
+    if (isNaN(n)) return 'NaN';
+    if (n === Infinity) return 'Infinity';
+    if (n === -Infinity) return '-Infinity';
+    return n;
+  }
+
+  /**
+   * Infinity and NaN are left out of JSON for security reasons that do not
+   * apply to our use cases. This helper function allows deserializing them
+   * independently of null.
+   *
+   * @param {!(number|string)} n
+   * @return {!number}
+   */
+  function numberFromJson(n) {
+    if (n === 'NaN' || n === null) return NaN;
+    if (n === 'Infinity') return Infinity;
+    if (n === '-Infinity') return -Infinity;
+    return n;
+  }
+
   return {
     addSingletonGetter,
 
@@ -137,6 +167,8 @@ tr.exportTo('tr.b', function() {
     stackTrace,
     stackTraceAsString,
     formatDate,
+    numberToJson,
+    numberFromJson,
 
     getUsingPath,
   };

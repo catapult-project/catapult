@@ -82,7 +82,7 @@ tr.exportTo('tr.ui.analysis', function() {
       var fieldName = item.key;
       if (slice[fieldName] === undefined)
         continue;
-      diagnostics[fieldName] = new tr.v.d.Scalar(new tr.v.ScalarNumeric(
+      diagnostics[fieldName] = new tr.v.d.Scalar(new tr.b.Scalar(
         tr.b.Unit.byName.timeDurationInMs, slice[fieldName]));
     }
     diagnostics['args'] = new tr.v.d.Generic(slice.args);

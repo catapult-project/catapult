@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/color_scheme.html">
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/base/multi_dimensional_view.html">
+<link rel="import" href="/tracing/base/scalar.html">
 <link rel="import" href="/tracing/ui/analysis/memory_dump_heap_details_breakdown_view.html">
 <link rel="import" href="/tracing/ui/analysis/memory_dump_heap_details_path_view.html">
 <link rel="import" href="/tracing/ui/analysis/memory_dump_heap_details_util.html">
@@ -16,7 +17,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
 <link rel="import" href="/tracing/ui/base/drag_handle.html">
 <link rel="import" href="/tracing/ui/base/info_bar.html">
-<link rel="import" href="/tracing/value/numeric.html">
 
 <dom-module id='tr-ui-a-memory-dump-heap-details-pane'>
   <template>
@@ -112,7 +112,7 @@ found in the LICENSE file.
 
 tr.exportTo('tr.ui.analysis', function() {
 
-  var ScalarNumeric = tr.v.ScalarNumeric;
+  var Scalar = tr.b.Scalar;
   var sizeInBytes_smallerIsBetter =
       tr.b.Unit.byName.sizeInBytes_smallerIsBetter;
   var count_smallerIsBetter = tr.b.Unit.byName.count_smallerIsBetter;
@@ -247,12 +247,12 @@ tr.exportTo('tr.ui.analysis', function() {
           function(stackFrameNode) {
             var size = stackFrameNode.values[0].total;
             var numerics = {
-              'Size': new ScalarNumeric(sizeInBytes_smallerIsBetter, size)
+              'Size': new Scalar(sizeInBytes_smallerIsBetter, size)
             };
             var countValue = stackFrameNode.values[1];
             if (countValue.totalState >= this.minDisplayedTotalState_) {
               var count = countValue.total;
-              numerics['Count'] = new ScalarNumeric(
+              numerics['Count'] = new Scalar(
                   count_smallerIsBetter, count);
             }
             return numerics;

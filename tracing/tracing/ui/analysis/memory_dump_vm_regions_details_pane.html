@@ -6,11 +6,11 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
+<link rel="import" href="/tracing/base/scalar.html">
 <link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/ui/analysis/memory_dump_sub_view_util.html">
 <link rel="import" href="/tracing/ui/analysis/stacked_pane.html">
 <link rel="import" href="/tracing/ui/base/table.html">
-<link rel="import" href="/tracing/value/numeric.html">
 
 <dom-module id='tr-ui-a-memory-dump-vm-regions-details-pane'>
   <template>
@@ -64,7 +64,7 @@ found in the LICENSE file.
 
 tr.exportTo('tr.ui.analysis', function() {
 
-  var ScalarNumeric = tr.v.ScalarNumeric;
+  var Scalar = tr.b.Scalar;
   var sizeInBytes_smallerIsBetter =
       tr.b.Unit.byName.sizeInBytes_smallerIsBetter;
 
@@ -341,7 +341,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
           var sizeInBytes = region.sizeInBytes;
           if (sizeInBytes !== undefined) {
-            fields['Virtual size'] = new ScalarNumeric(
+            fields['Virtual size'] = new Scalar(
                 sizeInBytes_smallerIsBetter, sizeInBytes);
           }
           var protectionFlags = region.protectionFlagsToString;
@@ -353,7 +353,7 @@ tr.exportTo('tr.ui.analysis', function() {
                 var byteStat = region.byteStats[byteStatName];
                 if (byteStat === undefined)
                   return;
-                fields[columnName] = new ScalarNumeric(
+                fields[columnName] = new Scalar(
                     sizeInBytes_smallerIsBetter, byteStat);
               });
 

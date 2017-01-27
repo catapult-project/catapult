@@ -6,11 +6,11 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
+<link rel="import" href="/tracing/base/scalar.html">
 <link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/model/container_memory_dump.html">
 <link rel="import" href="/tracing/model/event_registry.html">
 <link rel="import" href="/tracing/model/memory_allocator_dump.html">
-<link rel="import" href="/tracing/value/numeric.html">
 
 <script>
 'use strict';
@@ -320,7 +320,7 @@ tr.exportTo('tr.model', function() {
       // provide a size, do NOT add a zero size numeric.
       if (!shouldDefineSize) {
         // The rest of the pipeline relies on size being either a valid
-        // ScalarNumeric, or undefined.
+        // Scalar, or undefined.
         delete dump.numerics[SIZE_NUMERIC_NAME];
         return;
       }
@@ -329,7 +329,7 @@ tr.exportTo('tr.model', function() {
       // together and/or its largest owner.
       size = Math.max(size, aggregatedChildrenSize, largestOwnerSize);
 
-      dump.numerics[SIZE_NUMERIC_NAME] = new tr.v.ScalarNumeric(
+      dump.numerics[SIZE_NUMERIC_NAME] = new tr.b.Scalar(
           tr.b.Unit.byName.sizeInBytes_smallerIsBetter, size);
 
       // Add a virtual child to make up for extra size of the dump with
@@ -340,7 +340,7 @@ tr.exportTo('tr.model', function() {
             dump.containerMemoryDump, dump.fullName + '/<unspecified>');
         virtualChild.parent = dump;
         dump.children.unshift(virtualChild);
-        virtualChild.numerics[SIZE_NUMERIC_NAME] = new tr.v.ScalarNumeric(
+        virtualChild.numerics[SIZE_NUMERIC_NAME] = new tr.b.Scalar(
             tr.b.Unit.byName.sizeInBytes_smallerIsBetter,
             size - aggregatedChildrenSize);
       }
@@ -681,7 +681,7 @@ tr.exportTo('tr.model', function() {
       // have defined effective size if and only if it has defined size.
       if (!hasSize(dump)) {
         // The rest of the pipeline relies on effective size being either a
-        // valid ScalarNumeric, or undefined.
+        // valid Scalar, or undefined.
         delete dump.numerics[EFFECTIVE_SIZE_NUMERIC_NAME];
         return;
       }
@@ -701,7 +701,7 @@ tr.exportTo('tr.model', function() {
               childDump.numerics[EFFECTIVE_SIZE_NUMERIC_NAME].value;
         });
       }
-      dump.numerics[EFFECTIVE_SIZE_NUMERIC_NAME] = new tr.v.ScalarNumeric(
+      dump.numerics[EFFECTIVE_SIZE_NUMERIC_NAME] = new tr.b.Scalar(
           tr.b.Unit.byName.sizeInBytes_smallerIsBetter, effectiveSize);
     },
 

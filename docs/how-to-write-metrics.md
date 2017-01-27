@@ -170,7 +170,7 @@ The types of Diagnostics are
    ran telemetry. Visually, it is displayed as a table.
  * [Scalar](/tracing/tracing/value/diagnostics/scalar.html):
    Metrics must not use this, since it is incapable of being merged. It is
-   mentioned here for completeness. It wraps a ScalarNumeric, which is just a
+   mentioned here for completeness. It wraps a Scalar, which is just a
    unitted number. This is only to allow Histograms in other parts of the trace
    viewer to display number sample diagnostics more intelligently than Generic
    can. If a metric wants to display number sample diagnostics intelligently,

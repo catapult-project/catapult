@@ -5,11 +5,11 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/scalar.html">
 <link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/model/container_memory_dump.html">
 <link rel="import" href="/tracing/model/memory_allocator_dump.html">
 <link rel="import" href="/tracing/model/memory_dump_test_utils.html">
-<link rel="import" href="/tracing/value/numeric.html">
 
 <script>
 'use strict';
@@ -18,7 +18,7 @@ tr.b.unittest.testSuite(function() {
   var ContainerMemoryDump = tr.model.ContainerMemoryDump;
   var MemoryAllocatorDump = tr.model.MemoryAllocatorDump;
   var MemoryAllocatorDumpLink = tr.model.MemoryAllocatorDumpLink;
-  var ScalarNumeric = tr.v.ScalarNumeric;
+  var Scalar = tr.b.Scalar;
   var unitlessNumber_smallerIsBetter =
       tr.b.Unit.byName.unitlessNumber_smallerIsBetter;
   var sizeInBytes = tr.b.Unit.byName.sizeInBytes;
@@ -43,12 +43,12 @@ tr.b.unittest.testSuite(function() {
     var md = new ContainerMemoryDump(42);
 
     var oilpanDump = newAllocatorDump(md, 'oilpan', {numerics: {
-      objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 7)
+      objects_count: new Scalar(unitlessNumber_smallerIsBetter, 7)
     }});
 
     addChildDump(oilpanDump, 'bucket1', {numerics: {
       size: 512,
-      objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 3),
+      objects_count: new Scalar(unitlessNumber_smallerIsBetter, 3),
       inner_size: 256,
       outer_size: 1024
     }});
@@ -58,7 +58,7 @@ tr.b.unittest.testSuite(function() {
     var oilpanBucket2StringsDump = addChildDump(oilpanBucket2Dump, 'strings', {
       numerics: {
         size: 512,
-        objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 4),
+        objects_count: new Scalar(unitlessNumber_smallerIsBetter, 4),
         inner_size: 512,
         outer_size: 2048
       }
@@ -68,14 +68,14 @@ tr.b.unittest.testSuite(function() {
 
     // oilpan has *some* numerics aggregated.
     checkDumpNumericsAndDiagnostics(oilpanDump, {
-      objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 7),
+      objects_count: new Scalar(unitlessNumber_smallerIsBetter, 7),
       inner_size: 768,
       outer_size: 3072
     }, {});
 
     // oilpan/bucket2 has *all* numerics aggregated (except for size).
     checkDumpNumericsAndDiagnostics(oilpanBucket2Dump, {
-      objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 4),
+      objects_count: new Scalar(unitlessNumber_smallerIsBetter, 4),
       inner_size: 512,
       outer_size: 2048
     }, {});
@@ -83,7 +83,7 @@ tr.b.unittest.testSuite(function() {
     // oilpan/bucket2/strings has *no* numerics aggregated.
     checkDumpNumericsAndDiagnostics(oilpanBucket2StringsDump, {
       size: 512,
-      objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 4),
+      objects_count: new Scalar(unitlessNumber_smallerIsBetter, 4),
       inner_size: 512,
       outer_size: 2048
     }, {});
@@ -97,7 +97,7 @@ tr.b.unittest.testSuite(function() {
           assert.isUndefined(result);
           assert.isUndefined(expectedUnit);  // Test sanity check.
         } else {
-          assert.instanceOf(result, ScalarNumeric);
+          assert.instanceOf(result, Scalar);
           assert.strictEqual(result.value, expectedValue);
           assert.strictEqual(result.unit, expectedUnit);
         }
@@ -126,33 +126,33 @@ tr.b.unittest.testSuite(function() {
 
     // Consistent units.
     checkAggregateNumerics(
-        [new ScalarNumeric(unitlessNumber_smallerIsBetter, 10)],
+        [new Scalar(unitlessNumber_smallerIsBetter, 10)],
         10, unitlessNumber_smallerIsBetter);
     checkAggregateNumerics(
-        [new ScalarNumeric(sizeInBytes, 10),
-         new ScalarNumeric(sizeInBytes, 20),
-         new ScalarNumeric(sizeInBytes, 40)],
+        [new Scalar(sizeInBytes, 10),
+         new Scalar(sizeInBytes, 20),
+         new Scalar(sizeInBytes, 40)],
         70, sizeInBytes);
     checkAggregateNumerics(
         [undefined,
-         new ScalarNumeric(sizeInBytes, 16),
+         new Scalar(sizeInBytes, 16),
          undefined,
-         new ScalarNumeric(sizeInBytes, 32),
+         new Scalar(sizeInBytes, 32),
          undefined],
         48, sizeInBytes);
 
     // Inconsistent units.
     checkAggregateNumerics(
-        [new ScalarNumeric(sizeInBytes, 10),
-         new ScalarNumeric(powerInWatts, 20)],
+        [new Scalar(sizeInBytes, 10),
+         new Scalar(powerInWatts, 20)],
         30, unitlessNumber_smallerIsBetter, 1 /* opt_expectedWarningCount */);
     checkAggregateNumerics(
         [undefined,
-         new ScalarNumeric(powerInWatts, 16),
+         new Scalar(powerInWatts, 16),
          undefined,
-         new ScalarNumeric(unitlessNumber_smallerIsBetter, 32),
+         new Scalar(unitlessNumber_smallerIsBetter, 32),
          undefined,
-         new ScalarNumeric(sizeInBytes, 64),
+         new Scalar(sizeInBytes, 64),
          undefined],
         112, unitlessNumber_smallerIsBetter, 1 /* opt_expectedWarningCount */);
   });
