@@ -40,6 +40,31 @@ _MANIFEST_DUMP = """N: android=http://schemas.android.com/apk/res/android
       A: android:targetPackage(0x01010021)="org.chromium.random_package" (Raw:"org.chromium.random_pacakge")
 """
 
+_NO_ISOLATED_SERVICES = """N: android=http://schemas.android.com/apk/res/android
+  E: manifest (line=1)
+    A: package="org.chromium.abc" (Raw: "org.chromium.abc")
+    E: application (line=5)
+      E: activity (line=6)
+        A: android:name(0x01010003)="org.chromium.ActivityName" (Raw: "org.chromium.ActivityName")
+        A: android:exported(0x01010010)=(type 0x12)0xffffffff
+      E: service (line=7)
+        A: android:name(0x01010001)="org.chromium.RandomService" (Raw: "org.chromium.RandomService")
+"""
+
+_NO_SERVICES = """N: android=http://schemas.android.com/apk/res/android
+  E: manifest (line=1)
+    A: package="org.chromium.abc" (Raw: "org.chromium.abc")
+    E: application (line=5)
+      E: activity (line=6)
+        A: android:name(0x01010003)="org.chromium.ActivityName" (Raw: "org.chromium.ActivityName")
+        A: android:exported(0x01010010)=(type 0x12)0xffffffff
+"""
+
+_NO_APPLICATION = """N: android=http://schemas.android.com/apk/res/android
+  E: manifest (line=1)
+    A: package="org.chromium.abc" (Raw: "org.chromium.abc")
+"""
+
 _SINGLE_INSTRUMENTATION_MANIFEST_DUMP = """N: android=http://schemas.android.com/apk/res/android
   E: manifest (line=1)
     A: package="org.chromium.xyz" (Raw: "org.chromium.xyz")
@@ -59,78 +84,86 @@ _SINGLE_J4_INSTRUMENTATION_MANIFEST_DUMP = """N: android=http://schemas.android.
       A: junit4=(type 0x12)0xffffffff (Raw: "true")
 """
 
-def _StartPatcher(manifest_dump):
-  patcher = mock.patch(
-      'devil.android.sdk.aapt.Dump', mock.Mock(
-          side_effect=None, return_value=manifest_dump.split('\n')))
-  patcher.start()
-  return patcher
 
-class ApkHelperStandardTest(mock_calls.TestCase):
-  def setUp(self):
-    self.patcher = _StartPatcher(_MANIFEST_DUMP)
-    self.helper_object = apk_helper.ApkHelper("")
+def _MockAaptDump(manifest_dump):
+  return mock.patch(
+      'devil.android.sdk.aapt.Dump',
+      mock.Mock(side_effect=None, return_value=manifest_dump.split('\n')))
 
-  def tearDown(self):
-    self.patcher.stop()
+class ApkHelperTest(mock_calls.TestCase):
 
   def testGetInstrumentationName(self):
-    with self.assertRaises(base_error.BaseError):
-      self.helper_object.GetInstrumentationName()
+    with _MockAaptDump(_MANIFEST_DUMP):
+      helper = apk_helper.ApkHelper("")
+      with self.assertRaises(base_error.BaseError):
+        helper.GetInstrumentationName()
 
   def testGetActivityName(self):
-    self.assertEquals(
-        self.helper_object.GetActivityName(), 'org.chromium.ActivityName')
+    with _MockAaptDump(_MANIFEST_DUMP):
+      helper = apk_helper.ApkHelper("")
+      self.assertEquals(
+          helper.GetActivityName(), 'org.chromium.ActivityName')
 
   def testGetAllInstrumentations(self):
-    all_instrumentations = self.helper_object.GetAllInstrumentations()
-    self.assertEquals(len(all_instrumentations), 2)
-    self.assertEquals(all_instrumentations[0]['android:name'],
-                      'org.chromium.RandomJUnit4TestRunner')
-    self.assertEquals(all_instrumentations[1]['android:name'],
-                      'org.chromium.RandomTestRunner')
+    with _MockAaptDump(_MANIFEST_DUMP):
+      helper = apk_helper.ApkHelper("")
+      all_instrumentations = helper.GetAllInstrumentations()
+      self.assertEquals(len(all_instrumentations), 2)
+      self.assertEquals(all_instrumentations[0]['android:name'],
+                        'org.chromium.RandomJUnit4TestRunner')
+      self.assertEquals(all_instrumentations[1]['android:name'],
+                        'org.chromium.RandomTestRunner')
 
   def testGetPackageName(self):
-    self.assertEquals(self.helper_object.GetPackageName(), 'org.chromium.abc')
+    with _MockAaptDump(_MANIFEST_DUMP):
+      helper = apk_helper.ApkHelper("")
+      self.assertEquals(helper.GetPackageName(), 'org.chromium.abc')
 
   def testGetPermssions(self):
-    all_permissions = self.helper_object.GetPermissions()
-    self.assertEquals(len(all_permissions), 3)
-    self.assertTrue('android.permission.INTERNET' in all_permissions)
-    self.assertTrue(
-        'android.permission.READ_EXTERNAL_STORAGE' in all_permissions)
-    self.assertTrue(
-        'android.permission.ACCESS_FINE_LOCATION' in all_permissions)
+    with _MockAaptDump(_MANIFEST_DUMP):
+      helper = apk_helper.ApkHelper("")
+      all_permissions = helper.GetPermissions()
+      self.assertEquals(len(all_permissions), 3)
+      self.assertTrue('android.permission.INTERNET' in all_permissions)
+      self.assertTrue(
+          'android.permission.READ_EXTERNAL_STORAGE' in all_permissions)
+      self.assertTrue(
+          'android.permission.ACCESS_FINE_LOCATION' in all_permissions)
 
   def testGetSplitName(self):
-    self.assertEquals(self.helper_object.GetSplitName(), 'random_split')
+    with _MockAaptDump(_MANIFEST_DUMP):
+      helper = apk_helper.ApkHelper("")
+      self.assertEquals(helper.GetSplitName(), 'random_split')
 
-  def testHasIsolatedProcesses(self):
-    self.assertTrue(self.helper_object.HasIsolatedProcesses())
+  def testHasIsolatedProcesses_noApplication(self):
+    with _MockAaptDump(_NO_APPLICATION):
+      helper = apk_helper.ApkHelper("")
+      self.assertFalse(helper.HasIsolatedProcesses())
 
+  def testHasIsolatedProcesses_noServices(self):
+    with _MockAaptDump(_NO_SERVICES):
+      helper = apk_helper.ApkHelper("")
+      self.assertFalse(helper.HasIsolatedProcesses())
 
-class ApkHelperSingleInstrumentation(mock_calls.TestCase):
-  def setUp(self):
-    self.patcher = _StartPatcher(_SINGLE_INSTRUMENTATION_MANIFEST_DUMP)
-    self.helper_object = apk_helper.ApkHelper('')
+  def testHasIsolatedProcesses_oneNotIsolatedProcess(self):
+    with _MockAaptDump(_NO_ISOLATED_SERVICES):
+      helper = apk_helper.ApkHelper("")
+      self.assertFalse(helper.HasIsolatedProcesses())
 
-  def tearDown(self):
-    self.patcher.stop()
+  def testHasIsolatedProcesses_oneIsolatedProcess(self):
+    with _MockAaptDump(_MANIFEST_DUMP):
+      helper = apk_helper.ApkHelper("")
+      self.assertTrue(helper.HasIsolatedProcesses())
 
   def testGetSingleInstrumentationName(self):
-    self.assertEquals('org.chromium.RandomTestRunner',
-                      self.helper_object.GetInstrumentationName())
-
-
-class ApkHelperSingleJ4Instrumentation(mock_calls.TestCase):
-  def setUp(self):
-    self.patcher = _StartPatcher(_SINGLE_J4_INSTRUMENTATION_MANIFEST_DUMP)
-    self.helper_object = apk_helper.ApkHelper('')
-
-  def tearDown(self):
-    self.patcher.stop()
+    with _MockAaptDump(_SINGLE_INSTRUMENTATION_MANIFEST_DUMP):
+      helper = apk_helper.ApkHelper("")
+      self.assertEquals('org.chromium.RandomTestRunner',
+                        helper.GetInstrumentationName())
 
   def testGetSingleJUnit4InstrumentationName(self):
-    self.assertEquals('org.chromium.RandomJ4TestRunner',
-                      self.helper_object.GetInstrumentationName())
+    with _MockAaptDump(_SINGLE_J4_INSTRUMENTATION_MANIFEST_DUMP):
+      helper = apk_helper.ApkHelper("")
+      self.assertEquals('org.chromium.RandomJ4TestRunner',
+                        helper.GetInstrumentationName())
 

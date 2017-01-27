@@ -4,6 +4,7 @@
 
 """Module containing utilities for apk packages."""
 
+import itertools
 import re
 
 from devil import base_error
@@ -146,10 +147,15 @@ class ApkHelper(object):
   def HasIsolatedProcesses(self):
     """Returns whether any services exist that use isolatedProcess=true."""
     manifest_info = self._GetManifest()
-    isolated_services = [
-        int(s['service'][0].get('android:isolatedProcess', '0'), 0) for s in
-        manifest_info['manifest'][0]['application']]
-    return any(isolated_services)
+    try:
+      applications = manifest_info['manifest'][0].get('application', [])
+      services = itertools.chain(
+          *(application.get('service', []) for application in applications))
+      return any(
+          int(s.get('android:isolatedProcess', '0'), 0)
+          for s in services)
+    except KeyError:
+      return False
 
   def _GetManifest(self):
     if not self._manifest:
