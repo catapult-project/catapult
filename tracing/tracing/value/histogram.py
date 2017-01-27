@@ -358,7 +358,7 @@ def RegisterDiagnosticTypes():
 
 class Breakdown(Diagnostic):
   def __init__(self):
-    Diagnostic.__init__(self)
+    super(Breakdown, self).__init__()
     self._values = {}
     self._color_scheme = None
 
@@ -411,7 +411,7 @@ class Breakdown(Diagnostic):
 # serialized using JSON.stringify(): null, boolean, number, string, array, dict.
 class Generic(Diagnostic):
   def __init__(self, value):
-    Diagnostic.__init__(self)
+    super(Generic, self).__init__()
     self._value = value
 
   @property
@@ -437,7 +437,7 @@ class HistogramRef(object):
 
 class RelatedHistogramSet(Diagnostic):
   def __init__(self, histograms=()):
-    Diagnostic.__init__(self)
+    super(RelatedHistogramSet, self).__init__()
     self._histograms_by_guid = {}
     for hist in histograms:
       self.Add(hist)
@@ -480,7 +480,7 @@ class RelatedHistogramSet(Diagnostic):
 
 class RelatedHistogramMap(Diagnostic):
   def __init__(self):
-    Diagnostic.__init__(self)
+    super(RelatedHistogramMap, self).__init__()
     self._histograms_by_name = {}
 
   def Get(self, name):
@@ -529,7 +529,7 @@ class BuildbotInfo(Diagnostic):
   NAME = 'buildbot'
 
   def __init__(self, info):
-    Diagnostic.__init__(self)
+    super(BuildbotInfo, self).__init__()
     self._display_master_name = info.get('displayMasterName', '')
     self._display_bot_name = info.get('displayBotName', '')
     self._buildbot_master_name = info.get('buildbotMasterName', '')
@@ -579,7 +579,7 @@ class TelemetryInfo(Diagnostic):
   NAME = 'telemetry'
 
   def __init__(self):
-    Diagnostic.__init__(self)
+    super(TelemetryInfo, self).__init__()
     self._benchmark_name = ''
     self._benchmark_start = None
     self._label = ''
@@ -666,7 +666,7 @@ class TelemetryInfo(Diagnostic):
 
 class DeviceInfo(Diagnostic):
   def __init__(self):
-    Diagnostic.__init__(self)
+    super(DeviceInfo, self).__init__()
     self._chrome_version = ''
     self._os_name = ''
     self._os_version = ''
@@ -744,7 +744,7 @@ class DeviceInfo(Diagnostic):
 
 class RelatedEventSet(Diagnostic):
   def __init__(self):
-    Diagnostic.__init__(self)
+    super(RelatedEventSet, self).__init__()
     self._events_by_stable_id = {}
 
   def Add(self, event):
