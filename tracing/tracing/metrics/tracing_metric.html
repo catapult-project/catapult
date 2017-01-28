@@ -36,17 +36,16 @@ tr.exportTo('tr.metrics', function() {
   function addMemoryInfraHistograms(
       histograms, model, categoryNamesToTotalEventSizes) {
     var memoryDumpCount = model.globalMemoryDumps.length;
-    if (memoryDumpCount === 0)
-      return;
+    if (memoryDumpCount === 0) return;
 
     var totalOverhead = 0;
     var nonMemoryInfraThreadOverhead = 0;
     var overheadByProvider = {};
-    tr.b.iterItems(model.processes, function(pid, process) {
-      tr.b.iterItems(process.threads, function(tid, thread) {
-        tr.b.iterItems(thread.sliceGroup.slices, (unusedSliceId, slice) => {
-          if (slice.category !== MEMORY_INFRA_TRACING_CATEGORY)
-            return;
+    for (var process of Object.values(model.processes)) {
+      for (var thread of Object.values(process.threads)) {
+        for (var slice of Object.values(thread.sliceGroup.slices)) {
+          if (slice.category !== MEMORY_INFRA_TRACING_CATEGORY) return;
+
           totalOverhead += slice.duration;
           if (thread.name !== 'MemoryInfra')
             nonMemoryInfraThreadOverhead += slice.duration;
@@ -60,9 +59,9 @@ tr.exportTo('tr.metrics', function() {
             durationAndCount.duration += slice.duration;
             durationAndCount.count++;
           }
-        });
-      });
-    });
+        }
+      }
+    }
 
     addTimeDurationHistogram(
         'Average CPU overhead on all threads per memory-infra dump',
@@ -71,11 +70,11 @@ tr.exportTo('tr.metrics', function() {
         'Average CPU overhead on non-memory-infra threads per memory-infra ' +
             'dump',
         nonMemoryInfraThreadOverhead / memoryDumpCount, histograms);
-    tr.b.iterItems(overheadByProvider, function(providerName, overhead) {
+    for (var [providerName, overhead] of Object.entries(overheadByProvider)) {
       addTimeDurationHistogram(
           'Average CPU overhead of ' + providerName + ' per OnMemoryDump call',
           overhead.duration / overhead.count, histograms);
-    });
+    }
 
     var memoryInfraEventsSize =
         categoryNamesToTotalEventSizes.get(MEMORY_INFRA_TRACING_CATEGORY);
@@ -99,12 +98,10 @@ tr.exportTo('tr.metrics', function() {
     }
 
     var eventStats = model.stats.allTraceEventStatsInTimeIntervals;
-    eventStats.sort(function(a, b) {
-      return a.timeInterval - b.timeInterval;
-    });
+    eventStats.sort((a, b) => a.timeInterval - b.timeInterval);
 
-    var totalTraceBytes = eventStats.reduce((a, b) =>
-                                            (a + b.totalEventSizeinBytes), 0);
+    var totalTraceBytes = eventStats.reduce(
+        (a, b) => (a + b.totalEventSizeinBytes), 0);
 
     // We maintain a sliding window of records [start ... end-1] where end
     // increments each time through the loop, and we move start just far enough
