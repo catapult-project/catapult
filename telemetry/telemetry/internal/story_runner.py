@@ -208,8 +208,7 @@ def Run(test, story_set, finder_options, results, max_failures=None,
         cloud_storage.GetFilesInDirectoryIfChanged(directory,
                                                    story_set.bucket)
     if story_set.archive_data_file and not _UpdateAndCheckArchives(
-        story_set.archive_data_file, story_set.wpr_archive_info,
-        stories):
+        story_set.archive_data_file, story_set.wpr_archive_info, stories):
       return
 
   if not stories:
@@ -408,6 +407,7 @@ def _UpdateAndCheckArchives(archive_data_file, wpr_archive_info,
                     '.gclient using http://goto/read-src-internal, '
                     'or create a new archive using record_wpr.')
       raise ArchiveError('No archive info file.')
+    # Downloads archives for all platforms.
     wpr_archive_info.DownloadArchivesIfNeeded()
 
   # Report any problems with individual story.
