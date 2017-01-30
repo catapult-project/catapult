@@ -167,7 +167,7 @@ tr.exportTo('tr.v.ui', function() {
       this.histograms_ = undefined;
 
       /** @type {undefined|!tr.v.HistogramSet} */
-      this.sourceValues_ = undefined;
+      this.sourceHistograms_ = undefined;
 
       this.rows_ = undefined;
       this.columns_ = undefined;
@@ -359,7 +359,7 @@ tr.exportTo('tr.v.ui', function() {
      */
     set histograms(histograms) {
       this.histograms_ = histograms;
-      this.sourceValues_ = histograms ? histograms.sourceValues :
+      this.sourceHistograms_ = histograms ? histograms.sourceHistograms :
         new tr.v.HistogramSet();
       this.displayLabels_ = undefined;
       this.referenceDisplayLabel_ = undefined;
@@ -491,9 +491,9 @@ tr.exportTo('tr.v.ui', function() {
 
     maybeDisableShowAll_: function() {
       var allHistogramsAreSource = !this.histograms ||
-          (this.histograms.length === this.sourceValues_.length);
+          (this.histograms.length === this.sourceHistograms_.length);
 
-      // Disable show_all if all values are sourceValues.
+      // Disable show_all if all values are sourceHistograms.
       // Re-enable show_all if this changes.
       this.$.show_all.disabled = allHistogramsAreSource;
 
@@ -544,7 +544,7 @@ tr.exportTo('tr.v.ui', function() {
      */
     get groupedHistograms() {
       var histogramSet = this.$.show_all.checked ?
-          this.histograms : this.sourceValues_;
+          this.histograms : this.sourceHistograms_;
       if (this.$.search.value) {
         var query = undefined;
         try {

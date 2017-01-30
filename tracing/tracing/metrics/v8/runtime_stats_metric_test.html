@@ -181,7 +181,7 @@ tr.b.unittest.testSuite(function() {
     var values = new tr.v.HistogramSet();
     tr.metrics.v8.runtimeStatsMetric(values, model);
     assert.equal(values.length, 48);
-    assert.equal(values.sourceValues.length, 24);
+    assert.equal(values.sourceHistograms.length, 24);
 
     // A few of the top level ones.
     checkRuntimeHistogram_(values, 'IC', 8, 0.088, ['LoadIC_Miss',
@@ -298,7 +298,7 @@ tr.b.unittest.testSuite(function() {
     var values = new tr.v.HistogramSet();
     tr.metrics.v8.runtimeStatsMetric(values, model);
     assert.equal(values.length, 44);
-    assert.equal(values.sourceValues.length, 24);
+    assert.equal(values.sourceHistograms.length, 24);
 
     // A few of the top level ones.
     checkRuntimeHistogram_(values, 'IC', 8, 0.088, ['LoadIC_Miss',

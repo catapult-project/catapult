@@ -52,8 +52,8 @@ tr.b.unittest.testSuite(function() {
     // Don't serialize c just yet.
     var values = new tr.v.HistogramSet([a, b]);
 
-    var sourceValues = values.sourceValues;
-    assert.strictEqual(tr.b.getOnlyElement(sourceValues), a);
+    var sourceHistograms = values.sourceHistograms;
+    assert.strictEqual(tr.b.getOnlyElement(sourceHistograms), a);
 
     var values2 = new tr.v.HistogramSet();
     values2.importDicts(values.asDicts());
@@ -118,8 +118,8 @@ tr.b.unittest.testSuite(function() {
     // Don't serialize c just yet.
     var values = new tr.v.HistogramSet([a, b]);
 
-    var sourceValues = values.sourceValues;
-    assert.strictEqual(tr.b.getOnlyElement(sourceValues), a);
+    var sourceHistograms = values.sourceHistograms;
+    assert.strictEqual(tr.b.getOnlyElement(sourceHistograms), a);
 
     var values2 = new tr.v.HistogramSet();
     values2.importDicts(values.asDicts());
@@ -165,7 +165,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(rvm2.get('z'), c2);
   });
 
-  test('sourceValuesWithSampleDiagnostic', function() {
+  test('sourceHistogramsWithSampleDiagnostic', function() {
     var unit = tr.b.Unit.byName.unitlessNumber;
     var aHist = new tr.v.Histogram('a', unit);
     aHist.addSample(1);
@@ -174,7 +174,7 @@ tr.b.unittest.testSuite(function() {
     numeric.addSample(1, {rvs: new tr.v.d.RelatedHistogramSet([aHist])});
 
     var values = new tr.v.HistogramSet([aHist, numeric]);
-    assert.strictEqual(tr.b.getOnlyElement(values.sourceValues), numeric);
+    assert.strictEqual(tr.b.getOnlyElement(values.sourceHistograms), numeric);
   });
 
   test('sharedDiagnostic', function() {

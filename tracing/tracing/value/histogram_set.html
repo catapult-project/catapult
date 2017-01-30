@@ -207,8 +207,8 @@ tr.exportTo('tr.v', function() {
      *
      * @return {!Array.<!tr.v.Histogram>}
      */
-    get sourceValues() {
-      var sourceValues = new Map(this.histogramsByGuid_);
+    get sourceHistograms() {
+      var sourceHistograms = new Map(this.histogramsByGuid_);
       // If a Histogram is in a RelatedHistogramSet or RelatedHistogramMap,
       // which can be owned either by Values or by numeric samples, then it is
       // not a source Histogram.
@@ -216,11 +216,11 @@ tr.exportTo('tr.v', function() {
         for (var [name, diagnostic] of diagnosticMap) {
           if (diagnostic instanceof tr.v.d.RelatedHistogramSet) {
             for (var relatedValue of diagnostic) {
-              sourceValues.delete(relatedValue.guid);
+              sourceHistograms.delete(relatedValue.guid);
             }
           } else if (diagnostic instanceof tr.v.d.RelatedHistogramMap) {
             for (var [name, relatedValue] of diagnostic) {
-              sourceValues.delete(relatedValue.guid);
+              sourceHistograms.delete(relatedValue.guid);
             }
           }
         }
@@ -237,7 +237,7 @@ tr.exportTo('tr.v', function() {
           }
         }
       }
-      return new HistogramSet([...sourceValues.values()]);
+      return new HistogramSet([...sourceHistograms.values()]);
     }
 
     /**
