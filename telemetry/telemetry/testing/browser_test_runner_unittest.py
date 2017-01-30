@@ -11,6 +11,7 @@ import json
 
 import mock
 
+from telemetry import decorators
 from telemetry import project_config
 from telemetry.core import util
 from telemetry.testing import browser_test_runner
@@ -320,8 +321,11 @@ class Geometric(
   def TestAngle(self):
     self.assertEquals(90, 450)
 
-
 class TestLoadAllTestModules(unittest.TestCase):
+  # TODO(nedn): this need to be updated after
+  # https://codereview.chromium.org/2590623002/ is landed so that
+  # LoadAllTestsInModule actually return tests.
+  @decorators.Disabled('all')
   def testLoadAllTestsInModule(self):
     tests = serially_executed_browser_test_case.LoadAllTestsInModule(
         sys.modules[__name__])
