@@ -142,11 +142,14 @@ def LoadAllTestsInModule(module):
     test cases to be run.
   """
   suite = unittest.TestSuite()
+  finder_options = options_for_unittests.GetCopy()
+  if not hasattr(finder_options, 'browser_test_runner_running'):
+    return suite
   for _, obj in inspect.getmembers(module):
     if (inspect.isclass(obj) and
         issubclass(obj, SeriallyExecutedBrowserTestCase)):
       for test in GenerateTestCases(
-          test_class=obj, finder_options=options_for_unittests.GetCopy()):
+          test_class=obj, finder_options=finder_options):
         suite.addTest(test)
   return suite
 

@@ -31,6 +31,10 @@ def ProcessCommandLineOptions(test_class, project_config, args):
   finder_options, positional_args = parser.parse_args(args)
   finder_options.positional_args = positional_args
   options_for_unittests.Push(finder_options)
+  # Use this to signal serially_executed_browser_test_case.LoadAllTestsInModule
+  # not to load tests in cases it's not invoked by browser_test_runner
+  # framework.
+  finder_options.browser_test_runner_running = True
   return finder_options
 
 
