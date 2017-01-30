@@ -525,6 +525,37 @@ class RelatedHistogramMap(Diagnostic):
     return result
 
 
+class RelatedHistogramBreakdown(RelatedHistogramMap):
+  def __init__(self):
+    super(RelatedHistogramBreakdown, self).__init__()
+    self._color_scheme = None
+
+  def Set(self, name, hist):
+    if not isinstance(hist, HistogramRef):
+      assert isinstance(hist, Histogram)
+      # All Histograms must have the same unit.
+      for _, other_hist in self:
+        expected_unit = other_hist.unit
+        assert expected_unit == hist.unit, (
+            'Units mismatch ' + expected_unit + ' != ' + hist.unit)
+        break  # Only the first Histogram needs to be checked.
+    super(RelatedHistogramBreakdown, self).Set(name, hist)
+
+  def _AsDictInto(self, d):
+    RelatedHistogramMap._AsDictInto(self, d)
+    if self._color_scheme:
+      d['colorScheme'] = self._color_scheme
+
+  @staticmethod
+  def FromDict(d):
+    result = RelatedHistogramBreakdown()
+    for name, guid in d['values'].iteritems():
+      result.Set(name, HistogramRef(guid))
+    if 'colorScheme' in d:
+      result._color_scheme = d['colorScheme']
+    return result
+
+
 class BuildbotInfo(Diagnostic):
   NAME = 'buildbot'
 

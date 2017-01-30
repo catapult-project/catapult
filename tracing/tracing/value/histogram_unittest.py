@@ -636,6 +636,20 @@ class RelatedEventSetUnittest(unittest.TestCase):
     self.assertEqual(event['duration'], 1)
 
 
+class RelatedHistogramBreakdownUnittest(unittest.TestCase):
+  def testRoundtrip(self):
+    breakdown = histogram.RelatedHistogramBreakdown()
+    hista = histogram.Histogram('a', 'unitless')
+    histb = histogram.Histogram('b', 'unitless')
+    breakdown.Add(hista)
+    breakdown.Add(histb)
+    d = breakdown.AsDict()
+    clone = histogram.RelatedHistogramBreakdown.FromDict(d)
+    self.assertEqual(ToJSON(d), ToJSON(clone.AsDict()))
+    self.assertEqual(hista.guid, clone.Get('a').guid)
+    self.assertEqual(histb.guid, clone.Get('b').guid)
+
+
 class HistogramSetUnittest(unittest.TestCase):
   def assertDeepEqual(self, a, b):
     self.assertEqual(ToJSON(a), ToJSON(b))
