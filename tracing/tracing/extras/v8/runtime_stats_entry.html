@@ -70,16 +70,19 @@ tr.exportTo('tr.e.v8', function() {
     constructor() {
       this.groups_ = [
         new RuntimeStatsGroup('Total'),
-        new RuntimeStatsGroup('IC', /.*IC.*/),
+        new RuntimeStatsGroup('IC', /.*IC_.*/),
         new RuntimeStatsGroup('Optimize',
           /StackGuard|.*Optimize.*|.*Deoptimize.*|Recompile.*/),
-        new RuntimeStatsGroup('Compile', /.*Compile.*/),
+        new RuntimeStatsGroup('Compile-Background',
+          /(.*CompileBackground.*)/),
+        new RuntimeStatsGroup('Compile', /(^Compile.*)|(.*_Compile.*)/),
+        new RuntimeStatsGroup('Parse-Background', /.*ParseBackground.*/),
         new RuntimeStatsGroup('Parse', /.*Parse.*/),
-        new RuntimeStatsGroup('Callback', /.*Callback$/),
+        new RuntimeStatsGroup('Blink C++', /.*Callback.*/),
         new RuntimeStatsGroup('API', /.*API.*/),
         new RuntimeStatsGroup('GC', /GC|AllocateInTargetSpace/),
         new RuntimeStatsGroup('JavaScript', /JS_Execution/),
-        new RuntimeStatsGroup('Runtime', /.*/)
+        new RuntimeStatsGroup('V8 C++', /.*/)
       ];
     }
 

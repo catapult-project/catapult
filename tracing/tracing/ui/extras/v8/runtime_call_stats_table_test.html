@@ -23,6 +23,8 @@ tr.b.unittest.testSuite(function() {
   var optimizeCode = [7, 789];
   var parseLazy = [8, 890];
   var handleApiCall = [9, 901];
+  var compileBackground = [1, 101];
+  var parseBackground = [2, 202];
 
   function createModel() {
     var m = tr.c.TestUtils.newModel(function(m) {
@@ -46,7 +48,9 @@ tr.b.unittest.testSuite(function() {
                     OptimizeCode: optimizeCode,
                     FunctionCallback: functionCallback,
                     AllocateInTargetSpace: allocateInTargetSpace,
-                    API_Object_Get: apiObjectGet
+                    API_Object_Get: apiObjectGet,
+                    CompileBackgroundIgnition: compileBackground,
+                    ParseBackgroundFunctionLiteral: parseBackground
                   }}}));
       m.s2 = m.t2.sliceGroup.pushSlice(
         newSliceEx(
@@ -91,12 +95,14 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(viewEl);
     tr.b.forceAllPendingTasksToRunForTest();
     var rows = viewEl.$.table.tableRows;
-    assert.lengthOf(rows, 10);
+    assert.lengthOf(rows, 12);
     assert.deepEqual(rows.map(r => r.time), [
-      4983,
+      5286,
       loadIcMiss[1],
       optimizeCode[1],
+      compileBackground[1],
       compileFullCode[1],
+      parseBackground[1],
       parseLazy[1],
       functionCallback[1],
       apiObjectGet[1],
@@ -114,12 +120,14 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(viewEl);
     tr.b.forceAllPendingTasksToRunForTest();
     var rows = viewEl.$.table.tableRows;
-    assert.lengthOf(rows, 10);
+    assert.lengthOf(rows, 12);
     assert.deepEqual(rows.map(r => r.time), [
-      9966,
+      10269,
       loadIcMiss[1] * 2,
       optimizeCode[1] * 2,
+      compileBackground[1],
       compileFullCode[1] * 2,
+      parseBackground[1],
       parseLazy[1] * 2,
       functionCallback[1] * 2,
       apiObjectGet[1] * 2,
@@ -130,6 +138,8 @@ tr.b.unittest.testSuite(function() {
 
     assert.deepEqual(rows.map(r => r.entries_.size), [
       0,
+      1,
+      1,
       1,
       1,
       1,
@@ -150,10 +160,12 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(viewEl);
     tr.b.forceAllPendingTasksToRunForTest();
     var rows = viewEl.$.table.tableRows;
-    assert.lengthOf(rows, 10);
+    assert.lengthOf(rows, 12);
     assert.deepEqual(rows.map(r => r.time), [
       333,
       333,
+      0,
+      0,
       0,
       0,
       0,
@@ -167,6 +179,8 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual(rows.map(r => r.entries_.size), [
       0,
       2,
+      0,
+      0,
       0,
       0,
       0,

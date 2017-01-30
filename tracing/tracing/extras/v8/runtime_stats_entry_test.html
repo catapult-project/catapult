@@ -31,10 +31,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('RuntimeStatsGroup', function() {
-    var group = new tr.e.v8.RuntimeStatsGroup('IC', /.*IC.*/);
+    var group = new tr.e.v8.RuntimeStatsGroup('IC', /.*IC_.*/);
     assert.notEqual(group.match('IC_Entry'), undefined);
     assert.notEqual(group.match('CallbackIC_Entry'), undefined);
-    assert.notEqual(group.match('EntryIC'), undefined);
     assert.equal(group.match('Callback_Entry'), undefined);
 
     var entry1a = new tr.e.v8.RuntimeStatsEntry('IC_Entry', 5, 1234);
@@ -93,27 +92,31 @@ tr.b.unittest.testSuite(function() {
                 OptimizeCode: [7, 77],
                 FunctionCallback: [8, 88],
                 AllocateInTargetSpace: [9, 99],
-                API_Object_Get: [1, 11]
+                API_Object_Get: [1, 11],
+                ParseBackgroundFunctionLiteral: [2, 22],
+                CompileBackgroundIgnition: [3, 33]
             }
         }
     }));
 
     var groupCollection = new tr.e.v8.RuntimeStatsGroupCollection();
     groupCollection.addSlices(slices);
-    assert.equal(groupCollection.totalTime, 990);
+    assert.equal(groupCollection.totalTime, 1045);
 
     var groups = groupCollection.runtimeGroups;
-    assert.deepEqual(groups.length, 10);
-    checkRuntimeGroup_(groups[0], 'Total', 90, 990);
+    assert.deepEqual(groups.length, 12);
+    checkRuntimeGroup_(groups[0], 'Total', 95, 1045);
     checkRuntimeGroup_(groups[1], 'IC', 9, 99);
     checkRuntimeGroup_(groups[2], 'Optimize', 13, 143);
-    checkRuntimeGroup_(groups[3], 'Compile', 7, 77);
-    checkRuntimeGroup_(groups[4], 'Parse', 11, 121);
-    checkRuntimeGroup_(groups[5], 'Callback', 15, 165);
-    checkRuntimeGroup_(groups[6], 'API', 10, 110);
-    checkRuntimeGroup_(groups[7], 'GC', 17, 187);
-    checkRuntimeGroup_(groups[8], 'JavaScript', 3, 33);
-    checkRuntimeGroup_(groups[9], 'Runtime', 5, 55);
+    checkRuntimeGroup_(groups[3], 'Compile-Background', 3, 33);
+    checkRuntimeGroup_(groups[4], 'Compile', 7, 77);
+    checkRuntimeGroup_(groups[5], 'Parse-Background', 2, 22);
+    checkRuntimeGroup_(groups[6], 'Parse', 11, 121);
+    checkRuntimeGroup_(groups[7], 'Blink C++', 15, 165);
+    checkRuntimeGroup_(groups[8], 'API', 10, 110);
+    checkRuntimeGroup_(groups[9], 'GC', 17, 187);
+    checkRuntimeGroup_(groups[10], 'JavaScript', 3, 33);
+    checkRuntimeGroup_(groups[11], 'V8 C++', 5, 55);
   });
 });
 </script>
