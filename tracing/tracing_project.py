@@ -82,6 +82,7 @@ class TracingProject(object):
   d3_path = os.path.join(tracing_third_party_path, 'd3')
   chai_path = os.path.join(tracing_third_party_path, 'chai')
   mocha_path = os.path.join(tracing_third_party_path, 'mocha')
+  oboe_path = os.path.join(tracing_third_party_path, 'oboe')
 
   mre_path = os.path.join(tracing_src_path, 'mre')
 
@@ -110,6 +111,7 @@ class TracingProject(object):
     self.source_paths.append(self.d3_path)
     self.source_paths.append(self.chai_path)
     self.source_paths.append(self.mocha_path)
+    self.source_paths.append(self.oboe_path)
 
   def CreateVulcanizer(self):
     from py_vulcanize import project as project_module
