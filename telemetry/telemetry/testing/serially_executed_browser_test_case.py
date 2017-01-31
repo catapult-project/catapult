@@ -8,7 +8,7 @@ import unittest
 
 from py_utils import cloud_storage
 from telemetry.internal.browser import browser_finder
-from telemetry.testing import browser_test_context
+from telemetry.testing import options_for_unittests
 from telemetry.util import wpr_modes
 
 
@@ -31,7 +31,7 @@ class SeriallyExecutedBrowserTestCase(unittest.TestCase):
 
   @classmethod
   def setUpClass(cls):
-    cls._finder_options = browser_test_context.GetCopy().finder_options
+    cls._finder_options = options_for_unittests.GetCopy()
     cls.platform = None
     cls.browser = None
     cls._browser_to_create = None
@@ -142,24 +142,15 @@ def LoadAllTestsInModule(module):
     test cases to be run.
   """
   suite = unittest.TestSuite()
-  test_context = browser_test_context.GetCopy()
-  if not test_context:
+  finder_options = options_for_unittests.GetCopy()
+  if not hasattr(finder_options, 'browser_test_runner_running'):
     return suite
   for _, obj in inspect.getmembers(module):
     if (inspect.isclass(obj) and
         issubclass(obj, SeriallyExecutedBrowserTestCase)):
-      # We bail out early if the test class's name doesn't match the targeted
-      # test_class_name in test_context to avoid calling GenerateTestCases for
-      # tests that we don't intend to run. This is to avoid possible errors in
-      # GenerateTestCases as the test class may define custom options in
-      # the finder_options object, and hence would raise error if they can't
-      # find their custom options in finder_options object.
-      if test_context.test_class_name != obj.Name():
-        continue
       for test in GenerateTestCases(
-          test_class=obj, finder_options=test_context.finder_options):
-        if test.id() in test_context.test_case_ids_to_run:
-          suite.addTest(test)
+          test_class=obj, finder_options=finder_options):
+        suite.addTest(test)
   return suite
 
 
