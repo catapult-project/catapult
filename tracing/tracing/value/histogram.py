@@ -18,6 +18,9 @@ import uuid
 JS_MAX_VALUE = 1.7976931348623157e+308
 
 
+MERGED_FROM_DIAGNOSTIC_KEY = 'merged from'
+
+
 # Converts the given percent to a string in the following format:
 # 0.x produces '0x0',
 # 0.xx produces '0xx',
@@ -347,6 +350,15 @@ class Diagnostic(object):
     if dct['type'] not in Diagnostic.REGISTRY:
       raise ValueError('Unrecognized diagnostic type: ' + dct['type'])
     return Diagnostic.REGISTRY[dct['type']].FromDict(dct)
+
+  def CanAddDiagnostic(self, unused_other_diagnostic, unused_name,
+                       unused_parent_hist, unused_other_parent_hist):
+    return False
+
+  def AddDiagnostic(self, unused_other_diagnostic, unused_name,
+                    unused_parent_hist, unused_other_parent_hist):
+    raise Exception('Abstract virtual method: subclasses must override '
+                    'this method if they override canAddDiagnostic')
 
 
 Diagnostic.REGISTRY = {}
@@ -815,6 +827,49 @@ class DiagnosticRef(object):
     return self.guid
 
 
+class UnmergeableDiagnosticSet(Diagnostic):
+  def __init__(self, diagnostics):
+    super(UnmergeableDiagnosticSet, self).__init__()
+    self._diagnostics = diagnostics
+
+  def __len__(self):
+    return len(self._diagnostics)
+
+  def __iter__(self):
+    for diagnostic in self._diagnostics:
+      yield diagnostic
+
+  def CanAddDiagnostic(self, unused_other_diagnostic, unused_name,
+                       unused_parent_hist, unused_other_parent_hist):
+    return True
+
+  def AddDiagnostic(self, other_diagnostic, name, parent_hist,
+                    other_parent_hist):
+    if isinstance(other_diagnostic, UnmergeableDiagnosticSet):
+      self._diagnostics.extend(other_diagnostic._diagnostics)
+      return
+    for diagnostic in self:
+      if diagnostic.CanAddDiagnostic(other_diagnostic, name, parent_hist,
+                                     other_parent_hist):
+        diagnostic.AddDiagnostic(other_diagnostic, name, parent_hist,
+                                 other_parent_hist)
+        return
+    self._diagnostics.append(other_diagnostic)
+
+  def _AsDictInto(self, d):
+    d['diagnostics'] = [d.AsDictOrReference() for d in self]
+
+  @staticmethod
+  def FromDict(dct):
+    def RefOrDiagnostic(d):
+      if isinstance(d, basestring):
+        return DiagnosticRef(d)
+      return Diagnostic.FromDict(d)
+
+    return UnmergeableDiagnosticSet(
+        [RefOrDiagnostic(d) for d in dct['diagnostics']])
+
+
 class DiagnosticMap(dict):
   @staticmethod
   def FromDict(dct):
@@ -845,6 +900,26 @@ class DiagnosticMap(dict):
     for name, diagnostic in self.iteritems():
       dct[name] = diagnostic.AsDictOrReference()
     return dct
+
+  def Merge(self, other, parent_hist, other_parent_hist):
+    merged_from = self.get(MERGED_FROM_DIAGNOSTIC_KEY)
+    if merged_from is None:
+      merged_from = RelatedHistogramSet()
+      self[MERGED_FROM_DIAGNOSTIC_KEY] = merged_from
+    merged_from.Add(other_parent_hist)
+
+    for name, other_diagnostic in other.iteritems():
+      if name not in self:
+        self[name] = other_diagnostic
+        continue
+      my_diagnostic = self[name]
+      if my_diagnostic.CanAddDiagnostic(
+          other_diagnostic, name, parent_hist, other_parent_hist):
+        my_diagnostic.AddDiagnostic(
+            other_diagnostic, name, parent_hist, other_parent_hist)
+        continue
+      self[name] = UnmergeableDiagnosticSet([
+          my_diagnostic, other_diagnostic])
 
 
 MAX_DIAGNOSTIC_MAPS = 16
@@ -1176,6 +1251,8 @@ class Histogram(object):
 
     for i, hbin in enumerate(other.bins):
       self.bins[i].AddBin(hbin)
+
+    self.diagnostics.Merge(other.diagnostics, self, other)
 
   def CustomizeSummaryOptions(self, options):
     for key, value in options.iteritems():

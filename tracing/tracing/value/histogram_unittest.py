@@ -650,6 +650,62 @@ class RelatedHistogramBreakdownUnittest(unittest.TestCase):
     self.assertEqual(histb.guid, clone.Get('b').guid)
 
 
+class DiagnosticMapUnittest(unittest.TestCase):
+  def testMerge(self):
+    events = histogram.RelatedEventSet()
+    events.Add({
+        'stableId': '0.0',
+        'title': 'foo',
+        'start': 0,
+        'duration': 1,
+    })
+    generic = histogram.Generic('generic diagnostic')
+    generic2 = histogram.Generic('generic diagnostic 2')
+    related_set = histogram.RelatedHistogramSet([
+        histogram.Histogram('histogram', 'count'),
+    ])
+
+    hist = histogram.Histogram('', 'count')
+
+    # When Histograms are merged, first an empty clone is created with an empty
+    # DiagnosticMap.
+    hist2 = histogram.Histogram('', 'count')
+    hist2.diagnostics['a'] = generic
+    hist.diagnostics.Merge(hist2.diagnostics, hist, hist2)
+    self.assertIs(generic, hist.diagnostics['a'])
+
+    # Separate keys are not merged.
+    hist3 = histogram.Histogram('', 'count')
+    hist3.diagnostics['b'] = generic2
+    hist.diagnostics.Merge(hist3.diagnostics, hist, hist3)
+    self.assertIs(generic, hist.diagnostics['a'])
+    self.assertIs(generic2, hist.diagnostics['b'])
+
+    # Merging unmergeable diagnostics should produce an
+    # UnmergeableDiagnosticSet.
+    hist4 = histogram.Histogram('', 'count')
+    hist4.diagnostics['a'] = related_set
+    hist.diagnostics.Merge(hist4.diagnostics, hist, hist4)
+    self.assertIsInstance(
+        hist.diagnostics['a'], histogram.UnmergeableDiagnosticSet)
+    diagnostics = list(hist.diagnostics['a'])
+    self.assertIs(generic, diagnostics[0])
+    self.assertIs(related_set, diagnostics[1])
+
+    # UnmergeableDiagnosticSets are mergeable.
+    hist5 = histogram.Histogram('', 'count')
+    hist5.diagnostics['a'] = histogram.UnmergeableDiagnosticSet(
+        [events, generic2])
+    hist.diagnostics.Merge(hist5.diagnostics, hist, hist5)
+    self.assertIsInstance(
+        hist.diagnostics['a'], histogram.UnmergeableDiagnosticSet)
+    diagnostics = list(hist.diagnostics['a'])
+    self.assertIs(generic, diagnostics[0])
+    self.assertIs(related_set, diagnostics[1])
+    self.assertIs(events, diagnostics[2])
+    self.assertIs(generic2, diagnostics[3])
+
+
 class HistogramSetUnittest(unittest.TestCase):
   def assertDeepEqual(self, a, b):
     self.assertEqual(ToJSON(a), ToJSON(b))
