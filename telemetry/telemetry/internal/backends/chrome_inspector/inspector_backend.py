@@ -244,7 +244,7 @@ class InspectorBackend(object):
     return self._runtime.Evaluate(expression, context_id, timeout)
 
   def WaitForJavaScriptCondition2(self, condition, **kwargs):
-    """Wait for a JavaScript condition to become true.
+    """Wait for a JavaScript condition to become truthy.
 
     Example: runner.WaitForJavaScriptCondition2('window.foo == 10');
 
@@ -259,6 +259,10 @@ class InspectorBackend(object):
       Additional keyword arguments provide values to be interpolated within
           the expression. See telemetry.util.js_template for details.
 
+    Returns:
+      The value returned by the JavaScript condition that got interpreted as
+      true.
+
     Raises:
       py_utils.TimeoutException
       exceptions.EvaluationException
@@ -271,10 +275,10 @@ class InspectorBackend(object):
     condition = js_template.Render(condition, **kwargs)
 
     def IsJavaScriptExpressionTrue():
-      return bool(self._runtime.Evaluate(condition, context_id, timeout))
+      return self._runtime.Evaluate(condition, context_id, timeout)
 
     try:
-      py_utils.WaitFor(IsJavaScriptExpressionTrue, timeout)
+      return py_utils.WaitFor(IsJavaScriptExpressionTrue, timeout)
     except py_utils.TimeoutException as e:
       # Try to make timeouts a little more actionable by dumping console output.
       debug_message = None

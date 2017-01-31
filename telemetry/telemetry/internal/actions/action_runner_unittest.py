@@ -194,6 +194,20 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
         'window.testing == 220', timeout_in_seconds=0.1)
     self.assertEqual(220, self._tab.EvaluateJavaScript('window.testing'))
 
+  def testWaitForJavaScriptCondition2(self):
+    action_runner = action_runner_module.ActionRunner(self._tab,
+                                                      skip_waits=True)
+    self.Navigate('blank.html')
+
+    action_runner.ExecuteJavaScript2('window.testing = 0;')
+    action_runner.WaitForJavaScriptCondition2(
+        'window.testing == 0', timeout=0.1)
+    action_runner.ExecuteJavaScript2(
+        'window.setTimeout(function() { window.testing = 42; }, 50);')
+    self.assertEqual(
+        42,
+        action_runner.WaitForJavaScriptCondition2('window.testing', timeout=10))
+
   def testWaitForElement(self):
     action_runner = action_runner_module.ActionRunner(self._tab,
                                                       skip_waits=True)
