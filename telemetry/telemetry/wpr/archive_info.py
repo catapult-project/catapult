@@ -9,12 +9,9 @@ import re
 import shutil
 import tempfile
 
-from telemetry.wpr import archive_info2
-
 from py_utils import cloud_storage  # pylint: disable=import-error
 
 
-# TODO(rnephew): Remove this file when archive_info2 is the default.
 def AssertValidCloudStorageBucket(bucket):
   is_valid = bucket in (None,
                         cloud_storage.PUBLIC_BUCKET,
@@ -59,8 +56,6 @@ class WprArchiveInfo(object):
     if os.path.exists(file_path):
       with open(file_path, 'r') as f:
         data = json.load(f)
-        if data.get('platform_specific', False):
-          return archive_info2.WprArchiveInfo(file_path, data, bucket)
         return cls(file_path, data, bucket)
     return cls(file_path, {'archives': {}}, bucket)
 
@@ -102,8 +97,7 @@ class WprArchiveInfo(object):
                         "upload_to_cloud_storage")
           raise
 
-  def WprFilePathForStory(self, story, target_platform=None):
-    del target_platform
+  def WprFilePathForStory(self, story):
     if self.temp_target_wpr_file_path:
       return self.temp_target_wpr_file_path
     wpr_file = self._story_name_to_wpr_file.get(story.display_name, None)

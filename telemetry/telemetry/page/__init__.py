@@ -24,15 +24,14 @@ class Page(story.Story):
                shared_page_state_class=shared_page_state.SharedPageState,
                grouping_keys=None,
                cache_temperature=cache_temperature_module.ANY,
-               traffic_setting=traffic_setting_module.NONE,
-               platform_specific=False):
+               traffic_setting=traffic_setting_module.NONE):
     self._url = url
 
     super(Page, self).__init__(
         shared_page_state_class, name=name, tags=tags,
         is_local=self._scheme in ['file', 'chrome', 'about'],
         make_javascript_deterministic=make_javascript_deterministic,
-        grouping_keys=grouping_keys, platform_specific=platform_specific)
+        grouping_keys=grouping_keys)
 
     self._page_set = page_set
     # Default value of base_dir is the directory of the file that defines the

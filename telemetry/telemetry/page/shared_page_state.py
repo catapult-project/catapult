@@ -198,7 +198,7 @@ class SharedPageState(story.SharedState):
       self._StopBrowser()
     started_browser = not self.browser
 
-    archive_path = page_set.WprFilePathForStory(page, self.platform.GetOSName())
+    archive_path = page_set.WprFilePathForStory(page)
     # TODO(nednguyen, perezju): Ideally we should just let the network
     # controller raise an exception when the archive_path is not found.
     if archive_path is not None and not os.path.isfile(archive_path):

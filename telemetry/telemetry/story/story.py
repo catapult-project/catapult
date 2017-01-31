@@ -30,7 +30,7 @@ class Story(object):
 
   def __init__(self, shared_state_class, name='', tags=None,
                is_local=False, make_javascript_deterministic=True,
-               grouping_keys=None, platform_specific=False):
+               grouping_keys=None):
     """
     Args:
       make_javascript_deterministic: Whether JavaScript performed on
@@ -39,14 +39,11 @@ class Story(object):
           to take effect. This setting does not affect stories containing no web
           content or where the HTTP MIME type is not text/html.See also:
           _InjectScripts method in third_party/web-page-replay/httpclient.py.
-      platform_specific: Boolean indicating if a separate web page replay
-          recording is required on each platform.
     """
     assert issubclass(shared_state_class,
                       shared_state_module.SharedState)
     self._shared_state_class = shared_state_class
     self._name = name
-    self._platform_specific = platform_specific
     global _next_story_id
     self._id = _next_story_id
     _next_story_id += 1
