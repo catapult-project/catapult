@@ -538,7 +538,7 @@ class BreakdownUnittest(unittest.TestCase):
     bd.Set('nun', float('nan'))
     bd.Set('ninf', float('-inf'))
     d = bd.AsDict()
-    clone = histogram.Breakdown.FromDict(d)
+    clone = histogram.Diagnostic.FromDict(d)
     self.assertEqual(ToJSON(d), ToJSON(clone.AsDict()))
     self.assertEqual(clone.Get('one'), 1)
     self.assertEqual(clone.Get('m1'), -1)
@@ -558,7 +558,7 @@ class BuildbotInfoUnittest(unittest.TestCase):
         'logUri': 'uri',
     })
     d = info.AsDict()
-    clone = histogram.BuildbotInfo.FromDict(d)
+    clone = histogram.Diagnostic.FromDict(d)
     self.assertEqual(ToJSON(d), ToJSON(clone.AsDict()))
     self.assertEqual(clone.display_master_name, 'dmn')
     self.assertEqual(clone.display_bot_name, 'dbn')
@@ -583,7 +583,7 @@ class TelemetryInfoUnittest(unittest.TestCase):
         'legacyTIRLabel': 'tir',
     })
     d = info.AsDict()
-    clone = histogram.TelemetryInfo.FromDict(d)
+    clone = histogram.Diagnostic.FromDict(d)
     self.assertEqual(ToJSON(d), ToJSON(clone.AsDict()))
     self.assertEqual(clone.benchmark_name, 'foo')
     self.assertEqual(clone.benchmark_start, 42)
@@ -606,7 +606,7 @@ class DeviceInfoUnittest(unittest.TestCase):
     info.arch = {'more': 'stuff'}
     info.ram = 42
     d = info.AsDict()
-    clone = histogram.DeviceInfo.FromDict(d)
+    clone = histogram.Diagnostic.FromDict(d)
     self.assertEqual(ToJSON(d), ToJSON(clone.AsDict()))
     self.assertEqual(clone.chrome_version, '1.2.3.4')
     self.assertEqual(clone.os_name, 'linux')
@@ -626,7 +626,7 @@ class RelatedEventSetUnittest(unittest.TestCase):
         'duration': 1,
     })
     d = events.AsDict()
-    clone = histogram.RelatedEventSet.FromDict(d)
+    clone = histogram.Diagnostic.FromDict(d)
     self.assertEqual(ToJSON(d), ToJSON(clone.AsDict()))
     self.assertEqual(len(events), 1)
     event = list(events)[0]
@@ -644,7 +644,7 @@ class RelatedHistogramBreakdownUnittest(unittest.TestCase):
     breakdown.Add(hista)
     breakdown.Add(histb)
     d = breakdown.AsDict()
-    clone = histogram.RelatedHistogramBreakdown.FromDict(d)
+    clone = histogram.Diagnostic.FromDict(d)
     self.assertEqual(ToJSON(d), ToJSON(clone.AsDict()))
     self.assertEqual(hista.guid, clone.Get('a').guid)
     self.assertEqual(histb.guid, clone.Get('b').guid)

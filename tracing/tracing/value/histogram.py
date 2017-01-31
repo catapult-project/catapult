@@ -25,14 +25,14 @@ JS_MAX_VALUE = 1.7976931348623157e+308
 # 1.0 produces '100'.
 def PercentToString(percent):
   if percent < 0 or percent > 1:
-    raise Exception('percent must be in [0,1]')
+    raise ValueError('percent must be in [0,1]')
   if percent == 0:
     return '000'
   if percent == 1:
     return '100'
   s = str(percent)
   if s[1] != '.':
-    raise Exception('Unexpected percent')
+    raise ValueError('Unexpected percent')
   s += '0' * max(4 - len(s), 0)
   if len(s) > 4:
     s = s[:4] + '_' + s[4:]
@@ -114,7 +114,7 @@ def MergeSampledStreams(a_samples, a_stream_length,
 
 def Percentile(ary, percent):
   if percent < 0 or percent > 1:
-    raise 'percent must be in [0,1]'
+    raise ValueError('percent must be in [0,1]')
   ary = list(ary)
   ary.sort()
   return ary[int((len(ary) - 1) * percent)]
@@ -345,15 +345,16 @@ class Diagnostic(object):
   @staticmethod
   def FromDict(dct):
     if dct['type'] not in Diagnostic.REGISTRY:
-      raise 'Unrecognized diagnostic type: ' + dct['type']
+      raise ValueError('Unrecognized diagnostic type: ' + dct['type'])
     return Diagnostic.REGISTRY[dct['type']].FromDict(dct)
 
 
 Diagnostic.REGISTRY = {}
 
-def RegisterDiagnosticTypes():
-  for subclass in Diagnostic.__subclasses__():  # pylint: disable=no-member
+def RegisterDiagnosticTypes(baseclass=Diagnostic):
+  for subclass in baseclass.__subclasses__():  # pylint: disable=no-member
     Diagnostic.REGISTRY[subclass.__name__] = subclass
+    RegisterDiagnosticTypes(subclass)
 
 
 class Breakdown(Diagnostic):
@@ -837,7 +838,7 @@ class DiagnosticMap(dict):
       if isinstance(diagnostic, Diagnostic):
         self[name] = diagnostic
       elif required:
-        raise 'Unable to find shared Diagnostic ' + guid
+        raise ValueError('Unable to find shared Diagnostic ' + guid)
 
   def AsDict(self):
     dct = {}
@@ -1100,7 +1101,7 @@ class Histogram(object):
 
   def GetApproximatePercentile(self, percent):
     if percent < 0 or percent > 1:
-      raise Exception('percent must be in [0,1]')
+      raise ValueError('percent must be in [0,1]')
     if self.num_values == 0:
       return 0
 
@@ -1160,7 +1161,7 @@ class Histogram(object):
 
   def AddHistogram(self, other):
     if not self.CanAddHistogram(other):
-      raise 'Merging incompatible Histograms'
+      raise ValueError('Merging incompatible Histograms')
 
     MergeSampledStreams(
         self.sample_values, self.num_values,
@@ -1316,7 +1317,7 @@ class HistogramBinBoundaries(object):
       elif slic[0] == HistogramBinBoundaries.SLICE_TYPE_EXPONENTIAL:
         bin_boundaries.AddExponentialBins(slic[1], slic[2])
       else:
-        raise 'Unrecognized HistogramBinBoundaries slice type'
+        raise ValueError('Unrecognized HistogramBinBoundaries slice type')
 
     HistogramBinBoundaries.CACHE[cache_key] = bin_boundaries
     return bin_boundaries
@@ -1339,8 +1340,8 @@ class HistogramBinBoundaries(object):
 
   def AddBinBoundary(self, next_max_bin_boundary):
     if next_max_bin_boundary <= self.range.max:
-      raise ('The added max bin boundary must be larger than ' +
-             'the current max boundary')
+      raise ValueError('The added max bin boundary must be larger than ' +
+                       'the current max boundary')
     self._bin_ranges = None
     self._PushBuilderSlice(next_max_bin_boundary)
     self.range.AddValue(next_max_bin_boundary)
@@ -1348,10 +1349,10 @@ class HistogramBinBoundaries(object):
 
   def AddLinearBins(self, next_max_bin_boundary, bin_count):
     if bin_count <= 0:
-      raise 'Bin count must be positive'
+      raise ValueError('Bin count must be positive')
     if next_max_bin_boundary <= self.range.max:
-      raise ('The new max bin boundary must be greater than ' +
-             'the previous max bin boundary')
+      raise ValueError('The new max bin boundary must be greater than ' +
+                       'the previous max bin boundary')
 
     self._bin_ranges = None
     self._PushBuilderSlice([
@@ -1362,12 +1363,12 @@ class HistogramBinBoundaries(object):
 
   def AddExponentialBins(self, next_max_bin_boundary, bin_count):
     if bin_count <= 0:
-      raise 'Bin count must be positive'
+      raise ValueError('Bin count must be positive')
     if self.range.max <= 0:
-      raise 'Current max bin boundary must be positive'
+      raise ValueError('Current max bin boundary must be positive')
     if self.range.max >= next_max_bin_boundary:
-      raise ('The last added max boundary must be greater than ' +
-             'the current max boundary boundary')
+      raise ValueError('The last added max boundary must be greater than ' +
+                       'the current max boundary boundary')
 
     self._bin_ranges = None
 
@@ -1385,7 +1386,7 @@ class HistogramBinBoundaries(object):
 
   def _Build(self):
     if not isinstance(self._builder[0], (int, float)):
-      raise 'Invalid start of builder_'
+      raise ValueError('Invalid start of builder_')
 
     self._bin_ranges = []
     prev_boundary = self._builder[0]
@@ -1421,7 +1422,7 @@ class HistogramBinBoundaries(object):
               prev_boundary, boundary))
           prev_boundary = boundary
       else:
-        raise 'Unrecognized HistogramBinBoundaries slice type'
+        raise ValueError('Unrecognized HistogramBinBoundaries slice type')
 
       self._bin_ranges.append(Range.FromExplicitRange(
           prev_boundary, next_max_bin_boundary))
@@ -1458,7 +1459,7 @@ class HistogramSet(object):
 
   def AddHistogram(self, hist, diagnostics=None):
     if hist.guid in self._histograms_by_guid:
-      raise 'Cannot add same Histogram twice'
+      raise ValueError('Cannot add same Histogram twice')
 
     if diagnostics:
       for name, diagnostic in diagnostics.iteritems():
