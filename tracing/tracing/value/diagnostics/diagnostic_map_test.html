@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/value/diagnostics/diagnostic_map.html">
+<link rel="import" href="/tracing/value/histogram.html">
 
 <script>
 'use strict';
@@ -43,6 +44,66 @@ tr.b.unittest.testSuite(function() {
       }
     }
     assert.throws(() => tr.v.d.Diagnostic.register(InvalidFromDict));
+  });
+
+  test('merge', function() {
+    var event = tr.c.TestUtils.newSliceEx({
+        title: 'event',
+        start: 0,
+        duration: 1,
+    });
+    event.parentContainer = {
+      sliceGroup: {
+        stableId: 'fake_thread',
+        slices: [event],
+      },
+    };
+    var generic = new tr.v.d.Generic('generic diagnostic');
+    var generic2 = new tr.v.d.Generic('generic diagnostic 2');
+    var relatedSet = new tr.v.d.RelatedHistogramSet([
+      new tr.v.Histogram('histogram', tr.b.Unit.byName.count),
+    ]);
+    var events = new tr.v.d.RelatedEventSet([event]);
+
+    // When Histograms are merged, first an empty clone is created with an empty
+    // DiagnosticMap.
+    var hist = new tr.v.Histogram('', tr.b.Unit.byName.count);
+
+    var hist2 = new tr.v.Histogram('', tr.b.Unit.byName.count);
+    hist2.diagnostics.set('a', generic);
+    hist.diagnostics.merge(hist2.diagnostics, hist, hist2);
+    assert.strictEqual(generic, hist.diagnostics.get('a'));
+
+    // Separate keys are not merged.
+    var hist3 = new tr.v.Histogram('', tr.b.Unit.byName.count);
+    hist3.diagnostics.set('b', generic2);
+    hist.diagnostics.merge(hist3.diagnostics, hist, hist3);
+    assert.strictEqual(generic, hist.diagnostics.get('a'));
+    assert.strictEqual(generic2, hist.diagnostics.get('b'));
+
+    // Merging unmergeable diagnostics should produce an
+    // UnmergeableDiagnosticSet.
+    var hist4 = new tr.v.Histogram('', tr.b.Unit.byName.count);
+    hist4.diagnostics.set('a', relatedSet);
+    hist.diagnostics.merge(hist4.diagnostics, hist, hist4);
+    assert.instanceOf(hist.diagnostics.get('a'),
+        tr.v.d.UnmergeableDiagnosticSet);
+    var diagnostics = Array.from(hist.diagnostics.get('a'));
+    assert.strictEqual(generic, diagnostics[0]);
+    assert.strictEqual(relatedSet, diagnostics[1]);
+
+    // UnmergeableDiagnosticSets are mergeable.
+    var hist5 = new tr.v.Histogram('', tr.b.Unit.byName.count);
+    hist5.diagnostics.set('a', new tr.v.d.UnmergeableDiagnosticSet([
+        events, generic2]));
+    hist.diagnostics.merge(hist5.diagnostics, hist, hist5);
+    assert.instanceOf(hist.diagnostics.get('a'),
+        tr.v.d.UnmergeableDiagnosticSet);
+    diagnostics = Array.from(hist.diagnostics.get('a'));
+    assert.strictEqual(generic, diagnostics[0]);
+    assert.strictEqual(relatedSet, diagnostics[1]);
+    assert.strictEqual(events, diagnostics[2]);
+    assert.strictEqual(generic2, diagnostics[3]);
   });
 });
 </script>

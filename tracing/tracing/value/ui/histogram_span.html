@@ -332,7 +332,7 @@ Polymer({
       var diagnosticMap = new tr.v.d.DiagnosticMap();
       for (var [key, diagnostic] of this.histogram.diagnostics) {
         // Hide the 'merged from' diagnostic, which is an implementation detail.
-        if (key !== tr.v.MERGED_FROM_DIAGNOSTIC_KEY) {
+        if (key !== tr.v.d.MERGED_FROM_DIAGNOSTIC_KEY) {
           diagnosticMap.set(key, diagnostic);
         }
       }

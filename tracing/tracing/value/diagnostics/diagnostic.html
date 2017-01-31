@@ -16,6 +16,27 @@ tr.exportTo('tr.v.d', function() {
       this.guid_ = undefined;
     }
 
+    /**
+     * @param {!tr.v.d.Diagnostic} otherDiagnostic
+     * @param {!string} name
+     * @param {!tr.v.Histogram} parentHist
+     * @param {!tr.v.Histogram} otherParentHist
+     */
+    canAddDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
+      return false;
+    }
+
+    /**
+     * @param {!tr.v.d.Diagnostic} otherDiagnostic
+     * @param {!string} name
+     * @param {!tr.v.Histogram} parentHist
+     * @param {!tr.v.Histogram} otherParentHist
+     */
+    addDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
+      throw new Error('Abstract virtual method: subclasses must override ' +
+          'this method if they override canAddDiagnostic');
+    }
+
     get guid() {
       if (this.guid_ === undefined) {
         this.guid_ = tr.b.GUID.allocateUUID4();
@@ -61,7 +82,8 @@ tr.exportTo('tr.v.d', function() {
     }
 
     asDictInto_(d) {
-      throw new Error('Abstract virtual method');
+      throw new Error('Abstract virtual method: subclasses must override ' +
+          'this method if they override canAddDiagnostic');
     }
 
     static fromDict(d) {

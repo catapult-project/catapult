@@ -68,7 +68,7 @@ tr.exportTo('tr.v.ui', function() {
               // not necessarily equal |row.columns.get(name)|, but that
               // shouldn't matter for this dom-module.
               var merged = row.columns.get(name);
-              if (!merged.diagnostics.has(tr.v.MERGED_FROM_DIAGNOSTIC_KEY)) {
+              if (!merged.diagnostics.has(tr.v.d.MERGED_FROM_DIAGNOSTIC_KEY)) {
                 merged = merged.cloneEmpty();
                 merged.addHistogram(row.columns.get(name));
               }

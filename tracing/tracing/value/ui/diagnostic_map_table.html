@@ -45,9 +45,14 @@ found in the LICENSE file.
       }
 
       var columnTitles = new Set();
-      for (var map of this.diagnosticMaps_)
-        for (var [name, diagnostic] of map)
+      for (var map of this.diagnosticMaps_) {
+        for (var [name, diagnostic] of map) {
+          // https://github.com/catapult-project/catapult/issues/2842
+          if (diagnostic instanceof tr.v.d.UnmergeableDiagnosticSet) continue;
+
           columnTitles.add(name);
+        }
+      }
 
       var columns = [];
       function makeColumn(title) {
@@ -55,15 +60,15 @@ found in the LICENSE file.
           title: title,
           value: function(map) {
             var diagnostic = map.get(title);
-            if (!diagnostic)
-              return '';
+            if (!diagnostic) return '';
 
             return tr.v.ui.createDiagnosticSpan(diagnostic);
           }
         };
       }
-      for (var title of columnTitles)
+      for (var title of columnTitles) {
         columns.push(makeColumn(title));
+      }
 
       this.$.table.tableColumns = columns;
       this.$.table.tableRows = this.diagnosticMaps_;

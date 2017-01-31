@@ -23,11 +23,14 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/value/diagnostics/revision_info.html">
 <link rel="import" href="/tracing/value/diagnostics/scalar.html">
 <link rel="import" href="/tracing/value/diagnostics/telemetry_info.html">
+<link rel="import" href="/tracing/value/diagnostics/unmergeable_diagnostic_set.html">
 
 <script>
 'use strict';
 
 tr.exportTo('tr.v.d', function() {
+  var MERGED_FROM_DIAGNOSTIC_KEY = 'merged from';
+
   class DiagnosticMap extends Map {
     /**
      * Add a new Diagnostic to this map.
@@ -100,10 +103,36 @@ tr.exportTo('tr.v.d', function() {
       });
       return diagnostics;
     }
+
+    merge(other, parentHist, otherParentHist) {
+      var mergedFrom = this.get(MERGED_FROM_DIAGNOSTIC_KEY);
+      if (!mergedFrom) {
+        mergedFrom = new tr.v.d.RelatedHistogramSet();
+        this.set(MERGED_FROM_DIAGNOSTIC_KEY, mergedFrom);
+      }
+      mergedFrom.add(otherParentHist);
+
+      for (var [name, otherDiagnostic] of other) {
+        if (!this.has(name)) {
+          this.set(name, otherDiagnostic);
+          continue;
+        }
+        var myDiagnostic = this.get(name);
+        if (myDiagnostic.canAddDiagnostic(
+              otherDiagnostic, name, parentHist, otherParentHist)) {
+          myDiagnostic.addDiagnostic(
+              otherDiagnostic, name, parentHist, otherParentHist);
+          continue;
+        }
+        this.set(name, new tr.v.d.UnmergeableDiagnosticSet(
+              [myDiagnostic, otherDiagnostic]));
+      }
+    }
   }
 
   return {
     DiagnosticMap,
+    MERGED_FROM_DIAGNOSTIC_KEY,
   };
 });
 </script>

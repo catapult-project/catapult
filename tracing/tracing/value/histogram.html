@@ -22,8 +22,6 @@ tr.exportTo('tr.v', function() {
 
   var DEFAULT_BOUNDARIES_FOR_UNIT = new Map();
 
-  var MERGED_FROM_DIAGNOSTIC_KEY = 'merged from';
-
   /**
    * Converts the given percent to a string in the format specified above.
    * @param {number} percent The percent must be between 0.0 and 1.0.
@@ -447,12 +445,7 @@ tr.exportTo('tr.v', function() {
         this.allBins[i].addBin(other.allBins[i]);
       }
 
-      var mergedFrom = this.diagnostics.get(MERGED_FROM_DIAGNOSTIC_KEY);
-      if (!mergedFrom) {
-        mergedFrom = new tr.v.d.RelatedHistogramSet();
-        this.diagnostics.set(MERGED_FROM_DIAGNOSTIC_KEY, mergedFrom);
-      }
-      mergedFrom.add(other);
+      this.diagnostics.merge(other.diagnostics, this, other);
     }
 
     /**
@@ -1040,7 +1033,6 @@ tr.exportTo('tr.v', function() {
   return {
     Histogram,
     HistogramBinBoundaries,
-    MERGED_FROM_DIAGNOSTIC_KEY,
     percentToString,
   };
 });

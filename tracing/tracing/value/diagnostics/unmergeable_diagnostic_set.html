@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/value/diagnostics/diagnostic.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.v.d', function() {
+  class UnmergeableDiagnosticSet extends tr.v.d.Diagnostic {
+    /**
+     * @param {!Array.<!tr.v.d.Diagnostic>} diagnostics
+     */
+    constructor(diagnostics) {
+      super();
+      this._diagnostics = diagnostics;
+    }
+
+    canAddDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
+      return true;
+    }
+
+    /**
+     * If |otherDiagnostic| is an UnmergeableDiagnosticSet, then add its
+     * diagnostics to |this|. Otherwise, try to add |otherDiagnostic| to one of
+     * the diagnostics already in this set. If that fails, add |otherDiagnostic|
+     * to this set.
+     *
+     * @param {!tr.v.d.Diagnostic} otherDiagnostic
+     * @param {!string} name
+     * @param {!tr.v.Histogram} parentHist
+     * @param {!tr.v.Histogram} otherParentHist
+     */
+    addDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
+      if (otherDiagnostic instanceof UnmergeableDiagnosticSet) {
+        this._diagnostics.push(...otherDiagnostic);
+        return;
+      }
+      for (var diagnostic of this) {
+        if (diagnostic.canAddDiagnostic(
+              otherDiagnostic, name, parentHist, otherParentHist)) {
+          diagnostic.addDiagnostic(
+              otherDiagnostic, name, parentHist, otherParentHist);
+          return;
+        }
+      }
+      this._diagnostics.push(otherDiagnostic);
+    }
+
+    get length() {
+      return this._diagnostics.length;
+    }
+
+    * [Symbol.iterator]() {
+      for (var diagnostic of this._diagnostics) yield diagnostic;
+    }
+
+    asDictInto_(d) {
+      d.diagnostics = this._diagnostics.map(d => d.asDictOrReference());
+    }
+
+    static fromDict(d) {
+      return new UnmergeableDiagnosticSet(d.diagnostics.map(
+          d => ((typeof d === 'string') ?
+            new tr.v.d.DiagnosticRef(d) : tr.v.d.Diagnostic.fromDict(d))));
+    }
+  }
+
+  tr.v.d.Diagnostic.register(UnmergeableDiagnosticSet, {
+    elementName: 'tr-v-ui-unmergeable-diagnostic-set-span'
+  });
+
+  return {
+    UnmergeableDiagnosticSet,
+  };
+});
+</script>

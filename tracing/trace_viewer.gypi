@@ -516,6 +516,7 @@
       'tracing/value/diagnostics/revision_info.html',
       'tracing/value/diagnostics/scalar.html',
       'tracing/value/diagnostics/telemetry_info.html',
+      'tracing/value/diagnostics/unmergeable_diagnostic_set.html',
       'tracing/value/histogram.html',
       'tracing/value/histogram_set.html',
       'tracing/value/ui/array_of_numbers_span.html',
@@ -542,6 +543,7 @@
       'tracing/value/ui/scalar_map_table.html',
       'tracing/value/ui/scalar_span.html',
       'tracing/value/ui/telemetry_info_span.html',
+      'tracing/value/ui/unmergeable_diagnostic_set_span.html',
     ],
     'tracing_img_files': [
       'tracing/ui/extras/chrome/cc/images/input-event.png',
