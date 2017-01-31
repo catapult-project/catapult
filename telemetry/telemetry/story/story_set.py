@@ -144,7 +144,7 @@ class StorySet(object):
     else:
       return ''
 
-  def WprFilePathForStory(self, story):
+  def WprFilePathForStory(self, story, target_platform=None):
     """Convenient function to retrieve WPR archive file path.
 
     Args:
@@ -156,7 +156,8 @@ class StorySet(object):
     """
     if not self.wpr_archive_info:
       return None
-    return self.wpr_archive_info.WprFilePathForStory(story)
+    return self.wpr_archive_info.WprFilePathForStory(
+        story, target_platform=target_platform)
 
   def __iter__(self):
     return self.stories.__iter__()

@@ -12,6 +12,7 @@ from py_utils import cloud_storage  # pylint: disable=import-error
 from telemetry.page import page
 from telemetry.testing import system_stub
 from telemetry.wpr import archive_info
+from telemetry.wpr import archive_info2
 
 
 class MockPage(page.Page):
@@ -227,3 +228,24 @@ class WprArchiveInfoTest(unittest.TestCase):
         self.story_set_archive_info_file, cloud_storage.PUBLIC_BUCKET)
     self.assertEquals(new_recording,
                       read_archive_info.WprFilePathForStory(page1))
+
+  def testFromFileMultiplatform(self):
+    multiplatform_archive_info_contents = ("""
+        {
+            "platform_specific": true,
+            "archives": {
+                "%s": ["%s", "%s"],
+                "%s": ["%s"]
+            }
+        }
+    """ % (recording1, page1.display_name, page2.display_name, recording2,
+           page3.display_name))
+
+    archive_info_file = os.path.join(
+        self.tmp_dir, 'info2.json')
+    with open(archive_info_file, 'w') as f:
+      f.write(multiplatform_archive_info_contents)
+
+    archive = archive_info.WprArchiveInfo.FromFile(
+        archive_info_file, cloud_storage.PUBLIC_BUCKET)
+    self.assertTrue(isinstance(archive, archive_info2.WprArchiveInfo))
