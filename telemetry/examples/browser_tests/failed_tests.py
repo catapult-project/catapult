@@ -17,7 +17,7 @@ class SetUpClassFailedTest(
   @classmethod
   def GenerateTestCases_DummyTest(cls, options):
     del options  # Unused.
-    for i in xrange(0, 100):
+    for i in xrange(0, 3):
       yield 'dummy_test_%i' % i, ()
 
   def DummyTest(self):
@@ -34,7 +34,7 @@ class TearDownClassFailedTest(
   @classmethod
   def GenerateTestCases_DummyTest(cls, options):
     del options  # Unused.
-    for i in xrange(0, 100):
+    for i in xrange(0, 3):
       yield 'dummy_test_%i' % i, ()
 
   def DummyTest(self):
