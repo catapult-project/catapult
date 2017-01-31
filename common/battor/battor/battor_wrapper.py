@@ -156,8 +156,8 @@ class BattOrWrapper(object):
         return self.FlashFirmware(battor_firmware, avrdude_config)
       return False
     except ValueError:
-      logging.critical('Git hash returned from BattOr was not as expected: %s'
-                       % self._git_hash)
+      logging.exception('Git hash returned from BattOr was not as expected: %s'
+                        % self._git_hash)
       self._UploadSerialLogToCloudStorage()
       self._serial_log_file = None
     finally:
