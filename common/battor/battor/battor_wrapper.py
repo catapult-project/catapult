@@ -143,6 +143,10 @@ class BattOrWrapper(object):
       device_git_hash = self.GetFirmwareGitHash()
       battor_firmware, cs_git_hash = self._dm.FetchPathWithVersion(
           'battor_firmware', 'default')
+      # TODO(rnephew): Remove logging when win flashing problem is fixed.
+      logging.info(
+          'Starting flashing process on platform %s. CS Git: %s Local Git: %s'
+          % (self._target_platform, cs_git_hash, device_git_hash))
       if cs_git_hash != device_git_hash:
         logging.info(
             'Flashing BattOr with old firmware version <%s> with new '
