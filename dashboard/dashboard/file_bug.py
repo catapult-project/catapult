@@ -111,6 +111,14 @@ class FileBugHandler(request_handler.RequestHandler):
       components: List of component strings for the new bug.
       urlsafe_keys: Comma-separated alert keys in urlsafe format.
     """
+    # Only project members (@chromium.org accounts) can be owners of bugs.
+    owner = self.request.get('owner')
+    if owner and not owner.endswith('@chromium.org'):
+      self.RenderHtml('bug_result.html', {
+          'error': 'Owner email address must end with @chromium.org.'
+      })
+      return
+
     alert_keys = [ndb.Key(urlsafe=k) for k in urlsafe_keys.split(',')]
     alerts = ndb.get_multi(alert_keys)
 
@@ -120,14 +128,6 @@ class FileBugHandler(request_handler.RequestHandler):
     milestone_label = _MilestoneLabel(alerts)
     if milestone_label:
       labels.append(milestone_label)
-
-    # Only project members (@chromium.org accounts) can be owners of bugs.
-    owner = self.request.get('owner')
-    if owner and not owner.endswith('@chromium.org'):
-      self.RenderHtml('bug_result.html', {
-          'error': 'Owner email address must end with @chromium.org.'
-      })
-      return
 
     cc = self.request.get('cc')
 
