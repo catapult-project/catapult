@@ -67,6 +67,23 @@ class Job(ndb.Model):
   def ScheduleWork(self):
     return self.state.ScheduleWork()
 
+  def AsDict(self):
+    status = 'RUNNING'
+    if not self.task:
+      status = 'COMPLETED'
+
+    return {
+        'jobid': self.key.id(),
+        'configuration': self.configuration,
+        'test_suite': self.test_suite,
+        'test': self.test,
+        'metric': self.metric,
+        'auto_explore': self.auto_explore,
+        'created': self.created.strftime('%Y-%m-%d %H:%M:%S %Z'),
+        'updated': self.updated.strftime('%Y-%m-%d %H:%M:%S %Z'),
+        'status': status,
+    }
+
 
 class _JobState(object):
   """The internal state of a Job.

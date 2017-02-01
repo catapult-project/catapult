@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link type="text/css" rel="stylesheet" href="/dashboard/static/base.css">
+<link rel="import" href="/components/polymer/polymer.html">
+<link rel="import" href="/dashboard/pinpoint/elements/jobs-table.html">
+<link rel="import" href="/dashboard/static/simple_xhr.html">
+<link rel="import" href="/dashboard/static/uri.html">
+
+<dom-module id="jobs-page">
+  <template>
+    <style>
+    .error {
+      color: #dd4b39;
+      font-weight: bold;
+    }
+
+    .center {
+      margin: auto;
+      padding: 10px;
+    }
+
+    /* The content container contains everything below the sheriff select menu.
+     */
+    #content {
+      display: inline-flex;
+      display: -webkit-inline-flex;
+      flex-direction: column;
+      -webkit-flex-direction: column;
+      align-items: flex-start;
+      -webkit-align-items: flex-start;
+    }
+
+    #loading-spinner {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+    </style>
+
+    <template is="dom-if" if="{{loading}}">
+      <div id="loading-spinner"><img src="//www.google.com/images/loading.gif"></div>
+    </template>
+    <template is="dom-if" if="{{!loading}}">
+      <template is="dom-if" if="{{error}}">
+        <div class="error">{{error}}</div>
+      </template>
+      <template is="dom-if" if="{{!error}}">
+        <div id="content">
+          <div id="action-bar">
+          </div>
+          <template is="dom-if" if="{{jobs.length}}">
+            <h2>Running Jobs</h2>
+            <p id='num-alerts'>
+              {{computeJobCountString(totalJobsCount, totalJobsCountMax)}}
+            </p>
+            <jobs-table id="jobs-table"
+                xsrf-token="{{xsrfToken}}"
+                jobs-list="{{jobs}}"
+                on-sortby="onPushHistoryState"
+                on-sortdescending="onPushHistoryState"
+                sort-by="{{sortBy}}"
+                sort-descending="{{sortDescending}}">
+            </jobs-table>
+          </template>
+        </div>
+      </template>
+    </template>
+  </template>
+  <script>
+    'use strict';
+    Polymer({
+
+      is: 'jobs-page',
+      properties: {
+        totalJobsCount: {
+          type: Number,
+          value: 0
+        },
+        totalJobsCountMax: {
+          type: Number
+        },
+        jobs: {
+          type: Array,
+          value: () => []
+        },
+        loading: {
+          type: Boolean,
+          value: true,
+          notify: true
+        },
+        error: {
+          type: String,
+          value: '',
+          notify: true
+        },
+        sortBy: {
+          type: String,
+          value: 'jobid'
+        },
+        sortDescending: {
+          type: Boolean,
+          value: false
+        },
+        xsrfToken: {
+          type: String,
+          value: ''
+        }
+      },
+
+      computeIsSingular: count => count === 1,
+
+      computeJobCountString: function() {
+        if (this.totalJobsCount === 1) {
+          return '1 job';
+        } else if (this.totalJobsCount < this.totalJobsCountMax) {
+          return String(this.totalJobsCount) + ' jobs.';
+        } else {
+          return String(this.totalJobsCountMax) + ' or more jobs.';
+        }
+      },
+
+      onPopState: function(e) {
+        // Pop State event will have a non-null state if this came from an
+        // actual pop instead of the load event.
+        if (e['state']) {
+          this.updateFromURIParameters();
+        }
+      },
+
+      onPushHistoryState: function(event, detail) {
+        var sender = event.currentTarget;
+        if (!sender) {
+          return;
+        }
+        var params = uri.getAllParameters();
+        params['sortby'] = sender['sortBy'];
+        params['sortdescending'] = sender['sortDescending'] ? 'true' : 'false';
+        var newUri = uri.getCurrentPathWithParams(params);
+        history.pushState(params, '', newUri);
+      },
+
+      updateFromURIParameters: function() {
+        this.sortDescending = uri.getParameter('sortDescending') == 'true';
+      },
+
+      getJobCount: function() {
+        return this.jobs.length;
+      },
+
+      ready: function() {
+        var params = {};
+        simple_xhr.send('/list_jobs', params,
+          function(response) {
+            this.jobs = response['jobs_list'];
+            this.totalJobsCount = response['jobs_count'];
+            this.totalJobsCountMax = response['jobs_count_max'];
+            this.xsrfToken = response['xsrf_token'];
+            this.loading = false;
+            this.updateFromURIParameters();
+          }.bind(this),
+          function(msg) {
+            this.error = msg;
+            this.loading = false;
+          }.bind(this));
+      }
+    });
+  </script>
+</dom-module>

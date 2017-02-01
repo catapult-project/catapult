@@ -8,15 +8,22 @@ import webapp2
 
 from dashboard.pinpoint.handlers import isolated
 from dashboard.pinpoint.handlers import job
+from dashboard.pinpoint.handlers import list_jobs
+from dashboard.pinpoint.handlers import main
 from dashboard.pinpoint.handlers import new
 from dashboard.pinpoint.handlers import run
 
 
 _URL_MAPPING = [
+    # UI Stuff
+    webapp2.Route(r'/job/<job_id>', job.JobHandler),
+    webapp2.Route(r'/list_jobs', list_jobs.ListJobsHandler),
+    webapp2.Route(r'/', main.MainHandler),
+
+    # Actual functionality
     webapp2.Route(r'/isolated', isolated.IsolatedHandler),
     webapp2.Route(r'/isolated/<builder_name>/<git_hash>/<target>',
                   isolated.IsolatedHandler),
-    webapp2.Route(r'/job/<job_id>', job.JobHandler),
     webapp2.Route(r'/new', new.NewHandler),
     webapp2.Route(r'/run/<job_id>', run.RunHandler),
 ]
