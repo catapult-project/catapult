@@ -63,6 +63,18 @@ class IsolatedTest(unittest.TestCase):
     self.testapp.post('/isolated', status=403)
 
   @mock.patch('dashboard.common.utils.GetIpWhitelist')
+  def testPostExtraParameter(self, mock_get_ip_whitelist):
+    mock_get_ip_whitelist.return_value = {'remote_ip'}
+
+    params = {
+        'builder_name': 'Builder',
+        'git_hash': 'git hash',
+        'isolated_map': '{}',
+        'extra_parameters': '',
+    }
+    self.testapp.post('/isolated', params, status=400)
+
+  @mock.patch('dashboard.common.utils.GetIpWhitelist')
   def testPostMissingParameter(self, mock_get_ip_whitelist):
     mock_get_ip_whitelist.return_value = {'remote_ip'}
 
