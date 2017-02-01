@@ -30,6 +30,8 @@ class RunHandler(webapp2.RequestHandler):
       task = taskqueue.add(queue_name='job-queue', target='pinpoint',
                            url='/run/' + job_id, countdown=_TASK_INTERVAL)
       job.task = task.name
+    else:
+      job.task = None
 
     # Update the datastore.
     job.put()

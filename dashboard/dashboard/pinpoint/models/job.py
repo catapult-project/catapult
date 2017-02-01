@@ -58,6 +58,10 @@ class Job(ndb.Model):
         auto_explore=auto_explore,
         state=_JobState(quests))
 
+  @property
+  def running(self):
+    return bool(self.task)
+
   def AddChange(self, change):
     self.state.AddChange(change)
 
