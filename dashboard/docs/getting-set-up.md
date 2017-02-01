@@ -6,8 +6,7 @@ Running the tests, running the local server and
 deploying all depends on having the [the App Engine
 SDK](https://cloud.google.com/appengine/downloads).
 
-After downloading and unpacking, you should add the path to the SDK to
-both `PATH` and `PYTHONPATH`.
+After downloading and unpacking, you should add the path to the SDK to `PATH`.
 
 ## Running the tests
 
