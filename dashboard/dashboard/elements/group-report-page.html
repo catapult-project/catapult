@@ -82,6 +82,10 @@ found in the LICENSE file.
       display: flex;
       justify-content: center;
     }
+
+    .alert-togglebutton[active] {
+      background-color: #EEE;
+    }
   </style>
   <template>
     <template is="dom-if" if="{{loading}}">
@@ -95,11 +99,12 @@ found in the LICENSE file.
     </login-warning>
     <div id="top">
       <div id="action-bar" hidden$="{{computeOr(loading, error)}}">
-        <paper-button toggle raised
+        <paper-button toggles raised
                       id="improvements-toggle"
                       class="alert-togglebutton"
+                      active$="{{showingImprovements}}"
                       on-click="onToggleImprovements">
-          Show all improvements
+          {{getLabel(showingImprovements)}} all improvements
         </paper-button>
       </div>
       <bug-info id="bug-info" xsrf-token="{{xsrfToken}}"></bug-info>
@@ -197,11 +202,18 @@ found in the LICENSE file.
         warningMessage: {
           type: String,
           value: ''
-        }
+        },
+
+        showingImprovements: {
+          type: Boolean,
+          value: false
+        },
       },
       get alertsTable() {
         return this.$['alerts-table'];
       },
+
+      getLabel: toggleState => (toggleState ? 'hide' : 'show'),
 
       getCharts() {
         // Note: This cannot be a property getter for attribute charts because
@@ -215,23 +227,27 @@ found in the LICENSE file.
       },
 
       onToggleImprovements: function(event, details) {
+        var alertList = this.alertsTable['alertList'];
         var improvementsToggle = event.currentTarget;
         if (improvementsToggle.hasAttribute('active')) {
-          this.alertsTable['alertList'].forEach(function(alert) {
+          for (var i = 0; i < alertList.length; i++) {
+            var alert = alertList[i];
             if (alert['improvement']) {
-              alert['hideRow'] = false;
+              this.alertsTable.setAlertList(i, 'hideRow', false);
             }
-          });
+          }
         } else {
-          this.alertsTable['alertList'].forEach(function(alert) {
+          for (var i = 0; i < alertList.length; i++) {
+            var alert = alertList[i];
             if (alert['improvement'] && !alert['selected']) {
-              alert['hideRow'] = true;
-              alert['selected'] = false;
+              this.alertsTable.setAlertList(i, 'hideRow', true);
+              this.alertsTable.setAlertList(i, 'selected', false);
             }
-          });
+          }
           // Make the table update its list of checked alerts.
           this.alertsTable.onCheckboxChange();
         }
+        this.showingImprovements = !this.showingImprovements;
       },
 
       alertChangedRevisions: function(event) {
