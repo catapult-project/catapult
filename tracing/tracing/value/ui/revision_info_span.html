@@ -72,6 +72,13 @@ Polymer({
     }
 
     var rows = [];
+    if (this.diagnostic.chromiumCommitPosition) {
+      rows.push([
+          'chromiumCommitPosition', this.diagnostic.chromiumCommitPosition]);
+    }
+    if (this.diagnostic.v8CommitPosition) {
+      rows.push(['v8CommitPosition', this.diagnostic.v8CommitPosition]);
+    }
     this.buildRow_(
         rows, 'chromium', this.diagnostic.chromium, CHROMIUM_REVISION_HOST);
     this.buildRow_(rows, 'v8', this.diagnostic.v8, V8_REVISION_HOST);

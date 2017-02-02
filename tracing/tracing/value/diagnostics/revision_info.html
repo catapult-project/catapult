@@ -15,6 +15,8 @@ tr.exportTo('tr.v.d', function() {
   class RevisionInfo extends tr.v.d.Diagnostic {
     constructor(info) {
       super();
+      this.chromiumCommitPosition_ = info.chromiumCommitPosition || undefined;
+      this.v8CommitPosition_ = info.v8CommitPosition || undefined;
       this.chromium_ = info.chromium || [];
       this.v8_ = info.v8 || [];
       this.catapult_ = info.catapult || [];
@@ -24,6 +26,8 @@ tr.exportTo('tr.v.d', function() {
     }
 
     asDictInto_(d) {
+      d.chromiumCommitPosition = this.chromiumCommitPosition;
+      d.v8CommitPosition = this.v8CommitPosition;
       d.chromium = this.chromium;
       d.v8 = this.v8;
       d.catapult = this.catapult;
@@ -34,6 +38,14 @@ tr.exportTo('tr.v.d', function() {
 
     static fromDict(d) {
       return new RevisionInfo(d);
+    }
+
+    get chromiumCommitPosition() {
+      return this.chromiumCommitPosition_;
+    }
+
+    get v8CommitPosition() {
+      return this.v8CommitPosition_;
     }
 
     get chromium() {
