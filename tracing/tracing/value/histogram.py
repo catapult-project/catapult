@@ -618,6 +618,53 @@ class BuildbotInfo(Diagnostic):
     return self._log_uri
 
 
+class RevisionInfo(Diagnostic):
+  def __init__(self, info):
+    super(RevisionInfo, self).__init__()
+    self._chromium = info.get('chromium', [])
+    self._v8 = info.get('v8', [])
+    self._catapult = info.get('catapult', [])
+    self._angle = info.get('angle', [])
+    self._skia = info.get('skia', [])
+    self._webrtc = info.get('webrtc', [])
+
+  @property
+  def v8(self):
+    return self._v8
+
+  @property
+  def catapult(self):
+    return self._catapult
+
+  @property
+  def angle(self):
+    return self._angle
+
+  @property
+  def skia(self):
+    return self._skia
+
+  @property
+  def webrtc(self):
+    return self._webrtc
+
+  @property
+  def chromium(self):
+    return self._chromium
+
+  def _AsDictInto(self, d):
+    d['chromium'] = self._chromium
+    d['v8'] = self.v8
+    d['catapult'] = self.catapult
+    d['angle'] = self.angle
+    d['skia'] = self.skia
+    d['webrtc'] = self.webrtc
+
+  @staticmethod
+  def FromDict(d):
+    return RevisionInfo(d)
+
+
 # TODO(benjhayden): Unify this with telemetry's IterationInfo.
 class TelemetryInfo(Diagnostic):
   NAME = 'telemetry'
