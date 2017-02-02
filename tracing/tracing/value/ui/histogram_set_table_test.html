@@ -71,6 +71,52 @@ tr.b.unittest.testSuite(function() {
           (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
           (elem.histogram === barHist)));
     assert.isDefined(barCell);
+
+    var quxHist = new tr.v.Histogram('qux',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
+    histograms.addHistogram(quxHist);
+    breakdown.set('qux', quxHist);
+
+    var search = tr.b.findDeepElementMatchingPredicate(
+        table, elem => elem.id === 'search');
+    search.value = '';
+
+    table.histograms = histograms;
+
+    fooCell = tr.b.findDeepElementMatchingPredicate(
+        table, elem => (
+          (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
+          (elem.histogram === fooHist)));
+    assert.isDefined(fooCell);
+
+    fooCell.isHistogramOpen = true;
+
+    var selectAllLink = tr.b.findDeepElementMatchingPredicate(
+        table, elem => (
+          (elem.tagName === 'TR-UI-A-ANALYSIS-LINK') &&
+          (elem.textContent === 'Select All')));
+    assert.isDefined(selectAllLink);
+    selectAllLink.click();
+
+    assert.strictEqual(search.value, '^(bar|qux)$');
+
+    fooCell = tr.b.findDeepElementMatchingPredicate(
+        table, elem => (
+          (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
+          (elem.histogram === fooHist)));
+    assert.isUndefined(fooCell);
+
+    barCell = tr.b.findDeepElementMatchingPredicate(
+        table, elem => (
+          (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
+          (elem.histogram === barHist)));
+    assert.isDefined(barCell);
+
+    var quxCell = tr.b.findDeepElementMatchingPredicate(
+        table, elem => (
+          (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
+          (elem.histogram === quxHist)));
+    assert.isDefined(quxCell);
   });
 
   test('search', function() {

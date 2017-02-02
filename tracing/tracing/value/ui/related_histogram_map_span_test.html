@@ -24,6 +24,10 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(span);
     assert.isDefined(tr.b.findDeepElementMatchingPredicate(
         span, function(element) {
+      return element.textContent === 'Select All';
+    }));
+    assert.isDefined(tr.b.findDeepElementMatchingPredicate(
+        span, function(element) {
       return element.textContent === 'foo';
     }));
     assert.isDefined(tr.b.findDeepElementMatchingPredicate(

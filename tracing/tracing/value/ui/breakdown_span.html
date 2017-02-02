@@ -42,6 +42,40 @@ found in the LICENSE file.
 
 var DEFAULT_COLOR_SCHEME = new tr.b.SinebowColorGenerator();
 
+class BreakdownTableSummaryRow {
+  constructor(displayElement, histogramNames) {
+    this.displayElement_ = displayElement;
+    this.histogramNames_ = histogramNames;
+    this.keySpan_ = undefined;
+  }
+
+  get numberValue() {
+    // Prevent this row from appearing in the ColumnChart.
+    return undefined;
+  }
+
+  get keySpan() {
+    if (this.keySpan_ === undefined) {
+      if (this.histogramNames_.length) {
+        this.keySpan_ = document.createElement('tr-ui-a-analysis-link');
+        this.keySpan_.setSelectionAndContent(
+            this.histogramNames_, 'Select All');
+      } else {
+        this.keySpan_ = 'Sum';
+      }
+    }
+    return this.keySpan_;
+  }
+
+  get displayElement() {
+    return this.displayElement_;
+  }
+
+  get stringPercent() {
+    return '100%';
+  }
+}
+
 class BreakdownTableRow {
   constructor(name, value, color) {
     this.name_ = name;
@@ -80,7 +114,7 @@ class BreakdownTableRow {
     if (this.keySpan_ === undefined) {
       if (this.isHistogram) {
         this.keySpan_ = document.createElement('tr-ui-a-analysis-link');
-        this.keySpan_.setSelectionAndContent(this.value, this.name);
+        this.keySpan_.setSelectionAndContent([this.value.name], this.name);
         this.keySpan_.color = this.color;
         this.keySpan_.title = this.value.name;
       } else {
@@ -242,12 +276,27 @@ Polymer({
 
     var tableRows = [];
     var tableSum = 0;
+    var histogramNames = [];
+    var unit = undefined;
     for (var [name, value] of this.diagnostic) {
       var row = new BreakdownTableRow(name, value, colorScheme(name));
       tableRows.push(row);
       if (row.numberValue !== undefined) tableSum += row.numberValue;
+      if (row.isHistogram) {
+        histogramNames.push(value.name);
+        if (unit === undefined) unit = value.unit;
+      }
     }
     tableRows.sort((x, y) => x.compare(y));
+
+    if (tableSum > 0) {
+      var summaryDisplayElement = tableSum;
+      if (unit !== undefined) {
+        summaryDisplayElement = unit.format(tableSum);
+      }
+      tableRows.unshift(new BreakdownTableSummaryRow(
+          summaryDisplayElement, histogramNames));
+    }
 
     var chartData = {x: 0};
     for (var row of tableRows) {
@@ -265,7 +314,7 @@ Polymer({
       dataSeries.highlightedColor = row.highlightedColor;
     }
 
-    if (tableRows.length) {
+    if (tableRows.length > 0) {
       this.$.table.style.display = 'block';
       this.$.empty.style.display = 'none';
       this.$.table.tableRows = tableRows;

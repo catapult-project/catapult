@@ -150,6 +150,11 @@ tr.exportTo('tr.v.ui', function() {
 
   var UNMERGEABLE = '(unmergeable)';
 
+  // http://stackoverflow.com/questions/3446170
+  function escapeRegExp(str) {
+    return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&');
+  }
+
   Polymer({
     is: 'tr-v-ui-histogram-set-table',
 
@@ -184,7 +189,7 @@ tr.exportTo('tr.v.ui', function() {
       this.addEventListener('name-cell-overflow',
           this.onNameCellOverflow_.bind(this));
       this.addEventListener('requestSelectionChange',
-          this.onRelatedHistogramSelected_.bind(this));
+          this.onRequestSelectionChange_.bind(this));
       this.$.show_all.checked = tr.b.Settings.get(SHOW_ALL_SETTINGS_KEY, false);
       this.$.picker.settingsKey = 'tr-v-ui-histogram-set-table-groupby-picker';
       this.$.picker.possibleGroups = DEFAULT_POSSIBLE_GROUPS.slice();
@@ -293,56 +298,18 @@ tr.exportTo('tr.v.ui', function() {
       this.updateContents_();
     },
 
-    onRelatedHistogramSelected_: function(event) {
-      var value = event.selection;
-      if (!(value instanceof tr.v.Histogram))
-        return;
+    onRequestSelectionChange_: function(event) {
+      // This event may reference an EventSet or an array of Histogram names.
+      if (event.selection instanceof tr.model.EventSet) return;
 
       event.stopPropagation();
-
-      var displayLabel = getDisplayLabel(value);
-      var columnIndex = -1;
-      for (var i = 0; i < this.columns_.length; ++i) {
-        if (this.columns_[i].title === displayLabel) {
-          columnIndex = i;
-          break;
-        }
-      }
-      if (columnIndex < 0)
-        return;
-
-      var hierarchy = [];
-      var found = false;
-      function search(row) {
-        if (row.columns.get(displayLabel) === value) {
-          for (var hirow in hierarchy) {
-            this.$.table.setExpandedForTableRow(hirow, true);
-          }
-          found = true;
-          row.cells.get(displayLabel).isHistogramOpen = true;
-          return;
-        }
-        if (!row.subRows)
-          return;
-        hierarchy.push(row);
-        row.subRows.forEach(search, this);
-        hierarchy.pop(row);
-      }
-      this.rows_.forEach(search, this);
-
-      if (found || this.$.show_all.checked)
-        return;
-
-      // Search hidden histograms for |value|.
-      for (var test of this.histograms) {
-        if (test === value) {
-          found = true;
-          this.$.show_all.checked = true;
-          this.onShowAllChange_();
-          this.onRelatedHistogramSelected_(event);
-          break;
-        }
-      }
+      var histogramNames = event.selection;
+      histogramNames.sort();
+      histogramNames = histogramNames.map(escapeRegExp);
+      this.$.search.value = '^(' + histogramNames.join('|') + ')$';
+      this.$.show_all.checked = true;
+      this.onShowAllChange_();
+      this.$.search.focus();
     },
 
     set helpHref(href) {
@@ -478,6 +445,12 @@ tr.exportTo('tr.v.ui', function() {
       this.$.table.tableRows = this.rows_;
       this.$.table.sortColumnIndex = 0;
       this.$.table.rebuild();
+
+      if (this.rows_.length === 1) {
+        for (var [displayLabel, cell] of this.rows_[0].cells) {
+          cell.isHistogramOpen = true;
+        }
+      }
 
       for (var row of this.rows_) {
         row.constrainNameColumnWidth = this.constrainNameColumnWidth_;

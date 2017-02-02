@@ -13,7 +13,7 @@ found in the LICENSE file.
   Polymer({
     is: 'tr-v-ui-related-histogram-map-span',
 
-    ready: function() {
+    ready() {
       this.diagnostic_ = undefined;
     },
 
@@ -26,13 +26,26 @@ found in the LICENSE file.
       this.updateContents_();
     },
 
-    updateContents_: function() {
+    addLink_(selection, content) {
+      var link = document.createElement('tr-ui-a-analysis-link');
+      link.setSelectionAndContent(selection, content);
+      Polymer.dom(this).appendChild(link);
+      Polymer.dom(this).appendChild(document.createElement('br'));
+    },
+
+    updateContents_() {
       Polymer.dom(this).textContent = '';
-      for (var [name, value] of this.diagnostic) {
-        var link = document.createElement('tr-ui-a-analysis-link');
-        link.setSelectionAndContent(value, name);
-        Polymer.dom(this).appendChild(link);
-        Polymer.dom(this).appendChild(document.createElement('br'));
+
+      var histogramNames = new Set();
+      for (var [name, hist] of this.diagnostic) {
+        histogramNames.add(hist.name);
+      }
+      if (histogramNames.size > 1) {
+        this.addLink_(Array.from(histogramNames), 'Select All');
+      }
+
+      for (var [name, hist] of this.diagnostic) {
+        this.addLink_([hist.name], name);
       }
     }
   });
