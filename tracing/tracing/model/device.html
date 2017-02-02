@@ -30,6 +30,7 @@ tr.exportTo('tr.model', function() {
     tr.model.EventContainer.call(this);
 
     this.powerSeries_ = undefined;
+    this.cpuUsageSeries_ = undefined;
     this.vSyncTimestamps_ = [];
   }
 
@@ -68,6 +69,14 @@ tr.exportTo('tr.model', function() {
       this.powerSeries_ = powerSeries;
     },
 
+    get cpuUsageSeries() {
+      return this.cpuUsageSeries_;
+    },
+
+    set cpuUsageSeries(cpuUsageSeries) {
+      this.cpuUsageSeries_ = cpuUsageSeries;
+    },
+
     get vSyncTimestamps() {
       return this.vSyncTimestamps_;
     },
@@ -99,6 +108,8 @@ tr.exportTo('tr.model', function() {
     childEventContainers: function* () {
       if (this.powerSeries_)
         yield this.powerSeries_;
+      if (this.cpuUsageSeries_)
+        yield this.cpuUsageSeries_;
     }
   };
 

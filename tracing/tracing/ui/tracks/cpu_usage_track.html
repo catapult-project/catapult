@@ -25,7 +25,6 @@ tr.exportTo('tr.ui.tracks', function() {
 
   var ColorScheme = tr.b.ColorScheme;
   var ChartTrack = tr.ui.tracks.ChartTrack;
-  var MAX_CPU_TRACK_INTERVAL_COUNT = 1e5;
 
   /**
    * A track that displays the cpu usage of a process.
@@ -38,8 +37,6 @@ tr.exportTo('tr.ui.tracks', function() {
   CpuUsageTrack.prototype = {
     __proto__: ChartTrack.prototype,
 
-    DEFAULT_INTERVAL: 4,  // in ms.
-
     decorate: function(viewport) {
       ChartTrack.prototype.decorate.call(this, viewport);
       this.classList.add('cpu-usage-track');
@@ -48,133 +45,44 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     // Given a tr.Model, it creates a cpu usage series and a graph.
-    initialize: function(model, interval) {
-      this.interval_ = interval || this.DEFAULT_INTERVAL;
-      if (model !== undefined)
-        this.cpuUsageSeries_ = this.computeCpuUsage_(model);
-      else
+    initialize: function(model) {
+      if (model !== undefined) {
+        this.cpuUsageSeries_ = model.device.cpuUsageSeries;
+      } else {
         this.cpuUsageSeries_ = undefined;
+      }
       this.series = this.buildChartSeries_();
       this.autoSetAllAxes({expandMax: true});
     },
 
-    // Given a tr.Model, it returns the computation of cpu usage of all the
-    // processes.
-    computeCpuUsage_: function(model) {
-      // Compute a CPU usage interval that will keep the interval count below
-      // MAX_CPU_TRACK_INTERVAL_COUNT, to avoid crashing the tab with an
-      // out-of-memory error when the trace spans a long interval.
-      var getIntervalCount = () => Math.ceil(model.bounds.max / this.interval_);
-      while (getIntervalCount() > MAX_CPU_TRACK_INTERVAL_COUNT) {
-        this.interval_ *= 2;
-      }
-      var cpuUsage = undefined;
-      var intervalCount = getIntervalCount();
-      if (intervalCount > 0) {
-        tr.b.iterItems(model.processes, function(pid, process) {
-          // Iterate slices, find all the CPU samples which overlap. For each
-          // such CPU sample, increment it of the "average CPU usage" of the
-          // slice.
-          for (var e of process.getDescendantEvents()) {
-            if (!(e instanceof tr.model.ThreadSlice) || e.duration === 0 ||
-                e.cpuDuration === undefined) {
-              continue;
-            }
-
-            // This slice contains the most fine-grained CPU usage information
-            // for the area of the trace that it covers but that is not covered
-            // by its subslices.
-            // The math goes this way:
-            //   s.selfTime    : duration of slice s not spent in its subslices.
-            //   s.cpuSelfTime : cpuDuration over slice s but not its subslices.
-            //
-            // We're looking for
-            //   s.cpuSelfTimeRatio: average cpu usage over the area covered by
-            //                       s but not any of its subslices.
-            //                    = s.cpuSelfTime / s.selfTime
-            if (e.selfTime === 0 || e.selfTime === undefined ||
-                e.cpuSelfTime === undefined) {
-              continue;
-            }
-
-            var cpuSelfTimeRatio = e.cpuSelfTime / e.selfTime;
-            cpuSelfTimeRatio = Math.max(0, cpuSelfTimeRatio);
-            cpuSelfTimeRatio = Math.min(1, cpuSelfTimeRatio);
-            // We have found at least one valid thread slice.
-            if (cpuUsage === undefined)
-              cpuUsage = new Array(intervalCount).fill(0);
-
-            // Go through the area covered by this slice but not its subslices
-            // and add the cpuSelfTimeRatio contribution over this area.
-            var lastTime = e.start;
-            e.subSlices.forEach(function(slice) {
-              this.addCPUUsageOverInterval_(cpuUsage, cpuSelfTimeRatio,
-                  lastTime, slice.start);
-              lastTime = slice.end;
-            }, this);
-            this.addCPUUsageOverInterval_(cpuUsage, cpuSelfTimeRatio, lastTime,
-                e.end);
-          }
-        }, this);
-      }
-      return cpuUsage || [];
-    },
-
-    addCPUUsageOverInterval_: function(cpuUsageArray, cpuUsage, start, end) {
-      if (start >= end)
-        return;
-
-      // Simple arithmetic to find the indexes that overlap the current
-      // slice.
-      var interval = this.interval_;
-      var startIndex = Math.floor(start / interval);
-      // If the slice stops on an interval, endIndex will be too high.
-      // E.g.: start = 5, end = 10, endIndex = floor( 10 / 5 ) = 2.
-      // However, the slice is active for only one interval : [5, 10[ .
-      var endIndex = Math.ceil(end / interval) - 1;
-      var cpuUsagePerTime = cpuUsage / interval;
-
-      // Add [startIndex * interval, endIndex * interval] duration.
-      for (var i = startIndex; i < endIndex; i++)
-        cpuUsageArray[i] += cpuUsage;
-
-      // Subtract [startIndex * interval, start] duration.
-      cpuUsageArray[startIndex] -= cpuUsagePerTime *
-          (start - startIndex * interval);
-
-      // Add [endIndex * interval, end] duration.
-      cpuUsageArray[endIndex] += cpuUsagePerTime * (end - endIndex * interval);
-    },
-
     get hasVisibleContent() {
-      return !!this.cpuUsageSeries_ && this.cpuUsageSeries_.length > 0;
+      return !!this.cpuUsageSeries_ &&
+          this.cpuUsageSeries_.samples.length > 0;
     },
 
     addContainersToTrackMap: function(containerToTrackMap) {
       containerToTrackMap.addContainer(this.series_, this);
     },
 
-    buildChartSeries_: function() {
-      if (!this.hasVisibleContent)
-        return [];
+    buildChartSeries_: function(yAxis, color) {
+      if (!this.hasVisibleContent) return [];
 
-      var seriesYAxis = new tr.ui.tracks.ChartSeriesYAxis(0, undefined);
-      var pts = new Array(this.cpuUsageSeries_.length + 1);
-
-      // Add all points and an extra one at the end, otherwise the last
-      // interval doesn't show up.
-      for (var i = 0; i <= this.cpuUsageSeries_.length; i++) {
-        pts[i] = new tr.ui.tracks.ChartPoint(undefined, this.interval_ * i,
-            this.cpuUsageSeries_[i] || 0);
+      var yAxis = new tr.ui.tracks.ChartSeriesYAxis(0, undefined);
+      var usageSamples = this.cpuUsageSeries_.samples;
+      var pts = new Array(usageSamples.length + 1);
+      for (var i = 0; i < usageSamples.length; i++) {
+        pts[i] = new tr.ui.tracks.ChartPoint(undefined,
+            usageSamples[i].start, usageSamples[i].usage);
       }
-
+      pts[usageSamples.length] = new tr.ui.tracks.ChartPoint(undefined,
+          usageSamples[usageSamples.length - 1].start, 0);
       var renderingConfig = {
         chartType: tr.ui.tracks.ChartSeriesType.AREA,
-        colorId: ColorScheme.getColorIdForGeneralPurposeString(this.heading)
+        colorId: color
       };
 
-      return [new tr.ui.tracks.ChartSeries(pts, seriesYAxis, renderingConfig)];
-    }
+      return [new tr.ui.tracks.ChartSeries(pts, yAxis, renderingConfig)];
+    },
   };
 
   return {

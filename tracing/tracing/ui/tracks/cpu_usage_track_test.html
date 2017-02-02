@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/extras/cpu/cpu_usage_auditor.html">
 <link rel="import" href="/tracing/model/model.html">
 <link rel="import" href="/tracing/model/thread_slice.html">
 <link rel='import' href='/tracing/ui/base/constants.html'>
@@ -32,6 +33,8 @@ tr.b.unittest.testSuite(function() {
             slices[i].forEach(s => thread.sliceGroup.pushSlice(s));
           }
     });
+    var auditor = new tr.e.audits.CpuUsageAuditor(model);
+    auditor.runAnnotate();
     return model;
   }
 
@@ -70,28 +73,37 @@ tr.b.unittest.testSuite(function() {
     viewport.setDisplayTransformImmediately(dt);
   }
 
-  test('computeCpuUsage_simpleOnBoundaries', function() {
+  test('computeCpuUsage_simple', function() {
+    // Set the boundaries, from 0-15 ms. This slice will not
+    // contain any CPU usage data, it's just to make the boundaries
+    // of the bins go as 0-1, 1-2, 2-3, etc. This also tests whether
+    // this function works properly in the presence of slices that
+    // don't include CPU usage data.
+    var bigSlice = new tr.model.ThreadSlice('', title, 0, 0, {}, 15);
     // First thread.
-    // 0    5    10   15   20   25   30   35   40   45   50   55
-    //      [             sliceA                             ]
-    //           [       sliceB               ]            [C]
-    var sliceA = new tr.model.ThreadSlice('', title, 0, 5, {}, 50);
-    sliceA.cpuDuration = 25;
-    var sliceB = new tr.model.ThreadSlice('', title, 0, 10, {}, 30);
-    sliceB.cpuDuration = 15;
+    // 0         5         10        15
+    //  [ sliceA ]
+    //      [    sliceB     ]   [C  ]
+    var sliceA = new tr.model.ThreadSlice('', title, 0, 0.5, {}, 5);
+    sliceA.cpuDuration = 5;
+    var sliceB = new tr.model.ThreadSlice('', title, 0, 2.5, {}, 8);
+    sliceB.cpuDuration = 6;
     // The slice completely fits into an interval and is the last.
-    var sliceC = new tr.model.ThreadSlice('', title, 0, 52, {}, 3);
-    sliceC.cpuDuration = 3;
+    var sliceC = new tr.model.ThreadSlice('', title, 0, 12.5, {}, 2);
+    sliceC.cpuDuration = 1;
 
     // Second thread.
-    // 0    5    10   15   20   25   30   35   40   45   50   55
-    //      [ sliceE ][     sliceD       ]
-    var sliceD = new tr.model.ThreadSlice('', title, 0, 15, {}, 20);
-    sliceD.cpuDuration = 17;
-    var sliceE = new tr.model.ThreadSlice('', title, 0, 5, {}, 10);
-    sliceE.cpuDuration = 9;
+    // 0         5         10        15
+    //      [ sliceD ][  sliceE  ]
+    var sliceD = new tr.model.ThreadSlice('', title, 0, 3.5, {}, 3);
+    sliceD.cpuDuration = 3;
+    var sliceE = new tr.model.ThreadSlice('', title, 0, 6.5, {}, 6);
+    sliceE.cpuDuration = 3;
 
-    var model = buildModel([[sliceA, sliceB, sliceC], [sliceD, sliceE]]);
+    var model = buildModel([
+      [bigSlice, sliceA, sliceB, sliceC],
+      [sliceD, sliceE]
+    ]);
 
     // Compute average CPU usage over A (but not over B and C).
     var avgCpuUsageA = sliceA.cpuSelfTime / sliceA.selfTime;
@@ -103,19 +115,23 @@ tr.b.unittest.testSuite(function() {
 
     var expectedValue = [
       0,
-      avgCpuUsageA + avgCpuUsageE,
+      avgCpuUsageA,
+      avgCpuUsageA,
+      avgCpuUsageA + avgCpuUsageB,
+      avgCpuUsageA + avgCpuUsageB + avgCpuUsageD,
+      avgCpuUsageA + avgCpuUsageB + avgCpuUsageD,
+      avgCpuUsageB + avgCpuUsageD,
       avgCpuUsageB + avgCpuUsageE,
-      avgCpuUsageB + avgCpuUsageD,
-      avgCpuUsageB + avgCpuUsageD,
-      avgCpuUsageB + avgCpuUsageD,
-      avgCpuUsageB + avgCpuUsageD,
-      avgCpuUsageB,
-      avgCpuUsageA,
-      avgCpuUsageA,
-      avgCpuUsageA * 2.0 / 5 + avgCpuUsageC * 3.0 / 5.0,
-      0  // Extra point added to make the last interval show up.
+      avgCpuUsageB + avgCpuUsageE,
+      avgCpuUsageB + avgCpuUsageE,
+      avgCpuUsageB + avgCpuUsageE,
+      avgCpuUsageE,
+      avgCpuUsageE,
+      avgCpuUsageC,
+      avgCpuUsageC,
+      0
     ];
-    var track = createCpuUsageTrack.call(this, model, 5);
+    var track = createCpuUsageTrack.call(this, model);
     var actualValue = track.series[0].points.map(point => point.y);
     assertArrayValuesCloseTo(actualValue, expectedValue);
   });
@@ -128,7 +144,7 @@ tr.b.unittest.testSuite(function() {
 
     var model = buildModel([[sliceA]]);
 
-    var track = createCpuUsageTrack.call(this, model, 5);
+    var track = createCpuUsageTrack.call(this, model);
     var cpuSamples = track.series[0].points.map(point => point.y);
 
     // All except the last sample is 0.25, since sliceA.cpuDuration was set to
@@ -138,57 +154,6 @@ tr.b.unittest.testSuite(function() {
     }
     // The last sample is 0.
     assert.closeTo(cpuSamples[cpuSamples.length - 1], 0, DIFF_EPSILON);
-  });
-
-  test('computeCpuUsage_floatAndComplexIntervals', function() {
-    // First thread.
-    // 0    5    10   15   20   25   30   35   40   45   50   55
-    //         [         sliceA                             ]
-    //             [B]
-    var sliceA = new tr.model.ThreadSlice('', title, 0, 5.5111, {}, 47.1023);
-    sliceA.cpuDuration = 25;
-    var sliceB = new tr.model.ThreadSlice('', title, 0, 11.2384, {}, 1.8769);
-    sliceB.cpuDuration = 1.5;
-
-    // Second thread.
-    // 0    5    10   15   20   25   30   35   40   45   50   55
-    //             [ C  ]                               [ D  ]
-    var sliceC = new tr.model.ThreadSlice('', title, 0, 11.239, {}, 5.8769);
-    sliceC.cpuDuration = 5;
-    var sliceD = new tr.model.ThreadSlice('', title, 0, 48.012, {}, 5.01);
-    sliceD.cpuDuration = 4;
-
-    var model = buildModel([[sliceA, sliceB], [sliceC, sliceD]]);
-
-    // Compute average CPU usage over A (but not over B and C).
-    var avgCpuUsageA = sliceA.cpuSelfTime / sliceA.selfTime;
-    // Compute average CPU usage over B, C, D. They don't have subslices.
-    var avgCpuUsageB = sliceB.cpuDuration / sliceB.duration;
-    var avgCpuUsageC = sliceC.cpuDuration / sliceC.duration;
-    var avgCpuUsageD = sliceD.cpuDuration / sliceD.duration;
-
-    var expectedValue = [
-      0,
-      avgCpuUsageA * (10 - 5.5111) / 5.0,
-      avgCpuUsageA * (11.2384 - 10 + 15 - (11.2384 + 1.8769)) / 5.0 +
-          avgCpuUsageB * 1.8769 / 5.0 +
-          avgCpuUsageC * (15 - 11.239) / 5.0,
-      avgCpuUsageA +
-          avgCpuUsageC * ((11.239 + 5.8769) - 15) / 5.0,
-      avgCpuUsageA,
-      avgCpuUsageA,
-      avgCpuUsageA,
-      avgCpuUsageA,
-      avgCpuUsageA,
-      avgCpuUsageA +
-          avgCpuUsageD * (50 - 48.012) / 5.0,
-      avgCpuUsageA * (5.5111 + 47.1023 - 50) / 5.0 +
-          avgCpuUsageD * (48.012 + 5.01 - 50) / 5.0,
-      0  // Extra point added to make the last interval show up.
-    ];
-    var track = createCpuUsageTrack.call(this, model, 5);
-    var actualValue = track.series[0].points.map(point => point.y);
-    assertArrayValuesCloseTo(actualValue, expectedValue);
   });
 
   test('instantiate', function() {
