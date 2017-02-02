@@ -40,3 +40,7 @@ class JavaScriptTemplateTest(unittest.TestCase):
   def testRenderRaisesWithBadLiteralValue(self):
     with self.assertRaises(ValueError):
       js_template.Render('function() { {{ @code }} }', code=['foo', 'bar'])
+
+  def testRenderRaisesWithUnusedKeywordArgs(self):
+    with self.assertRaises(TypeError):
+      js_template.Render('foo = {{ x }};', x=4, y=5, timemout=6)

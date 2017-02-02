@@ -210,8 +210,8 @@ class InspectorBackend(object):
       exceptions.DevtoolsTargetCrashException
     """
     # Use the default both when timeout=None or the option is ommited.
-    timeout = kwargs.get('timeout') or 60
-    context_id = kwargs.get('context_id')
+    timeout = kwargs.pop('timeout', None) or 60
+    context_id = kwargs.pop('context_id', None)
     statement = js_template.Render(statement, **kwargs)
     self._runtime.Execute(statement, context_id, timeout)
 
@@ -238,8 +238,8 @@ class InspectorBackend(object):
       exceptions.DevtoolsTargetCrashException
     """
     # Use the default both when timeout=None or the option is ommited.
-    timeout = kwargs.get('timeout') or 60
-    context_id = kwargs.get('context_id')
+    timeout = kwargs.pop('timeout', None) or 60
+    context_id = kwargs.pop('context_id', None)
     expression = js_template.Render(expression, **kwargs)
     return self._runtime.Evaluate(expression, context_id, timeout)
 
@@ -270,8 +270,8 @@ class InspectorBackend(object):
       exceptions.DevtoolsTargetCrashException
     """
     # Use the default both when timeout=None or the option is ommited.
-    timeout = kwargs.get('timeout') or 60
-    context_id = kwargs.get('context_id')
+    timeout = kwargs.pop('timeout', None) or 60
+    context_id = kwargs.pop('context_id', None)
     condition = js_template.Render(condition, **kwargs)
 
     def IsJavaScriptExpressionTrue():

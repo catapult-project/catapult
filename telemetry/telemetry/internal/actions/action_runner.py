@@ -282,7 +282,7 @@ class ActionRunner(object):
       'New clients should use WaitForJavaScriptCondition2. See go/catabug/3028')
   def WaitForJavaScriptCondition(self, condition, **kwargs):
     """Wait for a JavaScript condition to become true."""
-    timeout = kwargs.get('timeout_in_seconds', 60)
+    timeout = kwargs.pop('timeout_in_seconds', None) or 60
     self._tab.WaitForJavaScriptCondition2(
         js_template.Render(condition, **kwargs), timeout=timeout)
 

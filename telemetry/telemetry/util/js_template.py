@@ -38,12 +38,16 @@ def Render(template, **kwargs):
       to interpolate with values.
     **kwargs: Values to be interpolated in the template.
   """
+  unused = set(kwargs)
+
   def interpolate(m):
     field_spec = m.group('field_spec').strip()
     field = RE_FIELD_IDENTIFIER.match(field_spec)
     if not field:
       raise KeyError(field_spec)
-    value = kwargs[field.group('name')]
+    key = field.group('name')
+    value = kwargs[key]
+    unused.discard(key)
     if field.group('modifier') == '@':
       if not isinstance(value, str):
         raise ValueError('Literal value for %s must be a string' % field_spec)
@@ -51,4 +55,8 @@ def Render(template, **kwargs):
     else:
       return RenderValue(value)
 
-  return RE_REPLACEMENT_FIELD.sub(interpolate, template)
+  result = RE_REPLACEMENT_FIELD.sub(interpolate, template)
+  if unused:
+    raise TypeError('Unexpected arguments not used in template: %s.' % (
+      ', '.join(repr(str(k)) for k in sorted(unused))))
+  return result
