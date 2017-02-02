@@ -68,6 +68,8 @@ tr.b.unittest.testSuite(function() {
               50, UnitScale.TIME.MILLI_SEC, UnitScale.TIME.SEC), 0.05);
         assert.strictEqual(tr.b.convertUnit(
             -400, UnitScale.TIME.SEC, UnitScale.TIME.MICRO_SEC), -400000000);
+        assert.closeTo(tr.b.convertUnit(
+            12, UnitScale.TIME.YEAR, UnitScale.TIME.MONTH), 144, 1.e-8);
 
         // UnitPrefixScale to UnitPrefixScale
         assert.strictEqual(tr.b.convertUnit(
