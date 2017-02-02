@@ -303,7 +303,7 @@ tr.b.unittest.testSuite(function() {
     var m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
-    var c = m.kernel.cpus[1];
+    var c = m.device.cpus[1];
     assert.equal(c.slices.length, 2);
 
     assert.equal(c.slices[0].title, 'SurfaceFlinger');
@@ -329,7 +329,7 @@ tr.b.unittest.testSuite(function() {
     var m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
-    var c = m.kernel.cpus[1];
+    var c = m.device.cpus[1];
     assert.equal(c.slices.length, 2);
 
     assert.equal(c.slices[0].title, 'Surface Flinger ');
@@ -425,7 +425,7 @@ tr.b.unittest.testSuite(function() {
     var m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
-    var c = m.kernel.cpus[1];
+    var c = m.device.cpus[1];
     assert.equal(c.slices.length, 2);
 
     assert.closeTo(
@@ -452,7 +452,7 @@ tr.b.unittest.testSuite(function() {
     var m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
-    var c = m.kernel.cpus[1];
+    var c = m.device.cpus[1];
     assert.equal(c.slices.length, 2);
 
     assert.closeTo((15180.978813 - 0) * 1000, c.slices[0].start, 1e-5);
@@ -523,8 +523,8 @@ tr.b.unittest.testSuite(function() {
     var m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
-    assert.equal(tr.b.dictionaryLength(m.kernel.cpus), 2);
-    assert.equal(m.kernel.bestGuessAtCpuCount, 2);
+    assert.equal(tr.b.dictionaryLength(m.device.cpus), 2);
+    assert.equal(m.device.bestGuessAtCpuCount, 2);
   });
 });
 </script>

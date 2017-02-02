@@ -52,7 +52,7 @@ tr.b.unittest.testSuite(function() {
       shiftWorldToZero: false,
       pruneContainers: false,
       customizeModelCallback: function(model) {
-        cpu = model.kernel.getOrCreateCpu(1);
+        cpu = model.device.getOrCreateCpu(1);
         thread = model.getOrCreateProcess(1).getOrCreateThread(2);
 
         var nodeA = tr.c.TestUtils.newProfileNode(model, 'a');

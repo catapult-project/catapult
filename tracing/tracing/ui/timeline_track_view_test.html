@@ -94,7 +94,7 @@ tr.b.unittest.testSuite(function() {
 
   test('filteredCounters', function() {
     var model = new tr.Model();
-    var c1 = model.kernel.getOrCreateCpu(0);
+    var c1 = model.device.getOrCreateCpu(0);
     c1.getOrCreateCounter('', 'b');
 
     var p1 = model.getOrCreateProcess(1);
@@ -111,7 +111,7 @@ tr.b.unittest.testSuite(function() {
 
   test('filteredCpus', function() {
     var model = new tr.Model();
-    var c1 = model.kernel.getOrCreateCpu(1);
+    var c1 = model.device.getOrCreateCpu(1);
     c1.getOrCreateCounter('', 'a');
 
     var timeline = document.createElement('tr-ui-timeline-track-view');

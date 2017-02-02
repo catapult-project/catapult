@@ -33,7 +33,7 @@ tr.b.unittest.testSuite(function() {
 
   test('instantiate', function() {
     var m = createBasicModel();
-    var cpu = m.kernel.cpus[1];
+    var cpu = m.device.cpus[1];
     assert.isDefined(cpu);
 
     var selection = new tr.model.EventSet();

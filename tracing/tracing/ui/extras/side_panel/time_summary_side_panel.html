@@ -370,9 +370,9 @@ found in the LICENSE file.
       var extraData = [];
       if (this.showCpuIdleTime_ &&
           this.groupingUnit_ === CPU_TIME_GROUPING_UNIT &&
-          this.model.kernel.bestGuessAtCpuCount !== undefined) {
+          this.model.device.bestGuessAtCpuCount !== undefined) {
         var maxCpuTime = rangeOfInterest.range *
-            this.model.kernel.bestGuessAtCpuCount;
+            this.model.device.bestGuessAtCpuCount;
         var idleTime = Math.max(0, maxCpuTime - allGroup.cpuTime);
         extraData.push({
           label: 'CPU Idle',

@@ -20,7 +20,7 @@ tr.b.unittest.testSuite(function() {
       pruneContainers: false,
       customizeModelCallback: function(m) {
         if (options.provideSoftwareMeasuredCpuCount)
-          m.kernel.softwareMeasuredCpuCount = 2;
+          m.device.softwareMeasuredCpuCount = 2;
 
         var browserProcess = m.getOrCreateProcess(1);
         var browserMain = browserProcess.getOrCreateThread(2);

@@ -377,7 +377,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
      * @return {Cpu} A Cpu corresponding to the given cpuNumber.
      */
     getOrCreateCpu: function(cpuNumber) {
-      return this.model_.kernel.getOrCreateCpu(cpuNumber);
+      return this.model_.device.getOrCreateCpu(cpuNumber);
     },
 
     /**
@@ -484,8 +484,8 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
 
       // Push the cpu slices to the threads that they run on.
-      for (var cpuNumber in this.model_.kernel.cpus) {
-        var cpu = this.model_.kernel.cpus[cpuNumber];
+      for (var cpuNumber in this.model_.device.cpus) {
+        var cpu = this.model_.device.cpus[cpuNumber];
 
         for (var i = 0; i < cpu.slices.length; i++) {
           var cpuSlice = cpu.slices[i];

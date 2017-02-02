@@ -30,11 +30,11 @@ tr.b.unittest.testSuite(function() {
     var m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
-    var c0 = m.kernel.cpus[0];
+    var c0 = m.device.cpus[0];
     assert.equal(c0.slices.length, 0);
     assert.equal(c0.counters['.Clock Frequency'].series[0].samples.length, 1);
 
-    var c1 = m.kernel.cpus[1];
+    var c1 = m.device.cpus[1];
     assert.equal(c1.slices.length, 0);
     assert.equal(c1.counters['.Clock Frequency'].series[0].samples.length, 2);
   });
@@ -53,11 +53,11 @@ tr.b.unittest.testSuite(function() {
     var m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
-    var c0 = m.kernel.cpus[0];
+    var c0 = m.device.cpus[0];
     assert.equal(c0.slices.length, 0);
     assert.equal(c0.counters['.Clock Frequency'].series[0].samples.length, 2);
 
-    var c1 = m.kernel.cpus[1];
+    var c1 = m.device.cpus[1];
     assert.equal(c1.slices.length, 0);
     assert.equal(c1.counters['.Clock Frequency'].series[0].samples.length, 2);
   });
@@ -80,11 +80,11 @@ tr.b.unittest.testSuite(function() {
     var m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
-    var c0 = m.kernel.cpus[0];
+    var c0 = m.device.cpus[0];
     assert.equal(c0.slices.length, 0);
     assert.equal(c0.counters['.C-State'].series[0].samples.length, 2);
 
-    var c1 = m.kernel.cpus[1];
+    var c1 = m.device.cpus[1];
     assert.equal(c1.slices.length, 0);
     assert.equal(c1.counters['.C-State'].series[0].samples.length, 4);
   });

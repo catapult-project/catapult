@@ -16,7 +16,6 @@ tr.exportTo('tr.ui.tracks', function() {
   var Cpu = tr.model.Cpu;
   var CpuTrack = tr.ui.tracks.cpu_track;
   var ProcessTrackBase = tr.ui.tracks.ProcessTrackBase;
-  var SpacingTrack = tr.ui.tracks.SpacingTrack;
 
   /**
    * @constructor
@@ -52,25 +51,6 @@ tr.exportTo('tr.ui.tracks', function() {
       tr.ui.tracks.ProcessTrackBase.prototype.addContainersToTrackMap.call(
         this, containerToTrackMap);
       containerToTrackMap.addContainer(this.kernel, this);
-    },
-
-    willAppendTracks_: function() {
-      var cpus = tr.b.dictionaryValues(this.kernel.cpus);
-      cpus.sort(tr.model.Cpu.compare);
-
-      var didAppendAtLeastOneTrack = false;
-      for (var i = 0; i < cpus.length; ++i) {
-        var cpu = cpus[i];
-        var track = new tr.ui.tracks.CpuTrack(this.viewport);
-        track.detailedMode = this.expanded;
-        track.cpu = cpu;
-        if (!track.hasVisibleContent)
-          continue;
-        Polymer.dom(this).appendChild(track);
-        didAppendAtLeastOneTrack = true;
-      }
-      if (didAppendAtLeastOneTrack)
-        Polymer.dom(this).appendChild(new SpacingTrack(this.viewport));
     }
   };
 

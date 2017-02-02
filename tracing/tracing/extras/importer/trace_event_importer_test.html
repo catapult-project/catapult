@@ -769,8 +769,8 @@ tr.b.unittest.testSuite(function() {
         pid: 14, ts: 0, tid: 0, ph: 'M'}
     ];
     var m = makeModel(events);
-    assert.equal(m.kernel.softwareMeasuredCpuCount, 4);
-    assert.equal(m.kernel.bestGuessAtCpuCount, 4);
+    assert.equal(m.device.softwareMeasuredCpuCount, 4);
+    assert.equal(m.device.bestGuessAtCpuCount, 4);
   });
 
   test('cpuCountsWithSandboxBeingConfused', function() {
@@ -781,8 +781,8 @@ tr.b.unittest.testSuite(function() {
         pid: 14, ts: 0, tid: 0, ph: 'M'}
     ];
     var m = makeModel(events);
-    assert.equal(m.kernel.softwareMeasuredCpuCount, 4);
-    assert.equal(m.kernel.bestGuessAtCpuCount, 4);
+    assert.equal(m.device.softwareMeasuredCpuCount, 4);
+    assert.equal(m.device.bestGuessAtCpuCount, 4);
   });
 
   test('parsingWhenEndComesFirst', function() {
@@ -2907,7 +2907,7 @@ tr.b.unittest.testSuite(function() {
       ]
     };
     var m = makeModel(events, false);
-    assert.isDefined(m.kernel.cpus[0]);
+    assert.isDefined(m.device.cpus[0]);
     assert.equal(m.getAllThreads().length, 1);
 
     assert.equal(m.samples.length, 3);
@@ -2915,8 +2915,8 @@ tr.b.unittest.testSuite(function() {
     var t1 = m.processes[1].threads[1];
     assert.equal(t1.samples.length, 3);
 
-    var c0 = m.kernel.cpus[0];
-    var c1 = m.kernel.cpus[1];
+    var c0 = m.device.cpus[0];
+    var c1 = m.device.cpus[1];
     assert.equal(c0.samples.length, 2);
     assert.equal(c1.samples.length, 1);
 

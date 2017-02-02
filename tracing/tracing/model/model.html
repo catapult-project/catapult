@@ -460,6 +460,7 @@ tr.exportTo('tr', function() {
 
     createSubSlices: function() {
       this.kernel.createSubSlices();
+      this.device.createSubSlices();
       for (var pid in this.processes)
         this.processes[pid].createSubSlices();
     },

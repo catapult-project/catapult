@@ -1342,7 +1342,7 @@ tr.exportTo('tr.e.importer', function() {
      */
     finalizeImport: function() {
       if (this.softwareMeasuredCpuCount_ !== undefined) {
-        this.model_.kernel.softwareMeasuredCpuCount =
+        this.model_.device.softwareMeasuredCpuCount =
             this.softwareMeasuredCpuCount_;
       }
       this.createAsyncSlices_();
@@ -1429,7 +1429,7 @@ tr.exportTo('tr.e.importer', function() {
 
         var cpu;
         if (event.cpu !== undefined)
-          cpu = m.kernel.getOrCreateCpu(event.cpu);
+          cpu = m.device.getOrCreateCpu(event.cpu);
 
         var leafNode = this.stackFrameTree_.getNode('g' + event.sf);
 
