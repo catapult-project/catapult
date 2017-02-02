@@ -23,6 +23,23 @@ tr.exportTo('tr.v.d', function() {
     constructor(value) {
       super();
       this.value = value;
+      this._merged = false;
+    }
+
+    canAddDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
+      return otherDiagnostic instanceof Generic;
+    }
+
+    addDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
+      if (!this._merged) {
+        this.value = [this.value];
+        this._merged = true;
+      }
+      if (otherDiagnostic._merged) {
+        this.value.push(...otherDiagnostic.value);
+      } else {
+        this.value.push(otherDiagnostic.value);
+      }
     }
 
     asDictInto_(d) {
