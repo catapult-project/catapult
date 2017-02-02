@@ -289,7 +289,7 @@ def _QuoteFlag(flag):
     return key
   else:
     # TODO(catapult:#3112): Remove this check when all clients comply.
-    if value[0] in _QUOTES and value[0] == value[-1]:
+    if value and value[0] in _QUOTES and value[0] == value[-1]:
       logging.warning(
           'Flag %s appears to be quoted, so will be passed as-is.', flag)
       logging.warning(

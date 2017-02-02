@@ -94,6 +94,9 @@ class ParseSerializeFlagsTest(unittest.TestCase):
     self._testQuoteFlag(
         "--this is a strange=flag", '"--this is a strange=flag"')
 
+  def testQuoteFlag_withEmptyValue(self):
+    self._testQuoteFlag('--some-flag=', '--some-flag=')
+
   def _testParseCmdLine(self, command_line, expected_flags):
     # Start with a command line, check that flags are parsed as expected.
     # pylint: disable=protected-access
