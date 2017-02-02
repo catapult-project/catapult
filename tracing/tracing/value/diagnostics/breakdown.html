@@ -18,6 +18,17 @@ tr.exportTo('tr.v.d', function() {
       this.colorScheme = undefined;
     }
 
+    canAddDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
+      return ((otherDiagnostic instanceof Breakdown) &&
+              (this.colorScheme === otherDiagnostic.colorScheme));
+    }
+
+    addDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
+      for (var [name, value] of otherDiagnostic) {
+        this.set(name, this.get(name) + value);
+      }
+    }
+
     /**
      * Add a Value by an explicit name to this map.
      *
