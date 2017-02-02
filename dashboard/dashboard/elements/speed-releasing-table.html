@@ -14,6 +14,7 @@ found in the LICENSE file.
 <link rel="import" href="/components/polymer/polymer.html">
 <link rel="import" href="/dashboard/static/uri.html">
 
+<link rel="import" href="/tracing/base/unit.html">
 <dom-module id="speed-releasing-table">
   <template>
     <style>
@@ -32,6 +33,15 @@ found in the LICENSE file.
       display: flex;
       justify-content: center;
     }
+
+    table, th, td {
+      border: 1px solid black;
+    }
+
+    table {
+      border-collapse: collapse;
+    }
+
     </style>
 
     <template is="dom-if" if="{{loading}}">
@@ -44,18 +54,40 @@ found in the LICENSE file.
       </template>
       <template is="dom-if" if="{{!error}}">
         <div id="content">
-          <table id="speed-releasing">
-            <thead>{{tableConfig.name}}</thead>
-              <template is="dom-repeat" items="{{tableConfig.tableBots}}">
-                <tr>
-                  <td>{{item}}</td>
-                  <template is="dom-repeat" 
-                            items="{{tableConfig.tableTests}}" as="tests">
-                    <td>{{tests}}</td>
+          <template is="dom-repeat" items="{{tableConfig.bots}}" as="bot">
+            <p>{{tableConfig.name}}</p>
+            <p>{{bot}}</p>
+            <table id="speed-releasing">
+              <thead>
+               <tr>
+                  <th colspan="2"></th>
+                  <template is="dom-repeat" items="{{tableConfig.revisions}}" 
+                            as="rev">
+                    <th>Version: {{rev}}</th>
                   </template>
+                  <th colspan="4">Change</th>
                 </tr>
-              </template>
-            </table>
+              </thead>
+              <template is="dom-repeat" items="{{tableConfig.tests}}" 
+                        as="test">
+              <tr>
+                <template is="dom-if" 
+                          if="{{isFirstInCategory(index, test)}}">
+                    <th rowspan$="{{getCategoryCount(test)}}">
+                      {{getCategory(test)}}
+                    </th>
+                </template>
+                <th>{{getPrettyTestName(test)}}</th>
+                <template is="dom-repeat" items="{{tableConfig.revisions}}" 
+                          as="rev">
+                    <td>{{getValue(rev, bot, test)}}</td>
+                </template>
+                  <td>{{getDifference(bot, test, 'false')}}</td>
+                  <td>{{getDifference(bot, test, 'true')}}</td>
+              </tr>
+            </template>
+            </table> <br>
+          </template>
         </div>
       </template>
     </template>
@@ -92,17 +124,97 @@ found in the LICENSE file.
         },
       },
 
+      /**
+       * Gets the specified value given a rev, bot, test.
+       */
+      getValue: function(rev, bot, test) {
+        var value = this.tableConfig.values[rev][bot][test];
+        var unit = this.tableConfig.units[test];
+        if (tr.b.Unit.byName[unit]) {
+          return (tr.b.Unit.byName[unit].format(value));
+        } else {
+          return value;
+        }
+      },
+
+      /**
+       * Computes the abs/relative difference for the specified test.
+       */
+      getDifference: function(bot, test, abs) {
+        if (this.tableConfig.revisions.length === 2) {
+          var revA = this.tableConfig.revisions[0];
+          var revB = this.tableConfig.revisions[1];
+          if (abs === 'true') {
+            var difference = this.tableConfig.values[revB][bot][test] -
+                             this.tableConfig.values[revA][bot][test];
+            var unit = this.tableConfig.units[test];
+            if (tr.b.Unit.byName[unit]) {
+              return (tr.b.Unit.byName[unit].format(difference));
+            } else {
+              return difference;
+            }
+          } else {
+            var relDiff = (this.tableConfig.values[revB][bot][test] /
+                          this.tableConfig.values[revA][bot][test]) - 1;
+            return (tr.b.Unit.byName['normalizedPercentage']
+                      .format(relDiff));
+          }
+        }
+      },
+
+      getPrettyTestName: function(test) {
+        return this.tableConfig.layout[test][1];
+      },
+
+      getCategory: function(test, index) {
+        var category = this.tableConfig.layout[test][0];
+        return category;
+      },
+
+      getCategoryCount: function(test) {
+        var category = this.tableConfig.layout[test][0];
+        return this.tableConfig.categories[category];
+      },
+
+      /**
+       * Finds where the last category ended and checks to see if the current
+       * index is part of a new category. We do this so we only apply the
+       * rowspan property once.
+       */
+      isFirstInCategory: function(index, test) {
+        var category = this.tableConfig.layout[test][0];
+        var keys = Object.keys(this.tableConfig.categories);
+        var prevCatIndex = keys.indexOf(category) - 1;
+        var prevCatCount = this.tableConfig.categories[keys[prevCatIndex]];
+        if (index === 0 || index === prevCatCount) {
+          return true;
+        }
+        return false;
+      },
+
       ready: function() {
         var params = {};
+        var revA = uri.getParameter('revA');
+        if (revA) {
+          params['revA'] = revA;
+        }
+        var revB = uri.getParameter('revB');
+        if (revB) {
+          params['revB'] = revB;
+        }
         var path = this.tableName;
         this.loading = true;
         simple_xhr.send('/speed_releasing/' + path, params,
           function(response) {
-            this.tableConfig.tableBots = response['table_bots'];
-            this.tableConfig.tableTests = response['table_tests'];
-            this.tableConfig.tableLayout = response['table_layout'];
+            this.tableConfig.bots = response['table_bots'];
+            this.tableConfig.tests = response['table_tests'];
+            this.tableConfig.layout = response['table_layout'];
             this.tableConfig.name = response['name'];
             this.xsrfToken = response['xsrf_token'];
+            this.tableConfig.values = response['values'];
+            this.tableConfig.revisions = response['revisions'];
+            this.tableConfig.units = response['units'];
+            this.tableConfig.categories = response['categories'];
             this.loading = false;
           }.bind(this),
           function(msg) {

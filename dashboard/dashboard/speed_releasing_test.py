@@ -10,8 +10,15 @@ from google.appengine.ext import ndb
 from dashboard import speed_releasing
 from dashboard.common import datastore_hooks
 from dashboard.common import testing_common
+from dashboard.common import utils
 from dashboard.models import table_config
 from dashboard.models import graph_data
+
+_SAMPLE_BOTS = ['ChromiumPerf/win', 'ChromiumPerf/linux']
+_SAMPLE_TESTS = ['my_test_suite/my_test', 'my_test_suite/my_other_test']
+_SAMPLE_LAYOUT = ('{ "my_test_suite/my_test": ["Foreground", '
+                  '"Pretty Name 1"],"my_test_suite/my_other_test": '
+                  ' ["Foreground", "Pretty Name 2"]}')
 
 class SpeedReleasingTest(testing_common.TestCase):
 
@@ -47,16 +54,40 @@ class SpeedReleasingTest(testing_common.TestCase):
 
   def _AddTableConfigDataStore(self, name, is_internal):
     """Add sample internal only tableConfig."""
+    keys = self._AddTests()
     if is_internal:
       self._AddInternalBotsToDataStore()
     else:
       self._AddPublicBotsToDataStore()
     table_config.CreateTableConfig(
-        name=name, bots=['ChromiumPerf/win', 'ChromiumPerf/linux'],
-        tests=['my_test_suite/my_test', 'my_test_suite/my_other_test'],
-        layout='{ "system_health.memory_mobile/foreground/ashmem":'
-               '["Foreground", "Ashmem"]}',
+        name=name, bots=_SAMPLE_BOTS,
+        tests=_SAMPLE_TESTS,
+        layout=_SAMPLE_LAYOUT,
         username='internal@chromium.org')
+    return keys
+
+  def _AddTests(self):
+    testing_common.AddTests(['ChromiumPerf'], ['win', 'linux'], {
+        'my_test_suite': {
+            'my_test': {},
+            'my_other_test': {},
+        }
+    })
+    keys = [
+        utils.TestKey('ChromiumPerf/win/my_test_suite/my_test'),
+        utils.TestKey('ChromiumPerf/win/my_test_suite/my_other_test'),
+        utils.TestKey('ChromiumPerf/linux/my_test_suite/my_test'),
+        utils.TestKey('ChromiumPerf/linux/my_test_suite/my_other_test'),
+    ]
+    for test_key in keys:
+      test = test_key.get()
+      test.units = 'timeDurationInMs'
+      test.put()
+    return keys
+
+  def _AddRows(self, keys):
+    for key in keys:
+      testing_common.AddRows(utils.TestPath(key), [1, 2, 3, 4])
 
   def testGet_ShowPage(self):
     response = self.testapp.get('/speed_releasing/')
@@ -67,19 +98,34 @@ class SpeedReleasingTest(testing_common.TestCase):
     self._AddTableConfigDataStore('SecondBestTable', True)
     self._AddTableConfigDataStore('ThirdBestTable', False)
     response = self.testapp.post('/speed_releasing/')
-    self.assertIn('\"show_list\": true', response)
-    self.assertIn('\"list\": ["BestTable", "SecondBestTable", '
+    self.assertIn('"show_list": true', response)
+    self.assertIn('"list": ["BestTable", "SecondBestTable", '
                   '"ThirdBestTable"]', response)
 
   def testPost_ShowInternalTable(self):
-    self._AddTableConfigDataStore('BestTable', True)
-    response = self.testapp.post('/speed_releasing/BestTable')
-    self.assertIn('\"name\": "BestTable"', response)
-    self.assertIn('\"table_bots\": [\"ChromiumPerf/win", '
-                  '"ChromiumPerf/linux\"]', response)
-    self.assertIn('\"table_tests\": [\"my_test_suite/my_test",'
-                  ' "my_test_suite/my_other_test\"]', response)
-    self.assertIn('\"table_layout\"', response)
+    keys = self._AddTableConfigDataStore('BestTable', True)
+    self._AddRows(keys)
+    response = self.testapp.post('/speed_releasing/BestTable?revA=1&revB=2')
+    self.assertIn('"name": "BestTable"', response)
+    self.assertIn('"table_bots": ["ChromiumPerf/win", '
+                  '"ChromiumPerf/linux"]', response)
+    self.assertIn('"table_tests": ["my_test_suite/my_test",'
+                  ' "my_test_suite/my_other_test"]', response)
+    self.assertIn('"table_layout"', response)
+    self.assertIn('"revisions": [1, 2]', response)
+    self.assertIn('"units": {"my_test_suite/my_test": "timeDurationInMs", '
+                  '"my_test_suite/my_other_test": "timeDurationInMs"',
+                  response)
+    self.assertIn('"categories": {"Foreground": 2}', response)
+    self.assertIn('"values": {"1": {"ChromiumPerf/linux": '
+                  '{"my_test_suite/my_test": 1.0, '
+                  '"my_test_suite/my_other_test": 1.0}, '
+                  '"ChromiumPerf/win": {"my_test_suite/my_test": 1.0, '
+                  '"my_test_suite/my_other_test": 1.0}}, '
+                  '"2": {"ChromiumPerf/linux": {"my_test_suite/my_test": '
+                  '2.0, "my_test_suite/my_other_test": 2.0}, '
+                  '"ChromiumPerf/win": {"my_test_suite/my_test": 2.0, '
+                  '"my_test_suite/my_other_test": 2.0}}}', response)
 
   def testPost_InternalListPageToExternalUser(self):
     self._AddTableConfigDataStore('BestTable', True)
@@ -88,11 +134,20 @@ class SpeedReleasingTest(testing_common.TestCase):
     self.UnsetCurrentUser()
     datastore_hooks.InstallHooks()
     response = self.testapp.post('/speed_releasing/')
-    self.assertIn('\"show_list\": true', response)
-    self.assertIn('\"list\": ["ThirdBestTable"]', response)
+    self.assertIn('"show_list": true', response)
+    self.assertIn('"list": ["ThirdBestTable"]', response)
 
   def testPost_ShowInternalTableToExternalUser(self):
     self._AddTableConfigDataStore('BestTable', True)
     self.UnsetCurrentUser()
-    self.testapp.post('/speed_releasing/BestTable', {
+    self.testapp.post('/speed_releasing/BestTable?revA=1&revB=2', {
     }, status=500) # 500 means user can't see data.
+
+  def testPost_TableWithNoRevParams(self):
+    self._AddTableConfigDataStore('BestTable', True)
+    response = self.testapp.post('/speed_releasing/BestTable')
+    self.assertIn('Invalid revisions.', response)
+
+  def testPost_TableWithTableNameThatDoesntExist(self):
+    response = self.testapp.post('/speed_releasing/BestTable')
+    self.assertIn('Invalid table name.', response)

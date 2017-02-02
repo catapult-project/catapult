@@ -23,12 +23,84 @@ tr.b.unittest.testSuite(function() {
     }
   };
 
+  var testData = {
+    '123':
+    {
+      'master/bot':
+      {
+        'test/test': 10001,
+        'test/test1': 50001,
+        'test2/test3': 20001,
+        'test2/test4': 40002,
+        'test2/test5': 40002,
+      },
+
+      'master2/bot2':
+      {
+        'test/test': 30001,
+        'test/test1': 60001,
+        'test2/test3': 40001,
+        'test2/test4': 40002,
+        'test2/test5': 40002,
+      }
+    },
+
+    '456':
+    {
+      'master/bot':
+      {
+        'test/test': 10002,
+        'test/test1': 50402,
+        'test2/test3': 20002,
+        'test2/test4': 40002,
+        'test2/test5': 40002,
+      },
+
+      'master2/bot2':
+      {
+        'test/test': 30012,
+        'test/test1': 60222,
+        'test2/test3': 40007,
+        'test2/test4': 40052,
+        'test2/test5': 40012,
+      }
+    },
+  };
+
+  var testLayout = {
+    'test/test': ['foreground', 'Pretty Name'],
+    'test/test1': ['foreground', 'Prettier Name'],
+    'test2/test3': ['foreground', 'Prettiester Name'],
+    'test2/test4': ['background', 'Prettiestest Name'],
+    'test2/test5': ['background', 'Prettiestestest Name'],
+  };
+
+  var unitMap = {
+    'test/test': 'timeStampInMs',
+    'test/test1': 'sizeInBytes',
+    'test2/test3': 'powerInWatts',
+    'test2/test4': 'count',
+    'test2/test5': 'sizeInBytes',
+  };
+
+  var categories = {
+    'foreground': 3,
+    'background': 2
+  };
+
+  var revisions = [123, 456];
+
   test('instantiation', function() {
     var mockResponse = {
       'table_bots': ['master/bot', 'master2/bot2'],
-      'table_tests': ['test/test', 'test2/test3'],
-      'table_layout': '{\'this will\': \'get changed later\'}',
+      'table_tests': ['test/test', 'test/test1', 'test2/test3',
+                     'test2/test4', 'test2/test5'],
+      'table_layout': testLayout,
       'name': 'fakeTable',
+      'values': testData,
+      'units': unitMap,
+      'revisions': revisions,
+      'categories': categories,
     };
     testing_common.addXhrMock('/speed_releasing/undefined?=',
                               JSON.stringify(mockResponse));

@@ -31,8 +31,13 @@ import json
 
 from google.appengine.ext import ndb
 
+from dashboard.common import utils
 from dashboard.models import internal_only_model
 
+
+class BadRequestError(Exception):
+  """An error indicating that a 400 response status should be returned."""
+  pass
 
 class TableConfig(internal_only_model.InternalOnlyModel):
 
@@ -65,42 +70,47 @@ def CreateTableConfig(name, bots, tests, layout, username):
     of bad inputs), returns None, error message.
   """
   internal_only = False
-  error_message = ''
   valid_bots = []
-  for bot in bots:
-    if '/' in bot:
-      bot_name = bot.split('/')[1]
-      master_name = bot.split('/')[0]
-      entity_key = ndb.Key('Master', master_name, 'Bot', bot_name)
-      entity = entity_key.get()
-      if entity:
-        valid_bots.append(entity_key)
-        if entity.internal_only:
-          internal_only = True
+  try:
+    for bot in bots:
+      if '/' in bot:
+        bot_name = bot.split('/')[1]
+        master_name = bot.split('/')[0]
+        entity_key = ndb.Key('Master', master_name, 'Bot', bot_name)
+        entity = entity_key.get()
+        if entity:
+          valid_bots.append(entity_key)
+          if entity.internal_only:
+            internal_only = True
+        else:
+          raise BadRequestError('Invalid Master/Bot: %s' % bot)
       else:
-        error_message = 'Invalid Master/Bot: %s' % bot
-        return None, error_message
-    else:
-      error_message = 'Invalid Master/Bot: %s' % bot
-      return None, error_message
+        raise BadRequestError('Invalid Master/Bot: %s' % bot)
+
+    table_check = ndb.Key('TableConfig', name).get()
+    if table_check:
+      raise BadRequestError('%s already exists.' % name)
+
+    for bot in bots:
+      for test in tests:
+        test_key = utils.TestMetadataKey(bot + '/' + test)
+        if not test_key.get():
+          raise BadRequestError('%s is not a valid test.' % test)
+
+  except BadRequestError as error:
+    raise BadRequestError(error.message)
 
   try:
     json.loads(layout)
     # TODO(jessimb): Verify that the layout matches what is expected
   except ValueError:
-    error_message = 'Invalid JSON for table layout'
-    return None, error_message
+    raise BadRequestError('Invalid JSON for table layout')
 
-  table_check = ndb.Key('TableConfig', name).get()
-  if table_check:
-    error_message = '%s already exists.' % name
-    return None, error_message
 
   # Input validates, create table now.
-  error_message = 'TableConfig created successfully.'
   table_config = TableConfig(id=name, bots=valid_bots, tests=tests,
                              table_layout=layout, internal_only=internal_only,
                              username=username)
   table_config.put()
-  return table_config, error_message
+  return table_config
 

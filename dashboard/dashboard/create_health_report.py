@@ -4,6 +4,7 @@
 
 """Provides the web interface for adding and editing sheriff rotations."""
 
+import logging
 import json
 
 from google.appengine.api import users
@@ -58,9 +59,17 @@ class CreateHealthReportHandler(request_handler.RequestHandler):
           }))
       return
 
-    created_table, msg = table_config.CreateTableConfig(
-        name=name, bots=master_bot, tests=tests, layout=table_layout,
-        username=user.email())
+    try:
+      created_table = table_config.CreateTableConfig(
+          name=name, bots=master_bot, tests=tests, layout=table_layout,
+          username=user.email())
+    except table_config.BadRequestError as error:
+      self.response.out.write(json.dumps({
+          'error': error.message,
+      }))
+      logging.error(error.message)
+      return
+
 
     if created_table:
       self.response.out.write(json.dumps({
@@ -68,8 +77,9 @@ class CreateHealthReportHandler(request_handler.RequestHandler):
       }))
     else:
       self.response.out.write(json.dumps({
-          'error': msg,
+          'error': 'Could not create table.',
       }))
+      logging.error('Could not create table.')
 
   def _ValidateToken(self):
     user = users.get_current_user()
