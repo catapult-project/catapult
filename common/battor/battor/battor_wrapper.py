@@ -17,7 +17,6 @@ from battor import battor_error
 from py_utils import cloud_storage
 import dependency_manager
 from devil.utils import battor_device_mapping
-from devil.utils import cmd_helper
 from devil.utils import find_usb_devices
 
 import serial
@@ -374,7 +373,6 @@ class BattOrWrapper(object):
     int(self._git_hash, 16)
     return self._git_hash
 
-
   def FlashFirmware(self, hex_path, avrdude_config_path):
     """Flashes the BattOr using an avrdude config at config_path with the new
        firmware at hex_path.
@@ -386,6 +384,9 @@ class BattOrWrapper(object):
 
     avrdude_binary = self._dm.FetchPath(
         'avrdude_binary', '%s_%s' % (sys.platform, platform.machine()))
+    # Sanitize hex file path for windows. It contains <drive>:/ which avrdude
+    # is not capable of handling.
+    _, hex_path = os.path.splitdrive(hex_path)
     avr_cmd = [
         avrdude_binary,
         '-e',  # Specify to erase data on chip.
@@ -399,11 +400,12 @@ class BattOrWrapper(object):
         '-C', avrdude_config_path, # AVRdude config file path.
         '2>&1'  # All output goes to stderr for some reason.
     ]
-    status, output = cmd_helper.GetCmdStatusAndOutput(' '.join(avr_cmd),
-                                                      shell=True)
-    logging.critical(output)
-    if status != 0:
-      raise BattOrFlashError('BattOr flash failed with error code: %d' % status)
+    try:
+      subprocess.check_output(avr_cmd)
+    except subprocess.CalledProcessError as e:
+      raise BattOrFlashError('BattOr flash failed with return code %s.'
+                             % e.returncode)
+
     self._git_hash = None
     return True
 

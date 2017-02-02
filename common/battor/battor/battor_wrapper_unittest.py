@@ -5,12 +5,12 @@
 import dependency_manager
 import logging
 import mock
+import subprocess
 import unittest
 
 from battor import battor_error
 from battor import battor_wrapper
 from devil.utils import battor_device_mapping
-from devil.utils import cmd_helper
 from devil.utils import find_usb_devices
 
 import serial
@@ -162,10 +162,14 @@ class BattOrWrapperTest(unittest.TestCase):
     battor_device_mapping.IsBattOr = lambda x, y: self._is_battor
     battor_device_mapping.GenerateSerialMap = lambda: self._fake_map
     serial.tools.list_ports.comports = lambda: [('COM4', 'USB Serial Port', '')]
-    self._cmd_helper_return = (0, 'cbaa843')
-    self._get_cmd_status_and_output = cmd_helper.GetCmdStatusAndOutput
-    cmd_helper.GetCmdStatusAndOutput = (
-        lambda args, cwd=None, shell=None: self._cmd_helper_return)
+
+    self._subprocess_check_output_code = 0
+    def subprocess_check_output_mock(*unused):
+      if self._subprocess_check_output_code != 0:
+        raise subprocess.CalledProcessError(None, None)
+      return 0
+    self._subprocess_check_output = subprocess.check_output
+    subprocess.check_output = subprocess_check_output_mock
 
   def tearDown(self):
     battor_device_mapping.GetBattOrPathFromPhoneSerial = (
@@ -177,7 +181,7 @@ class BattOrWrapperTest(unittest.TestCase):
     battor_device_mapping.IsBattOr = self._is_battor
     battor_device_mapping.GenerateSerialMap = self._generate_serial_map
     serial.tools.list_ports.comports = self._serial_tools
-    cmd_helper.GetCmdStatusAndOutput = self._get_cmd_status_and_output
+    subprocess.check_output = self._subprocess_check_output
 
   def _DefaultBattOrReplacements(self):
     self._battor._StartShellImpl = lambda *unused: PopenMock()
@@ -288,14 +292,13 @@ class BattOrWrapperTest(unittest.TestCase):
     self.assertTrue(self._battor.FlashFirmware('hex_path', 'config_path'))
 
   def testFlashFirmwareFail(self):
-    self._cmd_helper_return = (1, 'Fail')
     self._battor = battor_wrapper.BattOrWrapper('linux')
     self._DefaultBattOrReplacements()
+    self._subprocess_check_output_code = 1
     with self.assertRaises(battor_wrapper.BattOrFlashError):
       self._battor.FlashFirmware('hex_path', 'config_path')
 
   def testFlashFirmwarePlatformNotSupported(self):
-    self._cmd_helper_return = (1, 'Fail')
     self._battor = battor_wrapper.BattOrWrapper('win')
     self._DefaultBattOrReplacements()
     self._battor._target_platform = 'unsupported_platform'
