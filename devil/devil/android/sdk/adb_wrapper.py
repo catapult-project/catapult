@@ -38,8 +38,8 @@ DEFAULT_RETRIES = 2
 _ADB_VERSION_RE = re.compile(r'Android Debug Bridge version (\d+\.\d+\.\d+)')
 _EMULATOR_RE = re.compile(r'^emulator-[0-9]+$')
 _READY_STATE = 'device'
-_VERITY_DISABLE_RE = re.compile('Verity (already)? disabled')
-_VERITY_ENABLE_RE = re.compile('Verity (already)? enabled')
+_VERITY_DISABLE_RE = re.compile(r'Verity (already )?disabled')
+_VERITY_ENABLE_RE = re.compile(r'Verity (already )?enabled')
 
 
 def VerifyLocalFileExists(path):
@@ -886,14 +886,14 @@ class AdbWrapper(object):
   def DisableVerity(self, timeout=DEFAULT_TIMEOUT, retries=DEFAULT_RETRIES):
     """Disable Marshmallow's Verity security feature"""
     output = self._RunDeviceAdbCmd(['disable-verity'], timeout, retries)
-    if output and _VERITY_DISABLE_RE.search(output):
+    if output and not _VERITY_DISABLE_RE.search(output):
       raise device_errors.AdbCommandFailedError(
           ['disable-verity'], output, device_serial=self._device_serial)
 
   def EnableVerity(self, timeout=DEFAULT_TIMEOUT, retries=DEFAULT_RETRIES):
     """Enable Marshmallow's Verity security feature"""
     output = self._RunDeviceAdbCmd(['enable-verity'], timeout, retries)
-    if output and _VERITY_ENABLE_RE.search(output):
+    if output and not _VERITY_ENABLE_RE.search(output):
       raise device_errors.AdbCommandFailedError(
           ['enable-verity'], output, device_serial=self._device_serial)
 
