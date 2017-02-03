@@ -24,8 +24,8 @@ found in the LICENSE file.
       padding: 0 3px 0 3px;
     }
 
-    :host(.info-bar-hidden) {
-      display: none;
+    :host([hidden]) {
+      display: none !important;
     }
 
     #message { flex: 1 1 auto; }
@@ -46,7 +46,6 @@ Polymer({
     this.buttonsEl_ = this.$.buttons;
 
     this.message = '';
-    this.visible = false;
   },
 
   get message() {
@@ -58,14 +57,11 @@ Polymer({
   },
 
   get visible() {
-    return !Polymer.dom(this).classList.contains('info-bar-hidden');
+    return !this.hidden;
   },
 
   set visible(visible) {
-    if (visible)
-      Polymer.dom(this).classList.remove('info-bar-hidden');
-    else
-      Polymer.dom(this).classList.add('info-bar-hidden');
+    this.hidden = !visible;
   },
 
   removeAllButtons: function() {

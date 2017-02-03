@@ -92,7 +92,7 @@ found in the LICENSE file.
       </div>
     </div>
     <div id="contents">
-      <tr-ui-b-info-bar id="info_bar" class="info-bar-hidden">
+      <tr-ui-b-info-bar id="info_bar" hidden>
       </tr-ui-b-info-bar>
 
       <div id="info_text">No heap dump selected</div>
@@ -369,7 +369,7 @@ tr.exportTo('tr.ui.analysis', function() {
         this.$.info_text.style.display = 'block';
         this.$.split_view.style.display = 'none';
         this.$.view_mode_container.style.display = 'none';
-        this.$.info_bar.visible = false;
+        this.$.info_bar.hidden = true;
         this.$.path_view.selectedNode = undefined;
         return;
       }
@@ -380,7 +380,7 @@ tr.exportTo('tr.ui.analysis', function() {
       this.$.view_mode_container.style.display = 'block';
 
       // Show the info bar if in heavy view mode.
-      this.$.info_bar.visible = this.heavyView;
+      this.$.info_bar.hidden = !this.heavyView;
 
       this.$.path_view.selectedNode = this.createHeapTree_();
       this.$.path_view.rebuild();
