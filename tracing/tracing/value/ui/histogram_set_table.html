@@ -481,12 +481,11 @@ tr.exportTo('tr.v.ui', function() {
       var keys = new Set();
       for (var value of this.histograms) {
         var telemetry = tr.v.d.TelemetryInfo.getFromValue(value);
-        if (!(telemetry instanceof tr.v.d.TelemetryInfo) ||
-            !telemetry.storyGroupingKeys) {
+        if (!(telemetry instanceof tr.v.d.TelemetryInfo)) {
           continue;
         }
 
-        for (var key in telemetry.storyGroupingKeys) {
+        for (var [key, value] of telemetry.storyGroupingKeys) {
           keys.add(key);
         }
       }

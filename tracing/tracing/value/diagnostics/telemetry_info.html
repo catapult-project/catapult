@@ -21,13 +21,38 @@ tr.exportTo('tr.v.d', function() {
       this.label_ = '';
       this.legacyTIRLabel_ = '';
       this.storyDisplayName_ = '';
-      this.storyGroupingKeys_ = {};
+      this.storyGroupingKeys_ = new Map();
       this.storyRepeatCounter_ = undefined;
       this.storyUrl_ = '';
       this.storysetRepeatCounter_ = undefined;
 
       if (opt_info)
         this.addInfo(opt_info);
+    }
+
+    canAddDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
+      return otherDiagnostic instanceof tr.v.d.MergedTelemetryInfo ||
+             otherDiagnostic instanceof TelemetryInfo;
+    }
+
+    /**
+     * If subclasses override canAddDiagnostic() then they must also override
+     * this method to return a replacement Diagnostic.
+     * Subclasses can modify return |this| or create and return a new
+     * Diagnostic, but must not modify |otherDiagnostic|.
+     *
+     * @param {!(tr.v.d.TelemetryInfo|tr.v.d.MergedTelemetryInfo}}
+     *         otherDiagnostic
+     * @param {!string} name
+     * @param {!tr.v.Histogram} parentHist
+     * @param {!tr.v.Histogram} otherParentHist
+     * @return {!tr.v.d.MergedTelemetryInfo}
+     */
+    addDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
+      var merged = new tr.v.d.MergedTelemetryInfo();
+      merged.addDiagnostic(this);
+      merged.addDiagnostic(otherDiagnostic);
+      return merged;
     }
 
     /**
@@ -42,22 +67,29 @@ tr.exportTo('tr.v.d', function() {
      * @param {number} info.benchmarkStartMs Milliseconds since Unix epoch.
      */
     addInfo(info) {
-      if (info.benchmarkName)
+      if (info.benchmarkName) {
         this.benchmarkName_ = info.benchmarkName;
-      if (info.benchmarkStartMs)
+      }
+      if (info.benchmarkStartMs !== undefined) {
         this.benchmarkStart_ = new Date(info.benchmarkStartMs);
-      if (info.label)
+      }
+      if (info.label) {
         this.label_ = info.label;
-      if (info.storyDisplayName)
+      }
+      if (info.storyDisplayName) {
         this.storyDisplayName_ = info.storyDisplayName;
-      if (info.storyGroupingKeys)
-        this.storyGroupingKeys_ = info.storyGroupingKeys;
-      if (info.storyRepeatCounter !== undefined)
+      }
+      tr.b.iterItems(info.storyGroupingKeys || {}, (name, value) =>
+        this.storyGroupingKeys_.set(name, value));
+      if (info.storyRepeatCounter !== undefined) {
         this.storyRepeatCounter_ = info.storyRepeatCounter;
-      if (info.storyUrl)
+      }
+      if (info.storyUrl) {
         this.storyUrl_ = info.storyUrl;
-      if (info.storysetRepeatCounter !== undefined)
+      }
+      if (info.storysetRepeatCounter !== undefined) {
         this.storysetRepeatCounter_ = info.storysetRepeatCounter;
+      }
       if (info.legacyTIRLabel) {
         this.legacyTIRLabel_ = info.legacyTIRLabel;
       }
@@ -82,7 +114,12 @@ tr.exportTo('tr.v.d', function() {
         d.benchmarkStartMs = this.benchmarkStart.getTime();
       d.label = this.label;
       d.storyDisplayName = this.storyDisplayName;
-      d.storyGroupingKeys = this.storyGroupingKeys;
+      if (this.storyGroupingKeys.size > 0) {
+        d.storyGroupingKeys = {};
+        for (var [name, value] of this.storyGroupingKeys) {
+          d.storyGroupingKeys[name] = value;
+        }
+      }
       d.storyRepeatCounter = this.storyRepeatCounter;
       d.storyUrl = this.storyUrl;
       d.storysetRepeatCounter = this.storysetRepeatCounter;
@@ -180,7 +217,7 @@ tr.exportTo('tr.v.d', function() {
       if (!(telemetry instanceof tr.v.d.TelemetryInfo))
         return storyGroupingKey + ': undefined';
       return storyGroupingKey + ': ' +
-        telemetry.storyGroupingKeys[storyGroupingKey];
+        telemetry.storyGroupingKeys.get(storyGroupingKey);
     }
 
     /**

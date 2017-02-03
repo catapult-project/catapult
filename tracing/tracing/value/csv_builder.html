@@ -60,11 +60,10 @@ tr.exportTo('tr.v', function() {
 
         for (var key of this.storyGroupingKeys_) {
           if (iteration === undefined ||
-              iteration.storyGroupingKeys === undefined ||
-              iteration.storyGroupingKeys[key] === undefined) {
+              iteration.storyGroupingKeys.get(key) === undefined) {
             row.push('');
           } else {
-            row.push(iteration.storyGroupingKeys[key]);
+            row.push(iteration.storyGroupingKeys.get(key));
           }
         }
       }
@@ -90,10 +89,8 @@ tr.exportTo('tr.v', function() {
             this.iterationInfoNames_.add(name);
           }
         }
-        if (iteration.storyGroupingKeys) {
-          for (var key in iteration.storyGroupingKeys) {
-            this.storyGroupingKeys_.add(key);
-          }
+        for (var [key, value] of iteration.storyGroupingKeys) {
+          this.storyGroupingKeys_.add(key);
         }
       }
     }

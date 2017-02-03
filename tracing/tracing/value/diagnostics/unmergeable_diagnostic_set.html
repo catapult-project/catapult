@@ -34,21 +34,28 @@ tr.exportTo('tr.v.d', function() {
      * @param {!string} name
      * @param {!tr.v.Histogram} parentHist
      * @param {!tr.v.Histogram} otherParentHist
+     * @return {!tr.v.d.UnmergeableDiagnostic} this
      */
     addDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
       if (otherDiagnostic instanceof UnmergeableDiagnosticSet) {
-        this._diagnostics.push(...otherDiagnostic);
-        return;
+        for (var subOtherDiagnostic of otherDiagnostic) {
+          this.addDiagnostic(subOtherDiagnostic, name, parentHist,
+              otherParentHist);
+        }
+        return this;
       }
-      for (var diagnostic of this) {
-        if (diagnostic.canAddDiagnostic(
+
+      for (var i = 0; i < this._diagnostics.length; ++i) {
+        if (this._diagnostics[i].canAddDiagnostic(
               otherDiagnostic, name, parentHist, otherParentHist)) {
-          diagnostic.addDiagnostic(
+          this._diagnostics[i] = this._diagnostics[i].addDiagnostic(
               otherDiagnostic, name, parentHist, otherParentHist);
-          return;
+          return this;
         }
       }
+
       this._diagnostics.push(otherDiagnostic);
+      return this;
     }
 
     get length() {

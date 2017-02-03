@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <!--
-Copyright 2016 The Chromium Authors. All rights reserved.
+Copyright 2017 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/ui/base/table.html">
 
-<dom-module id="tr-v-ui-telemetry-info-span">
+<dom-module id="tr-v-ui-merged-telemetry-info-span">
   <template>
     <tr-ui-b-table id="table"></tr-ui-b-table>
   </template>
@@ -15,7 +15,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 Polymer({
-  is: 'tr-v-ui-telemetry-info-span',
+  is: 'tr-v-ui-merged-telemetry-info-span',
 
   ready: function() {
     this.diagnostic_ = undefined;
@@ -51,32 +51,37 @@ Polymer({
 
     var rows = [];
 
-    if (this.diagnostic.benchmarkName) {
-      rows.push(['benchmark name', this.diagnostic.benchmarkName]);
+    if (this.diagnostic.benchmarkNames.size) {
+      rows.push(['benchmark names',
+          Array.from(this.diagnostic.benchmarkNames).join(', ')]);
     }
-    if (this.diagnostic.benchmarkStart) {
-      rows.push(['benchmark start', this.diagnostic.benchmarkStartString]);
+    if (this.diagnostic.benchmarkStarts.size) {
+      rows.push(['benchmark starts',
+          this.diagnostic.benchmarkStartStrings.join(', ')]);
     }
-    if (this.diagnostic.storyUrl) {
-      rows.push(['url', this.diagnostic.storyUrl]);
+    if (this.diagnostic.storyUrls.size) {
+      rows.push(['urls', Array.from(this.diagnostic.storyUrls).join(', ')]);
     }
-    if (this.diagnostic.storyDisplayName) {
-      rows.push(['story', this.diagnostic.storyDisplayName]);
+    if (this.diagnostic.storyDisplayNames.size) {
+      rows.push(['stories', Array.from(
+          this.diagnostic.storyDisplayNames).join(', ')]);
     }
-    if (this.diagnostic.storysetRepeatCounter !== undefined) {
-      rows.push(['storyset repeat', this.diagnostic.storysetRepeatCounter]);
+    if (this.diagnostic.storysetRepeatCounters.size) {
+      rows.push(['storyset repeats', Array.from(
+          this.diagnostic.storysetRepeatCounters).join(', ')]);
     }
-    if (this.diagnostic.storyRepeatCounter !== undefined) {
-      rows.push(['story repeat', this.diagnostic.storyRepeatCounter]);
+    if (this.diagnostic.storyRepeatCounters.size) {
+      rows.push(['story repeats', Array.from(
+          this.diagnostic.storyRepeatCounters).join(', ')]);
     }
-    if (this.diagnostic.label) {
-      rows.push(['label', this.diagnostic.label]);
+    if (this.diagnostic.labels.size) {
+      rows.push(['label', Array.from(this.diagnostic.labels).join(', ')]);
     }
     if (this.diagnostic.storyGroupingKeys.size) {
       var gov = document.createElement('tr-ui-a-generic-object-view');
       var obj = {};
       for (var [key, value] of this.diagnostic.storyGroupingKeys) {
-        obj[key] = value;
+        obj[key] = Array.from(value);
       }
       gov.object = obj;
       rows.push(['grouping keys', gov]);

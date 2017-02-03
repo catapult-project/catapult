@@ -17,10 +17,10 @@ tr.b.unittest.testSuite(function() {
     var b = new tr.v.d.Generic('b');
     assert.isTrue(a.canAddDiagnostic(b));
     assert.isTrue(b.canAddDiagnostic(a));
-    a.addDiagnostic(b);
-    assert.deepEqual(a.value, ['a', 'b']);
-    b.addDiagnostic(a);
-    assert.deepEqual(b.value, ['b', 'a', 'b']);
+    var ab = a.addDiagnostic(b);
+    assert.deepEqual(ab.value, ['a', 'b']);
+    var bab = b.addDiagnostic(ab);
+    assert.deepEqual(bab.value, ['b', 'a', 'b']);
   });
 });
 </script>

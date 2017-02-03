@@ -134,10 +134,10 @@ function rawValuesByMetricName(valueSet, metricName) {
     var ii = tr.v.d.TelemetryInfo.getFromValue(value);
     if (interactionRecord) {
       var irParts = [];
-      var keys = Object.keys(ii.storyGroupingKeys);
+      var keys = Array.from(ii.storyGroupingKeys.keys());
       keys.sort();
       for (var key of keys)
-        irParts.push(ii.storyGroupingKeys[key]);
+        irParts.push(ii.storyGroupingKeys.get(key));
       if (interactionRecord === irParts.join('_') &&
           escapeChars(ii.storyDisplayName) ===
           escapeChars(story)) {

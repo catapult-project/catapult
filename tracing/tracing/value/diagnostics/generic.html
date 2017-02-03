@@ -31,15 +31,19 @@ tr.exportTo('tr.v.d', function() {
     }
 
     addDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
-      if (!this._merged) {
-        this.value = [this.value];
-        this._merged = true;
+      var result = new Generic([]);
+      result._merged = true;
+      if (this._merged) {
+        result.value.push(...this.value);
+      } else {
+        result.value.push(this.value);
       }
       if (otherDiagnostic._merged) {
-        this.value.push(...otherDiagnostic.value);
+        result.value.push(...otherDiagnostic.value);
       } else {
-        this.value.push(otherDiagnostic.value);
+        result.value.push(otherDiagnostic.value);
       }
+      return result;
     }
 
     asDictInto_(d) {

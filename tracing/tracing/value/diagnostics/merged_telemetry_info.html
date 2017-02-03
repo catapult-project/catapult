@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/base/utils.html">
+<link rel="import" href="/tracing/value/diagnostics/diagnostic.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.v.d', function() {
+  class MergedTelemetryInfo extends tr.v.d.Diagnostic {
+    constructor() {
+      super();
+      this.benchmarkNames_ = new Set();
+      this.benchmarkStarts_ = new Set();
+      this.labels_ = new Set();
+      this.legacyTIRLabels_ = new Set();
+      this.storyDisplayNames_ = new Set();
+      this.storyGroupingKeys_ = new Map();
+      this.storyRepeatCounters_ = new Set();
+      this.storyUrls_ = new Set();
+      this.storysetRepeatCounters_ = new Set();
+    }
+
+    canAddDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
+      return otherDiagnostic instanceof MergedTelemetryInfo ||
+             otherDiagnostic instanceof tr.v.d.TelemetryInfo;
+    }
+
+    addDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
+      if (otherDiagnostic instanceof MergedTelemetryInfo) {
+        for (let name of otherDiagnostic.benchmarkNames) {
+          this.benchmarkNames.add(name);
+        }
+        for (let t of otherDiagnostic.benchmarkStarts) {
+          this.benchmarkStarts.add(t);
+        }
+        for (let name of otherDiagnostic.labels) {
+          this.labels.add(name);
+        }
+        for (let name of otherDiagnostic.legacyTIRLabels) {
+          this.legacyTIRLabels.add(name);
+        }
+        for (let name of otherDiagnostic.storyDisplayNames) {
+          this.storyDisplayNames.add(name);
+        }
+        for (let name of otherDiagnostic.storyUrls) {
+          this.storyUrls.add(name);
+        }
+        for (let name of otherDiagnostic.storyRepeatCounters) {
+          this.storyRepeatCounters.add(name);
+        }
+        for (let name of otherDiagnostic.storysetRepeatCounters) {
+          this.storysetRepeatCounters.add(name);
+        }
+        for (let [name, value] of otherDiagnostic.storyGroupingKeys) {
+          if (this.storyGroupingKeys.has(name)) {
+            for (let subValue of value) {
+              this.storyGroupingKeys.get(name).add(subValue);
+            }
+          } else {
+            this.storyGroupingKeys.set(name, new Set(value));
+          }
+        }
+        return this;
+      }
+
+      if (otherDiagnostic.benchmarkName) {
+        this.benchmarkNames.add(otherDiagnostic.benchmarkName);
+      }
+      if (otherDiagnostic.benchmarkStart !== undefined) {
+        this.benchmarkStarts.add(otherDiagnostic.benchmarkStart);
+      }
+      if (otherDiagnostic.label) {
+        this.labels.add(otherDiagnostic.label);
+      }
+      if (otherDiagnostic.legacyTIRLabel) {
+        this.legacyTIRLabels.add(otherDiagnostic.legacyTIRLabel);
+      }
+      if (otherDiagnostic.storyDisplayName) {
+        this.storyDisplayNames.add(otherDiagnostic.storyDisplayName);
+      }
+      for (let [name, value] of otherDiagnostic.storyGroupingKeys) {
+        if (this.storyGroupingKeys.has(name)) {
+          this.storyGroupingKeys.get(name).add(value);
+        } else {
+          this.storyGroupingKeys.set(name, new Set([value]));
+        }
+      }
+      if (otherDiagnostic.storyRepeatCounter !== undefined) {
+        this.storyRepeatCounters.add(otherDiagnostic.storyRepeatCounter);
+      }
+      if (otherDiagnostic.storyUrl) {
+        this.storyUrls.add(otherDiagnostic.storyUrl);
+      }
+      if (otherDiagnostic.storysetRepeatCounter !== undefined) {
+        this.storysetRepeatCounters.add(otherDiagnostic.storysetRepeatCounter);
+      }
+      return this;
+    }
+
+    asDictInto_(d) {
+      if (this.benchmarkNames.size) {
+        d.benchmarkNames = Array.from(this.benchmarkNames);
+      }
+      if (this.benchmarkStarts.size) {
+        d.benchmarkStartsMs = [];
+        for (let t of this.benchmarkStarts) {
+          d.benchmarkStartsMs.push(t.getTime());
+        }
+      }
+      if (this.labels.size) {
+        d.labels = Array.from(this.labels);
+      }
+      if (this.legacyTIRLabels.size) {
+        d.legacyTIRLabels = this.legacyTIRLabels;
+      }
+      if (this.storyDisplayNames.size) {
+        d.storyDisplayNames = Array.from(this.storyDisplayNames);
+      }
+      if (this.storyGroupingKeys.size) {
+        d.storyGroupingKeys = {};
+        for (let [name, values] of this.storyGroupingKeys) {
+          d.storyGroupingKeys[name] = Array.from(values);
+        }
+      }
+      if (this.storyRepeatCounters.size) {
+        d.storyRepeatCounters = Array.from(this.storyRepeatCounters);
+      }
+      if (this.storyUrls.size) {
+        d.storyUrls = Array.from(this.storyUrls);
+      }
+      if (this.storysetRepeatCounters.size) {
+        d.storysetRepeatCounters = Array.from(this.storysetRepeatCounters);
+      }
+    }
+
+    static fromDict(d) {
+      let info = new MergedTelemetryInfo();
+      for (let n of d.benchmarkNames || []) {
+        info.benchmarkNames_.add(n);
+      }
+      for (let n of d.benchmarkStartsMs || []) {
+        info.benchmarkStarts_.add(new Date(n));
+      }
+      for (let n of d.labels || []) {
+        info.labels_.add(n);
+      }
+      for (let n of d.legacyTIRLabels) {
+        info.legacyTIRLabels_.add(n);
+      }
+      for (let n of d.storyDisplayNames || []) {
+        info.storyDisplayNames_.add(n);
+      }
+      tr.b.iterItems(d.storyGroupingKeys || {}, (name, values) =>
+        info.storyGroupingKeys_.set(name, new Set(values)));
+      for (let n of d.storyRepeatCounters || []) {
+        info.storyRepeatCounters_.add(n);
+      }
+      for (let n of d.storyUrls || []) {
+        info.storyUrls_.add(n);
+      }
+      for (let n of d.storysetRepeatCounters || []) {
+        info.storysetRepeatCounters_.add(n);
+      }
+      return info;
+    }
+
+    get displayLabel() {
+      if (this.labels.size) {
+        return Array.from(this.labels).join('\n');
+      }
+      return Array.from(this.benchmarkNames).concat(
+          this.benchmarkStartStrings).join('\n');
+    }
+
+    get benchmarkNames() {
+      return this.benchmarkNames_;
+    }
+
+    get labels() {
+      return this.labels_;
+    }
+
+    get legacyTIRLabels() {
+      return this.legacyTIRLabels_;
+    }
+
+    get storyGroupingKeys() {
+      return this.storyGroupingKeys_;
+    }
+
+    get storyDisplayNames() {
+      return this.storyDisplayNames_;
+    }
+
+    get storyUrls() {
+      return this.storyUrls_;
+    }
+
+    get storyRepeatCounters() {
+      return this.storyRepeatCounters_;
+    }
+
+    get storyRepeatCounterLabel() {
+      return 'story repeat ' + Array.from(this.storyRepeatCounters).join(',');
+    }
+
+    get storysetRepeatCounters() {
+      return this.storysetRepeatCounters_;
+    }
+
+    get storysetRepeatCounterLabel() {
+      return 'storyset repeat ' + Array.from(
+          this.storysetRepeatCounters).join(',');
+    }
+
+    get benchmarkStarts() {
+      return this.benchmarkStarts_;
+    }
+
+    get benchmarkStartStrings() {
+      let strs = [];
+      for (let t of this.benchmarkStarts) {
+        strs.push(tr.b.formatDate(t));
+      }
+      return strs;
+    }
+
+    /**
+     * @param {!tr.v.Histogram} hist
+     * @param {string} fieldName
+     * @param {*} defaultValue
+     * @return {*}
+     */
+    static getField(hist, fieldName, defaultValue) {
+      let telemetry = tr.v.d.MergedTelemetryInfo.getFromValue(hist);
+      if (!(telemetry instanceof tr.v.d.MergedTelemetryInfo) ||
+          !telemetry[fieldName]) {
+        return defaultValue;
+      }
+      return telemetry[fieldName];
+    }
+
+    /**
+     * @param {!tr.v.Histogram} hist
+     * @param {string} storyGroupingKey
+     * @return {string}
+     */
+    static getStoryGroupingKeyLabel(hist, storyGroupingKey) {
+      let telemetry = tr.v.d.MergedTelemetryInfo.getFromValue(hist);
+      if (!(telemetry instanceof tr.v.d.MergedTelemetryInfo))
+        return storyGroupingKey + ': undefined';
+      return storyGroupingKey + ': ' +
+        telemetry.storyGroupingKeys[storyGroupingKey];
+    }
+
+    /**
+     * Returns a closure that gets a story grouping key label from a Histogram.
+     *
+     * @param {string} storyGroupingKey
+     * @return {!function(tr.v.Histogram):string}
+     */
+    static makeStoryGroupingKeyLabelGetter(storyGroupingKey) {
+      return v => MergedTelemetryInfo.getStoryGroupingKeyLabel(
+          v, storyGroupingKey);
+    }
+  }
+
+  // Diagnostics generally do not need a constant name or getFromValue().
+  // MergedTelemetryInfo is a special kind of Diagnostic that is produced by
+  // telemetry, which shepherds whole flocks of traces at once, and needs a
+  // system to identify and find traces by these attributes.
+
+  // Values produced by telemetry all have a single MergedTelemetryInfo at this
+  // key in their DiagnosticMap.
+  MergedTelemetryInfo.NAME = 'telemetry';
+
+  tr.v.d.Diagnostic.register(MergedTelemetryInfo, {
+    elementName: 'tr-v-ui-merged-telemetry-info-span'
+  });
+
+  return {
+    MergedTelemetryInfo,
+  };
+});
+</script>

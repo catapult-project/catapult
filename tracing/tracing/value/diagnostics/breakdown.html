@@ -27,6 +27,7 @@ tr.exportTo('tr.v.d', function() {
       for (var [name, value] of otherDiagnostic) {
         this.set(name, this.get(name) + value);
       }
+      return this;
     }
 
     /**
