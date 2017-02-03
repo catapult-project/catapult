@@ -268,6 +268,7 @@ tr.exportTo('tr.ui.analysis', function() {
       this.heapDumps_ = undefined;
       this.viewMode_ = undefined;
       this.aggregationMode_ = undefined;
+      this.cachedBuilders_ = new Map();
     },
 
     ready: function() {
@@ -403,33 +404,45 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     createStackFrameTrees_: function(heapDumps) {
-      return heapDumps.map(function(heapDump) {
-        if (heapDump === undefined)
-          return undefined;
-
-        var builder = new MultiDimensionalViewBuilder(
-            2 /* dimensions (stack frames, object type) */,
-            2 /* valueCount (size, count) */);
-
-        // Build the heap tree.
-        heapDump.entries.forEach(function(entry) {
-          var leafStackFrame = entry.leafStackFrame;
-          var stackTracePath = leafStackFrame === undefined ?
-              [] : leafStackFrame.getUserFriendlyStackTrace().reverse();
-
-          var objectTypeName = entry.objectTypeName;
-          var objectTypeNamePath = objectTypeName === undefined ?
-              [] : [objectTypeName];
-
-          builder.addPath([stackTracePath, objectTypeNamePath],
-              [entry.size, entry.count],
-              MultiDimensionalViewBuilder.ValueKind.TOTAL);
-        }, this);
-
+      var builders = heapDumps.map(heapDump => this.createBuilder_(heapDump));
+      var views = builders.map(builder => {
+        if (builder === undefined) return undefined;
         return builder.buildView(this.viewMode);
-      }, this);
-    }
-   });
+      });
+      return views;
+    },
+
+    createBuilder_: function(heapDump) {
+      if (heapDump === undefined) return undefined;
+
+      if (this.cachedBuilders_.has(heapDump)) {
+        return this.cachedBuilders_.get(heapDump);
+      }
+
+      var dimensions = 2; // stack frames, object type
+      var valueCount = 2; // size, count
+      var builder = new MultiDimensionalViewBuilder(dimensions, valueCount);
+
+      // Build the heap tree.
+      for (var entry of heapDump.entries) {
+        var leafStackFrame = entry.leafStackFrame;
+        var stackTracePath = leafStackFrame === undefined ?
+            [] : leafStackFrame.getUserFriendlyStackTrace().reverse();
+
+        var objectTypeName = entry.objectTypeName;
+        var objectTypeNamePath = objectTypeName === undefined ?
+            [] : [objectTypeName];
+
+        builder.addPath([stackTracePath, objectTypeNamePath],
+            [entry.size, entry.count],
+            MultiDimensionalViewBuilder.ValueKind.TOTAL);
+      }
+
+      this.cachedBuilders_.set(heapDump, builder);
+      return builder;
+    },
+
+  });
 
   return {};
 });
