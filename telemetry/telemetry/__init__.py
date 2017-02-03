@@ -46,6 +46,8 @@ from telemetry.internal.util import global_hooks
 
 # Add Catapult third party dependencies into our path.
 _AddDirToPythonPath(util.GetCatapultThirdPartyDir(), 'typ')
+# Required by websocket-client.
+_AddDirToPythonPath(util.GetCatapultThirdPartyDir(), 'six')
 
 # Add Telemetry third party dependencies into our path.
 _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'altgraph')
