@@ -15,15 +15,15 @@ from telemetry.wpr import archive_info2
 
 
 class MockPage(page.Page):
-  def __init__(self, url, name=None):
+  def __init__(self, url, name=None, platform_specific=False):
     super(MockPage, self).__init__(url, None, name=name)
-
+    self._platform_specific = platform_specific
 
 page1 = MockPage('http://www.foo.com/', 'Foo')
-page2 = MockPage('http://www.bar.com/', 'Bar')
-page3 = MockPage('http://www.baz.com/')
+page2 = MockPage('http://www.bar.com/', 'Bar', True)
+page3 = MockPage('http://www.baz.com/', platform_specific=True)
 pageNew1 = MockPage('http://www.new.com/', 'New')
-pageNew2 = MockPage('http://www.newer.com/', 'Newer')
+pageNew2 = MockPage('http://www.newer.com/', 'Newer', True)
 recording1 = 'data_001.wpr'
 recording2 = 'data_002.wpr'
 recording3 = 'data_003.wpr'

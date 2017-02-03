@@ -121,7 +121,9 @@ class WprArchiveInfo(object):
       os.close(temp_wpr_file_handle)
     self.temp_target_wpr_file_path = temp_wpr_file_path
 
-  def AddRecordedStories(self, stories, upload_to_cloud_storage=False):
+  def AddRecordedStories(self, stories, upload_to_cloud_storage=False,
+                         target_platform=None):
+    del target_platform # Used in archive_info2.py
     if not stories:
       os.remove(self.temp_target_wpr_file_path)
       return

@@ -30,12 +30,16 @@ class RecorderPageTest(legacy_page_test.LegacyPageTest):
   def __init__(self):
     super(RecorderPageTest, self).__init__()
     self.page_test = None
+    self.platform = None
 
   def CustomizeBrowserOptions(self, options):
     if self.page_test:
       self.page_test.CustomizeBrowserOptions(options)
 
   def WillStartBrowser(self, browser):
+    if self.platform is not None:
+      assert browser.GetOSName() == self.platform
+    self.platform = browser.GetOSName()
     if self.page_test:
       self.page_test.WillStartBrowser(browser)
 
@@ -237,7 +241,8 @@ class WprRecorder(object):
     results.PrintSummary()
     self._story_set.wpr_archive_info.AddRecordedStories(
         results.pages_that_succeeded,
-        upload_to_cloud_storage)
+        upload_to_cloud_storage,
+        target_platform=self._record_page_test.platform)
 
 
 def Main(environment, **log_config_kwargs):

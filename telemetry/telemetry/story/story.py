@@ -136,3 +136,7 @@ class Story(object):
   @property
   def make_javascript_deterministic(self):
     return self._make_javascript_deterministic
+
+  @property
+  def platform_specific(self):
+    return self._platform_specific

@@ -139,8 +139,12 @@ class WprArchiveInfo(object):
     (target_wpr_file, target_wpr_file_path) = self._NextWprFileName()
     for story in stories:
       # Check to see if the platform has been manually overrided.
+      if not story.platform_specific:
+        current_target_platform = _DEFAULT_PLATFORM
+      else:
+        current_target_platform = target_platform
       self._SetWprFileForStory(
-          story.display_name, target_wpr_file, target_platform)
+          story.display_name, target_wpr_file, current_target_platform)
     shutil.move(self.temp_target_wpr_file_path, target_wpr_file_path)
 
     # Update the hash file.
