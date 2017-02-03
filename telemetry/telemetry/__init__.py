@@ -19,7 +19,8 @@ def _JoinPath(*path_parts):
 
 def _AddDirToPythonPath(*path_parts):
   path = _JoinPath(*path_parts)
-  if os.path.isdir(path) and path not in sys.path:
+  assert os.path.isdir(path), 'Not a valid path: %s' % path
+  if path not in sys.path:
     # Some call sites that use Telemetry assume that sys.path[0] is the
     # directory containing the script, so we add these extra paths to right
     # after sys.path[0].
@@ -54,7 +55,6 @@ _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'altgraph')
 _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'mock')
 _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'modulegraph')
 _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'mox3')
-_AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'pexpect')
 _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'png')
 _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'pyfakefs')
 _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'pyserial')
