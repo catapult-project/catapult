@@ -48,8 +48,7 @@ if __name__ == '__main__':
     parser.print_help()
     sys.exit(1)
 
-  if args.all:
-    print eslint.RunEslint(
-        DIRECTORIES_TO_LINT, extra_args=args.extra_args)[0]
-  else:
-    print eslint.RunEslint(args.paths, extra_args=args.extra_args)[0]
+  paths = DIRECTORIES_TO_LINT if args.all else args.paths
+  success, output = eslint.RunEslint(paths, extra_args=args.extra_args)
+  print output
+  sys.exit(not success)
