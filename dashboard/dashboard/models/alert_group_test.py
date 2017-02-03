@@ -61,9 +61,7 @@ class AnomalyGroupingTest(testing_common.TestCase):
 
     anomalies = ndb.get_multi(anomaly_keys)
 
-    # Add these anomalies to groups and put them again. When anomalies are
-    # put for the second time onward, the pre-put hook will be called and
-    # the groups of the anomalies will be updated.
+    # Add these anomalies to groups and put them again.
     anomalies[0].group = group_keys[0]
     anomalies[0].put()
     anomalies[1].group = group_keys[0]
@@ -99,8 +97,8 @@ class AnomalyGroupingTest(testing_common.TestCase):
 
     # Mark one of the alerts as invalid.
     self.assertEqual(12345, anomalies[1].bug_id)
-    anomalies[1].bug_id = -1
-    anomalies[1].put()
+
+    alert_group.ModifyAlertsAndAssociatedGroups([anomalies[1]], bug_id=-1)
 
     # Now, the alert marked as invalid has no group.
     # Also, the group's revision range has been updated accordingly.
@@ -121,16 +119,67 @@ class AnomalyGroupingTest(testing_common.TestCase):
         group=anomalies[0].group)
     new_anomaly.put()
 
-    # Associate it with a group; the pre-put hook will update the group's
-    # revision range here.
-    new_anomaly.start_revision = 3010
-    new_anomaly.end_revision = 3020
-    new_anomaly.put()
+    # Associate it with a group; alert_group.ModifyAlertsAndAssociatedGroups
+    # will update the group's revision range here.
+    alert_group.ModifyAlertsAndAssociatedGroups(
+        [new_anomaly], start_revision=3010, end_revision=3020)
 
     # Now the group's revision range is updated.
     group = anomalies[0].group.get()
     self.assertEqual(3010, group.start_revision)
     self.assertEqual(3020, group.end_revision)
+
+  def testUpdateAnomalyGroup_BugIDValid_GroupUpdated(self):
+    anomalies = self._AddAnomalies()
+    group1_key = anomalies[0].group
+    group2_key = anomalies[2].group
+
+    alert_group.ModifyAlertsAndAssociatedGroups(anomalies, bug_id=11111)
+
+    # Both groups should have their bug_id's updated
+    self.assertEqual(11111, group1_key.get().bug_id)
+    self.assertEqual(11111, group2_key.get().bug_id)
+
+  def testUpdateAnomalyGroup_BugIDInvalid_GroupDeleted(self):
+    anomalies = self._AddAnomalies()
+    group1_key = anomalies[0].group
+    group2_key = anomalies[2].group
+
+    alert_group.ModifyAlertsAndAssociatedGroups(anomalies, bug_id=-1)
+
+    # Both groups should have been deleted
+    self.assertIsNone(group1_key.get())
+    self.assertIsNone(group2_key.get())
+
+  def testUpdateAnomalyGroup_BugIDUntriaged_GroupRetainsBugID(self):
+    anomalies = self._AddAnomalies()
+    group1_key = anomalies[0].group
+
+    # Groups aren't assigned a bug_id until after an alert is placed in the
+    # group with a bug_id.
+    group = group1_key.get()
+    group.bug_id = 12345
+    group.put()
+
+    alert_group.ModifyAlertsAndAssociatedGroups(anomalies[:1], bug_id=None)
+
+    self.assertEqual(12345, group1_key.get().bug_id)
+
+  def testUpdateAnomalyGroup_BugIDUntriaged_GroupIsNone(self):
+    anomalies = self._AddAnomalies()
+    group2_key = anomalies[2].group
+
+    # First give that group an actual bug_id
+    alert_group.ModifyAlertsAndAssociatedGroups(anomalies[2:], bug_id=11111)
+
+    self.assertEqual(11111, group2_key.get().bug_id)
+
+    # Now un-triage the bug, since it's the onyl one in the group the group's
+    # bug_id should also be None
+    alert_group.ModifyAlertsAndAssociatedGroups(anomalies[2:], bug_id=None)
+
+    # Both groups should have been deleted
+    self.assertIsNone(group2_key.get().bug_id)
 
   def testUpdateGroup_InvalidRange_PropertiesAreUpdated(self):
     anomalies = self._AddAnomalies()
@@ -144,9 +193,8 @@ class AnomalyGroupingTest(testing_common.TestCase):
     new_anomaly_key = new_anomaly.put()
 
     # Change the anomaly revision to invalid range.
-    new_anomaly.start_revision = 10
-    new_anomaly.end_revision = 20
-    new_anomaly.put()
+    alert_group.ModifyAlertsAndAssociatedGroups(
+        [new_anomaly], start_revision=10, end_revision=20)
 
     # After adding this new anomaly, it belongs to the group, and the group
     # no longer has a minimum revision range.
@@ -156,9 +204,8 @@ class AnomalyGroupingTest(testing_common.TestCase):
     self.assertIsNone(group.end_revision)
 
     # Remove the new anomaly from the group by marking it invalid.
-    new_anomaly = new_anomaly_key.get()
-    new_anomaly.bug_id = -1
-    new_anomaly.put()
+    alert_group.ModifyAlertsAndAssociatedGroups(
+        [new_anomaly_key.get()], bug_id=-1)
 
     # Now, the anomaly group's revision range is valid again.
     group = anomalies[0].group.get()
