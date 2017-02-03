@@ -45,11 +45,18 @@ def _CreateEslintCommand(rulesdir, extra_args):
       '--rulesdir', rulesdir, '--ext', '.js,.html'
   ]
   if extra_args:
-    eslint_cmd += [extra_args]
+    eslint_cmd.extend(extra_args.strip().split(' '))
   return eslint_cmd
 
 
 def RunEslint(paths, rules_dir=DEFAULT_ESLINT_RULES_DIR, extra_args=None):
+  """Runs eslint on a list of paths.
+
+  Args:
+    paths: A list of paths to run eslint on.
+    rules_dir: A directory of custom eslint rules.
+    extra_args: A string to append to the end of the eslint command.
+  """
   if type(paths) is not list or len(paths) == 0:
     raise ValueError('Must specify a non-empty list of paths to lint.')
 
