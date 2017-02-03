@@ -21,7 +21,6 @@ from dashboard import quick_logger
 from dashboard.common import datastore_hooks
 from dashboard.common import request_handler
 from dashboard.common import utils
-from dashboard.models import alert_group
 from dashboard.models import anomaly
 from dashboard.models import bug_data
 from dashboard.models import try_job
@@ -334,9 +333,9 @@ def _MapAnomaliesToMergeIntoBug(dest_bug_id, source_bug_id):
   query = anomaly.Anomaly.query(
       anomaly.Anomaly.bug_id == int(source_bug_id))
   anomalies = query.fetch()
-
-  alert_group.ModifyAlertsAndAssociatedGroups(
-      anomalies, bug_id=int(dest_bug_id))
+  for anomaly_entity in anomalies:
+    anomaly_entity.bug_id = int(dest_bug_id)
+  ndb.put_multi(anomalies)
 
 
 def _GetCommitHashCacheKey(results_data):

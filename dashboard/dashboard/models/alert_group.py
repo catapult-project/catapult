@@ -39,133 +39,13 @@ class AlertGroup(ndb.Model):
     Args:
       grouped_alerts: Alert entities that belong to this group. These
           are only given here so that they don't need to be fetched.
-    Returns:
-      True if modified, False otherwise.
     """
     min_rev_range = utils.MinimumAlertRange(grouped_alerts)
     start, end = min_rev_range if min_rev_range else (None, None)
     if self.start_revision != start or self.end_revision != end:
       self.start_revision = start
       self.end_revision = end
-      return True
-    return False
-
-
-def ModifyAlertsAndAssociatedGroups(alert_entities, **kwargs):
-  """Modifies a list of alerts and their corresponding groups.
-
-  There's some book-keeping that needs to be done when modifying an alert,
-  specifically when modifying either the bug_id or it's revision range. These
-  can potentially trigger modifications or even deletions of AlertGroups.
-
-  Args:
-    alert_entities: A list of alert entities to modify.
-    bug_id: An optional bug_id to set.
-    start_revision: An optional start_revision to set.
-    end_revision: An optional end_revision to set.
-  """
-  modified_groups = []
-  modified_alerts = []
-  deleted_groups = []
-
-  valid_args = ['bug_id', 'start_revision', 'end_revision']
-
-  # 1st pass, for each alert that's modified, kick off an async get for
-  # it's group.
-  group_futures = {}
-  valid_alerts = []
-  for a in alert_entities:
-    if not a.group or a.group.kind() != 'AlertGroup':
-      a.group = None
-
-    modified = False
-
-    # We use kwargs instead of default args since None is actually a valid
-    # value to set and using kwargs let's us easily distinguish betwen
-    # setting None, and not passing that arg at all.
-    for v in valid_args:
-      if v in kwargs:
-        if getattr(a, v) != kwargs[v]:
-          setattr(a, v, kwargs[v])
-          modified = True
-
-    if not modified:
-      continue
-
-    modified_alerts.append(a)
-
-    if not a.group:
-      continue
-
-    if not a.group.id() in group_futures:
-      group_futures[a.group.id()] = a.group.get_async()
-
-    valid_alerts.append(a)
-
-  # 2nd pass, for each group, kick off async queries for any other alerts in
-  # the same group.
-  alert_entities = valid_alerts
-  valid_alerts = []
-  grouped_alerts_futures = {}
-  for a in alert_entities:
-    group_future = group_futures[a.group.id()]
-    group_entity = group_future.get_result()
-    if not group_entity:
-      continue
-
-    valid_alerts.append(a)
-
-    if a.group.id() in grouped_alerts_futures:
-      continue
-
-    alert_cls = a.__class__
-    grouped_alerts_future = alert_cls.query(
-        alert_cls.group == group_entity.key).fetch_async()
-    grouped_alerts_futures[a.group.id()] = grouped_alerts_future
-
-  # 3rd pass, modify groups
-  alert_entities = valid_alerts
-  grouped_alerts_cache = {}
-  for a in alert_entities:
-    # We cache these rather than grab get_result() each time because we may
-    # modify them in a previous iteration and we want those modifications.
-    if a.group.id() in grouped_alerts_cache:
-      group_entity, grouped_alerts = grouped_alerts_cache[a.group.id()]
-    else:
-      group_entity = group_futures[a.group.id()].get_result()
-      grouped_alerts = grouped_alerts_futures[a.group.id()].get_result()
-      grouped_alerts_cache[a.group.id()] = (group_entity, grouped_alerts)
-
-    if not a in grouped_alerts:
-      grouped_alerts.append(a)
-
-    if 'bug_id' in kwargs:
-      bug_id = kwargs['bug_id']
-      # The alert has been assigned a real bug ID.
-      # Update the group bug ID if necessary.
-      if bug_id > 0 and group_entity.bug_id != bug_id:
-        group_entity.bug_id = bug_id
-        modified_groups.append(group_entity)
-      # The bug has been marked invalid/ignored. Kick it out of the group.
-      elif bug_id < 0 and bug_id is not None:
-        a.group = None
-        grouped_alerts.remove(a)
-        if not grouped_alerts:
-          deleted_groups.append(group_entity.key)
-      # The bug has been un-triaged. Update the group's bug ID if this is
-      # the only alert in the group.
-      elif bug_id is None and len(grouped_alerts) == 1:
-        group_entity.bug_id = None
-        modified_groups.append(group_entity)
-
-    if group_entity.UpdateRevisionRange(grouped_alerts):
-      if not group_entity in modified_groups:
-        modified_groups.append(group_entity)
-
-  futures = ndb.delete_multi_async(deleted_groups)
-  futures.extend(ndb.put_multi_async(modified_alerts + modified_groups))
-
-  ndb.Future.wait_all(futures)
+      self.put()
 
 
 def GroupAlerts(alerts, test_suite, kind):

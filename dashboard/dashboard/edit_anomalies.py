@@ -12,7 +12,6 @@ from google.appengine.ext import ndb
 from dashboard.common import request_handler
 from dashboard.common import utils
 from dashboard.common import xsrf
-from dashboard.models import alert_group
 
 
 class EditAnomaliesHandler(request_handler.RequestHandler):
@@ -57,15 +56,13 @@ class EditAnomaliesHandler(request_handler.RequestHandler):
     bug_id = self.request.get('bug_id')
     new_start_revision = self.request.get('new_start_revision')
     new_end_revision = self.request.get('new_end_revision')
-    result = None
     if bug_id:
-      result = self.ChangeBugId(alert_entities, bug_id)
+      self.ChangeBugId(alert_entities, bug_id)
     elif new_start_revision and new_end_revision:
-      result = self.NudgeAnomalies(
-          alert_entities, new_start_revision, new_end_revision)
+      self.NudgeAnomalies(alert_entities, new_start_revision, new_end_revision)
     else:
-      result = {'error': 'No bug ID or new revision specified.'}
-    self.response.out.write(json.dumps(result))
+      self.response.out.write(
+          json.dumps({'error': 'No bug ID or new revision specified.'}))
 
   def ChangeBugId(self, alert_entities, bug_id):
     """Changes or resets the bug ID of all given alerts."""
@@ -76,11 +73,14 @@ class EditAnomaliesHandler(request_handler.RequestHandler):
       try:
         bug_id = int(bug_id)
       except ValueError:
-        return {'error': 'Invalid bug ID %s' % str(bug_id)}
+        self.response.out.write(json.dumps({
+            'error': 'Invalid bug ID %s' % str(bug_id)}))
+        return
+    for a in alert_entities:
+      a.bug_id = bug_id
 
-    alert_group.ModifyAlertsAndAssociatedGroups(alert_entities, bug_id=bug_id)
-
-    return {'bug_id': bug_id}
+    ndb.put_multi(alert_entities)
+    self.response.out.write(json.dumps({'bug_id': bug_id}))
 
   def NudgeAnomalies(self, anomaly_entities, start, end):
     # Change the revision range if a new revision range is specified and valid.
@@ -88,9 +88,12 @@ class EditAnomaliesHandler(request_handler.RequestHandler):
       start = int(start)
       end = int(end)
     except ValueError:
-      return {'error': 'Invalid revisions %s, %s' % (start, end)}
+      self.response.out.write(
+          json.dumps({'error': 'Invalid revisions %s, %s' % (start, end)}))
+      return
+    for a in anomaly_entities:
+      a.start_revision = start
+      a.end_revision = end
 
-    alert_group.ModifyAlertsAndAssociatedGroups(
-        anomaly_entities, start_revision=start, end_revision=end)
-
-    return {'success': 'Alerts nudged.'}
+    ndb.put_multi(anomaly_entities)
+    self.response.out.write(json.dumps({'success': 'Alerts nudged.'}))
