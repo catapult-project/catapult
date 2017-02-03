@@ -17,6 +17,7 @@ from dashboard import oauth2_decorator
 from dashboard.common import request_handler
 from dashboard.common import utils
 from dashboard.models import alert
+from dashboard.models import alert_group
 from dashboard.models import bug_data
 from dashboard.models import bug_label_patterns
 from dashboard.services import issue_tracker_service
@@ -142,9 +143,8 @@ class FileBugHandler(request_handler.RequestHandler):
       return
 
     bug_data.Bug(id=bug_id).put()
-    for alert_entity in alerts:
-      alert_entity.bug_id = bug_id
-    ndb.put_multi(alerts)
+
+    alert_group.ModifyAlertsAndAssociatedGroups(alerts, bug_id=bug_id)
 
     comment_body = _AdditionalDetails(bug_id, alerts)
     service.AddBugComment(bug_id, comment_body)
