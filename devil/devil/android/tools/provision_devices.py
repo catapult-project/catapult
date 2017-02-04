@@ -527,7 +527,8 @@ def main(raw_args):
       help='Disable the system chrome from devices.')
   parser.add_argument(
       '--emulators', action='store_true',
-      help='provision only emulators and ignore usb devices')
+      help='provision only emulators and ignore usb devices '
+           '(this will not wipe emulators)')
   parser.add_argument(
       '--max-battery-temp', type=int, metavar='NUM',
       help='Wait for the battery to have this temp or lower.')
@@ -596,7 +597,7 @@ def main(raw_args):
         output_device_blacklist=args.output_device_blacklist,
         reboot_timeout=args.reboot_timeout,
         remove_system_webview=args.remove_system_webview,
-        wipe=not args.skip_wipe)
+        wipe=not args.skip_wipe and not args.emulators)
   except (device_errors.DeviceUnreachableError, device_errors.NoDevicesError):
     logging.exception('Unable to provision local devices.')
     return exit_codes.INFRA
