@@ -330,11 +330,15 @@ the bisect process after the user clicks on the bisect button.
         },
 
         onRevisionsChange: function() {
+          if (this.earlierRevision == this.laterRevision) {
+            this.error = (
+                '"Both "earlier" and "later" are the same.');
+          }
           if (!/^\d+$/.test(this.earlierRevision) ||
               !/^\d+$/.test(this.laterRevision)) {
             return;
           }
-          if (Number(this.earlierRevision) > Number(this.laterRevision)) {
+          if (Number(this.earlierRevision) >= Number(this.laterRevision)) {
             this.error = (
                 '"Earlier revision" should be less than "later revision".');
           }
