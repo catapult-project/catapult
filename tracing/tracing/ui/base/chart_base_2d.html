@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
+<link rel="import" href="/tracing/base/math.html">
 <link rel="import" href="/tracing/base/raf.html">
 <link rel="import" href="/tracing/base/range.html">
 <link rel="import" href="/tracing/base/statistics.html">
@@ -324,9 +325,8 @@ tr.exportTo('tr.ui.b', function() {
         if (minValue === 0)
           minValue = 1;
 
-        var onePowerLess = Math.floor(
-            Math.log(minValue) / Math.log(10)) - 1;
-        this.yLogScaleMin_ = Math.pow(10, onePowerLess);
+        var onePowerLess = tr.b.lesserPower(minValue / 10);
+        this.yLogScaleMin_ = onePowerLess;
       }
     },
 
