@@ -44,9 +44,17 @@ tr.exportTo('tr.b', function() {
      * @return {tr.b.Color}
      */
     getColor(name) {
-      return this.namesToColors_.get(name);
+      var color = this.namesToColors_.get(name);
+      if (color === undefined) throw new Error('Unknown color: ' + name);
+      return color;
     }
   }
+
+  var MemoryColumnColorScheme = new FixedColorScheme(new Map([
+      ['used_memory_column', new tr.b.Color(0, 0, 255)],
+      ['older_used_memory_column', new tr.b.Color(153, 204, 255)],
+      ['tracing_memory_column', new tr.b.Color(153, 153, 153)]
+  ]));
 
   function FixedColorSchemeRegistry() {}
   FixedColorSchemeRegistry.lookUp = function(name) {
@@ -58,6 +66,7 @@ tr.exportTo('tr.b', function() {
   tr.b.decorateExtensionRegistry(FixedColorSchemeRegistry, options);
 
   return {
+    MemoryColumnColorScheme,
     FixedColorScheme,
     FixedColorSchemeRegistry,
   };

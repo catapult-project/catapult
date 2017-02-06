@@ -426,15 +426,13 @@ tr.exportTo('tr.ui.analysis', function() {
     checkColor(actualColor, expectedColorReservedName);
   }
 
-  function checkColor(actualColorString, expectedColorReservedName) {
-    if (expectedColorReservedName === undefined) {
-      assert.isUndefined(actualColorString);
+  function checkColor(actualColorString, expectedColorString) {
+    if (actualColorString === undefined) {
+      assert.isUndefined(expectedColor);
       return;
     }
-
     var actualColor = Color.fromString(actualColorString);
-    var expectedColor = ColorScheme.colors[
-        ColorScheme.getColorIdForReservedName(expectedColorReservedName)];
+    var expectedColor = Color.fromString(expectedColorString);
     assert.deepEqual(actualColor, expectedColor);
   }
 

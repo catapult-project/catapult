@@ -113,10 +113,10 @@ tr.b.unittest.testSuite(function() {
     }
   }
 
-  function checkSpanWithColor(span, expectedText, expectedColorReservedName) {
+  function checkSpanWithColor(span, expectedText, expectedColor) {
     assert.strictEqual(span.tagName, 'SPAN');
     assert.strictEqual(Polymer.dom(span).textContent, expectedText);
-    checkColor(span.style.color, expectedColorReservedName);
+    checkColor(span.style.color, expectedColor);
   }
 
   function checkColorLegend(legend, expectedLabel) {
@@ -183,6 +183,15 @@ tr.b.unittest.testSuite(function() {
     checkColumnInfosAndColor(
         column, fields, contexts, expectedInfos, expectedColorReservedName);
   }
+
+  test('colorsAreDefined', function() {
+    // We use these constants in the code and the tests so here we guard
+    // against them being undefined and causing all the tests to still
+    // pass while the we end up with no colors.
+    assert.isDefined(UsedMemoryColumn.COLOR);
+    assert.isDefined(UsedMemoryColumn.OLDER_COLOR);
+    assert.isDefined(TracingColumn.COLOR);
+  });
 
   test('instantiate_empty', function() {
     tr.ui.analysis.createAndCheckEmptyPanes(this,
@@ -501,18 +510,18 @@ tr.b.unittest.testSuite(function() {
     var c = new UsedMemoryColumn('Private', 'bytes', tr.b.identity,
         AggregationMode.DIFF);
     checkSpanWithColor(c.title, 'Private',
-        'used_memory_column' /* blue (column title) */);
+        UsedMemoryColumn.COLOR /* blue (column title) */);
     checkColor(c.color(undefined /* contexts */),
-        'used_memory_column' /* blue (column cells) */);
+        UsedMemoryColumn.COLOR /* blue (column cells) */);
   });
 
   test('peakMemoryColumn', function() {
     var c = new PeakMemoryColumn('Peak', 'bytes', tr.b.identity,
         AggregationMode.MAX);
     checkSpanWithColor(c.title, 'Peak',
-        'used_memory_column' /* blue (column title) */);
+        UsedMemoryColumn.COLOR /* blue (column title) */);
     checkColor(c.color(undefined) /* contexts */,
-        'used_memory_column' /* blue (column cells) */);
+        UsedMemoryColumn.COLOR /* blue (column cells) */);
 
     var RESETTABLE_PEAK = 1 << 2;
     var NON_RESETTABLE_PEAK = 1 << 3;
@@ -529,7 +538,7 @@ tr.b.unittest.testSuite(function() {
             }
           },
           expectedInfos,
-          'used_memory_column');
+          UsedMemoryColumn.COLOR);
     }
 
     // No context.
@@ -537,12 +546,12 @@ tr.b.unittest.testSuite(function() {
         [FIELD],
         undefined /* no context */,
         [] /* no infos */,
-        'used_memory_column' /* blue color */);
+        UsedMemoryColumn.COLOR /* blue color */);
     checkOverviewColumnInfosAndColor(c,
         [FIELD, FIELD, 0, FIELD],
         undefined /* no context */,
         [] /* no infos */,
-        'used_memory_column' /* blue color */);
+        UsedMemoryColumn.COLOR /* blue color */);
 
     // All resettable.
     var EXPECTED_RESETTABLE_INFO = {
@@ -594,7 +603,7 @@ tr.b.unittest.testSuite(function() {
     var c = new ByteStatColumn('Stat', 'bytes', tr.b.identity,
         AggregationMode.DIFF);
     checkSpanWithColor(c.title, 'Stat',
-        'used_memory_column' /* blue (column title) */);
+        UsedMemoryColumn.COLOR /* blue (column title) */);
 
     var HAS_OWN_VM_REGIONS = 1 << 2;
     function checkByteStatColumnInfosAndColor(
@@ -607,8 +616,8 @@ tr.b.unittest.testSuite(function() {
           },
           expectedInfos,
           expectedIsOlderColor ?
-              'older_used_memory_column' /* light blue */ :
-              'used_memory_column' /* blue color */);
+              UsedMemoryColumn.OLDER_COLOR /* light blue */ :
+              UsedMemoryColumn.COLOR /* blue color */);
     }
 
     var EXPECTED_ALL_OLDER_VALUES = {
@@ -627,12 +636,12 @@ tr.b.unittest.testSuite(function() {
         [FIELD],
         undefined /* no context */,
         [] /* no infos */,
-        'used_memory_column' /* blue color */);
+        UsedMemoryColumn.COLOR /* blue color */);
     checkOverviewColumnInfosAndColor(c,
         [FIELD, FIELD, 0, FIELD],
         undefined /* no context */,
         [] /* no infos */,
-        'used_memory_column' /* blue color */);
+        UsedMemoryColumn.COLOR /* blue color */);
 
     // All process memory dumps have own VM regions.
     checkByteStatColumnInfosAndColor([
@@ -804,9 +813,9 @@ tr.b.unittest.testSuite(function() {
     var c = new TracingColumn('Tracing', 'bytes', tr.b.identity,
         AggregationMode.DIFF);
     checkSpanWithColor(c.title, 'Tracing',
-        'tracing_memory_column' /* expected column title gray color */);
+        TracingColumn.COLOR /* expected column title gray color */);
     checkColor(c.color(undefined /* contexts */),
-        'tracing_memory_column' /* expected column cells gray color */);
+        TracingColumn.COLOR /* expected column cells gray color */);
   });
 });
 </script>
