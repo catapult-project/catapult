@@ -467,16 +467,19 @@ class CrOSInterface(object):
 
     return True
 
-  def FilesystemMountedAt(self, path):
-    """Returns the filesystem mounted at |path|"""
-    df_out, _ = self.RunCmdOnDevice(['/bin/df', path])
+  def _GetMountSourceAndTarget(self, path):
+    df_out, _ = self.RunCmdOnDevice(['/bin/df', '--output=source,target', path])
     df_ary = df_out.split('\n')
     # 3 lines for title, mount info, and empty line.
     if len(df_ary) == 3:
       line_ary = df_ary[1].split()
-      if line_ary:
-        return line_ary[0]
+      return line_ary if len(line_ary) == 2 else None
     return None
+
+  def FilesystemMountedAt(self, path):
+    """Returns the filesystem mounted at |path|"""
+    mount_info = self._GetMountSourceAndTarget(path)
+    return mount_info[0] if mount_info else None
 
   def CryptohomePath(self, user):
     """Returns the cryptohome mount point for |user|."""
@@ -489,9 +492,13 @@ class CrOSInterface(object):
   def IsCryptohomeMounted(self, username, is_guest):
     """Returns True iff |user|'s cryptohome is mounted."""
     profile_path = self.CryptohomePath(username)
-    mount = self.FilesystemMountedAt(profile_path)
-    mount_prefix = 'guestfs' if is_guest else '/home/.shadow/'
-    return mount and mount.startswith(mount_prefix)
+    mount_info = self._GetMountSourceAndTarget(profile_path)
+    if mount_info:
+      # Checks if the filesytem at |profile_path| is mounted on |profile_path|
+      # itself. Before mounting cryptohome, it shows an upper directory (/home).
+      is_guestfs = (mount_info[0] == 'guestfs')
+      return is_guestfs == is_guest and mount_info[1] == profile_path
+    return False
 
   def TakeScreenshot(self, file_path):
     stdout, stderr = self.RunCmdOnDevice(

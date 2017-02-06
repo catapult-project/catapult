@@ -22,6 +22,8 @@ class CrOSCryptohomeTest(cros_test_case.CrOSTestCase):
       self.assertEquals(1, len(b.tabs))
       self.assertTrue(b.tabs[0].url)
       self.assertTrue(self._IsCryptohomeMounted())
+      self.assertTrue(
+          self._cri.IsCryptohomeMounted(self._username, self._is_guest))
 
       # TODO(achuith): Remove dependency on /home/chronos/user.
       chronos_fs = self._cri.FilesystemMountedAt('/home/chronos/user')
@@ -34,6 +36,8 @@ class CrOSCryptohomeTest(cros_test_case.CrOSTestCase):
         self.assertEquals(crypto_fs, chronos_fs)
 
     self.assertFalse(self._IsCryptohomeMounted())
+    self.assertFalse(
+        self._cri.IsCryptohomeMounted(self._username, self._is_guest))
     self.assertEquals(self._cri.FilesystemMountedAt('/home/chronos/user'),
                       '/dev/mapper/encstateful')
 

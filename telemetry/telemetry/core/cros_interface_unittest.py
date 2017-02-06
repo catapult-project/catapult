@@ -214,3 +214,40 @@ class CrOSInterfaceTest(unittest.TestCase):
     self.assertRaisesRegexp(cros_interface.LoginException,
                             r'Logged into .*, expected \$USER=root, but got .*',
                             cri.TryLogin)
+
+  @decorators.Enabled('chromeos')
+  @mock.patch.object(cros_interface.CrOSInterface, 'RunCmdOnDevice')
+  def testIsCryptohomeMounted(self, mock_run_cmd):
+    # The device's mount state is checked by the command
+    #   /bin/df --someoption `cryptohome-path user $username`.
+    # The following mock replaces RunCmdOnDevice() to return mocked mount states
+    # from the command execution.
+    def mockRunCmdOnDevice(args):
+      if args[0] == 'cryptohome-path':
+        return ('/home/user/%s' % args[2], '')
+      elif args[0] == '/bin/df':
+        if 'unmount' in args[2]:
+          # For the user unmount@gmail.com, returns the unmounted state.
+          source, target = '/dev/sda1', '/home'
+        elif 'mount' in args[2]:
+          # For the user mount@gmail.com, returns the mounted state.
+          source, target = '/dev/sda1', args[2]
+        elif 'guest' in args[2]:
+          # For the user $guest, returns the guest-mounted state.
+          source, target = 'guestfs', args[2]
+        return ('Filesystem Mounted on\n%s %s\n' % (source, target), '')
+    mock_run_cmd.side_effect = mockRunCmdOnDevice
+
+    cri = cros_interface.CrOSInterface(
+        "testhostname", 22, options_for_unittests.GetCopy().cros_ssh_identity)
+    # Returns False if the user's cryptohome is not mounted.
+    self.assertFalse(cri.IsCryptohomeMounted('unmount@gmail.com', False))
+    # Returns True if the user's cryptohome is mounted.
+    self.assertTrue(cri.IsCryptohomeMounted('mount@gmail.com', False))
+    # Returns True if the guest cryptohome is mounted.
+    self.assertTrue(cri.IsCryptohomeMounted('$guest', True))
+    # Sanity check. Returns False if the |is_guest| parameter does not match
+    # with whether or not the user is really a guest.
+    self.assertFalse(cri.IsCryptohomeMounted('unmount@gmail.com', True))
+    self.assertFalse(cri.IsCryptohomeMounted('mount@gmail.com', True))
+    self.assertFalse(cri.IsCryptohomeMounted('$guest', False))
