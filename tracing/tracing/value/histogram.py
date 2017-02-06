@@ -756,6 +756,8 @@ class TelemetryInfo(Diagnostic):
 
 
 class DeviceInfo(Diagnostic):
+  NAME = 'device'
+
   def __init__(self):
     super(DeviceInfo, self).__init__()
     self._chrome_version = ''
