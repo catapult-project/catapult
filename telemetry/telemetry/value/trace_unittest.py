@@ -140,7 +140,6 @@ class ValueTest(TestBase):
       for f in trace_files:
         with open(f, 'r') as trace_file:
           d = trace_file.read()
-          print d
           if d == raw_data['powerTraceAsString']:
             self.assertFalse(battor_seen)
             battor_seen = True
@@ -156,7 +155,6 @@ class ValueTest(TestBase):
     finally:
       shutil.rmtree(tempdir)
       os.remove(v.filename)
-
 
 
 def _IsEmptyDir(path):

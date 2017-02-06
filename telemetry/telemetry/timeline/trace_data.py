@@ -4,9 +4,18 @@
 
 import copy
 import json
+import logging
 import os
+import shutil
+import subprocess
 import tempfile
-import zipfile
+
+from telemetry.core import util
+
+
+_TRACE2HTML_PATH = os.path.join(
+    util.GetCatapultDir(), 'tracing', 'bin', 'trace2html')
+
 
 class NonSerializableTraceData(Exception):
   """Raised when raw trace data cannot be serialized to TraceData."""
@@ -62,6 +71,25 @@ def _HasTraceFor(part, raw):
   return len(raw[part.raw_field_name]) > 0
 
 
+def _GetFilePathForTrace(trace, dir_path):
+  """ Return path to a file that contains |trace|.
+
+  Note: if |trace| is an instance of TraceFileHandle, this reuses the trace path
+  that the trace file handle holds. Otherwise, it creates a new trace file
+  in |dir_path| directory.
+  """
+  if isinstance(trace, TraceFileHandle):
+    return trace.file_path
+  with tempfile.NamedTemporaryFile(mode='w', dir=dir_path, delete=False) as fp:
+    if isinstance(trace, basestring):
+      fp.write(trace)
+    elif isinstance(trace, dict) or isinstance(trace, list):
+      json.dump(trace, fp)
+    else:
+      raise TypeError('Trace is of unknown type.')
+    return fp.name
+
+
 class TraceData(object):
   """ TraceData holds a collection of traces from multiple sources.
 
@@ -100,56 +128,69 @@ class TraceData(object):
     return _HasTraceFor(part, self._raw_data)
 
   def GetTracesFor(self, part):
+    """ Return the list of traces for |part| in string or dictionary forms.
+
+    Note: since this API return the traces that can be directly accessed in
+    memory, it may require lots of memory usage as some of the trace can be
+    very big.
+    For references, we have cases where Telemetry is OOM'ed because the memory
+    required for processing the trace in Python is too big (crbug.com/672097).
+    """
+    assert isinstance(part, TraceDataPart)
     if not self.HasTracesFor(part):
       return []
-    assert isinstance(part, TraceDataPart)
-    return self._raw_data[part.raw_field_name]
+    traces_list = self._raw_data[part.raw_field_name]
+    # Since this API return the traces in memory form, and since the memory
+    # bottleneck of Telemetry is for keeping trace in memory, there is no uses
+    # in keeping the on-disk form of tracing beyond this point. Hence we convert
+    # all traces for part of form TraceFileHandle to the JSON form.
+    for i, data in enumerate(traces_list):
+      if isinstance(data, TraceFileHandle):
+        traces_list[i] = data.AsTraceData()
+    return traces_list
 
   def GetTraceFor(self, part):
     assert isinstance(part, TraceDataPart)
-    traces = self._raw_data[part.raw_field_name]
+    traces = self.GetTracesFor(part)
     assert len(traces) == 1
-    if isinstance(traces[0], TraceFileHandle):
-      return traces[0].AsTraceData()
-    else:
-      return traces[0]
+    return traces[0]
 
+  def CleanUpAllTraces(self):
+    """ Remove all the traces that this has handles to.
 
-  # TODO(nedn): unifying this code with
-  # telemetry.value.trace.TraceValue._GetTempFileHandle so that we have one
-  # single space efficient method to Serialize this to trace.
-  def Serialize(self, f, gzip_result=False):
-    """Serializes the trace result to a file-like object.
-
-    Write in trace container format if gzip_result=False.
-    Writes to a .zip file if gzip_result=True.
+    Those include traces stored in memory & on disk. After invoking this,
+    one can no longer uses this object for collecting the traces.
     """
-    raw_data = {}
-    for k, v in self._raw_data.iteritems():
-      for data in v:
-        if isinstance(data, TraceFileHandle):
-          with open(data.file_path) as trace_file:
-            trace = json.load(trace_file)
-        else:
-          trace = data
-        if k not in raw_data:
-          raw_data[k] = trace
-        else:
-          raw_data[k] += trace
-    if gzip_result:
-      zip_file = zipfile.ZipFile(f, mode='w')
-      try:
-        for part in self.active_parts:
-          tmp_file_name = None
-          with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
-            tmp_file_name = tmp_file.name
-            tmp_file.write(str(raw_data[part.raw_field_name]))
-          zip_file.write(tmp_file_name, arcname=part.raw_field_name)
-          os.remove(tmp_file_name)
-      finally:
-        zip_file.close()
-    else:
-      json.dump(raw_data, f)
+    for traces_list in self._raw_data.itervalues():
+      for trace in traces_list:
+        if isinstance(trace, TraceFileHandle):
+          trace.Clean()
+    self._raw_data = {}
+
+  def Serialize(self, file_path, trace_title=''):
+    """Serializes the trace result to |file_path|.
+
+    """
+    if not self._raw_data:
+      logging.warning('No traces to convert to html.')
+      return
+    temp_dir = tempfile.mkdtemp()
+    trace_files = []
+    try:
+      trace_size_data = {}
+      for part, traces_list in self._raw_data.iteritems():
+        for trace in traces_list:
+          path = _GetFilePathForTrace(trace, temp_dir)
+          trace_size_data.setdefault(part, 0)
+          trace_size_data[part] += os.path.getsize(path)
+          trace_files.append(path)
+      logging.info('Trace sizes in bytes: %s', trace_size_data)
+
+      cmd = (['python', _TRACE2HTML_PATH] + trace_files +
+          ['--output', file_path] + ['--title', trace_title])
+      subprocess.check_output(cmd)
+    finally:
+      shutil.rmtree(temp_dir)
 
 
 class TraceFileHandle(object):

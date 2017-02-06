@@ -3,8 +3,6 @@
 # found in the LICENSE file.
 
 import os
-import StringIO
-import zipfile
 
 from telemetry.internal.platform import profiler
 from telemetry.timeline import chrome_trace_category_filter
@@ -45,17 +43,14 @@ class TraceProfiler(profiler.Profiler):
     self._browser_backend.StopTracing()
     self._browser_backend.CollectTracingData(trace_result_builder)
     trace_result = trace_result_builder.AsData()
+    try:
+      trace_file = '%s.html' % self._output_path
+      title = os.path.basename(self._output_path)
+      trace_result.Serialize(trace_file, trace_title=title)
+    finally:
+      trace_result.CleanUpAllTraces()
 
-    trace_file = '%s.zip' % self._output_path
-
-    with zipfile.ZipFile(trace_file, 'w', zipfile.ZIP_DEFLATED) as z:
-      trace_data = StringIO.StringIO()
-      trace_result.Serialize(trace_data)
-      trace_name = '%s.json' % os.path.basename(self._output_path)
-      z.writestr(trace_name, trace_data.getvalue())
-
-    print 'Trace saved as %s' % trace_file
-    print 'To view, open in chrome://tracing'
+    print 'Trace saved as file:///%s' % os.path.abspath(trace_file)
 
     return [trace_file]
 

@@ -4,7 +4,6 @@
 
 import timeit
 import unittest
-import json
 
 from telemetry import decorators
 from telemetry.internal.backends.chrome_inspector import tracing_backend
@@ -68,10 +67,7 @@ class TracingBackendTest(tab_test_case.TabTestCase):
 
     # Check that clock sync data is in tracing data.
     clock_sync_found = False
-    trace_handles = tracing_data.GetTracesFor(trace_data.CHROME_TRACE_PART)
-    self.assertEqual(len(trace_handles), 1)
-    with open(trace_handles[0].file_path) as f:
-      trace = json.load(f)
+    trace = tracing_data.GetTraceFor(trace_data.CHROME_TRACE_PART)
     for event in trace['traceEvents']:
       if event['name'] == 'clock_sync' or 'ClockSyncEvent' in event['name']:
         clock_sync_found = True
@@ -128,14 +124,7 @@ class TracingBackendUnittest(unittest.TestCase):
         trace_data.CHROME_TRACE_PART)
     traces = []
     for d in data:
-      if isinstance(d, trace_data.TraceFileHandle):
-        try:
-          with open(d.file_path) as f:
-            traces.append(json.load(f))
-        finally:
-          d.Clean()
-      else:
-        traces.append(d)
+      traces.append(d)
     return traces
 
   def testCollectTracingDataTimeout(self):

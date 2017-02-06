@@ -2,45 +2,29 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import cStringIO
 import datetime
 import exceptions
-import json
 import os
+import shutil
 import tempfile
 import unittest
-import zipfile
 
+from tracing_build import html2trace
 from telemetry.timeline import trace_data
+
 
 class TraceDataTest(unittest.TestCase):
   def testSerialize(self):
-    ri = trace_data.CreateTraceDataFromRawData({'traceEvents': [1, 2, 3]})
-    f = cStringIO.StringIO()
-    ri.Serialize(f)
-    d = f.getvalue()
-
-    self.assertIn('traceEvents', d)
-    self.assertIn('[1, 2, 3]', d)
-
-    json.loads(d)
-
-  def testSerializeZip(self):
-    data = trace_data.CreateTraceDataFromRawData({'traceEvents': [1, 2, 3],
-                                 'powerTraceAsString': 'battor_data'})
-    tf = tempfile.NamedTemporaryFile(delete=False)
-    temp_name = tf.name
-    tf.close()
+    test_dir = tempfile.mkdtemp()
+    trace_path = os.path.join(test_dir, 'test_trace.json')
     try:
-      data.Serialize(temp_name, gzip_result=True)
-      self.assertTrue(zipfile.is_zipfile(temp_name))
-      z = zipfile.ZipFile(temp_name, 'r')
-
-      self.assertIn('powerTraceAsString', z.namelist())
-      self.assertIn('traceEvents', z.namelist())
-      z.close()
+      ri = trace_data.CreateTraceDataFromRawData({'traceEvents': [1, 2, 3]})
+      ri.Serialize(trace_path)
+      with open(trace_path) as f:
+        json_traces = html2trace.ReadTracesFromHTMLFilePath(f)
+      self.assertEqual(json_traces, [{'traceEvents': [1, 2, 3]}])
     finally:
-      os.remove(temp_name)
+      shutil.rmtree(test_dir)
 
   def testEmptyArrayValue(self):
     # We can import empty lists and empty string.
