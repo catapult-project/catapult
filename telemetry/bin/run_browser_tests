@@ -13,11 +13,10 @@ from telemetry.testing import browser_test_runner
 
 
 def main():
-  options = browser_test_runner.TestRunOptions()
   config = project_config.ProjectConfig(
       top_level_dir=os.path.join(TELEMETRY_DIR, 'examples'),
       benchmark_dirs=[os.path.join(TELEMETRY_DIR, 'examples', 'browser_tests')])
-  return browser_test_runner.Run(config, options, sys.argv[1:])
+  return browser_test_runner.Run(config, sys.argv[1:])
 
 
 if __name__ == '__main__':
