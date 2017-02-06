@@ -87,7 +87,11 @@ _NON_TELEMETRY_TEST_COMMANDS = {
     ],
 }
 _DISABLE_STORY_FILTER = set(_NON_TELEMETRY_TEST_COMMANDS)
-_DISABLE_STORY_FILTER.add('octane')  # Has a single story.
+_DISABLE_STORY_FILTER.update([
+    'octane',  # Has a single story.
+    'memory.top_10_mobile',  # Stories are not independent.
+    'memory.top_10_mobile_stress',  # Stories are not independent.
+])
 
 
 class StartBisectHandler(request_handler.RequestHandler):
@@ -531,10 +535,6 @@ def GuessStoryFilter(test_path):
     pass
   if subtest_keys:  # Stories do not have subtests.
     return ''
-  if story_name.startswith('after_'):
-    # TODO(perezju,#1811): Remove this hack after deprecating the
-    # memory.top_10_mobile benchmark.
-    story_name = story_name[len('after_'):]
 
   # During import, some chars in story names got replaced by "_" so they
   # could be safely included in the test_path. At this point we don't know
