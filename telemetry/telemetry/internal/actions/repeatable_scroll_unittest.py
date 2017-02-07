@@ -19,14 +19,14 @@ class RepeatableScrollActionTest(tab_test_case.TabTestCase):
     utils.InjectJavaScript(self._tab, 'gesture_common.js')
 
     # Make page taller than window so it's scrollable.
-    self._tab.ExecuteJavaScript('document.body.style.height ='
+    self._tab.ExecuteJavaScript2('document.body.style.height ='
         '(3 * __GestureCommon_GetWindowHeight() + 1) + "px";')
 
     self.assertEquals(
-        self._tab.EvaluateJavaScript('document.scrollingElement.scrollTop'), 0)
+        self._tab.EvaluateJavaScript2('document.scrollingElement.scrollTop'), 0)
 
     self._browser_info = browser_info_module.BrowserInfo(self._tab.browser)
-    self._window_height = int(self._tab.EvaluateJavaScript(
+    self._window_height = int(self._tab.EvaluateJavaScript2(
         '__GestureCommon_GetWindowHeight()'))
 
   # https://github.com/catapult-project/catapult/issues/3099
@@ -42,7 +42,7 @@ class RepeatableScrollActionTest(tab_test_case.TabTestCase):
 
     i.RunAction(self._tab)
 
-    scroll_position = self._tab.EvaluateJavaScript(
+    scroll_position = self._tab.EvaluateJavaScript2(
         'document.scrollingElement.scrollTop')
     # We can only expect the final scroll position to be approximatly equal.
     self.assertTrue(abs(scroll_position - expected_scroll) < 20,
@@ -64,7 +64,7 @@ class RepeatableScrollActionTest(tab_test_case.TabTestCase):
 
     i.RunAction(self._tab)
 
-    scroll_position = self._tab.EvaluateJavaScript(
+    scroll_position = self._tab.EvaluateJavaScript2(
         'document.scrollingElement.scrollTop')
     # We can only expect the final scroll position to be approximatly equal.
     self.assertTrue(abs(scroll_position - expected_scroll) < 20,
@@ -81,8 +81,8 @@ class RepeatableScrollActionTest(tab_test_case.TabTestCase):
 
     self._tab.action_runner.PinchPage(scale_factor=0.1)
 
-    inner_height = self._tab.EvaluateJavaScript('window.innerHeight')
-    outer_height = self._tab.EvaluateJavaScript('window.outerHeight')
+    inner_height = self._tab.EvaluateJavaScript2('window.innerHeight')
+    outer_height = self._tab.EvaluateJavaScript2('window.outerHeight')
 
     self.assertGreater(inner_height, outer_height)
 

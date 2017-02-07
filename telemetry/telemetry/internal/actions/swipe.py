@@ -32,7 +32,7 @@ class SwipeAction(page_action.PageAction):
     utils.InjectJavaScript(tab, 'swipe.js')
 
     # Fail if browser doesn't support synthetic swipe gestures.
-    if not tab.EvaluateJavaScript('window.__SwipeAction_SupportedByBrowser()'):
+    if not tab.EvaluateJavaScript2('window.__SwipeAction_SupportedByBrowser()'):
       raise page_action.PageActionNotSupported(
           'Synthetic swipe not supported for this browser')
 
@@ -45,7 +45,7 @@ class SwipeAction(page_action.PageAction):
       raise page_action.PageActionNotSupported(
           'Touch input not supported for this browser')
 
-    tab.ExecuteJavaScript("""
+    tab.ExecuteJavaScript2("""
         window.__swipeActionDone = false;
         window.__swipeAction = new __SwipeAction(function() {
           window.__swipeActionDone = true;
@@ -77,4 +77,4 @@ class SwipeAction(page_action.PageAction):
     page_action.EvaluateCallbackWithElement(
         tab, code, selector=self._selector, text=self._text,
         element_function=self._element_function)
-    tab.WaitForJavaScriptExpression('window.__swipeActionDone', 60)
+    tab.WaitForJavaScriptCondition2('window.__swipeActionDone', timeout=60)

@@ -17,7 +17,6 @@ from telemetry.core import exceptions
 from telemetry.internal.actions import media_action
 from telemetry.internal.actions import page_action
 from telemetry.internal.actions import utils
-from telemetry.util import js_template
 
 
 class PlayAction(media_action.MediaAction):
@@ -35,11 +34,9 @@ class PlayAction(media_action.MediaAction):
     utils.InjectJavaScript(tab, 'play.js')
 
   def RunAction(self, tab):
-    # TODO(catapult:#3028): Render in JavaScript method when supported by API.
-    code = js_template.Render(
-        'window.__playMedia({{ selector }});', selector=self._selector)
     try:
-      tab.ExecuteJavaScript(code)
+      tab.ExecuteJavaScript2(
+          'window.__playMedia({{ selector }});', selector=self._selector)
       # Check if we need to wait for 'playing' event to fire.
       if self._playing_event_timeout_in_seconds > 0:
         self.WaitForEvent(tab, self._selector, 'playing',

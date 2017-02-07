@@ -21,7 +21,6 @@ from telemetry.core import exceptions
 from telemetry.internal.actions import media_action
 from telemetry.internal.actions import page_action
 from telemetry.internal.actions import utils
-from telemetry.util import js_template
 
 
 class SeekAction(media_action.MediaAction):
@@ -40,17 +39,14 @@ class SeekAction(media_action.MediaAction):
     utils.InjectJavaScript(tab, 'seek.js')
 
   def RunAction(self, tab):
-    # TODO(catapult:#3028): Render in JavaScript method when supported by API.
-    code = js_template.Render(
-        'window.__seekMedia('
-            '{{ selector }}, {{ seconds }}, {{ log_time }}, {{ label}});',
-        selector=self._selector,
-        seconds=str(self._seconds),  #  TODO: Is string convertion intended?
-        log_time=self._log_time,
-        label=self._label)
     try:
-      # TODO(catapult:#3028): Fix interpolation of JavaScript values.
-      tab.ExecuteJavaScript(code)
+      tab.ExecuteJavaScript2(
+          'window.__seekMedia('
+              '{{ selector }}, {{ seconds }}, {{ log_time }}, {{ label}});',
+          selector=self._selector,
+          seconds=str(self._seconds),
+          log_time=self._log_time,
+          label=self._label)
       if self._timeout_in_seconds > 0:
         self.WaitForEvent(tab, self._selector, 'seeked',
                           self._timeout_in_seconds)

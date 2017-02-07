@@ -52,26 +52,23 @@ class ScrollToElementAction(page_action.PageAction):
     else:
       element = self._element_function
 
-    # TODO(catapult:#3028): Render in JavaScript method when supported by API.
-    get_distance_js = js_template.Render('''
-      (function(elem){
-        var rect = elem.getBoundingClientRect();
-        if (rect.bottom < 0) {
-          // The bottom of the element is above the viewport.
-          // Scroll up until the top of the element is on screen.
-          return rect.top - (window.innerHeight / 2);
-        }
-        if (rect.top - window.innerHeight >= 0) {
-          // rect.top provides the pixel offset of the element from the
-          // top of the page. Because that exceeds the viewport's height,
-          // we know that the element is below the viewport.
-          return rect.top - (window.innerHeight / 2);
-        }
-        return 0;
-      })({{ @element }});
-    ''', element=element)
-
-    self._distance = tab.EvaluateJavaScript(get_distance_js)
+    self._distance = tab.EvaluateJavaScript2('''
+        (function(elem){
+          var rect = elem.getBoundingClientRect();
+          if (rect.bottom < 0) {
+            // The bottom of the element is above the viewport.
+            // Scroll up until the top of the element is on screen.
+            return rect.top - (window.innerHeight / 2);
+          }
+          if (rect.top - window.innerHeight >= 0) {
+            // rect.top provides the pixel offset of the element from the
+            // top of the page. Because that exceeds the viewport's height,
+            // we know that the element is below the viewport.
+            return rect.top - (window.innerHeight / 2);
+          }
+          return 0;
+        })({{ @element }});
+        ''', element=element)
     self._direction = 'down' if self._distance > 0 else 'up'
     self._distance = abs(self._distance)
     self._scroller = ScrollAction(

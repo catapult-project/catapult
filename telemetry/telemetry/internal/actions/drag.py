@@ -48,7 +48,7 @@ class DragAction(page_action.PageAction):
     utils.InjectJavaScript(tab, 'drag.js')
 
     # Fail if browser doesn't support synthetic drag gestures.
-    if not tab.EvaluateJavaScript('window.__DragAction_SupportedByBrowser()'):
+    if not tab.EvaluateJavaScript2('window.__DragAction_SupportedByBrowser()'):
       raise page_action.PageActionNotSupported(
           'Synthetic drag not supported for this browser')
 
@@ -63,7 +63,7 @@ class DragAction(page_action.PageAction):
         raise page_action.PageActionNotSupported(
             'Drag requires touch on this page but mouse input was requested')
 
-    tab.ExecuteJavaScript('''
+    tab.ExecuteJavaScript2('''
         window.__dragActionDone = false;
         window.__dragAction = new __DragAction(function() {
           window.__dragActionDone = true;
@@ -103,4 +103,4 @@ class DragAction(page_action.PageAction):
     page_action.EvaluateCallbackWithElement(
         tab, code, selector=self._selector, text=self._text,
         element_function=self._element_function)
-    tab.WaitForJavaScriptExpression('window.__dragActionDone', 60)
+    tab.WaitForJavaScriptCondition2('window.__dragActionDone', timeout=60)

@@ -15,7 +15,7 @@ class MouseClickAction(page_action.PageAction):
     """Load the mouse click JS code prior to running the action."""
     super(MouseClickAction, self).WillRunAction(tab)
     utils.InjectJavaScript(tab, 'mouse_click.js')
-    tab.ExecuteJavaScript("""
+    tab.ExecuteJavaScript2("""
         window.__mouseClickActionDone = false;
         window.__mouseClickAction = new __MouseClickAction(function() {
           window.__mouseClickActionDone = true;
@@ -33,4 +33,4 @@ class MouseClickAction(page_action.PageAction):
         }'''
     page_action.EvaluateCallbackWithElement(
         tab, code, selector=self._selector)
-    tab.WaitForJavaScriptExpression('window.__mouseClickActionDone', 60)
+    tab.WaitForJavaScriptCondition2('window.__mouseClickActionDone', timeout=60)

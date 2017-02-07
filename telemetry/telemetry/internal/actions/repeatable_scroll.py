@@ -27,7 +27,7 @@ class RepeatableScrollAction(page_action.PageAction):
   def WillRunAction(self, tab):
     utils.InjectJavaScript(tab, 'gesture_common.js')
     # Get the dimensions of the screen.
-    self._windowsize = tab.EvaluateJavaScript(
+    self._windowsize = tab.EvaluateJavaScript2(
         '[__GestureCommon_GetWindowWidth(),'
         ' __GestureCommon_GetWindowHeight()]')
     assert len(self._windowsize) == 2

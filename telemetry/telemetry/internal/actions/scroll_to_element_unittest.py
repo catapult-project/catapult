@@ -6,28 +6,17 @@ from telemetry import decorators
 from telemetry.internal.actions import scroll_to_element
 from telemetry.internal.actions import utils
 from telemetry.testing import tab_test_case
-from telemetry.util import js_template
 
 
 class ScrollToElementActionTest(tab_test_case.TabTestCase):
 
-  def _ExecuteJavaScript(self, *args, **kwargs):
-    # TODO(catapult:#3028): Render in JavaScript method when supported by API.
-    code = js_template.Render(*args, **kwargs)
-    self._tab.ExecuteJavaScript(code)
-
-  def _EvaluateJavaScript(self, *args, **kwargs):
-    # TODO(catapult:#3028): Render in JavaScript method when supported by API.
-    code = js_template.Render(*args, **kwargs)
-    return self._tab.EvaluateJavaScript(code)
-
   def _MakePageVerticallyScrollable(self):
     # Make page taller than window so it's scrollable vertically.
-    self._ExecuteJavaScript('document.body.style.height ='
+    self._tab.ExecuteJavaScript2('document.body.style.height ='
         '(6 * __GestureCommon_GetWindowHeight() + 1) + "px";')
 
   def _VisibleAreaOfElement(self, selector='#element'):
-    return self._EvaluateJavaScript("""
+    return self._tab.EvaluateJavaScript2("""
       (function() {
         var element = document.querySelector({{ selector }});
         var rect = __GestureCommon_GetBoundingVisibleRect(element);
@@ -36,7 +25,7 @@ class ScrollToElementActionTest(tab_test_case.TabTestCase):
     """, selector=selector)
 
   def _InsertContainer(self, theid='container'):
-    self._ExecuteJavaScript("""
+    self._tab.ExecuteJavaScript2("""
       var container = document.createElement("div")
       container.id = {{ theid }};
       container.style.position = 'relative';
@@ -45,7 +34,7 @@ class ScrollToElementActionTest(tab_test_case.TabTestCase):
     """, theid=theid)
 
   def _InsertElement(self, theid='element', container_selector='body'):
-    self._ExecuteJavaScript("""
+    self._tab.ExecuteJavaScript2("""
       var container = document.querySelector({{ container_selector }});
       var element = document.createElement("div");
       element.id = {{ theid }};
@@ -66,7 +55,7 @@ class ScrollToElementActionTest(tab_test_case.TabTestCase):
     self._MakePageVerticallyScrollable()
     self._InsertElement()
     self.assertEquals(
-        self._EvaluateJavaScript('document.scrollingElement.scrollTop'), 0)
+        self._tab.EvaluateJavaScript2('document.scrollingElement.scrollTop'), 0)
 
     # Before we scroll down the element should not be visible at all.
     self.assertEquals(self._VisibleAreaOfElement(), 0)
@@ -85,7 +74,7 @@ class ScrollToElementActionTest(tab_test_case.TabTestCase):
     self._InsertContainer()
     self._InsertElement(container_selector='#container')
     self.assertEquals(
-        self._EvaluateJavaScript('document.scrollingElement.scrollTop'), 0)
+        self._tab.EvaluateJavaScript2('document.scrollingElement.scrollTop'), 0)
 
     # Before we scroll down the element should not be visible at all.
     self.assertEquals(self._VisibleAreaOfElement(), 0)

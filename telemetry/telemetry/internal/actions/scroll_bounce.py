@@ -46,7 +46,7 @@ class ScrollBounceAction(page_action.PageAction):
     utils.InjectJavaScript(tab, 'scroll_bounce.js')
 
     # Fail if browser doesn't support synthetic scroll bounce gestures.
-    if not tab.EvaluateJavaScript(
+    if not tab.EvaluateJavaScript2(
         'window.__ScrollBounceAction_SupportedByBrowser()'):
       raise page_action.PageActionNotSupported(
           'Synthetic scroll bounce not supported for this browser')
@@ -62,7 +62,7 @@ class ScrollBounceAction(page_action.PageAction):
       raise page_action.PageActionNotSupported(
           'ScrollBounce page action does not support mouse input')
 
-    tab.ExecuteJavaScript("""
+    tab.ExecuteJavaScript2("""
         window.__scrollBounceActionDone = false;
         window.__scrollBounceAction = new __ScrollBounceAction(
             function() { window.__scrollBounceActionDone = true; });""")
@@ -94,4 +94,5 @@ class ScrollBounceAction(page_action.PageAction):
     page_action.EvaluateCallbackWithElement(
         tab, code, selector=self._selector, text=self._text,
         element_function=self._element_function)
-    tab.WaitForJavaScriptExpression('window.__scrollBounceActionDone', 60)
+    tab.WaitForJavaScriptCondition2(
+        'window.__scrollBounceActionDone', timeout=60)

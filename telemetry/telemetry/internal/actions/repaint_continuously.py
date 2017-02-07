@@ -20,7 +20,7 @@ class RepaintContinuouslyAction(page_action.PageAction):
     self._seconds = seconds
 
   def RunAction(self, tab):
-    tab.ExecuteJavaScript(
+    tab.ExecuteJavaScript2(
         'window.__rafCount = 0;'
         'window.__rafFunction = function() {'
           'window.__rafCount += 1;'
@@ -32,5 +32,5 @@ class RepaintContinuouslyAction(page_action.PageAction):
     # fired. Use a hard time-out after 60 seconds (or self.seconds).
     time.sleep(self._seconds)
     def HasMinRafs():
-      return tab.EvaluateJavaScript('window.__rafCount;') >= 3
+      return tab.EvaluateJavaScript2('window.__rafCount;') >= 3
     py_utils.WaitFor(HasMinRafs, max(60 - self._seconds, 0))

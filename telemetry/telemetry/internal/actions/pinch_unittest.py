@@ -16,7 +16,7 @@ class PinchActionTest(tab_test_case.TabTestCase):
       return
 
     action_runner = self._tab.action_runner
-    action_runner.ExecuteJavaScript('''
+    action_runner.ExecuteJavaScript2('''
         chrome.gpuBenchmarking.pinchBy = function(
             scaleFactor, anchorLeft, anchorTop, callback, speed) {
           window.__test_scaleFactor = scaleFactor;
@@ -28,12 +28,12 @@ class PinchActionTest(tab_test_case.TabTestCase):
         };''')
     action_runner.PinchPage(scale_factor=2)
     self.assertEqual(
-        2, action_runner.EvaluateJavaScript('window.__test_scaleFactor'))
+        2, action_runner.EvaluateJavaScript2('window.__test_scaleFactor'))
     self.assertTrue(
-        action_runner.EvaluateJavaScript('!isNaN(window.__test_anchorLeft)'))
+        action_runner.EvaluateJavaScript2('!isNaN(window.__test_anchorLeft)'))
     self.assertTrue(
-        action_runner.EvaluateJavaScript('!isNaN(window.__test_anchorTop)'))
+        action_runner.EvaluateJavaScript2('!isNaN(window.__test_anchorTop)'))
     self.assertTrue(
-        action_runner.EvaluateJavaScript('!!window.__test_callback'))
+        action_runner.EvaluateJavaScript2('!!window.__test_callback'))
     self.assertEqual(
-        800, action_runner.EvaluateJavaScript('window.__test_speed'))
+        800, action_runner.EvaluateJavaScript2('window.__test_speed'))

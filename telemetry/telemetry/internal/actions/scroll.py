@@ -53,7 +53,8 @@ class ScrollAction(page_action.PageAction):
     utils.InjectJavaScript(tab, 'scroll.js')
 
     # Fail if browser doesn't support synthetic scroll gestures.
-    if not tab.EvaluateJavaScript('window.__ScrollAction_SupportedByBrowser()'):
+    if not tab.EvaluateJavaScript2(
+        'window.__ScrollAction_SupportedByBrowser()'):
       raise page_action.PageActionNotSupported(
           'Synthetic scroll not supported for this browser')
 
@@ -68,14 +69,12 @@ class ScrollAction(page_action.PageAction):
         raise page_action.PageActionNotSupported(
             'Scroll requires touch on this page but mouse input was requested')
 
-    # TODO(catapult:#3028): Render in JavaScript method when supported by API.
-    code = js_template.Render("""
+    tab.ExecuteJavaScript2("""
         window.__scrollActionDone = false;
         window.__scrollAction = new __ScrollAction(
             {{ @callback }}, {{ @distance }});""",
         callback='function() { window.__scrollActionDone = true; }',
         distance=self._distance_func)
-    tab.ExecuteJavaScript(code)
 
   def RunAction(self, tab):
     if (self._selector is None and self._text is None and
@@ -108,4 +107,4 @@ class ScrollAction(page_action.PageAction):
     page_action.EvaluateCallbackWithElement(
         tab, code, selector=self._selector, text=self._text,
         element_function=self._element_function)
-    tab.WaitForJavaScriptExpression('window.__scrollActionDone', 60)
+    tab.WaitForJavaScriptCondition2('window.__scrollActionDone', timeout=60)

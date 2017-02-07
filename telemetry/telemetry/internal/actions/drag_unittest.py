@@ -25,9 +25,9 @@ class DragActionTest(tab_test_case.TabTestCase):
 
     utils.InjectJavaScript(self._tab, 'gesture_common.js')
 
-    div_width = self._tab.EvaluateJavaScript(
+    div_width = self._tab.EvaluateJavaScript2(
         '__GestureCommon_GetBoundingVisibleRect(document.body).width')
-    div_height = self._tab.EvaluateJavaScript(
+    div_height = self._tab.EvaluateJavaScript2(
         '__GestureCommon_GetBoundingVisibleRect(document.body).height')
 
     i = drag.DragAction(left_start_ratio=0.5, top_start_ratio=0.5,
@@ -39,7 +39,7 @@ class DragActionTest(tab_test_case.TabTestCase):
                       ' updating chrome.')
       return
 
-    self._tab.ExecuteJavaScript('''
+    self._tab.ExecuteJavaScript2('''
         window.__dragAction.beginMeasuringHook = function() {
             window.__didBeginMeasuring = true;
         };
@@ -48,12 +48,12 @@ class DragActionTest(tab_test_case.TabTestCase):
         };''')
     i.RunAction(self._tab)
 
-    self.assertTrue(self._tab.EvaluateJavaScript('window.__didBeginMeasuring'))
-    self.assertTrue(self._tab.EvaluateJavaScript('window.__didEndMeasuring'))
+    self.assertTrue(self._tab.EvaluateJavaScript2('window.__didBeginMeasuring'))
+    self.assertTrue(self._tab.EvaluateJavaScript2('window.__didEndMeasuring'))
 
-    div_position_x = self._tab.EvaluateJavaScript(
+    div_position_x = self._tab.EvaluateJavaScript2(
         'document.getElementById("drag_div").offsetLeft')
-    div_position_y = self._tab.EvaluateJavaScript(
+    div_position_y = self._tab.EvaluateJavaScript2(
         'document.getElementById("drag_div").offsetTop')
 
     # 0.25 is the ratio of displacement to the initial size.

@@ -19,23 +19,23 @@ class TapActionTest(tab_test_case.TabTestCase):
   def testTapSinglePage(self):
     self.Navigate('page_with_clickables.html')
 
-    self._tab.ExecuteJavaScript('valueSettableByTest = 1;')
+    self._tab.ExecuteJavaScript2('valueSettableByTest = 1;')
     self._PerformTapAction('#test')
-    self.assertEqual(1, self._tab.EvaluateJavaScript('valueToTest'))
+    self.assertEqual(1, self._tab.EvaluateJavaScript2('valueToTest'))
 
-    self._tab.ExecuteJavaScript('valueSettableByTest = 2;')
+    self._tab.ExecuteJavaScript2('valueSettableByTest = 2;')
     self._PerformTapAction(text='Click/tap me')
-    self.assertEqual(2, self._tab.EvaluateJavaScript('valueToTest'))
+    self.assertEqual(2, self._tab.EvaluateJavaScript2('valueToTest'))
 
-    self._tab.ExecuteJavaScript('valueSettableByTest = 3;')
+    self._tab.ExecuteJavaScript2('valueSettableByTest = 3;')
     self._PerformTapAction(element_function='document.body.firstElementChild')
-    self.assertEqual(3, self._tab.EvaluateJavaScript('valueToTest'))
+    self.assertEqual(3, self._tab.EvaluateJavaScript2('valueToTest'))
 
   @decorators.Disabled('win')  # http://crbug.com/634343
   def testTapNavigate(self):
     self.Navigate('page_with_link.html')
     self._PerformTapAction(selector='#clickme')
-    self._tab.WaitForJavaScriptExpression(
+    self._tab.WaitForJavaScriptCondition2(
         'document.location.pathname === "/blank.html"', timeout=5)
-    self._tab.WaitForJavaScriptExpression(
+    self._tab.WaitForJavaScriptCondition2(
         'document.readyState === "complete"', timeout=5)

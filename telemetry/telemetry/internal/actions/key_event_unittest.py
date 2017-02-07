@@ -14,12 +14,12 @@ class KeyPressActionTest(tab_test_case.TabTestCase):
 
   @property
   def _scroll_position(self):
-    return self._tab.EvaluateJavaScript(
+    return self._tab.EvaluateJavaScript2(
         'document.documentElement.scrollTop || document.body.scrollTop')
 
   @property
   def _window_height(self):
-    return self._tab.EvaluateJavaScript('__GestureCommon_GetWindowHeight()')
+    return self._tab.EvaluateJavaScript2('__GestureCommon_GetWindowHeight()')
 
   def _PressKey(self, key):
     action = key_event.KeyPressAction(key)
@@ -35,7 +35,7 @@ class KeyPressActionTest(tab_test_case.TabTestCase):
   @decorators.Disabled('android')
   def testPressEndAndHome(self):
     # Make page taller than the window so it's scrollable.
-    self._tab.ExecuteJavaScript('document.body.style.height ='
+    self._tab.ExecuteJavaScript2('document.body.style.height ='
         '(3 * __GestureCommon_GetWindowHeight() + 1) + "px";')
 
     # Check that the browser is currently showing the top of the page and that
@@ -61,7 +61,7 @@ class KeyPressActionTest(tab_test_case.TabTestCase):
 
   def testTextEntry(self):
     # Add an input box to the page.
-    self._tab.ExecuteJavaScript(
+    self._tab.ExecuteJavaScript2(
         '(function() {'
         '  var elem = document.createElement("textarea");'
         '  document.body.appendChild(elem);'
@@ -80,7 +80,7 @@ class KeyPressActionTest(tab_test_case.TabTestCase):
 
     # Check that the contents of the textarea is correct. It might take a second
     # until all keystrokes have been handled by the browser (crbug.com/630017).
-    self._tab.WaitForJavaScriptExpression(
+    self._tab.WaitForJavaScriptCondition2(
         'document.querySelector("textarea").value === "Hello,\\nWorld!"',
         timeout=1)
 
