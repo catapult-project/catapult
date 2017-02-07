@@ -4,14 +4,7 @@
 
 import webapp2
 
-from google.appengine.api import taskqueue
-
 from dashboard.pinpoint.models import job as job_module
-
-
-# We want this to be fast to minimize overhead while waiting for tasks to
-# finish, but don't want to consume too many resources.
-_TASK_INTERVAL = 10
 
 
 class RunHandler(webapp2.RequestHandler):
@@ -19,19 +12,5 @@ class RunHandler(webapp2.RequestHandler):
 
   def post(self, job_id):
     job = job_module.JobFromId(job_id)
-
-    # Run!
-    if job.auto_explore:
-      job.Explore()
-    work_left = job.ScheduleWork()
-
-    # Schedule moar task.
-    if work_left:
-      task = taskqueue.add(queue_name='job-queue', target='pinpoint',
-                           url='/run/' + job_id, countdown=_TASK_INTERVAL)
-      job.task = task.name
-    else:
-      job.task = None
-
-    # Update the datastore.
+    job.Run()
     job.put()

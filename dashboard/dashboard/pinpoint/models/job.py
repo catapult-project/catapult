@@ -2,10 +2,16 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
 
 from dashboard.pinpoint.models import attempt as attempt_module
 from dashboard.pinpoint.models import quest
+
+
+# We want this to be fast to minimize overhead while waiting for tasks to
+# finish, but don't want to consume too many resources.
+_TASK_INTERVAL = 10
 
 
 def JobFromId(job_id):
@@ -65,11 +71,22 @@ class Job(ndb.Model):
   def AddChange(self, change):
     self.state.AddChange(change)
 
-  def Explore(self):
-    self.state.Explore()
+  def Start(self):
+    task = taskqueue.add(queue_name='job-queue', target='pinpoint',
+                         url='/run/' + self.key.urlsafe(),
+                         countdown=_TASK_INTERVAL)
+    self.task = task.name
 
-  def ScheduleWork(self):
-    return self.state.ScheduleWork()
+  def Run(self):
+    if self.auto_explore:
+      self.state.Explore()
+    work_left = self.state.ScheduleWork()
+
+    # Schedule moar task.
+    if work_left:
+      self.Start()
+    else:
+      self.task = None
 
   def AsDict(self):
     status = 'RUNNING'

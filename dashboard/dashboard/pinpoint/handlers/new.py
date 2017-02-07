@@ -4,8 +4,6 @@
 
 import webapp2
 
-from google.appengine.api import taskqueue
-
 from dashboard.pinpoint.models import change
 from dashboard.pinpoint.models import job as job_module
 
@@ -47,9 +45,7 @@ class NewHandler(webapp2.RequestHandler):
     job_id = job.put().urlsafe()
 
     # Start job.
-    task = taskqueue.add(queue_name='job-queue', target='pinpoint',
-                         url='/run/' + job_id)
-    job.task = task.name
+    job.Start()
     job.put()
 
     # Show status page.
