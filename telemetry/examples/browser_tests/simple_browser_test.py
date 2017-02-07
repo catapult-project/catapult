@@ -22,8 +22,8 @@ class SimpleBrowserTest(
       yield 'add_1_and_2_' + ConvertPathToTestName(path), (path, 1, 2, 3)
 
   @classmethod
-  def setUpClass(cls):
-    super(cls, SimpleBrowserTest).setUpClass()
+  def SetUpProcess(cls):
+    super(cls, SimpleBrowserTest).SetUpProcess()
     cls.SetBrowserOptions(cls._finder_options)
     cls.StartBrowser()
     cls.action_runner = cls.browser.tabs[0].action_runner
