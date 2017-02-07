@@ -44,6 +44,37 @@ tr.b.unittest.testSuite(function() {
     assert.equal(eventSet.length, 0);
   });
 
+  test('push_noEvents', function() {
+    var eventSet = new tr.model.EventSet();
+    eventSet.push();
+    assert.equal(eventSet.length, 0);
+  });
+
+  test('push_oneEvent', function() {
+    var eventSet = new tr.model.EventSet();
+    eventSet.push({guid: 1});
+    assert.equal(eventSet.length, 1);
+  });
+
+  test('push_multipleEvents', function() {
+    var eventSet = new tr.model.EventSet();
+    eventSet.push({guid: 1}, {guid: 2}, {guid: 3});
+    assert.equal(eventSet.length, 3);
+  });
+
+  test('push_multiplePushes', function() {
+    var eventSet = new tr.model.EventSet();
+    eventSet.push({guid: 1}, {guid: 2}, {guid: 3});
+    eventSet.push({guid: 4}, {guid: 5}, {guid: 6});
+    assert.equal(eventSet.length, 6);
+  });
+
+  test('push_noGuidThrows', function() {
+    var eventSet = new tr.model.EventSet();
+    assert.throws(() => eventSet.push({guid: 1}, {badItem: 2}, {guid: 3}),
+        'Event must have a GUID');
+  });
+
   test('iteration', function() {
     var eventSet = new tr.model.EventSet([{guid: 1}, {guid: 2}, {guid: 3}]);
 

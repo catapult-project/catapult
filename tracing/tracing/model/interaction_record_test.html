@@ -101,12 +101,9 @@ tr.b.unittest.testSuite(function() {
   test('stableId', function() {
     var model = TestUtils.newModel();
 
-    var ir1 = model.userModel.expectations.push(
-        TestUtils.newInteractionRecord(model, 0, 10));
-    var ir2 = model.userModel.expectations.push(
-        TestUtils.newInteractionRecord(model, 10, 10));
-    var ir3 = model.userModel.expectations.push(
-        TestUtils.newInteractionRecord(model, 20, 10));
+    var ir1 = TestUtils.newInteractionRecord(model, 0, 10);
+    var ir2 = TestUtils.newInteractionRecord(model, 10, 10);
+    var ir3 = TestUtils.newInteractionRecord(model, 20, 10);
 
     assert.equal('UserExpectation.' + ir1.guid, ir1.stableId);
     assert.equal('UserExpectation.' + ir2.guid, ir2.stableId);
