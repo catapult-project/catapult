@@ -2111,8 +2111,12 @@ class DeviceUtils(object):
     """
     procs_pids = collections.defaultdict(list)
     try:
+      ps_cmd = 'ps'
+      # ps behavior was changed in Android above N, http://crbug.com/686716
+      if self.build_version_sdk > version_codes.NOUGAT:
+        ps_cmd = 'ps -e'
       ps_output = self._RunPipedShellCommand(
-          'ps | grep -F %s' % cmd_helper.SingleQuote(process_name))
+          '%s | grep -F %s' % (ps_cmd, cmd_helper.SingleQuote(process_name)))
     except device_errors.AdbShellCommandFailedError as e:
       if e.status and isinstance(e.status, list) and not e.status[0]:
         # If ps succeeded but grep failed, there were no processes with the
