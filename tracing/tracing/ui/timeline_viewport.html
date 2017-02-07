@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/event.html">
+<link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/model/event_set.html">
 <link rel="import" href="/tracing/ui/base/animation.html">
 <link rel="import" href="/tracing/ui/base/animation_controller.html">
@@ -27,6 +28,8 @@ tr.exportTo('tr.ui', function() {
   var TimelineInterestRange = tr.ui.TimelineInterestRange;
 
   var IDEAL_MAJOR_MARK_DISTANCE_PX = 150;
+  // Keep 5 digits of precision when rounding the major mark distances.
+  var MAJOR_MARK_ROUNDING_FACTOR = 100000;
 
   /**
    * The TimelineViewport manages the transform used for navigating
@@ -72,7 +75,6 @@ tr.exportTo('tr.ui', function() {
     // the x-axis.
     this.majorMarkWorldPositions_ = [];
     this.majorMarkUnit_ = undefined;
-    this.majorMarkUnitDivisor_ = undefined;
     this.interestRange_ = new TimelineInterestRange(this);
 
     this.eventToTrackMap_ = new tr.ui.tracks.EventToTrackMap();
@@ -278,11 +280,7 @@ tr.exportTo('tr.ui', function() {
     },
 
     get majorMarkUnit() {
-      return this.majorMarkUnit_;
-    },
-
-    get majorMarkUnitDivisor() {
-      return this.majorMarkUnitDivisor_;
+      return tr.b.Unit.byName.timeInMsAutoFormat;
     },
 
     updateMajorMarkData: function(viewLWorld, viewRWorld) {
@@ -310,22 +308,6 @@ tr.exportTo('tr.ui', function() {
         majorMarkDistanceWorld = tightenedGuess;
       }
 
-      // TODO(aiolos): move these conversions to tr.b.Unit and use from there.
-      // https://github.com/catapult-project/catapult/issues/2985
-      if (majorMarkDistanceWorld < 0.0001) {
-        this.majorMarkUnit_ = 'ns';
-        this.majorMarkUnitDivisor_ = 0.000001;
-      } else if (majorMarkDistanceWorld < 0.1) {
-        this.majorMarkUnit_ = 'us';
-        this.majorMarkUnitDivisor_ = 0.001;
-      } else if (majorMarkDistanceWorld < 100) {
-        this.majorMarkUnit_ = 'ms';
-        this.majorMarkUnitDivisor_ = 1;
-      } else {
-        this.majorMarkUnit_ = 's';
-        this.majorMarkUnitDivisor_ = 1000;
-      }
-
       var firstMajorMark = Math.floor(
           viewLWorld / majorMarkDistanceWorld) * majorMarkDistanceWorld;
 
@@ -333,7 +315,9 @@ tr.exportTo('tr.ui', function() {
       for (var curX = firstMajorMark;
            curX < viewRWorld;
            curX += majorMarkDistanceWorld) {
-        this.majorMarkWorldPositions_.push(Math.floor(curX));
+        this.majorMarkWorldPositions_.push(
+            Math.floor(MAJOR_MARK_ROUNDING_FACTOR * curX) /
+            MAJOR_MARK_ROUNDING_FACTOR);
       }
     },
 

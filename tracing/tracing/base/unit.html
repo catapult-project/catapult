@@ -137,6 +137,21 @@ tr.exportTo('tr.b', function() {
       return scale[0].baseSymbol || scale[0].symbol;
     },
 
+    /**
+     * Returns a human readable string representation of the value passed.
+     *
+     * Example: .00023 formatted using the timeInMsAutoFormat Unit would return
+     *   '230 ns' since the base unit scale is ms.
+     *
+     * @param {number} value - The value to be formatted.
+     * @param {Object} [opt_context] - Optional formatting parameters.
+     * @param {!tr.b.UnitScale=} [opt_context.unitScale] - A UnitScale to use
+     *   while formatting the value instead of this Unit's UnitScale.
+     * @param {!tr.b.UnitPrefix=} [opt_context.unitPrefix] - A UnitPrefix that
+     *   the value should be formatted into.
+     * @param {number} [opt_context.deltaValue] - Format the value based on
+     *   this delta between it and another number instead of the actual value.
+     */
     format: function(value, opt_context) {
       var signString = '';
       if (value < 0) {
@@ -148,9 +163,12 @@ tr.exportTo('tr.b', function() {
 
       var context = opt_context || {};
       var scale = this.getUnitScale_(context);
+      var deltaValue = context.deltaValue === undefined ? value :
+          context.deltaValue;
+      deltaValue = Math.abs(deltaValue) * this.scaleBaseUnit.value;
       var i = 0;
       while (i < scale.length - 1 &&
-             value / scale[i + 1].value >= 1) {
+             deltaValue / scale[i + 1].value >= 1) {
         i++;
       }
       var selectedSubUnit = scale[i];

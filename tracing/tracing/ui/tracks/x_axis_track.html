@@ -124,16 +124,9 @@ tr.exportTo('tr.ui.tracks', function() {
       for (var i = 0; i < vp.majorMarkWorldPositions.length; i++) {
         var curXWorld = vp.majorMarkWorldPositions[i];
         var curXView = dt.xWorldToView(curXWorld);
-
-        var roundedUnitValue =
-            Math.round(curXWorld / vp.majorMarkUnitDivisor * 100000) / 100000;
-
-        if (!tickLabels[roundedUnitValue]) {
-          tickLabels[roundedUnitValue] =
-              roundedUnitValue + ' ' + vp.majorMarkUnit;
-        }
-        ctx.fillText(tickLabels[roundedUnitValue],
-                     curXView + (2 * pixelRatio), 0);
+        var displayText = vp.majorMarkUnit.format(
+            curXWorld, {deltaValue: majorMarkDistanceWorld});
+        ctx.fillText(displayText, curXView + (2 * pixelRatio), 0);
 
         // Draw major mark.
         tr.ui.b.drawLine(ctx, curXView, 0, curXView, xAxisHeightPx);
@@ -184,10 +177,8 @@ tr.exportTo('tr.ui.tracks', function() {
       if (interestRange.range === 0) {
         var markerWorld = interestRange.min;
         var markerView = dt.xWorldToView(markerWorld);
-        var displayValue = markerWorld / vp.majorMarkUnitDivisor;
-        displayValue = Math.abs((Math.round(displayValue * 1000) / 1000));
 
-        var textToDraw = displayValue + ' ' + vp.majorMarkUnit;
+        var textToDraw = vp.majorMarkUnit.format(markerWorld);
         var textLeftView = markerView + 4 * pixelRatio;
         var textWidthView = ctx.measureText(textToDraw).width;
 
@@ -212,11 +203,7 @@ tr.exportTo('tr.ui.tracks', function() {
       var positionInMiddleOfMarkersView =
           leftMarkerView + (distanceBetweenMarkersView / 2);
 
-      // Calculate display value to print.
-      displayDistance = distanceBetweenMarkers / vp.majorMarkUnitDivisor;
-      var roundedDisplayDistance =
-          Math.abs((Math.round(displayDistance * 1000) / 1000));
-      var textToDraw = roundedDisplayDistance + ' ' + vp.majorMarkUnit;
+      var textToDraw = vp.majorMarkUnit.format(distanceBetweenMarkers);
       var textWidthView = ctx.measureText(textToDraw).width;
       var spaceForArrowsAndTextView =
           textWidthView + spaceForArrowsView + arrowSpacing;
