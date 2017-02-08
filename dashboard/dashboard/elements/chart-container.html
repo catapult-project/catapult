@@ -176,7 +176,7 @@ triaging functionality in the chart.
 
         <div id="warning">
           <template is="dom-repeat" items="{{warnings}}">
-            <span>{{item}}</span><br>
+            <span>{{item.value}}</span><br>
           </template>
         </div>
 
@@ -546,6 +546,7 @@ triaging functionality in the chart.
           // Warning text to be shown over the chart, if any.
           warnings: {
             type: Array,
+            notify: true,
             value: () => [],
             observer: 'warningsChanged'
           },
@@ -794,11 +795,11 @@ triaging functionality in the chart.
          */
         addWarnings: function(warning) {
           for (var i = 0; i < this.warnings.length; i++) {
-            if (this.warnings[i].indexOf(warning) == 0) {
+            if (this.warnings[i].value.indexOf(warning) == 0) {
               return;
             }
           }
-          this.warnings.push(warning);
+          this.push('warnings', {'value': warning});
         },
 
         /**
