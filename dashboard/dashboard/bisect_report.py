@@ -44,7 +44,7 @@ Please refer to the following doc on diagnosing memory regressions:
 _BISECT_FOOTER = """
 | O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
 |  X  | for more information addressing perf regression bugs. For feedback,
-| / \\ | file a bug with component Tests>AutoBisect.  Thank you!"""
+| / \\ | file a bug with component Speed>Bisection.  Thank you!"""
 
 _BISECT_SUSPECTED_COMMIT = """
 Suspected Commit
@@ -87,11 +87,6 @@ _BISECT_WARNING = ' * %s\n'
 
 _REVISION_TABLE_TEMPLATE = """
 %(table)s"""
-
-_RESULTS_THANK_YOU = """
-| O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
-|  X  | for more information addressing perf regression bugs. For feedback,
-| / \\ | file a bug with component Tests>AutoBisect.  Thank you!"""
 
 COMMIT_RANGE_URL_BY_DEPOT = {
     'chromium': 'https://chromium.googlesource.com/chromium/src/+log/',

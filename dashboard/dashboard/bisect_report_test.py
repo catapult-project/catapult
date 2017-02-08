@@ -145,7 +145,7 @@ Debug Info
 
 | O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
 |  X  | for more information addressing perf regression bugs. For feedback,
-| / \ | file a bug with component Tests>AutoBisect.  Thank you!"""
+| / \ | file a bug with component Speed>Bisection.  Thank you!"""
     self.assertEqual(log_with_culprit, bisect_report.GetReport(job))
 
   def testGetReport_CompletedWithCulprit_Memory(self):
@@ -196,7 +196,7 @@ Debug Info
 
 | O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
 |  X  | for more information addressing perf regression bugs. For feedback,
-| / \ | file a bug with component Tests>AutoBisect.  Thank you!"""
+| / \ | file a bug with component Speed>Bisection.  Thank you!"""
     self.assertEqual(log_with_culprit, bisect_report.GetReport(job))
 
   def testGetReport_CompletedWithCulpritReturnCode(self):
@@ -242,7 +242,7 @@ Debug Info
 
 | O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
 |  X  | for more information addressing perf regression bugs. For feedback,
-| / \ | file a bug with component Tests>AutoBisect.  Thank you!"""
+| / \ | file a bug with component Speed>Bisection.  Thank you!"""
 
     self.assertEqual(expected_output, bisect_report.GetReport(job))
 
@@ -282,7 +282,7 @@ Debug Info
 
 | O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
 |  X  | for more information addressing perf regression bugs. For feedback,
-| / \ | file a bug with component Tests>AutoBisect.  Thank you!"""
+| / \ | file a bug with component Speed>Bisection.  Thank you!"""
 
     self.assertEqual(log_without_culprit, bisect_report.GetReport(job))
 
@@ -330,7 +330,7 @@ Debug Info
 
 | O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
 |  X  | for more information addressing perf regression bugs. For feedback,
-| / \ | file a bug with component Tests>AutoBisect.  Thank you!"""
+| / \ | file a bug with component Speed>Bisection.  Thank you!"""
 
     self.assertEqual(log_without_culprit, bisect_report.GetReport(job))
 
@@ -384,7 +384,7 @@ Debug Info
 
 | O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
 |  X  | for more information addressing perf regression bugs. For feedback,
-| / \ | file a bug with component Tests>AutoBisect.  Thank you!"""
+| / \ | file a bug with component Speed>Bisection.  Thank you!"""
 
     self.assertEqual(expected_output, bisect_report.GetReport(job))
 
@@ -435,7 +435,7 @@ Debug Info
 
 | O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
 |  X  | for more information addressing perf regression bugs. For feedback,
-| / \ | file a bug with component Tests>AutoBisect.  Thank you!"""
+| / \ | file a bug with component Speed>Bisection.  Thank you!"""
 
     self.assertEqual(log_without_culprit, bisect_report.GetReport(job))
 
@@ -469,7 +469,7 @@ Debug Info
 
 | O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
 |  X  | for more information addressing perf regression bugs. For feedback,
-| / \ | file a bug with component Tests>AutoBisect.  Thank you!"""
+| / \ | file a bug with component Speed>Bisection.  Thank you!"""
 
     self.assertEqual(log_without_culprit, bisect_report.GetReport(job))
 
@@ -503,7 +503,7 @@ Debug Info
 
 | O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
 |  X  | for more information addressing perf regression bugs. For feedback,
-| / \ | file a bug with component Tests>AutoBisect.  Thank you!"""
+| / \ | file a bug with component Speed>Bisection.  Thank you!"""
 
     self.assertEqual(log_without_culprit, bisect_report.GetReport(job))
 
@@ -558,7 +558,7 @@ Debug Info
 
 | O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
 |  X  | for more information addressing perf regression bugs. For feedback,
-| / \ | file a bug with component Tests>AutoBisect.  Thank you!"""
+| / \ | file a bug with component Speed>Bisection.  Thank you!"""
 
     self.assertEqual(expected_output, bisect_report.GetReport(job))
 
@@ -624,7 +624,7 @@ Debug Info
 
 | O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
 |  X  | for more information addressing perf regression bugs. For feedback,
-| / \ | file a bug with component Tests>AutoBisect.  Thank you!"""
+| / \ | file a bug with component Speed>Bisection.  Thank you!"""
 
     self.assertEqual(expected_output, bisect_report.GetReport(job))
 
@@ -655,7 +655,7 @@ Debug Info
 
 | O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
 |  X  | for more information addressing perf regression bugs. For feedback,
-| / \ | file a bug with component Tests>AutoBisect.  Thank you!"""
+| / \ | file a bug with component Speed>Bisection.  Thank you!"""
 
     self.assertEqual(expected_output, bisect_report.GetReport(job))
 
@@ -691,7 +691,7 @@ Debug Info
 
 | O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
 |  X  | for more information addressing perf regression bugs. For feedback,
-| / \ | file a bug with component Tests>AutoBisect.  Thank you!"""
+| / \ | file a bug with component Speed>Bisection.  Thank you!"""
 
     self.assertEqual(expected_output, bisect_report.GetReport(job))
 
@@ -737,7 +737,7 @@ Debug Info
 
 | O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
 |  X  | for more information addressing perf regression bugs. For feedback,
-| / \ | file a bug with component Tests>AutoBisect.  Thank you!"""
+| / \ | file a bug with component Speed>Bisection.  Thank you!"""
 
     self.assertEqual(expected_output, bisect_report.GetReport(job))
 
@@ -787,7 +787,7 @@ Debug Info
 
 | O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
 |  X  | for more information addressing perf regression bugs. For feedback,
-| / \ | file a bug with component Tests>AutoBisect.  Thank you!"""
+| / \ | file a bug with component Speed>Bisection.  Thank you!"""
 
     self.assertEqual(expected_output, bisect_report.GetReport(job))
 
@@ -839,7 +839,7 @@ Debug Info
 
 | O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
 |  X  | for more information addressing perf regression bugs. For feedback,
-| / \ | file a bug with component Tests>AutoBisect.  Thank you!"""
+| / \ | file a bug with component Speed>Bisection.  Thank you!"""
 
     self.assertEqual(expected_output, bisect_report.GetReport(job))
 
@@ -892,7 +892,7 @@ Is this bisect wrong?
 
 | O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
 |  X  | for more information addressing perf regression bugs. For feedback,
-| / \ | file a bug with component Tests>AutoBisect.  Thank you!""" % job_id
+| / \ | file a bug with component Speed>Bisection.  Thank you!""" % job_id
 
     self.assertEqual(expected_output, bisect_report.GetReport(job))
 
