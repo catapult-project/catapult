@@ -188,6 +188,14 @@ found in the LICENSE file.
             startIndex -= 1;
           }
         }
+
+        // If the slider is too small, it doesn't render.
+        var ratio = (endIndex - startIndex) / this.data.length;
+        var MIN_RATIO = 0.01;
+        if (ratio < MIN_RATIO) {
+          startIndex = Math.round(endIndex * (1.0 - MIN_RATIO));
+        }
+
         this.chart.setSelection({xaxis: {from: startIndex, to: endIndex}},
                                 true);
       },
