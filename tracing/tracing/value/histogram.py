@@ -621,12 +621,22 @@ class BuildbotInfo(Diagnostic):
 class RevisionInfo(Diagnostic):
   def __init__(self, info):
     super(RevisionInfo, self).__init__()
+    self._chromium_commit_position = info.get('chromiumCommitPosition', None)
+    self._v8_commit_position = info.get('v8CommitPosition', None)
     self._chromium = info.get('chromium', [])
     self._v8 = info.get('v8', [])
     self._catapult = info.get('catapult', [])
     self._angle = info.get('angle', [])
     self._skia = info.get('skia', [])
     self._webrtc = info.get('webrtc', [])
+
+  @property
+  def chromium_commit_position(self):
+    return self._chromium_commit_position
+
+  @property
+  def v8_commit_position(self):
+    return self._v8_commit_position
 
   @property
   def v8(self):
@@ -653,6 +663,8 @@ class RevisionInfo(Diagnostic):
     return self._chromium
 
   def _AsDictInto(self, d):
+    d['chromiumCommitPosition'] = self._chromium_commit_position
+    d['v8CommitPosition'] = self._v8_commit_position
     d['chromium'] = self._chromium
     d['v8'] = self.v8
     d['catapult'] = self.catapult

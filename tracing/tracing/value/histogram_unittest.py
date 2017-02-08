@@ -571,6 +571,8 @@ class BuildbotInfoUnittest(unittest.TestCase):
 class RevisionInfoUnittest(unittest.TestCase):
   def testRoundtrip(self):
     info = histogram.RevisionInfo({
+        'chromiumCommitPosition': 42,
+        'v8CommitPosition': 57,
         'chromium': ['b10563e'],
         'v8': ['0a12a6'],
         'catapult': ['e6e086'],
@@ -581,6 +583,8 @@ class RevisionInfoUnittest(unittest.TestCase):
     d = info.AsDict()
     clone = histogram.Diagnostic.FromDict(d)
     self.assertEqual(ToJSON(d), ToJSON(clone.AsDict()))
+    self.assertEqual(clone.chromium_commit_position, 42)
+    self.assertEqual(clone.v8_commit_position, 57)
     self.assertEqual(clone.chromium[0], 'b10563e')
     self.assertEqual(clone.v8[0], '0a12a6')
     self.assertEqual(clone.catapult[0], 'e6e086')
