@@ -18,8 +18,8 @@ tr.b.unittest.testSuite(function() {
     diagnostics.set('generic', new tr.v.d.Generic({a: ['b', 3]}));
     diagnostics.set('breakdown', new tr.v.d.Breakdown());
     diagnostics.set('events', new tr.v.d.RelatedEventSet());
-    diagnostics.set('value set', new tr.v.d.RelatedHistogramSet());
-    diagnostics.set('value map', new tr.v.d.RelatedHistogramMap());
+    diagnostics.set('set', new tr.v.d.RelatedHistogramSet());
+    diagnostics.set('map', new tr.v.d.RelatedHistogramMap());
     diagnostics.set('histogram breakdown',
         new tr.v.d.RelatedHistogramBreakdown());
 
@@ -29,8 +29,8 @@ tr.b.unittest.testSuite(function() {
         diagnostics.get('generic').value);
     assert.instanceOf(clone.get('breakdown'), tr.v.d.Breakdown);
     assert.instanceOf(clone.get('events'), tr.v.d.RelatedEventSet);
-    assert.instanceOf(clone.get('value set'), tr.v.d.RelatedHistogramSet);
-    assert.instanceOf(clone.get('value map'), tr.v.d.RelatedHistogramMap);
+    assert.instanceOf(clone.get('set'), tr.v.d.RelatedHistogramSet);
+    assert.instanceOf(clone.get('map'), tr.v.d.RelatedHistogramMap);
     assert.instanceOf(clone.get('histogram breakdown'),
         tr.v.d.RelatedHistogramBreakdown);
   });

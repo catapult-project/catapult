@@ -131,7 +131,7 @@ function rawValuesByMetricName(valueSet, metricName) {
   var filtered = [];
   for (var value of values) {
     if (value.name !== valueName) continue;
-    var ii = tr.v.d.TelemetryInfo.getFromValue(value);
+    var ii = tr.v.d.TelemetryInfo.getFromHistogram(value);
     if (interactionRecord) {
       var irParts = [];
       var keys = Array.from(ii.storyGroupingKeys.keys());

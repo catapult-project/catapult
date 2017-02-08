@@ -34,12 +34,12 @@ tr.exportTo('tr.v', function() {
     if (percent === 0) return '000';
     if (percent === 1) return '100';
     var str = percent.toString();
-    if (str[1] !== '.')
+    if (str[1] !== '.') {
       throw new Error('Unexpected percent');
+    }
     // Pad short strings with zeros.
     str = str + '0'.repeat(Math.max(4 - str.length, 0));
-    if (str.length > 4)
-      str = str.slice(0, 4) + '_' + str.slice(4);
+    if (str.length > 4) str = str.slice(0, 4) + '_' + str.slice(4);
     return '0' + str.slice(2);
   }
 
@@ -69,8 +69,9 @@ tr.exportTo('tr.v', function() {
     }
 
     addBin(other) {
-      if (!this.range.equals(other.range))
+      if (!this.range.equals(other.range)) {
         throw new Error('Merging incompatible Histogram bins.');
+      }
       tr.b.Statistics.mergeSampledStreams(this.diagnosticMaps, this.count,
           other.diagnosticMaps, other.count, MAX_DIAGNOSTIC_MAPS);
       this.count += other.count;
@@ -183,15 +184,17 @@ tr.exportTo('tr.v', function() {
     }
 
     get guid() {
-      if (this.guid_ === undefined)
+      if (this.guid_ === undefined) {
         this.guid_ = tr.b.GUID.allocateUUID4();
+      }
 
       return this.guid_;
     }
 
     set guid(guid) {
-      if (this.guid_ !== undefined)
+      if (this.guid_ !== undefined) {
         throw new Error('Cannot reset guid');
+      }
 
       this.guid_ = guid;
     }
@@ -275,16 +278,18 @@ tr.exportTo('tr.v', function() {
      * @return {!tr.b.Statistics.Significance}
      */
     getDifferenceSignificance(other, opt_alpha) {
-      if (this.unit !== other.unit)
-        throw new Error('Cannot compare Numerics with different units');
+      if (this.unit !== other.unit) {
+        throw new Error('Cannot compare Histograms with different units');
+      }
 
       if (this.unit.improvementDirection ===
           tr.b.ImprovementDirection.DONT_CARE) {
         return tr.b.Statistics.Significance.DONT_CARE;
       }
 
-      if (!(other instanceof Histogram))
+      if (!(other instanceof Histogram)) {
         throw new Error('Unable to compute a p-value');
+      }
 
       var testResult = tr.b.Statistics.mwu(
           this.sampleValues, other.sampleValues, opt_alpha);
@@ -345,8 +350,9 @@ tr.exportTo('tr.v', function() {
      */
     addSample(value, opt_diagnostics) {
       if (opt_diagnostics &&
-          !(opt_diagnostics instanceof tr.v.d.DiagnosticMap))
+          !(opt_diagnostics instanceof tr.v.d.DiagnosticMap)) {
         opt_diagnostics = tr.v.d.DiagnosticMap.fromObject(opt_diagnostics);
+      }
 
       if (typeof(value) !== 'number' || isNaN(value)) {
         this.numNans++;
@@ -362,8 +368,9 @@ tr.exportTo('tr.v', function() {
 
         var bin = this.getBinForValue(value);
         bin.addSample(value);
-        if (opt_diagnostics)
+        if (opt_diagnostics) {
           bin.addDiagnosticMap(opt_diagnostics);
+        }
       }
 
       tr.b.Statistics.uniformlySampleStream(this.sampleValues_,
@@ -371,8 +378,9 @@ tr.exportTo('tr.v', function() {
     }
 
     sampleValuesInto(samples) {
-      for (var sampleValue of this.sampleValues)
+      for (var sampleValue of this.sampleValues) {
         samples.push(sampleValue);
+      }
     }
 
     /**
@@ -449,7 +457,7 @@ tr.exportTo('tr.v', function() {
     }
 
     /**
-     * Controls which statistics are exported to dashboard for this numeric.
+     * Controls which statistics are exported to dashboard for this Histogram.
      * The |summaryOptions| parameter is a dictionary with optional boolean
      * fields |count|, |sum|, |avg|, |std|, |min|, |max| and an optional
      * array field |percentile|.
@@ -649,7 +657,7 @@ tr.exportTo('tr.v', function() {
   /*
    * Reusable builder for tr.v.Histogram objects.
    *
-   * The bins of the numeric are specified by adding the desired boundaries
+   * The bins of the Histogram are specified by adding the desired boundaries
    * between bins. Initially, the builder has only a single boundary:
    *
    *           range.min=range.max
@@ -682,7 +690,7 @@ tr.exportTo('tr.v', function() {
    *       :     bin     :  bin 0  :  bin 1  :     : bin N-1 :    bin     :
    *
    * An important feature of the builder is that it's reusable, i.e. it can be
-   * used to build multiple numerics with the same unit and bin structure.
+   * used to build multiple Histograms with the same bin structure.
    */
   class HistogramBinBoundaries {
     /**
@@ -716,8 +724,9 @@ tr.exportTo('tr.v', function() {
      */
     static createWithBoundaries(binBoundaries) {
       var builder = new HistogramBinBoundaries(binBoundaries[0]);
-      for (var boundary of binBoundaries.slice(1))
+      for (var boundary of binBoundaries.slice(1)) {
         builder.addBinBoundary(boundary);
+      }
       return builder;
     }
 
@@ -914,8 +923,9 @@ tr.exportTo('tr.v', function() {
      * @param {number} binCount Number of bins to be added (must be positive).
      */
     addLinearBins(nextMaxBinBoundary, binCount) {
-      if (binCount <= 0)
+      if (binCount <= 0) {
         throw new Error('Bin count must be positive');
+      }
 
       if (nextMaxBinBoundary <= this.range.max) {
         throw new Error('The new max bin boundary must be greater than ' +

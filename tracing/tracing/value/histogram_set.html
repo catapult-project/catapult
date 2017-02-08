@@ -210,30 +210,30 @@ tr.exportTo('tr.v', function() {
     get sourceHistograms() {
       var sourceHistograms = new Map(this.histogramsByGuid_);
       // If a Histogram is in a RelatedHistogramSet or RelatedHistogramMap,
-      // which can be owned either by Values or by numeric samples, then it is
-      // not a source Histogram.
-      function deleteSourceValues(diagnosticMap) {
+      // which can be owned either by Histograms or by numeric samples, then it
+      // is not a source Histogram.
+      function deleteSourceHistograms(diagnosticMap) {
         for (var [name, diagnostic] of diagnosticMap) {
           if (diagnostic instanceof tr.v.d.RelatedHistogramSet) {
-            for (var relatedValue of diagnostic) {
-              sourceHistograms.delete(relatedValue.guid);
+            for (var relatedHist of diagnostic) {
+              sourceHistograms.delete(relatedHist.guid);
             }
           } else if (diagnostic instanceof tr.v.d.RelatedHistogramMap) {
-            for (var [name, relatedValue] of diagnostic) {
-              sourceHistograms.delete(relatedValue.guid);
+            for (var [name, relatedHist] of diagnostic) {
+              sourceHistograms.delete(relatedHist.guid);
             }
           }
         }
       }
 
       for (var hist of this) {
-        deleteSourceValues(hist.diagnostics);
+        deleteSourceHistograms(hist.diagnostics);
         for (var dm of hist.nanDiagnosticMaps) {
-          deleteSourceValues(dm);
+          deleteSourceHistograms(dm);
         }
         for (var b of hist.allBins) {
           for (var dm of b.diagnosticMaps) {
-            deleteSourceValues(dm);
+            deleteSourceHistograms(dm);
           }
         }
       }

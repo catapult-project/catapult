@@ -18,7 +18,7 @@ tr.b.unittest.testSuite(function() {
   var TEST_BOUNDARIES = tr.v.HistogramBinBoundaries.createLinear(0, 10, 10);
 
   test('build', function() {
-    var values = new tr.v.HistogramSet();
+    var histograms = new tr.v.HistogramSet();
     var events = new tr.model.EventSet([
       {
         guid: 9,
@@ -48,34 +48,34 @@ tr.b.unittest.testSuite(function() {
 
     var sampleForEvent = undefined;
     var diagnostic = tr.v.d.RelatedHistogramBreakdown.buildFromEvents(
-        values, 'foo-', events,
+        histograms, 'foo-', events,
         tr.e.chrome.ChromeUserFriendlyCategoryDriver.fromEvent,
         tr.b.Unit.byName.timeDurationInMs, sampleForEvent, TEST_BOUNDARIES);
 
     assert.lengthOf(diagnostic, 2);
-    var scriptValue = values.getHistogramNamed('foo-script_execute');
-    assert.instanceOf(scriptValue, tr.v.Histogram);
-    assert.lengthOf(scriptValue.allBins[2].diagnosticMaps, 1);
-    assert.strictEqual(scriptValue, diagnostic.get('script_execute'));
+    var scriptHist = histograms.getHistogramNamed('foo-script_execute');
+    assert.instanceOf(scriptHist, tr.v.Histogram);
+    assert.lengthOf(scriptHist.allBins[2].diagnosticMaps, 1);
+    assert.strictEqual(scriptHist, diagnostic.get('script_execute'));
     events = [...events];
-    var relatedEvents = scriptValue.allBins[2].diagnosticMaps[0]
+    var relatedEvents = scriptHist.allBins[2].diagnosticMaps[0]
         .get('relatedEvents');
     assert.lengthOf(relatedEvents, 1);
     assert.strictEqual(events[0], [...relatedEvents][0]);
-    assert.lengthOf(scriptValue.allBins[3].diagnosticMaps, 1);
+    assert.lengthOf(scriptHist.allBins[3].diagnosticMaps, 1);
     assert.lengthOf(
-        scriptValue.allBins[3].diagnosticMaps[0]
+        scriptHist.allBins[3].diagnosticMaps[0]
         .get('relatedEvents'), 1);
     assert.strictEqual(events[1],
-        [...scriptValue.allBins[3].diagnosticMaps[0]
+        [...scriptHist.allBins[3].diagnosticMaps[0]
         .get('relatedEvents')][0]);
 
-    var styleValue = values.getHistogramNamed('foo-style');
-    assert.instanceOf(styleValue, tr.v.Histogram);
-    assert.lengthOf(styleValue.allBins[4].diagnosticMaps, 1);
-    relatedEvents = styleValue.allBins[4].diagnosticMaps[0]
+    var styleHist = histograms.getHistogramNamed('foo-style');
+    assert.instanceOf(styleHist, tr.v.Histogram);
+    assert.lengthOf(styleHist.allBins[4].diagnosticMaps, 1);
+    relatedEvents = styleHist.allBins[4].diagnosticMaps[0]
         .get('relatedEvents');
-    assert.strictEqual(styleValue, diagnostic.get('style'));
+    assert.strictEqual(styleHist, diagnostic.get('style'));
     assert.lengthOf(relatedEvents, 1);
     assert.strictEqual(events[2], [...relatedEvents][0]);
   });

@@ -16,7 +16,7 @@ tr.exportTo('tr.v.d', function() {
   class RelatedHistogramMap extends tr.v.d.Diagnostic {
     constructor() {
       super();
-      this.valuesByName_ = new Map();
+      this.histogramsByName_ = new Map();
     }
 
     /**
@@ -26,72 +26,73 @@ tr.exportTo('tr.v.d', function() {
      * @return {!tr.v.d.HistogramRef|!tr.v.Histogram|undefined}
      */
     get(name) {
-      return this.valuesByName_.get(name);
+      return this.histogramsByName_.get(name);
     }
 
     /**
      * Add a Histogram by an explicit name to this map.
      *
      * @param {string} name
-     * @param {!(tr.v.d.HistogramRef|tr.v.Histogram)} value
+     * @param {!(tr.v.d.HistogramRef|tr.v.Histogram)} hist
      */
-    set(name, value) {
-      if (!(value instanceof tr.v.Histogram) &&
-          !(value instanceof tr.v.d.HistogramRef)) {
+    set(name, hist) {
+      if (!(hist instanceof tr.v.Histogram) &&
+          !(hist instanceof tr.v.d.HistogramRef)) {
         throw new Error('Must be instanceof Histogram or HistogramRef: ' +
-            value);
+            hist);
       }
 
-      this.valuesByName_.set(name, value);
+      this.histogramsByName_.set(name, hist);
     }
 
     /**
      * Add a Histogram implicitly by its own name to this map.
      *
-     * @param {!(tr.v.d.HistogramRef|tr.v.Histogram)} value
+     * @param {!(tr.v.d.HistogramRef|tr.v.Histogram)} hist
      */
-    add(value) {
-      this.set(value.name, value);
+    add(hist) {
+      this.set(hist.name, hist);
     }
 
     get length() {
-      return this.valuesByName_.size;
+      return this.histogramsByName_.size;
     }
 
     * [Symbol.iterator]() {
-      for (var pair of this.valuesByName_)
+      for (var pair of this.histogramsByName_)
         yield pair;
     }
 
     /**
-     * Resolve all HistogramRefs into Values by looking up their guids in
-     * |valueSet|.
-     * If a value cannot be found and |opt_required| is true, then throw an
+     * Resolve all HistogramRefs into Histograms by looking up their guids in
+     * |histograms|.
+     * If a Histogram cannot be found and |opt_required| is true, then throw an
      * Error.
-     * If a value cannot be found and |opt_required| is false, then the
+     * If a Histogram cannot be found and |opt_required| is false, then the
      * HistogramRef will remain a HistogramRef.
      *
-     * @param {!tr.v.HistogramSet} valueSet
+     * @param {!tr.v.HistogramSet} histograms
      * @param {boolean=} opt_required
      */
-    resolve(valueSet, opt_required) {
-      for (var [name, value] of this) {
-        if (!(value instanceof tr.v.d.HistogramRef))
-          continue;
+    resolve(histograms, opt_required) {
+      for (var [name, hist] of this) {
+        if (!(hist instanceof tr.v.d.HistogramRef)) continue;
 
-        var guid = value.guid;
-        value = valueSet.lookupHistogram(guid);
-        if (value instanceof tr.v.Histogram)
-          this.valuesByName_.set(name, value);
-        else if (opt_required)
+        var guid = hist.guid;
+        hist = histograms.lookupHistogram(guid);
+        if (hist instanceof tr.v.Histogram) {
+          this.histogramsByName_.set(name, hist);
+        } else if (opt_required) {
           throw new Error('Unable to find Histogram ' + guid);
+        }
       }
     }
 
     asDictInto_(d) {
       d.values = {};
-      for (var [name, value] of this)
-        d.values[name] = value.guid;
+      for (var [name, hist] of this) {
+        d.values[name] = hist.guid;
+      }
     }
 
     static fromDict(d) {

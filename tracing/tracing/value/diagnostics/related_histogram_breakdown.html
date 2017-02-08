@@ -37,30 +37,29 @@ tr.exportTo('tr.v.d', function() {
      * Add a Histogram by an explicit name to this map.
      *
      * @param {string} name
-     * @param {!(tr.v.d.HistogramRef|tr.v.Histogram)} value
+     * @param {!(tr.v.d.HistogramRef|tr.v.Histogram)} hist
      */
-    set(name, value) {
-      if (!(value instanceof tr.v.d.HistogramRef)) {
-        if (!(value instanceof tr.v.Histogram)) {
+    set(name, hist) {
+      if (!(hist instanceof tr.v.d.HistogramRef)) {
+        if (!(hist instanceof tr.v.Histogram)) {
           throw new Error(
               'RelatedHistogramBreakdown can only contain Histograms');
         }
 
         if ((this.length > 0) &&
-            (value.unit !==
+            (hist.unit !==
              tr.b.getFirstElement(this)[1].unit)) {
           throw new Error('Units mismatch', tr.b.getFirstElement(this)[1].unit,
-              value.unit);
+              hist.unit);
         }
       }
 
-      tr.v.d.RelatedHistogramMap.prototype.set.call(this, name, value);
+      tr.v.d.RelatedHistogramMap.prototype.set.call(this, name, hist);
     }
 
     asDictInto_(d) {
       tr.v.d.RelatedHistogramMap.prototype.asDictInto_.call(this, d);
-      if (this.colorScheme)
-        d.colorScheme = this.colorScheme;
+      if (this.colorScheme) d.colorScheme = this.colorScheme;
     }
 
     static fromDict(d) {
@@ -68,21 +67,20 @@ tr.exportTo('tr.v.d', function() {
       tr.b.iterItems(d.values, function(name, guid) {
         diagnostic.set(name, new tr.v.d.HistogramRef(guid));
       });
-      if (d.colorScheme)
-        diagnostic.colorScheme = d.colorScheme;
+      if (d.colorScheme) diagnostic.colorScheme = d.colorScheme;
       return diagnostic;
     }
 
     /**
     * Build a RelatedHistogramBreakdown and its Histograms from |events|.  Group
-    * events using |categoryForEvent|. Add the Histograms to |values|.
+    * events using |categoryForEvent|. Add the Histograms to |histograms|.
     * Histograms' names are prefixed with |namePrefix|. Histograms are built
     * with |opt_binBoundaries|. The numeric sample for each Event is derived
     * from |opt_sampleForEvent|, which defaults to event.cpuSelfTime. The caller
     * must add the result RelatedHistogramBreakdown to their Histogram's
     * diagnostics.
     *
-    * @param {!tr.v.HistogramSet} values
+    * @param {!tr.v.HistogramSet} histograms
     * @param {string} namePrefix
     * @param {!tr.model.EventSet} events
     * @param {!function(!tr.model.Event):string} categoryForEvent
@@ -92,26 +90,25 @@ tr.exportTo('tr.v.d', function() {
     * @param {*=} opt_this
     * @return {!RelatedHistogramBreakdown}
     */
-    static buildFromEvents(values, namePrefix, events, categoryForEvent, unit,
-        opt_sampleForEvent, opt_binBoundaries, opt_this) {
+    static buildFromEvents(histograms, namePrefix, events, categoryForEvent,
+        unit, opt_sampleForEvent, opt_binBoundaries, opt_this) {
       var sampleForEvent = opt_sampleForEvent || ((event) => event.cpuSelfTime);
 
       var diagnostic = new RelatedHistogramBreakdown();
       for (var event of events) {
         var sample = sampleForEvent.call(opt_this, event);
-        if (sample === undefined)
-          continue;
+        if (sample === undefined) continue;
 
         var eventCategory = categoryForEvent.call(opt_this, event);
-        var value = diagnostic.get(eventCategory);
-        if (value === undefined) {
-          value = new tr.v.Histogram(
+        var hist = diagnostic.get(eventCategory);
+        if (hist === undefined) {
+          hist = new tr.v.Histogram(
               namePrefix + eventCategory, unit, opt_binBoundaries);
-          values.addHistogram(value);
-          diagnostic.set(eventCategory, value);
+          histograms.addHistogram(hist);
+          diagnostic.set(eventCategory, hist);
         }
 
-        value.addSample(sample,
+        hist.addSample(sample,
             {relatedEvents: new tr.v.d.RelatedEventSet([event])});
       }
       return diagnostic;

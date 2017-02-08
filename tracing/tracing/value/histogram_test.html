@@ -25,14 +25,14 @@ tr.b.unittest.testSuite(function() {
 
     // Check that the boundaries can be used multiple times.
     for (var i = 0; i < 3; i++) {
-      var numeric = new tr.v.Histogram('', expectedUnit, boundaries);
-      assert.instanceOf(numeric, tr.v.Histogram);
-      assert.strictEqual(numeric.unit, expectedUnit);
-      assert.strictEqual(numeric.numValues, 0);
+      var hist = new tr.v.Histogram('', expectedUnit, boundaries);
+      assert.instanceOf(hist, tr.v.Histogram);
+      assert.strictEqual(hist.unit, expectedUnit);
+      assert.strictEqual(hist.numValues, 0);
 
-      assert.lengthOf(numeric.allBins, expectedBinRanges.length);
+      assert.lengthOf(hist.allBins, expectedBinRanges.length);
       for (var j = 0; j < expectedBinRanges.length; j++) {
-        var bin = numeric.allBins[j];
+        var bin = hist.allBins[j];
         assert.strictEqual(bin.count, 0);
         assert.isTrue(bin.range.equals(expectedBinRanges[j]));
       }
@@ -93,9 +93,9 @@ tr.b.unittest.testSuite(function() {
 
   test('significance', function() {
     var boundaries = tr.v.HistogramBinBoundaries.createLinear(0, 100, 10);
-    var numericA = new tr.v.Histogram(
+    var histA = new tr.v.Histogram(
         '', unitlessNumber_smallerIsBetter, boundaries);
-    var numericB = new tr.v.Histogram(
+    var histB = new tr.v.Histogram(
         '', unitlessNumber_smallerIsBetter, boundaries);
 
     var dontCare = new tr.v.Histogram('', unitlessNumber, boundaries);
@@ -103,153 +103,156 @@ tr.b.unittest.testSuite(function() {
         tr.b.Statistics.Significance.DONT_CARE);
 
     for (var i = 0; i < 100; ++i) {
-      numericA.addSample(i);
-      numericB.addSample(i * 0.85);
+      histA.addSample(i);
+      histB.addSample(i * 0.85);
     }
 
-    assert.strictEqual(numericA.getDifferenceSignificance(numericB),
+    assert.strictEqual(histA.getDifferenceSignificance(histB),
         tr.b.Statistics.Significance.INSIGNIFICANT);
-    assert.strictEqual(numericB.getDifferenceSignificance(numericA),
+    assert.strictEqual(histB.getDifferenceSignificance(histA),
         tr.b.Statistics.Significance.INSIGNIFICANT);
-    assert.strictEqual(numericA.getDifferenceSignificance(numericB, 0.1),
+    assert.strictEqual(histA.getDifferenceSignificance(histB, 0.1),
         tr.b.Statistics.Significance.SIGNIFICANT);
-    assert.strictEqual(numericB.getDifferenceSignificance(numericA, 0.1),
+    assert.strictEqual(histB.getDifferenceSignificance(histA, 0.1),
         tr.b.Statistics.Significance.SIGNIFICANT);
   });
 
-  test('numericBasic', function() {
-    var n = new tr.v.Histogram('', unitlessNumber, TEST_BOUNDARIES);
-    assert.equal(n.getBinForValue(250).range.min, 200);
-    assert.equal(n.getBinForValue(250).range.max, 300);
+  test('basic', function() {
+    var hist = new tr.v.Histogram('', unitlessNumber, TEST_BOUNDARIES);
+    assert.equal(hist.getBinForValue(250).range.min, 200);
+    assert.equal(hist.getBinForValue(250).range.max, 300);
 
-    n.addSample(-1, {foo: new tr.v.d.Generic('a')});
-    n.addSample(0, {foo: new tr.v.d.Generic('b')});
-    n.addSample(0, {foo: new tr.v.d.Generic('c')});
-    n.addSample(500, {foo: new tr.v.d.Generic('c')});
-    n.addSample(999, {foo: new tr.v.d.Generic('d')});
-    n.addSample(1000, {foo: new tr.v.d.Generic('d')});
-    assert.equal(n.allBins[0].count, 1);
+    hist.addSample(-1, {foo: new tr.v.d.Generic('a')});
+    hist.addSample(0, {foo: new tr.v.d.Generic('b')});
+    hist.addSample(0, {foo: new tr.v.d.Generic('c')});
+    hist.addSample(500, {foo: new tr.v.d.Generic('c')});
+    hist.addSample(999, {foo: new tr.v.d.Generic('d')});
+    hist.addSample(1000, {foo: new tr.v.d.Generic('d')});
+    assert.equal(hist.allBins[0].count, 1);
 
-    assert.equal(n.getBinForValue(0).count, 2);
+    assert.equal(hist.getBinForValue(0).count, 2);
     assert.deepEqual(
-        n.getBinForValue(0).diagnosticMaps.map(dm => dm.get('foo').value),
+        hist.getBinForValue(0).diagnosticMaps.map(dm => dm.get('foo').value),
         ['b', 'c']);
 
-    assert.equal(n.getBinForValue(500).count, 1);
-    assert.equal(n.getBinForValue(999).count, 1);
+    assert.equal(hist.getBinForValue(500).count, 1);
+    assert.equal(hist.getBinForValue(999).count, 1);
 
-    assert.equal(n.allBins[n.allBins.length - 1].count, 1);
-    assert.equal(n.numValues, 6);
-    assert.closeTo(n.average, 416.3, 0.1);
+    assert.equal(hist.allBins[hist.allBins.length - 1].count, 1);
+    assert.equal(hist.numValues, 6);
+    assert.closeTo(hist.average, 416.3, 0.1);
   });
 
-  test('numericNans', function() {
-    var n = new tr.v.Histogram('', unitlessNumber, TEST_BOUNDARIES);
+  test('nans', function() {
+    var hist = new tr.v.Histogram('', unitlessNumber, TEST_BOUNDARIES);
 
-    n.addSample(undefined, {foo: new tr.v.d.Generic('b')});
-    n.addSample(NaN, {'foo': new tr.v.d.Generic('c')});
-    n.addSample(undefined);
-    n.addSample(NaN);
+    hist.addSample(undefined, {foo: new tr.v.d.Generic('b')});
+    hist.addSample(NaN, {'foo': new tr.v.d.Generic('c')});
+    hist.addSample(undefined);
+    hist.addSample(NaN);
 
-    assert.equal(n.numNans, 4);
-    assert.deepEqual(n.nanDiagnosticMaps.map(dm => dm.get('foo').value),
+    assert.equal(hist.numNans, 4);
+    assert.deepEqual(hist.nanDiagnosticMaps.map(dm => dm.get('foo').value),
                                              ['b', 'c']);
 
-    var n2 = n.clone();
-    assert.instanceOf(n2.nanDiagnosticMaps[0], tr.v.d.DiagnosticMap);
-    assert.instanceOf(n2.nanDiagnosticMaps[0].get('foo'), tr.v.d.Generic);
+    var hist2 = hist.clone();
+    assert.instanceOf(hist2.nanDiagnosticMaps[0], tr.v.d.DiagnosticMap);
+    assert.instanceOf(hist2.nanDiagnosticMaps[0].get('foo'), tr.v.d.Generic);
   });
 
   test('addHistogramsValid', function() {
-    var n0 = new tr.v.Histogram('', unitlessNumber, TEST_BOUNDARIES);
-    var n1 = new tr.v.Histogram('', unitlessNumber, TEST_BOUNDARIES);
+    var hist0 = new tr.v.Histogram('', unitlessNumber, TEST_BOUNDARIES);
+    var hist1 = new tr.v.Histogram('', unitlessNumber, TEST_BOUNDARIES);
 
-    n0.addSample(-1, {foo: new tr.v.d.Generic('a0')});
-    n0.addSample(0, {foo: new tr.v.d.Generic('b0')});
-    n0.addSample(0, {foo: new tr.v.d.Generic('c0')});
-    n0.addSample(500, {foo: new tr.v.d.Generic('c0')});
-    n0.addSample(1000, {foo: new tr.v.d.Generic('d0')});
-    n0.addSample(NaN, {foo: new tr.v.d.Generic('e0')});
+    hist0.addSample(-1, {foo: new tr.v.d.Generic('a0')});
+    hist0.addSample(0, {foo: new tr.v.d.Generic('b0')});
+    hist0.addSample(0, {foo: new tr.v.d.Generic('c0')});
+    hist0.addSample(500, {foo: new tr.v.d.Generic('c0')});
+    hist0.addSample(1000, {foo: new tr.v.d.Generic('d0')});
+    hist0.addSample(NaN, {foo: new tr.v.d.Generic('e0')});
 
-    n1.addSample(-1, {foo: new tr.v.d.Generic('a1')});
-    n1.addSample(0, {foo: new tr.v.d.Generic('b1')});
-    n1.addSample(0, {foo: new tr.v.d.Generic('c1')});
-    n1.addSample(999, {foo: new tr.v.d.Generic('d1')});
-    n1.addSample(1000, {foo: new tr.v.d.Generic('d1')});
-    n1.addSample(NaN, {foo: new tr.v.d.Generic('e1')});
+    hist1.addSample(-1, {foo: new tr.v.d.Generic('a1')});
+    hist1.addSample(0, {foo: new tr.v.d.Generic('b1')});
+    hist1.addSample(0, {foo: new tr.v.d.Generic('c1')});
+    hist1.addSample(999, {foo: new tr.v.d.Generic('d1')});
+    hist1.addSample(1000, {foo: new tr.v.d.Generic('d1')});
+    hist1.addSample(NaN, {foo: new tr.v.d.Generic('e1')});
 
-    n0.addHistogram(n1);
+    hist0.addHistogram(hist1);
 
-    assert.equal(n0.numNans, 2);
-    assert.deepEqual(n0.nanDiagnosticMaps.map(dmd => dmd.get('foo').value),
+    assert.equal(hist0.numNans, 2);
+    assert.deepEqual(hist0.nanDiagnosticMaps.map(dmd => dmd.get('foo').value),
                      ['e0', 'e1']);
 
-    assert.equal(n0.allBins[0].count, 2);
+    assert.equal(hist0.allBins[0].count, 2);
     assert.deepEqual(
-        n0.allBins[0].diagnosticMaps.map(dmd => dmd.get('foo').value),
+        hist0.allBins[0].diagnosticMaps.map(dmd => dmd.get('foo').value),
         ['a0', 'a1']);
 
-    assert.equal(n0.getBinForValue(0).count, 4);
+    assert.equal(hist0.getBinForValue(0).count, 4);
     assert.deepEqual(
-        n0.getBinForValue(0).diagnosticMaps.map(dmd => dmd.get('foo').value),
+        hist0.getBinForValue(0).diagnosticMaps.map(dmd => dmd.get('foo').value),
         ['b0', 'c0', 'b1', 'c1']);
 
-    assert.equal(n0.getBinForValue(500).count, 1);
+    assert.equal(hist0.getBinForValue(500).count, 1);
     assert.deepEqual(
-        n0.getBinForValue(500).diagnosticMaps.map(dmd => dmd.get('foo').value),
+        hist0.getBinForValue(500).diagnosticMaps.map(dmd =>
+          dmd.get('foo').value),
         ['c0']);
 
-    assert.equal(n0.getBinForValue(999).count, 1);
+    assert.equal(hist0.getBinForValue(999).count, 1);
     assert.deepEqual(
-        n0.getBinForValue(999).diagnosticMaps.map(dmd => dmd.get('foo').value),
+        hist0.getBinForValue(999).diagnosticMaps.map(dmd =>
+          dmd.get('foo').value),
         ['d1']);
 
-    assert.equal(n0.allBins[n0.allBins.length - 1].count, 2);
-    assert.deepEqual(n0.allBins[n0.allBins.length - 1].diagnosticMaps.map(
+    assert.equal(hist0.allBins[hist0.allBins.length - 1].count, 2);
+    assert.deepEqual(hist0.allBins[hist0.allBins.length - 1].diagnosticMaps.map(
         dmd => dmd.get('foo').value), ['d0', 'd1']);
 
-    assert.equal(n0.numValues, 10);
-    assert.closeTo(n0.average, 349.7, 0.1);
+    assert.equal(hist0.numValues, 10);
+    assert.closeTo(hist0.average, 349.7, 0.1);
 
-    var n02 = n0.clone();
-    assert.instanceOf(n02.allBins[0].diagnosticMaps[0], tr.v.d.DiagnosticMap);
-    assert.instanceOf(n02.allBins[0].diagnosticMaps[0].get('foo'),
+    var hist02 = hist0.clone();
+    assert.instanceOf(hist02.allBins[0].diagnosticMaps[0],
+                      tr.v.d.DiagnosticMap);
+    assert.instanceOf(hist02.allBins[0].diagnosticMaps[0].get('foo'),
                       tr.v.d.Generic);
   });
 
   test('addHistogramsInvalid', function() {
-    var n0 = new tr.v.Histogram('', tr.b.Unit.byName.timeDurationInMs,
+    var hist0 = new tr.v.Histogram('', tr.b.Unit.byName.timeDurationInMs,
         tr.v.HistogramBinBoundaries.createLinear(0, 1000, 10));
-    var n1 = new tr.v.Histogram('', tr.b.Unit.byName.timeDurationInMs,
+    var hist1 = new tr.v.Histogram('', tr.b.Unit.byName.timeDurationInMs,
         tr.v.HistogramBinBoundaries.createLinear(0, 1001, 10));
-    var n2 = new tr.v.Histogram('', tr.b.Unit.byName.timeDurationInMs,
+    var hist2 = new tr.v.Histogram('', tr.b.Unit.byName.timeDurationInMs,
         tr.v.HistogramBinBoundaries.createLinear(0, 1000, 11));
 
-    assert.isFalse(n0.canAddHistogram(n1));
-    assert.isFalse(n0.canAddHistogram(n2));
-    assert.isFalse(n1.canAddHistogram(n0));
-    assert.isFalse(n1.canAddHistogram(n2));
-    assert.isFalse(n2.canAddHistogram(n0));
-    assert.isFalse(n2.canAddHistogram(n1));
+    assert.isFalse(hist0.canAddHistogram(hist1));
+    assert.isFalse(hist0.canAddHistogram(hist2));
+    assert.isFalse(hist1.canAddHistogram(hist0));
+    assert.isFalse(hist1.canAddHistogram(hist2));
+    assert.isFalse(hist2.canAddHistogram(hist0));
+    assert.isFalse(hist2.canAddHistogram(hist1));
 
-    assert.throws(n0.addHistogram.bind(n0, n1), Error);
-    assert.throws(n0.addHistogram.bind(n0, n2), Error);
+    assert.throws(hist0.addHistogram.bind(hist0, hist1), Error);
+    assert.throws(hist0.addHistogram.bind(hist0, hist2), Error);
   });
 
   test('addHistogramWithNonDiagnosticMapThrows', function() {
-    var n = new tr.v.Histogram('', unitlessNumber, TEST_BOUNDARIES);
-    assert.throws(n.addSample.bind(42, 'foo'), Error);
+    var hist = new tr.v.Histogram('', unitlessNumber, TEST_BOUNDARIES);
+    assert.throws(hist.addSample.bind(42, 'foo'), Error);
   });
 
-  test('numericPercentile', function() {
+  test('getApproximatePercentile', function() {
     function check(array, min, max, bins, precision) {
       var boundaries = tr.v.HistogramBinBoundaries.createLinear(min, max, bins);
-      var n = new tr.v.Histogram(
+      var hist = new tr.v.Histogram(
           '', tr.b.Unit.byName.timeDurationInMs, boundaries);
-      array.forEach((x) => n.addSample(x, {foo: new tr.v.d.Generic('x')}));
+      array.forEach((x) => hist.addSample(x, {foo: new tr.v.d.Generic('x')}));
       [0.25, 0.5, 0.75, 0.8, 0.95, 0.99].forEach(function(percent) {
         var expected = tr.b.Statistics.percentile(array, percent);
-        var actual = n.getApproximatePercentile(percent);
+        var actual = hist.getApproximatePercentile(percent);
         assert.closeTo(expected, actual, precision);
       });
     }
@@ -370,14 +373,14 @@ tr.b.unittest.testSuite(function() {
 
   test('statisticsScalars', function() {
     var boundaries = tr.v.HistogramBinBoundaries.createLinear(0, 100, 100);
-    var n = new tr.v.Histogram('', unitlessNumber, boundaries);
+    var hist = new tr.v.Histogram('', unitlessNumber, boundaries);
 
-    n.addSample(50);
-    n.addSample(60);
-    n.addSample(70);
-    n.addSample('i am not a number');
+    hist.addSample(50);
+    hist.addSample(60);
+    hist.addSample(70);
+    hist.addSample('i am not a number');
 
-    n.customizeSummaryOptions({
+    hist.customizeSummaryOptions({
       count: true,
       min: true,
       max: true,
@@ -390,41 +393,41 @@ tr.b.unittest.testSuite(function() {
     });
 
     // Test round-tripping summaryOptions.
-    n = n.clone();
+    hist = hist.clone();
 
-    var stats = n.statisticsScalars;
+    var stats = hist.statisticsScalars;
     assert.strictEqual(stats.get('nans').unit,
         tr.b.Unit.byName.count_smallerIsBetter);
     assert.strictEqual(stats.get('nans').value, 1);
     assert.strictEqual(stats.get('count').unit,
         tr.b.Unit.byName.count_smallerIsBetter);
     assert.strictEqual(stats.get('count').value, 3);
-    assert.strictEqual(stats.get('min').unit, n.unit);
+    assert.strictEqual(stats.get('min').unit, hist.unit);
     assert.strictEqual(stats.get('min').value, 50);
-    assert.strictEqual(stats.get('max').unit, n.unit);
+    assert.strictEqual(stats.get('max').unit, hist.unit);
     assert.strictEqual(stats.get('max').value, 70);
-    assert.strictEqual(stats.get('sum').unit, n.unit);
+    assert.strictEqual(stats.get('sum').unit, hist.unit);
     assert.strictEqual(stats.get('sum').value, 180);
-    assert.strictEqual(stats.get('avg').unit, n.unit);
+    assert.strictEqual(stats.get('avg').unit, hist.unit);
     assert.strictEqual(stats.get('avg').value, 60);
     assert.strictEqual(stats.get('std').value, 10);
-    assert.strictEqual(stats.get('pct_050').unit, n.unit);
+    assert.strictEqual(stats.get('pct_050').unit, hist.unit);
     assert.closeTo(stats.get('pct_050').value, 60, 1);
-    assert.strictEqual(stats.get('pct_100').unit, n.unit);
+    assert.strictEqual(stats.get('pct_100').unit, hist.unit);
     assert.closeTo(stats.get('pct_100').value, 70, 1);
-    assert.strictEqual(stats.get('geometricMean').unit, n.unit);
+    assert.strictEqual(stats.get('geometricMean').unit, hist.unit);
     assert.closeTo(stats.get('geometricMean').value, 59.439, 1e-3);
   });
 
   test('statisticsScalarsNoSummaryOptions', function() {
     var boundaries = tr.v.HistogramBinBoundaries.createLinear(0, 100, 100);
-    var n = new tr.v.Histogram('', unitlessNumber, boundaries);
+    var hist = new tr.v.Histogram('', unitlessNumber, boundaries);
 
-    n.addSample(50);
-    n.addSample(60);
-    n.addSample(70);
+    hist.addSample(50);
+    hist.addSample(60);
+    hist.addSample(70);
 
-    n.customizeSummaryOptions({
+    hist.customizeSummaryOptions({
       count: false,
       min: false,
       max: false,
@@ -434,13 +437,13 @@ tr.b.unittest.testSuite(function() {
       percentile: []
     });
 
-    assert.strictEqual(n.statisticsScalars.size, 0);
+    assert.strictEqual(hist.statisticsScalars.size, 0);
   });
 
-  test('statisticsScalarsEmptyNumericValue', function() {
+  test('statisticsScalarsEmptyHistogram', function() {
     var boundaries = tr.v.HistogramBinBoundaries.createLinear(0, 100, 100);
-    var n = new tr.v.Histogram('', unitlessNumber, boundaries);
-    n.customizeSummaryOptions({
+    var hist = new tr.v.Histogram('', unitlessNumber, boundaries);
+    hist.customizeSummaryOptions({
       count: true,
       min: true,
       max: true,
@@ -450,7 +453,7 @@ tr.b.unittest.testSuite(function() {
       percentile: [0, 0.01, 0.1, 0.5, 0.995, 1]
     });
 
-    var stats = n.statisticsScalars;
+    var stats = hist.statisticsScalars;
     assert.strictEqual(stats.get('count').value, 0);
     assert.strictEqual(stats.get('min').value, Infinity);
     assert.strictEqual(stats.get('max').value, -Infinity);
@@ -466,39 +469,41 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('sampleValues', function() {
-    var n0 = new tr.v.Histogram('', unitlessNumber, TEST_BOUNDARIES);
-    var n1 = new tr.v.Histogram('', unitlessNumber, TEST_BOUNDARIES);
+    var hist0 = new tr.v.Histogram('', unitlessNumber, TEST_BOUNDARIES);
+    var hist1 = new tr.v.Histogram('', unitlessNumber, TEST_BOUNDARIES);
     // maxNumSampleValues defaults to numBins * 10, which, including the
     // underflow bin and overflow bin plus this builder's 10 central bins,
     // is 12 * 10.
-    assert.strictEqual(n0.maxNumSampleValues, 120);
-    assert.strictEqual(n1.maxNumSampleValues, 120);
+    assert.strictEqual(hist0.maxNumSampleValues, 120);
+    assert.strictEqual(hist1.maxNumSampleValues, 120);
     var values0 = [];
     var values1 = [];
     for (var i = 0; i < 10; ++i) {
       values0.push(i);
-      n0.addSample(i);
+      hist0.addSample(i);
     }
     for (var i = 10; i < 20; ++i) {
       values1.push(i);
-      n1.addSample(i);
+      hist1.addSample(i);
     }
-    assert.deepEqual(n0.sampleValues, values0);
-    assert.deepEqual(n1.sampleValues, values1);
-    n0.addHistogram(n1);
-    assert.deepEqual(n0.sampleValues, values0.concat(values1));
-    var n2 = n0.clone();
-    assert.deepEqual(n2.sampleValues, values0.concat(values1));
+    assert.deepEqual(hist0.sampleValues, values0);
+    assert.deepEqual(hist1.sampleValues, values1);
+    hist0.addHistogram(hist1);
+    assert.deepEqual(hist0.sampleValues, values0.concat(values1));
+    var hist2 = hist0.clone();
+    assert.deepEqual(hist2.sampleValues, values0.concat(values1));
 
-    for (var i = 0; i < 200; ++i)
-      n0.addSample(i);
-    assert.strictEqual(n0.sampleValues.length, n0.maxNumSampleValues);
+    for (var i = 0; i < 200; ++i) {
+      hist0.addSample(i);
+    }
+    assert.strictEqual(hist0.sampleValues.length, hist0.maxNumSampleValues);
 
-    var n3 = new tr.v.Histogram('', unitlessNumber, TEST_BOUNDARIES);
-    n3.maxNumSampleValues = 10;
-    for (var i = 0; i < 100; ++i)
-      n3.addSample(i);
-    assert.strictEqual(n3.sampleValues.length, 10);
+    var hist3 = new tr.v.Histogram('', unitlessNumber, TEST_BOUNDARIES);
+    hist3.maxNumSampleValues = 10;
+    for (var i = 0; i < 100; ++i) {
+      hist3.addSample(i);
+    }
+    assert.strictEqual(hist3.sampleValues.length, 10);
   });
 
   test('singularBin', function() {

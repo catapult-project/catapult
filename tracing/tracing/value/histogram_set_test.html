@@ -20,21 +20,21 @@ tr.b.unittest.testSuite(function() {
 
   test('importDicts', function() {
     var n = new tr.v.Histogram('foo', tr.b.Unit.byName.unitlessNumber);
-    var values = new tr.v.HistogramSet([n]);
-    var values2 = new tr.v.HistogramSet();
-    values2.importDicts(values.asDicts());
-    assert.isDefined(values2.getHistogramNamed('foo'));
+    var histograms = new tr.v.HistogramSet([n]);
+    var histograms2 = new tr.v.HistogramSet();
+    histograms2.importDicts(histograms.asDicts());
+    assert.isDefined(histograms2.getHistogramNamed('foo'));
   });
 
-  test('addValueFromDictsWithSampleDiagnostic', function() {
+  test('importDictsWithSampleDiagnostic', function() {
     var n = new tr.v.Histogram('foo', tr.b.Unit.byName.count);
     n.addSample(10, {bar: new tr.v.d.Generic('baz')});
 
-    var values = new tr.v.HistogramSet([n]);
-    var values2 = new tr.v.HistogramSet();
-    values2.importDicts(values.asDicts());
-    assert.isDefined(values2.getHistogramNamed('foo'));
-    var v = values2.getHistogramNamed('foo');
+    var histograms = new tr.v.HistogramSet([n]);
+    var histograms2 = new tr.v.HistogramSet();
+    histograms2.importDicts(histograms.asDicts());
+    assert.isDefined(histograms2.getHistogramNamed('foo'));
+    var v = histograms2.getHistogramNamed('foo');
     assert.lengthOf(v.getBinForValue(10).diagnosticMaps, 1);
     var dm = v.getBinForValue(10).diagnosticMaps[0];
     assert.strictEqual(dm.size, 1);
@@ -42,7 +42,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(dm.get('bar').value, 'baz');
   });
 
-  test('relatedValueSetDiagnostic', function() {
+  test('relatedHistogramSetDiagnostic', function() {
     var unit = tr.b.Unit.byName.unitlessNumber;
     var a = new tr.v.Histogram('a', unit);
     var b = new tr.v.Histogram('b', unit);
@@ -50,22 +50,22 @@ tr.b.unittest.testSuite(function() {
     a.diagnostics.set('rvs', new tr.v.d.RelatedHistogramSet([b, c]));
 
     // Don't serialize c just yet.
-    var values = new tr.v.HistogramSet([a, b]);
+    var histograms = new tr.v.HistogramSet([a, b]);
 
-    var sourceHistograms = values.sourceHistograms;
+    var sourceHistograms = histograms.sourceHistograms;
     assert.strictEqual(tr.b.getOnlyElement(sourceHistograms), a);
 
-    var values2 = new tr.v.HistogramSet();
-    values2.importDicts(values.asDicts());
-    values2.resolveRelatedHistograms();
+    var histograms2 = new tr.v.HistogramSet();
+    histograms2.importDicts(histograms.asDicts());
+    histograms2.resolveRelatedHistograms();
 
-    var a2 = values2.getHistogramNamed('a');
+    var a2 = histograms2.getHistogramNamed('a');
     assert.isDefined(a2);
     assert.strictEqual(a2.guid, a.guid);
     assert.instanceOf(a2, tr.v.Histogram);
     assert.notStrictEqual(a2, a);
 
-    var b2 = values2.getHistogramNamed('b');
+    var b2 = histograms2.getHistogramNamed('b');
     assert.isDefined(b2);
     assert.strictEqual(b2.guid, b.guid);
     assert.instanceOf(b2, tr.v.Histogram);
@@ -85,18 +85,18 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(rvs2vs[c2i].guid, c.guid);
     assert.instanceOf(rvs2vs[c2i], tr.v.d.HistogramRef);
 
-    // Now serialize c and add it to values2.
-    // Related value resolution is idempotent.
-    // Old values can refer to new values.
-    values2.importDicts([c.asDict()]);
-    values2.resolveRelatedHistograms();
+    // Now serialize c and add it to histograms2.
+    // Related Histogram resolution is idempotent.
+    // Old histograms can refer to new histograms.
+    histograms2.importDicts([c.asDict()]);
+    histograms2.resolveRelatedHistograms();
 
-    var c2 = values2.getHistogramNamed('c');
+    var c2 = histograms2.getHistogramNamed('c');
     assert.isDefined(c2);
     assert.strictEqual(c2.guid, c.guid);
     assert.notStrictEqual(c2, c);
 
-    // Now a real c2 Value should be in a2's RelatedHistogramSet.
+    // Now a real c2 Histogram should be in a2's RelatedHistogramSet.
     rvs2vs = [...rvs2];
     rvs2guids = rvs2vs.map(v => v.guid);
     b2i = rvs2guids.indexOf(b.guid);
@@ -105,7 +105,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(c2, rvs2vs[c2i]);
   });
 
-  test('relatedValueMapDiagnostic', function() {
+  test('relatedHistogramMapDiagnostic', function() {
     var unit = tr.b.Unit.byName.unitlessNumber;
     var a = new tr.v.Histogram('a', unit);
     var b = new tr.v.Histogram('b', unit);
@@ -116,22 +116,22 @@ tr.b.unittest.testSuite(function() {
     a.diagnostics.set('rvm', rvm);
 
     // Don't serialize c just yet.
-    var values = new tr.v.HistogramSet([a, b]);
+    var histograms = new tr.v.HistogramSet([a, b]);
 
-    var sourceHistograms = values.sourceHistograms;
+    var sourceHistograms = histograms.sourceHistograms;
     assert.strictEqual(tr.b.getOnlyElement(sourceHistograms), a);
 
-    var values2 = new tr.v.HistogramSet();
-    values2.importDicts(values.asDicts());
-    values2.resolveRelatedHistograms();
+    var histograms2 = new tr.v.HistogramSet();
+    histograms2.importDicts(histograms.asDicts());
+    histograms2.resolveRelatedHistograms();
 
-    var a2 = values2.getHistogramNamed('a');
+    var a2 = histograms2.getHistogramNamed('a');
     assert.isDefined(a2);
     assert.strictEqual(a2.guid, a.guid);
     assert.instanceOf(a2, tr.v.Histogram);
     assert.notStrictEqual(a2, a);
 
-    var b2 = values2.getHistogramNamed('b');
+    var b2 = histograms2.getHistogramNamed('b');
     assert.isDefined(b2);
     assert.strictEqual(b2.guid, b.guid);
     assert.instanceOf(b2, tr.v.Histogram);
@@ -142,17 +142,17 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(rvm2, 2);
 
     // Assert that b and c are in a2's RelatedHistogramMap.
-    // |c| should still be a HistogramRef since it wasn't in values2.
+    // |c| should still be a HistogramRef since it wasn't in histograms2.
     assert.strictEqual(rvm2.get('y'), b2);
     assert.instanceOf(rvm2.get('z'), tr.v.d.HistogramRef);
 
-    // Now serialize c and add it to values2.
-    // Related value resolution is idempotent.
-    // Old values can refer to new values.
-    values2.importDicts([c.asDict()]);
-    values2.resolveRelatedHistograms();
+    // Now serialize c and add it to histograms2.
+    // Related Histogram resolution is idempotent.
+    // Old histograms can refer to new histograms.
+    histograms2.importDicts([c.asDict()]);
+    histograms2.resolveRelatedHistograms();
 
-    var c2 = values2.getHistogramNamed('c');
+    var c2 = histograms2.getHistogramNamed('c');
     assert.isDefined(c2);
     assert.strictEqual(c2.guid, c.guid);
     assert.instanceOf(c2, tr.v.Histogram);
@@ -161,7 +161,7 @@ tr.b.unittest.testSuite(function() {
     // b2 should still be in a2's RelatedHistogramMap.
     assert.strictEqual(rvm2.get('y'), b2);
 
-    // Now a real c2 Value should be in a2's RelatedHistogramMap.
+    // Now a real c2 Histogram should be in a2's RelatedHistogramMap.
     assert.strictEqual(rvm2.get('z'), c2);
   });
 
@@ -170,11 +170,11 @@ tr.b.unittest.testSuite(function() {
     var aHist = new tr.v.Histogram('a', unit);
     aHist.addSample(1);
 
-    var numeric = new tr.v.Histogram('b', tr.b.Unit.byName.unitlessNumber);
-    numeric.addSample(1, {rvs: new tr.v.d.RelatedHistogramSet([aHist])});
+    var bHist = new tr.v.Histogram('b', tr.b.Unit.byName.unitlessNumber);
+    bHist.addSample(1, {rvs: new tr.v.d.RelatedHistogramSet([aHist])});
 
-    var values = new tr.v.HistogramSet([aHist, numeric]);
-    assert.strictEqual(tr.b.getOnlyElement(values.sourceHistograms), numeric);
+    var histograms = new tr.v.HistogramSet([aHist, bHist]);
+    assert.strictEqual(tr.b.getOnlyElement(histograms.sourceHistograms), bHist);
   });
 
   test('sharedDiagnostic', function() {

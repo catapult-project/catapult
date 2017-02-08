@@ -26,8 +26,9 @@ tr.exportTo('tr.v.d', function() {
       this.storyUrl_ = '';
       this.storysetRepeatCounter_ = undefined;
 
-      if (opt_info)
+      if (opt_info) {
         this.addInfo(opt_info);
+      }
     }
 
     canAddDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
@@ -95,23 +96,24 @@ tr.exportTo('tr.v.d', function() {
       }
     }
 
-    addToHistogram(value) {
-      value.diagnostics.set(TelemetryInfo.NAME, this);
+    addToHistogram(hist) {
+      hist.diagnostics.set(TelemetryInfo.NAME, this);
     }
 
     /**
-     * @param {!tr.v.Value} value
+     * @param {!tr.v.Histogram} hist
      * @return {(undefined|!tr.v.d.TelemetryInfo)}
      */
-    static getFromValue(value) {
-      return value.diagnostics.get(TelemetryInfo.NAME) ||
-             value.diagnostics.get('iteration');
+    static getFromHistogram(hist) {
+      return hist.diagnostics.get(TelemetryInfo.NAME) ||
+             hist.diagnostics.get('iteration');
     }
 
     asDictInto_(d) {
       d.benchmarkName = this.benchmarkName;
-      if (this.benchmarkStart)
+      if (this.benchmarkStart) {
         d.benchmarkStartMs = this.benchmarkStart.getTime();
+      }
       d.label = this.label;
       d.storyDisplayName = this.storyDisplayName;
       if (this.storyGroupingKeys.size > 0) {
@@ -133,8 +135,7 @@ tr.exportTo('tr.v.d', function() {
     }
 
     get displayLabel() {
-      if (this.label)
-        return this.label;
+      if (this.label) return this.label;
       return this.benchmarkName + '\n' + this.benchmarkStartString;
     }
 
@@ -187,19 +188,18 @@ tr.exportTo('tr.v.d', function() {
     }
 
     get benchmarkStartString() {
-      if (this.benchmarkStart_ === undefined)
-        return '';
+      if (this.benchmarkStart_ === undefined) return '';
       return tr.b.formatDate(this.benchmarkStart);
     }
 
     /**
-     * @param {!tr.v.Value} value
+     * @param {!tr.v.Histogram} hist
      * @param {string} fieldName
      * @param {*} defaultValue
      * @return {*}
      */
-    static getField(value, fieldName, defaultValue) {
-      var telemetry = tr.v.d.TelemetryInfo.getFromValue(value);
+    static getField(hist, fieldName, defaultValue) {
+      var telemetry = tr.v.d.TelemetryInfo.getFromHistogram(hist);
       if (!(telemetry instanceof tr.v.d.TelemetryInfo) ||
           !telemetry[fieldName]) {
         return defaultValue;
@@ -208,14 +208,15 @@ tr.exportTo('tr.v.d', function() {
     }
 
     /**
-     * @param {!tr.v.Value} value
+     * @param {!tr.v.Histogram} hist
      * @param {string} storyGroupingKey
      * @return {string}
      */
-    static getStoryGroupingKeyLabel(value, storyGroupingKey) {
-      var telemetry = tr.v.d.TelemetryInfo.getFromValue(value);
-      if (!(telemetry instanceof tr.v.d.TelemetryInfo))
+    static getStoryGroupingKeyLabel(hist, storyGroupingKey) {
+      var telemetry = tr.v.d.TelemetryInfo.getFromHistogram(hist);
+      if (!(telemetry instanceof tr.v.d.TelemetryInfo)) {
         return storyGroupingKey + ': undefined';
+      }
       return storyGroupingKey + ': ' +
         telemetry.storyGroupingKeys.get(storyGroupingKey);
     }
@@ -232,13 +233,13 @@ tr.exportTo('tr.v.d', function() {
     }
   }
 
-  // Diagnostics generally do not need a constant name or getFromValue().
+  // Diagnostics generally do not need a constant name or getFromHistogram().
   // TelemetryInfo is a special kind of Diagnostic that is produced by
   // telemetry, which shepherds whole flocks of traces at once, and needs a
   // system to identify and find traces by these attributes.
 
-  // Values produced by telemetry all have a single TelemetryInfo at this key in
-  // their DiagnosticMap.
+  // Histograms produced by telemetry all have a single TelemetryInfo at this
+  // key in their DiagnosticMap.
   TelemetryInfo.NAME = 'telemetry';
 
   tr.v.d.Diagnostic.register(TelemetryInfo, {
