@@ -65,7 +65,7 @@ class ViewerDataScript(generate.ExtraScript):
   def WriteToFile(self, output_file):
     output_file.write('<script id="viewer-data" type="%s">\n' % self._mime_type)
     compressed_trace = StringIO.StringIO()
-    with gzip.GzipFile(fileobj=compressed_trace, mode='w') as f:
+    with gzip.GzipFile(fileobj=compressed_trace, mode='w', mtime=0) as f:
       f.write(self._trace_data_string)
     b64_content = base64.b64encode(compressed_trace.getvalue())
     output_file.write(b64_content)
