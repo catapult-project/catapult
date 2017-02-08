@@ -95,7 +95,7 @@ found in the LICENSE file.
       <div class="error">{{error}}</div>
     </template>
     <login-warning id="login-warning" login-link="{{loginLink}}"
-                   hidden?="{{isInternalUser}}">
+                   missing="{{missing}}">
     </login-warning>
     <div id="top">
       <div id="action-bar" hidden$="{{computeOr(loading, error)}}">
@@ -177,6 +177,12 @@ found in the LICENSE file.
         isInternalUser: {
           type: Boolean,
           value: false
+        },
+
+        missing: {
+          type: String,
+          notify: true,
+          value: ''
         },
 
         selectedKeys: {
@@ -464,6 +470,9 @@ found in the LICENSE file.
             this.warningMessage = response['warning_message'];
             this.setExtraColumns(response['alert_list']);
             this.alertList = response['alert_list'];
+            if (this.alertList.length == 0) {
+              this.missing = response['display_username'];
+            }
             this.selectedKeys = response['selected_keys'];
             if (this.warningMessage) {
               this.fire('display-toast', {
@@ -486,6 +495,7 @@ found in the LICENSE file.
           function(msg) {
             this.error = msg;
             this.loading = false;
+            this.missing = 'Unknown';
           }.bind(this));
       },
       computeOr: function(error, loading) {
