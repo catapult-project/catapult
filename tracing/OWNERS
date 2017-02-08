@@ -13,6 +13,9 @@ benjhayden@chromium.org
 # For changes related to system_health/loading_metric.html and its tests.
 kouhei@chromium.org
 
+# TEAM: tracing@chromium.org
+# COMPONENT: Speed>Tracing
+
 # Tracing, in general, doesn't require an owners stamp to commit. If you
 # don't think the complexity requires the review of the above you can use
 # any tracing committer.
