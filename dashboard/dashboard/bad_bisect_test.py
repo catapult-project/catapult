@@ -2,12 +2,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import json
 import webapp2
 import webtest
-
-# pylint: disable=unused-import
-from dashboard import mock_oauth2_decorator
-# pylint: enable=unused-import
 
 from google.appengine.api import users
 
@@ -32,19 +29,21 @@ class BadBisectHandlerTest(testing_common.TestCase):
     try_job.TryJob(id=1234).put()
 
   def testGet_WithNoTryJobId_ShowsError(self):
-    response = self.testapp.get('/bad_bisect')
-    self.assertIn('<h1 class="error">', response.body)
+    response = self.testapp.post('/bad_bisect?try_job_id=')
+    self.assertIn('error', json.loads(response.body))
+
+  def testGet_WithInvalidTryJobId_ShowsError(self):
+    response = self.testapp.post('/bad_bisect?try_job_id=11111111')
+    self.assertIn('error', json.loads(response.body))
+
+  def testGet_WithNonIntTryJobId_ShowsError(self):
+    response = self.testapp.post('/bad_bisect?try_job_id=iamnotaninteger')
+    self.assertIn('error', json.loads(response.body))
 
   def testGet_NotLoggedIn_ShowsError(self):
     self.UnsetCurrentUser()
-    self.testapp.get('/bad_bisect?', {'try_job_id': '1234'})
-    response = self.testapp.get('/bad_bisect')
-    self.assertEqual(302, response.status_code)
-
-  def testGet_RenderForm(self):
-    response = self.testapp.get('/bad_bisect?', {'try_job_id': '1234'})
-    self.assertEqual(1, len(response.html('form')))
-    self.assertIn('1234', response.body)
+    response = self.testapp.post('/bad_bisect?', {'try_job_id': '1234'})
+    self.assertIn('error', json.loads(response.body))
 
   def testPost_FeedbackRecorded(self):
     self.testapp.post('/bad_bisect?', {
