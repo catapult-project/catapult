@@ -873,6 +873,10 @@ found in the LICENSE file.
           var numA = parseNumber(valA);
           var numB = parseNumber(valB);
           if (numA && numB) {
+            if (!alertA.improvement)
+              numA = -numA;
+            if (!alertB.improvement)
+              numB = -numB;
             var result = numA - numB;
           } else {
             var result = 0;
