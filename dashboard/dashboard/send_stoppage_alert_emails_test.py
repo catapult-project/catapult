@@ -31,9 +31,18 @@ class EmailSummaryTest(testing_common.TestCase):
     sheriff.Sheriff(
         email='foo@chromium.org', id='Foo', patterns=['*/*/*/*'],
         stoppage_alert_delay=3).put()
+    stdio_dict = {
+        'foo': {'a_stdio_uri': '[Buildbot stdio](http://build.chromium.org/p/'
+                               'chromium.perf/builders/Mac/builds/187/steps/'
+                               'media.mse_cases/logs/stdio)'},
+        'bar': {'a_a_stdio_uri': '[Buildbot stdio](http://build.chromium.org/p/'
+                                 'chromium.perf/builders/Win/builds/184/steps/'
+                                 'media.mse_cases/logs/stdio)'},
+        'baz': {'value': 1000},
+    }
     for name in ('foo', 'bar', 'baz'):
       test_path = 'M/b/suite/%s' % name
-      testing_common.AddRows(test_path, {100})
+      testing_common.AddRows(test_path, {100: stdio_dict[name]})
 
   def testGet_ThreeAlertsOneSheriff_EmailSent(self):
     self._AddSampleData()
@@ -48,9 +57,20 @@ class EmailSummaryTest(testing_common.TestCase):
     self.assertEqual('gasper-alerts@google.com', messages[0].sender)
     self.assertEqual('foo@chromium.org', messages[0].to)
     self.assertIn('3', messages[0].subject)
-    self.assertIn('foo', str(messages[0].body))
-    self.assertIn('bar', str(messages[0].body))
-    self.assertIn('baz', str(messages[0].body))
+    body = str(messages[0].body)
+    self.assertIn('foo', body)
+    self.assertIn('bar', body)
+    self.assertIn('baz', body)
+    self.assertIn(
+        'http://build.chromium.org/p/chromium.perf/builders/Mac/builds/187',
+        body)
+    self.assertIn(
+        'http://build.chromium.org/p/chromium.perf/builders/Win/builds/184',
+        body)
+    self.assertIn(
+        'https://luci-logdog.appspot.com/v/?s=chrome%2Fbb%2Fchromium.perf%2F'
+        'Win%2F184%2F%2B%2Frecipes%2Fsteps%2Fmedia.mse_cases%2F0%2Fstdout',
+        body)
     stoppage_alerts = stoppage_alert.StoppageAlert.query().fetch()
     for alert in stoppage_alerts:
       self.assertTrue(alert.mail_sent)

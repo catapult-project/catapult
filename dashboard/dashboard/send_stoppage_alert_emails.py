@@ -28,6 +28,7 @@ that the test has been renamed and the monitoring should be updated.
 _HTML_ALERT_ROW_TEMPLATE = """<tr>
     <td>%(rev)d</td>
     <td><a href="%(graph_link)s">%(test_path)s</a></td>
+    <td><a href="%(buildbot_status_link)s"</a></td>
     <td><a href="%(stdio_link)s">stdio</a></td>
   </tr>
 """
@@ -45,6 +46,7 @@ _TEXT_ALERT_ROW_TEMPLATE = """
   Last rev: %(rev)d
   Test: %(test_path)s
   Graph:%(graph_link)s
+  Buildbot Status Page: %(buildbot_status_link)s
   Stdio: %(stdio_link)s
 """
 _BUG_TEMPLATE_URL = (
@@ -138,10 +140,19 @@ def _AlertRowDict(alert):
       'test_path': test_path,
       'graph_link': email_template.GetReportPageLink(test_path),
       'stdio_link': _StdioLink(alert),
+      'buildbot_status_link': _BuildbotStatusLink(alert),
   }
 
 
 def _StdioLink(alert):
-  """Returns a list of stdio log links for the given stoppage alerts."""
-  row = alert.row.get()
-  return getattr(row, 'a_stdio_uri', None)
+  stdio_uri = utils.GetStdioLinkFromRow(alert.row.get())
+  if not stdio_uri:
+    return None
+  return utils.GetLogdogLogUriFromStdioLink(stdio_uri)
+
+
+def _BuildbotStatusLink(alert):
+  stdio_uri = utils.GetStdioLinkFromRow(alert.row.get())
+  if not stdio_uri:
+    return None
+  return utils.GetBuildbotStatusPageUriFromStdioLink(stdio_uri)

@@ -60,8 +60,8 @@ class StoppageAlertDebuggingInfoHandler(request_handler.RequestHandler):
     test_path = utils.TestPath(row.key.parent())
     stoppage_details['test_path'] = test_path
 
-    current_stdio_link = (getattr(row, 'a_stdio_uri', None) or
-                          getattr(row, 'a_a_stdio_uri', None))
+    current_stdio_link = utils.GetStdioLinkFromRow(row)
+
     if not current_stdio_link:
       self.response.out.write(json.dumps({'error': 'Cannot find stdio link.'}))
       return

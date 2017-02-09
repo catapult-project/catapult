@@ -485,6 +485,16 @@ def GetBuildDetailsFromStdioLink(stdio_link):
   return base_url, master, bot, buildnumber, step
 
 
+def GetStdioLinkFromRow(row):
+  """Returns the markdown-style buildbot stdio link.
+
+  Due to crbug.com/690630, many row entities have this set to "a_a_stdio_uri"
+  instead of "a_stdio_uri".
+  """
+  return(getattr(row, 'a_stdio_uri', None) or
+         getattr(row, 'a_a_stdio_uri', None))
+
+
 def GetBuildbotStatusPageUriFromStdioLink(stdio_link):
   base_url, _, bot, buildnumber, _ = GetBuildDetailsFromStdioLink(
       stdio_link)
