@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/metrics/system_health/estimated_input_latency_metric.html">
+<link rel="import" href="/tracing/value/histogram_set.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+
+  function addInteractiveTimestamp(rendererProcess, mainThread, timestamp) {
+    mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+      cat: 'blink.user_timing',
+      title: 'navigationStart',
+      start: timestamp,
+      duration: 0.0,
+      args: {frame: '0xdeadbeef'}
+    }));
+    rendererProcess.objects.addSnapshot(
+        'ptr', 'loading', 'FrameLoader', timestamp, {
+          isLoadingMainFrame: true,
+          frame: {id_ref: '0xdeadbeef'},
+          documentLoaderURL: 'http://example.com'
+        });
+    mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+      cat: 'loading',
+      title: 'firstMeaningfulPaintCandidate',
+      start: timestamp,
+      duration: 0.0,
+      args: {frame: '0xdeadbeef'}
+    }));
+  }
+
+  test('estimatedInputLatency', function() {
+    let model = tr.c.TestUtils.newModel((model) => {
+      let rendererProcess = model.getOrCreateProcess(1984);
+      let mainThread = rendererProcess.getOrCreateThread(2);
+      mainThread.name = 'CrRendererMain';
+      addInteractiveTimestamp(rendererProcess, mainThread, 200);
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'toplevel',
+        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
+        start: 0,
+        duration: 100,
+      }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'toplevel',
+        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
+        start: 3000,
+        duration: 10,
+      }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'toplevel',
+        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
+        start: 9000,
+        duration: 10,
+      }));
+    });
+    let values = new tr.v.HistogramSet();
+    tr.metrics.sh.estimatedInputLatency(values, model);
+    let eqt = values.getHistogramNamed(
+        'interactive:500ms_window:renderer_eqt');
+    assert.equal(0.1, eqt.average);
+  });
+
+  test('estimatedInputLatency_noInteractiveThrows', function() {
+    let model = tr.c.TestUtils.newModel((model) => {
+      let rendererProcess = model.getOrCreateProcess(1984);
+      let mainThread = rendererProcess.getOrCreateThread(2);
+      mainThread.name = 'CrRendererMain';
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'toplevel',
+        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
+        start: 0,
+        duration: 100,
+      }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'toplevel',
+        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
+        start: 3000,
+        duration: 10,
+      }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'toplevel',
+        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
+        start: 9000,
+        duration: 10,
+      }));
+    });
+    let values = new tr.v.HistogramSet();
+    assert.throws(() => {
+      tr.metrics.sh.estimatedInputLatency(values, model);
+    }, 'getOnlyElement was passed an empty iterable.');
+  });
+
+  test('estimatedInputLatency_multipleInteractiveThrows', function() {
+    let model = tr.c.TestUtils.newModel((model) => {
+      let rendererProcess = model.getOrCreateProcess(1984);
+      let mainThread = rendererProcess.getOrCreateThread(2);
+      mainThread.name = 'CrRendererMain';
+      addInteractiveTimestamp(rendererProcess, mainThread, 200);
+      addInteractiveTimestamp(rendererProcess, mainThread, 400);
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'toplevel',
+        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
+        start: 0,
+        duration: 100,
+      }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'toplevel',
+        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
+        start: 3000,
+        duration: 10,
+      }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'toplevel',
+        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
+        start: 9000,
+        duration: 10,
+      }));
+    });
+    let values = new tr.v.HistogramSet();
+    assert.throws(() => {
+      tr.metrics.sh.estimatedInputLatency(values, model);
+    }, 'getOnlyElement was passed an iterable with multiple elements.');
+  });
+
+  test('estimatedInputLatency_multipleRenderersAggregates', function() {
+    let model = tr.c.TestUtils.newModel(function(model) {
+      let rendererProcess = model.getOrCreateProcess(1984);
+      let mainThread = rendererProcess.getOrCreateThread(2);
+      mainThread.name = 'CrRendererMain';
+      addInteractiveTimestamp(rendererProcess, mainThread, 200);
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'toplevel',
+        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
+        start: 0,
+        duration: 100,
+      }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'toplevel',
+        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
+        start: 3000,
+        duration: 10,
+      }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'toplevel',
+        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
+        start: 9000,
+        duration: 10,
+      }));
+      let rendererProcess2 = model.getOrCreateProcess(1985);
+      let mainThread2 = rendererProcess2.getOrCreateThread(2);
+      mainThread2.name = 'CrRendererMain';
+      addInteractiveTimestamp(rendererProcess2, mainThread2, 200);
+      mainThread2.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'toplevel',
+        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
+        start: 9000,
+        duration: 0,
+      }));
+    });
+    let values = new tr.v.HistogramSet();
+    tr.metrics.sh.estimatedInputLatency(values, model);
+    let eqt = values.getHistogramNamed(
+        'interactive:500ms_window:renderer_eqt');
+    assert.equal(0.05, eqt.average);
+  });
+});
+</script>

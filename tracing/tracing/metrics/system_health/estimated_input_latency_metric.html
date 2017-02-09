@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/base/iteration_helpers.html">
+<link rel="import" href="/tracing/extras/chrome/estimated_input_latency.html">
+<link rel="import" href="/tracing/model/helpers/chrome_model_helper.html">
+<link rel="import" href="/tracing/value/histogram.html">
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview
+ * This file defines the input latency metric estimated as the maximum
+ * expected queueing time (EQT) in sliding window of size 500ms.
+ *
+ * The EQT is defined as the average queueing time of a hypothetical input
+ * event arriving at a random time in the given time window.
+ * For more information see:
+ * - https://goo.gl/OQ2bX6
+ * - https://goo.gl/jmWpMl
+ * - https://goo.gl/lga4iO
+ */
+tr.exportTo('tr.metrics.sh', function() {
+  // The size of the sliding window is chosen arbitrarily (see
+  // https://goo.gl/lga4iO).
+  const WINDOW_SIZE_MS = 500;
+  const EQT_BOUNDARIES = tr.v.HistogramBinBoundaries
+      .createExponential(0.01, WINDOW_SIZE_MS, 50);
+
+  /**
+   * Returns true if the slice contains a forced GC event. Some stories force
+   * garbage collection before sampling memory usage. Since a forced GC takes
+   * long time we need to ignore it to avoid biasing the input latency results.
+   */
+  function containsForcedGC_(slice) {
+    return slice.findTopmostSlicesRelativeToThisSlice(
+        tr.metrics.v8.utils.isForcedGarbageCollectionEvent).length > 0;
+  }
+
+  /**
+   * Returns the time window during which the the page is interactive.
+   * This time window excludes the page load time. We compute EQT only for
+   * the interactive time because the input latency during the page load time
+   * is not interesting.
+   * @throws if there is no interactive time window or if there are multiple
+   *         interactive time windows.
+   */
+  function getInteractiveWindow_(model, rendererHelper) {
+    let interactiveTimestamp = tr.b.getOnlyElement(
+        tr.e.chrome.getInteractiveTimestamps(model).get(rendererHelper.pid));
+    return tr.b.Range.fromExplicitRange(interactiveTimestamp, Infinity)
+        .findIntersection(rendererHelper.mainThread.bounds);
+  }
+
+  /**
+   * Adds the input latency estimated as the maximum expected queueing time
+   * in the sliding time window of size WINDOW_SIZE_MS.
+   * The result histogram contains value per renderer.
+   */
+  function estimatedInputLatency(values, model) {
+    let chromeHelper = model.getOrCreateHelper(
+        tr.model.helpers.ChromeModelHelper);
+    let histogram = new tr.v.Histogram(
+        `interactive:${WINDOW_SIZE_MS}ms_window:renderer_eqt`,
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
+        EQT_BOUNDARIES);
+    histogram.customizeSummaryOptions({
+      avg: false,
+      count: false,
+      max: true,
+      min: false,
+      std: false,
+      sum: false,
+    });
+    histogram.description =
+        `The maximum EQT in a ${WINDOW_SIZE_MS}ms sliding window` +
+        ' for a given renderer';
+    let rendererHelpers = tr.b.dictionaryValues(chromeHelper.rendererHelpers);
+    for (let rendererHelper of rendererHelpers) {
+      if (rendererHelper.isChromeTracingUI) continue;
+      let tasks = rendererHelper.mainThread.sliceGroup.topLevelSlices
+          .filter(slice => slice.duration > 0 && !containsForcedGC_(slice))
+          .map(slice => {return {start: slice.start, end: slice.end};});
+      let interactiveWindow = getInteractiveWindow_(model, rendererHelper);
+      histogram.addSample(tr.e.chrome.maxExpectedQueueingTimeInSlidingWindow(
+          interactiveWindow.min, interactiveWindow.max,
+          WINDOW_SIZE_MS, tasks));
+    }
+    values.addHistogram(histogram);
+  }
+
+  tr.metrics.MetricRegistry.register(estimatedInputLatency);
+
+  return {
+    estimatedInputLatency,
+  };
+});
+</script>

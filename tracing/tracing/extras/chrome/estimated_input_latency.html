@@ -311,7 +311,8 @@ tr.exportTo('tr.e.chrome', function() {
     var sortedTasks = tasks.slice().sort((a, b) => a.start - b.start);
 
     for (var i = 1; i < sortedTasks.length; i++) {
-      if (sortedTasks[i - 1].end > sortedTasks[i].start) {
+      // Use epsilon to guard against floating-point precision errors.
+      if (sortedTasks[i - 1].end > sortedTasks[i].start + Number.EPSILON) {
         throw Error('Tasks must not overlap');
       }
     }
