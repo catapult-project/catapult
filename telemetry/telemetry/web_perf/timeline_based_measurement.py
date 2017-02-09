@@ -293,10 +293,9 @@ class TimelineBasedMeasurement(story_test.StoryTest):
 
     try:
       if self._tbm_options.GetTimelineBasedMetrics():
+        assert not self._tbm_options.GetLegacyTimelineBasedMetrics(), (
+            'Specifying both TBMv1 and TBMv2 metrics is not allowed.')
         self._ComputeTimelineBasedMetrics(results, trace_value)
-        # Legacy metrics can be computed, but only if explicitly specified.
-        if self._tbm_options.GetLegacyTimelineBasedMetrics():
-          self._ComputeLegacyTimelineBasedMetrics(results, trace_result)
       else:
         # Run all TBMv1 metrics if no other metric is specified
         # (legacy behavior)
