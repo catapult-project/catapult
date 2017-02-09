@@ -254,7 +254,7 @@ def _PostSuccessfulResult(job, issue_tracker):
   merge_issue_id = None
   if merge_issue:
     if merge_issue.get('status') != issue_tracker_service.STATUS_DUPLICATE:
-      merge_issue_id = merge_issue.get('id')
+      merge_issue_id = str(merge_issue.get('id'))
 
   # Only skip cc'ing the authors if we're going to merge this isn't another
   # issue.

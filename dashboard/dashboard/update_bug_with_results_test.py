@@ -348,11 +348,11 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     self.testapp.get('/update_bug_with_results')
     mock_update_bug.assert_called_once_with(
         mock.ANY, mock.ANY,
-        cc_list=[], merge_issue=111222, labels=None, owner=None)
+        cc_list=[], merge_issue='111222', labels=None, owner=None)
     # Should have skipped updating cache.
     self.assertEqual(
         layered_cache.GetExternal('commit_hash_2a1781d64d'), 111222)
-    mock_merge_anomalies.assert_called_once_with(111222, 12345)
+    mock_merge_anomalies.assert_called_once_with('111222', 12345)
 
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
