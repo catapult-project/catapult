@@ -936,8 +936,8 @@ tr.exportTo('tr.v', function() {
       this.binRanges_ = undefined;
 
       this.pushBuilderSlice_([
-          HistogramBinBoundaries.SLICE_TYPE.LINEAR,
-          nextMaxBinBoundary, binCount]);
+        HistogramBinBoundaries.SLICE_TYPE.LINEAR,
+        nextMaxBinBoundary, binCount]);
       this.range.addValue(nextMaxBinBoundary);
       return this;
     }
@@ -982,8 +982,8 @@ tr.exportTo('tr.v', function() {
       this.binRanges_ = undefined;
 
       this.pushBuilderSlice_([
-          HistogramBinBoundaries.SLICE_TYPE.EXPONENTIAL,
-          nextMaxBinBoundary, binCount]);
+        HistogramBinBoundaries.SLICE_TYPE.EXPONENTIAL,
+        nextMaxBinBoundary, binCount]);
       this.range.addValue(nextMaxBinBoundary);
       return this;
     }

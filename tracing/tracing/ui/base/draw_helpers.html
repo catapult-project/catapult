@@ -142,7 +142,7 @@ tr.exportTo('tr.ui.b', function() {
    * @param {bool} async Whether the slices are drawn with async style.
    */
   function drawSlices(ctx, dt, viewLWorld, viewRWorld, viewHeight, slices,
-                      async) {
+      async) {
     var pixelRatio = window.devicePixelRatio || 1;
     var pixWidth = dt.xViewVectorToWorld(1);
     var height = viewHeight * pixelRatio;
@@ -347,7 +347,7 @@ tr.exportTo('tr.ui.b', function() {
    * @param {float} yOffset The font offset.
    */
   function drawLabels(ctx, dt, viewLWorld, viewRWorld, slices, async,
-                      fontSize, yOffset) {
+      fontSize, yOffset) {
     var pixelRatio = window.devicePixelRatio || 1;
     var pixWidth = dt.xViewVectorToWorld(1);
 

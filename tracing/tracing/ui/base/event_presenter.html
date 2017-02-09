@@ -70,7 +70,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     getCounterSeriesColor: function(colorId, selectionState,
-                                    opt_alphaMultiplier) {
+        opt_alphaMultiplier) {
       var event = {selectionState: selectionState};
       var c = colors[colorId + this.getColorIdOffset_(event)];
       return c.toStringWithAlphaOverride(

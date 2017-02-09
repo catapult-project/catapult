@@ -107,10 +107,10 @@ tr.b.unittest.testSuite(function() {
       scheduledThread.sliceGroup.pushSlice(newSliceEx(
           {title: 'work', start: 0, duration: 20}));
       scheduledThread.timeSlices = [
-          newThreadSlice(scheduledThread, SCHEDULING_STATE.RUNNING, 0, 3),
-          newThreadSlice(scheduledThread, SCHEDULING_STATE.RUNNABLE, 3, 5),
-          newThreadSlice(scheduledThread, SCHEDULING_STATE.RUNNING, 8, 2),
-          newThreadSlice(scheduledThread, SCHEDULING_STATE.SLEEPING, 10, 10)
+        newThreadSlice(scheduledThread, SCHEDULING_STATE.RUNNING, 0, 3),
+        newThreadSlice(scheduledThread, SCHEDULING_STATE.RUNNABLE, 3, 5),
+        newThreadSlice(scheduledThread, SCHEDULING_STATE.RUNNING, 8, 2),
+        newThreadSlice(scheduledThread, SCHEDULING_STATE.SLEEPING, 10, 10)
       ];
     });
 
@@ -143,9 +143,9 @@ tr.b.unittest.testSuite(function() {
       var cpu1 = model.device.getOrCreateCpu(1);
       var thread = model.getOrCreateProcess(1).getOrCreateThread(1);
       thread.timeSlices = [
-          newThreadSlice(thread, SCHEDULING_STATE.RUNNING, 0, 3, cpu0),
-          newThreadSlice(thread, SCHEDULING_STATE.RUNNING, 8, 2, cpu1),
-          newThreadSlice(thread, SCHEDULING_STATE.RUNNING, 20, 5, cpu1)
+        newThreadSlice(thread, SCHEDULING_STATE.RUNNING, 0, 3, cpu0),
+        newThreadSlice(thread, SCHEDULING_STATE.RUNNING, 8, 2, cpu1),
+        newThreadSlice(thread, SCHEDULING_STATE.RUNNING, 20, 5, cpu1)
       ];
       var range = tr.b.Range.fromExplicitRange(1, 22);
       var stats = thread.getCpuStatsForRange(range);
@@ -163,11 +163,11 @@ tr.b.unittest.testSuite(function() {
       var cpu1 = model.device.getOrCreateCpu(1);
       var thread = model.getOrCreateProcess(1).getOrCreateThread(1);
       thread.timeSlices = [
-          newThreadSlice(thread, SCHEDULING_STATE.RUNNING, 0, 8, cpu0),
-          newThreadSlice(thread, SCHEDULING_STATE.RUNNABLE, 8, 3),
-          newThreadSlice(thread, SCHEDULING_STATE.RUNNING, 11, 4, cpu1),
-          newThreadSlice(thread, SCHEDULING_STATE.SLEEPING, 15, 10),
-          newThreadSlice(thread, SCHEDULING_STATE.RUNNING, 25, 10, cpu1)
+        newThreadSlice(thread, SCHEDULING_STATE.RUNNING, 0, 8, cpu0),
+        newThreadSlice(thread, SCHEDULING_STATE.RUNNABLE, 8, 3),
+        newThreadSlice(thread, SCHEDULING_STATE.RUNNING, 11, 4, cpu1),
+        newThreadSlice(thread, SCHEDULING_STATE.SLEEPING, 15, 10),
+        newThreadSlice(thread, SCHEDULING_STATE.RUNNING, 25, 10, cpu1)
       ];
       var range = tr.b.Range.fromExplicitRange(1, 26);
       var stats = thread.getCpuStatsForRange(range);

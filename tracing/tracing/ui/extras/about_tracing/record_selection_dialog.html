@@ -211,12 +211,12 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       categoryFilter: []}
   ];
   var RECORDING_MODES = [
-      {'label': 'Record until full',
-        'value': 'record-until-full'},
-      {'label': 'Record continuously',
-        'value': 'record-continuously'},
-      {'label': 'Record as much as possible',
-        'value': 'record-as-much-as-possible'}];
+    {'label': 'Record until full',
+      'value': 'record-until-full'},
+    {'label': 'Record continuously',
+      'value': 'record-continuously'},
+    {'label': 'Record as much as possible',
+      'value': 'record-as-much-as-possible'}];
   var DEFAULT_RECORD_MODE = 'record-until-full';
   var DEFAULT_CONTINUOUS_TRACING = true;
   var DEFAULT_SYSTEM_TRACING = true;
@@ -431,7 +431,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
 
       this.editCategoriesOpened_ = editCategoriesState;
       if (this.editCategoriesOpened_)
-          Polymer.dom(presetOptionsGroup).classList.add('categories-expanded');
+        Polymer.dom(presetOptionsGroup).classList.add('categories-expanded');
       else
           Polymer.dom(presetOptionsGroup).classList.remove(
               'categories-expanded');

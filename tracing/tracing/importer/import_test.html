@@ -156,9 +156,9 @@ tr.b.unittest.testSuite(function() {
     // in which the lines appear in the trace,
     // the samples should always be sorted by sampling time.
     var m = tr.c.TestUtils.newModelWithEvents([
-        'tick,0x9a,184,0,0x0,5',
-        'tick,0x9b,0,0,0x0,5',
-        'tick,0x9c,185,0,0x0,5']);
+      'tick,0x9a,184,0,0x0,5',
+      'tick,0x9b,0,0,0x0,5',
+      'tick,0x9c,185,0,0x0,5']);
     assert.equal(m.samples[0].start, 0);
     assert.equal(m.samples[1].start, 0.184);
     assert.equal(m.samples[2].start, 0.185);

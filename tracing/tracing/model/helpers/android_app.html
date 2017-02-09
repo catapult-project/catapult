@@ -118,11 +118,11 @@ tr.exportTo('tr.model.helpers', function() {
         tr.b.convertEventsToRanges(preFrameEvents),
         3,
         function(events) {
-      return {
-        start: events[0].min,
-        end: events[events.length - 1].max
-      };
-    });
+          return {
+            start: events[0].min,
+            end: events[events.length - 1].max
+          };
+        });
   }
 
   function getFrameStartTime(traversalStart, preTraversalWorkRanges) {
@@ -207,13 +207,13 @@ tr.exportTo('tr.model.helpers', function() {
     var frames = [];
     app.renderThread.sliceGroup.getSlicesOfName(RENDER_THREAD_INDEP_DRAW_NAME)
         .forEach(function(slice) {
-      var threadTimeRanges = [{
-        thread: app.renderThread,
-        start: slice.start,
-        end: slice.end
-      }];
-      frames.push(makeFrame(threadTimeRanges, app.surfaceFlinger));
-    });
+          var threadTimeRanges = [{
+            thread: app.renderThread,
+            start: slice.start,
+            end: slice.end
+          }];
+          frames.push(makeFrame(threadTimeRanges, app.surfaceFlinger));
+        });
     return frames;
   }
 
@@ -233,7 +233,7 @@ tr.exportTo('tr.model.helpers', function() {
   function getInputSamples(process) {
     var samples = undefined;
     for (var counterName in process.counters) {
-          if (/^android\.aq\:pending/.test(counterName) &&
+      if (/^android\.aq\:pending/.test(counterName) &&
         process.counters[counterName].numSeries === 1) {
         samples = process.counters[counterName].series[0].samples;
         break;

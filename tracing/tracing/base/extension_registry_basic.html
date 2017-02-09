@@ -19,7 +19,7 @@ tr.exportTo('tr.b', function() {
     registry.registeredTypeInfos_ = [];
 
     registry.register = function(constructor,
-                                 opt_metadata) {
+        opt_metadata) {
       if (registry.findIndexOfRegisteredConstructor(
           constructor) !== undefined)
         throw new Error('Handler already registered for ' + constructor);

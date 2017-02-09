@@ -264,7 +264,7 @@ tr.b.unittest.testSuite(function() {
         1e-6);
     assert.closeTo(2 * 10 / 100 * 10 / 2,
         maxExpectedQueueingTimeInSlidingWindow(0, 1000, 100,
-            [{start: 200, end: 210},
+          [{start: 200, end: 210},
              {start: 290, end: 300}]),
         1e-6);
     assert.closeTo(100 / 100 * (1200 + 1100) / 2,
@@ -273,34 +273,34 @@ tr.b.unittest.testSuite(function() {
         1e-6);
     assert.closeTo(40 / 100 * 40 / 2,
         maxExpectedQueueingTimeInSlidingWindow(0, 1000, 100,
-            [{start: 500, end: 510},
+          [{start: 500, end: 510},
              {start: 510, end: 520},
              {start: 520, end: 530},
              {start: 615, end: 655},
              {start: 1000, end: 2000},
-            ]),
+          ]),
         1e-6);
     assert.closeTo(40 / 100 * 40 / 2 + 20 / 100 * (50 + 30) / 2,
         maxExpectedQueueingTimeInSlidingWindow(0, 1000, 100,
-            [{start: 500, end: 510},
+          [{start: 500, end: 510},
              {start: 520, end: 560},
              {start: 600, end: 650},
-            ]),
+          ]),
         1e-6);
     assert.closeTo(1 / 100 * (200 + 199) / 2,
         maxExpectedQueueingTimeInSlidingWindow(0, 1000, 100,
-            [{start: 500, end: 502},
+          [{start: 500, end: 502},
              {start: 999, end: 1199},
-            ]),
+          ]),
         1e-6);
     assert.closeTo(3 / 100 * 1 / 2 + 20 / 100 * 20 / 2,
         maxExpectedQueueingTimeInSlidingWindow(0, 1000, 100,
-            [{start: -10, end: 1},
+          [{start: -10, end: 1},
              {start: 1, end: 2},
              {start: 2, end: 3},
              {start: 80, end: 100},
              {start: 999, end: 1099},
-            ]),
+          ]),
         1e-6);
     assert.throws(() => maxExpectedQueueingTimeInSlidingWindow(0, 10, 100,
         [{start: 0, end: 100}]));

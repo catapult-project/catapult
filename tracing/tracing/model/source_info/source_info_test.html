@@ -13,11 +13,11 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   test('domain', function() {
     var urlDomains = {
-        'http://www.google.com': 'http://www.google.com',
-        'http://www.google.com/bla': 'http://www.google.com',
-        'http://www.google.com:1234': 'http://www.google.com',
-        'bad url': undefined
-        };
+      'http://www.google.com': 'http://www.google.com',
+      'http://www.google.com/bla': 'http://www.google.com',
+      'http://www.google.com:1234': 'http://www.google.com',
+      'bad url': undefined
+    };
     for (var url in urlDomains) {
       var sourceInfo = new tr.model.source_info.SourceInfo(url);
       assert.equal(urlDomains[url], sourceInfo.domain);

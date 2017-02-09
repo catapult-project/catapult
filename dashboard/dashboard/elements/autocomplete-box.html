@@ -454,7 +454,7 @@ property 'group' sets to the header item name.
         this.set('dropdownOpen', true);
         var key = event.keyCode || event.charCode;
         if (key === 8 || key === 46) {  // Backspace and Delete.
-        this.maybeBackspaceSelection();
+          this.maybeBackspaceSelection();
         } else if (key === 40) {
           this.moveLocus(true /* down */);
           this.scrollLocusIntoView();

@@ -27,11 +27,11 @@ tr.b.unittest.testSuite(function() {
           var group = new tr.model.SliceGroup(thread);
           frameTimestamps.forEach(function(time) {
             group.pushSlice(tr.c.TestUtils.newSliceEx({
-                title: tr.model.helpers.IMPL_RENDERING_STATS,
-                start: time,
-                end: time,
-                cpuStart: time,
-                cpuEnd: time
+              title: tr.model.helpers.IMPL_RENDERING_STATS,
+              start: time,
+              end: time,
+              cpuStart: time,
+              cpuEnd: time
             }));
           });
           group.createSubSlices();

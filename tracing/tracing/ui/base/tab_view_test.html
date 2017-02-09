@@ -51,11 +51,11 @@ tr.b.unittest.testSuite(function() {
         {title: 'b', start: 0, duration: 0.002});
     var alertInfo = new tr.model.EventInfo(
         'Alert 1', 'Critical alert',
-        [{
-          label: 'Example',
-          textContent: 'Example page',
-          href: 'http://www.example.com'
-        }]);
+      [{
+        label: 'Example',
+        textContent: 'Example page',
+        href: 'http://www.example.com'
+      }]);
 
     var alert = new tr.model.Alert(alertInfo, 5, [slice]);
     var subView = document.createElement('tr-ui-a-alert-sub-view');

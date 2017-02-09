@@ -159,10 +159,10 @@ found in the LICENSE file.
         CLIENT_ID: '239864068844-c7gefbfdcp0j6grltulh2r88tsvl18c1.apps.' +
             'googleusercontent.com',
         SCOPE: [
-            'https://www.googleapis.com/auth/drive',
-            'https://www.googleapis.com/auth/drive.install',
-            'https://www.googleapis.com/auth/drive.file',
-            'profile'
+          'https://www.googleapis.com/auth/drive',
+          'https://www.googleapis.com/auth/drive.install',
+          'https://www.googleapis.com/auth/drive.file',
+          'profile'
         ]
       };
 
@@ -213,8 +213,8 @@ found in the LICENSE file.
 
     function onAuthApiLoad(tryImmediate, resultCallback) {
       window.gapi.auth.authorize(
-          {'client_id': tr.ui.e.drive.constants.CLIENT_ID,
-           'scope': tr.ui.e.drive.constants.SCOPE, 'immediate': tryImmediate},
+        {'client_id': tr.ui.e.drive.constants.CLIENT_ID,
+          'scope': tr.ui.e.drive.constants.SCOPE, 'immediate': tryImmediate},
           function(authResult) {
             handleAuthResult(authResult, tryImmediate, resultCallback);
           });
@@ -333,22 +333,22 @@ found in the LICENSE file.
       }
       for (i = 0; i < imageList.length; i++) {
         var collabTooltip = tr.ui.b.createDiv({
-            className: 'collaborator-tooltip'
+          className: 'collaborator-tooltip'
         });
         var collabTooltipContent = tr.ui.b.createDiv({
-            className: 'collaborator-tooltip-content'
+          className: 'collaborator-tooltip-content'
         });
         Polymer.dom(collabTooltipContent).textContent = imageList[i].name;
         Polymer.dom(collabTooltip).appendChild(collabTooltipContent);
         Polymer.dom(collabspan).appendChild(collabTooltip);
         var collabTooltipArrow = tr.ui.b.createDiv({
-            className: 'collaborator-tooltip-arrow'});
+          className: 'collaborator-tooltip-arrow'});
         Polymer.dom(collabTooltip).appendChild(collabTooltipArrow);
         var collabTooltipArrowBefore = tr.ui.b.createDiv({
-            className: 'collaborator-tooltip-arrow-before'});
+          className: 'collaborator-tooltip-arrow-before'});
         Polymer.dom(collabTooltipArrow).appendChild(collabTooltipArrowBefore);
         var collabTooltipArrowAfter = tr.ui.b.createDiv({
-            className: 'collaborator-tooltip-arrow-after'});
+          className: 'collaborator-tooltip-arrow-after'});
         Polymer.dom(collabTooltipArrow).appendChild(collabTooltipArrowAfter);
 
         var rect = imageList[i].image.getBoundingClientRect();

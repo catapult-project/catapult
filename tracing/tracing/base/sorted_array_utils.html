@@ -155,7 +155,7 @@ tr.exportTo('tr.b', function() {
         return 0;
       } else {
         return -1;
-    }
+      }
     } else if (i < ary.length) {
       if (val >= mapLoFn(ary[i - 1], i - 1) &&
           val <= mapHiFn(ary[i - 1], i - 1)) {
@@ -198,7 +198,7 @@ tr.exportTo('tr.b', function() {
    * @param {function():*} cb The function to run for intersecting intervals.
    */
   function iterateOverIntersectingIntervals(ary, mapLoFn, mapWidthFn, loVal,
-                                            hiVal, cb) {
+      hiVal, cb) {
     if (ary.length === 0)
       return;
 
@@ -295,7 +295,7 @@ tr.exportTo('tr.b', function() {
    *     to |val|, or null if no interval is within range.
    */
   function findClosestIntervalInSortedIntervals(ary, mapLoFn, mapHiFn, val,
-                                                maxDiff) {
+      maxDiff) {
     if (ary.length === 0)
       return null;
 

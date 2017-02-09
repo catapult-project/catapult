@@ -688,8 +688,8 @@ tr.b.unittest.testSuite(function() {
     // Multi-selection.
     checkColumnInfosAndColor(c,
         createSizeFields([undefined, 256, undefined, 64]),
-        [undefined, SUBALLOCATION_CONTEXT, SUBALLOCATION_CONTEXT,
-            SUBALLOCATION_CONTEXT],
+      [undefined, SUBALLOCATION_CONTEXT, SUBALLOCATION_CONTEXT,
+        SUBALLOCATION_CONTEXT],
         [] /* no infos */,
         undefined /* no color */);
   });
@@ -764,73 +764,73 @@ tr.b.unittest.testSuite(function() {
     checkAllocatorPaneColumnInfosAndColor(c,
         [v8HeapsDump[0]],
         'effective_size',
-        [
-          {
-            icon: '\u21FE',
-            message: 'shares \'oilpan/objects\' in Process 1 (importance: 0) ' +
+      [
+        {
+          icon: '\u21FE',
+          message: 'shares \'oilpan/objects\' in Process 1 (importance: 0) ' +
                 'with no other dumps',
-            color: 'green'
-          }
-        ]);
+          color: 'green'
+        }
+      ]);
     checkAllocatorPaneColumnInfosAndColor(c,
         [oilpanObjectsDump[4]],
         'effective_size',
-        [
-          {
-            icon: '\u21FD',
-            message: 'shared by \'v8/heaps\' in Process 1 (importance: 2)',
-            color: 'green'
-          }
-        ]);
+      [
+        {
+          icon: '\u21FD',
+          message: 'shared by \'v8/heaps\' in Process 1 (importance: 2)',
+          color: 'green'
+        }
+      ]);
 
     // Multi-selection, all dumps defined.
     checkAllocatorPaneColumnInfosAndColor(c,
         [v8HeapsDump[0], v8HeapsDump[4]],
         'effective_size',
-        [
-          {
-            icon: '\u21FE',
-            message: 'shares \'oilpan/objects\' in Process 1 (importance: ' +
+      [
+        {
+          icon: '\u21FE',
+          message: 'shares \'oilpan/objects\' in Process 1 (importance: ' +
                 '0\u20132) with no other dumps',
-            color: 'green'
-          }
-        ]);
+          color: 'green'
+        }
+      ]);
     checkAllocatorPaneColumnInfosAndColor(c,
         [oilpanObjectsDump[0], oilpanObjectsDump[4]],
         'effective_size',
-        [
-          {
-            icon: '\u21FD',
-            message: 'shared by \'v8/heaps\' in Process 1 (importance: ' +
+      [
+        {
+          icon: '\u21FD',
+          message: 'shared by \'v8/heaps\' in Process 1 (importance: ' +
                 '0\u20132)',
-            color: 'green'
-          }
-        ]);
+          color: 'green'
+        }
+      ]);
 
     // Multi-selection, some dumps missing.
     checkAllocatorPaneColumnInfosAndColor(c,
         v8HeapsDump,
         'effective_size',
-        [
-          {
-            icon: '\u21FE',
-            message: 'shares \'oilpan/objects\' in Process 1 at some ' +
+      [
+        {
+          icon: '\u21FE',
+          message: 'shares \'oilpan/objects\' in Process 1 at some ' +
                 'selected timestamps (importance: 0\u20132) with no other ' +
                 'dumps',
-            color: 'green'
-          }
-        ]);
+          color: 'green'
+        }
+      ]);
     checkAllocatorPaneColumnInfosAndColor(c,
         oilpanObjectsDump,
         'effective_size',
-        [
-          {
-            icon: '\u21FD',
-            message: 'shared by \'v8/heaps\' in Process 1 at some selected ' +
+      [
+        {
+          icon: '\u21FD',
+          message: 'shared by \'v8/heaps\' in Process 1 at some selected ' +
                 'timestamps (importance: 0\u20132)',
-            color: 'green'
-          }
-        ]);
+          color: 'green'
+        }
+      ]);
   });
 
   test('effectiveSizeColumn_dumpContext_multipleOwnerships', function() {
@@ -896,69 +896,69 @@ tr.b.unittest.testSuite(function() {
     checkAllocatorPaneColumnInfosAndColor(c,
         [v8HeapsDump[4]],
         'effective_size',
-        [
-          {
-            icon: '\u21FE',
-            message: 'shares \'gpu/tile1\' in Process 1 (importance: 3) with ' +
+      [
+        {
+          icon: '\u21FE',
+          message: 'shares \'gpu/tile1\' in Process 1 (importance: 3) with ' +
                 '\'gpu/tile2\' in Process 1 (importance: -1)',
-            color: 'green'
-          }
-        ]);
+          color: 'green'
+        }
+      ]);
     checkAllocatorPaneColumnInfosAndColor(c,
         [gpuTile1Dump[4]],
         'effective_size',
-        [
-          {
-            icon: '\u21FD',
-            message: 'shared by:\n' +
+      [
+        {
+          icon: '\u21FD',
+          message: 'shared by:\n' +
                 ' - \'v8/heaps\' in Process 1 (importance: 3)\n' +
                 ' - \'gpu/tile2\' in Process 1 (importance: -1)',
-            color: 'green'
-          }
-        ]);
+          color: 'green'
+        }
+      ]);
 
     // Multi-selection, all dumps defined.
     checkAllocatorPaneColumnInfosAndColor(c,
         [v8HeapsDump[2], v8HeapsDump[5]],
         'effective_size',
-        [
-          {
-            icon: '\u21FE',
-            message: 'shares \'oilpan/objects\' in Process 1 (importance: ' +
+      [
+        {
+          icon: '\u21FE',
+          message: 'shares \'oilpan/objects\' in Process 1 (importance: ' +
                 '1\u20132) with:\n' +
                 ' - \'v8/queues\' in Process 1 (importance: 1)\n' +
                 ' - \'v8/piles\' in Process 1 (importance: 0\u20137)',
-            color: 'green'
-          }
-        ]);
+          color: 'green'
+        }
+      ]);
     checkAllocatorPaneColumnInfosAndColor(c,
         [oilpanObjectsDump[2], oilpanObjectsDump[5]],
         'effective_size',
-        [
-          {
-            icon: '\u21FD',
-            message: 'shared by:\n' +
+      [
+        {
+          icon: '\u21FD',
+          message: 'shared by:\n' +
                 ' - \'v8/heaps\' in Process 1 (importance: 1\u20132)\n' +
                 ' - \'v8/queues\' in Process 1 (importance: 1)\n' +
                 ' - \'v8/piles\' in Process 1 (importance: 0\u20137)',
-            color: 'green'
-          }
-        ]);
+          color: 'green'
+        }
+      ]);
 
     // Multi-selection, some dumps missing.
     checkAllocatorPaneColumnInfosAndColor(c,
         v8HeapsDump,
         'effective_size',
-        [ // v8/objects is both owned (first info) and an owner (second info).
-          {
-            icon: '\u21FD',
-            message: 'shared by \'blink/handles\' in Process 1 at some ' +
+      [ // v8/objects is both owned (first info) and an owner (second info).
+        {
+          icon: '\u21FD',
+          message: 'shared by \'blink/handles\' in Process 1 at some ' +
                 'selected timestamps (importance: -273)',
-            color: 'green'
-          },
-          {
-            icon: '\u21FE',
-            message: 'shares:\n' +
+          color: 'green'
+        },
+        {
+          icon: '\u21FE',
+          message: 'shares:\n' +
                 ' - \'oilpan/objects\' in Process 1 at some selected ' +
                 'timestamps (importance: 0\u20132) with:\n' +
                 '    - \'v8/queues\' in Process 1 (importance: 1)\n' +
@@ -969,25 +969,25 @@ tr.b.unittest.testSuite(function() {
                 ' - \'gpu/tile1\' in Process 1 at some selected timestamps ' +
                 '(importance: 3) with \'gpu/tile2\' in Process 1 ' +
                 '(importance: -1)',
-            color: 'green'
-          }
-        ]);
+          color: 'green'
+        }
+      ]);
     checkAllocatorPaneColumnInfosAndColor(c,
         oilpanObjectsDump,
         'effective_size',
-        [
-          {
-            icon: '\u21FD',
-            message: 'shared by:\n' +
+      [
+        {
+          icon: '\u21FD',
+          message: 'shared by:\n' +
                 ' - \'v8/heaps\' in Process 1 at some selected timestamps ' +
                 '(importance: 0\u20132)\n' +
                 ' - \'v8/queues\' in Process 1 at some selected timestamps ' +
                 '(importance: 1)\n' +
                 ' - \'v8/piles\' in Process 1 at some selected timestamps ' +
                 '(importance: 0\u20137)',
-            color: 'green'
-          }
-        ]);
+          color: 'green'
+        }
+      ]);
   });
 
   test('sizeColumn_noContext', function() {
@@ -1107,135 +1107,135 @@ tr.b.unittest.testSuite(function() {
     checkAllocatorPaneColumnInfosAndColor(c,
         [v8HeapDumps[0]],
         'size',
-        [
-          {
-            icon: '\u24D8',
-            message: 'overlaps with its sibling \'objects\' (1.5 KiB)',
-            color: 'blue'
-          }
-        ]);
+      [
+        {
+          icon: '\u24D8',
+          message: 'overlaps with its sibling \'objects\' (1.5 KiB)',
+          color: 'blue'
+        }
+      ]);
 
     // Single selection, multiple overlaps.
     checkAllocatorPaneColumnInfosAndColor(c,
         [v8HeapDumps[4]],
         'size',
-        [
-          {
-            icon: '\u24D8',
-            message: 'overlaps with its siblings:\n' +
+      [
+        {
+          icon: '\u24D8',
+          message: 'overlaps with its siblings:\n' +
                 ' - \'objects\' (640.0 B)\n' +
                 ' - \'blocks\' (768.0 B)',
-            color: 'blue'
-          }
-        ]);
+          color: 'blue'
+        }
+      ]);
 
     // Single selection, warnings with no overlaps.
     checkAllocatorPaneColumnInfosAndColor(c,
         [v8HeapDumps[6]],
         'size',
-        [
-          {
-            icon: '\u26A0',
-            message: 'provided size (2.0 KiB) was less than the aggregated ' +
+      [
+        {
+          icon: '\u26A0',
+          message: 'provided size (2.0 KiB) was less than the aggregated ' +
                 'size of the children (2.1 KiB)',
-            color: 'red'
-          },
-          {
-            icon: '\u26A0',
-            message: 'provided size (2.0 KiB) was less than the size of the ' +
+          color: 'red'
+        },
+        {
+          icon: '\u26A0',
+          message: 'provided size (2.0 KiB) was less than the size of the ' +
                 'largest owner (3.0 KiB)',
-            color: 'red'
-          }
-        ]);
+          color: 'red'
+        }
+      ]);
 
     // Single selection, single overlap with a warning.
     checkAllocatorPaneColumnInfosAndColor(c,
         [v8HeapDumps[2]],
         'size',
-        [
-          {
-            icon: '\u24D8',
-            message: 'overlaps with its sibling \'objects\' (3.0 KiB)',
-            color: 'blue'
-          },
-          {
-            icon: '\u26A0',
-            message: 'provided size (2.0 KiB) was less than the size of the ' +
+      [
+        {
+          icon: '\u24D8',
+          message: 'overlaps with its sibling \'objects\' (3.0 KiB)',
+          color: 'blue'
+        },
+        {
+          icon: '\u26A0',
+          message: 'provided size (2.0 KiB) was less than the size of the ' +
                 'largest owner (3.0 KiB)',
-            color: 'red'
-          }
-        ]);
+          color: 'red'
+        }
+      ]);
 
     // Multi-selection, single overlap.
     checkAllocatorPaneColumnInfosAndColor(c,
         [v8HeapDumps[0], v8HeapDumps[3]],
         'size',
-        [
-          {
-            icon: '\u24D8',
-            message: 'overlaps with its sibling \'objects\'',
-            color: 'blue'
-          }
-        ]);
+      [
+        {
+          icon: '\u24D8',
+          message: 'overlaps with its sibling \'objects\'',
+          color: 'blue'
+        }
+      ]);
 
     // Multi-selection, multiple overlaps.
     checkAllocatorPaneColumnInfosAndColor(c,
         [v8HeapDumps[0], v8HeapDumps[4]],
         'size',
-        [
-          {
-            icon: '\u24D8',
-            message: 'overlaps with its siblings:\n' +
+      [
+        {
+          icon: '\u24D8',
+          message: 'overlaps with its siblings:\n' +
                 ' - \'objects\'\n' +
                 ' - \'blocks\' at some selected timestamps',
-            color: 'blue'
-          }
-        ]);
+          color: 'blue'
+        }
+      ]);
 
     // Multi-selection, warnings with no overlaps.
     checkAllocatorPaneColumnInfosAndColor(c,
         [v8HeapDumps[5], v8HeapDumps[6]],
         'size',
-        [
-          {
-            icon: '\u26A0',
-            message: 'provided size was less than the aggregated ' +
+      [
+        {
+          icon: '\u26A0',
+          message: 'provided size was less than the aggregated ' +
                 'size of the children',
-            color: 'red'
-          },
-          {
-            icon: '\u26A0',
-            message: 'provided size was less than the size of the largest ' +
+          color: 'red'
+        },
+        {
+          icon: '\u26A0',
+          message: 'provided size was less than the size of the largest ' +
                 'owner at some selected timestamps',
-            color: 'red'
-          }
-        ]);
+          color: 'red'
+        }
+      ]);
 
     // Multi-selection, multiple overlaps with warnings.
     checkAllocatorPaneColumnInfosAndColor(c,
         v8HeapDumps,
         'size',
-        [
-          {
-            icon: '\u24D8',
-            message: 'overlaps with its siblings:\n' +
+      [
+        {
+          icon: '\u24D8',
+          message: 'overlaps with its siblings:\n' +
                 ' - \'objects\' at some selected timestamps\n' +
                 ' - \'blocks\' at some selected timestamps',
-            color: 'blue'
-          },
-          {
-            icon: '\u26A0',
-            message: 'provided size was less than the size of the largest ' +
+          color: 'blue'
+        },
+        {
+          icon: '\u26A0',
+          message: 'provided size was less than the size of the largest ' +
                 'owner at some selected timestamps',
-            color: 'red'
-          },
-          {
-            icon: '\u26A0',
-            message: 'provided size was less than the aggregated size of ' +
+          color: 'red'
+        },
+        {
+          icon: '\u26A0',
+          message: 'provided size was less than the aggregated size of ' +
                 'the children at some selected timestamps',
-            color: 'red'
-          }
-        ]);
+          color: 'red'
+        }
+      ]);
   });
 });
 </script>

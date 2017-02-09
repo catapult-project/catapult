@@ -139,13 +139,13 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       var tileHeatmapSelector = tr.ui.b.createSelector(
           this, 'tileHeatmapType',
           'layerView.tileHeatmapType', TILE_HEATMAP_TYPE.NONE,
-          [{label: 'None',
-            value: TILE_HEATMAP_TYPE.NONE},
-           {label: 'Scheduled Priority',
-            value: TILE_HEATMAP_TYPE.SCHEDULED_PRIORITY},
-           {label: 'Is using GPU memory',
-            value: TILE_HEATMAP_TYPE.USING_GPU_MEMORY}
-          ]);
+        [{label: 'None',
+          value: TILE_HEATMAP_TYPE.NONE},
+        {label: 'Scheduled Priority',
+          value: TILE_HEATMAP_TYPE.SCHEDULED_PRIORITY},
+        {label: 'Is using GPU memory',
+          value: TILE_HEATMAP_TYPE.USING_GPU_MEMORY}
+        ]);
       Polymer.dom(this.controls_).appendChild(tileHeatmapSelector);
 
       var showOtherLayersCheckbox = tr.ui.b.createCheckBox(
@@ -725,7 +725,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         var iq = layerQuad.projectUnitRect(unitRect);
         iq.backgroundColor = 'rgba(0, 255, 0, 0.1)';
         if (rect.reason === 'renderer insertion')
-            iq.backgroundColor = 'rgba(0, 255, 128, 0.1)';
+          iq.backgroundColor = 'rgba(0, 255, 128, 0.1)';
         iq.borderColor = 'rgba(0, 255, 0, 1)';
         iq.stackingGroupId = layerQuad.stackingGroupId;
         iq.selectionToSetIfClicked = new cc.LayerRectSelection(

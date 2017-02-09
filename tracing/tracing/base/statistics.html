@@ -359,7 +359,7 @@ tr.exportTo('tr.b', function() {
    * D(S) = max(D(S_1), D(S_2), ..., D(S_N))
    **/
   Statistics.timestampsDiscrepancy = function(timestamps, opt_absolute,
-                            opt_locationCount) {
+      opt_locationCount) {
     if (timestamps.length === 0)
       return 0.0;
 
@@ -460,7 +460,7 @@ tr.exportTo('tr.b', function() {
    *  numSamples: The total number of samples desired.
    **/
   Statistics.uniformlySampleStream = function(samples, streamLength, newElement,
-                                              numSamples) {
+      numSamples) {
     if (streamLength <= numSamples) {
       if (samples.length >= streamLength)
         samples[streamLength - 1] = newElement;
@@ -795,7 +795,7 @@ tr.exportTo('tr.b', function() {
           Math.sqrt(Math.pow(diminishingReturns - 3, 2) - 8)) / 2;
       var location = Math.log(median);
       return new Statistics.LogNormalDistribution(location, shape);
-  };
+    };
 
   // p-values less than this indicate statistical significance.
   Statistics.DEFAULT_ALPHA = 0.01;

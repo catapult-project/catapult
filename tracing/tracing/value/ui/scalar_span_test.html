@@ -338,8 +338,8 @@ tr.b.unittest.testSuite(function() {
 
     // Unit and sparkline set via config.
     var span = tr.v.ui.createScalarSpan(1.62, {
-        unit: Unit.byName.timeStampInMs,
-        customContextRange: tr.b.Range.fromExplicitRange(0, 3.24)
+      unit: Unit.byName.timeStampInMs,
+      customContextRange: tr.b.Range.fromExplicitRange(0, 3.24)
     });
     assert.strictEqual(Polymer.dom(span.$.content).textContent, '1.620 ms');
     assert.strictEqual(span.ownerDocument, document);

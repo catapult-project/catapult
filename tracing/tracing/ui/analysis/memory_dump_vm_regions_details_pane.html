@@ -337,18 +337,18 @@ tr.exportTo('tr.ui.analysis', function() {
      */
     createVariableCells_: function(timeToRegion) {
       return tr.ui.analysis.createCells(timeToRegion, function(region) {
-          var fields = {};
+        var fields = {};
 
-          var sizeInBytes = region.sizeInBytes;
-          if (sizeInBytes !== undefined) {
-            fields['Virtual size'] = new Scalar(
+        var sizeInBytes = region.sizeInBytes;
+        if (sizeInBytes !== undefined) {
+          fields['Virtual size'] = new Scalar(
                 sizeInBytes_smallerIsBetter, sizeInBytes);
-          }
-          var protectionFlags = region.protectionFlagsToString;
-          if (protectionFlags !== undefined)
-            fields['Protection flags'] = protectionFlags;
+        }
+        var protectionFlags = region.protectionFlagsToString;
+        if (protectionFlags !== undefined)
+          fields['Protection flags'] = protectionFlags;
 
-          tr.b.iterItems(BYTE_STAT_COLUMN_MAP,
+        tr.b.iterItems(BYTE_STAT_COLUMN_MAP,
               function(byteStatName, columnName) {
                 var byteStat = region.byteStats[byteStatName];
                 if (byteStat === undefined)
@@ -357,8 +357,8 @@ tr.exportTo('tr.ui.analysis', function() {
                     sizeInBytes_smallerIsBetter, byteStat);
               });
 
-          return fields;
-        });
+        return fields;
+      });
     },
 
     createColumns_: function(rows) {

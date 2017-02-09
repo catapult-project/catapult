@@ -315,7 +315,7 @@ Polymer({
     if (this.eventsHaveDuration) {
       for (var column in maxValues) {
         maxValues[column] = tr.b.Statistics.max(rows, function(event) {
-                return event[column];
+          return event[column];
         });
       }
     }

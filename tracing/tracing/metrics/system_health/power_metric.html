@@ -34,7 +34,7 @@ tr.exportTo('tr.metrics.sh', function() {
     var energyInJ = model.device.powerSeries.getEnergyConsumedInJ(start, end);
     var powerInW = energyInJ / durationInS;
     return {samples: samples, time: durationInS,
-        energy: energyInJ, power: powerInW};
+      energy: energyInJ, power: powerInW};
   }
 
   /**

@@ -18,7 +18,7 @@ tr.exportTo('tr.b', function() {
 
 
   function decorateTypeBasedExtensionRegistry(registry,
-                                              extensionRegistryOptions) {
+      extensionRegistryOptions) {
     var savedStateStack = [];
 
     registry.registeredTypeInfos_ = [];
@@ -27,7 +27,7 @@ tr.exportTo('tr.b', function() {
     registry.typeNameToTypeInfoMap_ = new Map();
 
     registry.register = function(constructor,
-                                 metadata) {
+        metadata) {
 
       extensionRegistryOptions.validateConstructor(constructor);
 

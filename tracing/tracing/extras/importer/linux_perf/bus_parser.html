@@ -38,7 +38,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     __proto__: Parser.prototype,
 
     traceMarkWriteBusEvent: function(eventName, cpuNumber, pid, ts,
-                                  eventBase, threadName) {
+        eventBase, threadName) {
       var re = new RegExp('bus=(\\S+) rw_bytes=(\\d+) r_bytes=(\\d+) ' +
                             'w_bytes=(\\d+) cycles=(\\d+) ns=(\\d+)');
       var event = re.exec(eventBase.details);

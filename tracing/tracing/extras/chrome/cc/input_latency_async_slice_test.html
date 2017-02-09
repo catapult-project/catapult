@@ -511,8 +511,8 @@ tr.b.unittest.testSuite(function() {
 
     assert.isTrue(m.as0.associatedEvents.length === 0);
     assert.isTrue(m.as1.associatedEvents.equals(new EventSet(
-        [m.f1, m.f2, m.f3, m.f4, m.f5,
-         m.s0, m.s1, m.s2, m.s3, m.s4, m.s5, m.s7])));
+      [m.f1, m.f2, m.f3, m.f4, m.f5,
+        m.s0, m.s1, m.s2, m.s3, m.s4, m.s5, m.s7])));
   });
 
   test('getAssociatedEventsExcludeOtherInputs', function() {
@@ -562,8 +562,8 @@ tr.b.unittest.testSuite(function() {
       m.s8 = mainRendererThread.sliceGroup.pushSlice(newSliceEx(
           { title: 's8', start: 9.5, duration: 1.0 }));
       m.s9 = compositorThread.sliceGroup.pushSlice(newSliceEx(
-          { title: 'Scheduler::ScheduleBeginImplFrameDeadline',
-            start: 5.7, duration: 0.2 }));
+        { title: 'Scheduler::ScheduleBeginImplFrameDeadline',
+          start: 5.7, duration: 0.2 }));
 
       mainBrowserThread.sliceGroup.createSubSlices();
       mainRendererThread.sliceGroup.createSubSlices();
@@ -681,8 +681,8 @@ tr.b.unittest.testSuite(function() {
 
     assert.isTrue(m.as0.associatedEvents.length === 0);
     assert.isTrue(m.as1.associatedEvents.equals(new EventSet(
-        [m.f1, m.f2, m.f3, m.f4, m.f5,
-         m.s0, m.s1, m.s2, m.s3, m.s4, m.s5, m.s7, m.s9])));
+      [m.f1, m.f2, m.f3, m.f4, m.f5,
+        m.s0, m.s1, m.s2, m.s3, m.s4, m.s5, m.s7, m.s9])));
   });
 
 });

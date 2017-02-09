@@ -29,7 +29,7 @@ tr.b.unittest.testSuite(function() {
       );
     });
     var threadSlice = newSliceEx({title: 'a', start: 0, end: 4,
-                                  type: tr.model.ThreadSlice});
+      type: tr.model.ThreadSlice});
     threadSlice.parentContainer = model;
     var samplesIter = threadSlice.overlappingSamples[Symbol.iterator]();
     assert.equal(samplesIter.next().value.title, 'a_1');

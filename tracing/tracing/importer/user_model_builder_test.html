@@ -322,17 +322,17 @@ tr.b.unittest.testSuite(function() {
     verifier.expectedUEs = [
       {title: 'Idle', start: 0, end: 919, eventCount: 1},
       {title: 'Scroll Response', start: 919, end: 1054,
-          eventCount: 6, isAnimationBegin: true},
+        eventCount: 6, isAnimationBegin: true},
       {title: 'Scroll Animation', start: 1054, end: 1068,
-          eventCount: 11},
+        eventCount: 11},
       {title: 'Fling Animation', start: 1054, end: 1432,
-          eventCount: 4},
+        eventCount: 4},
       {title: 'Scroll Response', start: 1432, end: 2605,
-          eventCount: 5, isAnimationBegin: true},
+        eventCount: 5, isAnimationBegin: true},
       {title: 'Scroll Animation', start: 1549, end: 2310,
-          eventCount: 3},
+        eventCount: 3},
       {title: 'Fling Animation', start: 2605, end: 3000,
-          eventCount: 4}
+        eventCount: 4}
     ];
     verifier.expectedSegments = [
       {start: 0, end: 919, expectations: [verifier.expectedUEs[0]]},
@@ -386,7 +386,7 @@ tr.b.unittest.testSuite(function() {
       {title: 'Mouse Response', start: 200, end: 300, eventCount: 1},
       {title: 'Idle', start: 300, end: 400, eventCount: 0},
       {title: 'MouseWheel Response', start: 400, end: 500,
-          eventCount: 1}
+        eventCount: 1}
     ];
     verifier.expectedSegments = [
       {start: 0, end: 100, expectations: [verifier.expectedUEs[0]]},
@@ -431,14 +431,14 @@ tr.b.unittest.testSuite(function() {
     verifier.expectedUEs = [
       {title: 'MouseWheel Response', start: 0, end: 20, eventCount: 1},
       {title: 'MouseWheel Animation', start: 20, end: 75,
-          eventCount: 5},
+        eventCount: 5},
       {title: 'Idle', start: 75, end: 100, eventCount: 0},
       {title: 'MouseWheel Response', start: 100, end: 150,
-          eventCount: 1},
+        eventCount: 1},
       {title: 'MouseWheel Response', start: 141, end: 191,
-          eventCount: 1},
+        eventCount: 1},
       {title: 'MouseWheel Response', start: 182, end: 200,
-          eventCount: 1}
+        eventCount: 1}
     ];
     verifier.expectedSegments = [
       {start: 0, end: 20, expectations: [verifier.expectedUEs[0]]},
@@ -553,11 +553,11 @@ tr.b.unittest.testSuite(function() {
     };
     verifier.expectedUEs = [
       {title: 'Scroll Response', start: 0, end: 100, eventCount: 2,
-          isAnimationBegin: true},
+        isAnimationBegin: true},
       {title: 'Scroll Animation', start: 100, end: 150, eventCount: 5},
       {title: 'Idle', start: 150, end: 300, eventCount: 0},
       {title: 'Scroll Response', start: 300, end: 400, eventCount: 2,
-          isAnimationBegin: true},
+        isAnimationBegin: true},
       {title: 'Scroll Animation', start: 400, end: 500, eventCount: 5}
     ];
     verifier.expectedSegments = [
@@ -576,20 +576,20 @@ tr.b.unittest.testSuite(function() {
       model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx(
           {title: 'DrawingBuffer::prepareMailbox', start: 0, end: 2}));
       ChromeTestUtils.addEvent(model.rendererMain, {
-          title: 'PageAnimator::serviceScriptedAnimations',
-          start: 18, end: 19});
+        title: 'PageAnimator::serviceScriptedAnimations',
+        start: 18, end: 19});
       ChromeTestUtils.addEvent(model.rendererMain, {
-          title: 'DrawingBuffer::prepareMailbox', start: 20, end: 22});
+        title: 'DrawingBuffer::prepareMailbox', start: 20, end: 22});
       ChromeTestUtils.addEvent(model.rendererMain, {
-          title: 'PageAnimator::serviceScriptedAnimations',
-          start: 38, end: 39});
+        title: 'PageAnimator::serviceScriptedAnimations',
+        start: 38, end: 39});
       ChromeTestUtils.addEvent(model.rendererMain, {
-          title: 'DrawingBuffer::prepareMailbox', start: 40, end: 42});
+        title: 'DrawingBuffer::prepareMailbox', start: 40, end: 42});
       ChromeTestUtils.addEvent(model.rendererMain, {
-          title: 'PageAnimator::serviceScriptedAnimations',
-          start: 58, end: 59});
+        title: 'PageAnimator::serviceScriptedAnimations',
+        start: 58, end: 59});
       ChromeTestUtils.addEvent(model.rendererMain, {
-          title: 'DrawingBuffer::prepareMailbox', start: 60, end: 62});
+        title: 'DrawingBuffer::prepareMailbox', start: 60, end: 62});
     };
     verifier.expectedUEs = [
       {title: 'WebGL Animation', start: 0, end: 62, eventCount: 4},
@@ -606,35 +606,35 @@ tr.b.unittest.testSuite(function() {
       model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx(
           {title: 'DrawingBuffer::prepareMailbox', start: 0, end: 2}));
       ChromeTestUtils.addEvent(model.rendererMain, {
-          title: 'PageAnimator::serviceScriptedAnimations',
-          start: 18, end: 19});
+        title: 'PageAnimator::serviceScriptedAnimations',
+        start: 18, end: 19});
       ChromeTestUtils.addEvent(model.rendererMain, {
-          title: 'DrawingBuffer::prepareMailbox', start: 20, end: 22});
+        title: 'DrawingBuffer::prepareMailbox', start: 20, end: 22});
       ChromeTestUtils.addEvent(model.rendererMain, {
-          title: 'PageAnimator::serviceScriptedAnimations',
-          start: 38, end: 39});
+        title: 'PageAnimator::serviceScriptedAnimations',
+        start: 38, end: 39});
       ChromeTestUtils.addEvent(model.rendererMain, {
-          title: 'DrawingBuffer::prepareMailbox', start: 40, end: 42});
+        title: 'DrawingBuffer::prepareMailbox', start: 40, end: 42});
       ChromeTestUtils.addEvent(model.rendererMain, {
-          title: 'PageAnimator::serviceScriptedAnimations',
-          start: 58, end: 59});
+        title: 'PageAnimator::serviceScriptedAnimations',
+        start: 58, end: 59});
       ChromeTestUtils.addEvent(model.rendererMain, {
-          title: 'DrawingBuffer::prepareMailbox', start: 60, end: 62});
+        title: 'DrawingBuffer::prepareMailbox', start: 60, end: 62});
       ChromeTestUtils.addEvent(model.rendererMain, {
-          title: 'PageAnimator::serviceScriptedAnimations',
-          start: 218, end: 19});
+        title: 'PageAnimator::serviceScriptedAnimations',
+        start: 218, end: 19});
       ChromeTestUtils.addEvent(model.rendererMain, {
-          title: 'DrawingBuffer::prepareMailbox', start: 220, end: 222});
+        title: 'DrawingBuffer::prepareMailbox', start: 220, end: 222});
       ChromeTestUtils.addEvent(model.rendererMain, {
-          title: 'PageAnimator::serviceScriptedAnimations',
-          start: 238, end: 39});
+        title: 'PageAnimator::serviceScriptedAnimations',
+        start: 238, end: 39});
       ChromeTestUtils.addEvent(model.rendererMain, {
-          title: 'DrawingBuffer::prepareMailbox', start: 240, end: 242});
+        title: 'DrawingBuffer::prepareMailbox', start: 240, end: 242});
       ChromeTestUtils.addEvent(model.rendererMain, {
-          title: 'PageAnimator::serviceScriptedAnimations',
-          start: 258, end: 59});
+        title: 'PageAnimator::serviceScriptedAnimations',
+        start: 258, end: 59});
       ChromeTestUtils.addEvent(model.rendererMain, {
-          title: 'DrawingBuffer::prepareMailbox', start: 260, end: 262});
+        title: 'DrawingBuffer::prepareMailbox', start: 260, end: 262});
     };
     verifier.expectedUEs = [
       {title: 'WebGL Animation', start: 0, end: 62, eventCount: 4},
@@ -655,26 +655,26 @@ tr.b.unittest.testSuite(function() {
       model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx(
           {title: 'DrawingBuffer::prepareMailbox', start: 0, end: 2}));
       ChromeTestUtils.addEvent(model.rendererMain, {
-          title: 'PageAnimator::serviceScriptedAnimations',
-          start: 18, end: 19});
+        title: 'PageAnimator::serviceScriptedAnimations',
+        start: 18, end: 19});
       ChromeTestUtils.addEvent(model.rendererMain, {
-          title: 'DrawingBuffer::prepareMailbox', start: 20, end: 22});
+        title: 'DrawingBuffer::prepareMailbox', start: 20, end: 22});
       ChromeTestUtils.addEvent(model.rendererMain, {
-          title: 'PageAnimator::serviceScriptedAnimations',
-          start: 38, end: 39});
+        title: 'PageAnimator::serviceScriptedAnimations',
+        start: 38, end: 39});
       ChromeTestUtils.addEvent(model.rendererMain, {
-          title: 'DrawingBuffer::prepareMailbox', start: 40, end: 42});
+        title: 'DrawingBuffer::prepareMailbox', start: 40, end: 42});
       ChromeTestUtils.addEvent(model.rendererMain, {
-          title: 'PageAnimator::serviceScriptedAnimations',
-          start: 58, end: 59});
+        title: 'PageAnimator::serviceScriptedAnimations',
+        start: 58, end: 59});
       ChromeTestUtils.addEvent(model.rendererMain, {
-          title: 'DrawingBuffer::prepareMailbox', start: 60, end: 62});
+        title: 'DrawingBuffer::prepareMailbox', start: 60, end: 62});
       ChromeTestUtils.addEvent(model.rendererMain, {
-          title: 'DrawingBuffer::prepareMailbox', start: 220, end: 222});
+        title: 'DrawingBuffer::prepareMailbox', start: 220, end: 222});
       ChromeTestUtils.addEvent(model.rendererMain, {
-          title: 'DrawingBuffer::prepareMailbox', start: 240, end: 242});
+        title: 'DrawingBuffer::prepareMailbox', start: 240, end: 242});
       ChromeTestUtils.addEvent(model.rendererMain, {
-          title: 'DrawingBuffer::prepareMailbox', start: 260, end: 262});
+        title: 'DrawingBuffer::prepareMailbox', start: 260, end: 262});
     };
     verifier.expectedUEs = [
       {title: 'WebGL Animation', start: 0, end: 62, eventCount: 4},
@@ -693,17 +693,17 @@ tr.b.unittest.testSuite(function() {
       model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx(
           {title: 'DrawingBuffer::prepareMailbox', start: 0, end: 2}));
       ChromeTestUtils.addEvent(model.rendererMain, {
-          title: 'DrawingBuffer::prepareMailbox', start: 20, end: 22});
+        title: 'DrawingBuffer::prepareMailbox', start: 20, end: 22});
       ChromeTestUtils.addEvent(model.rendererMain, {
-          title: 'DrawingBuffer::prepareMailbox', start: 40, end: 42});
+        title: 'DrawingBuffer::prepareMailbox', start: 40, end: 42});
       ChromeTestUtils.addEvent(model.rendererMain, {
-          title: 'DrawingBuffer::prepareMailbox', start: 60, end: 62});
+        title: 'DrawingBuffer::prepareMailbox', start: 60, end: 62});
       ChromeTestUtils.addEvent(model.rendererMain, {
-          title: 'DrawingBuffer::prepareMailbox', start: 220, end: 222});
+        title: 'DrawingBuffer::prepareMailbox', start: 220, end: 222});
       ChromeTestUtils.addEvent(model.rendererMain, {
-          title: 'DrawingBuffer::prepareMailbox', start: 240, end: 242});
+        title: 'DrawingBuffer::prepareMailbox', start: 240, end: 242});
       ChromeTestUtils.addEvent(model.rendererMain, {
-          title: 'DrawingBuffer::prepareMailbox', start: 260, end: 262});
+        title: 'DrawingBuffer::prepareMailbox', start: 260, end: 262});
     };
     verifier.expectedUEs = [
       {title: 'Idle', start: 0, end: 262, eventCount: 0},
@@ -718,14 +718,14 @@ tr.b.unittest.testSuite(function() {
     var verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx(
-          {title: 'PageAnimator::serviceScriptedAnimations',
+        {title: 'PageAnimator::serviceScriptedAnimations',
           start: 0, end: 2}));
       ChromeTestUtils.addEvent(model.rendererMain, {
-          title: 'PageAnimator::serviceScriptedAnimations',
-          start: 20, end: 22});
+        title: 'PageAnimator::serviceScriptedAnimations',
+        start: 20, end: 22});
       ChromeTestUtils.addEvent(model.rendererMain, {
-          title: 'PageAnimator::serviceScriptedAnimations',
-          start: 40, end: 42});
+        title: 'PageAnimator::serviceScriptedAnimations',
+        start: 40, end: 42});
     };
     verifier.expectedUEs = [
       {title: 'Idle', start: 0, end: 42, eventCount: 0},
@@ -963,7 +963,7 @@ tr.b.unittest.testSuite(function() {
     verifier.expectedUEs = [
       {title: 'Fling Animation', start: 0, end: 100, eventCount: 3},
       {title: 'Touch Response', start: 100, end: 140, eventCount: 2,
-          isAnimationBegin: true},
+        isAnimationBegin: true},
       {title: 'Touch Animation', start: 140, end: 210, eventCount: 3},
       {title: 'Fling Animation', start: 200, end: 240, eventCount: 2}
     ];
@@ -1061,7 +1061,7 @@ tr.b.unittest.testSuite(function() {
     };
     verifier.expectedUEs = [
       {title: 'Touch Response', start: 0, end: 210, eventCount: 2,
-          isAnimationBegin: true}
+        isAnimationBegin: true}
     ];
     verifier.expectedSegments = [
       {start: 0, end: 210, expectations: [verifier.expectedUEs[0]]},
@@ -1084,7 +1084,7 @@ tr.b.unittest.testSuite(function() {
     };
     verifier.expectedUEs = [
       {title: 'Touch Response', start: 0, end: 100, eventCount: 2,
-          isAnimationBegin: true},
+        isAnimationBegin: true},
       {title: 'Touch Animation', start: 100, end: 300, eventCount: 3}
     ];
     verifier.expectedSegments = [
@@ -1183,7 +1183,7 @@ tr.b.unittest.testSuite(function() {
     verifier.expectedUEs = [
       {title: 'Idle', start: 0, end: 100, eventCount: 1},
       {title: 'Pinch Response', start: 100, end: 160, eventCount: 2,
-          isAnimationBegin: true},
+        isAnimationBegin: true},
       {title: 'Pinch Animation', start: 160, end: 220, eventCount: 7},
       {title: 'Idle', start: 220, end: 421, eventCount: 0},
       {title: 'Pinch Animation', start: 421, end: 500, eventCount: 3}
@@ -1216,9 +1216,9 @@ tr.b.unittest.testSuite(function() {
     };
     verifier.expectedUEs = [
       {title: 'Touch Response', start: 0, end: 100, eventCount: 2,
-          isAnimationBegin: true},
+        isAnimationBegin: true},
       {title: 'Touch Response', start: 50, end: 150, eventCount: 2,
-          isAnimationBegin: true},
+        isAnimationBegin: true},
       {title: 'Touch Animation', start: 150, end: 200, eventCount: 2}
     ];
     verifier.expectedSegments = [
@@ -1278,9 +1278,9 @@ tr.b.unittest.testSuite(function() {
     verifier.expectedUEs = [
       {title: 'Idle', start: 0, end: 20, eventCount: 1},
       {title: 'Pinch Response', start: 20, end: 110,
-          eventCount: 9, isAnimationBegin: true},
+        eventCount: 9, isAnimationBegin: true},
       {title: 'Scroll Animation', start: 110, end: 210,
-          eventCount: 7},
+        eventCount: 7},
       {title: 'Fling Animation', start: 180, end: 220, eventCount: 4}
     ];
     verifier.expectedSegments = [
@@ -1375,11 +1375,11 @@ tr.b.unittest.testSuite(function() {
     verifier.expectedUEs = [
       {title: 'Idle', start: 0, end: 1274, eventCount: 0},
       {title: 'Scroll Response', start: 1274, end: 1387,
-          eventCount: 6, isAnimationBegin: true},
+        eventCount: 6, isAnimationBegin: true},
       {title: 'Scroll Animation', start: 1387, end: 1474,
-          eventCount: 12},
+        eventCount: 12},
       {title: 'Fling Animation', start: 1427, end: 2300,
-          eventCount: 4},
+        eventCount: 4},
       {title: 'Idle', start: 2300, end: 3185, eventCount: 0}
     ];
     verifier.expectedSegments = [
@@ -1411,7 +1411,7 @@ tr.b.unittest.testSuite(function() {
     };
     verifier.expectedUEs = [
       {title: 'Tap Response', start: 0, end: 100,
-          eventCount: 5}
+        eventCount: 5}
     ];
     verifier.expectedSegments = [
       {start: 0, end: 100, expectations: [verifier.expectedUEs[0]]},

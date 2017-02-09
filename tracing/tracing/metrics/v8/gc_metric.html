@@ -50,13 +50,13 @@ tr.exportTo('tr.metrics.v8', function() {
     var n = new tr.v.Histogram(name,
         timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
     n.customizeSummaryOptions({
-        avg: true,
-        count: true,
-        max: true,
-        min: false,
-        std: true,
-        sum: true,
-        percentile: [0.90]});
+      avg: true,
+      count: true,
+      max: true,
+      min: false,
+      std: true,
+      sum: true,
+      percentile: [0.90]});
     return n;
   }
 
@@ -64,13 +64,13 @@ tr.exportTo('tr.metrics.v8', function() {
     var n = new tr.v.Histogram(name,
         timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
     n.customizeSummaryOptions({
-        avg: true,
-        count: false,
-        max: true,
-        min: false,
-        std: false,
-        sum: false,
-        percentile: [0.90]
+      avg: true,
+      count: false,
+      max: true,
+      min: false,
+      std: false,
+      sum: false,
+      percentile: [0.90]
     });
     return n;
   }
@@ -79,13 +79,13 @@ tr.exportTo('tr.metrics.v8', function() {
     var n = new tr.v.Histogram(name,
         timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
     n.customizeSummaryOptions({
-        avg: true,
-        count: false,
-        max: true,
-        min: false,
-        std: false,
-        sum: true,
-        percentile: []
+      avg: true,
+      count: false,
+      max: true,
+      min: false,
+      std: false,
+      sum: true,
+      percentile: []
     });
     return n;
   }
@@ -97,14 +97,14 @@ tr.exportTo('tr.metrics.v8', function() {
     else
       hist.addSample(numerator / denominator);
     hist.customizeSummaryOptions({
-        avg: true,
-        count: false,
-        max: false,
-        min: false,
-        std: false,
-        sum: false,
-        percentile: []
-      });
+      avg: true,
+      count: false,
+      max: false,
+      min: false,
+      std: false,
+      sum: false,
+      percentile: []
+    });
     return hist;
   }
 
@@ -306,7 +306,7 @@ tr.exportTo('tr.metrics.v8', function() {
             for (var e of topEvent.enumerateAllDescendents()) {
               if (isNotForcedTopGarbageCollectionEvent(e)) {
                 pauses.push({ start: e.start - topEvent.start + time,
-                              end: e.end - topEvent.start + time });
+                  end: e.end - topEvent.start + time });
               }
             }
             time += topEvent.duration;

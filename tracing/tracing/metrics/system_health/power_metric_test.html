@@ -70,19 +70,19 @@ tr.b.unittest.testSuite(function() {
       var mainThread = rendererProcess.getOrCreateThread(1);
       mainThread.name = 'CrRendererMain';
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-          cat: 'blink.user_timing',
-          title: 'navigationStart',
-          start: 0,
-          duration: 0.0,
-          args: {frame: '0xdeadbeef'}
-        }));
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 0,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-          cat: 'blink.user_timing',
-          title: 'navigationStart',
-          start: 1000,
-          duration: 0.0,
-          args: {frame: '0xdeadbeef'}
-        }));
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 1000,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
     });
     var valueSet = new tr.v.HistogramSet();
     tr.metrics.sh.powerMetric(valueSet, model);
@@ -96,19 +96,19 @@ tr.b.unittest.testSuite(function() {
       var mainThread = rendererProcess.getOrCreateThread(1);
       mainThread.name = 'CrRendererMain';
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-          cat: 'blink.user_timing',
-          title: 'navigationStart',
-          start: 0,
-          duration: 0.0,
-          args: {frame: '0xdeadbeef'}
-        }));
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 0,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-          cat: 'blink.user_timing',
-          title: 'navigationStart',
-          start: 1000,
-          duration: 0.0,
-          args: {frame: '0xdeadbeef'}
-        }));
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 1000,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
     });
     var valueSet = new tr.v.HistogramSet();
@@ -121,7 +121,7 @@ tr.b.unittest.testSuite(function() {
     var model = tr.c.TestUtils.newModel(function(model) {
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
       for (var i = 0; i <= 1000; i++) {
-          model.device.powerSeries.addPowerSample(i.toString(), i.toString());
+        model.device.powerSeries.addPowerSample(i.toString(), i.toString());
       }
     });
     var valueSet = new tr.v.HistogramSet();
@@ -141,7 +141,7 @@ tr.b.unittest.testSuite(function() {
       mainThread.name = 'CrRendererMain';
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
       for (var i = 0; i <= 1000; i++) {
-          model.device.powerSeries.addPowerSample(i.toString(), i.toString());
+        model.device.powerSeries.addPowerSample(i.toString(), i.toString());
       }
       model.userModel.expectations.push(new tr.model.um.LoadExpectation(
           model, tr.model.um.LOAD_SUBTYPE_NAMES.SUCCESSFUL, 0, 500));
@@ -161,22 +161,22 @@ tr.b.unittest.testSuite(function() {
       var mainThread = rendererProcess.getOrCreateThread(1);
       mainThread.name = 'CrRendererMain';
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-          cat: 'blink.user_timing',
-          title: 'navigationStart',
-          start: 0,
-          duration: 0.0,
-          args: {frame: '0xdeadbeef'}
-        }));
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 0,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-          cat: 'blink.user_timing',
-          title: 'navigationStart',
-          start: 1000,
-          duration: 0.0,
-          args: {frame: '0xdeadbeef'}
-        }));
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 1000,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
       for (var i = 300; i <= 1000; i++) {
-          model.device.powerSeries.addPowerSample(i.toString(), i.toString());
+        model.device.powerSeries.addPowerSample(i.toString(), i.toString());
       }
       model.userModel.expectations.push(new tr.model.um.LoadExpectation(
           model, tr.model.um.LOAD_SUBTYPE_NAMES.SUCCESSFUL, 0, 500));
@@ -197,22 +197,22 @@ tr.b.unittest.testSuite(function() {
       var mainThread = rendererProcess.getOrCreateThread(1);
       mainThread.name = 'CrRendererMain';
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-          cat: 'blink.user_timing',
-          title: 'navigationStart',
-          start: 0,
-          duration: 0.0,
-          args: {frame: '0xdeadbeef'}
-        }));
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 0,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-          cat: 'blink.user_timing',
-          title: 'navigationStart',
-          start: 1000,
-          duration: 0.0,
-          args: {frame: '0xdeadbeef'}
-        }));
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 1000,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
       for (var i = 0; i <= 700; i++) {
-          model.device.powerSeries.addPowerSample(i.toString(), i.toString());
+        model.device.powerSeries.addPowerSample(i.toString(), i.toString());
       }
       model.userModel.expectations.push(new tr.model.um.LoadExpectation(
           model, tr.model.um.LOAD_SUBTYPE_NAMES.SUCCESSFUL, 0, 500));
@@ -233,22 +233,22 @@ tr.b.unittest.testSuite(function() {
       var mainThread = rendererProcess.getOrCreateThread(1);
       mainThread.name = 'CrRendererMain';
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-          cat: 'blink.user_timing',
-          title: 'navigationStart',
-          start: 0,
-          duration: 0.0,
-          args: {frame: '0xdeadbeef'}
-        }));
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 0,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-          cat: 'blink.user_timing',
-          title: 'navigationStart',
-          start: 1000,
-          duration: 0.0,
-          args: {frame: '0xdeadbeef'}
-        }));
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 1000,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
       for (var i = 0; i <= 1000; i++) {
-          model.device.powerSeries.addPowerSample(i.toString(), i.toString());
+        model.device.powerSeries.addPowerSample(i.toString(), i.toString());
       }
       model.userModel.expectations.push(new tr.model.um.ResponseExpectation(
           model, tr.importer.INITIATOR_TYPE.SCROLL, 0, 500));
@@ -272,22 +272,22 @@ tr.b.unittest.testSuite(function() {
       var mainThread = rendererProcess.getOrCreateThread(1);
       mainThread.name = 'CrRendererMain';
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-          cat: 'blink.user_timing',
-          title: 'navigationStart',
-          start: 0,
-          duration: 0.0,
-          args: {frame: '0xdeadbeef'}
-        }));
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 0,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-          cat: 'blink.user_timing',
-          title: 'navigationStart',
-          start: 1000,
-          duration: 0.0,
-          args: {frame: '0xdeadbeef'}
-        }));
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 1000,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
       for (var i = 0; i <= 1000; i++) {
-          model.device.powerSeries.addPowerSample(i.toString(), i.toString());
+        model.device.powerSeries.addPowerSample(i.toString(), i.toString());
       }
       model.userModel.expectations.push(new tr.model.um.ResponseExpectation(
           model, tr.importer.INITIATOR_TYPE.SCROLL, 0, 500));
@@ -308,22 +308,22 @@ tr.b.unittest.testSuite(function() {
       var mainThread = rendererProcess.getOrCreateThread(1);
       mainThread.name = 'CrRendererMain';
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-          cat: 'blink.user_timing',
-          title: 'navigationStart',
-          start: 500,
-          duration: 0.0,
-          args: {frame: '0xdeadbeef'}
-        }));
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 500,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-          cat: 'blink.user_timing',
-          title: 'navigationStart',
-          start: 1000,
-          duration: 0.0,
-          args: {frame: '0xdeadbeef'}
-        }));
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 1000,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
       for (var i = 0; i <= 1000; i++) {
-          model.device.powerSeries.addPowerSample(i.toString(), i.toString());
+        model.device.powerSeries.addPowerSample(i.toString(), i.toString());
       }
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
           model, 0, 300));
@@ -339,34 +339,34 @@ tr.b.unittest.testSuite(function() {
 
   test('powerMetric_generic_multipleStagesEachType', function() {
     var model = tr.c.TestUtils.newModel(function(model) {
-        var rendererProcess = model.getOrCreateProcess(1234);
-        var mainThread = rendererProcess.getOrCreateThread(1);
-        mainThread.name = 'CrRendererMain';
-        mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-            cat: 'blink.user_timing',
-            title: 'navigationStart',
-            start: 0,
-            duration: 0.0,
-            args: {frame: '0xdeadbeef'}
-          }));
-        mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-            cat: 'blink.user_timing',
-            title: 'navigationStart',
-            start: 1000,
-            duration: 0.0,
-            args: {frame: '0xdeadbeef'}
-          }));
-        model.device.powerSeries = new tr.model.PowerSeries(model.device);
-        for (var i = 0; i <= 1000; i++) {
-            model.device.powerSeries.addPowerSample(i.toString(), i.toString());
-        }
-        model.userModel.expectations.push(new tr.model.um.ResponseExpectation(
+      var rendererProcess = model.getOrCreateProcess(1234);
+      var mainThread = rendererProcess.getOrCreateThread(1);
+      mainThread.name = 'CrRendererMain';
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 0,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 1000,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
+      model.device.powerSeries = new tr.model.PowerSeries(model.device);
+      for (var i = 0; i <= 1000; i++) {
+        model.device.powerSeries.addPowerSample(i.toString(), i.toString());
+      }
+      model.userModel.expectations.push(new tr.model.um.ResponseExpectation(
             model, tr.importer.INITIATOR_TYPE.SCROLL, 0, 200));
-        model.userModel.expectations.push(new tr.model.um.IdleExpectation(
+      model.userModel.expectations.push(new tr.model.um.IdleExpectation(
             model, 200, 300));
-        model.userModel.expectations.push(new tr.model.um.ResponseExpectation(
+      model.userModel.expectations.push(new tr.model.um.ResponseExpectation(
             model, tr.importer.INITIATOR_TYPE.SCROLL, 500, 400));
-        model.userModel.expectations.push(new tr.model.um.IdleExpectation(
+      model.userModel.expectations.push(new tr.model.um.IdleExpectation(
             model, 900, 100));
     });
     var valueSet = new tr.v.HistogramSet();
@@ -397,8 +397,8 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
       rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
-          {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
-            documentLoaderURL: 'http://example.com'});
+        {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
+          documentLoaderURL: 'http://example.com'});
 
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'loading',
@@ -460,13 +460,13 @@ tr.b.unittest.testSuite(function() {
         model.device.powerSeries.addPowerSample(i.toString(), '10');
     });
 
-  var valueSet = new tr.v.HistogramSet();
-  tr.metrics.sh.powerMetric(valueSet, model);
+    var valueSet = new tr.v.HistogramSet();
+    tr.metrics.sh.powerMetric(valueSet, model);
   // Energy for first load is 20 W * 15.2 s
   // (interval from 0.2 s to 15.4 s)
-  assert.closeTo(
+    assert.closeTo(
       getMetricValueAvg(valueSet, 'load:energy'), 304, 0.1);
-  assert.closeTo(
+    assert.closeTo(
       getMetricValueAvg(valueSet, 'after_load:power'), 10, 0.01);
   });
 
@@ -483,8 +483,8 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
       rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
-          {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
-            documentLoaderURL: 'http://example.com'});
+        {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
+          documentLoaderURL: 'http://example.com'});
 
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'toplevel',
@@ -541,22 +541,22 @@ tr.b.unittest.testSuite(function() {
       var mainThread = rendererProcess.getOrCreateThread(1);
       mainThread.name = 'CrRendererMain';
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-          cat: 'blink.user_timing',
-          title: 'navigationStart',
-          start: 0,
-          duration: 0.0,
-          args: {frame: '0xdeadbeef'}
-        }));
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 0,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-          cat: 'blink.user_timing',
-          title: 'navigationStart',
-          start: 1000,
-          duration: 0.0,
-          args: {frame: '0xdeadbeef'}
-        }));
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 1000,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
       for (var i = 0; i <= 1000; i++) {
-          model.device.powerSeries.addPowerSample(i.toString(), i.toString());
+        model.device.powerSeries.addPowerSample(i.toString(), i.toString());
       }
       model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
           model, tr.importer.INITIATOR_TYPE.SCROLL, 0, 500));
@@ -576,22 +576,22 @@ tr.b.unittest.testSuite(function() {
       var mainThread = rendererProcess.getOrCreateThread(1);
       mainThread.name = 'CrRendererMain';
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-          cat: 'blink.user_timing',
-          title: 'navigationStart',
-          start: 0,
-          duration: 0.0,
-          args: {frame: '0xdeadbeef'}
-        }));
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 0,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-          cat: 'blink.user_timing',
-          title: 'navigationStart',
-          start: 1000,
-          duration: 0.0,
-          args: {frame: '0xdeadbeef'}
-        }));
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 1000,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
       for (var i = 0; i <= 1000; i++) {
-          model.device.powerSeries.addPowerSample(i.toString(), i.toString());
+        model.device.powerSeries.addPowerSample(i.toString(), i.toString());
       }
       model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
           model, tr.importer.INITIATOR_TYPE.SCROLL, 0, 200));
@@ -615,22 +615,22 @@ tr.b.unittest.testSuite(function() {
       var mainThread = rendererProcess.getOrCreateThread(1);
       mainThread.name = 'CrRendererMain';
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-          cat: 'blink.user_timing',
-          title: 'navigationStart',
-          start: 0,
-          duration: 0.0,
-          args: {frame: '0xdeadbeef'}
-        }));
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 0,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-          cat: 'blink.user_timing',
-          title: 'navigationStart',
-          start: 1000,
-          duration: 0.0,
-          args: {frame: '0xdeadbeef'}
-        }));
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 1000,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
       for (var i = 0; i <= 1000; i++) {
-          model.device.powerSeries.addPowerSample(i.toString(), i.toString());
+        model.device.powerSeries.addPowerSample(i.toString(), i.toString());
       }
       model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
           model, tr.importer.INITIATOR_TYPE.VIDEO, 0, 500));
@@ -650,22 +650,22 @@ tr.b.unittest.testSuite(function() {
       var mainThread = rendererProcess.getOrCreateThread(1);
       mainThread.name = 'CrRendererMain';
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-          cat: 'blink.user_timing',
-          title: 'navigationStart',
-          start: 0,
-          duration: 0.0,
-          args: {frame: '0xdeadbeef'}
-        }));
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 0,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-          cat: 'blink.user_timing',
-          title: 'navigationStart',
-          start: 1000,
-          duration: 0.0,
-          args: {frame: '0xdeadbeef'}
-        }));
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 1000,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
       for (var i = 0; i <= 1000; i++) {
-          model.device.powerSeries.addPowerSample(i.toString(), i.toString());
+        model.device.powerSeries.addPowerSample(i.toString(), i.toString());
       }
       model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
           model, tr.importer.INITIATOR_TYPE.VIDEO, 0, 200));

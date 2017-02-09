@@ -13,16 +13,16 @@ found in the LICENSE file.
 
 tr.exportTo('tr.metrics.sh', function() {
   function getCpuSnapshotsFromModel(model) {
-   var snapshots = [];
-   for (var pid in model.processes) {
-     var snapshotInstances = model.processes[pid].objects.getAllInstancesNamed(
+    var snapshots = [];
+    for (var pid in model.processes) {
+      var snapshotInstances = model.processes[pid].objects.getAllInstancesNamed(
          'CPUSnapshots');
-     if (!snapshotInstances)
-       continue;
-     for (var object of snapshotInstances[0].snapshots)
-       snapshots.push(object.args.processes);
-   }
-   return snapshots;
+      if (!snapshotInstances)
+        continue;
+      for (var object of snapshotInstances[0].snapshots)
+        snapshots.push(object.args.processes);
+    }
+    return snapshots;
   }
 
   function getProcessSumsFromSnapshot(snapshot) {
@@ -41,24 +41,24 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   function buildNumericsFromSnapshots(snapshots) {
-   var processNumerics = new Map();
-   for (var snapshot of snapshots) {
-     var processSums = getProcessSumsFromSnapshot(snapshot);
-     for (var [processName, processData] of processSums.entries()) {
-       if (!(processNumerics.has(processName))) {
-         processNumerics.set(processName, {
-           numeric: new tr.v.Histogram('cpu:percent:' + processName,
+    var processNumerics = new Map();
+    for (var snapshot of snapshots) {
+      var processSums = getProcessSumsFromSnapshot(snapshot);
+      for (var [processName, processData] of processSums.entries()) {
+        if (!(processNumerics.has(processName))) {
+          processNumerics.set(processName, {
+            numeric: new tr.v.Histogram('cpu:percent:' + processName,
              tr.b.Unit.byName.normalizedPercentage_smallerIsBetter),
-           paths: new Set()
-         });
-       }
-       processNumerics.get(processName).numeric.addSample(
+            paths: new Set()
+          });
+        }
+        processNumerics.get(processName).numeric.addSample(
            processData.sum / 100.0);
-       for (var path of processData.paths)
-         processNumerics.get(processName).paths.add(path);
-     }
-   }
-   return processNumerics;
+        for (var path of processData.paths)
+          processNumerics.get(processName).paths.add(path);
+      }
+    }
+    return processNumerics;
   }
 
   function cpuProcessMetric(values, model) {

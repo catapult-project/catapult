@@ -48,7 +48,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
      * Parses sync events and sets up state in the importer.
      */
     timelineEvent: function(eventName, cpuNumber, pid,
-                            ts, eventBase) {
+        ts, eventBase) {
       var event = syncTimelineRE.exec(eventBase.details);
       if (!event)
         return false;
@@ -73,7 +73,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     },
 
     syncWaitEvent: function(eventName, cpuNumber, pid, ts,
-                            eventBase) {
+        eventBase) {
       var event = syncWaitRE.exec(eventBase.details);
       if (!event)
         return false;

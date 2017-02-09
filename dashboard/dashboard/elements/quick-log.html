@@ -236,10 +236,10 @@ found in the LICENSE file.
         }
         this.setState('loading');
         var params = {
-           namespace: this.logNamespace,
-           name: this.logName,
-           size: this.MAX_LOG_REQUEST_SIZE,
-           xsrf_token: this.xsrfToken
+          namespace: this.logNamespace,
+          name: this.logName,
+          size: this.MAX_LOG_REQUEST_SIZE,
+          xsrf_token: this.xsrfToken
         };
         if (this.logFilter) {
           params['filter'] = this.logFilter;

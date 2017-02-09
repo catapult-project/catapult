@@ -38,7 +38,7 @@ tr.exportTo('tr.model', function() {
   }
 
   Activity.prototype = {
-     __proto__: tr.model.TimedEvent.prototype,
+    __proto__: tr.model.TimedEvent.prototype,
 
     shiftTimestampsForward: function(amount) {
       this.start += amount;

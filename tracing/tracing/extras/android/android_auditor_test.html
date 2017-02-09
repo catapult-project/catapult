@@ -42,9 +42,9 @@ tr.b.unittest.testSuite(function() {
       renderThread.sliceGroup.pushSlice(newSliceEx(
           {title: 'doFrame', start: 200, duration: 5}));
       renderThread.sliceGroup.pushSlice(newSliceEx({
-          title: 'BadAlphaView alpha caused saveLayer 480x320',
-          start: 203,
-          duration: 1
+        title: 'BadAlphaView alpha caused saveLayer 480x320',
+        start: 203,
+        duration: 1
       }));
 
       // doesn't create alert, since bad alpha accounts for this savelayer
@@ -247,9 +247,9 @@ tr.b.unittest.testSuite(function() {
       uiThread.sliceGroup.pushSlice(newSliceEx(
           {title: 'performTraversals', start: 0, duration: 20}));
       uiThread.timeSlices = [
-          newThreadSlice(uiThread, SCHEDULING_STATE.RUNNING, 0, 6),
-          newThreadSlice(uiThread, SCHEDULING_STATE.RUNNABLE, 6, 10),
-          newThreadSlice(uiThread, SCHEDULING_STATE.RUNNING, 16, 4)];
+        newThreadSlice(uiThread, SCHEDULING_STATE.RUNNING, 0, 6),
+        newThreadSlice(uiThread, SCHEDULING_STATE.RUNNABLE, 6, 10),
+        newThreadSlice(uiThread, SCHEDULING_STATE.RUNNING, 16, 4)];
     }, tr.e.audits.AndroidAuditor);
     assert.equal(model.alerts.length, 1);
     var alert = model.alerts[0];
@@ -262,9 +262,9 @@ tr.b.unittest.testSuite(function() {
       uiThread.sliceGroup.pushSlice(newSliceEx(
           {title: 'performTraversals', start: 0, duration: 20}));
       uiThread.timeSlices = [
-          newThreadSlice(uiThread, SCHEDULING_STATE.RUNNING, 0, 5),
-          newThreadSlice(uiThread, SCHEDULING_STATE.UNINTR_SLEEP, 5, 10),
-          newThreadSlice(uiThread, SCHEDULING_STATE.RUNNING, 15, 5)];
+        newThreadSlice(uiThread, SCHEDULING_STATE.RUNNING, 0, 5),
+        newThreadSlice(uiThread, SCHEDULING_STATE.UNINTR_SLEEP, 5, 10),
+        newThreadSlice(uiThread, SCHEDULING_STATE.RUNNING, 15, 5)];
     }, tr.e.audits.AndroidAuditor);
     assert.equal(model.alerts.length, 1);
     var alert = model.alerts[0];
@@ -409,9 +409,9 @@ tr.b.unittest.testSuite(function() {
         var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
         for (var i = 0; i < 100; i++) {
           var slice = newSliceEx({
-              title: 'performTraversals',
-              start: 30 * i,
-              duration: i <= percentageJank ? 24 : 8
+            title: 'performTraversals',
+            start: 30 * i,
+            duration: i <= percentageJank ? 24 : 8
           });
           uiThread.sliceGroup.pushSlice(slice);
         }

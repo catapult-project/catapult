@@ -33,7 +33,7 @@ tr.b.unittest.testSuite(function() {
       traceEvents: [
         {ts: 0, pid: 0, tid: 0, ph: 'i', cat: 'c', name: 'taskA', args: {}},
         {ts: 1000, pid: 0, tid: 0, ph: 'c', cat: 'metadata',
-            args: { issue_ts: 500, sync_id: 'abc' }},
+          args: { issue_ts: 500, sync_id: 'abc' }},
         {ts: 2000, pid: 0, tid: 0, ph: 'i', cat: 'c', name: 'taskA', args: {}}
       ]});
     var m = tr.c.TestUtils.newModelWithEvents([trace]);
@@ -70,7 +70,7 @@ tr.b.unittest.testSuite(function() {
       traceEvents: [
         {ts: 0, pid: 0, tid: 0, ph: 'i', cat: 'c', name: 'taskA', args: {}},
         {ts: 1000, pid: 0, tid: 0, ph: 'c', cat: 'metadata',
-            args: { issue_ts: 500, sync_id: 'abc' }},
+          args: { issue_ts: 500, sync_id: 'abc' }},
         {ts: 2000, pid: 0, tid: 0, ph: 'i', cat: 'c', name: 'taskA', args: {}}
       ],
       systemTraceEvents: ftrace
@@ -100,7 +100,7 @@ tr.b.unittest.testSuite(function() {
       traceEvents: [
         {ts: 0, pid: 0, tid: 0, ph: 'i', cat: 'c', name: 'taskA', args: {}},
         {ts: 1000, pid: 0, tid: 0, ph: 'c', cat: 'metadata',
-            args: { issue_ts: 500, sync_id: 'abc' }},
+          args: { issue_ts: 500, sync_id: 'abc' }},
         {ts: 2000, pid: 0, tid: 0, ph: 'i', cat: 'c', name: 'taskA', args: {}}
       ],
       metadata: {

@@ -71,7 +71,7 @@ tr.exportTo('tr.e.importer', function() {
   var LIGHT = tr.model.ContainerMemoryDump.LevelOfDetail.LIGHT;
   var DETAILED = tr.model.ContainerMemoryDump.LevelOfDetail.DETAILED;
   var MEMORY_DUMP_LEVEL_OF_DETAIL_ORDER = [undefined, BACKGROUND, LIGHT,
-                                           DETAILED];
+    DETAILED];
 
   var GLOBAL_MEMORY_ALLOCATOR_DUMP_PREFIX = 'global/';
 
@@ -656,7 +656,7 @@ tr.exportTo('tr.e.importer', function() {
           this.importObjectTypeNameMap_(objectTypeNameMap, event.pid);
         }
       } else if (event.name === 'TraceConfig') {
-          this.model_.metadata.push(
+        this.model_.metadata.push(
               {name: 'TraceConfig', value: event.args.value});
       } else {
         this.model_.importWarning({
@@ -1511,7 +1511,7 @@ tr.exportTo('tr.e.importer', function() {
 
         var key = event.cat + ':' + id.toStringWithDelimiter(':');
         if (nestableAsyncEventsByKey[key] === undefined)
-           nestableAsyncEventsByKey[key] = [];
+          nestableAsyncEventsByKey[key] = [];
         nestableAsyncEventsByKey[key].push(asyncEventState);
       }
       // Handle legacy async events.
@@ -1960,8 +1960,8 @@ tr.exportTo('tr.e.importer', function() {
         var flowEvent = flowIdToEvent[event.bind_id];
         if (flowEvent === undefined) {
           that.model_.importWarning({
-              type: 'flow_slice_ordering_error',
-              message: 'Flow consumer ' + event.bind_id + ' does not have ' +
+            type: 'flow_slice_ordering_error',
+            message: 'Flow consumer ' + event.bind_id + ' does not have ' +
                   'a flow producer'});
           return false;
         } else if (flowEvent.endSlice) {
@@ -1978,8 +1978,8 @@ tr.exportTo('tr.e.importer', function() {
           that.model_.flowEvents.push(flowEvent);
         } else {
           that.model_.importWarning({
-              type: 'flow_slice_end_error',
-              message: 'Flow consumer ' + event.bind_id + ' does not end ' +
+            type: 'flow_slice_end_error',
+            message: 'Flow consumer ' + event.bind_id + ' does not end ' +
                   'at an actual slice, so cannot be created.'});
           return false;
         }
@@ -1993,16 +1993,16 @@ tr.exportTo('tr.e.importer', function() {
           // Can't open the same flow again while it's still open.
           // This is essentially the multi-producer case which we don't support
           that.model_.importWarning({
-              type: 'flow_slice_start_error',
-              message: 'Flow producer ' + event.bind_id + ' already seen'});
+            type: 'flow_slice_start_error',
+            message: 'Flow producer ' + event.bind_id + ' already seen'});
           return false;
         }
 
         var flowEvent = createFlowEvent(undefined, event, slice);
         if (!flowEvent) {
           that.model_.importWarning({
-              type: 'flow_slice_start_error',
-              message: 'Flow producer ' + event.bind_id + ' does not start' +
+            type: 'flow_slice_start_error',
+            message: 'Flow producer ' + event.bind_id + ' does not start' +
                   'a flow'});
           return false;
         }
@@ -2099,8 +2099,8 @@ tr.exportTo('tr.e.importer', function() {
             } else {
               if (event.bp !== 'e') {
                 this.model_.importWarning({
-                 type: 'flow_slice_bind_point_error',
-                 message: 'Flow event with invalid binding point (event.bp).'
+                  type: 'flow_slice_bind_point_error',
+                  message: 'Flow event with invalid binding point (event.bp).'
                 });
                 continue;
               }
@@ -2262,9 +2262,9 @@ tr.exportTo('tr.e.importer', function() {
     createImplicitObjectsForProcess_: function(process) {
 
       function processField(referencingObject,
-                            referencingObjectFieldName,
-                            referencingObjectFieldValue,
-                            containingSnapshot) {
+          referencingObjectFieldName,
+          referencingObjectFieldValue,
+          containingSnapshot) {
         if (!referencingObjectFieldValue)
           return;
 
@@ -2558,8 +2558,8 @@ tr.exportTo('tr.e.importer', function() {
       if (totals.peakResidentBytes === undefined &&
           totals.arePeakResidentBytesResettable !== undefined) {
         this.model_.importWarning({
-            type: 'memory_dump_parse_error',
-            message: 'Optional field peak_resident_set_bytes found' +
+          type: 'memory_dump_parse_error',
+          message: 'Optional field peak_resident_set_bytes found' +
                 ' but is_peak_rss_resetable not found in' +
                 ' process memory dump for PID=' + pid +
                 ' and dump ID=' + dumpId + '.'
@@ -2568,8 +2568,8 @@ tr.exportTo('tr.e.importer', function() {
       if (totals.arePeakResidentBytesResettable !== undefined &&
           totals.peakResidentBytes === undefined) {
         this.model_.importWarning({
-            type: 'memory_dump_parse_error',
-            message: 'Optional field is_peak_rss_resetable found' +
+          type: 'memory_dump_parse_error',
+          message: 'Optional field is_peak_rss_resetable found' +
                 ' but peak_resident_set_bytes not found in' +
                 ' process memory dump for PID=' + pid +
                 ' and dump ID=' + dumpId + '.'
@@ -2813,8 +2813,8 @@ tr.exportTo('tr.e.importer', function() {
           // belonged to the same process or was also global.
           if (allocatorDump.containerMemoryDump !== containerMemoryDump) {
             this.model_.importWarning({
-            type: 'memory_dump_parse_error',
-            message: 'Memory allocator dump ' + fullName +
+              type: 'memory_dump_parse_error',
+              message: 'Memory allocator dump ' + fullName +
                 ' (GUID=' + guid + ') for PID=' + pid + ' and dump ID=' +
                 dumpId + ' dumped in different contexts.'
             });
@@ -2823,8 +2823,8 @@ tr.exportTo('tr.e.importer', function() {
           // Check that the names of the memory allocator dumps match.
           if (allocatorDump.fullName !== fullName) {
             this.model_.importWarning({
-            type: 'memory_dump_parse_error',
-            message: 'Memory allocator dump with GUID=' + guid + ' for PID=' +
+              type: 'memory_dump_parse_error',
+              message: 'Memory allocator dump with GUID=' + guid + ' for PID=' +
                 pid + ' and dump ID=' + dumpId + ' has multiple names: ' +
                 allocatorDump.fullName + ', ' + fullName + ' (ignored).'
             });
@@ -2858,8 +2858,8 @@ tr.exportTo('tr.e.importer', function() {
             case 'scalar':
               if (attrName in allocatorDump.numerics) {
                 this.model_.importWarning({
-                type: 'memory_dump_parse_error',
-                message: 'Multiple values provided for scalar attribute ' +
+                  type: 'memory_dump_parse_error',
+                  message: 'Multiple values provided for scalar attribute ' +
                     attrName + ' of memory allocator dump ' + fullName +
                     ' (GUID=' + guid + ') for PID=' + pid + ' and dump ID=' +
                     dumpId + '.'
@@ -2877,8 +2877,8 @@ tr.exportTo('tr.e.importer', function() {
             case 'string':
               if (attrName in allocatorDump.diagnostics) {
                 this.model_.importWarning({
-                type: 'memory_dump_parse_error',
-                message: 'Multiple values provided for string attribute ' +
+                  type: 'memory_dump_parse_error',
+                  message: 'Multiple values provided for string attribute ' +
                     attrName + ' of memory allocator dump ' + fullName +
                     ' (GUID=' + guid + ') for PID=' + pid + ' and dump ID=' +
                     dumpId + '.'
@@ -2890,8 +2890,8 @@ tr.exportTo('tr.e.importer', function() {
 
             default:
               this.model_.importWarning({
-              type: 'memory_dump_parse_error',
-              message: 'Unknown type provided for attribute ' + attrName +
+                type: 'memory_dump_parse_error',
+                message: 'Unknown type provided for attribute ' + attrName +
                   ' of memory allocator dump ' + fullName + ' (GUID=' + guid +
                   ') for PID=' + pid + ' and dump ID=' + dumpId + ': ' +
                   attrType

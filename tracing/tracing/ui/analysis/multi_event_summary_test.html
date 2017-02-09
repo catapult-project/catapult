@@ -40,11 +40,11 @@ tr.b.unittest.testSuite(function() {
     var tsg = thread.sliceGroup;
 
     tsg.pushSlice(newSliceEx({title: 'a', start: 0, end: 3,
-                              cpuStart: 0, cpuEnd: 3}));
+      cpuStart: 0, cpuEnd: 3}));
     tsg.pushSlice(newSliceEx({title: 'b', start: 1, end: 2,
-                              cpuStart: 1, cpuEnd: 1.75}));
+      cpuStart: 1, cpuEnd: 1.75}));
     tsg.pushSlice(newSliceEx({title: 'b', start: 4, end: 5,
-                              cpuStart: 3, cpuEnd: 3.75}));
+      cpuStart: 3, cpuEnd: 3.75}));
     tsg.createSubSlices();
 
     var row = new tr.ui.analysis.MultiEventSummary('x', tsg.slices.slice(0));
@@ -94,11 +94,11 @@ tr.b.unittest.testSuite(function() {
     var tsg = thread.sliceGroup;
 
     tsg.pushSlice(newSliceEx({title: 'a', start: 0, end: 3,
-                              args: {value1: 3, value2: 'x', value3: 1}}));
+      args: {value1: 3, value2: 'x', value3: 1}}));
     tsg.pushSlice(newSliceEx({title: 'b', start: 1, end: 2,
-                              args: {value1: 3, value2: 'y', value3: 2}}));
+      args: {value1: 3, value2: 'y', value3: 2}}));
     tsg.pushSlice(newSliceEx({title: 'b', start: 4, end: 5,
-                              args: {value1: 3, value2: 'z', value3: 'x'}}));
+      args: {value1: 3, value2: 'z', value3: 'x'}}));
     tsg.createSubSlices();
 
     var row = new tr.ui.analysis.MultiEventSummary('x', tsg.slices.slice(0));

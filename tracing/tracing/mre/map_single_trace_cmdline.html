@@ -19,8 +19,8 @@ tr.exportTo('tr.mre', function() {
   var Failure = tr.mre.Failure;
 
   function createModelFromTraceData(traceData,
-                                    canonicalUrl,
-                                    opt_extraImportOptions) {
+      canonicalUrl,
+      opt_extraImportOptions) {
     var model = new tr.Model();
     try {
       var importOptions = new tr.importer.ImportOptions();

@@ -54,10 +54,10 @@ tr.b.unittest.testSuite(function() {
 
     assert.isDefined(tr.b.findDeepElementMatchingPredicate(
         chart, function(element) {
-      return element.tagName === 'TR-UI-B-CHART-LEGEND-KEY' &&
+          return element.tagName === 'TR-UI-B-CHART-LEGEND-KEY' &&
              element.textContent === 'lorem_ipsum' &&
              element.target === 'lorem_ipsumTarget';
-    }));
+        }));
   });
 
   test('instantiation_singleSeries', function() {

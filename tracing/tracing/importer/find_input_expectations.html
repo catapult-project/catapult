@@ -204,11 +204,11 @@ tr.exportTo('tr.importer', function() {
     var protoExpectations = [];
     forEventTypesIn(
         sortedInputEvents, MOUSE_RESPONSE_TYPE_NAMES, function(event) {
-      var pe = new ProtoExpectation(
+          var pe = new ProtoExpectation(
           ProtoExpectation.RESPONSE_TYPE, INITIATOR_TYPE.MOUSE);
-      pe.pushEvent(event);
-      protoExpectations.push(pe);
-    });
+          pe.pushEvent(event);
+          protoExpectations.push(pe);
+        });
     return protoExpectations;
   }
   /**
@@ -230,26 +230,26 @@ tr.exportTo('tr.importer', function() {
     forEventTypesIn(
         sortedInputEvents, MOUSE_WHEEL_TYPE_NAMES, function(event) {
       // Switch prevEvent in one place so that we can early-return later.
-      var prevEvent = prevEvent_;
-      prevEvent_ = event;
+          var prevEvent = prevEvent_;
+          prevEvent_ = event;
 
-      if (currentPE &&
+          if (currentPE &&
           (prevEvent.start + MOUSE_WHEEL_THRESHOLD_MS) >= event.start) {
-        if (currentPE.type === ProtoExpectation.ANIMATION_TYPE) {
-          currentPE.pushEvent(event);
-        } else {
-          currentPE = new ProtoExpectation(ProtoExpectation.ANIMATION_TYPE,
+            if (currentPE.type === ProtoExpectation.ANIMATION_TYPE) {
+              currentPE.pushEvent(event);
+            } else {
+              currentPE = new ProtoExpectation(ProtoExpectation.ANIMATION_TYPE,
               INITIATOR_TYPE.MOUSE_WHEEL);
+              currentPE.pushEvent(event);
+              protoExpectations.push(currentPE);
+            }
+            return;
+          }
+          currentPE = new ProtoExpectation(
+          ProtoExpectation.RESPONSE_TYPE, INITIATOR_TYPE.MOUSE_WHEEL);
           currentPE.pushEvent(event);
           protoExpectations.push(currentPE);
-        }
-        return;
-      }
-      currentPE = new ProtoExpectation(
-          ProtoExpectation.RESPONSE_TYPE, INITIATOR_TYPE.MOUSE_WHEEL);
-      currentPE.pushEvent(event);
-      protoExpectations.push(currentPE);
-    });
+        });
     return protoExpectations;
   }
 
@@ -273,19 +273,19 @@ tr.exportTo('tr.importer', function() {
     var mouseDownEvent = undefined;
     forEventTypesIn(
         sortedInputEvents, MOUSE_DRAG_TYPE_NAMES, function(event) {
-      switch (event.typeName) {
-        case INPUT_TYPE.MOUSE_DOWN:
-          if (causedFrame(event)) {
-            var pe = new ProtoExpectation(
+          switch (event.typeName) {
+            case INPUT_TYPE.MOUSE_DOWN:
+              if (causedFrame(event)) {
+                var pe = new ProtoExpectation(
                 ProtoExpectation.RESPONSE_TYPE, INITIATOR_TYPE.MOUSE);
-            pe.pushEvent(event);
-            protoExpectations.push(pe);
-          } else {
+                pe.pushEvent(event);
+                protoExpectations.push(pe);
+              } else {
             // Responses typically don't start until the mouse up event.
             // Add this MouseDown to the Response that starts at the MouseUp.
-            mouseDownEvent = event;
-          }
-          break;
+                mouseDownEvent = event;
+              }
+              break;
 
           // There may be more than 100ms between the start of the mouse down
           // and the start of the mouse up. Chrome and the web don't start to
@@ -298,64 +298,64 @@ tr.exportTo('tr.importer', function() {
           // mouse down and another on mouse up, but that is an edge case. The
           // vast majority of mouse downs are not responses.
 
-        case INPUT_TYPE.MOUSE_MOVE:
-          if (!causedFrame(event)) {
+            case INPUT_TYPE.MOUSE_MOVE:
+              if (!causedFrame(event)) {
             // Ignore MouseMoves that do not affect the screen. They are not
             // part of an interaction record by definition.
-            var pe = new ProtoExpectation(ProtoExpectation.IGNORED_TYPE);
-            pe.pushEvent(event);
-            protoExpectations.push(pe);
-          } else if (!currentPE ||
+                var pe = new ProtoExpectation(ProtoExpectation.IGNORED_TYPE);
+                pe.pushEvent(event);
+                protoExpectations.push(pe);
+              } else if (!currentPE ||
                       !currentPE.isNear(event, MOUSE_MOVE_THRESHOLD_MS)) {
             // The first MouseMove after a MouseDown or after a while is a
             // Response.
-            currentPE = new ProtoExpectation(
+                currentPE = new ProtoExpectation(
                 ProtoExpectation.RESPONSE_TYPE, INITIATOR_TYPE.MOUSE);
-            currentPE.pushEvent(event);
-            if (mouseDownEvent) {
-              currentPE.associatedEvents.push(mouseDownEvent);
-              mouseDownEvent = undefined;
-            }
-            protoExpectations.push(currentPE);
-          } else {
+                currentPE.pushEvent(event);
+                if (mouseDownEvent) {
+                  currentPE.associatedEvents.push(mouseDownEvent);
+                  mouseDownEvent = undefined;
+                }
+                protoExpectations.push(currentPE);
+              } else {
             // Merge this event into an Animation.
-            if (currentPE.type === ProtoExpectation.ANIMATION_TYPE) {
-              currentPE.pushEvent(event);
-            } else {
-              currentPE = new ProtoExpectation(
+                if (currentPE.type === ProtoExpectation.ANIMATION_TYPE) {
+                  currentPE.pushEvent(event);
+                } else {
+                  currentPE = new ProtoExpectation(
                   ProtoExpectation.ANIMATION_TYPE, INITIATOR_TYPE.MOUSE);
-              currentPE.pushEvent(event);
-              protoExpectations.push(currentPE);
-            }
-          }
-          break;
+                  currentPE.pushEvent(event);
+                  protoExpectations.push(currentPE);
+                }
+              }
+              break;
 
-        case INPUT_TYPE.MOUSE_UP:
-          if (!mouseDownEvent) {
-            var pe = new ProtoExpectation(
+            case INPUT_TYPE.MOUSE_UP:
+              if (!mouseDownEvent) {
+                var pe = new ProtoExpectation(
                 causedFrame(event) ? ProtoExpectation.RESPONSE_TYPE :
                 ProtoExpectation.IGNORED_TYPE,
                 INITIATOR_TYPE.MOUSE);
-            pe.pushEvent(event);
-            protoExpectations.push(pe);
-            break;
-          }
+                pe.pushEvent(event);
+                protoExpectations.push(pe);
+                break;
+              }
 
-          if (currentPE) {
-            currentPE.pushEvent(event);
-          } else {
-            currentPE = new ProtoExpectation(
+              if (currentPE) {
+                currentPE.pushEvent(event);
+              } else {
+                currentPE = new ProtoExpectation(
                 ProtoExpectation.RESPONSE_TYPE, INITIATOR_TYPE.MOUSE);
-            if (mouseDownEvent)
-              currentPE.associatedEvents.push(mouseDownEvent);
-            currentPE.pushEvent(event);
-            protoExpectations.push(currentPE);
+                if (mouseDownEvent)
+                  currentPE.associatedEvents.push(mouseDownEvent);
+                currentPE.pushEvent(event);
+                protoExpectations.push(currentPE);
+              }
+              mouseDownEvent = undefined;
+              currentPE = undefined;
+              break;
           }
-          mouseDownEvent = undefined;
-          currentPE = undefined;
-          break;
-      }
-    });
+        });
     if (mouseDownEvent) {
       currentPE = new ProtoExpectation(ProtoExpectation.IGNORED_TYPE);
       currentPE.pushEvent(mouseDownEvent);
@@ -746,7 +746,7 @@ tr.exportTo('tr.importer', function() {
       for (var tid in modelHelper.rendererHelpers[pid].process.threads) {
         for (var asyncSlice of
             modelHelper.rendererHelpers[pid].process.threads[tid]
-            .asyncSliceGroup.slices) {
+                .asyncSliceGroup.slices) {
           if (asyncSlice.title === PLAYBACK_EVENT_TITLE)
             events.push(asyncSlice);
         }
@@ -778,7 +778,7 @@ tr.exportTo('tr.importer', function() {
           return ((event.title === CSS_ANIMATION_TITLE) &&
                   event.isTopLevel &&
                   (event.duration > 0));
-    });
+        });
 
 
     // Time ranges where animations are actually running will be collected here.
@@ -1122,7 +1122,7 @@ tr.exportTo('tr.importer', function() {
       return (pe.type === ProtoExpectation.ANIMATION_TYPE) &&
               pe.containsTypeNames([INPUT_TYPE.TOUCH_MOVE]) &&
               !pe.containsTypeNames([
-                  INPUT_TYPE.SCROLL_UPDATE, INPUT_TYPE.PINCH_UPDATE]);
+                INPUT_TYPE.SCROLL_UPDATE, INPUT_TYPE.PINCH_UPDATE]);
     }
     var newPEs = [];
     while (protoExpectations.length) {

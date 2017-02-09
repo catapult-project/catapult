@@ -35,14 +35,14 @@ tr.exportTo('tr.metrics.v8.utils', function() {
 
   // Maps the top-level GC events in timeline to telemetry friendly names.
   var TOP_GC_EVENTS = {
-      'V8.GCCompactor': 'v8-gc-full-mark-compactor',
-      'V8.GCFinalizeMC': 'v8-gc-latency-mark-compactor',
-      'V8.GCFinalizeMCReduceMemory': 'v8-gc-memory-mark-compactor',
-      'V8.GCIncrementalMarking': 'v8-gc-incremental-step',
-      'V8.GCIncrementalMarkingFinalize': 'v8-gc-incremental-finalize',
-      'V8.GCIncrementalMarkingStart': 'v8-gc-incremental-start',
-      'V8.GCPhantomHandleProcessingCallback': 'v8-gc-phantom-handle-callback',
-      'V8.GCScavenger': 'v8-gc-scavenger'
+    'V8.GCCompactor': 'v8-gc-full-mark-compactor',
+    'V8.GCFinalizeMC': 'v8-gc-latency-mark-compactor',
+    'V8.GCFinalizeMCReduceMemory': 'v8-gc-memory-mark-compactor',
+    'V8.GCIncrementalMarking': 'v8-gc-incremental-step',
+    'V8.GCIncrementalMarkingFinalize': 'v8-gc-incremental-finalize',
+    'V8.GCIncrementalMarkingStart': 'v8-gc-incremental-start',
+    'V8.GCPhantomHandleProcessingCallback': 'v8-gc-phantom-handle-callback',
+    'V8.GCScavenger': 'v8-gc-scavenger'
   };
 
   var LOW_MEMORY_MARK_COMPACTOR = 'v8-gc-low-memory-mark-compactor';
@@ -134,7 +134,7 @@ tr.exportTo('tr.metrics.v8.utils', function() {
    * @param {Function} processCallback Takes a name, and an array of events.
    */
   function groupAndProcessEvents(model, filterCallback,
-                                 nameCallback, processCallback) {
+      nameCallback, processCallback) {
     // Map: name -> [events].
     var nameToEvents = {};
     for (var event of model.getDescendantEvents()) {

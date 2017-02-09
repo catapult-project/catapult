@@ -132,17 +132,17 @@ tr.exportTo('tr.e.cc', function() {
       }
 
       var raster = window.chrome.skiaBenchmarking.rasterize(
-          {
-            skp64: this.skp64_,
-            params: {
-              layer_rect: this.layerRect_.toArray()
-            }
-          },
-          {
-            stop: params.stopIndex === undefined ? -1 : params.stopIndex,
-            overdraw: !!params.showOverdraw,
-            params: { }
-          });
+        {
+          skp64: this.skp64_,
+          params: {
+            layer_rect: this.layerRect_.toArray()
+          }
+        },
+        {
+          stop: params.stopIndex === undefined ? -1 : params.stopIndex,
+          overdraw: !!params.showOverdraw,
+          params: { }
+        });
 
       if (raster) {
         var canvas = document.createElement('canvas');

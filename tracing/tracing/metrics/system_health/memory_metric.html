@@ -403,7 +403,7 @@ tr.exportTo('tr.metrics.sh', function() {
    * @param {!function} addProcessScalar The callback for adding a scalar value.
    */
   function addV8ComponentValues(componentDump, componentPath,
-                                addProcessScalar) {
+      addProcessScalar) {
     CHROME_VALUE_PROPERTIES.forEach(function(property) {
       addProcessScalar({
         source: 'reported_by_chrome',
@@ -1015,9 +1015,9 @@ tr.exportTo('tr.metrics.sh', function() {
           var component = spec.component || [];
           function createDetailsForErrorMessage() {
             return ['source=', spec.source, ', property=',
-                spec.property.name || '(undefined)', ', component=',
-                component.length === 0 ? '(empty)' : component.join(':'),
-                ' in ', processDump.process.userFriendlyName].join('');
+              spec.property.name || '(undefined)', ', component=',
+              component.length === 0 ? '(empty)' : component.join(':'),
+              ' in ', processDump.process.userFriendlyName].join('');
           }
 
           var value;
@@ -1154,7 +1154,7 @@ tr.exportTo('tr.metrics.sh', function() {
    * |componentPath|.
    */
   function buildNamedMemoryNumericFromNode(
-        browserName, sourceName, property, processName, componentPath, node) {
+      browserName, sourceName, property, processName, componentPath, node) {
     var name = getNumericName(
         browserName, sourceName, property.name, processName, componentPath);
     var description = getNumericDescription(

@@ -204,9 +204,9 @@ tr.exportTo('tr.e.importer.v8', function() {
    */
   CodeMap.prototype.findDynamicEntryByStartAddress =
       function(addr) {
-    var node = this.dynamics_.find(addr);
-    return node ? node.value : null;
-  };
+        var node = this.dynamics_.find(addr);
+        return node ? node.value : null;
+      };
 
   /**
    * Returns an array of all dynamic code entries.

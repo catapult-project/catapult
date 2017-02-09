@@ -63,7 +63,7 @@ tr.exportTo('tr.b', function() {
   };
 
   Timing.wrapNamedFunction = function(groupName, functionName, callback,
-                                      opt_args) {
+      opt_args) {
     function timedNamedFunction() {
       var markedTime = Timing.mark(groupName, functionName, opt_args);
       try {

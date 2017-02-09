@@ -37,7 +37,7 @@ found in the LICENSE file.
           return tr.b.getAsync('/dashboard/tests').then(function(json) {
             return JSON.parse(json).test_relpaths;
           }).catch (function(e) {
-           throw e;
+            throw e;
           });
         },
         testLinks: []

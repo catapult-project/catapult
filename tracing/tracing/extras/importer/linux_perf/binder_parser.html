@@ -128,18 +128,18 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     Parser.call(this, importer);
     importer.registerEventHandler('binder_locked',
         BinderParser.prototype.
-        binderLocked.bind(this));
+            binderLocked.bind(this));
     importer.registerEventHandler('binder_unlock',
         BinderParser.prototype.
-        binderUnlock.bind(this));
+            binderUnlock.bind(this));
     importer.registerEventHandler('binder_lock',
         BinderParser.prototype.binderLock.bind(this));
     importer.registerEventHandler('binder_transaction',
         BinderParser.prototype.
-        binderTransaction.bind(this));
+            binderTransaction.bind(this));
     importer.registerEventHandler('binder_transaction_received',
         BinderParser.prototype.
-        binderTransactionReceived.bind(this));
+            binderTransactionReceived.bind(this));
 
     this.model_ = importer.model;
     this.kthreadlookup = {};
@@ -378,7 +378,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     },
 
     binderTransactionReceived: function(eventName, cpuNumber, pid, ts,
-                                        eventBase) {
+        eventBase) {
       var event = binderTransReceivedRE.exec(eventBase.details);
 
       if (event === undefined)
@@ -468,7 +468,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
     // helper functions
     modelRecursiveTransactions: function(recursiveTrans, ts, pid, kthread,
-                                         trans, args) {
+        trans, args) {
 
       var recursiveSlice = recursiveTrans[1].slice;
       var origSlice = recursiveTrans[0].slice;
@@ -503,7 +503,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     },
 
     modelPriorReceive: function(priorReceive, ts, pid, tgid, kthread, trans,
-                                args, event) {
+        args, event) {
       var calleeSlice = priorReceive[1].slice;
       var calleeTrans = priorReceive[1];
       var recvTs = priorReceive[0];
@@ -529,7 +529,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
          * Recursive calls and or calls around, either way it's not
          * going to complete a transaction.
          */
-          slice.title = 'binder reply';
+        slice.title = 'binder reply';
           /* Since this is a recursive transaction we want to create the main
            * large slice which will contain all these recursive transactions.
            * For that we created the main slice above and this is a recursive
@@ -537,9 +537,9 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
            * is only for the first recursive transaction. If more come they will
            * be handled below in the getRecursiveTransactionNeedingCompletion
            */
-          var trans1 = new BinderTransaction(event, pid, ts, kthread);
+        var trans1 = new BinderTransaction(event, pid, ts, kthread);
 
-          slice = kthread.thread.sliceGroup.
+        slice = kthread.thread.sliceGroup.
           pushCompleteSlice('binder',
               'binder transaction',
               recvTs,
@@ -547,10 +547,10 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
               0, args);
 
           /* could be a async trans if so set the length to be a small one */
-          if (!trans.expect_reply) {
-            slice.title = 'binder transaction async';
-            slice.duration = .03;
-          } else {
+        if (!trans.expect_reply) {
+          slice.title = 'binder transaction async';
+          slice.duration = .03;
+        } else {
             /* stupid hack to stop merging of AIDL slices and
              * this slice. This is currently disabled, if AIDL tracing is on we
              * will see merging of this slice and the AIDL slice. Once upstream
@@ -560,11 +560,11 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
              * This is commented out because AIDL tracing doesn't exit yet.
              */
             // slice.start += .15;
-          }
-          trans1.slice = slice;
-          this.addRecursiveSyncTransNeedingCompletion(pid,
+        }
+        trans1.slice = slice;
+        this.addRecursiveSyncTransNeedingCompletion(pid,
               [calleeTrans, trans]);
-          this.addTransactionWaitingForRecv(trans.transaction_key, trans1);
+        this.addTransactionWaitingForRecv(trans.transaction_key, trans1);
       }
       return true;
     },

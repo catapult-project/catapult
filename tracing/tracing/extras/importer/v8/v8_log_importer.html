@@ -128,7 +128,7 @@ tr.exportTo('tr.e.importer.v8', function() {
     },
 
     processCodeCreateEvent_: function(type, kind, address, size, name,
-                                      maybeFunc) {
+        maybeFunc) {
       function parseState(s) {
         switch (s) {
           case '': return CodeMap.CodeState.COMPILED;
@@ -197,7 +197,7 @@ tr.exportTo('tr.e.importer.v8', function() {
     },
 
     processTickEvent_: function(pc, startInUs, isExternalCallback,
-                                tosOrExternalCallback, vmstate, stack) {
+        tosOrExternalCallback, vmstate, stack) {
 
       var startInMs = tr.b.convertUnit(startInUs,
           tr.b.UnitPrefixScale.METRIC.MICRO,
@@ -307,10 +307,10 @@ tr.exportTo('tr.e.importer.v8', function() {
      */
     importEvents: function() {
       var logreader = new tr.e.importer.v8.LogReader(
-          { 'timer-event': {
-            parsers: [null, parseInt, parseInt],
-            processor: this.processTimerEvent_.bind(this)
-          },
+        { 'timer-event': {
+          parsers: [null, parseInt, parseInt],
+          processor: this.processTimerEvent_.bind(this)
+        },
           'shared-library': {
             parsers: [null, parseInt, parseInt],
             processor: this.processSharedLibrary_.bind(this)
@@ -341,7 +341,7 @@ tr.exportTo('tr.e.importer.v8', function() {
           },
           'tick': {
             parsers: [parseInt, parseInt, parseInt, parseInt, parseInt,
-                      'var-args'],
+              'var-args'],
             processor: this.processTickEvent_.bind(this)
           },
           'distortion': {
@@ -356,7 +356,7 @@ tr.exportTo('tr.e.importer.v8', function() {
             parsers: [parseInt, parseInt, parseInt, parseInt, parseInt],
             processor: this.processV8Version_.bind(this)
           }
-          });
+        });
 
       this.v8_timer_thread_ =
           this.model_.getOrCreateProcess(-32).getOrCreateThread(1);

@@ -221,11 +221,11 @@ Polymer({
       if (eventsToProcess.size > 0) {
         // There are still events to process, but we ran out of time. Post
         // more work for later.
-          let newTask = new tr.b.Task(
+        let newTask = new tr.b.Task(
               addEventsUntilTimeout.bind(this), this);
-          task.after(newTask);
-          task = newTask;
-          return;
+        task.after(newTask);
+        task = newTask;
+        return;
       }
       // Went through all events, add the link.
       if (!wasChanged)

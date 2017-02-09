@@ -49,10 +49,10 @@ tr.exportTo('tr.ui.b', function() {
 
     drawBrush_(brushRectsSel) {
       brushRectsSel
-        .attr('x', 0)
-        .attr('width', this.graphWidth)
-        .attr('y', d => this.verticalScale_(d.max))
-        .attr('height', d =>
+          .attr('x', 0)
+          .attr('width', this.graphWidth)
+          .attr('y', d => this.verticalScale_(d.max))
+          .attr('height', d =>
             this.verticalScale_(d.min) - this.verticalScale_(d.max));
     },
 
@@ -66,7 +66,7 @@ tr.exportTo('tr.ui.b', function() {
 
     drawXAxis_(xAxis) {
       xAxis.attr('transform', 'translate(0,' + this.graphHeight + ')')
-        .call(d3.svg.axis()
+          .call(d3.svg.axis()
               .scale(this.horizontalScale_)
               .orient('bottom'));
     },
@@ -116,40 +116,40 @@ tr.exportTo('tr.ui.b', function() {
       var hoverLeftPx = rect.leftPx + rect.widthPx - hoverWidthPx;
 
       chartAreaSel
-        .append('rect')
-        .attr('class', 'hover')
-        .attr('fill', 'white')
-        .attr('x', hoverLeftPx)
-        .attr('y', hoverTopPx)
-        .attr('width', hoverWidthPx)
-        .attr('height', keyHeightPx + xHeightPx + valueHeightPx);
+          .append('rect')
+          .attr('class', 'hover')
+          .attr('fill', 'white')
+          .attr('x', hoverLeftPx)
+          .attr('y', hoverTopPx)
+          .attr('width', hoverWidthPx)
+          .attr('height', keyHeightPx + xHeightPx + valueHeightPx);
 
       if (seriesKeys.length > 1) {
         chartAreaSel
-          .append('text')
-          .attr('class', 'hover')
-          .attr('fill', rect.color)
-          .attr('x', hoverLeftPx + 2)
-          .attr('y', hoverTopPx + keyHeightPx - 3)
-          .text(rect.key);
+            .append('text')
+            .attr('class', 'hover')
+            .attr('fill', rect.color)
+            .attr('x', hoverLeftPx + 2)
+            .attr('y', hoverTopPx + keyHeightPx - 3)
+            .text(rect.key);
       }
       if (this.data.length > 1) {
         chartAreaSel
+            .append('text')
+            .attr('class', 'hover')
+            .attr('fill', rect.color)
+            .attr('x', hoverLeftPx + 2)
+            .attr('y', hoverTopPx + keyHeightPx + valueHeightPx - 3)
+            .text('' + rect.datum.x);
+      }
+
+      chartAreaSel
           .append('text')
           .attr('class', 'hover')
           .attr('fill', rect.color)
           .attr('x', hoverLeftPx + 2)
-          .attr('y', hoverTopPx + keyHeightPx + valueHeightPx - 3)
-          .text('' + rect.datum.x);
-      }
-
-      chartAreaSel
-        .append('text')
-        .attr('class', 'hover')
-        .attr('fill', rect.color)
-        .attr('x', hoverLeftPx + 2)
-        .attr('y', hoverTopPx + xHeightPx + keyHeightPx + valueHeightPx - 3)
-        .text(rect.value);
+          .attr('y', hoverTopPx + xHeightPx + keyHeightPx + valueHeightPx - 3)
+          .text(rect.value);
     },
 
     flipRect_(rect) {
@@ -176,32 +176,32 @@ tr.exportTo('tr.ui.b', function() {
     drawUnderflow_(rect, rectsSel) {
       var sel = rectsSel.data([rect]);
       sel.enter().append('text')
-        .text('*')
-        .attr('fill', rect.color)
-        .attr('x', 0)
-        .attr('y', this.graphHeight - rect.leftPx +
+          .text('*')
+          .attr('fill', rect.color)
+          .attr('x', 0)
+          .attr('y', this.graphHeight - rect.leftPx +
             3 + (rect.widthPx / 2));
       sel.exit().remove();
 
       sel = rectsSel.data([rect]);
       sel.enter().append('rect')
-        .attr('fill', 'rgba(0, 0, 0, 0)')
-        .attr('x', 0)
-        .attr('y', this.graphHeight - rect.leftPx - rect.widthPx)
-        .attr('width', 10)
-        .attr('height', rect.widthPx)
-        .on('mouseenter', () => this.drawHoverValueBox_(this.flipRect_(rect)))
-        .on('mouseleave', () => this.clearHoverValueBox_(rect));
+          .attr('fill', 'rgba(0, 0, 0, 0)')
+          .attr('x', 0)
+          .attr('y', this.graphHeight - rect.leftPx - rect.widthPx)
+          .attr('width', 10)
+          .attr('height', rect.widthPx)
+          .on('mouseenter', () => this.drawHoverValueBox_(this.flipRect_(rect)))
+          .on('mouseleave', () => this.clearHoverValueBox_(rect));
       sel.exit().remove();
     },
 
     drawOverflow_(rect, sel) {
       sel = sel.data([rect]);
       sel.enter().append('text')
-        .text('*')
-        .attr('fill', rect.color)
-        .attr('x', this.graphWidth)
-        .attr('y', this.graphHeight - rect.leftPx +
+          .text('*')
+          .attr('fill', rect.color)
+          .attr('x', this.graphWidth)
+          .attr('y', this.graphHeight - rect.leftPx +
             3 + (rect.widthPx / 2));
       sel.exit().remove();
     }

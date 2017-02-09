@@ -191,8 +191,8 @@ tr.exportTo('tr.ui.b', function() {
   }
 
   function createOptionGroup(targetEl, targetElProperty,
-                             settingsKey, defaultValue,
-                             items) {
+      settingsKey, defaultValue,
+      items) {
     function onChange() {
       var value = [];
       if (this.value.length)
@@ -255,8 +255,8 @@ tr.exportTo('tr.ui.b', function() {
 
   var nextCheckboxId = 1;
   function createCheckBox(targetEl, targetElProperty,
-                          settingsKey, defaultValue,
-                          label, opt_changeCb) {
+      settingsKey, defaultValue,
+      label, opt_changeCb) {
     var buttonEl = document.createElement('input');
     buttonEl.type = 'checkbox';
 

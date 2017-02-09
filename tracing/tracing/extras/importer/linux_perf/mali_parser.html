@@ -228,8 +228,8 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
         .getOrCreateThread(tid);
       var funcArgs = /^([\w\d_]*)(?:\(\))?:?\s*(.*)$/.exec(func);
       thread.sliceGroup.beginSlice('gpu-driver', funcArgs[1], ts,
-          { 'args': funcArgs[2],
-            'blockinfo': blockinfo });
+        { 'args': funcArgs[2],
+          'blockinfo': blockinfo });
     },
 
     maliDDKCloseSlice: function(pid, tid, ts, args, blockinfo) {

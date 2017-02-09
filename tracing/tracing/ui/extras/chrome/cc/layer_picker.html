@@ -51,7 +51,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       Polymer.dom(this.controls_).appendChild(tr.ui.b.createSelector(
           this, 'whichTree',
           'layerPicker.whichTree', constants.ACTIVE_TREE,
-          [{label: 'Active tree', value: constants.ACTIVE_TREE},
+        [{label: 'Active tree', value: constants.ACTIVE_TREE},
            {label: 'Pending tree', value: constants.PENDING_TREE},
            {label: 'Render pass quads', value: RENDER_PASS_QUADS}]));
 
@@ -120,9 +120,9 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       var renderPasses = this.lthiSnapshot_.args.frame.renderPasses;
       for (var i = 0; i < renderPasses.length; ++i) {
         var info = {renderPass: renderPasses[i],
-                     depth: 0,
-                     id: i,
-                     name: 'cc::RenderPass'};
+          depth: 0,
+          id: i,
+          name: 'cc::RenderPass'};
         renderPassInfo.push(info);
       }
       return renderPassInfo;
@@ -242,7 +242,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
             var gpuUsageStr = tr.b.Unit.byName.sizeInBytes.format(
                 layer.gpuMemoryUsageInBytes);
             Polymer.dom(notesEl).textContent += ' (' + gpuUsageStr + ' MiB)';
-            }
+          }
 
           item.layer = layer;
           Polymer.dom(this.itemList_).appendChild(item);

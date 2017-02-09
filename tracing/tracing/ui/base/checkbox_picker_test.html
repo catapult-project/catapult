@@ -72,7 +72,7 @@ tr.b.unittest.testSuite(function() {
         {key: 'Toyota', label: 'I want to drive Toyota'},
         {key: 'Honda', label: 'I want to drive Honda'},
         {key: 'Tesla', label: 'I want to drive electric car'},
-      ];
+    ];
     cp.selectCheckbox('Toyota');
     cp.selectCheckbox('Tesla');
     Polymer.dom(container1).appendChild(cp);
@@ -83,7 +83,7 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(document.createElement('br'));
 
     var container2 = tr.ui.b.createDiv(
-        {textContent:
+      {textContent:
             'Checkbox Picker Two (Same settingsKey as Checkbox Picker One)'});
     container2.style.border = 'solid #0000FF';
     var cp2 = document.createElement('tr-ui-b-checkbox-picker');
@@ -92,7 +92,7 @@ tr.b.unittest.testSuite(function() {
         {key: 'Toyota', label: 'I want to drive Toyota'},
         {key: 'Honda', label: 'I want to drive Honda'},
         {key: 'Tesla', label: 'I want to drive electric car'},
-      ];
+    ];
     Polymer.dom(container2).appendChild(cp2);
     this.addHTMLOutput(container2);
     assert.deepEqual(cp2.checkedKeys, ['Toyota']);
@@ -106,7 +106,7 @@ tr.b.unittest.testSuite(function() {
         {key: 'Toyota', label: 'I want to drive Toyota'},
         {key: 'Honda', label: 'I want to drive Honda'},
         {key: 'Tesla', label: 'I want to drive electric car'},
-      ];
+    ];
     cp.settingsKey = 'checkbox-picker-test-one';
     cp.selectCheckbox('Toyota');
     cp.selectCheckbox('Tesla');
@@ -117,7 +117,7 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(document.createElement('br'));
 
     var container2 = tr.ui.b.createDiv(
-        {textContent:
+      {textContent:
             'Checkbox Picker Two (Same settingsKey as Checkbox Picker One)'});
     container2.style.border = 'solid #0000FF';
     var cp2 = document.createElement('tr-ui-b-checkbox-picker');
@@ -125,7 +125,7 @@ tr.b.unittest.testSuite(function() {
         {key: 'Toyota', label: 'I want to drive Toyota'},
         {key: 'Honda', label: 'I want to drive Honda'},
         {key: 'Tesla', label: 'I want to drive electric car'},
-      ];
+    ];
     Polymer.dom(container2).appendChild(cp2);
     this.addHTMLOutput(container2);
     cp2.settingsKey = 'checkbox-picker-test-one';

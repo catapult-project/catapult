@@ -109,7 +109,7 @@ tr.exportTo('tr.ui.tracks', function() {
           maybeDumpData({v8: {size: 512}}));
       addProcessMemoryDumpWithFields(gmd2, pc, 5.12, undefined,
           maybeDumpData({oilpan: {size: 128, owns: 'v8'},
-              v8: {size: 384, owns: 'tracing'}, tracing: {size: 65920}}));
+            v8: {size: 384, owns: 'tracing'}, tracing: {size: 65920}}));
 
       var gmd3 = addGlobalMemoryDump(model, {ts: 15, levelOfDetail: DETAILED});
       addProcessMemoryDumpWithFields(gmd3, pa, 15.5, maybePssValues([]),

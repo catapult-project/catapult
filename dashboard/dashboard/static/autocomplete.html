@@ -186,7 +186,7 @@ var autocomplete = (function() {
    *     string.
    */
   Trie.prototype.addWord_ = function(node, word, index, totalLength,
-                                     position) {
+      position) {
     var characters = word.toLowerCase().split('');
     for (var i = 0; i < characters.length; i++) {
       var letter = characters[i];

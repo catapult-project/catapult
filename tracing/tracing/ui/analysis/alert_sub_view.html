@@ -95,8 +95,8 @@ Polymer({
 
     // Description
     var descriptionEl = tr.ui.b.createDiv({
-        textContent: alert.info.description,
-        maxWidth: '300px'
+      textContent: alert.info.description,
+      maxWidth: '300px'
     });
     rows.push({
       name: 'Description',
@@ -165,16 +165,16 @@ Polymer({
 tr.ui.analysis.AnalysisSubView.register(
     'tr-ui-a-alert-sub-view',
     tr.model.Alert,
-    {
-      multi: false,
-      title: 'Alert',
-    });
+  {
+    multi: false,
+    title: 'Alert',
+  });
 
 tr.ui.analysis.AnalysisSubView.register(
     'tr-ui-a-alert-sub-view',
     tr.model.Alert,
-    {
-      multi: true,
-      title: 'Alerts',
-    });
+  {
+    multi: true,
+    title: 'Alerts',
+  });
 </script>

@@ -246,9 +246,9 @@ found in the LICENSE file.
 
         var jobs = this.jobsList.slice();
         jobs.sort(function(a, b) {
-            var valA = String(a[sortBy]).toLowerCase();
-            var valB = String(b[sortBy]).toLowerCase();
-            return valA.localeCompare(valB);
+          var valA = String(a[sortBy]).toLowerCase();
+          var valB = String(b[sortBy]).toLowerCase();
+          return valA.localeCompare(valB);
         });
         if (this.sortDescending)
           jobs.reverse();

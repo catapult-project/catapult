@@ -255,8 +255,8 @@ the bisect process after the user clicks on the bisect button.
             }.bind(this),
             function errorCallback(msg) {
               this.fire('display-toast', {
-                  'text': 'An error occurred: ' + msg,
-                  'error': true
+                'text': 'An error occurred: ' + msg,
+                'error': true
               });
               this.close();
             }.bind(this));
@@ -269,20 +269,20 @@ the bisect process after the user clicks on the bisect button.
           event.preventDefault();
           this.loading = true;
           var params = {
-              'step': 'perform-bisect',
-              'bisect_bot': this.bot,
-              'suite': this.suite,
-              'metric': this.metric,
-              'story_filter': this.storyFilter,
-              'good_revision': this.earlierRevision,
-              'bad_revision': this.laterRevision,
-              'repeat_count': this.REPEAT_COUNT,
-              'max_time_minutes': this.MAX_TIME_MINUTES,
-              'use_staging_bot': this.useStaging ? 'true' : '',
-              'master': this.master,
-              'internal_only': this.internalOnly,
-              'bisect_mode': this.BISECT_MODE,
-              'xsrf_token': this.xsrfToken
+            'step': 'perform-bisect',
+            'bisect_bot': this.bot,
+            'suite': this.suite,
+            'metric': this.metric,
+            'story_filter': this.storyFilter,
+            'good_revision': this.earlierRevision,
+            'bad_revision': this.laterRevision,
+            'repeat_count': this.REPEAT_COUNT,
+            'max_time_minutes': this.MAX_TIME_MINUTES,
+            'use_staging_bot': this.useStaging ? 'true' : '',
+            'master': this.master,
+            'internal_only': this.internalOnly,
+            'bisect_mode': this.BISECT_MODE,
+            'xsrf_token': this.xsrfToken
           };
           if (this.bugId) {
             params['bug_id'] = this.bugId;
@@ -304,8 +304,8 @@ the bisect process after the user clicks on the bisect button.
               }.bind(this),
               function errorCallback(msg) {
                 this.fire('display-toast', {
-                    'text': 'An error occurred: ' + msg,
-                    'error': true
+                  'text': 'An error occurred: ' + msg,
+                  'error': true
                 });
                 this.close();
               }.bind(this));

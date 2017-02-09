@@ -89,18 +89,18 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     },
 
     cpufreqTargetEvent: function(eventName, cpuNumber, pid, ts,
-                                 eventBase) {
+        eventBase) {
       var data = splitData(eventBase.details);
       this.cpufreqSlice(ts, eventName, data.cpu, data);
       return true;
     },
 
     cpufreqBoostUnboostEvent: function(eventName, cpuNumber, pid, ts,
-                                       eventBase) {
+        eventBase) {
       this.cpufreqBoostSlice(ts, eventName,
-          {
-            type: eventBase.details
-          });
+        {
+          type: eventBase.details
+        });
       return true;
     }
   };

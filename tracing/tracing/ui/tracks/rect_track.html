@@ -210,7 +210,7 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     addClosestEventToSelection: function(worldX, worldMaxDist, loY, hiY,
-                                         selection) {
+        selection) {
       var rect = tr.b.findClosestIntervalInSortedIntervals(
           this.rects_,
           function(x) { return x.start; },

@@ -500,7 +500,7 @@ tr.exportTo('tr.e.cc', function() {
         var COMPOSITOR_PREPARE_TILES = 'TileManager::PrepareTiles';
         prepareTiles = event.findDescendentSlice(COMPOSITOR_PREPARE_TILES);
         if (prepareTiles)
-           this.addRasterizationEvents(prepareTiles, rendererHelper,
+          this.addRasterizationEvents(prepareTiles, rendererHelper,
                visitedEvents, flowEvents, sortedRasterizerSlices);
 
         // OnBeginImplFrameDeadline could be triggered by other inputs.

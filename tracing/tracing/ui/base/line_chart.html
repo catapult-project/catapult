@@ -35,11 +35,11 @@ tr.exportTo('tr.ui.b', function() {
           .style('stroke-width', '1.5px')
           .style('stroke', key => this.getDataSeries(key).color)
           .attr('d', key => {
-              var line = d3.svg.line()
+            var line = d3.svg.line()
                 .x(d => this.xScale_(d.x))
                 .y(d => this.yScale_(this.dataRange.clamp(d[key])));
-              return line(dataBySeriesKey[key]);
-            });
+            return line(dataBySeriesKey[key]);
+          });
       pathsSel.exit().remove();
     }
   };

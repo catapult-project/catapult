@@ -6,9 +6,9 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/core/test_utils.html">
-<link rel="import" href="/tracing/model/model.html">
-<link rel="import" href="/tracing/extras/importer/trace_event_importer.html">
 <link rel="import" href="/tracing/extras/importer/gcloud_trace/gcloud_trace_importer.html">
+<link rel="import" href="/tracing/extras/importer/trace_event_importer.html">
+<link rel="import" href="/tracing/model/model.html">
 
 <script>
 
@@ -54,7 +54,7 @@ tr.b.unittest.testSuite(function() {
       }
     };
     var trace = {projectId: 'My Project', traceId: '123',
-        spans: [span1, span2]};
+      spans: [span1, span2]};
 
     var model = new tr.Model();
     var importer = new tr.e.importer.gcloud_trace.GcloudTraceImporter(model,

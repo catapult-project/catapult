@@ -16,7 +16,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   function checkRuntimeHistogram_(values, name, count, duration,
-    breakdownHistograms) {
+      breakdownHistograms) {
     var countHistogram = values.getHistogramNamed(`${name}:count`);
     assert.equal(tr.b.getOnlyElement(countHistogram.sampleValues), count);
     var durationHistogram = values.getHistogramNamed(`${name}:duration`);
@@ -29,9 +29,9 @@ tr.b.unittest.testSuite(function() {
       bin => bin.diagnosticMaps.length > 0));
     for (var name of breakdownHistograms) {
       assert.notEqual(tr.b.getOnlyElement(countBin.diagnosticMaps)
-        .get('samples').get(name + ':count'), undefined);
+          .get('samples').get(name + ':count'), undefined);
       assert.notEqual(tr.b.getOnlyElement(durationBin.diagnosticMaps)
-        .get('samples').get(name + ':duration'), undefined);
+          .get('samples').get(name + ':duration'), undefined);
     }
   }
 
@@ -56,8 +56,8 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
       rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
-          {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
-            documentLoaderURL: 'http://example.com'});
+        {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
+          documentLoaderURL: 'http://example.com'});
 
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'v8',
@@ -67,15 +67,15 @@ tr.b.unittest.testSuite(function() {
         duration: 990,
         args: {
           'runtime-call-stats': {
-              JS_Execution: [1, 11],
-              HandleApiCall: [2, 22],
-              CompileFullCode: [3, 33],
-              LoadIC_Miss: [4, 44],
-              ParseLazy: [5, 55],
-              OptimizeCode: [6, 66],
-              FunctionCallback: [7, 77],
-              AllocateInTargetSpace: [8, 88],
-              API_Object_Get: [9, 99]
+            JS_Execution: [1, 11],
+            HandleApiCall: [2, 22],
+            CompileFullCode: [3, 33],
+            LoadIC_Miss: [4, 44],
+            ParseLazy: [5, 55],
+            OptimizeCode: [6, 66],
+            FunctionCallback: [7, 77],
+            AllocateInTargetSpace: [8, 88],
+            API_Object_Get: [9, 99]
           }
         }
       }));
@@ -125,17 +125,17 @@ tr.b.unittest.testSuite(function() {
         duration: 990,
         args: {
           'runtime-call-stats': {
-              JS_Execution: [1, 11],
-              HandleApiCall: [2, 22],
-              CompileFullCode: [3, 33],
-              StoreIC_Miss: [4, 44],
-              ParseLazy: [5, 55],
-              OptimizeCode: [6, 66],
-              FunctionCallback: [7, 77],
-              AllocateInTargetSpace: [8, 88],
-              API_Object_Get: [9, 99],
-              ParseBackgroundFunctionLiteral: [2, 22],
-              CompileBackgroundIgnition: [3, 33]
+            JS_Execution: [1, 11],
+            HandleApiCall: [2, 22],
+            CompileFullCode: [3, 33],
+            StoreIC_Miss: [4, 44],
+            ParseLazy: [5, 55],
+            OptimizeCode: [6, 66],
+            FunctionCallback: [7, 77],
+            AllocateInTargetSpace: [8, 88],
+            API_Object_Get: [9, 99],
+            ParseBackgroundFunctionLiteral: [2, 22],
+            CompileBackgroundIgnition: [3, 33]
           }
         }
       }));
@@ -162,17 +162,17 @@ tr.b.unittest.testSuite(function() {
         duration: 1000,
         args: {
           'runtime-call-stats': {
-              JS_Execution: [1, 11],
-              HandleApiCall: [2, 22],
-              CompileFullCode: [3, 33],
-              LoadIC_Miss: [4, 44],
-              ParseLazy: [5, 55],
-              OptimizeCode: [6, 66],
-              FunctionCallback: [7, 77],
-              AllocateInTargetSpace: [8, 88],
-              API_Object_Get: [9, 99],
-              ParseBackgroundFunctionLiteral: [2, 22],
-              CompileBackgroundIgnition: [3, 33]
+            JS_Execution: [1, 11],
+            HandleApiCall: [2, 22],
+            CompileFullCode: [3, 33],
+            LoadIC_Miss: [4, 44],
+            ParseLazy: [5, 55],
+            OptimizeCode: [6, 66],
+            FunctionCallback: [7, 77],
+            AllocateInTargetSpace: [8, 88],
+            API_Object_Get: [9, 99],
+            ParseBackgroundFunctionLiteral: [2, 22],
+            CompileBackgroundIgnition: [3, 33]
           }
         }
       }));
@@ -185,7 +185,7 @@ tr.b.unittest.testSuite(function() {
 
     // A few of the top level ones.
     checkRuntimeHistogram_(values, 'IC', 8, 0.088, ['LoadIC_Miss',
-        'StoreIC_Miss']);
+      'StoreIC_Miss']);
     checkRuntimeHistogram_(values, 'API', 18, 0.198, ['API_Object_Get']);
     checkRuntimeHistogram_(values, 'Total', 95, 1.045);
     // And a couple of the lower level ones
@@ -223,15 +223,15 @@ tr.b.unittest.testSuite(function() {
         duration: 990,
         args: {
           'runtime-call-stats': {
-              JS_Execution: [1, 11],
-              HandleApiCall: [2, 22],
-              CompileFullCode: [3, 33],
-              LoadIC_Miss: [4, 44],
-              ParseLazy: [5, 55],
-              OptimizeCode: [6, 66],
-              FunctionCallback: [7, 77],
-              AllocateInTargetSpace: [8, 88],
-              API_Object_Get: [9, 99]
+            JS_Execution: [1, 11],
+            HandleApiCall: [2, 22],
+            CompileFullCode: [3, 33],
+            LoadIC_Miss: [4, 44],
+            ParseLazy: [5, 55],
+            OptimizeCode: [6, 66],
+            FunctionCallback: [7, 77],
+            AllocateInTargetSpace: [8, 88],
+            API_Object_Get: [9, 99]
           }
         }
       }));
@@ -252,15 +252,15 @@ tr.b.unittest.testSuite(function() {
         duration: 990,
         args: {
           'runtime-call-stats': {
-              JS_Execution: [1, 11],
-              HandleApiCall: [2, 22],
-              CompileFullCode: [3, 33],
-              StoreIC_Miss: [4, 44],
-              ParseLazy: [5, 55],
-              OptimizeCode: [6, 66],
-              FunctionCallback: [7, 77],
-              AllocateInTargetSpace: [8, 88],
-              API_Object_Get: [9, 99]
+            JS_Execution: [1, 11],
+            HandleApiCall: [2, 22],
+            CompileFullCode: [3, 33],
+            StoreIC_Miss: [4, 44],
+            ParseLazy: [5, 55],
+            OptimizeCode: [6, 66],
+            FunctionCallback: [7, 77],
+            AllocateInTargetSpace: [8, 88],
+            API_Object_Get: [9, 99]
           }
         }
       }));
@@ -281,15 +281,15 @@ tr.b.unittest.testSuite(function() {
         duration: 1000,
         args: {
           'runtime-call-stats': {
-              JS_Execution: [1, 11],
-              HandleApiCall: [2, 22],
-              CompileFullCode: [3, 33],
-              LoadIC_Miss: [4, 44],
-              ParseLazy: [5, 55],
-              OptimizeCode: [6, 66],
-              FunctionCallback: [7, 77],
-              AllocateInTargetSpace: [8, 88],
-              API_Object_Get: [9, 99]
+            JS_Execution: [1, 11],
+            HandleApiCall: [2, 22],
+            CompileFullCode: [3, 33],
+            LoadIC_Miss: [4, 44],
+            ParseLazy: [5, 55],
+            OptimizeCode: [6, 66],
+            FunctionCallback: [7, 77],
+            AllocateInTargetSpace: [8, 88],
+            API_Object_Get: [9, 99]
           }
         }
       }));
@@ -302,7 +302,7 @@ tr.b.unittest.testSuite(function() {
 
     // A few of the top level ones.
     checkRuntimeHistogram_(values, 'IC', 8, 0.088, ['LoadIC_Miss',
-        'StoreIC_Miss']);
+      'StoreIC_Miss']);
     checkRuntimeHistogram_(values, 'API', 18, 0.198, ['API_Object_Get']);
     checkRuntimeHistogram_(values, 'Total', 90, 0.99);
     // And a couple of the lower level ones

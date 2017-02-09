@@ -457,7 +457,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       // these as tids, so the change of nomenclature happens in the following
       // construction of the wakeup object.
       this.blockedReasons_.push({ts: ts, tid: pid, iowait: iowait,
-                                  caller: caller});
+        caller: caller});
     },
 
     /**
@@ -794,7 +794,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
      * Processes a trace_marking_write event.
      */
     traceMarkingWriteEvent_: function(eventName, cpuNumber, pid, ts, eventBase,
-                                     threadName) {
+        threadName) {
 
       // Some profiles end up with a \n\ on the end of each line. Strip it
       // before we do the comparisons.

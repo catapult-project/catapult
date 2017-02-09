@@ -27,7 +27,7 @@ tr.exportTo('tr.b.unittest', function() {
 
         importEl.addEventListener('load', function() {
           resolve({testRelpath: testRelpath,
-                   moduleName: moduleName});
+            moduleName: moduleName});
         });
         importEl.addEventListener('error', function(e) {
           reject('Error loading &#60;link rel="import" href="' +
@@ -68,8 +68,8 @@ tr.exportTo('tr.b.unittest', function() {
     loadModule: function(testRelpath, moduleName) {
       return Promise.resolve().then(function() {
         var moduleInfo = {
-            testRelpath: testRelpath,
-            moduleName: moduleName
+          testRelpath: testRelpath,
+          moduleName: moduleName
         };
         if (this.currentlyExecutingModuleInfo_ !== undefined)
           throw new Error('WAT');

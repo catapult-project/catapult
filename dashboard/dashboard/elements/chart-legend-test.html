@@ -20,37 +20,37 @@ tr.b.unittest.testSuite(function() {
   function createBasicLegend() {
     var legend = document.createElement('chart-legend');
     legend.seriesGroupList = [
-        {
+      {
+        'path': 'mymaster/linux/mybenchmark/foo',
+        'tests': [
+          {
+            'name': 'foo',
             'path': 'mymaster/linux/mybenchmark/foo',
-            'tests': [
-                {
-                    'name': 'foo',
-                    'path': 'mymaster/linux/mybenchmark/foo',
-                    'direction': 'Lower',
-                    'units': 'ms',
-                    'description': 'Foo',
-                    'color': 'rgb(200,200,0)',
-                    'index': 0,
-                    'important': true,
-                    'selected': true,
-                    'hidden': false
-                },
-                {
-                    'name': 'sub-foo',
-                    'path': 'mymaster/linux/mybenchmark/foo/sub-foo',
-                    'direction': 'Lower',
-                    'units': 'ms',
-                    'description': 'A subtest of foo',
-                    'color': 'rgb(0,200,200)',
-                    'index': 1,
-                    'important': false,
-                    'selected': false,
-                    'hidden': true
-                }
-            ],
-            'collapse': true,
-            'numHidden': 1
-        }
+            'direction': 'Lower',
+            'units': 'ms',
+            'description': 'Foo',
+            'color': 'rgb(200,200,0)',
+            'index': 0,
+            'important': true,
+            'selected': true,
+            'hidden': false
+          },
+          {
+            'name': 'sub-foo',
+            'path': 'mymaster/linux/mybenchmark/foo/sub-foo',
+            'direction': 'Lower',
+            'units': 'ms',
+            'description': 'A subtest of foo',
+            'color': 'rgb(0,200,200)',
+            'index': 1,
+            'important': false,
+            'selected': false,
+            'hidden': true
+          }
+        ],
+        'collapse': true,
+        'numHidden': 1
+      }
     ];
     legend.indicesToGraph = [0];
     return legend;

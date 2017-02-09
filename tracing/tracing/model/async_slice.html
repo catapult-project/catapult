@@ -23,8 +23,8 @@ tr.exportTo('tr.model', function() {
    * @constructor
    */
   function AsyncSlice(category, title, colorId, start, args, duration,
-                      opt_isTopLevel, opt_cpuStart, opt_cpuDuration,
-                      opt_argsStripped) {
+      opt_isTopLevel, opt_cpuStart, opt_cpuDuration,
+      opt_argsStripped) {
     tr.model.TimedEvent.call(this, start);
 
     this.category = category || '';
@@ -138,10 +138,10 @@ tr.exportTo('tr.model', function() {
 
   tr.model.EventRegistry.register(
       AsyncSlice,
-      {
-        name: 'asyncSlice',
-        pluralName: 'asyncSlices'
-      });
+    {
+      name: 'asyncSlice',
+      pluralName: 'asyncSlices'
+    });
 
 
   return {

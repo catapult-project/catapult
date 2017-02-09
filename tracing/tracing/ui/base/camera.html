@@ -329,7 +329,7 @@ tr.exportTo('tr.ui.b', function() {
     getMousePosition_: function(e) {
       var rect = tr.ui.b.windowRectForElement(this.canvas_);
       return [(e.clientX - rect.x) * this.pixelRatio_,
-              (e.clientY - rect.y) * this.pixelRatio_];
+        (e.clientY - rect.y) * this.pixelRatio_];
     },
 
     getMouseDelta_: function(e, p) {

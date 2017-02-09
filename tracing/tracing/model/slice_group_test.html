@@ -775,8 +775,8 @@ tr.b.unittest.testSuite(function() {
     var process = model.getOrCreateProcess(123);
     var t = process.getOrCreateThread(456);
     t.timeSlices = [newThreadSlice(t, SCHEDULING_STATE.RUNNING, 20, 20),
-                    newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 40, 10),
-                    newThreadSlice(t, SCHEDULING_STATE.RUNNING, 50, 10)];
+      newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 40, 10),
+      newThreadSlice(t, SCHEDULING_STATE.RUNNING, 50, 10)];
     var group = new SliceGroup(t);
     group.pushSlice(newSliceEx({title: 'draw', start: 0, duration: 20}));
     group.pushSlice(newSliceEx({title: 'render', start: 60, duration: 20}));
@@ -791,8 +791,8 @@ tr.b.unittest.testSuite(function() {
     var process = model.getOrCreateProcess(123);
     var t = process.getOrCreateThread(456);
     t.timeSlices = [newThreadSlice(t, SCHEDULING_STATE.RUNNING, 20, 20),
-                    newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 40, 10),
-                    newThreadSlice(t, SCHEDULING_STATE.RUNNING, 50, 10)];
+      newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 40, 10),
+      newThreadSlice(t, SCHEDULING_STATE.RUNNING, 50, 10)];
     var group = new SliceGroup(t);
     group.pushSlice(newSliceEx({title: 'draw', start: 10, duration: 30}));
     group.pushSlice(newSliceEx({title: 'render', start: 50, duration: 20}));
@@ -807,8 +807,8 @@ tr.b.unittest.testSuite(function() {
     var process = model.getOrCreateProcess(123);
     var t = process.getOrCreateThread(456);
     t.timeSlices = [newThreadSlice(t, SCHEDULING_STATE.RUNNING, 20, 20),
-                    newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 40, 10),
-                    newThreadSlice(t, SCHEDULING_STATE.RUNNING, 50, 20)];
+      newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 40, 10),
+      newThreadSlice(t, SCHEDULING_STATE.RUNNING, 50, 20)];
     var group = new SliceGroup(t);
     group.pushSlice(newSliceEx({title: 'draw', start: 20, duration: 30}));
     group.pushSlice(newSliceEx({title: 'render', start: 50, duration: 20}));
@@ -823,8 +823,8 @@ tr.b.unittest.testSuite(function() {
     var process = model.getOrCreateProcess(123);
     var t = process.getOrCreateThread(456);
     t.timeSlices = [newThreadSlice(t, SCHEDULING_STATE.RUNNING, 20, 20),
-                    newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 40, 10),
-                    newThreadSlice(t, SCHEDULING_STATE.RUNNING, 50, 20)];
+      newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 40, 10),
+      newThreadSlice(t, SCHEDULING_STATE.RUNNING, 50, 20)];
     var group = new SliceGroup(t);
     group.pushSlice(newSliceEx({title: 'draw', start: 20, duration: 30}));
     group.pushSlice(newSliceEx({title: 'render', start: 21, duration: 8}));
@@ -844,16 +844,16 @@ tr.b.unittest.testSuite(function() {
     var process = model.getOrCreateProcess(123);
     var t = process.getOrCreateThread(456);
     t.timeSlices = [newThreadSlice(t, SCHEDULING_STATE.RUNNING, 20, 1),
-                    newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 21, 1),
-                    newThreadSlice(t, SCHEDULING_STATE.RUNNING, 22, 1),
-                    newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 23, 1),
-                    newThreadSlice(t, SCHEDULING_STATE.RUNNING, 24, 1),
-                    newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 25, 1),
-                    newThreadSlice(t, SCHEDULING_STATE.RUNNING, 26, 1),
-                    newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 27, 1),
-                    newThreadSlice(t, SCHEDULING_STATE.RUNNING, 28, 1),
-                    newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 29, 1),
-                    newThreadSlice(t, SCHEDULING_STATE.RUNNING, 30, 1)];
+      newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 21, 1),
+      newThreadSlice(t, SCHEDULING_STATE.RUNNING, 22, 1),
+      newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 23, 1),
+      newThreadSlice(t, SCHEDULING_STATE.RUNNING, 24, 1),
+      newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 25, 1),
+      newThreadSlice(t, SCHEDULING_STATE.RUNNING, 26, 1),
+      newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 27, 1),
+      newThreadSlice(t, SCHEDULING_STATE.RUNNING, 28, 1),
+      newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 29, 1),
+      newThreadSlice(t, SCHEDULING_STATE.RUNNING, 30, 1)];
     var group = new SliceGroup(t);
     group.pushSlice(newSliceEx(
         {title: 'draw', start: 20, duration: 11})); // 20,[22,24,26,28],30

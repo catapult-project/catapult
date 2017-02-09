@@ -133,7 +133,7 @@ tr.exportTo('tr.model', function() {
      * its palette id (see base/color_scheme.html).
      */
     beginSlice: function(category, title, ts, opt_args, opt_tts,
-                         opt_argsStripped, opt_colorId) {
+        opt_argsStripped, opt_colorId) {
       if (this.openPartialSlices_.length) {
         var prevSlice = this.openPartialSlices_[
             this.openPartialSlices_.length - 1];
@@ -220,8 +220,8 @@ tr.exportTo('tr.model', function() {
      * its palette id (see base/color_scheme.html).
      */
     pushCompleteSlice: function(category, title, ts, duration, tts,
-                                cpuDuration, opt_args, opt_argsStripped,
-                                opt_colorId, opt_bindId) {
+        cpuDuration, opt_args, opt_argsStripped,
+        opt_colorId, opt_bindId) {
       var colorId = opt_colorId ||
           ColorScheme.getColorIdForGeneralPurposeString(title);
       var sliceConstructorSubTypes = this.sliceConstructorSubTypes;
@@ -381,8 +381,8 @@ tr.exportTo('tr.model', function() {
      */
     hasCpuDuration_: function() {
       if (this.slices.some(function(slice) {
-          return slice.cpuDuration !== undefined;
-        })) return true;
+        return slice.cpuDuration !== undefined;
+      })) return true;
       return false;
     },
 

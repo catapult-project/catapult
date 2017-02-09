@@ -403,81 +403,81 @@ tr.b.unittest.testSuite(function() {
           {numerics: {size: 650}});
       var isolateDumpA = addChildDump(v8Dump, 'isolate_A');
       addChildDump(isolateDumpA, 'malloc', {numerics: {
-          size: 1,
-          peak_size: 2
+        size: 1,
+        peak_size: 2
       }});
       var heapDumpA = addChildDump(isolateDumpA, 'heap_spaces', {numerics: {
-          size: 42,
-          allocated_objects_size: 36
+        size: 42,
+        allocated_objects_size: 36
       }});
       addChildDump(heapDumpA, 'code_space', {numerics: {
-          allocated_objects_size: 1,
-          size: 2
+        allocated_objects_size: 1,
+        size: 2
       }});
       addChildDump(heapDumpA, 'large_object_space', {numerics: {
-          allocated_objects_size: 3,
-          size: 4
+        allocated_objects_size: 3,
+        size: 4
       }});
       addChildDump(heapDumpA, 'map_space', {numerics: {
-          allocated_objects_size: 5,
-          size: 6,
+        allocated_objects_size: 5,
+        size: 6,
       }});
       addChildDump(heapDumpA, 'new_space', {numerics: {
-          allocated_objects_size: 7,
-          size: 8
+        allocated_objects_size: 7,
+        size: 8
       }});
       addChildDump(heapDumpA, 'old_space', {numerics: {
-          allocated_objects_size: 9,
-          size: 10
+        allocated_objects_size: 9,
+        size: 10
       }});
       addChildDump(heapDumpA, 'other_spaces', {numerics: {
-          allocated_objects_size: 11,
-          size: 12
+        allocated_objects_size: 11,
+        size: 12
       }});
       var isolateDumpB = addChildDump(v8Dump, 'isolate_B');
       addChildDump(isolateDumpB, 'malloc', {numerics: {
-          size: 10,
-          peak_size: 20
+        size: 10,
+        peak_size: 20
       }});
       var heapDumpB = addChildDump(isolateDumpB, 'heap_spaces', {numerics: {
-          size: 12,
-          allocated_objects_size: 6
+        size: 12,
+        allocated_objects_size: 6
       }});
       addChildDump(heapDumpB, 'code_space', {numerics: {
-          allocated_objects_size: 1,
-          size: 2
+        allocated_objects_size: 1,
+        size: 2
       }});
       addChildDump(heapDumpB, 'large_object_space', {numerics: {
-          allocated_objects_size: 1,
-          size: 2
+        allocated_objects_size: 1,
+        size: 2
       }});
       addChildDump(heapDumpB, 'map_space', {numerics: {
-          allocated_objects_size: 1,
-          size: 2,
+        allocated_objects_size: 1,
+        size: 2,
       }});
       addChildDump(heapDumpB, 'new_space', {numerics: {
-          allocated_objects_size: 1,
-          size: 2
+        allocated_objects_size: 1,
+        size: 2
       }});
       addChildDump(heapDumpB, 'old_space', {numerics: {
-          allocated_objects_size: 1,
-          size: 2
+        allocated_objects_size: 1,
+        size: 2
       }});
       addChildDump(heapDumpB, 'other_spaces', {numerics: {
-          allocated_objects_size: 1,
-          size: 2
+        allocated_objects_size: 1,
+        size: 2
       }});
       var isolateDumpC = addChildDump(v8Dump, 'isolate_C');
       addChildDump(isolateDumpC, 'malloc', {numerics: {
-          size: 100,
+        size: 100,
       }});
       addChildDump(isolateDumpC, 'heap_spaces', {numerics: {
-          size: 2,
-          allocated_objects_size: 1
+        size: 2,
+        allocated_objects_size: 1
       }});
       var isolateDumpD = addChildDump(v8Dump, 'isolate_D');
       addChildDump(isolateDumpD, 'malloc', {numerics: {
-          peak_size: 200,
+        peak_size: 200,
       }});
       return [partitionAllocDump, v8Dump];
     })();
@@ -567,7 +567,7 @@ tr.b.unittest.testSuite(function() {
     },
     'memory:chrome:all_processes:reported_by_chrome:effective_size': {
       value: [30 + (8 + 16) + 32, (120 - 40) + 320 + (650 + 970) + 111,
-          300 + 8000, 80000 + 5e5 + 4e5],
+        300 + 8000, 80000 + 5e5 + 4e5],
       unit: sizeInBytes_smallerIsBetter,
       description: 'total effective size reported by Chrome for all ' +
           'processes in Chrome'
@@ -579,12 +579,12 @@ tr.b.unittest.testSuite(function() {
           'for all processes in Chrome'
     },
     'memory:chrome:all_processes:reported_by_chrome:peak_size':
-        {
-          value: [0, 2 + 20 + 200, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total peak size reported by Chrome for all ' +
+    {
+      value: [0, 2 + 20 + 200, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total peak size reported by Chrome for all ' +
               'processes in Chrome'
-        },
+    },
     'memory:chrome:all_processes:reported_by_os:resident_size': {
       value: [200, 0, 0, 0],
       unit: sizeInBytes_smallerIsBetter,
@@ -604,182 +604,182 @@ tr.b.unittest.testSuite(function() {
           'used by all processes in Chrome'
     },
     'memory:chrome:all_processes:reported_by_os:system_memory:peak_resident_size':
-        {
-          value: [230, 0, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total peak resident set size of system memory (RAM) ' +
+    {
+      value: [230, 0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total peak resident set size of system memory (RAM) ' +
               'used by all processes in Chrome'
-        },
+    },
     'memory:chrome:all_processes:reported_by_chrome:gpu:effective_size': {
       value: [30, 0, 300, 0],
       unit: sizeInBytes_smallerIsBetter,
       description: 'effective size of gpu in all processes in Chrome'
     },
     'memory:chrome:all_processes:reported_by_chrome:gpu:allocated_objects_size':
-        {
-          value: [25, 0, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'size of all objects allocated by gpu in all ' +
+    {
+      value: [25, 0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'size of all objects allocated by gpu in all ' +
               'processes in Chrome'
-        },
+    },
     'memory:chrome:all_processes:reported_by_chrome:malloc:effective_size': {
       value: [8 + 16, 120 - 40, 8000, 80000],
       unit: sizeInBytes_smallerIsBetter,
       description: 'effective size of malloc in all processes in Chrome'
     },
     'memory:chrome:all_processes:reported_by_chrome:malloc:allocated_objects_size':
-        {
-          value: [4, 40 + 750, 4000, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'size of all objects allocated by malloc in all ' +
+    {
+      value: [4, 40 + 750, 4000, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'size of all objects allocated by malloc in all ' +
               'processes in Chrome'
-        },
+    },
     'memory:chrome:all_processes:reported_by_chrome:partition_alloc:allocated_objects_size':
-        {
-          value: [32, 320, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'size of all objects allocated by partition_alloc in ' +
+    {
+      value: [32, 320, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'size of all objects allocated by partition_alloc in ' +
               'all processes in Chrome'
-        },
+    },
     'memory:chrome:all_processes:reported_by_chrome:partition_alloc:effective_size':
-        {
-          value: [32, 320, 0, 5e5],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'effective size of partition_alloc in all processes ' +
+    {
+      value: [32, 320, 0, 5e5],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'effective size of partition_alloc in all processes ' +
               'in Chrome'
-        },
+    },
     'memory:chrome:all_processes:reported_by_chrome:tracing:effective_size': {
       value: [0, 40, 0, 0],
       unit: sizeInBytes_smallerIsBetter,
       description: 'effective size of tracing in all processes in Chrome'
     },
     'memory:chrome:all_processes:reported_by_chrome:v8:allocated_by_malloc:effective_size':
-        {
-          value: [0, 1 + 10 + 100, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'effective size of objects allocated by malloc for v8 ' +
+    {
+      value: [0, 1 + 10 + 100, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'effective size of objects allocated by malloc for v8 ' +
               'in all processes in Chrome'
-        },
+    },
     'memory:chrome:all_processes:reported_by_chrome:v8:allocated_by_malloc:peak_size':
-        {
-          value: [0, 2 + 20 + 200, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'peak size of objects allocated by malloc for v8 ' +
+    {
+      value: [0, 2 + 20 + 200, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'peak size of objects allocated by malloc for v8 ' +
               'in all processes in Chrome'
-        },
+    },
     'memory:chrome:all_processes:reported_by_chrome:code_and_metadata_size':
-        {
-          value: [16, 678, 0, 21 + 35],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total size of code and metadata reported by Chrome ' +
+    {
+      value: [16, 678, 0, 21 + 35],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total size of code and metadata reported by Chrome ' +
               'for all processes in Chrome'
-        },
+    },
     'memory:chrome:all_processes:reported_by_chrome:v8:code_and_metadata_size':
-        {
-          value: [16, 678, 0, 21 + 35],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'size of v8 code and metadata in all processes in Chrome'
-        },
+    {
+      value: [16, 678, 0, 21 + 35],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'size of v8 code and metadata in all processes in Chrome'
+    },
     'memory:chrome:all_processes:reported_by_chrome:v8:heap:allocated_objects_size':
-        {
-          value: [0, 36 + 6 + 1, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'size of all objects allocated by v8:heap in all ' +
+    {
+      value: [0, 36 + 6 + 1, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'size of all objects allocated by v8:heap in all ' +
               'processes in Chrome'
-        },
+    },
     'memory:chrome:all_processes:reported_by_chrome:v8:heap:effective_size': {
       value: [0, 42 + 12 + 2, 0, 0],
       unit: sizeInBytes_smallerIsBetter,
       description: 'effective size of v8:heap in all processes in Chrome'
     },
     'memory:chrome:all_processes:reported_by_chrome:v8:heap:code_space:allocated_objects_size':
-        {
-          value: [0, 1 + 1, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'size of all objects allocated by v8:heap:code_space ' +
+    {
+      value: [0, 1 + 1, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'size of all objects allocated by v8:heap:code_space ' +
               'in all processes in Chrome'
-        },
+    },
     'memory:chrome:all_processes:reported_by_chrome:v8:heap:code_space:effective_size':
-        {
-          value: [0, 2 + 2, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'effective size of v8:heap:code_space in all ' +
+    {
+      value: [0, 2 + 2, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'effective size of v8:heap:code_space in all ' +
               'processes in Chrome'
-        },
+    },
     'memory:chrome:all_processes:reported_by_chrome:v8:heap:large_object_space:allocated_objects_size':
-        {
-          value: [0, 3 + 1, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'size of all objects allocated by ' +
+    {
+      value: [0, 3 + 1, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'size of all objects allocated by ' +
               'v8:heap:large_object_space in all processes in Chrome'
-        },
+    },
     'memory:chrome:all_processes:reported_by_chrome:v8:heap:large_object_space:effective_size':
-        {
-          value: [0, 4 + 2, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'effective size of v8:heap:large_object_space in all ' +
+    {
+      value: [0, 4 + 2, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'effective size of v8:heap:large_object_space in all ' +
               'processes in Chrome'
-        },
+    },
     'memory:chrome:all_processes:reported_by_chrome:v8:heap:map_space:allocated_objects_size':
-        {
-          value: [0, 5 + 1, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'size of all objects allocated by v8:heap:map_space ' +
+    {
+      value: [0, 5 + 1, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'size of all objects allocated by v8:heap:map_space ' +
               'in all processes in Chrome'
-        },
+    },
     'memory:chrome:all_processes:reported_by_chrome:v8:heap:map_space:effective_size':
-        {
-          value: [0, 6 + 2, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'effective size of v8:heap:map_space in all ' +
+    {
+      value: [0, 6 + 2, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'effective size of v8:heap:map_space in all ' +
               'processes in Chrome'
-        },
+    },
     'memory:chrome:all_processes:reported_by_chrome:v8:heap:new_space:allocated_objects_size':
-        {
-          value: [0, 7 + 1, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'size of all objects allocated by v8:heap:new_space ' +
+    {
+      value: [0, 7 + 1, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'size of all objects allocated by v8:heap:new_space ' +
               'in all processes in Chrome'
-        },
+    },
     'memory:chrome:all_processes:reported_by_chrome:v8:heap:new_space:effective_size':
-        {
-          value: [0, 8 + 2, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'effective size of v8:heap:new_space in all ' +
+    {
+      value: [0, 8 + 2, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'effective size of v8:heap:new_space in all ' +
               'processes in Chrome'
-        },
+    },
     'memory:chrome:all_processes:reported_by_chrome:v8:heap:old_space:allocated_objects_size':
-        {
-          value: [0, 9 + 1, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'size of all objects allocated by v8:heap:old_space ' +
+    {
+      value: [0, 9 + 1, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'size of all objects allocated by v8:heap:old_space ' +
               'in all processes in Chrome'
-        },
+    },
     'memory:chrome:all_processes:reported_by_chrome:v8:heap:old_space:effective_size':
-        {
-          value: [0, 10 + 2, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'effective size of v8:heap:old_space in all ' +
+    {
+      value: [0, 10 + 2, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'effective size of v8:heap:old_space in all ' +
               'processes in Chrome'
-        },
+    },
     'memory:chrome:all_processes:reported_by_chrome:v8:effective_size': {
       value: [0, 650 + 970 + 111, 0, 4e5],
       unit: sizeInBytes_smallerIsBetter,
       description: 'effective size of v8 in all processes in Chrome'
     },
     'memory:chrome:all_processes:reported_by_chrome:v8:allocated_objects_size':
-        {
-          value: [0, (36 + 6 + 1) + 860, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'size of all objects allocated by v8 in all processes ' +
+    {
+      value: [0, (36 + 6 + 1) + 860, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'size of all objects allocated by v8 in all processes ' +
               'in Chrome'
-        },
+    },
     'memory:chrome:all_processes:reported_by_chrome:v8:peak_size':
-        {
-          value: [0, 2 + 20 + 200, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'peak size of v8 in all processes in Chrome'
-        },
+    {
+      value: [0, 2 + 20 + 200, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'peak size of v8 in all processes in Chrome'
+    },
     'memory:chrome:browser_process:reported_by_os:peak_resident_size': {
       value: [230, 0, 0, 0],
       unit: sizeInBytes_smallerIsBetter,
@@ -787,12 +787,12 @@ tr.b.unittest.testSuite(function() {
           'browser process in Chrome'
     },
     'memory:chrome:browser_process:reported_by_os:system_memory:peak_resident_size':
-        {
-          value: [230, 0, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total peak resident set size of system memory (RAM) ' +
+    {
+      value: [230, 0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total peak resident set size of system memory (RAM) ' +
               'used by the browser process in Chrome'
-        },
+    },
     'memory:chrome:browser_process:reported_by_os:resident_size': {
       value: [200, 0, 0, 0],
       unit: sizeInBytes_smallerIsBetter,
@@ -800,12 +800,12 @@ tr.b.unittest.testSuite(function() {
           'browser process in Chrome'
     },
     'memory:chrome:browser_process:reported_by_os:system_memory:resident_size':
-        {
-          value: [200, 0, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total resident set size (RSS) of system memory (RAM) ' +
+    {
+      value: [200, 0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total resident set size (RSS) of system memory (RAM) ' +
               'used by the browser process in Chrome'
-        },
+    },
     'memory:chrome:browser_process:process_count': {
       value: [1, 1, 1, 1],
       unit: count_smallerIsBetter,
@@ -829,12 +829,12 @@ tr.b.unittest.testSuite(function() {
       description: 'effective size of malloc in the browser process in Chrome'
     },
     'memory:chrome:browser_process:reported_by_chrome:malloc:allocated_objects_size':
-        {
-          value: [4 + 40, 0, 4000, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'size of all objects allocated by malloc in the ' +
+    {
+      value: [4 + 40, 0, 4000, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'size of all objects allocated by malloc in the ' +
               'browser process in Chrome'
-        },
+    },
     'memory:chrome:browser_process:reported_by_chrome:tracing:effective_size': {
       value: [0, 40, 0, 0],
       unit: sizeInBytes_smallerIsBetter,
@@ -863,12 +863,12 @@ tr.b.unittest.testSuite(function() {
       description: 'effective size of gpu in the PPAPI process in Chrome'
     },
     'memory:chrome:ppapi_process:reported_by_chrome:gpu:allocated_objects_size':
-        {
-          value: [25, 0, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'size of all objects allocated by gpu in the PPAPI ' +
+    {
+      value: [25, 0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'size of all objects allocated by gpu in the PPAPI ' +
               'process in Chrome'
-        },
+    },
     'memory:chrome:renderer_processes:process_count': {
       value: [1, 2, 1, 1],
       unit: count_smallerIsBetter,
@@ -881,177 +881,177 @@ tr.b.unittest.testSuite(function() {
           'processes in Chrome'
     },
     'memory:chrome:renderer_processes:reported_by_chrome:allocated_objects_size':
-        {
-          value: [32, (36 + 6 + 1) + 750 + 860 + 320, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total size of all allocated objects reported by ' +
+    {
+      value: [32, (36 + 6 + 1) + 750 + 860 + 320, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total size of all allocated objects reported by ' +
               'Chrome for renderer processes in Chrome'
-        },
+    },
     'memory:chrome:renderer_processes:reported_by_chrome:peak_size':
-        {
-          value: [0, 2 + 20 + 200, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total peak size reported by Chrome ' +
+    {
+      value: [0, 2 + 20 + 200, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total peak size reported by Chrome ' +
               'for renderer processes in Chrome'
-        },
+    },
     'memory:chrome:renderer_processes:reported_by_chrome:malloc:effective_size':
-        {
-          value: [16, 0, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'effective size of malloc in renderer processes in ' +
+    {
+      value: [16, 0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'effective size of malloc in renderer processes in ' +
               'Chrome'
-        },
+    },
     'memory:chrome:renderer_processes:reported_by_chrome:malloc:allocated_objects_size':
-        {
-          value: [0, 750, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'size of all objects allocated by malloc in renderer ' +
+    {
+      value: [0, 750, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'size of all objects allocated by malloc in renderer ' +
               'processes in Chrome'
-        },
+    },
     'memory:chrome:renderer_processes:reported_by_chrome:partition_alloc:allocated_objects_size':
-        {
-          value: [32, 320, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'size of all objects allocated by partition_alloc in ' +
+    {
+      value: [32, 320, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'size of all objects allocated by partition_alloc in ' +
               'renderer processes in Chrome'
-        },
+    },
     'memory:chrome:renderer_processes:reported_by_chrome:partition_alloc:effective_size':
-        {
-          value: [32, 320, 0, 5e5],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'effective size of partition_alloc in renderer ' +
+    {
+      value: [32, 320, 0, 5e5],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'effective size of partition_alloc in renderer ' +
               'processes in Chrome'
-        },
+    },
     'memory:chrome:renderer_processes:reported_by_chrome:v8:allocated_by_malloc:effective_size':
-        {
-          value: [0, 1 + 10 + 100, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'effective size of objects allocated by malloc for v8 ' +
+    {
+      value: [0, 1 + 10 + 100, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'effective size of objects allocated by malloc for v8 ' +
               'in renderer processes in Chrome'
-        },
+    },
     'memory:chrome:renderer_processes:reported_by_chrome:v8:allocated_by_malloc:peak_size':
-        {
-          value: [0, 2 + 20 + 200, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'peak size of objects allocated by malloc for v8 ' +
+    {
+      value: [0, 2 + 20 + 200, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'peak size of objects allocated by malloc for v8 ' +
               'in renderer processes in Chrome'
-        },
+    },
     'memory:chrome:renderer_processes:reported_by_chrome:v8:heap:allocated_objects_size':
-        {
-          value: [0, 36 + 6 + 1, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'size of all objects allocated by v8:heap in renderer ' +
+    {
+      value: [0, 36 + 6 + 1, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'size of all objects allocated by v8:heap in renderer ' +
               'processes in Chrome'
-        },
+    },
     'memory:chrome:renderer_processes:reported_by_chrome:code_and_metadata_size':
-        {
-          value: [16, 678, 0, 21 + 35],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total size of code and metadata reported by Chrome ' +
+    {
+      value: [16, 678, 0, 21 + 35],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total size of code and metadata reported by Chrome ' +
               'for renderer processes in Chrome'
-        },
+    },
     'memory:chrome:renderer_processes:reported_by_chrome:v8:code_and_metadata_size':
-        {
-          value: [16, 678, 0, 21 + 35],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'size of v8 code and metadata in renderer processes ' +
+    {
+      value: [16, 678, 0, 21 + 35],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'size of v8 code and metadata in renderer processes ' +
               'in Chrome'
-        },
+    },
     'memory:chrome:renderer_processes:reported_by_chrome:v8:heap:effective_size':
-        {
-          value: [0, 42 + 12 + 2, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'effective size of v8:heap in renderer processes ' +
+    {
+      value: [0, 42 + 12 + 2, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'effective size of v8:heap in renderer processes ' +
               'in Chrome'
-        },
+    },
     'memory:chrome:renderer_processes:reported_by_chrome:v8:heap:code_space:allocated_objects_size':
-        {
-          value: [0, 1 + 1, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'size of all objects allocated by v8:heap:code_space ' +
+    {
+      value: [0, 1 + 1, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'size of all objects allocated by v8:heap:code_space ' +
               'in renderer processes in Chrome'
-        },
+    },
     'memory:chrome:renderer_processes:reported_by_chrome:v8:heap:code_space:effective_size':
-        {
-          value: [0, 2 + 2, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'effective size of v8:heap:code_space in renderer ' +
+    {
+      value: [0, 2 + 2, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'effective size of v8:heap:code_space in renderer ' +
               'processes in Chrome'
-        },
+    },
     'memory:chrome:renderer_processes:reported_by_chrome:v8:heap:large_object_space:allocated_objects_size':
-        {
-          value: [0, 3 + 1, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'size of all objects allocated by ' +
+    {
+      value: [0, 3 + 1, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'size of all objects allocated by ' +
               'v8:heap:large_object_space in renderer processes in Chrome'
-        },
+    },
     'memory:chrome:renderer_processes:reported_by_chrome:v8:heap:large_object_space:effective_size':
-        {
-          value: [0, 4 + 2, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'effective size of v8:heap:large_object_space in ' +
+    {
+      value: [0, 4 + 2, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'effective size of v8:heap:large_object_space in ' +
               'renderer processes in Chrome'
-        },
+    },
     'memory:chrome:renderer_processes:reported_by_chrome:v8:heap:map_space:allocated_objects_size':
-        {
-          value: [0, 5 + 1, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'size of all objects allocated by v8:heap:map_space ' +
+    {
+      value: [0, 5 + 1, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'size of all objects allocated by v8:heap:map_space ' +
               'in renderer processes in Chrome'
-        },
+    },
     'memory:chrome:renderer_processes:reported_by_chrome:v8:heap:map_space:effective_size':
-        {
-          value: [0, 6 + 2, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'effective size of v8:heap:map_space in renderer ' +
+    {
+      value: [0, 6 + 2, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'effective size of v8:heap:map_space in renderer ' +
               'processes in Chrome'
-        },
+    },
     'memory:chrome:renderer_processes:reported_by_chrome:v8:heap:new_space:allocated_objects_size':
-        {
-          value: [0, 7 + 1, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'size of all objects allocated by v8:heap:new_space ' +
+    {
+      value: [0, 7 + 1, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'size of all objects allocated by v8:heap:new_space ' +
               'in renderer processes in Chrome'
-        },
+    },
     'memory:chrome:renderer_processes:reported_by_chrome:v8:heap:new_space:effective_size':
-        {
-          value: [0, 8 + 2, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'effective size of v8:heap:new_space in renderer ' +
+    {
+      value: [0, 8 + 2, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'effective size of v8:heap:new_space in renderer ' +
               'processes in Chrome'
-        },
+    },
     'memory:chrome:renderer_processes:reported_by_chrome:v8:heap:old_space:allocated_objects_size':
-        {
-          value: [0, 9 + 1, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'size of all objects allocated by v8:heap:old_space ' +
+    {
+      value: [0, 9 + 1, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'size of all objects allocated by v8:heap:old_space ' +
               'in renderer processes in Chrome'
-        },
+    },
     'memory:chrome:renderer_processes:reported_by_chrome:v8:heap:old_space:effective_size':
-        {
-          value: [0, 10 + 2, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'effective size of v8:heap:old_space in renderer ' +
+    {
+      value: [0, 10 + 2, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'effective size of v8:heap:old_space in renderer ' +
               'processes in Chrome'
-        },
+    },
     'memory:chrome:renderer_processes:reported_by_chrome:v8:effective_size': {
       value: [0, 650 + 970, 0, 4e5],
       unit: sizeInBytes_smallerIsBetter,
       description: 'effective size of v8 in renderer processes in Chrome'
     },
     'memory:chrome:renderer_processes:reported_by_chrome:v8:allocated_objects_size':
-        {
-          value: [0, (36 + 6 + 1) + 860, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'size of all objects allocated by v8 in renderer ' +
+    {
+      value: [0, (36 + 6 + 1) + 860, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'size of all objects allocated by v8 in renderer ' +
               'processes in Chrome'
-        },
+    },
     'memory:chrome:renderer_processes:reported_by_chrome:v8:peak_size':
-        {
-          value: [0, 2 + 20 + 200, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'peak size of v8 in renderer processes in Chrome'
-        },
+    {
+      value: [0, 2 + 20 + 200, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'peak size of v8 in renderer processes in Chrome'
+    },
     'memory:chrome:unknown_processes:process_count': {
       value: [0, 1, 0, 0],
       unit: count_smallerIsBetter,
@@ -1186,34 +1186,34 @@ tr.b.unittest.testSuite(function() {
       description: 'total number of all processes in an unknown browser'
     },
     'memory:unknown_browser:all_processes:reported_by_os:gpu_memory:proportional_resident_size':
-        {
-          value: [100 + 200, 3000 + 1000, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total proportional resident size (PSS) of GPU memory ' +
+    {
+      value: [100 + 200, 3000 + 1000, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total proportional resident size (PSS) of GPU memory ' +
               '(Android memtrack) used by all processes in an unknown browser'
-        },
+    },
     'memory:unknown_browser:all_processes:reported_by_os:gpu_memory:gfx:proportional_resident_size':
-        {
-          value: [0, 1000, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of the gfx Android ' +
+    {
+      value: [0, 1000, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the gfx Android ' +
               'memtrack component in all processes in an unknown browser'
-        },
+    },
     'memory:unknown_browser:all_processes:reported_by_os:gpu_memory:gl:proportional_resident_size':
-        {
-          value: [100, 3000, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of the gl Android ' +
+    {
+      value: [100, 3000, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the gl Android ' +
               'memtrack component in all processes in an unknown browser'
-        },
+    },
     'memory:unknown_browser:all_processes:reported_by_os:gpu_memory:graphics:proportional_resident_size':
-        {
-          value: [200, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of the graphics ' +
+    {
+      value: [200, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the graphics ' +
               'Android memtrack component in all processes in an unknown ' +
               'browser'
-        },
+    },
     'memory:unknown_browser:all_processes:reported_by_os:private_dirty_size': {
       value: [17 + 34 + 8, 80 + 90, 0],
       unit: sizeInBytes_smallerIsBetter,
@@ -1221,155 +1221,155 @@ tr.b.unittest.testSuite(function() {
           'processes in an unknown browser'
     },
     'memory:unknown_browser:all_processes:reported_by_os:proportional_resident_size':
-        {
-          value: [67 + 100 + 200, 700 + 3 + 1000 + 150 + 3000, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total proportional resident size (PSS) reported by ' +
+    {
+      value: [67 + 100 + 200, 700 + 3 + 1000 + 150 + 3000, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total proportional resident size (PSS) reported by ' +
               'the OS for all processes in an unknown browser'
-        },
+    },
     'memory:unknown_browser:all_processes:reported_by_os:system_memory:private_dirty_size':
-        {
-          value: [17 + 34 + 8, 80 + 90, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total private dirty size of system memory (RAM) used ' +
+    {
+      value: [17 + 34 + 8, 80 + 90, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total private dirty size of system memory (RAM) used ' +
               'by all processes in an unknown browser'
-        },
+    },
     'memory:unknown_browser:all_processes:reported_by_os:system_memory:proportional_resident_size':
-        {
-          value: [67, 700 + 3 + 150, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total proportional resident size (PSS) of system ' +
+    {
+      value: [67, 700 + 3 + 150, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total proportional resident size (PSS) of system ' +
               'memory (RAM) used by all processes in an unknown browser'
-        },
+    },
     'memory:unknown_browser:all_processes:reported_by_os:system_memory:ashmem:private_dirty_size':
-        {
-          value: [0, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of ashmem in all processes in an ' +
+    {
+      value: [0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of ashmem in all processes in an ' +
               'unknown browser'
-        },
+    },
     'memory:unknown_browser:all_processes:reported_by_os:system_memory:ashmem:proportional_resident_size':
-        {
-          value: [0, 500, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of ashmem in all ' +
+    {
+      value: [0, 500, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of ashmem in all ' +
               'processes in an unknown browser'
-        },
+    },
     'memory:unknown_browser:all_processes:reported_by_os:system_memory:java_heap:private_dirty_size':
-        {
-          value: [8, 80 + 90, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of the Java heap in all processes ' +
+    {
+      value: [8, 80 + 90, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the Java heap in all processes ' +
               'in an unknown browser'
-        },
+    },
     'memory:unknown_browser:all_processes:reported_by_os:system_memory:java_heap:proportional_resident_size':
-        {
-          value: [0, 3 + 150, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of the Java heap in ' +
+    {
+      value: [0, 3 + 150, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the Java heap in ' +
               'all processes in an unknown browser'
-        },
+    },
     'memory:unknown_browser:all_processes:reported_by_os:system_memory:native_heap:private_dirty_size':
-        {
-          value: [17 + 34, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of the native heap in all ' +
+    {
+      value: [17 + 34, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the native heap in all ' +
               'processes in an unknown browser'
-        },
+    },
     'memory:unknown_browser:all_processes:reported_by_os:system_memory:native_heap:proportional_resident_size':
-        {
-          value: [67, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of the native heap ' +
+    {
+      value: [67, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the native heap ' +
               'in all processes in an unknown browser'
-        },
+    },
     'memory:unknown_browser:browser_process:process_count': {
       value: [1, 1, 1, 1],
       unit: count_smallerIsBetter,
       description: 'total number of browser processes in an unknown browser'
     },
     'memory:unknown_browser:browser_process:reported_by_os:private_dirty_size':
-        {
-          value: [8, 80, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total private dirty size reported by the OS for the ' +
+    {
+      value: [8, 80, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total private dirty size reported by the OS for the ' +
               'browser process in an unknown browser'
-        },
+    },
     'memory:unknown_browser:browser_process:reported_by_os:proportional_resident_size':
-        {
-          value: [0, 3, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total proportional resident size (PSS) reported by ' +
+    {
+      value: [0, 3, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total proportional resident size (PSS) reported by ' +
               'the OS for the browser process in an unknown browser'
-        },
+    },
     'memory:unknown_browser:browser_process:reported_by_os:system_memory:private_dirty_size':
-        {
-          value: [8, 80, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total private dirty size of system memory (RAM) used ' +
+    {
+      value: [8, 80, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total private dirty size of system memory (RAM) used ' +
               'by the browser process in an unknown browser'
-        },
+    },
     'memory:unknown_browser:browser_process:reported_by_os:system_memory:proportional_resident_size':
-        {
-          value: [0, 3, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total proportional resident size (PSS) of system ' +
+    {
+      value: [0, 3, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total proportional resident size (PSS) of system ' +
               'memory (RAM) used by the browser process in an unknown browser'
-        },
+    },
     'memory:unknown_browser:browser_process:reported_by_os:system_memory:ashmem:private_dirty_size':
-        {
-          value: [0, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of ashmem in the browser process ' +
+    {
+      value: [0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of ashmem in the browser process ' +
               'in an unknown browser'
-        },
+    },
     'memory:unknown_browser:browser_process:reported_by_os:system_memory:ashmem:proportional_resident_size':
-        {
-          value: [0, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of ashmem in the ' +
+    {
+      value: [0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of ashmem in the ' +
               'browser process in an unknown browser'
-        },
+    },
     'memory:unknown_browser:browser_process:reported_by_os:system_memory:java_heap:private_dirty_size':
-        {
-          value: [8, 80, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of the Java heap in the browser ' +
+    {
+      value: [8, 80, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the Java heap in the browser ' +
               'process in an unknown browser'
-        },
+    },
     'memory:unknown_browser:browser_process:reported_by_os:system_memory:java_heap:proportional_resident_size':
-        {
-          value: [0, 3, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of the Java heap in ' +
+    {
+      value: [0, 3, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the Java heap in ' +
               'the browser process in an unknown browser'
-        },
+    },
     'memory:unknown_browser:browser_process:reported_by_os:system_memory:native_heap:private_dirty_size':
-        {
-          value: [0, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of the native heap in the browser ' +
+    {
+      value: [0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the native heap in the browser ' +
               'process in an unknown browser'
-        },
+    },
     'memory:unknown_browser:browser_process:reported_by_os:system_memory:native_heap:proportional_resident_size':
-        {
-          value: [0, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of the native heap ' +
+    {
+      value: [0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the native heap ' +
               'in the browser process in an unknown browser'
-        },
+    },
     'memory:unknown_browser:gpu_process:process_count': {
       value: [1, 1, 1, 0],
       unit: count_smallerIsBetter,
       description: 'total number of GPU processes in an unknown browser'
     },
     'memory:unknown_browser:gpu_process:reported_by_os:proportional_resident_size':
-        {
-          value: [100 + 200, 3000 + 1000 + 150, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total proportional resident size (PSS) reported by ' +
+    {
+      value: [100 + 200, 3000 + 1000 + 150, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total proportional resident size (PSS) reported by ' +
               'the OS for the GPU process in an unknown browser'
-        },
+    },
     'memory:unknown_browser:gpu_process:reported_by_os:private_dirty_size': {
       value: [0, 90, 0],
       unit: sizeInBytes_smallerIsBetter,
@@ -1377,165 +1377,165 @@ tr.b.unittest.testSuite(function() {
           'process in an unknown browser'
     },
     'memory:unknown_browser:gpu_process:reported_by_os:gpu_memory:proportional_resident_size':
-        {
-          value: [100 + 200, 3000 + 1000, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total proportional resident size (PSS) of GPU memory ' +
+    {
+      value: [100 + 200, 3000 + 1000, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total proportional resident size (PSS) of GPU memory ' +
               '(Android memtrack) used by the GPU process in an unknown browser'
-        },
+    },
     'memory:unknown_browser:gpu_process:reported_by_os:gpu_memory:gfx:proportional_resident_size':
-        {
-          value: [0, 1000, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of the gfx Android ' +
+    {
+      value: [0, 1000, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the gfx Android ' +
               'memtrack component in the GPU process in an unknown browser'
-        },
+    },
     'memory:unknown_browser:gpu_process:reported_by_os:gpu_memory:gl:proportional_resident_size':
-        {
-          value: [100, 3000, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of the gl Android ' +
+    {
+      value: [100, 3000, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the gl Android ' +
               'memtrack component in the GPU process in an unknown browser'
-        },
+    },
     'memory:unknown_browser:gpu_process:reported_by_os:gpu_memory:graphics:proportional_resident_size':
-        {
-          value: [200, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of the graphics ' +
+    {
+      value: [200, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the graphics ' +
               'Android memtrack component in the GPU process in an unknown ' +
               'browser'
-        },
+    },
     'memory:unknown_browser:gpu_process:reported_by_os:system_memory:private_dirty_size':
-        {
-          value: [0, 90, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total private dirty size of system memory (RAM) used ' +
+    {
+      value: [0, 90, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total private dirty size of system memory (RAM) used ' +
               'by the GPU process in an unknown browser'
-        },
+    },
     'memory:unknown_browser:gpu_process:reported_by_os:system_memory:proportional_resident_size':
-        {
-          value: [0, 150, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total proportional resident size (PSS) of system ' +
+    {
+      value: [0, 150, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total proportional resident size (PSS) of system ' +
               'memory (RAM) used by the GPU process in an unknown browser'
-        },
+    },
     'memory:unknown_browser:gpu_process:reported_by_os:system_memory:ashmem:private_dirty_size':
-        {
-          value: [0, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of ashmem in the GPU process in ' +
+    {
+      value: [0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of ashmem in the GPU process in ' +
               'an unknown browser'
-        },
+    },
     'memory:unknown_browser:gpu_process:reported_by_os:system_memory:ashmem:proportional_resident_size':
-        {
-          value: [0, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of ashmem in the ' +
+    {
+      value: [0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of ashmem in the ' +
               'GPU process in an unknown browser'
-        },
+    },
     'memory:unknown_browser:gpu_process:reported_by_os:system_memory:java_heap:private_dirty_size':
-        {
-          value: [0, 90, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of the Java heap in the GPU ' +
+    {
+      value: [0, 90, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the Java heap in the GPU ' +
               'process in an unknown browser'
-        },
+    },
     'memory:unknown_browser:gpu_process:reported_by_os:system_memory:java_heap:proportional_resident_size':
-        {
-          value: [0, 150, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of the Java heap in ' +
+    {
+      value: [0, 150, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the Java heap in ' +
               'the GPU process in an unknown browser'
-        },
+    },
     'memory:unknown_browser:gpu_process:reported_by_os:system_memory:native_heap:private_dirty_size':
-        {
-          value: [0, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of the native heap in the GPU ' +
+    {
+      value: [0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the native heap in the GPU ' +
               'process in an unknown browser'
-        },
+    },
     'memory:unknown_browser:gpu_process:reported_by_os:system_memory:native_heap:proportional_resident_size':
-        {
-          value: [0, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of the native heap ' +
+    {
+      value: [0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the native heap ' +
               'in the GPU process in an unknown browser'
-        },
+    },
     'memory:unknown_browser:renderer_processes:process_count': {
       value: [2, 2, 2, 0],
       unit: count_smallerIsBetter,
       description: 'total number of renderer processes in an unknown browser'
     },
     'memory:unknown_browser:renderer_processes:reported_by_os:private_dirty_size':
-        {
-          value: [17 + 34, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total private dirty size reported by the OS for ' +
+    {
+      value: [17 + 34, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total private dirty size reported by the OS for ' +
               'renderer processes in an unknown browser'
-        },
+    },
     'memory:unknown_browser:renderer_processes:reported_by_os:proportional_resident_size':
-        {
-          value: [67, 700, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total proportional resident size (PSS) reported by ' +
+    {
+      value: [67, 700, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total proportional resident size (PSS) reported by ' +
               'the OS for renderer processes in an unknown browser'
-        },
+    },
     'memory:unknown_browser:renderer_processes:reported_by_os:system_memory:private_dirty_size':
-        {
-          value: [17 + 34, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total private dirty size of system memory (RAM) used ' +
+    {
+      value: [17 + 34, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total private dirty size of system memory (RAM) used ' +
               'by renderer processes in an unknown browser'
-        },
+    },
     'memory:unknown_browser:renderer_processes:reported_by_os:system_memory:proportional_resident_size':
-        {
-          value: [67, 700, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total proportional resident size (PSS) of system ' +
+    {
+      value: [67, 700, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total proportional resident size (PSS) of system ' +
               'memory (RAM) used by renderer processes in an unknown browser'
-        },
+    },
     'memory:unknown_browser:renderer_processes:reported_by_os:system_memory:ashmem:private_dirty_size':
-        {
-          value: [0, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of ashmem in renderer processes ' +
+    {
+      value: [0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of ashmem in renderer processes ' +
               'in an unknown browser'
-        },
+    },
     'memory:unknown_browser:renderer_processes:reported_by_os:system_memory:ashmem:proportional_resident_size':
-        {
-          value: [0, 500, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of ashmem in ' +
+    {
+      value: [0, 500, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of ashmem in ' +
               'renderer processes in an unknown browser'
-        },
+    },
     'memory:unknown_browser:renderer_processes:reported_by_os:system_memory:java_heap:private_dirty_size':
-        {
-          value: [0, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of the Java heap in renderer ' +
+    {
+      value: [0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the Java heap in renderer ' +
               'processes in an unknown browser'
-        },
+    },
     'memory:unknown_browser:renderer_processes:reported_by_os:system_memory:java_heap:proportional_resident_size':
-        {
-          value: [0, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of the Java heap in ' +
+    {
+      value: [0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the Java heap in ' +
               'renderer processes in an unknown browser'
-        },
+    },
     'memory:unknown_browser:renderer_processes:reported_by_os:system_memory:native_heap:private_dirty_size':
-        {
-          value: [17 + 34, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of the native heap in renderer ' +
+    {
+      value: [17 + 34, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the native heap in renderer ' +
               'processes in an unknown browser'
-        },
+    },
     'memory:unknown_browser:renderer_processes:reported_by_os:system_memory:native_heap:proportional_resident_size':
-        {
-          value: [67, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of the native heap ' +
+    {
+      value: [67, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the native heap ' +
               'in renderer processes in an unknown browser'
-        }
+    }
   });
 
   memoryMetricTest('combined_chrome', function(model) {
@@ -1621,60 +1621,60 @@ tr.b.unittest.testSuite(function() {
           'OS for all processes in Chrome'
     },
     'memory:chrome:all_processes:reported_by_os:system_memory:ashmem:private_dirty_size':
-        {
-          value: [0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of ashmem in all processes in Chrome'
-        },
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of ashmem in all processes in Chrome'
+    },
     'memory:chrome:all_processes:reported_by_os:system_memory:ashmem:proportional_resident_size':
-        {
-          value: [0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of ashmem in all ' +
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of ashmem in all ' +
               'processes in Chrome'
-        },
+    },
     'memory:chrome:all_processes:reported_by_os:system_memory:java_heap:private_dirty_size':
-        {
-          value: [100, 150],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of the Java heap in all processes ' +
+    {
+      value: [100, 150],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the Java heap in all processes ' +
               'in Chrome'
-        },
+    },
     'memory:chrome:all_processes:reported_by_os:system_memory:java_heap:proportional_resident_size':
-        {
-          value: [0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of the Java heap in ' +
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the Java heap in ' +
               'all processes in Chrome'
-        },
+    },
     'memory:chrome:all_processes:reported_by_os:system_memory:native_heap:private_dirty_size':
-        {
-          value: [0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of the native heap in all ' +
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the native heap in all ' +
               'processes in Chrome'
-        },
+    },
     'memory:chrome:all_processes:reported_by_os:system_memory:native_heap:proportional_resident_size':
-        {
-          value: [0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of the native heap ' +
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the native heap ' +
               'in all processes in Chrome'
-        },
+    },
     'memory:chrome:all_processes:reported_by_os:system_memory:private_dirty_size':
-        {
-          value: [100, 150],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total private dirty size of system memory (RAM) used ' +
+    {
+      value: [100, 150],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total private dirty size of system memory (RAM) used ' +
               'by all processes in Chrome'
-        },
+    },
     'memory:chrome:all_processes:reported_by_os:system_memory:proportional_resident_size':
-        {
-          value: [0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total proportional resident size (PSS) of system ' +
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total proportional resident size (PSS) of system ' +
               'memory (RAM) used by all processes in Chrome'
-        },
+    },
     'memory:chrome:browser_process:process_count': {
       value: [1, 1, 1],
       unit: count_smallerIsBetter,
@@ -1704,61 +1704,61 @@ tr.b.unittest.testSuite(function() {
           'OS for the browser process in Chrome'
     },
     'memory:chrome:browser_process:reported_by_os:system_memory:ashmem:private_dirty_size':
-        {
-          value: [0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of ashmem in the browser process ' +
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of ashmem in the browser process ' +
               'in Chrome'
-        },
+    },
     'memory:chrome:browser_process:reported_by_os:system_memory:ashmem:proportional_resident_size':
-        {
-          value: [0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of ashmem in the ' +
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of ashmem in the ' +
               'browser process in Chrome'
-        },
+    },
     'memory:chrome:browser_process:reported_by_os:system_memory:java_heap:private_dirty_size':
-        {
-          value: [100, 150],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of the Java heap in the browser ' +
+    {
+      value: [100, 150],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the Java heap in the browser ' +
               'process in Chrome'
-        },
+    },
     'memory:chrome:browser_process:reported_by_os:system_memory:java_heap:proportional_resident_size':
-        {
-          value: [0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of the Java heap in ' +
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the Java heap in ' +
               'the browser process in Chrome'
-        },
+    },
     'memory:chrome:browser_process:reported_by_os:system_memory:native_heap:private_dirty_size':
-        {
-          value: [0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of the native heap in the browser ' +
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the native heap in the browser ' +
               'process in Chrome'
-        },
+    },
     'memory:chrome:browser_process:reported_by_os:system_memory:native_heap:proportional_resident_size':
-        {
-          value: [0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of the native heap ' +
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the native heap ' +
               'in the browser process in Chrome'
-        },
+    },
     'memory:chrome:browser_process:reported_by_os:system_memory:private_dirty_size':
-        {
-          value: [100, 150],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total private dirty size of system memory (RAM) used ' +
+    {
+      value: [100, 150],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total private dirty size of system memory (RAM) used ' +
               'by the browser process in Chrome'
-        },
+    },
     'memory:chrome:browser_process:reported_by_os:system_memory:proportional_resident_size':
-        {
-          value: [0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total proportional resident size (PSS) of system ' +
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total proportional resident size (PSS) of system ' +
               'memory (RAM) used by the browser process in Chrome'
-        }
+    }
   });
 
   memoryMetricTest('combined_multipleBrowsers', function(model) {
@@ -1845,8 +1845,8 @@ tr.b.unittest.testSuite(function() {
       }});
       var isolateDump = addChildDump(v8Dump, 'isolate');
       addChildDump(isolateDump, 'malloc', {numerics: {
-          size: 1,
-          peak_size: 2
+        size: 1,
+        peak_size: 2
       }});
       return [mallocDump, v8Dump];
     })();
@@ -1940,12 +1940,12 @@ tr.b.unittest.testSuite(function() {
           'for all processes in WebView'
     },
     'memory:webview:all_processes:reported_by_chrome:peak_size':
-        {
-          value: [0, 2, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total peak size reported by Chrome for all ' +
+    {
+      value: [0, 2, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total peak size reported by Chrome for all ' +
               'processes in WebView'
-        },
+    },
     'memory:webview:all_processes:reported_by_chrome:malloc:effective_size': {
       value: [2, 16384, 0],
       unit: sizeInBytes_smallerIsBetter,
@@ -1957,44 +1957,44 @@ tr.b.unittest.testSuite(function() {
       description: 'effective size of sqlite in all processes in WebView'
     },
     'memory:webview:all_processes:reported_by_chrome:v8:allocated_by_malloc:effective_size':
-        {
-          value: [0, 1, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'effective size of objects allocated by malloc for v8 ' +
+    {
+      value: [0, 1, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'effective size of objects allocated by malloc for v8 ' +
               'in all processes in WebView'
-        },
+    },
     'memory:webview:all_processes:reported_by_chrome:v8:allocated_by_malloc:peak_size':
-        {
-          value: [0, 2, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'peak size of objects allocated by malloc for v8 ' +
+    {
+      value: [0, 2, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'peak size of objects allocated by malloc for v8 ' +
               'in all processes in WebView'
-        },
+    },
     'memory:webview:all_processes:reported_by_chrome:v8:effective_size': {
       value: [4, 67108864, 4096],
       unit: sizeInBytes_smallerIsBetter,
       description: 'effective size of v8 in all processes in WebView'
     },
     'memory:webview:all_processes:reported_by_chrome:v8:code_and_metadata_size':
-        {
-          value: [0, 33554432, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'size of v8 code and metadata in all processes in ' +
+    {
+      value: [0, 33554432, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'size of v8 code and metadata in all processes in ' +
               'WebView'
-        },
+    },
     'memory:webview:all_processes:reported_by_chrome:v8:allocated_objects_size':
-        {
-          value: [0, 32768, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'size of all objects allocated by v8 in all processes ' +
+    {
+      value: [0, 32768, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'size of all objects allocated by v8 in all processes ' +
               'in WebView'
-        },
+    },
     'memory:webview:all_processes:reported_by_chrome:v8:peak_size':
-        {
-          value: [0, 2, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'peak size of v8 in all processes in WebView'
-        },
+    {
+      value: [0, 2, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'peak size of v8 in all processes in WebView'
+    },
     'memory:webview:all_processes:reported_by_os:private_dirty_size': {
       value: [65536],
       unit: sizeInBytes_smallerIsBetter,
@@ -2008,61 +2008,61 @@ tr.b.unittest.testSuite(function() {
           'OS for all processes in WebView'
     },
     'memory:webview:all_processes:reported_by_os:system_memory:ashmem:private_dirty_size':
-        {
-          value: [0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of ashmem in all processes in ' +
+    {
+      value: [0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of ashmem in all processes in ' +
               'WebView'
-        },
+    },
     'memory:webview:all_processes:reported_by_os:system_memory:ashmem:proportional_resident_size':
-        {
-          value: [0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of ashmem in all ' +
+    {
+      value: [0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of ashmem in all ' +
               'processes in WebView'
-        },
+    },
     'memory:webview:all_processes:reported_by_os:system_memory:java_heap:private_dirty_size':
-        {
-          value: [65536],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of the Java heap in all processes ' +
+    {
+      value: [65536],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the Java heap in all processes ' +
               'in WebView'
-        },
+    },
     'memory:webview:all_processes:reported_by_os:system_memory:java_heap:proportional_resident_size':
-        {
-          value: [0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of the Java heap in ' +
+    {
+      value: [0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the Java heap in ' +
               'all processes in WebView'
-        },
+    },
     'memory:webview:all_processes:reported_by_os:system_memory:native_heap:private_dirty_size':
-        {
-          value: [0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of the native heap in all ' +
+    {
+      value: [0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the native heap in all ' +
               'processes in WebView'
-        },
+    },
     'memory:webview:all_processes:reported_by_os:system_memory:native_heap:proportional_resident_size':
-        {
-          value: [0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of the native heap ' +
+    {
+      value: [0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the native heap ' +
               'in all processes in WebView'
-        },
+    },
     'memory:webview:all_processes:reported_by_os:system_memory:private_dirty_size':
-        {
-          value: [65536],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total private dirty size of system memory (RAM) used ' +
+    {
+      value: [65536],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total private dirty size of system memory (RAM) used ' +
               'by all processes in WebView'
-        },
+    },
     'memory:webview:all_processes:reported_by_os:system_memory:proportional_resident_size':
-        {
-          value: [0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total proportional resident size (PSS) of system ' +
+    {
+      value: [0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total proportional resident size (PSS) of system ' +
               'memory (RAM) used by all processes in WebView'
-        },
+    },
     'memory:webview:browser_process:process_count': {
       value: [1, 1, 1],
       unit: count_smallerIsBetter,
@@ -2075,45 +2075,45 @@ tr.b.unittest.testSuite(function() {
           'process in WebView'
     },
     'memory:webview:browser_process:reported_by_chrome:allocated_objects_size':
-        {
-          value: [0, 32768, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total size of all allocated objects reported by ' +
+    {
+      value: [0, 32768, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total size of all allocated objects reported by ' +
               'Chrome for the browser process in WebView'
-        },
+    },
     'memory:webview:browser_process:reported_by_chrome:code_and_metadata_size':
-        {
-          value: [0, 33554432, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total size of code and metadata reported by Chrome ' +
+    {
+      value: [0, 33554432, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total size of code and metadata reported by Chrome ' +
               'for the browser process in WebView'
-        },
+    },
     'memory:webview:browser_process:reported_by_chrome:peak_size':
-        {
-          value: [0, 2, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total peak size reported by Chrome ' +
+    {
+      value: [0, 2, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total peak size reported by Chrome ' +
               'for the browser process in WebView'
-        },
+    },
     'memory:webview:browser_process:reported_by_chrome:malloc:effective_size': {
       value: [2, 16384, 0],
       unit: sizeInBytes_smallerIsBetter,
       description: 'effective size of malloc in the browser process in WebView'
     },
     'memory:webview:browser_process:reported_by_chrome:v8:allocated_by_malloc:effective_size':
-        {
-          value: [0, 1, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'effective size of objects allocated by malloc for v8 ' +
+    {
+      value: [0, 1, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'effective size of objects allocated by malloc for v8 ' +
               'in the browser process in WebView'
-        },
+    },
     'memory:webview:browser_process:reported_by_chrome:v8:allocated_by_malloc:peak_size':
-        {
-          value: [0, 2, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'peak size of objects allocated by malloc for v8 ' +
+    {
+      value: [0, 2, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'peak size of objects allocated by malloc for v8 ' +
               'in the browser process in WebView'
-        },
+    },
     'memory:webview:browser_process:reported_by_chrome:sqlite:effective_size': {
       value: [0, 0, 2048],
       unit: sizeInBytes_smallerIsBetter,
@@ -2125,25 +2125,25 @@ tr.b.unittest.testSuite(function() {
       description: 'effective size of v8 in the browser process in WebView'
     },
     'memory:webview:browser_process:reported_by_chrome:v8:allocated_objects_size':
-        {
-          value: [0, 32768, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'size of all objects allocated by v8 in the browser ' +
+    {
+      value: [0, 32768, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'size of all objects allocated by v8 in the browser ' +
               'process in WebView'
-        },
+    },
     'memory:webview:browser_process:reported_by_chrome:v8:code_and_metadata_size':
-        {
-          value: [0, 33554432, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'size of v8 code and metadata in the browser process ' +
+    {
+      value: [0, 33554432, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'size of v8 code and metadata in the browser process ' +
               'in WebView'
-        },
+    },
     'memory:webview:browser_process:reported_by_chrome:v8:peak_size':
-        {
-          value: [0, 2, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'peak size of v8 in the browser process in WebView'
-        },
+    {
+      value: [0, 2, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'peak size of v8 in the browser process in WebView'
+    },
     'memory:webview:browser_process:reported_by_os:private_dirty_size': {
       value: [65536],
       unit: sizeInBytes_smallerIsBetter,
@@ -2151,77 +2151,77 @@ tr.b.unittest.testSuite(function() {
           'browser process in WebView'
     },
     'memory:webview:browser_process:reported_by_os:proportional_resident_size':
-        {
-          value: [0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total proportional resident size (PSS) reported by ' +
+    {
+      value: [0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total proportional resident size (PSS) reported by ' +
               'the OS for the browser process in WebView'
-        },
+    },
     'memory:webview:browser_process:reported_by_os:system_memory:ashmem:private_dirty_size':
-        {
-          value: [0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of ashmem in the browser process ' +
+    {
+      value: [0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of ashmem in the browser process ' +
               'in WebView'
-        },
+    },
     'memory:webview:browser_process:reported_by_os:system_memory:ashmem:proportional_resident_size':
-        {
-          value: [0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of ashmem in the ' +
+    {
+      value: [0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of ashmem in the ' +
               'browser process in WebView'
-        },
+    },
     'memory:webview:browser_process:reported_by_os:system_memory:java_heap:private_dirty_size':
-        {
-          value: [65536],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of the Java heap in the browser ' +
+    {
+      value: [65536],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the Java heap in the browser ' +
               'process in WebView'
-        },
+    },
     'memory:webview:browser_process:reported_by_os:system_memory:java_heap:proportional_resident_size':
-        {
-          value: [0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of the Java heap in ' +
+    {
+      value: [0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the Java heap in ' +
               'the browser process in WebView'
-        },
+    },
     'memory:webview:browser_process:reported_by_os:system_memory:native_heap:private_dirty_size':
-        {
-          value: [0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of the native heap in the browser ' +
+    {
+      value: [0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the native heap in the browser ' +
               'process in WebView'
-        },
+    },
     'memory:webview:browser_process:reported_by_os:system_memory:native_heap:proportional_resident_size':
-        {
-          value: [0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of the native heap ' +
+    {
+      value: [0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the native heap ' +
               'in the browser process in WebView'
-        },
+    },
     'memory:webview:browser_process:reported_by_os:system_memory:private_dirty_size':
-        {
-          value: [65536],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total private dirty size of system memory (RAM) used ' +
+    {
+      value: [65536],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total private dirty size of system memory (RAM) used ' +
               'by the browser process in WebView'
-        },
+    },
     'memory:webview:browser_process:reported_by_os:system_memory:proportional_resident_size':
-        {
-          value: [0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total proportional resident size (PSS) of system ' +
+    {
+      value: [0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total proportional resident size (PSS) of system ' +
               'memory (RAM) used by the browser process in WebView'
-        },
+    },
 
     // Chrome 1 (GMD3, GMD4).
     'memory:chrome:all_processes:reported_by_os:gpu_memory:gl:proportional_resident_size':
-        {
-          value: [0, 2097152],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of the gl Android ' +
+    {
+      value: [0, 2097152],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the gl Android ' +
               'memtrack component in all processes in Chrome'
-        },
+    },
     'memory:chrome:all_processes:dump_count:detailed': {
       value: [2],
       unit: count_smallerIsBetter,
@@ -2285,67 +2285,67 @@ tr.b.unittest.testSuite(function() {
           'OS for all processes in Chrome'
     },
     'memory:chrome:all_processes:reported_by_os:gpu_memory:proportional_resident_size':
-        {
-          value: [0, 2097152],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total proportional resident size (PSS) of GPU memory ' +
+    {
+      value: [0, 2097152],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total proportional resident size (PSS) of GPU memory ' +
               '(Android memtrack) used by all processes in Chrome'
-        },
+    },
     'memory:chrome:all_processes:reported_by_os:system_memory:ashmem:private_dirty_size':
-        {
-          value: [0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of ashmem in all processes in Chrome'
-        },
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of ashmem in all processes in Chrome'
+    },
     'memory:chrome:all_processes:reported_by_os:system_memory:ashmem:proportional_resident_size':
-        {
-          value: [0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of ashmem in all ' +
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of ashmem in all ' +
               'processes in Chrome'
-        },
+    },
     'memory:chrome:all_processes:reported_by_os:system_memory:java_heap:private_dirty_size':
-        {
-          value: [8 + 16, 524288],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of the Java heap in all processes ' +
+    {
+      value: [8 + 16, 524288],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the Java heap in all processes ' +
               'in Chrome'
-        },
+    },
     'memory:chrome:all_processes:reported_by_os:system_memory:java_heap:proportional_resident_size':
-        {
-          value: [0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of the Java heap in ' +
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the Java heap in ' +
               'all processes in Chrome'
-        },
+    },
     'memory:chrome:all_processes:reported_by_os:system_memory:native_heap:private_dirty_size':
-        {
-          value: [0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of the native heap in all ' +
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the native heap in all ' +
               'processes in Chrome'
-        },
+    },
     'memory:chrome:all_processes:reported_by_os:system_memory:native_heap:proportional_resident_size':
-        {
-          value: [0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of the native heap ' +
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the native heap ' +
               'in all processes in Chrome'
-        },
+    },
     'memory:chrome:all_processes:reported_by_os:system_memory:private_dirty_size':
-        {
-          value: [8 + 16, 524288],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total private dirty size of system memory (RAM) used ' +
+    {
+      value: [8 + 16, 524288],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total private dirty size of system memory (RAM) used ' +
               'by all processes in Chrome'
-        },
+    },
     'memory:chrome:all_processes:reported_by_os:system_memory:proportional_resident_size':
-        {
-          value: [0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total proportional resident size (PSS) of system ' +
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total proportional resident size (PSS) of system ' +
               'memory (RAM) used by all processes in Chrome'
-        },
+    },
     'memory:chrome:browser_process:process_count': {
       value: [1, 1, 1],
       unit: count_smallerIsBetter,
@@ -2380,61 +2380,61 @@ tr.b.unittest.testSuite(function() {
           'OS for the browser process in Chrome'
     },
     'memory:chrome:browser_process:reported_by_os:system_memory:ashmem:private_dirty_size':
-        {
-          value: [0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of ashmem in the browser process ' +
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of ashmem in the browser process ' +
               'in Chrome'
-        },
+    },
     'memory:chrome:browser_process:reported_by_os:system_memory:ashmem:proportional_resident_size':
-        {
-          value: [0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of ashmem in the ' +
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of ashmem in the ' +
               'browser process in Chrome'
-        },
+    },
     'memory:chrome:browser_process:reported_by_os:system_memory:java_heap:private_dirty_size':
-        {
-          value: [8, 524288],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of the Java heap in the browser ' +
+    {
+      value: [8, 524288],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the Java heap in the browser ' +
               'process in Chrome'
-        },
+    },
     'memory:chrome:browser_process:reported_by_os:system_memory:java_heap:proportional_resident_size':
-        {
-          value: [0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of the Java heap in ' +
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the Java heap in ' +
               'the browser process in Chrome'
-        },
+    },
     'memory:chrome:browser_process:reported_by_os:system_memory:native_heap:private_dirty_size':
-        {
-          value: [0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of the native heap in the browser ' +
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the native heap in the browser ' +
               'process in Chrome'
-        },
+    },
     'memory:chrome:browser_process:reported_by_os:system_memory:native_heap:proportional_resident_size':
-        {
-          value: [0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of the native heap ' +
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the native heap ' +
               'in the browser process in Chrome'
-        },
+    },
     'memory:chrome:browser_process:reported_by_os:system_memory:private_dirty_size':
-        {
-          value: [8, 524288],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total private dirty size of system memory (RAM) used ' +
+    {
+      value: [8, 524288],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total private dirty size of system memory (RAM) used ' +
               'by the browser process in Chrome'
-        },
+    },
     'memory:chrome:browser_process:reported_by_os:system_memory:proportional_resident_size':
-        {
-          value: [0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total proportional resident size (PSS) of system ' +
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total proportional resident size (PSS) of system ' +
               'memory (RAM) used by the browser process in Chrome'
-        },
+    },
     'memory:chrome:gpu_process:reported_by_chrome:effective_size': {
       value: [0, 1048576, 0],
       unit: sizeInBytes_smallerIsBetter,
@@ -2442,19 +2442,19 @@ tr.b.unittest.testSuite(function() {
           'process in Chrome'
     },
     'memory:chrome:gpu_process:reported_by_os:gpu_memory:proportional_resident_size':
-        {
-          value: [0, 2097152],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total proportional resident size (PSS) of GPU memory ' +
+    {
+      value: [0, 2097152],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total proportional resident size (PSS) of GPU memory ' +
               '(Android memtrack) used by the GPU process in Chrome'
-        },
+    },
     'memory:chrome:gpu_process:reported_by_os:gpu_memory:gl:proportional_resident_size':
-        {
-          value: [0, 2097152],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of the gl Android ' +
+    {
+      value: [0, 2097152],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the gl Android ' +
               'memtrack component in the GPU process in Chrome'
-        },
+    },
     'memory:chrome:gpu_process:process_count': {
       value: [1, 1, 0],
       unit: count_smallerIsBetter,
@@ -2478,61 +2478,61 @@ tr.b.unittest.testSuite(function() {
           'OS for the GPU process in Chrome'
     },
     'memory:chrome:gpu_process:reported_by_os:system_memory:ashmem:private_dirty_size':
-        {
-          value: [0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of ashmem in the GPU process in ' +
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of ashmem in the GPU process in ' +
               'Chrome'
-        },
+    },
     'memory:chrome:gpu_process:reported_by_os:system_memory:ashmem:proportional_resident_size':
-        {
-          value: [0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of ashmem in the ' +
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of ashmem in the ' +
               'GPU process in Chrome'
-        },
+    },
     'memory:chrome:gpu_process:reported_by_os:system_memory:java_heap:private_dirty_size':
-        {
-          value: [16, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of the Java heap in the GPU ' +
+    {
+      value: [16, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the Java heap in the GPU ' +
               'process in Chrome'
-        },
+    },
     'memory:chrome:gpu_process:reported_by_os:system_memory:java_heap:proportional_resident_size':
-        {
-          value: [0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of the Java heap in ' +
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the Java heap in ' +
               'the GPU process in Chrome'
-        },
+    },
     'memory:chrome:gpu_process:reported_by_os:system_memory:native_heap:private_dirty_size':
-        {
-          value: [0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of the native heap in the GPU ' +
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the native heap in the GPU ' +
               'process in Chrome'
-        },
+    },
     'memory:chrome:gpu_process:reported_by_os:system_memory:native_heap:proportional_resident_size':
-        {
-          value: [0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of the native heap ' +
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the native heap ' +
               'in the GPU process in Chrome'
-        },
+    },
     'memory:chrome:gpu_process:reported_by_os:system_memory:private_dirty_size':
-        {
-          value: [16, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total private dirty size of system memory (RAM) used ' +
+    {
+      value: [16, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total private dirty size of system memory (RAM) used ' +
               'by the GPU process in Chrome'
-        },
+    },
     'memory:chrome:gpu_process:reported_by_os:system_memory:proportional_resident_size':
-        {
-          value: [0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total proportional resident size (PSS) of system ' +
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total proportional resident size (PSS) of system ' +
               'memory (RAM) used by the GPU process in Chrome'
-        },
+    },
     'memory:chrome:renderer_processes:process_count': {
       value: [1, 0, 0],
       unit: count_smallerIsBetter,
@@ -2545,12 +2545,12 @@ tr.b.unittest.testSuite(function() {
           'processes in Chrome'
     },
     'memory:chrome:renderer_processes:reported_by_chrome:malloc:effective_size':
-        {
-          value: [32, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'effective size of malloc in renderer processes in ' +
+    {
+      value: [32, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'effective size of malloc in renderer processes in ' +
               'Chrome'
-        },
+    },
     'memory:chrome:renderer_processes:reported_by_os:private_dirty_size': {
       value: [0, 0],
       unit: sizeInBytes_smallerIsBetter,
@@ -2558,68 +2558,68 @@ tr.b.unittest.testSuite(function() {
           'processes in Chrome'
     },
     'memory:chrome:renderer_processes:reported_by_os:proportional_resident_size':
-        {
-          value: [0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total proportional resident size (PSS) reported by ' +
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total proportional resident size (PSS) reported by ' +
               'the OS for renderer processes in Chrome'
-        },
+    },
     'memory:chrome:renderer_processes:reported_by_os:system_memory:ashmem:private_dirty_size':
-        {
-          value: [0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of ashmem in renderer processes ' +
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of ashmem in renderer processes ' +
               'in Chrome'
-        },
+    },
     'memory:chrome:renderer_processes:reported_by_os:system_memory:ashmem:proportional_resident_size':
-        {
-          value: [0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of ashmem in ' +
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of ashmem in ' +
               'renderer processes in Chrome'
-        },
+    },
     'memory:chrome:renderer_processes:reported_by_os:system_memory:java_heap:private_dirty_size':
-        {
-          value: [0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of the Java heap in renderer ' +
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the Java heap in renderer ' +
               'processes in Chrome'
-        },
+    },
     'memory:chrome:renderer_processes:reported_by_os:system_memory:java_heap:proportional_resident_size':
-        {
-          value: [0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of the Java heap in ' +
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the Java heap in ' +
               'renderer processes in Chrome'
-        },
+    },
     'memory:chrome:renderer_processes:reported_by_os:system_memory:native_heap:private_dirty_size':
-        {
-          value: [0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of the native heap in renderer ' +
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the native heap in renderer ' +
               'processes in Chrome'
-        },
+    },
     'memory:chrome:renderer_processes:reported_by_os:system_memory:native_heap:proportional_resident_size':
-        {
-          value: [0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of the native heap ' +
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the native heap ' +
               'in renderer processes in Chrome'
-        },
+    },
     'memory:chrome:renderer_processes:reported_by_os:system_memory:private_dirty_size':
-        {
-          value: [0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total private dirty size of system memory (RAM) used ' +
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total private dirty size of system memory (RAM) used ' +
               'by renderer processes in Chrome'
-        },
+    },
     'memory:chrome:renderer_processes:reported_by_os:system_memory:proportional_resident_size':
-        {
-          value: [0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total proportional resident size (PSS) of system ' +
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total proportional resident size (PSS) of system ' +
               'memory (RAM) used by renderer processes in Chrome'
-        },
+    },
 
     // Chrome 2 (GMD2, GMD7).
     'memory:chrome2:all_processes:dump_count:detailed': {
@@ -2652,12 +2652,12 @@ tr.b.unittest.testSuite(function() {
       description: 'total number of all processes in Chrome(2)'
     },
     'memory:chrome2:all_processes:reported_by_chrome:discardable:effective_size':
-        {
-          value: [8388608, 16777216],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'effective size of discardable in all processes in ' +
+    {
+      value: [8388608, 16777216],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'effective size of discardable in all processes in ' +
               'Chrome(2)'
-        },
+    },
     'memory:chrome2:all_processes:reported_by_chrome:locked_size': {
       value: [4194304, 0],
       unit: sizeInBytes_smallerIsBetter,
@@ -2704,61 +2704,61 @@ tr.b.unittest.testSuite(function() {
           'OS for all processes in Chrome(2)'
     },
     'memory:chrome2:all_processes:reported_by_os:system_memory:ashmem:private_dirty_size':
-        {
-          value: [0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of ashmem in all processes in ' +
+    {
+      value: [0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of ashmem in all processes in ' +
               'Chrome(2)'
-        },
+    },
     'memory:chrome2:all_processes:reported_by_os:system_memory:ashmem:proportional_resident_size':
-        {
-          value: [0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of ashmem in all ' +
+    {
+      value: [0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of ashmem in all ' +
               'processes in Chrome(2)'
-        },
+    },
     'memory:chrome2:all_processes:reported_by_os:system_memory:java_heap:private_dirty_size':
-        {
-          value: [256],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of the Java heap in all processes ' +
+    {
+      value: [256],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the Java heap in all processes ' +
               'in Chrome(2)'
-        },
+    },
     'memory:chrome2:all_processes:reported_by_os:system_memory:java_heap:proportional_resident_size':
-        {
-          value: [0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of the Java heap in ' +
+    {
+      value: [0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the Java heap in ' +
               'all processes in Chrome(2)'
-        },
+    },
     'memory:chrome2:all_processes:reported_by_os:system_memory:native_heap:private_dirty_size':
-        {
-          value: [0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of the native heap in all ' +
+    {
+      value: [0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the native heap in all ' +
               'processes in Chrome(2)'
-        },
+    },
     'memory:chrome2:all_processes:reported_by_os:system_memory:native_heap:proportional_resident_size':
-        {
-          value: [0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of the native heap ' +
+    {
+      value: [0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the native heap ' +
               'in all processes in Chrome(2)'
-        },
+    },
     'memory:chrome2:all_processes:reported_by_os:system_memory:private_dirty_size':
-        {
-          value: [256],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total private dirty size of system memory (RAM) used ' +
+    {
+      value: [256],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total private dirty size of system memory (RAM) used ' +
               'by all processes in Chrome(2)'
-        },
+    },
     'memory:chrome2:all_processes:reported_by_os:system_memory:proportional_resident_size':
-        {
-          value: [0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total proportional resident size (PSS) of system ' +
+    {
+      value: [0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total proportional resident size (PSS) of system ' +
               'memory (RAM) used by all processes in Chrome(2)'
-        },
+    },
     'memory:chrome2:browser_process:process_count': {
       value: [1, 1],
       unit: count_smallerIsBetter,
@@ -2783,19 +2783,19 @@ tr.b.unittest.testSuite(function() {
           'Chrome(2)'
     },
     'memory:chrome2:browser_process:reported_by_chrome:discardable:effective_size':
-        {
-          value: [8388608, 16777216],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'effective size of discardable in the browser process ' +
+    {
+      value: [8388608, 16777216],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'effective size of discardable in the browser process ' +
               'in Chrome(2)'
-        },
+    },
     'memory:chrome2:browser_process:reported_by_chrome:discardable:locked_size':
-        {
-          value: [4194304, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'locked (pinned) size of discardable in the browser ' +
+    {
+      value: [4194304, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'locked (pinned) size of discardable in the browser ' +
               'process in Chrome(2)'
-        },
+    },
     'memory:chrome2:browser_process:reported_by_chrome:sqlite:effective_size': {
       value: [128, 0],
       unit: sizeInBytes_smallerIsBetter,
@@ -2809,68 +2809,68 @@ tr.b.unittest.testSuite(function() {
           'browser process in Chrome(2)'
     },
     'memory:chrome2:browser_process:reported_by_os:proportional_resident_size':
-        {
-          value: [0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total proportional resident size (PSS) reported by ' +
+    {
+      value: [0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total proportional resident size (PSS) reported by ' +
               'the OS for the browser process in Chrome(2)'
-        },
+    },
     'memory:chrome2:browser_process:reported_by_os:system_memory:ashmem:private_dirty_size':
-        {
-          value: [0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of ashmem in the browser process ' +
+    {
+      value: [0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of ashmem in the browser process ' +
               'in Chrome(2)'
-        },
+    },
     'memory:chrome2:browser_process:reported_by_os:system_memory:ashmem:proportional_resident_size':
-        {
-          value: [0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of ashmem in the ' +
+    {
+      value: [0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of ashmem in the ' +
               'browser process in Chrome(2)'
-        },
+    },
     'memory:chrome2:browser_process:reported_by_os:system_memory:java_heap:private_dirty_size':
-        {
-          value: [256],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of the Java heap in the browser ' +
+    {
+      value: [256],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the Java heap in the browser ' +
               'process in Chrome(2)'
-        },
+    },
     'memory:chrome2:browser_process:reported_by_os:system_memory:java_heap:proportional_resident_size':
-        {
-          value: [0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of the Java heap in ' +
+    {
+      value: [0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the Java heap in ' +
               'the browser process in Chrome(2)'
-        },
+    },
     'memory:chrome2:browser_process:reported_by_os:system_memory:native_heap:private_dirty_size':
-        {
-          value: [0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of the native heap in the browser ' +
+    {
+      value: [0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the native heap in the browser ' +
               'process in Chrome(2)'
-        },
+    },
     'memory:chrome2:browser_process:reported_by_os:system_memory:native_heap:proportional_resident_size':
-        {
-          value: [0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of the native heap ' +
+    {
+      value: [0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the native heap ' +
               'in the browser process in Chrome(2)'
-        },
+    },
     'memory:chrome2:browser_process:reported_by_os:system_memory:private_dirty_size':
-        {
-          value: [256],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total private dirty size of system memory (RAM) used ' +
+    {
+      value: [256],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total private dirty size of system memory (RAM) used ' +
               'by the browser process in Chrome(2)'
-        },
+    },
     'memory:chrome2:browser_process:reported_by_os:system_memory:proportional_resident_size':
-        {
-          value: [0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total proportional resident size (PSS) of system ' +
+    {
+      value: [0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total proportional resident size (PSS) of system ' +
               'memory (RAM) used by the browser process in Chrome(2)'
-        },
+    },
     'memory:chrome2:renderer_processes:process_count': {
       value: [0, 1],
       unit: count_smallerIsBetter,
@@ -2883,12 +2883,12 @@ tr.b.unittest.testSuite(function() {
           'processes in Chrome(2)'
     },
     'memory:chrome2:renderer_processes:reported_by_chrome:malloc:effective_size':
-        {
-          value: [0, 1024],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'effective size of malloc in renderer processes in ' +
+    {
+      value: [0, 1024],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'effective size of malloc in renderer processes in ' +
               'Chrome(2)'
-        },
+    },
     'memory:chrome2:renderer_processes:reported_by_chrome:v8:effective_size': {
       value: [0, 2048],
       unit: sizeInBytes_smallerIsBetter,
@@ -2932,45 +2932,45 @@ tr.b.unittest.testSuite(function() {
           'processes in an unknown browser'
     },
     'memory:unknown_browser:all_processes:reported_by_chrome:malloc:effective_size':
-        {
-          value: [4096],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'effective size of malloc in all processes in an ' +
+    {
+      value: [4096],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'effective size of malloc in all processes in an ' +
               'unknown browser'
-        },
+    },
     'memory:unknown_browser:all_processes:reported_by_chrome:sqlite:effective_size':
-        {
-          value: [8192],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'effective size of sqlite in all processes in an ' +
+    {
+      value: [8192],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'effective size of sqlite in all processes in an ' +
               'unknown browser'
-        },
+    },
     'memory:unknown_browser:browser_process:process_count': {
       value: [1],
       unit: count_smallerIsBetter,
       description: 'total number of browser processes in an unknown browser'
     },
     'memory:unknown_browser:browser_process:reported_by_chrome:effective_size':
-        {
-          value: [4096 + 8192],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total effective size reported by Chrome for the ' +
+    {
+      value: [4096 + 8192],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total effective size reported by Chrome for the ' +
               'browser process in an unknown browser'
-        },
+    },
     'memory:unknown_browser:browser_process:reported_by_chrome:malloc:effective_size':
-        {
-          value: [4096],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'effective size of malloc in the browser process in ' +
+    {
+      value: [4096],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'effective size of malloc in the browser process in ' +
               'an unknown browser'
-        },
+    },
     'memory:unknown_browser:browser_process:reported_by_chrome:sqlite:effective_size':
-        {
-          value: [8192],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'effective size of sqlite in the browser process in ' +
+    {
+      value: [8192],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'effective size of sqlite in the browser process in ' +
               'an unknown browser'
-        }
+    }
   });
 
   memoryMetricTest('rangeOfInterest', function(model) {
@@ -3087,61 +3087,61 @@ tr.b.unittest.testSuite(function() {
           'OS for all processes in WebView'
     },
     'memory:webview:all_processes:reported_by_os:system_memory:ashmem:private_dirty_size':
-        {
-          value: [0, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of ashmem in all processes in ' +
+    {
+      value: [0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of ashmem in all processes in ' +
               'WebView'
-        },
+    },
     'memory:webview:all_processes:reported_by_os:system_memory:ashmem:proportional_resident_size':
-        {
-          value: [0, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of ashmem in all ' +
+    {
+      value: [0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of ashmem in all ' +
               'processes in WebView'
-        },
+    },
     'memory:webview:all_processes:reported_by_os:system_memory:java_heap:private_dirty_size':
-        {
-          value: [0, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of the Java heap in all processes ' +
+    {
+      value: [0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the Java heap in all processes ' +
               'in WebView'
-        },
+    },
     'memory:webview:all_processes:reported_by_os:system_memory:java_heap:proportional_resident_size':
-        {
-          value: [0, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of the Java heap in ' +
+    {
+      value: [0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the Java heap in ' +
               'all processes in WebView'
-        },
+    },
     'memory:webview:all_processes:reported_by_os:system_memory:native_heap:private_dirty_size':
-        {
-          value: [0, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of the native heap in all ' +
+    {
+      value: [0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the native heap in all ' +
               'processes in WebView'
-        },
+    },
     'memory:webview:all_processes:reported_by_os:system_memory:native_heap:proportional_resident_size':
-        {
-          value: [0, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of the native heap ' +
+    {
+      value: [0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the native heap ' +
               'in all processes in WebView'
-        },
+    },
     'memory:webview:all_processes:reported_by_os:system_memory:private_dirty_size':
-        {
-          value: [0, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total private dirty size of system memory (RAM) used ' +
+    {
+      value: [0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total private dirty size of system memory (RAM) used ' +
               'by all processes in WebView'
-        },
+    },
     'memory:webview:all_processes:reported_by_os:system_memory:proportional_resident_size':
-        {
-          value: [0, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total proportional resident size (PSS) of system ' +
+    {
+      value: [0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total proportional resident size (PSS) of system ' +
               'memory (RAM) used by all processes in WebView'
-        },
+    },
     'memory:webview:browser_process:process_count': {
       value: [1, 1, 1, 1],
       unit: count_smallerIsBetter,
@@ -3154,68 +3154,68 @@ tr.b.unittest.testSuite(function() {
           'browser process in WebView'
     },
     'memory:webview:browser_process:reported_by_os:proportional_resident_size':
-        {
-          value: [0, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total proportional resident size (PSS) reported by ' +
+    {
+      value: [0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total proportional resident size (PSS) reported by ' +
               'the OS for the browser process in WebView'
-        },
+    },
     'memory:webview:browser_process:reported_by_os:system_memory:ashmem:private_dirty_size':
-        {
-          value: [0, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of ashmem in the browser process ' +
+    {
+      value: [0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of ashmem in the browser process ' +
               'in WebView'
-        },
+    },
     'memory:webview:browser_process:reported_by_os:system_memory:ashmem:proportional_resident_size':
-        {
-          value: [0, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of ashmem in the ' +
+    {
+      value: [0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of ashmem in the ' +
               'browser process in WebView'
-        },
+    },
     'memory:webview:browser_process:reported_by_os:system_memory:java_heap:private_dirty_size':
-        {
-          value: [0, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of the Java heap in the browser ' +
+    {
+      value: [0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the Java heap in the browser ' +
               'process in WebView'
-        },
+    },
     'memory:webview:browser_process:reported_by_os:system_memory:java_heap:proportional_resident_size':
-        {
-          value: [0, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of the Java heap in ' +
+    {
+      value: [0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the Java heap in ' +
               'the browser process in WebView'
-        },
+    },
     'memory:webview:browser_process:reported_by_os:system_memory:native_heap:private_dirty_size':
-        {
-          value: [0, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'private dirty size of the native heap in the browser ' +
+    {
+      value: [0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the native heap in the browser ' +
               'process in WebView'
-        },
+    },
     'memory:webview:browser_process:reported_by_os:system_memory:native_heap:proportional_resident_size':
-        {
-          value: [0, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'proportional resident size (PSS) of the native heap ' +
+    {
+      value: [0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the native heap ' +
               'in the browser process in WebView'
-        },
+    },
     'memory:webview:browser_process:reported_by_os:system_memory:private_dirty_size':
-        {
-          value: [0, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total private dirty size of system memory (RAM) used ' +
+    {
+      value: [0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total private dirty size of system memory (RAM) used ' +
               'by the browser process in WebView'
-        },
+    },
     'memory:webview:browser_process:reported_by_os:system_memory:proportional_resident_size':
-        {
-          value: [0, 0, 0],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total proportional resident size (PSS) of system ' +
+    {
+      value: [0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total proportional resident size (PSS) of system ' +
               'memory (RAM) used by the browser process in WebView'
-        },
+    },
     'memory:unknown_browser:all_processes:dump_count': {
       value: [1],
       unit: count_smallerIsBetter,

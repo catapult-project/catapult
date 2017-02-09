@@ -139,7 +139,7 @@ Polymer({
     var lthi = tr.e.cc.getTileFromRasterTaskSlice(
         tr.b.getFirstElement(this.selection_)).containingSnapshot;
     this.$.link.setSelectionAndContent(function() {
-        return new tr.model.EventSet(lthi);
+      return new tr.model.EventSet(lthi);
     }, lthi.userFriendlyName);
 
     // Get costs by layer.

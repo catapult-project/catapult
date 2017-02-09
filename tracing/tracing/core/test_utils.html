@@ -286,7 +286,7 @@ tr.exportTo('tr.c', function() {
     for (var i = 0; i < slices.length; i++)
       if (slices[i].title === name)
         return slices[i];
-      return undefined;
+    return undefined;
   };
 
   TestUtils.newInteractionRecord = function(parentModel, start, duration) {

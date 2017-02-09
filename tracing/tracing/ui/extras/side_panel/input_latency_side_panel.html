@@ -169,8 +169,8 @@ Polymer({
         var rendererProcess = rendererHelper.process;
         var labelStr = 'Renderer: ' + rendererProcess.userFriendlyName;
         labels.push({label: labelStr, value: rendererProcess.userFriendlyName
-      });
-    }, this);
+        });
+      }, this);
 
     if (labels.length === 0)
       return;
@@ -180,11 +180,11 @@ Polymer({
     Polymer.dom(toolbarEl).appendChild(tr.ui.b.createSelector(
         this, 'frametimeType',
         'inputLatencySidePanel.frametimeType', this.frametimeType_,
-        [{label: 'Main Thread Frame Times',
-          value: tr.model.helpers.MAIN_FRAMETIME_TYPE},
-         {label: 'Impl Thread Frame Times',
-          value: tr.model.helpers.IMPL_FRAMETIME_TYPE}
-        ]));
+      [{label: 'Main Thread Frame Times',
+        value: tr.model.helpers.MAIN_FRAMETIME_TYPE},
+      {label: 'Impl Thread Frame Times',
+        value: tr.model.helpers.IMPL_FRAMETIME_TYPE}
+      ]));
     Polymer.dom(toolbarEl).appendChild(tr.ui.b.createSelector(
         this, 'selectedProcessId',
         'inputLatencySidePanel.selectedProcessId',
@@ -311,9 +311,9 @@ Polymer({
     var modelHelper = m.getOrCreateHelper(tr.model.helpers.ChromeModelHelper);
     if (modelHelper.browserHelper &&
       modelHelper.browserHelper.hasLatencyEvents) {
-        return {
-          supported: true
-        };
+      return {
+        supported: true
+      };
     }
 
     return {

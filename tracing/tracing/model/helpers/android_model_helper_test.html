@@ -20,32 +20,32 @@ tr.b.unittest.testSuite(function() {
   var newCounterSeries = tr.c.TestUtils.newCounterSeries;
 
   function createSurfaceFlinger(model, vsyncCallback) {
-      if (model.getProcess(2))
-        throw new Error('process already exists');
+    if (model.getProcess(2))
+      throw new Error('process already exists');
 
-      var sfProcess = model.getOrCreateProcess(2);
-      var sfThread = sfProcess.getOrCreateThread(2); // main thread, tid = pid
-      sfThread.name = '/system/bin/surfaceflinger';
+    var sfProcess = model.getOrCreateProcess(2);
+    var sfThread = sfProcess.getOrCreateThread(2); // main thread, tid = pid
+    sfThread.name = '/system/bin/surfaceflinger';
 
       // ensure slicegroup has data
-      sfThread.sliceGroup.pushSlice(newSliceEx({
-        title: 'doComposition',
-        start: 8,
-        duration: 2
-      }));
+    sfThread.sliceGroup.pushSlice(newSliceEx({
+      title: 'doComposition',
+      start: 8,
+      duration: 2
+    }));
 
-      vsyncCallback(sfProcess);
+    vsyncCallback(sfProcess);
   }
 
   function createSurfaceFlingerWithVsync(model) {
-      createSurfaceFlinger(model, function(sfProcess) {
-        var counter = sfProcess.getOrCreateCounter('android', 'VSYNC');
-        var series = newCounterSeries();
-        for (var i = 0; i <= 10; i++) {
-          series.addCounterSample(i * 10, i % 2);
-        }
-        counter.addSeries(series);
-      });
+    createSurfaceFlinger(model, function(sfProcess) {
+      var counter = sfProcess.getOrCreateCounter('android', 'VSYNC');
+      var series = newCounterSeries();
+      for (var i = 0; i <= 10; i++) {
+        series.addCounterSample(i * 10, i % 2);
+      }
+      counter.addSeries(series);
+    });
   }
 
   /*

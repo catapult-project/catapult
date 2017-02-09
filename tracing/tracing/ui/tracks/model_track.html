@@ -353,7 +353,7 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     drawFlowArrow_: function(ctx, flowEvent,
-                             canvasBounds, pixWidth) {
+        canvasBounds, pixWidth) {
       var pixelRatio = window.devicePixelRatio || 1;
 
       var startTrack = this.viewport.trackForEvent(flowEvent.startSlice);
@@ -511,7 +511,7 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     addClosestEventToSelection: function(worldX, worldMaxDist, loY, hiY,
-                                         selection) {
+        selection) {
       this.addClosestInstantEventToSelection(this.model_.instantEvents,
                                              worldX, worldMaxDist, selection);
       tr.ui.tracks.ContainerTrack.prototype.addClosestEventToSelection.

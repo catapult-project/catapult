@@ -89,11 +89,11 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
           {stateWhenDescheduled: prevState},
           nextPid,
           nextName,
-          {
-            comm: nextComm,
-            tid: nextPid,
-            prio: nextPrio
-          });
+        {
+          comm: nextComm,
+          tid: nextPid,
+          prio: nextPrio
+        });
 
       return true;
     },

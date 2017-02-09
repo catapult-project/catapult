@@ -34,55 +34,55 @@ tr.b.unittest.testSuite(function() {
       m.s1 = m.t2.sliceGroup.pushSlice(
         newSliceEx(
           {title: 'V8.Execute',
-           start: 0,
-           end: 10,
-           type: tr.e.v8.V8ThreadSlice,
-           cat: 'v8',
-           args: {'runtime-call-stats':
-                  {
-                    JS_Execution: jsExecution,
-                    HandleApiCall: handleApiCall,
-                    CompileFullCode: compileFullCode,
-                    LoadIC_Miss: loadIcMiss,
-                    ParseLazy: parseLazy,
-                    OptimizeCode: optimizeCode,
-                    FunctionCallback: functionCallback,
-                    AllocateInTargetSpace: allocateInTargetSpace,
-                    API_Object_Get: apiObjectGet,
-                    CompileBackgroundIgnition: compileBackground,
-                    ParseBackgroundFunctionLiteral: parseBackground
-                  }}}));
+            start: 0,
+            end: 10,
+            type: tr.e.v8.V8ThreadSlice,
+            cat: 'v8',
+            args: {'runtime-call-stats':
+            {
+              JS_Execution: jsExecution,
+              HandleApiCall: handleApiCall,
+              CompileFullCode: compileFullCode,
+              LoadIC_Miss: loadIcMiss,
+              ParseLazy: parseLazy,
+              OptimizeCode: optimizeCode,
+              FunctionCallback: functionCallback,
+              AllocateInTargetSpace: allocateInTargetSpace,
+              API_Object_Get: apiObjectGet,
+              CompileBackgroundIgnition: compileBackground,
+              ParseBackgroundFunctionLiteral: parseBackground
+            }}}));
       m.s2 = m.t2.sliceGroup.pushSlice(
         newSliceEx(
           {title: 'V8.Execute',
-           start: 11,
-           end: 15,
-           type: tr.e.v8.V8ThreadSlice,
-           cat: 'v8',
-           args: {'runtime-call-stats':
-                  {
-                    JS_Execution: jsExecution,
-                    HandleApiCall: handleApiCall,
-                    CompileFullCode: compileFullCode,
-                    LoadIC_Miss: loadIcMiss,
-                    ParseLazy: parseLazy,
-                    OptimizeCode: optimizeCode,
-                    FunctionCallback: functionCallback,
-                    AllocateInTargetSpace: allocateInTargetSpace,
-                    API_Object_Get: apiObjectGet
-                  }}}));
+            start: 11,
+            end: 15,
+            type: tr.e.v8.V8ThreadSlice,
+            cat: 'v8',
+            args: {'runtime-call-stats':
+            {
+              JS_Execution: jsExecution,
+              HandleApiCall: handleApiCall,
+              CompileFullCode: compileFullCode,
+              LoadIC_Miss: loadIcMiss,
+              ParseLazy: parseLazy,
+              OptimizeCode: optimizeCode,
+              FunctionCallback: functionCallback,
+              AllocateInTargetSpace: allocateInTargetSpace,
+              API_Object_Get: apiObjectGet
+            }}}));
       m.s3 = m.t2.sliceGroup.pushSlice(
         newSliceEx(
           {title: 'V8.Execute',
-           start: 11,
-           end: 15,
-           type: tr.e.v8.V8ThreadSlice,
-           cat: 'v8',
-           args: {'runtime-call-stats':
-                  {
-                    LoadIC_LoadCallback: [1, 111],
-                    StoreIC_StoreCallback: [2, 222],
-                  }}}));
+            start: 11,
+            end: 15,
+            type: tr.e.v8.V8ThreadSlice,
+            cat: 'v8',
+            args: {'runtime-call-stats':
+            {
+              LoadIC_LoadCallback: [1, 111],
+              StoreIC_StoreCallback: [2, 222],
+            }}}));
     });
     return m;
   }

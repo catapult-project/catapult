@@ -148,7 +148,7 @@ Polymer({
 
     var panel = undefined;
     if (panelType)
-        panel = document.createElement(panelType);
+      panel = document.createElement(panelType);
 
     if (panel !== undefined && !panel.supportsModel(this.model))
       throw new Error('Cannot activate panel: does not support this model');

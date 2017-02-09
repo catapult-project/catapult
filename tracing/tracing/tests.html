@@ -35,14 +35,14 @@ found in the LICENSE file.
           return tr.b.getAsync('/tracing/tests').then(function(json) {
             return JSON.parse(json).test_relpaths;
           }).catch(function(e) {
-           throw e;
+            throw e;
           });
         },
         testLinks: [
           {linkPath: '/tracing_examples/skia_debugger.html',
-           title: 'Skia Debugger'},
+            title: 'Skia Debugger'},
           {linkPath: '/tracing_examples/trace_viewer.html',
-           title: 'Trace File Viewer'}
+            title: 'Trace File Viewer'}
         ]
       });
     });

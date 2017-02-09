@@ -40,17 +40,17 @@ tr.b.unittest.testSuite(function() {
   test('import', function() {
     var events = [
       {name: 'trace1', args: {}, pid: 1, ts: 100,
-       cat: 'disabled-by-default-gpu.service', tid: 2, ph: 'b', id: 71},
+        cat: 'disabled-by-default-gpu.service', tid: 2, ph: 'b', id: 71},
       {name: 'trace1', args: {}, pid: 1, ts: 200,
-       cat: 'disabled-by-default-gpu.service', tid: 2, ph: 'e', id: 71},
+        cat: 'disabled-by-default-gpu.service', tid: 2, ph: 'e', id: 71},
       {name: 'trace2', args: {'channel': 'test_channel'}, pid: 1, ts: 100,
-       cat: 'disabled-by-default-gpu.service', tid: 2, ph: 'b', id: 72},
+        cat: 'disabled-by-default-gpu.service', tid: 2, ph: 'b', id: 72},
       {name: 'trace2', args: {'channel': 'test_channel'}, pid: 1, ts: 200,
-       cat: 'disabled-by-default-gpu.service', tid: 2, ph: 'e', id: 72},
+        cat: 'disabled-by-default-gpu.service', tid: 2, ph: 'e', id: 72},
       {name: 'trace3', args: {'channel': 'test_channel'}, pid: 1, ts: 100,
-       cat: 'disabled-by-default-gpu.device', tid: 2, ph: 'b', id: 73},
+        cat: 'disabled-by-default-gpu.device', tid: 2, ph: 'b', id: 73},
       {name: 'trace3', args: {'channel': 'test_channel'}, pid: 1, ts: 200,
-       cat: 'disabled-by-default-gpu.device', tid: 2, ph: 'e', id: 73}
+        cat: 'disabled-by-default-gpu.device', tid: 2, ph: 'e', id: 73}
     ];
     var m = tr.c.TestUtils.newModelWithEvents([events]);
     var t2 = m.getOrCreateProcess(1).getOrCreateThread(2);

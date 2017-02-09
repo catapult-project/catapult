@@ -109,7 +109,7 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     addClosestEventToSelection: function(worldX, worldMaxDist, loY, hiY,
-                                         selection) {
+        selection) {
       var snapshot = tr.b.findClosestElementInSortedArray(
           this.objectInstance_.snapshots,
           function(x) { return x.ts; },

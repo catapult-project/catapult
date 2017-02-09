@@ -368,10 +368,10 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     rasterize_: function() {
       if (this.picture_) {
         this.picture_.rasterize(
-            {
-              stopIndex: this.drawOpsView_.selectedOpIndex,
-              showOverdraw: this.showOverdraw_
-            },
+          {
+            stopIndex: this.drawOpsView_.selectedOpIndex,
+            showOverdraw: this.showOverdraw_
+          },
             this.onRasterComplete_.bind(this));
       }
     },

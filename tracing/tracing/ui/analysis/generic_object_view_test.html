@@ -43,7 +43,7 @@ tr.b.unittest.testSuite(function() {
   test('multiLineStringValueInsideObject', function() {
     var view = document.createElement('tr-ui-a-generic-object-view');
     view.object = {key: 'i am a\n  string value\ni have\n  various indents',
-                   value: 'simple'};
+      value: 'simple'};
     this.addHTMLOutput(view);
     var c = view.$.content;
 

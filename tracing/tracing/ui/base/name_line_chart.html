@@ -47,11 +47,11 @@ tr.exportTo('tr.ui.b', function() {
 
       var baseline = xAxis.selectAll('path').data([this]);
       baseline.enter().append('line')
-        .attr('stroke', 'black')
-        .attr('x1', this.xScale_(0))
-        .attr('x2', this.xScale_(this.data_.length - 1))
-        .attr('y1', this.graphHeight)
-        .attr('y2', this.graphHeight);
+          .attr('stroke', 'black')
+          .attr('x1', this.xScale_(0))
+          .attr('x2', this.xScale_(this.data_.length - 1))
+          .attr('y1', this.graphHeight)
+          .attr('y2', this.graphHeight);
       baseline.exit().remove();
     }
   };

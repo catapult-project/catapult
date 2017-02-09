@@ -89,15 +89,15 @@ Polymer({
   },
 
   selectCheckbox: function(key) {
-      if (!(key in this.checkboxes_))
-        throw new Error(key + ' does not exists');
-      this.checkboxes_[key].checked = true;
+    if (!(key in this.checkboxes_))
+      throw new Error(key + ' does not exists');
+    this.checkboxes_[key].checked = true;
   },
 
   unselectCheckbox: function(key) {
-      if (!(key in this.checkboxes_))
-        throw new Error(key + ' does not exists');
-      this.checkboxes_[key].checked = false;
+    if (!(key in this.checkboxes_))
+      throw new Error(key + ' does not exists');
+    this.checkboxes_[key].checked = false;
   },
 
   get checkedKeys() {

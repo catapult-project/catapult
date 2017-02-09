@@ -45,16 +45,16 @@ tr.b.unittest.testSuite(function() {
     var a = new autocomplete.Trie(dataList);
 
     assert.deepEqual(
-        [{name: 'apple'},
+      [{name: 'apple'},
          {name: 'apple pie'},
          {name: 'appleseed'},
          {name: 'caramel apple pie'},
          {name: 'deep fried apple pie'}
-        ],
+      ],
         a.search('apple'));
 
     assert.deepEqual(
-        [{name: 'apple pie'},
+      [{name: 'apple pie'},
          {name: 'apple'},
          {name: 'appleseed'},
          {name: 'caramel apple pie'},
@@ -62,7 +62,7 @@ tr.b.unittest.testSuite(function() {
         a.search('apple pie'));
 
     assert.deepEqual(
-       [{name: 'apple pie'},
+      [{name: 'apple pie'},
         {name: 'caramel apple pie'},
         {name: 'deep fried apple pie'}],
        a.search('pie'));
@@ -101,14 +101,14 @@ tr.b.unittest.testSuite(function() {
     var a = new autocomplete.Trie(dataList);
 
     assert.deepEqual(
-        [{name: 'pie', head: true},
+      [{name: 'pie', head: true},
          {name: 'apple pie', group: 'pie'},
          {name: 'blueberry apple pie', group: 'pie'},
          {name: 'deep fried apple pie', group: 'pie'}],
         a.search('apple'));
 
     assert.deepEqual(
-        [{name: 'muffin', head: true},
+      [{name: 'muffin', head: true},
          {name: 'blueberry muffin', group: 'muffin'},
          {name: 'pie', head: true},
          {name: 'blueberry apple pie', group: 'pie'}],

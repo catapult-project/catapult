@@ -61,8 +61,8 @@ tr.b.unittest.testSuite(function() {
     // Check that the first column has a non-empty header.
     var firstColumnTitle = tr.b.findDeepElementMatchingPredicate(
         firstColumnHeader, function(element) {
-      return Polymer.dom(element).textContent === 'First Column';
-    });
+          return Polymer.dom(element).textContent === 'First Column';
+        });
     assert.isDefined(firstColumnTitle);
 
     // Check that empty value was not appended.
@@ -1769,8 +1769,8 @@ tr.b.unittest.testSuite(function() {
 
     var cRow = tr.b.findDeepElementMatchingPredicate(
         table, function(element) {
-      return Polymer.dom(element).textContent === 'C';
-    });
+          return Polymer.dom(element).textContent === 'C';
+        });
     assert.equal(cRow, undefined);
 
     var callbackCalled = false;

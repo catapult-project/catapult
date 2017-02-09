@@ -48,12 +48,12 @@ tr.exportTo('tr.ui.b', function() {
         yAxis.selectAll('*').remove();
         var nameTexts = yAxis.selectAll('text').data(this.data_);
         nameTexts
-          .enter()
-          .append('text')
-          .attr('x', d => -(
+            .enter()
+            .append('text')
+            .attr('x', d => -(
               tr.ui.b.getSVGTextSize(this, d.x).width + Y_AXIS_PADDING))
-          .attr('y', (d, index) => this.verticalScale_(index))
-          .text(d => d.x);
+            .attr('y', (d, index) => this.verticalScale_(index))
+            .text(d => d.x);
         nameTexts.exit().remove();
 
         var previousTop = undefined;

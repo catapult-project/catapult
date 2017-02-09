@@ -785,7 +785,7 @@ triaging functionality in the chart.
 
         checkForInternalUser: function() {
           if (!this.isInternalUser) {
-             this.addWarnings(
+            this.addWarnings(
                'Note that some data is only available when logged in.');
           }
         },
@@ -1294,7 +1294,7 @@ triaging functionality in the chart.
             }
           }
           return {'min': Math.min.apply(Math, resultValues),
-                  'max': Math.max.apply(Math, resultValues)};
+            'max': Math.max.apply(Math, resultValues)};
         },
 
         /**
@@ -2032,15 +2032,15 @@ triaging functionality in the chart.
             for (var i in annotation['a_trace_rerun_options']) {
               var currentOption = annotation['a_trace_rerun_options'][i];
               traceRerunInfo.push({
-                  'name': i,
-                  'option': currentOption
+                'name': i,
+                'option': currentOption
               });
             }
           } else {
-              traceRerunInfo.push({
-                  'name': 'Default Trace Profiler',
-                  'option': '--profiler=trace'
-              });
+            traceRerunInfo.push({
+              'name': 'Default Trace Profiler',
+              'option': '--profiler=trace'
+            });
           }
           this.$.tooltip.bisectInfo = {
             canBisect: series.can_bisect,
@@ -2136,20 +2136,20 @@ triaging functionality in the chart.
               var debugUrl = '/debug_alert?test_path=' + testPath +
                              '&rev=' + pointId;
               links.push({
-                  'text': 'Debug alert',
-                  'url': debugUrl
+                'text': 'Debug alert',
+                'url': debugUrl
               });
             } else if (key == 'a_tracing_uri') {
               links.push({
-                  'text': 'Trace',
-                  'url': annotation['a_tracing_uri']
+                'text': 'Trace',
+                'url': annotation['a_tracing_uri']
               });
             } else if (key.indexOf('a_') === 0) {
               var match = TOOLTIP_LINK_REGEX.exec(annotation[key]);
               if (match) {
                 links.push({
-                    'text': match[1],
-                    'url': match[2]
+                  'text': match[1],
+                  'url': match[2]
                 });
               }
             }
@@ -2337,7 +2337,7 @@ triaging functionality in the chart.
           }
           // The chart is resized when it's updated.
           this.updateChart();
-         },
+        },
 
         /**
          * On collapseLegend change, updates graph and chart-revision sizes.
@@ -2380,7 +2380,7 @@ triaging functionality in the chart.
             if (targetIndices.indexOf(series.index) != -1) {
               this.updateSeriesHighlighting(series, 2.5, 1, 0.2, 4);
             } else {
-               this.updateSeriesHighlighting(series, 2, 0.25, 0, 0);
+              this.updateSeriesHighlighting(series, 2, 0.25, 0, 0);
             }
           }
 
@@ -2428,7 +2428,7 @@ triaging functionality in the chart.
         },
 
         updateSeriesHighlighting: function(series, lineWidth, opacity,
-                                           fill, shadowSize) {
+            fill, shadowSize) {
           if (series.fillBetween) {
             series.lines.fill = fill;
           } else {

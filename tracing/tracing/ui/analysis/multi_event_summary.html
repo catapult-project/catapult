@@ -46,7 +46,7 @@ tr.exportTo('tr.ui.analysis', function() {
       if (this.duration_ === undefined) {
         this.duration_ = tr.b.Statistics.sum(
             this.events_, function(event) {
-                return event.duration;
+              return event.duration;
             });
       }
       return this.duration_;
@@ -129,7 +129,7 @@ tr.exportTo('tr.ui.analysis', function() {
       if (this.maxDuration_ === undefined) {
         this.maxDuration_ = tr.b.Statistics.max(
             this.events_, function(event) {
-                return event.duration;
+              return event.duration;
             });
       }
       return this.maxDuration_;
@@ -140,7 +140,7 @@ tr.exportTo('tr.ui.analysis', function() {
       if (this.maxCpuDuration_ === undefined) {
         this.maxCpuDuration_ = tr.b.Statistics.max(
             this.events_, function(event) {
-                return event.cpuDuration;
+              return event.cpuDuration;
             });
       }
       return this.maxCpuDuration_;
@@ -151,7 +151,7 @@ tr.exportTo('tr.ui.analysis', function() {
       if (this.maxSelfTime_ === undefined) {
         this.maxSelfTime_ = tr.b.Statistics.max(
             this.events_, function(event) {
-                return event.selfTime;
+              return event.selfTime;
             });
       }
       return this.maxSelfTime_;
@@ -162,7 +162,7 @@ tr.exportTo('tr.ui.analysis', function() {
       if (this.maxCpuSelfTime_ === undefined) {
         this.maxCpuSelfTime_ = tr.b.Statistics.max(
             this.events_, function(event) {
-                return event.cpuSelfTime;
+              return event.cpuSelfTime;
             });
       }
       return this.maxCpuSelfTime_;

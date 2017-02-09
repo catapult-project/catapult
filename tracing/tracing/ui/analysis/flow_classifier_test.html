@@ -17,13 +17,13 @@ tr.b.unittest.testSuite(function() {
 
   test('basic', function() {
     var a = newFlowEventEx({
-        title: 'a', start: 0, end: 10 });
+      title: 'a', start: 0, end: 10 });
     var b = newFlowEventEx({
-        title: 'b', start: 10, end: 20 });
+      title: 'b', start: 10, end: 20 });
     var c = newFlowEventEx({
-        title: 'c', start: 20, end: 25 });
+      title: 'c', start: 20, end: 25 });
     var d = newFlowEventEx({
-        title: 'd', start: 30, end: 35 });
+      title: 'd', start: 30, end: 35 });
 
     var fc = new tr.ui.analysis.FlowClassifier();
     fc.addInFlow(a);

@@ -68,9 +68,9 @@ tr.exportTo('tr.e.audits', function() {
     },
     addDacRef: function(name, link) {
       this.docLinks.push({
-          label: 'Doc Link',
-          textContent: (name + ' documentation'),
-          href: 'https://developer.android.com/reference/' + link
+        label: 'Doc Link',
+        textContent: (name + ' documentation'),
+        href: 'https://developer.android.com/reference/' + link
       });
       return this;
     },
@@ -123,8 +123,8 @@ tr.exportTo('tr.e.audits', function() {
         // due to bug in tracing code on SDK 22, ignore
         // presence of 'unclipped' string in View alpha slices
         var args = { 'view name': match[1],
-                     'width': parseInt(match[3]),
-                     'height': parseInt(match[4]) };
+          'width': parseInt(match[3]),
+          'height': parseInt(match[4]) };
         ret.push(new Alert(AndroidAuditor.viewAlphaAlertInfo_,
                            slice.start, [slice], args));
       } else if (saveLayerRegEx.test(slice.title))
@@ -201,7 +201,7 @@ tr.exportTo('tr.e.audits', function() {
 
     var mPixels = (pixelsUploaded / 1000000).toFixed(2) + ' million';
     var args = { 'Pixels uploaded': mPixels,
-                 'Time spent': new Scalar(timeDurationInMs, duration) };
+      'Time spent': new Scalar(timeDurationInMs, duration) };
     events.push(frame);
     return new Alert(AndroidAuditor.uploadAlertInfo_, start, events, args);
   };
@@ -286,7 +286,7 @@ tr.exportTo('tr.e.audits', function() {
       return undefined;
     return new Alert(AndroidAuditor.viewDrawAlertInfo_, slice.start,
         [slice, frame],
-        { 'Time spent': new Scalar(
+      { 'Time spent': new Scalar(
             timeDurationInMs, getCpuDuration(slice)) });
   };
 
@@ -314,7 +314,7 @@ tr.exportTo('tr.e.audits', function() {
     var start = Statistics.min(events, getStart);
     events.push(frame);
     return new Alert(AndroidAuditor.blockingGcAlertInfo_, start, events,
-        { 'Blocked duration': new Scalar(
+      { 'Blocked duration': new Scalar(
             timeDurationInMs, blockedDuration) });
   };
 
@@ -334,7 +334,7 @@ tr.exportTo('tr.e.audits', function() {
     var start = Statistics.min(events, getStart);
     events.push(frame);
     return new Alert(AndroidAuditor.lockContentionAlertInfo_, start, events,
-        { 'Blocked duration': new Scalar(
+      { 'Blocked duration': new Scalar(
             timeDurationInMs, blockedDuration) });
   };
 
@@ -574,21 +574,21 @@ tr.exportTo('tr.e.audits', function() {
       }.bind(this);
 
       registerEventInfo({
-          title: 'inflate',
-          description: 'Constructing a View hierarchy from pre-processed XML via LayoutInflater#layout. This includes constructing all of the View objects in the hierarchy, and applying styled attributes.'}); // @suppress longLineCheck
+        title: 'inflate',
+        description: 'Constructing a View hierarchy from pre-processed XML via LayoutInflater#layout. This includes constructing all of the View objects in the hierarchy, and applying styled attributes.'}); // @suppress longLineCheck
 
       //////////////////////////////////////////////////////////////////////////
       // Adapter view
       //////////////////////////////////////////////////////////////////////////
       registerEventInfo({
-          title: 'obtainView',
-          description: 'Adapter#getView() called to bind content to a recycled View that is being presented.'}); // @suppress longLineCheck
+        title: 'obtainView',
+        description: 'Adapter#getView() called to bind content to a recycled View that is being presented.'}); // @suppress longLineCheck
       registerEventInfo({
-          title: 'setupListItem',
-          description: 'Attached a newly-bound, recycled View to its parent ListView.'}); // @suppress longLineCheck
+        title: 'setupListItem',
+        description: 'Attached a newly-bound, recycled View to its parent ListView.'}); // @suppress longLineCheck
       registerEventInfo({
-          title: 'setupGridItem',
-          description: 'Attached a newly-bound, recycled View to its parent GridView.'}); // @suppress longLineCheck
+        title: 'setupGridItem',
+        description: 'Attached a newly-bound, recycled View to its parent GridView.'}); // @suppress longLineCheck
 
       //////////////////////////////////////////////////////////////////////////
       // Choreographer (tracing enabled on M+)
@@ -597,24 +597,24 @@ tr.exportTo('tr.e.audits', function() {
           .addDacRef('Choreographer', 'android/view/Choreographer.html') // @suppress longLineCheck
           .build();
       registerEventInfo({
-          title: 'Choreographer#doFrame',
-          docLinks: choreographerLinks,
-          description: 'Choreographer executes frame callbacks for inputs, animations, and rendering traversals. When this work is done, a frame will be presented to the user.'}); // @suppress longLineCheck
+        title: 'Choreographer#doFrame',
+        docLinks: choreographerLinks,
+        description: 'Choreographer executes frame callbacks for inputs, animations, and rendering traversals. When this work is done, a frame will be presented to the user.'}); // @suppress longLineCheck
       registerEventInfo({
-          title: 'input',
-          parents: ['Choreographer#doFrame'],
-          docLinks: choreographerLinks,
-          description: 'Input callbacks are processed. This generally encompasses dispatching input to Views, as well as any work the Views do to process this input/gesture.'}); // @suppress longLineCheck
+        title: 'input',
+        parents: ['Choreographer#doFrame'],
+        docLinks: choreographerLinks,
+        description: 'Input callbacks are processed. This generally encompasses dispatching input to Views, as well as any work the Views do to process this input/gesture.'}); // @suppress longLineCheck
       registerEventInfo({
-          title: 'animation',
-          parents: ['Choreographer#doFrame'],
-          docLinks: choreographerLinks,
-          description: 'Animation callbacks are processed. This is generally minimal work, as animations determine progress for the frame, and push new state to animated objects (such as setting View properties).'}); // @suppress longLineCheck
+        title: 'animation',
+        parents: ['Choreographer#doFrame'],
+        docLinks: choreographerLinks,
+        description: 'Animation callbacks are processed. This is generally minimal work, as animations determine progress for the frame, and push new state to animated objects (such as setting View properties).'}); // @suppress longLineCheck
       registerEventInfo({
-          title: 'traversals',
-          parents: ['Choreographer#doFrame'],
-          docLinks: choreographerLinks,
-          description: 'Primary draw traversals. This is the primary traversal of the View hierarchy, including layout and draw passes.'}); // @suppress longLineCheck
+        title: 'traversals',
+        parents: ['Choreographer#doFrame'],
+        docLinks: choreographerLinks,
+        description: 'Primary draw traversals. This is the primary traversal of the View hierarchy, including layout and draw passes.'}); // @suppress longLineCheck
 
       //////////////////////////////////////////////////////////////////////////
       // performTraversals + sub methods
@@ -624,87 +624,87 @@ tr.exportTo('tr.e.audits', function() {
           .addDacRef('View#Layout', 'android/view/View.html#Layout')
           .build();
       registerEventInfo({
-          title: 'performTraversals',
-          description: 'A drawing traversal of the View hierarchy, comprised of all layout and drawing needed to produce the frame.'}); // @suppress longLineCheck
+        title: 'performTraversals',
+        description: 'A drawing traversal of the View hierarchy, comprised of all layout and drawing needed to produce the frame.'}); // @suppress longLineCheck
       registerEventInfo({
-          title: 'measure',
-          parents: traversalParents,
-          docLinks: layoutLinks,
-          description: 'First of two phases in view hierarchy layout. Views are asked to size themselves according to constraints supplied by their parent. Some ViewGroups may measure a child more than once to help satisfy their own constraints. Nesting ViewGroups that measure children more than once can lead to excessive and repeated work.'}); // @suppress longLineCheck
+        title: 'measure',
+        parents: traversalParents,
+        docLinks: layoutLinks,
+        description: 'First of two phases in view hierarchy layout. Views are asked to size themselves according to constraints supplied by their parent. Some ViewGroups may measure a child more than once to help satisfy their own constraints. Nesting ViewGroups that measure children more than once can lead to excessive and repeated work.'}); // @suppress longLineCheck
       registerEventInfo({
-          title: 'layout',
-          parents: traversalParents,
-          docLinks: layoutLinks,
-          description: 'Second of two phases in view hierarchy layout, repositioning content and child Views into their new locations.'}); // @suppress longLineCheck
+        title: 'layout',
+        parents: traversalParents,
+        docLinks: layoutLinks,
+        description: 'Second of two phases in view hierarchy layout, repositioning content and child Views into their new locations.'}); // @suppress longLineCheck
       var drawString = 'Draw pass over the View hierarchy. Every invalidated View will have its drawing commands recorded. On Android versions prior to Lollipop, this would also include the issuing of draw commands to the GPU. Starting with Lollipop, it only includes the recording of commands, and syncing that information to the RenderThread.'; // @suppress longLineCheck
       registerEventInfo({
-          title: 'draw',
-          parents: traversalParents,
-          description: drawString});
+        title: 'draw',
+        parents: traversalParents,
+        description: drawString});
 
       var recordString = 'Every invalidated View\'s drawing commands are recorded. Each will have View#draw() called, and is passed a Canvas that will record and store its drawing commands until it is next invalidated/rerecorded.'; // @suppress longLineCheck
       registerEventInfo({
-          title: 'getDisplayList', // Legacy name for compatibility.
-          parents: ['draw'],
-          description: recordString});
+        title: 'getDisplayList', // Legacy name for compatibility.
+        parents: ['draw'],
+        description: recordString});
       registerEventInfo({
-          title: 'Record View#draw()',
-          parents: ['draw'],
-          description: recordString});
+        title: 'Record View#draw()',
+        parents: ['draw'],
+        description: recordString});
 
       registerEventInfo({
-          title: 'drawDisplayList',
-          parents: ['draw'],
-          description: 'Execution of recorded draw commands to generate a frame. This represents the actual formation and issuing of drawing commands to the GPU. On Android L and higher devices, this work is done on a dedicated RenderThread, instead of on the UI Thread.'}); // @suppress longLineCheck
+        title: 'drawDisplayList',
+        parents: ['draw'],
+        description: 'Execution of recorded draw commands to generate a frame. This represents the actual formation and issuing of drawing commands to the GPU. On Android L and higher devices, this work is done on a dedicated RenderThread, instead of on the UI Thread.'}); // @suppress longLineCheck
 
       //////////////////////////////////////////////////////////////////////////
       // RenderThread
       //////////////////////////////////////////////////////////////////////////
       registerEventInfo({
-          title: 'DrawFrame',
-          description: 'RenderThread portion of the standard UI/RenderThread split frame. This represents the actual formation and issuing of drawing commands to the GPU.'}); // @suppress longLineCheck
+        title: 'DrawFrame',
+        description: 'RenderThread portion of the standard UI/RenderThread split frame. This represents the actual formation and issuing of drawing commands to the GPU.'}); // @suppress longLineCheck
       registerEventInfo({
-          title: 'doFrame',
-          description: 'RenderThread animation frame. Represents drawing work done by the RenderThread on a frame where the UI thread did not produce new drawing content.'}); // @suppress longLineCheck
+        title: 'doFrame',
+        description: 'RenderThread animation frame. Represents drawing work done by the RenderThread on a frame where the UI thread did not produce new drawing content.'}); // @suppress longLineCheck
       registerEventInfo({
-          title: 'syncFrameState',
-          description: 'Sync stage between the UI thread and the RenderThread, where the UI thread hands off a frame (including information about modified Views). Time in this method primarily consists of uploading modified Bitmaps to the GPU. After this sync is completed, the UI thread is unblocked, and the RenderThread starts to render the frame.'}); // @suppress longLineCheck
+        title: 'syncFrameState',
+        description: 'Sync stage between the UI thread and the RenderThread, where the UI thread hands off a frame (including information about modified Views). Time in this method primarily consists of uploading modified Bitmaps to the GPU. After this sync is completed, the UI thread is unblocked, and the RenderThread starts to render the frame.'}); // @suppress longLineCheck
       registerEventInfo({
-          title: 'flush drawing commands',
-          description: 'Issuing the now complete drawing commands to the GPU.'}); // @suppress longLineCheck
+        title: 'flush drawing commands',
+        description: 'Issuing the now complete drawing commands to the GPU.'}); // @suppress longLineCheck
       registerEventInfo({
-          title: 'eglSwapBuffers',
-          description: 'Complete GPU rendering of the frame.'}); // @suppress longLineCheck
+        title: 'eglSwapBuffers',
+        description: 'Complete GPU rendering of the frame.'}); // @suppress longLineCheck
 
       //////////////////////////////////////////////////////////////////////////
       // RecyclerView
       //////////////////////////////////////////////////////////////////////////
       registerEventInfo({
-          title: 'RV Scroll',
-          description: 'RecyclerView is calculating a scroll. If there are too many of these in Systrace, some Views inside RecyclerView might be causing it. Try to avoid using EditText, focusable views or handle them with care.'}); // @suppress longLineCheck
+        title: 'RV Scroll',
+        description: 'RecyclerView is calculating a scroll. If there are too many of these in Systrace, some Views inside RecyclerView might be causing it. Try to avoid using EditText, focusable views or handle them with care.'}); // @suppress longLineCheck
       registerEventInfo({
-          title: 'RV OnLayout',
-          description: 'OnLayout has been called by the View system. If this shows up too many times in Systrace, make sure the children of RecyclerView do not update themselves directly. This will cause a full re-layout but when it happens via the Adapter notifyItemChanged, RecyclerView can avoid full layout calculation.'}); // @suppress longLineCheck
+        title: 'RV OnLayout',
+        description: 'OnLayout has been called by the View system. If this shows up too many times in Systrace, make sure the children of RecyclerView do not update themselves directly. This will cause a full re-layout but when it happens via the Adapter notifyItemChanged, RecyclerView can avoid full layout calculation.'}); // @suppress longLineCheck
       registerEventInfo({
-          title: 'RV FullInvalidate',
-          description: 'NotifyDataSetChanged or equal has been called. If this is taking a long time, try sending granular notify adapter changes instead of just calling notifyDataSetChanged or setAdapter / swapAdapter. Adding stable ids to your adapter might help.'}); // @suppress longLineCheck
+        title: 'RV FullInvalidate',
+        description: 'NotifyDataSetChanged or equal has been called. If this is taking a long time, try sending granular notify adapter changes instead of just calling notifyDataSetChanged or setAdapter / swapAdapter. Adding stable ids to your adapter might help.'}); // @suppress longLineCheck
       registerEventInfo({
-          title: 'RV PartialInvalidate',
-          description: 'RecyclerView is rebinding a View. If this is taking a lot of time, consider optimizing your layout or make sure you are not doing extra operations in onBindViewHolder call.'}); // @suppress longLineCheck
+        title: 'RV PartialInvalidate',
+        description: 'RecyclerView is rebinding a View. If this is taking a lot of time, consider optimizing your layout or make sure you are not doing extra operations in onBindViewHolder call.'}); // @suppress longLineCheck
       registerEventInfo({
-          title: 'RV OnBindView',
-          description: 'RecyclerView is rebinding a View. If this is taking a lot of time, consider optimizing your layout or make sure you are not doing extra operations in onBindViewHolder call.'}); // @suppress longLineCheck
+        title: 'RV OnBindView',
+        description: 'RecyclerView is rebinding a View. If this is taking a lot of time, consider optimizing your layout or make sure you are not doing extra operations in onBindViewHolder call.'}); // @suppress longLineCheck
       registerEventInfo({
-          title: 'RV CreateView',
-          description: 'RecyclerView is creating a new View. If too many of these are present: 1) There might be a problem in Recycling (e.g. custom Animations that set transient state and prevent recycling or ItemAnimator not implementing the contract properly. See Adapter#onFailedToRecycleView(ViewHolder). 2) There may be too many item view types. Try merging them. 3) There might be too many itemChange animations and not enough space in RecyclerPool. Try increasing your pool size and item cache size.'}); // @suppress longLineCheck
+        title: 'RV CreateView',
+        description: 'RecyclerView is creating a new View. If too many of these are present: 1) There might be a problem in Recycling (e.g. custom Animations that set transient state and prevent recycling or ItemAnimator not implementing the contract properly. See Adapter#onFailedToRecycleView(ViewHolder). 2) There may be too many item view types. Try merging them. 3) There might be too many itemChange animations and not enough space in RecyclerPool. Try increasing your pool size and item cache size.'}); // @suppress longLineCheck
 
       //////////////////////////////////////////////////////////////////////////
       // Graphics + Composition
       //////////////////////////////////////////////////////////////////////////
       // TODO(ccraik): SurfaceFlinger work
       registerEventInfo({
-          title: 'eglSwapBuffers',
-          description: 'The CPU has finished producing drawing commands, and is flushing drawing work to the GPU, and posting that buffer to the consumer (which is often SurfaceFlinger window composition). Once this is completed, the GPU can produce the frame content without any involvement from the CPU.'}); // @suppress longLineCheck
+        title: 'eglSwapBuffers',
+        description: 'The CPU has finished producing drawing commands, and is flushing drawing work to the GPU, and posting that buffer to the consumer (which is often SurfaceFlinger window composition). Once this is completed, the GPU can produce the frame content without any involvement from the CPU.'}); // @suppress longLineCheck
     },
 
     applyEventInfosRecursive_: function(parentNames, slice) {

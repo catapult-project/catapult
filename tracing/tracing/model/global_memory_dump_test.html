@@ -812,46 +812,46 @@ tr.b.unittest.testSuite(function() {
 
   test('testSanityCheck_checkDumpTrees_invalidWeakFlag',
       function() {
-    var containerDumps = createContainerDumps(0);
-    var gmd = containerDumps[0];
-    var parentDump = new MemoryAllocatorDump(gmd, 'parent');
-    var childDump = addChildDump(parentDump, 'child');
-    childDump.weak = true;
-    gmd.memoryAllocatorDumps = [parentDump];
+        var containerDumps = createContainerDumps(0);
+        var gmd = containerDumps[0];
+        var parentDump = new MemoryAllocatorDump(gmd, 'parent');
+        var childDump = addChildDump(parentDump, 'child');
+        childDump.weak = true;
+        gmd.memoryAllocatorDumps = [parentDump];
 
-    assert.throws(function() {
-      checkDumpTrees(containerDumps, [
-        [
-          {
-            'name': 'parent',
-            'children': [
+        assert.throws(function() {
+          checkDumpTrees(containerDumps, [
+            [
               {
-                'name': 'child',
+                'name': 'parent',
+                'children': [
+                  {
+                    'name': 'child',
                 // Missing "'weak': true".
+                  }
+                ]
               }
             ]
-          }
-        ]
-      ]);
-    }, /'parent\/child'.*\binvalid weak flag\b/);
+          ]);
+        }, /'parent\/child'.*\binvalid weak flag\b/);
 
-    assert.throws(function() {
-      checkDumpTrees(containerDumps, [
-        [
-          {
-            'name': 'parent',
-            'weak': true,  // This should be false (or not provided).
-            'children': [
+        assert.throws(function() {
+          checkDumpTrees(containerDumps, [
+            [
               {
-                'name': 'child',
-                'weak': true
+                'name': 'parent',
+                'weak': true,  // This should be false (or not provided).
+                'children': [
+                  {
+                    'name': 'child',
+                    'weak': true
+                  }
+                ]
               }
             ]
-          }
-        ]
-      ]);
-    }, /'parent'.*\binvalid weak flag\b/);
-  });
+          ]);
+        }, /'parent'.*\binvalid weak flag\b/);
+      });
 
   test('testSanityCheck_checkDumpTrees_dumpNotRemoved', function() {
     var containerDumps = createContainerDumps(0);
@@ -1308,107 +1308,107 @@ tr.b.unittest.testSuite(function() {
 
   test('traverseAllocatorDumpsInDepthFirstOrder_oneTreeWithoutOwners',
       function() {
-    var containerDumps = buildDumpTrees([
-      [  // GMD.
-        {
-          'name': 'root',
-          'children': [
+        var containerDumps = buildDumpTrees([
+          [  // GMD.
             {
-              'name': 'parent',
+              'name': 'root',
               'children': [
                 {
-                  'name': 'child1'
-                },
-                {
-                  'name': 'child2'
+                  'name': 'parent',
+                  'children': [
+                    {
+                      'name': 'child1'
+                    },
+                    {
+                      'name': 'child2'
+                    }
+                  ]
                 }
               ]
             }
           ]
-        }
-      ]
-    ]);
-    var gmd = containerDumps[0];
+        ]);
+        var gmd = containerDumps[0];
 
     // Post-order.
-    var visitedAllocatorDumps = [];
-    gmd.traverseAllocatorDumpsInDepthFirstPostOrder(
+        var visitedAllocatorDumps = [];
+        gmd.traverseAllocatorDumpsInDepthFirstPostOrder(
         buildArgPusher(visitedAllocatorDumps));
-    assert.deepEqual(visitedAllocatorDumps, [
-      gmd.getMemoryAllocatorDumpByFullName('root/parent/child1'),
-      gmd.getMemoryAllocatorDumpByFullName('root/parent/child2'),
-      gmd.getMemoryAllocatorDumpByFullName('root/parent'),
-      gmd.getMemoryAllocatorDumpByFullName('root')
-    ]);
+        assert.deepEqual(visitedAllocatorDumps, [
+          gmd.getMemoryAllocatorDumpByFullName('root/parent/child1'),
+          gmd.getMemoryAllocatorDumpByFullName('root/parent/child2'),
+          gmd.getMemoryAllocatorDumpByFullName('root/parent'),
+          gmd.getMemoryAllocatorDumpByFullName('root')
+        ]);
 
     // Pre-order.
-    var visitedAllocatorDumps = [];
-    gmd.traverseAllocatorDumpsInDepthFirstPreOrder(
+        var visitedAllocatorDumps = [];
+        gmd.traverseAllocatorDumpsInDepthFirstPreOrder(
         buildArgPusher(visitedAllocatorDumps));
-    assert.deepEqual(visitedAllocatorDumps, [
-      gmd.getMemoryAllocatorDumpByFullName('root'),
-      gmd.getMemoryAllocatorDumpByFullName('root/parent'),
-      gmd.getMemoryAllocatorDumpByFullName('root/parent/child1'),
-      gmd.getMemoryAllocatorDumpByFullName('root/parent/child2')
-    ]);
-  });
+        assert.deepEqual(visitedAllocatorDumps, [
+          gmd.getMemoryAllocatorDumpByFullName('root'),
+          gmd.getMemoryAllocatorDumpByFullName('root/parent'),
+          gmd.getMemoryAllocatorDumpByFullName('root/parent/child1'),
+          gmd.getMemoryAllocatorDumpByFullName('root/parent/child2')
+        ]);
+      });
 
   test('traverseAllocatorDumpsInDepthFirstOrder_oneTreeWithOwners',
       function() {
-    var containerDumps = buildDumpTrees([
+        var containerDumps = buildDumpTrees([
       [],  // GMD.
-      [  // PMD.
-        {
-          'name': 'root',
-          'children': [
+          [  // PMD.
             {
-              'name': 'parent',
+              'name': 'root',
               'children': [
                 {
-                  'name': 'child1',
-                  'owns': 0
-                },
-                {
-                  'name': 'child2',
-                  'guid': 0
-                },
-                {
-                  'name': 'child3',
-                  'owns': 0
+                  'name': 'parent',
+                  'children': [
+                    {
+                      'name': 'child1',
+                      'owns': 0
+                    },
+                    {
+                      'name': 'child2',
+                      'guid': 0
+                    },
+                    {
+                      'name': 'child3',
+                      'owns': 0
+                    }
+                  ]
                 }
               ]
             }
           ]
-        }
-      ]
-    ]);
-    var gmd = containerDumps[0];
-    var pmd = containerDumps[1];
+        ]);
+        var gmd = containerDumps[0];
+        var pmd = containerDumps[1];
 
     // Post-order.
-    var visitedAllocatorDumps = [];
-    gmd.traverseAllocatorDumpsInDepthFirstPostOrder(
+        var visitedAllocatorDumps = [];
+        gmd.traverseAllocatorDumpsInDepthFirstPostOrder(
         buildArgPusher(visitedAllocatorDumps));
-    assert.deepEqual(visitedAllocatorDumps, [
-      pmd.getMemoryAllocatorDumpByFullName('root/parent/child1'),
-      pmd.getMemoryAllocatorDumpByFullName('root/parent/child3'),
-      pmd.getMemoryAllocatorDumpByFullName('root/parent/child2'),
-      pmd.getMemoryAllocatorDumpByFullName('root/parent'),
-      pmd.getMemoryAllocatorDumpByFullName('root')
-    ]);
+        assert.deepEqual(visitedAllocatorDumps, [
+          pmd.getMemoryAllocatorDumpByFullName('root/parent/child1'),
+          pmd.getMemoryAllocatorDumpByFullName('root/parent/child3'),
+          pmd.getMemoryAllocatorDumpByFullName('root/parent/child2'),
+          pmd.getMemoryAllocatorDumpByFullName('root/parent'),
+          pmd.getMemoryAllocatorDumpByFullName('root')
+        ]);
 
     // Pre-order.
-    var visitedAllocatorDumps = [];
-    gmd.traverseAllocatorDumpsInDepthFirstPreOrder(
+        var visitedAllocatorDumps = [];
+        gmd.traverseAllocatorDumpsInDepthFirstPreOrder(
         buildArgPusher(visitedAllocatorDumps));
-    assert.deepEqual(visitedAllocatorDumps, [
-      pmd.getMemoryAllocatorDumpByFullName('root'),
-      pmd.getMemoryAllocatorDumpByFullName('root/parent'),
-      pmd.getMemoryAllocatorDumpByFullName('root/parent/child2'),
-      pmd.getMemoryAllocatorDumpByFullName('root/parent/child1'),
-      pmd.getMemoryAllocatorDumpByFullName('root/parent/child3')
-    ]);
-  });
+        assert.deepEqual(visitedAllocatorDumps, [
+          pmd.getMemoryAllocatorDumpByFullName('root'),
+          pmd.getMemoryAllocatorDumpByFullName('root/parent'),
+          pmd.getMemoryAllocatorDumpByFullName('root/parent/child2'),
+          pmd.getMemoryAllocatorDumpByFullName('root/parent/child1'),
+          pmd.getMemoryAllocatorDumpByFullName('root/parent/child3')
+        ]);
+      });
 
   test('traverseAllocatorDumpsInDepthFirstOrder_multipleTrees', function() {
     var containerDumps = buildDumpTrees([
@@ -3509,41 +3509,41 @@ tr.b.unittest.testSuite(function() {
 
     checkDumpNumericsAndDiagnostics(
         pmd.getMemoryAllocatorDumpByFullName('direct_owner'),
-        {
-          size: 10,
-          effective_size: 3.3333,
-          summed: 27
-        },
-        {
-          url: 'file://not_overriden.html'
-        });
+      {
+        size: 10,
+        effective_size: 3.3333,
+        summed: 27
+      },
+      {
+        url: 'file://not_overriden.html'
+      });
     checkDumpNumericsAndDiagnostics(
         pmd.getMemoryAllocatorDumpByFullName('parent_owner/child_owner'),
-        {
-          size: 10,
-          effective_size: 3.3333,
-          summed: 27
-        },
-        {
-          url: 'https://hello.world.com:42'
-        });
+      {
+        size: 10,
+        effective_size: 3.3333,
+        summed: 27
+      },
+      {
+        url: 'https://hello.world.com:42'
+      });
     checkDumpNumericsAndDiagnostics(
         pmd.getMemoryAllocatorDumpByFullName('parent_owner'),
-        {
-          size: 15,
-          effective_size: 8.3333,
-          summed: 40
-        }, {});
+      {
+        size: 15,
+        effective_size: 8.3333,
+        summed: 40
+      }, {});
     checkDumpNumericsAndDiagnostics(
         pmd.getMemoryAllocatorDumpByFullName('precedent_owner'),
-        {
-          size: 10,
-          effective_size: 3.3333,
-          summed: 0
-        },
-        {
-          url: 'https://hello.world.com:42'
-        });
+      {
+        size: 10,
+        effective_size: 3.3333,
+        summed: 0
+      },
+      {
+        url: 'https://hello.world.com:42'
+      });
     checkDumpNumericsAndDiagnostics(
         pmd.getMemoryAllocatorDumpByFullName('indirect_owner'), {}, {});
   });

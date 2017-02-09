@@ -613,8 +613,8 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     generateTableRowNodes_: function(tableSection, userRows, rowInfoMap,
-                                     indentation, lastAddedRow,
-                                     parentRowInfo) {
+        indentation, lastAddedRow,
+        parentRowInfo) {
       if (this.sortColumnIndex_ !== undefined &&
           tableSection === this.$.body) {
         userRows = userRows.slice(); // Don't mess with the input data.
@@ -693,7 +693,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     getHTMLNodeForRowInfo_: function(tableSection, rowInfo,
-                                     rowInfoMap, indentation) {
+        rowInfoMap, indentation) {
       if (rowInfo.htmlNode) {
         this.customizeTableRow_(rowInfo.userRow, rowInfo.htmlNode);
         return rowInfo.htmlNode;
@@ -967,7 +967,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     setExpandedForUserRow_: function(tableSection, rowInfoMap,
-                                     userRow, expanded) {
+        userRow, expanded) {
       this.rebuildIfNeeded_();
 
       var rowInfo = rowInfoMap.get(userRow);

@@ -163,14 +163,14 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
   };
 
   function pushLastSliceIfNeeded(thread, id, currentTs) {
-      if (thread.lastEntryTs !== undefined) {
-        var duration = currentTs - thread.lastEntryTs;
-        var slice = new tr.model.ThreadSlice(
+    if (thread.lastEntryTs !== undefined) {
+      var duration = currentTs - thread.lastEntryTs;
+      var slice = new tr.model.ThreadSlice(
             '', thread.lastEntryTitle,
             ColorScheme.getColorIdForGeneralPurposeString(id),
             thread.lastEntryTs, thread.lastEntryArgs, duration);
-        thread.thread.sliceGroup.pushSlice(slice);
-      }
+      thread.thread.sliceGroup.pushSlice(slice);
+    }
   }
 
   Parser.register(I2cParser);

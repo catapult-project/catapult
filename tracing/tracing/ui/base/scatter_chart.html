@@ -72,11 +72,11 @@ tr.exportTo('tr.ui.b', function() {
 
       var brushRectsSel = brushSel.selectAll('rect').data([undefined]);
       brushRectsSel.enter().append('rect')
-        .attr('x', () => this.xScale_(this.brushedXRange_.min))
-        .attr('y', () => this.yScale_(this.brushedYRange_.max))
-        .attr('width', () => this.xScale_(this.brushedXRange_.max) -
+          .attr('x', () => this.xScale_(this.brushedXRange_.min))
+          .attr('y', () => this.yScale_(this.brushedYRange_.max))
+          .attr('width', () => this.xScale_(this.brushedXRange_.max) -
             this.xScale_(this.brushedXRange_.min))
-        .attr('height', () => this.yScale_(this.brushedYRange_.min) -
+          .attr('height', () => this.yScale_(this.brushedYRange_.min) -
             this.yScale_(this.brushedYRange_.max));
       brushRectsSel.exit().remove();
     },
@@ -93,13 +93,13 @@ tr.exportTo('tr.ui.b', function() {
     updateDataContents_(dataSel) {
       dataSel.selectAll('*').remove();
       dataSel.selectAll('circle')
-        .data(this.data_)
-        .enter()
-        .append('circle')
-        .attr('cx', d => this.xScale_(d.x))
-        .attr('cy', d => this.yScale_(d.y))
-        .attr('r', d => d.radius)
-        .attr('fill', d => d.color);
+          .data(this.data_)
+          .enter()
+          .append('circle')
+          .attr('cx', d => this.xScale_(d.x))
+          .attr('cy', d => this.yScale_(d.y))
+          .attr('r', d => d.radius)
+          .attr('fill', d => d.color);
     }
   };
 

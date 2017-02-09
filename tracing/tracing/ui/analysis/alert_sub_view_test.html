@@ -23,11 +23,11 @@ tr.b.unittest.testSuite(function() {
 
     var alertInfo = new tr.model.EventInfo(
         'alertInfo', 'Critical alert',
-        [{
-          label: 'Project Page',
-          textContent: 'Trace-Viewer Github Project',
-          href: 'https://github.com/google/trace-viewer/'
-        }]);
+      [{
+        label: 'Project Page',
+        textContent: 'Trace-Viewer Github Project',
+        href: 'https://github.com/google/trace-viewer/'
+      }]);
 
     var alert = new tr.model.Alert(alertInfo, 5, [slice]);
     assert.equal(1, alert.associatedEvents.length);
@@ -48,10 +48,10 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiate_twoAlertsWithRelatedEvents', function() {
-  var slice1 = newSliceEx({title: 'b', start: 0, duration: 0.002});
-  var slice2 = newSliceEx({title: 'b', start: 1, duration: 0.002});
+    var slice1 = newSliceEx({title: 'b', start: 0, duration: 0.002});
+    var slice2 = newSliceEx({title: 'b', start: 1, duration: 0.002});
 
-  var alertInfo1 = new tr.model.EventInfo(
+    var alertInfo1 = new tr.model.EventInfo(
       'alertInfo1', 'Critical alert',
       [{
         label: 'Project Page',
@@ -59,7 +59,7 @@ tr.b.unittest.testSuite(function() {
         href: 'https://github.com/google/trace-viewer/'
       }]);
 
-  var alertInfo2 = new tr.model.EventInfo(
+    var alertInfo2 = new tr.model.EventInfo(
       'alertInfo2', 'Critical alert',
       [{
         label: 'Google Homepage',
@@ -67,12 +67,12 @@ tr.b.unittest.testSuite(function() {
         href: 'http://www.google.com'
       }]);
 
-  var alert1 = new tr.model.Alert(alertInfo1, 5, [slice1]);
-  var alert2 = new tr.model.Alert(alertInfo2, 5, [slice2]);
+    var alert1 = new tr.model.Alert(alertInfo1, 5, [slice1]);
+    var alert2 = new tr.model.Alert(alertInfo2, 5, [slice2]);
 
-  var subView = document.createElement('tr-ui-a-alert-sub-view');
-  subView.selection = new tr.model.EventSet([alert1, alert2]);
-  assert.isTrue(subView.relatedEventsToHighlight.equals(
+    var subView = document.createElement('tr-ui-a-alert-sub-view');
+    subView.selection = new tr.model.EventSet([alert1, alert2]);
+    assert.isTrue(subView.relatedEventsToHighlight.equals(
       new tr.model.EventSet([
         tr.b.getOnlyElement(alert1.associatedEvents),
         tr.b.getOnlyElement(alert2.associatedEvents)

@@ -966,13 +966,13 @@ tr.b.unittest.testSuite(function() {
     assert.equal(ctr.bounds.max, 7);
     assert.equal(ctr.maxTotal, 8);
     assert.deepEqual([0, 0,
-                       1, 1,
-                       1, 2,
-                       2, 3.1,
-                       3, 3,
-                       1, 8,
-                       3, 3,
-                       3.1, 3.6], ctr.totals);
+      1, 1,
+      1, 2,
+      2, 3.1,
+      3, 3,
+      1, 8,
+      3, 3,
+      3.1, 3.6], ctr.totals);
   });
 
   test('multiCounter', function() {
@@ -1011,8 +1011,8 @@ tr.b.unittest.testSuite(function() {
     });
     assert.deepEqual(samples1, [7, 4, 1]);
     assert.deepEqual([0, 7,
-                       10, 14,
-                       0, 1], ctr.totals);
+      10, 14,
+      0, 1], ctr.totals);
     assert.equal(ctr.maxTotal, 14);
   });
 
@@ -1377,7 +1377,7 @@ tr.b.unittest.testSuite(function() {
         id: 72, ph: 'e', tts: 40000},
       // Async slice with tts field but with use_async_tts marker set to 0.
       {name: 'c', args: {params: ''}, pid: 52, ts: 50000, cat: 'foo', tid: 53,
-       id: 72, ph: 'b', tts: 50000, use_async_tts: 0},
+        id: 72, ph: 'b', tts: 50000, use_async_tts: 0},
       {name: 'c', args: {params: ''}, pid: 52, ts: 60000, cat: 'foo', tid: 53,
         id: 72, ph: 'e', tts: 60000, use_async_tts: 0}
     ];
@@ -1403,7 +1403,7 @@ tr.b.unittest.testSuite(function() {
   test('asyncSliceWithCPUDuration', function() {
     var events = [
       {name: 'a', args: {params: ''}, pid: 52, ts: 50000, cat: 'foo', tid: 53,
-       id: 72, ph: 'b', tts: 100000, use_async_tts: 1},
+        id: 72, ph: 'b', tts: 100000, use_async_tts: 1},
       {name: 'a', args: {params: ''}, pid: 52, ts: 60000, cat: 'foo', tid: 53,
         id: 72, ph: 'e', tts: 105000, use_async_tts: 1}
     ];
@@ -2927,7 +2927,7 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual(
       ['a_sub', 'a', 'main'],
       m.samples[0].userFriendlyStack
-        .map(x => x.substr(0, x.indexOf('url') - 1)));
+          .map(x => x.substr(0, x.indexOf('url') - 1)));
     assert.equal(m.samples[0].weight, 1);
   });
 
@@ -4139,64 +4139,64 @@ tr.b.unittest.testSuite(function() {
     checkLevelsOfDetail([[{}]], LIGHT, [LIGHT], false);
     checkLevelsOfDetail([[{ vmRegions: true }]], DETAILED, [DETAILED], false);
     checkLevelsOfDetail(
-        [
+      [
           [{}] /* raw composable PMD1 events */,
           [{}, {}] /* raw composable PMD2 events */
-        ],
+      ],
         LIGHT /* expected GMD level of detail */,
         [LIGHT, LIGHT] /* expected PMD levels of detail */,
         false /* no warnings expected */);
     checkLevelsOfDetail(
-        [
+      [
           [{}, { vmRegions: true }, {}],
           [{ vmRegions: true }, {}]
-        ],
+      ],
         DETAILED, [DETAILED, DETAILED], false);
 
     // Well-formed traces events (VM regions should be irrelevant).
     checkLevelsOfDetail(
-        [
+      [
           [{ levelOfDetail: 'light'}],
           [{ levelOfDetail: 'light', vmRegions: true }]
-        ],
+      ],
         LIGHT, [LIGHT, LIGHT], false);
     checkLevelsOfDetail(
+      [
         [
-          [
             { levelOfDetail: 'detailed' }, { levelOfDetail: 'detailed' }
-          ],
-          [
+        ],
+        [
             { levelOfDetail: 'detailed', vmRegions: true }
-          ],
-          [
+        ],
+        [
             { levelOfDetail: 'detailed' },
             { levelOfDetail: 'detailed', vmRegions: true },
             { levelOfDetail: 'detailed' }
-          ]
-        ],
+        ]
+      ],
         DETAILED, [DETAILED, DETAILED, DETAILED], false);
 
     // Not so well-formed trace events.
     checkLevelsOfDetail(
-        [
+      [
           [{}, { levelOfDetail: 'detailed'}, {}]
-        ],
+      ],
         DETAILED, [DETAILED], true);
     checkLevelsOfDetail(
-        [
+      [
           [{ levelOfDetail: 'light' }],
           [{}],
           [{ levelOfDetail: 'detailed' }],
           [{ levelOfDetail: 'light' }]],
         DETAILED, [LIGHT, LIGHT, DETAILED, LIGHT], true);
     checkLevelsOfDetail(
-        [
+      [
           [{ levelOfDetail: 'light' }, { levelOfDetail: 'detailed' }],
           [{}],
           [{ levelOfDetail: 'light' }, {}]],
         DETAILED, [DETAILED, LIGHT, LIGHT], true);
     checkLevelsOfDetail(
-        [
+      [
           [{ levelOfDetail: 'invalid' }, { levelOfDetail: 'light' }],
           [{ levelOfDetail: 'invalid' }]],
         LIGHT, [LIGHT, LIGHT], true);
@@ -4328,22 +4328,22 @@ tr.b.unittest.testSuite(function() {
     // Stack frames.
     assert.deepEqual(
         tr.b.mapItems(m.stackFrames, function(id, f) { return f.title; }),
-        {
-          'p21:0': 'FrameView::layout',
-          'p21:0:self': '<self>',
-          'p21:1': 'MessageLoop::RunTask',
-          'p42::self': '<self>',
-          'p42:0': 'MessageLoop::RunTask',
-          'p42:0:self': '<self>',
-          'p42:1': 'TimerBase::run',
-          'p42:TWO': 'ScheduledAction::execute',
-          'p42:3': 'FunctionCall',
-          'p42:3:self': '<self>',
-          'p42:4': 'UpdateLayoutTree',
-          'p42:4:self': '<self>',
-          'p42:5': 'MessageLoop::JogTask',
-          'p42:5:self': '<self>'
-        });
+      {
+        'p21:0': 'FrameView::layout',
+        'p21:0:self': '<self>',
+        'p21:1': 'MessageLoop::RunTask',
+        'p42::self': '<self>',
+        'p42:0': 'MessageLoop::RunTask',
+        'p42:0:self': '<self>',
+        'p42:1': 'TimerBase::run',
+        'p42:TWO': 'ScheduledAction::execute',
+        'p42:3': 'FunctionCall',
+        'p42:3:self': '<self>',
+        'p42:4': 'UpdateLayoutTree',
+        'p42:4:self': '<self>',
+        'p42:5': 'MessageLoop::JogTask',
+        'p42:5:self': '<self>'
+      });
 
     // 1. Process 21, first dump.
     var pmd1 = p1.memoryDumps[0];
@@ -4400,11 +4400,11 @@ tr.b.unittest.testSuite(function() {
     checkHeapEntry(partitionAllocEntries3[3], partitionAllocDump3, 5991638,
         ['<self>'], undefined /* sum over all types */);
     checkHeapEntry(partitionAllocEntries3[4], partitionAllocDump3, 6384,
-        ['<self>', 'UpdateLayoutTree', 'TimerBase::run',
-            'MessageLoop::RunTask'], undefined /* sum over all types */);
+      ['<self>', 'UpdateLayoutTree', 'TimerBase::run',
+        'MessageLoop::RunTask'], undefined /* sum over all types */);
     checkHeapEntry(partitionAllocEntries3[5], partitionAllocDump3, 58280,
-        ['<self>', 'FunctionCall', 'ScheduledAction::execute', 'TimerBase::run',
-            'MessageLoop::RunTask'], undefined /* sum over all types */);
+      ['<self>', 'FunctionCall', 'ScheduledAction::execute', 'TimerBase::run',
+        'MessageLoop::RunTask'], undefined /* sum over all types */);
 
     var mallocDump3 = hds3['malloc'];
     assert.strictEqual(mallocDump3.processMemoryDump, pmd3);
@@ -4658,24 +4658,24 @@ tr.b.unittest.testSuite(function() {
     // Stack frames.
     assert.deepEqual(
         tr.b.mapItems(m.stackFrames, function(id, f) { return f.title; }),
-        {
-          'p21:0': 'FrameView::layout',
-          'p21:A': '<self>',
-          'p21:1': 'MessageLoop::RunTask',
-          'p42:-1': '<self>',
-          'p42:0': 'MessageLoop::RunTask',
-          'p42:0.5': '<self>',
-          'p42:1': 'TimerBase::run',
-          'p42:TWO': 'ScheduledAction::execute',
-          'p42:2.72': '<self>',
-          'p42:3': 'FunctionCall',
-          'p42:\u03C0': '<self>',
-          'p42:4': 'UpdateLayoutTree',
-          'p42:FOUR-AND-A-BIT': '<self>',
-          'p42:5': 'MessageLoop::JogTask',
-          'p42:NaN': '<self>',
-          'p84:5': 'MessageLoop::WalkTask'
-        });
+      {
+        'p21:0': 'FrameView::layout',
+        'p21:A': '<self>',
+        'p21:1': 'MessageLoop::RunTask',
+        'p42:-1': '<self>',
+        'p42:0': 'MessageLoop::RunTask',
+        'p42:0.5': '<self>',
+        'p42:1': 'TimerBase::run',
+        'p42:TWO': 'ScheduledAction::execute',
+        'p42:2.72': '<self>',
+        'p42:3': 'FunctionCall',
+        'p42:\u03C0': '<self>',
+        'p42:4': 'UpdateLayoutTree',
+        'p42:FOUR-AND-A-BIT': '<self>',
+        'p42:5': 'MessageLoop::JogTask',
+        'p42:NaN': '<self>',
+        'p84:5': 'MessageLoop::WalkTask'
+      });
 
     // 1. Process 21, first dump.
     var pmd1 = p1.memoryDumps[0];
@@ -4740,14 +4740,14 @@ tr.b.unittest.testSuite(function() {
     checkHeapEntry(partitionAllocEntries3[3], partitionAllocDump3, 5991638,
         ['<self>'], '[unknown]');
     checkHeapEntry(partitionAllocEntries3[4], partitionAllocDump3, 6384,
-        ['<self>', 'UpdateLayoutTree', 'TimerBase::run',
-            'MessageLoop::RunTask'], undefined /* sum over all types */, 256);
+      ['<self>', 'UpdateLayoutTree', 'TimerBase::run',
+        'MessageLoop::RunTask'], undefined /* sum over all types */, 256);
     checkHeapEntry(partitionAllocEntries3[5], partitionAllocDump3, 3192,
-        ['<self>', 'UpdateLayoutTree', 'TimerBase::run',
-            'MessageLoop::RunTask'], 'blink::WebFrame *');
+      ['<self>', 'UpdateLayoutTree', 'TimerBase::run',
+        'MessageLoop::RunTask'], 'blink::WebFrame *');
     checkHeapEntry(partitionAllocEntries3[6], partitionAllocDump3, 58280,
-        ['<self>', 'FunctionCall', 'ScheduledAction::execute', 'TimerBase::run',
-            'MessageLoop::RunTask'], undefined /* sum over all types */);
+      ['<self>', 'FunctionCall', 'ScheduledAction::execute', 'TimerBase::run',
+        'MessageLoop::RunTask'], undefined /* sum over all types */);
 
     var mallocDump3 = hds3['malloc'];
     assert.strictEqual(mallocDump3.processMemoryDump, pmd3);
@@ -4763,8 +4763,8 @@ tr.b.unittest.testSuite(function() {
         ['<self>', 'MessageLoop::JogTask'], undefined /* sum over all types */,
         112);
     checkHeapEntry(mallocEntries3[3], mallocDump3, 205,
-        ['FunctionCall', 'ScheduledAction::execute', 'TimerBase::run',
-            'MessageLoop::RunTask'], 'blink::ContextLifecycleObserver *', 128);
+      ['FunctionCall', 'ScheduledAction::execute', 'TimerBase::run',
+        'MessageLoop::RunTask'], 'blink::ContextLifecycleObserver *', 128);
 
     // All heap dumps in Process 42 should use the same stack frames.
     assert.strictEqual(
@@ -5370,16 +5370,16 @@ tr.b.unittest.testSuite(function() {
 
   test('importTraceConfigAsMetadata', function() {
     var traceConfigData = {
-        enable_argument_filter: false,
-        enable_sampling: false,
-        enable_systrace: false,
-        record_mode: 'record-until-full'
+      enable_argument_filter: false,
+      enable_sampling: false,
+      enable_systrace: false,
+      record_mode: 'record-until-full'
     };
 
     var eventData = {
       traceEvents: [
-      { name: 'TraceConfig', args: { value: traceConfigData },
-        pid: 2, ts: 0, tid: 1, ph: 'M', cat: '__metadata' },
+        { name: 'TraceConfig', args: { value: traceConfigData },
+          pid: 2, ts: 0, tid: 1, ph: 'M', cat: '__metadata' },
       ],
     };
 
@@ -5866,50 +5866,50 @@ tr.b.unittest.testSuite(function() {
     var events = {
       'traceEvents': [
         {'pid': 1, 'tid': 2, 'ts': 3, 'ph': 'P',
-         'cat': 'disabled-by-default-v8.cpu_profiler',
-         'name': 'Profile',
-         'args': {'data': {'startTime': 10}},
-         'id': 123
+          'cat': 'disabled-by-default-v8.cpu_profiler',
+          'name': 'Profile',
+          'args': {'data': {'startTime': 10}},
+          'id': 123
         },
         {'pid': 1, 'tid': 3, 'ts': 4, 'ph': 'P',
-         'cat': 'disabled-by-default-v8.cpu_profiler',
-         'name': 'Profile',
-         'args': {
-           'data': {
-             'timeDeltas': [1, 1],
-             'cpuProfile': {
-               'nodes': [
+          'cat': 'disabled-by-default-v8.cpu_profiler',
+          'name': 'Profile',
+          'args': {
+            'data': {
+              'timeDeltas': [1, 1],
+              'cpuProfile': {
+                'nodes': [
                  // eslint-disable-next-line
                  {'callFrame': {'functionName': '(root)', 'scriptId': 0}, 'id': 1},
                  // eslint-disable-next-line
                  {'callFrame': {'functionName': 'a', 'url': 'a.js', 'scriptId': 1, 'lineNumber': 1, 'columnNumber': 2}, 'id': 2, 'parent': 1},
                  // eslint-disable-next-line
                  {'callFrame': {'functionName': 'b', 'url': 'b.js', 'scriptId': 2, 'lineNumber': 1, 'columnNumber': 2}, 'deoptReason': 'a reason', 'id': 3, 'parent': 2}
-               ],
-               'samples': [3, 2]
-             }
-           }
-         },
-         'id': 123
+                ],
+                'samples': [3, 2]
+              }
+            }
+          },
+          'id': 123
         },
         {'pid': 1, 'tid': 3, 'ts': 4, 'ph': 'P',
-         'cat': 'disabled-by-default-v8.cpu_profiler',
-         'name': 'Profile',
-         'args': {
-           'data': {
-             'timeDeltas': [3, 3],
-             'cpuProfile': {
-               'nodes': [
+          'cat': 'disabled-by-default-v8.cpu_profiler',
+          'name': 'Profile',
+          'args': {
+            'data': {
+              'timeDeltas': [3, 3],
+              'cpuProfile': {
+                'nodes': [
                  // eslint-disable-next-line
                  {'callFrame': {'functionName': 'c', 'url': 'c.js', 'scriptId': 3, 'lineNumber': 2, 'columnNumber': 3}, 'id': 4, 'parent': 2},
                  // eslint-disable-next-line
                  {'callFrame': {'functionName': 'd', 'url': 'd.js', 'scriptId': 4, 'lineNumber': 2, 'columnNumber': 3}, 'deoptReason': 'another reason', 'id': 5, 'parent': 3}
-               ],
-               'samples': [5, 4]
-             }
-           }
-         },
-         'id': 123
+                ],
+                'samples': [5, 4]
+              }
+            }
+          },
+          'id': 123
         }
       ]
     };

@@ -591,10 +591,10 @@ tr.exportTo('tr.ui.analysis', function() {
           pidToTimeToProcessMemoryDump, function(pid, timeToDump) {
         // Get the process associated with the dumps. We can use any defined
         // process memory dump in timeToDump since they all have the same pid.
-        var process = tr.b.findFirstInArray(timeToDump).process;
+            var process = tr.b.findFirstInArray(timeToDump).process;
 
         // Used memory (total resident, PSS, ...).
-        var usedMemoryCells = tr.ui.analysis.createCells(timeToDump,
+            var usedMemoryCells = tr.ui.analysis.createCells(timeToDump,
             function(dump) {
               var sizes = {};
 
@@ -643,7 +643,7 @@ tr.exportTo('tr.ui.analysis', function() {
             });
 
         // Allocator memory (v8, oilpan, ...).
-        var allocatorCells = tr.ui.analysis.createCells(timeToDump,
+            var allocatorCells = tr.ui.analysis.createCells(timeToDump,
             function(dump) {
               var memoryAllocatorDumps = dump.memoryAllocatorDumps;
               if (memoryAllocatorDumps === undefined)
@@ -661,13 +661,13 @@ tr.exportTo('tr.ui.analysis', function() {
               return sizes;
             });
 
-        return {
-          title: process.userFriendlyName,
-          contexts: timeToDump,
-          usedMemoryCells: usedMemoryCells,
-          allocatorCells: allocatorCells
-        };
-      }));
+            return {
+              title: process.userFriendlyName,
+              contexts: timeToDump,
+              usedMemoryCells: usedMemoryCells,
+              allocatorCells: allocatorCells
+            };
+          }));
     },
 
     createFooterRows_: function(rows, columns) {
@@ -730,16 +730,16 @@ tr.exportTo('tr.ui.analysis', function() {
       var selectedColumnName = settings.columnName;
       var selectedColumnIndex = tr.b.findFirstIndexInArray(
           this.$.table.tableColumns, function(column) {
-        return column.name === selectedColumnName;
-      });
+            return column.name === selectedColumnName;
+          });
       if (selectedColumnIndex < 0)
         return;
 
       var selectedRowTitle = settings.rowTitle;
       var selectedRow = tr.b.findFirstInArray(this.$.table.tableRows,
           function(row) {
-        return row.title === selectedRowTitle;
-      });
+            return row.title === selectedRowTitle;
+          });
       if (selectedRow === undefined)
         return;
 

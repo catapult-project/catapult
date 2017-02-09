@@ -177,16 +177,16 @@ tr.exportTo('tr.ui.b', function() {
 
       // Paths.
       piePathsSel.enter().append('path')
-        .attr('class', 'arc')
-        .attr('fill', function(d, i) {
+          .attr('class', 'arc')
+          .attr('fill', function(d, i) {
             var origData = this.data_[i];
             var dataSeries = this.getDataSeries(origData.label);
             if (origData.label === this.currentHighlightedLegendKey)
               return dataSeries.highlightedColor;
             return dataSeries.color;
           }.bind(this))
-        .attr('d', pathsArc)
-        .on('click', function(d, i) {
+          .attr('d', pathsArc)
+          .on('click', function(d, i) {
             var origData = this.data_[i];
             var event = new tr.b.Event('item-click');
             event.data = origData;
@@ -194,33 +194,33 @@ tr.exportTo('tr.ui.b', function() {
             this.dispatchEvent(event);
             d3.event.stopPropagation();
           }.bind(this))
-        .on('mouseenter', function(d, i) {
+          .on('mouseenter', function(d, i) {
             var origData = this.data_[i];
             this.pushTempHighlightedLegendKey(origData.label);
           }.bind(this))
-        .on('mouseleave', function(d, i) {
+          .on('mouseleave', function(d, i) {
             var origData = this.data_[i];
             this.popTempHighlightedLegendKey(origData.label);
           }.bind(this));
 
       // Value labels.
       piePathsSel.enter().append('text')
-        .style('font-size', '8pt')
-        .attr('class', 'arc-text')
-        .attr('transform', function(d) {
+          .style('font-size', '8pt')
+          .attr('class', 'arc-text')
+          .attr('transform', function(d) {
             return 'translate(' + valueLabelArc.centroid(d) + ')';
           })
-        .attr('dy', '.35em')
-        .style('text-anchor', 'middle')
-        .on('mouseenter', function(d, i) {
+          .attr('dy', '.35em')
+          .style('text-anchor', 'middle')
+          .on('mouseenter', function(d, i) {
             var origData = this.data_[i];
             this.pushTempHighlightedLegendKey(origData.label);
           }.bind(this))
-        .on('mouseleave', function(d, i) {
+          .on('mouseleave', function(d, i) {
             var origData = this.data_[i];
             this.popTempHighlightedLegendKey(origData.label);
           }.bind(this))
-        .text(function(d, i) {
+          .text(function(d, i) {
             var origData = this.data_[i];
             if (origData.valueText === undefined)
               return '';
@@ -254,11 +254,11 @@ tr.exportTo('tr.ui.b', function() {
       var lineSel = d3.select(this.linesGroup_).selectAll('.line')
           .data(this.pieLayoutData_);
       lineSel.enter()
-        .append('polyline')
-        .style('fill', 'none')
-        .style('stroke', 'black')
-        .attr('class', 'line')
-        .attr('dy', '.35em');
+          .append('polyline')
+          .style('fill', 'none')
+          .style('stroke', 'black')
+          .attr('class', 'line')
+          .attr('dy', '.35em');
       lineSel.attr('points', function(d) {
         var pos = lineEndArc.centroid(d);
         pos[0] = radius * 0.95 * (midAngle(d) < Math.PI ? 1 : -1);

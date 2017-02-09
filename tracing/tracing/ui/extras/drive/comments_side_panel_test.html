@@ -5,8 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/ui/extras/drive/comments_side_panel.html">
 <link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/ui/extras/drive/comments_side_panel.html">
 
 <script>
 'use strict';
@@ -41,16 +41,16 @@ tr.b.unittest.testSuite(function() {
 
     addDummyComment: function(content) {
       var newComment = {
-          author: {
-            displayName: 'Casper the Friendly Ghost',
-            picture: {
-              url: 'https://lh3.googleusercontent.com/-XdUIqdMkCWA/' +
+        author: {
+          displayName: 'Casper the Friendly Ghost',
+          picture: {
+            url: 'https://lh3.googleusercontent.com/-XdUIqdMkCWA/' +
                       'AAAAAAAAAAI/AAAAAAAAAAA/4252rscbv5M/s128/photo.jpg'
-            }
-          },
-          createdDate: Date.now(),
-          anchor: (this.comments_.length) % 2 ? 1 : 0,
-          content: content
+          }
+        },
+        createdDate: Date.now(),
+        anchor: (this.comments_.length) % 2 ? 1 : 0,
+        content: content
       };
 
       this.comments_.push(newComment);

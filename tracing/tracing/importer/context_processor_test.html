@@ -42,7 +42,7 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual(processor.activeContexts, [expectedContextA]);
     processor.enterContext('B', idB);
     assert.deepEqual(processor.activeContexts, [expectedContextA,
-                                                expectedContextB]);
+      expectedContextB]);
     processor.leaveContext('B', idB);
     assert.deepEqual(processor.activeContexts, [expectedContextA]);
     processor.leaveContext('A', idA);
@@ -53,7 +53,7 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual(processor.activeContexts, [expectedContextB]);
     processor.enterContext('A', idA);
     assert.deepEqual(processor.activeContexts, [expectedContextA,
-                                                expectedContextB]);
+      expectedContextB]);
     processor.leaveContext('B', idB);
     assert.deepEqual(processor.activeContexts, [expectedContextA]);
     processor.leaveContext('A', idA);
@@ -65,9 +65,9 @@ tr.b.unittest.testSuite(function() {
     var idA = new tr.model.ScopedId('ptr', 123);
     var idB = new tr.model.ScopedId('idx', 456);
     var expectedContextA = {
-        type: 'type', snapshot: {scope: 'ptr', idRef: 123}};
+      type: 'type', snapshot: {scope: 'ptr', idRef: 123}};
     var expectedContextB = {
-        type: 'type', snapshot: {scope: 'idx', idRef: 456}};
+      type: 'type', snapshot: {scope: 'idx', idRef: 456}};
 
     // Entering and leaving the same context type.
     processor.enterContext('type', idA);
@@ -85,9 +85,9 @@ tr.b.unittest.testSuite(function() {
     var idA = new tr.model.ScopedId('ptr', 123);
     var idB = new tr.model.ScopedId('idx', 456);
     var expectedContextA = {
-        type: 'A', snapshot: {scope: 'ptr', idRef: 123}};
+      type: 'A', snapshot: {scope: 'ptr', idRef: 123}};
     var expectedContextB = {
-        type: 'B', snapshot: {scope: 'idx', idRef: 456}};
+      type: 'B', snapshot: {scope: 'idx', idRef: 456}};
 
     processor.enterContext('A', idA);
     var firstSet = processor.activeContexts;

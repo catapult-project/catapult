@@ -65,10 +65,10 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(scriptHist.allBins[3].diagnosticMaps, 1);
     assert.lengthOf(
         scriptHist.allBins[3].diagnosticMaps[0]
-        .get('relatedEvents'), 1);
+            .get('relatedEvents'), 1);
     assert.strictEqual(events[1],
         [...scriptHist.allBins[3].diagnosticMaps[0]
-        .get('relatedEvents')][0]);
+            .get('relatedEvents')][0]);
 
     var styleHist = histograms.getHistogramNamed('foo-style');
     assert.instanceOf(styleHist, tr.v.Histogram);

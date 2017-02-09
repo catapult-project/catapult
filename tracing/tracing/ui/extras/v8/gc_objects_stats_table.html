@@ -200,7 +200,7 @@ tr.exportTo('tr.ui.e.v8', function() {
   var InstanceSubTypeNames = {
     FIXED_ARRAY_TYPE: {
       keyToName: key => key.slice('*FIXED_ARRAY_'.length)
-        .slice(0, -('_SUB_TYPE'.length)),
+          .slice(0, -('_SUB_TYPE'.length)),
       nameToKey: name => '*FIXED_ARRAY_' + name + '_SUB_TYPE'
     },
     CODE_TYPE: {
@@ -267,7 +267,7 @@ tr.exportTo('tr.ui.e.v8', function() {
 
   class Entry {
     constructor(title, count, overall, overAllocated, histogram,
-                overAllocatedHistogram) {
+        overAllocatedHistogram) {
       this.title_ = title;
       this.overall_ = overall;
       this.count_ = count;
@@ -345,7 +345,7 @@ tr.exportTo('tr.ui.e.v8', function() {
 
   class GroupedEntry extends Entry {
     constructor(title, count, overall, overAllocated, histogram,
-                overAllocatedHistogram) {
+        overAllocatedHistogram) {
       super(title, count, overall, overAllocated, histogram,
             overAllocatedHistogram);
       this.histogram_.fill(0);

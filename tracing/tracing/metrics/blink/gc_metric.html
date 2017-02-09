@@ -53,13 +53,13 @@ tr.exportTo('tr.metrics.blink', function() {
     var n = new tr.v.Histogram(name,
         timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
     n.customizeSummaryOptions({
-        avg: true,
-        count: true,
-        max: true,
-        min: false,
-        std: true,
-        sum: true,
-        percentile: [0.90]});
+      avg: true,
+      count: true,
+      max: true,
+      min: false,
+      std: true,
+      sum: true,
+      percentile: [0.90]});
     return n;
   }
 
@@ -67,13 +67,13 @@ tr.exportTo('tr.metrics.blink', function() {
     var n = new tr.v.Histogram(name,
         timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
     n.customizeSummaryOptions({
-        avg: true,
-        count: false,
-        max: true,
-        min: false,
-        std: false,
-        sum: true,
-        percentile: []
+      avg: true,
+      count: false,
+      max: true,
+      min: false,
+      std: false,
+      sum: true,
+      percentile: []
     });
     return n;
   }

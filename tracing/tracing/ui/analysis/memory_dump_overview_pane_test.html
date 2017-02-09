@@ -208,37 +208,37 @@ tr.b.unittest.testSuite(function() {
         [tr.ui.analysis.createSingleTestGlobalMemoryDump()]);
     createAndCheckMemoryDumpOverviewPane(this,
         processMemoryDumps,
-        [  // Table rows.
-          {
-            title: colorLegendMatcher('Process 1'),
-            sizes: [[29884416], undefined, [9437184], [5767168], undefined,
-                undefined, undefined, undefined, [7340032], undefined,
-                undefined, [2097152]],
-            contexts: extractProcessMemoryDumps(processMemoryDumps, 1)
-          },
-          {
-            title: colorLegendMatcher('Process 2'),
-            sizes: [[17825792], [39845888], [18350080], [0], [32], [8912896],
+      [  // Table rows.
+        {
+          title: colorLegendMatcher('Process 1'),
+          sizes: [[29884416], undefined, [9437184], [5767168], undefined,
+            undefined, undefined, undefined, [7340032], undefined,
+            undefined, [2097152]],
+          contexts: extractProcessMemoryDumps(processMemoryDumps, 1)
+        },
+        {
+          title: colorLegendMatcher('Process 2'),
+          sizes: [[17825792], [39845888], [18350080], [0], [32], [8912896],
                 [7340032], [0], [1048576], [1], [5242880], [1572864]],
-            contexts: extractProcessMemoryDumps(processMemoryDumps, 2)
-          },
-          {
-            title: colorLegendMatcher('Process 4'),
-            sizes: [undefined, [17825792], undefined, undefined, undefined,
-                undefined, undefined, undefined, undefined, undefined,
-                undefined, undefined],
-            contexts: extractProcessMemoryDumps(processMemoryDumps, 4)
-          }
-        ],
-        [  // Footer rows.
-          {
-            title: 'Total',
-            sizes: [[47710208], [57671680], [27787264], [5767168], [32],
+          contexts: extractProcessMemoryDumps(processMemoryDumps, 2)
+        },
+        {
+          title: colorLegendMatcher('Process 4'),
+          sizes: [undefined, [17825792], undefined, undefined, undefined,
+            undefined, undefined, undefined, undefined, undefined,
+            undefined, undefined],
+          contexts: extractProcessMemoryDumps(processMemoryDumps, 4)
+        }
+      ],
+      [  // Footer rows.
+        {
+          title: 'Total',
+          sizes: [[47710208], [57671680], [27787264], [5767168], [32],
                 [8912896], [7340032], [0], [8388608], [1], [5242880],
                 [3670016]],
-            contexts: undefined
-          }
-        ],
+          contexts: undefined
+        }
+      ],
         undefined /* no aggregation */);
   });
 
@@ -247,55 +247,55 @@ tr.b.unittest.testSuite(function() {
         tr.ui.analysis.createMultipleTestGlobalMemoryDumps());
     createAndCheckMemoryDumpOverviewPane(this,
         processMemoryDumps,
-        [  // Table rows.
-          {
-            title: colorLegendMatcher('Process 1'),
-            sizes: [[31457280, 29884416, undefined], undefined,
+      [  // Table rows.
+        {
+          title: colorLegendMatcher('Process 1'),
+          sizes: [[31457280, 29884416, undefined], undefined,
                 [10485760, 9437184, undefined], [8388608, 5767168, undefined],
-                undefined, undefined, undefined, undefined,
+            undefined, undefined, undefined, undefined,
                 [undefined, 7340032, undefined], undefined, undefined,
                 [undefined, 2097152, undefined]],
-            contexts: extractProcessMemoryDumps(processMemoryDumps, 1)
-          },
-          {
-            title: colorLegendMatcher('Process 2'),
-            sizes: [[19398656, 17825792, 15728640],
+          contexts: extractProcessMemoryDumps(processMemoryDumps, 1)
+        },
+        {
+          title: colorLegendMatcher('Process 2'),
+          sizes: [[19398656, 17825792, 15728640],
                 [40370176, 39845888, 40894464], [18350080, 18350080, 18350080],
                 [0, 0, -2621440], [32, 32, 64], [10485760, 8912896, 7340032],
                 [undefined, 7340032, 6291456], [undefined, 0, 1048576],
                 [2097152, 1048576, 786432], [undefined, 1, undefined],
                 [5242880, 5242880, 5767168], [1048576, 1572864, 2097152]],
-            contexts: extractProcessMemoryDumps(processMemoryDumps, 2)
-          },
-          {
-            title: colorLegendMatcher('Process 3'),
-            sizes: [undefined, undefined, undefined, undefined, undefined,
-                undefined, undefined, undefined, undefined,
+          contexts: extractProcessMemoryDumps(processMemoryDumps, 2)
+        },
+        {
+          title: colorLegendMatcher('Process 3'),
+          sizes: [undefined, undefined, undefined, undefined, undefined,
+            undefined, undefined, undefined, undefined,
                 [2147483648, undefined, 1073741824],
                 [1073741824, undefined, 2147483648], undefined],
-            contexts: extractProcessMemoryDumps(processMemoryDumps, 3)
-          },
-          {
-            title: colorLegendMatcher('Process 4'),
-            sizes: [undefined, [undefined, 17825792, 17825792], undefined,
-                undefined, undefined, undefined, undefined, undefined,
-                undefined, undefined, undefined, undefined],
-            contexts: extractProcessMemoryDumps(processMemoryDumps, 4)
-          }
-        ],
-        [  // Footer rows.
-          {
-            title: 'Total',
-            sizes: [[50855936, 47710208, 15728640],
+          contexts: extractProcessMemoryDumps(processMemoryDumps, 3)
+        },
+        {
+          title: colorLegendMatcher('Process 4'),
+          sizes: [undefined, [undefined, 17825792, 17825792], undefined,
+            undefined, undefined, undefined, undefined, undefined,
+            undefined, undefined, undefined, undefined],
+          contexts: extractProcessMemoryDumps(processMemoryDumps, 4)
+        }
+      ],
+      [  // Footer rows.
+        {
+          title: 'Total',
+          sizes: [[50855936, 47710208, 15728640],
                 [40370176, 57671680, 58720256], [28835840, 27787264, 18350080],
                 [8388608, 5767168, -2621440], [32, 32, 64],
                 [10485760, 8912896, 7340032], [undefined, 7340032, 6291456],
                 [undefined, 0, 1048576], [2097152, 8388608, 786432],
                 [2147483648, 1, 1073741824], [1078984704, 5242880, 2153250816],
                 [1048576, 3670016, 2097152]],
-            contexts: undefined
-          }
-        ],
+          contexts: undefined
+        }
+      ],
         AggregationMode.DIFF);
   });
 
@@ -304,14 +304,14 @@ tr.b.unittest.testSuite(function() {
         [tr.ui.analysis.createSingleTestProcessMemoryDump()]);
     createAndCheckMemoryDumpOverviewPane(this,
         processMemoryDumps,
-        [  // Table rows.
-          {
-            title: colorLegendMatcher('Process 2'),
-            sizes: [[17825792], [39845888], [18350080], [0], [32], [8912896],
+      [  // Table rows.
+        {
+          title: colorLegendMatcher('Process 2'),
+          sizes: [[17825792], [39845888], [18350080], [0], [32], [8912896],
                 [7340032], [0], [1048576], [1], [5242880], [1572864]],
-            contexts: extractProcessMemoryDumps(processMemoryDumps, 2)
-          }
-        ],
+          contexts: extractProcessMemoryDumps(processMemoryDumps, 2)
+        }
+      ],
         [] /* footer rows */,
         undefined /* no aggregation */);
   });
@@ -321,18 +321,18 @@ tr.b.unittest.testSuite(function() {
         tr.ui.analysis.createMultipleTestProcessMemoryDumps());
     createAndCheckMemoryDumpOverviewPane(this,
         processMemoryDumps,
-        [  // Table rows.
-          {
-            title: colorLegendMatcher('Process 2'),
-            sizes: [[19398656, 17825792, 15728640],
+      [  // Table rows.
+        {
+          title: colorLegendMatcher('Process 2'),
+          sizes: [[19398656, 17825792, 15728640],
                 [40370176, 39845888, 40894464], [18350080, 18350080, 18350080],
                 [0, 0, -2621440], [32, 32, 64], [10485760, 8912896, 7340032],
                 [undefined, 7340032, 6291456], [undefined, 0, 1048576],
                 [2097152, 1048576, 786432], [undefined, 1, undefined],
                 [5242880, 5242880, 5767168], [1048576, 1572864, 2097152]],
-            contexts: extractProcessMemoryDumps(processMemoryDumps, 2)
-          }
-        ],
+          contexts: extractProcessMemoryDumps(processMemoryDumps, 2)
+        }
+      ],
         [] /* footer rows */,
         AggregationMode.MAX);
   });

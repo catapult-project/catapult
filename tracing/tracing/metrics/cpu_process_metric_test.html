@@ -38,11 +38,11 @@ tr.b.unittest.testSuite(function() {
           'snapshot': {
             'processes': [
               {'path': '/usr/sbin/crudd', 'pCpu': '99.0', 'pid': '13495',
-               'pMem': '0.0', 'name': 'crudd'},
+                'pMem': '0.0', 'name': 'crudd'},
               {'path': '/opt/chrome/chrome', 'pCpu': '0.8',
-               'pid': '29660', 'pMem': '0.9', 'name': 'chrome'},
+                'pid': '29660', 'pMem': '0.9', 'name': 'chrome'},
               {'path': '/opt/chrome/chrome', 'pCpu': '0.3',
-               'pid': '29661', 'pMem': '0.9', 'name': 'chrome'}
+                'pid': '29661', 'pMem': '0.9', 'name': 'chrome'}
             ]
           }
         },
@@ -68,40 +68,40 @@ tr.b.unittest.testSuite(function() {
   test('cpuProcessMetric_multipleSnapshots', function() {
     var values = new tr.v.HistogramSet();
     var events = [
-        {
-          'name': 'CPUSnapshots',
-          'args': {
-            'snapshot': {
-              'processes': [
-                {'path': '/usr/sbin/crudd', 'pCpu': '99.0', 'pid': '13495',
-                 'pMem': '0.0', 'name': 'crudd'},
-                {'path': '/opt/chrome/chrome', 'pCpu': '0.8',
-                 'pid': '29660', 'pMem': '0.9', 'name': 'chrome'}
-              ]
-            }
-          },
-          'pid': 52, 'ts': '2226221225693.658', 'tid': 53,
-          'ph': 'O', 'local': true, 'id': '0x1000'
-        },
-        {
-          'name': 'CPUSnapshots',
-          'args': {
-            'snapshot': {
-              'processes': [
-               {'path': '/usr/sbin/crudd', 'pCpu': '1.3', 'pid': '13495',
+      {
+        'name': 'CPUSnapshots',
+        'args': {
+          'snapshot': {
+            'processes': [
+              {'path': '/usr/sbin/crudd', 'pCpu': '99.0', 'pid': '13495',
                 'pMem': '0.0', 'name': 'crudd'},
-               {'path': '/opt/chrome/chrome', 'pCpu': '0.6',
+              {'path': '/opt/chrome/chrome', 'pCpu': '0.8',
+                'pid': '29660', 'pMem': '0.9', 'name': 'chrome'}
+            ]
+          }
+        },
+        'pid': 52, 'ts': '2226221225693.658', 'tid': 53,
+        'ph': 'O', 'local': true, 'id': '0x1000'
+      },
+      {
+        'name': 'CPUSnapshots',
+        'args': {
+          'snapshot': {
+            'processes': [
+              {'path': '/usr/sbin/crudd', 'pCpu': '1.3', 'pid': '13495',
+                'pMem': '0.0', 'name': 'crudd'},
+              {'path': '/opt/chrome/chrome', 'pCpu': '0.6',
                 'pid': '29660', 'pMem': '0.9', 'name': 'chrome'},
-                {'path': '/opt/chromium/chrome', 'pCpu': '0.1',
-                 'pid': '29660', 'pMem': '0.9', 'name': 'chrome'},
-               {'path': '/usr/sbin/mnp_logger', 'pCpu': '0.2', 'pid': '6543',
+              {'path': '/opt/chromium/chrome', 'pCpu': '0.1',
+                'pid': '29660', 'pMem': '0.9', 'name': 'chrome'},
+              {'path': '/usr/sbin/mnp_logger', 'pCpu': '0.2', 'pid': '6543',
                 'pMem': '0.1', 'name': 'mnp_logger'}
-              ]
-            }
-          },
-          'pid': 52, 'ts': '2226222262064.4473', 'tid': 53,
-          'ph': 'O', 'local': true, 'id': '0x1000'
-        }
+            ]
+          }
+        },
+        'pid': 52, 'ts': '2226222262064.4473', 'tid': 53,
+        'ph': 'O', 'local': true, 'id': '0x1000'
+      }
     ];
     tr.metrics.sh.cpuProcessMetric(values, makeModel(events));
     assert.isDefined(values.getHistogramNamed('cpu:percent:chrome'));

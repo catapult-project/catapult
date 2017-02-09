@@ -31,12 +31,12 @@ tr.exportTo('tr.metrics.sh', function() {
             domains[i].toLowerCase() + '_to_' + domains[j].toLowerCase(),
             tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, LATENCY_BOUNDS);
         hist.customizeSummaryOptions({
-            avg: true,
-            count: false,
-            max: false,
-            min: false,
-            std: false,
-            sum: false,
+          avg: true,
+          count: false,
+          max: false,
+          min: false,
+          std: false,
+          sum: false,
         });
         hist.description = 'Clock sync latency for domain ' + domains[i] +
             ' to domain ' + domains[j];

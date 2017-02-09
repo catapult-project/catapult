@@ -324,8 +324,8 @@ tr.exportTo('tr.ui.analysis', function() {
               if (ownedCount < numerics.length)
                 messageBuilder.appendSomeTimestampsQuantifier();
               messageBuilder.appendImportanceRange(ownedEntry.importanceRange);
-            messageBuilder.append(' with');
-            messageBuilder.appendMap(
+              messageBuilder.append(' with');
+              messageBuilder.appendMap(
                 ownedEntry.sharerNameToEntry,
                 false /* hasPluralSuffix */,
                 ' no other dumps',

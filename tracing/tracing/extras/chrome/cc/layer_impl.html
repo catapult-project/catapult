@@ -47,8 +47,8 @@ tr.exportTo('tr.e.cc', function() {
           this, ['layerId', 'layerQuad']);
       tr.e.cc.moveOptionalFieldsFromArgsToToplevel(
           this, ['children', 'maskLayer', 'replicaLayer',
-                 'idealContentsScale', 'geometryContentsScale',
-                 'layoutRects', 'usingGpuRasterization']);
+            'idealContentsScale', 'geometryContentsScale',
+            'layoutRects', 'usingGpuRasterization']);
 
       // Leave gpu memory usage in both places.
       this.gpuMemoryUsageInBytes = this.args.gpuMemoryUsage;
@@ -172,33 +172,33 @@ tr.exportTo('tr.e.cc', function() {
 
   ObjectSnapshot.subTypes.register(
       PictureLayerImplSnapshot,
-      {
-        typeName: 'cc::PictureLayerImpl'
-      });
+    {
+      typeName: 'cc::PictureLayerImpl'
+    });
 
   ObjectSnapshot.subTypes.register(
       LayerImplSnapshot,
-      {
-        typeNames: [
-          'cc::LayerImpl',
-          'cc::DelegatedRendererLayerImpl',
-          'cc::HeadsUpDisplayLayerImpl',
-          'cc::IOSurfaceLayerImpl',
-          'cc::NinePatchLayerImpl',
-          'cc::PictureImageLayerImpl',
-          'cc::ScrollbarLayerImpl',
-          'cc::SolidColorLayerImpl',
-          'cc::SolidColorScrollbarLayerImpl',
-          'cc::SurfaceLayerImpl',
-          'cc::TextureLayerImpl',
-          'cc::TiledLayerImpl',
-          'cc::VideoLayerImpl',
-          'cc::PaintedScrollbarLayerImpl',
-          'ClankPatchLayer',
-          'TabBorderLayer',
-          'CounterLayer'
-        ]
-      });
+    {
+      typeNames: [
+        'cc::LayerImpl',
+        'cc::DelegatedRendererLayerImpl',
+        'cc::HeadsUpDisplayLayerImpl',
+        'cc::IOSurfaceLayerImpl',
+        'cc::NinePatchLayerImpl',
+        'cc::PictureImageLayerImpl',
+        'cc::ScrollbarLayerImpl',
+        'cc::SolidColorLayerImpl',
+        'cc::SolidColorScrollbarLayerImpl',
+        'cc::SurfaceLayerImpl',
+        'cc::TextureLayerImpl',
+        'cc::TiledLayerImpl',
+        'cc::VideoLayerImpl',
+        'cc::PaintedScrollbarLayerImpl',
+        'ClankPatchLayer',
+        'TabBorderLayer',
+        'CounterLayer'
+      ]
+    });
 
   return {
     LayerImplSnapshot,

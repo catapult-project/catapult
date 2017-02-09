@@ -87,17 +87,17 @@ tr.exportTo('tr.model', function() {
    */
   MemoryDumpTestUtils.addProcessMemoryDump =
       function(gmd, process, opt_options) {
-    var timestamp = getOption(opt_options, 'ts', gmd.start);
-    var pmd = new ProcessMemoryDump(gmd, process, timestamp);
-    process.memoryDumps.push(pmd);
-    if (process.pid in gmd.processMemoryDumps) {
+        var timestamp = getOption(opt_options, 'ts', gmd.start);
+        var pmd = new ProcessMemoryDump(gmd, process, timestamp);
+        process.memoryDumps.push(pmd);
+        if (process.pid in gmd.processMemoryDumps) {
       // Test sanity check.
-      throw new Error('Process memory dump for process with pid=' +
+          throw new Error('Process memory dump for process with pid=' +
           process.pid + ' has already been provided');
-    }
-    gmd.processMemoryDumps[process.pid] = pmd;
-    return pmd;
-  };
+        }
+        gmd.processMemoryDumps[process.pid] = pmd;
+        return pmd;
+      };
 
   /**
    * Create a new memory allocator dump.
@@ -162,20 +162,20 @@ tr.exportTo('tr.model', function() {
 
   MemoryDumpTestUtils.checkDumpNumericsAndDiagnostics =
       function(dump, expectedNumerics, expectedDiagnostics) {
-    var actualNumerics = dump.numerics;
-    assert.sameMembers(
+        var actualNumerics = dump.numerics;
+        assert.sameMembers(
         Object.keys(actualNumerics), Object.keys(expectedNumerics));
-    for (var numericName in actualNumerics) {
-      var actualNumeric = actualNumerics[numericName];
-      var expectedNumeric = castToScalar(expectedNumerics[numericName]);
-      assert.instanceOf(actualNumeric, tr.b.Scalar);
-      assert.strictEqual(actualNumeric.unit, expectedNumeric.unit);
-      assert.closeTo(actualNumeric.value, expectedNumeric.value,
+        for (var numericName in actualNumerics) {
+          var actualNumeric = actualNumerics[numericName];
+          var expectedNumeric = castToScalar(expectedNumerics[numericName]);
+          assert.instanceOf(actualNumeric, tr.b.Scalar);
+          assert.strictEqual(actualNumeric.unit, expectedNumeric.unit);
+          assert.closeTo(actualNumeric.value, expectedNumeric.value,
           MemoryDumpTestUtils.SIZE_DELTA);
-    }
+        }
 
-    assert.deepEqual(dump.diagnostics, expectedDiagnostics);
-  };
+        assert.deepEqual(dump.diagnostics, expectedDiagnostics);
+      };
 
   MemoryDumpTestUtils.checkVMRegions = function(vmRegions, expectedRegions) {
     if (vmRegions instanceof VMRegionClassificationNode)

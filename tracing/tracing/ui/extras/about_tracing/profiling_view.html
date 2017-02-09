@@ -266,10 +266,10 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       filename = defaultName.replace(fileRegex, name) + fileExtension;
 
       return filename
-              .replace(illegalRe, '.')
-              .replace(controlRe, '\u2022')
-              .replace(reservedRe, '')
-              .replace(/\s+/g, '_');
+          .replace(illegalRe, '.')
+          .replace(controlRe, '\u2022')
+          .replace(reservedRe, '')
+          .replace(/\s+/g, '_');
     },
 
     onSaveClicked_: function() {

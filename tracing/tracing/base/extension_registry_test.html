@@ -59,7 +59,7 @@ tr.b.unittest.testSuite(function() {
     DummyEvent.register(
       DummyEventSubclass,
       {categoryParts: ['dummy']
-    });
+      });
     assert.equal(DummyEvent, DummyEvent.getConstructor('cat', 'name'));
     assert.equal(DummyEvent.getConstructor('dummy', 'dummy-name'),
                  DummyEventSubclass);
@@ -88,9 +88,9 @@ tr.b.unittest.testSuite(function() {
 
     DummyEvent.register(
         DummyEventSubclass,
-        {
-          categoryParts: ['dummy']
-        });
+      {
+        categoryParts: ['dummy']
+      });
     assert.equal(DummyEvent, DummyEvent.getConstructor('cat', 'name'));
     assert.equal(DummyEventSubclass,
                  DummyEvent.getConstructor('dummy,something-else',
@@ -118,9 +118,9 @@ tr.b.unittest.testSuite(function() {
 
     DummyEvent.register(
         DummyEventSubclass,
-        {
-          categoryParts: ['dummy']
-        });
+      {
+        categoryParts: ['dummy']
+      });
     assert.equal(DummyEvent, DummyEvent.getConstructor('cat', 'name'));
     assert.equal(DummyEventSubclass,
                  DummyEvent.getConstructor('dummy,something-else',

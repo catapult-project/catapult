@@ -147,8 +147,8 @@ tr.b.unittest.testSuite(function() {
           var group = ts.generateResultsForGroup(m, groupData.label);
 
           var slice = tr.c.TestUtils.newSliceEx(
-              {title: groupData.label,
-               start: start, duration: groupData.value});
+            {title: groupData.label,
+              start: start, duration: groupData.value});
           start += groupData.value;
           group.allSlices.push(slice);
           group.topLevelSlices.push(slice);

@@ -29,7 +29,7 @@ tr.exportTo('tr.e.importer', function() {
       var entry = this.getBank_(oldAddressHex)
           .removeEntry(this.getAddress_(oldAddressHex));
       if (!entry)
-          return;
+        return;
 
       entry.address = this.getAddress_(newAddressHex);
       entry.size = size;
@@ -62,8 +62,8 @@ tr.exportTo('tr.e.importer', function() {
       var bankName = addressHex.slice(-maxHexDigits, -bankSizeHexDigits);
       var bank = this.banks_.get(bankName);
       if (!bank) {
-          bank = new TraceCodeBank();
-          this.banks_.set(bankName, bank);
+        bank = new TraceCodeBank();
+        this.banks_.set(bankName, bank);
       }
       return bank;
     }
@@ -109,10 +109,10 @@ tr.exportTo('tr.e.importer', function() {
           this.entries_, function(entry) { return entry.address; }, endAddress);
       var index;
       for (index = lastIndex - 1; index >= 0; --index) {
-          var entry = this.entries_[index];
-          var entryEndAddress = entry.address + entry.size;
-          if (entryEndAddress <= newEntry.address)
-              break;
+        var entry = this.entries_[index];
+        var entryEndAddress = entry.address + entry.size;
+        if (entryEndAddress <= newEntry.address)
+          break;
       }
       ++index;
       this.entries_.splice(index, lastIndex - index, newEntry);

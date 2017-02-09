@@ -26,7 +26,7 @@ tr.b.unittest.testSuite(function() {
     var slice1Sample1 = slice1.addCounterSample(1, 200);
 
     var groups = CounterSample.groupByTimestamp([slice0Sample1, slice0Sample0,
-                                                 slice1Sample1, slice1Sample0]);
+      slice1Sample1, slice1Sample0]);
     assert.equal(groups.length, 2);
     assert.deepEqual(groups[0], [slice0Sample0, slice0Sample1]);
     assert.deepEqual(groups[1], [slice1Sample0, slice1Sample1]);

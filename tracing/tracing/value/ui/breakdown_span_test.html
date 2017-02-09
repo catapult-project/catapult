@@ -70,8 +70,8 @@ tr.b.unittest.testSuite(function() {
 
   test('instantiate_BreakdownWithFixedColorScheme', function() {
     var colorScheme = tr.b.FixedColorScheme.fromNames([
-        'foo',
-        'bar',
+      'foo',
+      'bar',
     ]);
     tr.b.FixedColorSchemeRegistry.register(() => colorScheme, {
       'name': 'myColorScheme',

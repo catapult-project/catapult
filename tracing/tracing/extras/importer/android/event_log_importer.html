@@ -45,9 +45,9 @@ tr.exportTo('tr.e.importer.android', function() {
    * @constructor
    */
   function EventLogImporter(model, events) {
-     this.model_ = model;
-     this.events_ = events;
-     this.importPriority = 3;
+    this.model_ = model;
+    this.events_ = events;
+    this.importPriority = 3;
   }
 
   // Generic format of event log entries.
@@ -118,7 +118,7 @@ tr.exportTo('tr.e.importer.android', function() {
     getFullActivityName: function(component) {
       var componentSplit = component.split('/');
       if (componentSplit[1].startsWith('.'))
-         return componentSplit[0] + componentSplit[1];
+        return componentSplit[0] + componentSplit[1];
 
       return componentSplit[1];
     },
@@ -201,9 +201,9 @@ tr.exportTo('tr.e.importer.android', function() {
           activity.lastPauseTs);
       var newActivity = new tr.model.Activity(activity.name,
           'Android Activity', range,
-          {created: activity.createdTs,
-           procstart: activity.procStartTs,
-           lastfocus: activity.lastFocusedTs});
+        {created: activity.createdTs,
+          procstart: activity.procStartTs,
+          lastfocus: activity.lastFocusedTs});
       process.activities.push(newActivity);
     },
 

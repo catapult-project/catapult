@@ -48,9 +48,9 @@ tr.b.unittest.testSuite(function() {
 
   test('merge', function() {
     var event = tr.c.TestUtils.newSliceEx({
-        title: 'event',
-        start: 0,
-        duration: 1,
+      title: 'event',
+      start: 0,
+      duration: 1,
     });
     event.parentContainer = {
       sliceGroup: {
@@ -95,7 +95,7 @@ tr.b.unittest.testSuite(function() {
     // UnmergeableDiagnosticSets are mergeable.
     var hist5 = new tr.v.Histogram('', tr.b.Unit.byName.count);
     hist5.diagnostics.set('a', new tr.v.d.UnmergeableDiagnosticSet([
-        events, generic2]));
+      events, generic2]));
     hist.diagnostics.merge(hist5.diagnostics, hist, hist5);
     assert.instanceOf(hist.diagnostics.get('a'),
         tr.v.d.UnmergeableDiagnosticSet);

@@ -279,22 +279,22 @@ tr.exportTo('tr.ui.analysis', function() {
           tr.ui.b.createSelector(
               this, 'viewMode', 'memoryDumpHeapDetailsPane.viewMode',
               MultiDimensionalViewBuilder.ViewType.TOP_DOWN_TREE_VIEW,
-              [
-                {
-                  label: 'Top-down (Tree)',
-                  value: MultiDimensionalViewBuilder.ViewType.TOP_DOWN_TREE_VIEW
-                },
-                {
-                  label: 'Top-down (Heavy)',
-                  value:
+            [
+              {
+                label: 'Top-down (Tree)',
+                value: MultiDimensionalViewBuilder.ViewType.TOP_DOWN_TREE_VIEW
+              },
+              {
+                label: 'Top-down (Heavy)',
+                value:
                       MultiDimensionalViewBuilder.ViewType.TOP_DOWN_HEAVY_VIEW
-                },
-                {
-                  label: 'Bottom-up (Heavy)',
-                  value:
+              },
+              {
+                label: 'Bottom-up (Heavy)',
+                value:
                       MultiDimensionalViewBuilder.ViewType.BOTTOM_UP_HEAVY_VIEW
-                }
-              ]));
+              }
+            ]));
 
       this.$.drag_handle.target = this.$.path_view;
       this.$.drag_handle.horizontal = false;
@@ -441,7 +441,6 @@ tr.exportTo('tr.ui.analysis', function() {
       this.cachedBuilders_.set(heapDump, builder);
       return builder;
     },
-
   });
 
   return {};

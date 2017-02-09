@@ -27,11 +27,11 @@ tr.b.unittest.testSuite(function() {
   // will be placed in the same process.
   function buildModel(slices) {
     var model = tr.c.TestUtils.newModel(function(model) {
-          var process = model.getOrCreateProcess(1);
-          for (var i = 0; i < slices.length; i++) {
-            var thread = process.getOrCreateThread(i);
-            slices[i].forEach(s => thread.sliceGroup.pushSlice(s));
-          }
+      var process = model.getOrCreateProcess(1);
+      for (var i = 0; i < slices.length; i++) {
+        var thread = process.getOrCreateThread(i);
+        slices[i].forEach(s => thread.sliceGroup.pushSlice(s));
+      }
     });
     var auditor = new tr.e.audits.CpuUsageAuditor(model);
     auditor.runAnnotate();

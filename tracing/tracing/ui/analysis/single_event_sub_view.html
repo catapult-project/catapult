@@ -95,7 +95,7 @@ Polymer({
     function createLinkTo(slice) {
       var linkEl = document.createElement('tr-ui-a-analysis-link');
       linkEl.setSelectionAndContent(function() {
-          return new tr.model.EventSet(slice);
+        return new tr.model.EventSet(slice);
       });
       Polymer.dom(linkEl).textContent = slice.userFriendlyName;
       return linkEl;
@@ -200,27 +200,27 @@ Polymer({
     if (event.startStackFrame && event.endStackFrame) {
       if (event.startStackFrame === event.endStackFrame) {
         rows.push({name: 'Start+End Stack Trace',
-            value: createStackFrameEl(event.startStackFrame)});
+          value: createStackFrameEl(event.startStackFrame)});
 
       } else {
         rows.push({ name: 'Start Stack Trace',
-            value: createStackFrameEl(event.startStackFrame)});
+          value: createStackFrameEl(event.startStackFrame)});
         rows.push({ name: 'End Stack Trace',
-            value: createStackFrameEl(event.endStackFrame)});
+          value: createStackFrameEl(event.endStackFrame)});
       }
     } else if (event.startStackFrame) {
       rows.push({ name: 'Start Stack Trace',
-          value: createStackFrameEl(event.startStackFrame)});
+        value: createStackFrameEl(event.startStackFrame)});
 
     } else if (event.endStackFrame) {
       rows.push({ name: 'End Stack Trace',
-          value: createStackFrameEl(event.endStackFrame)});
+        value: createStackFrameEl(event.endStackFrame)});
     }
 
     if (event.info) {
       var descriptionEl = tr.ui.b.createDiv({
-          textContent: event.info.description,
-          maxWidth: '300px'
+        textContent: event.info.description,
+        maxWidth: '300px'
       });
       rows.push({
         name: 'Description',

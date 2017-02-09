@@ -128,12 +128,12 @@ tr.b.unittest.testSuite(function() {
 
   test('mutatorUtilization', function() {
     var pauses = [interval(10, 20),
-                  interval(15, 23),
-                  interval(30, 31),
-                  interval(33, 34),
-                  interval(60, 61),
-                  interval(61, 63),
-                  interval(80, 88)];
+      interval(15, 23),
+      interval(30, 31),
+      interval(33, 34),
+      interval(60, 61),
+      interval(61, 63),
+      interval(80, 88)];
     var actual = tr.metrics.v8.utils.mutatorUtilization(0, 100, 7, pauses);
     var expected = mutatorUtilizationSlow(0, 100, 7, pauses);
     assert.closeTo(expected.average, actual.average, 1e-3);

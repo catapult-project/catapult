@@ -23,23 +23,23 @@ tr.exportTo('tr.ui.e.system_stats', function() {
   var statCount;
 
   var excludedStats = {'meminfo': {
-                        'pswpin': 0,
-                        'pswpout': 0,
-                        'pgmajfault': 0},
-                      'diskinfo': {
-                        'io': 0,
-                        'io_time': 0,
-                        'read_time': 0,
-                        'reads': 0,
-                        'reads_merged': 0,
-                        'sectors_read': 0,
-                        'sectors_written': 0,
-                        'weighted_io_time': 0,
-                        'write_time': 0,
-                        'writes': 0,
-                        'writes_merged': 0},
-                      'swapinfo': {}
-                      };
+    'pswpin': 0,
+    'pswpout': 0,
+    'pgmajfault': 0},
+    'diskinfo': {
+      'io': 0,
+      'io_time': 0,
+      'read_time': 0,
+      'reads': 0,
+      'reads_merged': 0,
+      'sectors_read': 0,
+      'sectors_written': 0,
+      'weighted_io_time': 0,
+      'write_time': 0,
+      'writes': 0,
+      'writes_merged': 0},
+    'swapinfo': {}
+  };
 
   /**
    * Tracks that display system stats data.
@@ -101,7 +101,7 @@ tr.exportTo('tr.ui.e.system_stats', function() {
     },
 
     computeRatesRecursive_: function(prevStats, stats,
-                                     timeIntervalSeconds) {
+        timeIntervalSeconds) {
       for (var statName in stats) {
         if (stats[statName] instanceof Object) {
           this.computeRatesRecursive_(prevStats[statName],
@@ -274,12 +274,12 @@ tr.exportTo('tr.ui.e.system_stats', function() {
     },
 
     drawStatBarsRecursive_: function(snapshot,
-                                     leftView,
-                                     rightView,
-                                     height,
-                                     stats,
-                                     maxStats,
-                                     currentY) {
+        leftView,
+        rightView,
+        height,
+        stats,
+        maxStats,
+        currentY) {
       var ctx = this.context();
 
       for (var statName in maxStats) {

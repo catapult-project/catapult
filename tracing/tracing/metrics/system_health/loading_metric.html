@@ -196,8 +196,8 @@ tr.exportTo('tr.metrics.sh', function() {
 
       var timeToEvent = ev.start - navigationStartEvent.start;
       samples.push({
-          value: timeToEvent,
-          diagnostics: {url: new tr.v.d.Generic(url)}
+        value: timeToEvent,
+        diagnostics: {url: new tr.v.d.Generic(url)}
       });
     }
     return samples;
@@ -218,21 +218,21 @@ tr.exportTo('tr.metrics.sh', function() {
     var breakdownDiagnostic = createBreakdownDiagnostic(
         rendererHelper, navigationStart.start, fmpMarkerEvent.start);
     samples.push({
-        value: timeToFirstMeaningfulPaint,
-        diagnostics: {
-            'Breakdown of [navStart, FMP]': breakdownDiagnostic,
-            'Start': new RelatedEventSet(navigationStart),
-            'End': new RelatedEventSet(fmpMarkerEvent),
-            'Navigation infos': new tr.v.d.Generic(
-                {url: url, pid: rendererHelper.pid,
-                 start: navigationStart.start, fmp: fmpMarkerEvent.start}),
-        }
+      value: timeToFirstMeaningfulPaint,
+      diagnostics: {
+        'Breakdown of [navStart, FMP]': breakdownDiagnostic,
+        'Start': new RelatedEventSet(navigationStart),
+        'End': new RelatedEventSet(fmpMarkerEvent),
+        'Navigation infos': new tr.v.d.Generic(
+          {url: url, pid: rendererHelper.pid,
+            start: navigationStart.start, fmp: fmpMarkerEvent.start}),
+      }
     });
     return {firstMeaningfulPaint: fmpMarkerEvent.start, url: url};
   }
 
   function addFirstInteractiveSample(samples, rendererHelper,
-    navigationStart, firstMeaningfulPaint, url) {
+      navigationStart, firstMeaningfulPaint, url) {
     if (shouldIgnoreURL(url))
       return;
     var navigationStartTime = navigationStart.start;
@@ -259,8 +259,8 @@ tr.exportTo('tr.metrics.sh', function() {
       }
       if (ev.title === 'TaskQueueManager::ProcessTaskFromWorkQueue' &&
           ev.duration > RESPONSIVENESS_THRESHOLD_MS) {
-          firstInteractiveCandidate = ev.end - 50;
-          lastLongTaskEvent = ev;
+        firstInteractiveCandidate = ev.end - 50;
+        lastLongTaskEvent = ev;
       }
     }
     var breakdownDiagnostic = createBreakdownDiagnostic(
@@ -268,15 +268,15 @@ tr.exportTo('tr.metrics.sh', function() {
 
     var timeToFirstInteractive = firstInteractive - navigationStartTime;
     samples.push({
-        value: timeToFirstInteractive,
-        diagnostics: {
-          'Start': new RelatedEventSet(navigationStart),
-          'Last long task': new RelatedEventSet(lastLongTaskEvent),
-          'Navigation infos': new tr.v.d.Generic(
-              {url: url, pid: rendererHelper.pid,
-               start: navigationStartTime, interactive: firstInteractive}),
-          'Breakdown of [navStart, Interactive]': breakdownDiagnostic,
-        }
+      value: timeToFirstInteractive,
+      diagnostics: {
+        'Start': new RelatedEventSet(navigationStart),
+        'Last long task': new RelatedEventSet(lastLongTaskEvent),
+        'Navigation infos': new tr.v.d.Generic(
+          {url: url, pid: rendererHelper.pid,
+            start: navigationStartTime, interactive: firstInteractive}),
+        'Breakdown of [navStart, Interactive]': breakdownDiagnostic,
+      }
     });
   }
 
@@ -351,7 +351,7 @@ tr.exportTo('tr.metrics.sh', function() {
       }
     }
     return {firstMeaningfulPaintSamples: firstMeaningfulPaintSamples,
-            firstInteractiveSamples: firstInteractiveSamples};
+      firstInteractiveSamples: firstInteractiveSamples};
   }
 
   function collectLoadingMetricsForRenderer(rendererHelper) {
@@ -365,10 +365,10 @@ tr.exportTo('tr.metrics.sh', function() {
         collectFirstMeaningfulPaintAndTimeToInteractiveForRenderer(
               rendererHelper, navigationStartFinder);
     return {
-        firstContentfulPaintSamples: firstContentfulPaintSamples,
-        onLoadSamples: onLoadSamples,
-        firstMeaningfulPaintSamples: firstMeaningfulPaintSamples,
-        firstInteractiveSamples: firstInteractiveSamples
+      firstContentfulPaintSamples: firstContentfulPaintSamples,
+      onLoadSamples: onLoadSamples,
+      firstMeaningfulPaintSamples: firstMeaningfulPaintSamples,
+      firstInteractiveSamples: firstInteractiveSamples
     };
   }
 

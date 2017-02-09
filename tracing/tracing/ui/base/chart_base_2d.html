@@ -269,16 +269,16 @@ tr.exportTo('tr.ui.b', function() {
 
     drawXAxis_(xAxis) {
       xAxis.attr('transform', 'translate(0,' + this.graphHeight + ')')
-        .call(d3.svg.axis()
+          .call(d3.svg.axis()
               .scale(this.xScale_)
               .orient('bottom'));
     },
 
     drawXAxisLabel_(label) {
       label
-        .attr('x', this.graphWidth + 16)
-        .attr('y', 8)
-        .text(this.xAxisLabel);
+          .attr('x', this.graphWidth + 16)
+          .attr('y', 8)
+          .text(this.xAxisLabel);
     },
 
     drawXAxisTicks_(xAxis) {
@@ -375,9 +375,9 @@ tr.exportTo('tr.ui.b', function() {
       var labelWidthPx = Math.ceil(tr.ui.b.getSVGTextSize(
             this.chartAreaElement, this.yAxisLabel).width);
       label
-        .attr('x', -labelWidthPx)
-        .attr('y', -8)
-        .text(this.yAxisLabel);
+          .attr('x', -labelWidthPx)
+          .attr('y', -8)
+          .text(this.yAxisLabel);
     },
 
     drawYAxisTicks_(yAxis) {

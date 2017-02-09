@@ -49,13 +49,13 @@ tr.b.unittest.testSuite(function() {
   test('noDoubleCounting', function() {
     var events = [
       {name: 'V8.Execute', args: {}, pid: 52, ts: 0, cat: 'foo', tid: 53,
-       ph: 'B'},
+        ph: 'B'},
       {name: 'V8.Execute', args: {}, pid: 52, ts: 100, cat: 'foo', tid: 53,
-       ph: 'E'},
+        ph: 'E'},
       {name: 'V8.Execute', args: {}, pid: 52, ts: 20, cat: 'foo', tid: 53,
-       ph: 'B'},
+        ph: 'B'},
       {name: 'V8.Execute', args: {}, pid: 52, ts: 40, cat: 'foo', tid: 53,
-       ph: 'E'}
+        ph: 'E'}
     ];
 
     var model = tr.c.TestUtils.newModelWithEvents(JSON.stringify(events), {

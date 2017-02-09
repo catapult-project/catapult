@@ -217,7 +217,7 @@ Polymer({
   },
 
   appendMatchingHotKeysTo_: function(matchedHotKeys,
-                                      useCapture, e) {
+      useCapture, e) {
     var localKeyMap = this.getKeyMapForEventType_(e.type, useCapture);
     var localHotKey = localKeyMap[e.keyCode];
     if (localHotKey)

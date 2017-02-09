@@ -300,7 +300,7 @@ tr.exportTo('tr.e.chrome', function() {
    * @returns {number}
    */
   function maxExpectedQueueingTimeInSlidingWindow(startTime, endTime,
-                                                  windowSize, tasks) {
+      windowSize, tasks) {
     if (windowSize <= 0) {
       throw Error('The window size must be positive number');
     }

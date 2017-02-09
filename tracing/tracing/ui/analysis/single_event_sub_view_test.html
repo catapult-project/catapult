@@ -145,8 +145,8 @@ tr.b.unittest.testSuite(function() {
 
   test('instantiate_withDifferentStartAndEndStackFrames', function() {
     var selection = createSelectionWithSingleSlice(
-        {withStartStackFrame: 'a',
-         withEndStackFrame: 'b'});
+      {withStartStackFrame: 'a',
+        withEndStackFrame: 'b'});
 
     var analysisEl = document.createElement('tr-ui-a-single-event-sub-view');
     analysisEl.selection = selection;
@@ -169,8 +169,8 @@ tr.b.unittest.testSuite(function() {
 
   test('instantiate_withSameStartAndEndStackFrames', function() {
     var selection = createSelectionWithSingleSlice(
-        {withStartStackFrame: 'a',
-         withEndStackFrame: 'a'});
+      {withStartStackFrame: 'a',
+        withEndStackFrame: 'a'});
 
     var analysisEl = document.createElement('tr-ui-a-single-event-sub-view');
     analysisEl.selection = selection;

@@ -22,7 +22,7 @@ tr.exportTo('tr.model', function() {
    * @constructor
    */
   function Sample(start, title, leafNode, thread, opt_cpu, opt_weight,
-                  opt_args) {
+      opt_args) {
     tr.model.TimedEvent.call(this, start);
 
     this.start_ = start;
@@ -85,10 +85,10 @@ tr.exportTo('tr.model', function() {
 
   tr.model.EventRegistry.register(
       Sample,
-      {
-        name: 'Sample',
-        pluralName: 'Samples'
-      });
+    {
+      name: 'Sample',
+      pluralName: 'Samples'
+    });
 
   return {
     Sample,

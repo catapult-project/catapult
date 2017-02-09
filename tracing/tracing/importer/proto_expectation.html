@@ -43,18 +43,18 @@ tr.exportTo('tr.importer', function() {
    * touch could mean many different things, of which a scroll is one)
    */
   var INITIATOR_HIERARCHY = [
-      tr.model.um.INITIATOR_TYPE.PINCH,
-      tr.model.um.INITIATOR_TYPE.FLING,
-      tr.model.um.INITIATOR_TYPE.MOUSE_WHEEL,
-      tr.model.um.INITIATOR_TYPE.SCROLL,
-      tr.model.um.INITIATOR_TYPE.VIDEO,
-      tr.model.um.INITIATOR_TYPE.WEBGL,
-      tr.model.um.INITIATOR_TYPE.CSS,
-      tr.model.um.INITIATOR_TYPE.MOUSE,
-      tr.model.um.INITIATOR_TYPE.KEYBOARD,
-      tr.model.um.INITIATOR_TYPE.TAP,
-      tr.model.um.INITIATOR_TYPE.TOUCH
-    ];
+    tr.model.um.INITIATOR_TYPE.PINCH,
+    tr.model.um.INITIATOR_TYPE.FLING,
+    tr.model.um.INITIATOR_TYPE.MOUSE_WHEEL,
+    tr.model.um.INITIATOR_TYPE.SCROLL,
+    tr.model.um.INITIATOR_TYPE.VIDEO,
+    tr.model.um.INITIATOR_TYPE.WEBGL,
+    tr.model.um.INITIATOR_TYPE.CSS,
+    tr.model.um.INITIATOR_TYPE.MOUSE,
+    tr.model.um.INITIATOR_TYPE.KEYBOARD,
+    tr.model.um.INITIATOR_TYPE.TAP,
+    tr.model.um.INITIATOR_TYPE.TOUCH
+  ];
 
   function combineInitiatorTypes(title1, title2) {
     for (var item of INITIATOR_HIERARCHY)

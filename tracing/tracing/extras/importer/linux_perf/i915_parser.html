@@ -148,10 +148,10 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var obj = event[1];
       var size = parseInt(event[2]);
       this.i915GemObjectSlice(ts, eventName, obj,
-          {
-            obj: obj,
-            size: size
-          });
+        {
+          obj: obj,
+          size: size
+        });
       return true;
     },
 
@@ -165,16 +165,16 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var offset = event[2];
       var size = parseInt(event[3]);
       this.i915ObjectGemSlice(ts, eventName + ':' + obj,
-          {
-            obj: obj,
-            offset: offset,
-            size: size
-          });
+        {
+          obj: obj,
+          offset: offset,
+          size: size
+        });
       return true;
     },
 
     gemObjectChangeDomainEvent: function(eventName, cpuNumber, pid, ts,
-                                         eventBase) {
+        eventBase) {
       var event = /obj=(\w+), read=(\w+=>\w+), write=(\w+=>\w+)/
           .exec(eventBase.details);
       if (!event)
@@ -184,16 +184,16 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var read = event[2];
       var write = event[3];
       this.i915GemObjectSlice(ts, eventName, obj,
-          {
-            obj: obj,
-            read: read,
-            write: write
-          });
+        {
+          obj: obj,
+          read: read,
+          write: write
+        });
       return true;
     },
 
     gemObjectPreadWriteEvent: function(eventName, cpuNumber, pid, ts,
-                                       eventBase) {
+        eventBase) {
       var event = /obj=(\w+), offset=(\d+), len=(\d+)/.exec(eventBase.details);
       if (!event)
         return false;
@@ -202,11 +202,11 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var offset = parseInt(event[2]);
       var len = parseInt(event[3]);
       this.i915GemObjectSlice(ts, eventName, obj,
-          {
-            obj: obj,
-            offset: offset,
-            len: len
-          });
+        {
+          obj: obj,
+          offset: offset,
+          len: len
+        });
       return true;
     },
 
@@ -220,11 +220,11 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var type = event[2];
       var index = parseInt(event[3]);
       this.i915GemObjectSlice(ts, eventName, obj,
-          {
-            obj: obj,
-            type: type,
-            index: index
-          });
+        {
+          obj: obj,
+          type: type,
+          index: index
+        });
       return true;
     },
 
@@ -235,9 +235,9 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
       var obj = event[1];
       this.i915GemObjectSlice(ts, eventName, obj,
-          {
-            obj: obj
-          });
+        {
+          obj: obj
+        });
       return true;
     },
 
@@ -250,11 +250,11 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var ring = parseInt(event[2]);
       var seqno = parseInt(event[3]);
       this.i915GemRingSlice(ts, eventName, dev, ring,
-          {
-            dev: dev,
-            ring: ring,
-            seqno: seqno
-          });
+        {
+          dev: dev,
+          ring: ring,
+          seqno: seqno
+        });
       return true;
     },
 
@@ -269,12 +269,12 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var invalidate = event[3];
       var flush = event[4];
       this.i915GemRingSlice(ts, eventName, dev, ring,
-          {
-            dev: dev,
-            ring: ring,
-            invalidate: invalidate,
-            flush: flush
-          });
+        {
+          dev: dev,
+          ring: ring,
+          invalidate: invalidate,
+          flush: flush
+        });
       return true;
     },
 
@@ -287,11 +287,11 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var ring = parseInt(event[2]);
       var seqno = parseInt(event[3]);
       this.i915GemRingSlice(ts, eventName, dev, ring,
-          {
-            dev: dev,
-            ring: ring,
-            seqno: seqno
-          });
+        {
+          dev: dev,
+          ring: ring,
+          seqno: seqno
+        });
       return true;
     },
 
@@ -303,10 +303,10 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var dev = parseInt(event[1]);
       var ring = parseInt(event[2]);
       this.i915GemRingSlice(ts, eventName, dev, ring,
-          {
-            dev: dev,
-            ring: ring
-          });
+        {
+          dev: dev,
+          ring: ring
+        });
       return true;
     },
 
@@ -321,12 +321,12 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var len = event[3];
       var data = event[3];
       this.i915RegSlice(ts, rw, reg,
-          {
-            rw: rw,
-            reg: reg,
-            len: len,
-            data: data
-          });
+        {
+          rw: rw,
+          reg: reg,
+          len: len,
+          data: data
+        });
       return true;
     },
 
@@ -341,10 +341,10 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
         this.i915FlipOpenSlice(ts, obj, plane);
       else
         this.i915FlipCloseSlice(ts,
-            {
-              obj: obj,
-              plane: plane
-            });
+          {
+            obj: obj,
+            plane: plane
+          });
       return true;
     },
 
@@ -355,8 +355,8 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var freq = parseInt(event[1]);
 
       this.i915FreqChangeSlice(ts, eventName, {
-            freq: freq
-          });
+        freq: freq
+      });
       return true;
     }
   };

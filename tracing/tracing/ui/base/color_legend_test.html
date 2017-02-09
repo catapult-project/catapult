@@ -63,7 +63,7 @@ tr.b.unittest.testSuite(function() {
     var colorLegend = document.createElement('tr-ui-b-color-legend');
     colorLegend.setLabelAndColorId(
         tr.ui.b.createSpan({textContent: 'hello',
-                            className: 'hello-span'}),
+          className: 'hello-span'}),
         7 /* colorId */);
     this.addHTMLOutput(colorLegend);
     checkSquareColor(colorLegend, 'rgb(111, 145, 88)');

@@ -322,9 +322,9 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     rasterize_: function() {
       if (this.picture_) {
         this.picture_.rasterize(
-            {
-              showOverdraw: false
-            },
+          {
+            showOverdraw: false
+          },
             this.onRasterComplete_.bind(this));
       }
     },

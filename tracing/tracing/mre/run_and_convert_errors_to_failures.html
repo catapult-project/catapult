@@ -13,7 +13,7 @@ found in the LICENSE file.
 
 tr.exportTo('tr.mre', function() {
   function runAndConvertErrorsToFailures(results, job, functionHandle,
-                                         traceHandle, cb, opt_this) {
+      traceHandle, cb, opt_this) {
     try {
       cb.call(opt_this);
     } catch (e) {
@@ -28,4 +28,4 @@ tr.exportTo('tr.mre', function() {
     runAndConvertErrorsToFailures: runAndConvertErrorsToFailures
   };
 });
-
+</script>

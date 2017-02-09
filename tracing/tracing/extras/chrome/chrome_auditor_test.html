@@ -75,15 +75,15 @@ tr.b.unittest.testSuite(function() {
     var events = [
       // An object created and snapshotted in the browser process.
       {ts: 1000, pid: 1, tid: 2, ph: 'N', cat: 'c', id: '0x1000', name: 'a',
-       args: {}},
+        args: {}},
       {ts: 1100, pid: 1, tid: 2, ph: 'O', cat: 'c', id: '0x1000', name: 'a',
-       args: {snapshot: {foo: 12345}}},
+        args: {snapshot: {foo: 12345}}},
       {ts: 1300, pid: 1, tid: 2, ph: 'D', cat: 'c', id: '0x1000', name: 'a',
-       args: {}},
+        args: {}},
 
       // A reference to the object in the browser from the renderer process.
       {ts: 1200, pid: 3, tid: 4, ph: 'X', cat: 'c', name: 'b', dur: 100,
-       args: {bar: {pid_ref: -1, id_ref: '0x1000'}}}
+        args: {bar: {pid_ref: -1, id_ref: '0x1000'}}}
     ];
 
     var m = tr.c.TestUtils.newModelWithEvents([events], {

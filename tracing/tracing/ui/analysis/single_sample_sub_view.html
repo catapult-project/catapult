@@ -71,11 +71,11 @@ Polymer({
     });
 
     rows.push({
-        title: 'Sample time',
-        value: tr.v.ui.createScalarSpan(sample.start, {
-          unit: tr.b.Unit.byName.timeStampInMs,
-          ownerDocument: this.ownerDocument
-        })
+      title: 'Sample time',
+      value: tr.v.ui.createScalarSpan(sample.start, {
+        unit: tr.b.Unit.byName.timeStampInMs,
+        ownerDocument: this.ownerDocument
+      })
     });
 
     var callStackTableEl = document.createElement('tr-ui-b-table');
@@ -103,8 +103,8 @@ Polymer({
 tr.ui.analysis.AnalysisSubView.register(
     'tr-ui-a-single-sample-sub-view',
     tr.model.Sample,
-    {
-      multi: false,
-      title: 'Sample',
-    });
+  {
+    multi: false,
+    title: 'Sample',
+  });
 </script>

@@ -15,9 +15,9 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   test('instantiate', function() {
     var event = tr.c.TestUtils.newSliceEx({
-        title: 'event',
-        start: 0,
-        duration: 1,
+      title: 'event',
+      start: 0,
+      duration: 1,
     });
     event.parentContainer = {
       sliceGroup: {
@@ -26,13 +26,13 @@ tr.b.unittest.testSuite(function() {
       },
     };
     var diagnostics = new tr.v.d.UnmergeableDiagnosticSet([
-        new tr.v.d.Generic('generic diagnostic'),
-        new tr.v.d.RelatedHistogramSet([
-          new tr.v.Histogram('histogram', tr.b.Unit.byName.count),
-        ]),
-        new tr.v.d.RelatedEventSet([
-          event,
-        ]),
+      new tr.v.d.Generic('generic diagnostic'),
+      new tr.v.d.RelatedHistogramSet([
+        new tr.v.Histogram('histogram', tr.b.Unit.byName.count),
+      ]),
+      new tr.v.d.RelatedEventSet([
+        event,
+      ]),
     ]);
     var span = tr.v.ui.createDiagnosticSpan(diagnostics);
     assert.strictEqual('TR-V-UI-UNMERGEABLE-DIAGNOSTIC-SET-SPAN', span.tagName);

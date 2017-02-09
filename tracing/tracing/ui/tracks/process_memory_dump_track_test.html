@@ -20,7 +20,7 @@ tr.b.unittest.testSuite(function() {
   var createTestProcessMemoryDumps = tr.ui.tracks.createTestProcessMemoryDumps;
 
   function instantiateTrack(withVMRegions, withAllocatorDumps,
-                            expectedTrackCount) {
+      expectedTrackCount) {
     var dumps = createTestProcessMemoryDumps(withVMRegions, withAllocatorDumps);
 
     var div = document.createElement('div');
