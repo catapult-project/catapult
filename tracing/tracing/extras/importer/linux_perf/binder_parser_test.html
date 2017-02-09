@@ -14,9 +14,9 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   test('binderParserImport', function() {
     var lines = [
-     'binderLibTest-10619 (10619) [001] ...1 25191.335749: binder_transaction' +
-        ': transaction=489053 dest_node=489048 dest_proc=10670 dest_thread=0 ' +
-        'reply=0 flags=0x10 code=0xd',
+      'binderLibTest-10619 (10619) [001] ...1 25191.335749: ' +
+        'binder_transaction: transaction=489053 dest_node=489048 ' +
+        'dest_proc=10670 dest_thread=0 reply=0 flags=0x10 code=0xd',
       'binderLibTest-10670 (10670) [000] ...1 25191.335996:' +
         ' binder_transaction_received: transaction=489053',
       'binderLibTest-10670 (10670) [000] ...1 25191.336167:' +
@@ -49,7 +49,7 @@ tr.b.unittest.testSuite(function() {
     ];
 
     var m = tr.c.TestUtils.newModelWithEvents([lines.join('\n')], {
-        shfitWorldToZero: false
+      shfitWorldToZero: false
     });
     assert.isFalse(m.hasImportWarnings);
 
@@ -60,9 +60,9 @@ tr.b.unittest.testSuite(function() {
 
   test('binderRecursiveTest', function() {
     var lines = [
-     'binderLibTest-10619 (10619) [001] ...1 25191.335749: binder_transaction' +
-        ': transaction=489053 dest_node=489048 dest_proc=10670 dest_thread=0 ' +
-        'reply=0 flags=0x10 code=0xd',
+      'binderLibTest-10619 (10619) [001] ...1 25191.335749: ' +
+        'binder_transaction: transaction=489053 dest_node=489048 ' +
+        'dest_proc=10670 dest_thread=0 reply=0 flags=0x10 code=0xd',
       'binderLibTest-10670 (10670) [000] ...1 25191.335996:' +
         ' binder_transaction_received: transaction=489053',
       'binderLibTest-10670 (10670) [000] ...1 25191.336167:' +
@@ -95,7 +95,7 @@ tr.b.unittest.testSuite(function() {
     ];
 
     var m = tr.c.TestUtils.newModelWithEvents([lines.join('\n')], {
-        shfitWorldToZero: false
+      shfitWorldToZero: false
     });
     var threads = m.getAllThreads();
 
@@ -191,7 +191,7 @@ tr.b.unittest.testSuite(function() {
     ];
 
     var m = tr.c.TestUtils.newModelWithEvents([lines.join('\n')], {
-        shfitWorldToZero: false
+      shfitWorldToZero: false
     });
     assert.isFalse(m.hasImportWarnings);
 

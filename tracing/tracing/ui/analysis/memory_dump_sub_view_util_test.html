@@ -399,17 +399,16 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(c2.hasAllRelevantFieldsUndefined(
         [undefined, undefined, undefined]));
     assert.isTrue(c2.hasAllRelevantFieldsUndefined(
-        [undefined, new Scalar(sizeInBytes_smallerIsBetter, 16),
-         undefined]));
+        [undefined, new Scalar(sizeInBytes_smallerIsBetter, 16), undefined]));
     assert.isFalse(c2.hasAllRelevantFieldsUndefined(
         [undefined, new Scalar(sizeInBytes_smallerIsBetter, 32)]));
     assert.isFalse(c2.hasAllRelevantFieldsUndefined(
-        [new Scalar(sizeInBytes_smallerIsBetter, 32), undefined,
-        undefined]));
+        [new Scalar(sizeInBytes_smallerIsBetter, 32), undefined, undefined]));
     assert.isFalse(c2.hasAllRelevantFieldsUndefined([
-        new Scalar(sizeInBytes_smallerIsBetter, 16),
-        undefined,
-        new Scalar(sizeInBytes_smallerIsBetter, 32)]));
+      new Scalar(sizeInBytes_smallerIsBetter, 16),
+      undefined,
+      new Scalar(sizeInBytes_smallerIsBetter, 32)
+    ]));
 
     // Multiple fields, max aggregation mode.
     var c3 = new MemoryColumn('max_column', ['x'],
@@ -418,14 +417,14 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(c3.hasAllRelevantFieldsUndefined(
         [undefined, undefined, undefined]));
     assert.isFalse(c3.hasAllRelevantFieldsUndefined(
-        [undefined, new Scalar(sizeInBytes_smallerIsBetter, 16),
-         undefined]));
+        [undefined, new Scalar(sizeInBytes_smallerIsBetter, 16), undefined]));
     assert.isFalse(c3.hasAllRelevantFieldsUndefined(
         [undefined, new Scalar(sizeInBytes_smallerIsBetter, 32)]));
     assert.isFalse(c3.hasAllRelevantFieldsUndefined([
-        new Scalar(sizeInBytes_smallerIsBetter, 32),
-        undefined,
-        new Scalar(sizeInBytes_smallerIsBetter, 16)]));
+      new Scalar(sizeInBytes_smallerIsBetter, 32),
+      undefined,
+      new Scalar(sizeInBytes_smallerIsBetter, 16)
+    ]));
   });
 
   test('checkMemoryColumn_value_allFieldsUndefined', function() {
@@ -452,9 +451,13 @@ tr.b.unittest.testSuite(function() {
     });
 
     // Diff should only take into account the first and last field value.
-    assert.equal(c2.value({x: new MemoryCell(
-        [undefined, new Scalar(sizeInBytes_smallerIsBetter, 16),
-         undefined])}), '');
+    assert.equal(c2.value({
+      x: new MemoryCell([
+        undefined,
+        new Scalar(sizeInBytes_smallerIsBetter, 16),
+        undefined
+      ])
+    }), '');
   });
 
   test('checkMemoryColumn_getImportance', function() {
@@ -575,11 +578,11 @@ tr.b.unittest.testSuite(function() {
     ];
     c1.addInfos = c2.addInfos = c3.addInfos =
         function(fields, contexts, infos) {
-      if (fields[0] < '0')
-        infos.push.apply(infos, infos1);
-      else if (contexts && contexts[contexts.length - 1] % 2 === 0)
-        infos.push.apply(infos, infos2);
-    };
+          if (fields[0] < '0')
+            infos.push.apply(infos, infos1);
+          else if (contexts && contexts[contexts.length - 1] % 2 === 0)
+            infos.push.apply(infos, infos2);
+        };
 
     var row = {x: new MemoryCell(['123', '456'])};
     checkCellValue(this, c1.value(row), '(unsupported aggregation mode)', '');
@@ -817,59 +820,61 @@ tr.b.unittest.testSuite(function() {
 
   test('checkNumericMemoryColumn_formatMultipleFields_diff',
       function() {
-    var c = new NumericMemoryColumn('non_bytes_column', ['x'],
-        AggregationMode.DIFF);
-    checkNumericMemoryColumnFieldFormat(this, c, [1, 2, 3],
+        var c = new NumericMemoryColumn(
+            'non_bytes_column', ['x'], AggregationMode.DIFF);
+        checkNumericMemoryColumnFieldFormat(this, c, [1, 2, 3],
         tr.b.Unit.byName.unitlessNumberDelta_smallerIsBetter, 2);
-    checkNumericMemoryColumnFieldFormat(this, c, [10, undefined],
+        checkNumericMemoryColumnFieldFormat(this, c, [10, undefined],
         tr.b.Unit.byName.unitlessNumberDelta_smallerIsBetter, -10);
-    checkNumericMemoryColumnFieldFormat(this, c, [undefined, 60, 0],
+        checkNumericMemoryColumnFieldFormat(this, c, [undefined, 60, 0],
         tr.b.Unit.byName.unitlessNumberDelta_smallerIsBetter, 0);
-    checkNumericMemoryColumnFieldFormat(
+        checkNumericMemoryColumnFieldFormat(
         this, c, [2.71828, 2.71829] /* diff within epsilon */,
         tr.b.Unit.byName.unitlessNumberDelta_smallerIsBetter, 0);
 
-    var c = new NumericMemoryColumn('bytes_column', ['x'],
-        AggregationMode.DIFF);
-    checkNumericMemoryColumnFieldFormat(this, c, [1, 2, 3],
+        var c = new NumericMemoryColumn(
+            'bytes_column', ['x'], AggregationMode.DIFF);
+        checkNumericMemoryColumnFieldFormat(this, c, [1, 2, 3],
         tr.b.Unit.byName.sizeInBytesDelta_smallerIsBetter, 2);
-    checkNumericMemoryColumnFieldFormat(this, c, [10, undefined],
+        checkNumericMemoryColumnFieldFormat(this, c, [10, undefined],
         tr.b.Unit.byName.sizeInBytesDelta_smallerIsBetter, -10);
-    checkNumericMemoryColumnFieldFormat(this, c, [undefined, 60, 0],
+        checkNumericMemoryColumnFieldFormat(this, c, [undefined, 60, 0],
         tr.b.Unit.byName.sizeInBytesDelta_smallerIsBetter, 0);
-    checkNumericMemoryColumnFieldFormat(
+        checkNumericMemoryColumnFieldFormat(
         this, c, [1.41421, 1.41422] /* diff within epsilon */,
         tr.b.Unit.byName.sizeInBytesDelta_smallerIsBetter, 0);
-  });
+      });
 
   test('checkNumericMemoryColumn_formatMultipleFields_max',
       function() {
-    var c = new NumericMemoryColumn('non_bytes_column', ['x'],
-        AggregationMode.MAX);
-    checkNumericMemoryColumnFieldFormat(this, c, [1, 2, 3],
+        var c = new NumericMemoryColumn(
+            'non_bytes_column', ['x'], AggregationMode.MAX);
+        checkNumericMemoryColumnFieldFormat(this, c, [1, 2, 3],
         tr.b.Unit.byName.unitlessNumber_smallerIsBetter, 3);
-    checkNumericMemoryColumnFieldFormat(this, c, [10, undefined],
+        checkNumericMemoryColumnFieldFormat(this, c, [10, undefined],
         tr.b.Unit.byName.unitlessNumber_smallerIsBetter, 10);
-    checkNumericMemoryColumnFieldFormat(this, c, [undefined, 60, 0],
+        checkNumericMemoryColumnFieldFormat(this, c, [undefined, 60, 0],
         tr.b.Unit.byName.unitlessNumber_smallerIsBetter, 60);
-    checkNumericMemoryColumnFieldFormat(this, c, [undefined, 10, 20, undefined],
+        checkNumericMemoryColumnFieldFormat(
+            this, c, [undefined, 10, 20, undefined],
         tr.b.Unit.byName.unitlessNumber_smallerIsBetter, 20);
 
-    var c = new NumericMemoryColumn('bytes_column', ['x'],
-        AggregationMode.MAX);
-    checkNumericMemoryColumnFieldFormat(this, c, [1, 2, 3],
+        var c = new NumericMemoryColumn(
+            'bytes_column', ['x'], AggregationMode.MAX);
+        checkNumericMemoryColumnFieldFormat(this, c, [1, 2, 3],
         tr.b.Unit.byName.sizeInBytes_smallerIsBetter, 3);
-    checkNumericMemoryColumnFieldFormat(this, c, [10, undefined],
+        checkNumericMemoryColumnFieldFormat(this, c, [10, undefined],
         tr.b.Unit.byName.sizeInBytes_smallerIsBetter, 10);
-    checkNumericMemoryColumnFieldFormat(this, c, [undefined, 60, 0],
+        checkNumericMemoryColumnFieldFormat(this, c, [undefined, 60, 0],
         tr.b.Unit.byName.sizeInBytes_smallerIsBetter, 60);
-    checkNumericMemoryColumnFieldFormat(this, c, [undefined, 10, 20, undefined],
+        checkNumericMemoryColumnFieldFormat(
+            this, c, [undefined, 10, 20, undefined],
         tr.b.Unit.byName.sizeInBytes_smallerIsBetter, 20);
-  });
+      });
 
   test('checkNumericMemoryColumn_cmp', function() {
-    var c = new NumericMemoryColumn('test_column', ['x'],
-        AggregationMode.DIFF);
+    var c = new NumericMemoryColumn(
+        'test_column', ['x'], AggregationMode.DIFF);
 
     // Undefined field values.
     assert.isAbove(c.cmp({x: buildScalarCell(sizeInBytes_smallerIsBetter,
@@ -877,9 +882,11 @@ tr.b.unittest.testSuite(function() {
         {x: undefined}), 0);
     assert.isBelow(c.cmp({x: new MemoryCell(undefined)},
         {x: buildScalarCell(sizeInBytes_smallerIsBetter, [748, 749])}), 0);
-    assert.equal(c.cmp({},
-        {x: buildScalarCell(sizeInBytes_smallerIsBetter,
-            [undefined, undefined])}), 0);
+    assert.equal(
+        c.cmp({}, {
+          x: buildScalarCell(
+              sizeInBytes_smallerIsBetter, [undefined, undefined])
+        }), 0);
 
     // Single field value.
     assert.isBelow(c.cmp(
@@ -888,10 +895,8 @@ tr.b.unittest.testSuite(function() {
 
     // Multiple field values.
     assert.equal(c.cmp(
-        {x: buildScalarCell(sizeInBytes_smallerIsBetter,
-            [999, undefined, 1001])},
-        {x: buildScalarCell(sizeInBytes_smallerIsBetter,
-            [undefined, 5, 2])}), 0);
+      {x: buildScalarCell(sizeInBytes_smallerIsBetter, [999, undefined, 1001])},
+      {x: buildScalarCell(sizeInBytes_smallerIsBetter, [undefined, 5, 2])}), 0);
   });
 
   test('checkNumericMemoryColumn_compareSingleFields', function() {

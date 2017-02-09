@@ -166,9 +166,9 @@ tr.exportTo('tr.importer', function() {
       // because we need the clock sync markers in order to know by how much we
       // need to shift the timestamps of other events.
       lastTask = lastTask.timedAfter('TraceImport',
-                                     function importClockSyncMarkers(task) {
-        importers.forEach(function(importer, index) {
-          task.subTask(Timing.wrapNamedFunction(
+          function importClockSyncMarkers(task) {
+            importers.forEach(function(importer, index) {
+              task.subTask(Timing.wrapNamedFunction(
               'TraceImport', importer.importerName,
               function runImportClockSyncMarkersOnOneImporter() {
                 progressMeter.update(
@@ -176,8 +176,8 @@ tr.exportTo('tr.importer', function() {
                       importers.length);
                 importer.importClockSyncMarkers();
               }), this);
-        }, this);
-      }, this);
+            }, this);
+          }, this);
 
       // Run the import.
       lastTask = lastTask.timedAfter('TraceImport', function runImport(task) {
@@ -195,20 +195,20 @@ tr.exportTo('tr.importer', function() {
       // Run the cusomizeModelCallback if needed.
       if (this.importOptions_.customizeModelCallback) {
         lastTask = lastTask.timedAfter('TraceImport',
-                                       function runCustomizeCallbacks(task) {
-          this.importOptions_.customizeModelCallback(this.model_);
-        }, this);
+            function runCustomizeCallbacks(task) {
+              this.importOptions_.customizeModelCallback(this.model_);
+            }, this);
       }
 
       // Import sample data.
       lastTask = lastTask.timedAfter('TraceImport',
-                                     function importSampleData(task) {
-        importers.forEach(function(importer, index) {
-          progressMeter.update(
+          function importSampleData(task) {
+            importers.forEach(function(importer, index) {
+              progressMeter.update(
               'Importing sample data ' + (index + 1) + '/' + importers.length);
-          importer.importSampleData();
-        }, this);
-      }, this);
+              importer.importSampleData();
+            }, this);
+          }, this);
 
       // Autoclose open slices and create subSlices.
       lastTask = lastTask.timedAfter('TraceImport', function runAutoclosers() {
@@ -219,13 +219,13 @@ tr.exportTo('tr.importer', function() {
 
       // Finalize import.
       lastTask = lastTask.timedAfter('TraceImport',
-                                     function finalizeImport(task) {
-        importers.forEach(function(importer, index) {
-          progressMeter.update(
+          function finalizeImport(task) {
+            importers.forEach(function(importer, index) {
+              progressMeter.update(
               'Finalizing import ' + (index + 1) + '/' + importers.length);
-          importer.finalizeImport();
-        }, this);
-      }, this);
+              importer.finalizeImport();
+            }, this);
+          }, this);
 
       // Run preinit.
       lastTask = lastTask.timedAfter('TraceImport', function runPreinits() {
@@ -236,46 +236,47 @@ tr.exportTo('tr.importer', function() {
       // Prune empty containers.
       if (this.importOptions_.pruneEmptyContainers) {
         lastTask = lastTask.timedAfter('TraceImport',
-                                       function runPruneEmptyContainers() {
-          progressMeter.update('Pruning empty containers...');
-          this.model_.pruneEmptyContainers();
-        }, this);
+            function runPruneEmptyContainers() {
+              progressMeter.update('Pruning empty containers...');
+              this.model_.pruneEmptyContainers();
+            }, this);
       }
 
       // Merge kernel and userland slices on each thread.
       lastTask = lastTask.timedAfter('TraceImport',
-                                     function runMergeKernelWithuserland() {
-        progressMeter.update('Merging kernel with userland...');
-        this.model_.mergeKernelWithUserland();
-      }, this);
+          function runMergeKernelWithuserland() {
+            progressMeter.update('Merging kernel with userland...');
+            this.model_.mergeKernelWithUserland();
+          }, this);
 
       // Create auditors
       var auditors = [];
       lastTask = lastTask.timedAfter('TraceImport',
-                                     function createAuditorsAndRunAnnotate() {
-        progressMeter.update('Adding arbitrary data to model...');
-        auditors = this.importOptions_.auditorConstructors.map(
+          function createAuditorsAndRunAnnotate() {
+            progressMeter.update('Adding arbitrary data to model...');
+            auditors = this.importOptions_.auditorConstructors.map(
           function(auditorConstructor) {
             return new auditorConstructor(this.model_);
           }, this);
-        auditors.forEach(function(auditor) {
-          auditor.runAnnotate();
-          auditor.installUserFriendlyCategoryDriverIfNeeded();
-        });
-      }, this);
+            auditors.forEach(function(auditor) {
+              auditor.runAnnotate();
+              auditor.installUserFriendlyCategoryDriverIfNeeded();
+            });
+          }, this);
 
       lastTask = lastTask.timedAfter('TraceImport',
-                                     function computeWorldBounds() {
-        progressMeter.update('Computing final world bounds...');
-        this.model_.computeWorldBounds(this.importOptions_.shiftWorldToZero);
-      }, this);
+          function computeWorldBounds() {
+            progressMeter.update('Computing final world bounds...');
+            this.model_.computeWorldBounds(
+                this.importOptions_.shiftWorldToZero);
+          }, this);
 
       // Build the flow event interval tree.
       lastTask = lastTask.timedAfter('TraceImport',
-                                     function buildFlowEventIntervalTree() {
-        progressMeter.update('Building flow event map...');
-        this.model_.buildFlowEventIntervalTree();
-      }, this);
+          function buildFlowEventIntervalTree() {
+            progressMeter.update('Building flow event map...');
+            this.model_.buildFlowEventIntervalTree();
+          }, this);
 
       // Join refs.
       lastTask = lastTask.timedAfter('TraceImport', function joinRefs() {
@@ -285,10 +286,10 @@ tr.exportTo('tr.importer', function() {
 
       // Delete any undeleted objects.
       lastTask = lastTask.timedAfter('TraceImport',
-                                     function cleanupUndeletedObjects() {
-        progressMeter.update('Cleaning up undeleted objects...');
-        this.model_.cleanupUndeletedObjects();
-      }, this);
+          function cleanupUndeletedObjects() {
+            progressMeter.update('Cleaning up undeleted objects...');
+            this.model_.cleanupUndeletedObjects();
+          }, this);
 
       // Sort global and process memory dumps.
       lastTask = lastTask.timedAfter('TraceImport', function sortMemoryDumps() {
@@ -298,24 +299,24 @@ tr.exportTo('tr.importer', function() {
 
       // Finalize memory dump graphs.
       lastTask = lastTask.timedAfter('TraceImport',
-                                     function finalizeMemoryGraphs() {
-        progressMeter.update('Finalizing memory dump graphs...');
-        this.model_.finalizeMemoryGraphs();
-      }, this);
+          function finalizeMemoryGraphs() {
+            progressMeter.update('Finalizing memory dump graphs...');
+            this.model_.finalizeMemoryGraphs();
+          }, this);
 
       // Run initializers.
       lastTask = lastTask.timedAfter('TraceImport',
-                                     function initializeObjects() {
-        progressMeter.update('Initializing objects (step 2/2)...');
-        this.model_.initializeObjects();
-      }, this);
+          function initializeObjects() {
+            progressMeter.update('Initializing objects (step 2/2)...');
+            this.model_.initializeObjects();
+          }, this);
 
       // Build event indices mapping from an event id to all flow events.
       lastTask = lastTask.timedAfter('TraceImport',
-                                     function buildEventIndices() {
-        progressMeter.update('Building event indices...');
-        this.model_.buildEventIndices();
-      }, this);
+          function buildEventIndices() {
+            progressMeter.update('Building event indices...');
+            this.model_.buildEventIndices();
+          }, this);
 
       // Build the UserModel.
       lastTask = lastTask.timedAfter('TraceImport', function buildUserModel() {
@@ -326,10 +327,10 @@ tr.exportTo('tr.importer', function() {
 
       // Sort Expectations.
       lastTask = lastTask.timedAfter('TraceImport',
-                                     function sortExpectations() {
-        progressMeter.update('Sorting user expectations...');
-        this.model_.userModel.sortExpectations();
-      }, this);
+          function sortExpectations() {
+            progressMeter.update('Sorting user expectations...');
+            this.model_.userModel.sortExpectations();
+          }, this);
 
       // Run audits.
       lastTask = lastTask.timedAfter('TraceImport', function runAudits() {
@@ -345,23 +346,23 @@ tr.exportTo('tr.importer', function() {
       }, this);
 
       lastTask = lastTask.timedAfter('TraceImport',
-                                     function lastUpdateBounds() {
-        progressMeter.update('Update bounds...');
-        this.model_.updateBounds();
-      }, this);
+          function lastUpdateBounds() {
+            progressMeter.update('Update bounds...');
+            this.model_.updateBounds();
+          }, this);
 
       lastTask = lastTask.timedAfter('TraceImport',
-                                     function addModelWarnings() {
-        progressMeter.update('Looking for warnings...');
-        // Log an import warning if the clock is low resolution.
-        if (!this.model_.isTimeHighResolution) {
-          this.model_.importWarning({
-            type: 'low_resolution_timer',
-            message: 'Trace time is low resolution, trace may be unusable.',
-            showToUser: true
-          });
-        }
-      }, this);
+          function addModelWarnings() {
+            progressMeter.update('Looking for warnings...');
+            // Log an import warning if the clock is low resolution.
+            if (!this.model_.isTimeHighResolution) {
+              this.model_.importWarning({
+                type: 'low_resolution_timer',
+                message: 'Trace time is low resolution, trace may be unusable.',
+                showToUser: true
+              });
+            }
+          }, this);
 
       // Cleanup.
       lastTask.after(function() {

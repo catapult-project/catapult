@@ -109,51 +109,53 @@ tr.exportTo('tr.model', function() {
       // winheap/allocated_objects/tracing_overhead.
       var hasDiscountedFromAllocatorDumps = DISCOUNTED_ALLOCATOR_NAMES.some(
           function(allocatorName) {
-        // First check if the allocator root exists.
-        var allocatorDump = this.getMemoryAllocatorDumpByFullName(
+            // First check if the allocator root exists.
+            var allocatorDump = this.getMemoryAllocatorDumpByFullName(
             allocatorName);
-        if (allocatorDump === undefined)
-          return false;  // Allocator doesn't exist, try another one.
+            if (allocatorDump === undefined)
+              return false;  // Allocator doesn't exist, try another one.
 
-        var nextPathIndex = 0;
-        var currentDump = allocatorDump;
-        var currentFullName = allocatorName;
+            var nextPathIndex = 0;
+            var currentDump = allocatorDump;
+            var currentFullName = allocatorName;
 
-        // Descend from the root towards tracing_overhead as long as the dumps
-        // on the path exist.
-        for (; nextPathIndex < TRACING_OVERHEAD_PATH.length; nextPathIndex++) {
-          var childFullName = currentFullName + '/' +
+            // Descend from the root towards tracing_overhead as long as the
+            // dumps on the path exist.
+            for (; nextPathIndex < TRACING_OVERHEAD_PATH.length;
+                 nextPathIndex++) {
+              var childFullName = currentFullName + '/' +
               TRACING_OVERHEAD_PATH[nextPathIndex];
-          var childDump = this.getMemoryAllocatorDumpByFullName(
+              var childDump = this.getMemoryAllocatorDumpByFullName(
               childFullName);
-          if (childDump === undefined)
-            break;
+              if (childDump === undefined)
+                break;
 
-          currentDump = childDump;
-          currentFullName = childFullName;
-        }
+              currentDump = childDump;
+              currentFullName = childFullName;
+            }
 
-        // Create the missing descendant dumps on the path from the root
-        // towards tracing_overhead.
-        for (; nextPathIndex < TRACING_OVERHEAD_PATH.length; nextPathIndex++) {
-          var childFullName = currentFullName + '/' +
+            // Create the missing descendant dumps on the path from the root
+            // towards tracing_overhead.
+            for (; nextPathIndex < TRACING_OVERHEAD_PATH.length;
+                 nextPathIndex++) {
+              var childFullName = currentFullName + '/' +
               TRACING_OVERHEAD_PATH[nextPathIndex];
-          var childDump = new tr.model.MemoryAllocatorDump(
+              var childDump = new tr.model.MemoryAllocatorDump(
               currentDump.containerMemoryDump, childFullName);
-          childDump.parent = currentDump;
-          currentDump.children.push(childDump);
+              childDump.parent = currentDump;
+              currentDump.children.push(childDump);
 
-          currentFullName = childFullName;
-          currentDump = childDump;
-        }
+              currentFullName = childFullName;
+              currentDump = childDump;
+            }
 
-        // Add the ownership link.
-        var ownershipLink =
+            // Add the ownership link.
+            var ownershipLink =
             new tr.model.MemoryAllocatorDumpLink(tracingDump, currentDump);
-        tracingDump.owns = ownershipLink;
-        currentDump.ownedBy.push(ownershipLink);
-        return true;
-      }, this);
+            tracingDump.owns = ownershipLink;
+            currentDump.ownedBy.push(ownershipLink);
+            return true;
+          }, this);
 
       // Force rebuilding the memory allocator dump index (if we've just added
       // a new memory allocator dump).

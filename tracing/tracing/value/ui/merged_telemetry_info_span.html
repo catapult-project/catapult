@@ -52,12 +52,16 @@ Polymer({
     var rows = [];
 
     if (this.diagnostic.benchmarkNames.size) {
-      rows.push(['benchmark names',
-          Array.from(this.diagnostic.benchmarkNames).join(', ')]);
+      rows.push([
+        'benchmark names',
+        Array.from(this.diagnostic.benchmarkNames).join(', ')
+      ]);
     }
     if (this.diagnostic.benchmarkStarts.size) {
-      rows.push(['benchmark starts',
-          this.diagnostic.benchmarkStartStrings.join(', ')]);
+      rows.push([
+        'benchmark starts',
+        this.diagnostic.benchmarkStartStrings.join(', ')
+      ]);
     }
     if (this.diagnostic.storyUrls.size) {
       rows.push(['urls', Array.from(this.diagnostic.storyUrls).join(', ')]);
