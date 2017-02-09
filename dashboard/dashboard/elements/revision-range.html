@@ -13,7 +13,9 @@ to allow it to show links).
 
 <dom-module id="revision-range">
   <template>
-    <span>{{computeRevisionRange(start, end)}}</span>
+    <a href="/group_report?keys={{alertKey}}" target="_blank">
+      <span>{{computeRevisionRange(start, end)}}</span>
+    </a>
   </template>
   <script>
     'use strict';
