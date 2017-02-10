@@ -70,7 +70,7 @@ class PostBisectResultsHandler(post_data_handler.PostDataHandler):
         self.ReportWarning('No try job found.')
         return
       _UpdateTryJob(job, data)
-      update_bug_with_results.UpdateQuickLog(job)
+      update_bug_with_results.UpdateQuickLog(job, in_progress=True)
     except BadRequestError as error:
       self.ReportError(error.message, status=400)
 

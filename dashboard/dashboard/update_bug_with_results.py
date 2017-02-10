@@ -425,10 +425,10 @@ def _SendFYIBisectEmail(job, message):
                  html=email_data['html'])
 
 
-def UpdateQuickLog(job):
+def UpdateQuickLog(job, in_progress=False):
   if not job.bug_id or job.bug_id < 0:
     return
-  report = bisect_report.GetReport(job)
+  report = bisect_report.GetReport(job, in_progress)
   if not report:
     logging.error('Bisect report returns empty for job id %s, bug_id %s.',
                   job.key.id(), job.bug_id)

@@ -2,11 +2,14 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import copy
 import json
 
+import mock
 import webapp2
 import webtest
 
+from dashboard import bisect_report
 from dashboard import post_bisect_results
 from dashboard.common import testing_common
 from dashboard.models import try_job
@@ -96,3 +99,19 @@ class PostBisectResultsTest(testing_common.TestCase):
     job = job_key.get()
     self.assertEqual(6789, job.results_data['try_job_id'])
     self.assertEqual('completed', job.results_data['status'])
+
+  @mock.patch.object(bisect_report, 'GetReport')
+  def testPost_InProgress(self, mock_report):
+    job_key = try_job.TryJob(id=6790, rietveld_issue_id=200035, bug_id=10).put()
+    data = copy.deepcopy(_SAMPLE_BISECT_RESULTS_JSON)
+    data['status'] = 'started'
+    data['try_job_id'] = 6790
+    data_param = json.dumps(data)
+    self.testapp.post(
+        '/post_bisect_results', {'data': data_param},
+        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+
+    job = job_key.get()
+    self.assertEqual(6790, job.results_data['try_job_id'])
+    self.assertEqual('started', job.results_data['status'])
+    mock_report.assert_called_once_with(mock.ANY, True)

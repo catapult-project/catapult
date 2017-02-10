@@ -113,6 +113,12 @@ STATUS_INCOMPLETE = 'Bisect was unable to run to completion'
 
 STATUS_UNKNOWN = 'Bisect failed for unknown reasons'
 
+STATUS_IN_PROGRESS = 'Bisect is still in progress, results below are incomplete'
+
+STATUS_TYPE_IN_PROGRESS = 'in_progress'
+
+STATUS_TYPE_STARTED = 'started'
+
 MESSAGE_REPRO_BUT_UNDECIDED = """
 Bisect was stopped because a commit couldn't be classified as either
 good or bad."""
@@ -135,8 +141,7 @@ Please try rerunning the bisect.
 MESSAGE_RERUN_FROM_PARTIAL_RESULTS = """
 The bisect was able to narrow the range, you can try running with:
   good_revision: %(lkgr)s
-  bad_revision : %(fkbr)s
-"""
+  bad_revision : %(fkbr)s"""
 
 MESSAGE_REPRO_BUILD_FAILURES = """
 Build failures prevented the bisect from narrowing the range further."""
@@ -223,7 +228,8 @@ def _GenerateReport(results_data):
   # 3 - Incomplete bisects, try to print out a useful narrowed range and ask
   # them to try rerunning.
   if message == STATUS_UNKNOWN:
-    if results_data.get('status') == 'started':
+    if (results_data.get('status') == STATUS_TYPE_STARTED or
+        results_data.get('status') == STATUS_TYPE_IN_PROGRESS):
       # Try to provide some useful info on where to restart the bisect from
       rerun_info = MESSAGE_RERUN
       if lkgr_index > 0 or fkbr_index < (len(revision_data) - 1):
@@ -232,8 +238,12 @@ def _GenerateReport(results_data):
               'lkgr': lkgr.get('commit_hash'),
               'fkbr': fkbr.get('commit_hash'),
           }
-      message = STATUS_INCOMPLETE
-      message_details = MESSAGE_INCOMPLETE % rerun_info
+      if results_data.get('status') == STATUS_TYPE_STARTED:
+        message = STATUS_INCOMPLETE
+        message_details = MESSAGE_INCOMPLETE % rerun_info
+      else:
+        message = STATUS_IN_PROGRESS
+        message_details = rerun_info
 
   # 4 - Semi-successful in that they were able to run the tests, but failed to
   # either repro the regression or narrow it to a single commit.
@@ -339,7 +349,7 @@ def _GenerateReport(results_data):
   return result
 
 
-def GetReport(try_job_entity):
+def GetReport(try_job_entity, in_progress=False):
   """Generates a report for bisect results.
 
   This was ported from recipe_modules/auto_bisect/bisect_results.py.
@@ -353,6 +363,11 @@ def GetReport(try_job_entity):
   results_data = copy.deepcopy(try_job_entity.results_data)
   if not results_data:
     return ''
+
+  # This is an in-progress bisect, and we want it to display a message
+  # indicating so.
+  if in_progress:
+    results_data['status'] = STATUS_TYPE_IN_PROGRESS
 
   if try_job_entity.bug_id > 0:
     results_data['_tryjob_id'] = try_job_entity.key.id()
