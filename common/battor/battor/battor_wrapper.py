@@ -14,6 +14,7 @@ import tempfile
 import time
 
 from battor import battor_error
+import py_utils
 from py_utils import cloud_storage
 import dependency_manager
 from devil.utils import battor_device_mapping
@@ -21,6 +22,9 @@ from devil.utils import find_usb_devices
 
 import serial
 from serial.tools import list_ports
+
+
+DEFAULT_SHELL_CLOSE_TIMEOUT_S = 60
 
 
 def IsBattOrConnected(test_platform, android_device=None,
@@ -142,10 +146,6 @@ class BattOrWrapper(object):
       device_git_hash = self.GetFirmwareGitHash()
       battor_firmware, cs_git_hash = self._dm.FetchPathWithVersion(
           'battor_firmware', 'default')
-      # TODO(rnephew): Remove logging when win flashing problem is fixed.
-      logging.info(
-          'Starting flashing process on platform %s. CS Git: %s Local Git: %s'
-          % (self._target_platform, cs_git_hash, device_git_hash))
       if cs_git_hash != device_git_hash:
         logging.info(
             'Flashing BattOr with old firmware version <%s> with new '
@@ -189,33 +189,25 @@ class BattOrWrapper(object):
     self._battor_shell = self._StartShellImpl(battor_cmd)
     assert self.GetShellReturnCode() is None, 'Shell failed to start.'
 
-  def StopShell(self, timeout=60):
+  def StopShell(self, timeout=None):
     """Stop BattOr binary shell."""
     assert self._battor_shell, 'Attempting to stop a non-running BattOr shell.'
     assert not self._tracing, 'Attempting to stop a BattOr shell while tracing.'
+    timeout = timeout if timeout else DEFAULT_SHELL_CLOSE_TIMEOUT_S
 
     self._SendBattOrCommand(self._EXIT_CMD, check_return=False)
-    seconds_waited = 0
-    # TODO(rnephew): Move to using waitfor after porting to common/py_utils.
-    # https://github.com/catapult-project/catapult/issues/2955
-    while self.GetShellReturnCode() == None:
-      time.sleep(1)
-      seconds_waited += 1
-      if seconds_waited >= timeout:
-        break
-    if self.GetShellReturnCode() == None:
+    try:
+      py_utils.WaitFor(lambda: self.GetShellReturnCode() != None, timeout)
+    except py_utils.TimeoutException:
       self.KillBattOrShell()
-    self._battor_shell = None
+    finally:
+      self._battor_shell = None
 
   def StartTracing(self):
     """Start tracing on the BattOr."""
     assert self._battor_shell, 'Must start shell before tracing'
     assert not self._tracing, 'Tracing already started.'
-    # TODO(rnephew): Remove this when we have windows avrdude binary uploaded.
-    # https://github.com/catapult-project/catapult/issues/2972
-    if (self._target_platform in self._SUPPORTED_AUTOFLASHING_PLATFORMS
-        and self._autoflash):
-      self._FlashBattOr()
+    self._FlashBattOr()
     self._SendBattOrCommand(self._START_TRACING_CMD)
     self._tracing = True
     self._start_tracing_time = int(time.time())

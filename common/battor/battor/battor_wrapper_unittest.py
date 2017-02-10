@@ -184,6 +184,7 @@ class BattOrWrapperTest(unittest.TestCase):
     subprocess.check_output = self._subprocess_check_output
 
   def _DefaultBattOrReplacements(self):
+    battor_wrapper.DEFAULT_SHELL_CLOSE_TIMEOUT_S = .1
     self._battor._StartShellImpl = lambda *unused: PopenMock()
     self._battor.GetShellReturnCode = lambda *unused: self._fake_return_code
     self._battor._SendBattOrCommandImpl = lambda x: self._fake_battor_return
