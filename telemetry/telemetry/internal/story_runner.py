@@ -8,6 +8,7 @@ import os
 import subprocess
 import sys
 import time
+import warnings
 
 import py_utils
 from py_utils import cloud_storage  # pylint: disable=import-error
@@ -38,7 +39,9 @@ def AddCommandLineArgs(parser):
   # Page set options
   group = optparse.OptionGroup(parser, 'Page set repeat options')
   group.add_option('--page-repeat', default=1, type='int',
-                   help='Number of times to repeat each individual page '
+                   help='(DEPRECATED - please see: '
+                   'https://github.com/catapult-project/catapult/issues/3200).'
+                   'Number of times to repeat each individual page '
                    'before proceeding with the next page in the pageset.')
   group.add_option('--pageset-repeat', default=1, type='int',
                    help='Number of times to repeat the entire pageset.')
@@ -199,6 +202,12 @@ def Run(test, story_set, finder_options, results, max_failures=None,
 
   # Filter page set based on options.
   stories = filter(story_module.StoryFilter.IsSelected, story_set)
+
+  if finder_options.page_repeat > 1:
+    warnings.warn(
+        '--page-repeat flag is deprecated. Please use --pageset-repeat'
+        'flag instead. See: '
+        'https://github.com/catapult-project/catapult/issues/3200')
 
   if (not finder_options.use_live_sites and
       finder_options.browser_options.wpr_mode != wpr_modes.WPR_RECORD):
