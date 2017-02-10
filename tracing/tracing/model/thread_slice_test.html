@@ -22,10 +22,10 @@ tr.b.unittest.testSuite(function() {
       m.t2 = m.p1.getOrCreateThread(2);
       var node = tr.c.TestUtils.newProfileNodes(m, ['fake']);
       m.samples.push(
-        new tr.model.Sample(1, 'a_1', node, m.t2),
-        new tr.model.Sample(2, 'a_2', node, m.t2),
-        new tr.model.Sample(3, 'a_3', node, m.t2),
-        new tr.model.Sample(5, 'b', node, m.t2)
+          new tr.model.Sample(1, 'a_1', node, m.t2),
+          new tr.model.Sample(2, 'a_2', node, m.t2),
+          new tr.model.Sample(3, 'a_3', node, m.t2),
+          new tr.model.Sample(5, 'b', node, m.t2)
       );
     });
     var threadSlice = newSliceEx({title: 'a', start: 0, end: 4,

@@ -51,7 +51,7 @@ tr.b.unittest.testSuite(function() {
     // Add a BattOr sample with an explicit clock sync.
     var battorLinesWithExplicitSync = BATTOR_LINES.slice();
     battorLinesWithExplicitSync.push(
-      '2.500000 1.000000 4000.000000 <ABCDEF-01234-5678-0A1B2C3D>');
+        '2.500000 1.000000 4000.000000 <ABCDEF-01234-5678-0A1B2C3D>');
 
     var m = tr.c.TestUtils.newModelWithEvents(
         [CHROMIUM_EVENTS, battorLinesWithExplicitSync.join('\n')]);
@@ -69,7 +69,7 @@ tr.b.unittest.testSuite(function() {
     // the clock sync should be counted.
     var battorLinesWithExplicitSync = BATTOR_LINES.slice();
     battorLinesWithExplicitSync.push(
-      '2.500000 -1.000000 4000.000000 <ABCDEF-01234-5678-0A1B2C3D>');
+        '2.500000 -1.000000 4000.000000 <ABCDEF-01234-5678-0A1B2C3D>');
 
     var m = tr.c.TestUtils.newModelWithEvents(
         [CHROMIUM_EVENTS, battorLinesWithExplicitSync.join('\n')]);
@@ -91,7 +91,7 @@ tr.b.unittest.testSuite(function() {
     // Add a BattOr sample with an explicit clock sync.
     var battorLinesWithExplicitSync = BATTOR_LINES.slice();
     battorLinesWithExplicitSync.push(
-      '2.500000 1.000000 4000.000000 <ABCDEF-01234-5678-0A1B2C3D>');
+        '2.500000 1.000000 4000.000000 <ABCDEF-01234-5678-0A1B2C3D>');
 
     var m = tr.c.TestUtils.newModelWithEvents(
         [battorLinesWithExplicitSync.join('\n')]);

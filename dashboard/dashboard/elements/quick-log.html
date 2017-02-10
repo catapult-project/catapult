@@ -253,17 +253,17 @@ found in the LICENSE file.
           }
         }
         this.xhr = simple_xhr.send('/get_logs', params,
-          function(logs) {
-            this.errorMessage = null;
-            this.setState('finished');
-            if (logs.length > 0) {
-              this.updateLogs(logs);
-            }
-          }.bind(this),
-          function(msg) {
-            this.errorMessage = msg;
-            this.setState('finished');
-          }.bind(this)
+            function(logs) {
+              this.errorMessage = null;
+              this.setState('finished');
+              if (logs.length > 0) {
+                this.updateLogs(logs);
+              }
+            }.bind(this),
+            function(msg) {
+              this.errorMessage = msg;
+              this.setState('finished');
+            }.bind(this)
         );
       },
 

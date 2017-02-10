@@ -213,8 +213,8 @@ found in the LICENSE file.
 
     function onAuthApiLoad(tryImmediate, resultCallback) {
       window.gapi.auth.authorize(
-        {'client_id': tr.ui.e.drive.constants.CLIENT_ID,
-          'scope': tr.ui.e.drive.constants.SCOPE, 'immediate': tryImmediate},
+          {'client_id': tr.ui.e.drive.constants.CLIENT_ID,
+            'scope': tr.ui.e.drive.constants.SCOPE, 'immediate': tryImmediate},
           function(authResult) {
             handleAuthResult(authResult, tryImmediate, resultCallback);
           });
@@ -374,9 +374,9 @@ found in the LICENSE file.
         driveDocument_.close();
       driveDocument_ = doc;
       doc.addEventListener(gapi.drive.realtime.EventType.COLLABORATOR_JOINED,
-                           displayAllCollaborators);
+          displayAllCollaborators);
       doc.addEventListener(gapi.drive.realtime.EventType.COLLABORATOR_LEFT,
-                           displayAllCollaborators);
+          displayAllCollaborators);
 
       displayAllCollaborators(doc);
     }
@@ -388,9 +388,9 @@ found in the LICENSE file.
     function onDownloaded(filename, content) {
       gapi.load('auth:client,drive-realtime,drive-share', function() {
         gapi.drive.realtime.load(driveFileId_,
-                                 onRealtimeFileLoaded,
-                                 null,
-                                 onRealtimeError);
+            onRealtimeFileLoaded,
+            null,
+            onRealtimeError);
 
       });
 

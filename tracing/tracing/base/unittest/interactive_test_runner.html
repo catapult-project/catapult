@@ -400,7 +400,7 @@ tr.exportTo('tr.b.unittest', function() {
         this.results_.removeEventListener('testfailed', this.onTestFailed_);
         this.results_.removeEventListener('testflaky', this.onTestFlaky_);
         this.results_.removeEventListener('statschange',
-                                          this.onResultsStatsChanged_);
+            this.onResultsStatsChanged_);
         delete this.results_.getHRefForTestCase;
         Polymer.dom(resultsContainer).removeChild(this.results_);
       }
@@ -415,7 +415,7 @@ tr.exportTo('tr.b.unittest', function() {
       this.results_.addEventListener('testfailed', this.onTestFailed_);
       this.results_.addEventListener('testflaky', this.onTestFlaky_);
       this.results_.addEventListener('statschange',
-                                     this.onResultsStatsChanged_);
+          this.onResultsStatsChanged_);
       Polymer.dom(resultsContainer).appendChild(this.results_);
 
       var tests = this.allTests_.filter(function(test) {
@@ -566,31 +566,31 @@ tr.exportTo('tr.b.unittest', function() {
       var loader;
       var p = getSuiteRelpathsToLoad(state);
       p = p.then(
-        function(suiteRelpathsToLoad) {
-          loader = new tr.b.unittest.SuiteLoader(suiteRelpathsToLoad);
-          return loader.allSuitesLoadedPromise;
-        },
-        function(e) {
-          hideLoadingOverlay();
-          throw e;
-        });
-      p = p.then(
-        function() {
-          hideLoadingOverlay();
-          // FIXME
-          window.addEventListener('WebComponentsReady', function() {
-            runTests(loader, state);
+          function(suiteRelpathsToLoad) {
+            loader = new tr.b.unittest.SuiteLoader(suiteRelpathsToLoad);
+            return loader.allSuitesLoadedPromise;
+          },
+          function(e) {
+            hideLoadingOverlay();
+            throw e;
           });
-          runTests(loader, state);
+      p = p.then(
+          function() {
+            hideLoadingOverlay();
+          // FIXME
+            window.addEventListener('WebComponentsReady', function() {
+              runTests(loader, state);
+            });
+            runTests(loader, state);
           // Polymer.whenReady(function() {
           //   runTests(loader, state);
           // });
-        },
-        function(err) {
-          hideLoadingOverlay();
-          tr.showPanic('Module loading failure', err);
-          throw err;
-        });
+          },
+          function(err) {
+            hideLoadingOverlay();
+            tr.showPanic('Module loading failure', err);
+            throw err;
+          });
       return p;
     }
 
@@ -661,7 +661,7 @@ tr.exportTo('tr.b.unittest', function() {
       runner.addEventListener('statechange', function() {
         var state = runner.getState();
         var stateString = stateToSearchString(runner.getDefaultState(),
-                                              state);
+            state);
         if (window.location.search.substring(1) === stateString)
           return;
 
@@ -691,7 +691,7 @@ tr.exportTo('tr.b.unittest', function() {
           state.shortFormat = false;
         }
         var stateString = stateToSearchString(runner.getDefaultState(),
-                                              state);
+            state);
         if (stateString.length > 0)
           return window.location.pathname + '?' + stateString;
         else

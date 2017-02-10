@@ -55,8 +55,8 @@ tr.exportTo('tr.model', function() {
     // Since we're given coordinates within the timeline canvas, we need to
     // convert them to document coordinates to get the element.
     var elem = document.elementFromPoint(
-          viewX + viewport.modelTrackContainer.canvas.offsetLeft,
-          viewY + viewport.modelTrackContainer.canvas.offsetTop);
+        viewX + viewport.modelTrackContainer.canvas.offsetLeft,
+        viewY + viewport.modelTrackContainer.canvas.offsetTop);
     // Build yComponents by calculating percentage offset with respect to
     // each parent track.
     while (elem instanceof tr.ui.tracks.Track) {

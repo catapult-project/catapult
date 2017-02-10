@@ -135,7 +135,7 @@ tr.b.unittest.testSuite(function() {
                    {col2: 'Object', col3: 1}];
     this.addHTMLOutput(view);
     assert.equal(undefined, tr.b.findDeepElementMatching(
-      view.$.content, 'table'));
+        view.$.content, 'table'));
   });
 
   test('instantiate_arrayWithDeepObjectValue', function() {
@@ -143,7 +143,7 @@ tr.b.unittest.testSuite(function() {
     view.object = [{key: {deep: 'object values make isTable() return false'}}];
     this.addHTMLOutput(view);
     assert.equal(undefined, tr.b.findDeepElementMatching(
-      view.$.content, 'table'));
+        view.$.content, 'table'));
   });
 
   test('jsonTableValue', function() {
@@ -182,7 +182,7 @@ tr.b.unittest.testSuite(function() {
         new tr.b.Scalar(tr.b.Unit.byName.timeDurationInMs, 3);
     this.addHTMLOutput(view);
     assert.isDefined(tr.b.findDeepElementMatching(
-      view.$.content, 'tr-v-ui-scalar-span'));
+        view.$.content, 'tr-v-ui-scalar-span'));
   });
 
   test('timeStampValue', function() {
@@ -190,7 +190,7 @@ tr.b.unittest.testSuite(function() {
     view.object = new tr.b.Scalar(tr.b.Unit.byName.timeStampInMs, 3);
     this.addHTMLOutput(view);
     assert.isDefined(tr.b.findDeepElementMatching(
-      view.$.content, 'tr-v-ui-scalar-span'));
+        view.$.content, 'tr-v-ui-scalar-span'));
   });
 
   test('scalarValue', function() {

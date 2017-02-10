@@ -34,40 +34,40 @@ tr.exportTo('tr.b.unittest', function() {
     var p = loader.allSuitesLoadedPromise;
 
     p = p.then(
-      function didAllSuitesLoad() {
-        var tests = loader.getAllTests().filter(function(testCase) {
-          if (testCase instanceof tr.b.unittest.PerfTestCase)
-            return false;
-          return true;
-        });
-        if (tests.length === 0) {
+        function didAllSuitesLoad() {
+          var tests = loader.getAllTests().filter(function(testCase) {
+            if (testCase instanceof tr.b.unittest.PerfTestCase)
+              return false;
+            return true;
+          });
+          if (tests.length === 0) {
+            printSpacer();
+            console.log('FAILED: No tests to run.');
+            console.log(err.stack);
+            quit(1);
+          }
+          var runner = new tr.b.unittest.TestRunner(results, tests);
+          return runner.beginRunning();
+        },
+        function suiteLoadingFailure(err) {
           printSpacer();
-          console.log('FAILED: No tests to run.');
+          console.log('FAILED: A test suite failed to load.');
           console.log(err.stack);
           quit(1);
-        }
-        var runner = new tr.b.unittest.TestRunner(results, tests);
-        return runner.beginRunning();
-      },
-      function suiteLoadingFailure(err) {
-        printSpacer();
-        console.log('FAILED: A test suite failed to load.');
-        console.log(err.stack);
-        quit(1);
-      });
+        });
 
     p = p.then(
-      function didAllTestRun() {
-        if (results.numTestsThatFailed > 0)
-          quit(1);
-        else
+        function didAllTestRun() {
+          if (results.numTestsThatFailed > 0)
+            quit(1);
+          else
           quit(0);
-      },
-      function testHarnessError(e) {
-        console.log('FAILED: A test harness error has ocurred.');
-        console.log(e.stack);
-        quit(1);
-      });
+        },
+        function testHarnessError(e) {
+          console.log('FAILED: A test harness error has ocurred.');
+          console.log(e.stack);
+          quit(1);
+        });
     return p;
   }
 

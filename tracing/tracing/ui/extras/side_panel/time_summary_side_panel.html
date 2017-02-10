@@ -112,7 +112,7 @@ found in the LICENSE file.
       for (var i = 0; i < slices.length; i++) {
         var slice = slices[i];
         if (rangeOfInterest.intersectsExplicitRangeInclusive(
-              slice.start, slice.end))
+            slice.start, slice.end))
           slicesInFilterRange.push(slice);
       }
       return slicesInFilterRange;
@@ -135,17 +135,17 @@ found in the LICENSE file.
       this.groupBySelector_ = tr.ui.b.createSelector(
           this, 'groupBy',
           'timeSummarySidePanel.groupBy', this.groupBy_,
-        [{label: 'Group by process', value: GROUP_BY_PROCESS_NAME},
+          [{label: 'Group by process', value: GROUP_BY_PROCESS_NAME},
            {label: 'Group by thread', value: GROUP_BY_THREAD_NAME}
-        ]);
+          ]);
       Polymer.dom(toolbarEl).appendChild(this.groupBySelector_);
 
       this.groupingUnitSelector_ = tr.ui.b.createSelector(
           this, 'groupingUnit',
           'timeSummarySidePanel.groupingUnit', this.groupingUnit_,
-        [{label: 'Wall time', value: WALL_TIME_GROUPING_UNIT},
+          [{label: 'Wall time', value: WALL_TIME_GROUPING_UNIT},
            {label: 'CPU time', value: CPU_TIME_GROUPING_UNIT}
-        ]);
+          ]);
       Polymer.dom(toolbarEl).appendChild(this.groupingUnitSelector_);
 
       this.showCpuIdleTimeCheckbox_ = tr.ui.b.createCheckBox(

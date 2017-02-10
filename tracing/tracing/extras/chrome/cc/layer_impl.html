@@ -172,33 +172,33 @@ tr.exportTo('tr.e.cc', function() {
 
   ObjectSnapshot.subTypes.register(
       PictureLayerImplSnapshot,
-    {
-      typeName: 'cc::PictureLayerImpl'
-    });
+      {
+        typeName: 'cc::PictureLayerImpl'
+      });
 
   ObjectSnapshot.subTypes.register(
       LayerImplSnapshot,
-    {
-      typeNames: [
-        'cc::LayerImpl',
-        'cc::DelegatedRendererLayerImpl',
-        'cc::HeadsUpDisplayLayerImpl',
-        'cc::IOSurfaceLayerImpl',
-        'cc::NinePatchLayerImpl',
-        'cc::PictureImageLayerImpl',
-        'cc::ScrollbarLayerImpl',
-        'cc::SolidColorLayerImpl',
-        'cc::SolidColorScrollbarLayerImpl',
-        'cc::SurfaceLayerImpl',
-        'cc::TextureLayerImpl',
-        'cc::TiledLayerImpl',
-        'cc::VideoLayerImpl',
-        'cc::PaintedScrollbarLayerImpl',
-        'ClankPatchLayer',
-        'TabBorderLayer',
-        'CounterLayer'
-      ]
-    });
+      {
+        typeNames: [
+          'cc::LayerImpl',
+          'cc::DelegatedRendererLayerImpl',
+          'cc::HeadsUpDisplayLayerImpl',
+          'cc::IOSurfaceLayerImpl',
+          'cc::NinePatchLayerImpl',
+          'cc::PictureImageLayerImpl',
+          'cc::ScrollbarLayerImpl',
+          'cc::SolidColorLayerImpl',
+          'cc::SolidColorScrollbarLayerImpl',
+          'cc::SurfaceLayerImpl',
+          'cc::TextureLayerImpl',
+          'cc::TiledLayerImpl',
+          'cc::VideoLayerImpl',
+          'cc::PaintedScrollbarLayerImpl',
+          'ClankPatchLayer',
+          'TabBorderLayer',
+          'CounterLayer'
+        ]
+      });
 
   return {
     LayerImplSnapshot,

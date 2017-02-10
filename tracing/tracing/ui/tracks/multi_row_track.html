@@ -99,7 +99,7 @@ tr.exportTo('tr.ui.tracks', function() {
         var modelSettings = new tr.model.ModelSettings(
             this.groupingSource_.model);
         modelSettings.setSettingFor(this.groupingSource_, 'expanded',
-                                    this.expanded);
+            this.expanded);
       }
 
       e.stopPropagation();
@@ -151,7 +151,7 @@ tr.exportTo('tr.ui.tracks', function() {
       }
 
       if (this.areArrayContentsSame_(this.itemsGroupedOnLastUpdateContents_,
-                                     this.itemsToGroup_)) {
+          this.itemsToGroup_)) {
         this.updateHeadingAndTooltip_();
         return;
       }
@@ -171,7 +171,7 @@ tr.exportTo('tr.ui.tracks', function() {
           continue;
         var track = this.addSubTrack_(subRow);
         track.addEventListener(
-          'heading-clicked', this.onHeadingClicked_.bind(this));
+            'heading-clicked', this.onHeadingClicked_.bind(this));
       }
       this.updateHeadingAndTooltip_();
       this.expandedStateChanged_();

@@ -491,11 +491,11 @@ tr.exportTo('tr.e.importer', function() {
           throw new Error('This should never happen');
 
         thread.sliceGroup.beginSlice(event.cat, event.name,
-                                     this.toModelTimeFromUs_(event.ts),
-                                     this.deepCopyIfNeeded_(event.args),
-                                     this.toModelTimeFromUs_(event.tts),
-                                     event.argsStripped,
-                                     getEventColor(event));
+            this.toModelTimeFromUs_(event.ts),
+            this.deepCopyIfNeeded_(event.args),
+            this.toModelTimeFromUs_(event.tts),
+            event.argsStripped,
+            getEventColor(event));
         var slice = thread.sliceGroup.endSlice(
             this.toModelTimeFromUs_(event.ts),
             this.toModelTimeFromUs_(event.tts));
@@ -772,9 +772,9 @@ tr.exportTo('tr.e.importer', function() {
             // Get the sepcific ProfileNode type based on sampleType.
             var ProfileNodeType =
                 tr.model.ProfileNode.subTypes.getConstructor(undefined,
-                                                             sampleType);
+                    sampleType);
             let profileNode = ProfileNodeType.constructFromObject(profileTree,
-                                                                  node);
+                node);
             if (profileNode === undefined) {
               continue;
             }
@@ -790,7 +790,7 @@ tr.exportTo('tr.e.importer', function() {
             profileTree.endTime += timeDeltas[i];
             let start = this.toModelTimeFromUs_(profileTree.endTime);
             this.model_.samples.push(
-              new tr.model.Sample(start, node.sampleTitle, node, thread));
+                new tr.model.Sample(start, node.sampleTitle, node, thread));
           }
         }
       }
@@ -809,11 +809,11 @@ tr.exportTo('tr.e.importer', function() {
       var profileTree = this.getOrCreateProfileTree_(sampleType, event.pid);
       if (profileTree.getNode(-1) === undefined) {
         profileTree.add(
-          new ProfileNodeType(-1, {
-            url: '',
-            scriptId: -1,
-            functionName: 'unknown'
-          }, undefined));
+            new ProfileNodeType(-1, {
+              url: '',
+              scriptId: -1,
+              functionName: 'unknown'
+            }, undefined));
       }
       // There are several types of v8 sample events, gc, native, compiler, etc.
       // Some of these types have stacks and some don't, we handle those two
@@ -865,7 +865,7 @@ tr.exportTo('tr.e.importer', function() {
           .getOrCreateThread(event.tid);
 
       this.model_.samples.push(
-        new tr.model.Sample(this.toModelTimeFromUs_(event.ts),
+          new tr.model.Sample(this.toModelTimeFromUs_(event.ts),
                             node.sampleTitle, node, thread));
     },
 
@@ -887,7 +887,7 @@ tr.exportTo('tr.e.importer', function() {
         }
         var ProfileNodeType =
             tr.model.ProfileNode.subTypes.getConstructor(undefined,
-                                                         'legacySample');
+                'legacySample');
         node = this.stackFrameTree_.add(new ProfileNodeType(
           id, {
             functionName: event.name
@@ -1237,7 +1237,7 @@ tr.exportTo('tr.e.importer', function() {
       // We keep the StackFrame version for compatibility for now.
       var ProfileNodeType =
           tr.model.ProfileNode.subTypes.getConstructor(undefined,
-                                                       'legacySample');
+              'legacySample');
       if (idPrefix === 'g') {
         for (var id in rawStackFrames) {
           var rawStackFrame = rawStackFrames[id];
@@ -1308,8 +1308,8 @@ tr.exportTo('tr.e.importer', function() {
           // With compiler-specific prefix and suffix (automatically annotated
           // object types).
           objectTypeNameMap[objectTypeId] = rawObjectTypeName.substring(
-               objectTypeNamePrefix.length,
-               rawObjectTypeName.length - objectTypeNameSuffix.length);
+              objectTypeNamePrefix.length,
+              rawObjectTypeName.length - objectTypeNameSuffix.length);
         } else {
           // Without compiler-specific prefix and suffix (manually annotated
           // object types and '[unknown]').
@@ -1323,7 +1323,7 @@ tr.exportTo('tr.e.importer', function() {
     importAnnotations_: function() {
       for (var id in this.traceAnnotations_) {
         var annotation = tr.model.Annotation.fromDictIfPossible(
-           this.traceAnnotations_[id]);
+            this.traceAnnotations_[id]);
         if (!annotation) {
           this.model_.importWarning({
             type: 'annotation_warning',
@@ -1599,15 +1599,15 @@ tr.exportTo('tr.e.importer', function() {
             // Create a slice from start to end.
             var asyncSliceConstructor =
                tr.model.AsyncSlice.subTypes.getConstructor(
-                  events[0].event.cat,
-                  name);
+                   events[0].event.cat,
+                   name);
             var slice = new asyncSliceConstructor(
                 events[0].event.cat,
                 name,
                 getEventColor(events[0].event),
                 this.toModelTimeFromUs_(events[0].event.ts),
                 tr.b.concatenateObjects(events[0].event.args,
-                                      events[events.length - 1].event.args),
+                    events[events.length - 1].event.args),
                 this.toModelTimeFromUs_(event.ts - events[0].event.ts),
                 true, undefined, undefined, events[0].event.argsStripped);
             slice.startThread = events[0].thread;
@@ -1656,8 +1656,8 @@ tr.exportTo('tr.e.importer', function() {
 
               var asyncSliceConstructor =
                  tr.model.AsyncSlice.subTypes.getConstructor(
-                    events[0].event.cat,
-                    subName);
+                     events[0].event.cat,
+                     subName);
               var subSlice = new asyncSliceConstructor(
                   events[0].event.cat,
                   subName,
@@ -1665,7 +1665,7 @@ tr.exportTo('tr.e.importer', function() {
                   this.toModelTimeFromUs_(events[startIndex].event.ts),
                   this.deepCopyIfNeeded_(events[j].event.args),
                   this.toModelTimeFromUs_(
-                    events[endIndex].event.ts - events[startIndex].event.ts),
+                      events[endIndex].event.ts - events[startIndex].event.ts),
                       undefined, undefined,
                       events[startIndex].event.argsStripped);
               subSlice.startThread = events[startIndex].thread;
@@ -1761,7 +1761,7 @@ tr.exportTo('tr.e.importer', function() {
                 // Make an argument object to hold the combined params.
                 var args3 = {};
                 args3.params = tr.b.concatenateObjects(args1.params,
-                                                       args2.params);
+                    args2.params);
                 return tr.b.concatenateObjects(args1, args2, args3);
               }
               var endArgs = eventStateEntry.end.event.args || {};
@@ -1787,8 +1787,8 @@ tr.exportTo('tr.e.importer', function() {
           var isTopLevel = (eventStateEntry.parentEntry === undefined);
           var asyncSliceConstructor =
               tr.model.AsyncSlice.subTypes.getConstructor(
-                eventStateEntry.event.cat,
-                eventStateEntry.event.name);
+                  eventStateEntry.event.cat,
+                  eventStateEntry.event.name);
 
           var threadStart = undefined;
           var threadDuration = undefined;
@@ -1832,7 +1832,7 @@ tr.exportTo('tr.e.importer', function() {
         }
         for (var si = 0; si < topLevelSlices.length; si++) {
           topLevelSlices[si].startThread.asyncSliceGroup.push(
-            topLevelSlices[si]);
+              topLevelSlices[si]);
         }
       }
     },
@@ -1973,7 +1973,7 @@ tr.exportTo('tr.e.importer', function() {
         }
 
         var ok = finishFlowEventWith(flowEvent, undefined, event,
-                                     refGuid, undefined, slice);
+            refGuid, undefined, slice);
         if (ok) {
           that.model_.flowEvents.push(flowEvent);
         } else {
@@ -2109,7 +2109,7 @@ tr.exportTo('tr.e.importer', function() {
           }
 
           var ok = finishFlowEventWith(flowEvent, thread, event,
-                                       refGuid, bindToParent);
+              refGuid, bindToParent);
           if (ok) {
             that.model_.flowEvents.push(flowEvent);
           } else {
@@ -2337,7 +2337,7 @@ tr.exportTo('tr.e.importer', function() {
         if (object instanceof Array) {
           for (var i = 0; i < object.length; i++) {
             var res = func.call(thisArg, object, i, object[i],
-                                containingSnapshot);
+                containingSnapshot);
             if (res === null)
               continue;
             if (res)
@@ -2350,7 +2350,7 @@ tr.exportTo('tr.e.importer', function() {
 
         for (var key in object) {
           var res = func.call(thisArg, object, key, object[key],
-                              containingSnapshot);
+              containingSnapshot);
           if (res === null)
             continue;
           if (res)

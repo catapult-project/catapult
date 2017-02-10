@@ -200,9 +200,9 @@ tr.exportTo('tr.b', function() {
     }
     // Create a copy to make sure that we don't mutate original |samples| input.
     samples = samples.slice().sort(
-      function(a, b) {
-        return a - b;
-      }
+        function(a, b) {
+          return a - b;
+        }
     );
     var low = Math.min.apply(null, samples);
     var high = Math.max.apply(null, samples);
@@ -211,7 +211,7 @@ tr.exportTo('tr.b', function() {
     if (high - low === 0.0) {
       // Samples is an array of 0.5 in this case.
       samples = Array.apply(null, new Array(samples.length)).map(
-        function() { return 0.5;});
+          function() { return 0.5;});
       return {
         normalized_samples: samples,
         scale: 1.0
@@ -384,7 +384,7 @@ tr.exportTo('tr.b', function() {
     } else {
       // Compute relative discrepancy
       discrepancy = tr.b.clamp(
-        (discrepancy - invSampleCount) / (1.0 - invSampleCount), 0.0, 1.0);
+          (discrepancy - invSampleCount) / (1.0 - invSampleCount), 0.0, 1.0);
     }
     return discrepancy;
   };
@@ -416,7 +416,7 @@ tr.exportTo('tr.b', function() {
       return prev;
     }, [0]);
     return Statistics.timestampsDiscrepancy(
-      timestamps, opt_absolute, opt_locationCount);
+        timestamps, opt_absolute, opt_locationCount);
   };
 
   /**

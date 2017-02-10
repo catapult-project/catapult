@@ -269,7 +269,7 @@ tr.exportTo('tr.v', function() {
             histograms, grouping.callback);
 
         if (opt_skipGroupingCallback && opt_skipGroupingCallback(
-              grouping, groupedHistograms)) {
+            grouping, groupedHistograms)) {
           return recurse(histograms, level + 1);
         }
 

@@ -779,14 +779,14 @@ triaging functionality in the chart.
           testPaths.forEach(function(testPath) {
             var index = testPathToGroupIndex[testPath];
             this.set('seriesGroupList.' + index + '.numPendingRequests',
-                     this.seriesGroupList[index].numPendingRequests + delta);
+                this.seriesGroupList[index].numPendingRequests + delta);
           }.bind(this));
         },
 
         checkForInternalUser: function() {
           if (!this.isInternalUser) {
             this.addWarnings(
-               'Note that some data is only available when logged in.');
+                'Note that some data is only available when logged in.');
           }
         },
 
@@ -897,7 +897,7 @@ triaging functionality in the chart.
             newSeries[nextIndex] = newJson.annotations.series[index];
 
             this.updateErrorBarsIndex(newJson['error_bars'][index], nextIndex,
-                                      color);
+                color);
             this.json['error_bars'][nextIndex] = newJson['error_bars'][index];
           }
 
@@ -1003,7 +1003,7 @@ triaging functionality in the chart.
             for (var key in newTest) {
               this.set('seriesGroupList.' + seriesGroupIndex + '.tests.' +
                        testIndex + '.' + key,
-                       newTest[key]);
+                  newTest[key]);
             }
           } else {
             this.addTestToSeriesGroup(seriesGroupIndex, newTest);
@@ -1030,11 +1030,11 @@ triaging functionality in the chart.
               this.set('seriesGroupList.' + seriesGroupIndex + '.numHidden', 0);
             }
             this.set('seriesGroupList.' + seriesGroupIndex + '.numHidden',
-                     seriesGroup.numHidden + 1);
+                seriesGroup.numHidden + 1);
           }
           this.push('seriesGroupList.' + seriesGroupIndex + '.tests', test);
           this.set('seriesGroupList.' + seriesGroupIndex + '.tests',
-                   seriesGroup.tests.sort(this.compareTest));
+              seriesGroup.tests.sort(this.compareTest));
         },
 
         getTestIndexInSeriesGroup: function(seriesGroupIndex, name) {
@@ -1449,7 +1449,7 @@ triaging functionality in the chart.
               data.push(tr.b.deepCopy(this.json.data[index]));
             } else {
               console.debug('getDataForFlot: indicesToGraph: ',
-                            this.indicesToGraph);
+                  this.indicesToGraph);
               return [];
             }
           }
@@ -1462,7 +1462,7 @@ triaging functionality in the chart.
               data.push(tr.b.deepCopy(this.json['error_bars'][index][1]));
             } else {
               console.debug('getDataForFlot: indicesToGraph: ',
-                            this.indicesToGraph);
+                  this.indicesToGraph);
               return [];
             }
           }
@@ -1635,8 +1635,8 @@ triaging functionality in the chart.
 
               var alertIcon = document.createElement('alert-icon');
               alertIcon.initialize(
-                annotations[jsonSeriesIndex][dataIndex]['g_anomaly'],
-                this.alertKey);
+                  annotations[jsonSeriesIndex][dataIndex]['g_anomaly'],
+                  this.alertKey);
               Polymer.dom(
                   this.$['alert-icon-container']).appendChild(alertIcon);
               alertIcon.setPosition(top, left);
@@ -2004,7 +2004,7 @@ triaging functionality in the chart.
           this.$.tooltip.revisions = this.getRevisions(
               jsonSeriesIndex, dataIndex);
           this.$.tooltip.links = this.getTooltipLinks(annotation, series.path,
-                                                      pointId);
+              pointId);
           if (annotation.timestamp) {
             var d = new Date(annotation.timestamp);
             this.$.tooltip.timestamp = d.toISOString();

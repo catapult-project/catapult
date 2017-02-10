@@ -87,7 +87,7 @@ tr.exportTo('tr.b', function() {
   Quad.prototype = {
     pointInside: function(point) {
       return pointInImplicitQuad(point,
-                                 this.p1, this.p2, this.p3, this.p4);
+          this.p1, this.p2, this.p3, this.p4);
     },
 
     boundingRect: function() {
@@ -179,24 +179,24 @@ tr.exportTo('tr.b', function() {
       lerpVec2(b23, v14, v23, 1 - rect.right);
 
       vec2.addTwoScaledUnitVectors(tmpVec2a,
-                                   b12, l12 * rect.x,
-                                   b14, l14 * rect.y);
+          b12, l12 * rect.x,
+          b14, l14 * rect.y);
       vec2.add(dstQuad.p1, this.p1, tmpVec2a);
 
       vec2.addTwoScaledUnitVectors(tmpVec2a,
-                                   b12, l12 * -(1.0 - rect.right),
-                                   b23, l23 * rect.y);
+          b12, l12 * -(1.0 - rect.right),
+          b23, l23 * rect.y);
       vec2.add(dstQuad.p2, this.p2, tmpVec2a);
 
 
       vec2.addTwoScaledUnitVectors(tmpVec2a,
-                                   b43, l43 * -(1.0 - rect.right),
-                                   b23, l23 * -(1.0 - rect.bottom));
+          b43, l43 * -(1.0 - rect.right),
+          b23, l23 * -(1.0 - rect.bottom));
       vec2.add(dstQuad.p3, this.p3, tmpVec2a);
 
       vec2.addTwoScaledUnitVectors(tmpVec2a,
-                                   b43, l43 * rect.left,
-                                   b14, l14 * -(1.0 - rect.bottom));
+          b43, l43 * rect.left,
+          b14, l14 * -(1.0 - rect.bottom));
       vec2.add(dstQuad.p4, this.p4, tmpVec2a);
     },
 

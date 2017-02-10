@@ -267,11 +267,11 @@ tr.exportTo('tr.model', function() {
       }
 
       tr.b.iterateOverIntersectingIntervals(this.timeSlices,
-                                            function(x) { return x.start; },
-                                            function(x) { return x.end; },
-                                            range.min,
-                                            range.max,
-                                            addStatsForSlice);
+          function(x) { return x.start; },
+          function(x) { return x.end; },
+          range.min,
+          range.max,
+          addStatsForSlice);
       return stats;
     },
 
@@ -291,11 +291,11 @@ tr.exportTo('tr.model', function() {
       }
 
       tr.b.iterateOverIntersectingIntervals(this.timeSlices,
-                                            function(x) { return x.start; },
-                                            function(x) { return x.end; },
-                                            start,
-                                            end,
-                                            addStatsForSlice);
+          function(x) { return x.start; },
+          function(x) { return x.end; },
+          start,
+          end,
+          addStatsForSlice);
       return stats;
     },
 

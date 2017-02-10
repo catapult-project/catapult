@@ -32,7 +32,7 @@ tr.b.unittest.testSuite(function() {
     DummyEvent.register(DummyEventSubclass, {typeName: 'dummy-name'});
     assert.equal(DummyEvent, DummyEvent.getConstructor('cat', 'name'));
     assert.equal(DummyEvent.getConstructor('dummy', 'dummy-name'),
-                 DummyEventSubclass);
+        DummyEventSubclass);
     DummyEvent.unregister(DummyEventSubclass);
     assert.equal(DummyEvent, DummyEvent.getConstructor('dummy', 'dummy-name'));
   });
@@ -57,12 +57,12 @@ tr.b.unittest.testSuite(function() {
         DummyEvent, options);
 
     DummyEvent.register(
-      DummyEventSubclass,
-      {categoryParts: ['dummy']
-      });
+        DummyEventSubclass,
+        {categoryParts: ['dummy']
+        });
     assert.equal(DummyEvent, DummyEvent.getConstructor('cat', 'name'));
     assert.equal(DummyEvent.getConstructor('dummy', 'dummy-name'),
-                 DummyEventSubclass);
+        DummyEventSubclass);
     DummyEvent.unregister(DummyEventSubclass);
     assert.equal(DummyEvent, DummyEvent.getConstructor('dummy', 'dummy-name'));
   });
@@ -88,13 +88,13 @@ tr.b.unittest.testSuite(function() {
 
     DummyEvent.register(
         DummyEventSubclass,
-      {
-        categoryParts: ['dummy']
-      });
+        {
+          categoryParts: ['dummy']
+        });
     assert.equal(DummyEvent, DummyEvent.getConstructor('cat', 'name'));
     assert.equal(DummyEventSubclass,
-                 DummyEvent.getConstructor('dummy,something-else',
-                                           'dummy-name'));
+        DummyEvent.getConstructor('dummy,something-else',
+            'dummy-name'));
   });
 
   test('tberDefaultType', function() {
@@ -118,13 +118,13 @@ tr.b.unittest.testSuite(function() {
 
     DummyEvent.register(
         DummyEventSubclass,
-      {
-        categoryParts: ['dummy']
-      });
+        {
+          categoryParts: ['dummy']
+        });
     assert.equal(DummyEvent, DummyEvent.getConstructor('cat', 'name'));
     assert.equal(DummyEventSubclass,
-                 DummyEvent.getConstructor('dummy,something-else',
-                                           'dummy-name'));
+        DummyEvent.getConstructor('dummy,something-else',
+            'dummy-name'));
   });
 
 

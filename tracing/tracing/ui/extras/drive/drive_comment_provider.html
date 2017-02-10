@@ -44,7 +44,7 @@ found in the LICENSE file.
   }
 
   document.addEventListener('commentWithUIState',
-                            onCommentWithUIState.bind(this));
+      onCommentWithUIState.bind(this));
 }());
 
 tr.exportTo('tr.ui.e.drive.analysis', function() {
@@ -54,7 +54,7 @@ tr.exportTo('tr.ui.e.drive.analysis', function() {
     attachToElement: function(attachedElement) {
       this.attachedElement_ = attachedElement;
       this.commentsCheckTimer_ = setTimeout(this.checkForComments_.bind(this),
-                                            5000);
+          5000);
     },
 
     detachFromElement: function() {
@@ -64,7 +64,7 @@ tr.exportTo('tr.ui.e.drive.analysis', function() {
     checkForComments_: function() {
       this.updateComments();
       this.commentsCheckTimer_ = setTimeout(this.checkForComments_.bind(this),
-                                            5000);
+          5000);
     },
 
     updateComments: function() {

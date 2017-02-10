@@ -88,14 +88,14 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       this.recording_ = 'starting';
       var res = this.conn_.req(
           'Tracing.start',
-        {
-          categories: recordingOptions.categoryFilter,
-          options:
+          {
+            categories: recordingOptions.categoryFilter,
+            options:
                 [recordingOptions.tracingRecordMode,
                   (recordingOptions.useSampling ? 'enable-sampling' : '')
                 ].join(','),
-          bufferUsageReportingInterval: 1000
-        });
+            bufferUsageReportingInterval: 1000
+          });
       res = res.then(
           function ok() {
             this.conn_.setNotificationListener(

@@ -96,7 +96,7 @@ tr.exportTo('tr.ui.e.system_stats', function() {
           timeIntervalSeconds = 1;
 
         this.computeRatesRecursive_(prevStats, stats,
-                                    timeIntervalSeconds);
+            timeIntervalSeconds);
       }
     },
 
@@ -105,8 +105,8 @@ tr.exportTo('tr.ui.e.system_stats', function() {
       for (var statName in stats) {
         if (stats[statName] instanceof Object) {
           this.computeRatesRecursive_(prevStats[statName],
-                                      stats[statName],
-                                      timeIntervalSeconds);
+              stats[statName],
+              timeIntervalSeconds);
         } else {
           if (statName === 'sectors_read') {
             stats['bytes_read_per_sec'] = (stats['sectors_read'] -
@@ -147,7 +147,7 @@ tr.exportTo('tr.ui.e.system_stats', function() {
         var stats = snapshot.getStats();
 
         this.computeMaxStatsRecursive_(stats, maxStats,
-                                       excludedStats);
+            excludedStats);
       }
 
       return maxStats;
@@ -166,8 +166,8 @@ tr.exportTo('tr.ui.e.system_stats', function() {
             excludedNested = null;
 
           this.computeMaxStatsRecursive_(stats[statName],
-                                         maxStats[statName],
-                                         excludedNested);
+              maxStats[statName],
+              excludedNested);
         } else {
           if (excludedStats && statName in excludedStats)
             continue;
@@ -260,12 +260,12 @@ tr.exportTo('tr.ui.e.system_stats', function() {
 
         // Descend into nested stats.
         this.drawStatBarsRecursive_(snapshot,
-                                    leftView,
-                                    rightView,
-                                    height,
-                                    trace,
-                                    maxStats,
-                                    currentY);
+            leftView,
+            rightView,
+            height,
+            trace,
+            maxStats,
+            currentY);
 
         if (i === lowIndex)
           this.drawStatNames_(leftView, height, currentY, '', maxStats);
@@ -286,12 +286,12 @@ tr.exportTo('tr.ui.e.system_stats', function() {
         if (stats[statName] instanceof Object) {
           // Use the y-position returned from the recursive call.
           currentY = this.drawStatBarsRecursive_(snapshot,
-                                                 leftView,
-                                                 rightView,
-                                                 height,
-                                                 stats[statName],
-                                                 maxStats[statName],
-                                                 currentY);
+              leftView,
+              rightView,
+              height,
+              stats[statName],
+              maxStats[statName],
+              currentY);
         } else {
           var maxStat = maxStats[statName];
 
@@ -309,7 +309,7 @@ tr.exportTo('tr.ui.e.system_stats', function() {
           }
 
           ctx.fillRect(leftView, currentY - barHeight,
-                       Math.max(rightView - leftView, 1), barHeight);
+              Math.max(rightView - leftView, 1), barHeight);
 
           currentY += height;
         }
@@ -328,7 +328,7 @@ tr.exportTo('tr.ui.e.system_stats', function() {
       for (var statName in maxStats) {
         if (maxStats[statName] instanceof Object) {
           currentY = this.drawStatNames_(leftView, height, currentY,
-                                         statName, maxStats[statName]);
+              statName, maxStats[statName]);
         } else {
           var fullname = statName;
 

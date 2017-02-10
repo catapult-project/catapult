@@ -155,18 +155,18 @@ found in the LICENSE file.
       ready: function() {
         var params = {};
         simple_xhr.send('/list_jobs', params,
-          function(response) {
-            this.jobs = response['jobs_list'];
-            this.totalJobsCount = response['jobs_count'];
-            this.totalJobsCountMax = response['jobs_count_max'];
-            this.xsrfToken = response['xsrf_token'];
-            this.loading = false;
-            this.updateFromURIParameters();
-          }.bind(this),
-          function(msg) {
-            this.error = msg;
-            this.loading = false;
-          }.bind(this));
+            function(response) {
+              this.jobs = response['jobs_list'];
+              this.totalJobsCount = response['jobs_count'];
+              this.totalJobsCountMax = response['jobs_count_max'];
+              this.xsrfToken = response['xsrf_token'];
+              this.loading = false;
+              this.updateFromURIParameters();
+            }.bind(this),
+            function(msg) {
+              this.error = msg;
+              this.loading = false;
+            }.bind(this));
       }
     });
   </script>

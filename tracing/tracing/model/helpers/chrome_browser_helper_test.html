@@ -32,7 +32,7 @@ tr.b.unittest.testSuite(function() {
         tr.model.helpers.ChromeModelHelper);
     tr.e.chrome.ChromeTestUtils.addLoadingEvent(model, {start: 1, end: 10});
     assert.equal(1, modelHelper.browserHelper.getLoadingEventsInRange(
-      getRange(0, 100)).length);
+        getRange(0, 100)).length);
   });
 
   test('ProvisionalLoadEvent', function() {
@@ -41,8 +41,8 @@ tr.b.unittest.testSuite(function() {
         tr.model.helpers.ChromeModelHelper);
     tr.e.chrome.ChromeTestUtils.addCommitLoadEvent(model, {start: 1, end: 10});
     assert.equal(1,
-      modelHelper.browserHelper.getCommitProvisionalLoadEventsInRange(
-        getRange(0, 100)).length);
+        modelHelper.browserHelper.getCommitProvisionalLoadEventsInRange(
+            getRange(0, 100)).length);
   });
 
   test('LatencyEvent', function() {
@@ -52,7 +52,7 @@ tr.b.unittest.testSuite(function() {
     tr.e.chrome.ChromeTestUtils.addInputEvent(
         model, INPUT_TYPE.UNKNOWN, {start: 1, end: 10});
     assert.equal(1, modelHelper.browserHelper.getLatencyEventsInRange(
-      getRange(0, 100)).length);
+        getRange(0, 100)).length);
   });
 
   test('NetworkEvent', function() {
@@ -61,7 +61,7 @@ tr.b.unittest.testSuite(function() {
         tr.model.helpers.ChromeModelHelper);
     tr.e.chrome.ChromeTestUtils.addNetworkEvent(model, {start: 1, end: 10});
     assert.equal(1, modelHelper.browserHelper.getAllNetworkEventsInRange(
-      getRange(0, 100)).length);
+        getRange(0, 100)).length);
   });
 
   test('browserName_chrome', function() {

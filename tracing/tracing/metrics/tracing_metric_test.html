@@ -137,7 +137,7 @@ tr.b.unittest.testSuite(function() {
 
     var memoryCategorySize = events.filter(
         slice => slice['cat'] === MEMORY_INFRA_TRACING_CATEGORY).reduce(
-            (acc, slice) => acc + JSON.stringify(slice).length, 0);
+        (acc, slice) => acc + JSON.stringify(slice).length, 0);
     var totalSizeHistogram = histograms.getHistogramNamed(
         'Total trace size of memory-infra dumps in bytes');
     assert.strictEqual(totalSizeHistogram.average, memoryCategorySize);

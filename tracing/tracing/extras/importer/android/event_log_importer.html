@@ -201,9 +201,9 @@ tr.exportTo('tr.e.importer.android', function() {
           activity.lastPauseTs);
       var newActivity = new tr.model.Activity(activity.name,
           'Android Activity', range,
-        {created: activity.createdTs,
-          procstart: activity.procStartTs,
-          lastfocus: activity.lastFocusedTs});
+          {created: activity.createdTs,
+            procstart: activity.procStartTs,
+            lastfocus: activity.lastFocusedTs});
       process.activities.push(newActivity);
     },
 
@@ -277,7 +277,7 @@ tr.exportTo('tr.e.importer.android', function() {
         match = amDestroyRE.exec(data);
         if (match && match.length === 2) {
           this.handleDestroyActivity(monotonicTs,
-             this.getFullActivityName(match[1]));
+              this.getFullActivityName(match[1]));
         }
       }
     },

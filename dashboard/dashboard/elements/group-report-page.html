@@ -359,7 +359,7 @@ found in the LICENSE file.
           chart.addSeriesGroup([this.getTestPathAndSelectedSeries(alert)]);
           chart.addEventListener('chartclosed', this.onGraphClose, false);
           chart.addEventListener('alertChangedRevisions',
-                                 this.alertChangedRevisions, true);
+              this.alertChangedRevisions, true);
           this.setChartData(chart);
         }
       },
@@ -460,43 +460,43 @@ found in the LICENSE file.
           params['rev'] = rev;
         }
         simple_xhr.send('/group_report', params,
-          function(response) {
-            this.revisionInfo = response['revision_info'];
-            this.loginLink = response['login_url'];
-            this.isInternalUser = response['is_internal_user'];
-            this.testSuites = response['test_suites'];
-            this.xsrfToken = response['xsrf_token'];
-            this.warningBug = response['warning_bug'];
-            this.warningMessage = response['warning_message'];
-            this.setExtraColumns(response['alert_list']);
-            this.alertList = response['alert_list'];
-            if (this.alertList.length == 0) {
-              this.missing = response['display_username'];
-            }
-            this.selectedKeys = response['selected_keys'];
-            if (this.warningMessage) {
-              this.fire('display-toast', {
-                'content': this.$.warningtoast,
-                'error': true
-              });
-            }
-            this.bugId = uri.getParameter('bug_id');
-            if (this.bugId) {
-              this.$['bug-info'].initialize(
-                  this.bugId, this.alertsTable);
-            }
-            var charts = this.getCharts();
-            for (var i = 0; i < charts.length; i++) {
-              this.setChartData(charts[i]);
-            }
-            this.onAlertSelectionChange();
-            this.loading = false;
-          }.bind(this),
-          function(msg) {
-            this.error = msg;
-            this.loading = false;
-            this.missing = 'Unknown';
-          }.bind(this));
+            function(response) {
+              this.revisionInfo = response['revision_info'];
+              this.loginLink = response['login_url'];
+              this.isInternalUser = response['is_internal_user'];
+              this.testSuites = response['test_suites'];
+              this.xsrfToken = response['xsrf_token'];
+              this.warningBug = response['warning_bug'];
+              this.warningMessage = response['warning_message'];
+              this.setExtraColumns(response['alert_list']);
+              this.alertList = response['alert_list'];
+              if (this.alertList.length == 0) {
+                this.missing = response['display_username'];
+              }
+              this.selectedKeys = response['selected_keys'];
+              if (this.warningMessage) {
+                this.fire('display-toast', {
+                  'content': this.$.warningtoast,
+                  'error': true
+                });
+              }
+              this.bugId = uri.getParameter('bug_id');
+              if (this.bugId) {
+                this.$['bug-info'].initialize(
+                    this.bugId, this.alertsTable);
+              }
+              var charts = this.getCharts();
+              for (var i = 0; i < charts.length; i++) {
+                this.setChartData(charts[i]);
+              }
+              this.onAlertSelectionChange();
+              this.loading = false;
+            }.bind(this),
+            function(msg) {
+              this.error = msg;
+              this.loading = false;
+              this.missing = 'Unknown';
+            }.bind(this));
       },
       computeOr: function(error, loading) {
         return error | loading;

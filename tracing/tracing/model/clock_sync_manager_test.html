@@ -143,13 +143,15 @@ tr.b.unittest.testSuite(function() {
             ClockDomainId.UNKNOWN_CHROME_LEGACY, 'sync1', 350);
 
         assert.strictEqual(
-        mgr.getModelTimeTransformer(ClockDomainId.UNKNOWN_CHROME_LEGACY)(350),
-        350);
+            mgr.getModelTimeTransformer(
+                ClockDomainId.UNKNOWN_CHROME_LEGACY)(350),
+            350);
         assert.strictEqual(
-        mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_1)(100), 350);
+            mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_1)(100), 350);
         assert.strictEqual(
-        mgr.getModelTimeTransformer(ClockDomainId.LINUX_CLOCK_MONOTONIC)(350),
-        350);
+            mgr.getModelTimeTransformer(
+                ClockDomainId.LINUX_CLOCK_MONOTONIC)(350),
+            350);
       }, testOptions);
 
   test('getModelTimeTransformer_oneCompleteSyncWithChromeLegacyAfter',
@@ -160,13 +162,15 @@ tr.b.unittest.testSuite(function() {
             ClockDomainId.LINUX_CLOCK_MONOTONIC, 'sync1', 350);
 
         assert.strictEqual(
-        mgr.getModelTimeTransformer(ClockDomainId.UNKNOWN_CHROME_LEGACY)(350),
-        350);
+            mgr.getModelTimeTransformer(
+                ClockDomainId.UNKNOWN_CHROME_LEGACY)(350),
+            350);
         assert.strictEqual(
-        mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_1)(100), 350);
+            mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_1)(100), 350);
         assert.strictEqual(
-        mgr.getModelTimeTransformer(ClockDomainId.LINUX_CLOCK_MONOTONIC)(350),
-        350);
+            mgr.getModelTimeTransformer(
+                ClockDomainId.LINUX_CLOCK_MONOTONIC)(350),
+            350);
       }, testOptions);
 
   test('getModelTimeTransformer_twoCompleteSyncs', function() {
@@ -207,9 +211,9 @@ tr.b.unittest.testSuite(function() {
         mgr.addClockSyncMarker(ClockDomainId.DOMAIN_3, 'sync2', 300);
 
         assert.strictEqual(
-        mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_1)(100), 100);
+            mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_1)(100), 100);
         assert.strictEqual(
-        mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_3)(300), 100);
+            mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_3)(300), 100);
       }, testOptions);
 
   test('getModelTimeTransformer_usesPathWithLeastError', function() {
@@ -249,8 +253,8 @@ tr.b.unittest.testSuite(function() {
         mgr.addClockSyncMarker(ClockDomainId.BATTOR, 'sync1', 350);
 
         assert.strictEqual(
-        mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_1)(101),
-        350);
+            mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_1)(101),
+            350);
       }, testOptions);
 
   test('getModelTimeTransformer_battorSyncUsesChromeLegacyStartTsWhenTooSlow',
@@ -260,8 +264,8 @@ tr.b.unittest.testSuite(function() {
         mgr.addClockSyncMarker(ClockDomainId.BATTOR, 'sync1', 350);
 
         assert.strictEqual(
-        mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_1)(100),
-        350);
+            mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_1)(100),
+            350);
       }, testOptions);
 
   test('getModelTimeTransformer_prefersChromeLegacyDomain', function() {
@@ -289,15 +293,17 @@ tr.b.unittest.testSuite(function() {
         mgr.addClockSyncMarker(ClockDomainId.DOMAIN_2, 'sync2', 450);
 
         assert.strictEqual(
-        mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_1)(100), 350);
+            mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_1)(100), 350);
         assert.strictEqual(
-        mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_2)(450), 350);
+            mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_2)(450), 350);
         assert.strictEqual(
-        mgr.getModelTimeTransformer(ClockDomainId.LINUX_CLOCK_MONOTONIC)(350),
-        350);
+            mgr.getModelTimeTransformer(
+                ClockDomainId.LINUX_CLOCK_MONOTONIC)(350),
+            350);
         assert.strictEqual(
-        mgr.getModelTimeTransformer(ClockDomainId.UNKNOWN_CHROME_LEGACY)(350),
-        350);
+            mgr.getModelTimeTransformer(
+                ClockDomainId.UNKNOWN_CHROME_LEGACY)(350),
+            350);
       }, testOptions);
 
   test('getModelTimeTransformer_collapsesUnknownChromeLegacyDomainMac',
@@ -312,40 +318,43 @@ tr.b.unittest.testSuite(function() {
         mgr.addClockSyncMarker(ClockDomainId.DOMAIN_2, 'sync2', 450);
 
         assert.strictEqual(
-        mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_1)(100), 350);
+            mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_1)(100), 350);
         assert.strictEqual(
-        mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_2)(450), 350);
+            mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_2)(450), 350);
         assert.strictEqual(
-        mgr.getModelTimeTransformer(ClockDomainId.MAC_MACH_ABSOLUTE_TIME)(350),
-        350);
+            mgr.getModelTimeTransformer(
+                ClockDomainId.MAC_MACH_ABSOLUTE_TIME)(350),
+            350);
         assert.strictEqual(
-        mgr.getModelTimeTransformer(ClockDomainId.UNKNOWN_CHROME_LEGACY)(350),
-        350);
+            mgr.getModelTimeTransformer(
+                ClockDomainId.UNKNOWN_CHROME_LEGACY)(350),
+            350);
       }, testOptions);
 
   test('getModelTimeTransformer_collapsesUnknownChromeLegacyDomainWinLoRes',
-     function() {
-       var mgr = new ClockSyncManager();
-       mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync1', 100);
-       mgr.addClockSyncMarker(
-           ClockDomainId.UNKNOWN_CHROME_LEGACY, 'sync1', 350);
+      function() {
+        var mgr = new ClockSyncManager();
+        mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync1', 100);
+        mgr.addClockSyncMarker(
+            ClockDomainId.UNKNOWN_CHROME_LEGACY, 'sync1', 350);
 
-       mgr.addClockSyncMarker(
-        ClockDomainId.WIN_ROLLOVER_PROTECTED_TIME_GET_TIME, 'sync2', 350);
-       mgr.addClockSyncMarker(ClockDomainId.DOMAIN_2, 'sync2', 450);
+        mgr.addClockSyncMarker(
+            ClockDomainId.WIN_ROLLOVER_PROTECTED_TIME_GET_TIME, 'sync2', 350);
+        mgr.addClockSyncMarker(ClockDomainId.DOMAIN_2, 'sync2', 450);
 
-       assert.strictEqual(
-        mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_1)(100), 350);
-       assert.strictEqual(
-        mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_2)(450), 350);
-       assert.strictEqual(
-        mgr.getModelTimeTransformer(
-            ClockDomainId.WIN_ROLLOVER_PROTECTED_TIME_GET_TIME)(350),
-        350);
-       assert.strictEqual(
-        mgr.getModelTimeTransformer(ClockDomainId.UNKNOWN_CHROME_LEGACY)(350),
-        350);
-     }, testOptions);
+        assert.strictEqual(
+            mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_1)(100), 350);
+        assert.strictEqual(
+            mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_2)(450), 350);
+        assert.strictEqual(
+            mgr.getModelTimeTransformer(
+                ClockDomainId.WIN_ROLLOVER_PROTECTED_TIME_GET_TIME)(350),
+            350);
+        assert.strictEqual(
+            mgr.getModelTimeTransformer(
+                ClockDomainId.UNKNOWN_CHROME_LEGACY)(350),
+            350);
+      }, testOptions);
 
   test('getModelTimeTransformer_collapsesChromeLegacyDomainWinHiRes',
       function() {
@@ -358,14 +367,15 @@ tr.b.unittest.testSuite(function() {
         mgr.addClockSyncMarker(ClockDomainId.DOMAIN_2, 'sync2', 450);
 
         assert.strictEqual(
-        mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_1)(100), 350);
+            mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_1)(100), 350);
         assert.strictEqual(
-        mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_2)(450), 350);
+            mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_2)(450), 350);
         assert.strictEqual(
-        mgr.getModelTimeTransformer(ClockDomainId.WIN_QPC)(350), 350);
+            mgr.getModelTimeTransformer(ClockDomainId.WIN_QPC)(350), 350);
         assert.strictEqual(
-        mgr.getModelTimeTransformer(ClockDomainId.UNKNOWN_CHROME_LEGACY)(350),
-        350);
+            mgr.getModelTimeTransformer(
+                ClockDomainId.UNKNOWN_CHROME_LEGACY)(350),
+            350);
       }, testOptions);
 
   test('getModelTimeTransformer_throwsWithTwoDistinctGraphs', function() {

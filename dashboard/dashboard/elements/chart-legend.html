@@ -465,9 +465,9 @@ found in the LICENSE file.
             }
           } else {
             this.set(
-                  'seriesGroupList.' + groupIndex + '.tests.' + index +
+                'seriesGroupList.' + groupIndex + '.tests.' + index +
                   '.hidden',
-                  false);
+                false);
           }
         }.bind(this));
         this.updateNumHidden(groupIndex);
@@ -491,7 +491,7 @@ found in the LICENSE file.
         event.dataTransfer.setData('type', 'seriesdnd');
         // chart-container takes a list of test path and selected tests pair.
         event.dataTransfer.setData(
-          'data', JSON.stringify([[testPath, selectedTests]]));
+            'data', JSON.stringify([[testPath, selectedTests]]));
         event.dataTransfer.effectAllowed = 'copy';
       },
 

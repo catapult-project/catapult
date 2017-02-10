@@ -349,13 +349,13 @@ tr.exportTo('tr.ui.analysis', function() {
           fields['Protection flags'] = protectionFlags;
 
         tr.b.iterItems(BYTE_STAT_COLUMN_MAP,
-              function(byteStatName, columnName) {
-                var byteStat = region.byteStats[byteStatName];
-                if (byteStat === undefined)
-                  return;
-                fields[columnName] = new Scalar(
+            function(byteStatName, columnName) {
+              var byteStat = region.byteStats[byteStatName];
+              if (byteStat === undefined)
+                return;
+              fields[columnName] = new Scalar(
                     sizeInBytes_smallerIsBetter, byteStat);
-              });
+            });
 
         return fields;
       });

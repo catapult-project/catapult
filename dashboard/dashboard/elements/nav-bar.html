@@ -199,11 +199,11 @@ found in the LICENSE file.
       ready: function() {
         simple_xhr.send('/navbar',
                         {'path': location.pathname + location.search},
-                        function(response) {
-                          this.loginUrl = response.login_url;
-                          this.displayUsername = response.display_username;
-                          this.isAdmin = response.is_admin;
-                        }.bind(this));
+            function(response) {
+              this.loginUrl = response.login_url;
+              this.displayUsername = response.display_username;
+              this.isAdmin = response.is_admin;
+            }.bind(this));
       },
       /**
        * Opens a window with new Chromium bug, pre-filled with some info.

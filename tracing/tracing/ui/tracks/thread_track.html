@@ -26,7 +26,7 @@ tr.exportTo('tr.ui.tracks', function() {
    * @constructor
    */
   var ThreadTrack = tr.ui.b.define('thread-track',
-                                   tr.ui.tracks.ContainerTrack);
+      tr.ui.tracks.ContainerTrack);
   ThreadTrack.prototype = {
     __proto__: tr.ui.tracks.ContainerTrack.prototype,
 
@@ -64,7 +64,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     addContainersToTrackMap: function(containerToTrackMap) {
       tr.ui.tracks.ContainerTrack.prototype.addContainersToTrackMap.apply(
-        this, arguments);
+          this, arguments);
       containerToTrackMap.addContainer(this.thread, this);
     },
 

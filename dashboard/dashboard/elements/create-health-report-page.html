@@ -170,15 +170,15 @@ found in the LICENSE file.
           'getToken': true,
         };
         simple_xhr.send('/create_health_report', params,
-          function(response) {
-            this.xsrfToken = response['xsrf_token'];
-            this.loading = false;
-            this.buildTable(); // Needs to wait for response with token.
-          }.bind(this),
-          function(msg) {
-            this.error = msg;
-            this.loading = false;
-          }.bind(this));
+            function(response) {
+              this.xsrfToken = response['xsrf_token'];
+              this.loading = false;
+              this.buildTable(); // Needs to wait for response with token.
+            }.bind(this),
+            function(msg) {
+              this.error = msg;
+              this.loading = false;
+            }.bind(this));
       },
 
       buildTable: function() {
@@ -191,16 +191,16 @@ found in the LICENSE file.
           'xsrf_token': this.xsrfToken,
         };
         simple_xhr.send('/create_health_report', params,
-          function(response) {
-            this.loading = false;
-            this.hideSuccess = false;
-            this.endpointName = response['name'];
-            window.scrollTo(0, 0);
-          }.bind(this),
-          function(msg) {
-            this.error = msg;
-            this.loading = false;
-          }.bind(this));
+            function(response) {
+              this.loading = false;
+              this.hideSuccess = false;
+              this.endpointName = response['name'];
+              window.scrollTo(0, 0);
+            }.bind(this),
+            function(msg) {
+              this.error = msg;
+              this.loading = false;
+            }.bind(this));
       },
 
       validateInputs: function() {

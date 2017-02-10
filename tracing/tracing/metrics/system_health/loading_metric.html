@@ -188,7 +188,7 @@ tr.exportTo('tr.metrics.sh', function() {
         continue;
       var navigationStartEvent = navigationStartFinder.
         findNavigationStartEventForFrameBeforeTimestamp(
-            frameIdRef, ev.start);
+          frameIdRef, ev.start);
       // Ignore layout w/o preceding navigationStart, as they are not
       // attributed to any time-to-X metric.
       if (navigationStartEvent === undefined)
@@ -224,8 +224,8 @@ tr.exportTo('tr.metrics.sh', function() {
         'Start': new RelatedEventSet(navigationStart),
         'End': new RelatedEventSet(fmpMarkerEvent),
         'Navigation infos': new tr.v.d.Generic(
-          {url: url, pid: rendererHelper.pid,
-            start: navigationStart.start, fmp: fmpMarkerEvent.start}),
+            {url: url, pid: rendererHelper.pid,
+              start: navigationStart.start, fmp: fmpMarkerEvent.start}),
       }
     });
     return {firstMeaningfulPaint: fmpMarkerEvent.start, url: url};
@@ -273,8 +273,8 @@ tr.exportTo('tr.metrics.sh', function() {
         'Start': new RelatedEventSet(navigationStart),
         'Last long task': new RelatedEventSet(lastLongTaskEvent),
         'Navigation infos': new tr.v.d.Generic(
-          {url: url, pid: rendererHelper.pid,
-            start: navigationStartTime, interactive: firstInteractive}),
+            {url: url, pid: rendererHelper.pid,
+              start: navigationStartTime, interactive: firstInteractive}),
         'Breakdown of [navStart, Interactive]': breakdownDiagnostic,
       }
     });
@@ -328,7 +328,7 @@ tr.exportTo('tr.metrics.sh', function() {
       for (var ev of candidatesForFrameId[frameIdRef]) {
         var navigationStartForThisCandidate = navigationStartFinder.
           findNavigationStartEventForFrameBeforeTimestamp(
-              frameIdRef, ev.start);
+            frameIdRef, ev.start);
         // Ignore candidate w/o preceding navigationStart, as they are not
         // attributed to any TTFMP.
         if (navigationStartForThisCandidate === undefined)
@@ -363,7 +363,7 @@ tr.exportTo('tr.metrics.sh', function() {
         'loadEventStart', rendererHelper, navigationStartFinder);
     var {firstMeaningfulPaintSamples, firstInteractiveSamples} =
         collectFirstMeaningfulPaintAndTimeToInteractiveForRenderer(
-              rendererHelper, navigationStartFinder);
+            rendererHelper, navigationStartFinder);
     return {
       firstContentfulPaintSamples: firstContentfulPaintSamples,
       onLoadSamples: onLoadSamples,
@@ -404,12 +404,12 @@ tr.exportTo('tr.metrics.sh', function() {
           collectLoadingMetricsForRenderer(rendererHelper);
 
       addSamplesToHistogram(firstContentfulPaintSamples,
-                            firstContentfulPaintHistogram);
+          firstContentfulPaintHistogram);
       addSamplesToHistogram(onLoadSamples, onLoadHistogram);
       addSamplesToHistogram(firstMeaningfulPaintSamples,
-                            firstMeaningfulPaintHistogram);
+          firstMeaningfulPaintHistogram);
       addSamplesToHistogram(firstInteractiveSamples,
-                            firstInteractiveHistogram);
+          firstInteractiveHistogram);
     }
 
     values.addHistogram(firstContentfulPaintHistogram);

@@ -27,7 +27,7 @@ tr.exportTo('tr.model.helpers', function() {
     for (var i = 0; i < slices.length; i++) {
       var slice = slices[i];
       if (rangeOfInterest.intersectsExplicitRangeInclusive(
-            slice.start, slice.end))
+          slice.start, slice.end))
         slicesInFilterRange.push(slice);
     }
     return slicesInFilterRange;

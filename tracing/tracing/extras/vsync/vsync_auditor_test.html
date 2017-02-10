@@ -93,13 +93,13 @@ tr.b.unittest.testSuite(function() {
         [buildSlice('MessageLoop::RunTask', 3)],
         [buildSlice('MessageLoop::RunTask', 4)]
     ],
-      [
-        {
-          category: 'android',
-          name: 'VSYNC-app',
-          series: buildCounterSeries('VSYNC-app', [1, 5, 6, 7])
-        }
-      ], [1, 5, 6, 7]);
+        [
+          {
+            category: 'android',
+            name: 'VSYNC-app',
+            series: buildCounterSeries('VSYNC-app', [1, 5, 6, 7])
+          }
+        ], [1, 5, 6, 7]);
   });
 
   test('findUnsorted', function() {

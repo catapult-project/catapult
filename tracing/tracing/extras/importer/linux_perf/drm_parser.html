@@ -53,10 +53,10 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var crtc = parseInt(event[1]);
       var seq = parseInt(event[2]);
       this.drmVblankSlice(ts, 'vblank:' + crtc,
-        {
-          crtc: crtc,
-          seq: seq
-        });
+          {
+            crtc: crtc,
+            seq: seq
+          });
       return true;
     }
   };

@@ -201,7 +201,7 @@ tr.exportTo('tr.v.ui', function() {
           tr.v.HistogramSet.GROUPINGS.STORY_NAME.key];
       }
       this.$.picker.addEventListener('current-groups-changed',
-                                     this.currentGroupsChanged_.bind(this));
+          this.currentGroupsChanged_.bind(this));
     },
 
     set groupingKeys(keys) {
@@ -368,7 +368,7 @@ tr.exportTo('tr.v.ui', function() {
         'tr-v-ui-histogram-set-table-reference-display-label';
       Polymer.dom(this.$.reference_column_container).appendChild(
           tr.ui.b.createSelector(
-            this, 'referenceDisplayLabel', settingsKey, '', options));
+              this, 'referenceDisplayLabel', settingsKey, '', options));
     },
 
     updateGroups_: function() {
@@ -396,7 +396,7 @@ tr.exportTo('tr.v.ui', function() {
         groups.push(new tr.v.HistogramGrouping(
           'storyGroupingKey_' + storyGroupingKey,
           tr.v.d.TelemetryInfo.makeStoryGroupingKeyLabelGetter(
-            storyGroupingKey),
+              storyGroupingKey),
           storyGroupingKey));
       }
 

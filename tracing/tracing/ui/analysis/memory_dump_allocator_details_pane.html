@@ -326,16 +326,16 @@ tr.exportTo('tr.ui.analysis', function() {
               messageBuilder.appendImportanceRange(ownedEntry.importanceRange);
               messageBuilder.append(' with');
               messageBuilder.appendMap(
-                ownedEntry.sharerNameToEntry,
-                false /* hasPluralSuffix */,
-                ' no other dumps',
-                function(sharerName, sharerEntry) {
-                  messageBuilder.append(sharerName);
-                  if (sharerEntry.count < ownedCount)
-                    messageBuilder.appendSomeTimestampsQuantifier();
-                  messageBuilder.appendImportanceRange(
-                      sharerEntry.importanceRange);
-                }, this);
+                  ownedEntry.sharerNameToEntry,
+                  false /* hasPluralSuffix */,
+                  ' no other dumps',
+                  function(sharerName, sharerEntry) {
+                    messageBuilder.append(sharerName);
+                    if (sharerEntry.count < ownedCount)
+                      messageBuilder.appendSomeTimestampsQuantifier();
+                    messageBuilder.appendImportanceRange(
+                        sharerEntry.importanceRange);
+                  }, this);
             }, this);
         infos.push({
           message: messageBuilder.build(),

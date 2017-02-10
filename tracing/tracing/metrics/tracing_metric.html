@@ -139,9 +139,9 @@ tr.exportTo('tr.metrics', function() {
 
       // Update maximum values.
       maxEventCountPerSec = Math.max(maxEventCountPerSec,
-                                     runningEventNumPerSec);
+          runningEventNumPerSec);
       maxEventBytesPerSec = Math.max(maxEventBytesPerSec,
-                                     runningEventBytesPerSec);
+          runningEventBytesPerSec);
 
     }
 
@@ -155,7 +155,7 @@ tr.exportTo('tr.metrics', function() {
     // Determine the category with the highest total event size.
     var maxCatNameAndBytes = Array.from(
         categoryNamesToTotalEventSizes.entries()).reduce(
-            (a, b) => ((b[1] >= a[1]) ? b : a));
+        (a, b) => ((b[1] >= a[1]) ? b : a));
     var maxEventBytesPerCategory = maxCatNameAndBytes[1];
     var categoryWithMaxEventBytes = maxCatNameAndBytes[0];
 

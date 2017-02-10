@@ -358,7 +358,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     importEvents: function() {
       var modelTimeTransformer =
           this.model_.clockSyncManager.getModelTimeTransformer(
-            tr.model.ClockDomainId.LINUX_FTRACE_GLOBAL);
+              tr.model.ClockDomainId.LINUX_FTRACE_GLOBAL);
 
       this.importCpuData_(modelTimeTransformer);
       this.buildMapFromLinuxPidsToThreads_();

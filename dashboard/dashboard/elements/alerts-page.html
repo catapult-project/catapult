@@ -344,20 +344,20 @@ found in the LICENSE file.
           params['triaged'] = true;
         }
         simple_xhr.send('/alerts', params,
-          function(response) {
-            this.anomalies = response['anomaly_list'];
-            this.totalAnomalyCount = response['anomaly_count'];
-            this.stoppageAlerts = response['stoppage_alert_list'];
-            this.totalStoppageAlertCount = response['stoppage_alert_count'];
-            this.sheriffList = response['sheriff_list'];
-            this.xsrfToken = response['xsrf_token'];
-            this.loading = false;
-            this.updateFromURIParameters();
-          }.bind(this),
-          function(msg) {
-            this.error = msg;
-            this.loading = false;
-          }.bind(this));
+            function(response) {
+              this.anomalies = response['anomaly_list'];
+              this.totalAnomalyCount = response['anomaly_count'];
+              this.stoppageAlerts = response['stoppage_alert_list'];
+              this.totalStoppageAlertCount = response['stoppage_alert_count'];
+              this.sheriffList = response['sheriff_list'];
+              this.xsrfToken = response['xsrf_token'];
+              this.loading = false;
+              this.updateFromURIParameters();
+            }.bind(this),
+            function(msg) {
+              this.error = msg;
+              this.loading = false;
+            }.bind(this));
       }
     });
   </script>

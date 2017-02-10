@@ -219,12 +219,12 @@ Polymer({
   set brushingStateController(brushingStateController) {
     if (this.brushingStateController_) {
       this.brushingStateController_.removeEventListener('change',
-                                                    this.onSelectionChanged_);
+          this.onSelectionChanged_);
     }
     this.brushingStateController_ = brushingStateController;
     if (this.brushingStateController_) {
       this.brushingStateController_.addEventListener('change',
-                                                 this.onSelectionChanged_);
+          this.onSelectionChanged_);
     }
   },
 
@@ -345,7 +345,7 @@ Polymer({
         filter, selection);
     var lastT = firstT.after(function() {
       this.upperModelTrack_.addAllEventsMatchingFilterToSelection(
-        filter, selection);
+          filter, selection);
 
     }, this);
     return firstT;
@@ -570,7 +570,7 @@ Polymer({
     var filter = new tr.c.ExactTitleFilter(
         tr.b.getOnlyElement(curSelection).title);
     this.modelTrack_.addAllEventsMatchingFilterToSelection(filter,
-                                                            selection);
+        selection);
 
     this.brushingStateController.changeSelectionFromTimeline(selection);
   },
@@ -633,13 +633,13 @@ Polymer({
       this.timelineView_.setFindCtlText(
           state.toUserFriendlyString(this.viewport_));
     }.bind(this),
-    undefined, // Mouse up handler.
-    function onKeyUpDuringDrag() {
-      if (this.dragBeginEvent_) {
-        this.setDragBoxPosition_(this.dragBoxXStart_, this.dragBoxYStart_,
-            this.dragBoxXEnd_, this.dragBoxYEnd_);
-      }
-    }.bind(this));
+        undefined, // Mouse up handler.
+        function onKeyUpDuringDrag() {
+          if (this.dragBeginEvent_) {
+            this.setDragBoxPosition_(this.dragBoxXStart_, this.dragBoxYStart_,
+                this.dragBoxXEnd_, this.dragBoxYEnd_);
+          }
+        }.bind(this));
   },
 
   queueSmoothPan_: function(viewDeltaX, deltaY) {

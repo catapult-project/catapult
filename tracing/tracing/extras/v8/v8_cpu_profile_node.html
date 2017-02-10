@@ -25,7 +25,7 @@ tr.exportTo('tr.e.v8', function() {
     this.deoptReason_ = '';
     this.colorId_ =
       tr.b.ColorScheme.getColorIdForGeneralPurposeString(
-        callFrame.functionName);
+          callFrame.functionName);
   }
 
   V8CpuProfileNode.prototype = {
@@ -92,21 +92,21 @@ tr.exportTo('tr.e.v8', function() {
   };
 
   ProfileNode.subTypes.register(
-    V8CpuProfileNode,
-    {
-      typeName: 'cpuProfile',
-      name: 'v8 cpu profile node',
-      pluralName: 'v8 cpu profile nodes'
-    }
+      V8CpuProfileNode,
+      {
+        typeName: 'cpuProfile',
+        name: 'v8 cpu profile node',
+        pluralName: 'v8 cpu profile nodes'
+      }
   );
 
   ProfileNode.subTypes.register(
-    V8CpuProfileNode,
-    {
-      typeName: 'legacySample',
-      name: 'v8 cpu profile node',
-      pluralName: 'v8 cpu profile nodes'
-    }
+      V8CpuProfileNode,
+      {
+        typeName: 'legacySample',
+        name: 'v8 cpu profile node',
+        pluralName: 'v8 cpu profile nodes'
+      }
   );
 
   return {

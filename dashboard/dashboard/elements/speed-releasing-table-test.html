@@ -103,7 +103,7 @@ tr.b.unittest.testSuite(function() {
       'categories': categories,
     };
     testing_common.addXhrMock('/speed_releasing/undefined?=',
-                              JSON.stringify(mockResponse));
+        JSON.stringify(mockResponse));
     var table = document.createElement('speed-releasing-table');
     this.addHTMLOutput(table);
   }, testOptions);

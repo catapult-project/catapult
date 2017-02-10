@@ -234,32 +234,32 @@ the bisect process after the user clicks on the bisect button.
           this.loading = true;
           this.open();
           simple_xhr.send('/start_try_job',
-            {
-              'test_path': this.testPath,
-              'step': 'prefill-info',
-              'xsrf_token': this.xsrfToken
-            },
-            function successCallback(info) {
-              this.bot = info['bisect_bot'];
-              this.botList = info['all_bots'];
-              this.metric = info['default_metric'];
-              this.metricList = info['all_metrics'];
-              this.storyFilter = info['story_filter'];
-              this.email = info['email'];
-              this.suite = info['suite'];
-              this.master = info['master'];
-              this.internalOnly = info['internal_only'];
-              this.isAdmin = info['is_admin'];
+              {
+                'test_path': this.testPath,
+                'step': 'prefill-info',
+                'xsrf_token': this.xsrfToken
+              },
+              function successCallback(info) {
+                this.bot = info['bisect_bot'];
+                this.botList = info['all_bots'];
+                this.metric = info['default_metric'];
+                this.metricList = info['all_metrics'];
+                this.storyFilter = info['story_filter'];
+                this.email = info['email'];
+                this.suite = info['suite'];
+                this.master = info['master'];
+                this.internalOnly = info['internal_only'];
+                this.isAdmin = info['is_admin'];
 
-              this.loading = false;
-            }.bind(this),
-            function errorCallback(msg) {
-              this.fire('display-toast', {
-                'text': 'An error occurred: ' + msg,
-                'error': true
-              });
-              this.close();
-            }.bind(this));
+                this.loading = false;
+              }.bind(this),
+              function errorCallback(msg) {
+                this.fire('display-toast', {
+                  'text': 'An error occurred: ' + msg,
+                  'error': true
+                });
+                this.close();
+              }.bind(this));
         },
 
         /**

@@ -117,7 +117,7 @@ tr.exportTo('tr.metrics', function() {
 
     let browserHelper = modelHelper.browserHelper;
     let inputLatencyAsyncSlices = browserHelper.getAllAsyncSlicesMatching(
-      event => (event.args.data !== undefined) &&
+        event => (event.args.data !== undefined) &&
           latencyInfoFlowSlicesBindIDs.has(event.args.data.trace_id));
     return inputLatencyAsyncSlices;
   }

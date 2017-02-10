@@ -52,7 +52,7 @@ tr.exportTo('tr.model', function() {
   function ThreadTimeSlice(thread, schedulingState, cat,
       start, args, opt_duration) {
     Slice.call(this, cat, schedulingState,
-               this.getColorForState_(schedulingState),
+        this.getColorForState_(schedulingState),
         start, args, opt_duration);
     this.thread = thread;
     this.schedulingState = schedulingState;
@@ -145,10 +145,10 @@ tr.exportTo('tr.model', function() {
 
   tr.model.EventRegistry.register(
       ThreadTimeSlice,
-    {
-      name: 'threadTimeSlice',
-      pluralName: 'threadTimeSlices'
-    });
+      {
+        name: 'threadTimeSlice',
+        pluralName: 'threadTimeSlices'
+      });
 
 
   return {

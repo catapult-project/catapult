@@ -129,31 +129,31 @@ tr.b.unittest.testSuite(function() {
         [new Scalar(unitlessNumber_smallerIsBetter, 10)],
         10, unitlessNumber_smallerIsBetter);
     checkAggregateNumerics(
-      [new Scalar(sizeInBytes, 10),
-        new Scalar(sizeInBytes, 20),
-        new Scalar(sizeInBytes, 40)],
+        [new Scalar(sizeInBytes, 10),
+          new Scalar(sizeInBytes, 20),
+          new Scalar(sizeInBytes, 40)],
         70, sizeInBytes);
     checkAggregateNumerics(
-      [undefined,
-        new Scalar(sizeInBytes, 16),
-        undefined,
-        new Scalar(sizeInBytes, 32),
-        undefined],
+        [undefined,
+          new Scalar(sizeInBytes, 16),
+          undefined,
+          new Scalar(sizeInBytes, 32),
+          undefined],
         48, sizeInBytes);
 
     // Inconsistent units.
     checkAggregateNumerics(
-      [new Scalar(sizeInBytes, 10),
-        new Scalar(powerInWatts, 20)],
+        [new Scalar(sizeInBytes, 10),
+          new Scalar(powerInWatts, 20)],
         30, unitlessNumber_smallerIsBetter, 1 /* opt_expectedWarningCount */);
     checkAggregateNumerics(
-      [undefined,
-        new Scalar(powerInWatts, 16),
-        undefined,
-        new Scalar(unitlessNumber_smallerIsBetter, 32),
-        undefined,
-        new Scalar(sizeInBytes, 64),
-        undefined],
+        [undefined,
+          new Scalar(powerInWatts, 16),
+          undefined,
+          new Scalar(unitlessNumber_smallerIsBetter, 32),
+          undefined,
+          new Scalar(sizeInBytes, 64),
+          undefined],
         112, unitlessNumber_smallerIsBetter, 1 /* opt_expectedWarningCount */);
   });
 

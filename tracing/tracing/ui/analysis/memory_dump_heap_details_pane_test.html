@@ -98,7 +98,7 @@ tr.b.unittest.testSuite(function() {
     // of MessageLoop::RunTask -> FunctionCall -> FunctionCall by 50 KiB.
     addHeapEntry(hd1,
         ['MessageLoop::RunTask', 'FunctionCall', 'FunctionCall',
-            'FunctionCall'],
+          'FunctionCall'],
         'MissingSumOverAllTypes', 51200 /* 50 KiB */, 9);
 
     addHeapEntry(hd1, ['MessageLoop::RunTask', 'V8.Execute'],
@@ -115,7 +115,7 @@ tr.b.unittest.testSuite(function() {
         undefined /* sum over all types */, 2097152 /* 2 MiB */, 99);
     addHeapEntry(hd1,
         ['MessageLoop::RunTask', 'V8.Execute', 'FunctionCall', 'V8.Execute',
-            'V8.Execute'],
+          'V8.Execute'],
         undefined /* sum over all types */, 2097152 /* 2 MiB */, 99);
     addHeapEntry(hd1,
         ['MessageLoop::RunTask', 'V8.Execute', 'FunctionCall', '<self>'],
@@ -160,7 +160,7 @@ tr.b.unittest.testSuite(function() {
         'v8::Context', 122880 /* 120 KiB */, 270);
     addHeapEntry(hd2,
         ['MessageLoop::RunTask', 'FunctionCall', 'FunctionCall',
-            'FunctionCall'],
+          'FunctionCall'],
         undefined /* sum over all types */, 204800 /* 200 KiB */, 313);
     addHeapEntry(hd2, ['MessageLoop::RunTask', 'FunctionCall', '<self>'],
         undefined /* sum over all types */, 393216 /* 384 KiB */, 17);

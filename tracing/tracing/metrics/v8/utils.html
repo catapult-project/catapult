@@ -156,13 +156,14 @@ tr.exportTo('tr.metrics.v8.utils', function() {
     if (intervals.length === 0)
       return [];
     return tr.b.mergeRanges(
-      intervals.map(x => { return { min: x.start, max: x.end }; }), 1e-6,
-      function(ranges) {
-        return {
-          start: ranges.reduce((acc, x) => Math.min(acc, x.min), ranges[0].min),
-          end: ranges.reduce((acc, x) => Math.max(acc, x.max), ranges[0].max)
-        };
-      }
+        intervals.map(x => { return { min: x.start, max: x.end }; }), 1e-6,
+        function(ranges) {
+          return {
+            start: ranges.reduce(
+                (acc, x) => Math.min(acc, x.min), ranges[0].min),
+            end: ranges.reduce((acc, x) => Math.max(acc, x.max), ranges[0].max)
+          };
+        }
     );
   }
 
@@ -269,7 +270,7 @@ tr.exportTo('tr.metrics.v8.utils', function() {
         var position2 = left.position;
         var value2 = right.cummulativePause - left.cummulativePause;
         mu.push(position1, 1.0 - value1 / timeWindow,
-                position2, 1.0 - value2 / timeWindow);
+            position2, 1.0 - value2 / timeWindow);
       }
     }
     return mu;

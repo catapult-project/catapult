@@ -5,9 +5,9 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/extras/chrome/cc/util.html">
 <link rel="import" href="/tracing/base/quad.html">
 <link rel="import" href="/tracing/base/rect.html">
+<link rel="import" href="/tracing/extras/chrome/cc/util.html">
 
 <script>
 
@@ -20,7 +20,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(tr.e.cc.convertNameToJSConvention('foo'), 'foo');
     assert.equal(tr.e.cc.convertNameToJSConvention('foo_bar'), 'fooBar');
     assert.equal(tr.e.cc.convertNameToJSConvention('foo_bar_baz'),
-                 'fooBarBaz');
+        'fooBarBaz');
   });
 
   test('objectConvertNested', function() {

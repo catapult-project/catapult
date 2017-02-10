@@ -325,14 +325,14 @@ tr.b.unittest.testSuite(function() {
     var m = new tr.Model();
     var p = m.getOrCreateProcess(1);
     var s1 = p.objects.addSnapshot(new tr.model.ScopedId(typeName, '0x1'),
-                                   'cat', typeName, 1000, {});
+        'cat', typeName, 1000, {});
     var s2 = p.objects.addSnapshot(new tr.model.ScopedId(typeName, '0x2'),
-                                   'cat', typeName, 2000, {
-                                     myRef: {
-                                       scope: typeName,
-                                       id_ref: '0x1'
-                                     }
-                                   });
+        'cat', typeName, 2000, {
+          myRef: {
+            scope: typeName,
+            id_ref: '0x1'
+          }
+        });
     m.joinRefs();
     assert.equal(s1.refCount, 1);
     assert.equal(s2.refCount, 0);

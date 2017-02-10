@@ -286,7 +286,7 @@ tr.exportTo('tr.e.audits', function() {
       return undefined;
     return new Alert(AndroidAuditor.viewDrawAlertInfo_, slice.start,
         [slice, frame],
-      { 'Time spent': new Scalar(
+        { 'Time spent': new Scalar(
             timeDurationInMs, getCpuDuration(slice)) });
   };
 
@@ -314,7 +314,7 @@ tr.exportTo('tr.e.audits', function() {
     var start = Statistics.min(events, getStart);
     events.push(frame);
     return new Alert(AndroidAuditor.blockingGcAlertInfo_, start, events,
-      { 'Blocked duration': new Scalar(
+        { 'Blocked duration': new Scalar(
             timeDurationInMs, blockedDuration) });
   };
 
@@ -334,7 +334,7 @@ tr.exportTo('tr.e.audits', function() {
     var start = Statistics.min(events, getStart);
     events.push(frame);
     return new Alert(AndroidAuditor.lockContentionAlertInfo_, start, events,
-      { 'Blocked duration': new Scalar(
+        { 'Blocked duration': new Scalar(
             timeDurationInMs, blockedDuration) });
   };
 

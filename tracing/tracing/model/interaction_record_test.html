@@ -49,7 +49,7 @@ tr.b.unittest.testSuite(function() {
     var sel = new tr.model.EventSet();
 
     assert.equal(CompoundEventSelectionState.NOT_SELECTED,
-                 model.ir1.computeCompoundEvenSelectionState(sel));
+        model.ir1.computeCompoundEvenSelectionState(sel));
   });
 
   test('directSelected', function() {
@@ -59,7 +59,7 @@ tr.b.unittest.testSuite(function() {
     sel.push(model.ir1);
 
     assert.equal(CompoundEventSelectionState.EVENT_SELECTED,
-                 model.ir1.computeCompoundEvenSelectionState(sel));
+        model.ir1.computeCompoundEvenSelectionState(sel));
   });
 
   test('directAndSomeAssociatedSelected', function() {
@@ -83,7 +83,7 @@ tr.b.unittest.testSuite(function() {
     sel.push(model.s2);
 
     assert.equal(CompoundEventSelectionState.ALL_ASSOCIATED_EVENTS_SELECTED,
-                 model.ir1.computeCompoundEvenSelectionState(sel));
+        model.ir1.computeCompoundEvenSelectionState(sel));
   });
 
   test('directAndAllAssociated', function() {
@@ -95,7 +95,7 @@ tr.b.unittest.testSuite(function() {
     sel.push(model.s2);
 
     assert.equal(CompoundEventSelectionState.EVENT_AND_ALL_ASSOCIATED_SELECTED,
-                 model.ir1.computeCompoundEvenSelectionState(sel));
+        model.ir1.computeCompoundEvenSelectionState(sel));
   });
 
   test('stableId', function() {

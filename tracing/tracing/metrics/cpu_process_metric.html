@@ -16,7 +16,7 @@ tr.exportTo('tr.metrics.sh', function() {
     var snapshots = [];
     for (var pid in model.processes) {
       var snapshotInstances = model.processes[pid].objects.getAllInstancesNamed(
-         'CPUSnapshots');
+          'CPUSnapshots');
       if (!snapshotInstances)
         continue;
       for (var object of snapshotInstances[0].snapshots)
@@ -53,7 +53,7 @@ tr.exportTo('tr.metrics.sh', function() {
           });
         }
         processNumerics.get(processName).numeric.addSample(
-           processData.sum / 100.0);
+            processData.sum / 100.0);
         for (var path of processData.paths)
           processNumerics.get(processName).paths.add(path);
       }

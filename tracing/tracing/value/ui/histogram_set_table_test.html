@@ -281,9 +281,9 @@ tr.b.unittest.testSuite(function() {
         tr.b.findDeepElementMatchingPredicate(
             table, e => e.id === 'container')).display);
     assert.isDefined(tr.b.findDeepElementMatchingPredicate(
-          table, e => e.textContent === 'short name'));
+        table, e => e.textContent === 'short name'));
     assert.isUndefined(tr.b.findDeepElementMatchingPredicate(
-          table, e => e.textContent === 'long name'));
+        table, e => e.textContent === 'long name'));
   });
 
   test('emptyAndMissing', function() {
@@ -323,9 +323,9 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(table);
 
     assert.isDefined(tr.b.findDeepElementMatchingPredicate(
-          table, e => e.textContent === '(empty)'));
+        table, e => e.textContent === '(empty)'));
     assert.isDefined(tr.b.findDeepElementMatchingPredicate(
-          table, e => e.textContent === '(missing)'));
+        table, e => e.textContent === '(missing)'));
   });
 
   test('instantiate_1x1', function() {

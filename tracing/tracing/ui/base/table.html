@@ -620,7 +620,7 @@ tr.exportTo('tr.ui.b', function() {
         userRows = userRows.slice(); // Don't mess with the input data.
         userRows.sort(function(rowA, rowB) {
           var c = this.tableColumns_[this.sortColumnIndex_].cmp(
-                rowA, rowB);
+              rowA, rowB);
           if (this.sortDescending_)
             c = -c;
           return c;
@@ -630,7 +630,7 @@ tr.exportTo('tr.ui.b', function() {
       for (var i = 0; i < userRows.length; i++) {
         var userRow = userRows[i];
         var rowInfo = this.getOrCreateRowInfoFor_(rowInfoMap, userRow,
-                                                  parentRowInfo);
+            parentRowInfo);
         var htmlNode = this.getHTMLNodeForRowInfo_(
             tableSection, rowInfo, rowInfoMap, indentation);
 
@@ -963,7 +963,7 @@ tr.exportTo('tr.ui.b', function() {
       if (rowInfo === undefined)
         throw new Error('Row has not been seen, must expand its parents');
       return this.setExpandedForUserRow_(this.$.body, this.tableRowsInfo_,
-                                         userRow, expanded);
+          userRow, expanded);
     },
 
     setExpandedForUserRow_: function(tableSection, rowInfoMap,

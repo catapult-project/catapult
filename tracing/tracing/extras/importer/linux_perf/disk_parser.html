@@ -56,7 +56,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
           category + ':' + threadName, pid);
       var asyncSliceConstructor =
          tr.model.AsyncSlice.subTypes.getConstructor(
-            category, name);
+             category, name);
       var slice = new asyncSliceConstructor(
           category, name,
           ColorScheme.getColorIdForGeneralPurposeString(name),

@@ -34,12 +34,12 @@ tr.exportTo('tr.e.v8', function() {
   };
 
   ThreadSlice.subTypes.register(
-    V8GCStatsThreadSlice,
-    {
-      categoryParts: ['disabled-by-default-v8.gc_stats'],
-      name: 'v8 gc stats slice',
-      pluralName: 'v8 gc stats slices'
-    }
+      V8GCStatsThreadSlice,
+      {
+        categoryParts: ['disabled-by-default-v8.gc_stats'],
+        name: 'v8 gc stats slice',
+        pluralName: 'v8 gc stats slices'
+      }
   );
 
   return {

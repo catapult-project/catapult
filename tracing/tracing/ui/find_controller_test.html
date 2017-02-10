@@ -239,11 +239,11 @@ tr.b.unittest.testSuite(function() {
     promise = promise.then(function() {
       assert.equal(brushingStateController.selection.length, 0);
       assert.deepEqual(tr.b.asArray(brushingStateController.findMatches),
-                       model.t1.sliceGroup.slices);
+          model.t1.sliceGroup.slices);
 
       controller.findNext();
       assert.isTrue(brushingStateController.selection.equals(
-                        new tr.model.EventSet(model.t1.sliceGroup.slices[0])));
+          new tr.model.EventSet(model.t1.sliceGroup.slices[0])));
 
       var nextPromise = controller.startFiltering('xxx');
       nextPromise.then(function() {

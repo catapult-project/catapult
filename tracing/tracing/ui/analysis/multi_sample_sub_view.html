@@ -62,20 +62,20 @@ found in the LICENSE file.
       var viewSelector = tr.ui.b.createSelector(
           this, 'viewOption', 'tracing.ui.analysis.multi_sample_sub_view',
           MultiDimensionalViewBuilder.ViewType.TOP_DOWN_TREE_VIEW,
-        [
-          {
-            label: 'Top-down (Tree)',
-            value: MultiDimensionalViewBuilder.ViewType.TOP_DOWN_TREE_VIEW
-          },
-          {
-            label: 'Top-down (Heavy)',
-            value: MultiDimensionalViewBuilder.ViewType.TOP_DOWN_HEAVY_VIEW
-          },
-          {
-            label: 'Bottom-up (Heavy)',
-            value: MultiDimensionalViewBuilder.ViewType.BOTTOM_UP_HEAVY_VIEW
-          }
-        ]);
+          [
+            {
+              label: 'Top-down (Tree)',
+              value: MultiDimensionalViewBuilder.ViewType.TOP_DOWN_TREE_VIEW
+            },
+            {
+              label: 'Top-down (Heavy)',
+              value: MultiDimensionalViewBuilder.ViewType.TOP_DOWN_HEAVY_VIEW
+            },
+            {
+              label: 'Bottom-up (Heavy)',
+              value: MultiDimensionalViewBuilder.ViewType.BOTTOM_UP_HEAVY_VIEW
+            }
+          ]);
       Polymer.dom(this.$.control).appendChild(viewSelector);
       this.$.table.selectionMode = tr.ui.b.TableFormat.SelectionMode.ROW;
     },
@@ -102,7 +102,7 @@ found in the LICENSE file.
       var builder = new MultiDimensionalViewBuilder(
           1 /* dimensions */, 1 /* valueCount */);
       var samples = selection.filter(
-        event => event instanceof tr.model.Sample);
+          event => event instanceof tr.model.Sample);
 
       samples.forEach(function(sample) {
         builder.addPath([sample.userFriendlyStack.reverse()],
@@ -225,11 +225,11 @@ found in the LICENSE file.
   });
 
   tr.ui.analysis.AnalysisSubView.register(
-    'tr-ui-a-multi-sample-sub-view',
-    tr.model.Sample,
-    {
-      multi: true,
-      title: 'Samples',
-    });
+      'tr-ui-a-multi-sample-sub-view',
+      tr.model.Sample,
+      {
+        multi: true,
+        title: 'Samples',
+      });
 })();
 </script>

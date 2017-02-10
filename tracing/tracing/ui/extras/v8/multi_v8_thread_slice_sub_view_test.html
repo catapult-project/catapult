@@ -21,30 +21,30 @@ tr.b.unittest.testSuite(function() {
       m.t2 = m.p1.getOrCreateThread(2);
 
       m.s1 = m.t2.sliceGroup.pushSlice(
-        newSliceEx(
-          {title: 'V8.Execute',
-            start: 0,
-            end: 10,
-            type: tr.e.v8.V8ThreadSlice,
-            cat: 'v8',
-            args: {'runtime-call-stats':
-            {
-              CompileFullCode: [3, 345],
-              LoadIC_Miss: [5, 567],
-              ParseLazy: [8, 890]
-            }}}));
+          newSliceEx(
+              {title: 'V8.Execute',
+                start: 0,
+                end: 10,
+                type: tr.e.v8.V8ThreadSlice,
+                cat: 'v8',
+                args: {'runtime-call-stats':
+                {
+                  CompileFullCode: [3, 345],
+                  LoadIC_Miss: [5, 567],
+                  ParseLazy: [8, 890]
+                }}}));
       m.s2 = m.t2.sliceGroup.pushSlice(
-        newSliceEx(
-          {title: 'V8.Execute',
-            start: 11,
-            end: 15,
-            type: tr.e.v8.V8ThreadSlice,
-            cat: 'v8',
-            args: {'runtime-call-stats':
-            {
-              HandleApiCall: [1, 123],
-              OptimizeCode: [7, 789]
-            }}}));
+          newSliceEx(
+              {title: 'V8.Execute',
+                start: 11,
+                end: 15,
+                type: tr.e.v8.V8ThreadSlice,
+                cat: 'v8',
+                args: {'runtime-call-stats':
+                {
+                  HandleApiCall: [1, 123],
+                  OptimizeCode: [7, 789]
+                }}}));
     });
     return m;
   }

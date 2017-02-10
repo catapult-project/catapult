@@ -108,10 +108,10 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var state = event[3];
 
       this.exynosPageFlipStateCloseSlice(ts, pipe, fb,
-        {
-          pipe: pipe,
-          fb: fb
-        });
+          {
+            pipe: pipe,
+            fb: fb
+          });
       if (state !== 'flipped')
         this.exynosPageFlipStateOpenSlice(ts, pipe, fb, state);
       return true;

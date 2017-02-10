@@ -397,8 +397,8 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
       rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
-        {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
-          documentLoaderURL: 'http://example.com'});
+          {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
+            documentLoaderURL: 'http://example.com'});
 
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'loading',
@@ -465,9 +465,9 @@ tr.b.unittest.testSuite(function() {
   // Energy for first load is 20 W * 15.2 s
   // (interval from 0.2 s to 15.4 s)
     assert.closeTo(
-      getMetricValueAvg(valueSet, 'load:energy'), 304, 0.1);
+        getMetricValueAvg(valueSet, 'load:energy'), 304, 0.1);
     assert.closeTo(
-      getMetricValueAvg(valueSet, 'after_load:power'), 10, 0.01);
+        getMetricValueAvg(valueSet, 'after_load:power'), 10, 0.01);
   });
 
   test('powerMetric_loading_noMeaningfulPaint', function() {
@@ -483,8 +483,8 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
       rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
-        {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
-          documentLoaderURL: 'http://example.com'});
+          {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
+            documentLoaderURL: 'http://example.com'});
 
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'toplevel',

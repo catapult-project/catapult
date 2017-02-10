@@ -101,14 +101,14 @@ found in the LICENSE file.
         this.loading = true;
 
         simple_xhr.send('/bad_bisect', params,
-          function(response) {
-            this.headline = response['headline'];
-            this.loading = false;
-          }.bind(this),
-          function(msg) {
-            this.error = msg;
-            this.loading = false;
-          }.bind(this));
+            function(response) {
+              this.headline = response['headline'];
+              this.loading = false;
+            }.bind(this),
+            function(msg) {
+              this.error = msg;
+              this.loading = false;
+            }.bind(this));
       },
 
       ready: function() {
@@ -117,15 +117,15 @@ found in the LICENSE file.
         };
 
         simple_xhr.send('/bad_bisect', params,
-          function(response) {
-            this.loading = false;
-            this.xsrfToken = response['xsrf_token'];
-            this.updateFromURIParameters();
-          }.bind(this),
-          function(msg) {
-            this.error = msg;
-            this.loading = false;
-          }.bind(this));
+            function(response) {
+              this.loading = false;
+              this.xsrfToken = response['xsrf_token'];
+              this.updateFromURIParameters();
+            }.bind(this),
+            function(msg) {
+              this.error = msg;
+              this.loading = false;
+            }.bind(this));
       }
     });
   </script>

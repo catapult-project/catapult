@@ -39,7 +39,7 @@ tr.exportTo('tr.b', function() {
       };
     }
     var userTimingMarkName = computeUserTimingMarkName(
-      groupName, functionName, opt_args);
+        groupName, functionName, opt_args);
     var markBeginName = 'tvcm.mark' + Timing.nextMarkNumber++;
     var markEndName = 'tvcm.mark' + Timing.nextMarkNumber++;
     window.performance.mark(markBeginName);
@@ -47,8 +47,8 @@ tr.exportTo('tr.b', function() {
       end: function() {
         window.performance.mark(markEndName);
         window.performance.measure(userTimingMarkName,
-                                   markBeginName,
-                                   markEndName);
+            markBeginName,
+            markEndName);
       }
     };
   };
@@ -59,7 +59,7 @@ tr.exportTo('tr.b', function() {
     if (callback.name === '')
       throw new Error('Anonymous function is not allowed');
     return Timing.wrapNamedFunction(
-      groupName, callback.name, callback, opt_args);
+        groupName, callback.name, callback, opt_args);
   };
 
   Timing.wrapNamedFunction = function(groupName, functionName, callback,

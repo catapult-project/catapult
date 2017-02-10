@@ -24,9 +24,9 @@ tr.b.unittest.testSuite(function() {
 
     if (breakdownHistograms === undefined) return;
     var countBin = tr.b.getOnlyElement(countHistogram.allBins.filter(
-      bin => bin.diagnosticMaps.length > 0));
+        bin => bin.diagnosticMaps.length > 0));
     var durationBin = tr.b.getOnlyElement(durationHistogram.allBins.filter(
-      bin => bin.diagnosticMaps.length > 0));
+        bin => bin.diagnosticMaps.length > 0));
     for (var name of breakdownHistograms) {
       assert.notEqual(tr.b.getOnlyElement(countBin.diagnosticMaps)
           .get('samples').get(name + ':count'), undefined);
@@ -56,8 +56,8 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
       rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
-        {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
-          documentLoaderURL: 'http://example.com'});
+          {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
+            documentLoaderURL: 'http://example.com'});
 
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'v8',

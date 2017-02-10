@@ -78,7 +78,7 @@ tr.exportTo('tr.metrics.sh', function() {
     model.userModel.expectations.forEach(function(ue) {
       if (opt_options && opt_options.rangeOfInterest &&
           !opt_options.rangeOfInterest.intersectsExplicitRangeInclusive(
-            ue.start, ue.end))
+              ue.start, ue.end))
         return;
 
       var sampleDiagnosticMap = tr.v.d.DiagnosticMap.fromObject(

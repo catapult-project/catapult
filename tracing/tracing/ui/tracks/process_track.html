@@ -108,7 +108,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     addContainersToTrackMap: function(containerToTrackMap) {
       tr.ui.tracks.ProcessTrackBase.prototype.addContainersToTrackMap.apply(
-        this, arguments);
+          this, arguments);
       containerToTrackMap.addContainer(this.process, this);
     },
 
@@ -141,7 +141,7 @@ tr.exportTo('tr.ui.tracks', function() {
     addClosestEventToSelection: function(worldX, worldMaxDist, loY, hiY,
         selection) {
       this.addClosestInstantEventToSelection(this.processBase.instantEvents,
-                                             worldX, worldMaxDist, selection);
+          worldX, worldMaxDist, selection);
       tr.ui.tracks.ContainerTrack.prototype.addClosestEventToSelection.
           apply(this, arguments);
     }

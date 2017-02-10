@@ -120,7 +120,7 @@ tr.exportTo('tr.v.d', function() {
         }
         var myDiagnostic = this.get(name);
         if (myDiagnostic.canAddDiagnostic(
-              otherDiagnostic, name, parentHist, otherParentHist)) {
+            otherDiagnostic, name, parentHist, otherParentHist)) {
           this.set(name, myDiagnostic.addDiagnostic(
               otherDiagnostic, name, parentHist, otherParentHist));
           continue;

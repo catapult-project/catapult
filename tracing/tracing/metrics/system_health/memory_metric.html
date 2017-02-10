@@ -363,7 +363,7 @@ tr.exportTo('tr.metrics.sh', function() {
       var mallocDump = isolateDump.getDescendantDumpByFullName('malloc');
       if (mallocDump !== undefined) {
         addV8ComponentValues(mallocDump, ['v8', 'allocated_by_malloc'],
-                             addProcessScalar);
+            addProcessScalar);
       }
       // v8:heap:...
       var heapDump = isolateDump.getDescendantDumpByFullName('heap_spaces');
@@ -373,7 +373,7 @@ tr.exportTo('tr.metrics.sh', function() {
           if (spaceDump.name === 'other_spaces')
             return;
           addV8ComponentValues(spaceDump, ['v8', 'heap', spaceDump.name],
-                               addProcessScalar);
+              addProcessScalar);
         });
       }
     });

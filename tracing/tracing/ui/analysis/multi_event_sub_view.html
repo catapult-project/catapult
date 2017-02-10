@@ -152,23 +152,23 @@ tr.exportTo('tr.ui.analysis', function() {
     buildHistogram_(selectedKey) {
       var leftBoundary = Number.MAX_VALUE;
       var rightBoundary = tr.b.Statistics.percentile(
-        this.currentSelection_, 0.95,
-        function(value) {
-          leftBoundary = Math.min(leftBoundary, value[selectedKey]);
-          return value[selectedKey];
-        });
+          this.currentSelection_, 0.95,
+          function(value) {
+            leftBoundary = Math.min(leftBoundary, value[selectedKey]);
+            return value[selectedKey];
+          });
 
       if (leftBoundary === rightBoundary) rightBoundary += 1;
       var histogram = new tr.v.Histogram(
         '',
         tr.b.Unit.byName.timeDurationInMs,
         tr.v.HistogramBinBoundaries.createLinear(
-          leftBoundary, rightBoundary,
-          Math.ceil(Math.sqrt(this.currentSelection_.length))));
+            leftBoundary, rightBoundary,
+            Math.ceil(Math.sqrt(this.currentSelection_.length))));
       histogram.customizeSummaryOptions({sum: false});
       for (var slice of this.currentSelection_) {
         histogram.addSample(slice[selectedKey],
-                            buildDiagnostics_(slice));
+            buildDiagnostics_(slice));
       }
 
       return histogram;

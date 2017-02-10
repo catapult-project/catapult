@@ -128,15 +128,15 @@ tr.exportTo('tr.metrics.v8', function() {
    */
   function addDurationOfTopEvents(values, model) {
     tr.metrics.v8.utils.groupAndProcessEvents(model,
-      isNotForcedTopGarbageCollectionEvent,
-      tr.metrics.v8.utils.topGarbageCollectionEventName,
-      function(name, events) {
-        var cpuDuration = createNumericForTopEventTime(name);
-        events.forEach(function(event) {
-          cpuDuration.addSample(event.cpuDuration);
-        });
-        values.addHistogram(cpuDuration);
-      }
+        isNotForcedTopGarbageCollectionEvent,
+        tr.metrics.v8.utils.topGarbageCollectionEventName,
+        function(name, events) {
+          var cpuDuration = createNumericForTopEventTime(name);
+          events.forEach(function(event) {
+            cpuDuration.addSample(event.cpuDuration);
+          });
+          values.addHistogram(cpuDuration);
+        }
     );
   }
 
@@ -146,15 +146,15 @@ tr.exportTo('tr.metrics.v8', function() {
    */
   function addTotalDurationOfTopEvents(values, model) {
     tr.metrics.v8.utils.groupAndProcessEvents(model,
-      isNotForcedTopGarbageCollectionEvent,
-      event => 'v8-gc-total',
-      function(name, events) {
-        var cpuDuration = createNumericForTopEventTime(name);
-        events.forEach(function(event) {
-          cpuDuration.addSample(event.cpuDuration);
-        });
-        values.addHistogram(cpuDuration);
-      }
+        isNotForcedTopGarbageCollectionEvent,
+        event => 'v8-gc-total',
+        function(name, events) {
+          var cpuDuration = createNumericForTopEventTime(name);
+          events.forEach(function(event) {
+            cpuDuration.addSample(event.cpuDuration);
+          });
+          values.addHistogram(cpuDuration);
+        }
     );
   }
 
@@ -164,15 +164,15 @@ tr.exportTo('tr.metrics.v8', function() {
    */
   function addDurationOfSubEvents(values, model) {
     tr.metrics.v8.utils.groupAndProcessEvents(model,
-      isNotForcedSubGarbageCollectionEvent,
-      tr.metrics.v8.utils.subGarbageCollectionEventName,
-      function(name, events) {
-        var cpuDuration = createNumericForSubEventTime(name);
-        events.forEach(function(event) {
-          cpuDuration.addSample(event.cpuDuration);
-        });
-        values.addHistogram(cpuDuration);
-      }
+        isNotForcedSubGarbageCollectionEvent,
+        tr.metrics.v8.utils.subGarbageCollectionEventName,
+        function(name, events) {
+          var cpuDuration = createNumericForSubEventTime(name);
+          events.forEach(function(event) {
+            cpuDuration.addSample(event.cpuDuration);
+          });
+          values.addHistogram(cpuDuration);
+        }
     );
   }
 
@@ -184,11 +184,11 @@ tr.exportTo('tr.metrics.v8', function() {
    */
   function addIdleTimesOfTopEvents(values, model) {
     tr.metrics.v8.utils.groupAndProcessEvents(model,
-      isNotForcedTopGarbageCollectionEvent,
-      tr.metrics.v8.utils.topGarbageCollectionEventName,
-      function(name, events) {
-        addIdleTimes(values, model, name, events);
-      }
+        isNotForcedTopGarbageCollectionEvent,
+        tr.metrics.v8.utils.topGarbageCollectionEventName,
+        function(name, events) {
+          addIdleTimes(values, model, name, events);
+        }
     );
   }
 
@@ -200,11 +200,11 @@ tr.exportTo('tr.metrics.v8', function() {
    */
   function addTotalIdleTimesOfTopEvents(values, model) {
     tr.metrics.v8.utils.groupAndProcessEvents(model,
-      isNotForcedTopGarbageCollectionEvent,
-      event => 'v8-gc-total',
-      function(name, events) {
-        addIdleTimes(values, model, name, events);
-      }
+        isNotForcedTopGarbageCollectionEvent,
+        event => 'v8-gc-total',
+        function(name, events) {
+          addIdleTimes(values, model, name, events);
+        }
     );
   }
 
@@ -241,8 +241,8 @@ tr.exportTo('tr.metrics.v8', function() {
     values.addHistogram(idleDeadlineOverrun);
     values.addHistogram(outsideIdle);
     var percentage = createPercentage(name + '_percentage_idle', insideIdle.sum,
-                                      cpuDuration.sum,
-                                      percentage_biggerIsBetter);
+        cpuDuration.sum,
+        percentage_biggerIsBetter);
     values.addHistogram(percentage);
   }
 
@@ -253,11 +253,11 @@ tr.exportTo('tr.metrics.v8', function() {
    */
   function addPercentageInV8ExecuteOfTopEvents(values, model) {
     tr.metrics.v8.utils.groupAndProcessEvents(model,
-      isNotForcedTopGarbageCollectionEvent,
-      tr.metrics.v8.utils.topGarbageCollectionEventName,
-      function(name, events) {
-        addPercentageInV8Execute(values, model, name, events);
-      }
+        isNotForcedTopGarbageCollectionEvent,
+        tr.metrics.v8.utils.topGarbageCollectionEventName,
+        function(name, events) {
+          addPercentageInV8Execute(values, model, name, events);
+        }
     );
   }
 
@@ -267,11 +267,11 @@ tr.exportTo('tr.metrics.v8', function() {
    */
   function addTotalPercentageInV8Execute(values, model) {
     tr.metrics.v8.utils.groupAndProcessEvents(model,
-      isNotForcedTopGarbageCollectionEvent,
-      event => 'v8-gc-total',
-      function(name, events) {
-        addPercentageInV8Execute(values, model, name, events);
-      }
+        isNotForcedTopGarbageCollectionEvent,
+        event => 'v8-gc-total',
+        function(name, events) {
+          addPercentageInV8Execute(values, model, name, events);
+        }
     );
   }
 

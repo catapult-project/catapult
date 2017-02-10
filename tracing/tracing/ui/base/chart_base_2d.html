@@ -205,7 +205,7 @@ tr.exportTo('tr.ui.b', function() {
       }
       if (this.xAxisLabel) {
         this.margin.right = Math.max(this.margin.right,
-          16 + tr.ui.b.getSVGTextSize(this, this.xAxisLabel).width);
+            16 + tr.ui.b.getSVGTextSize(this, this.xAxisLabel).width);
       }
 
       super.updateMargins_();
@@ -373,7 +373,7 @@ tr.exportTo('tr.ui.b', function() {
 
     drawYAxisLabel_(label) {
       var labelWidthPx = Math.ceil(tr.ui.b.getSVGTextSize(
-            this.chartAreaElement, this.yAxisLabel).width);
+          this.chartAreaElement, this.yAxisLabel).width);
       label
           .attr('x', -labelWidthPx)
           .attr('y', -8)
@@ -470,7 +470,7 @@ tr.exportTo('tr.ui.b', function() {
     getDataPointAtChartPoint_(chartPoint) {
       return {
         x: tr.b.clamp(this.xScale_.invert(chartPoint.x),
-               this.xScale_.domain()[0], this.xScale_.domain()[1]),
+            this.xScale_.domain()[0], this.xScale_.domain()[1]),
         y: tr.b.clamp(this.yScale_.invert(chartPoint.y),
             this.yScale_.domain()[0], this.yScale_.domain()[1])
       };

@@ -114,17 +114,17 @@ tr.b.unittest.testSuite(function() {
     assert.equal(gestureThread.name, 'gesture');
     assert.equal(gestureThread.sliceGroup.length, 21);
     assert.equal('touchpad_gesture',
-                 gestureThread.sliceGroup.slices[0].category);
+        gestureThread.sliceGroup.slices[0].category);
     assert.equal('GestureLog',
-                 gestureThread.sliceGroup.slices[0].title);
+        gestureThread.sliceGroup.slices[0].title);
     assert.equal('touchpad_gesture',
-                 gestureThread.sliceGroup.slices[2].category);
+        gestureThread.sliceGroup.slices[2].category);
     assert.equal('HandleTimer',
-                 gestureThread.sliceGroup.slices[2].title);
+        gestureThread.sliceGroup.slices[2].title);
     assert.equal('touchpad_gesture',
-                 gestureThread.sliceGroup.slices[14].category);
+        gestureThread.sliceGroup.slices[14].category);
     assert.equal('SyncInterpret',
-                 gestureThread.sliceGroup.slices[14].title);
+        gestureThread.sliceGroup.slices[14].title);
   });
 
   test('unusualStart', function() {

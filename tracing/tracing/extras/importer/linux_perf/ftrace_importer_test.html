@@ -200,7 +200,7 @@ tr.b.unittest.testSuite(function() {
         3);
     assert.strictEqual(
         m.clockSyncManager.getModelTimeTransformer(
-          ClockDomainId.LINUX_FTRACE_GLOBAL)(15003),
+            ClockDomainId.LINUX_FTRACE_GLOBAL)(15003),
         3);
   });
 
@@ -357,7 +357,7 @@ tr.b.unittest.testSuite(function() {
 
       assert.isDefined(m.processes[124].counters['android.StatusBar']);
       assert.equal(m.processes[124].counters['android.StatusBar'].numSamples,
-                   1);
+          1);
       assert.isDefined(m.processes[124].counters['android.VSYNC']);
       assert.equal(2, m.processes[124].counters['android.VSYNC'].numSamples);
       assert.isDefined(m.processes[360].counters['android.iq']);
@@ -399,7 +399,7 @@ tr.b.unittest.testSuite(function() {
 
     assert.isDefined(m.processes[124].counters['android.StatusBar']);
     assert.equal(m.processes[124].counters['android.StatusBar'].numSamples,
-                 1);
+        1);
     assert.isDefined(m.processes[124].counters['android.VSYNC']);
     assert.equal(2, m.processes[124].counters['android.VSYNC'].numSamples);
     assert.isDefined(m.processes[360].counters['android.iq']);

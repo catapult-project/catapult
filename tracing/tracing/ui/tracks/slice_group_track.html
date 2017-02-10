@@ -56,7 +56,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     addContainersToTrackMap: function(containerToTrackMap) {
       tr.ui.tracks.MultiRowTrack.prototype.addContainersToTrackMap.apply(
-        this, arguments);
+          this, arguments);
       containerToTrackMap.addContainer(this.group, this);
     },
 
@@ -104,7 +104,7 @@ tr.exportTo('tr.ui.tracks', function() {
       for (var i = 0; i < slices.length; i++) {
         if (slices[i].subSlices)
           slices[i].subSlices.splice(0,
-                                     slices[i].subSlices.length);
+              slices[i].subSlices.length);
         ops.push(i);
       }
 

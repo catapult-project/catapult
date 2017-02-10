@@ -513,7 +513,7 @@ tr.exportTo('tr.ui.tracks', function() {
     addClosestEventToSelection: function(worldX, worldMaxDist, loY, hiY,
         selection) {
       this.addClosestInstantEventToSelection(this.model_.instantEvents,
-                                             worldX, worldMaxDist, selection);
+          worldX, worldMaxDist, selection);
       tr.ui.tracks.ContainerTrack.prototype.addClosestEventToSelection.
           apply(this, arguments);
     }

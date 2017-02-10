@@ -156,11 +156,11 @@ the trace process after the user clicks on the trace button.
           this.loading = true;
 
           simple_xhr.send('/start_try_job',
-            {
-              'test_path': this.testPath,
-              'step': 'prefill-info',
-              'xsrf_token': this.xsrfToken
-            },
+              {
+                'test_path': this.testPath,
+                'step': 'prefill-info',
+                'xsrf_token': this.xsrfToken
+              },
               function successCallback(info) {
                 this.bot = info['bisect_bot'];
                 this.botList = info['all_bots'];

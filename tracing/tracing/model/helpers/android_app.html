@@ -43,8 +43,8 @@ tr.exportTo('tr.model.helpers', function() {
       var slices = [];
 
       threadTimeRange.thread.sliceGroup.iterSlicesInTimeRange(
-        function(slice) { slices.push(slice); },
-        threadTimeRange.start, threadTimeRange.end);
+          function(slice) { slices.push(slice); },
+          threadTimeRange.start, threadTimeRange.end);
       ret.push.apply(ret, slices);
     });
     return ret;
@@ -186,7 +186,7 @@ tr.exportTo('tr.model.helpers', function() {
           // Generally, the UI thread is only on the critical path
           // until the start of sync.
           uiThreadTimeRange.end = Math.min(uiThreadTimeRange.end,
-                                           rtSyncSlice.start);
+              rtSyncSlice.start);
         }
 
         threadTimeRanges.push({

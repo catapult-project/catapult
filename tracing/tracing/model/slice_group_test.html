@@ -324,7 +324,7 @@ tr.b.unittest.testSuite(function() {
         cat, title, colorId, start, args, opt_duration,
         opt_cpuStart, opt_cpuDuration) {
       Slice.call(this, cat, title, colorId, start, args, opt_duration,
-                 opt_cpuStart, opt_cpuDuration);
+          opt_cpuStart, opt_cpuDuration);
     }
     TestSlice.prototype = {
       __proto__: Slice.prototype
@@ -765,7 +765,7 @@ tr.b.unittest.testSuite(function() {
 
     var observed = [];
     group.iterSlicesInTimeRange(function(slice) { observed.push(slice); },
-                                4.5, 7.5);
+        4.5, 7.5);
     assert.deepEqual(observed, expected);
   });
 

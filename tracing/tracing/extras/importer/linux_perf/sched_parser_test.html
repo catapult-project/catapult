@@ -166,7 +166,7 @@ tr.b.unittest.testSuite(function() {
 
     var wakeKillSlice = timeSlices[1];
     assert.equal(wakeKillSlice.schedulingState,
-                 SCHEDULING_STATE.UNINTR_SLEEP_WAKE_KILL);
+        SCHEDULING_STATE.UNINTR_SLEEP_WAKE_KILL);
     assert.closeTo(12622506.918, wakeKillSlice.start, 1e-5);
     assert.closeTo(.936 - .918, wakeKillSlice.duration, 1e-5);
   });
@@ -213,7 +213,7 @@ tr.b.unittest.testSuite(function() {
 
     var wakeKillSlice = timeSlices[1];
     assert.equal(wakeKillSlice.schedulingState,
-                 SCHEDULING_STATE.UNINTR_SLEEP_WAKE_KILL_IO);
+        SCHEDULING_STATE.UNINTR_SLEEP_WAKE_KILL_IO);
     assert.closeTo(12622506.918, wakeKillSlice.start, 1e-5);
     assert.closeTo(.936 - .918, wakeKillSlice.duration, 1e-5);
   });

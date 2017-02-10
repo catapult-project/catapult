@@ -234,9 +234,9 @@ tr.exportTo('tr.b', function() {
   function getIntersectingIntervals(ary, mapLoFn, mapWidthFn, loVal, hiVal) {
     var tmp = [];
     iterateOverIntersectingIntervals(ary, mapLoFn, mapWidthFn, loVal, hiVal,
-                                     function(d) {
-                                       tmp.push(d);
-                                     });
+        function(d) {
+          tmp.push(d);
+        });
     return tmp;
   }
 

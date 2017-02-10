@@ -65,10 +65,10 @@ Polymer({
           if (row.layer) {
             var linkEl = document.createElement('tr-ui-a-analysis-link');
             linkEl.setSelectionAndContent(
-              function() {
-                return new tr.ui.e.chrome.cc.LayerSelection(costs.layer);
-              },
-              'Layer ' + row.layerId);
+                function() {
+                  return new tr.ui.e.chrome.cc.LayerSelection(costs.layer);
+                },
+                'Layer ' + row.layerId);
             return linkEl;
           } else {
             return 'Layer ' + row.layerId;

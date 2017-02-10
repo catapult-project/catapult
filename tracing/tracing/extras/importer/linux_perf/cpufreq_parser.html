@@ -98,9 +98,9 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     cpufreqBoostUnboostEvent: function(eventName, cpuNumber, pid, ts,
         eventBase) {
       this.cpufreqBoostSlice(ts, eventName,
-        {
-          type: eventBase.details
-        });
+          {
+            type: eventBase.details
+          });
       return true;
     }
   };

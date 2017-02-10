@@ -501,7 +501,7 @@ tr.exportTo('tr.e.cc', function() {
         prepareTiles = event.findDescendentSlice(COMPOSITOR_PREPARE_TILES);
         if (prepareTiles)
           this.addRasterizationEvents(prepareTiles, rendererHelper,
-               visitedEvents, flowEvents, sortedRasterizerSlices);
+              visitedEvents, flowEvents, sortedRasterizerSlices);
 
         // OnBeginImplFrameDeadline could be triggered by other inputs.
         // For now, we backtrace from it.
@@ -618,11 +618,11 @@ tr.exportTo('tr.e.cc', function() {
   });
 
   AsyncSlice.subTypes.register(
-    InputLatencyAsyncSlice,
-    {
-      typeNames: allTypeNames,
-      categoryParts: ['latencyInfo']
-    });
+      InputLatencyAsyncSlice,
+      {
+        typeNames: allTypeNames,
+        categoryParts: ['latencyInfo']
+      });
 
   return {
     InputLatencyAsyncSlice,

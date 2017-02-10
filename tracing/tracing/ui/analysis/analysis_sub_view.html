@@ -84,7 +84,7 @@ tr.exportTo('tr.ui.analysis', function() {
     if (typeInfo === undefined) {
       typeInfo = new AnalysisSubViewTypeInfo(eventConstructor, options);
       allTypeInfosByEventProto.set(typeInfo.eventConstructor.prototype,
-                                   typeInfo);
+          typeInfo);
 
       onlyRootTypeInfosByEventProto = undefined;
     }
@@ -122,7 +122,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
           var isNew = onlyRootTypeInfosByEventProto.has(rootEventProto);
           onlyRootTypeInfosByEventProto.set(rootEventProto,
-                                            rootTypeInfo);
+              rootTypeInfo);
           break;
         }
 
@@ -152,7 +152,7 @@ tr.exportTo('tr.ui.analysis', function() {
           var rootTypeInfo = onlyRootTypeInfosByEventProto.get(
               curEventProto);
           eventProtoToRootTypeInfoMap.set(eventPrototype,
-                                          rootTypeInfo);
+              rootTypeInfo);
           break;
         }
         curEventProto = curEventProto.__proto__;
@@ -222,11 +222,11 @@ tr.exportTo('tr.ui.analysis', function() {
 
     // Base grouping.
     var eventsByRootTypeInfo = tr.b.groupIntoMap(
-      selection,
-      function(event) {
-        return getRootTypeInfoForEvent(event);
-      },
-      this, tr.model.EventSet);
+        selection,
+        function(event) {
+          return getRootTypeInfoForEvent(event);
+        },
+        this, tr.model.EventSet);
 
     // Now, try to lower the typeinfo to the most specific type that still
     // encompasses the event group.

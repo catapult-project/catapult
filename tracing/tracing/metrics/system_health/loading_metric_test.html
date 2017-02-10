@@ -26,8 +26,8 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
       rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
-        {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
-          documentLoaderURL: 'http://example.com'});
+          {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
+            documentLoaderURL: 'http://example.com'});
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing,rail',
         title: 'firstContentfulPaint',
@@ -64,8 +64,8 @@ tr.b.unittest.testSuite(function() {
         duration: 0.0
       }));
       rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
-        {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
-          documentLoaderURL: 'http://example.com'});
+          {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
+            documentLoaderURL: 'http://example.com'});
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing,rail',
         title: 'firstContentfulPaint',
@@ -89,8 +89,8 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
       rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 2100,
-        {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
-          documentLoaderURL: 'http://example.com'});
+          {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
+            documentLoaderURL: 'http://example.com'});
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing,rail',
         title: 'firstContentfulPaint',
@@ -119,8 +119,8 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
       rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
-        {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
-          documentLoaderURL: 'http://example.com'});
+          {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
+            documentLoaderURL: 'http://example.com'});
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'loading',
         title: 'firstMeaningfulPaintCandidate',
@@ -164,8 +164,8 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
       rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
-        {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
-          documentLoaderURL: 'http://example.com'});
+          {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
+            documentLoaderURL: 'http://example.com'});
 
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'loading',
@@ -226,7 +226,7 @@ tr.b.unittest.testSuite(function() {
     var binsWithSampleDiagnosticMaps = numeric.allBins.filter(
         bin => bin.diagnosticMaps.length > 0);
     var diagnostic = binsWithSampleDiagnosticMaps[0].diagnosticMaps[0].get(
-                                                        'Navigation infos');
+        'Navigation infos');
     assert.equal(diagnostic.value.start, 200);
     assert.equal(diagnostic.value.interactive, 15400);
     assert.equal(diagnostic.value.pid, 1984);
@@ -253,8 +253,8 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
       rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
-        {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
-          documentLoaderURL: 'http://example.com'});
+          {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
+            documentLoaderURL: 'http://example.com'});
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'loading',
         title: 'firstMeaningfulPaintCandidate',
@@ -343,8 +343,8 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
       process.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
-        {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
-          documentLoaderURL: 'http://example.com'});
+          {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
+            documentLoaderURL: 'http://example.com'});
       rendererThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing,rail',
         title: 'firstContentfulPaint',

@@ -356,8 +356,8 @@ tr.exportTo('tr.ui.b', function() {
         transform(tmpP3, quad.p3, matrix, viewport);
         transform(tmpP4, quad.p4, matrix, viewport);
         handleQuadFunc(passNumber, quad,
-                       tmpP1, tmpP2, tmpP3, tmpP4,
-                       opt_arg1, opt_arg2);
+            tmpP1, tmpP2, tmpP3, tmpP4,
+            opt_arg1, opt_arg2);
       }
     }
   }
@@ -374,7 +374,7 @@ tr.exportTo('tr.ui.b', function() {
       this.className = 'quad-stack-view';
 
       var node = tr.ui.b.instantiateTemplate('#quad-stack-view-template',
-                                          THIS_DOC);
+          THIS_DOC);
       Polymer.dom(this).appendChild(node);
       this.updateHeaderVisibility_();
       this.canvas_ = Polymer.dom(this).querySelector('#canvas');
@@ -424,7 +424,7 @@ tr.exportTo('tr.ui.b', function() {
 
     onStackingDistanceChange_: function(e) {
       tr.b.Settings.set('quadStackView.stackingDistance',
-                        this.stackingDistance);
+          this.stackingDistance);
       this.scheduleRender();
       e.stopPropagation();
     },
@@ -595,8 +595,8 @@ tr.exportTo('tr.ui.b', function() {
       mat4.multiply(mvp, p, mv);
       for (var i = 0; i < quadStacks.length; ++i) {
         transformAndProcessQuads(mvp, viewport, quadStacks[i],
-                                 numPasses, handleQuadFunc,
-                                 opt_arg1, opt_arg2);
+            numPasses, handleQuadFunc,
+            opt_arg1, opt_arg2);
 
         mat4.translate(mv, mv, [0, 0, effectiveStackingDistance]);
         mat4.multiply(mvp, p, mv);
@@ -604,8 +604,8 @@ tr.exportTo('tr.ui.b', function() {
 
       if (includeChromeQuad && this.deviceRect_) {
         transformAndProcessQuads(mvp, viewport, [this.chromeQuad],
-                                 numPasses, drawProjectedQuadToContext,
-                                 opt_arg1, opt_arg2);
+            numPasses, drawProjectedQuadToContext,
+            opt_arg1, opt_arg2);
       }
     },
 
@@ -614,7 +614,7 @@ tr.exportTo('tr.ui.b', function() {
 
       if (!this.readyToDraw()) {
         setTimeout(this.scheduleRender.bind(this),
-                   constants.IMAGE_LOAD_RETRY_TIME_MS);
+            constants.IMAGE_LOAD_RETRY_TIME_MS);
         return;
       }
 

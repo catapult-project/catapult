@@ -53,7 +53,7 @@ tr.exportTo('tr.ui.tracks', function() {
     detach: function() {
       tr.ui.tracks.Track.prototype.detach.call(this);
       this.viewport.removeEventListener('change',
-                                        this.viewportChange_);
+          this.viewportChange_);
     },
 
     viewportChange_: function() {
@@ -71,7 +71,7 @@ tr.exportTo('tr.ui.tracks', function() {
         case tr.ui.tracks.DrawType.MARKERS:
           if (!this.viewport.interestRange.isEmpty)
             this.viewport.interestRange.draw(this.context(),
-                                             viewLWorld, viewRWorld);
+                viewLWorld, viewRWorld);
           break;
       }
     },

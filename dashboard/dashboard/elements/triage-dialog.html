@@ -292,23 +292,23 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
 
         this.loading = true;
         simple_xhr.send('/edit_anomalies', params,
-          function() {
-            this.fire('triaged', {
-              'alerts': this.alerts,
-              'bugid': this.bugid
-            });
-            this.loading = false;
-            if (successMessage) {
-              this.fire('display-toast', {'text': successMessage});
-            }
-          }.bind(this),
-          function(msg) {
-            this.fire('display-toast', {
-              'text': 'There was a problem triaging the bug: ' + msg,
-              'error': true
-            });
-            this.loading = false;
-          }.bind(this));
+            function() {
+              this.fire('triaged', {
+                'alerts': this.alerts,
+                'bugid': this.bugid
+              });
+              this.loading = false;
+              if (successMessage) {
+                this.fire('display-toast', {'text': successMessage});
+              }
+            }.bind(this),
+            function(msg) {
+              this.fire('display-toast', {
+                'text': 'There was a problem triaging the bug: ' + msg,
+                'error': true
+              });
+              this.loading = false;
+            }.bind(this));
       },
 
       /**
@@ -324,23 +324,23 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
         };
         this.loading = true;
         simple_xhr.send('/edit_anomalies', params,
-          function() {
-            this.fire('alertChangedRevisions', {
-              'startRev': info.startRevision,
-              'endRev': info.endRevision,
-              'newDataIndex': info.dataIndex,
-              'alerts': this.alerts
-            });
-            this.fire('display-toast', {'text': 'Alert moved.'});
-            this.loading = false;
-          }.bind(this),
-          function(msg) {
-            this.fire('display-toast', {
-              'text': 'There was a problem triaging the bug: ' + msg,
-              'error': true
-            });
-            this.loading = false;
-          }.bind(this));
+            function() {
+              this.fire('alertChangedRevisions', {
+                'startRev': info.startRevision,
+                'endRev': info.endRevision,
+                'newDataIndex': info.dataIndex,
+                'alerts': this.alerts
+              });
+              this.fire('display-toast', {'text': 'Alert moved.'});
+              this.loading = false;
+            }.bind(this),
+            function(msg) {
+              this.fire('display-toast', {
+                'text': 'There was a problem triaging the bug: ' + msg,
+                'error': true
+              });
+              this.loading = false;
+            }.bind(this));
       },
 
       /**

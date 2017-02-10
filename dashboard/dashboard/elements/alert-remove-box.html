@@ -57,14 +57,14 @@ an alert from an issue on the issue tracker.
           'xsrf_token': this.xsrfToken
         };
         simple_xhr.send('/edit_anomalies', params,
-          function(info) {
-            this.loading = false;
-            this.fire('untriaged', {'key': this.key});
-          }.bind(this),
-          function(msg) {
-            this.loading = false;
-            alert(msg);
-          }.bind(this)
+            function(info) {
+              this.loading = false;
+              this.fire('untriaged', {'key': this.key});
+            }.bind(this),
+            function(msg) {
+              this.loading = false;
+              alert(msg);
+            }.bind(this)
         );
       }
     });

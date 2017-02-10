@@ -213,8 +213,8 @@ tr.exportTo('tr.ui.b', function() {
       Polymer.dom(radioEl).setAttribute('name', 'category-presets-group');
       Polymer.dom(radioEl).setAttribute('value', item.value);
       radioEl.addEventListener('change', onChange.bind(radioEl, targetEl,
-                                                       targetElProperty,
-                                                       settingsKey));
+          targetElProperty,
+          settingsKey));
       if (valuesEqual(initialValue, item.value))
         radioEl.checked = true;
 

@@ -78,7 +78,7 @@ function addInputLatencyAtTimestamp(model, timestamp, traceId) {
     duration: 0.1,
     args: {
       data: {trace_id: traceId}
-      }
+    }
   }));
 }
 
@@ -118,41 +118,41 @@ tr.b.unittest.testSuite(function() {
 
   test('getInputLatencyAsyncSlices_pushStateWithNoPrecedingHandleInputEvent',
       function() {
-    let model = tr.c.TestUtils.newModel(model => {
-      createChromeProcessesOnModel(model);
-      addPushStateEventAtTimestamp(model, 100);
-      addPushStateEventAtTimestamp(model, 200);
-      addPushStateEventAtTimestamp(model, 300);
+        let model = tr.c.TestUtils.newModel(model => {
+          createChromeProcessesOnModel(model);
+          addPushStateEventAtTimestamp(model, 100);
+          addPushStateEventAtTimestamp(model, 200);
+          addPushStateEventAtTimestamp(model, 300);
 
-      addInputLatencyAtTimestamp(model, 55, 25769803863);
-      addInputLatencyAtTimestamp(model, 155, 25769803970);
-      addInputLatencyAtTimestamp(model, 255, 25769804045);
-    });
-    var slices = tr.metrics.getInputLatencyAsyncSlices(model);
-    assert.lengthOf(slices, 0);
-  });
+          addInputLatencyAtTimestamp(model, 55, 25769803863);
+          addInputLatencyAtTimestamp(model, 155, 25769803970);
+          addInputLatencyAtTimestamp(model, 255, 25769804045);
+        });
+        var slices = tr.metrics.getInputLatencyAsyncSlices(model);
+        assert.lengthOf(slices, 0);
+      });
 
   test('getInputLatencyAsyncSlices_pushStateWithNoPrecedingInputLatency',
       function() {
-    let model = tr.c.TestUtils.newModel(model => {
-      createChromeProcessesOnModel(model);
-      addPushStateEventAtTimestamp(model, 100);
-      addPushStateEventAtTimestamp(model, 200);
-      addPushStateEventAtTimestamp(model, 300);
+        let model = tr.c.TestUtils.newModel(model => {
+          createChromeProcessesOnModel(model);
+          addPushStateEventAtTimestamp(model, 100);
+          addPushStateEventAtTimestamp(model, 200);
+          addPushStateEventAtTimestamp(model, 300);
 
-      addLatencyInfoFlowAtTimestamp(model, 75, '0x600000057');
-      addLatencyInfoFlowAtTimestamp(model, 175, '0x6000000c2');
-      addLatencyInfoFlowAtTimestamp(model, 275, '0x60000010d');
-    });
-    var slices = tr.metrics.getInputLatencyAsyncSlices(model);
-    assert.lengthOf(slices, 0);
-  });
+          addLatencyInfoFlowAtTimestamp(model, 75, '0x600000057');
+          addLatencyInfoFlowAtTimestamp(model, 175, '0x6000000c2');
+          addLatencyInfoFlowAtTimestamp(model, 275, '0x60000010d');
+        });
+        var slices = tr.metrics.getInputLatencyAsyncSlices(model);
+        assert.lengthOf(slices, 0);
+      });
 
   test('getInputLatencyAsyncSlices_noChromeProcesses',
       function() {
-    let model = tr.c.TestUtils.newModel();
-    var slices = tr.metrics.getInputLatencyAsyncSlices(model);
-    assert.lengthOf(slices, 0);
-  });
+        let model = tr.c.TestUtils.newModel();
+        var slices = tr.metrics.getInputLatencyAsyncSlices(model);
+        assert.lengthOf(slices, 0);
+      });
 });
 </script>

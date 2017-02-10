@@ -164,14 +164,14 @@ tr.exportTo('tr.model', function() {
       function(dump, expectedNumerics, expectedDiagnostics) {
         var actualNumerics = dump.numerics;
         assert.sameMembers(
-        Object.keys(actualNumerics), Object.keys(expectedNumerics));
+            Object.keys(actualNumerics), Object.keys(expectedNumerics));
         for (var numericName in actualNumerics) {
           var actualNumeric = actualNumerics[numericName];
           var expectedNumeric = castToScalar(expectedNumerics[numericName]);
           assert.instanceOf(actualNumeric, tr.b.Scalar);
           assert.strictEqual(actualNumeric.unit, expectedNumeric.unit);
           assert.closeTo(actualNumeric.value, expectedNumeric.value,
-          MemoryDumpTestUtils.SIZE_DELTA);
+              MemoryDumpTestUtils.SIZE_DELTA);
         }
 
         assert.deepEqual(dump.diagnostics, expectedDiagnostics);

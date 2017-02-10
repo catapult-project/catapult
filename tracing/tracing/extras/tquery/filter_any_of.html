@@ -48,18 +48,18 @@ tr.exportTo('tr.e.tquery', function() {
         var exprs = Array.prototype.slice.call(arguments);
         return new FilterAnyOf(exprs);
       },
-    {
-      name: 'anyOf'
-    }
+      {
+        name: 'anyOf'
+      }
   );
   tr.c.ScriptingObjectRegistry.register(
       function() {
         var exprs = Array.prototype.slice.call(arguments);
         return new tr.e.tquery.FilterNot(new FilterAnyOf(exprs));
       },
-    {
-      name: 'noneOf'
-    }
+      {
+        name: 'noneOf'
+      }
   );
   return {
     FilterAnyOf,

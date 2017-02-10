@@ -826,7 +826,7 @@ tr.exportTo('tr.v', function() {
       if (prevBoundary > -Number.MAX_VALUE) {
         // underflow bin
         this.binRanges_.push(tr.b.Range.fromExplicitRange(-Number.MAX_VALUE,
-              prevBoundary));
+            prevBoundary));
       }
 
       for (var slice of this.builder_.slice(1)) {
@@ -846,7 +846,7 @@ tr.exportTo('tr.v', function() {
             for (var i = 1; i < binCount; i++) {
               var boundary = sliceMinBinBoundary + i * binWidth;
               this.binRanges_.push(tr.b.Range.fromExplicitRange(
-                    prevBoundary, boundary));
+                  prevBoundary, boundary));
               prevBoundary = boundary;
             }
             break;
@@ -858,7 +858,7 @@ tr.exportTo('tr.v', function() {
               var boundary = sliceMinBinBoundary * Math.exp(
                   i * binExponentWidth);
               this.binRanges_.push(tr.b.Range.fromExplicitRange(
-                    prevBoundary, boundary));
+                  prevBoundary, boundary));
               prevBoundary = boundary;
             }
             break;
@@ -873,7 +873,7 @@ tr.exportTo('tr.v', function() {
       if (prevBoundary < Number.MAX_VALUE) {
         // overflow bin
         this.binRanges_.push(tr.b.Range.fromExplicitRange(
-              prevBoundary, Number.MAX_VALUE));
+            prevBoundary, Number.MAX_VALUE));
       }
     }
 

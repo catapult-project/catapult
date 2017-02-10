@@ -208,8 +208,8 @@ tr.b.unittest.testSuite(function() {
         '25,000,000.0 KiB');
     assert.strictEqual(
         Unit.byName.sizeInBytes.format(5243,
-          { unitPrefix: UnitPrefixScale.BINARY.MEBI,
-            minimumFractionDigits: 2 }),
+            { unitPrefix: UnitPrefixScale.BINARY.MEBI,
+              minimumFractionDigits: 2 }),
         '0.01 MiB');
   });
 

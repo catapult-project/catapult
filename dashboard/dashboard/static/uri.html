@@ -190,7 +190,7 @@ var uri = (function() {
     };
     request.open('post', '/short_uri', true);
     request.setRequestHeader('Content-type',
-                             'application/x-www-form-urlencoded');
+        'application/x-www-form-urlencoded');
     request.send(postData);
     this.stateRequest_ = request;
   };

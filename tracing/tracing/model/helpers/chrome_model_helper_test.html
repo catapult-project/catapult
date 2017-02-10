@@ -38,7 +38,7 @@ tr.b.unittest.testSuite(function() {
 
     var modelHelper = m.getOrCreateHelper(tr.model.helpers.ChromeModelHelper);
     var latencyEvents = modelHelper.browserHelper.getLatencyEventsInRange(
-      m.bounds);
+        m.bounds);
     assert.equal(latencyEvents.length, 1);
   });
 

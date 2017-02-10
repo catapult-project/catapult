@@ -33,7 +33,7 @@ tr.exportTo('tr.ui.b', function() {
       this.viewProperty_ = undefined;
       this.listView_ = new tr.ui.b.ListView();
       this.listView_.addEventListener('selection-changed',
-                                      this.onSelectionChanged_.bind(this));
+          this.onSelectionChanged_.bind(this));
       this.placeholder_ = document.createElement('div');
       Polymer.dom(this).appendChild(this.listView_);
       Polymer.dom(this).appendChild(this.placeholder_);
@@ -86,7 +86,7 @@ tr.exportTo('tr.ui.b', function() {
           this.viewProperty_;
       if (!complete) {
         this.replaceChild(this.placeholder_,
-                          this.children[1]);
+            this.children[1]);
         return;
       }
 
@@ -108,7 +108,7 @@ tr.exportTo('tr.ui.b', function() {
 
       if (this.children[1] === this.placeholder_) {
         this.replaceChild(this.view_,
-                          this.children[1]);
+            this.children[1]);
       }
       if (this.listView_.children.length &&
           !this.listView_.selectedElement)
@@ -123,10 +123,10 @@ tr.exportTo('tr.ui.b', function() {
       }
       if (this.listView_.selectedElement) {
         setter.call(this.view_,
-                    this.listView_.selectedElement.item);
+            this.listView_.selectedElement.item);
       } else {
         setter.call(this.view_,
-                    undefined);
+            undefined);
       }
     }
   };

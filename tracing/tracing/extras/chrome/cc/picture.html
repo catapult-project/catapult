@@ -132,17 +132,17 @@ tr.exportTo('tr.e.cc', function() {
       }
 
       var raster = window.chrome.skiaBenchmarking.rasterize(
-        {
-          skp64: this.skp64_,
-          params: {
-            layer_rect: this.layerRect_.toArray()
-          }
-        },
-        {
-          stop: params.stopIndex === undefined ? -1 : params.stopIndex,
-          overdraw: !!params.showOverdraw,
-          params: { }
-        });
+          {
+            skp64: this.skp64_,
+            params: {
+              layer_rect: this.layerRect_.toArray()
+            }
+          },
+          {
+            stop: params.stopIndex === undefined ? -1 : params.stopIndex,
+            overdraw: !!params.showOverdraw,
+            params: { }
+          });
 
       if (raster) {
         var canvas = document.createElement('canvas');
@@ -260,14 +260,14 @@ tr.exportTo('tr.e.cc', function() {
         //   going to be in the same order as the pictures_ list?
         for (var i = 0; i < this.picturesAsImageData_.length; ++i) {
           ctx.putImageData(this.picturesAsImageData_[i].imageData,
-                           this.pictures_[i].layerRect.x,
-                           this.pictures_[i].layerRect.y);
+              this.pictures_[i].layerRect.x,
+              this.pictures_[i].layerRect.y);
         }
         this.picturesAsImageData_ = [];
 
         rasterCompleteCallback(new tr.e.cc.PictureAsImageData(this,
             ctx.getImageData(this.layerRect.x, this.layerRect.y,
-                             this.layerRect.width, this.layerRect.height)));
+                this.layerRect.width, this.layerRect.height)));
       }.bind(this);
 
       for (var i = 0; i < this.pictures_.length; ++i)

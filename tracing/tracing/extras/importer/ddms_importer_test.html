@@ -46,7 +46,7 @@ tr.b.unittest.testSuite(function() {
     var thread = threads[0];
     assert.equal(thread.sliceGroup.length, 22);
     assert.equal('android.os.Binder.execTransact(IJJI)Z',
-                 thread.sliceGroup.slices[0].title);
+        thread.sliceGroup.slices[0].title);
   });
 
   var TEST_DATA = Base64.atob(

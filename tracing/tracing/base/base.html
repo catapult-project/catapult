@@ -150,7 +150,7 @@ this.tr = (function() {
       // pattern is always using an object literal so we only care about own
       // properties.
       var propertyDescriptor = Object.getOwnPropertyDescriptor(exports,
-                                                               propertyName);
+          propertyName);
       if (propertyDescriptor)
         Object.defineProperty(obj, propertyName, propertyDescriptor);
     }

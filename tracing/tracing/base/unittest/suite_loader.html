@@ -169,15 +169,15 @@ tr.exportTo('tr.b.unittest', function() {
 
       // Cleanup.
       return donePromise.then(
-        function() {
-          this.scriptErrorPromiseResolver_ = undefined;
-          this.unbindGlobalHooks_();
-        }.bind(this),
-        function(e) {
-          this.scriptErrorPromiseResolver_ = undefined;
-          this.unbindGlobalHooks_();
-          throw e;
-        }.bind(this));
+          function() {
+            this.scriptErrorPromiseResolver_ = undefined;
+            this.unbindGlobalHooks_();
+          }.bind(this),
+          function(e) {
+            this.scriptErrorPromiseResolver_ = undefined;
+            this.unbindGlobalHooks_();
+            throw e;
+          }.bind(this));
     },
 
     bindGlobalHooks_: function() {

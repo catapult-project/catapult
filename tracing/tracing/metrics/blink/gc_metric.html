@@ -93,15 +93,15 @@ tr.exportTo('tr.metrics.blink', function() {
    */
   function addDurationOfTopEvents(values, model) {
     tr.metrics.v8.utils.groupAndProcessEvents(model,
-      isBlinkGarbageCollectionEvent,
-      blinkGarbageCollectionEventName,
-      function(name, events) {
-        var cpuDuration = createNumericForTopEventTime(name);
-        events.forEach(function(event) {
-          cpuDuration.addSample(event.cpuDuration);
-        });
-        values.addHistogram(cpuDuration);
-      }
+        isBlinkGarbageCollectionEvent,
+        blinkGarbageCollectionEventName,
+        function(name, events) {
+          var cpuDuration = createNumericForTopEventTime(name);
+          events.forEach(function(event) {
+            cpuDuration.addSample(event.cpuDuration);
+          });
+          values.addHistogram(cpuDuration);
+        }
     );
   }
 
@@ -111,15 +111,15 @@ tr.exportTo('tr.metrics.blink', function() {
    */
   function addTotalDurationOfTopEvents(values, model) {
     tr.metrics.v8.utils.groupAndProcessEvents(model,
-      isBlinkGarbageCollectionEvent,
-      event => 'blink-gc-total',
-      function(name, events) {
-        var cpuDuration = createNumericForTopEventTime(name);
-        events.forEach(function(event) {
-          cpuDuration.addSample(event.cpuDuration);
-        });
-        values.addHistogram(cpuDuration);
-      }
+        isBlinkGarbageCollectionEvent,
+        event => 'blink-gc-total',
+        function(name, events) {
+          var cpuDuration = createNumericForTopEventTime(name);
+          events.forEach(function(event) {
+            cpuDuration.addSample(event.cpuDuration);
+          });
+          values.addHistogram(cpuDuration);
+        }
     );
   }
 
@@ -131,11 +131,11 @@ tr.exportTo('tr.metrics.blink', function() {
    */
   function addIdleTimesOfTopEvents(values, model) {
     tr.metrics.v8.utils.groupAndProcessEvents(model,
-      isBlinkGarbageCollectionEvent,
-      blinkGarbageCollectionEventName,
-      function(name, events) {
-        addIdleTimes(values, model, name, events);
-      }
+        isBlinkGarbageCollectionEvent,
+        blinkGarbageCollectionEventName,
+        function(name, events) {
+          addIdleTimes(values, model, name, events);
+        }
     );
   }
 
@@ -147,11 +147,11 @@ tr.exportTo('tr.metrics.blink', function() {
    */
   function addTotalIdleTimesOfTopEvents(values, model) {
     tr.metrics.v8.utils.groupAndProcessEvents(model,
-      isBlinkGarbageCollectionEvent,
-      event => 'blink-gc-total',
-      function(name, events) {
-        addIdleTimes(values, model, name, events);
-      }
+        isBlinkGarbageCollectionEvent,
+        event => 'blink-gc-total',
+        function(name, events) {
+          addIdleTimes(values, model, name, events);
+        }
     );
   }
 

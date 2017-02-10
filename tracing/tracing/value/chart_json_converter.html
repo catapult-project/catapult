@@ -30,8 +30,8 @@ tr.exportTo('tr.v', function() {
           var unitInfo = tr.v.LEGACY_UNIT_INFO.get(value.units) || {};
           var unitName = unitInfo.name || 'unitlessNumber';
           var unitNameSuffix = tr.b.Unit.nameSuffixForImprovementDirection(
-            ChartJsonConverter.convertImprovementDirection(
-              value.improvement_direction));
+              ChartJsonConverter.convertImprovementDirection(
+                  value.improvement_direction));
           var conversionFactor = unitInfo.conversionFactor || 1;
 
           var hist = new tr.v.Histogram(

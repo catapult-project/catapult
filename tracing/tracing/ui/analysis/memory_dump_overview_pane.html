@@ -589,77 +589,80 @@ tr.exportTo('tr.ui.analysis', function() {
       // Process (list index) -> Component (dict key) -> Cell.
       return tr.b.dictionaryValues(tr.b.mapItems(
           pidToTimeToProcessMemoryDump, function(pid, timeToDump) {
-        // Get the process associated with the dumps. We can use any defined
-        // process memory dump in timeToDump since they all have the same pid.
+            // Get the process associated with the dumps. We can use any defined
+            // process memory dump in timeToDump since they all have the same
+            // pid.
             var process = tr.b.findFirstInArray(timeToDump).process;
 
-        // Used memory (total resident, PSS, ...).
+            // Used memory (total resident, PSS, ...).
             var usedMemoryCells = tr.ui.analysis.createCells(timeToDump,
-            function(dump) {
-              var sizes = {};
+                function(dump) {
+                  var sizes = {};
 
-              var totals = dump.totals;
-              if (totals !== undefined) {
-                // Common totals.
-                for (var [totalName, cellName] of
+                  var totals = dump.totals;
+                  if (totals !== undefined) {
+                    // Common totals.
+                    for (var [totalName, cellName] of
                     Object.entries(UsedMemoryColumn.TOTALS_MAP)) {
-                  var total = totals[totalName];
-                  if (total === undefined) continue;
-                  sizes[cellName] = new Scalar(
+                      var total = totals[totalName];
+                      if (total === undefined) continue;
+                      sizes[cellName] = new Scalar(
                       sizeInBytes_smallerIsBetter, total);
-                }
-
-                // Platform-specific totals (e.g. private resident on Mac).
-                var platformSpecific = totals.platformSpecific;
-                if (platformSpecific !== undefined) {
-                  for (var [name, size] of Object.entries(platformSpecific)) {
-                    // Change raw OS-specific total name to a user-friendly
-                    // column title (e.g. 'private_bytes' -> 'Private').
-                    if (name.endsWith(PLATFORM_SPECIFIC_TOTAL_NAME_SUFFIX)) {
-                      name = name.substring(0, name.length -
-                          PLATFORM_SPECIFIC_TOTAL_NAME_SUFFIX.length);
                     }
-                    name = name.replace('_', ' ').trim();
-                    name = name.charAt(0).toUpperCase() + name.slice(1);
-                    sizes[name] = new Scalar(
+
+                    // Platform-specific totals (e.g. private resident on Mac).
+                    var platformSpecific = totals.platformSpecific;
+                    if (platformSpecific !== undefined) {
+                      for (var [name, size] of
+                          Object.entries(platformSpecific)) {
+                        // Change raw OS-specific total name to a user-friendly
+                        // column title (e.g. 'private_bytes' -> 'Private').
+                        if (name.endsWith(
+                            PLATFORM_SPECIFIC_TOTAL_NAME_SUFFIX)) {
+                          name = name.substring(0, name.length -
+                          PLATFORM_SPECIFIC_TOTAL_NAME_SUFFIX.length);
+                        }
+                        name = name.replace('_', ' ').trim();
+                        name = name.charAt(0).toUpperCase() + name.slice(1);
+                        sizes[name] = new Scalar(
                         sizeInBytes_smallerIsBetter, size);
+                      }
+                    }
                   }
-                }
-              }
 
-              // VM regions byte stats.
-              var vmRegions = dump.mostRecentVmRegions;
-              if (vmRegions !== undefined) {
-                for (var [byteStatName, cellName] of
+                  // VM regions byte stats.
+                  var vmRegions = dump.mostRecentVmRegions;
+                  if (vmRegions !== undefined) {
+                    for (var [byteStatName, cellName] of
                      Object.entries(UsedMemoryColumn.BYTE_STAT_MAP)) {
-                  var byteStat = vmRegions.byteStats[byteStatName];
-                  if (byteStat === undefined) continue;
-                  sizes[cellName] = new Scalar(
+                      var byteStat = vmRegions.byteStats[byteStatName];
+                      if (byteStat === undefined) continue;
+                      sizes[cellName] = new Scalar(
                       sizeInBytes_smallerIsBetter, byteStat);
-                }
-              }
+                    }
+                  }
 
-              return sizes;
-            });
+                  return sizes;
+                });
 
-        // Allocator memory (v8, oilpan, ...).
+            // Allocator memory (v8, oilpan, ...).
             var allocatorCells = tr.ui.analysis.createCells(timeToDump,
-            function(dump) {
-              var memoryAllocatorDumps = dump.memoryAllocatorDumps;
-              if (memoryAllocatorDumps === undefined)
-                return undefined;
-              var sizes = {};
-              memoryAllocatorDumps.forEach(function(allocatorDump) {
-                var rootDisplayedSizeNumeric = allocatorDump.numerics[
+                function(dump) {
+                  var memoryAllocatorDumps = dump.memoryAllocatorDumps;
+                  if (memoryAllocatorDumps === undefined)
+                    return undefined;
+                  var sizes = {};
+                  memoryAllocatorDumps.forEach(function(allocatorDump) {
+                    var rootDisplayedSizeNumeric = allocatorDump.numerics[
                     DISPLAYED_SIZE_NUMERIC_NAME];
-                if (rootDisplayedSizeNumeric === undefined) {
-                  rootDisplayedSizeNumeric =
+                    if (rootDisplayedSizeNumeric === undefined) {
+                      rootDisplayedSizeNumeric =
                       new Scalar(sizeInBytes_smallerIsBetter, 0);
-                }
-                sizes[allocatorDump.fullName] = rootDisplayedSizeNumeric;
-              });
-              return sizes;
-            });
+                    }
+                    sizes[allocatorDump.fullName] = rootDisplayedSizeNumeric;
+                  });
+                  return sizes;
+                });
 
             return {
               title: process.userFriendlyName,

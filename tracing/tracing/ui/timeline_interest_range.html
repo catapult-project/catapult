@@ -156,13 +156,13 @@ tr.exportTo('tr.ui', function() {
       ctx.lineWidth = Math.round(pixelRatio);
       if (this.range_.range > 0) {
         this.drawLine_(ctx, viewLWorld, viewRWorld,
-                       ctx.canvas.height, this.min, this.leftSelected_);
+            ctx.canvas.height, this.min, this.leftSelected_);
         this.drawLine_(ctx, viewLWorld, viewRWorld,
-                       ctx.canvas.height, this.max, this.rightSelected_);
+            ctx.canvas.height, this.max, this.rightSelected_);
       } else {
         this.drawLine_(ctx, viewLWorld, viewRWorld,
-                       ctx.canvas.height, this.min,
-                       this.leftSelected_ || this.rightSelected_);
+            ctx.canvas.height, this.min,
+            this.leftSelected_ || this.rightSelected_);
       }
       ctx.lineWidth = 1;
     },
@@ -193,15 +193,15 @@ tr.exportTo('tr.ui', function() {
     drawIndicators: function(ctx, viewLWorld, viewRWorld) {
       if (this.leftSnapIndicator_) {
         this.drawIndicator_(ctx, viewLWorld, viewRWorld,
-                            this.range_.min,
-                            this.leftSnapIndicator_,
-                            this.leftSelected_);
+            this.range_.min,
+            this.leftSnapIndicator_,
+            this.leftSelected_);
       }
       if (this.rightSnapIndicator_) {
         this.drawIndicator_(ctx, viewLWorld, viewRWorld,
-                            this.range_.max,
-                            this.rightSnapIndicator_,
-                            this.rightSelected_);
+            this.range_.max,
+            this.rightSnapIndicator_,
+            this.rightSelected_);
       }
     },
 

@@ -47,7 +47,7 @@ tr.exportTo('tr.v.d', function() {
 
       for (var i = 0; i < this._diagnostics.length; ++i) {
         if (this._diagnostics[i].canAddDiagnostic(
-              otherDiagnostic, name, parentHist, otherParentHist)) {
+            otherDiagnostic, name, parentHist, otherParentHist)) {
           this._diagnostics[i] = this._diagnostics[i].addDiagnostic(
               otherDiagnostic, name, parentHist, otherParentHist);
           return this;

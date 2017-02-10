@@ -21,34 +21,34 @@ tr.b.unittest.testSuite(function() {
       m.t2 = m.p1.getOrCreateThread(2);
 
       m.s1 = m.t2.sliceGroup.pushSlice(
-        newSliceEx({
-          title: 'V8.GC_Objects_Stats',
-          start: 1,
-          end: 1,
-          type: tr.e.v8.V8GCStatsThreadSlice,
-          cat: 'disabled-by-default-v8.gc_stats',
-          args: {
+          newSliceEx({
+            title: 'V8.GC_Objects_Stats',
+            start: 1,
+            end: 1,
+            type: tr.e.v8.V8GCStatsThreadSlice,
+            cat: 'disabled-by-default-v8.gc_stats',
+            args: {
             // eslint-disable-next-line
             live:'{"isolate":"0x00000000001","id":1,"time":111,"bucket_sizes":[32,64,128,256],"type_data":{"STRING_TYPE":{"type":1,"overall":2,"count":3,"over_allocated":0,"histogram":[1,0,0,0],"over_allocated_histogram":[0,0,0,0]},"FIXED_ARRAY_TYPE":{"type":2,"overall":5,"count":6,"over_allocated":0,"histogram":[1,0,0,0],"over_allocated_histogram":[0,0,0,0]},"*FIXED_ARRAY_CONTEXT_SUB_TYPE":{"type":3,"overall":1,"count":1,"over_allocated":0,"histogram":[1,0,0,0],"over_allocated_histogram":[0,0,0,0]}}}',
             // eslint-disable-next-line
             dead:'{"isolate":"0x00000000001","id":2,"time":112,"bucket_sizes":[32,64,128,256],"type_data":{"STRING_TYPE":{"type":1,"overall":1,"count":1,"over_allocated":0,"histogram":[1,0,0,0],"over_allocated_histogram":[0,0,0,0]},"FIXED_ARRAY_TYPE":{"type":2,"overall":3,"count":3,"over_allocated":0,"histogram":[1,0,0,0],"over_allocated_histogram":[0,0,0,0]},"*FIXED_ARRAY_CONTEXT_SUB_TYPE":{"type":3,"overall":1,"count":1,"over_allocated":0,"histogram":[1,0,0,0],"over_allocated_histogram":[0,0,0,0]}}}'
-          }
-        })
+            }
+          })
       );
       m.s2 = m.t2.sliceGroup.pushSlice(
-        newSliceEx({
-          title: 'V8.GC_Objects_Stats',
-          start: 2,
-          end: 2,
-          type: tr.e.v8.V8GCStatsThreadSlice,
-          cat: 'disabled-by-default-v8.gc_stats',
-          args: {
+          newSliceEx({
+            title: 'V8.GC_Objects_Stats',
+            start: 2,
+            end: 2,
+            type: tr.e.v8.V8GCStatsThreadSlice,
+            cat: 'disabled-by-default-v8.gc_stats',
+            args: {
             // eslint-disable-next-line
             live:'{"isolate":"0x00000000001","id":1,"time":113,"bucket_sizes":[32,64,128,256],"type_data":{"STRING_TYPE":{"type":1,"overall":3,"count":4,"over_allocated":0,"histogram":[1,0,0,0],"over_allocated_histogram":[0,0,0,0]},"FIXED_ARRAY_TYPE":{"type":2,"overall":6,"count":7,"over_allocated":0,"histogram":[1,0,0,0],"over_allocated_histogram":[0,0,0,0]},"*FIXED_ARRAY_CONTEXT_SUB_TYPE":{"type":3,"overall":2,"count":2,"over_allocated":0,"histogram":[1,0,0,0],"over_allocated_histogram":[0,0,0,0]}}}',
             // eslint-disable-next-line
             dead:'{"isolate":"0x00000000001","id":2,"time":114,"bucket_sizes":[32,64,128,256],"type_data":{"STRING_TYPE":{"type":1,"overall":2,"count":2,"over_allocated":0,"histogram":[1,0,0,0],"over_allocated_histogram":[0,0,0,0]},"FIXED_ARRAY_TYPE":{"type":2,"overall":4,"count":4,"over_allocated":0,"histogram":[1,0,0,0],"over_allocated_histogram":[0,0,0,0]},"*FIXED_ARRAY_CONTEXT_SUB_TYPE":{"type":3,"overall":2,"count":2,"over_allocated":0,"histogram":[1,0,0,0],"over_allocated_histogram":[0,0,0,0]}}}'
-          }
-        })
+            }
+          })
       );
     });
     return m;

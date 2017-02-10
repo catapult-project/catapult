@@ -718,8 +718,8 @@ tr.b.unittest.testSuite(function() {
     var verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx(
-        {title: 'PageAnimator::serviceScriptedAnimations',
-          start: 0, end: 2}));
+          {title: 'PageAnimator::serviceScriptedAnimations',
+            start: 0, end: 2}));
       ChromeTestUtils.addEvent(model.rendererMain, {
         title: 'PageAnimator::serviceScriptedAnimations',
         start: 20, end: 22});

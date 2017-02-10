@@ -446,7 +446,7 @@ tr.b.unittest.testSuite(function() {
     // The test below depends on hashing of 'a' !== 'b'. Fail early if that
     // assumption is incorrect.
     assert.notEqual(ColorScheme.getStringHash('a'),
-                    ColorScheme.getStringHash('b'));
+        ColorScheme.getStringHash('b'));
 
     var events = [
       {name: 'a', args: {}, pid: 1, ts: 1, cat: 'foo', tid: 1, ph: 'B'},
@@ -482,7 +482,7 @@ tr.b.unittest.testSuite(function() {
     var p = m.processes[1];
     var t = p.threads[1];
     assert.equal(t.sliceGroup.slices[0].colorId,
-                 ColorScheme.getColorIdForReservedName('thread_state_unknown'));
+        ColorScheme.getColorIdForReservedName('thread_state_unknown'));
   });
 
   test('durationColorEnd', function() {
@@ -495,7 +495,7 @@ tr.b.unittest.testSuite(function() {
     var p = m.processes[1];
     var t = p.threads[1];
     assert.equal(t.sliceGroup.slices[0].colorId,
-                 ColorScheme.getColorIdForReservedName('thread_state_unknown'));
+        ColorScheme.getColorIdForReservedName('thread_state_unknown'));
   });
 
   test('completeColorArgument', function() {
@@ -507,7 +507,7 @@ tr.b.unittest.testSuite(function() {
     var p = m.processes[1];
     var t = p.threads[1];
     assert.equal(t.sliceGroup.slices[0].colorId,
-                 ColorScheme.getColorIdForReservedName('generic_work'));
+        ColorScheme.getColorIdForReservedName('generic_work'));
   });
 
   test('asyncColorArgument', function() {
@@ -520,7 +520,7 @@ tr.b.unittest.testSuite(function() {
     var p = m.processes[1];
     var t = p.threads[1];
     assert.equal(t.asyncSliceGroup.slices[0].colorId,
-                 ColorScheme.getColorIdForReservedName('generic_work'));
+        ColorScheme.getColorIdForReservedName('generic_work'));
   });
 
   test('asyncColorEnd', function() {
@@ -533,7 +533,7 @@ tr.b.unittest.testSuite(function() {
     var p = m.processes[1];
     var t = p.threads[1];
     assert.equal(t.asyncSliceGroup.slices[0].colorId,
-                 ColorScheme.getColorIdForReservedName('generic_work'));
+        ColorScheme.getColorIdForReservedName('generic_work'));
   });
 
   test('instantThreadColorArgument', function() {
@@ -545,7 +545,7 @@ tr.b.unittest.testSuite(function() {
     var p = m.processes[1];
     var t = p.threads[1];
     assert.equal(t.sliceGroup.slices[0].colorId,
-                 ColorScheme.getColorIdForReservedName('generic_work'));
+        ColorScheme.getColorIdForReservedName('generic_work'));
   });
 
   test('instantProcessColorArgument', function() {
@@ -556,7 +556,7 @@ tr.b.unittest.testSuite(function() {
     var m = makeModel(events);
     var p = m.processes[1];
     assert.equal(p.instantEvents[0].colorId,
-                 ColorScheme.getColorIdForReservedName('generic_work'));
+        ColorScheme.getColorIdForReservedName('generic_work'));
   });
 
   test('counterColorArgument', function() {
@@ -567,7 +567,7 @@ tr.b.unittest.testSuite(function() {
     var m = makeModel(events);
     var p = m.processes[1];
     assert.equal(p.counters['foo.a[1]'].series[0].color,
-                 ColorScheme.getColorIdForReservedName('generic_work'));
+        ColorScheme.getColorIdForReservedName('generic_work'));
     assert.equal(p.counters['foo.a[1]'].series.length, 1);
   });
 
@@ -582,7 +582,7 @@ tr.b.unittest.testSuite(function() {
     var p = m.processes[1];
     var i = p.objects.instanceMapsByScopedId_['ptr'][1].instances[0];
     assert.equal(i.colorId,
-                 ColorScheme.getColorIdForReservedName('generic_work'));
+        ColorScheme.getColorIdForReservedName('generic_work'));
   });
 
   test('objectColorEnd', function() {
@@ -596,7 +596,7 @@ tr.b.unittest.testSuite(function() {
     var p = m.processes[1];
     var i = p.objects.instanceMapsByScopedId_['ptr'][1].instances[0];
     assert.equal(i.colorId,
-                 ColorScheme.getColorIdForReservedName('generic_work'));
+        ColorScheme.getColorIdForReservedName('generic_work'));
   });
 
   test('multipleThreadParsing', function() {
@@ -862,7 +862,7 @@ tr.b.unittest.testSuite(function() {
 
     assert.equal(ctr.series[0].name, 'value');
     assert.equal(ctr.series[0].color,
-                 ColorScheme.getColorIdForGeneralPurposeString('ctr.value'));
+        ColorScheme.getColorIdForGeneralPurposeString('ctr.value'));
 
     assert.deepEqual(ctr.timestamps, [0, 0.01, 0.02]);
 
@@ -994,9 +994,9 @@ tr.b.unittest.testSuite(function() {
     assert.equal(ctr.series[0].name, 'value1');
     assert.equal(ctr.series[1].name, 'value2');
     assert.equal(ctr.series[0].color,
-                 ColorScheme.getColorIdForGeneralPurposeString('ctr.value1'));
+        ColorScheme.getColorIdForGeneralPurposeString('ctr.value1'));
     assert.equal(ctr.series[1].color,
-                 ColorScheme.getColorIdForGeneralPurposeString('ctr.value2'));
+        ColorScheme.getColorIdForGeneralPurposeString('ctr.value2'));
 
     assert.deepEqual(ctr.timestamps, [0, 0.01, 0.02]);
     var samples = [];
@@ -2926,8 +2926,8 @@ tr.b.unittest.testSuite(function() {
     assert.equal(m.samples[0].start, 1);
     assert.deepEqual(
       ['a_sub', 'a', 'main'],
-      m.samples[0].userFriendlyStack
-          .map(x => x.substr(0, x.indexOf('url') - 1)));
+        m.samples[0].userFriendlyStack
+            .map(x => x.substr(0, x.indexOf('url') - 1)));
     assert.equal(m.samples[0].weight, 1);
   });
 
@@ -4139,64 +4139,64 @@ tr.b.unittest.testSuite(function() {
     checkLevelsOfDetail([[{}]], LIGHT, [LIGHT], false);
     checkLevelsOfDetail([[{ vmRegions: true }]], DETAILED, [DETAILED], false);
     checkLevelsOfDetail(
-      [
+        [
           [{}] /* raw composable PMD1 events */,
           [{}, {}] /* raw composable PMD2 events */
-      ],
+        ],
         LIGHT /* expected GMD level of detail */,
         [LIGHT, LIGHT] /* expected PMD levels of detail */,
         false /* no warnings expected */);
     checkLevelsOfDetail(
-      [
+        [
           [{}, { vmRegions: true }, {}],
           [{ vmRegions: true }, {}]
-      ],
+        ],
         DETAILED, [DETAILED, DETAILED], false);
 
     // Well-formed traces events (VM regions should be irrelevant).
     checkLevelsOfDetail(
-      [
+        [
           [{ levelOfDetail: 'light'}],
           [{ levelOfDetail: 'light', vmRegions: true }]
-      ],
+        ],
         LIGHT, [LIGHT, LIGHT], false);
     checkLevelsOfDetail(
-      [
         [
+          [
             { levelOfDetail: 'detailed' }, { levelOfDetail: 'detailed' }
-        ],
-        [
+          ],
+          [
             { levelOfDetail: 'detailed', vmRegions: true }
-        ],
-        [
+          ],
+          [
             { levelOfDetail: 'detailed' },
             { levelOfDetail: 'detailed', vmRegions: true },
             { levelOfDetail: 'detailed' }
-        ]
-      ],
+          ]
+        ],
         DETAILED, [DETAILED, DETAILED, DETAILED], false);
 
     // Not so well-formed trace events.
     checkLevelsOfDetail(
-      [
+        [
           [{}, { levelOfDetail: 'detailed'}, {}]
-      ],
+        ],
         DETAILED, [DETAILED], true);
     checkLevelsOfDetail(
-      [
+        [
           [{ levelOfDetail: 'light' }],
           [{}],
           [{ levelOfDetail: 'detailed' }],
           [{ levelOfDetail: 'light' }]],
         DETAILED, [LIGHT, LIGHT, DETAILED, LIGHT], true);
     checkLevelsOfDetail(
-      [
+        [
           [{ levelOfDetail: 'light' }, { levelOfDetail: 'detailed' }],
           [{}],
           [{ levelOfDetail: 'light' }, {}]],
         DETAILED, [DETAILED, LIGHT, LIGHT], true);
     checkLevelsOfDetail(
-      [
+        [
           [{ levelOfDetail: 'invalid' }, { levelOfDetail: 'light' }],
           [{ levelOfDetail: 'invalid' }]],
         LIGHT, [LIGHT, LIGHT], true);
@@ -4328,22 +4328,22 @@ tr.b.unittest.testSuite(function() {
     // Stack frames.
     assert.deepEqual(
         tr.b.mapItems(m.stackFrames, function(id, f) { return f.title; }),
-      {
-        'p21:0': 'FrameView::layout',
-        'p21:0:self': '<self>',
-        'p21:1': 'MessageLoop::RunTask',
-        'p42::self': '<self>',
-        'p42:0': 'MessageLoop::RunTask',
-        'p42:0:self': '<self>',
-        'p42:1': 'TimerBase::run',
-        'p42:TWO': 'ScheduledAction::execute',
-        'p42:3': 'FunctionCall',
-        'p42:3:self': '<self>',
-        'p42:4': 'UpdateLayoutTree',
-        'p42:4:self': '<self>',
-        'p42:5': 'MessageLoop::JogTask',
-        'p42:5:self': '<self>'
-      });
+        {
+          'p21:0': 'FrameView::layout',
+          'p21:0:self': '<self>',
+          'p21:1': 'MessageLoop::RunTask',
+          'p42::self': '<self>',
+          'p42:0': 'MessageLoop::RunTask',
+          'p42:0:self': '<self>',
+          'p42:1': 'TimerBase::run',
+          'p42:TWO': 'ScheduledAction::execute',
+          'p42:3': 'FunctionCall',
+          'p42:3:self': '<self>',
+          'p42:4': 'UpdateLayoutTree',
+          'p42:4:self': '<self>',
+          'p42:5': 'MessageLoop::JogTask',
+          'p42:5:self': '<self>'
+        });
 
     // 1. Process 21, first dump.
     var pmd1 = p1.memoryDumps[0];
@@ -4400,11 +4400,11 @@ tr.b.unittest.testSuite(function() {
     checkHeapEntry(partitionAllocEntries3[3], partitionAllocDump3, 5991638,
         ['<self>'], undefined /* sum over all types */);
     checkHeapEntry(partitionAllocEntries3[4], partitionAllocDump3, 6384,
-      ['<self>', 'UpdateLayoutTree', 'TimerBase::run',
-        'MessageLoop::RunTask'], undefined /* sum over all types */);
+        ['<self>', 'UpdateLayoutTree', 'TimerBase::run',
+          'MessageLoop::RunTask'], undefined /* sum over all types */);
     checkHeapEntry(partitionAllocEntries3[5], partitionAllocDump3, 58280,
-      ['<self>', 'FunctionCall', 'ScheduledAction::execute', 'TimerBase::run',
-        'MessageLoop::RunTask'], undefined /* sum over all types */);
+        ['<self>', 'FunctionCall', 'ScheduledAction::execute', 'TimerBase::run',
+          'MessageLoop::RunTask'], undefined /* sum over all types */);
 
     var mallocDump3 = hds3['malloc'];
     assert.strictEqual(mallocDump3.processMemoryDump, pmd3);
@@ -4658,24 +4658,24 @@ tr.b.unittest.testSuite(function() {
     // Stack frames.
     assert.deepEqual(
         tr.b.mapItems(m.stackFrames, function(id, f) { return f.title; }),
-      {
-        'p21:0': 'FrameView::layout',
-        'p21:A': '<self>',
-        'p21:1': 'MessageLoop::RunTask',
-        'p42:-1': '<self>',
-        'p42:0': 'MessageLoop::RunTask',
-        'p42:0.5': '<self>',
-        'p42:1': 'TimerBase::run',
-        'p42:TWO': 'ScheduledAction::execute',
-        'p42:2.72': '<self>',
-        'p42:3': 'FunctionCall',
-        'p42:\u03C0': '<self>',
-        'p42:4': 'UpdateLayoutTree',
-        'p42:FOUR-AND-A-BIT': '<self>',
-        'p42:5': 'MessageLoop::JogTask',
-        'p42:NaN': '<self>',
-        'p84:5': 'MessageLoop::WalkTask'
-      });
+        {
+          'p21:0': 'FrameView::layout',
+          'p21:A': '<self>',
+          'p21:1': 'MessageLoop::RunTask',
+          'p42:-1': '<self>',
+          'p42:0': 'MessageLoop::RunTask',
+          'p42:0.5': '<self>',
+          'p42:1': 'TimerBase::run',
+          'p42:TWO': 'ScheduledAction::execute',
+          'p42:2.72': '<self>',
+          'p42:3': 'FunctionCall',
+          'p42:\u03C0': '<self>',
+          'p42:4': 'UpdateLayoutTree',
+          'p42:FOUR-AND-A-BIT': '<self>',
+          'p42:5': 'MessageLoop::JogTask',
+          'p42:NaN': '<self>',
+          'p84:5': 'MessageLoop::WalkTask'
+        });
 
     // 1. Process 21, first dump.
     var pmd1 = p1.memoryDumps[0];
@@ -4740,14 +4740,14 @@ tr.b.unittest.testSuite(function() {
     checkHeapEntry(partitionAllocEntries3[3], partitionAllocDump3, 5991638,
         ['<self>'], '[unknown]');
     checkHeapEntry(partitionAllocEntries3[4], partitionAllocDump3, 6384,
-      ['<self>', 'UpdateLayoutTree', 'TimerBase::run',
-        'MessageLoop::RunTask'], undefined /* sum over all types */, 256);
+        ['<self>', 'UpdateLayoutTree', 'TimerBase::run',
+          'MessageLoop::RunTask'], undefined /* sum over all types */, 256);
     checkHeapEntry(partitionAllocEntries3[5], partitionAllocDump3, 3192,
-      ['<self>', 'UpdateLayoutTree', 'TimerBase::run',
-        'MessageLoop::RunTask'], 'blink::WebFrame *');
+        ['<self>', 'UpdateLayoutTree', 'TimerBase::run',
+          'MessageLoop::RunTask'], 'blink::WebFrame *');
     checkHeapEntry(partitionAllocEntries3[6], partitionAllocDump3, 58280,
-      ['<self>', 'FunctionCall', 'ScheduledAction::execute', 'TimerBase::run',
-        'MessageLoop::RunTask'], undefined /* sum over all types */);
+        ['<self>', 'FunctionCall', 'ScheduledAction::execute', 'TimerBase::run',
+          'MessageLoop::RunTask'], undefined /* sum over all types */);
 
     var mallocDump3 = hds3['malloc'];
     assert.strictEqual(mallocDump3.processMemoryDump, pmd3);
@@ -4763,8 +4763,8 @@ tr.b.unittest.testSuite(function() {
         ['<self>', 'MessageLoop::JogTask'], undefined /* sum over all types */,
         112);
     checkHeapEntry(mallocEntries3[3], mallocDump3, 205,
-      ['FunctionCall', 'ScheduledAction::execute', 'TimerBase::run',
-        'MessageLoop::RunTask'], 'blink::ContextLifecycleObserver *', 128);
+        ['FunctionCall', 'ScheduledAction::execute', 'TimerBase::run',
+          'MessageLoop::RunTask'], 'blink::ContextLifecycleObserver *', 128);
 
     // All heap dumps in Process 42 should use the same stack frames.
     assert.strictEqual(

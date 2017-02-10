@@ -68,9 +68,9 @@ tr.b.unittest.testSuite(function() {
     assert.equal(fields.loggerName, 5);
     assert.equal(fields.logFileName, 6);
     assert.strictEqual(fields.timeZoneInformation.standardName,
-                       '@tzres.dll,-112');
+        '@tzres.dll,-112');
     assert.strictEqual(fields.timeZoneInformation.daylightName,
-                       '@tzres.dll,-111');
+        '@tzres.dll,-111');
     assert.strictEqual(fields.bootTime, '01cc05afdf9b437f');
     assert.strictEqual(fields.perfFreq, '000000000023ac9d');
     assert.strictEqual(fields.startTime, '01cc08c860a3342c');
@@ -78,7 +78,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(fields.buffersLost, 0);
     assert.strictEqual(fields.sessionNameString, 'Make Test Data Session');
     assert.strictEqual(fields.logFileNameString,
-                       'c:\\src\\sawbuck\\trunk\\src\\sawbuck\\log_lib\\' +
+        'c:\\src\\sawbuck\\trunk\\src\\sawbuck\\log_lib\\' +
                        'test_data\\image_data_32_v0.etl');
 
     // Validate a version 2 64-bit payload.

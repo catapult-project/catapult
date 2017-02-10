@@ -75,9 +75,9 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     }
     var kthread = trans.calling_kthread.thread;
     var internalSlice = kthread.sliceGroup.pushCompleteSlice('binder',
-                             slice.title,
-                             ts, .001, 0, 0,
-                             slice.args);
+        slice.title,
+        ts, .001, 0, 0,
+        slice.args);
 
     internalSlice.title = slice.title;
     internalSlice.id = slice.id;
@@ -210,9 +210,9 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       kthread.thread.sliceGroup.pushCompleteSlice(
           'binder',
           'binder lock held',
-           kthread.binderLockAquiredTS,
-           ts - kthread.binderLockAquiredTS,
-           0, 0, args);
+          kthread.binderLockAquiredTS,
+          ts - kthread.binderLockAquiredTS,
+          0, 0, args);
 
       kthread.binderLockAquiredTS = undefined;
       return true;
@@ -481,7 +481,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
          */
         origSlice.duration = ts - origSlice.start;
         this.addSyncTransNeedingCompletion(trans.transaction_key,
-             recursiveTrans);
+            recursiveTrans);
 
         if (isReplyToOrigin(recursiveTrans[0], trans))
           this.removeRecursiveTransaction(pid);
@@ -541,10 +541,10 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
         slice = kthread.thread.sliceGroup.
           pushCompleteSlice('binder',
-              'binder transaction',
-              recvTs,
+            'binder transaction',
+            recvTs,
               (ts - recvTs), 0,
-              0, args);
+            0, args);
 
           /* could be a async trans if so set the length to be a small one */
         if (!trans.expect_reply) {

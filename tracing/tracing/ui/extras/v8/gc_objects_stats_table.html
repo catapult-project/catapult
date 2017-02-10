@@ -338,7 +338,7 @@ tr.exportTo('tr.ui.e.v8', function() {
                              other.overAllocated_ - this.overAllocated, [], []);
       entry.overallPercent = computePercentage(entry.overall, this.overall);
       entry.overAllocatedPercent = computePercentage(entry.overAllocated,
-                                                     this.overAllocated);
+          this.overAllocated);
       return new DiffEntry(this, entry);
     }
   }
@@ -347,7 +347,7 @@ tr.exportTo('tr.ui.e.v8', function() {
     constructor(title, count, overall, overAllocated, histogram,
         overAllocatedHistogram) {
       super(title, count, overall, overAllocated, histogram,
-            overAllocatedHistogram);
+          overAllocatedHistogram);
       this.histogram_.fill(0);
       this.overAllocatedHistogram_.fill(0);
       this.entries_ = new Map();
@@ -429,7 +429,7 @@ tr.exportTo('tr.ui.e.v8', function() {
       }
       result.overallPercent = computePercentage(result.overall, this.overall);
       result.overAllocatedPercent = computePercentage(result.overAllocated,
-                                                      this.overAllocated);
+          this.overAllocated);
       return new DiffEntry(this, result);
     }
   }
@@ -636,13 +636,13 @@ tr.exportTo('tr.ui.e.v8', function() {
       }
       this.$.diffOption.style.display = 'inline-block';
       this.selector1_ = createSelector(
-        this, '', items, this.diffOptionChanged_);
+          this, '', items, this.diffOptionChanged_);
       Polymer.dom(this.$.diffOption).appendChild(this.selector1_);
       var spanEl = tr.ui.b.createSpan();
       spanEl.innerText = ' VS ';
       Polymer.dom(this.$.diffOption).appendChild(spanEl);
       this.selector2_ = createSelector(
-        this, '', items, this.diffOptionChanged_);
+          this, '', items, this.diffOptionChanged_);
       Polymer.dom(this.$.diffOption).appendChild(this.selector2_);
     },
 
@@ -835,11 +835,11 @@ tr.exportTo('tr.ui.e.v8', function() {
         var deadBucketSize = deadObjects.bucket_sizes.length;
 
         this.build_(tr.b.deepCopy(liveObjects.type_data), liveEntry,
-                    liveBucketSize);
+            liveBucketSize);
         isolateEntry.add(liveEntry);
 
         this.build_(tr.b.deepCopy(deadObjects.type_data), deadEntry,
-                    deadBucketSize);
+            deadBucketSize);
         isolateEntry.add(deadEntry);
 
         isolateEntry.calculatePercentage();

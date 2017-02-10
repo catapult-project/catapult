@@ -321,9 +321,9 @@ Polymer({
       }
       let sliceGroup = slice.parentContainer.sliceGroup.slices;
       let range = tr.b.Range.fromExplicitRange(
-        slice.start, slice.start + slice.duration);
+          slice.start, slice.start + slice.duration);
       let filteredSlices = range.filterArray(
-        sliceGroup, value => value.start);
+          sliceGroup, value => value.start);
       let icSlices = filteredSlices.filter(x => x.title === 'V8.ICStats');
       for (let icSlice of icSlices)
         slices.push(icSlice);

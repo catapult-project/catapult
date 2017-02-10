@@ -68,7 +68,7 @@ tr.b.unittest.testSuite(function() {
     nextSnapshot.layoutObjectsById[nextLayoutObject.id] = nextLayoutObject;
 
     assert.strictEqual(layoutObject,
-                       nextLayoutObject.previousSnapshotLayoutObject);
+        nextLayoutObject.previousSnapshotLayoutObject);
     assert.strictEqual(nextLayoutObject, layoutObject.nextSnapshotLayoutObject);
     assert.isUndefined(layoutObject.previousSnapshotLayoutObject);
     assert.isUndefined(nextLayoutObject.nextSnapshotLayoutObject);

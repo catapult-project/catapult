@@ -34,7 +34,7 @@ tr.exportTo('tr.model', function() {
       opt_cpuStart, opt_cpuDuration, opt_argsStripped,
       opt_bindId) {
     Slice.call(this, cat, title, colorId, start, args, opt_duration,
-               opt_cpuStart, opt_cpuDuration, opt_argsStripped, opt_bindId);
+        opt_cpuStart, opt_cpuDuration, opt_argsStripped, opt_bindId);
     // Do not modify this directly.
     // subSlices is configured by SliceGroup.rebuildSubRows_.
     this.subSlices = [];
@@ -57,10 +57,10 @@ tr.exportTo('tr.model', function() {
 
   tr.model.EventRegistry.register(
       ThreadSlice,
-    {
-      name: 'slice',
-      pluralName: 'slices'
-    });
+      {
+        name: 'slice',
+        pluralName: 'slices'
+      });
 
   return {
     ThreadSlice,

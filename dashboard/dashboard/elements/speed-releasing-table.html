@@ -205,22 +205,22 @@ found in the LICENSE file.
         var path = this.tableName;
         this.loading = true;
         simple_xhr.send('/speed_releasing/' + path, params,
-          function(response) {
-            this.tableConfig.bots = response['table_bots'];
-            this.tableConfig.tests = response['table_tests'];
-            this.tableConfig.layout = response['table_layout'];
-            this.tableConfig.name = response['name'];
-            this.xsrfToken = response['xsrf_token'];
-            this.tableConfig.values = response['values'];
-            this.tableConfig.revisions = response['revisions'];
-            this.tableConfig.units = response['units'];
-            this.tableConfig.categories = response['categories'];
-            this.loading = false;
-          }.bind(this),
-          function(msg) {
-            this.error = msg;
-            this.loading = false;
-          }.bind(this));
+            function(response) {
+              this.tableConfig.bots = response['table_bots'];
+              this.tableConfig.tests = response['table_tests'];
+              this.tableConfig.layout = response['table_layout'];
+              this.tableConfig.name = response['name'];
+              this.xsrfToken = response['xsrf_token'];
+              this.tableConfig.values = response['values'];
+              this.tableConfig.revisions = response['revisions'];
+              this.tableConfig.units = response['units'];
+              this.tableConfig.categories = response['categories'];
+              this.loading = false;
+            }.bind(this),
+            function(msg) {
+              this.error = msg;
+              this.loading = false;
+            }.bind(this));
       }
     });
   </script>

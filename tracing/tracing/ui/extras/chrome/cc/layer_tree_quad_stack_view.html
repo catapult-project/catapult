@@ -139,13 +139,13 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       var tileHeatmapSelector = tr.ui.b.createSelector(
           this, 'tileHeatmapType',
           'layerView.tileHeatmapType', TILE_HEATMAP_TYPE.NONE,
-        [{label: 'None',
-          value: TILE_HEATMAP_TYPE.NONE},
-        {label: 'Scheduled Priority',
-          value: TILE_HEATMAP_TYPE.SCHEDULED_PRIORITY},
-        {label: 'Is using GPU memory',
-          value: TILE_HEATMAP_TYPE.USING_GPU_MEMORY}
-        ]);
+          [{label: 'None',
+            value: TILE_HEATMAP_TYPE.NONE},
+          {label: 'Scheduled Priority',
+            value: TILE_HEATMAP_TYPE.SCHEDULED_PRIORITY},
+          {label: 'Is using GPU memory',
+            value: TILE_HEATMAP_TYPE.USING_GPU_MEMORY}
+          ]);
       Polymer.dom(this.controls_).appendChild(tileHeatmapSelector);
 
       var showOtherLayersCheckbox = tr.ui.b.createCheckBox(
@@ -788,11 +788,11 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       }
 
       processRegion(layer.touchEventHandlerRegion, 'Touch listener',
-                    tr.b.Color.fromString('rgb(228, 226, 27)'));
+          tr.b.Color.fromString('rgb(228, 226, 27)'));
       processRegion(layer.wheelEventHandlerRegion, 'Wheel listener',
-                    tr.b.Color.fromString('rgb(176, 205, 29)'));
+          tr.b.Color.fromString('rgb(176, 205, 29)'));
       processRegion(layer.nonFastScrollableRegion, 'Repaints on scroll',
-                    tr.b.Color.fromString('rgb(213, 134, 32)'));
+          tr.b.Color.fromString('rgb(213, 134, 32)'));
     },
 
     appendTileCoverageRectQuads_: function(
@@ -1075,7 +1075,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           this.appendUnrecordedRegionQuads_(quads, layer, layerQuad);
         if (this.showBottlenecks)
           this.appendBottleneckQuads_(quads, layer, layerQuad,
-                                      layerQuad.stackingGroupId);
+              layerQuad.stackingGroupId);
         if (this.showLayoutRects)
           this.appendLayoutRectQuads_(quads, layer, layerQuad);
 

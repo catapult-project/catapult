@@ -102,16 +102,16 @@ found in the LICENSE file.
         if (!path) { // Go get the list.
           path = '';
           simple_xhr.send('/speed_releasing/' + path, params,
-            function(response) {
-              this.loading = false;
-              this.tableName = response['name'];
-              this.showList = response['show_list'];
-              this.tableList = response['list'];
-            }.bind(this),
-            function(msg) {
-              this.error = msg;
-              this.loading = false;
-            }.bind(this));
+              function(response) {
+                this.loading = false;
+                this.tableName = response['name'];
+                this.showList = response['show_list'];
+                this.tableList = response['list'];
+              }.bind(this),
+              function(msg) {
+                this.error = msg;
+                this.loading = false;
+              }.bind(this));
         } else { // POST in speed-releasing-table will get the values.
           this.tableName = path;
           this.showList = false;

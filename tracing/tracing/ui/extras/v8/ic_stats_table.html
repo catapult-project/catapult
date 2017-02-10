@@ -52,7 +52,7 @@ found in the LICENSE file.
 
 tr.exportTo('tr.ui.e.v8', function() {
   var PROPERTIES = tr.e.v8.IC_STATS_PROPERTIES.map(
-    x => {return {label: x, value: x};});
+      x => {return {label: x, value: x};});
   var ICStatsEntry = tr.e.v8.ICStatsEntry;
   var ICStatsEntryGroup = tr.e.v8.ICStatsEntryGroup;
   var ICStatsCollection = tr.e.v8.ICStatsCollection;
@@ -64,8 +64,8 @@ tr.exportTo('tr.ui.e.v8', function() {
       this.icStatsCollection_ = new ICStatsCollection();
       this.groupKey_ = PROPERTIES[0].value;
       this.selector_ = tr.ui.b.createSelector(this, 'groupKey',
-                                              'v8ICStatsGroupKey',
-                                              this.groupKey_, PROPERTIES);
+          'v8ICStatsGroupKey',
+          this.groupKey_, PROPERTIES);
       Polymer.dom(this.$.groupOption).appendChild(this.selector_);
     },
 

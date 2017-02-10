@@ -240,89 +240,89 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiate_highDetailsNoStepGraphWithSelectionAndYAxisLabels',
-       function() {
-         var div = document.createElement('div');
-         var viewport = new Viewport(div);
-         viewport.highDetails = true;
-         var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
-         Polymer.dom(div).appendChild(drawingContainer);
+      function() {
+        var div = document.createElement('div');
+        var viewport = new Viewport(div);
+        viewport.highDetails = true;
+        var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
+        Polymer.dom(div).appendChild(drawingContainer);
 
-         var track = buildTrack({viewport, stepGraph: false, singleAxis: true});
-         track.showYAxisLabels = true;
-         Polymer.dom(drawingContainer).appendChild(track);
+        var track = buildTrack({viewport, stepGraph: false, singleAxis: true});
+        track.showYAxisLabels = true;
+        Polymer.dom(drawingContainer).appendChild(track);
 
-         track.series[0].points[1].modelItem.selectionState =
+        track.series[0].points[1].modelItem.selectionState =
         SelectionState.SELECTED;
-         track.series[1].points[1].modelItem.selectionState =
+        track.series[1].points[1].modelItem.selectionState =
         SelectionState.SELECTED;
 
-         this.addHTMLOutput(div);
-         drawingContainer.invalidate();
+        this.addHTMLOutput(div);
+        drawingContainer.invalidate();
 
-         var dt = new tr.ui.TimelineDisplayTransform();
-         var pixelRatio = window.devicePixelRatio || 1;
-         dt.xSetWorldBounds(-3, 3, track.clientWidth * pixelRatio);
-         track.viewport.setDisplayTransformImmediately(dt);
+        var dt = new tr.ui.TimelineDisplayTransform();
+        var pixelRatio = window.devicePixelRatio || 1;
+        dt.xSetWorldBounds(-3, 3, track.clientWidth * pixelRatio);
+        track.viewport.setDisplayTransformImmediately(dt);
 
-         track.height = '200px';
-       });
+        track.height = '200px';
+      });
 
   test('instantiate_highDetailsNoStepGraphWithSelectionAndGridLines',
-       function() {
-         var div = document.createElement('div');
-         var viewport = new Viewport(div);
-         viewport.highDetails = true;
-         var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
-         Polymer.dom(div).appendChild(drawingContainer);
+      function() {
+        var div = document.createElement('div');
+        var viewport = new Viewport(div);
+        viewport.highDetails = true;
+        var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
+        Polymer.dom(div).appendChild(drawingContainer);
 
-         var track = buildTrack({viewport, stepGraph: false, singleAxis: true});
-         track.showGridLines = true;
-         Polymer.dom(drawingContainer).appendChild(track);
+        var track = buildTrack({viewport, stepGraph: false, singleAxis: true});
+        track.showGridLines = true;
+        Polymer.dom(drawingContainer).appendChild(track);
 
-         track.series[0].points[1].modelItem.selectionState =
+        track.series[0].points[1].modelItem.selectionState =
         SelectionState.SELECTED;
-         track.series[1].points[1].modelItem.selectionState =
+        track.series[1].points[1].modelItem.selectionState =
         SelectionState.SELECTED;
 
-         this.addHTMLOutput(div);
-         drawingContainer.invalidate();
+        this.addHTMLOutput(div);
+        drawingContainer.invalidate();
 
-         var dt = new tr.ui.TimelineDisplayTransform();
-         var pixelRatio = window.devicePixelRatio || 1;
-         dt.xSetWorldBounds(-3, 3, track.clientWidth * pixelRatio);
-         track.viewport.setDisplayTransformImmediately(dt);
+        var dt = new tr.ui.TimelineDisplayTransform();
+        var pixelRatio = window.devicePixelRatio || 1;
+        dt.xSetWorldBounds(-3, 3, track.clientWidth * pixelRatio);
+        track.viewport.setDisplayTransformImmediately(dt);
 
-         track.height = '200px';
-       });
+        track.height = '200px';
+      });
 
   test('instantiate_highDetailsNoStepGraphWithSelectionYAxisLabelsAndGridLines',
-       function() {
-         var div = document.createElement('div');
-         var viewport = new Viewport(div);
-         viewport.highDetails = true;
-         var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
-         Polymer.dom(div).appendChild(drawingContainer);
+      function() {
+        var div = document.createElement('div');
+        var viewport = new Viewport(div);
+        viewport.highDetails = true;
+        var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
+        Polymer.dom(div).appendChild(drawingContainer);
 
-         var track = buildTrack({viewport, stepGraph: false, singleAxis: true});
-         track.showYAxisLabels = true;
-         track.showGridLines = true;
-         Polymer.dom(drawingContainer).appendChild(track);
+        var track = buildTrack({viewport, stepGraph: false, singleAxis: true});
+        track.showYAxisLabels = true;
+        track.showGridLines = true;
+        Polymer.dom(drawingContainer).appendChild(track);
 
-         track.series[0].points[1].modelItem.selectionState =
+        track.series[0].points[1].modelItem.selectionState =
         SelectionState.SELECTED;
-         track.series[1].points[1].modelItem.selectionState =
+        track.series[1].points[1].modelItem.selectionState =
         SelectionState.SELECTED;
 
-         this.addHTMLOutput(div);
-         drawingContainer.invalidate();
+        this.addHTMLOutput(div);
+        drawingContainer.invalidate();
 
-         var dt = new tr.ui.TimelineDisplayTransform();
-         var pixelRatio = window.devicePixelRatio || 1;
-         dt.xSetWorldBounds(-3, 3, track.clientWidth * pixelRatio);
-         track.viewport.setDisplayTransformImmediately(dt);
+        var dt = new tr.ui.TimelineDisplayTransform();
+        var pixelRatio = window.devicePixelRatio || 1;
+        dt.xSetWorldBounds(-3, 3, track.clientWidth * pixelRatio);
+        track.viewport.setDisplayTransformImmediately(dt);
 
-         track.height = '200px';
-       });
+        track.height = '200px';
+      });
 
   test('instantiate_dashboardChartStyleWithSelection', function() {
     var div = document.createElement('div');

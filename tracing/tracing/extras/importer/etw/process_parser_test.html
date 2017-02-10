@@ -79,7 +79,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(fields.exitStatus, 259);
     assert.strictEqual(fields.imageFileName, 'notepad.exe');
     assert.strictEqual(fields.commandLine,
-               '\"C:\\Windows\\system32\\notepad.exe\" ');
+        '\"C:\\Windows\\system32\\notepad.exe\" ');
 
     // Validate a version 3 32-bit payload.
     header = { guid: guid, opcode: kProcessStartOpcode, version: 3, is64: 0 };
@@ -94,7 +94,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(fields.directoryTableBase, 0);
     assert.strictEqual(fields.imageFileName, 'notepad.exe');
     assert.strictEqual(fields.commandLine,
-               '\"C:\\Windows\\system32\\notepad.exe\" ');
+        '\"C:\\Windows\\system32\\notepad.exe\" ');
 
     // Validate a version 3 64-bit payload.
     header = { guid: guid, opcode: kProcessStartOpcode, version: 3, is64: 1 };

@@ -215,9 +215,9 @@ tr.b.unittest.testSuite(function() {
 
     var hist02 = hist0.clone();
     assert.instanceOf(hist02.allBins[0].diagnosticMaps[0],
-                      tr.v.d.DiagnosticMap);
+        tr.v.d.DiagnosticMap);
     assert.instanceOf(hist02.allBins[0].diagnosticMaps[0].get('foo'),
-                      tr.v.d.Generic);
+        tr.v.d.Generic);
   });
 
   test('addHistogramsInvalid', function() {

@@ -111,7 +111,7 @@ tr.exportTo('tr.model', function() {
           function(allocatorName) {
             // First check if the allocator root exists.
             var allocatorDump = this.getMemoryAllocatorDumpByFullName(
-            allocatorName);
+                allocatorName);
             if (allocatorDump === undefined)
               return false;  // Allocator doesn't exist, try another one.
 
@@ -126,7 +126,7 @@ tr.exportTo('tr.model', function() {
               var childFullName = currentFullName + '/' +
               TRACING_OVERHEAD_PATH[nextPathIndex];
               var childDump = this.getMemoryAllocatorDumpByFullName(
-              childFullName);
+                  childFullName);
               if (childDump === undefined)
                 break;
 

@@ -39,16 +39,16 @@ tr.b.unittest.testSuite(function() {
 
   test('instantiateTemplatePolymer', function() {
     var e = tr.ui.b.instantiateTemplate(
-                '#instantiate-template-polymer-test',
-                THIS_DOC);
+        '#instantiate-template-polymer-test',
+        THIS_DOC);
     assert.equal(e.children.length, 1);
     assert.equal(e.children[0].testProperty, 'Test');
   });
 
   test('instantiateTemplateMultipleTemplates', function() {
     var outerElement = tr.ui.b.instantiateTemplate(
-                           '#multiple-template-test',
-                           THIS_DOC);
+        '#multiple-template-test',
+        THIS_DOC);
     assert.equal(outerElement.children.length, 2);
     assert.equal(outerElement.children[1].testProperty, 'Test');
 

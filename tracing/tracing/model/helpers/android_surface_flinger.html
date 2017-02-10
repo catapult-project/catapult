@@ -81,8 +81,8 @@ tr.exportTo('tr.model.helpers', function() {
 
       var firstGreaterIndex =
           findLowIndexInSortedArray(this.appVsyncTimestamps_,
-                                    function(x) { return x; },
-                                    timestamp + TIMESTAMP_FUDGE_MS);
+              function(x) { return x; },
+              timestamp + TIMESTAMP_FUDGE_MS);
 
       if (firstGreaterIndex < 1)
         return undefined;
@@ -95,8 +95,8 @@ tr.exportTo('tr.model.helpers', function() {
 
       var firstGreaterIndex =
           findLowIndexInSortedArray(this.sfVsyncTimestamps_,
-                                    function(x) { return x; },
-                                    timestamp + this.deadlineDelayMs_);
+              function(x) { return x; },
+              timestamp + this.deadlineDelayMs_);
       if (firstGreaterIndex >= this.sfVsyncTimestamps_.length)
         return undefined;
       return this.sfVsyncTimestamps_[firstGreaterIndex];

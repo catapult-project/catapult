@@ -823,26 +823,26 @@ tr.b.unittest.testSuite(function() {
         var c = new NumericMemoryColumn(
             'non_bytes_column', ['x'], AggregationMode.DIFF);
         checkNumericMemoryColumnFieldFormat(this, c, [1, 2, 3],
-        tr.b.Unit.byName.unitlessNumberDelta_smallerIsBetter, 2);
+            tr.b.Unit.byName.unitlessNumberDelta_smallerIsBetter, 2);
         checkNumericMemoryColumnFieldFormat(this, c, [10, undefined],
-        tr.b.Unit.byName.unitlessNumberDelta_smallerIsBetter, -10);
+            tr.b.Unit.byName.unitlessNumberDelta_smallerIsBetter, -10);
         checkNumericMemoryColumnFieldFormat(this, c, [undefined, 60, 0],
-        tr.b.Unit.byName.unitlessNumberDelta_smallerIsBetter, 0);
+            tr.b.Unit.byName.unitlessNumberDelta_smallerIsBetter, 0);
         checkNumericMemoryColumnFieldFormat(
-        this, c, [2.71828, 2.71829] /* diff within epsilon */,
-        tr.b.Unit.byName.unitlessNumberDelta_smallerIsBetter, 0);
+            this, c, [2.71828, 2.71829] /* diff within epsilon */,
+            tr.b.Unit.byName.unitlessNumberDelta_smallerIsBetter, 0);
 
         var c = new NumericMemoryColumn(
             'bytes_column', ['x'], AggregationMode.DIFF);
         checkNumericMemoryColumnFieldFormat(this, c, [1, 2, 3],
-        tr.b.Unit.byName.sizeInBytesDelta_smallerIsBetter, 2);
+            tr.b.Unit.byName.sizeInBytesDelta_smallerIsBetter, 2);
         checkNumericMemoryColumnFieldFormat(this, c, [10, undefined],
-        tr.b.Unit.byName.sizeInBytesDelta_smallerIsBetter, -10);
+            tr.b.Unit.byName.sizeInBytesDelta_smallerIsBetter, -10);
         checkNumericMemoryColumnFieldFormat(this, c, [undefined, 60, 0],
-        tr.b.Unit.byName.sizeInBytesDelta_smallerIsBetter, 0);
+            tr.b.Unit.byName.sizeInBytesDelta_smallerIsBetter, 0);
         checkNumericMemoryColumnFieldFormat(
-        this, c, [1.41421, 1.41422] /* diff within epsilon */,
-        tr.b.Unit.byName.sizeInBytesDelta_smallerIsBetter, 0);
+            this, c, [1.41421, 1.41422] /* diff within epsilon */,
+            tr.b.Unit.byName.sizeInBytesDelta_smallerIsBetter, 0);
       });
 
   test('checkNumericMemoryColumn_formatMultipleFields_max',
@@ -850,26 +850,26 @@ tr.b.unittest.testSuite(function() {
         var c = new NumericMemoryColumn(
             'non_bytes_column', ['x'], AggregationMode.MAX);
         checkNumericMemoryColumnFieldFormat(this, c, [1, 2, 3],
-        tr.b.Unit.byName.unitlessNumber_smallerIsBetter, 3);
+            tr.b.Unit.byName.unitlessNumber_smallerIsBetter, 3);
         checkNumericMemoryColumnFieldFormat(this, c, [10, undefined],
-        tr.b.Unit.byName.unitlessNumber_smallerIsBetter, 10);
+            tr.b.Unit.byName.unitlessNumber_smallerIsBetter, 10);
         checkNumericMemoryColumnFieldFormat(this, c, [undefined, 60, 0],
-        tr.b.Unit.byName.unitlessNumber_smallerIsBetter, 60);
+            tr.b.Unit.byName.unitlessNumber_smallerIsBetter, 60);
         checkNumericMemoryColumnFieldFormat(
             this, c, [undefined, 10, 20, undefined],
-        tr.b.Unit.byName.unitlessNumber_smallerIsBetter, 20);
+            tr.b.Unit.byName.unitlessNumber_smallerIsBetter, 20);
 
         var c = new NumericMemoryColumn(
             'bytes_column', ['x'], AggregationMode.MAX);
         checkNumericMemoryColumnFieldFormat(this, c, [1, 2, 3],
-        tr.b.Unit.byName.sizeInBytes_smallerIsBetter, 3);
+            tr.b.Unit.byName.sizeInBytes_smallerIsBetter, 3);
         checkNumericMemoryColumnFieldFormat(this, c, [10, undefined],
-        tr.b.Unit.byName.sizeInBytes_smallerIsBetter, 10);
+            tr.b.Unit.byName.sizeInBytes_smallerIsBetter, 10);
         checkNumericMemoryColumnFieldFormat(this, c, [undefined, 60, 0],
-        tr.b.Unit.byName.sizeInBytes_smallerIsBetter, 60);
+            tr.b.Unit.byName.sizeInBytes_smallerIsBetter, 60);
         checkNumericMemoryColumnFieldFormat(
             this, c, [undefined, 10, 20, undefined],
-        tr.b.Unit.byName.sizeInBytes_smallerIsBetter, 20);
+            tr.b.Unit.byName.sizeInBytes_smallerIsBetter, 20);
       });
 
   test('checkNumericMemoryColumn_cmp', function() {

@@ -41,11 +41,11 @@ tr.exportTo('tr.b', function() {
         typeInfo.typeNames.push(metadata.typeName);
       if (metadata && metadata.typeNames) {
         typeInfo.typeNames.push.apply(
-          typeInfo.typeNames, metadata.typeNames);
+            typeInfo.typeNames, metadata.typeNames);
       }
       if (metadata && metadata.categoryParts) {
         typeInfo.categoryParts.push.apply(
-          typeInfo.categoryParts, metadata.categoryParts);
+            typeInfo.categoryParts, metadata.categoryParts);
       }
 
       if (typeInfo.typeNames.length === 0 &&

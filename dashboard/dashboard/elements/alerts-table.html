@@ -839,7 +839,7 @@ found in the LICENSE file.
         for (var i = 0; i < headers.length; i++) {
           if (headers[i].id == this.sortBy) {
             Polymer.dom(headers[i]).setAttribute('data-sort-direction',
-                                                 this.sortDirection);
+                this.sortDirection);
           } else {
             Polymer.dom(headers[i]).removeAttribute('data-sort-direction');
           }
@@ -1100,14 +1100,14 @@ found in the LICENSE file.
         var newTab = window.open('about:blank');
 
         simple_xhr.send('/short_uri',
-          {'page_state': JSON.stringify(this.checkedAlerts.map(
-            alert => alert.key))},
-          response => {
-            newTab.location.replace('/group_report?sid=' + response.sid);
-          },
-          msg => {
-            this.error = msg;
-          });
+            {'page_state': JSON.stringify(this.checkedAlerts.map(
+                alert => alert.key))},
+            response => {
+              newTab.location.replace('/group_report?sid=' + response.sid);
+            },
+            msg => {
+              this.error = msg;
+            });
       },
 
       /**

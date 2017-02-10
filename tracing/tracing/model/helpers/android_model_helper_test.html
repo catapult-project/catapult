@@ -77,7 +77,7 @@ tr.b.unittest.testSuite(function() {
 
       // UI thread time - 19 (from 10 to 29, ignored after)
       uiThread.asyncSliceGroup.push(
-        newAsyncSliceNamed('deliverInputEvent', 10, 9, uiThread, uiThread));
+          newAsyncSliceNamed('deliverInputEvent', 10, 9, uiThread, uiThread));
       uiThread.sliceGroup.pushSlice(newSliceEx(
           {title: 'performTraversals', start: 20, duration: 110}));
       uiThread.sliceGroup.pushSlice(newSliceEx(
@@ -252,7 +252,7 @@ tr.b.unittest.testSuite(function() {
       uiThread.sliceGroup.pushSlice(newSliceEx(
           {title: 'performTraversals', start: 10, duration: 10}));
       uiThread.asyncSliceGroup.push(newAsyncSliceNamed('animator:foo', 0, 10,
-                                                       uiThread, uiThread));
+          uiThread, uiThread));
     });
     var helper = model.getOrCreateHelper(AndroidModelHelper);
     assert.equal(helper.apps.length, 1);

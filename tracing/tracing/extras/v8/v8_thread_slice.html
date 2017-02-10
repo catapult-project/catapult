@@ -31,12 +31,12 @@ tr.exportTo('tr.e.v8', function() {
   };
 
   ThreadSlice.subTypes.register(
-    V8ThreadSlice,
-    {
-      categoryParts: ['v8', 'disabled-by-default-v8.runtime_stats'],
-      name: 'v8 slice',
-      pluralName: 'v8 slices'
-    }
+      V8ThreadSlice,
+      {
+        categoryParts: ['v8', 'disabled-by-default-v8.runtime_stats'],
+        name: 'v8 slice',
+        pluralName: 'v8 slices'
+      }
   );
 
   return {

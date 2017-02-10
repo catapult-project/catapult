@@ -278,7 +278,7 @@ tr.exportTo('tr.model', function() {
     copySlice: function(slice) {
       var sliceConstructorSubTypes = this.sliceConstructorSubTypes;
       var sliceType = sliceConstructorSubTypes.getConstructor(slice.category,
-                                                              slice.title);
+          slice.title);
       var newSlice = new sliceType(slice.category, slice.title,
           slice.colorId, slice.start,
           slice.args, slice.duration, slice.cpuStart, slice.cpuDuration);
@@ -314,16 +314,16 @@ tr.exportTo('tr.model', function() {
     iterSlicesInTimeRange: function(callback, start, end) {
       var ret = [];
       tr.b.iterateOverIntersectingIntervals(
-        this.topLevelSlices,
-        function(s) { return s.start; },
-        function(s) { return s.duration; },
-        start,
-        end,
-        function(topLevelSlice) {
-          callback(topLevelSlice);
-          for (var slice of topLevelSlice.enumerateAllDescendents())
-            callback(slice);
-        });
+          this.topLevelSlices,
+          function(s) { return s.start; },
+          function(s) { return s.duration; },
+          start,
+          end,
+          function(topLevelSlice) {
+            callback(topLevelSlice);
+            for (var slice of topLevelSlice.enumerateAllDescendents())
+              callback(slice);
+          });
       return ret;
     },
 
@@ -441,7 +441,7 @@ tr.exportTo('tr.model', function() {
       for (var i = 0; i < this.slices.length; i++) {
         if (this.slices[i].subSlices)
           this.slices[i].subSlices.splice(0,
-                                          this.slices[i].subSlices.length);
+              this.slices[i].subSlices.length);
         ops.push(i);
       }
 

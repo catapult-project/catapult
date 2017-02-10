@@ -169,13 +169,13 @@ tr.exportTo('tr.importer', function() {
           function importClockSyncMarkers(task) {
             importers.forEach(function(importer, index) {
               task.subTask(Timing.wrapNamedFunction(
-              'TraceImport', importer.importerName,
-              function runImportClockSyncMarkersOnOneImporter() {
-                progressMeter.update(
-                    'Importing clock sync markers ' + (index + 1) + ' of ' +
+                  'TraceImport', importer.importerName,
+                  function runImportClockSyncMarkersOnOneImporter() {
+                    progressMeter.update(
+                        'Importing clock sync markers ' + (index + 1) + ' of ' +
                       importers.length);
-                importer.importClockSyncMarkers();
-              }), this);
+                    importer.importClockSyncMarkers();
+                  }), this);
             }, this);
           }, this);
 
@@ -205,7 +205,7 @@ tr.exportTo('tr.importer', function() {
           function importSampleData(task) {
             importers.forEach(function(importer, index) {
               progressMeter.update(
-              'Importing sample data ' + (index + 1) + '/' + importers.length);
+                  `Importing sample data ${index + 1}/${importers.length}`);
               importer.importSampleData();
             }, this);
           }, this);
@@ -222,7 +222,7 @@ tr.exportTo('tr.importer', function() {
           function finalizeImport(task) {
             importers.forEach(function(importer, index) {
               progressMeter.update(
-              'Finalizing import ' + (index + 1) + '/' + importers.length);
+                  'Finalizing import ' + (index + 1) + '/' + importers.length);
               importer.finalizeImport();
             }, this);
           }, this);
@@ -255,9 +255,9 @@ tr.exportTo('tr.importer', function() {
           function createAuditorsAndRunAnnotate() {
             progressMeter.update('Adding arbitrary data to model...');
             auditors = this.importOptions_.auditorConstructors.map(
-          function(auditorConstructor) {
-            return new auditorConstructor(this.model_);
-          }, this);
+                function(auditorConstructor) {
+                  return new auditorConstructor(this.model_);
+                }, this);
             auditors.forEach(function(auditor) {
               auditor.runAnnotate();
               auditor.installUserFriendlyCategoryDriverIfNeeded();

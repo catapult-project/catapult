@@ -40,8 +40,8 @@ tr.b.unittest.testSuite(function() {
 
   test('ExposeURLBasic', function() {
     var slice = new NetAsyncSlice('', 'a', 0, 1,
-      {params: {url: 'https://google.com'},
-        source_type: 'b'}, 0, true);
+        {params: {url: 'https://google.com'},
+          source_type: 'b'}, 0, true);
     // Make sure isTopLevel is populated in the constructor.
     assert.isTrue(slice.isTopLevel);
     // URL is exposed as the title of the parent slice.

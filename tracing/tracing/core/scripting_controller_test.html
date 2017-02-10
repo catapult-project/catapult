@@ -73,9 +73,9 @@ tr.b.unittest.testSuite(function() {
 
     tr.c.ScriptingObjectRegistry.register(
         function() { return 123; },
-      {
-        name: 'testFunctionName'
-      }
+        {
+          name: 'testFunctionName'
+        }
     );
     var controller = new tr.c.ScriptingController(brushingStateController);
     var result = controller.executeCommand('testFunctionName()');

@@ -46,12 +46,12 @@ tr.exportTo('tr.mre', function() {
         function() {
           var reduceFunction = options.job.reduceFunctionHandle.load();
           tr.mre.reduceMapResults(jobResults, options.key, mapResults.pairs,
-                                  reduceFunction);
+              reduceFunction);
         });
 
     if (Object.keys(jobResults.pairs).length !== 0)
       console.log('JOB_RESULTS: ' + JSON.stringify(jobResults.pairs,
-                  jsonReplacer));
+          jsonReplacer));
     jobResults.failures.forEach(function(failure) {
       console.log('JOB_FAILURE: ' + JSON.stringify(failure.asDict()));
     });

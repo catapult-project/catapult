@@ -230,7 +230,7 @@ found in the LICENSE file.
         for (var i = 0; i < headers.length; i++) {
           if (headers[i].id == this.sortBy) {
             Polymer.dom(headers[i]).setAttribute('data-sort-direction',
-                                                 this.sortDescending);
+                this.sortDescending);
           } else {
             Polymer.dom(headers[i]).removeAttribute('data-sort-direction');
           }
