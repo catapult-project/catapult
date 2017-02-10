@@ -85,7 +85,11 @@ class TracingControllerBackend(object):
     self.StartAgentTracing(config, timeout)
     for agent_class in self._supported_agents_classes:
       agent = agent_class(self._platform_backend)
-      if agent.StartAgentTracing(config, timeout):
+      with trace_event.trace(
+          'StartAgentTracing',
+          agent=str(agent.__class__.__name__)):
+        started = agent.StartAgentTracing(config, timeout)
+      if started:
         self._active_agents_instances.append(agent)
     return True
 
@@ -108,14 +112,20 @@ class TracingControllerBackend(object):
     raised_exception_messages = []
     for agent in self._active_agents_instances + [self]:
       try:
-        agent.StopAgentTracing()
+        with trace_event.trace(
+            'StopAgentTracing',
+            agent=str(agent.__class__.__name__)):
+          agent.StopAgentTracing()
       except Exception: # pylint: disable=broad-except
         raised_exception_messages.append(
             ''.join(traceback.format_exception(*sys.exc_info())))
 
     for agent in self._active_agents_instances + [self]:
       try:
-        agent.CollectAgentTraceData(builder)
+        with trace_event.trace(
+            'CollectAgentTraceData',
+            agent=str(agent.__class__.__name__)):
+          agent.CollectAgentTraceData(builder)
       except Exception: # pylint: disable=broad-except
         raised_exception_messages.append(
             ''.join(traceback.format_exception(*sys.exc_info())))
@@ -140,9 +150,12 @@ class TracingControllerBackend(object):
     for agent in self._active_agents_instances:
       try:
         if agent.SupportsFlushingAgentTracing():
-          agent.FlushAgentTracing(self._current_state.config,
-                                  self._current_state.timeout,
-                                  self._current_state.builder)
+          with trace_event.trace(
+              'FlushAgentTracing',
+              agent=str(agent.__class__.__name__)):
+            agent.FlushAgentTracing(self._current_state.config,
+                                    self._current_state.timeout,
+                                    self._current_state.builder)
       except Exception: # pylint: disable=broad-except
         raised_exception_messages.append(
             ''.join(traceback.format_exception(*sys.exc_info())))
