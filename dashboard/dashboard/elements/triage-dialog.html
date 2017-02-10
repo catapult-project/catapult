@@ -359,9 +359,9 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
       getBugTitle: function() {
         if (this.alerts[0].percent_changed) {
           return this.getBugTitleForAnomaly();
-        } else {
-          return this.getBugTitleForStoppageAlert();
         }
+        return this.getBugTitleForStoppageAlert();
+    
       },
 
       getBugTitleForAnomaly: function() {

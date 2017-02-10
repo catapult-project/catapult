@@ -49,12 +49,11 @@ TODO(qyearsley): Expand this element and use it in chart-tooltip.
       statusString: function() {
         if (this.bugId == -1)
           return 'Invalid';
-        else if (this.bugId == -2)
+        if (this.bugId == -2)
           return 'Ignored';
-        else if (this.recovered)
+        if (this.recovered)
           return 'Recovered';
-        else
-          return '';
+        return '';
       }
     });
   </script>

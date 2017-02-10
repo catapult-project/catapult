@@ -534,14 +534,13 @@ found in the LICENSE file.
             unitInfo = unitInfo.name;
             return (tr.b.Unit.byName[unitInfo].format(item[key]));
           }
-          else {
-            var value = item[key];
-            value = parseFloat(value).toFixed(3);
-            if (!unitName)
-              unitName = '(unformatted)';
-            value = value + ' ' + unitName;
-            return value;
-          }
+  
+          var value = item[key];
+          value = parseFloat(value).toFixed(3);
+          if (!unitName)
+            unitName = '(unformatted)';
+          value = value + ' ' + unitName;
+          return value;
         }
         return item[key];
       },

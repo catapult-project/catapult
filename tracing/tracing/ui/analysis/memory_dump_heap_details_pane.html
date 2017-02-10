@@ -137,10 +137,9 @@ tr.exportTo('tr.ui.analysis', function() {
       if (this.heavyView_) {
         // Show lower-bound and exact values in heavy views.
         return TotalState.LOWER_BOUND;
-      } else {
-        // Show only exact values in tree view.
-        return TotalState.EXACT;
       }
+      // Show only exact values in tree view.
+      return TotalState.EXACT;
     },
 
     get childNodes() {

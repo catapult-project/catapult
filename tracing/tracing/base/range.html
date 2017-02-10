@@ -254,16 +254,15 @@ tr.exportTo('tr.b', function() {
   };
 
   Range.fromDict = function(d) {
-    if (d.isEmpty === true) {
+    if (d.isEmpty === true)
       return new Range();
-    } else if (d.isEmpty === false) {
+    if (d.isEmpty === false) {
       var range = new Range();
       range.min = d.min;
       range.max = d.max;
       return range;
-    } else {
-      throw new Error('Not a range');
     }
+    throw new Error('Not a range');
   };
 
   Range.fromExplicitRange = function(min, max) {

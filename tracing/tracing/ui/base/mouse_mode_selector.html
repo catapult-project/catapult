@@ -81,8 +81,7 @@ tr.exportTo('tr.ui.b', function() {
   function isCmdOrCtrlPressed(event) {
     if (tr.isMac)
       return event.metaKey;
-    else
-      return event.ctrlKey;
+    return event.ctrlKey;
   }
 
   /**

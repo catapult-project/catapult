@@ -34,7 +34,8 @@ tr.exportTo('tr.b', function() {
           parseInt(values[0]),
           parseInt(values[1]),
           parseInt(values[2]));
-    } else if (str.substr(0, 5) === 'rgba(') {
+    }
+    if (str.substr(0, 5) === 'rgba(') {
       tmp = str.substr(5, str.length - 6);
       values = tmp.split(',').map(function(v) {
         return v.replace(/^\s+/, '', 'g');
@@ -46,14 +47,15 @@ tr.exportTo('tr.b', function() {
           parseInt(values[1]),
           parseInt(values[2]),
           parseFloat(values[3]));
-    } else if (str[0] === '#' && str.length === 7) {
+    }
+    if (str[0] === '#' && str.length === 7) {
       return new Color(
           parseInt(str.substr(1, 2), 16),
           parseInt(str.substr(3, 2), 16),
           parseInt(str.substr(5, 2), 16));
-    } else {
-      throw new Error('Unrecognized string format.');
     }
+    throw new Error('Unrecognized string format.');
+
   };
 
   Color.lerp = function(a, b, percent) {

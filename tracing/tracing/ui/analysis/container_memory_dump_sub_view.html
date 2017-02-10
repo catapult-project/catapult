@@ -123,8 +123,7 @@ tr.exportTo('tr.ui.analysis', function() {
           value: function(row) {
             if (row.subRows === undefined)
               return this.singleDumpValue_(row);
-            else
-              return this.groupedDumpValue_(row);
+            return this.groupedDumpValue_(row);
           },
 
           singleDumpValue_: function(row) {

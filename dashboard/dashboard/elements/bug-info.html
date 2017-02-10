@@ -93,10 +93,9 @@ found in the LICENSE file.
           info += minRevRange['start'] + ':' + minRevRange['end'];
           this.$.revision_range.innerText = info;
           return;
-        } else {
-          this.$.warning.textContent =
-              'WARNING: Non-overlapping alerts are grouped together.';
         }
+        this.$.warning.textContent =
+            'WARNING: Non-overlapping alerts are grouped together.';
       },
 
       /**

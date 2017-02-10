@@ -132,9 +132,8 @@ found in the LICENSE file.
         var unit = this.tableConfig.units[test];
         if (tr.b.Unit.byName[unit]) {
           return (tr.b.Unit.byName[unit].format(value));
-        } else {
-          return value;
         }
+        return value;
       },
 
       /**
@@ -148,17 +147,13 @@ found in the LICENSE file.
             var difference = this.tableConfig.values[revB][bot][test] -
                              this.tableConfig.values[revA][bot][test];
             var unit = this.tableConfig.units[test];
-            if (tr.b.Unit.byName[unit]) {
+            if (tr.b.Unit.byName[unit])
               return (tr.b.Unit.byName[unit].format(difference));
-            } else {
-              return difference;
-            }
-          } else {
-            var relDiff = (this.tableConfig.values[revB][bot][test] /
-                          this.tableConfig.values[revA][bot][test]) - 1;
-            return (tr.b.Unit.byName['normalizedPercentage']
-                .format(relDiff));
+            return difference;
           }
+          var relDiff = (this.tableConfig.values[revB][bot][test] /
+                        this.tableConfig.values[revA][bot][test]) - 1;
+          return (tr.b.Unit.byName['normalizedPercentage'].format(relDiff));
         }
       },
 

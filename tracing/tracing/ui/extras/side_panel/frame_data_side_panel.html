@@ -298,8 +298,7 @@ tr.exportTo('tr.ui.e.s', function() {
     get currentRangeOfInterest() {
       if (this.rangeOfInterest_.isEmpty)
         return this.model_.bounds;
-      else
-        return this.rangeOfInterest_;
+      return this.rangeOfInterest_;
     },
 
     get rangeOfInterest() {

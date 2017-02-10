@@ -99,8 +99,7 @@ tr.exportTo('tr.model', function() {
     contains: function(event) {
       if (this.events_.has(event))
         return event;
-      else
-        return undefined;
+      return undefined;
     },
 
     addEventSet: function(eventSet) {

@@ -243,8 +243,7 @@ tr.exportTo('tr.ui.analysis', function() {
       // the defined process memory dumps had own VM regions).
       if (allOlderValues)
         return UsedMemoryColumn.OLDER_COLOR;
-      else
-        return UsedMemoryColumn.COLOR;
+      return UsedMemoryColumn.COLOR;
     },
 
     addInfos: function(numerics, processMemoryDumps, infos) {

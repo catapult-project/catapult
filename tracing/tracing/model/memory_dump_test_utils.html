@@ -41,8 +41,7 @@ tr.exportTo('tr.model', function() {
   function getOption(opt_options, key, opt_defaultValue) {
     if (opt_options && (key in opt_options))
       return opt_options[key];
-    else
-      return opt_defaultValue;
+    return opt_defaultValue;
   }
 
   function MemoryDumpTestUtils() {

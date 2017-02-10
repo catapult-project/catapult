@@ -407,8 +407,7 @@ tr.exportTo('tr.ui.analysis', function() {
     formatFields: function(fields) {
       if (fields.length === 1)
         return this.formatSingleField(fields[0]);
-      else
-        return this.formatMultipleFields(fields);
+      return this.formatMultipleFields(fields);
     },
 
     /**
@@ -485,8 +484,7 @@ tr.exportTo('tr.ui.analysis', function() {
     compareFields: function(fieldsA, fieldsB) {
       if (fieldsA.length === 1)
         return this.compareSingleFields(fieldsA[0], fieldsB[0]);
-      else
-        return this.compareMultipleFields(fieldsA, fieldsB);
+      return this.compareMultipleFields(fieldsA, fieldsB);
     },
 
     /**
@@ -598,17 +596,16 @@ tr.exportTo('tr.ui.analysis', function() {
       } else if (firstString === lastString) {
         // String didn't change ("VALUE" with unchanged color).
         return this.formatSingleField(firstString);
-      } else {
-        // String changed ("OLD_VALUE -> NEW_VALUE" in orange).
-        var spanEl = tr.ui.b.createSpan({color: 'DarkOrange'});
-        Polymer.dom(spanEl).appendChild(tr.ui.b.asHTMLOrTextNode(
-            this.formatSingleField(firstString)));
-        Polymer.dom(spanEl).appendChild(tr.ui.b.asHTMLOrTextNode(
-            ' ' + RIGHTWARDS_ARROW + ' '));
-        Polymer.dom(spanEl).appendChild(tr.ui.b.asHTMLOrTextNode(
-            this.formatSingleField(lastString)));
-        return spanEl;
       }
+      // String changed ("OLD_VALUE -> NEW_VALUE" in orange).
+      var spanEl = tr.ui.b.createSpan({color: 'DarkOrange'});
+      Polymer.dom(spanEl).appendChild(tr.ui.b.asHTMLOrTextNode(
+          this.formatSingleField(firstString)));
+      Polymer.dom(spanEl).appendChild(tr.ui.b.asHTMLOrTextNode(
+          ' ' + RIGHTWARDS_ARROW + ' '));
+      Polymer.dom(spanEl).appendChild(tr.ui.b.asHTMLOrTextNode(
+          this.formatSingleField(lastString)));
+      return spanEl;
     },
 
     compareSingleFields: function(stringA, stringB) {

@@ -524,10 +524,9 @@ tr.b.unittest.testSuite(function() {
     c.color = function(fields, contexts) {
       if (fields[0] < '0')
         return 'green';
-      else if (contexts && contexts[0] % 2 === 0)
+      if (contexts && contexts[0] % 2 === 0)
         return 'red';
-      else
-        return undefined;
+      return undefined;
     };
 
     var infos1 = [{ icon: '\u{1F648}', message: 'Some info', color: 'blue' }];
@@ -567,8 +566,7 @@ tr.b.unittest.testSuite(function() {
         return 'green';
       else if (contexts && contexts[contexts.length - 1] % 2 === 0)
         return 'red';
-      else
-        return undefined;
+      return undefined;
     };
 
     var infos1 = [{ icon: '\u{1F648}', message: 'Some info', color: 'blue' }];

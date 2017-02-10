@@ -58,7 +58,7 @@
       "no-constant-condition": "off",
       "no-control-regex": "off",
       "no-dupe-keys": "off",
-      "no-else-return": "off",
+      "no-else-return": "error",
       "no-eq-null": "off",
       "no-extend-native": "error",
       "no-extra-bind": "off",

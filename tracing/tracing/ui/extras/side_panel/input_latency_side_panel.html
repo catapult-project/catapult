@@ -196,8 +196,7 @@ Polymer({
   get currentRangeOfInterest() {
     if (this.rangeOfInterest_.isEmpty)
       return this.model_.bounds;
-    else
-      return this.rangeOfInterest_;
+    return this.rangeOfInterest_;
   },
 
   createLatencyLineChart: function(data, title, parentNode) {

@@ -111,9 +111,8 @@ tr.exportTo('tr.e.importer.v8', function() {
    * @return {SplayTree.Node} Node having the specified key.
    */
   SplayTree.prototype.find = function(key) {
-    if (this.isEmpty()) {
+    if (this.isEmpty())
       return null;
-    }
     this.splay_(key);
     return this.root_.key === key ? this.root_ : null;
   };
@@ -122,13 +121,11 @@ tr.exportTo('tr.e.importer.v8', function() {
    * @return {SplayTree.Node} Node having the minimum key value.
    */
   SplayTree.prototype.findMin = function() {
-    if (this.isEmpty()) {
+    if (this.isEmpty())
       return null;
-    }
     var current = this.root_;
-    while (current.left) {
+    while (current.left)
       current = current.left;
-    }
     return current;
   };
 
@@ -136,13 +133,11 @@ tr.exportTo('tr.e.importer.v8', function() {
    * @return {SplayTree.Node} Node having the maximum key value.
    */
   SplayTree.prototype.findMax = function(opt_startNode) {
-    if (this.isEmpty()) {
+    if (this.isEmpty())
       return null;
-    }
     var current = opt_startNode || this.root_;
-    while (current.right) {
+    while (current.right)
       current = current.right;
-    }
     return current;
   };
 
@@ -151,21 +146,18 @@ tr.exportTo('tr.e.importer.v8', function() {
    *     is less or equal to the specified key value.
    */
   SplayTree.prototype.findGreatestLessThan = function(key) {
-    if (this.isEmpty()) {
+    if (this.isEmpty())
       return null;
-    }
     // Splay on the key to move the node with the given key or the last
     // node on the search path to the top of the tree.
     this.splay_(key);
     // Now the result is either the root node or the greatest node in
     // the left subtree.
-    if (this.root_.key <= key) {
+    if (this.root_.key <= key)
       return this.root_;
-    } else if (this.root_.left) {
+    if (this.root_.left)
       return this.findMax(this.root_.left);
-    } else {
-      return null;
-    }
+    return null;
   };
 
   /**
@@ -199,9 +191,8 @@ tr.exportTo('tr.e.importer.v8', function() {
    * @private
    */
   SplayTree.prototype.splay_ = function(key) {
-    if (this.isEmpty()) {
+    if (this.isEmpty())
       return;
-    }
     // Create a dummy node.  The use of the dummy node is a bit
     // counter-intuitive: The right child of the dummy node will hold
     // the L tree of the algorithm.  The left child of the dummy node
@@ -271,9 +262,8 @@ tr.exportTo('tr.e.importer.v8', function() {
     var nodesToVisit = [this.root_];
     while (nodesToVisit.length > 0) {
       var node = nodesToVisit.shift();
-      if (node === null) {
+      if (node === null)
         continue;
-      }
       f(node);
       nodesToVisit.push(node.left);
       nodesToVisit.push(node.right);

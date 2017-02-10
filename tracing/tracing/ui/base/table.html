@@ -582,8 +582,7 @@ tr.exportTo('tr.ui.b', function() {
         function calc(base, delta) {
           if (delta)
             return 'calc(' + base + ' - ' + delta + ')';
-          else
-            return base;
+          return base;
         }
 
         var w = this.tableColumns_[i].width;

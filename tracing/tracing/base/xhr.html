@@ -35,12 +35,11 @@ tr.exportTo('tr.b', function() {
 
     if (!async) {
       req.send(data);
-      if (req.status === 200) {
+      if (req.status === 200)
         return req.responseText;
-      } else {
-        throw new Error('XHR failed with status ' + req.status +
-                        ' for url ' + url);
-      }
+      throw new Error('XHR failed with status ' + req.status +
+          ' for url ' + url);
+
     }
 
     var p = new Promise(function(resolve, reject) {
@@ -51,10 +50,10 @@ tr.exportTo('tr.b', function() {
               if (req.responseType === 'arraybuffer')
                 return resolve(req.response);
               return resolve(req.responseText);
-            } else {
-              reject(new Error('XHR failed with status ' + req.status +
-                               ' for url ' + url));
             }
+            reject(new Error('XHR failed with status ' + req.status +
+                ' for url ' + url));
+
           }, 0);
         }
       };

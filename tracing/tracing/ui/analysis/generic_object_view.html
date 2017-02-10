@@ -96,64 +96,59 @@ Polymer({
 
     if (!(object instanceof Object)) {
       var type = typeof object;
-      if (type === 'string') {
-        var objectReplaced = false;
-        if ((object[0] === '{' && object[object.length - 1] === '}') ||
-            (object[0] === '[' && object[object.length - 1] === ']')) {
-          try {
-            object = JSON.parse(object);
-            objectReplaced = true;
-          } catch (e) {
-          }
-        }
-        if (!objectReplaced) {
-          if (object.indexOf('\n') !== -1) {
-            var lines = object.split('\n');
-            lines.forEach(function(line, i) {
-              var text;
-              var ioff;
-              var ll;
-              var ss;
-              if (i === 0) {
-                text = '"' + line;
-                ioff = 0;
-                ll = label;
-                ss = '';
-              } else if (i < lines.length - 1) {
-                text = line;
-                ioff = 1;
-                ll = '';
-                ss = '';
-              } else {
-                text = line + '"';
-                ioff = 1;
-                ll = '';
-                ss = suffix;
-              }
-
-              var el = this.appendSimpleText_(
-                  ll, indent + ioff * label.length + ioff, text, ss);
-              el.style.whiteSpace = 'pre';
-              return el;
-            }, this);
-            return;
-          } else if (object.match(URL_REGEX)) {
-            var link = document.createElement('a');
-            link.href = object;
-            link.textContent = object;
-            this.appendElementWithLabel_(label, indent, link, suffix);
-            return;
-          } else {
-            this.appendSimpleText_(
-                label, indent, '"' + object + '"', suffix);
-            return;
-          }
-        }
-        else {
-          /* Fall through to the flow below */
-        }
-      } else {
+      if (type !== 'string')
         return this.appendSimpleText_(label, indent, object, suffix);
+      var objectReplaced = false;
+      if ((object[0] === '{' && object[object.length - 1] === '}') ||
+          (object[0] === '[' && object[object.length - 1] === ']')) {
+        try {
+          object = JSON.parse(object);
+          objectReplaced = true;
+        } catch (e) {
+        }
+      }
+      if (!objectReplaced) {
+        if (object.indexOf('\n') !== -1) {
+          var lines = object.split('\n');
+          lines.forEach(function(line, i) {
+            var text;
+            var ioff;
+            var ll;
+            var ss;
+            if (i === 0) {
+              text = '"' + line;
+              ioff = 0;
+              ll = label;
+              ss = '';
+            } else if (i < lines.length - 1) {
+              text = line;
+              ioff = 1;
+              ll = '';
+              ss = '';
+            } else {
+              text = line + '"';
+              ioff = 1;
+              ll = '';
+              ss = suffix;
+            }
+
+            var el = this.appendSimpleText_(
+                ll, indent + ioff * label.length + ioff, text, ss);
+            el.style.whiteSpace = 'pre';
+            return el;
+          }, this);
+          return;
+        }
+        if (object.match(URL_REGEX)) {
+          var link = document.createElement('a');
+          link.href = object;
+          link.textContent = object;
+          this.appendElementWithLabel_(label, indent, link, suffix);
+          return;
+        }
+        this.appendSimpleText_(
+            label, indent, '"' + object + '"', suffix);
+        return;
       }
     }
 

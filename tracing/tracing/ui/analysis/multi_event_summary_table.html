@@ -167,11 +167,11 @@ Polymer({
         cmp: function(rowA, rowB) {
           if (hasCpuData) {
             return rowA.cpuDuration / rowA.numEvents -
-              rowB.cpuDuration / rowB.numEvents;
-          } else {
-            return rowA.duration / rowA.numEvents -
-              rowB.duration / rowB.numEvents;
+                rowB.cpuDuration / rowB.numEvents;
           }
+          return rowA.duration / rowA.numEvents -
+              rowB.duration / rowB.numEvents;
+
         }
       });
     }

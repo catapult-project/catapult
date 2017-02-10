@@ -167,9 +167,9 @@ found in the LICENSE file.
               });
               spanEl.innerText = row.functionName;
               return spanEl;
-            } else {
-              return row.functionName;
             }
+            return row.functionName;
+
           },
           width: '150px',
           cmp: (a, b) => a.functionName.localeCompare(b.functionName),

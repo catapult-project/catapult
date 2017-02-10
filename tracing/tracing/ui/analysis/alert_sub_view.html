@@ -128,16 +128,15 @@ Polymer({
       var detailRows = this.getRowsForSingleAlert_(tr.b.getOnlyElement(alerts));
       rows.push.apply(rows, detailRows);
       return rows;
-    } else {
-      return alerts.map(function(alert) {
-        return {
-          name: 'Alert',
-          value: alert.title,
-          isExpanded: alerts.size < 10, // This is somewhat arbitrary for now.
-          subRows: this.getRowsForSingleAlert_(alert)
-        };
-      }, this);
     }
+    return alerts.map(function(alert) {
+      return {
+        name: 'Alert',
+        value: alert.title,
+        isExpanded: alerts.size < 10, // This is somewhat arbitrary for now.
+        subRows: this.getRowsForSingleAlert_(alert)
+      };
+    }, this);
   },
 
   updateContents_: function() {
