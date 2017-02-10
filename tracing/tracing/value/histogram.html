@@ -454,6 +454,19 @@ tr.exportTo('tr.v', function() {
       }
 
       this.diagnostics.merge(other.diagnostics, this, other);
+
+      for (var [stat, option] of other.summaryOptions) {
+        if (stat === 'percentile') {
+          for (var percent of option) {
+            var percentiles = this.summaryOptions.get('percentile');
+            if (percentiles.indexOf(percent) < 0) {
+              percentiles.push(percent);
+            }
+          }
+        } else if (option && !this.summaryOptions.get(stat)) {
+          this.summaryOptions.set(stat, true);
+        }
+      }
     }
 
     /**
@@ -544,9 +557,15 @@ tr.exportTo('tr.v', function() {
      * @return {!tr.v.Histogram}
      */
     cloneEmpty() {
-      var binBoundaries = HistogramBinBoundaries.fromDict(
+      let binBoundaries = HistogramBinBoundaries.fromDict(
           this.binBoundariesDict_);
-      return new Histogram(this.name, this.unit, binBoundaries);
+      let hist = new Histogram(this.name, this.unit, binBoundaries);
+      for (let [stat, option] of this.summaryOptions) {
+        // Copy the array of percentiles.
+        if (stat === 'percentile') option = Array.from(option);
+        hist.summaryOptions.set(stat, option);
+      }
+      return hist;
     }
 
     asDict() {

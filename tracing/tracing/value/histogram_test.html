@@ -541,5 +541,31 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(3, hist.getApproximatePercentile(0.9));
     assert.strictEqual(4, hist.getApproximatePercentile(1));
   });
+
+  test('mergeSummaryOptions', function() {
+    var hist0 = new tr.v.Histogram('', unitlessNumber);
+    var hist1 = new tr.v.Histogram('', unitlessNumber);
+
+    hist0.customizeSummaryOptions({sum: false, percentile: [0.9]});
+    hist1.customizeSummaryOptions({min: false, percentile: [0.95]});
+
+    var merged = hist1.cloneEmpty();
+
+    assert.isFalse(merged.summaryOptions.get('min'));
+    assert.isTrue(merged.summaryOptions.get('sum'));
+    assert.deepEqual(merged.summaryOptions.get('percentile'), [0.95]);
+
+    merged = hist0.cloneEmpty();
+
+    assert.isTrue(merged.summaryOptions.get('min'));
+    assert.isFalse(merged.summaryOptions.get('sum'));
+    assert.deepEqual(merged.summaryOptions.get('percentile'), [0.9]);
+
+    merged.addHistogram(hist1);
+
+    assert.isTrue(merged.summaryOptions.get('min'));
+    assert.isTrue(merged.summaryOptions.get('sum'));
+    assert.deepEqual(merged.summaryOptions.get('percentile'), [0.9, 0.95]);
+  });
 });
 </script>
