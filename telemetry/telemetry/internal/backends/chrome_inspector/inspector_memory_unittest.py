@@ -16,7 +16,7 @@ class InspectorMemoryTest(tab_test_case.TabTestCase):
 
     self.Navigate('dom_counter_sample.html')
 
-    self._tab.ExecuteJavaScript('gc();')
+    self._tab.ExecuteJavaScript2('gc();')
 
     # Document_count > 1 indicates that WebCore::Document loaded in Chrome
     # is leaking! The baseline should exactly match the numbers on:

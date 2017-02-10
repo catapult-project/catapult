@@ -133,28 +133,29 @@ class Tab(web_contents.WebContents):
       exceptions.TimeoutException
       exceptions.DevtoolsTargetCrashException
     """
-    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
-    self.ExecuteJavaScript("""
-      (function() {
-        var screen = document.createElement('div');
-        screen.style.background = 'rgba(%d, %d, %d, %d)';
-        screen.style.position = 'fixed';
-        screen.style.top = '0';
-        screen.style.left = '0';
-        screen.style.width = '100%%';
-        screen.style.height = '100%%';
-        screen.style.zIndex = '2147483638';
-        document.body.appendChild(screen);
-        requestAnimationFrame(function() {
+    screen_save = 'window.__telemetry_screen_%d' % int(color)
+    self.ExecuteJavaScript2("""
+        (function() {
+          var screen = document.createElement('div');
+          screen.style.background = {{ color }};
+          screen.style.position = 'fixed';
+          screen.style.top = '0';
+          screen.style.left = '0';
+          screen.style.width = '100%';
+          screen.style.height = '100%';
+          screen.style.zIndex = '2147483638';
+          document.body.appendChild(screen);
           requestAnimationFrame(function() {
-            window.__telemetry_screen_%d = screen;
+            requestAnimationFrame(function() {
+              {{ @screen_save }} = screen;
+            });
           });
-        });
-      })();
-    """ % (color.r, color.g, color.b, color.a, int(color)))
-    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
-    self.WaitForJavaScriptExpression(
-        '!!window.__telemetry_screen_%d' % int(color), 5)
+        })();
+        """,
+        color='rgba(%d, %d, %d, %d)' % (color.r, color.g, color.b, color.a),
+        screen_save=screen_save)
+    self.WaitForJavaScriptCondition2(
+        '!!{{ @screen_save }}', screen_save=screen_save, timeout=5)
 
   def ClearHighlight(self, color):
     """Clears a highlight of the given bitmap.RgbaColor.
@@ -165,22 +166,21 @@ class Tab(web_contents.WebContents):
       exceptions.TimeoutException
       exceptions.DevtoolsTargetCrashException
     """
-    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
-    self.ExecuteJavaScript("""
-      (function() {
-        document.body.removeChild(window.__telemetry_screen_%d);
-        requestAnimationFrame(function() {
+    screen_save = 'window.__telemetry_screen_%d' % int(color)
+    self.ExecuteJavaScript2("""
+        (function() {
+          document.body.removeChild({{ @screen_save }});
           requestAnimationFrame(function() {
-            window.__telemetry_screen_%d = null;
-            console.time('__ClearHighlight.video_capture_start');
-            console.timeEnd('__ClearHighlight.video_capture_start');
+            requestAnimationFrame(function() {
+              {{ @screen_save }} = null;
+              console.time('__ClearHighlight.video_capture_start');
+              console.timeEnd('__ClearHighlight.video_capture_start');
+            });
           });
-        });
-      })();
-    """ % (int(color), int(color)))
-    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
-    self.WaitForJavaScriptExpression(
-        '!window.__telemetry_screen_%d' % int(color), 5)
+        })();
+        """, screen_save=screen_save)
+    self.WaitForJavaScriptCondition2(
+        '!{{ @screen_save }}', screen_save=screen_save, timeout=5)
 
   def StartVideoCapture(self, min_bitrate_mbps,
                         highlight_bitmap=video.HIGHLIGHT_ORANGE_FRAME):
@@ -257,7 +257,7 @@ class Tab(web_contents.WebContents):
       errors.DeviceUnresponsiveError
     """
     self.browser.platform.FlushDnsCache()
-    self.ExecuteJavaScript("""
+    self.ExecuteJavaScript2("""
         if (window.chrome && chrome.benchmarking &&
             chrome.benchmarking.clearCache) {
           chrome.benchmarking.clearCache();

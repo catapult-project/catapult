@@ -29,6 +29,12 @@ class JavaScriptTemplateTest(unittest.TestCase):
             var_name='foo', x='bar', y=None),
         'var foo = "bar" + null;')
 
+  def testRenderWithArgumentExpansion(self):
+    self.assertEquals(
+        js_template.Render(
+            '{{ @f }}({{ *args }})', f='foo', args=(1, 'hi!', None)),
+        'foo(1, "hi!", null)')
+
   def testRenderRaisesWithUnknownIdentifier(self):
     with self.assertRaises(KeyError):
       js_template.Render('foo({{ some_name }})', another_name='bar')

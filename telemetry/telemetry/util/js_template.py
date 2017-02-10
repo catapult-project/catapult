@@ -7,7 +7,7 @@ import re
 
 
 RE_REPLACEMENT_FIELD = re.compile(r'{{(?P<field_spec>[^}]*)}}')
-RE_FIELD_IDENTIFIER = re.compile(r'(?P<modifier>@)?(?P<name>\w+)$')
+RE_FIELD_IDENTIFIER = re.compile(r'(?P<modifier>[@*])?(?P<name>\w+)$')
 
 
 def RenderValue(value):
@@ -19,19 +19,24 @@ def Render(template, **kwargs):
   """Helper method to interpolate Python values into JavaScript snippets.
 
   Placeholders in the template, field names enclosed in double curly braces,
-  are replaced with the value of the corresponding named argument. Prefixing
-  a field name with '@' causes the value to be inserted literally.
+  are replaced with the value of the corresponding named argument.
+
+  Prefixing a field name with '*' causes the value, expected to be a
+  sequence of individual values, to be all interpolated and separated by
+  commas.
+
+  Prefixing a field name with '@' causes the value to be inserted literally.
 
 
   For example:
 
     js_template.Render(
-      'var {{ @var_name }} = f({{ x }}, {{ y }});',
-      var_name='foo', x=42, y='hello')
+      'var {{ @var_name }} = f({{ x }}, {{ *args }});',
+      var_name='foo', x=42, args=('hello', 'there'))
 
   Returns:
 
-    'var foo = f(42, "hello");'
+    'var foo = f(42, "hello", "there");'
 
   Args:
     template: A string with a JavaScript template, tagged with {{ fields }}
@@ -52,6 +57,8 @@ def Render(template, **kwargs):
       if not isinstance(value, str):
         raise ValueError('Literal value for %s must be a string' % field_spec)
       return value
+    elif field.group('modifier') == '*':
+      return ', '.join(RenderValue(v) for v in value)
     else:
       return RenderValue(value)
 

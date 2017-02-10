@@ -73,7 +73,7 @@ class LocalServerUnittest(tab_test_case.TabTestCase):
     self.assertTrue(self._server in self._platform.local_servers)
     self._tab.Navigate(self._server.url)
     self._tab.WaitForDocumentReadyStateToBeComplete()
-    body_text = self._tab.EvaluateJavaScript('document.body.textContent')
+    body_text = self._tab.EvaluateJavaScript2('document.body.textContent')
     body_text = body_text.strip()
     self.assertEquals('hello world', body_text)
 

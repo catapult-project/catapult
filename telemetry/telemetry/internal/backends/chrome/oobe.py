@@ -4,7 +4,6 @@
 
 from functools import partial
 import logging
-import json
 
 from telemetry.core import exceptions
 from telemetry.internal.browser import web_contents
@@ -21,10 +20,10 @@ class Oobe(web_contents.WebContents):
     logging.debug('%d contexts in Gaia page' % max_context_id)
     for gaia_iframe_context in range(max_context_id + 1):
       try:
-        if self.EvaluateJavaScriptInContext(
+        if self.EvaluateJavaScript2(
             "document.readyState == 'complete' && "
             "document.getElementById('Email') != null",
-            gaia_iframe_context):
+            context_id=gaia_iframe_context):
           return gaia_iframe_context
       except exceptions.EvaluateException:
         pass
@@ -38,20 +37,17 @@ class Oobe(web_contents.WebContents):
 
   def _ExecuteOobeApi(self, api, *args):
     logging.info('Invoking %s' % api)
-    self.WaitForJavaScriptExpression("typeof Oobe == 'function'", 120)
+    self.WaitForJavaScriptCondition2("typeof Oobe == 'function'", timeout=120)
 
-    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
-    if self.EvaluateJavaScript("typeof %s == 'undefined'" % api):
+    if self.EvaluateJavaScript2(
+        "typeof {{ @api }} == 'undefined'", api=api):
       raise exceptions.LoginException('%s js api missing' % api)
 
     # Example values:
-    #   |api|:          'doLogin'
-    #   |args|:         ['username', 'pass', True]
-    #   js:             '{}({},{},{})'
-    #   js.format(...): 'doLogin("username","pass",true)'
-    js = '{}(' + ('{},' * len(args)).rstrip(',') + ')'
-    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
-    self.ExecuteJavaScript(js.format(api, *map(json.dumps, args)))
+    #   |api|:    'doLogin'
+    #   |args|:   ['username', 'pass', True]
+    #   Executes: 'doLogin("username", "pass", true)'
+    self.ExecuteJavaScript2('{{ @f }}({{ *args }})', f=api, args=args)
 
   def NavigateGuestLogin(self):
     """Logs in as guest."""
@@ -76,8 +72,8 @@ class Oobe(web_contents.WebContents):
     self._NavigateGaiaLogin(username, password, enterprise_enroll)
 
     if enterprise_enroll:
-      self.WaitForJavaScriptExpression('Oobe.isEnrollmentSuccessfulForTest()',
-                                       30)
+      self.WaitForJavaScriptCondition2(
+          'Oobe.isEnrollmentSuccessfulForTest()', timeout=30)
       self._ExecuteOobeApi('Oobe.enterpriseEnrollmentDone')
 
   def _NavigateGaiaLogin(self, username, password, enterprise_enroll):
@@ -98,13 +94,12 @@ class Oobe(web_contents.WebContents):
 
     if add_user_for_testing:
       self._ExecuteOobeApi('Oobe.showAddUserForTesting')
-    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
-    self.ExecuteJavaScriptInContext("""
-        document.getElementById('Email').value='%s';
-        document.getElementById('Passwd').value='%s';
-        document.getElementById('signIn').click();"""
-            % (username, password),
-        gaia_iframe_context)
+    self.ExecuteJavaScript2("""
+        document.getElementById('Email').value= {{ username }};
+        document.getElementById('Passwd').value= {{ password }};
+        document.getElementById('signIn').click();""",
+        username=username, password=password,
+        context_id=gaia_iframe_context)
 
   def _NavigateWebViewLogin(self, username, password, wait_for_close):
     """Logs into the webview-based GAIA screen"""
@@ -113,19 +108,18 @@ class Oobe(web_contents.WebContents):
     if wait_for_close:
       py_utils.WaitFor(lambda: not self._GaiaWebviewContext(), 60)
 
-  def _NavigateWebViewEntry(self, field, value, nextField):
+  def _NavigateWebViewEntry(self, field, value, next_field):
     self._WaitForField(field)
-    self._WaitForField(nextField)
+    self._WaitForField(next_field)
     gaia_webview_context = self._GaiaWebviewContext()
-    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
-    gaia_webview_context.EvaluateJavaScript("""
-       document.getElementById('%s').value='%s';
-       document.getElementById('%s').click()"""
-           % (field, value, nextField))
+    gaia_webview_context.EvaluateJavaScript2("""
+       document.getElementById({{ field }}).value= {{ value }};
+       document.getElementById({{ next_field }}).click()""",
+       field=field, value=value, next_field=next_field)
 
-  def _WaitForField(self, field_id):
+  def _WaitForField(self, field):
     gaia_webview_context = py_utils.WaitFor(self._GaiaWebviewContext, 5)
     py_utils.WaitFor(gaia_webview_context.HasReachedQuiescence, 20)
-    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
-    gaia_webview_context.WaitForJavaScriptExpression(
-        "document.getElementById('%s') != null" % field_id, 20)
+    gaia_webview_context.WaitForJavaScriptCondition2(
+        "document.getElementById({{ field }}) != null",
+        field=field, timeout=20)

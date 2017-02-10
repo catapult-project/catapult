@@ -153,12 +153,11 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
     for backend in self._IterInspectorBackends():
       try:
         timestamp = trace_time.Now()
-        # TODO(catapult:#3028): Fix interpolation of JavaScript values.
-        backend.EvaluateJavaScript(
-            "console.time('ClockSyncEvent.%s');" % sync_id)
-        # TODO(catapult:#3028): Fix interpolation of JavaScript values.
-        backend.EvaluateJavaScript(
-            "console.timeEnd('ClockSyncEvent.%s');" % sync_id)
+        event = 'ClockSyncEvent.%s' % sync_id
+        backend.EvaluateJavaScript2(
+            "console.time({{ event }});", event=event)
+        backend.EvaluateJavaScript2(
+            "console.timeEnd({{ event }});", event=event)
         has_clock_synced = True
         break
       except Exception:
@@ -314,14 +313,14 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
           % self._platform_backend)
 
     for backend in self._IterInspectorBackends():
-      backend.EvaluateJavaScript("console.time('flush-tracing');")
+      backend.EvaluateJavaScript2("console.time('flush-tracing');")
 
     self.StopAgentTracing()
     self.CollectAgentTraceData(trace_data_builder)
     self.StartAgentTracing(config, timeout)
 
     for backend in self._IterInspectorBackends():
-      backend.EvaluateJavaScript("console.timeEnd('flush-tracing');")
+      backend.EvaluateJavaScript2("console.timeEnd('flush-tracing');")
 
   def _IterInspectorBackends(self):
     for client in chrome_tracing_devtools_manager.GetDevToolsClients(

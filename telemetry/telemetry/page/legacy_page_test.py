@@ -49,7 +49,7 @@ class LegacyPageTest(object):
 
      class BodyChildElementMeasurement(LegacyPageTest):
        def ValidateAndMeasurePage(self, page, tab, results):
-         body_child_count = tab.EvaluateJavaScript(
+         body_child_count = tab.EvaluateJavaScript2(
              'document.body.children.length')
          results.AddValue(scalar.ScalarValue(
              page, 'body_children', 'count', body_child_count))
@@ -171,7 +171,7 @@ class LegacyPageTest(object):
 
     Put together:
       def ValidateAndMeasurePage(self, page, tab, results):
-        res = tab.EvaluateJavaScript('2+2')
+        res = tab.EvaluateJavaScript2('2+2')
         if res != 4:
           raise Exception('Oh, wow.')
         results.AddValue(scalar.ScalarValue(
