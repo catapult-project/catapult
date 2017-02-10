@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<script>
+'use strict';
+
+/**
+ * @fileoverview This file contains helper functions to identify
+ * History::pushState events on all renderer processes and find
+ * their preceding WebViewImpl::handleInputEvent slices.
+ * Corresponding InputLatency async slices will be collected and
+ * they are useful for determining the time at which SPA (Single
+ * Page Application) in-app navigations occur.
+ *___________________________
+ * browser:     InputLatency |
+ *----------------------------------------
+ * renderer:       LatencyInfo.Flow
+ *                  WebViewImpl::handleInputEvent
+ *                          History::pushState
+ *----------------------------------------------------
+ * History::pushState is called when the URL fragment gets updated.
+ *
+ * For details about how SPA in-app navigation is defined and
+ * how it is found based on History::pushState, read the doc:
+ * https://goo.gl/1I3tqd.
+ */
+tr.exportTo('tr.metrics', function() {
+
+  /**
+   * Returns all LatencyInfo.Flow thread slices associated with
+   * History::pushState events.
+   */
+  function getLatencyInfoFlowSlices_(rendererHelpers) {
+    let slices = [];
+    tr.b.iterItems(rendererHelpers, function(pid, rendererHelper) {
+      let mainThread = rendererHelper.mainThread;
+      let pushStateEvents = getPushStateEventsOnRenderer_(mainThread);
+      let handleInputEvents = getHandleInputEventsOnRenderer_(mainThread);
+      let precedingHandleInputEvents = findPrecedingHandleInputEvents_(
+          pushStateEvents, handleInputEvents);
+      slices.push(...precedingHandleInputEvents.map(e => e.parentSlice));
+    });
+    return slices;
+  }
+
+  /**
+   * Returns all pushState events on the main thread of each renderer process.
+   */
+  function getPushStateEventsOnRenderer_(mainThread) {
+    return [...mainThread.sliceGroup.getDescendantEvents()]
+        .filter(e => e.title === 'History::pushState' &&
+            e.category === 'blink')
+        .sort(tr.importer.compareEvents);
+  }
+
+  /**
+   * Returns all WebViewImpl::handleInputEvent slices whose type is
+   * 'MouseUp' on the main thread of each renderer process.
+   */
+  function getHandleInputEventsOnRenderer_(mainThread) {
+    // TODO(sunjian): Need to extend type from 'MouseUp' to a list of
+    // types.
+    return [...mainThread.sliceGroup.getDescendantEvents()]
+        .filter(e => e.title === 'WebViewImpl::handleInputEvent' &&
+            e.args.type === 'MouseUp')
+        .sort(tr.importer.compareEvents);
+  }
+
+  /**
+   * Returns all preceding WebViewImpl::handleInputEvent slice for each
+   * pushState event.
+   */
+  function findPrecedingHandleInputEvents_(pushStateEvents, handleInputEvents) {
+    let events = [];
+    let handleInputEventIndex = 0;
+    for (let pushStateEvent of pushStateEvents) {
+      for (; handleInputEventIndex < handleInputEvents.length;
+          handleInputEventIndex++) {
+        if (handleInputEvents[handleInputEventIndex].start >
+            pushStateEvent.start) {
+          break;
+        }
+      }
+      // If statement prevents the situation when handleInputEvents is empty.
+      if (handleInputEventIndex > 0) {
+        events.push(handleInputEvents[handleInputEventIndex - 1]);
+      }
+    }
+    return events;
+  }
+
+  /**
+   * Returns all InputLatency async slices associated with
+   * all WebViewImpl::handleInputEvent slices found.
+   */
+  function getInputLatencyAsyncSlices(model) {
+    let modelHelper = model.getOrCreateHelper(
+        tr.model.helpers.ChromeModelHelper);
+    if (!modelHelper) {
+      // Chrome isn't present.
+      return [];
+    }
+    let rendererHelpers = modelHelper.rendererHelpers;
+    if (!rendererHelpers) {
+      // We couldn't find any renderer processes.
+      return [];
+    }
+    let latencyInfoFlowSlices = getLatencyInfoFlowSlices_(rendererHelpers);
+    let latencyInfoFlowSlicesBindIDs = new Set();
+    for (let slice of latencyInfoFlowSlices) {
+      latencyInfoFlowSlicesBindIDs.add(Number(slice.bindId));
+    }
+
+    let browserHelper = modelHelper.browserHelper;
+    let inputLatencyAsyncSlices = browserHelper.getAllAsyncSlicesMatching(
+      event => (event.args.data !== undefined) &&
+          latencyInfoFlowSlicesBindIDs.has(event.args.data.trace_id));
+    return inputLatencyAsyncSlices;
+  }
+
+  return {
+    getInputLatencyAsyncSlices,
+  };
+});
+</script>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/metrics/spa_navigation_helper.html">
+
+<script>
+'use strict';
+
+let RENDERER_PROCESS_ID = 1234;
+let RENDERER_PROCESS_MAIN_THREAD_ID = 1;
+let BROWSER_PROCESS_ID = 1;
+let BROWSER_PROCESS_MAIN_THREAD_ID = 12;
+
+function createChromeProcessesOnModel(model) {
+  let rendererProcess = model.getOrCreateProcess(RENDERER_PROCESS_ID);
+  let mainThread = rendererProcess.getOrCreateThread(
+      RENDERER_PROCESS_MAIN_THREAD_ID);
+  mainThread.name = 'CrRendererMain';
+  let browserProcess = model.getOrCreateProcess(BROWSER_PROCESS_ID);
+  let browserMainThread = browserProcess.getOrCreateThread(
+      BROWSER_PROCESS_MAIN_THREAD_ID);
+  browserMainThread.name = 'CrBrowserMain';
+}
+
+function addPushStateEventAtTimestamp(model, timestamp) {
+  let rendererProcess = model.getOrCreateProcess(RENDERER_PROCESS_ID);
+  let mainThread = rendererProcess.getOrCreateThread(
+      RENDERER_PROCESS_MAIN_THREAD_ID);
+
+  mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+    cat: 'blink',
+    title: 'History::pushState',
+    start: timestamp,
+    duration: 0.1
+  }));
+}
+
+function addLatencyInfoFlowAtTimestamp(model, timestamp, bindId) {
+  let latencyInfoFlowSlice = tr.c.TestUtils.newSliceEx({
+    cat: 'input,benchmark',
+    title: 'LatencyInfo.Flow',
+    start: timestamp,
+    duration: 0.1,
+    bindId: bindId,
+    args: {step: 'handleInputEventMain'}
+  });
+  let handleInputEventSlice = tr.c.TestUtils.newSliceEx({
+    cat: 'blink,rail',
+    title: 'WebViewImpl::handleInputEvent',
+    start: timestamp + 1, // Assume handleInputEvent always delays 1ms.
+    duration: 0.1,
+    args: {type: 'MouseUp'}
+  });
+
+  let rendererProcess = model.getOrCreateProcess(RENDERER_PROCESS_ID);
+  let mainThread = rendererProcess.getOrCreateThread(
+      RENDERER_PROCESS_MAIN_THREAD_ID);
+
+  handleInputEventSlice.parentSlice = latencyInfoFlowSlice;
+  mainThread.sliceGroup.pushSlice(latencyInfoFlowSlice);
+  mainThread.sliceGroup.pushSlice(handleInputEventSlice);
+}
+
+function addInputLatencyAtTimestamp(model, timestamp, traceId) {
+  let browserProcess = model.getOrCreateProcess(BROWSER_PROCESS_ID);
+  let browserMainThread = browserProcess.getOrCreateThread(
+      BROWSER_PROCESS_MAIN_THREAD_ID);
+
+  browserMainThread.sliceGroup.pushSlice(tr.c.TestUtils.newAsyncSliceEx({
+    cat: 'benchmark,latencyInfo,rail',
+    title: 'InputLatency',
+    start: timestamp,
+    duration: 0.1,
+    args: {
+      data: {trace_id: traceId}
+      }
+  }));
+}
+
+tr.b.unittest.testSuite(function() {
+  test('getInputLatencyAsyncSlices_noPushState', function() {
+    let model = tr.c.TestUtils.newModel(model => {
+      createChromeProcessesOnModel(model);
+    });
+    var slices = tr.metrics.getInputLatencyAsyncSlices(model);
+    assert.lengthOf(slices, 0);
+  });
+
+  test('getInputLatencyAsyncSlices_threePushStates', function() {
+    let model = tr.c.TestUtils.newModel(model => {
+      createChromeProcessesOnModel(model);
+      addPushStateEventAtTimestamp(model, 100);
+      addPushStateEventAtTimestamp(model, 200);
+      addPushStateEventAtTimestamp(model, 300);
+
+      addLatencyInfoFlowAtTimestamp(model, 75, '0x600000057');
+      addLatencyInfoFlowAtTimestamp(model, 175, '0x6000000c2');
+      addLatencyInfoFlowAtTimestamp(model, 275, '0x60000010d');
+
+      addInputLatencyAtTimestamp(model, 55, 25769803863);
+      addInputLatencyAtTimestamp(model, 155, 25769803970);
+      addInputLatencyAtTimestamp(model, 255, 25769804045);
+    });
+    var slices = tr.metrics.getInputLatencyAsyncSlices(model);
+    assert.lengthOf(slices, 3);
+    assert.strictEqual(slices[0].start, 55);
+    assert.strictEqual(slices[1].start, 155);
+    assert.strictEqual(slices[2].start, 255);
+    assert.strictEqual(slices[0].args.data.trace_id, 25769803863);
+    assert.strictEqual(slices[1].args.data.trace_id, 25769803970);
+    assert.strictEqual(slices[2].args.data.trace_id, 25769804045);
+  });
+
+  test('getInputLatencyAsyncSlices_pushStateWithNoPrecedingHandleInputEvent',
+      function() {
+    let model = tr.c.TestUtils.newModel(model => {
+      createChromeProcessesOnModel(model);
+      addPushStateEventAtTimestamp(model, 100);
+      addPushStateEventAtTimestamp(model, 200);
+      addPushStateEventAtTimestamp(model, 300);
+
+      addInputLatencyAtTimestamp(model, 55, 25769803863);
+      addInputLatencyAtTimestamp(model, 155, 25769803970);
+      addInputLatencyAtTimestamp(model, 255, 25769804045);
+    });
+    var slices = tr.metrics.getInputLatencyAsyncSlices(model);
+    assert.lengthOf(slices, 0);
+  });
+
+  test('getInputLatencyAsyncSlices_pushStateWithNoPrecedingInputLatency',
+      function() {
+    let model = tr.c.TestUtils.newModel(model => {
+      createChromeProcessesOnModel(model);
+      addPushStateEventAtTimestamp(model, 100);
+      addPushStateEventAtTimestamp(model, 200);
+      addPushStateEventAtTimestamp(model, 300);
+
+      addLatencyInfoFlowAtTimestamp(model, 75, '0x600000057');
+      addLatencyInfoFlowAtTimestamp(model, 175, '0x6000000c2');
+      addLatencyInfoFlowAtTimestamp(model, 275, '0x60000010d');
+    });
+    var slices = tr.metrics.getInputLatencyAsyncSlices(model);
+    assert.lengthOf(slices, 0);
+  });
+
+  test('getInputLatencyAsyncSlices_noChromeProcesses',
+      function() {
+    let model = tr.c.TestUtils.newModel();
+    var slices = tr.metrics.getInputLatencyAsyncSlices(model);
+    assert.lengthOf(slices, 0);
+  });
+});
+</script>

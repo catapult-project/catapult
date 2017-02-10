@@ -224,6 +224,8 @@ tr.exportTo('tr.c', function() {
 
     var cat = options.cat ? options.cat : 'cat';
 
+    var bindId = options.bindId ? options.bindId : 0;
+
     var type;
     if (options.type)
       type = options.type;
@@ -237,7 +239,8 @@ tr.exportTo('tr.c', function() {
         sd.start,
         options.args ? options.args : {},
         sd.duration,
-        cpuSD.start, cpuSD.duration);
+        cpuSD.start, cpuSD.duration,
+        undefined, bindId);
 
     if (options.isTopLevel)
       slice.isTopLevel = true;

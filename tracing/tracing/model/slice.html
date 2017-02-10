@@ -85,6 +85,10 @@ tr.exportTo('tr.model', function() {
           parentSliceGroup.slices.indexOf(this);
     },
 
+    get bindId() {
+      return this.bind_id_;
+    },
+
     findDescendentSlice: function(targetTitle) {
       if (!this.subSlices)
         return undefined;
