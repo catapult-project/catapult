@@ -70,5 +70,19 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(isNaN(tr.b.lesserPower(-1, 2)));
     assert.isTrue(isNaN(tr.b.greaterPower(-1, 2)));
   });
+
+  test('preferedNumberLargerThanMin', function() {
+    assert.strictEqual(tr.b.preferredNumberLargerThanMin(0), 0);
+    assert.strictEqual(tr.b.preferredNumberLargerThanMin(1), 1);
+    assert.strictEqual(tr.b.preferredNumberLargerThanMin(2), 2);
+    assert.strictEqual(tr.b.preferredNumberLargerThanMin(3), 5);
+    assert.strictEqual(tr.b.preferredNumberLargerThanMin(7), 10);
+    assert.strictEqual(tr.b.preferredNumberLargerThanMin(0.03), 0.05);
+    assert.strictEqual(tr.b.preferredNumberLargerThanMin(-1), -1);
+    assert.strictEqual(tr.b.preferredNumberLargerThanMin(237538), 500000);
+    assert.strictEqual(tr.b.preferredNumberLargerThanMin(46.13246), 50);
+    assert.strictEqual(tr.b.preferredNumberLargerThanMin(-823.34561), -1000);
+  });
+
 });
 </script>

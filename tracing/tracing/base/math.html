@@ -31,6 +31,9 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.b', function() {
+
+  var PREFERRED_NUMBER_SERIES_MULTIPLIERS = [1, 2, 5, 10];
+
   /* Returns true when x and y are within delta of each other. */
   function approximately(x, y, delta) {
     if (delta === undefined)
@@ -192,6 +195,34 @@ tr.exportTo('tr.b', function() {
     return Math.pow(base, Math.ceil(logOrLog10(x, base)));
   }
 
+  /**
+   *  Uses the 1-2-5 series to find the closest prefered number to min
+   *  whose absolute value is at least the absolute value of |min|.
+   *  https://en.wikipedia.org/wiki/Preferred_number
+   */
+  // TODO(aiolos): switch to using a more fine-grained preferred number
+  // series like the R''5 or R''10 series.
+  // https://github.com/catapult-project/catapult/issues/3194
+  function preferredNumberLargerThanMin(min) {
+    var absMin = Math.abs(min);
+    // The conservative guess is the largest power of 10 less than
+    // or equal to |absMin|.
+    var conservativeGuess = tr.b.lesserPower(absMin);
+    var minPreferedNumber = undefined;
+    for (var multiplier of PREFERRED_NUMBER_SERIES_MULTIPLIERS) {
+      var tightenedGuess = conservativeGuess * multiplier;
+      if (tightenedGuess >= absMin) {
+        minPreferedNumber = tightenedGuess;
+        break;
+      }
+    }
+    if (minPreferedNumber === undefined) {
+      throw new Error('Could not compute preferred number for ' + min);
+    }
+    if (min < 0) minPreferedNumber *= -1;
+    return minPreferedNumber;
+  }
+
   return {
     approximately,
     clamp,
@@ -201,6 +232,7 @@ tr.exportTo('tr.b', function() {
     erf,
     lesserPower,
     greaterPower,
+    preferredNumberLargerThanMin,
   };
 });
 </script>

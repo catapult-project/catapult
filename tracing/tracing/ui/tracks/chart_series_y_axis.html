@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/color_scheme.html">
 <link rel="import" href="/tracing/base/range.html">
+<link rel="import" href="/tracing/base/unit.html">
 
 <script>
 'use strict';
@@ -140,19 +141,7 @@ tr.exportTo('tr.ui.tracks', function() {
       var idealMajorMarkHeightWorld =
           transform.vectorToWorldDistance(idealMajorMarkHeightPx);
 
-      // The conservative guess is the nearest enclosing 0.1, 1, 10, 100, etc.
-      var conservativeGuess = tr.b.greaterPower(idealMajorMarkHeightWorld);
-
-      // Once we have a conservative guess, use the 1-2-5 series to find
-      // preferred numbers that still exceed the ideal mark distance.
-      var majorMarkHeightWorld = conservativeGuess;
-      var divisors = [2, 5, 10];
-      for (var divisor of divisors) {
-        var tightenedGuess = conservativeGuess / divisor;
-        if (tightenedGuess < idealMajorMarkHeightWorld) break;
-        majorMarkHeightWorld = tightenedGuess;
-      }
-      return majorMarkHeightWorld;
+      return tr.b.preferredNumberLargerThanMin(idealMajorMarkHeightWorld);
     },
 
     draw: function(ctx, transform, showYAxisLabels, showYGridLines) {

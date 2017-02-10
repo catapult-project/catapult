@@ -292,21 +292,8 @@ tr.exportTo('tr.ui', function() {
       var idealMajorMarkDistanceWorld =
           dt.xViewVectorToWorld(idealMajorMarkDistancePix);
 
-      // The conservative guess is the nearest enclosing 0.1, 1, 10, 100, etc.
-      var conservativeGuess = tr.b.greaterPower(idealMajorMarkDistanceWorld);
-
-      // Once we have a conservative guess, consider things that evenly add up
-      // to the conservative guess, e.g. 0.5, 0.2, 0.1. Pick the one that still
-      // exceeds the ideal mark distance.
-      var majorMarkDistanceWorld = conservativeGuess;
-      var divisors = [2, 5, 10];
-      for (var i = 0; i < divisors.length; ++i) {
-        var tightenedGuess = conservativeGuess / divisors[i];
-        if (dt.xWorldVectorToView(tightenedGuess) < idealMajorMarkDistancePix) {
-          break;
-        }
-        majorMarkDistanceWorld = tightenedGuess;
-      }
+      var majorMarkDistanceWorld = tr.b.preferredNumberLargerThanMin(
+          idealMajorMarkDistanceWorld);
 
       var firstMajorMark = Math.floor(
           viewLWorld / majorMarkDistanceWorld) * majorMarkDistanceWorld;
