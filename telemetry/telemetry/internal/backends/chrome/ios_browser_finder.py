@@ -101,7 +101,7 @@ def FindAllAvailableBrowsers(finder_options, device):
     try:
       inspector = inspector_backend.InspectorBackend(
           backend.app, backend.devtools_client, context)
-      res = inspector.EvaluateJavaScript2("navigator.userAgent")
+      res = inspector.EvaluateJavaScript("navigator.userAgent")
     finally:
       inspector.Disconnect()
     match_browsers = re.search(browser_pattern, res)

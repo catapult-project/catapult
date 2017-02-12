@@ -31,22 +31,28 @@ class MarkTelemetryInternal(object):
     self.identifier = identifier
 
   def __enter__(self):
-    marker = 'telemetry.internal.%s.start' % self.identifier
-    self.browser.tabs[0].ExecuteJavaScript2(
-        "console.time({{ marker }});", marker=marker)
-    self.browser.tabs[0].ExecuteJavaScript2(
-        "console.timeEnd({{ marker }});", marker=marker)
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
+    self.browser.tabs[0].ExecuteJavaScript(
+        """console.time('telemetry.internal.{0}.start');""".format(
+          self.identifier))
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
+    self.browser.tabs[0].ExecuteJavaScript(
+        """console.timeEnd('telemetry.internal.{0}.start');""".format(
+          self.identifier))
     return self
 
   def __exit__(self, exception_type, exception_value, traceback):
     if exception_type:
       return True
 
-    marker = 'telemetry.internal.%s.start' % self.identifier
-    self.browser.tabs[0].ExecuteJavaScript2(
-        "console.time({{ marker }});", marker=marker)
-    self.browser.tabs[0].ExecuteJavaScript2(
-        "console.timeEnd({{ marker }});", marker=marker)
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
+    self.browser.tabs[0].ExecuteJavaScript(
+        """console.time('telemetry.internal.{0}.end');""".format(
+          self.identifier))
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
+    self.browser.tabs[0].ExecuteJavaScript(
+        """console.timeEnd('telemetry.internal.{0}.end');""".format(
+          self.identifier))
     return True
 
 def EnsurePageCacheTemperature(page, browser, previous_page=None):

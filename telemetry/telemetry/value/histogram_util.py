@@ -110,9 +110,10 @@ def GetHistogram(histogram_type, histogram_name, tab):
   if histogram_type == BROWSER_HISTOGRAM:
     function = 'getBrowserHistogram'
   try:
-    histogram_json = tab.EvaluateJavaScript2(
-        'statsCollectionController.{{ @f }}({{ name }})',
-        f=function, name=histogram_name)
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
+    histogram_json = tab.EvaluateJavaScript(
+        'statsCollectionController.%s("%s")' %
+        (function, histogram_name))
   except exceptions.EvaluateException:
     # Sometimes JavaScript flakily fails to execute: http://crbug.com/508431
     histogram_json = None

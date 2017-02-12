@@ -25,7 +25,7 @@ class PageTestThatFails(legacy_page_test.LegacyPageTest):
 class PageTestForBlank(legacy_page_test.LegacyPageTest):
 
   def ValidateAndMeasurePage(self, page, tab, results):
-    contents = tab.EvaluateJavaScript2('document.body.textContent')
+    contents = tab.EvaluateJavaScript('document.body.textContent')
     if contents.strip() != 'Hello world':
       raise legacy_page_test.MeasurementFailure(
           'Page contents were: ' + contents)
@@ -35,7 +35,7 @@ class PageTestForReplay(legacy_page_test.LegacyPageTest):
 
   def ValidateAndMeasurePage(self, page, tab, results):
     # Web Page Replay returns '404 Not found' if a page is not in the archive.
-    contents = tab.EvaluateJavaScript2('document.body.textContent')
+    contents = tab.EvaluateJavaScript('document.body.textContent')
     if '404 Not Found' in contents.strip():
       raise legacy_page_test.MeasurementFailure('Page not in archive.')
 
@@ -43,7 +43,7 @@ class PageTestForReplay(legacy_page_test.LegacyPageTest):
 class PageTestQueryParams(legacy_page_test.LegacyPageTest):
 
   def ValidateAndMeasurePage(self, page, tab, results):
-    query = tab.EvaluateJavaScript2('window.location.search')
+    query = tab.EvaluateJavaScript('window.location.search')
     expected = '?foo=1'
     if query.strip() != expected:
       raise legacy_page_test.MeasurementFailure(

@@ -28,13 +28,13 @@ class TestTimelinebasedMeasurementPage(page_module.Page):
   def RunPageInteractions(self, action_runner):
     if self._trigger_animation:
       action_runner.TapElement('#animating-button')
-      action_runner.WaitForJavaScriptCondition2('window.animationDone')
+      action_runner.WaitForJavaScriptCondition('window.animationDone')
     if self._trigger_jank:
       action_runner.TapElement('#jank-button')
-      action_runner.WaitForJavaScriptCondition2('window.jankScriptDone')
+      action_runner.WaitForJavaScriptCondition('window.jankScriptDone')
     if self._trigger_slow:
       action_runner.TapElement('#slow-button')
-      action_runner.WaitForJavaScriptCondition2('window.slowScriptDone')
+      action_runner.WaitForJavaScriptCondition('window.slowScriptDone')
     if self._trigger_scroll_gesture:
       with action_runner.CreateGestureInteraction('Scroll'):
         action_runner.ScrollPage()

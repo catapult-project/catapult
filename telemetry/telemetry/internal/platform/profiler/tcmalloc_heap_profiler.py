@@ -137,7 +137,7 @@ class TCMallocHeapProfiler(profiler.Profiler):
     # This is a minor optimization to ensure it'll dump the last file when
     # the test completes.
     for i in xrange(len(browser_backend.browser.tabs)):
-      browser_backend.browser.tabs[i].ExecuteJavaScript2("""
+      browser_backend.browser.tabs[i].ExecuteJavaScript("""
         if (chrome && chrome.memoryBenchmarking) {
           chrome.memoryBenchmarking.heapProfilerDump('renderer', 'final');
           chrome.memoryBenchmarking.heapProfilerDump('browser', 'final');

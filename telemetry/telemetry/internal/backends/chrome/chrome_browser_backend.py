@@ -174,6 +174,12 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     # Extension pages are loaded from an about:blank page,
     # so we need to check that the document URL is the extension
     # page in addition to the ready state.
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
+    extension_ready_js = """
+        document.URL.lastIndexOf('chrome-extension://%s/', 0) == 0 &&
+        (document.readyState == 'complete' ||
+         document.readyState == 'interactive')
+    """
     for e in self._extensions_to_load:
       try:
         extension_objects = self.extension_backend[e.extension_id]
@@ -181,12 +187,8 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
         return False
       for extension_object in extension_objects:
         try:
-          res = extension_object.EvaluateJavaScript2("""
-              document.URL.lastIndexOf({{ url }}, 0) == 0 &&
-              (document.readyState == 'complete' ||
-               document.readyState == 'interactive')
-              """,
-              url='chrome-extension://%s/' % e.extension_id)
+          res = extension_object.EvaluateJavaScript(
+              extension_ready_js % e.extension_id)
         except exceptions.EvaluateException:
           # If the inspected page is not ready, we will get an error
           # when we evaluate a JS expression, but we can just keep polling
@@ -197,7 +199,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
         # version before launch, so for now we use a generic workaround to
         # check for an extension binding bug in old versions of Chrome.
         # See crbug.com/263162 for details.
-        if res and extension_object.EvaluateJavaScript2(
+        if res and extension_object.EvaluateJavaScript(
             'chrome.runtime == null'):
           extension_object.Reload()
         if not res:
