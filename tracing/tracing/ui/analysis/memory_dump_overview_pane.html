@@ -40,6 +40,11 @@ found in the LICENSE file.
         font-weight: bold;
       }
 
+      #label a {
+        font-weight: normal;
+        float: right;
+      }
+
       #contents {
         flex: 1 0 auto;
         align-self: stretch;
@@ -64,7 +69,7 @@ found in the LICENSE file.
     <tr-ui-b-view-specific-brushing-state id="state"
         view-id="analysis.memory_dump_overview_pane">
     </tr-ui-b-view-specific-brushing-state>
-    <div id="label">Overview</div>
+    <div id="label">Overview <a href="https://chromium.googlesource.com/chromium/src/+/master/docs/memory-infra">Help</a></div>
     <div id="contents">
       <div id="info_text">No memory memory dumps selected</div>
       <tr-ui-b-table id="table"></tr-ui-b-table>
