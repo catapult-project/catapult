@@ -109,9 +109,9 @@ class ListTestsTest(testing_common.TestCase):
     self.assertEqual(expected, json.loads(response.body))
 
     # The cache should be set for the win7 bot with the expected response.
-    self.assertEqual(expected, layered_cache.Get(
+    self.assertEqual(expected, json.loads(layered_cache.Get(
         graph_data.LIST_TESTS_SUBTEST_CACHE_KEY % (
-            'Chromium', 'win7', 'really')))
+            'Chromium', 'win7', 'really'))))
 
     # Change mac subtests in cache. Should be merged with win7.
     mac_subtests = {
@@ -127,7 +127,7 @@ class ListTestsTest(testing_common.TestCase):
     }
     layered_cache.Set(
         graph_data.LIST_TESTS_SUBTEST_CACHE_KEY % ('Chromium', 'mac', 'really'),
-        mac_subtests)
+        json.dumps(mac_subtests))
     response = self.testapp.post('/list_tests', {
         'type': 'sub_tests',
         'suite': 'really',

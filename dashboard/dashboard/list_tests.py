@@ -81,7 +81,7 @@ def GetSubTests(suite_name, bot_names):
     cache_key = _ListSubTestCacheKey(suite_key)
     cached = layered_cache.Get(cache_key)
     if cached:
-      combined = _MergeSubTestsDict(combined, cached)
+      combined = _MergeSubTestsDict(combined, json.loads(cached))
     else:
       sub_test_paths_futures = _GetTestDescendantsAsync(
           suite_key, has_rows=True, deprecated=False)
@@ -100,7 +100,8 @@ def GetSubTests(suite_name, bot_names):
 
       sub_tests = _MergeSubTestsDict(d1, d2)
 
-      layered_cache.Set(cache_key, sub_tests)
+      # Pickle is actually really slow, json.dumps to bypass that.
+      layered_cache.Set(cache_key, json.dumps(sub_tests))
 
       combined = _MergeSubTestsDict(combined, sub_tests)
 
