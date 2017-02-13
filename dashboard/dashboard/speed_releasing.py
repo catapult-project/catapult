@@ -54,7 +54,11 @@ class SpeedReleasingHandler(request_handler.RequestHandler):
       self.response.out.write(json.dumps({'error': 'Invalid revisions.'}))
       return
     rev_a, rev_b = _CheckRevisions(rev_a, rev_b)
-    revisions = [rev_a, rev_b]
+    revisions = [rev_b, rev_a] # In reverse intentionally. This is to support
+    # the format of the Chrome Health Dashboard which compares 'Current' to
+    # 'Reference', in that order. The ordering here is for display only.
+    display_a = _GetDisplayRev(master_bot_pairs, table_entity.tests, rev_a)
+    display_b = _GetDisplayRev(master_bot_pairs, table_entity.tests, rev_b)
 
     self.response.out.write(json.dumps({
         'xsrf_token': values['xsrf_token'],
@@ -67,6 +71,7 @@ class SpeedReleasingHandler(request_handler.RequestHandler):
         'units': _GetTestToUnitsMap(master_bot_pairs, table_entity.tests),
         'revisions': revisions,
         'categories': _GetCategoryCounts(json.loads(table_entity.table_layout)),
+        'display_revisions': [display_b, display_a] # Similar to revisions.
     }))
 
   def _OutputHomePageJSON(self):
@@ -146,7 +151,6 @@ def _CheckRevisions(rev_a, rev_b):
   rev_b = int(rev_b)
   if rev_b < rev_a:
     rev_a, rev_b = rev_b, rev_a
-  # TODO(jessimb): Check if r_commit_pos (if clank), if so return revision.
   return rev_a, rev_b
 
 def _GetCategoryCounts(layout):
@@ -154,3 +158,18 @@ def _GetCategoryCounts(layout):
   for test in layout:
     categories[layout[test][0]] += 1
   return categories
+
+def _GetDisplayRev(bots, tests, rev):
+  """Creates a user friendly commit position to display.
+  For V8 and ChromiumPerf masters, this will just be the passed in rev.
+  """
+  if bots and tests:
+    test_path = bots[0] + '/' + tests[0]
+    test_key = utils.TestKey(test_path)
+    row_key = utils.GetRowKey(test_key, rev)
+    row = row_key.get()
+    if row and hasattr(row, 'r_commit_pos'): # Rule out masters like V8
+      if rev != row.r_commit_pos: # Rule out ChromiumPerf
+        if hasattr(row, 'a_default_rev') and hasattr(row, row.a_default_rev):
+          return row.r_commit_pos + '-' + getattr(row, row.a_default_rev)[:3]
+  return rev

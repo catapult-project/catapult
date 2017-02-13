@@ -15,6 +15,7 @@ from dashboard.models import table_config
 from dashboard.models import graph_data
 
 _SAMPLE_BOTS = ['ChromiumPerf/win', 'ChromiumPerf/linux']
+_DOWNSTREAM_BOTS = ['ClankInternal/win', 'ClankInternal/linux']
 _SAMPLE_TESTS = ['my_test_suite/my_test', 'my_test_suite/my_other_test']
 _SAMPLE_LAYOUT = ('{ "my_test_suite/my_test": ["Foreground", '
                   '"Pretty Name 1"],"my_test_suite/my_other_test": '
@@ -52,32 +53,33 @@ class SpeedReleasingTest(testing_common.TestCase):
     graph_data.Bot(
         id='linux', parent=master_key, internal_only=False).put()
 
-  def _AddTableConfigDataStore(self, name, is_internal):
+  def _AddTableConfigDataStore(self, name, is_internal, is_downstream=False):
     """Add sample internal only tableConfig."""
-    keys = self._AddTests()
+    keys = self._AddTests(is_downstream)
     if is_internal:
       self._AddInternalBotsToDataStore()
     else:
       self._AddPublicBotsToDataStore()
     table_config.CreateTableConfig(
-        name=name, bots=_SAMPLE_BOTS,
+        name=name, bots=_SAMPLE_BOTS if not is_downstream else _DOWNSTREAM_BOTS,
         tests=_SAMPLE_TESTS,
         layout=_SAMPLE_LAYOUT,
         username='internal@chromium.org')
     return keys
 
-  def _AddTests(self):
-    testing_common.AddTests(['ChromiumPerf'], ['win', 'linux'], {
+  def _AddTests(self, is_downstream):
+    master = 'ClankInternal' if is_downstream else 'ChromiumPerf'
+    testing_common.AddTests([master], ['win', 'linux'], {
         'my_test_suite': {
             'my_test': {},
             'my_other_test': {},
         }
     })
     keys = [
-        utils.TestKey('ChromiumPerf/win/my_test_suite/my_test'),
-        utils.TestKey('ChromiumPerf/win/my_test_suite/my_other_test'),
-        utils.TestKey('ChromiumPerf/linux/my_test_suite/my_test'),
-        utils.TestKey('ChromiumPerf/linux/my_test_suite/my_other_test'),
+        utils.TestKey(master + '/win/my_test_suite/my_test'),
+        utils.TestKey(master + '/win/my_test_suite/my_other_test'),
+        utils.TestKey(master + '/linux/my_test_suite/my_test'),
+        utils.TestKey(master + '/linux/my_test_suite/my_other_test'),
     ]
     for test_key in keys:
       test = test_key.get()
@@ -88,6 +90,20 @@ class SpeedReleasingTest(testing_common.TestCase):
   def _AddRows(self, keys):
     for key in keys:
       testing_common.AddRows(utils.TestPath(key), [1, 2, 3, 4])
+
+  def _AddDownstreamRows(self, keys):
+    revisions = [1, 2, 1485025126, 1485099999]
+    for key in keys:
+      testing_common.AddRows(
+          utils.TestPath(key), revisions)
+    for key in keys:
+      for rev in revisions:
+        row_key = utils.GetRowKey(key, rev)
+        row = row_key.get()
+        row.r_commit_pos = str(rev / 10000)
+        row.a_default_rev = 'r_foo'
+        row.r_foo = 'abcdefghijk'
+        row.put()
 
   def testGet_ShowPage(self):
     response = self.testapp.get('/speed_releasing/')
@@ -112,7 +128,8 @@ class SpeedReleasingTest(testing_common.TestCase):
     self.assertIn('"table_tests": ["my_test_suite/my_test",'
                   ' "my_test_suite/my_other_test"]', response)
     self.assertIn('"table_layout"', response)
-    self.assertIn('"revisions": [1, 2]', response)
+    self.assertIn('"revisions": [2, 1]', response)
+    self.assertIn('"display_revisions": [2, 1]', response)
     self.assertIn('"units": {"my_test_suite/my_test": "timeDurationInMs", '
                   '"my_test_suite/my_other_test": "timeDurationInMs"',
                   response)
@@ -151,3 +168,11 @@ class SpeedReleasingTest(testing_common.TestCase):
   def testPost_TableWithTableNameThatDoesntExist(self):
     response = self.testapp.post('/speed_releasing/BestTable')
     self.assertIn('Invalid table name.', response)
+
+  def testPost_TableWithNoRevParamsOnlyDownStream(self):
+    keys = self._AddTableConfigDataStore('BestTable', True, True)
+    self._AddDownstreamRows(keys)
+    response = self.testapp.post('/speed_releasing/BestTable?revA=1485099999&'
+                                 'revB=1485025126')
+    self.assertIn('"revisions": [1485099999, 1485025126]', response)
+    self.assertIn('"display_revisions": ["148509-abc", "148502-abc"]', response)
