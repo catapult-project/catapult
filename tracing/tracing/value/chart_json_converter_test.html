@@ -13,7 +13,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('emptyListOfScalarValues', function() {
-    var charts = {
+    let charts = {
       charts: {
         mean_frame_time: {
           'http://games.yahoo.com': {
@@ -38,10 +38,10 @@ tr.b.unittest.testSuite(function() {
         }
       }
     };
-    var histograms = new tr.v.HistogramSet();
+    let histograms = new tr.v.HistogramSet();
     tr.v.ChartJsonConverter.convertChartJson(charts, histograms);
     assert.lengthOf(histograms, 1);
-    var hist = [...histograms][0];
+    let hist = [...histograms][0];
     assert.strictEqual('mean_frame_time', hist.name);
     assert.strictEqual('',
         tr.v.HistogramSet.GROUPINGS.LEGACY_TIR_LABEL.callback(hist));
@@ -53,7 +53,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('convertWithoutTIRLabel', function() {
-    var charts = {
+    let charts = {
       charts: {
         mean_frame_time: {
           'http://games.yahoo.com': {
@@ -85,10 +85,10 @@ tr.b.unittest.testSuite(function() {
         }
       }
     };
-    var histograms = new tr.v.HistogramSet();
+    let histograms = new tr.v.HistogramSet();
     tr.v.ChartJsonConverter.convertChartJson(charts, histograms);
     assert.lengthOf(histograms, 1);
-    var hist = [...histograms][0];
+    let hist = [...histograms][0];
     assert.strictEqual('mean_frame_time', hist.name);
     assert.strictEqual('',
         tr.v.HistogramSet.GROUPINGS.LEGACY_TIR_LABEL.callback(hist));
@@ -101,7 +101,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('convertWithTIRLabel', function() {
-    var charts = {
+    let charts = {
       charts: {
         'TIR-A@@value-name': {
           'story-name': {
@@ -124,10 +124,10 @@ tr.b.unittest.testSuite(function() {
         },
       },
     };
-    var histograms = new tr.v.HistogramSet();
+    let histograms = new tr.v.HistogramSet();
     tr.v.ChartJsonConverter.convertChartJson(charts, histograms);
     assert.lengthOf(histograms, 1);
-    var hist = [...histograms][0];
+    let hist = [...histograms][0];
     assert.strictEqual('value-name', hist.name);
     assert.strictEqual('TIR-A',
         tr.v.HistogramSet.GROUPINGS.LEGACY_TIR_LABEL.callback(hist));
@@ -140,7 +140,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('convertHistogram', function() {
-    var charts = {
+    let charts = {
       charts: {
         MPArch_RWH_TabSwitchPaintDuration: {
           summary: {
@@ -164,10 +164,10 @@ tr.b.unittest.testSuite(function() {
         }
       }
     };
-    var histograms = new tr.v.HistogramSet();
+    let histograms = new tr.v.HistogramSet();
     tr.v.ChartJsonConverter.convertChartJson(charts, histograms);
     assert.lengthOf(histograms, 1);
-    var hist = [...histograms][0];
+    let hist = [...histograms][0];
     assert.strictEqual('MPArch_RWH_TabSwitchPaintDuration', hist.name);
     assert.strictEqual('',
         tr.v.HistogramSet.GROUPINGS.LEGACY_TIR_LABEL.callback(hist));

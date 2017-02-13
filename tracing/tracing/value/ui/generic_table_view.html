@@ -30,9 +30,9 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.v.ui', function() {
-  var TEXT_COLUMN_MODE = 1;
-  var NUMERIC_COLUMN_MODE = 2;
-  var ELEMENT_COLUMN_MODE = 3;
+  const TEXT_COLUMN_MODE = 1;
+  const NUMERIC_COLUMN_MODE = 2;
+  const ELEMENT_COLUMN_MODE = 3;
 
   function isNumeric(value) {
     // TODO(nduca): Also consider other units that are numeric.
@@ -71,8 +71,8 @@ tr.exportTo('tr.v.ui', function() {
         return 0;
 
       return tr.b.comparePossiblyUndefinedValues(a, b, function(a, b) {
-        var vA = a[this.fieldName];
-        var vB = b[this.fieldName];
+        let vA = a[this.fieldName];
+        let vB = b[this.fieldName];
         return tr.b.comparePossiblyUndefinedValues(vA, vB, function(vA, vB) {
           if (vA.localeCompare)
             return vA.localeCompare(vB);
@@ -120,9 +120,9 @@ tr.exportTo('tr.v.ui', function() {
     },
 
     value: function(item) {
-      var fieldValue = item[this.fieldName];
+      let fieldValue = item[this.fieldName];
       if (fieldValue instanceof GenericTableViewTotalsItem) {
-        var span = document.createElement('tr-v-ui-array-of-numbers-span');
+        let span = document.createElement('tr-v-ui-array-of-numbers-span');
         span.summaryMode = tr.v.ui.ArrayOfNumbersSummaryModes.TOTAL_MODE;
         span.numbers = fieldValue.values;
         return span;
@@ -135,7 +135,7 @@ tr.exportTo('tr.v.ui', function() {
         return fieldValue;
 
       if (fieldValue instanceof Object) {
-        var gov = document.createElement('tr-ui-a-generic-object-view');
+        let gov = document.createElement('tr-ui-a-generic-object-view');
         gov.object = fieldValue;
         return gov;
       }
@@ -176,10 +176,10 @@ tr.exportTo('tr.v.ui', function() {
     },
 
     createColumns_: function() {
-      var columnsByName = {};
+      let columnsByName = {};
       this.items_.forEach(function(item) {
         tr.b.iterItems(item, function(itemFieldName, itemFieldValue) {
-          var colDesc = columnsByName[itemFieldName];
+          let colDesc = columnsByName[itemFieldName];
           if (colDesc !== undefined) {
             colDesc.updateModeGivenValue(itemFieldValue);
             return;
@@ -191,19 +191,19 @@ tr.exportTo('tr.v.ui', function() {
         }, this);
       }, this);
 
-      var columns = tr.b.dictionaryValues(columnsByName);
+      let columns = tr.b.dictionaryValues(columnsByName);
       if (columns.length === 0)
         return undefined;
 
       // Sort by name.
-      var isColumnNameImportant = {};
-      var importantColumNames = this.importantColumNames || [];
+      let isColumnNameImportant = {};
+      let importantColumNames = this.importantColumNames || [];
       importantColumNames.forEach(function(icn) {
         isColumnNameImportant[icn] = true;
       });
       columns.sort(function(a, b) {
-        var iA = isColumnNameImportant[a.title] ? 1 : 0;
-        var iB = isColumnNameImportant[b.title] ? 1 : 0;
+        let iA = isColumnNameImportant[a.title] ? 1 : 0;
+        let iB = isColumnNameImportant[b.title] ? 1 : 0;
         if ((iB - iA) !== 0)
           return iB - iA;
         return a.title.localeCompare(b.title);
@@ -211,13 +211,13 @@ tr.exportTo('tr.v.ui', function() {
 
       // Set sizes. This is convoluted by the fact that the first
       // table column must have fixed size.
-      var colWidthPercentage;
+      let colWidthPercentage;
       if (columns.length === 1)
         colWidthPercentage = '100%';
       else
         colWidthPercentage = (100 / (columns.length - 1)).toFixed(3) + '%';
       columns[0].width = '250px';
-      for (var i = 1; i < columns.length; i++)
+      for (let i = 1; i < columns.length; i++)
         columns[i].width = colWidthPercentage;
 
       return columns;
@@ -225,19 +225,19 @@ tr.exportTo('tr.v.ui', function() {
 
     createFooterRowsIfNeeded_: function(columns) {
       // Make totals row if needed.
-      var hasColumnThatIsNumeric = columns.some(function(column) {
+      let hasColumnThatIsNumeric = columns.some(function(column) {
         return column.isInNumericMode;
       });
       if (!hasColumnThatIsNumeric)
         return [];
 
-      var totalsItems = {};
+      let totalsItems = {};
       columns.forEach(function(column) {
         if (!column.isInNumericMode)
           return;
-        var totalsItem = new GenericTableViewTotalsItem();
+        let totalsItem = new GenericTableViewTotalsItem();
         this.items_.forEach(function(item) {
-          var fieldValue = item[column.fieldName];
+          let fieldValue = item[column.fieldName];
           if (fieldValue === undefined || fieldValue === null)
             return;
           totalsItem.values.push(fieldValue);
@@ -249,7 +249,7 @@ tr.exportTo('tr.v.ui', function() {
     },
 
     updateContents_: function() {
-      var columns;
+      let columns;
       if (this.items_ !== undefined)
         columns = this.createColumns_();
 

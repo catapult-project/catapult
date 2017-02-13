@@ -27,12 +27,12 @@ tr.exportTo('tr.v.ui', function() {
     if (value === undefined)
       return '';
 
-    var config = opt_config || {};
-    var ownerDocument = config.ownerDocument || document;
+    let config = opt_config || {};
+    let ownerDocument = config.ownerDocument || document;
 
-    var span = ownerDocument.createElement('tr-v-ui-scalar-span');
+    let span = ownerDocument.createElement('tr-v-ui-scalar-span');
 
-    var numericValue;
+    let numericValue;
     if (value instanceof tr.b.Scalar) {
       span.value = value;
       numericValue = value.value;
@@ -42,7 +42,7 @@ tr.exportTo('tr.v.ui', function() {
         return '';
       span.setValueAndUnit(numericValue, value.unit);
     } else {
-      var unit = config.unit;
+      let unit = config.unit;
       if (unit === undefined) {
         throw new Error(
             'Unit must be provided in config when value is a number');
@@ -410,18 +410,18 @@ Polymer({
     this.$.sparkline.style.width = '0';
 
     // Custom context range takes precedence over controller context range.
-    var range = this.customContextRange_;
+    let range = this.customContextRange_;
     if (!range && this.hasContext_(this.contextGroup)) {
-      var context = this.contextController_.getContext(this.contextGroup);
+      let context = this.contextController_.getContext(this.contextGroup);
       if (context)
         range = context.range;
     }
     if (!range || range.isEmpty)
       return;
 
-    var leftPoint = Math.min(range.min, 0);
-    var rightPoint = Math.max(range.max, 0);
-    var pointDistance = rightPoint - leftPoint;
+    let leftPoint = Math.min(range.min, 0);
+    let rightPoint = Math.max(range.max, 0);
+    let pointDistance = rightPoint - leftPoint;
     if (pointDistance === 0) {
       // This can happen, for example, when all spans within the context have
       // zero values (so |range| is [0, 0]).
@@ -430,8 +430,8 @@ Polymer({
 
     // Draw the sparkline.
     this.$.sparkline.style.display = 'block';
-    var left;
-    var width;
+    let left;
+    let width;
     if (this.value > 0) {
       width = Math.min(this.value, rightPoint);
       left = -leftPoint;
@@ -446,7 +446,7 @@ Polymer({
         width / pointDistance, true);
 
     // Set the sparkline color (if applicable).
-    var changeClass = this.changeClassName_;
+    let changeClass = this.changeClassName_;
     if (changeClass)
       Polymer.dom(this.$.sparkline).classList.add(changeClass);
   },
@@ -463,7 +463,7 @@ Polymer({
     //                     |:::::             -5 MiB
     //                |::::::::::            -10 MiB
     //
-    var position = 'calc(' + ratio + ' * (100% - 1px)';
+    let position = 'calc(' + ratio + ' * (100% - 1px)';
     if (isWidth)
       position += ' + 1px';  // Extra pixel for sparkline border.
     position += ')';
@@ -489,7 +489,7 @@ Polymer({
   },
 
   updateDelta_: function() {
-    var changeClass = this.changeClassName_;
+    let changeClass = this.changeClassName_;
     if (!changeClass) {
       this.$.significance.style.display = 'none';
       return;  // Not a delta or we don't care.
@@ -497,7 +497,7 @@ Polymer({
 
     this.$.significance.style.display = 'inline';
 
-    var title;
+    let title;
     switch (changeClass) {
       case 'better':
         title = 'improvement';
@@ -575,7 +575,7 @@ Polymer({
 
   set warning(warning) {
     this.warning_ = warning;
-    var warningEl = this.$.warning;
+    let warningEl = this.$.warning;
     if (this.warning_) {
       warningEl.title = warning;
       warningEl.style.display = 'inline';

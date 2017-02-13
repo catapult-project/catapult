@@ -30,7 +30,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.v.d', function() {
-  var MERGED_FROM_DIAGNOSTIC_KEY = 'merged from';
+  const MERGED_FROM_DIAGNOSTIC_KEY = 'merged from';
 
   class DiagnosticMap extends Map {
     /**
@@ -68,12 +68,12 @@ tr.exportTo('tr.v.d', function() {
     }
 
     resolveSharedDiagnostics(histograms, opt_required) {
-      for (var [name, diagnostic] of this) {
+      for (let [name, diagnostic] of this) {
         if (!(diagnostic instanceof tr.v.d.DiagnosticRef)) {
           continue;
         }
 
-        var guid = diagnostic.guid;
+        let guid = diagnostic.guid;
         diagnostic = histograms.lookupDiagnostic(guid);
         if (diagnostic instanceof tr.v.d.Diagnostic) {
           this.set(name, diagnostic);
@@ -84,21 +84,21 @@ tr.exportTo('tr.v.d', function() {
     }
 
     asDict() {
-      var dict = {};
-      for (var [name, diagnostic] of this) {
+      let dict = {};
+      for (let [name, diagnostic] of this) {
         dict[name] = diagnostic.asDictOrReference();
       }
       return dict;
     }
 
     static fromDict(d) {
-      var diagnostics = new DiagnosticMap();
+      let diagnostics = new DiagnosticMap();
       diagnostics.addDicts(d);
       return diagnostics;
     }
 
     static fromObject(obj) {
-      var diagnostics = new DiagnosticMap();
+      let diagnostics = new DiagnosticMap();
       tr.b.iterItems(obj, function(name, diagnostic) {
         diagnostics.set(name, diagnostic);
       });
@@ -106,19 +106,19 @@ tr.exportTo('tr.v.d', function() {
     }
 
     merge(other, parentHist, otherParentHist) {
-      var mergedFrom = this.get(MERGED_FROM_DIAGNOSTIC_KEY);
+      let mergedFrom = this.get(MERGED_FROM_DIAGNOSTIC_KEY);
       if (!mergedFrom) {
         mergedFrom = new tr.v.d.RelatedHistogramSet();
         this.set(MERGED_FROM_DIAGNOSTIC_KEY, mergedFrom);
       }
       mergedFrom.add(otherParentHist);
 
-      for (var [name, otherDiagnostic] of other) {
+      for (let [name, otherDiagnostic] of other) {
         if (!this.has(name)) {
           this.set(name, otherDiagnostic);
           continue;
         }
-        var myDiagnostic = this.get(name);
+        let myDiagnostic = this.get(name);
         if (myDiagnostic.canAddDiagnostic(
             otherDiagnostic, name, parentHist, otherParentHist)) {
           this.set(name, myDiagnostic.addDiagnostic(

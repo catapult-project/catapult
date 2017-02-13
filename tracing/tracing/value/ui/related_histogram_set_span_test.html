@@ -14,10 +14,10 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('instantiate_RelatedHistogramSet', function() {
-    var aValue = new tr.v.Histogram('foo', tr.b.Unit.byName.unitlessNumber);
-    var bValue = new tr.v.Histogram('bar', tr.b.Unit.byName.unitlessNumber);
-    var diagnostic = new tr.v.d.RelatedHistogramSet([aValue, bValue]);
-    var span = tr.v.ui.createDiagnosticSpan(diagnostic);
+    let aValue = new tr.v.Histogram('foo', tr.b.Unit.byName.unitlessNumber);
+    let bValue = new tr.v.Histogram('bar', tr.b.Unit.byName.unitlessNumber);
+    let diagnostic = new tr.v.d.RelatedHistogramSet([aValue, bValue]);
+    let span = tr.v.ui.createDiagnosticSpan(diagnostic);
     assert.strictEqual('TR-V-UI-RELATED-HISTOGRAM-SET-SPAN', span.tagName);
     this.addHTMLOutput(span);
     assert.isDefined(tr.b.findDeepElementMatchingPredicate(

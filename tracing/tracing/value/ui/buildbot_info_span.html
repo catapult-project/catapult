@@ -41,7 +41,7 @@ Polymer({
       return;
     }
 
-    var rows = [];
+    let rows = [];
 
     if (this.diagnostic.displayMasterName) {
       rows.push(['master', this.diagnostic.displayMasterName]);
@@ -59,7 +59,7 @@ Polymer({
       rows.push(['build number', this.diagnostic.buildNumber]);
     }
     if (this.diagnostic.logUri) {
-      var anchor = document.createElement('a');
+      let anchor = document.createElement('a');
       anchor.href = this.diagnostic.logUri;
       anchor.innerText = this.diagnostic.logUri;
       rows.push(['log', anchor]);

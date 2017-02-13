@@ -11,12 +11,12 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var GenericTableViewColumnDescriptor =
+  let GenericTableViewColumnDescriptor =
       tr.v.ui.GenericTableViewColumnDescriptor;
-  var GenericTableViewTotalsItem = tr.v.ui.GenericTableViewTotalsItem;
+  let GenericTableViewTotalsItem = tr.v.ui.GenericTableViewTotalsItem;
 
   test('descBasicNumericMode', function() {
-    var colDesc = new GenericTableViewColumnDescriptor('a');
+    let colDesc = new GenericTableViewColumnDescriptor('a');
     assert.isFalse(colDesc.isInNumericMode);
 
     colDesc.updateModeGivenValue(4);
@@ -34,7 +34,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('descBasicNonNumericMode', function() {
-    var colDesc = new GenericTableViewColumnDescriptor('a');
+    let colDesc = new GenericTableViewColumnDescriptor('a');
     assert.isFalse(colDesc.isInNumericMode);
     colDesc.updateModeGivenValue(4);
     assert.isTrue(colDesc.isInNumericMode);
@@ -43,26 +43,26 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('descCmpWithNumbers', function() {
-    var colDesc = new GenericTableViewColumnDescriptor('a', 1);
+    let colDesc = new GenericTableViewColumnDescriptor('a', 1);
     assert.equal(colDesc.cmp({a: 1}, {a: 2}), -1);
     assert.equal(colDesc.cmp({a: 1}, undefined), -1);
   });
 
   test('descCmpWithText', function() {
-    var colDesc = new GenericTableViewColumnDescriptor('a', 'text');
+    let colDesc = new GenericTableViewColumnDescriptor('a', 'text');
     assert.equal(colDesc.cmp({a: 'a'}, {a: 'b'}), -1);
     assert.equal(colDesc.cmp({a: 'a'}, undefined), -1);
   });
 
   test('descValue', function() {
-    var colDesc = new GenericTableViewColumnDescriptor('a', 1);
-    var value = colDesc.value({a: undefined});
+    let colDesc = new GenericTableViewColumnDescriptor('a', 1);
+    let value = colDesc.value({a: undefined});
     assert.equal(value, '-');
 
     value = colDesc.value({a: 3});
     assert.equal(value, 3);
 
-    var totalsValue = colDesc.value(
+    let totalsValue = colDesc.value(
         {a: new GenericTableViewTotalsItem([1, 2, 3])});
     assert.equal(totalsValue.tagName.toLowerCase(),
         'tr-v-ui-array-of-numbers-span');
@@ -70,7 +70,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('everythingTogether', function() {
-    var table = document.createElement('tr-v-ui-generic-table-view');
+    let table = document.createElement('tr-v-ui-generic-table-view');
     table.items = [
       {
         a: 'someString',
@@ -87,7 +87,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('summableColumn', function() {
-    var table = document.createElement('tr-v-ui-generic-table-view');
+    let table = document.createElement('tr-v-ui-generic-table-view');
     table.items = [
       {
         a: 1
@@ -105,13 +105,13 @@ tr.b.unittest.testSuite(function() {
     assert.equal(table.$.table.tableRows.length, 3);
     assert.isTrue(table.$.table.tableColumns[0].isInNumericMode);
     assert.equal(table.$.table.tableColumns[0].fieldName, 'a');
-    var totalsItem = table.$.table.footerRows[0].a;
+    let totalsItem = table.$.table.footerRows[0].a;
     assert.deepEqual(totalsItem.values, [1, 2, 3]);
   });
 
 
   test('mixedTypeTable', function() {
-    var table = document.createElement('tr-v-ui-generic-table-view');
+    let table = document.createElement('tr-v-ui-generic-table-view');
     table.items = [
       {
         a: 1
@@ -127,7 +127,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('tableWithElement', function() {
-    var table = document.createElement('tr-v-ui-generic-table-view');
+    let table = document.createElement('tr-v-ui-generic-table-view');
     table.items = [
       {
         a: 1
@@ -144,13 +144,13 @@ tr.b.unittest.testSuite(function() {
 
 
   test('emptyTable', function() {
-    var table = document.createElement('tr-v-ui-generic-table-view');
+    let table = document.createElement('tr-v-ui-generic-table-view');
     table.items = [{}];
     assert.equal(table.$.table.tableColumns.length, 0);
   });
 
   test('undefinedAndValue', function() {
-    var table = document.createElement('tr-v-ui-generic-table-view');
+    let table = document.createElement('tr-v-ui-generic-table-view');
     table.items = [
       {
       },
@@ -162,7 +162,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('undefinedOnly', function() {
-    var table = document.createElement('tr-v-ui-generic-table-view');
+    let table = document.createElement('tr-v-ui-generic-table-view');
     table.items = [
       {
         a: undefined

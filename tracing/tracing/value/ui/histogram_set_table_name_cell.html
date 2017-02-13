@@ -72,7 +72,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 tr.exportTo('tr.v.ui', function() {
-  var NAME_COLUMN_WIDTH_PX = 300;
+  const NAME_COLUMN_WIDTH_PX = 300;
 
   Polymer({
     is: 'tr-v-ui-histogram-set-table-name-cell',
@@ -127,7 +127,7 @@ tr.exportTo('tr.v.ui', function() {
       this.$.hide_overview.style.display = 'none';
       this.$.show_overview.style.display = 'block';
 
-      for (var [displayLabel, cell] of this.row.cells) {
+      for (let [displayLabel, cell] of this.row.cells) {
         cell.hideOverview();
       }
     },
@@ -139,9 +139,9 @@ tr.exportTo('tr.v.ui', function() {
       }
       this.$.overview_container.style.display = 'block';
       if (this.overviewChart_ === undefined) {
-        var data = [];
-        var unitString = undefined;
-        for (var [displayLabel, hist] of this.row.columns) {
+        let data = [];
+        let unitString = undefined;
+        for (let [displayLabel, hist] of this.row.columns) {
           data.push({x: displayLabel, y: hist.average});
           unitString = hist.unit.unitString;
         }
@@ -159,7 +159,7 @@ tr.exportTo('tr.v.ui', function() {
       this.$.hide_overview.style.display = 'block';
       this.$.show_overview.style.display = 'none';
 
-      for (var [displayLabel, cell] of this.row.cells) {
+      for (let [displayLabel, cell] of this.row.cells) {
         cell.showOverview();
       }
     }

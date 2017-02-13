@@ -19,7 +19,7 @@ tr.exportTo('tr.v.d', function() {
       this.histogramsByGuid_ = new Map();
 
       if (opt_histograms) {
-        for (var hist of opt_histograms) {
+        for (let hist of opt_histograms) {
           this.add(hist);
         }
       }
@@ -50,7 +50,7 @@ tr.exportTo('tr.v.d', function() {
     }
 
     * [Symbol.iterator]() {
-      for (var [guid, hist] of this.histogramsByGuid_) {
+      for (let [guid, hist] of this.histogramsByGuid_) {
         yield hist;
       }
     }
@@ -67,7 +67,7 @@ tr.exportTo('tr.v.d', function() {
      * @param {boolean=} opt_required
      */
     resolve(histograms, opt_required) {
-      for (var [guid, hist] of this.histogramsByGuid_) {
+      for (let [guid, hist] of this.histogramsByGuid_) {
         if (!(hist instanceof tr.v.d.HistogramRef)) continue;
 
         hist = histograms.lookupHistogram(guid);
@@ -81,7 +81,7 @@ tr.exportTo('tr.v.d', function() {
 
     asDictInto_(d) {
       d.guids = [];
-      for (var hist of this) {
+      for (let hist of this) {
         d.guids.push(hist.guid);
       }
     }

@@ -59,7 +59,7 @@ tr.exportTo('tr.v.d', function() {
     }
 
     * [Symbol.iterator]() {
-      for (var pair of this.histogramsByName_)
+      for (let pair of this.histogramsByName_)
         yield pair;
     }
 
@@ -75,10 +75,10 @@ tr.exportTo('tr.v.d', function() {
      * @param {boolean=} opt_required
      */
     resolve(histograms, opt_required) {
-      for (var [name, hist] of this) {
+      for (let [name, hist] of this) {
         if (!(hist instanceof tr.v.d.HistogramRef)) continue;
 
-        var guid = hist.guid;
+        let guid = hist.guid;
         hist = histograms.lookupHistogram(guid);
         if (hist instanceof tr.v.Histogram) {
           this.histogramsByName_.set(name, hist);
@@ -90,13 +90,13 @@ tr.exportTo('tr.v.d', function() {
 
     asDictInto_(d) {
       d.values = {};
-      for (var [name, hist] of this) {
+      for (let [name, hist] of this) {
         d.values[name] = hist.guid;
       }
     }
 
     static fromDict(d) {
-      var map = new RelatedHistogramMap();
+      let map = new RelatedHistogramMap();
       tr.b.iterItems(d.values, function(name, guid) {
         map.set(name, new tr.v.d.HistogramRef(guid));
       });

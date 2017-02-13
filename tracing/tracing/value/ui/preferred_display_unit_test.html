@@ -13,8 +13,8 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('instantiate', function() {
-    var unit = document.createElement('tr-v-ui-preferred-display-unit');
-    var ms = tr.b.TimeDisplayModes.ms;
+    let unit = document.createElement('tr-v-ui-preferred-display-unit');
+    let ms = tr.b.TimeDisplayModes.ms;
     unit.preferredDisplayUnit = ms;
     assert.equal(unit.preferredDisplayUnit, ms);
   });

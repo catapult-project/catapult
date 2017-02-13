@@ -35,7 +35,7 @@ tr.exportTo('tr.v', function() {
       this.sharedDiagnosticsByGuid_ = new Map();
 
       if (opt_histograms !== undefined) {
-        for (var hist of opt_histograms) {
+        for (let hist of opt_histograms) {
           this.addHistogram(hist);
         }
       }
@@ -52,7 +52,7 @@ tr.exportTo('tr.v', function() {
 
       if (opt_diagnostics !== undefined) {
         if (opt_diagnostics instanceof tr.v.d.DiagnosticMap) {
-          for (var [name, diagnostic] of opt_diagnostics) {
+          for (let [name, diagnostic] of opt_diagnostics) {
             hist.diagnostics.set(name, diagnostic);
           }
         } else {
@@ -74,7 +74,7 @@ tr.exportTo('tr.v', function() {
     addSharedDiagnostic(name, diagnostic) {
       this.sharedDiagnosticsByGuid_.set(diagnostic.guid, diagnostic);
 
-      for (var hist of this) {
+      for (let hist of this) {
         hist.diagnostics.set(name, diagnostic);
       }
     }
@@ -84,7 +84,7 @@ tr.exportTo('tr.v', function() {
     }
 
     * [Symbol.iterator]() {
-      for (var hist of this.histogramsByGuid_.values()) {
+      for (let hist of this.histogramsByGuid_.values()) {
         yield hist;
       }
     }
@@ -108,7 +108,7 @@ tr.exportTo('tr.v', function() {
      * @return {tr.v.Histogram}
      */
     getHistogramNamed(name) {
-      var histograms = this.getHistogramsNamed(name);
+      let histograms = this.getHistogramsNamed(name);
       if (histograms.length === 0) return undefined;
       if (histograms.length > 1) {
         throw new Error(
@@ -139,9 +139,9 @@ tr.exportTo('tr.v', function() {
     }
 
     resolveRelatedHistograms() {
-      var histogramSet = this;
+      let histogramSet = this;
       function handleDiagnosticMap(dm) {
-        for (var [name, diagnostic] of dm) {
+        for (let [name, diagnostic] of dm) {
           if ((diagnostic instanceof tr.v.d.RelatedHistogramSet) ||
               (diagnostic instanceof tr.v.d.RelatedHistogramMap)) {
             diagnostic.resolve(histogramSet);
@@ -149,17 +149,17 @@ tr.exportTo('tr.v', function() {
         }
       }
 
-      for (var hist of this) {
+      for (let hist of this) {
         hist.diagnostics.resolveSharedDiagnostics(this);
 
         handleDiagnosticMap(hist.diagnostics);
 
-        for (var dm of hist.nanDiagnosticMaps) {
+        for (let dm of hist.nanDiagnosticMaps) {
           handleDiagnosticMap(dm);
         }
 
-        for (var bin of hist.allBins) {
-          for (var dm of bin.diagnosticMaps) {
+        for (let bin of hist.allBins) {
+          for (let dm of bin.diagnosticMaps) {
             handleDiagnosticMap(dm);
           }
         }
@@ -174,7 +174,7 @@ tr.exportTo('tr.v', function() {
      * @param {!Object} dicts
      */
     importDicts(dicts) {
-      for (var dict of dicts) {
+      for (let dict of dicts) {
         if (dict.type && tr.v.d.Diagnostic.findTypeInfoWithName(dict.type)) {
           this.sharedDiagnosticsByGuid_.set(dict.guid,
               tr.v.d.Diagnostic.fromDict(dict));
@@ -191,11 +191,11 @@ tr.exportTo('tr.v', function() {
      * @return {!Array.<!Object>}
      */
     asDicts() {
-      var dicts = [];
-      for (var diagnostic of this.sharedDiagnosticsByGuid_.values()) {
+      let dicts = [];
+      for (let diagnostic of this.sharedDiagnosticsByGuid_.values()) {
         dicts.push(diagnostic.asDict());
       }
-      for (var hist of this) {
+      for (let hist of this) {
         dicts.push(hist.asDict());
       }
       return dicts;
@@ -208,31 +208,31 @@ tr.exportTo('tr.v', function() {
      * @return {!Array.<!tr.v.Histogram>}
      */
     get sourceHistograms() {
-      var sourceHistograms = new Map(this.histogramsByGuid_);
+      let sourceHistograms = new Map(this.histogramsByGuid_);
       // If a Histogram is in a RelatedHistogramSet or RelatedHistogramMap,
       // which can be owned either by Histograms or by numeric samples, then it
       // is not a source Histogram.
       function deleteSourceHistograms(diagnosticMap) {
-        for (var [name, diagnostic] of diagnosticMap) {
+        for (let [name, diagnostic] of diagnosticMap) {
           if (diagnostic instanceof tr.v.d.RelatedHistogramSet) {
-            for (var relatedHist of diagnostic) {
+            for (let relatedHist of diagnostic) {
               sourceHistograms.delete(relatedHist.guid);
             }
           } else if (diagnostic instanceof tr.v.d.RelatedHistogramMap) {
-            for (var [name, relatedHist] of diagnostic) {
+            for (let [name, relatedHist] of diagnostic) {
               sourceHistograms.delete(relatedHist.guid);
             }
           }
         }
       }
 
-      for (var hist of this) {
+      for (let hist of this) {
         deleteSourceHistograms(hist.diagnostics);
-        for (var dm of hist.nanDiagnosticMaps) {
+        for (let dm of hist.nanDiagnosticMaps) {
           deleteSourceHistograms(dm);
         }
-        for (var b of hist.allBins) {
-          for (var dm of b.diagnosticMaps) {
+        for (let b of hist.allBins) {
+          for (let dm of b.diagnosticMaps) {
             deleteSourceHistograms(dm);
           }
         }
@@ -264,8 +264,8 @@ tr.exportTo('tr.v', function() {
           return histograms;  // recursion base case
         }
 
-        var grouping = groupings[level];
-        var groupedHistograms = tr.b.groupIntoMap(
+        let grouping = groupings[level];
+        let groupedHistograms = tr.b.groupIntoMap(
             histograms, grouping.callback);
 
         if (opt_skipGroupingCallback && opt_skipGroupingCallback(
@@ -273,7 +273,7 @@ tr.exportTo('tr.v', function() {
           return recurse(histograms, level + 1);
         }
 
-        for (var [key, group] of groupedHistograms) {
+        for (let [key, group] of groupedHistograms) {
           groupedHistograms.set(key, recurse(group, level + 1));
         }
 

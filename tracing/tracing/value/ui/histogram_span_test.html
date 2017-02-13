@@ -16,7 +16,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('basic', function() {
-    var h = new tr.v.Histogram('', tr.b.Unit.byName.unitlessNumber);
+    let h = new tr.v.Histogram('', tr.b.Unit.byName.unitlessNumber);
     h.addSample(-1, {foo: new tr.v.d.Generic('a')});
     h.addSample(0, {foo: new tr.v.d.Generic('b')});
     h.addSample(0, {foo: new tr.v.d.Generic('b')});
@@ -29,27 +29,27 @@ tr.b.unittest.testSuite(function() {
     h.addSample(999, {foo: new tr.v.d.Generic('d')});
     h.addSample(1000, {foo: new tr.v.d.Generic('d')});
 
-    var span = document.createElement('tr-v-ui-histogram-span');
+    let span = document.createElement('tr-v-ui-histogram-span');
     this.addHTMLOutput(span);
     span.histogram = h;
   });
 
   test('undefined', function() {
-    var span = document.createElement('tr-v-ui-histogram-span');
+    let span = document.createElement('tr-v-ui-histogram-span');
     this.addHTMLOutput(span);
     span.histogram = undefined;
   });
 
   test('emptyHistogram', function() {
-    var h = new tr.v.Histogram('', tr.b.Unit.byName.unitlessNumber);
+    let h = new tr.v.Histogram('', tr.b.Unit.byName.unitlessNumber);
 
-    var span = document.createElement('tr-v-ui-histogram-span');
+    let span = document.createElement('tr-v-ui-histogram-span');
     this.addHTMLOutput(span);
     span.histogram = h;
   });
 
   test('singleSample', function() {
-    var h = new tr.v.Histogram('', tr.b.Unit.byName.unitlessNumber);
+    let h = new tr.v.Histogram('', tr.b.Unit.byName.unitlessNumber);
     h.addSample(100, {
       sample_diagnostic_0: new tr.v.d.Generic('foo'),
       sample_diagnostic_1: new tr.v.d.Generic('bar'),
@@ -57,24 +57,24 @@ tr.b.unittest.testSuite(function() {
     h.diagnostics.set('histogram diagnostic 0', new tr.v.d.Generic('baz'));
     h.diagnostics.set('histogram diagnostic 1', new tr.v.d.Generic('qux'));
 
-    var span = document.createElement('tr-v-ui-histogram-span');
+    let span = document.createElement('tr-v-ui-histogram-span');
     this.addHTMLOutput(span);
     span.histogram = h;
   });
 
   test('nans', function() {
-    var h = new tr.v.Histogram('', tr.b.Unit.byName.unitlessNumber);
+    let h = new tr.v.Histogram('', tr.b.Unit.byName.unitlessNumber);
     h.addSample(undefined, {foo: new tr.v.d.Generic('b')});
     h.addSample(NaN, {foo: new tr.v.d.Generic('c')});
     h.customizeSummaryOptions({nans: true});
 
-    var span = document.createElement('tr-v-ui-histogram-span');
+    let span = document.createElement('tr-v-ui-histogram-span');
     this.addHTMLOutput(span);
     span.histogram = h;
   });
 
   test('singleBin', function() {
-    var h = new tr.v.Histogram('', tr.b.Unit.byName.unitlessNumber,
+    let h = new tr.v.Histogram('', tr.b.Unit.byName.unitlessNumber,
         tr.v.HistogramBinBoundaries.SINGULAR);
     h.addSample(0);
     h.addSample(25);
@@ -83,7 +83,7 @@ tr.b.unittest.testSuite(function() {
     h.addSample(25);
     h.addSample(50);
     h.addSample(75);
-    var span = document.createElement('tr-v-ui-histogram-span');
+    let span = document.createElement('tr-v-ui-histogram-span');
     this.addHTMLOutput(span);
     span.histogram = h;
   });

@@ -13,7 +13,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('csvBuilder', function() {
-    var hist0 = new tr.v.Histogram('hist0', tr.b.Unit.byName.sizeInBytes,
+    let hist0 = new tr.v.Histogram('hist0', tr.b.Unit.byName.sizeInBytes,
         tr.v.HistogramBinBoundaries.createLinear(0, 1e3, 10));
     hist0.customizeSummaryOptions({
       nans: true,
@@ -31,12 +31,12 @@ tr.b.unittest.testSuite(function() {
       storyRepeatCounter: 0,
       label: 'label A',
     }).addToHistogram(hist0);
-    for (var i = 0; i <= 1e3; i += 10) {
+    for (let i = 0; i <= 1e3; i += 10) {
       hist0.addSample(i);
     }
     hist0.addSample(NaN);
 
-    var hist1 = new tr.v.Histogram('hist1', tr.b.Unit.byName.sigma);
+    let hist1 = new tr.v.Histogram('hist1', tr.b.Unit.byName.sigma);
     hist0.customizeSummaryOptions({
       std: false,
       count: false,
@@ -45,8 +45,8 @@ tr.b.unittest.testSuite(function() {
       max: false,
     });
 
-    var histograms = new tr.v.HistogramSet([hist0, hist1]);
-    var csv = new tr.v.CSVBuilder(histograms);
+    let histograms = new tr.v.HistogramSet([hist0, hist1]);
+    let csv = new tr.v.CSVBuilder(histograms);
     csv.build();
     assert.strictEqual(csv.toString(), [
       'name,unit,avg,nans,pct_010,pct_090,std,count,sum,min,' +

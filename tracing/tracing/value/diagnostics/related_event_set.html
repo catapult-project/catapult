@@ -30,7 +30,7 @@ tr.exportTo('tr.v.d', function() {
       if (opt_events) {
         if (opt_events instanceof tr.model.EventSet ||
             opt_events instanceof Array) {
-          for (var event of opt_events)
+          for (let event of opt_events)
             this.add(event);
         } else {
           this.add(opt_events);
@@ -58,7 +58,7 @@ tr.exportTo('tr.v.d', function() {
     }
 
     * [Symbol.iterator]() {
-      for (var [stableId, event] of this.eventsByStableId_)
+      for (let [stableId, event] of this.eventsByStableId_)
         yield event;
     }
 
@@ -73,7 +73,7 @@ tr.exportTo('tr.v.d', function() {
      * @param {boolean=} opt_required
      */
     resolve(model, opt_required) {
-      for (var [stableId, event] of this.eventsByStableId_) {
+      for (let [stableId, event] of this.eventsByStableId_) {
         if (!(event instanceof tr.v.d.EventRef))
           continue;
 
@@ -87,7 +87,7 @@ tr.exportTo('tr.v.d', function() {
 
     asDictInto_(d) {
       d.events = [];
-      for (var event of this) {
+      for (let event of this) {
         d.events.push({
           stableId: event.stableId,
           title: event.title,

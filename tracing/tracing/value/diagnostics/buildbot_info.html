@@ -75,7 +75,7 @@ tr.exportTo('tr.v.d', function() {
      * @return {*}
      */
     static getField(hist, fieldName, defaultValue) {
-      var buildbot = BuildbotInfo.getFromHistogram(hist);
+      let buildbot = BuildbotInfo.getFromHistogram(hist);
       if (!(buildbot instanceof tr.v.d.BuildbotInfo) ||
           !buildbot[fieldName]) {
         return defaultValue;

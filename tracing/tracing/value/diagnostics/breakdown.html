@@ -24,7 +24,7 @@ tr.exportTo('tr.v.d', function() {
     }
 
     addDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
-      for (var [name, value] of otherDiagnostic) {
+      for (let [name, value] of otherDiagnostic) {
         this.set(name, this.get(name) + value);
       }
       return this;
@@ -53,13 +53,13 @@ tr.exportTo('tr.v.d', function() {
     }
 
     * [Symbol.iterator]() {
-      for (var pair of this.values_)
+      for (let pair of this.values_)
         yield pair;
     }
 
     asDictInto_(d) {
       d.values = {};
-      for (var [name, value] of this) {
+      for (let [name, value] of this) {
         d.values[name] = tr.b.numberToJson(value);
       }
       if (this.colorScheme) {
@@ -68,7 +68,7 @@ tr.exportTo('tr.v.d', function() {
     }
 
     static fromDict(d) {
-      var breakdown = new Breakdown();
+      let breakdown = new Breakdown();
       tr.b.iterItems(d.values, (name, value) => {
         breakdown.set(name, tr.b.numberFromJson(value));
       });

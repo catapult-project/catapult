@@ -12,9 +12,9 @@ found in the LICENSE file.
 <script>
 'use strict';
 if (tr.isHeadless) {
-  var histograms = new tr.v.HistogramSet();
+  let histograms = new tr.v.HistogramSet();
   histograms.importDicts(JSON.parse(tr.b.getSync('file://' + sys.argv[1])));
-  var csv = new tr.v.CSVBuilder(histograms);
+  let csv = new tr.v.CSVBuilder(histograms);
   csv.build();
   console.log(csv.toString());
 }

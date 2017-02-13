@@ -40,7 +40,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-var DEFAULT_COLOR_SCHEME = new tr.b.SinebowColorGenerator();
+const DEFAULT_COLOR_SCHEME = new tr.b.SinebowColorGenerator();
 
 class BreakdownTableSummaryRow {
   constructor(displayElement, histogramNames) {
@@ -89,7 +89,7 @@ class BreakdownTableRow {
     this.keySpan_ = undefined;
 
     this.color_ = color;
-    var hsl = this.color.toHSL();
+    let hsl = this.color.toHSL();
     hsl.l *= 0.85;
     this.highlightedColor_ = tr.b.Color.fromHSL(hsl);
   }
@@ -149,7 +149,7 @@ class BreakdownTableRow {
 
   get stringPercent() {
     if (this.tableSum_ === undefined) return '';
-    var num = this.numberValue;
+    let num = this.numberValue;
     if (num === undefined) return '';
     return Math.floor(num * 100.0 / this.tableSum_) + '%';
   }
@@ -199,7 +199,7 @@ Polymer({
   },
 
   onRectMouseEnter_(event) {
-    for (var row of this.$.table.tableRows) {
+    for (let row of this.$.table.tableRows) {
       if (row.name === event.rect.key) {
         row.keySpan.parentNode.nextSibling.style.background = event.rect.color;
         row.keySpan.scrollIntoViewIfNeeded();
@@ -210,7 +210,7 @@ Polymer({
   },
 
   onRectMouseLeave_(event) {
-    for (var row of this.$.table.tableRows) {
+    for (let row of this.$.table.tableRows) {
       row.keySpan.parentNode.nextSibling.style.background = '';
     }
   },
@@ -258,12 +258,12 @@ Polymer({
       return;
     }
 
-    var colorScheme = undefined;
+    let colorScheme = undefined;
     // https://github.com/catapult-project/catapult/issues/2970
     if (this.diagnostic.colorScheme ===
         tr.v.d.COLOR_SCHEME_CHROME_USER_FRIENDLY_CATEGORY_DRIVER) {
       colorScheme = (name) => {
-        var cat = name.split(' ');
+        let cat = name.split(' ');
         cat = cat[cat.length - 1];
         return tr.e.chrome.ChromeUserFriendlyCategoryDriver.getColor(cat);
       };
@@ -274,12 +274,12 @@ Polymer({
       colorScheme = (name) => DEFAULT_COLOR_SCHEME.colorForKey(name);
     }
 
-    var tableRows = [];
-    var tableSum = 0;
-    var histogramNames = [];
-    var unit = undefined;
-    for (var [name, value] of this.diagnostic) {
-      var row = new BreakdownTableRow(name, value, colorScheme(name));
+    let tableRows = [];
+    let tableSum = 0;
+    let histogramNames = [];
+    let unit = undefined;
+    for (let [name, value] of this.diagnostic) {
+      let row = new BreakdownTableRow(name, value, colorScheme(name));
       tableRows.push(row);
       if (row.numberValue !== undefined) tableSum += row.numberValue;
       if (row.isHistogram) {
@@ -290,7 +290,7 @@ Polymer({
     tableRows.sort((x, y) => x.compare(y));
 
     if (tableSum > 0) {
-      var summaryDisplayElement = tableSum;
+      let summaryDisplayElement = tableSum;
       if (unit !== undefined) {
         summaryDisplayElement = unit.format(tableSum);
       }
@@ -298,8 +298,8 @@ Polymer({
           summaryDisplayElement, histogramNames));
     }
 
-    var chartData = {x: 0};
-    for (var row of tableRows) {
+    let chartData = {x: 0};
+    for (let row of tableRows) {
       if (row.numberValue === undefined) continue;
 
       // Let the row compute its percentage.
@@ -309,7 +309,7 @@ Polymer({
       chartData[row.name] = row.numberValue;
 
       // Configure the colors.
-      var dataSeries = this.chart_.getDataSeries(row.name);
+      let dataSeries = this.chart_.getDataSeries(row.name);
       dataSeries.color = row.color;
       dataSeries.highlightedColor = row.highlightedColor;
     }

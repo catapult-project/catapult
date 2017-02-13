@@ -8,7 +8,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 tr.exportTo('tr.v.ui', function() {
-  var ArrayOfNumbersSummaryModes = {
+  let ArrayOfNumbersSummaryModes = {
     AVERAGE_MODE: 'average-mode',
     TOTAL_MODE: 'total-mode'
   };
@@ -63,14 +63,14 @@ Polymer({
       return;
     }
 
-    var ArrayOfNumbersSummaryModes = tr.v.ui.ArrayOfNumbersSummaryModes;
-    var value;
+    let ArrayOfNumbersSummaryModes = tr.v.ui.ArrayOfNumbersSummaryModes;
+    let value;
     if (this.summaryMode_ === ArrayOfNumbersSummaryModes.AVERAGE_MODE)
       value = tr.b.Statistics.mean(this.numbers_);
     else
       value = tr.b.Statistics.sum(this.numbers_);
 
-    var valueRounded = Math.round(value * 1000.0) / 1000.0;
+    let valueRounded = Math.round(value * 1000.0) / 1000.0;
     Polymer.dom(this.root).textContent = valueRounded;
   }
 });

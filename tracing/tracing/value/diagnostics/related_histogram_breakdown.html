@@ -11,7 +11,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.v.d', function() {
-  var COLOR_SCHEME_CHROME_USER_FRIENDLY_CATEGORY_DRIVER =
+  const COLOR_SCHEME_CHROME_USER_FRIENDLY_CATEGORY_DRIVER =
     'ChromeUserFriendlyCategory';
 
   /**
@@ -63,7 +63,7 @@ tr.exportTo('tr.v.d', function() {
     }
 
     static fromDict(d) {
-      var diagnostic = new RelatedHistogramBreakdown();
+      let diagnostic = new RelatedHistogramBreakdown();
       tr.b.iterItems(d.values, function(name, guid) {
         diagnostic.set(name, new tr.v.d.HistogramRef(guid));
       });
@@ -92,15 +92,15 @@ tr.exportTo('tr.v.d', function() {
     */
     static buildFromEvents(histograms, namePrefix, events, categoryForEvent,
         unit, opt_sampleForEvent, opt_binBoundaries, opt_this) {
-      var sampleForEvent = opt_sampleForEvent || ((event) => event.cpuSelfTime);
+      let sampleForEvent = opt_sampleForEvent || ((event) => event.cpuSelfTime);
 
-      var diagnostic = new RelatedHistogramBreakdown();
-      for (var event of events) {
-        var sample = sampleForEvent.call(opt_this, event);
+      let diagnostic = new RelatedHistogramBreakdown();
+      for (let event of events) {
+        let sample = sampleForEvent.call(opt_this, event);
         if (sample === undefined) continue;
 
-        var eventCategory = categoryForEvent.call(opt_this, event);
-        var hist = diagnostic.get(eventCategory);
+        let eventCategory = categoryForEvent.call(opt_this, event);
+        let hist = diagnostic.get(eventCategory);
         if (hist === undefined) {
           hist = new tr.v.Histogram(
               namePrefix + eventCategory, unit, opt_binBoundaries);

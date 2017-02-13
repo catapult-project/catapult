@@ -13,8 +13,8 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('instantiate', function() {
-    var diagnostic = new tr.v.d.Generic({foo: 'bar', baz: [42]});
-    var span = tr.v.ui.createDiagnosticSpan(diagnostic);
+    let diagnostic = new tr.v.d.Generic({foo: 'bar', baz: [42]});
+    let span = tr.v.ui.createDiagnosticSpan(diagnostic);
     assert.strictEqual('TR-V-UI-GENERIC-DIAGNOSTIC-SPAN', span.tagName);
     this.addHTMLOutput(span);
   });

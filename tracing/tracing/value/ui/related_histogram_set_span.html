@@ -27,7 +27,7 @@ found in the LICENSE file.
     },
 
     addLink_(selection, content) {
-      var link = document.createElement('tr-ui-a-analysis-link');
+      let link = document.createElement('tr-ui-a-analysis-link');
       link.setSelectionAndContent(selection, content);
       Polymer.dom(this).appendChild(link);
       Polymer.dom(this).appendChild(document.createElement('br'));
@@ -36,15 +36,15 @@ found in the LICENSE file.
     updateContents_() {
       Polymer.dom(this).textContent = '';
 
-      var histogramNames = new Set();
-      for (var hist of this.diagnostic) {
+      let histogramNames = new Set();
+      for (let hist of this.diagnostic) {
         histogramNames.add(hist.name);
       }
       if (histogramNames.size > 1) {
         this.addLink_(Array.from(histogramNames), 'Select All');
       }
 
-      for (var hist of this.diagnostic) {
+      for (let hist of this.diagnostic) {
         this.addLink_([hist.name], hist.name);
       }
     }

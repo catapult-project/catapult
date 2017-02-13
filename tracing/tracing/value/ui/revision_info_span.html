@@ -16,12 +16,12 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-var CHROMIUM_REVISION_HOST = 'https://chromium.googlesource.com/chromium/src/';
-var V8_REVISION_HOST = 'https://chromium.googlesource.com/v8/v8.git/';
-var CATAPULT_REVISION_HOST = 'https://chromium.googlesource.com/external/github.com/catapult-project/catapult.git/';
-var ANGLE_REVISION_HOST = 'https://chromium.googlesource.com/angle/angle/';
-var SKIA_REVISION_HOST = 'https://chromium.googlesource.com/skia/';
-var WEBRTC_REVISION_HOST = 'https://chromium.googlesource.com/external/webrtc/';
+const CHROMIUM_REVISION_HOST = 'https://chromium.googlesource.com/chromium/src/';
+const V8_REVISION_HOST = 'https://chromium.googlesource.com/v8/v8.git/';
+const CATAPULT_REVISION_HOST = 'https://chromium.googlesource.com/external/github.com/catapult-project/catapult.git/';
+const ANGLE_REVISION_HOST = 'https://chromium.googlesource.com/angle/angle/';
+const SKIA_REVISION_HOST = 'https://chromium.googlesource.com/skia/';
+const WEBRTC_REVISION_HOST = 'https://chromium.googlesource.com/external/webrtc/';
 
 Polymer({
   is: 'tr-v-ui-revision-info-span',
@@ -47,7 +47,7 @@ Polymer({
   buildRow_(rows, label, revisions, host) {
     if (revisions.length === 0) return;
 
-    var anchor = document.createElement('a');
+    let anchor = document.createElement('a');
     anchor.innerText = revisions[0];
 
     if (revisions.length === 1) {
@@ -71,7 +71,7 @@ Polymer({
       return;
     }
 
-    var rows = [];
+    let rows = [];
     if (this.diagnostic.chromiumCommitPosition) {
       rows.push([
         'chromiumCommitPosition', this.diagnostic.chromiumCommitPosition]);

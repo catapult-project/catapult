@@ -49,13 +49,13 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-var DELTA = String.fromCharCode(916);
+const DELTA = String.fromCharCode(916);
 
-var ABS_DELTA_AVG_NAME = 'abs' + DELTA + 'avg';
+const ABS_DELTA_AVG_NAME = 'abs' + DELTA + 'avg';
 
-var DEFAULT_BAR_HEIGHT_PX = 5;
+const DEFAULT_BAR_HEIGHT_PX = 5;
 
-var TRUNCATE_BIN_MARGIN = 0.15;
+const TRUNCATE_BIN_MARGIN = 0.15;
 
 Polymer({
   is: 'tr-v-ui-histogram-span',
@@ -82,7 +82,7 @@ Polymer({
 
   onResize_(event) {
     event.stopPropagation();
-    var heightPx = parseInt(this.$.container.style.height);
+    let heightPx = parseInt(this.$.container.style.height);
     if (heightPx < this.defaultGraphHeight) {
       heightPx = this.defaultGraphHeight;
       this.$.container.style.height = this.defaultGraphHeight + 'px';
@@ -174,7 +174,7 @@ Polymer({
   },
 
   updateBrushedRange_(binIndex) {
-    var brushedBinIndices = new tr.b.Range();
+    let brushedBinIndices = new tr.b.Range();
     brushedBinIndices.addValue(tr.b.clamp(
         this.mouseDownBinIndex_, 0, this.histogram.allBins.length - 1));
     brushedBinIndices.addValue(tr.b.clamp(
@@ -183,7 +183,7 @@ Polymer({
     this.chart_.brushedRange = brushedBinIndices;
 
     this.brushedBins_ = [];
-    for (var i = brushedBinIndices.min; i < brushedBinIndices.max; ++i) {
+    for (let i = brushedBinIndices.min; i < brushedBinIndices.max; ++i) {
       this.brushedBins.push(this.histogram.allBins[i]);
     }
   },
@@ -223,9 +223,9 @@ Polymer({
   },
 
   updateDiagnostics_(bins) {
-    var maps = [];
-    for (var bin of bins) {
-      for (var map of bin.diagnosticMaps) {
+    let maps = [];
+    for (let bin of bins) {
+      for (let map of bin.diagnosticMaps) {
         maps.push(map);
       }
     }
@@ -269,13 +269,13 @@ Polymer({
       return;
     }
 
-    var absDeltaAvg = this.histogram.average -
+    let absDeltaAvg = this.histogram.average -
       this.referenceHistogram.average;
     scalarMap.set(ABS_DELTA_AVG_NAME, new tr.b.Scalar(
         this.histogram.unit.correspondingDeltaUnit,
         absDeltaAvg));
 
-    var suffix = tr.b.Unit.nameSuffixForImprovementDirection(
+    let suffix = tr.b.Unit.nameSuffixForImprovementDirection(
         this.histogram.unit.improvementDirection);
 
     scalarMap.set('%' + DELTA + 'avg', new tr.b.Scalar(
@@ -286,7 +286,7 @@ Polymer({
         tr.b.Unit.byName['sigmaDelta' + suffix],
         absDeltaAvg / this.referenceHistogram.standardDeviation));
 
-    var mwu = tr.b.Statistics.mwu(
+    let mwu = tr.b.Statistics.mwu(
         this.histogram.sampleValues, this.referenceHistogram.sampleValues);
     scalarMap.set('p-value', new tr.b.Scalar(
         tr.b.Unit.byName.unitlessNumber,
@@ -321,16 +321,16 @@ Polymer({
     if (!this.histogram) return;
     this.$.container.style.display = '';
 
-    var scalarMap = new Map();
+    let scalarMap = new Map();
     this.getDeltaScalars_(scalarMap);
-    for (var [name, scalar] of this.histogram.statisticsScalars) {
+    for (let [name, scalar] of this.histogram.statisticsScalars) {
       scalarMap.set(name, scalar);
     }
     this.$.stats.scalarMap = scalarMap;
 
     if (this.histogram.diagnostics.size > 0) {
-      var diagnosticMap = new tr.v.d.DiagnosticMap();
-      for (var [key, diagnostic] of this.histogram.diagnostics) {
+      let diagnosticMap = new tr.v.d.DiagnosticMap();
+      for (let [key, diagnostic] of this.histogram.diagnostics) {
         // Hide the 'merged from' diagnostic, which is an implementation detail.
         if (key !== tr.v.d.MERGED_FROM_DIAGNOSTIC_KEY) {
           diagnosticMap.set(key, diagnostic);
@@ -386,10 +386,10 @@ Polymer({
     this.chart_.xAxisLabel = '#';
     this.chart_.brushedRange = new tr.b.Range();
 
-    var chartData = [];
-    var binCounts = [];
-    for (var bin of this.histogram.allBins) {
-      var x = bin.range.min;
+    let chartData = [];
+    let binCounts = [];
+    for (let bin of this.histogram.allBins) {
+      let x = bin.range.min;
       if (x === -Number.MAX_VALUE) {
         x = '<' + new tr.b.Scalar(
             this.histogram.unit, bin.range.max).toString();
@@ -404,7 +404,7 @@ Polymer({
     // largest bin, then set the dataRange max to TRUNCATE_BIN_MARGIN% more than
     // that next largest bin.
     binCounts.sort((x, y) => y - x);
-    var dataRange = tr.b.Range.fromExplicitRange(0, binCounts[0]);
+    let dataRange = tr.b.Range.fromExplicitRange(0, binCounts[0]);
     if (binCounts[1] > 0 && binCounts[0] > (binCounts[1] * 2)) {
       dataRange.max = binCounts[1] * (1 + TRUNCATE_BIN_MARGIN);
     }

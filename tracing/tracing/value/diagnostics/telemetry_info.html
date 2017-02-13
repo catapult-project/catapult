@@ -50,7 +50,7 @@ tr.exportTo('tr.v.d', function() {
      * @return {!tr.v.d.MergedTelemetryInfo}
      */
     addDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
-      var merged = new tr.v.d.MergedTelemetryInfo();
+      let merged = new tr.v.d.MergedTelemetryInfo();
       merged.addDiagnostic(this);
       merged.addDiagnostic(otherDiagnostic);
       return merged;
@@ -118,7 +118,7 @@ tr.exportTo('tr.v.d', function() {
       d.storyDisplayName = this.storyDisplayName;
       if (this.storyGroupingKeys.size > 0) {
         d.storyGroupingKeys = {};
-        for (var [name, value] of this.storyGroupingKeys) {
+        for (let [name, value] of this.storyGroupingKeys) {
           d.storyGroupingKeys[name] = value;
         }
       }
@@ -129,7 +129,7 @@ tr.exportTo('tr.v.d', function() {
     }
 
     static fromDict(d) {
-      var info = new TelemetryInfo();
+      let info = new TelemetryInfo();
       info.addInfo(d);
       return info;
     }
@@ -199,7 +199,7 @@ tr.exportTo('tr.v.d', function() {
      * @return {*}
      */
     static getField(hist, fieldName, defaultValue) {
-      var telemetry = tr.v.d.TelemetryInfo.getFromHistogram(hist);
+      let telemetry = tr.v.d.TelemetryInfo.getFromHistogram(hist);
       if (!(telemetry instanceof tr.v.d.TelemetryInfo) ||
           !telemetry[fieldName]) {
         return defaultValue;
@@ -213,7 +213,7 @@ tr.exportTo('tr.v.d', function() {
      * @return {string}
      */
     static getStoryGroupingKeyLabel(hist, storyGroupingKey) {
-      var telemetry = tr.v.d.TelemetryInfo.getFromHistogram(hist);
+      let telemetry = tr.v.d.TelemetryInfo.getFromHistogram(hist);
       if (!(telemetry instanceof tr.v.d.TelemetryInfo)) {
         return storyGroupingKey + ': undefined';
       }

@@ -15,11 +15,11 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('instantiate0', function() {
-    var view = document.createElement('tr-v-ui-histogram-set-view');
-    var histograms = new tr.v.HistogramSet();
+    let view = document.createElement('tr-v-ui-histogram-set-view');
+    let histograms = new tr.v.HistogramSet();
 
-    var hist = new tr.v.Histogram('foo', tr.b.Unit.byName.normalizedPercentage);
-    for (var i = 0; i < 1e2; ++i)
+    let hist = new tr.v.Histogram('foo', tr.b.Unit.byName.normalizedPercentage);
+    for (let i = 0; i < 1e2; ++i)
       hist.addSample(Math.random());
     histograms.addHistogram(hist);
 

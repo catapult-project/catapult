@@ -14,19 +14,19 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('eventSet', function() {
-    var slice = undefined;
-    var model = tr.c.TestUtils.newModel(function(model) {
+    let slice = undefined;
+    let model = tr.c.TestUtils.newModel(function(model) {
       slice = tr.c.TestUtils.newSliceEx({
         type: tr.model.ThreadSlice,
         title: 'foo',
         start: 0,
         duration: 10
       });
-      var thread = model.getOrCreateProcess(1).getOrCreateThread(2);
+      let thread = model.getOrCreateProcess(1).getOrCreateThread(2);
       thread.sliceGroup.pushSlice(slice);
     });
 
-    var d = new tr.v.d.RelatedEventSet(slice);
+    let d = new tr.v.d.RelatedEventSet(slice);
     assert.strictEqual(tr.b.getOnlyElement([...d]), slice);
 
     d = new tr.v.d.RelatedEventSet([slice]);
@@ -35,7 +35,7 @@ tr.b.unittest.testSuite(function() {
     d = new tr.v.d.RelatedEventSet(new tr.model.EventSet([slice]));
     assert.strictEqual(tr.b.getOnlyElement([...d]), slice);
 
-    var d2 = tr.v.d.Diagnostic.fromDict(d.asDict());
+    let d2 = tr.v.d.Diagnostic.fromDict(d.asDict());
     assert.instanceOf(d2, tr.v.d.RelatedEventSet);
 
     assert.instanceOf(tr.b.getOnlyElement([...d2]), tr.v.d.EventRef);

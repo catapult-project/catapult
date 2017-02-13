@@ -10,7 +10,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('instantiateInAverageMode', function() {
-    var span = document.createElement('tr-v-ui-array-of-numbers-span');
+    let span = document.createElement('tr-v-ui-array-of-numbers-span');
     span.numbers = [1, 2, 3];
     span.summaryMode = tr.v.ui.ArrayOfNumbersSummaryModes.AVERAGE_MODE;
     this.addHTMLOutput(span);
@@ -18,7 +18,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiateInTotalsMode', function() {
-    var span = document.createElement('tr-v-ui-array-of-numbers-span');
+    let span = document.createElement('tr-v-ui-array-of-numbers-span');
     span.numbers = [1, 2, 3];
     span.summaryMode = tr.v.ui.ArrayOfNumbersSummaryModes.TOTALS_MODE;
     this.addHTMLOutput(span);

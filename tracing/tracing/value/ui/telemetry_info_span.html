@@ -49,7 +49,7 @@ Polymer({
       return;
     }
 
-    var rows = [];
+    let rows = [];
 
     if (this.diagnostic.benchmarkName) {
       rows.push(['benchmark name', this.diagnostic.benchmarkName]);
@@ -73,9 +73,9 @@ Polymer({
       rows.push(['label', this.diagnostic.label]);
     }
     if (this.diagnostic.storyGroupingKeys.size) {
-      var gov = document.createElement('tr-ui-a-generic-object-view');
-      var obj = {};
-      for (var [key, value] of this.diagnostic.storyGroupingKeys) {
+      let gov = document.createElement('tr-ui-a-generic-object-view');
+      let obj = {};
+      for (let [key, value] of this.diagnostic.storyGroupingKeys) {
         obj[key] = value;
       }
       gov.object = obj;

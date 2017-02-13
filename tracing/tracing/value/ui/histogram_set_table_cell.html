@@ -243,18 +243,18 @@ tr.exportTo('tr.ui', function() {
       this.$.overview_container.style.display = 'block';
       if (this.overviewChart_ !== undefined) return;
 
-      // TODO(benjhayden) When TelemetryInfo is merged: var displayLabel =
+      // TODO(benjhayden) When TelemetryInfo is merged: let displayLabel =
       // tr.v.HistogramSet.GROUPINGS.DISPLAY_LABEL.callback(this.histogram);
-      var displayLabel = undefined;
-      for (var [label, hist] of this.row.columns) {
+      let displayLabel = undefined;
+      for (let [label, hist] of this.row.columns) {
         if (hist === this.histogram) {
           displayLabel = label;
         }
       }
-      var data = [];
-      var unitString = undefined;
-      for (var subRow of this.row.subRows) {
-        var subHist = subRow.columns.get(displayLabel);
+      let data = [];
+      let unitString = undefined;
+      for (let subRow of this.row.subRows) {
+        let subHist = subRow.columns.get(displayLabel);
         if (subHist) {
           data.push({x: subRow.name, y: subHist.average});
           unitString = subHist.unit.unitString;

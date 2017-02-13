@@ -13,13 +13,13 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('instantiate', function() {
-    var map0 = new tr.v.d.DiagnosticMap();
+    let map0 = new tr.v.d.DiagnosticMap();
     map0.set('genericA', new tr.v.d.Generic({a: 0}));
     map0.set('genericB', new tr.v.d.Generic({b: 0}));
-    var map1 = new tr.v.d.DiagnosticMap();
+    let map1 = new tr.v.d.DiagnosticMap();
     map1.set('genericA', new tr.v.d.Generic({a: 1}));
     map1.set('genericB', new tr.v.d.Generic({b: 1}));
-    var table = document.createElement('tr-v-ui-diagnostic-map-table');
+    let table = document.createElement('tr-v-ui-diagnostic-map-table');
     table.diagnosticMaps = [map0, map1];
     this.addHTMLOutput(table);
   });

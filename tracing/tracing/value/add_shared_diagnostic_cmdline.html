@@ -12,7 +12,7 @@ found in the LICENSE file.
 'use strict';
 
 if (tr.isHeadless) {
-  var histograms = new tr.v.Histograms();
+  let histograms = new tr.v.Histograms();
   histograms.importDicts(JSON.parse(tr.b.getSync('file://' + sys.argv[1])));
   histograms.addSharedDiagnostic(sys.argv[2], tr.v.d.Diagnostic.fromDict(
       JSON.parse(tr.b.getSync('file://' + sys.argv[3]))));

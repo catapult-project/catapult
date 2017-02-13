@@ -29,11 +29,11 @@ found in the LICENSE file.
 
     updateContents_: function() {
       Polymer.dom(this).textContent = '';
-      var events = new tr.model.EventSet([...this.diagnostic]);
-      var link = document.createElement('tr-ui-a-analysis-link');
-      var label = events.length + ' events';
+      let events = new tr.model.EventSet([...this.diagnostic]);
+      let link = document.createElement('tr-ui-a-analysis-link');
+      let label = events.length + ' events';
       if (events.length === 1) {
-        var event = tr.b.getOnlyElement(events);
+        let event = tr.b.getOnlyElement(events);
         label = event.title + ' ';
         label += tr.b.Unit.byName.timeDurationInMs.format(
             event.duration);

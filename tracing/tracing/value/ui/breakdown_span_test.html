@@ -17,32 +17,32 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('instantiate_RelatedHistogramBreakdown', function() {
-    var breakdown = new tr.v.d.RelatedHistogramBreakdown();
+    let breakdown = new tr.v.d.RelatedHistogramBreakdown();
 
-    var qux = new tr.v.Histogram('qux', tr.b.Unit.byName.timeDurationInMs);
+    let qux = new tr.v.Histogram('qux', tr.b.Unit.byName.timeDurationInMs);
     qux.addSample(1);
     breakdown.add(qux);
 
     // The title of the analysis-link should match the histogram name, not the
     // breakdown key.
-    var foo = new tr.v.Histogram('foo', tr.b.Unit.byName.timeDurationInMs);
+    let foo = new tr.v.Histogram('foo', tr.b.Unit.byName.timeDurationInMs);
     breakdown.set('f', foo);
 
-    var bar = new tr.v.Histogram('bar', tr.b.Unit.byName.timeDurationInMs);
+    let bar = new tr.v.Histogram('bar', tr.b.Unit.byName.timeDurationInMs);
     breakdown.add(bar);
 
-    for (var i = 0; i < 1e2; ++i) {
+    for (let i = 0; i < 1e2; ++i) {
       foo.addSample(Math.random());
       bar.addSample(Math.random());
     }
 
-    var span = tr.v.ui.createDiagnosticSpan(breakdown);
+    let span = tr.v.ui.createDiagnosticSpan(breakdown);
     assert.strictEqual('TR-V-UI-BREAKDOWN-SPAN', span.tagName);
     this.addHTMLOutput(span);
   });
 
   test('instantiate_Breakdown', function() {
-    var breakdown = new tr.v.d.Breakdown();
+    let breakdown = new tr.v.d.Breakdown();
     breakdown.colorScheme =
       tr.v.d.COLOR_SCHEME_CHROME_USER_FRIENDLY_CATEGORY_DRIVER;
     breakdown.set('script', 42);
@@ -56,20 +56,20 @@ tr.b.unittest.testSuite(function() {
     breakdown.set('<0', -1);
 
     // Test lots of categories
-    for (var i = 0; i < 10; ++i) {
+    for (let i = 0; i < 10; ++i) {
       breakdown.set('cat ' + i, i);
     }
 
     // Test round-tripping.
     breakdown = tr.v.d.Diagnostic.fromDict(breakdown.asDict());
 
-    var span = tr.v.ui.createDiagnosticSpan(breakdown);
+    let span = tr.v.ui.createDiagnosticSpan(breakdown);
     assert.strictEqual('TR-V-UI-BREAKDOWN-SPAN', span.tagName);
     this.addHTMLOutput(span);
   });
 
   test('instantiate_BreakdownWithFixedColorScheme', function() {
-    var colorScheme = tr.b.FixedColorScheme.fromNames([
+    let colorScheme = tr.b.FixedColorScheme.fromNames([
       'foo',
       'bar',
     ]);
@@ -77,7 +77,7 @@ tr.b.unittest.testSuite(function() {
       'name': 'myColorScheme',
     });
 
-    var breakdown = new tr.v.d.Breakdown();
+    let breakdown = new tr.v.d.Breakdown();
     breakdown.colorScheme = 'myColorScheme';
     breakdown.set('foo', 42);
     breakdown.set('bar', 57);
@@ -85,7 +85,7 @@ tr.b.unittest.testSuite(function() {
     // Test round-tripping.
     breakdown = tr.v.d.Diagnostic.fromDict(breakdown.asDict());
 
-    var span = tr.v.ui.createDiagnosticSpan(breakdown);
+    let span = tr.v.ui.createDiagnosticSpan(breakdown);
     span.updateContents_();
     assert.strictEqual(
         span.chart_.getDataSeries('foo').color, colorScheme.getColor('foo'));
@@ -93,21 +93,21 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('empty', function() {
-    var breakdown = new tr.v.d.Breakdown();
-    var span = tr.v.ui.createDiagnosticSpan(breakdown);
+    let breakdown = new tr.v.d.Breakdown();
+    let span = tr.v.ui.createDiagnosticSpan(breakdown);
     assert.strictEqual('TR-V-UI-BREAKDOWN-SPAN', span.tagName);
     this.addHTMLOutput(span);
   });
 
   test('emptyExceptForWeirdNumbers', function() {
-    var breakdown = new tr.v.d.Breakdown();
+    let breakdown = new tr.v.d.Breakdown();
     breakdown.set('ba---a', NaN);
     breakdown.set('inf', Infinity);
     breakdown.set('-inf', -Infinity);
     breakdown.set('goose egg', 0);
     breakdown.set('<0', -1);
 
-    var span = tr.v.ui.createDiagnosticSpan(breakdown);
+    let span = tr.v.ui.createDiagnosticSpan(breakdown);
     assert.strictEqual('TR-V-UI-BREAKDOWN-SPAN', span.tagName);
     this.addHTMLOutput(span);
   });

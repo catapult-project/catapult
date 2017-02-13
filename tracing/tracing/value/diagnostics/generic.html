@@ -31,7 +31,7 @@ tr.exportTo('tr.v.d', function() {
     }
 
     addDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
-      var result = new Generic([]);
+      let result = new Generic([]);
       result._merged = true;
       if (this._merged) {
         result.value.push(...this.value);

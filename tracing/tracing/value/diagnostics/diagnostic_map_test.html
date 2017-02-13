@@ -14,7 +14,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('clone', function() {
-    var diagnostics = new tr.v.d.DiagnosticMap();
+    let diagnostics = new tr.v.d.DiagnosticMap();
     diagnostics.set('generic', new tr.v.d.Generic({a: ['b', 3]}));
     diagnostics.set('breakdown', new tr.v.d.Breakdown());
     diagnostics.set('events', new tr.v.d.RelatedEventSet());
@@ -23,7 +23,7 @@ tr.b.unittest.testSuite(function() {
     diagnostics.set('histogram breakdown',
         new tr.v.d.RelatedHistogramBreakdown());
 
-    var clone = tr.v.d.DiagnosticMap.fromDict(diagnostics.asDict());
+    let clone = tr.v.d.DiagnosticMap.fromDict(diagnostics.asDict());
     assert.instanceOf(clone.get('generic'), tr.v.d.Generic);
     assert.deepEqual(clone.get('generic').value,
         diagnostics.get('generic').value);
@@ -47,7 +47,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('merge', function() {
-    var event = tr.c.TestUtils.newSliceEx({
+    let event = tr.c.TestUtils.newSliceEx({
       title: 'event',
       start: 0,
       duration: 1,
@@ -58,24 +58,24 @@ tr.b.unittest.testSuite(function() {
         slices: [event],
       },
     };
-    var generic = new tr.v.d.Generic('generic diagnostic');
-    var generic2 = new tr.v.d.Generic('generic diagnostic 2');
-    var relatedSet = new tr.v.d.RelatedHistogramSet([
+    let generic = new tr.v.d.Generic('generic diagnostic');
+    let generic2 = new tr.v.d.Generic('generic diagnostic 2');
+    let relatedSet = new tr.v.d.RelatedHistogramSet([
       new tr.v.Histogram('histogram', tr.b.Unit.byName.count),
     ]);
-    var events = new tr.v.d.RelatedEventSet([event]);
+    let events = new tr.v.d.RelatedEventSet([event]);
 
     // When Histograms are merged, first an empty clone is created with an empty
     // DiagnosticMap.
-    var hist = new tr.v.Histogram('', tr.b.Unit.byName.count);
+    let hist = new tr.v.Histogram('', tr.b.Unit.byName.count);
 
-    var hist2 = new tr.v.Histogram('', tr.b.Unit.byName.count);
+    let hist2 = new tr.v.Histogram('', tr.b.Unit.byName.count);
     hist2.diagnostics.set('a', generic);
     hist.diagnostics.merge(hist2.diagnostics, hist, hist2);
     assert.strictEqual(generic, hist.diagnostics.get('a'));
 
     // Separate keys are not merged.
-    var hist3 = new tr.v.Histogram('', tr.b.Unit.byName.count);
+    let hist3 = new tr.v.Histogram('', tr.b.Unit.byName.count);
     hist3.diagnostics.set('b', generic2);
     hist.diagnostics.merge(hist3.diagnostics, hist, hist3);
     assert.strictEqual(generic, hist.diagnostics.get('a'));
@@ -83,17 +83,17 @@ tr.b.unittest.testSuite(function() {
 
     // Merging unmergeable diagnostics should produce an
     // UnmergeableDiagnosticSet.
-    var hist4 = new tr.v.Histogram('', tr.b.Unit.byName.count);
+    let hist4 = new tr.v.Histogram('', tr.b.Unit.byName.count);
     hist4.diagnostics.set('a', relatedSet);
     hist.diagnostics.merge(hist4.diagnostics, hist, hist4);
     assert.instanceOf(hist.diagnostics.get('a'),
         tr.v.d.UnmergeableDiagnosticSet);
-    var diagnostics = Array.from(hist.diagnostics.get('a'));
+    let diagnostics = Array.from(hist.diagnostics.get('a'));
     assert.strictEqual(generic, diagnostics[0]);
     assert.strictEqual(relatedSet, diagnostics[1]);
 
     // UnmergeableDiagnosticSets are mergeable.
-    var hist5 = new tr.v.Histogram('', tr.b.Unit.byName.count);
+    let hist5 = new tr.v.Histogram('', tr.b.Unit.byName.count);
     hist5.diagnostics.set('a', new tr.v.d.UnmergeableDiagnosticSet([
       events, generic2]));
     hist.diagnostics.merge(hist5.diagnostics, hist, hist5);

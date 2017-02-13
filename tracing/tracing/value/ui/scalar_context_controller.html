@@ -82,7 +82,7 @@ tr.exportTo('tr.v.ui', function() {
             'Scalar context controller is already attached to a host');
       }
 
-      var host = findParentOrHost(this);
+      let host = findParentOrHost(this);
       if (host.__scalarContextController) {
         throw new Error(
             'Multiple scalar context controllers attached to this host');
@@ -109,7 +109,7 @@ tr.exportTo('tr.v.ui', function() {
     },
 
     onScalarSpanAdded: function(group, span) {
-      var context = this.groupToContext_.get(group);
+      let context = this.groupToContext_.get(group);
       if (context === undefined) {
         context = {
           spans: new Set(),
@@ -124,7 +124,7 @@ tr.exportTo('tr.v.ui', function() {
     },
 
     onScalarSpanRemoved: function(group, span) {
-      var context = this.groupToContext_.get(group);
+      let context = this.groupToContext_.get(group);
       if (!context.spans.has(span))
         throw new Error('Scalar span not registered with group: ' + group);
       context.spans.delete(span);
@@ -132,14 +132,14 @@ tr.exportTo('tr.v.ui', function() {
     },
 
     onScalarSpanUpdated: function(group, span) {
-      var context = this.groupToContext_.get(group);
+      let context = this.groupToContext_.get(group);
       if (!context.spans.has(span))
         throw new Error('Scalar span not registered with group: ' + group);
       this._markGroupDirtyAndScheduleUpdate(group);
     },
 
     _markGroupDirtyAndScheduleUpdate: function(group) {
-      var alreadyDirty = this.dirtyGroups_.size > 0;
+      let alreadyDirty = this.dirtyGroups_.size > 0;
       this.dirtyGroups_.add(group);
       if (!alreadyDirty) {
         tr.b.requestAnimationFrameInThisFrameIfPossible(
@@ -148,27 +148,27 @@ tr.exportTo('tr.v.ui', function() {
     },
 
     updateContext: function() {
-      var groups = this.dirtyGroups_;
+      let groups = this.dirtyGroups_;
       if (groups.size === 0)
         return;
       this.dirtyGroups_ = new Set();
 
-      for (var group of groups)
+      for (let group of groups)
         this.updateGroup_(group);
 
-      var event = new tr.b.Event('context-updated');
+      let event = new tr.b.Event('context-updated');
       event.groups = groups;
       this.dispatchEvent(event);
     },
 
     updateGroup_: function(group) {
-      var context = this.groupToContext_.get(group);
+      let context = this.groupToContext_.get(group);
       if (context.spans.size === 0) {
         this.groupToContext_.delete(group);
         return;
       }
       context.range.reset();
-      for (var span of context.spans)
+      for (let span of context.spans)
         context.range.addValue(span.value);
     }
   });

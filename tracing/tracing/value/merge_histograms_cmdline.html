@@ -14,7 +14,7 @@ found in the LICENSE file.
 // TODO(benjhayden): Test after MergedTelemetryInfo.
 
 function findGrouping(key) {
-  for (var grouping of Object.values(tr.v.HistogramSet.GROUPINGS)) {
+  for (let grouping of Object.values(tr.v.HistogramSet.GROUPINGS)) {
     if (grouping.key === key) {
       return grouping;
     }
@@ -24,14 +24,14 @@ function findGrouping(key) {
 }
 
 function findMergeable(hist, candidates) {
-  for (var candidate of candidates) {
+  for (let candidate of candidates) {
     if (candidate.canAddHistogram(hist)) return candidate;
   }
   return undefined;
 }
 
 function mergeLeafHistograms(groupedHistograms, mergedHistograms) {
-  for (var [name, histograms] of groupedHistograms) {
+  for (let [name, histograms] of groupedHistograms) {
     if (histograms instanceof Map) {
       mergeLeafHistograms(histograms, mergedHistograms);
       continue;
@@ -46,28 +46,28 @@ function mergeLeafHistograms(groupedHistograms, mergedHistograms) {
     // mergedHistograms.
     // If it isn't possible to merge all Histograms in |histograms| together,
     // then merge them into as few merged Histograms as possible.
-    var merged = [histograms[0].cloneEmpty()];
-    for (var hist of histograms) {
-      var candidate = findMergeable(hist, merged);
+    let merged = [histograms[0].cloneEmpty()];
+    for (let hist of histograms) {
+      let candidate = findMergeable(hist, merged);
       if (candidate === undefined) {
         candidate = hist.cloneEmpty();
         merged.push(candidate);
       }
       candidate.addHistogram(hist);
     }
-    for (var hist of merged) {
+    for (let hist of merged) {
       mergedHistograms.addHistogram(hist);
     }
   }
 }
 
 if (tr.isHeadless) {
-  var histograms = new tr.v.HistogramSet();
+  let histograms = new tr.v.HistogramSet();
   histograms.importDicts(JSON.parse(tr.b.getSync('file://' + sys.argv[1])));
-  var groupingKeys = sys.argv.slice(2);
-  var groupings = groupingKeys.map(findGrouping);
-  var groupedHistograms = histograms.groupHistogramsRecursively(groupings);
-  var mergedHistograms = new tr.v.HistogramSet();
+  let groupingKeys = sys.argv.slice(2);
+  let groupings = groupingKeys.map(findGrouping);
+  let groupedHistograms = histograms.groupHistogramsRecursively(groupings);
+  let mergedHistograms = new tr.v.HistogramSet();
   mergeLeafHistograms(groupedHistograms, mergedHistograms);
   console.log(JSON.stringify(mergedHistograms.asDicts()));
 }

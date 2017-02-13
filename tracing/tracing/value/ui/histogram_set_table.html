@@ -128,9 +128,9 @@ found in the LICENSE file.
 <script>
 'use strict';
 tr.exportTo('tr.v.ui', function() {
-  var getDisplayLabel = tr.v.HistogramSet.GROUPINGS.DISPLAY_LABEL.callback;
+  let getDisplayLabel = tr.v.HistogramSet.GROUPINGS.DISPLAY_LABEL.callback;
 
-  var DEFAULT_POSSIBLE_GROUPS = [];
+  const DEFAULT_POSSIBLE_GROUPS = [];
   DEFAULT_POSSIBLE_GROUPS.push(new tr.v.HistogramGrouping(
       tr.v.HistogramSet.GROUPINGS.HISTOGRAM_NAME.key,
       h => h.shortName || h.name));
@@ -144,11 +144,11 @@ tr.exportTo('tr.v.ui', function() {
       DEFAULT_POSSIBLE_GROUPS.push(group);
   });
 
-  var SHOW_ALL_SETTINGS_KEY = 'tr-v-ui-histogram-set-table-show-all';
-  var CONSTRAIN_NAME_COLUMN_WIDTH_KEY =
+  const SHOW_ALL_SETTINGS_KEY = 'tr-v-ui-histogram-set-table-show-all';
+  const CONSTRAIN_NAME_COLUMN_WIDTH_KEY =
     'tr-v-ui-histogram-set-table-constrain-name-column-width';
 
-  var UNMERGEABLE = '(unmergeable)';
+  const UNMERGEABLE = '(unmergeable)';
 
   // http://stackoverflow.com/questions/3446170
   function escapeRegExp(str) {
@@ -224,7 +224,7 @@ tr.exportTo('tr.v.ui', function() {
           this.possibleGroupingKeys.length > 0) {
         this.$.picker.currentGroupKeys = [this.$.picker.possibleGroups[0].key];
       }
-      var expansionStates = undefined;
+      let expansionStates = undefined;
       if (this.rows_)
         expansionStates = this.getExpansionStates_();
       this.updateContents_();
@@ -237,22 +237,22 @@ tr.exportTo('tr.v.ui', function() {
         return;
 
       tr.b.Settings.set(SHOW_ALL_SETTINGS_KEY, this.$.show_all.checked);
-      var expansionStates = this.getExpansionStates_();
+      let expansionStates = this.getExpansionStates_();
       this.updateContents_();
       this.setExpansionStates_(expansionStates);
     },
 
     getExpansionStates_: function() {
-      var states = new Map();
-      for (var i = 0; i < this.rows_.length; ++i) {
+      let states = new Map();
+      for (let i = 0; i < this.rows_.length; ++i) {
         states.set(i, this.rows_[i].getExpansionStates(this.$.table));
       }
       return states;
     },
 
     setExpansionStates_: function(states) {
-      for (var i = 0; i < this.rows_.length; ++i) {
-        var rowStates = states.get(i);
+      for (let i = 0; i < this.rows_.length; ++i) {
+        let rowStates = states.get(i);
         if (rowStates === undefined) {
           continue;
         }
@@ -261,16 +261,16 @@ tr.exportTo('tr.v.ui', function() {
     },
 
     showOverview_: function() {
-      var table = this.$.table;
+      let table = this.$.table;
       function recurse(row) {
         row.nameCell.showOverview_();
         if (table.getExpandedForTableRow(row)) {
-          for (var subrow of row.subRows) {
+          for (let subrow of row.subRows) {
             recurse(subrow);
           }
         }
       }
-      for (var i = 0; i < this.rows_.length; ++i) {
+      for (let i = 0; i < this.rows_.length; ++i) {
         recurse(this.rows_[i]);
       }
       this.$.hide_overview.style.display = 'inline';
@@ -278,16 +278,16 @@ tr.exportTo('tr.v.ui', function() {
     },
 
     hideOverview_: function() {
-      var table = this.$.table;
+      let table = this.$.table;
       function recurse(row) {
         row.nameCell.hideOverview_();
         if (table.getExpandedForTableRow(row)) {
-          for (var subrow of row.subRows) {
+          for (let subrow of row.subRows) {
             recurse(subrow);
           }
         }
       }
-      for (var i = 0; i < this.rows_.length; ++i) {
+      for (let i = 0; i < this.rows_.length; ++i) {
         recurse(this.rows_[i]);
       }
       this.$.hide_overview.style.display = 'none';
@@ -303,7 +303,7 @@ tr.exportTo('tr.v.ui', function() {
       if (event.selection instanceof tr.model.EventSet) return;
 
       event.stopPropagation();
-      var histogramNames = event.selection;
+      let histogramNames = event.selection;
       histogramNames.sort();
       histogramNames = histogramNames.map(escapeRegExp);
       this.$.search.value = '^(' + histogramNames.join('|') + ')$';
@@ -349,7 +349,7 @@ tr.exportTo('tr.v.ui', function() {
 
       // Force the table to rebuild the cell values without forgetting which
       // rows were expanded.
-      var expansionStates = this.getExpansionStates_();
+      let expansionStates = this.getExpansionStates_();
       this.$.table.tableRows = this.rows_;
       this.setExpansionStates_(expansionStates);
     },
@@ -360,11 +360,11 @@ tr.exportTo('tr.v.ui', function() {
       if (this.displayLabels.length < 2)
         return;
 
-      var options = [{value: '', label: 'Select a reference column'}];
-      for (var displayLabel of this.displayLabels)
+      let options = [{value: '', label: 'Select a reference column'}];
+      for (let displayLabel of this.displayLabels)
         options.push({value: displayLabel, label: displayLabel});
 
-      var settingsKey =
+      let settingsKey =
         'tr-v-ui-histogram-set-table-reference-display-label';
       Polymer.dom(this.$.reference_column_container).appendChild(
           tr.ui.b.createSelector(
@@ -372,14 +372,14 @@ tr.exportTo('tr.v.ui', function() {
     },
 
     updateGroups_: function() {
-      var groups = DEFAULT_POSSIBLE_GROUPS.filter(function(group) {
+      let groups = DEFAULT_POSSIBLE_GROUPS.filter(function(group) {
         // Remove groups for which there is only one value, except
         // HISTOGRAM_NAME.
         if (group.key === tr.v.HistogramSet.GROUPINGS.HISTOGRAM_NAME.key)
           return true;
 
-        var values = new Set();
-        for (var hist of this.histograms_) {
+        let values = new Set();
+        for (let hist of this.histograms_) {
           hist = group.callback(hist);
           if (!hist)
             continue;
@@ -392,7 +392,7 @@ tr.exportTo('tr.v.ui', function() {
       }, this);
 
       // Add all storyGroupingKey groups for the current values.
-      for (var storyGroupingKey of this.storyGroupingKeys) {
+      for (let storyGroupingKey of this.storyGroupingKeys) {
         groups.push(new tr.v.HistogramGrouping(
           'storyGroupingKey_' + storyGroupingKey,
           tr.v.d.TelemetryInfo.makeStoryGroupingKeyLabelGetter(
@@ -403,7 +403,7 @@ tr.exportTo('tr.v.ui', function() {
       // Save and restore current grouping keys in order to let
       // |set groupingKeys| filter out the keys that are no longer in
       // possibleGroups.
-      var groupingKeys = this.groupingKeys;
+      let groupingKeys = this.groupingKeys;
       if (groupingKeys.length === 0 &&
           groups.length > 0) {
         // This can happen if the settings key contains an empty Array,
@@ -447,12 +447,12 @@ tr.exportTo('tr.v.ui', function() {
       this.$.table.rebuild();
 
       if (this.rows_.length === 1) {
-        for (var [displayLabel, cell] of this.rows_[0].cells) {
+        for (let [displayLabel, cell] of this.rows_[0].cells) {
           cell.isHistogramOpen = true;
         }
       }
 
-      for (var row of this.rows_) {
+      for (let row of this.rows_) {
         row.constrainNameColumnWidth = this.constrainNameColumnWidth_;
       }
 
@@ -463,7 +463,7 @@ tr.exportTo('tr.v.ui', function() {
     },
 
     maybeDisableShowAll_: function() {
-      var allHistogramsAreSource = !this.histograms ||
+      let allHistogramsAreSource = !this.histograms ||
           (this.histograms.length === this.sourceHistograms_.length);
 
       // Disable show_all if all values are sourceHistograms.
@@ -478,12 +478,12 @@ tr.exportTo('tr.v.ui', function() {
     },
 
     get storyGroupingKeys() {
-      var keys = new Set();
-      for (var value of this.histograms) {
-        var telemetry = tr.v.d.TelemetryInfo.getFromHistogram(value);
+      let keys = new Set();
+      for (let value of this.histograms) {
+        let telemetry = tr.v.d.TelemetryInfo.getFromHistogram(value);
         if (!(telemetry instanceof tr.v.d.TelemetryInfo)) continue;
 
-        for (var [key, value] of telemetry.storyGroupingKeys) {
+        for (let [key, value] of telemetry.storyGroupingKeys) {
           keys.add(key);
         }
       }
@@ -513,10 +513,10 @@ tr.exportTo('tr.v.ui', function() {
      * @return {!Object}
      */
     get groupedHistograms() {
-      var histogramSet = this.$.show_all.checked ?
+      let histogramSet = this.$.show_all.checked ?
           this.histograms : this.sourceHistograms_;
       if (this.$.search.value) {
-        var query = undefined;
+        let query = undefined;
         try {
           query = new RegExp(this.$.search.value);
         } catch (e) {
@@ -527,7 +527,7 @@ tr.exportTo('tr.v.ui', function() {
         }
       }
 
-      var groupings = this.$.picker.currentGroups.slice();
+      let groupings = this.$.picker.currentGroups.slice();
       groupings.push(tr.v.HistogramSet.GROUPINGS.DISPLAY_LABEL);
 
       function canSkipGrouping(grouping, groupedHistograms) {
@@ -552,9 +552,9 @@ tr.exportTo('tr.v.ui', function() {
     },
 
     get startTimesForDisplayLabels() {
-      var startTimesForDisplayLabels = {};
-      for (var value of this.histograms) {
-        var displayLabel = getDisplayLabel(value);
+      let startTimesForDisplayLabels = {};
+      for (let value of this.histograms) {
+        let displayLabel = getDisplayLabel(value);
         startTimesForDisplayLabels[displayLabel] = Math.min(
             startTimesForDisplayLabels[displayLabel] || 0,
             tr.v.d.TelemetryInfo.getField(
@@ -565,7 +565,7 @@ tr.exportTo('tr.v.ui', function() {
 
     get displayLabels() {
       if (this.displayLabels_ === undefined) {
-        var startTimesForDisplayLabels = this.startTimesForDisplayLabels;
+        let startTimesForDisplayLabels = this.startTimesForDisplayLabels;
         this.displayLabels_ = Object.keys(startTimesForDisplayLabels);
         this.displayLabels_.sort(function(a, b) {
           return startTimesForDisplayLabels[a] - startTimesForDisplayLabels[b];
@@ -575,11 +575,11 @@ tr.exportTo('tr.v.ui', function() {
     },
 
     buildColumn_: function(displayLabel) {
-      var title = displayLabel;
+      let title = displayLabel;
       if (displayLabel.indexOf('\n') > 0) {
         title = document.createElement('div');
-        for (var line of displayLabel.split('\n')) {
-          var lineDiv = document.createElement('div');
+        for (let line of displayLabel.split('\n')) {
+          let lineDiv = document.createElement('div');
           lineDiv.appendChild(document.createTextNode(line));
           title.appendChild(lineDiv);
         }
@@ -594,14 +594,14 @@ tr.exportTo('tr.v.ui', function() {
     },
 
     buildNameColumnTitle_: function() {
-      var titleEl = document.createElement('span');
+      let titleEl = document.createElement('span');
       titleEl.style.display = 'inline-flex';
 
-      var nameEl = document.createElement('span');
+      let nameEl = document.createElement('span');
       nameEl.textContent = 'Name';
       titleEl.appendChild(nameEl);
 
-      var toggleWidthEl = document.createElement('span');
+      let toggleWidthEl = document.createElement('span');
       toggleWidthEl.style.fontWeight = 'bold';
       toggleWidthEl.style.background = '#bbb';
       toggleWidthEl.style.color = '#333';
@@ -617,7 +617,7 @@ tr.exportTo('tr.v.ui', function() {
     },
 
     onNameCellOverflow_: function(event) {
-      var titleEl = this.columns_[0].title;
+      let titleEl = this.columns_[0].title;
 
       // Size the 'Name' so that the dots roughly align with the
       // ellipses in the name-cells.
@@ -636,29 +636,29 @@ tr.exportTo('tr.v.ui', function() {
           CONSTRAIN_NAME_COLUMN_WIDTH_KEY, this.constrainNameColumnWidth_);
       this.columns_[0].title.children[1].style.filter =
         this.constrainNameColumnWidth_ ? '' : 'invert(100%)';
-      for (var row of this.rows_) {
+      for (let row of this.rows_) {
         row.constrainNameColumnWidth = this.constrainNameColumnWidth_;
       }
     },
 
     get leafHistograms() {
-      var histograms = new tr.v.HistogramSet();
-      for (var row of this.rows_) {
+      let histograms = new tr.v.HistogramSet();
+      for (let row of this.rows_) {
         row.getLeafHistograms(histograms);
       }
       return histograms;
     },
 
     downloadCSV_: function() {
-      var anchor = document.createElement('a');
+      let anchor = document.createElement('a');
 
-      var path = window.location.pathname.split('/');
-      var basename = path[path.length - 1].split('.')[0] || 'histograms';
+      let path = window.location.pathname.split('/');
+      let basename = path[path.length - 1].split('.')[0] || 'histograms';
       anchor.download = basename + '.csv';
 
-      var csv = new tr.v.CSVBuilder(this.leafHistograms);
+      let csv = new tr.v.CSVBuilder(this.leafHistograms);
       csv.build();
-      var blob = new window.Blob([csv.toString()], {type: 'text/csv'});
+      let blob = new window.Blob([csv.toString()], {type: 'text/csv'});
       anchor.href = window.URL.createObjectURL(blob);
 
       anchor.click();
@@ -673,7 +673,7 @@ tr.exportTo('tr.v.ui', function() {
         }
       ];
 
-      for (var displayLabel of this.displayLabels) {
+      for (let displayLabel of this.displayLabels) {
         this.columns_.push(this.buildColumn_(displayLabel));
       }
     }

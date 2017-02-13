@@ -13,9 +13,9 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('instantiate', function() {
-    var diagnostic = new tr.v.d.Scalar(new tr.b.Scalar(
+    let diagnostic = new tr.v.d.Scalar(new tr.b.Scalar(
         tr.b.Unit.byName.timeDurationInMs, 123.456));
-    var span = tr.v.ui.createDiagnosticSpan(diagnostic);
+    let span = tr.v.ui.createDiagnosticSpan(diagnostic);
     assert.strictEqual('TR-V-UI-SCALAR-DIAGNOSTIC-SPAN', span.tagName);
     this.addHTMLOutput(span);
   });

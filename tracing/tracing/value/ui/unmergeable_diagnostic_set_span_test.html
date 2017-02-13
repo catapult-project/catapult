@@ -14,7 +14,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('instantiate', function() {
-    var event = tr.c.TestUtils.newSliceEx({
+    let event = tr.c.TestUtils.newSliceEx({
       title: 'event',
       start: 0,
       duration: 1,
@@ -25,7 +25,7 @@ tr.b.unittest.testSuite(function() {
         slices: [event],
       },
     };
-    var diagnostics = new tr.v.d.UnmergeableDiagnosticSet([
+    let diagnostics = new tr.v.d.UnmergeableDiagnosticSet([
       new tr.v.d.Generic('generic diagnostic'),
       new tr.v.d.RelatedHistogramSet([
         new tr.v.Histogram('histogram', tr.b.Unit.byName.count),
@@ -34,7 +34,7 @@ tr.b.unittest.testSuite(function() {
         event,
       ]),
     ]);
-    var span = tr.v.ui.createDiagnosticSpan(diagnostics);
+    let span = tr.v.ui.createDiagnosticSpan(diagnostics);
     assert.strictEqual('TR-V-UI-UNMERGEABLE-DIAGNOSTIC-SET-SPAN', span.tagName);
     this.addHTMLOutput(span);
   });

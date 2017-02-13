@@ -23,18 +23,18 @@ tr.exportTo('tr.v', function() {
       tr.b.iterItems(charts.charts, (name, pageValues) => {
         if (name === 'trace') return;
 
-        var pageValuesCount = tr.b.dictionaryLength(pageValues);
+        let pageValuesCount = tr.b.dictionaryLength(pageValues);
         tr.b.iterItems(pageValues, (storyName, value) => {
           if (pageValuesCount > 1 && storyName === 'summary') return;
 
-          var unitInfo = tr.v.LEGACY_UNIT_INFO.get(value.units) || {};
-          var unitName = unitInfo.name || 'unitlessNumber';
-          var unitNameSuffix = tr.b.Unit.nameSuffixForImprovementDirection(
+          let unitInfo = tr.v.LEGACY_UNIT_INFO.get(value.units) || {};
+          let unitName = unitInfo.name || 'unitlessNumber';
+          let unitNameSuffix = tr.b.Unit.nameSuffixForImprovementDirection(
               ChartJsonConverter.convertImprovementDirection(
                   value.improvement_direction));
-          var conversionFactor = unitInfo.conversionFactor || 1;
+          let conversionFactor = unitInfo.conversionFactor || 1;
 
-          var hist = new tr.v.Histogram(
+          let hist = new tr.v.Histogram(
               value.name,
               tr.b.Unit.byName[unitName + unitNameSuffix],
               tr.v.HistogramBinBoundaries.SINGULAR);
@@ -50,11 +50,11 @@ tr.exportTo('tr.v', function() {
           }).addToHistogram(hist);
 
           if (value.type === 'histogram') {
-            for (var bucket of value.buckets) {
+            for (let bucket of value.buckets) {
               // Take the center of the bin. This coarse granularity can amplify
               // noise when a measurement moves from one bin to the next.
-              var sample = conversionFactor * (bucket.high + bucket.low) / 2;
-              for (var i = 0; i < bucket.count; ++i) {
+              let sample = conversionFactor * (bucket.high + bucket.low) / 2;
+              for (let i = 0; i < bucket.count; ++i) {
                 hist.addSample(sample);
               }
             }
@@ -62,7 +62,7 @@ tr.exportTo('tr.v', function() {
             // |value.values| is undefined if the list_of_scalar_values is
             // empty.
             if (value.values) {
-              for (var sample of value.values) {
+              for (let sample of value.values) {
                 hist.addSample(sample * conversionFactor);
               }
             }

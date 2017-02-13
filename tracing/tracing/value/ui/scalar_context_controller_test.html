@@ -22,7 +22,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var getScalarContextControllerForElement =
+  let getScalarContextControllerForElement =
       tr.v.ui.getScalarContextControllerForElement;
 
   Polymer({
@@ -30,7 +30,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('getScalarContextControllerForElement', function() {
-    var root = document.createElement('div');
+    let root = document.createElement('div');
     Polymer.dom(document.body).appendChild(root);
     try {
       assert.isUndefined(getScalarContextControllerForElement(root));
@@ -38,11 +38,11 @@ tr.b.unittest.testSuite(function() {
       // <div> root
       //   |__<div> host1
       //        |__<tr-v-ui-scalar-context-controller> c1
-      var host1 = document.createElement('div');
+      let host1 = document.createElement('div');
       Polymer.dom(root).appendChild(host1);
       assert.isUndefined(getScalarContextControllerForElement(root));
       assert.strictEqual(getScalarContextControllerForElement(host1));
-      var c1 = document.createElement('tr-v-ui-scalar-context-controller');
+      let c1 = document.createElement('tr-v-ui-scalar-context-controller');
       Polymer.dom(host1).appendChild(c1);
       assert.isUndefined(getScalarContextControllerForElement(root));
       assert.strictEqual(getScalarContextControllerForElement(host1), c1);
@@ -52,9 +52,9 @@ tr.b.unittest.testSuite(function() {
       //   |    |__<tr-v-ui-scalar-context-controller> c1
       //   |__<tr-v-ui-scalar-context-controller-mock-host> host2
       //           :..<tr-v-ui-scalar-context-controller> c2
-      var host2 = document.createElement(
+      let host2 = document.createElement(
           'tr-v-ui-scalar-context-controller-mock-host');
-      var c2 = host2.$.controller;
+      let c2 = host2.$.controller;
       Polymer.dom(root).appendChild(host2);
       assert.isUndefined(getScalarContextControllerForElement(root));
       assert.strictEqual(getScalarContextControllerForElement(host1), c1);
@@ -67,10 +67,10 @@ tr.b.unittest.testSuite(function() {
       //        |  :..<tr-v-ui-scalar-context-controller> c2
       //        |__<div> divA
       //             |__<div> divB
-      var divA = document.createElement('div');
+      let divA = document.createElement('div');
       Polymer.dom(host2).appendChild(divA);
       assert.strictEqual(getScalarContextControllerForElement(divA), c2);
-      var divB = document.createElement('div');
+      let divB = document.createElement('div');
       Polymer.dom(divA).appendChild(divB);
       assert.strictEqual(getScalarContextControllerForElement(divB), c2);
 
@@ -83,10 +83,10 @@ tr.b.unittest.testSuite(function() {
       //             |__<div> divB
       //                  |__<tr-v-ui-scalar-context-controller-mock-host> host3
       //                       :..<tr-v-ui-scalar-context-controller> c3
-      var host3 = document.createElement(
+      let host3 = document.createElement(
           'tr-v-ui-scalar-context-controller-mock-host');
       Polymer.dom(divB).appendChild(host3);
-      var c3 = host3.$.controller;
+      let c3 = host3.$.controller;
       assert.isUndefined(getScalarContextControllerForElement(root));
       assert.strictEqual(getScalarContextControllerForElement(host1), c1);
       assert.strictEqual(getScalarContextControllerForElement(host2), c2);
@@ -104,7 +104,7 @@ tr.b.unittest.testSuite(function() {
       //             |__<div> divB
       //                  |__<tr-v-ui-scalar-context-controller-mock-host> host3
       //                       :..<tr-v-ui-scalar-context-controller> c3
-      var c4 = document.createElement('tr-v-ui-scalar-context-controller');
+      let c4 = document.createElement('tr-v-ui-scalar-context-controller');
       Polymer.dom(divA).appendChild(c4);
       assert.isUndefined(getScalarContextControllerForElement(root));
       assert.strictEqual(getScalarContextControllerForElement(host1), c1);
@@ -169,13 +169,13 @@ tr.b.unittest.testSuite(function() {
 
   function contextTest(name, testCallback) {
     test('context_' + name, function() {
-      var root = document.createElement('div');
+      let root = document.createElement('div');
       Polymer.dom(document.body).appendChild(root);
       try {
-        var c = document.createElement('tr-v-ui-scalar-context-controller');
+        let c = document.createElement('tr-v-ui-scalar-context-controller');
         Polymer.dom(root).appendChild(c);
 
-        var updatedGroups = [];  // Fail if event fires unexpectedly.
+        let updatedGroups = [];  // Fail if event fires unexpectedly.
         c.addEventListener('context-updated', function(e) {
           if (updatedGroups)
             assert.fail('Unexpected context-updated event fired.');
@@ -199,14 +199,14 @@ tr.b.unittest.testSuite(function() {
   contextTest('singleGroup', function(c) {
     assert.isUndefined(c.getContext('G'));
 
-    var s1 = {value: 10};
+    let s1 = {value: 10};
     c.onScalarSpanAdded('G', s1);
     c.expectContextUpdatedEventForTesting(['G']);
     assert.isTrue(c.getContext('G').range.equals(
         tr.b.Range.fromExplicitRange(10, 10)));
     assert.sameMembers(tr.b.asArray(c.getContext('G').spans), [s1]);
 
-    var s2 = {value: 15};
+    let s2 = {value: 15};
     c.onScalarSpanAdded('G', s2);
     c.expectContextUpdatedEventForTesting(['G']);
     assert.isTrue(c.getContext('G').range.equals(
@@ -226,7 +226,7 @@ tr.b.unittest.testSuite(function() {
         tr.b.Range.fromExplicitRange(5, 5)));
     assert.sameMembers(tr.b.asArray(c.getContext('G').spans), [s1]);
 
-    var s3 = {value: 0};
+    let s3 = {value: 0};
     c.onScalarSpanAdded('G', s3);
     s2.value = 14;
     c.onScalarSpanAdded('G', s2);
@@ -252,22 +252,22 @@ tr.b.unittest.testSuite(function() {
     assert.isUndefined(c.getContext('G1'));
     assert.isUndefined(c.getContext('G2'));
 
-    var s1 = {value: 0};
+    let s1 = {value: 0};
     c.onScalarSpanAdded('G1', s1);
     c.expectContextUpdatedEventForTesting(['G1']);
     assert.isTrue(c.getContext('G1').range.equals(
         tr.b.Range.fromExplicitRange(0, 0)));
     assert.sameMembers(tr.b.asArray(c.getContext('G1').spans), [s1]);
 
-    var s2 = {value: 1};
+    let s2 = {value: 1};
     c.onScalarSpanAdded('G2', s2);
     c.expectContextUpdatedEventForTesting(['G2']);
     assert.isTrue(c.getContext('G2').range.equals(
         tr.b.Range.fromExplicitRange(1, 1)));
     assert.sameMembers(tr.b.asArray(c.getContext('G2').spans), [s2]);
 
-    var s3 = {value: 2};
-    var s4 = {value: -1};
+    let s3 = {value: 2};
+    let s4 = {value: -1};
     c.onScalarSpanAdded('G2', s3);
     c.onScalarSpanAdded('G1', s4);
     c.expectContextUpdatedEventForTesting(['G1', 'G2']);

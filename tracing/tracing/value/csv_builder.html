@@ -10,7 +10,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 tr.exportTo('tr.v', function() {
-  var CSV_ITERATION_INFO_NAMES = [
+  const CSV_ITERATION_INFO_NAMES = [
     'benchmarkName',
     'benchmarkStartString',
     'label',
@@ -38,18 +38,18 @@ tr.exportTo('tr.v', function() {
       this.prepare_();
       this.buildHeader_();
 
-      for (var hist of this.histograms_) {
-        var row = [hist.name, hist.unit.unitString];
+      for (let hist of this.histograms_) {
+        let row = [hist.name, hist.unit.unitString];
         this.table_.push(row);
 
-        var stats = hist.statisticsScalars;
-        for (var name of this.statisticsNames_) {
+        let stats = hist.statisticsScalars;
+        for (let name of this.statisticsNames_) {
           row.push(stats.has(name) ? stats.get(name).value : '');
         }
 
-        var iteration = tr.v.d.TelemetryInfo.getFromHistogram(hist);
+        let iteration = tr.v.d.TelemetryInfo.getFromHistogram(hist);
 
-        for (var name of this.iterationInfoNames_) {
+        for (let name of this.iterationInfoNames_) {
           if (iteration === undefined ||
               iteration[name] === undefined) {
             row.push('');
@@ -58,7 +58,7 @@ tr.exportTo('tr.v', function() {
           }
         }
 
-        for (var key of this.storyGroupingKeys_) {
+        for (let key of this.storyGroupingKeys_) {
           if (iteration === undefined ||
               iteration.storyGroupingKeys.get(key) === undefined) {
             row.push('');
@@ -70,10 +70,10 @@ tr.exportTo('tr.v', function() {
     }
 
     prepare_() {
-      for (var hist of this.histograms_) {
-        for (var [name, option] of hist.summaryOptions) {
+      for (let hist of this.histograms_) {
+        for (let [name, option] of hist.summaryOptions) {
           if (name === 'percentile') {
-            for (var percent of option) {
+            for (let percent of option) {
               this.statisticsNames_.add('pct_' + tr.v.percentToString(percent));
             }
           } else if (option) {
@@ -81,42 +81,42 @@ tr.exportTo('tr.v', function() {
           }
         }
 
-        var iteration = tr.v.d.TelemetryInfo.getFromHistogram(hist);
+        let iteration = tr.v.d.TelemetryInfo.getFromHistogram(hist);
         if (iteration === undefined) continue;
 
-        for (var name of CSV_ITERATION_INFO_NAMES) {
+        for (let name of CSV_ITERATION_INFO_NAMES) {
           if (iteration[name]) {
             this.iterationInfoNames_.add(name);
           }
         }
-        for (var [key, value] of iteration.storyGroupingKeys) {
+        for (let [key, value] of iteration.storyGroupingKeys) {
           this.storyGroupingKeys_.add(key);
         }
       }
     }
 
     buildHeader_() {
-      var header = ['name', 'unit'];
-      for (var name of this.statisticsNames_) {
+      let header = ['name', 'unit'];
+      for (let name of this.statisticsNames_) {
         header.push(name);
       }
-      for (var name of this.iterationInfoNames_) {
+      for (let name of this.iterationInfoNames_) {
         header.push(name);
       }
-      for (var key of this.storyGroupingKeys_) {
+      for (let key of this.storyGroupingKeys_) {
         header.push(key);
       }
       this.table_.push(header);
     }
 
     toString() {
-      var str = '';
-      for (var row of this.table_) {
-        for (var i = 0; i < row.length; ++i) {
+      let str = '';
+      for (let row of this.table_) {
+        for (let i = 0; i < row.length; ++i) {
           if (i > 0) {
             str += ',';
           }
-          var cell = '' + row[i];
+          let cell = '' + row[i];
           if (cell.indexOf(',') >= 0 || cell.indexOf('"') >= 0) {
             cell = '"' + cell.replace(/"/g, '""') + '"';
           }

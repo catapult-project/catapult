@@ -38,14 +38,14 @@ tr.exportTo('tr.v.d', function() {
      */
     addDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
       if (otherDiagnostic instanceof UnmergeableDiagnosticSet) {
-        for (var subOtherDiagnostic of otherDiagnostic) {
+        for (let subOtherDiagnostic of otherDiagnostic) {
           this.addDiagnostic(subOtherDiagnostic, name, parentHist,
               otherParentHist);
         }
         return this;
       }
 
-      for (var i = 0; i < this._diagnostics.length; ++i) {
+      for (let i = 0; i < this._diagnostics.length; ++i) {
         if (this._diagnostics[i].canAddDiagnostic(
             otherDiagnostic, name, parentHist, otherParentHist)) {
           this._diagnostics[i] = this._diagnostics[i].addDiagnostic(
@@ -63,7 +63,7 @@ tr.exportTo('tr.v.d', function() {
     }
 
     * [Symbol.iterator]() {
-      for (var diagnostic of this._diagnostics) yield diagnostic;
+      for (let diagnostic of this._diagnostics) yield diagnostic;
     }
 
     asDictInto_(d) {

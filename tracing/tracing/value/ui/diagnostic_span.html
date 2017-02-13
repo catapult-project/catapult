@@ -31,8 +31,8 @@ tr.exportTo('tr.v.ui', function() {
    * @return {string}
    */
   function findElementNameForDiagnostic(diagnostic) {
-    var typeInfo = undefined;
-    var curProto = diagnostic.constructor.prototype;
+    let typeInfo = undefined;
+    let curProto = diagnostic.constructor.prototype;
     while (curProto) {
       typeInfo = tr.v.d.Diagnostic.findTypeInfo(curProto.constructor);
       if (typeInfo && typeInfo.metadata.elementName)
@@ -47,7 +47,7 @@ tr.exportTo('tr.v.ui', function() {
           ' or a base class must have a registered elementName');
     }
 
-    var tagName = typeInfo.metadata.elementName;
+    let tagName = typeInfo.metadata.elementName;
 
     if (tr.ui.b.isUnknownElementName(tagName))
       throw new Error('Element not registered: ' + tagName);
@@ -62,8 +62,8 @@ tr.exportTo('tr.v.ui', function() {
    * @return {Element}
    */
   function createDiagnosticSpan(diagnostic) {
-    var tagName = findElementNameForDiagnostic(diagnostic);
-    var span = document.createElement(tagName);
+    let tagName = findElementNameForDiagnostic(diagnostic);
+    let span = document.createElement(tagName);
     span.diagnostic = diagnostic;
     return span;
   }

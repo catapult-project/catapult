@@ -13,7 +13,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('instantiateSingles', function() {
-    var revInfo = new tr.v.d.RevisionInfo({
+    let revInfo = new tr.v.d.RevisionInfo({
       chromium: ['b10563e'],
       v8: ['0a12a6'],
       catapult: ['e6e086'],
@@ -21,13 +21,13 @@ tr.b.unittest.testSuite(function() {
       skia: ['966bb3'],
       webrtc: ['277b25'],
     });
-    var span = tr.v.ui.createDiagnosticSpan(revInfo);
+    let span = tr.v.ui.createDiagnosticSpan(revInfo);
     assert.strictEqual('TR-V-UI-REVISION-INFO-SPAN', span.tagName);
     this.addHTMLOutput(span);
   });
 
   test('instantiateRanges', function() {
-    var revInfo = new tr.v.d.RevisionInfo({
+    let revInfo = new tr.v.d.RevisionInfo({
       chromium: ['e2ebe328', 'b10563e'],
       v8: ['0a12a6', '921d88'],
       catapult: ['e6e086', 'bf0f62'],
@@ -35,7 +35,7 @@ tr.b.unittest.testSuite(function() {
       skia: ['966bb3', 'db402c'],
       webrtc: ['277b25', 'f8b262'],
     });
-    var span = tr.v.ui.createDiagnosticSpan(revInfo);
+    let span = tr.v.ui.createDiagnosticSpan(revInfo);
     assert.strictEqual('TR-V-UI-REVISION-INFO-SPAN', span.tagName);
     this.addHTMLOutput(span);
   });
