@@ -77,42 +77,34 @@ def GetSubTests(suite_name, bot_names):
   for bot_name in bot_names:
     master, bot = bot_name.split('/')
     suite_key = ndb.Key('TestMetadata', '%s/%s/%s' % (master, bot, suite_name))
-    cached = layered_cache.Get(_ListSubTestCacheKey(suite_key))
+
+    cache_key = _ListSubTestCacheKey(suite_key)
+    cached = layered_cache.Get(cache_key)
     if cached:
       combined = _MergeSubTestsDict(combined, cached)
     else:
-      sub_test_paths = _FetchSubTestPaths(suite_key, False)
-      deprecated_sub_test_paths = _FetchSubTestPaths(suite_key, True)
-      sub_tests = _MergeSubTestsDict(
-          _SubTestsDict(sub_test_paths, False),
-          _SubTestsDict(deprecated_sub_test_paths, True))
-      layered_cache.Set(_ListSubTestCacheKey(suite_key), sub_tests)
+      sub_test_paths_futures = _GetTestDescendantsAsync(
+          suite_key, has_rows=True, deprecated=False)
+      deprecated_sub_test_path_futures = _GetTestDescendantsAsync(
+          suite_key, has_rows=True, deprecated=True)
+
+      ndb.Future.wait_all(
+          [sub_test_paths_futures, deprecated_sub_test_path_futures])
+      sub_test_paths = _MapTestDescendantsToSubTestPaths(
+          sub_test_paths_futures.get_result())
+      deprecated_sub_test_paths = _MapTestDescendantsToSubTestPaths(
+          deprecated_sub_test_path_futures.get_result())
+
+      d1 = _SubTestsDict(sub_test_paths, False)
+      d2 = _SubTestsDict(deprecated_sub_test_paths, True)
+
+      sub_tests = _MergeSubTestsDict(d1, d2)
+
+      layered_cache.Set(cache_key, sub_tests)
+
       combined = _MergeSubTestsDict(combined, sub_tests)
+
   return combined
-
-
-def _FetchSubTestPaths(test_key, deprecated):
-  """Makes a list of partial test paths for descendants of a test suite.
-
-  Args:
-    test_key: A ndb.Key object for a TestMetadata entity.
-    deprecated: Whether or not to fetch deprecated tests.
-
-  Returns:
-    A list of test paths for all descendant TestMetadata entities that have
-    associated Row entities. These test paths omit the Master/bot/suite part.
-  """
-  keys = GetTestDescendants(test_key, has_rows=True, deprecated=deprecated)
-  return map(_SubTestPath, keys)
-
-
-def _SubTestPath(test_key):
-  """Returns the part of a test path starting from after the test suite."""
-  full_test_path = utils.TestPath(test_key)
-  parts = full_test_path.split('/')
-  assert len(parts) > 3
-  return '/'.join(parts[3:])
-
 
 def _SubTestsDict(paths, deprecated):
   """Constructs a sub-test dict from a list of test paths.
@@ -126,31 +118,48 @@ def _SubTestsDict(paths, deprecated):
   Returns:
     A recursively nested dict of sub-tests, as returned by GetSubTests.
   """
-  sub_tests = {}
-  top_level = set(p.split('/')[0] for p in paths if p)
-  for name in top_level:
-    sub_test_paths = _SubPaths(paths, name)
-    has_rows = name in paths
-    sub_tests[name] = _SubTestsDictEntry(sub_test_paths, has_rows, deprecated)
-  return sub_tests
+  merged = {}
+  for p in paths:
+    test_name = p[0]
+    if not test_name in merged:
+      merged[test_name] = {'has_rows': False, 'sub_tests': []}
+    sub_test_path = p[1:]
+
+    # If this is a top level name, then there are rows
+    if not sub_test_path:
+      merged[test_name]['has_rows'] = True
+    else:
+      merged[test_name]['sub_tests'].append(sub_test_path)
 
 
-def _SubPaths(paths, first_part):
-  """Returns paths of sub-tests that start with some name."""
-  assert first_part
-  return ['/'.join(p.split('/')[1:]) for p in paths
-          if '/' in p and p.split('/')[0] == first_part]
-
-
-def _SubTestsDictEntry(sub_test_paths, has_rows, deprecated):
-  """Recursively gets an entry in a sub-tests dict."""
-  entry = {
-      'has_rows': has_rows,
-      'sub_tests': _SubTestsDict(sub_test_paths, deprecated)
-  }
   if deprecated:
-    entry['deprecated'] = True
-  return entry
+    for k, v in merged.iteritems():
+      merged[k]['deprecated'] = True
+
+  for k, v in merged.iteritems():
+    merged[k]['sub_tests'] = _SubTestsDict(v['sub_tests'], deprecated)
+  return merged
+
+
+def _MapTestDescendantsToSubTestPaths(keys):
+  """Makes a list of partial test paths for descendants of a test suite.
+
+  Args:
+    keys: A list of TestMetadata keys
+
+  Returns:
+    A list of test paths for all descendant TestMetadata entities that have
+    associated Row entities. These test paths omit the Master/bot/suite part.
+  """
+  return map(_SubTestPath, keys)
+
+
+def _SubTestPath(test_key):
+  """Returns the part of a test path starting from after the test suite."""
+  full_test_path = utils.TestPath(test_key)
+  parts = full_test_path.split('/')
+  assert len(parts) > 3
+  return parts[3:]
 
 
 def _ListSubTestCacheKey(test_key):
@@ -258,6 +267,24 @@ def GetTestDescendants(
   Returns:
     A list of keys of all descendants of the given test.
   """
+  return _GetTestDescendantsAsync(test_key,
+                                  has_rows=has_rows,
+                                  deprecated=deprecated,
+                                  keys_only=keys_only).get_result()
+
+
+def _GetTestDescendantsAsync(
+    test_key, has_rows=None, deprecated=None, keys_only=True):
+  """Returns all the tests which are subtests of the test with the given key.
+
+  Args:
+    test_key: The key of the TestMetadata entity to get descendants of.
+    has_rows: If set, filter the query for this value of has_rows.
+    deprecated: If set, filter the query for this value of deprecated.
+
+  Returns:
+    A future for a list of keys of all descendants of the given test.
+  """
   test_parts = utils.TestPath(test_key).split('/')
   query_parts = [
       ('master_name', test_parts[0]),
@@ -273,5 +300,5 @@ def GetTestDescendants(
     query = query.filter(graph_data.TestMetadata.has_rows == has_rows)
   if deprecated is not None:
     query = query.filter(graph_data.TestMetadata.deprecated == deprecated)
-  descendants = query.fetch(keys_only=keys_only)
-  return descendants
+  futures = query.fetch_async(keys_only=keys_only)
+  return futures

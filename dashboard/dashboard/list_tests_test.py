@@ -280,9 +280,9 @@ class ListTestsTest(testing_common.TestCase):
 
   def testSubTestsDict(self):
     paths = [
-        'a/b/c',
-        'a/b/c',
-        'a/b/d',
+        ['a', 'b', 'c'],
+        ['a', 'b', 'c'],
+        ['a', 'b', 'd'],
     ]
     expected = {
         'a': {
@@ -295,6 +295,62 @@ class ListTestsTest(testing_common.TestCase):
                         'd': {'has_rows': True, 'sub_tests': {}},
                     },
                 },
+            },
+        },
+    }
+    self.assertEqual(
+        expected, list_tests._SubTestsDict(paths, False))
+
+  def testSubTestsDict_Deprecated(self):
+    paths = [
+        ['a'],
+        ['a', 'b'],
+    ]
+    expected = {
+        'a': {
+            'has_rows': True,
+            'deprecated': True,
+            'sub_tests': {
+                'b': {
+                    'has_rows': True,
+                    'deprecated': True,
+                    'sub_tests': {},
+                },
+            },
+        },
+    }
+    self.assertEqual(
+        expected, list_tests._SubTestsDict(paths, True))
+
+  def testSubTestsDict_TopLevel_HasRows_False(self):
+    paths = [
+        ['a', 'b'],
+        ['a', 'c'],
+    ]
+    expected = {
+        'a': {
+            'has_rows': False,
+            'sub_tests': {
+                'b': {'has_rows': True, 'sub_tests': {}},
+                'c': {'has_rows': True, 'sub_tests': {}},
+            },
+        },
+    }
+    self.assertEqual(
+        expected, list_tests._SubTestsDict(paths, False))
+
+  def testSubTestsDict_RepeatedPathIgnored(self):
+    paths = [
+        ['a', 'b'],
+        ['a', 'c'],
+        ['a', 'b'],
+    ]
+    expected = {
+        'a': {
+            'has_rows': False,
+            'sub_tests': {
+                'b': {'has_rows': True, 'sub_tests': {}},
+                'c': {'has_rows': True, 'sub_tests': {}},
             },
         },
     }
