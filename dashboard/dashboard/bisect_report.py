@@ -134,6 +134,8 @@ MESSAGE_INCOMPLETE = """%s
 
 If failures persist contact the team (see below) and report the error."""
 
+MESSAGE_FAILURE_REASON = "Error: %(failure_reason)s"
+
 MESSAGE_RERUN = """
 Please try rerunning the bisect.
 """
@@ -238,6 +240,9 @@ def _GenerateReport(results_data):
               'lkgr': lkgr.get('commit_hash'),
               'fkbr': fkbr.get('commit_hash'),
           }
+          if results_data.get('failure_reason'):
+            failure_reason = MESSAGE_FAILURE_REASON % results_data
+            rerun_info = '\n%s\n%s' % (failure_reason, rerun_info)
       if results_data.get('status') == STATUS_TYPE_STARTED:
         message = STATUS_INCOMPLETE
         message_details = MESSAGE_INCOMPLETE % rerun_info

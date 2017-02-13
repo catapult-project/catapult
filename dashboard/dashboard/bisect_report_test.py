@@ -790,6 +790,58 @@ Debug Info
 
     self.assertEqual(expected_output, bisect_report.GetReport(job))
 
+  def testGetReport_StatusStarted_FailureReason(self):
+    results_data = self._BisectResults(
+        revision_data=self._Revisions(
+            [
+                {'commit': 100, 'mean': 100, 'num': 10, 'result': 'good'},
+                {'commit': 101, 'mean': 100, 'num': 10, 'result': 'good'},
+                {'commit': 105, 'mean': 200, 'num': 10, 'result': 'bad'},
+                {'commit': 106, 'mean': 200, 'num': 10, 'result': 'bad'},
+            ]),
+        good_revision=100, bad_revision=106,
+        failure_reason='INFRA_FAILURE',
+        status='started')
+    job = self._AddTryJob(results_data)
+
+    expected_output = r"""
+=== BISECT JOB RESULTS ===
+<b>Bisect was unable to run to completion</b>
+
+Error: INFRA_FAILURE
+
+The bisect was able to narrow the range, you can try running with:
+  good_revision: 101
+  bad_revision : 105
+
+If failures persist contact the team (see below) and report the error.
+
+
+Bisect Details
+  Configuration: staging_android_nexus5X_perf_bisect
+  Benchmark    : foo
+  Metric       : Total/Score
+  Change       : 7.35% | 100 -> 200
+
+Revision      Result        N
+100           100 +- 0      10      good
+101           100 +- 0      10      good
+105           200 +- 0      10      bad
+106           200 +- 0      10      bad
+
+To Run This Test
+  src/tools/perf/run_benchmark foo
+
+Debug Info
+  https://test-rietveld.appspot.com/200039
+
+
+| O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
+|  X  | for more information addressing perf regression bugs. For feedback,
+| / \ | file a bug with component Speed>Bisection.  Thank you!"""
+
+    self.assertEqual(expected_output, bisect_report.GetReport(job))
+
   def testGetReport_StatusInProgress(self):
     results_data = self._BisectResults(
         revision_data=self._Revisions(

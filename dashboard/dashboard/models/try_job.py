@@ -125,7 +125,6 @@ class TryJob(internal_only_model.InternalOnlyModel):
     # There are various failure and cancellation reasons for a buildbucket
     # job to fail as listed in https://goto.google.com/bb_status.
     job_updates = {
-        'status': 'failed',
         'failure_reason': (data.get('cancelation_reason') or
                            data.get('failure_reason')),
         'buildbot_log_url': data.get('url')
