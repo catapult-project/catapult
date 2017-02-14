@@ -5,8 +5,6 @@
 import logging
 import time
 
-from telemetry.core import exceptions
-
 
 class AndroidBrowserBackendSettings(object):
 
@@ -104,14 +102,14 @@ class WebviewBackendSettings(AndroidBrowserBackendSettings):
                            'activity %s:%s to come up',
                            self.package,
                            self.activity)
-          raise exceptions.BrowserGoneException(self.browser,
-                                                'Timeout waiting for PID.')
-      if len(pids[self.package]) > 1:
+          raise Exception('Timeout waiting for PID.')
+      if len(pids.get(self.package, [])) > 1:
         raise Exception(
             'At most one instance of process %s expected but found pids: '
             '%s' % (self.package, pids))
-      pid = pids[self.package][0]
-      break
+      if len(pids.get(self.package, [])) == 1:
+        pid = pids[self.package][0]
+        break
     return 'localabstract:webview_devtools_remote_%s' % str(pid)
 
 
