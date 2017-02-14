@@ -61,6 +61,13 @@ function mergeLeafHistograms(groupedHistograms, mergedHistograms) {
   }
 }
 
+function stripMergedFromAndToDiagnostics(mergedHistograms) {
+  for (let hist of mergedHistograms) {
+    hist.diagnostics.delete(tr.v.MERGED_FROM_DIAGNOSTIC_KEY);
+    hist.diagnostics.delete(tr.v.MERGED_TO_DIAGNOSTIC_KEY);
+  }
+}
+
 if (tr.isHeadless) {
   let histograms = new tr.v.HistogramSet();
   histograms.importDicts(JSON.parse(tr.b.getSync('file://' + sys.argv[1])));
@@ -69,6 +76,7 @@ if (tr.isHeadless) {
   let groupedHistograms = histograms.groupHistogramsRecursively(groupings);
   let mergedHistograms = new tr.v.HistogramSet();
   mergeLeafHistograms(groupedHistograms, mergedHistograms);
+  stripMergedFromAndToDiagnostics(mergedHistograms);
   console.log(JSON.stringify(mergedHistograms.asDicts()));
 }
 </script>

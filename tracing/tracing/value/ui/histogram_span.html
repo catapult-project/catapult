@@ -331,8 +331,10 @@ Polymer({
     if (this.histogram.diagnostics.size > 0) {
       let diagnosticMap = new tr.v.d.DiagnosticMap();
       for (let [key, diagnostic] of this.histogram.diagnostics) {
-        // Hide the 'merged from' diagnostic, which is an implementation detail.
-        if (key !== tr.v.d.MERGED_FROM_DIAGNOSTIC_KEY) {
+        // Hide the 'merged from' and 'merged to' diagnostics, which are
+        // implementation details.
+        if (key !== tr.v.d.MERGED_FROM_DIAGNOSTIC_KEY &&
+            key !== tr.v.d.MERGED_TO_DIAGNOSTIC_KEY) {
           diagnosticMap.set(key, diagnostic);
         }
       }
