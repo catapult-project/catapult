@@ -15,7 +15,7 @@ _MAIN_ENTRY_POINT = 'Startup.BrowserMainEntryPoint'
 #     between starting these events
 _METRICS = {
   'messageloop_start_time':
-      ('Startup.BrowserMessageLoopStartTimeFromMainEntry',),
+      ('Startup.BrowserMessageLoopStartTimeFromMainEntry2',),
 
   'window_display_time':
       ('Startup.BrowserWindowDisplay',),
