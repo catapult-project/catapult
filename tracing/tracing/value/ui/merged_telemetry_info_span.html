@@ -57,7 +57,7 @@ Polymer({
         Array.from(this.diagnostic.benchmarkNames).join(', ')
       ]);
     }
-    if (this.diagnostic.benchmarkStarts.size) {
+    if (this.diagnostic.benchmarkStarts.length) {
       rows.push([
         'benchmark starts',
         this.diagnostic.benchmarkStartStrings.join(', ')
@@ -67,16 +67,22 @@ Polymer({
       rows.push(['urls', Array.from(this.diagnostic.storyUrls).join(', ')]);
     }
     if (this.diagnostic.storyDisplayNames.size) {
-      rows.push(['stories', Array.from(
-          this.diagnostic.storyDisplayNames).join(', ')]);
+      rows.push([
+        'stories',
+        Array.from(this.diagnostic.storyDisplayNames).join(', ')
+      ]);
     }
     if (this.diagnostic.storysetRepeatCounters.size) {
-      rows.push(['storyset repeats', Array.from(
-          this.diagnostic.storysetRepeatCounters).join(', ')]);
+      rows.push([
+        'storyset repeats',
+        Array.from(this.diagnostic.storysetRepeatCounters).join(', ')
+      ]);
     }
     if (this.diagnostic.storyRepeatCounters.size) {
-      rows.push(['story repeats', Array.from(
-          this.diagnostic.storyRepeatCounters).join(', ')]);
+      rows.push([
+        'story repeats',
+        Array.from(this.diagnostic.storyRepeatCounters).join(', ')
+      ]);
     }
     if (this.diagnostic.labels.size) {
       rows.push(['label', Array.from(this.diagnostic.labels).join(', ')]);

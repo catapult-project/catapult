@@ -16,7 +16,7 @@ tr.exportTo('tr.v.d', function() {
     constructor() {
       super();
       this.benchmarkNames_ = new Set();
-      this.benchmarkStarts_ = new Set();
+      this.benchmarkStartsMs_ = new Set();
       this.labels_ = new Set();
       this.legacyTIRLabels_ = new Set();
       this.storyDisplayNames_ = new Set();
@@ -36,8 +36,8 @@ tr.exportTo('tr.v.d', function() {
         for (let name of otherDiagnostic.benchmarkNames) {
           this.benchmarkNames.add(name);
         }
-        for (let t of otherDiagnostic.benchmarkStarts) {
-          this.benchmarkStarts.add(t);
+        for (let t of otherDiagnostic.benchmarkStartsMs) {
+          this.benchmarkStartsMs.add(t);
         }
         for (let name of otherDiagnostic.labels) {
           this.labels.add(name);
@@ -73,7 +73,13 @@ tr.exportTo('tr.v.d', function() {
         this.benchmarkNames.add(otherDiagnostic.benchmarkName);
       }
       if (otherDiagnostic.benchmarkStart !== undefined) {
-        this.benchmarkStarts.add(otherDiagnostic.benchmarkStart);
+        // Store the number timestamps in the Set, not the Date objects.
+        // Sets uniquify based on object identity, not equivalency.
+        // Multiple different Date objects can have the same value, and we don't
+        // want to store multiple Dates with the same value.
+        // Dates are not interned like strings are.
+        // The |benchmarkStarts| getter converts the timestamps to Date objects.
+        this.benchmarkStartsMs.add(otherDiagnostic.benchmarkStart.getTime());
       }
       if (otherDiagnostic.label) {
         this.labels.add(otherDiagnostic.label);
@@ -107,11 +113,8 @@ tr.exportTo('tr.v.d', function() {
       if (this.benchmarkNames.size) {
         d.benchmarkNames = Array.from(this.benchmarkNames);
       }
-      if (this.benchmarkStarts.size) {
-        d.benchmarkStartsMs = [];
-        for (let t of this.benchmarkStarts) {
-          d.benchmarkStartsMs.push(t.getTime());
-        }
+      if (this.benchmarkStartsMs.size) {
+        d.benchmarkStartsMs = Array.from(this.benchmarkStartsMs);
       }
       if (this.labels.size) {
         d.labels = Array.from(this.labels);
@@ -145,7 +148,7 @@ tr.exportTo('tr.v.d', function() {
         info.benchmarkNames_.add(n);
       }
       for (let n of d.benchmarkStartsMs || []) {
-        info.benchmarkStarts_.add(new Date(n));
+        info.benchmarkStartsMs_.add(n);
       }
       for (let n of d.labels || []) {
         info.labels_.add(n);
@@ -219,16 +222,27 @@ tr.exportTo('tr.v.d', function() {
           this.storysetRepeatCounters).join(',');
     }
 
-    get benchmarkStarts() {
-      return this.benchmarkStarts_;
+    /**
+     * @return {!Set.<number>}
+     */
+    get benchmarkStartsMs() {
+      return this.benchmarkStartsMs_;
     }
 
+    /**
+     * @return {!Array.<!Date>}
+     */
+    get benchmarkStarts() {
+      let startsMs = Array.from(this.benchmarkStartsMs);
+      startsMs.sort((x, y) => x - y);
+      return startsMs.map(t => new Date(t));
+    }
+
+    /**
+     * @return {!Array.<string>}
+     */
     get benchmarkStartStrings() {
-      let strs = [];
-      for (let t of this.benchmarkStarts) {
-        strs.push(tr.b.formatDate(t));
-      }
-      return strs;
+      return this.benchmarkStarts.map(tr.b.formatDate);
     }
 
     /**
