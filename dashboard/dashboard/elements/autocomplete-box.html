@@ -470,7 +470,7 @@ property 'group' sets to the header item name.
         var elements = this.$.dropdown.items || [];
         for (var element of elements) {
           if (element.item === this.locusItem) {
-            element.scrollIntoView();
+            element.scrollIntoView(false);
             return;
           }
         }
