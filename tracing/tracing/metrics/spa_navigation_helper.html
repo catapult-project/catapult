@@ -38,9 +38,15 @@ tr.exportTo('tr.metrics', function() {
     let slices = [];
     tr.b.iterItems(rendererHelpers, function(pid, rendererHelper) {
       let mainThread = rendererHelper.mainThread;
-      let pushStateEvents = getPushStateEventsOnRenderer_(mainThread);
-      let handleInputEvents = getHandleInputEventsOnRenderer_(mainThread);
-      let precedingHandleInputEvents = findPrecedingHandleInputEvents_(
+      let pushStateEvents = getAllEventsInAscendingOrder_(
+          mainThread,
+          e => e.title === 'History::pushState' &&
+              e.category === 'blink');
+      let handleInputEvents = getAllEventsInAscendingOrder_(
+          mainThread,
+          e => e.title === 'WebViewImpl::handleInputEvent' &&
+              e.args.type === 'MouseUp');
+      let precedingHandleInputEvents = findPrecedingEvents_(
           pushStateEvents, handleInputEvents);
       slices.push(...precedingHandleInputEvents.map(e => e.parentSlice));
     });
@@ -48,46 +54,65 @@ tr.exportTo('tr.metrics', function() {
   }
 
   /**
-   * Returns all pushState events on the main thread of each renderer process.
+   * Returns all events on the specified thread that also
+   * passes the specified filterFunc.
    */
-  function getPushStateEventsOnRenderer_(mainThread) {
-    return [...mainThread.sliceGroup.getDescendantEvents()]
-        .filter(e => e.title === 'History::pushState' &&
-            e.category === 'blink')
+  function getAllEventsInAscendingOrder_(thread, filterFunc) {
+    return [...thread.sliceGroup.getDescendantEvents()]
+        .filter(filterFunc)
         .sort(tr.importer.compareEvents);
   }
 
   /**
-   * Returns all WebViewImpl::handleInputEvent slices whose type is
-   * 'MouseUp' on the main thread of each renderer process.
+   * Returns an array of the elements in eventsB which immediately
+   * precede events in eventsA.
+   * For instance:
+   * eventsA:     A1   A2   A3   A4
+   * eventsB: B1 B2  B3   B4   B5
+   *  output: [B2, B3, B4, B5]
+   * or
+   * eventsA:     A1   A2   A3   A4
+   * eventsB: B1
+   *  output: [B1, B1, B1, B1]
    */
-  function getHandleInputEventsOnRenderer_(mainThread) {
-    // TODO(sunjian): Need to extend type from 'MouseUp' to a list of
-    // types.
-    return [...mainThread.sliceGroup.getDescendantEvents()]
-        .filter(e => e.title === 'WebViewImpl::handleInputEvent' &&
-            e.args.type === 'MouseUp')
-        .sort(tr.importer.compareEvents);
-  }
-
-  /**
-   * Returns all preceding WebViewImpl::handleInputEvent slice for each
-   * pushState event.
-   */
-  function findPrecedingHandleInputEvents_(pushStateEvents, handleInputEvents) {
+  function findPrecedingEvents_(eventsA, eventsB) {
     let events = [];
-    let handleInputEventIndex = 0;
-    for (let pushStateEvent of pushStateEvents) {
-      for (; handleInputEventIndex < handleInputEvents.length;
-          handleInputEventIndex++) {
-        if (handleInputEvents[handleInputEventIndex].start >
-            pushStateEvent.start) {
-          break;
-        }
+    let eventsBIndex = 0;
+    for (let eventA of eventsA) {
+      for (; eventsBIndex < eventsB.length; eventsBIndex++) {
+        if (eventsB[eventsBIndex].start > eventA.start) break;
       }
-      // If statement prevents the situation when handleInputEvents is empty.
-      if (handleInputEventIndex > 0) {
-        events.push(handleInputEvents[handleInputEventIndex - 1]);
+      // If statement prevents the situation when eventsB is empty.
+      if (eventsBIndex > 0) {
+        events.push(eventsB[eventsBIndex - 1]);
+      }
+    }
+    return events;
+  }
+
+  /**
+   * Returns an array of the elements in eventsB which immediately
+   * follow events in eventsA.
+   * For instance:
+   * eventsA:  A1   A2   A3   A4
+   * eventsB: B1  B2   B3  B4   B5
+   *  output: [B2, B3, B4, B5]
+   * or
+   * eventsA:  A1   A2   A3   A4
+   * eventsB:                B1
+   *  output: [B1, B1, B1]
+   */
+  function findFollowingEvents_(eventsA, eventsB) {
+    let events = [];
+    let eventsBIndex = 0;
+    for (let eventA of eventsA) {
+      for (; eventsBIndex < eventsB.length; eventsBIndex++) {
+        if (eventsB[eventsBIndex].start >= eventA.start) break;
+      }
+      // If statement prevents the situation when eventsB is empty
+      // and when it reaches the end of loop.
+      if (eventsBIndex >= 0 && eventsBIndex < eventsB.length) {
+        events.push(eventsB[eventsBIndex]);
       }
     }
     return events;
@@ -122,8 +147,44 @@ tr.exportTo('tr.metrics', function() {
     return inputLatencyAsyncSlices;
   }
 
+  /**
+   * Returns all PaintLayerCompositer::updateIfNeededRecursive slices
+   * that immediately follow all History::pushState events.
+   */
+  function getUpdateIfNeededRecursiveSlices(model) {
+    let modelHelper = model.getOrCreateHelper(
+        tr.model.helpers.ChromeModelHelper);
+    if (!modelHelper) {
+      // Chrome isn't present.
+      return [];
+    }
+    let rendererHelpers = modelHelper.rendererHelpers;
+    if (!rendererHelpers) {
+      // We couldn't find any renderer processes.
+      return [];
+    }
+    let slices = [];
+    tr.b.iterItems(rendererHelpers, function(pid, rendererHelper) {
+      let mainThread = rendererHelper.mainThread;
+      let pushStateEvents = getAllEventsInAscendingOrder_(
+          mainThread,
+          e => e.title === 'History::pushState' &&
+              e.category === 'blink');
+      let updateIfNeededRecursiveEvents = getAllEventsInAscendingOrder_(
+          mainThread,
+          e => e.title ===
+              'PaintLayerCompositor::updateIfNeededRecursive' &&
+              e.category === 'blink');
+
+      slices = slices.concat(findFollowingEvents_(pushStateEvents,
+          updateIfNeededRecursiveEvents));
+    });
+    return slices;
+  }
+
   return {
     getInputLatencyAsyncSlices,
+    getUpdateIfNeededRecursiveSlices,
   };
 });
 </script>

@@ -40,6 +40,19 @@ function addPushStateEventAtTimestamp(model, timestamp) {
   }));
 }
 
+function addUpdateIfNeededRecursiveSliceAtTimestamp(model, timestamp) {
+  let rendererProcess = model.getOrCreateProcess(RENDERER_PROCESS_ID);
+  let mainThread = rendererProcess.getOrCreateThread(
+      RENDERER_PROCESS_MAIN_THREAD_ID);
+
+  mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+    cat: 'blink',
+    title: 'PaintLayerCompositor::updateIfNeededRecursive',
+    start: timestamp,
+    duration: 0.1
+  }));
+}
+
 function addLatencyInfoFlowAtTimestamp(model, timestamp, bindId) {
   let latencyInfoFlowSlice = tr.c.TestUtils.newSliceEx({
     cat: 'input,benchmark',
@@ -87,7 +100,7 @@ tr.b.unittest.testSuite(function() {
     let model = tr.c.TestUtils.newModel(model => {
       createChromeProcessesOnModel(model);
     });
-    var slices = tr.metrics.getInputLatencyAsyncSlices(model);
+    let slices = tr.metrics.getInputLatencyAsyncSlices(model);
     assert.lengthOf(slices, 0);
   });
 
@@ -106,7 +119,7 @@ tr.b.unittest.testSuite(function() {
       addInputLatencyAtTimestamp(model, 155, 25769803970);
       addInputLatencyAtTimestamp(model, 255, 25769804045);
     });
-    var slices = tr.metrics.getInputLatencyAsyncSlices(model);
+    let slices = tr.metrics.getInputLatencyAsyncSlices(model);
     assert.lengthOf(slices, 3);
     assert.strictEqual(slices[0].start, 55);
     assert.strictEqual(slices[1].start, 155);
@@ -128,7 +141,7 @@ tr.b.unittest.testSuite(function() {
           addInputLatencyAtTimestamp(model, 155, 25769803970);
           addInputLatencyAtTimestamp(model, 255, 25769804045);
         });
-        var slices = tr.metrics.getInputLatencyAsyncSlices(model);
+        let slices = tr.metrics.getInputLatencyAsyncSlices(model);
         assert.lengthOf(slices, 0);
       });
 
@@ -144,15 +157,92 @@ tr.b.unittest.testSuite(function() {
           addLatencyInfoFlowAtTimestamp(model, 175, '0x6000000c2');
           addLatencyInfoFlowAtTimestamp(model, 275, '0x60000010d');
         });
-        var slices = tr.metrics.getInputLatencyAsyncSlices(model);
+        let slices = tr.metrics.getInputLatencyAsyncSlices(model);
         assert.lengthOf(slices, 0);
       });
 
   test('getInputLatencyAsyncSlices_noChromeProcesses',
       function() {
         let model = tr.c.TestUtils.newModel();
-        var slices = tr.metrics.getInputLatencyAsyncSlices(model);
+        let slices = tr.metrics.getInputLatencyAsyncSlices(model);
         assert.lengthOf(slices, 0);
+      });
+
+  test('getUpdateIfNeededRecursiveSlices_noChromeProcesses',
+      function() {
+        let model = tr.c.TestUtils.newModel();
+        let slices = tr.metrics.getUpdateIfNeededRecursiveSlices(model);
+        assert.lengthOf(slices, 0);
+      });
+
+  test('getUpdateIfNeededRecursiveSlices_onlyPushState', function() {
+    let model = tr.c.TestUtils.newModel(model => {
+      createChromeProcessesOnModel(model);
+      addPushStateEventAtTimestamp(model, 100);
+      addPushStateEventAtTimestamp(model, 200);
+      addPushStateEventAtTimestamp(model, 300);
+    });
+    let slices = tr.metrics.getUpdateIfNeededRecursiveSlices(model);
+    assert.lengthOf(slices, 0);
+  });
+
+  test('getUpdateIfNeededRecursiveSlices_recursiveSliceNoPushState',
+      function() {
+        let model = tr.c.TestUtils.newModel(model => {
+          createChromeProcessesOnModel(model);
+          addUpdateIfNeededRecursiveSliceAtTimestamp(model, 101);
+          addUpdateIfNeededRecursiveSliceAtTimestamp(model, 201);
+          addUpdateIfNeededRecursiveSliceAtTimestamp(model, 301);
+        });
+        let slices = tr.metrics.getUpdateIfNeededRecursiveSlices(model);
+        assert.lengthOf(slices, 0);
+      });
+
+  /**
+   * Test situation like this:
+   * pushState events:              |    |    |
+   * updateIfNeededRecursiveSlice:   ||   |    |
+   */
+  test('getUpdateIfNeededRecursiveSlices_recursiveSliceAndPushState1',
+      function() {
+        let model = tr.c.TestUtils.newModel(model => {
+          createChromeProcessesOnModel(model);
+          addPushStateEventAtTimestamp(model, 100);
+          addPushStateEventAtTimestamp(model, 200);
+          addPushStateEventAtTimestamp(model, 300);
+          addUpdateIfNeededRecursiveSliceAtTimestamp(model, 101);
+          addUpdateIfNeededRecursiveSliceAtTimestamp(model, 102);
+          addUpdateIfNeededRecursiveSliceAtTimestamp(model, 201);
+          addUpdateIfNeededRecursiveSliceAtTimestamp(model, 301);
+        });
+        let slices = tr.metrics.getUpdateIfNeededRecursiveSlices(model);
+        assert.lengthOf(slices, 3);
+        assert.strictEqual(slices[0].start, 101);
+        assert.strictEqual(slices[1].start, 201);
+        assert.strictEqual(slices[2].start, 301);
+      });
+
+  /**
+   * Test situation like this:
+   * pushState events:              |    |    |
+   * updateIfNeededRecursiveSlice:   ||        |
+   */
+  test('getUpdateIfNeededRecursiveSlices_recursiveSliceAndPushState2',
+      function() {
+        let model = tr.c.TestUtils.newModel(model => {
+          createChromeProcessesOnModel(model);
+          addPushStateEventAtTimestamp(model, 100);
+          addPushStateEventAtTimestamp(model, 200);
+          addPushStateEventAtTimestamp(model, 300);
+          addUpdateIfNeededRecursiveSliceAtTimestamp(model, 101);
+          addUpdateIfNeededRecursiveSliceAtTimestamp(model, 102);
+          addUpdateIfNeededRecursiveSliceAtTimestamp(model, 301);
+        });
+        let slices = tr.metrics.getUpdateIfNeededRecursiveSlices(model);
+        assert.lengthOf(slices, 3);
+        assert.strictEqual(slices[0].start, 101);
+        assert.strictEqual(slices[1].start, 301);
+        assert.strictEqual(slices[2].start, 301);
       });
 });
 </script>
