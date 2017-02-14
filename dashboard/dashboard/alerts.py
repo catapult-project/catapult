@@ -167,7 +167,7 @@ def GetAnomalyDict(anomaly_entity, bisect_status=None):
       'recovered': anomaly_entity.recovered,
       'ref_test': anomaly_entity.GetRefTestPath(),
       'type': 'anomaly',
-      'units': anomaly_entity.units
+      'units': anomaly_entity.units,
   })
   return alert_dict
 
@@ -205,6 +205,8 @@ def _AlertDict(alert_entity):
       'test': '/'.join(test_path_parts[3:]),
       'bug_id': alert_entity.bug_id,
       'dashboard_link': dashboard_link,
+      'display_start': alert_entity.display_start,
+      'display_end': alert_entity.display_end,
   }
 
 

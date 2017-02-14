@@ -41,6 +41,9 @@ class Alert(internal_only_model.InternalOnlyModel):
   # kind=alert_group.AlertGroup can be added.
   group = ndb.KeyProperty(indexed=True)
 
+  # The revisions to use for display, if different than point id.
+  display_start = ndb.IntegerProperty(indexed=False)
+  display_end = ndb.IntegerProperty(indexed=False)
 
   def GetTestMetadataKey(self):
     """Get the key for the TestMetadata entity of this alert.

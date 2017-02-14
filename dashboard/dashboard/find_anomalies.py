@@ -242,6 +242,30 @@ def _GetRefBuildKeyForTest(test):
   return None
 
 
+def _GetDisplayRange(old_end, rows):
+  """Get the revision range using a_display_rev, if applicable.
+
+  Args:
+    old_end: the x_value from the change_point
+    rows: List of Row entities in asscending order by revision.
+
+  Returns:
+    A end_rev, start_rev tuple with the correct revision.
+  """
+  start_rev = end_rev = 0
+  for row in reversed(rows):
+    if (row.revision == old_end and
+        hasattr(row, 'r_commit_pos')):
+      end_rev = row.r_commit_pos
+    elif (row.revision < old_end and
+          hasattr(row, 'r_commit_pos')):
+      start_rev = row.r_commit_pos + 1
+      break
+  if not end_rev or not start_rev:
+    end_rev = start_rev = None
+  return start_rev, end_rev
+
+
 def _MakeAnomalyEntity(change_point, test, rows):
   """Creates an Anomaly entity.
 
@@ -255,6 +279,9 @@ def _MakeAnomalyEntity(change_point, test, rows):
   """
   end_rev = change_point.x_value
   start_rev = _GetImmediatelyPreviousRevisionNumber(end_rev, rows) + 1
+  display_start = display_end = None
+  if test.master_name == 'ClankInternal':
+    display_start, display_end = _GetDisplayRange(change_point.x_value, rows)
   median_before = change_point.median_before
   median_after = change_point.median_after
   return anomaly.Anomaly(
@@ -274,7 +301,9 @@ def _MakeAnomalyEntity(change_point, test, rows):
       test=test.key,
       sheriff=test.sheriff,
       internal_only=test.internal_only,
-      units=test.units)
+      units=test.units,
+      display_start=display_start,
+      display_end=display_end)
 
 
 def FindChangePointsForTest(rows, config_dict):

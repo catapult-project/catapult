@@ -376,7 +376,9 @@ found in the LICENSE file.
             </bisect-status>
           </td>
           <td class="revision_range">
-            <revision-range start="{{item.start_revision}}" end="{{item.end_revision}}" alert-key="{{item.key}}"></revision-range>
+            <revision-range start="{{getDisplayStartRev(item)}}" 
+                            end="{{getDisplayEndRev(item)}}">
+            </revision-range>
           </td>
           <td class="master">{{item.master}}</td>
           <td class="bot">{{item.bot}}</td>
@@ -515,6 +517,20 @@ found in the LICENSE file.
       },
 
       computeIsPlural: (n) => n > 1,
+
+      getDisplayStartRev: function(item) {
+        if (item['display_start']) {
+          return item['display_start'];
+        }
+        return item['start_revision'];
+      },
+
+      getDisplayEndRev: function(item) {
+        if (item['display_end']) {
+          return item['display_end'];
+        }
+        return item['end_revision'];
+      },
 
       /**
        * Determines how to format the unit. E.g. switching between MiB and

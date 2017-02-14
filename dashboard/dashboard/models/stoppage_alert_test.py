@@ -38,6 +38,8 @@ class StoppageAlertTest(testing_common.TestCase):
     self.assertIsNone(alert.bug_id)
     self.assertIsNotNone(alert.timestamp)
     self.assertEqual(row.timestamp, alert.last_row_timestamp)
+    self.assertIsNone(alert.display_start)
+    self.assertIsNone(alert.display_end)
 
   def testCreateStoppageAlert_InternalOnly(self):
     test, row = self._AddSampleData()
@@ -45,6 +47,19 @@ class StoppageAlertTest(testing_common.TestCase):
     test.put()
     alert = stoppage_alert.CreateStoppageAlert(test, row)
     self.assertTrue(alert.internal_only)
+
+  def testCreateStoppageAlert_DisplayRevIfClank(self):
+    testing_common.AddTests(['ClankInternal'], ['b'], {'suite': {'foo': {}}})
+    sheriff.Sheriff(id='Foo', patterns=['*/*/*/*']).put()
+    test_path = 'ClankInternal/b/suite/foo'
+    test_key = utils.TestKey(test_path)
+    test = test_key.get()
+    testing_common.AddRows(test_path, {100})
+    row = graph_data.Row.query().get()
+    row.r_commit_pos = 102
+    alert = stoppage_alert.CreateStoppageAlert(test, row)
+    self.assertEqual(alert.display_start, 102)
+    self.assertEqual(alert.display_end, 102)
 
   def testPutMultipleTimes_OnlyOneEntityPut(self):
     test, row = self._AddSampleData()

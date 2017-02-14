@@ -430,7 +430,33 @@ class ProcessAlertsTest(testing_common.TestCase):
         list(graph_data.Row.query()))
     self.assertEqual(alert.ref_test.string_id(),
                      'ChromiumPerf/linux/page_cycler_v2/cnn_ref')
+    self.assertIsNone(alert.display_start)
+    self.assertIsNone(alert.display_end)
 
+  def testMakeAnomalyEntity_RevisionRanges(self):
+    testing_common.AddTests(
+        ['ClankInternal'],
+        ['linux'], {
+            'page_cycler_v2': {
+                'cnn': {},
+                'cnn_ref': {},
+                'yahoo': {},
+                'nytimes': {},
+            },
+        })
+    test = utils.TestKey('ClankInternal/linux/page_cycler_v2/cnn').get()
+    testing_common.AddRows(test.test_path, [100, 200, 300, 400])
+    for row in graph_data.Row.query():
+      row.r_commit_pos = int(row.value) + 2 # Different enough to ensure it is
+                                            # picked up properly.
+      row.put()
+
+    alert = find_anomalies._MakeAnomalyEntity(
+        _MakeSampleChangePoint(300, 50, 100),
+        test,
+        list(graph_data.Row.query()))
+    self.assertEqual(alert.display_start, 203)
+    self.assertEqual(alert.display_end, 302)
 
 if __name__ == '__main__':
   unittest.main()
