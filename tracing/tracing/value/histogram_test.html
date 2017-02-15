@@ -155,7 +155,7 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual(hist.nanDiagnosticMaps.map(dm => dm.get('foo').value),
                                              ['b', 'c']);
 
-    let hist2 = hist.clone();
+    let hist2 = tr.v.Histogram.fromDict(hist.asDict());
     assert.instanceOf(hist2.nanDiagnosticMaps[0], tr.v.d.DiagnosticMap);
     assert.instanceOf(hist2.nanDiagnosticMaps[0].get('foo'), tr.v.d.Generic);
   });
@@ -213,7 +213,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(hist0.numValues, 10);
     assert.closeTo(hist0.average, 349.7, 0.1);
 
-    let hist02 = hist0.clone();
+    let hist02 = tr.v.Histogram.fromDict(hist0.asDict());
     assert.instanceOf(hist02.allBins[0].diagnosticMaps[0],
         tr.v.d.DiagnosticMap);
     assert.instanceOf(hist02.allBins[0].diagnosticMaps[0].get('foo'),
@@ -393,7 +393,7 @@ tr.b.unittest.testSuite(function() {
     });
 
     // Test round-tripping summaryOptions.
-    hist = hist.clone();
+    hist = tr.v.Histogram.fromDict(hist.asDict());
 
     let stats = hist.statisticsScalars;
     assert.strictEqual(stats.get('nans').unit,
@@ -490,7 +490,7 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual(hist1.sampleValues, values1);
     hist0.addHistogram(hist1);
     assert.deepEqual(hist0.sampleValues, values0.concat(values1));
-    let hist2 = hist0.clone();
+    let hist2 = tr.v.Histogram.fromDict(hist0.asDict());
     assert.deepEqual(hist2.sampleValues, values0.concat(values1));
 
     for (let i = 0; i < 200; ++i) {
@@ -549,13 +549,13 @@ tr.b.unittest.testSuite(function() {
     hist0.customizeSummaryOptions({sum: false, percentile: [0.9]});
     hist1.customizeSummaryOptions({min: false, percentile: [0.95]});
 
-    let merged = hist1.cloneEmpty();
+    let merged = hist1.clone();
 
     assert.isFalse(merged.summaryOptions.get('min'));
     assert.isTrue(merged.summaryOptions.get('sum'));
     assert.deepEqual(merged.summaryOptions.get('percentile'), [0.95]);
 
-    merged = hist0.cloneEmpty();
+    merged = hist0.clone();
 
     assert.isTrue(merged.summaryOptions.get('min'));
     assert.isFalse(merged.summaryOptions.get('sum'));

@@ -630,21 +630,11 @@ tr.exportTo('tr.v', function() {
     }
 
     /**
-     * Create a new Histogram object that is exactly the same as this one, with
-     * this Histogram's name, unit, and binBoundaries, guid, bin counts, and
-     * diagnostics.
+     * Create a new Histogram instance that is just like |this| except for its
+     * guid. This is useful when merging Histograms.
      * @return {!tr.v.Histogram}
      */
     clone() {
-      return Histogram.fromDict(this.asDict());
-    }
-
-    /**
-     * Create a new Histogram with this Histogram's name, unit, and
-     * binBoundaries, but not its guid, bin counts, or diagnostics.
-     * @return {!tr.v.Histogram}
-     */
-    cloneEmpty() {
       let binBoundaries = HistogramBinBoundaries.fromDict(
           this.binBoundariesDict_);
       let hist = new Histogram(this.name, this.unit, binBoundaries);
@@ -653,6 +643,7 @@ tr.exportTo('tr.v', function() {
         if (stat === 'percentile') option = Array.from(option);
         hist.summaryOptions.set(stat, option);
       }
+      hist.addHistogram(this);
       return hist;
     }
 

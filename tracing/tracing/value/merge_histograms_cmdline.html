@@ -46,14 +46,14 @@ function mergeLeafHistograms(groupedHistograms, mergedHistograms) {
     // mergedHistograms.
     // If it isn't possible to merge all Histograms in |histograms| together,
     // then merge them into as few merged Histograms as possible.
-    let merged = [histograms[0].cloneEmpty()];
+    let merged = [histograms.shift().clone()];
     for (let hist of histograms) {
       let candidate = findMergeable(hist, merged);
-      if (candidate === undefined) {
-        candidate = hist.cloneEmpty();
-        merged.push(candidate);
+      if (candidate !== undefined) {
+        candidate.addHistogram(hist);
+        continue;
       }
-      candidate.addHistogram(hist);
+      merged.push(hist.clone());
     }
     for (let hist of merged) {
       mergedHistograms.addHistogram(hist);
