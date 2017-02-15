@@ -150,6 +150,12 @@ _FILE_MODE_SPECIAL = [
     ('s', stat.S_ISGID),
     ('t', stat.S_ISVTX),
 ]
+_SELINUX_MODE = {
+  'enforcing': True,
+  'permissive': False,
+  'disabled': None
+}
+
 
 @decorators.WithExplicitTimeoutAndRetries(
     _DEFAULT_TIMEOUT, _DEFAULT_RETRIES)
@@ -2134,6 +2140,48 @@ class DeviceUtils(object):
       except IndexError:
         pass
     return procs_pids
+
+  @decorators.WithTimeoutAndRetriesFromInstance()
+  def GetEnforce(self, timeout=None, retries=None):
+    """Get the current mode of SELinux.
+
+    Args:
+      timeout: timeout in seconds
+      retries: number of retries
+
+    Returns:
+      True (enforcing), False (permissive), or None (disabled).
+
+    Raises:
+      CommandFailedError on failure.
+      CommandTimeoutError on timeout.
+      DeviceUnreachableError on missing device.
+    """
+    output = self.RunShellCommand(
+        ['getenforce'], check_return=True, single_line=True).lower()
+    if output not in _SELINUX_MODE:
+      raise device_errors.CommandFailedError(
+          'Unexpected getenforce output: %s' % output)
+    return _SELINUX_MODE[output]
+
+  @decorators.WithTimeoutAndRetriesFromInstance()
+  def SetEnforce(self, enabled, timeout=None, retries=None):
+    """Modify the mode SELinux is running in.
+
+    Args:
+      enabled: a boolean indicating whether to put SELinux in encorcing mode
+               (if True), or permissive mode (otherwise).
+      timeout: timeout in seconds
+      retries: number of retries
+
+    Raises:
+      CommandFailedError on failure.
+      CommandTimeoutError on timeout.
+      DeviceUnreachableError on missing device.
+    """
+    self.RunShellCommand(
+        ['setenforce', '1' if int(enabled) else '0'], as_root=True,
+        check_return=True)
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def TakeScreenshot(self, host_path=None, timeout=None, retries=None):

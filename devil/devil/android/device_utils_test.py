@@ -2305,6 +2305,57 @@ class DeviceUtilsGetPidsTest(DeviceUtilsTest):
             self.device.GetPids('foo'))
 
 
+class DeviceUtilsGetSetEnforce(DeviceUtilsTest):
+
+  def testGetEnforce_Enforcing(self):
+    with self.assertCall(self.call.adb.Shell('getenforce'), 'Enforcing'):
+      self.assertEqual(True, self.device.GetEnforce())
+
+  def testGetEnforce_Permissive(self):
+    with self.assertCall(self.call.adb.Shell('getenforce'), 'Permissive'):
+      self.assertEqual(False, self.device.GetEnforce())
+
+  def testGetEnforce_Disabled(self):
+    with self.assertCall(self.call.adb.Shell('getenforce'), 'Disabled'):
+      self.assertEqual(None, self.device.GetEnforce())
+
+  def testSetEnforce_Enforcing(self):
+    with self.assertCalls(
+        (self.call.device.NeedsSU(), False),
+        (self.call.adb.Shell('setenforce 1'), '')):
+      self.device.SetEnforce(enabled=True)
+
+  def testSetEnforce_Permissive(self):
+    with self.assertCalls(
+        (self.call.device.NeedsSU(), False),
+        (self.call.adb.Shell('setenforce 0'), '')):
+      self.device.SetEnforce(enabled=False)
+
+  def testSetEnforce_EnforcingWithInt(self):
+    with self.assertCalls(
+        (self.call.device.NeedsSU(), False),
+        (self.call.adb.Shell('setenforce 1'), '')):
+      self.device.SetEnforce(enabled=1)
+
+  def testSetEnforce_PermissiveWithInt(self):
+    with self.assertCalls(
+        (self.call.device.NeedsSU(), False),
+        (self.call.adb.Shell('setenforce 0'), '')):
+      self.device.SetEnforce(enabled=0)
+
+  def testSetEnforce_EnforcingWithStr(self):
+    with self.assertCalls(
+        (self.call.device.NeedsSU(), False),
+        (self.call.adb.Shell('setenforce 1'), '')):
+      self.device.SetEnforce(enabled='1')
+
+  def testSetEnforce_PermissiveWithStr(self):
+    with self.assertCalls(
+        (self.call.device.NeedsSU(), False),
+        (self.call.adb.Shell('setenforce 0'), '')):
+      self.device.SetEnforce(enabled='0')  # Not recommended but it works!
+
+
 class DeviceUtilsTakeScreenshotTest(DeviceUtilsTest):
 
   def testTakeScreenshot_fileNameProvided(self):
