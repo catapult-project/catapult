@@ -26,6 +26,44 @@ tr.exportTo('tr.v.d', function() {
       this.storysetRepeatCounters_ = new Set();
     }
 
+    equals(other) {
+      if (!(other instanceof MergedTelemetryInfo)) return false;
+      if (!tr.b.setsEqual(this.benchmarkNames, other.benchmarkNames)) {
+        return false;
+      }
+      if (!tr.b.setsEqual(this.labels, other.labels)) return false;
+      if (!tr.b.setsEqual(this.storyDisplayNames, other.storyDisplayNames)) {
+        return false;
+      }
+      if (!tr.b.setsEqual(this.legacyTIRLabels, other.legacyTIRLabels)) {
+        return false;
+      }
+      if (!tr.b.setsEqual(this.storyRepeatCounters,
+          other.storyRepeatCounters)) {
+        return false;
+      }
+      if (!tr.b.setsEqual(this.storysetRepeatCounters,
+          other.storysetRepeatCounters)) {
+        return false;
+      }
+      if (!tr.b.setsEqual(this.storyUrls, other.storyUrls)) return false;
+      if (!tr.b.setsEqual(this.benchmarkStartsMs, other.benchmarkStartsMs)) {
+        return false;
+      }
+
+      if (!tr.b.setsEqual(new Set(this.storyGroupingKeys.keys()),
+          new Set(other.storyGroupingKeys.keys()))) {
+        return false;
+      }
+      for (let [k, vs] of this.storyGroupingKeys) {
+        if (!tr.b.setsEqual(vs, other.storyGroupingKeys.get(k))) {
+          return false;
+        }
+      }
+
+      return true;
+    }
+
     canAddDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
       return otherDiagnostic instanceof MergedTelemetryInfo ||
              otherDiagnostic instanceof tr.v.d.TelemetryInfo;

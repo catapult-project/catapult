@@ -374,6 +374,12 @@ tr.exportTo('tr.b', function() {
     return values;
   }
 
+  function setsEqual(a, b) {
+    if (!(a instanceof Set) || !(b instanceof Set)) return false;
+    if (a.size !== b.size) return false;
+    return Array.from(a).every(x => b.has(x));
+  }
+
   return {
     asArray,
     concatenateObjects,
@@ -397,6 +403,7 @@ tr.exportTo('tr.b', function() {
     findFirstInArray,
     findFirstKeyInDictMatching,
     mapValues,
+    setsEqual,
   };
 });
 </script>

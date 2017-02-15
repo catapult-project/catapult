@@ -15,6 +15,14 @@ tr.b.unittest.testSuite(function() {
   var getOnlyElement = tr.b.getOnlyElement;
   var getFirstElement = tr.b.getFirstElement;
 
+  test('setsEqual', function() {
+    assert.isTrue(tr.b.setsEqual(new Set(), new Set()));
+    assert.isTrue(tr.b.setsEqual(new Set(['a']), new Set(['a'])));
+    assert.isFalse(tr.b.setsEqual(new Set(), undefined));
+    assert.isFalse(tr.b.setsEqual(new Set(), new Set(['a'])));
+    assert.isFalse(tr.b.setsEqual(new Set(['a']), new Set(['b'])));
+  });
+
   test('asArray_indexed', function() {
     assert.deepEqual(asArray({'0': 2, '1': 4, '2': 6, 'length': 3}), [2, 4, 6]);
   });

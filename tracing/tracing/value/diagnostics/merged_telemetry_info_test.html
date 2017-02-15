@@ -49,6 +49,11 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(m0.canAddDiagnostic(t0));
     assert.isTrue(m0.canAddDiagnostic(t1));
 
+    let m1 = t1.addDiagnostic(t0);
+    assert.isTrue(m1.equals(m0));
+    assert.isTrue(m0.equals(m1));
+
+    // Test round-tripping.
     let clone = tr.v.d.Diagnostic.fromDict(m0.asDict());
 
     assert.deepEqual(Array.from(clone.benchmarkNames), ['bm0', 'bm1']);
