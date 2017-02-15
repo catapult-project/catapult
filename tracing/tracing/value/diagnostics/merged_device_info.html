@@ -21,6 +21,10 @@ tr.exportTo('tr.v.d', function() {
       this.osVersions_ = new Set();
     }
 
+    addToHistogram(hist) {
+      hist.diagnostics.set(tr.v.d.DeviceInfo.NAME, this);
+    }
+
     canAddDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
       return otherDiagnostic instanceof MergedDeviceInfo ||
              otherDiagnostic instanceof tr.v.d.DeviceInfo;

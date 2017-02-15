@@ -231,5 +231,104 @@ tr.b.unittest.testSuite(function() {
     assert.throws(() => histograms.getHistogramNamed('aHist'),
         Error, 'Unexpectedly found multiple histograms named "aHist"');
   });
+
+  test('deduplicateDiagnostics', function() {
+    let telemetryA = new tr.v.d.TelemetryInfo({
+      label: 'iteration A',
+      benchmarkStartMs: 1,
+    });
+    let telemetryB = new tr.v.d.TelemetryInfo({
+      label: 'iteration B',
+      benchmarkStartMs: 2,
+    });
+    let buildbotA = new tr.v.d.BuildbotInfo({
+      buildbotName: 'bot A',
+    });
+    let buildbotB = new tr.v.d.BuildbotInfo({
+      buildbotName: 'bot B',
+    });
+    let deviceA = new tr.v.d.DeviceInfo({
+      osName: 'A',
+    });
+    let deviceB = new tr.v.d.DeviceInfo({
+      osName: 'B',
+    });
+
+    let aHist = new tr.v.Histogram('a', tr.b.Unit.byName.count);
+    let telemetry0 = new tr.v.d.MergedTelemetryInfo();
+    telemetry0.addDiagnostic(telemetryA);
+    telemetry0.addDiagnostic(telemetryB);
+    telemetry0.addToHistogram(aHist);
+    let buildbot0 = new tr.v.d.MergedBuildbotInfo();
+    buildbot0.addDiagnostic(buildbotA);
+    buildbot0.addDiagnostic(buildbotB);
+    buildbot0.addToHistogram(aHist);
+    let device0 = new tr.v.d.MergedDeviceInfo();
+    device0.addDiagnostic(deviceA);
+    device0.addDiagnostic(deviceB);
+    device0.addToHistogram(aHist);
+
+    let bHist = new tr.v.Histogram('b', tr.b.Unit.byName.count);
+    let telemetry1 = new tr.v.d.MergedTelemetryInfo();
+    telemetry1.addDiagnostic(telemetryA);
+    telemetry1.addDiagnostic(telemetryB);
+    telemetry1.addToHistogram(bHist);
+    let buildbot1 = new tr.v.d.MergedBuildbotInfo();
+    buildbot1.addDiagnostic(buildbotA);
+    buildbot1.addDiagnostic(buildbotB);
+    buildbot1.addToHistogram(bHist);
+    let device1 = new tr.v.d.MergedDeviceInfo();
+    device1.addDiagnostic(deviceA);
+    device1.addDiagnostic(deviceB);
+    device1.addToHistogram(bHist);
+
+    let histograms = new tr.v.HistogramSet([aHist, bHist]);
+    assert.notStrictEqual(
+        tr.v.d.TelemetryInfo.getFromHistogram(aHist),
+        tr.v.d.TelemetryInfo.getFromHistogram(bHist));
+    assert.isTrue(
+        tr.v.d.TelemetryInfo.getFromHistogram(aHist).equals(
+            tr.v.d.TelemetryInfo.getFromHistogram(bHist)));
+    assert.notStrictEqual(
+        tr.v.d.DeviceInfo.getFromHistogram(aHist),
+        tr.v.d.DeviceInfo.getFromHistogram(bHist));
+    assert.isTrue(
+        tr.v.d.DeviceInfo.getFromHistogram(aHist).equals(
+            tr.v.d.DeviceInfo.getFromHistogram(bHist)));
+    assert.notStrictEqual(
+        tr.v.d.BuildbotInfo.getFromHistogram(aHist),
+        tr.v.d.BuildbotInfo.getFromHistogram(bHist));
+    assert.isTrue(
+        tr.v.d.BuildbotInfo.getFromHistogram(aHist).equals(
+            tr.v.d.BuildbotInfo.getFromHistogram(bHist)));
+
+    histograms.deduplicateDiagnostics();
+
+    assert.strictEqual(
+        tr.v.d.TelemetryInfo.getFromHistogram(aHist),
+        tr.v.d.TelemetryInfo.getFromHistogram(bHist));
+    assert.strictEqual(
+        tr.v.d.DeviceInfo.getFromHistogram(aHist),
+        tr.v.d.DeviceInfo.getFromHistogram(bHist));
+    assert.strictEqual(
+        tr.v.d.BuildbotInfo.getFromHistogram(aHist),
+        tr.v.d.BuildbotInfo.getFromHistogram(bHist));
+
+    let histograms2 = new tr.v.HistogramSet();
+    histograms2.importDicts(histograms.asDicts());
+    histograms2.resolveRelatedHistograms();
+    let aHist2 = histograms2.getHistogramNamed('a');
+    let bHist2 = histograms2.getHistogramNamed('b');
+
+    assert.strictEqual(
+        tr.v.d.TelemetryInfo.getFromHistogram(aHist2),
+        tr.v.d.TelemetryInfo.getFromHistogram(bHist2));
+    assert.strictEqual(
+        tr.v.d.DeviceInfo.getFromHistogram(aHist2),
+        tr.v.d.DeviceInfo.getFromHistogram(bHist2));
+    assert.strictEqual(
+        tr.v.d.BuildbotInfo.getFromHistogram(aHist2),
+        tr.v.d.BuildbotInfo.getFromHistogram(bHist2));
+  });
 });
 </script>

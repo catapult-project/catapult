@@ -26,6 +26,10 @@ tr.exportTo('tr.v.d', function() {
       this.storysetRepeatCounters_ = new Set();
     }
 
+    addToHistogram(hist) {
+      hist.diagnostics.set(tr.v.d.TelemetryInfo.NAME, this);
+    }
+
     equals(other) {
       if (!(other instanceof MergedTelemetryInfo)) return false;
       if (!tr.b.setsEqual(this.benchmarkNames, other.benchmarkNames)) {
@@ -191,7 +195,7 @@ tr.exportTo('tr.v.d', function() {
       for (let n of d.labels || []) {
         info.labels_.add(n);
       }
-      for (let n of d.legacyTIRLabels) {
+      for (let n of d.legacyTIRLabels || []) {
         info.legacyTIRLabels_.add(n);
       }
       for (let n of d.storyDisplayNames || []) {

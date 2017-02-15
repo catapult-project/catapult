@@ -25,6 +25,18 @@ tr.exportTo('tr.v.d', function() {
       this.ram_ = info.ram || 0;
     }
 
+    addToHistogram(hist) {
+      hist.diagnostics.set(DeviceInfo.NAME, this);
+    }
+
+    /**
+     * @param {!tr.v.Histogram} hist
+     * @return {(undefined|!tr.v.d.DeviceInfo)}
+     */
+    static getFromHistogram(hist) {
+      return hist.diagnostics.get(DeviceInfo.NAME);
+    }
+
     asDictInto_(d) {
       d.chromeVersion = this.chromeVersion;
       d.osName = this.osName;

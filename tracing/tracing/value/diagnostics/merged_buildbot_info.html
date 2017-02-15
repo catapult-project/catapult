@@ -23,6 +23,10 @@ tr.exportTo('tr.v.d', function() {
       this.logUris_ = new Set();
     }
 
+    addToHistogram(hist) {
+      hist.diagnostics.set(tr.v.d.BuildbotInfo.NAME, this);
+    }
+
     equals(other) {
       if (!(other instanceof MergedBuildbotInfo)) return false;
 

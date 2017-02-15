@@ -34,7 +34,20 @@ tr.exportTo('tr.v.ui', function() {
     static build(histogramArrayMap) {
       let rootRows = [];
       HistogramSetTableRow.buildInternal_(histogramArrayMap, [], rootRows);
+
+      let histograms = new tr.v.HistogramSet();
+      for (let row of rootRows) row.collectHistograms_(histograms);
+      histograms.deduplicateDiagnostics();
+
       return rootRows;
+    }
+
+    collectHistograms_(histograms) {
+      for (let row of this.subRows) row.collectHistograms_(histograms);
+      for (let hist of this.columns.values()) {
+        if (hist === tr.v.ui.UNMERGEABLE) continue;
+        histograms.addHistogram(hist);
+      }
     }
 
     static buildInternal_(histogramArrayMap, hierarchy, rootRows) {

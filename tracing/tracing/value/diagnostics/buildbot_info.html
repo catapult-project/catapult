@@ -23,6 +23,10 @@ tr.exportTo('tr.v.d', function() {
       this.logUri_ = info.logUri || '';
     }
 
+    addToHistogram(hist) {
+      hist.diagnostics.set(BuildbotInfo.NAME, this);
+    }
+
     asDictInto_(d) {
       d.displayMasterName = this.displayMasterName;
       d.displayBotName = this.displayBotName;

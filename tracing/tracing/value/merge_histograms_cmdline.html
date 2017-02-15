@@ -76,6 +76,7 @@ if (tr.isHeadless) {
   let groupedHistograms = histograms.groupHistogramsRecursively(groupings);
   let mergedHistograms = new tr.v.HistogramSet();
   mergeLeafHistograms(groupedHistograms, mergedHistograms);
+  mergedHistograms.deduplicateDiagnostics();
   stripMergedFromAndToDiagnostics(mergedHistograms);
   console.log(JSON.stringify(mergedHistograms.asDicts()));
 }

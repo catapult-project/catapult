@@ -282,6 +282,58 @@ tr.exportTo('tr.v', function() {
 
       return recurse([...this], 0);
     }
+
+    /*
+     * Histograms and Diagnostics are merged two at a time, without considering
+     * any others, so it is possible for two merged Diagnostics to be equivalent
+     * but not identical, which is inefficient. This method replaces equivalent
+     * Diagnostics with shared Diagnostics so that the HistogramSet can be
+     * serialized more efficiently and so that these Diagnostics can be compared
+     * quickly when merging relationship Diagnostics.
+     */
+    deduplicateDiagnostics() {
+      let diagnosticsToCounts = new Map();
+      for (let hist of this) {
+        let candidates = [];
+
+        let telemetryInfo = tr.v.d.TelemetryInfo.getFromHistogram(hist);
+        if (telemetryInfo instanceof tr.v.d.MergedTelemetryInfo) {
+          candidates.push(telemetryInfo);
+        }
+
+        let buildbotInfo = tr.v.d.BuildbotInfo.getFromHistogram(hist);
+        if (buildbotInfo instanceof tr.v.d.MergedBuildbotInfo) {
+          candidates.push(buildbotInfo);
+        }
+
+        let deviceInfo = tr.v.d.DeviceInfo.getFromHistogram(hist);
+        if (deviceInfo instanceof tr.v.d.MergedDeviceInfo) {
+          candidates.push(deviceInfo);
+        }
+
+        for (let diagnostic of candidates) {
+          if (diagnostic === undefined) continue;
+          let found = false;
+          for (let [testDiagnostic, count] of diagnosticsToCounts) {
+            if (diagnostic.equals(testDiagnostic)) {
+              testDiagnostic.addToHistogram(hist);
+              diagnosticsToCounts.set(testDiagnostic, count + 1);
+              found = true;
+              break;
+            }
+          }
+          if (!found) {
+            diagnosticsToCounts.set(diagnostic, 1);
+          }
+        }
+      }
+
+      for (let [diagnostic, count] of diagnosticsToCounts) {
+        if (count > 1) {
+          this.sharedDiagnosticsByGuid_.set(diagnostic.guid, diagnostic);
+        }
+      }
+    }
   }
 
   // This does not contain storyGroupingKeys!
