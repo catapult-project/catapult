@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/ui/base/table.html">
+
+<dom-module id="tr-v-ui-merged-buildbot-info-span">
+  <template>
+    <tr-ui-b-table id="table"></tr-ui-b-table>
+  </template>
+</dom-module>
+<script>
+'use strict';
+Polymer({
+  is: 'tr-v-ui-merged-buildbot-info-span',
+
+  ready: function() {
+    this.diagnostic_ = undefined;
+    this.$.table.showHeader = false;
+    this.$.table.tableColumns = [
+      {
+        value: function(row) {
+          return row[0];
+        },
+      },
+      {
+        value: function(row) {
+          return row[1];
+        }
+      }
+    ];
+  },
+
+  get diagnostic() {
+    return this.diagnostic_;
+  },
+
+  set diagnostic(d) {
+    this.diagnostic_ = d;
+    this.updateContents_();
+  },
+
+  updateContents_: function() {
+    if (this.diagnostic === undefined) {
+      this.$.table.tableRows = [];
+      return;
+    }
+
+    let rows = [];
+
+    if (this.diagnostic.displayMasterNames.size) {
+      rows.push([
+        'masters',
+        Array.from(this.diagnostic.displayMasterNames).join(', ')
+      ]);
+    }
+    if (this.diagnostic.displayBotNames.size) {
+      rows.push([
+        'bots',
+        Array.from(this.diagnostic.displayBotNames).join(', ')
+      ]);
+    }
+    if (this.diagnostic.buildNumbers.size) {
+      rows.push([
+        'builds',
+        Array.from(this.diagnostic.buildNumbers).join(', ')
+      ]);
+    }
+    for (let logUri of this.diagnostic.logUris) {
+      let anchor = document.createElement('a');
+      anchor.href = logUri;
+      anchor.innerText = logUri;
+      rows.push(['log', anchor]);
+    }
+    this.$.table.tableRows = rows;
+  }
+});
+</script>

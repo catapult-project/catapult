@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/value/diagnostics/buildbot_info.html">
+<link rel="import" href="/tracing/value/diagnostics/generic.html">
+<link rel="import" href="/tracing/value/diagnostics/merged_buildbot_info.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  test('merge', function() {
+    let buildbotA = new tr.v.d.BuildbotInfo({
+      displayMasterName: 'a',
+      displayBotName: 'b',
+      buildbotMasterName: 'c',
+      buildbotName: 'd',
+      buildNumber: 10,
+      logUri: 'e',
+    });
+
+    let buildbotB = new tr.v.d.BuildbotInfo({
+      displayMasterName: 'f',
+      displayBotName: 'g',
+      buildbotMasterName: 'h',
+      buildbotName: 'i',
+      buildNumber: 20,
+      logUri: 'j',
+    });
+
+    assert.isFalse(buildbotA.canAddDiagnostic(new tr.v.d.Generic('')));
+    assert.isFalse(buildbotA.canAddDiagnostic(buildbotB));
+    assert.isFalse(buildbotB.canAddDiagnostic(buildbotA));
+
+    let merged = new tr.v.d.MergedBuildbotInfo();
+
+    assert.isFalse(merged.canAddDiagnostic(new tr.v.d.Generic('')));
+    assert.isTrue(merged.canAddDiagnostic(buildbotA));
+    assert.isTrue(merged.canAddDiagnostic(buildbotB));
+
+    merged.addDiagnostic(buildbotA);
+    merged.addDiagnostic(buildbotB);
+
+    let merged2 = new tr.v.d.MergedBuildbotInfo();
+    merged2.addDiagnostic(buildbotB);
+    merged2.addDiagnostic(buildbotA);
+    assert.isTrue(merged2.equals(merged));
+    assert.isTrue(merged.equals(merged2));
+
+    // Test round-tripping.
+    let clone = tr.v.d.Diagnostic.fromDict(merged.asDict());
+
+    assert.deepEqual(Array.from(clone.displayMasterNames), ['a', 'f']);
+    assert.deepEqual(Array.from(clone.displayBotNames), ['b', 'g']);
+    assert.deepEqual(Array.from(clone.buildbotMasterNames), ['c', 'h']);
+    assert.deepEqual(Array.from(clone.buildbotNames), ['d', 'i']);
+    assert.deepEqual(Array.from(clone.buildNumbers), [10, 20]);
+    assert.deepEqual(Array.from(clone.logUris), ['e', 'j']);
+  });
+});
+</script>
