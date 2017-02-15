@@ -269,36 +269,20 @@ Polymer({
       return;
     }
 
-    let absDeltaAvg = this.histogram.average -
-      this.referenceHistogram.average;
-    scalarMap.set(ABS_DELTA_AVG_NAME, new tr.b.Scalar(
-        this.histogram.unit.correspondingDeltaUnit,
-        absDeltaAvg));
-
-    let suffix = tr.b.Unit.nameSuffixForImprovementDirection(
-        this.histogram.unit.improvementDirection);
-
-    scalarMap.set('%' + DELTA + 'avg', new tr.b.Scalar(
-        tr.b.Unit.byName['normalizedPercentageDelta' + suffix],
-        absDeltaAvg / this.referenceHistogram.average));
-
-    scalarMap.set('z-score', new tr.b.Scalar(
-        tr.b.Unit.byName['sigmaDelta' + suffix],
-        absDeltaAvg / this.referenceHistogram.standardDeviation));
-
     let mwu = tr.b.Statistics.mwu(
         this.histogram.sampleValues, this.referenceHistogram.sampleValues);
-    scalarMap.set('p-value', new tr.b.Scalar(
-        tr.b.Unit.byName.unitlessNumber,
-        mwu.p));
 
-    scalarMap.set('U', new tr.b.Scalar(
-        tr.b.Unit.byName.unitlessNumber,
-        mwu.U));
+    for (let deltaStatName of tr.v.DELTA_STATISTIC_NAMES) {
+      let scalar = this.histogram.getStatisticScalar(
+          deltaStatName, this.referenceHistogram, mwu);
+      if (scalar === undefined) continue;
+      scalarMap.set(deltaStatName, scalar);
+    }
 
     if (this.histogram.unit.improvementDirection !==
         tr.b.ImprovementDirection.DONT_CARE) {
-      this.$.stats.setSignificanceForKey(ABS_DELTA_AVG_NAME, mwu.significance);
+      this.$.stats.setSignificanceForKey(
+          tr.v.ABS_DELTA_AVG_NAME, mwu.significance);
     }
   },
 

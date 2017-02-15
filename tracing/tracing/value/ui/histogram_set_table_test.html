@@ -24,7 +24,182 @@ tr.b.unittest.testSuite(function() {
     return row;
   }
 
-  // TODO(benjhayden): Test constrainNameColumnWidth.
+  test('sortByDisplayStatistic', function() {
+    let table = document.createElement('tr-v-ui-histogram-set-table');
+    let histograms = new tr.v.HistogramSet();
+    let now = new Date().getTime();
+
+    let barHist = new tr.v.Histogram('bar',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
+    barHist.addSample(0);
+    barHist.addSample(10);
+
+    let fooHist = new tr.v.Histogram('foo',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
+    fooHist.addSample(5);
+
+    histograms.addHistogram(fooHist);
+    histograms.addHistogram(barHist);
+
+    table.histograms = histograms;
+    this.addHTMLOutput(table);
+
+    table.sortColumnIndex = 1;
+    table.sortDescending = false;
+
+    table.displayStatistic = 'min';
+
+    let nameCells = tr.b.findDeepElementsMatchingPredicate(
+        table, e => e.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-NAME-CELL');
+    assert.strictEqual(nameCells[0].row.name, 'bar');
+    assert.strictEqual(nameCells[1].row.name, 'foo');
+
+    table.sortDescending = true;
+    let baseTable = tr.b.findDeepElementMatchingPredicate(
+        table, elem => elem.tagName === 'TR-UI-B-TABLE');
+    baseTable.rebuild();
+
+    nameCells = tr.b.findDeepElementsMatchingPredicate(
+        table, e => e.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-NAME-CELL');
+    assert.strictEqual(nameCells[0].row.name, 'foo');
+    assert.strictEqual(nameCells[1].row.name, 'bar');
+
+    table.displayStatistic = 'max';
+
+    nameCells = tr.b.findDeepElementsMatchingPredicate(
+        table, e => e.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-NAME-CELL');
+    assert.strictEqual(nameCells[0].row.name, 'bar');
+    assert.strictEqual(nameCells[1].row.name, 'foo');
+
+    table.sortDescending = false;
+    baseTable.rebuild();
+
+    nameCells = tr.b.findDeepElementsMatchingPredicate(
+        table, e => e.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-NAME-CELL');
+    assert.strictEqual(nameCells[0].row.name, 'foo');
+    assert.strictEqual(nameCells[1].row.name, 'bar');
+  });
+
+  test('displayStatistic', function() {
+    var table = document.createElement('tr-v-ui-histogram-set-table');
+    var histograms = new tr.v.HistogramSet();
+    var now = new Date().getTime();
+
+    var barHist = new tr.v.Histogram('a',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
+    barHist.addSample(1);
+    barHist.addSample(2);
+    barHist.addSample(3);
+    new tr.v.d.TelemetryInfo({
+      label: 'bar',
+      benchmarkStartMs: now,
+    }).addToHistogram(barHist);
+
+    var fooHist = new tr.v.Histogram('a',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
+    fooHist.addSample(10);
+    fooHist.addSample(20);
+    fooHist.addSample(30);
+    new tr.v.d.TelemetryInfo({
+      label: 'foo',
+      benchmarkStartMs: now,
+    }).addToHistogram(fooHist);
+
+    // Add a Histogram with another name so that the table displays the scalars.
+    var quxHist = new tr.v.Histogram('qux',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
+    new tr.v.d.TelemetryInfo({
+      label: 'foo',
+      benchmarkStartMs: now,
+    }).addToHistogram(quxHist);
+
+    histograms.addHistogram(fooHist);
+    histograms.addHistogram(barHist);
+    histograms.addHistogram(quxHist);
+
+    table.histograms = histograms;
+    this.addHTMLOutput(table);
+
+    var fooCell = tr.b.findDeepElementMatchingPredicate(
+        table, elem => (
+          (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
+          (elem.histogram === fooHist)));
+    assert.isDefined(fooCell);
+
+    var fooContent = tr.b.findDeepElementMatchingPredicate(
+        fooCell, elem => elem.id === 'content');
+    assert.isDefined(fooContent);
+
+    var barCell = tr.b.findDeepElementMatchingPredicate(
+        table, elem => (
+          (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
+          (elem.histogram === barHist)));
+    assert.isDefined(barCell);
+
+    var barContent = tr.b.findDeepElementMatchingPredicate(
+        barCell, elem => elem.id === 'content');
+    assert.isDefined(barContent);
+
+    assert.strictEqual(table.displayStatistic, 'avg');
+    assert.strictEqual('20.000 ms', fooContent.textContent);
+    assert.strictEqual('2.000 ms', barContent.textContent);
+
+    table.referenceDisplayLabel = 'foo';
+
+    var baseTable = tr.b.findDeepElementMatchingPredicate(
+        table, elem => elem.tagName === 'TR-UI-B-TABLE');
+    baseTable.rebuild();
+
+    fooCell = tr.b.findDeepElementMatchingPredicate(
+        table, elem => (
+          (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
+          (elem.histogram === fooHist)));
+    assert.isDefined(fooCell);
+
+    fooContent = tr.b.findDeepElementMatchingPredicate(
+        fooCell, elem => elem.id === 'content');
+    assert.isDefined(fooContent);
+
+    barCell = tr.b.findDeepElementMatchingPredicate(
+        table, elem => (
+          (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
+          (elem.histogram === barHist)));
+    assert.isDefined(barCell);
+
+    barContent = tr.b.findDeepElementMatchingPredicate(
+        barCell, elem => elem.id === 'content');
+    assert.isDefined(barContent);
+
+    assert.strictEqual(table.displayStatistic, tr.v.ABS_DELTA_AVG_NAME);
+    assert.strictEqual('20.000 ms', fooContent.textContent);
+    assert.strictEqual('-18.000 ms', barContent.textContent);
+
+    table.displayStatistic = tr.v.PCT_DELTA_AVG_NAME;
+
+    fooCell = tr.b.findDeepElementMatchingPredicate(
+        table, elem => (
+          (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
+          (elem.histogram === fooHist)));
+    assert.isDefined(fooCell);
+
+    fooContent = tr.b.findDeepElementMatchingPredicate(
+        fooCell, elem => elem.id === 'content');
+    assert.isDefined(fooContent);
+
+    barCell = tr.b.findDeepElementMatchingPredicate(
+        table, elem => (
+          (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
+          (elem.histogram === barHist)));
+    assert.isDefined(barCell);
+
+    barContent = tr.b.findDeepElementMatchingPredicate(
+        barCell, elem => elem.id === 'content');
+    assert.isDefined(barContent);
+
+    assert.strictEqual(table.displayStatistic, tr.v.PCT_DELTA_AVG_NAME);
+    assert.strictEqual('20.000 ms', fooContent.textContent);
+    assert.strictEqual('-90.000%', barContent.textContent);
+  });
 
   test('requestSelectionChange', function() {
     let table = document.createElement('tr-v-ui-histogram-set-table');
@@ -510,7 +685,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(titleSpan.children[0].children[1].tagName, 'DIV');
   });
 
-  test('merge', function() {
+  test('merged', function() {
     let table = document.createElement('tr-v-ui-histogram-set-table');
     let histograms = new tr.v.HistogramSet();
     // Add 2^8=256 Histograms, all with the same name, with different
@@ -580,10 +755,18 @@ tr.b.unittest.testSuite(function() {
         table, elem => elem.tagName === 'TR-UI-B-TABLE');
 
     assert.lengthOf(baseTable.tableColumns, 3);
-    assert.strictEqual('Name',
-        baseTable.tableColumns[0].title.children[0].textContent);
+    var nameHeaderCell = baseTable.tableColumns[0].title;
+    assert.strictEqual('Name', nameHeaderCell.children[0].textContent);
     assert.strictEqual('label A', baseTable.tableColumns[1].title);
     assert.strictEqual('label B', baseTable.tableColumns[2].title);
+
+    var nameCell = tr.b.findDeepElementMatchingPredicate(
+        table, e => e.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-NAME-CELL');
+    assert.strictEqual(321, nameCell.getBoundingClientRect().width);
+    nameHeaderCell.children[1].click();
+    assert.isBelow(322, nameCell.getBoundingClientRect().width);
+    nameHeaderCell.children[1].click();
+    assert.strictEqual(321, nameCell.getBoundingClientRect().width);
 
     assert.lengthOf(baseTable.tableRows, 1);
     assert.strictEqual(name, baseTable.tableRows[0].name);

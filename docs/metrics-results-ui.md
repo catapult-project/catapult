@@ -204,6 +204,20 @@ displayed:
 ![Select a reference column.
 ](/docs/images/metrics-results-ui-reference-column.png)
 
+### The Summary Statistic Selector
+
+This selector controls which statistics are displayed in the table. You can
+select from the any of the statistics that any Histogram was configured to
+produce by the metric that produced it.
+
+When a reference column is selected, you can also select from any of several
+delta statistics: absΔavg, %Δavg, z-score, absΔstd, %Δstd, p-value, U.
+These delta statistics will only be displayed in non-reference columns; avg or
+std will be displayed in the reference column.
+
+![Select a summary statistic.
+](/docs/images/metrics-results-ui-summary-statistic-selector.png)
+
 ### The Download CSV Button
 
 Clicking this button downloads a CSV file that can be imported into a

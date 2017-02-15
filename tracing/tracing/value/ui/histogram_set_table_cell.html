@@ -95,19 +95,30 @@ tr.exportTo('tr.ui', function() {
   Polymer({
     is: 'tr-v-ui-histogram-set-table-cell',
 
-    created: function() {
+    created() {
       this.histogram_ = undefined;
       this.referenceHistogram_ = undefined;
       this.histogramSpan_ = undefined;
       this.overviewChart_ = undefined;
       this.row_ = undefined;
+      this.displayStatistic_ = 'avg';
     },
 
-    ready: function() {
+    get displayStatistic() {
+      return this.displayStatistic_;
+    },
+
+    set displayStatistic(statName) {
+      if (statName === this.displayStatistic) return;
+      this.displayStatistic_ = statName;
+      this.updateContents_();
+    },
+
+    ready() {
       this.addEventListener('click', this.onClick_.bind(this));
     },
 
-    onClick_: function(event) {
+    onClick_(event) {
       // Since the histogram-set-table's table doesn't support any kind of
       // selection, clicking anywhere within a row that has subRows will
       // expand/collapse that row, which can relayout the table and move things
@@ -184,15 +195,17 @@ tr.exportTo('tr.ui', function() {
       }
     },
 
-    openHistogram_: function() {
+    openHistogram_() {
       this.isHistogramOpen = true;
     },
 
-    closeHistogram_: function() {
+    closeHistogram_() {
       this.isHistogramOpen = false;
     },
 
-    updateContents_: function() {
+    updateContents_() {
+      let isOpen = this.isHistogramOpen;
+
       this.$.empty.style.display = 'none';
       this.$.unmergeable.style.display = 'none';
       this.$.scalar.style.display = 'none';
@@ -225,34 +238,46 @@ tr.exportTo('tr.ui', function() {
       this.$.open_histogram.style.visibility = 'visible';
       this.$.scalar.style.display = 'flex';
 
+      let displayStatistic = this.displayStatistic;
+
       if ((this.referenceHistogram instanceof tr.v.Histogram) &&
           (this.histogram.unit === this.referenceHistogram.unit) &&
           (this.referenceHistogram.numValues > 0)) {
-        this.$.scalar.setValueAndUnit(
-            this.histogram.average - this.referenceHistogram.average,
-            this.histogram.unit.correspondingDeltaUnit);
         this.$.scalar.significance = this.histogram.getDifferenceSignificance(
             this.referenceHistogram);
-      } else {
-        this.$.scalar.setValueAndUnit(
-            this.histogram.average, this.histogram.unit);
+      } else if (displayStatistic === tr.v.ABS_DELTA_AVG_NAME ||
+                 displayStatistic === tr.v.PCT_DELTA_AVG_NAME ||
+                 displayStatistic === tr.v.Z_SCORE_NAME ||
+                 displayStatistic === tr.v.P_VALUE_NAME ||
+                 displayStatistic === tr.v.U_STATISTIC_NAME) {
+        displayStatistic = 'avg';
+      } else if (displayStatistic === tr.v.ABS_DELTA_STD_NAME ||
+          displayStatistic === tr.v.PCT_DELTA_STD_NAME) {
+        displayStatistic = 'std';
       }
+
+      let statisticScalar = this.histogram.getStatisticScalar(
+          displayStatistic, this.referenceHistogram);
+      this.$.scalar.setValueAndUnit(
+          statisticScalar.value, statisticScalar.unit);
+
+      this.isHistogramOpen = isOpen;
     },
 
-    showOverview: function() {
+    showOverview() {
       this.$.overview_container.style.display = 'block';
       if (this.overviewChart_ !== undefined) return;
 
       // TODO(benjhayden) When TelemetryInfo is merged: let displayLabel =
       // tr.v.HistogramSet.GROUPINGS.DISPLAY_LABEL.callback(this.histogram);
-      let displayLabel = undefined;
+      let displayLabel;
       for (let [label, hist] of this.row.columns) {
         if (hist === this.histogram) {
           displayLabel = label;
         }
       }
       let data = [];
-      let unitString = undefined;
+      let unitString;
       for (let subRow of this.row.subRows) {
         let subHist = subRow.columns.get(displayLabel);
         if (subHist) {
@@ -270,7 +295,7 @@ tr.exportTo('tr.ui', function() {
       this.overviewChart_.data = data;
     },
 
-    hideOverview: function() {
+    hideOverview() {
       this.$.overview_container.style.display = 'none';
     }
   });

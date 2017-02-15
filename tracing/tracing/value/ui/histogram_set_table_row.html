@@ -22,6 +22,7 @@ tr.exportTo('tr.v.ui', function() {
       this.cells = new Map();
       this.constrainNameColumnWidth_ = false;
       this.overviewDataRange_ = undefined;
+      this.displayStatistic_ = 'avg';
     }
 
     /**
@@ -113,10 +114,25 @@ tr.exportTo('tr.v.ui', function() {
       }
     }
 
+    get displayStatistic() {
+      return this.displayStatistic_;
+    }
+
+    set displayStatistic(statName) {
+      this.displayStatistic_ = statName;
+      for (var [displayLabel, cell] of this.cells) {
+        cell.displayStatistic = statName;
+      }
+      for (var row of this.subRows) {
+        row.displayStatistic = statName;
+      }
+    }
+
     buildCell(displayLabel, referenceDisplayLabel) {
       let cell = document.createElement('tr-v-ui-histogram-set-table-cell');
       cell.row = this;
       cell.histogram = this.columns.get(displayLabel);
+      cell.displayStatistic = this.displayStatistic;
       if (referenceDisplayLabel &&
           referenceDisplayLabel !== displayLabel) {
         cell.referenceHistogram = this.columns.get(
@@ -165,23 +181,21 @@ tr.exportTo('tr.v.ui', function() {
         return undefined;
       }
 
-      let valueA = cellA.average;
-      let valueB = cellB.average;
+      let referenceCellA;
+      let referenceCellB;
 
       // If a reference column is selected, compare the absolute deltas
       // between the two cells and their references.
       if (referenceDisplayLabel &&
           referenceDisplayLabel !== displayLabel) {
-        let referenceCellA = this.columns.get(referenceDisplayLabel);
-        let referenceCellB = other.columns.get(referenceDisplayLabel);
-        if (referenceCellA instanceof tr.v.Histogram &&
-            referenceCellB instanceof tr.v.Histogram &&
-            cellA.unit === referenceCellA.unit &&
-            cellB.unit === referenceCellB.unit) {
-          valueA -= referenceCellA.average;
-          valueB -= referenceCellB.average;
-        }
+        referenceCellA = this.columns.get(referenceDisplayLabel);
+        referenceCellB = other.columns.get(referenceDisplayLabel);
       }
+
+      let valueA = cellA.getStatisticScalar(
+          this.displayStatistic, referenceCellA).value;
+      let valueB = cellB.getStatisticScalar(
+          this.displayStatistic, referenceCellB).value;
 
       return valueA - valueB;
     }

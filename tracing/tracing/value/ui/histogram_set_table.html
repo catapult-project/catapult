@@ -84,6 +84,10 @@ found in the LICENSE file.
       margin-right: 20px;
     }
 
+    #statistic_container * {
+      margin-right: 20px;
+    }
+
     #download_csv {
       margin-right: 20px;
     }
@@ -106,6 +110,8 @@ found in the LICENSE file.
         </svg>
 
         <span id="reference_column_container"></span>
+
+        <span id="statistic_container"></span>
 
         <button id="download_csv" on-click="downloadCSV_">&#11015; CSV</button>
 
@@ -167,7 +173,7 @@ tr.exportTo('tr.v.ui', function() {
       return 'Table';
     },
 
-    created: function() {
+    created() {
       /** @type {undefined|!tr.v.HistogramSet} */
       this.histograms_ = undefined;
 
@@ -179,12 +185,14 @@ tr.exportTo('tr.v.ui', function() {
 
       this.updatingContents_ = false;
       this.displayLabels_ = undefined;
+      this.displayStatistic_ = 'avg';
+      this.statNames_ = undefined;
       this.referenceDisplayLabel_ = undefined;
       this.constrainNameColumnWidth_ = tr.b.Settings.get(
           CONSTRAIN_NAME_COLUMN_WIDTH_KEY, true);
     },
 
-    ready: function() {
+    ready() {
       this.$.table.zebra = true;
       this.addEventListener('name-cell-overflow',
           this.onNameCellOverflow_.bind(this));
@@ -216,7 +224,7 @@ tr.exportTo('tr.v.ui', function() {
       return this.$.picker.possibleGroups.map(g => g.key);
     },
 
-    currentGroupsChanged_: function() {
+    currentGroupsChanged_() {
       if (this.updatingContents_)
         return;
 
@@ -232,7 +240,7 @@ tr.exportTo('tr.v.ui', function() {
         this.setExpansionStates_(expansionStates);
     },
 
-    onShowAllChange_: function() {
+    onShowAllChange_() {
       if (this.updatingContents_)
         return;
 
@@ -242,7 +250,7 @@ tr.exportTo('tr.v.ui', function() {
       this.setExpansionStates_(expansionStates);
     },
 
-    getExpansionStates_: function() {
+    getExpansionStates_() {
       let states = new Map();
       for (let i = 0; i < this.rows_.length; ++i) {
         states.set(i, this.rows_[i].getExpansionStates(this.$.table));
@@ -250,7 +258,7 @@ tr.exportTo('tr.v.ui', function() {
       return states;
     },
 
-    setExpansionStates_: function(states) {
+    setExpansionStates_(states) {
       for (let i = 0; i < this.rows_.length; ++i) {
         let rowStates = states.get(i);
         if (rowStates === undefined) {
@@ -260,7 +268,7 @@ tr.exportTo('tr.v.ui', function() {
       }
     },
 
-    showOverview_: function() {
+    showOverview_() {
       let table = this.$.table;
       function recurse(row) {
         row.nameCell.showOverview_();
@@ -277,7 +285,7 @@ tr.exportTo('tr.v.ui', function() {
       this.$.show_overview.style.display = 'none';
     },
 
-    hideOverview_: function() {
+    hideOverview_() {
       let table = this.$.table;
       function recurse(row) {
         row.nameCell.hideOverview_();
@@ -294,11 +302,11 @@ tr.exportTo('tr.v.ui', function() {
       this.$.show_overview.style.display = 'inline';
     },
 
-    onSearch_: function() {
+    onSearch_() {
       this.updateContents_();
     },
 
-    onRequestSelectionChange_: function(event) {
+    onRequestSelectionChange_(event) {
       // This event may reference an EventSet or an array of Histogram names.
       if (event.selection instanceof tr.model.EventSet) return;
 
@@ -329,6 +337,7 @@ tr.exportTo('tr.v.ui', function() {
       this.sourceHistograms_ = histograms ? histograms.sourceHistograms :
         new tr.v.HistogramSet();
       this.displayLabels_ = undefined;
+      this.statNames_ = undefined;
       this.referenceDisplayLabel_ = undefined;
       this.maybeDisableShowAll_();
       this.updateContents_();
@@ -339,10 +348,17 @@ tr.exportTo('tr.v.ui', function() {
     },
 
     set referenceDisplayLabel(reference) {
+      if (reference === this.referenceDisplayLabel) return;
+
+      let prevReferenceDisplayLabel = this.referenceDisplayLabel;
       this.referenceDisplayLabel_ = reference;
 
-      if (this.updatingContents_)
-        return;
+      if (this.updatingContents_) return;
+
+      let select = this.$.reference_column_container.children[0];
+      if (select) {
+        select.value = reference ? reference : 'Select a reference column';
+      }
 
       this.$.table.selectedTableColumnIndex = this.referenceDisplayLabel ?
         1 + this.displayLabels.indexOf(this.referenceDisplayLabel) : undefined;
@@ -352,41 +368,122 @@ tr.exportTo('tr.v.ui', function() {
       let expansionStates = this.getExpansionStates_();
       this.$.table.tableRows = this.rows_;
       this.setExpansionStates_(expansionStates);
+
+      this.updateStatisticSelector_();
+      if (prevReferenceDisplayLabel === '' && this.referenceDisplayLabel &&
+          this.displayStatistic === 'avg') {
+        this.displayStatistic = tr.v.ABS_DELTA_AVG_NAME;
+      }
     },
 
-    updateReferenceColumnSelector_: function() {
+    get statNames() {
+      if (this.statNames_ === undefined) {
+        this.statNames_ = new Set(['avg']);
+        for (let hist of this.histograms) {
+          for (let statName of hist.statisticsNames) {
+            this.statNames_.add(statName);
+          }
+        }
+      }
+      return this.statNames_;
+    },
+
+    updateStatisticSelector_() {
+      Polymer.dom(this.$.statistic_container).textContent = '';
+      let statNames = Array.from(this.statNames);
+      if (this.referenceDisplayLabel) {
+        statNames = statNames.concat(tr.v.DELTA_STATISTIC_NAMES);
+      }
+      if (statNames.indexOf(this.displayStatistic_) < 0) {
+        // createSelector throws if defaultValue is not in options.
+        this.displayStatistic_ = statNames[0];
+      }
+      let options = [];
+      for (let statName of statNames) {
+        options.push({value: statName, label: statName});
+      }
+      let settingsKey = 'tr-v-ui-histogram-set-table-statistic';
+      let selector = tr.ui.b.createSelector(
+          this, 'displayStatistic', settingsKey, this.displayStatistic,
+          options);
+      Polymer.dom(this.$.statistic_container).appendChild(selector);
+    },
+
+    get displayStatistic() {
+      return this.displayStatistic_;
+    },
+
+    set displayStatistic(statName) {
+      if (statName === this.displayStatistic_) return;
+      this.displayStatistic_ = statName;
+
+      // If this setter is called programmatically instead of by the selector
+      // (as happens in tests), update the selector.
+      let select = this.$.statistic_container.children[0];
+      if (select && select.value !== statName) {
+        select.value = statName;
+      }
+
+      // Propagate the displayStatistic to all the rows. The setter recurses
+      // through subRows.
+      for (let row of this.rows_) {
+        row.displayStatistic = this.displayStatistic;
+      }
+
+      // Force the table to re-sort.
+      let sortColumnIndex = this.$.table.sortColumnIndex;
+      this.sortColumnIndex = undefined;
+      this.$.table.rebuild();
+      this.sortColumnIndex = sortColumnIndex;
+      this.$.table.rebuild();
+    },
+
+    updateReferenceColumnSelector_() {
       Polymer.dom(this.$.reference_column_container).textContent = '';
 
-      if (this.displayLabels.length < 2)
-        return;
+      if (this.displayLabels.length < 2) return;
 
       let options = [{value: '', label: 'Select a reference column'}];
-      for (let displayLabel of this.displayLabels)
+      for (let displayLabel of this.displayLabels) {
         options.push({value: displayLabel, label: displayLabel});
+      }
 
-      let settingsKey =
-        'tr-v-ui-histogram-set-table-reference-display-label';
+      let settingsKey = 'tr-v-ui-histogram-set-table-reference-display-label';
       Polymer.dom(this.$.reference_column_container).appendChild(
           tr.ui.b.createSelector(
               this, 'referenceDisplayLabel', settingsKey, '', options));
     },
 
-    updateGroups_: function() {
+    set sortColumnIndex(i) {
+      this.$.table.sortColumnIndex = i;
+    },
+
+    get sortColumnIndex() {
+      return this.$.table.sortColumnIndex;
+    },
+
+    set sortDescending(d) {
+      this.$.table.sortDescending = d;
+    },
+
+    get sortDescending() {
+      return this.$.table.sortDescending;
+    },
+
+    updateGroups_() {
       let groups = DEFAULT_POSSIBLE_GROUPS.filter(function(group) {
         // Remove groups for which there is only one value, except
         // HISTOGRAM_NAME.
-        if (group.key === tr.v.HistogramSet.GROUPINGS.HISTOGRAM_NAME.key)
+        if (group.key === tr.v.HistogramSet.GROUPINGS.HISTOGRAM_NAME.key) {
           return true;
+        }
 
         let values = new Set();
         for (let hist of this.histograms_) {
           hist = group.callback(hist);
-          if (!hist)
-            continue;
-
+          if (!hist) continue;
           values.add(hist);
-          if (values.size > 1)
-            return true;
+          if (values.size > 1) return true;
         }
         return false;  // Prune this grouping.
       }, this);
@@ -419,7 +516,7 @@ tr.exportTo('tr.v.ui', function() {
       this.$.picker.style.display = (groups.length === 1) ? 'none' : '';
     },
 
-    updateContents_: function() {
+    updateContents_() {
       if (this.updatingContents_)
         return;
 
@@ -438,12 +535,18 @@ tr.exportTo('tr.v.ui', function() {
       this.$.container.style.maxHeight = (window.innerHeight - 16) + 'px';
 
       this.updateReferenceColumnSelector_();
+      this.updateStatisticSelector_();
       this.updateGroups_();
       this.rows_ = tr.v.ui.HistogramSetTableRow.build(this.groupedHistograms);
       this.buildColumns_();
       this.$.table.tableColumns = this.columns_;
       this.$.table.tableRows = this.rows_;
       this.$.table.sortColumnIndex = 0;
+
+      for (let row of this.rows_) {
+        row.constrainNameColumnWidth = this.constrainNameColumnWidth_;
+      }
+
       this.$.table.rebuild();
 
       if (this.rows_.length === 1) {
@@ -453,7 +556,7 @@ tr.exportTo('tr.v.ui', function() {
       }
 
       for (let row of this.rows_) {
-        row.constrainNameColumnWidth = this.constrainNameColumnWidth_;
+        row.displayStatistic = this.displayStatistic;
       }
 
       this.$.table.selectedTableColumnIndex = this.referenceDisplayLabel ?
@@ -462,7 +565,7 @@ tr.exportTo('tr.v.ui', function() {
       this.updatingContents_ = false;
     },
 
-    maybeDisableShowAll_: function() {
+    maybeDisableShowAll_() {
       let allHistogramsAreSource = !this.histograms ||
           (this.histograms.length === this.sourceHistograms_.length);
 
@@ -574,7 +677,7 @@ tr.exportTo('tr.v.ui', function() {
       return this.displayLabels_;
     },
 
-    buildColumn_: function(displayLabel) {
+    buildColumn_(displayLabel) {
       let title = displayLabel;
       if (displayLabel.indexOf('\n') > 0) {
         title = document.createElement('div');
@@ -593,7 +696,7 @@ tr.exportTo('tr.v.ui', function() {
       };
     },
 
-    buildNameColumnTitle_: function() {
+    buildNameColumnTitle_() {
       let titleEl = document.createElement('span');
       titleEl.style.display = 'inline-flex';
 
@@ -616,7 +719,7 @@ tr.exportTo('tr.v.ui', function() {
       return titleEl;
     },
 
-    onNameCellOverflow_: function(event) {
+    onNameCellOverflow_(event) {
       let titleEl = this.columns_[0].title;
 
       // Size the 'Name' so that the dots roughly align with the
@@ -627,7 +730,7 @@ tr.exportTo('tr.v.ui', function() {
       titleEl.children[1].style.display = 'block';
     },
 
-    toggleNameColumnWidth_: function(event) {
+    toggleNameColumnWidth_(event) {
       event.stopPropagation();
       event.preventDefault();
 
@@ -649,7 +752,7 @@ tr.exportTo('tr.v.ui', function() {
       return histograms;
     },
 
-    downloadCSV_: function() {
+    downloadCSV_() {
       let anchor = document.createElement('a');
 
       let path = window.location.pathname.split('/');
@@ -664,7 +767,7 @@ tr.exportTo('tr.v.ui', function() {
       anchor.click();
     },
 
-    buildColumns_: function() {
+    buildColumns_() {
       this.columns_ = [
         {
           title: this.buildNameColumnTitle_(),

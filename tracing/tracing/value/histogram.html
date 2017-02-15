@@ -22,6 +22,25 @@ tr.exportTo('tr.v', function() {
 
   const DEFAULT_BOUNDARIES_FOR_UNIT = new Map();
 
+  const DELTA = String.fromCharCode(916);
+  const ABS_DELTA_AVG_NAME = 'abs' + DELTA + 'avg';
+  const PCT_DELTA_AVG_NAME = '%' + DELTA + 'avg';
+  const Z_SCORE_NAME = 'z-score';
+  const ABS_DELTA_STD_NAME = 'abs' + DELTA + 'std';
+  const PCT_DELTA_STD_NAME = '%' + DELTA + 'std';
+  const P_VALUE_NAME = 'p-value';
+  const U_STATISTIC_NAME = 'U';
+
+  const DELTA_STATISTIC_NAMES = [
+    ABS_DELTA_AVG_NAME,
+    PCT_DELTA_AVG_NAME,
+    Z_SCORE_NAME,
+    ABS_DELTA_STD_NAME,
+    PCT_DELTA_STD_NAME,
+    P_VALUE_NAME,
+    U_STATISTIC_NAME,
+  ];
+
   /**
    * Converts the given percent to a string in the format specified above.
    * @param {number} percent The percent must be between 0.0 and 1.0.
@@ -41,6 +60,15 @@ tr.exportTo('tr.v', function() {
     str = str + '0'.repeat(Math.max(4 - str.length, 0));
     if (str.length > 4) str = str.slice(0, 4) + '_' + str.slice(4);
     return '0' + str.slice(2);
+  }
+
+  /**
+   * Converts the given string to a percent between 0 and 1.
+   * @param {string}
+   * @return {number}
+   */
+  function percentFromString(s) {
+    return parseFloat(s[0] + '.' + s.substr(1).replace(/_/g, ''));
   }
 
   class HistogramBin {
@@ -481,6 +509,101 @@ tr.exportTo('tr.v', function() {
     }
 
     /**
+     * @param {string} statName
+     * @param {!tr.v.Histogram=} opt_referenceHistogram
+     * @param {!HypothesisTestResult=} opt_mwu
+     * @return {!tr.b.Scalar}
+     */
+    getStatisticScalar(statName, opt_referenceHistogram, opt_mwu) {
+      if (statName === 'avg') {
+        if (this.running_ === undefined) return undefined;
+        return new tr.b.Scalar(this.unit, this.average);
+      }
+      if (statName === 'std') {
+        if (this.running_ === undefined) return undefined;
+        return new tr.b.Scalar(this.unit, this.standardDeviation);
+      }
+      if (statName === 'geometricMean') {
+        return new tr.b.Scalar(this.unit, this.geometricMean);
+      }
+      if (statName === 'min' || statName === 'max' || statName === 'sum') {
+        if (this.running_ === undefined) {
+          this.running_ = new tr.b.RunningStatistics();
+        }
+        return new tr.b.Scalar(this.unit, this.running_[statName]);
+      }
+      if (statName === 'nans') {
+        return new tr.b.Scalar(
+            tr.b.Unit.byName.count_smallerIsBetter, this.numNans);
+      }
+      if (statName === 'count') {
+        return new tr.b.Scalar(
+            tr.b.Unit.byName.count_smallerIsBetter, this.numValues);
+      }
+      if (statName.substr(0, 4) === 'pct_') {
+        let percent = percentFromString(statName.substr(4));
+        let percentile = this.getApproximatePercentile(percent);
+        return new tr.b.Scalar(this.unit, percentile);
+      }
+
+      if (opt_referenceHistogram instanceof Histogram &&
+          this.unit === opt_referenceHistogram.unit &&
+          opt_referenceHistogram.numValues > 0) {
+        let absDeltaAvg = this.average - opt_referenceHistogram.average;
+        let suffix = tr.b.Unit.nameSuffixForImprovementDirection(
+            this.unit.improvementDirection);
+        if (statName === ABS_DELTA_AVG_NAME) {
+          return new tr.b.Scalar(this.unit.correspondingDeltaUnit, absDeltaAvg);
+        }
+        if (statName === PCT_DELTA_AVG_NAME) {
+          return new tr.b.Scalar(
+              tr.b.Unit.byName['normalizedPercentageDelta' + suffix],
+              absDeltaAvg / opt_referenceHistogram.average);
+        }
+        let absDeltaStd = this.standardDeviation -
+          opt_referenceHistogram.standardDeviation;
+        if (statName === ABS_DELTA_STD_NAME) {
+          return new tr.b.Scalar(this.unit.correspondingDeltaUnit, absDeltaStd);
+        }
+        if (statName === PCT_DELTA_STD_NAME) {
+          let pctDeltaStd = absDeltaStd /
+            opt_referenceHistogram.standardDeviation;
+          return new tr.b.Scalar(this.unit.correspondingDeltaUnit, pctDeltaStd);
+        }
+        if (statName === Z_SCORE_NAME) {
+          return new tr.b.Scalar(
+              tr.b.Unit.byName['sigmaDelta' + suffix],
+              absDeltaAvg / opt_referenceHistogram.standardDeviation);
+        }
+
+        let mwu = opt_mwu || tr.b.Statistics.mwu(
+            this.sampleValues, opt_referenceHistogram.sampleValues);
+        if (statName === P_VALUE_NAME) {
+          return new tr.b.Scalar(tr.b.Unit.byName.unitlessNumber, mwu.p);
+        }
+        if (statName === U_STATISTIC_NAME) {
+          return new tr.b.Scalar(tr.b.Unit.byName.unitlessNumber, mwu.U);
+        }
+      }
+
+      throw new Error('Unrecognized statistic name');
+    }
+
+    get statisticsNames() {
+      let statisticsNames = new Set();
+      for (let [statName, option] of this.summaryOptions) {
+        if (statName === 'percentile') {
+          for (let pctile of option) {
+            statisticsNames.add('pct_' + tr.v.percentToString(pctile));
+          }
+        } else if (option) {
+          statisticsNames.add(statName);
+        }
+      }
+      return statisticsNames;
+    }
+
+    /**
      * Returns a Map {statisticName: Scalar}.
      *
      * Each enabled summary option produces the corresponding value:
@@ -493,44 +616,11 @@ tr.exportTo('tr.v', function() {
      * @return {!Map.<string, Scalar>}
      */
     get statisticsScalars() {
-      function statNameToKey(stat) {
-        switch (stat) {
-          case 'std':
-            return 'stddev';
-          case 'avg':
-            return 'mean';
-        }
-        return stat;
-      }
-
       let results = new Map();
-      for (let [stat, option] of this.summaryOptions) {
-        if (!option) {
-          continue;
-        }
-
-        if (stat === 'percentile') {
-          for (let percent of option) {
-            let percentile = this.getApproximatePercentile(percent);
-            results.set('pct_' + percentToString(percent),
-                new tr.b.Scalar(this.unit, percentile));
-          }
-        } else if (stat === 'nans') {
-          results.set('nans', new tr.b.Scalar(
-              tr.b.Unit.byName.count_smallerIsBetter, this.numNans));
-        } else {
-          let statUnit = stat === 'count' ?
-              tr.b.Unit.byName.count_smallerIsBetter : this.unit;
-          let key = statNameToKey(stat);
-          if (this.running_ === undefined) {
-            this.running_ = new tr.b.RunningStatistics();
-          }
-          let statValue = this.running_[key];
-
-          if (typeof(statValue) === 'number') {
-            results.set(stat, new tr.b.Scalar(statUnit, statValue));
-          }
-        }
+      for (let statName of this.statisticsNames) {
+        let scalar = this.getStatisticScalar(statName);
+        if (scalar === undefined) continue;
+        results.set(statName, scalar);
       }
       return results;
     }
@@ -1065,6 +1155,15 @@ tr.exportTo('tr.v', function() {
     Histogram,
     HistogramBinBoundaries,
     percentToString,
+    percentFromString,
+    ABS_DELTA_AVG_NAME,
+    PCT_DELTA_AVG_NAME,
+    ABS_DELTA_STD_NAME,
+    PCT_DELTA_STD_NAME,
+    P_VALUE_NAME,
+    U_STATISTIC_NAME,
+    Z_SCORE_NAME,
+    DELTA_STATISTIC_NAMES,
   };
 });
 </script>
