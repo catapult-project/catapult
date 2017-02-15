@@ -6,48 +6,60 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/ui/analysis/analysis_link.html">
+<link rel="import" href="/tracing/ui/base/table.html">
+<link rel="import" href="/tracing/value/ui/scalar_span.html">
 
 <dom-module id="tr-v-ui-related-histogram-map-span">
-  <script>
-  'use strict';
-  Polymer({
-    is: 'tr-v-ui-related-histogram-map-span',
-
-    ready() {
-      this.diagnostic_ = undefined;
-    },
-
-    get diagnostic() {
-      return this.diagnostic_;
-    },
-
-    set diagnostic(d) {
-      this.diagnostic_ = d;
-      this.updateContents_();
-    },
-
-    addLink_(selection, content) {
-      let link = document.createElement('tr-ui-a-analysis-link');
-      link.setSelectionAndContent(selection, content);
-      Polymer.dom(this).appendChild(link);
-      Polymer.dom(this).appendChild(document.createElement('br'));
-    },
-
-    updateContents_() {
-      Polymer.dom(this).textContent = '';
-
-      let histogramNames = new Set();
-      for (let [name, hist] of this.diagnostic) {
-        histogramNames.add(hist.name);
-      }
-      if (histogramNames.size > 1) {
-        this.addLink_(Array.from(histogramNames), 'Select All');
-      }
-
-      for (let [name, hist] of this.diagnostic) {
-        this.addLink_([hist.name], name);
-      }
-    }
-  });
-  </script>
+  <template>
+    <tr-ui-b-table id="table"></tr-ui-b-table>
+  </template>
 </dom-module>
+<script>
+'use strict';
+Polymer({
+  is: 'tr-v-ui-related-histogram-map-span',
+
+  ready() {
+    this.diagnostic_ = undefined;
+    this.$.table.showHeader = false;
+    this.$.table.tableColumns = [
+      {value: row => row[0]},
+      {value: row => row[1]},
+    ];
+  },
+
+  get diagnostic() {
+    return this.diagnostic_;
+  },
+
+  set diagnostic(d) {
+    this.diagnostic_ = d;
+    this.updateContents_();
+  },
+
+  updateContents_() {
+    Polymer.dom(this).textContent = '';
+
+    let rows = [];
+
+    let histogramNames = new Set();
+    for (let [name, hist] of this.diagnostic) {
+      histogramNames.add(hist.name);
+    }
+    if (histogramNames.size > 1) {
+      let link = document.createElement('tr-ui-a-analysis-link');
+      link.setSelectionAndContent(Array.from(histogramNames), 'Select All');
+      rows.push([link, '']);
+    }
+
+    for (let [name, hist] of this.diagnostic) {
+      let link = document.createElement('tr-ui-a-analysis-link');
+      link.setSelectionAndContent([hist.name], name);
+      let scalarSpan = tr.v.ui.createScalarSpan(hist);
+      rows.push([link, scalarSpan]);
+    }
+    this.$.table.tableRows = rows;
+    this.$.table.rebuild();
+  }
+});
+</script>
