@@ -228,14 +228,13 @@ tr.exportTo('tr.metrics.sh', function() {
     }
   }
 
-  function computeChromeBounds(model) {
+  function computeChromeBounds_(model) {
     var chromeBounds = new tr.b.Range();
     var chromeHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
-    for (var pid in chromeHelper.browserHelpers) {
-      if (chromeHelper.browserHelpers[pid].mainThread) {
-        chromeBounds.addRange(
-            chromeHelper.browserHelpers[pid].mainThread.bounds);
+    for (var helper of chromeHelper.browserHelpers) {
+      if (helper.mainThread) {
+        chromeBounds.addRange(helper.mainThread.bounds);
       }
     }
     for (var pid in chromeHelper.rendererHelpers) {
@@ -269,7 +268,7 @@ tr.exportTo('tr.metrics.sh', function() {
       return;
     }
 
-    var chromeBounds = computeChromeBounds(model);
+    var chromeBounds = computeChromeBounds_(model);
     if (chromeBounds.isEmpty) {
       // There are no events in the Chrome trace.
       return;

@@ -39,6 +39,10 @@ tr.exportTo('tr.model.helpers', function() {
       return hasInProcessRendererThread ? 'webview' : 'chrome';
     },
 
+    get mainThread() {
+      return this.mainThread_;
+    },
+
     get rendererHelpers() {
       return this.modelHelper.rendererHelpers;
     },

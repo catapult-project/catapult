@@ -64,6 +64,44 @@ function getMetricValueMax(values, name) {
 }
 
 tr.b.unittest.testSuite(function() {
+  test('powerMetric_computesChromeBoundsCorrectly', function() {
+    // Tests if Chrome bounds are computed correctly when there
+    // are both browser and renderer threads in the trace.
+    var model = tr.c.TestUtils.newModel((model) => {
+      var rendererProcess = model.getOrCreateProcess(1234);
+      var rendererThread = rendererProcess.getOrCreateThread(1);
+      rendererThread.name = 'CrRendererMain';
+      var browserProcess = model.getOrCreateProcess(5678);
+      var browserThread = browserProcess.getOrCreateThread(2);
+      browserThread.name = 'CrBrowserMain';
+      rendererThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 200.0,
+        duration: 500.0,
+        args: {frame: '0xdeadbeef'}
+      }));
+      browserThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 1000.0,
+        duration: 500.0,
+        args: {frame: '0xdeadbeef'}
+      }));
+      model.device.powerSeries = new tr.model.PowerSeries(model.device);
+      for (var i = 0; i <= 2000; i++)
+        model.device.powerSeries.addPowerSample(i, i);
+      model.userModel.expectations.push(new tr.model.um.IdleExpectation(
+          model, 0, 2000));
+    });
+    var valueSet = new tr.v.HistogramSet();
+    tr.metrics.sh.powerMetric(valueSet, model);
+
+    assert.closeTo(getMetricValueMin(valueSet, 'idle:power'), 200.0, .01);
+    assert.closeTo(getMetricValueAvg(valueSet, 'idle:power'), 849.5, .01);
+    assert.closeTo(getMetricValueMax(valueSet, 'idle:power'), 1499.0, .01);
+  });
+
   test('powerMetric_noPowerSeries', function() {
     var model = tr.c.TestUtils.newModel(function(model) {
       var rendererProcess = model.getOrCreateProcess(1234);
@@ -120,9 +158,8 @@ tr.b.unittest.testSuite(function() {
   test('powerMetric_noChromeTrace', function() {
     var model = tr.c.TestUtils.newModel(function(model) {
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
-      for (var i = 0; i <= 1000; i++) {
-        model.device.powerSeries.addPowerSample(i.toString(), i.toString());
-      }
+      for (var i = 0; i <= 1000; i++)
+        model.device.powerSeries.addPowerSample(i, i);
     });
     var valueSet = new tr.v.HistogramSet();
     tr.metrics.sh.powerMetric(valueSet, model);
@@ -140,9 +177,8 @@ tr.b.unittest.testSuite(function() {
       var mainThread = rendererProcess.getOrCreateThread(1);
       mainThread.name = 'CrRendererMain';
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
-      for (var i = 0; i <= 1000; i++) {
-        model.device.powerSeries.addPowerSample(i.toString(), i.toString());
-      }
+      for (var i = 0; i <= 1000; i++)
+        model.device.powerSeries.addPowerSample(i, i);
       model.userModel.expectations.push(new tr.model.um.LoadExpectation(
           model, tr.model.um.LOAD_SUBTYPE_NAMES.SUCCESSFUL, 0, 500));
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
@@ -175,9 +211,8 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
-      for (var i = 300; i <= 1000; i++) {
-        model.device.powerSeries.addPowerSample(i.toString(), i.toString());
-      }
+      for (var i = 300; i <= 1000; i++)
+        model.device.powerSeries.addPowerSample(i, i);
       model.userModel.expectations.push(new tr.model.um.LoadExpectation(
           model, tr.model.um.LOAD_SUBTYPE_NAMES.SUCCESSFUL, 0, 500));
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
@@ -211,9 +246,8 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
-      for (var i = 0; i <= 700; i++) {
-        model.device.powerSeries.addPowerSample(i.toString(), i.toString());
-      }
+      for (var i = 0; i <= 700; i++)
+        model.device.powerSeries.addPowerSample(i, i);
       model.userModel.expectations.push(new tr.model.um.LoadExpectation(
           model, tr.model.um.LOAD_SUBTYPE_NAMES.SUCCESSFUL, 0, 500));
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
@@ -247,9 +281,8 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
-      for (var i = 0; i <= 1000; i++) {
-        model.device.powerSeries.addPowerSample(i.toString(), i.toString());
-      }
+      for (var i = 0; i <= 1000; i++)
+        model.device.powerSeries.addPowerSample(i, i);
       model.userModel.expectations.push(new tr.model.um.ResponseExpectation(
           model, tr.importer.INITIATOR_TYPE.SCROLL, 0, 500));
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
@@ -286,9 +319,8 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
-      for (var i = 0; i <= 1000; i++) {
-        model.device.powerSeries.addPowerSample(i.toString(), i.toString());
-      }
+      for (var i = 0; i <= 1000; i++)
+        model.device.powerSeries.addPowerSample(i, i);
       model.userModel.expectations.push(new tr.model.um.ResponseExpectation(
           model, tr.importer.INITIATOR_TYPE.SCROLL, 0, 500));
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
@@ -322,9 +354,8 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
-      for (var i = 0; i <= 1000; i++) {
+      for (var i = 0; i <= 1000; i++)
         model.device.powerSeries.addPowerSample(i.toString(), i.toString());
-      }
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
           model, 0, 300));
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
@@ -357,9 +388,8 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
-      for (var i = 0; i <= 1000; i++) {
-        model.device.powerSeries.addPowerSample(i.toString(), i.toString());
-      }
+      for (var i = 0; i <= 1000; i++)
+        model.device.powerSeries.addPowerSample(i, i);
       model.userModel.expectations.push(new tr.model.um.ResponseExpectation(
             model, tr.importer.INITIATOR_TYPE.SCROLL, 0, 200));
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
@@ -453,11 +483,11 @@ tr.b.unittest.testSuite(function() {
 
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
       for (var i = 0; i <= 15400; i++)
-        model.device.powerSeries.addPowerSample(i.toString(), '20');
+        model.device.powerSeries.addPowerSample(i, 20);
       for (var i = 15401; i <= 22160; i++)
-        model.device.powerSeries.addPowerSample(i.toString(), '10');
+        model.device.powerSeries.addPowerSample(i, 10);
       for (var i = 22160; i <= 30000; i++)
-        model.device.powerSeries.addPowerSample(i.toString(), '10');
+        model.device.powerSeries.addPowerSample(i, 10);
     });
 
     var valueSet = new tr.v.HistogramSet();
@@ -523,9 +553,9 @@ tr.b.unittest.testSuite(function() {
 
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
       for (var i = 0; i <= 15400; i++)
-        model.device.powerSeries.addPowerSample(i.toString(), '20');
+        model.device.powerSeries.addPowerSample(i, 20);
       for (var i = 15401; i <= 22160; i++)
-        model.device.powerSeries.addPowerSample(i.toString(), '10');
+        model.device.powerSeries.addPowerSample(i, 10);
     });
 
     var valueSet = new tr.v.HistogramSet();
@@ -555,9 +585,8 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
-      for (var i = 0; i <= 1000; i++) {
-        model.device.powerSeries.addPowerSample(i.toString(), i.toString());
-      }
+      for (var i = 0; i <= 1000; i++)
+        model.device.powerSeries.addPowerSample(i, i);
       model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
           model, tr.importer.INITIATOR_TYPE.SCROLL, 0, 500));
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
@@ -590,9 +619,8 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
-      for (var i = 0; i <= 1000; i++) {
-        model.device.powerSeries.addPowerSample(i.toString(), i.toString());
-      }
+      for (var i = 0; i <= 1000; i++)
+        model.device.powerSeries.addPowerSample(i, i);
       model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
           model, tr.importer.INITIATOR_TYPE.SCROLL, 0, 200));
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
@@ -629,9 +657,8 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
-      for (var i = 0; i <= 1000; i++) {
-        model.device.powerSeries.addPowerSample(i.toString(), i.toString());
-      }
+      for (var i = 0; i <= 1000; i++)
+        model.device.powerSeries.addPowerSample(i, i);
       model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
           model, tr.importer.INITIATOR_TYPE.VIDEO, 0, 500));
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
@@ -664,9 +691,8 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
-      for (var i = 0; i <= 1000; i++) {
-        model.device.powerSeries.addPowerSample(i.toString(), i.toString());
-      }
+      for (var i = 0; i <= 1000; i++)
+        model.device.powerSeries.addPowerSample(i, i);
       model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
           model, tr.importer.INITIATOR_TYPE.VIDEO, 0, 200));
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
