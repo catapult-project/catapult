@@ -2233,9 +2233,9 @@ class DeviceUtilsSetPropTest(DeviceUtilsTest):
 
 class DeviceUtilsGetPidsTest(DeviceUtilsTest):
 
-  def testGetPids_sdkGreaterThanNougat(self):
+  def testGetPids_sdkGreaterThanNougatMR1(self):
     with self.patch_call(self.call.device.build_version_sdk,
-                         return_value=(version_codes.NOUGAT + 1)):
+                         return_value=(version_codes.NOUGAT_MR1 + 1)):
       with self.assertCall(
           self.call.device._RunPipedShellCommand(
               'ps -e | grep -F example.process'), []):

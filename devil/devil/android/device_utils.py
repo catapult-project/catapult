@@ -2119,7 +2119,7 @@ class DeviceUtils(object):
     try:
       ps_cmd = 'ps'
       # ps behavior was changed in Android above N, http://crbug.com/686716
-      if self.build_version_sdk > version_codes.NOUGAT:
+      if self.build_version_sdk > version_codes.NOUGAT_MR1:
         ps_cmd = 'ps -e'
       ps_output = self._RunPipedShellCommand(
           '%s | grep -F %s' % (ps_cmd, cmd_helper.SingleQuote(process_name)))
