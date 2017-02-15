@@ -283,7 +283,8 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     class TestUserAgent(legacy_page_test.LegacyPageTest):
       def ValidateAndMeasurePage(self, page, tab, results):
         del page, results  # unused
-        actual_user_agent = tab.EvaluateJavaScript('window.navigator.userAgent')
+        actual_user_agent = tab.EvaluateJavaScript2(
+            'window.navigator.userAgent')
         expected_user_agent = user_agent.UA_TYPE_MAPPING['tablet']
         assert actual_user_agent.strip() == expected_user_agent
 
@@ -630,7 +631,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     class TestWpr(legacy_page_test.LegacyPageTest):
       def ValidateAndMeasurePage(self, page, tab, results):
         del page, results  # unused
-        body.append(tab.EvaluateJavaScript('document.body.innerText'))
+        body.append(tab.EvaluateJavaScript2('document.body.innerText'))
 
       def DidRunPage(self, platform):
         # Force the replay server to restart between pages; this verifies that

@@ -31,11 +31,11 @@ class BrowserInfo(object):
     if len(self._browser.tabs) == 0 and self._browser.supports_tab_control:
       self._browser.tabs.New()
       tab = self._browser.tabs[0]
-      result = tab.EvaluateJavaScript(_check_webgl_supported_script)
+      result = tab.EvaluateJavaScript2(_check_webgl_supported_script)
       tab.Close()
     elif len(self._browser.tabs) > 0:
       tab = self._browser.tabs[0]
-      result = tab.EvaluateJavaScript(_check_webgl_supported_script)
+      result = tab.EvaluateJavaScript2(_check_webgl_supported_script)
     return result
 
   def HasFlingGestureSupport(self):

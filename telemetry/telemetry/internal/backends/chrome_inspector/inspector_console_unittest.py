@@ -13,9 +13,9 @@ class TabConsoleTest(tab_test_case.TabTestCase):
   def testConsoleOutputStream(self):
     self.Navigate('page_that_logs_to_console.html')
 
-    initial = self._tab.EvaluateJavaScript('window.__logCount')
+    initial = self._tab.EvaluateJavaScript2('window.__logCount')
     def GotLog():
-      current = self._tab.EvaluateJavaScript('window.__logCount')
+      current = self._tab.EvaluateJavaScript2('window.__logCount')
       return current > initial
     py_utils.WaitFor(GotLog, 5)
 

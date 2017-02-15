@@ -53,10 +53,10 @@ class ExtensionTest(unittest.TestCase):
                       'skipping test.')
       return
     self.assertTrue(
-        self._extension.EvaluateJavaScript('chrome.runtime != null'))
-    self._extension.ExecuteJavaScript('setTestVar("abcdef")')
+        self._extension.EvaluateJavaScript2('chrome.runtime != null'))
+    self._extension.ExecuteJavaScript2('setTestVar("abcdef")')
     self.assertEquals('abcdef',
-                      self._extension.EvaluateJavaScript('_testVar'))
+                      self._extension.EvaluateJavaScript2('_testVar'))
 
   def testExtensionGetByExtensionId(self):
     """Test GetByExtensionId for a simple extension with a background page."""
@@ -68,7 +68,7 @@ class ExtensionTest(unittest.TestCase):
     self.assertEqual(1, len(ext))
     self.assertEqual(ext[0], self._extension)
     self.assertTrue(
-        ext[0].EvaluateJavaScript('chrome.runtime != null'))
+        ext[0].EvaluateJavaScript2('chrome.runtime != null'))
 
   @decorators.Disabled('mac')
   def testWebApp(self):
@@ -78,7 +78,7 @@ class ExtensionTest(unittest.TestCase):
                       'skipping test.')
       return
     extensions = self._browser.extensions.GetByExtensionId(self._extension_id)
-    extension_urls = set([ext.EvaluateJavaScript('location.href;')
+    extension_urls = set([ext.EvaluateJavaScript2('location.href;')
                           for ext in extensions])
     expected_urls = set(['chrome-extension://' + self._extension_id + '/' + path
                          for path in ['main.html', 'second.html',
@@ -158,9 +158,9 @@ class MultipleExtensionTest(unittest.TestCase):
       extension = self._browser.extensions[load_extension]
       assert extension
       self.assertTrue(
-          extension.EvaluateJavaScript('chrome.runtime != null'))
-      extension.ExecuteJavaScript('setTestVar("abcdef")')
-      self.assertEquals('abcdef', extension.EvaluateJavaScript('_testVar'))
+          extension.EvaluateJavaScript2('chrome.runtime != null'))
+      extension.ExecuteJavaScript2('setTestVar("abcdef")')
+      self.assertEquals('abcdef', extension.EvaluateJavaScript2('_testVar'))
 
 
 class WebviewInExtensionTest(ExtensionTest):
@@ -184,8 +184,8 @@ class WebviewInExtensionTest(ExtensionTest):
     # Check that the context has the right url from the <webview> element.
     self.assertTrue(webview_context.GetUrl().startswith('data:'))
     # Check |test_input_id| element is accessible from the webview context.
-    self.assertTrue(webview_context.EvaluateJavaScript(
+    self.assertTrue(webview_context.EvaluateJavaScript2(
                     'document.getElementById("test_input_id") != null'))
     # Check that |test_input_id| is not accessible from outside webview context
-    self.assertFalse(self._extension.EvaluateJavaScript(
+    self.assertFalse(self._extension.EvaluateJavaScript2(
                     'document.getElementById("test_input_id") != null'))

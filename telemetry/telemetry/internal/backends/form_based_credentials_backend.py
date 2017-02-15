@@ -13,7 +13,7 @@ class FormBasedCredentialsBackend(object):
     self._logged_in = False
 
   def IsAlreadyLoggedIn(self, tab):
-    return tab.EvaluateJavaScript(self.logged_in_javascript)
+    return tab.EvaluateJavaScript2(self.logged_in_javascript)
 
   @property
   def credentials_type(self):
@@ -56,27 +56,28 @@ class FormBasedCredentialsBackend(object):
 
   def _WaitForLoginState(self, action_runner):
     """Waits until it can detect either the login form, or already logged in."""
-    action_runner.WaitForJavaScriptCondition(
+    action_runner.WaitForJavaScriptCondition2(
         '(document.querySelector({{ form_id }}) !== null) || ({{ @code }})',
         form_id='#' + self.login_form_id, code=self.logged_in_javascript,
-        timeout_in_seconds=60)
+        timeout=60)
 
   def _SubmitLoginFormAndWait(self, action_runner, tab, username, password):
     """Submits the login form and waits for the navigation."""
     tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
-    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
-    email_id = 'document.querySelector("#%s #%s").value = "%s"; ' % (
-        self.login_form_id, self.login_input_id, username)
-    password = 'document.querySelector("#%s #%s").value = "%s"; ' % (
-        self.login_form_id, self.password_input_id, password)
-    tab.ExecuteJavaScript(email_id)
-    tab.ExecuteJavaScript(password)
+    tab.ExecuteJavaScript2(
+        'document.querySelector({{ selector }}).value = {{ username }};',
+        selector='#%s #%s' % (self.login_form_id, self.login_input_id),
+        username=username)
+    tab.ExecuteJavaScript2(
+        'document.querySelector({{ selector }}).value = {{ password }};',
+        selector='#%s #%s' % (self.login_form_id, self.password_input_id),
+        password=password)
     if self.login_button_javascript:
-      tab.ExecuteJavaScript(self.login_button_javascript)
+      tab.ExecuteJavaScript2(self.login_button_javascript)
     else:
-      # TODO(catapult:#3028): Fix interpolation of JavaScript values.
-      tab.ExecuteJavaScript(
-          'document.getElementById("%s").submit();' % self.login_form_id)
+      tab.ExecuteJavaScript2(
+          'document.getElementById({{ form_id }}).submit();',
+          form_id=self.login_form_id)
     # Wait for the form element to disappear as confirmation of the navigation.
     action_runner.WaitForNavigate()
 

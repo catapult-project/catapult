@@ -351,11 +351,12 @@ class DevToolsClientBackend(object):
           continue
         context_id = context['id']
         backend = context_map.GetInspectorBackend(context_id)
-        # TODO(catapult:#3028): Fix interpolation of JavaScript values.
-        backend.EvaluateJavaScript(
-            "console.time('" + backend.id + "');" +
-            "console.timeEnd('" + backend.id + "');" +
-            "console.time.toString().indexOf('[native code]') != -1;")
+        backend.EvaluateJavaScript2("""
+            console.time({{ backend_id }});
+            console.timeEnd({{ backend_id }});
+            console.time.toString().indexOf('[native code]') != -1;
+            """,
+            backend_id=backend.id)
         self._tab_ids.append(backend.id)
     finally:
       self._tracing_backend.StopTracing()

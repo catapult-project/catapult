@@ -20,6 +20,8 @@ class FormBasedCredentialsBackendUnitTestBase(unittest.TestCase):
                       password_element_id, form_element_id,
                       already_logged_in_js): # pylint: disable=no-self-use
     del form_element_id  # Unused.
+    del email_element_id  # Unused.
+    del password_element_id  # Unused.
     tab = simple_mock.MockObject()
     ar = simple_mock.MockObject()
 
@@ -27,29 +29,30 @@ class FormBasedCredentialsBackendUnitTestBase(unittest.TestCase):
               'password': 'blargh'}
 
     tab.ExpectCall('Navigate', login_page_url)
-    tab.ExpectCall('EvaluateJavaScript', already_logged_in_js).WillReturn(False)
+    tab.ExpectCall(
+        'EvaluateJavaScript2', already_logged_in_js).WillReturn(False)
     tab.ExpectCall('WaitForDocumentReadyStateToBeInteractiveOrBetter')
 
     ar.ExpectCall(
-        'WaitForJavaScriptCondition',
+        'WaitForJavaScriptCondition2',
         '(document.querySelector({{ form_id }}) !== null) || ({{ @code }})')
     ar.ExpectCall('WaitForNavigate')
 
     def VerifyEmail(js):
-      assert email_element_id in js
-      assert 'blah' in js
-    tab.ExpectCall('ExecuteJavaScript', _).WhenCalled(VerifyEmail)
+      assert '{{ selector }}' in js
+      assert '{{ username }}' in js
+    tab.ExpectCall('ExecuteJavaScript2', _).WhenCalled(VerifyEmail)
 
     def VerifyPw(js):
-      assert password_element_id in js
-      assert 'largh' in js
-    tab.ExpectCall('ExecuteJavaScript', _).WhenCalled(VerifyPw)
+      assert '{{ selector }}' in js
+      assert '{{ password }}' in js
+    tab.ExpectCall('ExecuteJavaScript2', _).WhenCalled(VerifyPw)
 
     def VerifySubmit(js):
       assert '.submit' in js or '.click' in js
-    tab.ExpectCall('ExecuteJavaScript', _).WhenCalled(VerifySubmit)
+    tab.ExpectCall('ExecuteJavaScript2', _).WhenCalled(VerifySubmit)
 
     # Checking for form still up.
-    tab.ExpectCall('EvaluateJavaScript', _).WillReturn(False)
+    tab.ExpectCall('EvaluateJavaScript2', _).WillReturn(False)
 
     backend.LoginNeeded(tab, ar, config)
