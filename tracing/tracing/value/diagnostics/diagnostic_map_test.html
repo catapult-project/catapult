@@ -100,11 +100,13 @@ tr.b.unittest.testSuite(function() {
     assert.instanceOf(hist.diagnostics.get('a'),
         tr.v.d.UnmergeableDiagnosticSet);
     diagnostics = Array.from(hist.diagnostics.get('a'));
-    assert.lengthOf(diagnostics, 3);
+    assert.lengthOf(diagnostics, 4);
     assert.instanceOf(diagnostics[0], tr.v.d.Generic);
-    assert.deepEqual(diagnostics[0].value, [generic.value, generic2.value]);
+    assert.deepEqual(diagnostics[0].value, generic.value);
     assert.strictEqual(relatedSet, diagnostics[1]);
     assert.strictEqual(events, diagnostics[2]);
+    assert.instanceOf(diagnostics[3], tr.v.d.Generic);
+    assert.deepEqual(diagnostics[3].value, generic2.value);
   });
 });
 </script>

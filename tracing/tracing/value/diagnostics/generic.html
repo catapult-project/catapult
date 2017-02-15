@@ -14,36 +14,15 @@ tr.exportTo('tr.v.d', function() {
   /**
    * A Generic diagnostic can contain any Plain-Ol'-Data objects that can be
    * serialized using JSON.stringify(): null, boolean, number, string, array,
-   * dict. Generic diagnostics cannot contain tr.v.Value objects!
+   * dict. Generic diagnostics cannot contain tr.v.Histograms!
    */
   class Generic extends tr.v.d.Diagnostic {
     /**
-     * @param {*} value
+     * @param {(boolean|number|string|Array|Object)} value
      */
     constructor(value) {
       super();
       this.value = value;
-      this._merged = false;
-    }
-
-    canAddDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
-      return otherDiagnostic instanceof Generic;
-    }
-
-    addDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
-      let result = new Generic([]);
-      result._merged = true;
-      if (this._merged) {
-        result.value.push(...this.value);
-      } else {
-        result.value.push(this.value);
-      }
-      if (otherDiagnostic._merged) {
-        result.value.push(...otherDiagnostic.value);
-      } else {
-        result.value.push(otherDiagnostic.value);
-      }
-      return result;
     }
 
     asDictInto_(d) {

@@ -507,6 +507,7 @@
       'tracing/value/csv_builder.html',
       'tracing/value/diagnostics/breakdown.html',
       'tracing/value/diagnostics/buildbot_info.html',
+      'tracing/value/diagnostics/collected_generic.html',
       'tracing/value/diagnostics/device_info.html',
       'tracing/value/diagnostics/diagnostic.html',
       'tracing/value/diagnostics/diagnostic_map.html',

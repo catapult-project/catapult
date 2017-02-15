@@ -6,21 +6,21 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/core/test_utils.html">
-<link rel="import" href="/tracing/value/diagnostics/generic.html">
+<link rel="import" href="/tracing/value/diagnostics/collected_generic.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
   test('merge', function() {
-    let a = new tr.v.d.Generic('a');
-    let b = new tr.v.d.Generic('b');
+    // TODO(#2842) Change these back to Generics when cloneEmpty() is supported.
+    let a = new tr.v.d.CollectedGeneric();
+    let b = new tr.v.d.CollectedGeneric();
     assert.isTrue(a.canAddDiagnostic(b));
     assert.isTrue(b.canAddDiagnostic(a));
-    let ab = a.addDiagnostic(b);
-    assert.deepEqual(ab.value, ['a', 'b']);
-    let bab = b.addDiagnostic(ab);
-    assert.deepEqual(bab.value, ['b', 'a', 'b']);
+    a.addDiagnostic(new tr.v.d.Generic('a'));
+    a.addDiagnostic(new tr.v.d.Generic('b'));
+    assert.deepEqual(a.value, ['a', 'b']);
   });
 });
 </script>
