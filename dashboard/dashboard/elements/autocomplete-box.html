@@ -49,7 +49,7 @@ property 'group' sets to the header item name.
 <link rel="import" href="/components/paper-material/paper-material.html">
 <link rel="import" href="/components/paper-menu/paper-menu.html">
 
-<link rel="import" href="/dashboard/static/autocomplete.html">
+<link rel="import" href="/dashboard/static/fuzzy_autocomplete.html">
 
 <dom-module id="autocomplete-box">
   <template>
@@ -302,7 +302,7 @@ property 'group' sets to the header item name.
       },
 
       computeSuggestedItems: function(query, items, _itemsChange) {
-        var searcher = new autocomplete.Trie(items);
+        var searcher = new fuzzyAutocomplete.FuzzyAutocomplete(items);
         return searcher.search(query);
       },
 

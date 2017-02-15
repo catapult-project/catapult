@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/dashboard/static/fuzzy_autocomplete.html">
+
+<link rel="import" href="/tracing/core/test_utils.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  test('it_matches_text_when_it_contains_the_query', function() {
+    var list = [
+    ];
+    var selector = new fuzzyAutocomplete.FuzzySelect('abc');
+    assert.isTrue(selector.match('abc'));
+    assert.isTrue(selector.match('ZZZabcZZZ'));
+    assert.isFalse(selector.match('ab'));
+    assert.isFalse(selector.match('ZZZaZZZbZZZc'));
+  });
+
+  test('it_matches_text_when_each_query_part_appears_in_the_text', function() {
+    var list = [
+    ];
+    var selector = new fuzzyAutocomplete.FuzzySelect('abc def');
+    assert.isTrue(selector.match('abcdef'));
+    assert.isTrue(selector.match('abc def'));
+    assert.isTrue(selector.match('ZZZabcZZZdefZZZ'));
+    assert.isTrue(selector.match('defabc'));
+    assert.isFalse(selector.match('abc'));
+    assert.isFalse(selector.match('def'));
+  });
+
+  test('it_ignores_multiple_spaces', function() {
+    var selector = new fuzzyAutocomplete.FuzzySelect('a    b       c');
+    assert.isTrue(selector.match('abc'));
+  });
+
+  test('it_gives_lower_scores_to_earlier_matches', function() {
+    var selector = new fuzzyAutocomplete.FuzzySelect('foo');
+    assert.isTrue(selector.score('foo') < selector.score('the foo'));
+    assert.isTrue(selector.score('the foo') < selector.score('the other foo'));
+    assert.isTrue(selector.score('the other foo') < selector.score('bar'));
+  });
+
+  test('it_can_filter', function() {
+    var selector = new fuzzyAutocomplete.FuzzySelect('a');
+    assert.deepEqual(selector.filter(['a', 'ab', 'b', 'c']), ['a', 'ab']);
+  });
+
+  test('it_can_use_accessor', function() {
+    var selector = new fuzzyAutocomplete.FuzzySelect('a', item => item.key);
+    assert.isTrue(selector.match({ key: 'a' }));
+    assert.isFalse(selector.match({ key: 'b' }));
+  });
+
+  test('it_returns_full_list_for_null_query', function() {
+    var list = [
+      { name: 'Skydiving' },
+      { name: 'Snowboarding' },
+    ];
+    var autocomplete = new fuzzyAutocomplete.FuzzyAutocomplete(list);
+    assert.deepEqual(autocomplete.search(null), list);
+  });
+
+  test('it_returns_full_list_for_undefined_query', function() {
+    var list = [
+      { name: 'Skydiving' },
+      { name: 'Snowboarding' },
+    ];
+    var autocomplete = new fuzzyAutocomplete.FuzzyAutocomplete(list);
+    assert.deepEqual(autocomplete.search(), list);
+  });
+
+  test('it_returns_full_list_when_everything_matches', function() {
+    var list = [
+      { name: 'Skydiving' },
+      { name: 'Snowboarding' },
+    ];
+    var autocomplete = new fuzzyAutocomplete.FuzzyAutocomplete(list);
+    assert.deepEqual(autocomplete.search('S'), list);
+  });
+
+  test('it_returns_single_item_when_that_is_the_only_match', function() {
+    var skydiving = { name: 'Skydiving' };
+    var snowboarding = { name: 'Snowboarding' };
+    var list = [skydiving, snowboarding];
+    var autocomplete = new fuzzyAutocomplete.FuzzyAutocomplete(list);
+    assert.deepEqual(autocomplete.search('Skydiving'), [skydiving]);
+  });
+
+  test('it_returns_items_which_contain_the_characters_in_order', function() {
+    var match1 = { name: '1 Hello, world!' };
+    var match2 = { name: '2 hello, world!' };
+    var noMatch1 = { name: 'hello, there!' };
+    var noMatch2 = { name: '!dlrow ,olleh' };
+    var noMatch3 = { name: 'Hello, worl!' };
+    var list = [noMatch1, match1, match2, noMatch2, noMatch3];
+    var autocomplete = new fuzzyAutocomplete.FuzzyAutocomplete(list);
+    assert.deepEqual(autocomplete.search('world'), [match1, match2]);
+  });
+
+  test('it_handles_groups_correctly', function() {
+    var list = [
+      { name: 'jobs', head: true },
+      { name: 'astronaut', group: 'jobs' },
+      { name: 'teacher', group: 'jobs' },
+      { name: 'subjects', head: true },
+      { name: 'astrophysics', group: 'subjects' },
+      { name: 'aeronautics', group: 'subjects' },
+      { name: 'astrophysicists', head: true },
+      { name: 'Neil deGrasse Tyson', group: 'astrophysicists' },
+    ];
+    var autocomplete = new fuzzyAutocomplete.FuzzyAutocomplete(list);
+    assert.deepEqual(autocomplete.search('astro'), [
+      { name: 'jobs', head: true },
+      { name: 'astronaut', group: 'jobs' },
+      { name: 'subjects', head: true },
+      { name: 'astrophysics', group: 'subjects' },
+    ]);
+  });
+
+  test('it_sorts_items', function() {
+    var list = [
+      { name: 'teacher', group: 'jobs' },
+      { name: 'jobs', head: true },
+      { name: 'astrophysicists', head: true },
+      { name: 'subjects', head: true },
+      { name: ' astro-boffin', group: 'jobs' },
+      { name: 'astronaut', group: 'jobs' },
+      { name: 'Neil deGrasse Tyson', group: 'astrophysicists' },
+      { name: 'astrophysics', group: 'subjects' },
+      { name: 'aeronautics', group: 'subjects' },
+    ];
+    var autocomplete = new fuzzyAutocomplete.FuzzyAutocomplete(list);
+    assert.deepEqual(autocomplete.search('a'), [
+      { name: 'astrophysicists', head: true },
+      { name: 'Neil deGrasse Tyson', group: 'astrophysicists' },
+      { name: 'jobs', head: true },
+      { name: 'astronaut', group: 'jobs' },
+      // astro-boffin (it's a real word) is alphabetically before astronaut but
+      // the match is later (because of the leading space) so we penalize it.
+      { name: ' astro-boffin', group: 'jobs' },
+      { name: 'teacher', group: 'jobs' },
+      { name: 'subjects', head: true },
+      { name: 'aeronautics', group: 'subjects' },
+      { name: 'astrophysics', group: 'subjects' },
+    ]);
+  });
+});
+</script>

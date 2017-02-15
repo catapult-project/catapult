@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<script>
+'use strict';
+
+/** Support for fuzzy autocomplete suggestions. */
+var fuzzyAutocomplete = (function() {
+  var FuzzyAutocomplete = function(sourceList) {
+    this.sourceList_ = sourceList;
+    this.headItems_ = sourceList.filter(item => item.head);
+    this.items_ = sourceList.filter(item => !item.head);
+  };
+
+  FuzzyAutocomplete.prototype.search = function(target) {
+    if (target == null || target == undefined) {
+      return this.sourceList_;
+    }
+    var selector = new FuzzySelect(target, item => item.name);
+    var items = selector.filter(this.items_);
+    var groups = new Set(items.map(item => item.group));
+    var headItems = this.headItems_.filter(item => groups.has(item.name));
+    var results = [].concat(headItems).concat(items);
+
+    // We piggyback lexical sorting. We want to sort first by group name then
+    // by is/is not group header then by score and then finally by name.
+    var toKey = function(item) {
+      if (item.head) {
+        // The score doesn't matter for head items.
+        return [item.name, false, 0, item.name];
+      }
+      return [item.group || '', true, selector.score(item), item.name];
+    };
+
+    return results.map(item => [toKey(item), item]).sort().map(pair => pair[1]);
+  };
+
+  /**
+   * FuzzySelect tests items to see if they match a query.
+   * An item matches a query if all space seperated parts from the query are
+   * present in the item.
+   *
+   * The optional accessor function can be provided if the items are not plain
+   * strings. It is passed an item and should return a string for use in
+   * testing against the query.
+   */
+  var FuzzySelect = function(query, opt_accessor) {
+    this.accessor = opt_accessor || (s => s);
+    query = query.replace(new RegExp(' +'), ' ');
+    this.rs = query.split(' ').map(part => new RegExp(part));
+  };
+
+  FuzzySelect.prototype.filter = function(items) {
+    return items.filter(item => this.match(item));
+  };
+
+  FuzzySelect.prototype.match = function(item) {
+    return this.rs.every(r => r.exec(this.accessor(item)));
+  };
+
+  FuzzySelect.prototype.score = function(item) {
+    var score = 0; // Smaller is better.
+    for (var r of this.rs) {
+      var m = r.exec(this.accessor(item));
+      if (!m) return Number.POSITIVE_INFINITY;
+      score += m.index;
+    }
+    return score;
+  };
+
+  return {
+    FuzzyAutocomplete,
+    FuzzySelect,
+  };
+})();
+
+</script>

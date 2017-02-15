@@ -52,9 +52,9 @@ tr.b.unittest.testSuite(function() {
     fixture.set('items', [this.foo, this.fooish, this.bar]);
     fixture.set('query', '');
     assert.deepEqual(fixture.get('suggestedItems'), [
+        {'name': 'Bar'},
         {'name': 'Foo'},
         {'name': 'Fooish'},
-        {'name': 'Bar'},
     ]);
   }, testOptions);
 
@@ -155,7 +155,7 @@ tr.b.unittest.testSuite(function() {
     var cucumber = item('Cucumber');
     fixture.set('items', [animals, lion, elephant, cucumber]);
     fixture.selectItem(animals);
-    assert.deepEqual(fixture.get('selectedItems'), [lion, elephant]);
+    assert.deepEqual(fixture.get('selectedItems'), [elephant, lion]);
     fixture.selectItem(animals);
     assert.deepEqual(fixture.get('selectedItems'), []);
     fixture.selectItem(lion);
