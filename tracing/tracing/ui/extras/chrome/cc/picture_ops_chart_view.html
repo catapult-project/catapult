@@ -141,7 +141,6 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     extractBarIndex_: function(e) {
-
       var index = undefined;
 
       if (this.pictureOps_ === undefined ||
@@ -170,7 +169,6 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     onClick_: function(e) {
-
       var barClicked = this.extractBarIndex_(e);
 
       if (barClicked === undefined)
@@ -188,7 +186,6 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     onMouseMove_: function(e) {
-
       var lastBarMouseOverTarget = this.currentBarMouseOverTarget_;
       this.currentBarMouseOverTarget_ = this.extractBarIndex_(e);
 
@@ -199,7 +196,6 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     scrollSelectedItemIntoViewIfNecessary: function() {
-
       if (this.selectedOpIndex === undefined)
         return;
 
@@ -216,7 +212,6 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     updateChartContents: function() {
-
       if (this.dimensionsHaveChanged)
         this.updateChartDimensions_();
 
@@ -224,7 +219,6 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     updateChartDimensions_: function() {
-
       if (!this.pictureOps_)
         return;
 
@@ -254,13 +248,11 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     drawChartContents_: function() {
-
       this.clearChartContents_();
 
       if (this.pictureOps_ === undefined ||
           this.pictureOps_.length === 0 ||
           this.pictureOps_[0].cmd_time === undefined) {
-
         this.showNoTimingDataMessage_();
         return;
       }
@@ -278,7 +270,6 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     drawSelection_: function() {
-
       if (this.selectedOpIndex === undefined)
         return;
 
@@ -289,7 +280,6 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     drawChartAxes_: function() {
-
       var min = this.opCosts_[0];
       var max = this.opCosts_[this.opCosts_.length - 1];
       var height = this.chartHeight_ - AXIS_PADDING_TOP - AXIS_PADDING_BOTTOM;
@@ -325,7 +315,6 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
       this.chartCtx_.beginPath();
       for (var t = 0; t < VERTICAL_TICKS; t++) {
-
         tickYPosition = Math.round(t * tickYInterval);
         tickVal = (max - t * tickValInterval).toFixed(4);
 
@@ -333,7 +322,6 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         this.chartCtx_.lineTo(-AXIS_TICK_SIZE, tickYPosition);
         this.chartCtx_.fillText(tickVal,
             -AXIS_TICK_SIZE - AXIS_LABEL_PADDING, tickYPosition);
-
       }
 
       this.chartCtx_.stroke();
@@ -343,7 +331,6 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     drawLinesAtTickMarks_: function() {
-
       var height = this.chartHeight_ - AXIS_PADDING_TOP - AXIS_PADDING_BOTTOM;
       var width = this.chartWidth_ - AXIS_PADDING_LEFT - AXIS_PADDING_RIGHT;
       var tickYInterval = height / (VERTICAL_TICKS - 1);
@@ -377,7 +364,6 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     drawTooltip_: function() {
-
       var tooltipData = this.pictureOps_[this.currentBarMouseOverTarget_];
       var tooltipTitle = tooltipData.cmd_string;
       var tooltipTime = tooltipData.cmd_time.toFixed(4);
@@ -425,7 +411,6 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     drawBars_: function() {
-
       var op;
       var opColor = 0;
       var opHeight = 0;
@@ -443,7 +428,6 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         maxValue = this.maxCost_;
 
       for (var b = 0; b < this.pictureOps_.length; b++) {
-
         op = this.pictureOps_[b];
         opHeight = Math.round(
             (op.cmd_time / maxValue) * maxHeight);
@@ -459,11 +443,9 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         this.chartCtx_.fillRect(CHART_PADDING_LEFT + b * opWidth,
             bottom - opHeight, BAR_WIDTH, opHeight);
       }
-
     },
 
     getOpColor_: function(opName, hover) {
-
       var characters = opName.split('');
 
       var hue = characters.reduce(this.reduceNameToHue, 0) % 360;

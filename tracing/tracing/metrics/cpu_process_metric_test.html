@@ -14,7 +14,6 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-
   function makeModel(events) {
     return tr.c.TestUtils.newModelWithEvents([events]);
   }
@@ -116,7 +115,6 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(chromeValue.diagnostics.get('paths').value, 2);
     assert.strictEqual(chromeValue.diagnostics.get('paths').value[0],
         '/opt/chrome/chrome');
-
   });
 });
 </script>

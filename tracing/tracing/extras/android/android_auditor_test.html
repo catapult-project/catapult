@@ -318,7 +318,6 @@ tr.b.unittest.testSuite(function() {
       sfThread.name = '/system/bin/surfaceflinger';
       sfThread.sliceGroup.pushSlice(newSliceEx(
           {title: 'doComposition', start: 8, duration: 2}));
-
     }, tr.e.audits.AndroidAuditor);
 
     // both processes should be renamed
@@ -404,7 +403,6 @@ tr.b.unittest.testSuite(function() {
 
   test('favicon', function() {
     var createModelWithJank = function(percentageJank) {
-
       return tr.c.TestUtils.newModelWithAuditor(function(model) {
         var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
         for (var i = 0; i < 100; i++) {

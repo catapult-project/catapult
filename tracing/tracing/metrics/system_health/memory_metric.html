@@ -1059,7 +1059,6 @@ tr.exportTo('tr.metrics.sh', function() {
 
   function reportDataAsValues(sourceToPropertyToBuilder, browserName,
       customComponentTreeModifier, values) {
-
     // For each source name (e.g. 'reported_by_os')...
     sourceToPropertyToBuilder.forEach(function(propertyToBuilder, sourceName) {
       // For each property (e.g. EFFECTIVE_SIZE)...
@@ -1086,7 +1085,6 @@ tr.exportTo('tr.metrics.sh', function() {
    */
   function reportComponentDataAsValues(browserName, sourceName, property,
       componentPath, tree, values, customComponentTreeModifier) {
-
     var breakdown = new tr.v.d.RelatedHistogramBreakdown();
     breakdown.colorScheme = PROCESS_COLOR_SCHEME_NAME;
 

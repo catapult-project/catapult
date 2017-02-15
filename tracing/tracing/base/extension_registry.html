@@ -39,7 +39,6 @@ found in the LICENSE file.
  * enforce the types that can be put into a given registry.
  */
 tr.exportTo('tr.b', function() {
-
   function decorateExtensionRegistry(registry, registryOptions) {
     if (registry.register)
       throw new Error('Already has registry');

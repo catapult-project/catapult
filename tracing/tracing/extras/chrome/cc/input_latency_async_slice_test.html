@@ -100,7 +100,6 @@ tr.b.unittest.testSuite(function() {
 
   test('getAssociatedEventsBypassRendererMain', function() {
     var m = newModel(function(m) {
-
       var pb = m.getOrCreateProcess(1);
       var pr = m.getOrCreateProcess(2);
       var mainBrowserThread = pb.getOrCreateThread(10);
@@ -169,7 +168,6 @@ tr.b.unittest.testSuite(function() {
         isTopLevel: true,
         startThread: compositorThread
       });
-
     });
 
     assert.isTrue(m.as0.associatedEvents.length === 0);
@@ -179,7 +177,6 @@ tr.b.unittest.testSuite(function() {
 
   test('getAssociatedEventsBypassRendererMainWithOnScroll', function() {
     var m = newModel(function(m) {
-
       var pb = m.getOrCreateProcess(1);
       var pr = m.getOrCreateProcess(2);
       var mainBrowserThread = pb.getOrCreateThread(10);
@@ -298,7 +295,6 @@ tr.b.unittest.testSuite(function() {
 
   test('getAssociatedEventsWithoutCommit', function() {
     var m = newModel(function(m) {
-
       var pb = m.getOrCreateProcess(1);
       var pr = m.getOrCreateProcess(2);
       var mainBrowserThread = pb.getOrCreateThread(10);
@@ -381,7 +377,6 @@ tr.b.unittest.testSuite(function() {
         isTopLevel: true,
         startThread: mainBrowserThread
       });
-
     });
 
     assert.isTrue(m.as0.associatedEvents.length === 0);
@@ -391,7 +386,6 @@ tr.b.unittest.testSuite(function() {
 
   test('getAssociatedEventsWillCommit', function() {
     var m = newModel(function(m) {
-
       var pb = m.getOrCreateProcess(1);
       var pr = m.getOrCreateProcess(2);
       var mainBrowserThread = pb.getOrCreateThread(10);
@@ -506,7 +500,6 @@ tr.b.unittest.testSuite(function() {
         isTopLevel: true,
         startThread: mainBrowserThread
       });
-
     });
 
     assert.isTrue(m.as0.associatedEvents.length === 0);
@@ -517,7 +510,6 @@ tr.b.unittest.testSuite(function() {
 
   test('getAssociatedEventsExcludeOtherInputs', function() {
     var m = newModel(function(m) {
-
       var pb = m.getOrCreateProcess(1);
       var pr = m.getOrCreateProcess(2);
       var mainBrowserThread = pb.getOrCreateThread(10);
@@ -676,7 +668,6 @@ tr.b.unittest.testSuite(function() {
         isTopLevel: true,
         startThread: mainBrowserThread
       });
-
     });
 
     assert.isTrue(m.as0.associatedEvents.length === 0);
@@ -684,6 +675,5 @@ tr.b.unittest.testSuite(function() {
         [m.f1, m.f2, m.f3, m.f4, m.f5,
           m.s0, m.s1, m.s2, m.s3, m.s4, m.s5, m.s7, m.s9])));
   });
-
 });
 </script>

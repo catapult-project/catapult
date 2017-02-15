@@ -86,7 +86,6 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
           eventBase.threadName, tgid, pid);
 
       if (kthread.openSliceTS) {
-
         kthread.thread.sliceGroup.pushCompleteSlice(
             'memreclaim', eventBase.threadName, kthread.openSliceTS,
             ts - kthread.openSliceTS, 0, 0,

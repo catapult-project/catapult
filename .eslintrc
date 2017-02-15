@@ -114,7 +114,7 @@
       }],
       "one-var-declaration-per-line": "off",
       "operator-assignment": "off",
-      "padded-blocks": "off",
+      "padded-blocks": ["error", "never"],
       "quote-props": ["error", "consistent"], ## TODO(alexandermont): want to eventually make this disallowQuotedKeysInObjects
       "quotes": ["error", "single"],
       "radix": "off",

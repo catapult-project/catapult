@@ -484,7 +484,6 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
                 tr.b.UnitPrefixScale.BINARY.NONE,
                 tr.b.UnitPrefixScale.BINARY.MEBI).toFixed(1) + ' MiB, ' +
             tmgs.memoryLimitPolicy + ')';
-
       } else {
         // Old Chromes do not have a globalState on the LTHI dump.
         // But they do issue a DidManage event wiht the globalstate. Find that
@@ -997,7 +996,6 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         quadForDrawing.borderColor = color.withAlpha(1.0).darken().toString();
         quadForDrawing.stackingGroupId = layerQuad.stackingGroupId;
         quads.push(quadForDrawing);
-
       }, this);
     },
 

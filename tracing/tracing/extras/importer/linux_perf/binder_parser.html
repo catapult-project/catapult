@@ -469,7 +469,6 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     // helper functions
     modelRecursiveTransactions: function(recursiveTrans, ts, pid, kthread,
         trans, args) {
-
       var recursiveSlice = recursiveTrans[1].slice;
       var origSlice = recursiveTrans[0].slice;
       recursiveSlice.duration = ts - recursiveSlice.start;

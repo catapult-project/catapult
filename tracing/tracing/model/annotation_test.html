@@ -5,18 +5,17 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/model/location.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/model/comment_box_annotation.html">
-<link rel="import" href="/tracing/model/rect_annotation.html">
+<link rel="import" href="/tracing/model/location.html">
 <link rel="import" href="/tracing/model/model.html">
+<link rel="import" href="/tracing/model/rect_annotation.html">
 <link rel="import" href="/tracing/model/x_marker_annotation.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-
   test('rectAnnotation', function() {
     var fakeYComponents1 = [{stableId: '1.2', yPercentOffset: 0.3}];
     var fakeYComponents2 = [{stableId: '1.2', yPercentOffset: 0.9}];

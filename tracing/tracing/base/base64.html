@@ -9,7 +9,6 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.b', function() {
-
   function Base64() {
   }
 
@@ -42,7 +41,6 @@ tr.exportTo('tr.b', function() {
   };
 
   Base64.DecodeToTypedArray = function(input, output) {
-
     var nInLen = input.length;
     var nOutLen = nInLen * 3 + 1 >> 2;
     var nMod3 = 0;
@@ -89,6 +87,5 @@ tr.exportTo('tr.b', function() {
   return {
     Base64,
   };
-
 });
 </script>

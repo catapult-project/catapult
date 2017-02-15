@@ -28,7 +28,6 @@ tr.exportTo('tr.b', function() {
 
     registry.register = function(constructor,
         metadata) {
-
       extensionRegistryOptions.validateConstructor(constructor);
 
       var typeInfo = new RegisteredTypeInfo(

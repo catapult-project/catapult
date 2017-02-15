@@ -13,7 +13,6 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-
   test('displayRevisionRange works with simple revision ranges', function() {
     var range = document.createElement('revision-range');
     assert.equal(range.computeRevisionRange(20030, 20050), '20030 - 20050');
@@ -37,6 +36,5 @@ tr.b.unittest.testSuite(function() {
         range.computeRevisionRange(1420001111, 1420001111),
         '2014-12-31T04:45:11.000Z');
   });
-
 });
 </script>

@@ -25,7 +25,6 @@ tr.exportTo('tr.model.helpers', function() {
   var TIMESTAMP_FUDGE_MS = 0.01;
 
   function getVsyncTimestamps(process, counterName) {
-
     var vsync = process.counters[counterName];
     if (!vsync)
       vsync = process.counters[VSYNC_FALLBACK_NAME];

@@ -17,7 +17,6 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.mre', function() {
-
   function jsonReplacer(key, value) {
     if (value instanceof tr.v.Histogram) {
       return value.asDict();

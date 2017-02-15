@@ -492,7 +492,6 @@ tr.exportTo('tr.b.unittest', function() {
   };
 
   function loadAndRunTests(runnerConfig) {
-
     // The test runner no-ops pushState so keep it around.
     var realWindowHistoryPushState = window.history.pushState.bind(
         window.history);

@@ -5,15 +5,14 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/core/test_utils.html">
-
 <link rel="import" href="/dashboard/static/uri.html">
+
+<link rel="import" href="/tracing/core/test_utils.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-
   var testOptions = {
     setUp: function() {
       window.originalGetQueryString_ = uri.getQueryString;
@@ -64,6 +63,5 @@ tr.b.unittest.testSuite(function() {
     };
     assert.deepEqual({'a': '::', 'b': 'x y'}, uri.getAllParameters());
   }, testOptions);
-
 });
 </script>

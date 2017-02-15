@@ -346,7 +346,6 @@ Polymer({
     var lastT = firstT.after(function() {
       this.upperModelTrack_.addAllEventsMatchingFilterToSelection(
           filter, selection);
-
     }, this);
     return firstT;
   },
@@ -934,7 +933,6 @@ Polymer({
   },
 
   storeInitialMouseDownPos_: function(e) {
-
     var position = this.extractRelativeMousePosition_(e);
 
     this.mouseViewPosAtMouseDown_.x = position.x;
@@ -946,7 +944,6 @@ Polymer({
   },
 
   storeInitialInteractionPositionsAndFocus_: function(e) {
-
     this.storeInitialMouseDownPos_(e);
     this.storeLastMousePos_(e);
 
@@ -1029,7 +1026,6 @@ Polymer({
     this.dragBoxYEnd_ = e.clientY;
     this.setDragBoxPosition_(this.dragBoxXStart_, this.dragBoxYStart_,
         this.dragBoxXEnd_, this.dragBoxYEnd_);
-
   },
 
   onEndSelection_: function(e) {

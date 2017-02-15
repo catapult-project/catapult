@@ -13,7 +13,6 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-
   test('sortQueryPart sorts query string', function() {
     var query = 'c=1&b=2&a=3';
     assert.equal('a=3&b=2&c=1',
@@ -31,6 +30,5 @@ tr.b.unittest.testSuite(function() {
     assert.equal('path?a=2',
         testing_common.sortQueryPart(query));
   });
-
 });
 </script>

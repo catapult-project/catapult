@@ -347,7 +347,6 @@ tr.exportTo('tr.ui.b', function() {
   var tmpP4 = vec3.create();
   function transformAndProcessQuads(
       matrix, viewport, quads, numPasses, handleQuadFunc, opt_arg1, opt_arg2) {
-
     for (var passNumber = 0; passNumber < numPasses; passNumber++) {
       for (var i = 0; i < quads.length; i++) {
         var quad = quads[i];

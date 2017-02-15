@@ -15,7 +15,6 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-
   var getInteractiveTimestamps = tr.e.chrome.getInteractiveTimestamps;
   var getPostInteractiveTaskWindows = tr.e.chrome.getPostInteractiveTaskWindows;
   var getNavStartTimestamps = tr.e.chrome.getNavStartTimestamps;
@@ -309,6 +308,5 @@ tr.b.unittest.testSuite(function() {
     assert.throws(() => maxExpectedQueueingTimeInSlidingWindow(0, 100, 10,
         [{start: 0, end: 100}, {start: 99, end: 101}]));
   });
-
 });
 </script>

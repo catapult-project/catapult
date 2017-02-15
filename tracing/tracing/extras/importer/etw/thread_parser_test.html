@@ -13,7 +13,6 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-
   // Constants for Thread events.
   var guid = '3D6FA8D1-FE05-11D0-9DDA-00C04FD7BA7C';
   var kThreadStartOpcode = 1;
@@ -42,7 +41,6 @@ tr.b.unittest.testSuite(function() {
   var kThreadCSwitchPayload64bitV2 = 'zAgAAAAAAAAIAAEAAAACBAEAAACHbYg0';
 
   test('DecodeFields', function() {
-
     var importer = new tr.e.importer.etw.EtwImporter('dummy', []);
     var decoder = importer.decoder_;
     var parser = new tr.e.importer.etw.ThreadParser(importer);
@@ -172,7 +170,6 @@ tr.b.unittest.testSuite(function() {
     assert.equal(fields.oldThreadWaitIdealProcessor, 4);
     assert.equal(fields.newThreadWaitTime, 1);
     assert.equal(fields.reserved, 881356167);
-
   });
 });
 </script>

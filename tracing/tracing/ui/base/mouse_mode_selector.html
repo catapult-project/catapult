@@ -261,7 +261,6 @@ tr.exportTo('tr.ui.b', function() {
 
         // End event.
         if (this.isInteracting_) {
-
           var mouseEvent = this.createEvent_(
               MOUSE_SELECTOR_MODE_INFOS[this.mode].eventNames.end);
           this.dispatchEvent(mouseEvent);
@@ -294,8 +293,6 @@ tr.exportTo('tr.ui.b', function() {
               MOUSE_SELECTOR_MODE_INFOS[this.mode].eventNames.begin);
           this.dispatchEvent(mouseEvent);
         }
-
-
       }
 
       if (this.settingsKey_ && !this.isInAlternativeMode_)

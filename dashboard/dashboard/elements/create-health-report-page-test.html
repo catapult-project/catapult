@@ -15,7 +15,6 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-
   var testOptions = {
     tearDown: function() {
       testing_common.clearXhrMock();
@@ -61,6 +60,5 @@ tr.b.unittest.testSuite(function() {
     var page = document.createElement('create-health-report-page');
     this.addHTMLOutput(page);
   }, testOptions);
-
 });
 </script>

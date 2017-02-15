@@ -28,7 +28,6 @@ tr.exportTo('tr.c', function() {
 
   function _getStartAndCpuDurationFromDict(
       options, required, startFieldName, durationFieldName, endFieldName) {
-
     if (options[startFieldName] === undefined) {
       if (required)
         throw new Error('Too little information.');

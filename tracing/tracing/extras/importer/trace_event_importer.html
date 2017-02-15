@@ -1113,7 +1113,6 @@ tr.exportTo('tr.e.importer', function() {
               'begin_end (non-compact)', event.cat, event.name, event.ts,
               eventSizeInBytes);
           this.processDurationEvent(event);
-
         } else if (event.ph === 'X') {
           modelStats.willProcessBasicTraceEvent(
               'begin_end (compact)', event.cat, event.name, event.ts,
@@ -1124,7 +1123,6 @@ tr.exportTo('tr.e.importer', function() {
           // https://github.com/catapult-project/catapult/issues/1259
           if (slice !== undefined && event.bind_id !== undefined)
             this.processFlowEvent(event, slice);
-
         } else if (event.ph === 'b' || event.ph === 'e' || event.ph === 'n' ||
                    event.ph === 'S' || event.ph === 'F' || event.ph === 'T' ||
                    event.ph === 'p') {
@@ -1138,7 +1136,6 @@ tr.exportTo('tr.e.importer', function() {
           modelStats.willProcessBasicTraceEvent(
               'instant', event.cat, event.name, event.ts, eventSizeInBytes);
           this.processInstantEvent(event);
-
         } else if (event.ph === 'P') {
           modelStats.willProcessBasicTraceEvent(
               'samples', event.cat, event.name, event.ts, eventSizeInBytes);
@@ -1151,23 +1148,19 @@ tr.exportTo('tr.e.importer', function() {
           modelStats.willProcessBasicTraceEvent(
               'metadata', event.cat, event.name, event.ts, eventSizeInBytes);
           this.processMetadataEvent(event);
-
         } else if (event.ph === 'N' || event.ph === 'D' || event.ph === 'O') {
           modelStats.willProcessBasicTraceEvent(
               'objects', event.cat, event.name, event.ts, eventSizeInBytes);
           this.processObjectEvent(event);
-
         } else if (event.ph === 's' || event.ph === 't' || event.ph === 'f') {
           modelStats.willProcessBasicTraceEvent(
               'flows', event.cat, event.name, event.ts, eventSizeInBytes);
           this.processFlowEvent(event);
-
         } else if (event.ph === 'v') {
           modelStats.willProcessBasicTraceEvent(
               'memory_dumps', event.cat, event.name, event.ts,
               eventSizeInBytes);
           this.processMemoryDumpEvent(event);
-
         } else if (event.ph === '(' || event.ph === ')') {
           this.processContextEvent(event);
         } else if (event.ph === 'c') {
@@ -2073,7 +2066,6 @@ tr.exportTo('tr.e.importer', function() {
             continue;
           }
           flowIdToEvent[event.id] = flowEvent;
-
         } else if (event.ph === 't' || event.ph === 'f') {
           flowEvent = flowIdToEvent[event.id];
           if (flowEvent === undefined) {
@@ -2260,7 +2252,6 @@ tr.exportTo('tr.e.importer', function() {
     // Javascript-level object inside their args list that has an "id" field,
     // and turn that into a snapshot of the instance referred to by id.
     createImplicitObjectsForProcess_: function(process) {
-
       function processField(referencingObject,
           referencingObjectFieldName,
           referencingObjectFieldValue,

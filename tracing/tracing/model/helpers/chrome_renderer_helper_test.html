@@ -12,7 +12,6 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-
   var rendererPid = 12345;
   var model = tr.c.TestUtils.newModel(function(model) {
     var rendererProcess = model.getOrCreateProcess(rendererPid);
@@ -110,7 +109,6 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('testTimeBreakdownIntersectingBoundary', function() {
-
     // Our main thread looks like:
     //
     //      [      parseHTML     ]    [  layout   ]      [      V8.Exec       ]
@@ -151,6 +149,5 @@ tr.b.unittest.testSuite(function() {
       }
     }, breakdownTree['v8_runtime']);
   });
-
 });
 </script>

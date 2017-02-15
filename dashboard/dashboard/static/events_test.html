@@ -13,7 +13,6 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-
   function makeHandler() {
     var handler = function() {
       handler.wasCalled = true;
@@ -72,7 +71,5 @@ tr.b.unittest.testSuite(function() {
     window.dispatchEvent(new CustomEvent('my-event-name6'));
     assert.isTrue(handler.wasCalled);
   });
-
-
 });
 </script>

@@ -124,7 +124,6 @@ tr.exportTo('tr.e.cc', function() {
     determineLegacyTypeName_: function() {
       // Iterate over all descendent subSlices.
       for (var subSlice of this.enumerateAllDescendents()) {
-
         // If |subSlice| is not an InputLatencyAsyncSlice, then ignore it.
         var subSliceIsAInputLatencyAsyncSlice = (
             subSlice instanceof InputLatencyAsyncSlice);

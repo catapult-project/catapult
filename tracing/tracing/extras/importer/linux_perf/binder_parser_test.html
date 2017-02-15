@@ -55,7 +55,6 @@ tr.b.unittest.testSuite(function() {
 
     var threads = m.getAllThreads();
     assert.equal(threads.length, 4);
-
   });
 
   test('binderRecursiveTest', function() {
@@ -217,7 +216,6 @@ tr.b.unittest.testSuite(function() {
     assert.equal(slice.inFlowEvents.length, 1);
     assert.equal(slice.outFlowEvents.length, 0);
     assert.equal(slice.title, 'binder Async recv');
-
   });
 });
 

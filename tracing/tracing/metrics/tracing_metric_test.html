@@ -15,7 +15,6 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-
   function makeModel(events, opt_track) {
     return tr.c.TestUtils.newModelWithEvents([events], {
       trackDetailedModelStats: opt_track
@@ -160,6 +159,5 @@ tr.b.unittest.testSuite(function() {
     checkDurationHistogram(histograms,
         'Average CPU overhead on all threads per memory-infra dump', 91);
   });
-
 });
 </script>

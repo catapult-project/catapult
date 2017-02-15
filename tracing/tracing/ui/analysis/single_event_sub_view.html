@@ -201,7 +201,6 @@ Polymer({
       if (event.startStackFrame === event.endStackFrame) {
         rows.push({name: 'Start+End Stack Trace',
           value: createStackFrameEl(event.startStackFrame)});
-
       } else {
         rows.push({ name: 'Start Stack Trace',
           value: createStackFrameEl(event.startStackFrame)});
@@ -211,7 +210,6 @@ Polymer({
     } else if (event.startStackFrame) {
       rows.push({ name: 'Start Stack Trace',
         value: createStackFrameEl(event.startStackFrame)});
-
     } else if (event.endStackFrame) {
       rows.push({ name: 'End Stack Trace',
         value: createStackFrameEl(event.endStackFrame)});
@@ -264,7 +262,6 @@ Polymer({
   },
 
   getEventRows_: function(event) {
-
     if (this.isFlow)
       return this.getFlowEventRows_(event);
 

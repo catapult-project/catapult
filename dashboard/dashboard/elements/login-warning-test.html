@@ -13,7 +13,6 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-
   test('should be hidden when "missing" attribute is empty', function() {
     var element = document.createElement('login-warning');
     assert.isTrue(element.messageElement.hidden);
@@ -25,6 +24,5 @@ tr.b.unittest.testSuite(function() {
     Polymer.dom(document.body).appendChild(element);
     assert.isFalse(element.messageElement.hidden);
   });
-
 });
 </script>

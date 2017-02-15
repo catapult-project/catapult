@@ -55,7 +55,6 @@ tr.b.unittest.testSuite(function() {
       var e = newKeyEvent('keydown', {keyCode: 73});
       subElement.dispatchEvent(e);
       assert.isTrue(didGetCalled);
-
     } finally {
       Polymer.dom(document.body).removeChild(rootElement);
     }
@@ -133,6 +132,5 @@ tr.b.unittest.testSuite(function() {
       Polymer.dom(document.body).removeChild(rootElement);
     }
   });
-
 });
 </script>

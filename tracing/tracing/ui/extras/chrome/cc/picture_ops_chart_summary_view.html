@@ -91,7 +91,6 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     show: function() {
-
       Polymer.dom(this).classList.remove('hidden');
 
       if (this.pictureDataProcessed_)
@@ -100,11 +99,9 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.processPictureData_();
       this.requiresRedraw = true;
       this.updateChartContents();
-
     },
 
     onMouseMove_: function(e) {
-
       var lastBarMouseOverTarget = this.currentBarMouseOverTarget_;
       this.currentBarMouseOverTarget_ = null;
 
@@ -118,13 +115,11 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       var chartInnerWidth = chartRight - chartLeft;
 
       if (x > chartLeft && x < chartRight && y > chartTop && y < chartBottom) {
-
         this.currentBarMouseOverTarget_ = Math.floor(
             (x - chartLeft) / chartInnerWidth * this.opsTimingData_.length);
 
         this.currentBarMouseOverTarget_ = tr.b.clamp(
             this.currentBarMouseOverTarget_, 0, this.opsTimingData_.length - 1);
-
       }
 
       if (this.currentBarMouseOverTarget_ === lastBarMouseOverTarget)
@@ -134,7 +129,6 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     updateChartContents: function() {
-
       if (this.requiresRedraw)
         this.updateChartDimensions_();
 
@@ -158,7 +152,6 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     processPictureData_: function() {
-
       this.resetOpsTimingData_();
       this.pictureDataProcessed_ = true;
 
@@ -179,7 +172,6 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     drawChartContents_: function() {
-
       this.clearChartContents_();
 
       if (this.opsTimingData_.length === 0) {
@@ -205,7 +197,6 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     drawTooltip_: function() {
-
       var tooltipData = this.opsTimingData_[this.currentBarMouseOverTarget_];
       var tooltipTitle = tooltipData.cmd_string;
       var tooltipTime = tooltipData.cmd_time.toFixed(4);
@@ -251,7 +242,6 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     drawBars_: function() {
-
       var len = this.opsTimingData_.length;
       var max = this.opsTimingData_[0].cmd_time;
       var min = this.opsTimingData_[len - 1].cmd_time;
@@ -267,7 +257,6 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       var barLeft;
 
       for (var b = 0; b < len; b++) {
-
         opData = this.opsTimingData_[b];
         opTiming = opData.cmd_time / max;
 
@@ -280,11 +269,9 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         this.chartCtx_.fillRect(barLeft + BAR_PADDING, AXIS_PADDING_TOP +
             height - opHeight, barWidth - 2 * BAR_PADDING, opHeight);
       }
-
     },
 
     getOpColor_: function(opName) {
-
       var characters = opName.split('');
       var hue = characters.reduce(this.reduceNameToHue, 0) % 360;
 
@@ -299,7 +286,6 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     drawChartAxes_: function() {
-
       var len = this.opsTimingData_.length;
       var max = this.opsTimingData_[0].cmd_time;
       var min = this.opsTimingData_[len - 1].cmd_time;
@@ -337,7 +323,6 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.chartCtx_.textBaseline = 'middle';
 
       for (var t = 0; t < VERTICAL_TICKS; t++) {
-
         tickYPosition = Math.round(t * tickYInterval);
         tickVal = (max - t * tickValInterval).toFixed(4);
 
@@ -345,7 +330,6 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         this.chartCtx_.lineTo(-AXIS_TICK_SIZE, tickYPosition);
         this.chartCtx_.fillText(tickVal,
             -AXIS_TICK_SIZE - AXIS_LABEL_PADDING, tickYPosition);
-
       }
 
       this.chartCtx_.stroke();
@@ -367,7 +351,6 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       var labelTickLeft;
       var labelTickBottom;
       for (var l = 0; l < len; l++) {
-
         labelTickLeft = Math.round(l * barWidth);
         labelTickBottom = l % 2 * LABEL_INTERLEAVE_OFFSET;
 
@@ -400,14 +383,12 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     collapseOpsToTimingBuckets_: function(ops) {
-
       var opsTimingDataIndexHash_ = {};
       var timingData = this.opsTimingData_;
       var op;
       var opIndex;
 
       for (var i = 0; i < ops.length; i++) {
-
         op = ops[i];
 
         if (op.cmd_time === undefined)
@@ -428,7 +409,6 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         }
 
         timingData[opIndex].cmd_time += op.cmd_time;
-
       }
 
       timingData.sort(this.sortTimingBucketsByOpTimeDescending_);
@@ -437,7 +417,6 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     collapseTimingBucketsToOther_: function(count) {
-
       var timingData = this.opsTimingData_;
       var otherSource = timingData.splice(count, timingData.length - count);
       var otherDestination = null;

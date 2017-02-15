@@ -198,7 +198,6 @@ tr.exportTo('tr.e.importer.v8', function() {
 
     processTickEvent_: function(pc, startInUs, isExternalCallback,
         tosOrExternalCallback, vmstate, stack) {
-
       var startInMs = tr.b.convertUnit(startInUs,
           tr.b.UnitPrefixScale.METRIC.MICRO,
           tr.b.UnitPrefixScale.METRIC.MILLI);

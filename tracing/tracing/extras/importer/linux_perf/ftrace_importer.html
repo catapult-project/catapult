@@ -795,7 +795,6 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
      */
     traceMarkingWriteEvent_: function(eventName, cpuNumber, pid, ts, eventBase,
         threadName) {
-
       // Some profiles end up with a \n\ on the end of each line. Strip it
       // before we do the comparisons.
       eventBase.details = eventBase.details.replace(/\\n.*$/, '');

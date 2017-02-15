@@ -13,7 +13,6 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-
   function addInteractiveTimestamp(rendererProcess, mainThread, timestamp) {
     mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
       cat: 'blink.user_timing',
