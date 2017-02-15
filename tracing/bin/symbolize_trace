@@ -22,6 +22,8 @@ sys.path.append(_SYMBOLS_PATH)
 # pylint: disable=import-error
 import symbols.elf_symbolizer as elf_symbolizer
 
+import symbolize_trace_atos_regex
+
 
 # Relevant trace event phases from Chromium's
 # src/base/trace_event/common/trace_event_common.h.
@@ -52,10 +54,82 @@ def FindInSystemPath(binary_name):
   return None
 
 
+class Symbolizer(object):
+  # Encapsulates platform-specific symbolization logic.
+  def __init__(self):
+    self.is_mac = sys.platform == 'darwin'
+    if self.is_mac:
+      self.binary = 'atos'
+      self._matcher = symbolize_trace_atos_regex.AtosRegexMatcher()
+    else:
+      self.binary = 'addr2line'
+    self.symbolizer_path = FindInSystemPath(self.binary)
+
+  def _SymbolizeLinuxAndAndroid(self, symfile):
+    def _SymbolizerCallback(sym_info, frames):
+      # Unwind inline chain to the top.
+      while sym_info.inlined_by:
+        sym_info = sym_info.inlined_by
+
+      symbolized_name = sym_info.name if sym_info.name else unsymbolized_name
+      for frame in frames:
+        frame.name = symbolized_name
+
+    symbolizer = elf_symbolizer.ELFSymbolizer(symfile.symbolizable_path,
+                                              self.symbolizer_path,
+                                              _SymbolizerCallback,
+                                              inlines=True)
+
+    for address, frames in symfile.frames_by_address.iteritems():
+      # SymbolizeAsync() asserts that the type of address is int. We operate
+      # on longs (since they are raw pointers possibly from 64-bit processes).
+      # It's OK to cast here because we're passing relative PC, which should
+      # always fit into int.
+      symbolizer.SymbolizeAsync(int(address), frames)
+
+    symbolizer.Join()
+
+  def _SymbolizeMac(self, symfile):
+    chars_max = int(subprocess.check_output("getconf ARG_MAX", shell=True))
+
+    # 16 for the address, 2 for "0x", 1 for the space
+    chars_per_address = 19
+
+    cmd_base = [self.symbolizer_path, '-arch', 'x86_64', '-l',
+                '0x0', '-o' , symfile.symbolizable_path]
+    chars_for_other_arguments = len(' '.join(cmd_base)) + 1
+
+    # The maximum number of inputs that can be processed at once is limited by
+    # ARG_MAX. This currently evalutes to ~13000 on macOS.
+    max_inputs = (chars_max - chars_for_other_arguments) / chars_per_address
+
+    all_keys = symfile.frames_by_address.keys()
+    processed_keys_count = 0
+    while len(all_keys):
+      input_count = min(len(all_keys), max_inputs)
+      keys_to_process = all_keys[0:input_count]
+
+      cmd = list(cmd_base)
+      cmd.extend([hex(int(x)) for x in keys_to_process])
+      output_array = subprocess.check_output(cmd).split('\n')
+      for i in range(len(keys_to_process)):
+        for frame in symfile.frames_by_address.values()[i + processed_keys_count]:
+          frame.name = self._matcher.Match(output_array[i])
+      processed_keys_count += len(keys_to_process)
+      all_keys = all_keys[input_count:]
+
+  def Symbolize(self, symfile):
+    if self.is_mac:
+      self._SymbolizeMac(symfile)
+    else:
+      self._SymbolizeLinuxAndAndroid(symfile)
+
+
 def IsSymbolizableFile(file_path):
   result = subprocess.check_output(['file', '-0', file_path])
   type_string = result[result.find('\0') + 1:]
-  return bool(re.match(r'\: (ELF|Mach-O) (32|64)-bit\b', type_string))
+  return bool(re.match(r'.*(ELF|Mach-O) (32|64)-bit\b.*',
+              type_string, re.DOTALL))
 
 
 class ProcessMemoryMaps(object):
@@ -271,7 +345,7 @@ def ResolveSymbolizableFiles(processes):
   return symfile_by_path.values()
 
 
-def SymbolizeFiles(symfiles, addr2line_path):
+def SymbolizeFiles(symfiles, symbolizer):
   """Symbolizes each file in the given list of SymbolizableFiles
      and updates stack frames with symbolization results."""
   print 'Symbolizing...'
@@ -301,32 +375,11 @@ def SymbolizeFiles(symfiles, addr2line_path):
           frame.name = unsymbolized_name
       continue
 
-    def _SymbolizerCallback(sym_info, frames):
-      # Unwind inline chain to the top.
-      while sym_info.inlined_by:
-        sym_info = sym_info.inlined_by
-
-      symbolized_name = sym_info.name if sym_info.name else unsymbolized_name
-      for frame in frames:
-        frame.name = symbolized_name
-
-    symbolizer = elf_symbolizer.ELFSymbolizer(symfile.symbolizable_path,
-                                              addr2line_path,
-                                              _SymbolizerCallback,
-                                              inlines=True)
-
     _SubPrintf('Symbolizing {} PCs from {}...',
                len(symfile.frames_by_address),
                symfile.path)
 
-    for address, frames in symfile.frames_by_address.iteritems():
-      # SymbolizeAsync() asserts that the type of address is int. We operate
-      # on longs (since they are raw pointers possibly from 64-bit processes).
-      # It's OK to cast here because we're passing relative PC, which should
-      # always fit into int.
-      symbolizer.SymbolizeAsync(int(address), frames)
-
-    symbolizer.Join()
+    symbolizer.Symbolize(symfile)
     symbolized = True
 
   return symbolized
@@ -372,9 +425,9 @@ def main():
     else:
       return open(trace_file_path, mode + 't')
 
-  addr2line_path = FindInSystemPath('addr2line')
-  if addr2line_path is None:
-    sys.exit("Can't symbolize - no addr2line in PATH.")
+  symbolizer = Symbolizer()
+  if symbolizer.symbolizer_path is None:
+    sys.exit("Can't symbolize - no %s in PATH." % symbolizer.binary)
 
   print 'Reading trace file...'
   with _OpenTraceFile('r') as trace_file:
@@ -392,7 +445,7 @@ def main():
                    'symbolize it.')
     RemapAndroidFiles(symfiles, os.path.abspath(options.output_directory))
 
-  if SymbolizeFiles(symfiles, addr2line_path):
+  if SymbolizeFiles(symfiles, symbolizer):
     if options.backup:
       backup_file_path = trace_file_path + BACKUP_FILE_TAG
       print 'Backing up trace file to {}...'.format(backup_file_path)
