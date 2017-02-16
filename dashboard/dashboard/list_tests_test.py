@@ -413,6 +413,17 @@ class ListTestsTest(testing_common.TestCase):
         'p': '*/mac/dromaeo/*'})
     self.assertEqual(['Chromium/mac/dromaeo/dom'], json.loads(response.body))
 
+  def testPost_GetTestsForTestPath_Selected_EmptyPreselected(self):
+    self._AddSampleData()
+
+    response = self.testapp.post('/list_tests', {
+        'type': 'test_path_dict',
+        'test_path_dict': json.dumps({
+            'Chromium/win7/scrolling/commit_time': []}),
+        'return_selected': '1'})
+
+    self.assertEqual([], json.loads(response.body))
+
   def testPost_GetTestsForTestPath_Selected_Preselected(self):
     self._AddSampleData()
 
