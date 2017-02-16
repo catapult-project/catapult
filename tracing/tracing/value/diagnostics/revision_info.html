@@ -25,6 +25,23 @@ tr.exportTo('tr.v.d', function() {
       this.webrtc_ = info.webrtc || [];
     }
 
+    addToHistogram(hist) {
+      hist.diagnostics.set(RevisionInfo.NAME, this);
+    }
+
+    canAddDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
+      return otherDiagnostic instanceof RevisionInfo ||
+        otherDiagnostic instanceof tr.v.d.MergedRevisionInfo;
+    }
+
+    addDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
+      let result = new tr.v.d.MergedRevisionInfo();
+      result.addDiagnostic(this, name, parentHist, parentHist);
+      result.addDiagnostic(
+          otherDiagnostic, name, otherParentHist, otherParentHist);
+      return result;
+    }
+
     asDictInto_(d) {
       d.chromiumCommitPosition = this.chromiumCommitPosition;
       d.v8CommitPosition = this.v8CommitPosition;
@@ -72,6 +89,8 @@ tr.exportTo('tr.v.d', function() {
       return this.webrtc_;
     }
   }
+
+  RevisionInfo.NAME = 'revisions';
 
   tr.v.d.Diagnostic.register(RevisionInfo, {
     elementName: 'tr-v-ui-revision-info-span'

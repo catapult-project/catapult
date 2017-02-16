@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/ui/base/table.html">
+
+<dom-module id="tr-v-ui-merged-revision-info-span">
+  <template>
+    <tr-ui-b-table id="table"></tr-ui-b-table>
+  </template>
+</dom-module>
+
+<script>
+'use strict';
+Polymer({
+  is: 'tr-v-ui-merged-revision-info-span',
+
+  ready() {
+    this.diagnostic_ = undefined;
+    this.$.table.showHeader = false;
+    this.$.table.tableColumns = [
+      {value: row => row[0]},
+      {value: row => row[1]},
+    ];
+  },
+
+  get diagnostic() {
+    return this.diagnostic_;
+  },
+
+  set diagnostic(d) {
+    this.diagnostic_ = d;
+    this.updateContents_();
+  },
+
+  buildRow_(rows, label, revisions, host) {
+    if (revisions.length === 0) return;
+
+    let valueSpan = document.createElement('span');
+    for (let revs of revisions) {
+      let anchor = document.createElement('a');
+      anchor.innerText = revs[0];
+
+      if (revs.length === 1) {
+        anchor.href = host + '+/' + revs[0];
+      } else {
+        anchor.innerText += '..' + revs[1];
+        anchor.href = host + '+log/' + revs[0] + '..' + revs[1];
+      }
+
+      // Prevent the table from calling preventDefault().
+      anchor.addEventListener('click', event => {
+        event.stopPropagation();
+      });
+      valueSpan.appendChild(anchor);
+      valueSpan.appendChild(document.createTextNode(' '));
+    }
+    rows.push([label, valueSpan]);
+  },
+
+  updateContents_() {
+    if (this.diagnostic === undefined) {
+      this.$.table.tableRows = [];
+      return;
+    }
+
+    let rows = [];
+    if (this.diagnostic.chromiumCommitPosition) {
+      let positions = Array.from(this.diagnostic.chromiumCommitPositions);
+      positions.sort((x, y) => x - y);
+      rows.push(['chromiumCommitPositions', positions.join(', ')]);
+    }
+    if (this.diagnostic.v8CommitPosition) {
+      let positions = Array.from(this.diagnostic.v8CommitPositions);
+      rows.push(['v8CommitPositions', positions.join(', ')]);
+    }
+    this.buildRow_(rows, 'chromium', this.diagnostic.chromium,
+        tr.v.ui.CHROMIUM_REVISION_HOST);
+    this.buildRow_(rows, 'v8', this.diagnostic.v8, tr.v.ui.V8_REVISION_HOST);
+    this.buildRow_(rows, 'catapult', this.diagnostic.catapult,
+        tr.v.ui.CATAPULT_REVISION_HOST);
+    this.buildRow_(rows, 'angle', this.diagnostic.angle,
+        tr.v.ui.ANGLE_REVISION_HOST);
+    this.buildRow_(rows, 'skia', this.diagnostic.skia,
+        tr.v.ui.SKIA_REVISION_HOST);
+    this.buildRow_(rows, 'webrtc', this.diagnostic.webrtc,
+        tr.v.ui.WEBRTC_REVISION_HOST);
+
+    this.$.table.tableRows = rows;
+  }
+});
+</script>

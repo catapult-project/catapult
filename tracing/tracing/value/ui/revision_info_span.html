@@ -12,84 +12,93 @@ found in the LICENSE file.
     <tr-ui-b-table id="table"></tr-ui-b-table>
   </template>
 </dom-module>
-
 <script>
 'use strict';
+tr.exportTo('tr.v.ui', function() {
+  const CHROMIUM_REVISION_HOST = 'https://chromium.googlesource.com/chromium/src/';
+  const V8_REVISION_HOST = 'https://chromium.googlesource.com/v8/v8.git/';
+  const CATAPULT_REVISION_HOST = 'https://chromium.googlesource.com/external/github.com/catapult-project/catapult.git/';
+  const ANGLE_REVISION_HOST = 'https://chromium.googlesource.com/angle/angle/';
+  const SKIA_REVISION_HOST = 'https://chromium.googlesource.com/skia/';
+  const WEBRTC_REVISION_HOST = 'https://chromium.googlesource.com/external/webrtc/';
 
-const CHROMIUM_REVISION_HOST = 'https://chromium.googlesource.com/chromium/src/';
-const V8_REVISION_HOST = 'https://chromium.googlesource.com/v8/v8.git/';
-const CATAPULT_REVISION_HOST = 'https://chromium.googlesource.com/external/github.com/catapult-project/catapult.git/';
-const ANGLE_REVISION_HOST = 'https://chromium.googlesource.com/angle/angle/';
-const SKIA_REVISION_HOST = 'https://chromium.googlesource.com/skia/';
-const WEBRTC_REVISION_HOST = 'https://chromium.googlesource.com/external/webrtc/';
+  Polymer({
+    is: 'tr-v-ui-revision-info-span',
 
-Polymer({
-  is: 'tr-v-ui-revision-info-span',
+    ready() {
+      this.diagnostic_ = undefined;
+      this.$.table.showHeader = false;
+      this.$.table.tableColumns = [
+        {value: row => row[0]},
+        {value: row => row[1]},
+      ];
+    },
 
-  ready() {
-    this.diagnostic_ = undefined;
-    this.$.table.showHeader = false;
-    this.$.table.tableColumns = [
-      {value: row => row[0]},
-      {value: row => row[1]},
-    ];
-  },
+    get diagnostic() {
+      return this.diagnostic_;
+    },
 
-  get diagnostic() {
-    return this.diagnostic_;
-  },
+    set diagnostic(d) {
+      this.diagnostic_ = d;
+      this.updateContents_();
+    },
 
-  set diagnostic(d) {
-    this.diagnostic_ = d;
-    this.updateContents_();
-  },
+    buildRow_(rows, label, revisions, host) {
+      if (revisions.length === 0) return;
 
-  buildRow_(rows, label, revisions, host) {
-    if (revisions.length === 0) return;
+      let anchor = document.createElement('a');
+      anchor.innerText = revisions[0];
 
-    let anchor = document.createElement('a');
-    anchor.innerText = revisions[0];
+      if (revisions.length === 1) {
+        anchor.href = host + '+/' + revisions[0];
+      } else {
+        anchor.innerText += '..' + revisions[1];
+        anchor.href = host + '+log/' + revisions[0] + '..' + revisions[1];
+      }
 
-    if (revisions.length === 1) {
-      anchor.href = host + '+/' + revisions[0];
-    } else {
-      anchor.innerText += '..' + revisions[1];
-      anchor.href = host + '+log/' + revisions[0] + '..' + revisions[1];
+      // Prevent the table from calling preventDefault().
+      anchor.addEventListener('click', event => {
+        event.stopPropagation();
+      });
+
+      rows.push([label, anchor]);
+    },
+
+    updateContents_() {
+      if (this.diagnostic === undefined) {
+        this.$.table.tableRows = [];
+        return;
+      }
+
+      let rows = [];
+      if (this.diagnostic.chromiumCommitPosition) {
+        rows.push([
+          'chromiumCommitPosition', this.diagnostic.chromiumCommitPosition]);
+      }
+      if (this.diagnostic.v8CommitPosition) {
+        rows.push(['v8CommitPosition', this.diagnostic.v8CommitPosition]);
+      }
+      this.buildRow_(
+          rows, 'chromium', this.diagnostic.chromium, CHROMIUM_REVISION_HOST);
+      this.buildRow_(rows, 'v8', this.diagnostic.v8, V8_REVISION_HOST);
+      this.buildRow_(
+          rows, 'catapult', this.diagnostic.catapult, CATAPULT_REVISION_HOST);
+      this.buildRow_(rows, 'angle', this.diagnostic.angle, ANGLE_REVISION_HOST);
+      this.buildRow_(rows, 'skia', this.diagnostic.skia, SKIA_REVISION_HOST);
+      this.buildRow_(
+          rows, 'webrtc', this.diagnostic.webrtc, WEBRTC_REVISION_HOST);
+
+      this.$.table.tableRows = rows;
     }
+  });
 
-    // Prevent the table from calling preventDefault().
-    anchor.addEventListener('click', event => {
-      event.stopPropagation();
-    });
-
-    rows.push([label, anchor]);
-  },
-
-  updateContents_() {
-    if (this.diagnostic === undefined) {
-      this.$.table.tableRows = [];
-      return;
-    }
-
-    let rows = [];
-    if (this.diagnostic.chromiumCommitPosition) {
-      rows.push([
-        'chromiumCommitPosition', this.diagnostic.chromiumCommitPosition]);
-    }
-    if (this.diagnostic.v8CommitPosition) {
-      rows.push(['v8CommitPosition', this.diagnostic.v8CommitPosition]);
-    }
-    this.buildRow_(
-        rows, 'chromium', this.diagnostic.chromium, CHROMIUM_REVISION_HOST);
-    this.buildRow_(rows, 'v8', this.diagnostic.v8, V8_REVISION_HOST);
-    this.buildRow_(
-        rows, 'catapult', this.diagnostic.catapult, CATAPULT_REVISION_HOST);
-    this.buildRow_(rows, 'angle', this.diagnostic.angle, ANGLE_REVISION_HOST);
-    this.buildRow_(rows, 'skia', this.diagnostic.skia, SKIA_REVISION_HOST);
-    this.buildRow_(
-        rows, 'webrtc', this.diagnostic.webrtc, WEBRTC_REVISION_HOST);
-
-    this.$.table.tableRows = rows;
-  }
+  return {
+    CHROMIUM_REVISION_HOST,
+    V8_REVISION_HOST,
+    CATAPULT_REVISION_HOST,
+    ANGLE_REVISION_HOST,
+    SKIA_REVISION_HOST,
+    WEBRTC_REVISION_HOST,
+  };
 });
 </script>
