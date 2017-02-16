@@ -376,8 +376,8 @@ def GetTestsForTestPathDict(test_path_dict, return_selected):
 
   if return_selected:
     return _GetSelectedTestPathsForDict(test_path_dict)
-  # TODO(eakuefner): Support unselected tests.
-  raise BadRequestError('cannot return unselected tests yet')
+
+  return _GetUnselectedTestPathsForDict(test_path_dict)
 
 
 def _GetSelectedTestPathsForDict(test_path_dict):
@@ -405,4 +405,30 @@ def _GetSelectedTestPathsForDict(test_path_dict):
     else:
       raise BadRequestError("selected must be 'all', 'core', or a list of "
                             "subtests")
+  return paths
+
+
+def _GetUnselectedTestPathsForDict(test_path_dict):
+  paths = []
+  for path, selection in test_path_dict.iteritems():
+    if selection == 'core':
+      # TODO(eakuefner): support computing core tests
+      raise BadRequestError(
+          'cannot return core tests yet')
+    elif selection == 'all':
+      return []
+    elif isinstance(selection, list):
+      # The parent is represented in the selection by its last component, so if
+      # we don't see it, we know we need to include it in unselected.
+      parent_test_name = path.split('/')[-1]
+      if not parent_test_name in selection:
+        paths.append(path)
+      # We want to find all the complementary children, which are
+      # those that do not appear in the selection, with rows.
+      children = GetTestsMatchingPattern(
+          '%s/*' % path, only_with_rows=True)
+      for child in children:
+        item = child.split('/')[-1]
+        if item not in selection:
+          paths.append(child)
   return paths

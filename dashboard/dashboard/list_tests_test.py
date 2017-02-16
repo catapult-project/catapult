@@ -413,7 +413,7 @@ class ListTestsTest(testing_common.TestCase):
         'p': '*/mac/dromaeo/*'})
     self.assertEqual(['Chromium/mac/dromaeo/dom'], json.loads(response.body))
 
-  def testPost_GetTestsForTestPath_Preselected(self):
+  def testPost_GetTestsForTestPath_Selected_Preselected(self):
     self._AddSampleData()
 
     response = self.testapp.post('/list_tests', {
@@ -428,7 +428,7 @@ class ListTestsTest(testing_common.TestCase):
          'Chromium/win7/scrolling/commit_time/www.yahoo.com'],
         json.loads(response.body))
 
-  def testPost_GetTestsForTestPath_All(self):
+  def testPost_GetTestsForTestPath_Selected_All(self):
     self._AddSampleData()
 
     subtest = graph_data.TestMetadata.get_by_id(
@@ -446,6 +446,61 @@ class ListTestsTest(testing_common.TestCase):
         ['Chromium/win7/scrolling/commit_time',
          'Chromium/win7/scrolling/commit_time/www.cnn.com'],
         json.loads(response.body))
+
+  def testPost_GetTestsForTestPath_Unselected_EmptyPreselected(self):
+    self._AddSampleData()
+
+    response = self.testapp.post('/list_tests', {
+        'type': 'test_path_dict',
+        'test_path_dict': json.dumps({
+            'Chromium/win7/scrolling/commit_time': []}),
+        'return_selected': '0'})
+
+    self.assertEqual(
+        ['Chromium/win7/scrolling/commit_time'],
+        json.loads(response.body))
+
+  def testPost_GetTestsForTestPath_Unselected_PreselectedWithRows(self):
+    self._AddSampleData()
+
+    subtest = graph_data.TestMetadata.get_by_id(
+        'Chromium/win7/scrolling/commit_time/www.cnn.com')
+    subtest.has_rows = True
+    subtest.put()
+
+    response = self.testapp.post('/list_tests', {
+        'type': 'test_path_dict',
+        'test_path_dict': json.dumps({
+            'Chromium/win7/scrolling/commit_time': [
+                'commit_time', 'www.yahoo.com']}),
+        'return_selected': '0'})
+
+    self.assertEqual(
+        ['Chromium/win7/scrolling/commit_time/www.cnn.com'],
+        json.loads(response.body))
+
+  def testPost_GetTestsForTestPath_Unselected_PreselectedWithoutRows(self):
+    self._AddSampleData()
+
+    response = self.testapp.post('/list_tests', {
+        'type': 'test_path_dict',
+        'test_path_dict': json.dumps({
+            'Chromium/win7/scrolling/commit_time': [
+                'commit_time', 'www.yahoo.com']}),
+        'return_selected': '0'})
+
+    self.assertEqual([], json.loads(response.body))
+
+  def testPost_GetTestsForTestPath_Unselected_All(self):
+    self._AddSampleData()
+
+    response = self.testapp.post('/list_tests', {
+        'type': 'test_path_dict',
+        'test_path_dict': json.dumps({
+            'Chromium/win7/scrolling/commit_time': 'all'}),
+        'return_selected': '0'})
+
+    self.assertEqual([], json.loads(response.body))
 
   def testGetDescendants(self):
     self._AddSampleData()
