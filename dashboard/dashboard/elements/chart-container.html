@@ -200,71 +200,11 @@ triaging functionality in the chart.
   <script>
     'use strict';
     (function() {
-      // Minimum multiple standard deviation for a value to be considered
-      // an outlier.
-      var MULTIPLE_OF_STD_DEV = 5;
-
       // Regex for links in series annotation which are shown in tooltip.
       var TOOLTIP_LINK_REGEX = /\[(.+?)\]\((.+?)\)/;
 
       // Sinebow generator for graph color picking.
       var GENERATOR = new tr.b.SinebowColorGenerator();
-
-      /**
-       * Gets the mean for list of numbers.
-       *
-       * @return {number} A number.
-       */
-      function calculateMean(values) {
-        var len = values.length;
-        var sum = values.reduce(function(v1, v2) { return v1 + v2;}, 0);
-        return sum / len;
-      }
-
-      /**
-       * Gets standard deviation for list of numbers and a mean.
-       *
-       * @return {number} A number.
-       */
-      function calculateStdDev(values, mean) {
-        var squaredDevianceSum = values.reduce(
-            function(v1, v2) {return v1 + Math.pow(v2 - mean, 2);}, 0);
-        var variance = squaredDevianceSum / values.length;
-        return Math.sqrt(variance);
-      }
-
-      /**
-       * Finds outliers in a series, along with their directions.
-       *
-       * An outlier is defined as a value that deviates from the mean by over
-       * MULTIPLE_OF_STD_DEV times the standard deviation. An outlier direction
-       * is either 1 for positive, -1 for negative and 0 for non-outlier.
-       *
-       * Example:
-       * Input values: [50, 50, 50, 100, 50, 10, 50, 50, 50]
-       * Output directions: [0, 0, 0, 1, 0, -1, 0, 0, 0]
-       *
-       * @param {Array.<number>} values List of numbers.
-       * @return {Array.<number>} List of outlier directions.
-       */
-      function getOutlierDirections(values) {
-        var mean = calculateMean(values);
-        var stddev = calculateStdDev(values, mean);
-        var outlierDirections = [];
-        for (var i = 0; i < values.length; i++) {
-          var direction = 0;
-          var value = values[i];
-          var multDevFromMean = Math.abs(value - mean) / stddev;
-          if (multDevFromMean > MULTIPLE_OF_STD_DEV) {
-            if (value >= mean) {
-              direction = 1;
-            }
-            direction = -1;
-          }
-          outlierDirections.push(direction);
-        }
-        return outlierDirections;
-      }
 
       /**
        * Returns a date corresponding to the given timestamp, or null.
@@ -1263,7 +1203,7 @@ triaging functionality in the chart.
         },
 
         /**
-         * Determines a min and a max from a list of numbers without outliers.
+         * Determines a min and a max from a list of numbers.
          *
          * @param {number} seriesIndex Index into the data series list
          *     (this.json.data).
@@ -1274,25 +1214,14 @@ triaging functionality in the chart.
           values = values.filter(function(v) {
             return v != null;
           });
-          var outlierDirections = getOutlierDirections(values);
 
-          // Exclude value that is a stand-alone spike which has either
-          // outlier direction 1 or -1 in between zeros. Also include
-          // points that has an Anomaly.
-          var resultValues = [];
-          for (var i = 0; i < outlierDirections.length; i++) {
-            var direction = outlierDirections[i];
-            if (direction == 0 || this.hasAnomaly(seriesIndex, i)) {
-              resultValues.push(values[i]);
-            } else if (i > 0 && i < outlierDirections.length - 1) {
-              if (direction == outlierDirections[i - 1] ||
-                  direction == outlierDirections[i + 1]) {
-                resultValues.push(values[i]);
-              }
-            }
-          }
-          return {'min': Math.min.apply(Math, resultValues),
-            'max': Math.max.apply(Math, resultValues)};
+          // We used to discard outliers, but there are cases in which users
+          // want to be able to examine them. Since you can zoom, we're
+          // just going to remove that feature.
+          // See https://github.com/catapult-project/catapult/issues/3213 for
+          // more context.
+          return {'min': Math.min.apply(Math, values),
+            'max': Math.max.apply(Math, values)};
         },
 
         /**
