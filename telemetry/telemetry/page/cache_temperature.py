@@ -42,7 +42,7 @@ class MarkTelemetryInternal(object):
     if exception_type:
       return True
 
-    marker = 'telemetry.internal.%s.start' % self.identifier
+    marker = 'telemetry.internal.%s.end' % self.identifier
     self.browser.tabs[0].ExecuteJavaScript2(
         "console.time({{ marker }});", marker=marker)
     self.browser.tabs[0].ExecuteJavaScript2(
