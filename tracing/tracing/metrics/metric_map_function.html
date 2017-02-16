@@ -28,23 +28,23 @@ tr.exportTo('tr.metrics', function() {
     if (!metricNames)
       throw new Error('Metric names should be specified.');
 
-    var values = new tr.v.HistogramSet();
+    var histograms = new tr.v.HistogramSet();
 
     for (var metricName of metricNames) {
       var metric = tr.metrics.MetricRegistry.findTypeInfoWithName(metricName);
       if (metric === undefined)
         throw new Error('"' + metricName + '" is not a registered metric.');
-      metric.constructor(values, model, options);
+      metric.constructor(histograms, model, options);
     }
 
-    return values;
+    return histograms;
   }
 
   /**
-   * @param {!tr.v.HistogramSet} values
+   * @param {!tr.v.HistogramSet} histograms
    * @param {!tr.model.Model} model
    */
-  function addTelemetryInfo(values, model) {
+  function addTelemetryInfo(histograms, model) {
     var telemetry = new tr.v.d.TelemetryInfo();
     for (var metadata of model.metadata) {
       if (!metadata.value) continue;
@@ -53,7 +53,7 @@ tr.exportTo('tr.metrics', function() {
         telemetry.addInfo(metadata.value.telemetry);
       }
     }
-    values.addSharedDiagnostic(tr.v.d.TelemetryInfo.NAME, telemetry);
+    histograms.addSharedDiagnostic(tr.v.d.TelemetryInfo.NAME, telemetry);
   }
 
   /**
@@ -63,13 +63,13 @@ tr.exportTo('tr.metrics', function() {
    * @param {!Array.<string>} options.metrics
    */
   function metricMapFunction(result, model, options) {
-    var values = runMetrics(model, options);
-    addTelemetryInfo(values, model);
+    var histograms = runMetrics(model, options);
+    addTelemetryInfo(histograms, model);
 
-    result.addPair('histograms', values.asDicts());
+    result.addPair('histograms', histograms.asDicts());
 
     var scalarDicts = [];
-    for (var value of values) {
+    for (var value of histograms) {
       for (var [statName, scalar] of value.statisticsScalars) {
         scalarDicts.push({
           name: value.name + '_' + statName,
