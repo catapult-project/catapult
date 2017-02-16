@@ -29,6 +29,12 @@ tr.exportTo('tr.v.d', function() {
       this.webrtc_ = info.webrtc || [];
     }
 
+    clone() {
+      let clone = new MergedRevisionInfo();
+      clone.addDiagnostic(this);
+      return clone;
+    }
+
     addToHistogram(hist) {
       hist.diagnostics.set(tr.v.d.RevisionInfo.NAME, this);
     }

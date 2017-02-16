@@ -127,19 +127,46 @@ tr.exportTo('tr.v.d', function() {
       mergedTo.add(parentHist);
 
       for (let [name, otherDiagnostic] of other) {
-        if (!this.has(name)) {
-          this.set(name, otherDiagnostic);
+        if (name === MERGED_FROM_DIAGNOSTIC_KEY ||
+            name === MERGED_TO_DIAGNOSTIC_KEY) {
           continue;
         }
+
         let myDiagnostic = this.get(name);
-        if (myDiagnostic.canAddDiagnostic(
-            otherDiagnostic, name, parentHist, otherParentHist)) {
-          this.set(name, myDiagnostic.addDiagnostic(
-              otherDiagnostic, name, parentHist, otherParentHist));
+
+        if (myDiagnostic !== undefined &&
+            myDiagnostic.canAddDiagnostic(otherDiagnostic)) {
+          myDiagnostic.addDiagnostic(otherDiagnostic);
           continue;
         }
+
+        // We need to avoid storing references to |otherDiagnostic| in both
+        // |this| and |other| because future merge()s may add yet other
+        // Diagnostics to |this|, and they shouldn't accidentally modify
+        // anything in |other|.
+        // Now, either |this| doesn't already have a Diagnostic named |name|
+        // (myDiagnostic is undefined), or
+        // |this| already has a Diagnostic named |name| that can't be merged
+        // with |otherDiagnostic|.
+        // Either way, we need to clone |otherDiagnostic|.
+        // However, clones produced via fromDict/toDict cannot necessarily be
+        // merged with yet other Diagnostics, either because of semantics (as in
+        // the case of TelemtryInfo and the like) or because guids must not be
+        // shared by distinct Diagnostics. Therefore, Diagnostics support
+        // another way of cloning that is specifically targeted at supporting
+        // merging: clone().
+
+        let clone = otherDiagnostic.clone();
+
+        if (myDiagnostic === undefined) {
+          this.set(name, clone);
+          continue;
+        }
+
+        // Now, |myDiagnostic| exists and it is unmergeable with |clone|, which
+        // is safe to store in |this|.
         this.set(name, new tr.v.d.UnmergeableDiagnosticSet(
-              [myDiagnostic, otherDiagnostic]));
+              [myDiagnostic, clone]));
       }
     }
   }

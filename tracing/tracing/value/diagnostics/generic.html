@@ -25,6 +25,12 @@ tr.exportTo('tr.v.d', function() {
       this.value = value;
     }
 
+    clone() {
+      let clone = new tr.v.d.CollectedGeneric();
+      clone.addDiagnostic(this);
+      return clone;
+    }
+
     asDictInto_(d) {
       d.value = this.value;
     }

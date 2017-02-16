@@ -40,16 +40,18 @@ tr.b.unittest.testSuite(function() {
     });
 
     assert.isFalse(t0.canAddDiagnostic(new tr.v.d.Generic('')));
-    assert.isTrue(t0.canAddDiagnostic(t1));
+    assert.isFalse(t0.canAddDiagnostic(t1));
 
-    let m0 = t0.addDiagnostic(t1);
-
+    let m0 = t0.clone();
     assert.instanceOf(m0, tr.v.d.MergedTelemetryInfo);
     assert.isFalse(m0.canAddDiagnostic(new tr.v.d.Generic('')));
-    assert.isTrue(m0.canAddDiagnostic(t0));
     assert.isTrue(m0.canAddDiagnostic(t1));
 
-    let m1 = t1.addDiagnostic(t0);
+    m0.addDiagnostic(t1);
+
+    let m1 = t1.clone();
+    m1.addDiagnostic(t0);
+
     assert.isTrue(m1.equals(m0));
     assert.isTrue(m0.equals(m1));
 
@@ -79,7 +81,8 @@ tr.b.unittest.testSuite(function() {
     let t1 = new tr.v.d.TelemetryInfo({
       benchmarkStartMs: 0,
     });
-    let merged = t0.addDiagnostic(t1);
+    let merged = t0.clone();
+    merged.addDiagnostic(t1);
     let startDate = tr.b.getOnlyElement(merged.benchmarkStarts);
     assert.strictEqual(startDate.getTime(), 0);
   });

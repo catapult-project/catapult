@@ -20,42 +20,43 @@ tr.exportTo('tr.v.d', function() {
       this._diagnostics = diagnostics;
     }
 
-    canAddDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
+    clone() {
+      let clone = new tr.v.d.UnmergeableDiagnosticSet();
+      clone.addDiagnostic(this);
+      return clone;
+    }
+
+    canAddDiagnostic(otherDiagnostic) {
       return true;
     }
 
     /**
-     * If |otherDiagnostic| is an UnmergeableDiagnosticSet, then add its
-     * diagnostics to |this|. Otherwise, try to add |otherDiagnostic| to one of
-     * the diagnostics already in this set. If that fails, add |otherDiagnostic|
-     * to this set.
+     * If |otherDiagnostic| is an UnmergeableDiagnosticSet, then add clones of
+     * its diagnostics to |this|. Otherwise, try to add |otherDiagnostic| to one
+     * of the diagnostics already in this set. If that fails, add a clone of
+     * |otherDiagnostic| to this set.
      *
      * @param {!tr.v.d.Diagnostic} otherDiagnostic
-     * @param {!string} name
-     * @param {!tr.v.Histogram} parentHist
-     * @param {!tr.v.Histogram} otherParentHist
      * @return {!tr.v.d.UnmergeableDiagnostic} this
      */
-    addDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
+    addDiagnostic(otherDiagnostic) {
       if (otherDiagnostic instanceof UnmergeableDiagnosticSet) {
         for (let subOtherDiagnostic of otherDiagnostic) {
-          this.addDiagnostic(subOtherDiagnostic, name, parentHist,
-              otherParentHist);
+          let clone = subOtherDiagnostic.clone();
+          this.addDiagnostic(clone);
         }
-        return this;
+        return;
       }
 
       for (let i = 0; i < this._diagnostics.length; ++i) {
-        if (this._diagnostics[i].canAddDiagnostic(
-            otherDiagnostic, name, parentHist, otherParentHist)) {
-          this._diagnostics[i] = this._diagnostics[i].addDiagnostic(
-              otherDiagnostic, name, parentHist, otherParentHist);
-          return this;
+        if (this._diagnostics[i].canAddDiagnostic(otherDiagnostic)) {
+          this._diagnostics[i].addDiagnostic(otherDiagnostic);
+          return;
         }
       }
 
-      this._diagnostics.push(otherDiagnostic);
-      return this;
+      let clone = otherDiagnostic.clone();
+      this._diagnostics.push(clone);
     }
 
     get length() {

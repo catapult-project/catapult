@@ -25,6 +25,14 @@ tr.exportTo('tr.v.d', function() {
       }
     }
 
+    canAddDiagnostic(otherDiagnostic) {
+      return otherDiagnostic instanceof RelatedHistogramSet;
+    }
+
+    addDiagnostic(otherDiagnostic) {
+      // Related Histograms might not exist yet.
+    }
+
     /**
      * @param {!(tr.v.d.HistogramRef|tr.v.Histogram)} v
      */
@@ -35,8 +43,9 @@ tr.exportTo('tr.v.d', function() {
             hist);
       }
 
-      if (this.histogramsByGuid_.get(hist.guid))
+      if (this.histogramsByGuid_.has(hist.guid)) {
         throw new Error('Tried to add same hist twice');
+      }
 
       this.histogramsByGuid_.set(hist.guid, hist);
     }

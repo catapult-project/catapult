@@ -37,6 +37,12 @@ tr.exportTo('tr.v.d', function() {
       return hist.diagnostics.get(DeviceInfo.NAME);
     }
 
+    clone() {
+      let clone = new tr.v.d.MergedDeviceInfo();
+      clone.addDiagnostic(this);
+      return clone;
+    }
+
     asDictInto_(d) {
       d.chromeVersion = this.chromeVersion;
       d.osName = this.osName;

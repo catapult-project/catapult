@@ -23,6 +23,12 @@ tr.exportTo('tr.v.d', function() {
       this.logUris_ = new Set();
     }
 
+    clone() {
+      let clone = new MergedBuildbotInfo();
+      clone.addDiagnostic(this);
+      return clone;
+    }
+
     addToHistogram(hist) {
       hist.diagnostics.set(tr.v.d.BuildbotInfo.NAME, this);
     }
@@ -49,12 +55,12 @@ tr.exportTo('tr.v.d', function() {
       return true;
     }
 
-    canAddDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
+    canAddDiagnostic(otherDiagnostic) {
       return otherDiagnostic instanceof MergedBuildbotInfo ||
              otherDiagnostic instanceof tr.v.d.BuildbotInfo;
     }
 
-    addDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
+    addDiagnostic(otherDiagnostic) {
       if (otherDiagnostic instanceof MergedBuildbotInfo) {
         for (let name of otherDiagnostic.displayMasterNames) {
           this.displayMasterNames.add(name);

@@ -32,24 +32,19 @@ tr.exportTo('tr.v.d', function() {
       if (opt_events) {
         if (opt_events instanceof tr.model.EventSet ||
             opt_events instanceof Array) {
-          for (let event of opt_events)
+          for (let event of opt_events) {
             this.add(event);
+          }
         } else {
           this.add(opt_events);
         }
       }
     }
 
-    canAddDiagnostic(otherDiagnostic) {
-      return otherDiagnostic instanceof RelatedEventSet ||
-        otherDiagnostic instanceof tr.v.d.CollectedRelatedEventSet;
-    }
-
-    addDiagnostic(otherDiagnostic) {
-      let result = new tr.v.d.CollectedRelatedEventSet();
-      result.addDiagnostic(this);
-      result.addDiagnostic(otherDiagnostic);
-      return result;
+    clone() {
+      let clone = new tr.v.d.CollectedRelatedEventSet();
+      clone.addDiagnostic(this);
+      return clone;
     }
 
     /**
@@ -81,8 +76,9 @@ tr.exportTo('tr.v.d', function() {
     }
 
     * [Symbol.iterator]() {
-      for (let [stableId, event] of this.eventsByStableId_)
+      for (let event of this.eventsByStableId_.values()) {
         yield event;
+      }
     }
 
     get canonicalUrl() {

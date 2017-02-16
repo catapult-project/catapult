@@ -32,29 +32,10 @@ tr.exportTo('tr.v.d', function() {
       }
     }
 
-    canAddDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
-      return otherDiagnostic instanceof tr.v.d.MergedTelemetryInfo ||
-             otherDiagnostic instanceof TelemetryInfo;
-    }
-
-    /**
-     * If subclasses override canAddDiagnostic() then they must also override
-     * this method to return a replacement Diagnostic.
-     * Subclasses can modify return |this| or create and return a new
-     * Diagnostic, but must not modify |otherDiagnostic|.
-     *
-     * @param {!(tr.v.d.TelemetryInfo|tr.v.d.MergedTelemetryInfo}}
-     *         otherDiagnostic
-     * @param {!string} name
-     * @param {!tr.v.Histogram} parentHist
-     * @param {!tr.v.Histogram} otherParentHist
-     * @return {!tr.v.d.MergedTelemetryInfo}
-     */
-    addDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
-      let merged = new tr.v.d.MergedTelemetryInfo();
-      merged.addDiagnostic(this);
-      merged.addDiagnostic(otherDiagnostic);
-      return merged;
+    clone() {
+      let clone = new tr.v.d.MergedTelemetryInfo();
+      clone.addDiagnostic(this);
+      return clone;
     }
 
     /**

@@ -27,6 +27,12 @@ tr.exportTo('tr.v.d', function() {
       hist.diagnostics.set(BuildbotInfo.NAME, this);
     }
 
+    clone() {
+      let clone = new tr.v.d.MergedBuildbotInfo();
+      clone.addDiagnostic(this);
+      return clone;
+    }
+
     asDictInto_(d) {
       d.displayMasterName = this.displayMasterName;
       d.displayBotName = this.displayBotName;

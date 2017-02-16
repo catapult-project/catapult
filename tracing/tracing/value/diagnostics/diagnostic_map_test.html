@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/value/diagnostics/diagnostic_map.html">
-<link rel="import" href="/tracing/value/histogram.html">
+<link rel="import" href="/tracing/value/histogram_set.html">
 
 <script>
 'use strict';
@@ -60,9 +60,7 @@ tr.b.unittest.testSuite(function() {
     };
     let generic = new tr.v.d.Generic('generic diagnostic');
     let generic2 = new tr.v.d.Generic('generic diagnostic 2');
-    let relatedSet = new tr.v.d.RelatedHistogramSet([
-      new tr.v.Histogram('histogram', tr.b.Unit.byName.count),
-    ]);
+    let relatedSet = new tr.v.d.RelatedHistogramSet();
     let events = new tr.v.d.RelatedEventSet([event]);
 
     // When Histograms are merged, first an empty clone is created with an empty
@@ -72,14 +70,17 @@ tr.b.unittest.testSuite(function() {
     let hist2 = new tr.v.Histogram('', tr.b.Unit.byName.count);
     hist2.diagnostics.set('a', generic);
     hist.diagnostics.merge(hist2.diagnostics, hist, hist2);
-    assert.strictEqual(generic, hist.diagnostics.get('a'));
+    assert.strictEqual(
+        generic.value, tr.b.getOnlyElement(hist.diagnostics.get('a').value));
 
     // Separate keys are not merged.
     let hist3 = new tr.v.Histogram('', tr.b.Unit.byName.count);
     hist3.diagnostics.set('b', generic2);
     hist.diagnostics.merge(hist3.diagnostics, hist, hist3);
-    assert.strictEqual(generic, hist.diagnostics.get('a'));
-    assert.strictEqual(generic2, hist.diagnostics.get('b'));
+    assert.strictEqual(
+        generic.value, tr.b.getOnlyElement(hist.diagnostics.get('a').value));
+    assert.strictEqual(
+        generic2.value, tr.b.getOnlyElement(hist.diagnostics.get('b').value));
 
     // Merging unmergeable diagnostics should produce an
     // UnmergeableDiagnosticSet.
@@ -89,8 +90,10 @@ tr.b.unittest.testSuite(function() {
     assert.instanceOf(hist.diagnostics.get('a'),
         tr.v.d.UnmergeableDiagnosticSet);
     let diagnostics = Array.from(hist.diagnostics.get('a'));
-    assert.strictEqual(generic, diagnostics[0]);
-    assert.strictEqual(relatedSet, diagnostics[1]);
+    assert.strictEqual(
+        generic.value, tr.b.getOnlyElement(diagnostics[0].value));
+    // Don't test merging relationships here.
+    assert.instanceOf(diagnostics[1], tr.v.d.RelatedHistogramSet);
 
     // UnmergeableDiagnosticSets are mergeable.
     let hist5 = new tr.v.Histogram('', tr.b.Unit.byName.count);
@@ -100,13 +103,11 @@ tr.b.unittest.testSuite(function() {
     assert.instanceOf(hist.diagnostics.get('a'),
         tr.v.d.UnmergeableDiagnosticSet);
     diagnostics = Array.from(hist.diagnostics.get('a'));
-    assert.lengthOf(diagnostics, 4);
-    assert.instanceOf(diagnostics[0], tr.v.d.Generic);
-    assert.deepEqual(diagnostics[0].value, generic.value);
-    assert.strictEqual(relatedSet, diagnostics[1]);
-    assert.strictEqual(events, diagnostics[2]);
-    assert.instanceOf(diagnostics[3], tr.v.d.Generic);
-    assert.deepEqual(diagnostics[3].value, generic2.value);
+    assert.lengthOf(diagnostics, 3);
+    assert.instanceOf(diagnostics[0], tr.v.d.CollectedGeneric);
+    assert.deepEqual(diagnostics[0].value, [generic.value, generic2.value]);
+    assert.instanceOf(diagnostics[1], tr.v.d.RelatedHistogramSet);
+    assert.instanceOf(diagnostics[2], tr.v.d.CollectedRelatedEventSet);
   });
 });
 </script>

@@ -13,14 +13,19 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('merge', function() {
-    // TODO(#2842) Change these back to Generics when cloneEmpty() is supported.
-    let a = new tr.v.d.CollectedGeneric();
-    let b = new tr.v.d.CollectedGeneric();
-    assert.isTrue(a.canAddDiagnostic(b));
-    assert.isTrue(b.canAddDiagnostic(a));
-    a.addDiagnostic(new tr.v.d.Generic('a'));
-    a.addDiagnostic(new tr.v.d.Generic('b'));
-    assert.deepEqual(a.value, ['a', 'b']);
+    let a = new tr.v.d.Generic('a');
+    let b = new tr.v.d.Generic('b');
+
+    assert.isFalse(a.canAddDiagnostic(b));
+    assert.isFalse(b.canAddDiagnostic(a));
+
+    let ab = a.clone();
+    ab.addDiagnostic(b);
+    assert.deepEqual(ab.value, ['a', 'b']);
+
+    let bab = b.clone();
+    bab.addDiagnostic(ab);
+    assert.deepEqual(bab.value, ['b', 'a', 'b']);
   });
 });
 </script>

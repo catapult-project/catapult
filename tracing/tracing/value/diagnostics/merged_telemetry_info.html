@@ -26,6 +26,12 @@ tr.exportTo('tr.v.d', function() {
       this.storysetRepeatCounters_ = new Set();
     }
 
+    clone() {
+      let clone = new tr.v.d.MergedTelemetryInfo();
+      clone.addDiagnostic(this);
+      return clone;
+    }
+
     addToHistogram(hist) {
       hist.diagnostics.set(tr.v.d.TelemetryInfo.NAME, this);
     }
@@ -68,12 +74,12 @@ tr.exportTo('tr.v.d', function() {
       return true;
     }
 
-    canAddDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
+    canAddDiagnostic(otherDiagnostic) {
       return otherDiagnostic instanceof MergedTelemetryInfo ||
              otherDiagnostic instanceof tr.v.d.TelemetryInfo;
     }
 
-    addDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
+    addDiagnostic(otherDiagnostic) {
       if (otherDiagnostic instanceof MergedTelemetryInfo) {
         for (let name of otherDiagnostic.benchmarkNames) {
           this.benchmarkNames.add(name);
@@ -108,7 +114,7 @@ tr.exportTo('tr.v.d', function() {
             this.storyGroupingKeys.set(name, new Set(value));
           }
         }
-        return this;
+        return;
       }
 
       if (otherDiagnostic.benchmarkName) {
@@ -148,7 +154,6 @@ tr.exportTo('tr.v.d', function() {
       if (otherDiagnostic.storysetRepeatCounter !== undefined) {
         this.storysetRepeatCounters.add(otherDiagnostic.storysetRepeatCounter);
       }
-      return this;
     }
 
     asDictInto_(d) {
@@ -294,7 +299,7 @@ tr.exportTo('tr.v.d', function() {
      * @return {*}
      */
     static getField(hist, fieldName, defaultValue) {
-      let telemetry = tr.v.d.MergedTelemetryInfo.getFromValue(hist);
+      let telemetry = tr.v.d.TelemetryInfo.getFromHistogram(hist);
       if (!(telemetry instanceof tr.v.d.MergedTelemetryInfo) ||
           !telemetry[fieldName]) {
         return defaultValue;
@@ -308,7 +313,7 @@ tr.exportTo('tr.v.d', function() {
      * @return {string}
      */
     static getStoryGroupingKeyLabel(hist, storyGroupingKey) {
-      let telemetry = tr.v.d.MergedTelemetryInfo.getFromValue(hist);
+      let telemetry = tr.v.d.TelemetryInfo.getFromHistogram(hist);
       if (!(telemetry instanceof tr.v.d.MergedTelemetryInfo))
         return storyGroupingKey + ': undefined';
       return storyGroupingKey + ': ' +
@@ -326,15 +331,6 @@ tr.exportTo('tr.v.d', function() {
           v, storyGroupingKey);
     }
   }
-
-  // Diagnostics generally do not need a constant name or getFromValue().
-  // MergedTelemetryInfo is a special kind of Diagnostic that is produced by
-  // telemetry, which shepherds whole flocks of traces at once, and needs a
-  // system to identify and find traces by these attributes.
-
-  // Values produced by telemetry all have a single MergedTelemetryInfo at this
-  // key in their DiagnosticMap.
-  MergedTelemetryInfo.NAME = 'telemetry';
 
   tr.v.d.Diagnostic.register(MergedTelemetryInfo, {
     elementName: 'tr-v-ui-merged-telemetry-info-span'

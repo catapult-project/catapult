@@ -29,17 +29,10 @@ tr.exportTo('tr.v.d', function() {
       hist.diagnostics.set(RevisionInfo.NAME, this);
     }
 
-    canAddDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
-      return otherDiagnostic instanceof RevisionInfo ||
-        otherDiagnostic instanceof tr.v.d.MergedRevisionInfo;
-    }
-
-    addDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
-      let result = new tr.v.d.MergedRevisionInfo();
-      result.addDiagnostic(this, name, parentHist, parentHist);
-      result.addDiagnostic(
-          otherDiagnostic, name, otherParentHist, otherParentHist);
-      return result;
+    clone() {
+      let clone = new tr.v.d.MergedRevisionInfo();
+      clone.addDiagnostic(this);
+      return clone;
     }
 
     asDictInto_(d) {

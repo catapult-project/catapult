@@ -21,16 +21,22 @@ tr.exportTo('tr.v.d', function() {
       this.osVersions_ = new Set();
     }
 
+    clone() {
+      let clone = new tr.v.d.MergedDeviceInfo();
+      clone.addDiagnostic(this);
+      return clone;
+    }
+
     addToHistogram(hist) {
       hist.diagnostics.set(tr.v.d.DeviceInfo.NAME, this);
     }
 
-    canAddDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
+    canAddDiagnostic(otherDiagnostic) {
       return otherDiagnostic instanceof MergedDeviceInfo ||
              otherDiagnostic instanceof tr.v.d.DeviceInfo;
     }
 
-    addDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
+    addDiagnostic(otherDiagnostic) {
       if (otherDiagnostic instanceof MergedDeviceInfo) {
         for (let name of otherDiagnostic.osNames) {
           this.osNames.add(name);

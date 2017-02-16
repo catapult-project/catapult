@@ -16,11 +16,11 @@ tr.exportTo('tr.v.d', function() {
       super([]);
     }
 
-    canAddDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
+    canAddDiagnostic(otherDiagnostic) {
       return otherDiagnostic instanceof tr.v.d.Generic;
     }
 
-    addDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
+    addDiagnostic(otherDiagnostic) {
       if (otherDiagnostic instanceof CollectedGeneric) {
         this.value.push(...otherDiagnostic.value);
       } else {

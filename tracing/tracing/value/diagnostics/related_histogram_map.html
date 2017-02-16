@@ -19,6 +19,14 @@ tr.exportTo('tr.v.d', function() {
       this.histogramsByName_ = new Map();
     }
 
+    canAddDiagnostic(otherDiagnostic) {
+      return otherDiagnostic instanceof RelatedHistogramMap;
+    }
+
+    addDiagnostic(otherDiagnostic) {
+      // Related Histograms might not exist yet.
+    }
+
     /**
      * Lookup a Histogram by name. Returns undefined if |name| is not found.
      *

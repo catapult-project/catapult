@@ -17,31 +17,32 @@ tr.exportTo('tr.v.d', function() {
     }
 
     /**
+     * Returns a new Diagnostic that is like this one but distinct.
+     * This is useful when merging Diagnostics.
+     * @return {!tr.v.d.Diagnostic}
+     */
+    clone() {
+      return new this.constructor();
+    }
+
+    /**
      * Return true if |this| can be merged with |otherDiagnostic|.
      *
      * @param {!tr.v.d.Diagnostic} otherDiagnostic
-     * @param {!string} name
-     * @param {!tr.v.Histogram} parentHist
-     * @param {!tr.v.Histogram} otherParentHist
      * @return {!boolean}
      */
-    canAddDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
+    canAddDiagnostic(otherDiagnostic) {
       return false;
     }
 
     /**
      * If subclasses override canAddDiagnostic() then they must also override
-     * this method to return a replacement Diagnostic.
-     * Subclasses can modify and return |this| or create and return a new
-     * Diagnostic, but must not modify |otherDiagnostic|.
+     * this method to modify |this| to include information from
+     * |otherDiagnostic|.
      *
      * @param {!tr.v.d.Diagnostic} otherDiagnostic
-     * @param {!string} name
-     * @param {!tr.v.Histogram} parentHist
-     * @param {!tr.v.Histogram} otherParentHist
-     * @return {!tr.v.d.Diagnostic}
      */
-    addDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
+    addDiagnostic(otherDiagnostic) {
       throw new Error('Abstract virtual method: subclasses must override ' +
           'this method if they override canAddDiagnostic');
     }

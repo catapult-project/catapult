@@ -33,6 +33,18 @@ tr.exportTo('tr.v.d', function() {
       this.colorScheme = undefined;
     }
 
+    clone() {
+      let clone = new RelatedHistogramBreakdown();
+      clone.colorScheme = this.colorScheme;
+      // RelatedHistogramMap.addDiagnostic() is no-op.
+      return clone;
+    }
+
+    canAddDiagnostic(otherDiagnostic) {
+      return otherDiagnostic instanceof RelatedHistogramBreakdown &&
+        otherDiagnostic.colorScheme === this.colorScheme;
+    }
+
     /**
      * Add a Histogram by an explicit name to this map.
      *

@@ -18,12 +18,19 @@ tr.exportTo('tr.v.d', function() {
       this.colorScheme = undefined;
     }
 
-    canAddDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
-      return ((otherDiagnostic instanceof Breakdown) &&
-              (this.colorScheme === otherDiagnostic.colorScheme));
+    clone() {
+      let clone = new Breakdown();
+      clone.colorScheme = this.colorScheme;
+      clone.addDiagnostic(this);
+      return clone;
     }
 
-    addDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
+    canAddDiagnostic(otherDiagnostic) {
+      return ((otherDiagnostic instanceof Breakdown) &&
+              (otherDiagnostic.colorScheme === this.colorScheme));
+    }
+
+    addDiagnostic(otherDiagnostic) {
       for (let [name, value] of otherDiagnostic) {
         this.set(name, this.get(name) + value);
       }
