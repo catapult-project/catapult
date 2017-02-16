@@ -355,7 +355,7 @@ tr.b.unittest.testSuite(function() {
       }));
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
       for (var i = 0; i <= 1000; i++)
-        model.device.powerSeries.addPowerSample(i.toString(), i.toString());
+        model.device.powerSeries.addPowerSample(i, i);
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
           model, 0, 300));
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
