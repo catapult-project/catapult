@@ -463,9 +463,9 @@ tr.b.unittest.testSuite(function() {
     assert.equal(histograms.length, 120);
 
     // Check total:
-    checkRuntimeHistogram_(histograms, 'Any_IC', 20, 0.109);
-    checkRuntimeHistogram_(histograms, 'Any_API', 45, 0.234);
-    checkRuntimeHistogram_(histograms, 'Any_Total', 225, 1.21);
+    checkRuntimeHistogram_(histograms, 'IC', 20, 0.109);
+    checkRuntimeHistogram_(histograms, 'API', 45, 0.234);
+    checkRuntimeHistogram_(histograms, 'Total', 225, 1.21);
 
     // Check Load bucket:
     checkRuntimeHistogram_(histograms, 'Load_Parse', 5, 0.014);
@@ -552,10 +552,10 @@ tr.b.unittest.testSuite(function() {
     assert.equal(histograms.length, 24);
 
     // Check total:
-    checkRuntimeHistogram_(histograms, 'Any_IC', 8, 0.057);
-    checkRuntimeHistogram_(histograms, 'Any_API', 18, 0.117);
-    checkRuntimeHistogram_(histograms, 'Any_Parse', 10, 0.069);
-    checkRuntimeHistogram_(histograms, 'Any_Total', 90, 0.621);
+    checkRuntimeHistogram_(histograms, 'IC', 8, 0.057);
+    checkRuntimeHistogram_(histograms, 'API', 18, 0.117);
+    checkRuntimeHistogram_(histograms, 'Parse', 10, 0.069);
+    checkRuntimeHistogram_(histograms, 'Total', 90, 0.621);
   });
 });
 </script>

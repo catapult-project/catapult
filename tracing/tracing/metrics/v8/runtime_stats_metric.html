@@ -84,7 +84,6 @@ tr.exportTo('tr.metrics.v8', function() {
   // TODO(crbug.com/688342): Remove this function when runtimeStatsMetric is
   // removed.
   function computeRuntimeStats(histograms, slices) {
-
     var runtimeGroupCollection = new tr.e.v8.RuntimeStatsGroupCollection();
     runtimeGroupCollection.addSlices(slices);
 
@@ -129,18 +128,80 @@ tr.exportTo('tr.metrics.v8', function() {
   }
 
   function computeRuntimeStatsBucketOnUE(histograms, slices,
-      histogramNamePrefix) {
+      v8SlicesBucketOnUEMap) {
+    let durationRelatedHistsByGroupName = new Map();
+    let countRelatedHistsByGroupName = new Map();
+
+    // Compute runtimeStats in each of the UE buckets. Also record the
+    // histograms in RelatedHistogramMap. These histograms are added to the
+    // corresponding histograms in the total bucket as a diagnostic. This keeps
+    // the data grouped.
+    for (var [name, slicesUE] of v8SlicesBucketOnUEMap) {
+      var runtimeGroupCollection = new tr.e.v8.RuntimeStatsGroupCollection();
+      runtimeGroupCollection.addSlices(slicesUE);
+
+      for (var runtimeGroup of runtimeGroupCollection.runtimeGroups) {
+        var histogramName = name + '_' + runtimeGroup.name;
+        var durationHistogram = createDurationHistogram_(histogramName);
+        durationHistogram.addSample(convertMicroToMilli_(runtimeGroup.time));
+        histograms.addHistogram(durationHistogram);
+
+        // Record this histogram in RelatedHistogramMap.
+        if (durationRelatedHistsByGroupName.get(runtimeGroup.name) ===
+            undefined) {
+          var durationHistogramMap = new tr.v.d.RelatedHistogramMap();
+          durationHistogramMap.set(name, durationHistogram);
+          durationRelatedHistsByGroupName.set(runtimeGroup.name,
+              durationHistogramMap);
+        } else {
+          durationRelatedHistsByGroupName.get(runtimeGroup.name).set(name,
+              durationHistogram);
+        }
+
+        var countHistogram = createCountHistogram_(histogramName);
+        countHistogram.addSample(runtimeGroup.count);
+        histograms.addHistogram(countHistogram);
+
+        // Record this histogram in RelatedHistogramMap.
+        if (countRelatedHistsByGroupName.get(runtimeGroup.name) === undefined) {
+          var countHistogramMap = new tr.v.d.RelatedHistogramMap();
+          countHistogramMap.set(name, countHistogram);
+          countRelatedHistsByGroupName.set(runtimeGroup.name,
+              countHistogramMap);
+        } else {
+          countRelatedHistsByGroupName.get(runtimeGroup.name).set(name,
+              countHistogram);
+        }
+      }
+    }
+
+    // Add the runtimeStats for all the samples. Please note, the values in
+    // the UE buckets may not add upto the values computed here. Since UEs
+    // can overlap, we count some of the samples in multiple UE buckets.
     var runtimeGroupCollection = new tr.e.v8.RuntimeStatsGroupCollection();
     runtimeGroupCollection.addSlices(slices);
-
     for (var runtimeGroup of runtimeGroupCollection.runtimeGroups) {
-      var histogramName = histogramNamePrefix + '_' + runtimeGroup.name;
+      var histogramName = runtimeGroup.name;
       var durationHistogram = createDurationHistogram_(histogramName);
       durationHistogram.addSample(convertMicroToMilli_(runtimeGroup.time));
       histograms.addHistogram(durationHistogram);
+      // Add UE histograms as a diagnostic, so they can be hidden in the main
+      // view, and the data across UE buckets can be grouped together.
+      var relatedHistogramMap = durationRelatedHistsByGroupName.get(
+          runtimeGroup.name);
+      if (relatedHistogramMap !== undefined) {
+        durationHistogram.diagnostics.set(name, relatedHistogramMap);
+      }
 
       var countHistogram = createCountHistogram_(histogramName);
       countHistogram.addSample(runtimeGroup.count);
+      // Add UE histograms as a diagnostic, so they can be hidden in the main
+      // view, and the data across UE buckets can be grouped together.
+      var countRelatedHistogram = countRelatedHistsByGroupName.get(
+          runtimeGroup.name);
+      if (countRelatedHistogram !== undefined) {
+        countHistogram.diagnostics.set(name, countRelatedHistogram);
+      }
       histograms.addHistogram(countHistogram);
     }
   }
@@ -177,14 +238,12 @@ tr.exportTo('tr.metrics.v8', function() {
       }
     }
 
-    // Add histograms for each UE.
-    for (var [name, slices] of v8SlicesBucketOnUEMap.entries()) {
-      computeRuntimeStatsBucketOnUE(histograms, slices, name);
-    }
-    // Also compute the metric that includes all of the samples. The values
-    // in UE buckets do not add up to the total of all samples, since we
-    // duplicate some of the samples in multiple buckets when the UEs overlap.
-    computeRuntimeStatsBucketOnUE(histograms, v8ThreadSlices, 'Any');
+    // Compute runtimeStats in each of the UE buckets and also compute
+    // runtimeStats on all of the samples. The values in UE buckets do not add
+    // up to the total of all samples, since we duplicate some of the samples in
+    // multiple buckets when the UEs overlap.
+    computeRuntimeStatsBucketOnUE(histograms, v8ThreadSlices,
+        v8SlicesBucketOnUEMap);
   }
 
   tr.metrics.MetricRegistry.register(runtimeStatsTotalMetric);
