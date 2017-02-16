@@ -41,6 +41,7 @@ class ListTestsTest(testing_common.TestCase):
             },
             'scrolling': {
                 'commit_time': {
+                    'www.alibaba.com': {},
                     'www.yahoo.com': {},
                     'www.cnn.com': {},
                 },
@@ -368,6 +369,7 @@ class ListTestsTest(testing_common.TestCase):
         'type': 'pattern',
         'p': 'Chromium/mac/*/*/www*'})
     expected = [
+        'Chromium/mac/scrolling/commit_time/www.alibaba.com',
         'Chromium/mac/scrolling/commit_time/www.cnn.com',
         'Chromium/mac/scrolling/commit_time/www.yahoo.com',
     ]
@@ -411,6 +413,39 @@ class ListTestsTest(testing_common.TestCase):
         'p': '*/mac/dromaeo/*'})
     self.assertEqual(['Chromium/mac/dromaeo/dom'], json.loads(response.body))
 
+  def testPost_GetTestsForTestPath_Preselected(self):
+    self._AddSampleData()
+
+    response = self.testapp.post('/list_tests', {
+        'type': 'test_path_dict',
+        'test_path_dict': json.dumps({
+            'Chromium/win7/scrolling/commit_time': [
+                'commit_time', 'www.yahoo.com']}),
+        'return_selected': '1'})
+
+    self.assertEqual(
+        ['Chromium/win7/scrolling/commit_time',
+         'Chromium/win7/scrolling/commit_time/www.yahoo.com'],
+        json.loads(response.body))
+
+  def testPost_GetTestsForTestPath_All(self):
+    self._AddSampleData()
+
+    subtest = graph_data.TestMetadata.get_by_id(
+        'Chromium/win7/scrolling/commit_time/www.cnn.com')
+    subtest.has_rows = True
+    subtest.put()
+
+    response = self.testapp.post('/list_tests', {
+        'type': 'test_path_dict',
+        'test_path_dict': json.dumps({
+            'Chromium/win7/scrolling/commit_time': 'all'}),
+        'return_selected': '1'})
+
+    self.assertEqual(
+        ['Chromium/win7/scrolling/commit_time',
+         'Chromium/win7/scrolling/commit_time/www.cnn.com'],
+        json.loads(response.body))
 
   def testGetDescendants(self):
     self._AddSampleData()

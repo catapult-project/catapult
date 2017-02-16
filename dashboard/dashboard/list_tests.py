@@ -19,6 +19,10 @@ from dashboard.common import utils
 from dashboard.models import graph_data
 
 
+class BadRequestError(Exception):
+  pass
+
+
 class ListTestsHandler(request_handler.RequestHandler):
   """URL endpoint for AJAX requests to list masters, bots, and tests."""
 
@@ -32,6 +36,12 @@ class ListTestsHandler(request_handler.RequestHandler):
       p: Test path pattern (applies only if type is "pattern").
       has_rows: "1" if the requester wants to list only list tests that
           have points (applies only if type is "pattern").
+      test_path_dict: A test path dict having the format specified in
+          GetTestsForTestPathDict, below (applies only if type is
+          "test_path_dict").
+      return_selected: "1" if the requester wants to return selected tests,
+          otherwise unselected tests will be returned (applies only if type is
+          "test_path_dict").
 
     Outputs:
       A data structure with test names in JSON format, or nothing.
@@ -52,6 +62,16 @@ class ListTestsHandler(request_handler.RequestHandler):
       test_list = GetTestsMatchingPattern(
           pattern, only_with_rows=only_with_rows)
       self.response.out.write(json.dumps(test_list))
+
+    if list_type == 'test_path_dict':
+      test_path_dict = self.request.get('test_path_dict')
+      return_selected = self.request.get('return_selected') == '1'
+      try:
+        test_list = GetTestsForTestPathDict(
+            json.loads(test_path_dict), return_selected)
+        self.response.out.write(json.dumps(test_list))
+      except BadRequestError as e:
+        self.ReportError(e.message, status=400)
 
 
 def GetSubTests(suite_name, bot_names):
@@ -303,3 +323,86 @@ def _GetTestDescendantsAsync(
     query = query.filter(graph_data.TestMetadata.deprecated == deprecated)
   futures = query.fetch_async(keys_only=keys_only)
   return futures
+
+
+def GetTestsForTestPathDict(test_path_dict, return_selected):
+  """Outputs a list of selected/unselected tests for a given test path dict.
+
+  When figuring out what chart data to query for, we use a test path dict,
+  which maps full test paths to either:
+
+    * an exact list of subtests
+    * 'all', which specifies that all subtests that have rows should be added,
+      or
+    * 'core', which specifies that only those subtests that are 'core' as
+      determined by the algorithm (which will be implemented in a forthcoming
+      CL) should be added.
+
+  This method resolves the dict into a list of full test paths which are to
+  be selected or unselected, so that this list can be passed to /graph_json to
+  acquire the timeseries data.
+
+  An example dict could be:
+
+  {
+    "ChromiumPerf/win-zenbook/sunspider/Total": ["Total", "ref"]
+  }
+
+  which specifies that the test itself, as well as its corresponding ref test
+  ChromiumPerf/win-zenbook/sunspider/Total/ref, should be selected.
+
+  If the |return_selected| argument is true, we should expect this
+  list:
+
+  [
+    "ChromiumPerf/win-zenbook/sunspider/Total",
+    "ChromiumPerf/win-zenbook/sunspider/Total/ref"
+  ]
+
+  but if |return_selected| is false, then we should expect the other subtests
+  of 'ChromiumPerf/win-zenbook/sunspider/Total' to be returned.
+
+  Args:
+    test_path_dict: A dict having the structure described above.
+    return_selected: true if selected tests should be returned, false if
+        unselected tests should be returned.
+
+  Outputs:
+    A list of selected/unselected test paths.
+  """
+  # TODO(eakuefner): Caching once people are using this
+  if not isinstance(test_path_dict, dict):
+    raise BadRequestError('test_path_dict must be a dict')
+
+  if return_selected:
+    return _GetSelectedTestPathsForDict(test_path_dict)
+  # TODO(eakuefner): Support unselected tests.
+  raise BadRequestError('cannot return unselected tests yet')
+
+
+def _GetSelectedTestPathsForDict(test_path_dict):
+  paths = []
+  for path, selection in test_path_dict.iteritems():
+    if selection == 'core':
+      # TODO(eakuefner): support computing core tests
+      raise BadRequestError(
+          'cannot return core tests yet')
+    elif selection == 'all':
+      paths.append(path)
+      paths.extend(GetTestsMatchingPattern(
+          '%s/*' % path, only_with_rows=True))
+    elif isinstance(selection, list):
+      parent_test_name = path.split('/')[-1]
+      for part in selection:
+        if part == parent_test_name:
+          # When the element in the selected list is the same as the last part
+          # of the path, it's meant to mean just the path.
+          # TODO(eakuefner): Disambiguate this by making it explicit.
+          paths.append(path)
+        else:
+          # Otherwise, the element is intended to be appended to the path.
+          paths.append('%s/%s' % (path, part))
+    else:
+      raise BadRequestError("selected must be 'all', 'core', or a list of "
+                            "subtests")
+  return paths
