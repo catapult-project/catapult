@@ -27,6 +27,8 @@ tr.exportTo('tr.v.d', function() {
     constructor(opt_events) {
       super();
       this.eventsByStableId_ = new Map();
+      this.canonicalUrl_ = undefined;
+
       if (opt_events) {
         if (opt_events instanceof tr.model.EventSet ||
             opt_events instanceof Array) {
@@ -38,10 +40,31 @@ tr.exportTo('tr.v.d', function() {
       }
     }
 
+    canAddDiagnostic(otherDiagnostic) {
+      return otherDiagnostic instanceof RelatedEventSet ||
+        otherDiagnostic instanceof tr.v.d.CollectedRelatedEventSet;
+    }
+
+    addDiagnostic(otherDiagnostic) {
+      let result = new tr.v.d.CollectedRelatedEventSet();
+      result.addDiagnostic(this);
+      result.addDiagnostic(otherDiagnostic);
+      return result;
+    }
+
     /**
      * @param {!(tr.v.d.EventRef|tr.model.Event)} event
      */
     add(event) {
+      // TODO(benjhayden): Copy event.model.canonicalUrl to |this| and ensure
+      // that all events have the same canonicalUrl.
+      // https://github.com/catapult-project/catapult/issues/2842
+      // Model.canonicalUrl is currently set to a file:/// URL, which is not
+      // useful. Leave RelatedEventSet.canonicalUrl unset so that
+      // CollectedRelatedEventSets will be empty until Telemetry reserves a
+      // cloud url and plumbs it correctly.
+      // https://github.com/catapult-project/catapult/issues/2431
+
       this.eventsByStableId_.set(event.stableId, event);
     }
 
@@ -62,6 +85,10 @@ tr.exportTo('tr.v.d', function() {
         yield event;
     }
 
+    get canonicalUrl() {
+      return this.canonicalUrl_;
+    }
+
     /**
      * Resolve all EventRefs into Events by finding their stableIds in |model|.
      * If a stableId cannot be found and |opt_required| is true, then throw an
@@ -74,14 +101,14 @@ tr.exportTo('tr.v.d', function() {
      */
     resolve(model, opt_required) {
       for (let [stableId, event] of this.eventsByStableId_) {
-        if (!(event instanceof tr.v.d.EventRef))
-          continue;
+        if (!(event instanceof tr.v.d.EventRef)) continue;
 
         event = model.getEventByStableId(stableId);
-        if (event instanceof tr.model.Event)
+        if (event instanceof tr.model.Event) {
           this.eventsByStableId_.set(stableId, event);
-        else if (opt_required)
+        } else if (opt_required) {
           throw new Error('Unable to find Event ' + stableId);
+        }
       }
     }
 

@@ -49,6 +49,7 @@ found in the LICENSE file.
         for (let [name, diagnostic] of map) {
           // https://github.com/catapult-project/catapult/issues/2842
           if (diagnostic instanceof tr.v.d.UnmergeableDiagnosticSet) continue;
+          if (diagnostic instanceof tr.v.d.CollectedRelatedEventSet) continue;
 
           columnTitles.add(name);
         }

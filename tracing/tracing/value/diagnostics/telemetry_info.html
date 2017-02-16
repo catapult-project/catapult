@@ -25,6 +25,7 @@ tr.exportTo('tr.v.d', function() {
       this.storyRepeatCounter_ = undefined;
       this.storyUrl_ = '';
       this.storysetRepeatCounter_ = undefined;
+      this.canonicalUrl_ = '';
 
       if (opt_info) {
         this.addInfo(opt_info);
@@ -94,6 +95,9 @@ tr.exportTo('tr.v.d', function() {
       if (info.legacyTIRLabel) {
         this.legacyTIRLabel_ = info.legacyTIRLabel;
       }
+      if (info.canonicalUrl) {
+        this.canonicalUrl_ = info.canonicalUrl;
+      }
     }
 
     addToHistogram(hist) {
@@ -126,6 +130,7 @@ tr.exportTo('tr.v.d', function() {
       d.storyUrl = this.storyUrl;
       d.storysetRepeatCounter = this.storysetRepeatCounter;
       d.legacyTIRLabel = this.legacyTIRLabel;
+      d.canonicalUrl = this.canonicalUrl;
     }
 
     static fromDict(d) {
@@ -181,6 +186,10 @@ tr.exportTo('tr.v.d', function() {
 
     get storysetRepeatCounterLabel() {
       return 'storyset repeat ' + this.storysetRepeatCounter;
+    }
+
+    get canonicalUrl() {
+      return this.canonicalUrl_;
     }
 
     get benchmarkStart() {

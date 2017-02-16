@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/core/test_utils.html">
-<link rel="import" href="/tracing/value/diagnostics/related_event_set.html">
+<link rel="import" href="/tracing/value/histogram.html">
 
 <script>
 'use strict';
@@ -43,6 +43,51 @@ tr.b.unittest.testSuite(function() {
     d2.resolve(model, true);
 
     assert.strictEqual(tr.b.getOnlyElement([...d2]), slice);
+  });
+
+  test('merge', function() {
+    let aSlice;
+    let bSlice;
+    let model = tr.c.TestUtils.newModel(function(model) {
+      aSlice = tr.c.TestUtils.newSliceEx({
+        type: tr.model.ThreadSlice,
+        title: 'a',
+        start: 0,
+        duration: 10
+      });
+      bSlice = tr.c.TestUtils.newSliceEx({
+        type: tr.model.ThreadSlice,
+        title: 'b',
+        start: 1,
+        duration: 10
+      });
+      let thread = model.getOrCreateProcess(1).getOrCreateThread(2);
+      thread.sliceGroup.pushSlice(aSlice);
+      thread.sliceGroup.pushSlice(bSlice);
+    });
+    assert.notEqual(aSlice.stableId, bSlice.stableId);
+
+    let aHist = new tr.v.Histogram('a', tr.b.Unit.byName.count);
+    let bHist = new tr.v.Histogram('b', tr.b.Unit.byName.count);
+
+    let aEvents = new tr.v.d.RelatedEventSet(aSlice);
+    let bEvents = new tr.v.d.RelatedEventSet(bSlice);
+    // TODO(benjhayden): Fix this when RelatedEventSet.add() is fixed.
+    aEvents.canonicalUrl_ = 'http://a';
+    bEvents.canonicalUrl_ = 'http://b';
+
+    aHist.diagnostics.set('events', aEvents);
+    bHist.diagnostics.set('events', bEvents);
+
+    let mergedHist = aHist.clone();
+    mergedHist.addHistogram(bHist);
+    mergedHist = tr.v.Histogram.fromDict(mergedHist.asDict());
+
+    let mergedEvents = mergedHist.diagnostics.get('events');
+    let aSlice2 = tr.b.getOnlyElement(mergedEvents.get('http://a'));
+    assert.strictEqual(aSlice.stableId, aSlice2.stableId);
+    let bSlice2 = tr.b.getOnlyElement(mergedEvents.get('http://b'));
+    assert.strictEqual(bSlice.stableId, bSlice2.stableId);
   });
 });
 </script>
