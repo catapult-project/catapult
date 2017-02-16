@@ -44,31 +44,37 @@ found in the LICENSE file.
         -webkit-user-select: text;
         color: #777;
       }
+      #promptContainer {
+        display: flex;
+      }
+      #promptMark {
+        width: 1em;
+        color: #468;
+      }
       #prompt {
-        -webkit-user-select: text;
-        -webkit-user-modify: read-write-plaintext-only;
+        flex: 1;
+        width: 100%;
+        border: none !important;
+        background-color: inherit !important;
+        font: inherit !important;
         text-overflow: clip !important;
         text-decoration: none !important;
       }
       #prompt:focus {
         outline: none;
       }
-      #prompt br {
-        display: none;
-      }
-      #prompt ::before {
-        content: ">";
-        color: #468;
-      }
     </style>
 
     <div id="root" class="root hidden" tabindex="0"
          on-focus="onConsoleFocus">
       <div id='history'></div>
-      <div id='prompt'
-           on-keypress="promptKeyPress"
-           on-keydown="promptKeyDown"
-           on-blur="onConsoleBlur"></div>
+      <div id='promptContainer'>
+        <span id='promptMark'>&gt;</span>
+        <input id='prompt' type='text'
+             on-keypress="promptKeyPress"
+             on-keydown="promptKeyDown"
+             on-blur="onConsoleBlur">
+       </div>
     </div>
   </template>
 </dom-module>
@@ -92,10 +98,10 @@ Polymer({
       promptEl.focus();
       Polymer.dom(this.$.root).classList.add('focused');
       // Move cursor to the end of any existing text.
-      if (promptEl.innerText.length > 0) {
+      if (promptEl.value.length > 0) {
         var sel = window.getSelection();
         sel.collapse(
-            Polymer.dom(promptEl).firstChild, promptEl.innerText.length);
+            Polymer.dom(promptEl).firstChild, promptEl.value.length);
       }
     } else {
       promptEl.blur();
@@ -125,10 +131,10 @@ Polymer({
       return;
     e.preventDefault();
     var promptEl = this.$.prompt;
-    var command = promptEl.innerText;
+    var command = promptEl.value;
     if (command.length === 0)
       return;
-    promptEl.innerText = '';
+    promptEl.value = '';
     this.addLine_(String.fromCharCode(187) + ' ' + command);
 
     try {
