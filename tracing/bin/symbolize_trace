@@ -23,6 +23,7 @@ sys.path.append(_SYMBOLS_PATH)
 import symbols.elf_symbolizer as elf_symbolizer
 
 import symbolize_trace_atos_regex
+import symbolize_trace_macho_reader
 
 
 # Relevant trace event phases from Chromium's
@@ -95,8 +96,13 @@ class Symbolizer(object):
     # 16 for the address, 2 for "0x", 1 for the space
     chars_per_address = 19
 
+    load_address = (symbolize_trace_macho_reader.
+        ReadMachOTextLoadAddress(symfile.symbolizable_path))
+    assert load_address is not None
+
     cmd_base = [self.symbolizer_path, '-arch', 'x86_64', '-l',
-                '0x0', '-o' , symfile.symbolizable_path]
+                '0x%x' % load_address, '-o',
+                symfile.symbolizable_path]
     chars_for_other_arguments = len(' '.join(cmd_base)) + 1
 
     # The maximum number of inputs that can be processed at once is limited by
@@ -110,10 +116,12 @@ class Symbolizer(object):
       keys_to_process = all_keys[0:input_count]
 
       cmd = list(cmd_base)
-      cmd.extend([hex(int(x)) for x in keys_to_process])
+      cmd.extend([hex(int(x) + load_address)
+          for x in keys_to_process])
       output_array = subprocess.check_output(cmd).split('\n')
       for i in range(len(keys_to_process)):
-        for frame in symfile.frames_by_address.values()[i + processed_keys_count]:
+        for frame in (symfile.frames_by_address.values()
+            [i + processed_keys_count]):
           frame.name = self._matcher.Match(output_array[i])
       processed_keys_count += len(keys_to_process)
       all_keys = all_keys[input_count:]
