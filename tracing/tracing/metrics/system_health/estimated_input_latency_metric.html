@@ -43,18 +43,23 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   /**
-   * Returns the time window during which the the page is interactive.
-   * This time window excludes the page load time. We compute EQT only for
-   * the interactive time because the input latency during the page load time
-   * is not interesting.
-   * @throws if there is no interactive time window or if there are multiple
-   *         interactive time windows.
+   * @param {string} name Name of the histogram.
+   * @param {string} description Description of the histogram.
+   * @returns {!tr.v.Histogram}
    */
-  function getInteractiveWindow_(model, rendererHelper) {
-    let interactiveTimestamp = tr.b.getOnlyElement(
-        tr.e.chrome.getInteractiveTimestamps(model).get(rendererHelper.pid));
-    return tr.b.Range.fromExplicitRange(interactiveTimestamp, Infinity)
-        .findIntersection(rendererHelper.mainThread.bounds);
+  function createHistogramForEQT_(name, description) {
+    let histogram = new tr.v.Histogram(name,
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, EQT_BOUNDARIES);
+    histogram.customizeSummaryOptions({
+      avg: false,
+      count: false,
+      max: true,
+      min: false,
+      std: false,
+      sum: false,
+    });
+    histogram.description = description;
+    return histogram;
   }
 
   /**
@@ -65,33 +70,43 @@ tr.exportTo('tr.metrics.sh', function() {
   function estimatedInputLatency(values, model) {
     let chromeHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
-    let histogram = new tr.v.Histogram(
-        `interactive:${WINDOW_SIZE_MS}ms_window:renderer_eqt`,
-        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
-        EQT_BOUNDARIES);
-    histogram.customizeSummaryOptions({
-      avg: false,
-      count: false,
-      max: true,
-      min: false,
-      std: false,
-      sum: false,
-    });
-    histogram.description =
+    let totalHistogram = createHistogramForEQT_(
+        `total:${WINDOW_SIZE_MS}ms_window:renderer_eqt`,
         `The maximum EQT in a ${WINDOW_SIZE_MS}ms sliding window` +
-        ' for a given renderer';
+        ' for a given renderer');
+    let interactiveHistogram = createHistogramForEQT_(
+        `interactive:${WINDOW_SIZE_MS}ms_window:renderer_eqt`,
+        `The maximum EQT in a ${WINDOW_SIZE_MS}ms sliding window` +
+        ' for a given renderer while the page is interactive');
     let rendererHelpers = tr.b.dictionaryValues(chromeHelper.rendererHelpers);
     for (let rendererHelper of rendererHelpers) {
       if (rendererHelper.isChromeTracingUI) continue;
       let tasks = rendererHelper.mainThread.sliceGroup.topLevelSlices
           .filter(slice => slice.duration > 0 && !containsForcedGC_(slice))
           .map(slice => {return {start: slice.start, end: slice.end};});
-      let interactiveWindow = getInteractiveWindow_(model, rendererHelper);
-      histogram.addSample(tr.e.chrome.maxExpectedQueueingTimeInSlidingWindow(
-          interactiveWindow.min, interactiveWindow.max,
-          WINDOW_SIZE_MS, tasks));
+      totalHistogram.addSample(
+          tr.e.chrome.maxExpectedQueueingTimeInSlidingWindow(
+              rendererHelper.mainThread.bounds.min,
+              rendererHelper.mainThread.bounds.max,
+              WINDOW_SIZE_MS, tasks));
+      let interactiveTimestamps =
+          tr.e.chrome.getInteractiveTimestamps(model).get(rendererHelper.pid);
+      if (interactiveTimestamps.length === 0) continue;
+      if (interactiveTimestamps.length > 1) {
+        // TODO(ulan): Support multiple interactive time windows when
+        // https://crbug.com/692112 is fixed.
+        continue;
+      }
+      let interactiveWindow =
+          tr.b.Range.fromExplicitRange(interactiveTimestamps[0], Infinity)
+          .findIntersection(rendererHelper.mainThread.bounds);
+      interactiveHistogram.addSample(
+          tr.e.chrome.maxExpectedQueueingTimeInSlidingWindow(
+              interactiveWindow.min, interactiveWindow.max,
+              WINDOW_SIZE_MS, tasks));
     }
-    values.addHistogram(histogram);
+    values.addHistogram(totalHistogram);
+    values.addHistogram(interactiveHistogram);
   }
 
   tr.metrics.MetricRegistry.register(estimatedInputLatency);

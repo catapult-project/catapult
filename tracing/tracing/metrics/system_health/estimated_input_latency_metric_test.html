@@ -63,12 +63,15 @@ tr.b.unittest.testSuite(function() {
     });
     let values = new tr.v.HistogramSet();
     tr.metrics.sh.estimatedInputLatency(values, model);
-    let eqt = values.getHistogramNamed(
+    let interactiveEQT = values.getHistogramNamed(
         'interactive:500ms_window:renderer_eqt');
-    assert.equal(0.1, eqt.average);
+    assert.equal(0.1, interactiveEQT.average);
+    let totalEQT = values.getHistogramNamed(
+        'total:500ms_window:renderer_eqt');
+    assert.equal(10, totalEQT.average);
   });
 
-  test('estimatedInputLatency_noInteractiveThrows', function() {
+  test('estimatedInputLatency_noInteractive', function() {
     let model = tr.c.TestUtils.newModel((model) => {
       let rendererProcess = model.getOrCreateProcess(1984);
       let mainThread = rendererProcess.getOrCreateThread(2);
@@ -93,12 +96,13 @@ tr.b.unittest.testSuite(function() {
       }));
     });
     let values = new tr.v.HistogramSet();
-    assert.throws(() => {
-      tr.metrics.sh.estimatedInputLatency(values, model);
-    }, 'getOnlyElement was passed an empty iterable.');
+    tr.metrics.sh.estimatedInputLatency(values, model);
+    let interactiveEQT = values.getHistogramNamed(
+        'interactive:500ms_window:renderer_eqt');
+    assert.equal(0, interactiveEQT.numValues);
   });
 
-  test('estimatedInputLatency_multipleInteractiveThrows', function() {
+  test('estimatedInputLatency_multipleInteractive', function() {
     let model = tr.c.TestUtils.newModel((model) => {
       let rendererProcess = model.getOrCreateProcess(1984);
       let mainThread = rendererProcess.getOrCreateThread(2);
@@ -125,9 +129,12 @@ tr.b.unittest.testSuite(function() {
       }));
     });
     let values = new tr.v.HistogramSet();
-    assert.throws(() => {
-      tr.metrics.sh.estimatedInputLatency(values, model);
-    }, 'getOnlyElement was passed an iterable with multiple elements.');
+    tr.metrics.sh.estimatedInputLatency(values, model);
+    let interactiveEQT = values.getHistogramNamed(
+        'interactive:500ms_window:renderer_eqt');
+    // TODO(ulan): Support multiple interactive time windows when
+    // https://crbug.com/692112 is fixed.
+    assert.equal(0, interactiveEQT.numValues);
   });
 
   test('estimatedInputLatency_multipleRenderersAggregates', function() {
