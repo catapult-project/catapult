@@ -89,7 +89,7 @@ class SpeedReleasingTest(testing_common.TestCase):
 
   def _AddRows(self, keys):
     for key in keys:
-      testing_common.AddRows(utils.TestPath(key), [1, 2, 3, 4])
+      testing_common.AddRows(utils.TestPath(key), [1, 2, 3, 445588])
 
   def _AddDownstreamRows(self, keys):
     revisions = [1, 2, 1485025126, 1485099999]
@@ -176,3 +176,28 @@ class SpeedReleasingTest(testing_common.TestCase):
                                  'revB=1485025126')
     self.assertIn('"revisions": [1485099999, 1485025126]', response)
     self.assertIn('"display_revisions": ["148509-abc", "148502-abc"]', response)
+
+  def testPost_TableWithMilestoneParam(self):
+    keys = self._AddTableConfigDataStore('BestTable', True)
+    self._AddRows(keys)
+    response = self.testapp.post('/speed_releasing/BestTable?m=56')
+    self.assertIn('"revisions": [445288, 433400]', response)
+
+  def testPost_TableWithNewestMilestoneParam(self):
+    keys = self._AddTableConfigDataStore('BestTable', True)
+    self._AddRows(keys)
+    response = self.testapp.post('/speed_releasing/BestTable?m=57')
+    self.assertIn('"revisions": [445588, 445288]', response)
+
+  def testPost_TableWithHighMilestoneParam(self):
+    keys = self._AddTableConfigDataStore('BestTable', True)
+    self._AddRows(keys)
+    response = self.testapp.post('/speed_releasing/BestTable?m=71')
+    self.assertIn('"error": "No data for that milestone."', response)
+
+  def testPost_TableWithLowMilestoneParam(self):
+    keys = self._AddTableConfigDataStore('BestTable', True)
+    self._AddRows(keys)
+    response = self.testapp.post('/speed_releasing/BestTable?m=7')
+    self.assertIn('"error": "No data for that milestone."', response)
+

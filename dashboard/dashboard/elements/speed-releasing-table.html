@@ -203,6 +203,10 @@ found in the LICENSE file.
         if (revB) {
           params['revB'] = revB;
         }
+        var m = uri.getParameter('m');
+        if (m) {
+          params['m'] = m;
+        }
         var path = this.tableName;
         this.loading = true;
         simple_xhr.send('/speed_releasing/' + path, params,

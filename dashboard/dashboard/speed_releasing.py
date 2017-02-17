@@ -11,8 +11,26 @@ from google.appengine.ext import ndb
 
 from dashboard.common import request_handler
 from dashboard.common import utils
+from dashboard.models import graph_data
 from dashboard.models import table_config
 
+# These represent the revision ranges per milestone. For Clank, this is a
+# point id, for Chromium this is a Chromium commit position.
+CLANK_MILESTONES = {
+    54: (1473196450, 1475824394),
+    55: (1475841673, 1479536199),
+    56: (1479546161, 1485025126),
+    57: (1485025126, None),
+}
+
+CHROMIUM_MILESTONES = {
+    54: (416640, 423768),
+    55: (433391, 433400),
+    56: (433400, 445288),
+    57: (445288, None),
+}
+
+CURRENT_MILESTONE = max(CHROMIUM_MILESTONES.keys())
 
 class SpeedReleasingHandler(request_handler.RequestHandler):
   """Request handler for requests for speed releasing page."""
@@ -46,13 +64,33 @@ class SpeedReleasingHandler(request_handler.RequestHandler):
     values = {}
     self.GetDynamicVariables(values)
 
-    master_bot_pairs = _GetMasterBotPairs(table_entity.bots)
-
     rev_a = self.request.get('revA')
     rev_b = self.request.get('revB')
+    milestone_param = self.request.get('m')
+
+    master_bot_pairs = _GetMasterBotPairs(table_entity.bots)
+    if milestone_param:
+      milestone_param = int(milestone_param)
+      if milestone_param not in CHROMIUM_MILESTONES:
+        self.response.out.write(json.dumps({
+            'error': 'No data for that milestone.'}))
+        return
+
+      masters = set([m.split('/')[0] for m in master_bot_pairs])
+      if 'ClankInternal' in masters:
+        milestone_dict = CLANK_MILESTONES.copy()
+      else:
+        milestone_dict = CHROMIUM_MILESTONES.copy()
+      # If we might access the end of the milestone_dict, update it to
+      # be the newest revision instead of 'None'.
+      _UpdateNewestRevInMilestoneDict(master_bot_pairs,
+                                      table_entity.tests, milestone_dict)
+      rev_a, rev_b = milestone_dict[milestone_param]
+
     if not rev_a or not rev_b:
       self.response.out.write(json.dumps({'error': 'Invalid revisions.'}))
       return
+
     rev_a, rev_b = _CheckRevisions(rev_a, rev_b)
     revisions = [rev_b, rev_a] # In reverse intentionally. This is to support
     # the format of the Chrome Health Dashboard which compares 'Current' to
@@ -173,3 +211,27 @@ def _GetDisplayRev(bots, tests, rev):
         if hasattr(row, 'a_default_rev') and hasattr(row, row.a_default_rev):
           return row.r_commit_pos + '-' + getattr(row, row.a_default_rev)[:3]
   return rev
+
+def _UpdateNewestRevInMilestoneDict(bots, tests, milestone_dict):
+  """Updates the most recent rev in the milestone dict.
+
+  The global milestone dicts are declared with 'None' for the end of the
+  current milestone range. If we might be using the last milestone, update
+  the end of the current milestone range to be the most recent revision.
+  """
+  if bots and tests:
+    test_path = bots[0] + '/' + tests[0]
+    test_key = utils.TestKey(test_path)
+    query = graph_data.Row.query()
+    query = query.filter(
+        graph_data.Row.parent_test == utils.OldStyleTestKey(test_key))
+    query = query.order(-graph_data.Row.revision)
+    row = query.get()
+    if row:
+      milestone_dict[CURRENT_MILESTONE] = (
+          milestone_dict[CURRENT_MILESTONE][0], row.revision)
+    else:
+      milestone_dict[CURRENT_MILESTONE] = (
+          milestone_dict[CURRENT_MILESTONE][0],
+          milestone_dict[CURRENT_MILESTONE][0])
+
