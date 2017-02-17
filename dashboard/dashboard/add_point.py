@@ -152,9 +152,15 @@ class AddPointHandler(post_data_handler.PostDataHandler):
               'Data should be a list of rows or a Dashboard JSON v1.0 dict.',
               status=400)
           return
-      test_map = _ConstructTestPathMap(data)
+
+      if data:
+        # We only need to validate the row ID for one point, since all points
+        # being handled by this upload should have the same row ID.
+        test_map = _ConstructTestPathMap(data)
+        _ValidateRowId(data[0], test_map)
+
       for row_dict in data:
-        _ValidateRowDict(row_dict, test_map)
+        _ValidateRowDict(row_dict)
       _AddTasks(data)
     except BadRequestError as error:
       # If any of the data was invalid, abort immediately and return an error.
@@ -552,12 +558,11 @@ def _ConstructTestPathMap(row_dicts):
           for r in last_added_revision_entities if r is not None}
 
 
-def _ValidateRowDict(row, test_map):
+def _ValidateRowDict(row):
   """Checks all fields in the input dictionary.
 
   Args:
     row: A dictionary which represents one point.
-    test_map: A dictionary mapping test paths to last added revision.
 
   Raises:
     BadRequestError: The input was not valid.
@@ -567,7 +572,6 @@ def _ValidateRowDict(row, test_map):
     if field not in row:
       raise BadRequestError('No "%s" field in row dict.' % field)
   _ValidateMasterBotTest(row['master'], row['bot'], row['test'])
-  _ValidateRowId(row, test_map)
   GetAndValidateRowProperties(row)
 
 
