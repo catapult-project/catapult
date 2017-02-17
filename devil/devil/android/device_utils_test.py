@@ -2236,10 +2236,12 @@ class DeviceUtilsGetPidsTest(DeviceUtilsTest):
   def testGetPids_sdkGreaterThanNougatMR1(self):
     with self.patch_call(self.call.device.build_version_sdk,
                          return_value=(version_codes.NOUGAT_MR1 + 1)):
-      with self.assertCall(
-          self.call.device._RunPipedShellCommand(
-              'ps -e | grep -F example.process'), []):
-        self.device.GetPids('example.process')
+      with self.patch_call(self.call.device.build_id,
+                           return_value='ZZZ99Z'):
+        with self.assertCall(
+            self.call.device._RunPipedShellCommand(
+                'ps -e | grep -F example.process'), []):
+          self.device.GetPids('example.process')
 
   def testGetPids_noMatches(self):
     with self.patch_call(self.call.device.build_version_sdk,
