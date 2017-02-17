@@ -212,7 +212,7 @@ property 'group' sets to the header item name.
 
         suggestedItems: {
           type: Array,
-          computed: 'computeSuggestedItems(query, items, items.*)'
+          computed: 'computeSuggestedItems(query, items.*)'
         },
 
         dropdownOpen: {
@@ -222,7 +222,7 @@ property 'group' sets to the header item name.
 
         hasSuggestions: {
           type: Boolean,
-          computed: 'computeHasSuggestions(suggestedItems, suggestedItems.*)'
+          computed: 'computeHasSuggestions(suggestedItems.*)'
         },
 
         // Not quite the same thing as dropdownOpen since the dropdown can be
@@ -244,7 +244,7 @@ property 'group' sets to the header item name.
         selectedNames: {
           notify: true,
           type: Object,
-          computed: 'computeSelectedNames(selectedItems, selectedItems.*)'
+          computed: 'computeSelectedNames(selectedItems.*)'
         },
 
         /**
@@ -254,7 +254,7 @@ property 'group' sets to the header item name.
         selectedItem: {
           notify: true,
           type: Object,
-          computed: 'computeSelectedItem(multi, selectedItems, selectedItems.*)'
+          computed: 'computeSelectedItem(multi, selectedItems.*)'
         },
 
         /**
@@ -270,7 +270,7 @@ property 'group' sets to the header item name.
 
       observers: [
         'itemsChanged(items.*)',
-        'selectedItemsChanged(selectedItems, selectedItems.*)'
+        'selectedItemsChanged(selectedItems.*)'
       ],
 
       itemEquals: function(itemA, itemB) {
@@ -295,18 +295,18 @@ property 'group' sets to the header item name.
         this.set('selectedItems', preservedSelectedItems);
       },
 
-      selectedItemsChanged: function(_selectedItems, _selectedItemsChange) {
+      selectedItemsChanged: function(_selectedItemsChange) {
         // It would be nicer if users could observe the selected-items-changed
         // but sadly that only fires when the whole array gets set.
         this.fire('dropdownselect');
       },
 
-      computeSuggestedItems: function(query, items, _itemsChange) {
-        var searcher = new fuzzyAutocomplete.FuzzyAutocomplete(items);
+      computeSuggestedItems: function(query, _itemsChange) {
+        var searcher = new fuzzyAutocomplete.FuzzyAutocomplete(this.items);
         return searcher.search(query);
       },
 
-      computeHasSuggestions: function(_suggestedItems, _suggestedItemsChange) {
+      computeHasSuggestions: function(_suggestedItemsChange) {
         return this.suggestedItems.length > 0;
       },
 
@@ -397,14 +397,14 @@ property 'group' sets to the header item name.
         }
       },
 
-      computeSelectedNames: function(_selectedItems, _selectedItemsChange) {
+      computeSelectedNames: function(_selectedItemsChange) {
         var items = this.selectedItems || [];
         return items.map(item => item.name);
       },
 
-      computeSelectedItem: function(multi, selectedItems, selectedItemsChange) {
+      computeSelectedItem: function(multi, _selectedItemsChange) {
         if (this.multi || this.selectedItems.length !== 1) return null;
-        return selectedItems[0];
+        return this.selectedItems[0];
       },
 
       computeSelectedName: function(_selectedItem) {
@@ -427,7 +427,7 @@ property 'group' sets to the header item name.
       },
 
       observers: [
-        'updateSelected(selectedItems, selectedItems.*)',
+        'updateSelected(selectedItems.*)',
         'updateSelected(locusItem)',
       ],
 
