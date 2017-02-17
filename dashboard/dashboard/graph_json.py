@@ -119,11 +119,14 @@ def GetGraphJson(
     JSON serialization of a dict with info that will be used to plot a chart.
   """
   # TODO(qyearsley): Parallelize queries if possible.
-
+  # TODO(eakuefner): These are old-style test path dicts which means that []
+  # doesn't mean 'no tests' but rather 'all tests'. Remove this hack.
   if is_selected:
-    test_paths = _GetTestPathFromDict(test_path_dict)
-  else:
-    test_paths = _GetUnselectedTestPathFromDict(test_path_dict)
+    for test, selected in test_path_dict.iteritems():
+      if selected == []:
+        test_path_dict[test] = 'all'
+
+  test_paths = list_tests.GetTestsForTestPathDict(test_path_dict, is_selected)
 
   # If a particular test has a lot of children, then a request will be made
   # for data for a lot of unselected series, which may be very slow and may
@@ -471,63 +474,3 @@ def _FlotSeries(index):
       'color': index,
       'id': 'line_%d' % index
   }
-
-
-def _GetTestPathFromDict(test_path_dict):
-  """Gets a list of test paths from a test path dictionary.
-
-  This function looks up series and the corresponding list of selected
-  series.
-
-  Args:
-    test_path_dict: Dictionary of test path to list of selected series.
-
-  Returns:
-    List of test paths.
-  """
-  test_paths = []
-  for test_path, selected in test_path_dict.iteritems():
-    if selected:
-      # With an explicit selection, just add all the test_paths listed.
-      parent_test_name = test_path.split('/')[-1]
-      for selection in selected:
-        if selection == parent_test_name:
-          # When the element in the selected list is the same as the last part
-          # of the test_path, it's meant to mean just the test_path.
-          test_paths.append(test_path)
-        else:
-          # Generally the selected element is intended to be the last part of
-          # the test path.
-          test_paths.append('%s/%s' % (test_path, selection))
-    else:
-      # Without an explicit selection, add this test_path and any children.
-      test_paths.append(test_path)
-      test_paths.extend(list_tests.GetTestsMatchingPattern(
-          '%s/*' % test_path, only_with_rows=True))
-  return test_paths
-
-
-def _GetUnselectedTestPathFromDict(test_path_dict):
-  """Gets a list of test paths for unselected series for a test path dictionary.
-
-  This function looks up series that are directly under the provided test path
-  that are also not in the list of selected series.
-
-  Args:
-    test_path_dict: Dictionary of test path to list of selected sub-series.
-
-  Returns:
-    List of test paths.
-  """
-  test_paths = []
-  for test_path, selected in test_path_dict.iteritems():
-    parent = test_path.split('/')[-1]
-    if not parent in selected:
-      test_paths.append(test_path)
-    children = list_tests.GetTestsMatchingPattern(
-        '%s/*' % test_path, only_with_rows=True)
-    for child in children:
-      selection = child.split('/')[-1]
-      if selection not in selected:
-        test_paths.append(child)
-  return test_paths
