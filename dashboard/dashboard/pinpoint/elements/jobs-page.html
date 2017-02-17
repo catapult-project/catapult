@@ -100,7 +100,7 @@ found in the LICENSE file.
         },
         sortBy: {
           type: String,
-          value: 'jobid'
+          value: 'job_id'
         },
         sortDescending: {
           type: Boolean,
@@ -120,7 +120,6 @@ found in the LICENSE file.
         if (this.totalJobsCount < this.totalJobsCountMax)
           return String(this.totalJobsCount) + ' jobs.';
         return String(this.totalJobsCountMax) + ' or more jobs.';
-    
       },
 
       onPopState: function(e) {

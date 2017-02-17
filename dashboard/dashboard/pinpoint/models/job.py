@@ -65,6 +65,10 @@ class Job(ndb.Model):
         state=_JobState(quests))
 
   @property
+  def job_id(self):
+    return self.key.urlsafe()
+
+  @property
   def running(self):
     return bool(self.task)
 
@@ -73,7 +77,7 @@ class Job(ndb.Model):
 
   def Start(self):
     task = taskqueue.add(queue_name='job-queue', target='pinpoint',
-                         url='/run/' + self.key.urlsafe(),
+                         url='/run/' + self.job_id,
                          countdown=_TASK_INTERVAL)
     self.task = task.name
 
@@ -89,12 +93,13 @@ class Job(ndb.Model):
       self.task = None
 
   def AsDict(self):
-    status = 'RUNNING'
-    if not self.task:
+    if self.running:
+      status = 'RUNNING'
+    else:
       status = 'COMPLETED'
 
     return {
-        'jobid': self.key.id(),
+        'job_id': self.job_id,
         'configuration': self.configuration,
         'test_suite': self.test_suite,
         'test': self.test,

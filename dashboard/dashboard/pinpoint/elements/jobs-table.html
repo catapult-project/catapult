@@ -127,7 +127,7 @@ found in the LICENSE file.
     <table id="jobs">
       <thead>
       <tr>
-        <th class="width130" id="jobid" on-click="columnHeaderClicked">Job ID</th>
+        <th class="width130" id="job_id" on-click="columnHeaderClicked">Job ID</th>
         <th class="width100" id="status" on-click="columnHeaderClicked">Status</th>
         <th class="width130" id="created" on-click="columnHeaderClicked">Created</th>
         <th class="width130" id="configuration" on-click="columnHeaderClicked">Configuration</th>
@@ -139,7 +139,7 @@ found in the LICENSE file.
       <tbody>
       <template is="dom-repeat" items="{{jobsList}}">
         <tr class$="group-header">
-          <td class="width130">{{item.jobid}}</td>
+          <td class="width130">{{item.job_id}}</td>
           <td class="width100">{{item.status}}</td>
           <td class="width130">{{item.created}}</td>
           <td class="width130">{{item.configuration}}</td>
@@ -174,7 +174,7 @@ found in the LICENSE file.
          */
         sortBy: {
           type: String,
-          value: 'jobid',
+          value: 'job_id',
           notify: true,
           observer: 'sortByChanged'
         },
