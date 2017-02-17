@@ -104,6 +104,20 @@ indexes:
   - name: internal_only
   - name: end_revision
 
+# Used in speed_releasing.py to find anomalies that match a specific test
+# and is between a specified range (usually a milestone).
+- kind: Anomaly
+  properties:
+  - name: test
+  - name: start_revision
+  - name: end_revision
+- kind: Anomaly
+  properties:
+  - name: internal_only
+  - name: test
+  - name: start_revision
+  - name: end_revision
+
 # Might be unused!
 # This index would enable querying for points for a particular test,
 # filtering or sorting by revision, and possibly doing a projection
