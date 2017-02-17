@@ -9,49 +9,24 @@ import tempfile
 import unittest
 import json
 
+import mock
+
+from telemetry import decorators
 from telemetry import project_config
 from telemetry.core import util
-from telemetry.testing import browser_test_context
 from telemetry.testing import browser_test_runner
-from telemetry.testing import options_for_unittests
-from telemetry.testing import run_browser_tests
 from telemetry.testing import serially_executed_browser_test_case
 
 
 class BrowserTestRunnerTest(unittest.TestCase):
 
-  def _ExtractTestResults(self, test_result):
-    delimiter = test_result['path_delimiter']
-    failures = []
-    successes = []
-    def _IsLeafNode(node):
-      test_dict = node[1]
-      return ('expected' in test_dict and
-              isinstance(test_dict['expected'], basestring))
-    node_queues = []
-    for t in test_result['tests']:
-      node_queues.append((t, test_result['tests'][t]))
-    while node_queues:
-      node = node_queues.pop()
-      full_test_name, test_dict = node
-      if _IsLeafNode(node):
-        if all(res not in test_dict['expected'].split() for res in
-               test_dict['actual'].split()):
-          failures.append(full_test_name)
-        else:
-          successes.append(full_test_name)
-      else:
-        for k in test_dict:
-          node_queues.append(
-            ('%s%s%s' % (full_test_name, delimiter, k),
-             test_dict[k]))
-    return successes, failures
-
-  def baseTest(self, test_filter,
+  def baseTest(self, mockInitDependencyManager, test_filter,
                failures, successes, test_name='SimpleTest'):
+    options = browser_test_runner.TestRunOptions()
+    options.verbosity = 0
     config = project_config.ProjectConfig(
         top_level_dir=os.path.join(util.GetTelemetryDir(), 'examples'),
-        client_configs=[],
+        client_configs=['a', 'b', 'c'],
         benchmark_dirs=[
             os.path.join(util.GetTelemetryDir(), 'examples', 'browser_tests')]
     )
@@ -60,72 +35,55 @@ class BrowserTestRunnerTest(unittest.TestCase):
     temp_file_name = temp_file.name
     try:
       browser_test_runner.Run(
-          config,
+          config, options,
           [test_name,
-           '--write-full-results-to=%s' % temp_file_name,
+           '--write-abbreviated-json-results-to=%s' % temp_file_name,
            '--test-filter=%s' % test_filter])
+      mockInitDependencyManager.assert_called_with(['a', 'b', 'c'])
       with open(temp_file_name) as f:
         test_result = json.load(f)
-
-      actual_successes, actual_failures = self._ExtractTestResults(test_result)
-      self.assertEquals(set(actual_failures), set(failures))
-      self.assertEquals(set(actual_successes), set(successes))
+      self.assertEquals(test_result['failures'], failures)
+      self.assertEquals(test_result['successes'], successes)
+      self.assertEquals(test_result['valid'], True)
     finally:
       os.remove(temp_file_name)
 
-  def testJsonOutputFormatNegativeFilter(self):
+  @mock.patch('telemetry.internal.util.binary_manager.InitDependencyManager')
+  def testJsonOutputFormatNegativeFilter(self, mockInitDependencyManager):
     self.baseTest(
-      '^(add|multiplier).*',
-      ['browser_tests.simple_numeric_test.SimpleTest.add_1_and_2',
-       'browser_tests.simple_numeric_test.SimpleTest.add_7_and_3',
-       'browser_tests.simple_numeric_test.SimpleTest.multiplier_simple_2'],
-      ['browser_tests.simple_numeric_test.SimpleTest.add_2_and_3',
-       'browser_tests.simple_numeric_test.SimpleTest.multiplier_simple',
-       'browser_tests.simple_numeric_test.SimpleTest.multiplier_simple_3'])
+      mockInitDependencyManager, '^(add|multiplier).*',
+      ['add_1_and_2',
+       'add_7_and_3',
+       'multiplier_simple_2'],
+      ['add_2_and_3',
+       'multiplier_simple',
+       'multiplier_simple_3'])
 
-  def testJsonOutputWhenSetupClassFailed(self):
+  @mock.patch('telemetry.internal.util.binary_manager.InitDependencyManager')
+  def testJsonOutputWhenSetupClassFailed(self, mockInitDependencyManager):
     self.baseTest(
-      '.*',
-      ['browser_tests.failed_tests.SetUpClassFailedTest.dummy_test_0',
-       'browser_tests.failed_tests.SetUpClassFailedTest.dummy_test_1',
-       'browser_tests.failed_tests.SetUpClassFailedTest.dummy_test_2'],
+      mockInitDependencyManager, '.*',
+      ['setUpClass (browser_tests.failed_tests.SetUpClassFailedTest)'],
       [], test_name='SetUpClassFailedTest')
 
-  def testJsonOutputWhenTearDownClassFailed(self):
+  @mock.patch('telemetry.internal.util.binary_manager.InitDependencyManager')
+  def testJsonOutputWhenTearDownClassFailed(self, mockInitDependencyManager):
     self.baseTest(
-      '.*',
-      ['browser_tests.failed_tests.TearDownClassFailedTest.dummy_test_0',
-       'browser_tests.failed_tests.TearDownClassFailedTest.dummy_test_1',
-       'browser_tests.failed_tests.TearDownClassFailedTest.dummy_test_2'],
-      [], test_name='TearDownClassFailedTest')
+      mockInitDependencyManager, '.*',
+      ['tearDownClass (browser_tests.failed_tests.TearDownClassFailedTest)'],
+      sorted(['dummy_test_%i' %i for i in xrange(0, 100)]),
+      test_name='TearDownClassFailedTest')
 
-  def testSetUpProcessCalledOnce(self):
+  @mock.patch('telemetry.internal.util.binary_manager.InitDependencyManager')
+  def testJsonOutputFormatPositiveFilter(self, mockInitDependencyManager):
     self.baseTest(
-      '.*',
-      [],
-      ['browser_tests.process_tests.FailIfSetUpProcessCalledTwice.Dummy_0',
-       'browser_tests.process_tests.FailIfSetUpProcessCalledTwice.Dummy_1',
-       'browser_tests.process_tests.FailIfSetUpProcessCalledTwice.Dummy_2'],
-      test_name='FailIfSetUpProcessCalledTwice')
+      mockInitDependencyManager, '(TestSimple|TestException).*',
+      ['TestException', 'TestSimple'], [])
 
-  def testTearDownProcessCalledOnce(self):
-    self.baseTest(
-      '.*',
-      [],
-      ['browser_tests.process_tests.FailIfTearDownProcessCalledTwice.Dummy_0',
-       'browser_tests.process_tests.FailIfTearDownProcessCalledTwice.Dummy_1',
-       'browser_tests.process_tests.FailIfTearDownProcessCalledTwice.Dummy_2'],
-      test_name='FailIfTearDownProcessCalledTwice')
-
-  def testJsonOutputFormatPositiveFilter(self):
-    self.baseTest(
-      '(TestSimple|TestException).*',
-      ['browser_tests.simple_numeric_test.SimpleTest.TestException',
-       'browser_tests.simple_numeric_test.SimpleTest.TestSimple'], [])
-
-  def testExecutingTestsInSortedOrder(self):
+  @mock.patch('telemetry.internal.util.binary_manager.InitDependencyManager')
+  def testExecutingTestsInSortedOrder(self, mockInitDependencyManager):
     alphabetical_tests = []
-    prefix = 'browser_tests.simple_numeric_test.SimpleTest.Alphabetical_'
+    prefix = 'Alphabetical_'
     for i in xrange(20):
       alphabetical_tests.append(prefix + str(i))
     for c in string.uppercase[:26]:
@@ -134,12 +92,12 @@ class BrowserTestRunnerTest(unittest.TestCase):
       alphabetical_tests.append(prefix + c)
     alphabetical_tests.sort()
     self.baseTest(
-        'Alphabetical', [], alphabetical_tests)
+        mockInitDependencyManager, 'Alphabetical', [], alphabetical_tests)
 
   def shardingRangeTestHelper(self, total_shards, num_tests):
     shard_ranges = []
     for shard_index in xrange(0, total_shards):
-      shard_ranges.append(run_browser_tests._TestRangeForShard(
+      shard_ranges.append(browser_test_runner._TestRangeForShard(
         total_shards, shard_index, num_tests))
     # Make assertions about ranges
     num_tests_run = 0
@@ -159,16 +117,19 @@ class BrowserTestRunnerTest(unittest.TestCase):
     # Assert that we run all of the tests (very important)
     self.assertEquals(num_tests_run, num_tests)
 
-  def testShardsWithPrimeNumTests(self):
+  @mock.patch('telemetry.internal.util.binary_manager.InitDependencyManager')
+  def testShardsWithPrimeNumTests(self, _):
     for total_shards in xrange(1, 20):
       # Nice non-prime number
       self.shardingRangeTestHelper(total_shards, 101)
 
-  def testShardsWithDivisibleNumTests(self):
+  @mock.patch('telemetry.internal.util.binary_manager.InitDependencyManager')
+  def testShardsWithDivisibleNumTests(self, _):
     for total_shards in xrange(1, 6):
       self.shardingRangeTestHelper(total_shards, 8)
 
-  def testShardBoundaryConditions(self):
+  @mock.patch('telemetry.internal.util.binary_manager.InitDependencyManager')
+  def testShardBoundaryConditions(self, _):
     self.shardingRangeTestHelper(1, 0)
     self.shardingRangeTestHelper(1, 1)
     self.shardingRangeTestHelper(2, 1)
@@ -177,9 +138,11 @@ class BrowserTestRunnerTest(unittest.TestCase):
                        opt_abbr_input_json_file=None,
                        opt_test_filter='',
                        opt_filter_tests_after_sharding=False):
+    options = browser_test_runner.TestRunOptions()
+    options.verbosity = 0
     config = project_config.ProjectConfig(
         top_level_dir=os.path.join(util.GetTelemetryDir(), 'examples'),
-        client_configs=[],
+        client_configs=['a', 'b', 'c'],
         benchmark_dirs=[
             os.path.join(util.GetTelemetryDir(), 'examples', 'browser_tests')]
     )
@@ -197,38 +160,39 @@ class BrowserTestRunnerTest(unittest.TestCase):
       opt_args += ['--filter-tests-after-sharding']
     try:
       browser_test_runner.Run(
-          config,
+          config, options,
           ['SimpleShardingTest',
-           '--write-full-results-to=%s' % temp_file_name,
+           '--write-abbreviated-json-results-to=%s' % temp_file_name,
            '--total-shards=%d' % total_shards,
            '--shard-index=%d' % shard_index] + opt_args)
       with open(temp_file_name) as f:
         test_result = json.load(f)
-      actual_successes, actual_failures = self._ExtractTestResults(test_result)
-      self.assertEquals(set(actual_failures), set(failures))
-      self.assertEquals(set(actual_successes), set(successes))
+      self.assertEquals(test_result['failures'], failures)
+      self.assertEquals(test_result['successes'], successes)
+      self.assertEquals(test_result['valid'], True)
     finally:
       os.remove(temp_file_name)
 
-  def testShardedTestRun(self):
+  @mock.patch('telemetry.internal.util.binary_manager.InitDependencyManager')
+  def testShardedTestRun(self, _):
     self.baseShardingTest(3, 0, [], [
-      'browser_tests.simple_sharding_test.SimpleShardingTest.Test1',
-      'browser_tests.simple_sharding_test.SimpleShardingTest.Test2',
-      'browser_tests.simple_sharding_test.SimpleShardingTest.Test3',
-      'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_0',
-      'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_1',
+      'Test1',
+      'Test2',
+      'Test3',
+      'passing_test_0',
+      'passing_test_1',
     ])
     self.baseShardingTest(3, 1, [], [
-      'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_2',
-      'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_3',
-      'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_4',
-      'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_5',
+      'passing_test_2',
+      'passing_test_3',
+      'passing_test_4',
+      'passing_test_5',
     ])
     self.baseShardingTest(3, 2, [], [
-      'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_6',
-      'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_7',
-      'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_8',
-      'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_9',
+      'passing_test_6',
+      'passing_test_7',
+      'passing_test_8',
+      'passing_test_9',
     ])
 
   def writeMockTestResultsFile(self):
@@ -273,7 +237,8 @@ class BrowserTestRunnerTest(unittest.TestCase):
       json.dump(mock_test_results, f)
     return temp_file_name
 
-  def testSplittingShardsByTimes(self):
+  @mock.patch('telemetry.internal.util.binary_manager.InitDependencyManager')
+  def testSplittingShardsByTimes(self, _):
     temp_file_name = self.writeMockTestResultsFile()
     # It seems that the sorting order of the first four tests above is:
     #   passing_test_0, Test1, Test2, Test3
@@ -284,53 +249,45 @@ class BrowserTestRunnerTest(unittest.TestCase):
     try:
       self.baseShardingTest(
         4, 0, [],
-        ['browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_0',
-         'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_1',
-         'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_5',
-         'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_9'
-        ], temp_file_name)
+        ['passing_test_0', 'passing_test_1',
+         'passing_test_5', 'passing_test_9'],
+        temp_file_name)
       self.baseShardingTest(
         4, 1, [],
-        ['browser_tests.simple_sharding_test.SimpleShardingTest.Test1',
-         'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_2',
-         'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_6'
-        ], temp_file_name)
+        ['Test1', 'passing_test_2', 'passing_test_6'],
+        temp_file_name)
       self.baseShardingTest(
         4, 2, [],
-        ['browser_tests.simple_sharding_test.SimpleShardingTest.Test2',
-         'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_3',
-         'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_7'
-        ], temp_file_name)
+        ['Test2', 'passing_test_3', 'passing_test_7'],
+        temp_file_name)
       self.baseShardingTest(
         4, 3, [],
-        ['browser_tests.simple_sharding_test.SimpleShardingTest.Test3',
-         'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_4',
-         'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_8'
-        ], temp_file_name)
+        ['Test3', 'passing_test_4', 'passing_test_8'],
+        temp_file_name)
     finally:
       os.remove(temp_file_name)
 
-  def testFilteringAfterSharding(self):
+  @mock.patch('telemetry.internal.util.binary_manager.InitDependencyManager')
+  def testFilteringAfterSharding(self, _):
     temp_file_name = self.writeMockTestResultsFile()
     try:
       self.baseShardingTest(
         4, 1, [],
-        ['browser_tests.simple_sharding_test.SimpleShardingTest.Test1',
-         'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_2',
-         'browser_tests.simple_sharding_test.SimpleShardingTest.passing_test_6'
-        ], temp_file_name,
+        ['Test1', 'passing_test_2', 'passing_test_6'],
+        temp_file_name,
         opt_test_filter='(Test1|passing_test_2|passing_test_6)',
         opt_filter_tests_after_sharding=True)
     finally:
       os.remove(temp_file_name)
 
-  def testMedianComputation(self):
-    self.assertEquals(2.0, run_browser_tests._MedianTestTime(
+  @mock.patch('telemetry.internal.util.binary_manager.InitDependencyManager')
+  def testMedianComputation(self, _):
+    self.assertEquals(2.0, browser_test_runner._MedianTestTime(
       {'test1': 2.0, 'test2': 7.0, 'test3': 1.0}))
-    self.assertEquals(2.0, run_browser_tests._MedianTestTime(
+    self.assertEquals(2.0, browser_test_runner._MedianTestTime(
       {'test1': 2.0}))
-    self.assertEquals(0.0, run_browser_tests._MedianTestTime({}))
-    self.assertEqual(4.0, run_browser_tests._MedianTestTime(
+    self.assertEquals(0.0, browser_test_runner._MedianTestTime({}))
+    self.assertEqual(4.0, browser_test_runner._MedianTestTime(
       {'test1': 2.0, 'test2': 6.0, 'test3': 1.0, 'test4': 8.0}))
 
 
@@ -350,13 +307,12 @@ class Algebra(
     self.assertEquals(0, 1)
 
 
-class ErrorneousGeometric(
+class Geometric(
     serially_executed_browser_test_case.SeriallyExecutedBrowserTestCase):
 
   @classmethod
   def GenerateTestCases_Compare(cls, options):
     del options  # Unused.
-    assert False, 'I am a problematic generator'
     yield 'testBasic', ('square', 'circle')
 
   def Compare(self, x, y):
@@ -366,23 +322,16 @@ class ErrorneousGeometric(
     self.assertEquals(90, 450)
 
 class TestLoadAllTestModules(unittest.TestCase):
+  # TODO(nedn): this need to be updated after
+  # https://codereview.chromium.org/2590623002/ is landed so that
+  # LoadAllTestsInModule actually return tests.
+  @decorators.Disabled('all')
   def testLoadAllTestsInModule(self):
-    context = browser_test_context.TypTestContext()
-    context.finder_options = options_for_unittests.GetCopy()
-    context.test_class = Algebra
-    context.test_case_ids_to_run.add(
-      'telemetry.testing.browser_test_runner_unittest.Algebra.TestNumber')
-    context.test_case_ids_to_run.add(
-      'telemetry.testing.browser_test_runner_unittest.Algebra.testOne')
-    context.Freeze()
-    browser_test_context._global_test_context = context
-    try:
-      # This should not invoke GenerateTestCases of ErrorneousGeometric class,
-      # otherwise that would throw Exception.
-      tests = serially_executed_browser_test_case.LoadAllTestsInModule(
-          sys.modules[__name__])
-      self.assertEquals(sorted([t.id() for t in tests]),
-          ['telemetry.testing.browser_test_runner_unittest.Algebra.TestNumber',
-           'telemetry.testing.browser_test_runner_unittest.Algebra.testOne'])
-    finally:
-      browser_test_context._global_test_context = None
+    tests = serially_executed_browser_test_case.LoadAllTestsInModule(
+        sys.modules[__name__])
+    self.assertEquals(sorted([t.id() for t in tests]),
+        ['telemetry.testing.browser_test_runner_unittest.Algebra.TestNumber',
+         'telemetry.testing.browser_test_runner_unittest.Algebra.testOne',
+         'telemetry.testing.browser_test_runner_unittest.Algebra.testTwo',
+         'telemetry.testing.browser_test_runner_unittest.Geometric.TestAngle',
+         'telemetry.testing.browser_test_runner_unittest.Geometric.testBasic'])
