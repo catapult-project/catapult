@@ -23,6 +23,7 @@ tr.exportTo('tr.v.ui', function() {
       this.constrainNameColumnWidth_ = false;
       this.overviewDataRange_ = undefined;
       this.displayStatistic_ = 'avg';
+      this.doMergeRelationshipsForColumn_ = new Map();
     }
 
     /**
@@ -38,6 +39,7 @@ tr.exportTo('tr.v.ui', function() {
       let histograms = new tr.v.HistogramSet();
       for (let row of rootRows) row.collectHistograms_(histograms);
       histograms.deduplicateDiagnostics();
+      for (let row of rootRows) row.mergeRelationships_();
 
       return rootRows;
     }
@@ -50,6 +52,57 @@ tr.exportTo('tr.v.ui', function() {
       }
     }
 
+    static mergeHistogramDownHierarchy_(histogram, hierarchy, columnName) {
+      // Track the path down the grouping tree to each Histogram,
+      // but only start tracking the path at the grouping level that
+      // corresponds to the Histogram NAME Grouping. This groupingPath will be
+      // attached to Histograms in order to help mergeRelationships() figure out
+      // which merged Histograms should be related to which other merged
+      // Histograms.
+      let groupingPath = undefined;
+
+      for (let row of hierarchy) {
+        if (groupingPath !== undefined) {
+          groupingPath.push(row.name);
+        } else if (row.name === histogram.name) {
+          // Start tracking the path, but don't add histogram.name to the path,
+          // since related histograms won't have the same name.
+          groupingPath = [];
+        }
+
+        if (!row.description) {
+          row.description = histogram.description;
+        }
+
+        if (row.columns.get(columnName) === undefined) {
+          let clone = histogram.clone();
+          if (groupingPath !== undefined) {
+            new tr.v.d.GroupingPath(groupingPath).addToHistogram(clone);
+          }
+          row.columns.set(columnName, clone);
+          row.doMergeRelationshipsForColumn_.set(columnName, true);
+          continue;
+        }
+
+        if (row.columns.get(columnName) === tr.v.ui.UNMERGEABLE) continue;
+
+        if (!row.columns.get(columnName).canAddHistogram(histogram)) {
+          row.columns.set(columnName, tr.v.ui.UNMERGEABLE);
+          continue;
+        }
+
+        let merged = row.columns.get(columnName);
+
+        // If row.columns.get(columnName).name != histogram.name, then it won't
+        // make sense to merge relationships for this histogram.
+        if (merged.name !== histogram.name) {
+          row.doMergeRelationshipsForColumn_.set(name, false);
+        }
+
+        merged.addHistogram(histogram);
+      }
+    }
+
     static buildInternal_(histogramArrayMap, hierarchy, rootRows) {
       for (let [name, histograms] of histogramArrayMap) {
         if (histograms instanceof Array) {
@@ -58,36 +111,8 @@ tr.exportTo('tr.v.ui', function() {
           // getDisplayLabel, which defines the columns of the table and is
           // unskippable.
           for (let histogram of histograms) {
-            // Merge histograms up the grouping hierarchy.
-            for (let row of hierarchy) {
-              if (!row.description) {
-                row.description = histogram.description;
-              }
-
-              if (row.columns.get(name) === undefined) {
-                row.columns.set(name, histogram);
-                continue;
-              }
-              if (row.columns.get(name) === tr.v.ui.UNMERGEABLE) {
-                continue;
-              }
-              if (!row.columns.get(name).canAddHistogram(histogram)) {
-                row.columns.set(name, tr.v.ui.UNMERGEABLE);
-                continue;
-              }
-
-              // Create a new Histogram with a new uuid instead of cloning
-              // either |histogram| or |row.columns.get(name)| so that we don't
-              // clone either Histogram's diagnostics.  |histogram.name| might
-              // not necessarily equal |row.columns.get(name)|, but that
-              // shouldn't matter for this dom-module.
-              let merged = row.columns.get(name);
-              if (!merged.diagnostics.has(tr.v.d.MERGED_FROM_DIAGNOSTIC_KEY)) {
-                merged = merged.clone();
-              }
-              merged.addHistogram(histogram);
-              row.columns.set(name, merged);
-            }
+            HistogramSetTableRow.mergeHistogramDownHierarchy_(
+                histogram, hierarchy, name);
           }
         } else if (histograms instanceof Map) {
           // |histograms| is actually a nested histogramArrayMap.
@@ -103,6 +128,17 @@ tr.exportTo('tr.v.ui', function() {
             hierarchy[hierarchy.length - 1].subRows.push(row);
           }
         }
+      }
+    }
+
+    mergeRelationships_() {
+      for (let subRow of this.subRows) {
+        subRow.mergeRelationships_();
+      }
+      for (let [name, hist] of this.columns) {
+        if (!(hist instanceof tr.v.Histogram)) continue;
+        if (!this.doMergeRelationshipsForColumn_.get(name)) continue;
+        hist.diagnostics.mergeRelationships(hist);
       }
     }
 
@@ -132,10 +168,10 @@ tr.exportTo('tr.v.ui', function() {
 
     set displayStatistic(statName) {
       this.displayStatistic_ = statName;
-      for (var [displayLabel, cell] of this.cells) {
+      for (let [displayLabel, cell] of this.cells) {
         cell.displayStatistic = statName;
       }
-      for (var row of this.subRows) {
+      for (let row of this.subRows) {
         row.displayStatistic = statName;
       }
     }

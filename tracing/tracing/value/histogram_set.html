@@ -334,6 +334,19 @@ tr.exportTo('tr.v', function() {
         }
       }
     }
+
+    /*
+     * RelatedHistogram diagnostics cannot be merged when Histograms are merged
+     * because the related Histograms might not exist yet. Callers must
+     * call HistogramSet.deduplicateDiagnostics() and then
+     * HistogramSet.mergeRelationships() after merging Histograms in order to
+     * merge RelatedHistogram diagnostics.
+     */
+    mergeRelationships() {
+      for (let hist of this) {
+        hist.diagnostics.mergeRelationships(hist);
+      }
+    }
   }
 
   // This does not contain storyGroupingKeys!

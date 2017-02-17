@@ -109,5 +109,75 @@ tr.b.unittest.testSuite(function() {
     assert.instanceOf(diagnostics[1], tr.v.d.RelatedHistogramSet);
     assert.instanceOf(diagnostics[2], tr.v.d.CollectedRelatedEventSet);
   });
+
+  test('mergeRelationships', function() {
+    let aHist0 = new tr.v.Histogram('a', tr.b.Unit.byName.count);
+    let bHist0 = new tr.v.Histogram('b', tr.b.Unit.byName.count);
+
+    aHist0.diagnostics.set('set', new tr.v.d.RelatedHistogramSet([bHist0]));
+    let map = new tr.v.d.RelatedHistogramMap();
+    map.set('c', bHist0);
+    aHist0.diagnostics.set('map', map);
+    let breakdown = new tr.v.d.RelatedHistogramBreakdown();
+    breakdown.set('d', bHist0);
+    aHist0.diagnostics.set('breakdown', breakdown);
+    aHist0.diagnostics.set('unmergeable', new tr.v.d.Generic('unmergeable'));
+
+    let histograms0 = new tr.v.HistogramSet([aHist0, bHist0]);
+
+    histograms0.addSharedDiagnostic(
+        tr.v.d.TelemetryInfo.NAME,
+        new tr.v.d.TelemetryInfo({label: 'iteration 0'}));
+
+    let aHist1 = new tr.v.Histogram('a', tr.b.Unit.byName.count);
+    let bHist1 = new tr.v.Histogram('b', tr.b.Unit.byName.count);
+
+    aHist1.diagnostics.set('set', new tr.v.d.RelatedHistogramSet([bHist1]));
+    map = new tr.v.d.RelatedHistogramMap();
+    map.set('c', bHist1);
+    aHist1.diagnostics.set('map', map);
+    breakdown = new tr.v.d.RelatedHistogramBreakdown();
+    breakdown.set('d', bHist1);
+    aHist1.diagnostics.set('breakdown', breakdown);
+    aHist1.diagnostics.set('unmergeable', new tr.v.d.RelatedHistogramSet(
+        [bHist1]));
+
+    let histograms1 = new tr.v.HistogramSet([aHist1, bHist1]);
+
+    histograms1.addSharedDiagnostic(
+        tr.v.d.TelemetryInfo.NAME,
+        new tr.v.d.TelemetryInfo({label: 'iteration 1'}));
+
+    let aMergedHist = aHist0.clone();
+    aMergedHist.addHistogram(aHist1);
+    new tr.v.d.GroupingPath([]).addToHistogram(aMergedHist);
+
+    let bMergedHist = bHist0.clone();
+    bMergedHist.addHistogram(bHist1);
+    new tr.v.d.GroupingPath([]).addToHistogram(bMergedHist);
+
+    let mergedHists = new tr.v.HistogramSet([aMergedHist, bMergedHist]);
+    mergedHists.deduplicateDiagnostics();
+
+    aMergedHist.diagnostics.mergeRelationships(aMergedHist);
+    bMergedHist.diagnostics.mergeRelationships(bMergedHist);
+
+    let aMergedSet = aMergedHist.diagnostics.get('set');
+    assert.instanceOf(aMergedSet, tr.v.d.RelatedHistogramSet);
+    assert.strictEqual(bMergedHist, tr.b.getOnlyElement(aMergedSet));
+
+    let aMergedMap = aMergedHist.diagnostics.get('map');
+    assert.instanceOf(aMergedMap, tr.v.d.RelatedHistogramMap);
+    assert.lengthOf(aMergedMap, 1);
+    assert.strictEqual(bMergedHist, aMergedMap.get('c'));
+
+    let aMergedBreakdown = aMergedHist.diagnostics.get('breakdown');
+    assert.instanceOf(aMergedBreakdown, tr.v.d.RelatedHistogramBreakdown);
+    assert.lengthOf(aMergedBreakdown, 1);
+    assert.strictEqual(bMergedHist, aMergedBreakdown.get('d'));
+
+    let aMergedUnmergeable = aMergedHist.diagnostics.get('unmergeable');
+    assert.instanceOf(aMergedUnmergeable, tr.v.d.UnmergeableDiagnosticSet);
+  });
 });
 </script>

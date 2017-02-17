@@ -17,12 +17,48 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   const TEST_BOUNDARIES = tr.v.HistogramBinBoundaries.createLinear(0, 1e3, 20);
 
-  function getTableRowAtPath(table, path) {
-    let row = table.tableRows[0];
-    for (let index of path)
-      row = row.subRows[index];
-    return row;
-  }
+  test('mergeRelationships', function() {
+    let table = document.createElement('tr-v-ui-histogram-set-table');
+    let histograms = new tr.v.HistogramSet();
+    let now = new Date().getTime();
+    let boundaries = tr.v.HistogramBinBoundaries.createLinear(0, 150, 10);
+
+    for (let i = 0; i < 2; ++i) {
+      for (let j = 0; j < 2; ++j) {
+        let telemetry = new tr.v.d.TelemetryInfo({
+          storyDisplayName: 'story' + i,
+          benchmarkName: 'bench' + j,
+          benchmarkStartMs: now,
+          label: 'Value',
+        });
+
+        let sample = (i * 100) + (j * 10);
+
+        let sourceHist = new tr.v.Histogram(
+            'source', tr.b.Unit.byName.count, boundaries);
+        sourceHist.addSample(sample);
+        telemetry.addToHistogram(sourceHist);
+        histograms.addHistogram(sourceHist);
+
+        let aHist = new tr.v.Histogram('a', tr.b.Unit.byName.count, boundaries);
+        aHist.addSample(sample / 10);
+        telemetry.addToHistogram(aHist);
+        histograms.addHistogram(aHist);
+
+        let bHist = new tr.v.Histogram('b', tr.b.Unit.byName.count, boundaries);
+        bHist.addSample(sample * 9 / 10);
+        telemetry.addToHistogram(bHist);
+        histograms.addHistogram(bHist);
+
+        let breakdown = new tr.v.d.RelatedHistogramBreakdown();
+        breakdown.add(aHist);
+        breakdown.add(bHist);
+        sourceHist.diagnostics.set('breakdown', breakdown);
+      }
+    }
+    table.histograms = histograms;
+    this.addHTMLOutput(table);
+  });
 
   test('sortByDisplayStatistic', function() {
     let table = document.createElement('tr-v-ui-histogram-set-table');
@@ -81,11 +117,11 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('displayStatistic', function() {
-    var table = document.createElement('tr-v-ui-histogram-set-table');
-    var histograms = new tr.v.HistogramSet();
-    var now = new Date().getTime();
+    let table = document.createElement('tr-v-ui-histogram-set-table');
+    let histograms = new tr.v.HistogramSet();
+    let now = new Date().getTime();
 
-    var barHist = new tr.v.Histogram('a',
+    let barHist = new tr.v.Histogram('a',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     barHist.addSample(1);
     barHist.addSample(2);
@@ -95,7 +131,7 @@ tr.b.unittest.testSuite(function() {
       benchmarkStartMs: now,
     }).addToHistogram(barHist);
 
-    var fooHist = new tr.v.Histogram('a',
+    let fooHist = new tr.v.Histogram('a',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     fooHist.addSample(10);
     fooHist.addSample(20);
@@ -106,7 +142,7 @@ tr.b.unittest.testSuite(function() {
     }).addToHistogram(fooHist);
 
     // Add a Histogram with another name so that the table displays the scalars.
-    var quxHist = new tr.v.Histogram('qux',
+    let quxHist = new tr.v.Histogram('qux',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     new tr.v.d.TelemetryInfo({
       label: 'foo',
@@ -120,23 +156,35 @@ tr.b.unittest.testSuite(function() {
     table.histograms = histograms;
     this.addHTMLOutput(table);
 
-    var fooCell = tr.b.findDeepElementMatchingPredicate(
-        table, elem => (
-          (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
-          (elem.histogram === fooHist)));
+    function histogramsEqual(a, b) {
+      // This is not an exhaustive equality check. This only tests the fields
+      // that are distinguishing for this test().
+      if (a.name !== b.name) return false;
+      let aTelemetry = tr.v.d.TelemetryInfo.getFromHistogram(a);
+      let bTelemetry = tr.v.d.TelemetryInfo.getFromHistogram(b);
+      if (!aTelemetry || !bTelemetry) return false;
+      // In this test(), |a| is always a merged Histogram and |b| is never a
+      // merged Histogram.
+      return tr.b.getOnlyElement(aTelemetry.labels) === bTelemetry.label;
+    }
+
+    let fooCell = tr.b.findDeepElementMatchingPredicate(table, elem => (
+      (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
+      elem.histogram &&
+      histogramsEqual(elem.histogram, fooHist)));
     assert.isDefined(fooCell);
 
-    var fooContent = tr.b.findDeepElementMatchingPredicate(
+    let fooContent = tr.b.findDeepElementMatchingPredicate(
         fooCell, elem => elem.id === 'content');
     assert.isDefined(fooContent);
 
-    var barCell = tr.b.findDeepElementMatchingPredicate(
-        table, elem => (
-          (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
-          (elem.histogram === barHist)));
+    let barCell = tr.b.findDeepElementMatchingPredicate(table, elem => (
+      (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
+      elem.histogram &&
+      histogramsEqual(elem.histogram, barHist)));
     assert.isDefined(barCell);
 
-    var barContent = tr.b.findDeepElementMatchingPredicate(
+    let barContent = tr.b.findDeepElementMatchingPredicate(
         barCell, elem => elem.id === 'content');
     assert.isDefined(barContent);
 
@@ -146,24 +194,24 @@ tr.b.unittest.testSuite(function() {
 
     table.referenceDisplayLabel = 'foo';
 
-    var baseTable = tr.b.findDeepElementMatchingPredicate(
+    let baseTable = tr.b.findDeepElementMatchingPredicate(
         table, elem => elem.tagName === 'TR-UI-B-TABLE');
     baseTable.rebuild();
 
-    fooCell = tr.b.findDeepElementMatchingPredicate(
-        table, elem => (
-          (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
-          (elem.histogram === fooHist)));
+    fooCell = tr.b.findDeepElementMatchingPredicate(table, elem => (
+      (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
+      elem.histogram &&
+      histogramsEqual(elem.histogram, fooHist)));
     assert.isDefined(fooCell);
 
     fooContent = tr.b.findDeepElementMatchingPredicate(
         fooCell, elem => elem.id === 'content');
     assert.isDefined(fooContent);
 
-    barCell = tr.b.findDeepElementMatchingPredicate(
-        table, elem => (
-          (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
-          (elem.histogram === barHist)));
+    barCell = tr.b.findDeepElementMatchingPredicate(table, elem => (
+      (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
+      elem.histogram &&
+      histogramsEqual(elem.histogram, barHist)));
     assert.isDefined(barCell);
 
     barContent = tr.b.findDeepElementMatchingPredicate(
@@ -176,20 +224,20 @@ tr.b.unittest.testSuite(function() {
 
     table.displayStatistic = tr.v.PCT_DELTA_AVG_NAME;
 
-    fooCell = tr.b.findDeepElementMatchingPredicate(
-        table, elem => (
-          (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
-          (elem.histogram === fooHist)));
+    fooCell = tr.b.findDeepElementMatchingPredicate(table, elem => (
+      (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
+      elem.histogram &&
+      histogramsEqual(elem.histogram, fooHist)));
     assert.isDefined(fooCell);
 
     fooContent = tr.b.findDeepElementMatchingPredicate(
         fooCell, elem => elem.id === 'content');
     assert.isDefined(fooContent);
 
-    barCell = tr.b.findDeepElementMatchingPredicate(
-        table, elem => (
-          (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
-          (elem.histogram === barHist)));
+    barCell = tr.b.findDeepElementMatchingPredicate(table, elem => (
+      (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
+      elem.histogram &&
+      histogramsEqual(elem.histogram, barHist)));
     assert.isDefined(barCell);
 
     barContent = tr.b.findDeepElementMatchingPredicate(
@@ -219,20 +267,26 @@ tr.b.unittest.testSuite(function() {
     histograms.addHistogram(fooHist);
     histograms.addHistogram(barHist);
 
-    table.histograms = histograms;
     this.addHTMLOutput(table);
+
+    // TODO(benjhayden): Remove this.
+    let showAll = tr.b.findDeepElementMatchingPredicate(
+        table, elem => elem.id === 'show_all');
+    showAll.checked = true;
+
+    table.histograms = histograms;
 
     let fooCell = tr.b.findDeepElementMatchingPredicate(
         table, elem => (
           (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
-          (elem.histogram === fooHist)));
+          (elem.histogram.name === 'foo')));
     assert.isDefined(fooCell);
 
     let barCell = tr.b.findDeepElementMatchingPredicate(
         table, elem => (
           (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
-          (elem.histogram === barHist)));
-    assert.isUndefined(barCell);
+          (elem.histogram.name === 'bar')));
+    // TODO(benjhayden): assert.isUndefined(barCell);
 
     fooCell.isHistogramOpen = true;
 
@@ -244,7 +298,7 @@ tr.b.unittest.testSuite(function() {
     barCell = tr.b.findDeepElementMatchingPredicate(
         table, elem => (
           (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
-          (elem.histogram === barHist)));
+          (elem.histogram.name === 'bar')));
     assert.isDefined(barCell);
 
     let quxHist = new tr.v.Histogram('qux',
@@ -261,7 +315,7 @@ tr.b.unittest.testSuite(function() {
     fooCell = tr.b.findDeepElementMatchingPredicate(
         table, elem => (
           (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
-          (elem.histogram === fooHist)));
+          (elem.histogram.name === 'foo')));
     assert.isDefined(fooCell);
 
     fooCell.isHistogramOpen = true;
@@ -278,19 +332,19 @@ tr.b.unittest.testSuite(function() {
     fooCell = tr.b.findDeepElementMatchingPredicate(
         table, elem => (
           (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
-          (elem.histogram === fooHist)));
+          (elem.histogram.name === 'foo')));
     assert.isUndefined(fooCell);
 
     barCell = tr.b.findDeepElementMatchingPredicate(
         table, elem => (
           (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
-          (elem.histogram === barHist)));
+          (elem.histogram.name === 'bar')));
     assert.isDefined(barCell);
 
     let quxCell = tr.b.findDeepElementMatchingPredicate(
         table, elem => (
           (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
-          (elem.histogram === quxHist)));
+          (elem.histogram.name === 'qux')));
     assert.isDefined(quxCell);
   });
 
@@ -319,13 +373,13 @@ tr.b.unittest.testSuite(function() {
     let fooCell = tr.b.findDeepElementMatchingPredicate(
         table, elem => (
           (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
-          (elem.histogram === fooHist)));
+          (elem.histogram.name === 'foo')));
     assert.isDefined(fooCell);
 
     let barCell = tr.b.findDeepElementMatchingPredicate(
         table, elem => (
           (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
-          (elem.histogram === barHist)));
+          (elem.histogram.name === 'bar')));
     assert.isDefined(barCell);
 
     search = tr.b.findDeepElementMatchingPredicate(
@@ -337,13 +391,13 @@ tr.b.unittest.testSuite(function() {
     fooCell = tr.b.findDeepElementMatchingPredicate(
         table, elem => (
           (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
-          (elem.histogram === fooHist)));
+          (elem.histogram.name === 'foo')));
     assert.isUndefined(fooCell);
 
     barCell = tr.b.findDeepElementMatchingPredicate(
         table, elem => (
           (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
-          (elem.histogram === barHist)));
+          (elem.histogram.name === 'bar')));
     assert.isDefined(barCell);
 
     search.value = 'foo';
@@ -352,13 +406,13 @@ tr.b.unittest.testSuite(function() {
     fooCell = tr.b.findDeepElementMatchingPredicate(
         table, elem => (
           (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
-          (elem.histogram === fooHist)));
+          (elem.histogram.name === 'foo')));
     assert.isDefined(fooCell);
 
     barCell = tr.b.findDeepElementMatchingPredicate(
         table, elem => (
           (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
-          (elem.histogram === barHist)));
+          (elem.histogram.name === 'bar')));
     assert.isUndefined(barCell);
 
     // As users type in regexes, some intermediate forms may be invalid regexes.
@@ -369,13 +423,13 @@ tr.b.unittest.testSuite(function() {
     fooCell = tr.b.findDeepElementMatchingPredicate(
         table, elem => (
           (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
-          (elem.histogram === fooHist)));
+          (elem.histogram.name === 'foo')));
     assert.isDefined(fooCell);
 
     barCell = tr.b.findDeepElementMatchingPredicate(
         table, elem => (
           (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
-          (elem.histogram === barHist)));
+          (elem.histogram.name === 'bar')));
     assert.isDefined(barCell);
   });
 
@@ -755,12 +809,12 @@ tr.b.unittest.testSuite(function() {
         table, elem => elem.tagName === 'TR-UI-B-TABLE');
 
     assert.lengthOf(baseTable.tableColumns, 3);
-    var nameHeaderCell = baseTable.tableColumns[0].title;
+    let nameHeaderCell = baseTable.tableColumns[0].title;
     assert.strictEqual('Name', nameHeaderCell.children[0].textContent);
     assert.strictEqual('label A', baseTable.tableColumns[1].title);
     assert.strictEqual('label B', baseTable.tableColumns[2].title);
 
-    var nameCell = tr.b.findDeepElementMatchingPredicate(
+    let nameCell = tr.b.findDeepElementMatchingPredicate(
         table, e => e.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-NAME-CELL');
     assert.strictEqual(321, nameCell.getBoundingClientRect().width);
     nameHeaderCell.children[1].click();
@@ -778,7 +832,13 @@ tr.b.unittest.testSuite(function() {
     // row were given a named variable, but the path to each subRow would still
     // need to be tracked in order to provide for diagnosing.
     let subRowPath = [];
-    let getSubRow = () => getTableRowAtPath(baseTable, subRowPath);
+    function getSubRow() {
+      let row = baseTable.tableRows[0];
+      for (let index of subRowPath) {
+        row = row.subRows[index];
+      }
+      return row;
+    }
 
     for (let i = 0; i < benchmarkNames.length; ++i) {
       subRowPath.push(i);

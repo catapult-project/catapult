@@ -33,6 +33,53 @@ tr.exportTo('tr.v.d', function() {
       // Related Histograms might not exist yet.
     }
 
+    mergeRelationships(otherDiagnostic, parentHist, otherParentHist) {
+      /*
+        Modify |this| to contain Histograms that should be related to
+        |parentHist|.
+
+        |otherParentHist| was merged to |parentHist|.
+        |otherDiagnostic| contains Histograms that are related to
+        |otherParentHist|.
+
+        Since mergeRelationships() is called after all Histograms are merged,
+        then the MERGED_TO diagnostics of the Histograms in |otherDiagnostic|
+        contain Histograms that should be related to |parentHist| via |this|
+        RelatedHistogramSet.
+
+        otherParentHist -----------------------------> parentHist
+        |               merged to RelatedHistogramSet   |
+        |                                               |
+        | otherDiagnostic                               | this
+        | RelatedHistogramSet                           | RelatedHistogramSet
+        v                                               v
+        otherRelatedHist -----------------------------> relatedHist
+                         merged to RelatedHistogramSet
+
+        However, |otherRelatedHist| may have been merged to Histograms using
+        different grouping keys, so if |relatedHist|'s merge path is different
+        from |parentHist|'s merge path, then |relatedHist| should not be related
+        to |parentHist|.
+       */
+      let parentGroupingPath = tr.v.d.GroupingPath.getFromHistogram(parentHist);
+      for (let otherRelatedHist of otherDiagnostic) {
+        let mergedTo = otherRelatedHist.diagnostics.get(
+            tr.v.d.MERGED_TO_DIAGNOSTIC_KEY);
+        if (mergedTo === undefined) continue;
+
+        for (let relatedHist of mergedTo) {
+          if (this.has(relatedHist)) continue;
+
+          let relatedGroupingPath = tr.v.d.GroupingPath.getFromHistogram(
+              relatedHist);
+          if (relatedGroupingPath === undefined) continue;
+          if (!parentGroupingPath.equals(relatedGroupingPath)) continue;
+
+          this.add(relatedHist);
+        }
+      }
+    }
+
     /**
      * @param {!(tr.v.d.HistogramRef|tr.v.Histogram)} v
      */

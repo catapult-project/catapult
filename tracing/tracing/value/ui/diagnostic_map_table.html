@@ -50,6 +50,7 @@ found in the LICENSE file.
           // https://github.com/catapult-project/catapult/issues/2842
           if (diagnostic instanceof tr.v.d.UnmergeableDiagnosticSet) continue;
           if (diagnostic instanceof tr.v.d.CollectedRelatedEventSet) continue;
+          if (diagnostic instanceof tr.v.d.GroupingPath) continue;
 
           columnTitles.add(name);
         }

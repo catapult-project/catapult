@@ -515,6 +515,7 @@
       'tracing/value/diagnostics/diagnostic_ref.html',
       'tracing/value/diagnostics/event_ref.html',
       'tracing/value/diagnostics/generic.html',
+      'tracing/value/diagnostics/grouping_path.html',
       'tracing/value/diagnostics/histogram_ref.html',
       'tracing/value/diagnostics/merged_buildbot_info.html',
       'tracing/value/diagnostics/merged_device_info.html',
