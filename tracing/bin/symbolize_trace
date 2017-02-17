@@ -65,7 +65,7 @@ class Symbolizer(object):
       self.binary = 'addr2line'
     self.symbolizer_path = FindInSystemPath(self.binary)
 
-  def _SymbolizeLinuxAndAndroid(self, symfile):
+  def _SymbolizeLinuxAndAndroid(self, symfile, unsymbolized_name):
     def _SymbolizerCallback(sym_info, frames):
       # Unwind inline chain to the top.
       while sym_info.inlined_by:
@@ -118,11 +118,11 @@ class Symbolizer(object):
       processed_keys_count += len(keys_to_process)
       all_keys = all_keys[input_count:]
 
-  def Symbolize(self, symfile):
+  def Symbolize(self, symfile, unsymbolized_name):
     if self.is_mac:
       self._SymbolizeMac(symfile)
     else:
-      self._SymbolizeLinuxAndAndroid(symfile)
+      self._SymbolizeLinuxAndAndroid(symfile, unsymbolized_name)
 
 
 def IsSymbolizableFile(file_path):
@@ -379,7 +379,7 @@ def SymbolizeFiles(symfiles, symbolizer):
                len(symfile.frames_by_address),
                symfile.path)
 
-    symbolizer.Symbolize(symfile)
+    symbolizer.Symbolize(symfile, unsymbolized_name)
     symbolized = True
 
   return symbolized
