@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/components/polymer/polymer.html">
+
+<link rel="import" href="/dashboard/elements/alerts-table.html">
+<link rel="import" href="/dashboard/static/simple_xhr.html">
+
+<dom-module id="benchmark-health-report-details">
+  <style>
+    .error {
+      color: #dd4b39;
+      font-weight: bold;
+    }
+
+    #loading-spinner {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+  </style>
+  <template>
+    <template is="dom-if" if="{{loading}}">
+      <div id="loading-spinner"><img src="//www.google.com/images/loading.gif"></div>
+    </template>
+    <template is="dom-if" if="{{error}}">
+      <div class="error">{{error}}</div>
+    </template>
+    <template is="dom-if" if="{{computeSuccessfulLoad(loading, error)}}">
+      <h1>Report for {{benchmark}} on {{master}}</h1>
+      <h2>{{benchmark}} is on {{bots.length}} bots:</h2>
+      <ul>
+      <template is="dom-repeat" items="{{bots}}">
+        <li>{{item}}
+      </template>
+      </ul>
+
+      <h2>{{alerts.length}} alerts for {{benchmark}} in the last {{numDays}} days</h2>
+      <h3>{{computeNumValid(alerts)}} valid and {{computeNumInvalid(alerts)}} invalid and {{computeNumUntriaged(alerts)}} untriaged</h3>
+      <alerts-table id="alerts-table"
+                    alert-list="{{alerts}}"
+                    extra-columns="{{extraColumns}}"></alerts-table>
+    </template>
+
+  </template>
+  <script>
+    'use strict';
+    Polymer({
+      is: 'benchmark-health-report-details',
+      properties: {
+        alerts: {
+          notify: true,
+          type: Array
+        },
+        benchmark: {
+          notify: true,
+          type: String
+        },
+        bots: {
+          notify: true,
+          type: Array
+        },
+        extraColumns: {
+          type: Array,
+          notify: true,
+          value: () => ([
+            {
+              'key': 'percent_changed',
+              'label': 'Delta %'
+            },
+            {
+              'key': 'absolute_delta',
+              'label': 'Abs Delta'
+            },
+            {
+              'key': 'units',
+              'label': 'Units'
+            }
+          ])
+        },
+        error: {
+          notify: true,
+          type: Boolean,
+          value: false
+        },
+        loading: {
+          notify: true,
+          type: Boolean,
+          value: true
+        },
+        master: {
+          notify: true,
+          type: String
+        },
+        monitored: {
+          notify: true,
+          type: Boolean
+        },
+        numDays: {
+          notify: true,
+          type: Number
+        }
+      },
+
+      countAlerts: function(bugCheck, alerts) {
+        var count = 0;
+        for (var alert of alerts) {
+          if (bugCheck(alert.bug_id)) {
+            count++;
+          }
+        }
+        return count;
+      },
+
+      computeSuccessfulLoad: (loading, error) => !(loading || error),
+
+      computeNumInvalid: function(alerts) {
+        return this.countAlerts(this.isInvalidAlert, alerts);
+      },
+
+      computeNumValid: function(alerts) {
+        return this.countAlerts(this.isValidAlert, alerts);
+      },
+
+      computeNumUntriaged: function(alerts) {
+        return this.countAlerts(this.isUntriagedAlert, alerts);
+      },
+
+      // Using != and == here and below since bugId could be null or undefined
+      isValidAlert: bugId => (bugId != null && bugId >= 0),
+
+      isInvalidAlert: bugId => (bugId != null && bugId < 0),
+
+      isUntriagedAlert: bugId => (bugId == null),
+
+      ready: function() {
+        var params = {
+          'master': this.master,
+          'benchmark': this.benchmark,
+          'num_days': this.numDays
+        };
+        simple_xhr.send('/benchmark_health_report', params,
+            response => {
+              this.alerts = response['alerts'];
+              this.bots = response['bots'];
+              this.monitored = response['monitored'];
+              this.loading = false;
+            },
+            errorMsg => {
+              this.error = errorMsg;
+              this.loading = false;
+            });
+      }
+    });
+  </script>
+</dom-module>

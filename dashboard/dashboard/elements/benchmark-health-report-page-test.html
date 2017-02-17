@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/dashboard/elements/benchmark-health-report-page.html">
+<link rel="import" href="/dashboard/static/testing_common.html">
+
+<link rel="import" href="/tracing/core/test_utils.html">
+
+<script>
+'use strict';
+
+
+tr.b.unittest.testSuite(function() {
+  var originalGetParameter;
+
+  var testOptions = {
+    setUp: function() {
+      originalGetParameter = uri.getParameter;
+    },
+    tearDown: function() {
+      uri.getParameter = originalGetParameter;
+      testing_common.clearXhrMock();
+    }
+  };
+
+  test('instantiation_list', function() {
+    var mockResponse = {
+      'benchmarks': [
+        'dromaeo',
+        'page_cycler',
+        'sunspider',
+        'v8'
+      ]
+    };
+    testing_common.addXhrMock('/benchmark_health_report?master=ChromiumPerf',
+        JSON.stringify(mockResponse));
+    var page = document.createElement('benchmark-health-report-page');
+    this.addHTMLOutput(page);
+  }, testOptions);
+
+  test('instantiation_benchmark', function() {
+    var mockResponse = {
+      'alerts': [{
+        'absolute_delta': '54.000000',
+        'bot': 'android-nexus7v2',
+        'bug_id': 687592,
+        'dashboard_link': '/report?blah',
+        'date': '2017-02-03',
+        'end_revision': 447242,
+        'group': 'agxzfmNocm9tZXBlcmZyFwsSCkFsZXJ0R3JvdXAYgIDgiI2N-wgM',
+        'improvement': false,
+        'key': 'agxzfmNocm9tZXBlcmZyFAsSB0Fub21hbHkYgIDgqKzesQoM',
+        'master': 'ChromiumPerf',
+        'percent_changed': '3.7%',
+        'start_revision': 447214,
+        'test': 'Total',
+        'testsuite': 'sunspider',
+        'type': 'anomaly',
+        'units': 'ms',
+      }, {
+        'absolute_delta': '22.000000',
+        'bot': 'windows',
+        'bug_id': 687592,
+        'dashboard_link': '/report?blah',
+        'date': '2017-02-03',
+        'end_revision': 447241,
+        'group': 'agxzfmNocm9tZXBlcmZyFwsSCkFsZXJ0R3JvdXAYgIDgiI2N-wgM',
+        'improvement': false,
+        'key': 'agxzfmNocm9tZXBlasdfdfd0Fub21hbHkYgIDgqKzesQoM',
+        'master': 'ChromiumPerf',
+        'percent_changed': '3.1%',
+        'start_revision': 447215,
+        'test': 'Total',
+        'testsuite': 'sunspider',
+        'type': 'anomaly',
+        'units': 'ms',
+      }, {
+        'absolute_delta': '1.000000',
+        'bot': 'windows',
+        'bug_id': -1,
+        'dashboard_link': '/report?blah',
+        'date': '2016-02-03',
+        'end_revision': 437241,
+        'group': 'agxzfmNocm9tZXBlFwsSCkFsZXJ0R3JvdXAYgIDgiI2N-wgM',
+        'improvement': false,
+        'key': 'agxzfmNocm9tZXBlasdfdfd0Fub21hafdDgqKzesQoM',
+        'master': 'ChromiumPerf',
+        'percent_changed': '0.1%',
+        'start_revision': 437215,
+        'test': 'Total',
+        'testsuite': 'sunspider',
+        'type': 'anomaly',
+        'units': 'ms',
+      }, {
+        'absolute_delta': '10.000000',
+        'bot': 'linux',
+        'bug_id': 12345,
+        'dashboard_link': '/report?blah',
+        'date': '2017-02-10',
+        'end_revision': 467241,
+        'group': 'agxzfmNocm9sfdsdfBlFwsSCkFsZXJ0R3JvdXAYgIDgiI2N-wgM',
+        'improvement': false,
+        'key': 'agxzfmNocm9tZXBlaadsfasdfdfd0Fub21hafdDgqKzesQoM',
+        'master': 'ChromiumPerf',
+        'percent_changed': '0.1%',
+        'start_revision': 467215,
+        'test': 'Total',
+        'testsuite': 'sunspider',
+        'type': 'anomaly',
+        'units': 'ms',
+      }, {
+        'absolute_delta': '100.000000',
+        'bot': 'linux',
+        'bug_id': null,
+        'dashboard_link': '/report?blah',
+        'date': '2017-02-10',
+        'end_revision': 467241,
+        'group': 'agxzfmNocm9sdfdsdfBlFwsSCkFsZXJ0R3JvdXAYgIDgiI2N-wgM',
+        'improvement': false,
+        'key': 'agxzfmNocm9tZasdasdsfasdfdfd0Fub21hafdDgqKzesQoM',
+        'master': 'ChromiumPerf',
+        'percent_changed': '0.1%',
+        'start_revision': 467215,
+        'test': 'Total',
+        'testsuite': 'sunspider',
+        'type': 'anomaly',
+        'units': 'ms',
+      }],
+      'bots': ['linux', 'android-nexus7v2', 'android-one', 'windows'],
+      'monitored': true
+    };
+    uri.getParameter = function(name) {
+      return {
+        'benchmark': 'sunspider',
+        'master': 'ChromiumPerf',
+        'num_days': '30'
+      }[name];
+    };
+    testing_common.addXhrMock(
+        '/benchmark_health_report?master=ChromiumPerf' +
+        '&benchmark=sunspider&num_days=30',
+        JSON.stringify(mockResponse));
+    var page = document.createElement('benchmark-health-report-page');
+    this.addHTMLOutput(page);
+  }, testOptions);
+});
+</script>

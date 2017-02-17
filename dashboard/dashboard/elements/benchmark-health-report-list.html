@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/components/polymer/polymer.html">
+
+<link rel="import" href="/dashboard/static/simple_xhr.html">
+
+<dom-module id="benchmark-health-report-list">
+  <style>
+    .error {
+      color: #dd4b39;
+      font-weight: bold;
+    }
+
+    #loading-spinner {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+
+    .content {
+      min-width: 1000px;
+    }
+  </style>
+  <template>
+    <template is="dom-if" if="{{loading}}">
+      <div id="loading-spinner"><img src="//www.google.com/images/loading.gif"></div>
+    </template>
+    <template is="dom-if" if="{{error}}">
+      <div class="error">{{error}}</div>
+    </template>
+    <template is="dom-if" if="{{computeSuccessfulLoad(loading, error)}}">
+      <div class="content">
+        <h2>{{benchmarkList.length}} benchmarks on {{master}}</h2>
+        <ul>
+        <template is="dom-repeat" items="{{benchmarkList}}">
+          <li><a href="/benchmark_health_report?benchmark={{item}}&amp;master={{master}}&amp;num_days={{numDays}}">{{item}}</a><br>
+        </template>
+        </ul>
+      </div>
+    </template>
+
+  </template>
+  <script>
+    'use strict';
+    Polymer({
+      is: 'benchmark-health-report-list',
+      properties: {
+        benchmarkList: {
+          notify: true,
+          type: Array
+        },
+        error: {
+          notify: true,
+          type: Boolean,
+          value: false
+        },
+        loading: {
+          notify: true,
+          type: Boolean,
+          value: true
+        },
+        master: {
+          notify: true,
+          type: String
+        },
+        numDays: {
+          notify: true,
+          type: Number
+        }
+      },
+
+      computeSuccessfulLoad: (loading, error) => !(loading || error),
+
+      ready: function() {
+        var params = {
+          'master': this.master
+        };
+        simple_xhr.send('/benchmark_health_report', params,
+            response => {
+              this.benchmarkList = response['benchmarks'];
+              this.error = false;
+              this.loading = false;
+            },
+            errorMsg => {
+              this.error = errorMsg;
+              this.loading = false;
+            });
+      }
+    });
+  </script>
+</dom-module>

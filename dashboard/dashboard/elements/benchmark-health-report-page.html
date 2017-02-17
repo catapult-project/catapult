@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/components/polymer/polymer.html">
+
+<link rel="import" href="/dashboard/elements/benchmark-health-report-details.html">
+<link rel="import" href="/dashboard/elements/benchmark-health-report-list.html">
+<link rel="import" href="/dashboard/static/uri.html">
+
+<dom-module id="benchmark-health-report-page">
+  <template>
+    <template is="dom-if" if="{{computeShowList(pageType)}}">
+      <benchmark-health-report-list
+          master="{{master}}"
+          num-days="{{numDays}}"></benchmark-health-report-list>
+    </template>
+    <template is="dom-if" if="{{computeShowBenchmark(pageType)}}">
+      <benchmark-health-report-details
+          benchmark="{{benchmark}}"
+          num-days="{{numDays}}"
+          master="{{master}}"></benchmark-health-report-details>
+    </template>
+  </template>
+  <script>
+    'use strict';
+    Polymer({
+      is: 'benchmark-health-report-page',
+      properties: {
+        pageType: {
+          type: String
+        },
+        master: {
+          type: String
+        },
+        numDays: {
+          type: Number
+        },
+        benchmark: {
+          type: String
+        }
+      },
+
+      computeShowList: pageType => pageType == 'list',
+
+      computeShowBenchmark: pageType => pageType == 'benchmark',
+
+      /**
+       * The url params determine what data to request from
+       * /group_report. sid is a hash of a group of keys.
+       */
+      ready: function() {
+        this.benchmark = uri.getParameter('benchmark');
+        this.master = uri.getParameter('master', 'ChromiumPerf');
+        this.numDays = uri.getParameter('num_days', 30);
+        this.pageType = this.benchmark ? 'benchmark' : 'list';
+      }
+    });
+  </script>
+</dom-module>
