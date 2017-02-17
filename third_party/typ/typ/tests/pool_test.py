@@ -157,11 +157,11 @@ class TestPool(test_case.TestCase):
 
         host = Host()
         jobs = 2
-        self.assertRaises(ValueError, make_pool,
+        self.assertRaises(Exception, make_pool,
                           host, jobs, _stub, unpicklable_fn, None, None)
-        self.assertRaises(ValueError, make_pool,
+        self.assertRaises(Exception, make_pool,
                           host, jobs, _stub, None, unpicklable_fn, None)
-        self.assertRaises(ValueError, make_pool,
+        self.assertRaises(Exception, make_pool,
                           host, jobs, _stub, None, None, unpicklable_fn)
 
     def test_no_close(self):

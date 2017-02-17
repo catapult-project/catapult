@@ -280,6 +280,8 @@ class ArgumentParser(argparse.ArgumentParser):
             v = d[k]
             argname = _argname_from_key(k)
             action = self._action_for_key(k)
+            if not action:
+                continue
             action_str = _action_str(action)
             if k == 'tests':
                 tests = v
@@ -310,8 +312,9 @@ class ArgumentParser(argparse.ArgumentParser):
             if action.dest == key:
                 return action
 
-        assert False, ('Could not find an action for %s'  # pragma: no cover
-                       % key)
+        # Assume foreign argument: something used by the embedder of typ, for
+        # example.
+        return None
 
 
 def _action_str(action):

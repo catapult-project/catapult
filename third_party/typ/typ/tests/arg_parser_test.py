@@ -44,6 +44,13 @@ class ArgumentParserTest(unittest.TestCase):
         check(['--jobs', '3'])
         check(['-vv'], ['--verbose', '--verbose'])
 
+    def test_argv_from_args_foreign_argument(self):
+        parser = ArgumentParser()
+        parser.add_argument('--some-foreign-argument', default=False,
+                            action='store_true')
+        args = parser.parse_args(['--some-foreign-argument', '--verbose'])
+        self.assertEqual(['--verbose'], ArgumentParser().argv_from_args(args))
+
     def test_valid_shard_options(self):
         parser = ArgumentParser()
 

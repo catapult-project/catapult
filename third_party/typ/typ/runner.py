@@ -345,7 +345,12 @@ class Runner(object):
                                            self.top_level_dir, classifier,
                                            name)
                 except (AttributeError, ImportError, SyntaxError) as e:
-                    self.print_('Failed to load "%s": %s' % (name, e))
+                    ex_str = traceback.format_exc()
+                    self.print_('Failed to load "%s" in find_tests: %s' %
+                                (name, e))
+                    self.print_('  %s' %
+                                '\n  '.join(ex_str.splitlines()))
+                    self.print_(ex_str)
                     return 1, None
                 except _AddTestsError as e:
                     self.print_(str(e))
@@ -357,8 +362,8 @@ class Runner(object):
             total_shards = args.total_shards
             assert total_shards >= 1
             assert shard_index >= 0 and shard_index < total_shards, (
-              'shard_index (%d) must be >= 0 and < total_shards (%d)' %
-              (shard_index, total_shards))
+                'shard_index (%d) must be >= 0 and < total_shards (%d)' %
+                (shard_index, total_shards))
             test_set.parallel_tests = _sort_inputs(
                 test_set.parallel_tests)[shard_index::total_shards]
             test_set.isolated_tests = _sort_inputs(
@@ -407,6 +412,13 @@ class Runner(object):
                     add_tests(suite)
             else:
                 add_tests(loader.loadTestsFromName(name))
+
+        # pylint: disable=no-member
+        if hasattr(loader, 'errors') and loader.errors:  # pragma: python3
+            # In Python3's version of unittest, loader failures get converted
+            # into failed test cases, rather than raising exceptions. However,
+            # the errors also get recorded so you can err out immediately.
+            raise ImportError(loader.errors)
 
     def _run_tests(self, result_set, test_set):
         h = self.host
@@ -799,7 +811,7 @@ def _run_one_test(child, test_input):
     # but could come up when testing non-typ code as well.
     h.capture_output(divert=not child.passthrough)
 
-    tb_str = ''
+    ex_str = ''
     try:
         orig_skip = unittest.skip
         orig_skip_if = unittest.skipIf
@@ -810,21 +822,25 @@ def _run_one_test(child, test_input):
         try:
             suite = child.loader.loadTestsFromName(test_name)
         except Exception as e:
+            ex_str = ('loadTestsFromName("%s") failed: %s\n%s\n' %
+                      (test_name, e, traceback.format_exc()))
             try:
                 suite = _load_via_load_tests(child, test_name)
+                ex_str += ('\nload_via_load_tests(\"%s\") returned %d tests\n' %
+                           (test_name, len(list(suite))))
             except Exception as e:  # pragma: untested
                 suite = []
-                tb_str = traceback.format_exc(e)
+                ex_str += ('\nload_via_load_tests("%s") failed: %s\n%s\n' %
+                           (test_name, e, traceback.format_exc()))
     finally:
         unittest.skip = orig_skip
         unittest.skipIf = orig_skip_if
 
     tests = list(suite)
     if len(tests) != 1:
-        err = 'Failed to load %s' % test_name
-        if tb_str:  # pragma: untested
-            err += (' (traceback follows):\n  %s' %
-                    '  \n'.join(tb_str.splitlines()))
+        err = 'Failed to load "%s" in run_one_test' % test_name
+        if ex_str:  # pragma: untested
+            err += '\n  ' + '\n  '.join(ex_str.splitlines())
 
         h.restore_output()
         return Result(test_name, ResultType.Failure, start, 0,
@@ -931,7 +947,7 @@ def _load_via_load_tests(child, test_name):
         if suite:
             for test_case in suite:
                 assert isinstance(test_case, unittest.TestCase)
-                if test_case.id() == test_name:
+                if test_case.id() == test_name:  # pragma: untested
                     new_suite.addTest(test_case)
                     break
         comps.pop()

@@ -61,7 +61,7 @@ def add_arguments(parser):
                     truly cannot cover it.
         'no win32': Code that only executes when not on Windows.
         'python2':  Code that only executes under Python2.
-        'python3':  Code that only executees under Python3.
+        'python3':  Code that only executes under Python3.
         'untested': Code that does not yet have tests.
         'win32':    Code that only executes on Windows.
 

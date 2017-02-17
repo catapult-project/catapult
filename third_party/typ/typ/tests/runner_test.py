@@ -98,8 +98,11 @@ class TestSetTests(TestCase):
             test_set.parallel_tests = [TestInput('load_test.BaseTest.test_x')]
             r = Runner()
             r.args.jobs = 1
-            ret, _, _ = r.run(test_set)
+            ret, _, trace = r.run(test_set)
             self.assertEqual(ret, 1)
+            self.assertIn('Failed to load "load_test.BaseTest.test_x" in '
+                          'run_one_test',
+                          trace['traceEvents'][0]['args']['err'])
         finally:
             h.chdir(orig_wd)
             if tmpdir:

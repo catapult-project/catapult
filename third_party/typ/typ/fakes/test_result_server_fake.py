@@ -24,7 +24,7 @@ if sys.version_info.major == 2:  # pragma: python2
     from SocketServer import TCPServer
 else:  # pragma: python3
     assert sys.version_info.major == 3
-    # pylint: disable=redefined-builtin
+    # pylint: disable=invalid-name, redefined-builtin
     unicode = str
     from http.server import BaseHTTPRequestHandler  # pylint: disable=F0401
     HTTPRequestHandler = BaseHTTPRequestHandler
