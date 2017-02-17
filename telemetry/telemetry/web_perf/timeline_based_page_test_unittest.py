@@ -139,7 +139,6 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
     self.assertEqual('interaction_enabled_page.html',
                      telemetry_info['storyDisplayName'])
     self.assertNotIn('storyGroupingKeys', telemetry_info)
-    self.assertEqual(0, telemetry_info['storyRepeatCounter'])
     self.assertEqual(0, telemetry_info['storysetRepeatCounter'])
     self.assertEqual('file://interaction_enabled_page.html',
                      telemetry_info['storyUrl'])

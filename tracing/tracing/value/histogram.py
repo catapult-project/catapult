@@ -689,7 +689,6 @@ class TelemetryInfo(Diagnostic):
     self._legacy_tir_label = ''
     self._story_display_name = ''
     self._story_grouping_keys = {}
-    self._story_repeat_counter = None
     self._story_url = ''
     self._storyset_repeat_counter = None
 
@@ -704,8 +703,6 @@ class TelemetryInfo(Diagnostic):
       self._story_display_name = info['storyDisplayName']
     if 'storyGroupingKeys' in info:
       self._story_grouping_keys = info['storyGroupingKeys']
-    if 'storyRepeatCounter' in info:
-      self._story_repeat_counter = info['storyRepeatCounter']
     if 'storyUrl' in info:
       self._story_url = info['storyUrl']
     if 'storysetRepeatCounter' in info:
@@ -719,7 +716,6 @@ class TelemetryInfo(Diagnostic):
     d['label'] = self.label
     d['storyDisplayName'] = self.story_display_name
     d['storyGroupingKeys'] = self.story_grouping_keys
-    d['storyRepeatCounter'] = self.story_repeat_counter
     d['storysetRepeatCounter'] = self.storyset_repeat_counter
     d['storyUrl'] = self.story_url
     d['legacyTIRLabel'] = self.legacy_tir_label
@@ -743,10 +739,6 @@ class TelemetryInfo(Diagnostic):
   @property
   def story_grouping_keys(self):
     return self._story_grouping_keys
-
-  @property
-  def story_repeat_counter(self):
-    return self._story_repeat_counter
 
   @property
   def storyset_repeat_counter(self):

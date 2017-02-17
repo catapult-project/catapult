@@ -367,12 +367,6 @@ tr.exportTo('tr.v', function() {
             h, 'storysetRepeatCounterLabel', 0),
         'storyset repeat'),
 
-    STORY_REPEAT: new HistogramGrouping(
-        'story_repeat',
-        h => tr.v.d.TelemetryInfo.getField(
-            h, 'storyRepeatCounterLabel', 0),
-        'story repeat'),
-
     STORY_NAME: new HistogramGrouping(
         'story',
         h => tr.v.d.TelemetryInfo.getField(h, 'storyDisplayName', '')),

@@ -21,7 +21,6 @@ tr.exportTo('tr.v.d', function() {
       this.legacyTIRLabels_ = new Set();
       this.storyDisplayNames_ = new Set();
       this.storyGroupingKeys_ = new Map();
-      this.storyRepeatCounters_ = new Set();
       this.storyUrls_ = new Set();
       this.storysetRepeatCounters_ = new Set();
     }
@@ -46,10 +45,6 @@ tr.exportTo('tr.v.d', function() {
         return false;
       }
       if (!tr.b.setsEqual(this.legacyTIRLabels, other.legacyTIRLabels)) {
-        return false;
-      }
-      if (!tr.b.setsEqual(this.storyRepeatCounters,
-          other.storyRepeatCounters)) {
         return false;
       }
       if (!tr.b.setsEqual(this.storysetRepeatCounters,
@@ -99,9 +94,6 @@ tr.exportTo('tr.v.d', function() {
         for (let name of otherDiagnostic.storyUrls) {
           this.storyUrls.add(name);
         }
-        for (let name of otherDiagnostic.storyRepeatCounters) {
-          this.storyRepeatCounters.add(name);
-        }
         for (let name of otherDiagnostic.storysetRepeatCounters) {
           this.storysetRepeatCounters.add(name);
         }
@@ -145,9 +137,6 @@ tr.exportTo('tr.v.d', function() {
           this.storyGroupingKeys.set(name, new Set([value]));
         }
       }
-      if (otherDiagnostic.storyRepeatCounter !== undefined) {
-        this.storyRepeatCounters.add(otherDiagnostic.storyRepeatCounter);
-      }
       if (otherDiagnostic.storyUrl) {
         this.storyUrls.add(otherDiagnostic.storyUrl);
       }
@@ -178,9 +167,6 @@ tr.exportTo('tr.v.d', function() {
           d.storyGroupingKeys[name] = Array.from(values);
         }
       }
-      if (this.storyRepeatCounters.size) {
-        d.storyRepeatCounters = Array.from(this.storyRepeatCounters);
-      }
       if (this.storyUrls.size) {
         d.storyUrls = Array.from(this.storyUrls);
       }
@@ -208,9 +194,6 @@ tr.exportTo('tr.v.d', function() {
       }
       tr.b.iterItems(d.storyGroupingKeys || {}, (name, values) =>
         info.storyGroupingKeys_.set(name, new Set(values)));
-      for (let n of d.storyRepeatCounters || []) {
-        info.storyRepeatCounters_.add(n);
-      }
       for (let n of d.storyUrls || []) {
         info.storyUrls_.add(n);
       }
@@ -250,14 +233,6 @@ tr.exportTo('tr.v.d', function() {
 
     get storyUrls() {
       return this.storyUrls_;
-    }
-
-    get storyRepeatCounters() {
-      return this.storyRepeatCounters_;
-    }
-
-    get storyRepeatCounterLabel() {
-      return 'story repeat ' + Array.from(this.storyRepeatCounters).join(',');
     }
 
     get storysetRepeatCounters() {

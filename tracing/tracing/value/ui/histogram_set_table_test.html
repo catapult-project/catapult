@@ -759,32 +759,29 @@ tr.b.unittest.testSuite(function() {
             for (let startMs of starts) {
               for (let storysetCounter = 0; storysetCounter < 2;
                   ++storysetCounter) {
-                for (let storyCounter = 0; storyCounter < 2; ++storyCounter) {
-                  for (let label of labels) {
-                    let hist = new tr.v.Histogram(name,
-                        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
-                        TEST_BOUNDARIES);
-                    for (let i = 0; i < 100; ++i) {
-                      hist.addSample(Math.random() * 1e3, {
-                        sample_diagnostic: new tr.v.d.Generic(i)});
-                    }
-                    hist.description = 'The best description.';
-
-                    histograms.addHistogram(hist);
-
-                    new tr.v.d.TelemetryInfo({
-                      storyGroupingKeys: {
-                        storyGroupingKey0: storyGroupingKey0,
-                        storyGroupingKey1: storyGroupingKey1
-                      },
-                      benchmarkName: benchmarkName,
-                      storyDisplayName: storyName,
-                      benchmarkStartMs: startMs,
-                      storysetRepeatCounter: storysetCounter,
-                      storyRepeatCounter: storyCounter,
-                      label: label,
-                    }).addToHistogram(hist);
+                for (let label of labels) {
+                  let hist = new tr.v.Histogram(name,
+                      tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
+                      TEST_BOUNDARIES);
+                  for (let i = 0; i < 100; ++i) {
+                    hist.addSample(Math.random() * 1e3, {
+                      sample_diagnostic: new tr.v.d.Generic(i)});
                   }
+                  hist.description = 'The best description.';
+
+                  histograms.addHistogram(hist);
+
+                  new tr.v.d.TelemetryInfo({
+                    storyGroupingKeys: {
+                      storyGroupingKey0: storyGroupingKey0,
+                      storyGroupingKey1: storyGroupingKey1
+                    },
+                    benchmarkName: benchmarkName,
+                    storyDisplayName: storyName,
+                    benchmarkStartMs: startMs,
+                    storysetRepeatCounter: storysetCounter,
+                    label: label,
+                  }).addToHistogram(hist);
                 }
               }
             }
@@ -802,7 +799,6 @@ tr.b.unittest.testSuite(function() {
       tr.v.HistogramSet.GROUPINGS.STORY_NAME.key,
       tr.v.HistogramSet.GROUPINGS.BENCHMARK_START.key,
       tr.v.HistogramSet.GROUPINGS.STORYSET_REPEAT.key,
-      tr.v.HistogramSet.GROUPINGS.STORY_REPEAT.key,
     ];
     this.addHTMLOutput(table);
     let baseTable = tr.b.findDeepElementMatchingPredicate(
@@ -870,17 +866,9 @@ tr.b.unittest.testSuite(function() {
 
               for (let l = 0; l < 2; ++l) {
                 subRowPath.push(l);
-                assert.lengthOf(getSubRow().subRows, 2, subRowPath);
+                assert.lengthOf(getSubRow().subRows, 0, subRowPath);
                 assert.strictEqual('storyset repeat ' + l, getSubRow().name,
                     subRowPath);
-
-                for (let m = 0; m < 2; ++m) {
-                  subRowPath.push(m);
-                  assert.lengthOf(getSubRow().subRows, 0, subRowPath);
-                  assert.strictEqual('story repeat ' + m, getSubRow().name,
-                      subRowPath);
-                  subRowPath.pop();
-                }
                 subRowPath.pop();
               }
               subRowPath.pop();

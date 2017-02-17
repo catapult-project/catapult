@@ -230,10 +230,7 @@ def Run(test, story_set, finder_options, results, max_failures=None,
             state = group.shared_state_class(
                 test, finder_options.Copy(), story_set)
 
-          # TODO(nedn): remove story_repeat_counter param
-          # https://github.com/catapult-project/catapult/issues/3232
-          results.WillRunPage(
-              story, storyset_repeat_counter, story_repeat_counter=0)
+          results.WillRunPage(story, storyset_repeat_counter)
           try:
             # Log ps on n7s to determine if adb changed processes.
             # crbug.com/667470

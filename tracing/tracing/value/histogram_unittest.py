@@ -602,7 +602,6 @@ class TelemetryInfoUnittest(unittest.TestCase):
         'label': 'lbl',
         'storyDisplayName': 'story',
         'storyGroupingKeys': {'a': 'b'},
-        'storyRepeatCounter': 0,
         'storysetRepeatCounter': 1,
         'storyUrl': 'url',
         'legacyTIRLabel': 'tir',
@@ -615,7 +614,6 @@ class TelemetryInfoUnittest(unittest.TestCase):
     self.assertEqual(clone.label, 'lbl')
     self.assertEqual(clone.story_display_name, 'story')
     self.assertEqual(clone.story_grouping_keys['a'], 'b')
-    self.assertEqual(clone.story_repeat_counter, 0)
     self.assertEqual(clone.storyset_repeat_counter, 1)
     self.assertEqual(clone.story_url, 'url')
     self.assertEqual(clone.legacy_tir_label, 'tir')

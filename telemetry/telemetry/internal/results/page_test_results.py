@@ -33,7 +33,6 @@ class TelemetryInfo(object):
     self._label = None
     self._story_display_name = ''
     self._story_grouping_keys = {}
-    self._story_repeat_counter = 0
     self._story_url = ''
     self._storyset_repeat_counter = 0
 
@@ -82,17 +81,12 @@ class TelemetryInfo(object):
   def storyset_repeat_counter(self):
     return self._storyset_repeat_counter
 
-  @property
-  def story_repeat_counter(self):
-    return self._story_repeat_counter
-
-  def WillRunStory(self, story, storyset_repeat_counter, story_repeat_counter):
+  def WillRunStory(self, story, storyset_repeat_counter):
     self._story_display_name = story.display_name
     self._story_url = story.url
     if story.grouping_keys:
       self._story_grouping_keys = story.grouping_keys
     self._storyset_repeat_counter = storyset_repeat_counter
-    self._story_repeat_counter = story_repeat_counter
 
   def AsDict(self):
     assert self.benchmark_name is not None, (
@@ -106,7 +100,6 @@ class TelemetryInfo(object):
       d['label'] = self.label
     d['storyDisplayName'] = self.story_display_name
     d['storyGroupingKeys'] = self.story_grouping_keys
-    d['storyRepeatCounter'] = self.story_repeat_counter
     d['storyUrl'] = self.story_url
     d['storysetRepeatCounter'] = self.storyset_repeat_counter
     return d
@@ -288,13 +281,12 @@ class PageTestResults(object):
   def __exit__(self, _, __, ___):
     self.CleanUp()
 
-  def WillRunPage(self, page, storyset_repeat_counter=0,
-                  story_repeat_counter=0):
+  def WillRunPage(self, page, storyset_repeat_counter=0):
     assert not self._current_page_run, 'Did not call DidRunPage.'
     self._current_page_run = story_run.StoryRun(page)
     self._progress_reporter.WillRunPage(self)
     self.telemetry_info.WillRunStory(
-        page, storyset_repeat_counter, story_repeat_counter)
+        page, storyset_repeat_counter)
 
   def DidRunPage(self, page):  # pylint: disable=unused-argument
     """

@@ -21,7 +21,6 @@ tr.b.unittest.testSuite(function() {
       label: 'label0',
       storyDisplayName: 'story0',
       storyGroupingKeys: {a: 'b', c: 'd'},
-      storyRepeatCounter: 0,
       storyUrl: 'http://0',
       storysetRepeatCounter: 0,
       legacyTIRLabel: 'tir0',
@@ -33,7 +32,6 @@ tr.b.unittest.testSuite(function() {
       label: 'label1',
       storyDisplayName: 'story1',
       storyGroupingKeys: {a: 'e', f: 'g'},
-      storyRepeatCounter: 1,
       storyUrl: 'http://1',
       storysetRepeatCounter: 1,
       legacyTIRLabel: 'tir1',
@@ -70,7 +68,6 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual(Array.from(clone.storyGroupingKeys.get('f')), ['g']);
     assert.deepEqual(Array.from(clone.storyDisplayNames), ['story0', 'story1']);
     assert.deepEqual(Array.from(clone.storyUrls), ['http://0', 'http://1']);
-    assert.deepEqual(Array.from(clone.storyRepeatCounters), [0, 1]);
     assert.deepEqual(Array.from(clone.storysetRepeatCounters), [0, 1]);
   });
 

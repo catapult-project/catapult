@@ -78,12 +78,6 @@ Polymer({
         Array.from(this.diagnostic.storysetRepeatCounters).join(', ')
       ]);
     }
-    if (this.diagnostic.storyRepeatCounters.size) {
-      rows.push([
-        'story repeats',
-        Array.from(this.diagnostic.storyRepeatCounters).join(', ')
-      ]);
-    }
     if (this.diagnostic.labels.size) {
       rows.push(['label', Array.from(this.diagnostic.labels).join(', ')]);
     }
