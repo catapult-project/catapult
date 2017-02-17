@@ -618,7 +618,6 @@ class StoryRunnerTest(unittest.TestCase):
       def ValidateAndMeasurePage(self, page, tab, results):
         pass
 
-    self.options.page_repeat = 1
     self.options.pageset_repeat = 2
     self.options.output_formats = []
     results = results_options.CreateResults(

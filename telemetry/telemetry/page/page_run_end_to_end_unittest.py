@@ -453,7 +453,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
         del page, tab, results  # not used
 
     options = options_for_unittests.GetCopy()
-    options.page_repeat = 2
+    options.pageset_repeat = 2
     options.output_formats = ['none']
     options.suppress_gtest_report = True
     if not browser_finder.FindBrowser(options):
