@@ -13,20 +13,16 @@ THIRD_PARTY_LIBRARIES = [
     'apiclient',
     'beautifulsoup4',
     'graphy',
+    'httplib2',
     'mapreduce',
     'mock',
+    'oauth2client',
     'pipeline',
     'uritemplate',
     'webtest',
     'flot',
     'jquery',
     'polymer',
-]
-
-# Libraries bundled with the App Engine SDK.
-THIRD_PARTY_LIBRARIES_IN_SDK = [
-    'httplib2',
-    'oauth2client',
     'six',
 ]
 
@@ -59,9 +55,6 @@ def PathsForDeployment():
   """
   paths = []
   paths.extend(_CatapultThirdPartyLibraryPaths())
-  for p in _AllSdkThirdPartyLibraryPaths():
-    if os.path.basename(p) in THIRD_PARTY_LIBRARIES_IN_SDK:
-      paths.append(p)
   for name in DASHBOARD_FILES:
     paths.append(os.path.join(_CATAPULT_PATH, 'dashboard', name))
   paths.extend(_TracingPaths())
