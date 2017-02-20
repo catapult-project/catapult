@@ -10,6 +10,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/metrics/system_health/memory_metric.html">
 <link rel="import" href="/tracing/model/container_memory_dump.html">
+<link rel="import" href="/tracing/model/heap_dump.html">
 <link rel="import" href="/tracing/model/memory_dump_test_utils.html">
 <link rel="import" href="/tracing/model/vm_region.html">
 <link rel="import" href="/tracing/value/histogram_set.html">
@@ -174,6 +175,12 @@ tr.b.unittest.testSuite(function() {
       description: 'total number of background memory dumps added by Chrome ' +
           'to the trace'
     },
+    'memory:chrome:all_processes:dump_count:heap_profiler': {
+      value: [0],
+      unit: count_smallerIsBetter,
+      description: 'total number of heap profiler memory dumps added by ' +
+          'Chrome to the trace'
+    },
     'memory:chrome:all_processes:dump_count': {
       value: [0],
       unit: count_smallerIsBetter,
@@ -206,6 +213,12 @@ tr.b.unittest.testSuite(function() {
       description: 'total number of background memory dumps added by ' +
           'Chrome(2) to the trace'
     },
+    'memory:chrome2:all_processes:dump_count:heap_profiler': {
+      value: [0],
+      unit: count_smallerIsBetter,
+      description: 'total number of heap profiler memory dumps added by ' +
+          'Chrome(2) to the trace'
+    },
     'memory:chrome2:all_processes:dump_count': {
       value: [0],
       unit: count_smallerIsBetter,
@@ -230,6 +243,12 @@ tr.b.unittest.testSuite(function() {
       description: 'total number of background memory dumps added by Chrome ' +
           'to the trace'
     },
+    'memory:chrome:all_processes:dump_count:heap_profiler': {
+      value: [0],
+      unit: count_smallerIsBetter,
+      description: 'total number of heap profiler memory dumps added by ' +
+          'Chrome to the trace'
+    },
     'memory:chrome:all_processes:dump_count': {
       value: [0],
       unit: count_smallerIsBetter,
@@ -253,6 +272,12 @@ tr.b.unittest.testSuite(function() {
       unit: count_smallerIsBetter,
       description: 'total number of background memory dumps added by WebView ' +
           'to the trace'
+    },
+    'memory:webview:all_processes:dump_count:heap_profiler': {
+      value: [0],
+      unit: count_smallerIsBetter,
+      description: 'total number of heap profiler memory dumps added by ' +
+          'WebView to the trace'
     },
     'memory:webview:all_processes:dump_count': {
       value: [0],
@@ -284,6 +309,12 @@ tr.b.unittest.testSuite(function() {
       value: [1],
       unit: count_smallerIsBetter,
       description: 'total number of background memory dumps added by an ' +
+          'unknown browser to the trace'
+    },
+    'memory:unknown_browser:all_processes:dump_count:heap_profiler': {
+      value: [0],
+      unit: count_smallerIsBetter,
+      description: 'total number of heap profiler memory dumps added by an ' +
           'unknown browser to the trace'
     },
     'memory:unknown_browser:all_processes:dump_count': {
@@ -318,6 +349,12 @@ tr.b.unittest.testSuite(function() {
       unit: count_smallerIsBetter,
       description: 'total number of background memory dumps added by WebView ' +
           'to the trace'
+    },
+    'memory:webview:all_processes:dump_count:heap_profiler': {
+      value: [0],
+      unit: count_smallerIsBetter,
+      description: 'total number of heap profiler memory dumps added by ' +
+          'WebView to the trace'
     },
     'memory:webview:all_processes:dump_count': {
       value: [2],
@@ -553,6 +590,12 @@ tr.b.unittest.testSuite(function() {
       unit: count_smallerIsBetter,
       description: 'total number of background memory dumps added by Chrome ' +
           'to the trace'
+    },
+    'memory:chrome:all_processes:dump_count:heap_profiler': {
+      value: [0],
+      unit: count_smallerIsBetter,
+      description: 'total number of heap profiler memory dumps added by ' +
+          'Chrome to the trace'
     },
     'memory:chrome:all_processes:dump_count': {
       value: [4],
@@ -1084,6 +1127,12 @@ tr.b.unittest.testSuite(function() {
       new VMRegion(0xABCD, 128, 0, '/dev/ashmem/dalvik-non moving space',
           {privateDirtyResident: 8})
     ]);
+    pmdBrowser1.heapDumps = (function() {
+      var mallocDump = new tr.model.HeapDump(pmdBrowser1, 'malloc');
+      mallocDump.addEntry(undefined, undefined, 100, 500);
+      return {'malloc': mallocDump};
+    })();
+
     var pmdRendererA1 = addProcessMemoryDump(gmd1, pRendererA, {ts: 10});
     pmdRendererA1.vmRegions = VMRegionClassificationNode.fromRegions([
       new VMRegion(0xEF01, 256, 0, '[anon:libc_malloc]',
@@ -1172,6 +1221,12 @@ tr.b.unittest.testSuite(function() {
       value: [0],
       unit: count_smallerIsBetter,
       description: 'total number of background memory dumps added by an ' +
+          'unknown browser to the trace'
+    },
+    'memory:unknown_browser:all_processes:dump_count:heap_profiler': {
+      value: [1],
+      unit: count_smallerIsBetter,
+      description: 'total number of heap profiler memory dumps added by an ' +
           'unknown browser to the trace'
     },
     'memory:unknown_browser:all_processes:dump_count': {
@@ -1586,6 +1641,12 @@ tr.b.unittest.testSuite(function() {
       description: 'total number of background memory dumps added by Chrome ' +
           'to the trace'
     },
+    'memory:chrome:all_processes:dump_count:heap_profiler': {
+      value: [0],
+      unit: count_smallerIsBetter,
+      description: 'total number of heap profiler memory dumps added by ' +
+          'Chrome to the trace'
+    },
     'memory:chrome:all_processes:dump_count': {
       value: [3],
       unit: count_smallerIsBetter,
@@ -1909,6 +1970,12 @@ tr.b.unittest.testSuite(function() {
       unit: count_smallerIsBetter,
       description: 'total number of background memory dumps added by WebView ' +
           'to the trace'
+    },
+    'memory:webview:all_processes:dump_count:heap_profiler': {
+      value: [0],
+      unit: count_smallerIsBetter,
+      description: 'total number of heap profiler memory dumps added by ' +
+          'WebView to the trace'
     },
     'memory:webview:all_processes:dump_count': {
       value: [3],
@@ -2239,6 +2306,12 @@ tr.b.unittest.testSuite(function() {
       unit: count_smallerIsBetter,
       description: 'total number of background memory dumps added by Chrome ' +
           'to the trace'
+    },
+    'memory:chrome:all_processes:dump_count:heap_profiler': {
+      value: [0],
+      unit: count_smallerIsBetter,
+      description: 'total number of heap profiler memory dumps added by ' +
+          'Chrome to the trace'
     },
     'memory:chrome:all_processes:dump_count': {
       value: [3],
@@ -2640,6 +2713,12 @@ tr.b.unittest.testSuite(function() {
       description: 'total number of background memory dumps added by ' +
           'Chrome(2) to the trace'
     },
+    'memory:chrome2:all_processes:dump_count:heap_profiler': {
+      value: [0],
+      unit: count_smallerIsBetter,
+      description: 'total number of heap profiler memory dumps added by ' +
+          'Chrome(2) to the trace'
+    },
     'memory:chrome2:all_processes:dump_count': {
       value: [2],
       unit: count_smallerIsBetter,
@@ -2914,6 +2993,12 @@ tr.b.unittest.testSuite(function() {
       description: 'total number of background memory dumps added by an ' +
           'unknown browser to the trace'
     },
+    'memory:unknown_browser:all_processes:dump_count:heap_profiler': {
+      value: [0],
+      unit: count_smallerIsBetter,
+      description: 'total number of heap profiler memory dumps added by an ' +
+          'unknown browser to the trace'
+    },
     'memory:unknown_browser:all_processes:dump_count': {
       value: [1],
       unit: count_smallerIsBetter,
@@ -3034,6 +3119,12 @@ tr.b.unittest.testSuite(function() {
       description: 'total number of background memory dumps added by Chrome ' +
           'to the trace'
     },
+    'memory:chrome:all_processes:dump_count:heap_profiler': {
+      value: [0],
+      unit: count_smallerIsBetter,
+      description: 'total number of heap profiler memory dumps added by ' +
+          'Chrome to the trace'
+    },
     'memory:chrome:all_processes:process_count': {
       value: [1, 1, 1],
       unit: count_smallerIsBetter,
@@ -3068,6 +3159,12 @@ tr.b.unittest.testSuite(function() {
       unit: count_smallerIsBetter,
       description: 'total number of background memory dumps added by WebView ' +
           'to the trace'
+    },
+    'memory:webview:all_processes:dump_count:heap_profiler': {
+      value: [0],
+      unit: count_smallerIsBetter,
+      description: 'total number of heap profiler memory dumps added by ' +
+          'WebView to the trace'
     },
     'memory:webview:all_processes:process_count': {
       value: [1, 1, 1, 1],
@@ -3238,6 +3335,12 @@ tr.b.unittest.testSuite(function() {
       value: [0],
       unit: count_smallerIsBetter,
       description: 'total number of background memory dumps added by an ' +
+          'unknown browser to the trace'
+    },
+    'memory:unknown_browser:all_processes:dump_count:heap_profiler': {
+      value: [0],
+      unit: count_smallerIsBetter,
+      description: 'total number of heap profiler memory dumps added by an ' +
           'unknown browser to the trace'
     }
   });

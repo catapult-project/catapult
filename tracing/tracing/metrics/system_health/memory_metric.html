@@ -35,6 +35,9 @@ tr.exportTo('tr.metrics.sh', function() {
   LEVEL_OF_DETAIL_NAMES.set(LIGHT, 'light');
   LEVEL_OF_DETAIL_NAMES.set(DETAILED, 'detailed');
 
+  // Some detailed dumps contain heap profiler information.
+  var HEAP_PROFILER_DETAIL_NAME = 'heap_profiler';
+
   var BOUNDARIES_FOR_UNIT_MAP = new WeakMap();
   // For unitless numerics (process counts), we use 20 linearly scaled bins
   // from 0 to 20.
@@ -754,7 +757,8 @@ tr.exportTo('tr.metrics.sh', function() {
    * adds the following values:
    *
    *   * DUMP COUNTS
-   *     memory:{chrome, webview}:all_processes:dump_count[:{light, detailed}]
+   *     memory:{chrome, webview}:all_processes:dump_count
+   *         [:{light, detailed, heap_profiler}]
    *     type: tr.v.Histogram
    *     unit: count_smallerIsBetter
    *
@@ -770,6 +774,7 @@ tr.exportTo('tr.metrics.sh', function() {
       LEVEL_OF_DETAIL_NAMES.forEach(function(levelOfDetailName) {
         levelOfDetailNameToDumpCount[levelOfDetailName] = 0;
       });
+      levelOfDetailNameToDumpCount[HEAP_PROFILER_DETAIL_NAME] = 0;
 
       globalDumps.forEach(function(globalDump) {
         totalDumpCount++;
@@ -777,9 +782,14 @@ tr.exportTo('tr.metrics.sh', function() {
         // Increment the level-of-detail-specific dump count (if possible).
         var levelOfDetailName =
             LEVEL_OF_DETAIL_NAMES.get(globalDump.levelOfDetail);
-        if (!(levelOfDetailName in levelOfDetailNameToDumpCount))
+        if (levelOfDetailName === undefined)
           return;  // Unknown level of detail.
         levelOfDetailNameToDumpCount[levelOfDetailName]++;
+        if (globalDump.levelOfDetail === DETAILED) {
+          if (detectHeapProfilerInMemoryDump(globalDump)) {
+            levelOfDetailNameToDumpCount[HEAP_PROFILER_DETAIL_NAME]++;
+          }
+        }
       });
 
       // Add memory:<browser-name>:all_processes:dump_count[:<level>] values.
@@ -791,6 +801,23 @@ tr.exportTo('tr.metrics.sh', function() {
                 levelOfDetailDumpCount, values);
           });
     });
+  }
+
+  /**
+   * Check whether detailed global dump has heap profiler information or not.
+   */
+  function detectHeapProfilerInMemoryDump(globalDump) {
+    var detected = false;
+    tr.b.iterItems(globalDump.processMemoryDumps, function(_, processDump) {
+      if (detected) return;
+      if (processDump.heapDumps && processDump.heapDumps.malloc) {
+        var mallocDump = processDump.heapDumps.malloc;
+        if (mallocDump.entries && mallocDump.entries.length > 0) {
+          detected = true;
+        }
+      }
+    });
+    return detected;
   }
 
   /**
@@ -811,10 +838,14 @@ tr.exportTo('tr.metrics.sh', function() {
         BOUNDARIES_FOR_UNIT_MAP.get(count_smallerIsBetter));
     histogram.addSample(levelOfDetailDumpCount);
 
+    // If |levelOfDetail| argument is undefined it means a total value.
+    var userFriendlyLevelOfDetail =
+        (levelOfDetailName || 'all').replace('_', ' ');
+
     // Build the options for the memory value.
     histogram.description = [
       'total number of',
-      levelOfDetailName || 'all',
+      userFriendlyLevelOfDetail,
       'memory dumps added by',
       convertBrowserNameToUserFriendlyName(browserName),
       'to the trace'
