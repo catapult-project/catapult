@@ -7,7 +7,6 @@ import time
 import urlparse
 
 from telemetry.core import exceptions
-from telemetry import decorators
 from telemetry.internal.actions.drag import DragAction
 from telemetry.internal.actions.javascript_click import ClickElementAction
 from telemetry.internal.actions.key_event import KeyPressAction
@@ -29,7 +28,6 @@ from telemetry.internal.actions.seek import SeekAction
 from telemetry.internal.actions.swipe import SwipeAction
 from telemetry.internal.actions.tap import TapAction
 from telemetry.internal.actions.wait import WaitForElementAction
-from telemetry.util import js_template
 from telemetry.web_perf import timeline_interaction_record
 
 from py_trace_event import trace_event
@@ -197,10 +195,10 @@ class ActionRunner(object):
     self._tab.ExecuteJavaScript2('window.location.reload()')
     self._tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
 
-  def ExecuteJavaScript2(self, *args, **kwargs):
+  def ExecuteJavaScript(self, *args, **kwargs):
     """Executes a given JavaScript statement. Does not return the result.
 
-    Example: runner.ExecuteJavaScript2('var foo = {{ value }};', value='hi');
+    Example: runner.ExecuteJavaScript('var foo = {{ value }};', value='hi');
 
     Args:
       statement: The statement to execute (provided as a string).
@@ -213,15 +211,15 @@ class ActionRunner(object):
     Raises:
       EvaluationException: The statement failed to execute.
     """
-    return self._tab.ExecuteJavaScript2(*args, **kwargs)
+    return self._tab.ExecuteJavaScript(*args, **kwargs)
 
-  def EvaluateJavaScript2(self, *args, **kwargs):
+  def EvaluateJavaScript(self, *args, **kwargs):
     """Returns the result of evaluating a given JavaScript expression.
 
     The evaluation results must be convertible to JSON. If the result
-    is not needed, use ExecuteJavaScript2 instead.
+    is not needed, use ExecuteJavaScript instead.
 
-    Example: runner.ExecuteJavaScript2('document.location.href');
+    Example: runner.ExecuteJavaScript('document.location.href');
 
     Args:
       expression: The expression to execute (provided as a string).
@@ -235,12 +233,12 @@ class ActionRunner(object):
       EvaluationException: The statement expression failed to execute
           or the evaluation result can not be JSON-ized.
     """
-    return self._tab.EvaluateJavaScript2(*args, **kwargs)
+    return self._tab.EvaluateJavaScript(*args, **kwargs)
 
-  def WaitForJavaScriptCondition2(self, *args, **kwargs):
+  def WaitForJavaScriptCondition(self, *args, **kwargs):
     """Wait for a JavaScript condition to become true.
 
-    Example: runner.WaitForJavaScriptCondition2('window.foo == 10');
+    Example: runner.WaitForJavaScriptCondition('window.foo == 10');
 
     Args:
       condition: The JavaScript condition (provided as string).
@@ -251,22 +249,19 @@ class ActionRunner(object):
       Additional keyword arguments provide values to be interpolated within
           the expression. See telemetry.util.js_template for details.
     """
-    return self._tab.WaitForJavaScriptCondition2(*args, **kwargs)
+    return self._tab.WaitForJavaScriptCondition(*args, **kwargs)
 
-  @decorators.Deprecated(
-      2017, 2, 28,
-      'New clients should use ExecuteJavaScript2. See go/catabug/3028')
-  def ExecuteJavaScript(self, statement, **kwargs):
-    """Executes a given JavaScript expression. Does not return the result."""
-    self._tab.ExecuteJavaScript2(js_template.Render(statement, **kwargs))
+  def ExecuteJavaScript2(self, *args, **kwargs):
+    """Alias to be removed soon. Do not use in new code."""
+    return self.ExecuteJavaScript(*args, **kwargs)
 
-  @decorators.Deprecated(
-      2017, 2, 28,
-      'New clients should use EvaluateJavaScript2. See go/catabug/3028')
-  def EvaluateJavaScript(self, expression, **kwargs):
-    """Returns the evaluation result of the given JavaScript expression."""
-    return self._tab.EvaluateJavaScript2(
-        js_template.Render(expression, **kwargs))
+  def EvaluateJavaScript2(self, *args, **kwargs):
+    """Alias to be removed soon. Do not use in new code."""
+    return self.EvaluateJavaScript(*args, **kwargs)
+
+  def WaitForJavaScriptCondition2(self, *args, **kwargs):
+    """Alias to be removed soon. Do not use in new code."""
+    return self.WaitForJavaScriptCondition(*args, **kwargs)
 
   def Wait(self, seconds):
     """Wait for the number of seconds specified.
@@ -276,15 +271,6 @@ class ActionRunner(object):
     """
     if not self._skip_waits:
       time.sleep(seconds)
-
-  @decorators.Deprecated(
-      2017, 2, 28,
-      'New clients should use WaitForJavaScriptCondition2. See go/catabug/3028')
-  def WaitForJavaScriptCondition(self, condition, **kwargs):
-    """Wait for a JavaScript condition to become true."""
-    timeout = kwargs.pop('timeout_in_seconds', None) or 60
-    self._tab.WaitForJavaScriptCondition2(
-        js_template.Render(condition, **kwargs), timeout=timeout)
 
   def WaitForElement(self, selector=None, text=None, element_function=None,
                      timeout_in_seconds=60):
