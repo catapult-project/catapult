@@ -112,21 +112,7 @@ tr.exportTo('tr.v.d', function() {
       return diagnostics;
     }
 
-    merge(other, parentHist, otherParentHist) {
-      let mergedFrom = this.get(MERGED_FROM_DIAGNOSTIC_KEY);
-      if (!mergedFrom) {
-        mergedFrom = new tr.v.d.RelatedHistogramSet();
-        this.set(MERGED_FROM_DIAGNOSTIC_KEY, mergedFrom);
-      }
-      mergedFrom.add(otherParentHist);
-
-      let mergedTo = other.get(MERGED_TO_DIAGNOSTIC_KEY);
-      if (!mergedTo) {
-        mergedTo = new tr.v.d.RelatedHistogramSet();
-        other.set(MERGED_TO_DIAGNOSTIC_KEY, mergedTo);
-      }
-      mergedTo.add(parentHist);
-
+    addDiagnostics(other) {
       for (let [name, otherDiagnostic] of other) {
         if (name === MERGED_FROM_DIAGNOSTIC_KEY ||
             name === MERGED_TO_DIAGNOSTIC_KEY ||

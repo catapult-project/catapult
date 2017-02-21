@@ -5,9 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/unit.html">
-<link rel="import" href="/tracing/value/diagnostics/diagnostic_map.html">
-<link rel="import" href="/tracing/value/diagnostics/generic.html">
+<link rel="import" href="/tracing/ui/base/deep_utils.html">
 <link rel="import" href="/tracing/value/histogram.html">
 <link rel="import" href="/tracing/value/ui/histogram_span.html">
 
@@ -46,6 +44,25 @@ tr.b.unittest.testSuite(function() {
     let span = document.createElement('tr-v-ui-histogram-span');
     this.addHTMLOutput(span);
     span.histogram = h;
+  });
+
+  test('mergeSampleDiagnostics', function() {
+    // Add several samples with sample diagnostics to a Histogram, brush all of
+    // the bins, test that the sample diagnostics are merged.
+    let h = new tr.v.Histogram('', tr.b.Unit.byName.normalizedPercentage);
+    h.addSample(0.1, {foo: tr.v.d.Breakdown.fromDict({values: {a: 1, b: 2}})});
+    h.addSample(0.3, {foo: tr.v.d.Breakdown.fromDict({values: {a: 3, b: 4}})});
+    h.addSample(0.5, {foo: tr.v.d.Breakdown.fromDict({values: {a: 5, b: 6}})});
+    h.addSample(0.7, {foo: tr.v.d.Breakdown.fromDict({values: {a: 7, b: 8}})});
+    h.addSample(0.9, {foo: tr.v.d.Breakdown.fromDict({values: {a: 9, b: 10}})});
+
+    let span = document.createElement('tr-v-ui-histogram-span');
+    this.addHTMLOutput(span);
+    span.histogram = h;
+    span.brushedBins = h.allBins;
+    let breakdowns = tr.b.findDeepElementsMatchingPredicate(
+        span, e => e.tagName === 'TR-V-UI-BREAKDOWN-SPAN');
+    assert.lengthOf(breakdowns, 1);
   });
 
   test('singleSample', function() {

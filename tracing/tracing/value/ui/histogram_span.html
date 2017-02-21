@@ -25,7 +25,7 @@ found in the LICENSE file.
       flex-grow: 1;
       display: none;
     }
-    #drag_handle {
+    #drag_handle, #sample_diagnostics_container {
       display: none;
     }
     #chart svg {
@@ -42,7 +42,12 @@ found in the LICENSE file.
     <tr-ui-b-drag-handle id="drag_handle"></tr-ui-b-drag-handle>
 
     <tr-v-ui-diagnostic-map-table id="histogram_diagnostics"></tr-v-ui-diagnostic-map-table>
-    <tr-v-ui-diagnostic-map-table id="sample_diagnostics"></tr-v-ui-diagnostic-map-table>
+
+    <div id="sample_diagnostics_container">
+      <input type="checkbox" id="merge_sample_diagnostics" checked on-change="updateDiagnostics_">
+      <label for="merge_sample_diagnostics">Merge Sample Diagnostics</label>
+      <tr-v-ui-diagnostic-map-table id="sample_diagnostics"></tr-v-ui-diagnostic-map-table>
+    </div>
   </template>
 </dom-module>
 
@@ -173,6 +178,16 @@ Polymer({
     return this.brushedBins_;
   },
 
+  set brushedBins(bins) {
+    this.brushedBins_ = bins;
+    let brushedBinIndices = new tr.b.Range();
+    for (let bin of bins) {
+      brushedBinIndices.addValue(this.histogram.allBins.indexOf(bin));
+    }
+    this.chart_.brushedRange = brushedBinIndices;
+    this.updateDiagnostics_();
+  },
+
   updateBrushedRange_(binIndex) {
     let brushedBinIndices = new tr.b.Range();
     brushedBinIndices.addValue(tr.b.clamp(
@@ -218,25 +233,33 @@ Polymer({
       this.brushedBins_ = [];
       this.chart_.brushedRange = new tr.b.Range();
     }
-    this.updateDiagnostics_(this.brushedBins);
+    this.updateDiagnostics_();
     this.mouseDownBinIndex_ = undefined;
   },
 
-  updateDiagnostics_(bins) {
+  updateDiagnostics_() {
     let maps = [];
-    for (let bin of bins) {
+    for (let bin of this.brushedBins) {
       for (let map of bin.diagnosticMaps) {
         maps.push(map);
       }
     }
 
     if (maps.length === 0) {
-      this.$.sample_diagnostics.style.display = 'none';
+      this.$.sample_diagnostics_container.style.display = 'none';
       return;
     }
 
+    if (this.$.merge_sample_diagnostics.checked) {
+      let merged = new tr.v.d.DiagnosticMap();
+      for (let map of maps) {
+        merged.addDiagnostics(map);
+      }
+      maps = [merged];
+    }
+
     this.$.sample_diagnostics.diagnosticMaps = maps;
-    this.$.sample_diagnostics.style.display = 'block';
+    this.$.sample_diagnostics_container.style.display = 'block';
   },
 
   get histogram() {
@@ -293,7 +316,7 @@ Polymer({
   updateContents_() {
     this.$.chart.style.display = 'none';
     this.$.drag_handle.style.display = 'none';
-    this.$.sample_diagnostics.style.display = 'none';
+    this.$.sample_diagnostics_container.style.display = 'none';
     this.$.container.style.justifyContent = '';
     this.brushedBins_ = [];
 
@@ -329,7 +352,8 @@ Polymer({
     }
 
     if (this.histogram.numValues <= 1) {
-      this.updateDiagnostics_(this.histogram.allBins);
+      this.brushedBins_ = this.histogram.allBins;
+      this.updateDiagnostics_();
       this.$.container.style.justifyContent = 'flex-end';
       return;
     }
@@ -354,6 +378,8 @@ Polymer({
           percentile_100: this.histogram.running.max,
         }
       ];
+      this.brushedBins_ = this.histogram.allBins;
+      this.updateDiagnostics_();
       return;
     }
 

@@ -479,7 +479,21 @@ tr.exportTo('tr.v', function() {
         this.allBins[i].addBin(other.allBins[i]);
       }
 
-      this.diagnostics.merge(other.diagnostics, this, other);
+      let mergedFrom = this.diagnostics.get(tr.v.d.MERGED_FROM_DIAGNOSTIC_KEY);
+      if (!mergedFrom) {
+        mergedFrom = new tr.v.d.RelatedHistogramSet();
+        this.diagnostics.set(tr.v.d.MERGED_FROM_DIAGNOSTIC_KEY, mergedFrom);
+      }
+      mergedFrom.add(other);
+
+      let mergedTo = other.diagnostics.get(tr.v.d.MERGED_TO_DIAGNOSTIC_KEY);
+      if (!mergedTo) {
+        mergedTo = new tr.v.d.RelatedHistogramSet();
+        other.diagnostics.set(tr.v.d.MERGED_TO_DIAGNOSTIC_KEY, mergedTo);
+      }
+      mergedTo.add(this);
+
+      this.diagnostics.addDiagnostics(other.diagnostics);
 
       for (let [stat, option] of other.summaryOptions) {
         if (stat === 'percentile') {
