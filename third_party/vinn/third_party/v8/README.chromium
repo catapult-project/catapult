@@ -1,7 +1,7 @@
 Name: Chrome d8 for executing javascript
 Short Name: d8
 URL: https://developers.google.com/v8/
-Version: 5.4.500.41 (linux), 5.4.500.41 (mac), 5.2.361.30 (win)
+Version: 5.4.500.41 (linux), 5.4.500.41 (mac), 5.6.326.50 (win)
 License: BSD
 License File: LICENSE, LICENSE.v8, LICENSE.strongtalk, LICENSE.valgrind
 Security Critical: no
