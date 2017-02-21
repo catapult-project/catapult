@@ -9,6 +9,13 @@ found in the LICENSE file.
 
 <dom-module id="tr-v-ui-merged-telemetry-info-span">
   <template>
+    <style>
+    #hide, #table {
+      display: none;
+    }
+    </style>
+    <button id="show" on-click="onShow_">Show</button>
+    <button id="hide" on-click="onHide_">Hide</button>
     <tr-ui-b-table id="table"></tr-ui-b-table>
   </template>
 </dom-module>
@@ -32,6 +39,18 @@ Polymer({
         }
       }
     ];
+  },
+
+  onShow_() {
+    this.$.show.style.display = 'none';
+    this.$.hide.style.display = 'block';
+    this.$.table.style.display = 'table';
+  },
+
+  onHide_() {
+    this.$.show.style.display = 'block';
+    this.$.hide.style.display = 'none';
+    this.$.table.style.display = 'none';
   },
 
   get diagnostic() {
