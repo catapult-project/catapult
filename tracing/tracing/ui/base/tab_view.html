@@ -120,7 +120,7 @@ Polymer({
     }
   },
 
-  ready: function() {
+  ready() {
     this.$.tabs.addEventListener('keydown', this.onKeyDown_.bind(this), true);
     this.updateFocusability_();
   },
@@ -138,12 +138,11 @@ Polymer({
   },
 
   set selectedSubView(subView) {
-    if (subView === this.selectedSubView_)
-      return;
+    if (subView === this.selectedSubView_) return;
 
     if (this.selectedSubView_) {
       Polymer.dom(this.$.subView).removeChild(this.selectedSubView_);
-      var oldInput = this.root.getElementById(this.computeRadioId_(
+      let oldInput = this.root.getElementById(this.computeRadioId_(
           this.selectedSubView_));
       if (oldInput) {
         oldInput.checked = false;
@@ -154,7 +153,7 @@ Polymer({
 
     if (subView) {
       Polymer.dom(this.$.subView).appendChild(subView);
-      var newInput = this.root.getElementById(this.computeRadioId_(subView));
+      let newInput = this.root.getElementById(this.computeRadioId_(subView));
       if (newInput) {
         newInput.checked = true;
       }
@@ -163,25 +162,25 @@ Polymer({
     this.fire('selected-tab-change');
   },
 
-  clearSubViews: function() {
+  clearSubViews() {
     this.splice('subViews_', 0, this.subViews_.length);
     this.selectedSubView = undefined;
     this.updateFocusability_();
   },
 
-  addSubView: function(subView) {
+  addSubView(subView) {
     this.push('subViews_', subView);
-    if (!this.selectedSubView_)
-      this.selectedSubView = subView;
+    if (!this.selectedSubView_) this.selectedSubView = subView;
 
     this.updateFocusability_();
   },
 
-  resetSubViews: function(subViews) {
+  resetSubViews(subViews) {
     this.splice('subViews_', 0, this.subViews_.length);
     if (subViews.length) {
-      for (var subView of subViews)
+      for (let subView of subViews) {
         this.push('subViews_', subView);
+      }
       this.selectedSubView = subViews[0];
     }
     else {
@@ -190,23 +189,22 @@ Polymer({
     this.updateFocusability_();
   },
 
-  onTabChanged_: function(event) {
+  onTabChanged_(event) {
     this.selectedSubView = event.model.item;
   },
 
-  isChecked_: function(subView) {
+  isChecked_(subView) {
     return this.selectedSubView_ === subView;
   },
 
-  tabsHiddenChanged_: function() {
+  tabsHiddenChanged_() {
     this.updateFocusability_();
   },
 
-  onKeyDown_: function(e) {
-    if (this.tabsHidden)
-      return;
+  onKeyDown_(e) {
+    if (this.tabsHidden) return;
 
-    var keyHandled = false;
+    let keyHandled = false;
     switch (e.keyCode) {
       // Arrow left.
       case 37:
@@ -219,36 +217,33 @@ Polymer({
         break;
     }
 
-    if (!keyHandled)
-      return;
+    if (!keyHandled) return;
     e.stopPropagation();
     e.preventDefault();
   },
 
-  selectNextTabIfPossible: function() {
+  selectNextTabIfPossible() {
     return this.selectTabByOffsetIfPossible_(1);
   },
 
-  selectPreviousTabIfPossible: function() {
+  selectPreviousTabIfPossible() {
     return this.selectTabByOffsetIfPossible_(-1);
   },
 
-  selectTabByOffsetIfPossible_: function(offset) {
-    if (!this.selectedSubView_)
-      return false;
-    var currentIndex = this.subViews_.indexOf(this.selectedSubView_);
-    var newSubView = this.tabs[currentIndex + offset];
-    if (!newSubView)
-      return false;
+  selectTabByOffsetIfPossible_(offset) {
+    if (!this.selectedSubView_) return false;
+    let currentIndex = this.subViews_.indexOf(this.selectedSubView_);
+    let newSubView = this.tabs[currentIndex + offset];
+    if (!newSubView) return false;
     this.selectedSubView = newSubView;
     return true;
   },
 
-  shouldBeFocusable_: function() {
+  shouldBeFocusable_() {
     return !this.tabsHidden && this.subViews_.length > 0;
   },
 
-  updateFocusability_: function() {
+  updateFocusability_() {
     if (this.shouldBeFocusable_()) {
       Polymer.dom(this.$.tabs).setAttribute('tabindex', 0);
     } else {
@@ -256,7 +251,7 @@ Polymer({
     }
   },
 
-  computeRadioId_: function(subView) {
+  computeRadioId_(subView) {
     // We can't just use the tagName as the radio's ID because there are
     // instances where a single subview type can handle multiple event types,
     // and thus might be present multiple times in a single tab view. In order
