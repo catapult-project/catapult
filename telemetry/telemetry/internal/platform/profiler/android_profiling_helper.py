@@ -241,11 +241,7 @@ def CreateSymFs(device, symfs_dir, libraries, use_symlinks=True):
         pull = True
       else:
         host_md5sums = md5sum.CalculateHostMd5Sums([output_lib])
-        try:
-          device_md5sums = md5sum.CalculateDeviceMd5Sums([lib], device)
-        except:
-          logging.exception('New exception caused by DeviceUtils conversion')
-          raise
+        device_md5sums = md5sum.CalculateDeviceMd5Sums([lib], device)
 
         pull = True
         if host_md5sums and device_md5sums and output_lib in host_md5sums \

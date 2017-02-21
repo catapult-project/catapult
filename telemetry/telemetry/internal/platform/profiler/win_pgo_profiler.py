@@ -21,14 +21,21 @@ class WinPGOProfiler(profiler.Profiler):
     super(WinPGOProfiler, self).__init__(
         browser_backend, platform_backend, output_path, state)
 
-    pgosweep_is_in_path = False
-    for entry in os.environ['PATH'].split(os.pathsep):
-      if os.path.exists(os.path.join(entry, _PGOSWEEP_EXECUTABLE)):
-        pgosweep_is_in_path = True
-        break
-    if not pgosweep_is_in_path:
-      raise IOError(2, '%s isn\'t in the current path, run vcvarsall.bat to fix'
-           ' this.' % _PGOSWEEP_EXECUTABLE)
+    self._pgosweep_path = None
+
+    if os.path.exists(os.path.join(browser_backend.browser_directory,
+                                   _PGOSWEEP_EXECUTABLE)):
+      self._pgosweep_path = os.path.join(browser_backend.browser_directory,
+                                         _PGOSWEEP_EXECUTABLE)
+
+    if not self._pgosweep_path:
+      for entry in os.environ['PATH'].split(os.pathsep):
+        if os.path.exists(os.path.join(entry, _PGOSWEEP_EXECUTABLE)):
+          self._pgosweep_path = os.path.join(entry, _PGOSWEEP_EXECUTABLE)
+          break
+    if not self._pgosweep_path:
+      raise IOError(2, 'Can\'t find %s, run vcvarsall.bat to fix this.' %
+                    _PGOSWEEP_EXECUTABLE)
 
     self._browser_dir = browser_backend.browser_directory
     self._chrome_child_pgc_counter = self._GetNextProfileIndex('chrome_child')
@@ -60,7 +67,7 @@ class WinPGOProfiler(profiler.Profiler):
     Returns the name of the profile data file.
     """
     pgc_filename = '%s\\%s!%d.pgc' % (self._browser_dir, dll_name, index)
-    subprocess.Popen([_PGOSWEEP_EXECUTABLE,
+    subprocess.Popen([self._pgosweep_path,
                       '/pid:%d' % pid,
                       '%s.dll' % dll_name,
                       pgc_filename]

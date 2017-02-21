@@ -14,10 +14,17 @@ found in the LICENSE file.
 'use strict';
 tr.exportTo('tr.v.ui', function() {
   /**
+   * One common simple way to use this function is
+   * createScalarSpan(number, {unit: tr.b.Unit.byName.whatever})
+   *
+   * This function can also take a Scalar, undefined, or a Histogram plus
+   * significance, contextGroup, customContextRange, leftAlign and/or inline.
+   *
    * @param {undefined|tr.b.Scalar|tr.v.Histogram} value
    * @param {Object=} opt_config
    * @param {!tr.b.Range=} opt_config.customContextRange
    * @param {boolean=} opt_config.leftAlign
+   * @param {boolean=} opt_config.inline
    * @param {!tr.b.Unit=} opt_config.unit
    * @param {tr.b.Statistics.Significance=} opt_config.significance
    * @param {string=} opt_config.contextGroup
