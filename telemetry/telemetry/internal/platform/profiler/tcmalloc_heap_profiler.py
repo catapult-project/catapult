@@ -34,11 +34,7 @@ class _TCMallocHeapProfilerAndroid(object):
   def _SetDeviceProperties(self, properties):
     device_configured = False
     # This profiler requires adb root to set properties.
-    try:
-      self._browser_backend.device.EnableRoot()
-    except:
-      logging.exception('New exception caused by DeviceUtils conversion')
-      raise
+    self._browser_backend.device.EnableRoot()
     for values in properties.itervalues():
       device_property = self._browser_backend.device.GetProp(values[0])
       if not device_property or not device_property.strip():
@@ -55,12 +51,8 @@ class _TCMallocHeapProfilerAndroid(object):
       raise Exception('Device required special config, run again.')
 
   def CollectProfile(self):
-    try:
-      self._browser_backend.device.PullFile(
-          self._DEFAULT_DEVICE_DIR, self._output_path)
-    except:
-      logging.exception('New exception caused by DeviceUtils conversion')
-      raise
+    self._browser_backend.device.PullFile(
+        self._DEFAULT_DEVICE_DIR, self._output_path)
     self._browser_backend.device.RunShellCommand(
         'rm ' + os.path.join(self._DEFAULT_DEVICE_DIR, '*'))
     if os.path.exists(self._output_path):
