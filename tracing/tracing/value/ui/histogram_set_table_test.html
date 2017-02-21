@@ -269,11 +269,6 @@ tr.b.unittest.testSuite(function() {
 
     this.addHTMLOutput(table);
 
-    // TODO(benjhayden): Remove this.
-    let showAll = tr.b.findDeepElementMatchingPredicate(
-        table, elem => elem.id === 'show_all');
-    showAll.checked = true;
-
     table.histograms = histograms;
 
     let fooCell = tr.b.findDeepElementMatchingPredicate(
@@ -286,7 +281,7 @@ tr.b.unittest.testSuite(function() {
         table, elem => (
           (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
           (elem.histogram.name === 'bar')));
-    // TODO(benjhayden): assert.isUndefined(barCell);
+    assert.isUndefined(barCell);
 
     fooCell.isHistogramOpen = true;
 
@@ -616,7 +611,10 @@ tr.b.unittest.testSuite(function() {
     histograms.addHistogram(histC);
 
     table.histograms = histograms;
-    table.groupingKeys = [tr.v.HistogramSet.GROUPINGS.STORY_NAME.key];
+    table.groupingKeys = [
+      tr.v.HistogramSet.GROUPINGS.STORY_NAME.key,
+      tr.v.HistogramSet.GROUPINGS.HISTOGRAM_NAME.key,
+    ];
     this.addHTMLOutput(table);
 
     let baseTable = tr.b.findDeepElementMatchingPredicate(

@@ -27,6 +27,66 @@ tr.exportTo('tr.v.ui', function() {
     }
 
     /**
+     * Clones and filters |rows| to contain only |histograms|.
+     *
+     * @param {!Array.<HistogramSetTableRow>} rows
+     * @param {!tr.v.HistogramSet} histograms
+     * @returns {!Array.<HistogramSetTableRow>}
+     */
+    static filter(rows, histograms) {
+      let results = [];
+      for (let row of rows) {
+        let filteredSubRows = [];
+        if (row.subRows.length > 0) {
+          // This is a branch row. Drop it if all of its subrows were dropped.
+          filteredSubRows = HistogramSetTableRow.filter(
+              row.subRows, histograms);
+          if (filteredSubRows.length === 0) continue;
+        } else {
+          // This is a leaf row. Drop it if none of the Histograms in
+          // |row.columns| were merged from any in |histograms|.
+          let found = false;
+          for (let testHist of row.columns.values()) {
+            if (testHist === tr.v.ui.UNMERGEABLE) continue;
+            if (histograms.lookupHistogram(testHist.guid) !== undefined) {
+              found = true;
+              break;
+            }
+            let mergedFrom = testHist.diagnostics.get(
+                tr.v.d.MERGED_FROM_DIAGNOSTIC_KEY);
+            if (mergedFrom !== undefined) {
+              for (let origHist of mergedFrom) {
+                if (histograms.lookupHistogram(origHist.guid) !== undefined) {
+                  found = true;
+                  break;
+                }
+              }
+            }
+            if (found) break;
+          }
+          // If none of the Histograms in |row| were merged from any of
+          // |histograms|, then drop this row.
+          if (!found) continue;
+        }
+
+        let clone = new HistogramSetTableRow(row.name);
+        clone.description = row.description;
+        clone.depth = row.depth;
+        clone.subRows = filteredSubRows;
+        // Don't need to clone Histograms.
+        clone.columns = row.columns;
+        // Don't need to rebuild nameCell or cells.
+        clone.nameCell_ = row.nameCell_;
+        clone.cells = row.cells;
+        clone.constrainNameColumnWidth_ = row.constrainNameColumnWidth_;
+        clone.overviewDataRange_ = row.overviewDataRange_;
+        clone.displayStatistic_ = row.displayStatistic_;
+        results.push(clone);
+      }
+      return results;
+    }
+
+    /**
      * Build table rows recursively from grouped Histograms.
      *
      * @param {!(HistogramArray|HistogramArrayMap)}

@@ -180,6 +180,7 @@ tr.exportTo('tr.v.ui', function() {
       /** @type {undefined|!tr.v.HistogramSet} */
       this.sourceHistograms_ = undefined;
 
+      this.unfilteredRows_ = undefined;
       this.rows_ = undefined;
       this.columns_ = undefined;
 
@@ -232,6 +233,10 @@ tr.exportTo('tr.v.ui', function() {
           this.possibleGroupingKeys.length > 0) {
         this.$.picker.currentGroupKeys = [this.$.picker.possibleGroups[0].key];
       }
+
+      this.unfilteredRows_ = tr.v.ui.HistogramSetTableRow.build(
+          this.groupedHistograms);
+
       let expansionStates = undefined;
       if (this.rows_)
         expansionStates = this.getExpansionStates_();
@@ -334,6 +339,8 @@ tr.exportTo('tr.v.ui', function() {
      */
     set histograms(histograms) {
       this.histograms_ = histograms;
+      this.unfilteredRows_ = histograms ? tr.v.ui.HistogramSetTableRow.build(
+          this.groupedHistograms) : [];
       this.sourceHistograms_ = histograms ? histograms.sourceHistograms :
         new tr.v.HistogramSet();
       this.displayLabels_ = undefined;
@@ -537,7 +544,8 @@ tr.exportTo('tr.v.ui', function() {
       this.updateReferenceColumnSelector_();
       this.updateStatisticSelector_();
       this.updateGroups_();
-      this.rows_ = tr.v.ui.HistogramSetTableRow.build(this.groupedHistograms);
+      this.rows_ = tr.v.ui.HistogramSetTableRow.filter(
+          this.unfilteredRows_, this.filteredHistograms);
       this.buildColumns_();
       this.$.table.tableColumns = this.columns_;
       this.$.table.tableRows = this.rows_;
@@ -593,6 +601,23 @@ tr.exportTo('tr.v.ui', function() {
       return [...keys.values()].sort();
     },
 
+    get filteredHistograms() {
+      let histograms = this.$.show_all.checked ?
+          this.histograms : this.sourceHistograms_;
+      if (this.$.search.value) {
+        let query = undefined;
+        try {
+          query = new RegExp(this.$.search.value);
+        } catch (e) {
+        }
+        if (query !== undefined) {
+          histograms = new tr.v.HistogramSet([...histograms].filter(
+              hist => hist.name.match(query)));
+        }
+      }
+      return histograms;
+    },
+
     /**
      * A HistogramSet is a flat set of Histograms. histogram-set-table presents
      * a hierarchical view. This method recursively groups this.histograms as an
@@ -614,20 +639,6 @@ tr.exportTo('tr.v.ui', function() {
      * @return {!Object}
      */
     get groupedHistograms() {
-      let histogramSet = this.$.show_all.checked ?
-          this.histograms : this.sourceHistograms_;
-      if (this.$.search.value) {
-        let query = undefined;
-        try {
-          query = new RegExp(this.$.search.value);
-        } catch (e) {
-        }
-        if (query !== undefined) {
-          histogramSet = new tr.v.HistogramSet([...histogramSet].filter(
-              hist => hist.name.match(query)));
-        }
-      }
-
       let groupings = this.$.picker.currentGroups.slice();
       groupings.push(tr.v.HistogramSet.GROUPINGS.DISPLAY_LABEL);
 
@@ -648,7 +659,7 @@ tr.exportTo('tr.v.ui', function() {
         return true;
       }
 
-      return histogramSet.groupHistogramsRecursively(
+      return this.histograms.groupHistogramsRecursively(
           groupings, canSkipGrouping);
     },
 
