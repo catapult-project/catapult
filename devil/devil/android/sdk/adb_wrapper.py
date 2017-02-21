@@ -453,7 +453,9 @@ class AdbWrapper(object):
       VerifyLocalFileExists(local)
     except IOError:
       raise device_errors.AdbCommandFailedError(
-          cmd, 'File not found on host: %s' % local, device_serial=str(self))
+          cmd,
+          'File pulled from the device did not arrive on the host: %s' % local,
+          device_serial=str(self))
 
   def Shell(self, command, expect_status=0, timeout=DEFAULT_TIMEOUT,
             retries=DEFAULT_RETRIES):
