@@ -23,7 +23,8 @@ logger = logging.getLogger(__name__)
 
 class LogcatMonitor(object):
 
-  _RECORD_THREAD_JOIN_WAIT = 2.0
+  _RECORD_ITER_TIMEOUT = 2.0
+  _RECORD_THREAD_JOIN_WAIT = 5.0
   _WAIT_TIME = 0.2
   _THREADTIME_RE_FORMAT = (
       r'(?P<date>\S*) +(?P<time>\S*) +(?P<proc_id>%s) +(?P<thread_id>%s) +'
@@ -164,10 +165,16 @@ class LogcatMonitor(object):
       # Write the log with line buffering so the consumer sees each individual
       # line.
       for data in self._adb.Logcat(filter_specs=self._filter_specs,
-                                   logcat_format='threadtime'):
+                                   logcat_format='threadtime',
+                                   iter_timeout=self._RECORD_ITER_TIMEOUT):
+        if self._stop_recording_event.isSet():
+          return
+
+        if data is None:
+          # Logcat can yield None if the iter_timeout is hit.
+          continue
+
         with self._record_file_lock:
-          if self._stop_recording_event.isSet():
-            return
           if self._record_file and not self._record_file.closed:
             self._record_file.write(data + '\n')
 

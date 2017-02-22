@@ -281,18 +281,21 @@ class AdbWrapper(object):
                            device_serial=self._device_serial,
                            check_error=check_error)
 
-  def _IterRunDeviceAdbCmd(self, args, timeout):
+  def _IterRunDeviceAdbCmd(self, args, iter_timeout, timeout):
     """Runs an adb command and returns an iterator over its output lines.
 
     Args:
       args: A list of arguments to adb.
-      timeout: Timeout in seconds.
+      iter_timeout: Timeout for each iteration in seconds.
+      timeout: Timeout for the entire command in seconds.
 
     Yields:
       The output of the command line by line.
     """
     return cmd_helper.IterCmdOutputLines(
-      self._BuildAdbCmd(args, self._device_serial), timeout=timeout)
+        self._BuildAdbCmd(args, self._device_serial),
+        iter_timeout=iter_timeout,
+        timeout=timeout)
 
   def __eq__(self, other):
     """Consider instances equal if they refer to the same device.
@@ -550,8 +553,8 @@ class AdbWrapper(object):
           device_serial=self._device_serial)
 
   def Logcat(self, clear=False, dump=False, filter_specs=None,
-             logcat_format=None, ring_buffer=None, timeout=None,
-             retries=DEFAULT_RETRIES):
+             logcat_format=None, ring_buffer=None, iter_timeout=None,
+             timeout=None, retries=DEFAULT_RETRIES):
     """Get an iterable over the logcat output.
 
     Args:
@@ -564,6 +567,9 @@ class AdbWrapper(object):
       ring_buffer: If set, a list of alternate ring buffers to request.
         Options include "main", "system", "radio", "events", "crash" or "all".
         The default is equivalent to ["main", "system", "crash"].
+      iter_timeout: If set and neither clear nor dump is set, the number of
+        seconds to wait between iterations. If no line is found before the
+        given number of seconds elapses, the iterable will yield None.
       timeout: (optional) If set, timeout per try in seconds. If clear or dump
         is set, defaults to DEFAULT_TIMEOUT.
       retries: (optional) If clear or dump is set, the number of retries to
@@ -589,7 +595,7 @@ class AdbWrapper(object):
       cmd.extend(filter_specs)
 
     if use_iter:
-      return self._IterRunDeviceAdbCmd(cmd, timeout)
+      return self._IterRunDeviceAdbCmd(cmd, iter_timeout, timeout)
     else:
       timeout = timeout if timeout is not None else DEFAULT_TIMEOUT
       return self._RunDeviceAdbCmd(cmd, timeout, retries).splitlines()

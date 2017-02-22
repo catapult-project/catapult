@@ -859,6 +859,41 @@ Returns the PIDs of processes with the given name.
 ```
 
 
+### DeviceUtils.GetEnforce
+
+Get the current mode of SELinux.
+```
+    Args:
+      timeout: timeout in seconds
+      retries: number of retries
+
+    Returns:
+      True (enforcing), False (permissive), or None (disabled).
+
+    Raises:
+      CommandFailedError on failure.
+      CommandTimeoutError on timeout.
+      DeviceUnreachableError on missing device.
+```
+
+
+### DeviceUtils.SetEnforce
+
+Modify the mode SELinux is running in.
+```
+    Args:
+      enabled: a boolean indicating whether to put SELinux in encorcing mode
+               (if True), or permissive mode (otherwise).
+      timeout: timeout in seconds
+      retries: number of retries
+
+    Raises:
+      CommandFailedError on failure.
+      CommandTimeoutError on timeout.
+      DeviceUnreachableError on missing device.
+```
+
+
 ### DeviceUtils.TakeScreenshot
 
 Takes a screenshot of the device.
