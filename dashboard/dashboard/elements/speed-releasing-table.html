@@ -79,7 +79,11 @@ found in the LICENSE file.
                       {{getCategory(test)}}
                     </th>
                 </template>
-                <th>{{getPrettyTestName(test)}}</th>
+                <th>
+                  <a href="/report{{getURL(bot, test)}}" target="_blank">
+                    {{getPrettyTestName(test)}}
+                  </a>
+                </th>
                 <template is="dom-repeat" items="{{tableConfig.revisions}}" 
                           as="rev">
                     <td>{{getValue(rev, bot, test)}}</td>
@@ -193,6 +197,10 @@ found in the LICENSE file.
         return false;
       },
 
+      getURL: function(bot, test) {
+        return this.tableConfig.urlMap[bot + '/' + test];
+      },
+
       ready: function() {
         var params = {};
         var revA = uri.getParameter('revA');
@@ -220,6 +228,7 @@ found in the LICENSE file.
               this.tableConfig.revisions = response['revisions'];
               this.tableConfig.units = response['units'];
               this.tableConfig.categories = response['categories'];
+              this.tableConfig.urlMap = response['urls'];
               this.tableConfig.displayRevisions = response['display_revisions'];
               this.loading = false;
             }.bind(this),

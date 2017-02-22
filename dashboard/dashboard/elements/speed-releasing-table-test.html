@@ -87,6 +87,19 @@ tr.b.unittest.testSuite(function() {
     'background': 2
   };
 
+  var urlMap = {
+    'master/bot/test/test': '/do/not/click/me',
+    'master/bot/test/test1': '/do/not/click/me',
+    'master/bot/test2/test3': '/do/not/click/me',
+    'master/bot/test2/test4': '/do/not/click/me',
+    'master/bot/test2/test5': '/do/not/click/me',
+    'master2/bot2/test/test': '/do/not/click/me',
+    'master2/bot2/test/test1': '/do/not/click/me',
+    'master2/bot2/test2/test3': '/do/not/click/me',
+    'master2/bot2/test2/test4': '/do/not/click/me',
+    'master2/bot2/test2/test5': '/do/not/click/me',
+  };
+
   var revisions = [456, 123];
   var displayRevisions = ['456-b', '123-a'];
 
@@ -101,6 +114,7 @@ tr.b.unittest.testSuite(function() {
       'units': unitMap,
       'revisions': revisions,
       'categories': categories,
+      'urls': urlMap,
       'display_revisions': displayRevisions,
     };
     testing_common.addXhrMock('/speed_releasing/undefined?=',

@@ -6,6 +6,7 @@
 
 import collections
 import json
+import urllib
 
 from google.appengine.ext import ndb
 
@@ -109,6 +110,8 @@ class SpeedReleasingHandler(request_handler.RequestHandler):
         'units': _GetTestToUnitsMap(master_bot_pairs, table_entity.tests),
         'revisions': revisions,
         'categories': _GetCategoryCounts(json.loads(table_entity.table_layout)),
+        'urls': _GetDashboardURLMap(master_bot_pairs, table_entity.tests,
+                                    rev_a, rev_b),
         'display_revisions': [display_b, display_a] # Similar to revisions.
     }))
 
@@ -196,6 +199,29 @@ def _GetCategoryCounts(layout):
   for test in layout:
     categories[layout[test][0]] += 1
   return categories
+
+def _GetDashboardURLMap(bots, tests, rev_a, rev_b):
+  """Get the /report links appropriate for the bot and test."""
+  url_mappings = {}
+  for bot in bots:
+    for test in tests:
+      test_parts = test.split('/')
+      bot_parts = bot.split('/')
+
+      # Checked should be the last part of the test path, if available.
+      checked = 'all'
+      if len(test_parts) > 1:
+        checked = test_parts[len(test_parts) - 1]
+      url_args = {
+          'masters': bot_parts[0],
+          'bots': bot_parts[1],
+          'tests': test,
+          'checked': checked,
+          'start_rev': rev_a,
+          'end_rev': rev_b,
+      }
+      url_mappings[bot + '/' + test] = '?%s' % urllib.urlencode(url_args)
+  return url_mappings
 
 def _GetDisplayRev(bots, tests, rev):
   """Creates a user friendly commit position to display.

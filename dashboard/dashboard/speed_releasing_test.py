@@ -143,6 +143,19 @@ class SpeedReleasingTest(testing_common.TestCase):
                   '2.0, "my_test_suite/my_other_test": 2.0}, '
                   '"ChromiumPerf/win": {"my_test_suite/my_test": 2.0, '
                   '"my_test_suite/my_other_test": 2.0}}}', response)
+    self.assertIn('"urls": {"ChromiumPerf/linux/my_test_suite/my_other_test": '
+                  '"?masters=ChromiumPerf&start_rev=1&checked=my_other_test&'
+                  'tests=my_test_suite%2Fmy_other_test&end_rev=2&bots=linux", '
+                  '"ChromiumPerf/win/my_test_suite/my_other_test": '
+                  '"?masters=ChromiumPerf&start_rev=1&checked=my_other_test&'
+                  'tests=my_test_suite%2Fmy_other_test&end_rev=2&bots=win", '
+                  '"ChromiumPerf/linux/my_test_suite/my_test": "?masters'
+                  '=ChromiumPerf&start_rev=1&checked=my_test&tests='
+                  'my_test_suite%2Fmy_test&end_rev=2&bots=linux", '
+                  '"ChromiumPerf/win/my_test_suite/my_test": "?masters='
+                  'ChromiumPerf&start_rev=1&checked=my_test&tests=my_test_suite'
+                  '%2Fmy_test&end_rev=2&bots=win"}',
+                  response)
 
   def testPost_InternalListPageToExternalUser(self):
     self._AddTableConfigDataStore('BestTable', True)
