@@ -92,11 +92,16 @@ tr.exportTo('tr.metrics', function() {
     histograms.addHistogram(traceBytesPerDumpValue);
   }
 
+  // TODO(charliea): The metrics in this file should be renamed to have names
+  // more consistent with those in the rest of the codebase
+  // (e.g. 'trace_size_growth_per_second', not 'Max event size in bytes per
+  // second').
+  // https://github.com/catapult-project/catapult/issues/3233
   function tracingMetric(histograms, model) {
-    if (!model.stats.hasEventSizesinBytes) {
-      throw new Error('Model stats does not have event size information. ' +
-                      'Please enable ImportOptions.trackDetailedModelStats.');
-    }
+    addTimeDurationHistogram(
+        'trace_import_duration', model.stats.traceImportDurationMs, histograms);
+
+    if (!model.stats.hasEventSizesinBytes) return;
 
     var eventStats = model.stats.allTraceEventStatsInTimeIntervals;
     eventStats.sort(function(a, b) {

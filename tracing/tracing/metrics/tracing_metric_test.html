@@ -32,25 +32,19 @@ tr.b.unittest.testSuite(function() {
     assert.closeTo(1000 * histogram.average, expected, 0.1);
   }
 
-  test('hasEventSizesInBytes', function() {
+  test('tracingMetric_hasEventSizesInBytes', function() {
     var histograms = new tr.v.HistogramSet();
     var events = [
       {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53, ph: 'B'},
       {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'B'}
     ];
 
-    var model = makeModel(JSON.stringify(events), false);
-    assert.isFalse(model.importOptions.trackDetailedModelStats);
-    assert.throws(function() {
-      tr.metrics.tracingMetric(histograms, model);
-    }, 'Please enable ImportOptions.trackDetailedModelStats.');
-
-    model = makeModel(JSON.stringify(events), true);
+    var model = makeModel(JSON.stringify(events), true);
     assert.isTrue(model.importOptions.trackDetailedModelStats);
     tr.metrics.tracingMetric(histograms, model);
   });
 
-  test('totalTraceSize', function() {
+  test('tracingMetric_totalTraceSize', function() {
     var histograms = new tr.v.HistogramSet();
     var events = [
       {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53, ph: 'B'},
@@ -64,7 +58,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(histogram.average, eventStringSize);
   });
 
-  test('maxValuePerSec', function() {
+  test('tracingMetric_maxValuePerSec', function() {
     var ONE_SEC_IN_US = 1000000;
     var events = [
       {name: 'a', pid: 52, ts: 1, cat: 'foo', ph: 'B'},
@@ -89,7 +83,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(histogram.average, maxEventBytesPerSec);
   });
 
-  test('diagnostics', function() {
+  test('tracingMetric_diagnostics', function() {
     var histograms = new tr.v.HistogramSet();
     var events = [
       {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53, ph: 'B'},
@@ -101,7 +95,14 @@ tr.b.unittest.testSuite(function() {
     var model = makeModel(JSON.stringify(events), true);
     tr.metrics.tracingMetric(histograms, model);
 
+    var DIAGNOSTIC_HISTOGRAMS = [
+      'Max number of events per second',
+      'Max event size in bytes per second',
+      'Total trace size in bytes'
+    ];
     for (var histogram of histograms) {
+      if (!DIAGNOSTIC_HISTOGRAMS.includes(histogram.name)) continue;
+
       var d = histogram.diagnostics.get('category_with_max_event_size').value;
       assert.strictEqual(d.name, 'foo');
       assert.strictEqual(d.size_in_bytes, getEventStringSize(
@@ -109,7 +110,7 @@ tr.b.unittest.testSuite(function() {
     }
   });
 
-  test('testMemoryInfraTracingMetrics', function() {
+  test('tracingMetric_memoryInfraTracingMetrics', function() {
     var MEMORY_INFRA_TRACING_CATEGORY =
         tr.metrics.MEMORY_INFRA_TRACING_CATEGORY;
     var histograms = new tr.v.HistogramSet();
@@ -159,5 +160,33 @@ tr.b.unittest.testSuite(function() {
     checkDurationHistogram(histograms,
         'Average CPU overhead on all threads per memory-infra dump', 91);
   });
+
+  test('tracingMetric_traceImportDurationMetric', function() {
+    let model = new tr.Model();
+    // We can't customize the model the normal way using
+    // test_utils.newModel(customizeModelCallback) because that callback is run
+    // before the end of the import phase, so our import duration will be
+    // overwritten.
+    model.stats.traceImportDurationMs = 10;
+
+    let histograms = new tr.v.HistogramSet();
+    tr.metrics.tracingMetric(histograms, model);
+
+    assert.strictEqual(
+        histograms.getHistogramNamed('trace_import_duration').average, 10);
+  });
+
+  test('tracingMetric_traceImportDurationMetricWithoutTrackDetailedModelStats',
+      function() {
+        let histograms = new tr.v.HistogramSet();
+        let events = [
+          {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53, ph: 'B'},
+          {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'B'}
+        ];
+
+        let model = makeModel(JSON.stringify(events), false);
+        assert.isFalse(model.importOptions.trackDetailedModelStats);
+        tr.metrics.tracingMetric(histograms, model);
+      });
 });
 </script>
