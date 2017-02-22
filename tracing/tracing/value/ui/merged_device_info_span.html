@@ -17,20 +17,12 @@ found in the LICENSE file.
 Polymer({
   is: 'tr-v-ui-merged-device-info-span',
 
-  ready: function() {
+  ready() {
     this.diagnostic_ = undefined;
     this.$.table.showHeader = false;
     this.$.table.tableColumns = [
-      {
-        value: function(row) {
-          return row[0];
-        },
-      },
-      {
-        value: function(row) {
-          return row[1];
-        }
-      }
+      {value: row => row[0]},
+      {value: row => row[1]},
     ];
   },
 
@@ -43,7 +35,7 @@ Polymer({
     this.updateContents_();
   },
 
-  updateContents_: function() {
+  updateContents_() {
     if (this.diagnostic === undefined) {
       this.$.table.tableRows = [];
       return;

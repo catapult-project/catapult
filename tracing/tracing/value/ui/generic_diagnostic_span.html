@@ -17,7 +17,7 @@ found in the LICENSE file.
   Polymer({
     is: 'tr-v-ui-generic-diagnostic-span',
 
-    ready: function() {
+    ready() {
       this.diagnostic_ = undefined;
     },
 
@@ -30,7 +30,7 @@ found in the LICENSE file.
       this.updateContents_();
     },
 
-    updateContents_: function() {
+    updateContents_() {
       if (this.diagnostic === undefined) {
         this.$.generic.object = undefined;
         return;

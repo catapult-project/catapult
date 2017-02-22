@@ -18,7 +18,7 @@ found in the LICENSE file.
   Polymer({
     is: 'tr-v-ui-unmergeable-diagnostic-set-span',
 
-    ready: function() {
+    ready() {
       this.diagnostic_ = undefined;
     },
 
@@ -31,7 +31,7 @@ found in the LICENSE file.
       this.updateContents_();
     },
 
-    updateContents_: function() {
+    updateContents_() {
       Polymer.dom(this).textContent = '';
       for (let diagnostic of this.diagnostic) {
         Polymer.dom(this).appendChild(tr.v.ui.createDiagnosticSpan(diagnostic));

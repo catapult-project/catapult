@@ -14,7 +14,7 @@ found in the LICENSE file.
   Polymer({
     is: 'tr-v-ui-related-event-set-span',
 
-    ready: function() {
+    ready() {
       this.diagnostic_ = undefined;
     },
 
@@ -27,7 +27,7 @@ found in the LICENSE file.
       this.updateContents_();
     },
 
-    updateContents_: function() {
+    updateContents_() {
       Polymer.dom(this).textContent = '';
       let events = new tr.model.EventSet([...this.diagnostic]);
       let link = document.createElement('tr-ui-a-analysis-link');

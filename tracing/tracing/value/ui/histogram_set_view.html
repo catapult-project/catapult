@@ -31,167 +31,169 @@ tr.exportTo('tr.v.ui', function() {
   NullBrushingStateController.prototype = {
     __proto__: tr.c.BrushingStateController.prototype,
 
-    dispatchChangeEvent_: function() {
-      if (this.parentController)
-        this.parentController.dispatchChangeEvent_();
+    dispatchChangeEvent_() {
+      if (this.parentController) this.parentController.dispatchChangeEvent_();
     },
 
     get model() {
-      if (!this.parentController)
-        return undefined;
+      if (!this.parentController) return undefined;
       return this.parentController.model;
     },
 
     get trackView() {
-      if (!this.parentController)
-        return undefined;
+      if (!this.parentController) return undefined;
       return this.parentController.trackView;
     },
 
     get viewport() {
-      if (!this.parentController)
-        return undefined;
+      if (!this.parentController) return undefined;
       return this.parentController.viewport;
     },
 
     get historyEnabled() {
-      if (!this.parentController)
-        return undefined;
+      if (!this.parentController) return undefined;
       return this.parentController.historyEnabled;
     },
 
     set historyEnabled(historyEnabled) {
-      if (this.parentController)
+      if (this.parentController) {
         this.parentController.historyEnabled = historyEnabled;
+      }
     },
 
-    modelWillChange: function() {
-      if (this.parentController)
-        this.parentController.modelWillChange();
+    modelWillChange() {
+      if (this.parentController) this.parentController.modelWillChange();
     },
 
-    modelDidChange: function() {
-      if (this.parentController)
-        this.parentController.modelDidChange();
+    modelDidChange() {
+      if (this.parentController) this.parentController.modelDidChange();
     },
 
-    onUserInitiatedSelectionChange_: function() {
-      if (this.parentController)
+    onUserInitiatedSelectionChange_() {
+      if (this.parentController) {
         this.parentController.onUserInitiatedSelectionChange_();
+      }
     },
 
-    onPopState_: function(e) {
-      if (this.parentController)
-        this.parentController.onPopState_(e);
+    onPopState_(e) {
+      if (this.parentController) this.parentController.onPopState_(e);
     },
 
     get selection() {
-      if (!this.parentController)
-        return undefined;
+      if (!this.parentController) return undefined;
       return this.parentController.selection;
     },
 
     get findMatches() {
-      if (!this.parentController)
-        return undefined;
+      if (!this.parentController) return undefined;
       return this.parentController.findMatches;
     },
 
     get selectionOfInterest() {
-      if (!this.parentController)
-        return undefined;
+      if (!this.parentController) return undefined;
       return this.parentController.selectionOfInterest;
     },
 
     get currentBrushingState() {
-      if (!this.parentController)
-        return undefined;
+      if (!this.parentController) return undefined;
       return this.parentController.currentBrushingState;
     },
 
     set currentBrushingState(newBrushingState) {
-      if (this.parentController)
+      if (this.parentController) {
         this.parentController.currentBrushingState = newBrushingState;
+      }
     },
 
-    addAllEventsMatchingFilterToSelectionAsTask: function(filter, selection) {
+    addAllEventsMatchingFilterToSelectionAsTask(filter, selection) {
       if (this.parentController) {
         this.parentController.addAllEventsMatchingFilterToSelectionAsTask(
             filter, selection);
       }
     },
 
-    findTextChangedTo: function(allPossibleMatches) {
-      if (this.parentController)
+    findTextChangedTo(allPossibleMatches) {
+      if (this.parentController) {
         this.parentController.findTextChangedTo(allPossibleMatches);
+      }
     },
 
-    findFocusChangedTo: function(currentFocus) {
-      if (this.parentController)
+    findFocusChangedTo(currentFocus) {
+      if (this.parentController) {
         this.parentController.findFocusChangedTo(currentFocus);
+      }
     },
 
-    findTextCleared: function() {
-      if (this.parentController)
+    findTextCleared() {
+      if (this.parentController) {
         this.parentController.findTextCleared();
+      }
     },
 
-    uiStateFromString: function(string) {
-      if (this.parentController)
+    uiStateFromString(string) {
+      if (this.parentController) {
         this.parentController.uiStateFromString(string);
+      }
     },
 
-    navToPosition: function(uiState, showNavLine) {
-      if (this.parentController)
+    navToPosition(uiState, showNavLine) {
+      if (this.parentController) {
         this.parentController.navToPosition(uiState, showNavLine);
+      }
     },
 
-    changeSelectionFromTimeline: function(selection) {
-      if (this.parentController)
+    changeSelectionFromTimeline(selection) {
+      if (this.parentController) {
         this.parentController.changeSelectionFromTimeline(selection);
+      }
     },
 
-    showScriptControlSelection: function(selection) {
-      if (this.parentController)
+    showScriptControlSelection(selection) {
+      if (this.parentController) {
         this.parentController.showScriptControlSelection(selection);
+      }
     },
 
-    changeSelectionFromRequestSelectionChangeEvent: function(selection) {
+    changeSelectionFromRequestSelectionChangeEvent(selection) {
       if (this.parentController) {
         this.parentController.changeSelectionFromRequestSelectionChangeEvent(
             selection);
       }
     },
 
-    changeAnalysisViewRelatedEvents: function(eventSet) {
-      if (this.parentController && (eventSet instanceof tr.model.EventSet))
+    changeAnalysisViewRelatedEvents(eventSet) {
+      if (this.parentController && (eventSet instanceof tr.model.EventSet)) {
         this.parentController.changeAnalysisViewRelatedEvents(eventSet);
+      }
     },
 
-    changeAnalysisLinkHoveredEvents: function(eventSet) {
-      if (this.parentController && (eventSet instanceof tr.model.EventSet))
+    changeAnalysisLinkHoveredEvents(eventSet) {
+      if (this.parentController && (eventSet instanceof tr.model.EventSet)) {
         this.parentController.changeAnalysisLinkHoveredEvents(eventSet);
+      }
     },
 
-    getViewSpecificBrushingState: function(viewId) {
-      if (this.parentController)
+    getViewSpecificBrushingState(viewId) {
+      if (this.parentController) {
         this.parentController.getViewSpecificBrushingState(viewId);
+      }
     },
 
-    changeViewSpecificBrushingState: function(viewId, newState) {
-      if (this.parentController)
+    changeViewSpecificBrushingState(viewId, newState) {
+      if (this.parentController) {
         this.parentController.changeViewSpecificBrushingState(viewId, newState);
+      }
     }
   };
 
   Polymer({
     is: 'tr-v-ui-histogram-set-view',
 
-    ready: function() {
+    ready() {
       this.brushingStateController = new NullBrushingStateController();
     },
 
-    attached: function() {
+    attached() {
       this.brushingStateController.parentController =
           tr.c.BrushingStateController.getControllerForElement(this.parentNode);
     },

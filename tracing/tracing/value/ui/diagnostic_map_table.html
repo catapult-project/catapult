@@ -19,7 +19,7 @@ found in the LICENSE file.
   Polymer({
     is: 'tr-v-ui-diagnostic-map-table',
 
-    created: function() {
+    created() {
       this.diagnosticMaps_ = undefined;
     },
 
@@ -36,7 +36,7 @@ found in the LICENSE file.
       this.updateContents_();
     },
 
-    updateContents_: function() {
+    updateContents_() {
       if (this.diagnosticMaps_ === undefined ||
           this.diagnosticMaps_.length === 0) {
         this.$.table.tableRows = [];
@@ -60,7 +60,7 @@ found in the LICENSE file.
       function makeColumn(title) {
         return {
           title: title,
-          value: function(map) {
+          value(map) {
             let diagnostic = map.get(title);
             if (!diagnostic) return '';
 

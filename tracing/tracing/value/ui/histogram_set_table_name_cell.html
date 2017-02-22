@@ -77,12 +77,12 @@ tr.exportTo('tr.v.ui', function() {
   Polymer({
     is: 'tr-v-ui-histogram-set-table-name-cell',
 
-    created: function() {
+    created() {
       this.row_ = undefined;
       this.overviewChart_ = undefined;
     },
 
-    attached: function() {
+    attached() {
       this.maybeDispatchOverflow_();
     },
 
@@ -112,14 +112,14 @@ tr.exportTo('tr.v.ui', function() {
       return NAME_COLUMN_WIDTH_PX - (16 * this.row.depth);
     },
 
-    maybeDispatchOverflow_: function() {
+    maybeDispatchOverflow_() {
       if (this.$.name.style.maxWidth !== 'none' &&
           parseInt(getComputedStyle(this.$.name).width) === this.nameWidthPx) {
         this.dispatchEvent(new tr.b.Event('name-cell-overflow'));
       }
     },
 
-    hideOverview_: function(opt_event) {
+    hideOverview_(opt_event) {
       if (opt_event) {
         opt_event.stopPropagation();
       }
@@ -132,7 +132,7 @@ tr.exportTo('tr.v.ui', function() {
       }
     },
 
-    showOverview_: function(opt_event) {
+    showOverview_(opt_event) {
       if (opt_event) {
         opt_event.preventDefault();
         opt_event.stopPropagation();

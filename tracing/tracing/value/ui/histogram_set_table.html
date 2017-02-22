@@ -146,8 +146,9 @@ tr.exportTo('tr.v.ui', function() {
     // rows by it.
     // Override HISTOGRAM_NAME so that we can display shortName.
     if (group !== tr.v.HistogramSet.GROUPINGS.DISPLAY_LABEL &&
-        group !== tr.v.HistogramSet.GROUPINGS.HISTOGRAM_NAME)
+        group !== tr.v.HistogramSet.GROUPINGS.HISTOGRAM_NAME) {
       DEFAULT_POSSIBLE_GROUPS.push(group);
+    }
   });
 
   const SHOW_ALL_SETTINGS_KEY = 'tr-v-ui-histogram-set-table-show-all';
@@ -226,8 +227,7 @@ tr.exportTo('tr.v.ui', function() {
     },
 
     currentGroupsChanged_() {
-      if (this.updatingContents_)
-        return;
+      if (this.updatingContents_) return;
 
       if (this.$.picker.currentGroups.length === 0 &&
           this.possibleGroupingKeys.length > 0) {
@@ -238,16 +238,13 @@ tr.exportTo('tr.v.ui', function() {
           this.groupedHistograms);
 
       let expansionStates = undefined;
-      if (this.rows_)
-        expansionStates = this.getExpansionStates_();
+      if (this.rows_) expansionStates = this.getExpansionStates_();
       this.updateContents_();
-      if (expansionStates)
-        this.setExpansionStates_(expansionStates);
+      if (expansionStates) this.setExpansionStates_(expansionStates);
     },
 
     onShowAllChange_() {
-      if (this.updatingContents_)
-        return;
+      if (this.updatingContents_) return;
 
       tr.b.Settings.set(SHOW_ALL_SETTINGS_KEY, this.$.show_all.checked);
       let expansionStates = this.getExpansionStates_();
@@ -524,8 +521,7 @@ tr.exportTo('tr.v.ui', function() {
     },
 
     updateContents_() {
-      if (this.updatingContents_)
-        return;
+      if (this.updatingContents_) return;
 
       if (!this.histograms_ || (this.histograms_.length === 0)) {
         this.$.container.style.display = '';
@@ -644,16 +640,15 @@ tr.exportTo('tr.v.ui', function() {
 
       function canSkipGrouping(grouping, groupedHistograms) {
         // Never skip meaningful groupings.
-        if (groupedHistograms.size > 1)
-          return false;
+        if (groupedHistograms.size > 1) return false;
 
         // Never skip the zero-th grouping.
-        if (grouping.key === groupings[0].key)
-          return false;
+        if (grouping.key === groupings[0].key) return false;
 
         // Never skip the grouping that defines the table columns.
-        if (grouping.key === tr.v.HistogramSet.GROUPINGS.DISPLAY_LABEL.key)
+        if (grouping.key === tr.v.HistogramSet.GROUPINGS.DISPLAY_LABEL.key) {
           return false;
+        }
 
         // Skip meaningless groupings.
         return true;
