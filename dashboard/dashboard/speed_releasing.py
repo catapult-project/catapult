@@ -62,35 +62,27 @@ class SpeedReleasingHandler(request_handler.RequestHandler):
       self.response.out.write(json.dumps({'error': 'Invalid table name.'}))
       return
 
-    values = {}
-    self.GetDynamicVariables(values)
-
     rev_a = self.request.get('revA')
     rev_b = self.request.get('revB')
     milestone_param = self.request.get('m')
 
     master_bot_pairs = _GetMasterBotPairs(table_entity.bots)
+
     if milestone_param:
       milestone_param = int(milestone_param)
       if milestone_param not in CHROMIUM_MILESTONES:
         self.response.out.write(json.dumps({
             'error': 'No data for that milestone.'}))
         return
-
-      masters = set([m.split('/')[0] for m in master_bot_pairs])
-      if 'ClankInternal' in masters:
-        milestone_dict = CLANK_MILESTONES.copy()
-      else:
-        milestone_dict = CHROMIUM_MILESTONES.copy()
-      # If we might access the end of the milestone_dict, update it to
-      # be the newest revision instead of 'None'.
-      _UpdateNewestRevInMilestoneDict(master_bot_pairs,
-                                      table_entity.tests, milestone_dict)
+      milestone_dict = _GetUpdatedMilestoneDict(master_bot_pairs,
+                                                table_entity.tests)
       rev_a, rev_b = milestone_dict[milestone_param]
 
-    if not rev_a or not rev_b:
-      self.response.out.write(json.dumps({'error': 'Invalid revisions.'}))
-      return
+    if not rev_a or not rev_b: # If no milestone param and <2 revs passed in.
+      milestone_dict = _GetUpdatedMilestoneDict(master_bot_pairs,
+                                                table_entity.tests)
+      rev_a, rev_b = _GetEndRevOrCurrentMilestoneRevs(
+          rev_a, rev_b, milestone_dict)
 
     rev_a, rev_b = _CheckRevisions(rev_a, rev_b)
     revisions = [rev_b, rev_a] # In reverse intentionally. This is to support
@@ -99,6 +91,8 @@ class SpeedReleasingHandler(request_handler.RequestHandler):
     display_a = _GetDisplayRev(master_bot_pairs, table_entity.tests, rev_a)
     display_b = _GetDisplayRev(master_bot_pairs, table_entity.tests, rev_b)
 
+    values = {}
+    self.GetDynamicVariables(values)
     self.response.out.write(json.dumps({
         'xsrf_token': values['xsrf_token'],
         'table_bots': master_bot_pairs,
@@ -261,3 +255,47 @@ def _UpdateNewestRevInMilestoneDict(bots, tests, milestone_dict):
           milestone_dict[CURRENT_MILESTONE][0],
           milestone_dict[CURRENT_MILESTONE][0])
 
+def _GetEndOfMilestone(rev, milestone_dict):
+  """Finds the end of the milestone that 'rev' is in.
+
+  Check that 'rev' is between [beginning, end) of the tuple. In case an end
+  'rev' is passed in, return corresponding beginning rev. But since revs can
+  double as end and beginning, favor returning corresponding end rev if 'rev'
+  is a beginning rev.
+  """
+  beginning_rev = 0
+  for _, value_tuple in milestone_dict.iteritems():
+    if value_tuple[0] <= int(rev) < value_tuple[1]: # 'rev' is a beginning rev.
+      return value_tuple[1] # Favor by returning here.
+    if value_tuple[1] == int(rev): # 'rev' is an end rev.
+      beginning_rev = value_tuple[0]
+  if beginning_rev:
+    return beginning_rev
+  return milestone_dict[CURRENT_MILESTONE][1]
+
+def _GetEndRevOrCurrentMilestoneRevs(rev_a, rev_b, milestone_dict):
+  """If one/both of the revisions are None, change accordingly.
+
+  If both are None, return most recent milestone, present.
+  If one is None, return the other, end of that milestone.
+  """
+  if not rev_a and not rev_b:
+    return  milestone_dict[CURRENT_MILESTONE]
+  return (rev_a or rev_b), _GetEndOfMilestone((rev_a or rev_b), milestone_dict)
+
+def _GetUpdatedMilestoneDict(master_bot_pairs, tests):
+  """Gets the milestone_dict with the newest rev.
+
+  Checks to see which milestone_dict to use (Clank/Chromium), and updates
+  the 'None' to be the newest revision for one of the specified tests.
+  """
+  masters = set([m.split('/')[0] for m in master_bot_pairs])
+  if 'ClankInternal' in masters:
+    milestone_dict = CLANK_MILESTONES.copy()
+  else:
+    milestone_dict = CHROMIUM_MILESTONES.copy()
+  # If we might access the end of the milestone_dict, update it to
+  # be the newest revision instead of 'None'.
+  _UpdateNewestRevInMilestoneDict(master_bot_pairs,
+                                  tests, milestone_dict)
+  return milestone_dict
