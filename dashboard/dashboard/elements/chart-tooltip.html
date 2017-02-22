@@ -34,11 +34,8 @@ was just clicked.
       max-height: 250px;
     }
 
-    .close-icon {
-      cursor: pointer;
-      position: absolute;
-      top: 4px;
-      right: 4px;
+    #close-button {
+      float: right;
     }
   </style>
 
@@ -70,10 +67,6 @@ was just clicked.
               Relative change: {{item.percent_changed}}<br>
             </div>
           </template>
-
-          <div class="close-icon" on-click="close">
-            ❌ <!-- cross mark U+274C -->
-          </div>
 
           <div id="test-name">
             Test: {{parentPath}}/<b>{{seriesName}}</b>
@@ -136,6 +129,7 @@ was just clicked.
                 test-path="{{testPath}}"
                 test-rev="{{pointId}}"></stoppage-alert-debug-button>
           </template>
+          <paper-button id="close-button" raised dismissive on-click="close">Close</paper-button>
         </div>
 
       </paper-card>
