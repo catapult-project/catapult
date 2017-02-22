@@ -36,17 +36,20 @@ class EditAnomaliesTest(testing_common.TestCase):
                     end_revision=123459,
                     median_before_anomaly=5,
                     median_after_anomaly=10,
-                    bug_id=None).put()
+                    bug_id=None,
+                    test=utils.TestKey('a/b/c/d')).put()
     anomaly.Anomaly(start_revision=123460,
                     end_revision=123464,
                     median_before_anomaly=5,
                     median_after_anomaly=10,
-                    bug_id=None).put()
+                    bug_id=None,
+                    test=utils.TestKey('a/b/c/d')).put()
     anomaly.Anomaly(start_revision=123465,
                     end_revision=123468,
                     median_before_anomaly=5,
                     median_after_anomaly=10,
-                    bug_id=None).put()
+                    bug_id=None,
+                    test=utils.TestKey('a/b/c/d')).put()
     return anomaly.Anomaly.query().fetch(keys_only=True)
 
   def testPost_NoXSRFToken_Returns403Error(self):

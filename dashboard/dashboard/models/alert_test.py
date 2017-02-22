@@ -80,6 +80,15 @@ class AlertTest(testing_common.TestCase):
     self.assertEqual(
         ['new_2', 'new_2a'], [a.key.id() for a in key2_alerts_limit])
 
+  def testComputedTestProperties(self):
+    anomaly.Anomaly(
+        id="foo",
+        test=utils.TestKey('master/bot/benchmark/metric/page')).put()
+    a = ndb.Key('Anomaly', 'foo').get()
+    self.assertEqual(a.master_name, 'master')
+    self.assertEqual(a.bot_name, 'bot')
+    self.assertEqual(a.benchmark_name, 'benchmark')
+
 
 if __name__ == '__main__':
   unittest.main()

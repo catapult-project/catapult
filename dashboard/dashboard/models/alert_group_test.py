@@ -116,7 +116,8 @@ class AnomalyGroupingTest(testing_common.TestCase):
     new_anomaly = anomaly.Anomaly(
         start_revision=3000,
         end_revision=4000,
-        group=anomalies[0].group)
+        group=anomalies[0].group,
+        test=utils.TestKey('master/bot/benchmark/metric'))
     new_anomaly.put()
 
     # Associate it with a group; alert_group.ModifyAlertsAndAssociatedGroups
@@ -189,7 +190,8 @@ class AnomalyGroupingTest(testing_common.TestCase):
     new_anomaly = anomaly.Anomaly(
         start_revision=3000,
         end_revision=4000,
-        group=anomalies[0].group)
+        group=anomalies[0].group,
+        test=utils.TestKey('master/bot/benchmark/metric'))
     new_anomaly_key = new_anomaly.put()
 
     # Change the anomaly revision to invalid range.

@@ -30,6 +30,17 @@ class Alert(internal_only_model.InternalOnlyModel):
   # Each Alert is related to one Test.
   test = ndb.KeyProperty(indexed=True)
 
+  # We'd like to be able to query Alerts by Master, Bot, and Benchmark names.
+  master_name = ndb.ComputedProperty(
+      lambda self: utils.TestPath(self.test).split('/')[0],
+      indexed=True)
+  bot_name = ndb.ComputedProperty(
+      lambda self: utils.TestPath(self.test).split('/')[1],
+      indexed=True)
+  benchmark_name = ndb.ComputedProperty(
+      lambda self: utils.TestPath(self.test).split('/')[2],
+      indexed=True)
+
   # Each Alert has a revision range it's associated with; however,
   # start_revision and end_revision could be the same.
   start_revision = ndb.IntegerProperty(indexed=True)
