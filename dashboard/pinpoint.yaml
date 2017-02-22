@@ -1,4 +1,4 @@
-module: pinpoint
+service: pinpoint
 
 runtime: python27
 api_version: 1

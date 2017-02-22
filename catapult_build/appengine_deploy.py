@@ -13,31 +13,32 @@ import sys
 from catapult_build import temp_deployment_dir
 
 
-def AppcfgUpdate(paths, app_id, service_name=None):
+def Deploy(paths, args):
   """Deploys a new version of an App Engine app from a temporary directory.
 
   Args:
     paths: List of paths to files and directories that should be linked
         (or copied) in the deployment directory.
-    app_id: The application ID to use.
+    args: Arguments passed to "gcloud app deploy".
   """
   with temp_deployment_dir.TempDeploymentDir(
       paths, use_symlinks=False) as temp_dir:
     print 'Deploying from "%s".' % temp_dir
 
-    script_path = _FindScriptInPath('appcfg.py')
+    # google-cloud-sdk/bin/gcloud is a shell script, which we can't subprocess
+    # on Windows with shell=False. So, execute the Python script directly.
+    if os.name == 'nt':
+      script_path = _FindScriptInPath('gcloud.cmd')
+    else:
+      script_path = _FindScriptInPath('gcloud')
     if not script_path:
-      print 'This script requires the App Engine SDK to be in PATH.'
+      print 'This script requires the Google Cloud SDK to be in PATH.'
+      print 'https://cloud.google.com/sdk/'
       sys.exit(1)
 
-    subprocess.call([
-        sys.executable,
-        script_path,
-        '--application=%s' % app_id,
-        '--version=%s' % _VersionName(),
-        'update',
-        os.path.join(temp_dir, service_name) if service_name else temp_dir,
-    ])
+    subprocess.call([script_path, 'app', 'deploy', '--no-promote',
+                     '--version', _VersionName()] + args,
+                    cwd=temp_dir)
 
 
 def _FindScriptInPath(script_name):

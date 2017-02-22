@@ -61,25 +61,40 @@ def PathsForDeployment():
   return paths
 
 
-def ExtraPythonLibraryPaths():
+def PathsForTesting():
   """Returns a list of Python library paths required for dashboard tests."""
   paths = []
   paths.append(os.path.join(_CATAPULT_PATH, 'dashboard'))
-  paths.extend(_AllSdkThirdPartyLibraryPaths())
-  paths.extend(_CatapultThirdPartyLibraryPaths())
+  paths += _CatapultThirdPartyLibraryPaths()
+  paths += _AllSdkThirdPartyLibraryPaths()
   return paths
 
 
 def _AllSdkThirdPartyLibraryPaths():
-  """Returns a list of all third party library paths from the SDK."""
+  """Returns a list of all third party library paths from the SDK.
+
+  The AppEngine documentation directs us to add App Engine libraries from the
+  SDK to our Python path for local unit tests.
+    https://cloud.google.com/appengine/docs/python/tools/localunittesting
+  """
+  for sdk_bin_path in os.environ['PATH'].split(os.pathsep):
+    if 'google-cloud-sdk' not in sdk_bin_path:
+      continue
+
+    appengine_path = os.path.join(
+        os.path.dirname(sdk_bin_path), 'platform', 'google_appengine')
+    sys.path.insert(0, appengine_path)
+    break
+
   try:
     import dev_appserver
   except ImportError:
-    # TODO(qyearsley): Put the App Engine SDK in the path with the
-    # binary dependency manager.
+    # TODO: Put the Cloud SDK in the path with the binary dependency manager.
     # https://github.com/catapult-project/catapult/issues/2135
-    print 'This script requires the App Engine SDK to be in PYTHONPATH.'
+    print 'This script requires the Google Cloud SDK to be in PATH.'
+    print 'https://cloud.google.com/sdk/'
     sys.exit(1)
+
   return dev_appserver.EXTRA_PATHS
 
 

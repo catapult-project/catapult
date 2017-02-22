@@ -3,7 +3,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import argparse
 import os
 import sys
 
@@ -14,21 +13,15 @@ def _AddToPathIfNeeded(path):
 
 
 def Main():
-  catapult_path = os.path.abspath(os.path.join(
-      os.path.dirname(__file__), '..', '..'))
-  parser = argparse.ArgumentParser()
-  parser.add_argument('--appid', default='chromeperf')
-  parser.add_argument('--service', default=None)
-  args = parser.parse_args()
-
-  _AddToPathIfNeeded(os.path.join(catapult_path, 'dashboard'))
+  dashboard_path = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+  _AddToPathIfNeeded(dashboard_path)
   import dashboard
-  paths = dashboard.PathsForDeployment()
 
+  catapult_path = os.path.dirname(dashboard_path)
   _AddToPathIfNeeded(catapult_path)
   from catapult_build import appengine_deploy
-  appengine_deploy.AppcfgUpdate(paths, app_id=args.appid,
-                                service_name=args.service)
+
+  appengine_deploy.Deploy(dashboard.PathsForDeployment(), sys.argv[1:])
 
 
 if __name__ == '__main__':
