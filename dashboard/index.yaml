@@ -116,6 +116,23 @@ indexes:
   - name: test
   - name: end_revision
 
+# Used in benchmark_health_report for querying benchmark by name
+# and master.
+- kind: Anomaly
+  properties:
+  - name: benchmark_name
+  - name: master_name
+  - name: timestamp
+    direction: desc
+
+- kind: Anomaly
+  properties:
+  - name: benchmark_name
+  - name: internal_only
+  - name: master_name
+  - name: timestamp
+    direction: desc
+
 # Might be unused!
 # This index would enable querying for points for a particular test,
 # filtering or sorting by revision, and possibly doing a projection
