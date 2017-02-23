@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-Copyright 2015 The Chromium Authors. All rights reserved.
+Copyright 2017 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
@@ -8,230 +8,73 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-/** Support for autocomplete suggestions. */
+/** Support for fuzzy autocomplete suggestions. */
 var autocomplete = (function() {
-  // These are characters that are ignored in substring matching.
-  var UNIMPORTANT_CHAR_REGEX_ = /[ -:]/;
-
-  /**
-   * This class is used to get autocomplete suggestions.  On instantiation,
-   * this class builds a trie which is used to get matches.
-   * sourceList have the following properties:
-   *
-   *    [{name: 'Skydiving'}, {name: 'Snowboarding'}]
-   *
-   * With grouping:
-   *    [
-   *        {
-   *            name: 'Outdoor',
-   *            head: true
-   *        },
-   *        {
-   *            name: 'Skydiving',
-   *            group: 'Outdoor'
-   *        }
-   *    ]
-   * @param {Array.<Object>} sourceList List of object.
-   * @constructor
-   */
-  var Trie = function(sourceList) {
-    this.trie_ = [[], {}];
-    this.headItems_ = {};
+  var Autocomplete = function(sourceList) {
     this.sourceList_ = sourceList;
-    this.buildTrie_();
+    this.headItems_ = sourceList.filter(item => item.head);
+    this.items_ = sourceList.filter(item => !item.head);
   };
 
-  /**
-   * Searches for matching terms and returns their indexes.
-   * @param {string} target A string to search for.
-   * @return {Array} List of matched items.
-   */
-  Trie.prototype.search = function(target) {
+  Autocomplete.prototype.search = function(target) {
     if (target == null || target == undefined) {
       return this.sourceList_;
     }
+    var selector = new FuzzySelect(target, item => item.name);
+    var items = selector.filter(this.items_);
+    var groups = new Set(items.map(item => item.group));
+    var headItems = this.headItems_.filter(item => groups.has(item.name));
+    var results = [].concat(headItems).concat(items);
 
-    target = target.toLowerCase().trim();
-    if (target.length == 0) {
-      return this.sourceList_;
-    }
-
-    var resultDict = {};
-
-    // Search full string without splitting on unimportant characters.
-    this.searchTrie_(target, resultDict);
-
-    // Search substring splitting on unimportant characters.
-    var targetParts = target.split(UNIMPORTANT_CHAR_REGEX_);
-    if (targetParts.length > 1) {
-      for (var i = 0; i < targetParts.length; i++) {
-        this.searchTrie_(targetParts[i], resultDict);
+    // We piggyback lexical sorting. We want to sort first by group name then
+    // by is/is not group header then by score and then finally by name.
+    var toKey = function(item) {
+      if (item.head) {
+        // The score doesn't matter for head items.
+        return [item.name, false, 0, item.name];
       }
-    }
+      return [item.group || '', true, selector.score(item), item.name];
+    };
 
-    return this.buildResults(resultDict);
+    return results.map(item => [toKey(item), item]).sort().map(pair => pair[1]);
   };
 
   /**
-   * Gets list of result items from resultDict after sorting.
-   * @param {Object} resultDict Dictionary of source object index to its score.
-   * @return {Array} List of matched items.
+   * FuzzySelect tests items to see if they match a query.
+   * An item matches a query if all space seperated parts from the query are
+   * present in the item.
+   *
+   * The optional accessor function can be provided if the items are not plain
+   * strings. It is passed an item and should return a string for use in
+   * testing against the query.
    */
-  Trie.prototype.buildResults = function(resultDict) {
-    var resultTuples = [];
-    for (var index in resultDict) {
-      resultTuples.push([this.sourceList_[index], resultDict[index]]);
-    }
-
-    var resultList = [];
-    // If this sourceDatalist contain grouping, include head item in
-    // results.
-    if (Object.keys(this.headItems_).length > 0) {
-      resultTuples.sort(this.compareGroup_);
-      var groupName = null;
-      for (var i = 0; i < resultTuples.length; i++) {
-        var item = resultTuples[i][0];
-        if (item.group != groupName) {
-          groupName = item.group;
-          resultList.push(this.headItems_[groupName]);
-        }
-        resultList.push(item);
-      }
-    } else {
-      resultTuples.sort(this.compareScore_);
-      resultTuples.forEach(function(tuple) {
-        resultList.push(tuple[0]);
-      });
-    }
-    return resultList;
+  var FuzzySelect = function(query, opt_accessor) {
+    this.accessor = opt_accessor || (s => s);
+    query = query.replace(new RegExp(' +'), ' ');
+    this.rs = query.split(' ').map(part => new RegExp(part));
   };
 
-  /**
-   * Searches from the root of the trie for a target string.
-   * @param {string} target A string to search for.
-   * @param {Object} resultDict Dictionary of source object index to its score.
-   */
-  Trie.prototype.searchTrie_ = function(target, resultDict) {
-    var chars = target.split('');
-    var node = this.trie_;
-    for (var i = 0; i < chars.length; i++) {
-      var char = chars[i];
-      if (char in node[1]) {
-        node = node[1][char];
-      } else {
-        return;
-      }
-    }
-
-    this.searchAllSubNodes_(node, resultDict, chars.length);
+  FuzzySelect.prototype.filter = function(items) {
+    return items.filter(item => this.match(item));
   };
 
-  /**
-   * Searches all sub-nodes and sum up scores for source string that are found.
-   * @param {Object} node A trie node.
-   * @param {Object} resultDict Dictionary of source object index to its score.
-   * @param {number} targetLength Length of the target string.
-   */
-  Trie.prototype.searchAllSubNodes_ = function(
-      node, resultDict, targetLength) {
-    if (!node) {
-      return;
-    }
-
-    for (var i = 0; i < node[0].length; i++) {
-      var data = node[0][i];
-      if (!(data[0] in resultDict)) {
-        resultDict[data[0]] = 0;
-      }
-      resultDict[data[0]] += this.getScore_(targetLength, data);
-    }
-
-    for (var char in node[1]) {
-      this.searchAllSubNodes_(node[1][char], resultDict, targetLength);
-    }
+  FuzzySelect.prototype.match = function(item) {
+    return this.rs.every(r => r.exec(this.accessor(item)));
   };
 
-  /**
-   * Builds a trie out of the sourceList.
-   */
-  Trie.prototype.buildTrie_ = function() {
-    for (var i = 0; i < this.sourceList_.length; i++) {
-      var source = this.sourceList_[i];
-      if (source.head) {
-        this.headItems_[source.name] = source;
-        continue;
-      }
-
-      this.addWord_(this.trie_, source.name, i, source.name.length, 1);
-
-      var words = source.name.split(UNIMPORTANT_CHAR_REGEX_);
-      if (words.length > 1) {
-        var position = 1;
-        for (var j = 0; j < words.length; j++) {
-          this.addWord_(this.trie_, words[j], i, source.name.length, position);
-          position += words[j].length;
-        }
-      }
+  FuzzySelect.prototype.score = function(item) {
+    var score = 0; // Smaller is better.
+    for (var r of this.rs) {
+      var m = r.exec(this.accessor(item));
+      if (!m) return Number.POSITIVE_INFINITY;
+      score += m.index;
     }
-  };
-
-  /**
-   * Adds a word to the trie.
-   * @param {Object} node A trie node.
-   * @param {string} word A string to add.
-   * @param {number} index The word's index within the sourceList.
-   * @param {number} totalLength Total length of a source string.
-   * @param {number} position Integer position of the word within the source
-   *     string.
-   */
-  Trie.prototype.addWord_ = function(node, word, index, totalLength,
-      position) {
-    var characters = word.toLowerCase().split('');
-    for (var i = 0; i < characters.length; i++) {
-      var letter = characters[i];
-      if (!(letter in node[1])) {
-        node[1][letter] = [[], {}];
-      }
-      node = node[1][letter];
-    }
-    node[0].push([index, characters.length, totalLength, position]);
-  };
-
-  /**
-   * Gets the score for a match.
-   * The more characters matched at the beginning and the shorter the string,
-   * the higher the score.
-   * @param {number} targetLength Length of target word.
-   * @param {Array} data A trie node data.
-   * @return {number} The score, which is
-   *     target_length * (target_length / source_length)^2 / source_position
-   */
-  Trie.prototype.getScore_ = function(targetLength, data) {
-    return targetLength * Math.pow(targetLength / data[2], 2) / data[3];
-  };
-
-  /**
-   * Compares by score.
-   */
-  Trie.prototype.compareScore_ = function(pairA, pairB) {
-    return pairB[1] - pairA[1];
-  };
-
-  /**
-   * Compares by group and then by score.
-   */
-  Trie.prototype.compareGroup_ = function(pairA, pairB) {
-    if (pairA[0].group < pairB[0].group) {
-      return -1;
-    }
-    if (pairA[0].group > pairB[0].group) {
-      return 1;
-    }
-    return pairB[1] - pairA[1];
+    return score;
   };
 
   return {
-    Trie: Trie
+    Autocomplete,
+    FuzzySelect,
   };
 })();
 
