@@ -121,6 +121,7 @@ indexes:
 - kind: Anomaly
   properties:
   - name: benchmark_name
+  - name: is_improvement
   - name: master_name
   - name: timestamp
     direction: desc
@@ -129,9 +130,11 @@ indexes:
   properties:
   - name: benchmark_name
   - name: internal_only
+  - name: is_improvement
   - name: master_name
   - name: timestamp
     direction: desc
+
 
 # Might be unused!
 # This index would enable querying for points for a particular test,

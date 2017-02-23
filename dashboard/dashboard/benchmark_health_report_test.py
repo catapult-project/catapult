@@ -17,7 +17,6 @@ from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import graph_data
-from dashboard.models import sheriff
 
 
 class BenchmarkHealthReportTest(testing_common.TestCase):
@@ -30,13 +29,13 @@ class BenchmarkHealthReportTest(testing_common.TestCase):
     self.testapp = webtest.TestApp(app)
 
   def _AddAnomalyEntities(
-      self, revision_ranges, test_key, sheriff_key, bug_id=None):
+      self, revision_ranges, test_key, bug_id=None):
     """Adds a group of Anomaly entities to the datastore."""
     urlsafe_keys = []
     for start_rev, end_rev in revision_ranges:
       anomaly_key = anomaly.Anomaly(
           start_revision=start_rev, end_revision=end_rev,
-          test=test_key, bug_id=bug_id, sheriff=sheriff_key,
+          test=test_key, bug_id=bug_id,
           median_before_anomaly=100, median_after_anomaly=200).put()
       urlsafe_keys.append(anomaly_key.urlsafe())
     return urlsafe_keys
@@ -60,25 +59,19 @@ class BenchmarkHealthReportTest(testing_common.TestCase):
       test.improvement_direction = anomaly.DOWN
     ndb.put_multi(tests)
 
-  def _AddSheriff(self, patterns):
-    """Adds a Sheriff entity and returns the key."""
-    return sheriff.Sheriff(
-        id='Chromium Perf Sheriff',
-        email='sullivan@google.com',
-        patterns=patterns).put()
-
   def _AddCachedSuites(self):
     test_suites = {
         'sunspider': {
             'mas': {'ChromiumPerf': {'mac': False, 'linux': False}},
-            'mon': ['Total'],
+            'mon': [],
         },
         'page_cycler': {
             'mas': {'ChromiumPerf': {'linux': False}, 'CrOS': {'foo': False}},
             'mon': ['load_time'],
         },
         'speedometer': {
-            'mas': {'CrOS': {'foo': False}}
+            'mas': {'CrOS': {'foo': False}},
+            'mon': [],
         }
     }
     key = update_test_suites._NamespaceKey(
@@ -99,16 +92,13 @@ class BenchmarkHealthReportTest(testing_common.TestCase):
 
   def testPost_BenchmarkArgument_ListsAlertsAndBots(self):
     self._AddCachedSuites()
-    self._AddSheriff(['*/*/page_cycler/*', '*/*/page_cycler/*/*'])
     self._AddTests()
     self._AddAnomalyEntities(
         [(200, 400), (600, 800)],
-        utils.TestKey('ChromiumPerf/linux/page_cycler/load_time'),
-        ndb.Key('Sheriff', 'Chromium Perf Sheriff'))
+        utils.TestKey('ChromiumPerf/linux/page_cycler/load_time'))
     self._AddAnomalyEntities(
         [(500, 700)],
-        utils.TestKey('ChromiumPerf/linux/page_cycler/load_time/cnn.com'),
-        ndb.Key('Sheriff', 'Chromium Perf Sheriff'))
+        utils.TestKey('ChromiumPerf/linux/page_cycler/load_time/cnn.com'))
     response = self.testapp.post(
         '/benchmark_health_report', {
             'benchmark': 'page_cycler',
@@ -126,7 +116,7 @@ class BenchmarkHealthReportTest(testing_common.TestCase):
     self._AddTests()
     response = self.testapp.post(
         '/benchmark_health_report', {
-            'benchmark': 'page_cycler',
+            'benchmark': 'sunspider',
             'num_days': '30',
             'master': 'ChromiumPerf',
         })
@@ -134,16 +124,13 @@ class BenchmarkHealthReportTest(testing_common.TestCase):
 
   def testPost_BenchmarkArgumentNumDaysArgument_ListsCorrectAlerts(self):
     self._AddCachedSuites()
-    self._AddSheriff(['*/*/page_cycler/*', '*/*/page_cycler/*/*'])
     self._AddTests()
     self._AddAnomalyEntities(
         [(200, 400), (600, 800)],
-        utils.TestKey('ChromiumPerf/linux/page_cycler/load_time'),
-        ndb.Key('Sheriff', 'Chromium Perf Sheriff'))
+        utils.TestKey('ChromiumPerf/linux/page_cycler/load_time'))
     self._AddAnomalyEntities(
         [(500, 700)],
-        utils.TestKey('ChromiumPerf/linux/page_cycler/load_time/cnn.com'),
-        ndb.Key('Sheriff', 'Chromium Perf Sheriff'))
+        utils.TestKey('ChromiumPerf/linux/page_cycler/load_time/cnn.com'))
     anomalies = anomaly.Anomaly.query().fetch()
     anomalies[0].timestamp = datetime.datetime.now() - datetime.timedelta(
         days=20)

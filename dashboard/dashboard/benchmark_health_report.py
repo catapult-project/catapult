@@ -8,10 +8,8 @@ import datetime
 import json
 
 from dashboard import alerts
-from dashboard import list_tests
 from dashboard import update_test_suites
 from dashboard.common import request_handler
-from dashboard.common import utils
 from dashboard.models import anomaly
 
 
@@ -51,37 +49,22 @@ class BenchmarkHealthReportHandler(request_handler.RequestHandler):
     values = {}
 
     # The cached test suite info contains info about monitoring and bots.
+    query = anomaly.Anomaly.query(
+        anomaly.Anomaly.benchmark_name == benchmark,
+        anomaly.Anomaly.master_name == master,
+        anomaly.Anomaly.is_improvement == False,
+        anomaly.Anomaly.timestamp >
+        datetime.datetime.now() - datetime.timedelta(days=num_days))
+    query = query.order(-anomaly.Anomaly.timestamp)
+    anomalies = query.fetch()
+    values['alerts'] = alerts.AnomalyDicts(anomalies)
     benchmarks = update_test_suites.FetchCachedTestSuites()
-    sheriff = self._GetSheriffForBenchmark(benchmark, master, benchmarks)
-    if sheriff:
-      query = anomaly.Anomaly.query(anomaly.Anomaly.sheriff == sheriff)
-      query = query.filter(anomaly.Anomaly.is_improvement == False)
-      query = query.filter(
-          anomaly.Anomaly.timestamp >
-          datetime.datetime.now() - datetime.timedelta(days=num_days))
-      query = query.order(-anomaly.Anomaly.timestamp)
-      anomalies = query.fetch()
-      anomalies = [a for a in anomalies if self._BenchmarkName(a) == benchmark]
+    if benchmarks[benchmark].get('mon'):
       values['monitored'] = True
-      values['alerts'] = alerts.AnomalyDicts(anomalies)
     else:
       values['monitored'] = False
-
     values['bots'] = benchmarks[benchmark]['mas'][master].keys()
     return values
-
-  def _GetSheriffForBenchmark(self, benchmark, master, benchmarks):
-    # TODO(sullivan): There can be multiple sheriffs; implement this.
-    if not benchmarks[benchmark]['mon']:
-      return None
-    monitored_test_path = benchmarks[benchmark]['mon'][0]
-    pattern = '%s/*/%s/%s' % (master, benchmark, monitored_test_path)
-    monitored_tests = list_tests.GetTestsMatchingPattern(
-        pattern, list_entities=True)
-    return monitored_tests[0].sheriff
-
-  def _BenchmarkName(self, alert):
-    return utils.TestPath(alert.test).split('/')[2]
 
   def _GetResponseValuesForMaster(self, master):
     benchmarks = update_test_suites.FetchCachedTestSuites()
