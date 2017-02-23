@@ -25,11 +25,13 @@ tr.exportTo('tr.metrics', function() {
   var COUNT_BOUNDARIES = tr.v.HistogramBinBoundaries.createExponential(
       1, 1e5, 30);
 
-  function addTimeDurationHistogram(histogramName, duration, histograms) {
+  function addTimeDurationHistogram(
+      histogramName, duration, histograms, opt_description) {
     var hist = new tr.v.Histogram(histogramName,
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TIME_BOUNDARIES);
     hist.addSample(duration);
     histograms.addHistogram(hist);
+    if (opt_description) hist.description = opt_description;
   }
 
   // Adds histograms specific to memory-infra dumps.
@@ -65,29 +67,36 @@ tr.exportTo('tr.metrics', function() {
     });
 
     addTimeDurationHistogram(
-        'Average CPU overhead on all threads per memory-infra dump',
-        totalOverhead / memoryDumpCount, histograms);
+        'memory_dump_cpu_overhead',
+        totalOverhead / memoryDumpCount, histograms,
+        'Average CPU overhead on all threads per memory-infra dump');
     addTimeDurationHistogram(
+        'nonmemory_thread_memory_dump_cpu_overhead',
+        nonMemoryInfraThreadOverhead / memoryDumpCount, histograms,
         'Average CPU overhead on non-memory-infra threads per memory-infra ' +
-            'dump',
-        nonMemoryInfraThreadOverhead / memoryDumpCount, histograms);
+            'dump');
     tr.b.iterItems(overheadByProvider, function(providerName, overhead) {
       addTimeDurationHistogram(
-          'Average CPU overhead of ' + providerName + ' per OnMemoryDump call',
-          overhead.duration / overhead.count, histograms);
+          providerName + '_memory_dump_cpu_overhead',
+          overhead.duration / overhead.count, histograms,
+          'Average CPU overhead of ' + providerName + ' per OnMemoryDump call');
     });
 
     var memoryInfraEventsSize =
         categoryNamesToTotalEventSizes.get(MEMORY_INFRA_TRACING_CATEGORY);
     var memoryInfraTraceBytesValue = new tr.v.Histogram(
-        'Total trace size of memory-infra dumps in bytes',
+        'total_memory_dump_size',
         tr.b.Unit.byName.sizeInBytes_smallerIsBetter, BYTE_BOUNDARIES);
+    memoryInfraTraceBytesValue.description =
+      'Total trace size of memory-infra dumps in bytes';
     memoryInfraTraceBytesValue.addSample(memoryInfraEventsSize);
     histograms.addHistogram(memoryInfraTraceBytesValue);
 
     var traceBytesPerDumpValue = new tr.v.Histogram(
-        'Average trace size of memory-infra dumps in bytes',
+        'memory_dump_size',
         tr.b.Unit.byName.sizeInBytes_smallerIsBetter, BYTE_BOUNDARIES);
+    traceBytesPerDumpValue.description =
+      'Average trace size of memory-infra dumps in bytes',
     traceBytesPerDumpValue.addSample(memoryInfraEventsSize / memoryDumpCount);
     histograms.addHistogram(traceBytesPerDumpValue);
   }
@@ -164,16 +173,18 @@ tr.exportTo('tr.metrics', function() {
     var categoryWithMaxEventBytes = maxCatNameAndBytes[0];
 
     var maxEventCountPerSecValue = new tr.v.Histogram(
-        'Max number of events per second',
-      tr.b.Unit.byName.count_smallerIsBetter, COUNT_BOUNDARIES);
+        'peak_event_rate', tr.b.Unit.byName.count_smallerIsBetter,
+        COUNT_BOUNDARIES);
+    maxEventCountPerSecValue.description = 'Max number of events per second';
     maxEventCountPerSecValue.addSample(maxEventCountPerSec);
 
     var maxEventBytesPerSecValue = new tr.v.Histogram(
-        'Max event size in bytes per second',
-        tr.b.Unit.byName.sizeInBytes_smallerIsBetter, BYTE_BOUNDARIES);
+        'peak_event_size_rate', tr.b.Unit.byName.sizeInBytes_smallerIsBetter,
+        BYTE_BOUNDARIES);
+    maxEventBytesPerSecValue.description = 'Max event size in bytes per second';
     maxEventBytesPerSecValue.addSample(maxEventBytesPerSec);
 
-    var totalTraceBytesValue = new tr.v.Histogram('Total trace size in bytes',
+    var totalTraceBytesValue = new tr.v.Histogram('trace_size',
         tr.b.Unit.byName.sizeInBytes_smallerIsBetter, BYTE_BOUNDARIES);
     totalTraceBytesValue.addSample(totalTraceBytes);
 

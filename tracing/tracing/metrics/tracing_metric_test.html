@@ -54,7 +54,7 @@ tr.b.unittest.testSuite(function() {
     tr.metrics.tracingMetric(histograms, model);
 
     var eventStringSize = getEventStringSize(events, [0, 1]);
-    var histogram = histograms.getHistogramNamed('Total trace size in bytes');
+    var histogram = histograms.getHistogramNamed('trace_size');
     assert.strictEqual(histogram.average, eventStringSize);
   });
 
@@ -73,13 +73,11 @@ tr.b.unittest.testSuite(function() {
     tr.metrics.tracingMetric(histograms, model);
 
     var maxEventCountPerSec = 3;
-    var histogram = histograms.getHistogramNamed(
-        'Max number of events per second');
+    var histogram = histograms.getHistogramNamed('peak_event_rate');
     assert.strictEqual(histogram.average, maxEventCountPerSec);
 
     var maxEventBytesPerSec = getEventStringSize(events, [2, 3, 5]);
-    histogram = histograms.getHistogramNamed(
-        'Max event size in bytes per second');
+    histogram = histograms.getHistogramNamed('peak_event_size_rate');
     assert.strictEqual(histogram.average, maxEventBytesPerSec);
   });
 
@@ -139,26 +137,19 @@ tr.b.unittest.testSuite(function() {
         slice => slice['cat'] === MEMORY_INFRA_TRACING_CATEGORY).reduce(
         (acc, slice) => acc + JSON.stringify(slice).length, 0);
     var totalSizeHistogram = histograms.getHistogramNamed(
-        'Total trace size of memory-infra dumps in bytes');
+        'total_memory_dump_size');
     assert.strictEqual(totalSizeHistogram.average, memoryCategorySize);
     var sizePerDumpHistogram = histograms.getHistogramNamed(
-        'Average trace size of memory-infra dumps in bytes');
+        'memory_dump_size');
     assert.strictEqual(sizePerDumpHistogram.average, memoryCategorySize);
 
-    checkDurationHistogram(histograms,
-        'Average CPU overhead of mdp1 per OnMemoryDump call', 6.5);
-    checkDurationHistogram(histograms,
-        'Average CPU overhead of mdp2 per OnMemoryDump call', 16);
-    checkDurationHistogram(histograms,
-        'Average CPU overhead of mdp3 per OnMemoryDump call', 6);
-    checkDurationHistogram(histograms,
-        'Average CPU overhead of mdp4 per OnMemoryDump call', 8);
-    checkDurationHistogram(histograms,
-        'Average CPU overhead on non-memory-infra threads per memory-infra ' +
-            'dump',
-        47);
-    checkDurationHistogram(histograms,
-        'Average CPU overhead on all threads per memory-infra dump', 91);
+    checkDurationHistogram(histograms, 'mdp1_memory_dump_cpu_overhead', 6.5);
+    checkDurationHistogram(histograms, 'mdp2_memory_dump_cpu_overhead', 16);
+    checkDurationHistogram(histograms, 'mdp3_memory_dump_cpu_overhead', 6);
+    checkDurationHistogram(histograms, 'mdp4_memory_dump_cpu_overhead', 8);
+    checkDurationHistogram(
+        histograms, 'nonmemory_thread_memory_dump_cpu_overhead', 47);
+    checkDurationHistogram(histograms, 'memory_dump_cpu_overhead', 91);
   });
 
   test('tracingMetric_traceImportDurationMetric', function() {
