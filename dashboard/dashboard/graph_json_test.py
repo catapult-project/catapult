@@ -12,6 +12,7 @@ import webtest
 from google.appengine.ext import ndb
 
 from dashboard import graph_json
+from dashboard import list_tests
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import anomaly
@@ -661,11 +662,12 @@ class GraphJsonTest(testing_common.TestCase):
         rows.append(row)
     ndb.put_multi(rows)
 
-    flot_json_str = graph_json.GetGraphJson(
+    paths = list_tests.GetTestsForTestPathDict(
         {
             'ChromiumGPU/win7/dromaeo/jslib': ['jslib'],
-        },
-        rev=15000, num_points=8, is_selected=False)
+        }, False)
+    flot_json_str = graph_json.GetGraphJson(
+        paths, rev=15000, num_points=8, is_selected=False)
     flot = json.loads(flot_json_str)
 
     sub_test_a_index = self._GetSeriesIndex(
@@ -685,8 +687,9 @@ class GraphJsonTest(testing_common.TestCase):
     test_paths = ['M/b/suite/%s' % i for i in range(100)]
     for p in test_paths:
       testing_common.AddRows(p, [1])
-    response = graph_json.GetGraphJson(
-        test_path_dict={p: [] for p in test_paths}, is_selected=False)
+    path_list = list_tests.GetTestsForTestPathDict(
+        {p: [] for p in test_paths}, False)
+    response = graph_json.GetGraphJson(path_list, is_selected=False)
     self.assertEqual(
         {'data': {}, 'annotations': {}, 'error_bars': {}},
         json.loads(response))
@@ -715,52 +718,80 @@ class GraphJsonParseRequestArgumentsTest(testing_common.TestCase):
     # unspecified arguments get set to None.
     handler = self._HandlerWithMockRequestParams(rev='12345', num_points='123')
     expected = {
-        'test_path_dict': {
-            'Master/b1/scrolling/frame_times/about.com': [],
-            'Master/b2/scrolling/frame_times/about.com': [],
-            'Master/linux/dromaeo.domcoremodify/dom': [],
-        },
+        'test_paths': [
+            'Master/b1/scrolling/frame_times/about.com',
+            'Master/b2/scrolling/frame_times/about.com',
+            'Master/linux/dromaeo.domcoremodify/dom'
+        ],
         'rev': 12345,
         'num_points': 123,
         'start_rev': None,
         'end_rev': None,
         'is_selected': None,
     }
-    self.assertEqual(expected, handler._ParseRequestArguments())
+    actual = handler._ParseRequestArguments()
+    actual['test_paths'].sort()
+    self.assertEqual(expected, actual)
+
+  def testParseRequestArguments_TestPathListSpecified(self):
+    handler = self._HandlerWithMockRequestParams(
+        test_path_dict=None, test_path_list=[
+            'Master/b1/scrolling/frame_times/about.com',
+            'Master/b2/scrolling/frame_times/about.com',
+            'Master/linux/dromaeo.domcoremodify/dom'])
+
+    expected = {
+        'test_paths': [
+            'Master/b1/scrolling/frame_times/about.com',
+            'Master/b2/scrolling/frame_times/about.com',
+            'Master/linux/dromaeo.domcoremodify/dom'
+        ],
+        'rev': None,
+        'num_points': 150,
+        'start_rev': None,
+        'end_rev': None,
+        'is_selected': None,
+    }
+    actual = handler._ParseRequestArguments()
+    self.assertEqual(expected, actual)
 
   def testParseRequestArguments_OnlyTestPathDictSpecified(self):
     # No revision or number of points is specified, so they're set to None.
     handler = self._HandlerWithMockRequestParams()
     expected = {
-        'test_path_dict': {
-            'Master/b1/scrolling/frame_times/about.com': [],
-            'Master/b2/scrolling/frame_times/about.com': [],
-            'Master/linux/dromaeo.domcoremodify/dom': [],
-        },
+        'test_paths': [
+            'Master/b1/scrolling/frame_times/about.com',
+            'Master/b2/scrolling/frame_times/about.com',
+            'Master/linux/dromaeo.domcoremodify/dom',
+        ],
         'rev': None,
         'num_points': graph_json._DEFAULT_NUM_POINTS,
         'start_rev': None,
         'end_rev': None,
         'is_selected': None,
     }
-    self.assertEqual(expected, handler._ParseRequestArguments())
+    actual = handler._ParseRequestArguments()
+    actual['test_paths'].sort()
+    self.assertEqual(expected, actual)
 
   def testParseRequestArguments_NegativeRevision(self):
     # Negative revision is invalid; it's the same as no revision.
     handler = self._HandlerWithMockRequestParams(rev='-1')
     expected = {
-        'test_path_dict': {
-            'Master/b1/scrolling/frame_times/about.com': [],
-            'Master/b2/scrolling/frame_times/about.com': [],
-            'Master/linux/dromaeo.domcoremodify/dom': [],
-        },
+        'test_paths': [
+            'Master/b1/scrolling/frame_times/about.com',
+            'Master/b2/scrolling/frame_times/about.com',
+            'Master/linux/dromaeo.domcoremodify/dom',
+        ],
         'rev': None,
         'num_points': graph_json._DEFAULT_NUM_POINTS,
         'start_rev': None,
         'end_rev': None,
         'is_selected': None,
     }
-    self.assertEqual(expected, handler._ParseRequestArguments())
+    actual = handler._ParseRequestArguments()
+    actual['test_paths'].sort()
+    self.assertEqual(expected, actual)
 
 
 class GraphJsonHelperFunctionTest(testing_common.TestCase):
