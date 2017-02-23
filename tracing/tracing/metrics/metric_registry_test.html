@@ -14,14 +14,14 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('FindMetricByName', function() {
-    function sampleMetricA(values, model) {
+    function aMetric(values, model) {
       var n1 = new tr.v.Histogram('foo', tr.b.Unit.byName.count);
       n1.addSample(1);
       values.addHistogram(n1);
     }
-    tr.metrics.MetricRegistry.register(sampleMetricA);
+    tr.metrics.MetricRegistry.register(aMetric);
 
-    function sampleMetricB(values, model) {
+    function bMetric(values, model) {
       var n1 = new tr.v.Histogram('foo', tr.b.Unit.byName.count);
       var n2 = new tr.v.Histogram('bar', tr.b.Unit.byName.count);
       n1.addSample(1);
@@ -29,9 +29,9 @@ tr.b.unittest.testSuite(function() {
       values.addHistogram(n1);
       values.addHistogram(n2);
     }
-    tr.metrics.MetricRegistry.register(sampleMetricB);
+    tr.metrics.MetricRegistry.register(bMetric);
 
-    function sampleMetricC(values, model) {
+    function cMetric(values, model) {
       var n1 = new tr.v.Histogram('foo', tr.b.Unit.byName.count);
       var n2 = new tr.v.Histogram('bar', tr.b.Unit.byName.count);
       var n3 = new tr.v.Histogram('baz', tr.b.Unit.byName.count);
@@ -42,24 +42,34 @@ tr.b.unittest.testSuite(function() {
       values.addHistogram(n2);
       values.addHistogram(n3);
     }
-    tr.metrics.MetricRegistry.register(sampleMetricC);
+    tr.metrics.MetricRegistry.register(cMetric);
 
     var typeInfo = tr.metrics.MetricRegistry.findTypeInfoWithName(
-        'sampleMetricB');
-    assert.strictEqual(typeInfo.constructor, sampleMetricB);
+        'bMetric');
+    assert.strictEqual(typeInfo.constructor, bMetric);
   });
 
   test('registerNonFunctionThrows', function() {
+    // Metrics must be functions.
     assert.throws(function() {
       tr.metrics.MetricRegistry.register('not a function');
     });
 
+    // Metric names must end with "Metric" or "Metrics".
     assert.throws(function() {
-      tr.metrics.MetricRegistry.register(function() {});
+      tr.metrics.MetricRegistry.register(function foo(histograms, model) {});
     });
 
+    // Metrics take a HistogramSet and a Model and optionally an options
+    // dictionary.
     assert.throws(function() {
-      tr.metrics.MetricRegistry.register(function(a) {});
+      tr.metrics.MetricRegistry.register(function fooMetric() {});
+    });
+
+    // Metrics take a HistogramSet and a Model and optionally an options
+    // dictionary.
+    assert.throws(function() {
+      tr.metrics.MetricRegistry.register(function fooMetric(a) {});
     });
   });
 });

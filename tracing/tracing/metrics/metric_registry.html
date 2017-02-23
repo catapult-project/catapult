@@ -14,18 +14,63 @@ found in the LICENSE file.
 tr.exportTo('tr.metrics', function() {
   function MetricRegistry() {}
 
-  var options = new tr.b.ExtensionRegistryOptions(tr.b.BASIC_REGISTRY_MODE);
+  const options = new tr.b.ExtensionRegistryOptions(tr.b.BASIC_REGISTRY_MODE);
   options.defaultMetadata = {};
   tr.b.decorateExtensionRegistry(MetricRegistry, options);
 
+  function camelCaseToHackerString(camelCase) {
+    let hackerString = '';
+    for (let c of camelCase) {
+      let lowered = c.toLocaleLowerCase();
+      if (lowered === c) {
+        hackerString += c;
+      } else {
+        hackerString += '_' + lowered;
+      }
+    }
+    return hackerString;
+  }
+
   MetricRegistry.addEventListener('will-register', function(e) {
-    var metric = e.typeInfo.constructor;
-    if (!(metric instanceof Function))
-      throw new Error('Metrics must be functions');
+    let metric = e.typeInfo.constructor;
+    if (!(metric instanceof Function)) {
+      throw new Error('Metrics must be functions.');
+    }
+
+    if (!metric.name.endsWith('Metric') &&
+        !metric.name.endsWith('Metrics')) {
+      throw new Error('Metric names must end with "Metric" or "Metrics".');
+    }
 
     if (metric.length < 2) {
       throw new Error('Metrics take a HistogramSet and a Model and ' +
-                      'optionally an options dictionary');
+                      'optionally an options dictionary.');
+    }
+
+    let expectedFilename = camelCaseToHackerString(metric.name) + '.html';
+
+    let stack;
+    try {
+      throw new Error();
+    } catch (error) {
+      stack = error.stack;
+    }
+    let filename = stack.split('\n')[4];
+    filename = filename.replace(/^ */, '');
+    filename = filename.split(':');
+    filename = filename[filename.length - 3];
+    filename = filename.split('/');
+    let basename = filename[filename.length - 1];
+    let subdirpath = filename.slice(filename.length - 2);
+    if (metric.name !== 'runtimeStatsTotalMetric' &&
+        metric.name !== 'v8AndMemoryMetrics' &&
+        !basename.endsWith('_test.html') &&
+        basename !== expectedFilename &&
+        subdirpath.join('_') !== expectedFilename) {
+      throw new Error(
+          'Expected ' + metric.name + ' to be in a file named ' +
+          expectedFilename + '; actual: ' + subdirpath.join('/') +
+          '; stack: ' + stack.replace(/\n/g, '\n  '));
     }
   });
 
