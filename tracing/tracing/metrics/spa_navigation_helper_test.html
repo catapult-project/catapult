@@ -27,7 +27,7 @@ function createChromeProcessesOnModel(model) {
   browserMainThread.name = 'CrBrowserMain';
 }
 
-function addPushStateEventAtTimestamp(model, timestamp) {
+function addPushStateEvent(model, timestamp) {
   let rendererProcess = model.getOrCreateProcess(RENDERER_PROCESS_ID);
   let mainThread = rendererProcess.getOrCreateThread(
       RENDERER_PROCESS_MAIN_THREAD_ID);
@@ -40,7 +40,7 @@ function addPushStateEventAtTimestamp(model, timestamp) {
   }));
 }
 
-function addUpdateIfNeededRecursiveSliceAtTimestamp(model, timestamp) {
+function addUpdateIfNeededRecursiveSlice(model, timestamp) {
   let rendererProcess = model.getOrCreateProcess(RENDERER_PROCESS_ID);
   let mainThread = rendererProcess.getOrCreateThread(
       RENDERER_PROCESS_MAIN_THREAD_ID);
@@ -53,7 +53,7 @@ function addUpdateIfNeededRecursiveSliceAtTimestamp(model, timestamp) {
   }));
 }
 
-function addLatencyInfoFlowAtTimestamp(model, timestamp, bindId) {
+function addLatencyInfoFlowEvent(model, timestamp, bindId) {
   let latencyInfoFlowSlice = tr.c.TestUtils.newSliceEx({
     cat: 'input,benchmark',
     title: 'LatencyInfo.Flow',
@@ -79,7 +79,7 @@ function addLatencyInfoFlowAtTimestamp(model, timestamp, bindId) {
   mainThread.sliceGroup.pushSlice(handleInputEventSlice);
 }
 
-function addInputLatencyAtTimestamp(model, timestamp, traceId) {
+function addInputLatencySlice(model, start, traceId) {
   let browserProcess = model.getOrCreateProcess(BROWSER_PROCESS_ID);
   let browserMainThread = browserProcess.getOrCreateThread(
       BROWSER_PROCESS_MAIN_THREAD_ID);
@@ -87,162 +87,98 @@ function addInputLatencyAtTimestamp(model, timestamp, traceId) {
   browserMainThread.sliceGroup.pushSlice(tr.c.TestUtils.newAsyncSliceEx({
     cat: 'benchmark,latencyInfo,rail',
     title: 'InputLatency',
-    start: timestamp,
+    start: start,
     duration: 0.1,
     args: {
-      data: {trace_id: traceId}
+      data: {
+        trace_id: traceId
+      }
     }
   }));
 }
 
 tr.b.unittest.testSuite(function() {
-  test('getInputLatencyAsyncSlices_noPushState', function() {
-    let model = tr.c.TestUtils.newModel(model => {
-      createChromeProcessesOnModel(model);
-    });
-    let slices = tr.metrics.getInputLatencyAsyncSlices(model);
-    assert.lengthOf(slices, 0);
+  test('findSpaNavigations_noChromeProcess', function() {
+    let model = tr.c.TestUtils.newModel();
+    let spaNavigations = tr.metrics.findSpaNavigations(model);
+    assert.lengthOf(spaNavigations, 0);
   });
 
-  test('getInputLatencyAsyncSlices_threePushStates', function() {
+  test('findSpaNavigations_noPushStateEvent', function() {
     let model = tr.c.TestUtils.newModel(model => {
       createChromeProcessesOnModel(model);
-      addPushStateEventAtTimestamp(model, 100);
-      addPushStateEventAtTimestamp(model, 200);
-      addPushStateEventAtTimestamp(model, 300);
-
-      addLatencyInfoFlowAtTimestamp(model, 75, '0x600000057');
-      addLatencyInfoFlowAtTimestamp(model, 175, '0x6000000c2');
-      addLatencyInfoFlowAtTimestamp(model, 275, '0x60000010d');
-
-      addInputLatencyAtTimestamp(model, 55, 25769803863);
-      addInputLatencyAtTimestamp(model, 155, 25769803970);
-      addInputLatencyAtTimestamp(model, 255, 25769804045);
+      addLatencyInfoFlowEvent(model, 75, '0x600000057');
+      addInputLatencySlice(model, 55, 25769803863);
+      addUpdateIfNeededRecursiveSlice(model, 101);
     });
-    let slices = tr.metrics.getInputLatencyAsyncSlices(model);
-    assert.lengthOf(slices, 3);
-    assert.strictEqual(slices[0].start, 55);
-    assert.strictEqual(slices[1].start, 155);
-    assert.strictEqual(slices[2].start, 255);
-    assert.strictEqual(slices[0].args.data.trace_id, 25769803863);
-    assert.strictEqual(slices[1].args.data.trace_id, 25769803970);
-    assert.strictEqual(slices[2].args.data.trace_id, 25769804045);
+    let spaNavigations = tr.metrics.findSpaNavigations(model);
+    assert.lengthOf(spaNavigations, 0);
   });
 
-  test('getInputLatencyAsyncSlices_pushStateWithNoPrecedingHandleInputEvent',
-      function() {
-        let model = tr.c.TestUtils.newModel(model => {
-          createChromeProcessesOnModel(model);
-          addPushStateEventAtTimestamp(model, 100);
-          addPushStateEventAtTimestamp(model, 200);
-          addPushStateEventAtTimestamp(model, 300);
-
-          addInputLatencyAtTimestamp(model, 55, 25769803863);
-          addInputLatencyAtTimestamp(model, 155, 25769803970);
-          addInputLatencyAtTimestamp(model, 255, 25769804045);
-        });
-        let slices = tr.metrics.getInputLatencyAsyncSlices(model);
-        assert.lengthOf(slices, 0);
-      });
-
-  test('getInputLatencyAsyncSlices_pushStateWithNoPrecedingInputLatency',
-      function() {
-        let model = tr.c.TestUtils.newModel(model => {
-          createChromeProcessesOnModel(model);
-          addPushStateEventAtTimestamp(model, 100);
-          addPushStateEventAtTimestamp(model, 200);
-          addPushStateEventAtTimestamp(model, 300);
-
-          addLatencyInfoFlowAtTimestamp(model, 75, '0x600000057');
-          addLatencyInfoFlowAtTimestamp(model, 175, '0x6000000c2');
-          addLatencyInfoFlowAtTimestamp(model, 275, '0x60000010d');
-        });
-        let slices = tr.metrics.getInputLatencyAsyncSlices(model);
-        assert.lengthOf(slices, 0);
-      });
-
-  test('getInputLatencyAsyncSlices_noChromeProcesses',
-      function() {
-        let model = tr.c.TestUtils.newModel();
-        let slices = tr.metrics.getInputLatencyAsyncSlices(model);
-        assert.lengthOf(slices, 0);
-      });
-
-  test('getUpdateIfNeededRecursiveSlices_noChromeProcesses',
-      function() {
-        let model = tr.c.TestUtils.newModel();
-        let slices = tr.metrics.getUpdateIfNeededRecursiveSlices(model);
-        assert.lengthOf(slices, 0);
-      });
-
-  test('getUpdateIfNeededRecursiveSlices_onlyPushState', function() {
+  test('findSpaNavigations_noLatencyInfoFlowEvent', function() {
     let model = tr.c.TestUtils.newModel(model => {
       createChromeProcessesOnModel(model);
-      addPushStateEventAtTimestamp(model, 100);
-      addPushStateEventAtTimestamp(model, 200);
-      addPushStateEventAtTimestamp(model, 300);
+      addPushStateEvent(model, 100);
+      addInputLatencySlice(model, 55, 25769803863);
+      addUpdateIfNeededRecursiveSlice(model, 101);
     });
-    let slices = tr.metrics.getUpdateIfNeededRecursiveSlices(model);
-    assert.lengthOf(slices, 0);
+    let spaNavigations = tr.metrics.findSpaNavigations(model);
+    assert.lengthOf(spaNavigations, 0);
   });
 
-  test('getUpdateIfNeededRecursiveSlices_recursiveSliceNoPushState',
-      function() {
-        let model = tr.c.TestUtils.newModel(model => {
-          createChromeProcessesOnModel(model);
-          addUpdateIfNeededRecursiveSliceAtTimestamp(model, 101);
-          addUpdateIfNeededRecursiveSliceAtTimestamp(model, 201);
-          addUpdateIfNeededRecursiveSliceAtTimestamp(model, 301);
-        });
-        let slices = tr.metrics.getUpdateIfNeededRecursiveSlices(model);
-        assert.lengthOf(slices, 0);
-      });
+  test('findSpaNavigations_noInputLatency', function() {
+    let model = tr.c.TestUtils.newModel(model => {
+      createChromeProcessesOnModel(model);
+      addPushStateEvent(model, 100);
+      addLatencyInfoFlowEvent(model, 75, '0x600000057');
+      addUpdateIfNeededRecursiveSlice(model, 101);
+    });
+    let spaNavigations = tr.metrics.findSpaNavigations(model);
+    assert.lengthOf(spaNavigations, 0);
+  });
 
-  /**
-   * Test situation like this:
-   * pushState events:              |    |    |
-   * updateIfNeededRecursiveSlice:   ||   |    |
-   */
-  test('getUpdateIfNeededRecursiveSlices_recursiveSliceAndPushState1',
-      function() {
-        let model = tr.c.TestUtils.newModel(model => {
-          createChromeProcessesOnModel(model);
-          addPushStateEventAtTimestamp(model, 100);
-          addPushStateEventAtTimestamp(model, 200);
-          addPushStateEventAtTimestamp(model, 300);
-          addUpdateIfNeededRecursiveSliceAtTimestamp(model, 101);
-          addUpdateIfNeededRecursiveSliceAtTimestamp(model, 102);
-          addUpdateIfNeededRecursiveSliceAtTimestamp(model, 201);
-          addUpdateIfNeededRecursiveSliceAtTimestamp(model, 301);
-        });
-        let slices = tr.metrics.getUpdateIfNeededRecursiveSlices(model);
-        assert.lengthOf(slices, 3);
-        assert.strictEqual(slices[0].start, 101);
-        assert.strictEqual(slices[1].start, 201);
-        assert.strictEqual(slices[2].start, 301);
-      });
+  test('findSpaNavigations_noFirstPaintEvent', function() {
+    let model = tr.c.TestUtils.newModel(model => {
+      createChromeProcessesOnModel(model);
+      addPushStateEvent(model, 100);
+      addLatencyInfoFlowEvent(model, 75, '0x600000057');
+      addInputLatencySlice(model, 55, 25769803863);
+    });
+    let spaNavigations = tr.metrics.findSpaNavigations(model);
+    assert.lengthOf(spaNavigations, 0);
+  });
 
-  /**
-   * Test situation like this:
-   * pushState events:              |    |    |
-   * updateIfNeededRecursiveSlice:   ||        |
-   */
-  test('getUpdateIfNeededRecursiveSlices_recursiveSliceAndPushState2',
-      function() {
-        let model = tr.c.TestUtils.newModel(model => {
-          createChromeProcessesOnModel(model);
-          addPushStateEventAtTimestamp(model, 100);
-          addPushStateEventAtTimestamp(model, 200);
-          addPushStateEventAtTimestamp(model, 300);
-          addUpdateIfNeededRecursiveSliceAtTimestamp(model, 101);
-          addUpdateIfNeededRecursiveSliceAtTimestamp(model, 102);
-          addUpdateIfNeededRecursiveSliceAtTimestamp(model, 301);
-        });
-        let slices = tr.metrics.getUpdateIfNeededRecursiveSlices(model);
-        assert.lengthOf(slices, 3);
-        assert.strictEqual(slices[0].start, 101);
-        assert.strictEqual(slices[1].start, 301);
-        assert.strictEqual(slices[2].start, 301);
-      });
+  test('findSpaNavigations_threeSpaNavs', function() {
+    let model = tr.c.TestUtils.newModel(model => {
+      createChromeProcessesOnModel(model);
+      addPushStateEvent(model, 100);
+      addPushStateEvent(model, 200);
+      addPushStateEvent(model, 300);
+
+      addLatencyInfoFlowEvent(model, 75, '0x600000057');
+      addLatencyInfoFlowEvent(model, 175, '0x6000000c2');
+      addLatencyInfoFlowEvent(model, 275, '0x60000010d');
+
+      addInputLatencySlice(model, 55, 25769803863);
+      addInputLatencySlice(model, 155, 25769803970);
+      addInputLatencySlice(model, 255, 25769804045);
+
+      addUpdateIfNeededRecursiveSlice(model, 101);
+      addUpdateIfNeededRecursiveSlice(model, 102);
+      addUpdateIfNeededRecursiveSlice(model, 201);
+      addUpdateIfNeededRecursiveSlice(model, 301);
+    });
+    let spaNavigations = tr.metrics.findSpaNavigations(model);
+    assert.lengthOf(spaNavigations, 3);
+    spaNavigations.sort((spa1, spa2) =>
+        spa1.inputLatencyEvent.start - spa2.inputLatencyEvent.start);
+    assert.strictEqual(spaNavigations[0].inputLatencyEvent.start, 55);
+    assert.strictEqual(spaNavigations[1].inputLatencyEvent.start, 155);
+    assert.strictEqual(spaNavigations[2].inputLatencyEvent.start, 255);
+
+    assert.strictEqual(spaNavigations[0].firstPaintEvent.start, 101);
+    assert.strictEqual(spaNavigations[1].firstPaintEvent.start, 201);
+    assert.strictEqual(spaNavigations[2].firstPaintEvent.start, 301);
+  });
 });
 </script>

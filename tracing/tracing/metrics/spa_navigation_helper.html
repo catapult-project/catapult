@@ -30,11 +30,12 @@ found in the LICENSE file.
  */
 tr.exportTo('tr.metrics', function() {
   /**
-   * Returns all LatencyInfo.Flow thread slices associated with
-   * History::pushState events.
+   * @returns {Map<tr.model.Slice, tr.model.Slice>} A mapping
+   * from each History::pushState slice to its respective
+   * LatencyInfo.Flow slice.
    */
-  function getLatencyInfoFlowSlices_(rendererHelpers) {
-    let slices = [];
+  function getPushStateToLatencyInfoMap_(rendererHelpers) {
+    let pushStateToLatencyInfoMap = new Map();
     tr.b.iterItems(rendererHelpers, function(pid, rendererHelper) {
       let mainThread = rendererHelper.mainThread;
       let pushStateEvents = getAllEventsInAscendingOrder_(
@@ -45,16 +46,20 @@ tr.exportTo('tr.metrics', function() {
           mainThread,
           e => e.title === 'WebViewImpl::handleInputEvent' &&
               e.args.type === 'MouseUp');
-      let precedingHandleInputEvents = findPrecedingEvents_(
+      let pushStateToHandleInputMap = findPrecedingEvents_(
           pushStateEvents, handleInputEvents);
-      slices.push(...precedingHandleInputEvents.map(e => e.parentSlice));
+      for (let [pushStateEvent, handleInputEvent] of
+          pushStateToHandleInputMap) {
+        pushStateToLatencyInfoMap.set(
+            pushStateEvent, handleInputEvent.parentSlice);
+      }
     });
-    return slices;
+    return pushStateToLatencyInfoMap;
   }
 
   /**
-   * Returns all events on the specified thread that also
-   * passes the specified filterFunc.
+   * @returns {Array<tr.model.Slice>} An array of events on the
+   * specified thread that also passes the specified filterFunc.
    */
   function getAllEventsInAscendingOrder_(thread, filterFunc) {
     return [...thread.sliceGroup.getDescendantEvents()]
@@ -63,19 +68,19 @@ tr.exportTo('tr.metrics', function() {
   }
 
   /**
-   * Returns an array of the elements in eventsB which immediately
-   * precede events in eventsA.
+   * @returns {Map<tr.model.Slice, tr.model.Slice>} A map of the
+   * elements in eventsB which immediately precede events in eventsA.
    * For instance:
    * eventsA:     A1   A2   A3   A4
    * eventsB: B1 B2  B3   B4   B5
-   *  output: [B2, B3, B4, B5]
+   *  output: {A1: B2, A2: B3, A3: B4, A4: B5}
    * or
    * eventsA:     A1   A2   A3   A4
    * eventsB: B1
-   *  output: [B1, B1, B1, B1]
+   *  output: {A1: B1, A2: B1, A3: B1, A4: B1}
    */
   function findPrecedingEvents_(eventsA, eventsB) {
-    let events = [];
+    let events = new Map();
     let eventsBIndex = 0;
     for (let eventA of eventsA) {
       for (; eventsBIndex < eventsB.length; eventsBIndex++) {
@@ -83,26 +88,27 @@ tr.exportTo('tr.metrics', function() {
       }
       // If statement prevents the situation when eventsB is empty.
       if (eventsBIndex > 0) {
-        events.push(eventsB[eventsBIndex - 1]);
+        events.set(eventA, eventsB[eventsBIndex - 1]);
       }
     }
     return events;
   }
 
   /**
-   * Returns an array of the elements in eventsB which immediately
-   * follow events in eventsA.
+   * @returns {Map<tr.model.Slice, tr.model.Slice>} A map of
+   * the elements in eventsB which immediately follow events
+   * in eventsA.
    * For instance:
    * eventsA:  A1   A2   A3   A4
    * eventsB: B1  B2   B3  B4   B5
-   *  output: [B2, B3, B4, B5]
+   *  output: {A1:B2, A2:B3, A3:B4, A4:B5}
    * or
    * eventsA:  A1   A2   A3   A4
    * eventsB:                B1
-   *  output: [B1, B1, B1]
+   *  output: {A1:B1, A2:B1, A3:B1}
    */
   function findFollowingEvents_(eventsA, eventsB) {
-    let events = [];
+    let events = new Map();
     let eventsBIndex = 0;
     for (let eventA of eventsA) {
       for (; eventsBIndex < eventsB.length; eventsBIndex++) {
@@ -111,58 +117,72 @@ tr.exportTo('tr.metrics', function() {
       // If statement prevents the situation when eventsB is empty
       // and when it reaches the end of loop.
       if (eventsBIndex >= 0 && eventsBIndex < eventsB.length) {
-        events.push(eventsB[eventsBIndex]);
+        events.set(eventA, eventsB[eventsBIndex]);
       }
     }
     return events;
   }
 
   /**
-   * Returns all InputLatency async slices associated with
-   * all WebViewImpl::handleInputEvent slices found.
+   * @returns {Map<tr.model.Slice, tr.model.AsyncSlice>} A mapping
+   * from each History::pushState slice to its respective
+   * InputLatency async slice.
    */
-  function getInputLatencyAsyncSlices(model) {
+  function getPushStateToInputLatencyMap_(model) {
     let modelHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
     if (!modelHelper) {
       // Chrome isn't present.
-      return [];
+      return new Map();
     }
     let rendererHelpers = modelHelper.rendererHelpers;
     if (!rendererHelpers) {
       // We couldn't find any renderer processes.
-      return [];
+      return new Map();
     }
-    let latencyInfoFlowSlices = getLatencyInfoFlowSlices_(rendererHelpers);
+    let pushStateToLatencyInfoMap = getPushStateToLatencyInfoMap_(
+        rendererHelpers);
     let latencyInfoFlowSlicesBindIDs = new Set();
-    for (let slice of latencyInfoFlowSlices) {
-      latencyInfoFlowSlicesBindIDs.add(Number(slice.bindId));
+    for (let latencyInfoSlice of pushStateToLatencyInfoMap.values()) {
+      latencyInfoFlowSlicesBindIDs.add(Number(latencyInfoSlice.bindId));
     }
-
     let browserHelper = modelHelper.browserHelper;
     let inputLatencyAsyncSlices = browserHelper.getAllAsyncSlicesMatching(
         event => (event.args.data !== undefined) &&
           latencyInfoFlowSlicesBindIDs.has(event.args.data.trace_id));
-    return inputLatencyAsyncSlices;
+
+    let inputLatencyAsyncSliceMap = new Map();
+    for (let slice of inputLatencyAsyncSlices) {
+      inputLatencyAsyncSliceMap.set(slice.args.data.trace_id, slice);
+    }
+    let pushStateToInputLatencyMap = new Map();
+    for (let [pushStateEvent, latencyInfoEvent] of pushStateToLatencyInfoMap) {
+      if (inputLatencyAsyncSliceMap.has(Number(latencyInfoEvent.bindId))) {
+        pushStateToInputLatencyMap.set(pushStateEvent,
+            inputLatencyAsyncSliceMap.get(Number(latencyInfoEvent.bindId)));
+      }
+    }
+    return pushStateToInputLatencyMap;
   }
 
   /**
-   * Returns all PaintLayerCompositer::updateIfNeededRecursive slices
-   * that immediately follow all History::pushState events.
+   * @returns {Map<tr.model.Slice, tr.model.Slice>} A mapping
+   * from each History::pushState slice to its respective
+   * PaintLayerCompositer::updateIfNeededRecursive slice.
    */
-  function getUpdateIfNeededRecursiveSlices(model) {
+  function getPushStateToUpdateIfNeededRecursiveMap_(model) {
     let modelHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
     if (!modelHelper) {
       // Chrome isn't present.
-      return [];
+      return new Map();
     }
     let rendererHelpers = modelHelper.rendererHelpers;
     if (!rendererHelpers) {
       // We couldn't find any renderer processes.
-      return [];
+      return new Map();
     }
-    let slices = [];
+    let allPushStateToRecursiveEventMap = new Map();
     tr.b.iterItems(rendererHelpers, function(pid, rendererHelper) {
       let mainThread = rendererHelper.mainThread;
       let pushStateEvents = getAllEventsInAscendingOrder_(
@@ -175,15 +195,41 @@ tr.exportTo('tr.metrics', function() {
               'PaintLayerCompositor::updateIfNeededRecursive' &&
               e.category === 'blink');
 
-      slices = slices.concat(findFollowingEvents_(pushStateEvents,
-          updateIfNeededRecursiveEvents));
+      let pushStateToRecursiveEventMap = findFollowingEvents_(
+          pushStateEvents, updateIfNeededRecursiveEvents);
+      for (let [pushStateEvent, updateIfNeededRecursiveEvent] of
+          pushStateToRecursiveEventMap) {
+        allPushStateToRecursiveEventMap.set(
+            pushStateEvent, updateIfNeededRecursiveEvent);
+      }
     });
-    return slices;
+    return allPushStateToRecursiveEventMap;
+  }
+
+  /**
+   * @returns {Array<Object>} An array of SPA navigation objects.
+   * SPA navigation object is an object with two keys:
+   * inputLatencyEvent and firstPaintEvent. And the values are of
+   * {tr.model.Slice} type.
+   */
+  function findSpaNavigations(model) {
+    let pushStateToInputLatencyMap = getPushStateToInputLatencyMap_(model);
+    let pushStateToUpdateIfNeededRecursiveMap =
+        getPushStateToUpdateIfNeededRecursiveMap_(model);
+    let spaNavigations = [];
+    for (let [pushStateEvent, inputLatencyEvent] of
+        pushStateToInputLatencyMap) {
+      if (pushStateToUpdateIfNeededRecursiveMap.has(pushStateEvent)) {
+        let firstPaintEvent =
+            pushStateToUpdateIfNeededRecursiveMap.get(pushStateEvent);
+        spaNavigations.push({inputLatencyEvent, firstPaintEvent});
+      }
+    }
+    return spaNavigations;
   }
 
   return {
-    getInputLatencyAsyncSlices,
-    getUpdateIfNeededRecursiveSlices,
+    findSpaNavigations,
   };
 });
 </script>
