@@ -3,7 +3,9 @@
 ## Prerequisites
 
 Running the tests, running the local server, and deploying depend on having
-the [the Google Cloud SDK](https://cloud.google.com/sdk/downloads).
+the [the Google Cloud SDK](https://cloud.google.com/sdk/downloads). After
+installing, run `gcloud components install app-engine-python` to also install
+python libraries needed for unit tests and dev_server.
 
 ## Running the tests
 
