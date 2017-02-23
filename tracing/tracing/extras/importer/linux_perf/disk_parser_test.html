@@ -70,7 +70,7 @@ tr.b.unittest.testSuite(function() {
           f2fsWriteThread = t;
           break;
         default:
-          throw new unittest.TestError('Unexpected thread named ' + t.name);
+          assert.fail(t, undefined, 'Unexpected thread named ' + t.name);
       }
     });
     assert.isDefined(blockThread);

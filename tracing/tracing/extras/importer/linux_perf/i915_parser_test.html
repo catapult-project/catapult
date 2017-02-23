@@ -74,7 +74,7 @@ tr.b.unittest.testSuite(function() {
           i915GpuFreqThread = t;
           break;
         default:
-          throw new unittest.TestError('Unexpected thread named ' + t.name);
+          assert.fail(t, undefined, 'Unexpected thread named ' + t.name);
       }
     });
     assert.isDefined(i915GemThread);

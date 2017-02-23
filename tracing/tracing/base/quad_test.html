@@ -4,8 +4,8 @@ Copyright (c) 2014 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/tracing/base/rect.html">
 <link rel="import" href="/tracing/base/quad.html">
+<link rel="import" href="/tracing/base/rect.html">
 <script>
 'use strict';
 
@@ -19,7 +19,7 @@ function assertQuadEquals(a, b, opt_message) {
     return;
   var message = opt_message || 'Expected "' + a.toString() +
       '", got "' + b.toString() + '"';
-  throw new tr.b.unittest.TestError(message);
+  assert.fail(a, b, message);
 }
 
 tr.b.unittest.testSuite(function() {

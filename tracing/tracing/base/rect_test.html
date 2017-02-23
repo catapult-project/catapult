@@ -18,7 +18,7 @@ tr.b.unittest.testSuite(function() {
       }
       var message = opt_message || 'Expected "' + a.toString() +
           '", got "' + b.toString() + '"';
-      throw new tr.b.unittest.TestError(message);
+      assert.fail(a, b, message);
     }
     var container = tr.b.Rect.fromXYWH(0, 0, 10, 10);
     var inner = tr.b.Rect.fromXYWH(1, 1, 8, 8);
