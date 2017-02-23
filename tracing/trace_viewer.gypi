@@ -186,7 +186,7 @@
       'tracing/metrics/sample_metric.html',
       'tracing/metrics/system_health/clock_sync_latency_metric.html',
       'tracing/metrics/system_health/cpu_time_metric.html',
-      'tracing/metrics/system_health/estimated_input_latency_metric.html',
+      'tracing/metrics/system_health/expected_queueing_time_metric.html',
       'tracing/metrics/system_health/loading_metric.html',
       'tracing/metrics/system_health/long_tasks_metric.html',
       'tracing/metrics/system_health/memory_metric.html',
