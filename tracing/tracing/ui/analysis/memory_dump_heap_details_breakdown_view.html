@@ -24,6 +24,7 @@ found in the LICENSE file.
 <dom-module id='tr-ui-a-memory-dump-heap-details-breakdown-view-tab'>
   <template>
     <tr-v-ui-scalar-context-controller></tr-v-ui-scalar-context-controller>
+    <tr-ui-b-info-bar id="info" hidden></tr-ui-b-info-bar>
     <tr-ui-b-table id="table"></tr-ui-b-table>
   </template>
 </dom-module>
@@ -32,6 +33,14 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.analysis', function() {
+  var RESONABLE_NUMBER_OF_ROWS = 200;
+
+  var TabUiState = {
+    NO_LONG_TAIL: 0,
+    HIDING_LONG_TAIL: 1,
+    SHOWING_LONG_TAIL: 2,
+  };
+
   /** @constructor */
   function EmptyFillerColumn() {}
 
@@ -161,6 +170,7 @@ tr.exportTo('tr.ui.analysis', function() {
       this.dimension_ = undefined;
       this.nodes_ = undefined;
       this.aggregationMode_ = undefined;
+      this.displayLongTail_ = false;
     },
 
     ready: function() {
@@ -169,6 +179,16 @@ tr.exportTo('tr.ui.analysis', function() {
         viewEvent.node = tableEvent.tableRow;
         this.dispatchEvent(viewEvent);
       }.bind(this));
+    },
+
+    get displayLongTail() {
+      return this.displayLongTail_;
+    },
+
+    set displayLongTail(newValue) {
+      if (this.displayLongTail === newValue) return;
+      this.displayLongTail_ = newValue;
+      this.scheduleRebuild_();
     },
 
     get dimension() {
@@ -187,6 +207,10 @@ tr.exportTo('tr.ui.analysis', function() {
     set nodes(nodes) {
       this.nodes_ = nodes;
       this.scheduleRebuild_();
+    },
+
+    get nodes() {
+      return this.nodes_ || [];
     },
 
     get dimensionLabel_() {
@@ -239,7 +263,11 @@ tr.exportTo('tr.ui.analysis', function() {
       this.$.table.selectionMode = tr.ui.b.TableFormat.SelectionMode.ROW;
       this.$.table.emptyValue = 'Cannot break down by ' +
           this.dimensionLabel_.toLowerCase() + ' any further.';
-      var rows = this.nodes_ || [];
+      var [state, rows] = this.getRows_();
+      var total = this.nodes.length;
+      var displayed = rows.length;
+      var hidden = total - displayed;
+      this.updateInfoBar_(state, [total, displayed, hidden]);
       this.$.table.tableRows = rows;
       this.$.table.tableColumns = this.createColumns_(rows);
       if (this.$.table.sortColumnIndex === undefined) {
@@ -267,7 +295,53 @@ tr.exportTo('tr.ui.analysis', function() {
 
       var columns = [titleColumn].concat(numericColumns);
       return columns;
-    }
+    },
+
+    getRows_() {
+      var rows = this.nodes;
+      if (rows.length <= RESONABLE_NUMBER_OF_ROWS) {
+        return [TabUiState.NO_LONG_TAIL, rows];
+      } else if (this.displayLongTail) {
+        return [TabUiState.SHOWING_LONG_TAIL, rows];
+      }
+      var absSize = row => Math.max(row.cells.Size.fields[0].value);
+      rows.sort((a, b) => absSize(a) - absSize(b));
+      rows = rows.slice(0, RESONABLE_NUMBER_OF_ROWS);
+      return [TabUiState.HIDING_LONG_TAIL, rows];
+    },
+
+    updateInfoBar_(state, rowStats) {
+      if (state === TabUiState.SHOWING_LONG_TAIL) {
+        this.longTailVisibleInfoBar_(rowStats);
+      } else if (state === TabUiState.HIDING_LONG_TAIL) {
+        this.longTailHiddenInfoBar_(rowStats);
+      } else {
+        this.hideInfoBar_();
+      }
+    },
+
+    longTailVisibleInfoBar_: function(rowStats) {
+      var [total, visible, hidden] = rowStats;
+      var couldHide = total - RESONABLE_NUMBER_OF_ROWS;
+      this.$.info.message = 'Showing ' + total + ' rows. This may be slow.';
+      this.$.info.removeAllButtons();
+      var buttonText = 'Hide ' + couldHide + ' rows.';
+      this.$.info.addButton(buttonText, () => this.displayLongTail = false);
+      this.$.info.visible = true;
+    },
+
+    longTailHiddenInfoBar_: function(rowStats) {
+      var [total, visible, hidden] = rowStats;
+      this.$.info.message = 'Hiding the smallest ' + hidden + ' rows.';
+      this.$.info.removeAllButtons();
+      this.$.info.addButton('Show all.', () => this.displayLongTail = true);
+      this.$.info.visible = true;
+    },
+
+    hideInfoBar_: function() {
+      this.$.info.visible = false;
+    },
+
   });
 
   return {};
