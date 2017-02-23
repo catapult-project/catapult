@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/assert_utils.html">
 <link rel="import" href="/tracing/base/utils.html">
 <link rel="import" href="/tracing/ui/base/deep_utils.html">
 <link rel="import" href="/tracing/value/histogram.html">
@@ -16,6 +17,88 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   const TEST_BOUNDARIES = tr.v.HistogramBinBoundaries.createLinear(0, 1e3, 20);
+
+  test('overviewCharts', function() {
+    let table = document.createElement('tr-v-ui-histogram-set-table');
+    let histograms = new tr.v.HistogramSet();
+    let now = new Date().getTime();
+    let boundaries = tr.v.HistogramBinBoundaries.createLinear(0, 150, 10);
+
+    for (let i = 0; i < 2; ++i) {
+      for (let j = 0; j < 2; ++j) {
+        let telemetry = new tr.v.d.TelemetryInfo({
+          storyDisplayName: 'story' + i,
+          label: '' + j,
+          benchmarkStartMs: now,
+        });
+
+        let sample = (i * 100) + (j * 10);
+
+        let fooHist = new tr.v.Histogram(
+            'foo', tr.b.Unit.byName.count, boundaries);
+        telemetry.addToHistogram(fooHist);
+        fooHist.addSample(sample);
+        histograms.addHistogram(fooHist);
+
+        let barHist = new tr.v.Histogram(
+            'bar', tr.b.Unit.byName.count, boundaries);
+        telemetry.addToHistogram(barHist);
+        barHist.addSample(sample * 9 / 10);
+        histograms.addHistogram(barHist);
+      }
+    }
+    table.histograms = histograms;
+    this.addHTMLOutput(table);
+
+    let showOverview = tr.b.findDeepElementMatchingPredicate(
+        table, elem => elem.id === 'show_overview');
+    // SVG doesn't have click().
+    table.fire('click', {}, {node: showOverview});
+
+    let charts = tr.b.findDeepElementsMatchingPredicate(
+        table, e => ((e.id === 'overview_container') &&
+                     (e.style.display !== 'none')));
+    charts = charts.map(div => div.children[0]);
+    assert.lengthOf(charts, 6);
+
+    assert.deepEqual(charts[0].data, [{x: '0', y: 45}, {x: '1', y: 54}]);
+    tr.b.assertRangeEquals(
+        charts[0].dataRange, tr.b.Range.fromExplicitRange(0, 99));
+
+    assert.deepEqual(
+        charts[1].data, [{x: 'story0', y: 0}, {x: 'story1', y: 90}]);
+    tr.b.assertRangeEquals(
+        charts[1].dataRange, tr.b.Range.fromExplicitRange(0, 99));
+
+    assert.deepEqual(
+        charts[2].data, [{x: 'story0', y: 9}, {x: 'story1', y: 99}]);
+    tr.b.assertRangeEquals(
+        charts[2].dataRange, tr.b.Range.fromExplicitRange(0, 99));
+
+    assert.deepEqual(charts[3].data, [{x: '0', y: 50}, {x: '1', y: 60}]);
+    tr.b.assertRangeEquals(
+        charts[3].dataRange, tr.b.Range.fromExplicitRange(0, 110));
+
+    assert.deepEqual(
+        charts[4].data, [{x: 'story0', y: 0}, {x: 'story1', y: 100}]);
+    tr.b.assertRangeEquals(
+        charts[4].dataRange, tr.b.Range.fromExplicitRange(0, 110));
+
+    assert.deepEqual(
+        charts[5].data, [{x: 'story0', y: 10}, {x: 'story1', y: 110}]);
+    tr.b.assertRangeEquals(
+        charts[5].dataRange, tr.b.Range.fromExplicitRange(0, 110));
+
+    let hideOverview = tr.b.findDeepElementMatchingPredicate(
+        table, elem => elem.id === 'hide_overview');
+    // SVG doesn't have click().
+    table.fire('click', {}, {node: hideOverview});
+
+    charts = tr.b.findDeepElementsMatchingPredicate(
+        table, e => ((e.id === 'overview_container') &&
+                     (e.style.display !== 'none')));
+    assert.lengthOf(charts, 0);
+  });
 
   test('mergeRelationships', function() {
     let table = document.createElement('tr-v-ui-histogram-set-table');
