@@ -1415,8 +1415,10 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     onFocus_: function(e) {
+      // This method should be idempotent. If it can't be, then focus() must be
+      // updated.
       if (this.selectionMode_ === SelectionMode.NONE ||
-          this.selectedTableRowInfo_ ||
+          this.selectedTableRow ||
           this.tableRows_.length === 0) {
         return;
       }
@@ -1433,6 +1435,14 @@ tr.exportTo('tr.ui.b', function() {
 
     focus: function() {
       this.$.body.focus();
+
+      // Need to manually call onFocus_ here: if the table is invisible for any
+      // reason, then the focus event will not fire, but the table may become
+      // visible later, and should reflect the focus accurately.
+      // If the table is already visible, then this will cause onFocus_ to be
+      // called multiple times. That shouldn't be a problem since onFocus_ is
+      // idempotent.
+      this.onFocus_();
     },
 
     blur: function() {
