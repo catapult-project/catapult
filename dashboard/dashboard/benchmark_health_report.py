@@ -8,6 +8,7 @@ import datetime
 import json
 
 from dashboard import alerts
+from dashboard import oauth2_decorator
 from dashboard import update_test_suites
 from dashboard.common import request_handler
 from dashboard.models import anomaly
@@ -15,6 +16,7 @@ from dashboard.models import anomaly
 
 class BenchmarkHealthReportHandler(request_handler.RequestHandler):
 
+  @oauth2_decorator.DECORATOR.oauth_required
   def get(self):
     """Renders the UI for the group report page."""
     self.RenderStaticHtml('benchmark_health_report.html')

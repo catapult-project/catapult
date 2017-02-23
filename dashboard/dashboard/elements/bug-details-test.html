@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/dashboard/elements/bug-details.html">
+<link rel="import" href="/dashboard/static/testing_common.html">
+
+<link rel="import" href="/tracing/core/test_utils.html">
+
+<script>
+'use strict';
+
+
+tr.b.unittest.testSuite(function() {
+  var testOptions = {
+    setUp: function() {
+    },
+    tearDown: function() {
+      testing_common.clearXhrMock();
+    }
+  };
+
+  test('instantiation', function() {
+    var mockResponse = {
+      'review_urls': [
+        'http://codereview.google.com/12345',
+        'http://review.chromium.org/23435'
+      ],
+      'bisects': [
+        {
+          'status': 'failed',
+          'metric': 'Total',
+          'buildbucket_link': '/foo/bar',
+          'bot': 'android-nexus5-perf-bisect'
+        },
+        {
+          'status': 'started',
+          'metric': 'Total',
+          'buildbucket_link': '/foo/bar',
+          'bot': 'windows-perf-bisect'
+        },
+      ],
+      'owner': 'foo@bar.com',
+      'published': '2017-02-17T23:08:44',
+      'state': 'open',
+      'status': 'Untriaged',
+      'summary': 'A regression in Sunspider occurred!'
+    };
+    testing_common.addXhrMock(
+        '/bug_details?bug_id=12345',
+        JSON.stringify(mockResponse));
+    var e = document.createElement('bug-details');
+    e.bugId = 12345;
+    this.addHTMLOutput(e);
+  }, testOptions);
+
+  test('error', function() {
+    var mockResponse = {
+      'error': 'failed to load!'
+    };
+    testing_common.addXhrMock(
+        '/bug_details?bug_id=12345',
+        JSON.stringify(mockResponse));
+    var e = document.createElement('bug-details');
+    e.bugId = 12345;
+    this.addHTMLOutput(e);
+  }, testOptions);
+});
+</script>

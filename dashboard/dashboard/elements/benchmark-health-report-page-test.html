@@ -43,7 +43,7 @@ tr.b.unittest.testSuite(function() {
   }, testOptions);
 
   test('instantiation_benchmark', function() {
-    var mockResponse = {
+    var mockHealthReportResponse = {
       'alerts': [{
         'absolute_delta': '54.000000',
         'bot': 'android-nexus7v2',
@@ -133,6 +133,57 @@ tr.b.unittest.testSuite(function() {
       'bots': ['linux', 'android-nexus7v2', 'android-one', 'windows'],
       'monitored': true
     };
+    var mockBug12345Response = {
+      'review_urls': ['https://codereview.chromium.org/2706813003/'],
+      'bisects': [
+        {
+          'status': 'completed',
+          'metric': 'Total',
+          'buildbucket_link': '/foo/bar',
+          'bot': 'android-nexus7v2-perf-bisect'
+        }
+      ],
+      'owner': 'foo@bar.com',
+      'published': '2017-02-17T23:08:44',
+      'state': 'open',
+      'status': 'Untriaged',
+      'summary': 'A regression in Sunspider occurred!'
+    };
+    var mockBug687592Response = {
+      'review_urls': [],
+      'bisects': [
+        {
+          'status': 'failed',
+          'metric': 'Total',
+          'buildbucket_link': '/foo/bar',
+          'bot': 'android-nexus5-perf-bisect'
+        },
+        {
+          'status': 'started',
+          'metric': 'Total',
+          'buildbucket_link': '/foo/bar',
+          'bot': 'windows-perf-bisect'
+        },
+      ],
+      'owner': 'foo@bar.com',
+      'published': '2017-02-17T23:08:44',
+      'state': 'open',
+      'status': 'Untriaged',
+      'summary': 'A regression in Sunspider occurred!'
+    };
+    testing_common.addXhrMock(
+        '/benchmark_health_report?master=ChromiumPerf' +
+        '&benchmark=sunspider&num_days=30',
+        JSON.stringify(mockHealthReportResponse));
+    // NOTE! Need to uncomment the testing_common.clearXhrMock statement
+    // in tearDown to get these to work correctly when poking at this locally;
+    // the test completes before these are called :(
+    testing_common.addXhrMock(
+        '/bug_details?bug_id=12345',
+        JSON.stringify(mockBug12345Response));
+    testing_common.addXhrMock(
+        '/bug_details?bug_id=687592',
+        JSON.stringify(mockBug687592Response));
     uri.getParameter = function(name) {
       return {
         'benchmark': 'sunspider',
@@ -140,10 +191,6 @@ tr.b.unittest.testSuite(function() {
         'num_days': '30'
       }[name];
     };
-    testing_common.addXhrMock(
-        '/benchmark_health_report?master=ChromiumPerf' +
-        '&benchmark=sunspider&num_days=30',
-        JSON.stringify(mockResponse));
     var page = document.createElement('benchmark-health-report-page');
     this.addHTMLOutput(page);
   }, testOptions);

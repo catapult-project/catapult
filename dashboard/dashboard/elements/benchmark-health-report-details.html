@@ -7,6 +7,7 @@ found in the LICENSE file.
 <link rel="import" href="/components/polymer/polymer.html">
 
 <link rel="import" href="/dashboard/elements/alerts-table.html">
+<link rel="import" href="/dashboard/elements/bug-details.html">
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 
 <dom-module id="benchmark-health-report-details">
@@ -43,6 +44,11 @@ found in the LICENSE file.
       <alerts-table id="alerts-table"
                     alert-list="{{alerts}}"
                     extra-columns="{{extraColumns}}"></alerts-table>
+
+      <h2>{{bugIds.length}} bugs for {{benchmark}} in the last {{numDays}} days</h2>
+      <template is="dom-repeat" items="{{bugIds}}">
+        <bug-details bug-id="{{item}}"></bug-details>
+      </template>
     </template>
 
   </template>
@@ -60,6 +66,10 @@ found in the LICENSE file.
           type: String
         },
         bots: {
+          notify: true,
+          type: Array
+        },
+        bugIds: {
           notify: true,
           type: Array
         },
@@ -148,6 +158,13 @@ found in the LICENSE file.
               this.bots = response['bots'];
               this.monitored = response['monitored'];
               this.loading = false;
+              var bugIds = new Set();
+              for (let alert of this.alerts) {
+                if (alert.bug_id && alert.bug_id > 0) {
+                  bugIds.add(alert.bug_id);
+                }
+              }
+              this.set('bugIds', Array.from(bugIds));
             },
             errorMsg => {
               this.error = errorMsg;

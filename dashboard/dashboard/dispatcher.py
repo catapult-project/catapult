@@ -16,6 +16,7 @@ from dashboard import bad_bisect
 from dashboard import benchmark_health_report
 from dashboard import bisect_stats
 from dashboard import bisect_fyi
+from dashboard import bug_details
 from dashboard import buildbucket_job_status
 from dashboard import change_internal_only
 from dashboard import create_health_report
@@ -71,6 +72,7 @@ _URL_MAPPING = [
      benchmark_health_report.BenchmarkHealthReportHandler),
     ('/bisect_fyi', bisect_fyi.BisectFYIHandler),
     ('/bisect_stats', bisect_stats.BisectStatsHandler),
+    ('/bug_details', bug_details.BugDetailsHandler),
     (r'/buildbucket_job_status/(\d+)',
      buildbucket_job_status.BuildbucketJobStatusHandler),
     ('/change_internal_only', change_internal_only.ChangeInternalOnlyHandler),
