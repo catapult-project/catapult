@@ -384,9 +384,7 @@ def _GetSelectedTestPathsForDict(test_path_dict):
   paths = []
   for path, selection in test_path_dict.iteritems():
     if selection == 'core':
-      # TODO(eakuefner): support computing core tests
-      raise BadRequestError(
-          'cannot return core tests yet')
+      paths.extend(_GetCoreTestPathsForTest(path))
     elif selection == 'all':
       paths.append(path)
       paths.extend(GetTestsMatchingPattern(
@@ -405,6 +403,25 @@ def _GetSelectedTestPathsForDict(test_path_dict):
     else:
       raise BadRequestError("selected must be 'all', 'core', or a list of "
                             "subtests")
+  return paths
+
+
+def _GetCoreTestPathsForTest(path):
+  if len(path.split('/')) < 4:
+    raise BadRequestError(
+        'path must be a full subtest path in order to select core tests.')
+
+  paths = []
+  parent_test = utils.TestKey(path).get()
+  # Monitoring information is stored on the suite's entity
+  monitored = utils.TestKey('/'.join(path.split('/')[:3])).get().monitored
+  if parent_test.has_rows:
+    paths.append(path)
+  for subtest in GetTestsMatchingPattern(
+      '%s/*' % path, only_with_rows=True, list_entities=True):
+    if subtest.has_rows and subtest.key in monitored:
+      paths.append(utils.TestPath(subtest.key))
+
   return paths
 
 
