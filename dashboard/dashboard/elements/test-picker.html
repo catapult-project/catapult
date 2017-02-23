@@ -72,7 +72,6 @@ found in the LICENSE file.
         <autocomplete-box items="{{item.datalist}}"
                           placeholder="{{item.placeholder}}"
                           disabled="{{item.disabled}}"
-                          multi="{{item.multi}}"
                           on-dropdownselect="onDropdownSelect"
                           id="selection-{{index}}"></autocomplete-box>
       </template>
@@ -147,13 +146,11 @@ found in the LICENSE file.
               datalist: [],
               placeholder: 'Test suite',
               disabled: false,
-              multi: false,
             },
             {
               datalist: [],
               placeholder: 'Bot',
               disabled: true,
-              multi: false,
             }
           ])
         },
@@ -294,7 +291,7 @@ found in the LICENSE file.
         menu.set('disabled', botItems.length === 0);
         this.subtestDict = null;
         // If there's a selection, send a subtest request.
-        if (menu.selectedItems && menu.selectedItems.length > 0) {
+        if (menu.selectedItem) {
           this.sendSubtestRequest();
         } else {
           // Clear all subtest menus.
@@ -380,7 +377,6 @@ found in the LICENSE file.
             placeholder: this.SUBTEST_LABEL,
             datalist: subtestItems,
             disabled: false,
-            multi: false,
           });
           Polymer.dom.flush();
           var menu = this.getSelectionMenu(this.selectionModels.length - 1);
@@ -424,9 +420,9 @@ found in the LICENSE file.
       getCheckedBots: function() {
         var bots = [];
         var botMenu = this.getSelectionMenu(1);
-        var botItems = botMenu.selectedItems;
-        for (var i = 0; i < botItems.length; i++) {
-          bots.push(botItems[i]['group'] + '/' + botItems[i]['name']);
+        if (botMenu.selectedItem) {
+          let item = botMenu.selectedItem;
+          bots.push(item['group'] + '/' + item['name']);
         }
         return bots;
       },
@@ -468,7 +464,7 @@ found in the LICENSE file.
         // Up to subtest menu.
         for (var i = 0; i < 3; i++) {
           var menu = this.getSelectionMenu(i);
-          if (!menu || !menu.selectedItems || menu.selectedItems.length === 0) {
+          if (!menu || !menu.selectedItem) {
             return null;
           }
         }
@@ -503,11 +499,11 @@ found in the LICENSE file.
         // If this is the last menu with selection.
         var isLastLevel = (level == this.selectionModels.length - 1 ||
                            !nextMenu ||
-                           nextMenu.selectedItems.length == 0);
+                           !nextMenu.selectedItem);
 
-        var items = this.getSelectionMenu(level).selectedItems;
-        for (var i = 0; i < items.length; i++) {
-          var name = items[i].name;
+        var item = this.getSelectionMenu(level).selectedItem;
+        if (item) {
+          var name = item.name;
           var nextTestPath = testPath + '/' + name;
           var selectedSeries = [];
           if (isLastLevel) {

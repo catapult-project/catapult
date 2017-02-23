@@ -6,13 +6,12 @@ found in the LICENSE file.
 -->
 <!--
 The 'autocomplete-box' is a input box with autocomplete drop-down menu.
-The drop-down menu has support for multi-select, grouping, and tag name.
+The drop-down menu has support for grouping, and tag name.
 
 Example usage:
 
     <autocomplete-box items={{items}}
-                      placeholder="course"
-                      multi></autocomplete-box>
+                      placeholder="course"></autocomplete-box>
 
 'items' is a list of object with the following properties:
 
@@ -31,9 +30,8 @@ Tag property adds a label to the right of the list item name.
     ]
 
 'autocomplete-box' supports grouping which shows group name and
-group member items indented.  Group name can be used to select and unselect
-all group member items.  This expects each group header to be an item with the
-property 'head' sets to true and the following group items to have
+group member items indented.  This expects each group header to be an item with
+the property 'head' sets to true and the following group items to have
 property 'group' sets to the header item name.
 
     [
@@ -144,8 +142,8 @@ property 'group' sets to the header item name.
                      id="textbox"
                      value="{{query::input}}">
           <div prefix class="selected">
-            <template is="dom-repeat" items="[[selectedItems]]">
-              <span>[[item.name]]</span>
+            <template is="dom-if" if="[[selectedItem]]">
+              <span>[[selectedItem.name]]</span>
             </template>
           </div>
         </paper-input>
@@ -158,9 +156,7 @@ property 'group' sets to the header item name.
                       tabindex="-1"
                       on-mousedown="onDropdownMouseDown"
                       on-iron-select="onDropdownSelect"
-                      on-iron-deselect="onDropdownDeselect"
-                      on-iron-items-changed="onItemsChanged"
-                      multi$="{{multi}}">
+                      on-iron-items-changed="onItemsChanged">
             <template is="dom-repeat" items="[[suggestedItems]]">
                 <paper-item
                     item="[[item]]"
@@ -204,12 +200,6 @@ property 'group' sets to the header item name.
           notify: true
         },
 
-        multi: {
-          type: Boolean,
-          notify: true,
-          value: false
-        },
-
         suggestedItems: {
           type: Array,
           computed: 'computeSuggestedItems(query, items.*)'
@@ -232,37 +222,19 @@ property 'group' sets to the header item name.
           computed: 'computeShowDropdown(hasSuggestions, dropdownOpen)'
         },
 
-        selectedItems: {
-          notify: true,
-          type: Array,
-          value: () => []
-        },
-
         /**
-         * The names of all the selected items.
-         */
-        selectedNames: {
-          notify: true,
-          type: Object,
-          computed: 'computeSelectedNames(selectedItems.*)'
-        },
-
-        /**
-         * If this is a single selection dropdown (multi == false) and there is
-         * exactly one selected item this is that item otherwise null.
+         * The selected item otherwise null.
          */
         selectedItem: {
           notify: true,
           type: Object,
-          computed: 'computeSelectedItem(multi, selectedItems.*)'
+          value: null
         },
 
         /**
-         * If this is a single selection dropdown (multi == false) and there is
-         * exactly one selected item this is that items name otherwise null;
+         * The selected items name otherwise null;
          */
         selectedName: {
-          notify: true,
           type: String,
           computed: 'computeSelectedName(selectedItem)'
         },
@@ -270,7 +242,7 @@ property 'group' sets to the header item name.
 
       observers: [
         'itemsChanged(items.*)',
-        'selectedItemsChanged(selectedItems.*)'
+        'selectedItemChanged(selectedItem)'
       ],
 
       itemEquals: function(itemA, itemB) {
@@ -282,22 +254,20 @@ property 'group' sets to the header item name.
        * to ensure we're not selecting things which are no longer in the list.
        */
       itemsChanged: function(_itemsChange) {
-        var preservedSelectedItems = [];
-        var selectedItems = this.selectedItems || [];
+        var preservedSelectedItem = null;
         var items = this.items || [];
-        for (var selectedItem of selectedItems) {
+        if (this.selectedItem) {
           for (var newItem of items) {
-            if (this.itemEquals(selectedItem, newItem)) {
-              preservedSelectedItems.push(newItem);
+            if (this.itemEquals(this.selectedItem, newItem)) {
+              preservedSelectedItem = newItem;
+              break;
             }
           }
         }
-        this.set('selectedItems', preservedSelectedItems);
+        this.set('selectedItem', preservedSelectedItem);
       },
 
-      selectedItemsChanged: function(_selectedItemsChange) {
-        // It would be nicer if users could observe the selected-items-changed
-        // but sadly that only fires when the whole array gets set.
+      selectedItemChanged: function(_selectedItemsChange) {
         this.fire('dropdownselect');
       },
 
@@ -315,58 +285,15 @@ property 'group' sets to the header item name.
       },
 
       selectItem: function(item) {
-        if (this.multi) {
-          this.selectItemMulti(item);
-        } else {
-          this.selectItemSingle(item);
-        }
-      },
-
-      selectItemMulti: function(selectedItem) {
-        this.set('query', '');
-        if (selectedItem.head) {
-          // Get items from that group:
-          var groupItems = this.suggestedItems.filter(item =>
-            selectedItem.name === item.group
-          );
-
-          // Remove head items:
-          groupItems = groupItems.filter(item => !item.head);
-          // Are all the items from the group selected?
-          var allSelected = groupItems.every(item =>
-            this.selectedItems.indexOf(item) !== -1
-          );
-
-          if (allSelected) {
-            // If everything was selected already unselect everything.
-            groupItems.forEach(item => this.deselectItem(item));
-          } else {
-            // Otherwise select everything.
-            groupItems.forEach(item => this.selectItem(item));
-          }
-        } else {
-          if (this.selectedItems.indexOf(selectedItem) === -1) {
-            this.push('selectedItems', selectedItem);
-          }
-        }
-      },
-
-      selectItemSingle: function(item) {
         if (item.head) return;
         this.set('query', '');
         this.set('dropdownOpen', false);
-        this.set('selectedItems', [item]);
-      },
-
-      deselectItem: function(item) {
-        var index = this.selectedItems.indexOf(item);
-        if (index === -1) return;
-        this.splice('selectedItems', index, 1);
+        this.set('selectedItem', item);
       },
 
       maybeBackspaceSelection: function() {
         if (this.get('query') === '') {
-          this.pop('selectedItems');
+          this.set('selectedItem', null);
         }
       },
 
@@ -397,19 +324,9 @@ property 'group' sets to the header item name.
         }
       },
 
-      computeSelectedNames: function(_selectedItemsChange) {
-        var items = this.selectedItems || [];
-        return items.map(item => item.name);
-      },
-
-      computeSelectedItem: function(multi, _selectedItemsChange) {
-        if (this.multi || this.selectedItems.length !== 1) return null;
-        return this.selectedItems[0];
-      },
-
-      computeSelectedName: function(_selectedItem) {
-        if (!this.selectedItem) return this.selectedItem;
-        return this.selectedItem.name;
+      computeSelectedName: function(selectedItem) {
+        if (!selectedItem) return '';
+        return selectedItem.name;
       },
     };
 
@@ -427,7 +344,7 @@ property 'group' sets to the header item name.
       },
 
       observers: [
-        'updateSelected(selectedItems.*)',
+        'updateSelected(selectedItem)',
         'updateSelected(locusItem)',
       ],
 
@@ -484,25 +401,14 @@ property 'group' sets to the header item name.
         this.muffleSelection = true;
         var self = this;
         (function() {
-          if (self.multi) {
-            self.$.dropdown.selectedValues = [];
-            var menuElementsArray = self.$.dropdown.items || [];
-            for (var i = 0; i < menuElementsArray.length; i++) {
-              var item = menuElementsArray[i].item;
-              if (self.selectedItems.indexOf(item) !== -1) {
-                self.$.dropdown.push('selectedValues', i);
-              }
-            }
-          } else {
-            self.$.dropdown.selected = undefined;
-            if (self.selectedItems.length === 0) return;
-            var selectedItem = self.selectedItems[0];
-            var menuItemsArray = self.$.dropdown.items || [];
-            for (var i = 0; i < menuItemsArray.length; i++) {
-              if (menuItemsArray[i].item === selectedItem) {
-                self.$.dropdown.selected = i;
-                return;
-              }
+          self.$.dropdown.selected = undefined;
+          if (self.selectedItem === null) return;
+          var selectedItem = self.selectedItem;
+          var menuItemsArray = self.$.dropdown.items || [];
+          for (var i = 0; i < menuItemsArray.length; i++) {
+            if (menuItemsArray[i].item === selectedItem) {
+              self.$.dropdown.selected = i;
+              return;
             }
           }
         })();
@@ -527,17 +433,6 @@ property 'group' sets to the header item name.
         var index = this.$.dropdown.indexOf(detail.item);
         var item = this.suggestedItems[index];
         this.selectItem(item);
-      },
-
-      /**
-       * Handles item selected on drop-down menu.
-       */
-      onDropdownDeselect: function(event, detail) {
-        if (this.shouldIgnoreSelectionEvents()) return;
-        this.$.textbox.focus();
-        var index = this.$.dropdown.indexOf(detail.item);
-        var item = this.suggestedItems[index];
-        this.deselectItem(item);
       },
     });
   </script>

@@ -108,5 +108,43 @@ tr.b.unittest.testSuite(function() {
     }
     assert.deepEqual(actualSuites, expectedSuites);
   }, testOptions);
+
+  test('fullPathRetained', function() {
+    testing_common.addXhrMock('*', JSON.stringify(MOCK_RESPONSE));
+    let testPicker = document.createElement('test-picker');
+    testPicker.testSuites = {
+      'endure': {
+        'mas': {'Chromium': {'mac': false, 'win7': true}},
+        'dep': true
+      },
+      'dromaeo': {
+        'mas': {'Chromium': {'mac': false, 'win7': false}}
+      },
+      'blink_perf': {
+        'mas': {'Chromium': {'mac': false, 'win7': false}},
+        'mon': ['select-multiple-add/select-multiple-add.html']
+      }
+    };
+
+    let suiteMenu = testPicker.getSelectionMenu(0);
+    suiteMenu.selectedItem = suiteMenu.items[0];
+
+    let botMenu = testPicker.getSelectionMenu(1);
+    botMenu.selectedItem = botMenu.items[0];
+
+    let benchmarkMenu = testPicker.getSelectionMenu(2);
+    let expectedBenchmark = benchmarkMenu.items[0].name;
+    benchmarkMenu.selectedItem = benchmarkMenu.items[0];
+
+    let metricMenu = testPicker.getSelectionMenu(3);
+    let expectedMetric = metricMenu.items[0].name;
+    metricMenu.selectedItem = metricMenu.items[0];
+
+    // Now pick a new bot
+    botMenu.selectedItem = botMenu.items[1];
+
+    assert.deepEqual(benchmarkMenu.selectedItem.name, expectedBenchmark);
+    assert.deepEqual(metricMenu.selectedItem.name, expectedMetric);
+  }, testOptions);
 });
 </script>

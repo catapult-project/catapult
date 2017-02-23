@@ -91,20 +91,11 @@ tr.b.unittest.testSuite(function() {
   test('simple_selecting_an_item', function() {
     var fixture = document.createElement('autocomplete-box-test-fixture');
     fixture.set('items', [this.foo, this.fooish, this.bar]);
-    assert.deepEqual(fixture.get('selectedItems'), []);
+    assert.deepEqual(fixture.get('selectedItem'), null);
     fixture.selectItem(this.foo);
-    assert.deepEqual(fixture.get('selectedItems'), [this.foo]);
+    assert.deepEqual(fixture.get('selectedItem'), this.foo);
     fixture.selectItem(this.bar);
-    assert.deepEqual(fixture.get('selectedItems'), [this.bar]);
-  }, testOptions);
-
-  test('simple_deselecting_an_item', function() {
-    var fixture = document.createElement('autocomplete-box-test-fixture');
-    fixture.set('items', [this.foo, this.fooish, this.bar]);
-    fixture.selectItem(this.foo);
-    fixture.deselectItem(this.bar);
-    assert.deepEqual(fixture.get('selectedItems'), [this.foo]);
-    fixture.deselectItem(this.foo);
+    assert.deepEqual(fixture.get('selectedItem'), this.bar);
   }, testOptions);
 
   test('simple_selecting_head_element_does_nothing', function() {
@@ -115,61 +106,31 @@ tr.b.unittest.testSuite(function() {
     var cucumber = item('Cucumber');
     fixture.set('items', [animals, lion, elephant, cucumber]);
     fixture.selectItem(animals);
-    assert.deepEqual(fixture.get('selectedItems'), []);
+    assert.deepEqual(fixture.get('selectedItem'), null);
   }, testOptions);
 
-  test('multi_selecting_an_item', function() {
+  test('simple_selecting_another_item', function() {
     var fixture = document.createElement('autocomplete-box-test-fixture');
     fixture.set('items', [this.foo, this.fooish, this.bar]);
-    fixture.set('multi', true);
     fixture.selectItem(this.foo);
     fixture.selectItem(this.bar);
-    assert.deepEqual(fixture.get('selectedItems'), [this.foo, this.bar]);
+    assert.deepEqual(fixture.get('selectedItem'), this.bar);
   }, testOptions);
 
-  test('multi_selecting_an_item_twice', function() {
+  test('simple_selecting_an_item_twice', function() {
     var fixture = document.createElement('autocomplete-box-test-fixture');
     fixture.set('items', [this.foo, this.fooish, this.bar]);
-    fixture.set('multi', true);
     fixture.selectItem(this.foo);
     fixture.selectItem(this.foo);
-    assert.deepEqual(fixture.get('selectedItems'), [this.foo]);
-  }, testOptions);
-
-  test('multi_deselecting_an_item', function() {
-    var fixture = document.createElement('autocomplete-box-test-fixture');
-    fixture.set('items', [this.foo, this.fooish, this.bar]);
-    fixture.set('multi', true);
-    fixture.selectItem(this.foo);
-    fixture.selectItem(this.bar);
-    fixture.deselectItem(this.foo);
-    assert.deepEqual(fixture.get('selectedItems'), [this.bar]);
-  }, testOptions);
-
-  test('multi_selecting_head_element_selects_group', function() {
-    var fixture = document.createElement('autocomplete-box-test-fixture');
-    fixture.set('multi', true);
-    var animals = item('Animals', undefined, true);
-    var lion = item('Lion', 'Animals');
-    var elephant = item('Elephant', 'Animals');
-    var cucumber = item('Cucumber');
-    fixture.set('items', [animals, lion, elephant, cucumber]);
-    fixture.selectItem(animals);
-    assert.deepEqual(fixture.get('selectedItems'), [elephant, lion]);
-    fixture.selectItem(animals);
-    assert.deepEqual(fixture.get('selectedItems'), []);
-    fixture.selectItem(lion);
-    fixture.selectItem(animals);
-    assert.deepEqual(fixture.get('selectedItems'), [lion, elephant]);
+    assert.deepEqual(fixture.get('selectedItem'), this.foo);
   }, testOptions);
 
   test('preserves_selected_on_items_update', function() {
     var fixture = document.createElement('autocomplete-box-test-fixture');
     fixture.set('items', [this.foo, this.fooish, this.bar]);
-    fixture.set('multi', true);
-    fixture.set('selectedItems', [this.foo, this.fooish]);
+    fixture.set('selectedItem', this.bar);
     fixture.set('items', [item('Foo'), item('Bar')]);
-    assert.deepEqual(fixture.get('selectedItems'), [this.foo]);
+    assert.deepEqual(fixture.get('selectedItem'), this.bar);
   }, testOptions);
 
   test('selecting_clears_the_query', function() {
@@ -203,11 +164,9 @@ tr.b.unittest.testSuite(function() {
   test('maybe_backspace_selection', function() {
     var fixture = document.createElement('autocomplete-box-test-fixture');
     fixture.set('items', [this.foo, this.fooish, this.bar]);
-    fixture.set('selectedItems', [this.foo, this.fooish]);
+    fixture.set('selectedItem', this.foo);
     fixture.maybeBackspaceSelection();
-    fixture.set('query', 'Zed');
-    fixture.maybeBackspaceSelection();
-    assert.deepEqual(fixture.get('selectedItems'), [this.foo]);
+    assert.deepEqual(fixture.get('selectedItem'), null);
   }, testOptions);
 
   test('maybe_select_locus', function() {
@@ -215,40 +174,29 @@ tr.b.unittest.testSuite(function() {
 
     fixture.set('items', [this.foo, this.fooish, this.bar]);
     fixture.maybeSelectLocus();
-    assert.deepEqual(fixture.get('selectedItems'), []);
+    assert.deepEqual(fixture.get('selectedItem'), null);
 
     fixture.set('query', 'Foo');
     fixture.maybeSelectLocus();
-    assert.deepEqual(fixture.get('selectedItems'), []);
+    assert.deepEqual(fixture.get('selectedItem'), null);
 
     fixture.set('locusItem', this.bar);
     fixture.maybeSelectLocus();
-    assert.deepEqual(fixture.get('selectedItems'), []);
+    assert.deepEqual(fixture.get('selectedItem'), null);
 
     fixture.set('query', 'Bar');
     fixture.maybeSelectLocus();
-    assert.deepEqual(fixture.get('selectedItems'), [this.bar]);
+    assert.deepEqual(fixture.get('selectedItem'), this.bar);
   }, testOptions);
 
   test('selected_item', function() {
     var fixture = document.createElement('autocomplete-box-test-fixture');
     fixture.set('items', [this.foo, this.fooish, this.bar]);
     assert.strictEqual(fixture.get('selectedItem'), null);
-    assert.strictEqual(fixture.get('selectedName'), null);
-    fixture.set('selectedItems', [this.foo]);
+    assert.strictEqual(fixture.get('selectedName'), '');
+    fixture.set('selectedItem', this.foo);
     assert.strictEqual(fixture.get('selectedItem'), this.foo);
     assert.strictEqual(fixture.get('selectedName'), 'Foo');
-  }, testOptions);
-
-  test('multi_selected_item', function() {
-    var fixture = document.createElement('autocomplete-box-test-fixture');
-    fixture.set('items', [this.foo, this.fooish, this.bar]);
-    fixture.set('multi', true);
-    assert.strictEqual(fixture.get('selectedItem'), null);
-    assert.strictEqual(fixture.get('selectedName'), null);
-    fixture.set('selectedItems', [this.foo]);
-    assert.strictEqual(fixture.get('selectedItem'), null);
-    assert.strictEqual(fixture.get('selectedName'), null);
   }, testOptions);
 
   test('instantiate', function() {
