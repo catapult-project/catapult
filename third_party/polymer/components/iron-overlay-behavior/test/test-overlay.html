@@ -13,28 +13,27 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../iron-overlay-behavior.html">
 
 <dom-module id="test-overlay">
-
-  <style>
-    :host {
-      background: white;
-      color: black;
-      border: 1px solid black;
-    }
-
-    :host([animated]) {
-      -webkit-transition: -webkit-transform 0.3s;
-      transition: transform 0.3s;
-      -webkit-transform: translateY(300px);
-      transform: translateY(300px);
-    }
-
-    :host(.opened[animated]) {
-      -webkit-transform: translateY(0px);
-      transform: translateY(0px);
-    }
-  </style>
-
   <template>
+    <style>
+      :host {
+        background: white;
+        color: black;
+        border: 1px solid black;
+      }
+
+      :host([animated]) {
+        -webkit-transition: -webkit-transform 0.3s;
+        transition: transform 0.3s;
+        -webkit-transform: translateY(300px);
+        transform: translateY(300px);
+      }
+
+      :host(.opened[animated]) {
+        -webkit-transform: translateY(0px);
+        transform: translateY(0px);
+      }
+    </style>
+    
     <content></content>
   </template>
 

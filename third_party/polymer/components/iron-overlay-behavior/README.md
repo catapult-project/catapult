@@ -23,9 +23,12 @@ Use `Polymer.IronOverlayBehavior` to implement an element that can be hidden or 
 on top of other content. It includes an optional backdrop, and can be used to implement a variety
 of UI controls including dialogs and drop downs. Multiple overlays may be displayed at once.
 
+See the [demo source code](https://github.com/PolymerElements/iron-overlay-behavior/blob/master/demo/simple-overlay.html)
+for an example.
+
 ### Closing and canceling
 
-A dialog may be hidden by closing or canceling. The difference between close and cancel is user
+An overlay may be hidden by closing or canceling. The difference between close and cancel is user
 intent. Closing generally implies that the user acknowledged the content on the overlay. By default,
 it will cancel whenever the user taps outside it or presses the escape key. This behavior is
 configurable with the `no-cancel-on-esc-key` and the `no-cancel-on-outside-click` properties.
@@ -43,6 +46,10 @@ position and size it manually using CSS. See `Polymer.IronFitBehavior`.
 Set the `with-backdrop` attribute to display a backdrop behind the overlay. The backdrop is
 appended to `<body>` and is of type `<iron-overlay-backdrop>`. See its doc page for styling
 options.
+
+In addition, `with-backdrop` will wrap the focus within the content in the light DOM.
+Override the [`_focusableNodes` getter](#Polymer.IronOverlayBehavior:property-_focusableNodes)
+to achieve a different behavior.
 
 ### Limitations
 

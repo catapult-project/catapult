@@ -13,18 +13,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../iron-overlay-behavior.html">
 
 <dom-module id="test-overlay2">
-
-  <style>
-
-    :host {
-      background: white;
-      color: black;
-      border: 1px solid black;
-    }
-
-  </style>
-
   <template>
+    <style>
+      :host {
+        background: white;
+        color: black;
+        border: 1px solid black;
+      }
+    </style>
+
     <button id="first">first</button>
     <content></content>
     <button id="last">last</button>
@@ -43,7 +40,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     behaviors: [
       Polymer.IronOverlayBehavior
     ],
-    
+
     get _focusableNodes() {
       return [this.$.first, this.$.last];
     }

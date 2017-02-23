@@ -1,0 +1,58 @@
+<!doctype html>
+
+<html>
+<head>
+  <title>app-route 0bserver Test</title>
+
+  <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+  <script src="../../web-component-tester/browser.js"></script>
+
+  <link rel="import" href="../../polymer/polymer.html">
+  <link rel="import" href="./observer-tester.html">
+
+</head>
+<body>
+
+  <test-fixture id="observer_app">
+    <template>
+      <observer-tester id="testel"></observer-tester>
+    </template>
+  </test-fixture>
+  <script>
+  'use strict';
+    function setLocation(url) {
+      window.history.pushState({}, '', url);
+      Polymer.Base.fire('location-changed', {}, { node: window });
+    }
+
+
+    suite('observe app-route active changes', function(){
+      var originalLocation;
+      var sandbox, el;
+      setup(function(){
+        originalLocation = window.location.href;
+        sandbox = sinon.sandbox.create();
+        el = fixture('observer_app');
+     });
+      teardown(function(){
+        sandbox.restore();
+        window.history.replaceState({}, '', originalLocation);
+      });
+
+      test('observer should fire when route selected', function(){
+        sandbox.spy(el,'checkActive');
+        setLocation('/report/1000');
+        expect(el.checkActive).to.have.been.called.once;
+        expect(el.checkActive).to.have.been.calledWith(true);
+      });
+      test('observer should fire when route deselected',function(){
+        setLocation('/report/1000');
+        sandbox.spy(el,'checkActive');
+        setLocation('/menu');
+        expect(el.checkActive).to.have.been.called.once;
+        expect(el.checkActive).to.have.been.calledWith(false);
+      });
+    });
+  </script>
+</body>
+

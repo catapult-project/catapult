@@ -1,0 +1,38 @@
+  <link rel='import' href='../app-route.html'>
+  <link rel='import' href='../app-location.html'>
+
+
+
+  <dom-module id="observer-tester">
+    <template>
+      <app-location route="{{route}}"></app-location>
+      <app-route
+        route="{{route}}"
+        pattern="/report/:id"
+        data="{{data}}"
+        active="{{active}}"></app-route>
+    </template>
+    <script>
+      Polymer({
+        is: 'observer-tester',
+        properties: {
+          route: {
+            type: Object,
+            notify:true
+          },
+          data: {
+            type: Object,
+            notify: true
+          },
+          active: {
+            type: Boolean,
+            value: false,
+            observer: 'checkActive'
+          }
+        },
+        checkActive: function(active) {
+          var x = 1;
+        }
+      });
+    </script>
+  </dom-module>
