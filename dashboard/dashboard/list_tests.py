@@ -384,7 +384,7 @@ def _GetSelectedTestPathsForDict(test_path_dict):
   paths = []
   for path, selection in test_path_dict.iteritems():
     if selection == 'core':
-      paths.extend(_GetCoreTestPathsForTest(path))
+      paths.extend(_GetCoreTestPathsForTest(path, True))
     elif selection == 'all':
       paths.append(path)
       paths.extend(GetTestsMatchingPattern(
@@ -406,32 +406,11 @@ def _GetSelectedTestPathsForDict(test_path_dict):
   return paths
 
 
-def _GetCoreTestPathsForTest(path):
-  if len(path.split('/')) < 4:
-    raise BadRequestError(
-        'path must be a full subtest path in order to select core tests.')
-
-  paths = []
-  parent_test = utils.TestKey(path).get()
-  # Monitoring information is stored on the suite's entity
-  monitored = utils.TestKey('/'.join(path.split('/')[:3])).get().monitored
-  if parent_test.has_rows:
-    paths.append(path)
-  for subtest in GetTestsMatchingPattern(
-      '%s/*' % path, only_with_rows=True, list_entities=True):
-    if subtest.has_rows and subtest.key in monitored:
-      paths.append(utils.TestPath(subtest.key))
-
-  return paths
-
-
 def _GetUnselectedTestPathsForDict(test_path_dict):
   paths = []
   for path, selection in test_path_dict.iteritems():
     if selection == 'core':
-      # TODO(eakuefner): support computing core tests
-      raise BadRequestError(
-          'cannot return core tests yet')
+      paths.extend(_GetCoreTestPathsForTest(path, False))
     elif selection == 'all':
       return []
     elif isinstance(selection, list):
@@ -448,4 +427,28 @@ def _GetUnselectedTestPathsForDict(test_path_dict):
         item = child.split('/')[-1]
         if item not in selection:
           paths.append(child)
+  return paths
+
+
+def _GetCoreTestPathsForTest(path, return_selected):
+  if len(path.split('/')) < 4:
+    raise BadRequestError(
+        'path must be a full subtest path in order to select core tests.')
+
+  paths = []
+  parent_test = utils.TestKey(path).get()
+  # Monitoring information is stored on the suite's entity
+  monitored = utils.TestKey('/'.join(path.split('/')[:3])).get().monitored
+  # The parent test is always considered core as long as it has rows.
+  if return_selected and parent_test.has_rows:
+    paths.append(path)
+  for subtest in GetTestsMatchingPattern(
+      '%s/*' % path, only_with_rows=True, list_entities=True):
+    # All subtests that are monitored are core.
+    if return_selected and subtest.key in monitored:
+      paths.append(utils.TestPath(subtest.key))
+    elif not return_selected and subtest.key not in monitored:
+      paths.append(utils.TestPath(subtest.key))
+
+
   return paths

@@ -552,6 +552,44 @@ class ListTestsTest(testing_common.TestCase):
          'Chromium/win7/scrolling/commit_time/www.cnn.com'],
         json.loads(response.body))
 
+  def testPost_GetTestsForTestPath_Unselected_Core_NoParent(self):
+    self._AddSampleData()
+
+    response = self.testapp.post('/list_tests', {
+        'type': 'test_path_dict',
+        'test_path_dict': json.dumps({
+            'Chromium/win7/scrolling/commit_time': 'core'}),
+        'return_selected': '0'})
+
+    self.assertEqual([], json.loads(response.body))
+
+  def testPost_GetTestsForTestPath_Unselected_Core_Unmonitored(self):
+    self._AddSampleData()
+
+    cnn = graph_data.TestMetadata.get_by_id(
+        'Chromium/win7/scrolling/commit_time/www.cnn.com')
+    cnn.has_rows = True
+    cnn.put()
+
+    yahoo_path = 'Chromium/win7/scrolling/commit_time/www.yahoo.com'
+    yahoo = graph_data.TestMetadata.get_by_id(yahoo_path)
+    yahoo.has_rows = True
+    yahoo.put()
+
+    suite = graph_data.TestMetadata.get_by_id('Chromium/win7/scrolling')
+    suite.monitored = [utils.TestKey(yahoo_path)]
+    suite.put()
+
+    response = self.testapp.post('/list_tests', {
+        'type': 'test_path_dict',
+        'test_path_dict': json.dumps({
+            'Chromium/win7/scrolling/commit_time': 'core'}),
+        'return_selected': '0'})
+
+    self.assertEqual(
+        ['Chromium/win7/scrolling/commit_time/www.cnn.com'],
+        json.loads(response.body))
+
   def testPost_GetTestsForTestPath_Unselected_EmptyPreselected(self):
     self._AddSampleData()
 
