@@ -39,15 +39,20 @@ found in the LICENSE file.
       </template>
       </ul>
 
-      <h2>{{alerts.length}} alerts for {{benchmark}} in the last {{numDays}} days</h2>
-      <h3>{{computeNumValid(alerts)}} valid and {{computeNumInvalid(alerts)}} invalid and {{computeNumUntriaged(alerts)}} untriaged</h3>
-      <alerts-table id="alerts-table"
-                    alert-list="{{alerts}}"
-                    extra-columns="{{extraColumns}}"></alerts-table>
+      <template is="dom-if" if="{{!monitored}}">
+        <h2 class="error">{{benchmark}} is not monitored.</h2>
+      </template>
+      <template is="dom-if" if="{{monitored}}">
+        <h2>{{alerts.length}} alerts for {{benchmark}} in the last {{numDays}} days</h2>
+        <h3>{{computeNumValid(alerts)}} valid and {{computeNumInvalid(alerts)}} invalid and {{computeNumUntriaged(alerts)}} untriaged</h3>
+        <alerts-table id="alerts-table"
+                      alert-list="{{alerts}}"
+                      extra-columns="{{extraColumns}}"></alerts-table>
 
-      <h2>{{bugIds.length}} bugs for {{benchmark}} in the last {{numDays}} days</h2>
-      <template is="dom-repeat" items="{{bugIds}}">
-        <bug-details bug-id="{{item}}"></bug-details>
+        <h2>{{bugIds.length}} bugs for {{benchmark}} in the last {{numDays}} days</h2>
+        <template is="dom-repeat" items="{{bugIds}}">
+          <bug-details bug-id="{{item}}"></bug-details>
+      </template>
       </template>
     </template>
 

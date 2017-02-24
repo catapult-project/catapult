@@ -34,15 +34,26 @@ found in the LICENSE file.
     </template>
     <template is="dom-if" if="{{computeSuccessfulLoad(loading, error)}}">
       <div class="content">
-        <h2>{{benchmarkList.length}} benchmarks on {{master}}</h2>
+        <h2>{{computeNumMonitored(benchmarkList)}} benchmarks monitored on {{master}}</h2>
         <ul>
         <template is="dom-repeat" items="{{benchmarkList}}">
-          <li><a href="/benchmark_health_report?benchmark={{item}}&amp;master={{master}}&amp;num_days={{numDays}}">{{item}}</a><br>
+          <template is="dom-if" if="{{item.monitored}}">
+            <li><a href="/benchmark_health_report?benchmark={{item.name}}&amp;master={{master}}&amp;num_days={{numDays}}">{{item.name}}</a>:
+            Running on {{item.bots.length}} bots</li>
+          </template>
+        </template>
+        </ul>
+        <h2>{{computeNumUnmonitored(benchmarkList)}} benchmarks <span class="error">not monitored</span> on {{master}}</h2>
+        <ul>
+        <template is="dom-repeat" items="{{benchmarkList}}">
+          <template is="dom-if" if="{{!item.monitored}}">
+            <li><a href="/benchmark_health_report?benchmark={{item.name}}&amp;master={{master}}&amp;num_days={{numDays}}">{{item.name}}</a>:
+            Running on {{item.bots.length}} bots</li>
+          </template>
         </template>
         </ul>
       </div>
     </template>
-
   </template>
   <script>
     'use strict';
@@ -74,6 +85,26 @@ found in the LICENSE file.
       },
 
       computeSuccessfulLoad: (loading, error) => !(loading || error),
+
+      computeNumMonitored: benchmarks => {
+        var numMonitored = 0;
+        for (let benchmark of benchmarks) {
+          if (benchmark['monitored']) {
+            numMonitored++;
+          }
+        }
+        return numMonitored;
+      },
+
+      computeNumUnmonitored: benchmarks => {
+        var numUnmonitored = 0;
+        for (let benchmark of benchmarks) {
+          if (!benchmark['monitored']) {
+            numUnmonitored++;
+          }
+        }
+        return numUnmonitored;
+      },
 
       ready: function() {
         var params = {

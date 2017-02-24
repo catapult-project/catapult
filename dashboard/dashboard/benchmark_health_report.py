@@ -6,6 +6,7 @@
 
 import datetime
 import json
+import operator
 
 from dashboard import alerts
 from dashboard import oauth2_decorator
@@ -70,5 +71,9 @@ class BenchmarkHealthReportHandler(request_handler.RequestHandler):
 
   def _GetResponseValuesForMaster(self, master):
     benchmarks = update_test_suites.FetchCachedTestSuites()
-    benchmarks = [b for b in benchmarks if master in benchmarks[b]['mas']]
-    return {'benchmarks': sorted(benchmarks)}
+    benchmarks = [{
+        'name': b,
+        'monitored': bool(benchmarks[b].get('mon')),
+        'bots': sorted([bot for bot in benchmarks[b]['mas'][master].keys()]),
+    } for b in benchmarks if master in benchmarks[b]['mas']]
+    return {'benchmarks': sorted(benchmarks, key=operator.itemgetter('name'))}

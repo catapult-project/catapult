@@ -30,10 +30,23 @@ tr.b.unittest.testSuite(function() {
   test('instantiation_list', function() {
     var mockResponse = {
       'benchmarks': [
-        'dromaeo',
-        'page_cycler',
-        'sunspider',
-        'v8'
+        {
+          'name': 'dromaeo',
+          'bots': ['windows', 'linux'],
+          'monitored': true
+        }, {
+          'name': 'page_cycler',
+          'bots': ['foo', 'bar'],
+          'monitored': false,
+        }, {
+          'name': 'sunspider',
+          'bots': ['linux', 'android', 'mac'],
+          'monitored': true,
+        }, {
+          'name': 'v8',
+          'bots': ['windows', 'mac'],
+          'monitored': false
+        }
       ]
     };
     testing_common.addXhrMock('/benchmark_health_report?master=ChromiumPerf',
@@ -184,6 +197,27 @@ tr.b.unittest.testSuite(function() {
     testing_common.addXhrMock(
         '/bug_details?bug_id=687592',
         JSON.stringify(mockBug687592Response));
+    uri.getParameter = function(name) {
+      return {
+        'benchmark': 'sunspider',
+        'master': 'ChromiumPerf',
+        'num_days': '30'
+      }[name];
+    };
+    var page = document.createElement('benchmark-health-report-page');
+    this.addHTMLOutput(page);
+  }, testOptions);
+
+  test('instantiation_benchmark_not_monitored', function() {
+    var mockHealthReportResponse = {
+      'alerts': [],
+      'monitored': false,
+      'bots': ['linux', 'windows']
+    };
+    testing_common.addXhrMock(
+        '/benchmark_health_report?master=ChromiumPerf' +
+        '&benchmark=sunspider&num_days=30',
+        JSON.stringify(mockHealthReportResponse));
     uri.getParameter = function(name) {
       return {
         'benchmark': 'sunspider',

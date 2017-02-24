@@ -70,7 +70,7 @@ class BenchmarkHealthReportTest(testing_common.TestCase):
             'mon': ['load_time'],
         },
         'speedometer': {
-            'mas': {'CrOS': {'foo': False}},
+            'mas': {'CrOS': {'foo': False, 'bar': False}},
             'mon': [],
         }
     }
@@ -88,7 +88,15 @@ class BenchmarkHealthReportTest(testing_common.TestCase):
     response = self.testapp.post(
         '/benchmark_health_report', {'master': 'CrOS'})
     benchmark_list = self.GetJsonValue(response, 'benchmarks')
-    self.assertItemsEqual(benchmark_list, ['page_cycler', 'speedometer'])
+    self.assertItemsEqual(benchmark_list, [{
+        'name': 'page_cycler',
+        'monitored': True,
+        'bots': ['foo'],
+    }, {
+        'name': 'speedometer',
+        'monitored': False,
+        'bots': ['bar', 'foo'],
+    }])
 
   def testPost_BenchmarkArgument_ListsAlertsAndBots(self):
     self._AddCachedSuites()
