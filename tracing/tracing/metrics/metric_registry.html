@@ -18,19 +18,6 @@ tr.exportTo('tr.metrics', function() {
   options.defaultMetadata = {};
   tr.b.decorateExtensionRegistry(MetricRegistry, options);
 
-  function camelCaseToHackerString(camelCase) {
-    let hackerString = '';
-    for (let c of camelCase) {
-      let lowered = c.toLocaleLowerCase();
-      if (lowered === c) {
-        hackerString += c;
-      } else {
-        hackerString += '_' + lowered;
-      }
-    }
-    return hackerString;
-  }
-
   MetricRegistry.addEventListener('will-register', function(e) {
     let metric = e.typeInfo.constructor;
     if (!(metric instanceof Function)) {
@@ -45,32 +32,6 @@ tr.exportTo('tr.metrics', function() {
     if (metric.length < 2) {
       throw new Error('Metrics take a HistogramSet and a Model and ' +
                       'optionally an options dictionary.');
-    }
-
-    let expectedFilename = camelCaseToHackerString(metric.name) + '.html';
-
-    let stack;
-    try {
-      throw new Error();
-    } catch (error) {
-      stack = error.stack;
-    }
-    let filename = stack.split('\n')[4];
-    filename = filename.replace(/^ */, '');
-    filename = filename.split(':');
-    filename = filename[filename.length - 3];
-    filename = filename.split('/');
-    let basename = filename[filename.length - 1];
-    let subdirpath = filename.slice(filename.length - 2);
-    if (metric.name !== 'runtimeStatsTotalMetric' &&
-        metric.name !== 'v8AndMemoryMetrics' &&
-        !basename.endsWith('_test.html') &&
-        basename !== expectedFilename &&
-        subdirpath.join('_') !== expectedFilename) {
-      throw new Error(
-          'Expected ' + metric.name + ' to be in a file named ' +
-          expectedFilename + '; actual: ' + subdirpath.join('/') +
-          '; stack: ' + stack.replace(/\n/g, '\n  '));
     }
   });
 
