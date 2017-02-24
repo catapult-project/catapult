@@ -301,16 +301,16 @@ found in the LICENSE file.
       },
 
       /**
-       * Sends a request for subtestDict base on selected test suite and bots.
+       * Sends a request for subtestDict base on selected test suite and bot.
        */
       sendSubtestRequest: function() {
         if (this.subtestXhr) {
           this.subtestXhr.abort();
           this.subtestXhr = null;
         }
-        var bots = this.getCheckedBots();
-        // If no bots are selected, just leave the current subtests.
-        if (bots.length == 0) {
+        var bot = this.getCheckedBot();
+        // If no bot is selected, just leave the current subtests.
+        if (bot === null) {
           return;
         }
         var suite = this.getCheckedSuite();
@@ -323,7 +323,7 @@ found in the LICENSE file.
         var params = {
           type: 'sub_tests',
           suite: suite,
-          bots: bots.join(','),
+          bots: bot,
           xsrf_token: this.xsrfToken
         };
         this.subtestXhr = simple_xhr.send(
@@ -417,14 +417,13 @@ found in the LICENSE file.
         return subtestItems;
       },
 
-      getCheckedBots: function() {
-        var bots = [];
+      getCheckedBot: function() {
         var botMenu = this.getSelectionMenu(1);
         if (botMenu.selectedItem) {
           let item = botMenu.selectedItem;
-          bots.push(item['group'] + '/' + item['name']);
+          return item['group'] + '/' + item['name'];
         }
-        return bots;
+        return null;
       },
 
       getCheckedSuite: function() {
@@ -473,12 +472,10 @@ found in the LICENSE file.
         var selection = new testselection.TestSelection(this.testSuites);
         var testPathAndSelected = this.addTestPathFromSubtestDict(
             this.subtestDict, suite.name, 2);
-        var bots = this.getCheckedBots();
-        for (var i = 0; i < bots.length; i++) {
-          for (var j = 0; j < testPathAndSelected.length; j++) {
-            var fullTestPath = bots[i] + '/' + testPathAndSelected[j][0];
-            selection.addTestPath(fullTestPath, testPathAndSelected[j][1]);
-          }
+        var bot = this.getCheckedBot();
+        for (var j = 0; j < testPathAndSelected.length; j++) {
+          var fullTestPath = bot + '/' + testPathAndSelected[j][0];
+          selection.addTestPath(fullTestPath, testPathAndSelected[j][1]);
         }
 
         return selection;
