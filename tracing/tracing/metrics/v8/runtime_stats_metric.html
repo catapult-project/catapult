@@ -187,10 +187,11 @@ tr.exportTo('tr.metrics.v8', function() {
       histograms.addHistogram(durationHistogram);
       // Add UE histograms as a diagnostic, so they can be hidden in the main
       // view, and the data across UE buckets can be grouped together.
-      var relatedHistogramMap = durationRelatedHistsByGroupName.get(
+      var durationRelatedHistogram = durationRelatedHistsByGroupName.get(
           runtimeGroup.name);
-      if (relatedHistogramMap !== undefined) {
-        durationHistogram.diagnostics.set(name, relatedHistogramMap);
+      if (durationRelatedHistogram !== undefined) {
+        durationHistogram.diagnostics.set('RAIL stages',
+            durationRelatedHistogram);
       }
 
       var countHistogram = createCountHistogram_(histogramName);
@@ -200,7 +201,7 @@ tr.exportTo('tr.metrics.v8', function() {
       var countRelatedHistogram = countRelatedHistsByGroupName.get(
           runtimeGroup.name);
       if (countRelatedHistogram !== undefined) {
-        countHistogram.diagnostics.set(name, countRelatedHistogram);
+        countHistogram.diagnostics.set('RAIL stages', countRelatedHistogram);
       }
       histograms.addHistogram(countHistogram);
     }
