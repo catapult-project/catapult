@@ -199,9 +199,6 @@ tr.exportTo('tr.b', function() {
    *  whose absolute value is at least the absolute value of |min|.
    *  https://en.wikipedia.org/wiki/Preferred_number
    */
-  // TODO(aiolos): switch to using a more fine-grained preferred number
-  // series like the R''5 or R''10 series.
-  // https://github.com/catapult-project/catapult/issues/3194
   function preferredNumberLargerThanMin(min) {
     var absMin = Math.abs(min);
     // The conservative guess is the largest power of 10 less than
