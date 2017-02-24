@@ -310,8 +310,14 @@ tr.exportTo('tr.e.chrome', function() {
     var sortedTasks = tasks.slice().sort((a, b) => a.start - b.start);
 
     for (var i = 1; i < sortedTasks.length; i++) {
-      // Use epsilon to guard against floating-point precision errors.
-      if (sortedTasks[i - 1].end > sortedTasks[i].start + Number.EPSILON) {
+      // Due to floating-point precision errors it might happen that the end
+      // of the previous task is larger than the start of the current task.
+      // Here is an example from a real trace of system-health benchmark:
+      // Task 1: start=1932.0179090499878 end=1932.070909049988.
+      // Task 2: start=1932.0709090232850 end=1932.118909023285.
+      // To account for precision errors we consider tasks as overlapping
+      // if the overlap is sufficiently large.
+      if (sortedTasks[i - 1].end > sortedTasks[i].start + 1e-3) {
         throw Error('Tasks must not overlap');
       }
     }
