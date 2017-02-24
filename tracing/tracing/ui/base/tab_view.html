@@ -82,7 +82,7 @@ and limit users to having one option selected at a time.
         <tab>
           <input type=radio name=tabs id$=[[computeRadioId_(item)]]
               on-change='onTabChanged_'
-              checked$='[[isChecked_(item)]]' />
+              checked='[[isChecked_(item)]]'/>
           <label for$=[[computeRadioId_(item)]]>
             <template is=dom-if if=[[item.tabIcon]]>
               <span style$='[[item.tabIcon.style]]'>[[item.tabIcon.text]]</span>

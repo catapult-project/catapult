@@ -122,5 +122,38 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(tabView.selectedSubView, view2);
     assert.strictEqual(selectedTabChangeEventCount, 2);
   });
+
+  // Regression test: https://github.com/catapult-project/catapult/issues/2754
+  test('instantiate_twoTabsSwitch', function() {
+    let tabView = document.createElement('tr-ui-b-tab-view');
+    tabView.label = '3 items selected.';
+    tabView.addSubView(createPowerSampleSubView());
+    tabView.addSubView(createAlertSubView());
+    this.addHTMLOutput(tabView);
+    Polymer.dom.flush();
+
+    tabView.selectedSubView = tabView.tabs[1];
+    Polymer.dom.flush();
+
+    let selectedLabel = tabView.$.tabs.querySelector(':checked ~ label');
+    assert.isTrue(selectedLabel && selectedLabel.innerText.includes('Alerts'));
+  });
+
+  // Regression test: https://github.com/catapult-project/catapult/issues/2755
+  test('instantiate_twoTabsSwitchAndChange', function() {
+    let tabView = document.createElement('tr-ui-b-tab-view');
+    this.addHTMLOutput(tabView);
+    tabView.addSubView(createPowerSampleSubView());
+    tabView.addSubView(createAlertSubView());
+    Polymer.dom.flush();
+
+    tabView.$.tabs.querySelectorAll('label')[2].click();
+    tabView.$.tabs.querySelectorAll('label')[1].click();
+    tabView.clearSubViews();
+    tabView.addSubView(createPowerSampleSubView());
+    Polymer.dom.flush();
+
+    assert.isTrue(!!tabView.$.tabs.querySelector(':checked'));
+  });
 });
 </script>
