@@ -46,6 +46,8 @@ class GitilesTest(unittest.TestCase):
     _SetFetchReturnValues(mock_fetch, return_value)
     self.assertEqual(gitiles_service.CommitInfo('repo', 'commit_hash'),
                      return_value)
+    mock_fetch.assert_called_once_with(
+        'https://chromium.googlesource.com/repo/+/commit_hash?format=JSON')
 
   def testCommitRange(self, mock_fetch):
     return_value = {
@@ -88,6 +90,9 @@ class GitilesTest(unittest.TestCase):
     self.assertEqual(
         gitiles_service.CommitRange('repo', 'commit_0_hash', 'commit_2_hash'),
         return_value['log'])
+    mock_fetch.assert_called_once_with(
+        'https://chromium.googlesource.com/repo/+log/'
+        'commit_0_hash..commit_2_hash?format=JSON')
 
   def testCommitRangePaginated(self, mock_fetch):
     return_value_1 = {
@@ -116,6 +121,8 @@ class GitilesTest(unittest.TestCase):
     self.assertEqual(
         gitiles_service.FileContents('repo', 'commit_hash', 'path'),
         'hello')
+    mock_fetch.assert_called_once_with(
+        'https://chromium.googlesource.com/repo/+/commit_hash/path?format=TEXT')
 
   def testRetries(self, mock_fetch):
     mock_fetch.side_effect = urlfetch.Error()
@@ -132,6 +139,19 @@ class GitilesTest(unittest.TestCase):
         content='aGVsbG8=', status_code=200)
     with self.assertRaises(Exception):
       gitiles_service.FileContents('repo', 'commit_hash', 'path')
+
+  def testNotFound(self, mock_fetch):
+    mock_fetch.side_effect = gitiles_service.NotFoundError()
+    with self.assertRaises(gitiles_service.NotFoundError):
+      gitiles_service.FileContents('repo', 'commit_hash', 'path')
+
+  def testCustomHostname(self, mock_fetch):
+    mock_fetch.return_value = mock.MagicMock(
+        content='aGVsbG8=', status_code=200)
+    gitiles_service.FileContents('repo', 'commit_hash', 'path',
+                                 hostname='https://example.com')
+    mock_fetch.assert_called_once_with(
+        'https://example.com/repo/+/commit_hash/path?format=TEXT')
 
 
 def _SetFetchReturnValues(mock_fetch, *return_values):

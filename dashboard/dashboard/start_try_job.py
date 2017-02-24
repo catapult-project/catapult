@@ -686,7 +686,7 @@ def _PerformPerfTryJob(perf_job):
   try:
     base_config = gitiles_service.FileContents('chromium/src', 'master',
                                                _PERF_CONFIG_PATH)
-  except urlfetch.Error:
+  except (urlfetch.Error, gitiles_service.NotFoundError):
     base_config = None
 
   if not base_config:
