@@ -47,7 +47,19 @@ tr.b.unittest.testSuite(function() {
       'published': '2017-02-17T23:08:44',
       'state': 'open',
       'status': 'Untriaged',
-      'summary': 'A regression in Sunspider occurred!'
+      'summary': 'A regression in Sunspider occurred!',
+      'comments': [
+        {
+          'author': 'foo@chromium.org',
+          'published': '2017-02-17T23:08:44',
+          'content': 'hello!'
+        },
+        {
+          'author': 'bar@chromium.org',
+          'published': '2017-02-17T23:08:44',
+          'content': 'world!'
+        }
+      ]
     };
     testing_common.addXhrMock(
         '/bug_details?bug_id=12345',
