@@ -143,6 +143,53 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(table);
   });
 
+  test('regression3281', function() {
+    // https://github.com/catapult-project/catapult/issues/3281
+    let table = document.createElement('tr-v-ui-histogram-set-table');
+    let histograms = new tr.v.HistogramSet();
+
+    let telemetryA = new tr.v.d.TelemetryInfo({label: 'A'});
+    let telemetryB = new tr.v.d.TelemetryInfo({label: 'B'});
+
+    tr.b.Settings.set(tr.v.ui.REFERENCE_DISPLAY_LABEL_KEY, telemetryA.label);
+    tr.b.Settings.set(tr.v.ui.DISPLAY_STATISTIC_KEY, 'z-score');
+
+    let hist0a = new tr.v.Histogram('foo',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
+    for (let i = 0; i < 100; ++i) {
+      hist0a.addSample(Math.random() * 1e3);
+    }
+    histograms.addHistogram(hist0a);
+    telemetryA.addToHistogram(hist0a);
+
+    let hist1a = new tr.v.Histogram('bar',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
+    for (let i = 0; i < 100; ++i) {
+      hist1a.addSample(Math.random() * 1e3);
+    }
+    histograms.addHistogram(hist1a);
+    telemetryA.addToHistogram(hist1a);
+
+    let hist0b = new tr.v.Histogram('foo',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
+    for (let i = 0; i < 100; ++i) {
+      hist0b.addSample(Math.random() * 1e3);
+    }
+    histograms.addHistogram(hist0b);
+    telemetryB.addToHistogram(hist0b);
+
+    let hist1b = new tr.v.Histogram('bar',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
+    for (let i = 0; i < 100; ++i) {
+      hist1b.addSample(Math.random() * 1e3);
+    }
+    histograms.addHistogram(hist1b);
+    telemetryB.addToHistogram(hist1b);
+
+    table.histograms = histograms;
+    this.addHTMLOutput(table);
+  });
+
   test('sortByDisplayStatistic', function() {
     let table = document.createElement('tr-v-ui-histogram-set-table');
     let histograms = new tr.v.HistogramSet();
@@ -782,6 +829,21 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(
         table.rows_[1].cells.get('iteration A').referenceHistogram,
         table.rows_[1].cells.get('iteration B').histogram);
+
+    // Test sorting by the reference column when the displayStatistic is a delta
+    // statistic.
+    table.sortColumnIndex = 2;
+    baseTable.rebuild();
+    let nameCell = tr.b.findDeepElementMatchingPredicate(
+        table, e => e.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-NAME-CELL');
+    let originalFirstRow = nameCell.row.name;
+    // This is either 'foo' or 'bar' depending on Math.random() above.
+
+    table.sortDescending = !table.sortDescending;
+    baseTable.rebuild();
+    nameCell = tr.b.findDeepElementMatchingPredicate(
+        table, e => e.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-NAME-CELL');
+    assert.notEqual(originalFirstRow, nameCell.row.name);
   });
 
   test('defaultDisplayLabel', function() {

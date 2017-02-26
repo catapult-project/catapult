@@ -245,15 +245,6 @@ tr.exportTo('tr.ui', function() {
           (this.referenceHistogram.numValues > 0)) {
         this.$.scalar.significance = this.histogram.getDifferenceSignificance(
             this.referenceHistogram);
-      } else if (displayStatistic === tr.v.ABS_DELTA_AVG_NAME ||
-                 displayStatistic === tr.v.PCT_DELTA_AVG_NAME ||
-                 displayStatistic === tr.v.Z_SCORE_NAME ||
-                 displayStatistic === tr.v.P_VALUE_NAME ||
-                 displayStatistic === tr.v.U_STATISTIC_NAME) {
-        displayStatistic = 'avg';
-      } else if (displayStatistic === tr.v.ABS_DELTA_STD_NAME ||
-          displayStatistic === tr.v.PCT_DELTA_STD_NAME) {
-        displayStatistic = 'std';
       }
 
       let statisticScalar = this.histogram.getStatisticScalar(

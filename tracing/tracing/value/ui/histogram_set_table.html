@@ -154,6 +154,10 @@ tr.exportTo('tr.v.ui', function() {
   const SHOW_ALL_SETTINGS_KEY = 'tr-v-ui-histogram-set-table-show-all';
   const CONSTRAIN_NAME_COLUMN_WIDTH_KEY =
     'tr-v-ui-histogram-set-table-constrain-name-column-width';
+  const DISPLAY_STATISTIC_KEY =
+    'tr-v-ui-histogram-set-table-statistic';
+  const REFERENCE_DISPLAY_LABEL_KEY =
+    'tr-v-ui-histogram-set-table-reference-display-label';
 
   const UNMERGEABLE = '(unmergeable)';
 
@@ -406,10 +410,9 @@ tr.exportTo('tr.v.ui', function() {
       for (let statName of statNames) {
         options.push({value: statName, label: statName});
       }
-      let settingsKey = 'tr-v-ui-histogram-set-table-statistic';
       let selector = tr.ui.b.createSelector(
-          this, 'displayStatistic', settingsKey, this.displayStatistic,
-          options);
+          this, 'displayStatistic', DISPLAY_STATISTIC_KEY,
+          this.displayStatistic, options);
       Polymer.dom(this.$.statistic_container).appendChild(selector);
     },
 
@@ -430,8 +433,10 @@ tr.exportTo('tr.v.ui', function() {
 
       // Propagate the displayStatistic to all the rows. The setter recurses
       // through subRows.
-      for (let row of this.rows_) {
-        row.displayStatistic = this.displayStatistic;
+      if (this.rows_ !== undefined) {
+        for (let row of this.rows_) {
+          row.displayStatistic = this.displayStatistic;
+        }
       }
 
       // Force the table to re-sort.
@@ -452,10 +457,10 @@ tr.exportTo('tr.v.ui', function() {
         options.push({value: displayLabel, label: displayLabel});
       }
 
-      let settingsKey = 'tr-v-ui-histogram-set-table-reference-display-label';
-      Polymer.dom(this.$.reference_column_container).appendChild(
-          tr.ui.b.createSelector(
-              this, 'referenceDisplayLabel', settingsKey, '', options));
+      let selector = tr.ui.b.createSelector(
+          this, 'referenceDisplayLabel', REFERENCE_DISPLAY_LABEL_KEY, '',
+          options);
+      Polymer.dom(this.$.reference_column_container).appendChild(selector);
     },
 
     set sortColumnIndex(i) {
@@ -787,6 +792,10 @@ tr.exportTo('tr.v.ui', function() {
   });
 
   return {
+    CONSTRAIN_NAME_COLUMN_WIDTH_KEY,
+    DISPLAY_STATISTIC_KEY,
+    REFERENCE_DISPLAY_LABEL_KEY,
+    SHOW_ALL_SETTINGS_KEY,
     UNMERGEABLE,
   };
 });

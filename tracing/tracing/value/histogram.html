@@ -529,6 +529,21 @@ tr.exportTo('tr.v', function() {
      * @return {!tr.b.Scalar}
      */
     getStatisticScalar(statName, opt_referenceHistogram, opt_mwu) {
+      if (!(opt_referenceHistogram instanceof Histogram) ||
+          (this.unit !== opt_referenceHistogram.unit) ||
+          (opt_referenceHistogram.numValues === 0)) {
+        if (statName === tr.v.ABS_DELTA_AVG_NAME ||
+            statName === tr.v.PCT_DELTA_AVG_NAME ||
+            statName === tr.v.Z_SCORE_NAME ||
+            statName === tr.v.P_VALUE_NAME ||
+            statName === tr.v.U_STATISTIC_NAME) {
+          statName = 'avg';
+        } else if (statName === tr.v.ABS_DELTA_STD_NAME ||
+                   statName === tr.v.PCT_DELTA_STD_NAME) {
+          statName = 'std';
+        }
+      }
+
       if (statName === 'avg') {
         if (this.running_ === undefined) return undefined;
         return new tr.b.Scalar(this.unit, this.average);
