@@ -27,6 +27,7 @@ tr.exportTo('tr.model', function() {
   function EventSet(opt_events) {
     this.bounds_ = new tr.b.Range();
     this.events_ = new Set();
+    this.guid_ = tr.b.GUID.allocateSimple();
 
     if (opt_events) {
       if (opt_events instanceof Array) {
