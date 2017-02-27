@@ -1141,7 +1141,9 @@ tr.b.unittest.testSuite(function() {
     var pmdRendererB1 = addProcessMemoryDump(gmd1, pRendererB, {ts: 11});
     pmdRendererB1.vmRegions = VMRegionClassificationNode.fromRegions([
       new VMRegion(0x2345, 512, 0, '[heap]',
-          {proportionalResident: 67, privateDirtyResident: 34})
+          {proportionalResident: 67, privateDirtyResident: 34}),
+      new VMRegion(0x7f29, 128, 0, '[stack:25451]',
+          {proportionalResident: 20, privateDirtyResident: 16})
     ]);
     var pmdGpu1 = addProcessMemoryDump(gmd1, pGpu, {ts: 10});
     pmdGpu1.memoryAllocatorDumps = (function() {
@@ -1270,28 +1272,28 @@ tr.b.unittest.testSuite(function() {
               'browser'
     },
     'memory:unknown_browser:all_processes:reported_by_os:private_dirty_size': {
-      value: [17 + 34 + 8, 80 + 90, 0],
+      value: [17 + 34 + 16 + 8, 80 + 90, 0],
       unit: sizeInBytes_smallerIsBetter,
       description: 'total private dirty size reported by the OS for all ' +
           'processes in an unknown browser'
     },
     'memory:unknown_browser:all_processes:reported_by_os:proportional_resident_size':
     {
-      value: [67 + 100 + 200, 700 + 3 + 1000 + 150 + 3000, 0],
+      value: [67 + 20 + 100 + 200, 700 + 3 + 1000 + 150 + 3000, 0],
       unit: sizeInBytes_smallerIsBetter,
       description: 'total proportional resident size (PSS) reported by ' +
               'the OS for all processes in an unknown browser'
     },
     'memory:unknown_browser:all_processes:reported_by_os:system_memory:private_dirty_size':
     {
-      value: [17 + 34 + 8, 80 + 90, 0],
+      value: [17 + 34 + 16 + 8, 80 + 90, 0],
       unit: sizeInBytes_smallerIsBetter,
       description: 'total private dirty size of system memory (RAM) used ' +
               'by all processes in an unknown browser'
     },
     'memory:unknown_browser:all_processes:reported_by_os:system_memory:proportional_resident_size':
     {
-      value: [67, 700 + 3 + 150, 0],
+      value: [67 + 20, 700 + 3 + 150, 0],
       unit: sizeInBytes_smallerIsBetter,
       description: 'total proportional resident size (PSS) of system ' +
               'memory (RAM) used by all processes in an unknown browser'
@@ -1336,6 +1338,20 @@ tr.b.unittest.testSuite(function() {
       value: [67, 0, 0],
       unit: sizeInBytes_smallerIsBetter,
       description: 'proportional resident size (PSS) of the native heap ' +
+              'in all processes in an unknown browser'
+    },
+    'memory:unknown_browser:all_processes:reported_by_os:system_memory:stack:private_dirty_size':
+    {
+      value: [16, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the thread stacks in all ' +
+              'processes in an unknown browser'
+    },
+    'memory:unknown_browser:all_processes:reported_by_os:system_memory:stack:proportional_resident_size':
+    {
+      value: [20, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the thread stacks ' +
               'in all processes in an unknown browser'
     },
     'memory:unknown_browser:browser_process:process_count': {
@@ -1411,6 +1427,20 @@ tr.b.unittest.testSuite(function() {
       value: [0, 0, 0],
       unit: sizeInBytes_smallerIsBetter,
       description: 'proportional resident size (PSS) of the native heap ' +
+              'in the browser process in an unknown browser'
+    },
+    'memory:unknown_browser:browser_process:reported_by_os:system_memory:stack:private_dirty_size':
+    {
+      value: [0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the thread stacks in the browser ' +
+              'process in an unknown browser'
+    },
+    'memory:unknown_browser:browser_process:reported_by_os:system_memory:stack:proportional_resident_size':
+    {
+      value: [0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the thread stacks ' +
               'in the browser process in an unknown browser'
     },
     'memory:unknown_browser:gpu_process:process_count': {
@@ -1516,6 +1546,20 @@ tr.b.unittest.testSuite(function() {
       description: 'proportional resident size (PSS) of the native heap ' +
               'in the GPU process in an unknown browser'
     },
+    'memory:unknown_browser:gpu_process:reported_by_os:system_memory:stack:private_dirty_size':
+    {
+      value: [0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the thread stacks in the GPU ' +
+              'process in an unknown browser'
+    },
+    'memory:unknown_browser:gpu_process:reported_by_os:system_memory:stack:proportional_resident_size':
+    {
+      value: [0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the thread stacks ' +
+              'in the GPU process in an unknown browser'
+    },
     'memory:unknown_browser:renderer_processes:process_count': {
       value: [2, 2, 2, 0],
       unit: count_smallerIsBetter,
@@ -1523,28 +1567,28 @@ tr.b.unittest.testSuite(function() {
     },
     'memory:unknown_browser:renderer_processes:reported_by_os:private_dirty_size':
     {
-      value: [17 + 34, 0, 0],
+      value: [17 + 34 + 16, 0, 0],
       unit: sizeInBytes_smallerIsBetter,
       description: 'total private dirty size reported by the OS for ' +
               'renderer processes in an unknown browser'
     },
     'memory:unknown_browser:renderer_processes:reported_by_os:proportional_resident_size':
     {
-      value: [67, 700, 0],
+      value: [67 + 20, 700, 0],
       unit: sizeInBytes_smallerIsBetter,
       description: 'total proportional resident size (PSS) reported by ' +
               'the OS for renderer processes in an unknown browser'
     },
     'memory:unknown_browser:renderer_processes:reported_by_os:system_memory:private_dirty_size':
     {
-      value: [17 + 34, 0, 0],
+      value: [17 + 34 + 16, 0, 0],
       unit: sizeInBytes_smallerIsBetter,
       description: 'total private dirty size of system memory (RAM) used ' +
               'by renderer processes in an unknown browser'
     },
     'memory:unknown_browser:renderer_processes:reported_by_os:system_memory:proportional_resident_size':
     {
-      value: [67, 700, 0],
+      value: [67 + 20, 700, 0],
       unit: sizeInBytes_smallerIsBetter,
       description: 'total proportional resident size (PSS) of system ' +
               'memory (RAM) used by renderer processes in an unknown browser'
@@ -1589,6 +1633,20 @@ tr.b.unittest.testSuite(function() {
       value: [67, 0, 0],
       unit: sizeInBytes_smallerIsBetter,
       description: 'proportional resident size (PSS) of the native heap ' +
+              'in renderer processes in an unknown browser'
+    },
+    'memory:unknown_browser:renderer_processes:reported_by_os:system_memory:stack:private_dirty_size':
+    {
+      value: [16, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the thread stacks in renderer ' +
+              'processes in an unknown browser'
+    },
+    'memory:unknown_browser:renderer_processes:reported_by_os:system_memory:stack:proportional_resident_size':
+    {
+      value: [20, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the thread stacks ' +
               'in renderer processes in an unknown browser'
     }
   });
@@ -1722,6 +1780,20 @@ tr.b.unittest.testSuite(function() {
       description: 'proportional resident size (PSS) of the native heap ' +
               'in all processes in Chrome'
     },
+    'memory:chrome:all_processes:reported_by_os:system_memory:stack:private_dirty_size':
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the thread stacks in all ' +
+              'processes in Chrome'
+    },
+    'memory:chrome:all_processes:reported_by_os:system_memory:stack:proportional_resident_size':
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the thread stacks ' +
+              'in all processes in Chrome'
+    },
     'memory:chrome:all_processes:reported_by_os:system_memory:private_dirty_size':
     {
       value: [100, 150],
@@ -1804,6 +1876,20 @@ tr.b.unittest.testSuite(function() {
       value: [0, 0],
       unit: sizeInBytes_smallerIsBetter,
       description: 'proportional resident size (PSS) of the native heap ' +
+              'in the browser process in Chrome'
+    },
+    'memory:chrome:browser_process:reported_by_os:system_memory:stack:private_dirty_size':
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the thread stacks in the browser ' +
+              'process in Chrome'
+    },
+    'memory:chrome:browser_process:reported_by_os:system_memory:stack:proportional_resident_size':
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the thread stacks ' +
               'in the browser process in Chrome'
     },
     'memory:chrome:browser_process:reported_by_os:system_memory:private_dirty_size':
@@ -2116,6 +2202,20 @@ tr.b.unittest.testSuite(function() {
       description: 'proportional resident size (PSS) of the native heap ' +
               'in all processes in WebView'
     },
+    'memory:webview:all_processes:reported_by_os:system_memory:stack:private_dirty_size':
+    {
+      value: [0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the thread stacks in all ' +
+              'processes in WebView'
+    },
+    'memory:webview:all_processes:reported_by_os:system_memory:stack:proportional_resident_size':
+    {
+      value: [0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the thread stacks ' +
+              'in all processes in WebView'
+    },
     'memory:webview:all_processes:reported_by_os:system_memory:private_dirty_size':
     {
       value: [65536],
@@ -2266,6 +2366,20 @@ tr.b.unittest.testSuite(function() {
       description: 'proportional resident size (PSS) of the native heap ' +
               'in the browser process in WebView'
     },
+    'memory:webview:browser_process:reported_by_os:system_memory:stack:private_dirty_size':
+    {
+      value: [0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the thread stacks in the browser ' +
+              'process in WebView'
+    },
+    'memory:webview:browser_process:reported_by_os:system_memory:stack:proportional_resident_size':
+    {
+      value: [0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the thread stacks ' +
+              'in the browser process in WebView'
+    },
     'memory:webview:browser_process:reported_by_os:system_memory:private_dirty_size':
     {
       value: [65536],
@@ -2405,6 +2519,20 @@ tr.b.unittest.testSuite(function() {
       description: 'proportional resident size (PSS) of the native heap ' +
               'in all processes in Chrome'
     },
+    'memory:chrome:all_processes:reported_by_os:system_memory:stack:private_dirty_size':
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the thread stacks in all ' +
+              'processes in Chrome'
+    },
+    'memory:chrome:all_processes:reported_by_os:system_memory:stack:proportional_resident_size':
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the thread stacks ' +
+              'in all processes in Chrome'
+    },
     'memory:chrome:all_processes:reported_by_os:system_memory:private_dirty_size':
     {
       value: [8 + 16, 524288],
@@ -2492,6 +2620,20 @@ tr.b.unittest.testSuite(function() {
       value: [0, 0],
       unit: sizeInBytes_smallerIsBetter,
       description: 'proportional resident size (PSS) of the native heap ' +
+              'in the browser process in Chrome'
+    },
+    'memory:chrome:browser_process:reported_by_os:system_memory:stack:private_dirty_size':
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the thread stacks in the browser ' +
+              'process in Chrome'
+    },
+    'memory:chrome:browser_process:reported_by_os:system_memory:stack:proportional_resident_size':
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the thread stacks ' +
               'in the browser process in Chrome'
     },
     'memory:chrome:browser_process:reported_by_os:system_memory:private_dirty_size':
@@ -2592,6 +2734,20 @@ tr.b.unittest.testSuite(function() {
       description: 'proportional resident size (PSS) of the native heap ' +
               'in the GPU process in Chrome'
     },
+    'memory:chrome:gpu_process:reported_by_os:system_memory:stack:private_dirty_size':
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the thread stacks in the GPU ' +
+              'process in Chrome'
+    },
+    'memory:chrome:gpu_process:reported_by_os:system_memory:stack:proportional_resident_size':
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the thread stacks ' +
+              'in the GPU process in Chrome'
+    },
     'memory:chrome:gpu_process:reported_by_os:system_memory:private_dirty_size':
     {
       value: [16, 0],
@@ -2677,6 +2833,20 @@ tr.b.unittest.testSuite(function() {
       value: [0, 0],
       unit: sizeInBytes_smallerIsBetter,
       description: 'proportional resident size (PSS) of the native heap ' +
+              'in renderer processes in Chrome'
+    },
+    'memory:chrome:renderer_processes:reported_by_os:system_memory:stack:private_dirty_size':
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the thread stacks in renderer ' +
+              'processes in Chrome'
+    },
+    'memory:chrome:renderer_processes:reported_by_os:system_memory:stack:proportional_resident_size':
+    {
+      value: [0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the thread stacks ' +
               'in renderer processes in Chrome'
     },
     'memory:chrome:renderer_processes:reported_by_os:system_memory:private_dirty_size':
@@ -2824,6 +2994,20 @@ tr.b.unittest.testSuite(function() {
       description: 'proportional resident size (PSS) of the native heap ' +
               'in all processes in Chrome(2)'
     },
+    'memory:chrome2:all_processes:reported_by_os:system_memory:stack:private_dirty_size':
+    {
+      value: [0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the thread stacks in all ' +
+              'processes in Chrome(2)'
+    },
+    'memory:chrome2:all_processes:reported_by_os:system_memory:stack:proportional_resident_size':
+    {
+      value: [0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the thread stacks ' +
+              'in all processes in Chrome(2)'
+    },
     'memory:chrome2:all_processes:reported_by_os:system_memory:private_dirty_size':
     {
       value: [256],
@@ -2934,6 +3118,20 @@ tr.b.unittest.testSuite(function() {
       value: [0],
       unit: sizeInBytes_smallerIsBetter,
       description: 'proportional resident size (PSS) of the native heap ' +
+              'in the browser process in Chrome(2)'
+    },
+    'memory:chrome2:browser_process:reported_by_os:system_memory:stack:private_dirty_size':
+    {
+      value: [0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the thread stacks in the browser ' +
+              'process in Chrome(2)'
+    },
+    'memory:chrome2:browser_process:reported_by_os:system_memory:stack:proportional_resident_size':
+    {
+      value: [0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the thread stacks ' +
               'in the browser process in Chrome(2)'
     },
     'memory:chrome2:browser_process:reported_by_os:system_memory:private_dirty_size':
@@ -3225,6 +3423,20 @@ tr.b.unittest.testSuite(function() {
       description: 'proportional resident size (PSS) of the native heap ' +
               'in all processes in WebView'
     },
+    'memory:webview:all_processes:reported_by_os:system_memory:stack:private_dirty_size':
+    {
+      value: [0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the thread stacks in all ' +
+              'processes in WebView'
+    },
+    'memory:webview:all_processes:reported_by_os:system_memory:stack:proportional_resident_size':
+    {
+      value: [0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the thread stacks ' +
+              'in all processes in WebView'
+    },
     'memory:webview:all_processes:reported_by_os:system_memory:private_dirty_size':
     {
       value: [0, 0, 0],
@@ -3297,6 +3509,20 @@ tr.b.unittest.testSuite(function() {
       value: [0, 0, 0],
       unit: sizeInBytes_smallerIsBetter,
       description: 'proportional resident size (PSS) of the native heap ' +
+              'in the browser process in WebView'
+    },
+    'memory:webview:browser_process:reported_by_os:system_memory:stack:private_dirty_size':
+    {
+      value: [0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'private dirty size of the thread stacks in the browser ' +
+              'process in WebView'
+    },
+    'memory:webview:browser_process:reported_by_os:system_memory:stack:proportional_resident_size':
+    {
+      value: [0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'proportional resident size (PSS) of the thread stacks ' +
               'in the browser process in WebView'
     },
     'memory:webview:browser_process:reported_by_os:system_memory:private_dirty_size':
