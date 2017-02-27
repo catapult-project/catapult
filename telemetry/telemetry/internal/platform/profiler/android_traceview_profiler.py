@@ -25,21 +25,23 @@ class AndroidTraceviewProfiler(profiler.Profiler):
         browser_backend, platform_backend, output_path, state)
 
     if self._browser_backend.device.FileExists(self._DEFAULT_DEVICE_DIR):
+      # Note: command must be passed as a string to expand wildcards.
       self._browser_backend.device.RunShellCommand(
-          'rm ' + os.path.join(self._DEFAULT_DEVICE_DIR, '*'))
+          'rm ' + os.path.join(self._DEFAULT_DEVICE_DIR, '*'),
+          check_return=True)
     else:
       self._browser_backend.device.RunShellCommand(
-          'mkdir -p ' + self._DEFAULT_DEVICE_DIR)
+          ['mkdir', '-p', self._DEFAULT_DEVICE_DIR], check_return=True)
       self._browser_backend.device.RunShellCommand(
-          'chmod 777 ' + self._DEFAULT_DEVICE_DIR)
+          ['chmod', '777', self._DEFAULT_DEVICE_DIR], check_return=True)
 
     self._trace_files = []
     for pid in self._GetProcessOutputFileMap().iterkeys():
       device_dump_file = '%s/%s.trace' % (self._DEFAULT_DEVICE_DIR, pid)
       self._trace_files.append((pid, device_dump_file))
-      self._browser_backend.device.RunShellCommand('am profile %s start %s' %
-                                                   (pid, device_dump_file))
-
+      self._browser_backend.device.RunShellCommand(
+          ['am', 'profile', str(pid), 'start', device_dump_file],
+          check_return=True)
 
   @classmethod
   def name(cls):
@@ -54,14 +56,17 @@ class AndroidTraceviewProfiler(profiler.Profiler):
   def CollectProfile(self):
     output_files = []
     for pid, trace_file in self._trace_files:
-      self._browser_backend.device.RunShellCommand('am profile %s stop' % pid)
+      self._browser_backend.device.RunShellCommand(
+          ['am', 'profile', str(pid), 'stop'], check_return=True)
       # pylint: disable=cell-var-from-loop
       py_utils.WaitFor(lambda: self._FileSize(trace_file) > 0, timeout=10)
       output_files.append(trace_file)
     self._browser_backend.device.PullFile(
         self._DEFAULT_DEVICE_DIR, self._output_path)
+    # Note: command must be passed as a string to expand wildcards.
     self._browser_backend.device.RunShellCommand(
-        'rm ' + os.path.join(self._DEFAULT_DEVICE_DIR, '*'))
+        'rm ' + os.path.join(self._DEFAULT_DEVICE_DIR, '*'),
+        check_return=True)
     print 'Traceview profiles available in ', self._output_path
     print 'Use third_party/android_tools/sdk/tools/monitor '
     print 'then use "File->Open File" to visualize them.'

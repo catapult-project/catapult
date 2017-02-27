@@ -40,7 +40,7 @@ class V8Profiler(profiler.Profiler):
       host_output_file = '%s.log' % self._output_path
       self._browser_backend.device.PullFile(output_file, host_output_file)
       # Clean the device
-      self._browser_backend.device.RunShellCommand('rm %s' % output_file)
+      self._browser_backend.device.RemovePath(output_file)
       output_file = host_output_file
     print 'V8 profile saved as %s' % output_file
     print 'To view, open in ' \

@@ -92,9 +92,9 @@ class _SingleProcessPerfProfiler(object):
                                  os.path.basename(output_file))
       self._device_output_file = output_file
       browser_backend.device.RunShellCommand(
-          'mkdir -p ' + os.path.dirname(self._device_output_file))
-      browser_backend.device.RunShellCommand(
-          'rm -f ' + self._device_output_file)
+          ['mkdir', '-p', os.path.dirname(self._device_output_file)],
+          check_return=True)
+      browser_backend.device.RemovePath(self._device_output_file, force=True)
     else:
       cmd_prefix = [perf_binary]
     perf_args += ['--output', output_file] + _PERF_OPTIONS

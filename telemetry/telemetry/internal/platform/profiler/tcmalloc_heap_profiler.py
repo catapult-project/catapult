@@ -43,18 +43,24 @@ class _TCMallocHeapProfilerAndroid(object):
     if not self._browser_backend.device.FileExists(
         self._DEFAULT_DEVICE_DIR):
       self._browser_backend.device.RunShellCommand(
-          'mkdir -p ' + self._DEFAULT_DEVICE_DIR)
+          ['mkdir', '-p', self._DEFAULT_DEVICE_DIR], check_return=True)
       self._browser_backend.device.RunShellCommand(
-          'chmod 777 ' + self._DEFAULT_DEVICE_DIR)
+          ['chmod', '777', self._DEFAULT_DEVICE_DIR], check_return=True)
       device_configured = True
     if device_configured:
       raise Exception('Device required special config, run again.')
 
   def CollectProfile(self):
-    self._browser_backend.device.PullFile(
-        self._DEFAULT_DEVICE_DIR, self._output_path)
+    try:
+      self._browser_backend.device.PullFile(
+          self._DEFAULT_DEVICE_DIR, self._output_path)
+    except:
+      logging.exception('New exception caused by DeviceUtils conversion')
+      raise
+    # Note: command must be passed as a string to expand wildcards.
     self._browser_backend.device.RunShellCommand(
-        'rm ' + os.path.join(self._DEFAULT_DEVICE_DIR, '*'))
+        'rm -f ' + os.path.join(self._DEFAULT_DEVICE_DIR, '*'),
+        check_return=True)
     if os.path.exists(self._output_path):
       logging.info('TCMalloc dumps pulled to %s', self._output_path)
       with file(os.path.join(self._output_path,

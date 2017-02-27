@@ -73,7 +73,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self.platform_backend.StopApplication(self._backend_settings.package)
 
   def Start(self):
-    self.device.RunShellCommand('logcat -c')
+    self.device.adb.Logcat(clear=True)
     if self.browser_options.startup_url:
       url = self.browser_options.startup_url
     elif self.browser_options.profile_dir:

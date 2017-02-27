@@ -50,8 +50,10 @@ class JavaHeapProfiler(profiler.Profiler):
     self._DumpJavaHeap(True)
     self._browser_backend.device.PullFile(
         self._DEFAULT_DEVICE_DIR, self._output_path)
+    # Note: command must be passed as a string to expand wildcards.
     self._browser_backend.device.RunShellCommand(
-        'rm ' + os.path.join(self._DEFAULT_DEVICE_DIR, '*'))
+        'rm -f ' + os.path.join(self._DEFAULT_DEVICE_DIR, '*'),
+        check_return=True)
     output_files = []
     for f in os.listdir(self._output_path):
       if os.path.splitext(f)[1] == '.aprof':
@@ -72,16 +74,16 @@ class JavaHeapProfiler(profiler.Profiler):
     if not self._browser_backend.device.FileExists(
         self._DEFAULT_DEVICE_DIR):
       self._browser_backend.device.RunShellCommand(
-          'mkdir -p ' + self._DEFAULT_DEVICE_DIR)
+          ['mkdir', '-p', self._DEFAULT_DEVICE_DIR], check_return=True)
       self._browser_backend.device.RunShellCommand(
-          'chmod 777 ' + self._DEFAULT_DEVICE_DIR)
+          ['chmod', '777', self._DEFAULT_DEVICE_DIR], check_return=True)
 
     device_dump_file = None
     for pid in self._GetProcessOutputFileMap().iterkeys():
       device_dump_file = '%s/%s.%s.aprof' % (self._DEFAULT_DEVICE_DIR, pid,
                                              self._run_count)
-      self._browser_backend.device.RunShellCommand('am dumpheap %s %s' %
-                                                   (pid, device_dump_file))
+      self._browser_backend.device.RunShellCommand(
+          ['am', 'dumpheap', str(pid), device_dump_file], check_return=True)
     if device_dump_file and wait_for_completion:
       py_utils.WaitFor(lambda: self._FileSize(device_dump_file) > 0, timeout=2)
     self._run_count += 1

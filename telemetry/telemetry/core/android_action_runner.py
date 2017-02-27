@@ -5,6 +5,8 @@
 import logging
 import time
 
+from devil.android.sdk import keyevent
+
 import py_utils
 
 
@@ -68,15 +70,18 @@ class AndroidActionRunner(object):
     Args:
       string: The string to send to the device.
     """
-    self._platform_backend.device.RunShellCommand('input text %s' % string)
+    self._platform_backend.device.RunShellCommand(
+        ['input', 'text', string], check_return=True)
 
-  def InputKeyEvent(self, key):
+  def InputKeyEvent(self, keycode):
     """Send a single key input to the device.
 
+    See the devil.android.sdk.keyevent module for suitable keycode values.
+
     Args:
-      key: A key code number or name that will be sent to the device
+      keycode: A key code number that will be sent to the device.
     """
-    self._platform_backend.device.RunShellCommand('input keyevent %s' % key)
+    self._platform_backend.device.SendKeyEvent(keycode)
 
   def InputTap(self, x_coord, y_coord):
     """Perform a tap input at the given coordinates.
@@ -85,8 +90,8 @@ class AndroidActionRunner(object):
       x_coord: The x coordinate of the tap event.
       y_coord: The y coordinate of the tap event.
     """
-    self._platform_backend.device.RunShellCommand('input tap %s %s' % (x_coord,
-                                                                       y_coord))
+    self._platform_backend.device.RunShellCommand(
+        ['input', 'tap', str(x_coord), str(y_coord)], check_return=True)
 
   def InputSwipe(self, left_start_coord, top_start_coord, left_end_coord,
                  top_end_coord, duration):
@@ -99,14 +104,15 @@ class AndroidActionRunner(object):
       top_end_coord: The vertical ending coordinate of the gesture
       duration: The length of time of the swipe in milliseconds
     """
-    self._platform_backend.device.RunShellCommand(
-        'input swipe %s %s %s %s %s' % (left_start_coord, top_start_coord,
-                                        left_end_coord, top_end_coord,
-                                        duration))
+    cmd = ['input', 'swipe']
+    cmd.expand(str(x) for x in (left_start_coord, top_start_coord,
+                                left_end_coord, top_end_coord, duration))
+    self._platform_backend.device.RunShellCommand(cmd, check_return=True)
 
   def InputPress(self):
     """Perform a press input."""
-    self._platform_backend.device.RunShellCommand('input press')
+    self._platform_backend.device.RunShellCommand(
+        ['input', 'press'], check_return=True)
 
   def InputRoll(self, dx, dy):
     """Perform a roll input. This sends a simple zero-pressure move event.
@@ -115,7 +121,8 @@ class AndroidActionRunner(object):
       dx: Change in the x coordinate due to move.
       dy: Change in the y coordinate due to move.
     """
-    self._platform_backend.device.RunShellCommand('input roll %s %s' % (dx, dy))
+    self._platform_backend.device.RunShellCommand(
+        ['input', 'roll', str(dx), str(dy)], check_return=True)
 
   def TurnScreenOn(self):
     """If device screen is off, turn screen on.
@@ -153,7 +160,7 @@ class AndroidActionRunner(object):
       return not self._platform_backend.IsScreenLocked()
 
     if self._platform_backend.IsScreenLocked():
-      self._platform_backend.device.RunShellCommand('input keyevent 82')
+      self.InputKeyEvent(keyevent.KEYCODE_MENU)
     else:
       logging.warning('Screen not locked when expected.')
       return

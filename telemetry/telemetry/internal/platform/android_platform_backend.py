@@ -272,7 +272,8 @@ class AndroidPlatformBackend(
         self._device, 'purge_ashmem'):
       raise Exception('Error installing purge_ashmem.')
     output = self._device.RunShellCommand([
-      android_prebuilt_profiler_helper.GetDevicePath('purge_ashmem')])
+      android_prebuilt_profiler_helper.GetDevicePath('purge_ashmem')],
+      check_return=True)
     for l in output:
       logging.info(l)
 
@@ -337,7 +338,7 @@ class AndroidPlatformBackend(
 
   def FlushDnsCache(self):
     self._device.RunShellCommand(
-        ['ndc', 'resolver', 'flushdefaultif'], as_root=True)
+        ['ndc', 'resolver', 'flushdefaultif'], as_root=True, check_return=True)
 
   def StopApplication(self, application):
     """Stop the given |application|.
@@ -369,11 +370,12 @@ class AndroidPlatformBackend(
     """
     if elevate_privilege:
       raise NotImplementedError("elevate_privilege isn't supported on android.")
+    # TODO(catapult:#3215): Migrate to StartActivity.
     cmd = ['am', 'start']
     if parameters:
       cmd.extend(parameters)
     cmd.append(application)
-    result_lines = self._device.RunShellCommand(cmd)
+    result_lines = self._device.RunShellCommand(cmd, check_return=True)
     for line in result_lines:
       if line.startswith('Error: '):
         raise ValueError('Failed to start "%s" with error\n  %s' %
@@ -385,7 +387,7 @@ class AndroidPlatformBackend(
   def CanLaunchApplication(self, application):
     if not self._installed_applications:
       self._installed_applications = self._device.RunShellCommand(
-          ['pm', 'list', 'packages'])
+          ['pm', 'list', 'packages'], check_return=True)
     return 'package:' + application in self._installed_applications
 
   def InstallApplication(self, application):
@@ -453,10 +455,12 @@ class AndroidPlatformBackend(
   def GetPsOutput(self, columns, pid=None):
     assert columns == ['pid', 'name'] or columns == ['pid'], \
         'Only know how to return pid and name. Requested: ' + columns
+    # TODO(catapult:#3215): Migrate to GetPids.
     cmd = ['ps']
     if pid:
       cmd.extend(['-p', str(pid)])
-    ps = self._device.RunShellCommand(cmd, large_output=True)[1:]
+    ps = self._device.RunShellCommand(
+        cmd, check_return=True, large_output=True)[1:]
     output = []
     for line in ps:
       data = line.split()
@@ -469,7 +473,8 @@ class AndroidPlatformBackend(
     return output
 
   def RunCommand(self, command):
-    return '\n'.join(self._device.RunShellCommand(command))
+    return self._device.RunShellCommand(
+        command, check_return=True, raw_output=True)
 
   @staticmethod
   def ParseCStateSample(sample):
@@ -590,25 +595,27 @@ class AndroidPlatformBackend(
     profile_dir = self._GetProfileDir(package)
     self._EfficientDeviceDirectoryCopy(
         saved_profile_location, profile_dir)
-    dumpsys = self._device.RunShellCommand(['dumpsys', 'package', package])
+    dumpsys = self._device.RunShellCommand(
+        ['dumpsys', 'package', package], check_return=True)
     id_line = next(line for line in dumpsys if 'userId=' in line)
     uid = re.search(r'\d+', id_line).group()
     files = self._device.ListDirectory(profile_dir, as_root=True)
     paths = [posixpath.join(profile_dir, f) for f in files if f != 'lib']
     for path in paths:
+      # TODO(crbug.com/628617): Implement without ignoring shell errors.
       # Note: need to pass command as a string for the shell to expand the *'s.
       extended_path = '%s %s/* %s/*/* %s/*/*/*' % (path, path, path, path)
       self._device.RunShellCommand(
-          'chown %s.%s %s' % (uid, uid, extended_path))
+          'chown %s.%s %s' % (uid, uid, extended_path), check_return=False)
 
   def _EfficientDeviceDirectoryCopy(self, source, dest):
     if not self._device_copy_script:
       self._device.adb.Push(
           _DEVICE_COPY_SCRIPT_FILE,
           _DEVICE_COPY_SCRIPT_LOCATION)
-      self._device_copy_script = _DEVICE_COPY_SCRIPT_FILE
+      self._device_copy_script = _DEVICE_COPY_SCRIPT_LOCATION
     self._device.RunShellCommand(
-        ['sh', self._device_copy_script, source, dest])
+        ['sh', self._device_copy_script, source, dest], check_return=True)
 
   def GetPortPairForForwarding(self, local_port):
     return forwarders.PortPair(local_port=local_port, remote_port=0)
@@ -630,9 +637,7 @@ class AndroidPlatformBackend(
       if f not in ignore_list]
     if not files:
       return
-    cmd = ['rm', '-r']
-    cmd.extend(files)
-    self._device.RunShellCommand(cmd, as_root=True, check_return=True)
+    self._device.RemovePath(files, recursive=True, as_root=True)
 
   def PullProfile(self, package, output_profile_path):
     """Copy application profile from device to host machine.
@@ -649,16 +654,24 @@ class AndroidPlatformBackend(
     # pulled down is really needed e.g. .pak files.
     if not os.path.exists(output_profile_path):
       os.makedirs(output_profile_path)
-    files = self._device.ListDirectory(profile_dir, as_root=True)
-    for f in files:
+    problem_files = []
+    for filename in self._device.ListDirectory(profile_dir, as_root=True):
       # Don't pull lib, since it is created by the installer.
-      if f != 'lib':
-        source = posixpath.join(profile_dir, f)
-        dest = os.path.join(output_profile_path, f)
-        try:
-          self._device.PullFile(source, dest, timeout=240)
-        except device_errors.CommandFailedError:
-          logging.exception('Failed to pull %s to %s', source, dest)
+      if filename == 'lib':
+        continue
+      source = posixpath.join(profile_dir, filename)
+      dest = os.path.join(output_profile_path, filename)
+      try:
+        self._device.PullFile(source, dest, timeout=240)
+      except device_errors.CommandFailedError:
+        problem_files.append(source)
+    if problem_files:
+      # Some paths (e.g. 'files', 'app_textures') consistently fail to be
+      # pulled from the device.
+      logging.warning(
+          'There were errors retrieving the following paths from the profile:')
+      for filepath in problem_files:
+        logging.warning('- %s', filepath)
 
   def _GetProfileDir(self, package):
     """Returns the on-device location where the application profile is stored
@@ -678,7 +691,8 @@ class AndroidPlatformBackend(
     if self._device.IsUserBuild():
       logging.debug('User build device, setting debug app')
       self._device.RunShellCommand(
-          ['am', 'set-debug-app', '--persistent', package])
+          ['am', 'set-debug-app', '--persistent', package],
+          check_return=True)
 
   def GetLogCat(self, number_of_lines=500):
     """Returns most recent lines of logcat dump.
@@ -794,7 +808,8 @@ class AndroidPlatformBackend(
     """Prints line to logcat."""
     TELEMETRY_LOGCAT_TAG = 'Telemetry'
     self._device.RunShellCommand(
-        ['log', '-p', 'i', '-t', TELEMETRY_LOGCAT_TAG, message])
+        ['log', '-p', 'i', '-t', TELEMETRY_LOGCAT_TAG, message],
+        check_return=True)
 
   def WaitForTemperature(self, temp):
     # Temperature is in tenths of a degree C, so we convert to that scale.
