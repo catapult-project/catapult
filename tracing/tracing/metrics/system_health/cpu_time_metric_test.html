@@ -18,9 +18,9 @@ tr.b.unittest.testSuite(function() {
     var model = tr.c.TestUtils.newModel(function(model) {
       customizeModelCallback(model);
     });
-    var values = new tr.v.HistogramSet();
-    tr.metrics.sh.cpuTimeMetric(values, model, opt_options);
-    return tr.b.getOnlyElement(values).average;
+    var histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.cpuTimeMetric(histograms, model, opt_options);
+    return tr.b.getOnlyElement(histograms).average;
   }
 
   // There are two slices, each of length 50. The total bounds is 3000.
@@ -80,9 +80,9 @@ tr.b.unittest.testSuite(function() {
         cpuDuration: sliceDuration,
       }));
     });
-    var values = new tr.v.HistogramSet();
-    tr.metrics.sh.cpuTimeMetric(values, model);
-    var value = tr.b.getOnlyElement(values).average;
+    var histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.cpuTimeMetric(histograms, model);
+    var value = tr.b.getOnlyElement(histograms).average;
     assert.closeTo(value, 0.5, 0.001);
   });
 

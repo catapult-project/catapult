@@ -39,24 +39,25 @@ tr.exportTo('tr.metrics.sh', function() {
    *       if perSecond = False, power in W if perSecond = True)
    *   }
    */
-  function createEmptyHistogram_(interval, values) {
+  function createEmptyHistogram_(interval, histograms) {
     if (interval.perSecond) {
       return {
         perSecond: true,
         energy: createPowerHistogram_(
-            values, interval.name, interval.description)
+            histograms, interval.name, interval.description)
       };
     }
     return {
       perSecond: false,
       energy: createEnergyHistogram_(
-          values, interval.name, interval.description)
+          histograms, interval.name, interval.description)
     };
   }
 
-  function createHistograms_(data, interval, values) {
+  function createHistograms_(data, interval, histograms) {
     if (data.histograms[interval.name] === undefined)
-      data.histograms[interval.name] = createEmptyHistogram_(interval, values);
+      data.histograms[interval.name] = createEmptyHistogram_(interval,
+          histograms);
     if (data.histograms[interval.name].perSecond) {
       for (var sample of data.model.device.powerSeries.getSamplesWithinRange(
           interval.bounds.min, interval.bounds.max))
@@ -91,7 +92,7 @@ tr.exportTo('tr.metrics.sh', function() {
   /**
    * Creates a histogram suitable for energy data.
    */
-  function createEnergyHistogram_(values, histogramName, description) {
+  function createEnergyHistogram_(histograms, histogramName, description) {
     var histogram = new tr.v.Histogram(`${histogramName}:energy`,
         tr.b.Unit.byName.energyInJoules_smallerIsBetter);
     histogram.customizeSummaryOptions({
@@ -103,14 +104,14 @@ tr.exportTo('tr.metrics.sh', function() {
       sum: true,
     });
     histogram.description = 'Energy consumed in ' + description;
-    values.addHistogram(histogram);
+    histograms.addHistogram(histogram);
     return histogram;
   }
 
   /**
    * Creates a histogram suitable for power data.
    */
-  function createPowerHistogram_(values, histogramName, description) {
+  function createPowerHistogram_(histograms, histogramName, description) {
     var histogram = new tr.v.Histogram(`${histogramName}:power`,
         tr.b.Unit.byName.powerInWatts_smallerIsBetter);
     histogram.customizeSummaryOptions({
@@ -122,7 +123,7 @@ tr.exportTo('tr.metrics.sh', function() {
       sum: false,
     });
     histogram.description = 'Energy consumption rate for ' + description;
-    values.addHistogram(histogram);
+    histograms.addHistogram(histogram);
     return histogram;
   }
 
@@ -357,13 +358,13 @@ tr.exportTo('tr.metrics.sh', function() {
    * For instance, if a change causes a response to take longer to process, then
    * we want to count that as taking the energy over a longer period of time.
    */
-  function powerMetric(values, model) {
+  function powerMetric(histograms, model) {
     var data = {
       model: model,
       histograms: {}
     };
     for (var interval of computeTimeIntervals_(model))
-      createHistograms_(data, interval, values);
+      createHistograms_(data, interval, histograms);
   }
 
   tr.metrics.MetricRegistry.register(powerMetric);

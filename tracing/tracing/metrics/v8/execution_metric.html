@@ -16,7 +16,7 @@ found in the LICENSE file.
 tr.exportTo('tr.metrics.v8', function() {
   var CUSTOM_BOUNDARIES = tr.v.HistogramBinBoundaries.createLinear(4, 200, 100);
 
-  function computeExecuteMetrics(values, model) {
+  function computeExecuteMetrics(histograms, model) {
     var cpuTotalExecution = new tr.v.Histogram('v8_execution_cpu_total',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
     cpuTotalExecution.description = 'cpu total time spent in script execution';
@@ -38,13 +38,13 @@ tr.exportTo('tr.metrics.v8', function() {
       wallSelfExecution.addSample(e.selfTime);
     }
 
-    values.addHistogram(cpuTotalExecution);
-    values.addHistogram(wallTotalExecution);
-    values.addHistogram(cpuSelfExecution);
-    values.addHistogram(wallSelfExecution);
+    histograms.addHistogram(cpuTotalExecution);
+    histograms.addHistogram(wallTotalExecution);
+    histograms.addHistogram(cpuSelfExecution);
+    histograms.addHistogram(wallSelfExecution);
   }
 
-  function computeParseLazyMetrics(values, model) {
+  function computeParseLazyMetrics(histograms, model) {
     var cpuSelfParseLazy = new tr.v.Histogram('v8_parse_lazy_cpu_self',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
     cpuSelfParseLazy.description =
@@ -63,11 +63,11 @@ tr.exportTo('tr.metrics.v8', function() {
       wallSelfParseLazy.addSample(e.selfTime);
     }
 
-    values.addHistogram(cpuSelfParseLazy);
-    values.addHistogram(wallSelfParseLazy);
+    histograms.addHistogram(cpuSelfParseLazy);
+    histograms.addHistogram(wallSelfParseLazy);
   }
 
-  function computeCompileFullCodeMetrics(values, model) {
+  function computeCompileFullCodeMetrics(histograms, model) {
     var cpuSelfCompileFullCode = new tr.v.Histogram(
         'v8_compile_full_code_cpu_self',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
@@ -84,11 +84,11 @@ tr.exportTo('tr.metrics.v8', function() {
       wallSelfCompileFullCode.addSample(e.selfTime);
     }
 
-    values.addHistogram(cpuSelfCompileFullCode);
-    values.addHistogram(wallSelfCompileFullCode);
+    histograms.addHistogram(cpuSelfCompileFullCode);
+    histograms.addHistogram(wallSelfCompileFullCode);
   }
 
-  function computeCompileIgnitionMetrics(values, model) {
+  function computeCompileIgnitionMetrics(histograms, model) {
     var cpuSelfCompileIgnition = new tr.v.Histogram(
         'v8_compile_ignition_cpu_self',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
@@ -105,11 +105,11 @@ tr.exportTo('tr.metrics.v8', function() {
       wallSelfCompileIgnition.addSample(e.selfTime);
     }
 
-    values.addHistogram(cpuSelfCompileIgnition);
-    values.addHistogram(wallSelfCompileIgnition);
+    histograms.addHistogram(cpuSelfCompileIgnition);
+    histograms.addHistogram(wallSelfCompileIgnition);
   }
 
-  function computeRecompileMetrics(values, model) {
+  function computeRecompileMetrics(histograms, model) {
     var cpuTotalRecompileSynchronous = new tr.v.Histogram(
         'v8_recompile_synchronous_cpu_total',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
@@ -130,7 +130,7 @@ tr.exportTo('tr.metrics.v8', function() {
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
     wallTotalRecompileConcurrent.description =
       'wall total time spent in concurrent recompilation';
-    // TODO(eakuefner): Stop computing overall values once dash v2 is ready.
+    // TODO(eakuefner): Stop computing overall histograms once dash v2 is ready.
     // https://github.com/catapult-project/catapult/issues/2180
     var cpuTotalRecompileOverall = new tr.v.Histogram(
         'v8_recompile_overall_cpu_total',
@@ -150,8 +150,8 @@ tr.exportTo('tr.metrics.v8', function() {
       wallTotalRecompileOverall.addSample(e.duration);
     }
 
-    values.addHistogram(cpuTotalRecompileSynchronous);
-    values.addHistogram(wallTotalRecompileSynchronous);
+    histograms.addHistogram(cpuTotalRecompileSynchronous);
+    histograms.addHistogram(wallTotalRecompileSynchronous);
 
     for (var e of model.findTopmostSlicesNamed('V8.RecompileConcurrent')) {
       cpuTotalRecompileConcurrent.addSample(e.cpuDuration);
@@ -160,13 +160,13 @@ tr.exportTo('tr.metrics.v8', function() {
       wallTotalRecompileOverall.addSample(e.duration);
     }
 
-    values.addHistogram(cpuTotalRecompileConcurrent);
-    values.addHistogram(wallTotalRecompileConcurrent);
-    values.addHistogram(cpuTotalRecompileOverall);
-    values.addHistogram(wallTotalRecompileOverall);
+    histograms.addHistogram(cpuTotalRecompileConcurrent);
+    histograms.addHistogram(wallTotalRecompileConcurrent);
+    histograms.addHistogram(cpuTotalRecompileOverall);
+    histograms.addHistogram(wallTotalRecompileOverall);
   }
 
-  function computeOptimizeCodeMetrics(values, model) {
+  function computeOptimizeCodeMetrics(histograms, model) {
     var cpuTotalOptimizeCode = new tr.v.Histogram('v8_optimize_code_cpu_total',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
     cpuTotalOptimizeCode.description =
@@ -182,11 +182,11 @@ tr.exportTo('tr.metrics.v8', function() {
       wallTotalOptimizeCode.addSample(e.duration);
     }
 
-    values.addHistogram(cpuTotalOptimizeCode);
-    values.addHistogram(wallTotalOptimizeCode);
+    histograms.addHistogram(cpuTotalOptimizeCode);
+    histograms.addHistogram(wallTotalOptimizeCode);
   }
 
-  function computeDeoptimizeCodeMetrics(values, model) {
+  function computeDeoptimizeCodeMetrics(histograms, model) {
     var cpuTotalDeoptimizeCode = new tr.v.Histogram(
         'v8_deoptimize_code_cpu_total',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
@@ -203,18 +203,18 @@ tr.exportTo('tr.metrics.v8', function() {
       wallTotalDeoptimizeCode.addSample(e.duration);
     }
 
-    values.addHistogram(cpuTotalDeoptimizeCode);
-    values.addHistogram(wallTotalDeoptimizeCode);
+    histograms.addHistogram(cpuTotalDeoptimizeCode);
+    histograms.addHistogram(wallTotalDeoptimizeCode);
   }
 
-  function executionMetric(values, model) {
-    computeExecuteMetrics(values, model);
-    computeParseLazyMetrics(values, model);
-    computeCompileIgnitionMetrics(values, model);
-    computeCompileFullCodeMetrics(values, model);
-    computeRecompileMetrics(values, model);
-    computeOptimizeCodeMetrics(values, model);
-    computeDeoptimizeCodeMetrics(values, model);
+  function executionMetric(histograms, model) {
+    computeExecuteMetrics(histograms, model);
+    computeParseLazyMetrics(histograms, model);
+    computeCompileIgnitionMetrics(histograms, model);
+    computeCompileFullCodeMetrics(histograms, model);
+    computeRecompileMetrics(histograms, model);
+    computeOptimizeCodeMetrics(histograms, model);
+    computeDeoptimizeCodeMetrics(histograms, model);
   }
 
   tr.metrics.MetricRegistry.register(executionMetric);

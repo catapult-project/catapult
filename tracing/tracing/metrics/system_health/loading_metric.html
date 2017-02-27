@@ -377,7 +377,7 @@ tr.exportTo('tr.metrics.sh', function() {
       histogram.addSample(sample.value, sample.diagnostics);
   }
 
-  function loadingMetric(values, model) {
+  function loadingMetric(histograms, model) {
     var firstContentfulPaintHistogram = createHistogram(
         'timeToFirstContentfulPaint');
     firstContentfulPaintHistogram.description =
@@ -412,10 +412,10 @@ tr.exportTo('tr.metrics.sh', function() {
           firstInteractiveHistogram);
     }
 
-    values.addHistogram(firstContentfulPaintHistogram);
-    values.addHistogram(onLoadHistogram);
-    values.addHistogram(firstMeaningfulPaintHistogram);
-    values.addHistogram(firstInteractiveHistogram);
+    histograms.addHistogram(firstContentfulPaintHistogram);
+    histograms.addHistogram(onLoadHistogram);
+    histograms.addHistogram(firstMeaningfulPaintHistogram);
+    histograms.addHistogram(firstInteractiveHistogram);
   }
 
   tr.metrics.MetricRegistry.register(loadingMetric);

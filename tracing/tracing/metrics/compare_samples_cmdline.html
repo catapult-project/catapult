@@ -107,7 +107,7 @@ function valuesFromChartsWithFallback(listOfCharts, metricName) {
   return valuesFromCharts(listOfCharts, fullMetricName);
 }
 
-function rawValuesByMetricName(valueSet, metricName) {
+function rawValuesByMetricName(histograms, metricName) {
   var interactionRecord;
   var valueName;
   var [itrPlusChart, story] = splitMetric(metricName);
@@ -117,12 +117,12 @@ function rawValuesByMetricName(valueSet, metricName) {
     [interactionRecord, ...valueName] = itrPlusChart.split('-');
     valueName = valueName.join('');
   } else valueName = itrPlusChart;
-  var values = valueSet.getHistogramsNamed(valueName);
+  var values = histograms.getHistogramsNamed(valueName);
   if (!values || values.length === 0) {
     // If there was a dash in the chart name, but it wasn't an
     // interaction record.
     valueName = itrPlusChart;
-    values = valueSet.getHistogramsNamed(valueName);
+    values = histograms.getHistogramsNamed(valueName);
     interactionRecord = undefined;
     if (!values || values.length === 0) {
       throw new Error('No values with name ' + valueName);
@@ -249,20 +249,20 @@ var SampleComparison = {
     return buildComparisonResultOutput(sampleA, sampleB);
   },
 
-  compareValuesets: function(valueSetAPathList, valueSetBPathList, metric) {
-    var aPaths = valueSetAPathList.split(',');
-    var bPaths = valueSetBPathList.split(',');
-    var valueSetA = new tr.v.HistogramSet();
-    var valueSetB = new tr.v.HistogramSet();
+  compareValuesets: function(histogramsAPathList, histogramsBPathList, metric) {
+    var aPaths = histogramsAPathList.split(',');
+    var bPaths = histogramsBPathList.split(',');
+    var histogramsA = new tr.v.HistogramSet();
+    var histogramsB = new tr.v.HistogramSet();
     var dictsA = parseFiles(aPaths);
     var dictsB = parseFiles(bPaths);
     for (var d of dictsA)
-      valueSetA.importDicts(d);
+      histogramsA.importDicts(d);
     for (var d of dictsB)
-      valueSetB.importDicts(d);
+      histogramsB.importDicts(d);
 
-    var sampleA = rawValuesByMetricName(valueSetA, metric);
-    var sampleB = rawValuesByMetricName(valueSetB, metric);
+    var sampleA = rawValuesByMetricName(histogramsA, metric);
+    var sampleB = rawValuesByMetricName(histogramsB, metric);
     return buildComparisonResultOutput(sampleA, sampleB);
   },
 

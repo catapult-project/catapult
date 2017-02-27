@@ -13,7 +13,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.metrics.sh', function() {
-  function webviewStartupMetric(values, model) {
+  function webviewStartupMetric(histograms, model) {
     var startupWallHist = new tr.v.Histogram('webview_startup_wall_time',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter);
     startupWallHist.description = 'WebView startup wall time';
@@ -50,10 +50,10 @@ tr.exportTo('tr.metrics.sh', function() {
       }
     }
 
-    values.addHistogram(startupWallHist);
-    values.addHistogram(startupCPUHist);
-    values.addHistogram(loadWallHist);
-    values.addHistogram(loadCPUHist);
+    histograms.addHistogram(startupWallHist);
+    histograms.addHistogram(startupCPUHist);
+    histograms.addHistogram(loadWallHist);
+    histograms.addHistogram(loadCPUHist);
   }
 
   tr.metrics.MetricRegistry.register(webviewStartupMetric);

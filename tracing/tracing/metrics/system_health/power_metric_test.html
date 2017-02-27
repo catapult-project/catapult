@@ -15,48 +15,48 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-function containsData(values, name) {
-  for (var value of values)
+function containsData(histograms, name) {
+  for (var value of histograms)
     if (value.name === name)
       return (value.running !== undefined);
 
   return undefined;
 }
 
-function getMetricValueCount(values, name) {
-  for (var value of values)
+function getMetricValueCount(histograms, name) {
+  for (var value of histograms)
     if (value.name === name && value.running !== undefined)
       return value.running.count;
 
   return undefined;
 }
 
-function getMetricValueSum(values, name) {
-  for (var value of values)
+function getMetricValueSum(histograms, name) {
+  for (var value of histograms)
     if (value.name === name && value.running !== undefined)
       return value.running.sum;
 
   return undefined;
 }
 
-function getMetricValueMin(values, name) {
-  for (var value of values)
+function getMetricValueMin(histograms, name) {
+  for (var value of histograms)
     if (value.name === name && value.running !== undefined)
       return value.running.min;
 
   return undefined;
 }
 
-function getMetricValueAvg(values, name) {
-  for (var value of values)
+function getMetricValueAvg(histograms, name) {
+  for (var value of histograms)
     if (value.name === name && value.running !== undefined)
       return value.running.mean;
 
   return undefined;
 }
 
-function getMetricValueMax(values, name) {
-  for (var value of values)
+function getMetricValueMax(histograms, name) {
+  for (var value of histograms)
     if (value.name === name && value.running !== undefined)
       return value.running.max;
 
@@ -94,12 +94,12 @@ tr.b.unittest.testSuite(function() {
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
           model, 0, 2000));
     });
-    var valueSet = new tr.v.HistogramSet();
-    tr.metrics.sh.powerMetric(valueSet, model);
+    var histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.powerMetric(histograms, model);
 
-    assert.closeTo(getMetricValueMin(valueSet, 'idle:power'), 200.0, .01);
-    assert.closeTo(getMetricValueAvg(valueSet, 'idle:power'), 849.5, .01);
-    assert.closeTo(getMetricValueMax(valueSet, 'idle:power'), 1499.0, .01);
+    assert.closeTo(getMetricValueMin(histograms, 'idle:power'), 200.0, .01);
+    assert.closeTo(getMetricValueAvg(histograms, 'idle:power'), 849.5, .01);
+    assert.closeTo(getMetricValueMax(histograms, 'idle:power'), 1499.0, .01);
   });
 
   test('powerMetric_noPowerSeries', function() {
@@ -122,10 +122,10 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
     });
-    var valueSet = new tr.v.HistogramSet();
-    tr.metrics.sh.powerMetric(valueSet, model);
+    var histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.powerMetric(histograms, model);
 
-    assert.lengthOf(valueSet, 0);
+    assert.lengthOf(histograms, 0);
   });
 
   test('powerMetric_emptyPowerSeries', function() {
@@ -149,10 +149,10 @@ tr.b.unittest.testSuite(function() {
       }));
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
     });
-    var valueSet = new tr.v.HistogramSet();
-    tr.metrics.sh.powerMetric(valueSet, model);
+    var histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.powerMetric(histograms, model);
 
-    assert.lengthOf(valueSet, 0);
+    assert.lengthOf(histograms, 0);
   });
 
   test('powerMetric_noChromeTrace', function() {
@@ -161,17 +161,17 @@ tr.b.unittest.testSuite(function() {
       for (var i = 0; i <= 1000; i++)
         model.device.powerSeries.addPowerSample(i, i);
     });
-    var valueSet = new tr.v.HistogramSet();
-    tr.metrics.sh.powerMetric(valueSet, model);
+    var histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.powerMetric(histograms, model);
 
     // Only the whole trace power metric should contain data.
-    assert(containsData(valueSet, 'story:power'));
-    assert(!containsData(valueSet, 'load:energy'));
-    assert(!containsData(valueSet, 'after_load:power'));
+    assert(containsData(histograms, 'story:power'));
+    assert(!containsData(histograms, 'load:energy'));
+    assert(!containsData(histograms, 'after_load:power'));
   });
 
   test('powerMetric_emptyChromeTrace', function() {
-    var valueSet = new tr.v.HistogramSet();
+    var histograms = new tr.v.HistogramSet();
     var model = tr.c.TestUtils.newModel(function(model) {
       var rendererProcess = model.getOrCreateProcess(1234);
       var mainThread = rendererProcess.getOrCreateThread(1);
@@ -184,11 +184,11 @@ tr.b.unittest.testSuite(function() {
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
           model, 500, 500));
     });
-    tr.metrics.sh.powerMetric(valueSet, model);
+    tr.metrics.sh.powerMetric(histograms, model);
 
-    assert(containsData(valueSet, 'story:power'));
-    assert(!containsData(valueSet, 'load:energy'));
-    assert(!containsData(valueSet, 'after_load:power'));
+    assert(containsData(histograms, 'story:power'));
+    assert(!containsData(histograms, 'load:energy'));
+    assert(!containsData(histograms, 'after_load:power'));
   });
 
   test('powerMetric_powerSeriesStartsLate', function() {
@@ -218,12 +218,12 @@ tr.b.unittest.testSuite(function() {
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
           model, 500, 500));
     });
-    var valueSet = new tr.v.HistogramSet();
-    tr.metrics.sh.powerMetric(valueSet, model);
+    var histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.powerMetric(histograms, model);
 
-    assert(containsData(valueSet, 'story:power'));
-    assert(!containsData(valueSet, 'load:energy'));
-    assert(!containsData(valueSet, 'after_load:power'));
+    assert(containsData(histograms, 'story:power'));
+    assert(!containsData(histograms, 'load:energy'));
+    assert(!containsData(histograms, 'after_load:power'));
   });
 
   test('powerMetric_powerSeriesEndsEarly', function() {
@@ -253,12 +253,12 @@ tr.b.unittest.testSuite(function() {
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
           model, 500, 500));
     });
-    var valueSet = new tr.v.HistogramSet();
-    tr.metrics.sh.powerMetric(valueSet, model);
+    var histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.powerMetric(histograms, model);
 
-    assert(containsData(valueSet, 'story:power'));
-    assert(!containsData(valueSet, 'load:energy'));
-    assert(!containsData(valueSet, 'after_load:power'));
+    assert(containsData(histograms, 'story:power'));
+    assert(!containsData(histograms, 'load:energy'));
+    assert(!containsData(histograms, 'after_load:power'));
   });
 
   test('powerMetric_generic_oneStageEachType_irBeyondChrome', function() {
@@ -288,14 +288,14 @@ tr.b.unittest.testSuite(function() {
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
           model, 500, 1500));
     });
-    var valueSet = new tr.v.HistogramSet();
-    tr.metrics.sh.powerMetric(valueSet, model);
+    var histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.powerMetric(histograms, model);
 
-    assert.closeTo(getMetricValueSum(valueSet,
+    assert.closeTo(getMetricValueSum(histograms,
         'scroll_response:energy'), 125, 0.5);
-    assert.closeTo(getMetricValueAvg(valueSet,
+    assert.closeTo(getMetricValueAvg(histograms,
         'idle:power'), 750, 0.5);
-    assert.closeTo(getMetricValueAvg(valueSet,
+    assert.closeTo(getMetricValueAvg(histograms,
         'story:power'), 500, 0.5);
   });
 
@@ -326,12 +326,12 @@ tr.b.unittest.testSuite(function() {
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
           model, 500, 1500));
     });
-    var valueSet = new tr.v.HistogramSet();
-    tr.metrics.sh.powerMetric(valueSet, model);
+    var histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.powerMetric(histograms, model);
 
-    assert.closeTo(getMetricValueMin(valueSet, 'story:power'), 0, .01);
-    assert.closeTo(getMetricValueAvg(valueSet, 'story:power'), 500, .01);
-    assert.closeTo(getMetricValueMax(valueSet, 'story:power'), 1000, .01);
+    assert.closeTo(getMetricValueMin(histograms, 'story:power'), 0, .01);
+    assert.closeTo(getMetricValueAvg(histograms, 'story:power'), 500, .01);
+    assert.closeTo(getMetricValueMax(histograms, 'story:power'), 1000, .01);
   });
 
   test('powerMetric_generic_oneUEBeforeChrome', function() {
@@ -361,10 +361,10 @@ tr.b.unittest.testSuite(function() {
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
           model, 300, 1000));
     });
-    var valueSet = new tr.v.HistogramSet();
-    tr.metrics.sh.powerMetric(valueSet, model);
+    var histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.powerMetric(histograms, model);
 
-    assert.closeTo(getMetricValueAvg(valueSet,
+    assert.closeTo(getMetricValueAvg(histograms,
         'idle:power'), 750, 0.5);
   });
 
@@ -399,16 +399,16 @@ tr.b.unittest.testSuite(function() {
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
             model, 900, 100));
     });
-    var valueSet = new tr.v.HistogramSet();
-    tr.metrics.sh.powerMetric(valueSet, model);
+    var histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.powerMetric(histograms, model);
 
-    assert.closeTo(getMetricValueSum(valueSet,
+    assert.closeTo(getMetricValueSum(histograms,
         'scroll_response:energy'), 300, 0.6);
-    assert.closeTo(getMetricValueAvg(valueSet,
+    assert.closeTo(getMetricValueAvg(histograms,
         'idle:power'), 500, 0.6);
-    assert.equal(getMetricValueCount(valueSet,
+    assert.equal(getMetricValueCount(histograms,
         'scroll_response:energy'), 2);
-    assert.equal(getMetricValueCount(valueSet,
+    assert.equal(getMetricValueCount(histograms,
         'idle:power'), 400);
   });
 
@@ -490,14 +490,14 @@ tr.b.unittest.testSuite(function() {
         model.device.powerSeries.addPowerSample(i, 10);
     });
 
-    var valueSet = new tr.v.HistogramSet();
-    tr.metrics.sh.powerMetric(valueSet, model);
+    var histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.powerMetric(histograms, model);
   // Energy for first load is 20 W * 15.2 s
   // (interval from 0.2 s to 15.4 s)
     assert.closeTo(
-        getMetricValueAvg(valueSet, 'load:energy'), 304, 0.1);
+        getMetricValueAvg(histograms, 'load:energy'), 304, 0.1);
     assert.closeTo(
-        getMetricValueAvg(valueSet, 'after_load:power'), 10, 0.01);
+        getMetricValueAvg(histograms, 'after_load:power'), 10, 0.01);
   });
 
   test('powerMetric_loading_noMeaningfulPaint', function() {
@@ -558,11 +558,11 @@ tr.b.unittest.testSuite(function() {
         model.device.powerSeries.addPowerSample(i, 10);
     });
 
-    var valueSet = new tr.v.HistogramSet();
-    tr.metrics.sh.powerMetric(valueSet, model);
+    var histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.powerMetric(histograms, model);
     // Energy for first load is 20 W * 15.2 s
     // (interval from 0.2 s to 15.4 s)
-    assert.equal(getMetricValueCount(valueSet, 'after_load:power'), undefined);
+    assert.isUndefined(getMetricValueCount(histograms, 'after_load:power'));
   });
 
   test('powerMetric_scroll_oneStageEachType', function() {
@@ -592,10 +592,10 @@ tr.b.unittest.testSuite(function() {
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
           model, 500, 500));
     });
-    var valueSet = new tr.v.HistogramSet();
-    tr.metrics.sh.powerMetric(valueSet, model);
+    var histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.powerMetric(histograms, model);
 
-    assert.closeTo(getMetricValueAvg(valueSet,
+    assert.closeTo(getMetricValueAvg(histograms,
         'scroll_animation:power'), 250, 0.5);
   });
 
@@ -630,10 +630,10 @@ tr.b.unittest.testSuite(function() {
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
           model, 700, 300));
     });
-    var valueSet = new tr.v.HistogramSet();
-    tr.metrics.sh.powerMetric(valueSet, model);
+    var histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.powerMetric(histograms, model);
 
-    assert.closeTo(getMetricValueAvg(valueSet,
+    assert.closeTo(getMetricValueAvg(histograms,
         'scroll_animation:power'), 350, 0.6);
   });
 
@@ -664,10 +664,10 @@ tr.b.unittest.testSuite(function() {
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
           model, 500, 500));
     });
-    var valueSet = new tr.v.HistogramSet();
-    tr.metrics.sh.powerMetric(valueSet, model);
+    var histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.powerMetric(histograms, model);
 
-    assert.closeTo(getMetricValueAvg(valueSet, 'video_animation:power'),
+    assert.closeTo(getMetricValueAvg(histograms, 'video_animation:power'),
         250, 0.5);
   });
 
@@ -702,10 +702,10 @@ tr.b.unittest.testSuite(function() {
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
           model, 700, 300));
     });
-    var valueSet = new tr.v.HistogramSet();
-    tr.metrics.sh.powerMetric(valueSet, model);
+    var histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.powerMetric(histograms, model);
 
-    assert.closeTo(getMetricValueAvg(valueSet, 'video_animation:power'),
+    assert.closeTo(getMetricValueAvg(histograms, 'video_animation:power'),
         350, 0.6);
   });
 });

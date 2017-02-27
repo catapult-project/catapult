@@ -68,11 +68,11 @@ tr.exportTo('tr.metrics.sh', function() {
    * This metric directly measures long tasks on renderer main threads.
    * This metric requires only the 'toplevel' tracing category.
    *
-   * @param {!tr.v.HistogramSet} values
+   * @param {!tr.v.HistogramSet} histograms
    * @param {!tr.model.Model} model
    * @param {!Object=} opt_options
    */
-  function longTasksMetric(values, model, opt_options) {
+  function longTasksMetric(histograms, model, opt_options) {
     var rangeOfInterest = opt_options ? opt_options.rangeOfInterest : undefined;
     var longTaskHist = new tr.v.Histogram('long tasks',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
@@ -89,11 +89,11 @@ tr.exportTo('tr.metrics.sh', function() {
             slices.addEventSet(task.descendentSlices);
           });
     });
-    values.addHistogram(longTaskHist);
+    histograms.addHistogram(longTaskHist);
 
     var sampleForEvent = undefined;
     var breakdown = tr.v.d.RelatedHistogramBreakdown.buildFromEvents(
-        values, 'long tasks ', slices,
+        histograms, 'long tasks ', slices,
         e => (model.getUserFriendlyCategoryFromEvent(e) || 'unknown'),
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, sampleForEvent,
         tr.v.HistogramBinBoundaries.createExponential(1, LONGEST_TASK_MS, 40));

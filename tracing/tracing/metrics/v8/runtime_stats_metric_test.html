@@ -15,11 +15,11 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  function checkRuntimeHistogram_(values, name, count, duration,
+  function checkRuntimeHistogram_(histograms, name, count, duration,
       breakdownHistograms) {
-    var countHistogram = values.getHistogramNamed(`${name}:count`);
+    var countHistogram = histograms.getHistogramNamed(`${name}:count`);
     assert.equal(tr.b.getOnlyElement(countHistogram.sampleValues), count);
-    var durationHistogram = values.getHistogramNamed(`${name}:duration`);
+    var durationHistogram = histograms.getHistogramNamed(`${name}:duration`);
     assert.equal(tr.b.getOnlyElement(durationHistogram.sampleValues), duration);
 
     if (breakdownHistograms === undefined) return;
@@ -178,20 +178,20 @@ tr.b.unittest.testSuite(function() {
       }));
     });
 
-    var values = new tr.v.HistogramSet();
-    tr.metrics.v8.runtimeStatsMetric(values, model);
-    assert.equal(values.length, 48);
-    assert.equal(values.sourceHistograms.length, 24);
+    var histograms = new tr.v.HistogramSet();
+    tr.metrics.v8.runtimeStatsMetric(histograms, model);
+    assert.equal(histograms.length, 48);
+    assert.equal(histograms.sourceHistograms.length, 24);
 
     // A few of the top level ones.
-    checkRuntimeHistogram_(values, 'IC', 8, 0.088, ['LoadIC_Miss',
+    checkRuntimeHistogram_(histograms, 'IC', 8, 0.088, ['LoadIC_Miss',
       'StoreIC_Miss']);
-    checkRuntimeHistogram_(values, 'API', 18, 0.198, ['API_Object_Get']);
-    checkRuntimeHistogram_(values, 'Total', 95, 1.045);
+    checkRuntimeHistogram_(histograms, 'API', 18, 0.198, ['API_Object_Get']);
+    checkRuntimeHistogram_(histograms, 'Total', 95, 1.045);
     // And a couple of the lower level ones
-    checkRuntimeHistogram_(values, 'LoadIC_Miss', 4, 0.044);
-    checkRuntimeHistogram_(values, 'API_Object_Get', 18, 0.198);
-    checkRuntimeHistogram_(values, 'CompileBackgroundIgnition', 3, 0.033);
+    checkRuntimeHistogram_(histograms, 'LoadIC_Miss', 4, 0.044);
+    checkRuntimeHistogram_(histograms, 'API_Object_Get', 18, 0.198);
+    checkRuntimeHistogram_(histograms, 'CompileBackgroundIgnition', 3, 0.033);
   });
 
   test('runtimeStatsMetricUsingDomContentLoaded', function() {
@@ -295,19 +295,19 @@ tr.b.unittest.testSuite(function() {
       }));
     });
 
-    var values = new tr.v.HistogramSet();
-    tr.metrics.v8.runtimeStatsMetric(values, model);
-    assert.equal(values.length, 44);
-    assert.equal(values.sourceHistograms.length, 24);
+    var histograms = new tr.v.HistogramSet();
+    tr.metrics.v8.runtimeStatsMetric(histograms, model);
+    assert.equal(histograms.length, 44);
+    assert.equal(histograms.sourceHistograms.length, 24);
 
     // A few of the top level ones.
-    checkRuntimeHistogram_(values, 'IC', 8, 0.088, ['LoadIC_Miss',
+    checkRuntimeHistogram_(histograms, 'IC', 8, 0.088, ['LoadIC_Miss',
       'StoreIC_Miss']);
-    checkRuntimeHistogram_(values, 'API', 18, 0.198, ['API_Object_Get']);
-    checkRuntimeHistogram_(values, 'Total', 90, 0.99);
+    checkRuntimeHistogram_(histograms, 'API', 18, 0.198, ['API_Object_Get']);
+    checkRuntimeHistogram_(histograms, 'Total', 90, 0.99);
     // And a couple of the lower level ones
-    checkRuntimeHistogram_(values, 'LoadIC_Miss', 4, 0.044);
-    checkRuntimeHistogram_(values, 'API_Object_Get', 18, 0.198);
+    checkRuntimeHistogram_(histograms, 'LoadIC_Miss', 4, 0.044);
+    checkRuntimeHistogram_(histograms, 'API_Object_Get', 18, 0.198);
   });
 
   test('runtimeStatsMetricBucketOnUE', function() {

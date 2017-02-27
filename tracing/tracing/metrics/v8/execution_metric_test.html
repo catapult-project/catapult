@@ -16,9 +16,9 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   test('executionMetricBasic', function() {
     var model = tr.c.TestUtils.newModel();
-    var values = new tr.v.HistogramSet();
+    var histograms = new tr.v.HistogramSet();
 
-    tr.metrics.v8.executionMetric(values, model);
+    tr.metrics.v8.executionMetric(histograms, model);
 
     [
       'v8_execution_cpu_total',
@@ -42,7 +42,7 @@ tr.b.unittest.testSuite(function() {
       'v8_deoptimize_code_cpu_total',
       'v8_deoptimize_code_wall_total',
     ].forEach(function(name) {
-      assert.isDefined(values.getHistogramNamed(name));
+      assert.isDefined(histograms.getHistogramNamed(name));
     });
   });
 
@@ -61,10 +61,10 @@ tr.b.unittest.testSuite(function() {
     var model = tr.c.TestUtils.newModelWithEvents(JSON.stringify(events), {
       shiftWorldToZero: false
     });
-    var values = new tr.v.HistogramSet();
-    tr.metrics.v8.executionMetric(values, model);
+    var histograms = new tr.v.HistogramSet();
+    tr.metrics.v8.executionMetric(histograms, model);
 
-    var value = values.getHistogramNamed('v8_execution_wall_total');
+    var value = histograms.getHistogramNamed('v8_execution_wall_total');
     assert.closeTo(value.running.sum, 0.1, 1e-5);
   });
 });

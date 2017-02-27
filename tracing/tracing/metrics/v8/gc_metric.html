@@ -21,15 +21,15 @@ tr.exportTo('tr.metrics.v8', function() {
   var MS_PER_SECOND = 1000;
   var WINDOW_SIZE_MS = MS_PER_SECOND / TARGET_FPS;
 
-  function gcMetric(values, model) {
-    addDurationOfTopEvents(values, model);
-    addTotalDurationOfTopEvents(values, model);
-    addDurationOfSubEvents(values, model);
-    addIdleTimesOfTopEvents(values, model);
-    addTotalIdleTimesOfTopEvents(values, model);
-    addPercentageInV8ExecuteOfTopEvents(values, model);
-    addTotalPercentageInV8Execute(values, model);
-    addV8ExecuteMutatorUtilization(values, model);
+  function gcMetric(histograms, model) {
+    addDurationOfTopEvents(histograms, model);
+    addTotalDurationOfTopEvents(histograms, model);
+    addDurationOfSubEvents(histograms, model);
+    addIdleTimesOfTopEvents(histograms, model);
+    addTotalIdleTimesOfTopEvents(histograms, model);
+    addPercentageInV8ExecuteOfTopEvents(histograms, model);
+    addTotalPercentageInV8Execute(histograms, model);
+    addV8ExecuteMutatorUtilization(histograms, model);
   }
 
   tr.metrics.MetricRegistry.register(gcMetric);
@@ -126,7 +126,7 @@ tr.exportTo('tr.metrics.v8', function() {
    * Example output:
    * - v8-gc-full-mark-compactor.
    */
-  function addDurationOfTopEvents(values, model) {
+  function addDurationOfTopEvents(histograms, model) {
     tr.metrics.v8.utils.groupAndProcessEvents(model,
         isNotForcedTopGarbageCollectionEvent,
         tr.metrics.v8.utils.topGarbageCollectionEventName,
@@ -135,7 +135,7 @@ tr.exportTo('tr.metrics.v8', function() {
           events.forEach(function(event) {
             cpuDuration.addSample(event.cpuDuration);
           });
-          values.addHistogram(cpuDuration);
+          histograms.addHistogram(cpuDuration);
         }
     );
   }
@@ -144,7 +144,7 @@ tr.exportTo('tr.metrics.v8', function() {
    * Example output:
    * - v8-gc-total
    */
-  function addTotalDurationOfTopEvents(values, model) {
+  function addTotalDurationOfTopEvents(histograms, model) {
     tr.metrics.v8.utils.groupAndProcessEvents(model,
         isNotForcedTopGarbageCollectionEvent,
         event => 'v8-gc-total',
@@ -153,7 +153,7 @@ tr.exportTo('tr.metrics.v8', function() {
           events.forEach(function(event) {
             cpuDuration.addSample(event.cpuDuration);
           });
-          values.addHistogram(cpuDuration);
+          histograms.addHistogram(cpuDuration);
         }
     );
   }
@@ -162,7 +162,7 @@ tr.exportTo('tr.metrics.v8', function() {
    * Example output:
    * - v8-gc-full-mark-compactor-evacuate.
    */
-  function addDurationOfSubEvents(values, model) {
+  function addDurationOfSubEvents(histograms, model) {
     tr.metrics.v8.utils.groupAndProcessEvents(model,
         isNotForcedSubGarbageCollectionEvent,
         tr.metrics.v8.utils.subGarbageCollectionEventName,
@@ -171,7 +171,7 @@ tr.exportTo('tr.metrics.v8', function() {
           events.forEach(function(event) {
             cpuDuration.addSample(event.cpuDuration);
           });
-          values.addHistogram(cpuDuration);
+          histograms.addHistogram(cpuDuration);
         }
     );
   }
@@ -182,12 +182,12 @@ tr.exportTo('tr.metrics.v8', function() {
    * - v8-gc-full-mark-compactor_outside_idle,
    * - v8-gc-full-mark-compactor_percentage_idle.
    */
-  function addIdleTimesOfTopEvents(values, model) {
+  function addIdleTimesOfTopEvents(histograms, model) {
     tr.metrics.v8.utils.groupAndProcessEvents(model,
         isNotForcedTopGarbageCollectionEvent,
         tr.metrics.v8.utils.topGarbageCollectionEventName,
         function(name, events) {
-          addIdleTimes(values, model, name, events);
+          addIdleTimes(histograms, model, name, events);
         }
     );
   }
@@ -198,17 +198,17 @@ tr.exportTo('tr.metrics.v8', function() {
    * - v8-gc-total_outside_idle,
    * - v8-gc-total_percentage_idle.
    */
-  function addTotalIdleTimesOfTopEvents(values, model) {
+  function addTotalIdleTimesOfTopEvents(histograms, model) {
     tr.metrics.v8.utils.groupAndProcessEvents(model,
         isNotForcedTopGarbageCollectionEvent,
         event => 'v8-gc-total',
         function(name, events) {
-          addIdleTimes(values, model, name, events);
+          addIdleTimes(histograms, model, name, events);
         }
     );
   }
 
-  function addIdleTimes(values, model, name, events) {
+  function addIdleTimes(histograms, model, name, events) {
     var cpuDuration = createNumericForIdleTime();
     var insideIdle = createNumericForIdleTime();
     var outsideIdle = createNumericForIdleTime(name + '_outside_idle');
@@ -238,12 +238,12 @@ tr.exportTo('tr.metrics.v8', function() {
       outsideIdle.addSample(event.cpuDuration - inside);
       idleDeadlineOverrun.addSample(overrun);
     });
-    values.addHistogram(idleDeadlineOverrun);
-    values.addHistogram(outsideIdle);
+    histograms.addHistogram(idleDeadlineOverrun);
+    histograms.addHistogram(outsideIdle);
     var percentage = createPercentage(name + '_percentage_idle', insideIdle.sum,
         cpuDuration.sum,
         percentage_biggerIsBetter);
-    values.addHistogram(percentage);
+    histograms.addHistogram(percentage);
   }
 
 
@@ -251,12 +251,12 @@ tr.exportTo('tr.metrics.v8', function() {
    * Example output:
    * - v8-gc-full-mark-compactor_percentage_in_v8_execute.
    */
-  function addPercentageInV8ExecuteOfTopEvents(values, model) {
+  function addPercentageInV8ExecuteOfTopEvents(histograms, model) {
     tr.metrics.v8.utils.groupAndProcessEvents(model,
         isNotForcedTopGarbageCollectionEvent,
         tr.metrics.v8.utils.topGarbageCollectionEventName,
         function(name, events) {
-          addPercentageInV8Execute(values, model, name, events);
+          addPercentageInV8Execute(histograms, model, name, events);
         }
     );
   }
@@ -265,17 +265,17 @@ tr.exportTo('tr.metrics.v8', function() {
    * Example output:
    * - v8-gc-total_percentage_in_v8_execute.
    */
-  function addTotalPercentageInV8Execute(values, model) {
+  function addTotalPercentageInV8Execute(histograms, model) {
     tr.metrics.v8.utils.groupAndProcessEvents(model,
         isNotForcedTopGarbageCollectionEvent,
         event => 'v8-gc-total',
         function(name, events) {
-          addPercentageInV8Execute(values, model, name, events);
+          addPercentageInV8Execute(histograms, model, name, events);
         }
     );
   }
 
-  function addPercentageInV8Execute(values, model, name, events) {
+  function addPercentageInV8Execute(histograms, model, name, events) {
     var cpuDurationInV8Execute = 0;
     var cpuDurationTotal = 0;
     events.forEach(function(event) {
@@ -289,10 +289,10 @@ tr.exportTo('tr.metrics.v8', function() {
     var percentage = createPercentage(
         name + '_percentage_in_v8_execute', cpuDurationInV8Execute,
         cpuDurationTotal, percentage_smallerIsBetter);
-    values.addHistogram(percentage);
+    histograms.addHistogram(percentage);
   }
 
-  function addV8ExecuteMutatorUtilization(values, model) {
+  function addV8ExecuteMutatorUtilization(histograms, model) {
     tr.metrics.v8.utils.groupAndProcessEvents(model,
         tr.metrics.v8.utils.isTopV8ExecuteEvent,
         event => 'v8-execute',
@@ -320,12 +320,12 @@ tr.exportTo('tr.metrics.v8', function() {
                 'v8-execute-mutator-utilization_pct_0' + percent * 100,
                 percentage_biggerIsBetter);
             hist.addSample(mutatorUtilization.percentile(1.0 - percent));
-            values.addHistogram(hist);
+            histograms.addHistogram(hist);
           });
           var hist = new tr.v.Histogram(
               'v8-execute-mutator-utilization_min', percentage_biggerIsBetter);
           hist.addSample(mutatorUtilization.min);
-          values.addHistogram(hist);
+          histograms.addHistogram(hist);
         }
     );
   }

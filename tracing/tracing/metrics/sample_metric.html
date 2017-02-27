@@ -13,7 +13,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.metrics', function() {
-  function sampleMetric(values, model) {
+  function sampleMetric(histograms, model) {
     var hist = new tr.v.Histogram(
         'foo', tr.b.Unit.byName.sizeInBytes_smallerIsBetter);
     hist.addSample(9);
@@ -33,7 +33,7 @@ tr.exportTo('tr.metrics', function() {
     tr.b.iterItems(model.processes, function(pid, process) {
     });
 
-    values.addHistogram(hist);
+    histograms.addHistogram(hist);
   }
 
   tr.metrics.MetricRegistry.register(sampleMetric);

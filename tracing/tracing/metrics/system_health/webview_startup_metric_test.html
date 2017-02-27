@@ -36,15 +36,15 @@ function makeTestModel() {
 
 tr.b.unittest.testSuite(function() {
   test('webviewStartupMetric', function() {
-    var values = new tr.v.HistogramSet();
-    tr.metrics.sh.webviewStartupMetric(values, makeTestModel());
-    assert.closeTo(42, values.getHistogramNamed(
+    var histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.webviewStartupMetric(histograms, makeTestModel());
+    assert.closeTo(42, histograms.getHistogramNamed(
         'webview_startup_wall_time').average, 1e-2);
-    assert.closeTo(32, values.getHistogramNamed(
+    assert.closeTo(32, histograms.getHistogramNamed(
         'webview_startup_cpu_time').average, 1e-2);
-    assert.closeTo(27, values.getHistogramNamed(
+    assert.closeTo(27, histograms.getHistogramNamed(
         'webview_url_load_wall_time').average, 1e-2);
-    assert.closeTo(17, values.getHistogramNamed(
+    assert.closeTo(17, histograms.getHistogramNamed(
         'webview_url_load_cpu_time').average, 1e-2);
   });
 });

@@ -26,11 +26,11 @@ tr.exportTo('tr.metrics.sh', function() {
    *   clock time.
    * This metric requires only the 'toplevel' tracing category.
    *
-   * @param {!tr.v.HistogramSet} values
+   * @param {!tr.v.HistogramSet} histograms
    * @param {!tr.model.Model} model
    * @param {!Object=} opt_options
    */
-  function cpuTimeMetric(values, model, opt_options) {
+  function cpuTimeMetric(histograms, model, opt_options) {
     var rangeOfInterest = model.bounds;
 
     if (opt_options && opt_options.rangeOfInterest) {
@@ -104,7 +104,7 @@ tr.exportTo('tr.metrics.sh', function() {
       sum: false
     });
     cpuTimeHist.addSample(normalizedAllProcessCpuTime);
-    values.addHistogram(cpuTimeHist);
+    histograms.addHistogram(cpuTimeHist);
   }
 
   tr.metrics.MetricRegistry.register(cpuTimeMetric, {

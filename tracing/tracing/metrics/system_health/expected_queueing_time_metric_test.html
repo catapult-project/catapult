@@ -61,12 +61,12 @@ tr.b.unittest.testSuite(function() {
         duration: 10,
       }));
     });
-    let values = new tr.v.HistogramSet();
-    tr.metrics.sh.expectedQueueingTimeMetric(values, model);
-    let interactiveEQT = values.getHistogramNamed(
+    let histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.expectedQueueingTimeMetric(histograms, model);
+    let interactiveEQT = histograms.getHistogramNamed(
         'interactive:500ms_window:renderer_eqt');
     assert.equal(0.1, interactiveEQT.average);
-    let totalEQT = values.getHistogramNamed(
+    let totalEQT = histograms.getHistogramNamed(
         'total:500ms_window:renderer_eqt');
     assert.equal(10, totalEQT.average);
   });
@@ -95,9 +95,9 @@ tr.b.unittest.testSuite(function() {
         duration: 10,
       }));
     });
-    let values = new tr.v.HistogramSet();
-    tr.metrics.sh.expectedQueueingTimeMetric(values, model);
-    let interactiveEQT = values.getHistogramNamed(
+    let histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.expectedQueueingTimeMetric(histograms, model);
+    let interactiveEQT = histograms.getHistogramNamed(
         'interactive:500ms_window:renderer_eqt');
     assert.equal(0, interactiveEQT.numValues);
   });
@@ -128,9 +128,9 @@ tr.b.unittest.testSuite(function() {
         duration: 10,
       }));
     });
-    let values = new tr.v.HistogramSet();
-    tr.metrics.sh.expectedQueueingTimeMetric(values, model);
-    let interactiveEQT = values.getHistogramNamed(
+    let histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.expectedQueueingTimeMetric(histograms, model);
+    let interactiveEQT = histograms.getHistogramNamed(
         'interactive:500ms_window:renderer_eqt');
     // TODO(ulan): Support multiple interactive time windows when
     // https://crbug.com/692112 is fixed.
@@ -172,9 +172,9 @@ tr.b.unittest.testSuite(function() {
         duration: 0,
       }));
     });
-    let values = new tr.v.HistogramSet();
-    tr.metrics.sh.expectedQueueingTimeMetric(values, model);
-    let eqt = values.getHistogramNamed(
+    let histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.expectedQueueingTimeMetric(histograms, model);
+    let eqt = histograms.getHistogramNamed(
         'interactive:500ms_window:renderer_eqt');
     assert.equal(0.05, eqt.average);
   });
@@ -223,14 +223,14 @@ tr.b.unittest.testSuite(function() {
       }));
       mainThread.sliceGroup.createSubSlices();
     });
-    let values = new tr.v.HistogramSet();
+    let histograms = new tr.v.HistogramSet();
     tr.metrics.sh.contributionToExpectedQueueingTime(
         (event => event.title === 'V8.GCFinalizeMC'), 'v8:gc',
-        values, model);
-    let interactiveEQT = values.getHistogramNamed(
+        histograms, model);
+    let interactiveEQT = histograms.getHistogramNamed(
         'interactive:500ms_window:renderer_eqt:v8:gc');
     assert.equal(0.025, interactiveEQT.average);
-    let totalEQT = values.getHistogramNamed(
+    let totalEQT = histograms.getHistogramNamed(
         'total:500ms_window:renderer_eqt:v8:gc');
     assert.equal(2.5, totalEQT.average);
   });

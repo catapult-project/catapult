@@ -14,33 +14,33 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('FindMetricByName', function() {
-    function aMetric(values, model) {
+    function aMetric(histograms, model) {
       var n1 = new tr.v.Histogram('foo', tr.b.Unit.byName.count);
       n1.addSample(1);
-      values.addHistogram(n1);
+      histograms.addHistogram(n1);
     }
     tr.metrics.MetricRegistry.register(aMetric);
 
-    function bMetric(values, model) {
+    function bMetric(histograms, model) {
       var n1 = new tr.v.Histogram('foo', tr.b.Unit.byName.count);
       var n2 = new tr.v.Histogram('bar', tr.b.Unit.byName.count);
       n1.addSample(1);
       n2.addSample(2);
-      values.addHistogram(n1);
-      values.addHistogram(n2);
+      histograms.addHistogram(n1);
+      histograms.addHistogram(n2);
     }
     tr.metrics.MetricRegistry.register(bMetric);
 
-    function cMetric(values, model) {
+    function cMetric(histograms, model) {
       var n1 = new tr.v.Histogram('foo', tr.b.Unit.byName.count);
       var n2 = new tr.v.Histogram('bar', tr.b.Unit.byName.count);
       var n3 = new tr.v.Histogram('baz', tr.b.Unit.byName.count);
       n1.addSample(1);
       n2.addSample(2);
       n3.addSample(3);
-      values.addHistogram(n1);
-      values.addHistogram(n2);
-      values.addHistogram(n3);
+      histograms.addHistogram(n1);
+      histograms.addHistogram(n2);
+      histograms.addHistogram(n3);
     }
     tr.metrics.MetricRegistry.register(cMetric);
 

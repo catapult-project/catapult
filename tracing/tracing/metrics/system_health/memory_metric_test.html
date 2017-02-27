@@ -3600,16 +3600,16 @@ tr.b.unittest.testSuite(function() {
       ];
     });
 
-    var values = new tr.v.HistogramSet();
-    tr.metrics.sh.memoryMetric(values, model);
+    var histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.memoryMetric(histograms, model);
     var prefix = 'memory:chrome:';
     var suffix = ':reported_by_chrome:malloc:effective_size';
     var allHistogram =
-        values.getHistogramNamed(`${prefix}all_processes${suffix}`);
+        histograms.getHistogramNamed(`${prefix}all_processes${suffix}`);
     var rendererHistogram =
-        values.getHistogramNamed(`${prefix}renderer_processes${suffix}`);
+        histograms.getHistogramNamed(`${prefix}renderer_processes${suffix}`);
     var browserHistogram =
-        values.getHistogramNamed(`${prefix}browser_process${suffix}`);
+        histograms.getHistogramNamed(`${prefix}browser_process${suffix}`);
 
     var breakdown = allHistogram.diagnostics.get('processes');
     assert.strictEqual(breakdown.get('browser_process'), browserHistogram);
@@ -3626,10 +3626,10 @@ tr.b.unittest.testSuite(function() {
       addProcessMemoryDump(gmd, pWebView, {ts: 9});
       addProcessMemoryDump(gmd, pChrome, {ts: 11});
     });
-    var values = new tr.v.HistogramSet();
+    var histograms = new tr.v.HistogramSet();
 
     assert.throws(function() {
-      tr.metrics.sh.memoryMetric(values, model);
+      tr.metrics.sh.memoryMetric(histograms, model);
     }, 'Memory dump ID clash across multiple browsers with PIDs: 1 and 2');
   });
 });

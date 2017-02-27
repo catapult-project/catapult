@@ -55,11 +55,11 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   /**
-   * @param {!tr.v.HistogramSet} values
+   * @param {!tr.v.HistogramSet} histograms
    * @param {!tr.model.Model} model
    * @param {!Object=} opt_options
    */
-  function responsivenessMetric(values, model, opt_options) {
+  function responsivenessMetric(histograms, model, opt_options) {
     var responseNumeric = new tr.v.Histogram('response latency',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
         tr.v.HistogramBinBoundaries.createLinear(100, 1e3, 50));
@@ -137,10 +137,10 @@ tr.exportTo('tr.metrics.sh', function() {
       });
     });
 
-    values.addHistogram(responseNumeric);
-    values.addHistogram(throughputNumeric);
-    values.addHistogram(frameTimeDiscrepancyNumeric);
-    values.addHistogram(latencyNumeric);
+    histograms.addHistogram(responseNumeric);
+    histograms.addHistogram(throughputNumeric);
+    histograms.addHistogram(frameTimeDiscrepancyNumeric);
+    histograms.addHistogram(latencyNumeric);
   }
 
   tr.metrics.MetricRegistry.register(responsivenessMetric, {

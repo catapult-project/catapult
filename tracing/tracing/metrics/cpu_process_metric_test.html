@@ -19,17 +19,17 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('cpuProcessMetric_noData', function() {
-    var values = new tr.v.HistogramSet();
+    var histograms = new tr.v.HistogramSet();
     var events = [
       {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53, ph: 'B'},
       {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'B'}
     ];
-    tr.metrics.sh.cpuProcessMetric(values, makeModel(events));
-    assert.lengthOf(values, 0);
+    tr.metrics.sh.cpuProcessMetric(histograms, makeModel(events));
+    assert.lengthOf(histograms, 0);
   });
 
   test('cpuProcessMetric_singleSnapshots', function() {
-    var values = new tr.v.HistogramSet();
+    var histograms = new tr.v.HistogramSet();
     var events = [
       {
         'name': 'CPUSnapshots',
@@ -49,11 +49,11 @@ tr.b.unittest.testSuite(function() {
         'local': true, 'id': '0x1000'
       }
     ];
-    tr.metrics.sh.cpuProcessMetric(values, makeModel(events));
+    tr.metrics.sh.cpuProcessMetric(histograms, makeModel(events));
 
-    assert.isDefined(values.getHistogramNamed('cpu:percent:chrome'));
-    assert.isDefined(values.getHistogramNamed('cpu:percent:crudd'));
-    var chromeValue = values.getHistogramNamed('cpu:percent:chrome');
+    assert.isDefined(histograms.getHistogramNamed('cpu:percent:chrome'));
+    assert.isDefined(histograms.getHistogramNamed('cpu:percent:crudd'));
+    var chromeValue = histograms.getHistogramNamed('cpu:percent:chrome');
     var chromeStatistics = chromeValue.running;
     assert.strictEqual(chromeStatistics.count, 1);
     assert.closeTo(chromeStatistics.mean, 0.011, 1e-5);
@@ -65,7 +65,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('cpuProcessMetric_multipleSnapshots', function() {
-    var values = new tr.v.HistogramSet();
+    var histograms = new tr.v.HistogramSet();
     var events = [
       {
         'name': 'CPUSnapshots',
@@ -102,11 +102,11 @@ tr.b.unittest.testSuite(function() {
         'ph': 'O', 'local': true, 'id': '0x1000'
       }
     ];
-    tr.metrics.sh.cpuProcessMetric(values, makeModel(events));
-    assert.isDefined(values.getHistogramNamed('cpu:percent:chrome'));
-    assert.isDefined(values.getHistogramNamed('cpu:percent:crudd'));
-    assert.isDefined(values.getHistogramNamed('cpu:percent:mnp_logger'));
-    var chromeValue = values.getHistogramNamed('cpu:percent:chrome');
+    tr.metrics.sh.cpuProcessMetric(histograms, makeModel(events));
+    assert.isDefined(histograms.getHistogramNamed('cpu:percent:chrome'));
+    assert.isDefined(histograms.getHistogramNamed('cpu:percent:crudd'));
+    assert.isDefined(histograms.getHistogramNamed('cpu:percent:mnp_logger'));
+    var chromeValue = histograms.getHistogramNamed('cpu:percent:chrome');
     var chromeStatistics = chromeValue.running;
     assert.strictEqual(chromeStatistics.count, 2);
     assert.closeTo(chromeStatistics.mean, 0.0075, 1e-5);

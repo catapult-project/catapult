@@ -30,11 +30,11 @@ tr.exportTo('tr.metrics.blink', function() {
     return BLINK_GC_EVENTS[event.title];
   }
 
-  function blinkGcMetric(values, model) {
-    addDurationOfTopEvents(values, model);
-    addTotalDurationOfTopEvents(values, model);
-    addIdleTimesOfTopEvents(values, model);
-    addTotalIdleTimesOfTopEvents(values, model);
+  function blinkGcMetric(histograms, model) {
+    addDurationOfTopEvents(histograms, model);
+    addTotalDurationOfTopEvents(histograms, model);
+    addIdleTimesOfTopEvents(histograms, model);
+    addTotalIdleTimesOfTopEvents(histograms, model);
   }
 
   tr.metrics.MetricRegistry.register(blinkGcMetric);
@@ -91,7 +91,7 @@ tr.exportTo('tr.metrics.blink', function() {
    * Example output:
    * - blink-gc-marking.
    */
-  function addDurationOfTopEvents(values, model) {
+  function addDurationOfTopEvents(histograms, model) {
     tr.metrics.v8.utils.groupAndProcessEvents(model,
         isBlinkGarbageCollectionEvent,
         blinkGarbageCollectionEventName,
@@ -100,7 +100,7 @@ tr.exportTo('tr.metrics.blink', function() {
           events.forEach(function(event) {
             cpuDuration.addSample(event.cpuDuration);
           });
-          values.addHistogram(cpuDuration);
+          histograms.addHistogram(cpuDuration);
         }
     );
   }
@@ -109,7 +109,7 @@ tr.exportTo('tr.metrics.blink', function() {
    * Example output:
    * - blink-gc-total
    */
-  function addTotalDurationOfTopEvents(values, model) {
+  function addTotalDurationOfTopEvents(histograms, model) {
     tr.metrics.v8.utils.groupAndProcessEvents(model,
         isBlinkGarbageCollectionEvent,
         event => 'blink-gc-total',
@@ -118,7 +118,7 @@ tr.exportTo('tr.metrics.blink', function() {
           events.forEach(function(event) {
             cpuDuration.addSample(event.cpuDuration);
           });
-          values.addHistogram(cpuDuration);
+          histograms.addHistogram(cpuDuration);
         }
     );
   }
@@ -129,12 +129,12 @@ tr.exportTo('tr.metrics.blink', function() {
    * - blink-gc-marking_outside_idle,
    * - blink-gc-marking_percentage_idle.
    */
-  function addIdleTimesOfTopEvents(values, model) {
+  function addIdleTimesOfTopEvents(histograms, model) {
     tr.metrics.v8.utils.groupAndProcessEvents(model,
         isBlinkGarbageCollectionEvent,
         blinkGarbageCollectionEventName,
         function(name, events) {
-          addIdleTimes(values, model, name, events);
+          addIdleTimes(histograms, model, name, events);
         }
     );
   }
@@ -145,17 +145,17 @@ tr.exportTo('tr.metrics.blink', function() {
    * - blink-gc-total_outside_idle,
    * - blink-gc-total_percentage_idle.
    */
-  function addTotalIdleTimesOfTopEvents(values, model) {
+  function addTotalIdleTimesOfTopEvents(histograms, model) {
     tr.metrics.v8.utils.groupAndProcessEvents(model,
         isBlinkGarbageCollectionEvent,
         event => 'blink-gc-total',
         function(name, events) {
-          addIdleTimes(values, model, name, events);
+          addIdleTimes(histograms, model, name, events);
         }
     );
   }
 
-  function addIdleTimes(values, model, name, events) {
+  function addIdleTimes(histograms, model, name, events) {
     var cpuDuration = createNumericForIdleTime(name + '_cpu');
     var insideIdle = createNumericForIdleTime(name + '_inside_idle');
     var outsideIdle = createNumericForIdleTime(name + '_outside_idle');
@@ -185,11 +185,11 @@ tr.exportTo('tr.metrics.blink', function() {
       outsideIdle.addSample(event.cpuDuration - inside);
       idleDeadlineOverrun.addSample(overrun);
     });
-    values.addHistogram(idleDeadlineOverrun);
-    values.addHistogram(outsideIdle);
+    histograms.addHistogram(idleDeadlineOverrun);
+    histograms.addHistogram(outsideIdle);
     var percentage = createPercentage(
         name + '_percentage_idle', insideIdle.sum, cpuDuration.sum);
-    values.addHistogram(percentage);
+    histograms.addHistogram(percentage);
   }
 
   return {

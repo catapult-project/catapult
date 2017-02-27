@@ -36,12 +36,12 @@ tr.b.unittest.testSuite(function() {
   }
 
   function run(slices) {
-    var values = new tr.v.HistogramSet();
+    var histograms = new tr.v.HistogramSet();
     var startTime = slices.reduce((acc, slice) => (Math.min(acc, slice.start)));
     var endTime = slices.reduce((acc, slice) => (Math.max(acc, slice.end)));
     var model = createModel(startTime - 1, endTime + 1, slices);
-    tr.metrics.v8.gcMetric(values, model);
-    return values;
+    tr.metrics.v8.gcMetric(histograms, model);
+    return histograms;
   }
 
   test('topEvents', function() {
@@ -89,7 +89,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('idleTimes', function() {
-    var values = new tr.v.HistogramSet();
+    var histograms = new tr.v.HistogramSet();
     var slices = [
       {
         title: 'SingleThreadIdleTaskRunner::RunTask',
@@ -127,7 +127,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('idleTimeOverrun', function() {
-    var values = new tr.v.HistogramSet();
+    var histograms = new tr.v.HistogramSet();
     var slices = [
       {
         title: 'SingleThreadIdleTaskRunner::RunTask',
@@ -165,7 +165,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('subEvents', function() {
-    var values = new tr.v.HistogramSet();
+    var histograms = new tr.v.HistogramSet();
     var slices = [
       {
         title: 'V8.GCFinalizeMC', args: {}, start: 100, end: 200,
@@ -185,7 +185,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('total', function() {
-    var values = new tr.v.HistogramSet();
+    var histograms = new tr.v.HistogramSet();
     var slices = [
       {
         title: 'V8.GCFinalizeMC', args: {}, start: 100, end: 200,
@@ -219,7 +219,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('percentageInV8Execute', function() {
-    var values = new tr.v.HistogramSet();
+    var histograms = new tr.v.HistogramSet();
     var slices = [
       {
         title: 'V8.Execute',
@@ -243,7 +243,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('mutatorUtilization', function() {
-    var values = new tr.v.HistogramSet();
+    var histograms = new tr.v.HistogramSet();
     var slices = [
       {
         title: 'V8.Execute', args: {}, start: 100, end: 200,

@@ -35,13 +35,13 @@ tr.b.unittest.testSuite(function() {
         tr.model.ClockDomainId.BATTOR.toLowerCase() + '_to_' +
         tr.model.ClockDomainId.TELEMETRY.toLowerCase();
 
-    var valueSet = new tr.v.HistogramSet();
-    tr.metrics.sh.clockSyncLatencyMetric(valueSet, model);
+    var histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.clockSyncLatencyMetric(histograms, model);
 
     var battorToWinQpcValue = undefined;
     var winQpcToTelemetryValue = undefined;
     var battorToTelemetryValue = undefined;
-    for (var value of valueSet) {
+    for (var value of histograms) {
       if (value.name === battorToWinQpcName)
         battorToWinQpcValue = value;
       else if (value.name === winQpcToTelemetryName)

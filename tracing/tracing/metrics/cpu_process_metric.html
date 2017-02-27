@@ -61,7 +61,7 @@ tr.exportTo('tr.metrics.sh', function() {
     return processNumerics;
   }
 
-  function cpuProcessMetric(values, model) {
+  function cpuProcessMetric(histograms, model) {
     var snapshots = getCpuSnapshotsFromModel(model);
     var processNumerics = buildNumericsFromSnapshots(snapshots);
     for (var [processName, processData] of processNumerics) {
@@ -74,7 +74,7 @@ tr.exportTo('tr.metrics.sh', function() {
         numeric.addSample(0);
       numeric.diagnostics.set('paths', new
           tr.v.d.Generic([...processData.paths]));
-      values.addHistogram(numeric);
+      histograms.addHistogram(numeric);
     }
   }
 

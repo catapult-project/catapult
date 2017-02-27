@@ -64,14 +64,14 @@ tr.exportTo('tr.metrics.sh', function() {
 
   /**
    * Computes the maximum expected queueing time in the sliding time window
-   * of size 500ms (WINDOW_SIZE_MS). The function produces two histogram values:
+   * of size 500ms (WINDOW_SIZE_MS). The function produces two Histograms:
    * - total:500ms_window:renderer_eqt,
    * - interactive:500ms_window:renderer_eqt.
    * The former is the metric computed for the whole trace. The latter is
    * the metric computed for the tme while the page is interactive.
    * Each renderer process adds one sample to the histograms.
    */
-  function expectedQueueingTimeMetric(values, model) {
+  function expectedQueueingTimeMetric(histograms, model) {
     let chromeHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
     let totalHistogram = createHistogramForEQT_(
@@ -109,8 +109,8 @@ tr.exportTo('tr.metrics.sh', function() {
               interactiveWindow.min, interactiveWindow.max,
               WINDOW_SIZE_MS, tasks));
     }
-    values.addHistogram(totalHistogram);
-    values.addHistogram(interactiveHistogram);
+    histograms.addHistogram(totalHistogram);
+    histograms.addHistogram(interactiveHistogram);
   }
 
   /**
@@ -145,7 +145,7 @@ tr.exportTo('tr.metrics.sh', function() {
    *     added to metric names.
    */
   function contributionToExpectedQueueingTime(
-      eventPredicate, eventName, values, model) {
+      eventPredicate, eventName, histograms, model) {
     let chromeHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
     let totalHistogram = createHistogramForEQT_(
@@ -193,8 +193,8 @@ tr.exportTo('tr.metrics.sh', function() {
               interactiveWindow.min, interactiveWindow.max,
               WINDOW_SIZE_MS, tasks));
     }
-    values.addHistogram(totalHistogram);
-    values.addHistogram(interactiveHistogram);
+    histograms.addHistogram(totalHistogram);
+    histograms.addHistogram(interactiveHistogram);
   }
 
   tr.metrics.MetricRegistry.register(expectedQueueingTimeMetric);
