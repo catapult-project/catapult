@@ -52,6 +52,7 @@ class CacheTempeartureTests(browser_test_case.BrowserTestCase):
     self.assertNotIn('telemetry.internal.warmCache.start', markers)
 
   @decorators.Enabled('has tabs')
+  @decorators.Disabled('chromeos')
   def testEnsurePCv1Cold(self):
     with self.captureTrace():
       story_set = story.StorySet()
@@ -81,6 +82,7 @@ class CacheTempeartureTests(browser_test_case.BrowserTestCase):
     self.assertNotIn('telemetry.internal.warmCache.start', markers)
 
   @decorators.Enabled('has tabs')
+  @decorators.Disabled('chromeos')
   def testEnsurePCv1WarmFromScratch(self):
     with self.captureTrace():
       story_set = story.StorySet()
