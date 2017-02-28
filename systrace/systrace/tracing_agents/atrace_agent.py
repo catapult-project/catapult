@@ -24,7 +24,8 @@ ADB_STDOUT_READ_TIMEOUT = 0.2
 ATRACE_BASE_ARGS = ['atrace']
 # If a custom list of categories is not specified, traces will include
 # these categories (if available on the device).
-DEFAULT_CATEGORIES = 'sched,gfx,view,dalvik,webview,input,disk,am,wm'
+DEFAULT_CATEGORIES = 'sched,freq,gfx,view,dalvik,webview,'\
+                     'input,disk,am,wm,binder_driver'
 # The command to list trace categories.
 LIST_CATEGORIES_ARGS = ATRACE_BASE_ARGS + ['--list_categories']
 # Minimum number of seconds between displaying status updates.
