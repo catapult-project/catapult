@@ -183,28 +183,31 @@ found in the LICENSE file.
          * Sort direction, either 'down' (increasing) or 'up' (decreasing).
          */
         sortDescending: {
-          type: String,
-          value: 'down',
-          notify: false,
+          type: Boolean,
+          value: false,
+          notify: true,
           observer: 'sortDirectionChanged'
         },
-
       },
 
       /**
        * Custom element lifecycle callback, called once this element is ready.
        */
       ready: function() {
+        // You can't actually manipulate the array until after initialization,
+        // none of the changes persist.
+        var self = this;
+        this.async(function() {
+          self.sort();
+        });
       },
 
       sortByChanged: function() {
         this.sort();
-        this.fire('sortby', this.sortBy);
       },
 
       sortDirectionChanged: function() {
         this.sort();
-        this.fire('sortdirection', this.sortDirection);
       },
 
       /**

@@ -20,6 +20,7 @@
     "paper-tooltip": "PolymerElements/paper-tooltip#^1.0.0",
     "polymer": "Polymer/polymer#^1.0.0",
     "paper-listbox": "polymerelements/paper-listbox#^1.1.2",
-    "app-route": "PolymerElements/app-route#^0.9.3"
+    "app-route": "PolymerElements/app-route#^0.9.3",
+    "iron-pages": "PolymerElements/iron-pages#^1.0.8"
   }
 }

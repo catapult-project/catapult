@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link type="text/css" rel="stylesheet" href="/dashboard/static/base.css">
+<script src="/components/webcomponentsjs/webcomponents-lite.min.js"></script>
+
+<link rel="import" href="/components/app-route/app-location.html">
+<link rel="import" href="/components/app-route/app-route.html">
+<link rel="import" href="/components/iron-pages/iron-pages.html">
+<link rel="import" href="/components/polymer/polymer.html">
+
+<link rel="import" href="/dashboard/elements/load-analytics.html">
+<link rel="import" href="/dashboard/pinpoint/elements/error-page.html">
+<link rel="import" href="/dashboard/pinpoint/elements/jobs-page.html">
+<link rel="import" href="/dashboard/pinpoint/elements/main-page.html">
+
+<dom-module id="index-page">
+  <template>
+    <!--
+    The <app-location> element is what provides the sync between the
+    url and the app via the "route" object. This is passed to the
+    <app-route> elements to consume the route and in turn produce data
+    related to the route (ie. like the query params) and can also pass the
+    unconsumed portion of the route to other <app-route> elements.
+    The <app-route> elements can also notify via the "active" attribute if
+    that route matches and is active.
+    -->
+    <app-location route="{{route}}"></app-location>
+    <app-route route="{{route}}" pattern="/:page" data="{{routeData}}" tail="{{tail}}"></app-route>
+
+    <!--
+    The <iron-pages> element can be used as a simpe content switcher. We have a
+    single <app-route> defined which matches to a page, which is passed to
+    the <iron-pages> element via routeData.page.
+    -->
+    <iron-pages selected="[[routeData.page]]" attr-for-selected="name" fallback-selection="error">
+      <main-page name=""></main-page>
+      <jobs-page name="jobs" route="{{tail}}"></jobs-page>
+      <error-page name="error"></error-page>
+    </iron-pages>
+
+    <load-analytics></load-analytics>
+  </template>
+  <script>
+    'use strict';
+    Polymer({
+      is: 'index-page',
+
+      ready: function() {
+      }
+    });
+  </script>
+
+  <script>
+    'use strict';
+    // The Google analytics code assumes there will be a script element to
+    // inject into in the page. This empty element is used for that.
+  </script>
+</dom-module>
+
+<index-page></index-page>

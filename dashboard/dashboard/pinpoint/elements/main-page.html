@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<dom-module id="main-page">
+  <template>
+    <style>
+    #content {
+      display: inline-flex;
+      display: -webkit-inline-flex;
+      flex-direction: column;
+      -webkit-flex-direction: column;
+      align-items: flex-start;
+      -webkit-align-items: flex-start;
+    }
+    </style>
+
+    <div id="content">
+      <h1>Pinpoint Main</h1>
+      <a href="/jobs/">Jobs Listing Page</a>
+    </div>
+  </template>
+  <script>
+    'use strict';
+    Polymer({
+      is: 'main-page',
+
+      ready: function() {
+      }
+    });
+  </script>
+</dom-module>

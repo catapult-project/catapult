@@ -48,6 +48,23 @@ handlers:
   login: admin
   secure: always
 
-- url: /.*
+- url: /_ah/api/.*
   script: dashboard.pinpoint.dispatcher.APP
+  secure: always
+
+- url: /isolated/.*
+  script: dashboard.pinpoint.dispatcher.APP
+  secure: always
+
+- url: /job/.*
+  script: dashboard.pinpoint.dispatcher.APP
+  secure: always
+
+- url: /new
+  script: dashboard.pinpoint.dispatcher.APP
+  secure: always
+
+- url: /.*
+  static_files: dashboard/pinpoint/index/index.html
+  upload: dashboard/pinpoint/index/index.html
   secure: always

@@ -16,10 +16,6 @@ _MAX_JOBS_TO_COUNT = 1000
 class ListJobsHandler(request_handler.RequestHandler):
   """Shows an overview of recent anomalies for perf sheriffing."""
 
-  def get(self):
-    """Renders the UI for listing jobs."""
-    self.RenderStaticHtml('list-jobs.html')
-
   def post(self):
     result = self._GetJobs()
 

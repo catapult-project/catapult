@@ -428,6 +428,38 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         });
       });
 
+      suite('tap event listener', function() {
+        var overlay;
+
+        var preventTap = function(event) {
+          event.preventDefault();
+          event.stopPropagation();
+        };
+
+        suiteSetup(function() {
+          // Worst case scenario: listener with useCapture = true that prevents & stops propagation
+          // added before the overlay is initialized.
+          document.body.addEventListener('tap', preventTap, true);
+        });
+
+        setup(function() {
+          overlay = fixture('basic');
+        });
+
+        suiteTeardown(function() {
+          document.body.removeEventListener('tap', preventTap, true);
+        });
+
+        test('cancel an overlay with tap outside even if event is prevented by other listeners', function(done) {
+          runAfterOpen(overlay, function() {
+            overlay.addEventListener('iron-overlay-canceled', function(event) {
+              done();
+            });
+            MockInteractions.tap(document.body);
+          });
+        });
+      });
+
       suite('opened overlay', function() {
         var overlay;
 
