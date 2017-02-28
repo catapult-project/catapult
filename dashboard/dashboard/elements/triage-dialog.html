@@ -361,7 +361,6 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
           return this.getBugTitleForAnomaly();
         }
         return this.getBugTitleForStoppageAlert();
-    
       },
 
       getBugTitleForAnomaly: function() {
@@ -380,9 +379,9 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
           if (alert.percent_changed == this.FREAKIN_HUGE &&
               !maxRegressionFound) {
             maxRegressionFound = true;
-          }
-          else
+          } else {
             percent = Math.abs(parseFloat(alert.percent_changed));
+          }
           if (percent < percentMin) {
             percentMin = percent;
           }
@@ -406,13 +405,11 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
             // Both percentMin and percentMax were at Infinity.
             // Record a "freakin' huge" (TM) regression.
             minMax = 'A ' + this.FREAKIN_HUGE;
-          }
-          else {
+          } else {
             // Regressions ranged from Infinity to some other lower percentage.
             minMax = 'A ' + this.FREAKIN_HUGE + ' to ' + percentMin + '%';
           }
-        }
-        else if (percentMin == percentMax) {
+        } else if (percentMin == percentMax) {
           minMax = percentMin + '%';
         }
 

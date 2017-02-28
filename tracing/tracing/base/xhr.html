@@ -39,7 +39,6 @@ tr.exportTo('tr.b', function() {
         return req.responseText;
       throw new Error('XHR failed with status ' + req.status +
           ' for url ' + url);
-
     }
 
     var p = new Promise(function(resolve, reject) {
@@ -53,7 +52,6 @@ tr.exportTo('tr.b', function() {
             }
             reject(new Error('XHR failed with status ' + req.status +
                 ' for url ' + url));
-
           }, 0);
         }
       };

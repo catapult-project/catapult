@@ -242,9 +242,12 @@ tr.exportTo('tr.model', function() {
 
         tr.b.iterateOverIntersectingIntervals(freqSeries.samples_,
             function(x) { return x.timestamp; },
-            function(x, index) { return index < freqSeries.length - 1 ?
-                                     freqSeries.samples_[index + 1].timestamp :
-                                     range.max; },
+            function(x, index) {
+              if (index < freqSeries.length - 1) {
+                return freqSeries.samples_[index + 1].timestamp;
+              }
+              return range.max;
+            },
             range.min,
             range.max,
             addStatsForFreq);

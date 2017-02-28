@@ -89,10 +89,12 @@ tr.exportTo('tr.ui.tracks', function() {
     addAllEventsMatchingFilterToSelectionAsTask: function(filter, selection) {
       var task = new Task();
       for (var i = 0; i < this.tracks_.length; i++) {
-        task.subTask(function(i) { return function() {
-          this.tracks_[i].addAllEventsMatchingFilterToSelection(
-              filter, selection);
-        }; }(i), this);
+        task.subTask(function(i) {
+          return function() {
+            this.tracks_[i].addAllEventsMatchingFilterToSelection(
+                filter, selection);
+          };
+        }(i), this);
       }
       return task;
     },

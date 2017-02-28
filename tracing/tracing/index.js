@@ -9,10 +9,10 @@ var path = require('path');
 var catapultPath = fs.realpathSync(path.join(__dirname, '..', '..'));
 var catapultBuildPath = path.join(catapultPath, 'catapult_build');
 
-var node_bootstrap = require(path.join(catapultBuildPath, 'node_bootstrap.js'));
+var nodeBootstrap = require(path.join(catapultBuildPath, 'node_bootstrap.js'));
 
 HTMLImportsLoader.addArrayToSourcePath(
-    node_bootstrap.getSourcePathsForProject('tracing'));
+    nodeBootstrap.getSourcePathsForProject('tracing'));
 
 // Go!
 HTMLImportsLoader.loadHTML('/tracing/importer/import.html');

@@ -2030,8 +2030,7 @@ tr.exportTo('tr.e.importer', function() {
             if (!processFlowProducer(flowIdToEvent, flowStatus, event, slice))
               continue;
             flowStatus[event.bind_id] = true; // open the flow.
-          }
-          else {
+          } else {
             if (!processFlowConsumer(flowIdToEvent, sliceGuidToEvent,
                 event, slice))
               continue;

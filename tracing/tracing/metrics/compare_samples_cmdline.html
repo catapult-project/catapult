@@ -210,8 +210,7 @@ function parseMultipleBuildbotStreams(files, metric) {
   for (var path of files) {
     try {
       var contents = tr.b.getSync('file://' + path);
-    }
-    catch (ex) {
+    } catch (ex) {
       var err = new Error('Could not open' + path);
       err.name = 'File loading error';
       throw err;
