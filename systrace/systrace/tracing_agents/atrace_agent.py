@@ -5,7 +5,6 @@
 import optparse
 import py_utils
 import re
-import subprocess
 import sys
 import threading
 import zlib
@@ -34,10 +33,6 @@ MIN_TIME_BETWEEN_STATUS_UPDATES = 0.2
 TRACE_START_REGEXP = r'TRACE\:'
 # Plain-text trace data should always start with this string.
 TRACE_TEXT_HEADER = '# tracer'
-# The property name for switching on and off tracing during boot.
-BOOTTRACE_PROP = 'persist.debug.atrace.boottrace'
-# The file path for specifying categories to be traced during boot.
-BOOTTRACE_CATEGORIES = '/data/misc/boottrace/categories'
 _FIX_THREAD_IDS = True
 _FIX_MISSING_TGIDS = True
 _FIX_CIRCULAR_TRACES = True
@@ -88,12 +83,8 @@ def try_create_agent(config):
     print ('Device SDK versions <= 17 not supported.\n'
            'Your device SDK version is %d.' % device_sdk_version)
     return None
-  if device_sdk_version <= 22 and config.boot:
-    print ('--boot option does not work on the device SDK '
-           'version 22 or before.\nYour device SDK version '
-           'is %d.' % device_sdk_version)
-    return None
-  return BootAgent() if config.boot else AtraceAgent()
+
+  return AtraceAgent()
 
 def _construct_extra_atrace_args(config, categories):
   """Construct extra arguments (-a, -k, categories) for atrace command.
@@ -221,11 +212,6 @@ class AtraceAgent(tracing_agents.TracingAgent):
       shell.RunCommand(cmd, close=True)
       did_record_sync_marker_callback(t1, sync_id)
 
-  def _dump_trace(self):
-    """Dumps the atrace buffer and returns the dumped buffer."""
-    dump_cmd = self._tracer_args + ['--async_dump']
-    return self._device_utils.RunShellCommand(dump_cmd, raw_output=True)
-
   def _stop_trace(self):
     """Stops atrace.
 
@@ -241,7 +227,9 @@ class AtraceAgent(tracing_agents.TracingAgent):
 
   def _collect_trace_data(self):
     """Reads the output from atrace and stops the trace."""
-    result = self._dump_trace()
+    dump_cmd = self._tracer_args + ['--async_dump']
+    result = self._device_utils.RunShellCommand(dump_cmd, raw_output=True)
+
     data_start = re.search(TRACE_START_REGEXP, result)
     if data_start:
       data_start = data_start.end(0)
@@ -287,53 +275,6 @@ class AtraceAgent(tracing_agents.TracingAgent):
       trace_data = fix_circular_traces(trace_data)
 
     return trace_data
-
-
-class BootAgent(AtraceAgent):
-  """AtraceAgent that specializes in tracing the boot sequence."""
-
-  def __init__(self):
-    super(BootAgent, self).__init__()
-
-  @py_utils.Timeout(tracing_agents.START_STOP_TIMEOUT)
-  def StartAgentTracing(self, config, timeout=None):
-    self._config = config
-    try:
-      setup_args = _construct_boot_setup_command(config)
-      subprocess.check_call(setup_args)
-    except OSError as error:
-      print >> sys.stderr, (
-          'The command "%s" failed with the following error:' %
-          ' '.join(setup_args))
-      print >> sys.stderr, '    ', error
-      sys.exit(1)
-
-  def _dump_trace(self): #called by StopAgentTracing
-    """Dumps the running trace asynchronously and returns the dumped trace."""
-    dump_cmd = _construct_boot_trace_command(self._config)
-    return self._device_utils.RunShellCommand(dump_cmd, raw_output=True)
-
-  def _stop_trace(self): # called by _collect_trace_data via StopAgentTracing
-    # pylint: disable=no-self-use
-    # This is a member function for consistency with AtraceAgent
-    pass # don't need to stop separately; already done in dump_trace
-
-def _construct_boot_setup_command(config):
-  echo_args = (['echo'] + config.atrace_categories +
-               ['>', BOOTTRACE_CATEGORIES])
-  setprop_args = ['setprop', BOOTTRACE_PROP, '1']
-  reboot_args = ['reboot']
-  return util.construct_adb_shell_command(
-      echo_args + ['&&'] + setprop_args + ['&&'] + reboot_args,
-      config.device_serial_number)
-
-def _construct_boot_trace_command(config):
-  atrace_args = ['atrace', '--async_stop']
-  setprop_args = ['setprop', BOOTTRACE_PROP, '0']
-  rm_args = ['rm', BOOTTRACE_CATEGORIES]
-  return util.construct_adb_shell_command(
-        atrace_args + ['&&'] + setprop_args + ['&&'] + rm_args,
-        config.device_serial_number)
 
 
 def extract_thread_list(trace_text):
@@ -516,7 +457,7 @@ def fix_circular_traces(out):
 
 class AtraceConfig(tracing_agents.TracingConfig):
   def __init__(self, atrace_categories, trace_buf_size, kfuncs,
-               app_name, compress_trace_data, boot, from_file,
+               app_name, compress_trace_data, from_file,
                device_serial_number, trace_time, target):
     tracing_agents.TracingConfig.__init__(self)
     self.atrace_categories = atrace_categories
@@ -524,7 +465,6 @@ class AtraceConfig(tracing_agents.TracingConfig):
     self.kfuncs = kfuncs
     self.app_name = app_name
     self.compress_trace_data = compress_trace_data
-    self.boot = boot
     self.from_file = from_file
     self.device_serial_number = device_serial_number
     self.trace_time = trace_time
@@ -543,10 +483,6 @@ def add_options(parser):
                      default=True, action='store_false',
                      help='Tell the device not to send the trace data in '
                      'compressed form.')
-  options.add_option('--boot', dest='boot', default=False, action='store_true',
-                     help='reboot the device with tracing during boot enabled.'
-                     'The report is created by hitting Ctrl+C after the device'
-                     'has booted up.')
   options.add_option('-a', '--app', dest='app_name', default=None,
                      type='string', action='store',
                      help='enable application-level tracing for '
@@ -561,6 +497,5 @@ def get_config(options):
   return AtraceConfig(options.atrace_categories,
                       options.trace_buf_size, options.kfuncs,
                       options.app_name, options.compress_trace_data,
-                      options.boot, options.from_file,
-                      options.device_serial_number, options.trace_time,
-                      options.target)
+                      options.from_file, options.device_serial_number,
+                      options.trace_time, options.target)

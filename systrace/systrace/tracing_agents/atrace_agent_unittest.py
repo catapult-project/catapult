@@ -27,13 +27,6 @@ SYSTRACE_CMD = ['./run_systrace.py', '--time', '10', '-o', 'out.html', '-e',
                 DEVICE_SERIAL] + CATEGORIES
 TRACE_ARGS = (ATRACE_ARGS + CATEGORIES)
 
-SYSTRACE_BOOT_CMD = (['./run_systrace.py', '--boot', '-e', DEVICE_SERIAL] +
-                     CATEGORIES)
-TRACE_BOOT_CMD = (ADB_SHELL +
-                  ['atrace', '--async_stop', '&&', 'setprop',
-                   'persist.debug.atrace.boottrace', '0', '&&',
-                   'rm', '/data/misc/boottrace/categories'])
-
 TEST_DIR = os.path.join(os.path.dirname(__file__), os.pardir, 'test_data')
 ATRACE_DATA = os.path.join(TEST_DIR, 'atrace_data')
 ATRACE_DATA_RAW = os.path.join(TEST_DIR, 'atrace_data_raw')
@@ -164,15 +157,6 @@ class AtraceAgentTest(unittest.TestCase):
 
       res = atrace_agent.fix_missing_tgids(atrace_data, tgid_map)
       self.assertEqual(res, fixed)
-
-
-class BootAgentTest(unittest.TestCase):
-
-  @decorators.HostOnlyTest
-  def test_boot(self):
-    options, _ = run_systrace.parse_options(SYSTRACE_BOOT_CMD)
-    tracer_args = atrace_agent._construct_boot_trace_command(options)
-    self.assertEqual(' '.join(TRACE_BOOT_CMD), ' '.join(tracer_args))
 
 
 if __name__ == "__main__":
