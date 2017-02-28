@@ -72,6 +72,30 @@ found in the LICENSE file.
       display: flex;
       justify-content: center;
     }
+
+    .show-more-button {
+      margin-top: 10px;
+    }
+
+    .button-spinner {
+      position: relative;
+      width: 77px;
+      height: 16px;
+    }
+
+    .show-more-text {
+      position: absolute;
+      margin: 0;
+    }
+
+    paper-spinner {
+      display: inline-block;
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      margin: 0 33%;
+      margin-top: -3px;
+    }
     </style>
 
     <template is="dom-if" if="{{loading}}">
@@ -109,7 +133,8 @@ found in the LICENSE file.
           <template is="dom-if" if="{{anomalies.length}}">
             <h2>Performance alerts</h2>
             <p id='num-alerts'>
-              {{getAlertCount()}} alert<span hidden$="{{computeIsSingular(totalAnomalyCount)}}">s</span>.
+              {{getAlertCount(anomalies.length)}}
+              alert<span hidden$="{{computeIsSingular(totalAnomalyCount)}}">s</span>.
             </p>
             <alerts-table id="anomaly-table"
                           xsrf-token="{{xsrfToken}}"
@@ -120,17 +145,35 @@ found in the LICENSE file.
                           sort-by="{{sortBy}}"
                           sort-direction="{{sortDirection}}">
             </alerts-table>
+            <paper-button hidden$="{{!moreAnomaliesExist}}"
+                          raised class="show-more-button" 
+                          on-click="onShowMoreAnomalies">
+              <div class="button-spinner">
+                <p class="show-more-text">Show More</p>
+                <paper-spinner active$="{{anomaliesLoading}}"></paper-spinner>
+              </div>
+            </paper-button>
           </template>
           <template is="dom-if" if="{{stoppageAlerts.length}}">
             <h2>Data stoppage alerts</h2>
             <p>
-              {{getStoppageCount()}} alert<span hidden$="{{computeIsSingular(totalStoppageAlertCount)}}">s</span>.
+              {{getStoppageCount(stoppageAlerts.length)}}
+              alert<span hidden$="{{computeIsSingular(totalStoppageAlertCount)}}">s</span>.
             </p>
             <alerts-table id="stoppage-alert-table"
                           xsrf-token="{{xsrfToken}}"
                           alert-list="{{stoppageAlerts}}"
                           extra-columns="{{extraStoppageAlertsColumns}}">
             </alerts-table>
+            <paper-button hidden$="{{!moreStoppageAlertsExist}}"
+                          raised class="show-more-button" 
+                          on-click="onShowMoreStoppageAlerts">
+              <div class="button-spinner">
+                <p class="show-more-text">Show More</p>
+                <paper-spinner active$="{{stoppageAlertsLoading}}">
+                </paper-spinner>
+              </div>
+            </paper-button>
           </template>
           <template is="dom-if" if="{{!anomalies.length}}">
             <template is="dom-if" if="{{!stoppageAlerts.length}}">
@@ -235,7 +278,21 @@ found in the LICENSE file.
         xsrfToken: {
           type: String,
           value: ''
-        }
+        },
+        anomalyCursor: {
+          type: String
+        },
+        stoppageAlertCursor: {
+          type: String
+        },
+        stoppageAlertsLoading: {
+          type: Boolean,
+          value: false
+        },
+        anomaliesLoading: {
+          type: Boolean,
+          value: false
+        },
       },
 
       computeIsSingular: count => count === 1,
@@ -282,6 +339,67 @@ found in the LICENSE file.
         window.location.href = uri.getCurrentPathWithParams(params);
       },
 
+      /*
+       * When a user clicks 'Show More' under an alerts-table, call /alerts
+       * again with the anomalyCursor that was returned on the previous call to
+       * /alerts. This will perform a paged query, starting at the cursor and
+       * returning up to 500 more anomalies.
+       */
+      onShowMoreAnomalies: function() {
+        var params = uri.getAllParameters();
+        if (this.anomalyCursor != null) {
+          params['anomaly_cursor'] = this.anomalyCursor;
+        }
+        this.anomaliesLoading = true;
+        simple_xhr.send('/alerts', params,
+            function(response) {
+              var allAnomalies =
+                  this.anomalies.concat(response['anomaly_list']);
+              this.set('anomalies', allAnomalies);
+              this.totalAnomalyCount = response['anomaly_count'];
+              this.anomalyCursor = response['anomaly_cursor'];
+              this.moreAnomaliesExist = response['show_more_anomalies'];
+              this.sheriffList = response['sheriff_list'];
+              this.xsrfToken = response['xsrf_token'];
+              this.anomaliesLoading = false;
+              this.updateFromURIParameters();
+            }.bind(this),
+            function(msg) {
+              this.error = msg;
+              this.anomaliesLoading = false;
+            }.bind(this));
+      },
+
+      /*
+       * Similar to the anomaly show more button, gets the next 500 stoppage
+       * alerts.
+       */
+      onShowMoreStoppageAlerts: function() {
+        var params = uri.getAllParameters();
+        if (this.stoppageAlertCursor != null) {
+          params['stoppage_alert_cursor'] = this.stoppageAlertCursor;
+        }
+        this.stoppageAlertsLoading = true;
+        simple_xhr.send('/alerts', params,
+            function(response) {
+              var allStoppageAlerts =
+                  this.stoppageAlerts.concat(response['stoppage_alert_list']);
+              this.set('stoppageAlerts', allStoppageAlerts);
+              this.totalStoppageAlertCount = response['stoppage_alert_count'];
+              this.stoppageAlertCursor = response['stoppage_alert_cursor'];
+              this.moreStoppageAlertsExist =
+                  response['show_more_stoppage_alerts'];
+              this.sheriffList = response['sheriff_list'];
+              this.xsrfToken = response['xsrf_token'];
+              this.stoppageAlertsLoading = false;
+              this.updateFromURIParameters();
+            }.bind(this),
+            function(msg) {
+              this.error = msg;
+              this.stoppageAlertsLoading = false;
+            }.bind(this));
+      },
+
       onPopState: function(e) {
         // Pop State event will have a non-null state if this came from an
         // actual pop instead of the load event.
@@ -311,17 +429,15 @@ found in the LICENSE file.
         this.showingTriaged = uri.getParameter('triaged', false);
       },
 
-      getAlertCount: function() {
-        return this.getCount(false);
+      getAlertCount: function(anomalyListLength) {
+        return this.getCount(false, anomalyListLength);
       },
 
-      getStoppageCount: function() {
-        return this.getCount(true);
+      getStoppageCount: function(stoppageAlertsListLength) {
+        return this.getCount(true, stoppageAlertsListLength);
       },
 
-      getCount: function(isStoppage) {
-        var trueLength = isStoppage ? this.stoppageAlerts.length :
-          this.anomalies.length;
+      getCount: function(isStoppage, trueLength) {
         var totalCount = isStoppage ? this.totalStoppageAlertCount :
           this.totalAnomalyCount;
         if (trueLength < totalCount) {
@@ -351,6 +467,11 @@ found in the LICENSE file.
               this.totalStoppageAlertCount = response['stoppage_alert_count'];
               this.sheriffList = response['sheriff_list'];
               this.xsrfToken = response['xsrf_token'];
+              this.moreAnomaliesExist = response['show_more_anomalies'];
+              this.moreStoppageAlertsExist =
+                  response['show_more_stoppage_alerts'];
+              this.anomalyCursor = response['anomaly_cursor'];
+              this.stoppageAlertCursor = response['stoppage_alert_cursor'];
               this.loading = false;
               this.updateFromURIParameters();
             }.bind(this),

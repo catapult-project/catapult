@@ -7,6 +7,7 @@
 import json
 import logging
 
+from google.appengine.datastore.datastore_query import Cursor
 from google.appengine.ext import ndb
 
 from dashboard import email_template
@@ -34,6 +35,9 @@ class AlertsHandler(request_handler.RequestHandler):
       sheriff: The name of a sheriff (optional).
       triaged: Whether to include triaged alerts (i.e. with a bug ID).
       improvements: Whether to include improvement anomalies.
+      anomaly_cursor: Where to begin a paged query for anomalies (optional).
+      stoppage_alert_cursor: Where to begin a paged query for stoppage alerts
+                             (optional).
 
     Outputs:
       JSON data for an XHR request to show a table of alerts.
@@ -48,20 +52,39 @@ class AlertsHandler(request_handler.RequestHandler):
 
     include_improvements = bool(self.request.get('improvements'))
     include_triaged = bool(self.request.get('triaged'))
+    # Cursors are used to fetch paged queries. If none is supplied, then the
+    # first 500 alerts will be returned. If a cursor is given, the next
+    # 500 alerts (starting at the given cursor) will be returned.
+    anomaly_cursor = self.request.get('anomaly_cursor', None)
+    stoppage_alert_cursor = self.request.get('stoppage_alert_cursor', None)
+    if anomaly_cursor:
+      anomaly_cursor = Cursor(urlsafe=anomaly_cursor)
+    if stoppage_alert_cursor:
+      stoppage_alert_cursor = Cursor(urlsafe=stoppage_alert_cursor)
 
-    anomaly_keys = _FetchAnomalyKeys(
-        sheriff_key, include_improvements, include_triaged)
-    anomalies = ndb.get_multi(anomaly_keys[:_MAX_ANOMALIES_TO_SHOW])
-    stoppage_alert_keys = _FetchStoppageAlertKeys(sheriff_key, include_triaged)
+    anomaly_values = _FetchAnomalies(sheriff_key, include_improvements,
+                                     include_triaged, anomaly_cursor)
+    anomalies = ndb.get_multi(anomaly_values['anomaly_keys'])
+
+    stoppage_alert_values = _FetchStoppageAlerts(
+        sheriff_key, include_triaged, stoppage_alert_cursor)
     stoppage_alerts = ndb.get_multi(
-        stoppage_alert_keys[:_MAX_ANOMALIES_TO_SHOW])
+        stoppage_alert_values['stoppage_alert_keys'])
 
     values = {
         'anomaly_list': AnomalyDicts(anomalies),
-        'anomaly_count': len(anomaly_keys),
+        'anomaly_count': anomaly_values['anomaly_count'],
         'stoppage_alert_list': StoppageAlertDicts(stoppage_alerts),
-        'stoppage_alert_count': len(stoppage_alert_keys),
+        'stoppage_alert_count': stoppage_alert_values['stoppage_alert_count'],
         'sheriff_list': _GetSheriffList(),
+        'anomaly_cursor': (anomaly_values['anomaly_cursor'].urlsafe()
+                           if anomaly_values['anomaly_cursor'] else None),
+        'stoppage_alert_cursor':
+            (stoppage_alert_values['stoppage_alert_cursor'].urlsafe()
+             if stoppage_alert_values['stoppage_alert_cursor'] else None),
+        'show_more_anomalies': anomaly_values['show_more_anomalies'],
+        'show_more_stoppage_alerts':
+            stoppage_alert_values['show_more_stoppage_alerts']
     }
     self.GetDynamicVariables(values)
     self.response.out.write(json.dumps(values))
@@ -78,17 +101,25 @@ def _SheriffIsFound(sheriff_key):
   return sheriff_entity is not None
 
 
-def _FetchAnomalyKeys(sheriff_key, include_improvements, include_triaged):
-  """Fetches the list of Anomaly keys that may be shown.
+def _FetchAnomalies(sheriff_key, include_improvements, include_triaged,
+                    start_cursor):
+  """Fetches a page of the list of Anomaly keys that may be shown.
 
   Args:
     sheriff_key: The ndb.Key for the Sheriff to fetch alerts for.
     include_improvements: Whether to include improvement Anomalies.
     include_triaged: Whether to include Anomalies with a bug ID already set.
+    start_cursor: The cursor at which to begin the paged query. None if
+                  beginning of keys.
 
   Returns:
-    A list of Anomaly keys, in reverse-chronological order.
+    A dictionary containing:
+    anomalies_count: Length of all keys up to _MAX_ANOMALIES_TO_COUNT.
+    anomaly_keys: A list of Anomaly keys, in reverse-chronological order.
+    anomaly_cursor: The cursor to begin the next paged query at.
+    show_more_anomalies: A bool if there are entities past the cursor.
   """
+
   query = anomaly.Anomaly.query(
       anomaly.Anomaly.sheriff == sheriff_key)
 
@@ -103,18 +134,34 @@ def _FetchAnomalyKeys(sheriff_key, include_improvements, include_triaged):
         anomaly.Anomaly.recovered == False)
 
   query = query.order(-anomaly.Anomaly.timestamp)
-  return query.fetch(limit=_MAX_ANOMALIES_TO_COUNT, keys_only=True)
+
+  return_values = {}
+  # Total Anomaly count is maintained by query.count(limit).
+  return_values['anomaly_count'] = query.count(_MAX_ANOMALIES_TO_COUNT)
+  # See https://cloud.google.com/appengine/docs/standard/python/ndb/queryclass
+  # about fetch_page.
+  (return_values['anomaly_keys'], return_values['anomaly_cursor'],
+   return_values['show_more_anomalies']) = query.fetch_page(
+       _MAX_ANOMALIES_TO_SHOW, start_cursor=start_cursor, keys_only=True)
+  return return_values
 
 
-def _FetchStoppageAlertKeys(sheriff_key, include_triaged):
+def _FetchStoppageAlerts(sheriff_key, include_triaged, start_cursor):
   """Fetches the list of Anomaly keys that may be shown.
 
   Args:
     sheriff_key: The ndb.Key for the Sheriff to fetch alerts for.
     include_triaged: Whether to include alerts with a bug ID.
+    start_cursor: The cursor at which to begin the paged query. None if
+                  beginning of keys.
 
   Returns:
-    A list of StoppageAlert entities, in reverse-chronological order.
+    A dictionary containing:
+    stoppage_alerts_count: Length of all keys up to _MAX_ANOMALIES_TO_COUNT.
+    stoppage_alert_keys: A list of StoppageAlert keys, in reverse-chronological
+                         order.
+    stoppage_alert_cursor: The cursor to begin the next paged query at.
+    show_more_stoppage_alerts: A bool if there are entities past the cursor.
   """
   query = stoppage_alert.StoppageAlert.query(
       stoppage_alert.StoppageAlert.sheriff == sheriff_key)
@@ -126,7 +173,13 @@ def _FetchStoppageAlertKeys(sheriff_key, include_triaged):
         stoppage_alert.StoppageAlert.recovered == False)
 
   query = query.order(-stoppage_alert.StoppageAlert.timestamp)
-  return query.fetch(limit=_MAX_ANOMALIES_TO_COUNT, keys_only=True)
+
+  return_values = {}
+  return_values['stoppage_alert_count'] = query.count(_MAX_ANOMALIES_TO_COUNT)
+  (return_values['stoppage_alert_keys'], return_values['stoppage_alert_cursor'],
+   return_values['show_more_stoppage_alerts']) = query.fetch_page(
+       _MAX_ANOMALIES_TO_SHOW, start_cursor=start_cursor, keys_only=True)
+  return return_values
 
 
 def _GetSheriffList():

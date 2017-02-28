@@ -213,7 +213,11 @@ tr.b.unittest.testSuite(function() {
         }
       ],
       'sheriff_list': ['Chromium Perf Sheriff', 'V8 Sheriff', 'CrOS Sheriff'],
-      'xsrf_token': '12345'
+      'xsrf_token': '12345',
+      'anomaly_count': 8,
+      'stoppage_alert_count': 1,
+      'show_more_anomalies': false,
+      'show_more_stoppage_alerts': false
     };
     testing_common.addXhrMock('*', JSON.stringify(mockResponse));
     var page = document.createElement('alerts-page');

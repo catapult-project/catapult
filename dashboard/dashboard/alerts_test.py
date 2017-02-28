@@ -26,13 +26,16 @@ class AlertsTest(testing_common.TestCase):
     super(AlertsTest, self).setUp()
     app = webapp2.WSGIApplication([('/alerts', alerts.AlertsHandler)])
     self.testapp = webtest.TestApp(app)
+    testing_common.SetSheriffDomains(['chromium.org'])
+    testing_common.SetIsInternalUser('internal@chromium.org', True)
+    self.SetCurrentUser('internal@chromium.org', is_admin=True)
 
   def _AddAlertsToDataStore(self):
     """Adds sample data, including triaged and non-triaged alerts."""
     key_map = {}
 
     sheriff_key = sheriff.Sheriff(
-        id='Chromium Perf Sheriff', email='sullivan@google.com').put()
+        id='Chromium Perf Sheriff', email='internal@chromium.org').put()
     testing_common.AddTests(['ChromiumGPU'], ['linux-release'], {
         'scrolling-benchmark': {
             'first_paint': {},
@@ -214,12 +217,32 @@ class AlertsTest(testing_common.TestCase):
     self.assertIsNotNone(error)
 
   def testPost_ExternalUserRequestsInternalOnlySheriff_ErrorMessage(self):
+    self.UnsetCurrentUser()
     sheriff.Sheriff(id='Foo', internal_only=True).put()
     self.assertFalse(utils.IsInternalUser())
     response = self.testapp.post('/alerts?sheriff=Foo')
     error = self.GetJsonValue(response, 'error')
     self.assertIsNotNone(error)
 
+  def testPost_AnomalyCursorSet_ReturnsNextCursorAndShowMore(self):
+    self._AddAlertsToDataStore()
+    alerts._MAX_ANOMALIES_TO_SHOW = 5  # So we can test paging.
+    # Need to post to the app once to get the initial cursor.
+    response = self.testapp.post('/alerts', {})
+    anomaly_list = self.GetJsonValue(response, 'anomaly_list')
+    anomaly_cursor = self.GetJsonValue(response, 'anomaly_cursor')
+
+    response = self.testapp.post('/alerts', {'anomaly_cursor': anomaly_cursor})
+    anomaly_list2 = self.GetJsonValue(response, 'anomaly_list')
+    anomalies_show_more = self.GetJsonValue(response, 'show_more_anomalies')
+    anomaly_cursor = self.GetJsonValue(response, 'anomaly_cursor')
+    anomaly_count = self.GetJsonValue(response, 'anomaly_count')
+    self.assertEqual(5, len(anomaly_list2))
+    self.assertTrue(anomalies_show_more)
+    self.assertIsNotNone(anomaly_cursor)  # Don't know what this will be.
+    self.assertEqual(12, anomaly_count)
+    for a in anomaly_list:  # Ensure anomaly_lists aren't equal.
+      self.assertNotIn(a, anomaly_list2)
 
 if __name__ == '__main__':
   unittest.main()
