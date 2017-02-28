@@ -10,7 +10,9 @@
       }],
       "arrow-parens": "off",
       "block-scoped-var": "off",
-      "brace-style": "off",
+      "brace-style": ["error", "1tbs", {
+        "allowSingleLine": true
+      }],
       "camelcase": "off",
       "catapult-camelcase": ["error", {
         "properties": "never"
