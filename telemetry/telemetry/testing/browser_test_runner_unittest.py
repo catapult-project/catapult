@@ -9,6 +9,7 @@ import tempfile
 import unittest
 import json
 
+from telemetry import decorators
 from telemetry import project_config
 from telemetry.core import util
 from telemetry.testing import browser_test_context
@@ -73,6 +74,7 @@ class BrowserTestRunnerTest(unittest.TestCase):
     finally:
       os.remove(temp_file_name)
 
+  @decorators.Disabled('chromeos')  # crbug.com/696553
   def testJsonOutputFormatNegativeFilter(self):
     self.baseTest(
       '^(add|multiplier).*',
@@ -83,6 +85,7 @@ class BrowserTestRunnerTest(unittest.TestCase):
        'browser_tests.simple_numeric_test.SimpleTest.multiplier_simple',
        'browser_tests.simple_numeric_test.SimpleTest.multiplier_simple_3'])
 
+  @decorators.Disabled('chromeos')  # crbug.com/696553
   def testJsonOutputWhenSetupClassFailed(self):
     self.baseTest(
       '.*',
@@ -91,6 +94,7 @@ class BrowserTestRunnerTest(unittest.TestCase):
        'browser_tests.failed_tests.SetUpClassFailedTest.dummy_test_2'],
       [], test_name='SetUpClassFailedTest')
 
+  @decorators.Disabled('chromeos')  # crbug.com/696553
   def testJsonOutputWhenTearDownClassFailed(self):
     self.baseTest(
       '.*',
@@ -99,6 +103,7 @@ class BrowserTestRunnerTest(unittest.TestCase):
        'browser_tests.failed_tests.TearDownClassFailedTest.dummy_test_2'],
       [], test_name='TearDownClassFailedTest')
 
+  @decorators.Disabled('chromeos')  # crbug.com/696553
   def testSetUpProcessCalledOnce(self):
     self.baseTest(
       '.*',
@@ -108,6 +113,7 @@ class BrowserTestRunnerTest(unittest.TestCase):
        'browser_tests.process_tests.FailIfSetUpProcessCalledTwice.Dummy_2'],
       test_name='FailIfSetUpProcessCalledTwice')
 
+  @decorators.Disabled('chromeos')  # crbug.com/696553
   def testTearDownProcessCalledOnce(self):
     self.baseTest(
       '.*',
@@ -117,12 +123,14 @@ class BrowserTestRunnerTest(unittest.TestCase):
        'browser_tests.process_tests.FailIfTearDownProcessCalledTwice.Dummy_2'],
       test_name='FailIfTearDownProcessCalledTwice')
 
+  @decorators.Disabled('chromeos')  # crbug.com/696553
   def testJsonOutputFormatPositiveFilter(self):
     self.baseTest(
       '(TestSimple|TestException).*',
       ['browser_tests.simple_numeric_test.SimpleTest.TestException',
        'browser_tests.simple_numeric_test.SimpleTest.TestSimple'], [])
 
+  @decorators.Disabled('chromeos')  # crbug.com/696553
   def testExecutingTestsInSortedOrder(self):
     alphabetical_tests = []
     prefix = 'browser_tests.simple_numeric_test.SimpleTest.Alphabetical_'
@@ -210,6 +218,7 @@ class BrowserTestRunnerTest(unittest.TestCase):
     finally:
       os.remove(temp_file_name)
 
+  @decorators.Disabled('chromeos')  # crbug.com/696553
   def testShardedTestRun(self):
     self.baseShardingTest(3, 0, [], [
       'browser_tests.simple_sharding_test.SimpleShardingTest.Test1',
@@ -273,6 +282,7 @@ class BrowserTestRunnerTest(unittest.TestCase):
       json.dump(mock_test_results, f)
     return temp_file_name
 
+  @decorators.Disabled('chromeos')  # crbug.com/696553
   def testSplittingShardsByTimes(self):
     temp_file_name = self.writeMockTestResultsFile()
     # It seems that the sorting order of the first four tests above is:
@@ -310,6 +320,7 @@ class BrowserTestRunnerTest(unittest.TestCase):
     finally:
       os.remove(temp_file_name)
 
+  @decorators.Disabled('chromeos')  # crbug.com/696553
   def testFilteringAfterSharding(self):
     temp_file_name = self.writeMockTestResultsFile()
     try:
