@@ -29,7 +29,6 @@ found in the LICENSE file.
     }
 
     #loading-spinner {
-      width: 100%;
       display: flex;
       justify-content: center;
     }
@@ -40,6 +39,18 @@ found in the LICENSE file.
 
     table {
       border-collapse: collapse;
+    }
+
+    .improvement {
+      color: #0a0;
+    }
+
+    .regression {
+      color: #a00;
+    }
+
+    .zero {
+      color: #bbb;
     }
 
     </style>
@@ -88,8 +99,12 @@ found in the LICENSE file.
                           as="rev">
                     <td>{{getValue(rev, bot, test)}}</td>
                 </template>
-                  <td>{{getDifference(bot, test, 'false')}}</td>
-                  <td>{{getDifference(bot, test, 'true')}}</td>
+                  <td class$="{{getDeltaClassName(bot, test)}}">
+                    {{getDelta(bot, test, 'false')}}
+                  </td>
+                  <td class$="{{getDeltaClassName(bot, test)}}">
+                    {{getDelta(bot, test, 'true')}}
+                  </td>
               </tr>
             </template>
             </table> <br>
@@ -146,13 +161,31 @@ found in the LICENSE file.
         return value;
       },
 
+      /*
+       * Calls this.getDelta and checks if the result is an improvement,
+       * regression, or zero.
+       */
+      getDeltaClassName: function(bot, test) {
+        // Passes in true; arbitrary choice since either true, false, or any
+        // other option would still result in the same positive or negative
+        // result.
+        var delta = this.getDelta(bot, test, 'true');
+        delta = parseInt(delta, 10);
+        if (delta < 0) {
+          return 'improvement';
+        } else if (delta > 0) {
+          return 'regression';
+        }
+        return 'zero';
+      },
+
       /**
        * Computes the abs/relative difference for the specified test.
        */
-      getDifference: function(bot, test, abs) {
+      getDelta: function(bot, test, abs) {
         if (this.tableConfig.revisions.length === 2) {
-          var revA = this.tableConfig.revisions[0];
-          var revB = this.tableConfig.revisions[1];
+          var revA = this.tableConfig.revisions[1];
+          var revB = this.tableConfig.revisions[0];
           if (abs === 'true') {
             var difference = this.tableConfig.values[revB][bot][test] -
                              this.tableConfig.values[revA][bot][test];
