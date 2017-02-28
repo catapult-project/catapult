@@ -26,7 +26,8 @@ class DumpsysPowerMonitor(android_power_monitor_base.AndroidPowerMonitorBase):
     self._platform = platform_backend
 
   def CanMonitorPower(self):
-    result = self._platform.RunCommand('dumpsys batterystats -c')
+    result = self._platform.device.RunShellCommand(
+        ['dumpsys', 'batterystats', '-c'], check_return=True)
     DUMP_VERSION_INDEX = 0
     # Dumpsys power data is present in dumpsys versions 8 and 9
     # which is found on L+ devices.
