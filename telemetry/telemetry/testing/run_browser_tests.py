@@ -17,25 +17,23 @@ from telemetry.testing import serially_executed_browser_test_case
 import typ
 from typ import arg_parser
 
-DEFAULT_LOG_FORMAT = (
-  '(%(levelname)s) %(asctime)s %(module)s.%(funcName)s:%(lineno)d  '
-  '%(message)s')
-
-
 TEST_SUFFIXES = ['*_test.py', '*_tests.py', '*_unittest.py', '*_unittests.py']
 
 
-def ProcessCommandLineOptions(test_class, default_chrome_root, args):
+def ProcessCommandLineOptions(test_class, typ_options, args):
   options = browser_options.BrowserFinderOptions()
   options.browser_type = 'any'
   parser = options.CreateParser(test_class.__doc__)
   test_class.AddCommandlineArgs(parser)
   # Set the default chrome root variable. This is required for the
   # Android browser finder to function properly.
-  if default_chrome_root:
-    parser.set_defaults(chrome_root=default_chrome_root)
+  if typ_options.default_chrome_root:
+    parser.set_defaults(chrome_root=typ_options.default_chrome_root)
   finder_options, positional_args = parser.parse_args(args)
   finder_options.positional_args = positional_args
+  # Typ parses the "verbose", or "-v", command line arguments which
+  # are supposed to control logging verbosity. Carry them over.
+  finder_options.verbosity = typ_options.verbose
   return finder_options
 
 
@@ -270,7 +268,7 @@ def RunTests(args):
   for c in options.client_configs:
     context.client_configs.append(c)
   context.finder_options = ProcessCommandLineOptions(
-      test_class, options.default_chrome_root, extra_args)
+      test_class, options, extra_args)
   context.test_class = test_class
   test_times = None
   if options.read_abbreviated_json_results_from:

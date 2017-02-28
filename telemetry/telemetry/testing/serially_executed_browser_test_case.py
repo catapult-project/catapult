@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import inspect
+import logging
 import re
 import unittest
 
@@ -10,6 +11,11 @@ from py_utils import cloud_storage
 from telemetry.internal.browser import browser_finder
 from telemetry.testing import browser_test_context
 from telemetry.util import wpr_modes
+
+
+DEFAULT_LOG_FORMAT = (
+  '(%(levelname)s) %(asctime)s %(module)s.%(funcName)s:%(lineno)d  '
+  '%(message)s')
 
 
 class SeriallyExecutedBrowserTestCase(unittest.TestCase):
@@ -35,7 +41,19 @@ class SeriallyExecutedBrowserTestCase(unittest.TestCase):
     This is guaranteed to be called only once for all the tests before the test
     suite runs.
     """
-    cls._finder_options = browser_test_context.GetCopy().finder_options
+    finder_options = browser_test_context.GetCopy().finder_options
+    cls._finder_options = finder_options
+
+    # Set up logging based on the verbosity passed from the parent to
+    # the child process.
+    if finder_options.verbosity >= 2:
+      logging.getLogger().setLevel(logging.DEBUG)
+    elif finder_options.verbosity:
+      logging.getLogger().setLevel(logging.INFO)
+    else:
+      logging.getLogger().setLevel(logging.WARNING)
+    logging.basicConfig(format=DEFAULT_LOG_FORMAT)
+
     cls.platform = None
     cls.browser = None
     cls._browser_to_create = None
