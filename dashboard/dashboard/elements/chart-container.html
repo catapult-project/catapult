@@ -647,20 +647,29 @@ triaging functionality in the chart.
         /**
          * Sends a request for graph JSON.
          *
-         * @param {Object} testPathDict Dictionary of test path to list of
-         *     selected series.
+         * @param {Object} testPathDictOrList Dictionary of test path to list of
+         *     selected series, or flat list of test paths.
          * @return {boolean} isSelected Whether this request is for selected
          *     or unselected series.
          */
-        sendGraphJsonRequest: function(testPathDict, isSelected) {
+        sendGraphJsonRequest: function(testPathDictOrList, isSelected) {
           var params = JSON.parse(JSON.stringify(this.graphParams));
-          params['test_path_dict'] = testPathDict;
+
+          if (testPathDictOrList instanceof Array) {
+            var testPaths = testPathDictOrList;
+            params.test_path_list = testPathDictOrList;
+          } else {
+            var testPaths = Object.keys(testPathDictOrList);
+            params.test_path_dict = testPathDictOrList;
+          }
+
+          // TODO(eakuefner): Figure out how to remove this parameter since in
+          // list mode we only need it for the _MAX_UNSELECTED_TESTS hack.
           if (isSelected) {
             params['is_selected'] = true;
           }
 
-          this.updateSeriesGroupLoadingCounter(
-              Object.keys(testPathDict), true);
+          this.updateSeriesGroupLoadingCounter(testPaths, true);
 
           var req = simple_xhr.send(
               '/graph_json',
@@ -675,7 +684,7 @@ triaging functionality in the chart.
                 }
 
                 this.updateSeriesGroupLoadingCounter(
-                    Object.keys(testPathDict), false);
+                    testPaths, false);
                 this.$['loading-div'].style.display = 'none';
               }.bind(this),
               function(error) {
@@ -685,7 +694,7 @@ triaging functionality in the chart.
                   console.warn(error);
                 }
                 this.updateSeriesGroupLoadingCounter(
-                    Object.keys(testPathDict), false);
+                    testPaths, false);
                 this.$['loading-div'].style.display = 'none';
               }.bind(this)
           );
