@@ -16,7 +16,7 @@ class LoadMediaActionTest(tab_test_case.TabTestCase):
     self.Navigate('video_test.html')
 
   def eventFired(self, selector, event):
-    return self._tab.EvaluateJavaScript2(
+    return self._tab.EvaluateJavaScript(
         'window.__hasEventCompleted({{ selector }}, {{ event }});',
         selector=selector, event=event)
 

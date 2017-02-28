@@ -66,11 +66,11 @@ class WebContents(object):
     """Waits for the document to finish loading.
 
     Raises:
-      exceptions.Error: See WaitForJavaScriptCondition2() for a detailed list
+      exceptions.Error: See WaitForJavaScriptCondition() for a detailed list
       of possible exceptions.
     """
 
-    self.WaitForJavaScriptCondition2(
+    self.WaitForJavaScriptCondition(
         'document.readyState == "complete"', timeout=timeout)
 
   def WaitForDocumentReadyStateToBeInteractiveOrBetter(self,
@@ -78,10 +78,10 @@ class WebContents(object):
     """Waits for the document to be interactive.
 
     Raises:
-      exceptions.Error: See WaitForJavaScriptCondition2() for a detailed list
+      exceptions.Error: See WaitForJavaScriptCondition() for a detailed list
       of possible exceptions.
     """
-    self.WaitForJavaScriptCondition2(
+    self.WaitForJavaScriptCondition(
         'document.readyState == "interactive" || '
         'document.readyState == "complete"', timeout=timeout)
 
@@ -90,13 +90,13 @@ class WebContents(object):
     """Waits for a frame to be displayed before returning.
 
     Raises:
-      exceptions.Error: See WaitForJavaScriptCondition2() for a detailed list
+      exceptions.Error: See WaitForJavaScriptCondition() for a detailed list
       of possible exceptions.
     """
     # Generate a new id for each call of this function to ensure that we track
     # each request to wait seperately.
     self._wait_for_frame_id += 1
-    self.WaitForJavaScriptCondition2(
+    self.WaitForJavaScriptCondition(
         '{{ @script }}; window.__telemetry_testHasFramePassed({{ frame_id }})',
         script=self._wait_for_frame_js,
         frame_id=str(self._wait_for_frame_id),  # Place id as a str.
@@ -109,14 +109,14 @@ class WebContents(object):
       True if 2 seconds have passed since last resource received, false
       otherwise.
     Raises:
-      exceptions.Error: See EvaluateJavaScript2() for a detailed list of
+      exceptions.Error: See EvaluateJavaScript() for a detailed list of
       possible exceptions.
     """
     # Inclusion of the script that provides
     # window.__telemetry_testHasReachedNetworkQuiescence()
     # is idempotent, it's run on every call because WebContents doesn't track
     # page loads and we need to execute anew for every newly loaded page.
-    return self.EvaluateJavaScript2(
+    return self.EvaluateJavaScript(
         '{{ @script }}; window.__telemetry_testHasReachedNetworkQuiescence()',
         script=self._quiescence_js)
 
@@ -258,8 +258,8 @@ class WebContents(object):
     """
     if not self.IsAlive():
       raise exceptions.DevtoolsTargetCrashException
-    self.ExecuteJavaScript2('window.chrome && chrome.benchmarking &&'
-                            'chrome.benchmarking.closeConnections()')
+    self.ExecuteJavaScript('window.chrome && chrome.benchmarking &&'
+                           'chrome.benchmarking.closeConnections()')
 
   def SynthesizeScrollGesture(self, x=100, y=800, xDistance=0, yDistance=-500,
                               xOverscroll=None, yOverscroll=None,

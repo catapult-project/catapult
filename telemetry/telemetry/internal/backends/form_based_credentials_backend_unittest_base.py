@@ -30,29 +30,29 @@ class FormBasedCredentialsBackendUnitTestBase(unittest.TestCase):
 
     tab.ExpectCall('Navigate', login_page_url)
     tab.ExpectCall(
-        'EvaluateJavaScript2', already_logged_in_js).WillReturn(False)
+        'EvaluateJavaScript', already_logged_in_js).WillReturn(False)
     tab.ExpectCall('WaitForDocumentReadyStateToBeInteractiveOrBetter')
 
     ar.ExpectCall(
-        'WaitForJavaScriptCondition2',
+        'WaitForJavaScriptCondition',
         '(document.querySelector({{ form_id }}) !== null) || ({{ @code }})')
     ar.ExpectCall('WaitForNavigate')
 
     def VerifyEmail(js):
       assert '{{ selector }}' in js
       assert '{{ username }}' in js
-    tab.ExpectCall('ExecuteJavaScript2', _).WhenCalled(VerifyEmail)
+    tab.ExpectCall('ExecuteJavaScript', _).WhenCalled(VerifyEmail)
 
     def VerifyPw(js):
       assert '{{ selector }}' in js
       assert '{{ password }}' in js
-    tab.ExpectCall('ExecuteJavaScript2', _).WhenCalled(VerifyPw)
+    tab.ExpectCall('ExecuteJavaScript', _).WhenCalled(VerifyPw)
 
     def VerifySubmit(js):
       assert '.submit' in js or '.click' in js
-    tab.ExpectCall('ExecuteJavaScript2', _).WhenCalled(VerifySubmit)
+    tab.ExpectCall('ExecuteJavaScript', _).WhenCalled(VerifySubmit)
 
     # Checking for form still up.
-    tab.ExpectCall('EvaluateJavaScript2', _).WillReturn(False)
+    tab.ExpectCall('EvaluateJavaScript', _).WillReturn(False)
 
     backend.LoginNeeded(tab, ar, config)

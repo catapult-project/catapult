@@ -101,7 +101,7 @@ class CrOSLoginTest(cros_test_case.CrOSTestCase):
     with self._CreateBrowser(autotest_ext=True) as b:
       extension = self._GetAutotestExtension(b)
       try:
-        extension.ExecuteJavaScript2('chrome.autotestPrivate.logout();')
+        extension.ExecuteJavaScript('chrome.autotestPrivate.logout();')
       except exceptions.Error:
         pass
       py_utils.WaitFor(lambda: not self._IsCryptohomeMounted(), 20)
@@ -153,16 +153,16 @@ class CrOSScreenLockerTest(cros_test_case.CrOSTestCase):
     self.assertFalse(self._IsScreenLocked(browser))
 
     extension = self._GetAutotestExtension(browser)
-    self.assertTrue(extension.EvaluateJavaScript2(
+    self.assertTrue(extension.EvaluateJavaScript(
         "typeof chrome.autotestPrivate.lockScreen == 'function'"))
     logging.info('Locking screen')
-    extension.ExecuteJavaScript2('chrome.autotestPrivate.lockScreen();')
+    extension.ExecuteJavaScript('chrome.autotestPrivate.lockScreen();')
 
     logging.info('Waiting for the lock screen')
     def ScreenLocked():
       return (browser.oobe_exists and
-          browser.oobe.EvaluateJavaScript2("typeof Oobe == 'function'") and
-          browser.oobe.EvaluateJavaScript2(
+          browser.oobe.EvaluateJavaScript("typeof Oobe == 'function'") and
+          browser.oobe.EvaluateJavaScript(
               "typeof Oobe.authenticateForTesting == 'function'"))
     py_utils.WaitFor(ScreenLocked, 10)
     self.assertTrue(self._IsScreenLocked(browser))
@@ -170,11 +170,11 @@ class CrOSScreenLockerTest(cros_test_case.CrOSTestCase):
   def _AttemptUnlockBadPassword(self, browser):
     logging.info('Trying a bad password')
     def ErrorBubbleVisible():
-      return not browser.oobe.EvaluateJavaScript2(
+      return not browser.oobe.EvaluateJavaScript(
           "document.getElementById('bubble').hidden")
 
     self.assertFalse(ErrorBubbleVisible())
-    browser.oobe.ExecuteJavaScript2(
+    browser.oobe.ExecuteJavaScript(
         "Oobe.authenticateForTesting({{ username }}, 'bad');",
         username=self._username)
     py_utils.WaitFor(ErrorBubbleVisible, 10)
@@ -182,7 +182,7 @@ class CrOSScreenLockerTest(cros_test_case.CrOSTestCase):
 
   def _UnlockScreen(self, browser):
     logging.info('Unlocking')
-    browser.oobe.ExecuteJavaScript2(
+    browser.oobe.ExecuteJavaScript(
         'Oobe.authenticateForTesting({{ username }}, {{ password }});',
         username=self._username, password=self._password)
     py_utils.WaitFor(lambda: not browser.oobe_exists, 10)

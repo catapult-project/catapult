@@ -8,4 +8,4 @@ import os
 def InjectJavaScript(tab, jsFileName):
   with open(os.path.join(os.path.dirname(__file__), jsFileName)) as f:
     js = f.read()
-    tab.ExecuteJavaScript2(js)
+    tab.ExecuteJavaScript(js)

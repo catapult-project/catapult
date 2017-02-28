@@ -33,7 +33,7 @@ class LoopAction(media_action.MediaAction):
 
   def RunAction(self, tab):
     try:
-      tab.ExecuteJavaScript2(
+      tab.ExecuteJavaScript(
           'window.__loopMedia({{ selector }}, {{ loop_count }});',
           selector=self._selector, loop_count=self._loop_count)
       if self._timeout_in_seconds > 0:

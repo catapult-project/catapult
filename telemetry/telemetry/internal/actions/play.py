@@ -35,7 +35,7 @@ class PlayAction(media_action.MediaAction):
 
   def RunAction(self, tab):
     try:
-      tab.ExecuteJavaScript2(
+      tab.ExecuteJavaScript(
           'window.__playMedia({{ selector }});', selector=self._selector)
       # Check if we need to wait for 'playing' event to fire.
       if self._playing_event_timeout_in_seconds > 0:

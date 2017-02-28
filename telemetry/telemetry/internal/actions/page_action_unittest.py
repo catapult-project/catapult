@@ -12,7 +12,7 @@ class PageActionTest(tab_test_case.TabTestCase):
 
   def testEvaluateCallbackWithElement(self):
     self.Navigate('blank.html')
-    self._tab.action_runner.ExecuteJavaScript2('''
+    self._tab.action_runner.ExecuteJavaScript('''
         (function() {
            function createElement(id, textContent) {
              var el = document.createElement("div");

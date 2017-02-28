@@ -26,7 +26,7 @@ class LoadMediaAction(media_action.MediaAction):
 
   def RunAction(self, tab):
     try:
-      tab.ExecuteJavaScript2(
+      tab.ExecuteJavaScript(
           'window.__loadMediaAndAwait({{ selector }}, {{ event }});',
           selector=self._selector, event=self._event_to_await)
       if self._timeout_in_seconds > 0:

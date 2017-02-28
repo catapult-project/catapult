@@ -14,7 +14,7 @@ class MobileUserAgentTest(tab_test_case.TabTestCase):
 
   @decorators.Disabled('chromeos')  # crbug.com/483212
   def testUserAgent(self):
-    ua = self._tab.EvaluateJavaScript2('window.navigator.userAgent')
+    ua = self._tab.EvaluateJavaScript('window.navigator.userAgent')
     self.assertEquals(ua, user_agent.UA_TYPE_MAPPING['mobile'])
 
 class TabletUserAgentTest(tab_test_case.TabTestCase):
@@ -24,7 +24,7 @@ class TabletUserAgentTest(tab_test_case.TabTestCase):
 
   @decorators.Disabled('chromeos')  # crbug.com/483212
   def testUserAgent(self):
-    ua = self._tab.EvaluateJavaScript2('window.navigator.userAgent')
+    ua = self._tab.EvaluateJavaScript('window.navigator.userAgent')
     self.assertEquals(ua, user_agent.UA_TYPE_MAPPING['tablet'])
 
 class DesktopUserAgentTest(tab_test_case.TabTestCase):
@@ -34,5 +34,5 @@ class DesktopUserAgentTest(tab_test_case.TabTestCase):
 
   @decorators.Disabled('chromeos')  # crbug.com/483212
   def testUserAgent(self):
-    ua = self._tab.EvaluateJavaScript2('window.navigator.userAgent')
+    ua = self._tab.EvaluateJavaScript('window.navigator.userAgent')
     self.assertEquals(ua, user_agent.UA_TYPE_MAPPING['desktop'])

@@ -33,17 +33,17 @@ class SimpleBrowserTest(
   def JavascriptTest(self, file_path, num_1, num_2, expected_sum):
     url = self.UrlOfStaticFilePath(file_path)
     self.action_runner.Navigate(url)
-    actual_sum = self.action_runner.EvaluateJavaScript2(
+    actual_sum = self.action_runner.EvaluateJavaScript(
         '{{ num_1 }} + {{ num_2 }}', num_1=num_1, num_2=num_2)
     self.assertEquals(expected_sum, actual_sum)
 
   def TestClickablePage(self):
     url = self.UrlOfStaticFilePath('page_with_clickables.html')
     self.action_runner.Navigate(url)
-    self.action_runner.ExecuteJavaScript2('valueSettableByTest = 1997')
+    self.action_runner.ExecuteJavaScript('valueSettableByTest = 1997')
     self.action_runner.ClickElement(text='Click/tap me')
     self.assertEqual(
-        1997, self.action_runner.EvaluateJavaScript2('valueToTest'))
+        1997, self.action_runner.EvaluateJavaScript('valueToTest'))
 
   def TestAndroidUI(self):
     if self.platform.GetOSName() != 'android':
@@ -63,10 +63,10 @@ class SimpleBrowserTest(
     self.action_runner.ClickElement('#id-0')
     # Verify that the page's js is interactable
     self.action_runner.WaitForElement(text='Click/tap me')
-    self.action_runner.ExecuteJavaScript2('valueSettableByTest = 1997')
+    self.action_runner.ExecuteJavaScript('valueSettableByTest = 1997')
     self.action_runner.ClickElement(text='Click/tap me')
     self.assertEqual(
-        1997, self.action_runner.EvaluateJavaScript2('valueToTest'))
+        1997, self.action_runner.EvaluateJavaScript('valueToTest'))
 
 
 def load_tests(loader, tests, pattern):

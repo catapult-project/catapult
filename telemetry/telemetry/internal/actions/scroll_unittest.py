@@ -10,12 +10,12 @@ from telemetry.testing import tab_test_case
 class ScrollActionTest(tab_test_case.TabTestCase):
   def _MakePageVerticallyScrollable(self):
     # Make page taller than window so it's scrollable vertically.
-    self._tab.ExecuteJavaScript2('document.body.style.height ='
+    self._tab.ExecuteJavaScript('document.body.style.height ='
         '(3 * __GestureCommon_GetWindowHeight() + 1) + "px";')
 
   def _MakePageHorizontallyScrollable(self):
     # Make page wider than window so it's scrollable horizontally.
-    self._tab.ExecuteJavaScript2('document.body.style.width ='
+    self._tab.ExecuteJavaScript('document.body.style.width ='
         '(3 * __GestureCommon_GetWindowWidth() + 1) + "px";')
 
   def setUp(self):
@@ -27,12 +27,12 @@ class ScrollActionTest(tab_test_case.TabTestCase):
 
     self._MakePageVerticallyScrollable()
     self.assertEquals(
-        self._tab.EvaluateJavaScript2('document.scrollingElement.scrollTop'), 0)
+        self._tab.EvaluateJavaScript('document.scrollingElement.scrollTop'), 0)
 
     i = scroll.ScrollAction()
     i.WillRunAction(self._tab)
 
-    self._tab.ExecuteJavaScript2("""
+    self._tab.ExecuteJavaScript("""
         window.__scrollAction.beginMeasuringHook = function() {
             window.__didBeginMeasuring = true;
         };
@@ -41,10 +41,10 @@ class ScrollActionTest(tab_test_case.TabTestCase):
         };""")
     i.RunAction(self._tab)
 
-    self.assertTrue(self._tab.EvaluateJavaScript2('window.__didBeginMeasuring'))
-    self.assertTrue(self._tab.EvaluateJavaScript2('window.__didEndMeasuring'))
+    self.assertTrue(self._tab.EvaluateJavaScript('window.__didBeginMeasuring'))
+    self.assertTrue(self._tab.EvaluateJavaScript('window.__didEndMeasuring'))
 
-    scroll_position = self._tab.EvaluateJavaScript2(
+    scroll_position = self._tab.EvaluateJavaScript(
         'document.scrollingElement.scrollTop')
     self.assertTrue(scroll_position != 0,
                     msg='scroll_position=%d;' % (scroll_position))
@@ -61,11 +61,11 @@ class ScrollActionTest(tab_test_case.TabTestCase):
 
     self._MakePageVerticallyScrollable()
     self.assertEquals(
-        self._tab.EvaluateJavaScript2('document.scrollingElement.scrollTop'), 0)
+        self._tab.EvaluateJavaScript('document.scrollingElement.scrollTop'), 0)
 
     self._MakePageHorizontallyScrollable()
     self.assertEquals(
-        self._tab.EvaluateJavaScript2('document.scrollingElement.scrollLeft'),
+        self._tab.EvaluateJavaScript('document.scrollingElement.scrollLeft'),
         0)
 
     i = scroll.ScrollAction(direction='downright')
@@ -73,11 +73,11 @@ class ScrollActionTest(tab_test_case.TabTestCase):
 
     i.RunAction(self._tab)
 
-    viewport_top = self._tab.EvaluateJavaScript2(
+    viewport_top = self._tab.EvaluateJavaScript(
         'document.scrollingElement.scrollTop')
     self.assertTrue(viewport_top != 0, msg='viewport_top=%d;' % viewport_top)
 
-    viewport_left = self._tab.EvaluateJavaScript2(
+    viewport_left = self._tab.EvaluateJavaScript(
         'document.scrollingElement.scrollLeft')
     self.assertTrue(viewport_left != 0, msg='viewport_left=%d;' % viewport_left)
 
@@ -92,32 +92,32 @@ class ScrollActionTest(tab_test_case.TabTestCase):
     # result in a scroll location outside of the viewport bounds.
     self._MakePageVerticallyScrollable()
     self.assertEquals(
-        self._tab.EvaluateJavaScript2('document.scrollingElement.scrollTop'), 0)
+        self._tab.EvaluateJavaScript('document.scrollingElement.scrollTop'), 0)
 
     self._MakePageHorizontallyScrollable()
     self.assertEquals(
-        self._tab.EvaluateJavaScript2('document.scrollingElement.scrollLeft'),
+        self._tab.EvaluateJavaScript('document.scrollingElement.scrollLeft'),
         0)
 
-    self._tab.ExecuteJavaScript2("""
+    self._tab.ExecuteJavaScript("""
         window.scrollTo(__GestureCommon_GetWindowWidth(),
                         __GestureCommon_GetWindowHeight());""")
 
-    rect_top = int(self._tab.EvaluateJavaScript2(
+    rect_top = int(self._tab.EvaluateJavaScript(
         '__GestureCommon_GetBoundingVisibleRect(document.body).top'))
-    rect_height = int(self._tab.EvaluateJavaScript2(
+    rect_height = int(self._tab.EvaluateJavaScript(
         '__GestureCommon_GetBoundingVisibleRect(document.body).height'))
     rect_bottom = rect_top + rect_height
 
-    rect_left = int(self._tab.EvaluateJavaScript2(
+    rect_left = int(self._tab.EvaluateJavaScript(
         '__GestureCommon_GetBoundingVisibleRect(document.body).left'))
-    rect_width = int(self._tab.EvaluateJavaScript2(
+    rect_width = int(self._tab.EvaluateJavaScript(
         '__GestureCommon_GetBoundingVisibleRect(document.body).width'))
     rect_right = rect_left + rect_width
 
-    viewport_height = int(self._tab.EvaluateJavaScript2(
+    viewport_height = int(self._tab.EvaluateJavaScript(
         '__GestureCommon_GetWindowHeight()'))
-    viewport_width = int(self._tab.EvaluateJavaScript2(
+    viewport_width = int(self._tab.EvaluateJavaScript(
         '__GestureCommon_GetWindowWidth()'))
 
     self.assertTrue(rect_top >= 0,

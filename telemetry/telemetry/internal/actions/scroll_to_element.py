@@ -52,7 +52,7 @@ class ScrollToElementAction(page_action.PageAction):
     else:
       element = self._element_function
 
-    self._distance = tab.EvaluateJavaScript2('''
+    self._distance = tab.EvaluateJavaScript('''
         (function(elem){
           var rect = elem.getBoundingClientRect();
           if (rect.bottom < 0) {

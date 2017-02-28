@@ -13,7 +13,7 @@ class FormBasedCredentialsBackend(object):
     self._logged_in = False
 
   def IsAlreadyLoggedIn(self, tab):
-    return tab.EvaluateJavaScript2(self.logged_in_javascript)
+    return tab.EvaluateJavaScript(self.logged_in_javascript)
 
   @property
   def credentials_type(self):
@@ -56,7 +56,7 @@ class FormBasedCredentialsBackend(object):
 
   def _WaitForLoginState(self, action_runner):
     """Waits until it can detect either the login form, or already logged in."""
-    action_runner.WaitForJavaScriptCondition2(
+    action_runner.WaitForJavaScriptCondition(
         '(document.querySelector({{ form_id }}) !== null) || ({{ @code }})',
         form_id='#' + self.login_form_id, code=self.logged_in_javascript,
         timeout=60)
@@ -64,18 +64,18 @@ class FormBasedCredentialsBackend(object):
   def _SubmitLoginFormAndWait(self, action_runner, tab, username, password):
     """Submits the login form and waits for the navigation."""
     tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
-    tab.ExecuteJavaScript2(
+    tab.ExecuteJavaScript(
         'document.querySelector({{ selector }}).value = {{ username }};',
         selector='#%s #%s' % (self.login_form_id, self.login_input_id),
         username=username)
-    tab.ExecuteJavaScript2(
+    tab.ExecuteJavaScript(
         'document.querySelector({{ selector }}).value = {{ password }};',
         selector='#%s #%s' % (self.login_form_id, self.password_input_id),
         password=password)
     if self.login_button_javascript:
-      tab.ExecuteJavaScript2(self.login_button_javascript)
+      tab.ExecuteJavaScript(self.login_button_javascript)
     else:
-      tab.ExecuteJavaScript2(
+      tab.ExecuteJavaScript(
           'document.getElementById({{ form_id }}).submit();',
           form_id=self.login_form_id)
     # Wait for the form element to disappear as confirmation of the navigation.

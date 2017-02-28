@@ -12,11 +12,11 @@ class ScrollToElementActionTest(tab_test_case.TabTestCase):
 
   def _MakePageVerticallyScrollable(self):
     # Make page taller than window so it's scrollable vertically.
-    self._tab.ExecuteJavaScript2('document.body.style.height ='
+    self._tab.ExecuteJavaScript('document.body.style.height ='
         '(6 * __GestureCommon_GetWindowHeight() + 1) + "px";')
 
   def _VisibleAreaOfElement(self, selector='#element'):
-    return self._tab.EvaluateJavaScript2("""
+    return self._tab.EvaluateJavaScript("""
       (function() {
         var element = document.querySelector({{ selector }});
         var rect = __GestureCommon_GetBoundingVisibleRect(element);
@@ -25,7 +25,7 @@ class ScrollToElementActionTest(tab_test_case.TabTestCase):
     """, selector=selector)
 
   def _InsertContainer(self, theid='container'):
-    self._tab.ExecuteJavaScript2("""
+    self._tab.ExecuteJavaScript("""
       var container = document.createElement("div")
       container.id = {{ theid }};
       container.style.position = 'relative';
@@ -34,7 +34,7 @@ class ScrollToElementActionTest(tab_test_case.TabTestCase):
     """, theid=theid)
 
   def _InsertElement(self, theid='element', container_selector='body'):
-    self._tab.ExecuteJavaScript2("""
+    self._tab.ExecuteJavaScript("""
       var container = document.querySelector({{ container_selector }});
       var element = document.createElement("div");
       element.id = {{ theid }};
@@ -55,7 +55,7 @@ class ScrollToElementActionTest(tab_test_case.TabTestCase):
     self._MakePageVerticallyScrollable()
     self._InsertElement()
     self.assertEquals(
-        self._tab.EvaluateJavaScript2('document.scrollingElement.scrollTop'), 0)
+        self._tab.EvaluateJavaScript('document.scrollingElement.scrollTop'), 0)
 
     # Before we scroll down the element should not be visible at all.
     self.assertEquals(self._VisibleAreaOfElement(), 0)
@@ -74,7 +74,7 @@ class ScrollToElementActionTest(tab_test_case.TabTestCase):
     self._InsertContainer()
     self._InsertElement(container_selector='#container')
     self.assertEquals(
-        self._tab.EvaluateJavaScript2('document.scrollingElement.scrollTop'), 0)
+        self._tab.EvaluateJavaScript('document.scrollingElement.scrollTop'), 0)
 
     # Before we scroll down the element should not be visible at all.
     self.assertEquals(self._VisibleAreaOfElement(), 0)

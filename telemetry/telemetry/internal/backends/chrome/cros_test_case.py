@@ -69,13 +69,13 @@ class CrOSTestCase(unittest.TestCase):
 
   def _GetLoginStatus(self, browser):
     extension = self._GetAutotestExtension(browser)
-    self.assertTrue(extension.EvaluateJavaScript2(
+    self.assertTrue(extension.EvaluateJavaScript(
         "typeof('chrome.autotestPrivate') != 'undefined'"))
-    extension.ExecuteJavaScript2('''
+    extension.ExecuteJavaScript('''
         window.__login_status = null;
         chrome.autotestPrivate.loginStatus(function(s) {
           window.__login_status = s;
         });
     ''')
-    return extension.WaitForJavaScriptCondition2(
+    return extension.WaitForJavaScriptCondition(
         'window.__login_status', timeout=10)

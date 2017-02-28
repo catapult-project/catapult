@@ -181,7 +181,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
         return False
       for extension_object in extension_objects:
         try:
-          res = extension_object.EvaluateJavaScript2("""
+          res = extension_object.EvaluateJavaScript("""
               document.URL.lastIndexOf({{ url }}, 0) == 0 &&
               (document.readyState == 'complete' ||
                document.readyState == 'interactive')
@@ -197,7 +197,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
         # version before launch, so for now we use a generic workaround to
         # check for an extension binding bug in old versions of Chrome.
         # See crbug.com/263162 for details.
-        if res and extension_object.EvaluateJavaScript2(
+        if res and extension_object.EvaluateJavaScript(
             'chrome.runtime == null'):
           extension_object.Reload()
         if not res:

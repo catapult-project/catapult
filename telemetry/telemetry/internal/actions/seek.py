@@ -40,7 +40,7 @@ class SeekAction(media_action.MediaAction):
 
   def RunAction(self, tab):
     try:
-      tab.ExecuteJavaScript2(
+      tab.ExecuteJavaScript(
           'window.__seekMedia('
               '{{ selector }}, {{ seconds }}, {{ log_time }}, {{ label}});',
           selector=self._selector,

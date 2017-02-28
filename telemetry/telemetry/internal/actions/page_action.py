@@ -121,10 +121,10 @@ def EvaluateCallbackWithElement(
       info_msg=info_msg)
 
   if wait:
-    tab.WaitForJavaScriptCondition2(code, timeout=timeout_in_seconds)
+    tab.WaitForJavaScriptCondition(code, timeout=timeout_in_seconds)
     return True
   else:
-    return tab.EvaluateJavaScript2(code)
+    return tab.EvaluateJavaScript(code)
 
 
 @decorators.Cache
@@ -132,13 +132,13 @@ def IsGestureSourceTypeSupported(tab, gesture_source_type):
   # TODO(dominikg): remove once support for
   #                 'chrome.gpuBenchmarking.gestureSourceTypeSupported' has
   #                 been rolled into reference build.
-  if tab.EvaluateJavaScript2("""
+  if tab.EvaluateJavaScript("""
       typeof chrome.gpuBenchmarking.gestureSourceTypeSupported ===
           'undefined'"""):
     return (tab.browser.platform.GetOSName() != 'mac' or
             gesture_source_type.lower() != 'touch')
 
-  return tab.EvaluateJavaScript2("""
+  return tab.EvaluateJavaScript("""
       chrome.gpuBenchmarking.gestureSourceTypeSupported(
           chrome.gpuBenchmarking.{{ @gesture_source_type }}_INPUT)""",
       gesture_source_type=gesture_source_type.upper())

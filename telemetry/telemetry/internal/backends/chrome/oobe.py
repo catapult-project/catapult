@@ -20,7 +20,7 @@ class Oobe(web_contents.WebContents):
     logging.debug('%d contexts in Gaia page' % max_context_id)
     for gaia_iframe_context in range(max_context_id + 1):
       try:
-        if self.EvaluateJavaScript2(
+        if self.EvaluateJavaScript(
             "document.readyState == 'complete' && "
             "document.getElementById('Email') != null",
             context_id=gaia_iframe_context):
@@ -37,9 +37,9 @@ class Oobe(web_contents.WebContents):
 
   def _ExecuteOobeApi(self, api, *args):
     logging.info('Invoking %s' % api)
-    self.WaitForJavaScriptCondition2("typeof Oobe == 'function'", timeout=120)
+    self.WaitForJavaScriptCondition("typeof Oobe == 'function'", timeout=120)
 
-    if self.EvaluateJavaScript2(
+    if self.EvaluateJavaScript(
         "typeof {{ @api }} == 'undefined'", api=api):
       raise exceptions.LoginException('%s js api missing' % api)
 
@@ -47,7 +47,7 @@ class Oobe(web_contents.WebContents):
     #   |api|:    'doLogin'
     #   |args|:   ['username', 'pass', True]
     #   Executes: 'doLogin("username", "pass", true)'
-    self.ExecuteJavaScript2('{{ @f }}({{ *args }})', f=api, args=args)
+    self.ExecuteJavaScript('{{ @f }}({{ *args }})', f=api, args=args)
 
   def NavigateGuestLogin(self):
     """Logs in as guest."""
@@ -72,7 +72,7 @@ class Oobe(web_contents.WebContents):
     self._NavigateGaiaLogin(username, password, enterprise_enroll)
 
     if enterprise_enroll:
-      self.WaitForJavaScriptCondition2(
+      self.WaitForJavaScriptCondition(
           'Oobe.isEnrollmentSuccessfulForTest()', timeout=30)
       self._ExecuteOobeApi('Oobe.enterpriseEnrollmentDone')
 
@@ -94,7 +94,7 @@ class Oobe(web_contents.WebContents):
 
     if add_user_for_testing:
       self._ExecuteOobeApi('Oobe.showAddUserForTesting')
-    self.ExecuteJavaScript2("""
+    self.ExecuteJavaScript("""
         document.getElementById('Email').value= {{ username }};
         document.getElementById('Passwd').value= {{ password }};
         document.getElementById('signIn').click();""",
@@ -112,7 +112,7 @@ class Oobe(web_contents.WebContents):
     self._WaitForField(field)
     self._WaitForField(next_field)
     gaia_webview_context = self._GaiaWebviewContext()
-    gaia_webview_context.EvaluateJavaScript2("""
+    gaia_webview_context.EvaluateJavaScript("""
        document.getElementById({{ field }}).value= {{ value }};
        document.getElementById({{ next_field }}).click()""",
        field=field, value=value, next_field=next_field)
@@ -120,6 +120,6 @@ class Oobe(web_contents.WebContents):
   def _WaitForField(self, field):
     gaia_webview_context = py_utils.WaitFor(self._GaiaWebviewContext, 5)
     py_utils.WaitFor(gaia_webview_context.HasReachedQuiescence, 20)
-    gaia_webview_context.WaitForJavaScriptCondition2(
+    gaia_webview_context.WaitForJavaScriptCondition(
         "document.getElementById({{ field }}) != null",
         field=field, timeout=20)

@@ -35,11 +35,11 @@ class MediaAction(page_action.PageAction):
         timeout=timeout_in_seconds)
 
   def HasEventCompletedOrError(self, tab, selector, event_name):
-    if tab.EvaluateJavaScript2(
+    if tab.EvaluateJavaScript(
         'window.__hasEventCompleted({{ selector }}, {{ event_name }});',
         selector=selector, event_name=event_name):
       return True
-    error = tab.EvaluateJavaScript2('window.__error')
+    error = tab.EvaluateJavaScript('window.__error')
     if error:
       logging.error('Detected media error while waiting for %s: %s', event_name,
                     error)

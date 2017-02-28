@@ -70,7 +70,7 @@ class ActionRunner(object):
     e.g:
       with action_runner.CreateInteraction('Animation-1'):
         action_runner.TapElement(...)
-        action_runner.WaitForJavaScriptCondition2(...)
+        action_runner.WaitForJavaScriptCondition(...)
 
     Args:
       label: A label for this particular interaction. This can be any
@@ -178,7 +178,7 @@ class ActionRunner(object):
 
   def NavigateBack(self):
     """ Navigate back to the previous page."""
-    self.ExecuteJavaScript2('window.history.back()')
+    self.ExecuteJavaScript('window.history.back()')
 
   def WaitForNavigate(self, timeout_in_seconds_seconds=60):
     start_time = time.time()
@@ -192,7 +192,7 @@ class ActionRunner(object):
 
   def ReloadPage(self):
     """Reloads the page."""
-    self._tab.ExecuteJavaScript2('window.location.reload()')
+    self._tab.ExecuteJavaScript('window.location.reload()')
     self._tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
 
   def ExecuteJavaScript(self, *args, **kwargs):
@@ -859,7 +859,7 @@ class Interaction(object):
   def Begin(self):
     assert not self._started
     self._started = True
-    self._action_runner.ExecuteJavaScript2(
+    self._action_runner.ExecuteJavaScript(
         'console.time({{ marker }});',
         marker=timeline_interaction_record.GetJavaScriptMarker(
             self._label, self._flags))
@@ -867,7 +867,7 @@ class Interaction(object):
   def End(self):
     assert self._started
     self._started = False
-    self._action_runner.ExecuteJavaScript2(
+    self._action_runner.ExecuteJavaScript(
         'console.timeEnd({{ marker }});',
         marker=timeline_interaction_record.GetJavaScriptMarker(
             self._label, self._flags))

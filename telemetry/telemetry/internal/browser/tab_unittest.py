@@ -19,7 +19,7 @@ import py_utils
 
 
 def _IsDocumentVisible(tab):
-  return not tab.EvaluateJavaScript2('document.hidden || document.webkitHidden')
+  return not tab.EvaluateJavaScript('document.hidden || document.webkitHidden')
 
 
 class FakePlatformBackend(object):
@@ -68,7 +68,7 @@ class TabTest(tab_test_case.TabTestCase):
                                                  timeout=30))
 
   def testTimeoutExceptionIncludeConsoleMessage(self):
-    self._tab.EvaluateJavaScript2("""
+    self._tab.EvaluateJavaScript("""
         window.__set_timeout_called = false;
         function buggyReference() {
           window.__set_timeout_called = true;
@@ -76,10 +76,10 @@ class TabTest(tab_test_case.TabTestCase):
              window.__one = 1;
         }
         setTimeout(buggyReference, 200);""")
-    self._tab.WaitForJavaScriptCondition2(
+    self._tab.WaitForJavaScriptCondition(
         'window.__set_timeout_called === true', timeout=5)
     with self.assertRaises(py_utils.TimeoutException) as context:
-      self._tab.WaitForJavaScriptCondition2(
+      self._tab.WaitForJavaScriptCondition(
           'window.__one === 1', timeout=1)
       self.assertIn(
         ("(error) :5: Uncaught TypeError: Cannot read property 'not_defined' "
@@ -156,10 +156,10 @@ class TabTest(tab_test_case.TabTestCase):
     config.chrome_trace_config.SetLowOverheadFilter()
     config.enable_chrome_trace = True
     self._browser.platform.tracing_controller.StartTracing(config)
-    first_tab.ExecuteJavaScript2('console.time("first-tab-marker");')
-    first_tab.ExecuteJavaScript2('console.timeEnd("first-tab-marker");')
-    second_tab.ExecuteJavaScript2('console.time("second-tab-marker");')
-    second_tab.ExecuteJavaScript2('console.timeEnd("second-tab-marker");')
+    first_tab.ExecuteJavaScript('console.time("first-tab-marker");')
+    first_tab.ExecuteJavaScript('console.timeEnd("first-tab-marker");')
+    second_tab.ExecuteJavaScript('console.time("second-tab-marker");')
+    second_tab.ExecuteJavaScript('console.timeEnd("second-tab-marker");')
     trace_data = self._browser.platform.tracing_controller.StopTracing()
     timeline_model = model.TimelineModel(trace_data)
 
@@ -211,7 +211,7 @@ class GpuTabTest(tab_test_case.TabTestCase):
       return
 
     self.Navigate('green_rect.html')
-    pixel_ratio = self._tab.EvaluateJavaScript2('window.devicePixelRatio || 1')
+    pixel_ratio = self._tab.EvaluateJavaScript('window.devicePixelRatio || 1')
 
     screenshot = self._tab.Screenshot(5)
     assert screenshot is not None

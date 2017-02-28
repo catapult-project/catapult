@@ -27,11 +27,11 @@ class TapAction(page_action.PageAction):
     utils.InjectJavaScript(tab, 'tap.js')
 
     # Fail if browser doesn't support synthetic tap gestures.
-    if not tab.EvaluateJavaScript2('window.__TapAction_SupportedByBrowser()'):
+    if not tab.EvaluateJavaScript('window.__TapAction_SupportedByBrowser()'):
       raise page_action.PageActionNotSupported(
           'Synthetic tap not supported for this browser')
 
-    tab.ExecuteJavaScript2("""
+    tab.ExecuteJavaScript("""
         window.__tapActionDone = false;
         window.__tapAction = new __TapAction(function() {
           window.__tapActionDone = true;
@@ -69,6 +69,6 @@ class TapAction(page_action.PageAction):
     # The second disjunct handles the case where the tap action leads to an
     # immediate navigation (in which case the expression below might already be
     # evaluated on the new page).
-    tab.WaitForJavaScriptCondition2(
+    tab.WaitForJavaScriptCondition(
         'window.__tapActionDone || window.__tapAction === undefined',
         timeout=60)

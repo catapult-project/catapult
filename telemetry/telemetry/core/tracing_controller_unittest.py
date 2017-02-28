@@ -72,8 +72,8 @@ class TracingControllerTest(tab_test_case.TabTestCase):
     tab = self._browser.tabs[0]
     def InjectMarker(index):
       marker = 'test-marker-%d' % index
-      tab.EvaluateJavaScript2('console.time({{ marker }});', marker=marker)
-      tab.EvaluateJavaScript2('console.timeEnd({{ marker }});', marker=marker)
+      tab.EvaluateJavaScript('console.time({{ marker }});', marker=marker)
+      tab.EvaluateJavaScript('console.timeEnd({{ marker }});', marker=marker)
 
     # Set up the tracing config.
     tracing_controller = self._browser.platform.tracing_controller

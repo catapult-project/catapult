@@ -18,7 +18,7 @@ class MemoryCacheHTTPServerTest(tab_test_case.TabTestCase):
 
   def testBasicHostingAndRangeRequests(self):
     self.Navigate('blank.html')
-    x = self._tab.EvaluateJavaScript2('document.body.innerHTML')
+    x = self._tab.EvaluateJavaScript('document.body.innerHTML')
     x = x.strip()
 
     # Test basic html hosting.
@@ -44,7 +44,7 @@ class MemoryCacheHTTPServerTest(tab_test_case.TabTestCase):
 
   def CheckContentHeaders(self, content_range_request, content_range_response,
                           content_length_response):
-    self._tab.ExecuteJavaScript2("""
+    self._tab.ExecuteJavaScript("""
         var loaded = false;
         var xmlhttp = new XMLHttpRequest();
         xmlhttp.onload = function(e) {
@@ -57,13 +57,13 @@ class MemoryCacheHTTPServerTest(tab_test_case.TabTestCase):
         """,
         url=self.UrlOfUnittestFile(self._test_filename),
         range='bytes=%s' % content_range_request)
-    self._tab.WaitForJavaScriptCondition2('loaded', timeout=5)
-    content_range = self._tab.EvaluateJavaScript2(
+    self._tab.WaitForJavaScriptCondition('loaded', timeout=5)
+    content_range = self._tab.EvaluateJavaScript(
         'xmlhttp.getResponseHeader("Content-Range");')
     content_range_response = 'bytes %s/%d' % (content_range_response,
                                               self._test_file_size)
     self.assertEquals(content_range, content_range_response)
-    content_length = self._tab.EvaluateJavaScript2(
+    content_length = self._tab.EvaluateJavaScript(
         'xmlhttp.getResponseHeader("Content-Length");')
     self.assertEquals(content_length, str(content_length_response))
 

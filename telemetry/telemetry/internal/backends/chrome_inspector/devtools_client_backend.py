@@ -351,7 +351,7 @@ class DevToolsClientBackend(object):
           continue
         context_id = context['id']
         backend = context_map.GetInspectorBackend(context_id)
-        backend.EvaluateJavaScript2("""
+        backend.EvaluateJavaScript("""
             console.time({{ backend_id }});
             console.timeEnd({{ backend_id }});
             console.time.toString().indexOf('[native code]') != -1;

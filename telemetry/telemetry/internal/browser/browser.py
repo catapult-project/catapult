@@ -98,7 +98,7 @@ class Browser(app.App):
       # which means that tabs that have never been in the foreground return
       # document.hidden as false; however in current code the Android foreground
       # tab is always tab 0, which will be the first one that isn't hidden
-      if self._tabs[i].EvaluateJavaScript2('!document.hidden'):
+      if self._tabs[i].EvaluateJavaScript('!document.hidden'):
         return self._tabs[i]
     raise Exception("No foreground tab found")
 

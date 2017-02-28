@@ -32,9 +32,9 @@ class MarkTelemetryInternal(object):
 
   def __enter__(self):
     marker = 'telemetry.internal.%s.start' % self.identifier
-    self.browser.tabs[0].ExecuteJavaScript2(
+    self.browser.tabs[0].ExecuteJavaScript(
         "console.time({{ marker }});", marker=marker)
-    self.browser.tabs[0].ExecuteJavaScript2(
+    self.browser.tabs[0].ExecuteJavaScript(
         "console.timeEnd({{ marker }});", marker=marker)
     return self
 
@@ -43,9 +43,9 @@ class MarkTelemetryInternal(object):
       return True
 
     marker = 'telemetry.internal.%s.end' % self.identifier
-    self.browser.tabs[0].ExecuteJavaScript2(
+    self.browser.tabs[0].ExecuteJavaScript(
         "console.time({{ marker }});", marker=marker)
-    self.browser.tabs[0].ExecuteJavaScript2(
+    self.browser.tabs[0].ExecuteJavaScript(
         "console.timeEnd({{ marker }});", marker=marker)
     return True
 

@@ -12,7 +12,7 @@ class MouseClickActionTest(tab_test_case.TabTestCase):
   def testMouseClickAction(self):
     self.Navigate('blank.html')
 
-    self._tab.ExecuteJavaScript2("""
+    self._tab.ExecuteJavaScript("""
         (function() {
            function createElement(id, textContent) {
              var el = document.createElement("div");
@@ -26,13 +26,13 @@ class MouseClickActionTest(tab_test_case.TabTestCase):
     i = mouse_click.MouseClickAction(selector='#test-1')
     i.WillRunAction(self._tab)
     i.RunAction(self._tab)
-    self.assertTrue(self._tab.EvaluateJavaScript2(
+    self.assertTrue(self._tab.EvaluateJavaScript(
         'window.__mouseClickActionDone'))
 
   def testMouseClickActionOnNonExistingElement(self):
     self.Navigate('blank.html')
 
-    self._tab.ExecuteJavaScript2("""
+    self._tab.ExecuteJavaScript("""
         (function() {
            function createElement(id, textContent) {
              var el = document.createElement("div");

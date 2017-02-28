@@ -10,19 +10,19 @@ import py_utils
 
 class InspectorRuntimeTest(tab_test_case.TabTestCase):
   def testRuntimeEvaluateSimple(self):
-    res = self._tab.EvaluateJavaScript2('1+1')
+    res = self._tab.EvaluateJavaScript('1+1')
     assert res == 2
 
   def testRuntimeEvaluateThatFails(self):
     with self.assertRaises(exceptions.EvaluateException) as ex_context:
-      self._tab.EvaluateJavaScript2('var x = 1;\nfsdfsdfsf')
+      self._tab.EvaluateJavaScript('var x = 1;\nfsdfsdfsf')
     exception_message = str(ex_context.exception)
     self.assertIn('ReferenceError: fsdfsdfsf is not defined', exception_message)
 
   def testRuntimeEvaluateOfSomethingThatCantJSONize(self):
 
     def test():
-      self._tab.EvaluateJavaScript2("""
+      self._tab.EvaluateJavaScript("""
         var cur = {};
         var root = {next: cur};
         for (var i = 0; i < 1000; i++) {
@@ -34,7 +34,7 @@ class InspectorRuntimeTest(tab_test_case.TabTestCase):
     self.assertRaises(exceptions.EvaluateException, test)
 
   def testRuntimeExecuteOfSomethingThatCantJSONize(self):
-    self._tab.ExecuteJavaScript2('window')
+    self._tab.ExecuteJavaScript('window')
 
   def testIFrame(self):
     starting_contexts = self._tab.EnableAllContexts()
@@ -43,17 +43,17 @@ class InspectorRuntimeTest(tab_test_case.TabTestCase):
 
     # Access host page.
     test_defined_js = "typeof(testVar) != 'undefined'"
-    self._tab.WaitForJavaScriptCondition2(test_defined_js, timeout=10)
+    self._tab.WaitForJavaScriptCondition(test_defined_js, timeout=10)
 
     py_utils.WaitFor(lambda: self._tab.EnableAllContexts() != starting_contexts,
                  timeout=10)
 
-    self.assertEquals(self._tab.EvaluateJavaScript2('testVar'), 'host')
+    self.assertEquals(self._tab.EvaluateJavaScript('testVar'), 'host')
 
     def TestVarReady(context_id):
       """Returns True if the context and testVar are both ready."""
       try:
-        return self._tab.EvaluateJavaScript2(
+        return self._tab.EvaluateJavaScript(
             test_defined_js, context_id=context_id)
       except exceptions.EvaluateException:
         # This happens when the context is not ready.
@@ -63,7 +63,7 @@ class InspectorRuntimeTest(tab_test_case.TabTestCase):
       """Waits for testVar and the context to be ready, then returns the value
       of testVar."""
       py_utils.WaitFor(lambda: TestVarReady(context_id), timeout=10)
-      return self._tab.EvaluateJavaScript2('testVar', context_id=context_id)
+      return self._tab.EvaluateJavaScript('testVar', context_id=context_id)
 
     all_contexts = self._tab.EnableAllContexts()
     # Access parent page using EvaluateJavaScriptInContext.
@@ -78,5 +78,5 @@ class InspectorRuntimeTest(tab_test_case.TabTestCase):
 
     # Accessing a non-existent iframe throws an exception.
     self.assertRaises(exceptions.EvaluateException,
-        lambda: self._tab.EvaluateJavaScript2(
+        lambda: self._tab.EvaluateJavaScript(
             '1+1', context_id=all_contexts + 1))

@@ -134,7 +134,7 @@ class Tab(web_contents.WebContents):
       exceptions.DevtoolsTargetCrashException
     """
     screen_save = 'window.__telemetry_screen_%d' % int(color)
-    self.ExecuteJavaScript2("""
+    self.ExecuteJavaScript("""
         (function() {
           var screen = document.createElement('div');
           screen.style.background = {{ color }};
@@ -154,7 +154,7 @@ class Tab(web_contents.WebContents):
         """,
         color='rgba(%d, %d, %d, %d)' % (color.r, color.g, color.b, color.a),
         screen_save=screen_save)
-    self.WaitForJavaScriptCondition2(
+    self.WaitForJavaScriptCondition(
         '!!{{ @screen_save }}', screen_save=screen_save, timeout=5)
 
   def ClearHighlight(self, color):
@@ -167,7 +167,7 @@ class Tab(web_contents.WebContents):
       exceptions.DevtoolsTargetCrashException
     """
     screen_save = 'window.__telemetry_screen_%d' % int(color)
-    self.ExecuteJavaScript2("""
+    self.ExecuteJavaScript("""
         (function() {
           document.body.removeChild({{ @screen_save }});
           requestAnimationFrame(function() {
@@ -179,7 +179,7 @@ class Tab(web_contents.WebContents):
           });
         })();
         """, screen_save=screen_save)
-    self.WaitForJavaScriptCondition2(
+    self.WaitForJavaScriptCondition(
         '!{{ @screen_save }}', screen_save=screen_save, timeout=5)
 
   def StartVideoCapture(self, min_bitrate_mbps,
@@ -257,7 +257,7 @@ class Tab(web_contents.WebContents):
       errors.DeviceUnresponsiveError
     """
     self.browser.platform.FlushDnsCache()
-    self.ExecuteJavaScript2("""
+    self.ExecuteJavaScript("""
         if (window.chrome && chrome.benchmarking &&
             chrome.benchmarking.clearCache) {
           chrome.benchmarking.clearCache();

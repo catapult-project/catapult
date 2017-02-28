@@ -32,11 +32,11 @@ class PinchAction(page_action.PageAction):
     utils.InjectJavaScript(tab, 'pinch.js')
 
     # Fail if browser doesn't support synthetic pinch gestures.
-    if not tab.EvaluateJavaScript2('window.__PinchAction_SupportedByBrowser()'):
+    if not tab.EvaluateJavaScript('window.__PinchAction_SupportedByBrowser()'):
       raise page_action.PageActionNotSupported(
           'Synthetic pinch not supported for this browser')
 
-    tab.ExecuteJavaScript2("""
+    tab.ExecuteJavaScript("""
         window.__pinchActionDone = false;
         window.__pinchAction = new __PinchAction(function() {
           window.__pinchActionDone = true;
@@ -44,7 +44,7 @@ class PinchAction(page_action.PageAction):
 
   @staticmethod
   def _GetDefaultScaleFactorForPage(tab):
-    current_scale_factor = tab.EvaluateJavaScript2(
+    current_scale_factor = tab.EvaluateJavaScript(
         'window.outerWidth / window.innerWidth')
     return 3.0 / current_scale_factor
 
@@ -71,4 +71,4 @@ class PinchAction(page_action.PageAction):
     page_action.EvaluateCallbackWithElement(
         tab, code, selector=self._selector, text=self._text,
         element_function=self._element_function)
-    tab.WaitForJavaScriptCondition2('window.__pinchActionDone', timeout=60)
+    tab.WaitForJavaScriptCondition('window.__pinchActionDone', timeout=60)
