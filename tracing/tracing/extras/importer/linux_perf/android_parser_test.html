@@ -104,6 +104,9 @@ tr.b.unittest.testSuite(function() {
     var slice = thread.asyncSliceGroup.slices[0];
     assert.equal(slice.title, 'animator:childrenOutlineAlpha');
     assert.closeTo(118.169, slice.duration, 1e-5);
+
+    // no subslice events created
+    assert.equal(slice.subSlices.length, 0);
   });
 
   test('androidUserlandLegacyKernelImport', function() {

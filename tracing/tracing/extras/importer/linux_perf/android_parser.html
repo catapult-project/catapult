@@ -96,8 +96,6 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       slice.endThread = thread;
       slice.duration = ts - slice.start;
       slice.startThread.asyncSliceGroup.push(slice);
-      slice.subSlices = [new tr.model.AsyncSlice(slice.category,
-          slice.title, slice.colorId, slice.start, slice.args, slice.duration)];
       delete this.openAsyncSlices[key];
     },
 
