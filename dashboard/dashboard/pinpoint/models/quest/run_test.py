@@ -24,36 +24,42 @@ class RunTestError(Exception):
 class UnknownConfigError(RunTestError):
 
   def __init__(self, configuration):
-    super(UnknownConfigError, self).__init__()
     self.configuration = configuration
-
-  def __str__(self):
-    return 'There are no swarming bots corresponding to config "%s".' % (
+    super(UnknownConfigError, self).__init__(
+        'There are no swarming bots corresponding to config "%s".' %
         self.configuration)
+
+  def __reduce__(self):
+    # http://stackoverflow.com/a/36342588
+    return UnknownConfigError, (self.configuration,)
 
 
 class SwarmingTaskError(RunTestError):
 
   def __init__(self, task_id, state):
-    super(SwarmingTaskError, self).__init__()
     self.task_id = task_id
     self.state = state
+    super(SwarmingTaskError, self).__init__(
+        'The swarming task %s failed with state "%s".' %
+        (self.task_id, self.state))
 
-  def __str__(self):
-    return 'The swarming task %s failed with state "%s".' % (
-        self.task_id, self.state)
+  def __reduce__(self):
+    # http://stackoverflow.com/a/36342588
+    return SwarmingTaskError, (self.task_id, self.state)
 
 
 class SwarmingTestError(RunTestError):
 
   def __init__(self, task_id, exit_code):
-    super(SwarmingTestError, self).__init__()
     self.task_id = task_id
     self.exit_code = exit_code
+    super(SwarmingTestError, self).__init__(
+        'The swarming task %s failed. The test exited with code %s.' %
+        (self.task_id, self.exit_code))
 
-  def __str__(self):
-    return 'The swarming task %s failed. The test exited with code %s.' % (
-        self.task_id, self.exit_code)
+  def __reduce__(self):
+    # http://stackoverflow.com/a/36342588
+    return SwarmingTestError, (self.task_id, self.exit_code)
 
 
 class RunTest(quest.Quest):
@@ -144,7 +150,7 @@ class _RunTestExecution(execution_module.Execution):
         '${ISOLATED_OUTDIR}/chartjson-output.json',
     ]
 
-    dimensions = [{'key': 'pool', 'value': 'Chrome-perf'}]
+    dimensions = [{'key': 'pool', 'value': 'Chrome-perf-pinpoint'}]
     if self._bot_id:
       dimensions.append({'key': 'id', 'value': self._bot_id})
     else:

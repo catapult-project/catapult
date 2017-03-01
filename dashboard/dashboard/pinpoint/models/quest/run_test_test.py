@@ -31,7 +31,7 @@ class _RunTestTest(unittest.TestCase):
             'inputs_ref': {'isolated': 'input isolated hash'},
             'extra_args': _SWARMING_TASK_EXTRA_ARGS,
             'dimensions': [
-                {'key': 'pool', 'value': 'Chrome-perf'},
+                {'key': 'pool', 'value': 'Chrome-perf-pinpoint'},
                 {"key": "cores", "value": "8"},
                 {"key": "gpu", "value": "1002:6821"},
                 {"key": "os", "value": "Mac-10.11"},
@@ -55,7 +55,7 @@ class _RunTestTest(unittest.TestCase):
             'inputs_ref': {'isolated': 'input isolated hash'},
             'extra_args': _SWARMING_TASK_EXTRA_ARGS,
             'dimensions': [
-                {'key': 'pool', 'value': 'Chrome-perf'},
+                {'key': 'pool', 'value': 'Chrome-perf-pinpoint'},
                 {'key': 'id', 'value': 'bot id'},
             ],
             'execution_timeout_secs': '3600',
