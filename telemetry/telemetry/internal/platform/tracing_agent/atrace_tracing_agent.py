@@ -32,7 +32,7 @@ class AtraceTracingAgent(tracing_agent.TracingAgent):
     self._config = atrace_agent.AtraceConfig(
         config.atrace_config.categories,
         trace_buf_size=None, kfuncs=None, app_name=app_name,
-        compress_trace_data=True, boot=True, from_file=True,
+        compress_trace_data=True, from_file=True,
         device_serial_number=str(self._device), trace_time=None,
         target='android')
     return self._atrace_agent.StartAgentTracing(self._config, timeout)
