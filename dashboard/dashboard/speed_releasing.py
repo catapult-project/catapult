@@ -175,10 +175,10 @@ def _GetRow(bot, test, rev):
   test_path = bot + '/' + test
   test_key = utils.TestKey(test_path)
   row_key = utils.GetRowKey(test_key, rev)
-  if row_key.get():
-    return row_key.get().value
-  else:
-    return 0
+  row = row_key.get()
+  if row:
+    return row.value
+  return None
 
 def _CheckRevisions(rev_a, rev_b):
   """Checks to ensure the revisions are valid."""

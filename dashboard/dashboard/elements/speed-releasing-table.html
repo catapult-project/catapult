@@ -154,6 +154,9 @@ found in the LICENSE file.
        */
       getValue: function(rev, bot, test) {
         var value = this.tableConfig.values[rev][bot][test];
+        if (value === null || value === undefined) {
+          return 'n/a';
+        }
         var unit = this.tableConfig.units[test];
         if (tr.b.Unit.byName[unit]) {
           return (tr.b.Unit.byName[unit].format(value));
@@ -186,16 +189,24 @@ found in the LICENSE file.
         if (this.tableConfig.revisions.length === 2) {
           var revA = this.tableConfig.revisions[1];
           var revB = this.tableConfig.revisions[0];
+          var valueA = this.tableConfig.values[revA][bot][test];
+          var valueB = this.tableConfig.values[revB][bot][test];
+          if (valueA === null || valueA === undefined || valueB === null ||
+              valueB === undefined) {
+            return 'n/a';
+          }
           if (abs === 'true') {
-            var difference = this.tableConfig.values[revB][bot][test] -
-                             this.tableConfig.values[revA][bot][test];
+            var difference = valueB - valueA;
             var unit = this.tableConfig.units[test];
             if (tr.b.Unit.byName[unit])
               return (tr.b.Unit.byName[unit].format(difference));
             return difference;
           }
-          var relDiff = (this.tableConfig.values[revB][bot][test] /
-                        this.tableConfig.values[revA][bot][test]) - 1;
+          if (valueA === valueB) {
+            var relDiff = 0;
+          } else {
+            var relDiff = (valueB / valueA) - 1;
+          }
           return (tr.b.Unit.byName['normalizedPercentage'].format(relDiff));
         }
       },

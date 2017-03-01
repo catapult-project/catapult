@@ -30,16 +30,16 @@ tr.b.unittest.testSuite(function() {
         'test/test': 10001,
         'test/test1': 50001,
         'test2/test3': 20001,
-        'test2/test4': 40002,
-        'test2/test5': 40002,
+        'test2/test4': 0,
+        'test2/test5': null,  // null is returned from server if no value.
       },
 
       'master2/bot2':
       {
         'test/test': 30001,
-        'test/test1': 60001,
-        'test2/test3': 40001,
-        'test2/test4': 40002,
+        'test/test1': 62001,
+        'test2/test3': 40007,
+        'test2/test4': 41002,
         'test2/test5': 40002,
       }
     },
@@ -51,8 +51,7 @@ tr.b.unittest.testSuite(function() {
         'test/test': 10000,
         'test/test1': 50402,
         'test2/test3': 20002,
-        'test2/test4': 40002,
-        'test2/test5': 40002,
+        'test2/test4': 0,  // Removed test2/test5 to get the 'undefined'.
       },
 
       'master2/bot2':
