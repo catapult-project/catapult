@@ -104,6 +104,10 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     if self.browser_options.disable_default_apps:
       args.append('--disable-default-apps')
 
+    # Disable the search geolocation disclosure infobar, as it is only shown a
+    # small number of times to users and should not be part of perf comparisons.
+    args.append('--disable-search-geolocation-disclosure')
+
     if (self.browser_options.logging_verbosity ==
         self.browser_options.NON_VERBOSE_LOGGING):
       args.extend(['--enable-logging', '--v=0'])
