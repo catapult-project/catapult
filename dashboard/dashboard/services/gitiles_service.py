@@ -53,7 +53,8 @@ def CommitRange(repository, first_git_hash, last_git_hash,
     A list of dictionaries, one for each commit after the first commit up to
     and including the last commit. For each commit, its dictionary will
     contain information about the author and the comitter and the commit itself.
-    See gitiles_service_test.py for an example. The list is in ascending order.
+    See gitiles_service_test.py for an example. The list is in order from newest
+    to oldest.
 
   Raises:
     NotFoundError: The repository or a commit was not found in Gitiles.
