@@ -14,13 +14,15 @@ class AtraceTracingAgent(tracing_agent.TracingAgent):
     super(AtraceTracingAgent, self).__init__(platform_backend)
     self._device = platform_backend.device
     self._categories = None
-    self._atrace_agent = atrace_agent.AtraceAgent()
+    self._atrace_agent = atrace_agent.AtraceAgent(
+        platform_backend.device.build_version_sdk)
     self._config = None
 
   @classmethod
   def IsSupported(cls, platform_backend):
     return (platform_backend.GetOSName() == 'android' and
-        platform_backend.device > version_codes.JELLY_BEAN_MR1)
+        platform_backend.device.build_version_sdk >
+            version_codes.JELLY_BEAN_MR1)
 
   def StartAgentTracing(self, config, timeout):
     if not config.enable_atrace_trace:

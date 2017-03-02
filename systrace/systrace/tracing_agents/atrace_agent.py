@@ -10,11 +10,11 @@ import threading
 import zlib
 
 from devil.android import device_utils
+from devil.android.sdk import version_codes
 from py_trace_event import trace_time as trace_time_module
 from systrace import trace_result
 from systrace import tracing_agents
 from systrace import util
-
 
 # Text that ADB sends, but does not need to be displayed to the user.
 ADB_IGNORE_REGEXP = r'^capturing trace\.\.\. done|^capturing trace\.\.\.'
@@ -25,7 +25,7 @@ ATRACE_BASE_ARGS = ['atrace']
 # If a custom list of categories is not specified, traces will include
 # these categories (if available on the device).
 DEFAULT_CATEGORIES = 'sched,freq,gfx,view,dalvik,webview,'\
-                     'input,disk,am,wm,binder_driver'
+                     'input,disk,am,wm,rs,binder_driver'
 # The command to list trace categories.
 LIST_CATEGORIES_ARGS = ATRACE_BASE_ARGS + ['--list_categories']
 # Minimum number of seconds between displaying status updates.
@@ -49,19 +49,32 @@ def list_categories(config):
       config: Tracing config.
   """
   devutils = device_utils.DeviceUtils(config.device_serial_number)
-  print '\n'.join(devutils.RunShellCommand(LIST_CATEGORIES_ARGS))
+  categories = devutils.RunShellCommand(LIST_CATEGORIES_ARGS)
+
+  device_sdk_version = util.get_device_sdk_version()
+  if device_sdk_version < version_codes.MARSHMALLOW:
+    # work around platform bug where rs tag would corrupt trace until M(Api23)
+    categories = [c for c in categories if not re.match(r'^\s*rs\s*-', c)]
+
+  print '\n'.join(categories)
   if not devutils.HasRoot():
     print '\nNOTE: more categories may be available with adb root\n'
 
 
-def get_available_categories(config):
+def get_available_categories(config, device_sdk_version):
   """Gets the list of atrace categories available for tracing.
   Args:
       config: Tracing config.
+      device_sdk_version: Sdk version int of device to be queried.
   """
   devutils = device_utils.DeviceUtils(config.device_serial_number)
   categories_output = devutils.RunShellCommand(LIST_CATEGORIES_ARGS)
-  return [c.split('-')[0].strip() for c in categories_output]
+  categories = [c.split('-')[0].strip() for c in categories_output]
+
+  if device_sdk_version < version_codes.MARSHMALLOW:
+    # work around platform bug where rs tag would corrupt trace until M(Api23)
+    categories = [c for c in categories if c != 'rs']
+  return categories
 
 
 def try_create_agent(config):
@@ -80,12 +93,12 @@ def try_create_agent(config):
 
   # Check device SDK version.
   device_sdk_version = util.get_device_sdk_version()
-  if device_sdk_version <= 17:
-    print ('Device SDK versions <= 17 not supported.\n'
+  if device_sdk_version < version_codes.JELLY_BEAN_MR2:
+    print ('Device SDK versions < 18 (Jellybean MR2) not supported.\n'
            'Your device SDK version is %d.' % device_sdk_version)
     return None
 
-  return AtraceAgent()
+  return AtraceAgent(device_sdk_version)
 
 def _construct_extra_atrace_args(config, categories):
   """Construct extra arguments (-a, -k, categories) for atrace command.
@@ -134,8 +147,9 @@ def _construct_atrace_args(config, categories):
 
 class AtraceAgent(tracing_agents.TracingAgent):
 
-  def __init__(self):
+  def __init__(self, device_sdk_version):
     super(AtraceAgent, self).__init__()
+    self._device_sdk_version = device_sdk_version
     self._adb = None
     self._trace_data = None
     self._tracer_args = None
@@ -155,7 +169,7 @@ class AtraceAgent(tracing_agents.TracingAgent):
     self._categories = config.atrace_categories
     if isinstance(self._categories, list):
       self._categories = ','.join(self._categories)
-    avail_cats = get_available_categories(config)
+    avail_cats = get_available_categories(config, self._device_sdk_version)
     unavailable = [x for x in self._categories.split(',') if
         x not in avail_cats]
     self._categories = [x for x in self._categories.split(',') if
