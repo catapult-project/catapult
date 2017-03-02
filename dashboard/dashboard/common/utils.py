@@ -332,7 +332,7 @@ def IsGroupMember(identity, group):
     return False
 
 
-def ServiceAccountHttp():
+def ServiceAccountHttp(*args, **kwargs):
   """Returns the Credentials of the service account if available."""
   account_details = stored_object.Get(SERVICE_ACCOUNT_KEY)
   if not account_details:
@@ -343,7 +343,7 @@ def ServiceAccountHttp():
       private_key=account_details['private_key'],
       scope=EMAIL_SCOPE)
 
-  http = httplib2.Http()
+  http = httplib2.Http(*args, **kwargs)
   credentials.authorize(http)
   return http
 

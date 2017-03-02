@@ -134,7 +134,8 @@ def _RequestWithRetry(*args, **kwargs):
 
 def _RequestAndProcessHttpErrors(*args, **kwargs):
   """Requests a URL, converting HTTP errors to Python exceptions."""
-  response, content = utils.ServiceAccountHttp().request(*args, **kwargs)
+  http = utils.ServiceAccountHttp(timeout=10)
+  response, content = http.request(*args, **kwargs)
   if not response['status'].startswith('2'):
     raise SwarmingError(content)
 
