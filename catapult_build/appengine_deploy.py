@@ -33,7 +33,8 @@ def Deploy(paths, args):
       script_path = _FindScriptInPath('gcloud')
     if not script_path:
       print 'This script requires the Google Cloud SDK to be in PATH.'
-      print 'https://cloud.google.com/sdk/'
+      print 'Install at https://cloud.google.com/sdk and then run'
+      print '`gcloud components install app-engine-python`'
       sys.exit(1)
 
     subprocess.call([script_path, 'app', 'deploy', '--no-promote',

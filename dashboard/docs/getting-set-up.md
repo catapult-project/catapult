@@ -2,10 +2,17 @@
 
 ## Prerequisites
 
-Running the tests, running the local server, and deploying depend on having
-the [the Google Cloud SDK](https://cloud.google.com/sdk/downloads). After
-installing, run `gcloud components install app-engine-python` to also install
-python libraries needed for unit tests and dev_server.
+1. Make sure you have Python 2.7.x installed. Python 3.x is not supported.
+2. [Download the Google Cloud SDK.](https://cloud.google.com/sdk/downloads)
+3. Update the Cloud SDK and set the default project to your project ID by
+   invoking the following commands:
+   ```
+   gcloud components update
+   gcloud components install app-engine-python
+   gcloud config set project [PROJECT-ID]
+   ```
+   Replace `[PROJECT-ID]` with your project ID. For chromeperf.appspot.com,
+   it's `chromeperf`.
 
 ## Running the tests
 
