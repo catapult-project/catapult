@@ -119,7 +119,11 @@ found in the LICENSE file.
         return this.jobs.length;
       },
 
-      ready: function() {
+      deselected: function() {
+        this.jobs = [];
+      },
+
+      selected: function() {
         var params = {};
         simple_xhr.send('/_ah/api/jobs', params,
             function(response) {

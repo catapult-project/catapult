@@ -36,7 +36,7 @@ found in the LICENSE file.
     single <app-route> defined which matches to a page, which is passed to
     the <iron-pages> element via routeData.page.
     -->
-    <iron-pages selected="[[routeData.page]]" attr-for-selected="name" fallback-selection="error">
+    <iron-pages selected="[[routeData.page]]" attr-for-selected="name" fallback-selection="error" on-iron-select="onSelectedPage" on-iron-deselect="onDeselectedPage">
       <main-page name=""></main-page>
       <jobs-page name="jobs" route="{{tail}}"></jobs-page>
       <error-page name="error"></error-page>
@@ -48,6 +48,18 @@ found in the LICENSE file.
     'use strict';
     Polymer({
       is: 'index-page',
+
+      onDeselectedPage: function(e) {
+        let page = e.detail.item;
+        if ('deselected' in page)
+          page.deselected();
+      },
+
+      onSelectedPage: function(e) {
+        let page = e.detail.item;
+        if ('selected' in page)
+          page.selected();
+      },
 
       ready: function() {
       }
