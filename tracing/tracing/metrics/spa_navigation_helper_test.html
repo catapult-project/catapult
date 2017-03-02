@@ -27,27 +27,14 @@ function createChromeProcessesOnModel(model) {
   browserMainThread.name = 'CrBrowserMain';
 }
 
-function addPushStateEvent(model, timestamp) {
+function addThreadSlice(model, title, timestamp) {
   let rendererProcess = model.getOrCreateProcess(RENDERER_PROCESS_ID);
   let mainThread = rendererProcess.getOrCreateThread(
       RENDERER_PROCESS_MAIN_THREAD_ID);
 
   mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
     cat: 'blink',
-    title: 'History::pushState',
-    start: timestamp,
-    duration: 0.1
-  }));
-}
-
-function addUpdateIfNeededRecursiveSlice(model, timestamp) {
-  let rendererProcess = model.getOrCreateProcess(RENDERER_PROCESS_ID);
-  let mainThread = rendererProcess.getOrCreateThread(
-      RENDERER_PROCESS_MAIN_THREAD_ID);
-
-  mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-    cat: 'blink',
-    title: 'PaintLayerCompositor::updateIfNeededRecursive',
+    title: title,
     start: timestamp,
     duration: 0.1
   }));
@@ -104,12 +91,13 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(spaNavigations, 0);
   });
 
-  test('findSpaNavigations_noPushStateEvent', function() {
+  test('findSpaNavigations_noUrlUpdateEvent', function() {
     let model = tr.c.TestUtils.newModel(model => {
       createChromeProcessesOnModel(model);
       addLatencyInfoFlowEvent(model, 75, '0x600000057');
       addInputLatencySlice(model, 55, 25769803863);
-      addUpdateIfNeededRecursiveSlice(model, 101);
+      addThreadSlice(
+          model, 'PaintLayerCompositor::updateIfNeededRecursive', 101);
     });
     let spaNavigations = tr.metrics.findSpaNavigations(model);
     assert.lengthOf(spaNavigations, 0);
@@ -118,9 +106,10 @@ tr.b.unittest.testSuite(function() {
   test('findSpaNavigations_noLatencyInfoFlowEvent', function() {
     let model = tr.c.TestUtils.newModel(model => {
       createChromeProcessesOnModel(model);
-      addPushStateEvent(model, 100);
+      addThreadSlice(model, 'History::pushState', 100);
       addInputLatencySlice(model, 55, 25769803863);
-      addUpdateIfNeededRecursiveSlice(model, 101);
+      addThreadSlice(
+          model, 'PaintLayerCompositor::updateIfNeededRecursive', 101);
     });
     let spaNavigations = tr.metrics.findSpaNavigations(model);
     assert.lengthOf(spaNavigations, 0);
@@ -129,9 +118,10 @@ tr.b.unittest.testSuite(function() {
   test('findSpaNavigations_noInputLatency', function() {
     let model = tr.c.TestUtils.newModel(model => {
       createChromeProcessesOnModel(model);
-      addPushStateEvent(model, 100);
+      addThreadSlice(model, 'History::pushState', 100);
       addLatencyInfoFlowEvent(model, 75, '0x600000057');
-      addUpdateIfNeededRecursiveSlice(model, 101);
+      addThreadSlice(
+          model, 'PaintLayerCompositor::updateIfNeededRecursive', 101);
     });
     let spaNavigations = tr.metrics.findSpaNavigations(model);
     assert.lengthOf(spaNavigations, 0);
@@ -140,7 +130,7 @@ tr.b.unittest.testSuite(function() {
   test('findSpaNavigations_noFirstPaintEvent', function() {
     let model = tr.c.TestUtils.newModel(model => {
       createChromeProcessesOnModel(model);
-      addPushStateEvent(model, 100);
+      addThreadSlice(model, 'History::pushState', 100);
       addLatencyInfoFlowEvent(model, 75, '0x600000057');
       addInputLatencySlice(model, 55, 25769803863);
     });
@@ -148,12 +138,42 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(spaNavigations, 0);
   });
 
-  test('findSpaNavigations_threeSpaNavs', function() {
+  test('findSpaNavigations_pushStateAsUrlUpdateEvent', function() {
     let model = tr.c.TestUtils.newModel(model => {
       createChromeProcessesOnModel(model);
-      addPushStateEvent(model, 100);
-      addPushStateEvent(model, 200);
-      addPushStateEvent(model, 300);
+      addThreadSlice(model, 'History::pushState', 100);
+      addLatencyInfoFlowEvent(model, 75, '0x600000057');
+      addInputLatencySlice(model, 55, 25769803863);
+      addThreadSlice(
+          model, 'PaintLayerCompositor::updateIfNeededRecursive', 101);
+    });
+    let spaNavigations = tr.metrics.findSpaNavigations(model);
+    assert.lengthOf(spaNavigations, 1);
+    assert.strictEqual(spaNavigations[0].inputLatencyEvent.start, 55);
+    assert.strictEqual(spaNavigations[0].firstPaintEvent.start, 101);
+  });
+
+  test('findSpaNavigations_setHashAsUrlUpdateEvent', function() {
+    let model = tr.c.TestUtils.newModel(model => {
+      createChromeProcessesOnModel(model);
+      addThreadSlice(model, 'Location::setHash', 100);
+      addLatencyInfoFlowEvent(model, 75, '0x600000057');
+      addInputLatencySlice(model, 55, 25769803863);
+      addThreadSlice(
+          model, 'PaintLayerCompositor::updateIfNeededRecursive', 101);
+    });
+    let spaNavigations = tr.metrics.findSpaNavigations(model);
+    assert.lengthOf(spaNavigations, 1);
+    assert.strictEqual(spaNavigations[0].inputLatencyEvent.start, 55);
+    assert.strictEqual(spaNavigations[0].firstPaintEvent.start, 101);
+  });
+
+  test('findSpaNavigations_multipleSpaNavs', function() {
+    let model = tr.c.TestUtils.newModel(model => {
+      createChromeProcessesOnModel(model);
+      addThreadSlice(model, 'History::pushState', 100);
+      addThreadSlice(model, 'History::pushState', 200);
+      addThreadSlice(model, 'History::pushState', 300);
 
       addLatencyInfoFlowEvent(model, 75, '0x600000057');
       addLatencyInfoFlowEvent(model, 175, '0x6000000c2');
@@ -163,10 +183,14 @@ tr.b.unittest.testSuite(function() {
       addInputLatencySlice(model, 155, 25769803970);
       addInputLatencySlice(model, 255, 25769804045);
 
-      addUpdateIfNeededRecursiveSlice(model, 101);
-      addUpdateIfNeededRecursiveSlice(model, 102);
-      addUpdateIfNeededRecursiveSlice(model, 201);
-      addUpdateIfNeededRecursiveSlice(model, 301);
+      addThreadSlice(
+          model, 'PaintLayerCompositor::updateIfNeededRecursive', 101);
+      addThreadSlice(
+          model, 'PaintLayerCompositor::updateIfNeededRecursive', 102);
+      addThreadSlice(
+          model, 'PaintLayerCompositor::updateIfNeededRecursive', 201);
+      addThreadSlice(
+          model, 'PaintLayerCompositor::updateIfNeededRecursive', 301);
     });
     let spaNavigations = tr.metrics.findSpaNavigations(model);
     assert.lengthOf(spaNavigations, 3);
