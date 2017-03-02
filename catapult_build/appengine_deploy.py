@@ -37,7 +37,7 @@ def Deploy(paths, args):
       print '`gcloud components install app-engine-python`'
       sys.exit(1)
 
-    subprocess.call([script_path, 'app', 'deploy', '--no-promote',
+    subprocess.call([script_path, 'app', 'deploy', '--no-promote', '--quiet',
                      '--version', _VersionName()] + args,
                     cwd=temp_dir)
 
