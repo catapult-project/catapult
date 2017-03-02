@@ -230,15 +230,16 @@ class AtraceAgent(tracing_agents.TracingAgent):
   def _stop_trace(self):
     """Stops atrace.
 
-    Tries to stop the atrace asynchronously. Note that on some devices,
-    --async-stop does not work. Thus, this uses the fallback
-    method of running a zero-length synchronous trace if that fails.
-    """
+    Note that prior to Api 23, --async-stop may not actually stop tracing.
+    Thus, this uses a fallback method of running a zero-length synchronous
+    trace if tracing is still on."""
     self._device_utils.RunShellCommand(self._tracer_args + ['--async_stop'])
     is_trace_enabled_cmd = ['cat', '/sys/kernel/debug/tracing/tracing_on']
-    trace_on = int(self._device_utils.RunShellCommand(is_trace_enabled_cmd)[0])
-    if trace_on:
-      self._device_utils.RunShellCommand(self._tracer_args + ['-t 0'])
+
+    if self._device_sdk_version < version_codes.MARSHMALLOW:
+      if int(self._device_utils.RunShellCommand(is_trace_enabled_cmd)[0]):
+        # tracing was incorrectly left on, disable it
+        self._device_utils.RunShellCommand(self._tracer_args + ['-t 0'])
 
   def _collect_trace_data(self):
     """Reads the output from atrace and stops the trace."""
