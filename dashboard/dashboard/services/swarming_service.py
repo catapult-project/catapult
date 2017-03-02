@@ -10,8 +10,8 @@ a test run.
 API explorer: https://goo.gl/uxPUZo
 """
 
+import httplib
 import json
-import logging
 import urllib
 
 from dashboard.common import utils
@@ -114,18 +114,28 @@ def _Request(path, method='GET', body=None, **parameters):
         parameters[key] = str(value).lower()
     path += '?' + urllib.urlencode(sorted(parameters.iteritems()), doseq=True)
 
-  http = utils.ServiceAccountHttp()
   url = API_BASE_URL + path
-  logging.debug('Swarming request: %s', url)
   if body:
     body = json.dumps(body)
     headers = {'Content-Type': 'application/json'}
-    response, content = http.request(url, method, body=body, headers=headers)
+    content = _RequestWithRetry(url, method, body=body, headers=headers)
   else:
-    response, content = http.request(url, method)
-  logging.debug('Swarming response: %s', content)
+    content = _RequestWithRetry(url, method)
 
+  return json.loads(content)
+
+
+def _RequestWithRetry(*args, **kwargs):
+  try:
+    return _RequestAndProcessHttpErrors(*args, **kwargs)
+  except (httplib.HTTPException, SwarmingError):
+    return _RequestAndProcessHttpErrors(*args, **kwargs)
+
+
+def _RequestAndProcessHttpErrors(*args, **kwargs):
+  """Requests a URL, converting HTTP errors to Python exceptions."""
+  response, content = utils.ServiceAccountHttp().request(*args, **kwargs)
   if not response['status'].startswith('2'):
     raise SwarmingError(content)
 
-  return json.loads(content)
+  return content
