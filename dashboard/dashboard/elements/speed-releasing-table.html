@@ -15,6 +15,7 @@ found in the LICENSE file.
 <link rel="import" href="/dashboard/static/uri.html">
 
 <link rel="import" href="/tracing/base/unit.html">
+<link rel="import" href="/tracing/value/legacy_unit_info.html">
 <dom-module id="speed-releasing-table">
   <template>
     <style>
@@ -161,6 +162,10 @@ found in the LICENSE file.
         if (tr.b.Unit.byName[unit]) {
           return (tr.b.Unit.byName[unit].format(value));
         }
+        var unitInfo = tr.v.LEGACY_UNIT_INFO.get(unit);
+        if (unitInfo) {
+          return (tr.b.Unit.byName[unitInfo.name].format(value));
+        }
         return value;
       },
 
@@ -198,8 +203,14 @@ found in the LICENSE file.
           if (abs === 'true') {
             var difference = valueB - valueA;
             var unit = this.tableConfig.units[test];
-            if (tr.b.Unit.byName[unit])
+
+            if (tr.b.Unit.byName[unit]) {
               return (tr.b.Unit.byName[unit].format(difference));
+            }
+            var unitInfo = tr.v.LEGACY_UNIT_INFO.get(unit);
+            if (unitInfo) {
+              return (tr.b.Unit.byName[unitInfo.name].format(difference));
+            }
             return difference;
           }
           if (valueA === valueB) {
