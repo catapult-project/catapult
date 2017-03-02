@@ -251,18 +251,6 @@ class ActionRunner(object):
     """
     return self._tab.WaitForJavaScriptCondition(*args, **kwargs)
 
-  def ExecuteJavaScript2(self, *args, **kwargs):
-    """Alias to be removed soon. Do not use in new code."""
-    return self.ExecuteJavaScript(*args, **kwargs)
-
-  def EvaluateJavaScript2(self, *args, **kwargs):
-    """Alias to be removed soon. Do not use in new code."""
-    return self.EvaluateJavaScript(*args, **kwargs)
-
-  def WaitForJavaScriptCondition2(self, *args, **kwargs):
-    """Alias to be removed soon. Do not use in new code."""
-    return self.WaitForJavaScriptCondition(*args, **kwargs)
-
   def Wait(self, seconds):
     """Wait for the number of seconds specified.
 

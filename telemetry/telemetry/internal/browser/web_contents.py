@@ -190,18 +190,6 @@ class WebContents(object):
     """
     return self._inspector_backend.WaitForJavaScriptCondition(*args, **kwargs)
 
-  def ExecuteJavaScript2(self, *args, **kwargs):
-    """Alias to be removed soon. Do not use in new code."""
-    return self.ExecuteJavaScript(*args, **kwargs)
-
-  def EvaluateJavaScript2(self, *args, **kwargs):
-    """Alias to be removed soon. Do not use in new code."""
-    return self.EvaluateJavaScript(*args, **kwargs)
-
-  def WaitForJavaScriptCondition2(self, *args, **kwargs):
-    """Alias to be removed soon. Do not use in new code."""
-    return self.WaitForJavaScriptCondition(*args, **kwargs)
-
   def EnableAllContexts(self):
     """Enable all contexts in a page. Returns the number of available contexts.
 

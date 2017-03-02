@@ -293,18 +293,6 @@ class InspectorBackend(object):
       raise py_utils.TimeoutException(
           e.message + '\n' + debug_message)
 
-  def ExecuteJavaScript2(self, *args, **kwargs):
-    """Alias to be removed soon. Do not use in new code."""
-    return self.ExecuteJavaScript(*args, **kwargs)
-
-  def EvaluateJavaScript2(self, *args, **kwargs):
-    """Alias to be removed soon. Do not use in new code."""
-    return self.EvaluateJavaScript(*args, **kwargs)
-
-  def WaitForJavaScriptCondition2(self, *args, **kwargs):
-    """Alias to be removed soon. Do not use in new code."""
-    return self.WaitForJavaScriptCondition(*args, **kwargs)
-
   @_HandleInspectorWebSocketExceptions
   def EnableAllContexts(self):
     """Allows access to iframes.
