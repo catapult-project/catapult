@@ -77,7 +77,7 @@ tr.exportTo('tr.metrics.sh', function() {
     var chromeHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
     var intervals = [];
-    tr.b.iterItems(chromeHelper.rendererHelpers, (pid, rendererHelper) => {
+    for (var rendererHelper of Object.values(chromeHelper.rendererHelpers)) {
       var samples = tr.metrics.sh.collectLoadingMetricsForRenderer(
           rendererHelper).firstInteractiveSamples;
       for (var sample of samples) {
@@ -85,7 +85,7 @@ tr.exportTo('tr.metrics.sh', function() {
         intervals.push(tr.b.Range.fromExplicitRange(
             info.start, info.interactive));
       }
-    });
+    }
     return intervals.sort((x, y) => x.min - y.min);
   }
 

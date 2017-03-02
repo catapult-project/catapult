@@ -119,7 +119,8 @@ tr.exportTo('tr.model', function() {
       // numeric names.
       this.children.forEach(function(child) {
         child.aggregateNumericsRecursively(opt_model);
-        tr.b.iterItems(child.numerics, numericNames.add, numericNames);
+        for (var [item, value] of Object.entries(child.numerics))
+          numericNames.add(item, value);
       }, this);
 
       // Aggregate children's numerics.

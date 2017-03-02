@@ -25,14 +25,15 @@ tr.exportTo('tr.metrics.v8', function() {
     var chromeHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
     var domContentLoadedTime = 0;
-    tr.b.iterItems(chromeHelper.rendererHelpers, (pid, rendererHelper) => {
+
+    for (var rendererHelper of Object.values(chromeHelper.rendererHelpers)) {
       for (var ev of rendererHelper.mainThread.sliceGroup.childEvents()) {
         if (ev.title === 'domContentLoadedEventEnd' &&
             ev.start > domContentLoadedTime) {
           domContentLoadedTime = ev.start;
         }
       }
-    });
+    }
     return domContentLoadedTime;
   }
 
@@ -40,19 +41,19 @@ tr.exportTo('tr.metrics.v8', function() {
     var chromeHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
     var interactiveTime = 0;
-    tr.b.iterItems(chromeHelper.rendererHelpers, (pid, rendererHelper) => {
+    for (var rendererHelper of Object.values(chromeHelper.rendererHelpers)) {
       var samples = tr.metrics.sh.collectLoadingMetricsForRenderer(
           rendererHelper).firstInteractiveSamples;
       // TODO(fmeawad): Support multiple navigations.
       if (samples.length === 0) {
-        return;
+        continue;
       }
       if (interactiveTime !== 0) {
         throw new Error('Too many navigations');
       }
       interactiveTime = tr.b.getOnlyElement(samples).diagnostics[
         'Navigation infos'].value.interactive;
-    });
+    }
     return interactiveTime;
   }
 

@@ -50,7 +50,7 @@ tr.b.unittest.testSuite(function() {
       'ThreadState::completeSweep': 'blink-gc-complete-sweep',
       'ThreadState::performIdleLazySweep': 'blink-gc-idle-lazy-sweep'
     };
-    tr.b.iterItems(events, function(timelineName, telemetryName) {
+    for (var [timelineName, telemetryName] of Object.entries(events)) {
       var slices = [
         {
           title: timelineName, args: {}, start: 100, end: 200,
@@ -80,7 +80,7 @@ tr.b.unittest.testSuite(function() {
 
       value = actual.getHistogramNamed(`${telemetryName}_percentage_idle`);
       assert.strictEqual(value.average, 0);
-    });
+    }
   });
 
   test('idleTimes', function() {

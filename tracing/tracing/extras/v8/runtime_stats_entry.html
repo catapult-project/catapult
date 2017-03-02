@@ -95,7 +95,7 @@ tr.exportTo('tr.e.v8', function() {
           var runtimeCallStats = slice.runtimeCallStats;
         }
         if (runtimeCallStats === undefined) continue;
-        tr.b.iterItems(runtimeCallStats, (name, stat) => {
+        for (var [name, stat] of Object.entries(runtimeCallStats)) {
           // Skip the 'Total' group
           for (var i = 1; i < this.groups_.length; ++i) {
             if (this.groups_[i].match(name)) {
@@ -106,7 +106,7 @@ tr.exportTo('tr.e.v8', function() {
               break;
             }
           }
-        });
+        }
       }
     }
 

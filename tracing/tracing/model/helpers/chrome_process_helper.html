@@ -60,7 +60,7 @@ tr.exportTo('tr.model.helpers', function() {
     findTelemetryInternalRanges_: function() {
       this.telemetryInternalRanges_ = [];
       var start = 0;
-      tr.b.iterItems(this.process.threads, (tid, thread) => {
+      for (var thread of Object.values(this.process.threads)) {
         for (var slice of thread.asyncSliceGroup.getDescendantEvents()) {
           if (/^telemetry\.internal\.[^.]*\.start$/.test(slice.title)) {
             start = slice.start;
@@ -71,7 +71,7 @@ tr.exportTo('tr.model.helpers', function() {
             start = undefined;
           }
         }
-      });
+      }
     },
 
     getFrameEventsInRange: function(frametimeType, range) {

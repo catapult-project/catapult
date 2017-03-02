@@ -17,10 +17,10 @@ tr.exportTo('tr.importer', function() {
         modelHelper.browserHelper.getFrameEventsInRange(
             tr.model.helpers.IMPL_FRAMETIME_TYPE, modelHelper.model.bounds));
 
-    tr.b.iterItems(modelHelper.rendererHelpers, function(pid, renderer) {
+    for (var renderer of Object.values(modelHelper.rendererHelpers)) {
       frameEvents.push.apply(frameEvents, renderer.getFrameEventsInRange(
           tr.model.helpers.IMPL_FRAMETIME_TYPE, modelHelper.model.bounds));
-    });
+    }
     return frameEvents.sort(tr.importer.compareEvents);
   }
 

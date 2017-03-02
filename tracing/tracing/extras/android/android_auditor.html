@@ -344,15 +344,15 @@ tr.exportTo('tr.e.audits', function() {
   AndroidAuditor.getSchedulingAlert_ = function(frame) {
     var totalDuration = 0;
     var totalStats = {};
-    frame.threadTimeRanges.forEach(function(ttr) {
+    for (var ttr of frame.threadTimeRanges) {
       var stats = ttr.thread.getSchedulingStatsForRange(ttr.start, ttr.end);
-      tr.b.iterItems(stats, function(key, value) {
+      for (var [key, value] of Object.entries(stats)) {
         if (!(key in totalStats))
           totalStats[key] = 0;
         totalStats[key] += value;
         totalDuration += value;
-      });
-    });
+      }
+    }
 
     // only alert if frame not running for > 3ms. Note that we expect a frame
     // to never describe intentionally idle time.
@@ -362,13 +362,13 @@ tr.exportTo('tr.e.audits', function() {
       return;
 
     var args = {};
-    tr.b.iterItems(totalStats, function(key, value) {
+    for (var [key, value] of Object.entries(totalStats)) {
       if (key === SCHEDULING_STATE.RUNNABLE)
         key = 'Not scheduled, but runnable';
       else if (key === SCHEDULING_STATE.UNINTR_SLEEP)
         key = 'Blocking I/O delay';
       args[key] = new Scalar(timeDurationInMs, value);
-    });
+    }
 
     return new Alert(AndroidAuditor.schedulingAlertInfo_, frame.start, [frame],
                      args);

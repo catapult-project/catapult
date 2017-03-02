@@ -56,7 +56,7 @@ tr.exportTo('tr.importer', function() {
 
     destroyContext: function(scopedId) {
       // Remove all matching contexts from stacks.
-      tr.b.iterItems(this.stackPerType_, function(contextType, stack) {
+      for (var stack of Object.values(this.stackPerType_)) {
         // Perform in-place filtering instead of Array.prototype.filter to
         // prevent creating a new array.
         var newLength = 0;
@@ -67,7 +67,7 @@ tr.exportTo('tr.importer', function() {
           }
         }
         stack.length = newLength;
-      });
+      }
 
       // Remove all matching contexts from active context set.
       this.leaveContextImpl_(context =>

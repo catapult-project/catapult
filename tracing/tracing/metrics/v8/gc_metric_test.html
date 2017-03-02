@@ -55,7 +55,7 @@ tr.b.unittest.testSuite(function() {
       'V8.GCPhantomHandleProcessingCallback': 'v8-gc-phantom-handle-callback',
       'V8.GCScavenger': 'v8-gc-scavenger'
     };
-    tr.b.iterItems(events, function(timelineName, telemetryName) {
+    for (var [timelineName, telemetryName] of Object.entries(events)) {
       var slices = [
         {
           title: timelineName, args: {}, start: 100, end: 200,
@@ -85,7 +85,7 @@ tr.b.unittest.testSuite(function() {
 
       value = actual.getHistogramNamed(`${telemetryName}_percentage_idle`);
       assert.strictEqual(value.average, 0);
-    });
+    }
   });
 
   test('idleTimes', function() {

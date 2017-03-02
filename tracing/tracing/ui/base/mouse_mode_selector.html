@@ -418,14 +418,14 @@ tr.exportTo('tr.ui.b', function() {
         this.spacePressed_ = false;
 
       var didHandleKey = false;
-      tr.b.iterItems(this.modeToKeyCodeMap_, function(modeStr, keyCode) {
+      for (var [modeStr, keyCode] of Object.entries(this.modeToKeyCodeMap_)) {
         if (e.keyCode === keyCode) {
           this.modeBeforeAlternativeModeActivated_ = undefined;
           var mode = parseInt(modeStr);
           this.mode = mode;
           didHandleKey = true;
         }
-      }, this);
+      }
 
       if (didHandleKey) {
         e.preventDefault();

@@ -36,7 +36,7 @@ tr.exportTo('tr.metrics', function() {
    */
   function getPushStateToLatencyInfoMap_(rendererHelpers) {
     let pushStateToLatencyInfoMap = new Map();
-    tr.b.iterItems(rendererHelpers, function(pid, rendererHelper) {
+    for (let rendererHelper of Object.values(rendererHelpers)) {
       let mainThread = rendererHelper.mainThread;
       let pushStateEvents = getAllEventsInAscendingOrder_(
           mainThread,
@@ -53,7 +53,7 @@ tr.exportTo('tr.metrics', function() {
         pushStateToLatencyInfoMap.set(
             pushStateEvent, handleInputEvent.parentSlice);
       }
-    });
+    }
     return pushStateToLatencyInfoMap;
   }
 
@@ -183,7 +183,7 @@ tr.exportTo('tr.metrics', function() {
       return new Map();
     }
     let allPushStateToRecursiveEventMap = new Map();
-    tr.b.iterItems(rendererHelpers, function(pid, rendererHelper) {
+    for (let rendererHelper of Object.values(rendererHelpers)) {
       let mainThread = rendererHelper.mainThread;
       let pushStateEvents = getAllEventsInAscendingOrder_(
           mainThread,
@@ -202,7 +202,7 @@ tr.exportTo('tr.metrics', function() {
         allPushStateToRecursiveEventMap.set(
             pushStateEvent, updateIfNeededRecursiveEvent);
       }
-    });
+    }
     return allPushStateToRecursiveEventMap;
   }
 

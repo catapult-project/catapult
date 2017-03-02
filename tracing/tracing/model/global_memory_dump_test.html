@@ -244,10 +244,16 @@ tr.b.unittest.testSuite(function() {
           });
         }
 
-        if (numerics !== undefined)
-          tr.b.iterItems(numerics, dump.addNumeric, dump);
-        if (diagnostics !== undefined)
-          tr.b.iterItems(diagnostics, dump.addDiagnostic, dump);
+        if (numerics !== undefined) {
+          for (var [name, item] of Object.entries(numerics)) {
+            dump.addNumeric(name, item);
+          }
+        }
+        if (diagnostics !== undefined) {
+          for (var [name, item] of Object.entries(diagnostics)) {
+            dump.addDiagnostic(name, item);
+          }
+        }
 
         if (weak)
           dump.weak = true;
@@ -268,7 +274,7 @@ tr.b.unittest.testSuite(function() {
       buildAndAddDumpTrees(containerDumps[i], allTreeRecipes[i]);
 
     // Hook up ownership links.
-    tr.b.iterItems(ownerDumps, function(ownedGuid, ownershipInfos) {
+    for (var [ownedGuid, ownershipInfos] of Object.entries(ownerDumps)) {
       var ownedDump = ownableDumps[ownedGuid];
       assert.isDefined(ownedDump, 'Tree recipes don\'t contain a memory ' +
           'allocator dump with guid \'' + ownedGuid + '\'');
@@ -277,7 +283,7 @@ tr.b.unittest.testSuite(function() {
         addOwnershipLink(
             ownershipInfo.dump, ownedDump, ownershipInfo.importance);
       });
-    });
+    }
 
     return containerDumps;
   }

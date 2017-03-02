@@ -20,11 +20,11 @@ tr.exportTo('tr.v', function() {
      * @param {!tr.v.HistogramSet} histograms
      */
     static convertChartJson(charts, histograms) {
-      tr.b.iterItems(charts.charts, (name, pageValues) => {
-        if (name === 'trace') return;
+      for (var [name, pageValues] of Object.entries(charts.charts)) {
+        if (name === 'trace') continue;
 
         let pageValuesCount = tr.b.dictionaryLength(pageValues);
-        tr.b.iterItems(pageValues, (storyName, value) => {
+        for (let [storyName, value] of Object.entries(pageValues)) {
           if (pageValuesCount > 1 && storyName === 'summary') return;
 
           let unitInfo = tr.v.LEGACY_UNIT_INFO.get(value.units) || {};
@@ -69,8 +69,8 @@ tr.exportTo('tr.v', function() {
           } else if (value.type === 'scalar') {
             hist.addSample(value.value * conversionFactor);
           }
-        });
-      });
+        }
+      }
     }
 
     static convertImprovementDirection(improvementDirection) {

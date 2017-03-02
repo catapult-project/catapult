@@ -269,7 +269,7 @@ tr.exportTo('tr.b', function() {
   Unit.define = function(params) {
     var definedUnits = [];
 
-    tr.b.iterItems(ImprovementDirection, function(_, improvementDirection) {
+    for (var improvementDirection of Object.values(ImprovementDirection)) {
       var regularUnit =
           Unit.defineUnitVariant_(params, false, improvementDirection);
       var deltaUnit =
@@ -278,7 +278,7 @@ tr.exportTo('tr.b', function() {
       regularUnit.correspondingDeltaUnit = deltaUnit;
       deltaUnit.correspondingDeltaUnit = deltaUnit;
       definedUnits.push(regularUnit, deltaUnit);
-    });
+    }
 
     var baseUnit = Unit.byName[params.baseUnitName];
     definedUnits.forEach(u => u.baseUnit = baseUnit);

@@ -76,9 +76,9 @@ tr.exportTo('tr.v.d', function() {
 
     static fromDict(d) {
       let diagnostic = new RelatedHistogramBreakdown();
-      tr.b.iterItems(d.values, function(name, guid) {
+      for (let [name, guid] of Object.entries(d.values)) {
         diagnostic.set(name, new tr.v.d.HistogramRef(guid));
-      });
+      }
       if (d.colorScheme) diagnostic.colorScheme = d.colorScheme;
       return diagnostic;
     }

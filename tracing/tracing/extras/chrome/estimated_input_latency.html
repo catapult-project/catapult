@@ -39,7 +39,7 @@ tr.exportTo('tr.e.chrome', function() {
     var interactiveTimestampsMap = new Map();
     var chromeHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
-    tr.b.iterItems(chromeHelper.rendererHelpers, (pid, rendererHelper) => {
+    for (var rendererHelper of Object.values(chromeHelper.rendererHelpers)) {
       var timestamps = [];
       interactiveTimestampsMap.set(rendererHelper.pid, timestamps);
       var samples = tr.metrics.sh.collectLoadingMetricsForRenderer(
@@ -48,7 +48,7 @@ tr.exportTo('tr.e.chrome', function() {
         timestamps.push(
             sample.diagnostics['Navigation infos'].value.interactive);
       }
-    });
+    }
     return interactiveTimestampsMap;
   }
 
