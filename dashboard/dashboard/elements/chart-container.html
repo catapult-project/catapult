@@ -356,6 +356,7 @@ triaging functionality in the chart.
           //         'path': 'ChromiumPerf/linux/dromaeo/Total',
           //         'tests': [{
           //              name: 'Total',
+          //              displayName: 'Total',
           //              direction: 'Lower is better',
           //              units: 'm/s',
           //              description: 'Total time',
@@ -572,6 +573,49 @@ triaging functionality in the chart.
         },
 
         /**
+         * Updates the display names for series groups.
+         *
+         * If there are multiple series groups, it's difficult to distinguish
+         * between them, so we use part of the path and prefix it to the metric
+         * in the legend.
+         *
+         **/
+        updateSeriesGroupDisplayNames: function() {
+          if (this.seriesGroupList.length > 1) {
+            let pathLengths = this.seriesGroupList.map(
+                p => p.path.split('/').length);
+            var minPathLength = Math.min.apply(null, pathLengths) - 1;
+
+            // This just scans the paths to find the last point at which all the
+            // paths were identical.
+            for (var commonIndex = 0; commonIndex < minPathLength;
+                commonIndex++) {
+              let parts = this.seriesGroupList.map(
+                  p => p.path.split('/')[commonIndex]);
+              if (!parts.every(p => p == parts[0])) {
+                break;
+              }
+            }
+
+            if (commonIndex < minPathLength) {
+              // Once it has an index where they differ, we create a prefix
+              // for the display name starting there.
+              for (let i = 0; i < this.seriesGroupList.length; i++) {
+                let prefix = this.seriesGroupList[i].path.split(
+                    '/').slice(commonIndex, minPathLength).join('/');
+                for (let j = 0; j < this.seriesGroupList[i].tests.length; j++) {
+                  let displayName = prefix + '/' + (
+                      this.seriesGroupList[i].tests[j].name);
+                  this.set(
+                      'seriesGroupList.' + i + '.tests.' + j + '.displayName',
+                      displayName);
+                }
+              }
+            }
+          }
+        },
+
+        /**
          * Adds series group to graph.
          *
          * If test path already exist, it will be ignored.
@@ -622,6 +666,7 @@ triaging functionality in the chart.
                 for (var j = 0; j < selectedTraces.length; j++) {
                   var testData = {
                     name: selectedTraces[j],
+                    displayName: selectedTraces[j],
                     selected: true
                   };
                   seriesGroup.tests.push(testData);
@@ -634,6 +679,9 @@ triaging functionality in the chart.
             }
             this.push('seriesGroupList', seriesGroup);
           }
+
+          this.updateSeriesGroupDisplayNames();
+
           if (Object.keys(selectedTestPathDict).length > 0) {
             this.sendGraphJsonRequest(selectedTestPathDict, true);
           }

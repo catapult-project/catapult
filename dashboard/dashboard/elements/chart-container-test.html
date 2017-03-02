@@ -13,6 +13,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/dashboard/elements/chart-container.html">
 <link rel="import" href="/dashboard/static/testdata/dromaeo-charts.html">
+<link rel="import" href="/dashboard/static/testdata/sunspider-charts.html">
 <link rel="import" href="/dashboard/static/testing_common.html">
 <link rel="import" href="/dashboard/static/uri.html">
 
@@ -75,6 +76,21 @@ tr.b.unittest.testSuite(function() {
       }
       requestAnimationFrame(check);
     });
+  }, testOptions);
+
+  test('seriesGroupList displays prefixed name', function() {
+    testing_common.mockChartJson(
+        dromaeoCharts, dromaeoCharts.graphSelectedJson);
+    testing_common.mockChartJson(
+        sunspiderCharts, sunspiderCharts.graphSelectedJson);
+    var chart = createChart();
+    this.addHTMLOutput(chart);
+    chart.addSeriesGroup(dromaeoCharts.graphParams);
+    chart.addSeriesGroup(sunspiderCharts.graphParams);
+    assert.equal(chart.seriesGroupList[0].tests[0].displayName,
+        'chromium-rel-mac11/dromaeo.domcoreattr/dom');
+    assert.equal(chart.seriesGroupList[1].tests[0].displayName,
+        'android-nexus6/sunspider/Total');
   }, testOptions);
 });
 </script>
