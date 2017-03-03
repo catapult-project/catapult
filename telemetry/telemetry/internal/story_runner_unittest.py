@@ -33,7 +33,7 @@ from telemetry.value import skip
 from telemetry.value import summary as summary_module
 from telemetry.web_perf import story_test
 from telemetry.web_perf import timeline_based_measurement
-from telemetry.wpr import archive_info2
+from telemetry.wpr import archive_info
 
 # This linter complains if we define classes nested inside functions.
 # pylint: disable=bad-super-call
@@ -648,7 +648,7 @@ class StoryRunnerTest(unittest.TestCase):
   @decorators.Disabled('chromeos')  # crbug.com/483212
   def testUpdateAndCheckArchives(self):
     usr_stub = system_stub.Override(story_runner, ['cloud_storage'])
-    wpr_stub = system_stub.Override(archive_info2, ['cloud_storage'])
+    wpr_stub = system_stub.Override(archive_info, ['cloud_storage'])
     archive_data_dir = os.path.join(
         util.GetTelemetryDir(),
         'telemetry', 'internal', 'testing', 'archive_files')
