@@ -151,10 +151,15 @@ _FILE_MODE_SPECIAL = [
     ('t', stat.S_ISVTX),
 ]
 _SELINUX_MODE = {
-  'enforcing': True,
-  'permissive': False,
-  'disabled': None
+    'enforcing': True,
+    'permissive': False,
+    'disabled': None
 }
+# Some devices require different logic for checking if root is necessary
+_SPECIAL_ROOT_DEVICE_LIST = [
+    'marlin',
+    'sailfish',
+]
 
 
 @decorators.WithExplicitTimeoutAndRetries(
@@ -373,6 +378,8 @@ class DeviceUtils(object):
       DeviceUnreachableError on missing device.
     """
     try:
+      if self.product_name in _SPECIAL_ROOT_DEVICE_LIST:
+        return self.GetProp('service.adb.root') == '1'
       self.RunShellCommand(['ls', '/root'], check_return=True)
       return True
     except device_errors.AdbCommandFailedError:
@@ -396,15 +403,21 @@ class DeviceUtils(object):
       DeviceUnreachableError on missing device.
     """
     if 'needs_su' not in self._cache:
+      cmd = '%s && ! ls /root' % self._Su('ls /root')
+      if self.product_name in _SPECIAL_ROOT_DEVICE_LIST:
+        if self.HasRoot():
+          self._cache['needs_su'] = False
+          return False
+        cmd = 'which which && which su'
       try:
-        self.RunShellCommand(
-            '%s && ! ls /root' % self._Su('ls /root'), check_return=True,
+        self.RunShellCommand(cmd, check_return=True,
             timeout=self._default_timeout if timeout is DEFAULT else timeout,
             retries=self._default_retries if retries is DEFAULT else retries)
         self._cache['needs_su'] = True
       except device_errors.AdbCommandFailedError:
         self._cache['needs_su'] = False
     return self._cache['needs_su']
+
 
   def _Su(self, command):
     if self.build_version_sdk >= version_codes.MARSHMALLOW:
