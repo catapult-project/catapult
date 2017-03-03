@@ -650,6 +650,11 @@ def PerformBisect(bisect_job):
     comment = 'Started bisect job %s' % result['issue_url']
   else:
     comment = 'Started bisect job: %s' % result
+
+  if not bisect_job.results_data:
+    bisect_job.results_data = {'issue_url': 'N/A', 'issue_id': 'N/A'}
+  bisect_job.results_data.update(result)
+
   if bisect_job.bug_id:
     logging.info('Commenting on bug %s for bisect job', bisect_job.bug_id)
     issue_tracker = issue_tracker_service.IssueTrackerService(

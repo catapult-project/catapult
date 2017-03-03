@@ -758,6 +758,11 @@ class StartBisectTest(testing_common.TestCase):
                     'issue_url': issue_url}),
         response.body)
 
+    try_jobs = try_job.TryJob.query().fetch()
+    self.assertEqual(1, len(try_jobs))
+    self.assertEqual(issue_url, try_jobs[0].results_data['issue_url'])
+    self.assertEqual('33001', try_jobs[0].results_data['issue_id'])
+
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
