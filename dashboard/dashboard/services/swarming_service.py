@@ -118,9 +118,9 @@ def _Request(path, method='GET', body=None, **parameters):
   if body:
     body = json.dumps(body)
     headers = {'Content-Type': 'application/json'}
-    content = _RequestWithRetry(url, method, body=body, headers=headers)
+    content = _RequestWithRetry(url, method=method, body=body, headers=headers)
   else:
-    content = _RequestWithRetry(url, method)
+    content = _RequestWithRetry(url, method=method)
 
   return json.loads(content)
 

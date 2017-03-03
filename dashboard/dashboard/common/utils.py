@@ -338,6 +338,7 @@ def ServiceAccountHttp(*args, **kwargs):
   if not account_details:
     raise KeyError('Service account credentials not found.')
 
+  client.logger.setLevel(logging.WARNING)
   credentials = client.SignedJwtAssertionCredentials(
       service_account_name=account_details['client_email'],
       private_key=account_details['private_key'],
