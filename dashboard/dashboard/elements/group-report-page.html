@@ -97,37 +97,38 @@ found in the LICENSE file.
     <login-warning id="login-warning" login-link="{{loginLink}}"
                    missing="{{missing}}">
     </login-warning>
-    <div id="top">
-      <div id="action-bar" hidden$="{{computeOr(loading, error)}}">
-        <paper-button toggles raised
-                      id="improvements-toggle"
-                      class="alert-togglebutton"
-                      active$="{{showingImprovements}}"
-                      on-click="onToggleImprovements">
-          {{getLabel(showingImprovements)}} all improvements
-        </paper-button>
+    <div id="container" hidden$="{{computeOr(loading, error)}}">
+      <div id="top">
+        <div id="action-bar">
+          <paper-button toggles raised
+                        id="improvements-toggle"
+                        class="alert-togglebutton"
+                        active$="{{showingImprovements}}"
+                        on-click="onToggleImprovements">
+            {{getLabel(showingImprovements)}} all improvements
+          </paper-button>
+        </div>
+        <bug-info id="bug-info" xsrf-token="{{xsrfToken}}"></bug-info>
+        <template is="dom-if" if="{{bugId}}">
+          <quick-log id="bisect-result-log"
+                     xsrf-token="{{xsrfToken}}"
+                     log-namespace="bisect_result"
+                     log-name="{{bugId}}"
+                     log-label="Bisect results"
+                     load-on-ready="true"
+                     expand-on-ready="true"></quick-log>
+        </template>
+        <alerts-table id="alerts-table"
+                      xsrf-token="{{xsrfToken}}"
+                      alert-list="{{alertList}}"
+                      extra-columns="{{extraColumns}}"
+                      on-changeselection="onAlertSelectionChange"
+                      selected-keys="{{selectedKeys}}"></alerts-table>
       </div>
-      <bug-info id="bug-info" xsrf-token="{{xsrfToken}}"></bug-info>
-      <template is="dom-if" if="{{bugId}}">
-      <quick-log id="bisect-result-log"
-                 xsrf-token="{{xsrfToken}}"
-                 log-namespace="bisect_result"
-                 log-name="{{bugId}}"
-                 log-label="Bisect results"
-                 load-on-ready="true"
-                 expand-on-ready="true"></quick-log>
-      </template>
-      <alerts-table id="alerts-table"
-                    hidden$="{{computeOr(loading, error)}}"
-                    xsrf-token="{{xsrfToken}}"
-                    alert-list="{{alertList}}"
-                    extra-columns="{{extraColumns}}"
-                    on-changeselection="onAlertSelectionChange"
-                    selected-keys="{{selectedKeys}}"></alerts-table>
-    </div>
 
-    <div id="bottom">
-      <section id="charts-container"></section>
+      <div id="bottom">
+        <section id="charts-container"></section>
+      </div>
     </div>
 
     <div id="toasts" hidden>
@@ -145,6 +146,10 @@ found in the LICENSE file.
     Polymer({
       is: 'group-report-page',
       properties: {
+        error: {
+          type: Boolean,
+          value: false
+        },
         extraColumns: {
           type: Array,
           value: () => []
@@ -499,7 +504,7 @@ found in the LICENSE file.
             }.bind(this));
       },
       computeOr: function(error, loading) {
-        return error | loading;
+        return error || loading;
       }
     });
   </script>
