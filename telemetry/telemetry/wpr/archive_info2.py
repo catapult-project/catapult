@@ -9,12 +9,17 @@ import re
 import shutil
 import tempfile
 
-from telemetry.wpr import archive_info2
-
 from py_utils import cloud_storage  # pylint: disable=import-error
 
 
-# TODO(rnephew): Remove this file when archive_info2 is the default.
+_DEFAULT_PLATFORM = 'DEFAULT'
+_ALL_PLATFORMS = ['mac', 'linux', 'android', 'win', _DEFAULT_PLATFORM]
+
+
+# TODO(rnephew): Move this file to archive_info.py when it is the default.
+# These changes were chosen to not be merged with archive_info.py directly
+# because all code in archive_info.py will be deleted once everything is
+# switched to using this version.
 def AssertValidCloudStorageBucket(bucket):
   is_valid = bucket in (None,
                         cloud_storage.PUBLIC_BUCKET,
@@ -24,10 +29,6 @@ def AssertValidCloudStorageBucket(bucket):
     raise ValueError("Cloud storage privacy bucket %s is invalid" % bucket)
 
 
-class ArchiveError(Exception):
-  pass
-
-
 class WprArchiveInfo(object):
   def __init__(self, file_path, data, bucket):
     AssertValidCloudStorageBucket(bucket)
@@ -35,36 +36,29 @@ class WprArchiveInfo(object):
     self._base_dir = os.path.dirname(file_path)
     self._data = data
     self._bucket = bucket
-
+    self.temp_target_wpr_file_path = None
     # Ensure directory exists.
     if not os.path.exists(self._base_dir):
       os.makedirs(self._base_dir)
 
-    # Map from the relative path (as it appears in the metadata file) of the
-    # .wpr file to a list of story names it supports.
-    self._wpr_file_to_story_names = data['archives']
+    assert data.get('platform_specific', False), (
+        'archive_info2.WprArchiveInfo is exclusively for platform specific WPR '
+        'archives. Platform agnostic archives should use '
+        'archive_info.WprArchiveInfo archive_info2 will become archive_info '
+        'once all data files are switched.')
 
-    # Map from the story name to a relative path (as it appears
-    # in the metadata file) of the .wpr file.
-    self._story_name_to_wpr_file = dict()
-    # Find out the wpr file names for each story.
-    for wpr_file in data['archives']:
-      story_names = data['archives'][wpr_file]
-      for story_name in story_names:
-        self._story_name_to_wpr_file[story_name] = wpr_file
-    self.temp_target_wpr_file_path = None
+    self._story_name_to_wpr_file = data['archives']
 
   @classmethod
   def FromFile(cls, file_path, bucket):
+    """ Generates an archive_info2 instance with the given json file. """
     if os.path.exists(file_path):
       with open(file_path, 'r') as f:
         data = json.load(f)
-        if data.get('platform_specific', False):
-          return archive_info2.WprArchiveInfo(file_path, data, bucket)
         return cls(file_path, data, bucket)
     return cls(file_path, {'archives': {}}, bucket)
 
-  def DownloadArchivesIfNeeded(self):
+  def DownloadArchivesIfNeeded(self, target_platforms=None):
     """Downloads archives iff the Archive has a bucket parameter and the user
     has permission to access the bucket.
 
@@ -76,23 +70,28 @@ class WprArchiveInfo(object):
     permission to access the archive's bucket but a local copy of the archive
     exists.
     """
+    # If no target platform is set, download all platforms.
+    if target_platforms is None:
+      target_platforms = _ALL_PLATFORMS
+    else:
+      assert isinstance(target_platforms, list), 'Must pass platforms as a list'
+      target_platforms = target_platforms + [_DEFAULT_PLATFORM]
     # Download all .wpr files.
     if not self._bucket:
       logging.warning('Story set in %s has no bucket specified, and '
                       'cannot be downloaded from cloud_storage.', )
       return
-    assert 'archives' in self._data, 'Invalid data format in %s. \'archives\'' \
-                                     ' field is needed' % self._file_path
-    for archive_path in self._data['archives']:
-      archive_path = self._WprFileNameToPath(archive_path)
+    assert 'archives' in self._data, ("Invalid data format in %s. 'archives' "
+                                      "field is needed" % self._file_path)
+
+    def download_if_needed(path):
       try:
-        cloud_storage.GetIfChanged(archive_path, self._bucket)
+        cloud_storage.GetIfChanged(path, self._bucket)
       except (cloud_storage.CredentialsError, cloud_storage.PermissionError):
-        if os.path.exists(archive_path):
-          # If the archive exists, assume the user recorded their own and
-          # simply warn.
-          logging.warning('Need credentials to update WPR archive: %s',
-                          archive_path)
+        if os.path.exists(path):
+          # If the archive exists, assume the user recorded their own and warn
+          # them that they do not have the proper credentials to download.
+          logging.warning('Need credentials to update WPR archive: %s', path)
         else:
           logging.error("You either aren't authenticated or don't have "
                         "permission to use the archives for this page set."
@@ -102,17 +101,27 @@ class WprArchiveInfo(object):
                         "upload_to_cloud_storage")
           raise
 
-  def WprFilePathForStory(self, story, target_platform=None):
-    del target_platform
+    story_archives = self._data['archives']
+    for story in story_archives:
+      for target_platform in target_platforms:
+        if story_archives[story].get(target_platform):
+          archive_path = self._WprFileNameToPath(
+              story_archives[story][target_platform])
+          download_if_needed(archive_path)
+
+  def WprFilePathForStory(self, story, target_platform=_DEFAULT_PLATFORM):
     if self.temp_target_wpr_file_path:
       return self.temp_target_wpr_file_path
+
     wpr_file = self._story_name_to_wpr_file.get(story.display_name, None)
     if wpr_file is None and hasattr(story, 'url'):
       # Some old pages always use the URL to identify a page rather than the
       # display_name, so try to look for that.
       wpr_file = self._story_name_to_wpr_file.get(story.url, None)
     if wpr_file:
-      return self._WprFileNameToPath(wpr_file)
+      if target_platform in wpr_file:
+        return self._WprFileNameToPath(wpr_file[target_platform])
+      return self._WprFileNameToPath(wpr_file[_DEFAULT_PLATFORM])
     return None
 
   def AddNewTemporaryRecording(self, temp_wpr_file_path=None):
@@ -122,15 +131,20 @@ class WprArchiveInfo(object):
     self.temp_target_wpr_file_path = temp_wpr_file_path
 
   def AddRecordedStories(self, stories, upload_to_cloud_storage=False,
-                         target_platform=None):
-    del target_platform # Used in archive_info2.py
+                         target_platform=_DEFAULT_PLATFORM):
     if not stories:
       os.remove(self.temp_target_wpr_file_path)
       return
 
     (target_wpr_file, target_wpr_file_path) = self._NextWprFileName()
     for story in stories:
-      self._SetWprFileForStory(story.display_name, target_wpr_file)
+      # Check to see if the platform has been manually overrided.
+      if not story.platform_specific:
+        current_target_platform = _DEFAULT_PLATFORM
+      else:
+        current_target_platform = target_platform
+      self._SetWprFileForStory(
+          story.display_name, target_wpr_file, current_target_platform)
     shutil.move(self.temp_target_wpr_file_path, target_wpr_file_path)
 
     # Update the hash file.
@@ -140,7 +154,6 @@ class WprArchiveInfo(object):
       f.flush()
 
     self._WriteToFile()
-    self._DeleteAbandonedWprFiles()
 
     # Upload to cloud storage
     if upload_to_cloud_storage:
@@ -155,38 +168,14 @@ class WprArchiveInfo(object):
         logging.warning('Failed to upload wpr file %s to cloud storage. '
                         'Error:%s' % target_wpr_file_path, e)
 
-  def _DeleteAbandonedWprFiles(self):
-    # Update the metadata so that the abandoned wpr files don't have
-    # empty story name arrays.
-    abandoned_wpr_files = self._AbandonedWprFiles()
-    for wpr_file in abandoned_wpr_files:
-      del self._wpr_file_to_story_names[wpr_file]
-      # Don't fail if we're unable to delete some of the files.
-      wpr_file_path = self._WprFileNameToPath(wpr_file)
-      try:
-        os.remove(wpr_file_path)
-      except Exception:
-        logging.warning('Failed to delete file: %s' % wpr_file_path)
-
-  def _AbandonedWprFiles(self):
-    abandoned_wpr_files = []
-    for wpr_file, story_names in (
-        self._wpr_file_to_story_names.iteritems()):
-      if not story_names:
-        abandoned_wpr_files.append(wpr_file)
-    return abandoned_wpr_files
-
   def _WriteToFile(self):
     """Writes the metadata into the file passed as constructor parameter."""
     metadata = dict()
     metadata['description'] = (
         'Describes the Web Page Replay archives for a story set. '
         'Don\'t edit by hand! Use record_wpr for updating.')
-    metadata['archives'] = self._wpr_file_to_story_names.copy()
-    # Don't write data for abandoned archives.
-    abandoned_wpr_files = self._AbandonedWprFiles()
-    for wpr_file in abandoned_wpr_files:
-      del metadata['archives'][wpr_file]
+    metadata['archives'] = self._story_name_to_wpr_file.copy()
+    metadata['platform_specific'] = True
 
     with open(self._file_path, 'w') as f:
       json.dump(metadata, f, indent=4, sort_keys=True, separators=(',', ': '))
@@ -200,7 +189,12 @@ class WprArchiveInfo(object):
     # The names are of the format "some_thing_number.wpr". Read the numbers.
     highest_number = -1
     base = None
-    for wpr_file in self._wpr_file_to_story_names:
+    wpr_files = []
+    for story in self._data['archives']:
+      for p in self._data['archives'][story]:
+        wpr_files.append(self._data['archives'][story][p])
+
+    for wpr_file in wpr_files:
       match = re.match(r'(?P<BASE>.*)_(?P<NUMBER>[0-9]+)\.wpr', wpr_file)
       if not match:
         raise Exception('Illegal wpr file name ' + wpr_file)
@@ -216,12 +210,10 @@ class WprArchiveInfo(object):
     new_filename = '%s_%03d.wpr' % (base, highest_number + 1)
     return new_filename, self._WprFileNameToPath(new_filename)
 
-  def _SetWprFileForStory(self, story_name, wpr_file):
+  def _SetWprFileForStory(self, story_name, wpr_file, target_platform):
     """For modifying the metadata when we're going to record a new archive."""
-    old_wpr_file = self._story_name_to_wpr_file.get(story_name, None)
-    if old_wpr_file:
-      self._wpr_file_to_story_names[old_wpr_file].remove(story_name)
-    self._story_name_to_wpr_file[story_name] = wpr_file
-    if wpr_file not in self._wpr_file_to_story_names:
-      self._wpr_file_to_story_names[wpr_file] = []
-    self._wpr_file_to_story_names[wpr_file].append(story_name)
+    if story_name not in self._data['archives']:
+      # If there is no other recording we want the first to be the default
+      # until a new default is recorded.
+      self._data['archives'][story_name] = {_DEFAULT_PLATFORM: wpr_file}
+    self._data['archives'][story_name][target_platform] = wpr_file
