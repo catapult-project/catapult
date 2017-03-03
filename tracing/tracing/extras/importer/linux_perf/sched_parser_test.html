@@ -217,6 +217,21 @@ tr.b.unittest.testSuite(function() {
     assert.closeTo(12622506.918, wakeKillSlice.start, 1e-5);
     assert.closeTo(.936 - .918, wakeKillSlice.duration, 1e-5);
   });
+
+  test('importWithTgids', function() {
+    var SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
+    var lines = [
+      'kworker/u12:4-9393 ( 9393) [002] d..3 10386.798979: sched_switch: ' +
+          'prev_comm=kworker/u12:4 prev_pid=9393 prev_prio=120 ' +
+          'prev_state=S ==> next_comm=swapper/2 next_pid=0 next_prio=120',
+    ];
+
+    var m = newModel(lines.join('\n'));
+    assert.isFalse(m.hasImportWarnings);
+
+    var p = m.processes[9393];
+    assert.strictEqual(p.pid, 9393);
+  });
 });
 </script>
 

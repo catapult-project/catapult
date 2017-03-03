@@ -68,7 +68,8 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var nextPrio = parseInt(event[7]);
 
       if (eventBase.tgid !== undefined) {
-        var process = this.importer.model_.getOrCreateProcess(eventBase.tgid);
+        var tgid = parseInt(eventBase.tgid);
+        var process = this.importer.model_.getOrCreateProcess(tgid);
         if (!process.getThread(pid)) {
           var thread = process.getOrCreateThread(pid);
           thread.name = eventBase.threadName;
