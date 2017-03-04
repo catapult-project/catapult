@@ -11,80 +11,80 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-let RENDERER_PROCESS_ID = 1234;
-let RENDERER_PROCESS_MAIN_THREAD_ID = 1;
-let BROWSER_PROCESS_ID = 1;
-let BROWSER_PROCESS_MAIN_THREAD_ID = 12;
-
-function createChromeProcessesOnModel(model) {
-  let rendererProcess = model.getOrCreateProcess(RENDERER_PROCESS_ID);
-  let mainThread = rendererProcess.getOrCreateThread(
-      RENDERER_PROCESS_MAIN_THREAD_ID);
-  mainThread.name = 'CrRendererMain';
-  let browserProcess = model.getOrCreateProcess(BROWSER_PROCESS_ID);
-  let browserMainThread = browserProcess.getOrCreateThread(
-      BROWSER_PROCESS_MAIN_THREAD_ID);
-  browserMainThread.name = 'CrBrowserMain';
-}
-
-function addThreadSlice(model, title, timestamp) {
-  let rendererProcess = model.getOrCreateProcess(RENDERER_PROCESS_ID);
-  let mainThread = rendererProcess.getOrCreateThread(
-      RENDERER_PROCESS_MAIN_THREAD_ID);
-
-  mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-    cat: 'blink',
-    title: title,
-    start: timestamp,
-    duration: 0.1
-  }));
-}
-
-function addLatencyInfoFlowEvent(model, timestamp, bindId) {
-  let latencyInfoFlowSlice = tr.c.TestUtils.newSliceEx({
-    cat: 'input,benchmark',
-    title: 'LatencyInfo.Flow',
-    start: timestamp,
-    duration: 0.1,
-    bindId: bindId,
-    args: {step: 'handleInputEventMain'}
-  });
-  let handleInputEventSlice = tr.c.TestUtils.newSliceEx({
-    cat: 'blink,rail',
-    title: 'WebViewImpl::handleInputEvent',
-    start: timestamp + 1, // Assume handleInputEvent always delays 1ms.
-    duration: 0.1,
-    args: {type: 'MouseUp'}
-  });
-
-  let rendererProcess = model.getOrCreateProcess(RENDERER_PROCESS_ID);
-  let mainThread = rendererProcess.getOrCreateThread(
-      RENDERER_PROCESS_MAIN_THREAD_ID);
-
-  handleInputEventSlice.parentSlice = latencyInfoFlowSlice;
-  mainThread.sliceGroup.pushSlice(latencyInfoFlowSlice);
-  mainThread.sliceGroup.pushSlice(handleInputEventSlice);
-}
-
-function addInputLatencySlice(model, start, traceId) {
-  let browserProcess = model.getOrCreateProcess(BROWSER_PROCESS_ID);
-  let browserMainThread = browserProcess.getOrCreateThread(
-      BROWSER_PROCESS_MAIN_THREAD_ID);
-
-  browserMainThread.sliceGroup.pushSlice(tr.c.TestUtils.newAsyncSliceEx({
-    cat: 'benchmark,latencyInfo,rail',
-    title: 'InputLatency',
-    start: start,
-    duration: 0.1,
-    args: {
-      data: {
-        trace_id: traceId
-      }
-    }
-  }));
-}
-
 tr.b.unittest.testSuite(function() {
+  const RENDERER_PROCESS_ID = 1234;
+  const RENDERER_PROCESS_MAIN_THREAD_ID = 1;
+  const BROWSER_PROCESS_ID = 1;
+  const BROWSER_PROCESS_MAIN_THREAD_ID = 12;
+
+  function createChromeProcessesOnModel(model) {
+    let rendererProcess = model.getOrCreateProcess(RENDERER_PROCESS_ID);
+    let mainThread = rendererProcess.getOrCreateThread(
+        RENDERER_PROCESS_MAIN_THREAD_ID);
+    mainThread.name = 'CrRendererMain';
+    let browserProcess = model.getOrCreateProcess(BROWSER_PROCESS_ID);
+    let browserMainThread = browserProcess.getOrCreateThread(
+        BROWSER_PROCESS_MAIN_THREAD_ID);
+    browserMainThread.name = 'CrBrowserMain';
+  }
+
+  function addThreadSlice(model, title, timestamp) {
+    let rendererProcess = model.getOrCreateProcess(RENDERER_PROCESS_ID);
+    let mainThread = rendererProcess.getOrCreateThread(
+        RENDERER_PROCESS_MAIN_THREAD_ID);
+
+    mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+      cat: 'blink',
+      title: title,
+      start: timestamp,
+      duration: 0.1
+    }));
+  }
+
+  function addLatencyInfoFlowEvent(model, timestamp, bindId) {
+    let latencyInfoFlowSlice = tr.c.TestUtils.newSliceEx({
+      cat: 'input,benchmark',
+      title: 'LatencyInfo.Flow',
+      start: timestamp,
+      duration: 0.1,
+      bindId: bindId,
+      args: {step: 'handleInputEventMain'}
+    });
+    let handleInputEventSlice = tr.c.TestUtils.newSliceEx({
+      cat: 'blink,rail',
+      title: 'WebViewImpl::handleInputEvent',
+      start: timestamp + 1, // Assume handleInputEvent always delays 1ms.
+      duration: 0.1,
+      args: {type: 'MouseUp'}
+    });
+
+    let rendererProcess = model.getOrCreateProcess(RENDERER_PROCESS_ID);
+    let mainThread = rendererProcess.getOrCreateThread(
+        RENDERER_PROCESS_MAIN_THREAD_ID);
+
+    handleInputEventSlice.parentSlice = latencyInfoFlowSlice;
+    mainThread.sliceGroup.pushSlice(latencyInfoFlowSlice);
+    mainThread.sliceGroup.pushSlice(handleInputEventSlice);
+  }
+
+  function addInputLatencySlice(model, start, traceId) {
+    let browserProcess = model.getOrCreateProcess(BROWSER_PROCESS_ID);
+    let browserMainThread = browserProcess.getOrCreateThread(
+        BROWSER_PROCESS_MAIN_THREAD_ID);
+
+    browserMainThread.sliceGroup.pushSlice(tr.c.TestUtils.newAsyncSliceEx({
+      cat: 'benchmark,latencyInfo,rail',
+      title: 'InputLatency',
+      start: start,
+      duration: 0.1,
+      args: {
+        data: {
+          trace_id: traceId
+        }
+      }
+    }));
+  }
+
   test('findSpaNavigations_noChromeProcess', function() {
     let model = tr.c.TestUtils.newModel();
     let spaNavigations = tr.metrics.findSpaNavigations(model);

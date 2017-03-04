@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/base/range.html">
+<link rel="import" href="/tracing/metrics/metric_registry.html">
+<link rel="import" href="/tracing/metrics/spa_navigation_helper.html">
+<link rel="import" href="/tracing/value/histogram.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.metrics', function() {
+  const SPA_NAVIGATION_START_TO_FIRST_PAINT_DURATION_BIN_BOUNDARY =
+      tr.v.HistogramBinBoundaries.createExponential(1, 1000, 50);
+
+  /**
+   * This metric measures the duration between the input event
+   * causing a SPA navigation and the first paint event after it.
+   */
+  function spaNavigationMetric(histograms, model) {
+    let spaNavigations = tr.metrics.findSpaNavigations(model);
+    let histogram = new tr.v.Histogram(
+        'spa_navigation_start_to_first_paint_duration',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
+        SPA_NAVIGATION_START_TO_FIRST_PAINT_DURATION_BIN_BOUNDARY);
+    histogram.description = 'Latency between the input event causing' +
+        ' a SPA navigation and the first paint event after it';
+    histogram.customizeSummaryOptions({
+      count: false,
+      sum: false,
+    });
+
+    for (let spaNav of spaNavigations) {
+      let beginData = spaNav.inputLatencyEvent.args.data;
+      let beginTs = model.convertTimestampToModelTime(
+          'traceEventClock',
+          beginData.INPUT_EVENT_LATENCY_BEGIN_RWH_COMPONENT.time);
+      let duration = spaNav.firstPaintEvent.start - beginTs;
+      histogram.addSample(duration);
+    }
+    histograms.addHistogram(histogram);
+  }
+
+  tr.metrics.MetricRegistry.register(spaNavigationMetric);
+
+  return {
+    spaNavigationMetric,
+  };
+});
+</script>

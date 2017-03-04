@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/metrics/spa_navigation_metric.html">
+<link rel="import" href="/tracing/value/histogram_set.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  const RENDERER_PROCESS_ID = 1234;
+  const RENDERER_PROCESS_MAIN_THREAD_ID = 1;
+  const BROWSER_PROCESS_ID = 1;
+  const BROWSER_PROCESS_MAIN_THREAD_ID = 12;
+
+  function createChromeProcessesOnModel(model) {
+    let rendererProcess = model.getOrCreateProcess(RENDERER_PROCESS_ID);
+    let mainThread = rendererProcess.getOrCreateThread(
+        RENDERER_PROCESS_MAIN_THREAD_ID);
+    mainThread.name = 'CrRendererMain';
+    let browserProcess = model.getOrCreateProcess(BROWSER_PROCESS_ID);
+    let browserMainThread = browserProcess.getOrCreateThread(
+        BROWSER_PROCESS_MAIN_THREAD_ID);
+    browserMainThread.name = 'CrBrowserMain';
+  }
+
+  function addUrlUpdateSlice(model, timestamp) {
+    let rendererProcess = model.getOrCreateProcess(RENDERER_PROCESS_ID);
+    let mainThread = rendererProcess.getOrCreateThread(
+        RENDERER_PROCESS_MAIN_THREAD_ID);
+
+    mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+      cat: 'blink',
+      title: 'History::pushState',
+      start: timestamp,
+      duration: 0.1
+    }));
+  }
+
+  function addFirstPaintSlice(model, timestamp) {
+    let rendererProcess = model.getOrCreateProcess(RENDERER_PROCESS_ID);
+    let mainThread = rendererProcess.getOrCreateThread(
+        RENDERER_PROCESS_MAIN_THREAD_ID);
+
+    mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+      cat: 'blink',
+      title: 'PaintLayerCompositor::updateIfNeededRecursive',
+      start: timestamp,
+      duration: 0.1
+    }));
+  }
+
+  function addNavigationStartSlices(model, timestamp) {
+    let latencyInfoFlowSlice = tr.c.TestUtils.newSliceEx({
+      cat: 'input,benchmark',
+      title: 'LatencyInfo.Flow',
+      start: timestamp - 2,
+      duration: 0.1,
+      bindId: '0x600000057',
+      args: {step: 'handleInputEventMain'}
+    });
+    let handleInputEventSlice = tr.c.TestUtils.newSliceEx({
+      cat: 'blink,rail',
+      title: 'WebViewImpl::handleInputEvent',
+      start: timestamp - 1, // Assume handleInputEvent always delays 1ms.
+      duration: 0.1,
+      args: {type: 'MouseUp'}
+    });
+
+    let rendererProcess = model.getOrCreateProcess(RENDERER_PROCESS_ID);
+    let mainThread = rendererProcess.getOrCreateThread(
+        RENDERER_PROCESS_MAIN_THREAD_ID);
+
+    handleInputEventSlice.parentSlice = latencyInfoFlowSlice;
+    mainThread.sliceGroup.pushSlice(latencyInfoFlowSlice);
+    mainThread.sliceGroup.pushSlice(handleInputEventSlice);
+
+    let browserProcess = model.getOrCreateProcess(BROWSER_PROCESS_ID);
+    let browserMainThread = browserProcess.getOrCreateThread(
+        BROWSER_PROCESS_MAIN_THREAD_ID);
+    browserMainThread.sliceGroup.pushSlice(tr.c.TestUtils.newAsyncSliceEx({
+      cat: 'benchmark,latencyInfo,rail',
+      title: 'InputLatency',
+      start: timestamp - 3,
+      duration: 0.1,
+      args: {
+        data: {
+          trace_id: 25769803863,
+          INPUT_EVENT_LATENCY_BEGIN_RWH_COMPONENT: {
+            time: timestamp - 3 + 0.1
+          }
+        }
+      }
+    }));
+  }
+
+  test('spaNavigationStartToFirstPaintDuration_noChromeProcess', function() {
+    let model = tr.c.TestUtils.newModel();
+    let histograms = new tr.v.HistogramSet();
+    tr.metrics.spaNavigationMetric(histograms, model);
+    let spaNavigationStartToFpDurationHist = histograms.getHistogramNamed(
+        'spa_navigation_start_to_first_paint_duration');
+    assert.strictEqual(0, spaNavigationStartToFpDurationHist.numValues);
+  });
+
+  test('spaNavigationStartToFirstPaintDuration_noSpaNavStart', function() {
+    let model = tr.c.TestUtils.newModel(model => {
+      createChromeProcessesOnModel(model);
+      addUrlUpdateSlice(model, 100);
+      addFirstPaintSlice(model, 101);
+    });
+    let histograms = new tr.v.HistogramSet();
+    tr.metrics.spaNavigationMetric(histograms, model);
+    let spaNavigationStartToFpDurationHist = histograms.getHistogramNamed(
+        'spa_navigation_start_to_first_paint_duration');
+    assert.strictEqual(0, spaNavigationStartToFpDurationHist.numValues);
+  });
+
+  test('spaNavigationStartToFirstPaintDuration_noFirstPaint', function() {
+    let model = tr.c.TestUtils.newModel(model => {
+      createChromeProcessesOnModel(model);
+      addNavigationStartSlices(model, 99);
+      addUrlUpdateSlice(model, 100);
+    });
+    let histograms = new tr.v.HistogramSet();
+    tr.metrics.spaNavigationMetric(histograms, model);
+    let spaNavigationStartToFpDurationHist = histograms.getHistogramNamed(
+        'spa_navigation_start_to_first_paint_duration');
+    assert.strictEqual(0, spaNavigationStartToFpDurationHist.numValues);
+  });
+
+  test('spaNavigationStartToFirstPaintDuration_oneSpaNav', function() {
+    let model = tr.c.TestUtils.newModel(model => {
+      createChromeProcessesOnModel(model);
+      addNavigationStartSlices(model, 99);
+      addUrlUpdateSlice(model, 100);
+      addFirstPaintSlice(model, 101);
+    });
+    let histograms = new tr.v.HistogramSet();
+    tr.metrics.spaNavigationMetric(histograms, model);
+    let spaNavigationStartToFpDurationHist = histograms.getHistogramNamed(
+        'spa_navigation_start_to_first_paint_duration');
+    assert.strictEqual(1, spaNavigationStartToFpDurationHist.running.count);
+    let expectedDuration = 101 - model.convertTimestampToModelTime(
+        'traceEventClock', 99 - 3 + 0.1);
+    assert.closeTo(
+        expectedDuration, spaNavigationStartToFpDurationHist.running.sum, 0.5);
+  });
+
+  test('spaNavigationStartToFirstPaintDuration_multipleSpaNavs', function() {
+    let model = tr.c.TestUtils.newModel(model => {
+      createChromeProcessesOnModel(model);
+      addNavigationStartSlices(model, 99);
+      addUrlUpdateSlice(model, 100);
+      addFirstPaintSlice(model, 101);
+
+      addNavigationStartSlices(model, 198);
+      addUrlUpdateSlice(model, 200);
+      addFirstPaintSlice(model, 201);
+
+      addNavigationStartSlices(model, 297);
+      addUrlUpdateSlice(model, 300);
+      addFirstPaintSlice(model, 301);
+    });
+    let histograms = new tr.v.HistogramSet();
+    tr.metrics.spaNavigationMetric(histograms, model);
+    let spaNavigationStartToFpDurationHist = histograms.getHistogramNamed(
+        'spa_navigation_start_to_first_paint_duration');
+    assert.strictEqual(3, spaNavigationStartToFpDurationHist.running.count);
+    let expectedDuration1 = 101 - model.convertTimestampToModelTime(
+        'traceEventClock', 99 - 3 + 0.1);
+    let expectedDuration2 = 201 - model.convertTimestampToModelTime(
+        'traceEventClock', 198 - 3 + 0.1);
+    let expectedDuration3 = 301 - model.convertTimestampToModelTime(
+        'traceEventClock', 297 - 3 + 0.1);
+    assert.closeTo(expectedDuration1 + expectedDuration2 + expectedDuration3,
+        spaNavigationStartToFpDurationHist.running.sum, 0.5);
+    assert.closeTo(
+        expectedDuration3, spaNavigationStartToFpDurationHist.running.max, 0.5);
+    assert.closeTo(
+        expectedDuration1, spaNavigationStartToFpDurationHist.running.min, 0.5);
+  });
+});
+</script>

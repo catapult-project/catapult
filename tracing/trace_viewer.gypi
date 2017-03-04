@@ -185,6 +185,8 @@
       'tracing/metrics/metric_map_function.html',
       'tracing/metrics/metric_registry.html',
       'tracing/metrics/sample_metric.html',
+      'tracing/metrics/spa_navigation_helper.html',
+      'tracing/metrics/spa_navigation_metric.html',
       'tracing/metrics/system_health/chrome_processes.html',
       'tracing/metrics/system_health/clock_sync_latency_metric.html',
       'tracing/metrics/system_health/cpu_time_metric.html',
