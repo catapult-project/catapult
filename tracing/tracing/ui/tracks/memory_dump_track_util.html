@@ -29,13 +29,13 @@ tr.exportTo('tr.ui.tracks', function() {
 
   /** Extract PSS values of processes in a global memory dump. */
   function extractGlobalMemoryDumpUsedSizes(globalMemoryDump, addSize) {
-    for (var [pid, pmd] of
-         Object.entries(globalMemoryDump.processMemoryDumps)) {
+    tr.b.iterItems(globalMemoryDump.processMemoryDumps, function(pid, pmd) {
       var mostRecentVmRegions = pmd.mostRecentVmRegions;
-      if (mostRecentVmRegions === undefined) continue;
+      if (mostRecentVmRegions === undefined)
+        return;
       addSize(pid, mostRecentVmRegions.byteStats.proportionalResident || 0,
           pmd.process.userFriendlyName);
-    }
+    });
   }
 
   /** Extract sizes of root allocators in a process memory dump. */
@@ -60,9 +60,9 @@ tr.exportTo('tr.ui.tracks', function() {
 
   /** Extract sizes of root allocators in a global memory dump. */
   function extractGlobalMemoryDumpAllocatorSizes(globalMemoryDump, addSize) {
-    for (var pmd of Object.values(globalMemoryDump.processMemoryDumps)) {
-      extractProcessMemoryDumpAllocatorSizes(pmd, addSize);
-    }
+    tr.b.iterItems(
+        globalMemoryDump.processMemoryDumps,
+        (pid, pmd) => extractProcessMemoryDumpAllocatorSizes(pmd, addSize));
   }
 
   /**

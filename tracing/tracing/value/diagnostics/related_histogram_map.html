@@ -152,9 +152,9 @@ tr.exportTo('tr.v.d', function() {
 
     static fromDict(d) {
       let map = new RelatedHistogramMap();
-      for (let [name, guid] of Object.entries(d.values)) {
+      tr.b.iterItems(d.values, function(name, guid) {
         map.set(name, new tr.v.d.HistogramRef(guid));
-      }
+      });
       return map;
     }
   }

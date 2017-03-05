@@ -86,9 +86,9 @@ tr.exportTo('tr.b', function() {
       opt_fields) {
     var e = new tr.b.Event(type, opt_bubbles, opt_cancelable);
     if (opt_fields) {
-      for (var [name, value] of Object.entries(opt_fields)) {
+      tr.b.iterItems(opt_fields, function(name, value) {
         e[name] = value;
-      }
+      });
     }
     return target.dispatchEvent(e);
   }

@@ -185,9 +185,9 @@ tr.exportTo('tr.b', function() {
   var reservedColorNameToIdMap = (function() {
     var m = new Map();
     var i = generalPurposeColors.length;
-    for (var key of Object.keys(reservedColorsByName)) {
+    tr.b.iterItems(reservedColorsByName, function(key, value) {
       m.set(key, i++);
-    }
+    });
     return m;
   })();
 

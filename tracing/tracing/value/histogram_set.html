@@ -56,9 +56,8 @@ tr.exportTo('tr.v', function() {
             hist.diagnostics.set(name, diagnostic);
           }
         } else {
-          for (var [name, diagnostic] of Object.entries(opt_diagnostics)) {
-            hist.diagnostics.set(name, diagnostic);
-          }
+          tr.b.iterItems(opt_diagnostics, (name, diagnostic) =>
+              hist.diagnostics.set(name, diagnostic));
         }
       }
 

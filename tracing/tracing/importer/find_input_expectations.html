@@ -125,11 +125,10 @@ tr.exportTo('tr.importer', function() {
 
   function getSortedFrameEventsByProcess(modelHelper) {
     var frameEventsByPid = {};
-    for (var [pid, rendererHelper] of
-        Object.entries(modelHelper.rendererHelpers)) {
+    tr.b.iterItems(modelHelper.rendererHelpers, function(pid, rendererHelper) {
       frameEventsByPid[pid] = rendererHelper.getFrameEventsInRange(
           tr.model.helpers.IMPL_FRAMETIME_TYPE, modelHelper.model.bounds);
-    }
+    });
     return frameEventsByPid;
   }
 

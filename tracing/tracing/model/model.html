@@ -568,20 +568,21 @@ tr.exportTo('tr', function() {
     },
 
     joinObjectRefs_: function() {
-      for (var [pid, process] of Object.entries(this.processes))
+      tr.b.iterItems(this.processes, function(pid, process) {
         this.joinObjectRefsForProcess_(pid, process);
+      }, this);
     },
 
     joinObjectRefsForProcess_: function(pid, process) {
       // Iterate the world, looking for id_refs
-      for (var thread of Object.values(process.threads)) {
+      tr.b.iterItems(process.threads, function(tid, thread) {
         thread.asyncSliceGroup.slices.forEach(function(item) {
           this.searchItemForIDRefs_(pid, 'start', item);
         }, this);
         thread.sliceGroup.slices.forEach(function(item) {
           this.searchItemForIDRefs_(pid, 'start', item);
         }, this);
-      }
+      }, this);
       process.objects.iterObjectInstances(function(instance) {
         instance.snapshots.forEach(function(item) {
           this.searchItemForIDRefs_(pid, 'ts', item);

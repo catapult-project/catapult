@@ -34,10 +34,10 @@ tr.exportTo('tr.v.d', function() {
 
     static fromDict(d) {
       let result = new CollectedRelatedEventSet();
-      for (let [canonicalUrl, events] of Object.entries(d.events)) {
+      tr.b.iterItems(d.events, function(canonicalUrl, events) {
         result.eventSetsByCanonicalUrl_.set(canonicalUrl, events.map(
             e => new tr.v.d.EventRef(e)));
-      }
+      });
       return result;
     }
 

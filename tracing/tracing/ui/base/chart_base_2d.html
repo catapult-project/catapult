@@ -311,11 +311,11 @@ tr.exportTo('tr.ui.b', function() {
 
       var dataBySeriesKey = this.getDataBySeriesKey_();
       this.autoDataRange_.reset();
-      for (var [series, values] of Object.entries(dataBySeriesKey)) {
+      tr.b.iterItems(dataBySeriesKey, function(series, values) {
         for (var i = 0; i < values.length; i++) {
           this.autoDataRange_.addValue(values[i][series]);
         }
-      }
+      }, this);
 
       // Choose the closest power of 10, rounded down, as the smallest tick
       // to display.

@@ -178,17 +178,17 @@ tr.exportTo('tr.v.ui', function() {
     createColumns_: function() {
       let columnsByName = {};
       this.items_.forEach(function(item) {
-        for (let [itemFieldName, itemFieldValue] of Object.entries(item)) {
+        tr.b.iterItems(item, function(itemFieldName, itemFieldValue) {
           let colDesc = columnsByName[itemFieldName];
           if (colDesc !== undefined) {
             colDesc.updateModeGivenValue(itemFieldValue);
-            continue;
+            return;
           }
 
           colDesc = new GenericTableViewColumnDescriptor(
               itemFieldName, itemFieldValue);
           columnsByName[itemFieldName] = colDesc;
-        }
+        }, this);
       }, this);
 
       let columns = tr.b.dictionaryValues(columnsByName);

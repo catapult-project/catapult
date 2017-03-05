@@ -117,16 +117,16 @@ tr.exportTo('tr.model.helpers', function() {
     },
 
     iterAllThreads: function(func, opt_this) {
-      for (var thread of Object.values(this.process.threads)) {
+      tr.b.iterItems(this.process.threads, function(tid, thread) {
         func.call(opt_this, thread);
-      }
+      });
 
-      for (var rendererHelper of Object.values(this.rendererHelpers)) {
+      tr.b.iterItems(this.rendererHelpers, function(pid, rendererHelper) {
         var rendererProcess = rendererHelper.process;
-        for (var thread of Object.values(rendererProcess.threads)) {
+        tr.b.iterItems(rendererProcess.threads, function(tid, thread) {
           func.call(opt_this, thread);
-        }
-      }
+        });
+      }, this);
     }
   };
 

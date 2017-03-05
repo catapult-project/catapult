@@ -717,16 +717,16 @@ tr.exportTo('tr.model', function() {
           this.propagateNumericsAndDiagnosticsRecursively);
 
       // 3. Aggregate numerics in the associated process memory dumps.
-      for (var processMemoryDump of Object.values(this.processMemoryDumps)) {
+      tr.b.iterItems(this.processMemoryDumps, function(pid, processMemoryDump) {
         processMemoryDump.iterateRootAllocatorDumps(function(dump) {
           dump.aggregateNumericsRecursively(this.model);
         }, this);
-      }
+      }, this);
     },
 
     propagateNumericsAndDiagnosticsRecursively: function(globalAllocatorDump) {
       ['numerics', 'diagnostics'].forEach(function(field) {
-        for (var [name, value] of Object.entries(globalAllocatorDump[field])) {
+        tr.b.iterItems(globalAllocatorDump[field], function(name, value) {
           globalAllocatorDump.ownedBy.forEach(function(ownershipLink) {
             var processAllocatorDump = ownershipLink.source;
             if (processAllocatorDump[field][name] !== undefined) {
@@ -737,7 +737,7 @@ tr.exportTo('tr.model', function() {
             }
             processAllocatorDump[field][name] = value;
           });
-        }
+        });
       });
 
       // Recursively propagate numerics from all child memory allocator dumps.
@@ -746,17 +746,17 @@ tr.exportTo('tr.model', function() {
     },
 
     setUpTracingOverheadOwnership: function() {
-      for (var dump of Object.values(this.processMemoryDumps)) {
+      tr.b.iterItems(this.processMemoryDumps, function(pid, dump) {
         dump.setUpTracingOverheadOwnership(this.model);
-      }
+      }, this);
     },
 
     discountTracingOverheadFromVmRegions: function() {
       // TODO(petrcermak): Consider factoring out all the finalization code and
       // constants to a single file.
-      for (var dump of Object.values(this.processMemoryDumps)) {
+      tr.b.iterItems(this.processMemoryDumps, function(pid, dump) {
         dump.discountTracingOverheadFromVmRegions(this.model);
-      }
+      }, this);
     },
 
     forceRebuildingMemoryAllocatorDumpByFullNameIndices: function() {
@@ -767,9 +767,9 @@ tr.exportTo('tr.model', function() {
 
     iterateContainerDumps: function(fn) {
       fn.call(this, this);
-      for (var processDump of Object.values(this.processMemoryDumps)) {
+      tr.b.iterItems(this.processMemoryDumps, function(pid, processDump) {
         fn.call(this, processDump);
-      }
+      }, this);
     },
 
     iterateAllRootAllocatorDumps: function(fn) {

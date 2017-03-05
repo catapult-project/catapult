@@ -76,9 +76,9 @@ tr.exportTo('tr.v.d', function() {
 
     static fromDict(d) {
       let breakdown = new Breakdown();
-      for (let [name, value] of Object.entries(d.values)) {
+      tr.b.iterItems(d.values, (name, value) => {
         breakdown.set(name, tr.b.numberFromJson(value));
-      }
+      });
       if (d.colorScheme) {
         breakdown.colorScheme = d.colorScheme;
       }

@@ -230,8 +230,8 @@ tr.exportTo('tr.ui.e.s', function() {
       // Gather contexts into skeletons of rows.
       var rows = [];
       var rowMap = {};
-      for (var proc of Object.values(this.model_.processes)) {
-        proc.objects.iterObjectInstances(function(objectInstance) {
+      tr.b.iterItems(this.model_.processes, function(pid, process) {
+        process.objects.iterObjectInstances(function(objectInstance) {
           if (!(objectInstance instanceof BlameContextInstance))
             return;
           objectInstance.snapshots.forEach(function(snapshot) {
@@ -242,14 +242,14 @@ tr.exportTo('tr.ui.e.s', function() {
             rows.push(row);
           }, this);
         }, this);
-      }
+      }, this);
 
       // Find slices attributed to each row.
       // TODO(xiaochengh): We should implement a getter
       // BlameContextSnapshot.attributedEvents, instead of process the model in
       // a UI component.
-      for (var proc of Object.values(this.model_.processes)) {
-        for (var thread of Object.values(proc.threads)) {
+      tr.b.iterItems(this.model_.processes, function(pid, process) {
+        tr.b.iterItems(process.threads, function(tid, thread) {
           thread.sliceGroup.iterSlicesInTimeRange(function(topLevelSlice) {
             topLevelSlice.contexts.forEach(function(context) {
               if (!context.snapshot.guid || !rowMap[context.snapshot.guid])
@@ -259,8 +259,8 @@ tr.exportTo('tr.ui.e.s', function() {
               row.time += topLevelSlice.selfTime || 0;
             });
           }, this.currentRangeOfInterest.min, this.currentRangeOfInterest.max);
-        }
-      }
+        }, this);
+      }, this);
 
       // Apply grouping to rows.
       var select = this.$.select;
@@ -283,12 +283,12 @@ tr.exportTo('tr.ui.e.s', function() {
       }
 
       var ans = {supported: false};
-      for (var proc of Object.values(m.processes)) {
-        proc.objects.iterObjectInstances(function(instance) {
+      tr.b.iterItems(m.processes, function(pid, process) {
+        process.objects.iterObjectInstances(function(instance) {
           if (instance instanceof BlameContextInstance)
             ans.supported = true;
         });
-      }
+      }, this);
 
       if (!ans.supported)
         ans.reason = 'No frame data available';

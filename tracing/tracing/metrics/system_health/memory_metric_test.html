@@ -82,7 +82,7 @@ tr.b.unittest.testSuite(function() {
       });
 
       // Check that the numeric values of the added values match expectations.
-      for (var [valueName, actualValues] of Object.entries(valueNameToValues)) {
+      tr.b.iterItems(valueNameToValues, function(valueName, actualValues) {
         assert.lengthOf(actualValues, 1,
             'Multiple \'' + valueName + '\' values');
         var actualHistogram = actualValues[0];
@@ -124,7 +124,7 @@ tr.b.unittest.testSuite(function() {
         assert.strictEqual(
             actualHistogram.description, expectedHistogram.description,
             'Invalid \'' + valueName + '\' description');
-      }
+      });
     });
   }
 

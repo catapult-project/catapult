@@ -1180,9 +1180,9 @@ tr.exportTo('tr.e.importer', function() {
 
       // Remove all the root stack frame children as they should
       // already be added.
-      for (var frame of Object.values(this.v8ProcessRootStackFrame_)) {
+      tr.b.iterItems(this.v8ProcessRootStackFrame_, function(name, frame) {
         frame.removeAllChildren();
-      }
+      });
     },
 
     importStackFrames_: function(rawStackFrames, idPrefix) {
@@ -2242,9 +2242,9 @@ tr.exportTo('tr.e.importer', function() {
     },
 
     createImplicitObjects_: function() {
-      for (var proc of Object.values(this.model_.processes)) {
-        this.createImplicitObjectsForProcess_(proc);
-      }
+      tr.b.iterItems(this.model_.processes, function(pid, process) {
+        this.createImplicitObjectsForProcess_(process);
+      }, this);
     },
 
     // Here, we collect all the snapshots that internally contain a

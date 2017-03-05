@@ -30,8 +30,8 @@ tr.exportTo('tr.metrics', function() {
     var chromeHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
 
-    for (var [pid, process] of Object.entries(model.processes)) {
-    }
+    tr.b.iterItems(model.processes, function(pid, process) {
+    });
 
     histograms.addHistogram(hist);
   }

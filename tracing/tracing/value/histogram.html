@@ -246,9 +246,9 @@ tr.exportTo('tr.v', function() {
             hist.allBins[i].fromDict(dict.allBins[i]);
           }
         } else {
-          for (var [i, binDict] of Object.entries(dict.allBins)) {
+          tr.b.iterItems(dict.allBins, (i, binDict) => {
             hist.allBins[i].fromDict(binDict);
-          }
+          });
         }
       }
       if (dict.running) {
@@ -518,9 +518,8 @@ tr.exportTo('tr.v', function() {
      * The options not included in the |summaryOptions| will not change.
      */
     customizeSummaryOptions(summaryOptions) {
-      for (var [key, value] of Object.entries(summaryOptions)) {
-        this.summaryOptions.set(key, value);
-      }
+      tr.b.iterItems(summaryOptions, (key, value) =>
+          this.summaryOptions.set(key, value));
     }
 
     /**

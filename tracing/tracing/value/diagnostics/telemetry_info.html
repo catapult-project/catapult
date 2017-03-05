@@ -60,9 +60,8 @@ tr.exportTo('tr.v.d', function() {
       if (info.storyDisplayName) {
         this.storyDisplayName_ = info.storyDisplayName;
       }
-      for (let [name, value] of Object.entries(info.storyGroupingKeys || {})) {
-        this.storyGroupingKeys_.set(name, value);
-      }
+      tr.b.iterItems(info.storyGroupingKeys || {}, (name, value) =>
+        this.storyGroupingKeys_.set(name, value));
       if (info.storyUrl) {
         this.storyUrl_ = info.storyUrl;
       }
