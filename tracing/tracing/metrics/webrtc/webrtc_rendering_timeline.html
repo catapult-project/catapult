@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/base/range.html">
+<link rel="import" href="/tracing/base/unit.html">
+<link rel="import" href="/tracing/metrics/metric_registry.html">
+<link rel="import" href="/tracing/metrics/v8/utils.html">
+<link rel="import" href="/tracing/value/histogram.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.metrics.webrtc', function() {
+  var DISPLAY_HERTZ = 60.0;
+  var VSYNC_DURATION = 1e6 / DISPLAY_HERTZ;
+  // When to consider a frame frozen (in VSYNC units): meaning 1 initial
+  // frame + 5 repeats of that frame.
+  var FROZEN_THRESHOLD = 6;
+  // Severity factor.
+  var SEVERITY = 3;
+
+  var IDEAL_RENDER_INSTANT = 'Ideal Render Instant';
+  var ACTUAL_RENDER_BEGIN = 'Actual Render Begin';
+  var ACTUAL_RENDER_END = 'Actual Render End';
+  var SERIAL = 'Serial';
+
+  function isMediaPlayerMSEvent(event) {
+    return event.title == 'WebMediaPlayerMS::UpdateCurrentFrame';
+  }
+
+  function eventStream(event) {
+    return event.args[SERIAL];
+  }
+
+  function isValidEvent(event) {
+    if (!isMediaPlayerMSEvent(event) || !event.args) {
+      return false;
+    }
+    var mandatory = [
+      IDEAL_RENDER_INSTANT, ACTUAL_RENDER_BEGIN, ACTUAL_RENDER_END, SERIAL
+    ];
+    for (var parameter in mandatory) {
+      if (!(parameter in event.args)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  function webRtcRenderingTimelineMetric(values, model) {
+    tr.metrics.v8.utils.groupAndProcessEvents(
+        model, isValidEvent, eventStream, getTimeStats.bind(null, values));
+  }
+
+  tr.metrics.MetricRegistry.register(webRtcRenderingTimelineMetric);
+
+  var percentage_biggerIsBetter =
+      tr.b.Unit.byName.normalizedPercentage_biggerIsBetter;
+  var percentage_smallerIsBetter =
+      tr.b.Unit.byName.normalizedPercentage_smallerIsBetter;
+  var timeDurationInMs_smallerIsBetter =
+      tr.b.Unit.byName.timeDurationInMs_smallerIsBetter;
+  var unitlessNumber_biggerIsBetter =
+      tr.b.Unit.byName.unitlessNumber_biggerIsBetter;
+
+  function addScalarValue(scalarValue, values, name, unit) {
+    var histogram = new tr.v.Histogram(name, unit);
+    histogram.addSample(scalarValue);
+    values.addHistogram(histogram);
+  }
+
+  function addListOfScalarValues(scalarValues, values, name, unit) {
+    var histogram = new tr.v.Histogram(name, unit);
+    for (var scalarValue in scalarValues) {
+      histogram.addSample(scalarValue);
+    }
+    values.addHistogram(histogram);
+  }
+
+  function getTimeStats(values, streamName, events) {
+    var cadence = getCadence(events);
+    var frameDistribution = getSourceToOutputDistribution(cadence);
+    addFpsFromCadence(values, frameDistribution);
+    addFreezeScore(values, frameDistribution);
+    var driftTimeStats = getDriftTimeStats(events, cadence);
+    addListOfScalarValues(driftTimeStats.driftTime, values,
+        'WebRTCRendering_drift_time', timeDurationInMs_smallerIsBetter);
+    addScalarValue(driftTimeStats.renderingLengthError, values,
+        'WebRTCRendering_rendering_length_error', percentage_smallerIsBetter);
+    var smoothnessStats = getSmoothnessStats(driftTimeStats.driftTime);
+    addScalarValue(smoothnessStats.percentBadlyOutOfSync, values,
+        'WebRTCRendering_percent_badly_out_of_sync',
+        percentage_smallerIsBetter);
+    addScalarValue(smoothnessStats.percentOutOfSync, values,
+        'WebRTCRendering_percent_out_of_sync', percentage_smallerIsBetter);
+    addScalarValue(smoothnessStats,smoothnessScore, values,
+        'WebRTCRendering_smoothness_score', percentage_biggerIsBetter);
+  }
+
+  // Calculate the apparent cadence of the rendering.
+  //
+  // In this paragraph I will be using regex notation. What is intended by the
+  // word cadence is a sort of extended instantaneous 'Cadence' (thus not
+  // necessarily periodic). Just as an example, a normal 'Cadence' could be
+  // something like [2 3] which means possibly an observed frame persistence
+  // progression of [{2 3}+] for an ideal 20FPS video source. So what we are
+  // calculating here is the list of frame persistence, kind of a
+  // 'Proto-Cadence', but cadence is shorter so we abuse the word.
+  function getCadence(events) {
+    var cadence = [];
+    var framePersistence = 0;
+    var oldIdealRender = 0;
+    for (var event in events) {
+      if (event.args[IDEAL_RENDER_INSTANT] == oldIdealRender) {
+        framePersistence += 1;
+      } else {
+        cadence.push(framePersistence);
+        framePersistence = 1;
+        oldIdealRender = event.args[IDEAL_RENDER_INSTANT];
+      }
+    }
+    cadence.append(framePersistence);
+    cadence.shift();
+    return cadence;
+  }
+
+  // Create distribution for the cadence frame display values.
+  //
+  // If the overall display distribution is A1:A2:..:An, this will tell us how
+  // many times a frame stays displayed during Ak*VSYNC_DURATION, also known as
+  // 'source to output' distribution. Or in other terms:
+  // a distribution B::= let C be the cadence, B[k]=p with k in Unique(C)
+  // and p=Card(k in C).
+  function getSourceToOutputDistribution(cadence) {
+    var frameDistribution = {};
+    for (var ticks in cadence) {
+      var ticksSoFar = frameDistribution[ticks] || 0;
+      frameDistribution[ticks] = ticksSoFar + 1;
+    }
+    return frameDistribution;
+  }
+
+  // Calculate the apparent FPS from frame distribution.
+  //
+  // Knowing the display frequency and the frame distribution, it is possible to
+  // calculate the video apparent frame rate as played by WebMediaPlayerMs
+  // module.
+  function addFpsFromCadence(values, frameDistribution) {
+    var numberFrames = 0;
+    var numberVsyncs = 0;
+    for (var ticks in frameDistribution) {
+      numberFrames += frameDistribution[ticks];
+      numberVsyncs += ticks * frameDistribution[ticks];
+    }
+    var meanRatio = numberVsyncs / numberFrames;
+    addScalarValue(DISPLAY_HERTZ / meanRatio, values, 'WebRTCRendering_fps',
+        unitlessNumber_biggerIsBetter);
+  }
+
+  // Find evidence of frozen frames in distribution.
+  //
+  // For simplicity we count as freezing the frames that appear at least five
+  // times in a row counted from 'Ideal Render Instant' perspective. So let's
+  // say for 1 source frame, we rendered 6 frames, then we consider 5 of these
+  // rendered frames as frozen. But we mitigate this by saying anything under
+  // 5 frozen frames will not be counted as frozen.
+  function getFrozenFramesReports(frameDistribution) {
+    frozenFrameVsyncs = [];
+    for (var ticks in frameDistribution) {
+      if (ticks >= FROZEN_THRESHOLD) {
+        frozenFrameVsyncs.push(ticks);
+      }
+    }
+    frozenFrames = [];
+    for (var frozenFrameVsync in frozenFrameVsyncs) {
+      frozenFrames.push({
+        frozenFrames: frozenFrameVsync - 1,
+        occurences: frameDistribution[frozenFrameVsync],
+      });
+    }
+    return frozenFrames;
+  }
+
+  // Returns the weighted penalty for a number of frozen frames.
+  //
+  // As mentioned earlier, we count for frozen anything above 6 vsync display
+  // duration for the same 'Initial Render Instant', which is five frozen
+  // frames.
+  function frozenPenaltyWeight(numberFrozenFrames) {
+    var penalty = {
+      0: 0,
+      1: 0,
+      2: 0,
+      3: 0,
+      4: 0,
+      5: 1,
+      6: 5,
+      7: 15,
+      8: 25
+    };
+    return penalty[numberFrozenFrames] || 8 * (numberFrozenFrames - 4);
+  }
+
+  // Add the freezing score
+  function addFreezingScore(values, frameDistribution) {
+    var numberVsyncs = 0;
+    for (var ticks in frameDistribution) {
+      numberVsyncs += ticks * frameDistribution[ticks];
+    }
+    var frozenFrames = getFrozenFramesReports(frameDistribution);
+    var freezingScore = 100;
+    for (var frozenReport in frozenFrames) {
+      var weight = frozenPenaltyWeight(frozenReport.frozenFrames);
+      freezingScore -= 100 * frozenReport.occurences / numberVsyncs * weight;
+      if (freezingScore < 0) {
+        freezingScore = 0;
+      }
+    }
+    addScalarValue(freezingScore, values, 'WebRTCRendering_freezing_score',
+        percentage_biggerIsBetter);
+  }
+
+  // Get the drift time statistics.
+  //
+  // This method will calculate drift_time stats, that is to say :
+  // drift_time::= list(actual render begin - ideal render).
+  // rendering_length error::= the rendering length error.
+  function getDriftStats(events, cadence) {
+    var driftTime = [];
+    var oldIdealRender = 0;
+    var discrepancy = [];
+    var discrepancySum = 0;
+    var index = 0;
+    for (var event in events) {
+      var currentIdealRender = event.args[IDEAL_RENDER_INSTANT];
+      if (currentIdealRender == oldIdealRender) {
+        continue;
+      }
+      var actualRenderBegin = event.args[ACTUAL_RENDER_BEGIN];
+      driftTime.push(actualRenderBegin - currentIdealRender);
+      discrepancy.push(Math.abs(currentIdealRender - oldIdealRender -
+          VSYNC_DURATION * cadence[index]));
+      discrepancySum += discrepancy[index];
+      oldIdealRender = currentIdealRender;
+      index += 1;
+    }
+    discrepancySum -= discrepancy[0];
+    discrepancy.shift();
+    var lastIdealRender = events[events.length - 1].args[IDEAL_RENDER_INSTANT];
+    var firstIdealRender = events[0].args[IDEAL_RENDER_INSTANT];
+    var renderingLengthError = 100 * discrepancySum / (lastIdealRender -
+        firstIdealRender);
+
+    return {
+      driftTime: driftTime,
+      renderingLengthError: renderingLengthError,
+    };
+  }
+
+  // Get the smoothness stats from the normalized drift time.
+  //
+  // This method will calculate the smoothness score, along with the percentage
+  // of frames badly out of sync and the percentage of frames out of sync. To be
+  // considered badly out of sync, a frame has to have missed rendering by at
+  // least 2*VSYNC_DURATION. To be considered out of sync, a frame has to have
+  // missed rendering by at least one VSYNC_DURATION.
+  // The smoothness score is a measure of how out of sync the frames are.
+  function getSmoothnessStats(driftTimes) {
+    var meanDriftTime = 0;
+    for (var driftTime in driftTimes) {
+      meanDriftTime += driftTime;
+    }
+    meanDriftTime /= driftTimes.length;
+    var normDriftTimes = [];
+    for (var driftTime in driftTimes) {
+      normDriftTimes.push(Math.abs(driftTime - meanDriftTime));
+    }
+
+    // How many times is a frame later/earlier than T=2*VSYNC_DURATION. Time is
+    // in microseconds
+    var framesSeverelyOutOfSync = 0;
+    // How many times is a frame later/earlier than VSYNC_DURATION.
+    var framesOutOfSync = 0;
+    for (var driftTime in normDriftTimes) {
+      if (Math.abs(driftTime) > VSYNC_DURATION) {
+        framesOutOfSync += 1;
+      }
+      if (Math.abs(driftTime) > 2 * VSYNC_DURATION) {
+        framesSeverelyOutOfSync += 1;
+      }
+    }
+    var percentBadlyOutOfSync = 100 * framesSeverelyOutOfSync /
+      driftTimes.length;
+    var percentOutOfSync = 100 * framesOutOfSync / driftTimes.length;
+
+    var framesOutOfSyncOnlyOnce = framesOutOfSync - framesSeverelyOutOfSync;
+
+    // Calculate smoothness metric. From the formula, we can see that smoothness
+    // score can be negative.
+    var smoothnessScore = 100 - 100 * (framesOutOfSyncOnlyOnce +
+        SEVERITY * framesSeverelyOutOfSync) / driftTimes.length;
+
+    // Minimum smoothness_score value allowed is zero.
+    if (smoothnessScore < 0) {
+      smoothnessScore = 0;
+    }
+
+    return {
+      percentBadlyOutOfSync: percentBadlyOutOfSync,
+      percentOutOfSync: percentOutOfSync,
+      smoothnessScore: smoothnessScore,
+    };
+  }
+
+  return {
+    webRtcRenderingTimelineMetric,
+  };
+});
+</script>
+
+
