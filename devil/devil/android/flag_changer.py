@@ -58,21 +58,13 @@ class FlagChanger(object):
     """
     self._device = device
 
-    unused_dir, basename = posixpath.split(cmdline_file)
-    self._cmdline_path = posixpath.join(_CMDLINE_DIR, basename)
+    if posixpath.sep in cmdline_file:
+      raise ValueError(
+          'cmdline_file should be a file name only, do not include path'
+          ' separators in: %s' % cmdline_file)
+    self._cmdline_path = posixpath.join(_CMDLINE_DIR, cmdline_file)
 
-    # TODO(catapult:#3112): Make this fail instead of warn after all clients
-    # have been switched.
-    if unused_dir:
-      logging.warning(
-          'cmdline_file argument of %s() should be a file name only (not a'
-          ' full path).', type(self).__name__)
-      if cmdline_file != self._cmdline_path:
-        logging.warning(
-            'Client supplied %r, but %r will be used instead.',
-            cmdline_file, self._cmdline_path)
-
-    cmdline_path_legacy = posixpath.join(_CMDLINE_DIR_LEGACY, basename)
+    cmdline_path_legacy = posixpath.join(_CMDLINE_DIR_LEGACY, cmdline_file)
     if self._device.PathExists(cmdline_path_legacy):
       logging.warning(
             'Removing legacy command line file %r.', cmdline_path_legacy)

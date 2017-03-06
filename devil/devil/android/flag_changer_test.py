@@ -52,6 +52,10 @@ class FlagChangerTest(unittest.TestCase):
         self.cmdline_path)
     self.assertFalse(self.device.PathExists(self.cmdline_path_legacy))
 
+  def testFlagChanger_mustBeFileName(self):
+    with self.assertRaises(ValueError):
+      flag_changer.FlagChanger(self.device, '/data/local/chrome-command-line')
+
 
 class ParseSerializeFlagsTest(unittest.TestCase):
   def _testQuoteFlag(self, flag, expected_quoted_flag):
