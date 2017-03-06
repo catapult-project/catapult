@@ -72,5 +72,22 @@ tr.b.unittest.testSuite(function() {
       tr.metrics.MetricRegistry.register(function fooMetric(a) {});
     });
   });
+
+  test('checkFilename', function() {
+    tr.metrics.MetricRegistry.checkFilename(
+        'aMetric', ['metrics', 'a_metric.html']);
+    tr.metrics.MetricRegistry.checkFilename(
+        'fooBarMetric', ['foo', 'bar_metric.html']);
+
+    // Expected fooMetric to be in a file named foo_metric.html; actual:
+    // foo/bar_metric.html
+    assert.throws(() => tr.metrics.MetricRegistry.checkFilename(
+        'fooMetric', ['foo', 'bar_metric.html']));
+
+    // Expected fooMetric to be in a file named foo_metric.html; actual:
+    // cat/bar_metric.html
+    assert.throws(() => tr.metrics.MetricRegistry.checkFilename(
+        'fooMetric', ['cat', 'bar_metric.html']));
+  });
 });
 </script>

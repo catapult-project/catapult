@@ -18,6 +18,75 @@ tr.exportTo('tr.metrics', function() {
   options.defaultMetadata = {};
   tr.b.decorateExtensionRegistry(MetricRegistry, options);
 
+  function camelCaseToHackerString(camelCase) {
+    let hackerString = '';
+    for (const c of camelCase) {
+      const lowered = c.toLocaleLowerCase();
+      if (lowered === c) {
+        hackerString += c;
+      } else {
+        hackerString += '_' + lowered;
+      }
+    }
+    return hackerString;
+  }
+
+  function getCallStack() {
+    try {
+      throw new Error();
+    } catch (error) {
+      return error.stack;
+    }
+  }
+
+  function getPathsFromStack(stack) {
+    return stack.split('\n').map(line => {
+      line = line.replace(/^ */, '').split(':');
+      if (line.length < 4) return '';
+      return line[line.length - 3].split('/');
+    }).filter(tr.b.identity);
+  }
+
+  MetricRegistry.checkFilename = function(metricName, opt_metricPathForTest) {
+    if (metricName === 'runtimeStatsTotalMetric' ||
+        metricName === 'v8AndMemoryMetrics') {
+      // TODO(crbug.com/688342) Remove the runtimeStatsTotalMetric exception.
+      // TODO(3275) Remove the v8AndMemoryMetrics exception.
+      // https://github.com/catapult-project/catapult/issues/3275
+      return;
+    }
+
+    const expectedFilename = camelCaseToHackerString(metricName) + '.html';
+    const stack = getCallStack();
+
+    let metricPath = opt_metricPathForTest;
+    if (metricPath === undefined) {
+      const paths = getPathsFromStack(stack);
+      const METRIC_STACK_INDEX = 5;
+
+      // This filename is in paths[0]. If this file is not vulcanized, then the
+      // metric's filename is in paths[METRIC_STACK_INDEX]. If this file is
+      // vulcanized, then they are the same, and paths[METRIC_STACK_INDEX] is
+      // not the metric's filename.
+      if (paths.length <= METRIC_STACK_INDEX ||
+          paths[METRIC_STACK_INDEX].join('/') === paths[0].join('/')) {
+        return;
+      }
+
+      metricPath = paths[METRIC_STACK_INDEX].slice(
+          paths[METRIC_STACK_INDEX].length - 2);
+    }
+
+    if (!metricPath[1].endsWith('_test.html') &&
+        metricPath[1] !== expectedFilename &&
+        metricPath.join('_') !== expectedFilename) {
+      throw new Error(
+          'Expected ' + metricName + ' to be in a file named ' +
+          expectedFilename + '; actual: ' + metricPath.join('/') +
+          '; stack: ' + stack.replace(/\n/g, '\n  '));
+    }
+  };
+
   MetricRegistry.addEventListener('will-register', function(e) {
     let metric = e.typeInfo.constructor;
     if (!(metric instanceof Function)) {
@@ -33,6 +102,8 @@ tr.exportTo('tr.metrics', function() {
       throw new Error('Metrics take a HistogramSet and a Model and ' +
                       'optionally an options dictionary.');
     }
+
+    MetricRegistry.checkFilename(metric.name);
   });
 
   return {
