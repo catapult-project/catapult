@@ -164,13 +164,12 @@ Polymer({
       labels.push({label: labelStr, value: browserProcess.pid});
     }
 
-    tr.b.iterItems(this.modelHelper_.rendererHelpers,
-        function(pid, rendererHelper) {
-          var rendererProcess = rendererHelper.process;
-          var labelStr = 'Renderer: ' + rendererProcess.userFriendlyName;
-          labels.push({label: labelStr, value: rendererProcess.userFriendlyName
-          });
-        }, this);
+    for (var rendererHelper of
+        Object.values(this.modelHelper_.rendererHelpers)) {
+      var rendererProcess = rendererHelper.process;
+      var labelStr = 'Renderer: ' + rendererProcess.userFriendlyName;
+      labels.push({label: labelStr, value: rendererProcess.userFriendlyName});
+    }
 
     if (labels.length === 0)
       return;

@@ -134,18 +134,17 @@ tr.exportTo('tr.model', function() {
     },
 
     autoDeleteObjects: function(maxTimestamp) {
-      tr.b.iterItems(this.instanceMapsByScopedId_, function(scope, imapById) {
-        tr.b.iterItems(imapById, function(id, i2imap) {
+      for (var imapById of Object.values(this.instanceMapsByScopedId_)) {
+        for (var i2imap of Object.values(imapById)) {
           var lastInstance = i2imap.lastInstance;
-          if (lastInstance.deletionTs !== Number.MAX_VALUE)
-            return;
+          if (lastInstance.deletionTs !== Number.MAX_VALUE) continue;
           i2imap.idWasDeleted(
               lastInstance.category, lastInstance.name, maxTimestamp);
           // idWasDeleted will cause lastInstance.deletionTsWasExplicit to be
           // set to true. Unset it here.
           lastInstance.deletionTsWasExplicit = false;
-        });
-      });
+        }
+      }
     },
 
     getObjectInstanceAt: function(scopedId, ts) {
@@ -166,11 +165,10 @@ tr.exportTo('tr.model', function() {
 
     iterObjectInstances: function(iter, opt_this) {
       opt_this = opt_this || this;
-      tr.b.iterItems(this.instanceMapsByScopedId_, function(scope, imapById) {
-        tr.b.iterItems(imapById, function(id, i2imap) {
+      for (var imapById of Object.values(this.instanceMapsByScopedId_)) {
+        for (var i2imap of Object.values(imapById))
           i2imap.instances.forEach(iter, opt_this);
-        });
-      });
+      }
     },
 
     getAllObjectInstances: function() {

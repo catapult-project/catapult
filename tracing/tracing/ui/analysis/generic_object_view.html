@@ -199,7 +199,7 @@ Polymer({
     if (isTable(object)) {
       var table = document.createElement('tr-ui-b-table');
       var columns = [];
-      tr.b.iterItems(object[0], function(colName) {
+      for (let colName of Object.keys(object[0])) {
         var allStrings = true;
         var allNumbers = true;
         for (var i = 0; i < object.length; ++i) {
@@ -228,7 +228,7 @@ Polymer({
           };
         }
         columns.push(column);
-      });
+      }
       table.tableColumns = columns;
       table.tableRows = object;
       this.appendElementWithLabel_(label, indent, table, suffix);

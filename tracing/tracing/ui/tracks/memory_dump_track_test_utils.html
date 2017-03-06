@@ -60,10 +60,9 @@ tr.exportTo('tr.ui.tracks', function() {
     });
 
     // Add ownership links between them.
-    tr.b.iterItems(dumpData, function(allocatorName, data) {
+    for (var [allocatorName, data] of Object.entries(dumpData)) {
       var owns = data.owns;
-      if (owns === undefined)
-        return;
+      if (owns === undefined) continue;
 
       var ownerDump = allocatorDumps[allocatorName];
       assert.isDefined(ownerDump);  // Sanity check.
@@ -71,7 +70,7 @@ tr.exportTo('tr.ui.tracks', function() {
       assert.isDefined(ownedDump);  // Sanity check.
 
       addOwnershipLink(ownerDump, ownedDump);
-    });
+    }
 
     return tr.b.dictionaryValues(allocatorDumps);
   }

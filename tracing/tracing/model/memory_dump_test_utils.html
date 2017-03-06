@@ -118,9 +118,9 @@ tr.exportTo('tr.model', function() {
         getOption(opt_options, 'guid'));
     var numerics = getOption(opt_options, 'numerics');
     if (numerics) {
-      tr.b.iterItems(numerics, function(numericName, value) {
+      for (var [numericName, value] of Object.entries(numerics)) {
         dump.addNumeric(numericName, castToScalar(value));
-      });
+      }
     }
     return dump;
   };

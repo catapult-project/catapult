@@ -143,9 +143,9 @@ tr.exportTo('tr.metrics.v8.utils', function() {
       nameToEvents[name] = nameToEvents[name] || [];
       nameToEvents[name].push(event);
     }
-    tr.b.iterItems(nameToEvents, function(name, events) {
+    for (var [name, events] of Object.entries(nameToEvents)) {
       processCallback(name, events);
-    });
+    }
   }
 
   /**

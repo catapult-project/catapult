@@ -71,7 +71,7 @@ tr.exportTo('tr.v.d', function() {
 
     canAddDiagnostic(otherDiagnostic) {
       return otherDiagnostic instanceof MergedTelemetryInfo ||
-             otherDiagnostic instanceof tr.v.d.TelemetryInfo;
+          otherDiagnostic instanceof tr.v.d.TelemetryInfo;
     }
 
     addDiagnostic(otherDiagnostic) {
@@ -192,8 +192,9 @@ tr.exportTo('tr.v.d', function() {
       for (let n of d.storyDisplayNames || []) {
         info.storyDisplayNames_.add(n);
       }
-      tr.b.iterItems(d.storyGroupingKeys || {}, (name, values) =>
-        info.storyGroupingKeys_.set(name, new Set(values)));
+      for (let [name, values] of Object.entries(d.storyGroupingKeys || {})) {
+        info.storyGroupingKeys_.set(name, new Set(values));
+      }
       for (let n of d.storyUrls || []) {
         info.storyUrls_.add(n);
       }

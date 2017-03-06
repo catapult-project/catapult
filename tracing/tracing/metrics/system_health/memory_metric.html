@@ -262,16 +262,17 @@ tr.exportTo('tr.metrics.sh', function() {
           });
 
           if (processDump.totals !== undefined) {
-            tr.b.iterItems({
-              'residentBytes': RESIDENT_SIZE,
-              'peakResidentBytes': PEAK_RESIDENT_SIZE
-            }, function(totalName, property) {
-              addProcessScalar({
-                source: 'reported_by_os',
-                property: property,
-                component: ['system_memory'],
-                value: processDump.totals[totalName]
-              });
+            addProcessScalar({
+              source: 'reported_by_os',
+              property: RESIDENT_SIZE,
+              component: ['system_memory'],
+              value: processDump.totals['residentBytes']
+            });
+            addProcessScalar({
+              source: 'reported_by_os',
+              property: PEAK_RESIDENT_SIZE,
+              component: ['system_memory'],
+              value: processDump.totals['peakResidentBytes']
             });
           }
 
@@ -651,28 +652,27 @@ tr.exportTo('tr.metrics.sh', function() {
         function(processDump, addProcessScalar) {
           // Add memory:<browser-name>:<process-name>:reported_by_os:
           // system_memory:... values.
-          tr.b.iterItems(
-              SYSTEM_VALUE_COMPONENTS,
-              function(componentName, componentSpec) {
-                tr.b.iterItems({
-                  'proportionalResident': PROPORTIONAL_RESIDENT_SIZE,
-                  'privateDirtyResident': PRIVATE_DIRTY_SIZE
-                }, function(byteStatName, property) {
-                  var node = getDescendantVmRegionClassificationNode(
-                      processDump.vmRegions,
-                      componentSpec.classificationPath);
-                  var componentPath = ['system_memory'];
-                  if (componentName)
-                    componentPath.push(componentName);
-                  addProcessScalar({
-                    source: 'reported_by_os',
-                    component: componentPath,
-                    property: property,
-                    value: node === undefined ?
-                        0 : (node.byteStats[byteStatName] || 0)
-                  });
-                });
-              });
+          for (var [componentName, componentSpec] of
+              Object.entries(SYSTEM_VALUE_COMPONENTS)) {
+            var node = getDescendantVmRegionClassificationNode(
+                processDump.vmRegions, componentSpec.classificationPath);
+            var componentPath = ['system_memory'];
+            if (componentName) componentPath.push(componentName);
+            addProcessScalar({
+              source: 'reported_by_os',
+              component: componentPath,
+              property: PROPORTIONAL_RESIDENT_SIZE,
+              value: node === undefined ?
+                  0 : (node.byteStats['proportionalResident'] || 0)
+            });
+            addProcessScalar({
+              source: 'reported_by_os',
+              component: componentPath,
+              property: PRIVATE_DIRTY_SIZE,
+              value: node === undefined ?
+                  0 : (node.byteStats['privateDirtyResident'] || 0)
+            });
+          }
 
           // Add memory:<browser-name>:<process-name>:reported_by_os:
           // gpu_memory:... values.
@@ -771,11 +771,11 @@ tr.exportTo('tr.metrics.sh', function() {
       // Add memory:<browser-name>:all_processes:dump_count[:<level>] values.
       reportMemoryDumpCountAsValue(browserName, undefined /* total */,
           totalDumpCount, values);
-      tr.b.iterItems(levelOfDetailNameToDumpCount,
-          function(levelOfDetailName, levelOfDetailDumpCount) {
-            reportMemoryDumpCountAsValue(browserName, levelOfDetailName,
-                levelOfDetailDumpCount, values);
-          });
+      for (var [levelOfDetailName, levelOfDetailDumpCount] of
+          Object.entries(levelOfDetailNameToDumpCount)) {
+        reportMemoryDumpCountAsValue(browserName, levelOfDetailName,
+            levelOfDetailDumpCount, values);
+      }
     });
   }
 
@@ -783,17 +783,15 @@ tr.exportTo('tr.metrics.sh', function() {
    * Check whether detailed global dump has heap profiler information or not.
    */
   function detectHeapProfilerInMemoryDump(globalDump) {
-    var detected = false;
-    tr.b.iterItems(globalDump.processMemoryDumps, function(_, processDump) {
-      if (detected) return;
+    for (let processDump of Object.values(globalDump.processMemoryDumps)) {
       if (processDump.heapDumps && processDump.heapDumps.malloc) {
         var mallocDump = processDump.heapDumps.malloc;
         if (mallocDump.entries && mallocDump.entries.length > 0) {
-          detected = true;
+          return true;
         }
       }
-    });
-    return detected;
+    }
+    return false;
   }
 
   /**
@@ -998,11 +996,11 @@ tr.exportTo('tr.metrics.sh', function() {
     var sourceToPropertyToBuilder = new Map();
     var dumpCount = globalDumps.length;
     globalDumps.forEach(function(globalDump, dumpIndex) {
-      tr.b.iterItems(globalDump.processMemoryDumps, function(_, processDump) {
+      for (var processDump of Object.values(globalDump.processMemoryDumps)) {
         extractDataFromProcessDump(
             processDump, sourceToPropertyToBuilder, dumpIndex, dumpCount,
             customProcessDumpValueExtractor);
-      });
+      }
     });
     return sourceToPropertyToBuilder;
   }

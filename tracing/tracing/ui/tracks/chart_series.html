@@ -112,12 +112,13 @@ tr.exportTo('tr.ui.tracks', function() {
       var config = opt_renderingConfig || {};
 
       // Store all configuration flags as private properties.
-      tr.b.iterItems(DEFAULT_RENDERING_CONFIG, function(key, defaultValue) {
+      for (var [key, defaultValue] of
+          Object.entries(DEFAULT_RENDERING_CONFIG)) {
         var value = config[key];
         if (value === undefined)
           value = defaultValue;
         this[key + '_'] = value;
-      }, this);
+      }
 
       // Avoid unnecessary recomputation in getters.
       this.topPadding = this.bottomPadding = Math.max(

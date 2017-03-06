@@ -42,7 +42,7 @@ tr.exportTo('tr.metrics', function() {
    */
   function getUrlUpdateEventToLatencyInfoMap_(rendererHelpers) {
     let urlUpdateToLatencyInfoMap = new Map();
-    tr.b.iterItems(rendererHelpers, function(pid, rendererHelper) {
+    for (let rendererHelper of Object.values(rendererHelpers)) {
       let mainThread = rendererHelper.mainThread;
       let urlUpdateEvents = getAllEventsInAscendingOrder_(
           mainThread,
@@ -58,7 +58,7 @@ tr.exportTo('tr.metrics', function() {
         urlUpdateToLatencyInfoMap.set(
             urlUpdateEvent, handleInputEvent.parentSlice);
       }
-    });
+    }
     return urlUpdateToLatencyInfoMap;
   }
 
@@ -188,7 +188,7 @@ tr.exportTo('tr.metrics', function() {
       return new Map();
     }
     let allUrlUpdateEventToFirstPaintEventMap = new Map();
-    tr.b.iterItems(rendererHelpers, function(pid, rendererHelper) {
+    for (let rendererHelper of Object.values(rendererHelpers)) {
       let mainThread = rendererHelper.mainThread;
       let urlUpdateEvents = getAllEventsInAscendingOrder_(
           mainThread,
@@ -206,7 +206,7 @@ tr.exportTo('tr.metrics', function() {
         allUrlUpdateEventToFirstPaintEventMap.set(
             urlUpdateEvent, firstPaintEvent);
       }
-    });
+    }
     return allUrlUpdateEventToFirstPaintEventMap;
   }
 

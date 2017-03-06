@@ -65,13 +65,13 @@ tr.exportTo('tr.v.d', function() {
      * @param {Object} dict
      */
     addDicts(dict) {
-      tr.b.iterItems(dict, (name, diagnosticDict) => {
+      for (var [name, diagnosticDict] of Object.entries(dict)) {
         if (typeof diagnosticDict === 'string') {
           this.set(name, new tr.v.d.DiagnosticRef(diagnosticDict));
         } else {
           this.set(name, tr.v.d.Diagnostic.fromDict(diagnosticDict));
         }
-      });
+      }
     }
 
     resolveSharedDiagnostics(histograms, opt_required) {
@@ -106,9 +106,9 @@ tr.exportTo('tr.v.d', function() {
 
     static fromObject(obj) {
       let diagnostics = new DiagnosticMap();
-      tr.b.iterItems(obj, function(name, diagnostic) {
+      for (let [name, diagnostic] of Object.entries(obj)) {
         diagnostics.set(name, diagnostic);
-      });
+      }
       return diagnostics;
     }
 

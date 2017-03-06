@@ -141,7 +141,7 @@ tr.exportTo('tr.v.ui', function() {
       tr.v.HistogramSet.GROUPINGS.HISTOGRAM_NAME.key,
       h => h.shortName || h.name));
 
-  tr.b.iterItems(tr.v.HistogramSet.GROUPINGS, function(name, group) {
+  for (var group of Object.values(tr.v.HistogramSet.GROUPINGS)) {
     // DISPLAY_LABEL is used to define the columns, so don't allow grouping
     // rows by it.
     // Override HISTOGRAM_NAME so that we can display shortName.
@@ -149,7 +149,7 @@ tr.exportTo('tr.v.ui', function() {
         group !== tr.v.HistogramSet.GROUPINGS.HISTOGRAM_NAME) {
       DEFAULT_POSSIBLE_GROUPS.push(group);
     }
-  });
+  }
 
   const SHOW_ALL_SETTINGS_KEY = 'tr-v-ui-histogram-set-table-show-all';
   const CONSTRAIN_NAME_COLUMN_WIDTH_KEY =

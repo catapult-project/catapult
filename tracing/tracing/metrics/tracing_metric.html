@@ -46,7 +46,7 @@ tr.exportTo('tr.metrics', function() {
     for (let process of Object.values(model.processes)) {
       for (let thread of Object.values(process.threads)) {
         for (let slice of Object.values(thread.sliceGroup.slices)) {
-          if (slice.category !== MEMORY_INFRA_TRACING_CATEGORY) return;
+          if (slice.category !== MEMORY_INFRA_TRACING_CATEGORY) continue;
 
           totalOverhead += slice.duration;
           if (thread.name !== 'MemoryInfra') {

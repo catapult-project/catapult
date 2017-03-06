@@ -255,11 +255,11 @@ tr.exportTo('tr.ui.tracks', function() {
      * configuration argument flags.
      */
     autoSetAllAxes: function(opt_config) {
-      tr.b.iterItems(this.axisGuidToAxisData_, function(axisGuid, axisData) {
+      for (var axisData of Object.values(this.axisGuidToAxisData_)) {
         var seriesYAxis = axisData.axis;
         var series = axisData.series;
         seriesYAxis.autoSetFromSeries(series, opt_config);
-      }, this);
+      }
     },
 
     /**
