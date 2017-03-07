@@ -925,6 +925,7 @@ triaging functionality in the chart.
             i = parseInt(i);
             var test = {
               name: series[i].name,
+              displayName: series[i].name,
               path: series[i].path,
               direction: series[i].better,
               units: series[i].units,
@@ -976,6 +977,7 @@ triaging functionality in the chart.
               this.updateSeriesGroup(seriesGroupIndex, test);
             }
           }
+          this.updateSeriesGroupDisplayNames();
         },
 
         /**

@@ -92,5 +92,15 @@ tr.b.unittest.testSuite(function() {
     assert.equal(chart.seriesGroupList[1].tests[0].displayName,
         'android-nexus6/sunspider/Total');
   }, testOptions);
+
+  test('unseletected has displayName', function() {
+    testing_common.mockChartJson(dromaeoCharts);
+    var chart = createChart();
+    this.addHTMLOutput(chart);
+    chart.addSeriesGroup(dromaeoCharts.graphParams);
+    assert.equal(chart.seriesGroupList[0].tests[0].displayName, 'dom');
+    assert.equal(chart.seriesGroupList[0].tests[1].displayName,
+        'http___dromaeo.com?dom-attr');
+  }, testOptions);
 });
 </script>
