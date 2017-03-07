@@ -71,6 +71,63 @@ tr.b.unittest.testSuite(function() {
     dt.setPanAndScale(0, track.clientWidth / 1000);
     track.viewport.setDisplayTransformImmediately(dt);
   });
+
+  function testTimeMode(mode, testInstance, numDigits, opt_unit) {
+    var div = document.createElement('div');
+
+    var viewport = new tr.ui.TimelineViewport(div);
+    viewport.timeMode = mode;
+    var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
+    Polymer.dom(div).appendChild(drawingContainer);
+
+    var trackContext = drawingContainer.ctx_;
+    var oldFillText = trackContext.fillText;
+    var fillTextText = [];
+    var fillTextThis = [];
+    trackContext.fillText = function(text, xPos, yPos) {
+      fillTextText.push(text);
+      fillTextThis.push(this);
+      return oldFillText.call(this, text, xPos, yPos);
+    };
+
+    var track = tr.ui.tracks.XAxisTrack(viewport);
+    Polymer.dom(drawingContainer).appendChild(track);
+    testInstance.addHTMLOutput(div);
+
+    drawingContainer.invalidate();
+    tr.b.forceAllPendingTasksToRunForTest();
+
+    var dt = new tr.ui.TimelineDisplayTransform();
+    dt.setPanAndScale(0, track.clientWidth / 1000);
+    track.viewport.setDisplayTransformImmediately(dt);
+
+    var formatter =
+        new Intl.NumberFormat(undefined, { numDigits, numDigits });
+    var formatFunction = function(value) {
+      var valueString = value.toLocaleString(undefined, {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: numDigits
+      });
+      if (opt_unit) valueString += opt_unit;
+      return valueString;
+    };
+    var expectedText = viewport.majorMarkWorldPositions.map(
+        formatFunction);
+    assert.strictEqual(fillTextText.length, fillTextThis.length);
+    for (var i = 0; i < fillTextText.length; i++) {
+      assert.deepEqual(fillTextText[i], expectedText[i]);
+      assert.strictEqual(fillTextThis[i], trackContext);
+    }
+  }
+
+  test('instantiate_timeModeMs', function() {
+    testTimeMode(tr.ui.TimelineViewport.TimeMode.TIME_IN_MS,
+        this, 3, ' ms');
+  });
+
+  test('instantiate_timeModeRevisions', function() {
+    testTimeMode(tr.ui.TimelineViewport.TimeMode.REVISIONS, this, 0);
+  });
 });
 </script>
 

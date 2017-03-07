@@ -71,6 +71,7 @@ tr.exportTo('tr.ui', function() {
     this.onModelTrackControllerScroll_ =
         this.onModelTrackControllerScroll_.bind(this);
 
+    this.timeMode_ = TimelineViewport.TimeMode.TIME_IN_MS;
     // Major mark positions are where the gridlines/ruler marks are placed along
     // the x-axis.
     this.majorMarkWorldPositions_ = [];
@@ -82,6 +83,11 @@ tr.exportTo('tr.ui', function() {
 
     this.dispatchChangeEvent = this.dispatchChangeEvent.bind(this);
   }
+
+  TimelineViewport.TimeMode = {
+    TIME_IN_MS: 0,
+    REVISIONS: 1
+  };
 
   TimelineViewport.prototype = {
     __proto__: tr.b.EventTarget.prototype,
@@ -280,7 +286,24 @@ tr.exportTo('tr.ui', function() {
     },
 
     get majorMarkUnit() {
-      return tr.b.Unit.byName.timeInMsAutoFormat;
+      switch (this.timeMode_) {
+        case TimelineViewport.TimeMode.TIME_IN_MS:
+          return tr.b.Unit.byName.timeInMsAutoFormat;
+        case TimelineViewport.TimeMode.REVISIONS:
+          return tr.b.Unit.byName.count;
+        default:
+          throw new Error(
+              'Cannot get Unit for unsupported time mode ' + this.timeMode_);
+      }
+    },
+
+    get timeMode() {
+      return this.timeMode_;
+    },
+
+    set timeMode(mode) {
+      this.timeMode_ = mode;
+      this.dispatchChangeEvent();
     },
 
     updateMajorMarkData: function(viewLWorld, viewRWorld) {
