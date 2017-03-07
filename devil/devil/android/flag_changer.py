@@ -7,6 +7,9 @@ import logging
 import posixpath
 import re
 
+from devil.android.sdk import version_codes
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -33,12 +36,24 @@ def CustomCommandLineFlags(device, cmdline_name, flags):
     cmdline_name: Name of the command line file where to store flags.
     flags: A sequence of command line flags to set.
   """
-  changer = FlagChanger(device, cmdline_name)
+  # On Android N and above, we need to temporarily set SELinux to permissive
+  # so that Chrome is allowed to read the command line file.
+  # TODO(crbug.com/699082): Remove when a solution to avoid this is implemented.
+  needs_permissive = (
+      device.build_version_sdk >= version_codes.NOUGAT and
+      device.GetEnforce())
+  if needs_permissive:
+    device.SetEnforce(enabled=False)
   try:
-    changer.ReplaceFlags(flags)
-    yield
+    changer = FlagChanger(device, cmdline_name)
+    try:
+      changer.ReplaceFlags(flags)
+      yield
+    finally:
+      changer.Restore()
   finally:
-    changer.Restore()
+    if needs_permissive:
+      device.SetEnforce(enabled=True)
 
 
 class FlagChanger(object):
