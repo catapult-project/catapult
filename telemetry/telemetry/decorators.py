@@ -154,6 +154,27 @@ def Enabled(*args):
   return _Enabled
 
 
+def Owner(email=None, component=None):
+  """Decorator for specifying the owner of a benchmark."""
+  def _Owner(func):
+    owner_attr_name = OwnerAttributeName(func)
+    assert inspect.isclass(func), '@Owner(...) can only be used on classes'
+    if not hasattr(func, owner_attr_name):
+      setattr(func, owner_attr_name, {})
+    owner_dict = getattr(func, owner_attr_name)
+    if email:
+      assert 'email' not in owner_dict, 'email can only be set once'
+      owner_dict['email'] = email
+    if component:
+      assert 'component' not in owner_dict, 'component can only be set once'
+      owner_dict['component'] = component
+    setattr(func, owner_attr_name, owner_dict)
+    return func
+  help_text = '@Owner(...) requires an email and/or component'
+  assert email or component, help_text
+  return _Owner
+
+
 # TODO(dpranke): Remove if we don't need this.
 def Isolated(*args):
   """Decorator for noting that tests must be run in isolation.
@@ -233,6 +254,27 @@ def GetEnabledAttributes(test):
 def EnabledAttributeName(test):
   name = _TestName(test)
   return '_%s_%s_enabled_strings' % (test.__module__, name)
+
+
+def OwnerAttributeName(test):
+  name = _TestName(test)
+  return '_%s_%s_owner' % (test.__module__, name)
+
+
+def GetEmail(test):
+  owner_attr_name = OwnerAttributeName(test)
+  owner = getattr(test, owner_attr_name, {})
+  if 'email' in owner:
+    return owner['email']
+  return None
+
+
+def GetComponent(test):
+  owner_attr_name = OwnerAttributeName(test)
+  owner = getattr(test, owner_attr_name, {})
+  if 'component' in owner:
+    return owner['component']
+  return None
 
 
 def ShouldSkip(test, possible_browser):
