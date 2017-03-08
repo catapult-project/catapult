@@ -44,8 +44,10 @@ found in the LICENSE file.
     <tr-v-ui-diagnostic-map-table id="histogram_diagnostics"></tr-v-ui-diagnostic-map-table>
 
     <div id="sample_diagnostics_container">
-      <input type="checkbox" id="merge_sample_diagnostics" checked on-change="updateDiagnostics_">
-      <label for="merge_sample_diagnostics">Merge Sample Diagnostics</label>
+      <div id="merge_sample_diagnostics_container">
+        <input type="checkbox" id="merge_sample_diagnostics" checked on-change="updateDiagnostics_">
+        <label for="merge_sample_diagnostics">Merge Sample Diagnostics</label>
+      </div>
       <tr-v-ui-diagnostic-map-table id="sample_diagnostics"></tr-v-ui-diagnostic-map-table>
     </div>
   </template>
@@ -73,6 +75,7 @@ Polymer({
     this.mouseDownBin_ = undefined;
     this.brushedBins_ = [];
     this.prevBrushedBins_ = [];
+    this.canMergeSampleDiagnostics_ = true;
   },
 
   ready() {
@@ -83,6 +86,16 @@ Polymer({
 
   attached() {
     if (this.histogram_ !== undefined) this.updateContents_();
+  },
+
+  get canMergeSampleDiagnostics() {
+    return this.canMergeSampleDiagnostics_;
+  },
+
+  set canMergeSampleDiagnostics(merge) {
+    this.canMergeSampleDiagnostics_ = merge;
+    this.$.merge_sample_diagnostics_container.style.display = (
+        merge ? '' : 'none');
   },
 
   onResize_(event) {
@@ -250,7 +263,8 @@ Polymer({
       return;
     }
 
-    if (this.$.merge_sample_diagnostics.checked) {
+    if (this.canMergeSampleDiagnostics &&
+        this.$.merge_sample_diagnostics.checked) {
       let merged = new tr.v.d.DiagnosticMap();
       for (let map of maps) {
         merged.addDiagnostics(map);
@@ -258,8 +272,8 @@ Polymer({
       maps = [merged];
     }
 
-    this.$.sample_diagnostics.diagnosticMaps = maps;
     this.$.sample_diagnostics_container.style.display = 'block';
+    this.$.sample_diagnostics.diagnosticMaps = maps;
   },
 
   get histogram() {

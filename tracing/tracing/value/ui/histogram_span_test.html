@@ -63,6 +63,33 @@ tr.b.unittest.testSuite(function() {
     let breakdowns = tr.b.findDeepElementsMatchingPredicate(
         span, e => e.tagName === 'TR-V-UI-BREAKDOWN-SPAN');
     assert.lengthOf(breakdowns, 1);
+
+    const merge = tr.b.findDeepElementMatchingPredicate(
+        span, e => e.id === 'merge_sample_diagnostics');
+    merge.click();
+    breakdowns = tr.b.findDeepElementsMatchingPredicate(
+        span, e => e.tagName === 'TR-V-UI-BREAKDOWN-SPAN');
+    assert.lengthOf(breakdowns, 5);
+  });
+
+  test('cannotMergeSampleDiagnostics', function() {
+    // Add several samples with sample diagnostics to a Histogram, brush all of
+    // the bins, test that the sample diagnostics are not merged.
+    const h = new tr.v.Histogram('', tr.b.Unit.byName.normalizedPercentage);
+    h.addSample(0.1, {foo: tr.v.d.Breakdown.fromDict({values: {a: 1, b: 2}})});
+    h.addSample(0.3, {foo: tr.v.d.Breakdown.fromDict({values: {a: 3, b: 4}})});
+    h.addSample(0.5, {foo: tr.v.d.Breakdown.fromDict({values: {a: 5, b: 6}})});
+    h.addSample(0.7, {foo: tr.v.d.Breakdown.fromDict({values: {a: 7, b: 8}})});
+    h.addSample(0.9, {foo: tr.v.d.Breakdown.fromDict({values: {a: 9, b: 10}})});
+
+    const span = document.createElement('tr-v-ui-histogram-span');
+    span.canMergeSampleDiagnostics = false;
+    this.addHTMLOutput(span);
+    span.histogram = h;
+    span.brushedBins = h.allBins;
+    const breakdowns = tr.b.findDeepElementsMatchingPredicate(
+        span, e => e.tagName === 'TR-V-UI-BREAKDOWN-SPAN');
+    assert.lengthOf(breakdowns, 5);
   });
 
   test('singleSample', function() {

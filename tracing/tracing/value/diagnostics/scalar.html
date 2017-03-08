@@ -23,6 +23,10 @@ tr.exportTo('tr.v.d', function() {
       this.value = value;
     }
 
+    clone() {
+      return new Scalar(this.value);
+    }
+
     asDictInto_(d) {
       d.value = this.value.asDict();
     }
