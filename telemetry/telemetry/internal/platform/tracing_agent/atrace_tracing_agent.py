@@ -4,7 +4,7 @@
 
 from systrace.tracing_agents import atrace_agent
 from telemetry.internal.platform import tracing_agent
-from telemetry.timeline import trace_data
+from tracing.trace_data import trace_data
 
 from devil.android.sdk import version_codes
 

@@ -5,8 +5,8 @@
 from telemetry import decorators
 from telemetry.testing import browser_test_case
 from telemetry.timeline import model
-from telemetry.timeline import trace_data
 from telemetry.timeline import tracing_config
+from tracing.trace_data import trace_data
 
 
 class DevToolsClientBackendTest(browser_test_case.BrowserTestCase):

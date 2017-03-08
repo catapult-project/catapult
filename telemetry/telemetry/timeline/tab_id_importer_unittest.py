@@ -6,7 +6,8 @@ import unittest
 
 from telemetry.timeline import model as timeline_model
 from telemetry.timeline import tab_id_importer
-from telemetry.timeline import trace_data as trace_data_module
+from tracing.trace_data import trace_data as trace_data_module
+
 
 class TabIdImporterUnitTest(unittest.TestCase):
   def testImportOverflowedTrace(self):

@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 from telemetry.internal.platform import tracing_agent
-from telemetry.timeline import trace_data
+from tracing.trace_data import trace_data
 
 
 class DisplayTracingAgent(tracing_agent.TracingAgent):

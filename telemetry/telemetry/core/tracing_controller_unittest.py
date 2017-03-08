@@ -11,7 +11,7 @@ from telemetry.testing import browser_test_case
 from telemetry.testing import tab_test_case
 from telemetry.timeline import model as model_module
 from telemetry.timeline import tracing_config
-from telemetry.timeline import trace_data as trace_data_module
+from tracing.trace_data import trace_data as trace_data_module
 
 
 class TracingControllerTest(tab_test_case.TabTestCase):

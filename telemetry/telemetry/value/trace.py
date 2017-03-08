@@ -15,6 +15,7 @@ from py_utils import cloud_storage  # pylint: disable=import-error
 from telemetry.internal.util import file_handle
 from telemetry.timeline import trace_data as trace_data_module
 from telemetry import value as value_module
+from tracing.trace_data import trace_data as trace_data_module
 
 
 class TraceValue(value_module.Value):

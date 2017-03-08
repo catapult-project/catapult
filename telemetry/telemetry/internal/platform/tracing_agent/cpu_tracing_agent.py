@@ -10,7 +10,7 @@ from threading import Timer
 
 from py_trace_event import trace_time
 from telemetry.internal.platform import tracing_agent
-from telemetry.timeline import trace_data
+from tracing.trace_data import trace_data
 
 
 def _ParsePsProcessString(line):

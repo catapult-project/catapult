@@ -12,9 +12,9 @@ import unittest
 from telemetry import story
 from telemetry import page as page_module
 from telemetry.testing import system_stub
-from telemetry.timeline import trace_data
 from telemetry.value import trace
 from tracing_build import html2trace
+from tracing.trace_data import trace_data
 
 
 class TestBase(unittest.TestCase):

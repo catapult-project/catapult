@@ -3,7 +3,8 @@
 # found in the LICENSE file.
 
 from telemetry.timeline import importer
-from telemetry.timeline import trace_data as trace_data_module
+from tracing.trace_data import trace_data as trace_data_module
+
 
 class SurfaceFlingerTimelineImporter(importer.TimelineImporter):
   def __init__(self, model, trace_data):

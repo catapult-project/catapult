@@ -12,7 +12,8 @@ import tempfile
 
 from telemetry.internal.platform import profiler
 from telemetry.timeline import model
-from telemetry.timeline import trace_data as trace_data_module
+from tracing.trace_data import trace_data as trace_data_module
+
 
 # Parses one line of strace output, for example:
 # 6052  1311456063.159722 read(8, "\1\0\0\0\0\0\0\0", 8) = 8 <0.000022>

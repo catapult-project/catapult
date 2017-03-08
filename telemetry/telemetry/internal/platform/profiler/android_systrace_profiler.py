@@ -10,8 +10,8 @@ import zipfile
 from telemetry.core import util
 from telemetry.internal.backends.chrome import android_browser_finder
 from telemetry.internal.platform import profiler
-from telemetry.timeline import trace_data as trace_data_module
 from telemetry.timeline import tracing_config
+from tracing.trace_data import trace_data as trace_data_module
 
 _SYSTRACE_CATEGORIES = [
     'gfx',

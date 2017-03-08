@@ -12,8 +12,8 @@ from telemetry.testing import fakes
 from telemetry.testing import tab_test_case
 from telemetry.timeline import chrome_trace_config
 from telemetry.timeline import model as model_module
-from telemetry.timeline import trace_data
 from telemetry.timeline import tracing_config
+from tracing.trace_data import trace_data
 
 
 class TracingBackendTest(tab_test_case.TabTestCase):

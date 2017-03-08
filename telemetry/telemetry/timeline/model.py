@@ -18,8 +18,9 @@ from telemetry.timeline import process as process_module
 from telemetry.timeline import slice as slice_module
 from telemetry.timeline import surface_flinger_importer
 from telemetry.timeline import tab_id_importer
-from telemetry.timeline import trace_data as trace_data_module
 from telemetry.timeline import trace_event_importer
+from tracing.trace_data import trace_data as trace_data_module
+
 
 # Register importers for data
 

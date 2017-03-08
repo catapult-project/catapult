@@ -19,8 +19,8 @@ from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.internal.platform import tracing_agent
 from telemetry.internal.platform.tracing_agent import chrome_tracing_agent
-from telemetry.timeline import trace_data as trace_data_module
 from telemetry.timeline import tracing_config
+from tracing.trace_data import trace_data as trace_data_module
 
 
 def _IterAllTracingAgentClasses():

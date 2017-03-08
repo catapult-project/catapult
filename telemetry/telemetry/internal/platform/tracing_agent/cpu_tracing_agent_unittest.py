@@ -12,8 +12,9 @@ from telemetry.internal.platform import tracing_agent
 from telemetry.internal.platform import linux_platform_backend
 from telemetry.internal.platform import mac_platform_backend
 from telemetry.internal.platform import win_platform_backend
-from telemetry.timeline import trace_data
 from telemetry.timeline import tracing_config
+from tracing.trace_data import trace_data
+
 
 SNAPSHOT_KEYS = ['pid', 'ppid', 'name', 'pCpu', 'pMem']
 TRACE_EVENT_KEYS = ['name', 'tid', 'pid', 'ph', 'args', 'local', 'id', 'ts']

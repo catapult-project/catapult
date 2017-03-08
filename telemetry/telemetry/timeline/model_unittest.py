@@ -5,7 +5,7 @@
 import unittest
 
 from telemetry.timeline import model as model_module
-from telemetry.timeline import trace_data
+from tracing.trace_data import trace_data
 
 
 class TimelineModelUnittest(unittest.TestCase):

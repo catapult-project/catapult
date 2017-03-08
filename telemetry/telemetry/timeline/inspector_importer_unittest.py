@@ -5,7 +5,8 @@ import unittest
 
 from telemetry.timeline import inspector_importer
 from telemetry.timeline import model
-from telemetry.timeline import trace_data
+from tracing.trace_data import trace_data
+
 
 _BACKGROUND_MESSAGE = {
   'data': {},

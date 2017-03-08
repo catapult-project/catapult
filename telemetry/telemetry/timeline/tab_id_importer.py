@@ -5,7 +5,8 @@
 import logging
 
 from telemetry.timeline import importer
-from telemetry.timeline import trace_data as trace_data_module
+from tracing.trace_data import trace_data as trace_data_module
+
 
 class TraceBufferOverflowException(Exception):
   pass

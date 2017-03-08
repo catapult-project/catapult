@@ -11,7 +11,7 @@ from devil.android import battery_utils
 from py_trace_event import trace_time
 from telemetry.internal.platform import tracing_agent
 from telemetry.internal.util import atexit_with_log
-from telemetry.timeline import trace_data
+from tracing.trace_data import trace_data
 
 
 def _ReenableChargingIfNeeded(battery):

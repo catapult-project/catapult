@@ -14,7 +14,7 @@ import telemetry.timeline.async_slice as tracing_async_slice
 import telemetry.timeline.flow_event as tracing_flow_event
 from telemetry.timeline import importer
 from telemetry.timeline import memory_dump_event
-from telemetry.timeline import trace_data as trace_data_module
+from tracing.trace_data import trace_data as trace_data_module
 
 
 class TraceEventTimelineImporter(importer.TimelineImporter):

@@ -9,7 +9,7 @@ import shutil
 import tempfile
 import unittest
 
-import trace_data
+from tracing.trace_data import trace_data
 from tracing_build import html2trace
 
 

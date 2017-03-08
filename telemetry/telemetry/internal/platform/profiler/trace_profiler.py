@@ -6,8 +6,8 @@ import os
 
 from telemetry.internal.platform import profiler
 from telemetry.timeline import chrome_trace_category_filter
-from telemetry.timeline import trace_data as trace_data_module
 from telemetry.timeline import tracing_config
+from tracing.trace_data import trace_data as trace_data_module
 
 
 class TraceProfiler(profiler.Profiler):

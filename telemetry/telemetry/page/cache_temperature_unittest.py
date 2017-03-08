@@ -9,8 +9,8 @@ from telemetry import page as page_module
 from telemetry import story
 from telemetry.page import cache_temperature
 from telemetry.testing import browser_test_case
-from telemetry.timeline import trace_data
 from telemetry.timeline import tracing_config
+from tracing.trace_data import trace_data
 
 
 class CacheTempeartureTests(browser_test_case.BrowserTestCase):

@@ -8,7 +8,7 @@ import unittest
 
 import telemetry.timeline.counter as tracing_counter
 import telemetry.timeline.model as timeline_model
-from telemetry.timeline import trace_data as trace_data_module
+from tracing.trace_data import trace_data as trace_data_module
 
 
 def FindEventNamed(events, name):

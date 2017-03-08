@@ -11,7 +11,7 @@ import traceback
 from telemetry import decorators
 from telemetry.internal.backends.chrome_inspector import inspector_websocket
 from telemetry.internal.backends.chrome_inspector import websocket
-from telemetry.timeline import trace_data as trace_data_module
+from tracing.trace_data import trace_data as trace_data_module
 
 
 class TracingUnsupportedException(Exception):
