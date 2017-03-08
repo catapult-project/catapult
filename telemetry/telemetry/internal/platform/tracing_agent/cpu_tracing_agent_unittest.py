@@ -136,3 +136,14 @@ class CpuTracingAgentTest(unittest.TestCase):
           found_unittest_process = True
 
       self.assertTrue(found_unittest_process)
+
+  @decorators.Enabled('win')
+  def testWindowsCanHandleProcessesWithSpaces(self):
+    proc_collector = cpu_tracing_agent.WindowsProcessCollector()
+    proc_collector.Init()
+    proc = proc_collector._ParseProcessString(
+      '0 1 Multi Word Process 50 75')
+    self.assertEquals(proc['ppid'], 0)
+    self.assertEquals(proc['pid'], 1)
+    self.assertEquals(proc['name'], 'Multi Word Process')
+    self.assertEquals(proc['pCpu'], 50)

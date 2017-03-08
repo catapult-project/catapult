@@ -145,30 +145,32 @@ class WindowsProcessCollector(ProcessCollector):
     assert self._physicalMemoryBytes, 'Must call Init() before using collector'
 
     token_list = proc_string.strip().split()
-    if len(token_list) != 5:
-      raise ValueError('Line does not have five tokens: %s.' % token_list)
+    if len(token_list) < 5:
+      raise ValueError('Line has too few tokens: %s.' % token_list)
 
     # Process names are given in the form:
     #
     #   windowsUpdate
+    #   Windows Explorer
     #   chrome#1
     #   chrome#2
     #
     # In order to match other platforms, where multiple processes can have the
     # same name and can be easily grouped based on that name, we strip any
     # pound sign and number.
-    name = re.sub(r'#[0-9]+$', '', token_list[2])
+    name = ' '.join(token_list[2:-2])
+    name = re.sub(r'#[0-9]+$', '', name)
     # The working set size (roughly equivalent to the resident set size on Unix)
     # is given in bytes. In order to convert this to percent of physical memory
     # occupied by the process, we divide by the amount of total physical memory
     # on the machine.
-    percent_memory = float(token_list[4]) / self._physicalMemoryBytes * 100
+    percent_memory = float(token_list[-1]) / self._physicalMemoryBytes * 100
 
     return {
       'ppid': int(token_list[0]),
       'pid': int(token_list[1]),
       'name': name,
-      'pCpu': float(token_list[3]),
+      'pCpu': float(token_list[-2]),
       'pMem': percent_memory
     }
 
