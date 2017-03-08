@@ -295,7 +295,7 @@ Polymer({
     var allEvents = new tr.model.EventSet();
     var rows = [];
     for (var [title, eventsOfSingleTitle] of Object.entries(eventsByTitle)) {
-      for (var event of allEvents) allEvents.push(event);
+      for (var event of eventsOfSingleTitle) allEvents.push(event);
       var row = new tr.ui.analysis.MultiEventSummary(
           title, eventsOfSingleTitle);
       rows.push(row);
