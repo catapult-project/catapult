@@ -30,6 +30,9 @@ class GTestProgressReporter(progress_reporter.ProgressReporter):
     assert self._timestamp is not None, 'Did not call WillRunPage.'
     return (time.time() - self._timestamp) * 1000
 
+  def _GenerateGroupingKeyString(self, page):
+    return '' if not page.grouping_keys else '@%s' % str(page.grouping_keys)
+
   def DidAddValue(self, value):
     super(GTestProgressReporter, self).DidAddValue(value)
     if isinstance(value, failure.FailureValue):
@@ -46,8 +49,10 @@ class GTestProgressReporter(progress_reporter.ProgressReporter):
 
   def WillRunPage(self, page_test_results):
     super(GTestProgressReporter, self).WillRunPage(page_test_results)
-    print >> self._output_stream, '[ RUN      ] %s' % (
-        page_test_results.current_page.display_name)
+    print >> self._output_stream, '[ RUN      ] %s%s' % (
+        page_test_results.current_page.display_name,
+        self._GenerateGroupingKeyString(page_test_results.current_page))
+
     self._output_stream.flush()
     self._timestamp = time.time()
 
@@ -55,11 +60,15 @@ class GTestProgressReporter(progress_reporter.ProgressReporter):
     super(GTestProgressReporter, self).DidRunPage(page_test_results)
     page = page_test_results.current_page
     if page_test_results.current_page_run.failed:
-      print >> self._output_stream, '[  FAILED  ] %s (%0.f ms)' % (
-          page.display_name, self._GetMs())
+      print >> self._output_stream, '[  FAILED  ] %s%s (%0.f ms)' % (
+          page.display_name,
+          self._GenerateGroupingKeyString(page_test_results.current_page),
+          self._GetMs())
     else:
-      print >> self._output_stream, '[       OK ] %s (%0.f ms)' % (
-          page.display_name, self._GetMs())
+      print >> self._output_stream, '[       OK ] %s%s (%0.f ms)' % (
+          page.display_name,
+          self._GenerateGroupingKeyString(page_test_results.current_page),
+          self._GetMs())
     self._output_stream.flush()
 
   def DidFinishAllTests(self, page_test_results):
@@ -80,8 +89,9 @@ class GTestProgressReporter(progress_reporter.ProgressReporter):
       print >> self._output_stream, '[  FAILED  ] %d %s, listed below:' % (
           (len(page_test_results.failures), unit))
       for failed_run in failed_runs:
-        print >> self._output_stream, '[  FAILED  ]  %s' % (
-            failed_run.story.display_name)
+        print >> self._output_stream, '[  FAILED  ]  %s%s' % (
+            failed_run.story.display_name,
+            self._GenerateGroupingKeyString(failed_run.story))
       print >> self._output_stream
       count = len(failed_runs)
       unit = 'TEST' if count == 1 else 'TESTS'

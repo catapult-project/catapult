@@ -16,6 +16,9 @@ from telemetry.value import failure
 from telemetry.value import skip
 
 
+_GROUPING_KEY_DEFAULT = {'1': '2'}
+
+
 def _MakeStorySet():
   story_set = story.StorySet(base_dir=os.path.dirname(__file__))
   story_set.AddStory(
@@ -26,6 +29,12 @@ def _MakeStorySet():
       page_module.Page('http://www.baz.com/', story_set, story_set.base_dir))
   story_set.AddStory(
       page_module.Page('http://www.roz.com/', story_set, story_set.base_dir))
+  story_set.AddStory(
+      page_module.Page('http://www.fus.com/', story_set, story_set.base_dir,
+                       grouping_keys=_GROUPING_KEY_DEFAULT))
+  story_set.AddStory(
+      page_module.Page('http://www.ro.com/', story_set, story_set.base_dir,
+                       grouping_keys=_GROUPING_KEY_DEFAULT))
   return story_set
 
 
@@ -58,6 +67,21 @@ class GTestProgressReporterTest(
                 '[  PASSED  ] 1 test.\n\n')
     self.assertEquals(expected, ''.join(self._output_stream.output_data))
 
+  def testSingleSuccessPageWithGroupingKeys(self):
+    test_story_set = _MakeStorySet()
+
+    results = page_test_results.PageTestResults(
+        progress_reporter=self._reporter)
+    results.WillRunPage(test_story_set.stories[4])
+    self._fake_timer.SetTime(0.007)
+    results.DidRunPage(test_story_set.stories[4])
+
+    results.PrintSummary()
+    expected = ("[ RUN      ] http://www.fus.com/@{'1': '2'}\n"
+                "[       OK ] http://www.fus.com/@{'1': '2'} (7 ms)\n"
+                "[  PASSED  ] 1 test.\n\n")
+    self.assertEquals(expected, ''.join(self._output_stream.output_data))
+
   def testSingleFailedPage(self):
     test_story_set = _MakeStorySet()
 
@@ -77,6 +101,27 @@ class GTestProgressReporterTest(
                 '[  FAILED  ] 1 test, listed below:\n'
                 '[  FAILED  ]  http://www.foo.com/\n\n'
                 '1 FAILED TEST\n\n' % exception_trace)
+    self.assertEquals(expected, ''.join(self._output_stream.output_data))
+
+  def testSingleFailedPageWithGroupingKeys(self):
+    test_story_set = _MakeStorySet()
+
+    results = page_test_results.PageTestResults(
+        progress_reporter=self._reporter)
+    results.WillRunPage(test_story_set.stories[4])
+    exc_info = self.CreateException()
+    results.AddValue(failure.FailureValue(test_story_set.stories[4], exc_info))
+    results.DidRunPage(test_story_set.stories[4])
+
+    results.PrintSummary()
+    exception_trace = ''.join(traceback.format_exception(*exc_info))
+    expected = ("[ RUN      ] http://www.fus.com/@{'1': '2'}\n"
+                "%s\n"
+                "[  FAILED  ] http://www.fus.com/@{'1': '2'} (0 ms)\n"
+                "[  PASSED  ] 0 tests.\n"
+                "[  FAILED  ] 1 test, listed below:\n"
+                "[  FAILED  ]  http://www.fus.com/@{'1': '2'}\n\n"
+                "1 FAILED TEST\n\n" % exception_trace)
     self.assertEquals(expected, ''.join(self._output_stream.output_data))
 
   def testSingleSkippedPage(self):
@@ -121,23 +166,39 @@ class GTestProgressReporterTest(
     self._fake_timer.SetTime(0.020)
     results.DidRunPage(test_story_set.stories[3])
 
+    results.WillRunPage(test_story_set.stories[4])
+    self._fake_timer.SetTime(0.025)
+    results.DidRunPage(test_story_set.stories[4])
+
+    results.WillRunPage(test_story_set.stories[5])
+    self._fake_timer.SetTime(0.030)
+    results.AddValue(failure.FailureValue(test_story_set.stories[5], exc_info))
+    results.DidRunPage(test_story_set.stories[5])
+
     results.PrintSummary()
     exception_trace = ''.join(traceback.format_exception(*exc_info))
-    expected = ('[ RUN      ] http://www.foo.com/\n'
-                '[       OK ] http://www.foo.com/ (7 ms)\n'
-                '[ RUN      ] http://www.bar.com/\n'
-                '%s\n'
-                '[  FAILED  ] http://www.bar.com/ (2 ms)\n'
-                '[ RUN      ] http://www.baz.com/\n'
-                '%s\n'
-                '[  FAILED  ] http://www.baz.com/ (6 ms)\n'
-                '[ RUN      ] http://www.roz.com/\n'
-                '[       OK ] http://www.roz.com/ (5 ms)\n'
-                '[  PASSED  ] 2 tests.\n'
-                '[  FAILED  ] 2 tests, listed below:\n'
-                '[  FAILED  ]  http://www.bar.com/\n'
-                '[  FAILED  ]  http://www.baz.com/\n\n'
-                '2 FAILED TESTS\n\n' % (exception_trace, exception_trace))
+    expected = ("[ RUN      ] http://www.foo.com/\n"
+                "[       OK ] http://www.foo.com/ (7 ms)\n"
+                "[ RUN      ] http://www.bar.com/\n"
+                "%s\n"
+                "[  FAILED  ] http://www.bar.com/ (2 ms)\n"
+                "[ RUN      ] http://www.baz.com/\n"
+                "%s\n"
+                "[  FAILED  ] http://www.baz.com/ (6 ms)\n"
+                "[ RUN      ] http://www.roz.com/\n"
+                "[       OK ] http://www.roz.com/ (5 ms)\n"
+                "[ RUN      ] http://www.fus.com/@{'1': '2'}\n"
+                "[       OK ] http://www.fus.com/@{'1': '2'} (5 ms)\n"
+                "[ RUN      ] http://www.ro.com/@{'1': '2'}\n"
+                "%s\n"
+                "[  FAILED  ] http://www.ro.com/@{'1': '2'} (5 ms)\n"
+                "[  PASSED  ] 3 tests.\n"
+                "[  FAILED  ] 3 tests, listed below:\n"
+                "[  FAILED  ]  http://www.bar.com/\n"
+                "[  FAILED  ]  http://www.baz.com/\n"
+                "[  FAILED  ]  http://www.ro.com/@{'1': '2'}\n\n"
+                "3 FAILED TESTS\n\n"
+                % (exception_trace, exception_trace, exception_trace))
     self.assertEquals(expected, ''.join(self._output_stream.output_data))
 
   def testStreamingResults(self):
