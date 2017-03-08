@@ -32,16 +32,46 @@ found in the LICENSE file.
     #loading-spinner {
       display: flex;
       justify-content: center;
+      width: 100%;
     }
 
     table, th, td {
-      border: 1px solid black;
+      border: 1px solid #bbb;
+      padding: 4px 7px;
     }
 
     table {
       border-collapse: collapse;
     }
 
+    a:link {
+      border-bottom: 1px solid #888;
+      color: #000;
+      font-weight: lighter;
+      text-decoration: none;
+    }
+
+    .left-align {
+      text-align: left;
+    }
+
+    a:visited {
+      border-bottom: 1px solid #888;
+      color: #000;
+    }
+
+    a:hover {
+      color: #4078c0;
+      border-bottom: 1px solid #4078c0;
+    }
+
+    a:active {
+      color: #0D458D;
+    }
+
+    tr.first-in-category td, tr.first-in-category th {
+      border-top: 2px solid black;
+    }
     .improvement {
       color: #0a0;
     }
@@ -66,17 +96,17 @@ found in the LICENSE file.
       </template>
       <template is="dom-if" if="{{!error}}">
         <div id="content">
+          <h3>{{tableConfig.name}}</h3>
           <template is="dom-repeat" items="{{tableConfig.bots}}" as="bot">
-            <p>{{tableConfig.name}}</p>
-            <p>{{bot}}</p>
+            <h2>Report for {{bot}}</h2>
             <table id="speed-releasing">
               <thead>
                <tr>
-                  <th colspan="2" rowspan="1"></th>
+                  <th colspan="2"></th>
                   <template is="dom-repeat" items="{{tableConfig.displayRevisions}}" 
                             as="rev">
                     <th colspan="1">
-                      {{getCurrOrRef(index)}} Version: {{rev}}
+                      {{getCurrOrRef(index)}} Version<br>{{rev}}
                     </th>
                   </template>
                   <th colspan="2">Change</th>
@@ -84,14 +114,14 @@ found in the LICENSE file.
               </thead>
               <template is="dom-repeat" items="{{tableConfig.tests}}" 
                         as="test">
-              <tr>
+              <tr class$="{{getIsFirstInCategoryClass(index, test)}}">
                 <template is="dom-if" 
                           if="{{isFirstInCategory(index, test)}}">
                     <th rowspan$="{{getCategoryCount(test)}}">
                       {{getCategory(test)}}
                     </th>
                 </template>
-                <th>
+                <th class="left-align">
                   <a href="/report{{getURL(bot, test)}}" target="_blank">
                     {{getPrettyTestName(test)}}
                   </a>
@@ -238,18 +268,51 @@ found in the LICENSE file.
 
       /**
        * Finds where the last category ended and checks to see if the current
-       * index is part of a new category. We do this so we only apply the
-       * rowspan property once.
+       * index is part of a new category so we can style correctly.
+       * For example, if the first category contains 3 tests, that table
+       * header should span 3 rows. But we can only set the row-span once, or
+       * we end up with 3 table headers, all spanning 3 rows.
+       * If this function returns true, then we know we can safely set row-span.
+       *
+       * this.tableConfig.categories contains:
+       * {
+       *    categoryA: x,
+       *    categoryB: y,
+       *    categoryC: z,
+       *    ...
+       * }
+       * If it is the first iteration of a dom-repeat or if the index equals
+       * the sum of all of the previous category counts, then we know that this
+       * is the first instance of a new category. E.g. if index = x + y, we
+       * know it is the beginning of categoryC (category counts are not 0
+       * based, but dom-repeat's index is).
        */
       isFirstInCategory: function(index, test) {
         var category = this.tableConfig.layout[test][0];
         var keys = Object.keys(this.tableConfig.categories);
-        var prevCatIndex = keys.indexOf(category) - 1;
-        var prevCatCount = this.tableConfig.categories[keys[prevCatIndex]];
-        if (index === 0 || index === prevCatCount) {
+        var categoryIndex = keys.indexOf(category);
+
+        var previousCategoryTotal = 0;
+        for (var i = 0; i < categoryIndex; i++) {
+          previousCategoryTotal += this.tableConfig.categories[keys[i]];
+        }
+        if (index === 0 || index === previousCategoryTotal) {
           return true;
         }
         return false;
+      },
+
+      /*
+       * Handles adding the 'first-in-category' class to the correct
+       * table rows. The class will add a dark line to help separate
+       * categories visually.
+       */
+      getIsFirstInCategoryClass: function(index, test) {
+        var isFirstInCategory = this.isFirstInCategory(index, test);
+        if (isFirstInCategory) {
+          return 'first-in-category';
+        }
+        return '';
       },
 
       getURL: function(bot, test) {
