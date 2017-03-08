@@ -427,7 +427,7 @@ class DeviceUtils(object):
           return False
         cmd = 'which which && which su'
       try:
-        self.RunShellCommand(cmd, check_return=True,
+        self.RunShellCommand(cmd, shell=True, check_return=True,
             timeout=self._default_timeout if timeout is DEFAULT else timeout,
             retries=self._default_retries if retries is DEFAULT else retries)
         self._cache['needs_su'] = True
@@ -835,24 +835,27 @@ class DeviceUtils(object):
            device_serial=self.serial)
 
   @decorators.WithTimeoutAndRetriesFromInstance()
-  def RunShellCommand(self, cmd, check_return=False, cwd=None, env=None,
-                      run_as=None, as_root=False, single_line=False,
+  def RunShellCommand(self, cmd, shell=False, check_return=False, cwd=None,
+                      env=None, run_as=None, as_root=False, single_line=False,
                       large_output=False, raw_output=False, timeout=None,
                       retries=None):
     """Run an ADB shell command.
 
-    The command to run |cmd| should be a sequence of program arguments or else
-    a single string.
+    The command to run |cmd| should be a sequence of program arguments
+    (preferred) or a single string with a shell script to run.
 
     When |cmd| is a sequence, it is assumed to contain the name of the command
     to run followed by its arguments. In this case, arguments are passed to the
-    command exactly as given, without any further processing by the shell. This
-    allows to easily pass arguments containing spaces or special characters
-    without having to worry about getting quoting right. Whenever possible, it
-    is recomended to pass |cmd| as a sequence.
+    command exactly as given, preventing any further processing by the shell.
+    This allows callers to easily pass arguments with spaces or special
+    characters without having to worry about quoting rules. Whenever possible,
+    it is recomended to pass |cmd| as a sequence.
 
-    When |cmd| is given as a string, it will be interpreted and run by the
-    shell on the device.
+    When |cmd| is passed as a single string, |shell| should be set to True.
+    The command will be interpreted and run by the shell on the device,
+    allowing the use of shell features such as pipes, wildcards, or variables.
+    Failing to set shell=True will issue a warning, but this will be changed
+    to a hard failure in the future (see: catapult:#3242).
 
     This behaviour is consistent with that of command runners in cmd_helper as
     well as Python's own subprocess.Popen.
@@ -861,8 +864,9 @@ class DeviceUtils(object):
       have switched to the new behaviour.
 
     Args:
-      cmd: A string with the full command to run on the device, or a sequence
-        containing the command and its arguments.
+      cmd: A sequence containing the command to run and its arguments, or a
+        string with a shell script to run (should also set shell=True).
+      shell: A boolean indicating whether shell features may be used in |cmd|.
       check_return: A boolean indicating whether or not the return code should
         be checked.
       cwd: The device directory in which the command should be run.
@@ -942,7 +946,13 @@ class DeviceUtils(object):
           else:
             raise
 
-    if not isinstance(cmd, basestring):
+    if isinstance(cmd, basestring):
+      if not shell:
+        logging.warning(
+            'The command to run should preferably be passed as a sequence of'
+            ' args. If shell features are needed (pipes, wildcards, variables)'
+            ' clients should explicitly set shell=True.')
+    else:
       cmd = ' '.join(cmd_helper.SingleQuote(s) for s in cmd)
     if env:
       env = ' '.join(env_quote(k, v) for k, v in env.iteritems())
@@ -977,7 +987,7 @@ class DeviceUtils(object):
     PIPESTATUS_LEADER = 'PIPESTATUS: '
 
     script += '; echo "%s${PIPESTATUS[@]}"' % PIPESTATUS_LEADER
-    kwargs['check_return'] = True
+    kwargs.update(shell=True, check_return=True)
     output = self.RunShellCommand(script, **kwargs)
     pipestatus_line = output[-1]
 
@@ -1109,7 +1119,7 @@ class DeviceUtils(object):
     package = component.split('/')[0]
     shell_snippet = 'p=%s;%s' % (package,
                                  cmd_helper.ShrinkToSnippet(cmd, 'p', package))
-    return self.RunShellCommand(shell_snippet, check_return=True,
+    return self.RunShellCommand(shell_snippet, shell=True, check_return=True,
                                 large_output=True)
 
   @decorators.WithTimeoutAndRetriesFromInstance()
@@ -1181,7 +1191,7 @@ class DeviceUtils(object):
       DeviceUnreachableError on missing device.
     """
     cmd = 'p=%s;if [[ "$(ps)" = *$p* ]]; then am force-stop $p; fi'
-    self.RunShellCommand(cmd % package, check_return=True)
+    self.RunShellCommand(cmd % package, shell=True, check_return=True)
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def ClearApplicationState(
@@ -1487,7 +1497,7 @@ class DeviceUtils(object):
           quoted_dirs = ' '.join(cmd_helper.SingleQuote(d) for d in dirs)
           self.RunShellCommand(
               'unzip %s&&chmod -R 777 %s' % (device_temp.name, quoted_dirs),
-              as_root=True,
+              shell=True, as_root=True,
               env={'PATH': '%s:$PATH' % install_commands.BIN_DIR},
               check_return=True)
       finally:
@@ -1532,8 +1542,11 @@ class DeviceUtils(object):
     paths = device_paths
     if isinstance(paths, basestring):
       paths = (paths,)
-    condition = ' -a '.join('-e %s' % cmd_helper.SingleQuote(p) for p in paths)
-    cmd = 'test %s' % condition
+    if not paths:
+      return True
+    cmd = ['test', '-e', paths[0]]
+    for p in paths[1:]:
+      cmd.extend(['-a', '-e', p])
     try:
       self.RunShellCommand(cmd, as_root=as_root, check_return=True,
                            timeout=timeout, retries=retries)
@@ -1639,7 +1652,7 @@ class DeviceUtils(object):
         cmd = 'SRC=%s DEST=%s;cp "$SRC" "$DEST" && chmod 666 "$DEST"' % (
             cmd_helper.SingleQuote(device_path),
             cmd_helper.SingleQuote(device_temp.name))
-        self.RunShellCommand(cmd, as_root=True, check_return=True)
+        self.RunShellCommand(cmd, shell=True, as_root=True, check_return=True)
         return self._ReadFileWithPull(device_temp.name)
     else:
       return self._ReadFileWithPull(device_path)
@@ -1677,7 +1690,7 @@ class DeviceUtils(object):
       # a shell command rather than pushing a file.
       cmd = 'echo -n %s > %s' % (cmd_helper.SingleQuote(contents),
                                  cmd_helper.SingleQuote(device_path))
-      self.RunShellCommand(cmd, as_root=as_root, check_return=True)
+      self.RunShellCommand(cmd, shell=True, as_root=as_root, check_return=True)
     elif as_root and self.NeedsSU():
       # Adb does not allow to "push with su", so we first push to a temp file
       # on a safe location, and then copy it to the desired location with su.
@@ -2029,7 +2042,8 @@ class DeviceUtils(object):
           'echo "%s">$c &&' % token +
           'getprop'
       )
-      output = self.RunShellCommand(cmd, check_return=True, large_output=True)
+      output = self.RunShellCommand(
+          cmd, shell=True, check_return=True, large_output=True)
       # Error-checking for this existing is done in GetExternalStoragePath().
       self._cache['external_storage'] = output[0]
       self._cache['prev_token'] = output[1]
@@ -2539,7 +2553,7 @@ class DeviceUtils(object):
       permissions.append('android.permission.READ_EXTERNAL_STORAGE')
     cmd = '&&'.join('pm grant %s %s' % (package, p) for p in permissions)
     if cmd:
-      output = self.RunShellCommand(cmd, check_return=True)
+      output = self.RunShellCommand(cmd, shell=True, check_return=True)
       if output:
         logger.warning('Possible problem when granting permissions. Blacklist '
                        'may need to be updated.')
@@ -2592,5 +2606,5 @@ class DeviceUtils(object):
     if screen_test():
       logger.info('Screen already in expected state.')
       return
-    self.RunShellCommand('input keyevent 26')
+    self.SendKeyEvent(keyevent.KEYCODE_POWER)
     timeout_retry.WaitFor(screen_test, wait_period=1)
