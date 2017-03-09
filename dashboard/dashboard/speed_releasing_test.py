@@ -271,3 +271,12 @@ class SpeedReleasingTest(testing_common.TestCase):
     response = self.testapp.post('/speed_releasing/BestTable?'
                                  'revB=420000&revA=421000')
     self.assertIn('"revisions": [421000, 420000]', response)
+
+  def testPost_ReleaseNotes(self):
+    keys = self._AddTableConfigDataStore('BestTable', True, False)
+    self._AddRows(keys)
+    response = self.testapp.post('/speed_releasing/BestTable?'
+                                 'revB=420000&revA=421000&anomalies=true')
+    self.assertIn('"revisions": [421000, 420000]', response)
+    # Make sure we aren't getting a table here instead of Release Notes.
+    self.assertNotIn('"display_revisions"', response)
