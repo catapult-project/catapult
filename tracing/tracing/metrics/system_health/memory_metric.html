@@ -162,19 +162,21 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   function canonicalizeProcessName(rawProcessName) {
-    if (!rawProcessName)
-      return CHROME_PROCESS_NAMES.UNKNOWN;
-    var baseCanonicalName = canonicalizeName(rawProcessName);
+    if (!rawProcessName) return CHROME_PROCESS_NAMES.UNKNOWN;
+
+    const baseCanonicalName = canonicalizeName(rawProcessName);
     switch (baseCanonicalName) {
-      case 'renderer':
-        return CHROME_PROCESS_NAMES.RENDERER;
-      case 'browser':
-        return CHROME_PROCESS_NAMES.BROWSER;
-      default:
-        console.warn('Unknown process id "' + baseCanonicalName + '".' +
-            ' Please add it to |CHROME_PROCESS_NAMES|.');
-        return baseCanonicalName;
+      case 'renderer': return CHROME_PROCESS_NAMES.RENDERER;
+      case 'browser': return CHROME_PROCESS_NAMES.BROWSER;
     }
+
+    if (Object.values(CHROME_PROCESS_NAMES).includes(baseCanonicalName)) {
+      return baseCanonicalName;
+    }
+
+    throw new Error(
+        `Unknown process id "${baseCanonicalName}".` +
+        ' Please add it to |CHROME_PROCESS_NAMES|.');
   }
 
   /**
