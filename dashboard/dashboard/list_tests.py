@@ -152,7 +152,6 @@ def _SubTestsDict(paths, deprecated):
     else:
       merged[test_name]['sub_tests'].append(sub_test_path)
 
-
   if deprecated:
     for k, v in merged.iteritems():
       merged[k]['deprecated'] = True
