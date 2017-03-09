@@ -29,5 +29,21 @@ tr.b.unittest.testSuite(function() {
   test('formatDate', function() {
     assert.strictEqual(tr.b.formatDate(new Date(0)), '1970-01-01 00:00:00');
   });
+
+  test('runLengthEncoding', function() {
+    assert.deepEqual(tr.b.runLengthEncoding([]), []);
+
+    var encoded = tr.b.runLengthEncoding([1, 1]);
+    assert.deepEqual(encoded.map(x => x.value), [1]);
+    assert.deepEqual(encoded.map(x => x.count), [2]);
+
+    encoded = tr.b.runLengthEncoding([1, 2]);
+    assert.deepEqual(encoded.map(x => x.value), [1, 2]);
+    assert.deepEqual(encoded.map(x => x.count), [1, 1]);
+
+    encoded = tr.b.runLengthEncoding([1, 1, 2, 2, 2, 3, 1, 1]);
+    assert.deepEqual(encoded.map(x => x.value), [1, 2, 3, 1]);
+    assert.deepEqual(encoded.map(x => x.count), [2, 3, 1, 2]);
+  });
 });
 </script>

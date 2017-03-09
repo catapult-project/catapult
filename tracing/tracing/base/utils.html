@@ -158,6 +158,28 @@ tr.exportTo('tr.b', function() {
     return n;
   }
 
+  /**
+   * @param {Array.<T>} ary
+   * @returns {Array.<Object.<T, number>>} The run length encoding of the array
+   * as an array of {value, count} objects.
+   * @template T
+   */
+  function runLengthEncoding(ary) {
+    let encodedArray = [];
+    for (let element of ary) {
+      if (encodedArray.length === 0 ||
+          encodedArray[encodedArray.length - 1].value !== element) {
+        encodedArray.push({
+          value: element,
+          count: 1,
+        });
+      } else {
+        encodedArray[encodedArray.length - 1].count += 1;
+      }
+    }
+    return encodedArray;
+  }
+
   return {
     addSingletonGetter,
 
@@ -171,6 +193,8 @@ tr.exportTo('tr.b', function() {
     numberFromJson,
 
     getUsingPath,
+
+    runLengthEncoding,
   };
 });
 </script>

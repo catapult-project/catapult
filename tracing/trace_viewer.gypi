@@ -204,6 +204,7 @@
       'tracing/metrics/v8/runtime_stats_metric.html',
       'tracing/metrics/v8/utils.html',
       'tracing/metrics/v8/v8_metrics.html',
+      'tracing/metrics/webrtc/webrtc_rendering_metric.html',
       'tracing/model/activity.html',
       'tracing/model/alert.html',
       'tracing/model/annotation.html',
