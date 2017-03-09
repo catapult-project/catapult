@@ -340,14 +340,30 @@ tr.exportTo('tr.v.ui', function() {
      */
     set histograms(histograms) {
       this.histograms_ = histograms;
-      this.unfilteredRows_ = histograms ? tr.v.ui.HistogramSetTableRow.build(
-          this.groupedHistograms) : [];
-      this.sourceHistograms_ = histograms ? histograms.sourceHistograms :
-        new tr.v.HistogramSet();
+
       this.displayLabels_ = undefined;
       this.statNames_ = undefined;
       this.referenceDisplayLabel_ = undefined;
+
+      if (this.histograms_ === undefined) {
+        this.unfilteredRows_ = [];
+        this.sourceHistograms_ = new tr.v.HistogramSet();
+      } else {
+        // Set updatingContents_ so that updateGroups_() doesn't call
+        // updateContents_() before this method can set unfilteredRows_.
+        // TODO(benjhayden) This hack should be moot by
+        // https://github.com/catapult-project/catapult/issues/3289
+        this.updatingContents_ = true;
+        this.updateGroups_();
+        this.updatingContents_ = false;
+
+        this.unfilteredRows_ = tr.v.ui.HistogramSetTableRow.build(
+            this.groupedHistograms);
+        this.sourceHistograms_ = this.histograms_.sourceHistograms;
+      }
+
       this.maybeDisableShowAll_();
+
       this.updateContents_();
     },
 
@@ -544,7 +560,6 @@ tr.exportTo('tr.v.ui', function() {
 
       this.updateReferenceColumnSelector_();
       this.updateStatisticSelector_();
-      this.updateGroups_();
       this.rows_ = tr.v.ui.HistogramSetTableRow.filter(
           this.unfilteredRows_, this.filteredHistograms);
       this.buildColumns_();
