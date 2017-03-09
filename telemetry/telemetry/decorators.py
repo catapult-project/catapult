@@ -154,7 +154,7 @@ def Enabled(*args):
   return _Enabled
 
 
-def Owner(email=None, component=None):
+def Owner(emails=None, component=None):
   """Decorator for specifying the owner of a benchmark."""
   def _Owner(func):
     owner_attr_name = OwnerAttributeName(func)
@@ -162,16 +162,20 @@ def Owner(email=None, component=None):
     if not hasattr(func, owner_attr_name):
       setattr(func, owner_attr_name, {})
     owner_dict = getattr(func, owner_attr_name)
-    if email:
-      assert 'email' not in owner_dict, 'email can only be set once'
-      owner_dict['email'] = email
+    if emails:
+      assert 'emails' not in owner_dict, 'emails can only be set once'
+      owner_dict['emails'] = emails
     if component:
       assert 'component' not in owner_dict, 'component can only be set once'
       owner_dict['component'] = component
     setattr(func, owner_attr_name, owner_dict)
     return func
-  help_text = '@Owner(...) requires an email and/or component'
-  assert email or component, help_text
+  help_text = '@Owner(...) requires emails and/or a component'
+  assert emails or component, help_text
+  if emails:
+    assert isinstance(emails, list), 'emails must be a list of strs'
+    for e in emails:
+      assert isinstance(e, str), 'emails must be a list of strs'
   return _Owner
 
 
@@ -261,11 +265,11 @@ def OwnerAttributeName(test):
   return '_%s_%s_owner' % (test.__module__, name)
 
 
-def GetEmail(test):
+def GetEmails(test):
   owner_attr_name = OwnerAttributeName(test)
   owner = getattr(test, owner_attr_name, {})
-  if 'email' in owner:
-    return owner['email']
+  if 'emails' in owner:
+    return owner['emails']
   return None
 
 
