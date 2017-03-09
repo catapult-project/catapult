@@ -18,8 +18,110 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   const TEST_BOUNDARIES = tr.v.HistogramBinBoundaries.createLinear(0, 1e3, 20);
 
+  function buildTable(test, histograms) {
+    // This logic is intended to mirror results2_template.html in order to
+    // prevent bugs due to disparities between tests and production.
+    const table = document.createElement('tr-v-ui-histogram-set-table');
+    table.style.display = 'none';
+    table.histograms = histograms;
+    test.addHTMLOutput(table);
+    table.style.display = '';
+    table.displayed();
+    return table;
+  }
+
+  test('nameCellOverflow', function() {
+    const histograms = new tr.v.HistogramSet();
+
+    for (let i = 0; i < 2; ++i) {
+      const hist = new tr.v.Histogram(
+          'a'.repeat(50) + i, tr.b.Unit.byName.count);
+      hist.addSample(i * 100);
+      histograms.addHistogram(hist);
+    }
+
+    const table = buildTable(this, histograms);
+
+    const nameCell = tr.b.findDeepElementMatchingPredicate(
+        table, e => e.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-NAME-CELL');
+    assert.isTrue(nameCell.isOverflowing);
+    assert.isAbove(350, nameCell.getBoundingClientRect().width);
+
+    const dots = tr.b.findDeepElementMatchingPredicate(
+        table, e => e.textContent === tr.v.ui.MIDLINE_HORIZONTAL_ELLIPSIS);
+    assert.strictEqual('block', dots.style.display);
+    dots.click();
+
+    assert.isFalse(nameCell.isOverflowing);
+    assert.isBelow(350, nameCell.getBoundingClientRect().width);
+  });
+
+  test('nameCellOverflowOnExpand', function() {
+    const histograms = new tr.v.HistogramSet();
+
+    for (let i = 0; i < 2; ++i) {
+      for (let j = 0; j < 2; ++j) {
+        const hist = new tr.v.Histogram('foo' + j, tr.b.Unit.byName.count);
+        new tr.v.d.TelemetryInfo({
+          storyDisplayName: 'story' + i + ' story'.repeat(10),
+        }).addToHistogram(hist);
+        hist.addSample(i * 100);
+        histograms.addHistogram(hist);
+      }
+    }
+
+    const table = buildTable(this, histograms);
+
+    const dots = tr.b.findDeepElementMatchingPredicate(
+        table, e => e.textContent === tr.v.ui.MIDLINE_HORIZONTAL_ELLIPSIS);
+    assert.strictEqual('none', dots.style.display);
+
+    const baseTable = tr.b.findDeepElementMatchingPredicate(
+        table, e => e.tagName === 'TR-UI-B-TABLE');
+    let nameCell = tr.b.findDeepElementMatchingPredicate(
+        table, e => e.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-NAME-CELL');
+    baseTable.setExpandedForTableRow(nameCell.row, true);
+
+    nameCell = tr.b.findDeepElementMatchingPredicate(table, e =>
+        e.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-NAME-CELL' &&
+        e.row.name === 'story0' + ' story'.repeat(10));
+    assert.isTrue(nameCell.isOverflowing);
+    assert.isAbove(350, nameCell.getBoundingClientRect().width);
+
+    assert.strictEqual('block', dots.style.display);
+    dots.click();
+
+    assert.isFalse(nameCell.isOverflowing);
+    assert.isBelow(350, nameCell.getBoundingClientRect().width);
+  });
+
+  test('nameCellOverflowPersisted', function() {
+    const histograms = new tr.v.HistogramSet();
+
+    for (let i = 0; i < 2; ++i) {
+      for (let j = 0; j < 2; ++j) {
+        const hist = new tr.v.Histogram(
+            'foo' + j + ' foo'.repeat(20), tr.b.Unit.byName.count);
+        hist.addSample(i * 100);
+        histograms.addHistogram(hist);
+      }
+    }
+
+    tr.b.Settings.set(tr.v.ui.CONSTRAIN_NAME_COLUMN_WIDTH_KEY, false);
+    const table = buildTable(this, histograms);
+
+    const dots = tr.b.findDeepElementMatchingPredicate(
+        table, e => e.textContent === tr.v.ui.MIDLINE_HORIZONTAL_ELLIPSIS);
+    assert.strictEqual('block', dots.style.display);
+
+    const nameCells = tr.b.findDeepElementsMatchingPredicate(
+        table, e => e.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-NAME-CELL');
+    for (const nameCell of nameCells) {
+      assert.isFalse(nameCell.isOverflowing);
+    }
+  });
+
   test('overviewCharts', function() {
-    let table = document.createElement('tr-v-ui-histogram-set-table');
     let histograms = new tr.v.HistogramSet();
     let now = new Date().getTime();
     let boundaries = tr.v.HistogramBinBoundaries.createLinear(0, 150, 10);
@@ -47,8 +149,8 @@ tr.b.unittest.testSuite(function() {
         histograms.addHistogram(barHist);
       }
     }
-    table.histograms = histograms;
-    this.addHTMLOutput(table);
+
+    const table = buildTable(this, histograms);
 
     let showOverview = tr.b.findDeepElementMatchingPredicate(
         table, elem => elem.id === 'show_overview');
@@ -101,7 +203,6 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('mergeRelationships', function() {
-    let table = document.createElement('tr-v-ui-histogram-set-table');
     let histograms = new tr.v.HistogramSet();
     let now = new Date().getTime();
     let boundaries = tr.v.HistogramBinBoundaries.createLinear(0, 150, 10);
@@ -139,13 +240,13 @@ tr.b.unittest.testSuite(function() {
         sourceHist.diagnostics.set('breakdown', breakdown);
       }
     }
-    table.histograms = histograms;
-    this.addHTMLOutput(table);
+
+    const table = buildTable(this, histograms);
+    // TODO test
   });
 
   test('regression3281', function() {
     // https://github.com/catapult-project/catapult/issues/3281
-    let table = document.createElement('tr-v-ui-histogram-set-table');
     let histograms = new tr.v.HistogramSet();
 
     let telemetryA = new tr.v.d.TelemetryInfo({label: 'A'});
@@ -186,12 +287,11 @@ tr.b.unittest.testSuite(function() {
     histograms.addHistogram(hist1b);
     telemetryB.addToHistogram(hist1b);
 
-    table.histograms = histograms;
-    this.addHTMLOutput(table);
+    const table = buildTable(this, histograms);
+    // TODO test
   });
 
   test('sortByDisplayStatistic', function() {
-    let table = document.createElement('tr-v-ui-histogram-set-table');
     let histograms = new tr.v.HistogramSet();
     let now = new Date().getTime();
 
@@ -207,8 +307,7 @@ tr.b.unittest.testSuite(function() {
     histograms.addHistogram(fooHist);
     histograms.addHistogram(barHist);
 
-    table.histograms = histograms;
-    this.addHTMLOutput(table);
+    const table = buildTable(this, histograms);
 
     table.sortColumnIndex = 1;
     table.sortDescending = false;
@@ -247,7 +346,6 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('displayStatistic', function() {
-    let table = document.createElement('tr-v-ui-histogram-set-table');
     let histograms = new tr.v.HistogramSet();
     let now = new Date().getTime();
 
@@ -283,8 +381,7 @@ tr.b.unittest.testSuite(function() {
     histograms.addHistogram(barHist);
     histograms.addHistogram(quxHist);
 
-    table.histograms = histograms;
-    this.addHTMLOutput(table);
+    const table = buildTable(this, histograms);
 
     function histogramsEqual(a, b) {
       // This is not an exhaustive equality check. This only tests the fields
@@ -380,7 +477,6 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('requestSelectionChange', function() {
-    let table = document.createElement('tr-v-ui-histogram-set-table');
     let histograms = new tr.v.HistogramSet();
 
     let barHist = new tr.v.Histogram('bar',
@@ -397,7 +493,7 @@ tr.b.unittest.testSuite(function() {
     histograms.addHistogram(fooHist);
     histograms.addHistogram(barHist);
 
-    this.addHTMLOutput(table);
+    const table = buildTable(this, histograms);
 
     table.histograms = histograms;
 
@@ -474,7 +570,6 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('search', function() {
-    let table = document.createElement('tr-v-ui-histogram-set-table');
     let histograms = new tr.v.HistogramSet();
 
     let barHist = new tr.v.Histogram('bar',
@@ -488,8 +583,7 @@ tr.b.unittest.testSuite(function() {
     histograms.addHistogram(fooHist);
     histograms.addHistogram(barHist);
 
-    table.histograms = histograms;
-    this.addHTMLOutput(table);
+    const table = buildTable(this, histograms);
 
     let search = tr.b.findDeepElementMatchingPredicate(
         table, elem => elem.id === 'search');
@@ -558,9 +652,10 @@ tr.b.unittest.testSuite(function() {
     assert.isDefined(barCell);
   });
 
-  test('implicitUndefinedValues', function() {
+  test('implicitUndefinedHistogramSet', function() {
     let table = document.createElement('tr-v-ui-histogram-set-table');
     this.addHTMLOutput(table);
+    table.displayed();
     assert.strictEqual('block', getComputedStyle(
         tr.b.findDeepElementMatchingPredicate(
             table, e => e.textContent === 'zero Histograms')).display);
@@ -569,10 +664,8 @@ tr.b.unittest.testSuite(function() {
             table, e => e.id === 'container')).display);
   });
 
-  test('explicitUndefinedValues', function() {
-    let table = document.createElement('tr-v-ui-histogram-set-table');
-    table.histograms = undefined;
-    this.addHTMLOutput(table);
+  test('explicitUndefinedHistogramSet', function() {
+    const table = buildTable(this, undefined);
     assert.strictEqual('block', getComputedStyle(
         tr.b.findDeepElementMatchingPredicate(
             table, e => e.textContent === 'zero Histograms')).display);
@@ -581,11 +674,8 @@ tr.b.unittest.testSuite(function() {
             table, e => e.id === 'container')).display);
   });
 
-  test('emptyValues', function() {
-    let table = document.createElement('tr-v-ui-histogram-set-table');
-    let histograms = new tr.v.HistogramSet();
-    table.histograms = histograms;
-    this.addHTMLOutput(table);
+  test('emptyHistogramSet', function() {
+    const table = buildTable(this, new tr.v.HistogramSet());
     assert.strictEqual('block', getComputedStyle(
         tr.b.findDeepElementMatchingPredicate(
             table, e => e.textContent === 'zero Histograms')).display);
@@ -601,7 +691,6 @@ tr.b.unittest.testSuite(function() {
     // "names".
 
     let now = new Date().getTime();
-    let table = document.createElement('tr-v-ui-histogram-set-table');
     let histograms = new tr.v.HistogramSet();
 
     let histA = new tr.v.Histogram('long name',
@@ -625,8 +714,7 @@ tr.b.unittest.testSuite(function() {
     }).addToHistogram(histB);
     histograms.addHistogram(histB);
 
-    table.histograms = histograms;
-    this.addHTMLOutput(table);
+    const table = buildTable(this, histograms);
 
     assert.strictEqual('none', getComputedStyle(
         tr.b.findDeepElementMatchingPredicate(
@@ -642,7 +730,6 @@ tr.b.unittest.testSuite(function() {
 
   test('emptyAndMissing', function() {
     let now = new Date().getTime();
-    let table = document.createElement('tr-v-ui-histogram-set-table');
     let histograms = new tr.v.HistogramSet();
 
     let histA = new tr.v.Histogram('histogram A',
@@ -673,8 +760,7 @@ tr.b.unittest.testSuite(function() {
     }).addToHistogram(histC);
     histograms.addHistogram(histC);
 
-    table.histograms = histograms;
-    this.addHTMLOutput(table);
+    const table = buildTable(this, histograms);
 
     assert.isDefined(tr.b.findDeepElementMatchingPredicate(
         table, e => e.textContent === '(empty)'));
@@ -683,7 +769,6 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiate_1x1', function() {
-    let table = document.createElement('tr-v-ui-histogram-set-table');
     let histograms = new tr.v.HistogramSet();
 
     let hist = new tr.v.Histogram('foo',
@@ -692,17 +777,19 @@ tr.b.unittest.testSuite(function() {
       hist.addSample(Math.random() * 1e3);
     histograms.addHistogram(hist);
 
-    table.histograms = histograms;
-    this.addHTMLOutput(table);
+    const table = buildTable(this, histograms);
 
     let baseTable = tr.b.findDeepElementMatchingPredicate(
         table, elem => elem.tagName === 'TR-UI-B-TABLE');
     assert.strictEqual(baseTable.tableRows.length, 1);
+
+    const yAxisText = tr.b.findDeepElementMatchingPredicate(table, e =>
+        e.tagName === 'text' && e.textContent === '<0.000 ms');
+    assert.isBelow(0, yAxisText.getBBox().width);
   });
 
   test('merge_unmergeable', function() {
     let now = new Date().getTime();
-    let table = document.createElement('tr-v-ui-histogram-set-table');
     let histograms = new tr.v.HistogramSet();
 
     let histA = new tr.v.Histogram('histogram A',
@@ -740,12 +827,11 @@ tr.b.unittest.testSuite(function() {
     }).addToHistogram(histC);
     histograms.addHistogram(histC);
 
-    table.histograms = histograms;
+    const table = buildTable(this, histograms);
     table.groupingKeys = [
       tr.v.HistogramSet.GROUPINGS.STORY_NAME.key,
       tr.v.HistogramSet.GROUPINGS.HISTOGRAM_NAME.key,
     ];
-    this.addHTMLOutput(table);
 
     let baseTable = tr.b.findDeepElementMatchingPredicate(
         table, elem => elem.tagName === 'TR-UI-B-TABLE');
@@ -753,7 +839,6 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiate_2x2', function() {
-    let table = document.createElement('tr-v-ui-histogram-set-table');
     let histograms = new tr.v.HistogramSet();
 
     let hist0a = new tr.v.Histogram('foo',
@@ -796,8 +881,7 @@ tr.b.unittest.testSuite(function() {
       benchmarkStartMs: new Date().getTime(),
     }).addToHistogram(hist1b);
 
-    table.histograms = histograms;
-    this.addHTMLOutput(table);
+    const table = buildTable(this, histograms);
 
     let baseTable = tr.b.findDeepElementMatchingPredicate(
         table, elem => elem.tagName === 'TR-UI-B-TABLE');
@@ -865,9 +949,7 @@ tr.b.unittest.testSuite(function() {
       benchmarkStartMs: 1439708400000,
     }).addToHistogram(hist);
 
-    let table = document.createElement('tr-v-ui-histogram-set-table');
-    table.histograms = histograms;
-    this.addHTMLOutput(table);
+    const table = buildTable(this, histograms);
 
     // When TelemetryInfo.label is undefined, displayLabel defaults to
     // benchmarkName + '\n' + benchmarkStartString, which
@@ -883,7 +965,6 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('merged', function() {
-    let table = document.createElement('tr-v-ui-histogram-set-table');
     let histograms = new tr.v.HistogramSet();
     // Add 2^8=256 Histograms, all with the same name, with different
     // TelemetryInfos.
@@ -933,7 +1014,7 @@ tr.b.unittest.testSuite(function() {
       }
     }
 
-    table.histograms = histograms;
+    const table = buildTable(this, histograms);
     table.groupingKeys = [
       tr.v.HistogramSet.GROUPINGS.HISTOGRAM_NAME.key,
       tr.v.HistogramSet.GROUPINGS.BENCHMARK_NAME.key,
@@ -943,7 +1024,7 @@ tr.b.unittest.testSuite(function() {
       tr.v.HistogramSet.GROUPINGS.BENCHMARK_START.key,
       tr.v.HistogramSet.GROUPINGS.STORYSET_REPEAT.key,
     ];
-    this.addHTMLOutput(table);
+
     let baseTable = tr.b.findDeepElementMatchingPredicate(
         table, elem => elem.tagName === 'TR-UI-B-TABLE');
 

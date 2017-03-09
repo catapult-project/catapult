@@ -83,7 +83,12 @@ tr.exportTo('tr.v.ui', function() {
     },
 
     attached() {
-      this.maybeDispatchOverflow_();
+      // When the user expands a row, the table builds its nameCell and attaches
+      // it. If the subrow's name isOverflowing even though none of the
+      // top-level rows are constrained, dispatch an event so that the table
+      if (this.isOverflowing) {
+        this.dispatchEvent(new tr.b.Event('name-cell-overflow'));
+      }
     },
 
     get row() {
@@ -103,7 +108,6 @@ tr.exportTo('tr.v.ui', function() {
     set constrainWidth(constrain) {
       this.$.name.style.maxWidth = constrain ?
         (this.nameWidthPx + 'px') : 'none';
-      this.maybeDispatchOverflow_();
     },
 
     get nameWidthPx() {
@@ -112,11 +116,9 @@ tr.exportTo('tr.v.ui', function() {
       return NAME_COLUMN_WIDTH_PX - (16 * this.row.depth);
     },
 
-    maybeDispatchOverflow_() {
-      if (this.$.name.style.maxWidth !== 'none' &&
-          parseInt(getComputedStyle(this.$.name).width) === this.nameWidthPx) {
-        this.dispatchEvent(new tr.b.Event('name-cell-overflow'));
-      }
+    get isOverflowing() {
+      return this.$.name.style.maxWidth !== 'none' &&
+          this.$.name.getBoundingClientRect().width === this.nameWidthPx;
     },
 
     hideOverview_(opt_event) {

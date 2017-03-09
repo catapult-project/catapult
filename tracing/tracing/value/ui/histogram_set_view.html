@@ -207,7 +207,11 @@ tr.exportTo('tr.v.ui', function() {
      */
     set histograms(histograms) {
       this.$.histograms.histograms = histograms;
-    }
+    },
+
+    displayed() {
+      this.$.histograms.displayed();
+    },
   });
 
   return {};

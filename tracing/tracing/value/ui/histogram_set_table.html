@@ -161,6 +161,8 @@ tr.exportTo('tr.v.ui', function() {
 
   const UNMERGEABLE = '(unmergeable)';
 
+  const MIDLINE_HORIZONTAL_ELLIPSIS = String.fromCharCode(0x22ef);
+
   // http://stackoverflow.com/questions/3446170
   function escapeRegExp(str) {
     return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&');
@@ -194,8 +196,9 @@ tr.exportTo('tr.v.ui', function() {
       this.displayStatistic_ = 'avg';
       this.statNames_ = undefined;
       this.referenceDisplayLabel_ = undefined;
-      this.constrainNameColumnWidth_ = tr.b.Settings.get(
-          CONSTRAIN_NAME_COLUMN_WIDTH_KEY, true);
+      this.constrainNameColumnWidth_ = true;
+      this.nameColumnTitle_ = undefined;
+      this.isDisplayed = false;
     },
 
     ready() {
@@ -567,13 +570,14 @@ tr.exportTo('tr.v.ui', function() {
       this.$.table.tableRows = this.rows_;
       this.$.table.sortColumnIndex = 0;
 
-      for (let row of this.rows_) {
-        row.constrainNameColumnWidth = this.constrainNameColumnWidth_;
-      }
-
       this.$.table.rebuild();
 
-      if (this.rows_.length === 1) {
+      for (let row of this.rows_) {
+        row.constrainNameColumnWidth = this.constrainNameColumnWidth;
+      }
+      this.checkNameColumnOverflow_();
+
+      if (this.isDisplayed && this.rows_.length === 1) {
         for (let [displayLabel, cell] of this.rows_[0].cells) {
           cell.isHistogramOpen = true;
         }
@@ -720,52 +724,103 @@ tr.exportTo('tr.v.ui', function() {
       };
     },
 
-    buildNameColumnTitle_() {
-      let titleEl = document.createElement('span');
-      titleEl.style.display = 'inline-flex';
+    get nameColumnTitle() {
+      if (this.nameColumnTitle_ === undefined) {
+        this.nameColumnTitle_ = document.createElement('span');
+        this.nameColumnTitle_.style.display = 'inline-flex';
 
-      let nameEl = document.createElement('span');
-      nameEl.textContent = 'Name';
-      titleEl.appendChild(nameEl);
+        let nameEl = document.createElement('span');
+        nameEl.textContent = 'Name';
+        this.nameColumnTitle_.appendChild(nameEl);
 
-      let toggleWidthEl = document.createElement('span');
-      toggleWidthEl.style.fontWeight = 'bold';
-      toggleWidthEl.style.background = '#bbb';
-      toggleWidthEl.style.color = '#333';
-      toggleWidthEl.style.padding = '0px 3px';
-      toggleWidthEl.style.marginRight = '8px';
-      toggleWidthEl.style.display = 'none';
-      toggleWidthEl.textContent = String.fromCharCode(0x22ef);
-      toggleWidthEl.addEventListener('click',
-          this.toggleNameColumnWidth_.bind(this));
-      titleEl.appendChild(toggleWidthEl);
-
-      return titleEl;
+        let toggleWidthEl = document.createElement('span');
+        toggleWidthEl.style.fontWeight = 'bold';
+        toggleWidthEl.style.background = '#bbb';
+        toggleWidthEl.style.color = '#333';
+        toggleWidthEl.style.padding = '0px 3px';
+        toggleWidthEl.style.marginRight = '8px';
+        toggleWidthEl.style.display = 'none';
+        toggleWidthEl.textContent = MIDLINE_HORIZONTAL_ELLIPSIS;
+        toggleWidthEl.addEventListener('click',
+            this.toggleNameColumnWidth_.bind(this));
+        this.nameColumnTitle_.appendChild(toggleWidthEl);
+      }
+      return this.nameColumnTitle_;
     },
 
-    onNameCellOverflow_(event) {
-      let titleEl = this.columns_[0].title;
-
-      // Size the 'Name' so that the dots roughly align with the
-      // ellipses in the name-cells.
-      titleEl.children[0].style.width = '275px';
+    onNameCellOverflow_() {
+      // Size the 'Name' so that the dots align with the ellipses in the
+      // name-cells.
+      this.nameColumnTitle.children[0].style.width = '275px';
 
       // Show the dots.
-      titleEl.children[1].style.display = 'block';
+      this.nameColumnTitle.children[1].style.display = 'block';
+
+      // If toggleNameColumnWidth_ has been called since this element was
+      // created, then this will be a no-op. However, if none of the root row
+      // names overflow 300px, but a subrow name does, and if the user had
+      // previously expanded the name column, then this will restore that
+      // setting when the user re-expands the subrow. This complication will be
+      // simplified by https://github.com/catapult-project/catapult/issues/3289
+      this.constrainNameColumnWidth = tr.b.Settings.get(
+          CONSTRAIN_NAME_COLUMN_WIDTH_KEY, true);
     },
 
-    toggleNameColumnWidth_(event) {
-      event.stopPropagation();
-      event.preventDefault();
+    checkNameColumnOverflow_() {
+      if (this.nameColumnTitle_ === undefined) return;
 
-      this.constrainNameColumnWidth_ = !this.constrainNameColumnWidth_;
-      tr.b.Settings.set(
-          CONSTRAIN_NAME_COLUMN_WIDTH_KEY, this.constrainNameColumnWidth_);
-      this.columns_[0].title.children[1].style.filter =
-        this.constrainNameColumnWidth_ ? '' : 'invert(100%)';
-      for (let row of this.rows_) {
-        row.constrainNameColumnWidth = this.constrainNameColumnWidth_;
+      this.nameColumnTitle.children[0].style.width = '';
+      this.nameColumnTitle.children[1].style.display = 'none';
+
+      if (this.rows_ === undefined) return;
+
+      for (const row of this.rows_) {
+        if (row.isNameCellOverflowing) {
+          this.onNameCellOverflow_();
+          return;
+        }
       }
+    },
+
+    displayed() {
+      // Building some elements requires being able to measure them, which is
+      // impossible until they are displayed.
+      this.isDisplayed = true;
+
+      this.checkNameColumnOverflow_();
+
+      if (this.rows_ && this.rows_.length === 1) {
+        for (let [displayLabel, cell] of this.rows_[0].cells) {
+          cell.isHistogramOpen = true;
+        }
+      }
+    },
+
+    get constrainNameColumnWidth() {
+      return this.constrainNameColumnWidth_;
+    },
+
+    set constrainNameColumnWidth(c) {
+      if (this.constrainNameColumnWidth !== !!c) {
+        this.toggleNameColumnWidth_();
+      }
+    },
+
+    toggleNameColumnWidth_(opt_event) {
+      if (opt_event) {
+        opt_event.stopPropagation();
+        opt_event.preventDefault();
+      }
+
+      this.constrainNameColumnWidth_ = !this.constrainNameColumnWidth;
+      tr.b.Settings.set(
+          CONSTRAIN_NAME_COLUMN_WIDTH_KEY, this.constrainNameColumnWidth);
+      for (let row of this.rows_) {
+        row.constrainNameColumnWidth = this.constrainNameColumnWidth;
+      }
+
+      this.nameColumnTitle.children[1].style.filter =
+        this.constrainNameColumnWidth ? '' : 'invert(100%)';
     },
 
     get leafHistograms() {
@@ -794,7 +849,7 @@ tr.exportTo('tr.v.ui', function() {
     buildColumns_() {
       this.columns_ = [
         {
-          title: this.buildNameColumnTitle_(),
+          title: this.nameColumnTitle,
           value: row => row.nameCell,
           cmp: (a, b) => a.compareNames(b),
         }
@@ -809,6 +864,7 @@ tr.exportTo('tr.v.ui', function() {
   return {
     CONSTRAIN_NAME_COLUMN_WIDTH_KEY,
     DISPLAY_STATISTIC_KEY,
+    MIDLINE_HORIZONTAL_ELLIPSIS,
     REFERENCE_DISPLAY_LABEL_KEY,
     SHOW_ALL_SETTINGS_KEY,
     UNMERGEABLE,

@@ -44,29 +44,35 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     updateYAxis_(yAxis) {
-      tr.b.requestAnimationFrame(() => {
-        yAxis.selectAll('*').remove();
-        var nameTexts = yAxis.selectAll('text').data(this.data_);
-        nameTexts
-            .enter()
-            .append('text')
-            .attr('x', d => -(
-              tr.ui.b.getSVGTextSize(this, d.x).width + Y_AXIS_PADDING))
-            .attr('y', (d, index) => this.verticalScale_(index))
-            .text(d => d.x);
-        nameTexts.exit().remove();
+      // Building the y-axis requires measuring text.
+      // If necessary, wait for this element to be displayed.
+      if (tr.ui.b.getSVGTextSize(this, 'test').width === 0) {
+        tr.b.requestAnimationFrame(() => this.updateYAxis_(yAxis));
+        return;
+      }
 
-        var previousTop = undefined;
-        for (var text of nameTexts[0]) {
-          var bbox = text.getBBox();
-          if ((previousTop === undefined) ||
-              (previousTop > (bbox.y + bbox.height))) {
-            previousTop = bbox.y;
-          } else {
-            text.style.opacity = 0;
-          }
+      // When we can measure text, we're ready to build the y-axis.
+      yAxis.selectAll('*').remove();
+      var nameTexts = yAxis.selectAll('text').data(this.data_);
+      nameTexts
+          .enter()
+          .append('text')
+          .attr('x', d => -(
+            tr.ui.b.getSVGTextSize(this, d.x).width + Y_AXIS_PADDING))
+          .attr('y', (d, index) => this.verticalScale_(index))
+          .text(d => d.x);
+      nameTexts.exit().remove();
+
+      var previousTop = undefined;
+      for (var text of nameTexts[0]) {
+        var bbox = text.getBBox();
+        if ((previousTop === undefined) ||
+            (previousTop > (bbox.y + bbox.height))) {
+          previousTop = bbox.y;
+        } else {
+          text.style.opacity = 0;
         }
-      });
+      }
     }
   };
 
