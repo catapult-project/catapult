@@ -104,16 +104,18 @@ indexes:
   - name: internal_only
   - name: end_revision
 
-# Used in speed_releasing.py to find anomalies that match a specific test
-# and are between a specified range (usually a milestone).
+# Used in speed_releasing.py to find anomalies that match a specific master
+# and benchmark and are between a specified range (usually a milestone).
 - kind: Anomaly
   properties:
-  - name: test
+  - name: benchmark_name
+  - name: master_name
   - name: end_revision
 - kind: Anomaly
   properties:
   - name: internal_only
-  - name: test
+  - name: benchmark_name
+  - name: master_name
   - name: end_revision
 
 # Used in benchmark_health_report for querying benchmark by name
