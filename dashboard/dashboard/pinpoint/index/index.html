@@ -14,6 +14,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/dashboard/elements/load-analytics.html">
 <link rel="import" href="/dashboard/pinpoint/elements/error-page.html">
+<link rel="import" href="/dashboard/pinpoint/elements/job-page.html">
 <link rel="import" href="/dashboard/pinpoint/elements/jobs-page.html">
 <link rel="import" href="/dashboard/pinpoint/elements/main-page.html">
 
@@ -39,6 +40,7 @@ found in the LICENSE file.
     <iron-pages selected="[[routeData.page]]" attr-for-selected="name" fallback-selection="error" on-iron-select="onSelectedPage" on-iron-deselect="onDeselectedPage">
       <main-page name=""></main-page>
       <jobs-page name="jobs" route="{{tail}}"></jobs-page>
+      <job-page name="job" route="{{tail}}"></job-page>
       <error-page name="error"></error-page>
     </iron-pages>
 
@@ -51,14 +53,18 @@ found in the LICENSE file.
 
       onDeselectedPage: function(e) {
         let page = e.detail.item;
+        // Need to call the the page.* functions async since this callback is
+        // called sync while the route is being modified.
         if ('deselected' in page)
-          page.deselected();
+          this.async(function() { page.deselected(); });
       },
 
       onSelectedPage: function(e) {
         let page = e.detail.item;
+        // Need to call the the page.* functions async since this callback is
+        // called sync while the route is being modified.
         if ('selected' in page)
-          page.selected();
+          this.async(function() { page.selected(); });
       },
 
       ready: function() {

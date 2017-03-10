@@ -139,7 +139,7 @@ found in the LICENSE file.
       <tbody>
       <template is="dom-repeat" items="{{jobsList}}">
         <tr class$="group-header">
-          <td class="width130">{{item.job_id}}</td>
+          <td class="width130"><a href='/job/{{item.job_id}}'>{{item.job_id}}</a></td>
           <td class="width100">{{item.status}}</td>
           <td class="width130">{{item.created}}</td>
           <td class="width130">{{item.configuration}}</td>

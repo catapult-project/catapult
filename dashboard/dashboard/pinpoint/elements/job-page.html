@@ -14,7 +14,7 @@ found in the LICENSE file.
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 <link rel="import" href="/dashboard/static/uri.html">
 
-<dom-module id="jobs-page">
+<dom-module id="job-page">
   <template>
     <style>
     .error {
@@ -30,6 +30,7 @@ found in the LICENSE file.
     /* The content container contains everything below the sheriff select menu.
      */
     #content {
+      width: 100%;
       display: inline-flex;
       display: -webkit-inline-flex;
       flex-direction: column;
@@ -45,48 +46,37 @@ found in the LICENSE file.
     }
     </style>
 
-    <app-route route="{{route}}" pattern="/:sortBy:sortDescending" query-params="{{queryParams}}"></app-route>
+    <app-route route="{{route}}" pattern="/:jobId" data="{{data}}"></app-route>
 
     <template is="dom-if" if="{{loading}}">
       <div id="loading-spinner"><img src="//www.google.com/images/loading.gif"></div>
     </template>
     <template is="dom-if" if="{{!loading}}">
-      <template is="dom-if" if="{{error}}">
-        <div class="error">{{error}}</div>
-      </template>
-      <template is="dom-if" if="{{!error}}">
-        <div id="content">
-          <h1>Pinpoint Jobs</h1>
-          <div id="action-bar">
-          </div>
-          <h2>Running Jobs</h2>
-          <p id='num-alerts'>
-            {{computeJobCountString(totalJobsCount, totalJobsCountMax)}}
-          </p>
-          <jobs-table id="jobs-table"
-              xsrf-token="{{xsrfToken}}"
-              jobs-list="{{jobs}}"
-              sort-by="{{queryParams.sortBy}}"
-              sort-descending="{{queryParams.sortDescending}}">
-          </jobs-table>
-        </div>
-      </template>
+      <div id="content">
+        <h1>Pinpoint Job Status</h1>
+        <template is="dom-if" if="{{error}}">
+          <div class="error">{{error}}</div>
+        </template>
+        <template is="dom-if" if="{{!error}}">
+        <table>
+          <template is="dom-repeat" items="{{jobProperties}}">
+            <tr>
+                <td>{{item.name}}</td>
+                <td>{{item.value}}</td>
+            <tr>
+          </template>
+        </table>          
+        </template>
+      </div>
     </template>
   </template>
   <script>
     'use strict';
     Polymer({
 
-      is: 'jobs-page',
+      is: 'job-page',
       properties: {
-        totalJobsCount: {
-          type: Number,
-          value: 0
-        },
-        totalJobsCountMax: {
-          type: Number
-        },
-        jobs: {
+        jobProperties: {
           type: Array,
           value: () => []
         },
@@ -106,34 +96,23 @@ found in the LICENSE file.
         }
       },
 
-      computeIsSingular: count => count === 1,
-
-      computeJobCountString: function() {
-        if (this.totalJobsCount === 1)
-          return '1 job';
-        if (this.totalJobsCount < this.totalJobsCountMax)
-          return String(this.totalJobsCount) + ' jobs.';
-        return String(this.totalJobsCountMax) + ' or more jobs.';
-      },
-
-      getJobCount: function() {
-        return this.jobs.length;
-      },
-
       deselected: function() {
-        this.jobs = [];
+        this.set('jobProperties', []);
       },
 
       selected: function() {
         this.loading = true;
-        var params = {};
-        simple_xhr.send('/_ah/api/jobs', params,
+
+        var params = {job_id: this.data.jobId};
+        simple_xhr.send('/_ah/api/job', params,
             function(response) {
-              this.jobs = response['jobs_list'];
-              this.totalJobsCount = response['jobs_count'];
-              this.totalJobsCountMax = response['jobs_count_max'];
-              this.xsrfToken = response['xsrf_token'];
               this.loading = false;
+              var jobProperties = [];
+              var data = response['data'];
+              for (let key in data) {
+                jobProperties.push({name: key, value: data[key]});
+              }
+              this.set('jobProperties', jobProperties);
             }.bind(this),
             function(msg) {
               this.error = msg;

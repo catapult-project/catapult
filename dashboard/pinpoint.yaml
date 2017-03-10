@@ -56,10 +56,6 @@ handlers:
   script: dashboard.pinpoint.dispatcher.APP
   secure: always
 
-- url: /job/.*
-  script: dashboard.pinpoint.dispatcher.APP
-  secure: always
-
 - url: /new
   script: dashboard.pinpoint.dispatcher.APP
   secure: always

@@ -15,7 +15,7 @@ from dashboard.pinpoint.handlers import run
 
 _URL_MAPPING = [
     # UI Stuff
-    webapp2.Route(r'/job/<job_id>', job.JobHandler),
+    webapp2.Route(r'/_ah/api/job', job.JobHandler),
     webapp2.Route(r'/_ah/api/jobs', list_jobs.ListJobsHandler),
 
     # Actual functionality
