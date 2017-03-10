@@ -47,15 +47,15 @@ tr.b.unittest.testSuite(function() {
     let histograms = new tr.v.HistogramSet([hist0, hist1]);
     let csv = new tr.v.CSVBuilder(histograms);
     csv.build();
-    assert.strictEqual(csv.toString(), [
-      'name,unit,avg,nans,pct_010,pct_090,std,count,sum,min,' +
-        'max,benchmarkName,benchmarkStartString,label,storyDisplayName,' +
-        'storyGroupingKey0,storyGroupingKey1',
-      'hist0,B,500,1,150,950,,,,,,benchmark A,1970-01-01 00:00:00,label A,' +
-        'story A,sgk0,sgk1',
-      'hist1,σ,,,,,,0,0,Infinity,-Infinity,,,,,,',
-      '',
-    ].join('\n'));
+    csv = csv.toString().split('\n');
+    assert.strictEqual(
+        csv[0], 'name,unit,avg,nans,pct_010,pct_090,count,max,min,std,sum,' +
+        'benchmarkName,benchmarkStartString,label,storyDisplayName,' +
+        'storyGroupingKey0,storyGroupingKey1');
+    assert.strictEqual(
+        csv[1], 'hist0,B,500,1,150,950,,,,,,benchmark A,1970-01-01 00:00:00,' +
+        'label A,story A,sgk0,sgk1');
+    assert.strictEqual(csv[2], 'hist1,σ,,,,,0,-Infinity,Infinity,,0,,,,,,');
   });
 });
 </script>

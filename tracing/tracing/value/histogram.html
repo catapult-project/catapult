@@ -127,13 +127,13 @@ tr.exportTo('tr.v', function() {
 
   const DEFAULT_SUMMARY_OPTIONS = new Map([
     ['avg', true],
-    ['geometricMean', false],
-    ['std', true],
     ['count', true],
-    ['sum', true],
-    ['min', true],
+    ['geometricMean', false],
     ['max', true],
+    ['min', true],
     ['nans', false],
+    ['std', true],
+    ['sum', true],
     // Don't include 'percentile' here. Its default value is [], which is
     // modifiable. Callers may push to it, so there must be a different Array
     // instance for each Histogram instance.
@@ -511,11 +511,18 @@ tr.exportTo('tr.v', function() {
 
     /**
      * Controls which statistics are exported to dashboard for this Histogram.
-     * The |summaryOptions| parameter is a dictionary with optional boolean
-     * fields |count|, |sum|, |avg|, |std|, |min|, |max| and an optional
-     * array field |percentile|.
-     * Each percentile should be a number between 0.0 and 1.0.
      * The options not included in the |summaryOptions| will not change.
+     *
+     * @param {!Object} summaryOptions
+     * @param {boolean=} summaryOptions.avg
+     * @param {boolean=} summaryOptions.count
+     * @param {boolean=} summaryOptions.geometricMean
+     * @param {boolean=} summaryOptions.max
+     * @param {boolean=} summaryOptions.min
+     * @param {boolean=} summaryOptions.nans
+     * @param {boolean=} summaryOptions.std
+     * @param {boolean=} summaryOptions.sum
+     * @param {!Array.<number>=} summaryOptions.percentile Numbers in (0,1)
      */
     customizeSummaryOptions(summaryOptions) {
       for (var [key, value] of Object.entries(summaryOptions)) {
@@ -550,7 +557,7 @@ tr.exportTo('tr.v', function() {
         return new tr.b.Scalar(this.unit, this.average);
       }
       if (statName === 'std') {
-        if (this.running_ === undefined) return undefined;
+        if (this.standardDeviation === undefined) return undefined;
         return new tr.b.Scalar(this.unit, this.standardDeviation);
       }
       if (statName === 'geometricMean') {
