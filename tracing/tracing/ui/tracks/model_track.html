@@ -136,7 +136,7 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     updateContentsForLowerMode_: function() {
-      if (this.model_.userModel.expectations.length) {
+      if (this.model_.userModel.expectations.length > 1) {
         var mrt = new tr.ui.tracks.InteractionTrack(this.viewport_);
         mrt.model = this.model_;
         Polymer.dom(this).appendChild(mrt);
