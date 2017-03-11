@@ -11,6 +11,8 @@ See e.g.:
 import logging
 import posixpath
 
+from devil.android import device_errors
+from devil.android.sdk import version_codes
 from xml.etree import ElementTree
 
 logger = logging.getLogger(__name__)
@@ -270,6 +272,19 @@ class SharedPrefs(object):
         ['mkdir', '-p', posixpath.dirname(self.path)],
         as_root=True, check_return=True)
     self._device.WriteFile(self.path, str(self), as_root=True)
+    # Creating the directory/file can cause issues with SELinux if they did
+    # not already exist. As a workaround, apply the package's security context
+    # to the shared_prefs directory, which mimics the behavior of a file
+    # created by the app itself
+    if self._device.build_version_sdk >= version_codes.MARSHMALLOW:
+      security_context = self._GetSecurityContext(self.package)
+      if security_context == None:
+        raise device_errors.CommandFailedError(
+            'Failed to get security context for %s' % self.package)
+      self._device.RunShellCommand(
+          ['chcon', '-R', security_context,
+           '/data/data/%s/shared_prefs' % self.package],
+          as_root=True, check_return=True)
     self._device.KillAll(self.package, exact=True, as_root=True, quiet=True)
     self._changed = False
 
@@ -391,3 +406,15 @@ class SharedPrefs(object):
       pref.set(value)
       self._changed = True
       logger.info('Setting property: %s', pref)
+
+  def _GetSecurityContext(self, package):
+    for line in self._device.RunShellCommand(['ls', '-Z', '/data/data/'],
+                                             as_root=True, check_return=True):
+      split_line = line.split()
+      # ls -Z output differs between Android versions, but the package is
+      # always last and the context always starts with "u:object"
+      if split_line[-1] == package:
+        for column in split_line:
+          if column.startswith('u:object'):
+            return column
+    return None

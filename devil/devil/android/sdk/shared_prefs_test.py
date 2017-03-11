@@ -13,6 +13,7 @@ import unittest
 from devil import devil_env
 from devil.android import device_utils
 from devil.android.sdk import shared_prefs
+from devil.android.sdk import version_codes
 
 with devil_env.SysPath(devil_env.PYMOCK_PATH):
   import mock  # pylint: disable=import-error
@@ -97,6 +98,8 @@ class SharedPrefsTest(unittest.TestCase):
     self.assertTrue(prefs.changed)
 
   def testCommit(self):
+    type(self.device).build_version_sdk = mock.PropertyMock(
+        return_value=version_codes.LOLLIPOP_MR1)
     prefs = shared_prefs.SharedPrefs(
         self.device, 'com.some.package', 'other_prefs.xml')
     self.assertFalse(self.device.FileExists(prefs.path))  # file does not exist
@@ -131,6 +134,8 @@ class SharedPrefsTest(unittest.TestCase):
     self.assertEquals(self.device.WriteFile.call_args_list, [])  # did not write
 
   def testAsContextManager_readAndWrite(self):
+    type(self.device).build_version_sdk = mock.PropertyMock(
+        return_value=version_codes.LOLLIPOP_MR1)
     with shared_prefs.SharedPrefs(
         self.device, 'com.some.package', 'prefs.xml') as prefs:
       prefs.SetBoolean('featureEnabled', True)
