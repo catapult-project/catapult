@@ -39,6 +39,7 @@ class FlagChangerTest(device_test_case.DeviceTestCase):
         flag_changer._CMDLINE_DIR_LEGACY, _CMDLINE_FILE)
 
   def tearDown(self):
+    super(FlagChangerTest, self).tearDown()
     self.device.RemovePath(
         [self.cmdline_path, self.cmdline_path_legacy], force=True, as_root=True)
 

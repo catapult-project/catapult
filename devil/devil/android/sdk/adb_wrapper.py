@@ -753,7 +753,7 @@ class AdbWrapper(object):
       cmd.append('-k')
     cmd.append(package)
     output = self._RunDeviceAdbCmd(cmd, timeout, retries)
-    if 'Failure' in output:
+    if 'Failure' in output or 'Exception' in output:
       raise device_errors.AdbCommandFailedError(
           cmd, output, device_serial=self._device_serial)
 
