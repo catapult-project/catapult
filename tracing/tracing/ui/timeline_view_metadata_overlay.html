@@ -4,10 +4,12 @@ Copyright (c) 2013 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
+
 <link rel="import" href="/tracing/base/base.html">
+<link rel="import" href="/tracing/ui/analysis/generic_object_view.html">
 <link rel="import" href="/tracing/ui/base/mouse_mode_icon.html">
 <link rel="import" href="/tracing/ui/base/overlay.html">
-<link rel="import" href="/tracing/value/ui/generic_table_view.html">
+<link rel="import" href="/tracing/ui/base/table.html">
 
 <dom-module id='tr-ui-timeline-view-metadata-overlay'>
   <template>
@@ -18,7 +20,7 @@ found in the LICENSE file.
       overflow: auto;
     }
     </style>
-    <tr-v-ui-generic-table-view id="gtv"></tr-v-ui-generic-table-view>
+    <tr-ui-b-table id="table"></tr-ui-b-table>
   </template>
 </dom-module>
 <script>
@@ -27,8 +29,25 @@ found in the LICENSE file.
 Polymer({
   is: 'tr-ui-timeline-view-metadata-overlay',
 
-  created: function() {
+  created() {
     this.metadata_ = undefined;
+  },
+
+  ready() {
+    this.$.table.tableColumns = [
+      {
+        title: 'name',
+        value: d => d.name,
+      },
+      {
+        title: 'value',
+        value: d => {
+          const gov = document.createElement('tr-ui-a-generic-object-view');
+          gov.object = d.value;
+          return gov;
+        },
+      }
+    ];
   },
 
   get metadata() {
@@ -37,7 +56,8 @@ Polymer({
 
   set metadata(metadata) {
     this.metadata_ = metadata;
-    this.$.gtv.items = this.metadata_;
+    this.$.table.tableRows = this.metadata_;
+    this.$.table.rebuild();
   }
 });
 </script>
