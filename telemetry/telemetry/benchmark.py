@@ -12,7 +12,7 @@ from telemetry.web_perf import timeline_based_measurement
 
 Disabled = decorators.Disabled
 Enabled = decorators.Enabled
-
+Owner = decorators.Owner
 
 class InvalidOptionsError(Exception):
   """Raised for invalid benchmark options."""
