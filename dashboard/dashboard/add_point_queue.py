@@ -75,9 +75,8 @@ class AddPointQueueHandler(request_handler.RequestHandler):
     # it requires the new row to have a timestamp, which happens upon put.
     graph_revisions.AddRowsToCache(added_rows)
 
-    for test_key in monitored_test_keys:
-      if not _IsRefBuild(test_key):
-        find_anomalies.ProcessTest(test_key)
+    tests_keys = [k for k in monitored_test_keys if not _IsRefBuild(k)]
+    find_anomalies.ProcessTests(tests_keys)
 
 
 def _PrewarmGets(data):

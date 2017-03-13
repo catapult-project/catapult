@@ -148,7 +148,7 @@ class AddPointTest(testing_common.TestCase):
     testing_common.SetIpWhitelist([_WHITELISTED_IP])
     self.SetCurrentUser('foo@bar.com', is_admin=True)
 
-  @mock.patch.object(add_point_queue.find_anomalies, 'ProcessTest')
+  @mock.patch.object(add_point_queue.find_anomalies, 'ProcessTests')
   def testPost(self, mock_process_test):
     """Tests all basic functionality of a POST request."""
     sheriff.Sheriff(
@@ -256,9 +256,9 @@ class AddPointTest(testing_common.TestCase):
     self.assertIsNone(masters[0].key.parent())
 
     # Verify that an anomaly processing was called.
-    mock_process_test.assert_called_once_with(tests[1].key)
+    mock_process_test.assert_called_once_with([tests[1].key])
 
-  @mock.patch.object(add_point_queue.find_anomalies, 'ProcessTest')
+  @mock.patch.object(add_point_queue.find_anomalies, 'ProcessTests')
   def testPost_TestNameEndsWithUnderscoreRef_ProcessTestIsNotCalled(
       self, mock_process_test):
     """Tests that Tests ending with "_ref" aren't analyzed for Anomalies."""
@@ -270,9 +270,9 @@ class AddPointTest(testing_common.TestCase):
         '/add_point', {'data': json.dumps([point])},
         extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
-    self.assertFalse(mock_process_test.called)
+    mock_process_test.assert_called_once_with([])
 
-  @mock.patch.object(add_point_queue.find_anomalies, 'ProcessTest')
+  @mock.patch.object(add_point_queue.find_anomalies, 'ProcessTests')
   def testPost_TestNameEndsWithSlashRef_ProcessTestIsNotCalled(
       self, mock_process_test):
     """Tests that leaf tests named ref aren't added to the task queue."""
@@ -284,9 +284,9 @@ class AddPointTest(testing_common.TestCase):
         '/add_point', {'data': json.dumps([point])},
         extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
-    self.assertFalse(mock_process_test.called)
+    mock_process_test.assert_called_once_with([])
 
-  @mock.patch.object(add_point_queue.find_anomalies, 'ProcessTest')
+  @mock.patch.object(add_point_queue.find_anomalies, 'ProcessTests')
   def testPost_TestNameEndsContainsButDoesntEndWithRef_ProcessTestIsCalled(
       self, mock_process_test):
     sheriff.Sheriff(
@@ -500,7 +500,7 @@ class AddPointTest(testing_common.TestCase):
     self.assertFalse(rows[2].internal_only)
 
   @mock.patch.object(
-      add_point_queue.find_anomalies, 'ProcessTest', mock.MagicMock())
+      add_point_queue.find_anomalies, 'ProcessTests', mock.MagicMock())
   def testPost_NewTest_SheriffPropertyIsAdded(self):
     """Tests that sheriffs are added to tests when Tests are created."""
     sheriff1 = sheriff.Sheriff(

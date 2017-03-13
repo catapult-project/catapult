@@ -131,7 +131,7 @@ class ProcessAlertsTest(testing_common.TestCase):
         email='a@google.com', id='sheriff', patterns=[test_path]).put()
     test.put()
 
-    find_anomalies.ProcessTest(test.key)
+    find_anomalies.ProcessTests([test.key])
 
     expected_calls = [
         mock.call(ModelMatcher('sheriff'),
@@ -207,7 +207,7 @@ class ProcessAlertsTest(testing_common.TestCase):
         email='a@google.com', id='sheriff', patterns=[test.test_path]).put()
     test.improvement_direction = anomaly.DOWN
     test.put()
-    find_anomalies.ProcessTest(test.key)
+    find_anomalies.ProcessTests([test.key])
     anomalies = anomaly.Anomaly.query().fetch()
     self.assertEqual(len(anomalies), 1)
     self.assertTrue(anomalies[0].is_improvement)
@@ -217,7 +217,7 @@ class ProcessAlertsTest(testing_common.TestCase):
     self._AddDataForTests()
     ref = utils.TestKey(
         'ChromiumGPU/linux-release/scrolling_benchmark/ref').get()
-    find_anomalies.ProcessTest(ref.key)
+    find_anomalies.ProcessTests([ref.key])
     mock_logging_error.assert_called_with('No sheriff for %s', ref.key)
 
   @mock.patch.object(
@@ -235,7 +235,7 @@ class ProcessAlertsTest(testing_common.TestCase):
         email='a@google.com', id='sheriff', patterns=[test.test_path]).put()
     test.improvement_direction = anomaly.UP
     test.put()
-    find_anomalies.ProcessTest(test.key)
+    find_anomalies.ProcessTests([test.key])
     mock_email_sheriff.assert_called_once_with(
         ModelMatcher('sheriff'),
         ModelMatcher('ChromiumGPU/linux-release/scrolling_benchmark/ref'),
@@ -256,7 +256,7 @@ class ProcessAlertsTest(testing_common.TestCase):
         email='a@google.com', id='sheriff', patterns=[test.test_path]).put()
     test.put()
 
-    find_anomalies.ProcessTest(test.key)
+    find_anomalies.ProcessTests([test.key])
     expected_calls = [
         mock.call(ModelMatcher('sheriff'),
                   ModelMatcher(
@@ -294,7 +294,7 @@ class ProcessAlertsTest(testing_common.TestCase):
         email='a@google.com', id='sheriff', patterns=[non_ref.test_path]).put()
     ref.put()
     non_ref.put()
-    find_anomalies.ProcessTest(non_ref.key)
+    find_anomalies.ProcessTests([non_ref.key])
     new_anomalies = anomaly.Anomaly.query().fetch()
     self.assertEqual(0, len(new_anomalies))
 
@@ -321,7 +321,7 @@ class ProcessAlertsTest(testing_common.TestCase):
         email='a@google.com', id='sheriff', patterns=[non_ref.test_path]).put()
     ref.put()
     non_ref.put()
-    find_anomalies.ProcessTest(non_ref.key)
+    find_anomalies.ProcessTests([non_ref.key])
     new_anomalies = anomaly.Anomaly.query().fetch()
     self.assertEqual(len(new_anomalies), 1)
 
@@ -338,7 +338,7 @@ class ProcessAlertsTest(testing_common.TestCase):
     sheriff.Sheriff(
         email='a@google.com', id='sheriff', patterns=[ref.test_path]).put()
     ref.put()
-    find_anomalies.ProcessTest(ref.key)
+    find_anomalies.ProcessTests([ref.key])
     new_anomalies = anomaly.Anomaly.query().fetch()
     self.assertEqual(1, len(new_anomalies))
     self.assertEqual(anomaly.UP, new_anomalies[0].direction)
@@ -355,7 +355,7 @@ class ProcessAlertsTest(testing_common.TestCase):
         'ChromiumGPU/linux-release/scrolling_benchmark/ref').get()
     test.last_alerted_revision = 1234567890
     test.put()
-    find_anomalies.ProcessTest(test.key)
+    find_anomalies.ProcessTests([test.key])
     self.assertIsNone(test.key.get().last_alerted_revision)
     calls = [
         mock.call(

@@ -25,40 +25,52 @@ from dashboard.models import graph_data
 # may be used if a test has a "max_window_size" anomaly config parameter.
 DEFAULT_NUM_POINTS = 50
 
+@ndb.synctasklet
+def ProcessTests(test_keys):
+  """Processes a list of tests to find new anoamlies.
 
-def ProcessTest(test_key):
+  Args:
+    test_keys: A list of TestMetadata ndb.Key's.
+  """
+  # Using a parallel yield here let's the tasklets for each _ProcessTest run
+  # in parallel.
+  yield [_ProcessTest(k) for k in test_keys]
+
+
+@ndb.tasklet
+def _ProcessTest(test_key):
   """Processes a test to find new anomalies.
 
   Args:
     test_key: The ndb.Key for a TestMetadata.
   """
-  test = test_key.get()
+  test = yield test_key.get_async()
   config = anomaly_config.GetAnomalyConfigDict(test)
   max_num_rows = config.get('max_window_size', DEFAULT_NUM_POINTS)
-  rows = GetRowsToAnalyze(test, max_num_rows)
+  rows = yield GetRowsToAnalyzeAsync(test, max_num_rows)
   # If there were no rows fetched, then there's nothing to analyze.
   if not rows:
     # In some cases (e.g. if some points are deleted) it might be possible
     # that last_alerted_revision is incorrect. In this case, reset it.
-    highest_rev = _HighestRevision(test_key)
+    highest_rev = yield _HighestRevision(test_key)
     if test.last_alerted_revision > highest_rev:
       logging.error('last_alerted_revision %d is higher than highest rev %d '
                     'for test %s; setting last_alerted_revision to None.',
                     test.last_alerted_revision, highest_rev, test.test_path)
       test.last_alerted_revision = None
-      test.put()
+      yield test.put_async()
     logging.error('No rows fetched for %s', test.test_path)
-    return
+    raise ndb.Return(None)
 
-  test = test_key.get()
-  sheriff = _GetSheriffForTest(test)
+  sheriff = yield _GetSheriffForTest(test)
   if not sheriff:
     logging.error('No sheriff for %s', test_key)
-    return
+    raise ndb.Return(None)
 
   # Get anomalies and check if they happen in ref build also.
   change_points = FindChangePointsForTest(rows, config)
-  change_points = _FilterAnomaliesFoundInRef(change_points, test_key, len(rows))
+  change_points = yield _FilterAnomaliesFoundInRef(
+      change_points, test_key, len(rows))
 
   anomalies = [_MakeAnomalyEntity(c, test, rows) for c in change_points]
 
@@ -70,11 +82,12 @@ def ProcessTest(test_key):
 
   # Update the last_alerted_revision property of the test.
   test.last_alerted_revision = anomalies[-1].end_revision
-  test.put()
-
-  alert_group.GroupAlerts(
+  yield test.put_async()
+  yield alert_group.GroupAlertsAsync(
       anomalies, utils.TestSuiteName(test.key), 'Anomaly')
 
+  # TODO(simonhatch): email_sheriff.EmailSheriff() isn't a tasklet yet, so this
+  # code will run serially.
   # Email sheriff about any new regressions.
   for anomaly_entity in anomalies:
     if (anomaly_entity.bug_id is None and
@@ -82,9 +95,10 @@ def ProcessTest(test_key):
         not sheriff.summarize):
       email_sheriff.EmailSheriff(sheriff, test, anomaly_entity)
 
-  ndb.put_multi(anomalies)
+  yield ndb.put_multi_async(anomalies)
 
 
+@ndb.synctasklet
 def GetRowsToAnalyze(test, max_num_rows):
   """Gets the Row entities that we want to analyze.
 
@@ -97,6 +111,12 @@ def GetRowsToAnalyze(test, max_num_rows):
     revision. These rows are fetched with t a projection query so they only
     have the revision and value properties.
   """
+  result = yield GetRowsToAnalyzeAsync(test, max_num_rows)
+  raise ndb.Return(result)
+
+
+@ndb.tasklet
+def GetRowsToAnalyzeAsync(test, max_num_rows):
   query = graph_data.Row.query(projection=['revision', 'value'])
   query = query.filter(
       graph_data.Row.parent_test == utils.OldStyleTestKey(test.key))
@@ -107,20 +127,23 @@ def GetRowsToAnalyze(test, max_num_rows):
   query = query.order(-graph_data.Row.revision)
 
   # However, we want to analyze them in ascending order.
-  return list(reversed(query.fetch(limit=max_num_rows)))
+  rows = yield query.fetch_async(limit=max_num_rows)
+  raise ndb.Return(list(reversed(rows)))
 
 
+@ndb.tasklet
 def _HighestRevision(test_key):
   """Gets the revision number of the Row with the highest ID for a test."""
   query = graph_data.Row.query(
       graph_data.Row.parent_test == utils.OldStyleTestKey(test_key))
   query = query.order(-graph_data.Row.revision)
-  highest_row_key = query.get(keys_only=True)
+  highest_row_key = yield query.get_async(keys_only=True)
   if highest_row_key:
-    return highest_row_key.id()
-  return None
+    raise ndb.Return(highest_row_key.id())
+  raise ndb.Return(None)
 
 
+@ndb.tasklet
 def _FilterAnomaliesFoundInRef(change_points, test_key, num_rows):
   """Filters out the anomalies that match the anomalies in ref build.
 
@@ -146,13 +169,13 @@ def _FilterAnomaliesFoundInRef(change_points, test_key, num_rows):
   # Get anomalies for ref build.
   ref_test = _CorrespondingRefTest(test_key)
   if not ref_test:
-    return change_points[:]
+    raise ndb.Return(change_points[:])
 
   ref_config = anomaly_config.GetAnomalyConfigDict(ref_test)
-  ref_rows = GetRowsToAnalyze(ref_test, num_rows)
+  ref_rows = yield GetRowsToAnalyzeAsync(ref_test, num_rows)
   ref_change_points = FindChangePointsForTest(ref_rows, ref_config)
   if not ref_change_points:
-    return change_points[:]
+    raise ndb.Return(change_points[:])
 
   change_points_filtered = []
   test_path = utils.TestPath(test_key)
@@ -166,7 +189,7 @@ def _FilterAnomaliesFoundInRef(change_points, test_key, num_rows):
     else:
       logging.info('Filtering out anomaly for test %s, and revision %s',
                    test_path, c.x_value)
-  return change_points_filtered
+  raise ndb.Return(change_points_filtered)
 
 
 def _CorrespondingRefTest(test_key):
@@ -198,11 +221,13 @@ def _IsAnomalyInRef(change_point, ref_change_points):
   return False
 
 
+@ndb.tasklet
 def _GetSheriffForTest(test):
   """Gets the Sheriff for a test, or None if no sheriff."""
   if test.sheriff:
-    return test.sheriff.get()
-  return None
+    sheriff = yield test.sheriff.get_async()
+    raise ndb.Return(sheriff)
+  raise ndb.Return(None)
 
 
 def _GetImmediatelyPreviousRevisionNumber(later_revision, rows):
