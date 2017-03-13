@@ -294,14 +294,7 @@ def _QuoteFlag(flag):
 
   if value is None:
     return key
-  else:
-    # TODO(catapult:#3112): Remove this check when all clients comply.
-    if value and value[0] in _QUOTES and value[0] == value[-1]:
-      logging.warning(
-          'Flag %s appears to be quoted, so will be passed as-is.', flag)
-      logging.warning(
-          'Note: this behavior will be changed in the future. '
-          'Clients should pass values unquoted to prevent double-quoting.')
-    elif _RE_NEEDS_QUOTING.search(value):
-      value = '"%s"' % value.replace('"', r'\"')
-    return '='.join([key, value])
+
+  if _RE_NEEDS_QUOTING.search(value):
+    value = '"%s"' % value.replace('"', r'\"')
+  return '='.join([key, value])

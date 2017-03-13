@@ -86,13 +86,9 @@ class ParseSerializeFlagsTest(unittest.TestCase):
         "--key=this is 'fine' too", '''--key="this is 'fine' too"''')
 
   def testQuoteFlag_withQuotedValue4(self):
-    with self.assertRaises(AssertionError):
-      # TODO(catapult:#3112) This test is broken in the current implementation;
-      # flags that appear to be quoted are left as-is and, thus, do not
-      # survive the round-trip.
-      self._testQuoteFlag(
-          "--key='I really want to keep these quotes'",
-          '''--key="'I really want to keep these quotes'"''')
+    self._testQuoteFlag(
+        "--key='I really want to keep these quotes'",
+        '''--key="'I really want to keep these quotes'"''')
 
   def testQuoteFlag_withQuotedValue5(self):
     self._testQuoteFlag(
