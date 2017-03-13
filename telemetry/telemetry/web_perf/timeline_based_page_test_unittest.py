@@ -140,8 +140,6 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
                      telemetry_info['storyDisplayName'])
     self.assertNotIn('storyGroupingKeys', telemetry_info)
     self.assertEqual(0, telemetry_info['storysetRepeatCounter'])
-    self.assertEqual('file://interaction_enabled_page.html',
-                     telemetry_info['storyUrl'])
     v_foo = results.FindAllPageSpecificValuesNamed('foo_avg')
     self.assertEquals(len(v_foo), 1)
     self.assertEquals(v_foo[0].value, 50)

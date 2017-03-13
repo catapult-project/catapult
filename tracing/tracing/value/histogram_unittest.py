@@ -603,7 +603,6 @@ class TelemetryInfoUnittest(unittest.TestCase):
         'storyDisplayName': 'story',
         'storyGroupingKeys': {'a': 'b'},
         'storysetRepeatCounter': 1,
-        'storyUrl': 'url',
         'legacyTIRLabel': 'tir',
     })
     d = info.AsDict()
@@ -615,7 +614,6 @@ class TelemetryInfoUnittest(unittest.TestCase):
     self.assertEqual(clone.story_display_name, 'story')
     self.assertEqual(clone.story_grouping_keys['a'], 'b')
     self.assertEqual(clone.storyset_repeat_counter, 1)
-    self.assertEqual(clone.story_url, 'url')
     self.assertEqual(clone.legacy_tir_label, 'tir')
 
 

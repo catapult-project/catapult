@@ -33,7 +33,6 @@ class TelemetryInfo(object):
     self._label = None
     self._story_display_name = ''
     self._story_grouping_keys = {}
-    self._story_url = ''
     self._storyset_repeat_counter = 0
 
   @property
@@ -70,10 +69,6 @@ class TelemetryInfo(object):
     return self._story_display_name
 
   @property
-  def story_url(self):
-    return self._story_url
-
-  @property
   def story_grouping_keys(self):
     return self._story_grouping_keys
 
@@ -83,7 +78,6 @@ class TelemetryInfo(object):
 
   def WillRunStory(self, story, storyset_repeat_counter):
     self._story_display_name = story.display_name
-    self._story_url = story.url
     if story.grouping_keys:
       self._story_grouping_keys = story.grouping_keys
     self._storyset_repeat_counter = storyset_repeat_counter
@@ -100,7 +94,6 @@ class TelemetryInfo(object):
       d['label'] = self.label
     d['storyDisplayName'] = self.story_display_name
     d['storyGroupingKeys'] = self.story_grouping_keys
-    d['storyUrl'] = self.story_url
     d['storysetRepeatCounter'] = self.storyset_repeat_counter
     return d
 

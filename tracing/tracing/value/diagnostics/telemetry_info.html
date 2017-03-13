@@ -22,7 +22,6 @@ tr.exportTo('tr.v.d', function() {
       this.legacyTIRLabel_ = '';
       this.storyDisplayName_ = '';
       this.storyGroupingKeys_ = new Map();
-      this.storyUrl_ = '';
       this.storysetRepeatCounter_ = undefined;
       this.canonicalUrl_ = '';
 
@@ -43,7 +42,6 @@ tr.exportTo('tr.v.d', function() {
      * @param {undefined|string} info.label
      * @param {undefined|!Object} info.storyGroupingKeys
      * @param {undefined|string} info.storyDisplayName
-     * @param {undefined|string} info.storyUrl
      * @param {number} info.storysetRepeatCounter
      * @param {number} info.benchmarkStartMs Milliseconds since Unix epoch.
      */
@@ -62,9 +60,6 @@ tr.exportTo('tr.v.d', function() {
       }
       for (let [name, value] of Object.entries(info.storyGroupingKeys || {})) {
         this.storyGroupingKeys_.set(name, value);
-      }
-      if (info.storyUrl) {
-        this.storyUrl_ = info.storyUrl;
       }
       if (info.storysetRepeatCounter !== undefined) {
         this.storysetRepeatCounter_ = info.storysetRepeatCounter;
@@ -103,7 +98,6 @@ tr.exportTo('tr.v.d', function() {
           d.storyGroupingKeys[name] = value;
         }
       }
-      d.storyUrl = this.storyUrl;
       d.storysetRepeatCounter = this.storysetRepeatCounter;
       d.legacyTIRLabel = this.legacyTIRLabel;
       d.canonicalUrl = this.canonicalUrl;
@@ -142,10 +136,6 @@ tr.exportTo('tr.v.d', function() {
 
     get storyDisplayName() {
       return this.storyDisplayName_;
-    }
-
-    get storyUrl() {
-      return this.storyUrl_;
     }
 
     get storysetRepeatCounter() {

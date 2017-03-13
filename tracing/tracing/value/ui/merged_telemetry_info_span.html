@@ -74,9 +74,6 @@ Polymer({
         this.diagnostic.benchmarkStartStrings.join(', ')
       ]);
     }
-    if (this.diagnostic.storyUrls.size) {
-      rows.push(['urls', Array.from(this.diagnostic.storyUrls).join(', ')]);
-    }
     if (this.diagnostic.storyDisplayNames.size) {
       rows.push([
         'stories',

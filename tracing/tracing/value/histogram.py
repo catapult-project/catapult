@@ -703,8 +703,6 @@ class TelemetryInfo(Diagnostic):
       self._story_display_name = info['storyDisplayName']
     if 'storyGroupingKeys' in info:
       self._story_grouping_keys = info['storyGroupingKeys']
-    if 'storyUrl' in info:
-      self._story_url = info['storyUrl']
     if 'storysetRepeatCounter' in info:
       self._storyset_repeat_counter = info['storysetRepeatCounter']
     if 'legacyTIRLabel' in info:
@@ -717,7 +715,6 @@ class TelemetryInfo(Diagnostic):
     d['storyDisplayName'] = self.story_display_name
     d['storyGroupingKeys'] = self.story_grouping_keys
     d['storysetRepeatCounter'] = self.storyset_repeat_counter
-    d['storyUrl'] = self.story_url
     d['legacyTIRLabel'] = self.legacy_tir_label
 
   @property

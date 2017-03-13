@@ -56,7 +56,6 @@ dictionary represents either a Histogram or a Diagnostic.
     "label": "abc",
     "storyDisplayName": "my story",
     "storyGroupingKeys": {"state": "pre"},
-    "storyUrl": "http://example.com/",
     "storysetRepeatCounter": 0,
   },
 ]
@@ -159,7 +158,6 @@ to compare or merge results across similar telemetry story runs.
  * `legacyTIRLabel`: string
  * `storyDisplayName`: string
  * `storyGroupingKeys`: dictionary mapping from strings to strings
- * `storyUrl`: string
  * `storysetRepeatCounter`: number
 
 ### RevisionInfo
