@@ -36,46 +36,52 @@ class BugDetailsHandler(request_handler.RequestHandler):
       self.ReportError('Invalid or no bug id specified.')
       return
 
-    bug_details = self._GetDetailsFromMonorail(bug_id)
-    bug_details['review_urls'] = self._GetLinkedRevisions(
-        bug_details['comments'])
-    bug_details['bisects'] = self._GetBisectsForBug(bug_id)
-    self.response.out.write(json.dumps(bug_details))
+    self.response.out.write(json.dumps(GetBugDetails(bug_id)))
 
-  def _GetDetailsFromMonorail(self, bug_id):
-    http = oauth2_decorator.DECORATOR.http()
-    issue_tracker = issue_tracker_service.IssueTrackerService(http)
-    bug_details = issue_tracker.GetIssue(bug_id)
-    if not bug_details:
-      return {'error': 'Failed to get bug details from monorail API'}
-    bug_details['comments'] = issue_tracker.GetIssueComments(bug_id)
-    owner = None
-    if bug_details.get('owner'):
-      owner = bug_details.get('owner').get('name')
-    return {
-        'comments': bug_details['comments'],
-        'owner': owner,
-        'published': bug_details['published'],
-        'state': bug_details['state'],
-        'status': bug_details['status'],
-        'summary': bug_details['summary'],
-    }
 
-  def _GetLinkedRevisions(self, comments):
-    """Parses the comments for commits linked by bugdroid."""
-    review_urls = []
-    bugdroid_comments = [c for c in comments if c['author'] == BUGDROID]
-    for comment in bugdroid_comments:
-      m = re.search(REVIEW_RE, comment['content'])
-      if m:
-        review_urls.append(m.group(2))
-    return review_urls
+def GetBugDetails(bug_id):
+  bug_details = _GetDetailsFromMonorail(bug_id)
+  bug_details['review_urls'] = _GetLinkedRevisions(
+      bug_details['comments'])
+  bug_details['bisects'] = _GetBisectsForBug(bug_id)
+  return bug_details
 
-  def _GetBisectsForBug(self, bug_id):
-    bisects = try_job.TryJob.query(try_job.TryJob.bug_id == bug_id).fetch()
-    return [{
-        'status': b.status,
-        'bot': b.bot,
-        'buildbucket_link': '/buildbucket_job_status/%s' % b.buildbucket_job_id,
-        'metric': b.results_data.get('metric'),
-    } for b in bisects]
+
+def _GetDetailsFromMonorail(bug_id):
+  http = oauth2_decorator.DECORATOR.http()
+  issue_tracker = issue_tracker_service.IssueTrackerService(http)
+  bug_details = issue_tracker.GetIssue(bug_id)
+  if not bug_details:
+    return {'error': 'Failed to get bug details from monorail API'}
+  bug_details['comments'] = issue_tracker.GetIssueComments(bug_id)
+  owner = None
+  if bug_details.get('owner'):
+    owner = bug_details.get('owner').get('name')
+  return {
+      'comments': bug_details['comments'],
+      'owner': owner,
+      'published': bug_details['published'],
+      'state': bug_details['state'],
+      'status': bug_details['status'],
+      'summary': bug_details['summary'],
+  }
+
+
+def _GetLinkedRevisions(comments):
+  """Parses the comments for commits linked by bugdroid."""
+  review_urls = []
+  bugdroid_comments = [c for c in comments if c['author'] == BUGDROID]
+  for comment in bugdroid_comments:
+    m = re.search(REVIEW_RE, comment['content'])
+    if m:
+      review_urls.append(m.group(2))
+  return review_urls
+
+def _GetBisectsForBug(bug_id):
+  bisects = try_job.TryJob.query(try_job.TryJob.bug_id == bug_id).fetch()
+  return [{
+      'status': b.status,
+      'bot': b.bot,
+      'buildbucket_link': '/buildbucket_job_status/%s' % b.buildbucket_job_id,
+      'metric': b.results_data.get('metric'),
+  } for b in bisects]

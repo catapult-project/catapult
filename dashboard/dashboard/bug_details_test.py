@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import sys
 import unittest
 
 import mock
@@ -55,6 +56,7 @@ class BugDetailsHandlerTest(testing_common.TestCase):
     self.testapp = webtest.TestApp(app)
 
   # Mocks fetching bugs from issue tracker.
+  @unittest.skipIf(sys.platform.startswith('linux'), 'oauth2 mock error')
   @mock.patch('services.issue_tracker_service.discovery.build',
               mock.MagicMock())
   @mock.patch.object(
