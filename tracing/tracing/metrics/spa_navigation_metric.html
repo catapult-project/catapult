@@ -22,9 +22,8 @@ tr.exportTo('tr.metrics', function() {
    * causing a SPA navigation and the first paint event after it.
    */
   function spaNavigationMetric(histograms, model) {
-    let spaNavigations = tr.metrics.findSpaNavigations(model);
     let histogram = new tr.v.Histogram(
-        'spa_navigation_start_to_first_paint_duration',
+        'spaNavigationStartToFpDuration',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
         SPA_NAVIGATION_START_TO_FIRST_PAINT_DURATION_BIN_BOUNDARY);
     histogram.description = 'Latency between the input event causing' +
@@ -34,13 +33,52 @@ tr.exportTo('tr.metrics', function() {
       sum: false,
     });
 
-    for (let spaNav of spaNavigations) {
-      let beginData = spaNav.inputLatencyEvent.args.data;
-      let beginTs = model.convertTimestampToModelTime(
-          'traceEventClock',
-          beginData.INPUT_EVENT_LATENCY_BEGIN_RWH_COMPONENT.time);
-      let duration = spaNav.firstPaintEvent.start - beginTs;
-      histogram.addSample(duration);
+    let modelHelper = model.getOrCreateHelper(
+        tr.model.helpers.ChromeModelHelper);
+    if (!modelHelper) {
+      // Chrome isn't present.
+      return;
+    }
+    let rendererHelpers = modelHelper.rendererHelpers;
+    if (!rendererHelpers) {
+      // We couldn't find any renderer processes.
+      return;
+    }
+    let browserHelper = modelHelper.browserHelper;
+    for (let rendererHelper of Object.values(rendererHelpers)) {
+      let spaNavigations = tr.metrics.findSpaNavigationsOnRenderer(
+          rendererHelper, browserHelper);
+      for (let spaNav of spaNavigations) {
+        let beginData = spaNav.navigationStart.args.data;
+        // TODO(sunjian): rename convertTimestampToModelTime to something like
+        // convertTraceEventTsToModelTs and get rid of the first parameter.
+        let beginTs = model.convertTimestampToModelTime(
+            'traceEventClock',
+            beginData.INPUT_EVENT_LATENCY_BEGIN_RWH_COMPONENT.time);
+        let duration = spaNav.firstPaintEvent.start - beginTs;
+        let breakdownDict = rendererHelper.generateTimeBreakdownTree(
+            beginTs, spaNav.firstPaintEvent.start);
+        let breakdownDiagnostic = new tr.v.d.Breakdown();
+        breakdownDiagnostic.colorScheme =
+            tr.v.d.COLOR_SCHEME_CHROME_USER_FRIENDLY_CATEGORY_DRIVER;
+        for (let label in breakdownDict) {
+          breakdownDiagnostic.set(label,
+              parseInt(breakdownDict[label].total * 1e3) / 1e3);
+        }
+        histogram.addSample(
+            duration,
+            {
+              'Breakdown of [navStart, firstPaint]': breakdownDiagnostic,
+              'Start': new tr.v.d.RelatedEventSet(spaNav.navigationStart),
+              'End': new tr.v.d.RelatedEventSet(spaNav.firstPaintEvent),
+              'Navigation infos': new tr.v.d.Generic({
+                url: spaNav.url,
+                pid: rendererHelper.pid,
+                navStart: beginTs,
+                firstPaint: spaNav.firstPaintEvent.start
+              })
+            });
+      }
     }
     histograms.addHistogram(histogram);
   }

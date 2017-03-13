@@ -17,6 +17,8 @@ tr.b.unittest.testSuite(function() {
   const RENDERER_PROCESS_MAIN_THREAD_ID = 1;
   const BROWSER_PROCESS_ID = 1;
   const BROWSER_PROCESS_MAIN_THREAD_ID = 12;
+  const SPA_NAVIGATION_START_TO_FIRST_PAINT_DURATION =
+      'spaNavigationStartToFpDuration';
 
   function createChromeProcessesOnModel(model) {
     let rendererProcess = model.getOrCreateProcess(RENDERER_PROCESS_ID);
@@ -29,7 +31,7 @@ tr.b.unittest.testSuite(function() {
     browserMainThread.name = 'CrBrowserMain';
   }
 
-  function addUrlUpdateSlice(model, timestamp) {
+  function addUrlUpdateSlice(model, timestamp, args) {
     let rendererProcess = model.getOrCreateProcess(RENDERER_PROCESS_ID);
     let mainThread = rendererProcess.getOrCreateThread(
         RENDERER_PROCESS_MAIN_THREAD_ID);
@@ -38,7 +40,8 @@ tr.b.unittest.testSuite(function() {
       cat: 'blink',
       title: 'History::pushState',
       start: timestamp,
-      duration: 0.1
+      duration: 0.1,
+      args
     }));
   }
 
@@ -99,13 +102,19 @@ tr.b.unittest.testSuite(function() {
     }));
   }
 
-  test('spaNavigationStartToFirstPaintDuration_noChromeProcess', function() {
-    let model = tr.c.TestUtils.newModel();
+  function getHistogramNamed(name, model) {
     let histograms = new tr.v.HistogramSet();
     tr.metrics.spaNavigationMetric(histograms, model);
     let spaNavigationStartToFpDurationHist = histograms.getHistogramNamed(
-        'spa_navigation_start_to_first_paint_duration');
-    assert.strictEqual(0, spaNavigationStartToFpDurationHist.numValues);
+        name);
+    return spaNavigationStartToFpDurationHist;
+  }
+
+  test('spaNavigationStartToFirstPaintDuration_noChromeProcess', function() {
+    let model = tr.c.TestUtils.newModel();
+    let histogram = getHistogramNamed(
+        SPA_NAVIGATION_START_TO_FIRST_PAINT_DURATION, model);
+    assert(!histogram);
   });
 
   test('spaNavigationStartToFirstPaintDuration_noSpaNavStart', function() {
@@ -114,11 +123,9 @@ tr.b.unittest.testSuite(function() {
       addUrlUpdateSlice(model, 100);
       addFirstPaintSlice(model, 101);
     });
-    let histograms = new tr.v.HistogramSet();
-    tr.metrics.spaNavigationMetric(histograms, model);
-    let spaNavigationStartToFpDurationHist = histograms.getHistogramNamed(
-        'spa_navigation_start_to_first_paint_duration');
-    assert.strictEqual(0, spaNavigationStartToFpDurationHist.numValues);
+    let histogram = getHistogramNamed(
+        SPA_NAVIGATION_START_TO_FIRST_PAINT_DURATION, model);
+    assert.strictEqual(0, histogram.numValues);
   });
 
   test('spaNavigationStartToFirstPaintDuration_noFirstPaint', function() {
@@ -127,29 +134,35 @@ tr.b.unittest.testSuite(function() {
       addNavigationStartSlices(model, 99);
       addUrlUpdateSlice(model, 100);
     });
-    let histograms = new tr.v.HistogramSet();
-    tr.metrics.spaNavigationMetric(histograms, model);
-    let spaNavigationStartToFpDurationHist = histograms.getHistogramNamed(
-        'spa_navigation_start_to_first_paint_duration');
-    assert.strictEqual(0, spaNavigationStartToFpDurationHist.numValues);
+    let histogram = getHistogramNamed(
+        SPA_NAVIGATION_START_TO_FIRST_PAINT_DURATION, model);
+    assert.strictEqual(0, histogram.numValues);
   });
 
   test('spaNavigationStartToFirstPaintDuration_oneSpaNav', function() {
+    const URL = 'https://11111';
     let model = tr.c.TestUtils.newModel(model => {
       createChromeProcessesOnModel(model);
       addNavigationStartSlices(model, 99);
-      addUrlUpdateSlice(model, 100);
+      addUrlUpdateSlice(model, 100, {url: URL});
       addFirstPaintSlice(model, 101);
     });
-    let histograms = new tr.v.HistogramSet();
-    tr.metrics.spaNavigationMetric(histograms, model);
-    let spaNavigationStartToFpDurationHist = histograms.getHistogramNamed(
-        'spa_navigation_start_to_first_paint_duration');
-    assert.strictEqual(1, spaNavigationStartToFpDurationHist.running.count);
-    let expectedDuration = 101 - model.convertTimestampToModelTime(
+    let histogram = getHistogramNamed(
+        SPA_NAVIGATION_START_TO_FIRST_PAINT_DURATION, model);
+    assert.strictEqual(1, histogram.running.count);
+    let navStartTs = model.convertTimestampToModelTime(
         'traceEventClock', 99 - 3 + 0.1);
-    assert.closeTo(
-        expectedDuration, spaNavigationStartToFpDurationHist.running.sum, 0.5);
+    let expectedDuration = 101 - navStartTs;
+    assert.closeTo(expectedDuration, histogram.running.sum, 0.5);
+
+    let binsWithSampleDiagnosticMaps =
+        histogram.allBins.filter(bin => bin.diagnosticMaps.length > 0);
+    let diagnostic = binsWithSampleDiagnosticMaps[0].diagnosticMaps[0].get(
+        'Navigation infos');
+    assert.strictEqual(diagnostic.value.url, URL);
+    assert.strictEqual(diagnostic.value.pid, RENDERER_PROCESS_ID);
+    assert.strictEqual(diagnostic.value.navStart, navStartTs);
+    assert.strictEqual(diagnostic.value.firstPaint, 101);
   });
 
   test('spaNavigationStartToFirstPaintDuration_multipleSpaNavs', function() {
@@ -167,11 +180,9 @@ tr.b.unittest.testSuite(function() {
       addUrlUpdateSlice(model, 300);
       addFirstPaintSlice(model, 301);
     });
-    let histograms = new tr.v.HistogramSet();
-    tr.metrics.spaNavigationMetric(histograms, model);
-    let spaNavigationStartToFpDurationHist = histograms.getHistogramNamed(
-        'spa_navigation_start_to_first_paint_duration');
-    assert.strictEqual(3, spaNavigationStartToFpDurationHist.running.count);
+    let histogram = getHistogramNamed(
+        SPA_NAVIGATION_START_TO_FIRST_PAINT_DURATION, model);
+    assert.strictEqual(3, histogram.running.count);
     let expectedDuration1 = 101 - model.convertTimestampToModelTime(
         'traceEventClock', 99 - 3 + 0.1);
     let expectedDuration2 = 201 - model.convertTimestampToModelTime(
@@ -179,11 +190,9 @@ tr.b.unittest.testSuite(function() {
     let expectedDuration3 = 301 - model.convertTimestampToModelTime(
         'traceEventClock', 297 - 3 + 0.1);
     assert.closeTo(expectedDuration1 + expectedDuration2 + expectedDuration3,
-        spaNavigationStartToFpDurationHist.running.sum, 0.5);
-    assert.closeTo(
-        expectedDuration3, spaNavigationStartToFpDurationHist.running.max, 0.5);
-    assert.closeTo(
-        expectedDuration1, spaNavigationStartToFpDurationHist.running.min, 0.5);
+        histogram.running.sum, 0.5);
+    assert.closeTo(expectedDuration3, histogram.running.max, 0.5);
+    assert.closeTo(expectedDuration1, histogram.running.min, 0.5);
   });
 });
 </script>

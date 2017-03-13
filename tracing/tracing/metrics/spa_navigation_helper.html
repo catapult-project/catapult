@@ -40,24 +40,22 @@ tr.exportTo('tr.metrics', function() {
    * from each URL update slice to its respective
    * LatencyInfo.Flow slice.
    */
-  function getUrlUpdateEventToLatencyInfoMap_(rendererHelpers) {
+  function getUrlUpdateEventToLatencyInfoMap_(rendererHelper) {
     let urlUpdateToLatencyInfoMap = new Map();
-    for (let rendererHelper of Object.values(rendererHelpers)) {
-      let mainThread = rendererHelper.mainThread;
-      let urlUpdateEvents = getAllEventsInAscendingOrder_(
-          mainThread,
-          e => (e.category === 'blink' && URL_UPDATE_EVENT_TYPES.has(e.title)));
-      let handleInputEvents = getAllEventsInAscendingOrder_(
-          mainThread,
-          e => e.title === 'WebViewImpl::handleInputEvent' &&
-              e.args.type === 'MouseUp');
-      let urlUpdateToHandleInputMap = findPrecedingEvents_(
-          urlUpdateEvents, handleInputEvents);
-      for (let [urlUpdateEvent, handleInputEvent] of
-          urlUpdateToHandleInputMap) {
-        urlUpdateToLatencyInfoMap.set(
-            urlUpdateEvent, handleInputEvent.parentSlice);
-      }
+    let mainThread = rendererHelper.mainThread;
+    let urlUpdateEvents = getAllEventsInAscendingOrder_(
+        mainThread,
+        e => e.category === 'blink' && URL_UPDATE_EVENT_TYPES.has(e.title));
+    let handleInputEvents = getAllEventsInAscendingOrder_(
+        mainThread,
+        e => e.title === 'WebViewImpl::handleInputEvent' &&
+            e.args.type === 'MouseUp');
+    let urlUpdateToHandleInputMap = findPrecedingEvents_(
+        urlUpdateEvents, handleInputEvents);
+    for (let [urlUpdateEvent, handleInputEvent] of
+        urlUpdateToHandleInputMap) {
+      urlUpdateToLatencyInfoMap.set(
+          urlUpdateEvent, handleInputEvent.parentSlice);
     }
     return urlUpdateToLatencyInfoMap;
   }
@@ -133,25 +131,13 @@ tr.exportTo('tr.metrics', function() {
    * from each URL update slice to its respective
    * InputLatency async slice.
    */
-  function getUrlUpdateEventToInputLatencyMap_(model) {
-    let modelHelper = model.getOrCreateHelper(
-        tr.model.helpers.ChromeModelHelper);
-    if (!modelHelper) {
-      // Chrome isn't present.
-      return new Map();
-    }
-    let rendererHelpers = modelHelper.rendererHelpers;
-    if (!rendererHelpers) {
-      // We couldn't find any renderer processes.
-      return new Map();
-    }
-    let urlUpdateToLatencyInfoMap = getUrlUpdateEventToLatencyInfoMap_(
-        rendererHelpers);
+  function getUrlUpdateEventToInputLatencyMap_(rendererHelper, browserHelper) {
+    let urlUpdateToLatencyInfoMap =
+        getUrlUpdateEventToLatencyInfoMap_(rendererHelper);
     let latencyInfoFlowSlicesBindIDs = new Set();
-    for (let latencyInfoSlice of urlUpdateToLatencyInfoMap.values()) {
-      latencyInfoFlowSlicesBindIDs.add(Number(latencyInfoSlice.bindId));
+    for (let latencyInfoEvent of urlUpdateToLatencyInfoMap.values()) {
+      latencyInfoFlowSlicesBindIDs.add(Number(latencyInfoEvent.bindId));
     }
-    let browserHelper = modelHelper.browserHelper;
     let inputLatencyAsyncSlices = browserHelper.getAllAsyncSlicesMatching(
         event => (event.args.data !== undefined) &&
           latencyInfoFlowSlicesBindIDs.has(event.args.data.trace_id));
@@ -175,66 +161,54 @@ tr.exportTo('tr.metrics', function() {
    * from each URL update slice to its respective
    * PaintLayerCompositer::updateIfNeededRecursive slice.
    */
-  function getUrlUpdateEventToFirstPaintEventMap_(model) {
-    let modelHelper = model.getOrCreateHelper(
-        tr.model.helpers.ChromeModelHelper);
-    if (!modelHelper) {
-      // Chrome isn't present.
-      return new Map();
-    }
-    let rendererHelpers = modelHelper.rendererHelpers;
-    if (!rendererHelpers) {
-      // We couldn't find any renderer processes.
-      return new Map();
-    }
-    let allUrlUpdateEventToFirstPaintEventMap = new Map();
-    for (let rendererHelper of Object.values(rendererHelpers)) {
-      let mainThread = rendererHelper.mainThread;
-      let urlUpdateEvents = getAllEventsInAscendingOrder_(
-          mainThread,
-          e => (e.category === 'blink' && URL_UPDATE_EVENT_TYPES.has(e.title)));
-      let firstPaintEvents = getAllEventsInAscendingOrder_(
-          mainThread,
-          e => e.title ===
-              'PaintLayerCompositor::updateIfNeededRecursive' &&
-              e.category === 'blink');
+  function getUrlUpdateEventToFirstPaintEventMap_(rendererHelper) {
+    let mainThread = rendererHelper.mainThread;
+    let urlUpdateEvents = getAllEventsInAscendingOrder_(
+        mainThread,
+        e => e.category === 'blink' && URL_UPDATE_EVENT_TYPES.has(e.title));
+    let firstPaintEvents = getAllEventsInAscendingOrder_(
+        mainThread,
+        e => e.category === 'blink' &&
+            e.title === 'PaintLayerCompositor::updateIfNeededRecursive');
 
-      let urlUpdateEventToFirstPaintEventMap = findFollowingEvents_(
-          urlUpdateEvents, firstPaintEvents);
-      for (let [urlUpdateEvent, firstPaintEvent] of
-          urlUpdateEventToFirstPaintEventMap) {
-        allUrlUpdateEventToFirstPaintEventMap.set(
-            urlUpdateEvent, firstPaintEvent);
-      }
-    }
-    return allUrlUpdateEventToFirstPaintEventMap;
+    return findFollowingEvents_(urlUpdateEvents, firstPaintEvents);
   }
 
   /**
-   * @returns {Array<Object>} An array of SPA navigation objects.
-   * SPA navigation object is an object with two keys:
-   * inputLatencyEvent and firstPaintEvent. And the values are of
-   * {tr.model.Slice} type.
+   * @typedef {SpaNavObject}
+   * @property {tr.model.Slice} navigationStart
+   * @property {tr.model.Slice} firstPaintEvent
+   * @property {string} url
    */
-  function findSpaNavigations(model) {
+
+  /**
+   * @returns {Array<SpaNavObject>}
+   */
+  function findSpaNavigationsOnRenderer(rendererHelper, browserHelper) {
     let urlUpdateEventToInputLatencyMap =
-        getUrlUpdateEventToInputLatencyMap_(model);
+        getUrlUpdateEventToInputLatencyMap_(rendererHelper, browserHelper);
     let urlUpdateEventToFirstPaintEventMap =
-        getUrlUpdateEventToFirstPaintEventMap_(model);
+        getUrlUpdateEventToFirstPaintEventMap_(rendererHelper);
     let spaNavigations = [];
     for (let [urlUpdateEvent, inputLatencyEvent] of
         urlUpdateEventToInputLatencyMap) {
       if (urlUpdateEventToFirstPaintEventMap.has(urlUpdateEvent)) {
         let firstPaintEvent =
             urlUpdateEventToFirstPaintEventMap.get(urlUpdateEvent);
-        spaNavigations.push({inputLatencyEvent, firstPaintEvent});
+        spaNavigations.push(
+            {
+              navigationStart: inputLatencyEvent,
+              firstPaintEvent: firstPaintEvent,
+              url: urlUpdateEvent.args.url
+            }
+        );
       }
     }
     return spaNavigations;
   }
 
   return {
-    findSpaNavigations,
+    findSpaNavigationsOnRenderer,
   };
 });
 </script>
