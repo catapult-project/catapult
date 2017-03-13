@@ -89,7 +89,7 @@ def CalculateDeviceMd5Sums(paths, device):
   # Note: ":" is equivalent to "true".
   md5sum_script += ';:'
   try:
-    out = device.RunShellCommand(md5sum_script, check_return=True)
+    out = device.RunShellCommand(md5sum_script, shell=True, check_return=True)
   except device_errors.AdbShellCommandFailedError as e:
     # Push the binary only if it is found to not exist
     # (faster than checking up-front).
@@ -103,10 +103,10 @@ def CalculateDeviceMd5Sums(paths, device):
         device.adb.Push(md5sum_dist_path, MD5SUM_DEVICE_LIB_PATH)
       else:
         mkdir_cmd = 'a=%s;[[ -e $a ]] || mkdir $a' % MD5SUM_DEVICE_LIB_PATH
-        device.RunShellCommand(mkdir_cmd, check_return=True)
+        device.RunShellCommand(mkdir_cmd, shell=True, check_return=True)
         device.adb.Push(md5sum_dist_bin_path, MD5SUM_DEVICE_BIN_PATH)
 
-      out = device.RunShellCommand(md5sum_script, check_return=True)
+      out = device.RunShellCommand(md5sum_script, shell=True, check_return=True)
     else:
       raise
 
