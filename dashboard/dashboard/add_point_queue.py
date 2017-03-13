@@ -326,13 +326,15 @@ def _GetOrCreateTest(name, parent_test_path, properties):
 
   # Special case to update improvement direction from units for TestMetadata
   # entities when units are being updated. If an improvement direction is
-  # explicitly provided in the properties, then it will be updated again below.
-  units = properties.get('units')
-  if units:
-    direction = units_to_direction.GetImprovementDirection(units)
-    if direction != existing.improvement_direction:
-      existing.improvement_direction = direction
-      properties_changed = True
+  # explicitly provided in the properties, then we can skip this check since it
+  # will get overwritten below. Additionally, by skipping we avoid
+  # touching the entity and setting off an expensive put() operation.
+  if properties.get('improvement_direction') is None:
+    units = properties.get('units')
+    if units:
+      direction = units_to_direction.GetImprovementDirection(units)
+      if direction != existing.improvement_direction:
+        properties['improvement_direction'] = direction
 
   # Go through the list of general properties and update if necessary.
   for prop, value in properties.items():
