@@ -209,6 +209,10 @@ tr.exportTo('tr.v.ui', function() {
       this.$.histograms.histograms = histograms;
     },
 
+    get histograms() {
+      return this.$.histograms.histograms;
+    },
+
     displayed() {
       this.$.histograms.displayed();
     },

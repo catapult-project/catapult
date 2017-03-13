@@ -180,6 +180,10 @@ tr.exportTo('tr.b', function() {
     scheduleRAF();
   }
 
+  function animationFrame() {
+    return new Promise(resolve => requestAnimationFrame(resolve));
+  }
+
   function requestIdleCallback(callback, opt_this) {
     pendingIdleCallbacks.push({
       callback: callback,
@@ -201,13 +205,14 @@ tr.exportTo('tr.b', function() {
   }
 
   return {
+    animationFrame,
+    forceAllPendingTasksToRunForTest,
+    forcePendingRAFTasksToRun,
     onAnimationFrameError,
-    requestPreAnimationFrame,
     requestAnimationFrame,
     requestAnimationFrameInThisFrameIfPossible,
     requestIdleCallback,
-    forcePendingRAFTasksToRun,
-    forceAllPendingTasksToRunForTest,
+    requestPreAnimationFrame,
   };
 });
 </script>

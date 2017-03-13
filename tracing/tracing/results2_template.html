@@ -8,113 +8,23 @@ found in the LICENSE file.
 
 <div id="loading">Loading framework...</div>
 
-<link rel="import" href="/tracing/value/histogram_set.html">
+<link rel="import" href="/tracing/value/histogram_importer.html">
 <link rel="import" href="/tracing/value/ui/histogram_set_view.html">
 
 <script>
 'use strict';
-
 (function() {
-  class HistogramImporter {
-    constructor() {
-      // This object is created as early as possible, which may be before |tr|
-      // exists, and is definitely before the json divs exist.
-      this.loadingDiv_ = document.getElementById('loading');
-      this.histograms_ = undefined;
-      this.jsonDivs_ = [];
-      this.jsonDivIndex_ = 0;
-      this.view_ = undefined;
-
-      this.update_('Parsing HTML...');
-      // The json divs appear after this script tag in results2.html, so the
-      // browser will parse them into DOM now.
-    }
-
-    update_(message) {
-      this.loadingDiv_.textContent = message;
-    }
-
-    /**
-     * Wait for the browser to display |message|, then do the work that
-     * |message| describes.
-     *
-     * @param {string} message
-     * @param {!function} method
-     */
-    schedule_(message, method) {
-      this.update_(message);
-      tr.b.requestAnimationFrame(method, this);
-    }
-
-    importHistograms() {
-      this.histograms_ = new tr.v.HistogramSet();
-      this.view_ = document.getElementById('histograms');
-      this.schedule_('Gathering JSON...', this.getJsonDivs_);
-    }
-
-    getJsonDivs_() {
-      this.jsonDivs_ = document.getElementsByTagName('histogram-json');
-
-      this.schedule_('Loading Histogram 0 of ' + this.jsonDivs_.length,
-          this.loadSomeHistograms_);
-    }
-
-    get isDoneLoadingHistograms_() {
-      return this.jsonDivIndex_ === this.jsonDivs_.length;
-    }
-
-    loadSomeHistograms_() {
-      // Don't spend so long on this chunk of Histograms that the user gets
-      // frustrated, but also don't call requestAnimationFrame faster than every
-      // 16ms, so that the browser doesn't have to wait for the next vsync.
-      // Powerful computers can load several hundred Histograms in 32ms.
-      // Also don't call new Date() more often than necessary.
-      var start = new Date();
-      do {
-        var stopIndex = Math.min(
-            this.jsonDivIndex_ + 100, this.jsonDivs_.length);
-        for (; this.jsonDivIndex_ < stopIndex; ++this.jsonDivIndex_) {
-          var dict = JSON.parse(this.jsonDivs_[this.jsonDivIndex_].innerHTML);
-          this.histograms_.importDicts([dict]);
-        }
-      } while (new Date() - start < 50);
-
-      if (!this.isDoneLoadingHistograms_) {
-        this.schedule_(
-            'Loading Histogram ' + stopIndex + ' of ' + this.jsonDivs_.length,
-            this.loadSomeHistograms_);
-        return;
-      }
-
-      this.schedule_('Resolving Histogram relationships...',
-          this.resolveRelationships_);
-    }
-
-    resolveRelationships_() {
-      this.histograms_.resolveRelatedHistograms();
-      this.schedule_('Displaying Histogram table...', this.displayHistograms);
-    }
-
-    displayHistograms() {
-      this.view_.histograms = this.histograms_;
-      this.view_.helpHref = 'https://github.com/catapult-project/catapult/blob/master/docs/metrics-results-ui.md';
-
-      this.loadingDiv_.style.display = 'none';
-      this.view_.style.display = 'block';
-      this.view_.displayed();
-
-      tr.b.requestAnimationFrame(this.removeJsonDivs_, this);
-    }
-
-    removeJsonDivs_() {
-      document.body.removeChild(this.jsonDivs_[0].parentNode);
-    }
-}
-
-  var importer = new HistogramImporter();
+  let importer = new tr.v.HistogramImporter(document.getElementById('loading'));
 
   document.addEventListener('DOMContentLoaded', () => {
-    importer.importHistograms();
+    const jsonEls = document.getElementsByTagName('histogram-json');
+
+    let p = importer.importHistograms(
+        jsonEls, document.getElementById('histograms'));
+
+    p.then(() => {
+      document.body.removeChild(jsonEls[0].parentNode);
+    });
 
     // Free the objects and DOM referenced by the importer.
     importer = undefined;
