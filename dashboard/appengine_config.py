@@ -19,10 +19,17 @@ import dashboard
 # pylint: disable=invalid-name
 
 appstats_SHELL_OK = True
+appstats_CALC_RPC_COSTS = True
 
 # Allows remote_api from the peng team to support the crosbolt dashboard.
 remoteapi_CUSTOM_ENVIRONMENT_AUTHENTICATION = (
     'LOAS_PEER_USERNAME', ['chromeos-peng-performance'])
+
+
+def webapp_add_wsgi_middleware(app):
+  from google.appengine.ext.appstats import recording
+  app = recording.appstats_wsgi_middleware(app)
+  return app
 
 # pylint: enable=invalid-name
 
