@@ -79,15 +79,12 @@ _NON_TELEMETRY_TEST_COMMANDS = {
     ],
     'resource_sizes': [
         'src/build/android/resource_sizes.py',
-        'src/out/Release/apks/Chrome.apk',
-        '--so-path src/out/Release/libchrome.so',
-        '--so-with-symbols-path src/out/Release/lib.unstripped/libchrome.so',
+        '--chromium-output-directory {CHROMIUM_OUTPUT_DIR}',
         '--chartjson',
-        '--build_type Release',
+        '{CHROMIUM_OUTPUT_DIR}',
     ],
 }
-_DISABLE_STORY_FILTER = set(_NON_TELEMETRY_TEST_COMMANDS)
-_DISABLE_STORY_FILTER.update([
+_DISABLE_STORY_FILTER = set([
     'octane',  # Has a single story.
     'memory.top_10_mobile',  # Stories are not independent.
     'memory.top_10_mobile_stress',  # Stories are not independent.
@@ -424,23 +421,32 @@ def GuessBisectBot(master_name, bot_name):
   return platform_bot_pairs[0][1]
 
 
+def _IsNonTelemetrySuiteName(suite):
+  return (suite in _NON_TELEMETRY_TEST_COMMANDS or
+          suite.startswith('resource_sizes'))
+
+
 def GuessCommand(
     bisect_bot, suite, story_filter=None, rerun_option=None):
   """Returns a command to use in the bisect configuration."""
-  if suite in _NON_TELEMETRY_TEST_COMMANDS:
+  if _IsNonTelemetrySuiteName(suite):
     return _GuessCommandNonTelemetry(suite, bisect_bot)
   return _GuessCommandTelemetry(suite, bisect_bot, story_filter, rerun_option)
 
 
 def _GuessCommandNonTelemetry(suite, bisect_bot):
   """Returns a command string to use for non-Telemetry tests."""
-  if suite not in _NON_TELEMETRY_TEST_COMMANDS:
-    return None
   if suite == 'cc_perftests' and bisect_bot.startswith('android'):
     return ('src/build/android/test_runner.py '
             'gtest --release -s cc_perftests --verbose')
-
-  command = list(_NON_TELEMETRY_TEST_COMMANDS[suite])
+  if suite.startswith('resource_sizes'):
+    match = re.match(r'.*\((.*)\)', suite)
+    assert match, 'resource_sizes could not extract suite name'
+    apk_name = match.group(1)
+    command = list(_NON_TELEMETRY_TEST_COMMANDS['resource_sizes'])
+    command[-1] += '/apks/' + apk_name
+  else:
+    command = list(_NON_TELEMETRY_TEST_COMMANDS[suite])
 
   if command[0].startswith('./out'):
     command[0] = command[0].replace('./', './src/')
@@ -523,6 +529,7 @@ def GuessStoryFilter(test_path):
   test_path_parts = test_path.split('/')
   suite_name, story_name = test_path_parts[2], test_path_parts[-1]
   if any([
+      _IsNonTelemetrySuiteName(suite_name),
       suite_name in _DISABLE_STORY_FILTER,
       suite_name.startswith('media.') and '.html?' not in story_name,
       suite_name.startswith('webrtc.')]):

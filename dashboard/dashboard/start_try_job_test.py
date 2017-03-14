@@ -922,6 +922,14 @@ class StartBisectTest(testing_common.TestCase):
         bisect_bot='android_nexus7_perf_bisect',
         suite='page_cycler.morejs')
 
+  def testGetConfig_ResourceSizestests(self):
+    self._TestGetConfigCommand(
+        ('src/build/android/resource_sizes.py '
+         '--chromium-output-directory {CHROMIUM_OUTPUT_DIR} '
+         '--chartjson {CHROMIUM_OUTPUT_DIR}/apks/MonochromePublic.apk'),
+        bisect_bot='linux_perf_bisect',
+        suite='resource_sizes (MonochromePublic.apk)')
+
   def testGetConfig_CCPerftests(self):
     self._TestGetConfigCommand(
         ('./src/out/Release/cc_perftests '
