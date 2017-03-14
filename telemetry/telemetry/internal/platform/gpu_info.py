@@ -44,7 +44,6 @@ class GPUInfo(object):
     On the Chrome browser, for example, this dictionary contains:
       optimus (boolean)
       amd_switchable (boolean)
-      lenovo_dcute (boolean)
       driver_vendor (string)
       driver_version (string)
       driver_date (string)
@@ -52,7 +51,6 @@ class GPUInfo(object):
       gl_vendor (string)
       gl_renderer (string)
       gl_extensions (string)
-      display_link_version (string)
     """
     return self._aux_attributes
 

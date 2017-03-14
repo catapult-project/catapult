@@ -42,7 +42,7 @@ _EXCLUDED_PATHS = (
 
 _CATAPULT_BUG_ID_RE = re.compile(r'#[1-9]\d*')
 _RIETVELD_BUG_ID_RE = re.compile(r'[1-9]\d*')
-_RIETVELD_REPOSITORY_NAMES = frozenset({'chromium', 'v8'})
+_RIETVELD_REPOSITORY_NAMES = frozenset({'chromium', 'v8', 'angleproject'})
 
 def CheckChangeLogBug(input_api, output_api):
   # Show a presubmit message if there is no BUG= line.

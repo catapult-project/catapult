@@ -46,7 +46,6 @@ FAKE_GPU_INFO = {
             'process_crash_count': 0,
             'pixel_shader_version': '4.40',
             'gl_ws_version': '1.4',
-            'lenovo_dcute': False,
             'can_lose_context': False,
             'driver_vendor': 'NVIDIA',
             'max_msaa_samples': '64',
