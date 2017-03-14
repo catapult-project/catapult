@@ -93,19 +93,6 @@ def FindBrowser(options):
         '--browser must be specified. Available browsers:\n%s' %
         '\n'.join(sorted(set([b.browser_type for b in browsers]))))
 
-  if options.browser_type == 'any':
-    types = FindAllBrowserTypes(options)
-    def CompareBrowsersOnTypePriority(x, y):
-      x_idx = types.index(x.browser_type)
-      y_idx = types.index(y.browser_type)
-      return x_idx - y_idx
-    browsers.sort(CompareBrowsersOnTypePriority)
-    if len(browsers) >= 1:
-      browsers[0].UpdateExecutableIfNeeded()
-      return browsers[0]
-    else:
-      return None
-
   matching_browsers = [b for b in browsers
       if b.browser_type == options.browser_type and
       b.SupportsOptions(options.browser_options)]
