@@ -452,6 +452,7 @@
       'tracing/ui/extras/v8_config.html',
       'tracing/ui/find_control.html',
       'tracing/ui/find_controller.html',
+      'tracing/ui/null_brushing_state_controller.html',
       'tracing/ui/scripting_control.html',
       'tracing/ui/side_panel/file_size_stats_side_panel.html',
       'tracing/ui/side_panel/metrics_side_panel.html',

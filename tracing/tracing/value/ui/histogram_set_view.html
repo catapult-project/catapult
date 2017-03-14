@@ -5,8 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/ui/base/tab_view.html">
-<link rel="import" href="/tracing/ui/brushing_state_controller.html">
+<link rel="import" href="/tracing/ui/null_brushing_state_controller.html">
 <link rel="import" href="/tracing/value/ui/histogram_set_table.html">
 
 <dom-module id="tr-v-ui-histogram-set-view">
@@ -24,173 +23,11 @@ found in the LICENSE file.
 <script>
 'use strict';
 tr.exportTo('tr.v.ui', function() {
-  function NullBrushingStateController() {
-    this.parentController = undefined;
-  }
-
-  NullBrushingStateController.prototype = {
-    __proto__: tr.c.BrushingStateController.prototype,
-
-    dispatchChangeEvent_() {
-      if (this.parentController) this.parentController.dispatchChangeEvent_();
-    },
-
-    get model() {
-      if (!this.parentController) return undefined;
-      return this.parentController.model;
-    },
-
-    get trackView() {
-      if (!this.parentController) return undefined;
-      return this.parentController.trackView;
-    },
-
-    get viewport() {
-      if (!this.parentController) return undefined;
-      return this.parentController.viewport;
-    },
-
-    get historyEnabled() {
-      if (!this.parentController) return undefined;
-      return this.parentController.historyEnabled;
-    },
-
-    set historyEnabled(historyEnabled) {
-      if (this.parentController) {
-        this.parentController.historyEnabled = historyEnabled;
-      }
-    },
-
-    modelWillChange() {
-      if (this.parentController) this.parentController.modelWillChange();
-    },
-
-    modelDidChange() {
-      if (this.parentController) this.parentController.modelDidChange();
-    },
-
-    onUserInitiatedSelectionChange_() {
-      if (this.parentController) {
-        this.parentController.onUserInitiatedSelectionChange_();
-      }
-    },
-
-    onPopState_(e) {
-      if (this.parentController) this.parentController.onPopState_(e);
-    },
-
-    get selection() {
-      if (!this.parentController) return undefined;
-      return this.parentController.selection;
-    },
-
-    get findMatches() {
-      if (!this.parentController) return undefined;
-      return this.parentController.findMatches;
-    },
-
-    get selectionOfInterest() {
-      if (!this.parentController) return undefined;
-      return this.parentController.selectionOfInterest;
-    },
-
-    get currentBrushingState() {
-      if (!this.parentController) return undefined;
-      return this.parentController.currentBrushingState;
-    },
-
-    set currentBrushingState(newBrushingState) {
-      if (this.parentController) {
-        this.parentController.currentBrushingState = newBrushingState;
-      }
-    },
-
-    addAllEventsMatchingFilterToSelectionAsTask(filter, selection) {
-      if (this.parentController) {
-        this.parentController.addAllEventsMatchingFilterToSelectionAsTask(
-            filter, selection);
-      }
-    },
-
-    findTextChangedTo(allPossibleMatches) {
-      if (this.parentController) {
-        this.parentController.findTextChangedTo(allPossibleMatches);
-      }
-    },
-
-    findFocusChangedTo(currentFocus) {
-      if (this.parentController) {
-        this.parentController.findFocusChangedTo(currentFocus);
-      }
-    },
-
-    findTextCleared() {
-      if (this.parentController) {
-        this.parentController.findTextCleared();
-      }
-    },
-
-    uiStateFromString(string) {
-      if (this.parentController) {
-        this.parentController.uiStateFromString(string);
-      }
-    },
-
-    navToPosition(uiState, showNavLine) {
-      if (this.parentController) {
-        this.parentController.navToPosition(uiState, showNavLine);
-      }
-    },
-
-    changeSelectionFromTimeline(selection) {
-      if (this.parentController) {
-        this.parentController.changeSelectionFromTimeline(selection);
-      }
-    },
-
-    showScriptControlSelection(selection) {
-      if (this.parentController) {
-        this.parentController.showScriptControlSelection(selection);
-      }
-    },
-
-    changeSelectionFromRequestSelectionChangeEvent(selection) {
-      if (this.parentController) {
-        this.parentController.changeSelectionFromRequestSelectionChangeEvent(
-            selection);
-      }
-    },
-
-    changeAnalysisViewRelatedEvents(eventSet) {
-      if (this.parentController && (eventSet instanceof tr.model.EventSet)) {
-        this.parentController.changeAnalysisViewRelatedEvents(eventSet);
-      }
-    },
-
-    changeAnalysisLinkHoveredEvents(eventSet) {
-      if (this.parentController && (eventSet instanceof tr.model.EventSet)) {
-        this.parentController.changeAnalysisLinkHoveredEvents(eventSet);
-      }
-    },
-
-    getViewSpecificBrushingState(viewId) {
-      if (this.parentController) {
-        this.parentController.getViewSpecificBrushingState(viewId);
-      }
-    },
-
-    changeViewSpecificBrushingState(viewId, newState) {
-      if (this.parentController) {
-        this.parentController.changeViewSpecificBrushingState(viewId, newState);
-      }
-    }
-  };
-
   Polymer({
     is: 'tr-v-ui-histogram-set-view',
 
     ready() {
-      this.brushingStateController = new NullBrushingStateController();
+      this.brushingStateController = new tr.ui.NullBrushingStateController();
     },
 
     attached() {
