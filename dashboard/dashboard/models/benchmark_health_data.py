@@ -31,7 +31,7 @@ class BenchmarkHealthReport(ndb.Model):
     return {
         'name': self.key.string_id(),
         'is_complete': is_complete,
-        'benchmarks': benchmarks,
+        'benchmarks': [b.AsDict() for b in benchmarks],
         'num_days': self.num_days,
         'timestamp': self.timestamp,
         'master': self.master,
@@ -41,6 +41,12 @@ class BenchmarkHealthReport(ndb.Model):
 class ReviewData(ndb.Model):
   review_url = ndb.StringProperty()
   bug_id = ndb.IntegerProperty()
+
+  def AsDict(self):
+    return {
+        'bug_id': self.bug_id,
+        'review_url': self.review_url,
+    }
 
 
 class AlertHealthData(ndb.Model):
@@ -56,6 +62,17 @@ class AlertHealthData(ndb.Model):
   untriaged = ndb.ComputedProperty(
       lambda self: self.bug_id is None)
 
+  def AsDict(self):
+    return {
+        'bug_id': self.bug_id,
+        'test_path': self.test_path,
+        'percent_changed': self.percent_changed,
+        'absolute_delta': self.absolute_delta,
+        'valid': self.valid,
+        'invalid': self.invalid,
+        'untriaged': self.untriaged,
+    }
+
 
 class BugHealthData(ndb.Model):
   bug_id = ndb.IntegerProperty()
@@ -65,6 +82,16 @@ class BugHealthData(ndb.Model):
   status = ndb.StringProperty()
   summary = ndb.StringProperty()
 
+  def AsDict(self):
+    return {
+        'bug_id': self.bug_id,
+        'num_comments': self.num_comments,
+        'published': self.published.isoformat(),
+        'state': self.state,
+        'status': self.status,
+        'summary': self.summary,
+    }
+
 
 class BisectHealthData(ndb.Model):
   bug_id = ndb.IntegerProperty()
@@ -73,6 +100,16 @@ class BisectHealthData(ndb.Model):
   metric = ndb.StringProperty()
   status = ndb.StringProperty()
   reason = ndb.StringProperty()
+
+  def AsDict(self):
+    return {
+        'bug_id': self.bug_id,
+        'bot': self.bot,
+        'buildbucket_link': self.buildbucket_link,
+        'metric': self.metric,
+        'status': self.status,
+        'reason': self.reason,
+    }
 
 
 class BotHealthData(ndb.Model):
@@ -91,6 +128,13 @@ class BotHealthData(ndb.Model):
       return 'linux'
     return None
 
+  def AsDict(self):
+    return {
+        'name': self.name,
+        'last_update': self.last_update.isoformat(),
+        'platform': self.platform,
+    }
+
 class BenchmarkHealthData(ndb.Model):
   """Stores health data for a single benchmark."""
   name = ndb.StringProperty()
@@ -104,3 +148,16 @@ class BenchmarkHealthData(ndb.Model):
   @ndb.ComputedProperty
   def no_data_on_dashboard(self):  # pylint: disable=invalid-name
     return len(self.bots) == 0
+
+  def AsDict(self):
+    return {
+        'name': self.name,
+        'owner': self.owner,
+        'is_complete': self.is_complete,
+        'no_data_on_dashboard': self.no_data_on_dashboard,
+        'alerts': [a.AsDict() for a in self.alerts],
+        'bots': [b.AsDict() for b in self.bots],
+        'bisects': [b.AsDict() for b in self.bisects],
+        'bugs': [b.AsDict() for b in self.bugs],
+        'reviews': [r.AsDict() for r in self.reviews],
+    }
