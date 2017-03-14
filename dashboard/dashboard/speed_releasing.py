@@ -10,8 +10,10 @@ import urllib
 
 from google.appengine.ext import ndb
 
+from dashboard import alerts
 from dashboard.common import request_handler
 from dashboard.common import utils
+from dashboard.models import anomaly
 from dashboard.models import graph_data
 from dashboard.models import table_config
 
@@ -149,12 +151,15 @@ class SpeedReleasingHandler(request_handler.RequestHandler):
                                            table_entity, master_bot_pairs)
     revisions = [rev_b, rev_a]
 
+    anomalies = _FetchAnomalies(table_entity, rev_a, rev_b)
+    anomaly_dicts = alerts.AnomalyDicts(anomalies)
+
     values = {}
     self.GetDynamicVariables(values)
     self.response.out.write(json.dumps({
         'xsrf_token': values['xsrf_token'],
         'revisions': revisions,
-        # TODO(jessimb): Retrieve appropriate Anomalies and return them here.
+        'anomalies': anomaly_dicts
     }))
 
 
@@ -363,3 +368,43 @@ def _GetUpdatedMilestoneDict(master_bot_pairs, tests):
   _UpdateNewestRevInMilestoneDict(master_bot_pairs,
                                   tests, milestone_dict)
   return milestone_dict
+
+
+def _FetchAnomalies(table_entity, rev_a, rev_b):
+  """Finds anomalies that have the given benchmark/master, in a given range."""
+  if table_entity.bots and table_entity.tests:
+    master_list = []
+    benchmark_list = []
+    for bot in table_entity.bots:
+      if bot.parent().string_id() not in master_list:
+        master_list.append(bot.parent().string_id())
+    for test in table_entity.tests:
+      if test.split('/')[0] not in benchmark_list:
+        benchmark_list.append(test.split('/')[0])
+  else:
+    return []
+
+  anomalies_futures = []
+  for benchmark in benchmark_list:
+    for master in master_list:
+      query = anomaly.Anomaly.query()
+      query = (query.filter(anomaly.Anomaly.end_revision >= rev_a)
+               .filter(anomaly.Anomaly.end_revision <= rev_b)
+               .filter(anomaly.Anomaly.benchmark_name == benchmark)
+               .filter(anomaly.Anomaly.master_name == master))
+      anomalies_futures.append(query.fetch_async())
+
+  ndb.Future.wait_all(anomalies_futures)
+  all_anomalies = [future.get_result() for future in anomalies_futures]
+  # Flatten list of lists.
+  all_anomalies = [a for future_list in all_anomalies for a in future_list]
+
+  anomalies = []
+  for anomaly_entity in all_anomalies:
+    for test in table_entity.tests:
+      if test in utils.TestPath(anomaly_entity.test):
+        anomalies.append(anomaly_entity)
+        break
+
+  return anomalies
+

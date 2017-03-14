@@ -11,8 +11,10 @@ from dashboard import speed_releasing
 from dashboard.common import datastore_hooks
 from dashboard.common import testing_common
 from dashboard.common import utils
-from dashboard.models import table_config
+from dashboard.models import anomaly
 from dashboard.models import graph_data
+from dashboard.models import sheriff
+from dashboard.models import table_config
 
 _SAMPLE_BOTS = ['ChromiumPerf/win', 'ChromiumPerf/linux']
 _DOWNSTREAM_BOTS = ['ClankInternal/win', 'ClankInternal/linux']
@@ -67,13 +69,19 @@ class SpeedReleasingTest(testing_common.TestCase):
         username='internal@chromium.org')
     return keys
 
+  def _AddSheriffToDatastore(self):
+    sheriff_key = sheriff.Sheriff(
+        id='Chromium Perf Sheriff', email='internal@chromium.org')
+    sheriff_key.patterns = ['*/*/my_test_suite/*']
+    sheriff_key.put()
+
   def _AddTests(self, is_downstream):
     master = 'ClankInternal' if is_downstream else 'ChromiumPerf'
     testing_common.AddTests([master], ['win', 'linux'], {
         'my_test_suite': {
             'my_test': {},
             'my_other_test': {},
-        }
+        },
     })
     keys = [
         utils.TestKey(master + '/win/my_test_suite/my_test'),
@@ -86,6 +94,48 @@ class SpeedReleasingTest(testing_common.TestCase):
       test.units = 'timeDurationInMs'
       test.put()
     return keys
+
+  def _AddAlertsWithDifferentMasterAndBenchmark(self):
+    """Adds 10 alerts with different benchmark/master."""
+    sheriff_key = sheriff.Sheriff(
+        id='Fake Sheriff', email='internal@chromium.org')
+    sheriff_key.patterns = ['*/*/my_fake_suite/*']
+    sheriff_key.put()
+    master = 'FakeMaster'
+    testing_common.AddTests([master], ['win'], {
+        'my_fake_suite': {
+            'my_fake_test': {},
+        },
+    })
+    keys = [
+        utils.TestKey(master + '/win/my_fake_suite/my_fake_test'),
+    ]
+    self._AddRows(keys)
+    self._AddAlertsToDataStore(keys)
+
+  def _AddAlertsToDataStore(self, test_keys):
+    """Adds sample data, including triaged and non-triaged alerts."""
+    key_map = {}
+    sheriff_key = ndb.Key('Sheriff', 'Chromium Perf Sheriff')
+    for test_key in test_keys:
+      test = test_key.get()
+      test.improvement_direction = anomaly.DOWN
+      test.put()
+
+    # Add some (10 * len(keys)) non-triaged alerts.
+    for end_rev in xrange(420500, 421500, 100):
+      for test_key in test_keys:
+        ref_test_key = utils.TestKey('%s_ref' % utils.TestPath(test_key))
+        anomaly_entity = anomaly.Anomaly(
+            start_revision=end_rev - 5, end_revision=end_rev, test=test_key,
+            median_before_anomaly=100, median_after_anomaly=200,
+            ref_test=ref_test_key, sheriff=sheriff_key)
+        anomaly_entity.SetIsImprovement()
+        anomaly_key = anomaly_entity.put()
+        key_map[end_rev] = anomaly_key
+
+    return key_map
+
 
   def _AddRows(self, keys):
     for key in keys:
@@ -274,9 +324,25 @@ class SpeedReleasingTest(testing_common.TestCase):
 
   def testPost_ReleaseNotes(self):
     keys = self._AddTableConfigDataStore('BestTable', True, False)
+    self._AddSheriffToDatastore()
     self._AddRows(keys)
+    self._AddAlertsToDataStore(keys)
+    self._AddAlertsWithDifferentMasterAndBenchmark()
     response = self.testapp.post('/speed_releasing/BestTable?'
                                  'revB=420000&revA=421000&anomalies=true')
     self.assertIn('"revisions": [421000, 420000]', response)
     # Make sure we aren't getting a table here instead of Release Notes.
     self.assertNotIn('"display_revisions"', response)
+
+    # There are 50 anomalies total (5 tests on 10 revisions). 1 test does not
+    # have the correct master/benchmark, so 4 valid tests. Further, the
+    # revisions are [420500:421500:100] meaning that there are 6 revisions in
+    # the url param's range. 6*4 = 24 anomalies that should be returned.
+    anomaly_list = self.GetJsonValue(response, 'anomalies')
+    self.assertEqual(len(anomaly.Anomaly.query().fetch()), 50)
+    self.assertEqual(len(anomaly_list), 24)
+    for alert in anomaly_list:
+      self.assertEqual(alert['master'], 'ChromiumPerf')
+      self.assertIn(alert['test'], ['my_test', 'my_other_test'])
+      self.assertGreaterEqual(alert['end_revision'], 420000)
+      self.assertLessEqual(alert['end_revision'], 421000)
