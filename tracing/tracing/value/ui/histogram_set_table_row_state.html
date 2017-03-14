@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/base/range.html">
+
+<script>
+'use strict';
+tr.exportTo('tr.v.ui', function() {
+  class HistogramSetTableCellState {
+    constructor() {
+      this.isOpen_ = false;
+      this.brushedBinRange_ = new tr.b.Range();
+      this.mergeSampleDiagnostics_ = true;
+    }
+
+    get isOpen() {
+      return this.isOpen_;
+    }
+
+    set isOpen(o) {
+      this.isOpen_ = o;
+    }
+
+    get brushedBinRange() {
+      return this.brushedBinRange_;
+    }
+
+    set brushedBinRange(r) {
+      this.brushedBinRange_ = r;
+    }
+
+    get mergeSampleDiagnostics() {
+      return this.mergeSampleDiagnostics_;
+    }
+
+    set mergeSampleDiagnostics(m) {
+      this.mergeSampleDiagnostics_ = m;
+    }
+
+    asDict() {
+      const dict = {};
+      if (this.isOpen) dict.isOpen = true;
+      if (!this.mergeSampleDiagnostics) dict.mergeSampleDiagnostics = false;
+      if (!this.brushedBinRange.isEmpty) {
+        dict.brushedBinRange = [
+          this.brushedBinRange.min, this.brushedBinRange.max];
+      }
+      return dict;
+    }
+
+    static fromDict(dict) {
+      const cell = new HistogramSetTableCellState();
+      if (dict.isOpen) cell.isOpen = true;
+      if (dict.mergeSampleDiagnostics === false) {
+        cell.mergeSampleDiagnostics = false;
+      }
+      if (dict.brushedBinRange) {
+        cell.brushedBinRange = tr.b.Range.fromExplicitRange(
+            dict.brushedBinRange[0], dict.brushedBinRange[1]);
+      }
+      return cell;
+    }
+
+    clone() {
+      return HistogramSetTableCellState.fromDict(this.asDict());
+    }
+  }
+
+  class HistogramSetTableRowState {
+    constructor() {
+      this.expanded_ = false;
+      this.overviewChart_ = false;
+      this.cells_ = new Map();
+      this.subRows_ = [];
+    }
+
+    asDict() {
+      const dict = {};
+      if (this.expanded) dict.expanded = true;
+      if (this.overviewChart) dict.overviewChart = true;
+      if (this.cells.size) {
+        dict.cells = {};
+        for (const [name, cell] of this.cells) {
+          dict.cells[name] = cell.asDict();
+        }
+      }
+      if (this.subRows.length) {
+        dict.subRows = this.subRows.map(r => r.asDict());
+      }
+      return dict;
+    }
+
+    static fromDict(dict) {
+      const row = new HistogramSetTableRowState();
+      if (dict.expanded) row.expanded = true;
+      if (dict.overviewChart) row.overviewChart = true;
+      if (dict.cells) {
+        for (const [name, cell] of Object.entries(dict.cells)) {
+          row.cells.set(name, HistogramSetTableCellState.fromDict(cell));
+        }
+      }
+      if (dict.subRows) {
+        for (const subRow of dict.subRows) {
+          row.subRows.push(HistogramSetTableRowState.fromDict(subRow));
+        }
+      }
+      return row;
+    }
+
+    get expanded() {
+      return this.expanded_;
+    }
+
+    set expanded(e) {
+      this.expanded_ = e;
+    }
+
+    get overviewChart() {
+      return this.overviewChart_;
+    }
+
+    set overviewChart(e) {
+      this.overviewChart_ = e;
+    }
+
+    get anyOverviewCharts() {
+      if (this.overviewChart) return true;
+      for (const subRow of this.subRows) {
+        if (subRow.anyOverviewCharts) return true;
+      }
+      return false;
+    }
+
+    setOverviewChartsRecursive(show) {
+      this.overviewChart = show;
+      for (const subRow of this.subRows) {
+        subRow.setOverviewChartsRecursive(show);
+      }
+    }
+
+    get cells() {
+      return this.cells_;
+    }
+
+    get subRows() {
+      return this.subRows_;
+    }
+
+    clone() {
+      return HistogramSetTableRowState.fromDict(this.asDict());
+    }
+  }
+
+  return {
+    HistogramSetTableCellState,
+    HistogramSetTableRowState,
+  };
+});
+</script>
