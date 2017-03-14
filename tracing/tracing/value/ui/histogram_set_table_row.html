@@ -47,7 +47,7 @@ tr.exportTo('tr.v.ui', function() {
           // |row.columns| were merged from any in |histograms|.
           let found = false;
           for (let testHist of row.columns.values()) {
-            if (testHist === tr.v.ui.UNMERGEABLE) continue;
+            if (!(testHist instanceof tr.v.Histogram)) continue;
             if (histograms.lookupHistogram(testHist.guid) !== undefined) {
               found = true;
               break;
@@ -93,23 +93,38 @@ tr.exportTo('tr.v.ui', function() {
      * @returns {!Array.<!HistogramSetTableRow>}
      */
     static build(histogramArrayMap) {
-      let rootRows = [];
+      const rootRows = [];
       HistogramSetTableRow.buildInternal_(histogramArrayMap, [], rootRows);
 
-      let histograms = new tr.v.HistogramSet();
-      for (let row of rootRows) row.collectHistograms_(histograms);
+      const histograms = new tr.v.HistogramSet();
+
+      for (const row of HistogramSetTableRow.walkAll(rootRows)) {
+        for (const hist of row.columns.values()) {
+          if (!(hist instanceof tr.v.Histogram)) continue;
+          histograms.addHistogram(hist);
+        }
+      }
+
       histograms.deduplicateDiagnostics();
-      for (let row of rootRows) row.mergeRelationships_();
+
+      for (const row of HistogramSetTableRow.walkAll(rootRows)) {
+        for (const [name, hist] of row.columns) {
+          if (!(hist instanceof tr.v.Histogram)) continue;
+          if (!row.doMergeRelationshipsForColumn_.get(name)) continue;
+          hist.diagnostics.mergeRelationships(hist);
+        }
+      }
 
       return rootRows;
     }
 
-    collectHistograms_(histograms) {
-      for (let row of this.subRows) row.collectHistograms_(histograms);
-      for (let hist of this.columns.values()) {
-        if (hist === tr.v.ui.UNMERGEABLE) continue;
-        histograms.addHistogram(hist);
-      }
+    * walk() {
+      yield this;
+      for (const row of this.subRows) yield* row.walk();
+    }
+
+    static* walkAll(rootRows) {
+      for (const rootRow of rootRows) yield* rootRow.walk();
     }
 
     static mergeHistogramDownHierarchy_(histogram, hierarchy, columnName) {
@@ -144,7 +159,7 @@ tr.exportTo('tr.v.ui', function() {
           continue;
         }
 
-        if (row.columns.get(columnName) === tr.v.ui.UNMERGEABLE) continue;
+        if (!(row.columns.get(columnName) instanceof tr.v.Histogram)) continue;
 
         if (!row.columns.get(columnName).canAddHistogram(histogram)) {
           row.columns.set(columnName, tr.v.ui.UNMERGEABLE);
@@ -191,17 +206,6 @@ tr.exportTo('tr.v.ui', function() {
       }
     }
 
-    mergeRelationships_() {
-      for (let subRow of this.subRows) {
-        subRow.mergeRelationships_();
-      }
-      for (let [name, hist] of this.columns) {
-        if (!(hist instanceof tr.v.Histogram)) continue;
-        if (!this.doMergeRelationshipsForColumn_.get(name)) continue;
-        hist.diagnostics.mergeRelationships(hist);
-      }
-    }
-
     get nameCell() {
       if (this.nameCell_ === undefined) {
         this.nameCell_ = document.createElement(
@@ -213,21 +217,17 @@ tr.exportTo('tr.v.ui', function() {
     }
 
     set constrainNameColumnWidth(constrain) {
-      this.constrainNameColumnWidth_ = constrain;
-      if (this.nameCell_ !== undefined) {
-        this.nameCell_.constrainWidth = constrain;
-      }
-      for (let row of this.subRows) {
-        row.constrainNameColumnWidth = constrain;
+      for (const row of this.walk()) {
+        row.constrainNameColumnWidth_ = constrain;
+        if (row.nameCell_ !== undefined) {
+          row.nameCell_.constrainWidth = constrain;
+        }
       }
     }
 
     get isNameCellOverflowing() {
-      if (this.nameCell.isOverflowing) {
-        return true;
-      }
-      for (const subrow of this.subRows) {
-        if (subrow.isNameCellOverflowing) return true;
+      for (const row of this.walk()) {
+        if (row.nameCell.isOverflowing) return true;
       }
       return false;
     }
@@ -237,12 +237,11 @@ tr.exportTo('tr.v.ui', function() {
     }
 
     set displayStatistic(statName) {
-      this.displayStatistic_ = statName;
-      for (let [displayLabel, cell] of this.cells) {
-        cell.displayStatistic = statName;
-      }
-      for (let row of this.subRows) {
-        row.displayStatistic = statName;
+      for (const row of this.walk()) {
+        row.displayStatistic_ = statName;
+        for (let [displayLabel, cell] of row.cells) {
+          cell.displayStatistic = statName;
+        }
       }
     }
 
@@ -270,8 +269,7 @@ tr.exportTo('tr.v.ui', function() {
 
           for (let subRow of this.subRows) {
             let subHist = subRow.columns.get(displayLabel);
-            if (subHist === undefined) continue;
-            if (subHist === tr.v.ui.UNMERGEABLE) continue;
+            if (!(subHist instanceof tr.v.Histogram)) continue;
             if (subHist.average === undefined) continue;
             this.overviewDataRange_.addValue(subHist.average);
           }
@@ -281,14 +279,12 @@ tr.exportTo('tr.v.ui', function() {
     }
 
     getLeafHistograms(histograms) {
-      if (this.subRows.length === 0) {
-        for (let [displayLabel, hist] of this.columns) {
+      for (const row of this.walk()) {
+        if (row.subRows.length) return;
+
+        for (const hist of this.columns.values()) {
           histograms.addHistogram(hist);
         }
-        return;
-      }
-      for (let subRow of this.subRows) {
-        subRow.getLeafHistograms(histograms);
       }
     }
 
