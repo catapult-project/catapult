@@ -115,6 +115,27 @@ tr.exportTo('tr.v.ui', function() {
         }
       }
 
+      // Delete "merged to" diagnostics from the original Histograms, or else
+      // they'll accumulate as the user re-groups them, and slow down future
+      // mergeRelationships operations.
+      for (const row of HistogramSetTableRow.walkAll(rootRows)) {
+        // Walk directly down to the leaves in order to avoid touching
+        // original Histograms more than once.
+        if (row.subRows.length) continue;
+
+        for (const hist of row.columns.values()) {
+          if (!(hist instanceof tr.v.Histogram)) continue;
+
+          const mergedFrom = hist.diagnostics.get(
+              tr.v.MERGED_FROM_DIAGNOSTIC_KEY);
+          if (mergedFrom !== undefined) {
+            for (const other of mergedFrom) {
+              other.diagnostics.delete(tr.v.MERGED_TO_DIAGNOSTIC_KEY);
+            }
+          }
+        }
+      }
+
       return rootRows;
     }
 
