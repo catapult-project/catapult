@@ -10,8 +10,8 @@ our our repos and organizations, mailing lists, and other communications.
 
 # Workflow
 
-Install [depot_tools]
-(https://www.chromium.org/developers/how-tos/install-depot-tools).
+Install [depot_tools](
+https://www.chromium.org/developers/how-tos/install-depot-tools).
 
 Then checkout the catapult repo.
 
@@ -52,12 +52,12 @@ git branch -D foo
 
 If you're new to the chromium-family of projects, you will also need to sign the
 chrome contributors license agreement. You can sign the
-[Contributor License Agreement]
-(https://cla.developers.google.com/about/google-individual?csw=1), which you can
+[Contributor License Agreement](
+https://cla.developers.google.com/about/google-individual?csw=1), which you can
 do online.
 It only takes a minute. If you are contributing on behalf of a corporation, you
-must fill out the [Corporate Contributor License Agreement]
-(https://cla.developers.google.com/about/google-corporate?csw=1) and send it to
+must fill out the [Corporate Contributor License Agreement](
+https://cla.developers.google.com/about/google-corporate?csw=1) and send it to
 us as described on that page.
 
 If you've never submitted code before, you must add your (or your
