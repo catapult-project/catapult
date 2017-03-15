@@ -32,6 +32,11 @@ def ProcessTests(test_keys):
   Args:
     test_keys: A list of TestMetadata ndb.Key's.
   """
+  yield ProcessTestsAsync(test_keys)
+
+
+@ndb.tasklet
+def ProcessTestsAsync(test_keys):
   # Using a parallel yield here let's the tasklets for each _ProcessTest run
   # in parallel.
   yield [_ProcessTest(k) for k in test_keys]

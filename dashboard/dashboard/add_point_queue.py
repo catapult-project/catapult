@@ -71,12 +71,14 @@ class AddPointQueueHandler(request_handler.RequestHandler):
 
     ndb.Future.wait_all(all_put_futures)
 
+    tests_keys = [k for k in monitored_test_keys if not _IsRefBuild(k)]
+
     # Updating of the cached graph revisions should happen after put because
     # it requires the new row to have a timestamp, which happens upon put.
-    graph_revisions.AddRowsToCache(added_rows)
-
-    tests_keys = [k for k in monitored_test_keys if not _IsRefBuild(k)]
-    find_anomalies.ProcessTests(tests_keys)
+    futures = [
+        graph_revisions.AddRowsToCacheAsync(added_rows),
+        find_anomalies.ProcessTestsAsync(tests_keys)]
+    ndb.Future.wait_all(futures)
 
 
 def _PrewarmGets(data):

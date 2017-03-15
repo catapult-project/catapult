@@ -4,40 +4,77 @@
 
 """A wrapper for stored_object that separates internal and external."""
 
+from google.appengine.ext import ndb
+
 from dashboard.common import datastore_hooks
 from dashboard.common import stored_object
 
 
+@ndb.synctasklet
 def Get(key):
   """Gets either the external or internal copy of an object."""
+  result = yield GetAsync(key)
+  raise ndb.Return(result)
+
+
+@ndb.tasklet
+def GetAsync(key):
   namespaced_key = _NamespaceKey(key)
-  return stored_object.Get(namespaced_key)
+  result = yield stored_object.GetAsync(namespaced_key)
+  raise ndb.Return(result)
 
 
+@ndb.synctasklet
 def GetExternal(key):
   """Gets the external copy of a stored object."""
+  result = yield GetExternalAsync(key)
+  raise ndb.Return(result)
+
+
+@ndb.tasklet
+def GetExternalAsync(key):
   namespaced_key = _NamespaceKey(key, datastore_hooks.EXTERNAL)
-  return stored_object.Get(namespaced_key)
+  result = yield stored_object.GetAsync(namespaced_key)
+  raise ndb.Return(result)
 
 
+@ndb.synctasklet
 def Set(key, value):
   """Sets the the value of a stored object, either external or internal."""
+  yield SetAsync(key, value)
+
+
+@ndb.tasklet
+def SetAsync(key, value):
   namespaced_key = _NamespaceKey(key)
-  stored_object.Set(namespaced_key, value)
+  yield stored_object.SetAsync(namespaced_key, value)
 
 
+@ndb.synctasklet
 def SetExternal(key, value):
   """Sets the external copy of a stored object."""
+  yield SetExternalAsync(key, value)
+
+
+@ndb.tasklet
+def SetExternalAsync(key, value):
   namespaced_key = _NamespaceKey(key, datastore_hooks.EXTERNAL)
-  stored_object.Set(namespaced_key, value)
+  yield stored_object.SetAsync(namespaced_key, value)
 
 
+@ndb.synctasklet
 def Delete(key):
   """Deletes both the internal and external copy of a stored object."""
+  yield DeleteAsync(key)
+
+
+@ndb.tasklet
+def DeleteAsync(key):
   internal_key = _NamespaceKey(key, namespace=datastore_hooks.INTERNAL)
   external_key = _NamespaceKey(key, namespace=datastore_hooks.EXTERNAL)
-  stored_object.Delete(internal_key)
-  stored_object.Delete(external_key)
+  yield (
+      stored_object.DeleteAsync(internal_key),
+      stored_object.DeleteAsync(external_key))
 
 
 def _NamespaceKey(key, namespace=None):
