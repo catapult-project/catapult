@@ -31,14 +31,14 @@ tr.b.unittest.testSuite(function() {
     browserMainThread.name = 'CrBrowserMain';
   }
 
-  function addUrlUpdateSlice(model, timestamp, args) {
+  function addSpaNavigationEvent(model, timestamp, args) {
     let rendererProcess = model.getOrCreateProcess(RENDERER_PROCESS_ID);
     let mainThread = rendererProcess.getOrCreateThread(
         RENDERER_PROCESS_MAIN_THREAD_ID);
 
     mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
       cat: 'blink',
-      title: 'History::pushState',
+      title: 'FrameLoader::updateForSameDocumentNavigation',
       start: timestamp,
       duration: 0.1,
       args
@@ -120,7 +120,7 @@ tr.b.unittest.testSuite(function() {
   test('spaNavigationStartToFirstPaintDuration_noSpaNavStart', function() {
     let model = tr.c.TestUtils.newModel(model => {
       createChromeProcessesOnModel(model);
-      addUrlUpdateSlice(model, 100);
+      addSpaNavigationEvent(model, 100);
       addFirstPaintSlice(model, 101);
     });
     let histogram = getHistogramNamed(
@@ -132,7 +132,7 @@ tr.b.unittest.testSuite(function() {
     let model = tr.c.TestUtils.newModel(model => {
       createChromeProcessesOnModel(model);
       addNavigationStartSlices(model, 99);
-      addUrlUpdateSlice(model, 100);
+      addSpaNavigationEvent(model, 100);
     });
     let histogram = getHistogramNamed(
         SPA_NAVIGATION_START_TO_FIRST_PAINT_DURATION, model);
@@ -144,7 +144,7 @@ tr.b.unittest.testSuite(function() {
     let model = tr.c.TestUtils.newModel(model => {
       createChromeProcessesOnModel(model);
       addNavigationStartSlices(model, 99);
-      addUrlUpdateSlice(model, 100, {url: URL});
+      addSpaNavigationEvent(model, 100, {url: URL});
       addFirstPaintSlice(model, 101);
     });
     let histogram = getHistogramNamed(
@@ -169,15 +169,15 @@ tr.b.unittest.testSuite(function() {
     let model = tr.c.TestUtils.newModel(model => {
       createChromeProcessesOnModel(model);
       addNavigationStartSlices(model, 99);
-      addUrlUpdateSlice(model, 100);
+      addSpaNavigationEvent(model, 100);
       addFirstPaintSlice(model, 101);
 
       addNavigationStartSlices(model, 198);
-      addUrlUpdateSlice(model, 200);
+      addSpaNavigationEvent(model, 200);
       addFirstPaintSlice(model, 201);
 
       addNavigationStartSlices(model, 297);
-      addUrlUpdateSlice(model, 300);
+      addSpaNavigationEvent(model, 300);
       addFirstPaintSlice(model, 301);
     });
     let histogram = getHistogramNamed(

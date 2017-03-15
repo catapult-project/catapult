@@ -18,6 +18,8 @@ tr.b.unittest.testSuite(function() {
   const BROWSER_PROCESS_MAIN_THREAD_ID = 12;
   const PAINT_UPDATE_TITLE =
       'PaintLayerCompositor::updateIfNeededRecursive';
+  const SPA_NAVIGATION_EVENT_TITLE =
+      'FrameLoader::updateForSameDocumentNavigation';
 
   function createChromeProcessesOnModel(model) {
     let rendererProcess = model.getOrCreateProcess(RENDERER_PROCESS_ID);
@@ -102,7 +104,7 @@ tr.b.unittest.testSuite(function() {
     return spaNavigations;
   }
 
-  test('findSpaNavigations_noUrlUpdateEvent', function() {
+  test('findSpaNavigations_noSpaNavEvent', function() {
     let model = tr.c.TestUtils.newModel(model => {
       createChromeProcessesOnModel(model);
       addLatencyInfoFlowEvent(model, 75, '0x600000057');
@@ -116,7 +118,7 @@ tr.b.unittest.testSuite(function() {
   test('findSpaNavigations_noLatencyInfoFlowEvent', function() {
     let model = tr.c.TestUtils.newModel(model => {
       createChromeProcessesOnModel(model);
-      addThreadSlice(model, 'History::pushState', 100);
+      addThreadSlice(model, SPA_NAVIGATION_EVENT_TITLE, 100);
       addInputLatencySlice(model, 55, 25769803863);
       addThreadSlice(model, PAINT_UPDATE_TITLE, 101);
     });
@@ -127,7 +129,7 @@ tr.b.unittest.testSuite(function() {
   test('findSpaNavigations_noInputLatency', function() {
     let model = tr.c.TestUtils.newModel(model => {
       createChromeProcessesOnModel(model);
-      addThreadSlice(model, 'History::pushState', 100);
+      addThreadSlice(model, SPA_NAVIGATION_EVENT_TITLE, 100);
       addLatencyInfoFlowEvent(model, 75, '0x600000057');
       addThreadSlice(model, PAINT_UPDATE_TITLE, 101);
     });
@@ -138,7 +140,7 @@ tr.b.unittest.testSuite(function() {
   test('findSpaNavigations_noFirstPaintEvent', function() {
     let model = tr.c.TestUtils.newModel(model => {
       createChromeProcessesOnModel(model);
-      addThreadSlice(model, 'History::pushState', 100);
+      addThreadSlice(model, SPA_NAVIGATION_EVENT_TITLE, 100);
       addLatencyInfoFlowEvent(model, 75, '0x600000057');
       addInputLatencySlice(model, 55, 25769803863);
     });
@@ -146,27 +148,12 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(spaNavigations, 0);
   });
 
-  test('findSpaNavigations_pushStateAsUrlUpdateEvent', function() {
+  test('findSpaNavigations_oneSpaNav', function() {
     const URL = 'https://11111';
     let model = tr.c.TestUtils.newModel(model => {
       createChromeProcessesOnModel(model);
-      addThreadSlice(model, 'History::pushState', 100, {url: URL});
-      addLatencyInfoFlowEvent(model, 75, '0x600000057');
-      addInputLatencySlice(model, 55, 25769803863);
-      addThreadSlice(model, PAINT_UPDATE_TITLE, 101);
-    });
-    let spaNavigations = getSpaNavigations(model);
-    assert.lengthOf(spaNavigations, 1);
-    assert.strictEqual(spaNavigations[0].navigationStart.start, 55);
-    assert.strictEqual(spaNavigations[0].firstPaintEvent.start, 101);
-    assert.strictEqual(spaNavigations[0].url, URL);
-  });
-
-  test('findSpaNavigations_setHashAsUrlUpdateEvent', function() {
-    const URL = 'https://11111';
-    let model = tr.c.TestUtils.newModel(model => {
-      createChromeProcessesOnModel(model);
-      addThreadSlice(model, 'Location::setHash', 100, {url: URL});
+      addThreadSlice(model, SPA_NAVIGATION_EVENT_TITLE, 100,
+          {url: URL});
       addLatencyInfoFlowEvent(model, 75, '0x600000057');
       addInputLatencySlice(model, 55, 25769803863);
       addThreadSlice(model, PAINT_UPDATE_TITLE, 101);
@@ -184,9 +171,12 @@ tr.b.unittest.testSuite(function() {
     const URL3 = 'https://33333';
     let model = tr.c.TestUtils.newModel(model => {
       createChromeProcessesOnModel(model);
-      addThreadSlice(model, 'History::pushState', 100, {url: URL1});
-      addThreadSlice(model, 'History::pushState', 200, {url: URL2});
-      addThreadSlice(model, 'History::pushState', 300, {url: URL3});
+      addThreadSlice(model, SPA_NAVIGATION_EVENT_TITLE, 100,
+          {url: URL1});
+      addThreadSlice(model, SPA_NAVIGATION_EVENT_TITLE, 200,
+          {url: URL2});
+      addThreadSlice(model, SPA_NAVIGATION_EVENT_TITLE, 300,
+          {url: URL3});
 
       addLatencyInfoFlowEvent(model, 75, '0x600000057');
       addLatencyInfoFlowEvent(model, 175, '0x6000000c2');
