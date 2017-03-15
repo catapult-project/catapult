@@ -783,6 +783,10 @@ tr.b.unittest.testSuite(function() {
         table, elem => elem.tagName === 'TR-UI-B-TABLE');
     assert.strictEqual(baseTable.tableRows.length, 1);
 
+    let cell = tr.b.findDeepElementMatchingPredicate(table, elem =>
+        elem.tagName === 'TR-V-UI-SCALAR-SPAN');
+    cell.click();
+
     const yAxisText = tr.b.findDeepElementMatchingPredicate(table, e =>
         e.tagName === 'text' && e.textContent === '<0.000 ms');
     assert.isBelow(0, yAxisText.getBBox().width);
