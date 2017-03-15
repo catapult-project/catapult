@@ -65,11 +65,7 @@ tr.exportTo('tr.metrics.sh', function() {
   NavigationStartFinder.prototype = {
     findNavigationStartEventForFrameBeforeTimestamp: function(frameIdRef, ts) {
       var list = this.navigationStartsForFrameId_[frameIdRef];
-      if (list === undefined) {
-        console.warn('No navigationStartEvent found for frame id "' +
-            frameIdRef + '"');
-        return undefined;
-      }
+      if (list === undefined) return undefined;
       var eventBeforeTimestamp;
       for (var ev of list) {
         if (ev.start > ts)
@@ -77,10 +73,7 @@ tr.exportTo('tr.metrics.sh', function() {
         if (eventBeforeTimestamp === undefined)
           eventBeforeTimestamp = ev;
       }
-      if (eventBeforeTimestamp === undefined) {
-        console.warn('Failed to find navigationStartEvent.');
-        return undefined;
-      }
+      if (eventBeforeTimestamp === undefined) return undefined;
       return eventBeforeTimestamp;
     }
   };
@@ -109,12 +102,7 @@ tr.exportTo('tr.metrics.sh', function() {
 
     var objects = rendererHelper.process.objects;
     var frameLoaderInstances = objects.instancesByTypeName_['FrameLoader'];
-    if (frameLoaderInstances === undefined) {
-      console.warn('Failed to find FrameLoader for frameId "' + frameIdRef +
-          '" at ts ' + ts + ', the trace maybe incomplete or from an old' +
-          'Chrome.');
-      return undefined;
-    }
+    if (frameLoaderInstances === undefined) return undefined;
 
     var snapshot;
     for (var instance of frameLoaderInstances) {

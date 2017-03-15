@@ -236,12 +236,7 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     hadInternalError_: function(outerE) {
-      try {
-        this.results.didRunTests();
-      } catch (e) {
-        console.log('Had another error during hadInternalError_!');
-        console.log(e.stack);
-      }
+      this.results.didRunTests();
 
       this.runCompletedResolver_.reject(outerE);
       this.runCompletedResolver_ = undefined;

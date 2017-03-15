@@ -328,10 +328,10 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
     set howToShowTiles(val) {
       // Make sure val is something we expect.
-      console.assert(
-          (val === 'none') ||
-          (val === 'coverage') ||
-          !isNaN(parseFloat(val)));
+      if (val !== 'none' && val !== 'coverage' && isNaN(parseFloat(val))) {
+        throw new Error(
+            'howToShowTiles requires "none" or "coverage" or a number');
+      }
 
       this.howToShowTiles_ = val;
       this.updateContents_();

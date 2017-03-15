@@ -188,10 +188,6 @@ tr.exportTo('tr.ui', function() {
       try {
         var histograms = tr.metrics.runMetrics(this.model_, options);
       } catch (err) {
-        console.warn(
-            this.currentMetricName_ +
-            ' could not be computed for the current model:\n' +
-            err.stack);
         Polymer.dom(this.$.error).textContent = err.message;
         return;
       }

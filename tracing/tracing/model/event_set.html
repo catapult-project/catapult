@@ -144,8 +144,7 @@ tr.exportTo('tr.model', function() {
         });
 
         if (maxEventIndex === -1) {
-          console.log(event);
-          throw new Error('Unrecognized event type');
+          throw new Error(`Unrecognized event type: ${event.constructor.name}`);
         }
 
         return maxEventTypeInfo.metadata.name;

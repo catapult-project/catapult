@@ -119,25 +119,21 @@ tr.exportTo('tr.model.helpers', function() {
         }
         var v8Runtime = event.args['runtime-call-stat'];
         if (v8Runtime !== undefined) {
-          try {
-            var v8RuntimeObject = JSON.parse(v8Runtime);
-            for (var runtimeCall in v8RuntimeObject) {
-              if (v8RuntimeObject[runtimeCall].length === 2) {
-                if (breakdownMap['v8_runtime'].events[runtimeCall] ===
-                    undefined) {
-                  breakdownMap['v8_runtime'].events[runtimeCall] = 0;
-                }
-                // V8 Runtime Call Stats data is in us, while the
-                // breakdown tree timing is in ms.
-                var runtimeTime = v8RuntimeObject[runtimeCall][1] *
-                                   wallTimeIntersectionRatio / 1000;
-                breakdownMap['v8_runtime'].total += runtimeTime;
-                breakdownMap['v8_runtime'].events[runtimeCall] +=
-                     runtimeTime;
+          var v8RuntimeObject = JSON.parse(v8Runtime);
+          for (var runtimeCall in v8RuntimeObject) {
+            if (v8RuntimeObject[runtimeCall].length === 2) {
+              if (breakdownMap['v8_runtime'].events[runtimeCall] ===
+                  undefined) {
+                breakdownMap['v8_runtime'].events[runtimeCall] = 0;
               }
+              // V8 Runtime Call Stats data is in us, while the
+              // breakdown tree timing is in ms.
+              var runtimeTime = v8RuntimeObject[runtimeCall][1] *
+                                  wallTimeIntersectionRatio / 1000;
+              breakdownMap['v8_runtime'].total += runtimeTime;
+              breakdownMap['v8_runtime'].events[runtimeCall] +=
+                    runtimeTime;
             }
-          } catch (e) {
-            console.warn(e);
           }
         }
         //        [     Slice 1       ]   [      Slice  2   ]   [    Slice 3   ]

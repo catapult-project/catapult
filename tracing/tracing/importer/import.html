@@ -142,8 +142,11 @@ tr.exportTo('tr.importer', function() {
               traces.push(subtraces[j]);
               importers.push(this.createImporter_(subtraces[j]));
             } catch (error) {
-              // TODO(kphanee): Log the subtrace file which has failed.
-              console.warn(error.name + ': ' + error.message);
+              this.model_.importWarning({
+                type: error.name,
+                message: error.message,
+                showToUser: true,
+              });
               continue;
             }
           }

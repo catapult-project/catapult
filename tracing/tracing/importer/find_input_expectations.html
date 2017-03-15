@@ -543,7 +543,11 @@ tr.exportTo('tr.importer', function() {
       switch (event.typeName) {
         case INPUT_TYPE.FLING_START:
           if (currentPE) {
-            console.error('Another FlingStart? File a bug with this trace!');
+            modelHelper.model.importWarning({
+              type: 'UserModelBuilder',
+              message: 'Please file a bug with this trace: FlingStart',
+              showToUser: true
+            });
             currentPE.pushEvent(event);
           } else {
             currentPE = new ProtoExpectation(
@@ -720,8 +724,11 @@ tr.exportTo('tr.importer', function() {
 
         case INPUT_TYPE.SCROLL_END:
           if (!currentPE) {
-            console.error('ScrollEnd without ScrollUpdate? ' +
-                          'File a bug with this trace!');
+            modelHelper.model.importWarning({
+              type: 'UserModelBuilder',
+              message: 'Please file a bug with this trace: ScrollEnd',
+              showToUser: true
+            });
             var pe = new ProtoExpectation(ProtoExpectation.IGNORED_TYPE);
             pe.pushEvent(event);
             protoExpectations.push(pe);
@@ -1216,8 +1223,12 @@ tr.exportTo('tr.importer', function() {
 
         if ((handledEvents.indexOf(event) >= 0) &&
             (event.title !== tr.model.helpers.IMPL_RENDERING_STATS)) {
-          console.error('double-handled event', event.typeName,
-              parseInt(event.start), parseInt(event.end), protoExpectation);
+          modelHelper.model.importWarning({
+            type: 'UserModelBuilder',
+            message: 'Please file a bug with this trace: ' +
+                `double-handled event: ${event.typeName} @ ${event.start}`,
+            showToUser: true
+          });
           return;
         }
         handledEvents.push(event);
@@ -1226,8 +1237,12 @@ tr.exportTo('tr.importer', function() {
 
     sortedInputEvents.forEach(function(event) {
       if (handledEvents.indexOf(event) < 0) {
-        console.error('UNHANDLED INPUT EVENT!',
-            event.typeName, parseInt(event.start), parseInt(event.end));
+        modelHelper.model.importWarning({
+          type: 'UserModelBuilder',
+          message: 'Please file a bug with this trace: ' +
+              `double-handled event: ${event.typeName} @ ${event.start}`,
+          showToUser: true
+        });
       }
     });
   }

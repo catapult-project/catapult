@@ -83,9 +83,13 @@ tr.exportTo('tr.e.audits', function() {
 
         if (precision <= maxPrecision) {
           if (precision === maxPrecision) {
-            console.warn('Encountered two different VSync events (' +
-                maxTitle + ', ' + title + ') with the same precision, ' +
-               'ignoring the newer one (' + title + ')');
+            model.importWarning({
+              type: 'VSyncAuditor',
+              message: 'Encountered two different VSync events (' +
+                  maxTitle + ', ' + title + ') with the same precision, ' +
+                  'ignoring the newer one (' + title + ')',
+              showToUser: false,
+            });
           }
           return false;
         }

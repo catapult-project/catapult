@@ -17,10 +17,7 @@ var global = this;
 
 /** Platform, package, object property, and Event support. */
 this.tr = (function() {
-  if (global.tr) {
-    console.warn('Base was multiply initialized. First init wins.');
-    return global.tr;
-  }
+  if (global.tr) return global.tr;
 
   /**
    * Builds an object structure for the provided namespace path,

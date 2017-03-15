@@ -59,8 +59,7 @@ tr.exportTo('tr.importer', function() {
   function combineInitiatorTypes(title1, title2) {
     for (var item of INITIATOR_HIERARCHY)
       if (title1 === item || title2 === item) return item;
-    console.error('Invalid titles in combineInitiatorTypes');
-    return undefined;
+    throw new Error('Invalid titles in combineInitiatorTypes');
   }
 
   ProtoExpectation.prototype = {
@@ -80,8 +79,11 @@ tr.exportTo('tr.importer', function() {
 
     createInteractionRecord: function(model) {
       if (this.type !== ProtoExpectation.IGNORED_TYPE && !this.isValid) {
-        console.error('Invalid ProtoExpectation: ' + this.debug() +
-                      ' File a bug with this trace!');
+        model.importWarning({
+          type: 'ProtoExpectation',
+          message: 'Please file a bug with this trace. ' + this.debug(),
+          showToUser: true
+        });
         return undefined;
       }
 

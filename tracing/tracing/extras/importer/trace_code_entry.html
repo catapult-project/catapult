@@ -39,7 +39,6 @@ tr.exportTo('tr.e.importer', function() {
     } else if (state === '') {
       state = tr.model.source_info.JSSourceState.COMPILED;
     } else {
-      console.warning('Unknown v8 code state ' + state);
       state = tr.model.source_info.JSSourceState.UNKNOWN;
     }
 

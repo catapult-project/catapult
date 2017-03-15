@@ -739,7 +739,6 @@ triaging functionality in the chart.
                 if (error) {
                   this.addWarnings('Failed to fetch graph data.');
                   this.checkForInternalUser();
-                  console.warn(error);
                 }
                 this.updateSeriesGroupLoadingCounter(
                     testPaths, false);
@@ -1420,11 +1419,9 @@ triaging functionality in the chart.
          */
         getDataForFlot: function() {
           if (!this.jsonHasData(this.json)) {
-            console.debug('getDataForFlot: this.json not set.');
             return [];
           }
           if (!this.json['error_bars']) {
-            console.debug('getDataForFlot: data or error bars not set.');
             return [];
           }
 
@@ -1434,8 +1431,6 @@ triaging functionality in the chart.
             if (index >= 0 && this.json.data[index]) {
               data.push(tr.b.deepCopy(this.json.data[index]));
             } else {
-              console.debug('getDataForFlot: indicesToGraph: ',
-                  this.indicesToGraph);
               return [];
             }
           }
@@ -1447,8 +1442,6 @@ triaging functionality in the chart.
               data.push(tr.b.deepCopy(this.json['error_bars'][index][0]));
               data.push(tr.b.deepCopy(this.json['error_bars'][index][1]));
             } else {
-              console.debug('getDataForFlot: indicesToGraph: ',
-                  this.indicesToGraph);
               return [];
             }
           }
@@ -1483,8 +1476,6 @@ triaging functionality in the chart.
           if (!this.json ||
               !this.json.data ||
               this.indicesToGraph.length == 0) {
-            console.debug('createFixedXAxis: !this.json, !this.json.data or ' +
-                          'this.indicesToGraph.length == 0');
             return;
           }
 
@@ -1957,8 +1948,7 @@ triaging functionality in the chart.
           var flotData = this.chart.getData();
           var jsonSeriesIndex = this.chart.getData()[flotSeriesIndex].index;
           if (jsonSeriesIndex == null) {
-            console.warn('showTooltip returned after ' + jsonSeriesIndex +
-                         ' was null for flotSeriesIndex ' + flotSeriesIndex);
+            // TODO: Display error.
             return;
           }
 
@@ -2177,8 +2167,7 @@ triaging functionality in the chart.
               continue;  // Not a revision.
             }
             if (!this.revisionInfo[revisionTypeKey]) {
-              console.warn(
-                  'No entry', revisionTypeKey, 'in', this.revisionInfo);
+              // TODO: Display error.
               continue;
             }
             var end = annotation[revisionTypeKey];
@@ -2222,14 +2211,10 @@ triaging functionality in the chart.
          */
         getRevisionRangeInfo: function(revisionTypeKey, start, end) {
           var revisionInfo = this.revisionInfo[revisionTypeKey];
-          if (!revisionInfo) {
-            console.warn('No entry', revisionTypeKey, 'in', this.revisionInfo);
-          }
           var revisionTypeKey = revisionInfo['name'];
           var urlTemplate = revisionInfo['url'];
 
           if (!isNaN(start) && !isNaN(end) && Number(start) > Number(end)) {
-            console.warn('Start and end revisions flipped:', start, end);
             var temp = start;
             start = end;
             end = temp;

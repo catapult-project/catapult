@@ -23,18 +23,12 @@ tr.b.unittest.testSuite(function() {
     key.target = 'orange ipsum';
     key.color = 'orange';
     this.addHTMLOutput(key);
-    key.addEventListener('requestSelectionChange', function(e) {
-      console.debug(e);
-    });
 
     key = document.createElement('tr-ui-b-chart-legend-key');
     key.target = 'brown dolor';
     key.color = 'brown';
     key.textContent = 'dolor sit amet';
     this.addHTMLOutput(key);
-    key.addEventListener('requestSelectionChange', function(e) {
-      console.debug(e);
-    });
   });
 
   test('instantiation_legendTargets', function() {
@@ -48,9 +42,6 @@ tr.b.unittest.testSuite(function() {
     chart.hideXAxis = true;
     this.addHTMLOutput(chart);
     chart.data = [{x: 0, foo: 3, lorem_ipsum: 5, bar: 1, qux: 2}];
-    chart.addEventListener('requestSelectionChange', function(e) {
-      console.debug(e);
-    });
 
     assert.isDefined(tr.b.findDeepElementMatchingPredicate(
         chart, function(element) {

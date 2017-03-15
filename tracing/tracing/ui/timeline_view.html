@@ -144,8 +144,9 @@ Polymer({
     this.async(function() {
       this.trackViewContainer_ = Polymer.dom(this).querySelector(
           '#track_view_container');
-      if (!this.trackViewContainer_)
-        console.error('missing trackviewContainer');
+      if (!this.trackViewContainer_) {
+        throw new Error('missing trackviewContainer');
+      }
     });
   },
 

@@ -227,7 +227,6 @@ found in the LICENSE file.
           var d = new Date(this.data[xValue][2]);
           return d.toISOString().substring(0, 10);  // yyyy-mm-dd.
         }
-        console.warn('No timestamp found in chart-slider data at', xValue);
         return String(xValue);
       },
 

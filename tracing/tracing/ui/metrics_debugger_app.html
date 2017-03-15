@@ -92,7 +92,6 @@ tr.exportTo('tr.ui', function() {
             'Metric result:\n' + JSON.stringify(result.asDict(), undefined, 2));
       } catch (err) {
         tr.ui.b.Overlay.showError('Error running metric:\n' + err.stack);
-        console.error(err);
       }
     },
 
@@ -125,7 +124,6 @@ tr.exportTo('tr.ui', function() {
           }.bind(this),
           function(err) {
             tr.ui.b.Overlay.showError('Trace import error: ' + err);
-            console.error(err);
           });
     },
   });

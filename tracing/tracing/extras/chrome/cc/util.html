@@ -117,7 +117,6 @@ tr.exportTo('tr.e.cc', function() {
         try {
           q = tr.b.Quad.from8Array(object[key]);
         } catch (e) {
-          console.log(e);
         }
         object[key] = q;
         continue;
@@ -129,7 +128,6 @@ tr.exportTo('tr.e.cc', function() {
         try {
           r = tr.b.Rect.fromArray(object[key]);
         } catch (e) {
-          console.log(e);
         }
         object[key] = r;
       }

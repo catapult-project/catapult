@@ -63,7 +63,8 @@ var testing_common = (function() {
           this.responseText = self.responseMap_['*'];
           this.onload();
         } else {
-          console.warn('XMLHttpRequest sent without a handler: ' + requestStr);
+          throw new Error('XMLHttpRequest sent without a handler: ' +
+              requestStr);
         }
       };
     };

@@ -426,9 +426,6 @@ tr.exportTo('tr', function() {
       if (this.reportedImportWarnings_[data.type] === true)
         return;
 
-      if (this.importOptions_.showImportWarnings)
-        console.warn(data.message);
-
       this.reportedImportWarnings_[data.type] = true;
     },
 

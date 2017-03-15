@@ -89,7 +89,6 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       if (message.id) {
         var resolver = this.pendingRequestResolversId_[message.id];
         if (resolver === undefined) {
-          console.log('Unrecognized ack', message);
           return;
         }
         if (message.error) {
@@ -103,13 +102,11 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       if (message['method']) {
         var listener = this.notificationListenersByMethodName_[message.method];
         if (listener === undefined) {
-          console.log('Unhandled ', message.method);
           return;
         }
         listener(message.params);
         return;
       }
-      console.log('Unknown dispatchMessage: ', payload);
     }
   };
 

@@ -31,11 +31,8 @@ tr.b.unittest.testSuite(function() {
     var m = tr.c.TestUtils.newModelWithEvents([lines.join('\n')], {
       shiftWorldToZero: false
     });
-    var warnings = m.importWarnings;
-    for (var i = 0; i < warnings.length; i++) {
-      console.log(warnings[i]);
-    }
-    assert.isFalse(m.hasImportWarnings);
+    assert.isFalse(m.hasImportWarnings,
+        `Expected no import warnings but got ${m.importWarnings}`);
 
     var threads = m.getAllThreads();
     assert.equal(threads.length, 2);
