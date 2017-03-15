@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/ui/base/dom_helpers.html">
+<link rel="import" href="/tracing/ui/base/grouping_table_groupby_picker.html">
+<link rel="import" href="/tracing/value/ui/histogram_set_configuration.html">
+
+<dom-module id="tr-v-ui-histogram-set-controls">
+  <template>
+    <style>
+    :host {
+      display: block;
+    }
+
+    #help {
+      display: none;
+      margin-left: 20px;
+    }
+
+    #search {
+      max-width: 20em;
+      margin-right: 20px;
+    }
+
+    #controls {
+      white-space: nowrap;
+    }
+
+    #show_overview, #hide_overview {
+      height: 1em;
+      margin-right: 20px;
+    }
+
+    #show_overview {
+      stroke: blue;
+      stroke-width: 16;
+    }
+
+    #show_overview:hover {
+      background: blue;
+      stroke: white;
+    }
+
+    #hide_overview {
+      display: none;
+      stroke-width: 18;
+      stroke: black;
+    }
+
+    #hide_overview:hover {
+      background: black;
+      stroke: white;
+    }
+
+    #reference_display_label {
+      display: none;
+      margin-right: 20px;
+    }
+
+    #statistic {
+      display: none;
+      margin-right: 20px;
+    }
+
+    #download_csv {
+      margin-right: 20px;
+    }
+    </style>
+
+    <div id="controls">
+      <input id="search" value="{{searchQuery::keyup}}" placeholder="Find Histogram name">
+
+      <svg viewbox="0 0 128 128" id="show_overview"
+        on-click="toggleOverviewLineCharts_">
+        <line x1="19" y1="109" x2="49" y2="49"/>
+        <line x1="49" y1="49" x2="79" y2="79"/>
+        <line x1="79" y1="79" x2="109" y2="19"/>
+      </svg>
+      <svg viewbox="0 0 128 128" id="hide_overview"
+        on-click="toggleOverviewLineCharts_">
+        <line x1="28" y1="28" x2="100" y2="100"/>
+        <line x1="28" y1="100" x2="100" y2="28"/>
+      </svg>
+
+      <select id="reference_display_label" value="{{referenceDisplayLabel::change}}">
+        <option value="">Select a reference column</option>
+      </select>
+
+      <select id="statistic" value="{{displayStatisticName::change}}">
+      </select>
+
+      <button id="download_csv" on-click="downloadCSV_">&#11015; CSV</button>
+
+      <input type="checkbox" id="show_all" checked="{{showAll::change}}" title="When unchecked, less important histograms are hidden.">
+      <label for="show_all" title="When unchecked, less important histograms are hidden.">Show all</label>
+
+      <a id="help">Help</a>
+    </div>
+
+    <tr-ui-b-grouping-table-groupby-picker id="picker">
+    </tr-ui-b-grouping-table-groupby-picker>
+  </template>
+</dom-module>
+
+<script>
+'use strict';
+tr.exportTo('tr.v.ui', function() {
+  Polymer({
+    is: 'tr-v-ui-histogram-set-controls',
+
+    properties: {
+      searchQuery: {
+        type: String,
+        observer: 'onUserChange_',
+      },
+      showAll: {
+        type: Boolean,
+        observer: 'onUserChange_',
+      },
+      referenceDisplayLabel: {
+        type: String,
+        observer: 'onUserChange_',
+      },
+      displayStatisticName: {
+        type: String,
+        observer: 'onUserChange_',
+      },
+    },
+
+    created() {
+      this.configuration = new tr.v.ui.HistogramSetConfiguration();
+    },
+
+    ready() {
+      this.$.picker.addEventListener('current-groups-changed',
+          this.onGroupsChanged_.bind(this));
+    },
+
+    get configuration() {
+      return this.configuration_;
+    },
+
+    set configuration(c) {
+      if (this.configuration !== undefined) {
+        this.configuration.removeListener(this);
+      }
+      this.configuration_ = c;
+      this.configuration.addListener(this);
+    },
+
+    onUserChange_() {
+      this.configuration.update({
+        searchQuery: this.searchQuery,
+        showAll: this.showAll,
+        referenceDisplayLabel: this.referenceDisplayLabel,
+        displayStatisticName: this.displayStatisticName,
+      });
+    },
+
+    onConfigurationChanged(delta) {
+      if (delta.searchQuery) this.searchQuery = this.configuration.searchQuery;
+      if (delta.showAll) this.showAll = this.configuration.showAll;
+      if (delta.displayStatisticName) {
+        this.displayStatisticName = this.configuration.displayStatisticName;
+      }
+      if (delta.referenceDisplayLabel) {
+        this.referenceDisplayLabel = this.configuration.referenceDisplayLabel;
+      }
+
+      if (delta.groupings) {
+        this.$.picker.currentGroupKeys = this.configuration.groupings.map(
+            g => g.key);
+      }
+
+      if (delta.tableRowStates) {
+        let anyShowing = false;
+        for (const state of this.configuration.tableRowStates) {
+          if (state.anyOverviewCharts) {
+            anyShowing = true;
+            break;
+          }
+        }
+        this.$.hide_overview.style.display = anyShowing ? 'inline' : 'none';
+        this.$.show_overview.style.display = anyShowing ? 'none' : 'inline';
+      }
+    },
+
+    onGroupsChanged_() {
+      if (this.$.picker.currentGroups.length === 0 &&
+          this.$.picker.possibleGroups.length > 0) {
+        this.$.picker.currentGroupKeys = [this.$.picker.possibleGroups[0].key];
+      }
+      this.configuration.groupings = this.$.picker.currentGroups;
+    },
+
+    set possibleGroupings(groupings) {
+      this.$.picker.possibleGroups = groupings;
+    },
+
+    set displayLabels(labels) {
+      this.$.reference_display_label.style.display =
+          (labels.length < 2) ? 'none' : 'inline';
+
+      while (this.$.reference_display_label.children.length > 1) {
+        this.$.reference_display_label.removeChild(
+            this.$.reference_display_label.lastChild);
+      }
+
+      for (const displayLabel of labels) {
+        const option = document.createElement('option');
+        option.textContent = displayLabel;
+        this.$.reference_display_label.appendChild(option);
+      }
+
+      if (labels.indexOf(this.configuration.referenceDisplayLabel) < 0) {
+        this.configuration.referenceDisplayLabel = '';
+      } else {
+        this.referenceDisplayLabel = this.configuration.referenceDisplayLabel;
+      }
+    },
+
+    set possibleStatisticNames(names) {
+      this.$.statistic.style.display = (names.length < 2) ? 'none' : 'inline';
+
+      while (this.$.statistic.children.length) {
+        this.$.statistic.removeChild(this.$.statistic.lastChild);
+      }
+
+      for (const displayLabel of names) {
+        const option = document.createElement('option');
+        option.textContent = displayLabel;
+        this.$.statistic.appendChild(option);
+      }
+
+      if (names.indexOf(this.configuration.displayStatisticName) < 0) {
+        this.configuration.displayStatisticName = names[0] || '';
+      } else {
+        this.displayStatisticName = this.configuration.displayStatisticName;
+      }
+    },
+
+    toggleOverviewLineCharts_() {
+      const states = this.configuration.tableRowStates.map(s => s.clone());
+
+      let anyShowing = false;
+      for (const state of states) {
+        if (state.anyOverviewCharts) {
+          anyShowing = true;
+          break;
+        }
+      }
+
+      const showOverviews = !anyShowing;
+      for (const state of states) {
+        state.setOverviewChartsRecursive(showOverviews);
+      }
+
+      this.configuration.tableRowStates = states;
+
+      this.$.hide_overview.style.display = showOverviews ? 'inline' : 'none';
+      this.$.show_overview.style.display = showOverviews ? 'none' : 'inline';
+    },
+
+    set helpHref(href) {
+      this.$.help.href = href;
+      this.$.help.style.display = 'inline';
+    },
+
+    downloadCSV_(event) {
+      this.dispatchEvent(new tr.b.Event('download-csv'));
+    }
+  });
+
+  return {
+  };
+});
+</script>
