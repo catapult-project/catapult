@@ -341,6 +341,36 @@ tr.exportTo('tr.model', function() {
         this.transformerMapByDomainId_[domainId] = {};
 
       return this.transformerMapByDomainId_[domainId];
+    },
+
+    /**
+     * @return {string} The clock sync graph represented in the DOT language.
+     * This is useful for debugging incorrect clock sync behavior.
+     */
+    computeDotGraph: function() {
+      let dotString = 'graph {\n';
+
+      const domainsSeen = [...this.domainsSeen_].sort();
+      for (const domainId of domainsSeen) {
+        dotString += `  ${domainId}[shape=box]\n`;
+      }
+
+      const markersBySyncIdEntries = [...this.markersBySyncId_.entries()].sort(
+          ([syncId1, markers1], [syncId2, markers2]) =>
+              syncId1.localeCompare(syncId2));
+
+      for (const [syncId, markers] of markersBySyncIdEntries) {
+        const sortedMarkers = markers.sort(
+            (a, b) => a.domainId.localeCompare(b.domainId));
+        for (const m of markers) {
+          dotString += `  "${syncId}" -- ${m.domainId} `;
+          dotString += `[label="[${m.startTs}, ${m.endTs}]"]\n`;
+        }
+      }
+
+      dotString += '}';
+
+      return dotString;
     }
   };
 

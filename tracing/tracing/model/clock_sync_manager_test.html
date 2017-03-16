@@ -393,5 +393,79 @@ tr.b.unittest.testSuite(function() {
     }, 'Unable to select a master clock domain because no path can be found ' +
         'from "DOMAIN1" to "DOMAIN4"');
   }, testOptions);
+
+  test('computeDotGraph_noMarkers', function() {
+    const mgr = new ClockSyncManager();
+
+    assert.strictEqual(mgr.computeDotGraph(), [
+      'graph {',
+      '}'
+    ].join('\n'));
+  }, testOptions);
+
+  test('computeDotGraph_oneMarker', function() {
+    const mgr = new ClockSyncManager();
+    mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync1', 100);
+
+    assert.strictEqual(mgr.computeDotGraph(), [
+      'graph {',
+      '  DOMAIN1[shape=box]',
+      '  "sync1" -- DOMAIN1 [label="[100, 100]"]',
+      '}'
+    ].join('\n'));
+  }, testOptions);
+
+  test('computeDotGraph_oneCompleteSync', function() {
+    const mgr = new ClockSyncManager();
+    mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync1', 100);
+    mgr.addClockSyncMarker(ClockDomainId.DOMAIN_2, 'sync1', 350);
+
+    assert.strictEqual(mgr.computeDotGraph(), [
+      'graph {',
+      '  DOMAIN1[shape=box]',
+      '  DOMAIN2[shape=box]',
+      '  "sync1" -- DOMAIN1 [label="[100, 100]"]',
+      '  "sync1" -- DOMAIN2 [label="[350, 350]"]',
+      '}'
+    ].join('\n'));
+  }, testOptions);
+
+  test('computeDotGraph_twoCompleteSyncs', function() {
+    const mgr = new ClockSyncManager();
+    mgr.addClockSyncMarker(ClockDomainId.DOMAIN_2, 'sync2', 0, 50);
+    mgr.addClockSyncMarker(ClockDomainId.DOMAIN_3, 'sync2', 400);
+    mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync1', 100);
+    mgr.addClockSyncMarker(ClockDomainId.DOMAIN_2, 'sync1', 350);
+
+    assert.strictEqual(mgr.computeDotGraph(), [
+      'graph {',
+      '  DOMAIN1[shape=box]',
+      '  DOMAIN2[shape=box]',
+      '  DOMAIN3[shape=box]',
+      '  "sync1" -- DOMAIN1 [label="[100, 100]"]',
+      '  "sync1" -- DOMAIN2 [label="[350, 350]"]',
+      '  "sync2" -- DOMAIN2 [label="[0, 50]"]',
+      '  "sync2" -- DOMAIN3 [label="[400, 400]"]',
+      '}'
+    ].join('\n'));
+  }, testOptions);
+
+  test('computeDotGraph_oneCompleteSyncOneIncompleteSync', function() {
+    const mgr = new ClockSyncManager();
+    mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync1', 100);
+    mgr.addClockSyncMarker(ClockDomainId.DOMAIN_2, 'sync1', 350);
+    mgr.addClockSyncMarker(ClockDomainId.DOMAIN_3, 'sync2', 450);
+
+    assert.strictEqual(mgr.computeDotGraph(), [
+      'graph {',
+      '  DOMAIN1[shape=box]',
+      '  DOMAIN2[shape=box]',
+      '  DOMAIN3[shape=box]',
+      '  "sync1" -- DOMAIN1 [label="[100, 100]"]',
+      '  "sync1" -- DOMAIN2 [label="[350, 350]"]',
+      '  "sync2" -- DOMAIN3 [label="[450, 450]"]',
+      '}'
+    ].join('\n'));
+  }, testOptions);
 });
 </script>
