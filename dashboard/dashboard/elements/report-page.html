@@ -138,75 +138,8 @@ found in the LICENSE file.
 
         // Add charts.
         var chartStates = pageState['charts'];
-        const resolvedChartStates = [];
-
-        // We need to translate each of these chart states by extracting the
-        // main path and selected paths, which are given by the state, and then
-        // transforming these into a test path dict that we can send to
-        // /list_tests to get the selected and unselected tests.
-        for (const legacyChartState of chartStates) {
-          for (const pair of legacyChartState) {
-            const mainPath = pair[0];
-            const selectedPaths = pair[1];
-            const testPathDict = {};
-            testPathDict[mainPath] = selectedPaths;
-            const params = {
-              type: 'test_path_dict',
-              test_path_dict: JSON.stringify(testPathDict),
-              return_selected: '1'
-            };
-            const selectedPromise = new Promise(
-                (resolve, reject) => {
-                  simple_xhr.send(
-                      '/list_tests',
-                      params,
-                      response => {
-                        resolve(response);
-                      },
-                      error => {
-                        reject('Error from /list_tests.');
-                      });
-                });
-
-            params.return_selected = '0';
-
-            const unselectedPromise = new Promise(
-                (resolve, reject) => {
-                  simple_xhr.send(
-                      '/list_tests',
-                      params,
-                      response => {
-                        resolve(response);
-                      },
-                      error => {
-                        reject('Error from /list_tests.');
-                      });
-                });
-
-            resolvedChartStates.push(Promise.all(
-                [selectedPromise, unselectedPromise]).then(tests => {
-                  return {
-                    mainPath: mainPath,
-                    selectedPaths: tests[0],
-                    unselectedPaths: tests[1]
-                  };
-                }));
-          }
-        }
-
-        // TODO(eakuefner): Make this error handling better. See
-        // https://github.com/catapult-project/catapult/issues/3391.
-        Promise.all(resolvedChartStates).then(
-            this.addChartsFromResolvedChartStates_.bind(this),
-            reason => console.log(reason));
-      },
-
-      addChartsFromResolvedChartStates_: function(states) {
-        for (const state of states) {
-          const mainPath = state.mainPath;
-          const selectedPaths = state.selectedPaths;
-          const unselectedPaths = state.unselectedPaths;
-          this.addChart(mainPath, selectedPaths, unselectedPaths, false);
+        for (var i = 0; i < chartStates.length; i++) {
+          this.addChart(chartStates[i], false);
         }
       },
 
@@ -229,7 +162,7 @@ found in the LICENSE file.
        *     Arrays, each containing a test path and selected series to plot.
        * @param {boolean} isPrepend True for prepend, false for append.
        */
-      addChart: function(mainPath, selectedPaths, unselectedPaths, isPrepend) {
+      addChart: function(testPathAndSelected, isPrepend) {
         // TODO(sullivan): This should be done with a polymer template, not
         // JavaScript-built DOM!!
         var container = this.$['charts-container'];
@@ -251,7 +184,7 @@ found in the LICENSE file.
         chart.addEventListener(
             'revisionrange', this.onRevisionRangeChanged.bind(this));
         this.setChartData(chart);
-        chart.addSeriesGroup2(mainPath, selectedPaths, unselectedPaths, true);
+        chart.addSeriesGroup(testPathAndSelected, true);
         this.testPicker.hasChart = true;
       },
 
@@ -308,11 +241,9 @@ found in the LICENSE file.
        * On 'Add' button clicked, add a chart for the current selection.
        */
       onAddChartButtonClicked: function(event) {
-        const selectedPaths = this.testPicker.getCurrentSelection();
-        if (selectedPaths) {
-          const mainPath = this.testPicker.getCurrentSelectedPath();
-          const unselectedPaths = this.testPicker.getCurrentUnselected();
-          this.addChart(mainPath, selectedPaths, unselectedPaths, true);
+        var selection = this.testPicker.getCurrentSelection();
+        if (selection && selection.isValid()) {
+          this.addChart(selection.getTestPathAndSelectedSeries(), true);
         }
         this.fireNumChartChangedEvent();
       },
