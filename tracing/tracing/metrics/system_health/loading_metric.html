@@ -68,8 +68,7 @@ tr.exportTo('tr.metrics.sh', function() {
       if (list === undefined) return undefined;
       var eventBeforeTimestamp;
       for (var ev of list) {
-        if (ev.start > ts)
-          continue;
+        if (ev.start > ts) continue;
         if (eventBeforeTimestamp === undefined)
           eventBeforeTimestamp = ev;
       }
@@ -106,11 +105,9 @@ tr.exportTo('tr.metrics.sh', function() {
 
     var snapshot;
     for (var instance of frameLoaderInstances) {
-      if (!instance.isAliveAt(ts))
-        continue;
+      if (!instance.isAliveAt(ts)) continue;
       var maybeSnapshot = instance.getSnapshotAt(ts);
-      if (frameIdRef !== maybeSnapshot.args['frame']['id_ref'])
-        continue;
+      if (frameIdRef !== maybeSnapshot.args['frame']['id_ref']) continue;
       snapshot = maybeSnapshot;
     }
 
@@ -121,8 +118,7 @@ tr.exportTo('tr.metrics.sh', function() {
     var targetEvents = [];
 
     for (var ev of rendererHelper.process.getDescendantEvents()) {
-      if (!hasCategoryAndName(ev, 'blink.user_timing', title))
-        continue;
+      if (!hasCategoryAndName(ev, 'blink.user_timing', title)) continue;
       targetEvents.push(ev);
     }
 
@@ -134,11 +130,9 @@ tr.exportTo('tr.metrics.sh', function() {
     for (var ev of rendererHelper.process.getDescendantEvents()) {
       if (!hasCategoryAndName(ev, 'loading', 'firstMeaningfulPaintCandidate'))
         continue;
-      if (rendererHelper.isTelemetryInternalEvent(ev))
-        continue;
+      if (rendererHelper.isTelemetryInternalEvent(ev)) continue;
       var frameIdRef = ev.args['frame'];
-      if (frameIdRef === undefined)
-        continue;
+      if (frameIdRef === undefined) continue;
       var list = candidatesForFrameId[frameIdRef];
       if (list === undefined)
         candidatesForFrameId[frameIdRef] = list = [];
@@ -164,23 +158,19 @@ tr.exportTo('tr.metrics.sh', function() {
         findAllUserTimingEvents(rendererHelper, eventName);
     var samples = [];
     for (var ev of targetEvents) {
-      if (rendererHelper.isTelemetryInternalEvent(ev))
-        continue;
+      if (rendererHelper.isTelemetryInternalEvent(ev)) continue;
       var frameIdRef = ev.args['frame'];
       var snapshot =
         findFrameLoaderSnapshotAt(rendererHelper, frameIdRef, ev.start);
-      if (snapshot === undefined || !snapshot.args.isLoadingMainFrame)
-        continue;
+      if (snapshot === undefined || !snapshot.args.isLoadingMainFrame) continue;
       var url = snapshot.args.documentLoaderURL;
-      if (shouldIgnoreURL(url))
-        continue;
+      if (shouldIgnoreURL(url)) continue;
       var navigationStartEvent = navigationStartFinder.
         findNavigationStartEventForFrameBeforeTimestamp(
           frameIdRef, ev.start);
       // Ignore layout w/o preceding navigationStart, as they are not
       // attributed to any time-to-X metric.
-      if (navigationStartEvent === undefined)
-        continue;
+      if (navigationStartEvent === undefined) continue;
 
       var timeToEvent = ev.start - navigationStartEvent.start;
       samples.push({
@@ -195,11 +185,9 @@ tr.exportTo('tr.metrics.sh', function() {
       frameIdRef, navigationStart, fmpMarkerEvent) {
     var snapshot = findFrameLoaderSnapshotAt(
         rendererHelper, frameIdRef, fmpMarkerEvent.start);
-    if (snapshot === undefined || !snapshot.args.isLoadingMainFrame)
-      return;
+    if (snapshot === undefined || !snapshot.args.isLoadingMainFrame) return;
     var url = snapshot.args.documentLoaderURL;
-    if (shouldIgnoreURL(url))
-      return;
+    if (shouldIgnoreURL(url)) return;
 
     var timeToFirstMeaningfulPaint =
         fmpMarkerEvent.start - navigationStart.start;
@@ -211,9 +199,12 @@ tr.exportTo('tr.metrics.sh', function() {
         'Breakdown of [navStart, FMP]': breakdownDiagnostic,
         'Start': new RelatedEventSet(navigationStart),
         'End': new RelatedEventSet(fmpMarkerEvent),
-        'Navigation infos': new tr.v.d.Generic(
-            {url: url, pid: rendererHelper.pid,
-              start: navigationStart.start, fmp: fmpMarkerEvent.start}),
+        'Navigation infos': new tr.v.d.Generic({
+          url,
+          pid: rendererHelper.pid,
+          start: navigationStart.start,
+          fmp: fmpMarkerEvent.start
+        }),
       }
     });
     return {firstMeaningfulPaint: fmpMarkerEvent.start, url: url};
@@ -221,8 +212,7 @@ tr.exportTo('tr.metrics.sh', function() {
 
   function addFirstInteractiveSample(samples, rendererHelper,
       navigationStart, firstMeaningfulPaint, url) {
-    if (shouldIgnoreURL(url))
-      return;
+    if (shouldIgnoreURL(url)) return;
     var navigationStartTime = navigationStart.start;
     var firstInteractive = Infinity;
     var firstInteractiveCandidate = firstMeaningfulPaint;
@@ -238,8 +228,7 @@ tr.exportTo('tr.metrics.sh', function() {
     // canary binary is updated.
     // (https://github.com/catapult-project/catapult/issues/2586)
     for (var ev of [...rendererHelper.mainThread.sliceGroup.childEvents()]) {
-      if (ev.start < firstInteractiveCandidate)
-        continue;
+      if (ev.start < firstInteractiveCandidate) continue;
       var interactiveDurationSoFar = ev.start - firstInteractiveCandidate;
       if (interactiveDurationSoFar >= INTERACTIVE_WINDOW_SIZE_MS) {
         firstInteractive = firstInteractiveCandidate;
@@ -260,9 +249,12 @@ tr.exportTo('tr.metrics.sh', function() {
       diagnostics: {
         'Start': new RelatedEventSet(navigationStart),
         'Last long task': new RelatedEventSet(lastLongTaskEvent),
-        'Navigation infos': new tr.v.d.Generic(
-            {url: url, pid: rendererHelper.pid,
-              start: navigationStartTime, interactive: firstInteractive}),
+        'Navigation infos': new tr.v.d.Generic({
+          url,
+          pid: rendererHelper.pid,
+          start: navigationStartTime,
+          interactive: firstInteractive
+        }),
         'Breakdown of [navStart, Interactive]': breakdownDiagnostic,
       }
     });
@@ -319,8 +311,7 @@ tr.exportTo('tr.metrics.sh', function() {
             frameIdRef, ev.start);
         // Ignore candidate w/o preceding navigationStart, as they are not
         // attributed to any TTFMP.
-        if (navigationStartForThisCandidate === undefined)
-          continue;
+        if (navigationStartForThisCandidate === undefined) continue;
 
         if (navigationStart !== navigationStartForThisCandidate) {
           // New navigation is found. Compute TTFMP for current navigation,
@@ -384,8 +375,7 @@ tr.exportTo('tr.metrics.sh', function() {
         tr.model.helpers.ChromeModelHelper);
     for (var pid in chromeHelper.rendererHelpers) {
       var rendererHelper = chromeHelper.rendererHelpers[pid];
-      if (rendererHelper.isChromeTracingUI)
-        continue;
+      if (rendererHelper.isChromeTracingUI) continue;
 
       var {firstContentfulPaintSamples, onLoadSamples,
            firstMeaningfulPaintSamples, firstInteractiveSamples} =

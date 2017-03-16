@@ -26,8 +26,11 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
       rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
-          {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
-            documentLoaderURL: 'http://example.com'});
+          {
+            isLoadingMainFrame: true,
+            frame: {id_ref: '0xdeadbeef'},
+            documentLoaderURL: 'http://example.com'
+          });
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing,rail',
         title: 'firstContentfulPaint',
@@ -38,9 +41,9 @@ tr.b.unittest.testSuite(function() {
     });
     var histograms = new tr.v.HistogramSet();
     tr.metrics.sh.loadingMetric(histograms, model);
-    var numeric = histograms.getHistogramNamed('timeToFirstContentfulPaint');
-    assert.equal(1, numeric.running.count);
-    assert.equal(800, numeric.running.mean);
+    var hist = histograms.getHistogramNamed('timeToFirstContentfulPaint');
+    assert.equal(1, hist.running.count);
+    assert.equal(800, hist.running.mean);
   });
 
   test('timeToFirstContentfulPaintIgnoringWarmCache', function() {
@@ -64,8 +67,11 @@ tr.b.unittest.testSuite(function() {
         duration: 0.0
       }));
       rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
-          {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
-            documentLoaderURL: 'http://example.com'});
+          {
+            isLoadingMainFrame: true,
+            frame: {id_ref: '0xdeadbeef'},
+            documentLoaderURL: 'http://example.com'
+          });
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing,rail',
         title: 'firstContentfulPaint',
@@ -89,8 +95,11 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
       rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 2100,
-          {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
-            documentLoaderURL: 'http://example.com'});
+          {
+            isLoadingMainFrame: true,
+            frame: {id_ref: '0xdeadbeef'},
+            documentLoaderURL: 'http://example.com'
+          });
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing,rail',
         title: 'firstContentfulPaint',
@@ -101,9 +110,9 @@ tr.b.unittest.testSuite(function() {
     });
     var histograms = new tr.v.HistogramSet();
     tr.metrics.sh.loadingMetric(histograms, model);
-    var numeric = histograms.getHistogramNamed('timeToFirstContentfulPaint');
-    assert.equal(1, numeric.running.count);
-    assert.equal(400, numeric.running.mean);
+    var hist = histograms.getHistogramNamed('timeToFirstContentfulPaint');
+    assert.equal(1, hist.running.count);
+    assert.equal(400, hist.running.mean);
   });
 
   test('timeToFirstMeaningfulPaint', function() {
@@ -119,8 +128,11 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
       rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
-          {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
-            documentLoaderURL: 'http://example.com'});
+          {
+            isLoadingMainFrame: true,
+            frame: {id_ref: '0xdeadbeef'},
+            documentLoaderURL: 'http://example.com'
+          });
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'loading',
         title: 'firstMeaningfulPaintCandidate',
@@ -138,9 +150,9 @@ tr.b.unittest.testSuite(function() {
     });
     var histograms = new tr.v.HistogramSet();
     tr.metrics.sh.loadingMetric(histograms, model);
-    var numeric = histograms.getHistogramNamed('timeToFirstMeaningfulPaint');
-    assert.equal(1, numeric.running.count);
-    assert.equal(800, numeric.running.mean);
+    var hist = histograms.getHistogramNamed('timeToFirstMeaningfulPaint');
+    assert.equal(1, hist.running.count);
+    assert.equal(800, hist.running.mean);
   });
 
   test('timeToInteractive', function() {
@@ -164,8 +176,11 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
       rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
-          {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
-            documentLoaderURL: 'http://example.com'});
+          {
+            isLoadingMainFrame: true,
+            frame: {id_ref: '0xdeadbeef'},
+            documentLoaderURL: 'http://example.com'
+          });
 
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'loading',
@@ -220,10 +235,10 @@ tr.b.unittest.testSuite(function() {
     });
     var histograms = new tr.v.HistogramSet();
     tr.metrics.sh.loadingMetric(histograms, model);
-    var numeric = histograms.getHistogramNamed('timeToFirstInteractive');
-    assert.equal(1, numeric.running.count);
-    assert.equal(15200, numeric.running.mean);
-    var binsWithSampleDiagnosticMaps = numeric.allBins.filter(
+    var hist = histograms.getHistogramNamed('timeToFirstInteractive');
+    assert.equal(1, hist.running.count);
+    assert.equal(15200, hist.running.mean);
+    var binsWithSampleDiagnosticMaps = hist.allBins.filter(
         bin => bin.diagnosticMaps.length > 0);
     var diagnostic = binsWithSampleDiagnosticMaps[0].diagnosticMaps[0].get(
         'Navigation infos');
@@ -253,8 +268,11 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
       rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
-          {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
-            documentLoaderURL: 'http://example.com'});
+          {
+            isLoadingMainFrame: true,
+            frame: {id_ref: '0xdeadbeef'},
+            documentLoaderURL: 'http://example.com'
+          });
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'loading',
         title: 'firstMeaningfulPaintCandidate',
@@ -324,10 +342,10 @@ tr.b.unittest.testSuite(function() {
     });
     var histograms = new tr.v.HistogramSet();
     tr.metrics.sh.loadingMetric(histograms, model);
-    var numeric = histograms.getHistogramNamed('timeToFirstInteractive');
-    assert.equal(2, numeric.running.count);
-    assert.equal(4000, numeric.running.min);
-    assert.equal(15200, numeric.running.max);
+    var hist = histograms.getHistogramNamed('timeToFirstInteractive');
+    assert.equal(2, hist.running.count);
+    assert.equal(4000, hist.running.min);
+    assert.equal(15200, hist.running.max);
   });
 
   test('webView', function() {
@@ -343,8 +361,11 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
       process.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
-          {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
-            documentLoaderURL: 'http://example.com'});
+          {
+            isLoadingMainFrame: true,
+            frame: {id_ref: '0xdeadbeef'},
+            documentLoaderURL: 'http://example.com'
+          });
       rendererThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing,rail',
         title: 'firstContentfulPaint',

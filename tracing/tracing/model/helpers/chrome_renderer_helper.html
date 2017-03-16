@@ -18,12 +18,9 @@ tr.exportTo('tr.model.helpers', function() {
         process.findAtMostOneThreadNamed('Chrome_InProcRendererThread');
     this.compositorThread_ = process.findAtMostOneThreadNamed('Compositor');
     this.rasterWorkerThreads_ = process.findAllThreadsMatching(function(t) {
-      if (t.name === undefined)
-        return false;
-      if (t.name.indexOf('CompositorTileWorker') === 0)
-        return true;
-      if (t.name.indexOf('CompositorRasterWorker') === 0)
-        return true;
+      if (t.name === undefined) return false;
+      if (t.name.indexOf('CompositorTileWorker') === 0) return true;
+      if (t.name.indexOf('CompositorRasterWorker') === 0) return true;
       return false;
     });
 
@@ -35,10 +32,8 @@ tr.exportTo('tr.model.helpers', function() {
 
   // Returns true if there is either a main thread or a compositor thread.
   ChromeRendererHelper.isRenderProcess = function(process) {
-    if (process.findAtMostOneThreadNamed('CrRendererMain'))
-      return true;
-    if (process.findAtMostOneThreadNamed('Compositor'))
-      return true;
+    if (process.findAtMostOneThreadNamed('CrRendererMain')) return true;
+    if (process.findAtMostOneThreadNamed('Compositor')) return true;
     return false;
   };
 
