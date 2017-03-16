@@ -157,15 +157,16 @@ class BattOrWrapper(object):
     except ValueError:
       logging.exception('Git hash returned from BattOr was not as expected: %s'
                         % self._git_hash)
-    finally:
-      # TODO(charliea): Once we understand why BattOrs are crashing, only do
-      # this on failure.
-      # http://crbug.com/699581
-      logging.info('_FlashBattOr serial log:')
-      self._UploadSerialLogToCloudStorage()
-      self._serial_log_file = None
 
+    finally:
       if not self._battor_shell:
+        # TODO(charliea): Once we understand why BattOrs are crashing, remove
+        # this log.
+        # http://crbug.com/699581
+        logging.info('_FlashBattOr serial log:')
+        self._UploadSerialLogToCloudStorage()
+        self._serial_log_file = None
+
         self.StartShell()
 
   def KillBattOrShell(self):
