@@ -12,6 +12,7 @@ import signal
 import string
 import StringIO
 import subprocess
+import sys
 import time
 
 # fcntl is not available on Windows.
@@ -93,10 +94,15 @@ def ShrinkToSnippet(cmd_parts, var_name, var_value):
 
 
 def Popen(args, stdout=None, stderr=None, shell=None, cwd=None, env=None):
+  # preexec_fn isn't supported on windows.
+  if sys.platform == 'win32':
+    preexec_fn = None
+  else:
+    preexec_fn = lambda: signal.signal(signal.SIGPIPE, signal.SIG_DFL)
+
   return subprocess.Popen(
       args=args, cwd=cwd, stdout=stdout, stderr=stderr,
-      shell=shell, close_fds=True, env=env,
-      preexec_fn=lambda: signal.signal(signal.SIGPIPE, signal.SIG_DFL))
+      shell=shell, close_fds=True, env=env, preexec_fn=preexec_fn)
 
 
 def Call(args, stdout=None, stderr=None, shell=None, cwd=None, env=None):
