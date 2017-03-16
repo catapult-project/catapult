@@ -390,7 +390,7 @@ class Forwarder(object):
     cmd = '%s %s' % (tool.GetUtilWrapper(), Forwarder._DEVICE_FORWARDER_PATH)
     device.RunShellCommand(
         cmd, env={'LD_LIBRARY_PATH': Forwarder._DEVICE_FORWARDER_FOLDER},
-        check_return=True)
+        check_return=True, shell=True)
     self._initialized_devices.add(device_serial)
 
   @staticmethod
@@ -455,4 +455,4 @@ class Forwarder(object):
                                    Forwarder._DEVICE_FORWARDER_PATH)
     device.RunShellCommand(
         cmd, env={'LD_LIBRARY_PATH': Forwarder._DEVICE_FORWARDER_FOLDER},
-        check_return=True)
+        check_return=True, shell=True)
