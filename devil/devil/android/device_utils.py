@@ -2141,13 +2141,14 @@ class DeviceUtils(object):
     return self.GetProp('ro.product.cpu.abi', cache=True)
 
   @decorators.WithTimeoutAndRetriesFromInstance()
-  def GetPids(self, process_name, timeout=None, retries=None):
-    """Returns the PIDs of processes with the given name.
+  def GetPids(self, process_name=None, timeout=None, retries=None):
+    """Returns the PIDs of processes containing the given name as substring.
 
     Note that the |process_name| is often the package name.
 
     Args:
       process_name: A string containing the process name to get the PIDs for.
+                    If missing returns PIDs for all processes.
       timeout: timeout in seconds
       retries: number of retries
 
@@ -2166,8 +2167,12 @@ class DeviceUtils(object):
       if (self.build_version_sdk >= version_codes.NOUGAT_MR1
           and self.build_id[0] > 'N'):
         ps_cmd = 'ps -e'
-      ps_output = self._RunPipedShellCommand(
-          '%s | grep -F %s' % (ps_cmd, cmd_helper.SingleQuote(process_name)))
+      if process_name:
+        ps_output = self._RunPipedShellCommand(
+            '%s | grep -F %s' % (ps_cmd, cmd_helper.SingleQuote(process_name)))
+      else:
+        ps_output = self.RunShellCommand(
+            ps_cmd.split(), check_return=True, large_output=True)
     except device_errors.AdbShellCommandFailedError as e:
       if e.status and isinstance(e.status, list) and not e.status[0]:
         # If ps succeeded but grep failed, there were no processes with the
@@ -2176,15 +2181,48 @@ class DeviceUtils(object):
       else:
         raise
 
+    process_name = process_name or ''
     for line in ps_output:
       try:
         ps_data = line.split()
-        if process_name in ps_data[-1]:
-          pid, process = ps_data[1], ps_data[-1]
+        pid, process = ps_data[1], ps_data[-1]
+        if process_name in process and pid != 'PID':
           procs_pids[process].append(pid)
       except IndexError:
         pass
     return procs_pids
+
+  def GetApplicationPids(self, process_name, at_most_one=False, **kwargs):
+    """Returns the PID or PIDs of a given process name.
+
+    Note that the |process_name|, often the package name, must match exactly.
+
+    Args:
+      process_name: A string containing the process name to get the PIDs for.
+      at_most_one: A boolean indicating that at most one PID is expected to
+                   be found.
+      timeout: timeout in seconds
+      retries: number of retries
+
+    Returns:
+      A list of the PIDs for the named process. If at_most_one=True returns
+      the single PID found or None otherwise.
+
+    Raises:
+      CommandFailedError if at_most_one=True and more than one PID is found
+          for the named process.
+      CommandTimeoutError on timeout.
+      DeviceUnreachableError on missing device.
+    """
+    pids = self.GetPids(process_name, **kwargs).get(process_name, [])
+    if at_most_one:
+      if len(pids) > 1:
+        raise device_errors.CommandFailedError(
+            'Expected a single process but found PIDs: %s.' % ', '.join(pids),
+            device_serial=str(self))
+      return pids[0] if pids else None
+    else:
+      return pids
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def GetEnforce(self, timeout=None, retries=None):

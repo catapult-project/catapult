@@ -2266,6 +2266,20 @@ class DeviceUtilsSetPropTest(DeviceUtilsTest):
 
 
 class DeviceUtilsGetPidsTest(DeviceUtilsTest):
+  def setUp(self):
+    super(DeviceUtilsGetPidsTest, self).setUp()
+    self.sample_output = [
+        'USER  PID     PPID  VSIZE RSS   WCHAN          PC  NAME',
+        'user  1001    100   1024  1024  ffffffff 00000000 one.match',
+        'user  1002    100   1024  1024  ffffffff 00000000 two.match',
+        'user  1003    100   1024  1024  ffffffff 00000000 three.match',
+        'user  1234    100   1024  1024  ffffffff 00000000 my$process',
+        'user  1000    100   1024  1024  ffffffff 00000000 foo',
+        'user  1236    100   1024  1024  ffffffff 00000000 foo',
+    ]
+
+  def _grepOutput(self, substring):
+    return [line for line in self.sample_output if substring in line]
 
   def testGetPids_sdkGreaterThanNougatMR1(self):
     with self.patch_call(self.call.device.build_version_sdk,
@@ -2282,7 +2296,7 @@ class DeviceUtilsGetPidsTest(DeviceUtilsTest):
                          return_value=version_codes.LOLLIPOP):
       with self.assertCall(
           self.call.device._RunPipedShellCommand('ps | grep -F does.not.match'),
-          []):
+          self._grepOutput('does.not.match')):
         self.assertEqual({}, self.device.GetPids('does.not.match'))
 
   def testGetPids_oneMatch(self):
@@ -2290,7 +2304,7 @@ class DeviceUtilsGetPidsTest(DeviceUtilsTest):
                          return_value=version_codes.LOLLIPOP):
       with self.assertCall(
           self.call.device._RunPipedShellCommand('ps | grep -F one.match'),
-          ['user  1001    100   1024 1024   ffffffff 00000000 one.match']):
+          self._grepOutput('one.match')):
         self.assertEqual(
             {'one.match': ['1001']},
             self.device.GetPids('one.match'))
@@ -2300,32 +2314,19 @@ class DeviceUtilsGetPidsTest(DeviceUtilsTest):
                          return_value=version_codes.LOLLIPOP):
       with self.assertCall(
           self.call.device._RunPipedShellCommand('ps | grep -F match'),
-          ['user  1001    100   1024 1024   ffffffff 00000000 one.match',
-           'user  1002    100   1024 1024   ffffffff 00000000 two.match',
-           'user  1003    100   1024 1024   ffffffff 00000000 three.match']):
+          self._grepOutput('match')):
         self.assertEqual(
             {'one.match': ['1001'],
              'two.match': ['1002'],
              'three.match': ['1003']},
             self.device.GetPids('match'))
 
-  def testGetPids_exactMatch(self):
-    with self.patch_call(self.call.device.build_version_sdk,
-                         return_value=version_codes.LOLLIPOP):
-      with self.assertCall(
-          self.call.device._RunPipedShellCommand('ps | grep -F exact.match'),
-          ['user  1000    100   1024 1024   ffffffff 00000000 not.exact.match',
-           'user  1234    100   1024 1024   ffffffff 00000000 exact.match']):
-        self.assertEqual(
-            {'not.exact.match': ['1000'], 'exact.match': ['1234']},
-            self.device.GetPids('exact.match'))
-
   def testGetPids_quotable(self):
     with self.patch_call(self.call.device.build_version_sdk,
                          return_value=version_codes.LOLLIPOP):
       with self.assertCall(
           self.call.device._RunPipedShellCommand("ps | grep -F 'my$process'"),
-          ['user  1234    100   1024 1024   ffffffff 00000000 my$process']):
+          self._grepOutput('my$process')):
         self.assertEqual(
             {'my$process': ['1234']}, self.device.GetPids('my$process'))
 
@@ -2334,11 +2335,82 @@ class DeviceUtilsGetPidsTest(DeviceUtilsTest):
                          return_value=version_codes.LOLLIPOP):
       with self.assertCall(
           self.call.device._RunPipedShellCommand('ps | grep -F foo'),
-          ['user  1000    100   1024 1024   ffffffff 00000000 foo',
-           'user  1234    100   1024 1024   ffffffff 00000000 foo']):
+          self._grepOutput('foo')):
         self.assertEqual(
-            {'foo': ['1000', '1234']},
+            {'foo': ['1000', '1236']},
             self.device.GetPids('foo'))
+
+  def testGetPids_allProcesses(self):
+    with self.patch_call(self.call.device.build_version_sdk,
+                         return_value=version_codes.LOLLIPOP):
+      with self.assertCall(
+          self.call.device.RunShellCommand(
+              ['ps'], check_return=True, large_output=True),
+          self.sample_output):
+        self.assertEqual(
+            {'one.match': ['1001'],
+             'two.match': ['1002'],
+             'three.match': ['1003'],
+             'my$process': ['1234'],
+             'foo': ['1000', '1236']},
+            self.device.GetPids())
+
+  def testGetApplicationPids_notFound(self):
+    with self.patch_call(self.call.device.build_version_sdk,
+                         return_value=version_codes.LOLLIPOP):
+      with self.assertCall(
+          self.call.device._RunPipedShellCommand('ps | grep -F match'),
+          self._grepOutput('match')):
+        # No PIDs found, process name should be exact match.
+        self.assertEqual([], self.device.GetApplicationPids('match'))
+
+  def testGetApplicationPids_foundOne(self):
+    with self.patch_call(self.call.device.build_version_sdk,
+                         return_value=version_codes.LOLLIPOP):
+      with self.assertCall(
+          self.call.device._RunPipedShellCommand('ps | grep -F one.match'),
+          self._grepOutput('one.match')):
+        self.assertEqual(['1001'], self.device.GetApplicationPids('one.match'))
+
+  def testGetApplicationPids_foundMany(self):
+    with self.patch_call(self.call.device.build_version_sdk,
+                         return_value=version_codes.LOLLIPOP):
+      with self.assertCall(
+          self.call.device._RunPipedShellCommand('ps | grep -F foo'),
+          self._grepOutput('foo')):
+        self.assertEqual(
+            ['1000', '1236'],
+            self.device.GetApplicationPids('foo'))
+
+  def testGetApplicationPids_atMostOneNotFound(self):
+    with self.patch_call(self.call.device.build_version_sdk,
+                         return_value=version_codes.LOLLIPOP):
+      with self.assertCall(
+          self.call.device._RunPipedShellCommand('ps | grep -F match'),
+          self._grepOutput('match')):
+        # No PIDs found, process name should be exact match.
+        self.assertEqual(
+            None,
+            self.device.GetApplicationPids('match', at_most_one=True))
+
+  def testGetApplicationPids_atMostOneFound(self):
+    with self.patch_call(self.call.device.build_version_sdk,
+                         return_value=version_codes.LOLLIPOP):
+      with self.assertCall(
+          self.call.device._RunPipedShellCommand('ps | grep -F one.match'),
+          self._grepOutput('one.match')):
+        self.assertEqual(
+            '1001',
+            self.device.GetApplicationPids('one.match', at_most_one=True))
+
+  def testGetApplicationPids_atMostOneFoundTooMany(self):
+    with self.patch_call(self.call.device.build_version_sdk,
+                         return_value=version_codes.LOLLIPOP):
+      with self.assertRaises(device_errors.CommandFailedError):
+        with self.assertCall(
+            self.call.device._RunPipedShellCommand('ps | grep -F foo'),
+            self._grepOutput('foo')):
+          self.device.GetApplicationPids('foo', at_most_one=True)
 
 
 class DeviceUtilsGetSetEnforce(DeviceUtilsTest):
