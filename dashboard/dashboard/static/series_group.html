@@ -53,8 +53,13 @@ tr.exportTo('d', function() {
     const unselectedTests = simple_xhr.asPromise(
         'list_tests', unselectedParams);
 
+    // TODO(eakuefner): Make this error handling better. See
+    // https://github.com/catapult-project/catapult/issues/3391.
     return Promise.all([selectedTests, unselectedTests]).then(
-        tests => new SeriesGroup(mainPath, ...tests));
+        tests => new SeriesGroup(mainPath, ...tests),
+        reason => {
+          throw new Error(reason);
+        });
   };
 
   /**
@@ -76,7 +81,7 @@ tr.exportTo('d', function() {
     return {
       type: 'test_path_dict',
       test_path_dict: JSON.stringify(testPathDict(...legacyChartStateElement)),
-      selected: selectedStr
+      return_selected: selectedStr
     };
   }
 

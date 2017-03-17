@@ -482,16 +482,22 @@ found in the LICENSE file.
             event.target).groupIndex;
         var testPath = this.seriesGroupList[groupIndex].path;
         var selectedTests = [];
+        var unselectedTests = [];
         var tests = this.seriesGroupList[groupIndex].tests;
         for (var i = 0; i < tests.length; i++) {
           if (tests[i].selected) {
             selectedTests.push(tests[i].name);
+          } else {
+            unselectedTests.push(tests[i].name);
           }
         }
         event.dataTransfer.setData('type', 'seriesdnd');
-        // chart-container takes a list of test path and selected tests pair.
         event.dataTransfer.setData(
-            'data', JSON.stringify([[testPath, selectedTests]]));
+            'data', JSON.stringify({
+              mainPath: testPath,
+              selectedPaths: selectedTests,
+              unselectedPaths: unselectedTests
+            }));
         event.dataTransfer.effectAllowed = 'copy';
       },
 

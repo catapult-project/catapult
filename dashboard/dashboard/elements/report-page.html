@@ -7,6 +7,7 @@ found in the LICENSE file.
 <link rel="import" href="/dashboard/elements/chart-container.html">
 <link rel="import" href="/dashboard/elements/test-picker.html">
 <link rel="import" href="/dashboard/static/events.html">
+<link rel="import" href="/dashboard/static/series_group.html">
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 <link rel="import" href="/dashboard/static/uri.html">
 
@@ -125,22 +126,36 @@ found in the LICENSE file.
        * @param {Object} event Event object.
        */
       onUriLoad: function(event) {
-        var params = event.detail.params;
-        var pageState = event.detail.state;
+        const params = event.detail.params;
+        const pageState = event.detail.state;
         if (!pageState) {
           return;
         }
         // Set page level parameters.
         this.graphParams = {};
-        for (var key in params) {
+        for (const key in params) {
           this.graphParams[key] = params[key];
         }
 
         // Add charts.
-        var chartStates = pageState['charts'];
-        for (var i = 0; i < chartStates.length; i++) {
-          this.addChart(chartStates[i], false);
+        const legacyChartStates = pageState['charts'];
+        const chartStates = [];
+
+        for (const legacyChartState of legacyChartStates) {
+          const elements = [];
+          for (const legacyElement of legacyChartState) {
+            const element = d.SeriesGroup.fromLegacyChartStateElement(
+                legacyElement);
+            elements.push(element);
+          }
+          chartStates.push(Promise.all(elements));
         }
+
+        Promise.all(chartStates).then(states => {
+          for (const state of states) {
+            this.addChart(state, false);
+          }
+        });
       },
 
       /**
@@ -158,11 +173,10 @@ found in the LICENSE file.
 
       /**
        * Adds a chart.
-       * @param {Array.<Array>} testPathAndSelected A list of two-element
-       *     Arrays, each containing a test path and selected series to plot.
+       * @param {Array.<d.SeriesGroup>} seriesGroups A list of SeriesGroups.
        * @param {boolean} isPrepend True for prepend, false for append.
        */
-      addChart: function(testPathAndSelected, isPrepend) {
+      addChart: function(seriesGroups, isPrepend) {
         // TODO(sullivan): This should be done with a polymer template, not
         // JavaScript-built DOM!!
         var container = this.$['charts-container'];
@@ -184,7 +198,10 @@ found in the LICENSE file.
         chart.addEventListener(
             'revisionrange', this.onRevisionRangeChanged.bind(this));
         this.setChartData(chart);
-        chart.addSeriesGroup(testPathAndSelected, true);
+
+        for (const seriesGroup of seriesGroups) {
+          chart.addSeriesGroup2(seriesGroup, true);
+        }
         this.testPicker.hasChart = true;
       },
 
@@ -241,9 +258,13 @@ found in the LICENSE file.
        * On 'Add' button clicked, add a chart for the current selection.
        */
       onAddChartButtonClicked: function(event) {
-        var selection = this.testPicker.getCurrentSelection();
-        if (selection && selection.isValid()) {
-          this.addChart(selection.getTestPathAndSelectedSeries(), true);
+        const selectedPaths = this.testPicker.getCurrentSelection();
+        if (selectedPaths) {
+          const mainPath = this.testPicker.getCurrentSelectedPath();
+          const unselectedPaths = this.testPicker.getCurrentUnselected();
+          const seriesGroup = new d.SeriesGroup(mainPath, selectedPaths,
+                                                unselectedPaths);
+          this.addChart([seriesGroup], true);
         }
         this.fireNumChartChangedEvent();
       },

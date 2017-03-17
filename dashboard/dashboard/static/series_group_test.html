@@ -25,13 +25,13 @@ tr.b.unittest.testSuite(() => {
   test('requestParamsSelected', () => {
     const element = ['foo', []];
     const params = d.listTestsRequestParams(element, true);
-    assert.strictEqual(params.selected, '1');
+    assert.strictEqual(params.return_selected, '1');
   });
 
   test('requestParamsUnselected', () => {
     const element = ['foo', []];
     const params = d.listTestsRequestParams(element, false);
-    assert.strictEqual(params.selected, '0');
+    assert.strictEqual(params.return_selected, '0');
   });
 
   test('requestParamsAll', () => {

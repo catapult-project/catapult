@@ -21,6 +21,7 @@ triaging functionality in the chart.
 <link rel="import" href="/dashboard/elements/chart-title.html">
 <link rel="import" href="/dashboard/elements/chart-tooltip.html">
 <link rel="import" href="/dashboard/static/events.html">
+<link rel="import" href="/dashboard/static/series_group.html">
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 <link rel="import" href="/dashboard/static/testselection.html">
 <link rel="import" href="/dashboard/static/uri.html">
@@ -347,7 +348,7 @@ triaging functionality in the chart.
             type: Array,
             value: () => [],
           },
-          // TODO(chrisphan): Make seriesGroupList a class.
+
           // A list of series group dictionary. A series group contains test
           // path and list of test information. This is displayed in
           // chart-legend, where each test is a checkable series.
@@ -622,7 +623,7 @@ triaging functionality in the chart.
          *
          * @param {Array.<Array>} testPathAndSelected A list of
          *     pair of test path and a list of selected series.
-         * @return {boolean} collapse Whether unchecked and unimportant
+         * @param {boolean} collapse Whether unchecked and unimportant
          *     series should start off hidden.
          */
         addSeriesGroup: function(testPathAndSelected, collapse) {
@@ -693,22 +694,86 @@ triaging functionality in the chart.
         },
 
         /**
+         * Adds series group to graph explicitly.
+         *
+         * Since adding the test_path_dict mode for /list_tests, the preferred
+         * flow for resolving a test path into lists of selected and unselected
+         * tests is to use this endpoint to resolve them directly. This function
+         * should be functionally equivalent to addSeriesGroup except for this
+         * resolution step, and the goal is to replace it
+         * (https://github.com/catapult-project/catapult/issues/3385).
+         *
+         * @param {d.SeriesGroup} seriesGroup The series group to be added.
+         * @param {boolean} collapse Whether unchecked and unimportant
+         *     series should start off hidden.
+         */
+        addSeriesGroup2: function(seriesGroup, collapse) {
+          const mainPath = seriesGroup.mainPath;
+          const selectedPaths = seriesGroup.selectedPaths;
+          const unselectedPaths = seriesGroup.unselectedPaths;
+
+          // Checks if test path already exists.
+          const testPathSet = new Set(
+              this.seriesGroupList.map(group => group.path));
+
+          if (testPathSet.has(mainPath)) {
+            return;
+          }
+
+          const tests = [];
+          for (const selectedPath of selectedPaths) {
+            tests.push({
+              name: selectedPath.split('/').slice(-1)[0],
+              selected: true
+            });
+          }
+
+          const legacySeriesGroup = {
+            path: mainPath,
+            tests: tests,
+            collapse: collapse,
+            numPendingRequests: 0
+          };
+
+          this.push('seriesGroupList', legacySeriesGroup);
+
+          if (selectedPaths.length > 0) {
+            this.sendGraphJsonRequest(selectedPaths, true, mainPath);
+          }
+
+          if (unselectedPaths.length > 0) {
+            this.sendGraphJsonRequest(unselectedPaths, false, mainPath);
+          }
+
+          this.updateSlider();
+          this.$.title.update();
+        },
+
+
+        /**
          * Sends a request for graph JSON.
          *
          * @param {Object} testPathDictOrList Dictionary of test path to list of
          *     selected series, or flat list of test paths.
-         * @return {boolean} isSelected Whether this request is for selected
+         * @param {boolean} isSelected Whether this request is for selected
          *     or unselected series.
+         * @param {String} mainPath If a list of tests is supplied, the main
+         *     path to which they belong, for updating the counter.
          */
-        sendGraphJsonRequest: function(testPathDictOrList, isSelected) {
+        sendGraphJsonRequest: function(
+            testPathDictOrList, isSelected, mainPath) {
+          // TODO(eakuefner): Get rid of mainPath once loading counter is
+          // cleaned up
           var params = JSON.parse(JSON.stringify(this.graphParams));
 
           if (testPathDictOrList instanceof Array) {
             var testPaths = testPathDictOrList;
             params.test_path_list = testPathDictOrList;
+            var pathsForUpdate = [mainPath];
           } else {
             var testPaths = Object.keys(testPathDictOrList);
             params.test_path_dict = testPathDictOrList;
+            var pathsForUpdate = testPaths;
           }
 
           // TODO(eakuefner): Figure out how to remove this parameter since in
@@ -717,7 +782,7 @@ triaging functionality in the chart.
             params['is_selected'] = true;
           }
 
-          this.updateSeriesGroupLoadingCounter(testPaths, true);
+          this.updateSeriesGroupLoadingCounter(pathsForUpdate, true);
 
           var req = simple_xhr.send(
               '/graph_json',
@@ -732,7 +797,7 @@ triaging functionality in the chart.
                 }
 
                 this.updateSeriesGroupLoadingCounter(
-                    testPaths, false);
+                    pathsForUpdate, false);
                 this.$['loading-div'].style.display = 'none';
               }.bind(this),
               function(error) {
@@ -741,7 +806,7 @@ triaging functionality in the chart.
                   this.checkForInternalUser();
                 }
                 this.updateSeriesGroupLoadingCounter(
-                    testPaths, false);
+                    pathsForUpdate, false);
                 this.$['loading-div'].style.display = 'none';
               }.bind(this)
           );
@@ -2433,7 +2498,9 @@ triaging functionality in the chart.
           }
           var data = JSON.parse(dataTransfer.getData('data'));
           if (data) {
-            this.addSeriesGroup(data, true);
+            const seriesGroup = new d.SeriesGroup(
+                data.mainPath, data.selectedPaths, data.unselectedPaths);
+            this.addSeriesGroup2(seriesGroup, true);
           }
           this.fireChartStateChangedEvent(this.seriesGroupList);
         },
