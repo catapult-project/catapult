@@ -517,7 +517,8 @@ found in the LICENSE file.
               this.currentUnselectedTests_ = response;
             }.bind(this),
             function(error) {
-              if (error) console.log('Error from retCurrentSelection.');
+              // TODO(eakuefner): Make this error handling better. See
+              // https://github.com/catapult-project/catapult/issues/3391
             }.bind(this)
         );
 
@@ -537,7 +538,6 @@ found in the LICENSE file.
               this.updateSubtestMenus(2);
             }.bind(this),
             function(error) {
-              if (error) console.log('Error from retCurrentSelection.');
               this.loading = false;
             }.bind(this)
         );

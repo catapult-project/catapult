@@ -57,6 +57,7 @@
       "no-confusing-arrow": ["error", {
         "allowParens": true
       }],
+      "no-console": "error",
       "no-constant-condition": "off",
       "no-control-regex": "off",
       "no-dupe-keys": "off",
