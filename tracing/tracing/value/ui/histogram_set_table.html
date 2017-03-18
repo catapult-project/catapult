@@ -397,9 +397,8 @@ tr.exportTo('tr.v.ui', function() {
       this.setExpansionStates_(expansionStates);
 
       this.updateStatisticSelector_();
-      if (prevReferenceDisplayLabel === '' && this.referenceDisplayLabel &&
-          this.displayStatistic === 'avg') {
-        this.displayStatistic = tr.v.ABS_DELTA_AVG_NAME;
+      if (prevReferenceDisplayLabel === '' && this.referenceDisplayLabel) {
+        this.displayStatistic = tr.v.DELTA + this.displayStatistic;
       }
     },
 
@@ -419,7 +418,8 @@ tr.exportTo('tr.v.ui', function() {
       Polymer.dom(this.$.statistic_container).textContent = '';
       let statNames = Array.from(this.statNames);
       if (this.referenceDisplayLabel) {
-        statNames = statNames.concat(tr.v.DELTA_STATISTIC_NAMES);
+        statNames.push.apply(
+            statNames, tr.v.Histogram.getDeltaStatisticsNames(statNames));
       }
       if (statNames.indexOf(this.displayStatistic_) < 0) {
         // createSelector throws if defaultValue is not in options.

@@ -39,6 +39,93 @@ tr.b.unittest.testSuite(function() {
     }
   }
 
+  test('getStatisticScalar', function() {
+    const hist = new tr.v.Histogram('', unitlessNumber);
+    // getStatisticScalar should work even when the statistics are disabled.
+    hist.customizeSummaryOptions({
+      avg: false,
+      count: false,
+      max: false,
+      min: false,
+      std: false,
+      sum: false,
+    });
+
+    assert.isUndefined(hist.getStatisticScalar('avg'));
+    assert.isUndefined(hist.getStatisticScalar('std'));
+    assert.strictEqual(0, hist.getStatisticScalar('geometricMean').value);
+    assert.strictEqual(Infinity, hist.getStatisticScalar('min').value);
+    assert.strictEqual(-Infinity, hist.getStatisticScalar('max').value);
+    assert.strictEqual(0, hist.getStatisticScalar('sum').value);
+    assert.strictEqual(0, hist.getStatisticScalar('nans').value);
+    assert.strictEqual(0, hist.getStatisticScalar('count').value);
+    assert.strictEqual(0, hist.getStatisticScalar('pct_000').value);
+    assert.strictEqual(0, hist.getStatisticScalar('pct_050').value);
+    assert.strictEqual(0, hist.getStatisticScalar('pct_100').value);
+
+    assert.isFalse(hist.canCompare());
+    assert.throws(() => hist.getStatisticScalar(tr.v.DELTA + 'avg'));
+
+    const ref = new tr.v.Histogram('', unitlessNumber);
+    for (let i = 0; i < 10; ++i) {
+      hist.addSample(i * 10);
+      ref.addSample(i);
+    }
+
+    assert.strictEqual(45, hist.getStatisticScalar('avg').value);
+    assert.closeTo(30.277, hist.getStatisticScalar('std').value, 1e-3);
+    assert.closeTo(0, hist.getStatisticScalar('geometricMean').value, 1e-4);
+    assert.strictEqual(0, hist.getStatisticScalar('min').value);
+    assert.strictEqual(90, hist.getStatisticScalar('max').value);
+    assert.strictEqual(450, hist.getStatisticScalar('sum').value);
+    assert.strictEqual(0, hist.getStatisticScalar('nans').value);
+    assert.strictEqual(10, hist.getStatisticScalar('count').value);
+    assert.closeTo(18.371, hist.getStatisticScalar('pct_025').value, 1e-3);
+    assert.closeTo(55.48, hist.getStatisticScalar('pct_075').value, 1e-3);
+
+    assert.strictEqual(40.5, hist.getStatisticScalar(
+        tr.v.DELTA + 'avg', ref).value);
+    assert.closeTo(27.249, hist.getStatisticScalar(
+        tr.v.DELTA + 'std', ref).value, 1e-3);
+    assert.closeTo(0, hist.getStatisticScalar(
+        tr.v.DELTA + 'geometricMean', ref).value, 1e-4);
+    assert.strictEqual(0, hist.getStatisticScalar(
+        tr.v.DELTA + 'min', ref).value);
+    assert.strictEqual(81, hist.getStatisticScalar(
+        tr.v.DELTA + 'max', ref).value);
+    assert.strictEqual(405, hist.getStatisticScalar(
+        tr.v.DELTA + 'sum', ref).value);
+    assert.strictEqual(0, hist.getStatisticScalar(
+        tr.v.DELTA + 'nans', ref).value);
+    assert.strictEqual(0, hist.getStatisticScalar(
+        tr.v.DELTA + 'count', ref).value);
+    assert.closeTo(16.357, hist.getStatisticScalar(
+        tr.v.DELTA + 'pct_025', ref).value, 1e-3);
+    assert.closeTo(49.396, hist.getStatisticScalar(
+        tr.v.DELTA + 'pct_075', ref).value, 1e-3);
+
+    assert.strictEqual(9, hist.getStatisticScalar(
+        `%${tr.v.DELTA}avg`, ref).value);
+    assert.closeTo(9, hist.getStatisticScalar(
+        `%${tr.v.DELTA}std`, ref).value, 1e-3);
+    assert.isTrue(isNaN(hist.getStatisticScalar(
+        `%${tr.v.DELTA}geometricMean`, ref).value));
+    assert.isTrue(isNaN(hist.getStatisticScalar(
+        `%${tr.v.DELTA}min`, ref).value));
+    assert.strictEqual(9, hist.getStatisticScalar(
+        `%${tr.v.DELTA}max`, ref).value);
+    assert.strictEqual(9, hist.getStatisticScalar(
+        `%${tr.v.DELTA}sum`, ref).value);
+    assert.isTrue(isNaN(hist.getStatisticScalar(
+        `%${tr.v.DELTA}nans`, ref).value));
+    assert.strictEqual(0, hist.getStatisticScalar(
+        `%${tr.v.DELTA}count`, ref).value);
+    assert.closeTo(8.12, hist.getStatisticScalar(
+        `%${tr.v.DELTA}pct_025`, ref).value, 1e-3);
+    assert.closeTo(8.12, hist.getStatisticScalar(
+        `%${tr.v.DELTA}pct_075`, ref).value, 1e-3);
+  });
+
   test('serializationSize', function() {
     // Ensure that serialized Histograms don't take up too much more space than
     // necessary.

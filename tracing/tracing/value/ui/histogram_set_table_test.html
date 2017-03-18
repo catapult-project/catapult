@@ -445,11 +445,11 @@ tr.b.unittest.testSuite(function() {
         barCell, elem => elem.id === 'content');
     assert.isDefined(barContent);
 
-    assert.strictEqual(table.displayStatistic, tr.v.ABS_DELTA_AVG_NAME);
+    assert.strictEqual(table.displayStatistic, `${tr.v.DELTA}avg`);
     assert.strictEqual('20.000 ms', fooContent.textContent);
     assert.strictEqual('-18.000 ms', barContent.textContent);
 
-    table.displayStatistic = tr.v.PCT_DELTA_AVG_NAME;
+    table.displayStatistic = `%${tr.v.DELTA}avg`;
 
     fooCell = tr.b.findDeepElementMatchingPredicate(table, elem => (
       (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
@@ -471,7 +471,7 @@ tr.b.unittest.testSuite(function() {
         barCell, elem => elem.id === 'content');
     assert.isDefined(barContent);
 
-    assert.strictEqual(table.displayStatistic, tr.v.PCT_DELTA_AVG_NAME);
+    assert.strictEqual(table.displayStatistic, `%${tr.v.DELTA}avg`);
     assert.strictEqual('20.000 ms', fooContent.textContent);
     assert.strictEqual('-90.000%', barContent.textContent);
   });
@@ -1040,7 +1040,7 @@ tr.b.unittest.testSuite(function() {
 
     let nameCell = tr.b.findDeepElementMatchingPredicate(
         table, e => e.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-NAME-CELL');
-    assert.strictEqual(321, nameCell.getBoundingClientRect().width);
+    assert.closeTo(321, nameCell.getBoundingClientRect().width, 1);
     nameHeaderCell.children[1].click();
     assert.isBelow(322, nameCell.getBoundingClientRect().width);
     nameHeaderCell.children[1].click();

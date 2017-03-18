@@ -238,8 +238,6 @@ tr.exportTo('tr.ui', function() {
       this.$.open_histogram.style.visibility = 'visible';
       this.$.scalar.style.display = 'flex';
 
-      let displayStatistic = this.displayStatistic;
-
       if ((this.referenceHistogram instanceof tr.v.Histogram) &&
           (this.histogram.unit === this.referenceHistogram.unit) &&
           (this.referenceHistogram.numValues > 0)) {
@@ -247,8 +245,10 @@ tr.exportTo('tr.ui', function() {
             this.referenceHistogram);
       }
 
-      let statisticScalar = this.histogram.getStatisticScalar(
-          displayStatistic, this.referenceHistogram);
+      const statName = this.histogram.getAvailableStatisticName(
+          this.displayStatistic, this.referenceHistogram);
+      const statisticScalar = this.histogram.getStatisticScalar(
+          statName, this.referenceHistogram);
       this.$.scalar.setValueAndUnit(
           statisticScalar.value, statisticScalar.unit);
 

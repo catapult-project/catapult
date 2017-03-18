@@ -69,14 +69,8 @@ tr.exportTo('tr.v', function() {
 
     prepare_() {
       for (let hist of this.histograms_) {
-        for (let [name, option] of hist.summaryOptions) {
-          if (name === 'percentile') {
-            for (let percent of option) {
-              this.statisticsNames_.add('pct_' + tr.v.percentToString(percent));
-            }
-          } else if (option) {
-            this.statisticsNames_.add(name);
-          }
+        for (const name of hist.statisticsNames) {
+          this.statisticsNames_.add(name);
         }
 
         let iteration = tr.v.d.TelemetryInfo.getFromHistogram(hist);

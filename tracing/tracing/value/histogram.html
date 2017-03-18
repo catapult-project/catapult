@@ -23,23 +23,9 @@ tr.exportTo('tr.v', function() {
   const DEFAULT_BOUNDARIES_FOR_UNIT = new Map();
 
   const DELTA = String.fromCharCode(916);
-  const ABS_DELTA_AVG_NAME = 'abs' + DELTA + 'avg';
-  const PCT_DELTA_AVG_NAME = '%' + DELTA + 'avg';
   const Z_SCORE_NAME = 'z-score';
-  const ABS_DELTA_STD_NAME = 'abs' + DELTA + 'std';
-  const PCT_DELTA_STD_NAME = '%' + DELTA + 'std';
   const P_VALUE_NAME = 'p-value';
   const U_STATISTIC_NAME = 'U';
-
-  const DELTA_STATISTIC_NAMES = [
-    ABS_DELTA_AVG_NAME,
-    PCT_DELTA_AVG_NAME,
-    Z_SCORE_NAME,
-    ABS_DELTA_STD_NAME,
-    PCT_DELTA_STD_NAME,
-    P_VALUE_NAME,
-    U_STATISTIC_NAME,
-  ];
 
   /**
    * Converts the given percent to a string in the format specified above.
@@ -498,7 +484,7 @@ tr.exportTo('tr.v', function() {
       for (let [stat, option] of other.summaryOptions) {
         if (stat === 'percentile') {
           for (let percent of option) {
-            let percentiles = this.summaryOptions.get('percentile');
+            let percentiles = this.summaryOptions.get(stat);
             if (percentiles.indexOf(percent) < 0) {
               percentiles.push(percent);
             }
@@ -535,23 +521,10 @@ tr.exportTo('tr.v', function() {
      * @param {!tr.v.Histogram=} opt_referenceHistogram
      * @param {!HypothesisTestResult=} opt_mwu
      * @return {!tr.b.Scalar}
+     * @throws {Error} When statName is not recognized, such as delta statistics
+     *     when !this.canCompare(opt_referenceHistograms).
      */
     getStatisticScalar(statName, opt_referenceHistogram, opt_mwu) {
-      if (!(opt_referenceHistogram instanceof Histogram) ||
-          (this.unit !== opt_referenceHistogram.unit) ||
-          (opt_referenceHistogram.numValues === 0)) {
-        if (statName === tr.v.ABS_DELTA_AVG_NAME ||
-            statName === tr.v.PCT_DELTA_AVG_NAME ||
-            statName === tr.v.Z_SCORE_NAME ||
-            statName === tr.v.P_VALUE_NAME ||
-            statName === tr.v.U_STATISTIC_NAME) {
-          statName = 'avg';
-        } else if (statName === tr.v.ABS_DELTA_STD_NAME ||
-                   statName === tr.v.PCT_DELTA_STD_NAME) {
-          statName = 'std';
-        }
-      }
-
       if (statName === 'avg') {
         if (this.running_ === undefined) return undefined;
         return new tr.b.Scalar(this.unit, this.average);
@@ -583,49 +556,54 @@ tr.exportTo('tr.v', function() {
         return new tr.b.Scalar(this.unit, percentile);
       }
 
-      if (opt_referenceHistogram instanceof Histogram &&
-          this.unit === opt_referenceHistogram.unit &&
-          opt_referenceHistogram.numValues > 0) {
-        let absDeltaAvg = this.average - opt_referenceHistogram.average;
-        let suffix = tr.b.Unit.nameSuffixForImprovementDirection(
-            this.unit.improvementDirection);
-        if (statName === ABS_DELTA_AVG_NAME) {
-          return new tr.b.Scalar(this.unit.correspondingDeltaUnit, absDeltaAvg);
-        }
-        if (statName === PCT_DELTA_AVG_NAME) {
-          return new tr.b.Scalar(
-              tr.b.Unit.byName['normalizedPercentageDelta' + suffix],
-              absDeltaAvg / opt_referenceHistogram.average);
-        }
-        let absDeltaStd = this.standardDeviation -
-          opt_referenceHistogram.standardDeviation;
-        if (statName === ABS_DELTA_STD_NAME) {
-          return new tr.b.Scalar(this.unit.correspondingDeltaUnit, absDeltaStd);
-        }
-        if (statName === PCT_DELTA_STD_NAME) {
-          let pctDeltaStd = absDeltaStd /
-            opt_referenceHistogram.standardDeviation;
-          return new tr.b.Scalar(this.unit.correspondingDeltaUnit, pctDeltaStd);
-        }
-        if (statName === Z_SCORE_NAME) {
-          return new tr.b.Scalar(
-              tr.b.Unit.byName['sigmaDelta' + suffix],
-              absDeltaAvg / opt_referenceHistogram.standardDeviation);
-        }
-
-        let mwu = opt_mwu || tr.b.Statistics.mwu(
-            this.sampleValues, opt_referenceHistogram.sampleValues);
-        if (statName === P_VALUE_NAME) {
-          return new tr.b.Scalar(tr.b.Unit.byName.unitlessNumber, mwu.p);
-        }
-        if (statName === U_STATISTIC_NAME) {
-          return new tr.b.Scalar(tr.b.Unit.byName.unitlessNumber, mwu.U);
-        }
+      if (!this.canCompare(opt_referenceHistogram)) {
+        throw new Error(
+            'Cannot compute ' + statName +
+            ' when histograms are not comparable');
       }
 
-      throw new Error('Unrecognized statistic name');
+      const suffix = tr.b.Unit.nameSuffixForImprovementDirection(
+          this.unit.improvementDirection);
+
+      const deltaIndex = statName.indexOf(DELTA);
+      if (deltaIndex >= 0) {
+        const baseStatName = statName.substr(deltaIndex + 1);
+        const thisStat = this.getStatisticScalar(baseStatName);
+        const otherStat = opt_referenceHistogram.getStatisticScalar(
+            baseStatName);
+        const deltaValue = thisStat.value - otherStat.value;
+
+        if (statName[0] === '%') {
+          return new tr.b.Scalar(
+              tr.b.Unit.byName['normalizedPercentageDelta' + suffix],
+              deltaValue / otherStat.value);
+        }
+        return new tr.b.Scalar(
+            thisStat.unit.correspondingDeltaUnit, deltaValue);
+      }
+
+      if (statName === Z_SCORE_NAME) {
+        return new tr.b.Scalar(
+            tr.b.Unit.byName['sigmaDelta' + suffix],
+            (this.average - opt_referenceHistogram.average) /
+            opt_referenceHistogram.standardDeviation);
+      }
+
+      let mwu = opt_mwu || tr.b.Statistics.mwu(
+          this.sampleValues, opt_referenceHistogram.sampleValues);
+      if (statName === P_VALUE_NAME) {
+        return new tr.b.Scalar(tr.b.Unit.byName.unitlessNumber, mwu.p);
+      }
+      if (statName === U_STATISTIC_NAME) {
+        return new tr.b.Scalar(tr.b.Unit.byName.unitlessNumber, mwu.U);
+      }
+
+      throw new Error('Unrecognized statistic name: ' + statName);
     }
 
+    /**
+     * @return {!Array.<string>} names of enabled summary statistics
+     */
     get statisticsNames() {
       let statisticsNames = new Set();
       for (let [statName, option] of this.summaryOptions) {
@@ -638,6 +616,57 @@ tr.exportTo('tr.v', function() {
         }
       }
       return statisticsNames;
+    }
+
+    /**
+     * Returns true if delta statistics can be computed between |this| and
+     * |other|.
+     *
+     * @param {!tr.v.Histogram=} other
+     * @return {boolean}
+     */
+    canCompare(other) {
+      return other instanceof Histogram &&
+          this.unit === other.unit &&
+          this.numValues > 0 &&
+          other.numValues > 0;
+    }
+
+    /**
+     * Returns |statName| if it can be computed, or the related non-delta
+     * statistic if |statName| is a delta statistic and
+     * !this.canCompare(opt_referenceHist).
+     *
+     * @param {string} statName
+     * @param {!tr.v.Histogram=} opt_referenceHist
+     * @return {string}
+     */
+    getAvailableStatisticName(statName, opt_referenceHist) {
+      if (this.canCompare(opt_referenceHist)) return statName;
+      if (statName === Z_SCORE_NAME ||
+          statName === P_VALUE_NAME ||
+          statName === U_STATISTIC_NAME) {
+        return 'avg';
+      }
+      const deltaIndex = statName.indexOf(DELTA);
+      if (deltaIndex < 0) return statName;
+      return statName.substr(deltaIndex + 1);
+    }
+
+    /**
+     * Returns names of delta statistics versions of given non-delta statistics
+     * names.
+     *
+     * @param {!Array.<string>} statNames
+     * @return {!Array.<string>}
+     */
+    static getDeltaStatisticsNames(statNames) {
+      const deltaNames = [];
+      for (const statName of statNames) {
+        deltaNames.push(`${DELTA}${statName}`);
+        deltaNames.push(`%${DELTA}${statName}`);
+      }
+      return deltaNames.concat([Z_SCORE_NAME, P_VALUE_NAME, U_STATISTIC_NAME]);
     }
 
     /**
@@ -676,8 +705,10 @@ tr.exportTo('tr.v', function() {
           this.binBoundariesDict_);
       let hist = new Histogram(this.name, this.unit, binBoundaries);
       for (let [stat, option] of this.summaryOptions) {
-        // Copy the array of percentiles.
-        if (stat === 'percentile') option = Array.from(option);
+        // Copy arrays.
+        if (stat === 'percentile') {
+          option = Array.from(option);
+        }
         hist.summaryOptions.set(stat, option);
       }
       hist.addHistogram(this);
@@ -1180,18 +1211,14 @@ tr.exportTo('tr.v', function() {
       HistogramBinBoundaries.createLinear(-5, 5, 50));
 
   return {
+    DELTA,
     Histogram,
     HistogramBinBoundaries,
-    percentToString,
-    percentFromString,
-    ABS_DELTA_AVG_NAME,
-    PCT_DELTA_AVG_NAME,
-    ABS_DELTA_STD_NAME,
-    PCT_DELTA_STD_NAME,
     P_VALUE_NAME,
     U_STATISTIC_NAME,
     Z_SCORE_NAME,
-    DELTA_STATISTIC_NAMES,
+    percentFromString,
+    percentToString,
   };
 });
 </script>

@@ -332,10 +332,12 @@ tr.exportTo('tr.v.ui', function() {
         referenceCellB = other.columns.get(referenceDisplayLabel);
       }
 
-      let valueA = cellA.getStatisticScalar(
-          this.displayStatistic, referenceCellA).value;
-      let valueB = cellB.getStatisticScalar(
-          this.displayStatistic, referenceCellB).value;
+      const statisticA = cellA.getAvailableStatisticName(
+          this.displayStatistic, referenceCellA);
+      const statisticB = cellB.getAvailableStatisticName(
+          this.displayStatistic, referenceCellB);
+      const valueA = cellA.getStatisticScalar(statisticA, referenceCellA).value;
+      const valueB = cellB.getStatisticScalar(statisticB, referenceCellB).value;
 
       return valueA - valueB;
     }
