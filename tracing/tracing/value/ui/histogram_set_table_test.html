@@ -842,6 +842,25 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(baseTable.tableRows.length, 2);
   });
 
+  test('instantiate_1x5', function() {
+    const histograms = new tr.v.HistogramSet();
+
+    for (let i = 0; i < 5; ++i) {
+      let hist = new tr.v.Histogram('foo',
+          tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
+      for (let i = 0; i < 100; ++i) {
+        hist.addSample(Math.random() * 1e3);
+      }
+      histograms.addHistogram(hist);
+      new tr.v.d.TelemetryInfo({
+        label: '' + i,
+        benchmarkStartMs: new Date().getTime(),
+      }).addToHistogram(hist);
+    }
+
+    const table = buildTable(this, histograms);
+  });
+
   test('instantiate_2x2', function() {
     let histograms = new tr.v.HistogramSet();
 

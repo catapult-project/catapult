@@ -22,7 +22,7 @@ found in the LICENSE file.
       flex-grow: 1;
     }
 
-    #open_histogram, #close_histogram{
+    #open_histogram, #close_histogram {
       height: 1em;
     }
 
@@ -165,9 +165,7 @@ tr.exportTo('tr.ui', function() {
     },
 
     set isHistogramOpen(open) {
-      if (!this.histogram ||
-          this.histogram === tr.v.ui.UNMERGEABLE ||
-          !(this.histogram instanceof tr.v.Histogram) ||
+      if (!(this.histogram instanceof tr.v.Histogram) ||
           (this.histogram.numValues === 0)) {
         return;
       }
@@ -181,6 +179,8 @@ tr.exportTo('tr.ui', function() {
 
       this.$.close_histogram.style.display = open ? 'block' : 'none';
       this.$.histogram.style.display = open ? 'block' : 'none';
+
+      this.row.nameCell.onHistogramOpenChange();
 
       // Wait to create the histogram-span until the user wants to display it
       // in order to speed up creating lots of histogram-set-table-cells when

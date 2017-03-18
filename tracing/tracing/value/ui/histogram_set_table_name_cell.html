@@ -46,6 +46,33 @@ found in the LICENSE file.
       stroke: white;
     }
 
+    #open_histograms, #close_histograms {
+      height: 1em;
+    }
+
+    #open_histograms {
+      margin-left: 4px;
+      stroke-width: 0;
+      stroke: blue;
+      fill: blue;
+    }
+    :host(:hover) #open_histograms {
+      background: blue;
+      stroke: white;
+      fill: white;
+    }
+
+    #close_histograms line {
+      stroke-width: 18;
+      stroke: black;
+    }
+    #close_histograms:hover {
+      background: black;
+    }
+    #close_histograms:hover line {
+      stroke: white;
+    }
+
     #overview_container {
       display: none;
     }
@@ -58,7 +85,19 @@ found in the LICENSE file.
         <line x1="49" y1="49" x2="79" y2="79"/>
         <line x1="79" y1="79" x2="109" y2="19"/>
       </svg>
+
       <svg viewbox="0 0 128 128" id="hide_overview" on-click="hideOverview_">
+        <line x1="28" y1="28" x2="100" y2="100"/>
+        <line x1="28" y1="100" x2="100" y2="28"/>
+      </svg>
+
+      <svg viewbox="0 0 128 128" id="open_histograms" on-click="openHistograms_">
+        <rect x="16" y="24" width="32" height="16"/>
+        <rect x="16" y="56" width="96" height="16"/>
+        <rect x="16" y="88" width="64" height="16"/>
+      </svg>
+
+      <svg viewbox="0 0 128 128" id="close_histograms" on-click="closeHistograms_">
         <line x1="28" y1="28" x2="100" y2="100"/>
         <line x1="28" y1="100" x2="100" y2="28"/>
       </svg>
@@ -102,6 +141,18 @@ tr.exportTo('tr.v.ui', function() {
       this.title = this.row.name;
       if (this.row.description) {
         this.title += '\n' + this.row.description;
+      }
+
+      let histogramCount = 0;
+      for (const cell of this.row.cells.values()) {
+        if (cell.histogram instanceof tr.v.Histogram &&
+            cell.histogram.numValues > 0) {
+          ++histogramCount;
+        }
+      }
+      if (histogramCount <= 1) {
+        this.$.close_histograms.style.display = 'none';
+        this.$.open_histograms.style.display = 'none';
       }
     },
 
@@ -161,9 +212,42 @@ tr.exportTo('tr.v.ui', function() {
       this.$.hide_overview.style.display = 'block';
       this.$.show_overview.style.display = 'none';
 
-      for (let [displayLabel, cell] of this.row.cells) {
+      for (let cell of this.row.cells.values()) {
         cell.showOverview();
       }
+    },
+
+    openHistograms_() {
+      for (let cell of this.row.cells.values()) {
+        cell.isHistogramOpen = true;
+      }
+      this.$.close_histograms.style.display = 'block';
+      this.$.open_histograms.style.display = 'none';
+    },
+
+    closeHistograms_() {
+      for (let cell of this.row.cells.values()) {
+        cell.isHistogramOpen = false;
+      }
+      this.$.open_histograms.style.display = 'block';
+      this.$.close_histograms.style.display = 'none';
+    },
+
+    onHistogramOpenChange() {
+      let cellCount = 0;
+      let openCellCount = 0;
+      for (let cell of this.row.cells.values()) {
+        if (!(cell.histogram instanceof tr.v.Histogram) ||
+            (cell.histogram.numValues === 0)) {
+          continue;
+        }
+        ++cellCount;
+        if (cell.isHistogramOpen) ++openCellCount;
+      }
+      if (cellCount <= 1) return;
+      const mostlyOpen = openCellCount > (cellCount / 2);
+      this.$.open_histograms.style.display = mostlyOpen ? 'none' : 'block';
+      this.$.close_histograms.style.display = mostlyOpen ? 'block' : 'none';
     }
   });
 
