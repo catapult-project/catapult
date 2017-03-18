@@ -71,6 +71,68 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(isNaN(tr.b.greaterPower(-1, 2)));
   });
 
+  test('lesserWholeNumber', function() {
+    // Use powers of 2 less than 10 to prevent float rounding errors from
+    // breaking Math.floor().
+    for (const i of [1, 2, 4, 8]) {
+      assert.strictEqual(-i, tr.b.lesserWholeNumber(-i));
+      assert.strictEqual(-i * 10, tr.b.lesserWholeNumber(-i * 10));
+      assert.strictEqual(-i / 10, tr.b.lesserWholeNumber(-i / 10));
+      assert.strictEqual(-i * 100, tr.b.lesserWholeNumber(-i * 100));
+      assert.strictEqual(-i / 100, tr.b.lesserWholeNumber(-i / 100));
+
+      assert.strictEqual(i, tr.b.lesserWholeNumber(i));
+      assert.strictEqual(i * 10, tr.b.lesserWholeNumber(i * 10));
+      assert.strictEqual(i / 10, tr.b.lesserWholeNumber(i / 10));
+      assert.strictEqual(i * 100, tr.b.lesserWholeNumber(i * 100));
+      assert.strictEqual(i / 100, tr.b.lesserWholeNumber(i / 100));
+
+      const x = i * 1.01;
+      assert.strictEqual(-i, tr.b.lesserWholeNumber(-x));
+      assert.strictEqual(-i * 10, tr.b.lesserWholeNumber(-x * 10));
+      assert.strictEqual(-i / 10, tr.b.lesserWholeNumber(-x / 10));
+      assert.strictEqual(-i * 100, tr.b.lesserWholeNumber(-x * 100));
+      assert.strictEqual(-i / 100, tr.b.lesserWholeNumber(-x / 100));
+
+      assert.strictEqual(i, tr.b.lesserWholeNumber(x));
+      assert.strictEqual(i * 10, tr.b.lesserWholeNumber(x * 10));
+      assert.strictEqual(i / 10, tr.b.lesserWholeNumber(x / 10));
+      assert.strictEqual(i * 100, tr.b.lesserWholeNumber(x * 100));
+      assert.strictEqual(i / 100, tr.b.lesserWholeNumber(x / 100));
+    }
+  });
+
+  test('greaterWholeNumber', function() {
+    // Use powers of 2 great than 10 to prevent float rounding errors from
+    // breaking Math.floor().
+    for (const i of [1, 2, 4, 8]) {
+      assert.strictEqual(-i, tr.b.greaterWholeNumber(-i));
+      assert.strictEqual(-i * 10, tr.b.greaterWholeNumber(-i * 10));
+      assert.strictEqual(-i / 10, tr.b.greaterWholeNumber(-i / 10));
+      assert.strictEqual(-i * 100, tr.b.greaterWholeNumber(-i * 100));
+      assert.strictEqual(-i / 100, tr.b.greaterWholeNumber(-i / 100));
+
+      assert.strictEqual(i, tr.b.greaterWholeNumber(i));
+      assert.strictEqual(i * 10, tr.b.greaterWholeNumber(i * 10));
+      assert.strictEqual(i / 10, tr.b.greaterWholeNumber(i / 10));
+      assert.strictEqual(i * 100, tr.b.greaterWholeNumber(i * 100));
+      assert.strictEqual(i / 100, tr.b.greaterWholeNumber(i / 100));
+
+      const x = i * 0.99;
+      assert.strictEqual(-i, tr.b.greaterWholeNumber(-x));
+      assert.strictEqual(-i * 10, tr.b.greaterWholeNumber(-x * 10));
+      assert.strictEqual(-i / 10, tr.b.greaterWholeNumber(-x / 10));
+      assert.strictEqual(-i * 100, tr.b.greaterWholeNumber(-x * 100));
+      assert.strictEqual(-i / 100, tr.b.greaterWholeNumber(-x / 100));
+
+      assert.strictEqual(i, tr.b.greaterWholeNumber(x));
+      assert.strictEqual(i * 10, tr.b.greaterWholeNumber(x * 10));
+      assert.strictEqual(i / 10, tr.b.greaterWholeNumber(x / 10));
+      assert.strictEqual(i * 100, tr.b.greaterWholeNumber(x * 100));
+      assert.strictEqual(i / 100, tr.b.greaterWholeNumber(x / 100));
+    }
+  });
+
   test('preferedNumberLargerThanMin', function() {
     assert.strictEqual(tr.b.preferredNumberLargerThanMin(0), 0);
     assert.strictEqual(tr.b.preferredNumberLargerThanMin(1), 1);

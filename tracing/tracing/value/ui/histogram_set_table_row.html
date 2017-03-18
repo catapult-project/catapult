@@ -136,6 +136,10 @@ tr.exportTo('tr.v.ui', function() {
         }
       }
 
+      for (const row of HistogramSetTableRow.walkAll(rootRows)) {
+        row.maybeRebin_();
+      }
+
       return rootRows;
     }
 
@@ -146,6 +150,31 @@ tr.exportTo('tr.v.ui', function() {
 
     static* walkAll(rootRows) {
       for (const rootRow of rootRows) yield* rootRow.walk();
+    }
+
+    maybeRebin_() {
+      // if all of |this| row's columns are single-bin, then re-bin all of them.
+      const dataRange = new tr.b.Range();
+      for (const hist of this.columns.values()) {
+        if (!(hist instanceof tr.v.Histogram)) continue;
+        if (hist.allBins.length > 1) return;  // don't re-bin
+        if (hist.numValues === 0) continue;  // ignore hist
+        dataRange.addValue(hist.min);
+        dataRange.addValue(hist.max);
+      }
+
+      dataRange.addValue(tr.b.lesserWholeNumber(dataRange.min));
+      dataRange.addValue(tr.b.greaterWholeNumber(dataRange.max));
+
+      if (dataRange.min === dataRange.max) return;  // don't rebin
+
+      const boundaries = tr.v.HistogramBinBoundaries.createLinear(
+          dataRange.min, dataRange.max, tr.v.DEFAULT_REBINNED_COUNT);
+
+      for (const [name, hist] of this.columns) {
+        if (!(hist instanceof tr.v.Histogram)) continue;
+        this.columns.set(name, hist.rebin(boundaries));
+      }
     }
 
     static mergeHistogramDownHierarchy_(histogram, hierarchy, columnName) {

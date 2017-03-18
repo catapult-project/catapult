@@ -126,6 +126,46 @@ tr.b.unittest.testSuite(function() {
         `%${tr.v.DELTA}pct_075`, ref).value, 1e-3);
   });
 
+  test('rebin', function() {
+    let hist = new tr.v.Histogram('foo', unitlessNumber_smallerIsBetter,
+        tr.v.HistogramBinBoundaries.SINGULAR);
+    assert.strictEqual(400, hist.maxNumSampleValues);
+    for (let i = 0; i < 100; ++i) {
+      hist.addSample(i);
+    }
+
+    let rebinned = hist.rebin(TEST_BOUNDARIES);
+    assert.strictEqual(12, rebinned.allBins.length);
+    assert.strictEqual(100, rebinned.allBins[1].count);
+    assert.strictEqual(hist.numValues, rebinned.numValues);
+    assert.strictEqual(hist.average, rebinned.average);
+    assert.strictEqual(hist.standardDeviation, rebinned.standardDeviation);
+    assert.strictEqual(hist.geometricMean, rebinned.geometricMean);
+    assert.strictEqual(hist.sum, rebinned.sum);
+    assert.strictEqual(hist.min, rebinned.min);
+    assert.strictEqual(hist.max, rebinned.max);
+
+    for (let i = 100; i < 1000; ++i) {
+      hist.addSample(i);
+    }
+
+    rebinned = hist.rebin(TEST_BOUNDARIES);
+    assert.strictEqual(12, rebinned.allBins.length);
+    let binCountSum = 0;
+    for (let i = 1; i < 11; ++i) {
+      binCountSum += rebinned.allBins[i].count;
+      assert.isAbove(100, rebinned.allBins[i].count, i);
+    }
+    assert.strictEqual(400, binCountSum);
+    assert.strictEqual(hist.numValues, rebinned.numValues);
+    assert.strictEqual(hist.average, rebinned.average);
+    assert.strictEqual(hist.standardDeviation, rebinned.standardDeviation);
+    assert.strictEqual(hist.geometricMean, rebinned.geometricMean);
+    assert.strictEqual(hist.sum, rebinned.sum);
+    assert.strictEqual(hist.min, rebinned.min);
+    assert.strictEqual(hist.max, rebinned.max);
+  });
+
   test('serializationSize', function() {
     // Ensure that serialized Histograms don't take up too much more space than
     // necessary.
@@ -556,13 +596,14 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('sampleValues', function() {
-    let hist0 = new tr.v.Histogram('', unitlessNumber, TEST_BOUNDARIES);
-    let hist1 = new tr.v.Histogram('', unitlessNumber, TEST_BOUNDARIES);
+    let boundaries = tr.v.HistogramBinBoundaries.createLinear(0, 1000, 50);
+    let hist0 = new tr.v.Histogram('', unitlessNumber, boundaries);
+    let hist1 = new tr.v.Histogram('', unitlessNumber, boundaries);
     // maxNumSampleValues defaults to numBins * 10, which, including the
     // underflow bin and overflow bin plus this builder's 10 central bins,
-    // is 12 * 10.
-    assert.strictEqual(hist0.maxNumSampleValues, 120);
-    assert.strictEqual(hist1.maxNumSampleValues, 120);
+    // is 52 * 10.
+    assert.strictEqual(hist0.maxNumSampleValues, 520);
+    assert.strictEqual(hist1.maxNumSampleValues, 520);
     let values0 = [];
     let values1 = [];
     for (let i = 0; i < 10; ++i) {
@@ -580,12 +621,12 @@ tr.b.unittest.testSuite(function() {
     let hist2 = tr.v.Histogram.fromDict(hist0.asDict());
     assert.deepEqual(hist2.sampleValues, values0.concat(values1));
 
-    for (let i = 0; i < 200; ++i) {
+    for (let i = 0; i < 500; ++i) {
       hist0.addSample(i);
     }
     assert.strictEqual(hist0.sampleValues.length, hist0.maxNumSampleValues);
 
-    let hist3 = new tr.v.Histogram('', unitlessNumber, TEST_BOUNDARIES);
+    let hist3 = new tr.v.Histogram('', unitlessNumber, boundaries);
     hist3.maxNumSampleValues = 10;
     for (let i = 0; i < 100; ++i) {
       hist3.addSample(i);

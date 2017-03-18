@@ -378,22 +378,24 @@ tr.exportTo('tr.v.ui', function() {
       this.$.drag_handle.style.display = 'block';
 
       if (this.histogram.allBins.length === 1) {
-        this.chart_ = new tr.ui.b.BoxChart();
-        Polymer.dom(this.$.chart).appendChild(this.chart_);
-        this.chart_.graphWidth = this.graphWidth;
-        this.chart_.graphHeight = this.graphHeight;
-        this.chart_.hideXAxis = true;
-        this.chart_.data = [
-          {
-            x: '',
-            color: 'blue',
-            percentile_0: this.histogram.running.min,
-            percentile_25: this.histogram.getApproximatePercentile(0.25),
-            percentile_50: this.histogram.getApproximatePercentile(0.5),
-            percentile_75: this.histogram.getApproximatePercentile(0.75),
-            percentile_100: this.histogram.running.max,
-          }
-        ];
+        if (this.histogram.min !== this.histogram.max) {
+          this.chart_ = new tr.ui.b.BoxChart();
+          Polymer.dom(this.$.chart).appendChild(this.chart_);
+          this.chart_.graphWidth = this.graphWidth;
+          this.chart_.graphHeight = this.graphHeight;
+          this.chart_.hideXAxis = true;
+          this.chart_.data = [
+            {
+              x: '',
+              color: 'blue',
+              percentile_0: this.histogram.running.min,
+              percentile_25: this.histogram.getApproximatePercentile(0.25),
+              percentile_50: this.histogram.getApproximatePercentile(0.5),
+              percentile_75: this.histogram.getApproximatePercentile(0.75),
+              percentile_100: this.histogram.running.max,
+            }
+          ];
+        }
         this.brushedBins_ = this.histogram.allBins;
         this.updateDiagnostics_();
         return;

@@ -20,6 +20,10 @@ found in the LICENSE file.
 tr.exportTo('tr.v', function() {
   const MAX_DIAGNOSTIC_MAPS = 16;
 
+  const DEFAULT_SAMPLE_VALUES_PER_BIN = 10;
+
+  const DEFAULT_REBINNED_COUNT = 40;
+
   const DEFAULT_BOUNDARIES_FOR_UNIT = new Map();
 
   const DELTA = String.fromCharCode(916);
@@ -280,6 +284,14 @@ tr.exportTo('tr.v', function() {
       return this.running_ ? this.running_.sum : 0;
     }
 
+    get min() {
+      return this.running_ ? this.running_.min : Infinity;
+    }
+
+    get max() {
+      return this.running_ ? this.running_.max : -Infinity;
+    }
+
     /**
      * Requires that units agree.
      * Returns DONT_CARE if that is the units' improvementDirection.
@@ -449,8 +461,8 @@ tr.exportTo('tr.v', function() {
       tr.b.Statistics.mergeSampledStreams(this.nanDiagnosticMaps, this.numNans,
           other.nanDiagnosticMaps, other.numNans, MAX_DIAGNOSTIC_MAPS);
       tr.b.Statistics.mergeSampledStreams(
-          this.sampleValues, this.numValues,
-          other.sampleValues, other.numValues,
+          this.sampleValues, this.numValues + this.numNans,
+          other.sampleValues, other.numValues + other.numNans,
           (this.maxNumSampleValues + other.maxNumSampleValues) / 2);
       this.numNans += other.numNans;
 
@@ -715,6 +727,34 @@ tr.exportTo('tr.v', function() {
       return hist;
     }
 
+    /**
+     * Produce a Histogram with |this| Histogram's name, unit, description,
+     * statistics, summaryOptions, sampleValues, and diagnostics, but with
+     * |newBoundaries|.
+     * guid and sample diagnostics are not copied. In-bound Relationship
+     * diagnostics are broken.
+     *
+     * @param {!tr.v.HistogramBinBoundaries} newBoundaries
+     * @return {!tr.v.Histogram}
+     */
+    rebin(newBoundaries) {
+      const rebinned = new tr.v.Histogram(this.name, this.unit, newBoundaries);
+      rebinned.description = this.description;
+      for (const sample of this.sampleValues) {
+        rebinned.addSample(sample);
+      }
+      rebinned.running_ = this.running_;
+      for (const [name, diagnostic] of this.diagnostics) {
+        rebinned.diagnostics.set(name, diagnostic);
+      }
+      for (let [stat, option] of this.summaryOptions) {
+        // Copy the array of percentiles.
+        if (stat === 'percentile') option = Array.from(option);
+        rebinned.summaryOptions.set(stat, option);
+      }
+      return rebinned;
+    }
+
     asDict() {
       let dict = {};
       dict.name = this.name;
@@ -814,7 +854,10 @@ tr.exportTo('tr.v', function() {
     }
 
     get defaultMaxNumSampleValues_() {
-      return this.allBins.length * 10;
+      // Single-bin histograms might be rebin()ned, so they should retain enough
+      // samples that the rebinned histogram looks close enough.
+      return DEFAULT_SAMPLE_VALUES_PER_BIN * Math.max(
+          this.allBins.length, DEFAULT_REBINNED_COUNT);
     }
   }
 
@@ -1211,6 +1254,7 @@ tr.exportTo('tr.v', function() {
       HistogramBinBoundaries.createLinear(-5, 5, 50));
 
   return {
+    DEFAULT_REBINNED_COUNT,
     DELTA,
     Histogram,
     HistogramBinBoundaries,

@@ -30,6 +30,39 @@ tr.b.unittest.testSuite(function() {
     return table;
   }
 
+  test('rebin', function() {
+    const histograms = new tr.v.HistogramSet();
+
+    const aHist = new tr.v.Histogram('foo', tr.b.Unit.byName.count,
+        tr.v.HistogramBinBoundaries.SINGULAR);
+    new tr.v.d.TelemetryInfo({label: 'A'}).addToHistogram(aHist);
+    histograms.addHistogram(aHist);
+
+    const bHist = new tr.v.Histogram('foo', tr.b.Unit.byName.count,
+        tr.v.HistogramBinBoundaries.SINGULAR);
+    new tr.v.d.TelemetryInfo({label: 'B'}).addToHistogram(bHist);
+    histograms.addHistogram(bHist);
+
+    for (let i = 0; i < 100; ++i) {
+      aHist.addSample(i);
+      bHist.addSample(i + 50);
+    }
+
+    const table = buildTable(this, histograms);
+
+    const histogramSpans = tr.b.findDeepElementsMatchingPredicate(
+        table, e => e.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL');
+    assert.lengthOf(histogramSpans, 2);
+    assert.lengthOf(histogramSpans[0].histogram.allBins,
+        2 + tr.v.DEFAULT_REBINNED_COUNT);
+    assert.lengthOf(histogramSpans[1].histogram.allBins,
+        2 + tr.v.DEFAULT_REBINNED_COUNT);
+    assert.strictEqual(histogramSpans[0].histogram.allBins[0].range.max, 0);
+    assert.strictEqual(histogramSpans[1].histogram.allBins[0].range.max, 0);
+    assert.strictEqual(histogramSpans[0].histogram.allBins[41].range.min, 200);
+    assert.strictEqual(histogramSpans[1].histogram.allBins[41].range.min, 200);
+  });
+
   test('nameCellOverflow', function() {
     const histograms = new tr.v.HistogramSet();
 
