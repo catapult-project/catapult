@@ -59,9 +59,12 @@ class Symbolizer(object):
   # Encapsulates platform-specific symbolization logic.
   def __init__(self):
     self.is_mac = sys.platform == 'darwin'
+    self.is_win = sys.platform == 'win32'
     if self.is_mac:
       self.binary = 'atos'
       self._matcher = symbolize_trace_atos_regex.AtosRegexMatcher()
+    elif self.is_win:
+      self.binary = 'addr2line-pdb.exe'
     else:
       self.binary = 'addr2line'
     self.symbolizer_path = FindInSystemPath(self.binary)
@@ -89,6 +92,7 @@ class Symbolizer(object):
       symbolizer.SymbolizeAsync(int(address), frames)
 
     symbolizer.Join()
+
 
   def _SymbolizeMac(self, symfile):
     chars_max = int(subprocess.check_output("getconf ARG_MAX", shell=True))
@@ -126,18 +130,58 @@ class Symbolizer(object):
       processed_keys_count += len(keys_to_process)
       all_keys = all_keys[input_count:]
 
+
+  def _SymbolizeWin(self, symfile):
+    """Invoke symbolizer binary on windows and write all input in one go.
+
+    Unlike linux, on windows, symbolization talks through a shared system
+    service that handles communication with the NT symbol servers. This
+    creates an explicit serialization (and therefor lock contention) of
+    any process using the symbol API for files do not have a local PDB.
+
+    Thus, even though the windows symbolizer binary can be make command line
+    compatible with the POSIX addr2line interface, paralellizing the
+    symbolization does not yield the same performance effects. Running
+    just one symbolizer seems good enough for now. Can optimize later
+    if this becomes a bottleneck.
+    """
+    cmd = [self.symbolizer_path, '--functions', '--demangle', '--exe',
+                symfile.symbolizable_path]
+
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE,
+            stderr=sys.stderr)
+    addrs = ["%x" % relative_pc for relative_pc in
+             symfile.frames_by_address.keys()]
+    (stdout_data, stderr_data) = proc.communicate('\n'.join(addrs))
+    stdout_data = stdout_data.split('\n')
+
+    # This is known to be in the same order as stderr_data.
+    for i, addr in enumerate(addrs):
+        for frame in  symfile.frames_by_address[int(addr, 16)]:
+            # Output of addr2line with --functions is always 2 outputs per
+            # symbol, function name followed by source line number. Only grab
+            # the function name as line info is not always available.
+            frame.name = stdout_data[i * 2]
+
+
   def Symbolize(self, symfile, unsymbolized_name):
     if self.is_mac:
       self._SymbolizeMac(symfile)
+    if self.is_win:
+      self._SymbolizeWin(symfile)
     else:
       self._SymbolizeLinuxAndAndroid(symfile, unsymbolized_name)
 
 
-def IsSymbolizableFile(file_path):
-  result = subprocess.check_output(['file', '-0', file_path])
-  type_string = result[result.find('\0') + 1:]
-  return bool(re.match(r'.*(ELF|Mach-O) (32|64)-bit\b.*',
-              type_string, re.DOTALL))
+  def IsSymbolizableFile(self, file_path):
+    if self.is_win:
+      extension = os.path.splitext(file_path)[1].lower()
+      return extension in ['.dll', '.exe']
+    else:
+      result = subprocess.check_output(['file', '-0', file_path])
+      type_string = result[result.find('\0') + 1:]
+      return bool(re.match(r'.*(ELF|Mach-O) (32|64)-bit\b.*',
+                  type_string, re.DOTALL))
 
 
 class ProcessMemoryMaps(object):
@@ -371,7 +415,7 @@ def SymbolizeFiles(symfiles, symbolizer):
       problem = 'not a file'
     elif not os.path.isfile(symfile.symbolizable_path):
       problem = "file doesn't exist"
-    elif not IsSymbolizableFile(symfile.symbolizable_path):
+    elif not symbolizer.IsSymbolizableFile(symfile.symbolizable_path):
       problem = 'file is not symbolizable'
     if problem:
       _SubPrintf("Won't symbolize {} PCs for '{}': {}.",
