@@ -60,7 +60,7 @@ class _TCMallocHeapProfilerAndroid(object):
     # Note: command must be passed as a string to expand wildcards.
     self._browser_backend.device.RunShellCommand(
         'rm -f ' + os.path.join(self._DEFAULT_DEVICE_DIR, '*'),
-        check_return=True)
+        check_return=True, shell=True)
     if os.path.exists(self._output_path):
       logging.info('TCMalloc dumps pulled to %s', self._output_path)
       with file(os.path.join(self._output_path,

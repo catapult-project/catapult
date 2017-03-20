@@ -605,7 +605,8 @@ class AndroidPlatformBackend(
       # Note: need to pass command as a string for the shell to expand the *'s.
       extended_path = '%s %s/* %s/*/* %s/*/*/*' % (path, path, path, path)
       self._device.RunShellCommand(
-          'chown %s.%s %s' % (uid, uid, extended_path), check_return=False)
+          'chown %s.%s %s' % (uid, uid, extended_path),
+          check_return=False, shell=True)
 
   def _EfficientDeviceDirectoryCopy(self, source, dest):
     if not self._device_copy_script:

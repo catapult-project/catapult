@@ -53,7 +53,7 @@ class JavaHeapProfiler(profiler.Profiler):
     # Note: command must be passed as a string to expand wildcards.
     self._browser_backend.device.RunShellCommand(
         'rm -f ' + os.path.join(self._DEFAULT_DEVICE_DIR, '*'),
-        check_return=True)
+        check_return=True, shell=True)
     output_files = []
     for f in os.listdir(self._output_path):
       if os.path.splitext(f)[1] == '.aprof':

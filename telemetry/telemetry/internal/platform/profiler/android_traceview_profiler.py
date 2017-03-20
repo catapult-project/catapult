@@ -28,7 +28,7 @@ class AndroidTraceviewProfiler(profiler.Profiler):
       # Note: command must be passed as a string to expand wildcards.
       self._browser_backend.device.RunShellCommand(
           'rm ' + os.path.join(self._DEFAULT_DEVICE_DIR, '*'),
-          check_return=True)
+          check_return=True, shell=True)
     else:
       self._browser_backend.device.RunShellCommand(
           ['mkdir', '-p', self._DEFAULT_DEVICE_DIR], check_return=True)
@@ -66,7 +66,7 @@ class AndroidTraceviewProfiler(profiler.Profiler):
     # Note: command must be passed as a string to expand wildcards.
     self._browser_backend.device.RunShellCommand(
         'rm ' + os.path.join(self._DEFAULT_DEVICE_DIR, '*'),
-        check_return=True)
+        check_return=True, shell=True)
     print 'Traceview profiles available in ', self._output_path
     print 'Use third_party/android_tools/sdk/tools/monitor '
     print 'then use "File->Open File" to visualize them.'
