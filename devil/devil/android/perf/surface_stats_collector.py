@@ -105,7 +105,7 @@ class SurfaceStatsCollector(object):
     # The command returns nothing if it is supported, otherwise returns many
     # lines of result just like 'dumpsys SurfaceFlinger'.
     results = self._device.RunShellCommand(
-        ['dumpsys', 'SurfaceFlinger', '--latency-clear SurfaceView'],
+        ['dumpsys', 'SurfaceFlinger', '--latency-clear', 'SurfaceView'],
         check_return=True)
     return not len(results)
 
@@ -158,7 +158,7 @@ class SurfaceStatsCollector(object):
     # the activity's main window are not updated when the main web content is
     # composited into a SurfaceView.
     results = self._device.RunShellCommand(
-        ['dumpsys', 'SurfaceFlinger', '--latency SurfaceView'],
+        ['dumpsys', 'SurfaceFlinger', '--latency', 'SurfaceView'],
         check_return=True)
     if not len(results):
       return (None, None)
