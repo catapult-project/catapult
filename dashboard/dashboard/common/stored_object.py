@@ -109,8 +109,8 @@ class MultipartEntity(ndb.Model):
   @ndb.tasklet
   def GetPartsAsync(self):
     """Deserializes data from multiple PartEntity."""
-    if self.size:
-      return
+    if not self.size:
+      raise ndb.Return(None)
 
     string_id = self.key.string_id()
     part_keys = [ndb.Key(MultipartEntity, string_id, PartEntity, i + 1)

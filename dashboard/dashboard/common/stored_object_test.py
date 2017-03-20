@@ -2,9 +2,11 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import mock
 import unittest
 
 from google.appengine.api import memcache
+from google.appengine.ext import ndb
 
 from dashboard.common import stored_object
 from dashboard.common import testing_common
@@ -33,6 +35,16 @@ class StoredObjectTest(testing_common.TestCase):
     return [v for v in cache_values.values() if v is not None]
 
   def testSetAndGet(self):
+    new_account = SampleSerializableClass('Some account data.')
+    stored_object.Set('chris', new_account)
+    chris_account = stored_object.Get('chris')
+    self.assertEqual(new_account, chris_account)
+
+  @mock.patch.object(stored_object.MultipartCache, 'GetAsync')
+  def testSetAndGet_NoMemcache(self, async_mock):
+    async_mock.return_value = ndb.Future()
+    async_mock.return_value.set_result(None)
+
     new_account = SampleSerializableClass('Some account data.')
     stored_object.Set('chris', new_account)
     chris_account = stored_object.Get('chris')
