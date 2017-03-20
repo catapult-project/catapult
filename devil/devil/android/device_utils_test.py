@@ -870,40 +870,47 @@ class DeviceUtilsRunShellCommandTest(DeviceUtilsTest):
 
   def testRunShellCommand_commandAsList(self):
     with self.assertCall(self.call.adb.Shell('pm list packages'), ''):
-      self.device.RunShellCommand(['pm', 'list', 'packages'])
+      self.device.RunShellCommand(
+          ['pm', 'list', 'packages'], check_return=True)
 
   def testRunShellCommand_commandAsListQuoted(self):
     with self.assertCall(self.call.adb.Shell("echo 'hello world' '$10'"), ''):
-      self.device.RunShellCommand(['echo', 'hello world', '$10'])
+      self.device.RunShellCommand(
+          ['echo', 'hello world', '$10'], check_return=True)
 
   def testRunShellCommand_commandAsString(self):
     with self.assertCall(self.call.adb.Shell('echo "$VAR"'), ''):
-      self.device.RunShellCommand('echo "$VAR"', shell=True)
+      self.device.RunShellCommand(
+          'echo "$VAR"', shell=True, check_return=True)
 
   def testNewRunShellImpl_withEnv(self):
     with self.assertCall(
         self.call.adb.Shell('VAR=some_string echo "$VAR"'), ''):
       self.device.RunShellCommand(
-          'echo "$VAR"', shell=True, env={'VAR': 'some_string'})
+          'echo "$VAR"', shell=True, check_return=True,
+          env={'VAR': 'some_string'})
 
   def testNewRunShellImpl_withEnvQuoted(self):
     with self.assertCall(
         self.call.adb.Shell('PATH="$PATH:/other/path" run_this'), ''):
       self.device.RunShellCommand(
-          ['run_this'], env={'PATH': '$PATH:/other/path'})
+          ['run_this'], check_return=True, env={'PATH': '$PATH:/other/path'})
 
   def testNewRunShellImpl_withEnv_failure(self):
     with self.assertRaises(KeyError):
-      self.device.RunShellCommand(['some_cmd'], env={'INVALID NAME': 'value'})
+      self.device.RunShellCommand(
+          ['some_cmd'], check_return=True, env={'INVALID NAME': 'value'})
 
   def testNewRunShellImpl_withCwd(self):
     with self.assertCall(self.call.adb.Shell('cd /some/test/path && ls'), ''):
-      self.device.RunShellCommand(['ls'], cwd='/some/test/path')
+      self.device.RunShellCommand(
+          ['ls'], check_return=True, cwd='/some/test/path')
 
   def testNewRunShellImpl_withCwdQuoted(self):
     with self.assertCall(
         self.call.adb.Shell("cd '/some test/path with/spaces' && ls"), ''):
-      self.device.RunShellCommand(['ls'], cwd='/some test/path with/spaces')
+      self.device.RunShellCommand(
+          ['ls'], check_return=True, cwd='/some test/path with/spaces')
 
   def testRunShellCommand_withHugeCmd(self):
     payload = 'hi! ' * 1024
@@ -913,8 +920,9 @@ class DeviceUtilsRunShellCommandTest(DeviceUtilsTest):
           self.adb, suffix='.sh'), MockTempFile('/sdcard/temp-123.sh')),
       self.call.device._WriteFileWithPush('/sdcard/temp-123.sh', expected_cmd),
       (self.call.adb.Shell('sh /sdcard/temp-123.sh'), payload + '\n')):
-      self.assertEquals([payload],
-                        self.device.RunShellCommand(['echo', payload]))
+      self.assertEquals(
+          [payload],
+          self.device.RunShellCommand(['echo', payload], check_return=True))
 
   def testRunShellCommand_withHugeCmdAndSu(self):
     payload = 'hi! ' * 1024
@@ -929,7 +937,8 @@ class DeviceUtilsRunShellCommandTest(DeviceUtilsTest):
       (self.call.adb.Shell('sh /sdcard/temp-123.sh'), payload + '\n')):
       self.assertEquals(
           [payload],
-          self.device.RunShellCommand(['echo', payload], as_root=True))
+          self.device.RunShellCommand(
+              ['echo', payload], check_return=True, as_root=True))
 
   def testRunShellCommand_withSu(self):
     expected_cmd_without_su = "sh -c 'setprop service.adb.root 0'"
@@ -939,7 +948,8 @@ class DeviceUtilsRunShellCommandTest(DeviceUtilsTest):
         (self.call.device._Su(expected_cmd_without_su), expected_cmd),
         (self.call.adb.Shell(expected_cmd), '')):
       self.device.RunShellCommand(
-          ['setprop', 'service.adb.root', '0'], as_root=True)
+          ['setprop', 'service.adb.root', '0'],
+          check_return=True, as_root=True)
 
   def testRunShellCommand_withRunAs(self):
     expected_cmd_without_run_as = "sh -c 'mkdir -p files'"
@@ -948,7 +958,7 @@ class DeviceUtilsRunShellCommandTest(DeviceUtilsTest):
     with self.assertCall(self.call.adb.Shell(expected_cmd), ''):
       self.device.RunShellCommand(
           ['mkdir', '-p', 'files'],
-          run_as='org.devil.test_package')
+          check_return=True, run_as='org.devil.test_package')
 
   def testRunShellCommand_withRunAsAndSu(self):
     expected_cmd_with_nothing = "sh -c 'mkdir -p files'"
@@ -963,56 +973,63 @@ class DeviceUtilsRunShellCommandTest(DeviceUtilsTest):
         (self.call.adb.Shell(expected_cmd), '')):
       self.device.RunShellCommand(
           ['mkdir', '-p', 'files'],
-          run_as='org.devil.test_package',
+          check_return=True, run_as='org.devil.test_package',
           as_root=True)
 
   def testRunShellCommand_manyLines(self):
     cmd = 'ls /some/path'
     with self.assertCall(self.call.adb.Shell(cmd), 'file1\nfile2\nfile3\n'):
-      self.assertEquals(['file1', 'file2', 'file3'],
-                        self.device.RunShellCommand(cmd.split()))
+      self.assertEquals(
+          ['file1', 'file2', 'file3'],
+          self.device.RunShellCommand(cmd.split(), check_return=True))
 
   def testRunShellCommand_manyLinesRawOutput(self):
     cmd = 'ls /some/path'
     with self.assertCall(self.call.adb.Shell(cmd), '\rfile1\nfile2\r\nfile3\n'):
       self.assertEquals(
           '\rfile1\nfile2\r\nfile3\n',
-          self.device.RunShellCommand(cmd.split(), raw_output=True))
+          self.device.RunShellCommand(
+              cmd.split(), check_return=True, raw_output=True))
 
   def testRunShellCommand_singleLine_success(self):
     cmd = 'echo $VALUE'
     with self.assertCall(self.call.adb.Shell(cmd), 'some value\n'):
       self.assertEquals(
           'some value',
-          self.device.RunShellCommand(cmd, shell=True, single_line=True))
+          self.device.RunShellCommand(
+              cmd, shell=True, check_return=True, single_line=True))
 
   def testRunShellCommand_singleLine_successEmptyLine(self):
     cmd = 'echo $VALUE'
     with self.assertCall(self.call.adb.Shell(cmd), '\n'):
       self.assertEquals(
           '',
-          self.device.RunShellCommand(cmd, shell=True, single_line=True))
+          self.device.RunShellCommand(
+              cmd, shell=True, check_return=True, single_line=True))
 
   def testRunShellCommand_singleLine_successWithoutEndLine(self):
     cmd = 'echo -n $VALUE'
     with self.assertCall(self.call.adb.Shell(cmd), 'some value'):
       self.assertEquals(
           'some value',
-          self.device.RunShellCommand(cmd, shell=True, single_line=True))
+          self.device.RunShellCommand(
+              cmd, shell=True, check_return=True, single_line=True))
 
   def testRunShellCommand_singleLine_successNoOutput(self):
     cmd = 'echo -n $VALUE'
     with self.assertCall(self.call.adb.Shell(cmd), ''):
       self.assertEquals(
           '',
-          self.device.RunShellCommand(cmd, shell=True, single_line=True))
+          self.device.RunShellCommand(
+              cmd, shell=True, check_return=True, single_line=True))
 
   def testRunShellCommand_singleLine_failTooManyLines(self):
     cmd = 'echo $VALUE'
     with self.assertCall(self.call.adb.Shell(cmd),
                          'some value\nanother value\n'):
       with self.assertRaises(device_errors.CommandFailedError):
-        self.device.RunShellCommand(cmd, shell=True, single_line=True)
+        self.device.RunShellCommand(
+            cmd, shell=True, check_return=True, single_line=True)
 
   def testRunShellCommand_checkReturn_success(self):
     cmd = 'echo $ANDROID_DATA'
@@ -2718,7 +2735,7 @@ class DeviceUtilsRestartAdbdTest(DeviceUtilsTest):
             self.adb, suffix='.sh'), MockTempFile(mock_temp_file)),
         self.call.device.WriteFile(mock.ANY, mock.ANY),
         (self.call.device.RunShellCommand(
-            ['source', mock_temp_file], as_root=True)),
+            ['source', mock_temp_file], check_return=True, as_root=True)),
         self.call.adb.WaitForDevice()):
       self.device.RestartAdbd()
 

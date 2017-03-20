@@ -387,10 +387,13 @@ class Forwarder(object):
         forwarder_device_path_on_host,
         forwarder_device_path_on_device)])
 
-    cmd = '%s %s' % (tool.GetUtilWrapper(), Forwarder._DEVICE_FORWARDER_PATH)
+    cmd = [Forwarder._DEVICE_FORWARDER_PATH]
+    wrapper = tool.GetUtilWrapper()
+    if wrapper:
+      cmd.insert(0, wrapper)
     device.RunShellCommand(
         cmd, env={'LD_LIBRARY_PATH': Forwarder._DEVICE_FORWARDER_FOLDER},
-        check_return=True, shell=True)
+        check_return=True)
     self._initialized_devices.add(device_serial)
 
   @staticmethod
@@ -451,8 +454,10 @@ class Forwarder(object):
     if not device.FileExists(Forwarder._DEVICE_FORWARDER_PATH):
       return
 
-    cmd = '%s %s --kill-server' % (tool.GetUtilWrapper(),
-                                   Forwarder._DEVICE_FORWARDER_PATH)
+    cmd = [Forwarder._DEVICE_FORWARDER_PATH, '--kill-server']
+    wrapper = tool.GetUtilWrapper()
+    if wrapper:
+      cmd.insert(0, wrapper)
     device.RunShellCommand(
         cmd, env={'LD_LIBRARY_PATH': Forwarder._DEVICE_FORWARDER_FOLDER},
-        check_return=True, shell=True)
+        check_return=True)

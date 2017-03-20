@@ -124,7 +124,8 @@ def get_device_status(device):
 
   # Process
   try:
-    lines = device.RunShellCommand('ps', check_return=True)
+    # TODO(catapult:#3215): Migrate to device.GetPids()
+    lines = device.RunShellCommand(['ps'], check_return=True)
     status['processes'] = len(lines) - 1 # Ignore the header row.
   except device_errors.AdbShellCommandFailedError:
     logging.exception('Unable to count process list.')
@@ -136,7 +137,7 @@ def get_device_status(device):
   try:
     files = device.RunShellCommand(
         'grep -lE "%s" /sys/class/thermal/thermal_zone*/type' % '|'.join(
-            CPU_TEMP_SENSORS), check_return=True)
+            CPU_TEMP_SENSORS), shell=True, check_return=True)
   except device_errors.AdbShellCommandFailedError:
     logging.exception('Unable to list thermal sensors.')
   for f in files:

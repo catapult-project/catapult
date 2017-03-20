@@ -107,7 +107,7 @@ class VideoRecorder(object):
             time.strftime('%Y%m%dT%H%M%S', time.localtime())))
     host_file_name = os.path.abspath(host_file_name)
     self._device.PullFile(self._device_file, host_file_name)
-    self._device.RunShellCommand('rm -f "%s"' % self._device_file)
+    self._device.RemovePath(self._device_file, force=True)
     return host_file_name
 
 

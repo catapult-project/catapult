@@ -42,7 +42,8 @@ def InstallCommands(device):
         '%s not found. Please build chromium_commands.'
         % chromium_commands_jar_path)
 
-  device.RunShellCommand(['mkdir', BIN_DIR, _FRAMEWORK_DIR])
+  device.RunShellCommand(
+      ['mkdir', '-p', BIN_DIR, _FRAMEWORK_DIR], check_return=True)
   for command, main_class in _COMMANDS.iteritems():
     shell_command = _SHELL_COMMAND_FORMAT % (
         file_system.TEST_EXECUTABLE_DIR, main_class)
@@ -54,4 +55,3 @@ def InstallCommands(device):
   device.adb.Push(
       chromium_commands_jar_path,
       '%s/chromium_commands.jar' % _FRAMEWORK_DIR)
-

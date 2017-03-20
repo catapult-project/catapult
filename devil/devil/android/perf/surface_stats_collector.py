@@ -105,15 +105,17 @@ class SurfaceStatsCollector(object):
     # The command returns nothing if it is supported, otherwise returns many
     # lines of result just like 'dumpsys SurfaceFlinger'.
     results = self._device.RunShellCommand(
-        'dumpsys SurfaceFlinger --latency-clear SurfaceView')
+        ['dumpsys', 'SurfaceFlinger', '--latency-clear SurfaceView'],
+        check_return=True)
     return not len(results)
 
   def GetSurfaceFlingerPid(self):
-    results = self._device.RunShellCommand('ps | grep surfaceflinger')
-    if not results:
+    pids_dict = self._device.GetPids('surfaceflinger')
+    if not pids_dict:
       raise Exception('Unable to get surface flinger process id')
-    pid = results[0].split()[1]
-    return pid
+    # TODO(cataput:#3378): Do more strict checks in GetPids when possible.
+    # For now it just returns the first pid found of some matching process.
+    return pids_dict.popitem()[1][0]
 
   def _GetSurfaceFlingerFrameData(self):
     """Returns collected SurfaceFlinger frame timing data.
@@ -156,7 +158,8 @@ class SurfaceStatsCollector(object):
     # the activity's main window are not updated when the main web content is
     # composited into a SurfaceView.
     results = self._device.RunShellCommand(
-        'dumpsys SurfaceFlinger --latency SurfaceView')
+        ['dumpsys', 'SurfaceFlinger', '--latency SurfaceView'],
+        check_return=True)
     if not len(results):
       return (None, None)
 

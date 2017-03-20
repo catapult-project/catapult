@@ -2575,7 +2575,8 @@ class DeviceUtils(object):
     logger.info('Restarting adbd on device.')
     with device_temp_file.DeviceTempFile(self.adb, suffix='.sh') as script:
       self.WriteFile(script.name, _RESTART_ADBD_SCRIPT)
-      self.RunShellCommand(['source', script.name], as_root=True)
+      self.RunShellCommand(
+          ['source', script.name], check_return=True, as_root=True)
       self.adb.WaitForDevice()
 
   @decorators.WithTimeoutAndRetriesFromInstance()

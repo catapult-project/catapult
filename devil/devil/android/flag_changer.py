@@ -200,7 +200,7 @@ class FlagChanger(object):
     if command_line is not None:
       self._device.WriteFile(self._cmdline_path, command_line)
     else:
-      self._device.RemovePath(self._cmdline_path)
+      self._device.RemovePath(self._cmdline_path, force=True)
 
     current_flags = self.GetCurrentFlags()
     logger.info('Flags now set on the device: %s', current_flags)

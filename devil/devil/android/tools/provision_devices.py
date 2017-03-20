@@ -211,8 +211,9 @@ def WipeChromeData(device):
       _UninstallIfMatch(device, _CHROME_PACKAGE_REGEX,
                         chrome.PACKAGE_INFO['chrome_stable'].package)
       device.RunShellCommand('rm -rf %s/*' % device.GetExternalStoragePath(),
-                             check_return=True)
-      device.RunShellCommand('rm -rf /data/local/tmp/*', check_return=True)
+                             shell=True, check_return=True)
+      device.RunShellCommand('rm -rf /data/local/tmp/*',
+                             shell=True, check_return=True)
     else:
       device.EnableRoot()
       _UninstallIfMatch(device, _CHROME_PACKAGE_REGEX,
@@ -225,17 +226,18 @@ def WipeChromeData(device):
       _WipeFileOrDir(device, '/data/local/.config/')
       _WipeFileOrDir(device, '/data/local/tmp/')
       device.RunShellCommand('rm -rf %s/*' % device.GetExternalStoragePath(),
-                             check_return=True)
+                             shell=True, check_return=True)
   except device_errors.CommandFailedError:
     logger.exception('Possible failure while wiping the device. '
                      'Attempting to continue.')
 
 
 def _UninstallIfMatch(device, pattern, app_to_keep):
-  installed_packages = device.RunShellCommand(['pm', 'list', 'packages'])
+  installed_packages = device.RunShellCommand(
+      ['pm', 'list', 'packages'], check_return=True)
   installed_system_packages = [
-      pkg.split(':')[1] for pkg in device.RunShellCommand(['pm', 'list',
-                                                           'packages', '-s'])]
+      pkg.split(':')[1] for pkg in device.RunShellCommand(
+          ['pm', 'list', 'packages', '-s'], check_return=True)]
   for package_output in installed_packages:
     package = package_output.split(":")[1]
     if pattern.match(package) and not package == app_to_keep:
@@ -457,7 +459,8 @@ def SetDate(device):
 
     get_date_command.append('+"%Y%m%d.%H%M%S"')
     device_time = device.RunShellCommand(
-        get_date_command, as_root=True, single_line=True).replace('"', '')
+        get_date_command, check_return=True,
+        as_root=True, single_line=True).replace('"', '')
     device_time = datetime.datetime.strptime(device_time, "%Y%m%d.%H%M%S")
     correct_time = datetime.datetime.strptime(strgmtime, date_format)
     tdelta = (correct_time - device_time).seconds
@@ -484,7 +487,7 @@ def SetDate(device):
 
 
 def LogDeviceProperties(device):
-  props = device.RunShellCommand('getprop', check_return=True)
+  props = device.RunShellCommand(['getprop'], check_return=True)
   for prop in props:
     logger.info('  %s', prop)
 

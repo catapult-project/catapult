@@ -124,7 +124,8 @@ class ThermalThrottle(object):
                      serial_number, temperature, degree_symbol)
 
       # Print temperature of battery, to give a system temperature
-      dumpsys_log = self._device.RunShellCommand('dumpsys battery')
+      dumpsys_log = self._device.RunShellCommand(
+          ['dumpsys', 'battery'], check_return=True)
       for line in dumpsys_log:
         if 'temperature' in line:
           btemp = float([s for s in line.split() if s.isdigit()][0]) / 10.0
