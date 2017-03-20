@@ -180,6 +180,7 @@
       'tracing/importer/user_model_builder.html',
       'tracing/metrics/all_fixed_color_schemes.html',
       'tracing/metrics/all_metrics.html',
+      'tracing/metrics/android_systrace_metric.html',
       'tracing/metrics/blink/gc_metric.html',
       'tracing/metrics/cpu_process_metric.html',
       'tracing/metrics/metric_map_function.html',
