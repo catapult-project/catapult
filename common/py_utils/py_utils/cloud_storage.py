@@ -12,6 +12,7 @@ import os
 import shutil
 import stat
 import subprocess
+import re
 import sys
 import tempfile
 
@@ -149,9 +150,10 @@ def _RunCommand(args):
   stdout, stderr = gsutil.communicate()
 
   if gsutil.returncode:
-    if stderr.startswith((
+    if (stderr.startswith((
         'You are attempting to access protected data with no configured',
-        'Failure: No handler was ready to authenticate.')):
+        'Failure: No handler was ready to authenticate.')) or
+        re.match('.*users does not have .* access to object.*', stderr)):
       raise CredentialsError()
     if ('status=403' in stderr or 'status 403' in stderr or
         '403 Forbidden' in stderr):
