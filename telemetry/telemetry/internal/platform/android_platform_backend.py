@@ -455,21 +455,21 @@ class AndroidPlatformBackend(
   def GetPsOutput(self, columns, pid=None):
     assert columns == ['pid', 'name'] or columns == ['pid'], \
         'Only know how to return pid and name. Requested: ' + columns
-    # TODO(catapult:#3215): Migrate to GetPids.
-    cmd = ['ps']
-    if pid:
-      cmd.extend(['-p', str(pid)])
-    ps = self._device.RunShellCommand(
-        cmd, check_return=True, large_output=True)[1:]
+    if pid is not None:
+      pid = str(pid)
+    procs_pids = self._device.GetPids()
     output = []
-    for line in ps:
-      data = line.split()
-      curr_pid = data[1]
-      curr_name = data[-1]
-      if columns == ['pid', 'name']:
-        output.append([curr_pid, curr_name])
-      else:
-        output.append([curr_pid])
+    for curr_name, pids_list in procs_pids.iteritems():
+      for curr_pid in pids_list:
+        if columns == ['pid', 'name']:
+          row = [curr_pid, curr_name]
+        else:
+          row = [curr_pid]
+        if pid is not None:
+          if curr_pid == pid:
+            return [row]
+        else:
+          output.append(row)
     return output
 
   def RunCommand(self, command):
