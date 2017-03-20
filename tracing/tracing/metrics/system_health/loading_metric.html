@@ -40,7 +40,7 @@ tr.exportTo('tr.metrics.sh', function() {
     breakdownDiagnostic.colorScheme =
         tr.v.d.COLOR_SCHEME_CHROME_USER_FRIENDLY_CATEGORY_DRIVER;
 
-    for (var label in breakdownTree) {
+    for (let label in breakdownTree) {
       breakdownDiagnostic.set(label, breakdownTree[label].total);
     }
     return breakdownDiagnostic;
@@ -187,7 +187,7 @@ tr.exportTo('tr.metrics.sh', function() {
       frameIdRef, navigationStart, fmpMarkerEvent) {
     var snapshot = findFrameLoaderSnapshotAt(
         rendererHelper, frameIdRef, fmpMarkerEvent.start);
-    if (snapshot === undefined || !snapshot.args.isLoadingMainFrame) return;
+    if (!snapshot || !snapshot.args.isLoadingMainFrame) return;
     var url = snapshot.args.documentLoaderURL;
     if (shouldIgnoreURL(url)) return;
 
@@ -211,6 +211,51 @@ tr.exportTo('tr.metrics.sh', function() {
       }
     });
     return {firstMeaningfulPaint: fmpMarkerEvent.start, url: url};
+  }
+
+  function addFirstMeaningfulPaintCpuTimeSample(samples, rendererHelper,
+      frameIdRef, navigationStart, fmpMarkerEvent) {
+    var rangeOfInterest = tr.b.Range.fromExplicitRange(navigationStart.cpuStart,
+        fmpMarkerEvent.cpuStart);
+    var snapshot = findFrameLoaderSnapshotAt(
+        rendererHelper, frameIdRef, fmpMarkerEvent.start);
+    if (!snapshot || !snapshot.args.isLoadingMainFrame) return;
+    var url = snapshot.args.documentLoaderURL;
+    if (shouldIgnoreURL(url)) return;
+
+    var mainThreadCpuTime = getMainThreadCpuTime(rendererHelper,
+        rangeOfInterest);
+
+    var breakdownTree = rendererHelper.generateCpuTimeBreakdownTree(
+        navigationStart.cpuStart, fmpMarkerEvent.cpuStart);
+    var breakdownDiagnostic = createBreakdownDiagnostic(breakdownTree);
+    samples.push({
+      value: mainThreadCpuTime,
+      diagnostics: {
+        'Breakdown of [navStart, FMP]': breakdownDiagnostic,
+        'Start': new RelatedEventSet(navigationStart),
+        'End': new RelatedEventSet(fmpMarkerEvent),
+        'Navigation infos': new tr.v.d.Generic({
+          url,
+          pid: rendererHelper.pid,
+          start: navigationStart.start,
+          fmp: fmpMarkerEvent.start
+        }),
+      }
+    });
+  }
+
+  function getMainThreadCpuTime(rendererHelper, rangeOfInterest) {
+    var mainThreadCpuTime = 0;
+    for (var slice of rendererHelper.mainThread.sliceGroup.topLevelSlices) {
+      if (!slice.cpuDuration) continue;
+      var sliceRange = tr.b.Range.fromExplicitRange(slice.cpuStart,
+          slice.cpuStart + slice.cpuDuration);
+      var intersection = rangeOfInterest.findIntersection(sliceRange);
+      mainThreadCpuTime += intersection.duration;
+    }
+
+    return mainThreadCpuTime;
   }
 
   function addFirstInteractiveSample(samples, rendererHelper,
@@ -288,11 +333,15 @@ tr.exportTo('tr.metrics.sh', function() {
   function collectFirstMeaningfulPaintAndTimeToInteractiveForRenderer(
       rendererHelper, navigationStartFinder) {
     var firstMeaningfulPaintSamples = [];
+    var firstMeaningfulPaintCpuTimeSamples = [];
     var firstInteractiveSamples = [];
 
     function addSamples(frameIdRef, navigationStart, fmpMarkerEvent) {
       var data = addFirstMeaningfulPaintSample(
           firstMeaningfulPaintSamples, rendererHelper,
+          frameIdRef, navigationStart, fmpMarkerEvent);
+      addFirstMeaningfulPaintCpuTimeSample(
+          firstMeaningfulPaintCpuTimeSamples, rendererHelper,
           frameIdRef, navigationStart, fmpMarkerEvent);
       if (data !== undefined) {
         addFirstInteractiveSample(
@@ -333,8 +382,11 @@ tr.exportTo('tr.metrics.sh', function() {
         addSamples(frameIdRef, navigationStart, lastCandidate);
       }
     }
-    return {firstMeaningfulPaintSamples: firstMeaningfulPaintSamples,
-      firstInteractiveSamples: firstInteractiveSamples};
+    return {
+      firstMeaningfulPaintSamples,
+      firstMeaningfulPaintCpuTimeSamples,
+      firstInteractiveSamples
+    };
   }
 
   function collectLoadingMetricsForRenderer(rendererHelper) {
@@ -344,14 +396,16 @@ tr.exportTo('tr.metrics.sh', function() {
         'firstContentfulPaint', rendererHelper, navigationStartFinder);
     var onLoadSamples = collectTimeToEvent(
         'loadEventStart', rendererHelper, navigationStartFinder);
-    var {firstMeaningfulPaintSamples, firstInteractiveSamples} =
+    var {firstMeaningfulPaintSamples, firstMeaningfulPaintCpuTimeSamples,
+        firstInteractiveSamples} =
         collectFirstMeaningfulPaintAndTimeToInteractiveForRenderer(
             rendererHelper, navigationStartFinder);
     return {
-      firstContentfulPaintSamples: firstContentfulPaintSamples,
-      onLoadSamples: onLoadSamples,
-      firstMeaningfulPaintSamples: firstMeaningfulPaintSamples,
-      firstInteractiveSamples: firstInteractiveSamples
+      firstContentfulPaintSamples,
+      onLoadSamples,
+      firstMeaningfulPaintSamples,
+      firstMeaningfulPaintCpuTimeSamples,
+      firstInteractiveSamples
     };
   }
 
@@ -372,6 +426,10 @@ tr.exportTo('tr.metrics.sh', function() {
         'timeToFirstMeaningfulPaint');
     firstMeaningfulPaintHistogram.description =
         'time to first meaningful paint';
+    var firstMeaningfulPaintCpuTimeHistogram = createHistogram(
+        'cpuTimeToFirstMeaningfulPaint');
+    firstMeaningfulPaintCpuTimeHistogram.description =
+        'CPU time to first meaningful paint';
     var firstInteractiveHistogram = createHistogram('timeToFirstInteractive');
     firstInteractiveHistogram.description = 'time to first interactive';
 
@@ -382,7 +440,8 @@ tr.exportTo('tr.metrics.sh', function() {
       if (rendererHelper.isChromeTracingUI) continue;
 
       var {firstContentfulPaintSamples, onLoadSamples,
-           firstMeaningfulPaintSamples, firstInteractiveSamples} =
+           firstMeaningfulPaintSamples, firstMeaningfulPaintCpuTimeSamples,
+           firstInteractiveSamples} =
           collectLoadingMetricsForRenderer(rendererHelper);
 
       addSamplesToHistogram(firstContentfulPaintSamples,
@@ -390,6 +449,8 @@ tr.exportTo('tr.metrics.sh', function() {
       addSamplesToHistogram(onLoadSamples, onLoadHistogram);
       addSamplesToHistogram(firstMeaningfulPaintSamples,
           firstMeaningfulPaintHistogram);
+      addSamplesToHistogram(firstMeaningfulPaintCpuTimeSamples,
+          firstMeaningfulPaintCpuTimeHistogram);
       addSamplesToHistogram(firstInteractiveSamples,
           firstInteractiveHistogram);
     }
@@ -397,6 +458,7 @@ tr.exportTo('tr.metrics.sh', function() {
     histograms.addHistogram(firstContentfulPaintHistogram);
     histograms.addHistogram(onLoadHistogram);
     histograms.addHistogram(firstMeaningfulPaintHistogram);
+    histograms.addHistogram(firstMeaningfulPaintCpuTimeHistogram);
     histograms.addHistogram(firstInteractiveHistogram);
   }
 

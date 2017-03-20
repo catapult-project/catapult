@@ -26,6 +26,7 @@ tr.b.unittest.testSuite(function() {
     //      |   |           |    |    |           |      |     |        |     |
     //      v   v           v    v    v           v      v     v        v     v
     // Ts: 200  250         300  400  450         550    570   600     620  650
+    // Cpu:1160 1200        1240 1320 1360       1440    1456  1480    1496 1520
 
     // Add layout categories
     mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
@@ -33,6 +34,8 @@ tr.b.unittest.testSuite(function() {
       title: 'HTMLDocumentParser::didReceiveParsedChunkFromBackgroundParser',
       start: 200,
       duration: 200,
+      cpuStart: 1160,
+      cpuDuration: 160,
     }));
 
     mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
@@ -40,6 +43,8 @@ tr.b.unittest.testSuite(function() {
       title: 'Script',
       start: 250,
       duration: 50,
+      cpuStart: 1200,
+      cpuDuration: 40,
     }));
 
     mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
@@ -48,6 +53,8 @@ tr.b.unittest.testSuite(function() {
       start: 250,
       duration: 50,
       args: {'runtime-call-stat': '{"ICMiss": [3, 150], "GC": [10, 60]}'},
+      cpuStart: 1200,
+      cpuDuration: 40,
     }));
 
     mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
@@ -55,6 +62,8 @@ tr.b.unittest.testSuite(function() {
       title: 'FrameView::layout',
       start: 450,
       duration: 100,
+      cpuStart: 1360,
+      cpuDuration: 80,
     }));
 
     mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
@@ -63,12 +72,16 @@ tr.b.unittest.testSuite(function() {
       start: 570,
       duration: 80,
       args: {'runtime-call-stat': '{"DeOptimize": [1, 42], "GC": [3, 50]}'},
+      cpuStart: 1456,
+      cpuDuration: 64,
     }));
     mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
       cat: 'blink',
       title: 'WebViewImpl::layout',
       start: 600,
       duration: 20,
+      cpuStart: 1480,
+      cpuDuration: 16,
     }));
   });
 
@@ -148,6 +161,79 @@ tr.b.unittest.testSuite(function() {
         'DeOptimize': 0.021,
         'GC': 0.055,
         'ICMiss': 0.075,
+      }
+    }, breakdownTree['v8_runtime']);
+  });
+
+  test('testCpuTimeBreakdownNoIntersectingBoundary', function() {
+    var breakdownTree = rendererHelper.generateCpuTimeBreakdownTree(1000, 1800);
+    assert.deepEqual({
+      total: 120,
+      events: {
+        'HTMLDocumentParser::didReceiveParsedChunkFromBackgroundParser': 120
+      }
+    }, breakdownTree['parseHTML']);
+    assert.deepEqual({
+      total: 96,
+      events: {
+        'FrameView::layout': 80,
+        'WebViewImpl::layout': 16,
+      }
+    }, breakdownTree['layout']);
+    assert.deepEqual({
+      total: 88,
+      events: {
+        'V8.Execute': 88,
+      }
+    }, breakdownTree['script_execute']);
+    assert.deepEqual({
+      total: 0.302,
+      events: {
+        'DeOptimize': 0.042,
+        'GC': 0.11,
+        'ICMiss': 0.15,
+      }
+    }, breakdownTree['v8_runtime']);
+  });
+
+  test('testCpuTimeBreakdownIntersectingBoundary', function() {
+    // Our main thread looks like:
+    //
+    //      [      parseHTML     ]    [  layout   ]      [      V8.Exec       ]
+    //      |   [  V8.Exec  ]    |    |           |      |     [ layout ]     |
+    //      |   |           |    |    |           |      |     |        |     |
+    //      |   |           |    |    |           |      |     |        |     |
+    //      v   v           v    v    v           v      v     v        v     v
+    // Cpu:1160 1200        1240 1320 1360       1440    1456  1480    1496 1520
+    //                |                                           |
+    //               1220                                        1488
+
+    var breakdownTree = rendererHelper.generateCpuTimeBreakdownTree(1220, 1488);
+    assert.deepEqual({
+      total: 75,
+      events: {
+        'HTMLDocumentParser::didReceiveParsedChunkFromBackgroundParser': 75
+      }
+    }, breakdownTree['parseHTML']);
+    assert.deepEqual({
+      total: 88,
+      events: {
+        'FrameView::layout': 80,
+        'WebViewImpl::layout': 8,
+      }
+    }, breakdownTree['layout']);
+    assert.deepEqual({
+      total: 44,
+      events: {
+        'V8.Execute': 44,
+      }
+    }, breakdownTree['script_execute']);
+    assert.deepEqual({
+      total: 0.151,
+      events: {
+        'DeOptimize': 0.021,
+        'GC': 0.055,
+        'ICMiss': 0.075
       }
     }, breakdownTree['v8_runtime']);
   });

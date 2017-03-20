@@ -155,6 +155,232 @@ tr.b.unittest.testSuite(function() {
     assert.equal(800, hist.running.mean);
   });
 
+  //             [--------------------------]
+  //             |  [-------------]         |
+  //             |  |             |         |
+  //             v  v             v         v
+  // CPU Time: 1000 1150  Start 1175      1200     FMP
+  //                        |                       |
+  //                       1160                    1480
+  test('cpuTimeToFirstMeaningfulPaint_withEmbeddedSlices', function() {
+    var model = tr.c.TestUtils.newModel(function(model) {
+      var rendererProcess = model.getOrCreateProcess(1);
+      var mainThread = rendererProcess.getOrCreateThread(2);
+      mainThread.name = 'CrRendererMain';
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 200,
+        duration: 0.0,
+        cpuStart: 1160,
+        cpuDuration: 0,
+        args: {frame: '0xdeadbeef'}
+      }));
+      rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
+          {
+            isLoadingMainFrame: true,
+            frame: {id_ref: '0xdeadbeef'},
+            documentLoaderURL: 'http://example.com'
+          });
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'loading',
+        title: 'firstMeaningfulPaintCandidate',
+        start: 600,
+        duration: 0.0,
+        cpuStart: 1480,
+        cpuDuration: 0,
+        args: {frame: '0xdeadbeef'}
+      }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'toplevel',
+        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
+        start: 100,
+        duration: 300,
+        cpuStart: 1000,
+        cpuDuration: 200,
+      }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'loading',
+        title: 'ResourceDispatcher::OnRequestComplete',
+        start: 200,
+        duration: 100,
+        cpuStart: 1150,
+        cpuDuration: 25,
+      }));
+    });
+    var histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.loadingMetric(histograms, model);
+    var hist = histograms.getHistogramNamed('cpuTimeToFirstMeaningfulPaint');
+    assert.deepEqual(hist.sampleValues, [40]);
+    var histBin = hist.getBinForValue(40);
+    assert.equal(histBin.diagnosticMaps[0].get('Breakdown of [navStart, FMP]')
+        .get('other'), 35);
+    assert.equal(histBin.diagnosticMaps[0].get('Breakdown of [navStart, FMP]')
+        .get('resource_loading'), 15);
+  });
+
+  //             [-------------]        [------------------]
+  //             |             |        |                  |
+  //             v             v        v                  v
+  // CPU Time: 1060   Start  1240      1250        FMP    1350
+  //                   |                            |
+  //                  1160                         1280
+  test('cpuTimeToFirstMeaningfulPaint_withIntersectingBoundary', function() {
+    var model = tr.c.TestUtils.newModel(function(model) {
+      var rendererProcess = model.getOrCreateProcess(1);
+      var mainThread = rendererProcess.getOrCreateThread(2);
+      mainThread.name = 'CrRendererMain';
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 200,
+        duration: 0.0,
+        cpuStart: 1160,
+        cpuDuration: 0,
+        args: {frame: '0xdeadbeef'}
+      }));
+      rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
+          {
+            isLoadingMainFrame: true,
+            frame: {id_ref: '0xdeadbeef'},
+            documentLoaderURL: 'http://example.com'
+          });
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'loading',
+        title: 'firstMeaningfulPaintCandidate',
+        start: 600,
+        duration: 0.0,
+        cpuStart: 1280,
+        cpuDuration: 0,
+        args: {frame: '0xdeadbeef'}
+      }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'toplevel',
+        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
+        start: 100,
+        duration: 200,
+        cpuStart: 1060,
+        cpuDuration: 180,
+      }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'toplevel',
+        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
+        start: 500,
+        duration: 200,
+        cpuStart: 1250,
+        cpuDuration: 100,
+      }));
+    });
+    var histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.loadingMetric(histograms, model);
+    var hist = histograms.getHistogramNamed('cpuTimeToFirstMeaningfulPaint');
+    assert.equal(1, hist.running.count);
+    assert.equal(110, hist.running.mean);
+  });
+
+  // Render 1:
+  //
+  //                       [--------]
+  //                       |        |
+  //                       v        v
+  // CPU Time:     Start  1180      1230        FMP
+  //                |                            |
+  //               1160                         1280
+  //
+  // Render 2:
+  //
+  //                        [-------------]
+  //                        |             |
+  //                        v             v
+  // CPU Time:     Start   1170          1270   FMP
+  //                |                            |
+  //               1160                         1280
+  test('cpuTimeToFirstMeaningfulPaint_multipleRenderers', function() {
+    var model = tr.c.TestUtils.newModel(function(model) {
+      var rendererProcess1 = model.getOrCreateProcess(1);
+      var mainThread = rendererProcess1.getOrCreateThread(2);
+      mainThread.name = 'CrRendererMain';
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 200,
+        duration: 0.0,
+        cpuStart: 1160,
+        cpuDuration: 0,
+        args: {frame: '0xdeadbeef'}
+      }));
+      rendererProcess1.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
+          {
+            isLoadingMainFrame: true,
+            frame: {id_ref: '0xdeadbeef'},
+            documentLoaderURL: 'http://example.com'
+          });
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'loading',
+        title: 'firstMeaningfulPaintCandidate',
+        start: 600,
+        duration: 0.0,
+        cpuStart: 1280,
+        cpuDuration: 0,
+        args: {frame: '0xdeadbeef'}
+      }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'loader',
+        title: 'ResourceDispatcher::OnRequestComplete',
+        start: 300,
+        duration: 200,
+        cpuStart: 1180,
+        cpuDuration: 50
+      }));
+
+      var rendererProcess2 = model.getOrCreateProcess(2);
+      mainThread = rendererProcess2.getOrCreateThread(2);
+      mainThread.name = 'CrRendererMain';
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 200,
+        duration: 0.0,
+        cpuStart: 1160,
+        cpuDuration: 0,
+        args: {frame: '0xdeadbeef'}
+      }));
+      rendererProcess2.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
+          {
+            isLoadingMainFrame: true,
+            frame: {id_ref: '0xdeadbeef'},
+            documentLoaderURL: 'http://example.com'
+          });
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'loading',
+        title: 'firstMeaningfulPaintCandidate',
+        start: 600,
+        duration: 0.0,
+        cpuStart: 1280,
+        cpuDuration: 0,
+        args: {frame: '0xdeadbeef'}
+      }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'toplevel',
+        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
+        start: 300,
+        duration: 200,
+        cpuStart: 1170,
+        cpuDuration: 100,
+      }));
+    });
+    var histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.loadingMetric(histograms, model);
+    var hist = histograms.getHistogramNamed('cpuTimeToFirstMeaningfulPaint');
+    assert.deepEqual(hist.sampleValues, [50, 100]);
+    var histBin1 = hist.getBinForValue(50);
+    assert.equal(histBin1.diagnosticMaps[0].get('Breakdown of [navStart, FMP]')
+        .get('resource_loading'), 50);
+    var histBin2 = hist.getBinForValue(100);
+    assert.equal(histBin2.diagnosticMaps[0].get('Breakdown of [navStart, FMP]')
+        .get('other'), 100);
+  });
+
   test('timeToInteractive', function() {
     // Our renderer thread would looks like
     //

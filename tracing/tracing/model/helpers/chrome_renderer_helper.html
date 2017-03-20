@@ -53,16 +53,15 @@ tr.exportTo('tr.model.helpers', function() {
   * group and their total time between |rangeStart| and |rangeEnd|.
   *
   * Example:
-  *   {layout: {
-  *        total: 100,
-  *        events: {'FrameView::performPreLayoutTasks': 20,..}},
-  *    v8_runtime: {
-  *        total: 500,
-  *        events: {'String::NewExternalTwoByte': 0.5,..}},
-  *    ...
-  *    }
-  *
-  *
+  *   {
+  *     layout: {
+  *         total: 100,
+  *         events: {'FrameView::performPreLayoutTasks': 20,..}},
+  *     v8_runtime: {
+  *         total: 500,
+  *         events: {'String::NewExternalTwoByte': 0.5,..}},
+  *     ...
+  *   }
   */
   function generateTimeBreakdownTree_(mainThread, rangeStart, rangeEnd,
       getEventStart, getEventDuration, getEventSelfTime) {
@@ -174,24 +173,26 @@ tr.exportTo('tr.model.helpers', function() {
 
     /**
     * Generate a breakdown that attributes where wall clock time goes between
-    * |start| & |end| on renderer thread.
+    * |start| & |end| on the renderer thread.
     *
     * @param {number} start
     * @param {number} end
-    * @return {Map.<string, Object>} A time breakdown object whose every key is
-    * a Chrome userfriendly title & values are an object that show the total
-    * spent between |start| & |end|, and the list of event labels of the group
-    * and their total time between |start| & |end|.
+    * @return {Map.<string, Object>} A time breakdown map whose keys are
+    * Chrome userfriendly titles & values are an object that shows the total
+    * wall clock time spent between |start| & |end|, and the list of event
+    * labels of the group and their total wall clock time between |start| &
+    * |end|.
     *
     * Example:
-    *   {layout: {
-    *        total: 100,
-    *        events: {'FrameView::performPreLayoutTasks': 20,..}},
-    *    v8_runtime: {
-    *        total: 500,
-    *        events: {'String::NewExternalTwoByte': 0.5,..}},
-    *    ...
-    *    }
+    *   {
+    *     layout: {
+    *         total: 100,
+    *         events: {'FrameView::performPreLayoutTasks': 20,..}},
+    *     v8_runtime: {
+    *         total: 500,
+    *         events: {'String::NewExternalTwoByte': 0.5,..}},
+    *     ...
+    *   }
     */
     generateWallClockTimeBreakdownTree: function(start, end) {
       function getEventStart(e) { return e.start; }
@@ -205,6 +206,36 @@ tr.exportTo('tr.model.helpers', function() {
       }
       breakdownTree['idle'] = {total: idleTotal, events: {}};
       return breakdownTree;
+    },
+
+    /**
+    * Generate a breakdown that attributes where CPU time goes between
+    * |cpuStart| & |cpuEnd| on the renderer thread.
+    *
+    * @param {number} cpuStart
+    * @param {number} cpuEnd
+    * @return {Map.<string, Object>} A time breakdown map whose keys are
+    * Chrome userfriendly titles & values are an object that shows the total
+    * CPU time spent between |cpuStart| & |cpuEnd|, and the list of event labels
+    * of the group and their total CPU time between |cpuStart| & |cpuEnd|.
+    *
+    * Example:
+    *   {
+    *     layout: {
+    *         total: 100,
+    *         events: {'FrameView::performPreLayoutTasks': 20,..}},
+    *     v8_runtime: {
+    *         total: 500,
+    *         events: {'String::NewExternalTwoByte': 0.5,..}},
+    *     ...
+    *   }
+    */
+    generateCpuTimeBreakdownTree: function(cpuStart, cpuEnd) {
+      function getEventStart(e) { return e.cpuStart; }
+      function getEventDuration(e) { return e.cpuDuration; }
+      function getEventSelfTime(e) { return e.cpuSelfTime; }
+      return generateTimeBreakdownTree_(this.mainThread, cpuStart, cpuEnd,
+          getEventStart, getEventDuration, getEventSelfTime);
     }
   };
 
