@@ -40,6 +40,10 @@ tr.exportTo('tr.b', function() {
      * loads. These are slower to generate and consume more memory than simple
      * GUIDs.
      *
+     * Background on using Math.random() for allocating identifiers:
+     * https://medium.com/@betable/tifu-by-using-math-random-f1c308c4fd9d#.n5b6vgrsh
+     * https://v8project.blogspot.com/2015/12/theres-mathrandom-and-then-theres.html
+     *
      * @return {string} universally unique id.
      */
     allocateUUID4: function() {
