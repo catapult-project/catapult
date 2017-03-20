@@ -131,6 +131,28 @@ class CompareSamplesUnittest(unittest.TestCase):
       charts['charts'][chart_name][trace_name]['grouping_keys'] = grouping_keys
     return self.NewJsonTempfile(charts)
 
+  def MakeNoneValuesChart(self, metric, keys=None):
+    """Creates a chart with merged None values.
+
+    Args:
+      metric (str pair): name of chart, name of the trace.
+    """
+    chart_name, trace_name = metric
+    charts = {
+        'charts': {
+            chart_name: {
+                trace_name: {
+                    'type': 'list_of_scalar_values',
+                    'values': None
+                }
+            }
+        }
+    }
+    if keys:
+      grouping_keys = dict(enumerate(keys))
+      charts['charts'][chart_name][trace_name]['grouping_keys'] = grouping_keys
+    return self.NewJsonTempfile(charts)
+
   def MakeCharts(self, metric, seed, mu, sigma, n, keys=None):
     return [
         self.MakeChartJSONScalar(metric, seed + '%d' % i, mu, sigma, keys)
@@ -168,6 +190,17 @@ class CompareSamplesUnittest(unittest.TestCase):
     metric = ('some_chart', 'some_trace')
     lower_values = ','.join(self.MakeCharts(metric=metric, seed='lower',
                                             mu=10, sigma=1, n=10))
+    higher_values = ','.join(self.MakeCharts(metric=metric, seed='higher',
+                                             mu=20, sigma=2, n=10))
+    result = json.loads(compare_samples.CompareSamples(
+        lower_values, higher_values, '/'.join(metric)).stdout)
+    self.assertEqual(result['result']['significance'], REJECT)
+
+  def testCompareListOfScalarsWithNoneValue(self):
+    metric = ('some_chart', 'some_trace')
+    lower_values = ','.join(self.MakeCharts(metric=metric, seed='lower',
+                                            mu=10, sigma=1, n=10))
+    lower_values += ',' + self.MakeNoneValuesChart(metric=metric)
     higher_values = ','.join(self.MakeCharts(metric=metric, seed='higher',
                                              mu=20, sigma=2, n=10))
     result = json.loads(compare_samples.CompareSamples(

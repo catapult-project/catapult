@@ -81,9 +81,12 @@ function valuesFromCharts(listOfCharts, metricName) {
           chartAndTrace[1], charts.charts[chartName]);
       if (traceName) {
         if (charts.charts[chartName][traceName].type ===
-            'list_of_scalar_values')
+            'list_of_scalar_values') {
+          if (charts.charts[chartName][traceName].values === null)
+            continue;
           allValues.push(tr.b.Statistics.mean(
               charts.charts[chartName][traceName].values));
+        }
         if (charts.charts[chartName][traceName].type === 'histogram')
           allValues.push(
               geoMeanFromHistogram(charts.charts[chartName][traceName]));
