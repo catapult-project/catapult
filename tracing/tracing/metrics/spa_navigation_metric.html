@@ -56,7 +56,7 @@ tr.exportTo('tr.metrics', function() {
             'traceEventClock',
             beginData.INPUT_EVENT_LATENCY_BEGIN_RWH_COMPONENT.time);
         let duration = spaNav.firstPaintEvent.start - beginTs;
-        let breakdownDict = rendererHelper.generateTimeBreakdownTree(
+        let breakdownDict = rendererHelper.generateWallClockTimeBreakdownTree(
             beginTs, spaNav.firstPaintEvent.start);
         let breakdownDiagnostic = new tr.v.d.Breakdown();
         breakdownDiagnostic.colorScheme =

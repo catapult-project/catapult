@@ -77,8 +77,9 @@ tr.b.unittest.testSuite(function() {
 
   var rendererHelper = chromeHelper.rendererHelpers[rendererPid];
 
-  test('testTimeBreakdownNoIntersectingBoundary', function() {
-    var breakdownTree = rendererHelper.generateTimeBreakdownTree(0, 1000);
+  test('testWallClockTimeBreakdownNoIntersectingBoundary', function() {
+    var breakdownTree =
+        rendererHelper.generateWallClockTimeBreakdownTree(0, 1000);
     assert.deepEqual({
       total: 150,
       events: {
@@ -108,7 +109,7 @@ tr.b.unittest.testSuite(function() {
     }, breakdownTree['v8_runtime']);
   });
 
-  test('testTimeBreakdownIntersectingBoundary', function() {
+  test('testWallClockTimeBreakdownIntersectingBoundary', function() {
     // Our main thread looks like:
     //
     //      [      parseHTML     ]    [  layout   ]      [      V8.Exec       ]
@@ -120,7 +121,8 @@ tr.b.unittest.testSuite(function() {
     //                |                                           |
     //               275                                         610
 
-    var breakdownTree = rendererHelper.generateTimeBreakdownTree(275, 610);
+    var breakdownTree =
+        rendererHelper.generateWallClockTimeBreakdownTree(275, 610);
     assert.deepEqual({
       total: 93.75,
       events: {

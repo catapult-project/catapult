@@ -30,16 +30,18 @@ tr.exportTo('tr.metrics.sh', function() {
         tr.b.getCategoryParts(event.category).indexOf(category) !== -1;
   }
 
-  function createBreakdownDiagnostic(rendererHelper, start, end) {
-    var breakdownDict = rendererHelper.generateTimeBreakdownTree(
-        start, end);
-
+  /**
+   * @param {Map.<string, Object>} breakdownTree
+   * @return {tr.v.d.Breakdown} A breakdown with categories and the total time
+   * (ms) spent under each category.
+   */
+  function createBreakdownDiagnostic(breakdownTree) {
     var breakdownDiagnostic = new tr.v.d.Breakdown();
     breakdownDiagnostic.colorScheme =
         tr.v.d.COLOR_SCHEME_CHROME_USER_FRIENDLY_CATEGORY_DRIVER;
 
-    for (var label in breakdownDict) {
-      breakdownDiagnostic.set(label, breakdownDict[label].total);
+    for (var label in breakdownTree) {
+      breakdownDiagnostic.set(label, breakdownTree[label].total);
     }
     return breakdownDiagnostic;
   }
@@ -191,8 +193,9 @@ tr.exportTo('tr.metrics.sh', function() {
 
     var timeToFirstMeaningfulPaint =
         fmpMarkerEvent.start - navigationStart.start;
-    var breakdownDiagnostic = createBreakdownDiagnostic(
-        rendererHelper, navigationStart.start, fmpMarkerEvent.start);
+    var breakdownTree = rendererHelper.generateWallClockTimeBreakdownTree(
+        navigationStart.start, fmpMarkerEvent.start);
+    var breakdownDiagnostic = createBreakdownDiagnostic(breakdownTree);
     samples.push({
       value: timeToFirstMeaningfulPaint,
       diagnostics: {
@@ -240,8 +243,9 @@ tr.exportTo('tr.metrics.sh', function() {
         lastLongTaskEvent = ev;
       }
     }
-    var breakdownDiagnostic = createBreakdownDiagnostic(
-        rendererHelper, navigationStartTime, firstInteractive);
+    var breakdownTree = rendererHelper.generateWallClockTimeBreakdownTree(
+        navigationStartTime, firstInteractive);
+    var breakdownDiagnostic = createBreakdownDiagnostic(breakdownTree);
 
     var timeToFirstInteractive = firstInteractive - navigationStartTime;
     samples.push({
