@@ -30,6 +30,14 @@ tr.exportTo('tr.metrics', function() {
     let hist = new tr.v.Histogram(histogramName,
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TIME_BOUNDARIES);
     hist.addSample(duration);
+    hist.customizeSummaryOptions({
+      count: false,
+      min: false,
+      max: false,
+      sum: false,
+      avg: true,
+      std: false
+    });
     histograms.addHistogram(hist);
     if (opt_description) hist.description = opt_description;
   }
@@ -89,6 +97,14 @@ tr.exportTo('tr.metrics', function() {
         tr.b.Unit.byName.sizeInBytes_smallerIsBetter, BYTE_BOUNDARIES);
     memoryInfraTraceBytesValue.description =
         'Total trace size of memory-infra dumps in bytes';
+    memoryInfraTraceBytesValue.customizeSummaryOptions({
+      count: false,
+      min: false,
+      max: false,
+      sum: false,
+      avg: true,
+      std: false
+    });
     memoryInfraTraceBytesValue.addSample(memoryInfraEventsSize);
     histograms.addHistogram(memoryInfraTraceBytesValue);
 
@@ -96,7 +112,15 @@ tr.exportTo('tr.metrics', function() {
         'memory_dump_size',
         tr.b.Unit.byName.sizeInBytes_smallerIsBetter, BYTE_BOUNDARIES);
     traceBytesPerDumpValue.description =
-        'Average trace size of memory-infra dumps in bytes',
+        'Average trace size of memory-infra dumps in bytes';
+    traceBytesPerDumpValue.customizeSummaryOptions({
+      count: false,
+      min: false,
+      max: false,
+      sum: false,
+      avg: true,
+      std: false
+    });
     traceBytesPerDumpValue.addSample(memoryInfraEventsSize / memoryDumpCount);
     histograms.addHistogram(traceBytesPerDumpValue);
   }
@@ -108,7 +132,8 @@ tr.exportTo('tr.metrics', function() {
   // https://github.com/catapult-project/catapult/issues/3233
   function tracingMetric(histograms, model) {
     addTimeDurationHistogram(
-        'trace_import_duration', model.stats.traceImportDurationMs, histograms);
+        'trace_import_duration', model.stats.traceImportDurationMs, histograms,
+        'Duration that trace viewer required to import the trace');
 
     if (!model.stats.hasEventSizesinBytes) return;
 
@@ -174,16 +199,40 @@ tr.exportTo('tr.metrics', function() {
         'peak_event_rate', tr.b.Unit.byName.count_smallerIsBetter,
         COUNT_BOUNDARIES);
     maxEventCountPerSecValue.description = 'Max number of events per second';
+    maxEventCountPerSecValue.customizeSummaryOptions({
+      count: false,
+      min: false,
+      max: false,
+      sum: false,
+      avg: true,
+      std: false
+    });
     maxEventCountPerSecValue.addSample(maxEventCountPerSec);
 
     let maxEventBytesPerSecValue = new tr.v.Histogram(
         'peak_event_size_rate', tr.b.Unit.byName.sizeInBytes_smallerIsBetter,
         BYTE_BOUNDARIES);
     maxEventBytesPerSecValue.description = 'Max event size in bytes per second';
+    maxEventBytesPerSecValue.customizeSummaryOptions({
+      count: false,
+      min: false,
+      max: false,
+      sum: false,
+      avg: true,
+      std: false
+    });
     maxEventBytesPerSecValue.addSample(maxEventBytesPerSec);
 
     let totalTraceBytesValue = new tr.v.Histogram('trace_size',
         tr.b.Unit.byName.sizeInBytes_smallerIsBetter, BYTE_BOUNDARIES);
+    totalTraceBytesValue.customizeSummaryOptions({
+      count: false,
+      min: false,
+      max: false,
+      sum: false,
+      avg: true,
+      std: false
+    });
     totalTraceBytesValue.addSample(totalTraceBytes);
 
     let biggestCategory = {
