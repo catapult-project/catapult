@@ -1844,47 +1844,45 @@ tr.exportTo('tr.e.importer', function() {
       return true;
     },
 
-    createFlowSlices_: function() {
-      if (this.allFlowEvents_.length === 0)
-        return;
+    validateFlowEvent_(event) {
+      if (event.name === undefined) {
+        this.model_.importWarning({
+          type: 'flow_slice_parse_error',
+          message: 'Flow events (ph: s, t or f) require a name parameter.'
+        });
+        return false;
+      }
 
-      var that = this;
-
-      function validateFlowEvent() {
-        if (event.name === undefined) {
-          that.model_.importWarning({
+      // Support Flow API v1.
+      if (event.ph === 's' || event.ph === 'f' || event.ph === 't') {
+        if (event.id === undefined) {
+          this.model_.importWarning({
             type: 'flow_slice_parse_error',
-            message: 'Flow events (ph: s, t or f) require a name parameter.'
+            message: 'Flow events (ph: s, t or f) require an id parameter.'
           });
           return false;
         }
-
-        // Support Flow API v1.
-        if (event.ph === 's' || event.ph === 'f' || event.ph === 't') {
-          if (event.id === undefined) {
-            that.model_.importWarning({
-              type: 'flow_slice_parse_error',
-              message: 'Flow events (ph: s, t or f) require an id parameter.'
-            });
-            return false;
-          }
-          return true;
-        }
-
-        // Support Flow API v2.
-        if (event.bind_id) {
-          if (event.flow_in === undefined && event.flow_out === undefined) {
-            that.model_.importWarning({
-              type: 'flow_slice_parse_error',
-              message: 'Flow producer or consumer require flow_in or flow_out.'
-            });
-            return false;
-          }
-          return true;
-        }
-
-        return false;
+        return true;
       }
+
+      // Support Flow API v2.
+      if (event.bind_id) {
+        if (event.flow_in === undefined && event.flow_out === undefined) {
+          this.model_.importWarning({
+            type: 'flow_slice_parse_error',
+            message: 'Flow producer or consumer require flow_in or flow_out.'
+          });
+          return false;
+        }
+        return true;
+      }
+
+      return false;
+    },
+
+    createFlowSlices_: function() {
+      if (this.allFlowEvents_.length === 0)
+        return;
 
       var createFlowEvent = function(thread, event, opt_slice) {
         var startSlice;
@@ -1912,9 +1910,9 @@ tr.exportTo('tr.e.importer', function() {
             event.name,
             getEventColor(event),
             flowStartTs,
-            that.deepCopyAlways_(event.args));
+            this.deepCopyAlways_(event.args));
         flowEvent.startSlice = startSlice;
-        flowEvent.startStackFrame = that.getStackFrameForEvent_(event);
+        flowEvent.startStackFrame = this.getStackFrameForEvent_(event);
         flowEvent.endStackFrame = undefined;
         startSlice.outFlowEvents.push(flowEvent);
         return flowEvent;
@@ -1943,16 +1941,16 @@ tr.exportTo('tr.e.importer', function() {
         flowEvent.endSlice = endSlice;
         flowEvent.duration =
             this.toModelTimeFromUs_(event.ts) - flowEvent.start;
-        flowEvent.endStackFrame = that.getStackFrameForEvent_(event);
-        that.mergeArgsInto_(flowEvent.args, event.args, flowEvent.title);
+        flowEvent.endStackFrame = this.getStackFrameForEvent_(event);
+        this.mergeArgsInto_(flowEvent.args, event.args, flowEvent.title);
         return true;
       }.bind(this);
 
-      function processFlowConsumer(
+      const processFlowConsumer = function(
           flowIdToEvent, sliceGuidToEvent, event, slice) {
         var flowEvent = flowIdToEvent[event.bind_id];
         if (flowEvent === undefined) {
-          that.model_.importWarning({
+          this.model_.importWarning({
             type: 'flow_slice_ordering_error',
             message: 'Flow consumer ' + event.bind_id + ' does not have ' +
                   'a flow producer'});
@@ -1968,9 +1966,9 @@ tr.exportTo('tr.e.importer', function() {
         var ok = finishFlowEventWith(flowEvent, undefined, event,
             refGuid, undefined, slice);
         if (ok) {
-          that.model_.flowEvents.push(flowEvent);
+          this.model_.flowEvents.push(flowEvent);
         } else {
-          that.model_.importWarning({
+          this.model_.importWarning({
             type: 'flow_slice_end_error',
             message: 'Flow consumer ' + event.bind_id + ' does not end ' +
                   'at an actual slice, so cannot be created.'});
@@ -1978,14 +1976,15 @@ tr.exportTo('tr.e.importer', function() {
         }
 
         return true;
-      }
+      }.bind(this);
 
-      function processFlowProducer(flowIdToEvent, flowStatus, event, slice) {
+      const processFlowProducer = function(
+          flowIdToEvent, flowStatus, event, slice) {
         if (flowIdToEvent[event.bind_id] &&
             flowStatus[event.bind_id]) {
           // Can't open the same flow again while it's still open.
           // This is essentially the multi-producer case which we don't support
-          that.model_.importWarning({
+          this.model_.importWarning({
             type: 'flow_slice_start_error',
             message: 'Flow producer ' + event.bind_id + ' already seen'});
           return false;
@@ -1993,14 +1992,14 @@ tr.exportTo('tr.e.importer', function() {
 
         var flowEvent = createFlowEvent(undefined, event, slice);
         if (!flowEvent) {
-          that.model_.importWarning({
+          this.model_.importWarning({
             type: 'flow_slice_start_error',
             message: 'Flow producer ' + event.bind_id + ' does not start' +
                   'a flow'});
           return false;
         }
         flowIdToEvent[event.bind_id] = flowEvent;
-      }
+      }.bind(this);
 
       // Actual import.
       this.allFlowEvents_.sort(function(x, y) {
@@ -2018,7 +2017,7 @@ tr.exportTo('tr.e.importer', function() {
         var refGuid = data.refGuid;
         var event = data.event;
         var thread = data.thread;
-        if (!validateFlowEvent(event))
+        if (!this.validateFlowEvent_(event))
           continue;
 
         // Support for Flow API v2.
@@ -2102,7 +2101,7 @@ tr.exportTo('tr.e.importer', function() {
           var ok = finishFlowEventWith(flowEvent, thread, event,
               refGuid, bindToParent);
           if (ok) {
-            that.model_.flowEvents.push(flowEvent);
+            this.model_.flowEvents.push(flowEvent);
           } else {
             this.model_.importWarning({
               type: 'flow_slice_end_error',

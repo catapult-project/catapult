@@ -68,26 +68,24 @@ tr.exportTo('tr.ui.e.drive.analysis', function() {
     },
 
     updateComments: function() {
-      var self = this;
-      gapi.client.load('drive', 'v2', function() {
+      gapi.client.load('drive', 'v2', () => {
         var request = gapi.client.drive.comments.list({
           'fileId': tr.ui.e.drive.getDriveFileId()
         });
-        request.execute(function(results) {
-          self.attachedElement_.comments_ = results.items;
+        request.execute(results => {
+          this.attachedElement_.comments_ = results.items;
         });
       });
     },
 
     addComment: function(body) {
-      var self = this;
-      gapi.client.load('drive', 'v2', function() {
+      gapi.client.load('drive', 'v2', () => {
         var request = gapi.client.drive.comments.insert({
           'fileId': tr.ui.e.drive.getDriveFileId(),
           'resource': {'content': body}
         });
-        request.execute(function(resp) {
-          self.updateComments();
+        request.execute(resp => {
+          this.updateComments();
         });
       });
     }

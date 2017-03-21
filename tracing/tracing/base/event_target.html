@@ -88,10 +88,7 @@ tr.exportTo('tr.b', function() {
 
       // Since we are using DOM Event objects we need to override some of the
       // properties and methods so that we can emulate this correctly.
-      var self = this;
-      event.__defineGetter__('target', function() {
-        return self;
-      });
+      event.__defineGetter__('target', () => this);
       var realPreventDefault = event.preventDefault;
       event.preventDefault = function() {
         realPreventDefault.call(this);

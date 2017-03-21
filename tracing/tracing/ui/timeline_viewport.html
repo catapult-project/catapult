@@ -31,6 +31,45 @@ tr.exportTo('tr.ui', function() {
   // Keep 5 digits of precision when rounding the major mark distances.
   var MAJOR_MARK_ROUNDING_FACTOR = 100000;
 
+  class AnimationControllerProxy {
+    constructor(target) {
+      this.target_ = target;
+    }
+
+    get panX() {
+      return this.target_.currentDisplayTransform_.panX;
+    }
+
+    set panX(panX) {
+      this.target_.currentDisplayTransform_.panX = panX;
+    }
+
+    get panY() {
+      return this.target_.currentDisplayTransform_.panY;
+    }
+
+    set panY(panY) {
+      this.target_.currentDisplayTransform_.panY = panY;
+    }
+
+    get scaleX() {
+      return this.target_.currentDisplayTransform_.scaleX;
+    }
+
+    set scaleX(scaleX) {
+      this.target_.currentDisplayTransform_.scaleX = scaleX;
+    }
+
+    cloneAnimationState() {
+      return this.target_.currentDisplayTransform_.clone();
+    }
+
+    xPanWorldPosToViewPos(xWorld, xView) {
+      this.target_.currentDisplayTransform_.xPanWorldPosToViewPos(
+          xWorld, xView, this.target_.modelTrackContainer_.canvas.clientWidth);
+    }
+  }
+
   /**
    * The TimelineViewport manages the transform used for navigating
    * within the timeline. It is a simple transform:
@@ -126,41 +165,7 @@ tr.exportTo('tr.ui', function() {
             this.onCurentDisplayTransformChange_(e.oldTargetState);
           }.bind(this));
 
-      var that = this;
-      this.dtAnimationController_.target = {
-        get panX() {
-          return that.currentDisplayTransform_.panX;
-        },
-
-        set panX(panX) {
-          that.currentDisplayTransform_.panX = panX;
-        },
-
-        get panY() {
-          return that.currentDisplayTransform_.panY;
-        },
-
-        set panY(panY) {
-          that.currentDisplayTransform_.panY = panY;
-        },
-
-        get scaleX() {
-          return that.currentDisplayTransform_.scaleX;
-        },
-
-        set scaleX(scaleX) {
-          that.currentDisplayTransform_.scaleX = scaleX;
-        },
-
-        cloneAnimationState: function() {
-          return that.currentDisplayTransform_.clone();
-        },
-
-        xPanWorldPosToViewPos: function(xWorld, xView) {
-          that.currentDisplayTransform_.xPanWorldPosToViewPos(
-              xWorld, xView, that.modelTrackContainer_.canvas.clientWidth);
-        }
-      };
+      this.dtAnimationController_.target = new AnimationControllerProxy(this);
     },
 
     get currentDisplayTransform() {

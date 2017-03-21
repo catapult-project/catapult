@@ -80,11 +80,10 @@ tr.exportTo('tr.ui.e.v8', function() {
     },
 
     constructTable_: function(table, groupKey) {
-      var self = this;
       table.tableColumns = [
         {
           title: '',
-          value: function(row) {
+          value: row => {
             let expanded = false;
             let buttonEl = tr.ui.b.createButton('details', function() {
               let previousSibling = Polymer.dom(this).parentNode.parentNode;
@@ -115,7 +114,7 @@ tr.exportTo('tr.ui.e.v8', function() {
                 spanEl.style.fontSize = '14px';
                 divEl.appendChild(spanEl);
 
-                self.constructTable_(subTableEl, property);
+                this.constructTable_(subTableEl, property);
                 subTableEl.tableRows = group;
                 subTableEl.rebuild();
                 divEl.appendChild(subTableEl);

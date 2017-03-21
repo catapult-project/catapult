@@ -48,8 +48,6 @@ tr.exportTo('tr.model', function() {
     this.name = undefined;
     this.samples_ = undefined; // Set during createSubSlices
 
-    var that = this;
-
     this.sliceGroup = new SliceGroup(this, ThreadSlice, 'slices');
     this.timeSlices = undefined;
     this.kernelSliceGroup = new SliceGroup(
