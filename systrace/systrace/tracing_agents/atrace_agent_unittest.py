@@ -104,7 +104,7 @@ class AtraceAgentTest(unittest.TestCase):
       for dump_file_name in ATRACE_PS_DUMPS:
         with open(dump_file_name, 'r') as dump_file:
           ps_dump = dump_file.read()
-          thread_names = atrace_agent.extract_thread_list(ps_dump)
+          thread_names = atrace_agent.extract_thread_list(ps_dump.splitlines())
           self.assertEqual(expected, str(thread_names))
 
   @decorators.HostOnlyTest
@@ -141,7 +141,7 @@ class AtraceAgentTest(unittest.TestCase):
       atrace_procfs_extracted = f2.read()
 
       tgids = eval(atrace_procfs_extracted)
-      result = atrace_agent.extract_tgids(atrace_procfs_dump)
+      result = atrace_agent.extract_tgids(atrace_procfs_dump.splitlines())
 
       self.assertEqual(result, tgids)
 

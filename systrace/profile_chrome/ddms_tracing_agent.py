@@ -27,7 +27,8 @@ class DdmsAgent(tracing_agents.TracingAgent):
     return 'ddms profile'
 
   def _SupportsSampling(self):
-    for line in self._device.RunShellCommand('am --help'):
+    for line in self._device.RunShellCommand(
+        ['am', '--help'], check_return=True):
       if re.match(r'.*am profile start.*--sampling', line):
         return True
     return False
@@ -36,16 +37,17 @@ class DdmsAgent(tracing_agents.TracingAgent):
   def StartAgentTracing(self, config, timeout=None):
     self._output_file = (
         '/data/local/tmp/ddms-profile-%s' % util.GetTraceTimestamp())
-    cmd = 'am profile start '
+    cmd = ['am', 'profile', 'start']
     if self._supports_sampling:
-      cmd += '--sampling %d ' % _DDMS_SAMPLING_FREQUENCY_US
-    cmd += '%s %s' % (self._package, self._output_file)
-    self._device.RunShellCommand(cmd)
+      cmd.extend(['--sampling', str(_DDMS_SAMPLING_FREQUENCY_US)])
+    cmd.extend([self._package, self._output_file])
+    self._device.RunShellCommand(cmd, check_return=True)
     return True
 
   @py_utils.Timeout(tracing_agents.START_STOP_TIMEOUT)
   def StopAgentTracing(self, timeout=None):
-    self._device.RunShellCommand('am profile stop %s' % self._package)
+    self._device.RunShellCommand(
+        ['am', 'profile', 'stop', self._package], check_return=True)
     return True
 
   @py_utils.Timeout(tracing_agents.GET_RESULTS_TIMEOUT)

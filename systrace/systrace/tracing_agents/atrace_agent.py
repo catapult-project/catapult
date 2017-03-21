@@ -49,7 +49,8 @@ def list_categories(config):
       config: Tracing config.
   """
   devutils = device_utils.DeviceUtils(config.device_serial_number)
-  categories = devutils.RunShellCommand(LIST_CATEGORIES_ARGS)
+  categories = devutils.RunShellCommand(
+      LIST_CATEGORIES_ARGS, check_return=True)
 
   device_sdk_version = util.get_device_sdk_version()
   if device_sdk_version < version_codes.MARSHMALLOW:
@@ -68,7 +69,8 @@ def get_available_categories(config, device_sdk_version):
       device_sdk_version: Sdk version int of device to be queried.
   """
   devutils = device_utils.DeviceUtils(config.device_serial_number)
-  categories_output = devutils.RunShellCommand(LIST_CATEGORIES_ARGS)
+  categories_output = devutils.RunShellCommand(
+      LIST_CATEGORIES_ARGS, check_return=True)
   categories = [c.split('-')[0].strip() for c in categories_output]
 
   if device_sdk_version < version_codes.MARSHMALLOW:
@@ -180,7 +182,8 @@ class AtraceAgent(tracing_agents.TracingAgent):
     self._device_serial_number = config.device_serial_number
     self._tracer_args = _construct_atrace_args(config,
                                                self._categories)
-    self._device_utils.RunShellCommand(self._tracer_args + ['--async_start'])
+    self._device_utils.RunShellCommand(
+        self._tracer_args + ['--async_start'], check_return=True)
     return True
 
   def _collect_and_preprocess(self):
@@ -233,18 +236,21 @@ class AtraceAgent(tracing_agents.TracingAgent):
     Note that prior to Api 23, --async-stop may not actually stop tracing.
     Thus, this uses a fallback method of running a zero-length synchronous
     trace if tracing is still on."""
-    self._device_utils.RunShellCommand(self._tracer_args + ['--async_stop'])
-    is_trace_enabled_cmd = ['cat', '/sys/kernel/debug/tracing/tracing_on']
+    self._device_utils.RunShellCommand(
+        self._tracer_args + ['--async_stop'], check_return=True)
+    is_trace_enabled_file = '/sys/kernel/debug/tracing/tracing_on'
 
     if self._device_sdk_version < version_codes.MARSHMALLOW:
-      if int(self._device_utils.RunShellCommand(is_trace_enabled_cmd)[0]):
+      if int(self._device_utils.ReadFile(is_trace_enabled_file)):
         # tracing was incorrectly left on, disable it
-        self._device_utils.RunShellCommand(self._tracer_args + ['-t 0'])
+        self._device_utils.RunShellCommand(
+            self._tracer_args + ['-t 0'], check_return=True)
 
   def _collect_trace_data(self):
     """Reads the output from atrace and stops the trace."""
     dump_cmd = self._tracer_args + ['--async_dump']
-    result = self._device_utils.RunShellCommand(dump_cmd, raw_output=True)
+    result = self._device_utils.RunShellCommand(
+        dump_cmd, raw_output=True, check_return=True)
 
     data_start = re.search(TRACE_START_REGEXP, result)
     if data_start:
@@ -273,19 +279,20 @@ class AtraceAgent(tracing_agents.TracingAgent):
 
     if _FIX_THREAD_IDS:
       # Issue ps command to device and patch thread names
-      ps_dump = '\n'.join(self._device_utils.RunShellCommand(
-          'ps -T -o USER,TID,PPID,VSIZE,RSS,WCHAN,ADDR=PC,S,CMD || ps -t'))
-      if ps_dump is not None:
-        thread_names = extract_thread_list(ps_dump)
-        trace_data = fix_thread_names(trace_data, thread_names)
+      # TODO(catapult:#3215): Migrate to device.GetPids()
+      ps_dump = self._device_utils.RunShellCommand(
+          'ps -T -o USER,TID,PPID,VSIZE,RSS,WCHAN,ADDR=PC,S,CMD || ps -t',
+          shell=True, check_return=True)
+      thread_names = extract_thread_list(ps_dump)
+      trace_data = fix_thread_names(trace_data, thread_names)
 
     if _FIX_MISSING_TGIDS:
       # Issue printf command to device and patch tgids
-      procfs_dump = '\n'.join(self._device_utils.RunShellCommand(
-          'printf "%s\n" /proc/[0-9]*/task/[0-9]*'))
-      if procfs_dump is not None:
-        pid2_tgid = extract_tgids(procfs_dump)
-        trace_data = fix_missing_tgids(trace_data, pid2_tgid)
+      procfs_dump = self._device_utils.RunShellCommand(
+          'printf "%s\n" /proc/[0-9]*/task/[0-9]*',
+          shell=True, check_return=True)
+      pid2_tgid = extract_tgids(procfs_dump)
+      trace_data = fix_missing_tgids(trace_data, pid2_tgid)
 
     if _FIX_CIRCULAR_TRACES:
       trace_data = fix_circular_traces(trace_data)
@@ -293,11 +300,11 @@ class AtraceAgent(tracing_agents.TracingAgent):
     return trace_data
 
 
-def extract_thread_list(trace_text):
+def extract_thread_list(trace_lines):
   """Removes the thread list from the given trace data.
 
   Args:
-    trace_text: The text portion of the trace
+    trace_lines: The text portion of the trace
 
   Returns:
     a map of thread ids to thread names
@@ -305,16 +312,15 @@ def extract_thread_list(trace_text):
 
   threads = {}
   # Assume any line that starts with USER is the header
-  text = trace_text.splitlines()
   header = -1
-  for i, line in enumerate(text):
+  for i, line in enumerate(trace_lines):
     cols = line.split()
     if len(cols) >= 8 and cols[0] == 'USER':
       header = i
       break
   if header == -1:
     return threads
-  for line in text[header + 1:]:
+  for line in trace_lines[header + 1:]:
     cols = line.split(None, 8)
     if len(cols) == 9:
       tid = int(cols[1])
@@ -324,18 +330,17 @@ def extract_thread_list(trace_text):
   return threads
 
 
-def extract_tgids(trace_text):
+def extract_tgids(trace_lines):
   """Removes the procfs dump from the given trace text
 
   Args:
-    trace_text: The text portion of the trace
+    trace_lines: The text portion of the trace
 
   Returns:
     a map of pids to their tgid.
   """
   tgid_2pid = {}
-  text = trace_text.splitlines()
-  for line in text:
+  for line in trace_lines:
     result = re.match('^/proc/([0-9]+)/task/([0-9]+)', line)
     if result:
       parent_pid, tgid = result.group(1, 2)
