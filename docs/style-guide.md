@@ -268,6 +268,7 @@ should not make assertions.
 | Feature                  | Status          |
 |--------------------------|-----------------|
 | [Object.entries](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries) and [Object.values](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/values) | Approved |
+| [async/await](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function) | Approved |
 
 ### Possible feature statuses
   - **Approved**: this feature is approved for general use.
