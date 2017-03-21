@@ -22,7 +22,10 @@ class _FindIsolatedTest(unittest.TestCase):
     ndb.get_context().clear_cache()
 
     isolated.Put((
-        ('Mac Builder', 'f9f2b720', 'telemetry_perf_tests', '7c7e90be'),))
+        ('Mac Builder', 'f9f2b720', 'telemetry_perf_tests', '7c7e90be'),
+        ('Mac Builder', 'githash2', 'telemetry_perf_tests', 'isohash2'),
+        ('Mac Builder', 'githash3', 'telemetry_perf_tests', 'isohash3'),
+    ))
 
   def tearDown(self):
     self.testbed.deactivate()
@@ -50,9 +53,22 @@ class IsolateLookupTest(_FindIsolatedTest):
     self.assertExecutionSuccess(execution)
     self.assertEqual(execution.result_arguments, {'isolated_hash': '7c7e90be'})
 
+  def testIsolateLookupSuccessWithOneDep(self):
+    base_commit = change_module.Dep('chromium/src', 'f9f2b720')
+    deps = (change_module.Dep('repository 2', 'githash2'),)
+    change = change_module.Change(base_commit, deps)
+    execution = find_isolated.FindIsolated('Mac Pro Perf').Start(change)
+    execution.Poll()
+
+    self.assertExecutionSuccess(execution)
+    self.assertEqual(execution.result_arguments, {'isolated_hash': 'isohash2'})
+
   def testChangeHasMultipleDeps(self):
     base_commit = change_module.Dep('chromium/src', 'f9f2b720')
-    deps = (change_module.Dep('r2', 'hash'), change_module.Dep('r3', 'hash'))
+    deps = (
+        change_module.Dep('repository 2', 'githash2'),
+        change_module.Dep('repository 3', 'githash3')
+    )
     change = change_module.Change(base_commit, deps)
     execution = find_isolated.FindIsolated('Mac Pro Perf').Start(change)
     execution.Poll()
