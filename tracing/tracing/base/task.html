@@ -39,8 +39,10 @@ tr.exportTo('tr.b', function() {
    * @constructor
    */
   function Task(runCb, thisArg) {
-    if (runCb !== undefined && thisArg === undefined)
-      throw new Error('Almost certainly, you meant to pass a thisArg.');
+    if (runCb !== undefined && thisArg === undefined &&
+        runCb.prototype !== undefined)
+      throw new Error('Almost certainly you meant to pass a bound callback ' +
+          'or thisArg.');
     this.runCb_ = runCb;
     this.thisArg_ = thisArg;
     this.afterTask_ = undefined;
