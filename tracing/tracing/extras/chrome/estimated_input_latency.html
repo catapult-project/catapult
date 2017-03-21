@@ -18,7 +18,7 @@ tr.exportTo('tr.e.chrome', function() {
   // https://github.com/catapult-project/catapult/issues/2784
   function hasTitleAndCategory(event, title, category) {
     return event.title === title && event.category &&
-      tr.b.getCategoryParts(event.category).indexOf(category) !== -1;
+      tr.b.getCategoryParts(event.category).includes(category);
   }
 
   function getNavStartTimestamps(rendererHelper) {

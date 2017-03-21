@@ -19,9 +19,9 @@ tr.exportTo('tr.e.v8', function() {
   class ICStatsEntry {
     constructor(obj) {
       this.type_ = obj.type;
-      if (this.type_.indexOf('Store') !== -1) {
+      if (this.type_.includes('Store')) {
         this.category_ = 'Store';
-      } else if (this.type_.indexOf('Load') !== -1) {
+      } else if (this.type_.includes('Load')) {
         this.category_ = 'Load';
       }
       this.state_ = obj.state;
@@ -32,8 +32,7 @@ tr.exportTo('tr.e.v8', function() {
       }
       this.offset_ = obj.offset;
       this.scriptName_ = obj.scriptName ? obj.scriptName : 'unknown';
-      this.isNative_ = obj.scriptName &&
-        obj.scriptName.indexOf('native') !== -1;
+      this.isNative_ = obj.scriptName && obj.scriptName.includes('native');
       this.lineNum_ = obj.lineNum ? obj.lineNum : 'unknown';
       this.filePosition_ = this.scriptName_ + ':' + this.lineNum_;
       if (this.functionName_) {

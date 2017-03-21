@@ -357,7 +357,7 @@ tr.exportTo('tr.ui.b', function() {
         if (colInfo.width === undefined)
           continue;
 
-        var hasExpandButton = columnsWithExpandButtons.indexOf(i) !== -1;
+        var hasExpandButton = columnsWithExpandButtons.includes(i);
 
         var w = colInfo.width;
         if (w) {
@@ -571,7 +571,7 @@ tr.exportTo('tr.ui.b', function() {
         var td = Polymer.dom(rowToSize).children[i];
 
         var delta;
-        if (this.columnsWithExpandButtons_.indexOf(i) !== -1) {
+        if (this.columnsWithExpandButtons_.includes(i)) {
           td.style.paddingLeft = this.basicIndentation_ + 'px';
           delta = this.basicIndentation_ + 'px';
         } else {
@@ -735,7 +735,7 @@ tr.exportTo('tr.ui.b', function() {
         if (this.doesColumnIndexSupportSelection(i))
           Polymer.dom(td).classList.add('supports-selection');
 
-        if (this.columnsWithExpandButtons_.indexOf(i) !== -1) {
+        if (this.columnsWithExpandButtons_.includes(i)) {
           if (rowInfo.userRow[this.subRowsPropertyName_] &&
               rowInfo.userRow[this.subRowsPropertyName_].length > 0) {
             td.style.paddingLeft = INDENT_SPACE + 'px';

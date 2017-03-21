@@ -299,7 +299,7 @@ property 'group' sets to the header item name.
 
       maybeSelectLocus: function() {
         var suggestions = this.suggestedItems || [];
-        if (suggestions.indexOf(this.locusItem) !== -1) {
+        if (suggestions.includes(this.locusItem)) {
           this.selectItem(this.locusItem);
           this.set('dropdownOpen', false);
         }

@@ -219,15 +219,15 @@ tr.exportTo('tr.metrics.sh', function() {
     for (var exp of model.userModel.expectations) {
       var histogramName = exp.title.toLowerCase().replace(' ', '_');
       var energyHist = undefined;
-      if (histogramName.indexOf('response') !== -1) {
+      if (histogramName.includes('response')) {
         yield {
           bounds: tr.b.Range.fromExplicitRange(exp.start, exp.end),
           name: histogramName,
           description: 'RAIL stage ' + histogramName,
           perSecond: false
         };
-      } else if (histogramName.indexOf('animation') !== -1 ||
-          histogramName.indexOf('idle') !== -1) {
+      } else if (histogramName.includes('animation') ||
+          histogramName.includes('idle')) {
         yield {
           bounds: tr.b.Range.fromExplicitRange(exp.start, exp.end),
           name: histogramName,

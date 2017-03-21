@@ -70,7 +70,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       // Special handling for Tracing.dataCollected because it is high
       // bandwidth.
       var isDataCollectedMessage = isStringPayload ?
-          payload.indexOf('"method": "Tracing.dataCollected"') !== -1 :
+          payload.includes('"method": "Tracing.dataCollected"') :
           payload.method === 'Tracing.dataCollected';
       if (isDataCollectedMessage) {
         var listener = this.notificationListenersByMethodName_[

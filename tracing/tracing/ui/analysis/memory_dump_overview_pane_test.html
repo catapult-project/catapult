@@ -387,7 +387,7 @@ tr.b.unittest.testSuite(function() {
       var displayedProcessMemoryDumps = processMemoryDumps.map(
           function(memoryDumps) {
             return tr.b.filterItems(memoryDumps, function(pid, pmd) {
-              return pids.indexOf(pmd.process.pid) !== -1;
+              return pids.includes(pmd.process.pid);
             });
           });
       viewEl.processMemoryDumps = displayedProcessMemoryDumps;

@@ -27,7 +27,7 @@ tr.exportTo('tr.metrics.sh', function() {
   // subclasses.
   function hasCategoryAndName(event, category, title) {
     return event.title === title && event.category &&
-        tr.b.getCategoryParts(event.category).indexOf(category) !== -1;
+        tr.b.getCategoryParts(event.category).includes(category);
   }
 
   /**
@@ -151,7 +151,7 @@ tr.exportTo('tr.metrics.sh', function() {
     'data:text/html,chromewebdata'
   ];
   function shouldIgnoreURL(url) {
-    return URL_BLACKLIST.indexOf(url) >= 0;
+    return URL_BLACKLIST.includes(url);
   }
 
   function collectTimeToEvent(

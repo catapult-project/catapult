@@ -49,15 +49,11 @@ tr.exportTo('tr.e.cc', function() {
   }
 
   function isSliceDoingRasterization(slice) {
-    if (knownRasterTaskNames.indexOf(slice.title) !== -1)
-      return true;
-    return false;
+    return knownRasterTaskNames.includes(slice.title);
   }
 
   function isSliceDoingAnalysis(slice) {
-    if (knownAnalysisTaskNames.indexOf(slice.title) !== -1)
-      return true;
-    return false;
+    return knownAnalysisTaskNames.includes(slice.title);
   }
 
   return {

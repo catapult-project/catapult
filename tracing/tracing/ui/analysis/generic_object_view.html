@@ -108,7 +108,7 @@ Polymer({
         }
       }
       if (!objectReplaced) {
-        if (object.indexOf('\n') !== -1) {
+        if (object.includes('\n')) {
           var lines = object.split('\n');
           lines.forEach(function(line, i) {
             var text;

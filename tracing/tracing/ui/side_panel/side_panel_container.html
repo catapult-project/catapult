@@ -232,7 +232,7 @@ Polymer({
 
     // Restore the active panel, or collapse
     if (previouslyActivePanelType &&
-        supportedPanelTypes.indexOf(previouslyActivePanelType) !== -1) {
+        supportedPanelTypes.includes(previouslyActivePanelType)) {
       this.activePanelType = previouslyActivePanelType;
       Polymer.dom(this).setAttribute('expanded', true);
     } else {

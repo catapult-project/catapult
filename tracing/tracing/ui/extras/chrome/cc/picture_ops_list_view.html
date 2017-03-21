@@ -204,15 +204,15 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
               elementInfo = {};
               annotationGroup.forEach(function(annotation) {
                 annotation.info.forEach(function(info) {
-                  if (info.indexOf(ANNOTATION_TAG) !== -1)
+                  if (info.includes(ANNOTATION_TAG))
                     elementInfo.tag = info.substring(
                         info.indexOf(ANNOTATION_TAG) +
                         ANNOTATION_TAG.length).toLowerCase();
-                  else if (info.indexOf(ANNOTATION_ID) !== -1)
+                  else if (info.includes(ANNOTATION_ID))
                     elementInfo.id = info.substring(
                         info.indexOf(ANNOTATION_ID) +
                         ANNOTATION_ID.length);
-                  else if (info.indexOf(ANNOTATION_CLASS) !== -1)
+                  else if (info.includes(ANNOTATION_CLASS))
                     elementInfo.class = info.substring(
                         info.indexOf(ANNOTATION_CLASS) +
                         ANNOTATION_CLASS.length);
