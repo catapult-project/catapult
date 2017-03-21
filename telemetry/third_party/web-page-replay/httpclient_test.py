@@ -182,16 +182,17 @@ class RealHttpFetchGetConnectionTest(unittest.TestCase):
   def test_ssl_get_connection_with_proxy_tunnels_to_host(self):
     """HTTPS (SSL) connection with proxy tunnels to target host."""
     self.set_https_proxy(host='proxy.com', port=8443)
-    connection = self.fetch._get_connection('example.com', None, is_ssl=True)
+    connection = self.fetch._get_connection('example.com', 9443, is_ssl=True)
     self.assertEqual('example.com', connection._tunnel_host)  # host name
-    self.assertEqual(None, connection._tunnel_port)  # host port
+    self.assertEqual(9443, connection._tunnel_port)  # host port
 
 
 class ActualNetworkFetchTest(test_utils.RealNetworkFetchTest):
 
   def testFetchNonSSLRequest(self):
     real_dns_lookup = dnsproxy.RealDnsLookup(
-        name_servers=[platformsettings.get_original_primary_nameserver()])
+        name_servers=[platformsettings.get_original_primary_nameserver()],
+        dns_forwarding=False, proxy_host='127.0.0.1', proxy_port=5353)
     fetch = httpclient.RealHttpFetch(real_dns_lookup)
     request = httparchive.ArchivedHttpRequest(
         command='GET', host='google.com', full_path='/search?q=dogs',
@@ -201,7 +202,8 @@ class ActualNetworkFetchTest(test_utils.RealNetworkFetchTest):
 
   def testFetchSSLRequest(self):
     real_dns_lookup = dnsproxy.RealDnsLookup(
-        name_servers=[platformsettings.get_original_primary_nameserver()])
+        name_servers=[platformsettings.get_original_primary_nameserver()],
+        dns_forwarding=False, proxy_host='127.0.0.1', proxy_port=5353)
     fetch = httpclient.RealHttpFetch(real_dns_lookup)
     request = httparchive.ArchivedHttpRequest(
         command='GET', host='google.com', full_path='/search?q=dogs',

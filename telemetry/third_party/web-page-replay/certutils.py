@@ -130,6 +130,7 @@ def generate_dummy_ca_cert(subject='_WebPageReplayCert'):
   ca_cert.set_pubkey(key)
   ca_cert.add_extensions([
       crypto.X509Extension('basicConstraints', True, 'CA:TRUE'),
+      crypto.X509Extension('subjectAltName', False, 'DNS:' + subject),
       crypto.X509Extension('nsCertType', True, 'sslCA'),
       crypto.X509Extension('extendedKeyUsage', True,
                            ('serverAuth,clientAuth,emailProtection,'

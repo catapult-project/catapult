@@ -315,8 +315,6 @@ def replay(options, replay_filename):
   if options.server:
     AddDnsForward(server_manager, options.server)
   else:
-    real_dns_lookup = dnsproxy.RealDnsLookup(
-        name_servers=[platformsettings.get_original_primary_nameserver()])
     if options.record:
       httparchive.HttpArchive.AssertWritable(replay_filename)
       if options.append and os.path.exists(replay_filename):
@@ -329,7 +327,6 @@ def replay(options, replay_filename):
       http_archive = httparchive.HttpArchive.Load(replay_filename)
       logging.info('Loaded %d responses from %s',
                    len(http_archive), replay_filename)
-    server_manager.AppendRecordCallback(real_dns_lookup.ClearCache)
     server_manager.AppendRecordCallback(http_archive.clear)
 
     ipfw_dns_host = None
@@ -339,6 +336,13 @@ def replay(options, replay_filename):
       if not ipfw_dns_host:
         ipfw_dns_host = platformsettings.get_server_ip_address(
             options.server_mode)
+
+    real_dns_lookup = dnsproxy.RealDnsLookup(
+        name_servers=[platformsettings.get_original_primary_nameserver()],
+        dns_forwarding=options.dns_forwarding,
+        proxy_host=ipfw_dns_host,
+        proxy_port=options.dns_port)
+    server_manager.AppendRecordCallback(real_dns_lookup.ClearCache)
 
     if options.dns_forwarding:
       if not options.server_mode and ipfw_dns_host == '127.0.0.1':
