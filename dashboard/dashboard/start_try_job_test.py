@@ -758,7 +758,7 @@ class StartBisectTest(testing_common.TestCase):
                     'issue_url': issue_url}),
         response.body)
 
-    try_jobs = try_job.TryJob.query().fetch()
+    try_jobs = try_job.TryJob.query().fetch(use_cache=False)
     self.assertEqual(1, len(try_jobs))
     self.assertEqual(issue_url, try_jobs[0].results_data['issue_url'])
     self.assertEqual('33001', try_jobs[0].results_data['issue_id'])
