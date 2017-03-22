@@ -342,7 +342,7 @@ tr.exportTo('tr.e.importer.etw', function() {
      * @return {Cpu} A Cpu corresponding to the given cpuNumber.
      */
     getOrCreateCpu: function(cpuNumber) {
-      var cpu = this.model_.device.getOrCreateCpu(cpuNumber);
+      var cpu = this.model_.kernel.getOrCreateCpu(cpuNumber);
       return cpu;
     },
 

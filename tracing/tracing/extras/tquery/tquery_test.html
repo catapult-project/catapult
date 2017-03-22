@@ -24,7 +24,7 @@ tr.b.unittest.testSuite(function() {
 
   function createTestModelWithSlices(slices) {
     var model = new tr.Model();
-    var cpu = model.device.getOrCreateCpu(1);
+    var cpu = model.kernel.getOrCreateCpu(1);
     for (var i = 0; i < slices.length; i++)
       cpu.slices.push(slices[i]);
     return model;

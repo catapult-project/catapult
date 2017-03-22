@@ -32,7 +32,7 @@ tr.b.unittest.testSuite(function() {
     var m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
-    var c0 = m.device.cpus[0];
+    var c0 = m.kernel.cpus[0];
     assert.equal(c0.slices.length, 0);
     assert.equal(c0.counters['.INT Frequency'].series[0].samples.length, 3);
     assert.equal(c0.counters['.MIF Frequency'].series[0].samples.length, 1);

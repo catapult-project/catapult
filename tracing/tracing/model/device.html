@@ -7,10 +7,8 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/guid.html">
 <link rel="import" href="/tracing/base/range.html">
-<link rel="import" href="/tracing/model/cpu.html">
 <link rel="import" href="/tracing/model/event_container.html">
 <link rel="import" href="/tracing/model/power_series.html">
-<link rel="import" href="/tracing/model/process_base.html">
 
 <script>
 'use strict';
@@ -30,8 +28,6 @@ tr.exportTo('tr.model', function() {
 
     tr.model.EventContainer.call(this);
 
-    this.model = model;
-    this.cpus = {};
     this.powerSeries_ = undefined;
     this.cpuUsageSeries_ = undefined;
     this.vSyncTimestamps_ = [];
@@ -88,45 +84,6 @@ tr.exportTo('tr.model', function() {
       this.vSyncTimestamps_ = value;
     },
 
-    get softwareMeasuredCpuCount() {
-      return this.softwareMeasuredCpuCount_;
-    },
-
-    set softwareMeasuredCpuCount(softwareMeasuredCpuCount) {
-      if (this.softwareMeasuredCpuCount_ !== undefined &&
-          this.softwareMeasuredCpuCount_ !== softwareMeasuredCpuCount) {
-        throw new Error(
-            'Cannot change the softwareMeasuredCpuCount once it is set');
-      }
-
-      this.softwareMeasuredCpuCount_ = softwareMeasuredCpuCount;
-    },
-
-    /**
-     * Estimates how many CPUs are in the system, for use in system load
-     * estimation.
-     *
-     * If a kernel trace was provided, use that data. Otherwise, uses the
-     * software measured cpu count.
-     */
-    get bestGuessAtCpuCount() {
-      var realCpuCount = tr.b.dictionaryLength(this.cpus);
-      if (realCpuCount !== 0)
-        return realCpuCount;
-      return this.softwareMeasuredCpuCount;
-    },
-
-    /**
-     * Gets a specific CPU or creates one if it does not exist.
-     *
-     * @param {int} cpuNumber Number of the CPU to get or create..
-     */
-    getOrCreateCpu: function(cpuNumber) {
-      if (!this.cpus[cpuNumber])
-        this.cpus[cpuNumber] = new tr.model.Cpu(this, cpuNumber);
-      return this.cpus[cpuNumber];
-    },
-
     updateBounds: function() {
       this.bounds.reset();
       for (var child of this.childEventContainers()) {
@@ -147,17 +104,11 @@ tr.exportTo('tr.model', function() {
     addCategoriesToDict: function(categoriesDict) {
     },
 
-    createSubSlices: function() {
-      for (let cpu of tr.b.dictionaryValues(this.cpus))
-        cpu.createSubSlices();
-    },
-
     childEventContainers: function* () {
       if (this.powerSeries_)
         yield this.powerSeries_;
       if (this.cpuUsageSeries_)
         yield this.cpuUsageSeries_;
-      yield* tr.b.dictionaryValues(this.cpus);
     }
   };
 

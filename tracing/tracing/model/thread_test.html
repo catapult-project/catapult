@@ -139,8 +139,8 @@ tr.b.unittest.testSuite(function() {
 
   test('getCpuStatsForRange', function() {
     var model = tr.c.TestUtils.newModel(function(model) {
-      var cpu0 = model.device.getOrCreateCpu(0);
-      var cpu1 = model.device.getOrCreateCpu(1);
+      var cpu0 = model.kernel.getOrCreateCpu(0);
+      var cpu1 = model.kernel.getOrCreateCpu(1);
       var thread = model.getOrCreateProcess(1).getOrCreateThread(1);
       thread.timeSlices = [
         newThreadSlice(thread, SCHEDULING_STATE.RUNNING, 0, 3, cpu0),
@@ -159,8 +159,8 @@ tr.b.unittest.testSuite(function() {
 
   test('getCpuStatsForRange_excludesNotRunningThreads', function() {
     var model = tr.c.TestUtils.newModel(function(model) {
-      var cpu0 = model.device.getOrCreateCpu(0);
-      var cpu1 = model.device.getOrCreateCpu(1);
+      var cpu0 = model.kernel.getOrCreateCpu(0);
+      var cpu1 = model.kernel.getOrCreateCpu(1);
       var thread = model.getOrCreateProcess(1).getOrCreateThread(1);
       thread.timeSlices = [
         newThreadSlice(thread, SCHEDULING_STATE.RUNNING, 0, 8, cpu0),

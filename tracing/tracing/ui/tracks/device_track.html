@@ -14,7 +14,6 @@ found in the LICENSE file.
 
 tr.exportTo('tr.ui.tracks', function() {
   var ContainerTrack = tr.ui.tracks.ContainerTrack;
-  var SpacingTrack = tr.ui.tracks.SpacingTrack;
 
   // TODO(charliea): Make this track collapsible.
   /**
@@ -35,7 +34,6 @@ tr.exportTo('tr.ui.tracks', function() {
       Polymer.dom(this).classList.add('device-track');
       this.device_ = undefined;
       this.powerSeriesTrack_ = undefined;
-      this.cpuTracks_ = [];
     },
 
     get device() {
@@ -51,17 +49,9 @@ tr.exportTo('tr.ui.tracks', function() {
       return this.powerSeriesTrack_;
     },
 
-    get cpuTrack() {
-      return this.cpuTrack_;
-    },
-
     get hasVisibleContent() {
-      if (this.powerSeriesTrack_ &&
-          this.powerSeriesTrack_.hasVisibleContent)
-        return true;
-      for (var track of this.cpuTracks_)
-        if (track.hasVisibleContent) return true;
-      return false;
+      return (this.powerSeriesTrack_ &&
+          this.powerSeriesTrack_.hasVisibleContent);
     },
 
     addContainersToTrackMap: function(containerToTrackMap) {
@@ -82,32 +72,14 @@ tr.exportTo('tr.ui.tracks', function() {
 
       if (this.powerSeriesTrack_.hasVisibleContent) {
         Polymer.dom(this).appendChild(this.powerSeriesTrack_);
-        Polymer.dom(this).appendChild(new SpacingTrack(this.viewport));
+        Polymer.dom(this).appendChild(
+            new tr.ui.tracks.SpacingTrack(this.viewport));
       }
-    },
-
-    appendCpuTracks_: function() {
-      var cpus = tr.b.dictionaryValues(this.device.cpus);
-      cpus.sort(tr.model.Cpu.compare);
-
-      var didAppendAtLeastOneTrack = false;
-      for (var cpu of cpus) {
-        var track = new tr.ui.tracks.CpuTrack(this.viewport);
-        track.detailedMode = this.expanded;
-        track.cpu = cpu;
-        this.cpuTracks_.push(track);
-        if (!track.hasVisibleContent) continue;
-        Polymer.dom(this).appendChild(track);
-        didAppendAtLeastOneTrack = true;
-      }
-      if (didAppendAtLeastOneTrack)
-        Polymer.dom(this).appendChild(new SpacingTrack(this.viewport));
     },
 
     updateContents_: function() {
       this.clearTracks_();
       this.appendPowerSeriesTrack_();
-      this.appendCpuTracks_();
     }
   };
 

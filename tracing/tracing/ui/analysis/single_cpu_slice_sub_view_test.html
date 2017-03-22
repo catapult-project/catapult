@@ -34,7 +34,7 @@ tr.b.unittest.testSuite(function() {
   test('cpuSliceView_withCpuSliceOnExistingThread', function() {
     var m = createBasicModel();
 
-    var cpu = m.device.cpus[1];
+    var cpu = m.kernel.cpus[1];
     assert.isDefined(cpu);
     var cpuSlice = cpu.slices[0];
     assert.equal('Binder_1', cpuSlice.title);
@@ -63,7 +63,7 @@ tr.b.unittest.testSuite(function() {
   test('cpuSliceViewWithCpuSliceOnMissingThread', function() {
     var m = createBasicModel();
 
-    var cpu = m.device.cpus[1];
+    var cpu = m.kernel.cpus[1];
     assert.isDefined(cpu);
     var cpuSlice = cpu.slices[1];
     assert.equal('Android.launcher', cpuSlice.title);

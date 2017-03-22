@@ -23,13 +23,13 @@ tr.exportTo('tr.model', function() {
   var CpuSlice = tr.model.CpuSlice;
 
   /**
-   * The Cpu represents a Cpu from the device's point of view.
+   * The Cpu represents a Cpu from the kernel's point of view.
    * @constructor
    */
-  function Cpu(device, number) {
-    if (device === undefined || number === undefined)
+  function Cpu(kernel, number) {
+    if (kernel === undefined || number === undefined)
       throw new Error('Missing arguments');
-    this.device = device;
+    this.kernel = kernel;
     this.cpuNumber = number;
     this.slices = [];
     this.counters = {};
@@ -132,7 +132,7 @@ tr.exportTo('tr.model', function() {
     },
 
     createSubSlices: function() {
-      this.samples_ = this.device.model.samples.filter(function(sample) {
+      this.samples_ = this.kernel.model.samples.filter(function(sample) {
         return sample.cpu === this;
       }, this);
     },

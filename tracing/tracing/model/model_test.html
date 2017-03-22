@@ -22,7 +22,7 @@ tr.b.unittest.testSuite(function() {
 
   var createModelWithOneOfEverything = function() {
     var m = new tr.Model();
-    var cpu = m.device.getOrCreateCpu(1);
+    var cpu = m.kernel.getOrCreateCpu(1);
     cpu.slices.push(tr.c.TestUtils.newSliceEx({start: 1, duration: 3}));
 
     var p = m.getOrCreateProcess(1);
@@ -140,7 +140,7 @@ tr.b.unittest.testSuite(function() {
 
   test('modelBounds_OneCpu', function() {
     var m = new tr.Model();
-    var cpu = m.device.getOrCreateCpu(1);
+    var cpu = m.kernel.getOrCreateCpu(1);
     cpu.slices.push(tr.c.TestUtils.newSliceEx({start: 1, duration: 3}));
     m.updateBounds();
     assert.equal(m.bounds.min, 1);
@@ -149,7 +149,7 @@ tr.b.unittest.testSuite(function() {
 
   test('modelBounds_OneCpuOneThread', function() {
     var m = new tr.Model();
-    var cpu = m.device.getOrCreateCpu(1);
+    var cpu = m.kernel.getOrCreateCpu(1);
     cpu.slices.push(tr.c.TestUtils.newSliceEx({start: 1, duration: 3}));
 
     var t = m.getOrCreateProcess(1).getOrCreateThread(1);
