@@ -299,6 +299,28 @@ tr.exportTo('tr.model', function() {
 
     get samples() {
       return this.samples_;
+    },
+
+    getNetworkEventsInRange: function(rangeOfInterest) {
+      const networkEvents = [];
+      for (let slice of Object.values(this.asyncSliceGroup.slices)) {
+        let match = false;
+        if (slice.category === 'net' ||  // old-style URLRequest/Resource
+            slice.category === 'disabled-by-default-netlog' ||
+            slice.category === 'netlog' ||
+            slice.category === 'disabled-by-default-network') {
+          match = true;
+        }
+
+        if (!match)
+          return;
+
+        if (rangeOfInterest.intersectsExplicitRangeInclusive(
+            slice.start, slice.end)) {
+          networkEvents.push(slice);
+        }
+      }
+      return networkEvents;
     }
   };
 
