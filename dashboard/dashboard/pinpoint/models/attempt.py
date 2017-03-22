@@ -43,6 +43,12 @@ class Attempt(object):
         len(self._quests) == len(self._executions))
 
   @property
+  def result_values(self):
+    assert self.completed
+    return dict((quest, execution.result_values)
+                for quest, execution in zip(self._quests, self._executions))
+
+  @property
   def _last_execution(self):
     return self._executions[-1]
 
@@ -68,4 +74,5 @@ class Attempt(object):
       arguments = self._last_execution.result_arguments
     else:
       arguments = {'change': self._change}
+
     self._executions.append(next_quest.Start(**arguments))
