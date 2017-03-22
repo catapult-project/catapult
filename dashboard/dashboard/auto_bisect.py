@@ -74,7 +74,7 @@ def _RestartFailedBisectJobs():
           comment = ('Failed to run bisect %s times.'
                      'Stopping automatic restart for this job.' %
                      job.run_count)
-          start_try_job.LogBisectResult(job.bug_id, comment)
+          start_try_job.LogBisectResult(job, comment)
         job.key.delete()
   return all_successful
 

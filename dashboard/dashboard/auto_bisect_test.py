@@ -61,9 +61,10 @@ class AutoBisectTest(testing_common.TestCase):
         bug_id=333, status='failed',
         last_ran_timestamp=datetime.datetime.now(),
         run_count=len(auto_bisect._BISECT_RESTART_PERIOD_DAYS) + 1).put()
+    job = job_key.get()
     self.testapp.post('/auto_bisect')
     self.assertIsNone(job_key.get())
-    mock_log_result.assert_called_once_with(333, mock.ANY)
+    mock_log_result.assert_called_once_with(job, mock.ANY)
 
   def testGet_WithStatsParameter_ListsTryJobs(self):
     now = datetime.datetime.now()
