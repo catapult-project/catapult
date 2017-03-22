@@ -251,6 +251,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     logging.info('Requested remote debugging port: %d' % self._port)
     args.append('--remote-debugging-port=%i' % self._port)
     args.append('--enable-crash-reporter-for-testing')
+    args.append('--disable-component-update')
     if not self._is_content_shell:
       args.append('--window-size=1280,1024')
       if self._flash_path:
