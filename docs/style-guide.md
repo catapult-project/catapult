@@ -258,7 +258,7 @@ should not make assertions.
 
 | Feature                  | Status          |
 |--------------------------|-----------------|
-| [Array.prototype.includes](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/includes) | To be discussed |
+| [Array.prototype.includes](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/includes) | [Approved](https://github.com/catapult-project/catapult/issues/3424) |
 | [Exponentiation operator](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Exponentiation_(**))  | To be discussed |
 
 ### ECMAScript 2017 (ES8) features
