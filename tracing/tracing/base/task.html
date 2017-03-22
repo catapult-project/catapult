@@ -47,11 +47,17 @@ tr.exportTo('tr.b', function() {
     this.thisArg_ = thisArg;
     this.afterTask_ = undefined;
     this.subTasks_ = [];
+    this.updatesUi_ = false;
   }
 
   Task.prototype = {
     get name() {
       return this.runCb_.name;
+    },
+
+    /** Sets a hint for whether or not this task updates the UI. */
+    set updatesUi(value) {
+      this.updatesUi_ = value;
     },
 
     /*
@@ -170,7 +176,11 @@ tr.exportTo('tr.b', function() {
         }
 
         if (curTask) {
-          tr.b.requestIdleCallback(runAnother);
+          if (curTask.updatesUi_) {
+            tr.b.requestAnimationFrameInThisFrameIfPossible(runAnother);
+          } else {
+            tr.b.requestIdleCallback(runAnother);
+          }
           return;
         }
 

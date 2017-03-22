@@ -126,6 +126,7 @@ tr.exportTo('tr.importer', function() {
 
       function addImportStage(title, callback) {
         lastTask = lastTask.after(() => progressMeter.update(title));
+        lastTask.updatesUi = true;
         lastTask = lastTask.after(callback);
       }
 
@@ -136,6 +137,7 @@ tr.exportTo('tr.importer', function() {
               progressMeter.update(
                   `${title} ${index + 1} of ${importers.length}`);
             });
+            uiSubTask.updatesUi = true;
             task.subTask(() => callback(importer));
           });
         });
