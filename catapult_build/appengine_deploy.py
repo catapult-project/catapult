@@ -52,7 +52,8 @@ def _FindScriptInPath(script_name):
 
 
 def _VersionName():
-  is_synced = not _Run(['git', 'diff', 'master', '--no-ext-diff']).strip()
+  is_synced = not _Run(
+      ['git', 'diff', 'origin/master', '--no-ext-diff']).strip()
   deployment_type = 'clean' if is_synced else 'dev'
   email = _Run(['git', 'config', '--get', 'user.email'])
   username = email[0:email.find('@')]
