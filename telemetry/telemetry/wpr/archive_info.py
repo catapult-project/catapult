@@ -8,6 +8,7 @@ import os
 import re
 import shutil
 import tempfile
+import time
 
 from py_utils import cloud_storage  # pylint: disable=import-error
 
@@ -64,6 +65,8 @@ class WprArchiveInfo(object):
     permission to access the archive's bucket but a local copy of the archive
     exists.
     """
+    logging.info('Downloading WPR archives. This can take a long time.')
+    start_time = time.time()
     # If no target platform is set, download all platforms.
     if target_platforms is None:
       target_platforms = _ALL_PLATFORMS
@@ -94,14 +97,17 @@ class WprArchiveInfo(object):
                         "http://www.chromium.org/developers/telemetry/"
                         "upload_to_cloud_storage")
           raise
-
-    story_archives = self._data['archives']
-    for story in story_archives:
-      for target_platform in target_platforms:
-        if story_archives[story].get(target_platform):
-          archive_path = self._WprFileNameToPath(
-              story_archives[story][target_platform])
-          download_if_needed(archive_path)
+    try:
+      story_archives = self._data['archives']
+      for story in story_archives:
+        for target_platform in target_platforms:
+          if story_archives[story].get(target_platform):
+            archive_path = self._WprFileNameToPath(
+                story_archives[story][target_platform])
+            download_if_needed(archive_path)
+    finally:
+      logging.info('All WPR archives are downloaded, took %s seconds.',
+                   time.time() - start_time)
 
   def WprFilePathForStory(self, story, target_platform=_DEFAULT_PLATFORM):
     if self.temp_target_wpr_file_path:

@@ -400,8 +400,6 @@ def _UpdateAndCheckArchives(archive_data_file, wpr_archive_info,
                     '.gclient using http://goto/read-src-internal, '
                     'or create a new archive using record_wpr.')
       raise ArchiveError('No archive info file.')
-    # Downloads archives for all platforms.
-    logging.info('Downloading WPR archives. This can take a long time.')
     wpr_archive_info.DownloadArchivesIfNeeded()
 
   # Report any problems with individual story.
