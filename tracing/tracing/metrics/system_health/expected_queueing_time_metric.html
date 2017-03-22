@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/extras/chrome/estimated_input_latency.html">
+<link rel="import" href="/tracing/metrics/v8/utils.html">
 <link rel="import" href="/tracing/model/helpers/chrome_model_helper.html">
 <link rel="import" href="/tracing/value/histogram.html">
 
@@ -31,6 +32,26 @@ tr.exportTo('tr.metrics.sh', function() {
   const WINDOW_SIZE_MS = 500;
   const EQT_BOUNDARIES = tr.v.HistogramBinBoundaries
       .createExponential(0.01, WINDOW_SIZE_MS, 50);
+  const V8_EVENT_NAMES_TO_FILTERS = new Map([
+    ['v8', tr.metrics.v8.utils.isV8Event],
+    ['v8:compile', tr.metrics.v8.utils.isCompileEvent],
+    ['v8:execute', tr.metrics.v8.utils.isV8ExecuteEvent],
+    ['v8:gc', tr.metrics.v8.utils.isGarbageCollectionEvent],
+    ['v8:gc:full-mark-compactor', tr.metrics.v8.utils.isFullMarkCompactorEvent],
+    [
+      'v8:gc:incremental-marking',
+      tr.metrics.v8.utils.isIncrementalMarkingEvent
+    ],
+    [
+      'v8:gc:latency-mark-compactor',
+      tr.metrics.v8.utils.isLatencyMarkCompactorEvent
+    ],
+    [
+      'v8:gc:memory-mark-compactor',
+      tr.metrics.v8.utils.isMemoryMarkCompactorEvent
+    ],
+    ['v8:gc:scavenger', tr.metrics.v8.utils.isScavengerEvent]
+  ]);
 
   /**
    * Returns true if the slice contains a forced GC event. Some stories force
@@ -109,8 +130,34 @@ tr.exportTo('tr.metrics.sh', function() {
               interactiveWindow.min, interactiveWindow.max,
               WINDOW_SIZE_MS, tasks));
     }
+    addV8ContributionToExpectedQueueingTime(
+        totalHistogram, interactiveHistogram, histograms, model);
     histograms.addHistogram(totalHistogram);
     histograms.addHistogram(interactiveHistogram);
+  }
+
+  /**
+   * Adds v8 related diagnostic histograms for the total and interactive EQT
+   * of the renderer.
+   * Sample histograms:
+   * - total:500ms_window:renderer_eqt:v8,
+   * - total:500ms_window:renderer_eqt:v8:gc,
+   * - interactive:500ms_window:renderer_eqt:v8:gc:scavenger,
+   * - interactive:500ms_window:renderer_eqt:v8:compile.
+   */
+  function addV8ContributionToExpectedQueueingTime(
+      totalEqtHistogram, interactiveEqtHistogram, histograms, model) {
+    if (!model.categories.includes('v8')) return;
+    const breakdownForTotal = new tr.v.d.RelatedHistogramMap();
+    const breakdownForInteractive = new tr.v.d.RelatedHistogramMap();
+    for (let [eventName, filter] of V8_EVENT_NAMES_TO_FILTERS) {
+      const contribution = contributionToExpectedQueueingTime(
+          filter, eventName, histograms, model);
+      breakdownForTotal.set(eventName, contribution.total);
+      breakdownForInteractive.set(eventName, contribution.interactive);
+    }
+    totalEqtHistogram.diagnostics.set('v8', breakdownForTotal);
+    interactiveEqtHistogram.diagnostics.set('v8', breakdownForInteractive);
   }
 
   /**
@@ -134,15 +181,17 @@ tr.exportTo('tr.metrics.sh', function() {
    * - removing subevents shrinks a task by shifting its end time closer to
    *   the start time. The start time does not change.
    *
-   * Similar to the expectedQueueingTime this function adds two histograms:
+   * Similar to the expectedQueueingTime this function computes two histograms:
    * total and interactive. For example:
    * - total:500ms_window:renderer_eqt:v8,
    * - interactive:500ms_window:renderer_eqt:v8.
    * Each renderer process adds one sample to the histograms.
+   * Both histograms are added to the given histogram set.
    *
    * @param eventPredicate the predicate for selecting events.
    * @param eventName the name describing the selected events. This name will be
    *     added to metric names.
+   * @returns {{total: !tr.v.Histogram, interactive: !tr.v.Histogram}}
    */
   function contributionToExpectedQueueingTime(
       eventPredicate, eventName, histograms, model) {
@@ -195,6 +244,10 @@ tr.exportTo('tr.metrics.sh', function() {
     }
     histograms.addHistogram(totalHistogram);
     histograms.addHistogram(interactiveHistogram);
+    return {
+      total: totalHistogram,
+      interactive: interactiveHistogram
+    };
   }
 
   tr.metrics.MetricRegistry.register(expectedQueueingTimeMetric);

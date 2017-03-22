@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/category_util.html">
 <link rel="import" href="/tracing/base/piecewise_linear_function.html">
 <link rel="import" href="/tracing/base/range.html">
 <link rel="import" href="/tracing/base/range_utils.html">
@@ -69,6 +70,10 @@ tr.exportTo('tr.metrics.v8.utils', function() {
     return event.title === LOW_MEMORY_EVENT;
   }
 
+  function isV8Event(event) {
+    return event.title.startsWith('V8.');
+  }
+
   function isV8ExecuteEvent(event) {
     return event.title === V8_EXECUTE;
   }
@@ -101,6 +106,31 @@ tr.exportTo('tr.metrics.v8.utils', function() {
            (isTopGarbageCollectionEvent(event.parentSlice) ||
             event.parentSlice.title === MAJOR_GC_EVENT ||
             event.parentSlice.title === MINOR_GC_EVENT);
+  }
+
+  function isCompileEvent(event) {
+    return tr.b.getCategoryParts(event.category).includes(
+        'disabled-by-default-v8.compile');
+  }
+
+  function isFullMarkCompactorEvent(event) {
+    return event.title === 'V8.GCCompactor';
+  }
+
+  function isIncrementalMarkingEvent(event) {
+    return event.title.startsWith('V8.GCIncrementalMarking');
+  }
+
+  function isLatencyMarkCompactorEvent(event) {
+    return event.title === 'V8.GCFinalizeMC';
+  }
+
+  function isMemoryMarkCompactorEvent(event) {
+    return event.title === 'V8.GCFinalizeMCReduceMemory';
+  }
+
+  function isScavengerEvent(event) {
+    return event.title === 'V8.GCScavenger';
   }
 
   function topGarbageCollectionEventName(event) {
@@ -296,18 +326,25 @@ tr.exportTo('tr.metrics.v8.utils', function() {
   return {
     findParent,
     groupAndProcessEvents,
+    isCompileEvent,
     isForcedGarbageCollectionEvent,
+    isFullMarkCompactorEvent,
     isGarbageCollectionEvent,
     isIdleTask,
+    isIncrementalMarkingEvent,
+    isLatencyMarkCompactorEvent,
     isLowMemoryEvent,
+    isMemoryMarkCompactorEvent,
+    isScavengerEvent,
     isSubGarbageCollectionEvent,
     isTopGarbageCollectionEvent,
     isTopV8ExecuteEvent,
+    isV8Event,
     isV8ExecuteEvent,
     mutatorUtilization,
+    rangeForMemoryDumps,
     subGarbageCollectionEventName,
     topGarbageCollectionEventName,
-    rangeForMemoryDumps,
     unionOfIntervals,
   };
 });
