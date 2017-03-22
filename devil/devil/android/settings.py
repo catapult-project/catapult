@@ -173,7 +173,7 @@ class ContentSettings(dict):
           check_return=True, as_root=True)
     else:
       self._device.RunShellCommand(
-          ['content', 'instert', '--uri', 'content://%s' % self._table,
+          ['content', 'insert', '--uri', 'content://%s' % self._table,
            '--bind', 'name:%s:%s' % (self._GetTypeBinding(key), key),
            '--bind', 'value:%s:%s' % (self._GetTypeBinding(value), value)],
           check_return=True, as_root=True)
