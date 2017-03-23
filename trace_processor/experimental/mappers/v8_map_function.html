@@ -31,7 +31,7 @@ tr.exportTo('pi.m', function() {
 
     var threadGrouping = new pi.m.ThreadGrouping();
     threadGrouping.autoInitUsingHelpers(model);
-    var last_known_framework = ['Unknown/Uncategorized'];
+    var lastKnownFramework = ['Unknown/Uncategorized'];
 
     var sliceCosts = [];
 
@@ -42,7 +42,7 @@ tr.exportTo('pi.m', function() {
       if (!event.title.startsWith('V8.') && !event.title.startsWith('V8Test.'))
         continue;
 
-      function _get_parent_data(event) {
+      function _getParentData(event) {
         var curSlice = event;
 
         var data = {};
@@ -56,7 +56,7 @@ tr.exportTo('pi.m', function() {
             data['js'] = 'Unknown';
           } else if (curSlice.title === 'FunctionCall') {
             var scriptName = curSlice.args['data']['scriptName'];
-            if (scriptName.indexOf('http') != -1) {
+            if (scriptName.indexOf('http') !== -1) {
               data['js'] = scriptName;
             }
           } else if (curSlice.title === 'V8Test.ParseScript') {
@@ -71,54 +71,54 @@ tr.exportTo('pi.m', function() {
         return data;
       }
 
-      function _guess_framework_from_js_file(js_file) {
+      function _guessFrameworkFromJsFile(jsFile) {
         var frameworks = {
-            // Some commone js libs.
-            'jQuery': ['jquery'],
-            'Angular': ['angular'],
-            'Underscore': ['underscore'],
-            'Respond.js': ['respond.js'],
-            'Easeljs': ['easeljs'],
-            'Modernizr': ['modernizr'],
-            'Cloudflare': ['cloudflare.min.js'],
-            'Greensock': ['gsap/'],
-            'Mootools': ['mootools'],
-            'Zepto': ['zepto.'],
-            'Webfont': ['webfont.js'],
-            'Closure': ['closure/'],
-            'Ektron': ['ektron'],
-            'SWFObject': ['swfobject'],
-            'Html5shiv': ['html5shiv'],
-            'Requirejs': ['require.js'],
-            'Tweenjs': ['tweenjs'],
+          // Some commone js libs.
+          'jQuery': ['jquery'],
+          'Angular': ['angular'],
+          'Underscore': ['underscore'],
+          'Respond.js': ['respond.js'],
+          'Easeljs': ['easeljs'],
+          'Modernizr': ['modernizr'],
+          'Cloudflare': ['cloudflare.min.js'],
+          'Greensock': ['gsap/'],
+          'Mootools': ['mootools'],
+          'Zepto': ['zepto.'],
+          'Webfont': ['webfont.js'],
+          'Closure': ['closure/'],
+          'Ektron': ['ektron'],
+          'SWFObject': ['swfobject'],
+          'Html5shiv': ['html5shiv'],
+          'Requirejs': ['require.js'],
+          'Tweenjs': ['tweenjs'],
 
-            // Just dividing these out into common sites.
-            'Google - Search': ['google.com/search?', 'www.google.'],
-            'Google - Adsense': ['pagead2.googlesyndication.com/pagead/'],
-            'Google - Analytics': ['google-analytics.com'],
-            'Google - Misc': ['google.', 'googleapis.'],
-            'Adobe - Misc': ['adobe.'],
-            'Facebook': ['facebook.', 'fbcdn.'],
-            'Outlook': ['outlook.', '.live.'],
-            'Craigslist': ['craigslist.'],
-            'Amazon': ['amazon.'],
-            'Yandex': ['yandex.'],
-            'Scene7': ['s7sdk/'],
-            'DoubleClick': [
-                '.doubleclick', 'gpt.js', 'gtm.js', '.googletagservices.'],
-            'Baidu': ['baidu.'],
-            'Bing': ['bing.'],
-            'Twitter': ['twitter.'],
-            'Wish': ['MobileWebsiteCore'],
-            'Extensions - Misc': ['chrome-extension://', 'chrome://']
+          // Just dividing these out into common sites.
+          'Google - Search': ['google.com/search?', 'www.google.'],
+          'Google - Adsense': ['pagead2.googlesyndication.com/pagead/'],
+          'Google - Analytics': ['google-analytics.com'],
+          'Google - Misc': ['google.', 'googleapis.'],
+          'Adobe - Misc': ['adobe.'],
+          'Facebook': ['facebook.', 'fbcdn.'],
+          'Outlook': ['outlook.', '.live.'],
+          'Craigslist': ['craigslist.'],
+          'Amazon': ['amazon.'],
+          'Yandex': ['yandex.'],
+          'Scene7': ['s7sdk/'],
+          'DoubleClick': [
+            '.doubleclick', 'gpt.js', 'gtm.js', '.googletagservices.'],
+          'Baidu': ['baidu.'],
+          'Bing': ['bing.'],
+          'Twitter': ['twitter.'],
+          'Wish': ['MobileWebsiteCore'],
+          'Extensions - Misc': ['chrome-extension://', 'chrome://']
         };
 
-        var js_file_lowercase = js_file.toLowerCase();
+        var jsFileLowercase = jsFile.toLowerCase();
         for (var k in frameworks) {
           var keywords = frameworks[k];
           for (var i = 0; i < keywords.length; i++) {
-            if (js_file_lowercase.indexOf(keywords[i]) > -1) {
-              //last_known_framework[0] = k;
+            if (jsFileLowercase.indexOf(keywords[i]) > -1) {
+              // lastKnownFramework[0] = k;
               return k;
             }
           }
@@ -127,28 +127,27 @@ tr.exportTo('pi.m', function() {
         // TODO: This is terrible, find a better way to attribute the
         // unknown callers to a framework. Ideally we'd actually have
         // access to data about the script or method that's running.
-        return last_known_framework[0];
+        return lastKnownFramework[0];
       }
 
-      function _cleanup_framework_name(name) {
-        var js_name = name;
-        if (js_name === '') {
-          js_name = 'Unknown';
+      function _cleanupFrameworkName(name) {
+        var jsName = name;
+        if (jsName === '') {
+          jsName = 'Unknown';
         }
-        if (js_name.length > 120) {
-          js_name = js_name.substring(0, 120) + '...';
+        if (jsName.length > 120) {
+          jsName = jsName.substring(0, 120) + '...';
         }
-        return js_name;
+        return jsName;
       }
 
       var ufc = model.getUserFriendlyCategoryFromEvent(event);
-      var data = _get_parent_data(event);
-      data.framework = _guess_framework_from_js_file(data.js);
-      var scriptURLClean = _cleanup_framework_name(data.js);
+      var data = _getParentData(event);
+      data.framework = _guessFrameworkFromJsFile(data.js);
+      var scriptURLClean = _cleanupFrameworkName(data.js);
 
       var slice = event;
-      if (slice.title == 'V8.Execute') {
-
+      if (slice.title === 'V8.Execute') {
         // V8.Execute events may generate several sliceCostInfo, based on the
         // origin of the JS being executed.
         var range = new tr.b.Range();
@@ -191,7 +190,7 @@ tr.exportTo('pi.m', function() {
           var key = sliceData.threadGroup + '/' +
                     sliceData.railTypeName + '/' +
                     sliceData.framework + '/' +
-                    //sliceData.scriptURLClean + '/' +
+                    // sliceData.scriptURLClean + '/' +
                     sliceData.title;
           sliceCosts.push({key: key, value: sliceData});
         });
@@ -214,7 +213,7 @@ tr.exportTo('pi.m', function() {
       var key = sliceData.threadGroup + '/' +
                 sliceData.railTypeName + '/' +
                 sliceData.framework + '/' +
-                //sliceData.scriptURLClean + '/' +
+                // sliceData.scriptURLClean + '/' +
                 sliceData.title;
 
       var newElement = {
