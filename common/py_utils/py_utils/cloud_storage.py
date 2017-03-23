@@ -150,22 +150,27 @@ def _RunCommand(args):
   stdout, stderr = gsutil.communicate()
 
   if gsutil.returncode:
-    if (stderr.startswith((
-        'You are attempting to access protected data with no configured',
-        'Failure: No handler was ready to authenticate.')) or
-        re.match('.*users does not have .* access to object.*', stderr)):
-      raise CredentialsError()
-    if ('status=403' in stderr or 'status 403' in stderr or
-        '403 Forbidden' in stderr):
-      raise PermissionError()
-    if (stderr.startswith('InvalidUriError') or 'No such object' in stderr or
-        'No URLs matched' in stderr or 'One or more URLs matched no' in stderr):
-      raise NotFoundError(stderr)
-    if '500 Internal Server Error' in stderr:
-      raise ServerError(stderr)
-    raise CloudStorageError(stderr)
+    raise GetErrorObjectForCloudStorageStderr(stderr)
 
   return stdout
+
+
+def GetErrorObjectForCloudStorageStderr(stderr):
+  if (stderr.startswith((
+      'You are attempting to access protected data with no configured',
+      'Failure: No handler was ready to authenticate.')) or
+      re.match('.*401.*does not have .* access to .*', stderr)):
+    return CredentialsError()
+  if ('status=403' in stderr or 'status 403' in stderr or
+      '403 Forbidden' in stderr or
+      re.match('.*403.*does not have .* access to .*', stderr)):
+    return PermissionError()
+  if (stderr.startswith('InvalidUriError') or 'No such object' in stderr or
+      'No URLs matched' in stderr or 'One or more URLs matched no' in stderr):
+    return NotFoundError(stderr)
+  if '500 Internal Server Error' in stderr:
+    return ServerError(stderr)
+  return CloudStorageError(stderr)
 
 
 def IsNetworkIOEnabled():

@@ -271,3 +271,14 @@ class CloudStorageRealFsUnitTest(unittest.TestCase):
             cloud_storage.GetIfChanged(file_path, cloud_storage.PUBLIC_BUCKET)
         finally:
           shutil.rmtree(tmp_dir)
+
+
+class CloudStorageErrorHandlingTest(unittest.TestCase):
+  def runTest(self):
+    self.assertIsInstance(cloud_storage.GetErrorObjectForCloudStorageStderr(
+        'ServiceException: 401 Anonymous users does not have '
+        'storage.objects.get access to object chrome-partner-telemetry'),
+                          cloud_storage.CredentialsError)
+    self.assertIsInstance(cloud_storage.GetErrorObjectForCloudStorageStderr(
+        '403 Caller does not have storage.objects.list access to bucket '
+        'chrome-telemetry'), cloud_storage.PermissionError)
