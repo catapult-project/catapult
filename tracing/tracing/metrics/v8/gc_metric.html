@@ -25,11 +25,8 @@ tr.exportTo('tr.metrics.v8', function() {
     addDurationOfTopEvents(histograms, model);
     addTotalDurationOfTopEvents(histograms, model);
     addDurationOfSubEvents(histograms, model);
-    addIdleTimesOfTopEvents(histograms, model);
-    addTotalIdleTimesOfTopEvents(histograms, model);
     addPercentageInV8ExecuteOfTopEvents(histograms, model);
     addTotalPercentageInV8Execute(histograms, model);
-    addV8ExecuteMutatorUtilization(histograms, model);
   }
 
   tr.metrics.MetricRegistry.register(gcMetric);
@@ -178,77 +175,6 @@ tr.exportTo('tr.metrics.v8', function() {
 
   /**
    * Example output:
-   * - v8-gc-full-mark-compactor_idle_deadline_overrun,
-   * - v8-gc-full-mark-compactor_outside_idle,
-   * - v8-gc-full-mark-compactor_percentage_idle.
-   */
-  function addIdleTimesOfTopEvents(histograms, model) {
-    tr.metrics.v8.utils.groupAndProcessEvents(model,
-        isNotForcedTopGarbageCollectionEvent,
-        tr.metrics.v8.utils.topGarbageCollectionEventName,
-        function(name, events) {
-          addIdleTimes(histograms, model, name, events);
-        }
-    );
-  }
-
-  /**
-   * Example output:
-   * - v8-gc-total_idle_deadline_overrun,
-   * - v8-gc-total_outside_idle,
-   * - v8-gc-total_percentage_idle.
-   */
-  function addTotalIdleTimesOfTopEvents(histograms, model) {
-    tr.metrics.v8.utils.groupAndProcessEvents(model,
-        isNotForcedTopGarbageCollectionEvent,
-        event => 'v8-gc-total',
-        function(name, events) {
-          addIdleTimes(histograms, model, name, events);
-        }
-    );
-  }
-
-  function addIdleTimes(histograms, model, name, events) {
-    var cpuDuration = createNumericForIdleTime();
-    var insideIdle = createNumericForIdleTime();
-    var outsideIdle = createNumericForIdleTime(name + '_outside_idle');
-    var idleDeadlineOverrun = createNumericForIdleTime(
-        name + '_idle_deadline_overrun');
-    events.forEach(function(event) {
-      var idleTask = tr.metrics.v8.utils.findParent(
-          event, tr.metrics.v8.utils.isIdleTask);
-      var inside = 0;
-      var overrun = 0;
-      if (idleTask) {
-        var allottedTime = idleTask['args']['allotted_time_ms'];
-        if (event.duration > allottedTime) {
-          overrun = event.duration - allottedTime;
-          // Don't count time over the deadline as being inside idle time.
-          // Since the deadline should be relative to wall clock we
-          // compare allotted_time_ms with wall duration instead of thread
-          // duration, and then assume the thread duration was inside idle
-          // for the same percentage of time.
-          inside = event.cpuDuration * allottedTime / event.duration;
-        } else {
-          inside = event.cpuDuration;
-        }
-      }
-      cpuDuration.addSample(event.cpuDuration);
-      insideIdle.addSample(inside);
-      outsideIdle.addSample(event.cpuDuration - inside);
-      idleDeadlineOverrun.addSample(overrun);
-    });
-    histograms.addHistogram(idleDeadlineOverrun);
-    histograms.addHistogram(outsideIdle);
-    var percentage = createPercentage(name + '_percentage_idle', insideIdle.sum,
-        cpuDuration.sum,
-        percentage_biggerIsBetter);
-    histograms.addHistogram(percentage);
-  }
-
-
-  /**
-   * Example output:
    * - v8-gc-full-mark-compactor_percentage_in_v8_execute.
    */
   function addPercentageInV8ExecuteOfTopEvents(histograms, model) {
@@ -290,44 +216,6 @@ tr.exportTo('tr.metrics.v8', function() {
         name + '_percentage_in_v8_execute', cpuDurationInV8Execute,
         cpuDurationTotal, percentage_smallerIsBetter);
     histograms.addHistogram(percentage);
-  }
-
-  function addV8ExecuteMutatorUtilization(histograms, model) {
-    tr.metrics.v8.utils.groupAndProcessEvents(model,
-        tr.metrics.v8.utils.isTopV8ExecuteEvent,
-        event => 'v8-execute',
-        function(name, events) {
-          events.sort((a, b) => a.start - b.start);
-          var time = 0;
-          var pauses = [];
-          // Glue together the v8.execute events and adjust the GC pause
-          // times accordingly.
-          for (var topEvent of events) {
-            for (var e of topEvent.enumerateAllDescendents()) {
-              if (isNotForcedTopGarbageCollectionEvent(e)) {
-                pauses.push({ start: e.start - topEvent.start + time,
-                  end: e.end - topEvent.start + time });
-              }
-            }
-            time += topEvent.duration;
-          }
-          // Now we have one big v8.execute interval from 0 to |time| and
-          // a list of GC pauses.
-          var mutatorUtilization = tr.metrics.v8.utils.mutatorUtilization(
-              0, time, WINDOW_SIZE_MS, pauses);
-          [0.90, 0.95, 0.99].forEach(function(percent) {
-            var hist = new tr.v.Histogram(
-                'v8-execute-mutator-utilization_pct_0' + percent * 100,
-                percentage_biggerIsBetter);
-            hist.addSample(mutatorUtilization.percentile(1.0 - percent));
-            histograms.addHistogram(hist);
-          });
-          var hist = new tr.v.Histogram(
-              'v8-execute-mutator-utilization_min', percentage_biggerIsBetter);
-          hist.addSample(mutatorUtilization.min);
-          histograms.addHistogram(hist);
-        }
-    );
   }
 
   return {
