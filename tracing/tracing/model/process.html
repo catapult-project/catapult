@@ -34,6 +34,7 @@ tr.exportTo('tr.model', function() {
     this.pid = pid;
     this.name = undefined;
     this.labels = [];
+    this.uptime_seconds = 0;
     this.instantEvents = [];
     this.memoryDumps = [];
     this.frames = [];
@@ -96,6 +97,8 @@ tr.exportTo('tr.model', function() {
         res = 'Process ' + this.pid;
       if (this.labels.length)
         res += ': ' + this.labels.join(', ');
+      if (this.uptime_seconds)
+        res += ', uptime:' + this.uptime_seconds + 's';
       return res;
     },
 

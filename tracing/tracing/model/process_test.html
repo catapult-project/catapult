@@ -107,6 +107,19 @@ tr.b.unittest.testSuite(function() {
 
     assert.isBelow(p1.compareTo(p2), 0);
   });
+
+  test('compareOnUptime', function() {
+    var model = new tr.Model();
+    var p1 = new tr.model.Process(model, 1);
+    p1.name = 'Renderer';
+    p1.uptime_seconds = 10;
+
+    var p2 = new tr.model.Process(model, 2);
+    p2.name = 'Renderer';
+    p2.uptime_seconds = 20;
+
+    assert.isBelow(p1.compareTo(p2), 0);
+  });
 });
 </script>
 

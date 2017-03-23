@@ -614,6 +614,9 @@ tr.exportTo('tr.e.importer', function() {
         var labels = event.args.labels.split(',');
         for (var i = 0; i < labels.length; i++)
           process.addLabelIfNeeded(labels[i]);
+      } else if (event.name === 'process_uptime_seconds') {
+        var process = this.model_.getOrCreateProcess(event.pid);
+        process.uptime_seconds = event.args.uptime;
       } else if (event.name === 'process_sort_index') {
         var process = this.model_.getOrCreateProcess(event.pid);
         process.sortIndex = event.args.sort_index;

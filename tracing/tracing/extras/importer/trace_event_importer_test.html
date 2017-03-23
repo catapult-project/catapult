@@ -713,6 +713,19 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual(m.processes[2].labels, ['baz']);
   });
 
+  // Process uptime.
+  test('processUptime', function() {
+    var events = [
+      {name: 'process_uptime_seconds', args: {uptime: 10},
+        pid: 1, ts: 0, tid: 1, ph: 'M'},
+      {name: 'process_uptime_seconds', args: {uptime: 20},
+        pid: 2, ts: 0, tid: 1, ph: 'M'}
+    ];
+    var m = makeModel(events);
+    assert.equal(m.processes[1].uptime_seconds, 10);
+    assert.equal(m.processes[2].uptime_seconds, 20);
+  });
+
   // Process sort index.
   test('processSortIndex', function() {
     var events = [
