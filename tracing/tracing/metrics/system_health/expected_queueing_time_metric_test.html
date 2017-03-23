@@ -276,9 +276,11 @@ tr.b.unittest.testSuite(function() {
       mainThread.sliceGroup.createSubSlices();
     });
     let histograms = new tr.v.HistogramSet();
+    const rendererToInteractiveTimestamps =
+        tr.e.chrome.getInteractiveTimestamps(model);
     let contribution = tr.metrics.sh.contributionToExpectedQueueingTime(
         (event => event.title === 'V8.GCFinalizeMC'), 'v8:gc',
-        histograms, model);
+        rendererToInteractiveTimestamps, histograms, model);
     let interactiveEQT = contribution.interactive;
     assert.strictEqual(0.025, interactiveEQT.average);
     let totalEQT = contribution.total;
