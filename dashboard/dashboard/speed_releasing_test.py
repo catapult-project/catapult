@@ -139,7 +139,7 @@ class SpeedReleasingTest(testing_common.TestCase):
 
   def _AddRows(self, keys):
     for key in keys:
-      testing_common.AddRows(utils.TestPath(key), [1, 2, 3, 445588])
+      testing_common.AddRows(utils.TestPath(key), [1, 2, 3, 455588])
 
   def _AddDownstreamRows(self, keys):
     revisions = [1, 2, 1485025126, 1485099999]
@@ -244,8 +244,8 @@ class SpeedReleasingTest(testing_common.TestCase):
   def testPost_TableWithNewestMilestoneParam(self):
     keys = self._AddTableConfigDataStore('BestTable', True)
     self._AddRows(keys)
-    response = self.testapp.post('/speed_releasing/BestTable?m=57')
-    self.assertIn('"revisions": [445588, 445288]', response)
+    response = self.testapp.post('/speed_releasing/BestTable?m=58')
+    self.assertIn('"revisions": [455588, 454523]', response)
 
   def testPost_TableWithHighMilestoneParam(self):
     keys = self._AddTableConfigDataStore('BestTable', True)
@@ -263,7 +263,7 @@ class SpeedReleasingTest(testing_common.TestCase):
     keys = self._AddTableConfigDataStore('BestTable', True)
     self._AddRows(keys)
     response = self.testapp.post('/speed_releasing/BestTable')
-    self.assertIn('"revisions": [445588, 445288]', response)
+    self.assertIn('"revisions": [455588, 454523]', response)
 
   def testPost_TableWithRevParamEndRevAlsoStartRev(self):
     keys = self._AddTableConfigDataStore('BestTable', True)
@@ -281,7 +281,7 @@ class SpeedReleasingTest(testing_common.TestCase):
     keys = self._AddTableConfigDataStore('BestTable', True)
     self._AddRows(keys)
     response = self.testapp.post('/speed_releasing/BestTable?revB=425000')
-    self.assertIn('"revisions": [445588, 425000]', response)
+    self.assertIn('"revisions": [455588, 425000]', response)
 
   def testPost_TableWithRevParamMiddleRev(self):
     keys = self._AddTableConfigDataStore('BestTable', True)
@@ -293,13 +293,13 @@ class SpeedReleasingTest(testing_common.TestCase):
     keys = self._AddTableConfigDataStore('BestTable', True)
     self._AddRows(keys)
     response = self.testapp.post('/speed_releasing/BestTable?revB=50000000')
-    self.assertIn('"revisions": [50000000, 445588]', response)
+    self.assertIn('"revisions": [50000000, 455588]', response)
 
   def testPost_TableWithRevParamLowRev(self):
     keys = self._AddTableConfigDataStore('BestTable', True)
     self._AddRows(keys)
     response = self.testapp.post('/speed_releasing/BestTable?revB=1')
-    self.assertIn('"revisions": [445588, 1]', response)
+    self.assertIn('"revisions": [455588, 1]', response)
 
   def testPost_TableWithRevsParamTwoMilestones(self):
     keys = self._AddTableConfigDataStore('BestTable', True)
