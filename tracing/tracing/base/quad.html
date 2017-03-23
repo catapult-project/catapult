@@ -5,11 +5,11 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/tracing/base/base.html">
-<link rel="import" href="/tracing/base/math/math.html">
+<link rel="import" href="/tracing/base/math.html">
 <script>
 'use strict';
 
-tr.exportTo('tr.b.math', function() {
+tr.exportTo('tr.b', function() {
   var tmpVec2s = [];
   for (var i = 0; i < 8; i++)
     tmpVec2s[i] = vec2.create();
@@ -97,7 +97,7 @@ tr.exportTo('tr.b.math', function() {
       var x1 = Math.max(this.p1[0], this.p2[0], this.p3[0], this.p4[0]);
       var y1 = Math.max(this.p1[1], this.p2[1], this.p3[1], this.p4[1]);
 
-      return new tr.b.math.Rect.fromXYWH(x0, y0, x1 - x0, y1 - y0);
+      return new tr.b.Rect.fromXYWH(x0, y0, x1 - x0, y1 - y0);
     },
 
     clone: function() {

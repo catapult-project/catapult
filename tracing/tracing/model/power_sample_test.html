@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/math/range.html">
+<link rel="import" href="/tracing/base/range.html">
 <link rel="import" href="/tracing/model/model.html">
 <link rel="import" href="/tracing/model/power_sample.html">
 
@@ -36,7 +36,7 @@ tr.b.unittest.testSuite(function() {
     var sample1 = new PowerSample(series, 0.0, 1000.0);
     var sample2 = new PowerSample(series, 1.0, 2000.0);
 
-    var range = new tr.b.math.Range();
+    var range = new tr.b.Range();
     sample1.addBoundsToRange(range);
 
     assert.equal(range.min, 0);

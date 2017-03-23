@@ -227,7 +227,7 @@ tr.b.unittest.testSuite(function() {
 
     let dontCare = new tr.v.Histogram('', unitlessNumber, boundaries);
     assert.strictEqual(dontCare.getDifferenceSignificance(dontCare),
-        tr.b.math.Statistics.Significance.DONT_CARE);
+        tr.b.Statistics.Significance.DONT_CARE);
 
     for (let i = 0; i < 100; ++i) {
       histA.addSample(i);
@@ -235,13 +235,13 @@ tr.b.unittest.testSuite(function() {
     }
 
     assert.strictEqual(histA.getDifferenceSignificance(histB),
-        tr.b.math.Statistics.Significance.INSIGNIFICANT);
+        tr.b.Statistics.Significance.INSIGNIFICANT);
     assert.strictEqual(histB.getDifferenceSignificance(histA),
-        tr.b.math.Statistics.Significance.INSIGNIFICANT);
+        tr.b.Statistics.Significance.INSIGNIFICANT);
     assert.strictEqual(histA.getDifferenceSignificance(histB, 0.1),
-        tr.b.math.Statistics.Significance.SIGNIFICANT);
+        tr.b.Statistics.Significance.SIGNIFICANT);
     assert.strictEqual(histB.getDifferenceSignificance(histA, 0.1),
-        tr.b.math.Statistics.Significance.SIGNIFICANT);
+        tr.b.Statistics.Significance.SIGNIFICANT);
   });
 
   test('basic', function() {
@@ -378,7 +378,7 @@ tr.b.unittest.testSuite(function() {
           '', tr.b.Unit.byName.timeDurationInMs, boundaries);
       array.forEach((x) => hist.addSample(x, {foo: new tr.v.d.Generic('x')}));
       [0.25, 0.5, 0.75, 0.8, 0.95, 0.99].forEach(function(percent) {
-        let expected = tr.b.math.Statistics.percentile(array, percent);
+        let expected = tr.b.Statistics.percentile(array, percent);
         let actual = hist.getApproximatePercentile(percent);
         assert.closeTo(expected, actual, precision);
       });
@@ -409,20 +409,20 @@ tr.b.unittest.testSuite(function() {
     b.addBinBoundary(50);
 
     checkBoundaries(b, -100, 50, tr.b.Unit.byName.timeDurationInMs, [
-      tr.b.math.Range.fromExplicitRange(-Number.MAX_VALUE, -100),
-      tr.b.math.Range.fromExplicitRange(-100, 50),
-      tr.b.math.Range.fromExplicitRange(50, Number.MAX_VALUE)
+      tr.b.Range.fromExplicitRange(-Number.MAX_VALUE, -100),
+      tr.b.Range.fromExplicitRange(-100, 50),
+      tr.b.Range.fromExplicitRange(50, Number.MAX_VALUE)
     ]);
 
     b.addBinBoundary(60);
     b.addBinBoundary(75);
 
     checkBoundaries(b, -100, 75, tr.b.Unit.byName.timeDurationInMs, [
-      tr.b.math.Range.fromExplicitRange(-Number.MAX_VALUE, -100),
-      tr.b.math.Range.fromExplicitRange(-100, 50),
-      tr.b.math.Range.fromExplicitRange(50, 60),
-      tr.b.math.Range.fromExplicitRange(60, 75),
-      tr.b.math.Range.fromExplicitRange(75, Number.MAX_VALUE)
+      tr.b.Range.fromExplicitRange(-Number.MAX_VALUE, -100),
+      tr.b.Range.fromExplicitRange(-100, 50),
+      tr.b.Range.fromExplicitRange(50, 60),
+      tr.b.Range.fromExplicitRange(60, 75),
+      tr.b.Range.fromExplicitRange(75, Number.MAX_VALUE)
     ]);
   });
 
@@ -431,13 +431,13 @@ tr.b.unittest.testSuite(function() {
     b.addLinearBins(1200, 5);
 
     checkBoundaries(b, 1000, 1200, tr.b.Unit.byName.powerInWatts, [
-      tr.b.math.Range.fromExplicitRange(-Number.MAX_VALUE, 1000),
-      tr.b.math.Range.fromExplicitRange(1000, 1040),
-      tr.b.math.Range.fromExplicitRange(1040, 1080),
-      tr.b.math.Range.fromExplicitRange(1080, 1120),
-      tr.b.math.Range.fromExplicitRange(1120, 1160),
-      tr.b.math.Range.fromExplicitRange(1160, 1200),
-      tr.b.math.Range.fromExplicitRange(1200, Number.MAX_VALUE)
+      tr.b.Range.fromExplicitRange(-Number.MAX_VALUE, 1000),
+      tr.b.Range.fromExplicitRange(1000, 1040),
+      tr.b.Range.fromExplicitRange(1040, 1080),
+      tr.b.Range.fromExplicitRange(1080, 1120),
+      tr.b.Range.fromExplicitRange(1120, 1160),
+      tr.b.Range.fromExplicitRange(1160, 1200),
+      tr.b.Range.fromExplicitRange(1200, Number.MAX_VALUE)
     ]);
   });
 
@@ -446,12 +446,12 @@ tr.b.unittest.testSuite(function() {
     b.addExponentialBins(8, 4);
 
     checkBoundaries(b, 0.5, 8, tr.b.Unit.byName.energyInJoules, [
-      tr.b.math.Range.fromExplicitRange(-Number.MAX_VALUE, 0.5),
-      tr.b.math.Range.fromExplicitRange(0.5, 1),
-      tr.b.math.Range.fromExplicitRange(1, 2),
-      tr.b.math.Range.fromExplicitRange(2, 4),
-      tr.b.math.Range.fromExplicitRange(4, 8),
-      tr.b.math.Range.fromExplicitRange(8, Number.MAX_VALUE)
+      tr.b.Range.fromExplicitRange(-Number.MAX_VALUE, 0.5),
+      tr.b.Range.fromExplicitRange(0.5, 1),
+      tr.b.Range.fromExplicitRange(1, 2),
+      tr.b.Range.fromExplicitRange(2, 4),
+      tr.b.Range.fromExplicitRange(4, 8),
+      tr.b.Range.fromExplicitRange(8, Number.MAX_VALUE)
     ]);
   });
 
@@ -464,19 +464,19 @@ tr.b.unittest.testSuite(function() {
     b.addBinBoundary(100);
 
     checkBoundaries(b, -273.15, 100, tr.b.Unit.byName.unitlessNumber, [
-      tr.b.math.Range.fromExplicitRange(-Number.MAX_VALUE, -273.15),
-      tr.b.math.Range.fromExplicitRange(-273.15, -50),
-      tr.b.math.Range.fromExplicitRange(-50, -32),
-      tr.b.math.Range.fromExplicitRange(-32, -14),
-      tr.b.math.Range.fromExplicitRange(-14, 4),
-      tr.b.math.Range.fromExplicitRange(4, 8),
-      tr.b.math.Range.fromExplicitRange(8, 16),
-      tr.b.math.Range.fromExplicitRange(16, 16.25),
-      tr.b.math.Range.fromExplicitRange(16.25, 16.5),
-      tr.b.math.Range.fromExplicitRange(16.5, 16.75),
-      tr.b.math.Range.fromExplicitRange(16.75, 17),
-      tr.b.math.Range.fromExplicitRange(17, 100),
-      tr.b.math.Range.fromExplicitRange(100, Number.MAX_VALUE)
+      tr.b.Range.fromExplicitRange(-Number.MAX_VALUE, -273.15),
+      tr.b.Range.fromExplicitRange(-273.15, -50),
+      tr.b.Range.fromExplicitRange(-50, -32),
+      tr.b.Range.fromExplicitRange(-32, -14),
+      tr.b.Range.fromExplicitRange(-14, 4),
+      tr.b.Range.fromExplicitRange(4, 8),
+      tr.b.Range.fromExplicitRange(8, 16),
+      tr.b.Range.fromExplicitRange(16, 16.25),
+      tr.b.Range.fromExplicitRange(16.25, 16.5),
+      tr.b.Range.fromExplicitRange(16.5, 16.75),
+      tr.b.Range.fromExplicitRange(16.75, 17),
+      tr.b.Range.fromExplicitRange(17, 100),
+      tr.b.Range.fromExplicitRange(100, Number.MAX_VALUE)
     ]);
   });
 

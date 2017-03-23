@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/math/range.html">
+<link rel="import" href="/tracing/base/range.html">
 
 <script>
 'use strict';
@@ -27,7 +27,7 @@ tr.exportTo('tr.ui', function() {
   function TimelineInterestRange(vp) {
     this.viewport_ = vp;
 
-    this.range_ = new tr.b.math.Range();
+    this.range_ = new tr.b.Range();
 
     this.leftSelected_ = false;
     this.rightSelected_ = false;
@@ -85,7 +85,7 @@ tr.exportTo('tr.ui', function() {
     },
 
     asRangeObject: function() {
-      var range = new tr.b.math.Range();
+      var range = new tr.b.Range();
       range.addRange(this.range_);
       return range;
     },

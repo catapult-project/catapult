@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/math/statistics.html">
+<link rel="import" href="/tracing/base/statistics.html">
 <link rel="import" href="/tracing/ui/base/box_chart.html">
 <link rel="import" href="/tracing/ui/base/drag_handle.html">
 <link rel="import" href="/tracing/ui/base/name_bar_chart.html">
@@ -198,7 +198,7 @@ tr.exportTo('tr.v.ui', function() {
 
     set brushedBins(bins) {
       this.brushedBins_ = bins;
-      let brushedBinIndices = new tr.b.math.Range();
+      let brushedBinIndices = new tr.b.Range();
       for (let bin of bins) {
         brushedBinIndices.addValue(this.histogram.allBins.indexOf(bin));
       }
@@ -207,10 +207,10 @@ tr.exportTo('tr.v.ui', function() {
     },
 
     updateBrushedRange_(binIndex) {
-      let brushedBinIndices = new tr.b.math.Range();
-      brushedBinIndices.addValue(tr.b.math.clamp(
+      let brushedBinIndices = new tr.b.Range();
+      brushedBinIndices.addValue(tr.b.clamp(
           this.mouseDownBinIndex_, 0, this.histogram.allBins.length - 1));
-      brushedBinIndices.addValue(tr.b.math.clamp(
+      brushedBinIndices.addValue(tr.b.clamp(
           binIndex, 0, this.histogram.allBins.length - 1));
       brushedBinIndices.max += 1;
       this.chart_.brushedRange = brushedBinIndices;
@@ -249,7 +249,7 @@ tr.exportTo('tr.v.ui', function() {
           this.brushedBins_.length === 1 &&
           this.prevBrushedBins_[0] === this.brushedBins_[0]) {
         this.brushedBins_ = [];
-        this.chart_.brushedRange = new tr.b.math.Range();
+        this.chart_.brushedRange = new tr.b.Range();
       }
       this.updateDiagnostics_();
       this.mouseDownBinIndex_ = undefined;
@@ -306,7 +306,7 @@ tr.exportTo('tr.v.ui', function() {
     getDeltaScalars_(statNames, scalarMap) {
       if (!this.histogram.canCompare(this.referenceHistogram)) return;
 
-      let mwu = tr.b.math.Statistics.mwu(
+      let mwu = tr.b.Statistics.mwu(
           this.histogram.sampleValues, this.referenceHistogram.sampleValues);
 
       for (let deltaStatName of tr.v.Histogram.getDeltaStatisticsNames(
@@ -414,7 +414,7 @@ tr.exportTo('tr.v.ui', function() {
       this.chart_.hideLegend = true;
       this.chart_.getDataSeries('y').color = 'blue';
       this.chart_.xAxisLabel = '#';
-      this.chart_.brushedRange = new tr.b.math.Range();
+      this.chart_.brushedRange = new tr.b.Range();
 
       let chartData = [];
       let binCounts = [];
@@ -434,7 +434,7 @@ tr.exportTo('tr.v.ui', function() {
       // largest bin, then set the dataRange max to TRUNCATE_BIN_MARGIN% more
       // than that next largest bin.
       binCounts.sort((x, y) => y - x);
-      let dataRange = tr.b.math.Range.fromExplicitRange(0, binCounts[0]);
+      let dataRange = tr.b.Range.fromExplicitRange(0, binCounts[0]);
       if (binCounts[1] > 0 && binCounts[0] > (binCounts[1] * 2)) {
         dataRange.max = binCounts[1] * (1 + TRUNCATE_BIN_MARGIN);
       }

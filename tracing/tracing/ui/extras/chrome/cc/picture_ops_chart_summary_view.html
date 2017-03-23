@@ -118,7 +118,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         this.currentBarMouseOverTarget_ = Math.floor(
             (x - chartLeft) / chartInnerWidth * this.opsTimingData_.length);
 
-        this.currentBarMouseOverTarget_ = tr.b.math.clamp(
+        this.currentBarMouseOverTarget_ = tr.b.clamp(
             this.currentBarMouseOverTarget_, 0, this.opsTimingData_.length - 1);
       }
 

@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/math/range.html">
+<link rel="import" href="/tracing/base/range.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/model/model.html">
 
@@ -191,7 +191,7 @@ tr.b.unittest.testSuite(function() {
     series.addCounterSample(80, 500000);
     series.addCounterSample(100, 300000);
 
-    var range = tr.b.math.Range.fromExplicitRange(10, 90);
+    var range = tr.b.Range.fromExplicitRange(10, 90);
     var stats = cpu.getFreqStatsForRange(range);
     assert.equal(stats[100000], 60);
     assert.equal(stats[300000], 10);

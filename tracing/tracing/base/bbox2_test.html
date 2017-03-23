@@ -4,7 +4,7 @@ Copyright (c) 2014 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/tracing/base/math/bbox2.html">
+<link rel="import" href="/tracing/base/bbox2.html">
 <script>
 // Copyright (c) 2013 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
@@ -14,7 +14,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('addVec2', function() {
-    var bbox = new tr.b.math.BBox2();
+    var bbox = new tr.b.BBox2();
     var x = vec2.create();
     vec2.set(x, 10, 10);
     bbox.addVec2(x);

@@ -5,8 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/math/range.html">
-<link rel="import" href="/tracing/base/math/sorted_array_utils.html">
+<link rel="import" href="/tracing/base/range.html">
+<link rel="import" href="/tracing/base/sorted_array_utils.html">
 <link rel="import" href="/tracing/model/event.html">
 <link rel="import" href="/tracing/model/object_snapshot.html">
 
@@ -38,7 +38,7 @@ tr.exportTo('tr.model', function() {
     this.deletionTs = Number.MAX_VALUE;
     this.deletionTsWasExplicit = false;
     this.colorId = 0;
-    this.bounds = new tr.b.math.Range();
+    this.bounds = new tr.b.Range();
     this.snapshots = [];
     this.hasImplicitSnapshots = false;
   }
@@ -138,7 +138,7 @@ tr.exportTo('tr.model', function() {
         throw new Error('ts must be within lifetime of this instance');
 
       var snapshots = this.snapshots;
-      var i = tr.b.math.findIndexInSortedIntervals(
+      var i = tr.b.findIndexInSortedIntervals(
           snapshots,
           function(snapshot) { return snapshot.ts; },
           function(snapshot, i) {

@@ -171,21 +171,19 @@ tr.b.unittest.testSuite(function() {
     // We don't have access to the values stored in the histogram, so we check
     // for equality in the summary statistics.
     let hist = histograms.getHistogramNamed('WebRTCRendering_drift_time');
-    assert.strictEqual(hist.sum, tr.b.math.Statistics.sum(fakeDriftTimes));
+    assert.strictEqual(hist.sum, tr.b.Statistics.sum(fakeDriftTimes));
     assert.strictEqual(hist.numValues, fakeDriftTimes.length);
-    assert.strictEqual(hist.running.min,
-        tr.b.math.Statistics.min(fakeDriftTimes));
-    assert.strictEqual(hist.running.max,
-        tr.b.math.Statistics.max(fakeDriftTimes));
+    assert.strictEqual(hist.running.min, tr.b.Statistics.min(fakeDriftTimes));
+    assert.strictEqual(hist.running.max, tr.b.Statistics.max(fakeDriftTimes));
     assert.closeTo(hist.standardDeviation,
-        tr.b.math.Statistics.stddev(fakeDriftTimes), 1e-2);
+        tr.b.Statistics.stddev(fakeDriftTimes), 1e-2);
   });
 
   test('framesBadlyOutOfSyncPerfect', function() {
     // None of these will exceed the threshold for badly out of sync events,
     // which is about 33 333.
     let normDriftTimes = [-16700, 17640, 15000, -17640, -15000, 16700];
-    assert.strictEqual(tr.b.math.Statistics.sum(normDriftTimes), 0);
+    assert.strictEqual(tr.b.Statistics.sum(normDriftTimes), 0);
     let fakeEvents = eventsFromNormDriftTimes(normDriftTimes);
     let histograms = runWebrtcRenderingMetric(fakeEvents);
 
@@ -199,7 +197,7 @@ tr.b.unittest.testSuite(function() {
     // Only 34 000 will exceed the threshold for badly out of sync events,
     // which is about 33 333.
     let normDriftTimes = [-34000, 10000, 10000, 10000, 4000];
-    assert.strictEqual(tr.b.math.Statistics.sum(normDriftTimes), 0);
+    assert.strictEqual(tr.b.Statistics.sum(normDriftTimes), 0);
     let fakeEvents = eventsFromNormDriftTimes(normDriftTimes);
     let histograms = runWebrtcRenderingMetric(fakeEvents);
 
@@ -213,7 +211,7 @@ tr.b.unittest.testSuite(function() {
     // None of these will exceed the threshold for badly out of sync, which is
     // about 16 667.
     let normDriftTimes = [-16600, 15640, 15000, -15640, -15000, 16600];
-    assert.strictEqual(tr.b.math.Statistics.sum(normDriftTimes), 0);
+    assert.strictEqual(tr.b.Statistics.sum(normDriftTimes), 0);
     let fakeEvents = eventsFromNormDriftTimes(normDriftTimes);
     let histograms = runWebrtcRenderingMetric(fakeEvents);
 
@@ -227,7 +225,7 @@ tr.b.unittest.testSuite(function() {
     // Only 17000 will exceed the threshold for badly out of sync, which is
     // about 16 667.
     let normDriftTimes = [-17000, 5000, 5000, 5000, 2000];
-    assert.strictEqual(tr.b.math.Statistics.sum(normDriftTimes), 0);
+    assert.strictEqual(tr.b.Statistics.sum(normDriftTimes), 0);
     let fakeEvents = eventsFromNormDriftTimes(normDriftTimes);
     let histograms = runWebrtcRenderingMetric(fakeEvents);
 
@@ -241,7 +239,7 @@ tr.b.unittest.testSuite(function() {
     // None of these will exceed the threshold for badly out of sync events,
     // which is about 33 333.
     let normDriftTimes = [-16700, 17640, 15000, -17640, -15000, 16700];
-    assert.strictEqual(tr.b.math.Statistics.sum(normDriftTimes), 0);
+    assert.strictEqual(tr.b.Statistics.sum(normDriftTimes), 0);
     let fakeEvents = eventsFromNormDriftTimes(normDriftTimes);
     let histograms = runWebrtcRenderingMetric(fakeEvents);
 
@@ -255,7 +253,7 @@ tr.b.unittest.testSuite(function() {
     // Only 34 000 will exceed the threshold for badly out of sync events,
     // which is about 33 333.
     let normDriftTimes = [-34000, 10000, 10000, 10000, 4000];
-    assert.strictEqual(tr.b.math.Statistics.sum(normDriftTimes), 0);
+    assert.strictEqual(tr.b.Statistics.sum(normDriftTimes), 0);
     let fakeEvents = eventsFromNormDriftTimes(normDriftTimes);
     let histograms = runWebrtcRenderingMetric(fakeEvents);
 
@@ -269,7 +267,7 @@ tr.b.unittest.testSuite(function() {
     // None of these will exceed the threshold for badly out of sync, which is
     // about 16 667.
     let normDriftTimes = [-16600, 15640, 15000, -15640, -15000, 16600];
-    assert.strictEqual(tr.b.math.Statistics.sum(normDriftTimes), 0);
+    assert.strictEqual(tr.b.Statistics.sum(normDriftTimes), 0);
     let fakeEvents = eventsFromNormDriftTimes(normDriftTimes);
     let histograms = runWebrtcRenderingMetric(fakeEvents);
 
@@ -283,7 +281,7 @@ tr.b.unittest.testSuite(function() {
     // Only 17000 will exceed the threshold for badly out of sync, which is
     // about 16 667.
     let normDriftTimes = [-17000, 5000, 5000, 5000, 2000];
-    assert.strictEqual(tr.b.math.Statistics.sum(normDriftTimes), 0);
+    assert.strictEqual(tr.b.Statistics.sum(normDriftTimes), 0);
     let fakeEvents = eventsFromNormDriftTimes(normDriftTimes);
     let histograms = runWebrtcRenderingMetric(fakeEvents);
 
@@ -297,7 +295,7 @@ tr.b.unittest.testSuite(function() {
     // None of these will exceed the threshold for badly out of sync, which is
     // about 16 667, so the smoothnessScore wil be perfect.
     let normDriftTimes = [-16600, 15640, 15000, -15640, -15000, 16600];
-    assert.strictEqual(tr.b.math.Statistics.sum(normDriftTimes), 0);
+    assert.strictEqual(tr.b.Statistics.sum(normDriftTimes), 0);
     let fakeEvents = eventsFromNormDriftTimes(normDriftTimes);
     let histograms = runWebrtcRenderingMetric(fakeEvents);
 
@@ -313,7 +311,7 @@ tr.b.unittest.testSuite(function() {
     // 1 - (frames out of sync + 3 * frames badly out of sync) / n
     //   = 1 - (2 + 3) / 5 = 0
     let normDriftTimes = [-17000, 34000, -17000, -10000, 10000];
-    assert.strictEqual(tr.b.math.Statistics.sum(normDriftTimes), 0);
+    assert.strictEqual(tr.b.Statistics.sum(normDriftTimes), 0);
     let fakeEvents = eventsFromNormDriftTimes(normDriftTimes);
     let histograms = runWebrtcRenderingMetric(fakeEvents);
 
@@ -437,7 +435,7 @@ tr.b.unittest.testSuite(function() {
     // The rendering length error is then the sum of the errors, normalized by
     // the span between the first and the last Ideal Render Instants.
     let idealRenderSpan = fakePairs[fakePairs.length - 1][0] - fakePairs[0][0];
-    let expectedRenderingLengthError = tr.b.math.Statistics.sum(errors) /
+    let expectedRenderingLengthError = tr.b.Statistics.sum(errors) /
       idealRenderSpan;
 
     let fakeEvents = fakePairs.map(eventFromPair);

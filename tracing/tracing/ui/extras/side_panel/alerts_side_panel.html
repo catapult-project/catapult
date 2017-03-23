@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/math/statistics.html">
+<link rel="import" href="/tracing/base/statistics.html">
 <link rel="import" href="/tracing/model/event_set.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
 <link rel="import" href="/tracing/ui/base/line_chart.html">
@@ -44,7 +44,7 @@ Polymer({
 
 
   ready: function() {
-    this.rangeOfInterest_ = new tr.b.math.Range();
+    this.rangeOfInterest_ = new tr.b.Range();
     this.selection_ = undefined;
   },
 

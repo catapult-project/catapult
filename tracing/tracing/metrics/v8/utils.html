@@ -6,9 +6,9 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/category_util.html">
-<link rel="import" href="/tracing/base/math/piecewise_linear_function.html">
-<link rel="import" href="/tracing/base/math/range.html">
-<link rel="import" href="/tracing/base/math/range_utils.html">
+<link rel="import" href="/tracing/base/piecewise_linear_function.html">
+<link rel="import" href="/tracing/base/range.html">
+<link rel="import" href="/tracing/base/range_utils.html">
 <link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/value/histogram.html">
@@ -185,7 +185,7 @@ tr.exportTo('tr.metrics.v8.utils', function() {
   function unionOfIntervals(intervals) {
     if (intervals.length === 0)
       return [];
-    return tr.b.math.mergeRanges(
+    return tr.b.mergeRanges(
         intervals.map(x => { return { min: x.start, max: x.end }; }), 1e-6,
         function(ranges) {
           return {
@@ -210,8 +210,8 @@ tr.exportTo('tr.metrics.v8.utils', function() {
         model.globalMemoryDumps.filter(hasV8Stats).reduce(
             (start, dump) => Math.min(start, dump.start), Infinity);
     if (startOfFirstDumpWithV8 === Infinity)
-      return new tr.b.math.Range(); // Empty range.
-    return tr.b.math.Range.fromExplicitRange(startOfFirstDumpWithV8, Infinity);
+      return new tr.b.Range(); // Empty range.
+    return tr.b.Range.fromExplicitRange(startOfFirstDumpWithV8, Infinity);
   }
 
   return {

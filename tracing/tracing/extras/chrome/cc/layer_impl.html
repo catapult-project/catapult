@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/math/rect.html">
+<link rel="import" href="/tracing/base/rect.html">
 <link rel="import" href="/tracing/extras/chrome/cc/constants.html">
 <link rel="import" href="/tracing/extras/chrome/cc/region.html">
 <link rel="import" href="/tracing/extras/chrome/cc/tile_coverage_rect.html">
@@ -54,13 +54,13 @@ tr.exportTo('tr.e.cc', function() {
       this.gpuMemoryUsageInBytes = this.args.gpuMemoryUsage;
 
       // Leave bounds in both places.
-      this.bounds = tr.b.math.Rect.fromXYWH(
+      this.bounds = tr.b.Rect.fromXYWH(
           0, 0,
           this.args.bounds.width, this.args.bounds.height);
 
       if (this.args.animationBounds) {
         // AnimationBounds[2] and [5] are the Z-component of the box.
-        this.animationBoundsRect = tr.b.math.Rect.fromXYWH(
+        this.animationBoundsRect = tr.b.Rect.fromXYWH(
             this.args.animationBounds[0], this.args.animationBounds[1],
             this.args.animationBounds[3], this.args.animationBounds[4]);
       }

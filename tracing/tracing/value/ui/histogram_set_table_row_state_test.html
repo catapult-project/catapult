@@ -18,7 +18,7 @@ tr.b.unittest.testSuite(function() {
     const cellState = new tr.v.ui.HistogramSetTableCellState();
     rowState.cells.set('A', cellState);
     cellState.isOpen = true;
-    cellState.brushedBinRange = tr.b.math.Range.fromExplicitRange(2, 4);
+    cellState.brushedBinRange = tr.b.Range.fromExplicitRange(2, 4);
     cellState.mergeSampleDiagnostics = false;
 
     const clone = rowState.clone();

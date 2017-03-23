@@ -5,8 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/math/range.html">
-<link rel="import" href="/tracing/base/math/sorted_array_utils.html">
+<link rel="import" href="/tracing/base/range.html">
+<link rel="import" href="/tracing/base/sorted_array_utils.html">
 <link rel="import" href="/tracing/base/unit_scale.html">
 <link rel="import" href="/tracing/model/event_container.html">
 <link rel="import" href="/tracing/model/power_sample.html">
@@ -61,12 +61,12 @@ tr.exportTo('tr.model', function() {
      * start and end timestamps (in milliseconds).
      */
     getEnergyConsumedInJ: function(start, end) {
-      var measurementRange = tr.b.math.Range.fromExplicitRange(start, end);
+      var measurementRange = tr.b.Range.fromExplicitRange(start, end);
 
       var energyConsumedInJ = 0;
-      var startIndex = tr.b.math.findLowIndexInSortedArray(
+      var startIndex = tr.b.findLowIndexInSortedArray(
           this.samples, x => x.start, start) - 1;
-      var endIndex = tr.b.math.findLowIndexInSortedArray(
+      var endIndex = tr.b.findLowIndexInSortedArray(
           this.samples, x => x.start, end);
 
       if (startIndex < 0)
@@ -76,7 +76,7 @@ tr.exportTo('tr.model', function() {
         var sample = this.samples[i];
         var nextSample = this.samples[i + 1];
 
-        var sampleRange = new tr.b.math.Range();
+        var sampleRange = new tr.b.Range();
         sampleRange.addValue(sample.start);
         sampleRange.addValue(nextSample ? nextSample.start : sample.start);
 
@@ -94,9 +94,9 @@ tr.exportTo('tr.model', function() {
     },
 
     getSamplesWithinRange: function(start, end) {
-      var startIndex = tr.b.math.findLowIndexInSortedArray(
+      var startIndex = tr.b.findLowIndexInSortedArray(
           this.samples, x => x.start, start);
-      var endIndex = tr.b.math.findLowIndexInSortedArray(
+      var endIndex = tr.b.findLowIndexInSortedArray(
           this.samples, x => x.start, end);
       return this.samples.slice(startIndex, endIndex);
     },

@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/math/range.html">
+<link rel="import" href="/tracing/base/range.html">
 <link rel="import" href="/tracing/ui/side_panel/side_panel.html">
 <link rel="import" href="/tracing/ui/side_panel/side_panel_registry.html">
 
@@ -90,7 +90,7 @@ Polymer({
     this.dragHandle_ = this.$.side_panel_drag_handle;
     this.dragHandle_.horizontal = false;
     this.dragHandle_.target = this.activePanelContainer_;
-    this.rangeOfInterest_ = new tr.b.math.Range();
+    this.rangeOfInterest_ = new tr.b.Range();
     this.brushingStateController_ = undefined;
     this.onSelectionChanged_ = this.onSelectionChanged_.bind(this);
     this.onModelChanged_ = this.onModelChanged_.bind(this);

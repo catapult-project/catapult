@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/math/range.html">
+<link rel="import" href="/tracing/base/range.html">
 <link rel="import" href="/tracing/model/event_set.html">
 <link rel="import" href="/tracing/model/slice.html">
 <link rel="import" href="/tracing/ui/base/ui.html">
@@ -272,7 +272,7 @@ tr.exportTo('tr.ui.b', function() {
         snapped: false
       };
 
-      var eventBounds = new tr.b.math.Range();
+      var eventBounds = new tr.b.Range();
       for (var event of selection) {
         var track = viewport.trackForEvent(event);
         var trackRect = track.getBoundingClientRect();

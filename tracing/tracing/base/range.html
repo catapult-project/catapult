@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/base.html">
 <link rel="import" href="/tracing/base/iteration_helpers.html">
-<link rel="import" href="/tracing/base/math/math.html">
+<link rel="import" href="/tracing/base/math.html">
 
 <script>
 'use strict';
@@ -15,7 +15,7 @@ found in the LICENSE file.
 /**
  * @fileoverview Quick range computations.
  */
-tr.exportTo('tr.b.math', function() {
+tr.exportTo('tr.b', function() {
   function Range() {
     this.isEmpty_ = true;
     this.min_ = undefined;
@@ -102,20 +102,20 @@ tr.exportTo('tr.b.math', function() {
     enclosingPowers(opt_base) {
       if (this.isEmpty) return new Range();
       return Range.fromExplicitRange(
-          tr.b.math.lesserPower(this.min_, opt_base),
-          tr.b.math.greaterPower(this.max_, opt_base));
+          tr.b.lesserPower(this.min_, opt_base),
+          tr.b.greaterPower(this.max_, opt_base));
     },
 
     normalize: function(x) {
-      return tr.b.math.normalize(x, this.min, this.max);
+      return tr.b.normalize(x, this.min, this.max);
     },
 
     lerp: function(x) {
-      return tr.b.math.lerp(x, this.min, this.max);
+      return tr.b.lerp(x, this.min, this.max);
     },
 
     clamp: function(x) {
-      return tr.b.math.clamp(x, this.min, this.max);
+      return tr.b.clamp(x, this.min, this.max);
     },
 
     equals: function(that) {
@@ -123,8 +123,8 @@ tr.exportTo('tr.b.math', function() {
         return true;
       if (this.isEmpty !== that.isEmpty)
         return false;
-      return (tr.b.math.approximately(this.min, that.min) &&
-          tr.b.math.approximately(this.max, that.max));
+      return (tr.b.approximately(this.min, that.min) &&
+          tr.b.approximately(this.max, that.max));
     },
 
     containsExplicitRangeInclusive: function(min, max) {

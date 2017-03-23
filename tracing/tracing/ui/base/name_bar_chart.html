@@ -35,7 +35,7 @@ tr.exportTo('tr.ui.b', function() {
 
     get yAxisWidth() {
       if (this.data.length === 0) return 0;
-      return Y_AXIS_PADDING + tr.b.math.Statistics.max(
+      return Y_AXIS_PADDING + tr.b.Statistics.max(
           this.data_, d => tr.ui.b.getSVGTextSize(this, d.x).width);
     },
 

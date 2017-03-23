@@ -39,12 +39,12 @@ tr.b.unittest.testSuite(function() {
     var mouseDown = undefined;
 
     function updateBrushedRange(e) {
-      var xRange = new tr.b.math.Range();
+      var xRange = new tr.b.Range();
       if (e.x !== mouseDown.x) {
         xRange.addValue(mouseDown.x);
         xRange.addValue(e.x);
       }
-      var yRange = new tr.b.math.Range();
+      var yRange = new tr.b.Range();
       if (e.y !== mouseDown.y) {
         yRange.addValue(mouseDown.y);
         yRange.addValue(e.y);

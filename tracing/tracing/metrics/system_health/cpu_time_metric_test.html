@@ -90,7 +90,7 @@ tr.b.unittest.testSuite(function() {
   test('cpuTimeMetric_oneProcess_rangeOfInterest', function() {
     var sliceDuration = 50;
     var totalDuration = 3000;
-    var rangeOfInterest = new tr.b.math.Range.fromExplicitRange(-10, 30);
+    var rangeOfInterest = new tr.b.Range.fromExplicitRange(-10, 30);
     var options = {};
     options.rangeOfInterest = rangeOfInterest;
     var value = computeCpuTime(function(model) {

@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/math/statistics.html">
+<link rel="import" href="/tracing/base/statistics.html">
 <link rel="import" href="/tracing/model/event_set.html">
 <link rel="import" href="/tracing/model/helpers/chrome_model_helper.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
@@ -46,7 +46,7 @@ Polymer({
 
 
   ready: function() {
-    this.rangeOfInterest_ = new tr.b.math.Range();
+    this.rangeOfInterest_ = new tr.b.Range();
     this.frametimeType_ = tr.model.helpers.IMPL_FRAMETIME_TYPE;
     this.latencyChart_ = undefined;
     this.frametimeChart_ = undefined;
@@ -111,7 +111,7 @@ Polymer({
     if (this.latencyChart_ === undefined)
       return;
 
-    var r = new tr.b.math.Range();
+    var r = new tr.b.Range();
     if (this.mouseDownIndex_ === undefined) {
       this.latencyChart_.brushedRange = r;
       return;
@@ -235,9 +235,9 @@ Polymer({
 
     var frametimeData = tr.model.helpers.getFrametimeDataFromEvents(
         frameEvents);
-    var averageFrametime = tr.b.math.Statistics.mean(frametimeData, d =>
-      d.frametime
-    );
+    var averageFrametime = tr.b.Statistics.mean(frametimeData, function(d) {
+      return d.frametime;
+    });
 
     var latencyEvents = this.modelHelper_.browserHelper.
       getLatencyEventsInRange(
@@ -253,7 +253,7 @@ Polymer({
       });
     });
 
-    var averageLatency = tr.b.math.Statistics.mean(latencyData, function(d) {
+    var averageLatency = tr.b.Statistics.mean(latencyData, function(d) {
       return d.latency;
     });
 

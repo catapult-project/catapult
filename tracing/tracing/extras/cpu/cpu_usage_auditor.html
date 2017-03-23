@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/math/math.html">
+<link rel="import" href="/tracing/base/math.html">
 <link rel="import" href="/tracing/core/auditor.html">
 <link rel="import" href="/tracing/model/resource_usage_series.html">
 
@@ -93,7 +93,7 @@ tr.exportTo('tr.e.audits', function() {
               e.cpuSelfTime === undefined) {
             continue;
           }
-          var usage = tr.b.math.clamp(e.cpuSelfTime / e.selfTime, 0, 1);
+          var usage = tr.b.clamp(e.cpuSelfTime / e.selfTime, 0, 1);
 
           // Go through the area covered by this slice but not its subslices
           // and add the cpuSelfTimeRatio contribution over this area.

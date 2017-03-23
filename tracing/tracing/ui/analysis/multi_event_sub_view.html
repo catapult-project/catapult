@@ -152,7 +152,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
     buildHistogram_(selectedKey) {
       var leftBoundary = Number.MAX_VALUE;
-      var rightBoundary = tr.b.math.Statistics.percentile(
+      var rightBoundary = tr.b.Statistics.percentile(
           this.currentSelection_, 0.95,
           function(value) {
             leftBoundary = Math.min(leftBoundary, value[selectedKey]);

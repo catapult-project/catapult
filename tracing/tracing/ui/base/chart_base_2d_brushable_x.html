@@ -19,7 +19,7 @@ tr.exportTo('tr.ui.b', function() {
 
     decorate() {
       super.decorate();
-      this.brushedRange_ = new tr.b.math.Range();
+      this.brushedRange_ = new tr.b.Range();
     },
 
     set brushedRange(range) {
@@ -29,16 +29,16 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     get brushedRange() {
-      return tr.b.math.Range.fromDict(this.brushedRange_.toJSON());
+      return tr.b.Range.fromDict(this.brushedRange_.toJSON());
     },
 
     computeBrushRangeFromIndices(indexA, indexB) {
-      indexA = tr.b.math.clamp(indexA, 0, this.data_.length - 1);
-      indexB = tr.b.math.clamp(indexB, 0, this.data_.length - 1);
+      indexA = tr.b.clamp(indexA, 0, this.data_.length - 1);
+      indexB = tr.b.clamp(indexB, 0, this.data_.length - 1);
       var leftIndex = Math.min(indexA, indexB);
       var rightIndex = Math.max(indexA, indexB);
 
-      var brushRange = new tr.b.math.Range();
+      var brushRange = new tr.b.Range();
       brushRange.addValue(
           this.getXForDatum_(this.data_[leftIndex], leftIndex) -
           this.getSampleWidth_(this.data_, leftIndex, true));

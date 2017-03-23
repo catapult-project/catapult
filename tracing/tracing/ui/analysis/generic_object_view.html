@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/math/rect.html">
+<link rel="import" href="/tracing/base/rect.html">
 <link rel="import" href="/tracing/base/scalar.html">
 <link rel="import" href="/tracing/base/utils.html">
 <link rel="import" href="/tracing/model/event_set.html">
@@ -166,7 +166,7 @@ Polymer({
       return;
     }
 
-    if (object instanceof tr.b.math.Rect) {
+    if (object instanceof tr.b.Rect) {
       this.appendSimpleText_(label, indent, object.toString(), suffix);
       return;
     }

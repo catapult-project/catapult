@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/math/range.html">
+<link rel="import" href="/tracing/base/range.html">
 <link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/base/utils.html">
 <link rel="import" href="/tracing/metrics/metric_registry.html">
@@ -266,7 +266,7 @@ tr.exportTo('tr.metrics.webrtc', function() {
       oldIdealRender = currentIdealRender;
     }
 
-    let discrepancySum = tr.b.math.Statistics.sum(discrepancy) - discrepancy[0];
+    let discrepancySum = tr.b.Statistics.sum(discrepancy) - discrepancy[0];
     let lastIdealRender =
         events[events.length - 1].args[IDEAL_RENDER_INSTANT_NAME];
     let firstIdealRender = events[0].args[IDEAL_RENDER_INSTANT_NAME];
@@ -293,7 +293,7 @@ tr.exportTo('tr.metrics.webrtc', function() {
    * percentOutOfSync and smoothnesScore calculated from the driftTimes array.
    */
   function getSmoothnessStats(driftTimes) {
-    let meanDriftTime = tr.b.math.Statistics.mean(driftTimes);
+    let meanDriftTime = tr.b.Statistics.mean(driftTimes);
     let normDriftTimes = driftTimes.map(driftTime =>
         Math.abs(driftTime - meanDriftTime));
 

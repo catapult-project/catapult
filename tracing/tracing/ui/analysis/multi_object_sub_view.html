@@ -47,7 +47,7 @@ Polymer({
     this.currentSelection_ = selection;
 
     var objectEvents = tr.b.asArray(selection).sort(
-        tr.b.math.Range.compareByMinTimes);
+        tr.b.Range.compareByMinTimes);
 
     var timeSpanConfig = {
       unit: tr.b.Unit.byName.timeStampInMs,

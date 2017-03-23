@@ -12,8 +12,8 @@ found in the LICENSE file.
 tr.exportTo('tr.metrics.sh', function() {
   // Returns a weight for this score.
   // score should be a number between 0 and 1 inclusive.
-  // This function is expected to be passed to tr.b.math.Statistics.weightedMean
-  // as its weightCallback.
+  // This function is expected to be passed to tr.b.Statistics.weightedMean as
+  // its weightCallback.
   function perceptualBlend(ir, index, score) {
     // Lower scores are exponentially more important than higher scores
     // due to the Peak-end rule.

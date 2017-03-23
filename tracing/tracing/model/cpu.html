@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/math/range.html">
+<link rel="import" href="/tracing/base/range.html">
 <link rel="import" href="/tracing/model/counter.html">
 <link rel="import" href="/tracing/model/cpu_slice.html">
 <link rel="import" href="/tracing/model/process_base.html">
@@ -33,7 +33,7 @@ tr.exportTo('tr.model', function() {
     this.cpuNumber = number;
     this.slices = [];
     this.counters = {};
-    this.bounds_ = new tr.b.math.Range();
+    this.bounds_ = new tr.b.Range();
     this.samples_ = undefined; // Set during createSubSlices
 
     // Start timestamp of the last active thread.
@@ -150,7 +150,7 @@ tr.exportTo('tr.model', function() {
      * Returns the index of the slice in the CPU's slices, or undefined.
      */
     indexOf: function(cpuSlice) {
-      var i = tr.b.math.findLowIndexInSortedArray(
+      var i = tr.b.findLowIndexInSortedArray(
           this.slices,
           function(slice) { return slice.start; },
           cpuSlice.start);
@@ -226,7 +226,7 @@ tr.exportTo('tr.model', function() {
         var freqEnd = (index < freqSample.series_.length - 1) ?
             freqSample.series_.samples_[index + 1].timestamp : range.max;
 
-        var freqRange = tr.b.math.Range.fromExplicitRange(freqSample.timestamp,
+        var freqRange = tr.b.Range.fromExplicitRange(freqSample.timestamp,
             freqEnd);
         var intersection = freqRange.findIntersection(range);
         if (!(freqSample.value in stats))
@@ -240,7 +240,7 @@ tr.exportTo('tr.model', function() {
         if (!freqSeries)
           return;
 
-        tr.b.math.iterateOverIntersectingIntervals(freqSeries.samples_,
+        tr.b.iterateOverIntersectingIntervals(freqSeries.samples_,
             function(x) { return x.timestamp; },
             function(x, index) {
               if (index < freqSeries.length - 1) {

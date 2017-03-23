@@ -5,8 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/math/range.html">
-<link rel="import" href="/tracing/base/math/statistics.html">
+<link rel="import" href="/tracing/base/range.html">
+<link rel="import" href="/tracing/base/statistics.html">
 <link rel="import" href="/tracing/base/unit_scale.html">
 <link rel="import" href="/tracing/importer/find_input_expectations.html">
 <link rel="import" href="/tracing/metrics/metric_registry.html">
@@ -82,7 +82,7 @@ tr.exportTo('tr.metrics.sh', function() {
           rendererHelper).firstInteractiveSamples;
       for (var sample of samples) {
         var info = sample.diagnostics['Navigation infos'].value;
-        intervals.push(tr.b.math.Range.fromExplicitRange(
+        intervals.push(tr.b.Range.fromExplicitRange(
             info.start, info.interactive));
       }
     }
@@ -134,7 +134,7 @@ tr.exportTo('tr.metrics.sh', function() {
    * in the following form:
    *
    *   {
-   *     bounds {tr.b.math.Range}: Boundaries of the time interval.
+   *     bounds {tr.b.Range}: Boundaries of the time interval.
    *     name {string}: Name of this interval. Used to generate the
    *       metric names.
    *     description {string}: Human readable description of the interval.
@@ -165,7 +165,7 @@ tr.exportTo('tr.metrics.sh', function() {
     var chromeBounds = computeChromeBounds_(model);
     if (chromeBounds.isEmpty) return;
 
-    var powerSeriesBoundsWithGracePeriod = tr.b.math.Range.fromExplicitRange(
+    var powerSeriesBoundsWithGracePeriod = tr.b.Range.fromExplicitRange(
         powerSeries.bounds.min - CHROME_POWER_GRACE_PERIOD_MS,
         powerSeries.bounds.max + CHROME_POWER_GRACE_PERIOD_MS);
     if (!powerSeriesBoundsWithGracePeriod.containsRangeExclusive(
@@ -204,7 +204,7 @@ tr.exportTo('tr.metrics.sh', function() {
    * in the following form:
    *
    *   {
-   *     bounds {tr.b.math.Range}: Boundaries of the time interval.
+   *     bounds {tr.b.Range}: Boundaries of the time interval.
    *     name {string}: Name of this interval. Used to generate the
    *       metric names.
    *     description {string}: Human readable description of the interval.
@@ -221,7 +221,7 @@ tr.exportTo('tr.metrics.sh', function() {
       var energyHist = undefined;
       if (histogramName.includes('response')) {
         yield {
-          bounds: tr.b.math.Range.fromExplicitRange(exp.start, exp.end),
+          bounds: tr.b.Range.fromExplicitRange(exp.start, exp.end),
           name: histogramName,
           description: 'RAIL stage ' + histogramName,
           perSecond: false
@@ -229,7 +229,7 @@ tr.exportTo('tr.metrics.sh', function() {
       } else if (histogramName.includes('animation') ||
           histogramName.includes('idle')) {
         yield {
-          bounds: tr.b.math.Range.fromExplicitRange(exp.start, exp.end),
+          bounds: tr.b.Range.fromExplicitRange(exp.start, exp.end),
           name: histogramName,
           description: 'RAIL stage ' + histogramName,
           perSecond: true
@@ -246,7 +246,7 @@ tr.exportTo('tr.metrics.sh', function() {
    * in the following form:
    *
    *   {
-   *     bounds {tr.b.math.Range}: Boundaries of the time interval.
+   *     bounds {tr.b.Range}: Boundaries of the time interval.
    *     name {string}: Name of this interval. Used to generate the
    *       metric names.
    *     description {string}: Human readable description of the interval.
@@ -272,7 +272,7 @@ tr.exportTo('tr.metrics.sh', function() {
     }
     if (lastLoadTime !== undefined) {
       yield {
-        bounds: tr.b.math.Range.fromExplicitRange(
+        bounds: tr.b.Range.fromExplicitRange(
             lastLoadTime, chromeBounds.max),
         name: 'after_load',
         description: 'period after load',
@@ -282,11 +282,10 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   /**
-   * @returns {tr.b.math.Range} The boundaries of the Chrome portion of the
-   * trace.
+   * @returns {tr.b.Range} The boundaries of the Chrome portion of the trace.
    */
   function computeChromeBounds_(model) {
-    var chromeBounds = new tr.b.math.Range();
+    var chromeBounds = new tr.b.Range();
     var chromeHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
     if (chromeHelper === undefined) return chromeBounds;

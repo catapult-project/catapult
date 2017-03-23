@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
-<link rel="import" href="/tracing/base/math/sorted_array_utils.html">
+<link rel="import" href="/tracing/base/sorted_array_utils.html">
 <link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/model/event.html">
 <link rel="import" href="/tracing/model/event_registry.html">
@@ -75,7 +75,7 @@ tr.exportTo('tr.model', function() {
     },
 
     getSampleIndex: function() {
-      return tr.b.math.findLowIndexInSortedArray(
+      return tr.b.findLowIndexInSortedArray(
           this.series.timestamps,
           function(x) { return x; },
           this.timestamp_);

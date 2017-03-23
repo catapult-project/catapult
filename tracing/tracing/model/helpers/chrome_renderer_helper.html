@@ -4,7 +4,7 @@ Copyright (c) 2014 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/tracing/base/math/range.html">
+<link rel="import" href="/tracing/base/range.html">
 <link rel="import" href="/tracing/extras/chrome/chrome_user_friendly_category_driver.html">
 <link rel="import" href="/tracing/model/helpers/chrome_process_helper.html">
 
@@ -67,7 +67,7 @@ tr.exportTo('tr.model.helpers', function() {
       getEventStart, getEventDuration, getEventSelfTime) {
     if (mainThread === null) return;
     var breakdownTree = {};
-    var range = tr.b.math.Range.fromExplicitRange(rangeStart, rangeEnd);
+    var range = tr.b.Range.fromExplicitRange(rangeStart, rangeEnd);
     for (var title of
         tr.e.chrome.ChromeUserFriendlyCategoryDriver.ALL_TITLES) {
       breakdownTree[title] = {total: 0, events: {}};

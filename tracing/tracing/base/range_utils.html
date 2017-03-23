@@ -14,10 +14,10 @@ found in the LICENSE file.
 /**
  * @fileoverview Provides event merging functionality for grouping/analysis.
  */
-tr.exportTo('tr.b.math', function() {
+tr.exportTo('tr.b', function() {
   function convertEventsToRanges(events) {
     return events.map(function(event) {
-      return tr.b.math.Range.fromExplicitRange(event.start, event.end);
+      return tr.b.Range.fromExplicitRange(event.start, event.end);
     });
   }
 
@@ -97,7 +97,7 @@ tr.exportTo('tr.b.math', function() {
     });
     if (opt_totalRange &&
         (opt_totalRange.min < inRanges[0].min)) {
-      emptyRanges.push(tr.b.math.Range.fromExplicitRange(
+      emptyRanges.push(tr.b.Range.fromExplicitRange(
           opt_totalRange.min, inRanges[0].min));
     }
 
@@ -110,7 +110,7 @@ tr.exportTo('tr.b.math', function() {
         if (other.min > range.max) {
           // |inRanges| is sorted, so |other| is the first range after |range|,
           // and there is an empty range between them.
-          emptyRanges.push(tr.b.math.Range.fromExplicitRange(
+          emptyRanges.push(tr.b.Range.fromExplicitRange(
               range.max, other.min));
           return;
         }
@@ -124,7 +124,7 @@ tr.exportTo('tr.b.math', function() {
         }
       }
       if (opt_totalRange && (range.max < opt_totalRange.max)) {
-        emptyRanges.push(tr.b.math.Range.fromExplicitRange(
+        emptyRanges.push(tr.b.Range.fromExplicitRange(
             range.max, opt_totalRange.max));
       }
     });

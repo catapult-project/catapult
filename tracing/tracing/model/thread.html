@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/guid.html">
-<link rel="import" href="/tracing/base/math/range.html">
+<link rel="import" href="/tracing/base/range.html">
 <link rel="import" href="/tracing/model/async_slice_group.html">
 <link rel="import" href="/tracing/model/event_container.html">
 <link rel="import" href="/tracing/model/slice_group.html">
@@ -225,7 +225,7 @@ tr.exportTo('tr.model', function() {
      * Returns the index of the slice in the timeSlices array, or undefined.
      */
     indexOfTimeSlice: function(timeSlice) {
-      var i = tr.b.math.findLowIndexInSortedArray(
+      var i = tr.b.findLowIndexInSortedArray(
           this.timeSlices,
           function(slice) { return slice.start; },
           timeSlice.start);
@@ -249,7 +249,7 @@ tr.exportTo('tr.model', function() {
         return stats;
 
       function addStatsForSlice(threadTimeSlice) {
-        var freqRange = tr.b.math.Range.fromExplicitRange(threadTimeSlice.start,
+        var freqRange = tr.b.Range.fromExplicitRange(threadTimeSlice.start,
             threadTimeSlice.end);
         var intersection = freqRange.findIntersection(range);
 
@@ -264,7 +264,7 @@ tr.exportTo('tr.model', function() {
         }
       }
 
-      tr.b.math.iterateOverIntersectingIntervals(this.timeSlices,
+      tr.b.iterateOverIntersectingIntervals(this.timeSlices,
           function(x) { return x.start; },
           function(x) { return x.end; },
           range.min,
@@ -288,7 +288,7 @@ tr.exportTo('tr.model', function() {
         stats[schedulingState] += overlapEnd - overlapStart;
       }
 
-      tr.b.math.iterateOverIntersectingIntervals(this.timeSlices,
+      tr.b.iterateOverIntersectingIntervals(this.timeSlices,
           function(x) { return x.start; },
           function(x) { return x.end; },
           start,

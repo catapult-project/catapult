@@ -146,7 +146,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     addClosestInstantEventToSelection: function(instantEvents, worldX,
         worldMaxDist, selection) {
-      var instantEvent = tr.b.math.findClosestElementInSortedArray(
+      var instantEvent = tr.b.findClosestElementInSortedArray(
           instantEvents,
           function(x) { return x.start; },
           worldX,

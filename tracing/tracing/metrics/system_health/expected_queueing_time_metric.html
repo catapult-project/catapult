@@ -125,7 +125,7 @@ tr.exportTo('tr.metrics.sh', function() {
         continue;
       }
       const interactiveWindow =
-          tr.b.math.Range.fromExplicitRange(interactiveTimestamps[0], Infinity)
+          tr.b.Range.fromExplicitRange(interactiveTimestamps[0], Infinity)
           .findIntersection(rendererHelper.mainThread.bounds);
       interactiveHistogram.addSample(
           tr.e.chrome.maxExpectedQueueingTimeInSlidingWindow(
@@ -247,7 +247,7 @@ tr.exportTo('tr.metrics.sh', function() {
         continue;
       }
       const interactiveWindow =
-          tr.b.math.Range.fromExplicitRange(interactiveTimestamps[0], Infinity)
+          tr.b.Range.fromExplicitRange(interactiveTimestamps[0], Infinity)
           .findIntersection(rendererHelper.mainThread.bounds);
       interactiveHistogram.addSample(
           tr.e.chrome.maxExpectedQueueingTimeInSlidingWindow(

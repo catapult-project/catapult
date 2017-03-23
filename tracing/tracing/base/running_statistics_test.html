@@ -4,14 +4,14 @@ Copyright (c) 2016 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/tracing/base/math/running_statistics.html">
-<link rel="import" href="/tracing/base/math/statistics.html">
+<link rel="import" href="/tracing/base/running_statistics.html">
+<link rel="import" href="/tracing/base/statistics.html">
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var RunningStatistics = tr.b.math.RunningStatistics;
-  var Statistics = tr.b.math.Statistics;
+  var RunningStatistics = tr.b.RunningStatistics;
+  var Statistics = tr.b.Statistics;
 
   function run(data) {
     var running = new RunningStatistics();

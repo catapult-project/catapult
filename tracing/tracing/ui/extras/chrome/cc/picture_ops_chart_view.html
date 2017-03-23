@@ -163,7 +163,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       index = Math.floor((x - chartLeft) / totalBarWidth *
           this.pictureOps_.length);
 
-      index = tr.b.math.clamp(index, 0, this.pictureOps_.length - 1);
+      index = tr.b.clamp(index, 0, this.pictureOps_.length - 1);
 
       return index;
     },

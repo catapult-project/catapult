@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/base.html">
 <link rel="import" href="/tracing/base/guid.html">
-<link rel="import" href="/tracing/base/math/range.html">
+<link rel="import" href="/tracing/base/range.html">
 
 <script>
 'use strict';
@@ -25,7 +25,7 @@ tr.exportTo('tr.model', function() {
   function EventContainer() {
     this.guid_ = tr.b.GUID.allocateSimple();
     this.important = true;
-    this.bounds_ = new tr.b.math.Range();
+    this.bounds_ = new tr.b.Range();
   }
 
   EventContainer.prototype = {

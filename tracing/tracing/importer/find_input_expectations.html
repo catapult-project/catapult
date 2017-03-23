@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/math/range_utils.html">
+<link rel="import" href="/tracing/base/range_utils.html">
 <link rel="import" href="/tracing/extras/chrome/cc/input_latency_async_slice.html">
 <link rel="import" href="/tracing/importer/proto_expectation.html">
 <link rel="import" href="/tracing/model/user_model/user_expectation.html">
@@ -796,7 +796,7 @@ tr.exportTo('tr.importer', function() {
     // This helper function will be called when a time range is found
     // during which the animation is actually running.
     function pushAnimationRange(start, end, animation) {
-      var range = tr.b.math.Range.fromExplicitRange(start, end);
+      var range = tr.b.Range.fromExplicitRange(start, end);
       range.animation = animation;
       animationRanges.push(range);
     }
@@ -1181,7 +1181,7 @@ tr.exportTo('tr.importer', function() {
       var frameEvents = [];
       // TODO(benjhayden): Use frame blame contexts here.
       for (var pid of Object.keys(modelHelper.rendererHelpers)) {
-        var range = tr.b.math.Range.fromExplicitRange(pe.start, pe.end);
+        var range = tr.b.Range.fromExplicitRange(pe.start, pe.end);
         frameEvents.push.apply(frameEvents,
             range.filterArray(frameEventsByPid[pid], e => e.start));
       }

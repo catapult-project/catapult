@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/base.html">
 <link rel="import" href="/tracing/base/iteration_helpers.html">
-<link rel="import" href="/tracing/base/math/statistics.html">
+<link rel="import" href="/tracing/base/statistics.html">
 
 <script>
 'use strict';
@@ -44,7 +44,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
     get duration() {
       if (this.duration_ === undefined) {
-        this.duration_ = tr.b.math.Statistics.sum(
+        this.duration_ = tr.b.Statistics.sum(
             this.events_, function(event) {
               return event.duration;
             });
@@ -107,9 +107,9 @@ tr.exportTo('tr.ui.analysis', function() {
 
     get numAlerts() {
       if (this.numAlerts_ === undefined) {
-        this.numAlerts_ = tr.b.math.Statistics.sum(this.events_, event =>
-          event.associatedAlerts.length
-        );
+        this.numAlerts_ = tr.b.Statistics.sum(this.events_, function(event) {
+          return event.associatedAlerts.length;
+        });
       }
       return this.numAlerts_;
     },
@@ -127,7 +127,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
     get maxDuration() {
       if (this.maxDuration_ === undefined) {
-        this.maxDuration_ = tr.b.math.Statistics.max(
+        this.maxDuration_ = tr.b.Statistics.max(
             this.events_, function(event) {
               return event.duration;
             });
@@ -138,7 +138,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
     get maxCpuDuration() {
       if (this.maxCpuDuration_ === undefined) {
-        this.maxCpuDuration_ = tr.b.math.Statistics.max(
+        this.maxCpuDuration_ = tr.b.Statistics.max(
             this.events_, function(event) {
               return event.cpuDuration;
             });
@@ -149,7 +149,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
     get maxSelfTime() {
       if (this.maxSelfTime_ === undefined) {
-        this.maxSelfTime_ = tr.b.math.Statistics.max(
+        this.maxSelfTime_ = tr.b.Statistics.max(
             this.events_, function(event) {
               return event.selfTime;
             });
@@ -160,7 +160,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
     get maxCpuSelfTime() {
       if (this.maxCpuSelfTime_ === undefined) {
-        this.maxCpuSelfTime_ = tr.b.math.Statistics.max(
+        this.maxCpuSelfTime_ = tr.b.Statistics.max(
             this.events_, function(event) {
               return event.cpuSelfTime;
             });

@@ -115,7 +115,7 @@ tr.b.unittest.testSuite(function() {
       {x: 40, alpha: 50, beta: 125}
     ];
 
-    var r = new tr.b.math.Range();
+    var r = new tr.b.Range();
     r.addValue(20);
     r.addValue(40);
     chart.brushedRange = r;
@@ -132,7 +132,7 @@ tr.b.unittest.testSuite(function() {
       {x: 40, alpha: 50, beta: 125}
     ];
 
-    var r = new tr.b.math.Range();
+    var r = new tr.b.Range();
     r.addValue(20);
     r.addValue(40);
     chart.brushedRange = r;
@@ -172,7 +172,7 @@ tr.b.unittest.testSuite(function() {
       {x: 120, value: 90}
     ];
     chart.data = data;
-    var r = new tr.b.math.Range();
+    var r = new tr.b.Range();
 
     // Range min should be 10.
     r = chart.computeBrushRangeFromIndices(-2, 1);
@@ -212,10 +212,10 @@ tr.b.unittest.testSuite(function() {
 
     function updateBrushedRange() {
       if (mouseDownX === undefined || (mouseDownX === curMouseX)) {
-        chart.brushedRange = new tr.b.math.Range();
+        chart.brushedRange = new tr.b.Range();
         return;
       }
-      var r = new tr.b.math.Range();
+      var r = new tr.b.Range();
       r.min = Math.min(mouseDownX, curMouseX);
       r.max = Math.max(mouseDownX, curMouseX);
       chart.brushedRange = r;
@@ -240,7 +240,7 @@ tr.b.unittest.testSuite(function() {
 
   test('overrideDataRange', function() {
     var chart = new tr.ui.b.ColumnChart();
-    chart.overrideDataRange = tr.b.math.Range.fromExplicitRange(10, 90);
+    chart.overrideDataRange = tr.b.Range.fromExplicitRange(10, 90);
     this.addHTMLOutput(chart);
     chart.data = [
       {x: 0, value: 0},
@@ -248,7 +248,7 @@ tr.b.unittest.testSuite(function() {
     ];
 
     chart = new tr.ui.b.ColumnChart();
-    chart.overrideDataRange = tr.b.math.Range.fromExplicitRange(-10, 100);
+    chart.overrideDataRange = tr.b.Range.fromExplicitRange(-10, 100);
     this.addHTMLOutput(chart);
     chart.data = [
       {x: 0, value: 0},

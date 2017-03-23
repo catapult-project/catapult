@@ -5,8 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/tracing/base/base.html">
-<link rel="import" href="/tracing/base/math/math.html">
-<link rel="import" href="/tracing/base/math/rect.html">
+<link rel="import" href="/tracing/base/math.html">
+<link rel="import" href="/tracing/base/rect.html">
 
 <script>
 'use strict';
@@ -14,7 +14,7 @@ found in the LICENSE file.
 /**
  * @fileoverview 2D bounding box computations.
  */
-tr.exportTo('tr.b.math', function() {
+tr.exportTo('tr.b', function() {
   /**
    * Tracks a 2D bounding box.
    * @constructor
@@ -141,7 +141,7 @@ tr.exportTo('tr.b.math', function() {
     },
 
     asRect: function() {
-      return tr.b.math.Rect.fromXYWH(
+      return tr.b.Rect.fromXYWH(
           this.min_[0],
           this.min_[1],
           this.max_[0] - this.min_[0],
