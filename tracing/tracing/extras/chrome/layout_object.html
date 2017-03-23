@@ -46,9 +46,9 @@ tr.exportTo('tr.e.chrome', function() {
     this.childLayoutObjects_ = [];
     this.otherProperties_ = {};
     this.tag_ = args.tag;
-    this.relativeRect_ = tr.b.Rect.fromXYWH(
+    this.relativeRect_ = tr.b.math.Rect.fromXYWH(
         args.relX, args.relY, args.width, args.height);
-    this.absoluteRect_ = tr.b.Rect.fromXYWH(
+    this.absoluteRect_ = tr.b.math.Rect.fromXYWH(
         args.absX, args.absY, args.width, args.height);
     this.isFloat_ = args.float;
     this.isStickyPositioned_ = args.stickyPositioned;

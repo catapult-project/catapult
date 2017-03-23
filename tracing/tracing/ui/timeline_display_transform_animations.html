@@ -12,6 +12,7 @@ found in the LICENSE file.
 
 tr.exportTo('tr.ui', function() {
   var kDefaultPanAnimationDurationMs = 100.0;
+  const lerp = tr.b.math.lerp;
 
   /**
    * Pans a TimelineDisplayTransform by a given amount.
@@ -67,11 +68,12 @@ tr.exportTo('tr.ui', function() {
 
     tick: function(timestamp, target) {
       var percentDone = (timestamp - this.startTimeMs) / this.durationMs;
-      percentDone = tr.b.clamp(percentDone, 0, 1);
+      percentDone = tr.b.math.clamp(percentDone, 0, 1);
 
-      target.panX = tr.b.lerp(percentDone, this.startPanX, this.goalPanX);
-      if (this.affectsPanY)
-        target.panY = tr.b.lerp(percentDone, this.startPanY, this.goalPanY);
+      target.panX = lerp(percentDone, this.startPanX, this.goalPanX);
+      if (this.affectsPanY) {
+        target.panY = lerp(percentDone, this.startPanY, this.goalPanY);
+      }
       return timestamp >= this.startTimeMs + this.durationMs;
     },
 
@@ -150,12 +152,11 @@ tr.exportTo('tr.ui', function() {
 
     tick: function(timestamp, target) {
       var percentDone = (timestamp - this.startTimeMs) / this.durationMs;
-      percentDone = tr.b.clamp(percentDone, 0, 1);
+      percentDone = tr.b.math.clamp(percentDone, 0, 1);
 
-      target.scaleX = tr.b.lerp(percentDone, this.startScaleX, this.goalScaleX);
+      target.scaleX = lerp(percentDone, this.startScaleX, this.goalScaleX);
       if (this.affectsPanY) {
-        target.panY = tr.b.lerp(
-            percentDone, this.startPanY, this.goalFocalPointY);
+        target.panY = lerp(percentDone, this.startPanY, this.goalFocalPointY);
       }
 
       target.xPanWorldPosToViewPos(

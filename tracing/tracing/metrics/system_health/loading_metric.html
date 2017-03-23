@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/category_util.html">
-<link rel="import" href="/tracing/base/statistics.html">
+<link rel="import" href="/tracing/base/math/statistics.html">
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/metrics/system_health/utils.html">
 <link rel="import" href="/tracing/model/helpers/chrome_model_helper.html">
@@ -215,8 +215,8 @@ tr.exportTo('tr.metrics.sh', function() {
 
   function addFirstMeaningfulPaintCpuTimeSample(samples, rendererHelper,
       frameIdRef, navigationStart, fmpMarkerEvent) {
-    var rangeOfInterest = tr.b.Range.fromExplicitRange(navigationStart.cpuStart,
-        fmpMarkerEvent.cpuStart);
+    var rangeOfInterest = tr.b.math.Range.fromExplicitRange(
+        navigationStart.cpuStart, fmpMarkerEvent.cpuStart);
     var snapshot = findFrameLoaderSnapshotAt(
         rendererHelper, frameIdRef, fmpMarkerEvent.start);
     if (!snapshot || !snapshot.args.isLoadingMainFrame) return;
@@ -249,7 +249,7 @@ tr.exportTo('tr.metrics.sh', function() {
     var mainThreadCpuTime = 0;
     for (var slice of rendererHelper.mainThread.sliceGroup.topLevelSlices) {
       if (!slice.cpuDuration) continue;
-      var sliceRange = tr.b.Range.fromExplicitRange(slice.cpuStart,
+      var sliceRange = tr.b.math.Range.fromExplicitRange(slice.cpuStart,
           slice.cpuStart + slice.cpuDuration);
       var intersection = rangeOfInterest.findIntersection(sliceRange);
       mainThreadCpuTime += intersection.duration;

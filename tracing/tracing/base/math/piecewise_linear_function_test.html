@@ -5,14 +5,14 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/piecewise_linear_function.html">
+<link rel="import" href="/tracing/base/math/piecewise_linear_function.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
   test('PiecewiseLinearFunctionEmpty', function() {
-    var f = new tr.b.PiecewiseLinearFunction();
+    var f = new tr.b.math.PiecewiseLinearFunction();
     assert.strictEqual(f.max, -Infinity);
     assert.strictEqual(f.min, Infinity);
     assert.strictEqual(f.average, 0);
@@ -20,7 +20,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('PiecewiseLinearFunction', function() {
-    var f = new tr.b.PiecewiseLinearFunction();
+    var f = new tr.b.math.PiecewiseLinearFunction();
     f.push(0, 0.0, 10, 1.0);
     f.push(10, 1.0, 20, 0.0);
     f.push(20, 0.0, 30, 0.0);

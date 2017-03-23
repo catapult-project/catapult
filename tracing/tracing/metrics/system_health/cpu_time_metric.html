@@ -66,7 +66,8 @@ tr.exportTo('tr.metrics.sh', function() {
             return;
           if (!slice.cpuDuration)
             return;
-          var sliceRange = tr.b.Range.fromExplicitRange(slice.start, slice.end);
+          var sliceRange = tr.b.math.Range.fromExplicitRange(
+              slice.start, slice.end);
           var intersection = rangeOfInterest.findIntersection(sliceRange);
           var fractionOfSliceInsideRangeOfInterest =
               intersection.duration / slice.duration;

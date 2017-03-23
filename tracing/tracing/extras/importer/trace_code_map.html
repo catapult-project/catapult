@@ -80,7 +80,7 @@ tr.exportTo('tr.e.importer', function() {
       if (this.entries_.length === 0)
         return undefined;
 
-      var index = tr.b.findLowIndexInSortedArray(
+      var index = tr.b.math.findLowIndexInSortedArray(
           this.entries_, function(entry) { return entry.address; }, address);
       var entry = this.entries_[index];
       if (!entry || entry.address !== address)
@@ -91,7 +91,7 @@ tr.exportTo('tr.e.importer', function() {
     },
 
     lookupEntry: function(address) {
-      var index = tr.b.findHighIndexInSortedArray(
+      var index = tr.b.math.findHighIndexInSortedArray(
           this.entries_, function(e) { return address - e.address; }) - 1;
       var entry = this.entries_[index];
       return entry &&
@@ -105,7 +105,7 @@ tr.exportTo('tr.e.importer', function() {
         this.entries_.push(newEntry);
 
       var endAddress = newEntry.address + newEntry.size;
-      var lastIndex = tr.b.findLowIndexInSortedArray(
+      var lastIndex = tr.b.math.findLowIndexInSortedArray(
           this.entries_, function(entry) { return entry.address; }, endAddress);
       var index;
       for (index = lastIndex - 1; index >= 0; --index) {

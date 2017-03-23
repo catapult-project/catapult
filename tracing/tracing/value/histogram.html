@@ -6,11 +6,11 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
-<link rel="import" href="/tracing/base/range.html">
-<link rel="import" href="/tracing/base/running_statistics.html">
+<link rel="import" href="/tracing/base/math/range.html">
+<link rel="import" href="/tracing/base/math/running_statistics.html">
+<link rel="import" href="/tracing/base/math/sorted_array_utils.html">
+<link rel="import" href="/tracing/base/math/statistics.html">
 <link rel="import" href="/tracing/base/scalar.html">
-<link rel="import" href="/tracing/base/sorted_array_utils.html">
-<link rel="import" href="/tracing/base/statistics.html">
 <link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/value/diagnostics/diagnostic_map.html">
 
@@ -63,7 +63,7 @@ tr.exportTo('tr.v', function() {
 
   class HistogramBin {
     /**
-     * @param {!tr.b.Range} range
+     * @param {!tr.b.math.Range} range
      */
     constructor(range) {
       this.range = range;
@@ -82,7 +82,7 @@ tr.exportTo('tr.v', function() {
      * @param {!tr.v.d.DiagnosticMap} diagnostics
      */
     addDiagnosticMap(diagnostics) {
-      tr.b.Statistics.uniformlySampleStream(
+      tr.b.math.Statistics.uniformlySampleStream(
           this.diagnosticMaps, this.count, diagnostics, MAX_DIAGNOSTIC_MAPS);
     }
 
@@ -90,7 +90,7 @@ tr.exportTo('tr.v', function() {
       if (!this.range.equals(other.range)) {
         throw new Error('Merging incompatible Histogram bins.');
       }
-      tr.b.Statistics.mergeSampledStreams(this.diagnosticMaps, this.count,
+      tr.b.math.Statistics.mergeSampledStreams(this.diagnosticMaps, this.count,
           other.diagnosticMaps, other.count, MAX_DIAGNOSTIC_MAPS);
       this.count += other.count;
     }
@@ -193,7 +193,7 @@ tr.exportTo('tr.v', function() {
 
     set maxNumSampleValues(n) {
       this.maxNumSampleValues_ = n;
-      tr.b.Statistics.uniformlySampleArray(
+      tr.b.math.Statistics.uniformlySampleArray(
           this.sampleValues_, this.maxNumSampleValues_);
     }
 
@@ -242,7 +242,7 @@ tr.exportTo('tr.v', function() {
         }
       }
       if (dict.running) {
-        hist.running_ = tr.b.RunningStatistics.fromDict(dict.running);
+        hist.running_ = tr.b.math.RunningStatistics.fromDict(dict.running);
       }
       if (dict.summaryOptions) {
         hist.customizeSummaryOptions(dict.summaryOptions);
@@ -301,7 +301,7 @@ tr.exportTo('tr.v', function() {
      *
      * @param {!tr.v.Histogram} other
      * @param {number=} opt_alpha
-     * @return {!tr.b.Statistics.Significance}
+     * @return {!tr.b.math.Statistics.Significance}
      */
     getDifferenceSignificance(other, opt_alpha) {
       if (this.unit !== other.unit) {
@@ -310,14 +310,14 @@ tr.exportTo('tr.v', function() {
 
       if (this.unit.improvementDirection ===
           tr.b.ImprovementDirection.DONT_CARE) {
-        return tr.b.Statistics.Significance.DONT_CARE;
+        return tr.b.math.Statistics.Significance.DONT_CARE;
       }
 
       if (!(other instanceof Histogram)) {
         throw new Error('Unable to compute a p-value');
       }
 
-      let testResult = tr.b.Statistics.mwu(
+      let testResult = tr.b.math.Statistics.mwu(
           this.sampleValues, other.sampleValues, opt_alpha);
       return testResult.significance;
     }
@@ -363,7 +363,7 @@ tr.exportTo('tr.v', function() {
 
     getBinForValue(value) {
       // Don't use subtraction to avoid arithmetic overflow.
-      let binIndex = tr.b.findHighIndexInSortedArray(
+      let binIndex = tr.b.math.findHighIndexInSortedArray(
           this.allBins, b => ((value < b.range.max) ? -1 : 1));
       return this.allBins[binIndex] || this.allBins[this.allBins.length - 1];
     }
@@ -381,12 +381,12 @@ tr.exportTo('tr.v', function() {
       if (typeof(value) !== 'number' || isNaN(value)) {
         this.numNans++;
         if (opt_diagnostics) {
-          tr.b.Statistics.uniformlySampleStream(this.nanDiagnosticMaps,
+          tr.b.math.Statistics.uniformlySampleStream(this.nanDiagnosticMaps,
               this.numNans, opt_diagnostics, MAX_DIAGNOSTIC_MAPS);
         }
       } else {
         if (this.running_ === undefined) {
-          this.running_ = new tr.b.RunningStatistics();
+          this.running_ = new tr.b.math.RunningStatistics();
         }
         this.running_.add(value);
 
@@ -397,7 +397,7 @@ tr.exportTo('tr.v', function() {
         }
       }
 
-      tr.b.Statistics.uniformlySampleStream(this.sampleValues_,
+      tr.b.math.Statistics.uniformlySampleStream(this.sampleValues_,
           this.numValues + this.numNans, value, this.maxNumSampleValues);
     }
 
@@ -432,7 +432,7 @@ tr.exportTo('tr.v', function() {
             return false;
           }
           if (slice[0] !== otherSlice[0] ||
-              !tr.b.approximately(slice[1], otherSlice[1]) ||
+              !tr.b.math.approximately(slice[1], otherSlice[1]) ||
               slice[2] !== otherSlice[2]) {
             return false;
           }
@@ -440,7 +440,7 @@ tr.exportTo('tr.v', function() {
           if (otherSlice instanceof Array) {
             return false;
           }
-          if (!tr.b.approximately(slice, otherSlice)) {
+          if (!tr.b.math.approximately(slice, otherSlice)) {
             return false;
           }
         }
@@ -458,9 +458,10 @@ tr.exportTo('tr.v', function() {
         throw new Error('Merging incompatible Histograms');
       }
 
-      tr.b.Statistics.mergeSampledStreams(this.nanDiagnosticMaps, this.numNans,
-          other.nanDiagnosticMaps, other.numNans, MAX_DIAGNOSTIC_MAPS);
-      tr.b.Statistics.mergeSampledStreams(
+      tr.b.math.Statistics.mergeSampledStreams(this.nanDiagnosticMaps,
+          this.numNans, other.nanDiagnosticMaps, other.numNans,
+          MAX_DIAGNOSTIC_MAPS);
+      tr.b.math.Statistics.mergeSampledStreams(
           this.sampleValues, this.numValues + this.numNans,
           other.sampleValues, other.numValues + other.numNans,
           (this.maxNumSampleValues + other.maxNumSampleValues) / 2);
@@ -468,7 +469,7 @@ tr.exportTo('tr.v', function() {
 
       if (other.running_ !== undefined) {
         if (this.running_ === undefined) {
-          this.running_ = new tr.b.RunningStatistics();
+          this.running_ = new tr.b.math.RunningStatistics();
         }
         this.running_ = this.running_.merge(other.running_);
       }
@@ -550,7 +551,7 @@ tr.exportTo('tr.v', function() {
       }
       if (statName === 'min' || statName === 'max' || statName === 'sum') {
         if (this.running_ === undefined) {
-          this.running_ = new tr.b.RunningStatistics();
+          this.running_ = new tr.b.math.RunningStatistics();
         }
         return new tr.b.Scalar(this.unit, this.running_[statName]);
       }
@@ -601,7 +602,7 @@ tr.exportTo('tr.v', function() {
             opt_referenceHistogram.standardDeviation);
       }
 
-      let mwu = opt_mwu || tr.b.Statistics.mwu(
+      let mwu = opt_mwu || tr.b.math.Statistics.mwu(
           this.sampleValues, opt_referenceHistogram.sampleValues);
       if (statName === P_VALUE_NAME) {
         return new tr.b.Scalar(tr.b.Unit.byName.unitlessNumber, mwu.p);
@@ -952,7 +953,7 @@ tr.exportTo('tr.v', function() {
      */
     constructor(minBinBoundary) {
       this.builder_ = [minBinBoundary];
-      this.range_ = new tr.b.Range();
+      this.range_ = new tr.b.math.Range();
       this.range_.addValue(minBinBoundary);
       this.binRanges_ = undefined;
     }
@@ -1016,7 +1017,7 @@ tr.exportTo('tr.v', function() {
     }
 
     /**
-     * @return {!Array.<!tr.b.Range>}
+     * @return {!Array.<!tr.b.math.Range>}
      */
     get binRanges() {
       if (this.binRanges_ === undefined) {
@@ -1034,14 +1035,14 @@ tr.exportTo('tr.v', function() {
 
       if (prevBoundary > -Number.MAX_VALUE) {
         // underflow bin
-        this.binRanges_.push(tr.b.Range.fromExplicitRange(-Number.MAX_VALUE,
-            prevBoundary));
+        this.binRanges_.push(tr.b.math.Range.fromExplicitRange(
+            -Number.MAX_VALUE, prevBoundary));
       }
 
       for (let slice of this.builder_.slice(1)) {
         if (!(slice instanceof Array)) {
           this.binRanges_.push(
-              tr.b.Range.fromExplicitRange(prevBoundary, slice));
+              tr.b.math.Range.fromExplicitRange(prevBoundary, slice));
           prevBoundary = slice;
           continue;
         }
@@ -1055,7 +1056,7 @@ tr.exportTo('tr.v', function() {
               let binWidth = (nextMaxBinBoundary - prevBoundary) / binCount;
               for (let i = 1; i < binCount; i++) {
                 let boundary = sliceMinBinBoundary + i * binWidth;
-                this.binRanges_.push(tr.b.Range.fromExplicitRange(
+                this.binRanges_.push(tr.b.math.Range.fromExplicitRange(
                     prevBoundary, boundary));
                 prevBoundary = boundary;
               }
@@ -1069,7 +1070,7 @@ tr.exportTo('tr.v', function() {
               for (let i = 1; i < binCount; i++) {
                 let boundary = sliceMinBinBoundary * Math.exp(
                     i * binExponentWidth);
-                this.binRanges_.push(tr.b.Range.fromExplicitRange(
+                this.binRanges_.push(tr.b.math.Range.fromExplicitRange(
                     prevBoundary, boundary));
                 prevBoundary = boundary;
               }
@@ -1079,13 +1080,13 @@ tr.exportTo('tr.v', function() {
           default:
             throw new Error('Unrecognized HistogramBinBoundaries slice type');
         }
-        this.binRanges_.push(tr.b.Range.fromExplicitRange(
+        this.binRanges_.push(tr.b.math.Range.fromExplicitRange(
             prevBoundary, nextMaxBinBoundary));
         prevBoundary = nextMaxBinBoundary;
       }
       if (prevBoundary < Number.MAX_VALUE) {
         // overflow bin
-        this.binRanges_.push(tr.b.Range.fromExplicitRange(
+        this.binRanges_.push(tr.b.math.Range.fromExplicitRange(
             prevBoundary, Number.MAX_VALUE));
       }
     }

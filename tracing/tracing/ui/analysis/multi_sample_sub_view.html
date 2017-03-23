@@ -5,8 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/math/range.html">
 <link rel="import" href="/tracing/base/multi_dimensional_view.html">
-<link rel="import" href="/tracing/base/range.html">
 <link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/ui/analysis/analysis_sub_view.html">
 <link rel="import" href="/tracing/ui/base/table.html">
@@ -197,7 +197,7 @@ found in the LICENSE file.
         value: function(row) {
           return tr.v.ui.createScalarSpan(
               row.values[0][field] / samplingDataTotal, {
-                customContextRange: tr.b.Range.PERCENT_RANGE,
+                customContextRange: tr.b.math.Range.PERCENT_RANGE,
                 unit: tr.b.Unit.byName.normalizedPercentage,
                 context: { minimumFractionDigits: 2, maximumFractionDigits: 2 },
               });

@@ -30,7 +30,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tr.exportTo('tr.b', function() {
+tr.exportTo('tr.b.math', function() {
   var PREFERRED_NUMBER_SERIES_MULTIPLIERS = [1, 2, 5, 10];
 
   /* Returns true when x and y are within delta of each other. */
@@ -215,7 +215,7 @@ tr.exportTo('tr.b', function() {
     var absMin = Math.abs(min);
     // The conservative guess is the largest power of 10 less than
     // or equal to |absMin|.
-    var conservativeGuess = tr.b.lesserPower(absMin);
+    var conservativeGuess = tr.b.math.lesserPower(absMin);
     var minPreferedNumber = undefined;
     for (var multiplier of PREFERRED_NUMBER_SERIES_MULTIPLIERS) {
       var tightenedGuess = conservativeGuess * multiplier;

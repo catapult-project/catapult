@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/range.html">
+<link rel="import" href="/tracing/base/math/range.html">
 <link rel="import" href="/tracing/base/task.html">
 <link rel="import" href="/tracing/model/event_set.html">
 <link rel="import" href="/tracing/ui/analysis/analysis_link.html">
@@ -251,7 +251,7 @@ Polymer({
       if (!slice.parentContainer || !slice.parentContainer.samples)
         continue;
       let candidates = slice.parentContainer.samples;
-      let range = tr.b.Range.fromExplicitRange(
+      let range = tr.b.math.Range.fromExplicitRange(
           slice.start, slice.start + slice.duration);
       let filteredSamples = range.filterArray(
           candidates, function(value) {return value.start;});
@@ -320,7 +320,7 @@ Polymer({
         continue;
       }
       let sliceGroup = slice.parentContainer.sliceGroup.slices;
-      let range = tr.b.Range.fromExplicitRange(
+      let range = tr.b.math.Range.fromExplicitRange(
           slice.start, slice.start + slice.duration);
       let filteredSlices = range.filterArray(
           sliceGroup, value => value.start);

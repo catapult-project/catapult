@@ -154,7 +154,7 @@ tr.exportTo('tr.v.ui', function() {
 
     maybeRebin_() {
       // if all of |this| row's columns are single-bin, then re-bin all of them.
-      const dataRange = new tr.b.Range();
+      const dataRange = new tr.b.math.Range();
       for (const hist of this.columns.values()) {
         if (!(hist instanceof tr.v.Histogram)) continue;
         if (hist.allBins.length > 1) return;  // don't re-bin
@@ -163,8 +163,8 @@ tr.exportTo('tr.v.ui', function() {
         dataRange.addValue(hist.max);
       }
 
-      dataRange.addValue(tr.b.lesserWholeNumber(dataRange.min));
-      dataRange.addValue(tr.b.greaterWholeNumber(dataRange.max));
+      dataRange.addValue(tr.b.math.lesserWholeNumber(dataRange.min));
+      dataRange.addValue(tr.b.math.greaterWholeNumber(dataRange.max));
 
       if (dataRange.min === dataRange.max) return;  // don't rebin
 
@@ -311,7 +311,7 @@ tr.exportTo('tr.v.ui', function() {
 
     get overviewDataRange() {
       if (this.overviewDataRange_ === undefined) {
-        this.overviewDataRange_ = new tr.b.Range();
+        this.overviewDataRange_ = new tr.b.math.Range();
         for (let [displayLabel, hist] of this.columns) {
           if (hist.average !== undefined) {
             this.overviewDataRange_.addValue(hist.average);

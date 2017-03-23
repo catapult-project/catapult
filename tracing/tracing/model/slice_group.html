@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/color_scheme.html">
 <link rel="import" href="/tracing/base/guid.html">
-<link rel="import" href="/tracing/base/sorted_array_utils.html">
+<link rel="import" href="/tracing/base/math/sorted_array_utils.html">
 <link rel="import" href="/tracing/core/filter.html">
 <link rel="import" href="/tracing/model/event_container.html">
 <link rel="import" href="/tracing/model/thread_slice.html">
@@ -313,7 +313,7 @@ tr.exportTo('tr.model', function() {
 
     iterSlicesInTimeRange: function(callback, start, end) {
       var ret = [];
-      tr.b.iterateOverIntersectingIntervals(
+      tr.b.math.iterateOverIntersectingIntervals(
           this.topLevelSlices,
           function(s) { return s.start; },
           function(s) { return s.duration; },
@@ -338,7 +338,7 @@ tr.exportTo('tr.model', function() {
     findSliceAtTs: function(ts) {
       if (!this.haveTopLevelSlicesBeenBuilt)
         throw new Error('Nope');
-      var i = tr.b.findIndexInSortedClosedIntervals(
+      var i = tr.b.math.findIndexInSortedClosedIntervals(
           this.topLevelSlices,
           getSliceLo, getSliceHi,
           ts);
@@ -349,7 +349,7 @@ tr.exportTo('tr.model', function() {
 
       // Now recurse on slice looking for subSlice of given ts.
       while (true) {
-        var i = tr.b.findIndexInSortedClosedIntervals(
+        var i = tr.b.math.findIndexInSortedClosedIntervals(
             curSlice.subSlices,
             getSliceLo, getSliceHi,
             ts);
@@ -360,7 +360,7 @@ tr.exportTo('tr.model', function() {
     },
 
     findNextSliceAfter: function(ts, refGuid) {
-      var i = tr.b.findLowIndexInSortedArray(
+      var i = tr.b.math.findLowIndexInSortedArray(
           this.slices, getSliceLo, ts);
       if (i === this.slices.length)
         return undefined;

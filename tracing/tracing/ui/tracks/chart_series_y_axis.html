@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/color_scheme.html">
-<link rel="import" href="/tracing/base/range.html">
+<link rel="import" href="/tracing/base/math/range.html">
 <link rel="import" href="/tracing/base/unit.html">
 
 <script>
@@ -27,7 +27,7 @@ tr.exportTo('tr.ui.tracks', function() {
    */
   function ChartSeriesYAxis(opt_min, opt_max) {
     this.guid_ = tr.b.GUID.allocateSimple();
-    this.bounds = new tr.b.Range();
+    this.bounds = new tr.b.math.Range();
     if (opt_min !== undefined)
       this.bounds.addValue(opt_min);
     if (opt_max !== undefined)
@@ -63,7 +63,7 @@ tr.exportTo('tr.ui.tracks', function() {
      * argument flags.
      */
     autoSetFromSeries: function(series, opt_config) {
-      var range = new tr.b.Range();
+      var range = new tr.b.math.Range();
       series.forEach(function(s) {
         range.addRange(s.range);
       }, this);
@@ -139,7 +139,7 @@ tr.exportTo('tr.ui.tracks', function() {
       var idealMajorMarkHeightWorld =
           transform.vectorToWorldDistance(idealMajorMarkHeightPx);
 
-      return tr.b.preferredNumberLargerThanMin(idealMajorMarkHeightWorld);
+      return tr.b.math.preferredNumberLargerThanMin(idealMajorMarkHeightWorld);
     },
 
     draw: function(ctx, transform, showYAxisLabels, showYGridLines) {

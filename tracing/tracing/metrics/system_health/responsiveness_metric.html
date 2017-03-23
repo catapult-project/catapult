@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/statistics.html">
+<link rel="import" href="/tracing/base/math/statistics.html">
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/metrics/system_health/utils.html">
 <link rel="import" href="/tracing/model/user_model/animation_expectation.html">
@@ -51,7 +51,8 @@ tr.exportTo('tr.metrics.sh', function() {
     });
 
     var absolute = true;
-    return tr.b.Statistics.timestampsDiscrepancy(frameTimestamps, absolute);
+    return tr.b.math.Statistics.timestampsDiscrepancy(
+        frameTimestamps, absolute);
   }
 
   /**

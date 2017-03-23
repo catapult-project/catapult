@@ -4,9 +4,9 @@ Copyright (c) 2015 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/tracing/base/range_utils.html">
-<link rel="import" href="/tracing/base/sorted_array_utils.html">
-<link rel="import" href="/tracing/base/statistics.html">
+<link rel="import" href="/tracing/base/math/range_utils.html">
+<link rel="import" href="/tracing/base/math/sorted_array_utils.html">
+<link rel="import" href="/tracing/base/math/statistics.html">
 <link rel="import" href="/tracing/model/frame.html">
 
 <script>
@@ -18,7 +18,7 @@ found in the LICENSE file.
  */
 tr.exportTo('tr.model.helpers', function() {
   var Frame = tr.model.Frame;
-  var Statistics = tr.b.Statistics;
+  var Statistics = tr.b.math.Statistics;
 
   var UI_DRAW_TYPE = {
     NONE: 'none',
@@ -69,7 +69,7 @@ tr.exportTo('tr.model.helpers', function() {
     // of all top level renderthread slices, find the one that has a 'sync'
     // within the uiDrawSlice
     var overlappingDrawFrame;
-    var slices = tr.b.iterateOverIntersectingIntervals(
+    var slices = tr.b.math.iterateOverIntersectingIntervals(
         renderThread.sliceGroup.slices,
         function(range) { return range.start; },
         function(range) { return range.end; },
@@ -114,8 +114,8 @@ tr.exportTo('tr.model.helpers', function() {
         preFrameEvents.push(slice);
     });
 
-    return tr.b.mergeRanges(
-        tr.b.convertEventsToRanges(preFrameEvents),
+    return tr.b.math.mergeRanges(
+        tr.b.math.convertEventsToRanges(preFrameEvents),
         3,
         function(events) {
           return {
@@ -126,7 +126,7 @@ tr.exportTo('tr.model.helpers', function() {
   }
 
   function getFrameStartTime(traversalStart, preTraversalWorkRanges) {
-    var preTraversalWorkRange = tr.b.findClosestIntervalInSortedIntervals(
+    var preTraversalWorkRange = tr.b.math.findClosestIntervalInSortedIntervals(
         preTraversalWorkRanges,
         function(range) { return range.start; },
         function(range) { return range.end; },

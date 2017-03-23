@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/color_scheme.html">
-<link rel="import" href="/tracing/base/sorted_array_utils.html">
+<link rel="import" href="/tracing/base/math/sorted_array_utils.html">
 <link rel="import" href="/tracing/model/proxy_selectable_item.html">
 <link rel="import" href="/tracing/ui/base/event_presenter.html">
 <link rel="import" href="/tracing/ui/base/heading.html">
@@ -105,7 +105,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
       // Draw the memory dumps.
       var items = this.items_;
-      var loI = tr.b.findLowIndexInSortedArray(
+      var loI = tr.b.math.findLowIndexInSortedArray(
           items,
           function(item) { return item.start; },
           viewLWorld);
@@ -175,7 +175,7 @@ tr.exportTo('tr.ui.tracks', function() {
         return;
 
       var itemRadiusWorld = viewPixWidthWorld * this.dumpRadiusView;
-      tr.b.iterateOverIntersectingIntervals(
+      tr.b.math.iterateOverIntersectingIntervals(
           this.items_,
           function(x) { return x.start - itemRadiusWorld; },
           function(x) { return 2 * itemRadiusWorld; },
@@ -222,7 +222,7 @@ tr.exportTo('tr.ui.tracks', function() {
       if (this.items_ === undefined)
         return;
 
-      var item = tr.b.findClosestElementInSortedArray(
+      var item = tr.b.math.findClosestElementInSortedArray(
           this.items_,
           function(x) { return x.start; },
           worldX,

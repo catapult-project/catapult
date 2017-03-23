@@ -5,8 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/quad.html">
-<link rel="import" href="/tracing/base/rect.html">
+<link rel="import" href="/tracing/base/math/quad.html">
+<link rel="import" href="/tracing/base/math/rect.html">
 <link rel="import" href="/tracing/extras/chrome/cc/util.html">
 
 <script>
@@ -70,7 +70,7 @@ tr.b.unittest.testSuite(function() {
       }
     };
     tr.e.cc.preInitializeObject(object);
-    assert.instanceOf(object.args.someQuad, tr.b.Quad);
+    assert.instanceOf(object.args.someQuad, tr.b.math.Quad);
   });
 
   test('quadConversionNested', function() {
@@ -83,8 +83,8 @@ tr.b.unittest.testSuite(function() {
       }
     };
     tr.e.cc.preInitializeObject(object);
-    assert.instanceOf(object.args.nestedField.aQuad, tr.b.Quad);
-    assert.instanceOf(object.args.nonNestedQuad, tr.b.Quad);
+    assert.instanceOf(object.args.nestedField.aQuad, tr.b.math.Quad);
+    assert.instanceOf(object.args.nonNestedQuad, tr.b.math.Quad);
   });
 
   test('rectCoversion', function() {
@@ -94,7 +94,7 @@ tr.b.unittest.testSuite(function() {
       }
     };
     tr.e.cc.preInitializeObject(object);
-    assert.instanceOf(object.args.someRect, tr.b.Rect);
+    assert.instanceOf(object.args.someRect, tr.b.math.Rect);
   });
 
   test('rectCoversionNested', function() {
@@ -107,8 +107,8 @@ tr.b.unittest.testSuite(function() {
       }
     };
     tr.e.cc.preInitializeObject(object);
-    assert.instanceOf(object.args.nestedField.aRect, tr.b.Rect);
-    assert.instanceOf(object.args.nonNestedRect, tr.b.Rect);
+    assert.instanceOf(object.args.nestedField.aRect, tr.b.math.Rect);
+    assert.instanceOf(object.args.nonNestedRect, tr.b.math.Rect);
   });
 });
 </script>

@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/bbox2.html">
+<link rel="import" href="/tracing/base/math/bbox2.html">
 <link rel="import" href="/tracing/extras/chrome/cc/constants.html">
 <link rel="import" href="/tracing/extras/chrome/cc/layer_tree_impl.html">
 <link rel="import" href="/tracing/extras/chrome/cc/util.html">
@@ -163,7 +163,7 @@ tr.exportTo('tr.e.cc', function() {
     get allLayersBBox() {
       if (this.allLayersBBox_)
         return this.allLayersBBox_;
-      var bbox = new tr.b.BBox2();
+      var bbox = new tr.b.math.BBox2();
       function handleTree(tree) {
         tree.renderSurfaceLayerList.forEach(function(layer) {
           bbox.addQuad(layer.layerQuad);

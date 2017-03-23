@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/base.html">
-<link rel="import" href="/tracing/base/rect.html">
+<link rel="import" href="/tracing/base/math/rect.html">
 
 <script>
 'use strict';
@@ -30,7 +30,7 @@ tr.exportTo('tr.ui.b', function() {
       position[1] += node.offsetTop;
       node = node.offsetParent;
     }
-    return tr.b.Rect.fromXYWH(position[0], position[1], size[0], size[1]);
+    return tr.b.math.Rect.fromXYWH(position[0], position[1], size[0], size[1]);
   }
 
   function scrollIntoViewIfNeeded(el) {

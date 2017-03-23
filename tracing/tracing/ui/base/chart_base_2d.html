@@ -6,10 +6,10 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
-<link rel="import" href="/tracing/base/math.html">
+<link rel="import" href="/tracing/base/math/math.html">
+<link rel="import" href="/tracing/base/math/range.html">
+<link rel="import" href="/tracing/base/math/statistics.html">
 <link rel="import" href="/tracing/base/raf.html">
-<link rel="import" href="/tracing/base/range.html">
-<link rel="import" href="/tracing/base/statistics.html">
 <link rel="import" href="/tracing/ui/base/chart_base.html">
 <link rel="import" href="/tracing/ui/base/mouse_tracker.html">
 
@@ -53,7 +53,7 @@ tr.exportTo('tr.ui.b', function() {
       this.yScale_ = d3.scale.linear();
       this.isYLogScale_ = false;
       this.yLogScaleMin_ = undefined;
-      this.autoDataRange_ = new tr.b.Range();
+      this.autoDataRange_ = new tr.b.math.Range();
       this.overrideDataRange_ = undefined;
       this.hideXAxis_ = false;
       this.hideYAxis_ = false;
@@ -166,7 +166,7 @@ tr.exportTo('tr.ui.b', function() {
         this.getXForDatum_(data[leftIndex], leftIndex);
       var rightWidth = this.getXForDatum_(data[rightIndex], rightIndex) -
         this.getXForDatum_(data[index], index);
-      return tr.b.Statistics.mean([leftWidth, rightWidth]);
+      return tr.b.math.Statistics.mean([leftWidth, rightWidth]);
     },
 
     updateSeriesKeys_() {
@@ -325,7 +325,7 @@ tr.exportTo('tr.ui.b', function() {
         if (minValue === 0)
           minValue = 1;
 
-        var onePowerLess = tr.b.lesserPower(minValue / 10);
+        var onePowerLess = tr.b.math.lesserPower(minValue / 10);
         this.yLogScaleMin_ = onePowerLess;
       }
     },
@@ -469,9 +469,9 @@ tr.exportTo('tr.ui.b', function() {
 
     getDataPointAtChartPoint_(chartPoint) {
       return {
-        x: tr.b.clamp(this.xScale_.invert(chartPoint.x),
+        x: tr.b.math.clamp(this.xScale_.invert(chartPoint.x),
             this.xScale_.domain()[0], this.xScale_.domain()[1]),
-        y: tr.b.clamp(this.yScale_.invert(chartPoint.y),
+        y: tr.b.math.clamp(this.yScale_.invert(chartPoint.y),
             this.yScale_.domain()[0], this.yScale_.domain()[1])
       };
     },
