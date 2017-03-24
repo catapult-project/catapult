@@ -115,7 +115,8 @@ tr.exportTo('tr.metrics.sh', function() {
     return startupEnd - startupStart;
   }
 
-  function androidSystraceMetric(values, model) {
+  // App startup time metric.
+  function measureStartup(values, model) {
     var launches = findLaunchSlices(model);
     for (var sliceId in launches) {
       var launchSlice = launches[sliceId];
@@ -128,7 +129,90 @@ tr.exportTo('tr.metrics.sh', function() {
     }
   }
 
-  tr.metrics.MetricRegistry.register(androidSystraceMetric);
+  // Metric which measures time spent by process threads in each thread state.
+  // The value of metric is a time percentage relative to the length of selected
+  // range of interest.
+  function measureThreadStates(values, model, rangeOfInterest) {
+    var addHistogram = function(processName, timerName, valueInMs, rangeInMs) {
+      var hist = new tr.v.Histogram(
+          'android:systrace:threadtime:' + processName + ':' + timerName,
+          tr.b.Unit.byName.normalizedPercentage);
+      hist.addSample(valueInMs / rangeInMs);
+      values.addHistogram(hist);
+    };
+
+    for (var pid in model.processes) {
+      var process = model.processes[pid];
+      if (process.name === undefined) continue;
+
+      var hasSlices = false;
+      var timeRunning = 0;
+      var timeRunnable = 0;
+      var timeSleeping = 0;
+      var timeUninterruptible = 0;
+      var timeBlockIO = 0;
+      var timeUnknown = 0;
+
+      for (var tid in process.threads) {
+        var thread = process.threads[tid];
+        if (thread.timeSlices === undefined) continue;
+
+        for (var sliceId in thread.timeSlices) {
+          var slice = thread.timeSlices[sliceId];
+          var sliceRange = tr.b.Range.fromExplicitRange(slice.start, slice.end);
+          var intersection = rangeOfInterest.findIntersection(sliceRange);
+          var duration = intersection.duration;
+          if (duration === 0) continue;
+          hasSlices = true;
+
+          if (slice.title === 'Running') {
+            timeRunning += duration;
+          } else if (slice.title === 'Runnable') {
+            timeRunnable += duration;
+          } else if (slice.title === 'Sleeping') {
+            timeSleeping += duration;
+          } else if (slice.title.startsWith('Uninterruptible')) {
+            timeUninterruptible += duration;
+            if (slice.title.includes('Block I/O')) timeBlockIO += duration;
+          } else {
+            timeUnknown += duration;
+          }
+        }
+      }
+
+      if (hasSlices) {
+        // For sake of simplicity we don't count wall time for each
+        // thread/process and just calculate relative values against selected
+        // range of interest.
+        var wall = rangeOfInterest.max - rangeOfInterest.min;
+        addHistogram(process.name, 'running', timeRunning, wall);
+        addHistogram(process.name, 'runnable', timeRunnable, wall);
+        addHistogram(process.name, 'sleeping', timeSleeping, wall);
+        addHistogram(process.name, 'blockio', timeBlockIO, wall);
+        addHistogram(process.name, 'uninterruptible',
+            timeUninterruptible, wall);
+
+        // In case of changing names in systrace and importer.
+        if (timeUnknown > 0) {
+          addHistogram(process.name, 'unknown', timeUnknown, wall);
+        }
+      }
+    }
+  }
+
+  function androidSystraceMetric(values, model, options) {
+    var rangeOfInterest = model.bounds;
+    if (options !== undefined && options.rangeOfInterest !== undefined) {
+      rangeOfInterest = options.rangeOfInterest;
+    }
+
+    measureStartup(values, model);
+    measureThreadStates(values, model, rangeOfInterest);
+  }
+
+  tr.metrics.MetricRegistry.register(androidSystraceMetric, {
+    supportsRangeOfInterest: true
+  });
 
   return {
     androidSystraceMetric,
