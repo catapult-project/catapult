@@ -10,26 +10,26 @@ from dashboard.pinpoint.models.quest import quest
 class FindIsolated(quest.Quest):
 
   def __init__(self, configuration):
-    self._configuration = configuration
+    self._builder_name = _BuilderNameForConfiguration(configuration)
 
   @property
   def retry_count(self):
     return 1
 
   def Start(self, change):
-    return _FindIsolatedExecution(self._configuration, change)
+    return _FindIsolatedExecution(self._builder_name, change)
 
 
 class _FindIsolatedExecution(execution.Execution):
 
-  def __init__(self, configuration, change):
+  def __init__(self, builder_name, change):
     super(_FindIsolatedExecution, self).__init__()
-    self._configuration = configuration
+    self._builder_name = builder_name
     self._change = change
 
   def _Poll(self):
     # Look for the .isolated in our cache.
-    isolated_hash = _LookUpIsolated(self._configuration, self._change)
+    isolated_hash = _LookUpIsolated(self._builder_name, self._change)
     if isolated_hash:
       self._Complete(result_arguments={'isolated_hash': isolated_hash})
       return
@@ -39,7 +39,7 @@ class _FindIsolatedExecution(execution.Execution):
                               'waterfall is not implemented yet.')
 
 
-def _LookUpIsolated(configuration, change):
+def _LookUpIsolated(builder_name, change):
   # The continuous builders build most commits, so find out if the .isolated we
   # want has already been built and cached.
 
@@ -54,7 +54,6 @@ def _LookUpIsolated(configuration, change):
   if change.patch:
     return None
 
-  builder_name = _BuilderNameForConfiguration(configuration)
   git_hash = change.most_specific_commit.git_hash
   target = 'telemetry_perf_tests'  # TODO: Support other isolated targets.
 

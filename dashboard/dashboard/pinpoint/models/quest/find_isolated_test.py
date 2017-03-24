@@ -120,8 +120,5 @@ class BuilderLookupTest(_FindIsolatedTest):
                        {'isolated_hash': hex(hash(builder))})
 
   def testUnknownBuilder(self):
-    change = change_module.Change(change_module.Dep('chromium/src', 'f9f2b720'))
-    execution = find_isolated.FindIsolated('Unix Perf').Start(change)
-
-    execution.Poll()
-    self.assertExecutionFailure(execution)
+    with self.assertRaises(NotImplementedError):
+      find_isolated.FindIsolated('Unix Perf')
