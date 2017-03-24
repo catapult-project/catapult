@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link type="text/css" rel="stylesheet" href="/dashboard/static/base.css">
 
+<link rel="import" href="/components/iron-icons/iron-icons.html">
 <link rel="import" href="/components/paper-button/paper-button.html">
 <link rel="import" href="/components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="/components/paper-item/paper-item.html">
@@ -84,6 +85,9 @@ found in the LICENSE file.
       color: #bbb;
     }
 
+    .left-arrow {
+      float: left;
+    }
     </style>
 
     <template is="dom-if" if="{{loading}}">
@@ -96,7 +100,7 @@ found in the LICENSE file.
       </template>
       <template is="dom-if" if="{{!error}}">
         <div id="content">
-          <h3>{{tableConfig.name}}</h3>
+          <h3>{{tableConfig.name}}&nbsp; &nbsp;{{getStartMilestoneLabel()}} &rarr; {{getEndMilestoneLabel()}}</h3>
           <template is="dom-repeat" items="{{tableConfig.bots}}" as="bot">
             <h2>Report for {{bot}}</h2>
             <table id="speed-releasing">
@@ -140,6 +144,18 @@ found in the LICENSE file.
             </template>
             </table> <br>
           </template>
+          <div class="left-arrow" hidden$="{{!getPrevMilestoneLabel()}}">
+            <paper-button raised on-click="prevMilestone">
+              <iron-icon icon="chevron-left"></iron-icon>
+              {{getPrevMilestoneLabel()}}
+            </paper-button>
+          </div>
+          <div hidden$="{{!getNextMilestoneLabel()}}">
+            <paper-button raised on-click="nextMilestone">
+              {{getNextMilestoneLabel()}}
+              <iron-icon icon="chevron-right"></iron-icon>
+            </paper-button>
+          </div>
         </div>
       </template>
     </template>
@@ -319,6 +335,49 @@ found in the LICENSE file.
         return this.tableConfig.urlMap[bot + '/' + test];
       },
 
+      getStartMilestoneLabel: function() {
+        return 'M' + this.tableConfig.displayMilestones[0];
+      },
+
+      getEndMilestoneLabel: function() {
+        if (this.tableConfig.displayMilestones[0] ===
+            this.tableConfig.displayMilestones[1]) {
+          return 'M' + (this.tableConfig.displayMilestones[1] + 1);
+        }
+        return 'M' + this.tableConfig.displayMilestones[1];
+      },
+
+      prevMilestone: function() {
+        this.navigateMilestones(0);
+      },
+
+      nextMilestone: function() {
+        this.navigateMilestones(1);
+      },
+
+      navigateMilestones: function(i) {
+        if (this.tableConfig.navigationMilestones[i] != null) {
+          window.location.href = window.location.pathname + '?m=' +
+                 this.tableConfig.navigationMilestones[i];
+        }
+        return null;
+      },
+
+      getPrevMilestoneLabel: function() {
+        return this.getMilestoneLabel(0);
+      },
+
+      getNextMilestoneLabel: function() {
+        return this.getMilestoneLabel(1);
+      },
+
+      getMilestoneLabel: function(i) {
+        if (this.tableConfig.navigationMilestones[i] != null) {
+          return this.tableConfig.navigationMilestones[i];
+        }
+        return null;
+      },
+
       ready: function() {
         var params = {};
         var revA = uri.getParameter('revA');
@@ -348,6 +407,10 @@ found in the LICENSE file.
               this.tableConfig.categories = response['categories'];
               this.tableConfig.urlMap = response['urls'];
               this.tableConfig.displayRevisions = response['display_revisions'];
+              this.tableConfig.displayMilestones =
+                  response['display_milestones'];
+              this.tableConfig.navigationMilestones =
+                  response['navigation_milestones'];
               this.loading = false;
             }.bind(this),
             function(msg) {

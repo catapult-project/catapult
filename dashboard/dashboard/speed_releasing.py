@@ -89,14 +89,19 @@ class SpeedReleasingHandler(request_handler.RequestHandler):
         return
 
     master_bot_pairs = _GetMasterBotPairs(table_entity.bots)
-    rev_a, rev_b = _GetRevisionsFromParams(rev_a, rev_b, milestone_param,
-                                           table_entity, master_bot_pairs)
+    rev_a, rev_b, milestone_dict = _GetRevisionsFromParams(
+        rev_a, rev_b, milestone_param, table_entity, master_bot_pairs)
 
     revisions = [rev_b, rev_a] # In reverse intentionally. This is to support
     # the format of the Chrome Health Dashboard which compares 'Current' to
     # 'Reference', in that order. The ordering here is for display only.
     display_a = _GetDisplayRev(master_bot_pairs, table_entity.tests, rev_a)
     display_b = _GetDisplayRev(master_bot_pairs, table_entity.tests, rev_b)
+
+    display_milestone_a, display_milestone_b = _GetMilestoneForRevs(
+        rev_a, rev_b, milestone_dict)
+    navigation_milestone_a, navigation_milestone_b = _GetNavigationMilestones(
+        display_milestone_a, display_milestone_b, milestone_dict)
 
     values = {}
     self.GetDynamicVariables(values)
@@ -113,7 +118,10 @@ class SpeedReleasingHandler(request_handler.RequestHandler):
         'categories': _GetCategoryCounts(json.loads(table_entity.table_layout)),
         'urls': _GetDashboardURLMap(master_bot_pairs, table_entity.tests,
                                     rev_a, rev_b),
-        'display_revisions': [display_b, display_a] # Similar to revisions.
+        'display_revisions': [display_b, display_a], # Similar to revisions.
+        'display_milestones': [display_milestone_a, display_milestone_b],
+        'navigation_milestones': [navigation_milestone_a,
+                                  navigation_milestone_b]
     }))
 
   def _OutputHomePageJSON(self):
@@ -149,8 +157,8 @@ class SpeedReleasingHandler(request_handler.RequestHandler):
         return
 
     master_bot_pairs = _GetMasterBotPairs(table_entity.bots)
-    rev_a, rev_b = _GetRevisionsFromParams(rev_a, rev_b, milestone_param,
-                                           table_entity, master_bot_pairs)
+    rev_a, rev_b, _ = _GetRevisionsFromParams(rev_a, rev_b, milestone_param,
+                                              table_entity, master_bot_pairs)
     revisions = [rev_b, rev_a]
 
     anomalies = _FetchAnomalies(table_entity, rev_a, rev_b)
@@ -167,17 +175,15 @@ class SpeedReleasingHandler(request_handler.RequestHandler):
 
 def _GetRevisionsFromParams(rev_a, rev_b, milestone_param, table_entity,
                             master_bot_pairs):
+  milestone_dict = _GetUpdatedMilestoneDict(master_bot_pairs,
+                                            table_entity.tests)
   if milestone_param:
-    milestone_dict = _GetUpdatedMilestoneDict(master_bot_pairs,
-                                              table_entity.tests)
     rev_a, rev_b = milestone_dict[milestone_param]
   if not rev_a or not rev_b: # If no milestone param and <2 revs passed in.
-    milestone_dict = _GetUpdatedMilestoneDict(master_bot_pairs,
-                                              table_entity.tests)
     rev_a, rev_b = _GetEndRevOrCurrentMilestoneRevs(
         rev_a, rev_b, milestone_dict)
   rev_a, rev_b = _CheckRevisions(rev_a, rev_b)
-  return rev_a, rev_b
+  return rev_a, rev_b, milestone_dict
 
 
 def _GetMasterBotPairs(bots):
@@ -410,3 +416,42 @@ def _FetchAnomalies(table_entity, rev_a, rev_b):
 
   return anomalies
 
+
+def _GetMilestoneForRevs(rev_a, rev_b, milestone_dict):
+  """Determines which milestone each revision is part of. Returns a tuple."""
+  rev_a_milestone = CURRENT_MILESTONE
+  rev_b_milestone = CURRENT_MILESTONE
+
+  for key, milestone in milestone_dict.iteritems():
+    if milestone[0] <= rev_a < milestone[1]:
+      rev_a_milestone = key
+    if milestone[0] < rev_b <= milestone[1]:
+      rev_b_milestone = key
+  return rev_a_milestone, rev_b_milestone
+
+def _GetNavigationMilestones(rev_a_milestone, rev_b_milestone, milestone_dict):
+  """Finds the next/previous milestones for navigation, if available.
+
+  Most often, the milestones will be the same (e.g. the report for M57 will
+  have both rev_a_milestone and rev_b_milestone as 57; the navigation in this
+  case is 56 for back and 58 for forward). If the milestone is at either the
+  lower or upper bounds of the milestones that we support, return None (so
+  users can't navigate to an invalid milestone). In the case that the
+  revisions passed in cover multiple milestones (e.g. a report from
+  M55 -> M57), the correct navigation is 54 (back) and 57 (forward).
+  """
+  min_milestone = min(milestone_dict)
+
+  if rev_a_milestone == min_milestone:
+    navigation_milestone_a = None
+  else:
+    navigation_milestone_a = rev_a_milestone - 1
+
+  if rev_b_milestone == CURRENT_MILESTONE:
+    navigation_milestone_b = None
+  elif rev_a_milestone != rev_b_milestone:  # In the multiple milestone case.
+    navigation_milestone_b = rev_b_milestone
+  else:
+    navigation_milestone_b = rev_b_milestone + 1
+
+  return navigation_milestone_a, navigation_milestone_b
