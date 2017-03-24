@@ -95,24 +95,12 @@ tr.exportTo('tr.model.helpers', function() {
     },
 
     getAllNetworkEventsInRange: function(rangeOfInterest) {
-      var networkEvents = [];
-      this.modelHelper.model.getAllThreads().forEach(function(thread) {
-        thread.asyncSliceGroup.slices.forEach(function(slice) {
-          var match = false;
-          if (slice.category === 'net' ||  // old-style URLRequest/Resource
-              slice.category === 'disabled-by-default-netlog' ||
-              slice.category === 'netlog') {
-            match = true;
-          }
-
-          if (!match)
-            return;
-
-          if (rangeOfInterest.intersectsExplicitRangeInclusive(
-              slice.start, slice.end))
-            networkEvents.push(slice);
-        });
-      });
+      let networkEvents = [];
+      for (const thread of
+          Object.values(this.modelHelper.model.getAllThreads())) {
+        networkEvents = networkEvents.concat(
+            thread.getNetworkEventsInRange(rangeOfInterest));
+      }
       return networkEvents;
     },
 

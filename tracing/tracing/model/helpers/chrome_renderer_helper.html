@@ -96,8 +96,7 @@ tr.exportTo('tr.model.helpers', function() {
           // When the V8 Runtime Object contains 2 values, the 2nd value
           // always represents the V8 Runtime duration.
           if (v8RuntimeObject[runtimeCall].length === 2) {
-            if (breakdownTree['v8_runtime'].events[runtimeCall] ===
-                undefined) {
+            if (breakdownTree['v8_runtime'].events[runtimeCall] === undefined) {
               breakdownTree['v8_runtime'].events[runtimeCall] = 0;
             }
             var runtimeTime = tr.b.Unit.timestampFromUs(
@@ -236,6 +235,17 @@ tr.exportTo('tr.model.helpers', function() {
       function getEventSelfTime(e) { return e.cpuSelfTime; }
       return generateTimeBreakdownTree_(this.mainThread, cpuStart, cpuEnd,
           getEventStart, getEventDuration, getEventSelfTime);
+    },
+
+    getAllNetworkEventsInRange: function(rangeOfInterest) {
+      const networkEvents = [];
+      for (const thread of Object.values(this.process.threads)) {
+        const events = thread.getNetworkEventsInRange(rangeOfInterest);
+        for (const event of events) {
+          networkEvents.push(event);
+        }
+      }
+      return networkEvents;
     }
   };
 
