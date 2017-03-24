@@ -24,6 +24,7 @@ from telemetry import story as story_module
 from telemetry.util import wpr_modes
 from telemetry.value import failure
 from telemetry.value import skip
+from telemetry.value import scalar
 from telemetry.web_perf import story_test
 
 
@@ -301,6 +302,7 @@ def RunBenchmark(benchmark, finder_options):
     The number of failure values (up to 254) or 255 if there is an uncaught
     exception.
   """
+  start = time.time()
   benchmark.CustomizeBrowserOptions(finder_options.browser_options)
 
   benchmark_metadata = benchmark.GetMetadata()
@@ -326,7 +328,7 @@ def RunBenchmark(benchmark, finder_options):
         results.PrintSummary()
       # When a disabled benchmark is run we now want to return success since
       # we are no longer filtering these out in the buildbot recipes.
-      return 0
+      return 17
 
   pt = benchmark.CreatePageTest(finder_options)
   pt.__name__ = benchmark.__class__.__name__
@@ -375,6 +377,9 @@ def RunBenchmark(benchmark, finder_options):
         results.UploadTraceFilesToCloud(bucket)
         results.UploadProfilingFilesToCloud(bucket)
     finally:
+      duration = time.time() - start
+      results.AddSummaryValue(scalar.ScalarValue(
+          None, 'BenchmarkDuration', 'minutes', duration / 60.0))
       results.PrintSummary()
   return return_code
 
