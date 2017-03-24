@@ -171,6 +171,24 @@ if (test) {
 }
 ```
 
+### Variables
+
+Use `const` and `let` instead of `var` in all new files and functions. Prefer `const` over `let` when a variable can only refer to a single value throughout its lifetime.
+
+```javascript
+// bad
+function() {
+  let hello = '  hello  ';
+  return hello.trim();
+}
+
+// good
+function() {
+  const hello = '  hello  ';
+  return hello.trim();
+}
+```
+
 ### Polymer elements
 The `<script>` block for the Polymer element can go either inside or outside of
 the element’s definition. Generally, the block outside is placed outside when
