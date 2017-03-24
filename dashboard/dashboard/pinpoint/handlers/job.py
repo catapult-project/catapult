@@ -16,13 +16,13 @@ class JobHandler(webapp2.RequestHandler):
     # Validate parameters.
     try:
       job = job_module.JobFromId(job_id)
-      self.response.write(json.dumps({'data': job.AsDict()}))
-    except:  # pylint: disable=bare-except
-      # There's no narrower exception we can catch. Catching
-      # google.net.proto.ProtocolBuffer.ProtocolBufferDecodeError
-      # doesn't appear to work here.
+    except Exception as e:  # pylint: disable=broad-except
+      # Catching google.net.proto.ProtocolBuffer.ProtocolBufferDecodeError
+      # directly doesn't work.
       # https://github.com/googlecloudplatform/datastore-ndb-python/issues/143
-      self.response.write(json.dumps({'error': 'Unknown job id.'}))
-      return
+      if e.__class__.__name__ == 'ProtocolBufferDecodeError':
+        self.response.write(json.dumps({'error': 'Unknown job id.'}))
+        return
+      raise
 
-    del job
+    self.response.write(json.dumps({'data': job.AsDict()}))
