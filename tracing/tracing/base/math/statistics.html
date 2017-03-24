@@ -5,8 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/math.html">
-<link rel="import" href="/tracing/base/range.html">
+<link rel="import" href="/tracing/base/math/math.html">
+<link rel="import" href="/tracing/base/math/range.html">
 <script src="/mannwhitneyu/mannwhitneyu.js"></script>
 
 <script>
@@ -35,7 +35,7 @@ found in the LICENSE file.
 // TODO(charliea): Remove:
 /* eslint-disable catapult-camelcase */
 
-tr.exportTo('tr.b', function() {
+tr.exportTo('tr.b.math', function() {
   var identity = x => x;
 
   var Statistics = {};
@@ -158,7 +158,7 @@ tr.exportTo('tr.b', function() {
 
   Statistics.range = function(ary, opt_func, opt_this) {
     var func = opt_func || identity;
-    var ret = new tr.b.Range();
+    var ret = new tr.b.math.Range();
     var i = 0;
     for (var elt of ary)
       ret.addValue(func.call(opt_this, elt, i++));
@@ -383,7 +383,7 @@ tr.exportTo('tr.b', function() {
       discrepancy /= sampleScale;
     } else {
       // Compute relative discrepancy
-      discrepancy = tr.b.clamp(
+      discrepancy = tr.b.math.clamp(
           (discrepancy - invSampleCount) / (1.0 - invSampleCount), 0.0, 1.0);
     }
     return discrepancy;
@@ -634,7 +634,7 @@ tr.exportTo('tr.b', function() {
 
   Statistics.UniformDistribution = function(opt_range) {
     if (!opt_range)
-      opt_range = tr.b.Range.fromExplicitRange(0, 1);
+      opt_range = tr.b.math.Range.fromExplicitRange(0, 1);
     this.range = opt_range;
   };
 
@@ -646,7 +646,7 @@ tr.exportTo('tr.b', function() {
     },
 
     computePercentile: function(x) {
-      return tr.b.normalize(x, this.range.min, this.range.max);
+      return tr.b.math.normalize(x, this.range.min, this.range.max);
     },
 
     get mean() {
@@ -694,7 +694,7 @@ tr.exportTo('tr.b', function() {
     computePercentile: function(x) {
       var standardizedX = ((x - this.mean) /
                            Math.sqrt(2.0 * this.variance));
-      return (1.0 + tr.b.erf(standardizedX)) / 2.0;
+      return (1.0 + tr.b.math.erf(standardizedX)) / 2.0;
     },
 
     get mean() {
@@ -817,7 +817,7 @@ tr.exportTo('tr.b', function() {
    * @typedef {Object} HypothesisTestResult
    * @property {number} p
    * @property {number} U
-   * @property {!tr.b.Statistics.Significance} significance
+   * @property {!tr.b.math.Statistics.Significance} significance
    */
 
   /**

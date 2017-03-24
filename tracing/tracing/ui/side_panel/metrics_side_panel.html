@@ -89,7 +89,7 @@ tr.exportTo('tr.ui', function() {
      * @return {undefined|number}
      */
     get metricLatencyMs() {
-      return tr.b.Statistics.mean(this.metricLatenciesMs_);
+      return tr.b.math.Statistics.mean(this.metricLatenciesMs_);
     },
 
     onMetricChange_: function() {
@@ -139,7 +139,7 @@ tr.exportTo('tr.ui', function() {
     },
 
     /**
-     * @return {undefined|!tr.b.Range}
+     * @return {undefined|!tr.b.math.Range}
      */
     get rangeOfInterest() {
       return this.rangeOfInterest_;
@@ -151,7 +151,7 @@ tr.exportTo('tr.ui', function() {
      * will be re-run immediately; otherwise, the Recompute button will be
      * enabled.
      *
-     * @param {!tr.b.Range} range
+     * @param {!tr.b.math.Range} range
      */
     set rangeOfInterest(range) {
       this.rangeOfInterest_ = range;

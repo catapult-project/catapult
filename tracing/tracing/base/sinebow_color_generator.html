@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/color.html">
 <link rel="import" href="/tracing/base/iteration_helpers.html">
-<link rel="import" href="/tracing/base/math.html">
+<link rel="import" href="/tracing/base/math/math.html">
 
 <script>
 'use strict';
@@ -75,9 +75,9 @@ tr.exportTo('tr.b', function() {
       g *= brightness;
       b *= brightness;
     } else {
-      r = tr.b.lerp(tr.b.normalize(brightness, 1, 2), r, 255);
-      g = tr.b.lerp(tr.b.normalize(brightness, 1, 2), g, 255);
-      b = tr.b.lerp(tr.b.normalize(brightness, 1, 2), b, 255);
+      r = tr.b.math.lerp(tr.b.math.normalize(brightness, 1, 2), r, 255);
+      g = tr.b.math.lerp(tr.b.math.normalize(brightness, 1, 2), g, 255);
+      b = tr.b.math.lerp(tr.b.math.normalize(brightness, 1, 2), b, 255);
     }
     r = Math.round(r);
     g = Math.round(g);

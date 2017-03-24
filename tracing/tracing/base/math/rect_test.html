@@ -4,7 +4,7 @@ Copyright (c) 2014 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/tracing/base/rect.html">
+<link rel="import" href="/tracing/base/math/rect.html">
 <script>
 'use strict';
 
@@ -20,10 +20,10 @@ tr.b.unittest.testSuite(function() {
           '", got "' + b.toString() + '"';
       assert.fail(a, b, message);
     }
-    var container = tr.b.Rect.fromXYWH(0, 0, 10, 10);
-    var inner = tr.b.Rect.fromXYWH(1, 1, 8, 8);
+    var container = tr.b.math.Rect.fromXYWH(0, 0, 10, 10);
+    var inner = tr.b.math.Rect.fromXYWH(1, 1, 8, 8);
     var uv = inner.asUVRectInside(container);
-    assertRectEquals(uv, tr.b.Rect.fromXYWH(0.1, 0.1, .8, .8));
+    assertRectEquals(uv, tr.b.math.Rect.fromXYWH(0.1, 0.1, .8, .8));
     assert.equal(10, container.size().width);
     assert.equal(10, container.size().height);
   });

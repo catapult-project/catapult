@@ -5,8 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/math/range.html">
 <link rel="import" href="/tracing/base/raf.html">
-<link rel="import" href="/tracing/base/range.html">
 <link rel="import" href="/tracing/base/time_display_modes.html">
 <link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/base/unit_scale.html">
@@ -68,46 +68,46 @@ tr.b.unittest.testSuite(function() {
     let zero = String.fromCharCode(177) + '0';
 
     checkScalarSpan(this, 0, countSIBD, zero, {
-      significance: tr.b.Statistics.Significance.DONT_CARE,
+      significance: tr.b.math.Statistics.Significance.DONT_CARE,
       expectedTitle: 'no change',
       expectedEmoji: ''
     });
 
     checkScalarSpan(this, 0, countSIBD, zero, {
       expectedEmoji: 'insignificant',
-      significance: tr.b.Statistics.Significance.INSIGNIFICANT,
+      significance: tr.b.math.Statistics.Significance.INSIGNIFICANT,
       expectedEmojiColor: 'rgb(0, 0, 0)',
       expectedTitle: 'no change'
     });
 
     assert.throws(() => checkScalarSpan(this, 0, countSIBD, zero,
-      {significance: tr.b.Statistics.Significance.SIGNIFICANT}));
+      {significance: tr.b.math.Statistics.Significance.SIGNIFICANT}));
 
     checkScalarSpan(this, 0, countBIBD, zero, {
-      significance: tr.b.Statistics.Significance.DONT_CARE,
+      significance: tr.b.math.Statistics.Significance.DONT_CARE,
       expectedTitle: 'no change',
       expectedEmoji: ''
     });
 
     checkScalarSpan(this, 0, countBIBD, zero, {
       expectedEmoji: 'insignificant',
-      significance: tr.b.Statistics.Significance.INSIGNIFICANT,
+      significance: tr.b.math.Statistics.Significance.INSIGNIFICANT,
       expectedEmojiColor: 'rgb(0, 0, 0)',
       expectedTitle: 'no change'
     });
 
     assert.throws(() => checkScalarSpan(this, 0, countSIBD, zero,
-      {significance: tr.b.Statistics.Significance.SIGNIFICANT}));
+      {significance: tr.b.math.Statistics.Significance.SIGNIFICANT}));
 
     checkScalarSpan(this, 1, countSIBD, '+1', {
-      significance: tr.b.Statistics.Significance.DONT_CARE,
+      significance: tr.b.math.Statistics.Significance.DONT_CARE,
       expectedColor: 'rgb(255, 0, 0)',
       expectedTitle: 'regression',
       expectedEmoji: ''
     });
 
     checkScalarSpan(this, 1, countSIBD, '+1', {
-      significance: tr.b.Statistics.Significance.INSIGNIFICANT,
+      significance: tr.b.math.Statistics.Significance.INSIGNIFICANT,
       expectedColor: 'rgb(255, 0, 0)',
       expectedEmoji: 'insignificant',
       expectedEmojiColor: 'rgb(0, 0, 0)',
@@ -115,7 +115,7 @@ tr.b.unittest.testSuite(function() {
     });
 
     checkScalarSpan(this, 1, countSIBD, '+1', {
-      significance: tr.b.Statistics.Significance.SIGNIFICANT,
+      significance: tr.b.math.Statistics.Significance.SIGNIFICANT,
       expectedColor: 'rgb(255, 0, 0)',
       expectedEmoji: 'significantly_worse',
       expectedEmojiColor: 'rgb(255, 0, 0)',
@@ -123,14 +123,14 @@ tr.b.unittest.testSuite(function() {
     });
 
     checkScalarSpan(this, 1, countBIBD, '+1', {
-      significance: tr.b.Statistics.Significance.DONT_CARE,
+      significance: tr.b.math.Statistics.Significance.DONT_CARE,
       expectedColor: 'rgb(0, 128, 0)',
       expectedTitle: 'improvement',
       expectedEmoji: ''
     });
 
     checkScalarSpan(this, 1, countBIBD, '+1', {
-      significance: tr.b.Statistics.Significance.INSIGNIFICANT,
+      significance: tr.b.math.Statistics.Significance.INSIGNIFICANT,
       expectedColor: 'rgb(0, 128, 0)',
       expectedEmoji: 'insignificant',
       expectedEmojiColor: 'rgb(0, 0, 0)',
@@ -138,7 +138,7 @@ tr.b.unittest.testSuite(function() {
     });
 
     checkScalarSpan(this, 1, countBIBD, '+1', {
-      significance: tr.b.Statistics.Significance.SIGNIFICANT,
+      significance: tr.b.math.Statistics.Significance.SIGNIFICANT,
       expectedColor: 'rgb(0, 128, 0)',
       expectedEmoji: 'significantly_better',
       expectedEmojiColor: 'rgb(0, 128, 0)',
@@ -146,7 +146,7 @@ tr.b.unittest.testSuite(function() {
     });
 
     checkScalarSpan(this, -1, countSIBD, '-1', {
-      significance: tr.b.Statistics.Significance.DONT_CARE,
+      significance: tr.b.math.Statistics.Significance.DONT_CARE,
       expectedColor: 'rgb(0, 128, 0)',
       expectedEmoji: '',
       expectedEmojiColor: '',
@@ -154,7 +154,7 @@ tr.b.unittest.testSuite(function() {
     });
 
     checkScalarSpan(this, -1, countSIBD, '-1', {
-      significance: tr.b.Statistics.Significance.INSIGNIFICANT,
+      significance: tr.b.math.Statistics.Significance.INSIGNIFICANT,
       expectedColor: 'rgb(0, 128, 0)',
       expectedEmoji: 'insignificant',
       expectedEmojiColor: 'rgb(0, 0, 0)',
@@ -162,7 +162,7 @@ tr.b.unittest.testSuite(function() {
     });
 
     checkScalarSpan(this, -1, countSIBD, '-1', {
-      significance: tr.b.Statistics.Significance.SIGNIFICANT,
+      significance: tr.b.math.Statistics.Significance.SIGNIFICANT,
       expectedColor: 'rgb(0, 128, 0)',
       expectedEmoji: 'significantly_better',
       expectedEmojiColor: 'rgb(0, 128, 0)',
@@ -171,12 +171,12 @@ tr.b.unittest.testSuite(function() {
 
     checkScalarSpan(this, -1, countBIBD, '-1', {
       expectedColor: 'rgb(255, 0, 0)',
-      significance: tr.b.Statistics.Significance.DONT_CARE,
+      significance: tr.b.math.Statistics.Significance.DONT_CARE,
       expectedEmoji: ''
     });
 
     checkScalarSpan(this, -1, countBIBD, '-1', {
-      significance: tr.b.Statistics.Significance.INSIGNIFICANT,
+      significance: tr.b.math.Statistics.Significance.INSIGNIFICANT,
       expectedColor: 'rgb(255, 0, 0)',
       expectedEmoji: 'insignificant',
       expectedEmojiColor: 'rgb(0, 0, 0)',
@@ -184,7 +184,7 @@ tr.b.unittest.testSuite(function() {
     });
 
     checkScalarSpan(this, -1, countBIBD, '-1', {
-      significance: tr.b.Statistics.Significance.SIGNIFICANT,
+      significance: tr.b.math.Statistics.Significance.SIGNIFICANT,
       expectedColor: 'rgb(255, 0, 0)',
       expectedEmoji: 'significantly_worse',
       expectedEmojiColor: 'rgb(255, 0, 0)',
@@ -193,37 +193,37 @@ tr.b.unittest.testSuite(function() {
 
     checkScalarSpan(this, 1, countD, '+1', {
       expectedColor: 'rgb(0, 0, 0)',
-      significance: tr.b.Statistics.Significance.DONT_CARE,
+      significance: tr.b.math.Statistics.Significance.DONT_CARE,
       expectedEmoji: ''
     });
 
     checkScalarSpan(this, 1, countD, '+1', {
       expectedColor: 'rgb(0, 0, 0)',
-      significance: tr.b.Statistics.Significance.INSIGNIFICANT,
+      significance: tr.b.math.Statistics.Significance.INSIGNIFICANT,
       expectedEmoji: ''
     });
 
     checkScalarSpan(this, 1, countD, '+1', {
       expectedColor: 'rgb(0, 0, 0)',
-      significance: tr.b.Statistics.Significance.SIGNIFICANT,
+      significance: tr.b.math.Statistics.Significance.SIGNIFICANT,
       expectedEmoji: ''
     });
 
     checkScalarSpan(this, -1, countD, '-1', {
       expectedColor: 'rgb(0, 0, 0)',
-      significance: tr.b.Statistics.Significance.DONT_CARE,
+      significance: tr.b.math.Statistics.Significance.DONT_CARE,
       expectedEmoji: ''
     });
 
     checkScalarSpan(this, -1, countD, '-1', {
       expectedColor: 'rgb(0, 0, 0)',
-      significance: tr.b.Statistics.Significance.INSIGNIFICANT,
+      significance: tr.b.math.Statistics.Significance.INSIGNIFICANT,
       expectedEmoji: ''
     });
 
     checkScalarSpan(this, -1, countD, '-1', {
       expectedColor: 'rgb(0, 0, 0)',
-      significance: tr.b.Statistics.Significance.SIGNIFICANT,
+      significance: tr.b.math.Statistics.Significance.SIGNIFICANT,
       expectedEmoji: ''
     });
   });
@@ -339,7 +339,7 @@ tr.b.unittest.testSuite(function() {
     // Unit and sparkline set via config.
     span = tr.v.ui.createScalarSpan(1.62, {
       unit: Unit.byName.timeStampInMs,
-      customContextRange: tr.b.Range.fromExplicitRange(0, 3.24)
+      customContextRange: tr.b.math.Range.fromExplicitRange(0, 3.24)
     });
     assert.strictEqual(Polymer.dom(span.$.content).textContent, '1.620 ms');
     assert.strictEqual(span.ownerDocument, document);
@@ -347,7 +347,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(span.value, 1.62);
     assert.strictEqual(span.unit, Unit.byName.timeStampInMs);
     assert.isUndefined(span.context);
-    assert.isTrue(tr.b.Range.fromExplicitRange(0, 3.24).equals(
+    assert.isTrue(tr.b.math.Range.fromExplicitRange(0, 3.24).equals(
         span.customContextRange));
     assert.isUndefined(span.warning);
     assert.isFalse(span.leftAlign);
@@ -387,7 +387,7 @@ tr.b.unittest.testSuite(function() {
   test('instantiate_withCustomContextRange', function() {
     let span = document.createElement('tr-v-ui-scalar-span');
     span.value = new Scalar(Unit.byName.unitlessNumber, 0.99);
-    span.customContextRange = tr.b.Range.fromExplicitRange(0, 3);
+    span.customContextRange = tr.b.math.Range.fromExplicitRange(0, 3);
     this.addHTMLOutput(span);
   });
 
@@ -419,19 +419,19 @@ tr.b.unittest.testSuite(function() {
     let spanC = document.createElement('tr-v-ui-scalar-span');
     spanC.setValueAndUnit(
         400, Unit.byName.timeDurationInMsDelta_smallerIsBetter);
-    spanC.significance = tr.b.Statistics.Significance.SIGNIFICANT;
+    spanC.significance = tr.b.math.Statistics.Significance.SIGNIFICANT;
     checkSignificance(spanC, 'significantly_worse');
 
     let spanD = document.createElement('tr-v-ui-scalar-span');
     spanD.setValueAndUnit(
         400, Unit.byName.timeDurationInMsDelta_biggerIsBetter);
-    spanD.significance = tr.b.Statistics.Significance.SIGNIFICANT;
+    spanD.significance = tr.b.math.Statistics.Significance.SIGNIFICANT;
     checkSignificance(spanD, 'significantly_better');
 
     let spanE = document.createElement('tr-v-ui-scalar-span');
     spanE.setValueAndUnit(
         400, Unit.byName.timeDurationInMsDelta_smallerIsBetter);
-    spanE.significance = tr.b.Statistics.Significance.INSIGNIFICANT;
+    spanE.significance = tr.b.math.Statistics.Significance.INSIGNIFICANT;
     checkSignificance(spanE, 'insignificant');
 
     let overall = document.createElement('div');
@@ -533,12 +533,12 @@ tr.b.unittest.testSuite(function() {
     checkSparkline(span2, {display: 'none'});
     let span3 = tr.v.ui.createScalarSpan(0, {
       unit: Unit.byName.timeStampInMs,
-      customContextRange: new tr.b.Range()  // Empty range.
+      customContextRange: new tr.b.math.Range()  // Empty range.
     });
     Polymer.dom(div).appendChild(span3);
     checkSparkline(span3, {display: 'none'});
 
-    let range = tr.b.Range.fromExplicitRange(-15, 15);
+    let range = tr.b.math.Range.fromExplicitRange(-15, 15);
 
     // Values inside custom context range.
     let span4 = tr.v.ui.createScalarSpan(-15, {
@@ -662,7 +662,7 @@ tr.b.unittest.testSuite(function() {
     checkSparkline(s3, {left: 0, width: 76, classList: ['positive']});
     checkSparkline(s4, {left: 0, width: 101, classList: ['positive']});
 
-    s1.customContextRange = tr.b.Range.fromExplicitRange(0, 150);
+    s1.customContextRange = tr.b.math.Range.fromExplicitRange(0, 150);
     checkSparkline(s1, {left: 0, width: 34.33, classList: ['positive']});
     checkSparkline(s2, {left: 0, width: 41, classList: ['positive']});
     checkSparkline(s3, {left: 0, width: 76, classList: ['positive']});
@@ -708,7 +708,7 @@ tr.b.unittest.testSuite(function() {
     checkSparkline(s4, {display: 'none'});
     checkSparkline(s1, {display: 'none'});
 
-    s1.customContextRange = tr.b.Range.fromExplicitRange(0, 100);
+    s1.customContextRange = tr.b.math.Range.fromExplicitRange(0, 100);
     checkSparkline(s2, {left: 0, width: 101, classList: ['positive']});
     checkSparkline(s3, {left: 0, width: 101, classList: ['positive']});
     checkSparkline(s4, {display: 'none'});
@@ -909,15 +909,15 @@ tr.b.unittest.testSuite(function() {
 
     let span = tr.v.ui.createScalarSpan(10, {
       unit: Unit.byName.energyInJoulesDelta_smallerIsBetter,
-      significance: tr.b.Statistics.Significance.SIGNIFICANT,
-      customContextRange: tr.b.Range.fromExplicitRange(-20, 20)
+      significance: tr.b.math.Statistics.Significance.SIGNIFICANT,
+      customContextRange: tr.b.math.Range.fromExplicitRange(-20, 20)
     });
     Polymer.dom(div).appendChild(span);
 
     assert.sameMembers(tr.b.asArray(span.$.content.classList), ['worse']);
     checkSignificance(span, 'significantly_worse');
 
-    span.significance = tr.b.Statistics.Significance.DONT_CARE;
+    span.significance = tr.b.math.Statistics.Significance.DONT_CARE;
     assert.sameMembers(tr.b.asArray(span.$.sparkline.classList),
         ['positive', 'worse']);
     assert.sameMembers(tr.b.asArray(span.$.content.classList), ['worse']);
@@ -944,7 +944,7 @@ tr.b.unittest.testSuite(function() {
     assert.sameMembers(tr.b.asArray(span.$.content.classList), ['better']);
     checkSignificance(span, '');
 
-    span.significance = tr.b.Statistics.Significance.INSIGNIFICANT;
+    span.significance = tr.b.math.Statistics.Significance.INSIGNIFICANT;
     assert.sameMembers(tr.b.asArray(span.$.sparkline.classList),
         ['positive', 'better']);
     assert.sameMembers(tr.b.asArray(span.$.content.classList), ['better']);
@@ -999,19 +999,19 @@ tr.b.unittest.testSuite(function() {
 
     Polymer.dom(div).appendChild(tr.v.ui.createScalarSpan(-1, {
       unit: Unit.byName.powerInWattsDelta,
-      customContextRange: tr.b.Range.fromExplicitRange(-100, 100)
+      customContextRange: tr.b.math.Range.fromExplicitRange(-100, 100)
     }));
     Polymer.dom(div).appendChild(tr.v.ui.createScalarSpan(100, {
       unit: Unit.byName.powerInWattsDelta,
-      customContextRange: tr.b.Range.fromExplicitRange(-100, 100)
+      customContextRange: tr.b.math.Range.fromExplicitRange(-100, 100)
     }));
     Polymer.dom(div).appendChild(tr.v.ui.createScalarSpan(80, {
       unit: Unit.byName.powerInWattsDelta,
-      customContextRange: tr.b.Range.fromExplicitRange(-100, 100)
+      customContextRange: tr.b.math.Range.fromExplicitRange(-100, 100)
     }));
     Polymer.dom(div).appendChild(tr.v.ui.createScalarSpan(60, {
       unit: Unit.byName.powerInWattsDelta,
-      customContextRange: tr.b.Range.fromExplicitRange(-100, 100)
+      customContextRange: tr.b.math.Range.fromExplicitRange(-100, 100)
     }));
   });
 

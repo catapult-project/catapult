@@ -198,31 +198,31 @@ tr.b.unittest.testSuite(function() {
 
     assert.deepEqual(charts[0].data, [{x: '0', y: 45}, {x: '1', y: 54}]);
     tr.b.assertRangeEquals(
-        charts[0].dataRange, tr.b.Range.fromExplicitRange(0, 99));
+        charts[0].dataRange, tr.b.math.Range.fromExplicitRange(0, 99));
 
     assert.deepEqual(
         charts[1].data, [{x: 'story0', y: 0}, {x: 'story1', y: 90}]);
     tr.b.assertRangeEquals(
-        charts[1].dataRange, tr.b.Range.fromExplicitRange(0, 99));
+        charts[1].dataRange, tr.b.math.Range.fromExplicitRange(0, 99));
 
     assert.deepEqual(
         charts[2].data, [{x: 'story0', y: 9}, {x: 'story1', y: 99}]);
     tr.b.assertRangeEquals(
-        charts[2].dataRange, tr.b.Range.fromExplicitRange(0, 99));
+        charts[2].dataRange, tr.b.math.Range.fromExplicitRange(0, 99));
 
     assert.deepEqual(charts[3].data, [{x: '0', y: 50}, {x: '1', y: 60}]);
     tr.b.assertRangeEquals(
-        charts[3].dataRange, tr.b.Range.fromExplicitRange(0, 110));
+        charts[3].dataRange, tr.b.math.Range.fromExplicitRange(0, 110));
 
     assert.deepEqual(
         charts[4].data, [{x: 'story0', y: 0}, {x: 'story1', y: 100}]);
     tr.b.assertRangeEquals(
-        charts[4].dataRange, tr.b.Range.fromExplicitRange(0, 110));
+        charts[4].dataRange, tr.b.math.Range.fromExplicitRange(0, 110));
 
     assert.deepEqual(
         charts[5].data, [{x: 'story0', y: 10}, {x: 'story1', y: 110}]);
     tr.b.assertRangeEquals(
-        charts[5].dataRange, tr.b.Range.fromExplicitRange(0, 110));
+        charts[5].dataRange, tr.b.math.Range.fromExplicitRange(0, 110));
 
     let hideOverview = tr.b.findDeepElementMatchingPredicate(
         table, elem => elem.id === 'hide_overview');

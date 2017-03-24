@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/range.html">
+<link rel="import" href="/tracing/base/math/range.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/model/model.html">
 
@@ -147,7 +147,7 @@ tr.b.unittest.testSuite(function() {
         newThreadSlice(thread, SCHEDULING_STATE.RUNNING, 8, 2, cpu1),
         newThreadSlice(thread, SCHEDULING_STATE.RUNNING, 20, 5, cpu1)
       ];
-      var range = tr.b.Range.fromExplicitRange(1, 22);
+      var range = tr.b.math.Range.fromExplicitRange(1, 22);
       var stats = thread.getCpuStatsForRange(range);
       assert.deepEqual(stats, {
         0: 2,
@@ -169,7 +169,7 @@ tr.b.unittest.testSuite(function() {
         newThreadSlice(thread, SCHEDULING_STATE.SLEEPING, 15, 10),
         newThreadSlice(thread, SCHEDULING_STATE.RUNNING, 25, 10, cpu1)
       ];
-      var range = tr.b.Range.fromExplicitRange(1, 26);
+      var range = tr.b.math.Range.fromExplicitRange(1, 26);
       var stats = thread.getCpuStatsForRange(range);
       assert.deepEqual(stats, {
         0: 7,

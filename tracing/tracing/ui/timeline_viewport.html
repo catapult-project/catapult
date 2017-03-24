@@ -190,7 +190,7 @@ tr.exportTo('tr.ui', function() {
     onCurentDisplayTransformChange_: function(oldDisplayTransform) {
       // Ensure panY stays clamped in the track container's scroll range.
       if (this.modelTrackContainer_) {
-        this.currentDisplayTransform.panY = tr.b.clamp(
+        this.currentDisplayTransform.panY = tr.b.math.clamp(
             this.currentDisplayTransform.panY,
             0,
             this.modelTrackContainer_.scrollHeight -
@@ -320,7 +320,7 @@ tr.exportTo('tr.ui', function() {
       var idealMajorMarkDistanceWorld =
           dt.xViewVectorToWorld(idealMajorMarkDistancePix);
 
-      var majorMarkDistanceWorld = tr.b.preferredNumberLargerThanMin(
+      var majorMarkDistanceWorld = tr.b.math.preferredNumberLargerThanMin(
           idealMajorMarkDistanceWorld);
 
       var firstMajorMark = Math.floor(

@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
-<link rel="import" href="/tracing/base/range.html">
+<link rel="import" href="/tracing/base/math/range.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/metrics/system_health/memory_metric.html">
 <link rel="import" href="/tracing/model/container_memory_dump.html">
@@ -3291,7 +3291,7 @@ tr.b.unittest.testSuite(function() {
     addGlobalMemoryDump(model, {ts: 9, duration: 12, levelOfDetail: LIGHT});
     addGlobalMemoryDump(model, {ts: 22, duration: 3, levelOfDetail: DETAILED});
   }, {  /* opt_options */
-    rangeOfInterest: tr.b.Range.fromExplicitRange(10, 20)
+    rangeOfInterest: tr.b.math.Range.fromExplicitRange(10, 20)
   }, {
     'memory:chrome:all_processes:dump_count': {
       value: [3],

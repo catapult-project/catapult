@@ -4,11 +4,11 @@ Copyright (c) 2013 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/tracing/base/bbox2.html">
-<link rel="import" href="/tracing/base/math.html">
-<link rel="import" href="/tracing/base/quad.html">
+<link rel="import" href="/tracing/base/math/bbox2.html">
+<link rel="import" href="/tracing/base/math/math.html">
+<link rel="import" href="/tracing/base/math/quad.html">
+<link rel="import" href="/tracing/base/math/rect.html">
 <link rel="import" href="/tracing/base/raf.html">
-<link rel="import" href="/tracing/base/rect.html">
 <link rel="import" href="/tracing/base/settings.html">
 <link rel="import" href="/tracing/ui/base/camera.html">
 <link rel="import" href="/tracing/ui/base/mouse_mode_selector.html">
@@ -251,7 +251,7 @@ tr.exportTo('tr.ui.b', function() {
       quadCanvas.width = quad.imageData.width;
       quadCanvas.height = quad.imageData.height;
       quadCanvas.getContext('2d').putImageData(quad.imageData, 0, 0);
-      var quadBBox = new tr.b.BBox2();
+      var quadBBox = new tr.b.math.BBox2();
       quadBBox.addQuad(quad);
       var iw = quadCanvas.width;
       var ih = quadCanvas.height;
@@ -400,7 +400,7 @@ tr.exportTo('tr.ui.b', function() {
       this.cameraWasReset_ = false;
       this.camera_.canvas = this.canvas_;
 
-      this.viewportRect_ = tr.b.Rect.fromXYWH(0, 0, 0, 0);
+      this.viewportRect_ = tr.b.math.Rect.fromXYWH(0, 0, 0, 0);
 
       this.pixelRatio_ = window.devicePixelRatio || 1;
     },
@@ -460,7 +460,7 @@ tr.exportTo('tr.ui.b', function() {
 
       var width = parseInt(window.getComputedStyle(this.offsetParent).width);
       var height = parseInt(window.getComputedStyle(this.offsetParent).height);
-      var rect = tr.b.Rect.fromXYWH(0, 0, width, height);
+      var rect = tr.b.math.Rect.fromXYWH(0, 0, width, height);
 
       if (rect.equalTo(this.viewportRect_))
         return false;
@@ -539,12 +539,12 @@ tr.exportTo('tr.ui.b', function() {
           this.chromeImages_.right, leftWidth + s * midWidth, 0);
 
       // Construct the quad.
-      var chromeRect = tr.b.Rect.fromXYWH(
+      var chromeRect = tr.b.math.Rect.fromXYWH(
           this.deviceRect_.x,
           this.deviceRect_.y - offsetY,
           this.deviceRect_.width,
           this.deviceRect_.height + offsetY);
-      var chromeQuad = tr.b.Quad.fromRect(chromeRect);
+      var chromeQuad = tr.b.math.Quad.fromRect(chromeRect);
       chromeQuad.stackingGroupId = this.maxStackingGroupId_ + 1;
       chromeQuad.imageData = chromeCtx.getImageData(
           0, 0, chromeCanvas.width, chromeCanvas.height);
@@ -571,7 +571,7 @@ tr.exportTo('tr.ui.b', function() {
       var mv = this.camera_.modelViewMatrix;
       var p = this.camera_.projectionMatrix;
 
-      var viewport = tr.b.Rect.fromXYWH(
+      var viewport = tr.b.math.Rect.fromXYWH(
           0, 0, this.canvas_.width, this.canvas_.height);
 
       // Calculate the quad stacks.
@@ -671,7 +671,7 @@ tr.exportTo('tr.ui.b', function() {
       var mousePos = this.extractRelativeMousePosition_(e);
       var res = [];
       function handleQuad(passNumber, quad, p1, p2, p3, p4) {
-        if (tr.b.pointInImplicitQuad(mousePos, p1, p2, p3, p4))
+        if (tr.b.math.pointInImplicitQuad(mousePos, p1, p2, p3, p4))
           res.push(quad);
       }
       this.stackTransformAndProcessQuads_(1, handleQuad, false);

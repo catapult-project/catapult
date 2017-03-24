@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/color_scheme.html">
-<link rel="import" href="/tracing/base/range.html">
+<link rel="import" href="/tracing/base/math/range.html">
 <link rel="import" href="/tracing/model/proxy_selectable_item.html">
 <link rel="import" href="/tracing/model/selection_state.html">
 <link rel="import" href="/tracing/ui/base/event_presenter.html">
@@ -126,7 +126,7 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     get range() {
-      var range = new tr.b.Range();
+      var range = new tr.b.math.Range();
       this.points.forEach(function(point) {
         range.addValue(point.y);
       }, this);
@@ -169,11 +169,11 @@ tr.exportTo('tr.ui.tracks', function() {
       var rightTimestamp = transform.rightTimestamp + extraPixels;
 
       // Find the index of the first and last (partially) visible points.
-      var firstVisibleIndex = tr.b.findLowIndexInSortedArray(
+      var firstVisibleIndex = tr.b.math.findLowIndexInSortedArray(
           this.points,
           function(point) { return point.x; },
           leftTimestamp);
-      var lastVisibleIndex = tr.b.findLowIndexInSortedArray(
+      var lastVisibleIndex = tr.b.math.findLowIndexInSortedArray(
           this.points,
           function(point) { return point.x; },
           rightTimestamp);
@@ -239,7 +239,7 @@ tr.exportTo('tr.ui.tracks', function() {
             break;
           }
           var density = visibleIndexRange / visibleViewXRange;
-          var clampedDensity = tr.b.clamp(density,
+          var clampedDensity = tr.b.math.clamp(density,
               this.unselectedPointDensityOpaque_,
               this.unselectedPointDensityTransparent_);
           var densityRange = this.unselectedPointDensityTransparent_ -
@@ -513,7 +513,7 @@ tr.exportTo('tr.ui.tracks', function() {
         point.addToSelection(selection);
       }
 
-      tr.b.iterateOverIntersectingIntervals(
+      tr.b.math.iterateOverIntersectingIntervals(
           this.points,
           function(point) { return point.x; },
           getPointWidth,
@@ -545,7 +545,7 @@ tr.exportTo('tr.ui.tracks', function() {
       if (this.points === undefined)
         return;
 
-      var item = tr.b.findClosestElementInSortedArray(
+      var item = tr.b.math.findClosestElementInSortedArray(
           this.points,
           function(point) { return point.x; },
           worldX,

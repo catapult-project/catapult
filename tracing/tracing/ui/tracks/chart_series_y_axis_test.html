@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/range.html">
+<link rel="import" href="/tracing/base/math/range.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/ui/tracks/chart_point.html">
 <link rel="import" href="/tracing/ui/tracks/chart_series.html">
@@ -18,7 +18,7 @@ tr.b.unittest.testSuite(function() {
   var ChartSeriesYAxis = tr.ui.tracks.ChartSeriesYAxis;
   var ChartPoint = tr.ui.tracks.ChartPoint;
   var ChartSeries = tr.ui.tracks.ChartSeries;
-  var Range = tr.b.Range;
+  var Range = tr.b.math.Range;
 
   function buildRange() {
     var range = new Range();

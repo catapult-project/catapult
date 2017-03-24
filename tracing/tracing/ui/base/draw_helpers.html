@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/sorted_array_utils.html">
+<link rel="import" href="/tracing/base/math/sorted_array_utils.html">
 <link rel="import" href="/tracing/ui/base/elided_cache.html">
 <link rel="import" href="/tracing/ui/base/event_presenter.html">
 
@@ -163,7 +163,7 @@ tr.exportTo('tr.ui.b', function() {
         ctx, 2 * pixWidth, 2 * pixWidth, colorsAsStrings);
     rect.setYandH(0, height);
 
-    var lowSlice = tr.b.findLowIndexInSortedArray(
+    var lowSlice = tr.b.math.findLowIndexInSortedArray(
         slices,
         function(slice) { return slice.start + slice.duration; },
         viewLWorld);
@@ -307,7 +307,7 @@ tr.exportTo('tr.ui.b', function() {
     dt.applyTransformToCanvas(ctx);
     ctx.beginPath();
 
-    var lowSlice = tr.b.findLowIndexInSortedArray(
+    var lowSlice = tr.b.math.findLowIndexInSortedArray(
         slices,
         function(slice) { return slice.start; },
         viewLWorld);
@@ -362,7 +362,7 @@ tr.exportTo('tr.ui.b', function() {
 
     var cY = yOffset * pixelRatio;
 
-    var lowSlice = tr.b.findLowIndexInSortedArray(
+    var lowSlice = tr.b.math.findLowIndexInSortedArray(
         slices,
         function(slice) { return slice.start + slice.duration; },
         viewLWorld);

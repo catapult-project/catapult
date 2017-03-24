@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/range.html">
+<link rel="import" href="/tracing/base/math/range.html">
 <link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/mre/function_handle.html">
 <link rel="import" href="/tracing/value/histogram.html">
@@ -23,7 +23,7 @@ tr.exportTo('pi.m', function() {
     var lastTime = 0;
     var categories = {};
 
-    var seconds_counts = {};
+    var secondsCounts = {};
     for (var event of model.getDescendantEvents()) {
       eventCount += 1;
       if (event.start < firstTime)
@@ -39,17 +39,17 @@ tr.exportTo('pi.m', function() {
       categories[event.category]++;
 
       var second = Math.round(event.start / 1000);
-      if (seconds_counts[second] === undefined)
-        seconds_counts[second] = 0;
+      if (secondsCounts[second] === undefined)
+        secondsCounts[second] = 0;
 
-      seconds_counts[second]++;
+      secondsCounts[second]++;
     }
 
     var histogram = new tr.v.Histogram(
         tr.b.Unit.byName.count, COUNT_BOUNDARIES);
 
-    for (var second in seconds_counts)
-      histogram.add(seconds_counts[second]);
+    for (var second in secondsCounts)
+      histogram.add(secondsCounts[second]);
 
     var stats = {
       totalEvents: eventCount,
@@ -66,7 +66,7 @@ tr.exportTo('pi.m', function() {
 
   tr.mre.FunctionRegistry.register(traceStatsFunction);
 
-  //Exporting for tests.
+  // Exporting for tests.
   return {
     traceStatsFunctionForTest: traceStatsFunction
   };

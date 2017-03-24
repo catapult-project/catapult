@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/rect.html">
+<link rel="import" href="/tracing/base/math/rect.html">
 <script>
 'use strict';
 
@@ -23,7 +23,7 @@ tr.exportTo('tr.e.cc', function() {
 
     var r = new Region();
     for (var i = 0; i < array.length; i += 4) {
-      r.rects.push(tr.b.Rect.fromXYWH(array[i], array[i + 1],
+      r.rects.push(tr.b.math.Rect.fromXYWH(array[i], array[i + 1],
           array[i + 2], array[i + 3]));
     }
     return r;

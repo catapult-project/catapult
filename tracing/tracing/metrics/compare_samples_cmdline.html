@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
-<link rel="import" href="/tracing/base/statistics.html">
+<link rel="import" href="/tracing/base/math/statistics.html">
 <link rel="import" href="/tracing/base/xhr.html">
 <link rel="import" href="/tracing/value/histogram_set.html">
 
@@ -84,7 +84,7 @@ function valuesFromCharts(listOfCharts, metricName) {
             'list_of_scalar_values') {
           if (charts.charts[chartName][traceName].values === null)
             continue;
-          allValues.push(tr.b.Statistics.mean(
+          allValues.push(tr.b.math.Statistics.mean(
               charts.charts[chartName][traceName].values));
         }
         if (charts.charts[chartName][traceName].type === 'histogram')
@@ -227,12 +227,12 @@ function parseMultipleBuildbotStreams(files, metric) {
 var buildComparisonResultOutput = function(a, b) {
   if (!a.length || !b.length) {
     var comparisonResult = {
-      significance: tr.b.Statistics.Significance.NEED_MORE_DATA
+      significance: tr.b.math.Statistics.Significance.NEED_MORE_DATA
     };
   } else {
-    var comparisonResult = tr.b.Statistics.mwu(
-        a, b, tr.b.Statistics.DEFAULT_ALPHA,
-        tr.b.Statistics.MAX_SUGGESTED_SAMPLE_SIZE);
+    var comparisonResult = tr.b.math.Statistics.mwu(
+        a, b, tr.b.math.Statistics.DEFAULT_ALPHA,
+        tr.b.math.Statistics.MAX_SUGGESTED_SAMPLE_SIZE);
   }
   return {
     sampleA: a,

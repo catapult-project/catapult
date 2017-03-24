@@ -116,8 +116,8 @@ tr.exportTo('tr.b.unittest', function() {
       var durationStrings = durations.map(function(d) {
         return d.toFixed(2) + 'ms';
       });
-      var average = tr.b.Statistics.mean(durations);
-      var min = tr.b.Statistics.min(durations);
+      var average = tr.b.math.Statistics.mean(durations);
+      var min = tr.b.math.Statistics.min(durations);
 
       var summaryString = ' [';
       summaryString += 'min ' + min.toFixed(2) + 'ms, ';

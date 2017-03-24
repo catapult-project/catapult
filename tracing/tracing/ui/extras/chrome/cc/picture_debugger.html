@@ -385,7 +385,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         this.selectedOpIndex = 0;
         return;
       }
-      this.selectedOpIndex = tr.b.clamp(
+      this.selectedOpIndex = tr.b.math.clamp(
           this.selectedOpIndex + increment,
           0, this.numOps);
     },

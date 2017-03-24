@@ -196,7 +196,7 @@ tr.exportTo('tr.e.importer.android', function() {
       var process = this.model_.getOrCreateProcess(activity.pid);
       // The range of the activity is the time from resume to time
       // of pause; limit the start time to the beginning of the model
-      var range = tr.b.Range.fromExplicitRange(
+      var range = tr.b.math.Range.fromExplicitRange(
           Math.max(this.model_.bounds.min, activity.lastResumeTs),
           activity.lastPauseTs);
       var newActivity = new tr.model.Activity(activity.name,

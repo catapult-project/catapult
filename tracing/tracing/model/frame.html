@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/tracing/base/color_scheme.html">
-<link rel="import" href="/tracing/base/statistics.html">
+<link rel="import" href="/tracing/base/math/statistics.html">
 <link rel="import" href="/tracing/model/event.html">
 <link rel="import" href="/tracing/model/event_set.html">
 
@@ -20,7 +20,7 @@ found in the LICENSE file.
  */
 tr.exportTo('tr.model', function() {
   var ColorScheme = tr.b.ColorScheme;
-  var Statistics = tr.b.Statistics;
+  var Statistics = tr.b.math.Statistics;
 
   var FRAME_PERF_CLASS = {
     GOOD: 'good',

@@ -13,6 +13,8 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.b', function() {
+  let deg2rad = tr.b.math.deg2rad;
+
   var constants = {
     DEFAULT_SCALE: 0.5,
     DEFAULT_EYE_DISTANCE: 10000,
@@ -23,7 +25,6 @@ tr.exportTo('tr.ui.b', function() {
     MAXIMUM_TILT: 80,
     SETTINGS_NAMESPACE: 'tr.ui_camera'
   };
-
 
   var Camera = tr.ui.b.define('camera');
 
@@ -77,7 +78,7 @@ tr.exportTo('tr.ui.b', function() {
       var aspectRatio = rect.width / rect.height;
       var matrix = mat4.create();
       mat4.perspective(
-          matrix, tr.b.deg2rad(constants.FOV), aspectRatio, 1, 100000);
+          matrix, deg2rad(constants.FOV), aspectRatio, 1, 100000);
 
       return matrix;
     },
@@ -161,15 +162,15 @@ tr.exportTo('tr.ui.b', function() {
 
       var halfFov = constants.FOV / 2;
       var multiplier =
-          2.0 * length * Math.tan(tr.b.deg2rad(halfFov)) / rect.height;
+          2.0 * length * Math.tan(deg2rad(halfFov)) / rect.height;
 
       // Get the up and right vectors.
       var up = [0, 1, 0];
       var rotMatrix = mat4.create();
       mat4.rotate(
-          rotMatrix, rotMatrix, tr.b.deg2rad(this.rotation_[1]), [0, 1, 0]);
+          rotMatrix, rotMatrix, deg2rad(this.rotation_[1]), [0, 1, 0]);
       mat4.rotate(
-          rotMatrix, rotMatrix, tr.b.deg2rad(this.rotation_[0]), [1, 0, 0]);
+          rotMatrix, rotMatrix, deg2rad(this.rotation_[0]), [1, 0, 0]);
       vec3.transformMat4(up, up, rotMatrix);
 
       var right = [0, 0, 0];
@@ -188,7 +189,7 @@ tr.exportTo('tr.ui.b', function() {
       // to be on the plane z = 0 with normal [0, 0, 1].
       if (Math.abs(this.gazeTarget_[2]) > 1e-6) {
         var gazeVector = [-eyeVector[0], -eyeVector[1], -eyeVector[2]];
-        var newLength = tr.b.clamp(
+        var newLength = tr.b.math.clamp(
             -this.eye_[2] / gazeVector[2],
             constants.MINIMUM_DISTANCE,
             constants.MAXIMUM_DISTANCE);
@@ -203,7 +204,7 @@ tr.exportTo('tr.ui.b', function() {
 
     updateZoomByDelta: function(delta) {
       var deltaY = delta[1];
-      deltaY = tr.b.clamp(deltaY, -50, 50);
+      deltaY = tr.b.math.clamp(deltaY, -50, 50);
       var scale = 1.0 - deltaY / 100.0;
 
       var eyeVector = [0, 0, 0];
@@ -239,9 +240,9 @@ tr.exportTo('tr.ui.b', function() {
       // Undo the current rotation.
       var rotMatrix = mat4.create();
       mat4.rotate(
-          rotMatrix, rotMatrix, -tr.b.deg2rad(this.rotation_[0]), [1, 0, 0]);
+          rotMatrix, rotMatrix, -deg2rad(this.rotation_[0]), [1, 0, 0]);
       mat4.rotate(
-          rotMatrix, rotMatrix, -tr.b.deg2rad(this.rotation_[1]), [0, 1, 0]);
+          rotMatrix, rotMatrix, -deg2rad(this.rotation_[1]), [0, 1, 0]);
       vec4.transformMat4(eyeVector, eyeVector, rotMatrix);
 
       // Update rotation values.
@@ -251,9 +252,9 @@ tr.exportTo('tr.ui.b', function() {
       // Redo the new rotation.
       mat4.identity(rotMatrix);
       mat4.rotate(
-          rotMatrix, rotMatrix, tr.b.deg2rad(this.rotation_[1]), [0, 1, 0]);
+          rotMatrix, rotMatrix, deg2rad(this.rotation_[1]), [0, 1, 0]);
       mat4.rotate(
-          rotMatrix, rotMatrix, tr.b.deg2rad(this.rotation_[0]), [1, 0, 0]);
+          rotMatrix, rotMatrix, deg2rad(this.rotation_[0]), [1, 0, 0]);
       vec4.transformMat4(eyeVector, eyeVector, rotMatrix);
 
       vec3.add(this.eye_, this.gazeTarget_, eyeVector);

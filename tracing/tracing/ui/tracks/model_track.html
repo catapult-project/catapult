@@ -51,7 +51,7 @@ tr.exportTo('tr.ui.tracks', function() {
    * @param {number} maxTime the upper bound of time to stop striping at.
    *     of |times|.
    *
-   * @returns {!Array.<tr.b.Range>} An array of ranges where each element
+   * @returns {!Array.<tr.b.math.Range>} An array of ranges where each element
    *     represents the time range that a stripe covers. Each range is a subset
    *     of the interval [minTime, maxTime].
    */
@@ -60,7 +60,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     // Find the lowest and highest index within the viewport.
     var lowIndex =
-        tr.b.findLowIndexInSortedArray(times, tr.b.identity, minTime);
+        tr.b.math.findLowIndexInSortedArray(times, tr.b.identity, minTime);
     var highIndex = lowIndex - 1;
     while (times[highIndex + 1] <= maxTime) {
       highIndex++;
@@ -71,7 +71,7 @@ tr.exportTo('tr.ui.tracks', function() {
     for (var i = lowIndex - (lowIndex % 2); i <= highIndex; i += 2) {
       var left = i < lowIndex ? minTime : times[i];
       var right = i + 1 > highIndex ? maxTime : times[i + 1];
-      stripes.push(tr.b.Range.fromExplicitRange(left, right));
+      stripes.push(tr.b.math.Range.fromExplicitRange(left, right));
     }
 
     return stripes;
@@ -461,7 +461,7 @@ tr.exportTo('tr.ui.tracks', function() {
       var stripeDensity =
         stripeRange ? stripes.length / (dt.scaleX * stripeRange) : 0;
       var clampedStripeDensity =
-          tr.b.clamp(stripeDensity, ModelTrack.VSYNC_DENSITY_OPAQUE,
+          tr.b.math.clamp(stripeDensity, ModelTrack.VSYNC_DENSITY_OPAQUE,
               ModelTrack.VSYNC_DENSITY_TRANSPARENT);
       var opacity =
           (ModelTrack.VSYNC_DENSITY_TRANSPARENT - clampedStripeDensity) /
@@ -499,7 +499,7 @@ tr.exportTo('tr.ui.tracks', function() {
         selection.push(instantEvent);
       }
       var instantEventWidth = 3 * viewPixWidthWorld;
-      tr.b.iterateOverIntersectingIntervals(this.model_.instantEvents,
+      tr.b.math.iterateOverIntersectingIntervals(this.model_.instantEvents,
           function(x) { return x.start; },
           function(x) { return x.duration + instantEventWidth; },
           loWX, hiWX,

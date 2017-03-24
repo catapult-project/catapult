@@ -6,8 +6,8 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/event.html">
+<link rel="import" href="/tracing/base/math/range.html">
 <link rel="import" href="/tracing/base/raf.html">
-<link rel="import" href="/tracing/base/range.html">
 
 <dom-module id='tr-v-ui-scalar-context-controller'>
   <template></template>
@@ -112,7 +112,7 @@ tr.exportTo('tr.v.ui', function() {
       if (context === undefined) {
         context = {
           spans: new Set(),
-          range: new tr.b.Range()
+          range: new tr.b.math.Range()
         };
         this.groupToContext_.set(group, context);
       }

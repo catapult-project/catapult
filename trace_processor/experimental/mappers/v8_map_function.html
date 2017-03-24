@@ -150,7 +150,7 @@ tr.exportTo('pi.m', function() {
       if (slice.title === 'V8.Execute') {
         // V8.Execute events may generate several sliceCostInfo, based on the
         // origin of the JS being executed.
-        var range = new tr.b.Range();
+        var range = new tr.b.math.Range();
         slice.addBoundsToRange(range);
         var filtered = range.filterArray(
             slice.parentContainer.samples,

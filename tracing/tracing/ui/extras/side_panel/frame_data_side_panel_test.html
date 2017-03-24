@@ -129,7 +129,7 @@ tr.b.unittest.testSuite(function() {
         new tr.model.EventSet([topLevel, slice1, slice2])));
 
     // The new range of interest contains only slice2.
-    panel.rangeOfInterest = tr.b.Range.fromExplicitRange(slice2.start,
+    panel.rangeOfInterest = tr.b.math.Range.fromExplicitRange(slice2.start,
         slice2.end);
     assert.isTrue(panel.$.table.tableRows[0].eventsOfInterest.equals(
         new tr.model.EventSet([topLevel, slice2])));

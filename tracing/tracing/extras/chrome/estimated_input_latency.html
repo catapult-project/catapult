@@ -70,7 +70,7 @@ tr.exportTo('tr.e.chrome', function() {
    * @param {!Array.<number>} interactiveTimestamps
    * @param {!Array.<number>} navStartTimestamps
    * @param {!number} traceEndTimestamp
-   * @returns {!Array.<tr.b.Range>}
+   * @returns {!Array.<tr.b.math.Range>}
    */
   function getPostInteractiveTaskWindows(
       interactiveTimestamps, navStartTimestamps, traceEndTimestamp) {
@@ -99,7 +99,7 @@ tr.exportTo('tr.e.chrome', function() {
             'PostInteractiveTaskWindow is not well defined in this case.');
       }
 
-      taskWindows.push(tr.b.Range.fromExplicitRange(
+      taskWindows.push(tr.b.math.Range.fromExplicitRange(
           currTTI, taskWindowEndTs));
       lastTaskWindowEndTs = taskWindowEndTs;
     }
@@ -120,7 +120,7 @@ tr.exportTo('tr.e.chrome', function() {
    * We assume that input arrival time is uniformly distributed in the given
    * time window.
    *
-   * @param {!tr.b.Range} A time window.
+   * @param {!tr.b.math.Range} A time window.
    * @param {!Array.<!{start: number, end: number, weight: number}>} A list of
    *        weighted tasks. The weight of a task must be between 0.0 and 1.0.
    * @returns {number}
@@ -153,7 +153,7 @@ tr.exportTo('tr.e.chrome', function() {
    * We assume that input arrival time is uniformly distributed in the given
    * time window.
    *
-   * @param {!tr.b.Range} A time window.
+   * @param {!tr.b.math.Range} A time window.
    * @param {!Array.<!{start: number, end: number, weight: number}>} A list of
    *        weighted tasks. The weight of a task must be between 0.0 and 1.0.
    * @returns {number}
@@ -170,7 +170,7 @@ tr.exportTo('tr.e.chrome', function() {
    * Returns expected queueing time for the given time window and
    * the given set of tasks. The tasks must not overlap.
    *
-   * @param {!tr.b.Range} A time window.
+   * @param {!tr.b.math.Range} A time window.
    * @param {!Array.<!{start: number, end: number}>} A list of tasks.
    * @returns {number}
    */
@@ -202,9 +202,9 @@ tr.exportTo('tr.e.chrome', function() {
        */
       this.sortedTasks_ = sortedTasks;
       /**
-       * @private {!tr.b.Range} The endpoints of the sliding window.
+       * @private {!tr.b.math.Range} The endpoints of the sliding window.
        */
-      this.range_ = tr.b.Range.fromExplicitRange(
+      this.range_ = tr.b.math.Range.fromExplicitRange(
           startTime, startTime + windowSize);
       /**
        * @private {number} The index of the first task in the sortedTasks that
@@ -258,7 +258,7 @@ tr.exportTo('tr.e.chrome', function() {
      * @param {number} The time.
      */
     slide(t) {
-      this.range_ = tr.b.Range.fromExplicitRange(t, t + this.windowSize_);
+      this.range_ = tr.b.math.Range.fromExplicitRange(t, t + this.windowSize_);
       if (this.firstTaskIndex_ < this.sortedTasks_.length &&
           this.sortedTasks_[this.firstTaskIndex_].end <= t) {
         // The first task moved out of the window.

@@ -25,7 +25,7 @@ Polymer({
     /** @type {!Map.<string, !tr.b.Scalar>} */
     this.scalarMap_ = new Map();
 
-    /** @type {!Map.<string, !tr.b.Statistics.Significance>} */
+    /** @type {!Map.<string, !tr.b.math.Statistics.Significance>} */
     this.significance_ = new Map();
   },
 
@@ -67,7 +67,7 @@ Polymer({
 
   /**
    * @param {string} key
-   * @param {!tr.b.Statistics.Significance} significance
+   * @param {!tr.b.math.Statistics.Significance} significance
    */
   setSignificanceForKey: function(key, significance) {
     this.significance_.set(key, significance);

@@ -60,7 +60,7 @@ tr.b.unittest.testSuite(function() {
       {x: 30, alpha: 100, beta: 125},
       {x: 40, alpha: 50, beta: 125}
     ];
-    chart.brushedRange = tr.b.Range.fromExplicitRange(20, 40);
+    chart.brushedRange = tr.b.math.Range.fromExplicitRange(20, 40);
   });
 
   test('instantiation_twoSparseSeriesWithFirstValueSparse', function() {
@@ -106,10 +106,10 @@ tr.b.unittest.testSuite(function() {
 
     function updateBrushedRange() {
       if (mouseDownX === undefined || (mouseDownX === curMouseX)) {
-        chart.brushedRange = new tr.b.Range();
+        chart.brushedRange = new tr.b.math.Range();
         return;
       }
-      var r = new tr.b.Range();
+      var r = new tr.b.math.Range();
       r.min = Math.min(mouseDownX, curMouseX);
       r.max = Math.max(mouseDownX, curMouseX);
       chart.brushedRange = r;
@@ -134,7 +134,7 @@ tr.b.unittest.testSuite(function() {
 
   test('instantiation_overrideDataRange', function() {
     var chart = new tr.ui.b.BarChart();
-    chart.overrideDataRange = tr.b.Range.fromExplicitRange(10, 90);
+    chart.overrideDataRange = tr.b.math.Range.fromExplicitRange(10, 90);
     this.addHTMLOutput(chart);
     chart.data = [
       {x: 0, value: -20},
@@ -144,7 +144,7 @@ tr.b.unittest.testSuite(function() {
     ];
 
     chart = new tr.ui.b.BarChart();
-    chart.overrideDataRange = tr.b.Range.fromExplicitRange(-10, 100);
+    chart.overrideDataRange = tr.b.math.Range.fromExplicitRange(-10, 100);
     this.addHTMLOutput(chart);
     chart.data = [
       {x: 0, value: 0},

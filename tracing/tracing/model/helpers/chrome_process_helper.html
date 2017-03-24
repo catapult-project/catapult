@@ -66,8 +66,8 @@ tr.exportTo('tr.model.helpers', function() {
             start = slice.start;
           } else if (/^telemetry\.internal\.[^.]*\.end$/.test(slice.title) &&
               start !== undefined) {
-            this.telemetryInternalRanges_.push(tr.b.Range.fromExplicitRange(
-                start, slice.end));
+            this.telemetryInternalRanges_.push(
+                tr.b.math.Range.fromExplicitRange(start, slice.end));
             start = undefined;
           }
         }

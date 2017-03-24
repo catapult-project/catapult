@@ -4,7 +4,7 @@ Copyright (c) 2014 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/tracing/base/sorted_array_utils.html">
+<link rel="import" href="/tracing/base/math/sorted_array_utils.html">
 <script>
 'use strict';
 
@@ -20,14 +20,14 @@ tr.b.unittest.testSuite(function() {
     },
 
     findLowElementIndex: function(ts) {
-      return tr.b.findLowIndexInSortedArray(
+      return tr.b.math.findLowIndexInSortedArray(
           this.array,
           function(x) { return x.lo; },
           ts);
     },
 
     findIntervalIndex: function(ts) {
-      return tr.b.findIndexInSortedIntervals(
+      return tr.b.math.findIndexInSortedIntervals(
           this.array,
           function(x) { return x.lo; },
           function(x) { return x.hi - x.lo; },
@@ -35,7 +35,7 @@ tr.b.unittest.testSuite(function() {
     },
 
     findIndexInClosedIntervals: function(ts) {
-      return tr.b.findIndexInSortedClosedIntervals(
+      return tr.b.math.findIndexInSortedClosedIntervals(
           this.array,
           function(x) { return x.lo; },
           function(x) { return x.hi; },
@@ -45,7 +45,7 @@ tr.b.unittest.testSuite(function() {
     findIntersectingIntervals: function(tsA, tsB) {
       var array = this.array;
       var result = [];
-      tr.b.iterateOverIntersectingIntervals(
+      tr.b.math.iterateOverIntersectingIntervals(
           this.array,
           function(x) { return x.lo; },
           function(x) { return x.hi - x.lo; },
@@ -56,7 +56,7 @@ tr.b.unittest.testSuite(function() {
     },
 
     findClosestElement: function(ts, tsDiff) {
-      return tr.b.findClosestElementInSortedArray(
+      return tr.b.math.findClosestElementInSortedArray(
           this.array,
           function(x) { return x.lo; },
           ts,
@@ -64,7 +64,7 @@ tr.b.unittest.testSuite(function() {
     },
 
     findClosestInterval: function(ts, tsDiff) {
-      return tr.b.findClosestIntervalInSortedIntervals(
+      return tr.b.math.findClosestIntervalInSortedIntervals(
           this.array,
           function(x) { return x.lo; },
           function(x) { return x.hi; },
