@@ -92,8 +92,7 @@ class Job(ndb.Model):
     self.state.AddChange(change)
 
   def Start(self):
-    task = taskqueue.add(queue_name='job-queue', target='pinpoint',
-                         url='/run/' + self.job_id,
+    task = taskqueue.add(queue_name='job-queue', url='/run/' + self.job_id,
                          countdown=_TASK_INTERVAL)
     self.task = task.name
 
