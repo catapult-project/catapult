@@ -162,9 +162,10 @@ tr.exportTo('tr.v', function() {
       // case it is modified.
       this.binBoundariesDict_ = binBoundaries.asDict();
 
-      this.allBins = [];
+      this.allBins = binBoundaries.bins.slice();
       this.description = '';
       this.diagnostics = new tr.v.d.DiagnosticMap();
+      this.maxNumSampleValues_ = this.defaultMaxNumSampleValues_;
       this.name_ = name;
       this.nanDiagnosticMaps = [];
       this.numNans = 0;
@@ -174,13 +175,6 @@ tr.exportTo('tr.v', function() {
       this.summaryOptions = new Map(DEFAULT_SUMMARY_OPTIONS);
       this.summaryOptions.set('percentile', []);
       this.unit = unit;
-
-      this.allBins.length = binBoundaries.binRanges.length;
-      for (let i = 0; i < this.allBins.length; ++i) {
-        this.allBins[i] = new HistogramBin(binBoundaries.binRanges[i]);
-      }
-
-      this.maxNumSampleValues_ = this.defaultMaxNumSampleValues_;
     }
 
     get running() {
@@ -233,10 +227,14 @@ tr.exportTo('tr.v', function() {
       if (dict.allBins) {
         if (dict.allBins.length !== undefined) {
           for (let i = 0; i < dict.allBins.length; ++i) {
+            // Copy HistogramBin on write, share the rest with the other
+            // Histograms that use the same HistogramBinBoundaries.
+            hist.allBins[i] = new HistogramBin(hist.allBins[i].range);
             hist.allBins[i].fromDict(dict.allBins[i]);
           }
         } else {
           for (var [i, binDict] of Object.entries(dict.allBins)) {
+            hist.allBins[i] = new HistogramBin(hist.allBins[i].range);
             hist.allBins[i].fromDict(binDict);
           }
         }
@@ -361,11 +359,16 @@ tr.exportTo('tr.v', function() {
       return this.allBins[this.allBins.length - 1].range.min;
     }
 
-    getBinForValue(value) {
+    getBinIndexForValue(value) {
       // Don't use subtraction to avoid arithmetic overflow.
-      let binIndex = tr.b.math.findHighIndexInSortedArray(
+      const i = tr.b.math.findHighIndexInSortedArray(
           this.allBins, b => ((value < b.range.max) ? -1 : 1));
-      return this.allBins[binIndex] || this.allBins[this.allBins.length - 1];
+      if (0 <= i && i < this.allBins.length) return i;
+      return this.allBins.length - 1;
+    }
+
+    getBinForValue(value) {
+      return this.allBins[this.getBinIndexForValue(value)];
     }
 
     /**
@@ -390,7 +393,14 @@ tr.exportTo('tr.v', function() {
         }
         this.running_.add(value);
 
-        let bin = this.getBinForValue(value);
+        const binIndex = this.getBinIndexForValue(value);
+        let bin = this.allBins[binIndex];
+        if (bin.count === 0) {
+          // Copy HistogramBin on write, share the rest with the other
+          // Histograms that use the same HistogramBinBoundaries.
+          bin = new HistogramBin(bin.range);
+          this.allBins[binIndex] = bin;
+        }
         bin.addSample(value);
         if (opt_diagnostics) {
           bin.addDiagnosticMap(opt_diagnostics);
@@ -956,6 +966,7 @@ tr.exportTo('tr.v', function() {
       this.range_ = new tr.b.math.Range();
       this.range_.addValue(minBinBoundary);
       this.binRanges_ = undefined;
+      this.bins_ = undefined;
     }
 
     get range() {
@@ -986,7 +997,7 @@ tr.exportTo('tr.v', function() {
 
       // When loading a results2.html with many Histograms with the same bin
       // boundaries, caching the HistogramBinBoundaries not only speeds up
-      // loading, but also prevents a bug where build_ is occasionally
+      // loading, but also prevents a bug where buildBinRanges_ is occasionally
       // non-deterministic, which causes similar Histograms to be unmergeable.
       let cacheKey = JSON.stringify(dict);
       if (HISTOGRAM_BIN_BOUNDARIES_CACHE.has(cacheKey)) {
@@ -1016,17 +1027,28 @@ tr.exportTo('tr.v', function() {
       return binBoundaries;
     }
 
+    get bins() {
+      if (this.bins_ === undefined) {
+        this.buildBins_();
+      }
+      return this.bins_;
+    }
+
+    buildBins_() {
+      this.bins_ = this.binRanges.map(r => new HistogramBin(r));
+    }
+
     /**
      * @return {!Array.<!tr.b.math.Range>}
      */
     get binRanges() {
       if (this.binRanges_ === undefined) {
-        this.build_();
+        this.buildBinRanges_();
       }
       return this.binRanges_;
     }
 
-    build_() {
+    buildBinRanges_() {
       if (typeof this.builder_[0] !== 'number') {
         throw new Error('Invalid start of builder_');
       }
@@ -1108,6 +1130,7 @@ tr.exportTo('tr.v', function() {
 
       // If binRanges_ had been built, then clear them.
       this.binRanges_ = undefined;
+      this.bins_ = undefined;
 
       this.pushBuilderSlice_(nextMaxBinBoundary);
       this.range.addValue(nextMaxBinBoundary);
@@ -1148,6 +1171,7 @@ tr.exportTo('tr.v', function() {
 
       // If binRanges_ had been built, then clear them.
       this.binRanges_ = undefined;
+      this.bins_ = undefined;
 
       this.pushBuilderSlice_([
         HistogramBinBoundaries.SLICE_TYPE.LINEAR,
@@ -1194,6 +1218,7 @@ tr.exportTo('tr.v', function() {
 
       // If binRanges_ had been built, then clear them.
       this.binRanges_ = undefined;
+      this.bins_ = undefined;
 
       this.pushBuilderSlice_([
         HistogramBinBoundaries.SLICE_TYPE.EXPONENTIAL,
@@ -1211,10 +1236,10 @@ tr.exportTo('tr.v', function() {
   // This special HistogramBinBoundaries instance produces a singe binRange,
   // allowing Histograms to have a single bin.
   // This is the only way for Histograms to have fewer than 2 bins, since
-  // HistogramBinBoundaries.build_() ensures that there is always a bin whose
-  // min is -Number.MAX_VALUE, and a bin whose max is Number.MAX_VALUE. SINGULAR
-  // is the only HistogramBinBoundaries in which those bins are one and the
-  // same.
+  // HistogramBinBoundaries.buildBinRanges_() ensures that there is always a bin
+  // whose min is -Number.MAX_VALUE, and a bin whose max is Number.MAX_VALUE.
+  // SINGULAR is the only HistogramBinBoundaries in which those bins are one and
+  // the same.
   HistogramBinBoundaries.SINGULAR = new HistogramBinBoundaries(
       Number.MAX_VALUE);
 
