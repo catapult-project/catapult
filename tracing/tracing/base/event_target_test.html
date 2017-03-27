@@ -10,12 +10,12 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  test('eventTargetHelper', function() {
+  test('eventTarget', function() {
     var listenerCallCount = 0;
     function listener() { listenerCallCount++; }
 
     var div = new tr.b.EventTarget();
-    tr.b.EventTargetHelper.decorate(div);
+    tr.b.EventTarget.decorate(div);
 
     assert.isFalse(div.hasEventListener('foo'));
 
