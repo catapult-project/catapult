@@ -79,7 +79,7 @@ tr.b.unittest.testSuite(function() {
 
     browserMainThread.sliceGroup.pushSlice(tr.c.TestUtils.newAsyncSliceEx({
       cat: 'benchmark,latencyInfo,rail',
-      title: 'InputLatency',
+      title: 'InputLatency::MouseUp',
       start,
       duration: 0.1,
       args: {
@@ -87,6 +87,19 @@ tr.b.unittest.testSuite(function() {
           trace_id: traceId
         }
       }
+    }));
+  }
+
+  function addGoToIndexSlice(model, timestamp) {
+    let browserProcess = model.getOrCreateProcess(BROWSER_PROCESS_ID);
+    let browserMainThread = browserProcess.getOrCreateThread(
+        BROWSER_PROCESS_MAIN_THREAD_ID);
+
+    browserMainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+      cat: 'browser,navigation,benchmark',
+      title: 'NavigationControllerImpl::GoToIndex',
+      start: timestamp,
+      duration: 0.1
     }));
   }
 
@@ -126,7 +139,7 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(spaNavigations, 0);
   });
 
-  test('findSpaNavigations_noInputLatency', function() {
+  test('findSpaNavigations_noNavStartEvent', function() {
     let model = tr.c.TestUtils.newModel(model => {
       createChromeProcessesOnModel(model);
       addThreadSlice(model, SPA_NAVIGATION_EVENT_TITLE, 100);
@@ -148,7 +161,7 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(spaNavigations, 0);
   });
 
-  test('findSpaNavigations_oneSpaNav', function() {
+  test('findSpaNavigations_inputLatencyAsNavStart', function() {
     const URL = 'https://11111';
     let model = tr.c.TestUtils.newModel(model => {
       createChromeProcessesOnModel(model);
@@ -160,7 +173,29 @@ tr.b.unittest.testSuite(function() {
     });
     let spaNavigations = getSpaNavigations(model);
     assert.lengthOf(spaNavigations, 1);
-    assert.strictEqual(spaNavigations[0].navigationStart.start, 55);
+    assert.strictEqual(
+        spaNavigations[0].navStartCandidates.inputLatencyAsyncSlice.start, 55);
+    assert.strictEqual(
+        spaNavigations[0].navStartCandidates.goToIndexSlice, undefined);
+    assert.strictEqual(spaNavigations[0].firstPaintEvent.start, 101);
+    assert.strictEqual(spaNavigations[0].url, URL);
+  });
+
+  test('findSpaNavigations_goToIndexAsNavStart', function() {
+    const URL = 'https://11111';
+    let model = tr.c.TestUtils.newModel(model => {
+      createChromeProcessesOnModel(model);
+      addThreadSlice(model, SPA_NAVIGATION_EVENT_TITLE, 100,
+          {url: URL});
+      addGoToIndexSlice(model, 55);
+      addThreadSlice(model, PAINT_UPDATE_TITLE, 101);
+    });
+    let spaNavigations = getSpaNavigations(model);
+    assert.lengthOf(spaNavigations, 1);
+    assert.strictEqual(
+        spaNavigations[0].navStartCandidates.goToIndexSlice.start, 55);
+    assert.strictEqual(
+        spaNavigations[0].navStartCandidates.inputLatencyAsyncSlice, undefined);
     assert.strictEqual(spaNavigations[0].firstPaintEvent.start, 101);
     assert.strictEqual(spaNavigations[0].url, URL);
   });
@@ -183,6 +218,7 @@ tr.b.unittest.testSuite(function() {
       addLatencyInfoFlowEvent(model, 275, '0x60000010d');
 
       addInputLatencySlice(model, 55, 25769803863);
+      addGoToIndexSlice(model, 65);
       addInputLatencySlice(model, 155, 25769803970);
       addInputLatencySlice(model, 255, 25769804045);
 
@@ -194,10 +230,21 @@ tr.b.unittest.testSuite(function() {
     let spaNavigations = getSpaNavigations(model);
     assert.lengthOf(spaNavigations, 3);
     spaNavigations.sort((spa1, spa2) =>
-        spa1.navigationStart.start - spa2.navigationStart.start);
-    assert.strictEqual(spaNavigations[0].navigationStart.start, 55);
-    assert.strictEqual(spaNavigations[1].navigationStart.start, 155);
-    assert.strictEqual(spaNavigations[2].navigationStart.start, 255);
+        spa1.navStartCandidates.inputLatencyAsyncSlice.start -
+            spa2.navStartCandidates.inputLatencyAsyncSlice.start);
+    assert.strictEqual(
+        spaNavigations[0].navStartCandidates.inputLatencyAsyncSlice.start, 55);
+    assert.strictEqual(
+        spaNavigations[1].navStartCandidates.inputLatencyAsyncSlice.start, 155);
+    assert.strictEqual(
+        spaNavigations[2].navStartCandidates.inputLatencyAsyncSlice.start, 255);
+
+    assert.strictEqual(
+        spaNavigations[0].navStartCandidates.goToIndexSlice, undefined);
+    assert.strictEqual(
+        spaNavigations[1].navStartCandidates.goToIndexSlice, undefined);
+    assert.strictEqual(
+        spaNavigations[2].navStartCandidates.goToIndexSlice, undefined);
 
     assert.strictEqual(spaNavigations[0].firstPaintEvent.start, 101);
     assert.strictEqual(spaNavigations[1].firstPaintEvent.start, 201);

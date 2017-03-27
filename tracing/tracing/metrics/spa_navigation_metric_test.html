@@ -45,6 +45,18 @@ tr.b.unittest.testSuite(function() {
     }));
   }
 
+  function addGoToIndexSlice(model, timestamp) {
+    let browserProcess = model.getOrCreateProcess(BROWSER_PROCESS_ID);
+    let browserMainThread = browserProcess.getOrCreateThread(
+        BROWSER_PROCESS_MAIN_THREAD_ID);
+    browserMainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+      cat: 'browser,navigation,benchmark',
+      title: 'NavigationControllerImpl::GoToIndex',
+      start: timestamp,
+      duration: 0.1
+    }));
+  }
+
   function addFirstPaintSlice(model, timestamp) {
     let rendererProcess = model.getOrCreateProcess(RENDERER_PROCESS_ID);
     let mainThread = rendererProcess.getOrCreateThread(
@@ -58,7 +70,7 @@ tr.b.unittest.testSuite(function() {
     }));
   }
 
-  function addNavigationStartSlices(model, timestamp) {
+  function addInputLatencyRelatedSlices(model, timestamp) {
     let latencyInfoFlowSlice = tr.c.TestUtils.newSliceEx({
       cat: 'input,benchmark',
       title: 'LatencyInfo.Flow',
@@ -88,7 +100,7 @@ tr.b.unittest.testSuite(function() {
         BROWSER_PROCESS_MAIN_THREAD_ID);
     browserMainThread.sliceGroup.pushSlice(tr.c.TestUtils.newAsyncSliceEx({
       cat: 'benchmark,latencyInfo,rail',
-      title: 'InputLatency',
+      title: 'InputLatency::MouseUp',
       start: timestamp - 3,
       duration: 0.1,
       args: {
@@ -110,14 +122,14 @@ tr.b.unittest.testSuite(function() {
     return spaNavigationStartToFpDurationHist;
   }
 
-  test('spaNavigationStartToFirstPaintDuration_noChromeProcess', function() {
+  test('spaNavStartToFirstPaintDuration_noChromeProcess', function() {
     let model = tr.c.TestUtils.newModel();
     let histogram = getHistogramNamed(
         SPA_NAVIGATION_START_TO_FIRST_PAINT_DURATION, model);
     assert(!histogram);
   });
 
-  test('spaNavigationStartToFirstPaintDuration_noSpaNavStart', function() {
+  test('spaNavStartToFirstPaintDuration_noSpaNavStart', function() {
     let model = tr.c.TestUtils.newModel(model => {
       createChromeProcessesOnModel(model);
       addSpaNavigationEvent(model, 100);
@@ -128,10 +140,10 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(0, histogram.numValues);
   });
 
-  test('spaNavigationStartToFirstPaintDuration_noFirstPaint', function() {
+  test('spaNavStartToFirstPaintDuration_noFirstPaint', function() {
     let model = tr.c.TestUtils.newModel(model => {
       createChromeProcessesOnModel(model);
-      addNavigationStartSlices(model, 99);
+      addInputLatencyRelatedSlices(model, 99);
       addSpaNavigationEvent(model, 100);
     });
     let histogram = getHistogramNamed(
@@ -139,11 +151,11 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(0, histogram.numValues);
   });
 
-  test('spaNavigationStartToFirstPaintDuration_oneSpaNav', function() {
+  test('spaNavStartToFirstPaintDuration_inputLatencyAsNavStart', function() {
     const URL = 'https://11111';
     let model = tr.c.TestUtils.newModel(model => {
       createChromeProcessesOnModel(model);
-      addNavigationStartSlices(model, 99);
+      addInputLatencyRelatedSlices(model, 99);
       addSpaNavigationEvent(model, 100, {url: URL});
       addFirstPaintSlice(model, 101);
     });
@@ -165,18 +177,42 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(diagnostic.value.firstPaint, 101);
   });
 
-  test('spaNavigationStartToFirstPaintDuration_multipleSpaNavs', function() {
+  test('spaNavStartToFirstPaintDuration_goToIndexAsNavStart', function() {
+    const URL = 'https://11111';
     let model = tr.c.TestUtils.newModel(model => {
       createChromeProcessesOnModel(model);
-      addNavigationStartSlices(model, 99);
+      addGoToIndexSlice(model, 99);
+      addSpaNavigationEvent(model, 100, {url: URL});
+      addFirstPaintSlice(model, 101);
+    });
+    let histogram = getHistogramNamed(
+        SPA_NAVIGATION_START_TO_FIRST_PAINT_DURATION, model);
+    assert.strictEqual(1, histogram.running.count);
+    let expectedDuration = 101 - 99;
+    assert.closeTo(expectedDuration, histogram.running.sum, 0.5);
+
+    let binsWithSampleDiagnosticMaps =
+        histogram.allBins.filter(bin => bin.diagnosticMaps.length > 0);
+    let diagnostic = binsWithSampleDiagnosticMaps[0].diagnosticMaps[0].get(
+        'Navigation infos');
+    assert.strictEqual(diagnostic.value.url, URL);
+    assert.strictEqual(diagnostic.value.pid, RENDERER_PROCESS_ID);
+    assert.strictEqual(diagnostic.value.navStart, 99);
+    assert.strictEqual(diagnostic.value.firstPaint, 101);
+  });
+
+  test('spaNavStartToFirstPaintDuration_multipleSpaNavs', function() {
+    let model = tr.c.TestUtils.newModel(model => {
+      createChromeProcessesOnModel(model);
+      addInputLatencyRelatedSlices(model, 99);
       addSpaNavigationEvent(model, 100);
       addFirstPaintSlice(model, 101);
 
-      addNavigationStartSlices(model, 198);
+      addInputLatencyRelatedSlices(model, 198);
       addSpaNavigationEvent(model, 200);
       addFirstPaintSlice(model, 201);
 
-      addNavigationStartSlices(model, 297);
+      addInputLatencyRelatedSlices(model, 297);
       addSpaNavigationEvent(model, 300);
       addFirstPaintSlice(model, 301);
     });

@@ -49,12 +49,18 @@ tr.exportTo('tr.metrics', function() {
       let spaNavigations = tr.metrics.findSpaNavigationsOnRenderer(
           rendererHelper, browserHelper);
       for (let spaNav of spaNavigations) {
-        let beginData = spaNav.navigationStart.args.data;
-        // TODO(sunjian): rename convertTimestampToModelTime to something like
-        // convertTraceEventTsToModelTs and get rid of the first parameter.
-        let beginTs = model.convertTimestampToModelTime(
-            'traceEventClock',
-            beginData.INPUT_EVENT_LATENCY_BEGIN_RWH_COMPONENT.time);
+        let beginTs = 0;
+        if (spaNav.navStartCandidates.inputLatencyAsyncSlice) {
+          let beginData =
+              spaNav.navStartCandidates.inputLatencyAsyncSlice.args.data;
+          // TODO(sunjian): rename convertTimestampToModelTime to something like
+          // convertTraceEventTsToModelTs and get rid of the first parameter.
+          beginTs = model.convertTimestampToModelTime(
+              'traceEventClock',
+              beginData.INPUT_EVENT_LATENCY_BEGIN_RWH_COMPONENT.time);
+        } else {
+          beginTs = spaNav.navStartCandidates.goToIndexSlice.start;
+        }
         let duration = spaNav.firstPaintEvent.start - beginTs;
         let breakdownDict = rendererHelper.generateWallClockTimeBreakdownTree(
             beginTs, spaNav.firstPaintEvent.start);
