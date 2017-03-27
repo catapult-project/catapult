@@ -47,8 +47,10 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
   TestExports.schedSwitchRE = schedSwitchRE;
 
   // Matches the sched_wakeup record
+  /* Sample trace line: sched_wakeup: comm=kworker/0:1 pid=56 prio=120 target_cpu=000 */
+  /* Some kernels have a success=1 after prio and before target_cpu so we match it if it exists */
   var schedWakeupRE =
-      /comm=(.+) pid=(\d+) prio=(\d+) success=(\d+) target_cpu=(\d+)/;
+      /comm=(.+) pid=(\d+) prio=(\d+)(.*)target_cpu=(\d+)/;
   TestExports.schedWakeupRE = schedWakeupRE;
 
   SchedParser.prototype = {
