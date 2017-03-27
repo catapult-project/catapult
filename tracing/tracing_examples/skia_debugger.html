@@ -30,6 +30,7 @@ found in the LICENSE file.
   <div class="view"></div>
   <script>
   'use strict';
+  /* eslint-disable no-console */
 
   var debuggerEl;
 
@@ -59,7 +60,7 @@ found in the LICENSE file.
         tr.Rect.fromXYWH(0, 0, size.width, size.height));
   }
 
-  function utf8_to_b64(str) {
+  function utf8ToB64(str) {
     return tr.b.Base64.btoa(unescape(encodeURIComponent(str)));
   }
 
@@ -68,11 +69,11 @@ found in the LICENSE file.
       var view = new Uint8Array(arr);
       var data = base64EncArr(view, 1);
       onSkpLoaded(filename, data);
-    },'arraybuffer');
+    }, 'arraybuffer');
   }
   function YloadSkp(filename, onSkpLoaded) {
     getAsync(filename, function(data) {
-      var data64 = utf8_to_b64(data);
+      var data64 = utf8ToB64(data);
       onSkpLoaded(filename, data64);
     });
   }
@@ -114,9 +115,9 @@ found in the LICENSE file.
   function onHashChange() {
     var file = window.location.hash.substr(1);
     var select = document.querySelector('#skp_file');
-    if (select[select.selectedIndex].value != file) {
+    if (select[select.selectedIndex].value !== file) {
       for (var i = 0; i < select.children.length; i++) {
-        if (select.children[i].value == file) {
+        if (select.children[i].value === file) {
           select.selectedIndex = i;
           break;
         }
@@ -130,9 +131,9 @@ found in the LICENSE file.
       return ' ' + letter.toUpperCase();
     }
     return file.replace(/_/g, ' ')
-               .replace(/\.[^\.]*$/, '')
-               .replace(/ ([a-z])/g, upcase)
-               .replace(/^[a-z]/, upcase);
+        .replace(/\.[^\.]*$/, '')
+        .replace(/ ([a-z])/g, upcase)
+        .replace(/^[a-z]/, upcase);
   }
 
   function reload() {

@@ -61,7 +61,7 @@ found in the LICENSE file.
       getAsync(filename, function(trace) {
         traces[i] = trace;
         numTracesPending--;
-        if (numTracesPending == 0) {
+        if (numTracesPending === 0) {
           loadTracesMakedTimer.end();
           onTracesLoaded(filenames, traces);
         }
@@ -79,29 +79,28 @@ found in the LICENSE file.
         'TraceImport', 'createViewFromTraces');
     var m = new tr.Model();
 
-    var trackDetailedModelStatsEl =
-        tr.b.findDeepElementMatching(document.body,
-                                     '#track-detailed-model-stats');
+    var trackDetailedModelStatsEl = tr.b.findDeepElementMatching(
+        document.body, '#track-detailed-model-stats');
     var importOptions = new tr.importer.ImportOptions();
     importOptions.trackDetailedModelStats = trackDetailedModelStatsEl.checked;
     var i = new tr.importer.Import(m, importOptions);
     var p = i.importTracesWithProgressDialog(traces);
 
     p.then(
-      function() {
-        timelineViewEl.model = m;
-        timelineViewEl.updateDocumentFavicon();
-        timelineViewEl.globalMode = true;
-        timelineViewEl.viewTitle = '';
-        createViewFromTracesTimer.end();
-      },
-      function(err) {
-        var overlay = new tr.ui.b.Overlay();
-        overlay.textContent = tr.b.normalizeException(err).message;
-        overlay.title = 'Import error';
-        overlay.visible = true;
-        createViewFromTracesTimer.end();
-      });
+        function() {
+          timelineViewEl.model = m;
+          timelineViewEl.updateDocumentFavicon();
+          timelineViewEl.globalMode = true;
+          timelineViewEl.viewTitle = '';
+          createViewFromTracesTimer.end();
+        },
+        function(err) {
+          var overlay = new tr.ui.b.Overlay();
+          overlay.textContent = tr.b.normalizeException(err).message;
+          overlay.title = 'Import error';
+          overlay.visible = true;
+          createViewFromTracesTimer.end();
+        });
   }
 
   function onSelectionChange() {
@@ -110,7 +109,7 @@ found in the LICENSE file.
 
   function onHashChange() {
     var file = window.location.hash.substr(1);
-    if (selectEl[selectEl.selectedIndex].value != file) {
+    if (selectEl[selectEl.selectedIndex].value !== file) {
       for (var i = 0; i < selectEl.children.length; i++) {
         if (selectEl.children[i].value === file) {
           selectEl.selectedIndex = i;
@@ -130,9 +129,9 @@ found in the LICENSE file.
     }
 
     return rest.replace(/_/g, ' ')
-               .replace(/\.[^\.]*$/, '')
-               .replace(/ ([a-z])/g, upcase)
-               .replace(/^[a-z]/, upcase);
+        .replace(/\.[^\.]*$/, '')
+        .replace(/ ([a-z])/g, upcase)
+        .replace(/^[a-z]/, upcase);
   }
 
   function reload() {
