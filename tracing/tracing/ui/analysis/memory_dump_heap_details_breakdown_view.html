@@ -305,7 +305,7 @@ tr.exportTo('tr.ui.analysis', function() {
         return [TabUiState.SHOWING_LONG_TAIL, rows];
       }
       var absSize = row => Math.max(row.cells.Size.fields[0].value);
-      rows.sort((a, b) => absSize(a) - absSize(b));
+      rows.sort((a, b) => absSize(b) - absSize(a));
       rows = rows.slice(0, RESONABLE_NUMBER_OF_ROWS);
       return [TabUiState.HIDING_LONG_TAIL, rows];
     },
