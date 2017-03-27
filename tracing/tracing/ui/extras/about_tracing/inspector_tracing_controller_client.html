@@ -119,11 +119,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     },
 
     beginGetBufferPercentFull: function() {
-      return new Promise(resolve => {
-        setTimeout(() => {
-          resolve(this.bufferUsage_);
-        }, 100);
-      });
+      return tr.b.timeout(100).then(() => this.bufferUsage_());
     },
 
     onDataCollected_: function(messageString) {

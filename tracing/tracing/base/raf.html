@@ -198,15 +198,25 @@ tr.exportTo('tr.b', function() {
     processRequests(true, 0);
   }
 
+  function timeout(ms) {
+    return new Promise(resolve => window.setTimeout(resolve, ms));
+  }
+
+  function idle() {
+    return new Promise(resolve => requestIdleCallback(resolve));
+  }
+
   return {
     animationFrame,
     forceAllPendingTasksToRunForTest,
     forcePendingRAFTasksToRun,
+    idle,
     onAnimationFrameError,
     requestAnimationFrame,
     requestAnimationFrameInThisFrameIfPossible,
     requestIdleCallback,
     requestPreAnimationFrame,
+    timeout,
   };
 });
 </script>

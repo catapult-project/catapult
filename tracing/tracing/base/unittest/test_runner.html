@@ -132,9 +132,9 @@ tr.exportTo('tr.b.unittest', function() {
       this.numRunsSinceLastRIC_++;
       if (this.numRunsSinceLastRIC_ === NUM_TESTS_PER_RIC) {
         this.numRunsSinceLastRIC_ = 0;
-        tr.b.requestIdleCallback(this.runOneTestCase_, this);
+        tr.b.idle().then(() => this.runOneTestCase_());
       } else {
-        Promise.resolve().then(this.runOneTestCase_.bind(this));
+        Promise.resolve().then(() => this.runOneTestCase_());
       }
     },
 

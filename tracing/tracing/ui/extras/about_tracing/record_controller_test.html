@@ -22,43 +22,35 @@ tr.b.unittest.testSuite(function() {
   ];
 
   test('fullRecording', function() {
-    return new Promise(function(resolve, reject) {
-      var mock = new tr.ui.e.about_tracing.MockTracingControllerClient();
-      mock.expectRequest('endRecording', function() {
-        return '';
-      });
-      mock.expectRequest('getCategories', function() {
-        setTimeout(function() {
-          recordingPromise.selectionDlg.clickRecordButton();
-        }, 20);
-        return ['a', 'b', 'c'];
-      });
-      mock.expectRequest('beginRecording', function(recordingOptions) {
-        assert.typeOf(recordingOptions.categoryFilter, 'string');
-        assert.typeOf(recordingOptions.useSystemTracing, 'boolean');
-        assert.typeOf(recordingOptions.useSampling, 'boolean');
-        assert.typeOf(recordingOptions.tracingRecordMode, 'string');
-        setTimeout(function() {
-          recordingPromise.progressDlg.clickStopButton();
-        }, 10);
-        return '';
-      });
-      mock.expectRequest('endRecording', function(data) {
-        return JSON.stringify(testData);
-      });
+    const mock = new tr.ui.e.about_tracing.MockTracingControllerClient();
+    mock.expectRequest('endRecording', function() {
+      return '';
+    });
+    mock.expectRequest('getCategories', function() {
+      tr.b.timeout(20).then(() =>
+        recordingPromise.selectionDlg.clickRecordButton());
+      return ['a', 'b', 'c'];
+    });
+    mock.expectRequest('beginRecording', function(recordingOptions) {
+      assert.typeOf(recordingOptions.categoryFilter, 'string');
+      assert.typeOf(recordingOptions.useSystemTracing, 'boolean');
+      assert.typeOf(recordingOptions.useSampling, 'boolean');
+      assert.typeOf(recordingOptions.tracingRecordMode, 'string');
+      tr.b.timeout(10).then(() =>
+        recordingPromise.progressDlg.clickStopButton());
+      return '';
+    });
+    mock.expectRequest('endRecording', function(data) {
+      return JSON.stringify(testData);
+    });
 
-      var recordingPromise = tr.ui.e.about_tracing.beginRecording(mock);
+    const recordingPromise = tr.ui.e.about_tracing.beginRecording(mock);
 
-      return recordingPromise.then(
-          function(data) {
-            mock.assertAllRequestsHandled();
-            var testDataString = JSON.stringify(testData);
-            assert.equal(data, testDataString);
-            resolve();
-          },
-          function(error) {
-            reject('This should never be reached');
-          });
+    return recordingPromise.then(function(data) {
+      mock.assertAllRequestsHandled();
+      assert.strictEqual(data, JSON.stringify(testData));
+    }, function(error) {
+      assert.fail(error);
     });
   });
 });

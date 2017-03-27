@@ -276,7 +276,7 @@ tr.exportTo('tr.ui.b', function() {
     onFocusIn_: function(e) {
       if (e.target === this) return;
 
-      window.setTimeout(function() { this.focus(); }, 0);
+      tr.b.timeout(0).then(() => this.focus());
       e.preventDefault();
       e.stopPropagation();
     },

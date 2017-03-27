@@ -204,10 +204,10 @@ found in the LICENSE file.
       gapi.load('picker', {'callback': onPickerApiLoad});
       gapi.load('auth', {'callback': function() {
         onAuthApiLoad(true, onAuthResultSuccess);
-        setTimeout(function onRepeatAuthApiLoad() {
-          onAuthApiLoad(true, function() {});
-          setTimeout(onRepeatAuthApiLoad, 30000);
-        }, 30000);
+        return tr.b.timeout(30e3)
+            .then(() => onAuthApiLoad(true, function() {}))
+            .then(() => tr.b.timeout(30e3))
+            .then(() => onRepeatAuthApiLoad);
       }});
     };
 

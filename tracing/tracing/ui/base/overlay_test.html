@@ -108,17 +108,10 @@ tr.b.unittest.testSuite(function() {
       closeClicked = true;
     });
 
-    return new Promise(function(resolve, reject) {
-      function pressClose() {
-        closeBtn.click();
-        if (closeClicked) {
-          resolve();
-        } else {
-          reject(new Error('closeclick event is not dispatched'));
-        }
-      }
-      dlg.visible = true;
-      setTimeout(pressClose, 60);
+    dlg.visible = true;
+    return tr.b.timeout(60).then(() => {
+      closeBtn.click();
+      assert.isTrue(closeClicked);
     });
   });
 });
