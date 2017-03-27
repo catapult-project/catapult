@@ -198,12 +198,36 @@ tr.exportTo('tr.v.ui', function() {
 
     set brushedBins(bins) {
       this.brushedBins_ = bins;
+      if (this.chart_ === undefined) return;
       let brushedBinIndices = new tr.b.math.Range();
       for (let bin of bins) {
         brushedBinIndices.addValue(this.histogram.allBins.indexOf(bin));
       }
       this.chart_.brushedRange = brushedBinIndices;
       this.updateDiagnostics_();
+    },
+
+    get brushedBinRange() {
+      if (this.chart_ === undefined) return new tr.b.Range();
+      return this.chart_.brushedRange;
+    },
+
+    set brushedBinRange(r) {
+      if (this.chart_ === undefined) return;
+      let brushedBins = [];
+      for (let i = r.min; i <= r.max; ++i) {
+        brushedBins.push(this.histogram.allBins[i]);
+      }
+      this.brushedBins = brushedBins;
+    },
+
+    get mergeSampleDiagnostics() {
+      return this.canMergeSampleDiagnostics &&
+          this.$.merge_sample_diagnostics.checked;
+    },
+
+    set mergeSampleDiagnostics(m) {
+      this.$.merge_sample_diagnostics.checked = m;
     },
 
     updateBrushedRange_(binIndex) {
@@ -268,8 +292,7 @@ tr.exportTo('tr.v.ui', function() {
         return;
       }
 
-      if (this.canMergeSampleDiagnostics &&
-          this.$.merge_sample_diagnostics.checked) {
+      if (this.mergeSampleDiagnostics) {
         let merged = new tr.v.d.DiagnosticMap();
         for (let map of maps) {
           merged.addDiagnostics(map);
