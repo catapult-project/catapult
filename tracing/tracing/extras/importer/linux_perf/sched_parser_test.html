@@ -57,8 +57,14 @@ tr.b.unittest.testSuite(function() {
     assert.equal(x[1], 'SensorService');
     assert.equal(x[2], '207');
     assert.equal(x[3], '112');
-    assert.equal(x[4], '1');
-    assert.equal(x[5], '000');
+    assert.equal(x[4], '000');
+    var y = re.exec(
+        'comm=SensorService pid=207 prio=112 target_cpu=000');
+    assert.isNotNull(y);
+    assert.equal(y[1], 'SensorService');
+    assert.equal(y[2], '207');
+    assert.equal(y[3], '112');
+    assert.equal(y[4], '000');
   });
 
   test('importOneSequenceWithSchedWakeUp', function() {
