@@ -972,6 +972,8 @@ tr.exportTo('tr.ui.b', function() {
       if (rowInfo === undefined)
         throw new Error('Row has not been seen, must expand its parents');
 
+      const wasExpanded = rowInfo.isExpanded;
+
       rowInfo.isExpanded = !!expanded;
       // If no node, then nothing further needs doing.
       if (rowInfo.htmlNode === undefined)
@@ -997,6 +999,12 @@ tr.exportTo('tr.ui.b', function() {
       } else {
         Polymer.dom(expandButton).classList.remove('button-expanded');
         this.removeSubNodes_(tableSection, rowInfo, rowInfoMap);
+      }
+
+      if (wasExpanded !== rowInfo.isExpanded) {
+        let e = new tr.b.Event('row-expanded-changed');
+        e.row = rowInfo.userRow;
+        this.dispatchEvent(e);
       }
 
       this.maybeUpdateSelectedRow_();

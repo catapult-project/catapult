@@ -33,6 +33,32 @@ tr.b.unittest.testSuite(function() {
     return element.dispatchEvent(event);
   }
 
+  test('rowExpandedChanged', function() {
+    const table = document.createElement('tr-ui-b-table');
+    table.tableColumns = [
+      {
+        title: 'Name',
+        value: row => row.value,
+      }
+    ];
+    table.tableRows = [{value: 'a', subRows: [{value: 'b'}]}];
+    let count = 0;
+    table.addEventListener('row-expanded-changed', e => ++count);
+    this.addHTMLOutput(table);
+    table.rebuild();
+
+    assert.strictEqual(0, count);
+
+    table.setExpandedForTableRow(table.tableRows[0], true);
+    assert.strictEqual(1, count);
+
+    table.setExpandedForTableRow(table.tableRows[0], true);
+    assert.strictEqual(1, count);
+
+    table.setExpandedForTableRow(table.tableRows[0], false);
+    assert.strictEqual(2, count);
+  });
+
   test('instantiateEmptyTable_withoutEmptyValue', function() {
     var columns = [
       {
