@@ -194,8 +194,9 @@ tr.exportTo('tr.ui.b', function() {
             constants.MINIMUM_DISTANCE,
             constants.MAXIMUM_DISTANCE);
 
-        for (var i = 0; i < 3; ++i)
+        for (var i = 0; i < 3; ++i) {
           this.gazeTarget_[i] = this.eye_[i] + newLength * gazeVector[i];
+        }
       }
 
       this.saveCameraToSettings(tr.b.SessionSettings());
@@ -213,10 +214,11 @@ tr.exportTo('tr.ui.b', function() {
       var length = vec3.length(eyeVector);
 
       // Clamp the length to allowed values by changing the scale.
-      if (length * scale < constants.MINIMUM_DISTANCE)
+      if (length * scale < constants.MINIMUM_DISTANCE) {
         scale = constants.MINIMUM_DISTANCE / length;
-      else if (length * scale > constants.MAXIMUM_DISTANCE)
+      } else if (length * scale > constants.MAXIMUM_DISTANCE) {
         scale = constants.MAXIMUM_DISTANCE / length;
+      }
 
       vec3.scale(eyeVector, eyeVector, scale);
       vec3.add(this.eye_, this.gazeTarget_, eyeVector);
@@ -229,10 +231,12 @@ tr.exportTo('tr.ui.b', function() {
       delta[0] *= 0.5;
       delta[1] *= 0.5;
 
-      if (Math.abs(this.rotation_[0] + delta[1]) > constants.MAXIMUM_TILT)
+      if (Math.abs(this.rotation_[0] + delta[1]) > constants.MAXIMUM_TILT) {
         return;
-      if (Math.abs(this.rotation_[1] - delta[0]) > constants.MAXIMUM_TILT)
+      }
+      if (Math.abs(this.rotation_[1] - delta[0]) > constants.MAXIMUM_TILT) {
         return;
+      }
 
       var eyeVector = [0, 0, 0, 0];
       vec3.subtract(eyeVector, this.eye_, this.gazeTarget_);
@@ -271,8 +275,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     onPanUpdate_: function(e) {
-      if (!this.panning_)
-        return;
+      if (!this.panning_) return;
 
       var delta = this.getMouseDelta_(e, this.lastMousePosition_);
       this.lastMousePosition_ = this.getMousePosition_(e);
@@ -293,8 +296,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     onZoomUpdate_: function(e) {
-      if (!this.zooming_)
-        return;
+      if (!this.zooming_) return;
 
       var delta = this.getMouseDelta_(e, this.lastMousePosition_);
       this.lastMousePosition_ = this.getMousePosition_(e);
@@ -312,8 +314,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     onRotateUpdate_: function(e) {
-      if (!this.rotating_)
-        return;
+      if (!this.rotating_) return;
 
       var delta = this.getMouseDelta_(e, this.lastMousePosition_);
       this.lastMousePosition_ = this.getMousePosition_(e);

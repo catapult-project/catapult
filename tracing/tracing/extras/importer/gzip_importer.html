@@ -29,8 +29,9 @@ tr.exportTo('tr.e.importer', function() {
       eventData = JSZip.utils.transformTo('uint8array', eventData);
     } else if (eventData instanceof ArrayBuffer) {
       eventData = new Uint8Array(eventData);
-    } else
+    } else {
       throw new Error('Unknown gzip data format');
+    }
     this.model_ = model;
     this.gzipData_ = eventData;
   }
@@ -42,14 +43,15 @@ tr.exportTo('tr.e.importer', function() {
    */
   GzipImporter.canImport = function(eventData) {
     var header;
-    if (eventData instanceof ArrayBuffer)
+    if (eventData instanceof ArrayBuffer) {
       header = new Uint8Array(eventData.slice(0, GZIP_MEMBER_HEADER_ID_SIZE));
-    else if (typeof(eventData) === 'string' || eventData instanceof String) {
+    } else if (typeof(eventData) === 'string' || eventData instanceof String) {
       header = eventData.substring(0, GZIP_MEMBER_HEADER_ID_SIZE);
       // Convert the string to a byteArray for correct value comparison.
       header = JSZip.utils.transformTo('uint8array', header);
-    } else
+    } else {
       return false;
+    }
     return header[0] === GZIP_HEADER_ID1 &&
         header[1] === GZIP_HEADER_ID2 &&
         header[2] === GZIP_DEFLATE_COMPRESSION;
@@ -63,8 +65,9 @@ tr.exportTo('tr.e.importer', function() {
     var position = 0;
 
     function getByte() {
-      if (position >= data.length)
+      if (position >= data.length) {
         throw new Error('Unexpected end of gzip data');
+      }
       return data[position++];
     }
 
@@ -84,11 +87,13 @@ tr.exportTo('tr.e.importer', function() {
 
     var id1 = getByte();
     var id2 = getByte();
-    if (id1 !== GZIP_HEADER_ID1 || id2 !== GZIP_HEADER_ID2)
+    if (id1 !== GZIP_HEADER_ID1 || id2 !== GZIP_HEADER_ID2) {
       throw new Error('Not gzip data');
+    }
     var compressionMethod = getByte();
-    if (compressionMethod !== GZIP_DEFLATE_COMPRESSION)
+    if (compressionMethod !== GZIP_DEFLATE_COMPRESSION) {
       throw new Error('Unsupported compression method: ' + compressionMethod);
+    }
     var flags = getByte();
     var haveHeaderCrc = flags & (1 << 1);
     var haveExtraFields = flags & (1 << 2);
@@ -103,12 +108,9 @@ tr.exportTo('tr.e.importer', function() {
       var bytesToSkip = getWord();
       skipBytes(bytesToSkip);
     }
-    if (haveFileName)
-      skipZeroTerminatedString();
-    if (haveComment)
-      skipZeroTerminatedString();
-    if (haveHeaderCrc)
-      getWord();
+    if (haveFileName) skipZeroTerminatedString();
+    if (haveComment) skipZeroTerminatedString();
+    if (haveHeaderCrc) getWord();
 
     // Inflate the data using jszip.
     var inflatedData =
@@ -142,8 +144,9 @@ tr.exportTo('tr.e.importer', function() {
     }
 
     var type = JSZip.utils.getTypeOf(data);
-    if (type === 'string')
+    if (type === 'string') {
       return data;  // We already have a string.
+    }
 
     if (type === 'array') {
       // TextDecoder requires an ArrayBuffer or an ArrayBufferView.

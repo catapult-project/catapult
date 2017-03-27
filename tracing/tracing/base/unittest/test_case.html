@@ -13,24 +13,27 @@ tr.exportTo('tr.b.unittest', function() {
   var TestTypes = tr.b.unittest.TestTypes;
 
   function TestCase(name, opt_testFn, opt_options) {
-    if (!name)
+    if (!name) {
       throw new Error('Name must be provided');
+    }
     this.guid_ = tr.b.GUID.allocateSimple();
     this.suite_ = undefined; // Set by TestSuite.addTest.
     this.name_ = name;
 
-    if (opt_options)
+    if (opt_options) {
       this.options_ = opt_options;
-    else
+    } else {
       this.options_ = {};
+    }
 
     this.testFn_ = opt_testFn;
   }
 
   TestCase.parseFullyQualifiedName = function(fqn) {
     var i = fqn.lastIndexOf('.');
-    if (i === -1)
+    if (i === -1) {
       throw new Error('FullyQualifiedNames must have a period in them');
+    }
     return {
       suiteName: fqn.substr(0, i),
       testCaseName: fqn.substr(i + 1)
@@ -49,8 +52,9 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     set suite(suite) {
-      if (this.suite_ !== undefined)
+      if (this.suite_ !== undefined) {
         throw new Error('Suite can only be assigned once.');
+      }
       this.suite_ = suite;
     },
 
@@ -71,8 +75,9 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     setUp: function() {
-      if (this.options_.setUp)
+      if (this.options_.setUp) {
         this.options_.setUp.call(this);
+      }
     },
 
     run: function(htmlHook) {
@@ -80,8 +85,9 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     tearDown: function() {
-      if (this.options_.tearDown)
+      if (this.options_.tearDown) {
         this.options_.tearDown.call(this);
+      }
     },
 
     // TODO(nduca): The routing of this is a bit awkward. Probably better

@@ -42,8 +42,7 @@ tr.exportTo('tr.b.math', function() {
 
   /* Returns the quotient, or zero if the denominator is zero.*/
   Statistics.divideIfPossibleOrZero = function(numerator, denominator) {
-    if (denominator === 0)
-      return 0;
+    if (denominator === 0) return 0;
     return numerator / denominator;
   };
 
@@ -51,8 +50,9 @@ tr.exportTo('tr.b.math', function() {
     var func = opt_func || identity;
     var ret = 0;
     var i = 0;
-    for (var elt of ary)
+    for (var elt of ary) {
       ret += func.call(opt_this, elt, i++);
+    }
     return ret;
   };
 
@@ -61,11 +61,11 @@ tr.exportTo('tr.b.math', function() {
     var sum = 0;
     var i = 0;
 
-    for (var elt of ary)
+    for (var elt of ary) {
       sum += func.call(opt_this, elt, i++);
+    }
 
-    if (i === 0)
-      return undefined;
+    if (i === 0) return undefined;
 
     return sum / i;
   };
@@ -79,13 +79,11 @@ tr.exportTo('tr.b.math', function() {
     // in order to prevent overflow.
     for (var elt of ary) {
       var x = func.call(opt_this, elt, i++);
-      if (x <= 0)
-        return 0;
+      if (x <= 0) return 0;
       logsum += Math.log(Math.abs(x));
     }
 
-    if (i === 0)
-      return 1;
+    if (i === 0) return 1;
 
     return Math.exp(logsum / i);
   };
@@ -101,24 +99,20 @@ tr.exportTo('tr.b.math', function() {
     for (var elt of ary) {
       i++;
       var value = valueCallback.call(opt_this, elt, i);
-      if (value === undefined)
-        continue;
+      if (value === undefined) continue;
       var weight = weightCallback.call(opt_this, elt, i, value);
       numerator += weight * value;
       denominator += weight;
     }
 
-    if (denominator === 0)
-      return undefined;
+    if (denominator === 0) return undefined;
 
     return numerator / denominator;
   };
 
   Statistics.variance = function(ary, opt_func, opt_this) {
-    if (ary.length === 0)
-      return undefined;
-    if (ary.length === 1)
-      return 0;
+    if (ary.length === 0) return undefined;
+    if (ary.length === 1) return 0;
     var func = opt_func || identity;
     var mean = Statistics.mean(ary, func, opt_this);
     var sumOfSquaredDistances = Statistics.sum(
@@ -132,8 +126,7 @@ tr.exportTo('tr.b.math', function() {
   };
 
   Statistics.stddev = function(ary, opt_func, opt_this) {
-    if (ary.length === 0)
-      return undefined;
+    if (ary.length === 0) return undefined;
     return Math.sqrt(
         Statistics.variance(ary, opt_func, opt_this));
   };
@@ -142,8 +135,9 @@ tr.exportTo('tr.b.math', function() {
     var func = opt_func || identity;
     var ret = -Infinity;
     var i = 0;
-    for (var elt of ary)
+    for (var elt of ary) {
       ret = Math.max(ret, func.call(opt_this, elt, i++));
+    }
     return ret;
   };
 
@@ -151,8 +145,9 @@ tr.exportTo('tr.b.math', function() {
     var func = opt_func || identity;
     var ret = Infinity;
     var i = 0;
-    for (var elt of ary)
+    for (var elt of ary) {
       ret = Math.min(ret, func.call(opt_this, elt, i++));
+    }
     return ret;
   };
 
@@ -160,20 +155,23 @@ tr.exportTo('tr.b.math', function() {
     var func = opt_func || identity;
     var ret = new tr.b.math.Range();
     var i = 0;
-    for (var elt of ary)
+    for (var elt of ary) {
       ret.addValue(func.call(opt_this, elt, i++));
+    }
     return ret;
   };
 
   Statistics.percentile = function(ary, percent, opt_func, opt_this) {
-    if (!(percent >= 0 && percent <= 1))
+    if (!(percent >= 0 && percent <= 1)) {
       throw new Error('percent must be [0,1]');
+    }
 
     var func = opt_func || identity;
     var tmp = new Array(ary.length);
     var i = 0;
-    for (var elt of ary)
+    for (var elt of ary) {
       tmp[i] = func.call(opt_this, elt, i++);
+    }
     tmp.sort((a, b) => a - b);
     var idx = Math.floor((ary.length - 1) * percent);
     return tmp[idx];
@@ -237,8 +235,7 @@ tr.exportTo('tr.b.math', function() {
    * http://mathworld.wolfram.com/Discrepancy.html
    */
   Statistics.discrepancy = function(samples, opt_locationCount) {
-    if (samples.length === 0)
-      return 0.0;
+    if (samples.length === 0) return 0.0;
 
     var maxLocalDiscrepancy = 0;
     var invSampleCount = 1.0 / samples.length;
@@ -360,11 +357,9 @@ tr.exportTo('tr.b.math', function() {
    **/
   Statistics.timestampsDiscrepancy = function(timestamps, opt_absolute,
       opt_locationCount) {
-    if (timestamps.length === 0)
-      return 0.0;
+    if (timestamps.length === 0) return 0.0;
 
-    if (opt_absolute === undefined)
-      opt_absolute = true;
+    if (opt_absolute === undefined) opt_absolute = true;
 
     if (Array.isArray(timestamps[0])) {
       var rangeDiscrepancies = timestamps.map(function(r) {
@@ -408,8 +403,7 @@ tr.exportTo('tr.b.math', function() {
    **/
   Statistics.durationsDiscrepancy = function(
       durations, opt_absolute, opt_locationCount) {
-    if (durations.length === 0)
-      return 0.0;
+    if (durations.length === 0) return 0.0;
 
     var timestamps = durations.reduce(function(prev, curr, index, array) {
       prev.push(prev[prev.length - 1] + curr);
@@ -462,16 +456,16 @@ tr.exportTo('tr.b.math', function() {
   Statistics.uniformlySampleStream = function(samples, streamLength, newElement,
       numSamples) {
     if (streamLength <= numSamples) {
-      if (samples.length >= streamLength)
+      if (samples.length >= streamLength) {
         samples[streamLength - 1] = newElement;
-      else
+      } else {
         samples.push(newElement);
+      }
       return;
     }
 
     var probToKeep = numSamples / streamLength;
-    if (Math.random() > probToKeep)
-      return;  // New sample was rejected.
+    if (Math.random() > probToKeep) return;  // New sample was rejected.
 
     // Keeping it, replace an alement randomly.
     var index = Math.floor(Math.random() * numSamples);
@@ -633,8 +627,7 @@ tr.exportTo('tr.b.math', function() {
   };
 
   Statistics.UniformDistribution = function(opt_range) {
-    if (!opt_range)
-      opt_range = tr.b.math.Range.fromExplicitRange(0, 1);
+    if (!opt_range) opt_range = tr.b.math.Range.fromExplicitRange(0, 1);
     this.range = opt_range;
   };
 

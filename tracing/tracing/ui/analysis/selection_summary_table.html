@@ -67,10 +67,11 @@ Polymer({
     var selection = this.selection_;
     var rows = [];
     var hasRange;
-    if (this.selection_ && (!selection.bounds.isEmpty))
+    if (this.selection_ && (!selection.bounds.isEmpty)) {
       hasRange = true;
-    else
+    } else {
       hasRange = false;
+    }
 
     rows.push({
       title: 'Selection start',

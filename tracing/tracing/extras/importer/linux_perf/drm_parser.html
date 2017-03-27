@@ -46,8 +46,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
      */
     vblankEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /crtc=(\d+), seq=(\d+)/.exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       var crtc = parseInt(event[1]);
       var seq = parseInt(event[2]);

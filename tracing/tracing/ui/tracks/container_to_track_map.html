@@ -23,8 +23,9 @@ tr.exportTo('tr.ui.tracks', function() {
 
   ContainerToTrackMap.prototype = {
     addContainer: function(container, track) {
-      if (!track)
+      if (!track) {
         throw new Error('Must provide a track.');
+      }
       this.stableIdToTrackMap_[container.stableId] = track;
     },
 

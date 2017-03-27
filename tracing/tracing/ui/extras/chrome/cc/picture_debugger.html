@@ -241,8 +241,9 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       var length = rawData.length;
       var arrayBuffer = new ArrayBuffer(length);
       var uint8Array = new Uint8Array(arrayBuffer);
-      for (var c = 0; c < length; c++)
+      for (var c = 0; c < length; c++) {
         uint8Array[c] = rawData.charCodeAt(c);
+      }
 
       // Create a blob URL from the binary array.
       var blob = new Blob([uint8Array], {type: 'application/octet-binary'});
@@ -303,8 +304,8 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     scheduleUpdateContents_: function() {
-      if (this.updateContentsPending_)
-        return;
+      if (this.updateContentsPending_) return;
+
       this.updateContentsPending_ = true;
       tr.b.requestAnimationFrameInThisFrameIfPossible(
           this.updateContents_.bind(this)
@@ -324,8 +325,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.drawOpsChartView_.scrollSelectedItemIntoViewIfNecessary();
 
       // Return if picture hasn't finished rasterizing.
-      if (!this.pictureAsImageData_)
-        return;
+      if (!this.pictureAsImageData_) return;
 
       this.infoBar_.visible = false;
       this.infoBar_.removeAllButtons();
@@ -346,15 +346,16 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
     drawPicture_: function() {
       var size = this.getRasterCanvasSize_();
-      if (size.width !== this.rasterCanvas_.width)
+      if (size.width !== this.rasterCanvas_.width) {
         this.rasterCanvas_.width = size.width;
-      if (size.height !== this.rasterCanvas_.height)
+      }
+      if (size.height !== this.rasterCanvas_.height) {
         this.rasterCanvas_.height = size.height;
+      }
 
       this.rasterCtx_.clearRect(0, 0, size.width, size.height);
 
-      if (!this.pictureAsImageData_.imageData)
-        return;
+      if (!this.pictureAsImageData_.imageData) return;
 
       var imgCanvas = this.pictureAsImageData_.asCanvas();
       var w = imgCanvas.width;
@@ -422,10 +423,11 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     set showSummaryChart(chartShouldBeVisible) {
-      if (chartShouldBeVisible)
+      if (chartShouldBeVisible) {
         this.drawOpsChartSummaryView_.show();
-      else
+      } else {
         this.drawOpsChartSummaryView_.hide();
+      }
     },
 
     trackMouse_: function() {
@@ -457,8 +459,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     onUpdateZoom_: function(e) {
-      if (!this.isZooming_)
-        return;
+      if (!this.isZooming_) return;
 
       var currentMouseViewPos = this.extractRelativeMousePosition_(e);
 

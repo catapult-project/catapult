@@ -251,13 +251,15 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       // Matches Mali perf events with thread info
       var lineREWithThread =
           /^\s*\(([\w\-]*)\)\s*(\w+):\s*([\w\\\/\.\-]*@\d*):?\s*(.*)$/;
-      if (lineREWithThread.test(line))
+      if (lineREWithThread.test(line)) {
         return lineREWithThread;
+      }
 
       // Matches old-style Mali perf events
       var lineRENoThread = /^s*()(\w+):\s*([\w\\\/.\-]*):?\s*(.*)$/;
-      if (lineRENoThread.test(line))
+      if (lineRENoThread.test(line)) {
         return lineRENoThread;
+      }
       return null;
     },
 
@@ -279,8 +281,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     maliDDKEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       if (this.lineRE === null) {
         this.lineRE = this.autoDetectLineRE(eventBase.details);
-        if (this.lineRE === null)
-          return false;
+        if (this.lineRE === null) return false;
       }
       var maliEvent = this.lineRE.exec(eventBase.details);
       // Old-style Mali perf events have no thread id, so make one.
@@ -315,8 +316,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
     dvfsEventEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /utilization=(\d+)/.exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       this.dvfsSample('DVFS Utilization', 'utilization', ts, event[1]);
       return true;
@@ -324,8 +324,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
     dvfsSetClockEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /frequency=(\d+)/.exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       this.dvfsSample('DVFS Frequency', 'frequency', ts, event[1]);
       return true;
@@ -333,8 +332,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
     dvfsSetVoltageEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /voltage=(\d+)/.exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       this.dvfsSample('DVFS Voltage', 'voltage', ts, event[1]);
       return true;
@@ -342,8 +340,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
     hwcSample: function(cat, counterName, seriesName, ts, eventBase) {
       var event = /val=(\d+)/.exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
       var value = parseInt(event[1]);
 
       var counter = this.model_.kernel.

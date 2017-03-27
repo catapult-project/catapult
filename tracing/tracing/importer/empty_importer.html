@@ -23,8 +23,9 @@ tr.exportTo('tr.importer', function() {
   }
 
   EmptyImporter.canImport = function(eventData) {
-    if (eventData instanceof Array && eventData.length === 0)
+    if (eventData instanceof Array && eventData.length === 0) {
       return true;
+    }
     if (typeof(eventData) === 'string' || eventData instanceof String) {
       return eventData.length === 0;
     }

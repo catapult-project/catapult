@@ -27,10 +27,11 @@ tr.exportTo('tr.b', function() {
     tr.b.unittest.TestRunner.addEventListener(
         'tr-unittest-will-run',
         function() {
-          if (tr.isHeadless)
+          if (tr.isHeadless) {
             Settings.setAlternativeStorageInstance(new HeadlessStorage());
-          else
+          } else {
             Settings.setAlternativeStorageInstance(global.sessionStorage);
+          }
         });
   }
 
@@ -53,8 +54,9 @@ tr.exportTo('tr.b', function() {
     inputClass.get = function(key, opt_default, opt_namespace) {
       key = inputClass.namespace_(key, opt_namespace);
       var rawVal = inputClass.storage_.getItem(key);
-      if (rawVal === null || rawVal === undefined)
+      if (rawVal === null || rawVal === undefined) {
         return opt_default;
+      }
 
       // Old settings versions used to stringify objects instead of putting them
       // into JSON. If those are encountered, parse will fail. In that case,
@@ -77,8 +79,9 @@ tr.exportTo('tr.b', function() {
      * a set of related settings.
      */
     inputClass.set = function(key, value, opt_namespace) {
-      if (value === undefined)
+      if (value === undefined) {
         throw new Error('Settings.set: value must not be undefined');
+      }
       var v = JSON.stringify({value: value});
       inputClass.storage_.setItem(
           inputClass.namespace_(key, opt_namespace), v);
@@ -96,8 +99,9 @@ tr.exportTo('tr.b', function() {
       opt_namespace = opt_namespace || '';
       for (var i = 0; i < inputClass.storage_.length; i++) {
         var key = inputClass.storage_.key(i);
-        if (inputClass.isnamespaced_(key, opt_namespace))
+        if (inputClass.isnamespaced_(key, opt_namespace)) {
           result.push(inputClass.unnamespace_(key, opt_namespace));
+        }
       }
       return result;
     };
@@ -129,8 +133,9 @@ tr.exportTo('tr.b', function() {
     };
 
     inputClass.getAlternativeStorageInstance = function() {
-      if (!tr.isHeadless && inputClass.storage_ === localStorage)
+      if (!tr.isHeadless && inputClass.storage_ === localStorage) {
         return undefined;
+      }
       return inputClass.storage_;
     };
 
@@ -149,24 +154,28 @@ tr.exportTo('tr.b', function() {
     },
 
     get itemsAsArray() {
-      if (this.itemsAsArray_ !== undefined)
+      if (this.itemsAsArray_ !== undefined) {
         return this.itemsAsArray_;
+      }
       var itemsAsArray = [];
-      for (var k in this.items_)
+      for (var k in this.items_) {
         itemsAsArray.push(k);
+      }
       this.itemsAsArray_ = itemsAsArray;
       return this.itemsAsArray_;
     },
 
     getItem: function(key) {
-      if (!this.hasItem_[key])
+      if (!this.hasItem_[key]) {
         return null;
+      }
       return this.items_[key];
     },
 
     removeItem: function(key) {
-      if (!this.hasItem_[key])
+      if (!this.hasItem_[key]) {
         return;
+      }
       var value = this.items_[key];
       delete this.hasItem_[key];
       delete this.items_[key];

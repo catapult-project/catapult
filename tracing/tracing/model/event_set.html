@@ -31,8 +31,9 @@ tr.exportTo('tr.model', function() {
 
     if (opt_events) {
       if (opt_events instanceof Array) {
-        for (var event of opt_events)
+        for (var event of opt_events) {
           this.push(event);
+        }
       } else if (opt_events instanceof EventSet) {
         this.addEventSet(opt_events);
       } else {
@@ -49,8 +50,7 @@ tr.exportTo('tr.model', function() {
     },
 
     get duration() {
-      if (this.bounds_.isEmpty)
-        return 0;
+      if (this.bounds_.isEmpty) return 0;
       return this.bounds_.max - this.bounds_.min;
     },
 
@@ -63,8 +63,9 @@ tr.exportTo('tr.model', function() {
     },
 
     * [Symbol.iterator]() {
-      for (var event of this.events_)
+      for (var event of this.events_) {
         yield event;
+      }
     },
 
     clear: function() {
@@ -79,17 +80,20 @@ tr.exportTo('tr.model', function() {
     push: function(...events) {
       var numPushed;
       for (var event of events) {
-        if (event.guid === undefined)
+        if (event.guid === undefined) {
           throw new Error('Event must have a GUID');
+        }
 
         if (!this.events_.has(event)) {
           this.events_.add(event);
           // Some uses of eventSet (e.g. in tests) have Events as objects that
           // don't have addBoundsToRange as a function. Thus we need to handle
           // this case.
-          if (event.addBoundsToRange)
-            if (this.bounds_ !== undefined)
+          if (event.addBoundsToRange) {
+            if (this.bounds_ !== undefined) {
               event.addBoundsToRange(this.bounds_);
+            }
+          }
         }
         numPushed++;
       }
@@ -97,14 +101,14 @@ tr.exportTo('tr.model', function() {
     },
 
     contains: function(event) {
-      if (this.events_.has(event))
-        return event;
+      if (this.events_.has(event)) return event;
       return undefined;
     },
 
     addEventSet: function(eventSet) {
-      for (var event of eventSet)
+      for (var event of eventSet) {
         this.push(event);
+      }
     },
 
     intersectionIsEmpty: function(otherEventSet) {
@@ -112,8 +116,7 @@ tr.exportTo('tr.model', function() {
     },
 
     equals: function(that) {
-      if (this.length !== that.length)
-        return false;
+      if (this.length !== that.length) return false;
       return this.every(event => that.contains(event));
     },
 
@@ -123,8 +126,9 @@ tr.exportTo('tr.model', function() {
       ary.sort(compare);
 
       this.clear();
-      for (var event of ary)
+      for (var event of ary) {
         this.push(event);
+      }
     },
 
     getEventsOrganizedByBaseType: function(opt_pruneEmpty) {
@@ -135,8 +139,8 @@ tr.exportTo('tr.model', function() {
         var maxEventTypeInfo = undefined;
 
         allTypeInfos.forEach(function(eventTypeInfo, eventIndex) {
-          if (!(event instanceof eventTypeInfo.constructor))
-            return;
+          if (!(event instanceof eventTypeInfo.constructor)) return;
+
           if (eventIndex > maxEventIndex) {
             maxEventIndex = eventIndex;
             maxEventTypeInfo = eventTypeInfo;
@@ -152,8 +156,9 @@ tr.exportTo('tr.model', function() {
 
       if (!opt_pruneEmpty) {
         allTypeInfos.forEach(function(eventTypeInfo) {
-          if (events[eventTypeInfo.metadata.name] === undefined)
+          if (events[eventTypeInfo.metadata.name] === undefined) {
             events[eventTypeInfo.metadata.name] = new EventSet();
+          }
         });
       }
 
@@ -162,8 +167,9 @@ tr.exportTo('tr.model', function() {
 
     getEventsOrganizedByTitle: function() {
       return this.getEventsOrganizedByCallback(function(event) {
-        if (event.title === undefined)
+        if (event.title === undefined) {
           throw new Error('An event didn\'t have a title!');
+        }
         return event.title;
       });
     },
@@ -179,9 +185,11 @@ tr.exportTo('tr.model', function() {
     },
 
     enumEventsOfType: function(type, func) {
-      for (var event of this)
-        if (event instanceof type)
+      for (var event of this) {
+        if (event instanceof type) {
           func(event);
+        }
+      }
     },
 
     get userFriendlyName() {
@@ -208,50 +216,60 @@ tr.exportTo('tr.model', function() {
 
     filter: function(fn, opt_this) {
       var res = new EventSet();
-      for (var event of this)
-        if (fn.call(opt_this, event))
+      for (var event of this) {
+        if (fn.call(opt_this, event)) {
           res.push(event);
+        }
+      }
 
       return res;
     },
 
     toArray: function() {
       var ary = [];
-      for (var event of this)
+      for (var event of this) {
         ary.push(event);
+      }
       return ary;
     },
 
     forEach: function(fn, opt_this) {
-      for (var event of this)
+      for (var event of this) {
         fn.call(opt_this, event);
+      }
     },
 
     map: function(fn, opt_this) {
       var res = [];
-      for (var event of this)
+      for (var event of this) {
         res.push(fn.call(opt_this, event));
+      }
       return res;
     },
 
     every: function(fn, opt_this) {
-      for (var event of this)
-        if (!fn.call(opt_this, event))
+      for (var event of this) {
+        if (!fn.call(opt_this, event)) {
           return false;
+        }
+      }
       return true;
     },
 
     some: function(fn, opt_this) {
-      for (var event of this)
-        if (fn.call(opt_this, event))
+      for (var event of this) {
+        if (fn.call(opt_this, event)) {
           return true;
+        }
+      }
       return false;
     },
 
     asDict: function() {
       var stableIds = [];
-      for (var event of this)
+      for (var event of this) {
         stableIds.push(event.stableId);
+      }
       return {'events': stableIds};
     },
 

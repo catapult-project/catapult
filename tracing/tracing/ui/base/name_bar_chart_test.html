@@ -100,8 +100,8 @@ tr.b.unittest.testSuite(function() {
       updateBrushedRange();
     });
     chart.addEventListener('item-mousemove', function(e) {
-      if (e.button === undefined)
-        return;
+      if (e.button === undefined) return;
+
       currentMouseIndex = e.index;
       updateBrushedRange();
     });

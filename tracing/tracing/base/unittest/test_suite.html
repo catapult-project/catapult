@@ -38,10 +38,12 @@ tr.exportTo('tr.b.unittest', function() {
 
     global.test = function(testCaseOrName, opt_testFn, opt_options) {
       if (testCaseOrName instanceof TestCase) {
-        if (opt_testFn !== undefined)
+        if (opt_testFn !== undefined) {
           throw new Error('opt_testFn cannot be given when giving a TestCase');
-        if (opt_options !== undefined)
+        }
+        if (opt_options !== undefined) {
           throw new Error('opt_options cannot be given when giving a TestCase');
+        }
         this.addTest(testCaseOrName);
         return;
       }
@@ -49,8 +51,9 @@ tr.exportTo('tr.b.unittest', function() {
       var testName = testCaseOrName;
       var testFn = opt_testFn;
       var options = opt_options || {};
-      if (testFn === undefined)
+      if (testFn === undefined) {
         throw new Error('Must provide opt_testFn');
+      }
 
       // If the test cares about DPI settings then we first push a test
       // that fakes the DPI as the low or hi Dpi version, depending on what
@@ -86,8 +89,9 @@ tr.exportTo('tr.b.unittest', function() {
     }.bind(this);
 
     global.timedPerfTest = function(name, testFn, options) {
-      if (options === undefined || options.iterations === undefined)
+      if (options === undefined || options.iterations === undefined) {
         throw new Error('timedPerfTest must have iteration option provided.');
+      }
       this.addTest(new PerfTestCase(name, testFn, options));
     }.bind(this);
 
@@ -107,10 +111,12 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     addTest: function(test) {
-      if (test.suite !== undefined)
+      if (test.suite !== undefined) {
         throw new Error('Test suite is already assigned');
-      if (this.testNames_[test.name] !== undefined)
+      }
+      if (this.testNames_[test.name] !== undefined) {
         throw new Error('Test name already used');
+      }
       test.suite = this;
       this.testNames_[test.name] = true;
       this.tests_.push(test);
@@ -122,8 +128,9 @@ tr.exportTo('tr.b.unittest', function() {
   };
 
   function testSuite(suiteConstructor) {
-    if (!global._currentSuiteLoader)
+    if (!global._currentSuiteLoader) {
       throw new Error('testSuites can only be defined during suite loading');
+    }
     global._currentSuiteLoader.constructAndRegisterTestSuite(suiteConstructor);
   }
 

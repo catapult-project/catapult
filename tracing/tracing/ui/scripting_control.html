@@ -127,13 +127,13 @@ Polymer({
 
   promptKeyDown: function(e) {
     e.stopPropagation();
-    if (!this._isEnterKey(e))
-      return;
+    if (!this._isEnterKey(e)) return;
+
     e.preventDefault();
     var promptEl = this.$.prompt;
     var command = promptEl.value;
-    if (command.length === 0)
-      return;
+    if (command.length === 0) return;
+
     promptEl.value = '';
     this.addLine_(String.fromCharCode(187) + ' ' + command);
 
@@ -158,8 +158,9 @@ Polymer({
 
   addLine_: function(line) {
     var historyEl = this.$.history;
-    if (historyEl.innerText.length !== 0)
+    if (historyEl.innerText.length !== 0) {
       historyEl.innerText += '\n';
+    }
     historyEl.innerText += line;
   },
 

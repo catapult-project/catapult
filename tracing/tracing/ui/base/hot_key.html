@@ -10,21 +10,25 @@ found in the LICENSE file.
 
 tr.exportTo('tr.ui.b', function() {
   function HotKey(dict) {
-    if (dict.eventType === undefined)
+    if (dict.eventType === undefined) {
       throw new Error('eventType must be given');
-    if (dict.keyCode === undefined && dict.keyCodes === undefined)
+    }
+    if (dict.keyCode === undefined && dict.keyCodes === undefined) {
       throw new Error('keyCode or keyCodes must be given');
-    if (dict.keyCode !== undefined && dict.keyCodes !== undefined)
+    }
+    if (dict.keyCode !== undefined && dict.keyCodes !== undefined) {
       throw new Error('Only keyCode or keyCodes can be given');
-    if (dict.callback === undefined)
+    }
+    if (dict.callback === undefined) {
       throw new Error('callback must be given');
+    }
 
     this.eventType_ = dict.eventType;
     this.keyCodes_ = [];
 
-    if (dict.keyCode)
+    if (dict.keyCode) {
       this.pushKeyCode_(dict.keyCode);
-    else if (dict.keyCodes) {
+    } else if (dict.keyCodes) {
       dict.keyCodes.forEach(this.pushKeyCode_, this);
     }
 

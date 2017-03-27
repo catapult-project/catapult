@@ -416,14 +416,12 @@ found in the LICENSE file.
      * null if no such intersection exists.
      */
     function findRangeIntersection(range1, range2) {
-      if (range1 == null || range2 == null)
-        return null;
+      if (range1 == null || range2 == null) return null;
 
       var start = Math.max(range1.start, range2.start);
       var end = Math.min(range1.end, range2.end);
 
-      if (end < start)
-        return null;
+      if (end < start) return null;
 
       return { start: start, end: end };
     }
@@ -553,8 +551,9 @@ found in the LICENSE file.
   
           var value = item[key];
           value = parseFloat(value).toFixed(3);
-          if (!unitName)
+          if (!unitName) {
             unitName = '(unformatted)';
+          }
           value = value + ' ' + unitName;
           return value;
         }
@@ -691,8 +690,7 @@ found in the LICENSE file.
         this.setAlertList(alertIndex, 'expanded', shouldExpand);
 
         for (var i = alertIndex + 1; i < this.alertList.length; i++) {
-          if (this.alertList[i].group != alert.group)
-            break;
+          if (this.alertList[i].group != alert.group) break;
 
           this.setAlertList(i, 'hideRow', !shouldExpand);
         }
@@ -717,8 +715,8 @@ found in the LICENSE file.
        */
       selectAlertsInKeysParameter: function(alerts) {
         var showImprovements = uri.getParameter('improvements', false);
-        if (!this.selectedKeys)
-          return;
+        if (!this.selectedKeys) return;
+
         var keys = this.selectedKeys;
 
         var keySet = {};
@@ -888,10 +886,12 @@ found in the LICENSE file.
           var numA = parseNumber(valA);
           var numB = parseNumber(valB);
           if (numA && numB) {
-            if (!alertA.improvement)
+            if (!alertA.improvement) {
               numA = -numA;
-            if (!alertB.improvement)
+            }
+            if (!alertB.improvement) {
               numB = -numB;
+            }
             var result = numA - numB;
           } else {
             var result = 0;
@@ -902,8 +902,9 @@ found in the LICENSE file.
           // If the alerts are equivalent on the current column, sort by their
           // previous position. This provides a stable sort, so that users can
           // sort by multiple columns.
-          if (result == 0)
+          if (result == 0) {
             result = alertA.index - alertB.index;
+          }
 
           return result * order;
         };
@@ -982,8 +983,7 @@ found in the LICENSE file.
        *     or null if the checked alerts don't overlap.
        */
       getCommonRevisionRange: function(alerts) {
-        if (!alerts || alerts.length == 0)
-          return null;
+        if (!alerts || alerts.length == 0) return null;
 
         var commonRange = { start: -Infinity, end: Infinity };
         for (var alert of alerts) {
@@ -994,8 +994,7 @@ found in the LICENSE file.
 
           commonRange = findRangeIntersection(commonRange, alertRange);
 
-          if (commonRange == null)
-            return null;
+          if (commonRange == null) return null;
         }
 
         return commonRange;
@@ -1169,8 +1168,7 @@ found in the LICENSE file.
       },
 
       isHighlighted: function(commonRevisionRange, alert) {
-        if (commonRevisionRange == null)
-          return false;
+        if (commonRevisionRange == null) return false;
 
         var alertRevisionRange = {
           start: alert.start_revision,

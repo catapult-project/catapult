@@ -44,8 +44,7 @@ tr.exportTo('tr.ui.tracks', function() {
       this.clearTracks_();
 
       // Show no tracks if there are no dumps.
-      if (!this.memoryDumps_ || !this.memoryDumps_.length)
-        return;
+      if (!this.memoryDumps_ || !this.memoryDumps_.length) return;
 
       this.appendAllocatedMemoryTrack_();
     },
@@ -53,8 +52,7 @@ tr.exportTo('tr.ui.tracks', function() {
     appendAllocatedMemoryTrack_: function() {
       var series = tr.ui.tracks.buildProcessAllocatedMemoryChartSeries(
           this.memoryDumps_);
-      if (!series)
-        return;
+      if (!series) return;
 
       var track = new tr.ui.tracks.ChartTrack(this.viewport);
       track.heading = 'Memory per component';

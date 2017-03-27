@@ -36,8 +36,7 @@ tr.exportTo('tr.b.math', function() {
     },
 
     addRange: function(range) {
-      if (range.isEmpty)
-        return;
+      if (range.isEmpty) return;
       this.addValue(range.min);
       this.addValue(range.max);
     },
@@ -59,14 +58,12 @@ tr.exportTo('tr.b.math', function() {
     },
 
     get min() {
-      if (this.isEmpty_)
-        return undefined;
+      if (this.isEmpty_) return undefined;
       return this.min_;
     },
 
     get max() {
-      if (this.isEmpty_)
-        return undefined;
+      if (this.isEmpty_) return undefined;
       return this.max_;
     },
 
@@ -76,8 +73,7 @@ tr.exportTo('tr.b.math', function() {
     },
 
     get range() {
-      if (this.isEmpty_)
-        return undefined;
+      if (this.isEmpty_) return undefined;
       return this.max_ - this.min_;
     },
 
@@ -86,8 +82,7 @@ tr.exportTo('tr.b.math', function() {
     },
 
     get duration() {
-      if (this.isEmpty_)
-        return 0;
+      if (this.isEmpty_) return 0;
       return this.max_ - this.min_;
     },
 
@@ -119,86 +114,72 @@ tr.exportTo('tr.b.math', function() {
     },
 
     equals: function(that) {
-      if (this.isEmpty && that.isEmpty)
-        return true;
-      if (this.isEmpty !== that.isEmpty)
-        return false;
+      if (this.isEmpty && that.isEmpty) return true;
+      if (this.isEmpty !== that.isEmpty) return false;
       return (tr.b.math.approximately(this.min, that.min) &&
           tr.b.math.approximately(this.max, that.max));
     },
 
     containsExplicitRangeInclusive: function(min, max) {
-      if (this.isEmpty)
-        return false;
+      if (this.isEmpty) return false;
       return this.min_ <= min && max <= this.max_;
     },
 
     containsExplicitRangeExclusive: function(min, max) {
-      if (this.isEmpty)
-        return false;
+      if (this.isEmpty) return false;
       return this.min_ < min && max < this.max_;
     },
 
     intersectsExplicitRangeInclusive: function(min, max) {
-      if (this.isEmpty)
-        return false;
+      if (this.isEmpty) return false;
       return this.min_ <= max && min <= this.max_;
     },
 
     intersectsExplicitRangeExclusive: function(min, max) {
-      if (this.isEmpty)
-        return false;
+      if (this.isEmpty) return false;
       return this.min_ < max && min < this.max_;
     },
 
     containsRangeInclusive: function(range) {
-      if (range.isEmpty)
-        return false;
+      if (range.isEmpty) return false;
       return this.containsExplicitRangeInclusive(range.min_, range.max_);
     },
 
     containsRangeExclusive: function(range) {
-      if (range.isEmpty)
-        return false;
+      if (range.isEmpty) return false;
       return this.containsExplicitRangeExclusive(range.min_, range.max_);
     },
 
     intersectsRangeInclusive: function(range) {
-      if (range.isEmpty)
-        return false;
+      if (range.isEmpty) return false;
       return this.intersectsExplicitRangeInclusive(range.min_, range.max_);
     },
 
     intersectsRangeExclusive: function(range) {
-      if (range.isEmpty)
-        return false;
+      if (range.isEmpty) return false;
       return this.intersectsExplicitRangeExclusive(range.min_, range.max_);
     },
 
     findExplicitIntersectionDuration: function(min, max) {
       var min = Math.max(this.min, min);
       var max = Math.min(this.max, max);
-      if (max < min)
-        return 0;
+      if (max < min) return 0;
       return max - min;
     },
 
     findIntersection: function(range) {
-      if (this.isEmpty || range.isEmpty)
-        return new Range();
+      if (this.isEmpty || range.isEmpty) return new Range();
 
       var min = Math.max(this.min, range.min);
       var max = Math.min(this.max, range.max);
 
-      if (max < min)
-        return new Range();
+      if (max < min) return new Range();
 
       return Range.fromExplicitRange(min, max);
     },
 
     toJSON: function() {
-      if (this.isEmpty_)
-        return {isEmpty: true};
+      if (this.isEmpty_) return {isEmpty: true};
       return {
         isEmpty: false,
         max: this.max,
@@ -220,8 +201,7 @@ tr.exportTo('tr.b.math', function() {
      *        opt_keyFunc.
      */
     filterArray: function(array, opt_keyFunc, opt_this) {
-      if (this.isEmpty_)
-        return [];
+      if (this.isEmpty_) return [];
       // Binary search. |test| is a function that should return true when we
       // need to explore the left branch and false to explore the right branch.
       function binSearch(test) {
@@ -229,10 +209,11 @@ tr.exportTo('tr.b.math', function() {
         var i1 = array.length;
         while (i0 < i1) {
           var i = Math.trunc((i0 + i1) / 2);
-          if (test(i))
+          if (test(i)) {
             i1 = i;  // Explore the left branch.
-          else
+          } else {
             i0 = i + 1;  // Explore the right branch.
+          }
         }
         return i1;
       }
@@ -253,8 +234,7 @@ tr.exportTo('tr.b.math', function() {
   };
 
   Range.fromDict = function(d) {
-    if (d.isEmpty === true)
-      return new Range();
+    if (d.isEmpty === true) return new Range();
     if (d.isEmpty === false) {
       var range = new Range();
       range.min = d.min;
@@ -272,14 +252,11 @@ tr.exportTo('tr.b.math', function() {
   };
 
   Range.compareByMinTimes = function(a, b) {
-    if (!a.isEmpty && !b.isEmpty)
-      return a.min_ - b.min_;
+    if (!a.isEmpty && !b.isEmpty) return a.min_ - b.min_;
 
-    if (a.isEmpty && !b.isEmpty)
-      return -1;
+    if (a.isEmpty && !b.isEmpty) return -1;
 
-    if (!a.isEmpty && b.isEmpty)
-      return 1;
+    if (!a.isEmpty && b.isEmpty) return 1;
 
     return 0;
   };

@@ -728,8 +728,9 @@ tr.b.unittest.testSuite(function() {
 
     let histA = new tr.v.Histogram('long name',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
-    for (let i = 0; i < 100; ++i)
+    for (let i = 0; i < 100; ++i) {
       histA.addSample(Math.random() * 1e3);
+    }
     histA.shortName = 'short name';
     new tr.v.d.TelemetryInfo({
       label: 'iteration A',
@@ -739,8 +740,9 @@ tr.b.unittest.testSuite(function() {
 
     let histB = new tr.v.Histogram('short name',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
-    for (let i = 0; i < 100; ++i)
+    for (let i = 0; i < 100; ++i) {
       histB.addSample(Math.random() * 1e3);
+    }
     new tr.v.d.TelemetryInfo({
       label: 'iteration B',
       benchmarkStartMs: now,
@@ -767,8 +769,9 @@ tr.b.unittest.testSuite(function() {
 
     let histA = new tr.v.Histogram('histogram A',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
-    for (let i = 0; i < 100; ++i)
+    for (let i = 0; i < 100; ++i) {
       histA.addSample(Math.random() * 1e3);
+    }
     new tr.v.d.TelemetryInfo({
       label: 'iteration A',
       benchmarkStartMs: now,
@@ -777,8 +780,9 @@ tr.b.unittest.testSuite(function() {
 
     let histB = new tr.v.Histogram('histogram B',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
-    for (let i = 0; i < 100; ++i)
+    for (let i = 0; i < 100; ++i) {
       histB.addSample(Math.random() * 1e3);
+    }
     new tr.v.d.TelemetryInfo({
       label: 'iteration B',
       benchmarkStartMs: now,
@@ -806,8 +810,9 @@ tr.b.unittest.testSuite(function() {
 
     let hist = new tr.v.Histogram('foo',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
-    for (let i = 0; i < 100; ++i)
+    for (let i = 0; i < 100; ++i) {
       hist.addSample(Math.random() * 1e3);
+    }
     histograms.addHistogram(hist);
 
     const table = buildTable(this, histograms);
@@ -831,8 +836,9 @@ tr.b.unittest.testSuite(function() {
 
     let histA = new tr.v.Histogram('histogram A',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
-    for (let i = 0; i < 100; ++i)
+    for (let i = 0; i < 100; ++i) {
       histA.addSample(Math.random() * 1e3);
+    }
     new tr.v.d.TelemetryInfo({
       label: 'Value',
       benchmarkStartMs: now,
@@ -843,8 +849,9 @@ tr.b.unittest.testSuite(function() {
     let histB = new tr.v.Histogram('histogram B',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
         tr.v.HistogramBinBoundaries.createExponential(1e-3, 1e3, 20));
-    for (let i = 0; i < 100; ++i)
+    for (let i = 0; i < 100; ++i) {
       histB.addSample(Math.random() * Math.random() * 1e3);
+    }
     new tr.v.d.TelemetryInfo({
       label: 'Value',
       benchmarkStartMs: now,
@@ -855,8 +862,9 @@ tr.b.unittest.testSuite(function() {
     let histC = new tr.v.Histogram('histogram C',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
         tr.v.HistogramBinBoundaries.createExponential(1e-3, 1e3, 30));
-    for (let i = 0; i < 100; ++i)
+    for (let i = 0; i < 100; ++i) {
       histC.addSample(Math.random() * Math.random() * 1e3);
+    }
     new tr.v.d.TelemetryInfo({
       label: 'Value',
       benchmarkStartMs: now,
@@ -899,8 +907,9 @@ tr.b.unittest.testSuite(function() {
 
     let hist0a = new tr.v.Histogram('foo',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
-    for (let i = 0; i < 100; ++i)
+    for (let i = 0; i < 100; ++i) {
       hist0a.addSample(Math.random() * 1e3);
+    }
     histograms.addHistogram(hist0a);
     new tr.v.d.TelemetryInfo({
       label: 'iteration A',
@@ -909,8 +918,9 @@ tr.b.unittest.testSuite(function() {
 
     let hist1a = new tr.v.Histogram('bar',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
-    for (let i = 0; i < 100; ++i)
+    for (let i = 0; i < 100; ++i) {
       hist1a.addSample(Math.random() * 1e3);
+    }
     histograms.addHistogram(hist1a);
     new tr.v.d.TelemetryInfo({
       label: 'iteration A',
@@ -919,8 +929,9 @@ tr.b.unittest.testSuite(function() {
 
     let hist0b = new tr.v.Histogram('foo',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
-    for (let i = 0; i < 100; ++i)
+    for (let i = 0; i < 100; ++i) {
       hist0b.addSample(Math.random() * 1e3);
+    }
     histograms.addHistogram(hist0b);
     new tr.v.d.TelemetryInfo({
       label: 'iteration B',
@@ -929,8 +940,9 @@ tr.b.unittest.testSuite(function() {
 
     let hist1b = new tr.v.Histogram('bar',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
-    for (let i = 0; i < 100; ++i)
+    for (let i = 0; i < 100; ++i) {
       hist1b.addSample(Math.random() * 1e3);
+    }
     histograms.addHistogram(hist1b);
     new tr.v.d.TelemetryInfo({
       label: 'iteration B',

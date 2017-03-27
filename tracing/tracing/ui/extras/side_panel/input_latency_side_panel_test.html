@@ -131,8 +131,9 @@ tr.b.unittest.testSuite(function() {
       assert.equal(e.selection.length, 3);
       var predictedStarts = [20, 31, 40];
       var i = 0;
-      for (var event of e.selection)
+      for (var event of e.selection) {
         assert.equal(event.start, predictedStarts[i++]);
+      }
     }
     panel.ownerDocument.addEventListener('requestSelectionChange', listener);
     try {

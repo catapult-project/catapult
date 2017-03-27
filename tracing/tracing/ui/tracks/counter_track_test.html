@@ -161,15 +161,17 @@ tr.b.unittest.testSuite(function() {
       var sel = new tr.model.EventSet();
       track.addClosestEventToSelection(-1, 1, 0, 0, sel);
       assert.equal(sel.length, 2);
-      for (var event of sel)
+      for (var event of sel) {
         assert.equal(event.getSampleIndex(), 0);
+      }
 
       // Between and closer to sample before.
       var sel = new tr.model.EventSet();
       track.addClosestEventToSelection(1.3, 1, 0, 0, sel);
       assert.equal(sel.length, 2);
-      for (var event of sel)
+      for (var event of sel) {
         assert.equal(event.getSampleIndex(), 1);
+      }
 
       // Between samples with bad range.
       var sel = new tr.model.EventSet();
@@ -180,15 +182,17 @@ tr.b.unittest.testSuite(function() {
       var sel = new tr.model.EventSet();
       track.addClosestEventToSelection(4.7, 6, 0, 0, sel);
       assert.equal(sel.length, 2);
-      for (var event of sel)
+      for (var event of sel) {
         assert.equal(event.getSampleIndex(), 5);
+      }
 
       // After last sample with good range.
       var sel = new tr.model.EventSet();
       track.addClosestEventToSelection(8.5, 2, 0, 0, sel);
       assert.equal(sel.length, 2);
-      for (var event of sel)
+      for (var event of sel) {
         assert.equal(event.getSampleIndex(), 7);
+      }
 
       // After last sample with bad range.
       var sel = new tr.model.EventSet();

@@ -213,8 +213,9 @@ tr.exportTo('tr.e.chrome', function() {
        */
       this.firstTaskIndex_ =
           sortedTasks.findIndex(task => startTime < task.end);
-      if (this.firstTaskIndex_ === -1)
+      if (this.firstTaskIndex_ === -1) {
         this.firstTaskIndex_ = sortedTasks.length;
+      }
       /**
        * @private {number} The index of the last task in the sortedTasks that
        *     starts before this window ends:

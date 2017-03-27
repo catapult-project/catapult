@@ -56,8 +56,9 @@ Polymer({
         function(modeName, candidateMode) {
           return candidateMode === mode;
         });
-    if (modeName === undefined)
+    if (modeName === undefined) {
       throw new Error('Unknown mode');
+    }
     this.modeName = modeName;
   },
 
@@ -71,10 +72,11 @@ Polymer({
 
   set active(active) {
     this.active_ = !!active;
-    if (this.active_)
+    if (this.active_) {
       Polymer.dom(this).classList.add('active');
-    else
+    } else {
       Polymer.dom(this).classList.remove('active');
+    }
     this.updateContents_();
   },
 
@@ -88,27 +90,30 @@ Polymer({
   },
 
   updateContents_: function() {
-    if (this.modeName === undefined)
-      return;
+    if (this.modeName === undefined) return;
 
     var mode = this.mode;
-    if (mode === undefined)
+    if (mode === undefined) {
       throw new Error('Invalid mode');
+    }
 
     var modeInfo = tr.ui.b.MOUSE_SELECTOR_MODE_INFOS[mode];
-    if (!modeInfo)
+    if (!modeInfo) {
       throw new Error('Invalid mode');
+    }
 
     var title = modeInfo.title;
-    if (this.acceleratorKey_)
+    if (this.acceleratorKey_) {
       title = title + ' (' + this.acceleratorKey_ + ')';
+    }
     this.title = title;
 
     var bp;
-    if (this.active_)
+    if (this.active_) {
       bp = modeInfo.activeBackgroundPosition;
-    else
+    } else {
       bp = modeInfo.defaultBackgroundPosition;
+    }
     this.style.backgroundPosition = bp;
   }
 });

@@ -100,23 +100,22 @@ Polymer({
     inside &= e.clientX < or.right;
     inside &= e.clientY >= or.top;
     inside &= e.clientY < or.bottom;
-    if (!inside)
-      return;
+    if (!inside) return;
 
     e.preventDefault();
     this.toggle_();
   },
 
   toggle_: function() {
-    if (!this.isOpen)
+    if (!this.isOpen) {
       this.show();
-    else
+    } else {
       this.close();
+    }
   },
 
   show: function() {
-    if (this.isOpen)
-      return;
+    if (this.isOpen) return;
 
     Polymer.dom(this.$.outer).classList.add('open');
 
@@ -132,10 +131,8 @@ Polymer({
   },
 
   onDialogClick_: function(e) {
-    if (!this.isOpen)
-      return;
-    if (e.srcElement !== this.$.dialog)
-      return;
+    if (!this.isOpen) return;
+    if (e.srcElement !== this.$.dialog) return;
     e.preventDefault();
     this.close();
   },
@@ -146,8 +143,7 @@ Polymer({
   },
 
   close: function() {
-    if (!this.isOpen)
-      return;
+    if (!this.isOpen) return;
     this.$.dialog.close();
     Polymer.dom(this.$.outer).classList.remove('open');
     this.$.outer.focus();

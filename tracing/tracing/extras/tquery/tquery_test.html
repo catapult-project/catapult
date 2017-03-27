@@ -17,16 +17,18 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   function createTestModel(sliceCount) {
     var slices = [];
-    for (var i = 0; i < sliceCount; i++)
+    for (var i = 0; i < sliceCount; i++) {
       slices.push(tr.c.TestUtils.newSliceEx({start: 1, duration: 2}));
+    }
     return createTestModelWithSlices(slices);
   }
 
   function createTestModelWithSlices(slices) {
     var model = new tr.Model();
     var cpu = model.kernel.getOrCreateCpu(1);
-    for (var i = 0; i < slices.length; i++)
+    for (var i = 0; i < slices.length; i++) {
       cpu.slices.push(slices[i]);
+    }
     return model;
   }
 
@@ -144,8 +146,9 @@ tr.b.unittest.testSuite(function() {
     var result = tquery.filter(anyOf('a', 'b')).selection;
     assert.equal(result.length, 2);
     var nextGuid = 1;
-    for (var event of result)
+    for (var event of result) {
       assert.equal(event.guid, nextGuid++);
+    }
 
     var result = tquery.filter(anyOf('not there', 'a')).selection;
     assert.equal(result.length, 1);
@@ -167,8 +170,9 @@ tr.b.unittest.testSuite(function() {
     var result = tquery.filter(isTopLevel()).selection;
     assert.equal(result.length, 3);
     var nextGuid = 1;
-    for (var event of result)
+    for (var event of result) {
       assert.equal(event.guid, nextGuid++);
+    }
 
     var result = tquery.filter(isTopLevel('a')).selection;
     assert.equal(result.length, 1);

@@ -44,19 +44,17 @@ Polymer({
   },
 
   set settingsKey(settingsKey) {
-    if (!this.needsInit_)
+    if (!this.needsInit_) {
       throw new Error('Already initialized.');
+    }
     this.settingsKey_ = settingsKey;
     this.maybeInit_();
   },
 
   maybeInit_: function() {
-    if (!this.needsInit_)
-      return;
-    if (this.settingsKey_ === undefined)
-      return;
-    if (this.checkboxes_ === undefined)
-      return;
+    if (!this.needsInit_) return;
+    if (this.settingsKey_ === undefined) return;
+    if (this.checkboxes_ === undefined) return;
 
     this.needsInit_ = false;
 
@@ -69,8 +67,9 @@ Polymer({
   set items(items) {
     this.checkboxes_ = {};
     items.forEach(function(e) {
-      if (e.key in this.checkboxes_)
+      if (e.key in this.checkboxes_) {
         throw new Error(e.key + ' already exists');
+      }
       var checkboxEl = document.createElement('tr-ui-b-checkbox');
       checkboxEl.label = e.label;
       this.checkboxes_[e.key] = checkboxEl;
@@ -80,23 +79,24 @@ Polymer({
   },
 
   maybeRenderCheckboxes_: function() {
-    if (!this.is_ready_)
-      return;
-    if (this.checkboxes_ === undefined)
-      return;
-    for (var key in this.checkboxes_)
+    if (!this.is_ready_) return;
+    if (this.checkboxes_ === undefined) return;
+    for (var key in this.checkboxes_) {
       Polymer.dom(this.$.container).appendChild(this.checkboxes_[key]);
+    }
   },
 
   selectCheckbox: function(key) {
-    if (!(key in this.checkboxes_))
+    if (!(key in this.checkboxes_)) {
       throw new Error(key + ' does not exists');
+    }
     this.checkboxes_[key].checked = true;
   },
 
   unselectCheckbox: function(key) {
-    if (!(key in this.checkboxes_))
+    if (!(key in this.checkboxes_)) {
       throw new Error(key + ' does not exists');
+    }
     this.checkboxes_[key].checked = false;
   },
 

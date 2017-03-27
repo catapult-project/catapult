@@ -238,14 +238,16 @@ Polymer({
 
   updateDocumentFavicon: function() {
     var hue;
-    if (!this.model)
+    if (!this.model) {
       hue = 'blue';
-    else
+    } else {
       hue = this.model.faviconHue;
+    }
 
     var faviconData = tr.ui.b.FaviconsByHue[hue];
-    if (faviconData === undefined)
+    if (faviconData === undefined) {
       faviconData = tr.ui.b.FaviconsByHue['blue'];
+    }
 
     // Find link if its there
     var link = Polymer.dom(document.head).querySelector(
@@ -264,8 +266,8 @@ Polymer({
 
   set showFlowEvents(showFlowEvents) {
     this.showFlowEvents_ = showFlowEvents;
-    if (!this.trackView_)
-      return;
+    if (!this.trackView_) return;
+
     this.trackView_.viewport.showFlowEvents = showFlowEvents;
   },
 
@@ -275,8 +277,8 @@ Polymer({
 
   set highlightVSync(highlightVSync) {
     this.highlightVSync_ = highlightVSync;
-    if (!this.trackView_)
-      return;
+    if (!this.trackView_) return;
+
     this.trackView_.viewport.highlightVSync = highlightVSync;
   },
 
@@ -365,8 +367,9 @@ Polymer({
   },
 
   get model() {
-    if (this.trackView_)
+    if (this.trackView_) {
       return this.trackView_.model;
+    }
     return undefined;
   },
 
@@ -380,8 +383,9 @@ Polymer({
 
     // Remove old trackView if the model has completely changed.
     if (modelInstanceChanged) {
-      if (this.railScoreSpan_)
+      if (this.railScoreSpan_) {
         this.railScoreSpan_.model = undefined;
+      }
       Polymer.dom(this.trackViewContainer_).textContent = '';
       if (this.trackView_) {
         this.trackView_.viewport.removeEventListener(
@@ -410,8 +414,9 @@ Polymer({
       this.trackView_.model = model;
       this.trackView_.viewport.showFlowEvents = this.showFlowEvents;
       this.trackView_.viewport.highlightVSync = this.highlightVSync;
-      if (this.railScoreSpan_)
+      if (this.railScoreSpan_) {
         this.railScoreSpan_.model = model;
+      }
 
       this.$.display_unit.preferredTimeDisplayMode = model.intrinsicTimeUnit;
     }
@@ -442,8 +447,9 @@ Polymer({
   },
 
   get settings() {
-    if (!this.settings_)
+    if (!this.settings_) {
       this.settings_ = new tr.b.Settings();
+    }
     return this.settings_;
   },
 
@@ -467,8 +473,9 @@ Polymer({
       thisArg: this,
       callback: function(e) {
         this.scriptingCtl_.toggleVisibility();
-        if (!this.scriptingCtl_.hasFocus)
+        if (!this.scriptingCtl_.hasFocus) {
           this.focus();
+        }
         e.stopPropagation();
       }
     }));
@@ -480,12 +487,13 @@ Polymer({
       useCapture: true,
       thisArg: this,
       callback: function(e) {
-        if (this.scriptingCtl_.hasFocus)
-          return;
-        if (this.findCtl_.hasFocus)
+        if (this.scriptingCtl_.hasFocus) return;
+
+        if (this.findCtl_.hasFocus) {
           this.focus();
-        else
+        } else {
           this.findCtl_.focus();
+        }
         e.preventDefault();
         e.stopPropagation();
       }
@@ -523,11 +531,13 @@ Polymer({
     }
 
     var vr = this.trackView_.viewport.interestRange.asRangeObject();
-    if (!spc.rangeOfInterest.equals(vr))
+    if (!spc.rangeOfInterest.equals(vr)) {
       spc.rangeOfInterest = vr;
+    }
 
-    if (this.railScoreSpan_ && this.model)
+    if (this.railScoreSpan_ && this.model) {
       this.railScoreSpan_.model = this.model;
+    }
   },
 
   toggleHighlightVSync_: function() {

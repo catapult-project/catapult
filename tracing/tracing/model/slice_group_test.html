@@ -758,8 +758,9 @@ tr.b.unittest.testSuite(function() {
     for (var i = 0; i < 10; i++) {
       var slice = newSliceEx({title: 'a', start: i, duration: 1});
       group.pushSlice(slice);
-      if (4 <= i && i <= 7)
+      if (4 <= i && i <= 7) {
         expected.push(slice);
+      }
     }
     group.createSubSlices();
 

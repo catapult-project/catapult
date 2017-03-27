@@ -41,19 +41,19 @@ tr.exportTo('tr.ui.tracks', function() {
   /** Extract sizes of root allocators in a process memory dump. */
   function extractProcessMemoryDumpAllocatorSizes(processMemoryDump, addSize) {
     var allocatorDumps = processMemoryDump.memoryAllocatorDumps;
-    if (allocatorDumps === undefined)
-      return;
+    if (allocatorDumps === undefined) return;
+
     allocatorDumps.forEach(function(allocatorDump) {
       // Don't show tracing overhead in the charts.
       // TODO(petrcermak): Find a less hacky way to do this.
-      if (allocatorDump.fullName === 'tracing')
-        return;
+      if (allocatorDump.fullName === 'tracing') return;
+
       var allocatorSize = allocatorDump.numerics[DISPLAYED_SIZE_NUMERIC_NAME];
-      if (allocatorSize === undefined)
-        return;
+      if (allocatorSize === undefined) return;
+
       var allocatorSizeValue = allocatorSize.value;
-      if (allocatorSizeValue === undefined)
-        return;
+      if (allocatorSizeValue === undefined) return;
+
       addSize(allocatorDump.fullName, allocatorSizeValue);
     });
   }
@@ -97,15 +97,13 @@ tr.exportTo('tr.ui.tracks', function() {
           }
         }
         timestampToPoint[index].y += size;
-        if (opt_name !== undefined)
-          idToName[id] = opt_name;
+        if (opt_name !== undefined) idToName[id] = opt_name;
       });
     });
 
     // Do not generate any chart series if no sizes were extracted.
     var ids = Object.keys(idToTimestampToPoint);
-    if (ids.length === 0)
-      return undefined;
+    if (ids.length === 0) return undefined;
 
     ids.sort();
     for (var i = 0; i < dumpCount; i++) {

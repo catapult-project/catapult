@@ -8,8 +8,9 @@ found in the LICENSE file.
 'use strict';
 
 // Force Polymer into native shadowDom mode
-if (window.Polymer)
+if (window.Polymer) {
   throw new Error('Cannot proceed. Polymer already present.');
+}
 window.Polymer = {};
 window.Polymer.dom = 'shadow';
 </script>

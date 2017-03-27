@@ -110,10 +110,12 @@ Polymer({
     // If the parent pane is provided, it must be an HTML element and a child
     // of the pane container.
     if (opt_parentPane) {
-      if (!(opt_parentPane instanceof HTMLElement))
+      if (!(opt_parentPane instanceof HTMLElement)) {
         throw new Error('Parent pane must be an HTML element');
-      if (opt_parentPane.parentElement !== paneContainer)
+      }
+      if (opt_parentPane.parentElement !== paneContainer) {
         throw new Error('Parent pane must be a child of the pane container');
+      }
     }
 
     // Remove all descendants of the parent pane (or all panes if no parent
@@ -122,29 +124,30 @@ Polymer({
            Polymer.dom(paneContainer).lastElementChild !== opt_parentPane) {
       var removedPane = Polymer.dom(this.$.pane_container).lastElementChild;
       var listener = this.listeners_.get(removedPane);
-      if (listener === undefined)
+      if (listener === undefined) {
         throw new Error('No listener associated with pane');
+      }
       this.listeners_.delete(removedPane);
       removedPane.removeEventListener(
           'request-child-pane-change', listener);
       Polymer.dom(paneContainer).removeChild(removedPane);
     }
 
-    if (opt_parentPane && opt_parentPane.parentElement !== paneContainer)
+    if (opt_parentPane && opt_parentPane.parentElement !== paneContainer) {
       throw new Error('Parent pane was removed from the pane container');
+    }
 
     // This check is performed here (and not at the beginning of the method)
     // because undefined pane builder means that the parent pane requested
     // having no child pane (e.g. when selection is cleared).
-    if (!paneBuilder)
-      return;
+    if (!paneBuilder) return;
 
     var pane = paneBuilder();
-    if (!pane)
-      return;
+    if (!pane) return;
 
-    if (!(pane instanceof HTMLElement))
+    if (!(pane instanceof HTMLElement)) {
       throw new Error('Pane must be an HTML element');
+    }
 
     // Listen for child pane change requests from the newly added pane.
     var listener = function(event) {

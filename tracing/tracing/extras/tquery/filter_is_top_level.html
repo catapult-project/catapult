@@ -28,10 +28,8 @@ tr.exportTo('tr.e.tquery', function() {
     },
 
     evaluate: function(context) {
-      if (context.ancestors.length > 0)
-        return false;
-      if (!this.subExpression)
-        return true;
+      if (context.ancestors.length > 0) return false;
+      if (!this.subExpression) return true;
       return this.subExpression.evaluate(context);
     }
   };

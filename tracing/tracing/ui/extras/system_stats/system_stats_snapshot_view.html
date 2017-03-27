@@ -61,10 +61,11 @@ tr.exportTo('tr.ui.e.system_stats', function() {
         if (stats[statName] instanceof Object) {
           Polymer.dom(statList).appendChild(this.buildList_(stats[statName]));
         } else {
-          if (this.isFloat(stats[statName]))
+          if (this.isFloat(stats[statName])) {
             Polymer.dom(statText).textContent += stats[statName].toFixed(2);
-          else
+          } else {
             Polymer.dom(statText).textContent += stats[statName];
+          }
         }
       }
 

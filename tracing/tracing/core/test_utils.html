@@ -29,10 +29,11 @@ tr.exportTo('tr.c', function() {
   function _getStartAndCpuDurationFromDict(
       options, required, startFieldName, durationFieldName, endFieldName) {
     if (options[startFieldName] === undefined) {
-      if (required)
+      if (required) {
         throw new Error('Too little information.');
-      else
+      } else {
         return {start: undefined, duration: undefined};
+      }
     }
     if (options[durationFieldName] !== undefined &&
         options[endFieldName] !== undefined) {
@@ -40,10 +41,11 @@ tr.exportTo('tr.c', function() {
     }
     if (options[durationFieldName] === undefined &&
         options[endFieldName] === undefined) {
-      if (required)
+      if (required) {
         throw new Error('Too little information.');
-      else
+      } else {
         return {start: undefined, duration: undefined};
+      }
     }
 
     var duration;
@@ -97,10 +99,11 @@ tr.exportTo('tr.c', function() {
     var colorId = options.colorId || 0;
 
     var isTopLevel;
-    if (options.isTopLevel !== undefined)
+    if (options.isTopLevel !== undefined) {
       isTopLevel = options.isTopLevel;
-    else
+    } else {
       isTopLevel = false;
+    }
 
     var asyncSliceConstructor =
         tr.model.AsyncSlice.subTypes.getConstructor(cat, title);
@@ -113,21 +116,27 @@ tr.exportTo('tr.c', function() {
         options.args ? options.args : {},
         sd.duration, isTopLevel);
 
-    if (options.id)
+    if (options.id) {
       slice.id = options.id;
-    else
+    } else {
       slice.id = tr.b.GUID.allocateSimple();
+    }
 
-    if (options.startStackFrame)
+    if (options.startStackFrame) {
       slice.startStackFrame = options.startStackFrame;
-    if (options.endStackFrame)
+    }
+    if (options.endStackFrame) {
       slice.endStackFrame = options.endStackFrame;
-    if (options.important)
+    }
+    if (options.important) {
       slice.important = options.important;
-    if (options.startThread)
+    }
+    if (options.startThread) {
       slice.startThread = options.startThread;
-    if (options.endThread)
+    }
+    if (options.endThread) {
       slice.endThread = options.endThread;
+    }
     return slice;
   };
 
@@ -151,8 +160,7 @@ tr.exportTo('tr.c', function() {
   };
 
   TestUtils.newFlowEventEx = function(options) {
-    if (options.start === undefined)
-      throw new Error('Too little info');
+    if (options.start === undefined) throw new Error('Too little info');
 
     var title = options.title ? options.title : 'a';
 
@@ -161,10 +169,11 @@ tr.exportTo('tr.c', function() {
     var sd = TestUtils.getStartAndDurationFromDict(options);
 
     var id;
-    if (options.id !== undefined)
+    if (options.id !== undefined) {
       id = options.id;
-    else
+    } else {
       id = tr.b.GUID.allocateSimple();
+    }
 
     var event = new tr.model.FlowEvent(
         options.cat ? options.cat : 'cat',
@@ -175,12 +184,15 @@ tr.exportTo('tr.c', function() {
         options.args ? options.args : {},
         sd.duration);
 
-    if (options.startStackFrame)
+    if (options.startStackFrame) {
       event.startStackFrame = options.startStackFrame;
-    if (options.endStackFrame)
+    }
+    if (options.endStackFrame) {
       event.endStackFrame = options.endStackFrame;
-    if (options.important)
+    }
+    if (options.important) {
       event.important = options.important;
+    }
     if (options.startSlice) {
       event.startSlice = options.startSlice;
       event.startSlice.outFlowEvents.push(event);
@@ -195,18 +207,20 @@ tr.exportTo('tr.c', function() {
   TestUtils.newThreadSlice = function(thread, state, start, duration, opt_cpu) {
     var s = new tr.model.ThreadTimeSlice(
         thread, state, 'cat', start, {}, duration);
-    if (opt_cpu)
+    if (opt_cpu) {
       s.cpuOnWhichThreadWasRunning = opt_cpu;
+    }
     return s;
   };
 
   TestUtils.newSampleNamed = function(
       thread, sampleName, category, frameNames, start) {
     var model;
-    if (thread.parent)
+    if (thread.parent) {
       model = thread.parent.model;
-    else
+    } else {
       model = undefined;
+    }
     var node = TestUtils.newProfileNodes(model, frameNames);
     var s = new tr.model.Sample(start, sampleName, node, thread, undefined, 1);
     return s;
@@ -226,10 +240,11 @@ tr.exportTo('tr.c', function() {
     var bindId = options.bindId ? options.bindId : 0;
 
     var type;
-    if (options.type)
+    if (options.type) {
       type = options.type;
-    else
+    } else {
       type = tr.model.ThreadSlice.subTypes.getConstructor(cat, title);
+    }
 
     var slice = new type(
         cat,
@@ -241,8 +256,7 @@ tr.exportTo('tr.c', function() {
         cpuSD.start, cpuSD.duration,
         undefined, bindId);
 
-    if (options.isTopLevel)
-      slice.isTopLevel = true;
+    if (options.isTopLevel) slice.isTopLevel = true;
 
     return slice;
   };
@@ -252,8 +266,7 @@ tr.exportTo('tr.c', function() {
     titles.forEach(function(title) {
       frame = new tr.model.StackFrame(
           frame, tr.b.GUID.allocateSimple(), title, 7);
-      if (model)
-        model.addStackFrame(frame);
+      if (model) model.addStackFrame(frame);
     });
     return frame;
   };
@@ -283,11 +296,12 @@ tr.exportTo('tr.c', function() {
   };
 
   TestUtils.findSliceNamed = function(slices, name) {
-    if (slices instanceof tr.model.SliceGroup)
+    if (slices instanceof tr.model.SliceGroup) {
       slices = slices.slices;
-    for (var i = 0; i < slices.length; i++)
-      if (slices[i].title === name)
-        return slices[i];
+    }
+    for (var i = 0; i < slices.length; i++) {
+      if (slices[i].title === name) return slices[i];
+    }
     return undefined;
   };
 
@@ -305,8 +319,7 @@ tr.exportTo('tr.c', function() {
   };
 
   TestUtils.newModelWithEvents = function(events, opts) {
-    if (!(events instanceof Array))
-      events = [events];
+    if (!(events instanceof Array)) events = [events];
 
     opts = opts || {};
 
@@ -377,8 +390,7 @@ tr.exportTo('tr.c', function() {
     },
 
     finishLine_: function() {
-      if (this.currentLineCommentList_.length === 0)
-        return;
+      if (this.currentLineCommentList_.length === 0) return;
       this.push('  // ');
       this.push.apply(this, this.currentLineCommentList_);
       this.push('.');
@@ -388,8 +400,7 @@ tr.exportTo('tr.c', function() {
     indentBlock: function(spaces, breakLine, blockCallback, opt_this) {
       opt_this = opt_this || this;
       this.currentIndent_ += spaces;
-      if (breakLine)
-        this.breakLine();
+      if (breakLine) this.breakLine();
       blockCallback.call(opt_this);
       this.currentIndent_ -= spaces;
     },
@@ -398,8 +409,7 @@ tr.exportTo('tr.c', function() {
       opt_this = opt_this || this;
       this.push('[');
       tr.b.asArray(list).forEach(function(item, index) {
-        if (index > 0)
-          this.push(', ');
+        if (index > 0) this.push(', ');
         itemCallback.call(opt_this, item, index);
       }, this);
       this.push(']');
@@ -410,22 +420,21 @@ tr.exportTo('tr.c', function() {
       this.push('[');
       this.indentBlock(2, false /* don't break line */, function() {
         tr.b.asArray(list).forEach(function(item, index) {
-          if (index > 0)
-            this.push(',');
+          if (index > 0) this.push(',');
           this.breakLine();
           itemCallback.call(opt_this, item, index);
         }, this);
       }, this);
-      if (list.length > 0)
-        this.breakLine();
+      if (list.length > 0) this.breakLine();
       this.push(']');
     },
 
     formatString: function(string) {
-      if (string === undefined)
+      if (string === undefined) {
         this.push('undefined');
-      else
+      } else {
         this.push('\'', string, '\'');
+      }
     }
   };
 
@@ -441,8 +450,9 @@ tr.exportTo('tr.c', function() {
 
       // Store the original selection.
       var originalRanges = new Array(selection.rangeCount);
-      for (var i = 0; i < originalRanges.length; i++)
+      for (var i = 0; i < originalRanges.length; i++) {
         originalRanges[i] = selection.getRangeAt(i);
+      }
 
       // Copy the generated test source code into clipboard.
       selection.removeAllRanges();
@@ -453,8 +463,9 @@ tr.exportTo('tr.c', function() {
 
       // Restore the original selection.
       selection.removeAllRanges();
-      for (var i = 0; i < originalRanges.length; i++)
+      for (var i = 0; i < originalRanges.length; i++) {
         selection.addRange(originalRanges[i]);
+      }
     });
 
     var outputEl = document.createElement('div');
@@ -468,8 +479,9 @@ tr.exportTo('tr.c', function() {
     var start = options.start;
     if ((title === undefined) ||
         (title === '') ||
-        (start === undefined))
+        (start === undefined)) {
       throw new Error('too little information');
+    }
 
     var category = options.category || 'category';
     var colorId = options.colorId || 0;

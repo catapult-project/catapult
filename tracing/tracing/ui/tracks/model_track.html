@@ -123,13 +123,13 @@ tr.exportTo('tr.ui.tracks', function() {
 
     updateContents_: function() {
       Polymer.dom(this).textContent = '';
-      if (!this.model_)
-        return;
+      if (!this.model_) return;
 
-      if (this.upperMode_)
+      if (this.upperMode_) {
         this.updateContentsForUpperMode_();
-      else
+      } else {
         this.updateContentsForLowerMode_();
+      }
     },
 
     updateContentsForUpperMode_: function() {
@@ -167,8 +167,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
         var track = new tr.ui.tracks.ProcessTrack(this.viewport);
         track.process = process;
-        if (!track.hasVisibleContent)
-          continue;
+        if (!track.hasVisibleContent) continue;
 
         Polymer.dom(this).appendChild(track);
       }
@@ -200,15 +199,14 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     addEventsToTrackMap: function(eventToTrackMap) {
-      if (!this.model_)
-        return;
+      if (!this.model_) return;
 
       var tracks = this.children;
-      for (var i = 0; i < tracks.length; ++i)
+      for (var i = 0; i < tracks.length; ++i) {
         tracks[i].addEventsToTrackMap(eventToTrackMap);
+      }
 
-      if (this.instantEvents === undefined)
-        return;
+      if (this.instantEvents === undefined) return;
 
       var vp = this.viewport_;
       this.instantEvents.forEach(function(ev) {
@@ -220,8 +218,7 @@ tr.exportTo('tr.ui.tracks', function() {
       var device = this.model.device;
       var track = new tr.ui.tracks.DeviceTrack(this.viewport);
       track.device = this.model.device;
-      if (!track.hasVisibleContent)
-        return;
+      if (!track.hasVisibleContent) return;
       Polymer.dom(this).appendChild(track);
     },
 
@@ -229,31 +226,29 @@ tr.exportTo('tr.ui.tracks', function() {
       var kernel = this.model.kernel;
       var track = new tr.ui.tracks.KernelTrack(this.viewport);
       track.kernel = this.model.kernel;
-      if (!track.hasVisibleContent)
-        return;
+      if (!track.hasVisibleContent) return;
       Polymer.dom(this).appendChild(track);
     },
 
     appendCpuUsageTrack_: function() {
       var track = new tr.ui.tracks.CpuUsageTrack(this.viewport);
       track.initialize(this.model);
-      if (!track.hasVisibleContent)
-        return;
+      if (!track.hasVisibleContent) return;
+
       this.appendChild(track);
     },
 
     appendCpuUsageTrack_: function() {
       var track = new tr.ui.tracks.CpuUsageTrack(this.viewport);
       track.initialize(this.model);
-      if (!track.hasVisibleContent)
-        return;
+      if (!track.hasVisibleContent) return;
+
       this.appendChild(track);
     },
 
     drawTrack: function(type) {
       var ctx = this.context();
-      if (!this.model_)
-        return;
+      if (!this.model_) return;
 
       var pixelRatio = window.devicePixelRatio || 1;
       var bounds = this.getBoundingClientRect();
@@ -285,8 +280,9 @@ tr.exportTo('tr.ui.tracks', function() {
 
         case tr.ui.tracks.DrawType.INSTANT_EVENT:
           if (!this.model_.instantEvents ||
-              this.model_.instantEvents.length === 0)
+              this.model_.instantEvents.length === 0) {
             break;
+          }
 
           tr.ui.b.drawInstantSlicesAsLines(
               ctx,
@@ -346,8 +342,9 @@ tr.exportTo('tr.ui.tracks', function() {
       for (var i = 0; i < events.length; ++i) {
         if (onlyHighlighted &&
             events[i].selectionState !== SelectionState.SELECTED &&
-            events[i].selectionState !== SelectionState.HIGHLIGHTED)
+            events[i].selectionState !== SelectionState.HIGHLIGHTED) {
           continue;
+        }
         this.drawFlowArrow_(ctx, events[i], canvasBounds, pixWidth);
       }
     },
@@ -361,8 +358,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
       // TODO(nduca): Figure out how to draw flow arrows even when
       // processes are collapsed, bug #931.
-      if (startTrack === undefined || endTrack === undefined)
-        return;
+      if (startTrack === undefined || endTrack === undefined) return;
 
       var startBounds = startTrack.getBoundingClientRect();
       var endBounds = endTrack.getBoundingClientRect();
@@ -406,8 +402,7 @@ tr.exportTo('tr.ui.tracks', function() {
       var endSize = endBounds.left + endBounds.top +
           endBounds.bottom + endBounds.right;
       // Nothing to do if both ends of the track are collapsed.
-      if (startSize === 0 && endSize === 0)
-        return;
+      if (startSize === 0 && endSize === 0) return;
 
       var startY = this.calculateTrackY_(startTrack, canvasBounds);
       var endY = this.calculateTrackY_(endTrack, canvasBounds);
@@ -426,8 +421,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
       var arrowWidth = 5 * pixWidth * pixelRatio;
       var distance = flowEvent.end - flowEvent.start;
-      if (distance <= (2 * arrowWidth))
-        return;
+      if (distance <= (2 * arrowWidth)) return;
 
       var tipX = flowEvent.end;
       var tipY = pixelEndY;
@@ -486,9 +480,10 @@ tr.exportTo('tr.ui.tracks', function() {
     calculateTrackY_: function(track, canvasBounds) {
       var bounds = track.getBoundingClientRect();
       var size = bounds.left + bounds.top + bounds.bottom + bounds.right;
-      if (size === 0)
+      if (size === 0) {
         return this.calculateTrackY_(
             Polymer.dom(track).parentNode, canvasBounds);
+      }
 
       return bounds.top - canvasBounds.top + (bounds.height / 2);
     },

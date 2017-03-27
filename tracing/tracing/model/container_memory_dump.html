@@ -56,8 +56,7 @@ tr.exportTo('tr.model', function() {
     },
 
     getMemoryAllocatorDumpByFullName: function(fullName) {
-      if (this.memoryAllocatorDumps_ === undefined)
-        return undefined;
+      if (this.memoryAllocatorDumps_ === undefined) return undefined;
 
       // Lazily generate the index if necessary.
       if (this.memoryAllocatorDumpsByFullName_ === undefined) {
@@ -81,8 +80,7 @@ tr.exportTo('tr.model', function() {
     },
 
     iterateRootAllocatorDumps: function(fn, opt_this) {
-      if (this.memoryAllocatorDumps === undefined)
-        return;
+      if (this.memoryAllocatorDumps === undefined) return;
       this.memoryAllocatorDumps.forEach(fn, opt_this || this);
     }
   };

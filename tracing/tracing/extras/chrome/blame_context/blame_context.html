@@ -41,8 +41,9 @@ tr.exportTo('tr.e.chrome', function() {
      * Returns the parent in the context tree.
      */
     get parentContext() {
-      if (this.args.parent instanceof BlameContextSnapshot)
+      if (this.args.parent instanceof BlameContextSnapshot) {
         return this.args.parent;
+      }
       return undefined;
     },
 

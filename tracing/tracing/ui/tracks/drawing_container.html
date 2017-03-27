@@ -88,8 +88,8 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     invalidate: function() {
-      if (this.rafPending_)
-        return;
+      if (this.rafPending_) return;
+
       this.rafPending_ = true;
 
       tr.b.requestPreAnimationFrame(this.preDraw_, this);
@@ -118,8 +118,9 @@ tr.exportTo('tr.ui.tracks', function() {
 
       for (var idx in typesToDraw) {
         for (var i = 0; i < this.children.length; ++i) {
-          if (!(this.children[i] instanceof tr.ui.tracks.Track))
+          if (!(this.children[i] instanceof tr.ui.tracks.Track)) {
             continue;
+          }
           this.children[i].drawTrack(typesToDraw[idx]);
         }
       }
@@ -190,16 +191,17 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     visibleFilter_: function(element) {
-      if (!(element instanceof tr.ui.tracks.Track))
-        return false;
+      if (!(element instanceof tr.ui.tracks.Track)) return false;
+
       return window.getComputedStyle(element).display !== 'none';
     },
 
     addClosestEventToSelection: function(
         worldX, worldMaxDist, loY, hiY, selection) {
       for (var i = 0; i < this.children.length; ++i) {
-        if (!(this.children[i] instanceof tr.ui.tracks.Track))
+        if (!(this.children[i] instanceof tr.ui.tracks.Track)) {
           continue;
+        }
         var trackClientRect = this.children[i].getBoundingClientRect();
         var a = Math.max(loY, trackClientRect.top);
         var b = Math.min(hiY, trackClientRect.bottom);
@@ -215,8 +217,9 @@ tr.exportTo('tr.ui.tracks', function() {
 
     addEventsToTrackMap: function(eventToTrackMap) {
       for (var i = 0; i < this.children.length; ++i) {
-        if (!(this.children[i] instanceof tr.ui.tracks.Track))
+        if (!(this.children[i] instanceof tr.ui.tracks.Track)) {
           continue;
+        }
         this.children[i].addEventsToTrackMap(eventToTrackMap);
       }
     }

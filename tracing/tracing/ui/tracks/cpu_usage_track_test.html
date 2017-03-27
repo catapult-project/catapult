@@ -42,8 +42,9 @@ tr.b.unittest.testSuite(function() {
   // is not always 100% accurate.
   function assertArrayValuesCloseTo(actualValue, expectedValue) {
     assert.lengthOf(actualValue, expectedValue.length);
-    for (var i = 0; i < expectedValue.length; i++)
+    for (var i = 0; i < expectedValue.length; i++) {
       assert.closeTo(actualValue[i], expectedValue[i], DIFF_EPSILON);
+    }
   }
 
   function createCpuUsageTrack(model, interval) {
@@ -52,8 +53,9 @@ tr.b.unittest.testSuite(function() {
     var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
     div.appendChild(drawingContainer);
     var track = new tr.ui.tracks.CpuUsageTrack(drawingContainer.viewport);
-    if (model !== undefined)
+    if (model !== undefined) {
       setDisplayTransformFromBounds(viewport, model.bounds);
+    }
     track.initialize(model, interval);
     drawingContainer.appendChild(track);
     this.addHTMLOutput(drawingContainer);

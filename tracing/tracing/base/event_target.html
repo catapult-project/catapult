@@ -24,11 +24,9 @@ tr.exportTo('tr.b', function() {
   }
   EventTarget.decorate = function(target) {
     for (var k in EventTarget.prototype) {
-      if (k === 'decorate')
-        continue;
+      if (k === 'decorate') continue;
       var v = EventTarget.prototype[k];
-      if (typeof v !== 'function')
-        continue;
+      if (typeof v !== 'function') continue;
       target[k] = v;
     }
   };
@@ -42,14 +40,16 @@ tr.exportTo('tr.b', function() {
      *     event. This is called when the event is dispatched.
      */
     addEventListener: function(type, handler) {
-      if (!this.listeners_)
+      if (!this.listeners_) {
         this.listeners_ = Object.create(null);
+      }
       if (!(type in this.listeners_)) {
         this.listeners_[type] = [handler];
       } else {
         var handlers = this.listeners_[type];
-        if (handlers.indexOf(handler) < 0)
+        if (handlers.indexOf(handler) < 0) {
           handlers.push(handler);
+        }
       }
     },
 
@@ -60,17 +60,17 @@ tr.exportTo('tr.b', function() {
      *     event.
      */
     removeEventListener: function(type, handler) {
-      if (!this.listeners_)
-        return;
+      if (!this.listeners_) return;
       if (type in this.listeners_) {
         var handlers = this.listeners_[type];
         var index = handlers.indexOf(handler);
         if (index >= 0) {
           // Clean up if this was the last listener.
-          if (handlers.length === 1)
+          if (handlers.length === 1) {
             delete this.listeners_[type];
-          else
+          } else {
             handlers.splice(index, 1);
+          }
         }
       }
     },
@@ -83,8 +83,7 @@ tr.exportTo('tr.b', function() {
      *     calls preventDefault on the event object then this returns false.
      */
     dispatchEvent: function(event) {
-      if (!this.listeners_)
-        return true;
+      if (!this.listeners_) return true;
 
       // Since we are using DOM Event objects we need to override some of the
       // properties and methods so that we can emulate this correctly.
@@ -101,10 +100,11 @@ tr.exportTo('tr.b', function() {
         // Clone to prevent removal during dispatch
         var handlers = this.listeners_[type].concat();
         for (var i = 0, handler; handler = handlers[i]; i++) {
-          if (handler.handleEvent)
+          if (handler.handleEvent) {
             prevented |= handler.handleEvent.call(handler, event) === false;
-          else
+          } else {
             prevented |= handler.call(this, event) === false;
+          }
         }
       }
 
@@ -119,11 +119,9 @@ tr.exportTo('tr.b', function() {
   var EventTargetHelper = {
     decorate: function(target) {
       for (var k in EventTargetHelper) {
-        if (k === 'decorate')
-          continue;
+        if (k === 'decorate') continue;
         var v = EventTargetHelper[k];
-        if (typeof v !== 'function')
-          continue;
+        if (typeof v !== 'function') continue;
         target[k] = v;
       }
       target.listenerCounts_ = {};
@@ -132,8 +130,9 @@ tr.exportTo('tr.b', function() {
     addEventListener: function(type, listener, useCapture) {
       this.__proto__.addEventListener.call(
           this, type, listener, useCapture);
-      if (this.listenerCounts_[type] === undefined)
+      if (this.listenerCounts_[type] === undefined) {
         this.listenerCounts_[type] = 0;
+      }
       this.listenerCounts_[type]++;
     },
 

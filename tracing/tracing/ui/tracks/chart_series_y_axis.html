@@ -28,10 +28,8 @@ tr.exportTo('tr.ui.tracks', function() {
   function ChartSeriesYAxis(opt_min, opt_max) {
     this.guid_ = tr.b.GUID.allocateSimple();
     this.bounds = new tr.b.math.Range();
-    if (opt_min !== undefined)
-      this.bounds.addValue(opt_min);
-    if (opt_max !== undefined)
-      this.bounds.addValue(opt_max);
+    if (opt_min !== undefined) this.bounds.addValue(opt_min);
+    if (opt_max !== undefined) this.bounds.addValue(opt_max);
   }
 
   ChartSeriesYAxis.prototype = {
@@ -40,11 +38,11 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     valueToUnitRange: function(value) {
-      if (this.bounds.isEmpty)
+      if (this.bounds.isEmpty) {
         throw new Error('Chart series y-axis bounds are empty');
+      }
       var bounds = this.bounds;
-      if (bounds.range === 0)
-        return 0;
+      if (bounds.range === 0) return 0;
       return (value - bounds.min) / bounds.range;
     },
 
@@ -95,8 +93,7 @@ tr.exportTo('tr.ui.tracks', function() {
      * false), this method will only modify the y-axis bounds if they are empty.
      */
     autoSetFromRange: function(range, opt_config) {
-      if (range.isEmpty)
-        return;
+      if (range.isEmpty) return;
 
       var bounds = this.bounds;
       if (bounds.isEmpty) {
@@ -104,8 +101,7 @@ tr.exportTo('tr.ui.tracks', function() {
         return;
       }
 
-      if (!opt_config)
-        return;
+      if (!opt_config) return;
 
       var useRangeMin = (opt_config.expandMin && range.min < bounds.min ||
                          opt_config.shrinkMin && range.min > bounds.min);
@@ -113,8 +109,7 @@ tr.exportTo('tr.ui.tracks', function() {
                          opt_config.shrinkMax && range.max < bounds.max);
 
       // Neither bound is modified.
-      if (!useRangeMin && !useRangeMax)
-        return;
+      if (!useRangeMin && !useRangeMax) return;
 
       // Both bounds are modified. Assuming the range argument is a valid
       // range, no extra checks are necessary.

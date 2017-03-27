@@ -30,8 +30,9 @@ tr.exportTo('tr.model', function() {
    * @extends {tr.model.EventContainer}
    */
   function ProcessBase(model) {
-    if (!model)
+    if (!model) {
       throw new Error('Must provide a model');
+    }
     tr.model.EventContainer.call(this);
     this.model = model;
     this.threads = {};
@@ -59,8 +60,9 @@ tr.exportTo('tr.model', function() {
 
     iterateAllPersistableObjects: function(cb) {
       cb(this);
-      for (var tid in this.threads)
+      for (var tid in this.threads) {
         this.threads[tid].iterateAllPersistableObjects(cb);
+      }
     },
 
     /**
@@ -79,8 +81,9 @@ tr.exportTo('tr.model', function() {
      * specified.
      */
     shiftTimestampsForward: function(amount) {
-      for (var child of this.childEventContainers())
+      for (var child of this.childEventContainers()) {
         child.shiftTimestampsForward(amount);
+      }
     },
 
     /**
@@ -137,10 +140,12 @@ tr.exportTo('tr.model', function() {
     },
 
     addCategoriesToDict: function(categoriesDict) {
-      for (var tid in this.threads)
+      for (var tid in this.threads) {
         this.threads[tid].addCategoriesToDict(categoriesDict);
-      for (var id in this.counters)
+      }
+      for (var id in this.counters) {
         categoriesDict[this.counters[id].category] = true;
+      }
       this.objects.addCategoriesToDict(categoriesDict);
     },
 
@@ -148,8 +153,9 @@ tr.exportTo('tr.model', function() {
       var threads = [];
       for (var tid in this.threads) {
         var thread = this.threads[tid];
-        if (predicate.call(opt_this, thread))
+        if (predicate.call(opt_this, thread)) {
           threads.push(thread);
+        }
       }
       return threads;
     },
@@ -160,8 +166,7 @@ tr.exportTo('tr.model', function() {
      */
     findAllThreadsNamed: function(name) {
       var threads = this.findAllThreadsMatching(function(thread) {
-        if (!thread.name)
-          return false;
+        if (!thread.name) return false;
         return thread.name === name;
       });
       return threads;
@@ -169,10 +174,10 @@ tr.exportTo('tr.model', function() {
 
     findAtMostOneThreadNamed: function(name) {
       var threads = this.findAllThreadsNamed(name);
-      if (threads.length === 0)
-        return undefined;
-      if (threads.length > 1)
+      if (threads.length === 0) return undefined;
+      if (threads.length > 1) {
         throw new Error('Expected no more than one ' + name);
+      }
       return threads[0];
     },
 
@@ -183,8 +188,9 @@ tr.exportTo('tr.model', function() {
       var threadsToKeep = {};
       for (var tid in this.threads) {
         var thread = this.threads[tid];
-        if (!thread.isEmpty)
+        if (!thread.isEmpty) {
           threadsToKeep[tid] = thread;
+        }
       }
       this.threads = threadsToKeep;
     },
@@ -202,8 +208,9 @@ tr.exportTo('tr.model', function() {
      * creating it if it doesn't exist.
      */
     getOrCreateThread: function(tid) {
-      if (!this.threads[tid])
+      if (!this.threads[tid]) {
         this.threads[tid] = new Thread(this, tid);
+      }
       return this.threads[tid];
     },
 
@@ -213,8 +220,9 @@ tr.exportTo('tr.model', function() {
      */
     getOrCreateCounter: function(cat, name) {
       var id = cat + '.' + name;
-      if (!this.counters[id])
+      if (!this.counters[id]) {
         this.counters[id] = new Counter(this, id, cat, name);
+      }
       return this.counters[id];
     },
 
@@ -223,8 +231,9 @@ tr.exportTo('tr.model', function() {
     },
 
     createSubSlices: function() {
-      for (var tid in this.threads)
+      for (var tid in this.threads) {
         this.threads[tid].createSubSlices();
+      }
     }
   };
 

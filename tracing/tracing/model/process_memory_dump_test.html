@@ -56,8 +56,9 @@ tr.b.unittest.testSuite(function() {
 
   function createFinalizedProcessMemoryDump(timestamp, opt_createdCallback) {
     return createFinalizedProcessMemoryDumps([timestamp], function(pmds) {
-      if (opt_createdCallback !== undefined)
+      if (opt_createdCallback !== undefined) {
         opt_createdCallback(pmds[0]);
+      }
     })[0];
   }
 

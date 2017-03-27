@@ -96,8 +96,9 @@ Polymer({
 
   set selection(selection) {
     var cpuSlice = tr.b.getOnlyElement(selection);
-    if (!(cpuSlice instanceof tr.model.CpuSlice))
+    if (!(cpuSlice instanceof tr.model.CpuSlice)) {
       throw new Error('Only supports thread time slices');
+    }
 
     this.currentSelection_ = selection;
 

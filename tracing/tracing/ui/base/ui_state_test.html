@@ -42,8 +42,9 @@ tr.b.unittest.testSuite(function() {
     this.containerToTrackMap = {
       // "1.2" is the only valid stableId this test function accepts.
       getTrackByStableId: function(stableId) {
-        if (stableId === '1.2')
+        if (stableId === '1.2') {
           return new FakeTrack;
+        }
         return undefined;
       }
     };

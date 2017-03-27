@@ -109,10 +109,12 @@ found in the LICENSE file.
       computeIsSingular: count => count === 1,
 
       computeJobCountString: function() {
-        if (this.totalJobsCount === 1)
+        if (this.totalJobsCount === 1) {
           return '1 job';
-        if (this.totalJobsCount < this.totalJobsCountMax)
+        }
+        if (this.totalJobsCount < this.totalJobsCountMax) {
           return String(this.totalJobsCount) + ' jobs.';
+        }
         return String(this.totalJobsCountMax) + ' or more jobs.';
       },
 

@@ -16,8 +16,9 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   var generalModel;
   function getOrCreateGeneralModel() {
-    if (generalModel !== undefined)
+    if (generalModel !== undefined) {
       generalModel;
+    }
     var fileUrl = '/test_data/thread_time_visualisation.json.gz';
     var events = tr.b.getSync(fileUrl);
     generalModel = tr.c.TestUtils.newModelWithEvents([events]);

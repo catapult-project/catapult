@@ -46,14 +46,14 @@ tr.exportTo('tr.e.audits', function() {
     __proto__: Auditor.prototype,
 
     runAnnotate: function() {
-      if (!this.modelHelper)
-        return;
+      if (!this.modelHelper) return;
 
       for (var pid in this.modelHelper.rendererHelpers) {
         var rendererHelper = this.modelHelper.rendererHelpers[pid];
 
-        if (rendererHelper.isChromeTracingUI)
+        if (rendererHelper.isChromeTracingUI) {
           rendererHelper.process.important = false;
+        }
       }
     },
 
@@ -66,8 +66,7 @@ tr.exportTo('tr.e.audits', function() {
     },
 
     runAudit: function() {
-      if (!this.modelHelper)
-        return;
+      if (!this.modelHelper) return;
 
       this.model.replacePIDRefsInPatchups(
           tr.model.BROWSER_PROCESS_PID_REF,

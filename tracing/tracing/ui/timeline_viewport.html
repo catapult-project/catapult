@@ -137,8 +137,7 @@ tr.exportTo('tr.ui', function() {
      */
     get isAttachedToDocumentOrInTestMode() {
       // Allow not providing a parent element, used by tests.
-      if (this.parentEl_ === undefined)
-        return;
+      if (this.parentEl_ === undefined) return;
       return tr.ui.b.isElementAttachedToDocument(this.parentEl_);
     },
 
@@ -182,8 +181,9 @@ tr.exportTo('tr.ui', function() {
     },
 
     queueDisplayTransformAnimation: function(animation) {
-      if (!(animation instanceof tr.ui.b.Animation))
+      if (!(animation instanceof tr.ui.b.Animation)) {
         throw new Error('animation must be instanceof tr.ui.b.Animation');
+      }
       this.dtAnimationController_.queueAnimation(animation);
     },
 
@@ -200,16 +200,19 @@ tr.exportTo('tr.ui', function() {
       var changed = !this.currentDisplayTransform.equals(oldDisplayTransform);
       var yChanged = this.currentDisplayTransform.panY !==
           oldDisplayTransform.panY;
-      if (yChanged)
+      if (yChanged) {
         this.modelTrackContainer_.scrollTop = this.currentDisplayTransform.panY;
-      if (changed)
+      }
+      if (changed) {
         this.dispatchChangeEvent();
+      }
     },
 
     onModelTrackControllerScroll_: function(e) {
       if (this.dtAnimationController_.activeAnimation &&
-          this.dtAnimationController_.activeAnimation.affectsPanY)
+          this.dtAnimationController_.activeAnimation.affectsPanY) {
         this.dtAnimationController_.cancelActiveAnimation();
+      }
       var panY = this.modelTrackContainer_.scrollTop;
       this.currentDisplayTransform_.panY = panY;
     },
@@ -219,9 +222,10 @@ tr.exportTo('tr.ui', function() {
     },
 
     set modelTrackContainer(m) {
-      if (this.modelTrackContainer_)
+      if (this.modelTrackContainer_) {
         this.modelTrackContainer_.removeEventListener('scroll',
             this.onModelTrackControllerScroll_);
+      }
 
       this.modelTrackContainer_ = m;
       this.modelTrackContainer_.addEventListener('scroll',
@@ -260,8 +264,7 @@ tr.exportTo('tr.ui', function() {
     },
 
     set gridEnabled(enabled) {
-      if (this.gridEnabled_ === enabled)
-        return;
+      if (this.gridEnabled_ === enabled) return;
 
       this.gridEnabled_ = enabled && true;
       this.dispatchChangeEvent();
@@ -272,8 +275,8 @@ tr.exportTo('tr.ui', function() {
     },
 
     set gridTimebase(timebase) {
-      if (this.gridTimebase_ === timebase)
-        return;
+      if (this.gridTimebase_ === timebase) return;
+
       this.gridTimebase_ = timebase;
       this.dispatchChangeEvent();
     },
@@ -354,8 +357,7 @@ tr.exportTo('tr.ui', function() {
     },
 
     drawGridLines: function(ctx, viewLWorld, viewRWorld) {
-      if (!this.gridEnabled)
-        return;
+      if (!this.gridEnabled) return;
 
       var dt = this.currentDisplayTransform;
       var x = this.gridTimebase;
@@ -410,8 +412,8 @@ tr.exportTo('tr.ui', function() {
             event, offset, newSelection);
       }
 
-      if (newSelection.length === 0)
-        return undefined;
+      if (newSelection.length === 0) return undefined;
+
       return newSelection;
     },
 

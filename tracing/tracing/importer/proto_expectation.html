@@ -57,8 +57,9 @@ tr.exportTo('tr.importer', function() {
   ];
 
   function combineInitiatorTypes(title1, title2) {
-    for (var item of INITIATOR_HIERARCHY)
+    for (var item of INITIATOR_HIERARCHY) {
       if (title1 === item || title2 === item) return item;
+    }
     throw new Error('Invalid titles in combineInitiatorTypes');
   }
 
@@ -101,8 +102,7 @@ tr.exportTo('tr.importer', function() {
               model, this.initiatorType, this.start, duration);
           break;
       }
-      if (!ir)
-        return undefined;
+      if (!ir) return undefined;
 
       ir.sourceEvents.addEventSet(this.associatedEvents);
 
@@ -112,16 +112,18 @@ tr.exportTo('tr.importer', function() {
         // |event| is either an InputLatencyAsyncSlice (which collects all of
         // its associated events transitively) or a CSS Animation (which doesn't
         // have any associated events). So this does not need to recurse.
-        if (event.associatedEvents)
+        if (event.associatedEvents) {
           ir.associatedEvents.addEventSet(event.associatedEvents);
+        }
       }
 
       this.associatedEvents.forEach(function(event) {
         pushAssociatedEvents(event);
 
         // Old-style InputLatencyAsyncSlices have subSlices.
-        if (event.subSlices)
+        if (event.subSlices) {
           event.subSlices.forEach(pushAssociatedEvents);
+        }
       });
 
       return ir;
@@ -139,8 +141,9 @@ tr.exportTo('tr.importer', function() {
       this.associatedEvents.addEventSet(other.associatedEvents);
       this.start = Math.min(this.start, other.start);
       this.end = Math.max(this.end, other.end);
-      if (other.isAnimationBegin)
+      if (other.isAnimationBegin) {
         this.isAnimationBegin = true;
+      }
     },
 
     // Include |event| in this ProtoExpectation, expanding start/end to include

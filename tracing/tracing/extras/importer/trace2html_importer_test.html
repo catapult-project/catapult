@@ -34,8 +34,9 @@ tr.b.unittest.testSuite(function() {
     var subTracesAsStrings = subTracesAsBuffers.map(function(buffer) {
       var str = '';
       var ary = new Uint8Array(buffer);
-      for (var i = 0; i < ary.length; i++)
+      for (var i = 0; i < ary.length; i++) {
         str += String.fromCharCode(ary[i]);
+      }
       return str;
     });
     assert.deepEqual(subTracesAsStrings, ['hello', 'world']);

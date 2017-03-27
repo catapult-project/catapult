@@ -37,8 +37,7 @@ tr.b.unittest.testSuite(function() {
     var snapshot = instance.snapshots[0];
 
     var ops = snapshot.getOps();
-    if (!ops)
-      return;
+    if (!ops) return;
     assert.equal(ops.length, 142);
 
     var op0 = ops[0];

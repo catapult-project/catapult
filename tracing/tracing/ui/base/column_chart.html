@@ -72,8 +72,9 @@ tr.exportTo('tr.ui.b', function() {
       // average width of the rects, which is chart.width / data.length.
       this.xScale_.range([0, this.graphWidth]);
       var domain = d3.extent(this.data_, this.getXForDatum_.bind(this));
-      if (this.data_.length > 1)
+      if (this.data_.length > 1) {
         this.xCushion_ = xDifferences / (this.data_.length - 1);
+      }
       this.xScale_.domain([domain[0], domain[1] + this.xCushion_]);
 
       // Y.
@@ -128,8 +129,9 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     getRectsForDatum_(datum, index) {
-      if (this.isStacked)
+      if (this.isStacked) {
         return this.getStackedRectsForDatum_(datum, index);
+      }
 
       var stacks = [];
       for (var [key, series] of this.seriesByKey_) {

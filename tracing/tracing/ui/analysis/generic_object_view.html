@@ -96,8 +96,9 @@ Polymer({
 
     if (!(object instanceof Object)) {
       var type = typeof object;
-      if (type !== 'string')
+      if (type !== 'string') {
         return this.appendSimpleText_(label, indent, object, suffix);
+      }
       var objectReplaced = false;
       if ((object[0] === '{' && object[object.length - 1] === '}') ||
           (object[0] === '[' && object[object.length - 1] === ']')) {
@@ -203,14 +204,15 @@ Polymer({
         var allStrings = true;
         var allNumbers = true;
         for (var i = 0; i < object.length; ++i) {
-          if (typeof(object[i][colName]) !== 'string')
+          if (typeof(object[i][colName]) !== 'string') {
             allStrings = false;
+          }
 
-          if (typeof(object[i][colName]) !== 'number')
+          if (typeof(object[i][colName]) !== 'number') {
             allNumbers = false;
+          }
 
-          if (!allStrings && !allNumbers)
-            break;
+          if (!allStrings && !allNumbers) break;
         }
 
         var column = {title: colName};
@@ -278,8 +280,9 @@ Polymer({
 
     var indentSpan = document.createElement('span');
     indentSpan.style.whiteSpace = 'pre';
-    for (var i = 0; i < indent; i++)
+    for (var i = 0; i < indent; i++) {
       Polymer.dom(indentSpan).textContent += ' ';
+    }
     Polymer.dom(row).appendChild(indentSpan);
 
     var labelSpan = document.createElement('span');

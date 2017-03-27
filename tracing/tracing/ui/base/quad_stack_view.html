@@ -136,12 +136,15 @@ tr.exportTo('tr.ui.b', function() {
     if (depth < constants.SUBDIVISION_MINIMUM) {
       subdivisionIndex = 7;
     } else if (depth < constants.SUBDIVISION_RECURSION_DEPTH) {
-      if (Math.abs(p0[2] - p1[2]) > constants.SUBDIVISION_DEPTH_THRESHOLD)
+      if (Math.abs(p0[2] - p1[2]) > constants.SUBDIVISION_DEPTH_THRESHOLD) {
         subdivisionIndex += 1;
-      if (Math.abs(p0[2] - p2[2]) > constants.SUBDIVISION_DEPTH_THRESHOLD)
+      }
+      if (Math.abs(p0[2] - p2[2]) > constants.SUBDIVISION_DEPTH_THRESHOLD) {
         subdivisionIndex += 2;
-      if (Math.abs(p1[2] - p2[2]) > constants.SUBDIVISION_DEPTH_THRESHOLD)
+      }
+      if (Math.abs(p1[2] - p2[2]) > constants.SUBDIVISION_DEPTH_THRESHOLD) {
         subdivisionIndex += 4;
+      }
     }
 
     // These need to be created every time, since temporaries
@@ -286,23 +289,26 @@ tr.exportTo('tr.ui.b', function() {
     ctx.lineTo(p4[0], p4[1]);
     ctx.closePath();
     ctx.save();
-    if (quad.borderColor)
+    if (quad.borderColor) {
       ctx.strokeStyle = quad.borderColor;
-    else
+    } else {
       ctx.strokeStyle = 'rgb(128,128,128)';
+    }
 
     if (quad.shadowOffset) {
       ctx.shadowColor = 'rgb(0, 0, 0)';
       ctx.shadowOffsetX = quad.shadowOffset[0];
       ctx.shadowOffsetY = quad.shadowOffset[1];
-      if (quad.shadowBlur)
+      if (quad.shadowBlur) {
         ctx.shadowBlur = quad.shadowBlur;
+      }
     }
 
-    if (quad.borderWidth)
+    if (quad.borderWidth) {
       ctx.lineWidth = quad.borderWidth;
-    else
+    } else {
       ctx.lineWidth = 1;
+    }
 
     ctx.stroke();
     ctx.restore();
@@ -310,8 +316,7 @@ tr.exportTo('tr.ui.b', function() {
 
   function drawProjectedQuadSelectionOutlineToContext(
       quad, p1, p2, p3, p4, ctx, quadCanvas) {
-    if (!quad.upperBorderColor)
-      return;
+    if (!quad.upperBorderColor) return;
 
     ctx.lineWidth = 8;
     ctx.strokeStyle = quad.upperBorderColor;
@@ -406,10 +411,11 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     updateHeaderVisibility_: function() {
-      if (this.headerText)
+      if (this.headerText) {
         Polymer.dom(this).querySelector('#header').style.display = '';
-      else
+      } else {
         Polymer.dom(this).querySelector('#header').style.display = 'none';
+      }
     },
 
     get headerText() {
@@ -446,8 +452,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     set deviceRect(rect) {
-      if (!rect || rect.equalTo(this.deviceRect_))
-        return;
+      if (!rect || rect.equalTo(this.deviceRect_)) return;
 
       this.deviceRect_ = rect;
       this.camera_.deviceRect = rect;
@@ -455,15 +460,13 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     resize: function() {
-      if (!this.offsetParent)
-        return true;
+      if (!this.offsetParent) return true;
 
       var width = parseInt(window.getComputedStyle(this.offsetParent).width);
       var height = parseInt(window.getComputedStyle(this.offsetParent).height);
       var rect = tr.b.math.Rect.fromXYWH(0, 0, width, height);
 
-      if (rect.equalTo(this.viewportRect_))
-        return false;
+      if (rect.equalTo(this.viewportRect_)) return false;
 
       this.viewportRect_ = rect;
       this.style.width = width + 'px';
@@ -508,8 +511,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     get chromeQuad() {
-      if (this.chromeQuad_)
-        return this.chromeQuad_;
+      if (this.chromeQuad_) return this.chromeQuad_;
 
       // Draw the chrome border into a separate canvas.
       var chromeCanvas = document.createElement('canvas');
@@ -556,8 +558,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     scheduleRender: function() {
-      if (this.redrawScheduled_)
-        return false;
+      if (this.redrawScheduled_) return false;
       this.redrawScheduled_ = true;
       tr.b.requestAnimationFrame(this.render, this);
     },
@@ -579,8 +580,9 @@ tr.exportTo('tr.ui.b', function() {
       for (var i = 0; i < this.quads_.length; ++i) {
         var quad = this.quads_[i];
         var stackingId = quad.stackingGroupId || 0;
-        while (stackingId >= quadStacks.length)
+        while (stackingId >= quadStacks.length) {
           quadStacks.push([]);
+        }
 
         quadStacks[stackingId].push(quad);
       }
@@ -617,12 +619,12 @@ tr.exportTo('tr.ui.b', function() {
         return;
       }
 
-      if (!this.quads_)
-        return;
+      if (!this.quads_) return;
 
       var canvasCtx = this.canvas_.getContext('2d');
-      if (!this.resize())
+      if (!this.resize()) {
         canvasCtx.clearRect(0, 0, this.canvas_.width, this.canvas_.height);
+      }
 
       var quadCanvas = document.createElement('canvas');
       this.stackTransformAndProcessQuads_(
@@ -671,8 +673,9 @@ tr.exportTo('tr.ui.b', function() {
       var mousePos = this.extractRelativeMousePosition_(e);
       var res = [];
       function handleQuad(passNumber, quad, p1, p2, p3, p4) {
-        if (tr.b.math.pointInImplicitQuad(mousePos, p1, p2, p3, p4))
+        if (tr.b.math.pointInImplicitQuad(mousePos, p1, p2, p3, p4)) {
           res.push(quad);
+        }
       }
       this.stackTransformAndProcessQuads_(1, handleQuad, false);
       var e = new tr.b.Event('selectionchange');

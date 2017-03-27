@@ -80,23 +80,26 @@ tr.b.unittest.testSuite(function() {
       expectedContexts) {
     // Check title.
     var formattedTitle = columns[0].formatTitle(row);
-    if (typeof expectedTitle === 'function')
+    if (typeof expectedTitle === 'function') {
       expectedTitle(formattedTitle);
-    else
+    } else {
       assert.strictEqual(formattedTitle, expectedTitle);
+    }
 
     // Check all sizes. The first assert below is a test sanity check.
     assert.lengthOf(expectedSizes, columns.length - 1 /* all except title */);
-    for (var i = 0; i < expectedSizes.length; i++)
+    for (var i = 0; i < expectedSizes.length; i++) {
       checkSizeNumericFields(row, columns[i + 1], expectedSizes[i]);
+    }
 
     // There should be no row nesting on the overview pane.
     assert.isUndefined(row.subRows);
 
-    if (expectedContexts)
+    if (expectedContexts) {
       assert.deepEqual(tr.b.asArray(row.contexts), expectedContexts);
-    else
+    } else {
       assert.isUndefined(row.contexts);
+    }
   }
 
   function checkRows(columns, actualRows, expectedRows) {
@@ -404,10 +407,11 @@ tr.b.unittest.testSuite(function() {
 
       assert.strictEqual(
           table.selectedColumnIndex, expectedSelectedColumnIndex);
-      if (expectedSelectedRowTitle === undefined)
+      if (expectedSelectedRowTitle === undefined) {
         assert.isUndefined(table.selectedTableRow);
-      else
+      } else {
         assert.equal(table.selectedTableRow.title, expectedSelectedRowTitle);
+      }
 
       callback(viewEl, viewEl.$.table);
     }
@@ -611,8 +615,9 @@ tr.b.unittest.testSuite(function() {
       checkOverviewColumnInfosAndColor(c,
           fieldAndDumpMask,
           function(pmd, mask) {
-            if (mask & HAS_OWN_VM_REGIONS)
+            if (mask & HAS_OWN_VM_REGIONS) {
               pmd.vmRegions = [];
+            }
           },
           expectedInfos,
           expectedIsOlderColor ?
@@ -691,10 +696,12 @@ tr.b.unittest.testSuite(function() {
       checkOverviewColumnInfosAndColor(c,
           fieldAndDumpMask,
           function(pmd, mask) {
-            if (mask & HAS_HEAP_DUMPS)
+            if (mask & HAS_HEAP_DUMPS) {
               pmd.heapDumps = {};
-            if (mask & HAS_ALLOCATOR_HEAP_DUMP)
+            }
+            if (mask & HAS_ALLOCATOR_HEAP_DUMP) {
               pmd.heapDumps['Allocator'] = new HeapDump(pmd, 'Allocator');
+            }
             var mad = new MemoryAllocatorDump(pmd, 'Allocator');
             if (!(mask & MISSING_SIZE)) {
               mad.addNumeric('size',

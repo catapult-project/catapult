@@ -54,8 +54,9 @@ tr.exportTo('tr.e.cc', function() {
         delete this.args.tiles;
       }
 
-      if (!this.activeTiles)
+      if (!this.activeTiles) {
         this.activeTiles = [];
+      }
 
       this.activeTree.layerTreeHostImpl = this;
       this.activeTree.whichTree = constants.ACTIVE_TREE;
@@ -83,20 +84,24 @@ tr.exportTo('tr.e.cc', function() {
     },
 
     getTree: function(whichTree) {
-      if (whichTree === constants.ACTIVE_TREE)
+      if (whichTree === constants.ACTIVE_TREE) {
         return this.activeTree;
-      if (whichTree === constants.PENDING_TREE)
+      }
+      if (whichTree === constants.PENDING_TREE) {
         return this.pendingTree;
+      }
       throw new Exception('Unknown tree type + ' + whichTree);
     },
 
     get tilesHaveGpuMemoryUsageInfo() {
-      if (this.tilesHaveGpuMemoryUsageInfo_ !== undefined)
+      if (this.tilesHaveGpuMemoryUsageInfo_ !== undefined) {
         return this.tilesHaveGpuMemoryUsageInfo_;
+      }
 
       for (var i = 0; i < this.activeTiles.length; i++) {
-        if (this.activeTiles[i].gpuMemoryUsageInBytes === undefined)
+        if (this.activeTiles[i].gpuMemoryUsageInBytes === undefined) {
           continue;
+        }
         this.tilesHaveGpuMemoryUsageInfo_ = true;
         return true;
       }
@@ -105,14 +110,12 @@ tr.exportTo('tr.e.cc', function() {
     },
 
     get gpuMemoryUsageInBytes() {
-      if (!this.tilesHaveGpuMemoryUsageInfo)
-        return;
+      if (!this.tilesHaveGpuMemoryUsageInfo) return;
 
       var usage = 0;
       for (var i = 0; i < this.activeTiles.length; i++) {
         var u = this.activeTiles[i].gpuMemoryUsageInBytes;
-        if (u !== undefined)
-          usage += u;
+        if (u !== undefined) usage += u;
       }
       return usage;
     },
@@ -122,10 +125,11 @@ tr.exportTo('tr.e.cc', function() {
       if (!this.activeTree) {
         frameNumber = this.objectInstance.snapshots.indexOf(this);
       } else {
-        if (this.activeTree.sourceFrameNumber === undefined)
+        if (this.activeTree.sourceFrameNumber === undefined) {
           frameNumber = this.objectInstance.snapshots.indexOf(this);
-        else
+        } else {
           frameNumber = this.activeTree.sourceFrameNumber;
+        }
       }
       return 'cc::LayerTreeHostImpl frame ' + frameNumber;
     }
@@ -148,8 +152,9 @@ tr.exportTo('tr.e.cc', function() {
     __proto__: ObjectInstance.prototype,
 
     get allContentsScales() {
-      if (this.allContentsScales_)
+      if (this.allContentsScales_) {
         return this.allContentsScales_;
+      }
 
       var scales = {};
       for (var tileID in this.allTileHistories_) {
@@ -161,8 +166,9 @@ tr.exportTo('tr.e.cc', function() {
     },
 
     get allLayersBBox() {
-      if (this.allLayersBBox_)
+      if (this.allLayersBBox_) {
         return this.allLayersBBox_;
+      }
       var bbox = new tr.b.math.BBox2();
       function handleTree(tree) {
         tree.renderSurfaceLayerList.forEach(function(layer) {
@@ -171,8 +177,9 @@ tr.exportTo('tr.e.cc', function() {
       }
       this.snapshots.forEach(function(lthi) {
         handleTree(lthi.activeTree);
-        if (lthi.pendingTree)
+        if (lthi.pendingTree) {
           handleTree(lthi.pendingTree);
+        }
       });
       this.allLayersBBox_ = bbox;
       return this.allLayersBBox_;

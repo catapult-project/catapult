@@ -18,8 +18,7 @@ tr.b.unittest.testSuite(function() {
   var ColumnAlignment = tr.ui.b.TableFormat.ColumnAlignment;
 
   function isSelected(element) {
-    if (!element.hasAttribute('selected'))
-      return false;
+    if (!element.hasAttribute('selected')) return false;
     return element.getAttribute('selected') === 'true';
   }
 
@@ -1229,8 +1228,9 @@ tr.b.unittest.testSuite(function() {
   test('focus_allCellsUnselectable', function() {
     var table = createMultiColumnNestedTable();
     table.selectionMode = SelectionMode.CELL;
-    for (var c of table.tableColumns)
+    for (var c of table.tableColumns) {
       c.supportsCellSelection = false;
+    }
     table.tableColumns = table.tableColumns;
     this.addHTMLOutput(table);
 
@@ -1803,11 +1803,9 @@ tr.b.unittest.testSuite(function() {
     table.defaultExpansionStateCallback = function(row, parentRow) {
       callbackCalled = true;
 
-      if (parentRow === undefined)
-        return true;
+      if (parentRow === undefined) return true;
 
-      if (row.value >= (parentRow.value * 0.8))
-        return true;
+      if (row.value >= (parentRow.value * 0.8)) return true;
 
       return false;
     };

@@ -64,13 +64,13 @@ tr.exportTo('tr.ui.tracks', function() {
         var track = new tr.ui.tracks.CpuTrack(this.viewport);
         track.detailedMode = this.expanded;
         track.cpu = cpu;
-        if (!track.hasVisibleContent)
-          continue;
+        if (!track.hasVisibleContent) continue;
         Polymer.dom(this).appendChild(track);
         didAppendAtLeastOneTrack = true;
       }
-      if (didAppendAtLeastOneTrack)
+      if (didAppendAtLeastOneTrack) {
         Polymer.dom(this).appendChild(new SpacingTrack(this.viewport));
+      }
     }
   };
 

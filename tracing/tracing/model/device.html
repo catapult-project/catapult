@@ -24,8 +24,9 @@ tr.exportTo('tr.model', function() {
    * @extends {tr.model.EventContainer}
    */
   function Device(model) {
-    if (!model)
+    if (!model) {
       throw new Error('Must provide a model.');
+    }
 
     tr.model.EventContainer.call(this);
 
@@ -98,18 +99,21 @@ tr.exportTo('tr.model', function() {
         child.shiftTimestampsForward(amount);
       }
 
-      for (var i = 0; i < this.vSyncTimestamps_.length; i++)
+      for (var i = 0; i < this.vSyncTimestamps_.length; i++) {
         this.vSyncTimestamps_[i] += amount;
+      }
     },
 
     addCategoriesToDict: function(categoriesDict) {
     },
 
     childEventContainers: function* () {
-      if (this.powerSeries_)
+      if (this.powerSeries_) {
         yield this.powerSeries_;
-      if (this.cpuUsageSeries_)
+      }
+      if (this.cpuUsageSeries_) {
         yield this.cpuUsageSeries_;
+      }
     }
   };
 

@@ -36,8 +36,9 @@ tr.exportTo('tr.importer', function() {
   }
 
   function Import(model, opt_options) {
-    if (model === undefined)
+    if (model === undefined) {
       throw new Error('Must provide model to import into.');
+    }
 
     // TODO(dsinclair): Check the model is empty.
 
@@ -80,8 +81,9 @@ tr.exportTo('tr.importer', function() {
      * during the import process.
      */
     importTracesWithProgressDialog: function(traces) {
-      if (tr.isHeadless)
+      if (tr.isHeadless) {
         throw new Error('Cannot use this method in headless mode.');
+      }
 
       var overlay = tr.ui.b.Overlay();
       overlay.title = 'Importing...';
@@ -110,8 +112,9 @@ tr.exportTo('tr.importer', function() {
      */
     createImportTracesTask: function(progressMeter, traces) {
       var importStartTimeMs = performance.now();
-      if (this.importing_)
+      if (this.importing_) {
         throw new Error('Already importing.');
+      }
       this.importing_ = true;
 
       // Just some simple setup. It is useful to have a no-op first
@@ -148,8 +151,9 @@ tr.exportTo('tr.importer', function() {
         traces = traces.slice(0);
         progressMeter.update('Creating importers...');
         // Figure out which importers to use.
-        for (var i = 0; i < traces.length; ++i)
+        for (var i = 0; i < traces.length; ++i) {
           importers.push(this.createImporter_(traces[i]));
+        }
 
         // Some traces have other traces inside them. Before doing the full
         // import, ask the importer if it has any subtraces, and if so, create
@@ -318,8 +322,7 @@ tr.exportTo('tr.importer', function() {
 
     hasEventDataDecoder_: function(importers) {
       for (var i = 0; i < importers.length; ++i) {
-        if (!importers[i].isTraceDataContainer())
-          return true;
+        if (!importers[i].isTraceDataContainer()) return true;
       }
 
       return false;

@@ -42,8 +42,9 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     onBeginTiming: function(e) {
-      if (!this.isTouchPointInsideTrackBounds_(e.clientX, e.clientY))
+      if (!this.isTouchPointInsideTrackBounds_(e.clientX, e.clientY)) {
         return;
+      }
 
       var pt = this.getSnappedToEventPosition_(e);
       this.mouseDownAt_(pt.x, pt.y);
@@ -52,13 +53,15 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     updateSnapIndicators_: function(pt) {
-      if (!pt.snapped)
-        return;
+      if (!pt.snapped) return;
+
       var ir = this.viewport_.interestRange;
-      if (ir.min === pt.x)
+      if (ir.min === pt.x) {
         ir.leftSnapIndicator = new tr.ui.SnapIndicator(pt.y, pt.height);
-      if (ir.max === pt.x)
+      }
+      if (ir.max === pt.x) {
         ir.rightSnapIndicator = new tr.ui.SnapIndicator(pt.y, pt.height);
+      }
     },
 
     onUpdateTiming: function(e) {
@@ -77,8 +80,8 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     onMouseMove_: function(e) {
-      if (e.button)
-        return;
+      if (e.button) return;
+
       var worldX = this.getWorldXFromEvent_(e);
       this.mouseMoveAt_(worldX, e.clientY, false);
     },
@@ -92,14 +95,16 @@ tr.exportTo('tr.ui.b', function() {
     isTouchPointInsideTrackBounds_: function(clientX, clientY) {
       if (!this.viewport_ ||
           !this.viewport_.modelTrackContainer ||
-          !this.viewport_.modelTrackContainer.canvas)
+          !this.viewport_.modelTrackContainer.canvas) {
         return false;
+      }
 
       var canvas = this.viewport_.modelTrackContainer.canvas;
       var canvasRect = canvas.getBoundingClientRect();
       if (clientX >= canvasRect.left && clientX <= canvasRect.right &&
-          clientY >= canvasRect.top && clientY <= canvasRect.bottom)
+          clientY >= canvasRect.top && clientY <= canvasRect.bottom) {
         return true;
+      }
 
       return false;
     },
@@ -177,15 +182,17 @@ tr.exportTo('tr.ui.b', function() {
       var ir = this.viewport_.interestRange;
       var a = ir.min;
       var b = ir.max;
-      if (this.isMovingLeftEdge_)
+      if (this.isMovingLeftEdge_) {
         a = newWorldX;
-      else
+      } else {
         b = newWorldX;
+      }
 
-      if (a <= b)
+      if (a <= b) {
         ir.setMinAndMax(a, b);
-      else
+      } else {
         ir.setMinAndMax(b, a);
+      }
 
       if (ir.min === newWorldX) {
         this.isMovingLeftEdge_ = true;
@@ -207,8 +214,9 @@ tr.exportTo('tr.ui.b', function() {
 
       var pixelRatio = window.devicePixelRatio || 1;
       var minWidthValue = dt.xViewVectorToWorld(2 * pixelRatio);
-      if (ir.range < minWidthValue)
+      if (ir.range < minWidthValue) {
         ir.reset();
+      }
     },
 
     getWorldXFromEvent_: function(e) {

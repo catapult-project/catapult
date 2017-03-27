@@ -20,17 +20,20 @@ tr.exportTo('tr.b', function() {
     registry.register = function(constructor,
         opt_metadata) {
       if (registry.findIndexOfRegisteredConstructor(
-          constructor) !== undefined)
+          constructor) !== undefined) {
         throw new Error('Handler already registered for ' + constructor);
+      }
 
       extensionRegistryOptions.validateConstructor(constructor);
 
       var metadata = {};
-      for (var k in extensionRegistryOptions.defaultMetadata)
+      for (var k in extensionRegistryOptions.defaultMetadata) {
         metadata[k] = extensionRegistryOptions.defaultMetadata[k];
+      }
       if (opt_metadata) {
-        for (var k in opt_metadata)
+        for (var k in opt_metadata) {
           metadata[k] = opt_metadata[k];
+        }
       }
 
       var typeInfo = new RegisteredTypeInfo(
@@ -63,16 +66,19 @@ tr.exportTo('tr.b', function() {
     };
 
     registry.findIndexOfRegisteredConstructor = function(constructor) {
-      for (var i = 0; i < registry.registeredTypeInfos_.length; i++)
-        if (registry.registeredTypeInfos_[i].constructor === constructor)
+      for (var i = 0; i < registry.registeredTypeInfos_.length; i++) {
+        if (registry.registeredTypeInfos_[i].constructor === constructor) {
           return i;
+        }
+      }
       return undefined;
     };
 
     registry.unregister = function(constructor) {
       var foundIndex = registry.findIndexOfRegisteredConstructor(constructor);
-      if (foundIndex === undefined)
+      if (foundIndex === undefined) {
         throw new Error(constructor + ' not registered');
+      }
       registry.registeredTypeInfos_.splice(foundIndex, 1);
 
       var e = new tr.b.Event('registry-changed');
@@ -85,8 +91,9 @@ tr.exportTo('tr.b', function() {
 
     registry.findTypeInfo = function(constructor) {
       var foundIndex = this.findIndexOfRegisteredConstructor(constructor);
-      if (foundIndex !== undefined)
+      if (foundIndex !== undefined) {
         return this.registeredTypeInfos_[foundIndex];
+      }
       return undefined;
     };
 
@@ -94,20 +101,21 @@ tr.exportTo('tr.b', function() {
       opt_this = opt_this ? opt_this : undefined;
       for (var i = 0; i < registry.registeredTypeInfos_.length; ++i) {
         var typeInfo = registry.registeredTypeInfos_[i];
-        if (predicate.call(opt_this, typeInfo))
+        if (predicate.call(opt_this, typeInfo)) {
           return typeInfo;
+        }
       }
       return extensionRegistryOptions.defaultTypeInfo;
     };
 
     registry.findTypeInfoWithName = function(name) {
-      if (typeof(name) !== 'string')
+      if (typeof(name) !== 'string') {
         throw new Error('Name is not a string.');
+      }
       var typeInfo = registry.findTypeInfoMatching(function(ti) {
         return ti.constructor.name === name;
       });
-      if (typeInfo)
-        return typeInfo;
+      if (typeInfo) return typeInfo;
       return undefined;
     };
   }

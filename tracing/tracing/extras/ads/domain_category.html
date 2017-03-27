@@ -73,8 +73,9 @@ tr.exportTo('tr.e.ads', function() {
 
   DomainCategory.fromDomain = function(domain) {
     for (var i = 0; i < CATEGORY_DOMAIN_RULES.length; i++) {
-      if (CATEGORY_DOMAIN_RULES[i].expr.test(domain))
+      if (CATEGORY_DOMAIN_RULES[i].expr.test(domain)) {
         return CATEGORY_DOMAIN_RULES[i].category;
+      }
     }
     return CATEGORY_OTHER;
   };

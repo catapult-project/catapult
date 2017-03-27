@@ -69,8 +69,9 @@ tr.exportTo('tr.e.importer.etw', function() {
 
     reset: function(base64Payload) {
       var decodedSize = tr.b.Base64.getDecodedBufferLength(base64Payload);
-      if (decodedSize > this.payload_.byteLength)
+      if (decodedSize > this.payload_.byteLength) {
         this.payload_ = new DataView(new ArrayBuffer(decodedSize));
+      }
 
       tr.b.Base64.DecodeToTypedArray(base64Payload, this.payload_);
       this.position_ = 0;
@@ -133,8 +134,9 @@ tr.exportTo('tr.e.importer.etw', function() {
     },
 
     decodeUInteger: function(is64) {
-      if (is64)
+      if (is64) {
         return this.decodeUInt64ToString();
+      }
       return this.decodeUInt32();
     },
 
@@ -142,8 +144,7 @@ tr.exportTo('tr.e.importer.etw', function() {
       var str = '';
       while (true) {
         var c = this.decodeUInt8();
-        if (!c)
-          return str;
+        if (!c) return str;
         str = str + String.fromCharCode(c);
       }
     },
@@ -152,8 +153,7 @@ tr.exportTo('tr.e.importer.etw', function() {
       var str = '';
       while (true) {
         var c = this.decodeUInt16();
-        if (!c)
-          return str;
+        if (!c) return str;
         str = str + String.fromCharCode(c);
       }
     },
@@ -163,8 +163,7 @@ tr.exportTo('tr.e.importer.etw', function() {
       var str = '';
       for (var i = 0; i < length; i++) {
         var c = this.decodeUInt16();
-        if (!c)
-          break;
+        if (!c) break;
         str = str + String.fromCharCode(c);
       }
 
@@ -188,8 +187,9 @@ tr.exportTo('tr.e.importer.etw', function() {
       var attributes = this.decodeUInt32();
 
       // Skip padding.
-      if (is64)
+      if (is64) {
         this.decodeUInt32();
+      }
 
       // Decode the SID structure.
       var revision = this.decodeUInt8();
@@ -319,8 +319,7 @@ tr.exportTo('tr.e.importer.etw', function() {
     },
 
     getPidFromWindowsTid: function(tid) {
-      if (tid === 0)
-        return 0;
+      if (tid === 0) return 0;
       var pid = this.tidsToPid_[tid];
       if (pid === undefined) {
         // Kernel threads are not defined.
@@ -332,8 +331,7 @@ tr.exportTo('tr.e.importer.etw', function() {
     getThreadFromWindowsTid: function(tid) {
       var pid = this.getPidFromWindowsTid(tid);
       var process = this.model_.getProcess(pid);
-      if (!process)
-        return undefined;
+      if (!process) return undefined;
       return process.getThread(tid);
     },
 
@@ -352,11 +350,13 @@ tr.exportTo('tr.e.importer.etw', function() {
     importEvents: function() {
       this.events_.content.forEach(this.parseInfo.bind(this));
 
-      if (this.walltime_ === undefined || this.ticks_ === undefined)
+      if (this.walltime_ === undefined || this.ticks_ === undefined) {
         throw Error('Cannot find clock sync information in the system trace.');
+      }
 
-      if (this.is64bit_ === undefined)
+      if (this.is64bit_ === undefined) {
         throw Error('Cannot determine pointer size of the system trace.');
+      }
 
       this.events_.content.forEach(this.parseEvent.bind(this));
     },
@@ -387,20 +387,23 @@ tr.exportTo('tr.e.importer.etw', function() {
         var decodedSize = tr.b.Base64.getDecodedBufferLength(event.payload);
 
         if (event.ver === 1) {
-          if (decodedSize >= 52)
+          if (decodedSize >= 52) {
             this.is64bit_ = true;
-          else
+          } else {
             this.is64bit_ = false;
+          }
         } else if (event.ver === 2) {
-          if (decodedSize >= 64)
+          if (decodedSize >= 64) {
             this.is64bit_ = true;
-          else
+          } else {
             this.is64bit_ = false;
+          }
         } else if (event.ver === 3) {
-          if (decodedSize >= 60)
+          if (decodedSize >= 60) {
             this.is64bit_ = true;
-          else
+          } else {
             this.is64bit_ = false;
+          }
         }
       }
 
@@ -435,8 +438,7 @@ tr.exportTo('tr.e.importer.etw', function() {
 
       // Retrieve the handler to decode the payload.
       var handler = this.getEventHandler(header.guid, header.opcode);
-      if (!handler)
-        return false;
+      if (!handler) return false;
 
       if (!handler(header, decoder)) {
         this.model_.importWarning({
@@ -453,8 +455,9 @@ tr.exportTo('tr.e.importer.etw', function() {
      * Registers a windows ETW event handler used by parseEvent().
      */
     registerEventHandler: function(guid, opcode, handler) {
-      if (this.handlers_[guid] === undefined)
+      if (this.handlers_[guid] === undefined) {
         this.handlers_[guid] = [];
+      }
       this.handlers_[guid][opcode] = handler;
     },
 
@@ -462,8 +465,9 @@ tr.exportTo('tr.e.importer.etw', function() {
      * Retrieves a registered event handler.
      */
     getEventHandler: function(guid, opcode) {
-      if (this.handlers_[guid] === undefined)
+      if (this.handlers_[guid] === undefined) {
         return undefined;
+      }
       return this.handlers_[guid][opcode];
     }
 

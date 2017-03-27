@@ -97,8 +97,9 @@ Polymer({
 
   setSelectionAndContent: function(selection, opt_textContent) {
     this.selection_ = selection;
-    if (opt_textContent)
+    if (opt_textContent) {
       Polymer.dom(this).textContent = opt_textContent;
+    }
   },
 
   /**
@@ -109,14 +110,16 @@ Polymer({
    */
   getCurrentSelection_: function() {
     // Gets the current selection, invoking the selection function if needed.
-    if (typeof this.selection_ === 'function')
+    if (typeof this.selection_ === 'function') {
       return this.selection_();
+    }
     return this.selection_;
   },
 
   setHighlight_: function(opt_eventSet) {
-    if (this.controller_)
+    if (this.controller_) {
       this.controller_.changeAnalysisLinkHoveredEvents(opt_eventSet);
+    }
   },
 
   clearHighlight_: function(opt_eventSet) {
@@ -124,8 +127,7 @@ Polymer({
   },
 
   onClicked_: function(clickEvent) {
-    if (!this.selection_)
-      return;
+    if (!this.selection_) return;
 
     clickEvent.stopPropagation();
 

@@ -32,15 +32,17 @@ tr.exportTo('tr.model', function() {
   var LIGHT = tr.model.ContainerMemoryDump.LevelOfDetail.LIGHT;
 
   function castToScalar(value) {
-    if (typeof value === 'number')
+    if (typeof value === 'number') {
       return new Scalar(sizeInBytes_smallerIsBetter, value);
+    }
     assert.instanceOf(value, Scalar);
     return value;
   }
 
   function getOption(opt_options, key, opt_defaultValue) {
-    if (opt_options && (key in opt_options))
+    if (opt_options && (key in opt_options)) {
       return opt_options[key];
+    }
     return opt_defaultValue;
   }
 
@@ -177,13 +179,15 @@ tr.exportTo('tr.model', function() {
       };
 
   MemoryDumpTestUtils.checkVMRegions = function(vmRegions, expectedRegions) {
-    if (vmRegions instanceof VMRegionClassificationNode)
+    if (vmRegions instanceof VMRegionClassificationNode) {
       vmRegions = vmRegions.allRegionsForTesting;
+    }
 
     var expectedRegionsMap = new Map();
     expectedRegions.forEach(function(region) {
-      if (!(region instanceof VMRegion))
+      if (!(region instanceof VMRegion)) {
         region = VMRegion.fromDict(region);
+      }
       expectedRegionsMap.set(region.uniqueIdWithinProcess, region);
     });
     var actualRegionsMap = new Map();

@@ -28,8 +28,9 @@ tr.exportTo('tr.b', function() {
       values = tmp.split(',').map(function(v) {
         return v.replace(/^\s+/, '', 'g');
       });
-      if (values.length !== 3)
+      if (values.length !== 3) {
         throw new Error('Malformatted rgb-expression');
+      }
       return new Color(
           parseInt(values[0]),
           parseInt(values[1]),
@@ -40,8 +41,9 @@ tr.exportTo('tr.b', function() {
       values = tmp.split(',').map(function(v) {
         return v.replace(/^\s+/, '', 'g');
       });
-      if (values.length !== 4)
+      if (values.length !== 4) {
         throw new Error('Malformatted rgb-expression');
+      }
       return new Color(
           parseInt(values[0]),
           parseInt(values[1]),
@@ -58,8 +60,9 @@ tr.exportTo('tr.b', function() {
   };
 
   Color.lerp = function(a, b, percent) {
-    if (a.a !== undefined && b.a !== undefined)
+    if (a.a !== undefined && b.a !== undefined) {
       return Color.lerpRGBA(a, b, percent);
+    }
     return Color.lerpRGB(a, b, percent);
   };
 
@@ -162,10 +165,11 @@ tr.exportTo('tr.b', function() {
 
     darken: function(opt_k) {
       var k;
-      if (opt_k !== undefined)
+      if (opt_k !== undefined) {
         k = opt_k;
-      else
+      } else {
         k = 0.45;
+      }
 
       return new Color(
           Math.min(255, this.r - Math.floor(this.r * k)),
@@ -176,10 +180,11 @@ tr.exportTo('tr.b', function() {
 
     desaturate: function(opt_desaturateFactor) {
       var desaturateFactor;
-      if (opt_desaturateFactor !== undefined)
+      if (opt_desaturateFactor !== undefined) {
         desaturateFactor = opt_desaturateFactor;
-      else
+      } else {
         desaturateFactor = 1;
+      }
 
       var hsl = this.toHSL();
       hsl.s = clamp01(hsl.s * (1 - desaturateFactor));
@@ -222,15 +227,15 @@ tr.exportTo('tr.b', function() {
         s = 0;
       } else {
         var delta = max - min;
-        if (l > 0.5)
+        if (l > 0.5) {
           s = delta / (2 - max - min);
-        else
+        } else {
           s = delta / (max + min);
+        }
 
         if (r === max) {
           h = (g - b) / delta;
-          if (g < b)
-            h += 6;
+          if (g < b) h += 6;
         } else if (g === max) {
           h = 2 + ((b - r) / delta);
         } else {

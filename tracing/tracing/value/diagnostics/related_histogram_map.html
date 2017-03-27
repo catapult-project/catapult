@@ -114,8 +114,9 @@ tr.exportTo('tr.v.d', function() {
     }
 
     * [Symbol.iterator]() {
-      for (let pair of this.histogramsByName_)
+      for (let pair of this.histogramsByName_) {
         yield pair;
+      }
     }
 
     /**

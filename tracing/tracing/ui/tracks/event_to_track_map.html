@@ -20,8 +20,9 @@ tr.exportTo('tr.ui.tracks', function() {
 
   EventToTrackMap.prototype = {
     addEvent: function(event, track) {
-      if (!track)
+      if (!track) {
         throw new Error('Must provide a track.');
+      }
       this[event.guid] = track;
     }
   };

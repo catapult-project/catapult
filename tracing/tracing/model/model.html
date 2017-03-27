@@ -126,8 +126,9 @@ tr.exportTo('tr', function() {
     },
 
     getOrCreateHelper: function(constructor) {
-      if (!constructor.guid)
+      if (!constructor.guid) {
         throw new Error('Helper constructors must have GUIDs');
+      }
 
       if (this.helpersByConstructorGUID_[constructor.guid] === undefined) {
         if (this.doesHelperGUIDSupportThisModel_[constructor.guid] ===
@@ -136,8 +137,9 @@ tr.exportTo('tr', function() {
             constructor.supportsModel(this);
         }
 
-        if (!this.doesHelperGUIDSupportThisModel_[constructor.guid])
+        if (!this.doesHelperGUIDSupportThisModel_[constructor.guid]) {
           return undefined;
+        }
 
         this.helpersByConstructorGUID_[constructor.guid] = new constructor(
             this);
@@ -167,8 +169,9 @@ tr.exportTo('tr', function() {
      */
     iterateAllPersistableObjects: function(callback) {
       this.kernel.iterateAllPersistableObjects(callback);
-      for (var pid in this.processes)
+      for (var pid in this.processes) {
         this.processes[pid].iterateAllPersistableObjects(callback);
+      }
     },
 
     updateBounds: function() {
@@ -178,32 +181,37 @@ tr.exportTo('tr', function() {
         ec.updateBounds();
         bounds.addRange(ec.bounds);
       }
-      for (var event of this.childEvents())
+      for (var event of this.childEvents()) {
         event.addBoundsToRange(bounds);
+      }
     },
 
     shiftWorldToZero: function() {
       var shiftAmount = -this.bounds.min;
       this.timestampShiftToZeroAmount_ = shiftAmount;
-      for (var ec of this.childEventContainers())
+      for (var ec of this.childEventContainers()) {
         ec.shiftTimestampsForward(shiftAmount);
+      }
 
-      for (var event of this.childEvents())
+      for (var event of this.childEvents()) {
         event.start += shiftAmount;
+      }
       this.updateBounds();
     },
 
     convertTimestampToModelTime: function(sourceClockDomainName, ts) {
-      if (sourceClockDomainName !== 'traceEventClock')
+      if (sourceClockDomainName !== 'traceEventClock') {
         throw new Error('Only traceEventClock is supported.');
+      }
       return tr.b.Unit.timestampFromUs(ts) +
         this.timestampShiftToZeroAmount_;
     },
 
     get numProcesses() {
       var n = 0;
-      for (var p in this.processes)
+      for (var p in this.processes) {
         n++;
+      }
       return n;
     },
 
@@ -220,14 +228,16 @@ tr.exportTo('tr', function() {
      * creates one if it does not exist.
      */
     getOrCreateProcess: function(pid) {
-      if (!this.processes[pid])
+      if (!this.processes[pid]) {
         this.processes[pid] = new Process(this, pid);
+      }
       return this.processes[pid];
     },
 
     addStackFrame: function(stackFrame) {
-      if (this.stackFrames[stackFrame.id])
+      if (this.stackFrames[stackFrame.id]) {
         throw new Error('Stack frame already exists');
+      }
       this.stackFrames[stackFrame.id] = stackFrame;
       return stackFrame;
     },
@@ -240,13 +250,16 @@ tr.exportTo('tr', function() {
       this.userModel.addCategoriesToDict(categoriesDict);
       this.device.addCategoriesToDict(categoriesDict);
       this.kernel.addCategoriesToDict(categoriesDict);
-      for (var pid in this.processes)
+      for (var pid in this.processes) {
         this.processes[pid].addCategoriesToDict(categoriesDict);
+      }
 
       this.categories = [];
-      for (var category in categoriesDict)
-        if (category !== '')
+      for (var category in categoriesDict) {
+        if (category !== '') {
           this.categories.push(category);
+        }
+      }
     },
 
     getAllThreads: function() {
@@ -273,8 +286,9 @@ tr.exportTo('tr', function() {
       var processes = [];
       for (var pid in this.processes) {
         var process = this.processes[pid];
-        if (opt_predicate === undefined || opt_predicate(process))
+        if (opt_predicate === undefined || opt_predicate(process)) {
           processes.push(process);
+        }
       }
       return processes;
     },
@@ -302,8 +316,9 @@ tr.exportTo('tr', function() {
     },
 
     addAnnotation: function(annotation) {
-      if (!annotation.guid)
+      if (!annotation.guid) {
         throw new Error('Annotation with undefined guid given');
+      }
 
       this.annotationsByGuid_[annotation.guid] = annotation;
       tr.b.dispatchSimpleEvent(this, 'annotationChange');
@@ -331,8 +346,7 @@ tr.exportTo('tr', function() {
     getUserFriendlyCategoryFromEvent: function(event) {
       for (var i = 0; i < this.userFriendlyCategoryDrivers_.length; i++) {
         var ufc = this.userFriendlyCategoryDrivers_[i].fromEvent(event);
-        if (ufc !== undefined)
-          return ufc;
+        if (ufc !== undefined) return ufc;
       }
       return undefined;
     },
@@ -367,16 +381,17 @@ tr.exportTo('tr', function() {
      * precision of the timestamp values.
      */
     get intrinsicTimeUnit() {
-      if (this.intrinsicTimeUnit_ === undefined)
+      if (this.intrinsicTimeUnit_ === undefined) {
         return tr.b.TimeDisplayModes.ms;
+      }
       return this.intrinsicTimeUnit_;
     },
 
     set intrinsicTimeUnit(value) {
-      if (this.intrinsicTimeUnit_ === value)
-        return;
-      if (this.intrinsicTimeUnit_ !== undefined)
+      if (this.intrinsicTimeUnit_ === value) return;
+      if (this.intrinsicTimeUnit_ !== undefined) {
         throw new Error('Intrinsic time unit already set');
+      }
       this.intrinsicTimeUnit_ = value;
     },
 
@@ -398,10 +413,10 @@ tr.exportTo('tr', function() {
     },
 
     set canonicalUrl(value) {
-      if (this.canonicalUrl_ === value)
-        return;
-      if (this.canonicalUrl_ !== undefined)
+      if (this.canonicalUrl_ === value) return;
+      if (this.canonicalUrl_ !== undefined) {
         throw new Error('canonicalUrl already set');
+      }
       this.canonicalUrl_ = value;
     },
 
@@ -423,8 +438,7 @@ tr.exportTo('tr', function() {
 
       // Only log each warning type once. We may want to add some kind of
       // flag to allow reporting all importer warnings.
-      if (this.reportedImportWarnings_[data.type] === true)
-        return;
+      if (this.reportedImportWarnings_[data.type] === true) return;
 
       this.reportedImportWarnings_[data.type] = true;
     },
@@ -451,43 +465,50 @@ tr.exportTo('tr', function() {
 
       this.updateBounds();
       this.kernel.autoCloseOpenSlices();
-      for (var pid in this.processes)
+      for (var pid in this.processes) {
         this.processes[pid].autoCloseOpenSlices();
+      }
     },
 
     createSubSlices: function() {
       this.kernel.createSubSlices();
-      for (var pid in this.processes)
+      for (var pid in this.processes) {
         this.processes[pid].createSubSlices();
+      }
     },
 
     preInitializeObjects: function() {
-      for (var pid in this.processes)
+      for (var pid in this.processes) {
         this.processes[pid].preInitializeObjects();
+      }
     },
 
     initializeObjects: function() {
-      for (var pid in this.processes)
+      for (var pid in this.processes) {
         this.processes[pid].initializeObjects();
+      }
     },
 
     pruneEmptyContainers: function() {
       this.kernel.pruneEmptyContainers();
-      for (var pid in this.processes)
+      for (var pid in this.processes) {
         this.processes[pid].pruneEmptyContainers();
+      }
     },
 
     mergeKernelWithUserland: function() {
-      for (var pid in this.processes)
+      for (var pid in this.processes) {
         this.processes[pid].mergeKernelWithUserland();
+      }
     },
 
     computeWorldBounds: function(shiftWorldToZero) {
       this.updateBounds();
       this.updateCategories_();
 
-      if (shiftWorldToZero)
+      if (shiftWorldToZero) {
         this.shiftWorldToZero();
+      }
     },
 
     buildFlowEventIntervalTree: function() {
@@ -499,8 +520,9 @@ tr.exportTo('tr', function() {
     },
 
     cleanupUndeletedObjects: function() {
-      for (var pid in this.processes)
+      for (var pid in this.processes) {
         this.processes[pid].autoDeleteObjects(this.bounds.max);
+      }
     },
 
     sortMemoryDumps: function() {
@@ -508,8 +530,9 @@ tr.exportTo('tr', function() {
         return x.start - y.start;
       });
 
-      for (var pid in this.processes)
+      for (var pid in this.processes) {
         this.processes[pid].sortMemoryDumps();
+      }
     },
 
     finalizeMemoryGraphs: function() {
@@ -587,13 +610,13 @@ tr.exportTo('tr', function() {
     },
 
     searchItemForIDRefs_: function(pid, itemTimestampField, item) {
-      if (!item.args && !item.contexts)
-        return;
+      if (!item.args && !item.contexts) return;
       var patchupsToApply = this.patchupsToApply_;
 
       function handleField(object, fieldName, fieldValue) {
-        if (!fieldValue || (!fieldValue.id_ref && !fieldValue.idRef))
+        if (!fieldValue || (!fieldValue.id_ref && !fieldValue.idRef)) {
           return;
+        }
 
         var scope = fieldValue.scope || tr.model.OBJECT_DEFAULT_SCOPE;
         var idRef = fieldValue.id_ref || fieldValue.idRef;
@@ -612,13 +635,13 @@ tr.exportTo('tr', function() {
           ts: ts});
       }
       function iterObjectFieldsRecursively(object) {
-        if (!(object instanceof Object))
-          return;
+        if (!(object instanceof Object)) return;
 
         if ((object instanceof tr.model.ObjectSnapshot) ||
             (object instanceof Float32Array) ||
-            (object instanceof tr.b.math.Quad))
+            (object instanceof tr.b.math.Quad)) {
           return;
+        }
 
         if (object instanceof Array) {
           for (var i = 0; i < object.length; i++) {

@@ -35,8 +35,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     updateContents: function() {
       var tile = this.objectSnapshot_;
       var layerTreeHostImpl = tile.containingSnapshot;
-      if (!layerTreeHostImpl)
-        return;
+      if (!layerTreeHostImpl) return;
 
       this.layerTreeView_.objectSnapshot = layerTreeHostImpl;
       this.layerTreeView_.selection = new tr.ui.e.chrome.cc.TileSelection(tile);

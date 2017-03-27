@@ -150,8 +150,9 @@ tr.exportTo('tr.ui.b', function() {
     var darkRectHeight = THIN_SLICE_HEIGHT * pixelRatio;
 
     // Not enough space for both colors, use light color only.
-    if (height < darkRectHeight)
+    if (height < darkRectHeight) {
       darkRectHeight = 0;
+    }
 
     var lightRectHeight = height - darkRectHeight;
 
@@ -173,14 +174,14 @@ tr.exportTo('tr.ui.b', function() {
     for (var i = lowSlice; i < slices.length; ++i) {
       var slice = slices[i];
       var x = slice.start;
-      if (x > viewRWorld)
-        break;
+      if (x > viewRWorld) break;
 
       var w = pixWidth;
       if (slice.duration > 0) {
         w = Math.max(slice.duration, 0.000001);
-        if (w < pixWidth)
+        if (w < pixWidth) {
           w = pixWidth;
+        }
       }
 
       var colorId = EventPresenter.getSliceColorId(slice);
@@ -256,17 +257,16 @@ tr.exportTo('tr.ui.b', function() {
       for (var i = lowSlice; i < slices.length; ++i) {
         var slice = slices[i];
         var x = slice.start;
-        if (x > viewRWorld)
-          break;
+        if (x > viewRWorld) break;
 
-        if (!slice.isTopLevel)
-          continue;
+        if (!slice.isTopLevel) continue;
 
         var w = pixWidth;
         if (slice.duration > 0) {
           w = Math.max(slice.duration, 0.000001);
-          if (w < pixWidth)
+          if (w < pixWidth) {
             w = pixWidth;
+          }
         }
 
         rect.fillRect(x, w, blackColorId, 0.7);
@@ -315,8 +315,7 @@ tr.exportTo('tr.ui.b', function() {
     for (var i = lowSlice; i < slices.length; ++i) {
       var slice = slices[i];
       var x = slice.start;
-      if (x > viewRWorld)
-        break;
+      if (x > viewRWorld) break;
 
       ctx.strokeStyle = EventPresenter.getInstantSliceColor(slice);
 
@@ -357,8 +356,9 @@ tr.exportTo('tr.ui.b', function() {
     ctx.textBaseline = 'top';
     ctx.font = (fontSize * pixelRatio) + 'px sans-serif';
 
-    if (async)
+    if (async) {
       ctx.font = 'italic ' + ctx.font;
+    }
 
     var cY = yOffset * pixelRatio;
 
@@ -371,11 +371,9 @@ tr.exportTo('tr.ui.b', function() {
     var quickDiscardThresshold = pixWidth * 20;
     for (var i = lowSlice; i < slices.length; ++i) {
       var slice = slices[i];
-      if (slice.start > viewRWorld)
-        break;
+      if (slice.start > viewRWorld) break;
 
-      if (slice.duration <= quickDiscardThresshold)
-        continue;
+      if (slice.duration <= quickDiscardThresshold) continue;
 
       var title = slice.title +
           (slice.didNotFinish ? ' (Did Not Finish)' : '');

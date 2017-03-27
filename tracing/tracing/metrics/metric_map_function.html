@@ -21,19 +21,22 @@ tr.exportTo('tr.metrics', function() {
    * @return {!tr.v.HistogramSet}
    */
   function runMetrics(model, options) {
-    if (options === undefined)
+    if (options === undefined) {
       throw new Error('Options are required.');
+    }
 
     var metricNames = options.metrics;
-    if (!metricNames)
+    if (!metricNames) {
       throw new Error('Metric names should be specified.');
+    }
 
     var histograms = new tr.v.HistogramSet();
 
     for (var metricName of metricNames) {
       var metric = tr.metrics.MetricRegistry.findTypeInfoWithName(metricName);
-      if (metric === undefined)
+      if (metric === undefined) {
         throw new Error('"' + metricName + '" is not a registered metric.');
+      }
       metric.constructor(histograms, model, options);
     }
 

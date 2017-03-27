@@ -95,8 +95,9 @@ tr.exportTo('tr.ui.analysis', function() {
     __proto__: tr.ui.analysis.TitleColumn.prototype,
 
     formatTitle: function(row) {
-      if (!row.suballocation)
+      if (!row.suballocation) {
         return row.title;
+      }
       return tr.ui.b.createSpan({
         textContent: row.title,
         italic: true,
@@ -182,15 +183,17 @@ tr.exportTo('tr.ui.analysis', function() {
         map, hasPluralSuffix, emptyText, itemCallback, opt_this) {
       opt_this = opt_this || this;
       if (map.size === 0) {
-        if (emptyText)
+        if (emptyText) {
           this.append(emptyText);
+        }
       } else if (map.size === 1) {
         this.parts_.push(' ');
         var key = map.keys().next().value;
         itemCallback.call(opt_this, key, map.get(key));
       } else {
-        if (hasPluralSuffix)
+        if (hasPluralSuffix) {
           this.parts_.push('s');
+        }
         this.parts_.push(':');
         this.indent_++;
         for (var key of map.keys()) {
@@ -203,16 +206,18 @@ tr.exportTo('tr.ui.analysis', function() {
 
     appendImportanceRange: function(range) {
       this.append(' (importance: ');
-      if (range.min === range.max)
+      if (range.min === range.max) {
         this.append(range.min);
-      else
+      } else {
         this.append(range.min, EN_DASH, range.max);
+      }
       this.append(')');
     },
 
     appendSizeIfDefined: function(size) {
-      if (size !== undefined)
+      if (size !== undefined) {
         this.append(' (', tr.b.Unit.byName.sizeInBytes.format(size), ')');
+      }
     },
 
     appendSomeTimestampsQuantifier: function() {
@@ -243,8 +248,7 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     addInfos: function(numerics, memoryAllocatorDumps, infos) {
-      if (memoryAllocatorDumps === undefined)
-        return;
+      if (memoryAllocatorDumps === undefined) return;
 
       // Quantified name of an owner dump (of the given dump) -> {count,
       // importanceRange}.
@@ -257,11 +261,12 @@ tr.exportTo('tr.ui.analysis', function() {
       var ownedNameToEntry = new Map();
 
       for (var i = 0; i < numerics.length; i++) {
-        if (numerics[i] === undefined)
-          continue;
+        if (numerics[i] === undefined) continue;
+
         var dump = memoryAllocatorDumps[i];
-        if (dump === SUBALLOCATION_CONTEXT)
+        if (dump === SUBALLOCATION_CONTEXT) {
           return;  // No ownership of suballocation internal rows.
+        }
 
         // Gather owners of this dump.
         dump.ownedBy.forEach(function(ownerLink) {
@@ -280,8 +285,7 @@ tr.exportTo('tr.ui.analysis', function() {
           var sharerNameToEntry = ownedEntry.sharerNameToEntry;
           ownedDump.ownedBy.forEach(function(sharerLink) {
             var sharerDump = sharerLink.source;
-            if (sharerDump === dump)
-              return;
+            if (sharerDump === dump) return;
             this.getAndUpdateOwnershipEntry_(
                 sharerNameToEntry, sharerDump, sharerLink);
           }, this);
@@ -298,8 +302,9 @@ tr.exportTo('tr.ui.analysis', function() {
             undefined /* emptyText */,
             function(ownerName, ownerEntry) {
               messageBuilder.append(ownerName);
-              if (ownerEntry.count < numerics.length)
+              if (ownerEntry.count < numerics.length) {
                 messageBuilder.appendSomeTimestampsQuantifier();
+              }
               messageBuilder.appendImportanceRange(ownerEntry.importanceRange);
             }, this);
         infos.push({
@@ -321,8 +326,9 @@ tr.exportTo('tr.ui.analysis', function() {
             function(ownedName, ownedEntry) {
               messageBuilder.append(ownedName);
               var ownedCount = ownedEntry.count;
-              if (ownedCount < numerics.length)
+              if (ownedCount < numerics.length) {
                 messageBuilder.appendSomeTimestampsQuantifier();
+              }
               messageBuilder.appendImportanceRange(ownedEntry.importanceRange);
               messageBuilder.append(' with');
               messageBuilder.appendMap(
@@ -331,8 +337,9 @@ tr.exportTo('tr.ui.analysis', function() {
                   ' no other dumps',
                   function(sharerName, sharerEntry) {
                     messageBuilder.append(sharerName);
-                    if (sharerEntry.count < ownedCount)
+                    if (sharerEntry.count < ownedCount) {
                       messageBuilder.appendSomeTimestampsQuantifier();
+                    }
                     messageBuilder.appendImportanceRange(
                         sharerEntry.importanceRange);
                   }, this);
@@ -350,8 +357,9 @@ tr.exportTo('tr.ui.analysis', function() {
       var entry = getAndUpdateEntry(map, dump.quantifiedName,
           function(newEntry) {
             newEntry.importanceRange = new tr.b.math.Range();
-            if (opt_withSharerNameToEntry)
+            if (opt_withSharerNameToEntry) {
               newEntry.sharerNameToEntry = new Map();
+            }
           });
       entry.importanceRange.addValue(link.importance || 0);
       return entry;
@@ -376,8 +384,7 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     addInfos: function(numerics, memoryAllocatorDumps, infos) {
-      if (memoryAllocatorDumps === undefined)
-        return;
+      if (memoryAllocatorDumps === undefined) return;
       this.addOverlapInfo_(numerics, memoryAllocatorDumps, infos);
       this.addProvidedSizeWarningInfos_(numerics, memoryAllocatorDumps, infos);
     },
@@ -387,18 +394,19 @@ tr.exportTo('tr.ui.analysis', function() {
       // is omitted in multi-selection mode.
       var siblingNameToEntry = new Map();
       for (var i = 0; i < numerics.length; i++) {
-        if (numerics[i] === undefined)
-          continue;
+        if (numerics[i] === undefined) continue;
         var dump = memoryAllocatorDumps[i];
-        if (dump === SUBALLOCATION_CONTEXT)
+        if (dump === SUBALLOCATION_CONTEXT) {
           return;  // No ownership of suballocation internal rows.
+        }
         var ownedBySiblingSizes = dump.ownedBySiblingSizes;
         for (var siblingDump of ownedBySiblingSizes.keys()) {
           var siblingName = siblingDump.name;
           getAndUpdateEntry(siblingNameToEntry, siblingName,
               function(newEntry) {
-                if (numerics.length === 1 /* single-selection mode */)
+                if (numerics.length === 1 /* single-selection mode */) {
                   newEntry.size = ownedBySiblingSizes.get(siblingDump);
+                }
               });
         }
       }
@@ -415,8 +423,9 @@ tr.exportTo('tr.ui.analysis', function() {
             function(siblingName, siblingEntry) {
               messageBuilder.append('\'', siblingName, '\'');
               messageBuilder.appendSizeIfDefined(siblingEntry.size);
-              if (siblingEntry.count < numerics.length)
+              if (siblingEntry.count < numerics.length) {
                 messageBuilder.appendSomeTimestampsQuantifier();
+              }
             }, this);
         infos.push({
           message: messageBuilder.build(),
@@ -433,11 +442,11 @@ tr.exportTo('tr.ui.analysis', function() {
       // dependencySize) are omitted in multi-selection mode.
       var infoTypeToEntry = new Map();
       for (var i = 0; i < numerics.length; i++) {
-        if (numerics[i] === undefined)
-          continue;
+        if (numerics[i] === undefined) continue;
         var dump = memoryAllocatorDumps[i];
-        if (dump === SUBALLOCATION_CONTEXT)
+        if (dump === SUBALLOCATION_CONTEXT) {
           return;  // Suballocation internal rows have no provided size.
+        }
         dump.infos.forEach(function(dumpInfo) {
           getAndUpdateEntry(infoTypeToEntry, dumpInfo.type, function(newEntry) {
             if (numerics.length === 1 /* single-selection mode */) {
@@ -468,8 +477,9 @@ tr.exportTo('tr.ui.analysis', function() {
         }
         messageBuilder.append(' was less than ', dependencyName);
         messageBuilder.appendSizeIfDefined(entry.dependencySize);
-        if (entry.count < numerics.length)
+        if (entry.count < numerics.length) {
           messageBuilder.appendSomeTimestampsQuantifier();
+        }
         infos.push(tr.ui.analysis.createWarningInfo(messageBuilder.build()));
       }
     }
@@ -715,8 +725,9 @@ tr.exportTo('tr.ui.analysis', function() {
         subRows.push(suballocationRow);
       }
 
-      if (subRows.length > 0)
+      if (subRows.length > 0) {
         row.subRows = subRows;
+      }
 
       return row;
     },
@@ -752,11 +763,11 @@ tr.exportTo('tr.ui.analysis', function() {
         // (malloc/allocated_objects/suballocations/sqlite).
         for (var i = 0; i < suballocationRow.contexts.length; i++) {
           var newContext = suballocationRow.contexts[i];
-          if (newContext === undefined)
-            continue;
+          if (newContext === undefined) continue;
 
-          if (existingRow.contexts[i] !== undefined)
+          if (existingRow.contexts[i] !== undefined) {
             throw new Error('Multiple suballocations with the same owner name');
+          }
 
           existingRow.contexts[i] = newContext;
           ['numericCells', 'diagnosticCells'].forEach(function(cellKey) {
@@ -795,8 +806,9 @@ tr.exportTo('tr.ui.analysis', function() {
     createSuballocationRowRecursively_: function(name, node) {
       var childCount = Object.keys(node.children).length;
       if (childCount === 0) {
-        if (node.row === undefined)
+        if (node.row === undefined) {
           throw new Error('Suballocation node must have a row or children');
+        }
         // Leaf row of the suballocation tree: Change the row's title from
         // '__MEANINGLESSHASH' to the name of the suballocation owner.
         var row = node.row;
@@ -830,8 +842,9 @@ tr.exportTo('tr.ui.analysis', function() {
       var contexts = new Array(subRows[0].contexts.length);
       for (var i = 0; i < subRows.length; i++) {
         subRows[i].contexts.forEach(function(subContext, index) {
-          if (subContext !== undefined)
+          if (subContext !== undefined) {
             contexts[index] = SUBALLOCATION_CONTEXT;
+          }
         });
       }
 

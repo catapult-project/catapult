@@ -11,8 +11,9 @@ found in the LICENSE file.
 
 tr.exportTo('tr.b.math', function() {
   var tmpVec2s = [];
-  for (var i = 0; i < 8; i++)
+  for (var i = 0; i < 8; i++) {
     tmpVec2s[i] = vec2.create();
+  }
 
   var tmpVec2a = vec4.create();
   var tmpVec4a = vec4.create();
@@ -70,8 +71,9 @@ tr.exportTo('tr.b.math', function() {
   };
 
   Quad.from8Array = function(arr) {
-    if (arr.length !== 8)
+    if (arr.length !== 8) {
       throw new Error('Array must be 8 long');
+    }
     var q = new Quad();
     q.p1[0] = arr[0];
     q.p1[1] = arr[1];

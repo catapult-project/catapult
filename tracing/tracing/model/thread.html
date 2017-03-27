@@ -38,8 +38,9 @@ tr.exportTo('tr.model', function() {
    * @extends {tr.model.EventContainer}
    */
   function Thread(parent, tid) {
-    if (!parent)
+    if (!parent) {
       throw new Error('Parent must be provided.');
+    }
 
     tr.model.EventContainer.call(this);
     this.parent = parent;
@@ -71,23 +72,28 @@ tr.exportTo('tr.model', function() {
     },
 
     childEventContainers: function* () {
-      if (this.sliceGroup.length)
+      if (this.sliceGroup.length) {
         yield this.sliceGroup;
-      if (this.kernelSliceGroup.length)
+      }
+      if (this.kernelSliceGroup.length) {
         yield this.kernelSliceGroup;
-      if (this.asyncSliceGroup.length)
+      }
+      if (this.asyncSliceGroup.length) {
         yield this.asyncSliceGroup;
+      }
     },
 
     childEvents: function* () {
-      if (this.timeSlices)
+      if (this.timeSlices) {
         yield* this.timeSlices;
+      }
     },
 
     iterateAllPersistableObjects: function(cb) {
       cb(this);
-      if (this.sliceGroup.length)
+      if (this.sliceGroup.length) {
         cb(this.sliceGroup);
+      }
       this.asyncSliceGroup.viewSubGroups.forEach(cb);
     },
 
@@ -114,18 +120,12 @@ tr.exportTo('tr.model', function() {
      * that it should be pruned from the model.
      */
     get isEmpty() {
-      if (this.sliceGroup.length)
-        return false;
-      if (this.sliceGroup.openSliceCount)
-        return false;
-      if (this.timeSlices && this.timeSlices.length)
-        return false;
-      if (this.kernelSliceGroup.length)
-        return false;
-      if (this.asyncSliceGroup.length)
-        return false;
-      if (this.samples_.length)
-        return false;
+      if (this.sliceGroup.length) return false;
+      if (this.sliceGroup.openSliceCount) return false;
+      if (this.timeSlices && this.timeSlices.length) return false;
+      if (this.kernelSliceGroup.length) return false;
+      if (this.asyncSliceGroup.length) return false;
+      if (this.samples_.length) return false;
       return true;
     },
 
@@ -159,15 +159,19 @@ tr.exportTo('tr.model', function() {
     },
 
     addCategoriesToDict: function(categoriesDict) {
-      for (var i = 0; i < this.sliceGroup.length; i++)
+      for (var i = 0; i < this.sliceGroup.length; i++) {
         categoriesDict[this.sliceGroup.slices[i].category] = true;
-      for (var i = 0; i < this.kernelSliceGroup.length; i++)
+      }
+      for (var i = 0; i < this.kernelSliceGroup.length; i++) {
         categoriesDict[this.kernelSliceGroup.slices[i].category] = true;
-      for (var i = 0; i < this.asyncSliceGroup.length; i++)
+      }
+      for (var i = 0; i < this.asyncSliceGroup.length; i++) {
         categoriesDict[this.asyncSliceGroup.slices[i].category] = true;
+      }
       if (this.samples_) {
-        for (var i = 0; i < this.samples_.length; i++)
+        for (var i = 0; i < this.samples_.length; i++) {
           categoriesDict[this.samples_[i].category] = true;
+        }
       }
     },
 
@@ -209,11 +213,9 @@ tr.exportTo('tr.model', function() {
     },
 
     getSettingsKey: function() {
-      if (!this.name)
-        return undefined;
+      if (!this.name) return undefined;
       var parentKey = this.parent.getSettingsKey();
-      if (!parentKey)
-        return undefined;
+      if (!parentKey) return undefined;
       return parentKey + '.' + this.name;
     },
 
@@ -229,8 +231,7 @@ tr.exportTo('tr.model', function() {
           this.timeSlices,
           function(slice) { return slice.start; },
           timeSlice.start);
-      if (this.timeSlices[i] !== timeSlice)
-        return undefined;
+      if (this.timeSlices[i] !== timeSlice) return undefined;
       return i;
     },
 
@@ -245,8 +246,7 @@ tr.exportTo('tr.model', function() {
       var stats = {};
       stats.total = 0;
 
-      if (!this.timeSlices)
-        return stats;
+      if (!this.timeSlices) return stats;
 
       function addStatsForSlice(threadTimeSlice) {
         var freqRange = tr.b.math.Range.fromExplicitRange(threadTimeSlice.start,
@@ -256,8 +256,9 @@ tr.exportTo('tr.model', function() {
         if (threadTimeSlice.schedulingState ===
             tr.model.SCHEDULING_STATE.RUNNING) {
           var cpu = threadTimeSlice.cpuOnWhichThreadWasRunning;
-          if (!(cpu.cpuNumber in stats))
+          if (!(cpu.cpuNumber in stats)) {
             stats[cpu.cpuNumber] = 0;
+          }
 
           stats[cpu.cpuNumber] += intersection.duration;
           stats.total += intersection.duration;
@@ -283,8 +284,7 @@ tr.exportTo('tr.model', function() {
         var overlapEnd = Math.min(threadTimeSlice.end, end);
         var schedulingState = threadTimeSlice.schedulingState;
 
-        if (!(schedulingState in stats))
-          stats[schedulingState] = 0;
+        if (!(schedulingState in stats)) stats[schedulingState] = 0;
         stats[schedulingState] += overlapEnd - overlapStart;
       }
 
@@ -329,18 +329,15 @@ tr.exportTo('tr.model', function() {
    */
   Thread.compare = function(x, y) {
     var tmp = x.parent.compareTo(y.parent);
-    if (tmp)
-      return tmp;
+    if (tmp) return tmp;
 
     tmp = x.sortIndex - y.sortIndex;
-    if (tmp)
-      return tmp;
+    if (tmp) return tmp;
 
     tmp = tr.b.comparePossiblyUndefinedValues(
         x.name, y.name,
         function(x, y) { return x.localeCompare(y); });
-    if (tmp)
-      return tmp;
+    if (tmp) return tmp;
 
     return x.tid - y.tid;
   };

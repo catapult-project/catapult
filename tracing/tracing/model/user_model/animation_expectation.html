@@ -23,14 +23,16 @@ tr.exportTo('tr.model.um', function() {
     constructor: AnimationExpectation,
 
     get frameEvents() {
-      if (this.frameEvents_)
+      if (this.frameEvents_) {
         return this.frameEvents_;
+      }
 
       this.frameEvents_ = new tr.model.EventSet();
 
       this.associatedEvents.forEach(function(event) {
-        if (event.title === tr.model.helpers.IMPL_RENDERING_STATS)
+        if (event.title === tr.model.helpers.IMPL_RENDERING_STATS) {
           this.frameEvents_.push(event);
+        }
       }, this);
 
       return this.frameEvents_;

@@ -90,8 +90,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     }
 
     var tgid = groups[3];
-    if (tgid[0] === '-')
-      tgid = undefined;
+    if (tgid[0] === '-') tgid = undefined;
 
     return {
       threadName: groups[1],
@@ -168,14 +167,16 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
    * recognized; otherwise undefined.
    */
   function autoDetectLineParser(line) {
-    if (line[0] === '{')
-      return false;
-    if (lineREWithTGID.test(line))
+    if (line[0] === '{') return false;
+    if (lineREWithTGID.test(line)) {
       return lineParserWithTGID;
-    if (lineREWithIRQInfo.test(line))
+    }
+    if (lineREWithIRQInfo.test(line)) {
       return lineParserWithIRQInfo;
-    if (lineREWithLegacyFmt.test(line))
+    }
+    if (lineREWithLegacyFmt.test(line)) {
       return lineParserWithLegacyFmt;
+    }
     return undefined;
   }
   TestExports.autoDetectLineParser = autoDetectLineParser;
@@ -189,24 +190,30 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
    * @return {boolean} True when events is a linux perf array.
    */
   FTraceImporter.canImport = function(events) {
-    if (!(typeof(events) === 'string' || events instanceof String))
+    if (!(typeof(events) === 'string' || events instanceof String)) {
       return false;
+    }
 
-    if (FTraceImporter._extractEventsFromSystraceHTML(events, false).ok)
+    if (FTraceImporter._extractEventsFromSystraceHTML(events, false).ok) {
       return true;
+    }
 
-    if (FTraceImporter._extractEventsFromSystraceMultiHTML(events, false).ok)
+    if (FTraceImporter._extractEventsFromSystraceMultiHTML(events, false).ok) {
       return true;
+    }
 
-    if (/^# tracer:/.test(events))
+    if (/^# tracer:/.test(events)) {
       return true;
+    }
 
     var lineBreakIndex = events.indexOf('\n');
-    if (lineBreakIndex > -1)
+    if (lineBreakIndex > -1) {
       events = events.substring(0, lineBreakIndex);
+    }
 
-    if (autoDetectLineParser(events))
+    if (autoDetectLineParser(events)) {
       return true;
+    }
 
     return false;
   };
@@ -214,40 +221,48 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
   FTraceImporter._extractEventsFromSystraceHTML = function(
       incomingEvents, produceResult) {
     var failure = {ok: false};
-    if (produceResult === undefined)
+    if (produceResult === undefined) {
       produceResult = true;
+    }
 
-    if (!/^<!DOCTYPE html>/.test(incomingEvents))
+    if (!/^<!DOCTYPE html>/.test(incomingEvents)) {
       return failure;
+    }
     var r = new tr.importer.SimpleLineReader(incomingEvents);
 
     // Try to find the data...
-    if (!r.advanceToLineMatching(/^  <script>$/))
+    if (!r.advanceToLineMatching(/^  <script>$/)) {
       return failure;
-    if (!r.advanceToLineMatching(/^  var linuxPerfData = "\\$/))
+    }
+    if (!r.advanceToLineMatching(/^  var linuxPerfData = "\\$/)) {
       return failure;
+    }
 
     var eventsBeginAtLine = r.curLineNumber + 1;
     r.beginSavingLines();
-    if (!r.advanceToLineMatching(/^  <\/script>$/))
+    if (!r.advanceToLineMatching(/^  <\/script>$/)) {
       return failure;
+    }
 
     var rawEvents = r.endSavingLinesAndGetResult();
 
     // Drop off first and last event as it contains the tag.
     rawEvents = rawEvents.slice(1, rawEvents.length - 1);
 
-    if (!r.advanceToLineMatching(/^<\/body>$/))
+    if (!r.advanceToLineMatching(/^<\/body>$/)) {
       return failure;
-    if (!r.advanceToLineMatching(/^<\/html>$/))
+    }
+    if (!r.advanceToLineMatching(/^<\/html>$/)) {
       return failure;
+    }
 
     function endsWith(str, suffix) {
       return str.indexOf(suffix, str.length - suffix.length) !== -1;
     }
     function stripSuffix(str, suffix) {
-      if (!endsWith(str, suffix))
+      if (!endsWith(str, suffix)) {
         return str;
+      }
       return str.substring(str, str.length - suffix.length);
     }
 
@@ -267,8 +282,9 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     // treating absence of that trailing string as a failure.
     var oldLastEvent = events[events.length - 1];
     var newLastEvent = stripSuffix(oldLastEvent, '\\n";');
-    if (newLastEvent === oldLastEvent)
+    if (newLastEvent === oldLastEvent) {
       return failure;
+    }
     events[events.length - 1] = newLastEvent;
 
     return {ok: true,
@@ -279,11 +295,13 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
   FTraceImporter._extractEventsFromSystraceMultiHTML = function(
       incomingEvents, produceResult) {
     var failure = {ok: false};
-    if (produceResult === undefined)
+    if (produceResult === undefined) {
       produceResult = true;
+    }
 
-    if (!(new RegExp('^<!DOCTYPE HTML>', 'i').test(incomingEvents)))
+    if (!(new RegExp('^<!DOCTYPE HTML>', 'i').test(incomingEvents))) {
       return failure;
+    }
 
     var r = new tr.importer.SimpleLineReader(incomingEvents);
 
@@ -291,14 +309,14 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     var events = [];
     while (!/^# tracer:/.test(events)) {
       if (!r.advanceToLineMatching(
-          /^  <script class="trace-data" type="application\/text">$/))
+          /^  <script class="trace-data" type="application\/text">$/)) {
         return failure;
+      }
 
       var eventsBeginAtLine = r.curLineNumber + 1;
 
       r.beginSavingLines();
-      if (!r.advanceToLineMatching(/^  <\/script>$/))
-        return failure;
+      if (!r.advanceToLineMatching(/^  <\/script>$/)) return failure;
 
       events = r.endSavingLinesAndGetResult();
 
@@ -306,10 +324,12 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       events = events.slice(1, events.length - 1);
     }
 
-    if (!r.advanceToLineMatching(/^<\/body>$/))
+    if (!r.advanceToLineMatching(/^<\/body>$/)) {
       return failure;
-    if (!r.advanceToLineMatching(/^<\/html>$/))
+    }
+    if (!r.advanceToLineMatching(/^<\/html>$/)) {
       return failure;
+    }
 
     return {ok: true,
       lines: produceResult ? events : undefined,
@@ -335,8 +355,9 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
       this.forEachLine_(function(text, eventBase, cpuNumber, pid, ts) {
         var eventName = eventBase.eventName;
-        if (eventName !== 'tracing_mark_write' && eventName !== '0')
+        if (eventName !== 'tracing_mark_write' && eventName !== '0') {
           return;
+        }
 
         if (traceEventClockSyncRE.exec(eventBase.details) ||
             genericClockSyncRE.exec(eventBase.details)) {
@@ -491,13 +512,13 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
           var cpuSlice = cpu.slices[i];
 
           var thread = this.threadsByLinuxPid[cpuSlice.args.tid];
-          if (!thread)
-            continue;
+          if (!thread) continue;
 
           cpuSlice.threadThatWasRunning = thread;
 
-          if (!thread.tempCpuSlices)
+          if (!thread.tempCpuSlices) {
             thread.tempCpuSlices = [];
+          }
           thread.tempCpuSlices.push(cpuSlice);
         }
       }
@@ -505,24 +526,21 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       for (var i in this.wakeups_) {
         var wakeup = this.wakeups_[i];
         var thread = this.threadsByLinuxPid[wakeup.tid];
-        if (!thread)
-          continue;
+        if (!thread) continue;
         thread.tempWakeups = thread.tempWakeups || [];
         thread.tempWakeups.push(wakeup);
       }
       for (var i in this.blockedReasons_) {
         var reason = this.blockedReasons_[i];
         var thread = this.threadsByLinuxPid[reason.tid];
-        if (!thread)
-          continue;
+        if (!thread) continue;
         thread.tempBlockedReasons = thread.tempBlockedReasons || [];
         thread.tempBlockedReasons.push(reason);
       }
 
       // Create slices for when the thread is not running.
       this.model_.getAllThreads().forEach(function(thread) {
-        if (thread.tempCpuSlices === undefined)
-          return;
+        if (thread.tempCpuSlices === undefined) return;
         var origSlices = thread.tempCpuSlices;
         delete thread.tempCpuSlices;
 
@@ -739,8 +757,9 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
         };
         for (var i = 0; i < pieces.length; i++) {
           var parts = pieces[i].split('=');
-          if (parts.length !== 2)
+          if (parts.length !== 2) {
             throw new Error('omgbbq');
+          }
           args[parts[0]] = parts[1];
         }
 
@@ -761,20 +780,19 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       // Check to see if we have a special clock sync marker that contains both
       // the current "ftrace global" time and the current CLOCK_MONOTONIC time.
       event = /parent_ts=(\d+\.?\d*)/.exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       var monotonicTs = event[1] * 1000;
       // A monotonic timestamp of zero is used as a sentinel value to indicate
       // that CLOCK_MONOTONIC and the ftrace global clock are identical.
-      if (monotonicTs === 0)
-        monotonicTs = ts;
+      if (monotonicTs === 0) monotonicTs = ts;
 
-      if (this.haveClockSyncedMonotonicToGlobal_)
+      if (this.haveClockSyncedMonotonicToGlobal_) {
         // ftrace sometimes includes multiple clock syncs between the monotonic
         // and global clocks within a single trace. We protect against this by
         // only taking the first one into account.
         return true;
+      }
 
       // We have a clock sync event that contains two timestamps: a timestamp
       // according to the ftrace 'global' clock, and that same timestamp
@@ -857,17 +875,17 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var lines = [];
       var extractResult = FTraceImporter._extractEventsFromSystraceHTML(
           this.events_, true);
-      if (!extractResult.ok)
+      if (!extractResult.ok) {
         extractResult = FTraceImporter._extractEventsFromSystraceMultiHTML(
             this.events_, true);
+      }
       var lines = extractResult.ok ?
         extractResult.lines : this.events_.split('\n');
 
       var lineParser = undefined;
       for (var lineNumber = 0; lineNumber < lines.length; ++lineNumber) {
         var line = lines[lineNumber].trim();
-        if (line.length === 0 || /^#/.test(line))
-          continue;
+        if (line.length === 0 || /^#/.test(line)) continue;
 
         if (!lineParser) {
           lineParser = autoDetectLineParser(line);

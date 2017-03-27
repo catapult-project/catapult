@@ -46,15 +46,13 @@ tr.exportTo('tr.b.math', function() {
     }
 
     function flushCurrentMergeBuffer() {
-      if (currentMergeBuffer.length === 0)
-        return;
+      if (currentMergeBuffer.length === 0) return;
 
       mergedEvents.push(mergeFunction(currentMergeBuffer));
       currentMergeBuffer = [];
 
       // Refill merge buffer if needed.
-      if (remainingEvents.length !== 0)
-        beginMerging();
+      if (remainingEvents.length !== 0) beginMerging();
     }
 
     beginMerging();
@@ -81,13 +79,11 @@ tr.exportTo('tr.b.math', function() {
   // Pass in |opt_totalRange| in order to find empty ranges before the first of
   // |inRanges| and after the last of |inRanges|.
   function findEmptyRangesBetweenRanges(inRanges, opt_totalRange) {
-    if (opt_totalRange && opt_totalRange.isEmpty)
-      opt_totalRange = undefined;
+    if (opt_totalRange && opt_totalRange.isEmpty) opt_totalRange = undefined;
 
     var emptyRanges = [];
     if (!inRanges.length) {
-      if (opt_totalRange)
-        emptyRanges.push(opt_totalRange);
+      if (opt_totalRange) emptyRanges.push(opt_totalRange);
       return emptyRanges;
     }
 
@@ -103,8 +99,7 @@ tr.exportTo('tr.b.math', function() {
 
     inRanges.forEach(function(range, index) {
       for (var otherIndex = 0; otherIndex < inRanges.length; ++otherIndex) {
-        if (index === otherIndex)
-          continue;
+        if (index === otherIndex) continue;
         var other = inRanges[otherIndex];
 
         if (other.min > range.max) {

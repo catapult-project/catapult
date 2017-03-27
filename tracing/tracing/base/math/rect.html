@@ -31,8 +31,9 @@ tr.exportTo('tr.b.math', function() {
   };
 
   Rect.fromArray = function(ary) {
-    if (ary.length !== 4)
+    if (ary.length !== 4) {
       throw new Error('ary.length must be 4');
+    }
     var rect = new Rect();
     rect.x = ary[0];
     rect.y = ary[1];

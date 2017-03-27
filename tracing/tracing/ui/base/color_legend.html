@@ -72,10 +72,11 @@ Polymer({
     Polymer.dom(this.$.label).textContent = '';
     Polymer.dom(this.$.label).appendChild(tr.ui.b.asHTMLOrTextNode(label));
 
-    if (colorId === undefined)
+    if (colorId === undefined) {
       this.$.square.style.color = 'initial';
-    else
+    } else {
       this.$.square.style.color = tr.b.ColorScheme.colorsAsStrings[colorId];
+    }
   }
 });
 </script>

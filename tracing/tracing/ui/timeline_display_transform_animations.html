@@ -27,10 +27,11 @@ tr.exportTo('tr.ui', function() {
       deltaX, deltaY, opt_durationMs) {
     this.deltaX = deltaX;
     this.deltaY = deltaY;
-    if (opt_durationMs === undefined)
+    if (opt_durationMs === undefined) {
       this.durationMs = kDefaultPanAnimationDurationMs;
-    else
+    } else {
       this.durationMs = opt_durationMs;
+    }
 
     this.startPanX = undefined;
     this.startPanY = undefined;
@@ -117,10 +118,11 @@ tr.exportTo('tr.ui', function() {
     this.goalFocalPointXView = goalFocalPointXView;
     this.goalFocalPointY = goalFocalPointY;
     this.zoomInRatioX = zoomInRatioX;
-    if (opt_durationMs === undefined)
+    if (opt_durationMs === undefined) {
       this.durationMs = kDefaultPanAnimationDurationMs;
-    else
+    } else {
       this.durationMs = opt_durationMs;
+    }
 
     this.startTimeMs = undefined;
     this.startScaleX = undefined;

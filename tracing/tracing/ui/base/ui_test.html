@@ -16,8 +16,9 @@ tr.b.unittest.testSuite(function() {
     __proto__: HTMLDivElement.prototype,
 
     decorate: function() {
-      if (!this.decorateCallCount)
+      if (!this.decorateCallCount) {
         this.decorateCallCount = 0;
+      }
       this.decorateCallCount++;
     }
   };

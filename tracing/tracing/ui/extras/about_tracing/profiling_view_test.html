@@ -60,8 +60,8 @@ tr.b.unittest.testSuite(function() {
 
       var didAbort = false;
       function pressRecord() {
-        if (didAbort)
-          return;
+        if (didAbort) return;
+
         recordingPromise.selectionDlg.clickRecordButton();
         setTimeout(pressStop, 60);
       }

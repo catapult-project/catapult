@@ -39,8 +39,9 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     getCurrentlyExecutingModuleName: function() {
-      if (!document.currentScript)
+      if (!document.currentScript) {
         throw new Error('Cannot call testSuite except during load.');
+      }
       var linkDoc = document.currentScript.ownerDocument;
       var url = linkDoc.URL;
       var name = this.guessModuleNameFromURL_(url);
@@ -49,13 +50,16 @@ tr.exportTo('tr.b.unittest', function() {
 
     guessModuleNameFromURL_: function(url) {
       var m = /.+?:\/\/.+?(\/.+)/.exec(url);
-      if (!m)
+      if (!m) {
         throw new Error('Guessing module name failed');
+      }
       var path = m[1];
-      if (path[0] !== '/')
+      if (path[0] !== '/') {
         throw new Error('malformed path');
-      if (path.substring(path.length - 5) !== '.html')
+      }
+      if (path.substring(path.length - 5) !== '.html') {
         throw new Error('Cannot define testSuites outside html imports');
+      }
       var parts = path.substring(1, path.length - 5).split('/');
       return parts.join('.');
     }
@@ -71,8 +75,9 @@ tr.exportTo('tr.b.unittest', function() {
           testRelpath: testRelpath,
           moduleName: moduleName
         };
-        if (this.currentlyExecutingModuleInfo_ !== undefined)
+        if (this.currentlyExecutingModuleInfo_ !== undefined) {
           throw new Error('WAT');
+        }
         this.currentlyExecutingModuleInfo_ = moduleInfo;
 
         try {
@@ -90,8 +95,9 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     getCurrentlyExecutingModuleName: function() {
-      if (this.currentlyExecutingModuleInfo_ === undefined)
+      if (this.currentlyExecutingModuleInfo_ === undefined) {
         throw new Error('No currently loading module');
+      }
       return this.currentlyExecutingModuleInfo_.moduleName;
     }
   };
@@ -134,18 +140,15 @@ tr.exportTo('tr.b.unittest', function() {
         var remaining = modulePromises.length;
         var resolved = false;
         function oneMoreLoaded() {
-          if (resolved)
-            return;
+          if (resolved) return;
           remaining--;
-          if (remaining > 0)
-            return;
+          if (remaining > 0) return;
           resolved = true;
           resolve();
         }
 
         function oneRejected(e) {
-          if (resolved)
-            return;
+          if (resolved) return;
           resolved = true;
           reject(e);
         }
@@ -181,16 +184,18 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     bindGlobalHooks_: function() {
-      if (global._currentSuiteLoader !== undefined)
+      if (global._currentSuiteLoader !== undefined) {
         throw new Error('A suite loader exists already');
+      }
       global._currentSuiteLoader = this;
 
       this.oldGlobalOnError_ = global.onerror;
       global.onerror = function(errorMsg, url, lineNumber) {
         this.scriptErrorPromiseResolver_.reject(
             new Error(errorMsg + '\n' + url + ':' + lineNumber));
-        if (this.oldGlobalOnError_)
+        if (this.oldGlobalOnError_) {
           return this.oldGlobalOnError_(errorMsg, url, lineNumber);
+        }
         return false;
       }.bind(this);
     },
@@ -228,8 +233,7 @@ tr.exportTo('tr.b.unittest', function() {
         var suite = this.testSuites[i];
         for (var j = 0; j < suite.tests.length; j++) {
           var test = suite.tests[j];
-          if (test.fullyQualifiedName === fullyQualifiedName)
-            return test;
+          if (test.fullyQualifiedName === fullyQualifiedName) return test;
         }
       }
       throw new Error('Test ' + fullyQualifiedName +

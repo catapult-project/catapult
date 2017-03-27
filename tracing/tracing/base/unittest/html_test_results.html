@@ -205,12 +205,14 @@ tr.exportTo('tr.b.unittest', function() {
       var htmlResults =
           Polymer.dom(this).querySelectorAll('x-html-test-case-html-result');
       var display;
-      if (this.showHTMLOutput)
+      if (this.showHTMLOutput) {
         display = '';
-      else
+      } else {
         display = (this.testStatus_ === TestStatus.RUNNING) ? '' : 'none';
-      for (var i = 0; i < htmlResults.length; i++)
+      }
+      for (var i = 0; i < htmlResults.length; i++) {
         htmlResults[i].style.display = display;
+      }
     },
 
     get hadErrors() {
@@ -261,11 +263,12 @@ tr.exportTo('tr.b.unittest', function() {
       }
 
       var statusEl = Polymer.dom(this).querySelector('#status');
-      if (this.duration_)
+      if (this.duration_) {
         Polymer.dom(statusEl).textContent = status + ' (' +
             this.duration_.toFixed(2) + 'ms)';
-      else
+      } else {
         Polymer.dom(statusEl).textContent = status;
+      }
       statusEl.className = colorCls;
     },
 
@@ -322,8 +325,9 @@ tr.exportTo('tr.b.unittest', function() {
       this.showHTMLOutput_ = showHTMLOutput;
       var testCaseResults =
           Polymer.dom(this).querySelectorAll('x-html-test-case-result');
-      for (var i = 0; i < testCaseResults.length; i++)
+      for (var i = 0; i < testCaseResults.length; i++) {
         testCaseResults[i].showHTMLOutput = showHTMLOutput;
+      }
     },
 
     get showPendingAndPassedTests() {
@@ -335,8 +339,9 @@ tr.exportTo('tr.b.unittest', function() {
 
       var testCaseResults =
           Polymer.dom(this).querySelectorAll('x-html-test-case-result');
-      for (var i = testCaseResults.length - 1; i >= 0; i--)
+      for (var i = testCaseResults.length - 1; i >= 0; i--) {
         this.updateDisplayStateForResult_(testCaseResults[i]);
+      }
     },
 
     updateDisplayStateForResult_: function(res) {
@@ -360,12 +365,14 @@ tr.exportTo('tr.b.unittest', function() {
         var testCaseResult = new HTMLTestCaseResult();
         testCaseResult.showHTMLOutput = this.showHTMLOutput_;
         testCaseResult.testCase = testCase;
-        if ((i % 2) === 0)
+        if ((i % 2) === 0) {
           Polymer.dom(testCaseResult).classList.add('dark');
+        }
 
         var href = this.getHRefForTestCase(testCase);
-        if (href)
+        if (href) {
           testCaseResult.testCaseHRef = href;
+        }
         testCaseResult.testStatus = TestStatus.PENDING;
         this.testCaseResultsByCaseGUID_[testCase.guid] = testCaseResult;
         Polymer.dom(this).appendChild(testCaseResult);
@@ -391,8 +398,9 @@ tr.exportTo('tr.b.unittest', function() {
 
       this.currentTestCaseResult_.addError(normalizedException);
       this.updateDisplayStateForResult_(this.currentTestCaseResult_);
-      if (this.headless_)
+      if (this.headless_) {
         this.notifyTestResultToDevServer_('EXCEPT', normalizedException.stack);
+      }
     },
 
     addHTMLOutputForCurrentTest: function(element) {
@@ -432,8 +440,9 @@ tr.exportTo('tr.b.unittest', function() {
       }
       this.log_('[' + resultString + ']\n');
 
-      if (this.headless_)
+      if (this.headless_) {
         this.notifyTestResultToDevServer_(resultString);
+      }
 
       this.updateDisplayStateForResult_(this.currentTestCaseResult_);
       this.currentTestCaseResult_ = undefined;
@@ -441,8 +450,9 @@ tr.exportTo('tr.b.unittest', function() {
 
     didRunTests: function() {
       this.log_('[DONE]\n');
-      if (this.headless_)
+      if (this.headless_) {
         this.notifyTestCompletionToDevServer_();
+      }
     },
 
     getStats: function() {

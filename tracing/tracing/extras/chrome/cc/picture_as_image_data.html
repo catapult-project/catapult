@@ -51,8 +51,7 @@ tr.exportTo('tr.e.cc', function() {
     },
 
     asCanvas: function() {
-      if (!this.imageData_)
-        return;
+      if (!this.imageData_) return;
 
       var canvas = document.createElement('canvas');
       var ctx = canvas.getContext('2d');

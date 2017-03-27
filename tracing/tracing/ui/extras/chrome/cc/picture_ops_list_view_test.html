@@ -20,8 +20,8 @@ tr.b.unittest.testSuite(function() {
   var PictureOpsListView = tr.ui.e.chrome.cc.PictureOpsListView;
 
   test('instantiate', function() {
-    if (!tr.e.cc.PictureSnapshot.CanRasterize())
-      return;
+    if (!tr.e.cc.PictureSnapshot.CanRasterize()) return;
+
     var m = new tr.Model(g_catLTHIEvents);
     var p = tr.b.dictionaryValues(m.processes)[0];
 
@@ -34,8 +34,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('selection', function() {
-    if (!tr.e.cc.PictureSnapshot.CanRasterize())
-      return;
+    if (!tr.e.cc.PictureSnapshot.CanRasterize()) return;
+
     var m = new tr.Model(g_catLTHIEvents);
     var p = tr.b.dictionaryValues(m.processes)[0];
 

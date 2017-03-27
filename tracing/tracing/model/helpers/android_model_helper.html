@@ -37,12 +37,12 @@ tr.exportTo('tr.model.helpers', function() {
   };
 
   function iterateImportantThreadSlices(thread, important, callback) {
-    if (!thread)
-      return;
+    if (!thread) return;
 
     thread.sliceGroup.slices.forEach(function(slice) {
-      if (slice.title in important)
+      if (slice.title in important) {
         callback(slice);
+      }
     });
   }
 
@@ -64,8 +64,9 @@ tr.exportTo('tr.model.helpers', function() {
     model.getAllProcesses().forEach(function(process) {
       var app = AndroidApp.createForProcessIfPossible(
           process, this.surfaceFlinger);
-      if (app)
+      if (app) {
         this.apps.push(app);
+      }
     }, this);
   }
 

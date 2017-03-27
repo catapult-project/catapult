@@ -28,8 +28,9 @@ tr.exportTo('tr.ui.b', function() {
   function Row(title, data, groupingKeyFuncs, rowStatsConstructor) {
     this.title = title;
     this.data_ = data;
-    if (groupingKeyFuncs === undefined)
+    if (groupingKeyFuncs === undefined) {
       groupingKeyFuncs = [];
+    }
     this.groupingKeyFuncs_ = groupingKeyFuncs;
     this.rowStatsConstructor_ = rowStatsConstructor;
 
@@ -41,8 +42,7 @@ tr.exportTo('tr.ui.b', function() {
 
   Row.prototype = {
     getCurrentGroupingKeyFunc_: function() {
-      if (this.groupingKeyFuncs_.length === 0)
-        return undefined;
+      if (this.groupingKeyFuncs_.length === 0) return undefined;
       return this.groupingKeyFuncs_[0];
     },
 
@@ -58,8 +58,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     rebuildSubRowsIfNeeded_: function() {
-      if (this.subRowsBuilt_)
-        return;
+      if (this.subRowsBuilt_) return;
       this.subRowsBuilt_ = true;
 
       var groupingKeyFunc = this.getCurrentGroupingKeyFunc_();
@@ -73,8 +72,9 @@ tr.exportTo('tr.ui.b', function() {
       this.data_.forEach(function(datum) {
         var key = groupingKeyFunc(datum);
         hasValues = hasValues || (key !== undefined);
-        if (dataByKey[key] === undefined)
+        if (dataByKey[key] === undefined) {
           dataByKey[key] = [];
+        }
         dataByKey[key].push(datum);
       });
       if (!hasValues) {

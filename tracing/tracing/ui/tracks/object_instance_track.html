@@ -129,8 +129,7 @@ tr.exportTo('tr.ui.tracks', function() {
       for (var i = loI; i < objectInstances.length; ++i) {
         var instance = objectInstances[i];
         var x = instance.creationTs;
-        if (x > viewRWorld)
-          break;
+        if (x > viewRWorld) break;
 
         var right = instance.deletionTs === Number.MAX_VALUE ?
             viewRWorld : instance.deletionTs;
@@ -150,8 +149,8 @@ tr.exportTo('tr.ui.tracks', function() {
       for (var i = loI; i < objectSnapshots.length; ++i) {
         var snapshot = objectSnapshots[i];
         var x = snapshot.ts;
-        if (x - snapshotRadiusWorld > viewRWorld)
-          break;
+        if (x - snapshotRadiusWorld > viewRWorld) break;
+
         var xView = dt.xWorldToView(x);
 
         ctx.fillStyle = EventPresenter.getObjectSnapshotColor(snapshot);
@@ -224,8 +223,7 @@ tr.exportTo('tr.ui.tracks', function() {
           function(x) { return 2 * snapshotRadiusWorld; },
           loWX, hiWX,
           onSnapshot);
-      if (foundSnapshot)
-        return;
+      if (foundSnapshot) return;
 
       // Try picking instances.
       tr.b.math.iterateOverIntersectingIntervals(
@@ -248,12 +246,13 @@ tr.exportTo('tr.ui.tracks', function() {
      */
     addEventNearToProvidedEventToSelection: function(event, offset, selection) {
       var events;
-      if (event instanceof tr.model.ObjectSnapshot)
+      if (event instanceof tr.model.ObjectSnapshot) {
         events = this.objectSnapshots_;
-      else if (event instanceof tr.model.ObjectInstance)
+      } else if (event instanceof tr.model.ObjectInstance) {
         events = this.objectInstances_;
-      else
+      } else {
         throw new Error('Unrecognized event');
+      }
 
       var index = events.indexOf(event);
       var newIndex = index + offset;
@@ -275,8 +274,7 @@ tr.exportTo('tr.ui.tracks', function() {
           worldX,
           worldMaxDist);
 
-      if (!snapshot)
-        return;
+      if (!snapshot) return;
 
       selection.push(snapshot);
 

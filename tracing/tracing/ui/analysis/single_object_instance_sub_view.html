@@ -59,11 +59,13 @@ Polymer({
   },
 
   get requiresTallView() {
-    if (this.$.content.children.length === 0)
+    if (this.$.content.children.length === 0) {
       return false;
+    }
     if (this.$.content.children[0] instanceof
-        tr.ui.analysis.ObjectInstanceView)
+        tr.ui.analysis.ObjectInstanceView) {
       return this.$.content.children[0].requiresTallView;
+    }
   },
 
   get selection() {
@@ -72,8 +74,9 @@ Polymer({
 
   set selection(selection) {
     var instance = tr.b.getOnlyElement(selection);
-    if (!(instance instanceof tr.model.ObjectInstance))
+    if (!(instance instanceof tr.model.ObjectInstance)) {
       throw new Error('Only supports object instances');
+    }
 
     Polymer.dom(this.$.content).textContent = '';
     this.currentSelection_ = selection;

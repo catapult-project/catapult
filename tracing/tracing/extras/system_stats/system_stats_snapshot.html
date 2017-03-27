@@ -28,8 +28,9 @@ tr.exportTo('tr.e.system_stats', function() {
     __proto__: ObjectSnapshot.prototype,
 
     initialize: function() {
-      if (this.args.length === 0)
+      if (this.args.length === 0) {
         throw new Error('No system stats snapshot data.');
+      }
       this.stats_ = this.args;
     },
 

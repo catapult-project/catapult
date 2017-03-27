@@ -13,10 +13,11 @@ found in the LICENSE file.
 tr.exportTo('tr.mre', function() {
   function Job(mapFunctionHandle, opt_guid) {
     this.mapFunctionHandle_ = mapFunctionHandle;
-    if (opt_guid === undefined)
+    if (opt_guid === undefined) {
       this.guid_ = tr.b.GUID.allocateSimple();
-    else
+    } else {
       this.guid_ = opt_guid;
+    }
   }
 
   Job.prototype = {

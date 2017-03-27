@@ -38,8 +38,8 @@ tr.b.unittest.testSuite(function() {
 
   function timedCounterTrackPerfTest(name, testFn, iterations) {
     function setUpOnce() {
-      if (model !== undefined)
-        return;
+      if (model !== undefined) return;
+
       var fileUrl = '/test_data/counter_tracks.html';
       var events = getSynchronous(fileUrl);
       model = tr.c.TestUtils.newModelWithEvents([events]);

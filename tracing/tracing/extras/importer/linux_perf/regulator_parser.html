@@ -74,8 +74,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
      */
     regulatorEnableEvent: function(eventName, cpuNum, pid, ts, eventBase) {
       var event = regulatorEnableRE.exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       var name = event[1];
 
@@ -96,8 +95,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
     regulatorDisableEvent: function(eventName, cpuNum, pid, ts, eventBase) {
       var event = regulatorDisableRE.exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       var name = event[1];
 
@@ -119,8 +117,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     regulatorSetVoltageCompleteEvent: function(eventName, cpuNum, pid, ts,
         eventBase) {
       var event = regulatorSetVoltageCompleteRE.exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       var name = event[1];
       var voltage = parseInt(event[2]);

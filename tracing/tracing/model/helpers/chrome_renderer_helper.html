@@ -24,8 +24,9 @@ tr.exportTo('tr.model.helpers', function() {
       return false;
     });
 
-    if (!process.name)
+    if (!process.name) {
       process.name = ChromeRendererHelper.PROCESS_NAME;
+    }
   }
 
 
@@ -77,8 +78,9 @@ tr.exportTo('tr.model.helpers', function() {
       var eventDuration = getEventDuration(event);
       var eventSelfTime = getEventSelfTime(event);
       var eventEnd = eventStart + eventDuration;
-      if (!range.intersectsExplicitRangeExclusive(eventStart, eventEnd))
+      if (!range.intersectsExplicitRangeExclusive(eventStart, eventEnd)) {
         continue;
+      }
       if (eventSelfTime === undefined) continue;
       var title =
           tr.e.chrome.ChromeUserFriendlyCategoryDriver.fromEvent(event);

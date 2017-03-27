@@ -27,8 +27,9 @@ tr.exportTo('tr.model', function() {
    * @constructor
    */
   function Cpu(kernel, number) {
-    if (kernel === undefined || number === undefined)
+    if (kernel === undefined || number === undefined) {
       throw new Error('Missing arguments');
+    }
     this.kernel = kernel;
     this.cpuNumber = number;
     this.slices = [];
@@ -70,8 +71,9 @@ tr.exportTo('tr.model', function() {
     childEvents: function* () {
       yield* this.slices;
 
-      if (this.samples_)
+      if (this.samples_) {
         yield* this.samples_;
+      }
     },
 
     childEventContainers: function* () {
@@ -84,8 +86,9 @@ tr.exportTo('tr.model', function() {
      */
     getOrCreateCounter: function(cat, name) {
       var id = cat + '.' + name;
-      if (!this.counters[id])
+      if (!this.counters[id]) {
         this.counters[id] = new Counter(this, id, cat, name);
+      }
       return this.counters[id];
     },
 
@@ -95,8 +98,9 @@ tr.exportTo('tr.model', function() {
      */
     getCounter: function(cat, name) {
       var id = cat + '.' + name;
-      if (!this.counters[id])
+      if (!this.counters[id]) {
         return undefined;
+      }
       return this.counters[id];
     },
 
@@ -105,10 +109,12 @@ tr.exportTo('tr.model', function() {
      * specified.
      */
     shiftTimestampsForward: function(amount) {
-      for (var sI = 0; sI < this.slices.length; sI++)
+      for (var sI = 0; sI < this.slices.length; sI++) {
         this.slices[sI].start = (this.slices[sI].start + amount);
-      for (var id in this.counters)
+      }
+      for (var id in this.counters) {
         this.counters[id].shiftTimestampsForward(amount);
+      }
     },
 
     /**
@@ -138,12 +144,15 @@ tr.exportTo('tr.model', function() {
     },
 
     addCategoriesToDict: function(categoriesDict) {
-      for (var i = 0; i < this.slices.length; i++)
+      for (var i = 0; i < this.slices.length; i++) {
         categoriesDict[this.slices[i].category] = true;
-      for (var id in this.counters)
+      }
+      for (var id in this.counters) {
         categoriesDict[this.counters[id].category] = true;
-      for (var i = 0; i < this.samples_.length; i++)
+      }
+      for (var i = 0; i < this.samples_.length; i++) {
         categoriesDict[this.samples_[i].category] = true;
+      }
     },
 
     /*
@@ -154,8 +163,7 @@ tr.exportTo('tr.model', function() {
           this.slices,
           function(slice) { return slice.start; },
           cpuSlice.start);
-      if (this.slices[i] !== cpuSlice)
-        return undefined;
+      if (this.slices[i] !== cpuSlice) return undefined;
       return i;
     },
 
@@ -166,8 +174,10 @@ tr.exportTo('tr.model', function() {
      */
     closeActiveThread: function(endTimestamp, args) {
       // Don't generate a slice if the last active thread is the idle task.
-      if (this.lastActiveThread_ === undefined || this.lastActiveThread_ === 0)
+      if (this.lastActiveThread_ === undefined ||
+          this.lastActiveThread_ === 0) {
         return;
+      }
 
       if (endTimestamp < this.lastActiveTimestamp_) {
         throw new Error('The end timestamp of a thread running on CPU ' +
@@ -229,16 +239,16 @@ tr.exportTo('tr.model', function() {
         var freqRange = tr.b.math.Range.fromExplicitRange(freqSample.timestamp,
             freqEnd);
         var intersection = freqRange.findIntersection(range);
-        if (!(freqSample.value in stats))
+        if (!(freqSample.value in stats)) {
           stats[freqSample.value] = 0;
+        }
         stats[freqSample.value] += intersection.duration;
       }
 
       var freqCounter = this.getCounter('', 'Clock Frequency');
       if (freqCounter !== undefined) {
         var freqSeries = freqCounter.getSeries(0);
-        if (!freqSeries)
-          return;
+        if (!freqSeries) return;
 
         tr.b.math.iterateOverIntersectingIntervals(freqSeries.samples_,
             function(x) { return x.timestamp; },

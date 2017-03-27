@@ -40,8 +40,9 @@ tr.exportTo('tr.c', function() {
 
     onModelChanged_: function() {
       this.scriptObjectValues_.forEach(function(v) {
-        if (v.onModelChanged)
+        if (v.onModelChanged) {
           v.onModelChanged(this.brushingStateController.model);
+        }
       }, this);
     },
 

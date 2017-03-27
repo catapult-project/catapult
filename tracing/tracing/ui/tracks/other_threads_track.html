@@ -68,8 +68,7 @@ tr.exportTo('tr.ui.tracks', function() {
     set expanded(expanded) {
       expanded = !!expanded;
 
-      if (this.expanded === expanded)
-        return;
+      if (this.expanded === expanded) return;
 
       this.header_.expanded = expanded;
 
@@ -90,8 +89,8 @@ tr.exportTo('tr.ui.tracks', function() {
         for (var thread of this.threads_) {
           var track = new tr.ui.tracks.ThreadTrack(this.viewport);
           track.thread = thread;
-          if (!track.hasVisibleContent)
-            return;
+          if (!track.hasVisibleContent) return;
+
           Polymer.dom(this).appendChild(track);
           Polymer.dom(this).appendChild(new SpacingTrack(this.viewport));
         }

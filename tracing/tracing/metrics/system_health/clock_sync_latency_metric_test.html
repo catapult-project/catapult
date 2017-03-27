@@ -42,12 +42,13 @@ tr.b.unittest.testSuite(function() {
     var winQpcToTelemetryValue = undefined;
     var battorToTelemetryValue = undefined;
     for (var value of histograms) {
-      if (value.name === battorToWinQpcName)
+      if (value.name === battorToWinQpcName) {
         battorToWinQpcValue = value;
-      else if (value.name === winQpcToTelemetryName)
+      } else if (value.name === winQpcToTelemetryName) {
         winQpcToTelemetryValue = value;
-      else if (value.name === battorToTelemetryName)
+      } else if (value.name === battorToTelemetryName) {
         battorToTelemetryValue = value;
+      }
     }
 
     // Clock sync graph is:

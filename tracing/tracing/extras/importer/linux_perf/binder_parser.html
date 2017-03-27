@@ -42,16 +42,21 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     var flag = parseInt(num, 16);
     var str = '';
 
-    if (flag & TF_ONE_WAY)
+    if (flag & TF_ONE_WAY) {
       str += 'this is a one-way call: async, no return; ';
-    if (flag & TF_ROOT_OBJECT)
+    }
+    if (flag & TF_ROOT_OBJECT) {
       str += 'contents are the components root object; ';
-    if (flag & TF_STATUS_CODE)
+    }
+    if (flag & TF_STATUS_CODE) {
       str += 'contents are a 32-bit status code; ';
-    if (flag & TF_ACCEPT_FDS)
+    }
+    if (flag & TF_ACCEPT_FDS) {
       str += 'allow replies with file descriptors; ';
-    if (flag === NO_FLAGS)
+    }
+    if (flag === NO_FLAGS) {
       str += 'No Flags Set';
+    }
 
     return str;
   }
@@ -183,8 +188,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       rthread = kthread.thread;
       kthread.binderLockAquiredTS = ts;
 
-      if (kthread.binderAttemptLockTS === undefined)
-        return false;
+      if (kthread.binderAttemptLockTS === undefined) return false;
 
       var args = this.generateArgsForSlice(tgid, pid, name, kthread);
       rthread.sliceGroup.pushCompleteSlice('binder', 'binder lock waiting',
@@ -202,8 +206,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
           getOrCreateBinderKernelThread(
           eventBase.threadName, tgid, pid);
 
-      if (kthread.binderLockAquiredTS === undefined)
-        return false;
+      if (kthread.binderLockAquiredTS === undefined) return false;
 
       var args = this.generateArgsForSlice(tgid, pid, eventBase.threadName,
           kthread);
@@ -320,8 +323,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
      */
     binderTransaction: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = binderTransRE.exec(eventBase.details);
-      if (event === undefined)
-        return false;
+      if (event === undefined) return false;
 
       var tgid = parseInt(eventBase.tgid);
 
@@ -351,9 +353,10 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
        */
       var recursiveTrans = this.getRecursiveTransactionNeedingCompletion(pid);
 
-      if (recursiveTrans !== false)
+      if (recursiveTrans !== false) {
         return this.modelRecursiveTransactions(recursiveTrans, ts, pid,
             kthread, trans, args);
+      }
 
       /**
        * Start of a Transaction. This thread is the initiator of either a call
@@ -367,10 +370,11 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
           ts.toString());
       trans.slice = slice;
 
-      if (trans.expect_reply)
+      if (trans.expect_reply) {
         slice.title = 'binder transaction';
-      else
+      } else {
         slice.title = 'binder transaction async';
+      }
 
       this.addTransactionWaitingForRecv(trans.transaction_key, trans);
 
@@ -381,8 +385,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
         eventBase) {
       var event = binderTransReceivedRE.exec(eventBase.details);
 
-      if (event === undefined)
-        return false;
+      if (event === undefined) return false;
 
       var transactionkey = parseInt(event[1]);
       var tgid = parseInt(eventBase.tgid);
@@ -482,8 +485,9 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
         this.addSyncTransNeedingCompletion(trans.transaction_key,
             recursiveTrans);
 
-        if (isReplyToOrigin(recursiveTrans[0], trans))
+        if (isReplyToOrigin(recursiveTrans[0], trans)) {
           this.removeRecursiveTransaction(pid);
+        }
       } else {
         /**
          *  Case two:
@@ -569,19 +573,20 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     },
 
     getRecursiveTransactionNeedingCompletion: function(pid) {
-      if (this.recursiveSyncTransWaitingCompletion_ByPID[pid] === undefined)
+      if (this.recursiveSyncTransWaitingCompletion_ByPID[pid] === undefined) {
         return false;
+      }
 
       var len = this.recursiveSyncTransWaitingCompletion_ByPID[pid].length;
-      if (len === 0)
-        return false;
+      if (len === 0) return false;
 
       return this.recursiveSyncTransWaitingCompletion_ByPID[pid][len - 1];
     },
 
     addRecursiveSyncTransNeedingCompletion: function(pid, tuple) {
-      if (this.recursiveSyncTransWaitingCompletion_ByPID[pid] === undefined)
+      if (this.recursiveSyncTransWaitingCompletion_ByPID[pid] === undefined) {
         this.recursiveSyncTransWaitingCompletion_ByPID[pid] = [];
+      }
 
       this.recursiveSyncTransWaitingCompletion_ByPID[pid].push(tuple);
     },
@@ -604,12 +609,12 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     },
 
     getPriorReceiveOnPID: function(pid) {
-      if (this.receivedTransWaitingConversion[pid] === undefined)
+      if (this.receivedTransWaitingConversion[pid] === undefined) {
         return false;
+      }
 
       var len = this.receivedTransWaitingConversion[pid].length;
-      if (len === 0)
-        return false;
+      if (len === 0) return false;
 
       return this.receivedTransWaitingConversion[pid].splice(len - 1, 1)[0];
     },
@@ -621,8 +626,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
     getSyncTransNeedsCompletion: function(transactionkey) {
       var ret = this.syncTransWaitingCompletion[transactionkey];
-      if (ret === undefined)
-        return false;
+      if (ret === undefined) return false;
 
       delete this.syncTransWaitingCompletion[transactionkey];
       return ret;
@@ -630,8 +634,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
     getTransactionWaitingForRecv: function(transactionkey) {
       var ret = this.transWaitingRecv[transactionkey];
-      if (ret === undefined)
-        return false;
+      if (ret === undefined) return false;
 
       delete this.transWaitingRecv[transactionkey];
       return ret;
@@ -680,8 +683,9 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     },
 
     registerPidName: function(pid, name) {
-      if (this.pid2name(pid) === undefined)
+      if (this.pid2name(pid) === undefined) {
         this.kthreadlookup[pid] = name;
+      }
     }
   };
 

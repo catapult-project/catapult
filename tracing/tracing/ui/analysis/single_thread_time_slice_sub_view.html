@@ -107,8 +107,9 @@ Polymer({
   set selection(selection) {
     var timeSlice = tr.b.getOnlyElement(selection);
 
-    if (!(timeSlice instanceof tr.model.ThreadTimeSlice))
+    if (!(timeSlice instanceof tr.model.ThreadTimeSlice)) {
       throw new Error('Only supports thread time slices');
+    }
 
     this.currentSelection_ = selection;
 
@@ -149,11 +150,12 @@ Polymer({
       if (cpuSliceThatTookCpu) {
         var cpuLink = document.createElement('tr-ui-a-analysis-link');
         cpuLink.selection = new tr.model.EventSet(cpuSliceThatTookCpu);
-        if (cpuSliceThatTookCpu.thread)
+        if (cpuSliceThatTookCpu.thread) {
           Polymer.dom(cpuLink).textContent =
               cpuSliceThatTookCpu.thread.userFriendlyName;
-        else
+        } else {
           Polymer.dom(cpuLink).textContent = cpuSliceThatTookCpu.title;
+        }
         Polymer.dom(runningInsteadEl).appendChild(cpuLink);
       } else {
         Polymer.dom(runningInsteadEl.parentElement).removeChild(

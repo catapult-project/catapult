@@ -59,22 +59,22 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     get hasVisibleContent() {
-      if (this.cpu_ === undefined)
-        return false;
+      if (this.cpu_ === undefined) return false;
+
       var cpu = this.cpu_;
-      if (cpu.slices.length)
-        return true;
-      if (cpu.samples && cpu.samples.length)
-        return true;
-      if (tr.b.dictionaryLength(cpu.counters) > 0)
-        return true;
+      if (cpu.slices.length) return true;
+
+      if (cpu.samples && cpu.samples.length) return true;
+
+      if (tr.b.dictionaryLength(cpu.counters) > 0) return true;
+
       return false;
     },
 
     updateContents_: function() {
       this.detach();
-      if (!this.cpu_)
-        return;
+      if (!this.cpu_) return;
+
       var slices = this.cpu_.slices;
       if (slices.length) {
         var track = new tr.ui.tracks.SliceTrack(this.viewport);
@@ -99,12 +99,14 @@ tr.exportTo('tr.ui.tracks', function() {
 
     appendSamplesTracks_: function() {
       var samples = this.cpu_.samples;
-      if (samples === undefined || samples.length === 0)
+      if (samples === undefined || samples.length === 0) {
         return;
+      }
       var samplesByTitle = {};
       samples.forEach(function(sample) {
-        if (samplesByTitle[sample.title] === undefined)
+        if (samplesByTitle[sample.title] === undefined) {
           samplesByTitle[sample.title] = [];
+        }
         samplesByTitle[sample.title].push(sample);
       });
 

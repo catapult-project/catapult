@@ -26,8 +26,9 @@ tr.b.unittest.testSuite(function() {
 
   function assertListStrictEqual(a, b) {
     assert.lengthOf(a, b.length);
-    for (var i = 0; i < a.length; i++)
+    for (var i = 0; i < a.length; i++) {
       assert.strictEqual(a[i], b[i]);
+    }
   }
 
   function checkTree(actualTreeRootNode, expectedStructureRootNode) {
@@ -47,8 +48,9 @@ tr.b.unittest.testSuite(function() {
   }
 
   function addExpectedStructureToMap(expectedStructureNode, map) {
-    if (typeof expectedStructureNode === 'string')
+    if (typeof expectedStructureNode === 'string') {
       return;  // Reference to another expected structure node.
+    }
 
     var expectedStructureNodeId = expectedStructureNode.id;
     if (expectedStructureNodeId !== undefined) {
@@ -59,8 +61,9 @@ tr.b.unittest.testSuite(function() {
     var expectedStructureChildren = expectedStructureNode.children;
     for (var d = 0; d < expectedStructureChildren.length; d++) {
       var expectedStructureDimensionChildren = expectedStructureChildren[d];
-      for (var i = 0; i < expectedStructureDimensionChildren.length; i++)
+      for (var i = 0; i < expectedStructureDimensionChildren.length; i++) {
         addExpectedStructureToMap(expectedStructureDimensionChildren[i], map);
+      }
     }
   }
 
@@ -274,8 +277,9 @@ tr.b.unittest.testSuite(function() {
               // children.
               nodeInfos.set(node, undefined);
               node.children.forEach(function(singleDimensionChildren) {
-                for (var child of singleDimensionChildren.values())
+                for (var child of singleDimensionChildren.values()) {
                   assignNodeIdsToRepeatedNodes(child);
+                }
               });
             }
             assignNodeIdsToRepeatedNodes(root);
@@ -283,8 +287,9 @@ tr.b.unittest.testSuite(function() {
             // Track the multi-dimensional path to the current node to generate
             // comments.
             var paths = new Array(dimensions);
-            for (var i = 0; i < paths.length; i++)
+            for (var i = 0; i < paths.length; i++) {
               paths[i] = [];
+            }
             function withChild(childNode, dimension, callback) {
               paths[dimension].push(childNode.title[dimension]);
               callback();
@@ -297,15 +302,17 @@ tr.b.unittest.testSuite(function() {
               }
 
               paths.forEach(function(dimensionPath, dimensionIndex) {
-                if (dimensionIndex > 0)
+                if (dimensionIndex > 0) {
                   generator.pushComment(', ');
+                }
                 if (dimensionPath.length === 0) {
                   generator.pushComment('*');
                   return;
                 }
                 dimensionPath.forEach(function(ancestorTitle, ancestorIndex) {
-                  if (ancestorIndex > 0)
+                  if (ancestorIndex > 0) {
                     generator.pushComment(' -> ');
+                  }
                   generator.pushComment(ancestorTitle);
                 });
               });

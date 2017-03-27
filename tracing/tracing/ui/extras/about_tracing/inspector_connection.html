@@ -31,8 +31,9 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
    * @constructor
    */
   function InspectorConnection() {
-    if (InspectorConnection.instance)
+    if (InspectorConnection.instance) {
       throw new Error('Singleton');
+    }
 
     this.nextRequestId_ = 1;
     this.pendingRequestResolversId_ = {};
@@ -110,10 +111,11 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     }
   };
 
-  if (window.DevToolsHost)
+  if (window.DevToolsHost) {
     InspectorConnection.instance = new InspectorConnection();
-  else
+  } else {
     InspectorConnection.instance = undefined;
+  }
 
   return {
     InspectorConnection,

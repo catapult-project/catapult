@@ -123,8 +123,7 @@ found in the LICENSE file.
  *
  */
 tr.exportTo('tr.ui.b', function() {
-  if (tr.isHeadless)
-    return {};
+  if (tr.isHeadless) return {};
 
   var THIS_DOC = document.currentScript.ownerDocument;
 
@@ -208,8 +207,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     set visible(newValue) {
-      if (this.visible_ === newValue)
-        return;
+      if (this.visible_ === newValue) return;
 
       this.visible_ = newValue;
       var e = new tr.b.Event('visible-change');
@@ -239,14 +237,16 @@ tr.exportTo('tr.ui.b', function() {
           Polymer.dom(this).querySelectorAll('button, input, list, select, a');
       if (elList.length > 0) {
         if (elList[0] === this.closeBtn_) {
-          if (elList.length > 1)
+          if (elList.length > 1) {
             focusEl = elList[1];
+          }
         } else {
           focusEl = elList[0];
         }
       }
-      if (focusEl === undefined)
+      if (focusEl === undefined) {
         focusEl = this;
+      }
       focusEl.focus();
     },
 
@@ -255,8 +255,9 @@ tr.exportTo('tr.ui.b', function() {
 
       this.parentEl_.removeEventListener('focusin', this.onFocusIn_);
 
-      if (this.closeBtn_)
+      if (this.closeBtn_) {
         this.closeBtn_.removeEventListener('click', this.onClose_);
+      }
 
       document.removeEventListener('keydown', this.onKeyDown_);
       document.removeEventListener('click', this.onDocumentClick_);
@@ -265,15 +266,15 @@ tr.exportTo('tr.ui.b', function() {
     onClose_: function(e) {
       this.visible = false;
       if ((e.type !== 'keydown') ||
-          (e.type === 'keydown' && e.keyCode === 27))
+          (e.type === 'keydown' && e.keyCode === 27)) {
         e.stopPropagation();
+      }
       e.preventDefault();
       tr.b.dispatchSimpleEvent(this, 'closeclick');
     },
 
     onFocusIn_: function(e) {
-      if (e.target === this)
-        return;
+      if (e.target === this) return;
 
       window.setTimeout(function() { this.focus(); }, 0);
       e.preventDefault();
@@ -300,8 +301,7 @@ tr.exportTo('tr.ui.b', function() {
         return;
       }
 
-      if (e.keyCode !== 27)  // escape
-        return;
+      if (e.keyCode !== 27) return;  // escape
 
       this.onClose_(e);
     },
@@ -311,8 +311,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     onDocumentClick_: function(e) {
-      if (!this.userCanClose_)
-        return;
+      if (!this.userCanClose_) return;
 
       this.onClose_(e);
     }

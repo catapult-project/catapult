@@ -34,11 +34,9 @@ tr.exportTo('tr.e.tquery', function() {
     },
 
     evaluate: function(context) {
-      if (!this.subExpressions.length)
-        return true;
+      if (!this.subExpressions.length) return true;
       for (var i = 0; i < this.subExpressions.length; i++) {
-        if (this.subExpressions[i].evaluate(context))
-          return true;
+        if (this.subExpressions[i].evaluate(context)) return true;
       }
       return false;
     }

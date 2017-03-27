@@ -272,8 +272,9 @@ tr.exportTo('tr.v.d', function() {
      */
     static getStoryGroupingKeyLabel(hist, storyGroupingKey) {
       let telemetry = tr.v.d.TelemetryInfo.getFromHistogram(hist);
-      if (!(telemetry instanceof tr.v.d.MergedTelemetryInfo))
+      if (!(telemetry instanceof tr.v.d.MergedTelemetryInfo)) {
         return storyGroupingKey + ': undefined';
+      }
       return storyGroupingKey + ': ' +
         telemetry.storyGroupingKeys[storyGroupingKey];
     }

@@ -66,8 +66,9 @@ tr.b.unittest.testSuite(function() {
 
     var shiftCount = 0;
     t.asyncSliceGroup.shiftTimestampsForward = function(ts) {
-      if (ts === 0.32)
+      if (ts === 0.32) {
         shiftCount++;
+      }
     };
 
     t.shiftTimestampsForward(0.32);
@@ -85,8 +86,9 @@ tr.b.unittest.testSuite(function() {
 
     var shiftCount = 0;
     t.asyncSliceGroup.shiftTimestampsForward = function(ts) {
-      if (ts === 0.32)
+      if (ts === 0.32) {
         shiftCount++;
+      }
     };
 
     t.shiftTimestampsForward(0.32);

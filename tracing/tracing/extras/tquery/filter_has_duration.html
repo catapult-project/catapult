@@ -25,8 +25,7 @@ tr.exportTo('tr.e.tquery', function() {
     __proto__: tr.e.tquery.Filter.prototype,
 
     evaluate: function(context) {
-      if (context.event.duration === undefined)
-        return false;
+      if (context.event.duration === undefined) return false;
       if (this.minValue !== undefined && this.maxValue !== undefined) {
         return context.event.duration >= this.minValue &&
                context.event.duration <= this.maxValue;

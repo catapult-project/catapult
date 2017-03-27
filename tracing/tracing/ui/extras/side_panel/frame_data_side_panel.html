@@ -70,8 +70,7 @@ tr.exportTo('tr.ui.e.s', function() {
     this.time = 0;
     this.eventsOfInterest = new tr.model.EventSet();
 
-    if (context === undefined)
-      return;
+    if (context === undefined) return;
 
     this.type = context.objectInstance.blameContextType;
     this.contexts.push(context);
@@ -81,8 +80,9 @@ tr.exportTo('tr.ui.e.s', function() {
         this.renderer = context.renderFrame.objectInstance.parent.pid;
       }
     } else if (context instanceof RenderFrameSnapshot) {
-      if (context.frameTreeNode)
+      if (context.frameTreeNode) {
         this.contexts.push(context.frameTreeNode);
+      }
       this.renderer = context.objectInstance.parent.pid;
     } else if (context instanceof TopLevelSnapshot) {
       this.renderer = context.objectInstance.parent.pid;
@@ -117,11 +117,13 @@ tr.exportTo('tr.ui.e.s', function() {
       var getParentRow = function(row) {
         var pivot;
         row.contexts.forEach(function(context) {
-          if (context instanceof tr.e.chrome.FrameTreeNodeSnapshot)
+          if (context instanceof tr.e.chrome.FrameTreeNodeSnapshot) {
             pivot = context;
+          }
         });
-        if (pivot && pivot.parentContext)
+        if (pivot && pivot.parentContext) {
           return rowMap[pivot.parentContext.guid];
+        }
         return undefined;
       };
 
@@ -132,15 +134,17 @@ tr.exportTo('tr.ui.e.s', function() {
           rootRows.push(row);
           return;
         }
-        if (parentRow.subRows === undefined)
+        if (parentRow.subRows === undefined) {
           parentRow.subRows = [];
+        }
         parentRow.subRows.push(row);
       });
 
       var aggregateAllDescendants = function(row) {
         if (!row.subRows) {
-          if (getParentRow(row))
+          if (getParentRow(row)) {
             row.type = 'Subframe';
+          }
           return row;
         }
         var result = new Row();
@@ -224,19 +228,19 @@ tr.exportTo('tr.ui.e.s', function() {
     },
 
     createFrameDataTableRows_: function() {
-      if (!this.model_)
-        return [];
+      if (!this.model_) return [];
 
       // Gather contexts into skeletons of rows.
       var rows = [];
       var rowMap = {};
       for (var proc of Object.values(this.model_.processes)) {
         proc.objects.iterObjectInstances(function(objectInstance) {
-          if (!(objectInstance instanceof BlameContextInstance))
+          if (!(objectInstance instanceof BlameContextInstance)) {
             return;
+          }
           objectInstance.snapshots.forEach(function(snapshot) {
-            if (rowMap[snapshot.guid])
-              return;
+            if (rowMap[snapshot.guid]) return;
+
             var row = new Row(snapshot);
             row.contexts.forEach(context => rowMap[context.guid] = row);
             rows.push(row);
@@ -252,8 +256,9 @@ tr.exportTo('tr.ui.e.s', function() {
         for (var thread of Object.values(proc.threads)) {
           thread.sliceGroup.iterSlicesInTimeRange(function(topLevelSlice) {
             topLevelSlice.contexts.forEach(function(context) {
-              if (!context.snapshot.guid || !rowMap[context.snapshot.guid])
+              if (!context.snapshot.guid || !rowMap[context.snapshot.guid]) {
                 return;
+              }
               var row = rowMap[context.snapshot.guid];
               row.eventsOfInterest.push(topLevelSlice);
               row.time += topLevelSlice.selfTime || 0;
@@ -285,19 +290,22 @@ tr.exportTo('tr.ui.e.s', function() {
       var ans = {supported: false};
       for (var proc of Object.values(m.processes)) {
         proc.objects.iterObjectInstances(function(instance) {
-          if (instance instanceof BlameContextInstance)
+          if (instance instanceof BlameContextInstance) {
             ans.supported = true;
+          }
         });
       }
 
-      if (!ans.supported)
+      if (!ans.supported) {
         ans.reason = 'No frame data available';
+      }
       return ans;
     },
 
     get currentRangeOfInterest() {
-      if (this.rangeOfInterest_.isEmpty)
+      if (this.rangeOfInterest_.isEmpty) {
         return this.model_.bounds;
+      }
       return this.rangeOfInterest_;
     },
 

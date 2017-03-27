@@ -57,13 +57,13 @@ Polymer({
    */
   get: function() {
     var viewId = this.viewId;
-    if (!viewId)
+    if (!viewId) {
       throw new Error('Element must have a view-id attribute!');
+    }
 
     var brushingStateController =
         tr.c.BrushingStateController.getControllerForElement(this);
-    if (!brushingStateController)
-      return undefined;
+    if (!brushingStateController) return undefined;
 
     return brushingStateController.getViewSpecificBrushingState(viewId);
   },
@@ -78,13 +78,13 @@ Polymer({
    */
   set: function(state) {
     var viewId = this.viewId;
-    if (!viewId)
+    if (!viewId) {
       throw new Error('Element must have a view-id attribute!');
+    }
 
     var brushingStateController =
         tr.c.BrushingStateController.getControllerForElement(this);
-    if (!brushingStateController)
-      return;
+    if (!brushingStateController) return;
 
     brushingStateController.changeViewSpecificBrushingState(viewId, state);
   }

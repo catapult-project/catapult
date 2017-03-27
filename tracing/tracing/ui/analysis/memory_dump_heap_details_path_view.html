@@ -42,8 +42,9 @@ tr.exportTo('tr.ui.analysis', function() {
     formatTitle: function(row) {
       var title = tr.ui.analysis.HeapDetailsTitleColumn.prototype.
           formatTitle.call(this, row);
-      if (row.dimension === tr.ui.analysis.HeapDetailsRowDimension.ROOT)
+      if (row.dimension === tr.ui.analysis.HeapDetailsRowDimension.ROOT) {
         return title;
+      }
 
       var arrowEl = document.createElement('span');
       Polymer.dom(arrowEl).textContent = DOWNWARDS_ARROW_WITH_TIP_RIGHTWARDS;

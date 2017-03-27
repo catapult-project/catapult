@@ -45,8 +45,9 @@ tr.b.unittest.testSuite(function() {
     cpu.slices.push(tr.c.TestUtils.newSliceEx({start: 1, duration: 3}));
     var shiftCount = 0;
     ctr.shiftTimestampsForward = function(ts) {
-      if (ts === 0.32)
+      if (ts === 0.32) {
         shiftCount++;
+      }
     };
     cpu.slices.push(tr.c.TestUtils.newSliceEx({start: 1, duration: 3}));
     cpu.shiftTimestampsForward(0.32);
@@ -59,8 +60,9 @@ tr.b.unittest.testSuite(function() {
     var s = new tr.model.CpuSlice(
         'cat', name, 0, start, {}, duration);
     s.cpu = cpu;
-    if (opt_thread)
+    if (opt_thread) {
       s.threadThatWasRunning = opt_thread;
+    }
     return s;
   }
 

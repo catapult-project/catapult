@@ -39,8 +39,9 @@ tr.exportTo('tr.e.cc', function() {
           this, ['renderSurfaceLayerList']);
       tr.e.cc.moveOptionalFieldsFromArgsToToplevel(
           this, ['rootLayer', 'layers']);
-      if (this.args.sourceFrameNumber)
+      if (this.args.sourceFrameNumber) {
         this.sourceFrameNumber = this.args.sourceFrameNumber;
+      }
 
       // Slimming Paint v2 removes the tree hierarchy and replace
       // it with a layer list. The tracing data should have either
@@ -63,8 +64,9 @@ tr.exportTo('tr.e.cc', function() {
         var ownProcess = this.objectInstance.parent;
         var modelHelper = ownProcess.model.getOrCreateHelper(
             tr.model.helpers.ChromeModelHelper);
-        if (modelHelper)
+        if (modelHelper) {
           this._initializeTracedInputLatencies(modelHelper);
+        }
       }
     },
 
@@ -75,37 +77,38 @@ tr.exportTo('tr.e.cc', function() {
       // Convert all ids to InputLatency Async objects.
       latencyEvents.forEach(function(event) {
         for (var i = 0; i < this.args.swapPromiseTraceIds.length; i++) {
-          if (!event.args.data || !event.args.data.trace_id)
+          if (!event.args.data || !event.args.data.trace_id) {
             continue;
+          }
           if (parseInt(event.args.data.trace_id) ===
-              this.args.swapPromiseTraceIds[i])
+              this.args.swapPromiseTraceIds[i]) {
             this.tracedInputLatencies.push(event);
+          }
         }
       }, this);
     },
 
     get hasSourceFrameBeenDrawnBefore() {
-      if (this.whichTree === tr.e.cc.constants.PENDING_TREE)
+      if (this.whichTree === tr.e.cc.constants.PENDING_TREE) {
         return false;
+      }
 
       // Old chrome's don't produce sourceFrameNumber.
-      if (this.sourceFrameNumber === undefined)
-        return;
+      if (this.sourceFrameNumber === undefined) return;
 
       var thisLTHI = this.layerTreeHostImpl;
       var thisLTHIIndex = thisLTHI.objectInstance.snapshots.indexOf(
           thisLTHI);
       var prevLTHIIndex = thisLTHIIndex - 1;
       if (prevLTHIIndex < 0 ||
-          prevLTHIIndex >= thisLTHI.objectInstance.snapshots.length)
+          prevLTHIIndex >= thisLTHI.objectInstance.snapshots.length) {
         return false;
+      }
       var prevLTHI = thisLTHI.objectInstance.snapshots[prevLTHIIndex];
-      if (!prevLTHI.activeTree)
-        return false;
+      if (!prevLTHI.activeTree) return false;
 
       // Old chrome's don't produce sourceFrameNumber.
-      if (prevLTHI.activeTree.sourceFrameNumber === undefined)
-        return;
+      if (prevLTHI.activeTree.sourceFrameNumber === undefined) return;
       return prevLTHI.activeTree.sourceFrameNumber === this.sourceFrameNumber;
     },
 
@@ -118,8 +121,9 @@ tr.exportTo('tr.e.cc', function() {
     get gpuMemoryUsageInBytes() {
       var totalBytes = 0;
       this.iterLayers(function(layer) {
-        if (layer.gpuMemoryUsageInBytes !== undefined)
+        if (layer.gpuMemoryUsageInBytes !== undefined) {
           totalBytes += layer.gpuMemoryUsageInBytes;
+        }
       });
       return totalBytes;
     },
@@ -127,31 +131,36 @@ tr.exportTo('tr.e.cc', function() {
     iterLayers: function(func, thisArg) {
       var visitedLayers = {};
       function visitLayer(layer, depth, isMask, isReplica) {
-        if (visitedLayers[layer.layerId])
-          return;
+        if (visitedLayers[layer.layerId]) return;
+
         visitedLayers[layer.layerId] = true;
         func.call(thisArg, layer, depth, isMask, isReplica);
         if (layer.children) {
-          for (var i = 0; i < layer.children.length; i++)
+          for (var i = 0; i < layer.children.length; i++) {
             visitLayer(layer.children[i], depth + 1);
+          }
         }
-        if (layer.maskLayer)
+        if (layer.maskLayer) {
           visitLayer(layer.maskLayer, depth + 1, true, false);
-        if (layer.replicaLayer)
+        }
+        if (layer.replicaLayer) {
           visitLayer(layer.replicaLayer, depth + 1, false, true);
+        }
       }
       if (this.rootLayer) {
         visitLayer(this.rootLayer, 0, false, false);
       } else {
-        for (var i = 0; i < this.layers.length; i++)
+        for (var i = 0; i < this.layers.length; i++) {
           visitLayer(this.layers[i], 0, false, false);
+        }
       }
     },
     findLayerWithId: function(id) {
       var foundLayer = undefined;
       function visitLayer(layer) {
-        if (layer.layerId === id)
+        if (layer.layerId === id) {
           foundLayer = layer;
+        }
       }
       this.iterLayers(visitLayer);
       return foundLayer;

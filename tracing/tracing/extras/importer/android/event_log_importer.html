@@ -90,12 +90,12 @@ tr.exportTo('tr.e.importer.android', function() {
    * @return {boolean} True when events is an android event log array.
    */
   EventLogImporter.canImport = function(events) {
-    if (!(typeof(events) === 'string' || events instanceof String))
+    if (!(typeof(events) === 'string' || events instanceof String)) {
       return false;
+    }
 
     // Prevent the importer from matching this file in vulcanized traces.
-    if (/^<!DOCTYPE html>/.test(events))
-      return false;
+    if (/^<!DOCTYPE html>/.test(events)) return false;
 
     return eventLogActivityRE.test(events);
   };
@@ -117,8 +117,9 @@ tr.exportTo('tr.e.importer.android', function() {
      */
     getFullActivityName: function(component) {
       var componentSplit = component.split('/');
-      if (componentSplit[1].startsWith('.'))
+      if (componentSplit[1].startsWith('.')) {
         return componentSplit[0] + componentSplit[1];
+      }
 
       return componentSplit[1];
     },
@@ -132,8 +133,9 @@ tr.exportTo('tr.e.importer.android', function() {
     },
 
     findOrCreateActivity: function(activityName) {
-      if (activityName in activityMap)
+      if (activityName in activityMap) {
         return activityMap[activityName];
+      }
       var activity = {
         state: ACTIVITY_STATE.NONE,
         name: activityName
@@ -177,8 +179,9 @@ tr.exportTo('tr.e.importer.android', function() {
       activity.lastPauseTs = ts;
       // Create a new AndroidActivity representing the foreground state,
       // but only if the pause happened within the model bounds
-      if (ts > this.model_.bounds.min && ts < this.model_.bounds.max)
+      if (ts > this.model_.bounds.min && ts < this.model_.bounds.max) {
         this.addActivityToProcess(activity);
+      }
     },
 
     handleLaunchTime: function(ts, activityName, launchTime) {
@@ -191,8 +194,7 @@ tr.exportTo('tr.e.importer.android', function() {
     },
 
     addActivityToProcess: function(activity) {
-      if (activity.pid === undefined)
-        return;
+      if (activity.pid === undefined) return;
       var process = this.model_.getOrCreateProcess(activity.pid);
       // The range of the activity is the time from resume to time
       // of pause; limit the start time to the beginning of the model
@@ -209,8 +211,7 @@ tr.exportTo('tr.e.importer.android', function() {
 
     parseAmLine_: function(line) {
       var match = eventLogActivityRE.exec(line);
-      if (!match)
-        return;
+      if (!match) return;
 
       // Possible activity life-cycles:
       // 1) Launch from scratch:
@@ -263,12 +264,14 @@ tr.exportTo('tr.e.importer.android', function() {
         }
       } else if (action === 'am_on_resume_called') {
         match = amOnResumeRE.exec(data);
-        if (match && match.length >= 2)
+        if (match && match.length >= 2) {
           this.handleOnResumeCalled(monotonicTs, pid, match[1]);
+        }
       } else if (action === 'am_on_paused_called') {
         match = amOnPauseRE.exec(data);
-        if (match && match.length >= 2)
+        if (match && match.length >= 2) {
           this.handleOnPauseCalled(monotonicTs, match[1]);
+        }
       } else if (action === 'am_activity_launch_time') {
         match = amLaunchTimeRE.exec(data);
         this.handleLaunchTime(monotonicTs,

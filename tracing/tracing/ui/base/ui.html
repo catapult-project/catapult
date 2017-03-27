@@ -19,14 +19,16 @@ tr.exportTo('tr.ui.b', function() {
    */
   function decorate(source, constr) {
     var elements;
-    if (typeof source === 'string')
+    if (typeof source === 'string') {
       elements = Polymer.dom(tr.doc).querySelectorAll(source);
-    else
+    } else {
       elements = [source];
+    }
 
     for (var i = 0, el; el = elements[i]; i++) {
-      if (!(el instanceof constr))
+      if (!(el instanceof constr)) {
         constr.decorate(el);
+      }
     }
   }
 
@@ -77,17 +79,19 @@ tr.exportTo('tr.ui.b', function() {
     }
 
     var className = className.toLowerCase();
-    if (opt_parentConstructor && !opt_parentConstructor.tagName)
+    if (opt_parentConstructor && !opt_parentConstructor.tagName) {
       throw new Error('opt_parentConstructor was not ' +
                       'created by tr.ui.b.define');
+    }
 
     // Walk up the parent constructors until we can find the type of tag
     // to create.
     var tagName = className;
     var tagNS = undefined;
     if (opt_parentConstructor) {
-      if (opt_tagNS)
+      if (opt_tagNS) {
         throw new Error('Must not specify tagNS if parentConstructor is given');
+      }
       var parent = opt_parentConstructor;
       while (parent && parent.tagName) {
         tagName = parent.tagName;
@@ -114,10 +118,11 @@ tr.exportTo('tr.ui.b', function() {
       }
 
       var el;
-      if (tagNS === undefined)
+      if (tagNS === undefined) {
         el = tr.doc.createElement(tagName);
-      else
+      } else {
         el = tr.doc.createElementNS(tagNS, tagName);
+      }
       f.decorate.call(this, el, arguments);
       return el;
     }
@@ -138,8 +143,9 @@ tr.exportTo('tr.ui.b', function() {
     f.parentConstructor = (opt_parentConstructor ? opt_parentConstructor :
                                                    undefined);
     f.toString = function() {
-      if (!f.parentConstructor)
+      if (!f.parentConstructor) {
         return f.tagName;
+      }
       return f.parentConstructor.toString() + '::' + f.className;
     };
 
@@ -147,13 +153,11 @@ tr.exportTo('tr.ui.b', function() {
   }
 
   function elementIsChildOf(el, potentialParent) {
-    if (el === potentialParent)
-      return false;
+    if (el === potentialParent) return false;
 
     var cur = el;
     while (Polymer.dom(cur).parentNode) {
-      if (cur === potentialParent)
-        return true;
+      if (cur === potentialParent) return true;
       cur = Polymer.dom(cur).parentNode;
     }
     return false;

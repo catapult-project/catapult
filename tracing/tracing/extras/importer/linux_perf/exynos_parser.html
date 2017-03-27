@@ -54,8 +54,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
      */
     busfreqTargetIntEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /frequency=(\d+)/.exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       this.exynosBusfreqSample('INT Frequency', ts, parseInt(event[1]));
       return true;
@@ -66,8 +65,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
      */
     busfreqTargetMifEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /frequency=(\d+)/.exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       this.exynosBusfreqSample('MIF Frequency', ts, parseInt(event[1]));
       return true;
@@ -99,8 +97,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
      */
     pageFlipStateEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /pipe=(\d+), fb=(\d+), state=(.*)/.exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       var pipe = parseInt(event[1]);
       var fb = parseInt(event[2]);
@@ -111,8 +108,9 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
             pipe: pipe,
             fb: fb
           });
-      if (state !== 'flipped')
+      if (state !== 'flipped') {
         this.exynosPageFlipStateOpenSlice(ts, pipe, fb, state);
+      }
       return true;
     }
   };

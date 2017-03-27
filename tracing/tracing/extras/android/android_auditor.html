@@ -87,8 +87,9 @@ tr.exportTo('tr.e.audits', function() {
     Auditor.call(this, model);
 
     var helper = model.getOrCreateHelper(AndroidModelHelper);
-    if (helper.apps.length || helper.surfaceFlinger)
+    if (helper.apps.length || helper.surfaceFlinger) {
       this.helper = helper;
+    }
   }
 
   //////////////////////////////////////////////////////////////////////////////
@@ -127,8 +128,9 @@ tr.exportTo('tr.e.audits', function() {
           'height': parseInt(match[4]) };
         ret.push(new Alert(AndroidAuditor.viewAlphaAlertInfo_,
                            slice.start, [slice], args));
-      } else if (saveLayerRegEx.test(slice.title))
+      } else if (saveLayerRegEx.test(slice.title)) {
         events.push(slice);
+      }
     }, this);
 
     if (events.length > ret.length) {
@@ -168,8 +170,7 @@ tr.exportTo('tr.e.audits', function() {
     var start = Statistics.min(events, getStart);
     var duration = Statistics.sum(events, getDuration);
 
-    if (duration < 3)
-      return undefined;
+    if (duration < 3) return undefined;
 
     events.push(frame);
     return new Alert(AndroidAuditor.pathAlertInfo_, start, events,
@@ -196,8 +197,7 @@ tr.exportTo('tr.e.audits', function() {
         pixelsUploaded += parseInt(match[1]) * parseInt(match[2]);
       }
     });
-    if (events.length === 0 || duration < 3)
-      return undefined;
+    if (events.length === 0 || duration < 3) return undefined;
 
     var mPixels = (pixelsUploaded / 1000000).toFixed(2) + ' million';
     var args = { 'Pixels uploaded': mPixels,
@@ -222,15 +222,16 @@ tr.exportTo('tr.e.audits', function() {
     });
     var duration = Statistics.sum(events, getCpuDuration);
 
-    if (events.length === 0 || duration < 3)
-      return undefined;
+    if (events.length === 0 || duration < 3) return undefined;
 
     // simplifying assumption - check for *any* inflation.
     // TODO(ccraik): make 'inflate' slices associated events.
     var hasInflation = false;
-    for (var event of events)
-      if (event.findDescendentSlice('inflate'))
+    for (var event of events) {
+      if (event.findDescendentSlice('inflate')) {
         hasInflation = true;
+      }
+    }
 
     var start = Statistics.min(events, getStart);
     var args = { 'Time spent': new Scalar(timeDurationInMs, duration) };
@@ -255,8 +256,7 @@ tr.exportTo('tr.e.audits', function() {
     });
     var duration = Statistics.sum(events, getCpuDuration);
 
-    if (events.length === 0 || duration < 3)
-      return undefined;
+    if (events.length === 0 || duration < 3) return undefined;
 
     var start = Statistics.min(events, getStart);
     events.push(frame);
@@ -282,8 +282,7 @@ tr.exportTo('tr.e.audits', function() {
       }
     }
 
-    if (!slice || getCpuDuration(slice) < 3)
-      return undefined;
+    if (!slice || getCpuDuration(slice) < 3) return undefined;
     return new Alert(AndroidAuditor.viewDrawAlertInfo_, slice.start,
         [slice, frame],
         { 'Time spent': new Scalar(
@@ -308,8 +307,7 @@ tr.exportTo('tr.e.audits', function() {
           event.title === 'GC: Wait For Concurrent';
     });
     var blockedDuration = Statistics.sum(events, getDuration);
-    if (blockedDuration < 3)
-      return undefined;
+    if (blockedDuration < 3) return undefined;
 
     var start = Statistics.min(events, getStart);
     events.push(frame);
@@ -328,8 +326,7 @@ tr.exportTo('tr.e.audits', function() {
     });
 
     var blockedDuration = Statistics.sum(events, getDuration);
-    if (blockedDuration < 1)
-      return undefined;
+    if (blockedDuration < 1) return undefined;
 
     var start = Statistics.min(events, getStart);
     events.push(frame);
@@ -347,8 +344,9 @@ tr.exportTo('tr.e.audits', function() {
     for (var ttr of frame.threadTimeRanges) {
       var stats = ttr.thread.getSchedulingStatsForRange(ttr.start, ttr.end);
       for (var [key, value] of Object.entries(stats)) {
-        if (!(key in totalStats))
+        if (!(key in totalStats)) {
           totalStats[key] = 0;
+        }
         totalStats[key] += value;
         totalDuration += value;
       }
@@ -358,15 +356,17 @@ tr.exportTo('tr.e.audits', function() {
     // to never describe intentionally idle time.
     if (!(SCHEDULING_STATE.RUNNING in totalStats) ||
         totalDuration === 0 ||
-        totalDuration - totalStats[SCHEDULING_STATE.RUNNING] < 3)
+        totalDuration - totalStats[SCHEDULING_STATE.RUNNING] < 3) {
       return;
+    }
 
     var args = {};
     for (var [key, value] of Object.entries(totalStats)) {
-      if (key === SCHEDULING_STATE.RUNNABLE)
+      if (key === SCHEDULING_STATE.RUNNABLE) {
         key = 'Not scheduled, but runnable';
-      else if (key === SCHEDULING_STATE.UNINTR_SLEEP)
+      } else if (key === SCHEDULING_STATE.UNINTR_SLEEP) {
         key = 'Blocking I/O delay';
+      }
       args[key] = new Scalar(timeDurationInMs, value);
     }
 
@@ -383,8 +383,9 @@ tr.exportTo('tr.e.audits', function() {
       this.model.getAllProcesses().forEach(function(process) {
         if (this.helper.surfaceFlinger &&
             process === this.helper.surfaceFlinger.process) {
-          if (!process.name)
+          if (!process.name) {
             process.name = 'SurfaceFlinger';
+          }
           process.sortIndex = Number.NEGATIVE_INFINITY;
           process.important = false; // auto collapse
           return;
@@ -392,8 +393,9 @@ tr.exportTo('tr.e.audits', function() {
 
         var uiThread = process.getThread(process.pid);
         if (!process.name && uiThread && uiThread.name) {
-          if (/^ndroid\./.test(uiThread.name))
+          if (/^ndroid\./.test(uiThread.name)) {
             uiThread.name = 'a' + uiThread.name;
+          }
           process.name = uiThread.name;
 
           uiThread.name = 'UI Thread';
@@ -407,12 +409,15 @@ tr.exportTo('tr.e.audits', function() {
 
       // ensure sequential, relative order for UI/Render/Worker threads
       this.model.getAllThreads().forEach(function(thread) {
-        if (thread.tid === thread.parent.pid)
+        if (thread.tid === thread.parent.pid) {
           thread.sortIndex = -3;
-        if (thread.name === 'RenderThread')
+        }
+        if (thread.name === 'RenderThread') {
           thread.sortIndex = -2;
-        if (/^hwuiTask/.test(thread.name))
+        }
+        if (/^hwuiTask/.test(thread.name)) {
           thread.sortIndex = -1;
+        }
       });
     },
 
@@ -442,28 +447,30 @@ tr.exportTo('tr.e.audits', function() {
 
       if (framesObserved) {
         var portionBad = badFramesObserved / framesObserved;
-        if (portionBad > 0.3)
+        if (portionBad > 0.3) {
           this.model.faviconHue = 'red';
-        else if (portionBad > 0.05)
+        } else if (portionBad > 0.05) {
           this.model.faviconHue = 'yellow';
-        else
+        } else {
           this.model.faviconHue = 'green';
+        }
       }
     },
 
     pushEventInfo_: function() {
       var appAnnotator = new AppAnnotator();
       this.helper.apps.forEach(function(app) {
-        if (app.uiThread)
+        if (app.uiThread) {
           appAnnotator.applyEventInfos(app.uiThread.sliceGroup);
-        if (app.renderThread)
+        }
+        if (app.renderThread) {
           appAnnotator.applyEventInfos(app.renderThread.sliceGroup);
+        }
       });
     },
 
     runAnnotate: function() {
-      if (!this.helper)
-        return;
+      if (!this.helper) return;
 
       this.renameAndSort_();
       this.pushFramesAndJudgeJank_();
@@ -475,8 +482,7 @@ tr.exportTo('tr.e.audits', function() {
     },
 
     runAudit: function() {
-      if (!this.helper)
-        return;
+      if (!this.helper) return;
 
       var alerts = this.model.alerts;
       this.helper.apps.forEach(function(app) {
@@ -485,33 +491,33 @@ tr.exportTo('tr.e.audits', function() {
 
           // skip most alerts for neutral or good frames
           if (frame.perfClass === FRAME_PERF_CLASS.NEUTRAL ||
-              frame.perfClass === FRAME_PERF_CLASS.GOOD)
+              frame.perfClass === FRAME_PERF_CLASS.GOOD) {
             return;
+          }
 
           var alert = AndroidAuditor.getPathAlert_(frame);
-          if (alert)
-            alerts.push(alert);
+          if (alert) alerts.push(alert);
+
           var alert = AndroidAuditor.getUploadAlert_(frame);
-          if (alert)
-            alerts.push(alert);
+          if (alert) alerts.push(alert);
+
           var alert = AndroidAuditor.getListViewAlert_(frame);
-          if (alert)
-            alerts.push(alert);
+          if (alert) alerts.push(alert);
+
           var alert = AndroidAuditor.getMeasureLayoutAlert_(frame);
-          if (alert)
-            alerts.push(alert);
+          if (alert) alerts.push(alert);
+
           var alert = AndroidAuditor.getViewDrawAlert_(frame);
-          if (alert)
-            alerts.push(alert);
+          if (alert) alerts.push(alert);
+
           var alert = AndroidAuditor.getBlockingGcAlert_(frame);
-          if (alert)
-            alerts.push(alert);
+          if (alert) alerts.push(alert);
+
           var alert = AndroidAuditor.getLockContentionAlert_(frame);
-          if (alert)
-            alerts.push(alert);
+          if (alert) alerts.push(alert);
+
           var alert = AndroidAuditor.getSchedulingAlert_(frame);
-          if (alert)
-            alerts.push(alert);
+          if (alert) alerts.push(alert);
         });
       }, this);
 
@@ -571,8 +577,9 @@ tr.exportTo('tr.e.audits', function() {
       var registerEventInfo = function(dict) {
         this.titleInfoLookup.set(dict.title, new EventInfo(
             dict.title, dict.description, dict.docLinks));
-        if (dict.parents)
+        if (dict.parents) {
           this.titleParentLookup.set(dict.title, dict.parents);
+        }
       }.bind(this);
 
       registerEventInfo({
@@ -711,8 +718,7 @@ tr.exportTo('tr.e.audits', function() {
 
     applyEventInfosRecursive_: function(parentNames, slice) {
       var checkExpectedParentNames = function(expectedParentNames) {
-        if (!expectedParentNames)
-          return true;
+        if (!expectedParentNames) return true;
         return expectedParentNames.some(function(name) {
           return parentNames.has(name);
         });
@@ -720,15 +726,17 @@ tr.exportTo('tr.e.audits', function() {
 
       // Set EventInfo on the slice if it matches title, and parent.
       if (this.titleInfoLookup.has(slice.title)) {
-        if (checkExpectedParentNames(this.titleParentLookup.get(slice.title)))
+        if (checkExpectedParentNames(this.titleParentLookup.get(slice.title))) {
           slice.info = this.titleInfoLookup.get(slice.title);
+        }
       }
 
       // Push slice into parentNames, and recurse over subSlices.
       if (slice.subSlices.length > 0) {
         // Increment title in parentName dict.
-        if (!parentNames.has(slice.title))
+        if (!parentNames.has(slice.title)) {
           parentNames.set(slice.title, 0);
+        }
         parentNames.set(slice.title, parentNames.get(slice.title) + 1);
 
         // Recurse over subSlices.
@@ -738,8 +746,9 @@ tr.exportTo('tr.e.audits', function() {
 
         // Decrement title in parentName dict.
         parentNames.set(slice.title, parentNames.get(slice.title) - 1);
-        if (parentNames.get(slice.title) === 0)
+        if (parentNames.get(slice.title) === 0) {
           delete parentNames[slice.title];
+        }
       }
     },
 

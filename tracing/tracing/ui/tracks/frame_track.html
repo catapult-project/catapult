@@ -40,8 +40,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     set frames(frames) {
       this.frames_ = frames;
-      if (frames === undefined)
-        return;
+      if (frames === undefined) return;
 
       this.frames_ = this.frames_.slice();
       this.frames_.sort(startCompare);

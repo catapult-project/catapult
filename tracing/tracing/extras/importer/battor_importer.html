@@ -50,8 +50,9 @@ tr.exportTo('tr.e.importer.battor', function() {
    * @return {boolean} True when events is a BattOr array.
    */
   BattorImporter.canImport = function(events) {
-    if (!(typeof(events) === 'string' || events instanceof String))
+    if (!(typeof(events) === 'string' || events instanceof String)) {
       return false;
+    }
 
     return battorHeaderLineRE.test(events);
   };
@@ -112,11 +113,9 @@ tr.exportTo('tr.e.importer.battor', function() {
       for (var line of lines) {
         line = line.trim();
 
-        if (line.length === 0)
-          continue;
+        if (line.length === 0) continue;
 
-        if (line.startsWith('#'))
-          continue;
+        if (line.startsWith('#')) continue;
 
         // Parse power sample.
         var groups = battorDataLineRE.exec(line);
@@ -137,8 +136,9 @@ tr.exportTo('tr.e.importer.battor', function() {
             tr.b.UnitPrefixScale.METRIC.NONE);
         var syncId = groups[4];
 
-        if (syncId)
+        if (syncId) {
           this.syncTimestampsById_.set(syncId, ts);
+        }
 
         if (voltageInV < 0 || currentInA < 0) {
           this.model_.importWarning({

@@ -16,12 +16,13 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
   var Base64 = tr.b.Base64;
 
   function beginXhr(method, path, data) {
-    if (data === undefined)
-      data = null;
+    if (data === undefined) data = null;
+
     return new Promise(function(resolve, reject) {
       var req = new XMLHttpRequest();
-      if (method !== 'POST' && data !== null)
+      if (method !== 'POST' && data !== null) {
         throw new Error('Non-POST should have data==null');
+      }
       req.open(method, path, true);
       req.onreadystatechange = function(e) {
         if (req.readyState === 4) {

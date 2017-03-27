@@ -177,8 +177,9 @@ tr.b.unittest.testSuite(function() {
 
         let updatedGroups = [];  // Fail if event fires unexpectedly.
         c.addEventListener('context-updated', function(e) {
-          if (updatedGroups)
+          if (updatedGroups) {
             assert.fail('Unexpected context-updated event fired.');
+          }
           updatedGroups = tr.b.asArray(e.groups);
         });
 

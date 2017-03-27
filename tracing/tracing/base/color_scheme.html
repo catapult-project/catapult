@@ -197,8 +197,9 @@ tr.exportTo('tr.b', function() {
    */
   ColorScheme.getColorIdForReservedName = function(name) {
     var id = reservedColorNameToIdMap.get(name);
-    if (id === undefined)
+    if (id === undefined) {
       throw new Error('Unrecognized color ' + name);
+    }
     return id;
   };
 
@@ -214,8 +215,9 @@ tr.exportTo('tr.b', function() {
    */
   ColorScheme.getStringHash = function(name) {
     var hash = 0;
-    for (var i = 0; i < name.length; ++i)
+    for (var i = 0; i < name.length; ++i) {
       hash = (hash + 37 * hash + 11 * name.charCodeAt(i)) % 0xFFFFFFFF;
+    }
     return hash;
   };
 

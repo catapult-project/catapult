@@ -334,10 +334,11 @@ tr.exportTo('tr.ui.analysis', function() {
 
   function checkNumericFields(row, column, expectedValues, expectedUnit) {
     var fields;
-    if (column === undefined)
+    if (column === undefined) {
       fields = row;
-    else
+    } else {
       fields = column.fields(row);
+    }
 
     if (expectedValues === undefined) {
       assert.isUndefined(fields);
@@ -409,15 +410,17 @@ tr.exportTo('tr.ui.analysis', function() {
       column, fields, contexts, expectedInfos, expectedColorReservedName) {
     // Test sanity checks.
     assert.isDefined(fields);
-    if (contexts !== undefined)
+    if (contexts !== undefined) {
       assert.lengthOf(contexts, fields.length);
+    }
 
     // Check infos.
     var infos = [];
     column.addInfos(fields, contexts, infos);
     assert.lengthOf(infos, expectedInfos.length);
-    for (var i = 0; i < expectedInfos.length; i++)
+    for (var i = 0; i < expectedInfos.length; i++) {
       assert.deepEqual(infos[i], expectedInfos[i]);
+    }
 
     // Check color.
     var actualColor = typeof column.color === 'function' ?
@@ -486,8 +489,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
     paneEl.createChildPane = function() {
       var childPaneBuilder = this.childPaneBuilder;
-      if (childPaneBuilder === undefined)
-        return undefined;
+      if (childPaneBuilder === undefined) return undefined;
       return childPaneBuilder();
     };
 
@@ -498,8 +500,7 @@ tr.exportTo('tr.ui.analysis', function() {
   function isElementDisplayed(element) {
     var style = getComputedStyle(element);
     var displayed = style['display'];
-    if (displayed === undefined)
-      return true;
+    if (displayed === undefined) return true;
     return displayed.indexOf('none') === -1;
   }
 
@@ -530,8 +531,7 @@ tr.exportTo('tr.ui.analysis', function() {
   function extractVmRegions(processMemoryDumps, pid) {
     return processMemoryDumps.map(function(memoryDumps) {
       var processMemoryDump = memoryDumps[pid];
-      if (processMemoryDump === undefined)
-        return undefined;
+      if (processMemoryDump === undefined) return undefined;
       return processMemoryDump.mostRecentVmRegions;
     });
   }
@@ -544,8 +544,7 @@ tr.exportTo('tr.ui.analysis', function() {
   function extractMemoryAllocatorDumps(processMemoryDumps, pid, allocatorName) {
     return processMemoryDumps.map(function(memoryDumps) {
       var processMemoryDump = memoryDumps[pid];
-      if (processMemoryDump === undefined)
-        return undefined;
+      if (processMemoryDump === undefined) return undefined;
       return processMemoryDump.getMemoryAllocatorDumpByFullName(allocatorName);
     });
   }
@@ -559,8 +558,9 @@ tr.exportTo('tr.ui.analysis', function() {
     return processMemoryDumps.map(function(memoryDumps) {
       var processMemoryDump = memoryDumps[pid];
       if (processMemoryDump === undefined ||
-          processMemoryDump.heapDumps === undefined)
+          processMemoryDump.heapDumps === undefined) {
         return undefined;
+      }
       return processMemoryDump.heapDumps[allocatorName];
     });
   }

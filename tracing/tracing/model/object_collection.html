@@ -72,8 +72,7 @@ tr.exportTo('tr.model', function() {
         this.instanceMapsByScopedId_[scopedId.scope] = dict;
       }
       var instanceMap = dict[scopedId.id];
-      if (instanceMap)
-        return instanceMap;
+      if (instanceMap) return instanceMap;
       instanceMap = new tr.model.TimeToObjectInstanceMap(
           this.createObjectInstance_, this.parent, scopedId);
       dict[scopedId.id] = instanceMap;
@@ -115,8 +114,8 @@ tr.exportTo('tr.model', function() {
     idWasDeleted: function(scopedId, category, name, ts) {
       var instanceMap = this.getOrCreateInstanceMap_(scopedId);
       var deletedInstance = instanceMap.idWasDeleted(category, name, ts);
-      if (!deletedInstance)
-        return;
+      if (!deletedInstance) return;
+
       if (deletedInstance.category !== category) {
         var msg = 'Deleting object ' + deletedInstance.name +
             ' with a different category ' +
@@ -149,25 +148,25 @@ tr.exportTo('tr.model', function() {
 
     getObjectInstanceAt: function(scopedId, ts) {
       var instanceMap;
-      if (scopedId.scope in this.instanceMapsByScopedId_)
+      if (scopedId.scope in this.instanceMapsByScopedId_) {
         instanceMap = this.instanceMapsByScopedId_[scopedId.scope][scopedId.id];
-      if (!instanceMap)
-        return undefined;
+      }
+      if (!instanceMap) return undefined;
       return instanceMap.getInstanceAt(ts);
     },
 
     getSnapshotAt: function(scopedId, ts) {
       var instance = this.getObjectInstanceAt(scopedId, ts);
-      if (!instance)
-        return undefined;
+      if (!instance) return undefined;
       return instance.getSnapshotAt(ts);
     },
 
     iterObjectInstances: function(iter, opt_this) {
       opt_this = opt_this || this;
       for (var imapById of Object.values(this.instanceMapsByScopedId_)) {
-        for (var i2imap of Object.values(imapById))
+        for (var i2imap of Object.values(imapById)) {
           i2imap.instances.forEach(iter, opt_this);
+        }
       }
     },
 

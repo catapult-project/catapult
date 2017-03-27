@@ -20,8 +20,9 @@ tr.b.unittest.testSuite(function() {
   var newCounterSeries = tr.c.TestUtils.newCounterSeries;
 
   function createSurfaceFlinger(model, vsyncCallback) {
-    if (model.getProcess(2))
+    if (model.getProcess(2)) {
       throw new Error('process already exists');
+    }
 
     var sfProcess = model.getOrCreateProcess(2);
     var sfThread = sfProcess.getOrCreateThread(2); // main thread, tid = pid

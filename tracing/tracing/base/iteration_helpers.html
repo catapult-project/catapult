@@ -18,12 +18,15 @@ tr.exportTo('tr.b', function() {
    */
   function asArray(x) {
     var values = [];
-    if (x[Symbol.iterator])
-      for (var value of x)
+    if (x[Symbol.iterator]) {
+      for (var value of x) {
         values.push(value);
-    else
-      for (var i = 0; i < x.length; i++)
+      }
+    } else {
+      for (var i = 0; i < x.length; i++) {
         values.push(x[i]);
+      }
+    }
     return values;
   }
 
@@ -35,13 +38,15 @@ tr.exportTo('tr.b', function() {
     var iterator = iterable[Symbol.iterator]();
 
     var firstIteration = iterator.next();
-    if (firstIteration.done)
+    if (firstIteration.done) {
       throw new Error('getOnlyElement was passed an empty iterable.');
+    }
 
     var secondIteration = iterator.next();
-    if (!secondIteration.done)
+    if (!secondIteration.done) {
       throw new Error(
           'getOnlyElement was passed an iterable with multiple elements.');
+    }
 
     return firstIteration.value;
   }
@@ -53,8 +58,9 @@ tr.exportTo('tr.b', function() {
   function getFirstElement(iterable) {
     var iterator = iterable[Symbol.iterator]();
     var result = iterator.next();
-    if (result.done)
+    if (result.done) {
       throw new Error('getFirstElement was passed an empty iterable.');
+    }
 
     return result.value;
   }
@@ -63,14 +69,11 @@ tr.exportTo('tr.b', function() {
     var minLength = Math.min(x.length, y.length);
     for (var i = 0; i < minLength; i++) {
       var tmp = elementCmp(x[i], y[i]);
-      if (tmp)
-        return tmp;
+      if (tmp) return tmp;
     }
-    if (x.length === y.length)
-      return 0;
+    if (x.length === y.length) return 0;
 
-    if (x[i] === undefined)
-      return -1;
+    if (x[i] === undefined) return -1;
 
     return 1;
   }
@@ -80,12 +83,11 @@ tr.exportTo('tr.b', function() {
    * values are sorted after defined.
    */
   function comparePossiblyUndefinedValues(x, y, cmp, opt_this) {
-    if (x !== undefined && y !== undefined)
+    if (x !== undefined && y !== undefined) {
       return cmp.call(opt_this, x, y);
-    if (x !== undefined)
-      return -1;
-    if (y !== undefined)
-      return 1;
+    }
+    if (x !== undefined) return -1;
+    if (y !== undefined) return 1;
     return 0;
   }
 
@@ -102,22 +104,26 @@ tr.exportTo('tr.b', function() {
 
   function dictionaryValues(dict) {
     var values = [];
-    for (var key in dict)
+    for (var key in dict) {
       values.push(dict[key]);
+    }
     return values;
   }
 
   function dictionaryLength(dict) {
     var n = 0;
-    for (var key in dict)
+    for (var key in dict) {
       n++;
+    }
     return n;
   }
 
   function dictionaryContainsValue(dict, value) {
-    for (var key in dict)
-      if (dict[key] === value)
+    for (var key in dict) {
+      if (dict[key] === value) {
         return true;
+      }
+    }
     return false;
   }
 
@@ -134,8 +140,9 @@ tr.exportTo('tr.b', function() {
     var results = {};
     for (var element of ary) {
       var key = callback.call(opt_this, element);
-      if (!(key in results))
+      if (!(key in results)) {
         results[key] = new arrayConstructor();
+      }
       results[key].push(element);
     }
     return results;
@@ -193,15 +200,15 @@ tr.exportTo('tr.b', function() {
     for (var i = 0; i < keys.length; i++) {
       var key = keys[i];
       var value = dict[key];
-      if (predicate.call(opt_this, key, value))
+      if (predicate.call(opt_this, key, value)) {
         result[key] = value;
+      }
     }
     return result;
   }
 
   function iterObjectFieldsRecursively(object, func) {
-    if (!(object instanceof Object))
-      return;
+    if (!(object instanceof Object)) return;
 
     if (object instanceof Array) {
       for (var i = 0; i < object.length; i++) {
@@ -255,15 +262,14 @@ tr.exportTo('tr.b', function() {
     var result = {};
     for (var i = 0; i < array.length; i++) {
       var item = array[i];
-      if (item === undefined)
-        continue;
+      if (item === undefined) continue;
       var dict = opt_dictGetter ? opt_dictGetter.call(opt_this, item) : item;
-      if (dict === undefined)
-        continue;
+      if (dict === undefined) continue;
       for (var key in dict) {
         var valueList = result[key];
-        if (valueList === undefined)
+        if (valueList === undefined) {
           result[key] = valueList = new Array(array.length);
+        }
         valueList[i] = dict[key];
       }
     }
@@ -313,8 +319,7 @@ tr.exportTo('tr.b', function() {
   function findFirstIndexInArray(ary, opt_func, opt_this) {
     var func = opt_func || identity;
     for (var i = 0; i < ary.length; i++) {
-      if (func.call(opt_this, ary[i], i))
-        return i;
+      if (func.call(opt_this, ary[i], i)) return i;
     }
     return -1;
   }
@@ -331,8 +336,7 @@ tr.exportTo('tr.b', function() {
    */
   function findFirstInArray(ary, opt_func, opt_this) {
     var i = findFirstIndexInArray(ary, opt_func, opt_func);
-    if (i === -1)
-      return undefined;
+    if (i === -1) return undefined;
     return ary[i];
   }
 
@@ -350,8 +354,9 @@ tr.exportTo('tr.b', function() {
   function findFirstKeyInDictMatching(dict, opt_func, opt_this) {
     var func = opt_func || identity;
     for (var key in dict) {
-      if (func.call(opt_this, key, dict[key]))
+      if (func.call(opt_this, key, dict[key])) {
         return key;
+      }
     }
     return undefined;
   }
@@ -359,8 +364,9 @@ tr.exportTo('tr.b', function() {
   /** Returns the values in an ES6 Map object. */
   function mapValues(map) {
     var values = [];
-    for (var value of map.values())
+    for (var value of map.values()) {
       values.push(value);
+    }
     return values;
   }
 

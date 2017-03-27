@@ -83,8 +83,9 @@ Polymer({
             new tr.model.EventSet(event), event.title);
 
         var valueString = '';
-        if (event instanceof tr.model.TimedEvent)
+        if (event instanceof tr.model.TimedEvent) {
           valueString = 'took ' + event.duration.toFixed(2) + 'ms';
+        }
 
         rows.push({
           name: linkEl,
@@ -152,11 +153,11 @@ Polymer({
   },
 
   get relatedEventsToHighlight() {
-    if (!this.currentSelection_)
-      return undefined;
+    if (!this.currentSelection_) return undefined;
     var result = new tr.model.EventSet();
-    for (var event of this.currentSelection_)
+    for (var event of this.currentSelection_) {
       result.addEventSet(event.associatedEvents);
+    }
     return result;
   }
 });

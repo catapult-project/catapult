@@ -97,22 +97,21 @@ tr.exportTo('tr.ui.tracks', function() {
       //  0:  [    a       ]  [f]
       //  1:    [  b  ][e]
       //  2:    [c][d]
-      if (!slices.length)
-        return [];
+      if (!slices.length) return [];
 
       var ops = [];
       for (var i = 0; i < slices.length; i++) {
-        if (slices[i].subSlices)
+        if (slices[i].subSlices) {
           slices[i].subSlices.splice(0,
               slices[i].subSlices.length);
+        }
         ops.push(i);
       }
 
       ops.sort(function(ix, iy) {
         var x = slices[ix];
         var y = slices[iy];
-        if (x.start !== y.start)
-          return x.start - y.start;
+        if (x.start !== y.start) return x.start - y.start;
 
         // Elements get inserted into the slices array in order of when the
         // slices start. Because slices must be properly nested, we break
@@ -131,8 +130,7 @@ tr.exportTo('tr.ui.tracks', function() {
         // Try to fit the slice into the existing subrows.
         var inserted = false;
         for (var j = subRows.length - 1; j >= 0; j--) {
-          if (subRows[j].length === 0)
-            continue;
+          if (subRows[j].length === 0) continue;
 
           var insertedSlice = subRows[j][subRows[j].length - 1];
           if (slice.start < insertedSlice.start) {
@@ -141,17 +139,18 @@ tr.exportTo('tr.ui.tracks', function() {
           }
           if (insertedSlice.bounds(slice, precisionUnit)) {
             // Insert it into subRow j + 1.
-            while (subRows.length <= j + 1)
+            while (subRows.length <= j + 1) {
               subRows.push([]);
+            }
             subRows[j + 1].push(slice);
-            if (insertedSlice.subSlices)
+            if (insertedSlice.subSlices) {
               insertedSlice.subSlices.push(slice);
+            }
             inserted = true;
             break;
           }
         }
-        if (inserted)
-          continue;
+        if (inserted) continue;
 
         // Append it to subRow[0] as a root.
         subRows[0].push(slice);

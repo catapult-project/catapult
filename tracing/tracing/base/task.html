@@ -40,9 +40,10 @@ tr.exportTo('tr.b', function() {
    */
   function Task(runCb, thisArg) {
     if (runCb !== undefined && thisArg === undefined &&
-        runCb.prototype !== undefined)
+        runCb.prototype !== undefined) {
       throw new Error('Almost certainly you meant to pass a bound callback ' +
           'or thisArg.');
+    }
     this.runCb_ = runCb;
     this.thisArg_ = thisArg;
     this.afterTask_ = undefined;
@@ -64,10 +65,11 @@ tr.exportTo('tr.b', function() {
      * See constructor documentation on semantics of subtasks.
      */
     subTask: function(cb, thisArg) {
-      if (cb instanceof Task)
+      if (cb instanceof Task) {
         this.subTasks_.push(cb);
-      else
+      } else {
         this.subTasks_.push(new Task(cb, thisArg));
+      }
       return this.subTasks_[this.subTasks_.length - 1];
     },
 
@@ -75,21 +77,20 @@ tr.exportTo('tr.b', function() {
      * Runs the current task and returns the task that should be executed next.
      */
     run: function() {
-      if (this.runCb_ !== undefined)
-        this.runCb_.call(this.thisArg_, this);
+      if (this.runCb_ !== undefined) this.runCb_.call(this.thisArg_, this);
       var subTasks = this.subTasks_;
       this.subTasks_ = undefined; // Prevent more subTasks from being posted.
 
-      if (!subTasks.length)
-        return this.afterTask_;
+      if (!subTasks.length) return this.afterTask_;
 
       // If there are subtasks, then we want to execute all the subtasks and
       // then this task's afterTask. To make this happen, we update the
       // afterTask of all the subtasks so the point upward to each other, e.g.
       // subTask[0].afterTask to subTask[1] and so on. Then, the last subTask's
       // afterTask points at this task's afterTask.
-      for (var i = 1; i < subTasks.length; i++)
+      for (var i = 1; i < subTasks.length; i++) {
         subTasks[i - 1].afterTask_ = subTasks[i];
+      }
       subTasks[subTasks.length - 1].afterTask_ = this.afterTask_;
       return subTasks[0];
     },
@@ -98,12 +99,14 @@ tr.exportTo('tr.b', function() {
      * See constructor documentation on semantics of after tasks.
      */
     after: function(cb, thisArg) {
-      if (this.afterTask_)
+      if (this.afterTask_) {
         throw new Error('Has an after task already');
-      if (cb instanceof Task)
+      }
+      if (cb instanceof Task) {
         this.afterTask_ = cb;
-      else
+      } else {
         this.afterTask_ = new Task(cb, thisArg);
+      }
       return this.afterTask_;
     },
 
@@ -114,8 +117,9 @@ tr.exportTo('tr.b', function() {
      * At the time of writing, this is considered to be an acceptable tradeoff.
      */
     timedAfter: function(groupName, cb, thisArg, opt_args) {
-      if (cb.name === '')
+      if (cb.name === '') {
         throw new Error('Anonymous Task is not allowed');
+      }
       return this.namedTimedAfter(groupName, cb.name, cb, thisArg, opt_args);
     },
 
@@ -126,13 +130,15 @@ tr.exportTo('tr.b', function() {
      * At the time of writing, this is considered to be an acceptable tradeoff.
      */
     namedTimedAfter: function(groupName, name, cb, thisArg, opt_args) {
-      if (this.afterTask_)
+      if (this.afterTask_) {
         throw new Error('Has an after task already');
+      }
       var realTask;
-      if (cb instanceof Task)
+      if (cb instanceof Task) {
         realTask = cb;
-      else
+      } else {
         realTask = new Task(cb, thisArg);
+      }
       this.afterTask_ = new Task(function(task) {
         var markedTask = Timing.mark(groupName, name, opt_args);
         task.subTask(realTask, thisArg);
@@ -148,16 +154,18 @@ tr.exportTo('tr.b', function() {
      */
     enqueue: function(cb, thisArg) {
       var lastTask = this;
-      while (lastTask.afterTask_)
+      while (lastTask.afterTask_) {
         lastTask = lastTask.afterTask_;
+      }
       return lastTask.after(cb, thisArg);
     }
   };
 
   Task.RunSynchronously = function(task) {
     var curTask = task;
-    while (curTask)
+    while (curTask) {
       curTask = curTask.run();
+    }
   };
 
   /**

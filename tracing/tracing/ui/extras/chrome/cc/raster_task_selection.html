@@ -22,32 +22,38 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
   function RasterTaskSelection(selection) {
     tr.ui.e.chrome.cc.Selection.call(this);
     var whySupported = RasterTaskSelection.whySuported(selection);
-    if (!whySupported.ok)
+    if (!whySupported.ok) {
       throw new Error('Fail: ' + whySupported.why);
+    }
     this.slices_ = tr.b.asArray(selection);
     this.tiles_ = this.slices_.map(function(slice) {
       var tile = tr.e.cc.getTileFromRasterTaskSlice(slice);
-      if (tile === undefined)
+      if (tile === undefined) {
         throw new Error('This should never happen due to .supports check.');
+      }
       return tile;
     });
   }
 
   RasterTaskSelection.whySuported = function(selection) {
-    if (!(selection instanceof tr.model.EventSet))
+    if (!(selection instanceof tr.model.EventSet)) {
       return {ok: false, why: 'Must be selection'};
+    }
 
-    if (selection.length === 0)
+    if (selection.length === 0) {
       return {ok: false, why: 'Selection must be non empty'};
+    }
 
     var referenceSnapshot = undefined;
     for (var event of selection) {
-      if (!(event instanceof tr.model.Slice))
+      if (!(event instanceof tr.model.Slice)) {
         return {ok: false, why: 'Not a slice'};
+      }
 
       var tile = tr.e.cc.getTileFromRasterTaskSlice(event);
-      if (tile === undefined)
+      if (tile === undefined) {
         return {ok: false, why: 'No tile found'};
+      }
 
       if (!referenceSnapshot) {
         referenceSnapshot = tile.containingSnapshot;
@@ -79,16 +85,18 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       var allSameLayer = this.tiles_.every(function(tile) {
         tile.layerId === tile0.layerId;
       });
-      if (allSameLayer)
+      if (allSameLayer) {
         return tile0.layerId;
+      }
       return undefined;
     },
 
     get extraHighlightsByLayerId() {
       var highlights = {};
       this.tiles_.forEach(function(tile, i) {
-        if (highlights[tile.layerId] === undefined)
+        if (highlights[tile.layerId] === undefined) {
           highlights[tile.layerId] = [];
+        }
         var slice = this.slices_[i];
         highlights[tile.layerId].push({
           colorKey: slice.title,
@@ -105,10 +113,11 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       });
 
       var analysis;
-      if (sel.length === 1)
+      if (sel.length === 1) {
         analysis = document.createElement('tr-ui-a-single-event-sub-view');
-      else
+      } else {
         analysis = document.createElement('tr-ui-e-chrome-cc-raster-task-view');
+      }
       analysis.selection = sel;
       return analysis;
     },

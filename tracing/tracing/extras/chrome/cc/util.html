@@ -15,8 +15,9 @@ found in the LICENSE file.
 tr.exportTo('tr.e.cc', function() {
   var convertedNameCache = {};
   function convertNameToJSConvention(name) {
-    if (name in convertedNameCache)
+    if (name in convertedNameCache) {
       return convertedNameCache[name];
+    }
 
     if (name[0] === '_' ||
         name[name.length - 1] === '_') {
@@ -30,8 +31,9 @@ tr.exportTo('tr.e.cc', function() {
       return words[0];
     }
 
-    for (var i = 1; i < words.length; i++)
+    for (var i = 1; i < words.length; i++) {
       words[i] = words[i][0].toUpperCase() + words[i].substring(1);
+    }
 
     convertedNameCache[name] = words.join('');
     return convertedNameCache[name];
@@ -62,10 +64,12 @@ tr.exportTo('tr.e.cc', function() {
   function moveRequiredFieldsFromArgsToToplevel(object, fields) {
     for (var i = 0; i < fields.length; i++) {
       var key = fields[i];
-      if (object.args[key] === undefined)
+      if (object.args[key] === undefined) {
         throw Error('Expected field ' + key + ' not found in args');
-      if (object[key] !== undefined)
+      }
+      if (object[key] !== undefined) {
         throw Error('Field ' + key + ' already in object');
+      }
       object[key] = object.args[key];
       delete object.args[key];
     }
@@ -74,10 +78,10 @@ tr.exportTo('tr.e.cc', function() {
   function moveOptionalFieldsFromArgsToToplevel(object, fields) {
     for (var i = 0; i < fields.length; i++) {
       var key = fields[i];
-      if (object.args[key] === undefined)
-        continue;
-      if (object[key] !== undefined)
+      if (object.args[key] === undefined) continue;
+      if (object[key] !== undefined) {
         throw Error('Field ' + key + ' already in object');
+      }
       object[key] = object.args[key];
       delete object.args[key];
     }
@@ -88,19 +92,20 @@ tr.exportTo('tr.e.cc', function() {
   }
 
   function preInitializeObjectInner(object, hasRecursed) {
-    if (!(object instanceof Object))
-      return;
+    if (!(object instanceof Object)) return;
 
     if (object instanceof Array) {
-      for (var i = 0; i < object.length; i++)
+      for (var i = 0; i < object.length; i++) {
         preInitializeObjectInner(object[i], true);
+      }
       return;
     }
 
     if (hasRecursed &&
         (object instanceof tr.model.ObjectSnapshot ||
-         object instanceof tr.model.ObjectInstance))
+         object instanceof tr.model.ObjectInstance)) {
       return;
+    }
 
     for (var key in object) {
       var newKey = convertNameToJSConvention(key);

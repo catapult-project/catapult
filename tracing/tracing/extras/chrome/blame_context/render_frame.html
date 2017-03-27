@@ -35,14 +35,17 @@ tr.exportTo('tr.e.chrome', function() {
     },
 
     get frameTreeNode() {
-      if (this.args.frameTreeNode instanceof tr.e.chrome.FrameTreeNodeSnapshot)
+      if (this.args.frameTreeNode instanceof
+          tr.e.chrome.FrameTreeNodeSnapshot) {
         return this.args.frameTreeNode;
+      }
       return undefined;
     },
 
     get url() {
-      if (this.frameTreeNode)
+      if (this.frameTreeNode) {
         return this.frameTreeNode.url;
+      }
       return undefined;
     },
 

@@ -69,8 +69,9 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
    * @constructor
    */
   function RenderPassSelection(renderPass, renderPassId) {
-    if (!renderPass || (renderPassId === undefined))
+    if (!renderPass || (renderPassId === undefined)) {
       throw new Error('Render pass (with id) is required');
+    }
     this.renderPass_ = renderPass;
     this.renderPassId_ = renderPassId;
   }
@@ -111,8 +112,9 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
    * @constructor
    */
   function LayerSelection(layer) {
-    if (!layer)
+    if (!layer) {
       throw new Error('Layer is required');
+    }
     this.layer_ = layer;
   }
 
@@ -139,8 +141,9 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       var dataView = document.createElement(
           'tr-ui-a-generic-object-view-with-label');
       dataView.label = 'Layer ' + this.layer_.layerId;
-      if (this.layer_.usingGpuRasterization)
+      if (this.layer_.usingGpuRasterization) {
         dataView.label += ' (GPU-rasterized)';
+      }
       dataView.object = this.layer_.args;
       return dataView;
     },
@@ -152,8 +155,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     findEquivalent: function(lthi) {
       var layer = lthi.activeTree.findLayerWithId(this.layer_.layerId) ||
           lthi.pendingTree.findLayerWithId(this.layer_.layerId);
-      if (!layer)
-        return undefined;
+      if (!layer) return undefined;
       return new LayerSelection(layer);
     }
   };
@@ -207,11 +209,11 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     findEquivalent: function(lthi) {
       var tileInstance = this.tile_.tileInstance;
       if (lthi.ts < tileInstance.creationTs ||
-          lthi.ts >= tileInstance.deletionTs)
+          lthi.ts >= tileInstance.deletionTs) {
         return undefined;
+      }
       var tileSnapshot = tileInstance.getSnapshotAt(lthi.ts);
-      if (!tileSnapshot)
-        return undefined;
+      if (!tileSnapshot) return undefined;
       return new TileSelection(tileSnapshot);
     }
   };

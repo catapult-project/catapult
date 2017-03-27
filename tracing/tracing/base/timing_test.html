@@ -13,8 +13,8 @@ tr.b.unittest.testSuite(function() {
   var Timing = tr.b.Timing;
 
   test('computeUserTimingMarkName', function() {
-    if (tr.isHeadless)
-      return;
+    if (tr.isHeadless) return;
+
     var name1 = tr.b._computeUserTimingMarkName('Test', 'test1', {'a': 1});
     assert.equal(name1, 'Test:test1/eyJhIjoxfQ==');
     var name2 = tr.b._computeUserTimingMarkName('Test', 'test2');
@@ -25,8 +25,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('TimingMarkWithoutArgs', function() {
-    if (tr.isHeadless)
-      return;
+    if (tr.isHeadless) return;
+
     var markedTime = Timing.mark('Test', 'TimingMarkWithoutArgs');
     markedTime.end();
     var result = window.performance.getEntriesByName(
@@ -36,8 +36,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('TimingMarkWithArgs', function() {
-    if (tr.isHeadless)
-      return;
+    if (tr.isHeadless) return;
+
     var markedTime = Timing.mark('Test', 'TimingMarkWithoutArgs', {'a': 1});
     markedTime.end();
     var result = window.performance.getEntriesByName(
@@ -53,12 +53,13 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('TimingWrap', function(done) {
-    if (tr.isHeadless)
-      return;
+    if (tr.isHeadless) return;
+
     Timing.wrap('Test', function addTo1000() {
       var x = 0;
-      for (var i = 0; i <= 1000; ++i)
+      for (var i = 0; i <= 1000; ++i) {
         x += i;
+      }
       assert.equal(x, 500500);
     })();
     var result = window.performance.getEntriesByName('Test:addTo1000');
@@ -67,12 +68,13 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('TimingWrapNamedFunction', function() {
-    if (tr.isHeadless)
-      return;
+    if (tr.isHeadless) return;
+
     Timing.wrapNamedFunction('Test', 'addTo100', function() {
       var x = 0;
-      for (var i = 0; i <= 100; ++i)
+      for (var i = 0; i <= 100; ++i) {
         x += i;
+      }
       assert.equal(x, 5050);
     })();
     var result = window.performance.getEntriesByName('Test:addTo100');

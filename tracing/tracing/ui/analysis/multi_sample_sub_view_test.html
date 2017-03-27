@@ -33,8 +33,9 @@ tr.b.unittest.testSuite(function() {
     t53track.thread = t53;
 
     var selection = new tr.model.EventSet();
-    for (var i = 0; i < t53.samples.length; i++)
+    for (var i = 0; i < t53.samples.length; i++) {
       selection.push(t53.samples[i]);
+    }
 
     var view = document.createElement('tr-ui-a-multi-sample-sub-view');
     view.style.height = '500px';

@@ -31,8 +31,7 @@ tr.exportTo('tr.model.helpers', function() {
   function findChromeGpuProcess(model) {
     var gpuProcesses = model.getAllProcesses(
         tr.model.helpers.ChromeGpuHelper.isGpuProcess);
-    if (gpuProcesses.length !== 1)
-      return undefined;
+    if (gpuProcesses.length !== 1) return undefined;
     return gpuProcesses[0];
   }
 
@@ -69,10 +68,8 @@ tr.exportTo('tr.model.helpers', function() {
   ChromeModelHelper.guid = tr.b.GUID.allocateSimple();
 
   ChromeModelHelper.supportsModel = function(model) {
-    if (findChromeBrowserProcesses(model).length)
-      return true;
-    if (findChromeRenderProcesses(model).length)
-      return true;
+    if (findChromeBrowserProcesses(model).length) return true;
+    if (findChromeRenderProcesses(model).length) return true;
     return false;
   };
 
@@ -92,8 +89,7 @@ tr.exportTo('tr.model.helpers', function() {
     // TODO: Make all users of ChromeModelHelper support multiple browsers and
     // remove this getter (see #2119).
     get browserProcess() {
-      if (this.browserHelper === undefined)
-        return undefined;
+      if (this.browserHelper === undefined) return undefined;
       return this.browserHelper.process;
     },
 

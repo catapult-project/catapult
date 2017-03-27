@@ -35,8 +35,9 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     updateContents: function() {
-      if (this.objectSnapshot_ && this.displayItemDebugger_)
+      if (this.objectSnapshot_ && this.displayItemDebugger_) {
         this.displayItemDebugger_.displayItemList = this.objectSnapshot_;
+      }
     }
   };
 

@@ -60,12 +60,10 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     updateContents_: function() {
       this.opsList_.clear();
 
-      if (!this.picture_)
-        return;
+      if (!this.picture_) return;
 
       var ops = this.picture_.getOps();
-      if (!ops)
-        return;
+      if (!ops) return;
 
       ops = this.picture_.tagOpsWithTimings(ops);
 
@@ -204,18 +202,19 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
               elementInfo = {};
               annotationGroup.forEach(function(annotation) {
                 annotation.info.forEach(function(info) {
-                  if (info.includes(ANNOTATION_TAG))
+                  if (info.includes(ANNOTATION_TAG)) {
                     elementInfo.tag = info.substring(
                         info.indexOf(ANNOTATION_TAG) +
                         ANNOTATION_TAG.length).toLowerCase();
-                  else if (info.includes(ANNOTATION_ID))
+                  } else if (info.includes(ANNOTATION_ID)) {
                     elementInfo.id = info.substring(
                         info.indexOf(ANNOTATION_ID) +
                         ANNOTATION_ID.length);
-                  else if (info.includes(ANNOTATION_CLASS))
+                  } else if (info.includes(ANNOTATION_CLASS)) {
                     elementInfo.class = info.substring(
                         info.indexOf(ANNOTATION_CLASS) +
                         ANNOTATION_CLASS.length);
+                  }
 
                   annotations.push(info);
                 });

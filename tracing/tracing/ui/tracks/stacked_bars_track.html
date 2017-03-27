@@ -70,8 +70,9 @@ tr.exportTo('tr.ui.tracks', function() {
           function(x) { return x.ts; },
           function(x, i) {
             if (i === snapshots.length - 1) {
-              if (snapshots.length === 1)
+              if (snapshots.length === 1) {
                 return maxBounds;
+              }
 
               return snapshots[i].ts - snapshots[i - 1].ts;
             }
@@ -93,8 +94,9 @@ tr.exportTo('tr.ui.tracks', function() {
      * @private
      */
     addEventNearToProvidedEventToSelection: function(event, offset, selection) {
-      if (!(event instanceof tr.model.ObjectSnapshot))
+      if (!(event instanceof tr.model.ObjectSnapshot)) {
         throw new Error('Unrecognized event');
+      }
       var objectSnapshots = this.objectInstance_.snapshots;
       var index = objectSnapshots.indexOf(event);
       var newIndex = index + offset;
@@ -116,8 +118,7 @@ tr.exportTo('tr.ui.tracks', function() {
           worldX,
           worldMaxDist);
 
-      if (!snapshot)
-        return;
+      if (!snapshot) return;
 
       selection.push(snapshot);
     }

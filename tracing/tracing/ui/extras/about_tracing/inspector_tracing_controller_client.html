@@ -15,24 +15,28 @@ found in the LICENSE file.
 tr.exportTo('tr.ui.e.about_tracing', function() {
   function createResolvedPromise(data) {
     var promise = new Promise(function(resolve, reject) {
-      if (data)
+      if (data) {
         resolve(data);
-      else
+      } else {
         resolve();
+      }
     });
     return promise;
   }
 
   function appendTraceChunksTo(chunks, messageString) {
-    if (typeof messageString !== 'string')
+    if (typeof messageString !== 'string') {
       throw new Error('Invalid data');
+    }
     var re = /"params":\s*\{\s*"value":\s*\[([^]+)\]\s*\}\s*\}/;
     var m = re.exec(messageString);
-    if (!m)
+    if (!m) {
       throw new Error('Malformed response');
+    }
 
-    if (chunks.length > 1)
+    if (chunks.length > 1) {
       chunks.push(',');
+    }
     chunks.push(m[1]);
   }
 
@@ -83,8 +87,9 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     },
 
     beginRecording: function(recordingOptions) {
-      if (this.recording_)
+      if (this.recording_) {
         throw new Error('Already recording');
+      }
       this.recording_ = 'starting';
       var res = this.conn_.req(
           'Tracing.start',
@@ -126,11 +131,13 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     },
 
     endRecording: function() {
-      if (this.recording_ === false)
+      if (this.recording_ === false) {
         return createResolvedPromise();
+      }
 
-      if (this.recording_ !== true)
+      if (this.recording_ !== true) {
         throw new Error('Cannot end');
+      }
 
       this.currentTraceTextChunks_ = ['['];
       this.conn_.setNotificationListener(

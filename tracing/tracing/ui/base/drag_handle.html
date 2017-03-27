@@ -74,8 +74,7 @@ Polymer({
   set target(target) {
     this.observer_.disconnect();
     this.target_ = target;
-    if (!this.target_)
-      return;
+    if (!this.target_) return;
     this.observer_.observe(this.target_, {
       attributes: true,
       attributeFilter: ['class']
@@ -88,10 +87,11 @@ Polymer({
 
   set horizontal(h) {
     this.horizontal_ = h;
-    if (this.horizontal_)
+    if (this.horizontal_) {
       this.className = 'horizontal-drag-handle';
-    else
+    } else {
       this.className = 'vertical-drag-handle';
+    }
   },
 
   get vertical() {
@@ -104,8 +104,9 @@ Polymer({
 
   forceMutationObserverFlush_: function() {
     var records = this.observer_.takeRecords();
-    if (records.length)
+    if (records.length) {
       this.didTargetMutate_(records);
+    }
   },
 
   didTargetMutate_: function(e) {
@@ -167,8 +168,7 @@ Polymer({
   },
 
   onMouseDown_: function(e) {
-    if (!this.target_)
-      return;
+    if (!this.target_) return;
     this.forceMutationObserverFlush_();
     this.lastMousePos_ = this.horizontal_ ? e.clientY : e.clientX;
     document.addEventListener('mousemove', this.onMouseMove_);

@@ -15,10 +15,12 @@ tr.exportTo('tr.b', function() {
   var Base64 = tr.b.Base64;
 
   function computeUserTimingMarkName(groupName, functionName, opt_args) {
-    if (groupName === undefined)
+    if (groupName === undefined) {
       throw new Error('getMeasureString should have group name');
-    if (functionName === undefined)
+    }
+    if (functionName === undefined) {
       throw new Error('getMeasureString should have function name');
+    }
     var userTimingMarkName = groupName + ':' + functionName;
     if (opt_args !== undefined) {
       userTimingMarkName += '/';
@@ -54,10 +56,12 @@ tr.exportTo('tr.b', function() {
   };
 
   Timing.wrap = function(groupName, callback, opt_args) {
-    if (groupName === undefined)
+    if (groupName === undefined) {
       throw new Error('Timing.wrap should have group name');
-    if (callback.name === '')
+    }
+    if (callback.name === '') {
       throw new Error('Anonymous function is not allowed');
+    }
     return Timing.wrapNamedFunction(
         groupName, callback.name, callback, opt_args);
   };

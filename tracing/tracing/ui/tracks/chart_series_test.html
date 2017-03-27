@@ -34,8 +34,9 @@ tr.b.unittest.testSuite(function() {
 
   function getSelectionStateForTesting(index) {
     index = index % 7;
-    if (index < 5)
+    if (index < 5) {
       return SelectionState.getFromBrighteningLevel(index % 4);
+    }
     return SelectionState.getFromDimmingLevel(index % 3);
   }
 

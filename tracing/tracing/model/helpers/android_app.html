@@ -63,8 +63,7 @@ tr.exportTo('tr.model.helpers', function() {
   }
 
   function findOverlappingDrawFrame(renderThread, uiDrawSlice) {
-    if (!renderThread)
-      return undefined;
+    if (!renderThread) return undefined;
 
     // of all top level renderthread slices, find the one that has a 'sync'
     // within the uiDrawSlice
@@ -97,8 +96,7 @@ tr.exportTo('tr.model.helpers', function() {
    * Only necessary before Choreographer#doFrame tracing existed.
    */
   function getPreTraversalWorkRanges(uiThread) {
-    if (!uiThread)
-      return [];
+    if (!uiThread) return [];
 
     // gather all frame work that occurs outside of performTraversals
     var preFrameEvents = [];
@@ -106,12 +104,14 @@ tr.exportTo('tr.model.helpers', function() {
       if (slice.title === 'obtainView' ||
           slice.title === 'setupListItem' ||
           slice.title === 'deliverInputEvent' ||
-          slice.title === 'RV Scroll')
+          slice.title === 'RV Scroll') {
         preFrameEvents.push(slice);
+      }
     });
     uiThread.asyncSliceGroup.slices.forEach(function(slice) {
-      if (slice.title === 'deliverInputEvent')
+      if (slice.title === 'deliverInputEvent') {
         preFrameEvents.push(slice);
+      }
     });
 
     return tr.b.math.mergeRanges(
@@ -133,8 +133,9 @@ tr.exportTo('tr.model.helpers', function() {
         traversalStart,
         3);
 
-    if (preTraversalWorkRange)
+    if (preTraversalWorkRange) {
       return preTraversalWorkRange.start;
+    }
     return traversalStart;
   }
 
@@ -155,12 +156,12 @@ tr.exportTo('tr.model.helpers', function() {
   }
 
   function getUiThreadDrivenFrames(app) {
-    if (!app.uiThread)
-      return [];
+    if (!app.uiThread) return [];
 
     var preTraversalWorkRanges = [];
-    if (app.uiDrawType === UI_DRAW_TYPE.LEGACY)
+    if (app.uiDrawType === UI_DRAW_TYPE.LEGACY) {
       preTraversalWorkRanges = getPreTraversalWorkRanges(app.uiThread);
+    }
 
     var frames = [];
     app.uiThread.sliceGroup.slices.forEach(function(slice) {
@@ -201,8 +202,7 @@ tr.exportTo('tr.model.helpers', function() {
   }
 
   function getRenderThreadDrivenFrames(app) {
-    if (!app.renderThread)
-      return [];
+    if (!app.renderThread) return [];
 
     var frames = [];
     app.renderThread.sliceGroup.getSlicesOfName(RENDER_THREAD_INDEP_DRAW_NAME)
@@ -218,8 +218,9 @@ tr.exportTo('tr.model.helpers', function() {
   }
 
   function getUiDrawType(uiThread) {
-    if (!uiThread)
+    if (!uiThread) {
       return UI_DRAW_TYPE.NONE;
+    }
 
     var slices = uiThread.sliceGroup.slices;
     for (var i = 0; i < slices.length; i++) {
@@ -240,8 +241,7 @@ tr.exportTo('tr.model.helpers', function() {
       }
     }
 
-    if (!samples)
-      return [];
+    if (!samples) return [];
 
     // output rising edges only, since those are user inputs
     var inputSamples = [];
@@ -256,13 +256,13 @@ tr.exportTo('tr.model.helpers', function() {
   }
 
   function getAnimationAsyncSlices(uiThread) {
-    if (!uiThread)
-      return [];
+    if (!uiThread) return [];
 
     var slices = [];
     for (var slice of uiThread.asyncSliceGroup.getDescendantEvents()) {
-      if (/^animator\:/.test(slice.title))
+      if (/^animator\:/.test(slice.title)) {
         slices.push(slice);
+      }
     }
     return slices;
   }

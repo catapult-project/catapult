@@ -43,8 +43,9 @@ tr.b.unittest.testSuite(function() {
     var gzipData = Base64.atob(GZIP_DATA_BASE_64);
     var buffer = new ArrayBuffer(gzipData.length);
     var view = new Uint8Array(buffer);
-    for (var i = 0; i < gzipData.length; i++)
+    for (var i = 0; i < gzipData.length; i++) {
       view[i] = gzipData.charCodeAt(i);
+    }
     var importer = new tr.e.importer.GzipImporter(null, buffer);
     assert.isTrue(tr.e.importer.GzipImporter.canImport(buffer));
     assert.equal(importer.extractSubtraces()[0], ORIGINAL_DATA);

@@ -134,21 +134,20 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     }
 
     function getBufferPercentFull() {
-      if (!bufferPercentFullDiv)
-        return;
+      if (!bufferPercentFullDiv) return;
 
       tracingControllerClient.beginGetBufferPercentFull().then(
           updateBufferPercentFull);
     }
 
     function updateBufferPercentFull(percentFull) {
-      if (!bufferPercentFullDiv)
-        return;
+      if (!bufferPercentFullDiv) return;
 
       percentFull = Math.round(100 * parseFloat(percentFull));
       var newText = 'Buffer usage: ' + percentFull + '%';
-      if (Polymer.dom(bufferPercentFullDiv).textContent !== newText)
+      if (Polymer.dom(bufferPercentFullDiv).textContent !== newText) {
         Polymer.dom(bufferPercentFullDiv).textContent = newText;
+      }
 
       window.setTimeout(getBufferPercentFull, 500);
     }

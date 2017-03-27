@@ -77,8 +77,9 @@ tr.exportTo('tr.e.importer.v8', function() {
    * @return {boolean} Whether obj is a V8 log string.
    */
   V8LogImporter.canImport = function(eventData) {
-    if (typeof(eventData) !== 'string' && !(eventData instanceof String))
+    if (typeof(eventData) !== 'string' && !(eventData instanceof String)) {
       return false;
+    }
 
     return eventData.substring(0, 11) === 'v8-version,' ||
            eventData.substring(0, 12) === 'timer-event,' ||
@@ -204,8 +205,9 @@ tr.exportTo('tr.e.importer.v8', function() {
 
       function findChildWithEntryID(stackFrame, entryID) {
         for (var i = 0; i < stackFrame.children.length; i++) {
-          if (stackFrame.children[i].entryID === entryID)
+          if (stackFrame.children[i].entryID === entryID) {
             return stackFrame.children[i];
+          }
         }
         return undefined;
       }
@@ -240,8 +242,11 @@ tr.exportTo('tr.e.importer.v8', function() {
         // Find out, if top of stack was pointing inside a JS function
         // meaning that we have encountered a frameless invocation.
         var funcEntry = this.code_map_.findEntry(tosOrExternalCallback);
-        if (!funcEntry || !funcEntry.isJSFunction || !funcEntry.isJSFunction())
+        if (!funcEntry ||
+            !funcEntry.isJSFunction ||
+            !funcEntry.isJSFunction()) {
           tosOrExternalCallback = 0;
+        }
       }
 
       var processedStack = processStack(pc, tosOrExternalCallback, stack);
@@ -251,8 +256,7 @@ tr.exportTo('tr.e.importer.v8', function() {
       processedStack = processedStack.reverse();
       for (var i = 0, n = processedStack.length; i < n; i++) {
         var frame = processedStack[i];
-        if (!frame)
-          break;
+        if (!frame) break;
         var entry = this.code_map_.findEntry(frame);
 
         if (!entry && i !== 0) {

@@ -72,8 +72,7 @@ Polymer({
   },
 
   set samples(samples) {
-    if (samples === this.samples)
-      return;
+    if (samples === this.samples) return;
 
     this.samples_ =
         (samples === undefined) ? new tr.model.EventSet() : samples;
@@ -115,8 +114,7 @@ Polymer({
   getTimeWeightedAverageInW: function() {
     var energyConsumedInJ = this.getEnergyConsumedInJ();
 
-    if (energyConsumedInJ === 'N/A')
-      return 'N/A';
+    if (energyConsumedInJ === 'N/A') return 'N/A';
 
     var durationInS = tr.b.convertUnit(this.samples.bounds.duration,
         tr.b.UnitPrefixScale.METRIC.MILLI,
@@ -127,8 +125,7 @@ Polymer({
 
 
   getEnergyConsumedInJ: function() {
-    if (this.samples.length < 2)
-      return 'N/A';
+    if (this.samples.length < 2) return 'N/A';
 
     var bounds = this.samples.bounds;
     var series = tr.b.getFirstElement(this.samples).series;

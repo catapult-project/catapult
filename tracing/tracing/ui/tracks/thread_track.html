@@ -71,14 +71,14 @@ tr.exportTo('tr.ui.tracks', function() {
     updateContents_: function() {
       this.detach();
 
-      if (!this.thread_)
-        return;
+      if (!this.thread_) return;
 
       this.heading_.heading = this.thread_.userFriendlyName;
       this.heading_.tooltip = this.thread_.userFriendlyDetails;
 
-      if (this.thread_.asyncSliceGroup.length)
+      if (this.thread_.asyncSliceGroup.length) {
         this.appendAsyncSliceTracks_();
+      }
 
       this.appendThreadSamplesTracks_();
 
@@ -117,19 +117,22 @@ tr.exportTo('tr.ui.tracks', function() {
         var title = subGroup.slices[0].viewSubGroupTitle;
         asyncTrack.group = subGroup;
         asyncTrack.heading = title;
-        if (asyncTrack.hasVisibleContent)
+        if (asyncTrack.hasVisibleContent) {
           Polymer.dom(this).appendChild(asyncTrack);
+        }
       }, this);
     },
 
     appendThreadSamplesTracks_: function() {
       var threadSamples = this.thread_.samples;
-      if (threadSamples === undefined || threadSamples.length === 0)
+      if (threadSamples === undefined || threadSamples.length === 0) {
         return;
+      }
       var samplesByTitle = {};
       threadSamples.forEach(function(sample) {
-        if (samplesByTitle[sample.title] === undefined)
+        if (samplesByTitle[sample.title] === undefined) {
           samplesByTitle[sample.title] = [];
+        }
         samplesByTitle[sample.title].push(sample);
       });
 

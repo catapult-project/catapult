@@ -19,8 +19,9 @@ found in the LICENSE file.
     var chaiAbsPath = HTMLImportsLoader.hrefToAbsolutePath(
         '/chai/chai.js');
     var chaiModule = require(chaiAbsPath);
-    for (var exportName in chaiModule)
+    for (var exportName in chaiModule) {
       global[exportName] = chaiModule[exportName];
+    }
   } else {
     // https://github.com/catapult-project/catapult/issues/3097
     chai.config.includeStack = true;

@@ -89,10 +89,11 @@ tr.exportTo('tr.metrics.v8', function() {
 
   function createPercentage(name, numerator, denominator, unit) {
     var hist = new tr.v.Histogram(name, unit);
-    if (denominator === 0)
+    if (denominator === 0) {
       hist.addSample(0);
-    else
+    } else {
       hist.addSample(numerator / denominator);
+    }
     hist.customizeSummaryOptions({
       avg: true,
       count: false,

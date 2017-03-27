@@ -26,8 +26,9 @@ tr.b.unittest.testSuite(function() {
   function createViewWithSelection(selection, opt_parentElement) {
     var viewEl = document.createElement(
         'tr-ui-a-container-memory-dump-sub-view');
-    if (opt_parentElement)
+    if (opt_parentElement) {
       Polymer.dom(opt_parentElement).appendChild(viewEl);
+    }
     if (selection === undefined) {
       viewEl.selection = undefined;
     } else {
@@ -45,8 +46,9 @@ tr.b.unittest.testSuite(function() {
       test, containerMemoryDumps, detailsCheckCallback, opt_parentElement) {
     var viewEl =
         createViewWithSelection(containerMemoryDumps, opt_parentElement);
-    if (!opt_parentElement)
+    if (!opt_parentElement) {
       test.addHTMLOutput(viewEl);
+    }
 
     // The view should contain a stacked pane view with memory dump header and
     // overview panes.

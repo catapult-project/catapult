@@ -27,11 +27,13 @@ tr.b.unittest.testSuite(function() {
     divEl.style.textAlign = 'center';
     Polymer.dom(paneEl).appendChild(divEl);
 
-    if (opt_rebuildPaneCallback)
+    if (opt_rebuildPaneCallback) {
       paneEl.onRebuild_ = opt_rebuildPaneCallback;
+    }
 
-    if (opt_appendedCallback)
+    if (opt_appendedCallback) {
       paneEl.appended = opt_appendedCallback;
+    }
 
     return paneEl;
   }

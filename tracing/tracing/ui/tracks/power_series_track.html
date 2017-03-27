@@ -59,8 +59,7 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     buildChartSeries_: function() {
-      if (!this.hasVisibleContent)
-        return [];
+      if (!this.hasVisibleContent) return [];
 
       var seriesYAxis = new tr.ui.tracks.ChartSeriesYAxis(0, undefined);
       var pts = this.powerSeries_.samples.map(function(smpl) {

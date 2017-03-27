@@ -51,8 +51,7 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     addErrorForCurrentTest: function(error) {
-      if (!this.currentTestCaseHadErrors_)
-        this.write_('FAIL\n');
+      if (!this.currentTestCaseHadErrors_) this.write_('FAIL\n');
       var normalizedException = tr.b.normalizeException(error);
       this.write_(normalizedException.stack + '\n');
       this.currentTestCaseHadErrors_ = true;
@@ -63,8 +62,7 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     setCurrentTestFlaky: function() {
-      if (!this.currentTestIsFlaky_)
-        this.write_('FLAKY\n');
+      if (!this.currentTestIsFlaky_) this.write_('FLAKY\n');
       this.currentTestIsFlaky_ = true;
     },
 
@@ -86,10 +84,11 @@ tr.exportTo('tr.b.unittest', function() {
     didRunTests: function() {
       this.write_('\n------------------------------------------------------' +
                '----------------\n');
-      if (this.numTestsThatRan === 1)
+      if (this.numTestsThatRan === 1) {
         this.write_('Ran 1 test\n');
-      else
+      } else {
         this.write_('Ran ' + this.numTestsThatRan + ' tests\n');
+      }
 
       if (this.numTestsThatFailed > 0) {
         var flakyString = this.numFlakyTests === 0 ? '' :
@@ -104,10 +103,11 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     write_: function(msg) {
-      if (tr.isVinn)
+      if (tr.isVinn) {
         global.write(msg);
-      else
+      } else {
         console.log(msg);
+      }
     }
   };
 

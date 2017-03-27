@@ -50,12 +50,15 @@ Polymer({
     var hasCpuData = false;
     var hasAlerts = false;
     rows.forEach(function(row) {
-      if (row.cpuDuration !== undefined)
+      if (row.cpuDuration !== undefined) {
         hasCpuData = true;
-      if (row.cpuSelfTime !== undefined)
+      }
+      if (row.cpuSelfTime !== undefined) {
         hasCpuData = true;
-      if (row.numAlerts)
+      }
+      if (row.numAlerts) {
         hasAlerts = true;
+      }
     });
 
     var ownerDocument = this.ownerDocument;
@@ -65,8 +68,7 @@ Polymer({
     columns.push({
       title: 'Name',
       value: function(row) {
-        if (row.title === 'Totals')
-          return 'Totals';
+        if (row.title === 'Totals') return 'Totals';
 
         var linkEl = document.createElement('tr-ui-a-analysis-link');
         linkEl.setSelectionAndContent(function() {
@@ -201,13 +203,15 @@ Polymer({
       alertsColumnIndex = columns.length - 1;
     }
     var colWidthPercentage;
-    if (columns.length === 1)
+    if (columns.length === 1) {
       colWidthPercentage = '100%';
-    else
+    } else {
       colWidthPercentage = (100 / (columns.length - 1)).toFixed(3) + '%';
+    }
 
-    for (var i = 1; i < columns.length; i++)
+    for (var i = 1; i < columns.length; i++) {
       columns[i].width = colWidthPercentage;
+    }
 
     this.$.table.tableColumns = columns;
 
@@ -218,23 +222,27 @@ Polymer({
   },
 
   configure: function(config) {
-    if (config.eventsByTitle === undefined)
+    if (config.eventsByTitle === undefined) {
       throw new Error('Required: eventsByTitle');
+    }
 
-    if (config.showTotals !== undefined)
+    if (config.showTotals !== undefined) {
       this.showTotals_ = config.showTotals;
-    else
+    } else {
       this.showTotals_ = true;
+    }
 
-    if (config.eventsHaveDuration !== undefined)
+    if (config.eventsHaveDuration !== undefined) {
       this.eventsHaveDuration_ = config.eventsHaveDuration;
-    else
+    } else {
       this.eventsHaveDuration_ = true;
+    }
 
-    if (config.eventsHaveSubRows !== undefined)
+    if (config.eventsHaveSubRows !== undefined) {
       this.eventsHaveSubRows_ = config.eventsHaveSubRows;
-    else
+    } else {
       this.eventsHaveSubRows_ = true;
+    }
 
     this.eventsByTitle_ = config.eventsByTitle;
     this.updateContents_();
@@ -287,10 +295,11 @@ Polymer({
 
   updateContents_: function() {
     var eventsByTitle;
-    if (this.eventsByTitle_ !== undefined)
+    if (this.eventsByTitle_ !== undefined) {
       eventsByTitle = this.eventsByTitle_;
-    else
+    } else {
       eventsByTitle = [];
+    }
 
     var allEvents = new tr.model.EventSet();
     var rows = [];

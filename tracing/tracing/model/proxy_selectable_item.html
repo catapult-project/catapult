@@ -31,8 +31,9 @@ tr.exportTo('tr.model', function() {
 
     get selectionState() {
       var modelItem = this.modelItem_;
-      if (modelItem === undefined)
+      if (modelItem === undefined) {
         return SelectionState.NONE;
+      }
       return modelItem.selectionState;
     }
   };

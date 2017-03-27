@@ -17,10 +17,11 @@ tr.exportTo('tr.b.unittest', function() {
     throw new Error('headless_tests.html only works in headless mode');
   }
   function quit(errCode) {
-    if (tr.isVinn)
+    if (tr.isVinn) {
       global.quit(errCode);
-    else
+    } else {
       process.exit(errCode);
+    }
   }
 
   function printSpacer() {
@@ -37,8 +38,9 @@ tr.exportTo('tr.b.unittest', function() {
     p = p.then(
         function didAllSuitesLoad() {
           var tests = loader.getAllTests().filter(function(testCase) {
-            if (testCase instanceof tr.b.unittest.PerfTestCase)
+            if (testCase instanceof tr.b.unittest.PerfTestCase) {
               return false;
+            }
             return true;
           });
           if (tests.length === 0) {
@@ -59,10 +61,11 @@ tr.exportTo('tr.b.unittest', function() {
 
     p = p.then(
         function didAllTestRun() {
-          if (results.numTestsThatFailed > 0)
+          if (results.numTestsThatFailed > 0) {
             quit(1);
-          else
-          quit(0);
+          } else {
+            quit(0);
+          }
         },
         function testHarnessError(e) {
           console.log('FAILED: A test harness error has ocurred.');

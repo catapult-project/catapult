@@ -24,8 +24,9 @@ tr.exportTo('tr.ui.tracks', function() {
 
     decorate: function(viewport) {
       tr.ui.b.ContainerThatDecoratesItsChildren.prototype.decorate.call(this);
-      if (viewport === undefined)
+      if (viewport === undefined) {
         throw new Error('viewport is required when creating a Track.');
+      }
 
       this.viewport_ = viewport;
       Polymer.dom(this).classList.add('track');
@@ -38,8 +39,9 @@ tr.exportTo('tr.ui.tracks', function() {
     get drawingContainer() {
       var cur = this;
       while (cur) {
-        if (cur instanceof tr.ui.tracks.DrawingContainer)
+        if (cur instanceof tr.ui.tracks.DrawingContainer) {
           return cur;
+        }
         cur = cur.parentElement;
       }
       return undefined;
@@ -50,17 +52,17 @@ tr.exportTo('tr.ui.tracks', function() {
 
     invalidateDrawingContainer: function() {
       var dc = this.drawingContainer;
-      if (dc)
-        dc.invalidate();
+      if (dc) dc.invalidate();
     },
 
     context: function() {
       // This is a little weird here, but we have to be able to walk up the
       // parent tree to get the context.
-      if (!Polymer.dom(this).parentNode)
-        return undefined;
-      if (!Polymer.dom(this).parentNode.context)
+      if (!Polymer.dom(this).parentNode) return undefined;
+
+      if (!Polymer.dom(this).parentNode.context) {
         throw new Error('Parent container does not support context() method.');
+      }
       return Polymer.dom(this).parentNode.context();
     },
 
@@ -68,8 +70,9 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     undecorateChild_: function(childTrack) {
-      if (childTrack.detach)
+      if (childTrack.detach) {
         childTrack.detach();
+      }
     },
 
     updateContents_: function() {
@@ -118,8 +121,7 @@ tr.exportTo('tr.ui.tracks', function() {
       var clientRect = this.getBoundingClientRect();
       var a = Math.max(loVY, clientRect.top);
       var b = Math.min(hiVY, clientRect.bottom);
-      if (a > b)
-        return;
+      if (a > b) return;
 
       this.addIntersectingEventsInRangeToSelectionInWorldSpace(
           loWX, hiWX, viewPixWidthWorld, selection);
@@ -152,8 +154,7 @@ tr.exportTo('tr.ui.tracks', function() {
           worldX,
           worldMaxDist);
 
-      if (!instantEvent)
-        return;
+      if (!instantEvent) return;
 
       selection.push(instantEvent);
     }

@@ -69,8 +69,7 @@ tr.exportTo('tr.model', function() {
       elem = elem.parentElement;
     }
 
-    if (yComponents.length === 0)
-      return;
+    if (yComponents.length === 0) return;
     return new Location(xWorld, yComponents);
   };
 
@@ -82,8 +81,7 @@ tr.exportTo('tr.model', function() {
     // the boundingRect's top of containing track.
     var containerToTrack = viewport.containerToTrackMap;
     var elem = containerToTrack.getTrackByStableId(stableId);
-    if (!elem)
-      return;
+    if (!elem) return;
 
     var firstY = elem.getBoundingClientRect().top;
     while (elem instanceof tr.ui.tracks.Track) {
@@ -96,8 +94,7 @@ tr.exportTo('tr.model', function() {
       elem = elem.parentElement;
     }
 
-    if (yComponents.length === 0)
-      return;
+    if (yComponents.length === 0) return;
     return new Location(xWorld, yComponents);
   };
 
@@ -116,8 +113,7 @@ tr.exportTo('tr.model', function() {
       for (var i in this.yComponents_) {
         var yComponent = this.yComponents_[i];
         var track = containerToTrack.getTrackByStableId(yComponent.stableId);
-        if (track !== undefined)
-          return track;
+        if (track !== undefined) return track;
       }
     },
 

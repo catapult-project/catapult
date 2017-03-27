@@ -22,8 +22,9 @@ tr.exportTo('tr.model.um', function() {
   }
 
   function LoadExpectation(parentModel, initiatorTitle, start, duration) {
-    if (!DOES_LOAD_SUBTYPE_NAME_EXIST[initiatorTitle])
+    if (!DOES_LOAD_SUBTYPE_NAME_EXIST[initiatorTitle]) {
       throw new Error(initiatorTitle + ' is not in LOAD_SUBTYPE_NAMES');
+    }
 
     tr.model.um.UserExpectation.call(
         this, parentModel, initiatorTitle, start, duration);

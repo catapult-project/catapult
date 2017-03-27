@@ -64,10 +64,11 @@ Polymer({
   },
 
   updateContents_: function() {
-    if (this.sample === undefined)
+    if (this.sample === undefined) {
       this.$.table.tableRows = [];
-    else
+    } else {
       this.$.table.tableRows = [this.sample];
+    }
     this.$.table.rebuild();
   }
 });
@@ -103,8 +104,9 @@ Polymer({
   },
 
   updateContents_: function() {
-    if (this.selection.length !== 1)
+    if (this.selection.length !== 1) {
       throw new Error('Cannot pass multiple samples to sample table.');
+    }
     this.$.samplesTable.sample = tr.b.getOnlyElement(this.selection);
   }
 });

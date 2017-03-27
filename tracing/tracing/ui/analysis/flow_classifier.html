@@ -54,8 +54,9 @@ tr.exportTo('tr.ui.analysis', function() {
       var selection = new tr.model.EventSet();
       for (var guid in this.eventsByGUID_) {
         var fs = this.eventsByGUID_[guid];
-        if (fs.state === FLOW_IN)
+        if (fs.state === FLOW_IN) {
           selection.push(fs.event);
+        }
       }
       return selection;
     },
@@ -64,8 +65,9 @@ tr.exportTo('tr.ui.analysis', function() {
       var selection = new tr.model.EventSet();
       for (var guid in this.eventsByGUID_) {
         var fs = this.eventsByGUID_[guid];
-        if (fs.state === FLOW_OUT)
+        if (fs.state === FLOW_OUT) {
           selection.push(fs.event);
+        }
       }
       return selection;
     },
@@ -74,8 +76,9 @@ tr.exportTo('tr.ui.analysis', function() {
       var selection = new tr.model.EventSet();
       for (var guid in this.eventsByGUID_) {
         var fs = this.eventsByGUID_[guid];
-        if (fs.state === FLOW_IN_OUT)
+        if (fs.state === FLOW_IN_OUT) {
           selection.push(fs.event);
+        }
       }
       return selection;
     }

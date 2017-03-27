@@ -62,10 +62,8 @@ tr.exportTo('tr.metrics.sh', function() {
         var thread = process.threads[tid];
         var threadCpuTime = 0;
         thread.sliceGroup.topLevelSlices.forEach(function(slice) {
-          if (slice.duration === 0)
-            return;
-          if (!slice.cpuDuration)
-            return;
+          if (slice.duration === 0) return;
+          if (!slice.cpuDuration) return;
           var sliceRange = tr.b.math.Range.fromExplicitRange(
               slice.start, slice.end);
           var intersection = rangeOfInterest.findIntersection(sliceRange);

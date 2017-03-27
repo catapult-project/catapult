@@ -17,10 +17,11 @@ tr.exportTo('tr.metrics.sh', function() {
     for (var pid in model.processes) {
       var snapshotInstances = model.processes[pid].objects.getAllInstancesNamed(
           'CPUSnapshots');
-      if (!snapshotInstances)
-        continue;
-      for (var object of snapshotInstances[0].snapshots)
+      if (!snapshotInstances) continue;
+
+      for (var object of snapshotInstances[0].snapshots) {
         snapshots.push(object.args.processes);
+      }
     }
     return snapshots;
   }
@@ -29,13 +30,15 @@ tr.exportTo('tr.metrics.sh', function() {
     var processSums = new Map();
     for (var processData of snapshot) {
       var processName = processData.name;
-      if (!(processSums.has(processName)))
+      if (!(processSums.has(processName))) {
         processSums.set(processName, {sum: 0.0, paths: new Set()});
+      }
       processSums.get(processName).sum += parseFloat(processData.pCpu);
       // The process path may be missing on Windows because of AccessDenied
       // error thrown by psutil package used by CPU tracing agent.
-      if (processData.path)
+      if (processData.path) {
         processSums.get(processName).paths.add(processData.path);
+      }
     }
     return processSums;
   }
@@ -54,8 +57,9 @@ tr.exportTo('tr.metrics.sh', function() {
         }
         processNumerics.get(processName).numeric.addSample(
             processData.sum / 100.0);
-        for (var path of processData.paths)
+        for (var path of processData.paths) {
           processNumerics.get(processName).paths.add(path);
+        }
       }
     }
     return processNumerics;
@@ -70,8 +74,9 @@ tr.exportTo('tr.metrics.sh', function() {
       // when its CPU usage was below minimum threshold when the snapshot was
       // taken.
       var missingSnapshotCount = snapshots.length - numeric.numValues;
-      for (var i = 0; i < missingSnapshotCount; i++)
+      for (var i = 0; i < missingSnapshotCount; i++) {
         numeric.addSample(0);
+      }
       numeric.diagnostics.set('paths', new
           tr.v.d.Generic([...processData.paths]));
       histograms.addHistogram(numeric);

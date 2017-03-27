@@ -42,8 +42,7 @@ tr.exportTo('tr.model', function() {
     },
 
     get protectionFlagsToString() {
-      if (this.protectionFlags === undefined)
-        return undefined;
+      if (this.protectionFlags === undefined) return undefined;
       return (
           (this.protectionFlags & VMRegion.PROTECTION_FLAG_READ ? 'r' : '-') +
           (this.protectionFlags & VMRegion.PROTECTION_FLAG_WRITE ? 'w' : '-') +
@@ -221,8 +220,9 @@ tr.exportTo('tr.model', function() {
   VMRegionClassificationNode.fromRegions = function(regions, opt_rules) {
     var tree = new VMRegionClassificationNode(opt_rules);
     tree.regions_ = regions;
-    for (var i = 0; i < regions.length; i++)
+    for (var i = 0; i < regions.length; i++) {
       tree.addStatsFromRegion_(regions[i]);
+    }
     return tree;
   };
 
@@ -232,10 +232,12 @@ tr.exportTo('tr.model', function() {
     },
 
     get children() {
-      if (this.isLeafNode)
+      if (this.isLeafNode) {
         return undefined;  // Leaf nodes don't have children (by definition).
-      if (this.children_ === undefined)
+      }
+      if (this.children_ === undefined) {
         this.buildTree_();  // Lazily classify VM regions.
+      }
       return this.children_;
     },
 
@@ -288,8 +290,9 @@ tr.exportTo('tr.model', function() {
     },
 
     addRegionRecursively_: function(region, addStatsToThisNode) {
-      if (addStatsToThisNode)
+      if (addStatsToThisNode) {
         this.addStatsFromRegion_(region);
+      }
 
       if (this.regions_ !== undefined) {
         if (this.children_ !== undefined) {
@@ -305,8 +308,7 @@ tr.exportTo('tr.model', function() {
       // Non-leaf rule (classify region row further down the tree).
       function regionRowMatchesChildNide(child) {
         var fileRegExp = child.rule_.file;
-        if (fileRegExp === undefined)
-          return true;
+        if (fileRegExp === undefined) return true;
         return fileRegExp.test(region.mappedFile);
       }
 
@@ -314,8 +316,9 @@ tr.exportTo('tr.model', function() {
           this.children_, regionRowMatchesChildNide);
       if (matchedChild === undefined) {
         // Region belongs to the 'Other' node (created lazily).
-        if (this.children_.length !== this.rule_.children.length)
+        if (this.children_.length !== this.rule_.children.length) {
           throw new Error('Internal error');
+        }
         matchedChild = new VMRegionClassificationNode(
             VMRegionClassificationNode.OTHER_RULE);
         this.children_.push(matchedChild);
@@ -347,8 +350,9 @@ tr.exportTo('tr.model', function() {
             'Internal error: Classification node should have no regions');
       }
 
-      if (this.isLeafNode)
+      if (this.isLeafNode) {
         return;  // Leaf node: Nothing to do.
+      }
 
       // Intermediate node: Clear regions and build children recursively.
       this.regions_ = undefined;
@@ -364,16 +368,16 @@ tr.exportTo('tr.model', function() {
 
       // Aggregate virtual size.
       var regionSizeInBytes = region.sizeInBytes;
-      if (regionSizeInBytes !== undefined)
+      if (regionSizeInBytes !== undefined) {
         this.sizeInBytes = (this.sizeInBytes || 0) + regionSizeInBytes;
+      }
 
       // Aggregate byte stats.
       var thisByteStats = this.byteStats;
       var regionByteStats = region.byteStats;
       for (var byteStatName in regionByteStats) {
         var regionByteStatValue = regionByteStats[byteStatName];
-        if (regionByteStatValue === undefined)
-          continue;
+        if (regionByteStatValue === undefined) continue;
         thisByteStats[byteStatName] =
             (thisByteStats[byteStatName] || 0) + regionByteStatValue;
       }

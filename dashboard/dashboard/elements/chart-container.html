@@ -1408,11 +1408,13 @@ triaging functionality in the chart.
             max += axis.max == 0 ? 1 : margin;
           } else {
             min -= delta * margin;
-            if (min < 0 && axis.min >= 0)
+            if (min < 0 && axis.min >= 0) {
               min = 0;
+            }
             max += delta * margin;
-            if (max > 0 && axis.max <= 0)
+            if (max > 0 && axis.max <= 0) {
               max = 0;
+            }
           }
           axis.min = min;
           axis.max = max;
@@ -1909,8 +1911,9 @@ triaging functionality in the chart.
          * @param {Event} The click event.
          */
         onAlertMouseOver: function(flotSeriesIndex, dataIndex, event) {
-          if (!this.stickyTooltip)
+          if (!this.stickyTooltip) {
             this.showTooltip(flotSeriesIndex, dataIndex);
+          }
         },
         /**
          * Updates the interface when a bug is triaged.
@@ -2052,11 +2055,13 @@ triaging functionality in the chart.
           }
 
           // Set the alert-related properties of the tooltip.
-          if (opt_alerts === undefined)
+          if (opt_alerts === undefined) {
             opt_alerts = null;
+          }
           this.$.tooltip.alerts = opt_alerts;
-          if (opt_triaged === undefined)
+          if (opt_triaged === undefined) {
             opt_triaged = null;
+          }
           this.$.tooltip.triagedAlerts = opt_triaged;
           if (annotation['g_anomaly']) {
             if (annotation.g_anomaly['bug_id']) {

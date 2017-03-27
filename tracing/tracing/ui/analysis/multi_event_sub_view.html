@@ -80,8 +80,7 @@ tr.exportTo('tr.ui.analysis', function() {
     var diagnostics = {};
     for (var item of EVENT_FIELD) {
       var fieldName = item.key;
-      if (slice[fieldName] === undefined)
-        continue;
+      if (slice[fieldName] === undefined) continue;
       diagnostics[fieldName] = new tr.v.d.Scalar(new tr.b.Scalar(
         tr.b.Unit.byName.timeDurationInMs, slice[fieldName]));
     }
@@ -118,8 +117,9 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     set selection(selection) {
-      if (selection.length <= 1)
+      if (selection.length <= 1) {
         throw new Error('Only supports multiple items');
+      }
       this.setSelectionWithoutErrorChecks(selection);
     },
 

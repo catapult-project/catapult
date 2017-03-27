@@ -58,8 +58,9 @@ Polymer({
       {
         title: 'First',
         value: function(event) {
-          if (event instanceof tr.model.ObjectSnapshot)
+          if (event instanceof tr.model.ObjectSnapshot) {
             return tr.v.ui.createScalarSpan(event.ts, timeSpanConfig);
+          }
 
           var spanEl = document.createElement('span');
           Polymer.dom(spanEl).appendChild(tr.v.ui.createScalarSpan(

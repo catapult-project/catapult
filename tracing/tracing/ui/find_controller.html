@@ -39,10 +39,11 @@ tr.exportTo('tr.ui', function() {
 
     enqueueOperation_: function(operation) {
       var task;
-      if (operation instanceof tr.b.Task)
+      if (operation instanceof tr.b.Task) {
         task = operation;
-      else
+      } else {
         task = new tr.b.Task(operation, this);
+      }
       if (this.activeTask_) {
         this.activeTask_ = this.activeTask_.enqueue(task);
       } else {
@@ -62,8 +63,7 @@ tr.exportTo('tr.ui', function() {
      */
     startFiltering: function(filterText) {
       var sc = this.brushingStateController_;
-      if (!sc)
-        return;
+      if (!sc) return;
 
       // TODO(beaudoin): Cancel anything left in the task queue, without
       // invalidating the promise.
@@ -125,14 +125,14 @@ tr.exportTo('tr.ui', function() {
 
     find_: function(dir) {
       var firstHit = this.currentHitIndex_ === -1;
-      if (firstHit && dir < 0)
+      if (firstHit && dir < 0) {
         this.currentHitIndex_ = 0;
+      }
 
       var N = this.filterHits.length;
       this.currentHitIndex_ = (this.currentHitIndex_ + dir + N) % N;
 
-      if (!this.brushingStateController_)
-        return;
+      if (!this.brushingStateController_) return;
 
       this.brushingStateController_.findFocusChangedTo(
           new tr.model.EventSet(this.filterHits[this.currentHitIndex]));

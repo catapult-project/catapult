@@ -22,10 +22,11 @@ tr.exportTo('tr.ui.b', function() {
       };
 
       var isBinary = filename.endsWith('.gz') || filename.endsWith('.zip');
-      if (isBinary)
+      if (isBinary) {
         reader.readAsArrayBuffer(fileBlob);
-      else
+      } else {
         reader.readAsText(fileBlob);
+      }
     });
   }
   return {

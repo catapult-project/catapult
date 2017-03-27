@@ -229,8 +229,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     set layerTreeImpl(layerTreeImpl) {
-      if (this.layerTreeImpl_ === layerTreeImpl)
-        return;
+      if (this.layerTreeImpl_ === layerTreeImpl) return;
 
       // FIXME(pdr): We may want to clear pictureAsImageData_ here to save
       //             memory at the cost of performance. Note that
@@ -351,8 +350,8 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     set selection(selection) {
-      if (this.selection === selection)
-        return;
+      if (this.selection === selection) return;
+
       this.selection_ = selection;
       tr.b.dispatchSimpleEvent(this, 'selection-change');
       this.updateContents_();
@@ -390,8 +389,8 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       // Sort the quads low to high on stackingGroupId.
       selectableQuads.sort(function(x, y) {
         var z = x.stackingGroupId - y.stackingGroupId;
-        if (z !== 0)
-          return z;
+        if (z !== 0) return z;
+
         return x.selectionToSetIfClicked.specicifity -
             y.selectionToSetIfClicked.specicifity;
       });
@@ -402,8 +401,8 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     scheduleUpdateContents_: function() {
-      if (this.updateContentsPending_)
-        return;
+      if (this.updateContentsPending_) return;
+
       this.updateContentsPending_ = true;
       tr.b.requestAnimationFrameInThisFrameIfPossible(
           this.updateContents_, this);
@@ -418,8 +417,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
 
       var status = this.computePictureLoadingStatus_();
-      if (!status.picturesComplete)
-        return;
+      if (!status.picturesComplete) return;
 
       var lthi = this.layerTreeImpl_.layerTreeHostImpl;
       var lthiInstance = lthi.objectInstance;
@@ -427,10 +425,11 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           0, 0,
           lthi.deviceViewportSize.width, lthi.deviceViewportSize.height);
       this.quadStackView_.deviceRect = worldViewportRect;
-      if (this.isRenderPassQuads_)
+      if (this.isRenderPassQuads_) {
         this.quadStackView_.quads = this.generateRenderPassQuads();
-      else
+      } else {
         this.quadStackView_.quads = this.generateLayerQuads();
+      }
 
       this.updateWhatRasterizedLinkState_();
 
@@ -490,12 +489,12 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         // event so that we show some global state.
         var thread = lthi.snapshottedOnThread;
         var didManageTilesSlices = thread.sliceGroup.slices.filter(function(s) {
-          if (s.category !== 'tr.e.cc')
-            return false;
-          if (s.title !== 'DidManage')
-            return false;
-          if (s.end > lthi.ts)
-            return false;
+          if (s.category !== 'tr.e.cc') return false;
+
+          if (s.title !== 'DidManage') return false;
+
+          if (s.end > lthi.ts) return false;
+
           return true;
         });
         didManageTilesSlices.sort(function(x, y) {
@@ -516,14 +515,15 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         }
       }
 
-      if (this.layerTreeImpl_.otherTree)
+      if (this.layerTreeImpl_.otherTree) {
         message += ' (Another tree exists)';
+      }
 
-
-      if (message.length)
+      if (message.length) {
         this.quadStackView_.headerText = message;
-      else
+      } else {
         this.quadStackView_.headerText = undefined;
+      }
 
       this.updateInfoBar_(status.messages);
     },
@@ -598,8 +598,9 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
               continue;
             }
             if (pictureAsImageData.error) {
-              if (!firstPictureError)
+              if (!firstPictureError) {
                 firstPictureError = pictureAsImageData.error;
+              }
               break;
             }
           }
@@ -642,8 +643,9 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     get selectedRenderPass() {
-      if (this.selection)
+      if (this.selection) {
         return this.selection.renderPass_;
+      }
     },
 
     get selectedLayer() {
@@ -658,8 +660,9 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           this.layerTreeImpl.layerTreeHostImpl.args.frame.renderPasses;
       if (!this.showOtherLayers) {
         var selectedRenderPass = this.selectedRenderPass;
-        if (selectedRenderPass)
+        if (selectedRenderPass) {
           renderPasses = [selectedRenderPass];
+        }
       }
       return renderPasses;
     },
@@ -668,8 +671,9 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       var layers = this.layerTreeImpl.renderSurfaceLayerList;
       if (!this.showOtherLayers) {
         var selectedLayer = this.selectedLayer;
-        if (selectedLayer)
+        if (selectedLayer) {
           layers = [selectedLayer];
+        }
       }
       return layers;
     },
@@ -678,8 +682,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       // Generate image quads for the layer
       for (var ir = 0; ir < layer.pictures.length; ++ir) {
         var picture = layer.pictures[ir];
-        if (!picture.layerRect)
-          continue;
+        if (!picture.layerRect) continue;
 
         var unitRect = picture.layerRect.asUVRectInside(layer.bounds);
         var iq = layerQuad.projectUnitRect(unitRect);
@@ -698,8 +701,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     appendAnimationQuads_: function(quads, layer, layerQuad) {
-      if (!layer.animationBoundsRect)
-        return;
+      if (!layer.animationBoundsRect) return;
 
       var rect = layer.animationBoundsRect;
       var abq = tr.b.math.Quad.fromRect(rect);
@@ -714,8 +716,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     appendInvalidationQuads_: function(quads, layer, layerQuad) {
-      if (layer.layerTreeImpl.hasSourceFrameBeenDrawnBefore)
-        return;
+      if (layer.layerTreeImpl.hasSourceFrameBeenDrawnBefore) return;
 
       // Generate the invalidation rect quads.
       for (var ir = 0; ir < layer.annotatedInvalidation.rects.length; ir++) {
@@ -723,8 +724,9 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         var unitRect = rect.asUVRectInside(layer.bounds);
         var iq = layerQuad.projectUnitRect(unitRect);
         iq.backgroundColor = 'rgba(0, 255, 0, 0.1)';
-        if (rect.reason === 'renderer insertion')
+        if (rect.reason === 'renderer insertion') {
           iq.backgroundColor = 'rgba(0, 255, 128, 0.1)';
+        }
         iq.borderColor = 'rgba(0, 255, 0, 1)';
         iq.stackingGroupId = layerQuad.stackingGroupId;
         iq.selectionToSetIfClicked = new cc.LayerRectSelection(
@@ -769,8 +771,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         var backgroundColor = borderColor.clone();
         backgroundColor.a = 0.4 * (borderColor.a || 1.0);
 
-        if (!region || !region.rects)
-          return;
+        if (!region || !region.rects) return;
 
         for (var ir = 0; ir < region.rects.length; ir++) {
           var rect = region.rects[ir];
@@ -796,14 +797,12 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
     appendTileCoverageRectQuads_: function(
         quads, layer, layerQuad, heatmapType) {
-      if (!layer.tileCoverageRects)
-        return;
+      if (!layer.tileCoverageRects) return;
 
       var tiles = [];
       for (var ct = 0; ct < layer.tileCoverageRects.length; ++ct) {
         var tile = layer.tileCoverageRects[ct].tile;
-        if (tile !== undefined)
-          tiles.push(tile);
+        if (tile !== undefined) tiles.push(tile);
       }
 
       var lthi = this.layerTreeImpl_.layerTreeHostImpl;
@@ -834,10 +833,11 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         quad.borderColor = tr.e.cc.tileBorder[type].color;
         quad.borderWidth = tr.e.cc.tileBorder[type].width;
         var label;
-        if (tile)
+        if (tile) {
           label = 'coverageRect';
-        else
+        } else {
           label = 'checkerboard coverageRect';
+        }
         quad.selectionToSetIfClicked = new cc.LayerRectSelection(
             layer, label, rect, layer.tileCoverageRects[ct]);
 
@@ -877,8 +877,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
             undefined :
             tile.scheduledPriority;
       } else if (heatmapType === TILE_HEATMAP_TYPE.USING_GPU_MEMORY) {
-        if (tile.isSolidColor)
-          return 0.5;
+        if (tile.isSolidColor) return 0.5;
         return tile.isUsingGpuMemory ? 0 : 1;
       }
     },
@@ -893,12 +892,12 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
       for (var i = 0; i < tiles.length; ++i) {
         var value = this.getValueForHeatmap_(tiles[i], heatmapType);
-        if (value === undefined)
-          continue;
+        if (value === undefined) continue;
         range.addValue(value);
       }
-      if (range.range === 0)
+      if (range.range === 0) {
         range.addValue(1);
+      }
       return range;
     },
 
@@ -908,8 +907,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
       var color = function(value) {
         var hue = 120 * (1 - (value - min) / (max - min));
-        if (hue < 0)
-          hue = 0;
+        if (hue < 0) hue = 0;
         return 'hsla(' + hue + ', 100%, 50%, 0.5)';
       };
 
@@ -935,13 +933,13 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       for (var i = 0; i < lthi.activeTiles.length; ++i) {
         var tile = lthi.activeTiles[i];
 
-        if (Math.abs(tile.contentsScale - scale) > 1e-6)
+        if (Math.abs(tile.contentsScale - scale) > 1e-6) {
           continue;
+        }
 
         // TODO(vmpstr): Make the stiching of tiles and layers a part of
         // tile construction (issue 346)
-        if (layer.layerId !== tile.layerId)
-          continue;
+        if (layer.layerId !== tile.layerId) continue;
 
         tiles.push(tile);
       }
@@ -954,8 +952,8 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       for (var i = 0; i < tiles.length; ++i) {
         var tile = tiles[i];
         var rect = tile.layerRect;
-        if (!tile.layerRect)
-          continue;
+        if (!tile.layerRect) continue;
+
         var unitRect = rect.asUVRectInside(layer.bounds);
         var quad = layerQuad.projectUnitRect(unitRect);
 
@@ -970,8 +968,9 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         var data = {
           tileType: type
         };
-        if (heatmapType !== TILE_HEATMAP_TYPE.NONE)
+        if (heatmapType !== TILE_HEATMAP_TYPE.NONE) {
           data[heatmapType] = heatmapResult[i].value;
+        }
         quad.selectionToSetIfClicked = new cc.TileSelection(tile, data);
         quads.push(quad);
       }
@@ -1000,11 +999,9 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     generateRenderPassQuads: function() {
-      if (!this.layerTreeImpl.layerTreeHostImpl.args.frame)
-        return [];
+      if (!this.layerTreeImpl.layerTreeHostImpl.args.frame) return [];
       var renderPasses = this.renderPasses;
-      if (!renderPasses)
-        return [];
+      if (!renderPasses) return [];
 
       var quads = [];
       for (var i = 0; i < renderPasses.length; ++i) {
@@ -1032,10 +1029,11 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
 
       var selectionHighlightsByLayerId;
-      if (this.selection)
+      if (this.selection) {
         selectionHighlightsByLayerId = this.selection.highlightsByLayerId;
-      else
+      } else {
         selectionHighlightsByLayerId = {};
+      }
 
       var extraHighlightsByLayerId = this.extraHighlightsByLayerId || {};
 
@@ -1043,8 +1041,9 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         // Generate quads back-to-front.
         var layer = layers[layers.length - i];
         alreadyVisitedLayerIds[layer.layerId] = true;
-        if (layer.objectInstance.name === 'cc::NinePatchLayerImpl')
+        if (layer.objectInstance.name === 'cc::NinePatchLayerImpl') {
           continue;
+        }
 
         var layerQuad = layer.layerQuad.clone();
         if (layer.usingGpuRasterization) {
@@ -1057,25 +1056,31 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         layerQuad.stackingGroupId = nextStackingGroupId++;
         layerQuad.selectionToSetIfClicked = new cc.LayerSelection(layer);
         layerQuad.layer = layer;
-        if (this.showOtherLayers && this.selectedLayer === layer)
+        if (this.showOtherLayers && this.selectedLayer === layer) {
           layerQuad.upperBorderColor = 'rgb(156,189,45)';
+        }
 
-        if (this.showAnimationBounds)
+        if (this.showAnimationBounds) {
           this.appendAnimationQuads_(quads, layer, layerQuad);
+        }
 
         this.appendImageQuads_(quads, layer, layerQuad);
         quads.push(layerQuad);
 
 
-        if (this.showInvalidations)
+        if (this.showInvalidations) {
           this.appendInvalidationQuads_(quads, layer, layerQuad);
-        if (this.showUnrecordedRegion)
+        }
+        if (this.showUnrecordedRegion) {
           this.appendUnrecordedRegionQuads_(quads, layer, layerQuad);
-        if (this.showBottlenecks)
+        }
+        if (this.showBottlenecks) {
           this.appendBottleneckQuads_(quads, layer, layerQuad,
               layerQuad.stackingGroupId);
-        if (this.showLayoutRects)
+        }
+        if (this.showLayoutRects) {
           this.appendLayoutRectQuads_(quads, layer, layerQuad);
+        }
 
         if (this.howToShowTiles === 'coverage') {
           this.appendTileCoverageRectQuads_(
@@ -1101,14 +1106,14 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       }
 
       this.layerTreeImpl.iterLayers(function(layer, depth, isMask, isReplica) {
-        if (!this.showOtherLayers && this.selectedLayer !== layer)
-          return;
-        if (alreadyVisitedLayerIds[layer.layerId])
-          return;
+        if (!this.showOtherLayers && this.selectedLayer !== layer) return;
+        if (alreadyVisitedLayerIds[layer.layerId]) return;
+
         var layerQuad = layer.layerQuad;
         var stackingGroupId = nextStackingGroupId++;
-        if (this.showBottlenecks)
+        if (this.showBottlenecks) {
           this.appendBottleneckQuads_(quads, layer, layerQuad, stackingGroupId);
+        }
       }, this);
 
       var tracedInputLatencies = this.layerTreeImpl.tracedInputLatencies;
@@ -1166,15 +1171,14 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       var renderProcess = lthi.objectInstance.parent;
       var tasks = [];
       for (var event of renderProcess.getDescendantEvents()) {
-        if (!(event instanceof tr.model.Slice))
-          continue;
+        if (!(event instanceof tr.model.Slice)) continue;
 
         var tile = tr.e.cc.getTileFromRasterTaskSlice(event);
-        if (tile === undefined)
-          continue;
+        if (tile === undefined) continue;
 
-        if (tile.containingSnapshot === lthi)
+        if (tile.containingSnapshot === lthi) {
           tasks.push(event);
+        }
       }
       return tasks;
     },

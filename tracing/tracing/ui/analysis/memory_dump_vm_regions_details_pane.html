@@ -128,15 +128,13 @@ tr.exportTo('tr.ui.analysis', function() {
   };
 
   function hexString(address, is64BitAddress) {
-    if (address === undefined)
-      return undefined;
+    if (address === undefined) return undefined;
     var hexPadding = is64BitAddress ? '0000000000000000' : '00000000';
     return (hexPadding + address.toString(16)).substr(-hexPadding.length);
   }
 
   function pruneEmptyRuleRows(row) {
-    if (row.subRows === undefined || row.subRows.length === 0)
-      return;
+    if (row.subRows === undefined || row.subRows.length === 0) return;
 
     // Either all sub-rows are rule rows, or all sub-rows are VM region rows.
     if (row.subRows[0].rule === undefined) {
@@ -239,11 +237,9 @@ tr.exportTo('tr.ui.analysis', function() {
     createRows_: function(timeToVmRegionTree) {
       // Determine if any start address is outside the 32-bit range.
       var is64BitAddress = timeToVmRegionTree.some(function(vmRegionTree) {
-        if (vmRegionTree === undefined)
-          return false;
+        if (vmRegionTree === undefined) return false;
         return vmRegionTree.someRegion(function(region) {
-          if (region.startAddress === undefined)
-            return false;
+          if (region.startAddress === undefined) return false;
           return region.startAddress >= 4294967296; /* 2^32 */
         });
       });
@@ -263,12 +259,10 @@ tr.exportTo('tr.ui.analysis', function() {
       var childNodeIdToTimeToNode = tr.b.dictionaryValues(
           tr.b.invertArrayOfDicts(timeToNode, function(node) {
             var children = node.children;
-            if (children === undefined)
-              return undefined;
+            if (children === undefined) return undefined;
             var childMap = {};
             children.forEach(function(childNode) {
-              if (!childNode.hasRegions)
-                return;
+              if (!childNode.hasRegions) return;
               childMap[childNode.title] = childNode;
             });
             return childMap;
@@ -283,8 +277,7 @@ tr.exportTo('tr.ui.analysis', function() {
       var regionIdToTimeToRegion = tr.b.dictionaryValues(
           tr.b.invertArrayOfDicts(timeToNode, function(node) {
             var regions = node.regions;
-            if (regions === undefined)
-              return undefined;
+            if (regions === undefined) return undefined;
             return tr.b.arrayToDict(regions, function(region) {
               return region.uniqueIdWithinProcess;
             });
@@ -324,8 +317,7 @@ tr.exportTo('tr.ui.analysis', function() {
     createConstantCells_: function(definedRegion, is64BitAddress) {
       return tr.ui.analysis.createCells([definedRegion], function(region) {
         var startAddress = region.startAddress;
-        if (startAddress === undefined)
-          return undefined;
+        if (startAddress === undefined) return undefined;
         return { 'Start address': hexString(startAddress, is64BitAddress) };
       });
     },
@@ -344,8 +336,9 @@ tr.exportTo('tr.ui.analysis', function() {
                 sizeInBytes_smallerIsBetter, sizeInBytes);
         }
         var protectionFlags = region.protectionFlagsToString;
-        if (protectionFlags !== undefined)
+        if (protectionFlags !== undefined) {
           fields['Protection flags'] = protectionFlags;
+        }
 
         for (var [byteStatName, columnName] of
             Object.entries(BYTE_STAT_COLUMN_MAP)) {

@@ -45,7 +45,7 @@ can push their state to the controller using the following three methods:
      beforehand when removed from a context group).
 
   3. onScalarSpanUpdated(contextGroup, span)
-     This method should be called when a span's value changes.
+     This method should be called when the value of a span changes.
 
 Note: If a span wants to change its context group, it should first call
 onScalarSpanRemoved with the old group and then onScalarSpanAdded with the new
@@ -92,8 +92,9 @@ tr.exportTo('tr.v.ui', function() {
     },
 
     detached: function() {
-      if (!this.host_)
+      if (!this.host_) {
         throw new Error('Scalar context controller is not attached to a host');
+      }
       if (this.host_.__scalarContextController !== this) {
         throw new Error(
             'Scalar context controller is not attached to its host');
@@ -116,24 +117,27 @@ tr.exportTo('tr.v.ui', function() {
         };
         this.groupToContext_.set(group, context);
       }
-      if (context.spans.has(span))
+      if (context.spans.has(span)) {
         throw new Error('Scalar span already registered with group: ' + group);
+      }
       context.spans.add(span);
       this._markGroupDirtyAndScheduleUpdate(group);
     },
 
     onScalarSpanRemoved: function(group, span) {
       let context = this.groupToContext_.get(group);
-      if (!context.spans.has(span))
+      if (!context.spans.has(span)) {
         throw new Error('Scalar span not registered with group: ' + group);
+      }
       context.spans.delete(span);
       this._markGroupDirtyAndScheduleUpdate(group);
     },
 
     onScalarSpanUpdated: function(group, span) {
       let context = this.groupToContext_.get(group);
-      if (!context.spans.has(span))
+      if (!context.spans.has(span)) {
         throw new Error('Scalar span not registered with group: ' + group);
+      }
       this._markGroupDirtyAndScheduleUpdate(group);
     },
 
@@ -148,12 +152,12 @@ tr.exportTo('tr.v.ui', function() {
 
     updateContext: function() {
       let groups = this.dirtyGroups_;
-      if (groups.size === 0)
-        return;
+      if (groups.size === 0) return;
       this.dirtyGroups_ = new Set();
 
-      for (let group of groups)
+      for (let group of groups) {
         this.updateGroup_(group);
+      }
 
       let event = new tr.b.Event('context-updated');
       event.groups = groups;
@@ -167,25 +171,29 @@ tr.exportTo('tr.v.ui', function() {
         return;
       }
       context.range.reset();
-      for (let span of context.spans)
+      for (let span of context.spans) {
         context.range.addValue(span.value);
+      }
     }
   });
 
   function getScalarContextControllerForElement(element) {
     while (element) {
-      if (element.__scalarContextController)
+      if (element.__scalarContextController) {
         return element.__scalarContextController;
+      }
       element = findParentOrHost(element);
     }
     return undefined;
   }
 
   function findParentOrHost(node) {
-    if (node.parentElement)
+    if (node.parentElement) {
       return node.parentElement;
-    while (Polymer.dom(node).parentNode)
+    }
+    while (Polymer.dom(node).parentNode) {
       node = Polymer.dom(node).parentNode;
+    }
     return node.host;
   }
 

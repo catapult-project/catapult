@@ -36,8 +36,9 @@ tr.exportTo('tr.importer', function() {
     events.forEach(function(event) {
       var sliceGroup = event.parentContainer.sliceGroup;
       var slice = sliceGroup && sliceGroup.findFirstSlice();
-      if (slice)
+      if (slice) {
         deduper.push(slice);
+      }
     });
     return deduper.toArray();
   }
@@ -52,21 +53,19 @@ tr.exportTo('tr.importer', function() {
     openingEvents.forEach(function(openingEvent) {
       closingEvents.forEach(function(closingEvent) {
         // Ignore opening event that already have a closing event.
-        if (openingEvent.closingEvent)
-          return;
+        if (openingEvent.closingEvent) return;
 
         // Ignore closing events that already belong to an opening event.
-        if (closingEvent.openingEvent)
-          return;
+        if (closingEvent.openingEvent) return;
 
         // Ignore closing events before |openingEvent|.
-        if (closingEvent.start <= openingEvent.start)
-          return;
+        if (closingEvent.start <= openingEvent.start) return;
 
         // Ignore events from different threads.
         if (openingEvent.parentContainer.parent.pid !==
-              closingEvent.parentContainer.parent.pid)
+            closingEvent.parentContainer.parent.pid) {
           return;
+        }
 
         // This is the first closing event for this opening event, record it.
         openingEvent.closingEvent = closingEvent;

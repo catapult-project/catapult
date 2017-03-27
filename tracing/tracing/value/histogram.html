@@ -350,10 +350,12 @@ tr.exportTo('tr.v', function() {
       for (let bin of this.allBins) {
         valuesToSkip -= bin.count;
         if (valuesToSkip >= 0) continue;
-        if (bin.range.min === -Number.MAX_VALUE)
+        if (bin.range.min === -Number.MAX_VALUE) {
           return bin.range.max;
-        if (bin.range.max === Number.MAX_VALUE)
+        }
+        if (bin.range.max === Number.MAX_VALUE) {
           return bin.range.min;
+        }
         return bin.range.center;
       }
       return this.allBins[this.allBins.length - 1].range.min;

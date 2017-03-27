@@ -86,8 +86,7 @@ Polymer({
 
   commentClick: function(event) {
     var anchor = event.currentTarget.comment.anchor;
-    if (!anchor)
-      return;
+    if (!anchor) return;
 
     var uiState =
         JSON.parse(anchor).a[0][tr.ui.e.drive.constants.ANCHOR_NAME];
@@ -99,8 +98,9 @@ Polymer({
     });
     document.dispatchEvent(myEvent);
 
-    if (this.annotationFromComment_)
+    if (this.annotationFromComment_) {
       this.model.removeAnnotation(this.annotationFromComment_);
+    }
     var loc = new tr.model.Location(uiState.location.xWorld,
                                 uiState.location.yComponents);
 
@@ -139,8 +139,9 @@ Polymer({
   },
 
   get currentRangeOfInterest() {
-    if (this.rangeOfInterest_.isEmpty)
+    if (this.rangeOfInterest_.isEmpty) {
       return this.model_.bounds;
+    }
     return this.rangeOfInterest_;
   },
 

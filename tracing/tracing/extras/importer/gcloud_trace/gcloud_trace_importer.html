@@ -24,13 +24,13 @@ tr.exportTo('tr.e.importer.gcloud_trace', function() {
    * @return {boolean} Whether obj looks like the JSON output from Cloud Trace.
    */
   GcloudTraceImporter.canImport = function(eventData) {
-    if (typeof(eventData) !== 'string' && !(eventData instanceof String))
+    if (typeof(eventData) !== 'string' && !(eventData instanceof String)) {
       return false;
+    }
 
     // Slice the data so we don't potentially do a replace on a gigantic string.
     var normalizedEventData = eventData.slice(0, 20).replace(/\s/g, '');
-    if (normalizedEventData.length < 14)
-      return false;
+    if (normalizedEventData.length < 14) return false;
 
     return normalizedEventData.slice(0, 14) === '{"projectId":"';
   };

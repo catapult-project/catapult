@@ -25,27 +25,25 @@ tr.exportTo('tr.b', function() {
 
   function deepCopy(value) {
     if (!(value instanceof Object)) {
-      if (value === undefined || value === null)
-        return value;
-      if (typeof value === 'string')
-        return value.substring();
-      if (typeof value === 'boolean')
-        return value;
-      if (typeof value === 'number')
-        return value;
+      if (value === undefined || value === null) return value;
+      if (typeof value === 'string') return value.substring();
+      if (typeof value === 'boolean') return value;
+      if (typeof value === 'number') return value;
       throw new Error('Unrecognized: ' + typeof value);
     }
 
     var object = value;
     if (object instanceof Array) {
       var res = new Array(object.length);
-      for (var i = 0; i < object.length; i++)
+      for (var i = 0; i < object.length; i++) {
         res[i] = deepCopy(object[i]);
+      }
       return res;
     }
 
-    if (object.__proto__ !== Object.prototype)
+    if (object.__proto__ !== Object.prototype) {
       throw new Error('Can only clone simple types');
+    }
     var res = {};
     for (var key in object) {
       res[key] = deepCopy(object[key]);

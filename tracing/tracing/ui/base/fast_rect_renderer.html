@@ -67,8 +67,9 @@ tr.exportTo('tr.ui.b', function() {
      */
     setYandH: function(y, h) {
       if (this.y_ === y &&
-          this.h_ === h)
+          this.h_ === h) {
         return;
+      }
       this.flush();
       this.y_ = y;
       this.h_ = h;
@@ -85,8 +86,9 @@ tr.exportTo('tr.ui.b', function() {
     fillRect: function(x, w, colorId, alpha) {
       var r = x + w;
       if (w < this.minRectSize_) {
-        if (r - this.mergeStartX_ > this.maxMergeDist_)
+        if (r - this.mergeStartX_ > this.maxMergeDist_) {
           this.flush();
+        }
         if (!this.merging_) {
           this.merging_ = true;
           this.mergeStartX_ = x;
@@ -103,8 +105,9 @@ tr.exportTo('tr.ui.b', function() {
           }
         }
       } else {
-        if (this.merging_)
+        if (this.merging_) {
           this.flush();
+        }
         this.ctx_.fillStyle = this.pallette_[colorId];
         this.ctx_.globalAlpha = alpha;
         this.ctx_.fillRect(x, this.y_, w, this.h_);

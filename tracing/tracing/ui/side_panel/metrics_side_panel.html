@@ -55,8 +55,8 @@ tr.exportTo('tr.ui', function() {
       this.metrics_ = [];
       tr.metrics.MetricRegistry.getAllRegisteredTypeInfos().forEach(
           function(m) {
-            if (m.constructor.name === 'sampleMetric')
-              return;
+            if (m.constructor.name === 'sampleMetric') return;
+
             this.metrics_.push({
               label: m.constructor.name,
               value: m.constructor.name
@@ -181,8 +181,9 @@ tr.exportTo('tr.ui', function() {
       if (this.currentMetricTypeInfo_ &&
           this.currentMetricTypeInfo_.metadata.supportsRangeOfInterest &&
           this.rangeOfInterest &&
-          !this.rangeOfInterest.isEmpty)
+          !this.rangeOfInterest.isEmpty) {
         options.rangeOfInterest = this.rangeOfInterest;
+      }
 
       var startDate = new Date();
       try {
@@ -193,8 +194,9 @@ tr.exportTo('tr.ui', function() {
       }
 
       this.metricLatenciesMs_.push(new Date() - startDate);
-      while (this.metricLatenciesMs_.length > 20)
+      while (this.metricLatenciesMs_.length > 20) {
         this.metricLatenciesMs_.shift();
+      }
 
       this.recomputeButton_.style.background = '';
 

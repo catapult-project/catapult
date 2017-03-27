@@ -62,14 +62,14 @@ tr.exportTo('tr.ui.b', function() {
         var newtitle = title;
         var elided = false;
         while (this.labelWidthWorld(ctx, newtitle, pixWidth) > sliceDuration) {
-          if (newtitle.length * 0.75 < 1)
-            break;
+          if (newtitle.length * 0.75 < 1) break;
           newtitle = newtitle.substring(0, newtitle.length * 0.75);
           elided = true;
         }
 
-        if (elided && newtitle.length > 3)
+        if (elided && newtitle.length > 3) {
           newtitle = newtitle.substring(0, newtitle.length - 3) + '...';
+        }
 
         stringWidthPair = new ElidedStringWidthPair(
             newtitle, this.labelWidth(ctx, newtitle));

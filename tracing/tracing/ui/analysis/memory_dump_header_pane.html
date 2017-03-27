@@ -146,18 +146,20 @@ tr.exportTo('tr.ui.analysis', function() {
     updateAggregationModeSelector_: function() {
       var displayStyle;
       if (this.containerMemoryDumps_ === undefined ||
-          this.containerMemoryDumps_.length <= 1)
+          this.containerMemoryDumps_.length <= 1) {
         displayStyle = 'none';
-      else
+      } else {
         displayStyle = 'initial';
+      }
       this.$.aggregation_mode_container.style.display = displayStyle;
     },
 
     changeChildPane_: function() {
       this.childPaneBuilder = function() {
         if (this.containerMemoryDumps_ === undefined ||
-            this.containerMemoryDumps_.length <= 0)
+            this.containerMemoryDumps_.length <= 0) {
           return undefined;
+        }
 
         var overviewPane = document.createElement(
             'tr-ui-a-memory-dump-overview-pane');

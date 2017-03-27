@@ -39,8 +39,7 @@ tr.exportTo('tr.v.ui', function() {
     let curProto = diagnostic.constructor.prototype;
     while (curProto) {
       typeInfo = tr.v.d.Diagnostic.findTypeInfo(curProto.constructor);
-      if (typeInfo && typeInfo.metadata.elementName)
-        break;
+      if (typeInfo && typeInfo.metadata.elementName) break;
       typeInfo = undefined;
       curProto = curProto.__proto__;
     }
@@ -53,8 +52,9 @@ tr.exportTo('tr.v.ui', function() {
 
     let tagName = typeInfo.metadata.elementName;
 
-    if (tr.ui.b.isUnknownElementName(tagName))
+    if (tr.ui.b.isUnknownElementName(tagName)) {
       throw new Error('Element not registered: ' + tagName);
+    }
 
     return tagName;
   }

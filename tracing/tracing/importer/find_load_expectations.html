@@ -22,8 +22,9 @@ tr.exportTo('tr.importer', function() {
     var events = [];
     for (var event of modelHelper.model.getDescendantEvents()) {
       if ((event.title === NAVIGATION_START) ||
-          (event.title === FIRST_CONTENTFUL_PAINT_TITLE))
+          (event.title === FIRST_CONTENTFUL_PAINT_TITLE)) {
         events.push(event);
+      }
     }
     events.sort(tr.importer.compareEvents);
 

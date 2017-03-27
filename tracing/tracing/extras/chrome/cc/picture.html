@@ -60,8 +60,9 @@ tr.exportTo('tr.e.cc', function() {
         }
       });
 
-      if (!ops)
+      if (!ops) {
         console.error('Failed to get picture ops.');
+      }
 
       return ops;
     },
@@ -79,8 +80,9 @@ tr.exportTo('tr.e.cc', function() {
         }
       });
 
-      if (!opTimings)
+      if (!opTimings) {
         console.error('Failed to get picture op timings.');
+      }
 
       return opTimings;
     },
@@ -99,16 +101,19 @@ tr.exportTo('tr.e.cc', function() {
       var opTimings = [];
       for (var iteration = 0; iteration < OPS_TIMING_ITERATIONS; iteration++) {
         opTimings[iteration] = this.getOpTimings();
-        if (!opTimings[iteration] || !opTimings[iteration].cmd_times)
+        if (!opTimings[iteration] || !opTimings[iteration].cmd_times) {
           return ops;
-        if (opTimings[iteration].cmd_times.length !== ops.length)
+        }
+        if (opTimings[iteration].cmd_times.length !== ops.length) {
           return ops;
+        }
       }
 
       for (var opIndex = 0; opIndex < ops.length; opIndex++) {
         var min = Number.MAX_VALUE;
-        for (var i = 0; i < OPS_TIMING_ITERATIONS; i++)
+        for (var i = 0; i < OPS_TIMING_ITERATIONS; i++) {
           min = Math.min(min, opTimings[i].cmd_times[opIndex]);
+        }
         ops[opIndex].cmd_time = min;
       }
 
@@ -180,8 +185,9 @@ tr.exportTo('tr.e.cc', function() {
     },
 
     get layerRect() {
-      if (this.layerRect_ !== undefined)
+      if (this.layerRect_ !== undefined) {
         return this.layerRect_;
+      }
 
       this.layerRect_ = {
         x: 0,
@@ -212,8 +218,9 @@ tr.exportTo('tr.e.cc', function() {
 
     getOps: function() {
       var ops = [];
-      for (var i = 0; i < this.pictures_.length; ++i)
+      for (var i = 0; i < this.pictures_.length; ++i) {
         ops = ops.concat(this.pictures_[i].getOps());
+      }
       return ops;
     },
 
@@ -231,14 +238,16 @@ tr.exportTo('tr.e.cc', function() {
       var opTimings = [];
       for (var iteration = 0; iteration < OPS_TIMING_ITERATIONS; iteration++) {
         opTimings[iteration] = this.getOpTimings();
-        if (!opTimings[iteration] || !opTimings[iteration].cmd_times)
+        if (!opTimings[iteration] || !opTimings[iteration].cmd_times) {
           return ops;
+        }
       }
 
       for (var opIndex = 0; opIndex < ops.length; opIndex++) {
         var min = Number.MAX_VALUE;
-        for (var i = 0; i < OPS_TIMING_ITERATIONS; i++)
+        for (var i = 0; i < OPS_TIMING_ITERATIONS; i++) {
           min = Math.min(min, opTimings[i].cmd_times[opIndex]);
+        }
         ops[opIndex].cmd_time = min;
       }
       return ops;
@@ -248,8 +257,9 @@ tr.exportTo('tr.e.cc', function() {
       this.picturesAsImageData_ = [];
       var rasterCallback = function(pictureAsImageData) {
         this.picturesAsImageData_.push(pictureAsImageData);
-        if (this.picturesAsImageData_.length !== this.pictures_.length)
+        if (this.picturesAsImageData_.length !== this.pictures_.length) {
           return;
+        }
 
         var canvas = document.createElement('canvas');
         var ctx = canvas.getContext('2d');
@@ -271,8 +281,9 @@ tr.exportTo('tr.e.cc', function() {
                 this.layerRect.width, this.layerRect.height)));
       }.bind(this);
 
-      for (var i = 0; i < this.pictures_.length; ++i)
+      for (var i = 0; i < this.pictures_.length; ++i) {
         this.pictures_[i].rasterize(params, rasterCallback);
+      }
     }
   };
 
@@ -289,40 +300,49 @@ tr.exportTo('tr.e.cc', function() {
   };
 
   PictureSnapshot.CanRasterize = function() {
-    if (!PictureSnapshot.HasSkiaBenchmarking())
+    if (!PictureSnapshot.HasSkiaBenchmarking()) {
       return false;
-    if (!window.chrome.skiaBenchmarking.rasterize)
+    }
+    if (!window.chrome.skiaBenchmarking.rasterize) {
       return false;
+    }
     return true;
   };
 
   PictureSnapshot.CanGetOps = function() {
-    if (!PictureSnapshot.HasSkiaBenchmarking())
+    if (!PictureSnapshot.HasSkiaBenchmarking()) {
       return false;
-    if (!window.chrome.skiaBenchmarking.getOps)
+    }
+    if (!window.chrome.skiaBenchmarking.getOps) {
       return false;
+    }
     return true;
   };
 
   PictureSnapshot.CanGetOpTimings = function() {
-    if (!PictureSnapshot.HasSkiaBenchmarking())
+    if (!PictureSnapshot.HasSkiaBenchmarking()) {
       return false;
-    if (!window.chrome.skiaBenchmarking.getOpTimings)
+    }
+    if (!window.chrome.skiaBenchmarking.getOpTimings) {
       return false;
+    }
     return true;
   };
 
   PictureSnapshot.CanGetInfo = function() {
-    if (!PictureSnapshot.HasSkiaBenchmarking())
+    if (!PictureSnapshot.HasSkiaBenchmarking()) {
       return false;
-    if (!window.chrome.skiaBenchmarking.getInfo)
+    }
+    if (!window.chrome.skiaBenchmarking.getInfo) {
       return false;
+    }
     return true;
   };
 
   PictureSnapshot.HowToEnablePictureDebugging = function() {
-    if (tr.isHeadless)
+    if (tr.isHeadless) {
       return 'Pictures only work in chrome';
+    }
 
     var usualReason = [
       'For pictures to show up, you need to have Chrome running with ',
@@ -330,16 +350,21 @@ tr.exportTo('tr.e.cc', function() {
       'and try again.'
     ].join('');
 
-    if (!tr.isExported('global.chrome.skiaBenchmarking'))
+    if (!tr.isExported('global.chrome.skiaBenchmarking')) {
       return usualReason;
-    if (!global.chrome.skiaBenchmarking.rasterize)
+    }
+    if (!global.chrome.skiaBenchmarking.rasterize) {
       return 'Your chrome is old';
-    if (!global.chrome.skiaBenchmarking.getOps)
+    }
+    if (!global.chrome.skiaBenchmarking.getOps) {
       return 'Your chrome is old: skiaBenchmarking.getOps not found';
-    if (!global.chrome.skiaBenchmarking.getOpTimings)
+    }
+    if (!global.chrome.skiaBenchmarking.getOpTimings) {
       return 'Your chrome is old: skiaBenchmarking.getOpTimings not found';
-    if (!global.chrome.skiaBenchmarking.getInfo)
+    }
+    if (!global.chrome.skiaBenchmarking.getInfo) {
       return 'Your chrome is old: skiaBenchmarking.getInfo not found';
+    }
     return 'Rasterizing is on';
   };
 
@@ -354,11 +379,13 @@ tr.exportTo('tr.e.cc', function() {
     initialize: function() {
       // If we have an alias args, that means this picture was represented
       // by an alias, and the real args is in alias.args.
-      if (this.args.alias)
+      if (this.args.alias) {
         this.args = this.args.alias.args;
+      }
 
-      if (!this.args.params.layerRect)
+      if (!this.args.params.layerRect) {
         throw new Error('Missing layer rect');
+      }
 
       this.layerRect_ = this.args.params.layerRect;
       this.picture_ = new Picture(this.args.skp64, this.args.params.layerRect);

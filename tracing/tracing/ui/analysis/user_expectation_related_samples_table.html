@@ -34,8 +34,9 @@ Polymer({
         value: function(row) {
           var typeEl = document.createElement('span');
           typeEl.innerText = row.type;
-          if (row.tooltip)
+          if (row.tooltip) {
             typeEl.title = row.tooltip;
+          }
           return typeEl;
         },
         width: '150px'
@@ -45,10 +46,11 @@ Polymer({
         width: '100%',
         value: function(row) {
           var linkEl = document.createElement('tr-ui-a-analysis-link');
-          if (row.name)
+          if (row.name) {
             linkEl.setSelectionAndContent(row.selection, row.name);
-          else
+          } else {
             linkEl.selection = row.selection;
+          }
           return linkEl;
         }
       }
@@ -78,10 +80,11 @@ Polymer({
 
   updateContents_: function() {
     var table = this.$.table;
-    if (this.samples_ && this.samples_.length > 0)
+    if (this.samples_ && this.samples_.length > 0) {
       table.tableRows = this.samples_.slice();
-    else
+    } else {
       table.tableRows = [];
+    }
     table.rebuild();
   }
 });

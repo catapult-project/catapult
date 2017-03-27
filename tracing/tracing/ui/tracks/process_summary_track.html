@@ -23,8 +23,7 @@ tr.exportTo('tr.ui.tracks', function() {
       tr.ui.tracks.RectTrack);
 
   ProcessSummaryTrack.buildRectsFromProcess = function(process) {
-    if (!process)
-      return [];
+    if (!process) return [];
 
     var ops = [];
     // build list of start/end ops for each top level or important slice

@@ -37,8 +37,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
     updateContents_: function() {
       this.set('$.content.textContent', '');
-      if (!this.currentSelection_)
-        return;
+      if (!this.currentSelection_) return;
 
       var columns = [
         {
@@ -149,8 +148,9 @@ tr.exportTo('tr.ui.analysis', function() {
         {
           title: 'row',
           value: function(layoutObject) {
-            if (layoutObject.tableRow === undefined)
+            if (layoutObject.tableRow === undefined) {
               return '';
+            }
             return layoutObject.tableRow;
           }
         },
@@ -158,8 +158,9 @@ tr.exportTo('tr.ui.analysis', function() {
         {
           title: 'col',
           value: function(layoutObject) {
-            if (layoutObject.tableCol === undefined)
+            if (layoutObject.tableCol === undefined) {
               return '';
+            }
             return layoutObject.tableCol;
           }
         },
@@ -167,8 +168,9 @@ tr.exportTo('tr.ui.analysis', function() {
         {
           title: 'rowSpan',
           value: function(layoutObject) {
-            if (layoutObject.tableRowSpan === undefined)
+            if (layoutObject.tableRowSpan === undefined) {
               return '';
+            }
             return layoutObject.tableRowSpan;
           }
         },
@@ -176,8 +178,9 @@ tr.exportTo('tr.ui.analysis', function() {
         {
           title: 'colSpan',
           value: function(layoutObject) {
-            if (layoutObject.tableColSpan === undefined)
+            if (layoutObject.tableColSpan === undefined) {
               return '';
+            }
             return layoutObject.tableColSpan;
           }
         },

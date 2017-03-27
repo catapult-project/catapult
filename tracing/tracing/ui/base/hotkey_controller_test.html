@@ -16,8 +16,9 @@ tr.b.unittest.testSuite(function() {
 
   function newKeyEvent(eventType, dict) {
     var e = new tr.b.Event(eventType, true, true);
-    if (dict.keyCode === undefined)
+    if (dict.keyCode === undefined) {
       throw new Error('keyCode required');
+    }
     e.keyCode = dict.keyCode;
     return e;
   }

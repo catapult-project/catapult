@@ -41,8 +41,9 @@ tr.exportTo('tr.model', function() {
     },
 
     getFlowEventsWithId: function(id) {
-      if (!this.flowEventsById_.hasOwnProperty(id))
+      if (!this.flowEventsById_.hasOwnProperty(id)) {
         return [];
+      }
       return this.flowEventsById_[id];
     }
   };

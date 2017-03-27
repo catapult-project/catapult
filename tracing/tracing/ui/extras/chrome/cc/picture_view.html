@@ -35,8 +35,9 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     updateContents: function() {
-      if (this.objectSnapshot_ && this.pictureDebugger_)
+      if (this.objectSnapshot_ && this.pictureDebugger_) {
         this.pictureDebugger_.picture = this.objectSnapshot_;
+      }
     }
   };
 

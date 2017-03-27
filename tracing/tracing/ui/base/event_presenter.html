@@ -37,8 +37,9 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     getTextColor: function(event) {
-      if (event.selectionState === SelectionState.DIMMED)
+      if (event.selectionState === SelectionState.DIMMED) {
         return 'rgb(60,60,60)';
+      }
       return 'rgb(0,0,0)';
     },
 
@@ -48,8 +49,9 @@ tr.exportTo('tr.ui.b', function() {
 
     getSliceAlpha: function(slice, async) {
       var alpha = 1;
-      if (async)
+      if (async) {
         alpha *= 0.3;
+      }
       return alpha;
     },
 

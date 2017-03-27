@@ -56,10 +56,11 @@ tr.b.unittest.testSuite(function() {
     test.addHTMLOutput(spanEl);
 
     assert.strictEqual(Polymer.dom(node).textContent, expectedTextContent);
-    if (opt_expectedColor === undefined)
+    if (opt_expectedColor === undefined) {
       assert.notInstanceOf(node, HTMLElement);
-    else
+    } else {
       assert.strictEqual(node.style.color, opt_expectedColor);
+    }
   }
 
   function checkCompareFieldsEqual(column, fieldValuesA, fieldValuesB) {
@@ -89,8 +90,7 @@ tr.b.unittest.testSuite(function() {
 
   function buildScalarCell(unit, values) {
     return new MemoryCell(values.map(function(value) {
-      if (value === undefined)
-        return undefined;
+      if (value === undefined) return undefined;
       return new Scalar(unit, value);
     }));
   }
@@ -140,12 +140,13 @@ tr.b.unittest.testSuite(function() {
     var expectedInfos = opt_expectedInfos || [];
     assert.lengthOf(Polymer.dom(value).childNodes, 1 + expectedInfos.length);
     assert.strictEqual(value.style.color, expectedColor);
-    if (typeof expectedText === 'string')
+    if (typeof expectedText === 'string') {
       assert.strictEqual(
           Polymer.dom(Polymer.dom(value).childNodes[0]).textContent,
           expectedText);
-    else
+    } else {
       expectedText(Polymer.dom(value).childNodes[0]);
+    }
     for (var i = 0; i < expectedInfos.length; i++) {
       var expectedInfo = expectedInfos[i];
       var infoEl = Polymer.dom(value).childNodes[i + 1];
@@ -522,10 +523,8 @@ tr.b.unittest.testSuite(function() {
   test('checkStringMemoryColumn_value_singleField', function() {
     var c = new StringMemoryColumn('', ['x'], AggregationMode.MAX);
     c.color = function(fields, contexts) {
-      if (fields[0] < '0')
-        return 'green';
-      if (contexts && contexts[0] % 2 === 0)
-        return 'red';
+      if (fields[0] < '0') return 'green';
+      if (contexts && contexts[0] % 2 === 0) return 'red';
       return undefined;
     };
 
@@ -535,10 +534,11 @@ tr.b.unittest.testSuite(function() {
       { icon: '\u{1F64A}', message: 'Stop' }
     ];
     c.addInfos = function(fields, contexts, infos) {
-      if (fields[0] < '0')
+      if (fields[0] < '0') {
         infos.push.apply(infos, infos1);
-      else if (contexts && contexts[0] % 2 === 0)
+      } else if (contexts && contexts[0] % 2 === 0) {
         infos.push.apply(infos, infos2);
+      }
     };
 
     var row = {x: new MemoryCell(['123'])};
@@ -562,10 +562,11 @@ tr.b.unittest.testSuite(function() {
     var c3 = new StringMemoryColumn('test_column3', ['x'],
         AggregationMode.MAX);
     c3.color = function(fields, contexts) {
-      if (fields[0] < '0')
+      if (fields[0] < '0') {
         return 'green';
-      else if (contexts && contexts[contexts.length - 1] % 2 === 0)
+      } else if (contexts && contexts[contexts.length - 1] % 2 === 0) {
         return 'red';
+      }
       return undefined;
     };
 
@@ -576,10 +577,11 @@ tr.b.unittest.testSuite(function() {
     ];
     c1.addInfos = c2.addInfos = c3.addInfos =
         function(fields, contexts, infos) {
-          if (fields[0] < '0')
+          if (fields[0] < '0') {
             infos.push.apply(infos, infos1);
-          else if (contexts && contexts[contexts.length - 1] % 2 === 0)
+          } else if (contexts && contexts[contexts.length - 1] % 2 === 0) {
             infos.push.apply(infos, infos2);
+          }
         };
 
     var row = {x: new MemoryCell(['123', '456'])};

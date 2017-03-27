@@ -27,8 +27,9 @@ tr.exportTo('tr.e.chrome', function() {
     __proto__: BlameContextSnapshot.prototype,
 
     get renderFrame() {
-      if (this.args.renderFrame instanceof tr.e.chrome.RenderFrameSnapshot)
+      if (this.args.renderFrame instanceof tr.e.chrome.RenderFrameSnapshot) {
         return this.args.renderFrame;
+      }
       return undefined;
     },
 

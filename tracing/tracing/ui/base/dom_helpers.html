@@ -21,32 +21,42 @@ found in the LICENSE file.
 tr.exportTo('tr.ui.b', function() {
   function createSpan(opt_dictionary) {
     var ownerDocument = document;
-    if (opt_dictionary && opt_dictionary.ownerDocument)
+    if (opt_dictionary && opt_dictionary.ownerDocument) {
       ownerDocument = opt_dictionary.ownerDocument;
+    }
     var spanEl = ownerDocument.createElement('span');
     if (opt_dictionary) {
-      if (opt_dictionary.className)
+      if (opt_dictionary.className) {
         spanEl.className = opt_dictionary.className;
+      }
       if (opt_dictionary.textContent) {
         Polymer.dom(spanEl).textContent =
             opt_dictionary.textContent;
       }
-      if (opt_dictionary.tooltip)
+      if (opt_dictionary.tooltip) {
         spanEl.title = opt_dictionary.tooltip;
-      if (opt_dictionary.parent)
+      }
+      if (opt_dictionary.parent) {
         Polymer.dom(opt_dictionary.parent).appendChild(spanEl);
-      if (opt_dictionary.bold)
+      }
+      if (opt_dictionary.bold) {
         spanEl.style.fontWeight = 'bold';
-      if (opt_dictionary.italic)
+      }
+      if (opt_dictionary.italic) {
         spanEl.style.fontStyle = 'italic';
-      if (opt_dictionary.marginLeft)
+      }
+      if (opt_dictionary.marginLeft) {
         spanEl.style.marginLeft = opt_dictionary.marginLeft;
-      if (opt_dictionary.marginRight)
+      }
+      if (opt_dictionary.marginRight) {
         spanEl.style.marginRight = opt_dictionary.marginRight;
-      if (opt_dictionary.backgroundColor)
+      }
+      if (opt_dictionary.backgroundColor) {
         spanEl.style.backgroundColor = opt_dictionary.backgroundColor;
-      if (opt_dictionary.color)
+      }
+      if (opt_dictionary.color) {
         spanEl.style.color = opt_dictionary.color;
+      }
     }
     return spanEl;
   }
@@ -80,15 +90,19 @@ tr.exportTo('tr.ui.b', function() {
   function createDiv(opt_dictionary) {
     var divEl = document.createElement('div');
     if (opt_dictionary) {
-      if (opt_dictionary.className)
+      if (opt_dictionary.className) {
         divEl.className = opt_dictionary.className;
-      if (opt_dictionary.parent)
+      }
+      if (opt_dictionary.parent) {
         Polymer.dom(opt_dictionary.parent).appendChild(divEl);
-      if (opt_dictionary.textContent)
+      }
+      if (opt_dictionary.textContent) {
         Polymer.dom(divEl).textContent =
             opt_dictionary.textContent;
-      if (opt_dictionary.maxWidth)
+      }
+      if (opt_dictionary.maxWidth) {
         divEl.style.maxWidth = opt_dictionary.maxWidth;
+      }
     }
     return divEl;
   }
@@ -101,8 +115,9 @@ tr.exportTo('tr.ui.b', function() {
   }
 
   function valuesEqual(a, b) {
-    if (a instanceof Array && b instanceof Array)
+    if (a instanceof Array && b instanceof Array) {
       return a.length === b.length && JSON.stringify(a) === JSON.stringify(b);
+    }
     return a === b;
   }
 
@@ -118,8 +133,9 @@ tr.exportTo('tr.ui.b', function() {
         break;
       }
     }
-    if (defaultValueIndex === undefined)
+    if (defaultValueIndex === undefined) {
       throw new Error('defaultValue must be in the items list');
+    }
 
     var selectorEl = document.createElement('select');
     selectorEl.addEventListener('change', onChange);
@@ -194,8 +210,9 @@ tr.exportTo('tr.ui.b', function() {
       items) {
     function onChange() {
       var value = [];
-      if (this.value.length)
+      if (this.value.length) {
         value = this.value.split(',');
+      }
       tr.b.Settings.set(settingsKey, value);
       targetEl[targetElProperty] = value;
     }
@@ -214,8 +231,9 @@ tr.exportTo('tr.ui.b', function() {
       radioEl.addEventListener('change', onChange.bind(radioEl, targetEl,
           targetElProperty,
           settingsKey));
-      if (valuesEqual(initialValue, item.value))
+      if (valuesEqual(initialValue, item.value)) {
         radioEl.checked = true;
+      }
 
       var labelEl = document.createElement('label');
       Polymer.dom(labelEl).textContent = item.label;
@@ -227,8 +245,7 @@ tr.exportTo('tr.ui.b', function() {
 
       spanEl.__defineSetter__('checked', function(opt_bool) {
         var changed = radioEl.checked !== (!!opt_bool);
-        if (!changed)
-          return;
+        if (!changed) return;
 
         radioEl.checked = !!opt_bool;
         onChange();
@@ -245,8 +262,9 @@ tr.exportTo('tr.ui.b', function() {
     // querySelector will fail during updateEditCategoriesStatus_ call.
     // Hence, creating the element with the 'expanded' classlist category
     // added, if last selected value was 'Manual' selection.
-    if (!initialValue.length)
+    if (!initialValue.length) {
       Polymer.dom(optionGroupEl).classList.add('categories-expanded');
+    }
     targetEl[targetElProperty] = initialValue;
 
     return optionGroupEl;
@@ -264,17 +282,20 @@ tr.exportTo('tr.ui.b', function() {
       initialValue = tr.b.Settings.get(settingsKey, defaultValue);
       buttonEl.checked = !!initialValue;
     }
-    if (targetEl)
+    if (targetEl) {
       targetEl[targetElProperty] = initialValue;
+    }
 
     function onChange() {
       if (settingsKey !== undefined) {
         tr.b.Settings.set(settingsKey, buttonEl.checked);
       }
-      if (targetEl)
+      if (targetEl) {
         targetEl[targetElProperty] = buttonEl.checked;
-      if (opt_changeCb)
+      }
+      if (opt_changeCb) {
         opt_changeCb.call();
+      }
     }
 
     buttonEl.addEventListener('change', onChange);
@@ -292,8 +313,7 @@ tr.exportTo('tr.ui.b', function() {
 
     spanEl.__defineSetter__('checked', function(opt_bool) {
       var changed = buttonEl.checked !== (!!opt_bool);
-      if (!changed)
-        return;
+      if (!changed) return;
 
       buttonEl.checked = !!opt_bool;
       onChange();
@@ -319,8 +339,9 @@ tr.exportTo('tr.ui.b', function() {
       opt_callback.call(opt_this || buttonEl);
     }
 
-    if (opt_callback)
+    if (opt_callback) {
       buttonEl.addEventListener('click', onClick);
+    }
 
     return buttonEl;
   }
@@ -343,14 +364,16 @@ tr.exportTo('tr.ui.b', function() {
 
   function isElementAttachedToDocument(el) {
     var cur = el;
-    while (Polymer.dom(cur).parentNode)
+    while (Polymer.dom(cur).parentNode) {
       cur = Polymer.dom(cur).parentNode;
+    }
     return (cur === el.ownerDocument || cur.nodeName === '#document-fragment');
   }
 
   function asHTMLOrTextNode(value, opt_ownerDocument) {
-    if (value instanceof Node)
+    if (value instanceof Node) {
       return value;
+    }
     var ownerDocument = opt_ownerDocument || document;
     return ownerDocument.createTextNode(value);
   }

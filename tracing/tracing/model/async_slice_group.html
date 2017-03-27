@@ -46,11 +46,9 @@ tr.exportTo('tr.model', function() {
     },
 
     getSettingsKey: function() {
-      if (!this.name_)
-        return undefined;
+      if (!this.name_) return undefined;
       var parentKey = this.parentContainer_.getSettingsKey();
-      if (!parentKey)
-        return undefined;
+      if (!parentKey) return undefined;
       return parentKey + '.' + this.name_;
     },
 
@@ -80,8 +78,7 @@ tr.exportTo('tr.model', function() {
         slice.start = (slice.start + amount);
         // Shift all nested subSlices recursively.
         var shiftSubSlices = function(subSlices) {
-          if (subSlices === undefined || subSlices.length === 0)
-            return;
+          if (subSlices === undefined || subSlices.length === 0) return;
           for (var sJ = 0; sJ < subSlices.length; sJ++) {
             subSlices[sJ].start += amount;
             shiftSubSlices(subSlices[sJ].subSlices);
@@ -111,10 +108,11 @@ tr.exportTo('tr.model', function() {
     get viewSubGroups() {
       if (this.viewSubGroups_ === undefined) {
         var prefix = '';
-        if (this.name !== undefined)
+        if (this.name !== undefined) {
           prefix = this.name + '.';
-        else
+        } else {
           prefix = '';
+        }
 
         var subGroupsByTitle = {};
         for (var i = 0; i < this.slices.length; ++i) {
@@ -150,8 +148,9 @@ tr.exportTo('tr.model', function() {
       // which is why we don't recurse into the sub-slices here.
       for (var slice of this.slices) {
         yield slice;
-        if (slice.subSlices)
+        if (slice.subSlices) {
           yield* slice.subSlices;
+        }
       }
     },
 

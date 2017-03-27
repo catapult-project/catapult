@@ -95,8 +95,9 @@ tr.exportTo('tr.model', function() {
     }
 
     shiftTimestampsForward(amount) {
-      for (var i = 0; i < this.samples_.length; ++i)
+      for (var i = 0; i < this.samples_.length; ++i) {
         this.samples_[i].start += amount;
+      }
     }
 
     updateBounds() {

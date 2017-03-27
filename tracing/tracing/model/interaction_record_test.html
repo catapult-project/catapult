@@ -39,8 +39,9 @@ tr.b.unittest.testSuite(function() {
       model.ir1.associatedEvents.push(model.s1);
       model.ir1.associatedEvents.push(model.s2);
 
-      if (opt_customizeModelCallback)
+      if (opt_customizeModelCallback) {
         opt_customizeModelCallback(model);
+      }
     });
   }
   test('notSelected', function() {

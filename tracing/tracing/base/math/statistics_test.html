@@ -23,8 +23,9 @@ tr.b.unittest.testSuite(function() {
     opt_iterations = opt_iterations || 10;
     for (var i = 0; i < opt_iterations; i++) {
       var voronoiBoundaries = [];
-      for (var j = 1; j < samples.length; j++)
+      for (var j = 1; j < samples.length; j++) {
         voronoiBoundaries.push((samples[j] + samples[j - 1]) * 0.5);
+      }
 
       var relaxedSamples = [];
       relaxedSamples.push(samples[0]);
@@ -165,14 +166,16 @@ tr.b.unittest.testSuite(function() {
     assert.closeTo(6, Statistics.geometricMean(new Set([4, 9])), 1e-6);
 
     var samples = [];
-    for (var i = 0; i < 1e3; ++i)
+    for (var i = 0; i < 1e3; ++i) {
       samples.push(Number.MAX_SAFE_INTEGER);
+    }
     assert.closeTo(Number.MAX_SAFE_INTEGER, Statistics.geometricMean(samples),
         Number.MAX_SAFE_INTEGER * 1e-13);
 
     samples = [];
-    for (var i = 0; i < 1e3; ++i)
+    for (var i = 0; i < 1e3; ++i) {
       samples.push(Number.MAX_VALUE / 1e3);
+    }
     assert.closeTo(Number.MAX_VALUE / 1e3, Statistics.geometricMean(samples),
         Number.MAX_VALUE * 1e-13);
   });

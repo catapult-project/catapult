@@ -98,14 +98,12 @@ tr.exportTo('tr.model', function() {
     },
 
     get numSamples() {
-      if (this.series_.length === 0)
-        return 0;
+      if (this.series_.length === 0) return 0;
       return this.series_[0].length;
     },
 
     get timestamps() {
-      if (this.series_.length === 0)
-        return [];
+      if (this.series_.length === 0) return [];
       return this.series_[0].timestamps;
     },
 
@@ -136,8 +134,9 @@ tr.exportTo('tr.model', function() {
      * specified.
      */
     shiftTimestampsForward: function(amount) {
-      for (var i = 0; i < this.series_.length; ++i)
+      for (var i = 0; i < this.series_.length; ++i) {
         this.series_[i].shiftTimestampsForward(amount);
+      }
     },
 
     /**
@@ -148,8 +147,7 @@ tr.exportTo('tr.model', function() {
       this.maxTotal = 0;
       this.bounds.reset();
 
-      if (this.series_.length === 0)
-        return;
+      if (this.series_.length === 0) return;
 
       var firstSeries = this.series_[0];
       var lastSeries = this.series_[this.series_.length - 1];
@@ -179,11 +177,9 @@ tr.exportTo('tr.model', function() {
    */
   Counter.compare = function(x, y) {
     var tmp = x.parent.compareTo(y.parent);
-    if (tmp !== 0)
-      return tmp;
+    if (tmp !== 0) return tmp;
     var tmp = x.name.localeCompare(y.name);
-    if (tmp === 0)
-      return x.tid - y.tid;
+    if (tmp === 0) return x.tid - y.tid;
     return tmp;
   };
 

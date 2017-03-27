@@ -95,10 +95,11 @@ Polymer({
       e.stopPropagation();
       return;
     } else if (e.keyCode === 13) {
-      if (e.shiftKey)
+      if (e.shiftKey) {
         this.findPrevious();
-      else
+      } else {
         this.findNext();
+      }
     }
   },
 
@@ -145,14 +146,16 @@ Polymer({
   },
 
   findNext: function() {
-    if (this.controller)
+    if (this.controller) {
       this.controller.findNext();
+    }
     this.updateHitCountEl();
   },
 
   findPrevious: function() {
-    if (this.controller)
+    if (this.controller) {
       this.controller.findPrevious();
+    }
     this.updateHitCountEl();
   },
 

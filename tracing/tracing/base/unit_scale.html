@@ -24,8 +24,9 @@ tr.exportTo('tr.b', function() {
   var UnitScale = {};
 
   function defineUnitPrefixScale(name, prefixes) {
-    if (UnitPrefixScale[name] !== undefined)
+    if (UnitPrefixScale[name] !== undefined) {
       throw new Error('Unit prefix scale \'' + name + '\' already exists');
+    }
     if (prefixes.AUTO !== undefined) {
       throw new Error('The \'AUTO\' unit prefix is not supported for unit' +
           'prefix scales and cannot be added to scale \'' + name + '\'');
@@ -35,8 +36,9 @@ tr.exportTo('tr.b', function() {
   }
 
   UnitScale.defineUnitScale = function(name, unitScale) {
-    if (UnitScale[name] !== undefined)
+    if (UnitScale[name] !== undefined) {
       throw new Error('Unit scale \'' + name + '\' already exists');
+    }
     if (unitScale.AUTO !== undefined) {
       throw new Error('\'AUTO\' unit scale will be added automatically ' +
           'for unit scale \'' + name + '\'');

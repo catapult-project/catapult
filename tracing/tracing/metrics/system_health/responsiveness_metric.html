@@ -29,9 +29,10 @@ tr.exportTo('tr.metrics.sh', function() {
 
   function computeAnimationThroughput(animationExpectation) {
     if (animationExpectation.frameEvents === undefined ||
-        animationExpectation.frameEvents.length === 0)
+        animationExpectation.frameEvents.length === 0) {
       throw new Error('Animation missing frameEvents ' +
                       animationExpectation.stableId);
+    }
 
     var durationInS = tr.b.convertUnit(animationExpectation.duration,
         tr.b.UnitPrefixScale.METRIC.MILLI,
@@ -41,9 +42,10 @@ tr.exportTo('tr.metrics.sh', function() {
 
   function computeAnimationframeTimeDiscrepancy(animationExpectation) {
     if (animationExpectation.frameEvents === undefined ||
-        animationExpectation.frameEvents.length === 0)
+        animationExpectation.frameEvents.length === 0) {
       throw new Error('Animation missing frameEvents ' +
                       animationExpectation.stableId);
+    }
 
     var frameTimestamps = animationExpectation.frameEvents;
     frameTimestamps = frameTimestamps.toArray().map(function(event) {
@@ -79,8 +81,9 @@ tr.exportTo('tr.metrics.sh', function() {
     model.userModel.expectations.forEach(function(ue) {
       if (opt_options && opt_options.rangeOfInterest &&
           !opt_options.rangeOfInterest.intersectsExplicitRangeInclusive(
-              ue.start, ue.end))
+              ue.start, ue.end)) {
         return;
+      }
 
       var sampleDiagnosticMap = tr.v.d.DiagnosticMap.fromObject(
           {relatedEvents: new tr.v.d.RelatedEventSet([ue])});
@@ -101,23 +104,26 @@ tr.exportTo('tr.metrics.sh', function() {
           return;
         }
         var throughput = computeAnimationThroughput(ue);
-        if (throughput === undefined)
+        if (throughput === undefined) {
           throw new Error('Missing throughput for ' +
                           ue.stableId);
+        }
 
         throughputNumeric.addSample(throughput, sampleDiagnosticMap);
 
         var frameTimeDiscrepancy = computeAnimationframeTimeDiscrepancy(ue);
-        if (frameTimeDiscrepancy === undefined)
+        if (frameTimeDiscrepancy === undefined) {
           throw new Error('Missing frameTimeDiscrepancy for ' +
                           ue.stableId);
+        }
 
         frameTimeDiscrepancyNumeric.addSample(
             frameTimeDiscrepancy, sampleDiagnosticMap);
 
         ue.associatedEvents.forEach(function(event) {
-          if (!(event instanceof tr.e.cc.InputLatencyAsyncSlice))
+          if (!(event instanceof tr.e.cc.InputLatencyAsyncSlice)) {
             return;
+          }
 
           latencyNumeric.addSample(event.duration, sampleDiagnosticMap);
         });

@@ -265,8 +265,9 @@ Polymer({
   },
 
   set model(model) {
-    if (!model)
+    if (!model) {
       throw new Error('Model cannot be undefined');
+    }
 
     var modelInstanceChanged = this.model_ !== model;
     this.model_ = model;
@@ -353,8 +354,7 @@ Polymer({
   onMouseMove_: function(e) {
     // Zooming requires the delta since the last mousemove so we need to avoid
     // tracking it when the zoom interaction is active.
-    if (this.isZooming_)
-      return;
+    if (this.isZooming_) return;
 
     this.storeLastMousePos_(e);
   },
@@ -558,12 +558,14 @@ Polymer({
 
   onDblClick_: function(e) {
     if (this.mouseModeSelector_.mode !==
-        tr.ui.b.MOUSE_SELECTOR_MODE.SELECTION)
+        tr.ui.b.MOUSE_SELECTOR_MODE.SELECTION) {
       return;
+    }
 
     var curSelection = this.brushingStateController_.selection;
-    if (!curSelection.length || !tr.b.getOnlyElement(curSelection).title)
+    if (!curSelection.length || !tr.b.getOnlyElement(curSelection).title) {
       return;
+    }
 
     var selection = new tr.model.EventSet();
     var filter = new tr.c.ExactTitleFilter(
@@ -575,8 +577,7 @@ Polymer({
   },
 
   onMouseWheel_: function(e) {
-    if (!e.altKey)
-      return;
+    if (!e.altKey) return;
 
     var delta = e.wheelDelta / 120;
     var zoomScale = Math.pow(1.5, delta);
@@ -586,12 +587,12 @@ Polymer({
 
   onMouseDown_: function(e) {
     if (this.mouseModeSelector_.mode !==
-        tr.ui.b.MOUSE_SELECTOR_MODE.SELECTION)
+        tr.ui.b.MOUSE_SELECTOR_MODE.SELECTION) {
       return;
+    }
 
     // Mouse down must start on ruler track for crosshair guide lines to draw.
-    if (e.target !== this.rulerTrack_)
-      return;
+    if (e.target !== this.rulerTrack_) return;
 
     // Make sure we don't start a selection drag event here.
     this.dragBeginEvent_ = undefined;
@@ -606,16 +607,14 @@ Polymer({
     var dt = this.viewport_.currentDisplayTransform;
     tr.ui.b.trackMouseMovesUntilMouseUp(function(e) { // Mouse move handler.
       // If mouse event is on ruler, don't do anything.
-      if (e.target === this.rulerTrack_)
-        return;
+      if (e.target === this.rulerTrack_) return;
 
       var relativePosition = this.extractRelativeMousePosition_(e);
       var loc = tr.model.Location.fromViewCoordinates(
           this.viewport_, relativePosition.x, relativePosition.y);
       // Not all points on the timeline represents a valid location.
       // ex. process header tracks, letter dot tracks.
-      if (!loc)
-        return;
+      if (!loc) return;
 
       if (this.guideLineAnnotation_ === undefined) {
         this.guideLineAnnotation_ =
@@ -685,12 +684,10 @@ Polymer({
    * Zoom into the current selection.
    */
   zoomToSelection: function() {
-    if (!this.brushingStateController.selectionOfInterest.length)
-      return;
+    if (!this.brushingStateController.selectionOfInterest.length) return;
 
     var bounds = this.brushingStateController.selectionOfInterest.bounds;
-    if (!bounds.range)
-      return;
+    if (!bounds.range) return;
 
     var worldCenter = bounds.center;
     var viewCenter = this.modelTrackContainer_.canvas.width / 2;
@@ -711,8 +708,7 @@ Polymer({
    * Pan the view so the current selection becomes visible.
    */
   panToSelection: function() {
-    if (!this.brushingStateController.selectionOfInterest.length)
-      return;
+    if (!this.brushingStateController.selectionOfInterest.length) return;
 
     var bounds = this.brushingStateController.selectionOfInterest.bounds;
     var worldCenter = bounds.center;
@@ -764,11 +760,11 @@ Polymer({
         zoomInRatio);
     this.viewport_.queueDisplayTransformAnimation(animation);
 
-    if (!showNavLine)
-      return;
+    if (!showNavLine) return;
     // Add an X Marker Annotation at the specified timestamp.
-    if (this.xNavStringMarker_)
+    if (this.xNavStringMarker_) {
       this.model.removeAnnotation(this.xNavStringMarker_);
+    }
     this.xNavStringMarker_ =
         new tr.model.XMarkerAnnotation(worldCenter);
     this.model.addAnnotation(this.xNavStringMarker_);
@@ -792,10 +788,11 @@ Polymer({
     }
 
     if (this.viewport_.interestRange.min === selectionBounds.min &&
-        this.viewport_.interestRange.max === selectionBounds.max)
+        this.viewport_.interestRange.max === selectionBounds.max) {
       this.viewport_.interestRange.reset();
-    else
+    } else {
       this.viewport_.interestRange.set(selectionBounds);
+    }
   },
 
   toggleHighDetails_: function() {
@@ -836,8 +833,9 @@ Polymer({
 
     var intersectRect_ = function(r1, r2) {
       if (r2.left > r1.right || r2.right < r1.left ||
-          r2.top > r1.bottom || r2.bottom < r1.top)
+          r2.top > r1.bottom || r2.bottom < r1.top) {
         return false;
+      }
 
       var results = {};
       results.left = Math.max(r1.left, r2.left);
@@ -961,8 +959,7 @@ Polymer({
   },
 
   onUpdatePanScan_: function(e) {
-    if (!this.isPanningAndScanning_)
-      return;
+    if (!this.isPanningAndScanning_) return;
 
     var viewWidth = this.viewWidth_;
 
@@ -989,8 +986,9 @@ Polymer({
 
     this.storeLastMousePos_(e);
 
-    if (!e.isClick)
+    if (!e.isClick) {
       e.preventDefault();
+    }
   },
 
   onBeginSelection_: function(e) {
@@ -1006,8 +1004,7 @@ Polymer({
         e.clientX >= canvRect.left &&
         e.clientX < canvRect.right;
 
-    if (!inside)
-      return;
+    if (!inside) return;
 
     this.dragBeginEvent_ = e;
 
@@ -1016,8 +1013,7 @@ Polymer({
   },
 
   onUpdateSelection_: function(e) {
-    if (!this.dragBeginEvent_)
-      return;
+    if (!this.dragBeginEvent_) return;
 
     // Update the drag box
     this.dragBoxXStart_ = this.dragBeginEvent_.clientX;
@@ -1031,8 +1027,7 @@ Polymer({
   onEndSelection_: function(e) {
     e.preventDefault();
 
-    if (!this.dragBeginEvent_)
-      return;
+    if (!this.dragBeginEvent_) return;
 
     // Stop the dragging.
     this.hideDragBox_();
@@ -1055,8 +1050,9 @@ Polymer({
     var selection = new tr.model.EventSet();
     if (eDown.appendSelection) {
       var previousSelection = this.brushingStateController_.selection;
-      if (previousSelection !== undefined)
+      if (previousSelection !== undefined) {
         selection.addEventSet(previousSelection);
+      }
     }
     this.modelTrack_.addIntersectingEventsInRangeToSelection(
         loVX, hiVX, loY, hiY, selection);
@@ -1073,8 +1069,8 @@ Polymer({
   },
 
   onUpdateZoom_: function(e) {
-    if (!this.isZooming_)
-      return;
+    if (!this.isZooming_) return;
+
     var newPosition = this.extractRelativeMousePosition_(e);
 
     var zoomScaleValue = 1 + (this.lastMouseViewPos_.y -
@@ -1087,8 +1083,9 @@ Polymer({
   onEndZoom_: function(e) {
     this.isZooming_ = false;
 
-    if (!e.isClick)
+    if (!e.isClick) {
       e.preventDefault();
+    }
   },
 
   computeTouchCenter_: function(positions) {

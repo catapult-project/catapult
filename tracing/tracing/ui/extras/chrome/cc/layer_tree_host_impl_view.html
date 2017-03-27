@@ -67,15 +67,16 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
       var lthi = this.objectSnapshot;
       var layerTreeImpl;
-      if (lthi)
+      if (lthi) {
         layerTreeImpl = lthi.getTree(this.layerPicker_.whichTree);
+      }
 
       this.layerPicker_.lthiSnapshot = lthi;
       this.layerView_.layerTreeImpl = layerTreeImpl;
       this.layerView_.regenerateContent();
 
-      if (!this.selection_)
-        return;
+      if (!this.selection_) return;
+
       this.selection = this.selection_.findEquivalent(lthi);
     },
 
@@ -84,8 +85,8 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     set selection(selection) {
-      if (this.selection_ === selection)
-        return;
+      if (this.selection_ === selection) return;
+
       this.selection_ = selection;
       this.layerPicker_.selection = selection;
       this.layerView_.selection = selection;

@@ -53,10 +53,8 @@ tr.exportTo('tr.b', function() {
   }
 
   function max(a, b) {
-    if (a === undefined)
-      return b;
-    if (b === undefined)
-      return a;
+    if (a === undefined) return b;
+    if (b === undefined) return a;
     return a.scale > b.scale ? a : b;
   }
 
@@ -206,8 +204,7 @@ tr.exportTo('tr.b', function() {
     },
     // Use tr-v-ui-preferred-display-unit element instead of directly setting.
     set: function(value) {
-      if (Unit.currentTimeDisplayMode_ === value)
-        return;
+      if (Unit.currentTimeDisplayMode_ === value) return;
 
       Unit.currentTimeDisplayMode_ = value;
       Unit.dispatchEvent(new tr.b.Event('display-mode-changed'));
@@ -304,10 +301,12 @@ tr.exportTo('tr.b', function() {
 
     var unitName = params.baseUnitName + nameSuffix;
     var jsonName = params.baseJsonName + nameSuffix;
-    if (Unit.byName[unitName] !== undefined)
+    if (Unit.byName[unitName] !== undefined) {
       throw new Error('Unit \'' + unitName + '\' already exists');
-    if (Unit.byJSONName[jsonName] !== undefined)
+    }
+    if (Unit.byJSONName[jsonName] !== undefined) {
       throw new Error('JSON unit \'' + jsonName + '\' alread exists');
+    }
 
     var scaleBaseUnit = params.scaleBaseUnit;
     if (!scaleBaseUnit) {

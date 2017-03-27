@@ -52,8 +52,9 @@ tr.b.unittest.testSuite(function() {
   test('childEventContainers_noPowerSeries', function() {
     var device = new Device(new Model());
     var childEventContainers = [];
-    for (var container of device.childEventContainers())
+    for (var container of device.childEventContainers()) {
       childEventContainers.push(container);
+    }
     assert.deepEqual(childEventContainers, []);
   });
 
@@ -61,8 +62,9 @@ tr.b.unittest.testSuite(function() {
     var device = new Device(new Model());
     device.powerSeries = new PowerSeries(device);
     var childEventContainers = [];
-    for (var container of device.childEventContainers())
+    for (var container of device.childEventContainers()) {
       childEventContainers.push(container);
+    }
     assert.deepEqual(childEventContainers, [device.powerSeries]);
   });
 });

@@ -33,8 +33,9 @@ tr.exportTo('tr.ui.analysis', function() {
   MultiEventSummary.prototype = {
 
     set title(title) {
-      if (title === 'Totals')
+      if (title === 'Totals') {
         this.totalsRow = true;
+      }
       this.title_ = title;
     },
 
@@ -63,8 +64,7 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     computeCpuTimesIfNeeded_: function() {
-      if (this.cpuTimesComputed_)
-        return;
+      if (this.cpuTimesComputed_) return;
       this.cpuTimesComputed_ = true;
 
       var cpuSelfTime = 0;
@@ -90,9 +90,11 @@ tr.exportTo('tr.ui.analysis', function() {
     get selfTime() {
       if (this.selfTime_ === undefined) {
         this.selfTime_ = 0;
-        for (var event of this.events_)
-          if (event.selfTime !== undefined)
+        for (var event of this.events_) {
+          if (event.selfTime !== undefined) {
             this.selfTime_ += event.selfTime;
+          }
+        }
       }
       return this.selfTime_;
     },
@@ -170,8 +172,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
 
     updateArgsIfNeeded_: function() {
-      if (this.totalledArgs_ !== undefined)
-        return;
+      if (this.totalledArgs_ !== undefined) return;
 
       var untotallableArgs = {};
       var totalledArgs = {};
@@ -188,8 +189,9 @@ tr.exportTo('tr.ui.analysis', function() {
             continue;
           }
 
-          if (totalledArgs[argName] === undefined)
+          if (totalledArgs[argName] === undefined) {
             totalledArgs[argName] = 0;
+          }
           totalledArgs[argName] += argVal;
         }
       }

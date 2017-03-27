@@ -36,8 +36,9 @@ tr.exportTo('tr.b', function() {
 
       typeInfo.typeNames = [];
       typeInfo.categoryParts = [];
-      if (metadata && metadata.typeName)
+      if (metadata && metadata.typeName) {
         typeInfo.typeNames.push(metadata.typeName);
+      }
       if (metadata && metadata.typeNames) {
         typeInfo.typeNames.push.apply(
             typeInfo.typeNames, metadata.typeNames);
@@ -48,13 +49,15 @@ tr.exportTo('tr.b', function() {
       }
 
       if (typeInfo.typeNames.length === 0 &&
-          typeInfo.categoryParts.length === 0)
+          typeInfo.categoryParts.length === 0) {
         throw new Error('typeName or typeNames must be provided');
+      }
 
       // Sanity checks...
       typeInfo.typeNames.forEach(function(typeName) {
-        if (registry.typeNameToTypeInfoMap_.has(typeName))
+        if (registry.typeNameToTypeInfoMap_.has(typeName)) {
           throw new Error('typeName ' + typeName + ' already registered');
+        }
       });
       typeInfo.categoryParts.forEach(function(categoryPart) {
         if (registry.categoryPartToTypeInfoMap_.has(categoryPart)) {
@@ -112,8 +115,9 @@ tr.exportTo('tr.b', function() {
           break;
         }
       }
-      if (typeInfoIndex === -1)
+      if (typeInfoIndex === -1) {
         throw new Error(constructor + ' not registered');
+      }
 
       var typeInfo = registry.registeredTypeInfos_[typeInfoIndex];
       registry.registeredTypeInfos_.splice(typeInfoIndex, 1);
@@ -133,13 +137,11 @@ tr.exportTo('tr.b', function() {
         for (var i = 0; i < categoryParts.length; i++) {
           var categoryPart = categoryParts[i];
           var typeInfo = registry.categoryPartToTypeInfoMap_.get(categoryPart);
-          if (typeInfo !== undefined)
-            return typeInfo;
+          if (typeInfo !== undefined) return typeInfo;
         }
       }
       var typeInfo = registry.typeNameToTypeInfoMap_.get(typeName);
-      if (typeInfo !== undefined)
-        return typeInfo;
+      if (typeInfo !== undefined) return typeInfo;
 
       return extensionRegistryOptions.defaultTypeInfo;
     };
@@ -147,8 +149,7 @@ tr.exportTo('tr.b', function() {
     // TODO(nduca): Remove or rename.
     registry.getConstructor = function(category, typeName) {
       var typeInfo = registry.getTypeInfo(category, typeName);
-      if (typeInfo)
-        return typeInfo.constructor;
+      if (typeInfo) return typeInfo.constructor;
       return undefined;
     };
   }

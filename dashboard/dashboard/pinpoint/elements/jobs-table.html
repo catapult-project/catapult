@@ -252,8 +252,9 @@ found in the LICENSE file.
           var valB = String(b[sortBy]).toLowerCase();
           return valA.localeCompare(valB);
         });
-        if (this.sortDescending)
+        if (this.sortDescending) {
           jobs.reverse();
+        }
 
         this.set('jobsList', jobs);
         this.updateHeaders();

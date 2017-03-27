@@ -43,10 +43,12 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     equals: function(that) {
-      if (!this.selection_.equals(that.selection_))
+      if (!this.selection_.equals(that.selection_)) {
         return false;
-      if (!this.findMatches_.equals(that.findMatches_))
+      }
+      if (!this.findMatches_.equals(that.findMatches_)) {
         return false;
+      }
       if (!this.analysisViewRelatedEvents_.equals(
           that.analysisViewRelatedEvents_)) {
         return false;
@@ -63,17 +65,21 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     get selectionOfInterest() {
-      if (this.selection_.length)
+      if (this.selection_.length) {
         return this.selection_;
+      }
 
-      if (this.highlight_.length)
+      if (this.highlight_.length) {
         return this.highlight_;
+      }
 
-      if (this.analysisViewRelatedEvents_.length)
+      if (this.analysisViewRelatedEvents_.length) {
         return this.analysisViewRelatedEvents_;
+      }
 
-      if (this.analysisLinkHoveredEvents_.length)
+      if (this.analysisLinkHoveredEvents_.length) {
         return this.analysisLinkHoveredEvents_;
+      }
 
       return this.selection_;
     },
@@ -83,10 +89,12 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     set selection(selection) {
-      if (this.appliedToModel_)
+      if (this.appliedToModel_) {
         throw new Error('Cannot mutate this state right now');
-      if (selection === undefined)
+      }
+      if (selection === undefined) {
         selection = new EventSet();
+      }
       this.selection_ = selection;
     },
 
@@ -95,10 +103,12 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     set findMatches(findMatches) {
-      if (this.appliedToModel_)
+      if (this.appliedToModel_) {
         throw new Error('Cannot mutate this state right now');
-      if (findMatches === undefined)
+      }
+      if (findMatches === undefined) {
         findMatches = new EventSet();
+      }
       this.findMatches_ = findMatches;
     },
 
@@ -107,10 +117,12 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     set analysisViewRelatedEvents(analysisViewRelatedEvents) {
-      if (this.appliedToModel_)
+      if (this.appliedToModel_) {
         throw new Error('Cannot mutate this state right now');
-      if (analysisViewRelatedEvents === undefined)
+      }
+      if (analysisViewRelatedEvents === undefined) {
         analysisViewRelatedEvents = new EventSet();
+      }
       this.analysisViewRelatedEvents_ = analysisViewRelatedEvents;
     },
 
@@ -119,10 +131,12 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     set analysisLinkHoveredEvents(analysisLinkHoveredEvents) {
-      if (this.appliedToModel_)
+      if (this.appliedToModel_) {
         throw new Error('Cannot mutate this state right now');
-      if (analysisLinkHoveredEvents === undefined)
+      }
+      if (analysisLinkHoveredEvents === undefined) {
         analysisLinkHoveredEvents = new EventSet();
+      }
       this.analysisLinkHoveredEvents_ = analysisLinkHoveredEvents;
     },
 
@@ -191,35 +205,42 @@ tr.exportTo('tr.ui.b', function() {
 
         // If the default state was changed, then we have to iterate through
         // and reset all the events to the new default state.
-        if (currentDefaultState !== newDefaultState)
-          for (var e of model.getDescendantEvents())
+        if (currentDefaultState !== newDefaultState) {
+          for (var e of model.getDescendantEvents()) {
             e.selectionState = newDefaultState;
+          }
+        }
       }
 
       // Now we apply the other rules above.
       var score;
       for (var e of dimmedEvents) {
         score = 0;
-        if (this.findMatches_.contains(e))
+        if (this.findMatches_.contains(e)) {
           score++;
-        if (this.analysisViewRelatedEvents_.contains(e))
+        }
+        if (this.analysisViewRelatedEvents_.contains(e)) {
           score++;
+        }
         e.selectionState = SelectionState.getFromDimmingLevel(score);
       }
 
       for (var e of this.brightenedEvents_) {
         score = 0;
-        if (this.selection_.contains(e))
+        if (this.selection_.contains(e)) {
           score++;
-        if (this.analysisLinkHoveredEvents_.contains(e))
+        }
+        if (this.analysisLinkHoveredEvents_.contains(e)) {
           score++;
+        }
         e.selectionState = SelectionState.getFromBrighteningLevel(score);
       }
     },
 
     transferModelOwnershipToClone: function(that) {
-      if (!this.appliedToModel_)
+      if (!this.appliedToModel_) {
         throw new Error('Not applied');
+      }
       // Assumes this.equals(that).
       that.appliedToModel_ = this.appliedToModel_;
       this.appliedToModel_ = undefined;
@@ -232,8 +253,9 @@ tr.exportTo('tr.ui.b', function() {
      * value and pass it into applyFromModelSelectionStat when that is called.
      */
     unapplyFromEventSelectionStates: function() {
-      if (!this.appliedToModel_)
+      if (!this.appliedToModel_) {
         throw new Error('Not applied');
+      }
       var model = this.appliedToModel_;
       this.appliedToModel_ = undefined;
 
@@ -241,10 +263,12 @@ tr.exportTo('tr.ui.b', function() {
       var defaultState = (
           dimmedEvents.length ? SelectionState.DIMMED0 : SelectionState.NONE);
 
-      for (var e of this.brightenedEvents_)
+      for (var e of this.brightenedEvents_) {
         e.selectionState = defaultState;
-      for (var e of dimmedEvents)
+      }
+      for (var e of dimmedEvents) {
         e.selectionState = defaultState;
+      }
       return defaultState;
     }
   };

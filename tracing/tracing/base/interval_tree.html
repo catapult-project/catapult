@@ -10,10 +10,8 @@ found in the LICENSE file.
 
 tr.exportTo('tr.b', function() {
   function max(a, b) {
-    if (a === undefined)
-      return b;
-    if (b === undefined)
-      return a;
+    if (a === undefined) return b;
+    if (b === undefined) return a;
     return Math.max(a, b);
   }
 
@@ -58,27 +56,30 @@ tr.exportTo('tr.b', function() {
     },
 
     insertNode_: function(root, node) {
-      if (root === undefined)
-        return node;
+      if (root === undefined) return node;
 
       if (root.leftNode && root.leftNode.isRed &&
-          root.rightNode && root.rightNode.isRed)
+          root.rightNode && root.rightNode.isRed) {
         this.flipNodeColour_(root);
+      }
 
-      if (node.key < root.key)
+      if (node.key < root.key) {
         root.leftNode = this.insertNode_(root.leftNode, node);
-      else if (node.key === root.key)
+      } else if (node.key === root.key) {
         root.merge(node);
-      else
+      } else {
         root.rightNode = this.insertNode_(root.rightNode, node);
+      }
 
       if (root.rightNode && root.rightNode.isRed &&
-          (root.leftNode === undefined || !root.leftNode.isRed))
+          (root.leftNode === undefined || !root.leftNode.isRed)) {
         root = this.rotateLeft_(root);
+      }
 
       if (root.leftNode && root.leftNode.isRed &&
-          root.leftNode.leftNode && root.leftNode.leftNode.isRed)
+          root.leftNode.leftNode && root.leftNode.leftNode.isRed) {
         root = this.rotateRight_(root);
+      }
 
       return root;
     },
@@ -121,8 +122,7 @@ tr.exportTo('tr.b', function() {
      * node, but need to handle the rotations correctly. Went the easy route
      * for now. */
     updateHighValues_: function(node) {
-      if (node === undefined)
-        return undefined;
+      if (node === undefined) return undefined;
 
       node.maxHighLeft = this.updateHighValues_(node.leftNode);
       node.maxHighRight = this.updateHighValues_(node.rightNode);
@@ -131,10 +131,12 @@ tr.exportTo('tr.b', function() {
     },
 
     validateFindArguments_: function(queryLow, queryHigh) {
-      if (queryLow === undefined || queryHigh === undefined)
+      if (queryLow === undefined || queryHigh === undefined) {
         throw new Error('queryLow and queryHigh must be defined');
-      if ((typeof queryLow !== 'number') || (typeof queryHigh !== 'number'))
+      }
+      if ((typeof queryLow !== 'number') || (typeof queryHigh !== 'number')) {
         throw new Error('queryLow and queryHigh must be numbers');
+      }
     },
 
     /**
@@ -146,8 +148,7 @@ tr.exportTo('tr.b', function() {
      */
     findIntersection: function(queryLow, queryHigh) {
       this.validateFindArguments_(queryLow, queryHigh);
-      if (this.root_ === undefined)
-        return [];
+      if (this.root_ === undefined) return [];
 
       var ret = [];
       this.root_.appendIntersectionsInto_(ret, queryLow, queryHigh);
@@ -173,8 +174,7 @@ tr.exportTo('tr.b', function() {
      * order.
      */
     dump_: function() {
-      if (this.root_ === undefined)
-        return [];
+      if (this.root_ === undefined) return [];
       return this.root_.dump();
     }
   };
@@ -209,8 +209,7 @@ tr.exportTo('tr.b', function() {
        * so we know this node is out and all right children are out. Just need
        * to check left */
       if (this.lowValue_ >= queryHigh) {
-        if (!this.leftNode_)
-          return;
+        if (!this.leftNode_) return;
         return this.leftNode_.appendIntersectionsInto_(
             ret, queryLow, queryHigh);
       }
@@ -227,8 +226,7 @@ tr.exportTo('tr.b', function() {
         for (var i = (this.data.length - 1); i >= 0; --i) {
           /* data nodes are sorted by high value, so as soon as we see one
            * before low value we're done. */
-          if (this.data[i].high < queryLow)
-            break;
+          if (this.data[i].high < queryLow) break;
 
           ret.push(this.data[i].datum);
         }
@@ -321,8 +319,9 @@ tr.exportTo('tr.b', function() {
     },
 
     merge: function(node) {
-      for (var i = 0; i < node.data.length; i++)
+      for (var i = 0; i < node.data.length; i++) {
         this.data_.push(node.data[i]);
+      }
       this.data_.sort(function(a, b) {
         return a.high - b.high;
       });
@@ -330,13 +329,15 @@ tr.exportTo('tr.b', function() {
 
     dump: function() {
       var ret = {};
-      if (this.leftNode_)
+      if (this.leftNode_) {
         ret['left'] = this.leftNode_.dump();
+      }
 
       ret['data'] = this.data_.map(function(d) { return [d.low, d.high]; });
 
-      if (this.rightNode_)
+      if (this.rightNode_) {
         ret['right'] = this.rightNode_.dump();
+      }
 
       return ret;
     }

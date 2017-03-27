@@ -131,8 +131,9 @@ tr.b.unittest.testSuite(function() {
   test('childEvents_empty', function() {
     var series = new ResourceUsageSeries(new Model().device);
     var eventsInSeries = [];
-    for (var event of series.childEvents())
+    for (var event of series.childEvents()) {
       eventsInSeries.push(event);
+    }
     assert.deepEqual(eventsInSeries, []);
   });
 
@@ -141,8 +142,9 @@ tr.b.unittest.testSuite(function() {
     var sample1 = series.addUsageSample(0, 1);
     var sample2 = series.addUsageSample(1, 2);
     var eventsInSeries = [];
-    for (var event of series.childEvents())
+    for (var event of series.childEvents()) {
       eventsInSeries.push(event);
+    }
     assert.deepEqual(eventsInSeries, [sample1, sample2]);
   });
 });

@@ -44,12 +44,14 @@ tr.b.unittest.testSuite(function() {
 
     var shiftCount = 0;
     thread.shiftTimestampsForward = function(ts) {
-      if (ts === 0.32)
+      if (ts === 0.32) {
         shiftCount++;
+      }
     };
     ctr.shiftTimestampsForward = function(ts) {
-      if (ts === 0.32)
+      if (ts === 0.32) {
         shiftCount++;
+      }
     };
 
     process.shiftTimestampsForward(0.32);

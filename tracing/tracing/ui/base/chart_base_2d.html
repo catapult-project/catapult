@@ -174,8 +174,9 @@ tr.exportTo('tr.ui.b', function() {
       // getDataSeries() before setting data.
       this.data_.forEach(function(datum) {
         Object.keys(datum).forEach(function(key) {
-          if (this.isDatumFieldSeries_(key))
+          if (this.isDatumFieldSeries_(key)) {
             this.getDataSeries(key);
+          }
         }, this);
       }, this);
     },
@@ -322,8 +323,9 @@ tr.exportTo('tr.ui.b', function() {
       this.yLogScaleMin_ = undefined;
       if (this.autoDataRange_.min !== undefined) {
         var minValue = this.autoDataRange_.min;
-        if (minValue === 0)
+        if (minValue === 0) {
           minValue = 1;
+        }
 
         var onePowerLess = tr.b.math.lesserPower(minValue / 10);
         this.yLogScaleMin_ = onePowerLess;
@@ -441,14 +443,11 @@ tr.exportTo('tr.ui.b', function() {
 
         d3.keys(multiSeriesDatum).forEach(function(seriesKey) {
           // Skip 'x' - it's not a series
-          if (seriesKey === 'x')
-            return;
+          if (seriesKey === 'x') return;
 
-          if (multiSeriesDatum[seriesKey] === undefined)
-            return;
+          if (multiSeriesDatum[seriesKey] === undefined) return;
 
-          if (!this.isDatumFieldSeries_(seriesKey))
-            return;
+          if (!this.isDatumFieldSeries_(seriesKey)) return;
 
           var singleSeriesDatum = {x: x};
           singleSeriesDatum[seriesKey] = multiSeriesDatum[seriesKey];

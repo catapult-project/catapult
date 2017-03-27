@@ -99,23 +99,19 @@ tr.exportTo('tr.model', function() {
     },
 
     getAssociatedCpuSlice: function() {
-      if (!this.cpuOnWhichThreadWasRunning)
-        return undefined;
+      if (!this.cpuOnWhichThreadWasRunning) return undefined;
       var cpuSlices = this.cpuOnWhichThreadWasRunning.slices;
       for (var i = 0; i < cpuSlices.length; i++) {
         var cpuSlice = cpuSlices[i];
-        if (cpuSlice.start !== this.start)
-          continue;
-        if (cpuSlice.duration !== this.duration)
-          continue;
+        if (cpuSlice.start !== this.start) continue;
+        if (cpuSlice.duration !== this.duration) continue;
         return cpuSlice;
       }
       return undefined;
     },
 
     getCpuSliceThatTookCpu: function() {
-      if (this.cpuOnWhichThreadWasRunning)
-        return undefined;
+      if (this.cpuOnWhichThreadWasRunning) return undefined;
       var curIndex = this.thread.indexOfTimeSlice(this);
       var cpuSliceWhenLastRunning;
       while (curIndex >= 0) {
@@ -127,18 +123,17 @@ tr.exportTo('tr.model', function() {
         cpuSliceWhenLastRunning = curSlice.getAssociatedCpuSlice();
         break;
       }
-      if (!cpuSliceWhenLastRunning)
-        return undefined;
+      if (!cpuSliceWhenLastRunning) return undefined;
 
       var cpu = cpuSliceWhenLastRunning.cpu;
       var indexOfSliceOnCpuWhenLastRunning =
           cpu.indexOf(cpuSliceWhenLastRunning);
       var nextRunningSlice = cpu.slices[indexOfSliceOnCpuWhenLastRunning + 1];
-      if (!nextRunningSlice)
-        return undefined;
+      if (!nextRunningSlice) return undefined;
       if (Math.abs(nextRunningSlice.start - cpuSliceWhenLastRunning.end) <
-          0.00001)
+          0.00001) {
         return nextRunningSlice;
+      }
       return undefined;
     }
   };

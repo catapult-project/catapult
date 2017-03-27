@@ -69,8 +69,9 @@ tr.exportTo('tr.model', function() {
       var endIndex = tr.b.math.findLowIndexInSortedArray(
           this.samples, x => x.start, end);
 
-      if (startIndex < 0)
+      if (startIndex < 0) {
         startIndex = 0;
+      }
 
       for (var i = startIndex; i < endIndex; i++) {
         var sample = this.samples[i];
@@ -102,15 +103,15 @@ tr.exportTo('tr.model', function() {
     },
 
     shiftTimestampsForward: function(amount) {
-      for (var i = 0; i < this.samples_.length; ++i)
+      for (var i = 0; i < this.samples_.length; ++i) {
         this.samples_[i].start += amount;
+      }
     },
 
     updateBounds: function() {
       this.bounds.reset();
 
-      if (this.samples_.length === 0)
-        return;
+      if (this.samples_.length === 0) return;
 
       this.bounds.addValue(this.samples_[0].start);
       this.bounds.addValue(this.samples_[this.samples_.length - 1].start);

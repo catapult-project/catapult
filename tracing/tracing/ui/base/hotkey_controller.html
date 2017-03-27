@@ -39,17 +39,19 @@ Polymer({
     this.isAttached_ = true;
 
     var host = this.findHost_();
-    if (host.__hotkeyController)
+    if (host.__hotkeyController) {
       throw new Error('Multiple hotkey controllers attached to this host');
+    }
 
     host.__hotkeyController = this;
     this.curHost_ = host;
 
     var parentElement;
-    if (host.parentElement)
+    if (host.parentElement) {
       parentElement = host.parentElement;
-    else
+    } else {
       parentElement = Polymer.dom(host).parentNode.host;
+    }
     var parentController = tr.b.getHotkeyControllerForElement(
         parentElement);
 
@@ -69,8 +71,7 @@ Polymer({
     this.isAttached_ = false;
 
     var host = this.curHost_;
-    if (!host)
-      return;
+    if (!host) return;
 
     delete host.__hotkeyController;
     this.curHost_ = undefined;
@@ -89,28 +90,32 @@ Polymer({
 
   addChildController_: function(controller) {
     var i = this.childControllers_.indexOf(controller);
-    if (i !== -1)
+    if (i !== -1) {
       throw new Error('Controller already registered');
+    }
     this.childControllers_.push(controller);
   },
 
   removeChildController_: function(controller) {
     var i = this.childControllers_.indexOf(controller);
-    if (i === -1)
+    if (i === -1) {
       throw new Error('Controller not registered');
+    }
     this.childControllers_.splice(i, 1);
     return controller;
   },
 
   getKeyMapForEventType_: function(eventType, useCapture) {
     if (eventType === 'keydown') {
-      if (!useCapture)
+      if (!useCapture) {
         return this.bubblingKeyDownHotKeys_;
+      }
       return this.capturingKeyDownHotKeys_;
     }
     if (eventType === 'keypress') {
-      if (!useCapture)
+      if (!useCapture) {
         return this.bubblingKeyPressHotKeys_;
+      }
       return this.capturingKeyPressHotKeys_;
     }
 
@@ -118,16 +123,18 @@ Polymer({
   },
 
   addHotKey: function(hotKey) {
-    if (!(hotKey instanceof tr.ui.b.HotKey))
+    if (!(hotKey instanceof tr.ui.b.HotKey)) {
       throw new Error('hotKey must be a tr.ui.b.HotKey');
+    }
 
     var keyMap = this.getKeyMapForEventType_(
         hotKey.eventType, hotKey.useCapture);
 
     for (var i = 0; i < hotKey.keyCodes.length; i++) {
       var keyCode = hotKey.keyCodes[i];
-      if (keyMap[keyCode])
+      if (keyMap[keyCode]) {
         throw new Error('Key is already bound for keyCode=' + keyCode);
+      }
     }
 
     for (var i = 0; i < hotKey.keyCodes.length; i++) {
@@ -138,16 +145,18 @@ Polymer({
   },
 
   removeHotKey: function(hotKey) {
-    if (!(hotKey instanceof tr.ui.b.HotKey))
+    if (!(hotKey instanceof tr.ui.b.HotKey)) {
       throw new Error('hotKey must be a tr.ui.b.HotKey');
+    }
 
     var keyMap = this.getKeyMapForEventType_(
         hotKey.eventType, hotKey.useCapture);
 
     for (var i = 0; i < hotKey.keyCodes.length; i++) {
       var keyCode = hotKey.keyCodes[i];
-      if (!keyMap[keyCode])
+      if (!keyMap[keyCode]) {
         throw new Error('Key is not bound for keyCode=' + keyCode);
+      }
       keyMap[keyCode] = hotKey;
     }
     for (var i = 0; i < hotKey.keyCodes.length; i++) {
@@ -163,16 +172,19 @@ Polymer({
 
   set globalMode(globalMode) {
     var wasAttached = this.isAttached_;
-    if (wasAttached)
+    if (wasAttached) {
       this.detached();
+    }
     this.globalMode_ = !!globalMode;
-    if (wasAttached)
+    if (wasAttached) {
       this.attached();
+    }
   },
 
   get topmostConroller_() {
-    if (this.slavedToParentController_)
+    if (this.slavedToParentController_) {
       return this.slavedToParentController_.topmostConroller_;
+    }
     return this;
   },
 
@@ -182,12 +194,14 @@ Polymer({
       if (topmost.curHost_.hasAttribute('tabIndex')) {
         topmost.curHost_.focus();
       } else {
-        if (document.activeElement)
+        if (document.activeElement) {
           document.activeElement.blur();
+        }
       }
     } else {
-      if (document.activeElement)
+      if (document.activeElement) {
         document.activeElement.blur();
+      }
     }
   },
 
@@ -201,14 +215,17 @@ Polymer({
   },
 
   findHost_: function() {
-    if (this.globalMode_)
+    if (this.globalMode_) {
       return document.body;
-    if (this.parentElement)
+    }
+    if (this.parentElement) {
       return this.parentElement;
+    }
 
     var node = this;
-    while (Polymer.dom(node).parentNode)
+    while (Polymer.dom(node).parentNode) {
       node = Polymer.dom(node).parentNode;
+    }
     return node.host;
   },
 
@@ -216,8 +233,9 @@ Polymer({
       useCapture, e) {
     var localKeyMap = this.getKeyMapForEventType_(e.type, useCapture);
     var localHotKey = localKeyMap[e.keyCode];
-    if (localHotKey)
+    if (localHotKey) {
       matchedHotKeys.push(localHotKey);
+    }
 
     for (var i = 0; i < this.childControllers_.length; i++) {
       var controller = this.childControllers_[i];
@@ -229,16 +247,14 @@ Polymer({
   onKey_: function(useCapture, e) {
     // Keys dispatched to INPUT elements still bubble, even when they're
     // handled. So, skip any events that targeted the input element.
-    if (!useCapture && e.path[0].tagName === 'INPUT')
-      return;
+    if (!useCapture && e.path[0].tagName === 'INPUT') return;
 
     var sortedControllers;
 
     var matchedHotKeys = [];
     this.appendMatchingHotKeysTo_(matchedHotKeys, useCapture, e);
 
-    if (matchedHotKeys.length === 0)
-      return false;
+    if (matchedHotKeys.length === 0) return false;
 
     if (matchedHotKeys.length > 1) {
       // TODO(nduca): To do support for coddling hotKeys, we need to
@@ -265,11 +281,13 @@ tr.exportTo('tr.b', function() {
   function getHotkeyControllerForElement(refElement) {
     var curElement = refElement;
     while (curElement) {
-      if (curElement.tagName === 'tv-ui-b-hotkey-controller')
+      if (curElement.tagName === 'tv-ui-b-hotkey-controller') {
         return curElement;
+      }
 
-      if (curElement.__hotkeyController)
+      if (curElement.__hotkeyController) {
         return curElement.__hotkeyController;
+      }
 
       if (curElement.parentElement) {
         curElement = curElement.parentElement;

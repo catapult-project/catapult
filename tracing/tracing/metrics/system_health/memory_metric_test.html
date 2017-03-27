@@ -43,8 +43,9 @@ tr.b.unittest.testSuite(function() {
       var fakeValueList = {
         addHistogram: function(value) {
           var values = valueNameToValues[value.name];
-          if (values === undefined)
+          if (values === undefined) {
             valueNameToValues[value.name] = values = [];
+          }
           values.push(value);
         }
       };
@@ -67,8 +68,9 @@ tr.b.unittest.testSuite(function() {
             } else {
               valueNames.forEach(function(valueName) {
                 errorMessageParts.push('\n');
-                if (!otherValueNamesSet.has(valueName))
+                if (!otherValueNamesSet.has(valueName)) {
                   errorMessageParts.push('+++');
+                }
                 errorMessageParts.push(valueName);
               });
             }
@@ -94,8 +96,9 @@ tr.b.unittest.testSuite(function() {
             expectedHistogram.unit.unitName, + ', actual: ' +
             actualHistogram.unit.unitName + ')');
 
-        if (!(expectedHistogram.value instanceof Array))
+        if (!(expectedHistogram.value instanceof Array)) {
           assert.fail('Test sanity check: expected value must be an array');
+        }
 
         assert.instanceOf(actualHistogram, tr.v.Histogram,
             'Invalid \'' + valueName + '\' class');

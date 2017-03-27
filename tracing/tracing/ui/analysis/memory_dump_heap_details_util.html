@@ -39,8 +39,9 @@ tr.exportTo('tr.ui.analysis', function() {
     __proto__: tr.ui.analysis.TitleColumn.prototype,
 
     formatTitle: function(row) {
-      if (row.dimension === HeapDetailsRowDimension.ROOT)
+      if (row.dimension === HeapDetailsRowDimension.ROOT) {
         return row.title;
+      }
 
       var symbolEl = document.createElement('span');
       Polymer.dom(symbolEl).textContent = row.dimension.symbol;

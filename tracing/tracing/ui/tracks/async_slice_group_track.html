@@ -78,8 +78,9 @@ tr.exportTo('tr.ui.tracks', function() {
 
       // Helper function that returns true if it can put the slice on row n.
       var findLevel = function(sliceToPut, rows, n) {
-        if (n >= rows.length)
+        if (n >= rows.length) {
           return true; // We always can make empty rows to put the slice.
+        }
         var subRow = rows[n];
         var lastSliceInSubRow = subRow[subRow.length - 1];
         if (sliceToPut.start >= lastSliceInSubRow.end) {
@@ -89,8 +90,9 @@ tr.exportTo('tr.ui.tracks', function() {
           }
           // Make sure nested sub slices can be fitted in as well.
           for (var subSlice of sliceToPut.subSlices) {
-            if (!findLevel(subSlice, rows, n + 1))
+            if (!findLevel(subSlice, rows, n + 1)) {
               return false;
+            }
           }
           return true;
         }
@@ -108,16 +110,19 @@ tr.exportTo('tr.ui.tracks', function() {
             break;
           }
         }
-        if (!found)
+        if (!found) {
           subRows.push([]);
+        }
         subRows[index].push(slice);
 
         // Fit subSlices recursively into rows below parent.
         var fitSubSlicesRecursively = function(subSlices, level, rows) {
-          if (subSlices === undefined || subSlices.length === 0)
+          if (subSlices === undefined || subSlices.length === 0) {
             return;
-          if (level === rows.length)
+          }
+          if (level === rows.length) {
             rows.push([]);
+          }
           for (var subSlice of subSlices) {
             rows[level].push(subSlice);
             fitSubSlicesRecursively(subSlice.subSlices, level + 1, rows);

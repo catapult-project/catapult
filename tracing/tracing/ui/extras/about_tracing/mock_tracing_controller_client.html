@@ -39,8 +39,9 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     _request: function(method, args) {
       return new Promise(function(resolve) {
         var requestIndex = this.nextRequestIndex;
-        if (requestIndex >= this.requests.length)
+        if (requestIndex >= this.requests.length) {
           throw new Error('Unhandled request');
+        }
         if (!this.allowLooping) {
           this.nextRequestIndex++;
         } else {
@@ -56,8 +57,9 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     },
 
     assertAllRequestsHandled: function() {
-      if (this.allowLooping)
+      if (this.allowLooping) {
         throw new Error('Incompatible with allowLooping');
+      }
       assert.equal(this.requests.length, this.nextRequestIndex);
     },
 

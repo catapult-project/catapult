@@ -232,17 +232,19 @@ tr.b.unittest.testSuite(function() {
     checkSizeNumericFields(row, columns[5], expectedPrivateDirtyResidentValues);
     checkSizeNumericFields(row, columns[6], expectedSwappedValues);
 
-    if (expectedSubRowCount === undefined)
+    if (expectedSubRowCount === undefined) {
       assert.isUndefined(row.subRows);
-    else
+    } else {
       assert.lengthOf(row.subRows, expectedSubRowCount);
+    }
 
-    if (typeof expectedContexts === 'function')
+    if (typeof expectedContexts === 'function') {
       expectedContexts(row.contexts);
-    else if (expectedContexts !== undefined)
+    } else if (expectedContexts !== undefined) {
       assert.deepEqual(tr.b.asArray(row.contexts), expectedContexts);
-    else
+    } else {
       assert.isUndefined(row.contexts);
+    }
   }
 
   function genericMatcher(callback, defined) {
@@ -250,10 +252,11 @@ tr.b.unittest.testSuite(function() {
       assert.lengthOf(actualValues, defined.length);
       for (var i = 0; i < defined.length; i++) {
         var actualValue = actualValues[i];
-        if (defined[i])
+        if (defined[i]) {
           callback(actualValue);
-        else
+        } else {
           assert.isUndefined(actualValue);
+        }
       }
     };
   }

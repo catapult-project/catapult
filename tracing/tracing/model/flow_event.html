@@ -38,8 +38,9 @@ tr.exportTo('tr.model', function() {
     this.startStackFrame = undefined;
     this.endStackFrame = undefined;
 
-    if (opt_duration !== undefined)
+    if (opt_duration !== undefined) {
       this.duration = opt_duration;
+    }
   }
 
   FlowEvent.prototype = {

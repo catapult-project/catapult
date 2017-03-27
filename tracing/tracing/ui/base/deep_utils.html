@@ -12,8 +12,7 @@ found in the LICENSE file.
 
 tr.exportTo('tr.b', function() {
   function _iterateElementDeeplyImpl(element, cb, thisArg, includeElement) {
-    if (includeElement && cb.call(thisArg, element))
-      return true;
+    if (includeElement && cb.call(thisArg, element)) return true;
 
     if (element.root &&
         element.root !== element &&
@@ -24,9 +23,11 @@ tr.exportTo('tr.b', function() {
       return true;
     }
     var children = Polymer.dom(element).children;
-    for (var i = 0; i < children.length; i++)
-      if (_iterateElementDeeplyImpl(children[i], cb, thisArg, true))
+    for (var i = 0; i < children.length; i++) {
+      if (_iterateElementDeeplyImpl(children[i], cb, thisArg, true)) {
         return true;
+      }
+    }
 
     return false;
   }
@@ -39,8 +40,9 @@ tr.exportTo('tr.b', function() {
     var foundElement = undefined;
     function matches(element) {
       var match = predicate(element);
-      if (!match)
+      if (!match) {
         return false;
+      }
       foundElement = element;
       return true;
     }
@@ -73,8 +75,7 @@ tr.exportTo('tr.b', function() {
   }
   function findDeepElementWithTextContent(element, re) {
     return findDeepElementMatchingPredicate(element, function(element) {
-      if (element.children.length !== 0)
-        return false;
+      if (element.children.length !== 0) return false;
       return re.test(Polymer.dom(element).textContent);
     });
   }

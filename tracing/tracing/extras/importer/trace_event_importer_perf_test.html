@@ -23,20 +23,23 @@ tr.b.unittest.testSuite(function() {
     '/test_data/lthi_cats.json.gz'];
 
   function getEvents(url) {
-    if (url in eventStrings)
+    if (url in eventStrings) {
       return eventStrings[url];
+    }
     eventStrings[url] = tr.b.getSync(url);
     return eventStrings[url];
   }
 
   function timedPerfTestWithEvents(name, testFn, initialOptions) {
-    if (initialOptions.setUp)
+    if (initialOptions.setUp) {
       throw new Error(
           'Per-test setUp not supported. Trivial to fix if needed.');
+    }
 
     var options = {};
-    for (var k in initialOptions)
+    for (var k in initialOptions) {
       options[k] = initialOptions[k];
+    }
     options.setUp = function() {
       TEST_FILES_PATHS.forEach(
           function warmup(url) {

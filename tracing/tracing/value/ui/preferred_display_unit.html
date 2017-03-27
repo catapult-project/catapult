@@ -30,8 +30,7 @@ found in the LICENSE file.
     },
 
     set preferredTimeDisplayMode(v) {
-      if (this.preferredTimeDisplayMode_ === v)
-        return;
+      if (this.preferredTimeDisplayMode_ === v) return;
       this.preferredTimeDisplayMode_ = v;
       tr.b.Unit.didPreferredTimeDisplayUnitChange();
     }

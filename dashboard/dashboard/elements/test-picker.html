@@ -482,8 +482,9 @@ found in the LICENSE file.
 
         var path = parts.join('/');
 
-        if (this.currentSelectedPath_ === path)
+        if (this.currentSelectedPath_ === path) {
           return this.currentSelectedTests_;
+        }
         this.sendListTestsRequest(path);
         return null;
       },

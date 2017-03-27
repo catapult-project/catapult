@@ -30,12 +30,12 @@ tr.exportTo('tr.e.importer', function() {
     while (true) {
       if (!r.advanceToLineMatching(
           new RegExp('^<\s*script id="viewer-data" ' +
-                     'type="(application\/json|text\/plain)">$')))
+                     'type="(application\/json|text\/plain)">$'))) {
         break;
+      }
 
       r.beginSavingLines();
-      if (!r.advanceToLineMatching(/^<\/\s*script>$/))
-        return;
+      if (!r.advanceToLineMatching(/^<\/\s*script>$/)) return;
 
       var rawEvents = r.endSavingLinesAndGetResult();
 
@@ -50,13 +50,11 @@ tr.exportTo('tr.e.importer', function() {
   }
 
   function _canImportFromHTML(text) {
-    if (!/^<!DOCTYPE html>/.test(text))
-      return false;
+    if (!/^<!DOCTYPE html>/.test(text)) return false;
 
     // Try to find viewer-data...
     _extractEventsFromHTML(text);
-    if (Trace2HTMLImporter.subtraces_.length === 0)
-      return false;
+    if (Trace2HTMLImporter.subtraces_.length === 0) return false;
     return true;
   }
 

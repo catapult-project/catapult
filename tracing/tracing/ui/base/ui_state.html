@@ -34,18 +34,19 @@ tr.exportTo('tr.ui.b', function() {
   UIState.fromUserFriendlyString = function(model, viewport, stateString) {
     var navByFinderPattern = /^(-?\d+(\.\d+)?)@(.+)x(\d+(\.\d+)?)$/g;
     var match = navByFinderPattern.exec(stateString);
-    if (!match)
-      return;
+    if (!match) return;
 
     var timestamp = parseFloat(match[1]);
     var stableId = match[3];
     var scaleX = parseFloat(match[4]);
 
-    if (scaleX <= 0)
+    if (scaleX <= 0) {
       throw new Error('Invalid ScaleX value in UI State string.');
+    }
 
-    if (!viewport.containerToTrackMap.getTrackByStableId(stableId))
+    if (!viewport.containerToTrackMap.getTrackByStableId(stableId)) {
       throw new Error('Invalid StableID given in UI State String.');
+    }
 
     var loc = tr.model.Location.fromStableIdAndTimestamp(
         viewport, stableId, timestamp);

@@ -57,10 +57,11 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     viewportChange_: function() {
-      if (this.viewport.interestRange.isEmpty)
+      if (this.viewport.interestRange.isEmpty) {
         Polymer.dom(this).classList.remove('tall-mode');
-      else
+      } else {
         Polymer.dom(this).classList.add('tall-mode');
+      }
     },
 
     draw: function(type, viewLWorld, viewRWorld) {
@@ -69,9 +70,10 @@ tr.exportTo('tr.ui.tracks', function() {
           this.drawGrid_(viewLWorld, viewRWorld);
           break;
         case tr.ui.tracks.DrawType.MARKERS:
-          if (!this.viewport.interestRange.isEmpty)
+          if (!this.viewport.interestRange.isEmpty) {
             this.viewport.interestRange.draw(this.context(),
                 viewLWorld, viewRWorld);
+          }
           break;
       }
     },
@@ -148,8 +150,7 @@ tr.exportTo('tr.ui.tracks', function() {
       ctx.stroke();
 
       // Give distance between directly adjacent markers.
-      if (!hasInterestRange)
-        return;
+      if (!hasInterestRange) return;
 
       // Draw middle bar.
       tr.ui.b.drawLine(ctx, 0, xAxisHeightPx, width, xAxisHeightPx);
@@ -183,8 +184,9 @@ tr.exportTo('tr.ui.tracks', function() {
         var textWidthView = ctx.measureText(textToDraw).width;
 
         // Put text to the left in case it gets cut off.
-        if (textLeftView + textWidthView > width)
+        if (textLeftView + textWidthView > width) {
           textLeftView = markerView - 4 * pixelRatio - textWidthView;
+        }
 
         ctx.fillStyle = displayTextColor;
         ctx.fillText(textToDraw, textLeftView, textPosY);
@@ -217,8 +219,9 @@ tr.exportTo('tr.ui.tracks', function() {
         textLeftView = rightMarkerView + 2 * arrowSpacing;
 
         // Put text to the left in case it gets cut off.
-        if (textLeftView + textWidthView > width)
+        if (textLeftView + textWidthView > width) {
           textLeftView = leftMarkerView - 2 * arrowSpacing - textWidthView;
+        }
 
         ctx.fillStyle = displayTextColor;
         ctx.fillText(textToDraw, textLeftView, textPosY);

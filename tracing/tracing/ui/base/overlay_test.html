@@ -111,10 +111,11 @@ tr.b.unittest.testSuite(function() {
     return new Promise(function(resolve, reject) {
       function pressClose() {
         closeBtn.click();
-        if (closeClicked)
+        if (closeClicked) {
           resolve();
-        else
+        } else {
           reject(new Error('closeclick event is not dispatched'));
+        }
       }
       dlg.visible = true;
       setTimeout(pressClose, 60);

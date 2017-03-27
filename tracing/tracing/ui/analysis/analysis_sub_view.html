@@ -52,10 +52,12 @@ tr.exportTo('tr.ui.analysis', function() {
   var eventProtoToRootTypeInfoMap = undefined;
 
   function AnalysisSubViewTypeInfo(eventConstructor, options) {
-    if (options.multi === undefined)
+    if (options.multi === undefined) {
       throw new Error('missing field: multi');
-    if (options.title === undefined)
+    }
+    if (options.title === undefined) {
       throw new Error('missing field: title');
+    }
     this.eventConstructor = eventConstructor;
 
     this.singleTagName = undefined;
@@ -89,13 +91,15 @@ tr.exportTo('tr.ui.analysis', function() {
     }
 
     if (!options.multi) {
-      if (typeInfo.singleTagName !== undefined)
+      if (typeInfo.singleTagName !== undefined) {
         throw new Error('SingleTagName already set');
+      }
       typeInfo.singleTagName = tagName;
       typeInfo.singleTitle = options.title;
     } else {
-      if (typeInfo.multiTagName !== undefined)
+      if (typeInfo.multiTagName !== undefined) {
         throw new Error('MultiTagName already set');
+      }
       typeInfo.multiTagName = tagName;
       typeInfo.multiTitle = options.title;
     }
@@ -135,8 +139,7 @@ tr.exportTo('tr.ui.analysis', function() {
       var eventPrototype = typeInfo.eventConstructor.prototype;
       var parentEventProto = eventPrototype.__proto__;
       var parentTypeInfo = allTypeInfosByEventProto.get(parentEventProto);
-      if (!parentTypeInfo)
-        return;
+      if (!parentTypeInfo) return;
       parentTypeInfo.childrenTypeInfos.push(typeInfo);
     });
 
@@ -160,8 +163,7 @@ tr.exportTo('tr.ui.analysis', function() {
   }
 
   function findLowestTypeInfoForEvents(thisTypeInfo, events) {
-    if (events.length === 0)
-      return thisTypeInfo;
+    if (events.length === 0) return thisTypeInfo;
     var event0 = tr.b.getFirstElement(events);
 
     var candidateSubTypeInfo;
@@ -172,14 +174,12 @@ tr.exportTo('tr.ui.analysis', function() {
         break;
       }
     }
-    if (!candidateSubTypeInfo)
-      return thisTypeInfo;
+    if (!candidateSubTypeInfo) return thisTypeInfo;
 
     // Validate that all the other events are instances of the candidate type.
     var allMatch = true;
     for (var event of events) {
-      if (event instanceof candidateSubTypeInfo.eventConstructor)
-        continue;
+      if (event instanceof candidateSubTypeInfo.eventConstructor) continue;
       allMatch = false;
       break;
     }
@@ -195,8 +195,7 @@ tr.exportTo('tr.ui.analysis', function() {
   function getRootTypeInfoForEvent(event) {
     var curProto = event.__proto__;
     var typeInfo = primaryEventProtoToTypeInfoMap.get(curProto);
-    if (typeInfo)
-      return typeInfo;
+    if (typeInfo) return typeInfo;
     return getRootTypeInfoForEventSlow(event);
   }
 
@@ -204,8 +203,9 @@ tr.exportTo('tr.ui.analysis', function() {
     var typeInfo;
     var curProto = event.__proto__;
     while (true) {
-      if (curProto === Object.prototype)
+      if (curProto === Object.prototype) {
         throw new Error('No view registered for ' + event.toString());
+      }
       typeInfo = onlyRootTypeInfosByEventProto.get(curProto);
       if (typeInfo) {
         primaryEventProtoToTypeInfoMap.set(event.__proto__, typeInfo);
@@ -216,8 +216,9 @@ tr.exportTo('tr.ui.analysis', function() {
   }
 
   AnalysisSubView.getEventsOrganizedByTypeInfo = function(selection) {
-    if (onlyRootTypeInfosByEventProto === undefined)
+    if (onlyRootTypeInfosByEventProto === undefined) {
       rebuildRootSubViewTypeInfos();
+    }
 
     // Base grouping.
     var eventsByRootTypeInfo = tr.b.groupIntoMap(

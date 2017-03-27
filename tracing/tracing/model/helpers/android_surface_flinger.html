@@ -26,11 +26,13 @@ tr.exportTo('tr.model.helpers', function() {
 
   function getVsyncTimestamps(process, counterName) {
     var vsync = process.counters[counterName];
-    if (!vsync)
+    if (!vsync) {
       vsync = process.counters[VSYNC_FALLBACK_NAME];
+    }
 
-    if (vsync && vsync.numSeries === 1 && vsync.numSamples > 1)
+    if (vsync && vsync.numSeries === 1 && vsync.numSamples > 1) {
       return vsync.series[0].timestamps;
+    }
     return undefined;
   }
 
@@ -59,13 +61,15 @@ tr.exportTo('tr.model.helpers', function() {
 
     // newer versions - main thread, lowercase name, preceeding forward slash
     if (mainThread && mainThread.name &&
-        /surfaceflinger/.test(mainThread.name))
+        /surfaceflinger/.test(mainThread.name)) {
       return new AndroidSurfaceFlinger(process, mainThread);
+    }
 
     // older versions - another thread is named SurfaceFlinger
     var primaryThreads = process.findAllThreadsNamed('SurfaceFlinger');
-    if (primaryThreads.length === 1)
+    if (primaryThreads.length === 1) {
       return new AndroidSurfaceFlinger(process, primaryThreads[0]);
+    }
     return undefined;
   };
 
@@ -75,29 +79,31 @@ tr.exportTo('tr.model.helpers', function() {
     },
 
     getFrameKickoff: function(timestamp) {
-      if (!this.hasVsyncs)
+      if (!this.hasVsyncs) {
         throw new Error('cannot query vsync info without vsyncs');
+      }
 
       var firstGreaterIndex =
           findLowIndexInSortedArray(this.appVsyncTimestamps_,
               function(x) { return x; },
               timestamp + TIMESTAMP_FUDGE_MS);
 
-      if (firstGreaterIndex < 1)
-        return undefined;
+      if (firstGreaterIndex < 1) return undefined;
       return this.appVsyncTimestamps_[firstGreaterIndex - 1];
     },
 
     getFrameDeadline: function(timestamp) {
-      if (!this.hasVsyncs)
+      if (!this.hasVsyncs) {
         throw new Error('cannot query vsync info without vsyncs');
+      }
 
       var firstGreaterIndex =
           findLowIndexInSortedArray(this.sfVsyncTimestamps_,
               function(x) { return x; },
               timestamp + this.deadlineDelayMs_);
-      if (firstGreaterIndex >= this.sfVsyncTimestamps_.length)
+      if (firstGreaterIndex >= this.sfVsyncTimestamps_.length) {
         return undefined;
+      }
       return this.sfVsyncTimestamps_[firstGreaterIndex];
     }
   };

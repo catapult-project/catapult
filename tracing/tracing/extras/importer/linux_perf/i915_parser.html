@@ -142,8 +142,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
      */
     gemObjectCreateEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /obj=(\w+), size=(\d+)/.exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       var obj = event[1];
       var size = parseInt(event[2]);
@@ -158,8 +157,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     gemObjectBindEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       // TODO(sleffler) mappable
       var event = /obj=(\w+), offset=(\w+), size=(\d+)/.exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       var obj = event[1];
       var offset = event[2];
@@ -177,8 +175,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
         eventBase) {
       var event = /obj=(\w+), read=(\w+=>\w+), write=(\w+=>\w+)/
           .exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       var obj = event[1];
       var read = event[2];
@@ -195,8 +192,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     gemObjectPreadWriteEvent: function(eventName, cpuNumber, pid, ts,
         eventBase) {
       var event = /obj=(\w+), offset=(\d+), len=(\d+)/.exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       var obj = event[1];
       var offset = parseInt(event[2]);
@@ -213,8 +209,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     gemObjectFaultEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       // TODO(sleffler) writable
       var event = /obj=(\w+), (\w+) index=(\d+)/.exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       var obj = event[1];
       var type = event[2];
@@ -230,8 +225,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
     gemObjectDestroyEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /obj=(\w+)/.exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       var obj = event[1];
       this.i915GemObjectSlice(ts, eventName, obj,
@@ -243,8 +237,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
     gemRingDispatchEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /dev=(\d+), ring=(\d+), seqno=(\d+)/.exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       var dev = parseInt(event[1]);
       var ring = parseInt(event[2]);
@@ -261,8 +254,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     gemRingFlushEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /dev=(\d+), ring=(\w+), invalidate=(\w+), flush=(\w+)/
           .exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       var dev = parseInt(event[1]);
       var ring = parseInt(event[2]);
@@ -280,8 +272,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
     gemRequestEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /dev=(\d+), ring=(\d+), seqno=(\d+)/.exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       var dev = parseInt(event[1]);
       var ring = parseInt(event[2]);
@@ -297,8 +288,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
     gemRingWaitEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /dev=(\d+), ring=(\d+)/.exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       var dev = parseInt(event[1]);
       var ring = parseInt(event[2]);
@@ -313,8 +303,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     regRWEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /(\w+) reg=(\w+), len=(\d+), val=(\(\w+, \w+\))/
           .exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       var rw = event[1];
       var reg = event[2];
@@ -332,26 +321,25 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
     flipEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /plane=(\d+), obj=(\w+)/.exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       var plane = parseInt(event[1]);
       var obj = event[2];
-      if (eventName === 'i915_flip_request')
+      if (eventName === 'i915_flip_request') {
         this.i915FlipOpenSlice(ts, obj, plane);
-      else
+      } else {
         this.i915FlipCloseSlice(ts,
             {
               obj: obj,
               plane: plane
             });
+      }
       return true;
     },
 
     gpuFrequency: function(eventName, cpuNumver, pid, ts, eventBase) {
       var event = /new_freq=(\d+)/.exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
       var freq = parseInt(event[1]);
 
       this.i915FreqChangeSlice(ts, eventName, {

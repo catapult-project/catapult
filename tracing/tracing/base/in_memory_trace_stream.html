@@ -16,8 +16,9 @@ tr.exportTo('tr.b', function() {
   class InMemoryTraceStream extends tr.b.TraceStream {
     constructor(buffer, isBinary, opt_headerSize) {
       super();
-      if (!buffer instanceof Uint8Array)
+      if (!buffer instanceof Uint8Array) {
         throw new Error('buffer should be a Uint8Array');
+      }
       let headerSize = opt_headerSize || tr.b.TraceStream.HEADER_SIZE;
 
       this.data_ = buffer;
@@ -40,8 +41,9 @@ tr.exportTo('tr.b', function() {
     }
 
     readUntilDelimiter(delim) {
-      if (delim.length !== 1)
+      if (delim.length !== 1) {
         throw new Error('delim must be exactly one character');
+      }
       let offset = this.data_.indexOf(delim.charCodeAt(0), this.cursor_) + 1;
       return this.readToOffset_(
           offset > 0 ? Math.min(offset, this.data_.length) : this.data_.length);

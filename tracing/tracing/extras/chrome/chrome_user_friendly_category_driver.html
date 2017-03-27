@@ -167,8 +167,9 @@ tr.exportTo('tr.e.chrome', function() {
         USER_FRIENDLY_CATEGORY_FOR_TITLE.get(event.title);
     if (userFriendlyCategory) {
       if (userFriendlyCategory === SAME_AS_PARENT) {
-        if (event.parentSlice)
+        if (event.parentSlice) {
           return ChromeUserFriendlyCategoryDriver.fromEvent(event.parentSlice);
+        }
       } else {
         return userFriendlyCategory;
       }
@@ -179,8 +180,9 @@ tr.exportTo('tr.e.chrome', function() {
       var eventCategory = eventCategoryParts[i];
       userFriendlyCategory = USER_FRIENDLY_CATEGORY_FOR_EVENT_CATEGORY[
           eventCategory];
-      if (userFriendlyCategory)
+      if (userFriendlyCategory) {
         return userFriendlyCategory;
+      }
     }
 
     return 'other';
@@ -192,8 +194,7 @@ tr.exportTo('tr.e.chrome', function() {
 
   ChromeUserFriendlyCategoryDriver.ALL_TITLES = ['other'];
   for (var category in TITLES_FOR_USER_FRIENDLY_CATEGORY) {
-    if (category === SAME_AS_PARENT)
-      continue;
+    if (category === SAME_AS_PARENT) continue;
     ChromeUserFriendlyCategoryDriver.ALL_TITLES.push(category);
   }
   for (var category of tr.b.dictionaryValues(
@@ -204,8 +205,9 @@ tr.exportTo('tr.e.chrome', function() {
 
   // Prime the color generator by iterating through all UFCs in alphabetical
   // order.
-  for (var category of ChromeUserFriendlyCategoryDriver.ALL_TITLES)
+  for (var category of ChromeUserFriendlyCategoryDriver.ALL_TITLES) {
     ChromeUserFriendlyCategoryDriver.getColor(category);
+  }
 
   return {
     ChromeUserFriendlyCategoryDriver,

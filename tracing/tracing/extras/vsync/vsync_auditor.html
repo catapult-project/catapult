@@ -75,11 +75,9 @@ tr.exportTo('tr.e.audits', function() {
 
       function useInstead(title, precisions) {
         var precision = precisions[title];
-        if (precision === undefined)
-          return false;
+        if (precision === undefined) return false;
 
-        if (title === maxTitle)
-          return true;
+        if (title === maxTitle) return true;
 
         if (precision <= maxPrecision) {
           if (precision === maxPrecision) {
@@ -118,14 +116,16 @@ tr.exportTo('tr.e.audits', function() {
           var thread = process.threads[tid];
           for (var i = 0; i < thread.sliceGroup.slices.length; i++) {
             var slice = thread.sliceGroup.slices[i];
-            if (useInstead(slice.title, VSYNC_SLICE_PRECISIONS))
+            if (useInstead(slice.title, VSYNC_SLICE_PRECISIONS)) {
               times.push(slice.start);
-            // We need to check not only that we have a Scheduler::BeginFrame
-            // event, but also that we have one that has a frame time associated
-            // with it. Older versions of Scheduler::BeginFrame don't have one.
-            else if (useInstead(slice.title, BEGIN_FRAME_SLICE_PRECISION) &&
-                slice.args.args && slice.args.args.frame_time_us)
+            } else if (useInstead(slice.title, BEGIN_FRAME_SLICE_PRECISION) &&
+                       slice.args.args && slice.args.args.frame_time_us) {
+              // We need to check not only that we have a Scheduler::BeginFrame
+              // event, but also that we have one that has a frame time
+              // associated with it.
+              // Older versions of Scheduler::BeginFrame don't have one.
               times.push(slice.args.args.frame_time_us / 1000.0);
+            }
           }
         }
       }

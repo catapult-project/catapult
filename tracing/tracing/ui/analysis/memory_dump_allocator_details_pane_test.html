@@ -66,8 +66,9 @@ tr.b.unittest.testSuite(function() {
   function newSuballocationDump(ownerDump, parentDump, name, size) {
     var suballocationDump = addChildDump(parentDump, name,
         {numerics: {size: size}});
-    if (ownerDump !== undefined)
+    if (ownerDump !== undefined) {
       addOwnershipLink(ownerDump, suballocationDump);
+    }
     return suballocationDump;
   }
 
@@ -163,8 +164,7 @@ tr.b.unittest.testSuite(function() {
 
   function createSizeFields(values) {
     return values.map(function(value) {
-      if (value === undefined)
-        return undefined;
+      if (value === undefined) return undefined;
       return new Scalar(sizeInBytes_smallerIsBetter, value);
     });
   }
@@ -181,10 +181,11 @@ tr.b.unittest.testSuite(function() {
   function checkRow(columns, row, expectations) {
     var formattedTitle = columns[0].formatTitle(row);
     var expectedTitle = expectations.title;
-    if (typeof expectedTitle === 'function')
+    if (typeof expectedTitle === 'function') {
       expectedTitle(formattedTitle);
-    else
+    } else {
       assert.equal(formattedTitle, expectedTitle);
+    }
 
     checkSizeNumericFields(row, columns[1], expectations.size);
     checkSizeNumericFields(row, columns[2], expectations.effective_size);
@@ -194,16 +195,18 @@ tr.b.unittest.testSuite(function() {
     checkStringFields(row, columns[5], expectations.url);
 
     var expectedSubRowCount = expectations.sub_row_count;
-    if (expectedSubRowCount === undefined)
+    if (expectedSubRowCount === undefined) {
       assert.isUndefined(row.subRows);
-    else
+    } else {
       assert.lengthOf(row.subRows, expectedSubRowCount);
+    }
 
     var expectedContexts = expectations.contexts;
-    if (expectedContexts === undefined)
+    if (expectedContexts === undefined) {
       assert.isUndefined(row.contexts);
-    else
+    } else {
       assert.deepEqual(tr.b.asArray(row.contexts), expectedContexts);
+    }
   }
 
   function buildProcessMemoryDumps(count, preFinalizeDumpsCallback) {
@@ -222,8 +225,7 @@ tr.b.unittest.testSuite(function() {
 
   function getAllocatorDumps(pmds, fullName) {
     return pmds.map(function(pmd) {
-      if (pmd === undefined)
-        return undefined;
+      if (pmd === undefined) return undefined;
       return pmd.getMemoryAllocatorDumpByFullName(fullName);
     });
   }
@@ -231,8 +233,7 @@ tr.b.unittest.testSuite(function() {
   function checkAllocatorPaneColumnInfosAndColor(
       column, dumps, numericName, expectedInfos) {
     var numerics = dumps.map(function(dump) {
-      if (dump === undefined)
-        return undefined;
+      if (dump === undefined) return undefined;
       return dump.numerics[numericName];
     });
     checkColumnInfosAndColor(
@@ -608,8 +609,7 @@ tr.b.unittest.testSuite(function() {
   test('heapDumpsPassThrough', function() {
     var processMemoryDumps = createProcessMemoryDumps();
     var heapDumps = processMemoryDumps.map(function(dump) {
-      if (dump === undefined)
-        return undefined;
+      if (dump === undefined) return undefined;
       return new HeapDump(dump, 'v8');
     });
 

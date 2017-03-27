@@ -99,10 +99,11 @@ tr.exportTo('tr.ui.b', function() {
         }
         itemEl.item = this.list_[i];
         var getter = this.list_[i].__lookupGetter__(this.listProperty_);
-        if (getter)
+        if (getter) {
           Polymer.dom(itemEl).textContent = getter.call(this.list_[i]);
-        else
+        } else {
           Polymer.dom(itemEl).textContent = this.list_[i][this.listProperty_];
+        }
       }
 
       if (this.children[1] === this.placeholder_) {
@@ -110,8 +111,9 @@ tr.exportTo('tr.ui.b', function() {
             this.children[1]);
       }
       if (this.listView_.children.length &&
-          !this.listView_.selectedElement)
+          !this.listView_.selectedElement) {
         this.listView_.selectedElement = this.listView_.children[0];
+      }
     },
 
     onSelectionChanged_: function(e) {

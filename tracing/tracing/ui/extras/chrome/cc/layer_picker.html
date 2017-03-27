@@ -88,8 +88,8 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     get layerTreeImpl() {
-      if (this.lthiSnapshot === undefined)
-        return undefined;
+      if (this.lthiSnapshot === undefined) return undefined;
+
       return this.lthiSnapshot.getTree(this.whichTree);
     },
 
@@ -102,20 +102,20 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     set showPureTransformLayers(show) {
-      if (this.showPureTransformLayers_ === show)
-        return;
+      if (this.showPureTransformLayers_ === show) return;
+
       this.showPureTransformLayers_ = show;
       this.updateContents_();
     },
 
     getRenderPassInfos_: function() {
-      if (!this.lthiSnapshot_)
-        return [];
+      if (!this.lthiSnapshot_) return [];
 
       var renderPassInfo = [];
       if (!this.lthiSnapshot_.args.frame ||
-          !this.lthiSnapshot_.args.frame.renderPasses)
+          !this.lthiSnapshot_.args.frame.renderPasses) {
         return renderPassInfo;
+      }
 
       var renderPasses = this.lthiSnapshot_.args.frame.renderPasses;
       for (var i = 0; i < renderPasses.length; ++i) {
@@ -129,12 +129,10 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     getLayerInfos_: function() {
-      if (!this.lthiSnapshot_)
-        return [];
+      if (!this.lthiSnapshot_) return [];
 
       var tree = this.lthiSnapshot_.getTree(this.whichTree_);
-      if (!tree)
-        return [];
+      if (!tree) return [];
 
       var layerInfos = [];
 
@@ -143,53 +141,58 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       function isPureTransformLayer(layer) {
         if (layer.args.compositingReasons &&
             layer.args.compositingReasons.length !== 1 &&
-            layer.args.compositingReasons[0] !== 'No reasons given')
+            layer.args.compositingReasons[0] !== 'No reasons given') {
           return false;
+        }
 
-        if (layer.args.drawsContent)
-          return false;
+        if (layer.args.drawsContent) return false;
 
         return true;
       }
       var visitedLayers = {};
       function visitLayer(layer, depth, isMask, isReplica) {
-        if (visitedLayers[layer.layerId])
-          return;
+        if (visitedLayers[layer.layerId]) return;
+
         visitedLayers[layer.layerId] = true;
         var info = {layer: layer,
           depth: depth};
 
-        if (layer.args.drawsContent)
+        if (layer.args.drawsContent) {
           info.name = layer.objectInstance.name;
-        else
+        } else {
           info.name = 'cc::LayerImpl';
+        }
 
-        if (layer.usingGpuRasterization)
+        if (layer.usingGpuRasterization) {
           info.name += ' (G)';
+        }
 
         info.isMaskLayer = isMask;
         info.replicaLayer = isReplica;
 
-        if (showPureTransformLayers || !isPureTransformLayer(layer))
+        if (showPureTransformLayers || !isPureTransformLayer(layer)) {
           layerInfos.push(info);
+        }
       }
       tree.iterLayers(visitLayer);
       return layerInfos;
     },
 
     updateContents_: function() {
-      if (this.renderPassQuads_)
+      if (this.renderPassQuads_) {
         this.updateRenderPassContents_();
-      else
+      } else {
         this.updateLayerContents_();
+      }
     },
 
     updateRenderPassContents_: function() {
       this.itemList_.clear();
 
       var selectedRenderPassId;
-      if (this.selection_ && this.selection_.associatedRenderPassId)
+      if (this.selection_ && this.selection_.associatedRenderPassId) {
         selectedRenderPassId = this.selection_.associatedRenderPassId;
+      }
 
       var renderPassInfos = this.getRenderPassInfos_();
       renderPassInfos.forEach(function(renderPassInfo) {
@@ -217,8 +220,9 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         this.itemList_.clear();
 
         var selectedLayerId;
-        if (this.selection_ && this.selection_.associatedLayerId)
+        if (this.selection_ && this.selection_.associatedLayerId) {
           selectedLayerId = this.selection_.associatedLayerId;
+        }
 
         var layerInfos = this.getLayerInfos_();
         layerInfos.forEach(function(layerInfo) {
@@ -231,10 +235,12 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           Polymer.dom(labelEl).textContent = layerInfo.name + ' ' + id;
 
           var notesEl = Polymer.dom(item).appendChild(tr.ui.b.createSpan());
-          if (layerInfo.isMaskLayer)
+          if (layerInfo.isMaskLayer) {
             Polymer.dom(notesEl).textContent += '(mask)';
-          if (layerInfo.isReplicaLayer)
+          }
+          if (layerInfo.isReplicaLayer) {
             Polymer.dom(notesEl).textContent += '(replica)';
+          }
 
           if ((layer.gpuMemoryUsageInBytes !== undefined) &&
               (layer.gpuMemoryUsageInBytes > 0)) {
@@ -269,12 +275,12 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     onItemSelectionChanged_: function(e) {
-      if (this.changingItemSelection_)
-        return;
-      if (this.renderPassQuads_)
+      if (this.changingItemSelection_) return;
+      if (this.renderPassQuads_) {
         this.onRenderPassSelected_(e);
-      else
+      } else {
         this.onLayerSelected_(e);
+      }
       tr.b.dispatchSimpleEvent(this, 'selection-change', false);
     },
 
@@ -297,13 +303,15 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
     onLayerSelected_: function(e) {
       var selectedLayer;
-      if (this.itemList_.selectedElement)
+      if (this.itemList_.selectedElement) {
         selectedLayer = this.itemList_.selectedElement.layer;
+      }
 
-      if (selectedLayer)
+      if (selectedLayer) {
         this.selection_ = new tr.ui.e.chrome.cc.LayerSelection(selectedLayer);
-      else
+      } else {
         this.selection_ = undefined;
+      }
     },
 
     get selection() {
@@ -311,8 +319,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     set selection(selection) {
-      if (this.selection_ === selection)
-        return;
+      if (this.selection_ === selection) return;
       this.selection_ = selection;
       this.updateContents_();
     }

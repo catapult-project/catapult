@@ -81,8 +81,7 @@ tr.exportTo('tr.ui.tracks', function() {
     set expanded(expanded) {
       expanded = !!expanded;
 
-      if (this.expanded === expanded)
-        return;
+      if (this.expanded === expanded) return;
 
       Polymer.dom(this).classList.toggle('expanded');
 
@@ -91,8 +90,7 @@ tr.exportTo('tr.ui.tracks', function() {
       // to happen.
       this.viewport_.dispatchChangeEvent();
 
-      if (!this.processBase_)
-        return;
+      if (!this.processBase_) return;
 
       var modelSettings = new tr.model.ModelSettings(this.processBase_.model);
       modelSettings.setSettingFor(this.processBase_, 'expanded', expanded);
@@ -102,8 +100,9 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     get hasVisibleContent() {
-      if (this.expanded)
+      if (this.expanded) {
         return this.children.length > 1;
+      }
       return true;
     },
 
@@ -116,8 +115,7 @@ tr.exportTo('tr.ui.tracks', function() {
     updateContents_: function() {
       this.clearTracks_();
 
-      if (!this.processBase_)
-        return;
+      if (!this.processBase_) return;
 
       Polymer.dom(this.processNameEl_).textContent =
           this.processBase_.userFriendlyName;
@@ -149,16 +147,14 @@ tr.exportTo('tr.ui.tracks', function() {
     appendSummaryTrack_: function() {
       var track = new tr.ui.tracks.ProcessSummaryTrack(this.viewport);
       track.process = this.process;
-      if (!track.hasVisibleContent)
-        return;
+      if (!track.hasVisibleContent) return;
       Polymer.dom(this).appendChild(track);
       // no spacing track, since this track only shown in collapsed state
     },
 
     appendFrameTrack_: function() {
       var frames = this.process ? this.process.frames : undefined;
-      if (!frames || !frames.length)
-        return;
+      if (!frames || !frames.length) return;
 
       var track = new tr.ui.tracks.FrameTrack(this.viewport);
       track.frames = frames;
@@ -181,10 +177,12 @@ tr.exportTo('tr.ui.tracks', function() {
             undefined, typeName);
         var snapshotViewInfo = ObjectSnapshotView.getTypeInfo(
             undefined, typeName);
-        if (instanceViewInfo && !instanceViewInfo.metadata.showInTrackView)
+        if (instanceViewInfo && !instanceViewInfo.metadata.showInTrackView) {
           instanceViewInfo = undefined;
-        if (snapshotViewInfo && !snapshotViewInfo.metadata.showInTrackView)
+        }
+        if (snapshotViewInfo && !snapshotViewInfo.metadata.showInTrackView) {
           snapshotViewInfo = undefined;
+        }
         var hasViewInfo = instanceViewInfo || snapshotViewInfo;
 
         // There are some instances that don't merit their own track in
@@ -194,18 +192,15 @@ tr.exportTo('tr.ui.tracks', function() {
           var instance = allInstances[i];
 
           // Do not create tracks for instances that have no snapshots.
-          if (instance.snapshots.length === 0)
-            continue;
+          if (instance.snapshots.length === 0) continue;
 
           // Do not create tracks for instances that have implicit snapshots
           // and don't have a view.
-          if (instance.hasImplicitSnapshots && !hasViewInfo)
-            continue;
+          if (instance.hasImplicitSnapshots && !hasViewInfo) continue;
 
           visibleInstances.push(instance);
         }
-        if (visibleInstances.length === 0)
-          return;
+        if (visibleInstances.length === 0) return;
 
         // Look up the constructor for this track, or use the default
         // constructor if none exists.
@@ -226,8 +221,9 @@ tr.exportTo('tr.ui.tracks', function() {
         Polymer.dom(this).appendChild(track);
         didAppendAtLeastOneTrack = true;
       }, this);
-      if (didAppendAtLeastOneTrack)
+      if (didAppendAtLeastOneTrack) {
         Polymer.dom(this).appendChild(new SpacingTrack(this.viewport));
+      }
     },
 
     appendCounterTracks_: function() {
@@ -255,8 +251,8 @@ tr.exportTo('tr.ui.tracks', function() {
       threads.forEach(function(thread) {
         var track = new tr.ui.tracks.ThreadTrack(this.viewport);
         track.thread = thread;
-        if (!track.hasVisibleContent)
-          return;
+        if (!track.hasVisibleContent) return;
+
         if (track.hasSlices) {
           hasVisibleThreads = true;
           Polymer.dom(this).appendChild(track);

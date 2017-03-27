@@ -64,8 +64,9 @@ tr.exportTo('tr.ui.analysis', function() {
       var formattedTitle = this.formatTitle(row);
 
       var contexts = row.contexts;
-      if (contexts === undefined || contexts.length === 0)
+      if (contexts === undefined || contexts.length === 0) {
         return formattedTitle;
+      }
 
       // Determine if the row was provided in the first and last row and how
       // many times it changed between being provided and not provided.
@@ -73,8 +74,9 @@ tr.exportTo('tr.ui.analysis', function() {
       var lastContext = contexts[contexts.length - 1];
       var changeDefinedContextCount = 0;
       for (var i = 1; i < contexts.length; i++) {
-        if ((contexts[i] === undefined) !== (contexts[i - 1] === undefined))
+        if ((contexts[i] === undefined) !== (contexts[i - 1] === undefined)) {
           changeDefinedContextCount++;
+        }
       }
 
       // Determine the color and prefix of the title.
@@ -94,8 +96,9 @@ tr.exportTo('tr.ui.analysis', function() {
         color = 'purple';
       }
 
-      if (color === undefined && prefix === undefined)
+      if (color === undefined && prefix === undefined) {
         return formattedTitle;
+      }
 
       var titleEl = document.createElement('span');
       if (prefix !== undefined) {
@@ -106,8 +109,9 @@ tr.exportTo('tr.ui.analysis', function() {
         Polymer.dom(titleEl).appendChild(
             tr.ui.b.asHTMLOrTextNode(NO_BREAK_SPACE));
       }
-      if (color !== undefined)
+      if (color !== undefined) {
         titleEl.style.color = color;
+      }
       Polymer.dom(titleEl).appendChild(
           tr.ui.b.asHTMLOrTextNode(formattedTitle));
       return titleEl;
@@ -210,8 +214,7 @@ tr.exportTo('tr.ui.analysis', function() {
     var cellNames = new Set();
     function gatherCellNames(rows) {
       rows.forEach(function(row) {
-        if (row === undefined)
-          return;
+        if (row === undefined) return;
         var fieldCells = row[config.cellKey];
         if (fieldCells !== undefined) {
           for (var [fieldName, fieldCell] of Object.entries(fieldCells)) {
@@ -222,8 +225,9 @@ tr.exportTo('tr.ui.analysis', function() {
           }
         }
         var subRows = row.subRows;
-        if (subRows !== undefined)
+        if (subRows !== undefined) {
           gatherCellNames(subRows);
+        }
       });
     }
     gatherCellNames(rows);
@@ -245,8 +249,9 @@ tr.exportTo('tr.ui.analysis', function() {
 
     positions.sort(function(a, b) {
       // Sort columns with the same importance alphabetically.
-      if (a.importance === b.importance)
+      if (a.importance === b.importance) {
         return COLLATOR.compare(a.column.name, b.column.name);
+      }
 
       // Sort columns in descending order of importance.
       return b.importance - a.importance;
@@ -265,20 +270,19 @@ tr.exportTo('tr.ui.analysis', function() {
   MemoryColumn.findMatchingRule = function(name, rules) {
     for (var i = 0; i < rules.length; i++) {
       var rule = rules[i];
-      if (MemoryColumn.nameMatchesCondition(name, rule.condition))
+      if (MemoryColumn.nameMatchesCondition(name, rule.condition)) {
         return rule;
+      }
     }
     return undefined;
   };
 
   MemoryColumn.nameMatchesCondition = function(name, condition) {
     // Rules without conditions match all columns.
-    if (condition === undefined)
-      return true;
+    if (condition === undefined) return true;
 
     // String conditions must match the column name exactly.
-    if (typeof(condition) === 'string')
-      return name === condition;
+    if (typeof(condition) === 'string') return name === condition;
 
     // If the condition is not a string, assume it is a RegExp.
     return condition.test(name);
@@ -301,8 +305,7 @@ tr.exportTo('tr.ui.analysis', function() {
       var cell = row;
       var cellPath = this.cellPath;
       for (var i = 0; i < cellPath.length; i++) {
-        if (cell === undefined)
-          return undefined;
+        if (cell === undefined) return undefined;
         cell = cell[cellPath[i]];
       }
       return cell;
@@ -314,8 +317,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
     fields: function(row) {
       var cell = this.cell(row);
-      if (cell === undefined)
-        return undefined;
+      if (cell === undefined) return undefined;
       return cell.fields;
     },
 
@@ -325,8 +327,7 @@ tr.exportTo('tr.ui.analysis', function() {
      */
     value: function(row) {
       var fields = this.fields(row);
-      if (this.hasAllRelevantFieldsUndefined(fields))
-        return '';
+      if (this.hasAllRelevantFieldsUndefined(fields)) return '';
 
       // Determine the color and infos of the resulting element.
       var contexts = row.contexts;
@@ -339,8 +340,10 @@ tr.exportTo('tr.ui.analysis', function() {
 
       // If no color is specified and there are no infos, there is no need to
       // wrap the value in a span element.#
-      if ((color === undefined || formattedFields === '') && infos.length === 0)
+      if ((color === undefined || formattedFields === '') &&
+          infos.length === 0) {
         return formattedFields;
+      }
 
       var fieldEl = document.createElement('span');
       fieldEl.style.display = 'flex';
@@ -356,15 +359,17 @@ tr.exportTo('tr.ui.analysis', function() {
         infoEl.style.cursor = 'help';
         infoEl.style.fontWeight = 'bold';
         Polymer.dom(infoEl).textContent = info.icon;
-        if (info.color !== undefined)
+        if (info.color !== undefined) {
           infoEl.style.color = info.color;
+        }
         infoEl.title = info.message;
         Polymer.dom(fieldEl).appendChild(infoEl);
       }, this);
 
       // Set the color of the element.
-      if (color !== undefined)
+      if (color !== undefined) {
         fieldEl.style.color = color;
+      }
 
       return fieldEl;
     },
@@ -374,8 +379,7 @@ tr.exportTo('tr.ui.analysis', function() {
      * aggregation mode (e.g. first and last field for diff mode) are undefined.
      */
     hasAllRelevantFieldsUndefined: function(fields) {
-      if (fields === undefined)
-        return true;
+      if (fields === undefined) return true;
 
       switch (this.aggregationMode) {
         case MemoryColumn.AggregationMode.DIFF:
@@ -404,8 +408,9 @@ tr.exportTo('tr.ui.analysis', function() {
      * the current aggregation mode is guaranteed to be defined.
      */
     formatFields: function(fields) {
-      if (fields.length === 1)
+      if (fields.length === 1) {
         return this.formatSingleField(fields[0]);
+      }
       return this.formatMultipleFields(fields);
     },
 
@@ -459,18 +464,16 @@ tr.exportTo('tr.ui.analysis', function() {
 
       // Sanity check.
       if (fieldsA !== undefined && fieldsB !== undefined &&
-          fieldsA.length !== fieldsB.length)
+          fieldsA.length !== fieldsB.length) {
         throw new Error('Different number of fields');
+      }
 
       // Handle empty fields.
       var undefinedA = this.hasAllRelevantFieldsUndefined(fieldsA);
       var undefinedB = this.hasAllRelevantFieldsUndefined(fieldsB);
-      if (undefinedA && undefinedB)
-        return 0;
-      if (undefinedA)
-        return -1;
-      if (undefinedB)
-        return 1;
+      if (undefinedA && undefinedB) return 0;
+      if (undefinedA) return -1;
+      if (undefinedB) return 1;
 
       return this.compareFields(fieldsA, fieldsB);
     },
@@ -481,8 +484,9 @@ tr.exportTo('tr.ui.analysis', function() {
      * the two lists.
      */
     compareFields: function(fieldsA, fieldsB) {
-      if (fieldsA.length === 1)
+      if (fieldsA.length === 1) {
         return this.compareSingleFields(fieldsA[0], fieldsB[0]);
+      }
       return this.compareMultipleFields(fieldsA, fieldsB);
     },
 
@@ -531,8 +535,9 @@ tr.exportTo('tr.ui.analysis', function() {
 
     getMaxField: function(fields) {
       return fields.reduce(function(accumulator, field) {
-        if (field === undefined)
+        if (field === undefined) {
           return accumulator;
+        }
         if (accumulator === undefined ||
             this.compareSingleFields(field, accumulator) > 0) {
           return field;
@@ -546,19 +551,20 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     getImportance: function(importanceRules) {
-      if (importanceRules.length === 0)
-        return 0;
+      if (importanceRules.length === 0) return 0;
 
       // Find the first matching rule.
       var matchingRule =
           MemoryColumn.findMatchingRule(this.name, importanceRules);
-      if (matchingRule !== undefined)
+      if (matchingRule !== undefined) {
         return matchingRule.importance;
+      }
 
       // No matching rule. Return lower importance than all rules.
       var minImportance = importanceRules[0].importance;
-      for (var i = 1; i < importanceRules.length; i++)
+      for (var i = 1; i < importanceRules.length; i++) {
         minImportance = Math.min(minImportance, importanceRules[i].importance);
+      }
       return minImportance - 1;
     }
   };
@@ -615,39 +621,42 @@ tr.exportTo('tr.ui.analysis', function() {
         lastStringB) {
       // If one of the strings was added (and the other one wasn't), mark the
       // corresponding diff as greater.
-      if (firstStringA === undefined && firstStringB !== undefined)
+      if (firstStringA === undefined && firstStringB !== undefined) {
         return 1;
-      if (firstStringA !== undefined && firstStringB === undefined)
+      }
+      if (firstStringA !== undefined && firstStringB === undefined) {
         return -1;
+      }
 
       // If both strings were added, compare the last values (greater last
       // value implies greater diff).
-      if (firstStringA === undefined && firstStringB === undefined)
+      if (firstStringA === undefined && firstStringB === undefined) {
         return this.compareSingleFields(lastStringA, lastStringB);
+      }
 
       // If one of the strings was removed (and the other one wasn't), mark the
       // corresponding diff as lower.
-      if (lastStringA === undefined && lastStringB !== undefined)
+      if (lastStringA === undefined && lastStringB !== undefined) {
         return -1;
-      if (lastStringA !== undefined && lastStringB === undefined)
+      }
+      if (lastStringA !== undefined && lastStringB === undefined) {
         return 1;
+      }
 
       // If both strings were removed, compare the first values (greater first
       // value implies smaller (!) diff).
-      if (lastStringA === undefined && lastStringB === undefined)
+      if (lastStringA === undefined && lastStringB === undefined) {
         return this.compareSingleFields(firstStringB, firstStringA);
+      }
 
       var areStringsAEqual = firstStringA === lastStringA;
       var areStringsBEqual = firstStringB === lastStringB;
 
       // Consider diffs of strings that did not change to be smaller than diffs
       // of strings that did change.
-      if (areStringsAEqual && areStringsBEqual)
-        return 0;
-      if (areStringsAEqual)
-        return -1;
-      if (areStringsBEqual)
-        return 1;
+      if (areStringsAEqual && areStringsBEqual) return 0;
+      if (areStringsAEqual) return -1;
+      if (areStringsBEqual) return 1;
 
       // Both strings changed. We are unable to determine the ordering of the
       // diffs.
@@ -680,26 +689,27 @@ tr.exportTo('tr.ui.analysis', function() {
       var hasDefinedSubRowNumeric = false;
       var timestampCount = undefined;
       subRowCells.forEach(function(subRowCell) {
-        if (subRowCell === undefined)
-          return;
+        if (subRowCell === undefined) return;
 
         var subRowNumerics = subRowCell.fields;
-        if (subRowNumerics === undefined)
-          return;
+        if (subRowNumerics === undefined) return;
 
-        if (timestampCount === undefined)
+        if (timestampCount === undefined) {
           timestampCount = subRowNumerics.length;
-        else if (timestampCount !== subRowNumerics.length)
+        } else if (timestampCount !== subRowNumerics.length) {
           throw new Error('Sub-rows have different numbers of timestamps');
+        }
 
-        if (hasDefinedSubRowNumeric)
+        if (hasDefinedSubRowNumeric) {
           return;  // Avoid unnecessary traversals of the numerics.
+        }
         hasDefinedSubRowNumeric = subRowNumerics.some(function(numeric) {
           return numeric !== undefined;
         });
       });
-      if (!hasDefinedSubRowNumeric)
+      if (!hasDefinedSubRowNumeric) {
         return;  // No numeric to aggregate.
+      }
 
       // Get or create the row cell.
       var cellPath = this.cellPath;
@@ -708,10 +718,11 @@ tr.exportTo('tr.ui.analysis', function() {
         var nextStepName = cellPath[i];
         var nextStep = rowCell[nextStepName];
         if (nextStep === undefined) {
-          if (i < cellPath.length - 1)
+          if (i < cellPath.length - 1) {
             nextStep = {};
-          else
+          } else {
             nextStep = new MemoryCell(undefined);
+          }
           rowCell[nextStepName] = nextStep;
         }
         rowCell = nextStep;
@@ -724,12 +735,12 @@ tr.exportTo('tr.ui.analysis', function() {
       }
 
       for (var i = 0; i < timestampCount; i++) {
-        if (rowCell.fields[i] !== undefined)
-          continue;
+        if (rowCell.fields[i] !== undefined) continue;
         rowCell.fields[i] = tr.model.MemoryAllocatorDump.aggregateNumerics(
             subRowCells.map(function(subRowCell) {
-              if (subRowCell === undefined || subRowCell.fields === undefined)
+              if (subRowCell === undefined || subRowCell.fields === undefined) {
                 return undefined;
+              }
               return subRowCell.fields[i];
             }));
       }
@@ -784,8 +795,7 @@ tr.exportTo('tr.ui.analysis', function() {
   }
 
   MemoryCell.extractFields = function(cell) {
-    if (cell === undefined)
-      return undefined;
+    if (cell === undefined) return undefined;
     return cell.fields;
   };
 
@@ -801,8 +811,7 @@ tr.exportTo('tr.ui.analysis', function() {
       var nextLevelRowCount = 0;
       currentLevelRows.forEach(function(currentLevelRow) {
         var subRows = currentLevelRow.subRows;
-        if (subRows === undefined || subRows.length === 0)
-          return;
+        if (subRows === undefined || subRows.length === 0) return;
         nextLevelRowCount += subRows.length;
       });
 
@@ -818,8 +827,7 @@ tr.exportTo('tr.ui.analysis', function() {
       var nextLevelRowIndex = 0;
       currentLevelRows.forEach(function(currentLevelRow) {
         var subRows = currentLevelRow.subRows;
-        if (subRows === undefined || subRows.length === 0)
-          return;
+        if (subRows === undefined || subRows.length === 0) return;
         table.setExpandedForTableRow(currentLevelRow, true);
         subRows.forEach(function(subRow) {
           nextLevelRows[nextLevelRowIndex++] = subRow;
@@ -834,21 +842,20 @@ tr.exportTo('tr.ui.analysis', function() {
 
   function aggregateTableRowCellsRecursively(row, columns, opt_predicate) {
     var subRows = row.subRows;
-    if (subRows === undefined || subRows.length === 0)
-      return;
+    if (subRows === undefined || subRows.length === 0) return;
 
     subRows.forEach(function(subRow) {
       aggregateTableRowCellsRecursively(subRow, columns, opt_predicate);
     });
 
-    if (opt_predicate === undefined || opt_predicate(row.contexts))
+    if (opt_predicate === undefined || opt_predicate(row.contexts)) {
       aggregateTableRowCells(row, subRows, columns);
+    }
   }
 
   function aggregateTableRowCells(row, subRows, columns) {
     columns.forEach(function(column) {
-      if (!(column instanceof MemoryColumn))
-        return;
+      if (!(column instanceof MemoryColumn)) return;
       column.aggregateCells(row, subRows);
     });
   }
@@ -880,8 +887,9 @@ tr.exportTo('tr.ui.analysis', function() {
     __proto__: NumericMemoryColumn.prototype,
 
     getFormattingContext: function(unit) {
-      if (unit.baseUnit === tr.b.Unit.byName.sizeInBytes)
+      if (unit.baseUnit === tr.b.Unit.byName.sizeInBytes) {
         return { unitPrefix: tr.b.UnitPrefixScale.BINARY.KIBI };
+      }
       return undefined;
     }
   };

@@ -39,11 +39,13 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     set target(target) {
-      if (this.activeAnimation_)
+      if (this.activeAnimation_) {
         throw new Error('Cannot change target while animation is running.');
+      }
       if (target.cloneAnimationState === undefined ||
-          typeof target.cloneAnimationState !== 'function')
+          typeof target.cloneAnimationState !== 'function') {
         throw new Error('target must have a cloneAnimationState function');
+      }
 
       this.target_ = target;
     },
@@ -57,22 +59,25 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     queueAnimation: function(animation, opt_now) {
-      if (this.target_ === undefined)
+      if (this.target_ === undefined) {
         throw new Error('Cannot queue animations without a target');
+      }
 
       var now;
-      if (opt_now !== undefined)
+      if (opt_now !== undefined) {
         now = opt_now;
-      else
+      } else {
         now = window.performance.now();
+      }
 
       if (this.activeAnimation_) {
         // Must tick the animation before stopping it case its about to stop,
         // and to update the target with its final sets of edits up to this
         // point.
         var done = this.activeAnimation_.tick(now, this.target_);
-        if (done)
+        if (done) {
           this.activeAnimation_ = undefined;
+        }
       }
 
       if (this.activeAnimation_) {
@@ -86,28 +91,26 @@ tr.exportTo('tr.ui.b', function() {
       this.activeAnimation_ = animation;
       this.activeAnimation_.start(now, this.target_);
 
-      if (this.tickScheduled_)
-        return;
+      if (this.tickScheduled_) return;
       this.tickScheduled_ = true;
       tr.b.requestAnimationFrame(this.tickActiveAnimation_, this);
     },
 
     cancelActiveAnimation: function(opt_now) {
-      if (!this.activeAnimation_)
-        return;
+      if (!this.activeAnimation_) return;
       var now;
-      if (opt_now !== undefined)
+      if (opt_now !== undefined) {
         now = opt_now;
-      else
+      } else {
         now = window.performance.now();
+      }
       this.activeAnimation_.didStopEarly(now, this.target_, false);
       this.activeAnimation_ = undefined;
     },
 
     tickActiveAnimation_: function(frameBeginTime) {
       this.tickScheduled_ = false;
-      if (!this.activeAnimation_)
-        return;
+      if (!this.activeAnimation_) return;
 
       if (this.target_ === undefined) {
         this.activeAnimation_.didStopEarly(frameBeginTime, this.target_, false);
@@ -117,8 +120,9 @@ tr.exportTo('tr.ui.b', function() {
       var oldTargetState = this.target_.cloneAnimationState();
 
       var done = this.activeAnimation_.tick(frameBeginTime, this.target_);
-      if (done)
+      if (done) {
         this.activeAnimation_ = undefined;
+      }
 
       if (this.activeAnimation_) {
         this.tickScheduled_ = true;

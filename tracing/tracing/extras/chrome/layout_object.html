@@ -58,14 +58,18 @@ tr.exportTo('tr.e.chrome', function() {
     this.htmlId_ = args.htmlId;
     this.classNames_ = args.classNames;
     this.needsLayoutReasons_ = [];
-    if (args.selfNeeds)
+    if (args.selfNeeds) {
       this.needsLayoutReasons_.push('self');
-    if (args.childNeeds)
+    }
+    if (args.childNeeds) {
       this.needsLayoutReasons_.push('child');
-    if (args.posChildNeeds)
+    }
+    if (args.posChildNeeds) {
       this.needsLayoutReasons_.push('positionedChild');
-    if (args.positionedMovement)
+    }
+    if (args.positionedMovement) {
       this.needsLayoutReasons_.push('positionedMovement');
+    }
     this.tableRow_ = args.row;
     this.tableCol_ = args.col;
     this.tableRowSpan_ = args.rowSpan;
@@ -78,8 +82,9 @@ tr.exportTo('tr.e.chrome', function() {
     }
 
     for (var property in args) {
-      if (!KNOWN_PROPERTIES[property])
+      if (!KNOWN_PROPERTIES[property]) {
         this.otherProperties_[property] = args[property];
+      }
     }
   }
 
@@ -166,8 +171,7 @@ tr.exportTo('tr.e.chrome', function() {
 
     traverseTree: function(cb, opt_this) {
       cb.call(opt_this, this);
-      if (!this.hasChildLayoutObjects)
-        return;
+      if (!this.hasChildLayoutObjects) return;
       this.childLayoutObjects.forEach(function(child) {
         child.traverseTree(cb, opt_this);
       });
@@ -186,14 +190,12 @@ tr.exportTo('tr.e.chrome', function() {
     },
 
     get previousSnapshotLayoutObject() {
-      if (!this.snapshot.previousSnapshot)
-        return undefined;
+      if (!this.snapshot.previousSnapshot) return undefined;
       return this.snapshot.previousSnapshot.getLayoutObjectById(this.id);
     },
 
     get nextSnapshotLayoutObject() {
-      if (!this.snapshot.nextSnapshot)
-        return undefined;
+      if (!this.snapshot.nextSnapshot) return undefined;
       return this.snapshot.nextSnapshot.getLayoutObjectById(this.id);
     }
   };

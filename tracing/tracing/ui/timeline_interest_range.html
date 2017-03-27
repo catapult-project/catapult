@@ -95,8 +95,8 @@ tr.exportTo('tr.ui', function() {
     },
 
     set leftSelected(leftSelected) {
-      if (this.leftSelected_ === leftSelected)
-        return;
+      if (this.leftSelected_ === leftSelected) return;
+
       this.leftSelected_ = leftSelected;
       this.viewport_.dispatchChangeEvent();
     },
@@ -106,8 +106,8 @@ tr.exportTo('tr.ui', function() {
     },
 
     set rightSelected(rightSelected) {
-      if (this.rightSelected_ === rightSelected)
-        return;
+      if (this.rightSelected_ === rightSelected) return;
+
       this.rightSelected_ = rightSelected;
       this.viewport_.dispatchChangeEvent();
     },
@@ -131,8 +131,8 @@ tr.exportTo('tr.ui', function() {
     },
 
     draw: function(ctx, viewLWorld, viewRWorld) {
-      if (this.range_.isEmpty)
-        return;
+      if (this.range_.isEmpty) return;
+
       var dt = this.viewport_.currentDisplayTransform;
 
       var markerLWorld = this.min;
@@ -168,8 +168,7 @@ tr.exportTo('tr.ui', function() {
     },
 
     drawLine_: function(ctx, viewLWorld, viewRWorld, height, ts, selected) {
-      if (ts < viewLWorld || ts >= viewRWorld)
-        return;
+      if (ts < viewLWorld || ts >= viewRWorld) return;
 
       var dt = this.viewport_.currentDisplayTransform;
       var viewX = Math.round(dt.xWorldToView(ts));
@@ -181,10 +180,11 @@ tr.exportTo('tr.ui', function() {
 
       ctx.beginPath();
       tr.ui.b.drawLine(ctx, viewX, 0, viewX, height);
-      if (selected)
+      if (selected) {
         ctx.strokeStyle = 'rgb(255, 0, 0)';
-      else
+      } else {
         ctx.strokeStyle = 'rgb(0, 0, 0)';
+      }
       ctx.stroke();
 
       ctx.restore();
@@ -221,10 +221,11 @@ tr.exportTo('tr.ui', function() {
       var viewHeight = si.height * devicePixelRatio;
       var arrowSize = 4 * pixelRatio;
 
-      if (selected)
+      if (selected) {
         ctx.fillStyle = 'rgb(255, 0, 0)';
-      else
+      } else {
         ctx.fillStyle = 'rgb(0, 0, 0)';
+      }
       tr.ui.b.drawTriangle(ctx,
           viewX - arrowSize * 0.75, viewY,
           viewX + arrowSize * 0.75, viewY,

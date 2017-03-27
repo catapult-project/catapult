@@ -24,15 +24,15 @@ tr.exportTo('tr.model', function() {
   }
 
   Annotation.fromDictIfPossible = function(args) {
-    if (args.typeName === undefined)
+    if (args.typeName === undefined) {
       throw new Error('Missing typeName argument');
+    }
 
     var typeInfo = Annotation.findTypeInfoMatching(function(typeInfo) {
       return typeInfo.metadata.typeName === args.typeName;
     });
 
-    if (typeInfo === undefined)
-      return undefined;
+    if (typeInfo === undefined) return undefined;
 
     return typeInfo.constructor.fromDict(args);
   };
@@ -55,8 +55,9 @@ tr.exportTo('tr.model', function() {
     },
 
     getOrCreateView: function(viewport) {
-      if (!this.view_)
+      if (!this.view_) {
         this.view_ = this.createView_(viewport);
+      }
       return this.view_;
     },
 
@@ -69,11 +70,13 @@ tr.exportTo('tr.model', function() {
   tr.b.decorateExtensionRegistry(Annotation, options);
 
   Annotation.addEventListener('will-register', function(e) {
-    if (!e.typeInfo.constructor.hasOwnProperty('fromDict'))
+    if (!e.typeInfo.constructor.hasOwnProperty('fromDict')) {
       throw new Error('Must have fromDict method');
+    }
 
-    if (!e.typeInfo.metadata.typeName)
+    if (!e.typeInfo.metadata.typeName) {
       throw new Error('Registered Annotations must provide typeName');
+    }
   });
 
   return {

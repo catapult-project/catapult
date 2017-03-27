@@ -28,8 +28,9 @@ tr.exportTo('tr.mre', function() {
       };
 
       this._asDictInto(d);
-      if (d.type === undefined)
+      if (d.type === undefined) {
         throw new Error('_asDictInto must set type field');
+      }
     },
 
     load: function() {
@@ -38,10 +39,12 @@ tr.exportTo('tr.mre', function() {
   };
 
   FileHandle.fromDict = function(handleDict) {
-    if (handleDict.type === 'url')
+    if (handleDict.type === 'url') {
       return URLFileHandle.fromDict(handleDict);
-    if (handleDict.type === 'in-memory')
+    }
+    if (handleDict.type === 'in-memory') {
       return InMemoryFileHandle.fromDict(handleDict);
+    }
 
     throw new Error('Not implemented: fromDict for ' + handleDict.type);
   };

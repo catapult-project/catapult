@@ -35,8 +35,7 @@ tr.exportTo('tr.ui.analysis', function() {
      * This method is intended to be called by subclasses.
      */
     scheduleRebuild_: function() {
-      if (this.paneDirty_)
-        return;
+      if (this.paneDirty_) return;
       this.paneDirty_ = true;
       tr.b.requestAnimationFrame(this.rebuild.bind(this));
     },

@@ -52,28 +52,31 @@ tr.exportTo('tr.e.cc', function() {
       // This check is for backward compatability. It can probably
       // be removed once we're confident that most traces contain
       // content_rect.
-      if (this.contentRect)
+      if (this.contentRect) {
         this.layerRect = this.contentRect.scale(1.0 / this.contentsScale);
+      }
 
-      if (this.isSolidColor)
+      if (this.isSolidColor) {
         this.type_ = tr.e.cc.tileTypes.solidColor;
-      else if (!this.hasResource)
+      } else if (!this.hasResource) {
         this.type_ = tr.e.cc.tileTypes.missing;
-      else if (this.resolution === 'HIGH_RESOLUTION')
+      } else if (this.resolution === 'HIGH_RESOLUTION') {
         this.type_ = tr.e.cc.tileTypes.highRes;
-      else if (this.resolution === 'LOW_RESOLUTION')
+      } else if (this.resolution === 'LOW_RESOLUTION') {
         this.type_ = tr.e.cc.tileTypes.lowRes;
-      else
+      } else {
         this.type_ = tr.e.cc.tileTypes.unknown;
+      }
     },
 
     getTypeForLayer: function(layer) {
       var type = this.type_;
       if (type === tr.e.cc.tileTypes.unknown) {
-        if (this.contentsScale < layer.idealContentsScale)
+        if (this.contentsScale < layer.idealContentsScale) {
           type = tr.e.cc.tileTypes.extraLowRes;
-        else if (this.contentsScale > layer.idealContentsScale)
+        } else if (this.contentsScale > layer.idealContentsScale) {
           type = tr.e.cc.tileTypes.extraHighRes;
+        }
       }
       return type;
     }

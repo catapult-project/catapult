@@ -28,12 +28,12 @@ tr.exportTo('tr.e.tquery', function() {
     },
 
     evaluate: function(context) {
-      if (!this.subExpression)
+      if (!this.subExpression) {
         return context.ancestors.length > 0;
+      }
       while (context.ancestors.length) {
         context = context.pop();
-        if (this.subExpression.evaluate(context))
-          return true;
+        if (this.subExpression.evaluate(context)) return true;
       }
       return false;
     }

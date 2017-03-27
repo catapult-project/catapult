@@ -163,8 +163,9 @@ tr.exportTo('tr.e.importer.v8', function() {
    */
   CodeMap.prototype.findEntryInLibraries = function(addr) {
     var pageAddr = addr >>> CodeMap.PAGE_ALIGNMENT;
-    if (pageAddr in this.pages_)
+    if (pageAddr in this.pages_) {
       return this.findInTree_(this.libraries_, addr);
+    }
     return undefined;
   };
 

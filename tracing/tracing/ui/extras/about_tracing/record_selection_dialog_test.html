@@ -22,10 +22,12 @@ tr.b.unittest.testSuite(function() {
       e.stopPropagation();
 
       var categories = [];
-      for (var i = 0; i < 30; i++)
+      for (var i = 0; i < 30; i++) {
         categories.push('cat-' + i);
-      for (var i = 0; i < 20; i++)
+      }
+      for (var i = 0; i < 20; i++) {
         categories.push('disabled-by-default-cat-' + i);
+      }
       categories.push(
           'really-really-really-really-really-really-very-loong-cat');
       categories.push('first,second,third');

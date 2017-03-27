@@ -85,8 +85,9 @@ Polymer({
   alertsByType_: function(alerts) {
     var alertsByType = {};
     alerts.forEach(function(alert) {
-      if (!alertsByType[alert.title])
+      if (!alertsByType[alert.title]) {
         alertsByType[alert.title] = [];
+      }
 
       alertsByType[alert.title].push(alert);
     });
@@ -126,8 +127,9 @@ Polymer({
     table.selectionMode = tr.ui.b.TableFormat.SelectionMode.ROW;
     table.addEventListener('selection-changed', function(e) {
       var row = table.selectedTableRow;
-      if (row)
+      if (row) {
         this.selectAlertsOfType(row.alertType);
+      }
     }.bind(this));
 
     return table;
@@ -135,8 +137,7 @@ Polymer({
 
   updateContents_: function() {
     Polymer.dom(this.$.result_area).textContent = '';
-    if (this.model_ === undefined)
-      return;
+    if (this.model_ === undefined) return;
 
     var panel = this.createAlertsTable_(this.model_.alerts);
     Polymer.dom(this.$.result_area).appendChild(panel);

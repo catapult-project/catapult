@@ -65,8 +65,9 @@ tr.exportTo('tr.e.cc', function() {
     AsyncSlice.apply(this, arguments);
     this.associatedEvents_ = new EventSet();
     this.typeName_ = undefined;
-    if (!this.isLegacyEvent)
+    if (!this.isLegacyEvent) {
       this.determineModernTypeName_();
+    }
   }
 
   InputLatencyAsyncSlice.prototype = {
@@ -85,14 +86,16 @@ tr.exportTo('tr.e.cc', function() {
     },
 
     get typeName() {
-      if (!this.typeName_)
+      if (!this.typeName_) {
         this.determineLegacyTypeName_();
+      }
       return this.typeName_;
     },
 
     checkTypeName_: function() {
-      if (!this.typeName_)
+      if (!this.typeName_) {
         throw new Error('Unable to determine typeName');
+      }
       var found = false;
       for (var typeName in INPUT_EVENT_TYPE_NAMES) {
         if (this.typeName === INPUT_EVENT_TYPE_NAMES[typeName]) {
@@ -100,8 +103,9 @@ tr.exportTo('tr.e.cc', function() {
           break;
         }
       }
-      if (!found)
+      if (!found) {
         this.typeName_ = INPUT_EVENT_TYPE_NAMES.UNKNOWN;
+      }
     },
 
     determineModernTypeName_: function() {
@@ -111,8 +115,7 @@ tr.exportTo('tr.e.cc', function() {
       // legacy subSlices events contain 1 colon.
 
       var lastColonIndex = this.title.lastIndexOf(':');
-      if (lastColonIndex < 0)
-        return;
+      if (lastColonIndex < 0) return;
 
       var characterAfterLastColonIndex = lastColonIndex + 1;
       this.typeName_ = this.title.slice(characterAfterLastColonIndex);
@@ -127,12 +130,10 @@ tr.exportTo('tr.e.cc', function() {
         // If |subSlice| is not an InputLatencyAsyncSlice, then ignore it.
         var subSliceIsAInputLatencyAsyncSlice = (
             subSlice instanceof InputLatencyAsyncSlice);
-        if (!subSliceIsAInputLatencyAsyncSlice)
-          continue;
+        if (!subSliceIsAInputLatencyAsyncSlice) continue;
 
         // If |subSlice| does not have a typeName, then ignore it.
-        if (!subSlice.typeName)
-          continue;
+        if (!subSlice.typeName) continue;
 
         // If |this| already has a typeName and |subSlice| has a different
         // typeName, then explode!
@@ -165,22 +166,21 @@ tr.exportTo('tr.e.cc', function() {
       var traceModel = this.startThread.parent.model;
       var modelHelper = traceModel.getOrCreateHelper(
           tr.model.helpers.ChromeModelHelper);
-      if (!modelHelper)
-        return undefined;
+      if (!modelHelper) return undefined;
 
       var mainThread = undefined;
       var compositorThread = undefined;
 
       for (var i in sourceSlices) {
         if (sourceSlices[i].parentContainer.name ===
-            MAIN_RENDERER_THREAD_NAME)
+            MAIN_RENDERER_THREAD_NAME) {
           mainThread = sourceSlices[i].parentContainer;
-        else if (sourceSlices[i].parentContainer.name ===
-            COMPOSITOR_THREAD_NAME)
+        } else if (sourceSlices[i].parentContainer.name ===
+            COMPOSITOR_THREAD_NAME) {
           compositorThread = sourceSlices[i].parentContainer;
+        }
 
-        if (mainThread && compositorThread)
-          break;
+        if (mainThread && compositorThread) break;
       }
 
       var rendererHelpers = modelHelper.rendererHelpers;
@@ -190,8 +190,9 @@ tr.exportTo('tr.e.cc', function() {
         var pid = pids[i];
         var rendererHelper = rendererHelpers[pid];
         if (rendererHelper.mainThread === mainThread ||
-            rendererHelper.compositorThread === compositorThread)
+            rendererHelper.compositorThread === compositorThread) {
           return rendererHelper;
+        }
       }
 
       return undefined;
@@ -210,14 +211,16 @@ tr.exportTo('tr.e.cc', function() {
       flowEvents.forEach(function(flowEvent) {
         this.associatedEvents_.push(flowEvent);
         var newSource = flowEvent.startSlice.mostTopLevelSlice;
-        if (slices.indexOf(newSource) === -1)
+        if (slices.indexOf(newSource) === -1) {
           slices.push(newSource);
+        }
       }, this);
 
       var lastFlowEvent = flowEvents[flowEvents.length - 1];
       var lastSource = lastFlowEvent.endSlice.mostTopLevelSlice;
-      if (slices.indexOf(lastSource) === -1)
+      if (slices.indexOf(lastSource) === -1) {
         slices.push(lastSource);
+      }
 
       return slices;
     },
@@ -227,8 +230,9 @@ tr.exportTo('tr.e.cc', function() {
     // The C++ CL that makes this connection is at:
     // https://codereview.chromium.org/1178963003
     addScrollUpdateEvents: function(rendererHelper) {
-      if (!rendererHelper || !rendererHelper.compositorThread)
+      if (!rendererHelper || !rendererHelper.compositorThread) {
         return;
+      }
 
       var compositorThread = rendererHelper.compositorThread;
       var gestureScrollUpdateStart = this.start;
@@ -240,8 +244,7 @@ tr.exportTo('tr.e.cc', function() {
       for (var i in allCompositorAsyncSlices) {
         var slice = allCompositorAsyncSlices[i];
 
-        if (slice.title !== 'Latency::ScrollUpdate')
-          continue;
+        if (slice.title !== 'Latency::ScrollUpdate') continue;
 
         var parentId = slice.args.data.
             INPUT_EVENT_LATENCY_FORWARD_SCROLL_UPDATE_TO_MAIN_COMPONENT.
@@ -250,13 +253,15 @@ tr.exportTo('tr.e.cc', function() {
         if (parentId === undefined) {
           // Old trace, we can only rely on the timestamp to find the slice
           if (slice.start < gestureScrollUpdateStart ||
-              slice.start >= gestureScrollUpdateEnd)
+              slice.start >= gestureScrollUpdateEnd) {
             continue;
+          }
         } else {
           // New trace, we can definitively find the latency slice by comparing
           // its sequence number with gesture id
-          if (parseInt(parentId) !== parseInt(this.id))
+          if (parseInt(parentId) !== parseInt(this.id)) {
             continue;
+          }
         }
 
         slice.associatedEvents.forEach(function(event) {
@@ -273,16 +278,15 @@ tr.exportTo('tr.e.cc', function() {
       var fromOtherInputs = false;
 
       slice.iterateEntireHierarchy(function(subsequentSlice) {
-        if (fromOtherInputs)
-          return;
+        if (fromOtherInputs) return;
 
         subsequentSlice.inFlowEvents.forEach(function(inflow) {
-          if (fromOtherInputs)
-            return;
+          if (fromOtherInputs) return;
 
           if (inflow.category.indexOf('input') > -1) {
-            if (flowEvents.indexOf(inflow) === -1)
+            if (flowEvents.indexOf(inflow) === -1) {
               fromOtherInputs = true;
+            }
           }
         }, this);
       }, this);
@@ -293,8 +297,9 @@ tr.exportTo('tr.e.cc', function() {
     // Return true if |event| triggers slices of other inputs.
     triggerOtherInputs: function(event, flowEvents) {
       if (event.outFlowEvents === undefined ||
-          event.outFlowEvents.length === 0)
+          event.outFlowEvents.length === 0) {
         return false;
+      }
 
       // Once we fix the bug of flow event binding, there should exist one and
       // only one outgoing flow (PostTask) from ScheduleBeginImplFrameDeadline
@@ -302,12 +307,14 @@ tr.exportTo('tr.e.cc', function() {
       var flow = event.outFlowEvents[0];
 
       if (flow.category !== POSTTASK_FLOW_EVENT ||
-          !flow.endSlice)
+          !flow.endSlice) {
         return false;
+      }
 
       var endSlice = flow.endSlice;
-      if (this.belongToOtherInputs(endSlice.mostTopLevelSlice, flowEvents))
+      if (this.belongToOtherInputs(endSlice.mostTopLevelSlice, flowEvents)) {
         return true;
+      }
 
       return false;
     },
@@ -319,40 +326,39 @@ tr.exportTo('tr.e.cc', function() {
       var inputAck = false;
 
       event.iterateAllSubsequentSlices(function(slice) {
-        if (stopFollowing)
-          return;
+        if (stopFollowing) return;
 
         // Do not follow TaskQueueManager::RunTask because it causes
         // many false events to be included.
-        if (slice.title === 'TaskQueueManager::RunTask')
-          return;
+        if (slice.title === 'TaskQueueManager::RunTask') return;
 
         // Do not follow ScheduledActionSendBeginMainFrame because the real
         // main thread BeginMainFrame is already traced by LatencyInfo flow.
-        if (slice.title === 'ThreadProxy::ScheduledActionSendBeginMainFrame')
+        if (slice.title === 'ThreadProxy::ScheduledActionSendBeginMainFrame') {
           return;
+        }
 
         // Do not follow ScheduleBeginImplFrameDeadline that triggers an
         // OnBeginImplFrameDeadline that is tracked by another LatencyInfo.
         if (slice.title === 'Scheduler::ScheduleBeginImplFrameDeadline') {
-          if (this.triggerOtherInputs(slice, flowEvents))
-            return;
+          if (this.triggerOtherInputs(slice, flowEvents)) return;
         }
 
         // Do not follow PostComposite that triggers CompositeImmediately
         // that is tracked by another LatencyInfo.
         if (slice.title === 'CompositorImpl::PostComposite') {
-          if (this.triggerOtherInputs(slice, flowEvents))
-            return;
+          if (this.triggerOtherInputs(slice, flowEvents)) return;
         }
 
         // Stop following the rest of the current slice hierarchy if
         // FilterAndSendWebInputEvent occurs after ProcessInputEventAck.
-        if (slice.title === 'InputRouterImpl::ProcessInputEventAck')
+        if (slice.title === 'InputRouterImpl::ProcessInputEventAck') {
           inputAck = true;
+        }
         if (inputAck &&
-            slice.title === 'InputRouterImpl::FilterAndSendWebInputEvent')
+            slice.title === 'InputRouterImpl::FilterAndSendWebInputEvent') {
           stopFollowing = true;
+        }
 
         this.followCurrentSlice(slice, queue, visited);
       }, this);
@@ -407,8 +413,9 @@ tr.exportTo('tr.e.cc', function() {
       }, this);
 
       sortedRasterizerSlices.sort(function(a, b) {
-        if (a.start !== b.start)
+        if (a.start !== b.start) {
           return a.start - b.start;
+        }
         return a.guid - b.guid;
       });
     },
@@ -419,19 +426,20 @@ tr.exportTo('tr.e.cc', function() {
     // https://codereview.chromium.org/1208683002/
     addRasterizationEvents: function(prepareTiles, rendererHelper,
         visited, flowEvents, sortedRasterizerSlices) {
-      if (!prepareTiles.args.prepare_tiles_id)
-        return;
+      if (!prepareTiles.args.prepare_tiles_id) return;
 
-      if (!rendererHelper || !rendererHelper.rasterWorkerThreads)
+      if (!rendererHelper || !rendererHelper.rasterWorkerThreads) {
         return;
+      }
 
       var rasterWorkerThreads = rendererHelper.rasterWorkerThreads;
       var prepareTileId = prepareTiles.args.prepare_tiles_id;
       var pendingEventQueue = [];
 
       // Collect all the rasterizer tasks. Return the cached copy if possible.
-      if (sortedRasterizerSlices.length === 0)
+      if (sortedRasterizerSlices.length === 0) {
         this.sortRasterizerSlices(rasterWorkerThreads, sortedRasterizerSlices);
+      }
 
       // TODO(yuhao): Once TaskSetFinishedTaskImpl also get the prepareTileId
       // we can simply track by checking id rather than counting.
@@ -445,13 +453,13 @@ tr.exportTo('tr.e.cc', function() {
 
         if (task.title === RASTER_TASK_TITLE ||
             task.title === IMAGEDECODE_TASK_TITLE) {
-          if (task.args.source_prepare_tiles_id === prepareTileId)
+          if (task.args.source_prepare_tiles_id === prepareTileId) {
             this.addEntireSliceHierarchy(task.mostTopLevelSlice);
+          }
         } else if (task.title === FINISHED_TASK_TITLE) {
           if (task.start > prepareTiles.start) {
             pendingEventQueue.push(task.mostTopLevelSlice);
-            if (++numFinishedTasks === 3)
-              break;
+            if (++numFinishedTasks === 3) break;
           }
         }
       }
@@ -498,17 +506,19 @@ tr.exportTo('tr.e.cc', function() {
         // instead of flow events.
         var COMPOSITOR_PREPARE_TILES = 'TileManager::PrepareTiles';
         prepareTiles = event.findDescendentSlice(COMPOSITOR_PREPARE_TILES);
-        if (prepareTiles)
+        if (prepareTiles) {
           this.addRasterizationEvents(prepareTiles, rendererHelper,
               visitedEvents, flowEvents, sortedRasterizerSlices);
+        }
 
         // OnBeginImplFrameDeadline could be triggered by other inputs.
         // For now, we backtrace from it.
         // TODO(yuhao): There are more such slices that we need to backtrace
         var COMPOSITOR_ON_BIFD = 'Scheduler::OnBeginImplFrameDeadline';
         beginImplFrame = event.findDescendentSlice(COMPOSITOR_ON_BIFD);
-        if (beginImplFrame)
+        if (beginImplFrame) {
           this.backtraceFromDraw(beginImplFrame, visitedEvents);
+        }
       }
 
       // A separate pass on GestureScrollUpdate.
@@ -518,19 +528,22 @@ tr.exportTo('tr.e.cc', function() {
       // same ID as the Input Latency Event, but it is technically causally
       // related to the GestureScrollUpdate input. Add them manually for now.
       var INPUT_GSU = 'InputLatency::GestureScrollUpdate';
-      if (this.title === INPUT_GSU)
+      if (this.title === INPUT_GSU) {
         this.addScrollUpdateEvents(rendererHelper);
+      }
     },
 
     get associatedEvents() {
-      if (this.associatedEvents_.length !== 0)
+      if (this.associatedEvents_.length !== 0) {
         return this.associatedEvents_;
+      }
 
       var modelIndices = this.startThread.parent.model.modelIndices;
       var flowEvents = modelIndices.getFlowEventsWithId(this.id);
 
-      if (flowEvents.length === 0)
+      if (flowEvents.length === 0) {
         return this.associatedEvents_;
+      }
 
       // Step 1: Get events that are directly connected by the LatencyInfo
       // flow events. This gives us a small set of events that are guaranteed
@@ -554,12 +567,10 @@ tr.exportTo('tr.e.cc', function() {
     },
 
     get inputLatency() {
-      if (!('data' in this.args))
-        return undefined;
+      if (!('data' in this.args)) return undefined;
 
       var data = this.args.data;
-      if (!(END_COMP_NAME in data))
-        return undefined;
+      if (!(END_COMP_NAME in data)) return undefined;
 
       var latency = 0;
       var endTime = data[END_COMP_NAME].time;

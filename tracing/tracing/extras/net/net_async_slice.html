@@ -31,8 +31,9 @@ tr.exportTo('tr.e.net', function() {
     },
 
     get title() {
-      if (this.isTitleComputed_ || !this.isTopLevel)
+      if (this.isTitleComputed_ || !this.isTopLevel) {
         return this.title_;
+      }
 
       if (this.url !== undefined && this.url.length > 0) {
         // Set the title so we do not have to recompute when it is redrawn.
@@ -53,15 +54,17 @@ tr.exportTo('tr.e.net', function() {
     // A recursive helper function that gets the url param of a slice or its
     // nested subslices if there is one.
     get url() {
-      if (this.isUrlComputed_)
+      if (this.isUrlComputed_) {
         return this.url_;
+      }
       if (this.args !== undefined && this.args.params !== undefined &&
           this.args.params.url !== undefined) {
         this.url_ = this.args.params.url;
       } else if (this.subSlices !== undefined && this.subSlices.length > 0) {
         for (var i = 0; i < this.subSlices.length && ! this.url_; i++) {
-          if (this.subSlices[i].url !== undefined)
+          if (this.subSlices[i].url !== undefined) {
             this.url_ = this.subSlices[i].url;
+          }
         }
       }
       this.isUrlComputed_ = true;
@@ -69,8 +72,9 @@ tr.exportTo('tr.e.net', function() {
     },
 
     get byteCount() {
-      if (this.byteCount_ !== undefined)
+      if (this.byteCount_ !== undefined) {
         return this.byteCount_;
+      }
 
       this.byteCount_ = 0;
       if ((this.originalTitle === 'URL_REQUEST_JOB_FILTERED_BYTES_READ' ||

@@ -58,8 +58,9 @@ tr.exportTo('tr.model', function() {
     associatedAlerts: IMMUTABLE_EMPTY_SET,
 
     addAssociatedAlert: function(alert) {
-      if (this.associatedAlerts === IMMUTABLE_EMPTY_SET)
+      if (this.associatedAlerts === IMMUTABLE_EMPTY_SET) {
         this.associatedAlerts = new tr.model.EventSet();
+      }
       this.associatedAlerts.push(alert);
     },
 

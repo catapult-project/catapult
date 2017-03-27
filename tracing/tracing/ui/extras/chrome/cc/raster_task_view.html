@@ -60,8 +60,7 @@ Polymer({
       {
         title: 'Layer',
         value: function(row) {
-          if (row.isTotals)
-            return 'Totals';
+          if (row.isTotals) return 'Totals';
           if (row.layer) {
             var linkEl = document.createElement('tr-ui-a-analysis-link');
             linkEl.setSelectionAndContent(
@@ -112,13 +111,15 @@ Polymer({
     }
 
     var colWidthPercentage;
-    if (columns.length === 1)
+    if (columns.length === 1) {
       colWidthPercentage = '100%';
-    else
+    } else {
       colWidthPercentage = (100 / (columns.length - 1)).toFixed(3) + '%';
+    }
 
-    for (var i = 1; i < columns.length; i++)
+    for (var i = 1; i < columns.length; i++) {
       columns[i].width = colWidthPercentage;
+    }
 
     this.$.content.tableColumns = columns;
     this.$.content.sortColumnIndex = columns.length - 1;
@@ -147,10 +148,12 @@ Polymer({
       var layerId = tile.layerId;
       var lthi = tile.containingSnapshot;
       var layer;
-      if (lthi.activeTree)
+      if (lthi.activeTree) {
         layer = lthi.activeTree.findLayerWithId(layerId);
-      if (layer === undefined && lthi.pendingTree)
+      }
+      if (layer === undefined && lthi.pendingTree) {
         layer = lthi.pendingTree.findLayerWithId(layerId);
+      }
       if (costsByLayerId[layerId] === undefined) {
         costsByLayerId[layerId] = {
           layerId: layerId,

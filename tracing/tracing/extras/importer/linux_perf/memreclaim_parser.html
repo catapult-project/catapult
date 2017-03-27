@@ -57,8 +57,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
      */
     kswapdWake: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = kswapdWakeRE.exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       var tgid = parseInt(eventBase.tgid);
 
@@ -100,8 +99,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
     reclaimBegin: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = reclaimBeginRE.exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       var order = parseInt(event[1]);
       var gfp = event[2];
@@ -118,8 +116,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
     reclaimEnd: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = reclaimEndRE.exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       var nrReclaimed = parseInt(event[1]);
       var tgid = parseInt(eventBase.tgid);

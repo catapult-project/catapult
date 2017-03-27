@@ -82,11 +82,11 @@ Polymer({
   },
 
   get requiresTallView() {
-    if (this.$.content.children.length === 0)
-      return false;
+    if (this.$.content.children.length === 0) return false;
     var childTagName = this.$.content.children[0].tagName;
-    if (childTagName === 'TR-UI-A-MULTI-EVENT-SUB-VIEW')
+    if (childTagName === 'TR-UI-A-MULTI-EVENT-SUB-VIEW') {
       return false;
+    }
 
     // Using raster task view.
     return true;

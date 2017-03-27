@@ -47,8 +47,9 @@ tr.exportTo('tr.ui.b', function() {
 
   function getColorOfKey(key, selected) {
     var id = ColorScheme.getColorIdForGeneralPurposeString(key);
-    if (selected)
+    if (selected) {
       id += ColorScheme.properties.brightenedOffsets[0];
+    }
     return ColorScheme.colorsAsStrings[id];
   }
 
@@ -132,8 +133,9 @@ tr.exportTo('tr.ui.b', function() {
     set enabled(enabled) {
       // If the caller is disabling a data series, but it wasn't optional, then
       // force it to be optional.
-      if (!this.optional && !enabled)
+      if (!this.optional && !enabled) {
         this.optional = true;
+      }
       this.enabled_ = enabled;
     },
 

@@ -57,14 +57,17 @@ tr.exportTo('tr.model', function() {
     // be topLevel. All legacy async events are toplevel by definition.
     this.isTopLevel = (opt_isTopLevel === true);
 
-    if (opt_cpuStart !== undefined)
+    if (opt_cpuStart !== undefined) {
       this.cpuStart = opt_cpuStart;
+    }
 
-    if (opt_cpuDuration !== undefined)
+    if (opt_cpuDuration !== undefined) {
       this.cpuDuration = opt_cpuDuration;
+    }
 
-    if (opt_argsStripped !== undefined)
+    if (opt_argsStripped !== undefined) {
       this.argsStripped = opt_argsStripped;
+    }
   }
 
   AsyncSlice.prototype = {
@@ -82,8 +85,9 @@ tr.exportTo('tr.model', function() {
       this.parentContainer_ = parentContainer;
       for (var i = 0; i < this.subSlices.length; i++) {
         var subSlice = this.subSlices[i];
-        if (subSlice.parentContainer === undefined)
+        if (subSlice.parentContainer === undefined) {
           subSlice.parentContainer = parentContainer;
+        }
       }
     },
 
@@ -107,17 +111,18 @@ tr.exportTo('tr.model', function() {
         yield this;
         return;
       }
-      for (var s of this.subSlices)
+      for (var s of this.subSlices) {
         yield* s.findTopmostSlicesRelativeToThisSlice(eventPredicate);
+      }
     },
 
     findDescendentSlice: function(targetTitle) {
-      if (!this.subSlices)
-        return undefined;
+      if (!this.subSlices) return undefined;
 
       for (var i = 0; i < this.subSlices.length; i++) {
-        if (this.subSlices[i].title === targetTitle)
+        if (this.subSlices[i].title === targetTitle) {
           return this.subSlices[i];
+        }
         var slice = this.subSlices[i].findDescendentSlice(targetTitle);
         if (slice) return slice;
       }
@@ -125,10 +130,12 @@ tr.exportTo('tr.model', function() {
     },
 
     enumerateAllDescendents: function* () {
-      for (var slice of this.subSlices)
+      for (var slice of this.subSlices) {
         yield slice;
-      for (var slice of this.subSlices)
+      }
+      for (var slice of this.subSlices) {
         yield* slice.enumerateAllDescendents();
+      }
     },
 
     compareTo: function(that) {

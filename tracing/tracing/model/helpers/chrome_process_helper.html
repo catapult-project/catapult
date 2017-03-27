@@ -27,8 +27,9 @@ tr.exportTo('tr.model.helpers', function() {
     for (var i = 0; i < slices.length; i++) {
       var slice = slices[i];
       if (rangeOfInterest.intersectsExplicitRangeInclusive(
-          slice.start, slice.end))
+          slice.start, slice.end)) {
         slicesInFilterRange.push(slice);
+      }
     }
     return slicesInFilterRange;
   }
@@ -79,10 +80,13 @@ tr.exportTo('tr.model.helpers', function() {
         MAIN_RENDERING_STATS : IMPL_RENDERING_STATS);
 
       var frameEvents = [];
-      for (var event of this.process.getDescendantEvents())
-        if (event.title === titleToGet)
-          if (range.intersectsExplicitRangeInclusive(event.start, event.end))
+      for (var event of this.process.getDescendantEvents()) {
+        if (event.title === titleToGet) {
+          if (range.intersectsExplicitRangeInclusive(event.start, event.end)) {
             frameEvents.push(event);
+          }
+        }
+      }
 
       frameEvents.sort(function(a, b) {return a.start - b.start;});
       return frameEvents;

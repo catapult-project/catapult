@@ -326,8 +326,9 @@ tr.exportTo('tr.ui.b', function() {
     set emptyValue(emptyValue) {
       var previousEmptyValue = this.emptyValue_;
       this.emptyValue_ = emptyValue;
-      if (this.tableRows_.length === 0 && emptyValue !== previousEmptyValue)
+      if (this.tableRows_.length === 0 && emptyValue !== previousEmptyValue) {
         this.scheduleRebuildBody_();
+      }
     },
 
     /**
@@ -343,8 +344,9 @@ tr.exportTo('tr.ui.b', function() {
       // Figure out the columns with expand buttons...
       var columnsWithExpandButtons = [];
       for (var i = 0; i < columns.length; i++) {
-        if (columns[i].showExpandButtons)
+        if (columns[i].showExpandButtons) {
           columnsWithExpandButtons.push(i);
+        }
       }
       if (columnsWithExpandButtons.length === 0) {
         // First column if none have specified.
@@ -354,8 +356,7 @@ tr.exportTo('tr.ui.b', function() {
       // Sanity check columns.
       for (var i = 0; i < columns.length; i++) {
         var colInfo = columns[i];
-        if (colInfo.width === undefined)
-          continue;
+        if (colInfo.width === undefined) continue;
 
         var hasExpandButton = columnsWithExpandButtons.includes(i);
 
@@ -439,22 +440,24 @@ tr.exportTo('tr.ui.b', function() {
 
     set userCanModifySortOrder(userCanModifySortOrder) {
       var newUserCanModifySortOrder = !!userCanModifySortOrder;
-      if (newUserCanModifySortOrder === this.userCanModifySortOrder_)
+      if (newUserCanModifySortOrder === this.userCanModifySortOrder_) {
         return;
+      }
 
       this.userCanModifySortOrder_ = newUserCanModifySortOrder;
       this.scheduleRebuildHeaders_();
     },
 
     set sortColumnIndex(number) {
-      if (number === this.sortColumnIndex_)
-        return;
+      if (number === this.sortColumnIndex_) return;
 
       if (number !== undefined) {
-        if (this.tableColumns_.length <= number)
+        if (this.tableColumns_.length <= number) {
           throw new Error('Column number ' + number + ' is out of bounds.');
-        if (!this.tableColumns_[number].cmp)
+        }
+        if (!this.tableColumns_[number].cmp) {
           throw new Error('Column ' + number + ' does not have a comparator.');
+        }
       }
 
       this.sortColumnIndex_ = number;
@@ -515,8 +518,7 @@ tr.exportTo('tr.ui.b', function() {
 
       this.headerCells_ = [];
       Polymer.dom(this.$.head).textContent = '';
-      if (!this.showHeader_)
-        return;
+      if (!this.showHeader_) return;
 
       var tr = this.appendNewElement_(this.$.head, 'tr');
       for (var i = 0; i < this.tableColumns_.length; i++) {
@@ -532,13 +534,15 @@ tr.exportTo('tr.ui.b', function() {
           if (isColumnCurrentlySorted) {
             headerCell.sideContent = this.sortDescending_ ?
                 DESCENDING_ARROW : ASCENDING_ARROW;
-            if (!this.userCanModifySortOrder_)
+            if (!this.userCanModifySortOrder_) {
               headerCell.sideContentDisabled = true;
+            }
           }
           if (this.userCanModifySortOrder_) {
             Polymer.dom(td).classList.add('sensitive');
-            if (!isColumnCurrentlySorted)
+            if (!isColumnCurrentlySorted) {
               headerCell.sideContent = UNSORTED_ARROW;
+            }
             headerCell.tapCallback = this.createSortCallback_(i);
           }
         }
@@ -549,8 +553,8 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     applySizes_: function() {
-      if (this.tableRows_.length === 0 && !this.showHeader)
-        return;
+      if (this.tableRows_.length === 0 && !this.showHeader) return;
+
       var rowToRemoveSizing;
       var rowToSize;
       if (this.showHeader) {
@@ -579,8 +583,9 @@ tr.exportTo('tr.ui.b', function() {
         }
 
         function calc(base, delta) {
-          if (delta)
+          if (delta) {
             return 'calc(' + base + ' - ' + delta + ')';
+          }
           return base;
         }
 
@@ -599,14 +604,15 @@ tr.exportTo('tr.ui.b', function() {
 
     createSortCallback_: function(columnNumber) {
       return function() {
-        if (!this.userCanModifySortOrder_)
-          return;
+        if (!this.userCanModifySortOrder_) return;
+
         var previousIndex = this.sortColumnIndex;
         this.sortColumnIndex = columnNumber;
-        if (previousIndex !== columnNumber)
+        if (previousIndex !== columnNumber) {
           this.sortDescending = false;
-        else
+        } else {
           this.sortDescending = !this.sortDescending;
+        }
       }.bind(this);
     },
 
@@ -619,8 +625,9 @@ tr.exportTo('tr.ui.b', function() {
         userRows.sort(function(rowA, rowB) {
           var c = this.tableColumns_[this.sortColumnIndex_].cmp(
               rowA, rowB);
-          if (this.sortDescending_)
+          if (this.sortDescending_) {
             c = -c;
+          }
           return c;
         }.bind(this));
       }
@@ -644,8 +651,7 @@ tr.exportTo('tr.ui.b', function() {
         }
 
         lastAddedRow = htmlNode;
-        if (!rowInfo.isExpanded)
-          continue;
+        if (!rowInfo.isExpanded) continue;
 
         // Append subrows now.
         lastAddedRow = this.generateTableRowNodes_(
@@ -677,8 +683,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     customizeTableRow_: function(userRow, trElement) {
-      if (!this.customizeTableRowCallback_)
-        return;
+      if (!this.customizeTableRowCallback_) return;
       this.customizeTableRowCallback_(userRow, trElement);
     },
 
@@ -732,8 +737,9 @@ tr.exportTo('tr.ui.b', function() {
                 ': ' + column.align);
         }
 
-        if (this.doesColumnIndexSupportSelection(i))
+        if (this.doesColumnIndexSupportSelection(i)) {
           Polymer.dom(td).classList.add('supports-selection');
+        }
 
         if (this.columnsWithExpandButtons_.includes(i)) {
           if (rowInfo.userRow[this.subRowsPropertyName_] &&
@@ -742,8 +748,9 @@ tr.exportTo('tr.ui.b', function() {
             td.style.display = 'flex';
             var expandButton = this.appendNewElement_(td, 'expand-button');
             Polymer.dom(expandButton).textContent = RIGHT_ARROW;
-            if (rowInfo.isExpanded)
+            if (rowInfo.isExpanded) {
               Polymer.dom(expandButton).classList.add('button-expanded');
+            }
           } else {
             td.style.paddingLeft = INDENT_SPACE_NO_BUTTON + 'px';
           }
@@ -824,14 +831,13 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     removeSubNodes_: function(tableSection, rowInfo, rowInfoMap) {
-      if (rowInfo.userRow[this.subRowsPropertyName_] === undefined)
-        return;
+      if (rowInfo.userRow[this.subRowsPropertyName_] === undefined) return;
+
       for (var i = 0;
            i < rowInfo.userRow[this.subRowsPropertyName_].length; i++) {
         var subRow = rowInfo.userRow[this.subRowsPropertyName_][i];
         var subRowInfo = rowInfoMap.get(subRow);
-        if (!subRowInfo)
-          continue;
+        if (!subRowInfo) continue;
 
         var subNode = subRowInfo.htmlNode;
         if (subNode && Polymer.dom(subNode).parentNode === tableSection) {
@@ -857,8 +863,8 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     scheduleRebuild_: function() {
-      if (this.rebuildPending_)
-        return;
+      if (this.rebuildPending_) return;
+
       this.rebuildPending_ = true;
       setTimeout(function() {
         this.rebuildPending_ = false;
@@ -897,8 +903,7 @@ tr.exportTo('tr.ui.b', function() {
         this.bodyDirty_ = false;
       }
 
-      if (wasBodyOrHeaderDirty)
-        this.applySizes_();
+      if (wasBodyOrHeaderDirty) this.applySizes_();
 
       if (this.footerDirty_) {
         Polymer.dom(this.$.foot).textContent = '';
@@ -924,32 +929,40 @@ tr.exportTo('tr.ui.b', function() {
     getExpandedForTableRow: function(userRow) {
       this.rebuildIfNeeded_();
       var rowInfo = this.tableRowsInfo_.get(userRow);
-      if (rowInfo === undefined)
+      if (rowInfo === undefined) {
         throw new Error('Row has not been seen, must expand its parents');
+      }
       return rowInfo.isExpanded;
     },
 
     getExpandedForUserRow_: function(userRow) {
-      if (userRow[this.subRowsPropertyName_] === undefined)
+      if (userRow[this.subRowsPropertyName_] === undefined) {
         return false;
-      if (userRow[this.subRowsPropertyName_].length === 0)
+      }
+      if (userRow[this.subRowsPropertyName_].length === 0) {
         return false;
-      if (userRow.isExpanded)
+      }
+      if (userRow.isExpanded) {
         return true;
+      }
       if ((userRow.isExpanded !== undefined) &&
-          (userRow.isExpanded === false))
+          (userRow.isExpanded === false)) {
         return false;
+      }
 
       var rowInfo = this.tableRowsInfo_.get(userRow);
-      if (rowInfo && rowInfo.isExpanded)
+      if (rowInfo && rowInfo.isExpanded) {
         return true;
+      }
 
-      if (this.defaultExpansionStateCallback_ === undefined)
+      if (this.defaultExpansionStateCallback_ === undefined) {
         return false;
+      }
 
       var parentUserRow = undefined;
-      if (rowInfo && rowInfo.parentRowInfo)
+      if (rowInfo && rowInfo.parentRowInfo) {
         parentUserRow = rowInfo.parentRowInfo.userRow;
+      }
 
       return this.defaultExpansionStateCallback_(
           userRow, parentUserRow);
@@ -958,8 +971,9 @@ tr.exportTo('tr.ui.b', function() {
     setExpandedForTableRow: function(userRow, expanded) {
       this.rebuildIfNeeded_();
       var rowInfo = this.tableRowsInfo_.get(userRow);
-      if (rowInfo === undefined)
+      if (rowInfo === undefined) {
         throw new Error('Row has not been seen, must expand its parents');
+      }
       return this.setExpandedForUserRow_(this.$.body, this.tableRowsInfo_,
           userRow, expanded);
     },
@@ -969,19 +983,20 @@ tr.exportTo('tr.ui.b', function() {
       this.rebuildIfNeeded_();
 
       var rowInfo = rowInfoMap.get(userRow);
-      if (rowInfo === undefined)
+      if (rowInfo === undefined) {
         throw new Error('Row has not been seen, must expand its parents');
+      }
 
       const wasExpanded = rowInfo.isExpanded;
 
       rowInfo.isExpanded = !!expanded;
       // If no node, then nothing further needs doing.
-      if (rowInfo.htmlNode === undefined)
-        return;
+      if (rowInfo.htmlNode === undefined) return;
 
       // If its detached, then nothing needs doing.
-      if (rowInfo.htmlNode.parentElement !== tableSection)
+      if (rowInfo.htmlNode.parentElement !== tableSection) {
         return;
+      }
 
       // Otherwise, rebuild.
       var expandButton =
@@ -1015,8 +1030,9 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     set selectionMode(selectionMode) {
-      if (!tr.b.dictionaryContainsValue(SelectionMode, selectionMode))
+      if (!tr.b.dictionaryContainsValue(SelectionMode, selectionMode)) {
         throw new Error('Invalid selection mode ' + selectionMode);
+      }
       this.rebuildIfNeeded_();
       this.selectionMode_ = selectionMode;
       this.didSelectionStateChange_();
@@ -1027,16 +1043,18 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     set rowHighlightStyle(rowHighlightStyle) {
-      if (!tr.b.dictionaryContainsValue(HighlightStyle, rowHighlightStyle))
+      if (!tr.b.dictionaryContainsValue(HighlightStyle, rowHighlightStyle)) {
         throw new Error('Invalid row highlight style ' + rowHighlightStyle);
+      }
       this.rebuildIfNeeded_();
       this.rowHighlightStyle_ = rowHighlightStyle;
       this.didSelectionStateChange_();
     },
 
     get resolvedRowHighlightStyle() {
-      if (this.rowHighlightStyle_ !== HighlightStyle.DEFAULT)
+      if (this.rowHighlightStyle_ !== HighlightStyle.DEFAULT) {
         return this.rowHighlightStyle_;
+      }
       switch (this.selectionMode_) {
         case SelectionMode.NONE:
           return HighlightStyle.NONE;
@@ -1054,16 +1072,18 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     set cellHighlightStyle(cellHighlightStyle) {
-      if (!tr.b.dictionaryContainsValue(HighlightStyle, cellHighlightStyle))
+      if (!tr.b.dictionaryContainsValue(HighlightStyle, cellHighlightStyle)) {
         throw new Error('Invalid cell highlight style ' + cellHighlightStyle);
+      }
       this.rebuildIfNeeded_();
       this.cellHighlightStyle_ = cellHighlightStyle;
       this.didSelectionStateChange_();
     },
 
     get resolvedCellHighlightStyle() {
-      if (this.cellHighlightStyle_ !== HighlightStyle.DEFAULT)
+      if (this.cellHighlightStyle_ !== HighlightStyle.DEFAULT) {
         return this.cellHighlightStyle_;
+      }
       switch (this.selectionMode_) {
         case SelectionMode.NONE:
         case SelectionMode.ROW:
@@ -1136,13 +1156,11 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     maybeUpdateSelectedRow_: function() {
-      if (this.selectedTableRowInfo_ === undefined)
-        return;
+      if (this.selectedTableRowInfo_ === undefined) return;
 
       // selectedUserRow may not be visible
       function isVisible(rowInfo) {
-        if (!rowInfo.htmlNode)
-          return false;
+        if (!rowInfo.htmlNode) return false;
         return !!rowInfo.htmlNode.parentElement;
       }
       if (isVisible(this.selectedTableRowInfo_)) {
@@ -1152,14 +1170,16 @@ tr.exportTo('tr.ui.b', function() {
 
       this.removeSelectedState_();
       var curRowInfo = this.selectedTableRowInfo_;
-      while (curRowInfo && !isVisible(curRowInfo))
+      while (curRowInfo && !isVisible(curRowInfo)) {
         curRowInfo = curRowInfo.parentRowInfo;
+      }
 
       this.selectedTableRowInfo_ = curRowInfo;
-      if (this.selectedTableRowInfo_)
+      if (this.selectedTableRowInfo_) {
         this.updateSelectedState_();
-      else
+      } else {
         this.selectedColumnIndex_ = undefined;
+      }
     },
 
     didTableRowInfoGetClicked_: function(rowInfo, columnIndex) {
@@ -1168,15 +1188,18 @@ tr.exportTo('tr.ui.b', function() {
           return;
 
         case SelectionMode.CELL:
-          if (!this.doesColumnIndexSupportSelection(columnIndex))
+          if (!this.doesColumnIndexSupportSelection(columnIndex)) {
             return;
-          if (this.selectedColumnIndex !== columnIndex)
+          }
+          if (this.selectedColumnIndex !== columnIndex) {
             this.selectedColumnIndex = columnIndex;
+          }
           // Fall through.
 
         case SelectionMode.ROW:
-          if (this.selectedTableRowInfo_ !== rowInfo)
+          if (this.selectedTableRowInfo_ !== rowInfo) {
             this.selectedTableRow = rowInfo.userRow;
+          }
       }
     },
 
@@ -1199,8 +1222,9 @@ tr.exportTo('tr.ui.b', function() {
       var row = this.selectedTableRow;
       var columnIndex = this.selectedColumnIndex;
       if (row === undefined || columnIndex === undefined ||
-          this.tableColumns_.length <= columnIndex)
+          this.tableColumns_.length <= columnIndex) {
         return undefined;
+      }
       var column = this.tableColumns_[columnIndex];
       return {
         row: row,
@@ -1244,31 +1268,33 @@ tr.exportTo('tr.ui.b', function() {
     set selectedTableColumnIndex(selectedIndex) {
       var cols = Polymer.dom(this.$.cols).children;
       for (var i = 0; i < cols.length; ++i) {
-        if (i === selectedIndex)
+        if (i === selectedIndex) {
           cols[i].setAttribute('selected', true);
-        else
+        } else {
           cols[i].removeAttribute('selected');
+        }
       }
     },
 
     get selectedTableRow() {
-      if (!this.selectedTableRowInfo_)
-        return undefined;
+      if (!this.selectedTableRowInfo_) return undefined;
       return this.selectedTableRowInfo_.userRow;
     },
 
     set selectedTableRow(userRow) {
       this.rebuildIfNeeded_();
-      if (this.selectionMode_ === SelectionMode.NONE)
+      if (this.selectionMode_ === SelectionMode.NONE) {
         throw new Error('Selection is off.');
+      }
 
       var rowInfo;
       if (userRow === undefined) {
         rowInfo = undefined;
       } else {
         rowInfo = this.tableRowsInfo_.get(userRow);
-        if (!rowInfo)
+        if (!rowInfo) {
           throw new Error('Row has not been seen, must expand its parents.');
+        }
       }
 
       var e = this.prepareToChangeSelection_();
@@ -1284,8 +1310,9 @@ tr.exportTo('tr.ui.b', function() {
           case SelectionMode.CELL:
             if (this.selectedColumnIndex_ === undefined) {
               var i = this.getFirstSelectableColumnIndex_();
-              if (i === -1)
+              if (i === -1) {
                 throw new Error('Cannot find a selectable column.');
+              }
               this.selectedColumnIndex_ = i;
             }
             break;
@@ -1303,10 +1330,11 @@ tr.exportTo('tr.ui.b', function() {
     prepareToChangeSelection_: function() {
       var e = new tr.b.Event('selection-changed');
       var previousSelectedRowInfo = this.selectedTableRowInfo_;
-      if (previousSelectedRowInfo)
+      if (previousSelectedRowInfo) {
         e.previousSelectedTableRow = previousSelectedRowInfo.userRow;
-      else
+      } else {
         e.previousSelectedTableRow = undefined;
+      }
 
       this.removeSelectedState_();
 
@@ -1322,38 +1350,38 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     setSelectedState_: function(select) {
-      if (this.selectedTableRowInfo_ === undefined)
-        return;
+      if (this.selectedTableRowInfo_ === undefined) return;
 
       // Row selection.
       var rowNode = this.selectedTableRowInfo_.htmlNode;
-      if (select)
+      if (select) {
         Polymer.dom(rowNode).setAttribute('selected', true);
-      else
+      } else {
         Polymer.dom(rowNode).removeAttribute('selected');
+      }
 
       // Cell selection (if applicable).
       var cellNode = Polymer.dom(rowNode).children[this.selectedColumnIndex_];
-      if (!cellNode)
-        return;
-      if (select)
+      if (!cellNode) return;
+      if (select) {
         Polymer.dom(cellNode).setAttribute('selected', true);
-      else
+      } else {
         Polymer.dom(cellNode).removeAttribute('selected');
+      }
     },
 
     doesColumnIndexSupportSelection: function(columnIndex) {
       var columnInfo = this.tableColumns_[columnIndex];
       var scs = columnInfo.supportsCellSelection;
-      if (scs === false)
-        return false;
+      if (scs === false) return false;
       return true;
     },
 
     getFirstSelectableColumnIndex_: function() {
       for (var i = 0; i < this.tableColumns_.length; i++) {
-        if (this.doesColumnIndexSupportSelection(i))
+        if (this.doesColumnIndexSupportSelection(i)) {
           return i;
+        }
       }
       return -1;
     },
@@ -1372,27 +1400,32 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     get selectedColumnIndex() {
-      if (this.selectionMode_ !== SelectionMode.CELL)
+      if (this.selectionMode_ !== SelectionMode.CELL) {
         return undefined;
+      }
       return this.selectedColumnIndex_;
     },
 
     set selectedColumnIndex(selectedColumnIndex) {
       this.rebuildIfNeeded_();
-      if (this.selectionMode_ === SelectionMode.NONE)
+      if (this.selectionMode_ === SelectionMode.NONE) {
         throw new Error('Selection is off.');
+      }
       if (selectedColumnIndex < 0 ||
-          selectedColumnIndex >= this.tableColumns_.length)
+          selectedColumnIndex >= this.tableColumns_.length) {
         throw new Error('Invalid index');
-      if (!this.doesColumnIndexSupportSelection(selectedColumnIndex))
+      }
+      if (!this.doesColumnIndexSupportSelection(selectedColumnIndex)) {
         throw new Error('Selection is not supported on this column');
+      }
 
       var e = this.prepareToChangeSelection_();
       if (this.selectedColumnIndex_ === undefined) {
         this.selectedTableRowInfo_ = undefined;
       } else if (!this.selectedTableRowInfo_) {
-        if (this.tableRows_.length === 0)
+        if (this.tableRows_.length === 0) {
           throw new Error('No available row to be selected');
+        }
         this.selectedTableRowInfo_ =
             this.tableRowsInfo_.get(this.tableRows_[0]);
       }
@@ -1402,8 +1435,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     onKeyDown_: function(e) {
-      if (this.selectionMode_ === SelectionMode.NONE)
-        return;
+      if (this.selectionMode_ === SelectionMode.NONE) return;
 
       var CODE_TO_COMMAND_NAMES = {
         13: 'ENTER',
@@ -1414,8 +1446,7 @@ tr.exportTo('tr.ui.b', function() {
         40: 'ARROW_DOWN'
       };
       var cmdName = CODE_TO_COMMAND_NAMES[e.keyCode];
-      if (cmdName === undefined)
-        return;
+      if (cmdName === undefined) return;
 
       e.stopPropagation();
       e.preventDefault();
@@ -1518,8 +1549,8 @@ tr.exportTo('tr.ui.b', function() {
       var prev = this.selectedTableRowInfo_ ?
           this.selectedTableRowInfo_.htmlNode.previousElementSibling :
           this.$.body.firstChild;
-      if (!prev)
-        return;
+      if (!prev) return;
+
       if (this.selectionMode_ === SelectionMode.CELL &&
           this.getFirstSelectableColumnIndex_() === -1) {
         // If there are no selectable columns in cell selection mode, don't do
@@ -1535,8 +1566,8 @@ tr.exportTo('tr.ui.b', function() {
       var next = this.selectedTableRowInfo_ ?
           this.selectedTableRowInfo_.htmlNode.nextElementSibling :
           this.$.body.firstChild;
-      if (!next)
-        return;
+      if (!next) return;
+
       if (this.selectionMode_ === SelectionMode.CELL &&
           this.getFirstSelectableColumnIndex_() === -1) {
         // If there are no selectable columns in cell selection mode, don't do
@@ -1554,24 +1585,26 @@ tr.exportTo('tr.ui.b', function() {
           selectedRowInfo.userRow[this.subRowsPropertyName_].length === 0) {
         return;
       }
-      if (!selectedRowInfo.isExpanded)
+      if (!selectedRowInfo.isExpanded) {
         this.setExpandedForTableRow(selectedRowInfo.userRow, true);
+      }
       this.selectedTableRow =
           selectedRowInfo.htmlNode.nextElementSibling.rowInfo.userRow;
     },
 
     collapseRowOrSelectParentRowIfPossible_: function() {
       var selectedRowInfo = this.selectedTableRowInfo_;
-      if (!selectedRowInfo)
-        return;
+      if (!selectedRowInfo) return;
+
       if (selectedRowInfo.isExpanded) {
         // If the node is expanded, collapse it.
         this.setExpandedForTableRow(selectedRowInfo.userRow, false);
       } else {
         // If the node is not expanded, select its parent.
         var parentRowInfo = selectedRowInfo.parentRowInfo;
-        if (parentRowInfo)
+        if (parentRowInfo) {
           this.selectedTableRow = parentRowInfo.userRow;
+        }
       }
     },
 
@@ -1614,8 +1647,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     stepIntoSelectionIfPossible_: function() {
-      if (!this.selectedTableRowInfo_)
-        return;
+      if (!this.selectedTableRowInfo_) return;
       this.dispatchStepIntoEvent_(this.selectedTableRowInfo_,
           this.selectedColumnIndex_);
     },
@@ -1765,8 +1797,9 @@ Polymer({
   },
 
   onTap_: function() {
-    if (this.tapCallback_)
+    if (this.tapCallback_) {
       this.tapCallback_();
+    }
   }
 });
 </script>

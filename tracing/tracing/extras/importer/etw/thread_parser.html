@@ -59,8 +59,9 @@ tr.exportTo('tr.e.importer.etw', function() {
     __proto__: Parser.prototype,
 
     decodeFields: function(header, decoder) {
-      if (header.version > 3)
+      if (header.version > 3) {
         throw new Error('Incompatible Thread event version.');
+      }
 
       // Common fields to all Thread events.
       var processId = decoder.decodeUInt32();
@@ -102,10 +103,11 @@ tr.exportTo('tr.e.importer.etw', function() {
         userStackLimit = decoder.decodeUInteger(header.is64);
 
         // Version 2 produces a field named 'startAddr'.
-        if (header.version === 2)
+        if (header.version === 2) {
           startAddr = decoder.decodeUInteger(header.is64);
-        else
+        } else {
           affinity = decoder.decodeUInteger(header.is64);
+        }
 
         win32StartAddr = decoder.decodeUInteger(header.is64);
         tebBase = decoder.decodeUInteger(header.is64);
@@ -140,8 +142,9 @@ tr.exportTo('tr.e.importer.etw', function() {
     },
 
     decodeCSwitchFields: function(header, decoder) {
-      if (header.version !== 2)
+      if (header.version !== 2) {
         throw new Error('Incompatible Thread event version.');
+      }
 
       // Decode CSwitch payload.
       var newThreadId = decoder.decodeUInt32();
@@ -213,10 +216,11 @@ tr.exportTo('tr.e.importer.etw', function() {
             fields.newThreadId);
         var newProcess = this.model.getProcess(newProcessId);
         var newProcessName;
-        if (newProcess)
+        if (newProcess) {
           newProcessName = newProcess.name;
-        else
+        } else {
           newProcessName = 'Unknown process';
+        }
 
         newThreadName =
             newProcessName + ' (tid ' + fields.newThreadId + ')';

@@ -67,7 +67,9 @@ function splitMetric(metricName) {
     traceName = parts[2];
   } else if (parts.length === 2) {
     if (chartName !== parts[1]) traceName = parts[1];
-  } else throw new Error('Could not parse metric name.');
+  } else {
+    throw new Error('Could not parse metric name.');
+  }
   return [chartName, traceName];
 }
 
@@ -82,16 +84,17 @@ function valuesFromCharts(listOfCharts, metricName) {
       if (traceName) {
         if (charts.charts[chartName][traceName].type ===
             'list_of_scalar_values') {
-          if (charts.charts[chartName][traceName].values === null)
-            continue;
+          if (charts.charts[chartName][traceName].values === null) continue;
           allValues.push(tr.b.math.Statistics.mean(
               charts.charts[chartName][traceName].values));
         }
-        if (charts.charts[chartName][traceName].type === 'histogram')
+        if (charts.charts[chartName][traceName].type === 'histogram') {
           allValues.push(
               geoMeanFromHistogram(charts.charts[chartName][traceName]));
-        if (charts.charts[chartName][traceName].type === 'scalar')
+        }
+        if (charts.charts[chartName][traceName].type === 'scalar') {
           allValues.push(charts.charts[chartName][traceName].value);
+        }
       }
     }
   }
@@ -100,14 +103,13 @@ function valuesFromCharts(listOfCharts, metricName) {
 
 function valuesFromChartsWithFallback(listOfCharts, metricName) {
   var allValues = valuesFromCharts(listOfCharts, metricName);
-  if (allValues.length > 0)
-    return allValues;
+  if (allValues.length > 0) return allValues;
 
   // If this had a tir_label, the "summary" part may have been stripped by
   // the dashboard during upload. We can re-add it here.
   var fullMetricName = guessFullTIRMetricName(metricName);
-  if (!fullMetricName)
-    return [];
+  if (!fullMetricName) return [];
+
   return valuesFromCharts(listOfCharts, fullMetricName);
 }
 
@@ -120,7 +122,9 @@ function rawValuesByMetricName(histograms, metricName) {
   } else if (itrPlusChart.indexOf('-') > -1) {
     [interactionRecord, ...valueName] = itrPlusChart.split('-');
     valueName = valueName.join('');
-  } else valueName = itrPlusChart;
+  } else {
+    valueName = itrPlusChart;
+  }
   var values = histograms.getHistogramsNamed(valueName);
   if (!values || values.length === 0) {
     // If there was a dash in the chart name, but it wasn't an
@@ -140,8 +144,9 @@ function rawValuesByMetricName(histograms, metricName) {
       var irParts = [];
       var keys = Array.from(ii.storyGroupingKeys.keys());
       keys.sort();
-      for (var key of keys)
+      for (var key of keys) {
         irParts.push(ii.storyGroupingKeys.get(key));
+      }
       if (interactionRecord === irParts.join('_') &&
           escapeChars(ii.storyDisplayName) ===
           escapeChars(story)) {
@@ -157,7 +162,9 @@ function rawValuesByMetricName(histograms, metricName) {
   for (var val of filtered) {
     if (val instanceof tr.v.Histogram) {
       rawValues = rawValues.concat(val.sampleValues);
-    } else throw new Error('Only tr.v.Histogram values are supported');
+    } else {
+      throw new Error('Only tr.v.Histogram values are supported');
+    }
   }
   return rawValues;
 }
@@ -176,8 +183,8 @@ var escapeForRegExp = s => s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
 var strFromRE = re => re.toString().split('/')[1];
 
 function valuesFromBuildbotOutput(out, metric) {
-  if (!out)
-    return [];
+  if (!out) return [];
+
   var stringVals = [];
   var floatVals = [];
   var chartAndTrace = splitMetric(metric);
@@ -193,18 +200,18 @@ function valuesFromBuildbotOutput(out, metric) {
     var singleResultMatch = singleResultRE.exec(line);
     var multiResultsMatch = multiResultsRE.exec(line);
     var meanStdDevMatch = meanStdDevRE.exec(line);
-    if (singleResultMatch && singleResultMatch.length > 1)
+    if (singleResultMatch && singleResultMatch.length > 1) {
       stringVals.push(singleResultMatch[1]);
-    else if (multiResultsMatch && multiResultsMatch.length > 1) {
+    } else if (multiResultsMatch && multiResultsMatch.length > 1) {
       var values = multiResultsMatch[1].split(',');
       stringVals = stringVals.concat(values);
-    } else if (meanStdDevMatch && meanStdDevMatch.length > 1)
+    } else if (meanStdDevMatch && meanStdDevMatch.length > 1) {
       stringVals.push(meanStdDevMatch[1]);
+    }
   }
   for (var val of stringVals) {
     var f = parseFloat(val);
-    if (!isNaN(f))
-      floatVals.push(f);
+    if (!isNaN(f)) floatVals.push(f);
   }
   return floatVals;
 }
@@ -259,10 +266,12 @@ var SampleComparison = {
     var histogramsB = new tr.v.HistogramSet();
     var dictsA = parseFiles(aPaths);
     var dictsB = parseFiles(bPaths);
-    for (var d of dictsA)
+    for (var d of dictsA) {
       histogramsA.importDicts(d);
-    for (var d of dictsB)
+    }
+    for (var d of dictsB) {
       histogramsB.importDicts(d);
+    }
 
     var sampleA = rawValuesByMetricName(histogramsA, metric);
     var sampleB = rawValuesByMetricName(histogramsB, metric);
@@ -285,7 +294,8 @@ if (tr.isHeadless) {
   var method;
   var rest;
   [method, ...rest] = sys.argv.slice(1);
-  if (SampleComparison[method])
+  if (SampleComparison[method]) {
     console.log(JSON.stringify(SampleComparison[method](...rest)));
+  }
 }
 </script>

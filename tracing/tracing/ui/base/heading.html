@@ -71,16 +71,14 @@ Polymer({
   },
 
   set heading(text) {
-    if (this.heading_ === text)
-      return;
+    if (this.heading_ === text) return;
 
     this.heading_ = text;
     this.updateContents_();
   },
 
   set arrowVisible(val) {
-    if (this.arrowVisible_ === val)
-      return;
+    if (this.arrowVisible_ === val) return;
 
     this.arrowVisible_ = !!val;
     this.updateContents_();
@@ -91,8 +89,7 @@ Polymer({
   },
 
   set selectionGenerator(generator) {
-    if (this.selectionGenerator_ === generator)
-      return;
+    if (this.selectionGenerator_ === generator) return;
 
     this.selectionGenerator_ = generator;
     this.updateContents_();
@@ -103,8 +100,7 @@ Polymer({
   },
 
   set expanded(expanded) {
-    if (this.expanded_ === expanded)
-      return;
+    if (this.expanded_ === expanded) return;
 
     this.expanded_ = !!expanded;
     this.updateContents_();

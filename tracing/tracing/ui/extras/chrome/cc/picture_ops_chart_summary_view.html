@@ -78,8 +78,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.picture_ = picture;
       this.pictureDataProcessed_ = false;
 
-      if (Polymer.dom(this).classList.contains('hidden'))
-        return;
+      if (Polymer.dom(this).classList.contains('hidden')) return;
 
       this.processPictureData_();
       this.requiresRedraw = true;
@@ -93,8 +92,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     show: function() {
       Polymer.dom(this).classList.remove('hidden');
 
-      if (this.pictureDataProcessed_)
-        return;
+      if (this.pictureDataProcessed_) return;
 
       this.processPictureData_();
       this.requiresRedraw = true;
@@ -122,15 +120,15 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
             this.currentBarMouseOverTarget_, 0, this.opsTimingData_.length - 1);
       }
 
-      if (this.currentBarMouseOverTarget_ === lastBarMouseOverTarget)
-        return;
+      if (this.currentBarMouseOverTarget_ === lastBarMouseOverTarget) return;
 
       this.drawChartContents_();
     },
 
     updateChartContents: function() {
-      if (this.requiresRedraw)
+      if (this.requiresRedraw) {
         this.updateChartDimensions_();
+      }
 
       this.drawChartContents_();
     },
@@ -155,18 +153,15 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.resetOpsTimingData_();
       this.pictureDataProcessed_ = true;
 
-      if (!this.picture_)
-        return;
+      if (!this.picture_) return;
 
       var ops = this.picture_.getOps();
-      if (!ops)
-        return;
+      if (!ops) return;
 
       ops = this.picture_.tagOpsWithTimings(ops);
 
       // Check that there are valid times.
-      if (ops[0].cmd_time === undefined)
-        return;
+      if (ops[0].cmd_time === undefined) return;
 
       this.collapseOpsToTimingBuckets_(ops);
     },
@@ -183,8 +178,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.drawBars_();
       this.drawLineAtBottomOfChart_();
 
-      if (this.currentBarMouseOverTarget_ === null)
-        return;
+      if (this.currentBarMouseOverTarget_ === null) return;
 
       this.drawTooltip_();
     },
@@ -391,8 +385,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       for (var i = 0; i < ops.length; i++) {
         op = ops[i];
 
-        if (op.cmd_time === undefined)
-          continue;
+        if (op.cmd_time === undefined) continue;
 
         // Try to locate the entry for the current operation
         // based on its name. If that fails, then create one for it.
@@ -421,8 +414,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       var otherSource = timingData.splice(count, timingData.length - count);
       var otherDestination = null;
 
-      if (!otherSource.length)
-        return;
+      if (!otherSource.length) return;
 
       timingData.push({
         cmd_time: 0,

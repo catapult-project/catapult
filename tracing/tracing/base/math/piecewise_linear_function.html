@@ -28,14 +28,16 @@ tr.exportTo('tr.b.math', function() {
      * Pieces must be pushed in the order of increasing x coordinate.
      */
     push: function(x1, y1, x2, y2) {
-      if (x1 >= x2)
+      if (x1 >= x2) {
         throw new Error('Invalid segment');
+      }
       if (this.pieces.length > 0 &&
           this.pieces[this.pieces.length - 1].x2 > x1) {
         throw new Error('Potentially overlapping segments');
       }
-      if (x1 < x2)
+      if (x1 < x2) {
         this.pieces.push(new Piece(x1, y1, x2, y2));
+      }
     },
 
     /**
@@ -60,8 +62,7 @@ tr.exportTo('tr.b.math', function() {
         weightedSum += piece.width * piece.average;
         totalWeight += piece.width;
       });
-      if (totalWeight === 0)
-        return 0;
+      if (totalWeight === 0) return 0;
       return weightedSum / totalWeight;
     },
 
@@ -70,20 +71,21 @@ tr.exportTo('tr.b.math', function() {
     * that have f(x) <= y is approximately equal to the given |percent|.
     */
     percentile: function(percent) {
-      if (!(percent >= 0 && percent <= 1))
+      if (!(percent >= 0 && percent <= 1)) {
         throw new Error('percent must be [0,1]');
+      }
       var lower = this.min;
       var upper = this.max;
       var total = this.partBelow(upper);
-      if (total === 0)
-        return 0;
+      if (total === 0) return 0;
       while (upper - lower > PERCENTILE_PRECISION) {
         var middle = (lower + upper) / 2;
         var below = this.partBelow(middle);
-        if (below / total < percent)
+        if (below / total < percent) {
           lower = middle;
-        else
+        } else {
           upper = middle;
+        }
       }
       return (lower + upper) / 2;
     }
@@ -108,14 +110,11 @@ tr.exportTo('tr.b.math', function() {
     */
     partBelow: function(y) {
       var width = this.width;
-      if (width === 0)
-        return 0;
+      if (width === 0) return 0;
       var minY = this.min;
       var maxY = this.max;
-      if (y >= maxY)
-        return width;
-      if (y < minY)
-        return 0;
+      if (y >= maxY) return width;
+      if (y < minY) return 0;
       return (y - minY) / (maxY - minY) * width;
     },
 

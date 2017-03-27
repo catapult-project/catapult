@@ -232,8 +232,9 @@ was just clicked.
       },
 
       close: function() {
-        if (this.$.container.opened)
+        if (this.$.container.opened) {
           this.$.container.close();
+        }
       },
 
       openAtPosition: function(top, left) {

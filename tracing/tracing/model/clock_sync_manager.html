@@ -118,8 +118,9 @@ tr.exportTo('tr.model', function() {
             'complete - cannot add a third clock sync marker to it.');
       }
 
-      if (markers[0].domainId === domainId)
+      if (markers[0].domainId === domainId) {
         throw new Error('A clock domain cannot sync with itself.');
+      }
 
       markers.push(marker);
       this.onSyncCompleted_(markers[0], marker);
@@ -150,8 +151,9 @@ tr.exportTo('tr.model', function() {
     getModelTimeTransformer: function(domainId) {
       this.onDomainSeen_(domainId);
 
-      if (!this.modelDomainId_)
+      if (!this.modelDomainId_) {
         this.selectModelDomainId_();
+      }
 
       return this.getTimeTransformerRaw_(domainId, this.modelDomainId_).fn;
     },
@@ -201,18 +203,19 @@ tr.exportTo('tr.model', function() {
 
         var current = queue.shift();
 
-        if (current.domainId === toDomainId)
+        if (current.domainId === toDomainId) {
           return current.transformer;
+        }
 
-        if (visitedDomainIds.has(current.domainId))
+        if (visitedDomainIds.has(current.domainId)) {
           continue;
+        }
         visitedDomainIds.add(current.domainId);
 
         var outgoingTransformers =
             this.transformerMapByDomainId_[current.domainId];
 
-        if (!outgoingTransformers)
-          continue;
+        if (!outgoingTransformers) continue;
 
         // Add all nodes that are directly connected to this one to the queue.
         for (var outgoingDomainId in outgoingTransformers) {
@@ -295,8 +298,9 @@ tr.exportTo('tr.model', function() {
         // one attached to UNKNOWN_CHROME_LEGACY and the other attached to the
         // real Chrome clock domain.
         for (var chromeDomainId of POSSIBLE_CHROME_CLOCK_DOMAINS) {
-          if (chromeDomainId === ClockDomainId.UNKNOWN_CHROME_LEGACY)
+          if (chromeDomainId === ClockDomainId.UNKNOWN_CHROME_LEGACY) {
             continue;
+          }
 
           this.collapseDomains_(
               ClockDomainId.UNKNOWN_CHROME_LEGACY, chromeDomainId);
@@ -337,8 +341,9 @@ tr.exportTo('tr.model', function() {
      * how to transform timestamps between directly connected clock domains.
      */
     getOrCreateTransformerMap_: function(domainId) {
-      if (!this.transformerMapByDomainId_[domainId])
+      if (!this.transformerMapByDomainId_[domainId]) {
         this.transformerMapByDomainId_[domainId] = {};
+      }
 
       return this.transformerMapByDomainId_[domainId];
     },

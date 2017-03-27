@@ -21,8 +21,9 @@ tr.exportTo('tr.e.gpu', function() {
 
     get viewSubGroupTitle() {
       if (this.args.channel) {
-        if (this.category === 'disabled-by-default-gpu.device')
+        if (this.category === 'disabled-by-default-gpu.device') {
           return 'Device.' + this.args.channel;
+        }
         return 'Service.' + this.args.channel;
       }
       return this.title;

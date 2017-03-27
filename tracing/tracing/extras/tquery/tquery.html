@@ -24,8 +24,7 @@ found in the LICENSE file.
 tr.exportTo('tr.e.tquery', function() {
   function addEventTreeToSelection(selection, event) {
     selection.push(event);
-    if (!event.subSlices)
-      return;
+    if (!event.subSlices) return;
     event.subSlices.forEach(
         addEventTreeToSelection.bind(undefined, selection));
   }
@@ -86,8 +85,7 @@ tr.exportTo('tr.e.tquery', function() {
       for (var i = nodes.length - 1; i >= 0; i--) {
         var node = nodes[i];
         // Reuse any memoized result.
-        if (node.selection_ !== undefined)
-          continue;
+        if (node.selection_ !== undefined) continue;
         node.selection_ = new tr.model.EventSet();
         if (node.parent_ === undefined) {
           // If this is the root, start by collecting all objects from the
@@ -130,11 +128,11 @@ tr.exportTo('tr.e.tquery', function() {
       if (inputSelection.contains(event) && !seenEvents[event.guid]) {
         seenEvents[event.guid] = true;
         if (!this.filterExpression_ ||
-            this.filterExpression_.evaluate(context))
+            this.filterExpression_.evaluate(context)) {
           outputSelection.push(event);
+        }
       }
-      if (!event.subSlices)
-        return;
+      if (!event.subSlices) return;
       context = context.push(event);
       for (var i = 0; i < event.subSlices.length; i++) {
         context.event = event.subSlices[i];
@@ -149,8 +147,9 @@ tr.exportTo('tr.e.tquery', function() {
       var filterTask = new tr.b.Task();
       for (let container of this.model_.getDescendantEventContainers()) {
         filterTask.subTask(() => {
-          for (var event of container.childEvents())
+          for (var event of container.childEvents()) {
             addEventTreeToSelection(selection, event);
+          }
         }, this);
       }
       return filterTask;

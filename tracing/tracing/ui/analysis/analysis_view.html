@@ -76,19 +76,21 @@ using custom elements specialized for different event types.
 
   /** Returns the label that goes next to the list of tabs. */
   function getTabStripLabel(numEvents) {
-    if (numEvents === 0)
+    if (numEvents === 0) {
       return 'Nothing selected. Tap stuff.';
-    else if (numEvents === 1)
+    } else if (numEvents === 1) {
       return '1 item selected.';
+    }
     return numEvents + ' items selected.';
   }
 
   function createSubView(subViewTypeInfo, selection) {
     var tagName;
-    if (selection.length === 1)
+    if (selection.length === 1) {
       tagName = subViewTypeInfo.singleTagName;
-    else
+    } else {
       tagName = subViewTypeInfo.multiTagName;
+    }
 
     if (tagName === undefined) {
       throw new Error('No view registered for ' +
@@ -97,10 +99,11 @@ using custom elements specialized for different event types.
     var subView = document.createElement(tagName);
 
     var title;
-    if (selection.length === 1)
+    if (selection.length === 1) {
       title = subViewTypeInfo.singleTitle;
-    else
+    } else {
       title = subViewTypeInfo.multiTitle;
+    }
     title += ' (' + selection.length + ')';
     subView.tabLabel = title;
 
@@ -159,8 +162,9 @@ using custom elements specialized for different event types.
     },
 
     onSelectionChanged_: function(e) {
-      if (this.lastSelection_ && this.selection.equals(this.lastSelection_))
+      if (this.lastSelection_ && this.selection.equals(this.lastSelection_)) {
         return;
+      }
       this.lastSelection_ = this.selection;
 
       this.tallMode = false;
@@ -194,8 +198,9 @@ using custom elements specialized for different event types.
 
     /** Changes the highlighted related events if possible. */
     maybeChangeRelatedEvents_: function(events) {
-      if (this.brushingStateController)
+      if (this.brushingStateController) {
         this.brushingStateController.changeAnalysisViewRelatedEvents(events);
+      }
     }
   });
 })();

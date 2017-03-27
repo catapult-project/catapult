@@ -186,8 +186,9 @@ found in the LICENSE file.
       var tmp = [];
       location.search.substr(1).split('&').forEach(function(item) {
         tmp = item.split('=');
-        if (tmp[0] === val)
+        if (tmp[0] === val) {
           result = decodeURIComponent(tmp[1]);
+        }
       });
       return result;
     }
@@ -221,15 +222,17 @@ found in the LICENSE file.
 
     function onPickerApiLoad() {
       pickerApiLoaded_ = true;
-      if (fileIdToLoad_ === null)
+      if (fileIdToLoad_ === null) {
         createPicker();
+      }
     }
 
     function onAuthResultSuccess() {
-      if (fileIdToLoad_ === null)
+      if (fileIdToLoad_ === null) {
         createPicker();
-      else
+      } else {
         loadFileFromDrive(fileIdToLoad_);
+      }
     }
 
     function handleAuthResult(authResult, wasImmediate, resultCallback) {
@@ -369,8 +372,9 @@ found in the LICENSE file.
     }
 
     function onRealtimeFileLoaded(doc) {
-      if (driveDocument_)
+      if (driveDocument_) {
         driveDocument_.close();
+      }
       driveDocument_ = doc;
       doc.addEventListener(gapi.drive.realtime.EventType.COLLABORATOR_JOINED,
           displayAllCollaborators);

@@ -64,8 +64,9 @@ tr.exportTo('tr.mre', function() {
   }
 
   function mapSingleTraceMain(args) {
-    if (args.length !== 2 && args.length !== 3)
+    if (args.length !== 2 && args.length !== 3) {
       throw new Error('Must provide two or three arguments.');
+    }
 
     var options = {
       traceHandle: tr.mre.FileHandle.fromDict(JSON.parse(args[0])),
@@ -85,7 +86,8 @@ tr.exportTo('tr.mre', function() {
   };
 });
 
-if (tr.isHeadless)
+if (tr.isHeadless) {
   quit(tr.mre.mapSingleTraceMain(sys.argv.slice(1)));
+}
 
 </script>

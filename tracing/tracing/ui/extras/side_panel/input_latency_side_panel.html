@@ -77,8 +77,8 @@ Polymer({
   },
 
   set frametimeType(type) {
-    if (this.frametimeType_ === type)
-      return;
+    if (this.frametimeType_ === type) return;
+
     this.frametimeType_ = type;
     this.updateContents_();
   },
@@ -88,15 +88,15 @@ Polymer({
   },
 
   set selectedProcessId(process) {
-    if (this.selectedProcessId_ === process)
-      return;
+    if (this.selectedProcessId_ === process) return;
+
     this.selectedProcessId_ = process;
     this.updateContents_();
   },
 
   set selection(selection) {
-    if (this.latencyChart_ === undefined)
-      return;
+    if (this.latencyChart_ === undefined) return;
+
     this.latencyChart_.brushedRange = selection.bounds;
   },
 
@@ -108,8 +108,7 @@ Polymer({
   },
 
   updateBrushedRange_: function() {
-    if (this.latencyChart_ === undefined)
-      return;
+    if (this.latencyChart_ === undefined) return;
 
     var r = new tr.b.math.Range();
     if (this.mouseDownIndex_ === undefined) {
@@ -123,10 +122,13 @@ Polymer({
     // Based on the brushed range, update the selection of LatencyInfo in
     // the timeline view by sending a selectionChange event.
     var latencySlices = [];
-    for (var thread of this.model_.getAllThreads())
-      for (var event of thread.getDescendantEvents())
-        if (event.title.indexOf('InputLatency:') === 0)
+    for (var thread of this.model_.getAllThreads()) {
+      for (var event of thread.getDescendantEvents()) {
+        if (event.title.indexOf('InputLatency:') === 0) {
           latencySlices.push(event);
+        }
+      }
+    }
     latencySlices = tr.model.helpers.getSlicesIntersectingRange(
         r, latencySlices);
 
@@ -143,8 +145,8 @@ Polymer({
     }.bind(this));
 
     this.latencyChart_.addEventListener('item-mousemove', function(e) {
-      if (e.button === undefined)
-        return;
+      if (e.button === undefined) return;
+
       this.curMouseIndex_ = e.index;
       this.updateBrushedRange_();
     }.bind(this));
@@ -171,8 +173,7 @@ Polymer({
       labels.push({label: labelStr, value: rendererProcess.userFriendlyName});
     }
 
-    if (labels.length === 0)
-      return;
+    if (labels.length === 0) return;
 
     this.selectedProcessId_ = labels[0].value;
     var toolbarEl = this.$.toolbar;
@@ -193,8 +194,9 @@ Polymer({
 
   // TODO(charliea): Delete this function in favor of rangeOfInterest.
   get currentRangeOfInterest() {
-    if (this.rangeOfInterest_.isEmpty)
+    if (this.rangeOfInterest_.isEmpty) {
       return this.model_.bounds;
+    }
     return this.rangeOfInterest_;
   },
 
@@ -217,18 +219,18 @@ Polymer({
     this.frametimeChart_ = undefined;
     Polymer.dom(resultArea).textContent = '';
 
-    if (this.modelHelper_ === undefined)
-      return;
+    if (this.modelHelper_ === undefined) return;
 
     var rangeOfInterest = this.currentRangeOfInterest;
 
     var chromeProcess;
-    if (this.modelHelper_.rendererHelpers[this.selectedProcessId_])
+    if (this.modelHelper_.rendererHelpers[this.selectedProcessId_]) {
       chromeProcess = this.modelHelper_.rendererHelpers[
         this.selectedProcessId_
       ];
-    else
+    } else {
       chromeProcess = this.modelHelper_.browserHelper;
+    }
 
     var frameEvents = chromeProcess.getFrameEventsInRange(
         this.frametimeType, rangeOfInterest);
@@ -245,8 +247,8 @@ Polymer({
 
     var latencyData = [];
     latencyEvents.forEach(function(event) {
-      if (event.inputLatency === undefined)
-        return;
+      if (event.inputLatency === undefined) return;
+
       latencyData.push({
         x: event.start,
         latency: event.inputLatency / 1000

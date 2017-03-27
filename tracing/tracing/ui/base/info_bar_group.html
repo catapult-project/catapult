@@ -35,10 +35,12 @@ Polymer({
   addMessage: function(text, opt_buttons) {
     opt_buttons = opt_buttons || [];
     for (var i = 0; i < opt_buttons.length; i++) {
-      if (opt_buttons[i].buttonText === undefined)
+      if (opt_buttons[i].buttonText === undefined) {
         throw new Error('buttonText must be provided');
-      if (opt_buttons[i].onClick === undefined)
+      }
+      if (opt_buttons[i].onClick === undefined) {
         throw new Error('onClick must be provided');
+      }
     }
 
     this.messages_.push({

@@ -55,16 +55,18 @@ found in the LICENSE file.
         let page = e.detail.item;
         // Need to call the the page.* functions async since this callback is
         // called sync while the route is being modified.
-        if ('deselected' in page)
+        if ('deselected' in page) {
           this.async(function() { page.deselected(); });
+        }
       },
 
       onSelectedPage: function(e) {
         let page = e.detail.item;
         // Need to call the the page.* functions async since this callback is
         // called sync while the route is being modified.
-        if ('selected' in page)
+        if ('selected' in page) {
           this.async(function() { page.selected(); });
+        }
       },
 
       ready: function() {

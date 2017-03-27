@@ -22,10 +22,12 @@ tr.exportTo('tr.model.um', function() {
     this.title_ = args.title;
     if (!this.title_) {
       var defaultTitle = [];
-      if (this.initiatorTitle_)
+      if (this.initiatorTitle_) {
         defaultTitle.push(this.initiatorTitle_);
-      if (this.stageTitle_)
+      }
+      if (this.stageTitle_) {
         defaultTitle.push(this.stageTitle_);
+      }
       this.title_ = defaultTitle.join(' ') || 'title';
     }
 

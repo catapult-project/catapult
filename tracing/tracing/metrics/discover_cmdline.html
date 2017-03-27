@@ -25,7 +25,8 @@ function discoverMetrics(args) {
   return 0;
 }
 
-if (tr.isHeadless)
+if (tr.isHeadless) {
   quit(discoverMetrics(sys.argv.slice(1)));
+}
 
 </script>

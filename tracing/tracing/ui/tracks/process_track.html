@@ -31,8 +31,9 @@ tr.exportTo('tr.ui.tracks', function() {
       switch (type) {
         case tr.ui.tracks.DrawType.INSTANT_EVENT:
           if (!this.processBase.instantEvents ||
-              this.processBase.instantEvents.length === 0)
+              this.processBase.instantEvents.length === 0) {
             break;
+          }
 
           var ctx = this.context();
 
@@ -80,12 +81,12 @@ tr.exportTo('tr.ui.tracks', function() {
       ctx.fillStyle = '#eee';
       for (var i = 0; i < this.children.length; ++i) {
         if (!(this.children[i] instanceof tr.ui.tracks.Track) ||
-            (this.children[i] instanceof tr.ui.tracks.SpacingTrack))
+            (this.children[i] instanceof tr.ui.tracks.SpacingTrack)) {
           continue;
+        }
 
         draw = !draw;
-        if (!draw)
-          continue;
+        if (!draw) continue;
 
         var bounds = this.children[i].getBoundingClientRect();
         ctx.fillRect(0, pixelRatio * (bounds.top - canvasBounds.top),

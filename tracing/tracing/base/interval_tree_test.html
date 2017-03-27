@@ -39,8 +39,7 @@ tr.b.unittest.testSuite(function() {
 
   function sortSimpleResults(intersection) {
     intersection.sort(function(a, b) {
-      if (a.start === b.start)
-        return a.end - b.end;
+      if (a.start === b.start) return a.end - b.end;
       return a.start - b.start;
     });
   }
@@ -145,8 +144,9 @@ tr.b.unittest.testSuite(function() {
 
     assert.equal(tree.size, 0);
 
-    for (var i = 0; i < 10; ++i)
+    for (var i = 0; i < 10; ++i) {
       tree.insert({start: i, end: 5});
+    }
     tree.updateHighValues();
 
     var outTree = {
@@ -221,8 +221,7 @@ tr.b.unittest.testSuite(function() {
 
     var result = [];
     function walk(node) {
-      if (node === undefined)
-        return;
+      if (node === undefined) return;
 
       walk(node.leftNode);
       result.push([node.maxHighLeft, node.maxHighRight]);

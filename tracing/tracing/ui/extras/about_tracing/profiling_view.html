@@ -153,8 +153,9 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     },
 
     beginRecording: function() {
-      if (this.isRecording_)
+      if (this.isRecording_) {
         throw new Error('Already recording');
+      }
       this.isRecording_ = true;
       var resultPromise = tr.ui.e.about_tracing.beginRecording(
           this.tracingControllerClient_);
@@ -167,8 +168,9 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
           }.bind(this),
           function(err) {
             this.isRecording_ = false;
-            if (err instanceof tr.ui.e.about_tracing.UserCancelledError)
+            if (err instanceof tr.ui.e.about_tracing.UserCancelledError) {
               return;
+            }
             tr.ui.b.Overlay.showError('Error while recording', err);
           }.bind(this));
       return resultPromise;
@@ -249,8 +251,9 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
 
       var custom = prompt('Filename? (' + fileExtension +
                           ' appended) Or leave blank:');
-      if (custom === null)
+      if (custom === null) {
         return undefined;
+      }
 
       var name;
       if (custom) {
@@ -296,8 +299,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       inputElement.addEventListener(
           'change',
           function(e) {
-            if (changeFired)
-              return;
+            if (changeFired) return;
             changeFired = true;
 
             var file = inputElement.files[0];
@@ -340,8 +342,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     },
 
     dropHandler_: function(e) {
-      if (this.isAnyDialogUp_)
-        return;
+      if (this.isAnyDialogUp_) return;
 
       e.stopPropagation();
       e.preventDefault();

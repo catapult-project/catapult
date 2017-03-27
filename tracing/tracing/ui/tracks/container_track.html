@@ -35,8 +35,9 @@ tr.exportTo('tr.ui.tracks', function() {
     get tracks_() {
       var tracks = [];
       for (var i = 0; i < this.children.length; i++) {
-        if (this.children[i] instanceof tr.ui.tracks.Track)
+        if (this.children[i] instanceof tr.ui.tracks.Track) {
           tracks.push(this.children[i]);
+        }
       }
       return tracks;
     },
@@ -65,9 +66,10 @@ tr.exportTo('tr.ui.tracks', function() {
         var trackClientRect = this.tracks_[i].getBoundingClientRect();
         var a = Math.max(loY, trackClientRect.top);
         var b = Math.min(hiY, trackClientRect.bottom);
-        if (a <= b)
+        if (a <= b) {
           this.tracks_[i].addIntersectingEventsInRangeToSelection(
               loVX, hiVX, loY, hiY, selection);
+        }
       }
 
       tr.ui.tracks.Track.prototype.addIntersectingEventsInRangeToSelection.
@@ -81,9 +83,10 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     addAllEventsMatchingFilterToSelection: function(filter, selection) {
-      for (var i = 0; i < this.tracks_.length; i++)
+      for (var i = 0; i < this.tracks_.length; i++) {
         this.tracks_[i].addAllEventsMatchingFilterToSelection(
             filter, selection);
+      }
     },
 
     addAllEventsMatchingFilterToSelectionAsTask: function(filter, selection) {

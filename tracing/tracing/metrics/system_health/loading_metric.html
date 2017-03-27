@@ -54,12 +54,14 @@ tr.exportTo('tr.metrics.sh', function() {
   function NavigationStartFinder(rendererHelper) {
     this.navigationStartsForFrameId_ = {};
     for (var ev of rendererHelper.mainThread.sliceGroup.childEvents()) {
-      if (!hasCategoryAndName(ev, 'blink.user_timing', 'navigationStart'))
+      if (!hasCategoryAndName(ev, 'blink.user_timing', 'navigationStart')) {
         continue;
+      }
       var frameIdRef = ev.args['frame'];
       var list = this.navigationStartsForFrameId_[frameIdRef];
-      if (list === undefined)
+      if (list === undefined) {
         this.navigationStartsForFrameId_[frameIdRef] = list = [];
+      }
       list.unshift(ev);
     }
   }
@@ -71,8 +73,9 @@ tr.exportTo('tr.metrics.sh', function() {
       var eventBeforeTimestamp;
       for (var ev of list) {
         if (ev.start > ts) continue;
-        if (eventBeforeTimestamp === undefined)
+        if (eventBeforeTimestamp === undefined) {
           eventBeforeTimestamp = ev;
+        }
       }
       if (eventBeforeTimestamp === undefined) return undefined;
       return eventBeforeTimestamp;
@@ -130,14 +133,16 @@ tr.exportTo('tr.metrics.sh', function() {
   function findFirstMeaningfulPaintCandidates(rendererHelper) {
     var candidatesForFrameId = {};
     for (var ev of rendererHelper.process.getDescendantEvents()) {
-      if (!hasCategoryAndName(ev, 'loading', 'firstMeaningfulPaintCandidate'))
+      if (!hasCategoryAndName(ev, 'loading', 'firstMeaningfulPaintCandidate')) {
         continue;
+      }
       if (rendererHelper.isTelemetryInternalEvent(ev)) continue;
       var frameIdRef = ev.args['frame'];
       if (frameIdRef === undefined) continue;
       var list = candidatesForFrameId[frameIdRef];
-      if (list === undefined)
+      if (list === undefined) {
         candidatesForFrameId[frameIdRef] = list = [];
+      }
       list.push(ev);
     }
     return candidatesForFrameId;
@@ -410,8 +415,9 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   function addSamplesToHistogram(samples, histogram) {
-    for (var sample of samples)
+    for (var sample of samples) {
       histogram.addSample(sample.value, sample.diagnostics);
+    }
   }
 
   function loadingMetric(histograms, model) {

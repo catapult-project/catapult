@@ -47,8 +47,9 @@ tr.b.unittest.testSuite(function() {
     group.createSubSlices();
 
     var foundSlices = [];
-    for (var slice of sC1.findTopmostSlicesRelativeToThisSlice(PREDICATE))
+    for (var slice of sC1.findTopmostSlicesRelativeToThisSlice(PREDICATE)) {
       foundSlices.push(slice);
+    }
 
     assert.deepEqual([sC1], foundSlices);
   });
@@ -68,8 +69,9 @@ tr.b.unittest.testSuite(function() {
     group.createSubSlices();
 
     var foundSlices = [];
-    for (var slice of sD.findTopmostSlicesRelativeToThisSlice(PREDICATE))
+    for (var slice of sD.findTopmostSlicesRelativeToThisSlice(PREDICATE)) {
       foundSlices.push(slice);
+    }
     assert.deepEqual([sC1, sC2], foundSlices);
   });
 

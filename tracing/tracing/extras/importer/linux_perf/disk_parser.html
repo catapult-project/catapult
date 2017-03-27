@@ -93,8 +93,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     f2fsWriteBeginEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /dev = \((\d+,\d+)\), ino = (\d+), pos = (\d+), len = (\d+), flags = (\d+)/. // @suppress longLineCheck
           exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
       var device = event[1];
       var inode = parseInt(event[2]);
       var pos = parseInt(event[3]);
@@ -108,8 +107,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     f2fsWriteEndEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /dev = \((\d+,\d+)\), ino = (\d+), pos = (\d+), len = (\d+), copied = (\d+)/. // @suppress longLineCheck
           exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       var device = event[1];
       var inode = parseInt(event[2]);
@@ -129,8 +127,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     ext4WriteBeginEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /dev (\d+,\d+) ino (\d+) pos (\d+) len (\d+) flags (\d+)/.
           exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
       var device = event[1];
       var inode = parseInt(event[2]);
       var pos = parseInt(event[3]);
@@ -144,8 +141,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     ext4WriteEndEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /dev (\d+,\d+) ino (\d+) pos (\d+) len (\d+) copied (\d+)/.
           exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       var device = event[1];
       var inode = parseInt(event[2]);
@@ -167,8 +163,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
           'dev = \\((\\d+,\\d+)\\), ino = (\\d+), pino = (\\d+), i_mode = (\\S+), ' + // @suppress longLineCheck
           'i_size = (\\d+), i_nlink = (\\d+), i_blocks = (\\d+), i_advise = (\\d+)'). // @suppress longLineCheck
           exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       var device = event[1];
       var inode = parseInt(event[2]);
@@ -182,8 +177,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var event = new RegExp('dev = \\((\\d+,\\d+)\\), ino = (\\d+), checkpoint is (\\S+), ' + // @suppress longLineCheck
           'datasync = (\\d+), ret = (\\d+)').
           exec(eventBase.details.replace('not needed', 'not_needed'));
-      if (!event)
-        return false;
+      if (!event) return false;
 
       var device = event[1];
       var inode = parseInt(event[2]);
@@ -201,8 +195,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     ext4SyncFileEnterEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /dev (\d+,\d+) ino (\d+) parent (\d+) datasync (\d+)/.
           exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       var device = event[1];
       var inode = parseInt(event[2]);
@@ -216,8 +209,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
     ext4SyncFileExitEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /dev (\d+,\d+) ino (\d+) ret (\d+)/.exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       var device = event[1];
       var inode = parseInt(event[2]);
@@ -235,8 +227,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     blockRqIssueEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = new RegExp('(\\d+,\\d+) (F)?([DWRN])(F)?(A)?(S)?(M)? ' +
           '\\d+ \\(.*\\) (\\d+) \\+ (\\d+) \\[.*\\]').exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       var action;
       switch (event[3]) {
@@ -284,8 +275,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     blockRqCompleteEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = new RegExp('(\\d+,\\d+) (F)?([DWRN])(F)?(A)?(S)?(M)? ' +
           '\\(.*\\) (\\d+) \\+ (\\d+) \\[(.*)\\]').exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       var device = event[1];
       var sector = parseInt(event[8]);

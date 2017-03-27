@@ -41,8 +41,9 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var argsArray = argsString.split(';');
       for (var i = 0; i < argsArray.length; ++i) {
         var parts = argsArray[i].split('=');
-        if (parts[0])
+        if (parts[0]) {
           args[parts.shift()] = parts.join('=');
+        }
       }
     }
     return args;
@@ -108,8 +109,9 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
           var title = eventData[2];
           var args = parseArgs(eventData[3]);
           var category = eventData[4];
-          if (category === undefined)
+          if (category === undefined) {
             category = 'android';
+          }
 
           var thread = this.model_.getOrCreateProcess(ppid)
               .getOrCreateThread(pid);
@@ -163,8 +165,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
           var name = eventData[2];
           var value = parseInt(eventData[3]);
           var category = eventData[4];
-          if (category === undefined)
-            category = 'android';
+          if (category === undefined) category = 'android';
 
           var ctr = this.model_.getOrCreateProcess(ppid)
               .getOrCreateCounter(category, name);
@@ -187,8 +188,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
           var cookie = parseInt(eventData[3]);
           var args = parseArgs(eventData[4]);
           var category = eventData[5];
-          if (category === undefined)
-            category = 'android';
+          if (category === undefined) category = 'android';
 
 
           var thread = this.model_.getOrCreateProcess(ppid)
@@ -209,8 +209,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
           var cookie = parseInt(eventData[3]);
           var args = parseArgs(eventData[4]);
           var category = eventData[5];
-          if (category === undefined)
-            category = 'android';
+          if (category === undefined) category = 'android';
 
           var thread = this.model_.getOrCreateProcess(ppid)
             .getOrCreateThread(pid);

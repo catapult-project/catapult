@@ -45,11 +45,13 @@ tr.exportTo('tr.model', function() {
 
     get overlappingSamples() {
       var samples = new tr.model.EventSet();
-      if (!this.parentContainer || !this.parentContainer.samples)
+      if (!this.parentContainer || !this.parentContainer.samples) {
         return samples;
+      }
       this.parentContainer.samples.forEach(function(sample) {
-        if (this.start <= sample.start && sample.start <= this.end)
+        if (this.start <= sample.start && sample.start <= this.end) {
           samples.push(sample);
+        }
       }, this);
       return samples;
     }

@@ -70,17 +70,22 @@ tr.exportTo('tr.e.cc', function() {
       // data comes from the new version of cc, otherwise we set the
       // parentLayer as we did before SPv2.
       if (this.children) {
-        for (var i = 0; i < this.children.length; i++)
+        for (var i = 0; i < this.children.length; i++) {
           this.children[i].parentLayer = this;
+        }
       }
-      if (this.maskLayer)
+      if (this.maskLayer) {
         this.maskLayer.parentLayer = this;
-      if (this.replicaLayer)
+      }
+      if (this.replicaLayer) {
         this.replicaLayer.parentLayer = this;
-      if (!this.geometryContentsScale)
+      }
+      if (!this.geometryContentsScale) {
         this.geometryContentsScale = 1.0;
-      if (!this.idealContentsScale)
+      }
+      if (!this.idealContentsScale) {
         this.idealContentsScale = 1.0;
+      }
 
       this.touchEventHandlerRegion = tr.e.cc.Region.fromArrayOrUndefined(
           this.args.touchEventHandlerRegion);
@@ -91,10 +96,12 @@ tr.exportTo('tr.e.cc', function() {
     },
 
     get layerTreeImpl() {
-      if (this.layerTreeImpl_)
+      if (this.layerTreeImpl_) {
         return this.layerTreeImpl_;
-      if (this.parentLayer)
+      }
+      if (this.parentLayer) {
         return this.parentLayer.layerTreeImpl;
+      }
       return undefined;
     },
     set layerTreeImpl(layerTreeImpl) {
@@ -102,15 +109,17 @@ tr.exportTo('tr.e.cc', function() {
     },
 
     get activeLayer() {
-      if (this.layerTreeImpl.whichTree === constants.ACTIVE_TREE)
+      if (this.layerTreeImpl.whichTree === constants.ACTIVE_TREE) {
         return this;
+      }
       var activeTree = this.layerTreeImpl.layerTreeHostImpl.activeTree;
       return activeTree.findLayerWithId(this.layerId);
     },
 
     get pendingLayer() {
-      if (this.layerTreeImpl.whichTree === constants.PENDING_TREE)
+      if (this.layerTreeImpl.whichTree === constants.PENDING_TREE) {
         return this;
+      }
       var pendingTree = this.layerTreeImpl.layerTreeHostImpl.pendingTree;
       return pendingTree.findLayerWithId(this.layerId);
     }

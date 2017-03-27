@@ -115,8 +115,9 @@ tr.exportTo('tr.ui.tracks', function() {
       for (var [key, defaultValue] of
           Object.entries(DEFAULT_RENDERING_CONFIG)) {
         var value = config[key];
-        if (value === undefined)
+        if (value === undefined) {
           value = defaultValue;
+        }
         this[key + '_'] = value;
       }
 
@@ -134,8 +135,9 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     draw: function(ctx, transform, highDetails) {
-      if (this.points === undefined || this.points.length === 0)
+      if (this.points === undefined || this.points.length === 0) {
         return;
+      }
 
       // Draw the background.
       if (this.chartType_ === ChartSeriesType.AREA) {
@@ -503,8 +505,9 @@ tr.exportTo('tr.ui.tracks', function() {
       var points = this.points;
 
       function getPointWidth(point, i) {
-        if (i === points.length - 1)
+        if (i === points.length - 1) {
           return LAST_POINT_WIDTH * viewPixWidthWorld;
+        }
         var nextPoint = points[i + 1];
         return nextPoint.x - point.x;
       }
@@ -523,18 +526,15 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     addEventNearToProvidedEventToSelection: function(event, offset, selection) {
-      if (this.points === undefined)
-        return false;
+      if (this.points === undefined) return false;
 
       var index = tr.b.findFirstIndexInArray(this.points, function(point) {
         return point.modelItem === event;
       }, this);
-      if (index === -1)
-        return false;
+      if (index === -1) return false;
 
       var newIndex = index + offset;
-      if (newIndex < 0 || newIndex >= this.points.length)
-        return false;
+      if (newIndex < 0 || newIndex >= this.points.length) return false;
 
       this.points[newIndex].addToSelection(selection);
       return true;
@@ -542,8 +542,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     addClosestEventToSelection: function(worldX, worldMaxDist, loY, hiY,
         selection) {
-      if (this.points === undefined)
-        return;
+      if (this.points === undefined) return;
 
       var item = tr.b.math.findClosestElementInSortedArray(
           this.points,
@@ -551,8 +550,7 @@ tr.exportTo('tr.ui.tracks', function() {
           worldX,
           worldMaxDist);
 
-      if (!item)
-        return;
+      if (!item) return;
 
       item.addToSelection(selection);
     }

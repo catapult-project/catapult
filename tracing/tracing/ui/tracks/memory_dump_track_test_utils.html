@@ -78,10 +78,12 @@ tr.exportTo('tr.ui.tracks', function() {
   function addProcessMemoryDumpWithFields(globalMemoryDump, process, start,
       opt_pssValues, opt_dumpData) {
     var pmd = addProcessMemoryDump(globalMemoryDump, process, {ts: start});
-    if (opt_pssValues !== undefined)
+    if (opt_pssValues !== undefined) {
       pmd.vmRegions = createVMRegions(opt_pssValues);
-    if (opt_dumpData !== undefined)
+    }
+    if (opt_dumpData !== undefined) {
       pmd.memoryAllocatorDumps = createAllocatorDumps(pmd, opt_dumpData);
+    }
   }
 
   function createModelWithDumps(withVMRegions, withAllocatorDumps) {

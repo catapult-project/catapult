@@ -81,8 +81,9 @@ tr.exportTo('tr.ui.analysis', function() {
 
     set aggregationMode(aggregationMode) {
       this.aggregationMode_ = aggregationMode;
-      for (var tab of this.$.tabs.tabs)
+      for (var tab of this.$.tabs.tabs) {
         tab.aggregationMode = aggregationMode;
+      }
     },
 
     onRebuild_: function() {
@@ -117,26 +118,26 @@ tr.exportTo('tr.ui.analysis', function() {
         tab.rebuild();
         if (dimension === previouslySelectedDimension) {
           this.$.tabs.selectedSubView = tab;
-          if (previouslySelectedTabFocused)
+          if (previouslySelectedTabFocused) {
             tab.focus();
+          }
         }
       }
 
-      if (this.$.tabs.tabs.length > 0)
+      if (this.$.tabs.tabs.length > 0) {
         this.$.tabs.label = 'Break selected node further by:';
-      else
+      } else {
         this.$.tabs.label = 'Selected node cannot be broken down any further.';
+      }
     },
 
     onKeyDown_: function(keyEvent) {
-      if (!this.displayedNode_)
-        return;
+      if (!this.displayedNode_) return;
 
       var keyHandled = false;
       switch (keyEvent.keyCode) {
         case 8:  // Backspace.
-          if (!this.displayedNode_.parentNode)
-            break;
+          if (!this.displayedNode_.parentNode) break;
 
           // Enter the parent node upon pressing backspace.
           var viewEvent = new tr.b.Event('enter-node');
@@ -151,12 +152,12 @@ tr.exportTo('tr.ui.analysis', function() {
           keyHandled = keyEvent.keyCode === 37 ?
               this.$.tabs.selectPreviousTabIfPossible() :
               this.$.tabs.selectNextTabIfPossible();
-          if (wasFocused && keyHandled)
+          if (wasFocused && keyHandled) {
             this.$.tabs.selectedSubView.focus();  // Restore focus to new tab.
+          }
       }
 
-      if (!keyHandled)
-        return;
+      if (!keyHandled) return;
       keyEvent.stopPropagation();
       keyEvent.preventDefault();
     }
@@ -214,15 +215,15 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     get dimensionLabel_() {
-      if (this.dimension_ === undefined)
-        return '(undefined)';
+      if (this.dimension_ === undefined) return '(undefined)';
       return this.dimension_.label;
     },
 
     get tabLabel() {
       var nodeCount = 0;
-      if (this.nodes_)
+      if (this.nodes_) {
         nodeCount = this.nodes_.length;
+      }
       return this.dimensionLabel_ + ' (' + nodeCount + ')';
     },
 

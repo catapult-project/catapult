@@ -50,8 +50,9 @@ document.addEventListener('DOMContentLoaded', function() {
   for (var i = 0; i < viewerDataScripts.length; i++) {
     var text = Polymer.dom(viewerDataScripts[i]).textContent;
     // Trim leading newlines off the text. They happen during writing.
-    while (text[0] === '\n')
+    while (text[0] === '\n') {
       text = text.substring(1);
+    }
     traces.push(tr.b.Base64.atob(text));
   }
 

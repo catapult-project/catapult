@@ -30,8 +30,7 @@ tr.exportTo('tr.b.math', function() {
    *     the array.
    */
   function findLowIndexInSortedArray(ary, mapFn, loVal) {
-    if (ary.length === 0)
-      return 1;
+    if (ary.length === 0) return 1;
 
     var low = 0;
     var high = ary.length - 1;
@@ -60,10 +59,11 @@ tr.exportTo('tr.b.math', function() {
     var hi = hiVal !== undefined ? hiVal : ary.length;
     while (lo < hi) {
       var mid = (lo + hi) >> 1;
-      if (mapFn(ary[mid]) >= 0)
+      if (mapFn(ary[mid]) >= 0) {
         lo = mid + 1;
-      else
+      } else {
         hi = mid;
+      }
     }
     return hi;
   }
@@ -94,27 +94,31 @@ tr.exportTo('tr.b.math', function() {
     var first = findLowIndexInSortedArray(ary, mapLoFn, loVal);
     if (first === 0) {
       if (loVal >= mapLoFn(ary[0]) &&
-          loVal < mapLoFn(ary[0]) + mapWidthFn(ary[0], 0))
+          loVal < mapLoFn(ary[0]) + mapWidthFn(ary[0], 0)) {
         return 0;
+      }
       return -1;
     }
 
     if (first < ary.length) {
       if (loVal >= mapLoFn(ary[first]) &&
-          loVal < mapLoFn(ary[first]) + mapWidthFn(ary[first], first))
+          loVal < mapLoFn(ary[first]) + mapWidthFn(ary[first], first)) {
         return first;
+      }
       if (loVal >= mapLoFn(ary[first - 1]) &&
           loVal < mapLoFn(ary[first - 1]) +
-          mapWidthFn(ary[first - 1], first - 1))
+          mapWidthFn(ary[first - 1], first - 1)) {
         return first - 1;
+      }
       return ary.length;
     }
 
     if (first === ary.length) {
       if (loVal >= mapLoFn(ary[first - 1]) &&
           loVal < mapLoFn(ary[first - 1]) +
-          mapWidthFn(ary[first - 1], first - 1))
+          mapWidthFn(ary[first - 1], first - 1)) {
         return first - 1;
+      }
       return ary.length;
     }
 
@@ -149,25 +153,29 @@ tr.exportTo('tr.b.math', function() {
     var i = findLowIndexInSortedArray(ary, mapLoFn, val);
     if (i === 0) {
       if (val >= mapLoFn(ary[0], 0) &&
-          val <= mapHiFn(ary[0], 0))
+          val <= mapHiFn(ary[0], 0)) {
         return 0;
+      }
       return -1;
     }
 
     if (i < ary.length) {
       if (val >= mapLoFn(ary[i - 1], i - 1) &&
-          val <= mapHiFn(ary[i - 1], i - 1))
+          val <= mapHiFn(ary[i - 1], i - 1)) {
         return i - 1;
+      }
       if (val >= mapLoFn(ary[i], i) &&
-          val <= mapHiFn(ary[i], i))
+          val <= mapHiFn(ary[i], i)) {
         return i;
+      }
       return ary.length;
     }
 
     if (i === ary.length) {
       if (val >= mapLoFn(ary[i - 1], i - 1) &&
-          val <= mapHiFn(ary[i - 1], i - 1))
+          val <= mapHiFn(ary[i - 1], i - 1)) {
         return i - 1;
+      }
       return ary.length;
     }
 
@@ -195,8 +203,7 @@ tr.exportTo('tr.b.math', function() {
    */
   function iterateOverIntersectingIntervals(ary, mapLoFn, mapWidthFn, loVal,
       hiVal, cb) {
-    if (ary.length === 0)
-      return;
+    if (ary.length === 0) return;
 
     if (loVal > hiVal) return;
 
@@ -216,8 +223,7 @@ tr.exportTo('tr.b.math', function() {
 
     for (var n = ary.length; i < n; i++) {
       var lo = mapLoFn(ary[i]);
-      if (lo >= hiVal)
-        break;
+      if (lo >= hiVal) break;
       cb(ary[i], i);
     }
   }
@@ -251,20 +257,17 @@ tr.exportTo('tr.b.math', function() {
    *     null if no object is within range.
    */
   function findClosestElementInSortedArray(ary, mapFn, val, maxDiff) {
-    if (ary.length === 0)
-      return null;
+    if (ary.length === 0) return null;
 
     var aftIdx = findLowIndexInSortedArray(ary, mapFn, val);
     var befIdx = aftIdx > 0 ? aftIdx - 1 : 0;
 
-    if (aftIdx === ary.length)
-      aftIdx -= 1;
+    if (aftIdx === ary.length) aftIdx -= 1;
 
     var befDiff = Math.abs(val - mapFn(ary[befIdx]));
     var aftDiff = Math.abs(val - mapFn(ary[aftIdx]));
 
-    if (befDiff > maxDiff && aftDiff > maxDiff)
-      return null;
+    if (befDiff > maxDiff && aftDiff > maxDiff) return null;
 
     var idx = befDiff < aftDiff ? befIdx : aftIdx;
     return ary[idx];
@@ -292,27 +295,24 @@ tr.exportTo('tr.b.math', function() {
    */
   function findClosestIntervalInSortedIntervals(ary, mapLoFn, mapHiFn, val,
       maxDiff) {
-    if (ary.length === 0)
-      return null;
+    if (ary.length === 0) return null;
 
     var idx = findLowIndexInSortedArray(ary, mapLoFn, val);
-    if (idx > 0)
-      idx -= 1;
+    if (idx > 0) idx -= 1;
 
     var hiInt = ary[idx];
     var loInt = hiInt;
 
-    if (val > mapHiFn(hiInt) && idx + 1 < ary.length)
+    if (val > mapHiFn(hiInt) && idx + 1 < ary.length) {
       loInt = ary[idx + 1];
+    }
 
     var loDiff = Math.abs(val - mapLoFn(loInt));
     var hiDiff = Math.abs(val - mapHiFn(hiInt));
 
-    if (loDiff > maxDiff && hiDiff > maxDiff)
-      return null;
+    if (loDiff > maxDiff && hiDiff > maxDiff) return null;
 
-    if (loDiff < hiDiff)
-      return loInt;
+    if (loDiff < hiDiff) return loInt;
 
     return hiInt;
   }

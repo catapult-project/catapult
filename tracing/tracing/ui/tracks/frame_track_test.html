@@ -96,8 +96,9 @@ tr.b.unittest.testSuite(function() {
       if (event instanceof Frame) {
         assert.equal(event, frames[0]);
         frameCount++;
-      } else
+      } else {
         eventCount++;
+      }
     });
     assert.equal(frameCount, 1);
     assert.equal(eventCount, 0);

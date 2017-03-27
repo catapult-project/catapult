@@ -183,8 +183,7 @@ tr.exportTo('tr.metrics.v8.utils', function() {
    * intervals merged into a single interval.
    */
   function unionOfIntervals(intervals) {
-    if (intervals.length === 0)
-      return [];
+    if (intervals.length === 0) return [];
     return tr.b.math.mergeRanges(
         intervals.map(x => { return { min: x.start, max: x.end }; }), 1e-6,
         function(ranges) {
@@ -209,8 +208,8 @@ tr.exportTo('tr.metrics.v8.utils', function() {
     var startOfFirstDumpWithV8 =
         model.globalMemoryDumps.filter(hasV8Stats).reduce(
             (start, dump) => Math.min(start, dump.start), Infinity);
-    if (startOfFirstDumpWithV8 === Infinity)
-      return new tr.b.math.Range(); // Empty range.
+    // Empty range.
+    if (startOfFirstDumpWithV8 === Infinity) return new tr.b.math.Range();
     return tr.b.math.Range.fromExplicitRange(startOfFirstDumpWithV8, Infinity);
   }
 

@@ -34,8 +34,9 @@ tr.exportTo('tr.ui', function() {
 
     equals: function(that) {
       var eq = true;
-      if (that === undefined || that === null)
+      if (that === undefined || that === null) {
         return false;
+      }
       eq &= this.panX === that.panX;
       eq &= this.panY === that.panY;
       eq &= this.scaleX === that.scaleX;
@@ -44,8 +45,9 @@ tr.exportTo('tr.ui', function() {
 
     almostEquals: function(that) {
       var eq = true;
-      if (that === undefined || that === null)
+      if (that === undefined || that === null) {
         return false;
+      }
       eq &= Math.abs(this.panX - that.panX) < 0.001;
       eq &= Math.abs(this.panY - that.panY) < 0.001;
       eq &= Math.abs(this.scaleX - that.scaleX) < 0.001;
@@ -72,10 +74,11 @@ tr.exportTo('tr.ui', function() {
     },
 
     xPanWorldBoundsIntoView: function(worldMin, worldMax, viewWidth) {
-      if (this.xWorldToView(worldMin) < 0)
+      if (this.xWorldToView(worldMin) < 0) {
         this.xPanWorldPosToViewPos(worldMin, 'left', viewWidth);
-      else if (this.xWorldToView(worldMax) > viewWidth)
+      } else if (this.xWorldToView(worldMax) > viewWidth) {
         this.xPanWorldPosToViewPos(worldMax, 'right', viewWidth);
+      }
     },
 
     xSetWorldBounds: function(worldMin, worldMax, viewWidth) {

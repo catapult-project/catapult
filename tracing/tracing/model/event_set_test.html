@@ -79,8 +79,9 @@ tr.b.unittest.testSuite(function() {
     var eventSet = new tr.model.EventSet([{guid: 1}, {guid: 2}, {guid: 3}]);
 
     var expectedId = 1;
-    for (var event of eventSet)
+    for (var event of eventSet) {
       assert.equal(event.guid, expectedId++);
+    }
   });
 
   test('uniqueContents', function() {
@@ -195,8 +196,9 @@ tr.b.unittest.testSuite(function() {
     assert.sameMembers(eventsByBaseType.slice.toArray(), [a, b]);
     assert.sameMembers(eventsByBaseType.asyncSlice.toArray(), [c]);
     for (var baseType in eventsByBaseType) {
-      if (baseType !== 'slice' && baseType !== 'asyncSlice')
+      if (baseType !== 'slice' && baseType !== 'asyncSlice') {
         assert.equal(0, eventsByBaseType[baseType].length);
+      }
     }
   });
 

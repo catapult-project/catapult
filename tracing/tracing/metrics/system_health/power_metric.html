@@ -55,13 +55,15 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   function createHistograms_(data, interval, histograms) {
-    if (data.histograms[interval.name] === undefined)
+    if (data.histograms[interval.name] === undefined) {
       data.histograms[interval.name] = createEmptyHistogram_(interval,
           histograms);
+    }
     if (data.histograms[interval.name].perSecond) {
       for (var sample of data.model.device.powerSeries.getSamplesWithinRange(
-          interval.bounds.min, interval.bounds.max))
+          interval.bounds.min, interval.bounds.max)) {
         data.histograms[interval.name].energy.addSample(sample.powerInW);
+      }
     } else {
       var energyInJ = data.model.device.powerSeries.getEnergyConsumedInJ(
           interval.bounds.min, interval.bounds.max);
@@ -364,8 +366,9 @@ tr.exportTo('tr.metrics.sh', function() {
       model: model,
       histograms: {}
     };
-    for (var interval of computeTimeIntervals_(model))
+    for (var interval of computeTimeIntervals_(model)) {
       createHistograms_(data, interval, histograms);
+    }
   }
 
   tr.metrics.MetricRegistry.register(powerMetric);

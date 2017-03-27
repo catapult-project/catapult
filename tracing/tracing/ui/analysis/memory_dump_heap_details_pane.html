@@ -196,10 +196,12 @@ tr.exportTo('tr.ui.analysis', function() {
       var hasDisplayedChildren = false;
       var allDisplayedChildrenHaveDisplayedCounts = true;
       for (var child of stackFrameNode.children[dimensionIndex].values()) {
-        if (child.values[0].totalState < this.minDisplayedTotalState_)
+        if (child.values[0].totalState < this.minDisplayedTotalState_) {
           continue;
-        if (child.values[1].totalState < this.minDisplayedTotalState_)
+        }
+        if (child.values[1].totalState < this.minDisplayedTotalState_) {
           allDisplayedChildrenHaveDisplayedCounts = false;
+        }
         childDict[child.title[dimensionIndex]] = child;
         displayedChildrenTotalSize += child.values[0].total;
         displayedChildrenTotalCount += child.values[1].total;
@@ -388,8 +390,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
     createHeapTree_: function() {
       var definedHeapDump = tr.b.findFirstInArray(this.heapDumps_);
-      if (definedHeapDump === undefined)
-        return undefined;
+      if (definedHeapDump === undefined) return undefined;
 
       // The title of the root node is the name of the allocator.
       var rootRowTitle = definedHeapDump.allocatorName;

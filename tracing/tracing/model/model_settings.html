@@ -48,8 +48,7 @@ tr.exportTo('tr.model', function() {
       for (var i = 0; i < objects.length; i++) {
         var object = objects[i];
         var objectKey = object.getSettingsKey();
-        if (!objectKey)
-          continue;
+        if (!objectKey) continue;
         if (objectsByKey[objectKey] === undefined) {
           objectsByKey[objectKey] = object;
           continue;
@@ -59,8 +58,9 @@ tr.exportTo('tr.model', function() {
 
       var nonuniqueKeys = {};
       Object.keys(objectsByKey).forEach(function(objectKey) {
-        if (objectsByKey[objectKey] !== NONUNIQUE_KEY)
+        if (objectsByKey[objectKey] !== NONUNIQUE_KEY) {
           return;
+        }
         delete objectsByKey[objectKey];
         nonuniqueKeys[objectKey] = true;
       });
@@ -73,19 +73,20 @@ tr.exportTo('tr.model', function() {
       var settings = Settings.get('trace_model_settings', {});
       var settingsChanged = false;
       Object.keys(settings).forEach(function(objectKey) {
-        if (!this.nonuniqueKeys[objectKey])
+        if (!this.nonuniqueKeys[objectKey]) {
           return;
+        }
         settingsChanged = true;
         delete settings[objectKey];
       }, this);
-      if (settingsChanged)
+      if (settingsChanged) {
         Settings.set('trace_model_settings', settings);
+      }
     },
 
     hasUniqueSettingKey: function(object) {
       var objectKey = object.getSettingsKey();
-      if (!objectKey)
-        return false;
+      if (!objectKey) return false;
       return this.objectsByKey_[objectKey] !== undefined;
     },
 
@@ -94,17 +95,20 @@ tr.exportTo('tr.model', function() {
       if (!objectKey || !this.objectsByKey_[objectKey]) {
         var settings = this.getEphemeralSettingsFor_(object);
         var ephemeralValue = settings[objectLevelKey];
-        if (ephemeralValue !== undefined)
+        if (ephemeralValue !== undefined) {
           return ephemeralValue;
+        }
         return defaultValue;
       }
 
       var settings = Settings.get('trace_model_settings', {});
-      if (!settings[objectKey])
+      if (!settings[objectKey]) {
         settings[objectKey] = {};
+      }
       var value = settings[objectKey][objectLevelKey];
-      if (value !== undefined)
+      if (value !== undefined) {
         return value;
+      }
       return defaultValue;
     },
 
@@ -116,19 +120,23 @@ tr.exportTo('tr.model', function() {
       }
 
       var settings = Settings.get('trace_model_settings', {});
-      if (!settings[objectKey])
+      if (!settings[objectKey]) {
         settings[objectKey] = {};
-      if (settings[objectKey][objectLevelKey] === value)
+      }
+      if (settings[objectKey][objectLevelKey] === value) {
         return;
+      }
       settings[objectKey][objectLevelKey] = value;
       Settings.set('trace_model_settings', settings);
     },
 
     getEphemeralSettingsFor_: function(object) {
-      if (object.guid === undefined)
+      if (object.guid === undefined) {
         throw new Error('Only objects with GUIDs can be persisted');
-      if (this.ephemeralSettingsByGUID_[object.guid] === undefined)
+      }
+      if (this.ephemeralSettingsByGUID_[object.guid] === undefined) {
         this.ephemeralSettingsByGUID_[object.guid] = {};
+      }
       return this.ephemeralSettingsByGUID_[object.guid];
     }
   };

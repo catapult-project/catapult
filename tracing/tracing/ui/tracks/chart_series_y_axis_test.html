@@ -22,8 +22,9 @@ tr.b.unittest.testSuite(function() {
 
   function buildRange() {
     var range = new Range();
-    for (var i = 0; i < arguments.length; i++)
+    for (var i = 0; i < arguments.length; i++) {
       range.addValue(arguments[i]);
+    }
     return range;
   }
 

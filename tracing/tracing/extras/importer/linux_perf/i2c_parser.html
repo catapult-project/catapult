@@ -51,8 +51,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
      */
     i2cWriteEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = i2cWriteReplyRE.exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       var adapterNumber = parseInt(event[1]);
       var messageNumber = event[2];
@@ -80,8 +79,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
     i2cReadEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = i2cReadRE.exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       var adapterNumber = parseInt(event[1]);
       var messageNumber = event[2];
@@ -107,8 +105,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
     i2cReplyEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = i2cWriteReplyRE.exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       var adapterNumber = parseInt(event[1]);
       var messageNumber = event[2];
@@ -136,8 +133,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
     i2cResultEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = i2cResultRE.exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       var adapterNumber = parseInt(event[1]);
       var numMessages = event[2];

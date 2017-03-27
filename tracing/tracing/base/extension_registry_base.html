@@ -19,10 +19,12 @@ tr.exportTo('tr.b', function() {
   var ALL_MODES = {BASIC_REGISTRY_MODE: true, TYPE_BASED_REGISTRY_MODE: true};
 
   function ExtensionRegistryOptions(mode) {
-    if (mode === undefined)
+    if (mode === undefined) {
       throw new Error('Mode is required');
-    if (!ALL_MODES[mode])
+    }
+    if (!ALL_MODES[mode]) {
       throw new Error('Not a mode.');
+    }
 
     this.mode_ = mode;
     this.defaultMetadata_ = {};
@@ -32,8 +34,9 @@ tr.exportTo('tr.b', function() {
   }
   ExtensionRegistryOptions.prototype = {
     freeze: function() {
-      if (this.frozen_)
+      if (this.frozen_) {
         throw new Error('Frozen');
+      }
       this.frozen_ = true;
     },
 
@@ -46,8 +49,9 @@ tr.exportTo('tr.b', function() {
     },
 
     set defaultMetadata(defaultMetadata) {
-      if (this.frozen_)
+      if (this.frozen_) {
         throw new Error('Frozen');
+      }
       this.defaultMetadata_ = defaultMetadata;
       this.defaultTypeInfo_ = undefined;
     },
@@ -57,8 +61,9 @@ tr.exportTo('tr.b', function() {
     },
 
     set defaultConstructor(defaultConstructor) {
-      if (this.frozen_)
+      if (this.frozen_) {
         throw new Error('Frozen');
+      }
       this.defaultConstructor_ = defaultConstructor;
       this.defaultTypeInfo_ = undefined;
     },
@@ -73,8 +78,7 @@ tr.exportTo('tr.b', function() {
     },
 
     validateConstructor: function(constructor) {
-      if (!this.mandatoryBaseClass)
-        return;
+      if (!this.mandatoryBaseClass) return;
       var curProto = constructor.prototype.__proto__;
       var ok = false;
       while (curProto) {
@@ -84,8 +88,9 @@ tr.exportTo('tr.b', function() {
         }
         curProto = curProto.__proto__;
       }
-      if (!ok)
+      if (!ok) {
         throw new Error(constructor + 'must be subclass of ' + registry);
+      }
     }
   };
 

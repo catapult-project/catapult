@@ -55,15 +55,15 @@ Polymer({
     this.$.realView.setSelectionWithoutErrorChecks(selection);
 
     this.$.relatedSamples.selection = selection;
-    if (this.$.relatedSamples.hasRelatedSamples())
+    if (this.$.relatedSamples.hasRelatedSamples()) {
       this.$.events.style.display = '';
-    else
+    } else {
       this.$.events.style.display = 'none';
+    }
   },
 
   get relatedEventsToHighlight() {
-    if (!this.currentSelection_)
-      return undefined;
+    if (!this.currentSelection_) return undefined;
     return tr.b.getOnlyElement(this.currentSelection_).associatedEvents;
   },
 

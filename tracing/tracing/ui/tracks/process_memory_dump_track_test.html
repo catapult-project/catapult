@@ -35,8 +35,9 @@ tr.b.unittest.testSuite(function() {
     track.memoryDumps = dumps;
 
     // TODO(petrcermak): Check that the div has indeed zero size.
-    if (expectedTrackCount > 0)
+    if (expectedTrackCount > 0) {
       this.addHTMLOutput(div);
+    }
 
     var dt = new tr.ui.TimelineDisplayTransform();
     dt.xSetWorldBounds(0, 50, track.clientWidth);

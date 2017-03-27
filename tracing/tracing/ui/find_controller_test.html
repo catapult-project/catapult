@@ -320,8 +320,8 @@ tr.b.unittest.testSuite(function() {
     var findTextClearedCallCount = 0;
     var fakeUIState = {};
     brushingStateController.uiStateFromString = function(string) {
-      if (string === '')
-        return undefined;
+      if (string === '') return undefined;
+
       assert.strictEqual(string, '2000@1.2x7');
       return fakeUIState;
     };

@@ -16,49 +16,61 @@ found in the LICENSE file.
 'use strict';
 
 function containsData(histograms, name) {
-  for (var value of histograms)
-    if (value.name === name)
+  for (var value of histograms) {
+    if (value.name === name) {
       return (value.running !== undefined);
+    }
+  }
 
   return undefined;
 }
 
 function getMetricValueCount(histograms, name) {
-  for (var value of histograms)
-    if (value.name === name && value.running !== undefined)
+  for (var value of histograms) {
+    if (value.name === name && value.running !== undefined) {
       return value.running.count;
+    }
+  }
 
   return undefined;
 }
 
 function getMetricValueSum(histograms, name) {
-  for (var value of histograms)
-    if (value.name === name && value.running !== undefined)
+  for (var value of histograms) {
+    if (value.name === name && value.running !== undefined) {
       return value.running.sum;
+    }
+  }
 
   return undefined;
 }
 
 function getMetricValueMin(histograms, name) {
-  for (var value of histograms)
-    if (value.name === name && value.running !== undefined)
+  for (var value of histograms) {
+    if (value.name === name && value.running !== undefined) {
       return value.running.min;
+    }
+  }
 
   return undefined;
 }
 
 function getMetricValueAvg(histograms, name) {
-  for (var value of histograms)
-    if (value.name === name && value.running !== undefined)
+  for (var value of histograms) {
+    if (value.name === name && value.running !== undefined) {
       return value.running.mean;
+    }
+  }
 
   return undefined;
 }
 
 function getMetricValueMax(histograms, name) {
-  for (var value of histograms)
-    if (value.name === name && value.running !== undefined)
+  for (var value of histograms) {
+    if (value.name === name && value.running !== undefined) {
       return value.running.max;
+    }
+  }
 
   return undefined;
 }
@@ -89,8 +101,9 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
-      for (var i = 0; i <= 2000; i++)
+      for (var i = 0; i <= 2000; i++) {
         model.device.powerSeries.addPowerSample(i, i);
+      }
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
           model, 0, 2000));
     });
@@ -158,8 +171,9 @@ tr.b.unittest.testSuite(function() {
   test('powerMetric_noChromeTrace', function() {
     var model = tr.c.TestUtils.newModel(function(model) {
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
-      for (var i = 0; i <= 1000; i++)
+      for (var i = 0; i <= 1000; i++) {
         model.device.powerSeries.addPowerSample(i, i);
+      }
     });
     var histograms = new tr.v.HistogramSet();
     tr.metrics.sh.powerMetric(histograms, model);
@@ -177,8 +191,9 @@ tr.b.unittest.testSuite(function() {
       var mainThread = rendererProcess.getOrCreateThread(1);
       mainThread.name = 'CrRendererMain';
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
-      for (var i = 0; i <= 1000; i++)
+      for (var i = 0; i <= 1000; i++) {
         model.device.powerSeries.addPowerSample(i, i);
+      }
       model.userModel.expectations.push(new tr.model.um.LoadExpectation(
           model, tr.model.um.LOAD_SUBTYPE_NAMES.SUCCESSFUL, 0, 500));
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
@@ -211,8 +226,9 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
-      for (var i = 300; i <= 1000; i++)
+      for (var i = 300; i <= 1000; i++) {
         model.device.powerSeries.addPowerSample(i, i);
+      }
       model.userModel.expectations.push(new tr.model.um.LoadExpectation(
           model, tr.model.um.LOAD_SUBTYPE_NAMES.SUCCESSFUL, 0, 500));
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
@@ -246,8 +262,9 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
-      for (var i = 0; i <= 700; i++)
+      for (var i = 0; i <= 700; i++) {
         model.device.powerSeries.addPowerSample(i, i);
+      }
       model.userModel.expectations.push(new tr.model.um.LoadExpectation(
           model, tr.model.um.LOAD_SUBTYPE_NAMES.SUCCESSFUL, 0, 500));
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
@@ -281,8 +298,9 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
-      for (var i = 0; i <= 1000; i++)
+      for (var i = 0; i <= 1000; i++) {
         model.device.powerSeries.addPowerSample(i, i);
+      }
       model.userModel.expectations.push(new tr.model.um.ResponseExpectation(
           model, tr.importer.INITIATOR_TYPE.SCROLL, 0, 500));
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
@@ -319,8 +337,9 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
-      for (var i = 0; i <= 1000; i++)
+      for (var i = 0; i <= 1000; i++) {
         model.device.powerSeries.addPowerSample(i, i);
+      }
       model.userModel.expectations.push(new tr.model.um.ResponseExpectation(
           model, tr.importer.INITIATOR_TYPE.SCROLL, 0, 500));
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
@@ -354,8 +373,9 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
-      for (var i = 0; i <= 1000; i++)
+      for (var i = 0; i <= 1000; i++) {
         model.device.powerSeries.addPowerSample(i, i);
+      }
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
           model, 0, 300));
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
@@ -388,8 +408,9 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
-      for (var i = 0; i <= 1000; i++)
+      for (var i = 0; i <= 1000; i++) {
         model.device.powerSeries.addPowerSample(i, i);
+      }
       model.userModel.expectations.push(new tr.model.um.ResponseExpectation(
             model, tr.importer.INITIATOR_TYPE.SCROLL, 0, 200));
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
@@ -482,12 +503,15 @@ tr.b.unittest.testSuite(function() {
       }));
 
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
-      for (var i = 0; i <= 15400; i++)
+      for (var i = 0; i <= 15400; i++) {
         model.device.powerSeries.addPowerSample(i, 20);
-      for (var i = 15401; i <= 22160; i++)
+      }
+      for (var i = 15401; i <= 22160; i++) {
         model.device.powerSeries.addPowerSample(i, 10);
-      for (var i = 22160; i <= 30000; i++)
+      }
+      for (var i = 22160; i <= 30000; i++) {
         model.device.powerSeries.addPowerSample(i, 10);
+      }
     });
 
     var histograms = new tr.v.HistogramSet();
@@ -552,10 +576,12 @@ tr.b.unittest.testSuite(function() {
       }));
 
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
-      for (var i = 0; i <= 15400; i++)
+      for (var i = 0; i <= 15400; i++) {
         model.device.powerSeries.addPowerSample(i, 20);
-      for (var i = 15401; i <= 22160; i++)
+      }
+      for (var i = 15401; i <= 22160; i++) {
         model.device.powerSeries.addPowerSample(i, 10);
+      }
     });
 
     var histograms = new tr.v.HistogramSet();
@@ -585,8 +611,9 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
-      for (var i = 0; i <= 1000; i++)
+      for (var i = 0; i <= 1000; i++) {
         model.device.powerSeries.addPowerSample(i, i);
+      }
       model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
           model, tr.importer.INITIATOR_TYPE.SCROLL, 0, 500));
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
@@ -619,8 +646,9 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
-      for (var i = 0; i <= 1000; i++)
+      for (var i = 0; i <= 1000; i++) {
         model.device.powerSeries.addPowerSample(i, i);
+      }
       model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
           model, tr.importer.INITIATOR_TYPE.SCROLL, 0, 200));
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
@@ -657,8 +685,9 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
-      for (var i = 0; i <= 1000; i++)
+      for (var i = 0; i <= 1000; i++) {
         model.device.powerSeries.addPowerSample(i, i);
+      }
       model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
           model, tr.importer.INITIATOR_TYPE.VIDEO, 0, 500));
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
@@ -691,8 +720,9 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
-      for (var i = 0; i <= 1000; i++)
+      for (var i = 0; i <= 1000; i++) {
         model.device.powerSeries.addPowerSample(i, i);
+      }
       model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
           model, tr.importer.INITIATOR_TYPE.VIDEO, 0, 200));
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(

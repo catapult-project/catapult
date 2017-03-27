@@ -31,8 +31,7 @@ tr.exportTo('tr.v.ui', function() {
    * @return {(string|!HTMLElement)}
    */
   function createScalarSpan(value, opt_config) {
-    if (value === undefined)
-      return '';
+    if (value === undefined) return '';
 
     let config = opt_config || {};
     let ownerDocument = config.ownerDocument || document;
@@ -45,8 +44,7 @@ tr.exportTo('tr.v.ui', function() {
       numericValue = value.value;
     } else if (value instanceof tr.v.Histogram) {
       numericValue = value.average;
-      if (numericValue === undefined)
-        return '';
+      if (numericValue === undefined) return '';
       span.setValueAndUnit(numericValue, value.unit);
     } else {
       let unit = config.unit;
@@ -58,11 +56,13 @@ tr.exportTo('tr.v.ui', function() {
       numericValue = value;
     }
 
-    if (config.context)
+    if (config.context) {
       span.context = config.context;
+    }
 
-    if (config.customContextRange)
+    if (config.customContextRange) {
       span.customContextRange = config.customContextRange;
+    }
 
     if (config.leftAlign) {
       span.leftAlign = true;
@@ -72,11 +72,13 @@ tr.exportTo('tr.v.ui', function() {
       span.inline = true;
     }
 
-    if (config.significance !== undefined)
+    if (config.significance !== undefined) {
       span.significance = config.significance;
+    }
 
-    if (config.contextGroup !== undefined)
+    if (config.contextGroup !== undefined) {
       span.contextGroup = config.contextGroup;
+    }
 
     return span;
   }
@@ -283,10 +285,11 @@ Polymer({
       this.value_ = value;
     }
     this.updateContents_();
-    if (this.hasContext_(this.contextGroup))
+    if (this.hasContext_(this.contextGroup)) {
       this.contextController_.onScalarSpanUpdated(this.contextGroup, this);
-    else
+    } else {
       this.updateSparkline_();
+    }
   },
 
   get contextController_() {
@@ -314,8 +317,8 @@ Polymer({
   },
 
   attachToContextControllerIfPossible_: function(contextGroup) {
-    if (!this.hasContext_(contextGroup))
-      return false;
+    if (!this.hasContext_(contextGroup)) return false;
+
     this.contextController_.addEventListener(
         'context-updated', this.onContextUpdated_);
     this.contextController_.onScalarSpanAdded(contextGroup, this);
@@ -323,8 +326,8 @@ Polymer({
   },
 
   detachFromContextControllerIfPossible_: function(contextGroup) {
-    if (!this.hasContext_(contextGroup))
-      return;
+    if (!this.hasContext_(contextGroup)) return;
+
     this.contextController_.removeEventListener(
         'context-updated', this.onContextUpdated_);
     this.contextController_.onScalarSpanRemoved(contextGroup, this);
@@ -420,11 +423,11 @@ Polymer({
     let range = this.customContextRange_;
     if (!range && this.hasContext_(this.contextGroup)) {
       let context = this.contextController_.getContext(this.contextGroup);
-      if (context)
+      if (context) {
         range = context.range;
+      }
     }
-    if (!range || range.isEmpty)
-      return;
+    if (!range || range.isEmpty) return;
 
     let leftPoint = Math.min(range.min, 0);
     let rightPoint = Math.max(range.max, 0);
@@ -454,8 +457,9 @@ Polymer({
 
     // Set the sparkline color (if applicable).
     let changeClass = this.changeClassName_;
-    if (changeClass)
+    if (changeClass) {
       Polymer.dom(this.$.sparkline).classList.add(changeClass);
+    }
   },
 
   buildSparklineStyle_: function(ratio, isWidth) {
@@ -471,8 +475,9 @@ Polymer({
     //                |::::::::::            -10 MiB
     //
     let position = 'calc(' + ratio + ' * (100% - 1px)';
-    if (isWidth)
+    if (isWidth) {
       position += ' + 1px';  // Extra pixel for sparkline border.
+    }
     position += ')';
     return position;
   },
@@ -486,8 +491,7 @@ Polymer({
     this.$.significantly_better.style.display = '';
     this.$.significantly_worse.style.display = '';
 
-    if (this.unit_ === undefined)
-      return;
+    if (this.unit_ === undefined) return;
 
     this.$.content.title = '';
     Polymer.dom(this.$.content).textContent =
@@ -531,15 +535,15 @@ Polymer({
         break;
 
       case tr.b.math.Statistics.Significance.INSIGNIFICANT:
-        if (changeClass !== 'same')
-          title = 'insignificant ' + title;
+        if (changeClass !== 'same') title = 'insignificant ' + title;
         this.$.insignificant.style.display = 'inline';
         changeClass = 'same';
         break;
 
       case tr.b.math.Statistics.Significance.SIGNIFICANT:
-        if (changeClass === 'same')
+        if (changeClass === 'same') {
           throw new Error('How can no change be significant?');
+        }
         this.$['significantly_' + changeClass].style.display = 'inline';
         title = 'significant ' + title;
         break;
@@ -553,21 +557,18 @@ Polymer({
   },
 
   get changeClassName_() {
-    if (!this.unit_ || !this.unit_.isDelta)
-      return undefined;
+    if (!this.unit_ || !this.unit_.isDelta) return undefined;
 
     switch (this.unit_.improvementDirection) {
       case tr.b.ImprovementDirection.DONT_CARE:
         return undefined;
 
       case tr.b.ImprovementDirection.BIGGER_IS_BETTER:
-        if (this.value === 0)
-          return 'same';
+        if (this.value === 0) return 'same';
         return this.value > 0 ? 'better' : 'worse';
 
       case tr.b.ImprovementDirection.SMALLER_IS_BETTER:
-        if (this.value === 0)
-          return 'same';
+        if (this.value === 0) return 'same';
         return this.value < 0 ? 'better' : 'worse';
 
       default:

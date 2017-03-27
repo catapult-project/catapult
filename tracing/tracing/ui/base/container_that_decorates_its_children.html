@@ -55,15 +55,17 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     onSetTextContent_: function(textContent) {
-      if (textContent !== '')
+      if (textContent !== '') {
         throw new Error('textContent can only be set to \'\'.');
+      }
       this.clear();
     },
 
     clear: function() {
-      while (Polymer.dom(this).lastChild)
+      while (Polymer.dom(this).lastChild) {
         HTMLDivElement.prototype.removeChild.call(
             this, Polymer.dom(this).lastChild);
+      }
       this.didMutate_(this.observer_.takeRecords());
     },
 
@@ -72,8 +74,9 @@ tr.exportTo('tr.ui.b', function() {
       for (var i = 0; i < records.length; i++) {
         var addedNodes = records[i].addedNodes;
         if (addedNodes) {
-          for (var j = 0; j < addedNodes.length; j++)
+          for (var j = 0; j < addedNodes.length; j++) {
             this.decorateChild_(addedNodes[j]);
+          }
         }
         var removedNodes = records[i].removedNodes;
         if (removedNodes) {

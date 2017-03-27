@@ -84,15 +84,15 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     set expanded(expanded) {
-      if (this.expanded_ === expanded)
-        return;
+      if (this.expanded_ === expanded) return;
+
       this.expanded_ = expanded;
       this.expandedStateChanged_();
     },
 
     onHeadingClicked_: function(e) {
-      if (this.subRows.length <= 1)
-        return;
+      if (this.subRows.length <= 1) return;
+
       this.expanded = !this.expanded;
 
       if (this.groupingSource_) {
@@ -131,8 +131,9 @@ tr.exportTo('tr.ui.tracks', function() {
 
       for (var i = 0; i < this.children.length; i++) {
         this.children[i].height = h;
-        if (i === 0)
+        if (i === 0) {
           this.children[i].arrowVisible = true;
+        }
         this.children[i].expanded = this.expanded;
       }
 
@@ -167,8 +168,8 @@ tr.exportTo('tr.ui.tracks', function() {
       this.currentSubRows_ = subRows;
       for (var srI = 0; srI < subRows.length; srI++) {
         var subRow = subRows[srI];
-        if (!subRow.length)
-          continue;
+        if (!subRow.length) continue;
+
         var track = this.addSubTrack_(subRow);
         track.addEventListener(
             'heading-clicked', this.onHeadingClicked_.bind(this));
@@ -178,8 +179,8 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     updateHeadingAndTooltip_: function() {
-      if (!Polymer.dom(this).firstChild)
-        return;
+      if (!Polymer.dom(this).firstChild) return;
+
       Polymer.dom(this).firstChild.heading = this.heading_;
       Polymer.dom(this).firstChild.tooltip = this.tooltip_;
     },
@@ -197,15 +198,14 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     areArrayContentsSame_: function(a, b) {
-      if (!a || !b)
-        return false;
-      if (!a.length || !b.length)
-        return false;
-      if (a.length !== b.length)
-        return false;
+      if (!a || !b) return false;
+
+      if (!a.length || !b.length) return false;
+
+      if (a.length !== b.length) return false;
+
       for (var i = 0; i < a.length; ++i) {
-        if (a[i] !== b[i])
-          return false;
+        if (a[i] !== b[i]) return false;
       }
       return true;
     }

@@ -30,8 +30,9 @@ tr.b.unittest.testSuite(function() {
     var process = model.getOrCreateProcess(1);
     for (var i = 0; i < slices.length; i++) {
       var thread = process.getOrCreateThread(i);
-      for (var j = 0; j < slices[i].length; j++)
+      for (var j = 0; j < slices[i].length; j++) {
         thread.sliceGroup.pushSlice(slices[i][j]);
+      }
     }
     for (var i = 0; i < counters.length; i++) {
       var counter = process.getOrCreateCounter(
@@ -48,8 +49,9 @@ tr.b.unittest.testSuite(function() {
 
   function buildCounterSeries(name, timestamps) {
     var series = new CounterSeries(name, '');
-    for (var i = 0; i < timestamps.length; i++)
+    for (var i = 0; i < timestamps.length; i++) {
       series.addCounterSample(timestamps[i], 1);
+    }
     return series;
   }
 

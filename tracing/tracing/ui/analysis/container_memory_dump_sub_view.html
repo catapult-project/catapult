@@ -72,17 +72,16 @@ tr.exportTo('tr.ui.analysis', function() {
     updateContents_: function() {
       Polymer.dom(this.$.content).textContent = '';
 
-      if (this.dumpsByContainerName_ === undefined)
-        return;
+      if (this.dumpsByContainerName_ === undefined) return;
 
       var containerNames = Object.keys(this.dumpsByContainerName_);
-      if (containerNames.length === 0)
-        return;
+      if (containerNames.length === 0) return;
 
-      if (containerNames.length > 1)
+      if (containerNames.length > 1) {
         this.buildViewForMultipleContainerNames_();
-      else
+      } else {
         this.buildViewForSingleContainerName_();
+      }
     },
 
     buildViewForSingleContainerName_: function() {
@@ -120,8 +119,9 @@ tr.exportTo('tr.ui.analysis', function() {
           title: 'Dump',
 
           value: function(row) {
-            if (row.subRows === undefined)
+            if (row.subRows === undefined) {
               return this.singleDumpValue_(row);
+            }
             return this.groupedDumpValue_(row);
           },
 

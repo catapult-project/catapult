@@ -40,8 +40,9 @@ found in the LICENSE file.
  */
 tr.exportTo('tr.b', function() {
   function decorateExtensionRegistry(registry, registryOptions) {
-    if (registry.register)
+    if (registry.register) {
       throw new Error('Already has registry');
+    }
 
     registryOptions.freeze();
     if (registryOptions.mode === tr.b.BASIC_REGISTRY_MODE) {
@@ -53,8 +54,9 @@ tr.exportTo('tr.b', function() {
     }
 
     // Make it an event target.
-    if (registry.addEventListener === undefined)
+    if (registry.addEventListener === undefined) {
       tr.b.EventTarget.decorate(registry);
+    }
   }
 
   return {

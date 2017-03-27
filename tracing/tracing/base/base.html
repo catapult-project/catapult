@@ -63,8 +63,7 @@ this.tr = (function() {
     for (var i = 0; i < parts.length; i++) {
       var partName = parts[i];
       var nextObject = curObject[partName];
-      if (nextObject === undefined)
-        return false;
+      if (nextObject === undefined) return false;
       curObject = nextObject;
     }
     return true;
@@ -73,8 +72,7 @@ this.tr = (function() {
   var panicElement = undefined;
   var rawPanicMessages = [];
   function showPanicElementIfNeeded() {
-    if (panicElement)
-      return;
+    if (panicElement) return;
 
     var panicOverlay = document.createElement('div');
     panicOverlay.style.backgroundColor = 'white';
@@ -106,13 +104,13 @@ this.tr = (function() {
 
   function showPanic(panicTitle, panicDetails) {
     if (tr.isHeadless) {
-      if (panicDetails instanceof Error)
-        throw panicDetails;
+      if (panicDetails instanceof Error) throw panicDetails;
       throw new Error('Panic: ' + panicTitle + ':\n' + panicDetails);
     }
 
-    if (panicDetails instanceof Error)
+    if (panicDetails instanceof Error) {
       panicDetails = panicDetails.stack;
+    }
 
     showPanicElementIfNeeded();
     var panicMessageEl = document.createElement('div');
@@ -148,8 +146,9 @@ this.tr = (function() {
       // properties.
       var propertyDescriptor = Object.getOwnPropertyDescriptor(exports,
           propertyName);
-      if (propertyDescriptor)
+      if (propertyDescriptor) {
         Object.defineProperty(obj, propertyName, propertyDescriptor);
+      }
     }
   }
 

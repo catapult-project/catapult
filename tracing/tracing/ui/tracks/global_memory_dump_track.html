@@ -46,8 +46,7 @@ tr.exportTo('tr.ui.tracks', function() {
       this.clearTracks_();
 
       // Show no tracks if there are no dumps.
-      if (!this.memoryDumps_ || !this.memoryDumps_.length)
-        return;
+      if (!this.memoryDumps_ || !this.memoryDumps_.length) return;
 
       this.appendDumpDotsTrack_();
       this.appendUsedMemoryTrack_();
@@ -56,8 +55,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     appendDumpDotsTrack_: function() {
       var items = tr.ui.tracks.buildMemoryLetterDots(this.memoryDumps_);
-      if (!items)
-        return;
+      if (!items) return;
 
       var track = new tr.ui.tracks.LetterDotTrack(this.viewport);
       track.heading = 'Memory Dumps';
@@ -68,8 +66,7 @@ tr.exportTo('tr.ui.tracks', function() {
     appendUsedMemoryTrack_: function() {
       var series = tr.ui.tracks.buildGlobalUsedMemoryChartSeries(
           this.memoryDumps_);
-      if (!series)
-        return;
+      if (!series) return;
 
       var track = new tr.ui.tracks.ChartTrack(this.viewport);
       track.heading = 'Memory per process';
@@ -82,8 +79,7 @@ tr.exportTo('tr.ui.tracks', function() {
     appendAllocatedMemoryTrack_: function() {
       var series = tr.ui.tracks.buildGlobalAllocatedMemoryChartSeries(
           this.memoryDumps_);
-      if (!series)
-        return;
+      if (!series) return;
 
       var track = new tr.ui.tracks.ChartTrack(this.viewport);
       track.heading = 'Memory per component';

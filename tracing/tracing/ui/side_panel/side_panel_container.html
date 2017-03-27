@@ -117,8 +117,9 @@ Polymer({
   },
 
   onSelectionChanged_: function() {
-    if (this.activePanel)
+    if (this.activePanel) {
       this.activePanel.selection = this.selection;
+    }
   },
 
   get model() {
@@ -143,15 +144,18 @@ Polymer({
   },
 
   set activePanelType(panelType) {
-    if (this.model === undefined)
+    if (this.model === undefined) {
       throw new Error('Cannot activate panel without a model');
+    }
 
     var panel = undefined;
-    if (panelType)
+    if (panelType) {
       panel = document.createElement(panelType);
+    }
 
-    if (panel !== undefined && !panel.supportsModel(this.model))
+    if (panel !== undefined && !panel.supportsModel(this.model)) {
       throw new Error('Cannot activate panel: does not support this model');
+    }
 
     if (this.activePanelType) {
       Polymer.dom(this.getLabelElementForPanelType_(
@@ -163,8 +167,9 @@ Polymer({
           this.activePanelType).removeAttribute('selected');
     }
 
-    if (this.activePanel)
+    if (this.activePanel) {
       this.activePanelContainer_.removeChild(this.activePanel);
+    }
 
     if (panelType === undefined) {
       Polymer.dom(this).removeAttribute('expanded');
@@ -186,15 +191,17 @@ Polymer({
 
   getPanelTypeForConstructor_: function(constructor) {
     for (var i = 0; i < this.tabStrip_.children.length; i++) {
-      if (this.tabStrip_.children[i].panelType.constructor === constructor)
+      if (this.tabStrip_.children[i].panelType.constructor === constructor) {
         return this.tabStrip_.children[i].panelType;
+      }
     }
   },
 
   getLabelElementForPanelType_: function(panelType) {
     for (var i = 0; i < this.tabStrip_.children.length; i++) {
-      if (this.tabStrip_.children[i].panelType === panelType)
+      if (this.tabStrip_.children[i].panelType === panelType) {
         return this.tabStrip_.children[i];
+      }
     }
     return undefined;
   },
@@ -223,8 +230,9 @@ Polymer({
               this.activePanelType === panelType ? undefined : panelType;
         }.bind(this, panelType));
       } else {
-        if (this.activePanel)
+        if (this.activePanel) {
           this.activePanelContainer_.removeChild(this.activePanel);
+        }
         this.removeAttribute('expanded');
       }
       Polymer.dom(this.tabStrip_).appendChild(labelEl);
@@ -236,8 +244,9 @@ Polymer({
       this.activePanelType = previouslyActivePanelType;
       Polymer.dom(this).setAttribute('expanded', true);
     } else {
-      if (this.activePanel)
+      if (this.activePanel) {
         Polymer.dom(this.activePanelContainer_).removeChild(this.activePanel);
+      }
       Polymer.dom(this).removeAttribute('expanded');
     }
   },
@@ -247,11 +256,13 @@ Polymer({
   },
 
   set rangeOfInterest(range) {
-    if (range === undefined)
+    if (range === undefined) {
       throw new Error('Must not be undefined');
+    }
     this.rangeOfInterest_ = range;
-    if (this.activePanel)
+    if (this.activePanel) {
       this.activePanel.rangeOfInterest = range;
+    }
   }
 });
 </script>

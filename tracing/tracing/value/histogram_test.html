@@ -393,8 +393,9 @@ tr.b.unittest.testSuite(function() {
     check([0, 11], 0.5, 10.5, 10, 1);
     check([0, 6, 11], 0.5, 10.5, 10, 1);
     let array = [];
-    for (let i = 0; i < 1000; i++)
+    for (let i = 0; i < 1000; i++) {
       array.push((i * i) % 10 + 1);
+    }
     check(array, 0.5, 10.5, 10, 1e-3);
     // If the real percentile is outside the bin range then the approximation
     // error can be high.

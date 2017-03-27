@@ -47,10 +47,11 @@ Polymer({
     this.currentSelection_ = selection;
 
     this.$.relatedSamples.selection = selection;
-    if (this.$.relatedSamples.hasRelatedSamples())
+    if (this.$.relatedSamples.hasRelatedSamples()) {
       this.$.events.style.display = '';
-    else
+    } else {
       this.$.events.style.display = 'none';
+    }
   },
 
   get selection() {
@@ -58,8 +59,8 @@ Polymer({
   },
 
   get relatedEventsToHighlight() {
-    if (!this.currentSelection_)
-      return undefined;
+    if (!this.currentSelection_) return undefined;
+
     var selection = new tr.model.EventSet();
     this.currentSelection_.forEach(function(ir) {
       ir.associatedEvents.forEach(function(event) {

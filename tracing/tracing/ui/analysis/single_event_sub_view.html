@@ -70,8 +70,9 @@ Polymer({
   },
 
   set selection(selection) {
-    if (selection.length !== 1)
+    if (selection.length !== 1) {
       throw new Error('Only supports single slices');
+    }
     this.setSelectionWithoutErrorChecks(selection);
   },
 
@@ -115,23 +116,28 @@ Polymer({
   getEventRowsHelper_: function(event) {
     var rows = [];
 
-    if (event.error)
+    if (event.error) {
       rows.push({ name: 'Error', value: event.error });
+    }
 
-    if (event.title)
+    if (event.title) {
       rows.push({ name: 'Title', value: event.title });
+    }
 
-    if (event.category)
+    if (event.category) {
       rows.push({ name: 'Category', value: event.category });
+    }
 
     if (event.model !== undefined) {
       var ufc = event.model.getUserFriendlyCategoryFromEvent(event);
-      if (ufc !== undefined)
+      if (ufc !== undefined) {
         rows.push({ name: 'User Friendly Category', value: ufc });
+      }
     }
 
-    if (event.name)
+    if (event.name) {
       rows.push({ name: 'Name', value: event.name });
+    }
 
     rows.push({
       name: 'Start',
@@ -262,8 +268,9 @@ Polymer({
   },
 
   getEventRows_: function(event) {
-    if (this.isFlow)
+    if (this.isFlow) {
       return this.getFlowEventRows_(event);
+    }
 
     return this.getEventRowsHelper_(event);
   },
@@ -323,10 +330,11 @@ Polymer({
     var event = tr.b.getOnlyElement(this.currentSelection_);
 
     var rows = this.getEventRows_(event);
-    if (event.argsStripped)
+    if (event.argsStripped) {
       rows.push({ name: 'Args', value: 'Stripped' });
-    else
+    } else {
       this.addArgsToRows_(rows, event.args);
+    }
     this.addContextsToRows_(rows, event.contexts);
 
     var customizeRowsEvent = new tr.b.Event('customize-rows');

@@ -50,8 +50,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
      */
     executeStartEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = workqueueExecuteStartRE.exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       var kthread = this.importer.getOrCreateKernelThread(eventBase.threadName,
           pid, pid);
@@ -62,8 +61,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
     executeEndEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = workqueueExecuteEndRE.exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       var kthread = this.importer.getOrCreateKernelThread(eventBase.threadName,
           pid, pid);

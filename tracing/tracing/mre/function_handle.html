@@ -22,10 +22,12 @@ tr.exportTo('tr.mre', function() {
   };
 
   FunctionRegistry.register = function(func) {
-    if (func.name === '')
+    if (func.name === '') {
       throw new Error('Registered functions must not be anonymous');
-    if (this.allFunctionsByName[func.name] !== undefined)
+    }
+    if (this.allFunctionsByName[func.name] !== undefined) {
       throw new Error('Function named ' + func.name + 'is already registered.');
+    }
     this.allFunctionsByName[func.name] = func;
     this.allFunctions.push(func);
   };
@@ -42,14 +44,16 @@ tr.exportTo('tr.mre', function() {
 
   ModuleToLoad.prototype = {
     asDict: function() {
-      if (this.href !== undefined)
+      if (this.href !== undefined) {
         return {'href': this.href};
+      }
       return {'filename': this.filename};
     },
 
     toString: function() {
-      if (this.href !== undefined)
+      if (this.href !== undefined) {
         return 'ModuleToLoad(href="' + this.href + '")';
+      }
       return 'ModuleToLoad(filename="' + this.filename + '")';
     }
   };
@@ -59,10 +63,12 @@ tr.exportTo('tr.mre', function() {
   };
 
   function FunctionHandle(modulesToLoad, functionName, opt_options) {
-    if (!(modulesToLoad instanceof Array))
+    if (!(modulesToLoad instanceof Array)) {
       throw new Error('modulesToLoad in FunctionHandle must be an array');
-    if (typeof(functionName) !== 'string')
+    }
+    if (typeof(functionName) !== 'string') {
       throw new Error('functionName in FunctionHandle must be a string');
+    }
     this.modulesToLoad = modulesToLoad;
     this.functionName = functionName;
     this.options_ = opt_options;

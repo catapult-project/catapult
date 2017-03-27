@@ -25,8 +25,9 @@ tr.b.unittest.testSuite(function() {
     var vsyncTimestamps = [];
     for (var i = 0; i < numFrames; i++) {
       vsyncTimestamps.push(i * samplesPerFrame);
-      for (var j = 0; j < samplesPerFrame; j++)
+      for (var j = 0; j < samplesPerFrame; j++) {
         series.addPowerSample(vsyncTimestamps[i] + j, j);
+      }
     }
     var samples = series.samples;
 

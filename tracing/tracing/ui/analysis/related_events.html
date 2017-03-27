@@ -33,26 +33,22 @@ found in the LICENSE file.
 'use strict';
 
 function* getEventInFlowEvents(event) {
-  if (!event.inFlowEvents)
-    return;
+  if (!event.inFlowEvents) return;
   yield* event.inFlowEvents;
 }
 
 function* getEventOutFlowEvents(event) {
-  if (!event.outFlowEvents)
-    return;
+  if (!event.outFlowEvents) return;
   yield* event.outFlowEvents;
 }
 
 function* getEventAncestors(event) {
-  if (!event.enumerateAllAncestors)
-    return;
+  if (!event.enumerateAllAncestors) return;
   yield* event.enumerateAllAncestors();
 }
 
 function* getEventDescendents(event) {
-  if (!event.enumerateAllDescendents)
-    return;
+  if (!event.enumerateAllDescendents) return;
   yield* event.enumerateAllDescendents();
 }
 
@@ -69,8 +65,9 @@ Polymer({
         value: function(row) {
           let typeEl = document.createElement('span');
           typeEl.innerText = row.type;
-          if (row.tooltip)
+          if (row.tooltip) {
             typeEl.title = row.tooltip;
+          }
           return typeEl;
         },
         width: '150px'
@@ -80,10 +77,11 @@ Polymer({
         width: '100%',
         value: function(row) {
           let linkEl = document.createElement('tr-ui-a-analysis-link');
-          if (row.name)
+          if (row.name) {
             linkEl.setSelectionAndContent(row.selection, row.name);
-          else
+          } else {
             linkEl.selection = row.selection;
+          }
           return linkEl;
         }
       }
@@ -121,8 +119,7 @@ Polymer({
         });
       }
     });
-    if (!classifier.hasEvents())
-      return;
+    if (!classifier.hasEvents()) return;
 
     let addToEventGroups = function(type, flowEvent) {
       this.eventGroups_.push({
@@ -156,8 +153,9 @@ Polymer({
         function* (event) {
           yield* getEventInFlowEvents(event);
           yield* getEventAncestors(event);
-          if (event.startSlice)
+          if (event.startSlice) {
             yield event.startSlice;
+          }
         }.bind(this)));
     this.cancelFunctions_.push(this.createEventsLinkIfNeeded_(
         'Following events',
@@ -167,8 +165,9 @@ Polymer({
         function* (event) {
           yield* getEventOutFlowEvents(event);
           yield* getEventDescendents(event);
-          if (event.endSlice)
+          if (event.endSlice) {
             yield event.endSlice;
+          }
         }.bind(this)));
     this.cancelFunctions_.push(this.createEventsLinkIfNeeded_(
         'All connected events',
@@ -180,10 +179,12 @@ Polymer({
           yield* getEventOutFlowEvents(event);
           yield* getEventAncestors(event);
           yield* getEventDescendents(event);
-          if (event.startSlice)
+          if (event.startSlice) {
             yield event.startSlice;
-          if (event.endSlice)
+          }
+          if (event.endSlice) {
             yield event.endSlice;
+          }
         }.bind(this)));
   },
 
@@ -196,8 +197,7 @@ Polymer({
     let task;
     let isCanceled = false;
     function addEventsUntilTimeout() {
-      if (isCanceled)
-        return;
+      if (isCanceled) return;
       // Let's grant ourselves a budget of 8 ms. If time runs out, then
       // create another task to do the rest.
       let timeout = window.performance.now() + 8;
@@ -228,8 +228,7 @@ Polymer({
         return;
       }
       // Went through all events, add the link.
-      if (!wasChanged)
-        return;
+      if (!wasChanged) return;
       this.eventGroups_.push({
         type: title,
         tooltip: tooltip,
@@ -248,15 +247,17 @@ Polymer({
   addOverlappingSamples_: function(eventSet) {
     let samples = new tr.model.EventSet();
     for (let slice of eventSet) {
-      if (!slice.parentContainer || !slice.parentContainer.samples)
+      if (!slice.parentContainer || !slice.parentContainer.samples) {
         continue;
+      }
       let candidates = slice.parentContainer.samples;
       let range = tr.b.math.Range.fromExplicitRange(
           slice.start, slice.start + slice.duration);
       let filteredSamples = range.filterArray(
           candidates, function(value) {return value.start;});
-      for (let sample of filteredSamples)
+      for (let sample of filteredSamples) {
         samples.push(sample);
+      }
     }
     if (samples.length > 0) {
       this.eventGroups_.push({
@@ -270,8 +271,9 @@ Polymer({
   addV8Slices_: function(eventSet) {
     let v8Slices = new tr.model.EventSet();
     for (let slice of eventSet) {
-      if (slice.category === 'v8')
+      if (slice.category === 'v8') {
         v8Slices.push(slice);
+      }
     }
     if (v8Slices.length > 0) {
       this.eventGroups_.push({
@@ -285,8 +287,9 @@ Polymer({
   addRuntimeCallStats_: function(eventSet) {
     let slices = new tr.model.EventSet();
     for (let slice of eventSet) {
-      if (slice.category === 'v8' && slice.runtimeCallStats)
+      if (slice.category === 'v8' && slice.runtimeCallStats) {
         slices.push(slice);
+      }
     }
     if (slices.length > 0) {
       this.eventGroups_.push({
@@ -301,8 +304,9 @@ Polymer({
   addV8GCObjectStats_: function(eventSet) {
     let slices = new tr.model.EventSet();
     for (let slice of eventSet) {
-      if (slice.title === 'V8.GC_Objects_Stats')
+      if (slice.title === 'V8.GC_Objects_Stats') {
         slices.push(slice);
+      }
     }
     if (slices.length > 0) {
       this.eventGroups_.push({
@@ -325,8 +329,9 @@ Polymer({
       let filteredSlices = range.filterArray(
           sliceGroup, value => value.start);
       let icSlices = filteredSlices.filter(x => x.title === 'V8.ICStats');
-      for (let icSlice of icSlices)
+      for (let icSlice of icSlices) {
         slices.push(icSlice);
+      }
     }
     if (slices.length > 0) {
       this.eventGroups_.push({
@@ -339,10 +344,11 @@ Polymer({
 
   updateContents_: function() {
     let table = this.$.table;
-    if (this.eventGroups_ === undefined)
+    if (this.eventGroups_ === undefined) {
       table.tableRows = [];
-    else
+    } else {
       table.tableRows = this.eventGroups_.slice();
+    }
     table.rebuild();
   }
 });

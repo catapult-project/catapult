@@ -30,8 +30,7 @@ tr.exportTo('tr.metrics.sh', function() {
     // TODO(alexandermont): Only iterate over the processes and threads that
     // could contain these events.
     for (var slice of model.getDescendantEvents()) {
-      if (!(slice instanceof tr.model.ThreadSlice))
-        continue;
+      if (!(slice instanceof tr.model.ThreadSlice)) continue;
 
       // WebViewStartupInterval is the title of the section of code that is
       // entered (via android.os.Trace.beginSection) when WebView is started

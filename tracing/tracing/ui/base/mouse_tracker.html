@@ -39,16 +39,17 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     set targetElement(targetElement) {
-      if (this.targetElement_)
+      if (this.targetElement_) {
         this.targetElement_.removeEventListener('mousedown', this.onMouseDown_);
+      }
       this.targetElement_ = targetElement;
-      if (this.targetElement_)
+      if (this.targetElement_) {
         this.targetElement_.addEventListener('mousedown', this.onMouseDown_);
+      }
     },
 
     onMouseDown_: function(e) {
-      if (e.button !== 0)
-        return true;
+      if (e.button !== 0) return true;
 
       e = this.remakeEvent_(e, 'mouse-tracker-start');
       this.targetElement_.dispatchEvent(e);
@@ -93,15 +94,18 @@ tr.exportTo('tr.ui.b', function() {
       opt_mouseUpHandler, opt_keyUpHandler) {
     function cleanupAndDispatchToMouseUp(e) {
       document.removeEventListener('mousemove', mouseMoveHandler);
-      if (opt_keyUpHandler)
+      if (opt_keyUpHandler) {
         document.removeEventListener('keyup', opt_keyUpHandler);
+      }
       document.removeEventListener('mouseup', cleanupAndDispatchToMouseUp);
-      if (opt_mouseUpHandler)
+      if (opt_mouseUpHandler) {
         opt_mouseUpHandler(e);
+      }
     }
     document.addEventListener('mousemove', mouseMoveHandler);
-    if (opt_keyUpHandler)
+    if (opt_keyUpHandler) {
       document.addEventListener('keyup', opt_keyUpHandler);
+    }
     document.addEventListener('mouseup', cleanupAndDispatchToMouseUp);
   }
 

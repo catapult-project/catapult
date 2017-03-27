@@ -126,8 +126,9 @@ tr.b.unittest.testSuite(function() {
 
   function createContainerDumps(processMemoryDumpCount, opt_model) {
     var model = opt_model;
-    if (model === undefined)
+    if (model === undefined) {
       model = new Model();
+    }
 
     var gmd = new GlobalMemoryDump(model, 0);
     model.globalMemoryDumps.push(gmd);
@@ -196,8 +197,7 @@ tr.b.unittest.testSuite(function() {
     var ownableDumps = {};  // ownable GUID -> ownable dump.
 
     function buildAndAddDumpTrees(containerDump, treeRecipes) {
-      if (treeRecipes === undefined)
-        return;
+      if (treeRecipes === undefined) return;
 
       function buildDumpTreeRecursively(treeRecipe, namePrefix) {
         var skipBuild = treeRecipe['skip_build'];
@@ -225,8 +225,9 @@ tr.b.unittest.testSuite(function() {
           ownableDumps[guid] = dump;
         }
         if (owns !== undefined) {
-          if (!(owns in ownerDumps))
+          if (!(owns in ownerDumps)) {
             ownerDumps[owns] = [];
+          }
           ownerDumps[owns].push({dump: dump, importance: importance});
         } else {
           assert.isUndefined(importance);  // Test sanity check.
@@ -235,8 +236,7 @@ tr.b.unittest.testSuite(function() {
         if (treeRecipe.children !== undefined) {
           treeRecipe.children.forEach(function(childTreeRecipe) {
             // Virtual children are added during size calculation.
-            if (childTreeRecipe['skip_build'] === true)
-              return;
+            if (childTreeRecipe['skip_build'] === true) return;
             var childDump =
                 buildDumpTreeRecursively(childTreeRecipe, fullName + '/');
             childDump.parent = dump;
@@ -255,8 +255,7 @@ tr.b.unittest.testSuite(function() {
           }
         }
 
-        if (weak)
-          dump.weak = true;
+        if (weak) dump.weak = true;
 
         return dump;
       }
@@ -270,8 +269,9 @@ tr.b.unittest.testSuite(function() {
     // Recursively build memory allocator dump trees for all container dumps.
     var containerDumps = createContainerDumps(
         allTreeRecipes.length - 1, opt_model);
-    for (var i = 0; i < allTreeRecipes.length; i++)
+    for (var i = 0; i < allTreeRecipes.length; i++) {
       buildAndAddDumpTrees(containerDumps[i], allTreeRecipes[i]);
+    }
 
     // Hook up ownership links.
     for (var [ownedGuid, ownershipInfos] of Object.entries(ownerDumps)) {
@@ -363,10 +363,11 @@ tr.b.unittest.testSuite(function() {
       assertSizeNumeric(dump, 'size', expectedSize);
       assertSizeNumeric(dump, 'subsystem_size', undefined);
 
-      if (expectedIsOwner)
+      if (expectedIsOwner) {
         assert.isDefined(dump.owns);
-      else
+      } else {
         assert.isUndefined(dump.owns);
+      }
       assert.lengthOf(dump.ownedBy, expectedOwnersCount);
 
       assert.strictEqual(dump.containerMemoryDump, expectedContainerDump);
@@ -863,8 +864,9 @@ tr.b.unittest.testSuite(function() {
     var containerDumps = createContainerDumps(0);
     var gmd = containerDumps[0];
     var parentDump = new MemoryAllocatorDump(gmd, 'parent');
-    for (var i = 1; i <= 3; i++)
+    for (var i = 1; i <= 3; i++) {
       addChildDump(parentDump, 'child' + i);
+    }
     var otherDump = new MemoryAllocatorDump(gmd, 'other');
     gmd.memoryAllocatorDumps = [parentDump, otherDump];
 

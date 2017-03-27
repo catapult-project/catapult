@@ -49,8 +49,7 @@ tr.exportTo('tr.b', function() {
     allocateUUID4: function() {
       return UUID4_PATTERN.replace(/[xy]/g, function(c) {
         var r = parseInt(Math.random() * 16);
-        if (c === 'y')
-          r = (r & 3) + 8;
+        if (c === 'y') r = (r & 3) + 8;
         return r.toString(16);
       });
     }

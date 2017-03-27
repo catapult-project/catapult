@@ -13,16 +13,11 @@ tr.exportTo('tr.b', function() {
   }
 
   function b64ToUint6(nChr) {
-    if (nChr > 64 && nChr < 91)
-      return nChr - 65;
-    if (nChr > 96 && nChr < 123)
-      return nChr - 71;
-    if (nChr > 47 && nChr < 58)
-      return nChr + 4;
-    if (nChr === 43)
-      return 62;
-    if (nChr === 47)
-      return 63;
+    if (nChr > 64 && nChr < 91) return nChr - 65;
+    if (nChr > 96 && nChr < 123) return nChr - 71;
+    if (nChr > 47 && nChr < 58) return nChr + 4;
+    if (nChr === 43) return 62;
+    if (nChr === 47) return 63;
     return 0;
   }
 
@@ -35,8 +30,9 @@ tr.exportTo('tr.b', function() {
     var binary = '';
     var bytes = new Uint8Array(input);
     var len = bytes.byteLength;
-    for (var i = 0; i < len; i++)
+    for (var i = 0; i < len; i++) {
       binary += String.fromCharCode(bytes[i]);
+    }
     return btoa(binary);
   };
 
@@ -48,8 +44,9 @@ tr.exportTo('tr.b', function() {
     var nUint24 = 0;
     var nOutIdx = 0;
 
-    if (nOutLen > output.byteLength)
+    if (nOutLen > output.byteLength) {
       throw new Error('Output buffer too small to decode.');
+    }
 
     for (var nInIdx = 0; nInIdx < nInLen; nInIdx++) {
       nMod4 = nInIdx & 3;

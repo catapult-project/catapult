@@ -73,8 +73,9 @@ tr.exportTo('tr.importer', function() {
     var typeInfo = Importer.findTypeInfoMatching(function(ti) {
       return ti.constructor.canImport(eventData);
     });
-    if (typeInfo)
+    if (typeInfo) {
       return typeInfo.constructor;
+    }
     return undefined;
   };
 

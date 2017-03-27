@@ -50,11 +50,13 @@ tr.b.unittest.testSuite(function() {
       var slice = newSliceEx({title: 'b', start: 0, duration: 0.002});
       slice.category = options.withCategory ? 'foo' : '';
 
-      if (options.withStartStackFrame)
+      if (options.withStartStackFrame) {
         slice.startStackFrame = options.withStartStackFrame === 'a' ? fA : fB;
+      }
 
-      if (options.withEndStackFrame)
+      if (options.withEndStackFrame) {
         slice.endStackFrame = options.withEndStackFrame === 'a' ? fA : fB;
+      }
 
       t53.sliceGroup.pushSlice(slice);
     });

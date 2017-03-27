@@ -19,8 +19,9 @@ tr.b.unittest.testSuite(function() {
     let histograms = new tr.v.HistogramSet();
 
     let hist = new tr.v.Histogram('foo', tr.b.Unit.byName.normalizedPercentage);
-    for (let i = 0; i < 1e2; ++i)
+    for (let i = 0; i < 1e2; ++i) {
       hist.addSample(Math.random());
+    }
     histograms.addHistogram(hist);
 
     this.addHTMLOutput(view);

@@ -37,8 +37,9 @@ tr.exportTo('tr.e.importer.etw', function() {
     __proto__: Parser.prototype,
 
     decodeFields: function(header, decoder) {
-      if (header.version !== 2)
+      if (header.version !== 2) {
         throw new Error('Incompatible EventTrace event version.');
+      }
 
       var bufferSize = decoder.decodeUInt32();
       var version = decoder.decodeUInt32();

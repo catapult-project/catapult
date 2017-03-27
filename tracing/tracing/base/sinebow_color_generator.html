@@ -34,8 +34,9 @@ tr.exportTo('tr.b', function() {
 
   SinebowColorGenerator.prototype = {
     colorForKey: function(key) {
-      if (!this.keyToColor[key])
+      if (!this.keyToColor[key]) {
         this.keyToColor[key] = this.nextColor();
+      }
       return this.keyToColor[key];
     },
 

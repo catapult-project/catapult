@@ -80,10 +80,11 @@ tr.exportTo('tr.metrics.blink', function() {
 
   function createPercentage(name, numerator, denominator) {
     var histogram = new tr.v.Histogram(name, percentage_biggerIsBetter);
-    if (denominator === 0)
+    if (denominator === 0) {
       histogram.addSample(0);
-    else
+    } else {
       histogram.addSample(numerator / denominator);
+    }
     return histogram;
   }
 

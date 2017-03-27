@@ -119,8 +119,7 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   function skipDumpsThatDoNotIntersectRange(dumps, opt_range) {
-    if (!opt_range)
-      return dumps;
+    if (!opt_range) return dumps;
     return dumps.filter(d => opt_range.intersectsExplicitRangeInclusive(
         d.start, d.end));
   }
@@ -149,14 +148,15 @@ tr.exportTo('tr.metrics.sh', function() {
    */
   function convertBrowserNameToUserFriendlyName(browserName) {
     for (var baseName in USER_FRIENDLY_BROWSER_NAMES) {
-      if (!browserName.startsWith(baseName))
-        continue;
+      if (!browserName.startsWith(baseName)) continue;
+
       var userFriendlyBaseName = USER_FRIENDLY_BROWSER_NAMES[baseName];
       var suffix = browserName.substring(baseName.length);
-      if (suffix.length === 0)
+      if (suffix.length === 0) {
         return userFriendlyBaseName;
-      else if (/^\d+$/.test(suffix))
+      } else if (/^\d+$/.test(suffix)) {
         return userFriendlyBaseName + '(' + suffix + ')';
+      }
     }
     return '\'' + browserName + '\' browser';
   }
@@ -280,8 +280,8 @@ tr.exportTo('tr.metrics.sh', function() {
 
           // Add memory:<browser-name>:<process-name>:reported_by_chrome:...
           // values.
-          if (processDump.memoryAllocatorDumps === undefined)
-            return;
+          if (processDump.memoryAllocatorDumps === undefined) return;
+
           processDump.memoryAllocatorDumps.forEach(function(rootAllocatorDump) {
             CHROME_VALUE_PROPERTIES.forEach(function(property) {
               addProcessScalar({
@@ -318,10 +318,11 @@ tr.exportTo('tr.metrics.sh', function() {
           // tracing:<size-property> from memory:<browser-name>:<process-name>:
           // reported_by_chrome:<size-property> if applicable.
           var tracingNode = componentTree.children[1].get('tracing');
-          if (tracingNode === undefined)
-            return;
-          for (var i = 0; i < componentTree.values.length; i++)
+          if (tracingNode === undefined) return;
+
+          for (var i = 0; i < componentTree.values.length; i++) {
             componentTree.values[i].total -= tracingNode.values[i].total;
+          }
         }, values);
   }
 
@@ -334,8 +335,8 @@ tr.exportTo('tr.metrics.sh', function() {
    */
   function addV8MemoryDumpValues(processDump, addProcessScalar) {
     var v8Dump = processDump.getMemoryAllocatorDumpByFullName('v8');
-    if (v8Dump === undefined)
-      return;
+    if (v8Dump === undefined) return;
+
     v8Dump.children.forEach(function(isolateDump) {
       // v8:allocated_by_malloc:...
       var mallocDump = isolateDump.getDescendantDumpByFullName('malloc');
@@ -348,8 +349,8 @@ tr.exportTo('tr.metrics.sh', function() {
       if (heapDump !== undefined) {
         addV8ComponentValues(heapDump, ['v8', 'heap'], addProcessScalar);
         heapDump.children.forEach(function(spaceDump) {
-          if (spaceDump.name === 'other_spaces')
-            return;
+          if (spaceDump.name === 'other_spaces') return;
+
           addV8ComponentValues(spaceDump, ['v8', 'heap', spaceDump.name],
               addProcessScalar);
         });
@@ -491,8 +492,9 @@ tr.exportTo('tr.metrics.sh', function() {
       if (formatSpec.totalUserFriendlyPropertyName) {
         nameParts.push(formatSpec.totalUserFriendlyPropertyName);
       } else {
-        if (formatSpec.userFriendlyPropertyNamePrefix)
+        if (formatSpec.userFriendlyPropertyNamePrefix) {
           nameParts.push(formatSpec.userFriendlyPropertyNamePrefix);
+        }
         nameParts.push(formatSpec.userFriendlyPropertyName);
       }
       nameParts.push('reported by Chrome for');
@@ -500,15 +502,17 @@ tr.exportTo('tr.metrics.sh', function() {
       if (formatSpec.componentPreposition === undefined) {
         // Use component name as an adjective
         // (e.g. 'size of V8 code and metadata').
-        if (formatSpec.userFriendlyPropertyNamePrefix)
+        if (formatSpec.userFriendlyPropertyNamePrefix) {
           nameParts.push(formatSpec.userFriendlyPropertyNamePrefix);
+        }
         nameParts.push(componentPath.join(':'));
         nameParts.push(formatSpec.userFriendlyPropertyName);
       } else {
         // Use component name as a noun with a preposition
         // (e.g. 'size of all objects allocated BY MALLOC').
-        if (formatSpec.userFriendlyPropertyNamePrefix)
+        if (formatSpec.userFriendlyPropertyNamePrefix) {
           nameParts.push(formatSpec.userFriendlyPropertyNamePrefix);
+        }
         nameParts.push(formatSpec.userFriendlyPropertyName);
         nameParts.push(formatSpec.componentPreposition);
         if (componentPath[componentPath.length - 1] === 'allocated_by_malloc') {
@@ -581,8 +585,9 @@ tr.exportTo('tr.metrics.sh', function() {
     }
 
     var nameParts = [];
-    if (componentPath.length < 2)
+    if (componentPath.length < 2) {
       nameParts.push('total');
+    }
 
     nameParts.push(userFriendlyPropertyName);
 
@@ -723,8 +728,8 @@ tr.exportTo('tr.metrics.sh', function() {
    */
   function getDescendantVmRegionClassificationNode(node, path) {
     for (var i = 0; i < path.length; i++) {
-      if (node === undefined)
-        break;
+      if (node === undefined) break;
+
       node = tr.b.findFirstInArray(node.children, c => c.title === path[i]);
     }
     return node;
@@ -760,8 +765,9 @@ tr.exportTo('tr.metrics.sh', function() {
         // Increment the level-of-detail-specific dump count (if possible).
         var levelOfDetailName =
             LEVEL_OF_DETAIL_NAMES.get(globalDump.levelOfDetail);
-        if (levelOfDetailName === undefined)
+        if (levelOfDetailName === undefined) {
           return;  // Unknown level of detail.
+        }
         levelOfDetailNameToDumpCount[levelOfDetailName]++;
         if (globalDump.levelOfDetail === DETAILED) {
           if (detectHeapProfilerInMemoryDump(globalDump)) {
@@ -805,8 +811,9 @@ tr.exportTo('tr.metrics.sh', function() {
       browserName, levelOfDetailName, levelOfDetailDumpCount, values) {
     // Construct the name of the memory value.
     var nameParts = ['memory', browserName, 'all_processes', 'dump_count'];
-    if (levelOfDetailName !== undefined)
+    if (levelOfDetailName !== undefined) {
       nameParts.push(levelOfDetailName);
+    }
     var name = nameParts.join(':');
 
     // Build the underlying histogram for the memory value.
@@ -1016,8 +1023,7 @@ tr.exportTo('tr.metrics.sh', function() {
     customProcessDumpValueExtractor(
         processDump,
         function addProcessScalar(spec) {
-          if (spec.value === undefined)
-            return;
+          if (spec.value === undefined) return;
 
           var component = spec.component || [];
           function createDetailsForErrorMessage() {

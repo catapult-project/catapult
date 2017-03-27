@@ -15,8 +15,7 @@ function assertQuadEquals(a, b, opt_message) {
   ok &= a.p2[0] === b.p2[0] && a.p2[1] === b.p2[1];
   ok &= a.p3[0] === b.p3[0] && a.p3[1] === b.p3[1];
   ok &= a.p4[0] === b.p4[0] && a.p4[1] === b.p4[1];
-  if (ok)
-    return;
+  if (ok) return;
   var message = opt_message || 'Expected "' + a.toString() +
       '", got "' + b.toString() + '"';
   assert.fail(a, b, message);

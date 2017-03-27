@@ -66,8 +66,9 @@ tr.exportTo('tr.ui.e.system_stats', function() {
         this.objectInstance_ = [];
         return;
       }
-      if (objectInstances.length !== 1)
+      if (objectInstances.length !== 1) {
         throw new Error('Bad object instance count.');
+      }
       this.objectInstance_ = objectInstances[0];
       if (this.objectInstance_ !== null) {
         this.computeRates_(this.objectInstance_.snapshots);
@@ -92,8 +93,9 @@ tr.exportTo('tr.ui.e.system_stats', function() {
         prevStats = prevSnapshot.getStats();
         var timeIntervalSeconds = (snapshot.ts - prevSnapshot.ts) / 1000;
         // Prevent divide by zero.
-        if (timeIntervalSeconds === 0)
+        if (timeIntervalSeconds === 0) {
           timeIntervalSeconds = 1;
+        }
 
         this.computeRatesRecursive_(prevStats, stats,
             timeIntervalSeconds);
@@ -156,27 +158,31 @@ tr.exportTo('tr.ui.e.system_stats', function() {
     computeMaxStatsRecursive_: function(stats, maxStats, excludedStats) {
       for (var statName in stats) {
         if (stats[statName] instanceof Object) {
-          if (!(statName in maxStats))
+          if (!(statName in maxStats)) {
             maxStats[statName] = {};
+          }
 
           var excludedNested;
-          if (excludedStats && statName in excludedStats)
+          if (excludedStats && statName in excludedStats) {
             excludedNested = excludedStats[statName];
-          else
+          } else {
             excludedNested = null;
+          }
 
           this.computeMaxStatsRecursive_(stats[statName],
               maxStats[statName],
               excludedNested);
         } else {
-          if (excludedStats && statName in excludedStats)
+          if (excludedStats && statName in excludedStats) {
             continue;
+          }
           if (!(statName in maxStats)) {
             maxStats[statName] = 0;
             statCount++;
           }
-          if (stats[statName] > maxStats[statName])
+          if (stats[statName] > maxStats[statName]) {
             maxStats[statName] = stats[statName];
+          }
         }
       }
     },
@@ -220,8 +226,7 @@ tr.exportTo('tr.ui.e.system_stats', function() {
           viewLWorld);
 
       // Assure that the stack with the left edge off screen still gets drawn
-      if (lowIndex > 0)
-        lowIndex -= 1;
+      if (lowIndex > 0) lowIndex -= 1;
 
       for (var i = lowIndex; i < objectSnapshots.length; ++i) {
         var snapshot = objectSnapshots[i];
@@ -229,11 +234,10 @@ tr.exportTo('tr.ui.e.system_stats', function() {
         var currentY = height;
 
         var left = snapshot.ts;
-        if (left > viewRWorld)
-          break;
+        if (left > viewRWorld) break;
+
         var leftView = vp.xWorldToView(left);
-        if (leftView < 0)
-          leftView = 0;
+        if (leftView < 0) leftView = 0;
 
         // Compute the edges for the column graph bar.
         var right;
@@ -242,17 +246,19 @@ tr.exportTo('tr.ui.e.system_stats', function() {
         } else {
           // If this is the last snaphot of multiple snapshots, use the width of
           // the previous snapshot for the width.
-          if (objectSnapshots.length > 1)
+          if (objectSnapshots.length > 1) {
             right = objectSnapshots[i].ts + (objectSnapshots[i].ts -
-                    objectSnapshots[i - 1].ts);
-          else
+                objectSnapshots[i - 1].ts);
+          } else {
             // If there's only one snapshot, use max bounds as the width.
             right = this.objectInstance_.parent.model.bounds.max;
+          }
         }
 
         var rightView = vp.xWorldToView(right);
-        if (rightView > width)
+        if (rightView > width) {
           rightView = width;
+        }
 
         // Floor the bounds to avoid a small gap between stacks.
         leftView = Math.floor(leftView);
@@ -267,8 +273,9 @@ tr.exportTo('tr.ui.e.system_stats', function() {
             maxStats,
             currentY);
 
-        if (i === lowIndex)
+        if (i === lowIndex) {
           this.drawStatNames_(leftView, height, currentY, '', maxStats);
+        }
       }
       ctx.lineWidth = 1;
     },
@@ -332,8 +339,9 @@ tr.exportTo('tr.ui.e.system_stats', function() {
         } else {
           var fullname = statName;
 
-          if (prefix !== '')
+          if (prefix !== '') {
             fullname = prefix + ' :: ' + statName;
+          }
 
           ctx.fillText(fullname, leftView - 10, currentY - height / 4);
           currentY += height;

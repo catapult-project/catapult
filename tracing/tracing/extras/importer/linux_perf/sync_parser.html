@@ -49,16 +49,14 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     timelineEvent: function(eventName, cpuNumber, pid,
         ts, eventBase) {
       var event = syncTimelineRE.exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       var thread = this.importer.getOrCreatePseudoThread(event[1]);
 
       if (thread.lastActiveTs !== undefined) {
         var duration = ts - thread.lastActiveTs;
         var value = thread.lastActiveValue;
-        if (value === undefined)
-          value = ' ';
+        if (value === undefined) value = ' ';
         var slice = new tr.model.ThreadSlice(
             '', value,
             ColorScheme.getColorIdForGeneralPurposeString(value),
@@ -74,8 +72,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     syncWaitEvent: function(eventName, cpuNumber, pid, ts,
         eventBase) {
       var event = syncWaitRE.exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       if (eventBase.tgid === undefined) {
         return false;

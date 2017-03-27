@@ -42,22 +42,26 @@ tr.exportTo('tr.c', function() {
     },
 
     get model() {
-      if (!this.timelineView_)
+      if (!this.timelineView_) {
         return undefined;
+      }
       return this.timelineView_.model;
     },
 
     get trackView() {
-      if (!this.timelineView_)
+      if (!this.timelineView_) {
         return undefined;
+      }
       return this.timelineView_.trackView;
     },
 
     get viewport() {
-      if (!this.timelineView_)
+      if (!this.timelineView_) {
         return undefined;
-      if (!this.timelineView_.trackView)
+      }
+      if (!this.timelineView_.trackView) {
         return undefined;
+      }
       return this.timelineView_.trackView.viewport;
     },
 
@@ -68,15 +72,17 @@ tr.exportTo('tr.c', function() {
 
     set historyEnabled(historyEnabled) {
       this.historyEnabled_ = !!historyEnabled;
-      if (historyEnabled)
+      if (historyEnabled) {
         window.addEventListener('popstate', this.onPopState_);
-      else
+      } else {
         window.removeEventListener('popstate', this.onPopState_);
+      }
     },
 
     modelWillChange: function() {
-      if (this.currentBrushingState_.isAppliedToModel)
+      if (this.currentBrushingState_.isAppliedToModel) {
         this.currentBrushingState_.unapplyFromEventSelectionStates();
+      }
     },
 
     modelDidChange: function() {
@@ -106,8 +112,7 @@ tr.exportTo('tr.c', function() {
     },
 
     onPopState_: function(e) {
-      if (e.state === null)
-        return;
+      if (e.state === null) return;
 
       var selection = this.selections_[e.state.selection_guid];
       if (selection) {
@@ -134,8 +139,9 @@ tr.exportTo('tr.c', function() {
     },
 
     set currentBrushingState(newBrushingState) {
-      if (newBrushingState.isAppliedToModel)
+      if (newBrushingState.isAppliedToModel) {
         throw new Error('Cannot apply this state, it is applied');
+      }
 
       // This function uses value-equality on the states so that state can
       // changed to a clone of itself without causing a change event, while
@@ -152,8 +158,9 @@ tr.exportTo('tr.c', function() {
         return;
       }
 
-      if (this.currentBrushingState_.isAppliedToModel)
+      if (this.currentBrushingState_.isAppliedToModel) {
         this.currentBrushingState_.unapplyFromEventSelectionStates();
+      }
 
       this.currentBrushingState_ = newBrushingState;
 
@@ -169,8 +176,9 @@ tr.exportTo('tr.c', function() {
      */
     addAllEventsMatchingFilterToSelectionAsTask: function(filter, selection) {
       var timelineView = this.timelineView_.trackView;
-      if (!timelineView)
+      if (!timelineView) {
         return new tr.b.Task();
+      }
       return timelineView.addAllEventsMatchingFilterToSelectionAsTask(
           filter, selection);
     },
@@ -261,12 +269,14 @@ tr.exportTo('tr.c', function() {
     changeViewSpecificBrushingState: function(viewId, newState) {
       var oldStates = this.currentBrushingState_.viewSpecificBrushingStates;
       var newStates = {};
-      for (var id in oldStates)
+      for (var id in oldStates) {
         newStates[id] = oldStates[id];
-      if (newState === undefined)
+      }
+      if (newState === undefined) {
         delete newStates[viewId];
-      else
+      } else {
         newStates[viewId] = newState;
+      }
 
       var newBrushingState = this.currentBrushingState_.clone();
       newBrushingState.viewSpecificBrushingStates = newStates;
@@ -275,12 +285,14 @@ tr.exportTo('tr.c', function() {
   };
 
   BrushingStateController.getControllerForElement = function(element) {
-    if (tr.isHeadless)
+    if (tr.isHeadless) {
       throw new Error('Unsupported');
+    }
     var currentElement = element;
     while (currentElement) {
-      if (currentElement.brushingStateController)
+      if (currentElement.brushingStateController) {
         return currentElement.brushingStateController;
+      }
 
       // Walk up the DOM.
       if (currentElement.parentElement) {
@@ -290,8 +302,9 @@ tr.exportTo('tr.c', function() {
 
       // Possibly inside a shadow DOM.
       var currentNode = currentElement;
-      while (Polymer.dom(currentNode).parentNode)
+      while (Polymer.dom(currentNode).parentNode) {
         currentNode = Polymer.dom(currentNode).parentNode;
+      }
       currentElement = currentNode.host;
     }
     return undefined;

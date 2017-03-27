@@ -760,8 +760,9 @@ tr.exportTo('tr.ui.e.v8', function() {
 
     build_: function(objects, objectEntry, bucketSize) {
       var fixedArrayObject = objects['FIXED_ARRAY_TYPE'];
-      if (fixedArrayObject === undefined)
+      if (fixedArrayObject === undefined) {
         throw new Error('Fixed Array Object not found.');
+      }
 
       var groupEntries = {
         restEntry: new GroupedEntry('Rest', 0, 0, 0, new Array(bucketSize),

@@ -28,8 +28,9 @@ tr.exportTo('tr.b.unittest', function() {
       global.onerror = function(errorMsg, url, lineNumber) {
         runner.results.addErrorForCurrentTest(
             errorMsg + ' at ' + url + ':' + lineNumber);
-        if (realGlobalOnError)
+        if (realGlobalOnError) {
           return realGlobalOnError(errorMsg, url, lineNumber);
+        }
         return false;
       };
     }
@@ -88,8 +89,9 @@ tr.exportTo('tr.b.unittest', function() {
     __proto__: Object.prototype,
 
     beginRunning: function() {
-      if (this.pendingTestCases_.length)
+      if (this.pendingTestCases_.length) {
         throw new Error('Tests still running!');
+      }
 
       this.runCompletedPromise = new Promise(function(resolve, reject) {
         this.runCompletedResolver_ = {
@@ -108,8 +110,9 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     beginToStopRunning: function() {
-      if (!this.runCompletedResolver_)
+      if (!this.runCompletedResolver_) {
         throw new Error('Still running');
+      }
       this.pendingTestCases_ = [];
       return this.runCompletedPromise;
     },
@@ -123,8 +126,7 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     scheduleRunOneTestCase_: function() {
-      if (this.runOneTestCaseScheduled_)
-        return;
+      if (this.runOneTestCaseScheduled_) return;
       this.runOneTestCaseScheduled_ = true;
 
       this.numRunsSinceLastRIC_++;
@@ -170,8 +172,9 @@ tr.exportTo('tr.b.unittest', function() {
           function pass(result) {
             try {
               this.tearDownCurrentTestCase_(true);
-              if (result)
+              if (result) {
                 this.results_.setReturnValueFromCurrentTest(result);
+              }
               this.results_.didCurrentTestEnd();
               this.currentMark_.end();
               this.currentTestCase_ = undefined;

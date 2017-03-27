@@ -60,8 +60,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
      */
     irqHandlerEntryEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = irqHandlerEntryRE.exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       var irq = parseInt(event[1]);
       var name = event[2];
@@ -76,8 +75,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
     irqHandlerExitEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = irqHandlerExitRE.exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       var irq = parseInt(event[1]);
       var ret = event[2];
@@ -105,8 +103,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
     softirqEntryEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = softirqRE.exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       var action = event[2];
       var thread = this.importer.getOrCreatePseudoThread(
@@ -118,8 +115,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
     softirqExitEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = softirqRE.exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       var vec = parseInt(event[1]);
       var action = event[2];
@@ -151,8 +147,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
     ipiExitEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
       var event = ipiHandlerExitRE.exec(eventBase.details);
-      if (!event)
-        return false;
+      if (!event) return false;
 
       var ipiName = event[1];
       var thread = this.importer.getOrCreatePseudoThread(

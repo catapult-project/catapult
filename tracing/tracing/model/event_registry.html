@@ -24,10 +24,12 @@ tr.exportTo('tr.model', function() {
   // Enforce all options objects have the right fields.
   EventRegistry.addEventListener('will-register', function(e) {
     var metadata = e.typeInfo.metadata;
-    if (metadata.name === undefined)
+    if (metadata.name === undefined) {
       throw new Error('Registered events must provide name metadata');
-    if (metadata.pluralName === undefined)
+    }
+    if (metadata.pluralName === undefined) {
       throw new Error('Registered events must provide pluralName metadata');
+    }
 
     // Add a subtype registry to every event so that all events can be
     // extended
@@ -39,8 +41,9 @@ tr.exportTo('tr.model', function() {
       options.defaultConstructor = e.typeInfo.constructor;
       tr.b.decorateExtensionRegistry(metadata.subTypes, options);
     } else {
-      if (!metadata.subTypes.register)
+      if (!metadata.subTypes.register) {
         throw new Error('metadata.subTypes must be an extension registry.');
+      }
     }
 
     e.typeInfo.constructor.subTypes = metadata.subTypes;

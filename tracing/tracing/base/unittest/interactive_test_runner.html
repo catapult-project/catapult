@@ -249,8 +249,9 @@ tr.exportTo('tr.b.unittest', function() {
     set testFilterString(testFilterString) {
       this.testFilterString_ = testFilterString;
       this.scheduleRerun_();
-      if (!this.suppressStateChange_)
+      if (!this.suppressStateChange_) {
         tr.b.dispatchSimpleEvent(this, 'statechange');
+      }
     },
 
     get shortFormat() {
@@ -260,10 +261,12 @@ tr.exportTo('tr.b.unittest', function() {
     set shortFormat(shortFormat) {
       this.shortFormat_ = shortFormat;
       Polymer.dom(this).querySelector('#short-format').checked = shortFormat;
-      if (this.results_)
+      if (this.results_) {
         this.results_.shortFormat = shortFormat;
-      if (!this.suppressStateChange_)
+      }
+      if (!this.suppressStateChange_) {
         tr.b.dispatchSimpleEvent(this, 'statechange');
+      }
     },
 
     onShortFormatClick_: function(e) {
@@ -271,8 +274,9 @@ tr.exportTo('tr.b.unittest', function() {
           Polymer.dom(this).querySelector('#short-format').checked;
       this.updateShortFormResultsDisplay_();
       this.updateResultsGivenShortFormat_();
-      if (!this.suppressStateChange_)
+      if (!this.suppressStateChange_) {
         tr.b.dispatchSimpleEvent(this, 'statechange');
+      }
     },
 
     updateShortFormResultsDisplay_: function() {
@@ -282,13 +286,13 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     updateResultsGivenShortFormat_: function() {
-      if (!this.results_)
-        return;
+      if (!this.results_) return;
 
-      if (this.testFilterString_.length || this.testSuiteName_.length)
+      if (this.testFilterString_.length || this.testSuiteName_.length) {
         this.results_.showHTMLOutput = true;
-      else
+      } else {
         this.results_.showHTMLOutput = false;
+      }
       this.results_.showPendingAndPassedTests = this.shortFormat_;
     },
 
@@ -314,8 +318,9 @@ tr.exportTo('tr.b.unittest', function() {
       }
       Polymer.dom(this).querySelector(sel).checked = true;
       this.scheduleRerun_();
-      if (!this.suppressStateChange_)
+      if (!this.suppressStateChange_) {
         tr.b.dispatchSimpleEvent(this, 'statechange');
+      }
     },
 
     onTestTypeToRunClick_: function(e) {
@@ -334,8 +339,9 @@ tr.exportTo('tr.b.unittest', function() {
       }
 
       this.scheduleRerun_();
-      if (!this.suppressStateChange_)
+      if (!this.suppressStateChange_) {
         tr.b.dispatchSimpleEvent(this, 'statechange');
+      }
     },
 
     onTestPassed_: function() {
@@ -376,8 +382,7 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     scheduleRerun_: function() {
-      if (this.rerunPending_)
-        return;
+      if (this.rerunPending_) return;
       if (this.runner_) {
         this.rerunPending_ = true;
         this.runner_.beginToStopRunning();
@@ -420,11 +425,11 @@ tr.exportTo('tr.b.unittest', function() {
 
       var tests = this.allTests_.filter(function(test) {
         var i = test.fullyQualifiedName.indexOf(this.testFilterString_);
-        if (i === -1)
-          return false;
+        if (i === -1) return false;
         if (this.testTypeToRun_ !== ALL_TEST_TYPES &&
-            test.testType !== this.testTypeToRun_)
+            test.testType !== this.testTypeToRun_) {
           return false;
+        }
         return true;
       }, this);
 
@@ -438,26 +443,30 @@ tr.exportTo('tr.b.unittest', function() {
 
     setState: function(state, opt_suppressStateChange) {
       this.suppressStateChange_ = true;
-      if (state.testFilterString !== undefined)
+      if (state.testFilterString !== undefined) {
         this.testFilterString = state.testFilterString;
-      else
+      } else {
         this.testFilterString = '';
+      }
 
-      if (state.shortFormat === undefined)
+      if (state.shortFormat === undefined) {
         this.shortFormat = false;
-      else
+      } else {
         this.shortFormat = state.shortFormat;
+      }
 
-      if (state.testTypeToRun === undefined)
+      if (state.testTypeToRun === undefined) {
         this.testTypeToRun = tr.b.unittest.TestTypes.UNITTEST;
-      else
+      } else {
         this.testTypeToRun = state.testTypeToRun;
+      }
 
       this.testSuiteName_ = state.testSuiteName || '';
       this.headless_ = state.headless || false;
 
-      if (!opt_suppressStateChange)
+      if (!opt_suppressStateChange) {
         this.suppressStateChange_ = false;
+      }
 
       this.onShortFormatClick_();
       this.scheduleRerun_();
@@ -499,8 +508,7 @@ tr.exportTo('tr.b.unittest', function() {
     function stateToSearchString(defaultState, state) {
       var parts = [];
       for (var k in state) {
-        if (state[k] === defaultState[k])
-          continue;
+        if (state[k] === defaultState[k]) continue;
         var v = state[k];
         var kv;
         if (v === true) {
@@ -520,8 +528,7 @@ tr.exportTo('tr.b.unittest', function() {
     function stateFromSearchString(string) {
       var state = {};
       string.split('&').forEach(function(part) {
-        if (part === '')
-          return;
+        if (part === '') return;
         var kv = part.split('=');
         var k;
         var v;
@@ -530,10 +537,11 @@ tr.exportTo('tr.b.unittest', function() {
           v = true;
         } else {
           k = kv[0];
-          if (kv[1] === 'false')
+          if (kv[1] === 'false') {
             v = false;
-          else
+          } else {
             v = kv[1];
+          }
         }
         state[k] = v;
       });
@@ -637,13 +645,11 @@ tr.exportTo('tr.b.unittest', function() {
         title = runnerConfig.title;
       }
 
-      if (state.shortFormat)
-        title += '(s)';
+      if (state.shortFormat) title += '(s)';
       document.title = title;
       var runner = Polymer.dom(document).querySelector(
           'x-base-interactive-test-runner');
-      if (runner)
-        runner.title = title;
+      if (runner) runner.title = title;
     }
 
     function runTests(loader, state) {
@@ -659,17 +665,16 @@ tr.exportTo('tr.b.unittest', function() {
 
       runner.addEventListener('statechange', function() {
         var state = runner.getState();
-        var stateString = stateToSearchString(runner.getDefaultState(),
-            state);
-        if (window.location.search.substring(1) === stateString)
-          return;
+        var stateString = stateToSearchString(runner.getDefaultState(), state);
+        if (window.location.search.substring(1) === stateString) return;
 
         updateTitle(state);
         var stateURL;
-        if (stateString.length > 0)
+        if (stateString.length > 0) {
           stateURL = window.location.pathname + '?' + stateString;
-        else
+        } else {
           stateURL = window.location.pathname;
+        }
         realWindowHistoryPushState(state, document.title, stateURL);
       });
 
@@ -689,10 +694,10 @@ tr.exportTo('tr.b.unittest', function() {
           state.testFilterString = testCase.name;
           state.shortFormat = false;
         }
-        var stateString = stateToSearchString(runner.getDefaultState(),
-            state);
-        if (stateString.length > 0)
+        var stateString = stateToSearchString(runner.getDefaultState(), state);
+        if (stateString.length > 0) {
           return window.location.pathname + '?' + stateString;
+        }
         return window.location.pathname;
       };
     }

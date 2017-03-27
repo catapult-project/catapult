@@ -46,8 +46,9 @@ tr.exportTo('tr.model', function() {
     // Returns true if 'that' TimedEvent is fully contained within 'this' timed
     // event.
     bounds: function(that, opt_precisionUnit) {
-      if (opt_precisionUnit === undefined)
+      if (opt_precisionUnit === undefined) {
         opt_precisionUnit = tr.b.TimeDisplayModes.ms;
+      }
 
       var startsBefore = opt_precisionUnit.roundedLess(that.start, this.start);
       var endsAfter = opt_precisionUnit.roundedLess(this.end, that.end);

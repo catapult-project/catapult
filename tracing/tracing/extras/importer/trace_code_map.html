@@ -28,8 +28,7 @@ tr.exportTo('tr.e.importer', function() {
     moveEntry: function(oldAddressHex, newAddressHex, size) {
       var entry = this.getBank_(oldAddressHex)
           .removeEntry(this.getAddress_(oldAddressHex));
-      if (!entry)
-        return;
+      if (!entry) return;
 
       entry.address = this.getAddress_(newAddressHex);
       entry.size = size;
@@ -77,14 +76,12 @@ tr.exportTo('tr.e.importer', function() {
     removeEntry: function(address) {
       // findLowIndexInSortedArray returns 1 for empty. Just handle the
       // empty list and bail early.
-      if (this.entries_.length === 0)
-        return undefined;
+      if (this.entries_.length === 0) return undefined;
 
       var index = tr.b.math.findLowIndexInSortedArray(
           this.entries_, function(entry) { return entry.address; }, address);
       var entry = this.entries_[index];
-      if (!entry || entry.address !== address)
-        return undefined;
+      if (!entry || entry.address !== address) return undefined;
 
       this.entries_.splice(index, 1);
       return entry;
@@ -101,8 +98,9 @@ tr.exportTo('tr.e.importer', function() {
     addEntry: function(newEntry) {
       // findLowIndexInSortedArray returns 1 for empty list. Just push the
       // new address as it's the only item.
-      if (this.entries_.length === 0)
+      if (this.entries_.length === 0) {
         this.entries_.push(newEntry);
+      }
 
       var endAddress = newEntry.address + newEntry.size;
       var lastIndex = tr.b.math.findLowIndexInSortedArray(
@@ -111,8 +109,7 @@ tr.exportTo('tr.e.importer', function() {
       for (index = lastIndex - 1; index >= 0; --index) {
         var entry = this.entries_[index];
         var entryEndAddress = entry.address + entry.size;
-        if (entryEndAddress <= newEntry.address)
-          break;
+        if (entryEndAddress <= newEntry.address) break;
       }
       ++index;
       this.entries_.splice(index, lastIndex - index, newEntry);

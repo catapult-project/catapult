@@ -60,8 +60,9 @@ tr.exportTo('tr.v.d', function() {
     }
 
     * [Symbol.iterator]() {
-      for (let pair of this.values_)
+      for (let pair of this.values_) {
         yield pair;
+      }
     }
 
     asDictInto_(d) {

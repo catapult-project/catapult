@@ -115,8 +115,7 @@ Polymer({
 
       // If no vertical sync occurred before the power sample, don't use the
       // power sample.
-      if (lastVSyncTimestamp === undefined)
-        return;
+      if (lastVSyncTimestamp === undefined) return;
 
       var point = { x: sample.start - lastVSyncTimestamp };
       point['f' + frameNumber] = sample.powerInW;

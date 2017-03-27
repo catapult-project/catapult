@@ -65,8 +65,9 @@ tr.b.unittest.testSuite(function() {
 
   function getFrame(heapEntry, distance) {
     var frame = heapEntry.leafStackFrame;
-    for (; distance > 0; distance--)
+    for (; distance > 0; distance--) {
       frame = frame.parentFrame;
+    }
     return frame;
   }
 
@@ -2647,8 +2648,9 @@ tr.b.unittest.testSuite(function() {
     assert.equal(m.flowIntervalTree.size, 3);
 
     var order = m.flowEvents.map(function(x) { return x.start; });
-    for (var i = 0; i < expected.length; ++i)
+    for (var i = 0; i < expected.length; ++i) {
       assert.closeTo(expected[i], order[i], 1e-5);
+    }
   });
 
   test('importCompleteEvent', function() {
@@ -2855,8 +2857,9 @@ tr.b.unittest.testSuite(function() {
     // and use 'seq' to track the order of when the event is recorded.
     events.push({name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 0, ph: 'S', args: {'seq': 0}});  // @suppress longLineCheck
 
-    for (var i = 1; i <= 1000; i++)
+    for (var i = 1; i <= 1000; i++) {
       events.push({name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: Math.round(i / 2), ph: 'T', args: {'seq': i}});  // @suppress longLineCheck
+    }
 
     events.push({name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 1000, ph: 'F', args: {'seq': 1001}});  // @suppress longLineCheck
 
@@ -4107,8 +4110,9 @@ tr.b.unittest.testSuite(function() {
       pmdSpecifications.forEach(function(singlePmdSpecifications, pid) {
         singlePmdSpecifications.forEach(function(singlePmdSpecification) {
           var dumps = {};
-          if (singlePmdSpecification.levelOfDetail !== undefined)
+          if (singlePmdSpecification.levelOfDetail !== undefined) {
             dumps.level_of_detail = singlePmdSpecification.levelOfDetail;
+          }
           if (singlePmdSpecification.vmRegions) {
             dumps.process_mmaps = {
               vm_regions: [

@@ -25,12 +25,12 @@ tr.exportTo('tr.metrics.sh', function() {
   function filterExpectationsByRange(irs, opt_range) {
     var filteredExpectations = [];
     irs.forEach(function(ir) {
-      if (!(ir instanceof tr.model.um.UserExpectation))
-        return;
+      if (!(ir instanceof tr.model.um.UserExpectation)) return;
 
       if (!opt_range ||
-          opt_range.intersectsExplicitRangeInclusive(ir.start, ir.end))
+          opt_range.intersectsExplicitRangeInclusive(ir.start, ir.end)) {
         filteredExpectations.push(ir);
+      }
     });
     return filteredExpectations;
   }
