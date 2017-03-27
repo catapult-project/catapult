@@ -37,12 +37,13 @@ V8_CHECKOUT_BINARY_PATH = os.path.join(
     '{v8_root}', 'v8', '{out}', 'Default', 'd8')
 V8_GN_GEN_CMD = ('gn gen ' +
     os.path.join('out', 'Default') +
-    ' --args="is_debug=false v8_use_snapshot=false ' +
+    ' --args="is_debug=false v8_use_snapshot=false icu_use_data_file=false' +
     ' v8_use_external_startup_data=false v8_static_library=true"')
 V8_GN_GEN_ARM_CMD = ('gn gen ' +
     os.path.join('out_arm', 'Default') +
-    ' --args="target_cpu="arm" is_debug=false v8_use_snapshot=false ' +
-    'v8_use_external_startup_data=false v8_static_library=true"')
+    r' --args="target_cpu=\"arm\" is_debug=false v8_use_snapshot=false' +
+    ' v8_use_external_startup_data=false v8_static_library=true' +
+    ' icu_use_data_file=false"')
 V8_COMPILE_CMD = 'ninja -C {out} d8'
 V8_STRIP_CMD = '{strip} -x {d8}'
 
