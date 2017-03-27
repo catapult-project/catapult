@@ -72,6 +72,13 @@ class RunTest(quest.Quest):
     self._bot_id = None
     self._execution = None  # Used only to get a bot_id.
 
+  def __str__(self):
+    if self._test:
+      running = '/'.join((self._test_suite, self._test))
+    else:
+      running = self._test_suite
+    return 'Run %s on %s' % (running, self._configuration)
+
   @property
   def retry_count(self):
     return 4

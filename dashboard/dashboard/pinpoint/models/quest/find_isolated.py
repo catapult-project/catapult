@@ -12,6 +12,9 @@ class FindIsolated(quest.Quest):
   def __init__(self, configuration):
     self._builder_name = _BuilderNameForConfiguration(configuration)
 
+  def __str__(self):
+    return 'Build on ' + self._builder_name
+
   @property
   def retry_count(self):
     return 1

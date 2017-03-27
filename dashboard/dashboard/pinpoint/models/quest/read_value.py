@@ -11,6 +11,9 @@ class ReadValue(quest.Quest):
   def __init__(self, metric):
     self._metric = metric
 
+  def __str__(self):
+    return 'Value of ' + self._metric
+
   def Start(self, isolated_hash):
     return _ReadValueExecution(self._metric, isolated_hash)
 
