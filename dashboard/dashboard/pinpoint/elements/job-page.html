@@ -76,6 +76,10 @@ found in the LICENSE file.
 
       is: 'job-page',
       properties: {
+        jobInfo: {
+          type: Object,
+          value: () => {}
+        },
         jobProperties: {
           type: Array,
           value: () => []
@@ -106,13 +110,16 @@ found in the LICENSE file.
         var params = {job_id: this.data.jobId};
         simple_xhr.send('/_ah/api/job', params,
             function(response) {
-              this.loading = false;
+              var jobInfo = response['data'];
+              this.set('jobInfo', jobInfo);
+
               var jobProperties = [];
-              var data = response['data'];
-              for (let key in data) {
-                jobProperties.push({name: key, value: data[key]});
+              for (let key in jobInfo) {
+                jobProperties.push({name: key, value: jobInfo[key]});
               }
               this.set('jobProperties', jobProperties);
+
+              this.loading = false;
             }.bind(this),
             function(msg) {
               this.error = msg;

@@ -115,14 +115,18 @@ class Job(ndb.Model):
 
     return {
         'job_id': self.job_id,
+
         'configuration': self.configuration,
         'test_suite': self.test_suite,
         'test': self.test,
         'metric': self.metric,
         'auto_explore': self.auto_explore,
+
         'created': self.created.strftime('%Y-%m-%d %H:%M:%S %Z'),
         'updated': self.updated.strftime('%Y-%m-%d %H:%M:%S %Z'),
         'status': status,
+
+        'state': self.state.AsDict(),
     }
 
 
@@ -218,6 +222,32 @@ class _JobState(object):
 
     return work_left
 
+  def AsDict(self):
+    comparisons = []
+    for index in xrange(1, len(self._changes)):
+      change_a = self._changes[index - 1]
+      change_b = self._changes[index]
+      comparisons.append(self._Compare(change_a, change_b))
+
+    # result_values is a 3D array. result_values[change][quest] is a list of
+    # all the result values for that Change and Quest.
+    result_values = []
+    for change in self._changes:
+      change_result_values = []
+
+      change_results_per_quest = _CombineResultsPerQuest(self._attempts[change])
+      for quest in self._quests:
+        change_result_values.append(map(str, change_results_per_quest[quest]))
+
+      result_values.append(change_result_values)
+
+    return {
+        'quests': map(str, self._quests),
+        'changes': map(str, self._changes),
+        'comparisons': comparisons,
+        'result_values': result_values,
+    }
+
   def _Compare(self, change_a, change_b):
     attempts_a = self._attempts[change_a]
     attempts_b = self._attempts[change_b]
@@ -245,8 +275,12 @@ class _JobState(object):
 def _CombineResultsPerQuest(attempts):
   aggregate_results = collections.defaultdict(list)
   for attempt in attempts:
+    if not attempt.completed:
+      continue
+
     for quest, results in attempt.result_values.iteritems():
       aggregate_results[quest] += results
+
   return aggregate_results
 
 
