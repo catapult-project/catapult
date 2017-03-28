@@ -37,11 +37,10 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     get drawingContainer() {
-      var cur = this;
+      if (this instanceof tr.ui.tracks.DrawingContainer) return this;
+      let cur = this.parentElement;
       while (cur) {
-        if (cur instanceof tr.ui.tracks.DrawingContainer) {
-          return cur;
-        }
+        if (cur instanceof tr.ui.tracks.DrawingContainer) return cur;
         cur = cur.parentElement;
       }
       return undefined;

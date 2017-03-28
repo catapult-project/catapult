@@ -175,17 +175,16 @@ var uri = (function() {
 
     this.firePageStateRequestEvent_('loading');
     var request = new XMLHttpRequest();
-    var self = this;
-    request.onload = function() {
+    request.onload = () => {
       var response = JSON.parse(request.responseText);
       var stateId = response['sid'];
       state['params'] = state['params'] || {};
       state['params']['sid'] = stateId;
-      self.updateUri_(state);
-      self.firePageStateRequestEvent_('complete');
+      this.updateUri_(state);
+      this.firePageStateRequestEvent_('complete');
     };
-    request.onerror = function() {
-      self.firePageStateRequestEvent_('failed');
+    request.onerror = () => {
+      this.firePageStateRequestEvent_('failed');
     };
     request.open('post', '/short_uri', true);
     request.setRequestHeader('Content-type',

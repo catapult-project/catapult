@@ -179,11 +179,10 @@ found in the LICENSE file.
        */
       getSuiteItems: function() {
         var suiteMenuItems = [];
-        var self = this;
-        var isUnmonitored = function(suite) {
+        var isUnmonitored = suite => {
           // A suite is considered unmonitored if there are no monitored
           // subtests.
-          var suiteInfo = self.testSuites[suite];
+          var suiteInfo = this.testSuites[suite];
           return !suiteInfo['mon'] || suiteInfo['mon'].length == 0;
         };
 

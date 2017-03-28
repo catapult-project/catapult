@@ -140,15 +140,14 @@ tr.exportTo('tr.v', function() {
     }
 
     resolveRelatedHistograms() {
-      let histogramSet = this;
-      function handleDiagnosticMap(dm) {
+      const handleDiagnosticMap = dm => {
         for (let [name, diagnostic] of dm) {
           if ((diagnostic instanceof tr.v.d.RelatedHistogramSet) ||
               (diagnostic instanceof tr.v.d.RelatedHistogramMap)) {
-            diagnostic.resolve(histogramSet);
+            diagnostic.resolve(this);
           }
         }
-      }
+      };
 
       for (let hist of this) {
         hist.diagnostics.resolveSharedDiagnostics(this);

@@ -232,22 +232,16 @@ tr.exportTo('tr.ui.b', function() {
 
       // Focus the first thing we find that makes sense. (Skip the close button
       // as it doesn't make sense as the first thing to focus.)
-      var focusEl = undefined;
       var elList =
           Polymer.dom(this).querySelectorAll('button, input, list, select, a');
       if (elList.length > 0) {
         if (elList[0] === this.closeBtn_) {
-          if (elList.length > 1) {
-            focusEl = elList[1];
-          }
+          if (elList.length > 1) return elList[1].focus();
         } else {
-          focusEl = elList[0];
+          return elList[0].focus();
         }
       }
-      if (focusEl === undefined) {
-        focusEl = this;
-      }
-      focusEl.focus();
+      this.focus();
     },
 
     hide_: function() {

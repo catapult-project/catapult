@@ -90,8 +90,8 @@ tr.exportTo('tr.model', function() {
      * Returns stackFrames where the most specific frame is first.
      */
     get stackTrace() {
-      var stack = [];
-      var cur = this;
+      var stack = [this];
+      var cur = this.parentFrame;
       while (cur) {
         stack.push(cur);
         cur = cur.parentFrame;

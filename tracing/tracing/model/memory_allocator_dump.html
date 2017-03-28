@@ -87,12 +87,9 @@ tr.exportTo('tr.model', function() {
     },
 
     isDescendantOf: function(otherDump) {
-      var dump = this;
-      while (dump !== undefined) {
-        if (dump === otherDump) return true;
-        dump = dump.parent;
-      }
-      return false;
+      if (this === otherDump) return true;
+      if (this.parent === undefined) return false;
+      return this.parent.isDescendantOf(otherDump);
     },
 
     addNumeric: function(name, numeric) {

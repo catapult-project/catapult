@@ -73,11 +73,9 @@ tr.exportTo('tr.e.tquery', function() {
     //              completes.
     createFilterTaskGraph_: function() {
       // List of nodes in order from the current one to the root.
-      var nodes = [];
-      var node = this;
-      while (node !== undefined) {
-        nodes.push(node);
-        node = node.parent_;
+      let nodes = [this];
+      while (nodes[nodes.length - 1].parent_) {
+        nodes.push(nodes[nodes.length - 1].parent_);
       }
 
       var rootTask = new tr.b.Task();

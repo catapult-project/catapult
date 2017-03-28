@@ -399,15 +399,14 @@ property 'group' sets to the header item name.
 
       updateSelected: function() {
         this.muffleSelection = true;
-        var self = this;
-        (function() {
-          self.$.dropdown.selected = undefined;
-          if (self.selectedItem === null) return;
-          var selectedItem = self.selectedItem;
-          var menuItemsArray = self.$.dropdown.items || [];
+        (() => {
+          this.$.dropdown.selected = undefined;
+          if (this.selectedItem === null) return;
+          var selectedItem = this.selectedItem;
+          var menuItemsArray = this.$.dropdown.items || [];
           for (var i = 0; i < menuItemsArray.length; i++) {
             if (menuItemsArray[i].item === selectedItem) {
-              self.$.dropdown.selected = i;
+              this.$.dropdown.selected = i;
               return;
             }
           }

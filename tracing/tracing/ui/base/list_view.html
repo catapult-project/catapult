@@ -44,30 +44,27 @@ tr.exportTo('tr.ui.b', function() {
       Polymer.dom(item).classList.add('list-item');
       item.addEventListener('click', this.onItemClicked_, true);
 
-      var listView = this;
       Object.defineProperty(
           item,
           'selected', {
             configurable: true,
-            set: function(value) {
-              var oldSelection = listView.selectedElement;
-              if (oldSelection && oldSelection !== this && value) {
-                Polymer.dom(listView.selectedElement).removeAttribute(
-                    'selected');
+            get: () => item.hasAttribute('selected'),
+            set: value => {
+              // |this| is the ListView.
+              const oldSelection = this.selectedElement;
+              if (oldSelection && oldSelection !== item && value) {
+                Polymer.dom(this.selectedElement).removeAttribute('selected');
               }
               if (value) {
-                Polymer.dom(this).setAttribute('selected', 'selected');
+                Polymer.dom(item).setAttribute('selected', 'selected');
               } else {
-                Polymer.dom(this).removeAttribute('selected');
+                Polymer.dom(item).removeAttribute('selected');
               }
-              var newSelection = listView.selectedElement;
+              const newSelection = this.selectedElement;
               if (newSelection !== oldSelection) {
-                tr.b.dispatchSimpleEvent(listView, 'selection-changed', false);
+                tr.b.dispatchSimpleEvent(this, 'selection-changed', false);
               }
             },
-            get: function() {
-              return this.hasAttribute('selected');
-            }
           });
     },
 

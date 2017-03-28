@@ -8,6 +8,7 @@
  * @fileoverview Boostrap for loading javascript/html files using d8_runner.
  */
 (function(global, v8arguments) {
+  global.global = global;
 
   global.isVinn = true;
 

@@ -109,12 +109,8 @@ tr.exportTo('tr.model', function() {
     },
 
     get mostTopLevelSlice() {
-      var curSlice = this;
-      while (curSlice.parentSlice) {
-        curSlice = curSlice.parentSlice;
-      }
-
-      return curSlice;
+      if (!this.parentSlice) return this;
+      return this.parentSlice.mostTopLevelSlice;
     },
 
     getProcess: function() {
@@ -227,20 +223,15 @@ tr.exportTo('tr.model', function() {
      * will yield D, then A, in the order from the leaves to the root.
      */
     enumerateAllAncestors: function* () {
-      var curSlice = this;
-
-      while (curSlice.parentSlice) {
-        curSlice = curSlice.parentSlice;
+      let curSlice = this.parentSlice;
+      while (curSlice) {
         yield curSlice;
+        curSlice = curSlice.parentSlice;
       }
     },
 
     get ancestorSlices() {
-      var res = [];
-      for (var slice of this.enumerateAllAncestors()) {
-        res.push(slice);
-      }
-      return res;
+      return Array.from(this.enumerateAllAncestors());
     },
 
     iterateEntireHierarchy: function(callback, opt_this) {

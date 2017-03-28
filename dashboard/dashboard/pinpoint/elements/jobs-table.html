@@ -196,10 +196,7 @@ found in the LICENSE file.
       ready: function() {
         // You can't actually manipulate the array until after initialization,
         // none of the changes persist.
-        var self = this;
-        this.async(function() {
-          self.sort();
-        });
+        this.async(() => this.sort());
       },
 
       sortByChanged: function() {

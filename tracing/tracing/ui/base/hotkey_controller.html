@@ -215,17 +215,12 @@ Polymer({
   },
 
   findHost_: function() {
-    if (this.globalMode_) {
-      return document.body;
-    }
-    if (this.parentElement) {
-      return this.parentElement;
-    }
+    if (this.globalMode_) return document.body;
+    if (this.parentElement) return this.parentElement;
+    if (!Polymer.dom(this).parentNode) return this.host;
 
-    var node = this;
-    while (Polymer.dom(node).parentNode) {
-      node = Polymer.dom(node).parentNode;
-    }
+    let node = this.parentNode;
+    while (Polymer.dom(node).parentNode) node = Polymer.dom(node).parentNode;
     return node.host;
   },
 

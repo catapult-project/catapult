@@ -19,55 +19,7 @@ var testing_common = (function() {
 
   var XMLHttpRequestMock = function() {
     this.responseMap_ = {};
-    window.XMLHttpRequest = this.getMock();
-  };
-
-  XMLHttpRequestMock.prototype.getMock = function() {
-    // TODO(chrisphan): Add support for error state.
-    var self = this;
-    return function() {
-      this.status = 200;
-      this.onerror = function() {};
-      this.open = function(method, url, async) {
-        this.url = url;
-      };
-      this.getRegexpResponseMatch = function(requestStr) {
-        for (var pattern in self.responseMap_) {
-          if (pattern == '*') {
-            continue;
-          }
-          if (requestStr.match(pattern)) {
-            return self.responseMap_[pattern];
-          }
-        }
-        return null;
-      };
-      this.abort = function() {};
-      this.setRequestHeader = function() {};
-      this.onload = function() {};
-      this.send = function(param) {
-        var url = this.url;
-        if (param == null && this.url.indexOf('?') != -1) {
-          var parts = url.split('?');
-          url = parts[0];
-          param = parts[1];
-        }
-        var requestStr = url + '?' + sortQueryPart(param);
-        if (requestStr in self.responseMap_) {
-          this.responseText = self.responseMap_[requestStr];
-          this.onload();
-        } else if (this.getRegexpResponseMatch(requestStr)) {
-          this.responseText = this.getRegexpResponseMatch(requestStr);
-          this.onload();
-        } else if ('*' in self.responseMap_) {
-          this.responseText = self.responseMap_['*'];
-          this.onload();
-        } else {
-          throw new Error('XMLHttpRequest sent without a handler: ' +
-              requestStr);
-        }
-      };
-    };
+    window.XMLHttpRequest = MockXMLHttpRequest;
   };
 
   XMLHttpRequestMock.prototype.add = function(param, response) {
@@ -87,6 +39,64 @@ var testing_common = (function() {
   function clearXhrMock() {
     window.XMLHttpRequest = originalXMLHttpRequest;
     xhrMock = null;
+  }
+
+  class MockXMLHttpRequest {
+    constructor() {
+      this.status = 200;
+    }
+
+    onerror() {
+      // TODO(chrisphan): Add support for error state.
+    }
+
+    open(method, url, async) {
+      this.url = url;
+    }
+
+    getRegexpResponseMatch(requestStr) {
+      for (var pattern in xhrMock.responseMap_) {
+        if (pattern == '*') {
+          continue;
+        }
+        if (requestStr.match(pattern)) {
+          return xhrMock.responseMap_[pattern];
+        }
+      }
+      return null;
+    }
+
+    abort() {
+    }
+
+    setRequestHeader() {
+    }
+
+    onload() {
+    }
+
+    send(param) {
+      var url = this.url;
+      if (param == null && this.url.indexOf('?') != -1) {
+        var parts = url.split('?');
+        url = parts[0];
+        param = parts[1];
+      }
+      var requestStr = url + '?' + sortQueryPart(param);
+      if (requestStr in xhrMock.responseMap_) {
+        this.responseText = xhrMock.responseMap_[requestStr];
+        this.onload();
+      } else if (this.getRegexpResponseMatch(requestStr)) {
+        this.responseText = this.getRegexpResponseMatch(requestStr);
+        this.onload();
+      } else if ('*' in xhrMock.responseMap_) {
+        this.responseText = xhrMock.responseMap_['*'];
+        this.onload();
+      } else {
+        throw new Error('XMLHttpRequest sent without a handler: ' +
+            requestStr);
+      }
+    }
   }
 
   /**

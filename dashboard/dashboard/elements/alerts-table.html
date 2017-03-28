@@ -752,9 +752,8 @@ found in the LICENSE file.
         // We need the xsrf token to be set in the individual bug-info-span
         // element, and this can be done by setting it in the alert objects,
         // and binding xsrfToken in the template above.
-        var alertsTable = this;
         for (var i = 0; i < this.alertList.length; i++) {
-          this.setAlertList(i, 'xsrfToken', alertsTable.xsrfToken);
+          this.setAlertList(i, 'xsrfToken', this.xsrfToken);
         }
         // Make a list of all bug IDs that indicate an alert is triaged.
         // This includes the pseudo-bug-ids indicating invalid or ignored.

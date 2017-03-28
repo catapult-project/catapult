@@ -399,14 +399,14 @@ tr.exportTo('tr.ui.b', function() {
 
     updateHighlight_() {
       // Update label colors.
-      var chartAreaSel = d3.select(this.chartAreaElement);
-      var legendEntriesSel = chartAreaSel.selectAll('.legend');
-
-      var chart = this;
+      const chartAreaSel = d3.select(this.chartAreaElement);
+      const legendEntriesSel = chartAreaSel.selectAll('.legend');
+      const getDataSeries = chart.getDataSeries.bind(chart);
+      const currentHighlightedLegendKey = chart.currentHighlightedLegendKey;
       legendEntriesSel.each(function(key) {
         // NOTE: this = legendEntry
-        var dataSeries = chart.getDataSeries(key);
-        if (key === chart.currentHighlightedLegendKey) {
+        var dataSeries = getDataSeries(key);
+        if (key === currentHighlightedLegendKey) {
           this.style.fill = dataSeries.highlightedColor;
           this.style.fontWeight = 'bold';
         } else {

@@ -13,7 +13,7 @@ found in the LICENSE file.
  * @type {!Object}
  * @const
  */
-var global = this;
+var global = this.window || this.global;
 
 /** Platform, package, object property, and Event support. */
 this.tr = (function() {

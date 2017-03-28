@@ -24,6 +24,7 @@
       "comma-spacing": "error",
       "comma-style": "error",
       "computed-property-spacing": "error",
+      "consistent-this": ["error", "void"],
       "constructor-super": "error",
       "curly": "off",
       "default-case": "off",
