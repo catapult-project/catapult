@@ -1219,7 +1219,8 @@ tr.exportTo('tr.importer', function() {
   /**
    * Check that none of the handlers accidentally ignored an input event.
    */
-  function checkAllInputEventsHandled(sortedInputEvents, protoExpectations) {
+  function checkAllInputEventsHandled(
+      modelHelper, sortedInputEvents, protoExpectations) {
     var handledEvents = [];
     protoExpectations.forEach(function(protoExpectation) {
       protoExpectation.associatedEvents.forEach(function(event) {
@@ -1264,7 +1265,8 @@ tr.exportTo('tr.importer', function() {
         modelHelper, sortedInputEvents);
     protoExpectations = postProcessProtoExpectations(
         modelHelper, protoExpectations);
-    checkAllInputEventsHandled(sortedInputEvents, protoExpectations);
+    checkAllInputEventsHandled(
+        modelHelper, sortedInputEvents, protoExpectations);
 
     var expectations = [];
     protoExpectations.forEach(function(protoExpectation) {
