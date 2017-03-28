@@ -2,10 +2,13 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import json
 import math
 import os
+import shutil
 import StringIO
 import sys
+import tempfile
 import unittest
 
 from py_utils import cloud_storage  # pylint: disable=import-error
@@ -22,6 +25,7 @@ from telemetry.internal.util import exception_formatter as ex_formatter_module
 from telemetry.page import page as page_module
 from telemetry.page import legacy_page_test
 from telemetry import story as story_module
+from telemetry.testing import fakes
 from telemetry.testing import options_for_unittests
 from telemetry.testing import system_stub
 import mock
@@ -40,7 +44,6 @@ from telemetry.wpr import archive_info
 
 # pylint: disable=too-many-lines
 
-
 class FakePlatform(object):
   def CanMonitorThermalThrottling(self):
     return False
@@ -53,7 +56,6 @@ class FakePlatform(object):
 
   def GetDeviceTypeName(self):
     return "GetDeviceTypeName"
-
 
 class TestSharedState(story_module.SharedState):
 
@@ -150,6 +152,16 @@ def SetupStorySet(allow_multiple_story_states, story_state_list):
     story_set.AddStory(DummyLocalStory(story_state,
                                        name='story%d' % i))
   return story_set
+
+class FakeBenchmark(benchmark.Benchmark):
+  @classmethod
+  def Name(cls):
+    return 'fake'
+
+  test = DummyTest
+
+  def page_set(self):
+    return story_module.StorySet()
 
 
 def _GetOptionForUnittest():
@@ -1036,3 +1048,36 @@ class StoryRunnerTest(unittest.TestCase):
       mock.call.state.DidRunStory(root_mock.results),
       mock.call.test.DidRunStory(root_mock.state.platform)
     ])
+
+  def testRunBenchmarkTimeDuration(self):
+    fake_benchmark = FakeBenchmark()
+    options = fakes.CreateBrowserFinderOptions()
+    options.upload_results = None
+    options.suppress_gtest_report = False
+    options.results_label = None
+    options.use_live_sites = False
+    options.max_failures = 100
+    options.pageset_repeat = 1
+    options.output_formats = ['chartjson']
+
+    with mock.patch('telemetry.internal.story_runner.time.time') as time_patch:
+      # 3, because telemetry code asks for the time at some point
+      time_patch.side_effect = [1, 0, 61]
+      tmp_path = tempfile.mkdtemp()
+
+      try:
+        options.output_dir = tmp_path
+        story_runner.RunBenchmark(fake_benchmark, options)
+        with open(os.path.join(tmp_path, 'results-chart.json')) as f:
+          data = json.load(f)
+
+        self.assertEqual(len(data['charts']), 1)
+        charts = data['charts']
+        self.assertIn('BenchmarkDuration', charts)
+        duration = charts['BenchmarkDuration']
+        self.assertIn("summary", duration)
+        summary = duration['summary']
+        duration = summary['value']
+        self.assertAlmostEqual(duration, 1)
+      finally:
+        shutil.rmtree(tmp_path)

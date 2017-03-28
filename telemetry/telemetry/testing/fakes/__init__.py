@@ -56,13 +56,13 @@ class FakePlatform(object):
     return False
 
   def GetDeviceTypeName(self):
-    raise NotImplementedError
+    return 'FakeDevice'
 
   def GetArchName(self):
     raise NotImplementedError
 
   def GetOSName(self):
-    raise NotImplementedError
+    return 'FakeOS'
 
   def GetOSVersionName(self):
     raise NotImplementedError
@@ -301,6 +301,9 @@ class _FakeTracingController(object):
 
   def ClearStateIfNeeded(self):
     pass
+
+  def IsChromeTracingSupported(self):
+    return True
 
 
 class _FakeNetworkController(object):
