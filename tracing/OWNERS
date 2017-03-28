@@ -2,9 +2,6 @@
 # system and how the UI bits fit together. Good for reviews of large
 # architectual changes, or areas of the code where you may need more
 # information.
-nduca@chromium.org
-petrcermak@chromium.org
-dsinclair@chromium.org
 fmeawad@chromium.org
 charliea@chromium.org
 eakuefner@chromium.org
@@ -16,7 +13,8 @@ kouhei@chromium.org
 # TEAM: tracing@chromium.org
 # COMPONENT: Speed>Tracing
 
-# Tracing, in general, doesn't require an owners stamp to commit. If you
-# don't think the complexity requires the review of the above you can use
-# any tracing committer.
-*
+# These folks have made huge contributions to the project, but are no longer
+# actively reviewing patches.
+nduca@chromium.org
+# petrcermak@chromium.org
+# dsinclair@chromium.org
