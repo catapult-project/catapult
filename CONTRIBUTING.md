@@ -112,8 +112,8 @@ automatically runs all tests. Run the tests before committing with the
 
 Chromium's DEPS file needs to be rolled to the catapult revision containing your
 change in order for it to appear in Chrome's about:tracing or other
-third_party/catapult files. Follow the [directions for rolling DEPS]
-(/docs/rolling-deps.md) to do this.
+third_party/catapult files. Follow the [directions for rolling DEPS](/docs/rolling-deps.md)
+to do this.
 
 # Adding a new project
 
