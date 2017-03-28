@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/base/view_state.html">
+
+<script>
+'use strict';
+tr.exportTo('tr.v.ui', function() {
+  class HistogramSetViewState extends tr.b.ViewState {
+    constructor() {
+      super();
+      this.define('searchQuery', '');
+      this.define('referenceDisplayLabel', '');
+      this.define('displayStatisticName', '');
+      this.define('showAll', false);
+      this.define('groupings', []);
+      this.define('sortColumnIndex', 0);
+      this.define('sortDescending', false);
+      this.define('constrainNameColumn', true);
+      this.define('tableRowStates', []);
+    }
+  }
+
+  tr.b.ViewState.register(HistogramSetViewState);
+
+  class HistogramSetTableRowState extends tr.b.ViewState {
+    constructor() {
+      super();
+      this.define('isExpanded', false);
+      this.define('isOverviewed', false);
+      this.define('cells', new Map());
+      this.define('subRows', []);
+    }
+
+    * walk() {
+      yield this;
+      for (const row of this.subRows) yield* row.walk();
+    }
+
+    static* walkAll(rootRows) {
+      for (const rootRow of rootRows) yield* rootRow.walk();
+    }
+  }
+
+  tr.b.ViewState.register(HistogramSetTableRowState);
+
+  class HistogramSetTableCellState extends tr.b.ViewState {
+    constructor() {
+      super();
+      this.define('isOpen', false);
+      this.define('brushedBinRange', new tr.b.Range());
+      this.define('mergeSampleDiagnostics', true);
+    }
+  }
+
+  tr.b.ViewState.register(HistogramSetTableCellState);
+
+  return {
+    HistogramSetTableCellState,
+    HistogramSetTableRowState,
+    HistogramSetViewState,
+  };
+});
+</script>

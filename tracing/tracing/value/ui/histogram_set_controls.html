@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
 <link rel="import" href="/tracing/ui/base/grouping_table_groupby_picker.html">
-<link rel="import" href="/tracing/value/ui/histogram_set_configuration.html">
+<link rel="import" href="/tracing/value/ui/histogram_set_view_state.html">
 
 <dom-module id="tr-v-ui-histogram-set-controls">
   <template>
@@ -132,7 +132,8 @@ tr.exportTo('tr.v.ui', function() {
     },
 
     created() {
-      this.configuration = new tr.v.ui.HistogramSetConfiguration();
+      this.viewState = new tr.v.ui.HistogramSetViewState();
+      this.onRowViewStateUpdate__ = this.onRowViewStateUpdate_.bind(this);
     },
 
     ready() {
@@ -140,20 +141,20 @@ tr.exportTo('tr.v.ui', function() {
           this.onGroupsChanged_.bind(this));
     },
 
-    get configuration() {
-      return this.configuration_;
+    get viewState() {
+      return this.viewState_;
     },
 
-    set configuration(c) {
-      if (this.configuration !== undefined) {
-        this.configuration.removeListener(this);
+    set viewState(c) {
+      if (this.viewState !== undefined) {
+        this.viewState.removeUpdateListener(this);
       }
-      this.configuration_ = c;
-      this.configuration.addListener(this);
+      this.viewState_ = c;
+      this.viewState.addUpdateListener(this.onViewStateUpdate_.bind(this));
     },
 
     onUserChange_() {
-      this.configuration.update({
+      this.viewState.update({
         searchQuery: this.searchQuery,
         showAll: this.showAll,
         referenceDisplayLabel: this.referenceDisplayLabel,
@@ -161,31 +162,50 @@ tr.exportTo('tr.v.ui', function() {
       });
     },
 
-    onConfigurationChanged(delta) {
-      if (delta.searchQuery) this.searchQuery = this.configuration.searchQuery;
-      if (delta.showAll) this.showAll = this.configuration.showAll;
-      if (delta.displayStatisticName) {
-        this.displayStatisticName = this.configuration.displayStatisticName;
+    onViewStateUpdate_(event) {
+      if (event.delta.searchQuery) {
+        this.searchQuery = this.viewState.searchQuery;
       }
-      if (delta.referenceDisplayLabel) {
-        this.referenceDisplayLabel = this.configuration.referenceDisplayLabel;
+      if (event.delta.showAll) this.showAll = this.viewState.showAll;
+      if (event.delta.displayStatisticName) {
+        this.displayStatisticName = this.viewState.displayStatisticName;
+      }
+      if (event.delta.referenceDisplayLabel) {
+        this.referenceDisplayLabel = this.viewState.referenceDisplayLabel;
       }
 
-      if (delta.groupings) {
-        this.$.picker.currentGroupKeys = this.configuration.groupings.map(
+      if (event.delta.groupings) {
+        this.$.picker.currentGroupKeys = this.viewState.groupings.map(
             g => g.key);
       }
 
-      if (delta.tableRowStates) {
-        let anyShowing = false;
-        for (const state of this.configuration.tableRowStates) {
-          if (state.anyOverviewCharts) {
-            anyShowing = true;
-            break;
-          }
+      if (event.delta.tableRowStates) {
+        for (const row of tr.v.ui.HistogramSetTableRowState.walkAll(
+            this.viewState.tableRowStates)) {
+          row.addUpdateListener(this.onRowViewStateUpdate__);
         }
+
+        const anyShowing = this.anyOverviewCharts_;
         this.$.hide_overview.style.display = anyShowing ? 'inline' : 'none';
         this.$.show_overview.style.display = anyShowing ? 'none' : 'inline';
+      }
+    },
+
+    onRowViewStateUpdate_(event) {
+      if (event.delta.isOverviewed) {
+        const anyShowing = event.delta.isOverviewed.after ||
+            this.anyOverviewCharts_;
+        this.$.hide_overview.style.display = anyShowing ? 'inline' : 'none';
+        this.$.show_overview.style.display = anyShowing ? 'none' : 'inline';
+      }
+
+      if (event.delta.subRows) {
+        for (const subRow of event.delta.subRows.before) {
+          subRow.removeUpdateListener(this.onRowViewStateUpdate__);
+        }
+        for (const subRow of event.delta.subRows.after) {
+          subRow.addUpdateListener(this.onRowViewStateUpdate__);
+        }
       }
     },
 
@@ -194,7 +214,7 @@ tr.exportTo('tr.v.ui', function() {
           this.$.picker.possibleGroups.length > 0) {
         this.$.picker.currentGroupKeys = [this.$.picker.possibleGroups[0].key];
       }
-      this.configuration.groupings = this.$.picker.currentGroups;
+      this.viewState.groupings = this.$.picker.currentGroups;
     },
 
     set possibleGroupings(groupings) {
@@ -216,10 +236,10 @@ tr.exportTo('tr.v.ui', function() {
         this.$.reference_display_label.appendChild(option);
       }
 
-      if (labels.indexOf(this.configuration.referenceDisplayLabel) < 0) {
-        this.configuration.referenceDisplayLabel = '';
+      if (labels.indexOf(this.viewState.referenceDisplayLabel) < 0) {
+        this.viewState.referenceDisplayLabel = '';
       } else {
-        this.referenceDisplayLabel = this.configuration.referenceDisplayLabel;
+        this.referenceDisplayLabel = this.viewState.referenceDisplayLabel;
       }
     },
 
@@ -236,30 +256,28 @@ tr.exportTo('tr.v.ui', function() {
         this.$.statistic.appendChild(option);
       }
 
-      if (names.indexOf(this.configuration.displayStatisticName) < 0) {
-        this.configuration.displayStatisticName = names[0] || '';
+      if (names.indexOf(this.viewState.displayStatisticName) < 0) {
+        this.viewState.displayStatisticName = names[0] || '';
       } else {
-        this.displayStatisticName = this.configuration.displayStatisticName;
+        this.displayStatisticName = this.viewState.displayStatisticName;
       }
     },
 
+    get anyOverviewCharts_() {
+      for (const row of tr.v.ui.HistogramSetTableRowState.walkAll(
+          this.viewState.tableRowStates)) {
+        if (row.isOverviewed) return true;
+      }
+      return false;
+    },
+
     toggleOverviewLineCharts_() {
-      const states = this.configuration.tableRowStates.map(s => s.clone());
+      const showOverviews = !this.anyOverviewCharts_;
 
-      let anyShowing = false;
-      for (const state of states) {
-        if (state.anyOverviewCharts) {
-          anyShowing = true;
-          break;
-        }
+      for (const row of tr.v.ui.HistogramSetTableRowState.walkAll(
+          this.viewState.tableRowStates)) {
+        row.isOverviewed = showOverviews;
       }
-
-      const showOverviews = !anyShowing;
-      for (const state of states) {
-        state.setOverviewChartsRecursive(showOverviews);
-      }
-
-      this.configuration.tableRowStates = states;
 
       this.$.hide_overview.style.display = showOverviews ? 'inline' : 'none';
       this.$.show_overview.style.display = showOverviews ? 'none' : 'inline';
