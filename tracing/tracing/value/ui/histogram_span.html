@@ -208,7 +208,7 @@ tr.exportTo('tr.v.ui', function() {
     },
 
     get brushedBinRange() {
-      if (this.chart_ === undefined) return new tr.b.Range();
+      if (this.chart_ === undefined) return new tr.b.math.Range();
       return this.chart_.brushedRange;
     },
 
