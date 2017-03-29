@@ -22,6 +22,7 @@ from dashboard import change_internal_only
 from dashboard import create_health_report
 from dashboard import debug_alert
 from dashboard import delete_test_data
+from dashboard import deprecate_tests
 from dashboard import dump_graph_json
 from dashboard import edit_anomalies
 from dashboard import edit_anomaly_configs
@@ -43,7 +44,6 @@ from dashboard import load_from_prod
 from dashboard import main
 from dashboard import memory_report
 from dashboard import migrate_test_names
-from dashboard import mr
 from dashboard import navbar
 from dashboard import new_points
 from dashboard import oauth2_decorator
@@ -102,7 +102,7 @@ _URL_MAPPING = [
     ('/', main.MainHandler),
     ('/memory_report', memory_report.MemoryReportHandler),
     ('/migrate_test_names', migrate_test_names.MigrateTestNamesHandler),
-    ('/mr_deprecate_tests', mr.MRDeprecateTestsHandler),
+    ('/deprecate_tests', deprecate_tests.DeprecateTestsHandler),
     ('/navbar', navbar.NavbarHandler),
     ('/new_points', new_points.NewPointsHandler),
     ('/post_bisect_results', post_bisect_results.PostBisectResultsHandler),

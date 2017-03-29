@@ -167,13 +167,21 @@ def SetExternal(key, value, days_to_keep=None):
   Set(key, value, days_to_keep, datastore_hooks.EXTERNAL)
 
 
+@ndb.synctasklet
 def Delete(key):
   """Clears the value from the datastore."""
+  yield DeleteAsync(key)
+
+
+@ndb.tasklet
+def DeleteAsync(key):
   internal_key = _NamespaceKey(key, namespace=datastore_hooks.INTERNAL)
   external_key = _NamespaceKey(key, namespace=datastore_hooks.EXTERNAL)
-  ndb.delete_multi([ndb.Key('CachedPickledString', internal_key),
-                    ndb.Key('CachedPickledString', external_key)])
-  stored_object.Delete(key)
+  yield (
+      ndb.delete_multi_async(
+          [ndb.Key('CachedPickledString', internal_key),
+           ndb.Key('CachedPickledString', external_key)]),
+      stored_object.DeleteAsync(key))
 
 
 def DeleteAllExpiredEntities():

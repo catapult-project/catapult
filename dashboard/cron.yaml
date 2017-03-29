@@ -19,9 +19,8 @@ cron:
   url: /send_stoppage_alert_emails
   schedule: every 24 hours
 
-- description: Run the mapreduce job to mark tests as deprecated.
-  url: /mr_deprecate_tests
-  # If you update the time below, also update the constant in mr.py.
+- description: Run a job to mark tests as deprecated.
+  url: /deprecate_tests
   schedule: every 48 hours
 
 - description: Update bugs with completed bisect job results.
