@@ -99,6 +99,32 @@ tr.b.unittest.testSuite(function() {
     verifier.verify();
   });
 
+  test('videoExpectations_dontMergeWithOtherAnimations', function() {
+    const verifier = new UserExpectationVerifier();
+    verifier.customizeModelCallback = model => {
+      model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx(
+          {title: 'VideoPlayback', start: 0, end: 100, isTopLevel: true}));
+      ChromeTestUtils.addFrameEvent(model, {start: 10, end: 20}),
+      model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx(
+          {title: 'Animation', start: 90, end: 190, isTopLevel: true}));
+      ChromeTestUtils.addFrameEvent(model, {start: 110, end: 120});
+    };
+    verifier.expectedUEs = [
+      {title: 'Video Animation', start: 0, end: 100, eventCount: 2},
+      {title: 'CSS Animation', start: 90, end: 190, eventCount: 2},
+    ];
+    verifier.expectedSegments = [
+      {start: 0, end: 90, expectations: [verifier.expectedUEs[0]]},
+      {
+        start: 90,
+        end: 100,
+        expectations: [verifier.expectedUEs[0], verifier.expectedUEs[1]]
+      },
+      {start: 100, end: 190, expectations: [verifier.expectedUEs[1]]},
+    ];
+    verifier.verify();
+  });
+
   test('slowMouseMoveResponses', function() {
     var verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {

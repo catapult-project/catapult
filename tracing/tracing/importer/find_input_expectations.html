@@ -1042,17 +1042,19 @@ tr.exportTo('tr.importer', function() {
       // Only consider Animations for now.
       if (pe.type !== ProtoExpectation.ANIMATION_TYPE) continue;
 
-      var isCSS = pe.containsSliceTitle(CSS_ANIMATION_TITLE);
+      var isCSS = pe.initiatorType === INITIATOR_TYPE.CSS;
       var isFling = pe.containsTypeNames([INPUT_TYPE.FLING_START]);
-      var isVideo = pe.containsTypeNames([INITIATOR_TYPE.VIDEO]);
+      var isVideo = pe.initiatorType === INITIATOR_TYPE.VIDEO;
 
       for (var i = 0; i < protoExpectations.length; ++i) {
         var otherPE = protoExpectations[i];
 
         if (otherPE.type !== pe.type) continue;
 
-        // Don't merge CSS Animations with any other types.
-        if (isCSS !== otherPE.containsSliceTitle(CSS_ANIMATION_TITLE)) {
+        // Don't merge some animation types with others.
+        if ((isCSS && otherPE.initiatorType !== INITIATOR_TYPE.CSS) ||
+            isFling !== otherPE.containsTypeNames([INPUT_TYPE.FLING_START]) ||
+            isVideo && otherPE.initiatorType !== INITIATOR_TYPE.VIDEO) {
           continue;
         }
 
@@ -1061,16 +1063,6 @@ tr.exportTo('tr.importer', function() {
             continue;
           }
         } else if (!otherPE.intersects(pe)) {
-          continue;
-        }
-
-        // Don't merge Fling Animations with any other types.
-        if (isFling !== otherPE.containsTypeNames([INPUT_TYPE.FLING_START])) {
-          continue;
-        }
-
-        // Don't merge Video Animations with any other types.
-        if (isVideo !== otherPE.containsTypeNames([INITIATOR_TYPE.VIDEO])) {
           continue;
         }
 
@@ -1282,7 +1274,7 @@ tr.exportTo('tr.importer', function() {
     findInputExpectations,
     compareEvents,
     CSS_ANIMATION_TITLE,
-    INITIATOR_TYPE,
+    INITIATOR_TYPE
   };
 });
 </script>
