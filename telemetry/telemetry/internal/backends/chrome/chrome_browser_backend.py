@@ -8,6 +8,7 @@ import shlex
 import sys
 
 from telemetry.core import exceptions
+from telemetry.core import util
 from telemetry import decorators
 from telemetry.internal.backends import browser_backend
 from telemetry.internal.backends.chrome import extension_backend
@@ -269,6 +270,10 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     if self._system_info_backend is None:
       self._system_info_backend = system_info_backend.SystemInfoBackend(
           self._port)
+    # TODO(crbug.com/706336): Remove this condional branch once crbug.com/704024
+    # is fixed.
+    if util.IsRunningOnCrosDevice():
+      return self._system_info_backend.GetSystemInfo(timeout=30)
     return self._system_info_backend.GetSystemInfo()
 
   @property
