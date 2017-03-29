@@ -88,7 +88,7 @@ class Dep(collections.namedtuple('Dep', ('repository', 'git_hash'))):
   """A git repository pinned to a particular commit."""
 
   def __str__(self):
-    return self.repository.split('/')[-1] + '@' + self.git_hash
+    return self.repository.split('/')[-1] + '@' + self.git_hash[:7]
 
   @classmethod
   def Midpoint(cls, dep_a, dep_b):

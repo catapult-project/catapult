@@ -61,11 +61,29 @@ found in the LICENSE file.
         <table>
           <template is="dom-repeat" items="{{jobProperties}}">
             <tr>
-                <td>{{item.name}}</td>
-                <td>{{item.value}}</td>
+              <td>{{item.name}}</td>
+              <td>{{item.value}}</td>
             <tr>
           </template>
-        </table>          
+        </table>
+        <table>
+          <thead>
+            <tr>
+              <th></th>
+              <template is="dom-repeat" items="{{jobInfo.state.changes}}">
+                <th>{{item}}</th>
+              </template>
+            </tr>
+          </thead>
+          <template is="dom-repeat" items="{{jobInfo.state.quests}}" as="quest" index-as="questIndex">
+            <tr>
+              <th>{{quest(questIndex)}}</th>
+              <template is="dom-repeat" items="{{jobInfo.state.changes}}" as="change" index-as="changeIndex">
+                <td>{{resultValues(changeIndex, questIndex)}}</td>
+              </template>
+            <tr>
+          </template>
+        </table>
         </template>
       </div>
     </template>
@@ -98,6 +116,14 @@ found in the LICENSE file.
           type: String,
           value: ''
         }
+      },
+
+      quest: function(questIndex) {
+        return this.jobInfo.state.quests[questIndex];
+      },
+
+      resultValues: function(changeIndex, questIndex) {
+        return this.jobInfo.state.result_values[changeIndex][questIndex];
       },
 
       deselected: function() {
