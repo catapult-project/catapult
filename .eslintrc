@@ -26,7 +26,7 @@
       "computed-property-spacing": "error",
       "consistent-this": ["error", "void"],
       "constructor-super": "error",
-      "curly": "off",
+      "curly": ["error", "multi-line", "consistent"],
       "default-case": "off",
       "dot-location": "off",
       "dot-notation": "off",

@@ -162,8 +162,9 @@ tr.exportTo('tr.metrics', function() {
       if (navStartCandidate.title === HANDLE_INPUT_EVENT_TITLE) {
         let inputLatencySlice = inputLatencyEventByBindIdMap.get(
             Number(navStartCandidate.parentSlice.bindId));
-        if (inputLatencySlice)
+        if (inputLatencySlice) {
           spaNavEventToNavStartEventMap.set(spaNavEvent, inputLatencySlice);
+        }
       } else {
         spaNavEventToNavStartEventMap.set(spaNavEvent, navStartCandidate);
       }
