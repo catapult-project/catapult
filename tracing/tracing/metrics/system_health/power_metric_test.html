@@ -10,6 +10,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/metrics/system_health/power_metric.html">
 <link rel="import" href="/tracing/model/user_model/idle_expectation.html">
 <link rel="import" href="/tracing/model/user_model/load_expectation.html">
+<link rel="import" href="/tracing/model/user_model/user_expectation.html">
 <link rel="import" href="/tracing/value/histogram_set.html">
 
 <script>
@@ -302,7 +303,7 @@ tr.b.unittest.testSuite(function() {
         model.device.powerSeries.addPowerSample(i, i);
       }
       model.userModel.expectations.push(new tr.model.um.ResponseExpectation(
-          model, tr.importer.INITIATOR_TYPE.SCROLL, 0, 500));
+          model, tr.model.um.INITIATOR_TYPE.SCROLL, 0, 500));
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
           model, 500, 1500));
     });
@@ -341,7 +342,7 @@ tr.b.unittest.testSuite(function() {
         model.device.powerSeries.addPowerSample(i, i);
       }
       model.userModel.expectations.push(new tr.model.um.ResponseExpectation(
-          model, tr.importer.INITIATOR_TYPE.SCROLL, 0, 500));
+          model, tr.model.um.INITIATOR_TYPE.SCROLL, 0, 500));
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
           model, 500, 1500));
     });
@@ -412,11 +413,11 @@ tr.b.unittest.testSuite(function() {
         model.device.powerSeries.addPowerSample(i, i);
       }
       model.userModel.expectations.push(new tr.model.um.ResponseExpectation(
-            model, tr.importer.INITIATOR_TYPE.SCROLL, 0, 200));
+            model, tr.model.um.INITIATOR_TYPE.SCROLL, 0, 200));
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
             model, 200, 300));
       model.userModel.expectations.push(new tr.model.um.ResponseExpectation(
-            model, tr.importer.INITIATOR_TYPE.SCROLL, 500, 400));
+            model, tr.model.um.INITIATOR_TYPE.SCROLL, 500, 400));
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
             model, 900, 100));
     });
@@ -615,7 +616,7 @@ tr.b.unittest.testSuite(function() {
         model.device.powerSeries.addPowerSample(i, i);
       }
       model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
-          model, tr.importer.INITIATOR_TYPE.SCROLL, 0, 500));
+          model, tr.model.um.INITIATOR_TYPE.SCROLL, 0, 500));
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
           model, 500, 500));
     });
@@ -650,11 +651,11 @@ tr.b.unittest.testSuite(function() {
         model.device.powerSeries.addPowerSample(i, i);
       }
       model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
-          model, tr.importer.INITIATOR_TYPE.SCROLL, 0, 200));
+          model, tr.model.um.INITIATOR_TYPE.SCROLL, 0, 200));
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
           model, 200, 300));
       model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
-          model, tr.importer.INITIATOR_TYPE.SCROLL, 500, 200));
+          model, tr.model.um.INITIATOR_TYPE.SCROLL, 500, 200));
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
           model, 700, 300));
     });
@@ -689,7 +690,7 @@ tr.b.unittest.testSuite(function() {
         model.device.powerSeries.addPowerSample(i, i);
       }
       model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
-          model, tr.importer.INITIATOR_TYPE.VIDEO, 0, 500));
+          model, tr.model.um.INITIATOR_TYPE.VIDEO, 0, 500));
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
           model, 500, 500));
     });
@@ -724,11 +725,11 @@ tr.b.unittest.testSuite(function() {
         model.device.powerSeries.addPowerSample(i, i);
       }
       model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
-          model, tr.importer.INITIATOR_TYPE.VIDEO, 0, 200));
+          model, tr.model.um.INITIATOR_TYPE.VIDEO, 0, 200));
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
           model, 200, 300));
       model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
-          model, tr.importer.INITIATOR_TYPE.VIDEO, 500, 200));
+          model, tr.model.um.INITIATOR_TYPE.VIDEO, 500, 200));
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
           model, 700, 300));
     });

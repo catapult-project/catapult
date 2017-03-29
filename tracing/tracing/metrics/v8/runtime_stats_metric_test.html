@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/extras/v8/v8_thread_slice.html">
 <link rel="import" href="/tracing/metrics/v8/runtime_stats_metric.html">
+<link rel="import" href="/tracing/model/user_model/user_expectation.html">
 <link rel="import" href="/tracing/value/histogram.html">
 <link rel="import" href="/tracing/value/histogram_set.html">
 
@@ -339,10 +340,10 @@ tr.b.unittest.testSuite(function() {
           model, tr.model.um.LOAD_SUBTYPE_NAMES.SUCCESSFUL, 0, 1000));
 
       model.userModel.expectations.push(new tr.model.um.ResponseExpectation(
-          model, tr.importer.INITIATOR_TYPE.SCROLL, 1000, 1100));
+          model, tr.model.um.INITIATOR_TYPE.SCROLL, 1000, 1100));
 
       model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
-          model, tr.importer.INITIATOR_TYPE.VIDEO, 2000, 1000));
+          model, tr.model.um.INITIATOR_TYPE.VIDEO, 2000, 1000));
 
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
           model, 3000, 500));
