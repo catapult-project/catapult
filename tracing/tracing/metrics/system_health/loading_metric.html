@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/category_util.html">
 <link rel="import" href="/tracing/base/math/statistics.html">
 <link rel="import" href="/tracing/metrics/metric_registry.html">
+<link rel="import" href="/tracing/metrics/system_health/breakdown_tree_helpers.html">
 <link rel="import" href="/tracing/metrics/system_health/utils.html">
 <link rel="import" href="/tracing/model/helpers/chrome_model_helper.html">
 <link rel="import" href="/tracing/model/timed_event.html">
@@ -198,8 +199,8 @@ tr.exportTo('tr.metrics.sh', function() {
 
     var timeToFirstMeaningfulPaint =
         fmpMarkerEvent.start - navigationStart.start;
-    var breakdownTree = rendererHelper.generateWallClockTimeBreakdownTree(
-        navigationStart.start, fmpMarkerEvent.start);
+    var breakdownTree = tr.metrics.sh.generateWallClockTimeBreakdownTree(
+        rendererHelper.mainThread, navigationStart.start, fmpMarkerEvent.start);
     var breakdownDiagnostic = createBreakdownDiagnostic(breakdownTree);
     samples.push({
       value: timeToFirstMeaningfulPaint,
@@ -231,8 +232,9 @@ tr.exportTo('tr.metrics.sh', function() {
     var mainThreadCpuTime = getMainThreadCpuTime(rendererHelper,
         rangeOfInterest);
 
-    var breakdownTree = rendererHelper.generateCpuTimeBreakdownTree(
-        navigationStart.cpuStart, fmpMarkerEvent.cpuStart);
+    var breakdownTree = tr.metrics.sh.generateCpuTimeBreakdownTree(
+        rendererHelper.mainThread, navigationStart.cpuStart,
+        fmpMarkerEvent.cpuStart);
     var breakdownDiagnostic = createBreakdownDiagnostic(breakdownTree);
     samples.push({
       value: mainThreadCpuTime,
@@ -293,8 +295,8 @@ tr.exportTo('tr.metrics.sh', function() {
         lastLongTaskEvent = ev;
       }
     }
-    var breakdownTree = rendererHelper.generateWallClockTimeBreakdownTree(
-        navigationStartTime, firstInteractive);
+    var breakdownTree = tr.metrics.sh.generateWallClockTimeBreakdownTree(
+        rendererHelper.mainThread, navigationStartTime, firstInteractive);
     var breakdownDiagnostic = createBreakdownDiagnostic(breakdownTree);
 
     var timeToFirstInteractive = firstInteractive - navigationStartTime;

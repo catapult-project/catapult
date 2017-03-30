@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/math/range.html">
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/metrics/spa_navigation_helper.html">
+<link rel="import" href="/tracing/metrics/system_health/breakdown_tree_helpers.html">
 <link rel="import" href="/tracing/value/histogram.html">
 
 <script>
@@ -62,8 +63,8 @@ tr.exportTo('tr.metrics', function() {
           beginTs = spaNav.navStartCandidates.goToIndexSlice.start;
         }
         let duration = spaNav.firstPaintEvent.start - beginTs;
-        let breakdownDict = rendererHelper.generateWallClockTimeBreakdownTree(
-            beginTs, spaNav.firstPaintEvent.start);
+        let breakdownDict = tr.metrics.sh.generateWallClockTimeBreakdownTree(
+            rendererHelper.mainThread, beginTs, spaNav.firstPaintEvent.start);
         let breakdownDiagnostic = new tr.v.d.Breakdown();
         breakdownDiagnostic.colorScheme =
             tr.v.d.COLOR_SCHEME_CHROME_USER_FRIENDLY_CATEGORY_DRIVER;
