@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/math/range.html">
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/value/histogram.html">
 
@@ -159,7 +160,8 @@ tr.exportTo('tr.metrics.sh', function() {
 
         for (var sliceId in thread.timeSlices) {
           var slice = thread.timeSlices[sliceId];
-          var sliceRange = tr.b.Range.fromExplicitRange(slice.start, slice.end);
+          var sliceRange =
+              tr.b.math.Range.fromExplicitRange(slice.start, slice.end);
           var intersection = rangeOfInterest.findIntersection(sliceRange);
           var duration = intersection.duration;
           if (duration === 0) continue;

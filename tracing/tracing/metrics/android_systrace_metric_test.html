@@ -114,5 +114,33 @@ tr.b.unittest.testSuite(function() {
     ];
     testStartup(systrace, 1500);
   });
+
+  test('androidSystraceMetric_threadtime_simple', function() {
+    let model = tr.c.TestUtils.newModel(model => {
+      let process = model.getOrCreateProcess(42);
+      process.name = 'garbage_producer';
+      let thread = process.getOrCreateThread(42);
+      thread.timeSlices = [
+        tr.c.TestUtils.newThreadSlice(thread, 'Sleeping', 0, 100),
+        tr.c.TestUtils.newThreadSlice(thread, 'Running', 100, 400)
+      ];
+    });
+
+    let histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.androidSystraceMetric(histograms, model);
+    assert.lengthOf(histograms, 5);
+
+    let assertHistValue = function(name, expectedValue) {
+      let hist = histograms.getHistogramNamed(
+          `android:systrace:threadtime:garbage_producer:${name}`);
+      assert.strictEqual(hist.running.count, 1);
+      assert.closeTo(hist.running.mean, expectedValue, 1e-5);
+    };
+    assertHistValue('running', 0.8);
+    assertHistValue('runnable', 0);
+    assertHistValue('sleeping', 0.2);
+    assertHistValue('blockio', 0);
+    assertHistValue('uninterruptible', 0);
+  });
 });
 </script>
