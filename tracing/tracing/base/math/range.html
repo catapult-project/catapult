@@ -25,6 +25,11 @@ tr.exportTo('tr.b.math', function() {
   Range.prototype = {
     __proto__: Object.prototype,
 
+    clone: function() {
+      if (this.isEmpty) return new Range();
+      return Range.fromExplicitRange(this.min_, this.max_);
+    },
+
     reset: function() {
       this.isEmpty_ = true;
       this.min_ = undefined;
@@ -259,6 +264,55 @@ tr.exportTo('tr.b.math', function() {
     if (!a.isEmpty && b.isEmpty) return 1;
 
     return 0;
+  };
+
+  /**
+  * Subtracts the intersection of |rangeA| and |rangeB| from |rangeA| and
+  * returns the remaining ranges as return. |rangeA| and |rangeB| are
+  * not changed during the subtraction.
+  *
+  * rangeA:       |==========|
+  * rangeB:          |===|
+  * result:       |==|   |===|
+  *
+  * @param {tr.b.math.Range} rangeA
+  * @param {tr.b.math.Range} rangeB
+  * @return {Array.<tr.b.math.Range>} An array of ranges which is the result of
+  * the subtraction.
+  */
+  Range.findDifference = function(rangeA, rangeB) {
+    if (!rangeA || rangeA.duration < 0 || !rangeB || rangeB.duration < 0) {
+      throw new Error(`Couldn't subtract ranges`);
+    }
+    const resultRanges = [];
+
+    if (rangeA.isEmpty) return resultRanges;
+    if (rangeB.isEmpty) return [rangeA.clone()];
+
+    const intersection = rangeA.findIntersection(rangeB);
+    if (intersection.isEmpty) {
+      return [rangeA.clone()];
+    }
+    if (rangeA.duration === 0 && rangeB.duration === 0) {
+      if (intersection.empty) return [rangeA.clone()];
+      else if (intersection.duration === 0) return resultRanges;
+      throw new Error(`Two points' intersection can only be a point or empty`);
+    }
+
+    //  rangeA:       |==========|
+    //  rangeB:          |===|
+    //  result:       |==|   |===|
+    const leftRange = tr.b.math.Range.fromExplicitRange(
+        rangeA.min, intersection.min);
+    if (leftRange.duration > 0) {
+      resultRanges.push(leftRange);
+    }
+    const rightRange = tr.b.math.Range.fromExplicitRange(
+        intersection.max, rangeA.max);
+    if (rightRange.duration > 0) {
+      resultRanges.push(rightRange);
+    }
+    return resultRanges;
   };
 
   Range.PERCENT_RANGE = Range.fromExplicitRange(0, 1);
