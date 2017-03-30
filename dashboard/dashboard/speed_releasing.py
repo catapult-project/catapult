@@ -11,6 +11,7 @@ import urllib
 from google.appengine.ext import ndb
 
 from dashboard import alerts
+from dashboard.common import datastore_hooks
 from dashboard.common import request_handler
 from dashboard.common import utils
 from dashboard.models import anomaly
@@ -316,6 +317,10 @@ def _UpdateNewestRevInMilestoneDict(bots, tests, milestone_dict):
   if bots and tests:
     test_path = bots[0] + '/' + tests[0]
     test_key = utils.TestKey(test_path)
+    # Need to allow set this request as privileged in order to bypass datastore
+    # hooks. This is okay here because table_config is internal_only protected
+    # and will ensure that only the correct users can see internal_only data.
+    datastore_hooks.SetSinglePrivilegedRequest()
     query = graph_data.Row.query()
     query = query.filter(
         graph_data.Row.parent_test == utils.OldStyleTestKey(test_key))
