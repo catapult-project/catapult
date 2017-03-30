@@ -66,7 +66,8 @@ class SpeedReleasingTest(testing_common.TestCase):
         name=name, bots=_SAMPLE_BOTS if not is_downstream else _DOWNSTREAM_BOTS,
         tests=_SAMPLE_TESTS,
         layout=_SAMPLE_LAYOUT,
-        username='internal@chromium.org')
+        username='internal@chromium.org',
+        override=0)
     return keys
 
   def _AddSheriffToDatastore(self):

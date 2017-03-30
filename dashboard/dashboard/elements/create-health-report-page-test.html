@@ -21,7 +21,20 @@ tr.b.unittest.testSuite(function() {
     }
   };
 
+  const readyParams = {
+    getTableConfigList: true,
+    xsrf_token: '',
+  };
+
+  const mockTableConfigs = {
+    table_config_list: ['table1', 'table2'],
+  };
+
   test('onSubmit sends request with parameters', function() {
+    var tableQuery = '/create_health_report?' +
+        testing_common.paramString(readyParams);
+    testing_common.addXhrMock(tableQuery, JSON.stringify(mockTableConfigs));
+
     var tokenParams = {
       getToken: true
     };
@@ -37,11 +50,13 @@ tr.b.unittest.testSuite(function() {
       tableLayout: 'testLayout',
       tableName: 'testName',
       tableTests: 'testTest',
-      xsrf_token: 'fakeToken'
+      xsrf_token: 'fakeToken',
+      override: 0
     };
     var mockTableResponse = {
       'xsrf_token': 'fakeToken',
-      'name': 'testName'
+      'name': 'testName',
+      'override': 0
     };
     var tableQuery = '/create_health_report?' +
         testing_common.paramString(tableParams);
@@ -57,6 +72,9 @@ tr.b.unittest.testSuite(function() {
   }, testOptions);
 
   test('instantiation', function() {
+    var tableQuery = '/create_health_report?' +
+        testing_common.paramString(readyParams);
+    testing_common.addXhrMock(tableQuery, JSON.stringify(mockTableConfigs));
     var page = document.createElement('create-health-report-page');
     this.addHTMLOutput(page);
   }, testOptions);

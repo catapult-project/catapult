@@ -55,7 +55,7 @@ class TableConfig(internal_only_model.InternalOnlyModel):
   # The username of the creator
   username = ndb.StringProperty()
 
-def CreateTableConfig(name, bots, tests, layout, username):
+def CreateTableConfig(name, bots, tests, layout, username, override):
   """Performs checks to verify bots and layout are valid, sets internal_only.
 
   Args:
@@ -88,7 +88,7 @@ def CreateTableConfig(name, bots, tests, layout, username):
         raise BadRequestError('Invalid Master/Bot: %s' % bot)
 
     table_check = ndb.Key('TableConfig', name).get()
-    if table_check:
+    if table_check and not override:
       raise BadRequestError('%s already exists.' % name)
 
     for bot in bots:

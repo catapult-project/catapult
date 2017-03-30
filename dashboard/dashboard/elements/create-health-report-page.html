@@ -59,6 +59,9 @@ found in the LICENSE file.
       <div id="loading-spinner"><img src="//www.google.com/images/loading.gif"></div>
     </template>
     <div id="content">
+      <template is="dom-if" if="{{error}}">
+        <div class="error">{{error}}</div>
+      </template>
       <p id="success" 
         hidden$="{{hideSuccess}}">Report created successfully. You can
                  view it here: <a href="/speed_releasing/{{endpointName}}">
@@ -66,7 +69,16 @@ found in the LICENSE file.
                                </a>
       </p>
       <h1>Create a Health Report</h1>
-
+      <p>Or edit one:</p>
+      <paper-dropdown-menu id="testSelect" on-iron-select="onEditChanged">
+        <paper-listbox class="dropdown-content">
+          <paper-item label=""></paper-item>
+          <template is="dom-repeat" items="{{tableConfigs}}">
+            <paper-item label="{{item}}">{{item}}</paper-item>
+          </template>
+        </paper-listbox>
+      </paper-dropdown-menu>
+      <br>
       <b>User-friendly name:</b><br>
       <paper-input id="name" value="{{name}}" label="Report Name" required 
                    auto-validate error-message="Required field.">
@@ -105,10 +117,6 @@ found in the LICENSE file.
                       label="Table Layout" required auto-validate
                       error-message="Required field.">
       </paper-textarea>
-      <br>
-      <template is="dom-if" if="{{error}}">
-        <div class="error">{{error}}</div>
-      </template>
       <paper-button raised on-click="onSubmit">Submit</paper-button>
     </div>
   </template>
@@ -155,6 +163,14 @@ found in the LICENSE file.
           type: String,
           value: ''
         },
+        tableConfigs: {
+          type: Array,
+          value: [],
+        },
+        selectedTableConfig: {
+          type: String,
+          value: ''
+        }
       },
 
       onSubmit: function() {
@@ -167,7 +183,7 @@ found in the LICENSE file.
 
       checkToken: function() {
         var params = {
-          'getToken': true,
+          getToken: true,
         };
         simple_xhr.send('/create_health_report', params,
             function(response) {
@@ -183,12 +199,17 @@ found in the LICENSE file.
 
       buildTable: function() {
         this.loading = true;
+        var override = 0;
+        if (this.selectedTableConfig == this.name) {
+          override = 1;  // Tell server it is okay to override the config.
+        }
         var params = {
-          'tableLayout': this.layout,
-          'tableName': this.name,
-          'tableBots': this.bots,
-          'tableTests': this.tests,
-          'xsrf_token': this.xsrfToken,
+          tableLayout: this.layout,
+          tableName: this.name,
+          tableBots: this.bots,
+          tableTests: this.tests,
+          xsrf_token: this.xsrfToken,
+          override: override,
         };
         simple_xhr.send('/create_health_report', params,
             function(response) {
@@ -200,6 +221,43 @@ found in the LICENSE file.
             function(msg) {
               this.error = msg;
               this.loading = false;
+              window.scrollTo(0, 0);
+              this.hideSuccess = true;
+            }.bind(this));
+      },
+
+      /*
+       * Goes and grabs the table_config details to populate the form with.
+       */
+      onEditChanged: function(e) {
+        this.selectedTableConfig = e.detail.item.label;
+        if (!this.selectedTableConfig) {
+          this.name = '';
+          this.bots = '';
+          this.tests = '';
+          this.layout = '';
+          return;
+        }
+        var params = {
+          getTableConfigDetails: this.selectedTableConfig,
+          xsrf_token: this.xsrfToken,
+        };
+        simple_xhr.send('/create_health_report', params,
+            function(response) {
+              this.loading = false;
+              this.name = response.table_name;
+              this.bots = '';
+              for (var i in response.table_bots) {
+                this.bots += (response.table_bots[i] + '\n');
+              }
+              this.tests = '';
+              for (var k in response.table_tests) {
+                this.tests += (response.table_tests[k] + '\n');
+              }
+              this.layout = response.table_layout;
+            }.bind(this),
+            function(msg) {
+              this.error = msg;
             }.bind(this));
       },
 
@@ -223,6 +281,23 @@ found in the LICENSE file.
         }
         return valid;
       },
+
+      ready: function() {
+        var params = {
+          getTableConfigList: true,
+          xsrf_token: this.xsrfToken,
+        };
+        this.loading = true;
+        simple_xhr.send('/create_health_report', params,
+            function(response) {
+              this.loading = false;
+              this.tableConfigs = response['table_config_list'];
+            }.bind(this),
+            function(msg) {
+              this.error = msg;
+              this.loading = false;
+            }.bind(this));
+      }
     });
   </script>
 </dom-module>
