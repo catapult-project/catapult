@@ -12,6 +12,7 @@ import StringIO
 
 from systrace import tracing_controller
 from systrace import trace_result
+from tracing.trace_data import trace_data
 
 
 # TODO(alexandermont): Current version of trace viewer does not support
@@ -20,6 +21,22 @@ from systrace import trace_result
 # trace viewer is working again.
 OUTPUT_CONTROLLER_TRACE_ = False
 CONTROLLER_TRACE_DATA_KEY = 'controllerTraceDataKey'
+_SYSTRACE_TO_TRACE_DATA_NAME_MAPPING = {
+    'systemTraceEvents': trace_data.ATRACE_PART,
+    'powerTraceAsString': trace_data.BATTOR_TRACE_PART,
+    'systraceController': trace_data.TELEMETRY_PART,
+    'traceEvents': trace_data.CHROME_TRACE_PART,
+}
+_SYSTRACE_HEADER = 'Systrace'
+
+
+def NewGenerateHTMLOutput(trace_results, output_file_name):
+  trace_data_builder = trace_data.TraceDataBuilder()
+  for trace in trace_results:
+    trace_data_part = _SYSTRACE_TO_TRACE_DATA_NAME_MAPPING.get(
+        trace.source_name)
+    trace_data_builder.AddTraceFor(trace_data_part, trace.raw_data)
+  trace_data_builder.AsData().Serialize(output_file_name, _SYSTRACE_HEADER)
 
 
 def GenerateHTMLOutput(trace_results, output_file_name):
@@ -32,6 +49,18 @@ def GenerateHTMLOutput(trace_results, output_file_name):
   """
   def _ReadAsset(src_dir, filename):
     return open(os.path.join(src_dir, filename)).read()
+
+  # TODO(rnephew): The tracing output formatter is able to handle a single
+  # systrace trace just as well as it handles multiple traces. The obvious thing
+  # to do here would be to use it all for all systrace output: however, we want
+  # to continue using the legacy way of formatting systrace output when a single
+  # systrace and the tracing controller trace are present in order to match the
+  # Java verison of systrace. Java systrace is expected to be deleted at a later
+  # date. We should consolidate this logic when that happens.
+
+  if len(trace_results) > 2:
+    NewGenerateHTMLOutput(trace_results, output_file_name)
+    return os.path.abspath(output_file_name)
 
   systrace_dir = os.path.abspath(os.path.dirname(__file__))
 
@@ -63,9 +92,6 @@ def GenerateHTMLOutput(trace_results, output_file_name):
   # for each tracing agent (including the controller tracing agent).
   html_file.write('<!-- BEGIN TRACE -->\n')
   for result in trace_results:
-    if (result.source_name == tracing_controller.TRACE_DATA_CONTROLLER_NAME and
-        not OUTPUT_CONTROLLER_TRACE_):
-      continue
     html_file.write('  <script class="trace-data" type="application/text">\n')
     html_file.write(_ConvertToHtmlString(result.raw_data))
     html_file.write('  </script>\n')
@@ -102,8 +128,6 @@ def GenerateJSONOutput(trace_results, output_file_name):
   results = _ConvertTraceListToDictionary(trace_results)
   results[CONTROLLER_TRACE_DATA_KEY] = (
       tracing_controller.TRACE_DATA_CONTROLLER_NAME)
-  if not OUTPUT_CONTROLLER_TRACE_:
-    results[tracing_controller.TRACE_DATA_CONTROLLER_NAME] = []
   with open(output_file_name, 'w') as json_file:
     json.dump(results, json_file)
   final_path = os.path.abspath(output_file_name)

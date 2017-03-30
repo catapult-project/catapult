@@ -10,6 +10,7 @@ manages the clock sync process.
 '''
 
 import ast
+import json
 import sys
 import py_utils
 import tempfile
@@ -74,9 +75,17 @@ class TracingControllerAgent(tracing_agents.TracingAgent):
     This output only contains the "controller side" of the clock sync records.
     """
     with open(self._log_path, 'r') as outfile:
-      result = outfile.read() + ']'
+      data = ast.literal_eval(outfile.read() + ']')
+    # Explicitly set its own clock domain. This will stop the Systrace clock
+    # domain from incorrectly being collapsed into the on device clock domain.
+    formatted_data = {
+        'traceEvents': data,
+        'metadata': {
+            'clock-domain': 'SYSTRACE',
+        }
+    }
     return trace_result.TraceResult(TRACE_DATA_CONTROLLER_NAME,
-                                    ast.literal_eval(result))
+                                    json.dumps(formatted_data))
 
   def SupportsExplicitClockSync(self):
     """Returns whether this supports explicit clock sync.
