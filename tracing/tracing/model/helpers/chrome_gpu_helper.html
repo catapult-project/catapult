@@ -13,6 +13,10 @@ found in the LICENSE file.
  * @fileoverview Utilities for accessing the Chrome GPU Process.
  */
 tr.exportTo('tr.model.helpers', function() {
+  // TODO(charliea): On Android, there are sometimes multiple CrGpuMain threads
+  // on a single GPU process. We need to fix this class to accommodate this.
+  // TODO(charliea): This method should probably throw if this isn't a Chrome
+  // GPU process.
   function ChromeGpuHelper(modelHelper, process) {
     tr.model.helpers.ChromeProcessHelper.call(this, modelHelper, process);
     this.mainThread_ = process.findAtMostOneThreadNamed('CrGpuMain');
@@ -23,6 +27,7 @@ tr.exportTo('tr.model.helpers', function() {
 
   ChromeGpuHelper.PROCESS_NAME = 'GPU Process';
 
+  // TODO(charliea): This method doesn't always return a boolean, but it should.
   ChromeGpuHelper.isGpuProcess = function(process) {
     // In some android builds the GPU thread is not in a separate process.
     if (process.findAtMostOneThreadNamed('CrBrowserMain') ||
