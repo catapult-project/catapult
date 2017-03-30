@@ -4,12 +4,13 @@
 
 import datetime
 import logging
+import os
 
 from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
 
-from dashboard import update_test_suites
 from dashboard import bug_details
+from dashboard import list_tests
 from dashboard.common import datastore_hooks
 from dashboard.common import request_handler
 from dashboard.common import utils
@@ -84,34 +85,37 @@ class GenerateBenchmarkHealthReportHandler(request_handler.RequestHandler):
     # knows of, and what is in the go/chrome-benchmarks spreadsheet. In the
     # short term, list benchmarks from both sources.
     benchmark_names = set()
-    dashboard_benchmarks = update_test_suites.FetchCachedTestSuites()
+    test_paths = list_tests.GetTestsMatchingPattern('%s/*/*' % master)
+    dashboard_benchmarks = set([p.split('/')[2] for p in test_paths])
     for benchmark in dashboard_benchmarks:
       benchmark_names.add(benchmark)
       benchmark_health_data.BenchmarkHealthData(
           parent=report.key, id=benchmark, name=benchmark).put()
 
-    spreadsheet_benchmarks = google_sheets_service.GetRange(
-        _BENCHMARK_SHEET_ID, _BENCHMARK_SHEET_NAME, _BENCHMARK_RANGE)
-    if not spreadsheet_benchmarks:
-      logging.error('Failed to load go/chrome-benchmarks')
-    else:
-      for row in spreadsheet_benchmarks:
-        if len(row) == 0:
-          continue
-        benchmark = row[0]
-        owner = None
-        if len(row) == 2:
-          owner = row[1]
-        benchmark_names.add(benchmark)
-        data = ndb.Key('BenchmarkHealthReport', name,
-                       'BenchmarkHealthData', benchmark).get()
-        if not data:
-          benchmark_health_data.BenchmarkHealthData(
-              parent=report.key, id=benchmark, name=benchmark,
-              owner=owner).put()
-        else:
-          data.owner = owner
-          data.put()
+    if master in ['ChromiumPerf', 'ClankInternal']:
+      # These masters have owner information in the spreadsheet.
+      spreadsheet_benchmarks = google_sheets_service.GetRange(
+          _BENCHMARK_SHEET_ID, _BENCHMARK_SHEET_NAME, _BENCHMARK_RANGE)
+      if not spreadsheet_benchmarks:
+        logging.error('Failed to load go/chrome-benchmarks')
+      else:
+        for row in spreadsheet_benchmarks:
+          if len(row) == 0:
+            continue
+          benchmark = row[0]
+          owner = None
+          if len(row) == 2:
+            owner = row[1]
+          benchmark_names.add(benchmark)
+          data = ndb.Key('BenchmarkHealthReport', name,
+                         'BenchmarkHealthData', benchmark).get()
+          if not data:
+            benchmark_health_data.BenchmarkHealthData(
+                parent=report.key, id=benchmark, name=benchmark,
+                owner=owner).put()
+          else:
+            data.owner = owner
+            data.put()
 
     report.expected_num_benchmarks = len(benchmark_names)
     report.put()
@@ -126,6 +130,7 @@ class GenerateBenchmarkHealthReportHandler(request_handler.RequestHandler):
       taskqueue.add(
           url='/generate_benchmark_health_report',
           params=params,
+          target=os.environ['CURRENT_VERSION_ID'].split('.')[0],
           queue_name=_TASK_QUEUE_NAME)
 
   def _FillBenchmarkDetailsToHealthReport(
@@ -135,21 +140,14 @@ class GenerateBenchmarkHealthReportHandler(request_handler.RequestHandler):
     if not benchmark:
       return
 
-    cached_data = update_test_suites.FetchCachedTestSuites().get(benchmark_name)
-    if not cached_data:
-      benchmark.is_complete = True
-      benchmark.put()
-      return
-    bots = cached_data['mas'].get(master, {}).keys()
-    monitored_paths = cached_data.get('mon', [])
+    durations_pattern = '%s/*/%s/BenchmarkDuration' % (master, benchmark_name)
+    test_paths = list_tests.GetTestsMatchingPattern(durations_pattern)
     futures = set()
-    for bot in bots:
-      for path in monitored_paths:
-        test_path = '%s/%s/%s/%s' % (master, bot, benchmark_name, path)
-        query = graph_data.Row.query(
-            graph_data.Row.parent_test == utils.OldStyleTestKey(test_path))
-        query = query.order(-graph_data.Row.revision)
-        futures.add(query.get_async())
+    for test_path in test_paths:
+      key = utils.OldStyleTestKey(test_path)
+      query = graph_data.Row.query(graph_data.Row.parent_test == key)
+      query = query.order(-graph_data.Row.revision)
+      futures.add(query.get_async())
     while futures:
       f = ndb.Future.wait_any(futures)
       futures.remove(f)
@@ -158,7 +156,7 @@ class GenerateBenchmarkHealthReportHandler(request_handler.RequestHandler):
         continue
       bot = utils.TestPath(row.parent_test).split('/')[1]
       benchmark.bots.append(benchmark_health_data.BotHealthData(
-          name=bot, last_update=row.timestamp))
+          name=bot, duration=row.value, last_update=row.timestamp))
 
     bug_ids = set()
     query = anomaly.Anomaly.query(
@@ -180,7 +178,7 @@ class GenerateBenchmarkHealthReportHandler(request_handler.RequestHandler):
           absolute_delta=alert.GetDisplayAbsoluteChanged()))
 
     for bug_id in bug_ids:
-      details = bug_details.GetBugDetails(bug_id)
+      details = bug_details.GetBugDetails(bug_id, utils.ServiceAccountHttp())
       benchmark.bugs.append(benchmark_health_data.BugHealthData(
           bug_id=bug_id,
           num_comments=len(details['comments']),

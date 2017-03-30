@@ -36,19 +36,19 @@ class BugDetailsHandler(request_handler.RequestHandler):
       self.ReportError('Invalid or no bug id specified.')
       return
 
-    self.response.out.write(json.dumps(GetBugDetails(bug_id)))
+    http = oauth2_decorator.DECORATOR.http()
+    self.response.out.write(json.dumps(GetBugDetails(bug_id, http)))
 
 
-def GetBugDetails(bug_id):
-  bug_details = _GetDetailsFromMonorail(bug_id)
+def GetBugDetails(bug_id, http):
+  bug_details = _GetDetailsFromMonorail(bug_id, http)
   bug_details['review_urls'] = _GetLinkedRevisions(
       bug_details['comments'])
   bug_details['bisects'] = _GetBisectsForBug(bug_id)
   return bug_details
 
 
-def _GetDetailsFromMonorail(bug_id):
-  http = oauth2_decorator.DECORATOR.http()
+def _GetDetailsFromMonorail(bug_id, http):
   issue_tracker = issue_tracker_service.IssueTrackerService(http)
   bug_details = issue_tracker.GetIssue(bug_id)
   if not bug_details:
@@ -83,5 +83,5 @@ def _GetBisectsForBug(bug_id):
       'status': b.status,
       'bot': b.bot,
       'buildbucket_link': '/buildbucket_job_status/%s' % b.buildbucket_job_id,
-      'metric': b.results_data.get('metric'),
+      'metric': (b.results_data or {}).get('metric'),
   } for b in bisects]

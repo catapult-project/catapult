@@ -16,12 +16,12 @@ class BenchmarkHealthReport(ndb.Model):
   """Ancestor class for a set of BenchmarkHealthData entities."""
   # The time the report was created.
   timestamp = ndb.DateTimeProperty(indexed=True, auto_now_add=True)
-  num_days = ndb.IntegerProperty()
-  master = ndb.StringProperty()
+  num_days = ndb.IntegerProperty(indexed=False)
+  master = ndb.StringProperty(indexed=False)
   # The report is created via several jobs in the task queue. We know how
   # many benchmarks should be created by these jobs. If the report is complete,
   # a query for its children produces expected_num_benchmarks.
-  expected_num_benchmarks = ndb.IntegerProperty()
+  expected_num_benchmarks = ndb.IntegerProperty(indexed=False)
 
   def GetReport(self):
     benchmarks = BenchmarkHealthData.query(
@@ -77,7 +77,7 @@ class AlertHealthData(ndb.Model):
 class BugHealthData(ndb.Model):
   bug_id = ndb.IntegerProperty()
   num_comments = ndb.IntegerProperty()
-  published = ndb.DateTimeProperty()
+  published = ndb.StringProperty()
   state = ndb.StringProperty()
   status = ndb.StringProperty()
   summary = ndb.StringProperty()
@@ -86,7 +86,7 @@ class BugHealthData(ndb.Model):
     return {
         'bug_id': self.bug_id,
         'num_comments': self.num_comments,
-        'published': self.published.isoformat(),
+        'published': self.published,
         'state': self.state,
         'status': self.status,
         'summary': self.summary,
@@ -116,6 +116,7 @@ class BotHealthData(ndb.Model):
   """Stores data about a single bot a benchmark is running on."""
   name = ndb.StringProperty()
   last_update = ndb.DateTimeProperty()
+  duration = ndb.FloatProperty()
   @ndb.ComputedProperty
   def platform(self):  # pylint: disable=invalid-name
     if 'android' in self.name:
@@ -131,6 +132,7 @@ class BotHealthData(ndb.Model):
   def AsDict(self):
     return {
         'name': self.name,
+        'duration': self.duration,
         'last_update': self.last_update.isoformat(),
         'platform': self.platform,
     }
@@ -138,13 +140,13 @@ class BotHealthData(ndb.Model):
 class BenchmarkHealthData(ndb.Model):
   """Stores health data for a single benchmark."""
   name = ndb.StringProperty()
-  owner = ndb.StringProperty()
-  alerts = ndb.StructuredProperty(AlertHealthData, repeated=True)
-  bots = ndb.StructuredProperty(BotHealthData, repeated=True)
-  bisects = ndb.StructuredProperty(BisectHealthData, repeated=True)
-  bugs = ndb.StructuredProperty(BugHealthData, repeated=True)
-  reviews = ndb.StructuredProperty(ReviewData, repeated=True)
-  is_complete = ndb.BooleanProperty(default=False)
+  owner = ndb.StringProperty(indexed=False)
+  alerts = ndb.LocalStructuredProperty(AlertHealthData, repeated=True)
+  bots = ndb.LocalStructuredProperty(BotHealthData, repeated=True)
+  bisects = ndb.LocalStructuredProperty(BisectHealthData, repeated=True)
+  bugs = ndb.LocalStructuredProperty(BugHealthData, repeated=True)
+  reviews = ndb.LocalStructuredProperty(ReviewData, repeated=True)
+  is_complete = ndb.BooleanProperty(default=False, indexed=False)
   @ndb.ComputedProperty
   def no_data_on_dashboard(self):  # pylint: disable=invalid-name
     return len(self.bots) == 0

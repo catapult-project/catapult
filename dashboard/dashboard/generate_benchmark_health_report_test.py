@@ -11,7 +11,6 @@ import webtest
 
 from dashboard import bug_details
 from dashboard import generate_benchmark_health_report
-from dashboard.common import stored_object
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import anomaly
@@ -19,11 +18,11 @@ from dashboard.models import benchmark_health_data
 from dashboard.services import google_sheets_service
 
 
-def _MockGetBugDetails(bug_id):
+def _MockGetBugDetails(bug_id, _):
   if bug_id == 12345:
     return {
         'comments': [1, 2, 3, 4, 5],
-        'published': datetime.datetime.now(),
+        'published': 'string date!',
         'state': 'open',
         'status': 'Untriaged',
         'summary': 'Bug 12345',
@@ -33,7 +32,7 @@ def _MockGetBugDetails(bug_id):
   elif bug_id == 99999:
     return {
         'comments': [1, 2, 3],
-        'published': datetime.datetime.now(),
+        'published': 'string date!',
         'state': 'closed',
         'status': 'Fixed',
         'summary': 'Bug 99999',
@@ -57,10 +56,11 @@ class GenerateBenchmarkHealthReportHandlerTest(testing_common.TestCase):
     self.testapp = webtest.TestApp(app)
 
   def _AddMockData(self):
-    mock_tests = [['ChromiumPerf'], ['windows'], {
+    testing_common.AddTests(['ChromiumPerf'], ['windows'], {
         'sunspider': {
             'Total': {},
             'ref': {},
+            'BenchmarkDuration': {},
         },
         'page_cycler': {
             'warm': {
@@ -68,20 +68,8 @@ class GenerateBenchmarkHealthReportHandlerTest(testing_common.TestCase):
                 'yahoo.com': {},
             }
         }
-    }]
-    testing_common.AddTests(*mock_tests)
-    test_suites = {
-        'sunspider': {
-            'mon': ['Total'],
-            'mas': {'ChromiumPerf': {'windows': False}},
-        },
-        'page_cycler': {
-            'mon': ['warm/cnn.com'],
-            'mas': {'ChromiumPerf': {'windows': False}},
-        },
-    }
-    stored_object.Set('internal_only__list_tests_get_test_suites', test_suites)
-    testing_common.AddRows('ChromiumPerf/windows/sunspider/Total', {
+    })
+    testing_common.AddRows('ChromiumPerf/windows/sunspider/BenchmarkDuration', {
         12345: {'timestamp':  datetime.datetime.now(), 'value': 5},
         12344: {
             'timestamp': datetime.datetime.now() - datetime.timedelta(days=10),
@@ -140,9 +128,9 @@ class GenerateBenchmarkHealthReportHandlerTest(testing_common.TestCase):
     self.assertEqual('DEFAULT NAME', report['name'])
     self.assertEqual(10, report['num_days'])
     self.assertEqual('ChromiumPerf', report['master'])
-    print reports[0].expected_num_benchmarks
     self.assertFalse(report['is_complete'])
 
+  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   @mock.patch.object(
       google_sheets_service, 'GetRange', mock.MagicMock(return_value=None))
   @mock.patch.object(
@@ -180,6 +168,7 @@ class GenerateBenchmarkHealthReportHandlerTest(testing_common.TestCase):
     self.assertLess(seconds_since_last_update, 1000)
     self.assertEqual(2, len(benchmarks[1].reviews))
 
+  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   @mock.patch.object(
       google_sheets_service, 'GetRange', mock.MagicMock(return_value=[
           ['sunspider', 'foo@chromium.org'],
