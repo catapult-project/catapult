@@ -198,10 +198,7 @@ found in the LICENSE file.
           <template is="dom-repeat" items="{{seriesGroupList}}" as="seriesGroup" index-as="groupIndex" id="grouplist">
 
             <paper-material elevation="1"
-                            class="series-set"
-                            draggable="true"
-                            on-dragstart="onSeriesDragStart"
-                            on-dragend="onSeriesDragEnd">
+                            class="series-set">
 
               <div class="layout horizontal">
                 <input type="checkbox"
@@ -471,48 +468,6 @@ found in the LICENSE file.
           }
         }.bind(this));
         this.updateNumHidden(groupIndex);
-      },
-
-      /**
-       * On series group box drag-start, set data to be transferred to on
-       * drop event.
-       */
-      onSeriesDragStart: function(event, detail) {
-        var groupIndex = this.$.grouplist.modelForElement(
-            event.target).groupIndex;
-        var testPath = this.seriesGroupList[groupIndex].path;
-        var selectedTests = [];
-        var unselectedTests = [];
-        var tests = this.seriesGroupList[groupIndex].tests;
-        for (var i = 0; i < tests.length; i++) {
-          if (tests[i].selected) {
-            selectedTests.push(tests[i].name);
-          } else {
-            unselectedTests.push(tests[i].name);
-          }
-        }
-        event.dataTransfer.setData('type', 'seriesdnd');
-        event.dataTransfer.setData(
-            'data', JSON.stringify({
-              mainPath: testPath,
-              selectedPaths: selectedTests,
-              unselectedPaths: unselectedTests
-            }));
-        event.dataTransfer.effectAllowed = 'copy';
-      },
-
-      /**
-       * On series group box drag-end, checks if drop target is valid,
-       * and remove series group.
-       */
-      onSeriesDragEnd: function(event, detail) {
-        // Successful drop.
-        if (event.dataTransfer.dropEffect == 'copy') {
-          var groupIndex = this.$.grouplist.modelForElement(
-              event.target).groupIndex;
-          // Let chart-container handle removing this group series.
-          this.fire('seriesgroupclosed', {'groupIndex': groupIndex});
-        }
       },
 
       fireChartStateChangedEvent: function() {
