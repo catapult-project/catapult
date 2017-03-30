@@ -34,7 +34,7 @@ tr.exportTo('tr.model.helpers', function() {
         process.findAtMostOneThreadNamed('CrRendererMain')) {
       return false;
     }
-    return process.findAtMostOneThreadNamed('CrGpuMain');
+    return !!process.findAtMostOneThreadNamed('CrGpuMain');
   };
 
   ChromeGpuHelper.prototype = {

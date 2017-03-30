@@ -93,13 +93,12 @@ tr.b.unittest.testSuite(function() {
     assert.isUndefined(gpuHelper.mainThread);
   });
 
-  test('isGpuProcess_undefinedIfNoMainThread', function() {
+  test('isGpuProcess_falseIfNoMainThread', function() {
     const model = tr.c.TestUtils.newModel(model => {
       model.getOrCreateProcess(1);
     });
 
-    assert.isUndefined(
-        ChromeGpuHelper.isGpuProcess(model.getOrCreateProcess(1)));
+    assert.isFalse(ChromeGpuHelper.isGpuProcess(model.getOrCreateProcess(1)));
   });
 
   test('isGpuProcess', function() {
@@ -107,9 +106,7 @@ tr.b.unittest.testSuite(function() {
       model.getOrCreateProcess(1).getOrCreateThread(1).name = 'CrGpuMain';
     });
 
-    assert.strictEqual(
-        ChromeGpuHelper.isGpuProcess(model.getOrCreateProcess(1)),
-        model.getOrCreateProcess(1).getOrCreateThread(1));
+    assert.isTrue(ChromeGpuHelper.isGpuProcess(model.getOrCreateProcess(1)));
   });
 
   test('isGpuProcess_throwsIfMultipleMainThreads', function() {
