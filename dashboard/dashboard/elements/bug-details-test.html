@@ -6,79 +6,216 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/dashboard/elements/bug-details.html">
-<link rel="import" href="/dashboard/static/testing_common.html">
 
 <link rel="import" href="/tracing/core/test_utils.html">
 
 <script>
 'use strict';
 
+const mockResponse = {
+  'review_urls': [
+    'http://codereview.google.com/12345',
+    'http://review.chromium.org/23435'
+  ],
+  'bisects': [
+    {
+      'status': 'failed',
+      'metric': 'Total',
+      'buildbucket_link': '/foo/bar',
+      'bot': 'android-nexus5-perf-bisect'
+    },
+    {
+      'status': 'started',
+      'metric': 'Total',
+      'buildbucket_link': '/foo/bar',
+      'bot': 'windows-perf-bisect'
+    },
+  ],
+  'owner': 'foo@bar.com',
+  'published': '2017-02-17T23:08:44',
+  'state': 'open',
+  'status': 'Untriaged',
+  'summary': 'A regression in Sunspider occurred!',
+  'comments': [
+    {
+      'author': 'foo@chromium.org',
+      'published': '2017-02-17T23:08:44',
+      'content': 'hello!'
+    },
+    {
+      'author': 'bar@chromium.org',
+      'published': '2017-02-17T23:08:44',
+      'content': 'world!'
+    }
+  ]
+};
+const mockResponseVariation = {
+  'review_urls': [
+    'http://codereview.google.com/1',
+    'http://review.chromium.org/2'
+  ],
+  'bisects': [
+    {
+      'status': 'failed',
+      'metric': 'Total',
+      'buildbucket_link': '/foo/bar',
+      'bot': 'android-nexus5-perf-bisect'
+    },
+    {
+      'status': 'failed',
+      'metric': 'Total',
+      'buildbucket_link': '/foo/bar',
+      'bot': 'windows-perf-bisect'
+    },
+  ],
+  'owner': 'foo@bar.baz',
+  'published': '2017-03-22T23:08:44',
+  'state': 'closed',
+  'status': 'WontFix',
+  'summary': 'This is a descriptive title.',
+  'comments': [
+    {
+      'author': 'foo@chromium.org',
+      'published': '2017-02-17T23:08:44',
+      'content': 'hello!'
+    }
+  ]
+};
+const errorResponse = new Error('invalid bug!');
+
+var xhrCalls = 0;  // Keeps track of misses on the cache.
+
+var testOptions = {
+  setUp: function() {
+    // TODO(eakuefner) Be able to correctly mock XHR here.
+    // See https://github.com/catapult-project/catapult/issues/3449
+    d.BugDetails.reset();
+    xhrCalls = 0;
+    d.BugDetails.makeMonorailCall = async function(bugId) {
+      xhrCalls = xhrCalls + 1;
+      return await mockResponse;
+    };
+  },
+  tearDown: function() {
+  }
+};
+
+var testOptionsForError = {
+  setUp: function() {
+    d.BugDetails.reset();
+    xhrCalls = 0;
+    d.BugDetails.makeMonorailCall = async function(bugId) {
+      xhrCalls = xhrCalls + 1;
+      return Promise.reject(errorResponse);
+    };
+  },
+  tearDown: function() {
+  }
+};
 
 tr.b.unittest.testSuite(function() {
-  var testOptions = {
-    setUp: function() {
-    },
-    tearDown: function() {
-      testing_common.clearXhrMock();
-    }
-  };
+  test('benchmarkSuccess', function() {
+    var obj = {};
+    obj[12345] = Promise.resolve(mockResponse);
+    d.BugDetails.prepopulate(obj);
 
-  test('instantiation', function() {
-    var mockResponse = {
-      'review_urls': [
-        'http://codereview.google.com/12345',
-        'http://review.chromium.org/23435'
-      ],
-      'bisects': [
-        {
-          'status': 'failed',
-          'metric': 'Total',
-          'buildbucket_link': '/foo/bar',
-          'bot': 'android-nexus5-perf-bisect'
-        },
-        {
-          'status': 'started',
-          'metric': 'Total',
-          'buildbucket_link': '/foo/bar',
-          'bot': 'windows-perf-bisect'
-        },
-      ],
-      'owner': 'foo@bar.com',
-      'published': '2017-02-17T23:08:44',
-      'state': 'open',
-      'status': 'Untriaged',
-      'summary': 'A regression in Sunspider occurred!',
-      'comments': [
-        {
-          'author': 'foo@chromium.org',
-          'published': '2017-02-17T23:08:44',
-          'content': 'hello!'
-        },
-        {
-          'author': 'bar@chromium.org',
-          'published': '2017-02-17T23:08:44',
-          'content': 'world!'
-        }
-      ]
-    };
-    testing_common.addXhrMock(
-        '/bug_details?bug_id=12345',
-        JSON.stringify(mockResponse));
     var e = document.createElement('bug-details');
     e.bugId = 12345;
     this.addHTMLOutput(e);
+
+    assert.strictEqual(xhrCalls, 0);
+    assert.strictEqual(d.BugDetails.getAllDetailsSize(), 1);
   }, testOptions);
 
-  test('error', function() {
-    var mockResponse = {
-      'error': 'failed to load!'
-    };
-    testing_common.addXhrMock(
-        '/bug_details?bug_id=12345',
-        JSON.stringify(mockResponse));
+  test('benchmarkErrorAndSuccess', function() {
+    var obj = {};
+    obj[12345] = Promise.resolve(mockResponse);
+    obj[54321] = Promise.reject(errorResponse);
+    d.BugDetails.prepopulate(obj);
+
     var e = document.createElement('bug-details');
     e.bugId = 12345;
     this.addHTMLOutput(e);
+
+    e = document.createElement('bug-details');
+    e.bugId = 54321;
+    this.addHTMLOutput(e);
+
+    e = document.createElement('bug-details');
+    e.bugId = -2;
+    this.addHTMLOutput(e);  // This should show an error.
+
+    assert.strictEqual(xhrCalls, 0);
+    assert.strictEqual(d.BugDetails.getAllDetailsSize(), 2);
   }, testOptions);
+
+  test('compactAllInTableErrorAndSuccess', function() {
+    var obj = {};
+    obj[1] = Promise.resolve(mockResponse);
+    obj[2] = Promise.resolve(mockResponseVariation);
+    obj[3] = Promise.reject(errorResponse);
+
+    d.BugDetails.prepopulate(obj);
+
+    var e = document.createElement('bug-details');
+    e.bugId = 1;
+    e.compactView = true;
+    this.addHTMLOutput(e);
+
+    e = document.createElement('bug-details');
+    e.bugId = 2;
+    e.compactView = true;
+    this.addHTMLOutput(e);
+
+    e = document.createElement('bug-details');
+    e.bugId = 3;
+    e.compactView = true;
+    this.addHTMLOutput(e);  // This should show an error.
+
+    // This one shouldn't add anything to the Map.
+    e = document.createElement('bug-details');
+    e.bugId = -2;
+    e.compactView = true;
+    this.addHTMLOutput(e);  // This won't appear (because it's compact view).
+
+    assert.strictEqual(xhrCalls, 0);  // 0 because everything was in the cache.
+    assert.strictEqual(d.BugDetails.getAllDetailsSize(), 3);
+  }, testOptions);
+
+  test('compactNoneInTableSuccess', function() {
+    var e = document.createElement('bug-details');
+    e.bugId = 1;
+    e.compactView = true;
+    this.addHTMLOutput(e);
+
+    e = document.createElement('bug-details');
+    e.bugId = 2;
+    e.compactView = true;
+    this.addHTMLOutput(e);
+
+    assert.strictEqual(xhrCalls, 2);  // 2 because nothing was in the cache.
+    assert.strictEqual(d.BugDetails.getAllDetailsSize(), 2);
+  }, testOptions);
+
+  test('compactNoneInTableError', function() {
+    var e = document.createElement('bug-details');
+    e.bugId = 1;
+    e.compactView = true;
+    this.addHTMLOutput(e);
+
+    e = document.createElement('bug-details');
+    e.bugId = 2;
+    e.compactView = true;
+    this.addHTMLOutput(e);
+
+    // This one shouldn't add anything to the Map.
+    e = document.createElement('bug-details');
+    e.bugId = -2;
+    e.compactView = true;
+    this.addHTMLOutput(e);  // This won't appear.
+
+    assert.strictEqual(xhrCalls, 2);  // 2 because nothing was in the cache.
+    assert.strictEqual(d.BugDetails.getAllDetailsSize(), 2);
+  }, testOptionsForError);
 });
 </script>

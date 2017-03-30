@@ -17,12 +17,19 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   var testOptions = {
+    setUp: function() {
+      d.BugDetails.reset();
+      var obj = {};
+      obj[12345] = Promise.resolve(mockBug);
+      obj[54321] = Promise.resolve(mockBug);
+      d.BugDetails.prepopulate(obj);
+    },
     tearDown: function() {
       testing_common.clearXhrMock();
     }
   };
 
-  var anomalies = [{
+  const anomalies = [{
     'end_revision': 395930,
     'dashboard_link': '\/do-not-click',
     'bug_id': null,
@@ -128,6 +135,27 @@ tr.b.unittest.testSuite(function() {
     'recovered': false
   },
   {
+    'end_revision': 395238,
+    'dashboard_link': '\/do-not-click',
+    'bug_id': 54321,
+    'key': 'agxzfmNocm9tZXBlcmZyFAsSB0Fub21hbHkYgIChzORBpgoM',
+    'date': '2016-05-21',
+    'median_before_anomaly': 9046443.9,
+    'bisect_status': null,
+    'testsuite': 'browser_tests',
+    'group': 'agxzfmNocm9tZXBlcmZyFwsSCkFsZXJ0R3JvdXyYgICgrKCEsQoM',
+    'start_revision': 395238,
+    'bot': 'mac',
+    'improvement': false,
+    'median_after_anomaly': 13144744.3,
+    'master': 'ChromiumPerf',
+    'percent_changed': '45.3%',
+    'absolute_delta': '1.22448',
+    'units': 'ms',
+    'test': 'video_total_bytes_H264\/bytes_sent',
+    'recovered': false
+  },
+  {
     'end_revision': 395213,
     'dashboard_link': '\/do-not-click',
     'bug_id': null,
@@ -169,6 +197,43 @@ tr.b.unittest.testSuite(function() {
     'test': 'video_total_bytes_H264\/bytes_recv',
     'recovered': false
   }];
+  const mockBug = {
+    'review_urls': [
+      'http://codereview.google.com/12345',
+      'http://review.chromium.org/23435'
+    ],
+    'bisects': [
+      {
+        'status': 'failed',
+        'metric': 'Total',
+        'buildbucket_link': '/foo/bar',
+        'bot': 'android-nexus5-perf-bisect'
+      },
+      {
+        'status': 'started',
+        'metric': 'Total',
+        'buildbucket_link': '/foo/bar',
+        'bot': 'windows-perf-bisect'
+      },
+    ],
+    'owner': 'foo@bar.com',
+    'published': '2017-02-17T23:08:44',
+    'state': 'open',
+    'status': 'Untriaged',
+    'summary': 'A regression occurred! Oh no!',
+    'comments': [
+      {
+        'author': 'foo@chromium.org',
+        'published': '2017-02-17T23:08:44',
+        'content': 'hello!'
+      },
+      {
+        'author': 'bar@chromium.org',
+        'published': '2017-02-17T23:08:44',
+        'content': 'world!'
+      }
+    ]
+  };
 
   test('instantiate', function() {
     var mockResponse = {

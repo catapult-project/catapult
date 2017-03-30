@@ -34,6 +34,15 @@ found in the LICENSE file.
       justify-content: center;
     }
 
+    :host {
+      --test-suite-max-width: 15%;
+      --test-suite-width: 11%;
+      --bot-max-width: 10%;
+      --bot-min-width: 10%;
+      --bot-width: 5%;
+      --percent-changed-width: 45px;
+      --absolute-delta-width: 60px;
+    }
     </style>
 
     <template is="dom-if" if="{{loading}}">
@@ -91,7 +100,7 @@ found in the LICENSE file.
         },
         sortDirection: {
           type: String,
-          value: 'down'
+          value: 'up'
         },
         extraAnomaliesColumns: {
           type: Array,
@@ -108,10 +117,14 @@ found in the LICENSE file.
             {
               'key': 'units',
               'label': 'Units'
+            },
+            {
+              'key': 'bug_details',
+              'label': 'Bug Details'
             }
             // TODO(jessimb): add extra columns as appropriate for speed
-            // releasing (e.g. bisect and monorail statuses). See catapult
-            // bugs #3353 and #3354.
+            // releasing (e.g. bisect statuses). See
+            // https://github.com/catapult-project/catapult/issues/3354
           ])
         },
       },

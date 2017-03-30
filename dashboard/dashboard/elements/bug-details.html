@@ -8,6 +8,8 @@ found in the LICENSE file.
 
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 
+<link rel="import" href="/tracing/base/base.html">
+
 <dom-module id="bug-details">
   <style>
     .error {
@@ -43,40 +45,114 @@ found in the LICENSE file.
       <div id="loading-spinner"><img src="//www.google.com/images/loading.gif"></div>
     </template>
     <template is="dom-if" if="{{!loading}}">
-      <table class="container">
-        <tr><th colspan="2">Bug <a href="http://crbug.com/{{bugId}}" target="_blank">{{bugId}}</a></th></tr>
-        <template is="dom-if" if="{{error}}">
-          <tr><td colspan="2" class="error">Could not load bug {{bugId}}. {{error}}</td></tr>
-        </template>
-        <template is="dom-if" if="{{!error}}">
-          <tr><td colspan="2">{{summary}}</td></tr>
-          <tr><td>Filed</td><td>{{formatDate(published)}}</td></tr>
-          <tr><td>Owner</td><td>{{owner}}</td></tr>
-          <tr><td>State</td><td>{{state}}</td></tr>
-          <tr><td>Status</td><td>{{status}}</td></tr>
-          <tr><td>Comments</td><td>{{comments.length}}</td></tr>
-          <template is="dom-if" if="{{bisects.length}}">
-            <tr>
-              <td class="bordered-cell">Bisects</td>
-              <td class="bordered-cell"><ul><template is="dom-repeat" items="{{bisects}}">
-                <li><a href="{{item.buildbucket_link}}">{{item.metric}} on {{item.bot}}</a>: {{item.status}}
-              </template></ul></td>
-            </tr>
+      <template is="dom-if" if={{!compactView}}>
+        <table class="container">
+          <tr><th colspan="2">Bug <a href="https://crbug.com/{{bugId}}" target="_blank">{{bugId}}</a></th></tr>
+          <template is="dom-if" if="{{error}}">
+            <tr><td colspan="2" class="error">
+              Could not load bug {{bugId}}. {{error}}</td></tr>
           </template>
-          <template is="dom-if" if="{{reviewUrls.length}}">
-            <tr>
-              <td class="bordered-cell">Changelists</td>
-              <td class="bordered-cell"><ul><template is="dom-repeat" items="{{reviewUrls}}">
-                <li><a href="{{item}}">{{item}}</a>
-              </template></ul></td>
-            </tr>
+          <template is="dom-if" if="{{isValidBug}}">
+            <tr><td colspan="2">{{summary}}</td></tr>
+            <tr><td>Filed</td><td>{{formatDate(published)}}</td></tr>
+            <tr><td>Owner</td><td>{{owner}}</td></tr>
+            <tr><td>State</td><td>{{state}}</td></tr>
+            <tr><td>Status</td><td>{{status}}</td></tr>
+            <tr><td>Comments</td><td>{{comments.length}}</td></tr>
+            <template is="dom-if" if="{{bisects.length}}">
+              <tr>
+                <td class="bordered-cell">Bisects</td>
+                <td class="bordered-cell"><ul>
+                <template is="dom-repeat" items="{{bisects}}">
+                  <li><a href="{{item.buildbucket_link}}">
+                  {{item.metric}} on {{item.bot}}</a>: {{item.status}}
+                </template></ul></td>
+              </tr>
+            </template>
+            <template is="dom-if" if="{{reviewUrls.length}}">
+              <tr>
+                <td class="bordered-cell">Changelists</td>
+                <td class="bordered-cell"><ul>
+                <template is="dom-repeat" items="{{reviewUrls}}">
+                  <li><a href="{{item}}">{{item}}</a>
+                </template></ul></td>
+              </tr>
+            </template>
           </template>
+        </table>
+        
+      </template>
+        <template is="dom-if" if={{compactView}}>
+          <template is="dom-if" if="{{error}}">
+            <p class="error">Could not load bug {{bugId}}. {{error}}</p>
+          </template>
+          <template is="dom-if" if={{isValidBug}}>
+            <br>
+            <a href="https://crbug.com/{{bugId}}" target="_blank">
+              {{summary}}</a>: <br>
+            Filed on {{formatDate(published)}} <br>
+            Owner: {{owner}} <br>
+            State: {{state}} <br>
+            Status: {{status}} with 
+            {{comments.length}} comments <br>
+            <template is="dom-if" if="{{bisects.length}}">
+              <template is="dom-repeat" items="{{bisects}}">
+                  <a href="{{item.buildbucket_link}}">
+                    bisect</a>: {{item.status}} <br>
+                </template>
+            </template>
+            <template is="dom-if" if="{{reviewUrls.length}}">
+              <template is="dom-repeat" items="{{reviewUrls}}">
+                  <a href="{{item}}">{{item}}</a><br>
+              </template>
+            </template>
         </template>
-      </table>
+      </template>
     </template>
   </template>
   <script>
     'use strict';
+    
+    tr.exportTo('d', function() {
+      var BugDetails = {
+        allDetails_: new Map()
+      };
+
+      BugDetails.getBugDetails = async function(bugId) {
+        if (this.allDetails_.has(bugId)) {
+          return await this.allDetails_.get(bugId);
+        }
+        const details = BugDetails.makeMonorailCall(bugId);
+        this.allDetails_.set(bugId, details);
+        return await details;
+      };
+
+      BugDetails.makeMonorailCall = async function(bugId) {
+        const params = {
+          bug_id: bugId
+        };
+        return await simple_xhr.asPromise('/bug_details', params);
+      };
+
+      BugDetails.prepopulate = function(obj) {
+        for (const [id, details] of Object.entries(obj)) {
+          this.allDetails_.set(Number(id), details);
+        }
+      };
+
+      BugDetails.getAllDetailsSize = function() {
+        return this.allDetails_.size;
+      };
+
+      BugDetails.reset = function() {
+        this.allDetails_ = new Map();
+      };
+
+      return {
+        BugDetails
+      };
+    });
+
     Polymer({
       is: 'bug-details',
       properties: {
@@ -86,16 +162,25 @@ found in the LICENSE file.
         },
         bugId: {
           notify: true,
-          type: Number
+          type: Number,
+          observer: 'ready'
         },
         comments: {
           notify: true,
           type: Array
         },
+        compactView: {
+          type: Boolean,
+          value: false
+        },
         error: {
           notify: true,
           type: Boolean,
           value: false
+        },
+        isValidBug: {
+          value: false,
+          type: Boolean
         },
         loading: {
           notify: true,
@@ -127,28 +212,33 @@ found in the LICENSE file.
         }
       },
 
-      formatDate: d => d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate(),
+      formatDate: d => d.getFullYear() + '-' + (d.getMonth() + 1) +
+                      '-' + d.getDate(),
 
-      attached: function() {
-        var params = {
-          'bug_id': this.bugId
-        };
-        simple_xhr.send('/bug_details', params,
-            response => {
-              this.bisects = response['bisects'];
-              this.comments = response['comments'];
-              this.owner = response['owner'];
-              this.published = new Date(response['published']);
-              this.reviewUrls = response['review_urls'];
-              this.state = response['state'];
-              this.status = response['status'];
-              this.summary = response['summary'];
-              this.loading = false;
-            },
-            errorMsg => {
-              this.error = errorMsg;
-              this.loading = false;
-            });
+      ready: async function() {
+        if (this.bugId > 0) {
+          this.isValidBug = true;
+          try {
+            var details = await d.BugDetails.getBugDetails(this.bugId);
+            this.bisects = details.bisects;
+            this.comments = details.comments;
+            this.owner = details.owner;
+            this.published = new Date(details.published);
+            this.reviewUrls = details.review_urls;
+            this.state = details.state;
+            this.status = details.status;
+            this.summary = details.summary;
+            this.loading = false;
+            this.error = undefined;
+          } catch (e) {
+            this.error = e;
+            this.loading = false;
+            this.isValidBug = false;
+          }
+        } else {
+          this.loading = false;
+          this.isValidBug = false;
+        }
       }
     });
   </script>

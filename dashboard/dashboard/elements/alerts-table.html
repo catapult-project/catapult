@@ -10,6 +10,7 @@ found in the LICENSE file.
 <link rel="import" href="/components/paper-button/paper-button.html">
 
 <link rel="import" href="/dashboard/elements/bisect-status.html">
+<link rel="import" href="/dashboard/elements/bug-details.html">
 <link rel="import" href="/dashboard/elements/bug-info-span.html">
 <link rel="import" href="/dashboard/elements/revision-range.html">
 <link rel="import" href="/dashboard/elements/stoppage-alert-debug-button.html">
@@ -76,20 +77,25 @@ found in the LICENSE file.
       }
 
       #alerts #testsuite {
-        max-width:20%;
+      /**
+       * We use the |var| function to allow users to set a custom width, since
+       * alerts-table supports adding additional columns. See
+       * https://www.polymer-project.org/1.0/docs/devguide/styling#xscope-styling
+       */
+        max-width: var(--test-suite-max-width, 20%);
         min-width: 10%;
-        width: 15%;
+        width: var(--test-suite-width, 15%);
       }
 
       #alerts #bot {
-        max-width:20%;
-        min-width: 10%;
-        width: 10%;
+        max-width: var(--bot-max-width, 20%);
+        min-width: var(--bot-min-width, 10%);
+        width: var(--bot-width, 10%);
       }
 
       #alerts #percent_changed {
         text-align: right;
-        width: 50px;
+        width: var(--percent-changed-width, 50px);
       }
 
       #alerts tbody tr {
@@ -179,8 +185,8 @@ found in the LICENSE file.
         color: #a00;
       }
 
-      #absolute_delta {
-        width: 100px;
+      #absolute_delta { 
+        width: var(--absolute-delta-width, 100px);
       }
 
       /* Checkboxes */
@@ -395,6 +401,12 @@ found in the LICENSE file.
                     alert-key="{{item.key}}"
                     bug-id="{{item.bug_id}}"></stoppage-alert-debug-button>
               </template>
+              <template is="dom-if" if="{{isBugDetailsKey(column.key)}}">
+                <bug-details 
+                    compact-view="true",
+                    bug-id="{{item.bug_id}}">
+                </bug-details>
+              </template>
             </td>
           </template>
         </tr>
@@ -505,7 +517,7 @@ found in the LICENSE file.
         NUM_ALERTS_TO_CHECK_ON_INIT: {
           type: Number,
           value: 10
-        }
+        },
       },
 
       /**
@@ -532,7 +544,8 @@ found in the LICENSE file.
 
       /**
        * Determines how to format the unit. E.g. switching between MiB and
-       * KiB as appropriate. Accepts tbmv1 and tbmv2 units.
+       * KiB as appropriate. Accepts tbmv1 and tbmv2 units. Also handles
+       * showing bug-details, which is used by speed releasing.
        */
       computeExtraColumnValue: function(item, key) {
         if (key === 'absolute_delta') {
@@ -556,6 +569,11 @@ found in the LICENSE file.
           }
           value = value + ' ' + unitName;
           return value;
+        } else if (key === 'bug_details') {
+          if (item.bug_id > 0) {
+            return item.bug_id;
+          }
+          return undefined;  // Don't display details for invalid bugs.
         }
         return item[key];
       },
@@ -568,6 +586,8 @@ found in the LICENSE file.
       hideUnitsColumn: key => key === 'units',
 
       isDebugButtonKey: key => key === 'debug_button',
+
+      isBugDetailsKey: key => key === 'bug_details',
 
       setAlertList: function(i, property, value) {
         this.set('alertList.' + i + '.' + property, value);

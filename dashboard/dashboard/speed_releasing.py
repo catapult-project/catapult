@@ -413,6 +413,7 @@ def _FetchAnomalies(table_entity, rev_a, rev_b):
       if test in utils.TestPath(anomaly_entity.test):
         anomalies.append(anomaly_entity)
         break
+  anomalies = [a for a in anomalies if not a.is_improvement]
 
   return anomalies
 
@@ -428,6 +429,7 @@ def _GetMilestoneForRevs(rev_a, rev_b, milestone_dict):
     if milestone[0] < rev_b <= milestone[1]:
       rev_b_milestone = key
   return rev_a_milestone, rev_b_milestone
+
 
 def _GetNavigationMilestones(rev_a_milestone, rev_b_milestone, milestone_dict):
   """Finds the next/previous milestones for navigation, if available.
