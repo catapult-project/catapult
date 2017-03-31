@@ -1073,8 +1073,8 @@ class StoryRunnerTest(unittest.TestCase):
 
         self.assertEqual(len(data['charts']), 1)
         charts = data['charts']
-        self.assertIn('BenchmarkDuration', charts)
-        duration = charts['BenchmarkDuration']
+        self.assertIn('benchmark_duration', charts)
+        duration = charts['benchmark_duration']
         self.assertIn("summary", duration)
         summary = duration['summary']
         duration = summary['value']

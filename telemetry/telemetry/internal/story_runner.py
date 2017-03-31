@@ -379,7 +379,7 @@ def RunBenchmark(benchmark, finder_options):
     finally:
       duration = time.time() - start
       results.AddSummaryValue(scalar.ScalarValue(
-          None, 'BenchmarkDuration', 'minutes', duration / 60.0))
+          None, 'benchmark_duration', 'minutes', duration / 60.0))
       results.PrintSummary()
   return return_code
 
