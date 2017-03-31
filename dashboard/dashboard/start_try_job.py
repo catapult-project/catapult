@@ -441,7 +441,8 @@ def _GuessCommandNonTelemetry(suite, bisect_bot):
             'gtest --release -s cc_perftests --verbose')
   if suite.startswith('resource_sizes'):
     match = re.match(r'.*\((.*)\)', suite)
-    assert match, 'resource_sizes could not extract suite name'
+    if not match:
+      return None
     apk_name = match.group(1)
     command = list(_NON_TELEMETRY_TEST_COMMANDS['resource_sizes'])
     command[-1] += '/apks/' + apk_name

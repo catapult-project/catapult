@@ -29,6 +29,23 @@ class AutoBisectTest(testing_common.TestCase):
     self.SetCurrentUser('internal@chromium.org')
 
   @mock.patch.object(auto_bisect.start_try_job, 'PerformBisect')
+  def testPost_FailedJobRunTwice_InvalidConfig_ResourceSizes(
+      self, mock_perform_bisect):
+    testing_common.AddTests(
+        ['ChromiumPerf'], ['linux-release'], {'resource_sizes': {}})
+    test_key = utils.TestKey('ChromiumPerf/linux-release/resource_sizes')
+    anomaly.Anomaly(
+        bug_id=111, test=test_key,
+        start_revision=300100, end_revision=300200,
+        median_before_anomaly=100, median_after_anomaly=200).put()
+    try_job.TryJob(
+        bug_id=111, status='failed',
+        last_ran_timestamp=datetime.datetime.now() - datetime.timedelta(days=8),
+        run_count=2).put()
+    self.testapp.post('/auto_bisect')
+    self.assertFalse(mock_perform_bisect.called)
+
+  @mock.patch.object(auto_bisect.start_try_job, 'PerformBisect')
   def testPost_FailedJobRunTwice_JobRestarted(self, mock_perform_bisect):
     testing_common.AddTests(
         ['ChromiumPerf'], ['linux-release'], {'sunspider': {'score': {}}})
