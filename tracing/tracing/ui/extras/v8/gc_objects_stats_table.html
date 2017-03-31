@@ -36,7 +36,7 @@ found in the LICENSE file.
 tr.exportTo('tr.ui.e.v8', function() {
   // The constant variables below should be consistent with
   // https://github.com/mlippautz/v8-heap-stats/blob/master/app/utils.js#L120
-  var InstanceTypeGroups = {
+  const INSTANCE_TYPE_GROUPS = {
     Rest: [
       'ACCESSOR_INFO_TYPE',
       'ACCESSOR_PAIR_TYPE',
@@ -172,31 +172,10 @@ tr.exportTo('tr.ui.e.v8', function() {
       '*CODE_BINARY_OP_IC',
       '*CODE_COMPARE_IC',
       '*CODE_TO_BOOLEAN_IC'
-    ],
-    CONTEXT_EXTENSION_TYPE: [
-      'CONTEXT_EXTENSION_TYPE'
-    ],
-    MAP_TYPE: [
-      'MAP_TYPE'
-    ],
-    BYTE_ARRAY_TYPE: [
-      'BYTE_ARRAY_TYPE'
-    ],
-    SHARED_FUNCTION_INFO_TYPE: [
-      'SHARED_FUNCTION_INFO_TYPE'
-    ],
-    WEAK_CELL_TYPE: [
-      'WEAK_CELL_TYPE'
-    ],
-    JS_OBJECT_TYPE: [
-      'JS_OBJECT_TYPE'
-    ],
-    JS_CONTEXT_EXTENSION_OBJECT_TYPE: [
-      'JS_CONTEXT_EXTENSION_OBJECT_TYPE'
     ]
   };
 
-  var InstanceSubTypeNames = {
+  const INSTANCE_SUB_TYPE_NAMES = {
     FIXED_ARRAY_TYPE: {
       keyToName: key => key.slice('*FIXED_ARRAY_'.length)
           .slice(0, -('_SUB_TYPE'.length)),
@@ -220,7 +199,7 @@ tr.exportTo('tr.ui.e.v8', function() {
     }
   };
 
-  var DIFF_COLOR = {
+  const DIFF_COLOR = {
     GREEN: '#64DD17',
     RED: '#D50000'
   };
@@ -332,7 +311,7 @@ tr.exportTo('tr.ui.e.v8', function() {
     }
 
     diff(other) {
-      var entry = new Entry(this.title_, other.count_ - this.count,
+      let entry = new Entry(this.title_, other.count_ - this.count,
                              other.overall_ - this.overall,
                              other.overAllocated_ - this.overAllocated, [], []);
       entry.overallPercent = computePercentage(entry.overall, this.overall);
@@ -373,7 +352,7 @@ tr.exportTo('tr.ui.e.v8', function() {
       this.overall_ += entry.overall;
       this.overAllocated_ += entry.overAllocated;
       if (this.bucketSize_ === entry.bucketSize) {
-        for (var i = 0; i < this.bucketSize_; ++i) {
+        for (let i = 0; i < this.bucketSize_; ++i) {
           this.histogram_[i] += entry.histogram[i];
           this.overAllocatedHistogram_[i] += entry.overAllocatedHistogram[i];
         }
@@ -382,17 +361,17 @@ tr.exportTo('tr.ui.e.v8', function() {
     }
 
     accumulateUnknown(title) {
-      var unknownCount = this.count_;
-      var unknownOverall = this.overall_;
-      var unknownOverAllocated = this.overAllocated_;
-      var unknownHistogram = tr.b.deepCopy(this.histogram_);
-      var unknownOverAllocatedHistogram =
+      let unknownCount = this.count_;
+      let unknownOverall = this.overall_;
+      let unknownOverAllocated = this.overAllocated_;
+      let unknownHistogram = tr.b.deepCopy(this.histogram_);
+      let unknownOverAllocatedHistogram =
           tr.b.deepCopy(this.overAllocatedHistogram_);
-      for (var entry of this.entries_.values()) {
+      for (let entry of this.entries_.values()) {
         unknownCount -= entry.count;
         unknownOverall -= entry.overall;
         unknownOverAllocated -= entry.overAllocated;
-        for (var i = 0; i < this.bucketSize_; ++i) {
+        for (let i = 0; i < this.bucketSize_; ++i) {
           unknownHistogram[i] -= entry.histogram[i];
           unknownOverAllocatedHistogram[i] -= entry.overAllocatedHistogram[i];
         }
@@ -405,7 +384,7 @@ tr.exportTo('tr.ui.e.v8', function() {
     }
 
     calculatePercentage() {
-      for (var entry of this.entries_.values()) {
+      for (let entry of this.entries_.values()) {
         entry.overallPercent = computePercentage(entry.overall, this.overall_);
         entry.overAllocatedPercent =
           computePercentage(entry.overAllocated, this.overAllocated_);
@@ -415,14 +394,15 @@ tr.exportTo('tr.ui.e.v8', function() {
     }
 
     diff(other) {
+      let newTitle = '';
       if (this.title_.startsWith('Isolate')) {
-        var newTitle = 'Total';
+        newTitle = 'Total';
       } else {
-        var newTitle = this.title_;
+        newTitle = this.title_;
       }
-      var result = new GroupedEntry(newTitle, 0, 0, 0, [], []);
-      for (var entry of this.entries_) {
-        var otherEntry = other.getEntryFromTitle(entry[0]);
+      let result = new GroupedEntry(newTitle, 0, 0, 0, [], []);
+      for (let entry of this.entries_) {
+        let otherEntry = other.getEntryFromTitle(entry[0]);
         if (otherEntry === undefined) continue;
         result.add(entry[1].diff(otherEntry));
       }
@@ -434,12 +414,12 @@ tr.exportTo('tr.ui.e.v8', function() {
   }
 
   function createSelector(targetEl, defaultValue, items, callback) {
-    var selectorEl = document.createElement('select');
+    let selectorEl = document.createElement('select');
     selectorEl.addEventListener('change', callback.bind(targetEl));
-    var defaultOptionEl = document.createElement('option');
-    for (var i = 0; i < items.length; i++) {
-      var item = items[i];
-      var optionEl = document.createElement('option');
+    let defaultOptionEl = document.createElement('option');
+    for (let i = 0; i < items.length; i++) {
+      let item = items[i];
+      let optionEl = document.createElement('option');
       Polymer.dom(optionEl).textContent = item.label;
       optionEl.targetPropertyValue = item.value;
       optionEl.item = item;
@@ -458,10 +438,10 @@ tr.exportTo('tr.ui.e.v8', function() {
       return selectorEl.children[selectorEl.selectedIndex].item;
     });
     selectorEl.__defineSetter__('selectedValue', function(v) {
-      for (var i = 0; i < selectorEl.children.length; i++) {
-        var value = selectorEl.children[i].targetPropertyValue;
+      for (let i = 0; i < selectorEl.children.length; i++) {
+        let value = selectorEl.children[i].targetPropertyValue;
         if (value === v) {
-          var changed = selectorEl.selectedIndex !== i;
+          let changed = selectorEl.selectedIndex !== i;
           if (changed) {
             selectorEl.selectedIndex = i;
             callback();
@@ -503,7 +483,7 @@ tr.exportTo('tr.ui.e.v8', function() {
         {
           title: 'Component',
           value: function(row) {
-            var typeEl = document.createElement('span');
+            let typeEl = document.createElement('span');
             typeEl.innerText = row.title;
             return typeEl;
           },
@@ -512,7 +492,7 @@ tr.exportTo('tr.ui.e.v8', function() {
         {
           title: 'Overall Memory(KB)',
           value: function(row) {
-            var spanEl = tr.ui.b.createSpan();
+            let spanEl = tr.ui.b.createSpan();
             spanEl.innerText = row.origin.overall.toFixed(3);
             return spanEl;
           },
@@ -523,7 +503,7 @@ tr.exportTo('tr.ui.e.v8', function() {
         {
           title: 'diff(KB)',
           value: function(row) {
-            var spanEl = tr.ui.b.createSpan();
+            let spanEl = tr.ui.b.createSpan();
             spanEl.innerText = plusMinus(row.overall);
             if (row.overall > 0) {
               spanEl.style.color = DIFF_COLOR.RED;
@@ -539,7 +519,7 @@ tr.exportTo('tr.ui.e.v8', function() {
         {
           title: 'diff(%)',
           value: function(row) {
-            var spanEl = tr.ui.b.createSpan();
+            let spanEl = tr.ui.b.createSpan();
             spanEl.innerText = addArrow(row.overallPercent);
             if (row.overall > 0) {
               spanEl.style.color = DIFF_COLOR.RED;
@@ -555,7 +535,7 @@ tr.exportTo('tr.ui.e.v8', function() {
         {
           title: 'Over Allocated Memory(KB)',
           value: function(row) {
-            var spanEl = tr.ui.b.createSpan();
+            let spanEl = tr.ui.b.createSpan();
             spanEl.innerText = row.origin.overAllocated.toFixed(3);
             return spanEl;
           },
@@ -566,7 +546,7 @@ tr.exportTo('tr.ui.e.v8', function() {
         {
           title: 'diff(KB)',
           value: function(row) {
-            var spanEl = tr.ui.b.createSpan();
+            let spanEl = tr.ui.b.createSpan();
             spanEl.innerText = plusMinus(row.overAllocated);
             if (row.overAllocated > 0) {
               spanEl.style.color = DIFF_COLOR.RED;
@@ -582,7 +562,7 @@ tr.exportTo('tr.ui.e.v8', function() {
         {
           title: 'diff(%)',
           value: function(row) {
-            var spanEl = tr.ui.b.createSpan();
+            let spanEl = tr.ui.b.createSpan();
             spanEl.innerText = addArrow(row.overAllocatedPercent);
             if (row.overAllocated > 0) {
               spanEl.style.color = DIFF_COLOR.RED;
@@ -598,7 +578,7 @@ tr.exportTo('tr.ui.e.v8', function() {
         {
           title: 'Count',
           value: function(row) {
-            var spanEl = tr.ui.b.createSpan();
+            let spanEl = tr.ui.b.createSpan();
             spanEl.innerText = row.origin.count;
             return spanEl;
           },
@@ -609,7 +589,7 @@ tr.exportTo('tr.ui.e.v8', function() {
         {
           title: 'diff',
           value: function(row) {
-            var spanEl = tr.ui.b.createSpan();
+            let spanEl = tr.ui.b.createSpan();
             spanEl.innerText = plusMinus(row.count, 0);
             if (row.count > 0) {
               spanEl.style.color = DIFF_COLOR.RED;
@@ -626,8 +606,8 @@ tr.exportTo('tr.ui.e.v8', function() {
     },
 
     buildOptions_: function() {
-      var items = [];
-      for (var isolateEntry of this.isolateEntries_) {
+      let items = [];
+      for (let isolateEntry of this.isolateEntries_) {
         items.push({
           label: isolateEntry.title,
           value: isolateEntry
@@ -637,7 +617,7 @@ tr.exportTo('tr.ui.e.v8', function() {
       this.selector1_ = createSelector(
           this, '', items, this.diffOptionChanged_);
       Polymer.dom(this.$.diffOption).appendChild(this.selector1_);
-      var spanEl = tr.ui.b.createSpan();
+      let spanEl = tr.ui.b.createSpan();
       spanEl.innerText = ' VS ';
       Polymer.dom(this.$.diffOption).appendChild(spanEl);
       this.selector2_ = createSelector(
@@ -646,8 +626,8 @@ tr.exportTo('tr.ui.e.v8', function() {
     },
 
     diffOptionChanged_: function() {
-      var isolateEntry1 = this.selector1_.selectedValue;
-      var isolateEntry2 = this.selector2_.selectedValue;
+      let isolateEntry1 = this.selector1_.selectedValue;
+      let isolateEntry2 = this.selector2_.selectedValue;
       if (isolateEntry1 === undefined || isolateEntry2 === undefined) {
         return;
       }
@@ -666,7 +646,7 @@ tr.exportTo('tr.ui.e.v8', function() {
         {
           title: 'Component',
           value: function(row) {
-            var typeEl = document.createElement('span');
+            let typeEl = document.createElement('span');
             typeEl.innerText = row.title;
             return typeEl;
           },
@@ -675,7 +655,7 @@ tr.exportTo('tr.ui.e.v8', function() {
         {
           title: 'Overall Memory (KB)',
           value: function(row) {
-            var typeEl = document.createElement('span');
+            let typeEl = document.createElement('span');
             typeEl.innerText = row.overall.toFixed(3);
             return typeEl;
           },
@@ -686,7 +666,7 @@ tr.exportTo('tr.ui.e.v8', function() {
         {
           title: 'Over Allocated Memory (KB)',
           value: function(row) {
-            var typeEl = document.createElement('span');
+            let typeEl = document.createElement('span');
             typeEl.innerText = row.overAllocated.toFixed(3);
             return typeEl;
           },
@@ -697,7 +677,7 @@ tr.exportTo('tr.ui.e.v8', function() {
         {
           title: 'Overall Count',
           value: function(row) {
-            var typeEl = document.createElement('span');
+            let typeEl = document.createElement('span');
             typeEl.innerText = row.count;
             return typeEl;
           },
@@ -708,7 +688,7 @@ tr.exportTo('tr.ui.e.v8', function() {
         {
           title: 'Overall Memory Percent',
           value: function(row) {
-            var typeEl = document.createElement('span');
+            let typeEl = document.createElement('span');
             typeEl.innerText = row.overallPercent.toFixed(3) + '%';
             return typeEl;
           },
@@ -719,7 +699,7 @@ tr.exportTo('tr.ui.e.v8', function() {
         {
           title: 'Overall Allocated Memory Percent',
           value: function(row) {
-            var typeEl = document.createElement('span');
+            let typeEl = document.createElement('span');
             typeEl.innerText = row.overAllocatedPercent.toFixed(3) + '%';
             return typeEl;
           },
@@ -734,12 +714,12 @@ tr.exportTo('tr.ui.e.v8', function() {
     },
 
     buildSubEntry_: function(objects, groupEntry, keyToName) {
-      var typeGroup = InstanceTypeGroups[groupEntry.title];
-      for (var instanceType of typeGroup) {
-        var e = objects[instanceType];
-        delete objects[instanceType];
+      let typeGroup = INSTANCE_TYPE_GROUPS[groupEntry.title];
+      for (let instanceType of typeGroup) {
+        let e = objects[instanceType];
         if (e === undefined) continue;
-        var title = instanceType;
+        delete objects[instanceType];
+        let title = instanceType;
         if (keyToName !== undefined) title = keyToName(title);
         // Represent memery in KB unit.
         groupEntry.add(new Entry(title, e.count, e.overall / 1024,
@@ -748,23 +728,26 @@ tr.exportTo('tr.ui.e.v8', function() {
       }
     },
 
-    buildOthers_: function(objects, groupEntry) {
-      for (var title of Object.getOwnPropertyNames(objects)) {
-        if (title === 'END') continue;
-        var obj = objects[title];
-        groupEntry.add(new Entry(title, obj.count, obj.overall,
-                                 obj.over_allocated, obj.histogram,
-                                 obj.over_allocated_histogram));
+    buildUnGroupedEntries_: function(objects, objectEntry, bucketSize) {
+      for (let title of Object.getOwnPropertyNames(objects)) {
+        let obj = objects[title];
+        let groupedEntry = new GroupedEntry(title, 0, 0, 0,
+                                            new Array(bucketSize),
+                                            new Array(bucketSize));
+        groupedEntry.setFromObject(obj);
+        objectEntry.add(groupedEntry);
       }
     },
 
     build_: function(objects, objectEntry, bucketSize) {
-      var fixedArrayObject = objects['FIXED_ARRAY_TYPE'];
+      let fixedArrayObject = objects['FIXED_ARRAY_TYPE'];
       if (fixedArrayObject === undefined) {
         throw new Error('Fixed Array Object not found.');
       }
+      delete objects.END;
+      delete objects.FIXED_ARRAY_TYPE;
 
-      var groupEntries = {
+      let groupEntries = {
         restEntry: new GroupedEntry('Rest', 0, 0, 0, new Array(bucketSize),
                                     new Array(bucketSize)),
         stringEntry: new GroupedEntry('Strings', 0, 0, 0, new Array(bucketSize),
@@ -775,34 +758,13 @@ tr.exportTo('tr.ui.e.v8', function() {
                                           new Array(bucketSize),
                                           new Array(bucketSize)),
         codeEntry: new GroupedEntry('CODE_TYPE', 0, 0, 0, new Array(bucketSize),
-                                    new Array(bucketSize)),
-        contextExtensionEntry: new GroupedEntry('CONTEXT_EXTENSION_TYPE', 0, 0,
-                                                0, new Array(bucketSize),
-                                                new Array(bucketSize)),
-        mapEntry: new GroupedEntry('MAP_TYPE', 0, 0, 0, new Array(bucketSize),
-                                   new Array(bucketSize)),
-        byteArrayEntry: new GroupedEntry('BYTE_ARRAY_TYPE', 0, 0, 0,
-                                         new Array(bucketSize),
-                                         new Array(bucketSize)),
-        sharedFunctionInfoEntry: new GroupedEntry('SHARED_FUNCTION_INFO_TYPE',
-                                                  0, 0, 0,
-                                                  new Array(bucketSize),
-                                                  new Array(bucketSize)),
-        weakCellEntry: new GroupedEntry('WEAK_CELL_TYPE', 0, 0, 0,
-                                        new Array(bucketSize),
-                                        new Array(bucketSize)),
-        jsObjectEntry: new GroupedEntry('JS_OBJECT_TYPE', 0, 0, 0,
-                                        new Array(bucketSize),
-                                        new Array(bucketSize)),
-        jsContextExtensionObjectEntry: new GroupedEntry(
-            'JS_CONTEXT_EXTENSION_OBJECT_TYPE', 0, 0, 0, new Array(bucketSize),
-            new Array(bucketSize))
+                                    new Array(bucketSize))
       };
-      for (var name of Object.getOwnPropertyNames(groupEntries)) {
-        var groupEntry = groupEntries[name];
-        var keyToName = undefined;
-        if (InstanceSubTypeNames[groupEntry.title] !== undefined) {
-          keyToName = InstanceSubTypeNames[groupEntry.title].keyToName;
+      for (let name of Object.getOwnPropertyNames(groupEntries)) {
+        let groupEntry = groupEntries[name];
+        let keyToName = undefined;
+        if (INSTANCE_SUB_TYPE_NAMES[groupEntry.title] !== undefined) {
+          keyToName = INSTANCE_SUB_TYPE_NAMES[groupEntry.title].keyToName;
         }
         this.buildSubEntry_(objects, groupEntry, keyToName);
         if (name === 'fixedArrayEntry') {
@@ -811,28 +773,29 @@ tr.exportTo('tr.ui.e.v8', function() {
         }
         objectEntry.add(groupEntry);
       }
+      this.buildUnGroupedEntries_(objects, objectEntry, bucketSize);
     },
 
     set selection(slices) {
       slices.sortEvents(function(a, b) {
         return b.start - a.start;
       });
-      var previous = undefined;
+      let previous = undefined;
       for (let slice of slices) {
         if (!slice instanceof tr.e.v8.V8GCStatsThreadSlice) continue;
-        var liveObjects = slice.liveObjects;
-        var deadObjects = slice.deadObjects;
-        var isolate = liveObjects.isolate;
+        let liveObjects = slice.liveObjects;
+        let deadObjects = slice.deadObjects;
+        let isolate = liveObjects.isolate;
 
-        var isolateEntry =
+        let isolateEntry =
             new GroupedEntry(
               'Isolate_' + isolate + ' at ' + slice.start.toFixed(3) + ' ms',
               0, 0, 0, [], []);
-        var liveEntry = new GroupedEntry('live objects', 0, 0, 0, [], []);
-        var deadEntry = new GroupedEntry('dead objects', 0, 0, 0, [], []);
+        let liveEntry = new GroupedEntry('live objects', 0, 0, 0, [], []);
+        let deadEntry = new GroupedEntry('dead objects', 0, 0, 0, [], []);
 
-        var liveBucketSize = liveObjects.bucket_sizes.length;
-        var deadBucketSize = deadObjects.bucket_sizes.length;
+        let liveBucketSize = liveObjects.bucket_sizes.length;
+        let deadBucketSize = deadObjects.bucket_sizes.length;
 
         this.build_(tr.b.deepCopy(liveObjects.type_data), liveEntry,
             liveBucketSize);

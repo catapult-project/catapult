@@ -50,6 +50,21 @@ tr.b.unittest.testSuite(function() {
             }
           })
       );
+      m.s3 = m.t2.sliceGroup.pushSlice(
+          newSliceEx({
+            title: 'V8.GC_Objects_Stats',
+            start: 3,
+            end: 3,
+            type: tr.e.v8.V8GCStatsThreadSlice,
+            cat: 'disabled-by-default-v8.gc_stats',
+            args: {
+            // eslint-disable-next-line
+            live:'{"isolate":"0x00000000001","id":1,"time":115,"bucket_sizes":[32,64,128,256],"type_data":{"FIXED_ARRAY_TYPE":{"type":2,"overall":5,"count":6,"over_allocated":0,"histogram":[1,0,0,0],"over_allocated_histogram":[0,0,0,0]}, "TYPE_DONT_HAVE_GROUP1":{"type":1,"overall":2,"count":3,"over_allocated":0,"histogram":[1,0,0,0],"over_allocated_histogram":[0,0,0,0]}, "TYPE_DONT_HAVE_GROUP2":{"type":1,"overall":2,"count":3,"over_allocated":0,"histogram":[0,1,0,0],"over_allocated_histogram":[0,0,0,0]}}}',
+            // eslint-disable-next-line
+            dead:'{"isolate":"0x00000000001","id":2,"time":116,"bucket_sizes":[32,64,128,256],"type_data":{"FIXED_ARRAY_TYPE":{"type":2,"overall":5,"count":6,"over_allocated":0,"histogram":[1,0,0,0],"over_allocated_histogram":[0,0,0,0]}}}'
+            }
+          })
+      );
     });
     return m;
   }
@@ -142,6 +157,42 @@ tr.b.unittest.testSuite(function() {
     assert.equal(diffEntry.overAllocated, 0);
     assert.equal(diffEntry.overallPercent.toFixed(3), '-26.667');
     assert.equal(diffEntry.overAllocatedPercent, 0);
+  });
+
+  test('GCObjectTableGroupEntryWithoutGroupDefined', function() {
+    let m = createModel();
+
+    let viewEl = document.createElement('tr-ui-e-v8-gc-objects-stats-table');
+    let eventSet = new tr.model.EventSet();
+    eventSet.push(m.s3);
+    viewEl.selection = eventSet;
+    this.addHTMLOutput(viewEl);
+    tr.b.forceAllPendingTasksToRunForTest();
+    let rows = viewEl.$.table.tableRows;
+    assert.lengthOf(rows, 1);
+    let row = rows[0];
+    assert.equal(row.overall, 0.013671875);
+    assert.equal(row.count, 18);
+    assert.equal(row.overAllocated, 0);
+    let subRows = row.subRows;
+
+    let live = subRows[0];
+    assert.equal(live.overall, 0.0087890625);
+    assert.equal(live.count, 12);
+    assert.equal(live.overAllocated, 0);
+
+    // ungrouped entry should be top level entry.
+    let unGrouped1 = live.getEntryFromTitle('TYPE_DONT_HAVE_GROUP1');
+    assert.isDefined(unGrouped1);
+    assert.equal(unGrouped1.overall, 0.001953125);
+    assert.equal(unGrouped1.count, 3);
+    assert.equal(unGrouped1.overAllocated, 0);
+
+    let unGrouped2 = live.getEntryFromTitle('TYPE_DONT_HAVE_GROUP2');
+    assert.isDefined(unGrouped2);
+    assert.equal(unGrouped2.overall, 0.001953125);
+    assert.equal(unGrouped2.count, 3);
+    assert.equal(unGrouped2.overAllocated, 0);
   });
 });
 </script>
