@@ -16,7 +16,7 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   const ChromeGpuHelper = tr.model.helpers.ChromeGpuHelper;
 
-  test('constructor_throwsIfMultipleMainThreads', function() {
+  test('constructor_doesntThrowIfMultipleMainThreads', function() {
     const model = tr.c.TestUtils.newModel(model => {
       model.getOrCreateProcess(1).getOrCreateThread(1).name = 'CrGpuMain';
       model.getOrCreateProcess(1).getOrCreateThread(2).name = 'CrGpuMain';
@@ -25,9 +25,7 @@ tr.b.unittest.testSuite(function() {
     const modelHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
 
-    assert.throws(() => {
-      new ChromeGpuHelper(modelHelper, model.getOrCreateProcess(1));
-    }, 'Expected no more than one CrGpuMain');
+    new ChromeGpuHelper(modelHelper, model.getOrCreateProcess(1));
   });
 
   test('constructor_doesntThrowIfNoMainThread', function() {
@@ -66,33 +64,6 @@ tr.b.unittest.testSuite(function() {
         model.getOrCreateProcess(1).name, 'Example process name');
   });
 
-  test('mainThread', function() {
-    const model = tr.c.TestUtils.newModel(model => {
-      model.getOrCreateProcess(1).getOrCreateThread(1).name = 'CrGpuMain';
-    });
-
-    const modelHelper = model.getOrCreateHelper(
-        tr.model.helpers.ChromeModelHelper);
-    const gpuHelper = new ChromeGpuHelper(
-        modelHelper, model.getOrCreateProcess(1));
-
-    assert.strictEqual(
-        gpuHelper.mainThread, model.getOrCreateProcess(1).getOrCreateThread(1));
-  });
-
-  test('mainThread_undefinedIfNoMainThread', function() {
-    const model = tr.c.TestUtils.newModel(model => {
-      model.getOrCreateProcess(1).getOrCreateThread(1);
-    });
-
-    const modelHelper = model.getOrCreateHelper(
-        tr.model.helpers.ChromeModelHelper);
-    const gpuHelper = new ChromeGpuHelper(
-        modelHelper, model.getOrCreateProcess(1));
-
-    assert.isUndefined(gpuHelper.mainThread);
-  });
-
   test('isGpuProcess_falseIfNoMainThread', function() {
     const model = tr.c.TestUtils.newModel(model => {
       model.getOrCreateProcess(1);
@@ -109,15 +80,13 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(ChromeGpuHelper.isGpuProcess(model.getOrCreateProcess(1)));
   });
 
-  test('isGpuProcess_throwsIfMultipleMainThreads', function() {
+  test('isGpuProcess_trueIfMultipleMainThreads', function() {
     const model = tr.c.TestUtils.newModel(model => {
       model.getOrCreateProcess(1).getOrCreateThread(1).name = 'CrGpuMain';
       model.getOrCreateProcess(1).getOrCreateThread(2).name = 'CrGpuMain';
     });
 
-    assert.throws(() => {
-      ChromeGpuHelper.isGpuProcess(model.getOrCreateProcess(1));
-    }, 'Expected no more than one CrGpuMain');
+    assert.isTrue(ChromeGpuHelper.isGpuProcess(model.getOrCreateProcess(1)));
   });
 
   test('isGpuProcess_falseIfBrowserProcess', function() {
