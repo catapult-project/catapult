@@ -61,6 +61,7 @@ class StoppageAlert(alert.Alert):
     return self.revision
 
 
+@ndb.synctasklet
 def GetStoppageAlert(test_path, revision):
   """Gets a StoppageAlert entity if it already exists.
 
@@ -72,8 +73,15 @@ def GetStoppageAlert(test_path, revision):
   Returns:
     A StoppageAlert entity or None.
   """
-  return ndb.Key(
-      'StoppageAlertParent', test_path, 'StoppageAlert', revision).get()
+  result = yield GetStoppageAlertAsync(test_path, revision)
+  raise ndb.Return(result)
+
+
+@ndb.tasklet
+def GetStoppageAlertAsync(test_path, revision):
+  result = yield ndb.Key(
+      'StoppageAlertParent', test_path, 'StoppageAlert', revision).get_async()
+  raise ndb.Return(result)
 
 
 def CreateStoppageAlert(test, row):
