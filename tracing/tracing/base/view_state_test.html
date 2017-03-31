@@ -20,7 +20,7 @@ tr.b.unittest.testSuite(function() {
 
   tr.b.ViewState.register(Stuff);
 
-  test('viewState', function() {
+  test('sync', function() {
     const state = new Stuff();
     let updateCount = 0;
     let delta;
@@ -52,6 +52,45 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(2, updateCount);
 
     state.sub[0].boole = true;
+    assert.strictEqual(3, updateCount);
+    assert.isFalse(delta.boole.previous);
+    assert.isTrue(delta.boole.current);
+    assert.isTrue(state.sub[0].boole);
+  });
+
+  test('async', async function() {
+    const state = new Stuff();
+    let updateCount = 0;
+    let delta;
+    async function listener(event) {
+      ++updateCount;
+      delta = event.delta;
+      await Promise.resolve();
+    }
+    state.addUpdateListener(listener);
+    assert.strictEqual(0, updateCount);
+
+    await state.update({boole: true});
+    assert.strictEqual(1, updateCount);
+    assert.isFalse(delta.boole.previous);
+    assert.isTrue(delta.boole.current);
+    assert.isTrue(state.boole);
+
+    await state.update({boole: true});
+    assert.strictEqual(1, updateCount);
+
+    await state.update({sub: [new Stuff()]});
+    assert.strictEqual(2, updateCount);
+    assert.lengthOf(delta.sub.previous, 0);
+    assert.lengthOf(delta.sub.current, 1);
+
+    state.sub.push(new Stuff());
+    assert.strictEqual(2, updateCount);
+
+    state.sub[0].addUpdateListener(listener);
+    assert.strictEqual(2, updateCount);
+
+    await state.sub[0].update({boole: true});
     assert.strictEqual(3, updateCount);
     assert.isFalse(delta.boole.previous);
     assert.isTrue(delta.boole.current);

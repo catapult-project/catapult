@@ -85,17 +85,20 @@ tr.exportTo('tr.b', function() {
   function dispatchSimpleEvent(target, type, opt_bubbles, opt_cancelable,
       opt_fields) {
     var e = new tr.b.Event(type, opt_bubbles, opt_cancelable);
-    if (opt_fields) {
-      for (var [name, value] of Object.entries(opt_fields)) {
-        e[name] = value;
-      }
-    }
+    Object.assign(e, opt_fields);
     return target.dispatchEvent(e);
+  }
+
+  async function dispatchSimpleEventAsync(target, type, opt_fields) {
+    var e = new tr.b.Event(type, false, false);
+    Object.assign(e, opt_fields);
+    return await target.dispatchAsync(e);
   }
 
   return {
     Event,
     dispatchSimpleEvent,
+    dispatchSimpleEventAsync,
   };
 });
 </script>

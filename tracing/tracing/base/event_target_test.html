@@ -10,7 +10,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  test('eventTarget', function() {
+  test('sync', function() {
     var listenerCallCount = 0;
     function listener() { listenerCallCount++; }
 
@@ -28,6 +28,32 @@ tr.b.unittest.testSuite(function() {
     div.removeEventListener('foo', listener);
 
     tr.b.dispatchSimpleEvent(div, 'foo');
+    assert.equal(listenerCallCount, 1);
+
+    assert.isFalse(div.hasEventListener('foo'));
+  });
+
+  test('async', function() {
+    var listenerCallCount = 0;
+    async function listener() {
+      listenerCallCount++;
+      await Promise.resolve();
+    }
+
+    var div = new tr.b.EventTarget();
+    tr.b.EventTarget.decorate(div);
+
+    assert.isFalse(div.hasEventListener('foo'));
+
+    div.addEventListener('foo', listener);
+    assert.isTrue(div.hasEventListener('foo'));
+
+    tr.b.dispatchSimpleEventAsync(div, 'foo');
+    assert.equal(listenerCallCount, 1);
+
+    div.removeEventListener('foo', listener);
+
+    tr.b.dispatchSimpleEventAsync(div, 'foo');
     assert.equal(listenerCallCount, 1);
 
     assert.isFalse(div.hasEventListener('foo'));

@@ -111,6 +111,21 @@ tr.exportTo('tr.b', function() {
       return !prevented && event.rawReturnValue;
     },
 
+    dispatchAsync: async function(event) {
+      if (!this.listeners_) return true;
+
+      const listeners = this.listeners_[event.type];
+      if (listeners === undefined) return;
+
+      // Clone to prevent removal during dispatch
+      await Promise.all(listeners.slice().map(listener => {
+        if (listener.handleEvent) {
+          return listener.handleEvent.call(listener, event);
+        }
+        return listener.call(this, event);
+      }));
+    },
+
     hasEventListener: function(type) {
       return (this.listeners_ !== undefined &&
               this.listeners_[type] !== undefined);

@@ -43,7 +43,7 @@ tr.exportTo('tr.b', function() {
      *
      * @param {!(Object|Map)} delta
      */
-    update(delta) {
+    async update(delta) {
       // This method only wants to iterate over delta, so convert it to a map.
       if (!(delta instanceof Map)) delta = new Map(Object.entries(delta));
 
@@ -60,13 +60,8 @@ tr.exportTo('tr.b', function() {
 
       if (Object.keys(actualDelta).length === 0) return;
 
-      // Whether the event bubbles through DOM, not whether it bubbles up
-      // through parent ViewStateModels.
-      const bubbles = false;
-      const cancelable = false;
-      tr.b.dispatchSimpleEvent(
-          this, this.updateEventName_, bubbles, cancelable,
-          {delta: actualDelta});
+      await tr.b.dispatchSimpleEventAsync(
+          this, this.updateEventName_, {delta: actualDelta});
     }
 
     get updateEventName_() {
