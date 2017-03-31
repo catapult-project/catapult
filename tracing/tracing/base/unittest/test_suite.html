@@ -30,7 +30,7 @@ tr.exportTo('tr.b.unittest', function() {
         testCaseOrName.options['flaky'] = true;
         test(testCaseOrName);
       } else {
-        var options = opt_options || {};
+        var options = Object.assign({}, opt_options || {});
         options['flaky'] = true;
         test(testCaseOrName, opt_testFn, options);
       }
