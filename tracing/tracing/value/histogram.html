@@ -487,7 +487,12 @@ tr.exportTo('tr.v', function() {
       }
 
       for (let i = 0; i < this.allBins.length; ++i) {
-        this.allBins[i].addBin(other.allBins[i]);
+        let bin = this.allBins[i];
+        if (bin.count === 0) {
+          bin = new HistogramBin(bin.range);
+          this.allBins[i] = bin;
+        }
+        bin.addBin(other.allBins[i]);
       }
 
       let mergedFrom = this.diagnostics.get(tr.v.d.MERGED_FROM_DIAGNOSTIC_KEY);
@@ -1038,6 +1043,10 @@ tr.exportTo('tr.v', function() {
 
     buildBins_() {
       this.bins_ = this.binRanges.map(r => new HistogramBin(r));
+      // It would be nice to Object.freeze() the bins in order to catch bugs
+      // when we forget to copy a bin before writing to it, but that would slow
+      // down buildBins_ by 55%: https://jsperf.com/new-vs-new-freeze/1
+      // TODO(benjhayden): How often is buildBins_ called?
     }
 
     /**
