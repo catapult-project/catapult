@@ -55,15 +55,6 @@ tr.b.unittest.testSuite(function() {
         getRange(0, 100)).length);
   });
 
-  test('NetworkEvent', function() {
-    var model = tr.e.chrome.ChromeTestUtils.newChromeModel(function() { });
-    var modelHelper = model.getOrCreateHelper(
-        tr.model.helpers.ChromeModelHelper);
-    tr.e.chrome.ChromeTestUtils.addNetworkEvent(model, {start: 1, end: 10});
-    assert.equal(1, modelHelper.browserHelper.getAllNetworkEventsInRange(
-        getRange(0, 100)).length);
-  });
-
   test('browserName_chrome', function() {
     var model = tr.e.chrome.ChromeTestUtils.newChromeModel(function() { });
     var modelHelper = model.getOrCreateHelper(
