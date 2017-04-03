@@ -98,6 +98,16 @@ tr.exportTo('tr.model.helpers', function() {
       return events;
     },
 
+    getAllNetworkEventsInRange: function(rangeOfInterest) {
+      let networkEvents = [];
+      for (const thread of
+          Object.values(this.modelHelper.model.getAllThreads())) {
+        networkEvents = networkEvents.concat(
+            thread.getNetworkEventsInRange(rangeOfInterest));
+      }
+      return networkEvents;
+    },
+
     iterAllThreads: function(func, opt_this) {
       for (var thread of Object.values(this.process.threads)) {
         func.call(opt_this, thread);

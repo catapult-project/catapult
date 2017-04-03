@@ -65,6 +65,17 @@ tr.exportTo('tr.model.helpers', function() {
     get isChromeTracingUI() {
       return ChromeRendererHelper.isTracingProcess(this.process);
     },
+
+    getAllNetworkEventsInRange: function(rangeOfInterest) {
+      const networkEvents = [];
+      for (const thread of Object.values(this.process.threads)) {
+        const events = thread.getNetworkEventsInRange(rangeOfInterest);
+        for (const event of events) {
+          networkEvents.push(event);
+        }
+      }
+      return networkEvents;
+    }
   };
 
   return {

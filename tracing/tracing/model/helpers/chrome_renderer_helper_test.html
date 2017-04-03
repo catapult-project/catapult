@@ -12,5 +12,70 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
+  const rendererPid2 = 245;
+  const model2 = tr.c.TestUtils.newModel(function(model) {
+    // Our main thread looks like:
+    //
+    //      [ netlog ]     [ d..network]  [ net ]  [ d..netlog ]
+    //      |        |     |           |  |     |  |           |
+    //      |        |     |           |  |     |  |           |
+    //      |        |     |           |  |     |  |           |
+    //      v        v     v           v  v     v  v           v
+    // Ts: 100      200   400         450 510  520 530        550
+    const rendererProcess = model.getOrCreateProcess(rendererPid2);
+    const mainThread = rendererProcess.getOrCreateThread(2);
+    mainThread.name = 'CrRendererMain';
+    mainThread.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx({
+      cat: 'netlog',
+      title: 'Generic Network event',
+      start: 100,
+      duration: 200,
+    }));
+    mainThread.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx({
+      cat: 'disabled-by-default-network',
+      title: 'ResourceLoad',
+      start: 400,
+      duration: 450,
+    }));
+    mainThread.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx({
+      cat: 'net',
+      title: 'ResourceLoad',
+      start: 510,
+      duration: 520,
+    }));
+    mainThread.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx({
+      cat: 'disabled-by-default-netlog',
+      title: 'ResourceLoad',
+      start: 510,
+      duration: 520,
+    }));
+  });
+  const chromeHelper2 = model2.getOrCreateHelper(
+      tr.model.helpers.ChromeModelHelper);
+  const rendererHelper2 = chromeHelper2.rendererHelpers[rendererPid2];
+  test('testGetNetworkEvents_single', function() {
+    assert.equal(1, rendererHelper2.getAllNetworkEventsInRange(
+        tr.b.math.Range.fromExplicitRange(0, 300)).length);
+  });
+
+  test('testGetNetworkEvents_outside', function() {
+    assert.equal(0, rendererHelper2.getAllNetworkEventsInRange(
+        tr.b.math.Range.fromExplicitRange(0, 50)).length);
+  });
+
+  test('testGetNetworkEvents_intersect', function() {
+    assert.equal(1, rendererHelper2.getAllNetworkEventsInRange(
+        tr.b.math.Range.fromExplicitRange(0, 150)).length);
+  });
+
+  test('testGetNetworkEvents_multiple', function() {
+    assert.equal(2, rendererHelper2.getAllNetworkEventsInRange(
+        tr.b.math.Range.fromExplicitRange(0, 500)).length);
+  });
+
+  test('testGetNetworkEvents_allTypes', function() {
+    assert.equal(4, rendererHelper2.getAllNetworkEventsInRange(
+        tr.b.math.Range.fromExplicitRange(0, 550)).length);
+  });
 });
 </script>
