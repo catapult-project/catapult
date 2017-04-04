@@ -380,7 +380,9 @@ class BattOrWrapper(object):
     """
     assert not self._battor_shell, 'Cannot flash BattOr with open shell'
     if self._target_platform not in self._SUPPORTED_AUTOFLASHING_PLATFORMS:
-      logging.critical('Flashing firmware on this platform is not supported.')
+      logging.critical(
+          'Flashing firmware on this platform (%s) is not supported.'
+          % self._target_platform)
       return False
 
     avrdude_binary = self._dm.FetchPath(
