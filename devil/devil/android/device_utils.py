@@ -39,7 +39,6 @@ from devil.android import logcat_monitor
 from devil.android import md5sum
 from devil.android.constants import chrome
 from devil.android.sdk import adb_wrapper
-from devil.android.sdk import gce_adb_wrapper
 from devil.android.sdk import intent
 from devil.android.sdk import keyevent
 from devil.android.sdk import split_select
@@ -131,7 +130,6 @@ _CURRENT_FOCUS_CRASH_RE = re.compile(
     r'\s*mCurrentFocus.*Application (Error|Not Responding): (\S+)}')
 
 _GETPROP_RE = re.compile(r'\[(.*?)\]: \[(.*?)\]')
-_IPV4_ADDRESS_RE = re.compile(r'([0-9]{1,3}\.){3}[0-9]{1,3}\:[0-9]{4,5}')
 
 # Regex to parse the long (-l) output of 'ls' command, c.f.
 # https://github.com/landley/toybox/blob/master/toys/posix/ls.c#L446
@@ -254,18 +252,11 @@ def _JoinLines(lines):
   return ''.join(s for line in lines for s in (line, '\n'))
 
 
-def _IsGceInstance(serial):
-  return _IPV4_ADDRESS_RE.match(serial)
-
-
 def _CreateAdbWrapper(device):
-  if _IsGceInstance(str(device)):
-    return gce_adb_wrapper.GceAdbWrapper(str(device))
+  if isinstance(device, adb_wrapper.AdbWrapper):
+    return device
   else:
-    if isinstance(device, adb_wrapper.AdbWrapper):
-      return device
-    else:
-      return adb_wrapper.AdbWrapper(device)
+    return adb_wrapper.AdbWrapper(device)
 
 
 def _FormatPartialOutputError(output):
