@@ -230,6 +230,8 @@ def _CreateStoppageAlerts(test_key, last_row_key):
   Return:
     True, if we should create a stoppage alert, False otherwise.
   """
+  logging.info("_CreateStoppageAlerts: [%s, %s]",
+               str(test_key.id()), str(last_row_key.id()))
   test = test_key.get()
   last_row = last_row_key.get()
 
