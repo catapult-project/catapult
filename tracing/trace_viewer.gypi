@@ -240,6 +240,7 @@
       'tracing/model/helpers/chrome_model_helper.html',
       'tracing/model/helpers/chrome_process_helper.html',
       'tracing/model/helpers/chrome_renderer_helper.html',
+      'tracing/model/helpers/chrome_thread_helper.html',
       'tracing/model/instant_event.html',
       'tracing/model/ir_coverage.html',
       'tracing/model/kernel.html',

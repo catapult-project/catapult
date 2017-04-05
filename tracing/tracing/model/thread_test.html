@@ -180,39 +180,6 @@ tr.b.unittest.testSuite(function() {
       });
     });
   });
-
-  test('getNetworkEventsInRange', function() {
-    const model = new tr.Model();
-    const t = new Thread(new Process(model, 7), 1);
-    t.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx({
-      cat: 'netlog',
-      title: 'Generic Network event',
-      start: 100,
-      duration: 200,
-    }));
-    t.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx({
-      cat: 'irrelevant cat',
-      title: 'irrelevant event',
-      start: 180,
-      duration: 220,
-    }));
-    t.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx({
-      cat: 'disabled-by-default-network',
-      title: 'ResourceLoad',
-      start: 400,
-      duration: 450,
-    }));
-    assert.equal(0, t.getNetworkEventsInRange(
-        tr.b.math.Range.fromExplicitRange(0, 80)).length);
-    assert.equal(1, t.getNetworkEventsInRange(
-        tr.b.math.Range.fromExplicitRange(0, 150)).length);
-    assert.equal(1, t.getNetworkEventsInRange(
-        tr.b.math.Range.fromExplicitRange(0, 190)).length);
-    assert.equal(1, t.getNetworkEventsInRange(
-        tr.b.math.Range.fromExplicitRange(0, 300)).length);
-    assert.equal(2, t.getNetworkEventsInRange(
-        tr.b.math.Range.fromExplicitRange(0, 420)).length);
-  });
 });
 </script>
 

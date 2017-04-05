@@ -11,6 +11,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/metrics/system_health/breakdown_tree_helpers.html">
 <link rel="import" href="/tracing/metrics/system_health/utils.html">
 <link rel="import" href="/tracing/model/helpers/chrome_model_helper.html">
+<link rel="import" href="/tracing/model/helpers/chrome_thread_helper.html">
 <link rel="import" href="/tracing/model/timed_event.html">
 <link rel="import" href="/tracing/value/histogram.html">
 
@@ -23,6 +24,18 @@ tr.exportTo('tr.metrics.sh', function() {
   var timeDurationInMs_smallerIsBetter =
       tr.b.Unit.byName.timeDurationInMs_smallerIsBetter;
   var RelatedEventSet = tr.v.d.RelatedEventSet;
+
+  function getNetworkEventsInRenderer(renderer) {
+    const networkEvents = [];
+    for (const thread of Object.values(renderer.threads)) {
+      const threadHelper = new tr.model.helpers.ChromeThreadHelper(thread);
+      const events = threadHelper.getNetworkEvents();
+      for (const event of events) {
+        networkEvents.push(event);
+      }
+    }
+    return networkEvents;
+  }
 
   // TODO(ksakamoto): This should be a method of tr.model.Event or one of its
   // subclasses.
@@ -474,6 +487,7 @@ tr.exportTo('tr.metrics.sh', function() {
 
   return {
     loadingMetric,
+    getNetworkEventsInRenderer,
     collectLoadingMetricsForRenderer,
     RESPONSIVENESS_THRESHOLD_MS,
     INTERACTIVE_WINDOW_SIZE_MS,

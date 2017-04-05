@@ -620,5 +620,66 @@ tr.b.unittest.testSuite(function() {
     assert.equal(1, fmp.running.count);
     assert.equal(800, fmp.running.mean);
   });
+
+  test('testGetNetworkEvents', function() {
+    const rendererPid = 245;
+    const model = tr.c.TestUtils.newModel(function(model) {
+      // Our main thread looks like:
+      //
+      //      [ netlog ]     [ d..network]  [ net ]  [ d..netlog ]
+      //      |        |     |           |  |     |  |           |
+      //      |        |     |           |  |     |  |           |
+      //      |        |     |           |  |     |  |           |
+      //      v        v     v           v  v     v  v           v
+      // Ts: 100      200   400         450 510  520 530        550
+      const rendererProcess = model.getOrCreateProcess(rendererPid);
+      const thread1 = rendererProcess.getOrCreateThread(1);
+      thread1.name = 'CrRendererMain';
+      thread1.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx({
+        cat: 'netlog',
+        title: 'Generic Network event',
+        start: 100,
+        duration: 200,
+      }));
+      const thread2 = rendererProcess.getOrCreateThread(2);
+      thread2.name = 'thread2';
+      thread2.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx({
+        cat: 'disabled-by-default-network',
+        title: 'ResourceLoad',
+        start: 400,
+        duration: 450,
+      }));
+      const thread3 = rendererProcess.getOrCreateThread(3);
+      thread3.name = 'thread2';
+      thread3.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx({
+        cat: 'net',
+        title: 'ResourceLoad',
+        start: 510,
+        duration: 520,
+      }));
+      const thread4 = rendererProcess.getOrCreateThread(4);
+      thread4.name = 'thread2';
+      thread4.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx({
+        cat: 'disabled-by-default-netlog',
+        title: 'ResourceLoad',
+        start: 510,
+        duration: 520,
+      }));
+      const thread5 = rendererProcess.getOrCreateThread(5);
+      thread5.name = 'thread5';
+      thread5.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx({
+        cat: 'irrelevant',
+        title: 'ResourceLoad',
+        start: 510,
+        duration: 520,
+      }));
+    });
+    const chromeHelper = model.getOrCreateHelper(
+        tr.model.helpers.ChromeModelHelper);
+    const rendererHelper = chromeHelper.rendererHelpers[rendererPid];
+    const networkEvents = tr.metrics.sh.getNetworkEventsInRenderer(
+        rendererHelper.process);
+    assert.equal(4, networkEvents.length);
+  });
 });
 </script>

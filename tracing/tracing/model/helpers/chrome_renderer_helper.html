@@ -7,11 +7,14 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/math/range.html">
 <link rel="import" href="/tracing/extras/chrome/chrome_user_friendly_category_driver.html">
 <link rel="import" href="/tracing/model/helpers/chrome_process_helper.html">
+<link rel="import" href="/tracing/model/helpers/chrome_thread_helper.html">
 
 <script>
 'use strict';
 
 tr.exportTo('tr.model.helpers', function() {
+  const ChromeThreadHelper = tr.model.helpers.ChromeThreadHelper;
+
   function ChromeRendererHelper(modelHelper, process) {
     tr.model.helpers.ChromeProcessHelper.call(this, modelHelper, process);
     this.mainThread_ = process.findAtMostOneThreadNamed('CrRendererMain') ||
@@ -65,17 +68,6 @@ tr.exportTo('tr.model.helpers', function() {
     get isChromeTracingUI() {
       return ChromeRendererHelper.isTracingProcess(this.process);
     },
-
-    getAllNetworkEventsInRange: function(rangeOfInterest) {
-      const networkEvents = [];
-      for (const thread of Object.values(this.process.threads)) {
-        const events = thread.getNetworkEventsInRange(rangeOfInterest);
-        for (const event of events) {
-          networkEvents.push(event);
-        }
-      }
-      return networkEvents;
-    }
   };
 
   return {
