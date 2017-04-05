@@ -9,8 +9,8 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/math/range.html">
 <link rel="import" href="/tracing/base/multi_dimensional_view.html">
 <link rel="import" href="/tracing/base/unit.html">
+<link rel="import" href="/tracing/extras/chrome/chrome_processes.html">
 <link rel="import" href="/tracing/metrics/metric_registry.html">
-<link rel="import" href="/tracing/metrics/system_health/chrome_processes.html">
 <link rel="import" href="/tracing/model/container_memory_dump.html">
 <link rel="import" href="/tracing/model/helpers/chrome_model_helper.html">
 <link rel="import" href="/tracing/model/memory_allocator_dump.html">
@@ -50,9 +50,8 @@ tr.exportTo('tr.metrics.sh', function() {
           .addBinBoundary(1024 /* 1 KiB */)
           .addExponentialBins(16 * 1024 * 1024 * 1024 /* 16 GiB */, 4 * 24));
 
-  var CHROME_PROCESS_NAMES = tr.metrics.sh.CHROME_PROCESS_NAMES;
-  var PROCESS_COLOR_SCHEME = tr.metrics.sh.PROCESS_COLOR_SCHEME;
-  var PROCESS_COLOR_SCHEME_NAME = tr.metrics.sh.PROCESS_COLOR_SCHEME_NAME;
+  const CHROME_PROCESS_NAMES =
+      tr.e.chrome.chrome_processes.CHROME_PROCESS_NAMES;
 
   function memoryMetric(values, model, opt_options) {
     var rangeOfInterest = opt_options ? opt_options.rangeOfInterest : undefined;
@@ -100,7 +99,8 @@ tr.exportTo('tr.metrics.sh', function() {
         });
 
         makeKeyUniqueAndSet(browserNameToGlobalDumps,
-            canonicalizeName(helper.browserName), globalDumps);
+            tr.e.chrome.chrome_processes.canonicalizeName(helper.browserName),
+            globalDumps);
       });
     }
 
@@ -124,9 +124,6 @@ tr.exportTo('tr.metrics.sh', function() {
         d.start, d.end));
   }
 
-  function canonicalizeName(name) {
-    return name.toLowerCase().replace(' ', '_');
-  }
 
   var USER_FRIENDLY_BROWSER_NAMES = {
     'chrome': 'Chrome',
@@ -161,23 +158,6 @@ tr.exportTo('tr.metrics.sh', function() {
     return '\'' + browserName + '\' browser';
   }
 
-  function canonicalizeProcessName(rawProcessName) {
-    if (!rawProcessName) return CHROME_PROCESS_NAMES.UNKNOWN;
-
-    const baseCanonicalName = canonicalizeName(rawProcessName);
-    switch (baseCanonicalName) {
-      case 'renderer': return CHROME_PROCESS_NAMES.RENDERER;
-      case 'browser': return CHROME_PROCESS_NAMES.BROWSER;
-    }
-
-    if (Object.values(CHROME_PROCESS_NAMES).includes(baseCanonicalName)) {
-      return baseCanonicalName;
-    }
-
-    throw new Error(
-        `Unknown process id "${baseCanonicalName}".` +
-        ' Please add it to |CHROME_PROCESS_NAMES|.');
-  }
 
   /**
    * Convert a canonical process name used in value names to a user-friendly
@@ -1018,7 +998,8 @@ tr.exportTo('tr.metrics.sh', function() {
       dumpIndex, dumpCount, customProcessDumpValueExtractor) {
     // Process name is typically 'browser', 'renderer', etc.
     var rawProcessName = processDump.process.name;
-    var processNamePath = [canonicalizeProcessName(rawProcessName)];
+    var processNamePath =
+        [tr.e.chrome.chrome_processes.canonicalizeProcessName(rawProcessName)];
 
     customProcessDumpValueExtractor(
         processDump,
@@ -1099,7 +1080,8 @@ tr.exportTo('tr.metrics.sh', function() {
   function reportComponentDataAsValues(browserName, sourceName, property,
       componentPath, tree, values, customComponentTreeModifier) {
     var breakdown = new tr.v.d.RelatedHistogramBreakdown();
-    breakdown.colorScheme = PROCESS_COLOR_SCHEME_NAME;
+    breakdown.colorScheme =
+        tr.e.chrome.chrome_processes.PROCESS_COLOR_SCHEME_NAME;
 
     // For each process report the value for this component.
     tree.children[0].forEach(function(processTree, processName) {
