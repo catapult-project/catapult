@@ -83,7 +83,6 @@ class BattOrWrapper(object):
   _RECORD_CLOCKSYNC_CMD = 'RecordClockSyncMarker'
   _SUPPORTED_PLATFORMS = ['android', 'chromeos', 'linux', 'mac', 'win']
 
-  _SUPPORTED_AUTOFLASHING_PLATFORMS = ['linux', 'mac', 'win']
   _BATTOR_PARTNO = 'x192a3u'
   _BATTOR_PROGRAMMER = 'avr109'
   _BATTOR_BAUDRATE = '115200'
@@ -379,11 +378,6 @@ class BattOrWrapper(object):
        firmware at hex_path.
     """
     assert not self._battor_shell, 'Cannot flash BattOr with open shell'
-    if self._target_platform not in self._SUPPORTED_AUTOFLASHING_PLATFORMS:
-      logging.critical(
-          'Flashing firmware on this platform (%s) is not supported.'
-          % self._target_platform)
-      return False
 
     avrdude_binary = self._dm.FetchPath(
         'avrdude_binary', '%s_%s' % (sys.platform, platform.machine()))
