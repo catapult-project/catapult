@@ -5,162 +5,31 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/ui/base/grouping_table_groupby_picker.html">
 <link rel="import" href="/tracing/ui/base/table.html">
-<link rel="import" href="/tracing/value/csv_builder.html">
 <link rel="import" href="/tracing/value/histogram_set.html">
+<link rel="import" href="/tracing/value/histogram_set_hierarchy.html">
 <link rel="import" href="/tracing/value/ui/histogram_set_table_row.html">
+<link rel="import" href="/tracing/value/ui/histogram_set_view_state.html">
 
 <dom-module id="tr-v-ui-histogram-set-table">
   <template>
     <style>
     :host {
-      display: block;
-    }
-
-    #container {
-      flex-direction: column;
-      display: none;
-    }
-
-    table-container {
-      margin-top: 5px;
-      display: flex;
       min-height: 0px;
       overflow: auto;
     }
-
-    #help {
-      display: none;
-      margin-left: 20px;
-    }
-
-    #zero {
-      color: red;
-      /* histogram-set-table is used by both metrics-side-panel and results2.html.
-       * This font-size rule has no effect in results2.html, but improves
-       * legibility in the metrics-side-panel, which sets font-size in order to
-       * make this table denser.
-       */
-      font-size: initial;
-    }
-
-    #search {
-      max-width: 20em;
-      margin-right: 20px;
-    }
-
-    #controls {
-      white-space: nowrap;
-    }
-
-    #show_overview, #hide_overview {
-      height: 1em;
-      margin-right: 20px;
-    }
-
-    #show_overview {
-      stroke: blue;
-      stroke-width: 16;
-    }
-
-    #show_overview:hover {
-      background: blue;
-      stroke: white;
-    }
-
-    #hide_overview {
-      display: none;
-      stroke-width: 18;
-      stroke: black;
-    }
-
-    #hide_overview:hover {
-      background: black;
-      stroke: white;
-    }
-
-    #reference_column_container * {
-      margin-right: 20px;
-    }
-
-    #statistic_container * {
-      margin-right: 20px;
-    }
-
-    #download_csv {
-      margin-right: 20px;
+    #table {
+      margin-top: 5px;
     }
     </style>
 
-    <div id="zero">zero Histograms</div>
-
-    <div id="container">
-      <div id="controls">
-        <input id="search" placeholder="Find Histogram name" on-keyup="onSearch_">
-
-        <svg viewbox="0 0 128 128" id="show_overview" on-click="showOverview_">
-          <line x1="19" y1="109" x2="49" y2="49"/>
-          <line x1="49" y1="49" x2="79" y2="79"/>
-          <line x1="79" y1="79" x2="109" y2="19"/>
-        </svg>
-        <svg viewbox="0 0 128 128" id="hide_overview" on-click="hideOverview_">
-          <line x1="28" y1="28" x2="100" y2="100"/>
-          <line x1="28" y1="100" x2="100" y2="28"/>
-        </svg>
-
-        <span id="reference_column_container"></span>
-
-        <span id="statistic_container"></span>
-
-        <button id="download_csv" on-click="downloadCSV_">&#11015; CSV</button>
-
-        <input type="checkbox" id="show_all" on-change="onShowAllChange_" title="When unchecked, less important histograms are hidden.">
-        <label for="show_all" title="When unchecked, less important histograms are hidden.">Show all</label>
-
-        <a id="help">Help</a>
-      </div>
-
-      <tr-ui-b-grouping-table-groupby-picker id="picker">
-      </tr-ui-b-grouping-table-groupby-picker>
-
-      <table-container>
-        <tr-ui-b-table id="table"/>
-      </table-container>
-    </div>
+    <tr-ui-b-table id="table"/>
   </template>
 </dom-module>
 
 <script>
 'use strict';
 tr.exportTo('tr.v.ui', function() {
-  let getDisplayLabel = tr.v.HistogramSet.GROUPINGS.DISPLAY_LABEL.callback;
-
-  const DEFAULT_POSSIBLE_GROUPS = [];
-  DEFAULT_POSSIBLE_GROUPS.push(new tr.v.HistogramGrouping(
-      tr.v.HistogramSet.GROUPINGS.HISTOGRAM_NAME.key,
-      h => h.shortName || h.name));
-
-  for (var group of Object.values(tr.v.HistogramSet.GROUPINGS)) {
-    // DISPLAY_LABEL is used to define the columns, so don't allow grouping
-    // rows by it.
-    // Override HISTOGRAM_NAME so that we can display shortName.
-    if (group !== tr.v.HistogramSet.GROUPINGS.DISPLAY_LABEL &&
-        group !== tr.v.HistogramSet.GROUPINGS.HISTOGRAM_NAME) {
-      DEFAULT_POSSIBLE_GROUPS.push(group);
-    }
-  }
-
-  const SHOW_ALL_SETTINGS_KEY = 'tr-v-ui-histogram-set-table-show-all';
-  const CONSTRAIN_NAME_COLUMN_WIDTH_KEY =
-    'tr-v-ui-histogram-set-table-constrain-name-column-width';
-  const DISPLAY_STATISTIC_KEY =
-    'tr-v-ui-histogram-set-table-statistic';
-  const REFERENCE_DISPLAY_LABEL_KEY =
-    'tr-v-ui-histogram-set-table-reference-display-label';
-
-  const UNMERGEABLE = '(unmergeable)';
-
   const MIDLINE_HORIZONTAL_ELLIPSIS = String.fromCharCode(0x22ef);
 
   // http://stackoverflow.com/questions/3446170
@@ -171,167 +40,41 @@ tr.exportTo('tr.v.ui', function() {
   Polymer({
     is: 'tr-v-ui-histogram-set-table',
 
-    /**
-     * This can optionally depend on the HistogramSet.
-     *
-     * @return {string}
-     */
-    get tabLabel() {
-      return 'Table';
-    },
-
     created() {
-      /** @type {undefined|!tr.v.HistogramSet} */
-      this.histograms_ = undefined;
-
-      /** @type {undefined|!tr.v.HistogramSet} */
-      this.sourceHistograms_ = undefined;
-
-      this.unfilteredRows_ = undefined;
-      this.rows_ = undefined;
-      this.columns_ = undefined;
-
-      this.updatingContents_ = false;
-      this.displayLabels_ = undefined;
-      this.displayStatistic_ = 'avg';
-      this.statNames_ = undefined;
-      this.referenceDisplayLabel_ = undefined;
-      this.constrainNameColumnWidth_ = true;
+      this.viewState_ = undefined;
+      this.progress_ = () => Promise.resolve();
       this.nameColumnTitle_ = undefined;
-      this.isDisplayed = false;
+      this.displayLabels_ = [];
+      this.histograms_ = undefined;
+      this.sourceHistograms_ = undefined;
+      this.groupedHistograms_ = undefined;
+      this.hierarchies_ = undefined;
+      this.tableRows_ = undefined;
     },
 
     ready() {
       this.$.table.zebra = true;
-      this.addEventListener('name-cell-overflow',
-          this.onNameCellOverflow_.bind(this));
+      this.addEventListener('sort-column-changed',
+          this.onSortColumnChanged_.bind(this));
       this.addEventListener('requestSelectionChange',
           this.onRequestSelectionChange_.bind(this));
-      this.$.show_all.checked = tr.b.Settings.get(SHOW_ALL_SETTINGS_KEY, false);
-      this.$.picker.settingsKey = 'tr-v-ui-histogram-set-table-groupby-picker';
-      this.$.picker.possibleGroups = DEFAULT_POSSIBLE_GROUPS.slice();
-      // If the picker did not restore currentGroupKeys from Settings,
-      // then set default currentGroupKeys.
-      if (this.$.picker.currentGroupKeys.length === 0) {
-        this.$.picker.currentGroupKeys = [
-          tr.v.HistogramSet.GROUPINGS.HISTOGRAM_NAME.key,
-          tr.v.HistogramSet.GROUPINGS.STORY_NAME.key];
+      this.addEventListener('row-expanded-changed',
+          this.onRowExpandedChanged_.bind(this));
+    },
+
+    get viewState() {
+      return this.viewState_;
+    },
+
+    set viewState(vs) {
+      if (this.viewState_) {
+        throw new Error('viewState must be set exactly once.');
       }
-      this.$.picker.addEventListener('current-groups-changed',
-          this.currentGroupsChanged_.bind(this));
-    },
-
-    set groupingKeys(keys) {
-      this.$.picker.currentGroupKeys = keys;
-    },
-
-    get groupingKeys() {
-      return this.$.picker.currentGroupKeys;
-    },
-
-    get possibleGroupingKeys() {
-      return this.$.picker.possibleGroups.map(g => g.key);
-    },
-
-    currentGroupsChanged_() {
-      if (this.updatingContents_) return;
-
-      if (this.$.picker.currentGroups.length === 0 &&
-          this.possibleGroupingKeys.length > 0) {
-        this.$.picker.currentGroupKeys = [this.$.picker.possibleGroups[0].key];
-      }
-
-      this.unfilteredRows_ = tr.v.ui.HistogramSetTableRow.build(
-          this.groupedHistograms);
-
-      let expansionStates = undefined;
-      if (this.rows_) expansionStates = this.getExpansionStates_();
-      this.updateContents_();
-      if (expansionStates) this.setExpansionStates_(expansionStates);
-    },
-
-    onShowAllChange_() {
-      if (this.updatingContents_) return;
-
-      tr.b.Settings.set(SHOW_ALL_SETTINGS_KEY, this.$.show_all.checked);
-      let expansionStates = this.getExpansionStates_();
-      this.updateContents_();
-      this.setExpansionStates_(expansionStates);
-    },
-
-    getExpansionStates_() {
-      let states = new Map();
-      for (let i = 0; i < this.rows_.length; ++i) {
-        states.set(i, this.rows_[i].getExpansionStates(this.$.table));
-      }
-      return states;
-    },
-
-    setExpansionStates_(states) {
-      for (let i = 0; i < this.rows_.length; ++i) {
-        let rowStates = states.get(i);
-        if (rowStates === undefined) {
-          continue;
-        }
-        this.rows_[i].setExpansionStates(rowStates, this.$.table);
-      }
-    },
-
-    showOverview_() {
-      let table = this.$.table;
-      function recurse(row) {
-        row.nameCell.showOverview_();
-        if (table.getExpandedForTableRow(row)) {
-          for (let subrow of row.subRows) {
-            recurse(subrow);
-          }
-        }
-      }
-      for (let i = 0; i < this.rows_.length; ++i) {
-        recurse(this.rows_[i]);
-      }
-      this.$.hide_overview.style.display = 'inline';
-      this.$.show_overview.style.display = 'none';
-    },
-
-    hideOverview_() {
-      let table = this.$.table;
-      function recurse(row) {
-        row.nameCell.hideOverview_();
-        if (table.getExpandedForTableRow(row)) {
-          for (let subrow of row.subRows) {
-            recurse(subrow);
-          }
-        }
-      }
-      for (let i = 0; i < this.rows_.length; ++i) {
-        recurse(this.rows_[i]);
-      }
-      this.$.hide_overview.style.display = 'none';
-      this.$.show_overview.style.display = 'inline';
-    },
-
-    onSearch_() {
-      this.updateContents_();
-    },
-
-    onRequestSelectionChange_(event) {
-      // This event may reference an EventSet or an array of Histogram names.
-      if (event.selection instanceof tr.model.EventSet) return;
-
-      event.stopPropagation();
-      let histogramNames = event.selection;
-      histogramNames.sort();
-      histogramNames = histogramNames.map(escapeRegExp);
-      this.$.search.value = '^(' + histogramNames.join('|') + ')$';
-      this.$.show_all.checked = true;
-      this.onShowAllChange_();
-      this.$.search.focus();
-    },
-
-    set helpHref(href) {
-      this.$.help.href = href;
-      this.$.help.style.display = 'inline';
+      this.viewState_ = vs;
+      this.viewState.addUpdateListener(this.onViewStateUpdate_.bind(this));
+      // It would be arduous to construct a delta and call onViewStateUpdate_
+      // here in case vs contains non-default values, so callers must set
+      // viewState first and then update it.
     },
 
     get histograms() {
@@ -340,320 +83,211 @@ tr.exportTo('tr.v.ui', function() {
 
     /**
      * @param {!tr.v.HistogramSet} histograms
+     * @param {!tr.v.HistogramSet} sourceHistograms
+     * @param {!Array.<string>} displayLabels
+     * @param {function(string, function())=} opt_progress
      */
-    set histograms(histograms) {
+    async build(histograms, sourceHistograms, displayLabels, opt_progress) {
       this.histograms_ = histograms;
+      this.sourceHistograms_ = sourceHistograms;
+      this.groupedHistograms_ = undefined;
+      this.displayLabels_ = displayLabels;
 
-      this.displayLabels_ = undefined;
-      this.statNames_ = undefined;
-      this.referenceDisplayLabel_ = undefined;
+      if (opt_progress !== undefined) this.progress_ = opt_progress;
 
-      if (this.histograms_ === undefined) {
-        this.unfilteredRows_ = [];
-        this.sourceHistograms_ = new tr.v.HistogramSet();
-      } else {
-        // Set updatingContents_ so that updateGroups_() doesn't call
-        // updateContents_() before this method can set unfilteredRows_.
-        // TODO(benjhayden) This hack should be moot by
-        // https://github.com/catapult-project/catapult/issues/3289
-        this.updatingContents_ = true;
-        this.updateGroups_();
-        this.updatingContents_ = false;
-
-        this.unfilteredRows_ = tr.v.ui.HistogramSetTableRow.build(
-            this.groupedHistograms);
-        this.sourceHistograms_ = this.histograms_.sourceHistograms;
+      if (histograms.length === 0) {
+        throw new Error('histogram-set-table requires non-empty HistogramSet.');
       }
 
-      this.maybeDisableShowAll_();
+      await this.progress_('Building columns...');
+      this.$.table.tableColumns = [
+        {
+          title: this.buildNameColumnTitle_(),
+          value: row => row.nameCell,
+          cmp: (a, b) => a.compareNames(b),
+        }
+      ].concat(displayLabels.map(l => this.buildColumn_(l)));
 
-      this.updateContents_();
+      // updateContents_() displays its own progress.
+      await this.updateContents_();
+
+      // Building some elements requires being able to measure them, which is
+      // impossible until they are displayed. If clients hide this table while
+      // it is being built, then they must display it when this event fires.
+      this.fire('display-ready');
+
+      this.progress_ = () => Promise.resolve();
+
+      this.checkNameColumnOverflow_(
+          tr.v.ui.HistogramSetTableRow.walkAll(this.$.table.tableRows));
     },
 
-    get referenceDisplayLabel() {
-      return this.referenceDisplayLabel_;
+    buildNameColumnTitle_() {
+      this.nameColumnTitle_ = document.createElement('span');
+      this.nameColumnTitle_.style.display = 'inline-flex';
+
+      // Wrap the string in a span instead of using createTextNode() so that the
+      // span can be styled later.
+      const nameEl = document.createElement('span');
+      nameEl.textContent = 'Name';
+      this.nameColumnTitle_.appendChild(nameEl);
+
+      const toggleWidthEl = document.createElement('span');
+      toggleWidthEl.style.fontWeight = 'bold';
+      toggleWidthEl.style.background = '#bbb';
+      toggleWidthEl.style.color = '#333';
+      toggleWidthEl.style.padding = '0px 3px';
+      toggleWidthEl.style.marginRight = '8px';
+      toggleWidthEl.style.display = 'none';
+      toggleWidthEl.textContent = MIDLINE_HORIZONTAL_ELLIPSIS;
+      toggleWidthEl.addEventListener('click',
+          this.toggleNameColumnWidth_.bind(this));
+      this.nameColumnTitle_.appendChild(toggleWidthEl);
+      return this.nameColumnTitle_;
     },
 
-    set referenceDisplayLabel(reference) {
-      if (reference === this.referenceDisplayLabel) return;
-
-      let prevReferenceDisplayLabel = this.referenceDisplayLabel;
-      this.referenceDisplayLabel_ = reference;
-
-      if (this.updatingContents_) return;
-
-      let select = this.$.reference_column_container.children[0];
-      if (select) {
-        select.value = reference ? reference : 'Select a reference column';
+    toggleNameColumnWidth_(opt_event) {
+      if (opt_event !== undefined) {
+        opt_event.stopPropagation();
+        opt_event.preventDefault();
       }
 
-      this.$.table.selectedTableColumnIndex = this.referenceDisplayLabel ?
-        1 + this.displayLabels.indexOf(this.referenceDisplayLabel) : undefined;
-
-      // Force the table to rebuild the cell values without forgetting which
-      // rows were expanded.
-      let expansionStates = this.getExpansionStates_();
-      this.$.table.tableRows = this.rows_;
-      this.setExpansionStates_(expansionStates);
-
-      this.updateStatisticSelector_();
-      if (prevReferenceDisplayLabel === '' && this.referenceDisplayLabel) {
-        this.displayStatistic = tr.v.DELTA + this.displayStatistic;
-      }
+      this.viewState.update({
+        constrainNameColumn: !this.viewState.constrainNameColumn,
+      });
     },
 
-    get statNames() {
-      if (this.statNames_ === undefined) {
-        this.statNames_ = new Set(['avg']);
-        for (let hist of this.histograms) {
-          for (let statName of hist.statisticsNames) {
-            this.statNames_.add(statName);
+    buildColumn_(displayLabel) {
+      const title = document.createElement('span');
+      title.textContent = displayLabel;
+      title.style.whiteSpace = 'pre';
+
+      return {
+        title,
+        value: row => row.getCell(displayLabel),
+        cmp: (rowA, rowB) => rowA.compareCells(rowB, displayLabel),
+      };
+    },
+
+    async updateContents_() {
+      if (this.groupedHistograms_ === undefined) {
+        await this.progress_('Grouping Histograms...');
+        this.groupHistograms_();
+      }
+
+      if (this.hierarchies_ === undefined) {
+        await this.progress_('Merging Histograms...');
+        this.hierarchies_ = tr.v.HistogramSetHierarchy.build(
+            this.groupedHistograms_);
+        this.tableRows_ = undefined;
+      }
+
+      const tableRowsDirty = this.tableRows_ === undefined;
+
+      if (tableRowsDirty) {
+        await this.progress_('Filtering rows...');
+
+        let filteredHistograms = this.viewState.showAll ?
+            this.histograms : this.sourceHistograms_;
+        if (this.viewState.searchQuery) {
+          let query = undefined;
+          try {
+            query = new RegExp(this.viewState.searchQuery);
+          } catch (e) {
+          }
+          if (query !== undefined) {
+            filteredHistograms = new tr.v.HistogramSet(
+                [...filteredHistograms].filter(
+                    hist => hist.name.match(query)));
           }
         }
-      }
-      return this.statNames_;
-    },
 
-    updateStatisticSelector_() {
-      Polymer.dom(this.$.statistic_container).textContent = '';
-      let statNames = Array.from(this.statNames);
-      if (this.referenceDisplayLabel) {
-        statNames.push.apply(
-            statNames, tr.v.Histogram.getDeltaStatisticsNames(statNames));
-      }
-      if (statNames.indexOf(this.displayStatistic_) < 0) {
-        // createSelector throws if defaultValue is not in options.
-        this.displayStatistic_ = statNames[0];
-      }
-      let options = [];
-      for (let statName of statNames) {
-        options.push({value: statName, label: statName});
-      }
-      let selector = tr.ui.b.createSelector(
-          this, 'displayStatistic', DISPLAY_STATISTIC_KEY,
-          this.displayStatistic, options);
-      Polymer.dom(this.$.statistic_container).appendChild(selector);
-    },
+        const filteredHierarchies = tr.v.HistogramSetHierarchy.filter(
+            this.hierarchies_, filteredHistograms);
 
-    get displayStatistic() {
-      return this.displayStatistic_;
-    },
+        // Wait to set this.$.table.tableRows until we're ready for it to build
+        // DOM. When tableRows are set on it, tr-ui-b-table calls
+        // setTimeout(..., 0) to schedule rebuild for the next interpreter tick,
+        // but that can happen in between the next await, which is too early.
+        this.tableRows_ = filteredHierarchies.map(hierarchy =>
+            new tr.v.ui.HistogramSetTableRow(
+              hierarchy, this.$.table, this.viewState));
 
-    set displayStatistic(statName) {
-      if (statName === this.displayStatistic_) return;
-      this.displayStatistic_ = statName;
-
-      // If this setter is called programmatically instead of by the selector
-      // (as happens in tests), update the selector.
-      let select = this.$.statistic_container.children[0];
-      if (select && select.value !== statName) {
-        select.value = statName;
-      }
-
-      // Propagate the displayStatistic to all the rows. The setter recurses
-      // through subRows.
-      if (this.rows_ !== undefined) {
-        for (let row of this.rows_) {
-          row.displayStatistic = this.displayStatistic;
+        // Try to apply viewState.tableRowStates to the new rows.
+        const namesToRowStates = new Map();
+        for (const row of this.tableRows_) {
+          namesToRowStates.set(row.name, row.viewState);
+          const previousState = this.viewState.tableRowStates.get(row.name);
+          if (!previousState) continue;
+          await row.restoreState(previousState);
         }
+
+        await this.viewState.update({tableRowStates: namesToRowStates});
       }
 
-      // Force the table to re-sort.
-      let sortColumnIndex = this.$.table.sortColumnIndex;
-      this.sortColumnIndex = undefined;
-      this.$.table.rebuild();
-      this.sortColumnIndex = sortColumnIndex;
+      await this.progress_('Configuring table...');
+      this.nameColumnTitle_.children[1].style.filter =
+        this.viewState.constrainNameColumn ? 'invert(100%)' : '';
+
+      const referenceDisplayLabelIndex = this.displayLabels_.indexOf(
+          this.viewState.referenceDisplayLabel);
+      this.$.table.selectedTableColumnIndex = (referenceDisplayLabelIndex < 0) ?
+          undefined : (1 + referenceDisplayLabelIndex);
+
+      this.$.table.sortColumnIndex = this.viewState.sortColumnIndex;
+      this.$.table.sortDescending = this.viewState.sortDescending;
+
+      // Each name-cell listens to this.viewState for updates to
+      // constrainNameColumn.
+      // Each table-cell listens to this.viewState for updates to
+      // displayStatisticName and referenceDisplayLabel.
+
+      if (tableRowsDirty) {
+        await this.progress_('Building DOM...');
+        this.$.table.tableRows = this.tableRows_;
+      }
+
+      // It's always safe to call this, it will only recompute what is dirty.
+      // We want to make sure that the table is up to date when this async
+      // function resolves.
       this.$.table.rebuild();
     },
 
-    updateReferenceColumnSelector_() {
-      Polymer.dom(this.$.reference_column_container).textContent = '';
+    async onRowExpandedChanged_(event) {
+      event.row.viewState.isExpanded =
+        this.$.table.getExpandedForTableRow(event.row);
 
-      if (this.displayLabels.length < 2) return;
-
-      let options = [{value: '', label: 'Select a reference column'}];
-      for (let displayLabel of this.displayLabels) {
-        options.push({value: displayLabel, label: displayLabel});
-      }
-
-      let selector = tr.ui.b.createSelector(
-          this, 'referenceDisplayLabel', REFERENCE_DISPLAY_LABEL_KEY, '',
-          options);
-      Polymer.dom(this.$.reference_column_container).appendChild(selector);
+      // When the user expands a row, the table builds subRows' name-cells.
+      // If a subRow's name isOverflowing even though none of the top-level rows
+      // are constrained, show the dots to allow the user to unconstrain the
+      // name column.
+      // Each name-cell.isOverflowing would force layout if we don't await
+      // animationFrame here, which would be inefficient.
+      if (this.nameColumnTitle_.children[1].style.display === 'block') return;
+      await tr.b.animationFrame();
+      this.checkNameColumnOverflow_(event.row.subRows);
     },
 
-    set sortColumnIndex(i) {
-      this.$.table.sortColumnIndex = i;
-    },
+    checkNameColumnOverflow_(rows) {
+      for (const row of rows) {
+        if (!row.nameCell.isOverflowing) continue;
 
-    get sortColumnIndex() {
-      return this.$.table.sortColumnIndex;
-    },
+        const [nameSpan, dots] = this.nameColumnTitle_.children;
+        dots.style.display = 'block';
 
-    set sortDescending(d) {
-      this.$.table.sortDescending = d;
-    },
+        // Size the span containing 'Name' so that the dots align with the
+        // ellipses in the name-cells.
+        const labelWidthPx = tr.v.ui.NAME_COLUMN_WIDTH_PX -
+          dots.getBoundingClientRect().width;
+        nameSpan.style.width = labelWidthPx + 'px';
+        // TODO(benjhayden): Manage this using polymer.
 
-    get sortDescending() {
-      return this.$.table.sortDescending;
-    },
-
-    updateGroups_() {
-      let groups = DEFAULT_POSSIBLE_GROUPS.filter(function(group) {
-        // Remove groups for which there is only one value, except
-        // HISTOGRAM_NAME.
-        if (group.key === tr.v.HistogramSet.GROUPINGS.HISTOGRAM_NAME.key) {
-          return true;
-        }
-
-        let values = new Set();
-        for (let hist of this.histograms_) {
-          hist = group.callback(hist);
-          if (!hist) continue;
-          values.add(hist);
-          if (values.size > 1) return true;
-        }
-        return false;  // Prune this grouping.
-      }, this);
-
-      // Add all storyGroupingKey groups for the current values.
-      for (let storyGroupingKey of this.storyGroupingKeys) {
-        groups.push(new tr.v.HistogramGrouping(
-          'storyGroupingKey_' + storyGroupingKey,
-          tr.v.d.TelemetryInfo.makeStoryGroupingKeyLabelGetter(
-              storyGroupingKey),
-          storyGroupingKey));
-      }
-
-      // Save and restore current grouping keys in order to let
-      // |set groupingKeys| filter out the keys that are no longer in
-      // possibleGroups.
-      let groupingKeys = this.groupingKeys;
-      if (groupingKeys.length === 0 &&
-          groups.length > 0) {
-        // This can happen if the settings key contains an empty Array,
-        // which *should* never happen, but somehow sometimes does.
-        // When |groupingKeys| is empty, then the entire table will be
-        // mysteriously empty, so recover by ensuring that |groupingKeys| is
-        // never empty.
-        groupingKeys = [groups[0].key];
-      }
-      this.$.picker.possibleGroups = groups;
-      this.$.picker.currentGroupKeys = groupingKeys;
-
-      this.$.picker.style.display = (groups.length === 1) ? 'none' : '';
-    },
-
-    updateContents_() {
-      if (this.updatingContents_) return;
-
-      if (!this.histograms_ || (this.histograms_.length === 0)) {
-        this.$.container.style.display = '';
-        this.$.zero.style.display = '';
         return;
       }
-
-      this.updatingContents_ = true;
-
-      this.$.zero.style.display = 'none';
-      this.$.container.style.display = 'flex';
-      this.$.table.style.display = '';
-
-      this.$.container.style.maxHeight = (window.innerHeight - 16) + 'px';
-
-      this.updateReferenceColumnSelector_();
-      this.updateStatisticSelector_();
-      this.rows_ = tr.v.ui.HistogramSetTableRow.filter(
-          this.unfilteredRows_, this.filteredHistograms);
-      this.buildColumns_();
-      this.$.table.tableColumns = this.columns_;
-      this.$.table.tableRows = this.rows_;
-      this.$.table.sortColumnIndex = 0;
-
-      this.$.table.rebuild();
-
-      for (let row of this.rows_) {
-        row.constrainNameColumnWidth = this.constrainNameColumnWidth;
-      }
-      this.checkNameColumnOverflow_();
-
-      for (let row of this.rows_) {
-        row.displayStatistic = this.displayStatistic;
-      }
-
-      this.$.table.selectedTableColumnIndex = this.referenceDisplayLabel ?
-        1 + this.displayLabels.indexOf(this.referenceDisplayLabel) : undefined;
-
-      this.updatingContents_ = false;
     },
 
-    maybeDisableShowAll_() {
-      let allHistogramsAreSource = !this.histograms ||
-          (this.histograms.length === this.sourceHistograms_.length);
-
-      // Disable show_all if all values are sourceHistograms.
-      // Re-enable show_all if this changes.
-      this.$.show_all.disabled = allHistogramsAreSource;
-
-      // Check show_all if it is disabled.
-      // Do not automatically uncheck show_all.
-      if (this.$.show_all.disabled) {
-        this.$.show_all.checked = true;
-      }
-    },
-
-    get storyGroupingKeys() {
-      let keys = new Set();
-      for (let value of this.histograms) {
-        let telemetry = tr.v.d.TelemetryInfo.getFromHistogram(value);
-        if (!(telemetry instanceof tr.v.d.TelemetryInfo)) continue;
-
-        for (let [key, value] of telemetry.storyGroupingKeys) {
-          keys.add(key);
-        }
-      }
-      return [...keys.values()].sort();
-    },
-
-    get filteredHistograms() {
-      let histograms = this.$.show_all.checked ?
-          this.histograms : this.sourceHistograms_;
-      if (this.$.search.value) {
-        let query = undefined;
-        try {
-          query = new RegExp(this.$.search.value);
-        } catch (e) {
-        }
-        if (query !== undefined) {
-          histograms = new tr.v.HistogramSet([...histograms].filter(
-              hist => hist.name.match(query)));
-        }
-      }
-      return histograms;
-    },
-
-    /**
-     * A HistogramSet is a flat set of Histograms. histogram-set-table presents
-     * a hierarchical view. This method recursively groups this.histograms as an
-     * intermediate step towards building tableRows in buildRow_().
-     * {
-     *   valueA: {
-     *     benchmarkA: {
-     *       storyA: {
-     *         startA: {
-     *           storysetRepeatCounterA: {
-    *               displayLabelA: Value,
-    *               displayLabelB: Value
-     *           }
-     *         }
-     *       }
-     *     }
-     *   }
-     * }
-     * @return {!Object}
-     */
-    get groupedHistograms() {
-      let groupings = this.$.picker.currentGroups.slice();
+    groupHistograms_() {
+      const groupings = this.viewState.groupings.slice();
       groupings.push(tr.v.HistogramSet.GROUPINGS.DISPLAY_LABEL);
 
       function canSkipGrouping(grouping, groupedHistograms) {
@@ -672,190 +306,112 @@ tr.exportTo('tr.v.ui', function() {
         return true;
       }
 
-      return this.histograms.groupHistogramsRecursively(
+      this.groupedHistograms_ = this.histograms.groupHistogramsRecursively(
           groupings, canSkipGrouping);
+
+      this.hierarchies_ = undefined;
     },
 
-    get startTimesForDisplayLabels() {
-      let startTimesForDisplayLabels = {};
-      for (let value of this.histograms) {
-        let displayLabel = getDisplayLabel(value);
-        startTimesForDisplayLabels[displayLabel] = Math.min(
-            startTimesForDisplayLabels[displayLabel] || 0,
-            tr.v.d.TelemetryInfo.getField(
-                value, 'benchmarkStart', new Date(0)).getTime());
+    /**
+     * @param {!tr.b.Event} event
+     * @param {!Object} event.delta
+     * @param {!Object} event.delta.searchQuery
+     * @param {!Object} event.delta.referenceDisplayLabel
+     * @param {!Object} event.delta.displayStatisticName
+     * @param {!Object} event.delta.showAll
+     * @param {!Object} event.delta.groupings
+     * @param {!Object} event.delta.sortColumnIndex
+     * @param {!Object} event.delta.sortDescending
+     * @param {!Object} event.delta.constrainNameColumn
+     * @param {!Object} event.delta.tableRowStates
+     */
+    async onViewStateUpdate_(event) {
+      if (this.histograms_ === undefined) return;
+
+      if (event.delta.groupings !== undefined) {
+        this.groupedHistograms_ = undefined;
       }
-      return startTimesForDisplayLabels;
-    },
 
-    get displayLabels() {
-      if (this.displayLabels_ === undefined) {
-        let startTimesForDisplayLabels = this.startTimesForDisplayLabels;
-        this.displayLabels_ = Object.keys(startTimesForDisplayLabels);
-        this.displayLabels_.sort(function(a, b) {
-          return startTimesForDisplayLabels[a] - startTimesForDisplayLabels[b];
-        });
+      if (event.delta.searchQuery !== undefined ||
+          event.delta.showAll !== undefined) {
+        this.tableRows_ = undefined;
       }
-      return this.displayLabels_;
-    },
 
-    buildColumn_(displayLabel) {
-      let title = displayLabel;
-      if (displayLabel.indexOf('\n') > 0) {
-        title = document.createElement('div');
-        for (let line of displayLabel.split('\n')) {
-          let lineDiv = document.createElement('div');
-          lineDiv.appendChild(document.createTextNode(line));
-          title.appendChild(lineDiv);
+      if (event.delta.displayStatistic !== undefined &&
+          this.$.table.sortColumnIndex > 0) {
+        // Force re-sort.
+        this.$.table.sortColumnIndex = undefined;
+      }
+
+      if (event.delta.referenceDisplayLabel !== undefined ||
+          event.delta.displayStatisticName !== undefined) {
+        // Force this.$.table.bodyDirty_ = true;
+        this.$.table.tableRows = this.$.table.tableRows;
+      }
+
+      // updateContents_() always copies sortColumnIndex and sortDescending
+      // from the viewState to the table. The table will only re-sort if
+      // they change.
+
+      // Name-cells listen to this.viewState to handle updates to
+      // constrainNameColumn.
+
+      if (event.delta.tableRowStates) {
+        if (this.tableRows_.length !==
+            this.viewState.tableRowStates.size) {
+          throw new Error(
+              'Only histogram-set-table may update tableRowStates');
+        }
+        for (const row of this.tableRows_) {
+          if (this.viewState.tableRowStates.get(row.name) !== row.viewState) {
+            throw new Error(
+                'Only histogram-set-table may update tableRowStates');
+          }
         }
       }
 
-      return {
-        title: title,
-        value: row => row.buildCell(displayLabel, this.referenceDisplayLabel),
-        cmp: (rowA, rowB) =>
-          rowA.compareCells(rowB, displayLabel, this.referenceDisplayLabel),
-      };
+      await this.updateContents_();
     },
 
-    get nameColumnTitle() {
-      if (this.nameColumnTitle_ === undefined) {
-        this.nameColumnTitle_ = document.createElement('span');
-        this.nameColumnTitle_.style.display = 'inline-flex';
-
-        let nameEl = document.createElement('span');
-        nameEl.textContent = 'Name';
-        this.nameColumnTitle_.appendChild(nameEl);
-
-        let toggleWidthEl = document.createElement('span');
-        toggleWidthEl.style.fontWeight = 'bold';
-        toggleWidthEl.style.background = '#bbb';
-        toggleWidthEl.style.color = '#333';
-        toggleWidthEl.style.padding = '0px 3px';
-        toggleWidthEl.style.marginRight = '8px';
-        toggleWidthEl.style.display = 'none';
-        toggleWidthEl.textContent = MIDLINE_HORIZONTAL_ELLIPSIS;
-        toggleWidthEl.addEventListener('click',
-            this.toggleNameColumnWidth_.bind(this));
-        this.nameColumnTitle_.appendChild(toggleWidthEl);
-      }
-      return this.nameColumnTitle_;
+    onSortColumnChanged_(event) {
+      this.viewState.update({
+        sortColumnIndex: event.sortColumnIndex,
+        sortDescending: event.sortDescending,
+      });
     },
 
-    onNameCellOverflow_() {
-      // Size the 'Name' so that the dots align with the ellipses in the
-      // name-cells.
-      this.nameColumnTitle.children[0].style.width = '275px';
+    onRequestSelectionChange_(event) {
+      // This event may reference an EventSet or an array of Histogram names.
+      // If EventSet, let the BrushingStateController handle it.
+      if (event.selection instanceof tr.model.EventSet) return;
 
-      // Show the dots.
-      this.nameColumnTitle.children[1].style.display = 'block';
-
-      // If toggleNameColumnWidth_ has been called since this element was
-      // created, then this will be a no-op. However, if none of the root row
-      // names overflow 300px, but a subrow name does, and if the user had
-      // previously expanded the name column, then this will restore that
-      // setting when the user re-expands the subrow. This complication will be
-      // simplified by https://github.com/catapult-project/catapult/issues/3289
-      this.constrainNameColumnWidth = tr.b.Settings.get(
-          CONSTRAIN_NAME_COLUMN_WIDTH_KEY, true);
-    },
-
-    checkNameColumnOverflow_() {
-      if (this.nameColumnTitle_ === undefined) return;
-
-      this.nameColumnTitle.children[0].style.width = '';
-      this.nameColumnTitle.children[1].style.display = 'none';
-
-      if (this.rows_ === undefined) return;
-
-      for (const row of this.rows_) {
-        if (row.isNameCellOverflowing) {
-          this.onNameCellOverflow_();
-          return;
-        }
-      }
-    },
-
-    displayed() {
-      // Building some elements requires being able to measure them, which is
-      // impossible until they are displayed.
-      this.isDisplayed = true;
-
-      this.checkNameColumnOverflow_();
-    },
-
-    get constrainNameColumnWidth() {
-      return this.constrainNameColumnWidth_;
-    },
-
-    set constrainNameColumnWidth(c) {
-      if (this.constrainNameColumnWidth !== !!c) {
-        this.toggleNameColumnWidth_();
-      }
-    },
-
-    toggleNameColumnWidth_(opt_event) {
-      if (opt_event) {
-        opt_event.stopPropagation();
-        opt_event.preventDefault();
-      }
-
-      this.constrainNameColumnWidth_ = !this.constrainNameColumnWidth;
-      tr.b.Settings.set(
-          CONSTRAIN_NAME_COLUMN_WIDTH_KEY, this.constrainNameColumnWidth);
-      for (let row of this.rows_) {
-        row.constrainNameColumnWidth = this.constrainNameColumnWidth;
-      }
-
-      this.nameColumnTitle.children[1].style.filter =
-        this.constrainNameColumnWidth ? '' : 'invert(100%)';
+      event.stopPropagation();
+      let histogramNames = event.selection;
+      histogramNames.sort();
+      histogramNames = histogramNames.map(escapeRegExp).join('|');
+      this.viewState.update({
+        showAll: true,
+        searchQuery: `^(${histogramNames})$`,
+      });
     },
 
     get leafHistograms() {
-      let histograms = new tr.v.HistogramSet();
-      for (let row of this.rows_) {
-        row.getLeafHistograms(histograms);
+      const histograms = new tr.v.HistogramSet();
+      for (const row of
+          tr.v.ui.HistogramSetTableRow.walkAll(this.$.table.tableRows)) {
+        if (row.subRows.length) continue;
+        for (const hist of this.columns.values()) {
+          if (!(hist instanceof tr.v.Histogram)) continue;
+
+          histograms.addHistogram(hist);
+        }
       }
       return histograms;
-    },
-
-    downloadCSV_() {
-      let anchor = document.createElement('a');
-
-      let path = window.location.pathname.split('/');
-      let basename = path[path.length - 1].split('.')[0] || 'histograms';
-      anchor.download = basename + '.csv';
-
-      let csv = new tr.v.CSVBuilder(this.leafHistograms);
-      csv.build();
-      let blob = new window.Blob([csv.toString()], {type: 'text/csv'});
-      anchor.href = window.URL.createObjectURL(blob);
-
-      anchor.click();
-    },
-
-    buildColumns_() {
-      this.columns_ = [
-        {
-          title: this.nameColumnTitle,
-          value: row => row.nameCell,
-          cmp: (a, b) => a.compareNames(b),
-        }
-      ];
-
-      for (let displayLabel of this.displayLabels) {
-        this.columns_.push(this.buildColumn_(displayLabel));
-      }
     }
   });
 
   return {
-    CONSTRAIN_NAME_COLUMN_WIDTH_KEY,
-    DISPLAY_STATISTIC_KEY,
     MIDLINE_HORIZONTAL_ELLIPSIS,
-    REFERENCE_DISPLAY_LABEL_KEY,
-    SHOW_ALL_SETTINGS_KEY,
-    UNMERGEABLE,
   };
 });
 </script>

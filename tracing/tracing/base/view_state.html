@@ -37,9 +37,13 @@ tr.exportTo('tr.b', function() {
       this.update(new Map([[name, value]]));
     }
 
+    async updateFromViewState(other) {
+      await this.update(other.properties_);
+    }
+
     /**
-     * Updates fields, and, if any of them actually changed, dispatches
-     * an event with Map detail.delta.
+     * Updates properties, and, if any of them actually changed, dispatches
+     * an event with delta = {propertyName: {previous, current}}.
      *
      * @param {!(Object|Map)} delta
      */

@@ -6,6 +6,9 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/ui/null_brushing_state_controller.html">
+<link rel="import" href="/tracing/value/csv_builder.html">
+<link rel="import" href="/tracing/value/histogram_parameter_collector.html">
+<link rel="import" href="/tracing/value/ui/histogram_set_controls.html">
 <link rel="import" href="/tracing/value/ui/histogram_set_table.html">
 
 <dom-module id="tr-v-ui-histogram-set-view">
@@ -14,9 +17,30 @@ found in the LICENSE file.
     :host {
       font-family: sans-serif;
     }
+
+    #zero {
+      color: red;
+      /* histogram-set-table is used by both metrics-side-panel and results2.html.
+       * This font-size rule has no effect in results2.html, but improves
+       * legibility in the metrics-side-panel, which sets font-size in order to
+       * make this table denser.
+       */
+      font-size: initial;
+    }
+
+    #container {
+      display: none;
+    }
     </style>
 
-    <tr-v-ui-histogram-set-table id="histograms"></tr-v-ui-histogram-set-table>
+    <div id="zero">zero Histograms</div>
+
+    <div id="container">
+      <tr-v-ui-histogram-set-controls id="controls">
+      </tr-v-ui-histogram-set-controls>
+
+      <tr-v-ui-histogram-set-table id="table"></tr-v-ui-histogram-set-table>
+    </div>
   </template>
 </dom-module>
 
@@ -26,8 +50,16 @@ tr.exportTo('tr.v.ui', function() {
   Polymer({
     is: 'tr-v-ui-histogram-set-view',
 
+    created() {
+      this.brushingStateController_ = new tr.ui.NullBrushingStateController();
+      this.viewState_ = new tr.v.ui.HistogramSetViewState();
+    },
+
     ready() {
-      this.brushingStateController = new tr.ui.NullBrushingStateController();
+      this.$.table.viewState = this.viewState;
+      this.$.controls.viewState = this.viewState;
+      this.$.controls.addEventListener(
+          'download-csv', this.downloadCSV_.bind(this));
     },
 
     attached() {
@@ -35,26 +67,75 @@ tr.exportTo('tr.v.ui', function() {
           tr.c.BrushingStateController.getControllerForElement(this.parentNode);
     },
 
+    get brushingStateController() {
+      return this.brushingStateController_;
+    },
+
+    get viewState() {
+      return this.viewState_;
+    },
+
     set helpHref(href) {
-      this.$.histograms.helpHref = href;
+      this.$.controls.helpHref = href;
+    },
+
+    get histograms() {
+      return this.$.table.histograms;
     },
 
     /**
      * @param {!tr.v.HistogramSet} histograms
+     * @param {function(string):!Promise=} opt_progress
      */
-    set histograms(histograms) {
-      this.$.histograms.histograms = histograms;
+    async build(histograms, opt_progress) {
+      const progress = opt_progress || (() => Promise.resolve());
+
+      if (histograms.length === 0) {
+        this.$.container.style.display = 'none';
+        this.$.zero.style.display = 'block';
+        this.style.display = 'block';
+        return;
+      }
+      this.$.zero.style.display = 'none';
+      this.$.container.style.display = 'block';
+      this.$.container.style.maxHeight = (window.innerHeight - 16) + 'px';
+
+      await progress('Finding important Histograms...');
+      const sourceHistograms = histograms.sourceHistograms;
+      // Disable show_all if all values are sourceHistograms.
+      this.$.controls.showAllEnabled = (
+          sourceHistograms.length !== histograms.length);
+
+      await progress('Collecting parameters...');
+      const parameterCollector = new tr.v.HistogramParameterCollector();
+      parameterCollector.process(histograms);
+      this.$.controls.baseStatisticNames = parameterCollector.statisticNames;
+      this.$.controls.possibleGroupings = parameterCollector.possibleGroupings;
+      const displayLabels = parameterCollector.labels;
+      this.$.controls.displayLabels = displayLabels;
+
+      // Table.build() displays its own progress.
+      await this.$.table.build(
+          histograms, sourceHistograms, displayLabels, progress);
     },
 
-    get histograms() {
-      return this.$.histograms.histograms;
-    },
+    downloadCSV_() {
+      const anchor = document.createElement('a');
 
-    displayed() {
-      this.$.histograms.displayed();
-    },
+      const path = window.location.pathname.split('/');
+      const basename = path[path.length - 1].split('.')[0] || 'histograms';
+      anchor.download = basename + '.csv';
+
+      const csv = new tr.v.CSVBuilder(this.$.table.leafHistograms);
+      csv.build();
+      const blob = new window.Blob([csv.toString()], {type: 'text/csv'});
+      anchor.href = window.URL.createObjectURL(blob);
+
+      anchor.click();
+    }
   });
 
-  return {};
+  return {
+  };
 });
 </script>

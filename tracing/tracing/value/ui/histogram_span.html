@@ -73,6 +73,9 @@ tr.exportTo('tr.v.ui', function() {
     is: 'tr-v-ui-histogram-span',
 
     created() {
+      this.viewStateListener_ = this.onViewStateUpdate_.bind(this);
+      this.viewState = new tr.v.ui.HistogramSetTableCellState();
+
       this.histogram_ = undefined;
       this.referenceHistogram_ = undefined;
       this.graphWidth_ = undefined;
@@ -81,6 +84,28 @@ tr.exportTo('tr.v.ui', function() {
       this.brushedBins_ = [];
       this.prevBrushedBins_ = [];
       this.canMergeSampleDiagnostics_ = true;
+    },
+
+    get viewState() {
+      return this.viewState_;
+    },
+
+    set viewState(vs) {
+      if (this.viewState) {
+        this.viewState.removeUpdateListener(this.viewStateListener_);
+      }
+      this.viewState_ = vs;
+      this.viewState.addUpdateListener(this.viewStateListener_);
+    },
+
+    onViewStateUpdate_(event) {
+      if (event.delta.brushedBinRange) {
+        this.brushedBinRange = this.viewState.brushedBinRange;
+      }
+      if (event.delta.mergeSampleDiagnostics) {
+        this.mergeSampleDiagnostics = this.canMergeSampleDiagnostics &&
+          this.viewState.mergeSampleDiagnostics;
+      }
     },
 
     ready() {
@@ -197,11 +222,16 @@ tr.exportTo('tr.v.ui', function() {
     },
 
     set brushedBins(bins) {
+      if (this.chart_ === undefined) return;
       this.brushedBins_ = bins;
       if (this.chart_ === undefined) return;
       let brushedBinIndices = new tr.b.math.Range();
       for (let bin of bins) {
         brushedBinIndices.addValue(this.histogram.allBins.indexOf(bin));
+      }
+      if (brushedBinIndices.max !== this.viewState.brushedBinRange.max ||
+          brushedBinIndices.max !== this.viewState.brushedBinRange.max) {
+        this.viewState.brushedBinRange = brushedBinIndices;
       }
       this.chart_.brushedRange = brushedBinIndices;
       this.updateDiagnostics_();
@@ -214,7 +244,11 @@ tr.exportTo('tr.v.ui', function() {
 
     set brushedBinRange(r) {
       if (this.chart_ === undefined) return;
-      let brushedBins = [];
+
+      const current = this.brushedBinRange;
+      if (r.min === current.min && r.max === current.max) return;
+
+      const brushedBins = [];
       for (let i = r.min; i <= r.max; ++i) {
         brushedBins.push(this.histogram.allBins[i]);
       }
@@ -292,9 +326,11 @@ tr.exportTo('tr.v.ui', function() {
         return;
       }
 
+      this.viewState.mergeSampleDiagnostics = this.mergeSampleDiagnostics;
+
       if (this.mergeSampleDiagnostics) {
-        let merged = new tr.v.d.DiagnosticMap();
-        for (let map of maps) {
+        const merged = new tr.v.d.DiagnosticMap();
+        for (const map of maps) {
           merged.addDiagnostics(map);
         }
         maps = [merged];

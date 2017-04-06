@@ -373,7 +373,11 @@ tr.exportTo('tr.b', function() {
   function setsEqual(a, b) {
     if (!(a instanceof Set) || !(b instanceof Set)) return false;
     if (a.size !== b.size) return false;
-    return Array.from(a).every(x => b.has(x));
+    // Avoid Array.from() here -- it creates garbage.
+    for (const x of a) {
+      if (!b.has(x)) return false;
+    }
+    return true;
   }
 
   return {

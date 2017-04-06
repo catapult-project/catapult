@@ -20,43 +20,50 @@ found in the LICENSE file.
       text-overflow: ellipsis;
     }
 
-    #show_overview, #hide_overview {
+    #show_overview, #hide_overview, #show_overview svg, #hide_overview svg {
       height: 1em;
       margin-left: 5px;
     }
 
-    #show_overview {
+    #show_overview svg {
       stroke: blue;
       stroke-width: 16;
     }
 
-    #show_overview:hover {
+    #show_overview:hover svg {
       background: blue;
       stroke: white;
     }
 
     #hide_overview {
       display: none;
+    }
+
+    #hide_overview svg {
       stroke-width: 18;
       stroke: black;
     }
 
-    #hide_overview:hover {
+    #hide_overview:hover svg {
       background: black;
       stroke: white;
     }
 
-    #open_histograms, #close_histograms {
+    #open_histograms, #close_histograms, #open_histograms svg, #close_histograms svg {
       height: 1em;
     }
 
-    #open_histograms {
+    #close_histograms {
+      display: none;
+    }
+
+    #open_histograms svg {
       margin-left: 4px;
       stroke-width: 0;
       stroke: blue;
       fill: blue;
     }
-    :host(:hover) #open_histograms {
+    #open_histograms:hover svg {
       background: blue;
       stroke: white;
       fill: white;
@@ -80,27 +87,36 @@ found in the LICENSE file.
 
     <div id="name_container">
       <span id="name"></span>
-      <svg viewbox="0 0 128 128" id="show_overview" on-click="showOverview_">
-        <line x1="19" y1="109" x2="49" y2="49"/>
-        <line x1="49" y1="49" x2="79" y2="79"/>
-        <line x1="79" y1="79" x2="109" y2="19"/>
-      </svg>
 
-      <svg viewbox="0 0 128 128" id="hide_overview" on-click="hideOverview_">
-        <line x1="28" y1="28" x2="100" y2="100"/>
-        <line x1="28" y1="100" x2="100" y2="28"/>
-      </svg>
+      <span id="show_overview" on-click="showOverview_">
+        <svg viewbox="0 0 128 128">
+          <line x1="19" y1="109" x2="49" y2="49"/>
+          <line x1="49" y1="49" x2="79" y2="79"/>
+          <line x1="79" y1="79" x2="109" y2="19"/>
+        </svg>
+      </span>
 
-      <svg viewbox="0 0 128 128" id="open_histograms" on-click="openHistograms_">
-        <rect x="16" y="24" width="32" height="16"/>
-        <rect x="16" y="56" width="96" height="16"/>
-        <rect x="16" y="88" width="64" height="16"/>
-      </svg>
+      <span id="hide_overview" on-click="hideOverview_">
+        <svg viewbox="0 0 128 128">
+          <line x1="28" y1="28" x2="100" y2="100"/>
+          <line x1="28" y1="100" x2="100" y2="28"/>
+        </svg>
+      </span>
 
-      <svg viewbox="0 0 128 128" id="close_histograms" on-click="closeHistograms_">
-        <line x1="28" y1="28" x2="100" y2="100"/>
-        <line x1="28" y1="100" x2="100" y2="28"/>
-      </svg>
+      <span id="open_histograms" on-click="openHistograms_">
+        <svg viewbox="0 0 128 128">
+          <rect x="16" y="24" width="32" height="16"/>
+          <rect x="16" y="56" width="96" height="16"/>
+          <rect x="16" y="88" width="64" height="16"/>
+        </svg>
+      </span>
+
+      <span id="close_histograms" on-click="closeHistograms_">
+        <svg viewbox="0 0 128 128">
+          <line x1="28" y1="28" x2="100" y2="100"/>
+          <line x1="28" y1="100" x2="100" y2="28"/>
+        </svg>
+      </span>
     </div>
 
     <div id="overview_container">
@@ -119,23 +135,41 @@ tr.exportTo('tr.v.ui', function() {
     created() {
       this.row_ = undefined;
       this.overviewChart_ = undefined;
+      this.cellListener_ = this.onCellStateUpdate_.bind(this);
+      this.rootListener_ = this.onRootStateUpdate_.bind(this);
     },
 
     attached() {
-      // When the user expands a row, the table builds its nameCell and attaches
-      // it. If the subrow's name isOverflowing even though none of the
-      // top-level rows are constrained, dispatch an event so that the table
-      if (this.isOverflowing) {
-        this.dispatchEvent(new tr.b.Event('name-cell-overflow'));
+      if (this.row) {
+        this.row.rootViewState.addUpdateListener(this.rootListener_);
       }
+    },
+
+    detached() {
+      this.row.rootViewState.removeUpdateListener(this.rootListener_);
+      // Don't need to removeUpdateListener for the row and cells; their
+      // lifetimes are the same as |this|.
     },
 
     get row() {
       return this.row_;
     },
 
-    set row(row) {
+    build(row) {
+      if (this.row_ !== undefined) {
+        throw new Error('row must be set exactly once.');
+      }
       this.row_ = row;
+      this.row.viewState.addUpdateListener(this.onRowStateUpdate_.bind(this));
+      this.constrainWidth = this.row.rootViewState.constrainNameColumn;
+      if (this.isAttached) {
+        this.row.rootViewState.addUpdateListener(this.rootListener_);
+      }
+
+      for (const cellState of this.row.viewState.cells.values()) {
+        cellState.addUpdateListener(this.cellListener_);
+      }
+
       Polymer.dom(this.$.name).textContent = this.row.name;
 
       this.title = this.row.name;
@@ -144,14 +178,13 @@ tr.exportTo('tr.v.ui', function() {
       }
 
       let histogramCount = 0;
-      for (const cell of this.row.cells.values()) {
-        if (cell.histogram instanceof tr.v.Histogram &&
-            cell.histogram.numValues > 0) {
+      for (const cell of this.row.columns.values()) {
+        if (cell instanceof tr.v.Histogram &&
+            cell.numValues > 0) {
           ++histogramCount;
         }
       }
       if (histogramCount <= 1) {
-        this.$.close_histograms.style.display = 'none';
         this.$.open_histograms.style.display = 'none';
       }
     },
@@ -172,27 +205,34 @@ tr.exportTo('tr.v.ui', function() {
           this.$.name.getBoundingClientRect().width === this.nameWidthPx;
     },
 
-    hideOverview_(opt_event) {
-      if (opt_event) {
-        opt_event.stopPropagation();
+    get isOverviewed() {
+      return this.$.overview_container.style.display === 'block';
+    },
+
+    set isOverviewed(isOverviewed) {
+      if (isOverviewed === this.isOverviewed) return;
+      if (isOverviewed) {
+        this.showOverview_();
+      } else {
+        this.hideOverview_();
       }
+    },
+
+    hideOverview_(opt_event) {
       this.$.overview_container.style.display = 'none';
       this.$.hide_overview.style.display = 'none';
       this.$.show_overview.style.display = 'block';
 
-      for (let [displayLabel, cell] of this.row.cells) {
-        cell.hideOverview();
+      if (opt_event !== undefined) {
+        opt_event.stopPropagation();
+        this.row.viewState.isOverviewed = this.isOverviewed;
       }
     },
 
     showOverview_(opt_event) {
-      if (opt_event) {
-        opt_event.preventDefault();
-        opt_event.stopPropagation();
-      }
       this.$.overview_container.style.display = 'block';
       if (this.overviewChart_ === undefined) {
-        let data = [];
+        const data = [];
         let unitString = undefined;
         for (let [displayLabel, hist] of this.row.columns) {
           data.push({x: displayLabel, y: hist.average});
@@ -212,31 +252,58 @@ tr.exportTo('tr.v.ui', function() {
       this.$.hide_overview.style.display = 'block';
       this.$.show_overview.style.display = 'none';
 
-      for (let cell of this.row.cells.values()) {
-        cell.showOverview();
+      if (opt_event !== undefined) {
+        opt_event.stopPropagation();
+        this.row.viewState.isOverviewed = this.isOverviewed;
       }
     },
 
-    openHistograms_() {
-      for (let cell of this.row.cells.values()) {
+    openHistograms_(event) {
+      event.stopPropagation();
+      for (const cell of this.row.cells.values()) {
         cell.isHistogramOpen = true;
       }
       this.$.close_histograms.style.display = 'block';
       this.$.open_histograms.style.display = 'none';
     },
 
-    closeHistograms_() {
-      for (let cell of this.row.cells.values()) {
+    closeHistograms_(event) {
+      event.stopPropagation();
+      for (const cell of this.row.cells.values()) {
         cell.isHistogramOpen = false;
       }
       this.$.open_histograms.style.display = 'block';
       this.$.close_histograms.style.display = 'none';
     },
 
-    onHistogramOpenChange() {
+    onRootStateUpdate_(event) {
+      if (event.delta.constrainNameColumn) {
+        this.constrainWidth = this.row.rootViewState.constrainNameColumn;
+      }
+    },
+
+    onRowStateUpdate_(event) {
+      if (event.delta.isOverviewed) {
+        this.isOverviewed = this.row.viewState.isOverviewed;
+      }
+      if (event.delta.cells) {
+        if (event.delta.cells.previous) {
+          for (const cellState of event.delta.cells.previous.values()) {
+            cellState.removeUpdateListener(this.cellListener_);
+          }
+        }
+        for (const cellState of event.delta.cells.current.values()) {
+          cellState.addUpdateListener(this.cellListener_);
+        }
+      }
+    },
+
+    onCellStateUpdate_(event) {
+      if (!event.delta.isOpen) return;
+
       let cellCount = 0;
       let openCellCount = 0;
-      for (let cell of this.row.cells.values()) {
+      for (const cell of this.row.cells.values()) {
         if (!(cell.histogram instanceof tr.v.Histogram) ||
             (cell.histogram.numValues === 0)) {
           continue;
@@ -251,6 +318,8 @@ tr.exportTo('tr.v.ui', function() {
     }
   });
 
-  return {};
+  return {
+    NAME_COLUMN_WIDTH_PX,
+  };
 });
 </script>

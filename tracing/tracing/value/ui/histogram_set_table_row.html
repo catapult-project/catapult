@@ -12,135 +12,92 @@ found in the LICENSE file.
 'use strict';
 tr.exportTo('tr.v.ui', function() {
   class HistogramSetTableRow {
-    constructor(name) {
-      this.name = name;
-      this.description = '';
-      this.depth = 0;
-      this.subRows = [];
-      this.columns = new Map();
+    /**
+     * @param {!tr.v.HistogramSetHierarchy} hierarchy
+     * @param {!Element} baseTable tr-ui-b-table
+     * @param {!tr.v.ui.HistogramSetViewState} rootViewState
+     */
+    constructor(hierarchy, baseTable, rootViewState) {
+      this.hierarchy_ = hierarchy;
+      this.baseTable_ = baseTable;
+      this.rootViewState_ = rootViewState;
+      this.viewState_ = new tr.v.ui.HistogramSetTableRowState();
+      this.viewState_.addUpdateListener(this.onViewStateUpdate_.bind(this));
+
       this.nameCell_ = undefined;
-      this.cells = new Map();
-      this.constrainNameColumnWidth_ = false;
-      this.overviewDataRange_ = undefined;
-      this.displayStatistic_ = 'avg';
-      this.doMergeRelationshipsForColumn_ = new Map();
+      this.cells_ = new Map();
+      this.subRows_ = [];
+      for (const subHierarchy of hierarchy.subRows) {
+        const subRow = new HistogramSetTableRow(
+            subHierarchy, baseTable, rootViewState);
+        this.subRows_.push(subRow);
+        this.viewState.subRows.set(subRow.name, subRow.viewState);
+      }
+      // Don't assign this.viewState.subRows. There can't be anything listening
+      // to it, so avoid the overhead of dispatching an event.
     }
 
     /**
-     * Clones and filters |rows| to contain only |histograms|.
-     *
-     * @param {!Array.<HistogramSetTableRow>} rows
-     * @param {!tr.v.HistogramSet} histograms
-     * @returns {!Array.<HistogramSetTableRow>}
+     * @return {string}
      */
-    static filter(rows, histograms) {
-      let results = [];
-      for (let row of rows) {
-        let filteredSubRows = [];
-        if (row.subRows.length > 0) {
-          // This is a branch row. Drop it if all of its subrows were dropped.
-          filteredSubRows = HistogramSetTableRow.filter(
-              row.subRows, histograms);
-          if (filteredSubRows.length === 0) continue;
-        } else {
-          // This is a leaf row. Drop it if none of the Histograms in
-          // |row.columns| were merged from any in |histograms|.
-          let found = false;
-          for (let testHist of row.columns.values()) {
-            if (!(testHist instanceof tr.v.Histogram)) continue;
-            if (histograms.lookupHistogram(testHist.guid) !== undefined) {
-              found = true;
-              break;
-            }
-            let mergedFrom = testHist.diagnostics.get(
-                tr.v.d.MERGED_FROM_DIAGNOSTIC_KEY);
-            if (mergedFrom !== undefined) {
-              for (let origHist of mergedFrom) {
-                if (histograms.lookupHistogram(origHist.guid) !== undefined) {
-                  found = true;
-                  break;
-                }
-              }
-            }
-            if (found) break;
-          }
-          // If none of the Histograms in |row| were merged from any of
-          // |histograms|, then drop this row.
-          if (!found) continue;
-        }
-
-        let clone = new HistogramSetTableRow(row.name);
-        clone.description = row.description;
-        clone.depth = row.depth;
-        clone.subRows = filteredSubRows;
-        // Don't need to clone Histograms.
-        clone.columns = row.columns;
-        // Don't need to rebuild nameCell or cells.
-        clone.nameCell_ = row.nameCell_;
-        clone.cells = row.cells;
-        clone.constrainNameColumnWidth_ = row.constrainNameColumnWidth_;
-        clone.overviewDataRange_ = row.overviewDataRange_;
-        clone.displayStatistic_ = row.displayStatistic_;
-        results.push(clone);
-      }
-      return results;
+    get name() {
+      return this.hierarchy_.name;
     }
 
     /**
-     * Build table rows recursively from grouped Histograms.
-     *
-     * @param {!(HistogramArray|HistogramArrayMap)}
-     * @returns {!Array.<!HistogramSetTableRow>}
+     * @return {number}
      */
-    static build(histogramArrayMap) {
-      const rootRows = [];
-      HistogramSetTableRow.buildInternal_(histogramArrayMap, [], rootRows);
+    get depth() {
+      return this.hierarchy_.depth;
+    }
 
-      const histograms = new tr.v.HistogramSet();
+    /**
+     * @return {string}
+     */
+    get description() {
+      return this.hierarchy_.description;
+    }
 
-      for (const row of HistogramSetTableRow.walkAll(rootRows)) {
-        for (const hist of row.columns.values()) {
-          if (!(hist instanceof tr.v.Histogram)) continue;
-          histograms.addHistogram(hist);
-        }
-      }
+    /**
+     * @return {!Map.<string, !(undefined|tr.v.Histogram|tr.v.HistogramSet)>}
+     */
+    get columns() {
+      return this.hierarchy_.columns;
+    }
 
-      histograms.deduplicateDiagnostics();
+    /**
+     * @return {!tr.b.Range}
+     */
+    get overviewDataRange() {
+      return this.hierarchy_.overviewDataRange;
+    }
 
-      for (const row of HistogramSetTableRow.walkAll(rootRows)) {
-        for (const [name, hist] of row.columns) {
-          if (!(hist instanceof tr.v.Histogram)) continue;
-          if (!row.doMergeRelationshipsForColumn_.get(name)) continue;
-          hist.diagnostics.mergeRelationships(hist);
-        }
-      }
+    /**
+     * @return {!tr.v.ui.HistogramSetViewState}
+     */
+    get rootViewState() {
+      return this.rootViewState_;
+    }
 
-      // Delete "merged to" diagnostics from the original Histograms, or else
-      // they'll accumulate as the user re-groups them, and slow down future
-      // mergeRelationships operations.
-      for (const row of HistogramSetTableRow.walkAll(rootRows)) {
-        // Walk directly down to the leaves in order to avoid touching
-        // original Histograms more than once.
-        if (row.subRows.length) continue;
+    /**
+     * @return {!Map.<string, !Element>} tr-v-ui-histogram-set-table-cell
+     */
+    get cells() {
+      return this.cells_;
+    }
 
-        for (const hist of row.columns.values()) {
-          if (!(hist instanceof tr.v.Histogram)) continue;
+    /**
+     * @return {!Array.<tr.v.ui.HistogramSetTableRow>}
+     */
+    get subRows() {
+      return this.subRows_;
+    }
 
-          const mergedFrom = hist.diagnostics.get(
-              tr.v.MERGED_FROM_DIAGNOSTIC_KEY);
-          if (mergedFrom !== undefined) {
-            for (const other of mergedFrom) {
-              other.diagnostics.delete(tr.v.MERGED_TO_DIAGNOSTIC_KEY);
-            }
-          }
-        }
-      }
-
-      for (const row of HistogramSetTableRow.walkAll(rootRows)) {
-        row.maybeRebin_();
-      }
-
-      return rootRows;
+    /**
+     * @return {!Array.<tr.v.ui.HistogramSetTableRowState>}
+     */
+    get viewState() {
+      return this.viewState_;
     }
 
     * walk() {
@@ -152,190 +109,36 @@ tr.exportTo('tr.v.ui', function() {
       for (const rootRow of rootRows) yield* rootRow.walk();
     }
 
-    maybeRebin_() {
-      // if all of |this| row's columns are single-bin, then re-bin all of them.
-      const dataRange = new tr.b.math.Range();
-      for (const hist of this.columns.values()) {
-        if (!(hist instanceof tr.v.Histogram)) continue;
-        if (hist.allBins.length > 1) return;  // don't re-bin
-        if (hist.numValues === 0) continue;  // ignore hist
-        dataRange.addValue(hist.min);
-        dataRange.addValue(hist.max);
-      }
-
-      dataRange.addValue(tr.b.math.lesserWholeNumber(dataRange.min));
-      dataRange.addValue(tr.b.math.greaterWholeNumber(dataRange.max));
-
-      if (dataRange.min === dataRange.max) return;  // don't rebin
-
-      const boundaries = tr.v.HistogramBinBoundaries.createLinear(
-          dataRange.min, dataRange.max, tr.v.DEFAULT_REBINNED_COUNT);
-
-      for (const [name, hist] of this.columns) {
-        if (!(hist instanceof tr.v.Histogram)) continue;
-        this.columns.set(name, hist.rebin(boundaries));
-      }
-    }
-
-    static mergeHistogramDownHierarchy_(histogram, hierarchy, columnName) {
-      // Track the path down the grouping tree to each Histogram,
-      // but only start tracking the path at the grouping level that
-      // corresponds to the Histogram NAME Grouping. This groupingPath will be
-      // attached to Histograms in order to help mergeRelationships() figure out
-      // which merged Histograms should be related to which other merged
-      // Histograms.
-      let groupingPath = undefined;
-
-      for (let row of hierarchy) {
-        if (groupingPath !== undefined) {
-          groupingPath.push(row.name);
-        } else if (row.name === histogram.name) {
-          // Start tracking the path, but don't add histogram.name to the path,
-          // since related histograms won't have the same name.
-          groupingPath = [];
-        }
-
-        if (!row.description) {
-          row.description = histogram.description;
-        }
-
-        if (row.columns.get(columnName) === undefined) {
-          let clone = histogram.clone();
-          if (groupingPath !== undefined) {
-            new tr.v.d.GroupingPath(groupingPath).addToHistogram(clone);
-          }
-          row.columns.set(columnName, clone);
-          row.doMergeRelationshipsForColumn_.set(columnName, true);
-          continue;
-        }
-
-        if (!(row.columns.get(columnName) instanceof tr.v.Histogram)) continue;
-
-        if (!row.columns.get(columnName).canAddHistogram(histogram)) {
-          row.columns.set(columnName, tr.v.ui.UNMERGEABLE);
-          continue;
-        }
-
-        let merged = row.columns.get(columnName);
-
-        // If row.columns.get(columnName).name != histogram.name, then it won't
-        // make sense to merge relationships for this histogram.
-        if (merged.name !== histogram.name) {
-          row.doMergeRelationshipsForColumn_.set(name, false);
-        }
-
-        merged.addHistogram(histogram);
-      }
-    }
-
-    static buildInternal_(histogramArrayMap, hierarchy, rootRows) {
-      for (let [name, histograms] of histogramArrayMap) {
-        if (histograms instanceof Array) {
-          // This recursion base case corresponds to the recursion base case of
-          // groupHistogramsRecursively(). The last groupingCallback is always
-          // getDisplayLabel, which defines the columns of the table and is
-          // unskippable.
-          for (let histogram of histograms) {
-            HistogramSetTableRow.mergeHistogramDownHierarchy_(
-                histogram, hierarchy, name);
-          }
-        } else if (histograms instanceof Map) {
-          // |histograms| is actually a nested histogramArrayMap.
-          let row = new HistogramSetTableRow(name);
-          row.depth = hierarchy.length;
-          hierarchy.push(row);
-          HistogramSetTableRow.buildInternal_(histograms, hierarchy, rootRows);
-          hierarchy.pop();
-
-          if (hierarchy.length === 0) {
-            rootRows.push(row);
-          } else {
-            hierarchy[hierarchy.length - 1].subRows.push(row);
-          }
-        }
-      }
-    }
-
     get nameCell() {
       if (this.nameCell_ === undefined) {
         this.nameCell_ = document.createElement(
             'tr-v-ui-histogram-set-table-name-cell');
-        this.nameCell_.row = this;
-        this.nameCell_.constrainWidth = this.constrainNameColumnWidth_;
+        this.nameCell_.build(this);
       }
       return this.nameCell_;
     }
 
-    set constrainNameColumnWidth(constrain) {
-      for (const row of this.walk()) {
-        row.constrainNameColumnWidth_ = constrain;
-        if (row.nameCell_ !== undefined) {
-          row.nameCell_.constrainWidth = constrain;
+    getCell(displayLabel) {
+      // Build all of the cells at once so that we only need to set
+      // this.viewState.cells once, which dispatches an event to the nameCell.
+      if (!this.cells.has(displayLabel)) this.buildCells();
+      return this.cells.get(displayLabel);
+    }
+
+    buildCells() {
+      const cellStates = new Map();
+      for (const displayLabel of this.columns.keys()) {
+        const cell = document.createElement('tr-v-ui-histogram-set-table-cell');
+        cell.build(this, displayLabel);
+        this.cells.set(displayLabel, cell);
+
+        const previousState = this.viewState.cells.get(displayLabel);
+        if (previousState !== undefined) {
+          cell.viewState.updateFromViewState(previousState);
         }
+        cellStates.set(displayLabel, cell.viewState);
       }
-    }
-
-    get isNameCellOverflowing() {
-      for (const row of this.walk()) {
-        if (row.nameCell.isOverflowing) return true;
-      }
-      return false;
-    }
-
-    get displayStatistic() {
-      return this.displayStatistic_;
-    }
-
-    set displayStatistic(statName) {
-      for (const row of this.walk()) {
-        row.displayStatistic_ = statName;
-        for (let [displayLabel, cell] of row.cells) {
-          cell.displayStatistic = statName;
-        }
-      }
-    }
-
-    buildCell(displayLabel, referenceDisplayLabel) {
-      let cell = document.createElement('tr-v-ui-histogram-set-table-cell');
-      cell.row = this;
-      cell.histogram = this.columns.get(displayLabel);
-      cell.displayStatistic = this.displayStatistic;
-      if (referenceDisplayLabel &&
-          referenceDisplayLabel !== displayLabel) {
-        cell.referenceHistogram = this.columns.get(
-            referenceDisplayLabel);
-      }
-      this.cells.set(displayLabel, cell);
-      return cell;
-    }
-
-    get overviewDataRange() {
-      if (this.overviewDataRange_ === undefined) {
-        this.overviewDataRange_ = new tr.b.math.Range();
-        for (let [displayLabel, hist] of this.columns) {
-          if (hist.average !== undefined) {
-            this.overviewDataRange_.addValue(hist.average);
-          }
-
-          for (let subRow of this.subRows) {
-            let subHist = subRow.columns.get(displayLabel);
-            if (!(subHist instanceof tr.v.Histogram)) continue;
-            if (subHist.average === undefined) continue;
-            this.overviewDataRange_.addValue(subHist.average);
-          }
-        }
-      }
-      return this.overviewDataRange_;
-    }
-
-    getLeafHistograms(histograms) {
-      for (const row of this.walk()) {
-        if (row.subRows.length) return;
-
-        for (const hist of this.columns.values()) {
-          histograms.addHistogram(hist);
-        }
-      }
+      this.viewState.cells = cellStates;
     }
 
     compareNames(other) {
@@ -343,8 +146,8 @@ tr.exportTo('tr.v.ui', function() {
     }
 
     compareCells(other, displayLabel, referenceDisplayLabel) {
-      let cellA = this.columns.get(displayLabel);
-      let cellB = other.columns.get(displayLabel);
+      const cellA = this.columns.get(displayLabel);
+      const cellB = other.columns.get(displayLabel);
       if (!(cellA instanceof tr.v.Histogram) ||
           !(cellB instanceof tr.v.Histogram)) {
         return undefined;
@@ -362,51 +165,55 @@ tr.exportTo('tr.v.ui', function() {
       }
 
       const statisticA = cellA.getAvailableStatisticName(
-          this.displayStatistic, referenceCellA);
+          this.rootViewState.displayStatisticName, referenceCellA);
       const statisticB = cellB.getAvailableStatisticName(
-          this.displayStatistic, referenceCellB);
+          this.rootViewState.displayStatisticName, referenceCellB);
       const valueA = cellA.getStatisticScalar(statisticA, referenceCellA).value;
       const valueB = cellB.getStatisticScalar(statisticB, referenceCellB).value;
 
       return valueA - valueB;
     }
 
-    getExpansionStates(table) {
-      let states = {
-        expanded: table.getExpandedForTableRow(this),
-        cells: new Map(),
-        subRows: new Map(),
-      };
-
-      for (let [displayLabel, cell] of this.cells) {
-        if (cell.isHistogramOpen) {
-          states.cells.set(displayLabel, true);
-        }
+    onViewStateUpdate_(event) {
+      if (event.delta.isExpanded) {
+        this.baseTable_.setExpandedForTableRow(this, this.viewState.isExpanded);
       }
 
-      if (states.expanded) {
-        for (let i = 0; i < this.subRows.length; ++i) {
-          states.subRows.set(i, this.subRows[i].getExpansionStates(table));
-        }
+      if (event.delta.subRows) {
+        throw new Error('HistogramSetTableRow.subRows must not be reassigned.');
       }
-      return states;
-    }
 
-    setExpansionStates(states, table) {
-      if (states.expanded) {
-        if (this.subRows.length) {
-          table.setExpandedForTableRow(this, true);
-          for (let [index, subStates] of states.subRows) {
-            this.subRows[index].setExpansionStates(subStates, table);
+      if (event.delta.cells) {
+        // Only validate the cells that have already been built.
+        // Cells may not have been built yet, so only validate the cells that
+        // have been built.
+        for (const [displayLabel, cell] of this.cells) {
+          if (cell.viewState !== this.viewState.cells.get(displayLabel)) {
+            throw new Error('Only HistogramSetTableRow may update cells');
           }
         }
       }
+    }
 
-      for (let [displayLabel, isHistogramOpen] of states.cells) {
-        let cell = this.cells.get(displayLabel);
-        if (cell) {
-          cell.isHistogramOpen = isHistogramOpen;
-        }
+    async restoreState(vs) {
+      // Don't use updateFromViewState() because it would overwrite cells and
+      // subRows, but we just want to restore them.
+      await this.viewState.update({
+        isExpanded: vs.isExpanded,
+        isOverviewed: vs.isOverviewed,
+      });
+
+      // If cells haven't been built yet, then their state will be restored when
+      // they are built.
+      for (const [displayLabel, cell] of this.cells) {
+        const previousState = vs.cells.get(displayLabel);
+        if (!previousState) continue;
+        await cell.viewState.updateFromViewState(previousState);
+      }
+      for (const row of this.subRows) {
+        const previousState = vs.subRows.get(row.name);
+        if (!previousState) continue;
+        await row.restoreState(previousState);
       }
     }
   }

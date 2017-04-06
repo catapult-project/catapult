@@ -31,9 +31,9 @@ tr.exportTo('tr.v', function() {
      * @param {string} message
      * @return {Promise} resolves when |message| is displayed.
      */
-    update_(message) {
+    async update_(message) {
       this.loadingEl_.textContent = message;
-      return tr.b.animationFrame();
+      await tr.b.animationFrame();
     }
 
     /**
@@ -45,25 +45,23 @@ tr.exportTo('tr.v', function() {
      * @param {!Element} view A histogram-set-view.
      * @return {Promise} resolves when |view| is displayed.
      */
-    importHistograms(jsonEls, view) {
+    async importHistograms(jsonEls, view) {
       this.histograms_ = new tr.v.HistogramSet();
       this.jsonEls_ = jsonEls;
       this.view_ = view;
       this.view_.helpHref = 'https://github.com/catapult-project/catapult/blob/master/docs/metrics-results-ui.md';
 
-      let p = this.update_('Loading Histogram 0 of ' + this.jsonEls_.length);
-      p = p.then(() => this.loadSomeHistograms_());
+      await this.update_(`Loading Histogram 0 of ${this.jsonEls_.length}`);
+      await this.loadSomeHistograms_();
 
-      p = p.then(() => this.update_('Resolving Histogram relationships...'));
-      p = p.then(() => this.histograms_.resolveRelatedHistograms());
+      await this.update_('Resolving Histogram relationships...');
+      await this.histograms_.resolveRelatedHistograms();
 
-      p = p.then(() => this.update_('Displaying Histogram table...'));
-      p = p.then(() => this.displayHistograms_());
-
-      return p;
+      await this.update_('Displaying Histogram table...');
+      await this.displayHistograms_();
     }
 
-    loadSomeHistograms_() {
+    async loadSomeHistograms_() {
       // Don't spend so long on this chunk of Histograms that the user gets
       // frustrated, but also don't call requestAnimationFrame faster than every
       // 16ms, so that the browser doesn't have to wait for the next vsync.
@@ -80,20 +78,21 @@ tr.exportTo('tr.v', function() {
         }
       } while (new Date() - start < 50);
 
-      if (this.jsonDivIndex_ !== this.jsonEls_.length) {
-        let p = this.update_(
-            'Loading Histogram ' + stopIndex + ' of ' + this.jsonEls_.length);
-        p = p.then(() => this.loadSomeHistograms_());
-        return p;
-      }
+      if (this.jsonDivIndex_ === this.jsonEls_.length) return;
+
+      await this.update_(
+          `Loading Histogram ${stopIndex} of ${this.jsonEls_.length}`);
+      await this.loadSomeHistograms_();
     }
 
-    displayHistograms_() {
-      this.view_.histograms = this.histograms_;
-      this.loadingEl_.style.display = 'none';
-      this.view_.style.display = 'block';
-      this.view_.displayed();
-      return tr.b.animationFrame();
+    async displayHistograms_() {
+      this.view_.addEventListener('display-ready', () => {
+        this.loadingEl_.style.display = 'none';
+        this.view_.style.display = 'block';
+      });
+
+      await this.view_.build(
+          this.histograms_, message => this.update_(message));
     }
   }
 

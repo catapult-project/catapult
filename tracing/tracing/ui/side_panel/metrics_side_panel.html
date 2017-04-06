@@ -80,6 +80,15 @@ tr.exportTo('tr.ui', function() {
       this.recomputeButton_ = tr.ui.b.createButton(
           'Recompute', this.onRecompute_, this);
       Polymer.dom(this.$.top_left_controls).appendChild(this.recomputeButton_);
+
+      this.$.results.addEventListener('display-ready', () => {
+        this.$.results.style.display = '';
+      });
+    },
+
+    async build(model) {
+      this.model_ = model;
+      await this.updateContents_();
     },
 
     /**
@@ -126,8 +135,7 @@ tr.exportTo('tr.ui', function() {
     },
 
     set model(model) {
-      this.model_ = model;
-      this.updateContents_();
+      this.build(model);
     },
 
     get selection() {
@@ -167,7 +175,7 @@ tr.exportTo('tr.ui', function() {
       }
     },
 
-    updateContents_: function() {
+    updateContents_: async function() {
       Polymer.dom(this.$.error).textContent = '';
       this.$.results.style.display = 'none';
 
@@ -200,8 +208,7 @@ tr.exportTo('tr.ui', function() {
 
       this.recomputeButton_.style.background = '';
 
-      this.$.results.style.display = '';
-      this.$.results.histograms = histograms;
+      await this.$.results.build(histograms);
     }
   });
 

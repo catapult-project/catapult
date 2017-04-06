@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/value/histogram_parameter_collector.html">
+
+<script>
+'use strict';
+tr.b.unittest.testSuite(function() {
+  test('empty', function() {
+    const collector = new tr.v.HistogramParameterCollector();
+    collector.process([
+    ]);
+    assert.strictEqual('avg', tr.b.getOnlyElement(collector.statisticNames));
+    assert.strictEqual('name',
+        tr.b.getOnlyElement(collector.possibleGroupings).key);
+    assert.lengthOf(collector.labels, 0);
+  });
+
+  // TODO(benjhayden): More tests.
+});
+</script>

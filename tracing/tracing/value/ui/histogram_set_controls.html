@@ -115,25 +115,30 @@ tr.exportTo('tr.v.ui', function() {
     properties: {
       searchQuery: {
         type: String,
+        value: '',
         observer: 'onUserChange_',
       },
       showAll: {
         type: Boolean,
+        value: false,
         observer: 'onUserChange_',
       },
       referenceDisplayLabel: {
         type: String,
+        value: '',
         observer: 'onUserChange_',
       },
       displayStatisticName: {
         type: String,
+        value: '',
         observer: 'onUserChange_',
       },
     },
 
     created() {
-      this.viewState = new tr.v.ui.HistogramSetViewState();
-      this.onRowViewStateUpdate__ = this.onRowViewStateUpdate_.bind(this);
+      this.viewState_ = undefined;
+      this.rowListener_ = this.onRowViewStateUpdate_.bind(this);
+      this.baseStatisticNames_ = [];
     },
 
     ready() {
@@ -145,21 +150,41 @@ tr.exportTo('tr.v.ui', function() {
       return this.viewState_;
     },
 
-    set viewState(c) {
-      if (this.viewState !== undefined) {
-        this.viewState.removeUpdateListener(this);
+    set viewState(vs) {
+      if (this.viewState_) {
+        throw new Error('viewState must be set exactly once.');
       }
-      this.viewState_ = c;
+      this.viewState_ = vs;
       this.viewState.addUpdateListener(this.onViewStateUpdate_.bind(this));
+      // It would be arduous to construct a delta and call viewStateListener_
+      // here in case vs contains non-default values, so callers must set
+      // viewState first and then update it.
     },
 
     onUserChange_() {
+      if (!this.viewState) return;
+
+      let displayStatisticName = this.displayStatisticName;
+      if (this.viewState.referenceDisplayLabel === '' &&
+          this.referenceDisplayLabel !== '' &&
+          this.baseStatisticNames.length) {
+        this.statisticNames = this.baseStatisticNames.concat(
+            tr.v.Histogram.getDeltaStatisticsNames(this.baseStatisticNames));
+        displayStatisticName = `${tr.v.DELTA}${this.displayStatisticName}`;
+        // Can't set this.displayStatisticName before updating viewState -- that
+        // would cause an infinite loop of onUserChange_().
+      }
+
       this.viewState.update({
         searchQuery: this.searchQuery,
         showAll: this.showAll,
         referenceDisplayLabel: this.referenceDisplayLabel,
-        displayStatisticName: this.displayStatisticName,
+        displayStatisticName: displayStatisticName,
       });
+
+      if (this.displayStatisticName !== displayStatisticName) {
+        this.displayStatisticName = displayStatisticName;
+      }
     },
 
     onViewStateUpdate_(event) {
@@ -181,8 +206,8 @@ tr.exportTo('tr.v.ui', function() {
 
       if (event.delta.tableRowStates) {
         for (const row of tr.v.ui.HistogramSetTableRowState.walkAll(
-            this.viewState.tableRowStates)) {
-          row.addUpdateListener(this.onRowViewStateUpdate__);
+            this.viewState.tableRowStates.values())) {
+          row.addUpdateListener(this.rowListener_);
         }
 
         const anyShowing = this.anyOverviewCharts_;
@@ -193,18 +218,18 @@ tr.exportTo('tr.v.ui', function() {
 
     onRowViewStateUpdate_(event) {
       if (event.delta.isOverviewed) {
-        const anyShowing = event.delta.isOverviewed.after ||
+        const anyShowing = event.delta.isOverviewed.current ||
             this.anyOverviewCharts_;
         this.$.hide_overview.style.display = anyShowing ? 'inline' : 'none';
         this.$.show_overview.style.display = anyShowing ? 'none' : 'inline';
       }
 
       if (event.delta.subRows) {
-        for (const subRow of event.delta.subRows.before) {
-          subRow.removeUpdateListener(this.onRowViewStateUpdate__);
+        for (const subRow of event.delta.subRows.previous) {
+          subRow.removeUpdateListener(this.rowListener_);
         }
-        for (const subRow of event.delta.subRows.after) {
-          subRow.addUpdateListener(this.onRowViewStateUpdate__);
+        for (const subRow of event.delta.subRows.current) {
+          subRow.addUpdateListener(this.rowListener_);
         }
       }
     },
@@ -212,13 +237,24 @@ tr.exportTo('tr.v.ui', function() {
     onGroupsChanged_() {
       if (this.$.picker.currentGroups.length === 0 &&
           this.$.picker.possibleGroups.length > 0) {
+        // If the current groupings are now empty but there are possible
+        // groupings, then force there to be at least one grouping.
+        // The histogram-set-table requires there to be at least one grouping.
         this.$.picker.currentGroupKeys = [this.$.picker.possibleGroups[0].key];
+        this.$.picker.style.display = 'none';
       }
       this.viewState.groupings = this.$.picker.currentGroups;
     },
 
+    set showAllEnabled(enable) {
+      if (!enable) this.$.show_all.checked = true;
+      this.$.show_all.disabled = !enable;
+    },
+
     set possibleGroupings(groupings) {
       this.$.picker.possibleGroups = groupings;
+      this.$.picker.style.display = (groupings.length < 2) ? 'none' : 'block';
+      this.onGroupsChanged_();
     },
 
     set displayLabels(labels) {
@@ -236,36 +272,45 @@ tr.exportTo('tr.v.ui', function() {
         this.$.reference_display_label.appendChild(option);
       }
 
-      if (labels.indexOf(this.viewState.referenceDisplayLabel) < 0) {
-        this.viewState.referenceDisplayLabel = '';
-      } else {
+      if (labels.includes(this.viewState.referenceDisplayLabel)) {
         this.referenceDisplayLabel = this.viewState.referenceDisplayLabel;
+      } else {
+        this.viewState.referenceDisplayLabel = '';
       }
     },
 
-    set possibleStatisticNames(names) {
+    get baseStatisticNames() {
+      return this.baseStatisticNames_;
+    },
+
+    set baseStatisticNames(names) {
+      this.baseStatisticNames_ = names;
+      this.statisticNames = names;
+    },
+
+    set statisticNames(names) {
       this.$.statistic.style.display = (names.length < 2) ? 'none' : 'inline';
 
       while (this.$.statistic.children.length) {
         this.$.statistic.removeChild(this.$.statistic.lastChild);
       }
 
-      for (const displayLabel of names) {
+      for (const name of names) {
         const option = document.createElement('option');
-        option.textContent = displayLabel;
+        option.textContent = name;
         this.$.statistic.appendChild(option);
       }
 
-      if (names.indexOf(this.viewState.displayStatisticName) < 0) {
-        this.viewState.displayStatisticName = names[0] || '';
-      } else {
+      if (names.includes(this.viewState.displayStatisticName)) {
         this.displayStatisticName = this.viewState.displayStatisticName;
+      } else {
+        this.viewState.displayStatisticName = names[0] || '';
       }
     },
 
     get anyOverviewCharts_() {
       for (const row of tr.v.ui.HistogramSetTableRowState.walkAll(
-          this.viewState.tableRowStates)) {
+          this.viewState.tableRowStates.values())) {
         if (row.isOverviewed) return true;
       }
       return false;
@@ -275,7 +320,7 @@ tr.exportTo('tr.v.ui', function() {
       const showOverviews = !this.anyOverviewCharts_;
 
       for (const row of tr.v.ui.HistogramSetTableRowState.walkAll(
-          this.viewState.tableRowStates)) {
+          this.viewState.tableRowStates.values())) {
         row.isOverviewed = showOverviews;
       }
 

@@ -22,17 +22,17 @@ found in the LICENSE file.
       flex-grow: 1;
     }
 
-    #open_histogram, #close_histogram {
+    #open_histogram, #close_histogram, #open_histogram svg, #close_histogram svg {
       height: 1em;
     }
 
-    #open_histogram {
+    #open_histogram svg {
       margin-left: 4px;
       stroke-width: 0;
       stroke: blue;
       fill: blue;
     }
-    :host(:hover) #open_histogram {
+    :host(:hover) #open_histogram svg {
       background: blue;
       stroke: white;
       fill: white;
@@ -47,14 +47,14 @@ found in the LICENSE file.
       flex-grow: 1;
     }
 
-    #close_histogram line {
+    #close_histogram svg line {
       stroke-width: 18;
       stroke: black;
     }
-    #close_histogram:hover {
+    #close_histogram:hover svg {
       background: black;
     }
-    #close_histogram:hover line {
+    #close_histogram:hover svg line {
       stroke: white;
     }
 
@@ -70,18 +70,22 @@ found in the LICENSE file.
 
       <tr-v-ui-scalar-span id="scalar" on-click="openHistogram_"></tr-v-ui-scalar-span>
 
-      <svg viewbox="0 0 128 128" id="open_histogram" on-click="openHistogram_">
-        <rect x="16" y="24" width="32" height="16"/>
-        <rect x="16" y="56" width="96" height="16"/>
-        <rect x="16" y="88" width="64" height="16"/>
-      </svg>
+      <span id="open_histogram" on-click="openHistogram_">
+        <svg viewbox="0 0 128 128">
+          <rect x="16" y="24" width="32" height="16"/>
+          <rect x="16" y="56" width="96" height="16"/>
+          <rect x="16" y="88" width="64" height="16"/>
+        </svg>
+      </span>
 
       <span id="histogram"></span>
 
-      <svg viewbox="0 0 128 128" id="close_histogram" on-click="closeHistogram_">
-        <line x1="28" y1="28" x2="100" y2="100"/>
-        <line x1="28" y1="100" x2="100" y2="28"/>
-      </svg>
+      <span id="close_histogram" on-click="closeHistogram_">
+        <svg viewbox="0 0 128 128">
+          <line x1="28" y1="28" x2="100" y2="100"/>
+          <line x1="28" y1="100" x2="100" y2="28"/>
+        </svg>
+      </span>
     </div>
 
     <div id="overview_container">
@@ -91,44 +95,55 @@ found in the LICENSE file.
 
 <script>
 'use strict';
-tr.exportTo('tr.ui', function() {
+tr.exportTo('tr.v.ui', function() {
   Polymer({
     is: 'tr-v-ui-histogram-set-table-cell',
 
     created() {
+      this.viewState_ = new tr.v.ui.HistogramSetTableCellState();
+      this.viewState.addUpdateListener(this.onViewStateUpdate_.bind(this));
+      this.rootListener_ = this.onRootStateUpdate_.bind(this);
+      this.row_ = undefined;
+      this.displayLabel_ = '';
       this.histogram_ = undefined;
-      this.referenceHistogram_ = undefined;
       this.histogramSpan_ = undefined;
       this.overviewChart_ = undefined;
-      this.row_ = undefined;
-      this.displayStatistic_ = 'avg';
-    },
-
-    get displayStatistic() {
-      return this.displayStatistic_;
-    },
-
-    set displayStatistic(statName) {
-      if (statName === this.displayStatistic) return;
-      this.displayStatistic_ = statName;
-      this.updateContents_();
     },
 
     ready() {
       this.addEventListener('click', this.onClick_.bind(this));
     },
 
-    onClick_(event) {
-      // Since the histogram-set-table's table doesn't support any kind of
-      // selection, clicking anywhere within a row that has subRows will
-      // expand/collapse that row, which can relayout the table and move things
-      // around. Prevent table relayout by preventing the tr-ui-b-table from
-      // receiving the click event.
-      event.stopPropagation();
+    attached() {
+      if (this.row) {
+        this.row.rootViewState.addUpdateListener(this.rootListener_);
+      }
     },
 
-    set row(row) {
+    detached() {
+      this.row.rootViewState.removeUpdateListener(this.rootListener_);
+      // Don't need to removeUpdateListener for the row and cells; their
+      // lifetimes are the same as |this|.
+    },
+
+    build(row, displayLabel) {
       this.row_ = row;
+      this.displayLabel_ = displayLabel;
+      this.row.viewState.addUpdateListener(this.onRowStateUpdate_.bind(this));
+
+      if (this.isAttached) {
+        this.row.rootViewState.addUpdateListener(this.rootListener_);
+      }
+
+      this.histogram_ = this.row.columns.get(displayLabel);
+
+      // this.histogram_ and this.referenceHistogram might be undefined,
+      // a HistogramSet of unmergeable Histograms, or a Histogram.
+      this.updateContents_();
+    },
+
+    get viewState() {
+      return this.viewState_;
     },
 
     get row() {
@@ -139,29 +154,37 @@ tr.exportTo('tr.ui', function() {
       return this.histogram_;
     },
 
-    /**
-     * @param {undefined|string|!tr.v.Histogram} h
-     */
-    set histogram(h) {
-      this.histogram_ = h;
-      this.updateContents_();
-    },
-
-    /**
-     * @param {undefined|string|!tr.v.Histogram} rh
-     */
-    set referenceHistogram(rh) {
-      this.referenceHistogram_ = rh;
-      this.updateContents_();
-    },
-
     get referenceHistogram() {
-      return this.referenceHistogram_;
+      const referenceDisplayLabel =
+        this.row.rootViewState.referenceDisplayLabel;
+      if (!referenceDisplayLabel) return undefined;
+      if (referenceDisplayLabel === this.displayLabel_) return undefined;
+      return this.row.columns.get(referenceDisplayLabel);
     },
 
     get isHistogramOpen() {
-      return this.histogramSpan_ &&
+      return (this.histogramSpan_ !== undefined) &&
         (this.$.histogram.style.display === 'block');
+    },
+
+    get brushedBinRange() {
+      if (!this.isHistogramOpen) return new tr.b.math.Range();
+      return this.histogramSpan_.brushedBinRange;
+    },
+
+    set brushedBinRange(r) {
+      if (this.histogramSpan_ === undefined) return;
+      this.histogramSpan_.brushedBinRange = r;
+    },
+
+    get mergeSampleDiagnostics() {
+      if (!this.isHistogramOpen) return false;
+      return this.histogramSpan_.mergeSampleDiagnostics;
+    },
+
+    set mergeSampleDiagnostics(m) {
+      if (this.histogramSpan_ === undefined) return;
+      this.histogramSpan_.mergeSampleDiagnostics = m;
     },
 
     set isHistogramOpen(open) {
@@ -180,8 +203,6 @@ tr.exportTo('tr.ui', function() {
       this.$.close_histogram.style.display = open ? 'block' : 'none';
       this.$.histogram.style.display = open ? 'block' : 'none';
 
-      this.row.nameCell.onHistogramOpenChange();
-
       // Wait to create the histogram-span until the user wants to display it
       // in order to speed up creating lots of histogram-set-table-cells when
       // building the table.
@@ -192,7 +213,41 @@ tr.exportTo('tr.ui', function() {
         this.$.histogram.appendChild(this.histogramSpan_);
         this.histogramSpan_.referenceHistogram = this.referenceHistogram;
         this.histogramSpan_.histogram = this.histogram;
+        this.histogramSpan_.viewState = this.viewState;
       }
+
+      this.viewState.isOpen = open;
+    },
+
+    onViewStateUpdate_(event) {
+      if (event.delta.isOpen) {
+        this.isHistogramOpen = this.viewState.isOpen;
+      }
+    },
+
+    onRowStateUpdate_(event) {
+      if (event.delta.isOverviewed === undefined) return;
+      if (this.row.viewState.isOverviewed) {
+        this.showOverview();
+      } else {
+        this.hideOverview();
+      }
+    },
+
+    onRootStateUpdate_(event) {
+      if (event.delta.displayStatisticName ||
+          event.delta.referenceDisplayLabel) {
+        this.updateContents_();
+      }
+    },
+
+    onClick_(event) {
+      // Since the histogram-set-table's table doesn't support any kind of
+      // selection, clicking anywhere within a row that has subRows will
+      // expand/collapse that row, which can relayout the table and move things
+      // around. Prevent table relayout by preventing the tr-ui-b-table from
+      // receiving the click event.
+      event.stopPropagation();
     },
 
     openHistogram_() {
@@ -220,7 +275,7 @@ tr.exportTo('tr.ui', function() {
 
       this.$.missing.style.display = 'none';
 
-      if (this.histogram === tr.v.ui.UNMERGEABLE) {
+      if (this.histogram instanceof tr.v.HistogramSet) {
         this.$.unmergeable.style.display = 'block';
         return;
       }
@@ -238,17 +293,24 @@ tr.exportTo('tr.ui', function() {
       this.$.open_histogram.style.visibility = 'visible';
       this.$.scalar.style.display = 'flex';
 
-      if ((this.referenceHistogram instanceof tr.v.Histogram) &&
-          (this.histogram.unit === this.referenceHistogram.unit) &&
-          (this.referenceHistogram.numValues > 0)) {
+      const referenceHistogram = this.referenceHistogram;
+
+      if (this.histogramSpan_) {
+        // Reset in case HistogramSetViewState.referenceDisplayLabel changed.
+        this.histogramSpan_ = referenceHistogram;
+      }
+
+      if ((referenceHistogram instanceof tr.v.Histogram) &&
+          (this.histogram.unit === referenceHistogram.unit) &&
+          (referenceHistogram.numValues > 0)) {
         this.$.scalar.significance = this.histogram.getDifferenceSignificance(
-            this.referenceHistogram);
+            referenceHistogram);
       }
 
       const statName = this.histogram.getAvailableStatisticName(
-          this.displayStatistic, this.referenceHistogram);
+          this.row.rootViewState.displayStatisticName, referenceHistogram);
       const statisticScalar = this.histogram.getStatisticScalar(
-          statName, this.referenceHistogram);
+          statName, referenceHistogram);
       this.$.scalar.setValueAndUnit(
           statisticScalar.value, statisticScalar.unit);
 
@@ -259,22 +321,13 @@ tr.exportTo('tr.ui', function() {
       this.$.overview_container.style.display = 'block';
       if (this.overviewChart_ !== undefined) return;
 
-      // TODO(benjhayden) When TelemetryInfo is merged: let displayLabel =
-      // tr.v.HistogramSet.GROUPINGS.DISPLAY_LABEL.callback(this.histogram);
-      let displayLabel;
-      for (let [label, hist] of this.row.columns) {
-        if (hist === this.histogram) {
-          displayLabel = label;
-        }
-      }
-      let data = [];
+      const data = [];
       let unitString;
-      for (let subRow of this.row.subRows) {
-        let subHist = subRow.columns.get(displayLabel);
-        if (subHist) {
-          data.push({x: subRow.name, y: subHist.average});
-          unitString = subHist.unit.unitString;
-        }
+      for (const subRow of this.row.subRows) {
+        const subHist = subRow.columns.get(this.displayLabel_);
+        if (!(subHist instanceof tr.v.Histogram)) continue;
+        data.push({x: subRow.name, y: subHist.average});
+        unitString = subHist.unit.unitString;
       }
       if (data.length < 2) return;
 
@@ -291,6 +344,7 @@ tr.exportTo('tr.ui', function() {
     }
   });
 
-  return {};
+  return {
+  };
 });
 </script>

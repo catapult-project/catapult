@@ -37,11 +37,11 @@ tr.b.unittest.testSuite(function() {
 
   tr.metrics.MetricRegistry.register(testMetric);
 
-  test('instantiateCollapsed', function() {
+  test('instantiateCollapsed', async function() {
     var metricsPanel = document.createElement('tr-ui-sp-metrics-side-panel');
-    metricsPanel.currentMetricName_ = 'testMetric';
-    metricsPanel.model = createModel();
     this.addHTMLOutput(metricsPanel);
+    metricsPanel.currentMetricName_ = 'testMetric';
+    await metricsPanel.build(createModel());
 
     assert.isDefined(tr.b.findDeepElementMatchingPredicate(
         metricsPanel, elem => elem.textContent === 'test histogram'));
