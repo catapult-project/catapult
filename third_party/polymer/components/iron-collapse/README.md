@@ -55,4 +55,12 @@ and instead put a div inside and style that.
 </iron-collapse>
 ```
 
+### Styling
+
+The following custom properties and mixins are available for styling:
+
+| Custom property | Description | Default |
+| --- | --- | --- |
+| `--iron-collapse-transition-duration` | Animation transition duration | `300ms` |
+
 

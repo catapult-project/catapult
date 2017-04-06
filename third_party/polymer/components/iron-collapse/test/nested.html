@@ -85,6 +85,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             assert.equal(innerCollapse.getBoundingClientRect().height, 100);
           });
 
+          test('notifyResize triggered only on element\'s animations', function(done) {
+            var spy = sinon.spy(outerCollapse, 'notifyResize');
+
+            outerCollapse.opened = true;
+            innerCollapse.opened = true;
+
+            setTimeout(function() {
+              assert.equal(spy.callCount, 1, 'notifyResize called once');
+              done();
+            }, 400);
+          });
+
         });
 
         suite('horizontal', function() {

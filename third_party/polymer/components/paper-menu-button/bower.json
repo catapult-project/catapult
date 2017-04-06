@@ -1,6 +1,6 @@
 {
   "name": "paper-menu-button",
-  "version": "1.1.1",
+  "version": "1.5.2",
   "description": "A material design element that composes a trigger and a dropdown menu",
   "authors": [
     "The Polymer Authors"
@@ -25,6 +25,7 @@
     "iron-a11y-keys-behavior": "PolymerElements/iron-a11y-keys-behavior#^1.0.0",
     "iron-behaviors": "PolymerElements/iron-behaviors#^1.0.0",
     "iron-dropdown": "PolymerElements/iron-dropdown#^1.0.0",
+    "iron-fit-behavior": "PolymerElements/iron-fit-behavior#^1.2.0",
     "neon-animation": "PolymerElements/neon-animation#^1.0.0",
     "paper-styles": "PolymerElements/paper-styles#^1.0.0"
   },

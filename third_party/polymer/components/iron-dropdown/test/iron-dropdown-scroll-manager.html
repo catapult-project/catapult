@@ -9,6 +9,7 @@ Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 -->
 <html>
+
 <head>
   <meta charset="UTF-8">
   <title>iron-dropdown-scroll-manager tests</title>
@@ -23,6 +24,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <link rel="import" href="../../test-fixture/test-fixture.html">
   <link rel="import" href="x-scrollable-element.html">
 </head>
+
 <body>
 
   <test-fixture id="DOMSubtree">
@@ -31,12 +33,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     </template>
   </test-fixture>
   <script>
+
     suite('IronDropdownScrollManager', function() {
       var parent;
       var childOne;
       var childTwo;
-      var grandchildOne;
-      var grandchildTwo;
+      var grandChildOne;
+      var grandChildTwo;
       var ancestor;
 
       setup(function() {
@@ -94,23 +97,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             .to.be.equal(false);
         });
 
-        test('does not check locked elements when there are no locking elements', function() {
-          sinon.spy(Polymer.IronDropdownScrollManager, 'elementIsScrollLocked');
-          childOne.dispatchEvent(new CustomEvent('wheel', {
-            bubbles: true,
-            cancelable: true
-          }));
-          expect(Polymer.IronDropdownScrollManager
-              .elementIsScrollLocked.callCount).to.be.eql(1);
-          Polymer.IronDropdownScrollManager.removeScrollLock(childOne);
-          childOne.dispatchEvent(new CustomEvent('wheel', {
-            bubbles: true,
-            cancelable: true
-          }));
-          expect(Polymer.IronDropdownScrollManager
-              .elementIsScrollLocked.callCount).to.be.eql(1);
-        });
-
         suite('various scroll events', function() {
           var scrollEvents;
           var events;
@@ -124,10 +110,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             ];
 
             events = scrollEvents.map(function(scrollEvent) {
-              return new CustomEvent(scrollEvent, {
+              var event = new CustomEvent(scrollEvent, {
                 bubbles: true,
                 cancelable: true
               });
+              event.deltaX = 0;
+              event.deltaY = 10;
+              return event;
             });
           });
 
@@ -138,15 +127,61 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             });
           });
 
+          test('allows wheel events when there are no locking elements', function() {
+            Polymer.IronDropdownScrollManager.removeScrollLock(childOne);
+            events.forEach(function(event) {
+              childTwo.dispatchEvent(event);
+              expect(event.defaultPrevented).to.be.eql(false);
+            });
+          });
+
           test('allows wheel events from unlocked elements', function() {
             events.forEach(function(event) {
               childOne.dispatchEvent(event);
               expect(event.defaultPrevented).to.be.eql(false);
             });
           });
+
+          test('touchstart is prevented if dispatched by an element outside the locking element', function() {
+            var event = new CustomEvent('touchstart', {
+              bubbles: true,
+              cancelable: true
+            });
+            childTwo.dispatchEvent(event);
+            expect(event.defaultPrevented).to.be.eql(true);
+          });
+
+          test('touchstart is not prevented if dispatched by an element inside the locking element', function() {
+            var event = new CustomEvent('touchstart', {
+              bubbles: true,
+              cancelable: true
+            });
+            grandChildOne.dispatchEvent(event);
+            expect(event.defaultPrevented).to.be.eql(false);
+          });
+
+          test('arrow keyboard events not prevented by manager', function() {
+            // Even if these events might cause scrolling, they should not be
+            // prevented because they might cause a11y issues (e.g. arrow keys
+            // used for navigating the content). iron-dropdown is capable of
+            // restoring the scroll position of the document if necessary.
+            var left = MockInteractions.keyboardEventFor('keydown', 37);
+            var up = MockInteractions.keyboardEventFor('keydown', 38);
+            var right = MockInteractions.keyboardEventFor('keydown', 39);
+            var down = MockInteractions.keyboardEventFor('keydown', 40);
+            grandChildOne.dispatchEvent(left);
+            grandChildOne.dispatchEvent(up);
+            grandChildOne.dispatchEvent(right);
+            grandChildOne.dispatchEvent(down);
+            expect(left.defaultPrevented).to.be.eql(false);
+            expect(up.defaultPrevented).to.be.eql(false);
+            expect(right.defaultPrevented).to.be.eql(false);
+            expect(down.defaultPrevented).to.be.eql(false);
+          });
         });
       });
     });
   </script>
 </body>
+
 </html>

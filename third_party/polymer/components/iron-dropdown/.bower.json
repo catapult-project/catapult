@@ -1,6 +1,6 @@
 {
   "name": "iron-dropdown",
-  "version": "1.4.1",
+  "version": "1.5.5",
   "description": "An unstyled element that works similarly to a native browser select",
   "authors": [
     "The Polymer Authors"
@@ -19,12 +19,11 @@
   "license": "http://polymer.github.io/LICENSE.txt",
   "homepage": "https://github.com/PolymerElements/iron-dropdown",
   "dependencies": {
-    "polymer": "polymer/polymer#^1.0.0",
+    "polymer": "polymer/polymer#^1.1.0",
     "iron-behaviors": "polymerelements/iron-behaviors#^1.0.0",
-    "iron-overlay-behavior": "polymerelements/iron-overlay-behavior#^1.0.0",
+    "iron-overlay-behavior": "polymerelements/iron-overlay-behavior#^1.8.6",
     "iron-resizable-behavior": "polymerelements/iron-resizable-behavior#^1.0.0",
-    "neon-animation": "polymerelements/neon-animation#^1.0.0",
-    "iron-a11y-keys-behavior": "polymerelements/iron-a11y-keys-behavior#^1.0.0"
+    "neon-animation": "polymerelements/neon-animation#^1.0.0"
   },
   "devDependencies": {
     "iron-component-page": "polymerelements/iron-component-page#^1.0.0",
@@ -36,13 +35,13 @@
     "iron-image": "polymerelements/iron-image#^1.0.0"
   },
   "ignore": [],
-  "_release": "1.4.1",
+  "_release": "1.5.5",
   "_resolution": {
     "type": "version",
-    "tag": "v1.4.1",
-    "commit": "fc5ce3d2ee6be97beef00b9456e6e06498408401"
+    "tag": "v1.5.5",
+    "commit": "6d379de1076062ff258e69064211261d14599b0b"
   },
-  "_source": "git://github.com/PolymerElements/iron-dropdown.git",
+  "_source": "https://github.com/PolymerElements/iron-dropdown.git",
   "_target": "^1.0.0",
   "_originalSource": "PolymerElements/iron-dropdown"
 }

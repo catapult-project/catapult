@@ -11,7 +11,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../iron-flex-layout/iron-flex-layout.html">
 <link rel="import" href="../paper-behaviors/paper-button-behavior.html">
-<link rel="import" href="../paper-material/paper-material.html">
+<link rel="import" href="../paper-material/paper-material-shared-styles.html">
 
 <!--
 Material design: [Buttons](https://www.google.com/design/spec/components/buttons.html)
@@ -83,7 +83,7 @@ Custom property | Description | Default
 
 <dom-module id="paper-button">
   <template strip-whitespace>
-    <style include="paper-material">
+    <style include="paper-material-shared-styles">
       :host {
         @apply(--layout-inline);
         @apply(--layout-center-center);
@@ -110,6 +110,10 @@ Custom property | Description | Default
         @apply(--paper-button);
       }
 
+      :host([hidden]) {
+        display: none !important;
+      }
+
       :host([raised].keyboard-focus) {
         font-weight: bold;
         @apply(--paper-button-raised-keyboard-focus);
@@ -127,6 +131,10 @@ Custom property | Description | Default
         pointer-events: none;
 
         @apply(--paper-button-disabled);
+      }
+
+      :host([animated]) {
+        @apply(--shadow-transition);
       }
 
       paper-ripple {

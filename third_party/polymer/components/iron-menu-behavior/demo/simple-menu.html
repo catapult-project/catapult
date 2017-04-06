@@ -13,17 +13,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../../paper-styles/color.html">
 
 <dom-module id="simple-menu">
-
-  <style>
-
-    .content ::content > .iron-selected {
-      color: white;
-      background-color: var(--google-blue-500);
-    }
-
-  </style>
-
   <template>
+    <style>
+      .content ::content > .iron-selected {
+        color: white;
+        background-color: var(--google-blue-500);
+      }
+    </style>
 
     <div class="content">
       <content></content>

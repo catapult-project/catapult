@@ -22,7 +22,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <script src="../../web-component-tester/browser.js"></script>
     <script src="../../iron-test-helpers/mock-interactions.js"></script>
     <link rel="import" href="test-menu.html">
+    <link rel="import" href="test-nested-menu.html">
 
+    <style>
+      .ghost, [hidden] {
+        display: none;
+      }
+      .invisible {
+        visibility: hidden;
+      }
+    </style>
   </head>
   <body>
 
@@ -36,6 +45,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       </template>
     </test-fixture>
 
+     <test-fixture id="single-item">
+      <template>
+        <test-menu>
+          <div>item 1</div>
+        </test-menu>
+      </template>
+    </test-fixture>
+
     <test-fixture id="disabled">
       <template>
         <test-menu>
@@ -44,6 +61,26 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           <div>b item 3</div>
           <div disabled>c item 4</div>
         </test-menu>
+      </template>
+    </test-fixture>
+
+    <test-fixture id="invisible">
+      <template>
+        <test-menu>
+          <div>item 1</div>
+          <div hidden>item 2</div>
+          <div class="ghost">item 3</div>
+          <div class="invisible">item 3.1</div>
+          <div>item 4</div>
+          <div hidden>item 5</div>
+          <div class="ghost">item 6</div>
+        </test-menu>
+      </template>
+    </test-fixture>
+
+    <test-fixture id="nested-invisible">
+      <template>
+        <test-nested-menu></test-nested-menu>
       </template>
     </test-fixture>
 
@@ -83,6 +120,42 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       </template>
     </test-fixture>
 
+    <test-fixture id="disabled-group-and-options">
+      <template>
+        <test-menu disabled>
+          <div disabled>one</div>
+          <div disabled>two</div>
+        </test-menu>
+      </template>
+    </test-fixture>
+
+    <test-fixture id="nonzero-tabindex">
+      <template>
+        <test-menu tabindex="32">
+          <div>One</div>
+          <div>Two</div>
+        </test-menu>
+      </template>
+    </test-fixture>
+
+    <test-fixture id="countries">
+      <template>
+        <test-menu>
+          <div>Ghana</div>
+          <div>Uganda</div>
+        </test-menu>
+      </template>
+    </test-fixture>
+
+    <test-fixture id="bogus-attr-for-item-title">
+      <template>
+        <test-menu attr-for-item-title="totally-doesnt-exist">
+          <div>Focused by default</div>
+          <div>I'm not entitled!</div>
+        </test-menu>
+      </template>
+    </test-fixture>
+
     <script>
       suite('menu a11y tests', function() {
         test('menu has role="menu"', function() {
@@ -92,6 +165,17 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         test('first item gets focus when menu is focused', function(done) {
           var menu = fixture('basic');
+          MockInteractions.focus(menu);
+          Polymer.Base.async(function() {
+            var ownerRoot = Polymer.dom(menu.firstElementChild).getOwnerRoot() || document;
+            var activeElement = Polymer.dom(ownerRoot).activeElement;
+            assert.equal(activeElement, menu.firstElementChild, 'menu.firstElementChild is focused');
+            done();
+          });
+        });
+
+        test('first item gets focus when menu is focused in a single item menu', function(done) {
+          var menu = fixture('single-item');
           MockInteractions.focus(menu);
           Polymer.Base.async(function() {
             var ownerRoot = Polymer.dom(menu.firstElementChild).getOwnerRoot() || document;
@@ -124,6 +208,41 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             Polymer.Base.async(function() {
               var focusedItem = Polymer.dom(menu).node.focusedItem;
               assert.equal(focusedItem, menu.items[2], 'menu.items[2] is focused');
+              done();
+            });
+          });
+        });
+
+        test('focusing on next item skips invisible items', function(done) {
+          var menu = fixture('invisible');
+
+          MockInteractions.focus(menu);
+          // Wait for async focus
+          Polymer.Base.async(function() {
+            // Key press down
+            MockInteractions.keyDownOn(menu, 40);
+
+            Polymer.Base.async(function() {
+              var focusedItem = Polymer.dom(menu).node.focusedItem;
+              assert.equal(focusedItem, menu.items[4], 'menu.items[4] is focused');
+              done();
+            });
+          });
+        });
+
+        test('focusing on next item skips nested invisible items', function(done) {
+          var nestedMenu = fixture('nested-invisible');
+          var menu = nestedMenu.$.actualMenu;
+
+          MockInteractions.focus(menu);
+          // Wait for async focus
+          Polymer.Base.async(function() {
+            // Key press down
+            MockInteractions.keyDownOn(menu, 40);
+
+            Polymer.Base.async(function() {
+              var focusedItem = Polymer.dom(menu).node.focusedItem;
+              assert.equal(focusedItem, menu.items[4], 'menu.items[4] is focused');
               done();
             });
           });
@@ -173,6 +292,41 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             Polymer.Base.async(function() {
               var focusedItem = Polymer.dom(menu).node.focusedItem;
               assert.equal(focusedItem, menu.items[2], 'menu.items[2] is focused');
+              done();
+            });
+          });
+        });
+
+        test('focusing on previous item skips invisible items', function(done) {
+          var menu = fixture('invisible');
+          MockInteractions.focus(menu);
+
+          // Wait for async focus
+          Polymer.Base.async(function() {
+            // Key press up
+            MockInteractions.keyDownOn(menu, 38);
+
+            Polymer.Base.async(function() {
+              var focusedItem = Polymer.dom(menu).node.focusedItem;
+              assert.equal(focusedItem, menu.items[4], 'menu.items[4] is focused');
+              done();
+            });
+          });
+        });
+
+        test('focusing on previous item skips nested invisible items', function(done) {
+          var nestedMenu = fixture('nested-invisible');
+          var menu = nestedMenu.$.actualMenu;
+          MockInteractions.focus(menu);
+
+          // Wait for async focus
+          Polymer.Base.async(function() {
+            // Key press up
+            MockInteractions.keyDownOn(menu, 38);
+
+            Polymer.Base.async(function() {
+              var focusedItem = Polymer.dom(menu).node.focusedItem;
+              assert.equal(focusedItem, menu.items[4], 'menu.items[4] is focused');
               done();
             });
           });
@@ -263,6 +417,44 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           });
         });
 
+        test('focusing on item with multi-char, quick input', function(done) {
+          var menu = fixture('countries');
+          MockInteractions.focus(menu);
+
+          // Wait for async focus
+          Polymer.Base.async(function() {
+            // Key press 'u'
+            MockInteractions.keyDownOn(menu, 85);
+
+            // Key press 'g'
+            MockInteractions.keyDownOn(menu, 71);
+
+            Polymer.Base.async(function() {
+              var focusedItem = Polymer.dom(menu).node.focusedItem;
+              assert.equal(focusedItem, menu.items[1], 'menu.items[1] is focused');
+              done();
+            });
+          });
+        });
+
+        test('focusing on item with bogus attr-for-item-title', function(done) {
+          var menu = fixture('bogus-attr-for-item-title');
+          MockInteractions.focus(menu);
+
+          // Wait for async focus
+          Polymer.Base.async(function() {
+            // Key press 'i'
+            MockInteractions.keyDownOn(menu, 73);
+
+            Polymer.Base.async(function() {
+              var focusedItem = Polymer.dom(menu).node.focusedItem;
+              assert.equal(focusedItem, menu.items[0], 'menu.items[0] is still focused');
+              done();
+            });
+          });
+
+        });
+
         test('focusing non-item content does not auto-focus an item', function(done) {
           var menu = fixture('basic');
           menu.extraContent.focus();
@@ -337,6 +529,46 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             assert.equal(Polymer.dom(document).activeElement, menu);
             done();
           });
+        });
+
+        test('A disabled menu should not be focusable', function(done) {
+          var menu = fixture('disabled-group-and-options');
+          menu.focus();
+          Polymer.Base.async(function() {
+            assert.notEqual(Polymer.dom(document).activeElement, menu);
+            assert.notEqual(Polymer.dom(document).activeElement, menu.items[0]);
+            assert.notEqual(Polymer.dom(document).activeElement, menu.items[1]);
+            done();
+          });
+        });
+
+        test('A disabled menu will not have a tab index.', function() {
+          var menu = fixture('countries');
+          assert.equal(menu.tabIndex, 0);
+          menu.disabled = true;
+          assert.equal(menu.tabIndex, -1);
+          menu.disabled = false;
+          assert.equal(menu.tabIndex, 0);
+        });
+
+        test('Updated tab index of disabled element should remain.', function() {
+          var menu = fixture('countries');
+          assert.equal(menu.tabIndex, 0);
+          menu.disabled = true;
+          assert.equal(menu.tabIndex, -1);
+          menu.setAttribute('tabindex', 15);
+          assert.equal(menu.tabIndex, 15);
+          menu.disabled = false;
+          assert.equal(menu.tabIndex, 15);
+        });
+
+        test('A disabled menu will regain its non-zero tab index when re-enabled.', function() {
+          var menu = fixture('nonzero-tabindex');
+          assert.equal(menu.tabIndex, 32);
+          menu.disabled = true;
+          assert.equal(menu.tabIndex, -1);
+          menu.disabled = false;
+          assert.equal(menu.tabIndex, 32);
         });
 
         test('`tabIndex` properties of all items are updated when items change', function(done) {

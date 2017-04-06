@@ -15,7 +15,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 <!--
 `<paper-input-container>` is a container for a `<label>`, an `<input is="iron-input">` or
-`<iron-autogrow-textarea>` and optional add-on elements such as an error message or character
+`<textarea>` and optional add-on elements such as an error message or character
 counter, used to implement Material Design text fields.
 
 For example:
@@ -90,6 +90,7 @@ Custom property | Description | Default
 `--paper-input-container-label-focus` | Mixin applied to the label when the input is focused | `{}`
 `--paper-input-container-label-floating` | Mixin applied to the label when floating | `{}`
 `--paper-input-container-input` | Mixin applied to the input | `{}`
+`--paper-input-container-input-webkit-spinner` | Mixin applied to the webkit spinner | `{}`
 `--paper-input-container-underline` | Mixin applied to the underline | `{}`
 `--paper-input-container-underline-focus` | Mixin applied to the underline when the input is focused | `{}`
 `--paper-input-container-underline-disabled` | Mixin applied to the underline when the input is disabled | `{}`
@@ -130,14 +131,14 @@ This element is `display:block` by default, but you can set the `inline` attribu
       }
 
       .underline {
+        height: 2px;
         position: relative;
       }
 
       .focused-line {
         @apply(--layout-fit);
 
-        background: var(--paper-input-container-focus-color, --primary-color);
-        height: 2px;
+        border-bottom: 2px solid var(--paper-input-container-focus-color, --primary-color);
 
         -webkit-transform-origin: center center;
         transform-origin: center center;
@@ -157,7 +158,7 @@ This element is `display:block` by default, but you can set the `inline` attribu
       }
 
       .underline.is-invalid .focused-line {
-        background: var(--paper-input-container-invalid-color, --error-color);
+        border-color: var(--paper-input-container-invalid-color, --error-color);
         -webkit-transform: none;
         transform: none;
         -webkit-transition: -webkit-transform 0.25s;
@@ -169,8 +170,7 @@ This element is `display:block` by default, but you can set the `inline` attribu
       .unfocused-line {
         @apply(--layout-fit);
 
-        background: var(--paper-input-container-color, --secondary-text-color);
-        height: 1px;
+        border-bottom: 1px solid var(--paper-input-container-color, --secondary-text-color);
 
         @apply(--paper-input-container-underline);
       }
@@ -178,7 +178,6 @@ This element is `display:block` by default, but you can set the `inline` attribu
       :host([disabled]) .unfocused-line {
         border-bottom: 1px dashed;
         border-color: var(--paper-input-container-color, --secondary-text-color);
-        background: transparent;
 
         @apply(--paper-input-container-underline-disabled);
       }
@@ -272,9 +271,15 @@ This element is `display:block` by default, but you can set the `inline` attribu
         color: var(--paper-input-container-input-color, --primary-text-color);
         -webkit-appearance: none;
         text-align: inherit;
+        vertical-align: bottom;
 
         @apply(--paper-font-subhead);
         @apply(--paper-input-container-input);
+      }
+
+      .input-content ::content input::-webkit-outer-spin-button,
+      .input-content ::content input::-webkit-inner-spin-button {
+        @apply(--paper-input-container-input-webkit-spinner);
       }
 
       ::content [prefix] {

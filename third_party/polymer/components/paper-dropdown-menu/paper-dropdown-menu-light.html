@@ -13,9 +13,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../iron-behaviors/iron-button-state.html">
 <link rel="import" href="../iron-behaviors/iron-control-state.html">
 <link rel="import" href="../iron-form-element-behavior/iron-form-element-behavior.html">
+<link rel="import" href="../iron-icon/iron-icon.html">
 <link rel="import" href="../iron-validatable-behavior/iron-validatable-behavior.html">
-<link rel="import" href="../paper-menu-button/paper-menu-button.html">
 <link rel="import" href="../paper-behaviors/paper-ripple-behavior.html">
+<link rel="import" href="../paper-menu-button/paper-menu-button.html">
 <link rel="import" href="../paper-styles/default-theme.html">
 
 <link rel="import" href="paper-dropdown-menu-icons.html">
@@ -102,6 +103,10 @@ To style it:
         outline: none;
       }
 
+      :host {
+        width: 200px;  /* Default size of an <input> */
+      }
+
       /**
        * All of these styles below are for styling the fake-input display
        */
@@ -124,10 +129,10 @@ To style it:
       #input {
         @apply(--paper-font-subhead);
         @apply(--paper-font-common-nowrap);
+        line-height: 1.5;
         border-bottom: 1px solid var(--paper-dropdown-menu-color, --secondary-text-color);
         color: var(--paper-dropdown-menu-color, --primary-text-color);
-        width: 200px;  /* Default size of an <input> */
-        min-height: 24px;
+        width: 100%;
         box-sizing: border-box;
         padding: 12px 20px 0 0;   /* Right padding so that text doesn't overlap the icon */
         outline: none;
@@ -181,6 +186,9 @@ To style it:
 
       :host([no-label-float]) label {
         top: 8px;
+        /* Since the label doesn't need to float, remove the animation duration
+        which slows down visibility changes (i.e. when a selection is made) */
+        transition-duration: 0s;
       }
 
       label.label-is-floating {
@@ -189,7 +197,7 @@ To style it:
       }
 
       label.label-is-hidden {
-        display: none;
+        visibility: hidden;
       }
 
       :host([focused]) label.label-is-floating {
@@ -237,7 +245,6 @@ To style it:
         right: 0px;
         bottom: 8px;    /* The container has an 8px bottom padding */
         @apply(--paper-font-subhead);
-        margin-top: 12px;
         color: var(--disabled-text-color);
         @apply(--paper-dropdown-menu-icon);
       }
@@ -268,7 +275,7 @@ To style it:
     </style>
 
     <!-- this div fulfills an a11y requirement for combobox, do not remove -->
-    <div role="button"></div>
+    <span role="button"></span>
     <paper-menu-button
       id="menuButton"
       vertical-align="[[verticalAlign]]"
@@ -278,10 +285,13 @@ To style it:
       no-animations="[[noAnimations]]"
       on-iron-select="_onIronSelect"
       on-iron-deselect="_onIronDeselect"
-      opened="{{opened}}">
+      opened="{{opened}}"
+      close-on-activate
+      allow-outside-scroll="[[allowOutsideScroll]]">
       <div class="dropdown-trigger">
-        <label hidden$="[[!label]]"
-            class$="[[_computeLabelClass(noLabelFloat,alwaysFloatLabel,hasContent)]]">[[label]]</label>
+        <label class$="[[_computeLabelClass(noLabelFloat,alwaysFloatLabel,hasContent)]]">
+          [[label]]
+        </label>
         <div id="input" tabindex="-1">&nbsp;</div>
         <iron-icon icon="paper-dropdown-menu:arrow-drop-down"></iron-icon>
         <span class="error">[[errorMessage]]</span>
@@ -364,6 +374,17 @@ To style it:
             notify: true,
             value: false,
             observer: '_openedChanged'
+          },
+
+          /**
+           * By default, the dropdown will constrain scrolling on the page
+           * to itself when opened.
+           * Set to true in order to prevent scroll from being constrained
+           * to the dropdown when it opens.
+           */
+          allowOutsideScroll: {
+            type: Boolean,
+            value: false
           },
 
           /**
@@ -510,7 +531,7 @@ To style it:
           if (!selectedItem) {
             value = '';
           } else {
-            value = selectedItem.label || selectedItem.textContent.trim();
+            value = selectedItem.label || selectedItem.getAttribute('label') || selectedItem.textContent.trim();
           }
 
           this._setValue(value);

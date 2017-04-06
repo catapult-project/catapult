@@ -22,6 +22,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
   <link rel="import" href="../iron-iconset-svg.html">
   <link rel="import" href="../../iron-meta/iron-meta.html">
+  <link rel="import" href="../../iron-icon/iron-icon.html">
   <link rel="import" href="../../promise-polyfill/promise-polyfill.html">
   <link rel="import" href="../../test-fixture/test-fixture.html">
 
@@ -32,6 +33,23 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <template>
       <iron-iconset-svg name="foo"></iron-iconset-svg>
       <iron-meta type="iconset"></iron-meta>
+    </template>
+  </test-fixture>
+
+  <test-fixture id="MirroredIconsetSvg">
+    <template>
+      <iron-iconset-svg name="mirrored-icons" rtl-mirroring>
+        <circle id="circle" cx="20" cy="20" r="10"></circle>
+        <symbol id="rect" viewBox="0 0 50 25" mirror-in-rtl>
+          <rect x="0" y="0" width="50" height="25"></rect>
+        </symbol>
+      </iron-iconset-svg>
+    </template>
+  </test-fixture>
+
+  <test-fixture id="RtlContainer">
+    <template>
+      <div dir="rtl"></div>
     </template>
   </test-fixture>
 
@@ -49,6 +67,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         </svg>
       </iron-iconset-svg>
       <div></div>
+      <iron-icon></iron-icon>
     </template>
   </test-fixture>
 
@@ -89,6 +108,43 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         });
       });
 
+      suite('when stamping in an RTL context', function() {
+        var iconset;
+        var rtlContainer;
+
+        setup(function() {
+          iconset = fixture('MirroredIconsetSvg');
+          rtlContainer = fixture('RtlContainer');
+        });
+
+        test('icons marked as mirror-in-rtl are mirrored', function() {
+          iconset.applyIcon(rtlContainer, 'rect');
+          var svg = rtlContainer.firstElementChild;
+          var computedStyle = window.getComputedStyle(svg);
+          var transform = computedStyle.transform || computedStyle.webkitTransform;
+          expect(transform).to.be.eql('matrix(-1, 0, 0, 1, 0, 0)');
+        });
+
+        test('icons not marked as mirror-in-rtl are not mirrored', function() {
+          iconset.applyIcon(rtlContainer, 'circle');
+          var svg = rtlContainer.firstElementChild;
+          var computedStyle = window.getComputedStyle(svg);
+          var transform = computedStyle.transform || computedStyle.webkitTransform;
+          expect(transform).to.be.eql('none');
+        });
+
+        test('many mirrored icons only call getComputedStyle once', function() {
+          sinon.spy(window, 'getComputedStyle');
+
+          for (var i = 0; i < 3; ++i) {
+            iconset.applyIcon(rtlContainer, 'rect');
+          }
+
+          expect(window.getComputedStyle.callCount).to.be.eql(1);
+          window.getComputedStyle.restore();
+        });
+      });
+
       suite('when paired with a size and SVG definition', function () {
         var iconset;
         var div;
@@ -104,7 +160,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           expect(rect.width).to.be.equal(0);
           expect(rect.height).to.be.equal(0);
         });
-        
+
         test('appends a child to the target element', function () {
           expect(div.firstElementChild).to.not.be.ok;
           iconset.applyIcon(div, 'circle');
@@ -133,6 +189,38 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         test('uses the iconset size when viewBox is not defined on the element', function () {
           iconset.applyIcon(div, 'circle');
           expect(div.firstElementChild.getAttribute('viewBox')).to.be.equal('0 0 20 20');
+        });
+      });
+
+      suite('Adding / removal from iron-icon', function () {
+        var iconset;
+        var div;
+        var ironIcon;
+
+        setup(function () {
+          var elements = fixture('StandardIconsetSvg');
+          iconset = elements[0];
+          div = elements[1];
+          ironIcon = elements[2];
+        });
+
+        test('be able to remove an iconset from a standard DOM element', function () {
+          iconset.applyIcon(div, 'circle');
+          Polymer.dom.flush();
+          expect(div.children.length).to.be.equal(1);
+          iconset.removeIcon(div);
+          Polymer.dom.flush();
+          expect(div.children.length).to.be.equal(0);
+        });
+
+        test('be able to remove an iconset from a Polymer element', function () {
+          var baseLength = Polymer.dom(ironIcon.root).children.length;
+          iconset.applyIcon(ironIcon, 'circle');
+          Polymer.dom.flush();
+          expect(Polymer.dom(ironIcon.root).children.length - baseLength).to.be.equal(1);
+          iconset.removeIcon(ironIcon);
+          Polymer.dom.flush();
+          expect(Polymer.dom(ironIcon.root).children.length - baseLength).to.be.equal(0);
         });
 
       });

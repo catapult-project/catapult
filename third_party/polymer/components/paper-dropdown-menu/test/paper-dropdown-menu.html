@@ -49,6 +49,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     </template>
   </test-fixture>
 
+  <test-fixture id="LabelsDropdownMenu">
+    <template>
+      <paper-dropdown-menu no-animations>
+        <paper-listbox class="dropdown-content">
+          <paper-item label="Foo label property">Foo textContent</paper-item>
+          <paper-item label="Foo label attribute">Foo textContent</paper-item>
+          <paper-item>Foo textContent</paper-item>
+        </paper-listbox>
+      </paper-dropdown-menu>
+    </template>
+  </test-fixture>
+
   <script>
 
     function runAfterOpen(menu, callback) {
@@ -174,6 +186,31 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           expect(dropdownMenu.validate()).to.be.true;
           expect(dropdownMenu.invalid).to.be.false;
           expect(dropdownMenu.value).to.be.equal('Bar');
+        });
+      });
+
+      suite('selectedItemLabel', function() {
+        test('label property', function() {
+          var dropdownMenu = fixture('LabelsDropdownMenu');
+          var menu = Polymer.dom(dropdownMenu).querySelector('.dropdown-content');
+          menu.selected = 0;
+          //Fake a label property since paper-item doesn't have one
+          dropdownMenu.selectedItem.label = dropdownMenu.selectedItem.getAttribute('label');
+          expect(dropdownMenu.selectedItemLabel).to.be.equal('Foo label property');
+        });
+
+        test('label attribute', function() {
+          var dropdownMenu = fixture('LabelsDropdownMenu');
+          var menu = Polymer.dom(dropdownMenu).querySelector('.dropdown-content');
+          menu.selected = 1;
+          expect(dropdownMenu.selectedItemLabel).to.be.equal('Foo label attribute');
+        });
+
+        test('textContent', function() {
+          var dropdownMenu = fixture('LabelsDropdownMenu');
+          var menu = Polymer.dom(dropdownMenu).querySelector('.dropdown-content');
+          menu.selected = 2;
+          expect(dropdownMenu.selectedItemLabel).to.be.equal('Foo textContent');
         });
       });
     });

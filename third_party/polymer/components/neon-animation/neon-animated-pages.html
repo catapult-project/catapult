@@ -11,7 +11,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../iron-resizable-behavior/iron-resizable-behavior.html">
 <link rel="import" href="../iron-selector/iron-selectable.html">
 <link rel="import" href="neon-animation-runner-behavior.html">
-<link rel="import" href="animations/opaque-animation.html">
 
 <!--
 Material design: [Meaningful transitions](https://www.google.com/design/spec/animation/meaningful-transitions.html)
@@ -26,33 +25,30 @@ animations to be run when switching to or switching out of the page.
 -->
 
 <dom-module id="neon-animated-pages">
-
-  <style>
-
-    :host {
-      display: block;
-      position: relative;
-    }
-
-    :host > ::content > * {
-      position: absolute;
-      top: 0;
-      left: 0;
-      bottom: 0;
-      right: 0;
-    }
-
-    :host > ::content > :not(.iron-selected):not(.neon-animating) {
-      display: none !important;
-    }
-
-    :host > ::content > .neon-animating {
-      pointer-events: none;
-    }
-
-  </style>
-
   <template>
+    <style>
+      :host {
+        display: block;
+        position: relative;
+      }
+
+      :host > ::content > * {
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+      }
+
+      :host > ::content > :not(.iron-selected):not(.neon-animating) {
+        display: none !important;
+      }
+
+      :host > ::content > .neon-animating {
+        pointer-events: none;
+      }
+    </style>
+    
     <content id="content"></content>
   </template>
 

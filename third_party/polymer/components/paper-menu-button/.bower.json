@@ -1,6 +1,6 @@
 {
   "name": "paper-menu-button",
-  "version": "1.1.1",
+  "version": "1.5.2",
   "description": "A material design element that composes a trigger and a dropdown menu",
   "authors": [
     "The Polymer Authors"
@@ -25,6 +25,7 @@
     "iron-a11y-keys-behavior": "PolymerElements/iron-a11y-keys-behavior#^1.0.0",
     "iron-behaviors": "PolymerElements/iron-behaviors#^1.0.0",
     "iron-dropdown": "PolymerElements/iron-dropdown#^1.0.0",
+    "iron-fit-behavior": "PolymerElements/iron-fit-behavior#^1.2.0",
     "neon-animation": "PolymerElements/neon-animation#^1.0.0",
     "paper-styles": "PolymerElements/paper-styles#^1.0.0"
   },
@@ -43,13 +44,13 @@
     "webcomponentsjs": "webcomponents/webcomponentsjs#^0.7.0"
   },
   "ignore": [],
-  "_release": "1.1.1",
+  "_release": "1.5.2",
   "_resolution": {
     "type": "version",
-    "tag": "v1.1.1",
-    "commit": "2d4d1cbdcfe260878e972e42d73ca5a3b7248cb9"
+    "tag": "v1.5.2",
+    "commit": "0f43421bc76ca863b16b82b8e4c67efb0267b818"
   },
-  "_source": "git://github.com/PolymerElements/paper-menu-button.git",
-  "_target": "^1.0.0",
+  "_source": "https://github.com/PolymerElements/paper-menu-button.git",
+  "_target": "^1.3.0",
   "_originalSource": "PolymerElements/paper-menu-button"
 }

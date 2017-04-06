@@ -9,11 +9,27 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 -->
 
 <link rel="import" href="../polymer/polymer.html">
-<link rel="import" href="../iron-a11y-keys-behavior/iron-a11y-keys-behavior.html">
 
 <script>
   (function() {
     'use strict';
+    /**
+     * Used to calculate the scroll direction during touch events.
+     * @type {!Object}
+     */
+    var lastTouchPosition = {
+      pageX: 0,
+      pageY: 0
+    };
+    /**
+     * Used to avoid computing event.path and filter scrollable nodes (better perf).
+     * @type {?EventTarget}
+     */
+    var lastRootTarget = null;
+    /**
+     * @type {!Array<Node>}
+     */
+    var lastScrollableNodes = [];
 
     /**
      * The IronDropdownScrollManager is intended to provide a central source
@@ -31,9 +47,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         return this._lockingElements[this._lockingElements.length - 1];
       },
 
-
       /**
-       * Returns true if the provided element is "scroll locked," which is to
+       * Returns true if the provided element is "scroll locked", which is to
        * say that it cannot be scrolled via pointer or keyboard interactions.
        *
        * @param {HTMLElement} element An HTML element instance which may or may
@@ -126,13 +141,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       _unlockedElementCache: null,
 
-      _originalBodyStyles: {},
-
-      _isScrollingKeypress: function(event) {
-        return Polymer.IronA11yKeysBehavior.keyboardEventMatchesKeys(
-          event, 'pageup pagedown home end up left down right');
-      },
-
       _hasCachedLockedElement: function(element) {
         return this._lockedElementCache.indexOf(element) > -1;
       },
@@ -175,58 +183,176 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
 
       _scrollInteractionHandler: function(event) {
-        var scrolledElement =
-            /** @type {HTMLElement} */(Polymer.dom(event).rootTarget);
-        if (Polymer
-              .IronDropdownScrollManager
-              .elementIsScrollLocked(scrolledElement)) {
-          if (event.type === 'keydown' &&
-              !Polymer.IronDropdownScrollManager._isScrollingKeypress(event)) {
-            return;
-          }
-
+        // Avoid canceling an event with cancelable=false, e.g. scrolling is in
+        // progress and cannot be interrupted.
+        if (event.cancelable && this._shouldPreventScrolling(event)) {
           event.preventDefault();
+        }
+        // If event has targetTouches (touch event), update last touch position.
+        if (event.targetTouches) {
+          var touch = event.targetTouches[0];
+          lastTouchPosition.pageX = touch.pageX;
+          lastTouchPosition.pageY = touch.pageY;
         }
       },
 
       _lockScrollInteractions: function() {
-        // Memoize body inline styles:
-        this._originalBodyStyles.overflow = document.body.style.overflow;
-        this._originalBodyStyles.overflowX = document.body.style.overflowX;
-        this._originalBodyStyles.overflowY = document.body.style.overflowY;
-
-        // Disable overflow scrolling on body:
-        // TODO(cdata): It is technically not sufficient to hide overflow on
-        // body alone. A better solution might be to traverse all ancestors of
-        // the current scroll locking element and hide overflow on them. This
-        // becomes expensive, though, as it would have to be redone every time
-        // a new scroll locking element is added.
-        document.body.style.overflow = 'hidden';
-        document.body.style.overflowX = 'hidden';
-        document.body.style.overflowY = 'hidden';
-
+        this._boundScrollHandler = this._boundScrollHandler ||
+          this._scrollInteractionHandler.bind(this);
         // Modern `wheel` event for mouse wheel scrolling:
-        document.addEventListener('wheel', this._scrollInteractionHandler, true);
+        document.addEventListener('wheel', this._boundScrollHandler, true);
         // Older, non-standard `mousewheel` event for some FF:
-        document.addEventListener('mousewheel', this._scrollInteractionHandler, true);
+        document.addEventListener('mousewheel', this._boundScrollHandler, true);
         // IE:
-        document.addEventListener('DOMMouseScroll', this._scrollInteractionHandler, true);
+        document.addEventListener('DOMMouseScroll', this._boundScrollHandler, true);
+        // Save the lastScrollableNodes on touchstart, to be used on touchmove.
+        document.addEventListener('touchstart', this._boundScrollHandler, true);
         // Mobile devices can scroll on touch move:
-        document.addEventListener('touchmove', this._scrollInteractionHandler, true);
-        // Capture keydown to prevent scrolling keys (pageup, pagedown etc.)
-        document.addEventListener('keydown', this._scrollInteractionHandler, true);
+        document.addEventListener('touchmove', this._boundScrollHandler, true);
       },
 
       _unlockScrollInteractions: function() {
-        document.body.style.overflow = this._originalBodyStyles.overflow;
-        document.body.style.overflowX = this._originalBodyStyles.overflowX;
-        document.body.style.overflowY = this._originalBodyStyles.overflowY;
+        document.removeEventListener('wheel', this._boundScrollHandler, true);
+        document.removeEventListener('mousewheel', this._boundScrollHandler, true);
+        document.removeEventListener('DOMMouseScroll', this._boundScrollHandler, true);
+        document.removeEventListener('touchstart', this._boundScrollHandler, true);
+        document.removeEventListener('touchmove', this._boundScrollHandler, true);
+      },
 
-        document.removeEventListener('wheel', this._scrollInteractionHandler, true);
-        document.removeEventListener('mousewheel', this._scrollInteractionHandler, true);
-        document.removeEventListener('DOMMouseScroll', this._scrollInteractionHandler, true);
-        document.removeEventListener('touchmove', this._scrollInteractionHandler, true);
-        document.removeEventListener('keydown', this._scrollInteractionHandler, true);
+      /**
+       * Returns true if the event causes scroll outside the current locking
+       * element, e.g. pointer/keyboard interactions, or scroll "leaking"
+       * outside the locking element when it is already at its scroll boundaries.
+       * @param {!Event} event
+       * @return {boolean}
+       * @private
+       */
+      _shouldPreventScrolling: function(event) {
+
+        // Update if root target changed. For touch events, ensure we don't
+        // update during touchmove.
+        var target = Polymer.dom(event).rootTarget;
+        if (event.type !== 'touchmove' && lastRootTarget !== target) {
+          lastRootTarget = target;
+          lastScrollableNodes = this._getScrollableNodes(Polymer.dom(event).path);
+        }
+
+        // Prevent event if no scrollable nodes.
+        if (!lastScrollableNodes.length) {
+          return true;
+        }
+        // Don't prevent touchstart event inside the locking element when it has
+        // scrollable nodes.
+        if (event.type === 'touchstart') {
+          return false;
+        }
+        // Get deltaX/Y.
+        var info = this._getScrollInfo(event);
+        // Prevent if there is no child that can scroll.
+        return !this._getScrollingNode(lastScrollableNodes, info.deltaX, info.deltaY);
+      },
+
+      /**
+       * Returns an array of scrollable nodes up to the current locking element,
+       * which is included too if scrollable.
+       * @param {!Array<Node>} nodes
+       * @return {Array<Node>} scrollables
+       * @private
+       */
+      _getScrollableNodes: function(nodes) {
+        var scrollables = [];
+        var lockingIndex = nodes.indexOf(this.currentLockingElement);
+        // Loop from root target to locking element (included).
+        for (var i = 0; i <= lockingIndex; i++) {
+          // Skip non-Element nodes.
+          if (nodes[i].nodeType !== Node.ELEMENT_NODE) {
+            continue;
+          }
+          var node = /** @type {!Element} */ (nodes[i]);
+          // Check inline style before checking computed style.
+          var style = node.style;
+          if (style.overflow !== 'scroll' && style.overflow !== 'auto') {
+            style = window.getComputedStyle(node);
+          }
+          if (style.overflow === 'scroll' || style.overflow === 'auto') {
+            scrollables.push(node);
+          }
+        }
+        return scrollables;
+      },
+
+      /**
+       * Returns the node that is scrolling. If there is no scrolling,
+       * returns undefined.
+       * @param {!Array<Node>} nodes
+       * @param {number} deltaX Scroll delta on the x-axis
+       * @param {number} deltaY Scroll delta on the y-axis
+       * @return {Node|undefined}
+       * @private
+       */
+      _getScrollingNode: function(nodes, deltaX, deltaY) {
+        // No scroll.
+        if (!deltaX && !deltaY) {
+          return;
+        }
+        // Check only one axis according to where there is more scroll.
+        // Prefer vertical to horizontal.
+        var verticalScroll = Math.abs(deltaY) >= Math.abs(deltaX);
+        for (var i = 0; i < nodes.length; i++) {
+          var node = nodes[i];
+          var canScroll = false;
+          if (verticalScroll) {
+            // delta < 0 is scroll up, delta > 0 is scroll down.
+            canScroll = deltaY < 0 ? node.scrollTop > 0 :
+              node.scrollTop < node.scrollHeight - node.clientHeight;
+          } else {
+            // delta < 0 is scroll left, delta > 0 is scroll right.
+            canScroll = deltaX < 0 ? node.scrollLeft > 0 :
+              node.scrollLeft < node.scrollWidth - node.clientWidth;
+          }
+          if (canScroll) {
+            return node;
+          }
+        }
+      },
+
+      /**
+       * Returns scroll `deltaX` and `deltaY`.
+       * @param {!Event} event The scroll event
+       * @return {{deltaX: number, deltaY: number}} Object containing the
+       * x-axis scroll delta (positive: scroll right, negative: scroll left,
+       * 0: no scroll), and the y-axis scroll delta (positive: scroll down,
+       * negative: scroll up, 0: no scroll).
+       * @private
+       */
+      _getScrollInfo: function(event) {
+        var info = {
+          deltaX: event.deltaX,
+          deltaY: event.deltaY
+        };
+        // Already available.
+        if ('deltaX' in event) {
+          // do nothing, values are already good.
+        }
+        // Safari has scroll info in `wheelDeltaX/Y`.
+        else if ('wheelDeltaX' in event) {
+          info.deltaX = -event.wheelDeltaX;
+          info.deltaY = -event.wheelDeltaY;
+        }
+        // Firefox has scroll info in `detail` and `axis`.
+        else if ('axis' in event) {
+          info.deltaX = event.axis === 1 ? event.detail : 0;
+          info.deltaY = event.axis === 2 ? event.detail : 0;
+        }
+        // On mobile devices, calculate scroll direction.
+        else if (event.targetTouches) {
+          var touch = event.targetTouches[0];
+          // Touch moves from right to left => scrolling goes right.
+          info.deltaX = lastTouchPosition.pageX - touch.pageX;
+          // Touch moves from down to up => scrolling goes down.
+          info.deltaY = lastTouchPosition.pageY - touch.pageY;
+        }
+        return info;
       }
     };
   })();

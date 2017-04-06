@@ -2,22 +2,22 @@ language: node_js
 sudo: required
 node_js: stable
 addons:
-  firefox: latest
+  firefox: '46.0'
   apt:
     sources:
-      - google-chrome
+    - google-chrome
     packages:
-      - google-chrome-stable
+    - google-chrome-stable
   sauce_connect: true
 before_script:
-  - npm install -g bower polylint web-component-tester
-  - bower install
-  - polylint
+- npm install -g bower polylint web-component-tester
+- bower install
+- polylint
 script:
-  - xvfb-run wct
-  - "if [ \"${TRAVIS_PULL_REQUEST}\" = \"false\" ]; then wct -s 'default'; fi"
+- xvfb-run wct
+- if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then wct -s 'default'; fi
 env:
   global:
-    - secure: AnPpB3uzTWU0hmrDmPyOb/3mJZRv4BgPFJrpaT/mQ/9979IBeFfFHJX6MqQlgo894lJWvKSvAjEutgK5Z3LQh6cLB3JuhPBInwKgFPUx/V14VIju+Z7jwx6RycE3flb2f9Y6y5My13ovswsTNnhJEkpDGlbRnJlh5c+HeP+6D0oFPFaGWvULZsAHQnEykir1TMPL2TD8SfuYWifmBj7QYQ2vsYnqZoAkPNedv/OtdoA3rziFXSG3GqXX2NJVnYqlaLj/HiHK7xLlZu/ODfo6En12DMtqJajBP7NfJkEUAF72ScOsYxlwiI1aYcVSUy6upkxxPwkBj5x7wDZ0tRFmlautyq2skDAh/fgIfRw9AMe8kj/YLef+T8bmZNT9IIelNaNcpfTQHpYWcOpPk2uBT3iIOcmp+Ys8RZKqzYmekBtHTwCGmQcfQrjBXjrjz5xlUaoMH7vauh7Ct7SkD7Fu87XSUvks4v2yypxxmHXO8jUilKuUdtAzb3dtOboO0ptsoLuBm/qSeURco4be6KPyVnDxdWdbYOxIZtE8JeY2DbonS45OgFtL1NKeEIhiTQIcOuSs0qwJFFzaBBAfek1tkTvBhMJP3JPWpIbNJhdZWzSd0LUSe892sbiZJY67FA4xcY8vK5JZNWnxFyKX1+A8ljPEd1yBImxMzUDMNS9t0G0=
-    - secure: jdh0G/FDRghnjasav0/8nOZsYgXUd5DLKgD5XrDCVrBvPwXly+AnMXE+Hr/bztEXylcEmcqrWUUfB1ODUdVn1EGk8CJaYpHyKcoMcpJiEjHYS/3i1rXRsnHs2o3dcRO69rA8A5LZeG3yYfiPVUiKlyl7MWOal3pNohDGi8dZcT0CoWnA8UaV//0uXG3GGG3X8KcbVfB2hQvG1mK6wM6W4eHVOplcBaE2xnnFDMxfU2KnRgjLSPw66PeJGczWOBR9fZql9p6kV38ZM2s4qnUsMlTZkNqn0f6CuEPqcG6+S6Tk9+0dvAHet+Ky9fgiyJPq+p6sDGfdm1ZJwOjz5MoyudzGSuHAJHH2nscQf8pUBQ1gxKaGg7GV9LUj0cjLDAFWA2KpxTlabDZhZPIMoMKFpqpvJG49gDVga5gGabom21nd/+E1i/2vvoP16kY9rjf+Gd5+tIzajXCu8Tq06Xz63idZDJbt38GjArfFFqe5k7CqE+m2vpWx/iTwe+cT70wnIq/xigvaNq6CgUuNdzkVnVBj/C7yVqwwZkfbBC7HhRna9Nyzts/j2M2vwy0oYB73WzuhpYSweaAOZq2kcUIQ5ZMGO3UkZRjwWnHxAi5mrvZhRcRIqkvJJhoMQnjwJSTah/3cz0cJh19DL+Ozde24/tuY+vOnhFb+ddo1OKD6FtM=
+  - secure: coZBjQTrTsejOS2utVzo0hhyYRF40H2KoN30G44tRxVKV/0orSm1HJbvG2YDb/tmAFtEObJmNlYonu1I3G9RVncn9y69nRf8BjLHrpOIhNvesug7kPUuprj5KRoLo9O0UyIYmUh6i4YGt1aAeR/Wq/XVifSNIXnAVguzntbSmqvWJdqj8+FHmNzyo5269+tnOzTruXByrUcSZnvNgHjCYFZOY00a29cyK6fTdd0Qbzi9cvhEDfx1j6uXzYah7bdA8caunW1HvxwI+jiV8yEVySB7eku+SHA+8JJUIIZEL1iCASAqqVbTUoOxtfgbTXQRJdVAuDNj1J+AqFVtuJpJl4xvX97dF9FVQvgyLW9fpeb7rojdU0TSazBpVi7LLvocQjofp8bbAtbJ8Z0BN+/3DgM33uDTF8DeBGj2WmR+49F2oPnYh7FwjhbiOVqkOKyolqrRpK0PYczVdHusR6+cONkGcLzO9G5nakWzE9diJSW+nw9qD3bVL99ZzHK+6U7+R75KJdxj0V7VA1lkvWRlchxXrpsEoM0AQEUf97LsvkTpXPQ4Wf9XkCxFRAicSTeDijLCPy3ti0L6D6x9sBZwV5d3ODnkdxCAy2aY7g2YEWuuBDZC+W1ggQ3Xe705GwbBNk22HikA6XOVX9lb3xm7SnenfDGkFhNDzRijoGg96jU=
+  - secure: hJ6VMaJqDh5HPdeERIqoOcdWZJTAOTeS/Lr6FLCWEOOvYPxwRi/L1pKbVuYf2ugeS2Z0TEvAS7RdfjRuC+NGFhsmpnpBlxAyJhVKcXrhHKVtoFK04xaCD2wDMkPaZiDZQRGF/H6/PyuoB4Tqss3aN/DC9eSMwY9HFfoeYRIwiJeb8Kq09pBtvoxU151VQt+jlmyCVw7rhNDTAazaCGKicgvbAtxSJ6xNswNfqOrtCYB+WW5CpUE+qqTjjbistSQJu3hjk2UwFMLJZXtJWdkcD88vNdHy3mtNZQNtE8x+ckNVqgJ98DyAN7HLUU0GvzTOiOGFfwr+bpl6Td8klR2YoQOW4ypluAetcDN9X7tKOxDQaaI8AyPLXPWi9JcESEGAeLzpfkWZ6clrQmqfLdVDsqYKPldF9m7Ozjdhq40r3qFdQAdEI29dBOKOalaZXgWnvU2wu5FBtWnBMSk89zOYC5wGR0E+wOMMMRu90LuMQY40Myhqso5iUFL5qhrn41I8ZfFi0EyOgEeKzYH3zrdo7/msEkCXxI0SKfG1CGSQSOT2luO6Xu6xIuf7qoWYKJiJQ40ObsRKn0cA4GQpNZe/dgKMRH2zzfKW6d2BSAsZGTDJG14XcDi9d/zz7djgboMjc/A6sH8L3c8BkbUa4wuyJRNu7VBZQHq5yrnHpxC6SbA=
 dist: trusty

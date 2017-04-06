@@ -1,5 +1,6 @@
 <!doctype html>
 <!--
+@license
 Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
 This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
 The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
@@ -7,10 +8,8 @@ The complete set of contributors may be found at http://polymer.github.io/CONTRI
 Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 -->
-
 <html>
 <head>
-
   <title>iron-icons demo</title>
   <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
   <link rel="import" href="../../paper-styles/demo-pages.html">
@@ -33,7 +32,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <link rel="import" href="../places-icons.html">
 
   <style is="custom-style">
-
     h2 {
       text-transform: capitalize;
     }
@@ -81,7 +79,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       text-align: center;
       @apply(--layout-vertical);
       @apply(--layout-center);
-      @apply(--layout-flex-1);
+      @apply(--layout-flex);
     }
 
     .container > div {
@@ -89,44 +87,30 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       color: black;
       font-size: 10px;
     }
-
   </style>
-
 </head>
 <body>
-
   <template is="dom-bind">
-
    <iron-meta type="iconset" list="{{iconsets}}"></iron-meta>
 
     <template is="dom-repeat" items="{{iconsets}}">
-
       <h2>{{item.name}}</h2>
 
       <div class="set">
-
         <template is="dom-repeat" items="{{getIconNames(item)}}">
-
           <span class="container">
             <iron-icon icon="{{item}}"></iron-icon>
             <div>{{item}}</div>
           </span>
-
         </template>
-
       </div>
-
     </template>
-
   </template>
 
   <script>
-
     document.querySelector('[is=dom-bind]').getIconNames = function(iconset) {
       return iconset.getIconNames();
     };
-
   </script>
-
 </body>
 </html>

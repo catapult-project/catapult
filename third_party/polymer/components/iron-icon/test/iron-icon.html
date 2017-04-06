@@ -112,6 +112,32 @@ suite('<iron-icon>', function() {
     });
   });
 
+  suite('lifecycle', function() {
+    var icon;
+
+    setup(function() {
+      icon = document.createElement('iron-icon');
+    });
+
+    teardown(function() {
+      if (icon.parentNode != null) {
+        Polymer.dom(icon.parentNode).removeChild(icon);
+      }
+    });
+
+    test('does not create icon until attached', function() {
+      icon.src = 'location.png';
+
+      var children = Polymer.dom(icon.root).querySelectorAll('img,svg');
+
+      expect(children.length).to.be.eql(0);
+      Polymer.dom(document.body).appendChild(icon);
+      Polymer.dom.flush();
+      children = Polymer.dom(icon.root).querySelectorAll('img,svg');
+      expect(children.length).to.be.eql(1);
+    });
+  });
+
   suite('when paired with an iconset', function() {
     var icon;
 

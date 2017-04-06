@@ -12,6 +12,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../paper-behaviors/paper-ripple-behavior.html">
 
 <!--
+The following custom properties and mixins are also available for styling:
+
+Custom property | Description | Default
+----------------|-------------|----------
+`--paper-icon-button-light-ripple` | Mixin applied to the paper ripple | `{}`
+
 @group Paper Elements
 @element paper-icon-button-light
 @demo demo/paper-icon-button-light.html
@@ -47,6 +53,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       paper-ripple {
         opacity: 0.6;
         color: currentColor;
+        @apply(--paper-icon-button-light-ripple);
       }
     </style>
     <content></content>

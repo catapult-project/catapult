@@ -43,6 +43,17 @@ Use `noOverlap` to position the element around another element without overlappi
         </iron-fit-impl>
       </div>
 
+Use `horizontalOffset, verticalOffset` to offset the element from its `positionTarget`;
+`Polymer.IronFitBehavior` will collapse these in order to keep the element
+within `fitInto` boundaries, while preserving the element's CSS margin values.
+
+      <div class="container">
+        <iron-fit-impl vertical-align="top" vertical-offset="20">
+          With vertical offset
+        </iron-fit-impl>
+      </div>
+
+
 @demo demo/index.html
 @polymerBehavior
 */
@@ -113,8 +124,18 @@ Use `noOverlap` to position the element around another element without overlappi
       },
 
       /**
-       * The same as setting margin-left and margin-right css properties.
-       * @deprecated
+       * A pixel value that will be added to the position calculated for the
+       * given `horizontalAlign`, in the direction of alignment. You can think
+       * of it as increasing or decreasing the distance to the side of the
+       * screen given by `horizontalAlign`.
+       *
+       * If `horizontalAlign` is "left", this offset will increase or decrease
+       * the distance to the left side of the screen: a negative offset will
+       * move the dropdown to the left; a positive one, to the right.
+       *
+       * Conversely if `horizontalAlign` is "right", this offset will increase
+       * or decrease the distance to the right side of the screen: a negative
+       * offset will move the dropdown to the right; a positive one, to the left.
        */
       horizontalOffset: {
         type: Number,
@@ -123,8 +144,18 @@ Use `noOverlap` to position the element around another element without overlappi
       },
 
       /**
-       * The same as setting margin-top and margin-bottom css properties.
-       * @deprecated
+       * A pixel value that will be added to the position calculated for the
+       * given `verticalAlign`, in the direction of alignment. You can think
+       * of it as increasing or decreasing the distance to the side of the
+       * screen given by `verticalAlign`.
+       *
+       * If `verticalAlign` is "top", this offset will increase or decrease
+       * the distance to the top side of the screen: a negative offset will
+       * move the dropdown upwards; a positive one, downwards.
+       *
+       * Conversely if `verticalAlign` is "bottom", this offset will increase
+       * or decrease the distance to the bottom side of the screen: a negative
+       * offset will move the dropdown downwards; a positive one, upwards.
        */
       verticalOffset: {
         type: Number,
@@ -218,7 +249,11 @@ Use `noOverlap` to position the element around another element without overlappi
 
     attached: function() {
       // Memoize this to avoid expensive calculations & relayouts.
-      this._isRTL = window.getComputedStyle(this).direction == 'rtl';
+      // Make sure we do it only once
+      if (typeof this._isRTL === 'undefined') {
+        this._isRTL = window.getComputedStyle(this).direction == 'rtl';
+      }
+          
       this.positionTarget = this.positionTarget || this._defaultPositionTarget;
       if (this.autoFitOnAttach) {
         if (window.getComputedStyle(this).display === 'none') {
@@ -235,7 +270,6 @@ Use `noOverlap` to position the element around another element without overlappi
      * Positions and fits the element into the `fitInto` element.
      */
     fit: function() {
-      this._discoverInfo();
       this.position();
       this.constrain();
       this.center();
@@ -282,20 +316,6 @@ Use `noOverlap` to position the element around another element without overlappi
           left: parseInt(target.marginLeft, 10) || 0
         }
       };
-
-      // Support these properties until they are removed.
-      if (this.verticalOffset) {
-        this._fitInfo.margin.top = this._fitInfo.margin.bottom = this.verticalOffset;
-        this._fitInfo.inlineStyle.marginTop = this.style.marginTop || '';
-        this._fitInfo.inlineStyle.marginBottom = this.style.marginBottom || '';
-        this.style.marginTop = this.style.marginBottom = this.verticalOffset + 'px';
-      }
-      if (this.horizontalOffset) {
-        this._fitInfo.margin.left = this._fitInfo.margin.right = this.horizontalOffset;
-        this._fitInfo.inlineStyle.marginLeft = this.style.marginLeft || '';
-        this._fitInfo.inlineStyle.marginRight = this.style.marginRight || '';
-        this.style.marginLeft = this.style.marginRight = this.horizontalOffset + 'px';
-      }
     },
 
     /**
@@ -337,6 +357,7 @@ Use `noOverlap` to position the element around another element without overlappi
         // needs to be centered, and it is done after constrain.
         return;
       }
+      this._discoverInfo();
 
       this.style.position = 'fixed';
       // Need border-box for margin/padding.
@@ -362,27 +383,20 @@ Use `noOverlap` to position the element around another element without overlappi
       var left = position.left + margin.left;
       var top = position.top + margin.top;
 
-      // Use original size (without margin).
+      // We first limit right/bottom within fitInto respecting the margin,
+      // then use those values to limit top/left.
       var right = Math.min(fitRect.right - margin.right, left + rect.width);
       var bottom = Math.min(fitRect.bottom - margin.bottom, top + rect.height);
 
-      var minWidth = this._fitInfo.sizedBy.minWidth;
-      var minHeight = this._fitInfo.sizedBy.minHeight;
-      if (left < margin.left) {
-        left = margin.left;
-        if (right - left < minWidth) {
-          left = right - minWidth;
-        }
-      }
-      if (top < margin.top) {
-        top = margin.top;
-        if (bottom - top < minHeight) {
-          top = bottom - minHeight;
-        }
-      }
+      // Keep left/top within fitInto respecting the margin.
+      left = Math.max(fitRect.left + margin.left,
+        Math.min(left, right - this._fitInfo.sizedBy.minWidth));
+      top = Math.max(fitRect.top + margin.top,
+        Math.min(top, bottom - this._fitInfo.sizedBy.minHeight));
 
-      this.sizingTarget.style.maxWidth = (right - left) + 'px';
-      this.sizingTarget.style.maxHeight = (bottom - top) + 'px';
+      // Use right/bottom to set maxWidth/maxHeight, and respect minWidth/minHeight.
+      this.sizingTarget.style.maxWidth = Math.max(right - left, this._fitInfo.sizedBy.minWidth) + 'px';
+      this.sizingTarget.style.maxHeight = Math.max(bottom - top, this._fitInfo.sizedBy.minHeight) + 'px';
 
       // Remove the offset caused by any stacking context.
       this.style.left = (left - rect.left) + 'px';
@@ -397,6 +411,8 @@ Use `noOverlap` to position the element around another element without overlappi
       if (this.horizontalAlign || this.verticalAlign) {
         return;
       }
+      this._discoverInfo();
+
       var info = this._fitInfo;
       // position at (0px, 0px) if not already positioned, so we can measure the natural size.
       if (!info.positionedBy.vertically) {
@@ -451,6 +467,8 @@ Use `noOverlap` to position the element around another element without overlappi
       if (this.horizontalAlign || this.verticalAlign) {
         return;
       }
+      this._discoverInfo();
+
       var positionedBy = this._fitInfo.positionedBy;
       if (positionedBy.vertically && positionedBy.horizontally) {
         // Already positioned.
@@ -507,23 +525,23 @@ Use `noOverlap` to position the element around another element without overlappi
       var positions = [{
         verticalAlign: 'top',
         horizontalAlign: 'left',
-        top: positionRect.top,
-        left: positionRect.left
+        top: positionRect.top + this.verticalOffset,
+        left: positionRect.left + this.horizontalOffset
       }, {
         verticalAlign: 'top',
         horizontalAlign: 'right',
-        top: positionRect.top,
-        left: positionRect.right - size.width
+        top: positionRect.top + this.verticalOffset,
+        left: positionRect.right - size.width - this.horizontalOffset
       }, {
         verticalAlign: 'bottom',
         horizontalAlign: 'left',
-        top: positionRect.bottom - size.height,
-        left: positionRect.left
+        top: positionRect.bottom - size.height - this.verticalOffset,
+        left: positionRect.left + this.horizontalOffset
       }, {
         verticalAlign: 'bottom',
         horizontalAlign: 'right',
-        top: positionRect.bottom - size.height,
-        left: positionRect.right - size.width
+        top: positionRect.bottom - size.height - this.verticalOffset,
+        left: positionRect.right - size.width - this.horizontalOffset
       }];
 
       if (this.noOverlap) {

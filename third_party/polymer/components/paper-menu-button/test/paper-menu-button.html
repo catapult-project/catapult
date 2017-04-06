@@ -86,7 +86,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             MockInteractions.tap(trigger);
           });
         });
-        
+
         MockInteractions.tap(trigger);
       });
 
@@ -105,6 +105,37 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       test('has aria-haspopup attribute', function() {
         expect(menuButton.hasAttribute('aria-haspopup')).to.be.equal(true);
+      });
+
+      test('closes on iron-activate if close-on-activate is true', function(done) {
+        menuButton.closeOnActivate = true;
+
+        menuButton.addEventListener('paper-dropdown-open', function() {
+          menuButton.addEventListener('paper-dropdown-close', function() {
+            done();
+          });
+
+          content.dispatchEvent(new CustomEvent('iron-activate', {
+            bubbles: true,
+            cancelable: true
+          }));
+        });
+
+        MockInteractions.tap(trigger);
+      });
+
+      test('allowOutsideScroll propagates to <iron-dropdown>', function() {
+        menuButton.allowOutsideScroll = false;
+        expect(menuButton.$.dropdown.allowOutsideScroll).to.be.equal(false);
+        menuButton.allowOutsideScroll = true;
+        expect(menuButton.$.dropdown.allowOutsideScroll).to.be.equal(true);
+      });
+
+      test('restoreFocusOnClose propagates to <iron-dropdown>', function() {
+        menuButton.restoreFocusOnClose = false;
+        expect(menuButton.$.dropdown.restoreFocusOnClose).to.be.equal(false);
+        menuButton.restoreFocusOnClose = true;
+        expect(menuButton.$.dropdown.restoreFocusOnClose).to.be.equal(true);
       });
 
     });
@@ -150,7 +181,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           Polymer.Base.async(function() {
             MockInteractions.tap(otherTrigger);
           });
-          
+
 
           Polymer.Base.async(function() {
             expect(firstClosed).to.be.equal(true);

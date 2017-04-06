@@ -43,6 +43,10 @@ style this element.
       :host([hidden]) {
         display: none !important;
       }
+
+      label {
+        pointer-events: none;
+      }
     </style>
 
     <paper-input-container no-label-float$="[[noLabelFloat]]" always-float-label="[[_computeAlwaysFloatLabel(alwaysFloatLabel,placeholder)]]" auto-validate$="[[autoValidate]]" disabled$="[[disabled]]" invalid="[[invalid]]">
@@ -51,6 +55,7 @@ style this element.
 
       <iron-autogrow-textarea id="input" class="paper-input-input"
         bind-value="{{value}}"
+        invalid="{{invalid}}"
         disabled$="[[disabled]]"
         autocomplete$="[[autocomplete]]"
         autofocus$="[[autofocus]]"
@@ -59,6 +64,7 @@ style this element.
         placeholder$="[[placeholder]]"
         readonly$="[[readonly]]"
         required$="[[required]]"
+        minlength$="[[minlength]]"
         maxlength$="[[maxlength]]"
         autocapitalize$="[[autocapitalize]]"
         rows$="[[rows]]"

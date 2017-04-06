@@ -11,17 +11,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../../iron-resizable-behavior.html">
 
 <dom-module id="x-puck">
-
-  <style>
-
-    :host {
-      display: inline-block;
-      border: 3px solid lightblue;
-    }
-
-  </style>
-
   <template>
+    <style>
+      :host {
+        display: inline-block;
+        border: 3px solid lightblue;
+      }
+    </style>
 
     <b>I'm a resize-aware, thirdifying puck at (<span>{{x}}</span> x <span>{{y}}</span>).</b>
 
@@ -78,22 +74,17 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 </script>
 
 <dom-module id="x-app">
-
-  <style>
-
-    :host {
-      display: block;
-      position: absolute;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      left: 0;
-    }
-
-  </style>
-
   <template>
-
+    <style>
+      :host {
+        display: block;
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+      }
+    </style>
     <x-puck></x-puck>
 
   </template>
