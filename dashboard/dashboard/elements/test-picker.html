@@ -8,8 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="/components/paper-button/paper-button.html">
 <link rel="import" href="/components/paper-icon-button/paper-icon-button.html">
-<link rel="import" href="/components/paper-progress/paper-progress.html">
-
+<link rel="import" href="/components/paper-spinner/paper-spinner.html">
 <link rel="import" href="/dashboard/elements/autocomplete-box.html">
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 
@@ -49,21 +48,6 @@ found in the LICENSE file.
       #suite-description {
         padding: 10px;
       }
-
-      #loading {
-        display: block;
-        position: relative;
-        width: 152px;
-        height: 35px;
-      }
-
-      paper-progress {
-        display: block;
-        position: absolute;
-        bottom: -1px;
-        height: 1px;
-        width: 100%;
-      }
     </style>
 
     <div id="container" class="layout horizontal center wrap">
@@ -75,11 +59,7 @@ found in the LICENSE file.
                           id="selection-{{index}}"></autocomplete-box>
       </template>
 
-      <template is="dom-if" if="{{loading}}">
-        <div id="loading">
-          <paper-progress indeterminate></paper-progress>
-        </div>
-      </template>
+      <paper-spinner active$={{loading}}></paper-spinner>
 
       <paper-icon-button id="dnd-btn"
                          icon="open-with"
