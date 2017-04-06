@@ -622,64 +622,98 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('testGetNetworkEvents', function() {
+    // Our renderer looks like:
+    //      [  irrelevant syncEvent    ]
+    //      [  irrelevant asyncEvent   ]
+    //      |                          [ d..netlog]
+    //      [ netlog ]  [ d..network]  [    net   ]
+    //      |        |  |           |  |          |
+    //      |        |  |           |  |          |
+    //      |        |  |           |  |          |
+    //      v        v  v           v  v          v
+    // Ts: 100      200 400        450 510       520
     const rendererPid = 245;
+    const netEvent1 = tr.c.TestUtils.newAsyncSliceEx({
+      cat: 'netlog',
+      title: 'Generic Network event',
+      start: 100,
+      duration: 100,
+    });
+    const netEvent2 = tr.c.TestUtils.newAsyncSliceEx({
+      cat: 'disabled-by-default-network',
+      title: 'ResourceLoad',
+      start: 400,
+      duration: 50,
+    });
+    const netEvent3 = tr.c.TestUtils.newAsyncSliceEx({
+      cat: 'net',
+      title: 'ResourceLoad',
+      start: 510,
+      duration: 10,
+    });
+    const netEvent4 = tr.c.TestUtils.newAsyncSliceEx({
+      cat: 'disabled-by-default-netlog',
+      title: 'ResourceLoad',
+      start: 510,
+      duration: 10,
+    });
+    const irrelevantAsyncEvent = tr.c.TestUtils.newAsyncSliceEx({
+      cat: 'irrelevant',
+      title: 'ResourceLoad',
+      start: 0,
+      duration: 510,
+    });
+    const irrelevantSyncEvent = tr.c.TestUtils.newSliceEx({
+      cat: 'blink.user_timing',
+      title: 'navigationStart',
+      start: 0,
+      duration: 510,
+      args: {frame: '0xdeadbeef'}
+    });
+
     const model = tr.c.TestUtils.newModel(function(model) {
-      // Our main thread looks like:
-      //
-      //      [ netlog ]     [ d..network]  [ net ]  [ d..netlog ]
-      //      |        |     |           |  |     |  |           |
-      //      |        |     |           |  |     |  |           |
-      //      |        |     |           |  |     |  |           |
-      //      v        v     v           v  v     v  v           v
-      // Ts: 100      200   400         450 510  520 530        550
       const rendererProcess = model.getOrCreateProcess(rendererPid);
       const thread1 = rendererProcess.getOrCreateThread(1);
       thread1.name = 'CrRendererMain';
-      thread1.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx({
-        cat: 'netlog',
-        title: 'Generic Network event',
-        start: 100,
-        duration: 200,
-      }));
+      thread1.asyncSliceGroup.push(netEvent1);
       const thread2 = rendererProcess.getOrCreateThread(2);
       thread2.name = 'thread2';
-      thread2.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx({
-        cat: 'disabled-by-default-network',
-        title: 'ResourceLoad',
-        start: 400,
-        duration: 450,
-      }));
+      thread2.asyncSliceGroup.push(netEvent2);
       const thread3 = rendererProcess.getOrCreateThread(3);
       thread3.name = 'thread2';
-      thread3.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx({
-        cat: 'net',
-        title: 'ResourceLoad',
-        start: 510,
-        duration: 520,
-      }));
+      thread3.asyncSliceGroup.push(netEvent3);
       const thread4 = rendererProcess.getOrCreateThread(4);
       thread4.name = 'thread2';
-      thread4.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx({
-        cat: 'disabled-by-default-netlog',
-        title: 'ResourceLoad',
-        start: 510,
-        duration: 520,
-      }));
+      thread4.asyncSliceGroup.push(netEvent4);
       const thread5 = rendererProcess.getOrCreateThread(5);
       thread5.name = 'thread5';
-      thread5.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx({
-        cat: 'irrelevant',
-        title: 'ResourceLoad',
-        start: 510,
-        duration: 520,
-      }));
+      thread5.asyncSliceGroup.push(irrelevantAsyncEvent);
+      const thread6 = rendererProcess.getOrCreateThread(6);
+      thread6.name = 'thread6';
+      thread6.sliceGroup.pushSlice(irrelevantSyncEvent);
     });
     const chromeHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
     const rendererHelper = chromeHelper.rendererHelpers[rendererPid];
-    const networkEvents = tr.metrics.sh.getNetworkEventsInRenderer(
-        rendererHelper.process);
-    assert.equal(4, networkEvents.length);
+    const allNetworkEvents = tr.metrics.sh.getNetworkEventsInRange(
+        rendererHelper.process, tr.b.math.Range.fromExplicitRange(0, 550));
+    assert.sameDeepMembers(
+        [netEvent1, netEvent2, netEvent3, netEvent4],
+        allNetworkEvents);
+
+    const partialNetworkEvents = tr.metrics.sh.getNetworkEventsInRange(
+        rendererHelper.process, tr.b.math.Range.fromExplicitRange(0, 460));
+    assert.equal(2, partialNetworkEvents.length);
+    assert.sameDeepMembers(
+        [netEvent1, netEvent2],
+        partialNetworkEvents);
+
+    const networkEventsWithIntersecting =
+        tr.metrics.sh.getNetworkEventsInRange(
+            rendererHelper.process, tr.b.math.Range.fromExplicitRange(0, 410));
+    assert.sameDeepMembers(
+        [netEvent1, netEvent2],
+        partialNetworkEvents);
   });
 });
 </script>

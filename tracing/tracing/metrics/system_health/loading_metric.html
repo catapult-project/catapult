@@ -25,13 +25,15 @@ tr.exportTo('tr.metrics.sh', function() {
       tr.b.Unit.byName.timeDurationInMs_smallerIsBetter;
   var RelatedEventSet = tr.v.d.RelatedEventSet;
 
-  function getNetworkEventsInRenderer(renderer) {
+  function getNetworkEventsInRange(process, range) {
     const networkEvents = [];
-    for (const thread of Object.values(renderer.threads)) {
+    for (const thread of Object.values(process.threads)) {
       const threadHelper = new tr.model.helpers.ChromeThreadHelper(thread);
       const events = threadHelper.getNetworkEvents();
       for (const event of events) {
-        networkEvents.push(event);
+        if (range.intersectsExplicitRangeInclusive(event.start, event.end)) {
+          networkEvents.push(event);
+        }
       }
     }
     return networkEvents;
@@ -45,7 +47,7 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   /**
-   * @param {Map.<string, Object>} breakdownTree
+   * @param {Object.<string, Object>} breakdownTree
    * @return {tr.v.d.Breakdown} A breakdown with categories and the total time
    * (ms) spent under each category.
    */
@@ -204,17 +206,20 @@ tr.exportTo('tr.metrics.sh', function() {
 
   function addFirstMeaningfulPaintSample(samples, rendererHelper,
       frameIdRef, navigationStart, fmpMarkerEvent) {
-    var snapshot = findFrameLoaderSnapshotAt(
+    const snapshot = findFrameLoaderSnapshotAt(
         rendererHelper, frameIdRef, fmpMarkerEvent.start);
     if (!snapshot || !snapshot.args.isLoadingMainFrame) return;
-    var url = snapshot.args.documentLoaderURL;
+    const url = snapshot.args.documentLoaderURL;
     if (shouldIgnoreURL(url)) return;
 
-    var timeToFirstMeaningfulPaint =
-        fmpMarkerEvent.start - navigationStart.start;
-    var breakdownTree = tr.metrics.sh.generateWallClockTimeBreakdownTree(
-        rendererHelper.mainThread, navigationStart.start, fmpMarkerEvent.start);
-    var breakdownDiagnostic = createBreakdownDiagnostic(breakdownTree);
+    const navStartToFMPRange = tr.b.math.Range.fromExplicitRange(
+        navigationStart.start, fmpMarkerEvent.start);
+    const networkEvents = getNetworkEventsInRange(
+        rendererHelper.process, navStartToFMPRange);
+    const timeToFirstMeaningfulPaint = navStartToFMPRange.duration;
+    const breakdownTree = tr.metrics.sh.generateWallClockTimeBreakdownTree(
+        rendererHelper.mainThread, networkEvents, navStartToFMPRange);
+    const breakdownDiagnostic = createBreakdownDiagnostic(breakdownTree);
     samples.push({
       value: timeToFirstMeaningfulPaint,
       diagnostics: {
@@ -234,7 +239,7 @@ tr.exportTo('tr.metrics.sh', function() {
 
   function addFirstMeaningfulPaintCpuTimeSample(samples, rendererHelper,
       frameIdRef, navigationStart, fmpMarkerEvent) {
-    var rangeOfInterest = tr.b.math.Range.fromExplicitRange(
+    var navStartToFMPCpuRange = tr.b.math.Range.fromExplicitRange(
         navigationStart.cpuStart, fmpMarkerEvent.cpuStart);
     var snapshot = findFrameLoaderSnapshotAt(
         rendererHelper, frameIdRef, fmpMarkerEvent.start);
@@ -242,12 +247,11 @@ tr.exportTo('tr.metrics.sh', function() {
     var url = snapshot.args.documentLoaderURL;
     if (shouldIgnoreURL(url)) return;
 
-    var mainThreadCpuTime = getMainThreadCpuTime(rendererHelper,
-        rangeOfInterest);
+    var mainThreadCpuTime = getMainThreadCpuTime(
+        rendererHelper, navStartToFMPCpuRange);
 
     var breakdownTree = tr.metrics.sh.generateCpuTimeBreakdownTree(
-        rendererHelper.mainThread, navigationStart.cpuStart,
-        fmpMarkerEvent.cpuStart);
+        rendererHelper.mainThread, navStartToFMPCpuRange);
     var breakdownDiagnostic = createBreakdownDiagnostic(breakdownTree);
     samples.push({
       value: mainThreadCpuTime,
@@ -281,10 +285,10 @@ tr.exportTo('tr.metrics.sh', function() {
   function addFirstInteractiveSample(samples, rendererHelper,
       navigationStart, firstMeaningfulPaint, url) {
     if (shouldIgnoreURL(url)) return;
-    var navigationStartTime = navigationStart.start;
-    var firstInteractive = Infinity;
-    var firstInteractiveCandidate = firstMeaningfulPaint;
-    var lastLongTaskEvent = undefined;
+    const navigationStartTime = navigationStart.start;
+    let firstInteractive = Infinity;
+    let firstInteractiveCandidate = firstMeaningfulPaint;
+    let lastLongTaskEvent = undefined;
     // Find the first interactive point X after firstMeaningfulPaint so that
     // range [X, X + INTERACTIVE_WINDOW_SIZE_MS] contains no
     // 'TaskQueueManager::ProcessTaskFromWorkQueues' slice which takes more than
@@ -295,9 +299,9 @@ tr.exportTo('tr.metrics.sh', function() {
     // TODO(nedn): replace this with just "var ev of rendererHelper..." once
     // canary binary is updated.
     // (https://github.com/catapult-project/catapult/issues/2586)
-    for (var ev of [...rendererHelper.mainThread.sliceGroup.childEvents()]) {
+    for (const ev of [...rendererHelper.mainThread.sliceGroup.childEvents()]) {
       if (ev.start < firstInteractiveCandidate) continue;
-      var interactiveDurationSoFar = ev.start - firstInteractiveCandidate;
+      const interactiveDurationSoFar = ev.start - firstInteractiveCandidate;
       if (interactiveDurationSoFar >= INTERACTIVE_WINDOW_SIZE_MS) {
         firstInteractive = firstInteractiveCandidate;
         break;
@@ -308,11 +312,17 @@ tr.exportTo('tr.metrics.sh', function() {
         lastLongTaskEvent = ev;
       }
     }
-    var breakdownTree = tr.metrics.sh.generateWallClockTimeBreakdownTree(
-        rendererHelper.mainThread, navigationStartTime, firstInteractive);
-    var breakdownDiagnostic = createBreakdownDiagnostic(breakdownTree);
+    const navStartToFirstInteractiveRange = tr.b.math.Range.fromExplicitRange(
+        navigationStartTime, firstInteractive);
 
-    var timeToFirstInteractive = firstInteractive - navigationStartTime;
+    const networkEvents = getNetworkEventsInRange(
+        rendererHelper.process, navStartToFirstInteractiveRange);
+    const breakdownTree = tr.metrics.sh.generateWallClockTimeBreakdownTree(
+        rendererHelper.mainThread, networkEvents,
+        navStartToFirstInteractiveRange);
+    const breakdownDiagnostic = createBreakdownDiagnostic(breakdownTree);
+
+    const timeToFirstInteractive = navStartToFirstInteractiveRange.duration;
     samples.push({
       value: timeToFirstInteractive,
       diagnostics: {
@@ -487,7 +497,7 @@ tr.exportTo('tr.metrics.sh', function() {
 
   return {
     loadingMetric,
-    getNetworkEventsInRenderer,
+    getNetworkEventsInRange,
     collectLoadingMetricsForRenderer,
     RESPONSIVENESS_THRESHOLD_MS,
     INTERACTIVE_WINDOW_SIZE_MS,

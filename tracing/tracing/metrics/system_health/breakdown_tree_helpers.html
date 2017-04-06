@@ -19,26 +19,25 @@ found in the LICENSE file.
 tr.exportTo('tr.metrics.sh', function() {
   /**
   * @callback getEventAttributeCallback
-  * @param {tr.b.Event} event The event to read an attribute from.
+  * @param {!tr.b.Event} event The event to read an attribute from.
   * @return {number} The value of the attribute.
   */
 
   /**
-  * Generate a breakdown tree from all slices of |mainThread| between
-  * |rangeStart| and |rangeEnd|. The callback functions |getEventStart|,
+  * Generate a breakdown tree from all slices of |mainThread| in
+  * |rangeOfInterest|. The callback functions |getEventStart|,
   * |getEventDuration| and |getEventSelfTime| specify how to get start,
   * duration and selftime from a given event.
   *
-  * @param  {tr.model.Thread} mainThread
-  * @param  {number} rangeStart
-  * @param  {number} rangeEnd
+  * @param  {!tr.model.Thread} mainThread
+  * @param  {!tr.b.math.Range} rangeOfInterest
   * @callback {getEventAttributeCallback} getEventStart
   * @callback {getEventAttributeCallback} getEventDuration
   * @callback {getEventAttributeCallback} getEventSelfTime
-  * @return {Map.<string, Object>} A time breakdown object whose keys are
+  * @return {Object.<string, Object>} A time breakdown object whose keys are
   * Chrome userfriendly title & values are an object that show the total spent
-  * between |rangeStart| & |rangeEnd|, and the list of event labels of the
-  * group and their total time between |rangeStart| and |rangeEnd|.
+  * in |rangeOfInterest|, and the list of event labels of the
+  * group and their total time in |rangeOfInterest|.
   *
   * Example:
   *   {
@@ -51,11 +50,10 @@ tr.exportTo('tr.metrics.sh', function() {
   *     ...
   *   }
   */
-  function generateTimeBreakdownTree(mainThread, rangeStart, rangeEnd,
-      getEventStart, getEventDuration, getEventSelfTime) {
+  function generateTimeBreakdownTree(mainThread, rangeOfInterest, getEventStart,
+      getEventDuration, getEventSelfTime) {
     if (mainThread === null) return;
     var breakdownTree = {};
-    var range = tr.b.math.Range.fromExplicitRange(rangeStart, rangeEnd);
     for (var title of
         tr.e.chrome.ChromeUserFriendlyCategoryDriver.ALL_TITLES) {
       breakdownTree[title] = {total: 0, events: {}};
@@ -65,7 +63,8 @@ tr.exportTo('tr.metrics.sh', function() {
       var eventDuration = getEventDuration(event);
       var eventSelfTime = getEventSelfTime(event);
       var eventEnd = eventStart + eventDuration;
-      if (!range.intersectsExplicitRangeExclusive(eventStart, eventEnd)) {
+      if (!rangeOfInterest.intersectsExplicitRangeExclusive(
+          eventStart, eventEnd)) {
         continue;
       }
       if (eventSelfTime === undefined) continue;
@@ -74,8 +73,8 @@ tr.exportTo('tr.metrics.sh', function() {
       var timeIntersectionRatio = 0;
       if (eventDuration > 0) {
         timeIntersectionRatio =
-            range.findExplicitIntersectionDuration(eventStart,
-                eventEnd) / eventDuration;
+            rangeOfInterest.findExplicitIntersectionDuration(
+                eventStart, eventEnd) / eventDuration;
       }
 
       var v8Runtime = event.args['runtime-call-stat'];
@@ -123,17 +122,15 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   /**
-  * Generate a breakdown that attributes where wall clock time goes between
-  * |start| & |end| on the renderer thread.
+  * Generate a breakdown that attributes where wall clock time goes in
+  * |rangeOfInterest| on the renderer thread.
   *
-  * @param {tr.model.Thread} mainThread
-  * @param {number} start
-  * @param {number} end
-  * @return {Map.<string, Object>} A time breakdown map whose keys are
+  * @param {!tr.model.Thread} mainThread
+  * @param {!tr.b.math.Range} rangeOfInterest
+  * @return {Object.<string, Object>} A time breakdown object whose keys are
   * Chrome userfriendly titles & values are an object that shows the total
-  * wall clock time spent between |start| & |end|, and the list of event
-  * labels of the group and their total wall clock time between |start| &
-  * |end|.
+  * wall clock time spent in |rangeOfInterest|, and the list of event
+  * labels of the group and their total wall clock time in |rangeOfInterest|.
   *
   * Example:
   *   {
@@ -146,14 +143,16 @@ tr.exportTo('tr.metrics.sh', function() {
   *     ...
   *   }
   */
-  function generateWallClockTimeBreakdownTree(mainThread, start, end) {
+  function generateWallClockTimeBreakdownTree(
+      mainThread, networkEvents, rangeOfInterest) {
     function getEventStart(e) { return e.start; }
     function getEventDuration(e) { return e.duration; }
     function getEventSelfTime(e) { return e.selfTime; }
-    var breakdownTree = generateTimeBreakdownTree(mainThread,
-        start, end, getEventStart, getEventDuration, getEventSelfTime);
-    var idleTotal = end - start;
-    for (let cat in breakdownTree) {
+    const breakdownTree = generateTimeBreakdownTree(
+        mainThread, rangeOfInterest, getEventStart, getEventDuration,
+        getEventSelfTime);
+    let idleTotal = rangeOfInterest.duration;
+    for (const cat in breakdownTree) {
       idleTotal -= breakdownTree[cat].total;
     }
     breakdownTree['idle'] = {total: idleTotal, events: {}};
@@ -161,16 +160,15 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   /**
-  * Generate a breakdown that attributes where CPU time goes between
-  * |cpuStart| & |cpuEnd| on the renderer thread.
+  * Generate a breakdown that attributes where CPU time goes in
+  * |rangeOfInterestCpuTime| on the renderer thread.
   *
-  * @param {tr.model.Thread} mainThread
-  * @param {number} cpuStart
-  * @param {number} cpuEnd
-  * @return {Map.<string, Object>} A time breakdown map whose keys are
+  * @param {!tr.model.Thread} mainThread
+  * @param {!tr.b.math.Range} rangeOfInterestCpuTime
+  * @return {Object.<string, Object>} A time breakdown object whose keys are
   * Chrome userfriendly titles & values are an object that shows the total
-  * CPU time spent between |cpuStart| & |cpuEnd|, and the list of event labels
-  * of the group and their total CPU time between |cpuStart| & |cpuEnd|.
+  * CPU time spent in |rangeOfInterestCpuTime|, and the list of event labels
+  * of the group and their total durations in |rangeOfInterestCpuTime|.
   *
   * Example:
   *   {
@@ -183,11 +181,11 @@ tr.exportTo('tr.metrics.sh', function() {
   *     ...
   *   }
   */
-  function generateCpuTimeBreakdownTree(mainThread, cpuStart, cpuEnd) {
+  function generateCpuTimeBreakdownTree(mainThread, rangeOfInterestCpuTime) {
     function getEventStart(e) { return e.cpuStart; }
     function getEventDuration(e) { return e.cpuDuration; }
     function getEventSelfTime(e) { return e.cpuSelfTime; }
-    return generateTimeBreakdownTree(mainThread, cpuStart, cpuEnd,
+    return generateTimeBreakdownTree(mainThread, rangeOfInterestCpuTime,
         getEventStart, getEventDuration, getEventSelfTime);
   }
 

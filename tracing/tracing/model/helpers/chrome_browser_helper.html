@@ -7,7 +7,6 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/model/helpers/chrome_process_helper.html">
-<link rel="import" href="/tracing/model/helpers/chrome_thread_helper.html">
 
 <script>
 'use strict';
@@ -16,8 +15,6 @@ found in the LICENSE file.
  * @fileoverview Utilities for accessing trace data about the Chrome browser.
  */
 tr.exportTo('tr.model.helpers', function() {
-  const ChromeThreadHelper = tr.model.helpers.ChromeThreadHelper;
-
   function ChromeBrowserHelper(modelHelper, process) {
     tr.model.helpers.ChromeProcessHelper.call(this, modelHelper, process);
     this.mainThread_ = process.findAtMostOneThreadNamed('CrBrowserMain');

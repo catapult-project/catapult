@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-Copyright (c) 2016 The Chromium Authors. All rights reserved.
+Copyright 2017 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
@@ -93,8 +93,11 @@ tr.b.unittest.testSuite(function() {
   var rendererHelper = chromeHelper.rendererHelpers[rendererPid];
 
   test('testWallClockTimeBreakdownNoIntersectingBoundary', function() {
+    const rangeOfInterest = tr.b.math.Range.fromExplicitRange(0, 1000);
+    const networkEvents = tr.metrics.sh.getNetworkEventsInRange(
+        rendererHelper.process, rangeOfInterest);
     var breakdownTree = tr.metrics.sh.generateWallClockTimeBreakdownTree(
-        rendererHelper.mainThread, 0, 1000);
+        rendererHelper.mainThread, networkEvents, rangeOfInterest);
     assert.deepEqual({
       total: 150,
       events: {
@@ -135,9 +138,11 @@ tr.b.unittest.testSuite(function() {
     // Ts: 200  250         300  400  450         550    570   600     620  650
     //                |                                           |
     //               275                                         610
-
+    const rangeOfInterest = tr.b.math.Range.fromExplicitRange(275, 610);
+    const networkEvents = tr.metrics.sh.getNetworkEventsInRange(
+        rendererHelper.process, rangeOfInterest);
     var breakdownTree = tr.metrics.sh.generateWallClockTimeBreakdownTree(
-        rendererHelper.mainThread, 275, 610);
+        rendererHelper.mainThread, networkEvents, rangeOfInterest);
     assert.deepEqual({
       total: 93.75,
       events: {
@@ -168,8 +173,10 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('testCpuTimeBreakdownNoIntersectingBoundary', function() {
-    var breakdownTree = tr.metrics.sh.generateCpuTimeBreakdownTree(
-        rendererHelper.mainThread, 1000, 1800);
+    const rangeOfInterest = tr.b.math.Range.fromExplicitRange(1000, 1800);
+    const breakdownTree = tr.metrics.sh.generateCpuTimeBreakdownTree(
+        rendererHelper.mainThread,
+        rangeOfInterest);
     assert.deepEqual({
       total: 120,
       events: {
@@ -210,9 +217,10 @@ tr.b.unittest.testSuite(function() {
     // Cpu:1160 1200        1240 1320 1360       1440    1456  1480    1496 1520
     //                |                                           |
     //               1220                                        1488
-
-    var breakdownTree = tr.metrics.sh.generateCpuTimeBreakdownTree(
-        rendererHelper.mainThread, 1220, 1488);
+    const rangeOfInterest = tr.b.math.Range.fromExplicitRange(1220, 1488);
+    const breakdownTree = tr.metrics.sh.generateCpuTimeBreakdownTree(
+        rendererHelper.mainThread,
+        rangeOfInterest);
     assert.deepEqual({
       total: 75,
       events: {
