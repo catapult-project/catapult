@@ -180,6 +180,43 @@ tr.b.unittest.testSuite(function() {
       });
     });
   });
+
+  test('typeGetterReturnsCorrectType', function() {
+    const model = tr.c.TestUtils.newModel(function(model) {
+      const process = model.getOrCreateProcess(1);
+      const thread1 = process.getOrCreateThread(1);
+      const thread2 = process.getOrCreateThread(2);
+      const thread3 = process.getOrCreateThread(3);
+      const thread4 = process.getOrCreateThread(4);
+
+      thread1.name = 'ThreadName12';
+      thread2.name = 'ThreadName/34123';
+      thread3.name = 'ThreadName1/34123';
+      thread4.name = 'ThreadName';
+
+      assert.strictEqual(thread1.type, 'ThreadName');
+      assert.strictEqual(thread2.type, 'ThreadName');
+      assert.strictEqual(thread3.type, 'ThreadName');
+      assert.strictEqual(thread4.type, 'ThreadName');
+    });
+  });
+
+  test('typeGetterThrowsIfThreadNameStartsWithNumberOrSlash', function() {
+    const model = tr.c.TestUtils.newModel(function(model) {
+      const process = model.getOrCreateProcess(1);
+      const thread1 = process.getOrCreateThread(1);
+      const thread2 = process.getOrCreateThread(2);
+      const thread3 = process.getOrCreateThread(3);
+
+      thread1.name = '123';
+      thread2.name = '42GPU';
+      thread3.name = '/123';
+
+      assert.throws(() => thread1.type);
+      assert.throws(() => thread2.type);
+      assert.throws(() => thread3.type);
+    });
+  });
 });
 </script>
 

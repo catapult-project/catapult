@@ -300,6 +300,26 @@ tr.exportTo('tr.model', function() {
     get samples() {
       return this.samples_;
     },
+
+    /**
+     * Returns substring of this.name from beginning to the first numeric
+     * character or the character '/'.
+     *
+     * Example:
+     * ThreadName12      -> ThreadName
+     * ThreadName/34123  -> ThreadName
+     * ThreadName1/34123 -> ThreadName
+     */
+    get type() {
+      const re = /^[^0-9|\/]+/;
+      const matches = re.exec(this.name);
+      if (matches && matches[0]) return matches[0];
+
+      // If a thread is named 42GPU, let's not try to find its type.
+      // We should fix the thread name.
+      throw new Error('Could not determine thread type for thread name ' +
+          this.name);
+    }
   };
 
   /**
