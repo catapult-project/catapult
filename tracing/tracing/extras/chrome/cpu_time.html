@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/base/multi_dimensional_view.html">
+<link rel="import" href="/tracing/model/helpers/chrome_model_helper.html">
+<link rel="import" href="/tracing/model/helpers/chrome_renderer_helper.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.e.chrome.cpuTime', function() {
+  /**
+   * Returns the total cpu time consumed within |range| by |thread|.
+   */
+  function getCpuTimeForThread(thread, range) {
+    let totalCpuTime = 0;
+    tr.b.math.iterateOverIntersectingIntervals(
+        thread.sliceGroup.topLevelSlices,
+        slice => slice.start, slice => slice.end,
+        range.min, range.max,
+        slice => {
+          if (slice.duration === 0) return;
+          if (!slice.cpuDuration) return;
+
+          const intersection = range.findIntersection(slice.range);
+          const fractionOfSliceInsideRangeOfInterest =
+                intersection.duration / slice.duration;
+
+          // We assume that if a slice doesn't lie entirely inside the range of
+          // interest, then the CPU time is evenly distributed inside of the
+          // slice.
+          totalCpuTime +=
+              slice.cpuDuration * fractionOfSliceInsideRangeOfInterest;
+        });
+
+    return totalCpuTime;
+  }
+
+  return {
+    getCpuTimeForThread,
+  };
+});
+</script>
