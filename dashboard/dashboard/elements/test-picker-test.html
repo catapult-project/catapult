@@ -147,7 +147,7 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual(metricMenu.selectedItem.name, expectedMetric);
   }, testOptions);
 
-  test('getCurrentSelectionReturnsNullIfInvalid', function() {
+  test('getCurrentSelectionReturnsNullIfInvalid', async function() {
     testing_common.addXhrMock('*', JSON.stringify(MOCK_RESPONSE));
     let testPicker = document.createElement('test-picker');
     testPicker.testSuites = {
@@ -170,7 +170,7 @@ tr.b.unittest.testSuite(function() {
     let botMenu = testPicker.getSelectionMenu(1);
     botMenu.selectedItem = botMenu.items[0];
 
-    assert.isNull(testPicker.getCurrentSelection());
+    assert.isNull(await testPicker.getCurrentSelection());
     testing_common.clearXhrMock();
   });
 });

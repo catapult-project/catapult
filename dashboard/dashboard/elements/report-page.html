@@ -257,8 +257,8 @@ found in the LICENSE file.
       /**
        * On 'Add' button clicked, add a chart for the current selection.
        */
-      onAddChartButtonClicked: function(event) {
-        const selectedPaths = this.testPicker.getCurrentSelection();
+      onAddChartButtonClicked: async function(event) {
+        const selectedPaths = await this.testPicker.getCurrentSelection();
         if (selectedPaths) {
           const mainPath = this.testPicker.getCurrentSelectedPath();
           const unselectedPaths = this.testPicker.getCurrentUnselected();

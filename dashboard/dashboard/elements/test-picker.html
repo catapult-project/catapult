@@ -362,8 +362,9 @@ found in the LICENSE file.
         this.updateAddButtonState();
       },
 
-      updateAddButtonState: function() {
-        this.enableAddSeries = this.getCurrentSelection() instanceof Array;
+      updateAddButtonState: async function() {
+        this.enableAddSeries = (
+            (await this.getCurrentSelection()) instanceof Array);
       },
 
       getSubtestAtIndex: function(index) {
@@ -414,12 +415,12 @@ found in the LICENSE file.
       /**
        * Handler for drag start event for series drag button.
        */
-      onSeriesButtonDragStart: function(event, detail) {
+      onSeriesButtonDragStart: async function(event, detail) {
         event.dataTransfer.setData('type', 'seriesdnd');
         event.dataTransfer.setData(
             'data', JSON.stringify({
               mainPath: this.getCurrentSelectedPath(),
-              selectedPaths: this.getCurrentSelection(),
+              selectedPaths: await this.getCurrentSelection(),
               unselectedPaths: this.getCurrentUnselected()
             }));
         event.dataTransfer.effectAllowed = 'copy';
@@ -433,10 +434,9 @@ found in the LICENSE file.
       },
 
       /**
-       * Gets the current selection from the menus. Returns null unless there
-       * is a valid selection.
+       * Gets the current selection from the menus.
        */
-      getCurrentSelection: function() {
+      getCurrentSelection: async function() {
         var level = 0;
         var parts = [];
         while (true) {
@@ -461,11 +461,33 @@ found in the LICENSE file.
 
         var path = parts.join('/');
 
+        // If the paths are the same, this means that the selected path has
+        // already been confirmed as valid by the previous request to
+        // /list_tests.
+        // TODO(eakuefner): Update the naming of these variables to make this
+        // possible to understand without the comment.
         if (this.currentSelectedPath_ === path) {
           return this.currentSelectedTests_;
         }
-        this.sendListTestsRequest(path);
-        return null;
+
+        this.loading = true;
+        let selectedTests;
+        let unselectedTests;
+        try {
+          [selectedTests, unselectedTests] = await Promise.all([
+            this.getSubtestsForPath(path, true),
+            this.getSubtestsForPath(path, false)]);
+        } catch (e) {
+          // TODO(eakuefner): Improve this error handling.
+          this.loading = false;
+          return null;
+        }
+        this.loading = false;
+        this.currentSelectedPath_ = path;
+        this.currentSelectedTests_ = selectedTests;
+        this.currentUnselectedTests_ = unselectedTests;
+        this.updateSubtestMenus(2);
+        return selectedTests;
       },
 
       getCurrentSelectedPath: function() {
@@ -476,8 +498,10 @@ found in the LICENSE file.
         return this.currentUnselectedTests_;
       },
 
-      sendListTestsRequest: function(path) {
-        var params = {
+      getSubtestsForPath: async function(path, returnSelected) {
+        // TODO(eakuefner): Reimplement cancellation and memoize.
+        // TODO(eakuefner): Fix error handling.
+        const params = {
           type: 'test_path_dict'
         };
 
@@ -485,42 +509,13 @@ found in the LICENSE file.
         params.test_path_dict[path] = 'core';
         params.test_path_dict = JSON.stringify(params.test_path_dict);
 
-        if (this.listTestsUnselectedXhr) {
-          this.listTestsUnselectedXhr.abort();
-          this.listTestsUnselectedXhr = null;
+        if (returnSelected) {
+          params.return_selected = '1';
+        } else {
+          params.return_selected = '0';
         }
 
-        this.listTestsUnselectedXhr = simple_xhr.send(
-            '/list_tests',
-            params,
-            function(response) {
-              this.currentUnselectedTests_ = response;
-            }.bind(this),
-            function(error) {
-              // TODO(eakuefner): Make this error handling better. See
-              // https://github.com/catapult-project/catapult/issues/3391
-            }.bind(this)
-        );
-
-        params.return_selected = '1';
-
-        if (this.listTestsXhr) {
-          this.listTestsXhr.abort();
-          this.listTestsXhr = null;
-        }
-
-        this.listTestsXhr = simple_xhr.send(
-            '/list_tests',
-            params,
-            function(response) {
-              this.currentSelectedPath_ = path;
-              this.currentSelectedTests_ = response;
-              this.updateSubtestMenus(2);
-            }.bind(this),
-            function(error) {
-              this.loading = false;
-            }.bind(this)
-        );
+        return await simple_xhr.asPromise('/list_tests', params);
       },
 
       /**
