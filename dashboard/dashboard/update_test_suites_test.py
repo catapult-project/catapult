@@ -142,27 +142,9 @@ class ListTestSuitesTest(testing_common.TestCase):
         },
         update_test_suites.FetchCachedTestSuites())
 
-  def testCreateTestSuitesDict(self):
+  def testFetchSuites_BasicDescription(self):
     self._AddSampleData()
 
-    # For one test suite, add a monitored test and set the suite as deprecated.
-    # Only set it as deprecated on one of two bots; this test suite should not
-    # be marked as deprecated in the response dict, but only the non-deprecated
-    # bot (mac in the this sample data) should be listed.
-    test = utils.TestKey('Chromium/win7/dromaeo').get()
-    test.monitored = [utils.TestKey(
-        'Chromium/win7/dromaeo/commit_time/www.yahoo.com')]
-    test.put()
-
-    # For another test suite, set it as deprecated on both bots -- it should
-    # be marked as deprecated in the response dict.
-    for bot in ['win7', 'mac']:
-      test = utils.TestKey('Chromium/%s/really' % bot).get()
-      test.deprecated = True
-      test.put()
-
-    # Set the description string for two test suites on both bots. It doesn't
-    # matter whether this description is set for both bots or just one.
     for test_path in ['Chromium/win7/scrolling', 'Chromium/mac/scrolling']:
       test = utils.TestKey(test_path).get()
       test.description = 'Description string.'
@@ -172,15 +154,160 @@ class ListTestSuitesTest(testing_common.TestCase):
         {
             'dromaeo': {
                 'mas': {'Chromium': {'mac': False, 'win7': False}},
-                'mon': ['commit_time/www.yahoo.com'],
             },
             'scrolling': {
                 'mas': {'Chromium': {'mac': False, 'win7': False}},
-                'des': 'Description string.',
+                'des': 'Description string.'
+            },
+            'really': {
+                'mas': {'Chromium': {'mac': False, 'win7': False}},
+            },
+        },
+        update_test_suites.FetchCachedTestSuites())
+
+  def testFetchSuites_DifferentMasters(self):
+    # If the cache is not set at all, then FetchCachedTestSuites
+    # just updates the cache before returning the list.
+    self._AddSampleData()
+    testing_common.AddTests(
+        ['ChromiumFYI'],
+        ['linux'],
+        {
+            'sunspider': {
+                'Total': {},
+            },
+        }
+    )
+    self.assertEqual(
+        {
+            'dromaeo': {
+                'mas': {'Chromium': {'mac': False, 'win7': False}},
+            },
+            'scrolling': {
+                'mas': {'Chromium': {'mac': False, 'win7': False}},
+            },
+            'really': {
+                'mas': {'Chromium': {'mac': False, 'win7': False}},
+            },
+            'sunspider': {'mas': {'ChromiumFYI': {'linux': False}}},
+        },
+        update_test_suites._CreateTestSuiteDict())
+
+  def testFetchSuites_SingleDeprecatedBot(self):
+    self._AddSampleData()
+
+    # For another test suite, set it as deprecated on both bots -- it should
+    # be marked as deprecated in the response dict.
+    for bot in ['win7']:
+      test = utils.TestKey('Chromium/%s/really' % bot).get()
+      test.deprecated = True
+      test.put()
+
+    self.assertEqual(
+        {
+            'dromaeo': {
+                'mas': {'Chromium': {'mac': False, 'win7': False}},
+            },
+            'scrolling': {
+                'mas': {'Chromium': {'mac': False, 'win7': False}},
+            },
+            'really': {
+                'mas': {'Chromium': {'mac': False, 'win7': True}}
+            },
+        },
+        update_test_suites._CreateTestSuiteDict())
+
+  def testFetchSuites_AllDeprecatedBots(self):
+    self._AddSampleData()
+
+    # For another test suite, set it as deprecated on both bots -- it should
+    # be marked as deprecated in the response dict.
+    for bot in ['win7', 'mac']:
+      test = utils.TestKey('Chromium/%s/really' % bot).get()
+      test.deprecated = True
+      test.put()
+
+    self.assertEqual(
+        {
+            'dromaeo': {
+                'mas': {'Chromium': {'mac': False, 'win7': False}},
+            },
+            'scrolling': {
+                'mas': {'Chromium': {'mac': False, 'win7': False}},
             },
             'really': {
                 'dep': True,
                 'mas': {'Chromium': {'mac': True, 'win7': True}}
+            },
+        },
+        update_test_suites._CreateTestSuiteDict())
+
+  def testFetchSuites_BasicMonitored(self):
+    self._AddSampleData()
+
+    test = utils.TestKey('Chromium/win7/dromaeo').get()
+    test.monitored = [utils.TestKey(
+        'Chromium/win7/dromaeo/dom')]
+    test.put()
+
+    self.assertEqual(
+        {
+            'dromaeo': {
+                'mas': {'Chromium': {'mac': False, 'win7': False}},
+                'mon': ['dom']
+            },
+            'scrolling': {
+                'mas': {'Chromium': {'mac': False, 'win7': False}},
+            },
+            'really': {
+                'mas': {'Chromium': {'mac': False, 'win7': False}}
+            },
+        },
+        update_test_suites._CreateTestSuiteDict())
+
+  def testFetchSuites_MultipleMonitored(self):
+    self._AddSampleData()
+    testing_common.AddTests(
+        ['ChromiumFYI'],
+        ['linux'],
+        {
+            'dromaeo': {
+                'foo': {},
+            },
+        }
+    )
+
+    test = utils.TestKey('Chromium/win7/dromaeo').get()
+    test.monitored = [utils.TestKey(
+        'Chromium/win7/dromaeo/dom')]
+    test.put()
+
+    test = utils.TestKey('Chromium/mac/dromaeo').get()
+    test.monitored = [
+        utils.TestKey('Chromium/win7/dromaeo/dom'),
+        utils.TestKey('Chromium/win7/dromaeo/jslib')]
+    test.put()
+
+    test = utils.TestKey('ChromiumFYI/linux/dromaeo').get()
+    test.monitored = [
+        utils.TestKey('ChromiumFYI/linux/dromaeo/dom'),
+        utils.TestKey('ChromiumFYI/linux/dromaeo/foo')]
+    test.put()
+
+    self.assertEqual(
+        {
+            'dromaeo': {
+                'mas': {
+                    'Chromium': {'mac': False, 'win7': False},
+                    'ChromiumFYI': {'linux': False}
+                },
+                'mon': ['dom', 'foo', 'jslib']
+            },
+            'scrolling': {
+                'mas': {'Chromium': {'mac': False, 'win7': False}},
+            },
+            'really': {
+                'mas': {'Chromium': {'mac': False, 'win7': False}}
             },
         },
         update_test_suites._CreateTestSuiteDict())
@@ -200,63 +327,9 @@ class ListTestSuitesTest(testing_common.TestCase):
         ]),
         suite_keys)
 
-  def testCreateSuiteMastersDict(self):
-    self._AddSampleData()
-    suites = update_test_suites._FetchSuites()
-    self.assertEqual(
-        {
-            'dromaeo': {'Chromium': {'mac': False, 'win7': False}},
-            'really': {'Chromium': {'mac': False, 'win7': False}},
-            'scrolling': {'Chromium': {'mac': False, 'win7': False}},
-        },
-        update_test_suites._CreateSuiteMastersDict(suites))
-
-  def testMasterToBotsToDeprecatedDict(self):
-    self._AddSampleData()
-    suites = [
-        utils.TestKey('Chromium/mac/dromaeo').get(),
-        utils.TestKey('Chromium/win7/dromaeo').get(),
-    ]
-    suites[0].deprecated = True
-    suites[0].put()
-    self.assertEqual(
-        {'Chromium': {'mac': True, 'win7': False}},
-        update_test_suites._MasterToBotsToDeprecatedDict(suites))
-
-  def testCreateSuiteMonitoredDict(self):
-    self._AddSampleData()
-    test_win = utils.TestKey('Chromium/win7/dromaeo').get()
-    test_win.monitored = [utils.TestKey(
-        'Chromium/win7/dromaeo/commit_time/www.yahoo.com')]
-    test_win.put()
-    test_mac = utils.TestKey('Chromium/mac/dromaeo').get()
-    test_mac.monitored = [utils.TestKey(
-        'Chromium/mac/dromaeo/commit_time/www.cnn.com')]
-    test_mac.put()
-    self.assertEqual(
-        {
-            'dromaeo': [
-                'commit_time/www.cnn.com',
-                'commit_time/www.yahoo.com',
-            ]
-        },
-        update_test_suites._CreateSuiteMonitoredDict())
-
   def testGetSubTestPath(self):
     key = utils.TestKey('Chromium/mac/my_suite/foo/bar')
     self.assertEqual('foo/bar', update_test_suites._GetTestSubPath(key))
-
-  def testCreateSuiteDescriptionDict(self):
-    self._AddSampleData()
-    suites = []
-    for test_path in ['Chromium/win7/dromaeo', 'Chromium/mac/dromaeo']:
-      test = utils.TestKey(test_path).get()
-      test.description = 'Foo.'
-      test.put()
-      suites.append(test)
-    self.assertEqual(
-        {'dromaeo': 'Foo.'},
-        update_test_suites._CreateSuiteDescriptionDict(suites))
 
 
 if __name__ == '__main__':

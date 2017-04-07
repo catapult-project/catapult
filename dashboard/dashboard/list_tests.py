@@ -216,7 +216,8 @@ def _MergeSubTestsDictEntry(a, b):
 
 
 @ndb.synctasklet
-def GetTestsMatchingPattern(pattern, only_with_rows=False, list_entities=False):
+def GetTestsMatchingPattern(
+    pattern, only_with_rows=False, list_entities=False, use_cache=True):
   """Gets the TestMetadata entities or keys which match |pattern|.
 
   For this function, it's assumed that a test path should only have up to seven
@@ -234,13 +235,14 @@ def GetTestsMatchingPattern(pattern, only_with_rows=False, list_entities=False):
     A list of test paths, or test entities if list_entities is True.
   """
   result = yield GetTestsMatchingPatternAsync(
-      pattern, only_with_rows=only_with_rows, list_entities=list_entities)
+      pattern, only_with_rows=only_with_rows, list_entities=list_entities,
+      use_cache=use_cache)
   raise ndb.Return(result)
 
 
 @ndb.tasklet
 def GetTestsMatchingPatternAsync(
-    pattern, only_with_rows=False, list_entities=False):
+    pattern, only_with_rows=False, list_entities=False, use_cache=True):
   property_names = [
       'master_name', 'bot_name', 'suite_name', 'test_part1_name',
       'test_part2_name', 'test_part3_name', 'test_part4_name',
@@ -280,7 +282,7 @@ def GetTestsMatchingPatternAsync(
   test_keys = [k for k in test_keys if utils.TestMatchesPattern(k, pattern)]
 
   if list_entities:
-    result = yield ndb.get_multi_async(test_keys)
+    result = yield ndb.get_multi_async(test_keys, use_cache=use_cache)
     raise ndb.Return(result)
   raise ndb.Return([utils.TestPath(k) for k in test_keys])
 
