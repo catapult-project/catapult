@@ -50,7 +50,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
         }
 
         var req = this.requests[requestIndex];
-        assert.equal(method, req.method);
+        assert.strictEqual(method, req.method);
         var resp = req.generateResponseCb(args);
         resolve(resp);
       }.bind(this));
@@ -60,7 +60,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       if (this.allowLooping) {
         throw new Error('Incompatible with allowLooping');
       }
-      assert.equal(this.requests.length, this.nextRequestIndex);
+      assert.strictEqual(this.requests.length, this.nextRequestIndex);
     },
 
     getCategories: function() {

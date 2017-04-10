@@ -57,7 +57,7 @@ tr.b.unittest.testSuite(function() {
     track.viewport.setDisplayTransformImmediately(dt);
 
 
-    assert.equal(5, track.items[0].start);
+    assert.strictEqual(5, track.items[0].start);
   });
 
   test('modelMapping', function() {
@@ -69,7 +69,7 @@ tr.b.unittest.testSuite(function() {
     track.alerts = alerts;
 
     var a0 = track.items[0].modelItem;
-    assert.equal(a0, alerts[0]);
+    assert.strictEqual(a0, alerts[0]);
   });
 });
 </script>

@@ -212,13 +212,13 @@ tr.b.unittest.testSuite(function() {
     var sel = new EventSet();
     series.addIntersectingEventsInRangeToSelectionInWorldSpace(
         -30.5, -29.5, 40, sel);
-    assert.equal(tr.b.getOnlyElement(sel).index, 0);
+    assert.strictEqual(tr.b.getOnlyElement(sel).index, 0);
 
     // Select second point.
     var sel = new EventSet();
     series.addIntersectingEventsInRangeToSelectionInWorldSpace(
         -28.8, -28.2, 40, sel);
-    assert.equal(tr.b.getOnlyElement(sel).index, 1);
+    assert.strictEqual(tr.b.getOnlyElement(sel).index, 1);
 
     // Select points in the middle.
     var sel = new EventSet();
@@ -226,15 +226,15 @@ tr.b.unittest.testSuite(function() {
         -0.99, 1.01, 40, sel);
     assert.lengthOf(sel, 3);
     var iterator = sel[Symbol.iterator]();
-    assert.equal(iterator.next().value.index, 29);
-    assert.equal(iterator.next().value.index, 30);
-    assert.equal(iterator.next().value.index, 31);
+    assert.strictEqual(iterator.next().value.index, 29);
+    assert.strictEqual(iterator.next().value.index, 30);
+    assert.strictEqual(iterator.next().value.index, 31);
 
     // Select the last point.
     var sel = new EventSet();
     series.addIntersectingEventsInRangeToSelectionInWorldSpace(
         668.99, 668.99, 40, sel);
-    assert.equal(tr.b.getOnlyElement(sel).index, 59);
+    assert.strictEqual(tr.b.getOnlyElement(sel).index, 59);
 
     // Too far right.
     var sel = new EventSet();
@@ -267,7 +267,7 @@ tr.b.unittest.testSuite(function() {
     var sel = new EventSet();
     assert.isTrue(series.addEventNearToProvidedEventToSelection(
         series.points[0].modelItem, 1, sel));
-    assert.equal(tr.b.getOnlyElement(sel).index, 1);
+    assert.strictEqual(tr.b.getOnlyElement(sel).index, 1);
 
     var sel = new EventSet();
     assert.isFalse(series.addEventNearToProvidedEventToSelection(
@@ -278,12 +278,12 @@ tr.b.unittest.testSuite(function() {
     var sel = new EventSet();
     assert.isTrue(series.addEventNearToProvidedEventToSelection(
         series.points[30].modelItem, 1, sel));
-    assert.equal(tr.b.getOnlyElement(sel).index, 31);
+    assert.strictEqual(tr.b.getOnlyElement(sel).index, 31);
 
     var sel = new EventSet();
     assert.isTrue(series.addEventNearToProvidedEventToSelection(
         series.points[30].modelItem, -1, sel));
-    assert.equal(tr.b.getOnlyElement(sel).index, 29);
+    assert.strictEqual(tr.b.getOnlyElement(sel).index, 29);
 
     // Last point.
     var sel = new EventSet();
@@ -294,7 +294,7 @@ tr.b.unittest.testSuite(function() {
     var sel = new EventSet();
     assert.isTrue(series.addEventNearToProvidedEventToSelection(
         series.points[59].modelItem, -1, sel));
-    assert.equal(tr.b.getOnlyElement(sel).index, 58);
+    assert.strictEqual(tr.b.getOnlyElement(sel).index, 58);
   });
 
   test('checkAddClosestEventToSelection', function() {
@@ -307,7 +307,7 @@ tr.b.unittest.testSuite(function() {
 
     var sel = new EventSet();
     series.addClosestEventToSelection(-40, 11, -0.5, 0.5, sel);
-    assert.equal(tr.b.getOnlyElement(sel).index, 0);
+    assert.strictEqual(tr.b.getOnlyElement(sel).index, 0);
 
     // Between two points.
     var sel = new EventSet();
@@ -316,7 +316,7 @@ tr.b.unittest.testSuite(function() {
 
     var sel = new EventSet();
     series.addClosestEventToSelection(0.4, 0.4, -0.5, 0.5, sel);
-    assert.equal(tr.b.getOnlyElement(sel).index, 30);
+    assert.strictEqual(tr.b.getOnlyElement(sel).index, 30);
 
     // Right of last point.
     var sel = new EventSet();
@@ -325,7 +325,7 @@ tr.b.unittest.testSuite(function() {
 
     var sel = new EventSet();
     series.addClosestEventToSelection(40, 12, -0.5, 0.5, sel);
-    assert.equal(tr.b.getOnlyElement(sel).index, 59);
+    assert.strictEqual(tr.b.getOnlyElement(sel).index, 59);
   });
 });
 </script>

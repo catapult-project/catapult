@@ -59,9 +59,9 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(m.hasImportWarnings);
 
     var counters = m.getAllCounters();
-    assert.equal(counters.length, 10);
+    assert.strictEqual(counters.length, 10);
 
-    assert.equal(counters[0].series[0].samples.length, 2);
+    assert.strictEqual(counters[0].series[0].samples.length, 2);
   });
 });
 </script>

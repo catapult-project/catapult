@@ -41,12 +41,12 @@ tr.b.unittest.testSuite(function() {
       // re-laid-out.
       // This doesn't work if the page becomes invisible.
       window.requestAnimationFrame(function() {
-        assert.equal(1, resizeCount);
+        assert.strictEqual(1, resizeCount);
         sensor.removeEventListener('resize', onResize);
         sensor.style.fontSize = '12pt';
         forceLayout(sensor);
         window.requestAnimationFrame(function() {
-          assert.equal(1, resizeCount);
+          assert.strictEqual(1, resizeCount);
           resolve();
         });
       });

@@ -106,57 +106,57 @@ tr.b.unittest.testSuite(function() {
     var decoder = importer.decoder_;
 
     decoder.reset('YQBiYw==');
-    assert.equal(decoder.decodeInt32(), 0x63620061);
+    assert.strictEqual(decoder.decodeInt32(), 0x63620061);
 
     // Decode unsigned numbers.
     decoder.reset('AQ==');
-    assert.equal(decoder.decodeUInt8(), 0x01);
+    assert.strictEqual(decoder.decodeUInt8(), 0x01);
 
     decoder.reset('AQI=');
-    assert.equal(decoder.decodeUInt16(), 0x0201);
+    assert.strictEqual(decoder.decodeUInt16(), 0x0201);
 
     decoder.reset('AQIDBA==');
-    assert.equal(decoder.decodeUInt32(), 0x04030201);
+    assert.strictEqual(decoder.decodeUInt32(), 0x04030201);
 
     decoder.reset('AQIDBAUGBwg=');
     assert.strictEqual(decoder.decodeUInt64ToString(), '0807060504030201');
 
     // Decode signed numbers.
     decoder.reset('AQ==');
-    assert.equal(decoder.decodeInt8(), 0x01);
+    assert.strictEqual(decoder.decodeInt8(), 0x01);
 
     decoder.reset('AQI=');
-    assert.equal(decoder.decodeInt16(), 0x0201);
+    assert.strictEqual(decoder.decodeInt16(), 0x0201);
 
     decoder.reset('AQIDBA==');
-    assert.equal(decoder.decodeInt32(), 0x04030201);
+    assert.strictEqual(decoder.decodeInt32(), 0x04030201);
 
     decoder.reset('AQIDBAUGBwg=');
     assert.strictEqual(decoder.decodeInt64ToString(), '0807060504030201');
 
     // Last value before being a signed number.
     decoder.reset('fw==');
-    assert.equal(decoder.decodeInt8(), 127);
+    assert.strictEqual(decoder.decodeInt8(), 127);
 
     // Decode negative numbers.
     decoder.reset('1g==');
-    assert.equal(decoder.decodeInt8(), -42);
+    assert.strictEqual(decoder.decodeInt8(), -42);
 
     decoder.reset('gA==');
-    assert.equal(decoder.decodeInt8(), -128);
+    assert.strictEqual(decoder.decodeInt8(), -128);
 
     decoder.reset('hYI=');
-    assert.equal(decoder.decodeInt16(), -32123);
+    assert.strictEqual(decoder.decodeInt16(), -32123);
 
     decoder.reset('hYL//w==');
-    assert.equal(decoder.decodeInt32(), -32123);
+    assert.strictEqual(decoder.decodeInt32(), -32123);
 
     decoder.reset('Lv1ptv////8=');
-    assert.equal(decoder.decodeInt32(), -1234567890);
+    assert.strictEqual(decoder.decodeInt32(), -1234567890);
 
     // Decode number with zero (nul) in the middle of the string.
     decoder.reset('YQBiYw==');
-    assert.equal(decoder.decodeInt32(), 0x63620061);
+    assert.strictEqual(decoder.decodeInt32(), 0x63620061);
   });
 
   test('decodeUInteger', function() {
@@ -164,7 +164,7 @@ tr.b.unittest.testSuite(function() {
     var decoder = importer.decoder_;
 
     decoder.reset('AQIDBAUGBwg=');
-    assert.equal(decoder.decodeUInteger(false), 0x04030201);
+    assert.strictEqual(decoder.decodeUInteger(false), 0x04030201);
 
     decoder.reset('AQIDBAUGBwg=');
     assert.strictEqual(decoder.decodeUInteger(true), '0807060504030201');
@@ -193,11 +193,11 @@ tr.b.unittest.testSuite(function() {
     var decoder = importer.decoder_;
     decoder.reset('dABlAHMAdAAAAA==');
     assert.strictEqual(decoder.decodeFixedW16String(32), 'test');
-    assert.equal(decoder.position_, 64);
+    assert.strictEqual(decoder.position_, 64);
 
     decoder.reset('dABlAHMAdAAAAA==');
     assert.strictEqual(decoder.decodeFixedW16String(1), 't');
-    assert.equal(decoder.position_, 2);
+    assert.strictEqual(decoder.position_, 2);
   });
 
   test('decodeBytes', function() {
@@ -206,7 +206,7 @@ tr.b.unittest.testSuite(function() {
     decoder.reset('AAECAwQFBgc=');
     var bytes = decoder.decodeBytes(8);
     for (var i = 0; i < bytes.length; ++i) {
-      assert.equal(bytes[i], i);
+      assert.strictEqual(bytes[i], i);
     }
   });
 
@@ -220,8 +220,8 @@ tr.b.unittest.testSuite(function() {
     var sid = decoder.decodeSID(true);
 
     assert.strictEqual(sid.pSid, '0403020104030201');
-    assert.equal(sid.attributes, 0x02030405);
-    assert.equal(sid.sid.length, 20);
+    assert.strictEqual(sid.attributes, 0x02030405);
+    assert.strictEqual(sid.sid.length, 20);
   });
 
   test('decodeSystemTime', function() {
@@ -231,14 +231,14 @@ tr.b.unittest.testSuite(function() {
     // Decode a SystemTime structure.
     decoder.reset('AQACAAMABAAFAAYABwAIAA==');
     var time = decoder.decodeSystemTime();
-    assert.equal(time.wYear, 1);
-    assert.equal(time.wMonth, 2);
-    assert.equal(time.wDayOfWeek, 3);
-    assert.equal(time.wDay, 4);
-    assert.equal(time.wHour, 5);
-    assert.equal(time.wMinute, 6);
-    assert.equal(time.wSecond, 7);
-    assert.equal(time.wMilliseconds, 8);
+    assert.strictEqual(time.wYear, 1);
+    assert.strictEqual(time.wMonth, 2);
+    assert.strictEqual(time.wDayOfWeek, 3);
+    assert.strictEqual(time.wDay, 4);
+    assert.strictEqual(time.wHour, 5);
+    assert.strictEqual(time.wMinute, 6);
+    assert.strictEqual(time.wSecond, 7);
+    assert.strictEqual(time.wMilliseconds, 8);
   });
 
   test('decodeTimeZoneInformation', function() {
@@ -253,9 +253,9 @@ tr.b.unittest.testSuite(function() {
                   'CA==');
     var time = decoder.decodeTimeZoneInformation();
 
-    assert.equal(time.bias, 0x04030201);
-    assert.equal(time.standardBias, 0x01020304);
-    assert.equal(time.daylightBias, 0x08080808);
+    assert.strictEqual(time.bias, 0x04030201);
+    assert.strictEqual(time.standardBias, 0x01020304);
+    assert.strictEqual(time.daylightBias, 0x08080808);
     assert.strictEqual(time.standardName, 'a');
     assert.strictEqual(time.daylightName, 'b');
   });
@@ -266,14 +266,16 @@ tr.b.unittest.testSuite(function() {
     var importer = new tr.e.importer.etw.EtwImporter(model, events);
 
     // After initialisation, no threads must exists.
-    assert.equal(Object.getOwnPropertyNames(importer.tidsToPid_).length, 0);
+    assert.strictEqual(
+        Object.getOwnPropertyNames(importer.tidsToPid_).length, 0);
 
     // Add some threads.
     var thread10 = importer.createThreadIfNeeded(1, 10);
     var thread11 = importer.createThreadIfNeeded(1, 11);
     var thread20 = importer.createThreadIfNeeded(2, 20);
 
-    assert.equal(Object.getOwnPropertyNames(importer.tidsToPid_).length, 3);
+    assert.strictEqual(
+        Object.getOwnPropertyNames(importer.tidsToPid_).length, 3);
     assert.isTrue(importer.tidsToPid_.hasOwnProperty(10));
     assert.isTrue(importer.tidsToPid_.hasOwnProperty(11));
     assert.isTrue(importer.tidsToPid_.hasOwnProperty(20));
@@ -283,9 +285,9 @@ tr.b.unittest.testSuite(function() {
     var pid11 = importer.getPidFromWindowsTid(11);
     var pid20 = importer.getPidFromWindowsTid(20);
 
-    assert.equal(pid10, 1);
-    assert.equal(pid11, 1);
-    assert.equal(pid20, 2);
+    assert.strictEqual(pid10, 1);
+    assert.strictEqual(pid11, 1);
+    assert.strictEqual(pid20, 2);
   });
 });
 </script>

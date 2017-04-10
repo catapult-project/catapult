@@ -66,22 +66,22 @@ tr.b.unittest.testSuite(function() {
     var selection = [];
     track.addIntersectingEventsInRangeToSelectionInWorldSpace(
         3, 4, viewPixWidthWorld, selection);
-    assert.equal(selection.length, 0);
+    assert.strictEqual(selection.length, 0);
 
     // Hit the first item, via pixel-nearness.
     selection = [];
     track.addIntersectingEventsInRangeToSelectionInWorldSpace(
         19.98, 19.99, viewPixWidthWorld, selection);
-    assert.equal(selection.length, 1);
-    assert.equal(selection[0], items[1].modelItem);
+    assert.strictEqual(selection.length, 1);
+    assert.strictEqual(selection[0], items[1].modelItem);
 
     // Hit the instance, between the 1st and 2nd snapshots
     selection = [];
     track.addIntersectingEventsInRangeToSelectionInWorldSpace(
         30, 50, viewPixWidthWorld, selection);
-    assert.equal(selection.length, 2);
-    assert.equal(selection[0], items[2].modelItem);
-    assert.equal(selection[1], items[3].modelItem);
+    assert.strictEqual(selection.length, 2);
+    assert.strictEqual(selection[0], items[2].modelItem);
+    assert.strictEqual(selection[1], items[3].modelItem);
   });
 
   test('addEventNearToProvidedEventToSelection', function() {
@@ -94,27 +94,27 @@ tr.b.unittest.testSuite(function() {
     var selection1 = [];
     assert.isTrue(track.addEventNearToProvidedEventToSelection(
         items[2].modelItem, 1, selection1));
-    assert.equal(selection1.length, 1);
-    assert.equal(selection1[0], items[3].modelItem);
+    assert.strictEqual(selection1.length, 1);
+    assert.strictEqual(selection1[0], items[3].modelItem);
 
     // Left from the middle of items.
     var selection2 = [];
     assert.isTrue(track.addEventNearToProvidedEventToSelection(
         items[2].modelItem, -1, selection2));
-    assert.equal(selection2.length, 1);
-    assert.equal(selection2[0], items[1].modelItem);
+    assert.strictEqual(selection2.length, 1);
+    assert.strictEqual(selection2[0], items[1].modelItem);
 
     // Right from the right edge of items.
     var selection3 = [];
     assert.isFalse(track.addEventNearToProvidedEventToSelection(
         items[3].modelItem, 1, selection3));
-    assert.equal(selection3.length, 0);
+    assert.strictEqual(selection3.length, 0);
 
     // Left from the left edge of items.
     var selection4 = [];
     assert.isFalse(track.addEventNearToProvidedEventToSelection(
         items[0].modelItem, -1, selection4));
-    assert.equal(selection4.length, 0);
+    assert.strictEqual(selection4.length, 0);
   });
 });
 </script>

@@ -21,10 +21,10 @@ tr.b.unittest.testSuite(function() {
       'blink.user_timing', 'createImports', 7, 0, {});
     s.duration = 100;
 
-    assert.equal(AsyncSlice.subTypes.getConstructor(
+    assert.strictEqual(AsyncSlice.subTypes.getConstructor(
         'blink.user_timing', 'createImports'),
         MeasureAsyncSlice);
-    assert.equal(s.viewSubGroupTitle, 'Ungrouped Measure');
+    assert.strictEqual(s.viewSubGroupTitle, 'Ungrouped Measure');
   });
 
   test('import', function() {
@@ -36,7 +36,7 @@ tr.b.unittest.testSuite(function() {
     ];
     var m = tr.c.TestUtils.newModelWithEvents([events]);
     var t2 = m.getOrCreateProcess(1).getOrCreateThread(2);
-    assert.equal(t2.asyncSliceGroup.length, 1);
+    assert.strictEqual(t2.asyncSliceGroup.length, 1);
     assert.instanceOf(t2.asyncSliceGroup.slices[0], MeasureAsyncSlice);
   });
 
@@ -53,9 +53,9 @@ tr.b.unittest.testSuite(function() {
     ];
     var m = tr.c.TestUtils.newModelWithEvents([events]);
     var t2 = m.getOrCreateProcess(1).getOrCreateThread(2);
-    assert.equal(t2.asyncSliceGroup.length, 2);
-    assert.equal(t2.asyncSliceGroup.slices[0].title, 'createImports');
-    assert.equal(t2.asyncSliceGroup.slices[1].title, 'runAutoClosers');
+    assert.strictEqual(t2.asyncSliceGroup.length, 2);
+    assert.strictEqual(t2.asyncSliceGroup.slices[0].title, 'createImports');
+    assert.strictEqual(t2.asyncSliceGroup.slices[1].title, 'runAutoClosers');
     assert.instanceOf(t2.asyncSliceGroup.slices[0], MeasureAsyncSlice);
     assert.instanceOf(t2.asyncSliceGroup.slices[1], MeasureAsyncSlice);
   });

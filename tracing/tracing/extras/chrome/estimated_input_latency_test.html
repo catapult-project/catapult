@@ -177,7 +177,7 @@ tr.b.unittest.testSuite(function() {
     var traceEndTimestamp = [100];
     var windows = getPostInteractiveTaskWindows(
         interactiveTimestamps, navStartTimestamps, traceEndTimestamp);
-    assert.equal(windows.length, 1);
+    assert.strictEqual(windows.length, 1);
     assertRangeEquals(windows[0], tr.b.math.Range.fromExplicitRange(50, 100));
   });
 
@@ -187,7 +187,7 @@ tr.b.unittest.testSuite(function() {
     var traceEndTimestamp = [100];
     var windows = getPostInteractiveTaskWindows(
         interactiveTimestamps, navStartTimestamps, traceEndTimestamp);
-    assert.equal(windows.length, 2);
+    assert.strictEqual(windows.length, 2);
     assertRangeEquals(windows[0], tr.b.math.Range.fromExplicitRange(50, 70));
     assertRangeEquals(windows[1], tr.b.math.Range.fromExplicitRange(80, 100));
   });
@@ -198,7 +198,7 @@ tr.b.unittest.testSuite(function() {
     var traceEndTimestamp = [100];
     var windows = getPostInteractiveTaskWindows(
         interactiveTimestamps, navStartTimestamps, traceEndTimestamp);
-    assert.equal(windows.length, 2);
+    assert.strictEqual(windows.length, 2);
     assertRangeEquals(windows[0], tr.b.math.Range.fromExplicitRange(50, 60));
     assertRangeEquals(windows[1], tr.b.math.Range.fromExplicitRange(90, 100));
   });

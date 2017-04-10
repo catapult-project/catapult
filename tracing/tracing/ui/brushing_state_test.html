@@ -41,9 +41,9 @@ tr.b.unittest.testSuite(function() {
     bs.selection = new EventSet([m.sA]);
 
     bs.applyToEventSelectionStates(m);
-    assert.equal(m.sA.selectionState, SelectionState.SELECTED);
+    assert.strictEqual(m.sA.selectionState, SelectionState.SELECTED);
     bs.unapplyFromEventSelectionStates();
-    assert.equal(m.sA.selectionState, SelectionState.NONE);
+    assert.strictEqual(m.sA.selectionState, SelectionState.NONE);
   });
 
 
@@ -55,10 +55,10 @@ tr.b.unittest.testSuite(function() {
     bs.analysisLinkHoveredEvents = new EventSet([m.sA, m.sB]);
 
     bs.applyToEventSelectionStates(m);
-    assert.equal(m.sA.selectionState, SelectionState.BRIGHTENED1);
-    assert.equal(m.sB.selectionState, SelectionState.BRIGHTENED0);
+    assert.strictEqual(m.sA.selectionState, SelectionState.BRIGHTENED1);
+    assert.strictEqual(m.sB.selectionState, SelectionState.BRIGHTENED0);
     bs.unapplyFromEventSelectionStates();
-    assert.equal(m.sA.selectionState, SelectionState.NONE);
+    assert.strictEqual(m.sA.selectionState, SelectionState.NONE);
   });
 
   test('brushingStateWithFindMatches', function() {
@@ -69,13 +69,13 @@ tr.b.unittest.testSuite(function() {
     bs.findMatches = new EventSet([m.sA, m.sB]);
 
     bs.applyToEventSelectionStates(m);
-    assert.equal(m.sA.selectionState, SelectionState.BRIGHTENED0);
-    assert.equal(m.sB.selectionState, SelectionState.DIMMED1);
-    assert.equal(m.sC.selectionState, SelectionState.DIMMED0);
+    assert.strictEqual(m.sA.selectionState, SelectionState.BRIGHTENED0);
+    assert.strictEqual(m.sB.selectionState, SelectionState.DIMMED1);
+    assert.strictEqual(m.sC.selectionState, SelectionState.DIMMED0);
     bs.unapplyFromEventSelectionStates();
-    assert.equal(m.sA.selectionState, SelectionState.DIMMED0);
-    assert.equal(m.sB.selectionState, SelectionState.DIMMED0);
-    assert.equal(m.sC.selectionState, SelectionState.DIMMED0);
+    assert.strictEqual(m.sA.selectionState, SelectionState.DIMMED0);
+    assert.strictEqual(m.sB.selectionState, SelectionState.DIMMED0);
+    assert.strictEqual(m.sC.selectionState, SelectionState.DIMMED0);
   });
 
   test('brushingTransfer', function() {
@@ -87,15 +87,15 @@ tr.b.unittest.testSuite(function() {
     var bs2 = bs.clone();
 
     bs.applyToEventSelectionStates(m);
-    assert.equal(m.sA.selectionState, SelectionState.SELECTED);
+    assert.strictEqual(m.sA.selectionState, SelectionState.SELECTED);
     bs.transferModelOwnershipToClone(bs2);
     assert.isFalse(bs.isAppliedToModel);
     assert.isTrue(bs2.isAppliedToModel);
 
     bs2.unapplyFromEventSelectionStates();
-    assert.equal(m.sA.selectionState, SelectionState.NONE);
-    assert.equal(m.sB.selectionState, SelectionState.NONE);
-    assert.equal(m.sC.selectionState, SelectionState.NONE);
+    assert.strictEqual(m.sA.selectionState, SelectionState.NONE);
+    assert.strictEqual(m.sB.selectionState, SelectionState.NONE);
+    assert.strictEqual(m.sC.selectionState, SelectionState.NONE);
   });
 
   test('equality', function() {

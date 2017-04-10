@@ -61,7 +61,7 @@ tr.b.unittest.testSuite(function() {
     dt.xSetWorldBounds(0, 50, track.clientWidth);
     track.viewport.setDisplayTransformImmediately(dt);
 
-    assert.equal(track.items[0].start, 20);
+    assert.strictEqual(track.items[0].start, 20);
   });
 
   test('modelMapping', function() {
@@ -73,7 +73,7 @@ tr.b.unittest.testSuite(function() {
     track.frames = frames;
 
     var a0 = track.items[0].modelItem;
-    assert.equal(a0, frames[0]);
+    assert.strictEqual(a0, frames[0]);
   });
 
   test('selectionMapping', function() {
@@ -88,20 +88,20 @@ tr.b.unittest.testSuite(function() {
     track.items[0].addToSelection(selection);
 
     // select both frame, but not its component slice
-    assert.equal(selection.length, 1);
+    assert.strictEqual(selection.length, 1);
 
     var frameCount = 0;
     var eventCount = 0;
     selection.forEach(function(event) {
       if (event instanceof Frame) {
-        assert.equal(event, frames[0]);
+        assert.strictEqual(event, frames[0]);
         frameCount++;
       } else {
         eventCount++;
       }
     });
-    assert.equal(frameCount, 1);
-    assert.equal(eventCount, 0);
+    assert.strictEqual(frameCount, 1);
+    assert.strictEqual(eventCount, 0);
   });
 });
 </script>

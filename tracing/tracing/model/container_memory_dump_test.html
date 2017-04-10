@@ -54,11 +54,12 @@ tr.b.unittest.testSuite(function() {
     md.memoryAllocatorDumps = [oilpanDump, v8Dump];
 
     assert.lengthOf(md.memoryAllocatorDumps, 2);
-    assert.equal(md.memoryAllocatorDumps[0], oilpanDump);
-    assert.equal(md.memoryAllocatorDumps[1], v8Dump);
+    assert.strictEqual(md.memoryAllocatorDumps[0], oilpanDump);
+    assert.strictEqual(md.memoryAllocatorDumps[1], v8Dump);
 
-    assert.equal(md.getMemoryAllocatorDumpByFullName('oilpan'), oilpanDump);
-    assert.equal(md.getMemoryAllocatorDumpByFullName('v8'), v8Dump);
+    assert.strictEqual(
+        md.getMemoryAllocatorDumpByFullName('oilpan'), oilpanDump);
+    assert.strictEqual(md.getMemoryAllocatorDumpByFullName('v8'), v8Dump);
     assert.isUndefined(md.getMemoryAllocatorDumpByFullName('malloc'));
   });
 
@@ -98,17 +99,19 @@ tr.b.unittest.testSuite(function() {
     md.memoryAllocatorDumps = [oilpanDump, v8Dump];
 
     assert.lengthOf(md.memoryAllocatorDumps, 2);
-    assert.equal(md.memoryAllocatorDumps[0], oilpanDump);
-    assert.equal(md.memoryAllocatorDumps[1], v8Dump);
+    assert.strictEqual(md.memoryAllocatorDumps[0], oilpanDump);
+    assert.strictEqual(md.memoryAllocatorDumps[1], v8Dump);
 
-    assert.equal(md.getMemoryAllocatorDumpByFullName('oilpan'), oilpanDump);
-    assert.equal(md.getMemoryAllocatorDumpByFullName('oilpan/bucket1'),
+    assert.strictEqual(
+        md.getMemoryAllocatorDumpByFullName('oilpan'), oilpanDump);
+    assert.strictEqual(md.getMemoryAllocatorDumpByFullName('oilpan/bucket1'),
         oilpanBucket1Dump);
-    assert.equal(md.getMemoryAllocatorDumpByFullName('oilpan/bucket2'),
+    assert.strictEqual(md.getMemoryAllocatorDumpByFullName('oilpan/bucket2'),
         oilpanBucket2Dump);
-    assert.equal(md.getMemoryAllocatorDumpByFullName('oilpan/bucket2/strings'),
+    assert.strictEqual(
+        md.getMemoryAllocatorDumpByFullName('oilpan/bucket2/strings'),
         oilpanBucket2StringsDump);
-    assert.equal(md.getMemoryAllocatorDumpByFullName('v8'), v8Dump);
+    assert.strictEqual(md.getMemoryAllocatorDumpByFullName('v8'), v8Dump);
     assert.isUndefined(md.getMemoryAllocatorDumpByFullName('malloc'));
   });
 

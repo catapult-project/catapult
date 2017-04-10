@@ -24,12 +24,12 @@ tr.b.unittest.testSuite(function() {
     }, 'Not implemented!');
 
     subView.tabLabel = 'Tab Label';
-    assert.equal(subView.getAttribute('tab-label'), 'Tab Label');
-    assert.equal(subView.tabLabel, 'Tab Label');
+    assert.strictEqual(subView.getAttribute('tab-label'), 'Tab Label');
+    assert.strictEqual(subView.tabLabel, 'Tab Label');
 
     subView.tabLabel = 'New Label';
-    assert.equal(subView.getAttribute('tab-label'), 'New Label');
-    assert.equal(subView.tabLabel, 'New Label');
+    assert.strictEqual(subView.getAttribute('tab-label'), 'New Label');
+    assert.strictEqual(subView.tabLabel, 'New Label');
   });
 });
 </script>

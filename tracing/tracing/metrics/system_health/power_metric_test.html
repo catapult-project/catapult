@@ -428,9 +428,9 @@ tr.b.unittest.testSuite(function() {
         'scroll_response:energy'), 300, 0.6);
     assert.closeTo(getMetricValueAvg(histograms,
         'idle:power'), 500, 0.6);
-    assert.equal(getMetricValueCount(histograms,
+    assert.strictEqual(getMetricValueCount(histograms,
         'scroll_response:energy'), 2);
-    assert.equal(getMetricValueCount(histograms,
+    assert.strictEqual(getMetricValueCount(histograms,
         'idle:power'), 400);
   });
 

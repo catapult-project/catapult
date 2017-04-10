@@ -43,68 +43,68 @@ tr.b.unittest.testSuite(function() {
     var ctr = createCounterWithTwoSeries();
     var ret = ctr.getSampleStatistics([0]);
 
-    assert.equal(ret[0].min, 5);
-    assert.equal(ret[0].max, 5);
-    assert.equal(ret[0].avg, 5);
-    assert.equal(ret[0].start, 5);
-    assert.equal(ret[0].end, 5);
+    assert.strictEqual(ret[0].min, 5);
+    assert.strictEqual(ret[0].max, 5);
+    assert.strictEqual(ret[0].avg, 5);
+    assert.strictEqual(ret[0].start, 5);
+    assert.strictEqual(ret[0].end, 5);
 
-    assert.equal(ret[1].min, 10);
-    assert.equal(ret[1].max, 10);
-    assert.equal(ret[1].avg, 10);
-    assert.equal(ret[1].start, 10);
-    assert.equal(ret[1].end, 10);
+    assert.strictEqual(ret[1].min, 10);
+    assert.strictEqual(ret[1].max, 10);
+    assert.strictEqual(ret[1].avg, 10);
+    assert.strictEqual(ret[1].start, 10);
+    assert.strictEqual(ret[1].end, 10);
   });
 
   test('getSampleStatisticsWithMultipleSelections', function() {
     var ctr = createCounterWithTwoSeries();
     var ret = ctr.getSampleStatistics([0, 1]);
 
-    assert.equal(ret[0].min, 5);
-    assert.equal(ret[0].max, 6);
-    assert.equal(ret[0].avg, (5 + 6) / 2);
-    assert.equal(ret[0].start, 5);
-    assert.equal(ret[0].end, 6);
+    assert.strictEqual(ret[0].min, 5);
+    assert.strictEqual(ret[0].max, 6);
+    assert.strictEqual(ret[0].avg, (5 + 6) / 2);
+    assert.strictEqual(ret[0].start, 5);
+    assert.strictEqual(ret[0].end, 6);
 
-    assert.equal(ret[1].min, 10);
-    assert.equal(ret[1].max, 15);
-    assert.equal(ret[1].avg, (10 + 15) / 2);
-    assert.equal(ret[1].start, 10);
-    assert.equal(ret[1].end, 15);
+    assert.strictEqual(ret[1].min, 10);
+    assert.strictEqual(ret[1].max, 15);
+    assert.strictEqual(ret[1].avg, (10 + 15) / 2);
+    assert.strictEqual(ret[1].start, 10);
+    assert.strictEqual(ret[1].end, 15);
   });
 
   test('getSampleStatisticsWithOutofOrderIndices', function() {
     var ctr = createCounterWithTwoSeries();
     var ret = ctr.getSampleStatistics([1, 0]);
 
-    assert.equal(ret[0].min, 5);
-    assert.equal(ret[0].max, 6);
-    assert.equal(ret[0].avg, (5 + 6) / 2);
-    assert.equal(ret[0].start, 5);
-    assert.equal(ret[0].end, 6);
+    assert.strictEqual(ret[0].min, 5);
+    assert.strictEqual(ret[0].max, 6);
+    assert.strictEqual(ret[0].avg, (5 + 6) / 2);
+    assert.strictEqual(ret[0].start, 5);
+    assert.strictEqual(ret[0].end, 6);
 
-    assert.equal(ret[1].min, 10);
-    assert.equal(ret[1].max, 15);
-    assert.equal(ret[1].avg, (10 + 15) / 2);
-    assert.equal(ret[1].start, 10);
-    assert.equal(ret[1].end, 15);
+    assert.strictEqual(ret[1].min, 10);
+    assert.strictEqual(ret[1].max, 15);
+    assert.strictEqual(ret[1].avg, (10 + 15) / 2);
+    assert.strictEqual(ret[1].start, 10);
+    assert.strictEqual(ret[1].end, 15);
   });
 
   test('getSampleStatisticsWithAllSelections', function() {
     var ctr = createCounterWithTwoSeries();
     var ret = ctr.getSampleStatistics([1, 0, 2, 3]);
 
-    assert.equal(ret[0].min, 5);
-    assert.equal(ret[0].max, 7);
-    assert.equal(ret[0].avg, (5 + 6 + 5 + 7) / 4);
-    assert.equal(ret[0].start, 5);
-    assert.equal(ret[0].end, 7);
+    assert.strictEqual(ret[0].min, 5);
+    assert.strictEqual(ret[0].max, 7);
+    assert.strictEqual(ret[0].avg, (5 + 6 + 5 + 7) / 4);
+    assert.strictEqual(ret[0].start, 5);
+    assert.strictEqual(ret[0].end, 7);
 
-    assert.equal(ret[1].min, 10);
-    assert.equal(ret[1].max, 16);
-    assert.equal(ret[1].avg, (10 + 15 + 12 + 16) / 4);
-    assert.equal(ret[1].start, 10);
-    assert.equal(ret[1].end, 16);
+    assert.strictEqual(ret[1].min, 10);
+    assert.strictEqual(ret[1].max, 16);
+    assert.strictEqual(ret[1].avg, (10 + 15 + 12 + 16) / 4);
+    assert.strictEqual(ret[1].start, 10);
+    assert.strictEqual(ret[1].end, 16);
   });
 
   test('testCounterSortRemainInOrder', function() {
@@ -116,8 +116,8 @@ tr.b.unittest.testSuite(function() {
     var array = [ctr1, ctr2];
     array.sort(tr.model.Counter.compare);
 
-    assert.equal(array[0], ctr1);
-    assert.equal(array[1], ctr2);
+    assert.strictEqual(array[0], ctr1);
+    assert.strictEqual(array[1], ctr2);
   });
 });
 </script>

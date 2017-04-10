@@ -354,8 +354,8 @@ tr.exportTo('tr.ui.analysis', function() {
       } else {
         assert.isDefined(expectedUnit);  // Test sanity check.
         assert.instanceOf(field, Scalar);
-        assert.equal(field.value, expectedValue);
-        assert.equal(field.unit, expectedUnit);
+        assert.strictEqual(field.value, expectedValue);
+        assert.strictEqual(field.unit, expectedUnit);
       }
     }
   }
@@ -465,10 +465,10 @@ tr.exportTo('tr.ui.analysis', function() {
     var unsetBounds = unsetViewEl.getBoundingClientRect();
     var undefinedBounds = undefinedViewEl.getBoundingClientRect();
     var emptyBounds = emptyViewEl.getBoundingClientRect();
-    assert.equal(undefinedBounds.width, unsetBounds.width);
-    assert.equal(emptyBounds.width, unsetBounds.width);
-    assert.equal(undefinedBounds.height, unsetBounds.height);
-    assert.equal(emptyBounds.height, unsetBounds.height);
+    assert.strictEqual(undefinedBounds.width, unsetBounds.width);
+    assert.strictEqual(emptyBounds.width, unsetBounds.width);
+    assert.strictEqual(undefinedBounds.height, unsetBounds.height);
+    assert.strictEqual(emptyBounds.height, unsetBounds.height);
 
     // Custom checks (if provided).
     if (opt_callback) {

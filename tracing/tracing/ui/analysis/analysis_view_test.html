@@ -36,7 +36,7 @@ tr.b.unittest.testSuite(function() {
   }
 
   function checkTab(tab, expectedTagName, expectedSelectionEvents) {
-    assert.equal(tab.tagName, expectedTagName.toUpperCase());
+    assert.strictEqual(tab.tagName, expectedTagName.toUpperCase());
     assertEventSet(tab.selection, expectedSelectionEvents);
   }
 

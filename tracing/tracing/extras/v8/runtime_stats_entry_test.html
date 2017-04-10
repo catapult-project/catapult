@@ -15,26 +15,26 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   test('RuntimeStatsEntry', function() {
     var entry = new tr.e.v8.RuntimeStatsEntry('IC_Entry', 5, 1234);
-    assert.equal(entry.name, 'IC_Entry');
-    assert.equal(entry.count, 5);
-    assert.equal(entry.time, 1234);
+    assert.strictEqual(entry.name, 'IC_Entry');
+    assert.strictEqual(entry.count, 5);
+    assert.strictEqual(entry.time, 1234);
 
     entry.addSample(37, 8766);
-    assert.equal(entry.name, 'IC_Entry');
-    assert.equal(entry.count, 42);
-    assert.equal(entry.time, 10000);
+    assert.strictEqual(entry.name, 'IC_Entry');
+    assert.strictEqual(entry.count, 42);
+    assert.strictEqual(entry.time, 10000);
 
     entry.addSample(58, 1);
-    assert.equal(entry.name, 'IC_Entry');
-    assert.equal(entry.count, 100);
-    assert.equal(entry.time, 10001);
+    assert.strictEqual(entry.name, 'IC_Entry');
+    assert.strictEqual(entry.count, 100);
+    assert.strictEqual(entry.time, 10001);
   });
 
   test('RuntimeStatsGroup', function() {
     var group = new tr.e.v8.RuntimeStatsGroup('IC', /.*IC_.*/);
     assert.notEqual(group.match('IC_Entry'), undefined);
     assert.notEqual(group.match('CallbackIC_Entry'), undefined);
-    assert.equal(group.match('Callback_Entry'), undefined);
+    assert.strictEqual(group.match('Callback_Entry'), null);
 
     var entry1a = new tr.e.v8.RuntimeStatsEntry('IC_Entry', 5, 1234);
     group.add(entry1a);
@@ -49,9 +49,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   function checkRuntimeGroup_(group, name, count, time) {
-    assert.equal(group.name, name);
-    assert.equal(group.count, count);
-    assert.equal(group.time, time);
+    assert.strictEqual(group.name, name);
+    assert.strictEqual(group.count, count);
+    assert.strictEqual(group.time, time);
   }
 
   test('RuntimeStatsGroupCollection', function() {
@@ -101,7 +101,7 @@ tr.b.unittest.testSuite(function() {
 
     var groupCollection = new tr.e.v8.RuntimeStatsGroupCollection();
     groupCollection.addSlices(slices);
-    assert.equal(groupCollection.totalTime, 1045);
+    assert.strictEqual(groupCollection.totalTime, 1045);
 
     var groups = groupCollection.runtimeGroups;
     assert.deepEqual(groups.length, 12);

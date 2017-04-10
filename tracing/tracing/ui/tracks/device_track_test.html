@@ -99,7 +99,7 @@ tr.b.unittest.testSuite(function() {
 
     // The device track should still have two subtracks: one counter track and
     // one spacing track.
-    assert.equal(track.tracks_.length, 2);
+    assert.strictEqual(track.tracks_.length, 2);
   });
 
   test('addContainersToTrackMap', function() {
@@ -114,8 +114,8 @@ tr.b.unittest.testSuite(function() {
     var containerToTrackMap = new tr.ui.tracks.ContainerToTrackMap();
     track.addContainersToTrackMap(containerToTrackMap);
 
-    assert.equal(containerToTrackMap.getTrackByStableId('Device'), track);
-    assert.equal(
+    assert.strictEqual(containerToTrackMap.getTrackByStableId('Device'), track);
+    assert.strictEqual(
         containerToTrackMap.getTrackByStableId('Device.PowerSeries'),
         track.powerSeriesTrack);
   });

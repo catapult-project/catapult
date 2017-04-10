@@ -51,7 +51,7 @@ tr.b.unittest.testSuite(function() {
     var dragHandle = el.dragHandle;
     var oldHeight = el.getLowerElHeight();
     dragHandle.applyDelta_(10);
-    assert.equal(el.getLowerElHeight(), oldHeight + 10);
+    assert.strictEqual(el.getLowerElHeight(), oldHeight + 10);
   });
 
   test('classNameMutation', function() {
@@ -67,25 +67,25 @@ tr.b.unittest.testSuite(function() {
     try {
       var dragHandle = el.dragHandle;
       el.lowerEl.className = 'mode-a';
-      assert.equal(el.getLowerElHeight(), 100);
+      assert.strictEqual(el.getLowerElHeight(), 100);
 
       dragHandle.applyDelta_(10);
-      assert.equal(el.getLowerElHeight(), 110);
+      assert.strictEqual(el.getLowerElHeight(), 110);
 
       // Change the class, which should restore the layout
       // to the default sizing for mode-b
       el.lowerEl.className = 'mode-b';
       dragHandle.forceMutationObserverFlush_();
-      assert.equal(el.getLowerElHeight(), 50);
+      assert.strictEqual(el.getLowerElHeight(), 50);
 
       dragHandle.applyDelta_(10);
-      assert.equal(el.getLowerElHeight(), 60);
+      assert.strictEqual(el.getLowerElHeight(), 60);
 
       // Restore the class-a, which should restore the layout
       // to sizing when we were changed.
       el.lowerEl.className = 'mode-a';
       dragHandle.forceMutationObserverFlush_();
-      assert.equal(el.getLowerElHeight(), 110);
+      assert.strictEqual(el.getLowerElHeight(), 110);
     } finally {
       Polymer.dom(document.head).removeChild(styleEl);
     }

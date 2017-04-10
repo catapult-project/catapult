@@ -30,7 +30,7 @@ tr.b.unittest.testSuite(function() {
           {typeName: 'MySnapshot'});
       var snapshot = instance.addSnapshot(15, {foo: 'bar'});
       assert.instanceOf(snapshot, MySnapshot);
-      assert.equal(snapshot.myFoo, 'bar');
+      assert.strictEqual(snapshot.myFoo, 'bar');
     } finally {
       tr.model.ObjectSnapshot.subTypes.unregister(MySnapshot);
     }

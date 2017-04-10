@@ -37,9 +37,9 @@ tr.b.unittest.testSuite(function() {
 
     var selection = new EventSet();
 
-    assert.equal(selection.length, 0);
+    assert.strictEqual(selection.length, 0);
     selection.push(t53.samples[0]);
-    assert.equal(selection.length, 1);
+    assert.strictEqual(selection.length, 1);
 
     var view = document.createElement('tr-ui-a-single-sample-sub-view');
     view.selection = selection;
@@ -49,9 +49,9 @@ tr.b.unittest.testSuite(function() {
         view, 'tr-ui-b-table');
 
     var rows = table.tableRows;
-    assert.equal(rows.length, 3);
-    assert.equal(rows[0].value, 'X');
-    assert.equal(rows[1].value.value, 0.184);
+    assert.strictEqual(rows.length, 3);
+    assert.strictEqual(rows[0].value, 'X');
+    assert.strictEqual(rows[1].value.value, 0.184);
     assert.strictEqual(rows[1].value.unit, tr.b.Unit.byName.timeStampInMs);
 
     var callStackRows = rows[2].value.tableRows;

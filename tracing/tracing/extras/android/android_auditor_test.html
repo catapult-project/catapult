@@ -32,7 +32,7 @@ tr.b.unittest.testSuite(function() {
           {title: 'constructor', start: 200, duration: 5}));
     }, tr.e.audits.AndroidAuditor);
 
-    assert.equal(model.alerts.length, 0);
+    assert.strictEqual(model.alerts.length, 0);
   });
 
   test('saveLayerAlert_badAlpha', function() {
@@ -52,12 +52,12 @@ tr.b.unittest.testSuite(function() {
           {title: 'unclipped saveLayer 480x320', start: 204, duration: 1}));
     }, tr.e.audits.AndroidAuditor);
 
-    assert.equal(model.alerts.length, 1);
+    assert.strictEqual(model.alerts.length, 1);
 
     var alert = model.alerts[0];
-    assert.equal(alert.args['view name'], 'BadAlphaView');
-    assert.equal(alert.args.width, 480);
-    assert.equal(alert.args.height, 320);
+    assert.strictEqual(alert.args['view name'], 'BadAlphaView');
+    assert.strictEqual(alert.args.width, 480);
+    assert.strictEqual(alert.args.height, 320);
   });
 
   test('saveLayerAlert_canvas', function() {
@@ -70,11 +70,11 @@ tr.b.unittest.testSuite(function() {
           {title: 'saveLayer 480x320', start: 204, duration: 1}));
     }, tr.e.audits.AndroidAuditor);
 
-    assert.equal(model.alerts.length, 1);
+    assert.strictEqual(model.alerts.length, 1);
 
     var alert = model.alerts[0];
-    assert.equal(alert.args['Clipped saveLayer count'], 1);
-    assert.equal(alert.associatedEvents.length, 2);
+    assert.strictEqual(alert.args['Clipped saveLayer count'], 1);
+    assert.strictEqual(alert.associatedEvents.length, 2);
   });
 
   test('generatePathAlert', function() {
@@ -89,12 +89,12 @@ tr.b.unittest.testSuite(function() {
           {title: 'Generate Path Texture', start: 3, duration: 6}));
     }, tr.e.audits.AndroidAuditor);
 
-    assert.equal(model.alerts.length, 1);
+    assert.strictEqual(model.alerts.length, 1);
 
     var alert = model.alerts[0];
     assert.deepEqual(alert.args['Time spent'],
         new Scalar(timeDurationInMs, 9));
-    assert.equal(alert.associatedEvents.length, 3);
+    assert.strictEqual(alert.associatedEvents.length, 3);
   });
 
   test('uploadAlert', function() {
@@ -107,13 +107,13 @@ tr.b.unittest.testSuite(function() {
           {title: 'Upload 1000x1000 Texture', start: 0, duration: 15}));
     }, tr.e.audits.AndroidAuditor);
 
-    assert.equal(model.alerts.length, 1);
+    assert.strictEqual(model.alerts.length, 1);
 
     var alert = model.alerts[0];
-    assert.equal(alert.args['Pixels uploaded'], '1.00 million');
+    assert.strictEqual(alert.args['Pixels uploaded'], '1.00 million');
     assert.deepEqual(alert.args['Time spent'],
         new Scalar(timeDurationInMs, 15));
-    assert.equal(alert.associatedEvents.length, 2);
+    assert.strictEqual(alert.associatedEvents.length, 2);
   });
 
   test('listViewAlert', function() {
@@ -148,18 +148,19 @@ tr.b.unittest.testSuite(function() {
           {title: 'performTraversals', start: 120, duration: 5}));
     }, tr.e.audits.AndroidAuditor);
 
-    assert.equal(model.alerts.length, 2);
+    assert.strictEqual(model.alerts.length, 2);
     var alert = model.alerts[0];
-    assert.equal(alert.args['ListView items rebound'], 2);
+    assert.strictEqual(alert.args['ListView items rebound'], 2);
     assert.deepEqual(alert.args['Time spent'],
         new Scalar(timeDurationInMs, 20));
-    assert.equal(alert.associatedEvents.length, 5);
+    assert.strictEqual(alert.associatedEvents.length, 5);
 
     var alert = model.alerts[1];
-    assert.equal(alert.args['ListView items inflated'], 1);
+    assert.strictEqual(alert.args['ListView items inflated'], 1);
     assert.deepEqual(alert.args['Time spent'],
         new Scalar(timeDurationInMs, 20));
-    assert.equal(alert.associatedEvents.length, 3); // note: inflate not assoc.
+    // note: inflate not assoc.
+    assert.strictEqual(alert.associatedEvents.length, 3);
   });
 
   test('measureLayoutAlert', function() {
@@ -173,12 +174,12 @@ tr.b.unittest.testSuite(function() {
           {title: 'layout', start: 10, duration: 5}));
     }, tr.e.audits.AndroidAuditor);
 
-    assert.equal(model.alerts.length, 1);
+    assert.strictEqual(model.alerts.length, 1);
 
     var alert = model.alerts[0];
     assert.deepEqual(alert.args['Time spent'],
         new Scalar(timeDurationInMs, 10));
-    assert.equal(alert.associatedEvents.length, 3);
+    assert.strictEqual(alert.associatedEvents.length, 3);
   });
 
   test('viewDrawAlert', function() {
@@ -197,7 +198,7 @@ tr.b.unittest.testSuite(function() {
           {title: 'getDisplayList', start: 40, duration: 10}));
     }, tr.e.audits.AndroidAuditor);
 
-    assert.equal(model.alerts.length, 2);
+    assert.strictEqual(model.alerts.length, 2);
     assert.deepEqual(model.alerts[0].args['Time spent'],
         new Scalar(timeDurationInMs, 10));
     assert.deepEqual(model.alerts[1].args['Time spent'],
@@ -219,7 +220,7 @@ tr.b.unittest.testSuite(function() {
           {title: 'GC: Wait For Concurrent', start: 50, duration: 15}));
     }, tr.e.audits.AndroidAuditor);
 
-    assert.equal(model.alerts.length, 2);
+    assert.strictEqual(model.alerts.length, 2);
     assert.deepEqual(model.alerts[0].args['Blocked duration'],
         new Scalar(timeDurationInMs, 15));
     assert.deepEqual(model.alerts[1].args['Blocked duration'],
@@ -236,7 +237,7 @@ tr.b.unittest.testSuite(function() {
           {title: 'Lock Contention on a lock', start: 0, duration: 15}));
     }, tr.e.audits.AndroidAuditor);
 
-    assert.equal(model.alerts.length, 1);
+    assert.strictEqual(model.alerts.length, 1);
     assert.deepEqual(model.alerts[0].args['Blocked duration'],
         new Scalar(timeDurationInMs, 15));
   });
@@ -251,9 +252,9 @@ tr.b.unittest.testSuite(function() {
         newThreadSlice(uiThread, SCHEDULING_STATE.RUNNABLE, 6, 10),
         newThreadSlice(uiThread, SCHEDULING_STATE.RUNNING, 16, 4)];
     }, tr.e.audits.AndroidAuditor);
-    assert.equal(model.alerts.length, 1);
+    assert.strictEqual(model.alerts.length, 1);
     var alert = model.alerts[0];
-    assert.equal(alert.info.title, 'Scheduling delay');
+    assert.strictEqual(alert.info.title, 'Scheduling delay');
     assert.deepEqual(alert.args['Not scheduled, but runnable'],
         new Scalar(timeDurationInMs, 10));
 
@@ -266,9 +267,9 @@ tr.b.unittest.testSuite(function() {
         newThreadSlice(uiThread, SCHEDULING_STATE.UNINTR_SLEEP, 5, 10),
         newThreadSlice(uiThread, SCHEDULING_STATE.RUNNING, 15, 5)];
     }, tr.e.audits.AndroidAuditor);
-    assert.equal(model.alerts.length, 1);
+    assert.strictEqual(model.alerts.length, 1);
     var alert = model.alerts[0];
-    assert.equal(alert.info.title, 'Scheduling delay');
+    assert.strictEqual(alert.info.title, 'Scheduling delay');
     assert.deepEqual(alert.args['Blocking I/O delay'],
         new Scalar(timeDurationInMs, 10));
   });
@@ -290,16 +291,16 @@ tr.b.unittest.testSuite(function() {
           {title: 'performTraversals', start: 40, duration: 90}));
     }, tr.e.audits.AndroidAuditor);
 
-    assert.equal(process.frames.length, 3);
+    assert.strictEqual(process.frames.length, 3);
     assert.closeTo(process.frames[0].totalDuration, 8, 1e-5);
     assert.closeTo(process.frames[1].totalDuration, 20, 1e-5);
     assert.closeTo(process.frames[2].totalDuration, 90, 1e-5);
 
-    assert.equal(process.frames[0].perfClass,
+    assert.strictEqual(process.frames[0].perfClass,
         FRAME_PERF_CLASS.GOOD);
-    assert.equal(process.frames[1].perfClass,
+    assert.strictEqual(process.frames[1].perfClass,
         FRAME_PERF_CLASS.BAD);
-    assert.equal(process.frames[2].perfClass,
+    assert.strictEqual(process.frames[2].perfClass,
         FRAME_PERF_CLASS.TERRIBLE);
   });
 
@@ -321,8 +322,8 @@ tr.b.unittest.testSuite(function() {
     }, tr.e.audits.AndroidAuditor);
 
     // both processes should be renamed
-    assert.equal(appProcess.name, 'android.systemui');
-    assert.equal(sfProcess.name, 'SurfaceFlinger');
+    assert.strictEqual(appProcess.name, 'android.systemui');
+    assert.strictEqual(sfProcess.name, 'SurfaceFlinger');
 
     assert.isTrue(sfProcess.sortIndex < appProcess.sortIndex);
     assert.isTrue(appProcess.important);
@@ -363,7 +364,7 @@ tr.b.unittest.testSuite(function() {
     });
 
     eventsNotExpectingInfo.forEach(function(event) {
-      assert.equal(event.info, undefined);
+      assert.strictEqual(event.info, undefined);
     });
   });
 
@@ -415,9 +416,9 @@ tr.b.unittest.testSuite(function() {
         }
       }, tr.e.audits.AndroidAuditor);
     };
-    assert.equal(createModelWithJank(3).faviconHue, 'green');
-    assert.equal(createModelWithJank(10).faviconHue, 'yellow');
-    assert.equal(createModelWithJank(50).faviconHue, 'red');
+    assert.strictEqual(createModelWithJank(3).faviconHue, 'green');
+    assert.strictEqual(createModelWithJank(10).faviconHue, 'yellow');
+    assert.strictEqual(createModelWithJank(50).faviconHue, 'red');
   });
 });
 </script>

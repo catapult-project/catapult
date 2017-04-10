@@ -12,7 +12,7 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   test('getUsingPath', function() {
     var z = tr.b.getUsingPath('x.y.z', {'x': {'y': {'z': 3}}});
-    assert.equal(z, 3);
+    assert.strictEqual(z, 3);
 
     var w = tr.b.getUsingPath('x.w', {'x': {'y': {'z': 3}}});
     assert.isUndefined(w);
@@ -23,7 +23,7 @@ tr.b.unittest.testSuite(function() {
     err.name = 'MyError';
 
     var ex = tr.b.normalizeException(err);
-    assert.equal(ex.typeName, 'MyError');
+    assert.strictEqual(ex.typeName, 'MyError');
   });
 
   test('formatDate', function() {

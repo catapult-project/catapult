@@ -200,8 +200,8 @@ tr.b.unittest.testSuite(function() {
     table.footerRows = footerRows;
     table.rebuild();
     table.rebuild();
-    assert.equal(table.$.body.children.length, 2);
-    assert.equal(table.$.foot.children.length, 2);
+    assert.strictEqual(table.$.body.children.length, 2);
+    assert.strictEqual(table.$.foot.children.length, 2);
 
     this.addHTMLOutput(table);
   });
@@ -486,14 +486,14 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(table);
 
     var tHead = table.$.head;
-    assert.equal(table.$.head.children.length, 0);
-    assert.equal(0, tHead.getBoundingClientRect().height);
+    assert.strictEqual(table.$.head.children.length, 0);
+    assert.strictEqual(0, tHead.getBoundingClientRect().height);
 
     table.showHeader = true;
     table.rebuild();
     table.showHeader = false;
     table.rebuild();
-    assert.equal(table.$.head.children.length, 0);
+    assert.strictEqual(table.$.head.children.length, 0);
   });
 
 
@@ -560,7 +560,7 @@ tr.b.unittest.testSuite(function() {
 
     var h1FirstCol = table1.$.head.children[0].children[0];
     var h2FirstCol = table2.$.body.children[0].children[0];
-    assert.equal(h1FirstCol.getBoundingClientRect().width,
+    assert.strictEqual(h1FirstCol.getBoundingClientRect().width,
         h2FirstCol.getBoundingClientRect().width);
   });
 
@@ -616,10 +616,10 @@ tr.b.unittest.testSuite(function() {
     table.sortColumnIndex = 0;
     table.rebuild();
     var r0 = table.$.body.children[0];
-    assert.equal(r0.rowInfo.userRow, rows[1]);
+    assert.strictEqual(r0.rowInfo.userRow, rows[1]);
 
     var r1 = table.$.body.children[1];
-    assert.equal(r1.rowInfo.userRow, rows[0]);
+    assert.strictEqual(r1.rowInfo.userRow, rows[0]);
   });
 
   test('sortDispatchesEvent', function() {
@@ -649,23 +649,23 @@ tr.b.unittest.testSuite(function() {
     table.rebuild();
 
     table.sortColumnIndex = 0;
-    assert.equal(sortColumnIndex, 0);
-    assert.equal(numListenerCalls, 1);
+    assert.strictEqual(sortColumnIndex, 0);
+    assert.strictEqual(numListenerCalls, 1);
 
     table.sortDescending = true;
-    assert.equal(sortColumnIndex, 0);
+    assert.strictEqual(sortColumnIndex, 0);
     assert.isTrue(sortDescending);
-    assert.equal(numListenerCalls, 2);
+    assert.strictEqual(numListenerCalls, 2);
 
     table.sortColumnIndex = 1;
     table.sortDescending = false;
-    assert.equal(sortColumnIndex, 1);
+    assert.strictEqual(sortColumnIndex, 1);
     assert.isFalse(sortDescending);
-    assert.equal(numListenerCalls, 4);
+    assert.strictEqual(numListenerCalls, 4);
 
     table.sortColumnIndex = undefined;
-    assert.equal(sortColumnIndex, undefined);
-    assert.equal(numListenerCalls, 5);
+    assert.strictEqual(sortColumnIndex, undefined);
+    assert.strictEqual(numListenerCalls, 5);
   });
 
   test('sortingAfterExpand', function() {
@@ -721,13 +721,13 @@ tr.b.unittest.testSuite(function() {
     table.sortColumnIndex = 0;
     table.rebuild();
     var r0 = table.$.body.children[0];
-    assert.equal(r0.rowInfo.userRow, rows[1]);
+    assert.strictEqual(r0.rowInfo.userRow, rows[1]);
 
     var r1 = table.$.body.children[1];
-    assert.equal(r1.rowInfo.userRow, rows[0]);
+    assert.strictEqual(r1.rowInfo.userRow, rows[0]);
 
     var r2 = table.$.body.children[2];
-    assert.equal(r2.rowInfo.userRow, rows[0].subRows[2]);
+    assert.strictEqual(r2.rowInfo.userRow, rows[0].subRows[2]);
 
     assert.isFalse(table.$.body.hasAttribute('tabindex'));
   });
@@ -855,7 +855,7 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(table.getExpandedForTableRow(rows[0]));
 
     var r1 = table.$.body.children[1];
-    assert.equal(r1.rowInfo.userRow, rows[0].subRows[0]);
+    assert.strictEqual(r1.rowInfo.userRow, rows[0].subRows[0]);
   });
 
   test('tableSelection', function() {
@@ -899,15 +899,15 @@ tr.b.unittest.testSuite(function() {
     table.selectedTableRow = rows[0];
 
     table.performKeyCommand_('ARROW_DOWN');
-    assert.equal(table.selectedTableRow, rows[1]);
+    assert.strictEqual(table.selectedTableRow, rows[1]);
 
     table.performKeyCommand_('ARROW_UP');
-    assert.equal(table.selectedTableRow, rows[0]);
+    assert.strictEqual(table.selectedTableRow, rows[0]);
 
     // Enter on collapsed row should expand.
     table.selectedTableRow = rows[0];
     table.performKeyCommand_('SPACE');
-    assert.equal(table.selectedTableRow, rows[0]);
+    assert.strictEqual(table.selectedTableRow, rows[0]);
     assert.isTrue(table.getExpandedForTableRow(rows[0]));
 
     table.performKeyCommand_('SPACE');
@@ -916,15 +916,15 @@ tr.b.unittest.testSuite(function() {
     // Arrow right on collapsed row should expand.
     table.selectedTableRow = rows[0];
     table.performKeyCommand_('ARROW_RIGHT');
-    assert.equal(table.selectedTableRow, rows[0].subRows[0]);
+    assert.strictEqual(table.selectedTableRow, rows[0].subRows[0]);
     assert.isTrue(table.getExpandedForTableRow(rows[0]));
 
     table.performKeyCommand_('ARROW_DOWN');
-    assert.equal(table.selectedTableRow, rows[0].subRows[1]);
+    assert.strictEqual(table.selectedTableRow, rows[0].subRows[1]);
 
     // Arrow left on collapsed item should select parent.
     table.performKeyCommand_('ARROW_LEFT');
-    assert.equal(table.selectedTableRow, rows[0]);
+    assert.strictEqual(table.selectedTableRow, rows[0]);
     assert.isTrue(table.getExpandedForTableRow(rows[0]));
     // Arrow left on parent should collapse its children.
     table.performKeyCommand_('ARROW_LEFT');
@@ -934,13 +934,13 @@ tr.b.unittest.testSuite(function() {
     table.selectedTableRow = rows[0];
     table.setExpandedForTableRow(rows[0], true);
     table.performKeyCommand_('ARROW_RIGHT');
-    assert.equal(table.selectedTableRow, rows[0].subRows[0]);
+    assert.strictEqual(table.selectedTableRow, rows[0].subRows[0]);
 
     // Arrow right on a non-expandable row should do nothing.
     table.selectedTableRow = rows[1];
-    assert.equal(table.selectedTableRow, rows[1]);
+    assert.strictEqual(table.selectedTableRow, rows[1]);
     table.performKeyCommand_('ARROW_RIGHT');
-    assert.equal(table.selectedTableRow, rows[1]);
+    assert.strictEqual(table.selectedTableRow, rows[1]);
     assert.isFalse(table.getExpandedForTableRow(rows[1]));
   });
 
@@ -1267,7 +1267,7 @@ tr.b.unittest.testSuite(function() {
     // rather than first child in sub rows since sorted.
     table.selectedTableRow = rows[0];
     table.performKeyCommand_('ARROW_RIGHT');
-    assert.equal(table.selectedTableRow, rows[0].subRows[2]);
+    assert.strictEqual(table.selectedTableRow, rows[0].subRows[2]);
   });
 
   test('reduceNumberOfColumnsAfterRebuild', function() {
@@ -1429,7 +1429,7 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(table);
 
     table.selectedTableRow = table.tableRows[0];
-    assert.equal(table.selectedColumnIndex, 1);
+    assert.strictEqual(table.selectedColumnIndex, 1);
     var selectedCell = table.selectedCell;
     assert.strictEqual(selectedCell.row, table.tableRows[0]);
     assert.strictEqual(selectedCell.column, columns[1]);
@@ -1439,8 +1439,8 @@ tr.b.unittest.testSuite(function() {
     table.performKeyCommand_('ARROW_RIGHT');
     table.performKeyCommand_('ARROW_RIGHT');
     table.performKeyCommand_('ARROW_LEFT');
-    assert.equal(table.selectedTableRow, table.tableRows[1]);
-    assert.equal(table.selectedColumnIndex, 2);
+    assert.strictEqual(table.selectedTableRow, table.tableRows[1]);
+    assert.strictEqual(table.selectedColumnIndex, 2);
     selectedCell = table.selectedCell;
     assert.strictEqual(selectedCell.row, table.tableRows[1]);
     assert.strictEqual(selectedCell.column, columns[2]);
@@ -1586,9 +1586,9 @@ tr.b.unittest.testSuite(function() {
 
     var firstColumnHeader = table.$.head.children[0].children[0].children[0];
     var secondColumnHeader = table.$.head.children[0].children[1].children[0];
-    assert.equal(Polymer.dom(firstColumnHeader.cellTitle).textContent,
+    assert.strictEqual(Polymer.dom(firstColumnHeader.cellTitle).textContent,
         'First Column');
-    assert.equal(Polymer.dom(secondColumnHeader.cellTitle).textContent,
+    assert.strictEqual(Polymer.dom(secondColumnHeader.cellTitle).textContent,
         'Second Column');
   });
 
@@ -1642,8 +1642,8 @@ tr.b.unittest.testSuite(function() {
 
     this.addHTMLOutput(table);
 
-    assert.equal(
-        2, Polymer.dom(table.$.body.children[1].children[0]).textContent);
+    assert.strictEqual(
+        '2', Polymer.dom(table.$.body.children[1].children[0]).textContent);
   });
 
   test('shouldNotRenderUndefined', function() {
@@ -1797,7 +1797,7 @@ tr.b.unittest.testSuite(function() {
         table, function(element) {
           return Polymer.dom(element).textContent === 'C';
         });
-    assert.equal(cRow, undefined);
+    assert.strictEqual(cRow, undefined);
 
     var callbackCalled = false;
     table.defaultExpansionStateCallback = function(row, parentRow) {

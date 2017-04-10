@@ -18,35 +18,35 @@ tr.b.unittest.testSuite(function() {
   var ufcFromEvent = tr.e.chrome.ChromeUserFriendlyCategoryDriver.fromEvent;
 
   test('userFriendlyCategory', function() {
-    assert.equal(ufcFromEvent({
+    assert.strictEqual(ufcFromEvent({
       guid: tr.b.GUID.allocateSimple(),
       title: 'FrameView::layout',
       category: 'cat'
     }), 'layout');
 
-    assert.equal(ufcFromEvent({
+    assert.strictEqual(ufcFromEvent({
       guid: tr.b.GUID.allocateSimple(),
       title: 'V8.Execute',
       category: 'cat'
     }), 'script_execute');
 
-    assert.equal(ufcFromEvent({
+    assert.strictEqual(ufcFromEvent({
       guid: tr.b.GUID.allocateSimple(),
       title: 'Paint',
       category: 'cat'
     }), 'record');
-    assert.equal(ufcFromEvent({
+    assert.strictEqual(ufcFromEvent({
       guid: tr.b.GUID.allocateSimple(),
       title: 'Document::updateStyle',
       category: 'cat'
     }), 'style');
-    assert.equal(ufcFromEvent({
+    assert.strictEqual(ufcFromEvent({
       guid: tr.b.GUID.allocateSimple(),
       title: 'HTMLDocumentParser::didReceiveParsedChunkFromBackgroundParser',
       category: 'cat'
     }), 'parseHTML');
 
-    assert.equal(ufcFromEvent({
+    assert.strictEqual(ufcFromEvent({
       guid: tr.b.GUID.allocateSimple(),
       title: 'constructor',
       category: 'cat'
@@ -54,19 +54,19 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('ufcFromTraceCategory', function() {
-    assert.equal(ufcFromEvent({
+    assert.strictEqual(ufcFromEvent({
       guid: tr.b.GUID.allocateSimple(),
       title: 'a',
       category: 'netlog'
     }), 'net');
 
-    assert.equal(ufcFromEvent({
+    assert.strictEqual(ufcFromEvent({
       guid: tr.b.GUID.allocateSimple(),
       title: 'a',
       category: 'foobar,overhead'
     }), 'overhead');
 
-    assert.equal(ufcFromEvent({
+    assert.strictEqual(ufcFromEvent({
       guid: tr.b.GUID.allocateSimple(),
       title: 'a',
       category: 'startup'
@@ -74,7 +74,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('ufcOther', function() {
-    assert.equal(ufcFromEvent({
+    assert.strictEqual(ufcFromEvent({
       guid: tr.b.GUID.allocateSimple(),
       title: 'a',
       category: 'other'

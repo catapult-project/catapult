@@ -52,13 +52,13 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();
-    assert.equal(threads.length, 1);
+    assert.strictEqual(threads.length, 1);
 
     var thread = threads[0];
-    assert.equal(thread.parent.pid, 4829);
-    assert.equal(thread.tid, 4831);
-    assert.equal(thread.name, 'SurfaceFlinger');
-    assert.equal(thread.sliceGroup.length, 11);
+    assert.strictEqual(thread.parent.pid, 4829);
+    assert.strictEqual(thread.tid, 4831);
+    assert.strictEqual(thread.name, 'SurfaceFlinger');
+    assert.strictEqual(thread.sliceGroup.length, 11);
   });
 
   test('androidUserlandImportWithSpacesInThreadName', function() {
@@ -70,13 +70,13 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();
-    assert.equal(threads.length, 1);
+    assert.strictEqual(threads.length, 1);
 
     var thread = threads[0];
-    assert.equal(thread.parent.pid, 4829);
-    assert.equal(thread.tid, 4831);
-    assert.equal(thread.name, 'Surface Flinger ');
-    assert.equal(thread.sliceGroup.length, 1);
+    assert.strictEqual(thread.parent.pid, 4829);
+    assert.strictEqual(thread.tid, 4831);
+    assert.strictEqual(thread.name, 'Surface Flinger ');
+    assert.strictEqual(thread.sliceGroup.length, 1);
   });
 
   test('androidAsyncUserlandImport', function() {
@@ -92,21 +92,21 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();
-    assert.equal(threads.length, 1);
+    assert.strictEqual(threads.length, 1);
 
     var thread = threads[0];
-    assert.equal(thread.parent.pid, 9649);
-    assert.equal(thread.tid, 9649);
-    assert.equal(thread.name, 'ndroid.launcher');
-    assert.equal(thread.sliceGroup.length, 0);
-    assert.equal(thread.asyncSliceGroup.length, 1);
+    assert.strictEqual(thread.parent.pid, 9649);
+    assert.strictEqual(thread.tid, 9649);
+    assert.strictEqual(thread.name, 'ndroid.launcher');
+    assert.strictEqual(thread.sliceGroup.length, 0);
+    assert.strictEqual(thread.asyncSliceGroup.length, 1);
 
     var slice = thread.asyncSliceGroup.slices[0];
-    assert.equal(slice.title, 'animator:childrenOutlineAlpha');
+    assert.strictEqual(slice.title, 'animator:childrenOutlineAlpha');
     assert.closeTo(118.169, slice.duration, 1e-5);
 
     // no subslice events created
-    assert.equal(slice.subSlices.length, 0);
+    assert.strictEqual(slice.subSlices.length, 0);
   });
 
   test('androidUserlandLegacyKernelImport', function() {
@@ -143,13 +143,13 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();
-    assert.equal(threads.length, 1);
+    assert.strictEqual(threads.length, 1);
 
     var thread = threads[0];
-    assert.equal(thread.parent.pid, 4829);
-    assert.equal(thread.tid, 4831);
-    assert.equal(thread.name, 'SurfaceFlinger');
-    assert.equal(thread.sliceGroup.length, 11);
+    assert.strictEqual(thread.parent.pid, 4829);
+    assert.strictEqual(thread.tid, 4831);
+    assert.strictEqual(thread.name, 'SurfaceFlinger');
+    assert.strictEqual(thread.sliceGroup.length, 11);
   });
 
   test('androidUserlandChromiumImport', function() {
@@ -169,40 +169,40 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();
-    assert.equal(threads.length, 1);
+    assert.strictEqual(threads.length, 1);
 
     var thread = threads[0];
-    assert.equal(thread.parent.pid, 2867);
-    assert.equal(thread.tid, 2894);
-    assert.equal(thread.name, 'SandboxedProces');
-    assert.equal(thread.sliceGroup.length, 3);
+    assert.strictEqual(thread.parent.pid, 2867);
+    assert.strictEqual(thread.tid, 2894);
+    assert.strictEqual(thread.name, 'SandboxedProces');
+    assert.strictEqual(thread.sliceGroup.length, 3);
 
-    assert.equal(thread.sliceGroup.slices[0].args['arg1'], '1');
-    assert.equal(thread.sliceGroup.slices[0].args['arg2'], '2');
+    assert.strictEqual(thread.sliceGroup.slices[0].args['arg1'], '1');
+    assert.strictEqual(thread.sliceGroup.slices[0].args['arg2'], '2');
 
-    assert.equal(thread.sliceGroup.slices[1].args['source'], 'test=test');
-    assert.equal(thread.sliceGroup.slices[1].category, 'cat2');
-    assert.equal('DeferOrRunPendingTask',
+    assert.strictEqual(thread.sliceGroup.slices[1].args['source'], 'test=test');
+    assert.strictEqual(thread.sliceGroup.slices[1].category, 'cat2');
+    assert.strictEqual('DeferOrRunPendingTask',
         thread.sliceGroup.slices[1].title);
-    assert.equal(thread.sliceGroup.slices[1].args['task'], 'xyz');
+    assert.strictEqual(thread.sliceGroup.slices[1].args['task'], 'xyz');
 
-    assert.equal('ipc/ipc_sync_message_filter.cc:Send',
+    assert.strictEqual('ipc/ipc_sync_message_filter.cc:Send',
         thread.sliceGroup.slices[2].args['source']);
 
-    assert.equal(thread.asyncSliceGroup.length, 1);
-    assert.equal(thread.asyncSliceGroup.slices[0].args['arg1'], '1');
-    assert.equal(thread.asyncSliceGroup.slices[0].args['arg2'], '2');
-    assert.equal(thread.asyncSliceGroup.slices[0].args['arg3'], '3');
+    assert.strictEqual(thread.asyncSliceGroup.length, 1);
+    assert.strictEqual(thread.asyncSliceGroup.slices[0].args['arg1'], '1');
+    assert.strictEqual(thread.asyncSliceGroup.slices[0].args['arg2'], '2');
+    assert.strictEqual(thread.asyncSliceGroup.slices[0].args['arg3'], '3');
 
     var counters = m.getAllCounters();
-    assert.equal(counters.length, 1);
-    assert.equal(counters[0].category, 'cat1');
-    assert.equal(counters[0].name, 'counter1');
+    assert.strictEqual(counters.length, 1);
+    assert.strictEqual(counters[0].category, 'cat1');
+    assert.strictEqual(counters[0].name, 'counter1');
 
-    assert.equal(counters[0].numSamples, 1);
-    assert.equal(counters[0].getSeries(0).getSample(0).value, 10);
+    assert.strictEqual(counters[0].numSamples, 1);
+    assert.strictEqual(counters[0].getSeries(0).getSample(0).value, 10);
 
-    assert.equal(Math.round((253.780659 - (255.663276 - 128)) * 1000),
+    assert.strictEqual(Math.round((253.780659 - (255.663276 - 128)) * 1000),
         Math.round(thread.sliceGroup.slices[0].start));
   });
 
@@ -221,13 +221,13 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(m.hasImportWarnings, 'hasImportWarnings');
 
     var threads = m.getAllThreads();
-    assert.equal(threads.length, 1);
+    assert.strictEqual(threads.length, 1);
 
     var thread = threads[0];
-    assert.equal(thread.parent.pid, 3586);
-    assert.equal(thread.tid, 3894);
-    assert.equal(thread.name, 'RenderThread');
-    assert.equal(thread.sliceGroup.length, 4);
+    assert.strictEqual(thread.parent.pid, 3586);
+    assert.strictEqual(thread.tid, 3894);
+    assert.strictEqual(thread.name, 'RenderThread');
+    assert.strictEqual(thread.sliceGroup.length, 4);
   });
 });
 </script>

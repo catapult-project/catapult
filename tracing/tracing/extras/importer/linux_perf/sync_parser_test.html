@@ -38,16 +38,16 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();
-    assert.equal(threads.length, 4);
+    assert.strictEqual(threads.length, 4);
 
     var threads = m.findAllThreadsNamed('s3c-fb');
-    assert.equal(threads.length, 1);
-    assert.equal(threads[0].sliceGroup.length, 1);
+    assert.strictEqual(threads.length, 1);
+    assert.strictEqual(threads[0].sliceGroup.length, 1);
 
     var threads = m.findAllThreadsNamed('kworker/u:5');
-    assert.equal(threads.length, 1);
-    assert.equal(threads[0].sliceGroup.length, 1);
-    assert.equal('fence_wait("display")',
+    assert.strictEqual(threads.length, 1);
+    assert.strictEqual(threads[0].sliceGroup.length, 1);
+    assert.strictEqual('fence_wait("display")',
         threads[0].sliceGroup.slices[0].title);
   });
 });

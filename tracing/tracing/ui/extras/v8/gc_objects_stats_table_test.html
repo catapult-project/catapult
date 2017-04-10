@@ -81,18 +81,18 @@ tr.b.unittest.testSuite(function() {
     var rows = viewEl.$.table.tableRows;
     assert.lengthOf(rows, 1);
     var row = rows[0];
-    assert.equal(row.overall, 0.0107421875);
-    assert.equal(row.count, 13);
-    assert.equal(row.overAllocated, 0);
+    assert.strictEqual(row.overall, 0.0107421875);
+    assert.strictEqual(row.count, 13);
+    assert.strictEqual(row.overAllocated, 0);
     var subRows = row.subRows;
     var live = subRows[0];
-    assert.equal(live.overall, 0.0068359375);
-    assert.equal(live.count, 9);
-    assert.equal(live.overAllocated, 0);
+    assert.strictEqual(live.overall, 0.0068359375);
+    assert.strictEqual(live.count, 9);
+    assert.strictEqual(live.overAllocated, 0);
     var dead = subRows[1];
-    assert.equal(dead.overall, 0.00390625);
-    assert.equal(dead.count, 4);
-    assert.equal(dead.overAllocated, 0);
+    assert.strictEqual(dead.overall, 0.00390625);
+    assert.strictEqual(dead.count, 4);
+    assert.strictEqual(dead.overAllocated, 0);
   });
 
   test('GCObjectTableMultiSelection', function() {
@@ -109,32 +109,32 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(rows, 2);
 
     var row = rows[0];
-    assert.equal(row.overall, 0.0146484375);
-    assert.equal(row.count, 17);
-    assert.equal(row.overAllocated, 0);
+    assert.strictEqual(row.overall, 0.0146484375);
+    assert.strictEqual(row.count, 17);
+    assert.strictEqual(row.overAllocated, 0);
     var subRows = row.subRows;
     var live = subRows[0];
-    assert.equal(live.overall, 0.0087890625);
-    assert.equal(live.count, 11);
-    assert.equal(live.overAllocated, 0);
+    assert.strictEqual(live.overall, 0.0087890625);
+    assert.strictEqual(live.count, 11);
+    assert.strictEqual(live.overAllocated, 0);
     var dead = subRows[1];
-    assert.equal(dead.overall, 0.005859375);
-    assert.equal(dead.count, 6);
-    assert.equal(dead.overAllocated, 0);
+    assert.strictEqual(dead.overall, 0.005859375);
+    assert.strictEqual(dead.count, 6);
+    assert.strictEqual(dead.overAllocated, 0);
 
     row = rows[1];
-    assert.equal(row.overall, 0.0107421875);
-    assert.equal(row.count, 13);
-    assert.equal(row.overAllocated, 0);
+    assert.strictEqual(row.overall, 0.0107421875);
+    assert.strictEqual(row.count, 13);
+    assert.strictEqual(row.overAllocated, 0);
     subRows = row.subRows;
     live = subRows[0];
-    assert.equal(live.overall, 0.0068359375);
-    assert.equal(live.count, 9);
-    assert.equal(live.overAllocated, 0);
+    assert.strictEqual(live.overall, 0.0068359375);
+    assert.strictEqual(live.count, 9);
+    assert.strictEqual(live.overAllocated, 0);
     dead = subRows[1];
-    assert.equal(dead.overall, 0.00390625);
-    assert.equal(dead.count, 4);
-    assert.equal(dead.overAllocated, 0);
+    assert.strictEqual(dead.overall, 0.00390625);
+    assert.strictEqual(dead.count, 4);
+    assert.strictEqual(dead.overAllocated, 0);
   });
 
   test('GCObjectTableDiff', function() {
@@ -151,12 +151,12 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(rows, 2);
     var diffEntry = rows[0].diff(rows[1]);
 
-    assert.equal(diffEntry.origin.overall.toFixed(3), '0.015');
-    assert.equal(diffEntry.origin.overAllocated, 0);
-    assert.equal(diffEntry.overall.toFixed(3), '-0.004');
-    assert.equal(diffEntry.overAllocated, 0);
-    assert.equal(diffEntry.overallPercent.toFixed(3), '-26.667');
-    assert.equal(diffEntry.overAllocatedPercent, 0);
+    assert.strictEqual(diffEntry.origin.overall.toFixed(3), '0.015');
+    assert.strictEqual(diffEntry.origin.overAllocated, 0);
+    assert.strictEqual(diffEntry.overall.toFixed(3), '-0.004');
+    assert.strictEqual(diffEntry.overAllocated, 0);
+    assert.strictEqual(diffEntry.overallPercent.toFixed(3), '-26.667');
+    assert.strictEqual(diffEntry.overAllocatedPercent, 0);
   });
 
   test('GCObjectTableGroupEntryWithoutGroupDefined', function() {
@@ -171,28 +171,28 @@ tr.b.unittest.testSuite(function() {
     let rows = viewEl.$.table.tableRows;
     assert.lengthOf(rows, 1);
     let row = rows[0];
-    assert.equal(row.overall, 0.013671875);
-    assert.equal(row.count, 18);
-    assert.equal(row.overAllocated, 0);
+    assert.strictEqual(row.overall, 0.013671875);
+    assert.strictEqual(row.count, 18);
+    assert.strictEqual(row.overAllocated, 0);
     let subRows = row.subRows;
 
     let live = subRows[0];
-    assert.equal(live.overall, 0.0087890625);
-    assert.equal(live.count, 12);
-    assert.equal(live.overAllocated, 0);
+    assert.strictEqual(live.overall, 0.0087890625);
+    assert.strictEqual(live.count, 12);
+    assert.strictEqual(live.overAllocated, 0);
 
     // ungrouped entry should be top level entry.
     let unGrouped1 = live.getEntryFromTitle('TYPE_DONT_HAVE_GROUP1');
     assert.isDefined(unGrouped1);
-    assert.equal(unGrouped1.overall, 0.001953125);
-    assert.equal(unGrouped1.count, 3);
-    assert.equal(unGrouped1.overAllocated, 0);
+    assert.strictEqual(unGrouped1.overall, 0.001953125);
+    assert.strictEqual(unGrouped1.count, 3);
+    assert.strictEqual(unGrouped1.overAllocated, 0);
 
     let unGrouped2 = live.getEntryFromTitle('TYPE_DONT_HAVE_GROUP2');
     assert.isDefined(unGrouped2);
-    assert.equal(unGrouped2.overall, 0.001953125);
-    assert.equal(unGrouped2.count, 3);
-    assert.equal(unGrouped2.overAllocated, 0);
+    assert.strictEqual(unGrouped2.overall, 0.001953125);
+    assert.strictEqual(unGrouped2.count, 3);
+    assert.strictEqual(unGrouped2.overAllocated, 0);
   });
 });
 </script>

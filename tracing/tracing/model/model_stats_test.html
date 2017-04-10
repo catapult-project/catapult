@@ -18,11 +18,11 @@ tr.b.unittest.testSuite(function() {
     modelStats.willProcessBasicTraceEvent('X', 'cat1', 'title1');
     modelStats.willProcessBasicTraceEvent('X', 'cat2', 'title3');
 
-    assert.equal(modelStats.allTraceEventStats.length, 2);
-    assert.equal(
+    assert.strictEqual(modelStats.allTraceEventStats.length, 2);
+    assert.strictEqual(
         modelStats.traceEventCountsByKey_.get('X/cat1/title1').numEvents,
         2);
-    assert.equal(
+    assert.strictEqual(
         modelStats.traceEventCountsByKey_.get('X/cat2/title3').numEvents,
         1);
   });

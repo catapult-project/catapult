@@ -124,8 +124,8 @@ tr.b.unittest.testSuite(function() {
     var t = m.getOrCreateProcess(1).getOrCreateThread(1);
     t.sliceGroup.pushSlice(new ThreadSlice('', 'a', 0, 1, {}, 3));
     m.updateBounds();
-    assert.equal(m.bounds.min, 1);
-    assert.equal(m.bounds.max, 4);
+    assert.strictEqual(m.bounds.min, 1);
+    assert.strictEqual(m.bounds.max, 4);
   });
 
   test('modelBounds_OneThreadAndOneEmptyThread', function() {
@@ -134,8 +134,8 @@ tr.b.unittest.testSuite(function() {
     t1.sliceGroup.pushSlice(new ThreadSlice('', 'a', 0, 1, {}, 3));
     var t2 = m.getOrCreateProcess(1).getOrCreateThread(1);
     m.updateBounds();
-    assert.equal(m.bounds.min, 1);
-    assert.equal(m.bounds.max, 4);
+    assert.strictEqual(m.bounds.min, 1);
+    assert.strictEqual(m.bounds.max, 4);
   });
 
   test('modelBounds_OneCpu', function() {
@@ -143,8 +143,8 @@ tr.b.unittest.testSuite(function() {
     var cpu = m.kernel.getOrCreateCpu(1);
     cpu.slices.push(tr.c.TestUtils.newSliceEx({start: 1, duration: 3}));
     m.updateBounds();
-    assert.equal(m.bounds.min, 1);
-    assert.equal(m.bounds.max, 4);
+    assert.strictEqual(m.bounds.min, 1);
+    assert.strictEqual(m.bounds.max, 4);
   });
 
   test('modelBounds_OneCpuOneThread', function() {
@@ -156,8 +156,8 @@ tr.b.unittest.testSuite(function() {
     t.sliceGroup.pushSlice(new ThreadSlice('', 'a', 0, 1, {}, 4));
 
     m.updateBounds();
-    assert.equal(m.bounds.min, 1);
-    assert.equal(m.bounds.max, 5);
+    assert.strictEqual(m.bounds.min, 1);
+    assert.strictEqual(m.bounds.max, 5);
   });
 
   test('modelBounds_GlobalMemoryDumps', function() {
@@ -167,8 +167,8 @@ tr.b.unittest.testSuite(function() {
     m.globalMemoryDumps.push(new tr.model.GlobalMemoryDump(m, 5));
 
     m.updateBounds();
-    assert.equal(m.bounds.min, 1);
-    assert.equal(m.bounds.max, 5);
+    assert.strictEqual(m.bounds.min, 1);
+    assert.strictEqual(m.bounds.max, 5);
   });
 
   test('modelBounds_ProcessMemoryDumps', function() {
@@ -180,8 +180,8 @@ tr.b.unittest.testSuite(function() {
     p.memoryDumps.push(new tr.model.ProcessMemoryDump(gd, m, 5));
 
     m.updateBounds();
-    assert.equal(m.bounds.min, 1);
-    assert.equal(m.bounds.max, 5);
+    assert.strictEqual(m.bounds.min, 1);
+    assert.strictEqual(m.bounds.max, 5);
   });
 
 
@@ -193,8 +193,10 @@ tr.b.unittest.testSuite(function() {
     ];
     var i = new tr.importer.Import(m);
     i.importTraces([traceEvents]);
-    assert.equal(m.convertTimestampToModelTime('traceEventClock', 1000), 0);
-    assert.equal(m.convertTimestampToModelTime('traceEventClock', 2000), 1);
+    assert.strictEqual(
+        m.convertTimestampToModelTime('traceEventClock', 1000), 0);
+    assert.strictEqual(
+        m.convertTimestampToModelTime('traceEventClock', 2000), 1);
   });
 
   test('TitleOrCategoryFilter', function() {
@@ -217,7 +219,7 @@ tr.b.unittest.testSuite(function() {
     var f = m.findAllThreadsNamed('CrBrowserMain');
     assert.deepEqual([t], f);
     f = m.findAllThreadsNamed('NoSuchThread');
-    assert.equal(f.length, 0);
+    assert.strictEqual(f.length, 0);
   });
 
   test('model_updateCategories', function() {
@@ -257,19 +259,19 @@ tr.b.unittest.testSuite(function() {
     var a1 = new tr.model.Annotation();
     var a2 = new tr.model.Annotation();
 
-    assert.equal(m.getAllAnnotations().length, 0);
+    assert.strictEqual(m.getAllAnnotations().length, 0);
     m.addAnnotation(a1);
-    assert.equal(m.getAllAnnotations().length, 1);
+    assert.strictEqual(m.getAllAnnotations().length, 1);
     m.addAnnotation(a2);
-    assert.equal(m.getAllAnnotations().length, 2);
+    assert.strictEqual(m.getAllAnnotations().length, 2);
 
-    assert.equal(m.getAnnotationByGUID(a1.guid), a1);
-    assert.equal(m.getAnnotationByGUID(a2.guid), a2);
+    assert.strictEqual(m.getAnnotationByGUID(a1.guid), a1);
+    assert.strictEqual(m.getAnnotationByGUID(a2.guid), a2);
 
     m.removeAnnotation(a1);
     assert.isUndefined(m.getAnnotationByGUID(a1.guid));
-    assert.equal(m.getAnnotationByGUID(a2.guid), a2);
-    assert.equal(m.getAllAnnotations().length, 1);
+    assert.strictEqual(m.getAnnotationByGUID(a2.guid), a2);
+    assert.strictEqual(m.getAllAnnotations().length, 1);
   });
 
   test('model_intrinsicTimeUnit', function() {
@@ -277,16 +279,16 @@ tr.b.unittest.testSuite(function() {
     var m = new tr.Model();
 
     // by default it should be milliseconds
-    assert.equal(m.intrinsicTimeUnit, unit.ms);
+    assert.strictEqual(m.intrinsicTimeUnit, unit.ms);
 
     m.intrinsicTimeUnit = unit.ns;
-    assert.equal(m.intrinsicTimeUnit, unit.ns);
+    assert.strictEqual(m.intrinsicTimeUnit, unit.ns);
     // should be able to set to the same
     m.intrinsicTimeUnit = unit.ns;
-    assert.equal(m.intrinsicTimeUnit, unit.ns);
+    assert.strictEqual(m.intrinsicTimeUnit, unit.ns);
     // should not be able to change it after fixing it
     assert.throw(function() { m.intrinsicTimeUnit = unit.ms; });
-    assert.equal(m.intrinsicTimeUnit, unit.ns);
+    assert.strictEqual(m.intrinsicTimeUnit, unit.ns);
   });
 
   test('model_getAllProcesses', function() {
@@ -334,8 +336,8 @@ tr.b.unittest.testSuite(function() {
           }
         });
     m.joinRefs();
-    assert.equal(s1.refCount, 1);
-    assert.equal(s2.refCount, 0);
+    assert.strictEqual(s1.refCount, 1);
+    assert.strictEqual(s2.refCount, 0);
   });
 });
 </script>

@@ -33,10 +33,11 @@ tr.b.unittest.testSuite(function() {
     containerDump.containerName = 'super dump';
     var dump = new MemoryAllocatorDump(containerDump, 'v8/objects/object7');
 
-    assert.equal(dump.name, 'object7');
-    assert.equal(dump.fullName, 'v8/objects/object7');
+    assert.strictEqual(dump.name, 'object7');
+    assert.strictEqual(dump.fullName, 'v8/objects/object7');
     assert.strictEqual(dump.containerMemoryDump, containerDump);
-    assert.equal(dump.quantifiedName, '\'v8/objects/object7\' in super dump');
+    assert.strictEqual(
+        dump.quantifiedName, '\'v8/objects/object7\' in super dump');
   });
 
   test('memoryAllocatorDumps_aggregateNumericsRecursively', function() {

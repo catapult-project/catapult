@@ -37,11 +37,11 @@ tr.b.unittest.testSuite(function() {
     var cpu = m.kernel.cpus[1];
     assert.isDefined(cpu);
     var cpuSlice = cpu.slices[0];
-    assert.equal('Binder_1', cpuSlice.title);
+    assert.strictEqual('Binder_1', cpuSlice.title);
 
     var thread = m.findAllThreadsNamed('Binder_1')[0];
     assert.isDefined(thread);
-    assert.equal(cpuSlice.threadThatWasRunning, thread);
+    assert.strictEqual(cpuSlice.threadThatWasRunning, thread);
 
     var view = document.createElement('tr-ui-a-single-cpu-slice-sub-view');
     var selection = new tr.model.EventSet();
@@ -66,7 +66,7 @@ tr.b.unittest.testSuite(function() {
     var cpu = m.kernel.cpus[1];
     assert.isDefined(cpu);
     var cpuSlice = cpu.slices[1];
-    assert.equal('Android.launcher', cpuSlice.title);
+    assert.strictEqual('Android.launcher', cpuSlice.title);
     assert.isUndefined(cpuSlice.thread);
 
     var selection = new tr.model.EventSet();

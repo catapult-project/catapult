@@ -37,9 +37,10 @@ tr.b.unittest.testSuite(function() {
 
     assert.isDefined(m.modelIndices);
     var modelIndices = m.modelIndices;
-    assert.equal(modelIndices.getFlowEventsWithId('0x100').length, 2);
-    assert.equal(modelIndices.getFlowEventsWithId('0x100')[0].id, '0x100');
-    assert.equal(modelIndices.getFlowEventsWithId('0x101').length, 0);
+    assert.strictEqual(modelIndices.getFlowEventsWithId('0x100').length, 2);
+    assert.strictEqual(
+        modelIndices.getFlowEventsWithId('0x100')[0].id, '0x100');
+    assert.strictEqual(modelIndices.getFlowEventsWithId('0x101').length, 0);
   });
 });
 </script>

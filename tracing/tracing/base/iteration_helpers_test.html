@@ -45,11 +45,12 @@ tr.b.unittest.testSuite(function() {
 
     assert.isBelow(comparePossiblyUndefinedValues(0, 1, cmp), 0);
     assert.isAbove(comparePossiblyUndefinedValues(1, 0, cmp), 0);
-    assert.equal(comparePossiblyUndefinedValues(1, 1, cmp), 0);
+    assert.strictEqual(comparePossiblyUndefinedValues(1, 1, cmp), 0);
 
     assert.isBelow(comparePossiblyUndefinedValues(0, undefined, cmp), 0);
     assert.isAbove(comparePossiblyUndefinedValues(undefined, 0, cmp), 0);
-    assert.equal(comparePossiblyUndefinedValues(undefined, undefined, cmp), 0);
+    assert.strictEqual(
+        comparePossiblyUndefinedValues(undefined, undefined, cmp), 0);
   });
 
   test('compareArrays', function() {
@@ -70,8 +71,8 @@ tr.b.unittest.testSuite(function() {
 
     assert.isAbove(compareArrays([2], [1], cmp), 0);
 
-    assert.equal(compareArrays([], [], cmp), 0);
-    assert.equal(compareArrays([1], [1], cmp), 0);
+    assert.strictEqual(compareArrays([], [], cmp), 0);
+    assert.strictEqual(compareArrays([1], [1], cmp), 0);
   });
 
   test('getOnlyElement_throwsIfEmpty', function() {
@@ -80,7 +81,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('getOnlyElement_oneItem', function() {
-    assert.equal(getOnlyElement([1]), 1);
+    assert.strictEqual(getOnlyElement([1]), 1);
   });
 
   test('getOnlyElement_twoItems', function() {
@@ -94,11 +95,11 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('getFirstElement_oneItem', function() {
-    assert.equal(getFirstElement([1]), 1);
+    assert.strictEqual(getFirstElement([1]), 1);
   });
 
   test('getFirstElement_twoItems', function() {
-    assert.equal(getFirstElement([1, 2]), 1);
+    assert.strictEqual(getFirstElement([1, 2]), 1);
   });
 
   test('group', function() {
@@ -153,11 +154,11 @@ tr.b.unittest.testSuite(function() {
       return 9 * value / 5 + 32;
     });
     assert.lengthOf(Object.keys(srcDict), 2);
-    assert.equal(srcDict.a, 0);
-    assert.equal(srcDict.b, 30);
+    assert.strictEqual(srcDict.a, 0);
+    assert.strictEqual(srcDict.b, 30);
     assert.lengthOf(Object.keys(dstDict), 2);
-    assert.equal(dstDict.a, 32);
-    assert.equal(dstDict.b, 86);
+    assert.strictEqual(dstDict.a, 32);
+    assert.strictEqual(dstDict.b, 86);
     assert.notStrictEqual(dstDict, srcDict);
 
     // Optional 'this' argument.
@@ -166,13 +167,13 @@ tr.b.unittest.testSuite(function() {
       return key + this.delimiter + value;
     }, {delimiter: '='});
     assert.lengthOf(Object.keys(srcDict), 3);
-    assert.equal(srcDict.c, '?');
-    assert.equal(srcDict.d, '!');
-    assert.equal(srcDict.e, '.');
+    assert.strictEqual(srcDict.c, '?');
+    assert.strictEqual(srcDict.d, '!');
+    assert.strictEqual(srcDict.e, '.');
     assert.lengthOf(Object.keys(dstDict), 3);
-    assert.equal(dstDict.c, 'c=?');
-    assert.equal(dstDict.d, 'd=!');
-    assert.equal(dstDict.e, 'e=.');
+    assert.strictEqual(dstDict.c, 'c=?');
+    assert.strictEqual(dstDict.d, 'd=!');
+    assert.strictEqual(dstDict.e, 'e=.');
     assert.notStrictEqual(dstDict, srcDict);
 
     // Inherited properties should not be mapped.
@@ -188,11 +189,11 @@ tr.b.unittest.testSuite(function() {
     var someThisArg = {};
     var srcDict = {a: 0, b: 30};
     var dstDict = tr.b.filterItems(srcDict, function(key, value) {
-      assert.equal(this, someThisArg);
+      assert.strictEqual(this, someThisArg);
       return value >= 30;
     }, someThisArg);
     assert.lengthOf(Object.keys(dstDict), 1);
-    assert.equal(dstDict.b, 30);
+    assert.strictEqual(dstDict.b, 30);
   });
 
   test('filterItemsInheritedProps', function() {
@@ -207,7 +208,7 @@ tr.b.unittest.testSuite(function() {
       return value >= 30;
     });
     assert.lengthOf(Object.keys(dstDict), 1);
-    assert.equal(dstDict.b, 30);
+    assert.strictEqual(dstDict.b, 30);
   });
 
   test('invertArrayOfDicts_defaultGetter', function() {
@@ -266,7 +267,7 @@ tr.b.unittest.testSuite(function() {
     assert.isUndefined(tr.b.identity(undefined));
 
     // Primitive value.
-    assert.equal(tr.b.identity(-273.15), -273.15);
+    assert.strictEqual(tr.b.identity(-273.15), -273.15);
 
     // List.
     var list = ['list', 'with', 1, undefined, 'value'];
@@ -283,12 +284,12 @@ tr.b.unittest.testSuite(function() {
     var k = tr.b.findFirstKeyInDictMatching(dict, function(key, value) {
       return value === 2;
     }, this);
-    assert.equal(k, 'b');
+    assert.strictEqual(k, 'b');
 
     var k = tr.b.findFirstKeyInDictMatching(dict, function(key, value) {
       return false;
     }, this);
-    assert.equal(k, undefined);
+    assert.strictEqual(k, undefined);
   });
 
   test('dictionaryContainsValue', function() {

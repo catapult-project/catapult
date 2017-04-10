@@ -24,8 +24,8 @@ tr.b.unittest.testSuite(function() {
     var inner = tr.b.math.Rect.fromXYWH(1, 1, 8, 8);
     var uv = inner.asUVRectInside(container);
     assertRectEquals(uv, tr.b.math.Rect.fromXYWH(0.1, 0.1, .8, .8));
-    assert.equal(10, container.size().width);
-    assert.equal(10, container.size().height);
+    assert.strictEqual(10, container.size().width);
+    assert.strictEqual(10, container.size().height);
   });
 });
 </script>

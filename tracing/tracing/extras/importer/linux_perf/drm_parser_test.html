@@ -23,11 +23,11 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();
-    assert.equal(threads.length, 1);
+    assert.strictEqual(threads.length, 1);
 
     var vblankThread = threads[0];
-    assert.equal(vblankThread.name, 'drm_vblank');
-    assert.equal(vblankThread.sliceGroup.length, 2);
+    assert.strictEqual(vblankThread.name, 'drm_vblank');
+    assert.strictEqual(vblankThread.sliceGroup.length, 2);
   });
 });
 </script>

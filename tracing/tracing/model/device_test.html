@@ -26,15 +26,15 @@ tr.b.unittest.testSuite(function() {
     device.powerSeries.addPowerSample(200, 5);
     device.updateBounds();
 
-    assert.equal(device.bounds.min, 100);
-    assert.equal(device.bounds.max, 200);
+    assert.strictEqual(device.bounds.min, 100);
+    assert.strictEqual(device.bounds.max, 200);
 
     // Add a new sample and verify that the bounds change.
     device.powerSeries.addPowerSample(700, 5);
     device.updateBounds();
 
-    assert.equal(device.bounds.min, 100);
-    assert.equal(device.bounds.max, 700);
+    assert.strictEqual(device.bounds.min, 100);
+    assert.strictEqual(device.bounds.max, 700);
   });
 
   test('shiftTimestampsForward', function() {
@@ -45,8 +45,8 @@ tr.b.unittest.testSuite(function() {
     device.powerSeries.addPowerSample(200, 2);
     device.shiftTimestampsForward(2);
 
-    assert.equal(device.powerSeries.samples[0].start, 102);
-    assert.equal(device.powerSeries.samples[1].start, 202);
+    assert.strictEqual(device.powerSeries.samples[0].start, 102);
+    assert.strictEqual(device.powerSeries.samples[1].start, 202);
   });
 
   test('childEventContainers_noPowerSeries', function() {

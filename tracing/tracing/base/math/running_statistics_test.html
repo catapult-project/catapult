@@ -30,59 +30,59 @@ tr.b.unittest.testSuite(function() {
     data = [2, 4, 4, 2];
     assert.closeTo(Statistics.sum(data), run(data).sum, 1e-6);
     data = [Infinity, Infinity, Infinity, 4, 4, Infinity, 1];
-    assert.equal(Statistics.sum(data), run(data).sum, Infinity);
+    assert.strictEqual(Statistics.sum(data), run(data).sum, Infinity);
     data = [-Infinity, -Infinity, 2, -Infinity, 5, -Infinity];
-    assert.equal(Statistics.sum(data), run(data).sum, -Infinity);
+    assert.strictEqual(Statistics.sum(data), run(data).sum, -Infinity);
   });
 
   test('min', function() {
     var data;
     data = [];
-    assert.equal(Statistics.min(data), run(data).min);
+    assert.strictEqual(Statistics.min(data), run(data).min);
     data = [1];
-    assert.equal(Statistics.min(data), run(data).min);
+    assert.strictEqual(Statistics.min(data), run(data).min);
     data = [1, 2, 3];
-    assert.equal(Statistics.min(data), run(data).min);
+    assert.strictEqual(Statistics.min(data), run(data).min);
     data = [2, 4, 4, 2];
-    assert.equal(Statistics.min(data), run(data).min);
+    assert.strictEqual(Statistics.min(data), run(data).min);
   });
 
   test('max', function() {
     var data;
     data = [];
-    assert.equal(Statistics.max(data), run(data).max);
+    assert.strictEqual(Statistics.max(data), run(data).max);
     data = [1];
-    assert.equal(Statistics.max(data), run(data).max);
+    assert.strictEqual(Statistics.max(data), run(data).max);
     data = [1, 2, 3];
-    assert.equal(Statistics.max(data), run(data).max);
+    assert.strictEqual(Statistics.max(data), run(data).max);
     data = [2, 4, 4, 2];
-    assert.equal(Statistics.max(data), run(data).max);
+    assert.strictEqual(Statistics.max(data), run(data).max);
   });
 
   test('mean', function() {
     var data;
     data = [];
-    assert.equal(Statistics.mean(data), run(data).mean);
+    assert.strictEqual(Statistics.mean(data), run(data).mean);
     data = [1];
-    assert.equal(Statistics.mean(data), run(data).mean);
+    assert.strictEqual(Statistics.mean(data), run(data).mean);
     data = [1, 2, 3];
     assert.closeTo(Statistics.mean(data), run(data).mean, 1e-6);
     data = [2, 4, 4, 2];
     assert.closeTo(Statistics.mean(data), run(data).mean, 1e-6);
     data = [Infinity, Infinity, Infinity, 4, 4, Infinity, 1];
-    assert.equal(Statistics.mean(data), run(data).mean, Infinity);
+    assert.strictEqual(Statistics.mean(data), run(data).mean, Infinity);
     data = [-Infinity, -Infinity, 2, -Infinity, 5, -Infinity];
-    assert.equal(Statistics.mean(data), run(data).mean, -Infinity);
+    assert.strictEqual(Statistics.mean(data), run(data).mean, -Infinity);
   });
 
   test('geometricMean', function() {
     var data;
     data = [];
-    assert.equal(Statistics.geometricMean(data), run(data).geometricMean);
+    assert.strictEqual(Statistics.geometricMean(data), run(data).geometricMean);
     data = [-1];
-    assert.equal(Statistics.geometricMean(data), run(data).geometricMean);
+    assert.strictEqual(Statistics.geometricMean(data), run(data).geometricMean);
     data = [1];
-    assert.equal(Statistics.geometricMean(data), run(data).geometricMean);
+    assert.strictEqual(Statistics.geometricMean(data), run(data).geometricMean);
     data = [1, 2, 3];
     assert.closeTo(Statistics.geometricMean(data),
         run(data).geometricMean, 1e-6);
@@ -94,9 +94,9 @@ tr.b.unittest.testSuite(function() {
   test('variance', function() {
     var data;
     data = [];
-    assert.equal(Statistics.variance(data), run(data).variance);
+    assert.strictEqual(Statistics.variance(data), run(data).variance);
     data = [1];
-    assert.equal(Statistics.variance(data), run(data).variance);
+    assert.strictEqual(Statistics.variance(data), run(data).variance);
     data = [1, 2, 3];
     assert.closeTo(Statistics.variance(data), run(data).variance, 1e-6);
     data = [2, 4, 4, 2];
@@ -106,9 +106,9 @@ tr.b.unittest.testSuite(function() {
   test('stddev', function() {
     var data;
     data = [];
-    assert.equal(Statistics.stddev(data), run(data).stddev);
+    assert.strictEqual(Statistics.stddev(data), run(data).stddev);
     data = [1];
-    assert.equal(Statistics.stddev(data), run(data).stddev);
+    assert.strictEqual(Statistics.stddev(data), run(data).stddev);
     data = [1, 2, 3];
     assert.closeTo(Statistics.stddev(data), run(data).stddev, 1e-6);
     data = [2, 4, 4, 2];
@@ -120,22 +120,22 @@ tr.b.unittest.testSuite(function() {
     var data2 = [];
     var data = data1.concat(data2);
     var stats = run(data1).merge(run(data2));
-    assert.equal(Statistics.sum(data), stats.sum);
-    assert.equal(Statistics.min(data), stats.min);
-    assert.equal(Statistics.max(data), stats.max);
-    assert.equal(Statistics.mean(data), stats.mean);
-    assert.equal(Statistics.variance(data), stats.variance);
-    assert.equal(Statistics.stddev(data), stats.stddev);
-    assert.equal(Statistics.geometricMean(data), stats.geometricMean);
+    assert.strictEqual(Statistics.sum(data), stats.sum);
+    assert.strictEqual(Statistics.min(data), stats.min);
+    assert.strictEqual(Statistics.max(data), stats.max);
+    assert.strictEqual(Statistics.mean(data), stats.mean);
+    assert.strictEqual(Statistics.variance(data), stats.variance);
+    assert.strictEqual(Statistics.stddev(data), stats.stddev);
+    assert.strictEqual(Statistics.geometricMean(data), stats.geometricMean);
 
     data1 = [];
     data2 = [1, 2, 3];
     data = data1.concat(data2);
     stats = run(data1).merge(run(data2));
-    assert.equal(Statistics.sum(data), stats.sum);
-    assert.equal(Statistics.min(data), stats.min);
-    assert.equal(Statistics.max(data), stats.max);
-    assert.equal(Statistics.mean(data), stats.mean);
+    assert.strictEqual(Statistics.sum(data), stats.sum);
+    assert.strictEqual(Statistics.min(data), stats.min);
+    assert.strictEqual(Statistics.max(data), stats.max);
+    assert.strictEqual(Statistics.mean(data), stats.mean);
     assert.closeTo(Statistics.variance(data), stats.variance, 1e-6);
     assert.closeTo(Statistics.stddev(data), stats.stddev, 1e-6);
     assert.closeTo(Statistics.geometricMean(data), stats.geometricMean, 1e-6);
@@ -144,10 +144,10 @@ tr.b.unittest.testSuite(function() {
     data2 = [];
     data = data1.concat(data2);
     stats = run(data1).merge(run(data2));
-    assert.equal(Statistics.sum(data), stats.sum);
-    assert.equal(Statistics.min(data), stats.min);
-    assert.equal(Statistics.max(data), stats.max);
-    assert.equal(Statistics.mean(data), stats.mean);
+    assert.strictEqual(Statistics.sum(data), stats.sum);
+    assert.strictEqual(Statistics.min(data), stats.min);
+    assert.strictEqual(Statistics.max(data), stats.max);
+    assert.strictEqual(Statistics.mean(data), stats.mean);
     assert.closeTo(Statistics.variance(data), stats.variance, 1e-6);
     assert.closeTo(Statistics.stddev(data), stats.stddev, 1e-6);
     assert.closeTo(Statistics.geometricMean(data), stats.geometricMean, 1e-6);
@@ -156,10 +156,10 @@ tr.b.unittest.testSuite(function() {
     data2 = [10, 20, 100];
     data = data1.concat(data2);
     stats = run(data1).merge(run(data2));
-    assert.equal(Statistics.sum(data), stats.sum);
-    assert.equal(Statistics.min(data), stats.min);
-    assert.equal(Statistics.max(data), stats.max);
-    assert.equal(Statistics.mean(data), stats.mean);
+    assert.strictEqual(Statistics.sum(data), stats.sum);
+    assert.strictEqual(Statistics.min(data), stats.min);
+    assert.strictEqual(Statistics.max(data), stats.max);
+    assert.strictEqual(Statistics.mean(data), stats.mean);
     assert.closeTo(Statistics.variance(data), stats.variance, 1e-6);
     assert.closeTo(Statistics.stddev(data), stats.stddev, 1e-6);
     assert.closeTo(Statistics.geometricMean(data), stats.geometricMean, 1e-6);
@@ -168,10 +168,10 @@ tr.b.unittest.testSuite(function() {
     data2 = [10, 20, 10, 40];
     data = data1.concat(data2);
     stats = run(data1).merge(run(data2));
-    assert.equal(Statistics.sum(data), stats.sum);
-    assert.equal(Statistics.min(data), stats.min);
-    assert.equal(Statistics.max(data), stats.max);
-    assert.equal(Statistics.mean(data), stats.mean);
+    assert.strictEqual(Statistics.sum(data), stats.sum);
+    assert.strictEqual(Statistics.min(data), stats.min);
+    assert.strictEqual(Statistics.max(data), stats.max);
+    assert.strictEqual(Statistics.mean(data), stats.mean);
     assert.closeTo(Statistics.variance(data), stats.variance, 1e-6);
     assert.closeTo(Statistics.stddev(data), stats.stddev, 1e-6);
     assert.closeTo(Statistics.geometricMean(data), stats.geometricMean, 1e-6);

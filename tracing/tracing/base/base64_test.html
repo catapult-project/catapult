@@ -18,33 +18,33 @@ tr.b.unittest.testSuite(function() {
   test('DecodeToTypedArray', function() {
     var buffer = new DataView(new ArrayBuffer(256));
     tr.b.Base64.DecodeToTypedArray('YQ==', buffer);
-    assert.equal(buffer.getInt8(0), 97);
+    assert.strictEqual(buffer.getInt8(0), 97);
 
     tr.b.Base64.DecodeToTypedArray('YWJjZA==', buffer);
     for (var i = 0; i < 4; i++) {
-      assert.equal(buffer.getInt8(i), 97 + i);
+      assert.strictEqual(buffer.getInt8(i), 97 + i);
     }
 
     tr.b.Base64.DecodeToTypedArray('YWJjZGVm', buffer);
     for (var i = 0; i < 4; i++) {
-      assert.equal(buffer.getInt8(i), 97 + i);
+      assert.strictEqual(buffer.getInt8(i), 97 + i);
     }
   });
 
   test('DecodeLengthReturn', function() {
     var buffer = new DataView(new ArrayBuffer(256));
     var len = tr.b.Base64.DecodeToTypedArray(btoa('hello'), buffer);
-    assert.equal(len, 5);
+    assert.strictEqual(len, 5);
   });
 
   test('Base64.atob', function() {
     var output = tr.b.Base64.atob('aGVsbG8gd29ybGQ=');
-    assert.equal(output, 'hello world');
+    assert.strictEqual(output, 'hello world');
   });
 
   test('Base64.btoa', function() {
     var output = tr.b.Base64.btoa('hello world');
-    assert.equal(output, 'aGVsbG8gd29ybGQ=');
+    assert.strictEqual(output, 'aGVsbG8gd29ybGQ=');
   });
 });
 </script>

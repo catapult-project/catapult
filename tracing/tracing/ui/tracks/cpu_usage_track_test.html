@@ -205,7 +205,8 @@ tr.b.unittest.testSuite(function() {
     var process = model.getProcess(1);
     // B will become lowest level slices of A.
     process.getThread(0).sliceGroup.createSubSlices();
-    assert.equal(sliceA.cpuSelfTime, (sliceA.cpuDuration - sliceB.cpuDuration));
+    assert.strictEqual(
+        sliceA.cpuSelfTime, (sliceA.cpuDuration - sliceB.cpuDuration));
     var track = createCpuUsageTrack.call(this, model);
 
     assert.isTrue(track.hasVisibleContent);

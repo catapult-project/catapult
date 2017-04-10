@@ -176,21 +176,21 @@ tr.b.unittest.testSuite(function() {
 
     // Range min should be 10.
     r = chart.computeBrushRangeFromIndices(-2, 1);
-    assert.equal(r.min, 10);
+    assert.strictEqual(r.min, 10);
 
     // Range max should be 120.
     r = chart.computeBrushRangeFromIndices(3, 10);
-    assert.equal(r.max, 120);
+    assert.strictEqual(r.max, 120);
 
     // Range should be [10, 120]
     r = chart.computeBrushRangeFromIndices(-2, 10);
-    assert.equal(r.min, 10);
-    assert.equal(r.max, 120);
+    assert.strictEqual(r.min, 10);
+    assert.strictEqual(r.max, 120);
 
     // Range should be [20, 100]
     r = chart.computeBrushRangeFromIndices(1, 3);
-    assert.equal(r.min, 20);
-    assert.equal(r.max, 100);
+    assert.strictEqual(r.min, 20);
+    assert.strictEqual(r.max, 100);
   });
 
   test('instantiation_interactiveBrushing', function() {

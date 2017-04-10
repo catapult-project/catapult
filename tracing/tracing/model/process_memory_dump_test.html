@@ -133,17 +133,17 @@ tr.b.unittest.testSuite(function() {
 
     assert.lengthOf(dumps, 4);
 
-    assert.equal(dumps[0], dump1);
+    assert.strictEqual(dumps[0], dump1);
     assert.isUndefined(dump1.mostRecentVmRegions);
 
-    assert.equal(dumps[1], dump2);
-    assert.equal(dump2.mostRecentVmRegions, dump2.vmRegions);
+    assert.strictEqual(dumps[1], dump2);
+    assert.strictEqual(dump2.mostRecentVmRegions, dump2.vmRegions);
 
-    assert.equal(dumps[2], dump3);
-    assert.equal(dump3.mostRecentVmRegions, dump2.vmRegions);
+    assert.strictEqual(dumps[2], dump3);
+    assert.strictEqual(dump3.mostRecentVmRegions, dump2.vmRegions);
 
-    assert.equal(dumps[3], dump4);
-    assert.equal(dump4.mostRecentVmRegions, dump4.vmRegions);
+    assert.strictEqual(dumps[3], dump4);
+    assert.strictEqual(dump4.mostRecentVmRegions, dump4.vmRegions);
   });
 
   test('checkDiscountTracingOverhead_undefinedFields', function() {
@@ -189,7 +189,7 @@ tr.b.unittest.testSuite(function() {
       pmd.memoryAllocatorDumps = [mallocDump, tracingDump];
     });
 
-    assert.equal(pmd.totals.residentBytes, 9240);
+    assert.strictEqual(pmd.totals.residentBytes, 9240);
     assert.isUndefined(pmd.totals.peakResidentBytes);
 
     var vmRegions = pmd.vmRegions;
@@ -349,7 +349,7 @@ tr.b.unittest.testSuite(function() {
     // the VM regions in the first dump). Similarly, virtual size should be
     // reduced by 300.
     assert.isUndefined(pmds[1].totals.residentBytes);
-    assert.equal(pmds[1].totals.peakResidentBytes, 2800);
+    assert.strictEqual(pmds[1].totals.peakResidentBytes, 2800);
     assert.isUndefined(pmds[1].vmRegions);
     assert.strictEqual(pmds[1].mostRecentVmRegions, pmds[0].vmRegions);
   });

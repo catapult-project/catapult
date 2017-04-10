@@ -41,9 +41,9 @@ tr.b.unittest.testSuite(function() {
           {parentModel: model, start: 0, duration: 50}));
       // Model.createImportTracesTask() automatically sorts UEs by start time.
     });
-    assert.equal(2, track.subRows_.length);
-    assert.equal(2, track.subRows_[0].length);
-    assert.equal(3, track.subRows_[1].length);
+    assert.strictEqual(2, track.subRows_.length);
+    assert.strictEqual(2, track.subRows_[0].length);
+    assert.strictEqual(3, track.subRows_[1].length);
     Polymer.dom(drawingContainer).appendChild(track);
     this.addHTMLOutput(div);
   });

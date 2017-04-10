@@ -35,7 +35,7 @@ tr.b.unittest.testSuite(function() {
     var gzipData = Base64.atob(GZIP_DATA_BASE_64);
     var importer = new tr.e.importer.GzipImporter(null, gzipData);
     assert.isTrue(tr.e.importer.GzipImporter.canImport(gzipData));
-    assert.equal(importer.extractSubtraces()[0], ORIGINAL_DATA);
+    assert.strictEqual(importer.extractSubtraces()[0], ORIGINAL_DATA);
   });
 
   test('inflateArrayBuffer', function() {
@@ -48,7 +48,7 @@ tr.b.unittest.testSuite(function() {
     }
     var importer = new tr.e.importer.GzipImporter(null, buffer);
     assert.isTrue(tr.e.importer.GzipImporter.canImport(buffer));
-    assert.equal(importer.extractSubtraces()[0], ORIGINAL_DATA);
+    assert.strictEqual(importer.extractSubtraces()[0], ORIGINAL_DATA);
   });
 
   test('import', function() {
@@ -57,10 +57,10 @@ tr.b.unittest.testSuite(function() {
 
     var model = tr.c.TestUtils.newModelWithEvents(gzipData);
     var threads = model.getAllThreads();
-    assert.equal(threads.length, 1);
+    assert.strictEqual(threads.length, 1);
 
     var slice = findSliceNamed(threads[0].sliceGroup, 'a');
-    assert.equal(slice.category, 'foo');
+    assert.strictEqual(slice.category, 'foo');
   });
 
   test('transformToString', function() {

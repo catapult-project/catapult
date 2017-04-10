@@ -83,7 +83,7 @@ tr.b.unittest.testSuite(function() {
     var t = new ThreadTrack(new tr.ui.TimelineViewport());
     t.thread = thread;
 
-    assert.equal(t.tracks_.length, 2);
+    assert.strictEqual(t.tracks_.length, 2);
     assert.instanceOf(t.tracks_[0], tr.ui.tracks.AsyncSliceGroupTrack);
     assert.instanceOf(t.tracks_[1], tr.ui.tracks.SliceGroupTrack);
   });
@@ -121,13 +121,13 @@ tr.b.unittest.testSuite(function() {
 
     var t = new ThreadTrack(new tr.ui.TimelineViewport());
     t.thread = thread;
-    assert.equal(t.tracks_.length, 2);
+    assert.strictEqual(t.tracks_.length, 2);
 
     // Instructions retired
     var t0 = t.tracks_[0];
     assert.notEqual(t0.heading.indexOf('instructions_retired'), -1);
     assert.instanceOf(t0, tr.ui.tracks.SampleTrack);
-    assert.equal(t0.samples.length, 4);
+    assert.strictEqual(t0.samples.length, 4);
     t0.samples.forEach(function(s) {
       assert.instanceOf(s, tr.model.Sample);
     });
@@ -136,7 +136,7 @@ tr.b.unittest.testSuite(function() {
     var t1 = t.tracks_[1];
     assert.notEqual(t1.heading.indexOf('page_fault'), -1);
     assert.instanceOf(t1, tr.ui.tracks.SampleTrack);
-    assert.equal(t1.samples.length, 2);
+    assert.strictEqual(t1.samples.length, 2);
   });
 });
 </script>

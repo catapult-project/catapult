@@ -57,25 +57,25 @@ tr.b.unittest.testSuite(function() {
 
   test('ICStatsEntry', function() {
     let entry1 = new tr.e.v8.ICStatsEntry(obj1);
-    assert.equal(entry1.type, 'StoreIC');
-    assert.equal(entry1.category, 'Store');
-    assert.equal(entry1.state, '(0->.)');
-    assert.equal(entry1.filePosition, 'a.js:1 ~f+10');
-    assert.equal(entry1.isNative, false);
-    assert.equal(entry1.propertiesMode, 'slow');
-    assert.equal(entry1.numberOfOwnProperties, 3);
+    assert.strictEqual(entry1.type, 'StoreIC');
+    assert.strictEqual(entry1.category, 'Store');
+    assert.strictEqual(entry1.state, '(0->.)');
+    assert.strictEqual(entry1.filePosition, 'a.js:1 ~f+10');
+    assert.strictEqual(entry1.isNative, false);
+    assert.strictEqual(entry1.propertiesMode, 'slow');
+    assert.strictEqual(entry1.numberOfOwnProperties, 3);
 
     let entry2 = new tr.e.v8.ICStatsEntry(obj4);
-    assert.equal(entry2.type, 'StoreIC');
-    assert.equal(entry2.category, 'Store');
-    assert.equal(entry2.state, '(0->.)');
-    assert.equal(entry2.filePosition, 'a.js:4 ~bar+13');
-    assert.equal(entry2.isNative, false);
-    assert.equal(entry2.propertiesMode, 'fast');
-    assert.equal(entry2.numberOfOwnProperties, 7);
+    assert.strictEqual(entry2.type, 'StoreIC');
+    assert.strictEqual(entry2.category, 'Store');
+    assert.strictEqual(entry2.state, '(0->.)');
+    assert.strictEqual(entry2.filePosition, 'a.js:4 ~bar+13');
+    assert.strictEqual(entry2.isNative, false);
+    assert.strictEqual(entry2.propertiesMode, 'fast');
+    assert.strictEqual(entry2.numberOfOwnProperties, 7);
 
     let entry3 = new tr.e.v8.ICStatsEntry(obj3);
-    assert.equal(entry3.isNative, true);
+    assert.strictEqual(entry3.isNative, true);
   });
 
   test('ICStatsEntryCollection', function() {
@@ -85,7 +85,7 @@ tr.b.unittest.testSuite(function() {
     entryCollection.add(new tr.e.v8.ICStatsEntry(obj3));
     entryCollection.add(new tr.e.v8.ICStatsEntry(obj4));
 
-    assert.equal(entryCollection.length, 4);
+    assert.strictEqual(entryCollection.length, 4);
   });
 
   test('ICStatsEntryGroup', function() {
@@ -96,13 +96,13 @@ tr.b.unittest.testSuite(function() {
     entryCollection.add(new tr.e.v8.ICStatsEntry(obj4));
 
     let entryGroups = entryCollection.groupBy('type');
-    assert.equal(entryGroups[0].length, 2);
-    assert.equal(entryGroups[0].key, 'StoreIC');
-    assert.equal(entryGroups[1].key, 'LoadIC');
-    assert.equal(entryGroups[2].key, 'CompareIC');
+    assert.strictEqual(entryGroups[0].length, 2);
+    assert.strictEqual(entryGroups[0].key, 'StoreIC');
+    assert.strictEqual(entryGroups[1].key, 'LoadIC');
+    assert.strictEqual(entryGroups[2].key, 'CompareIC');
 
     let subGroups = entryGroups[0].createSubGroup();
-    assert.equal(subGroups.size, 9);
+    assert.strictEqual(subGroups.size, 9);
     let filePositionGroup = subGroups.get('filePosition');
     assert.deepEqual(Array.from(filePositionGroup.keys()), [
       'a.js:1 ~f+10', 'a.js:4 ~bar+13'

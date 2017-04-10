@@ -11,8 +11,8 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   test('parseFullyQualifiedName', function() {
     var p = tr.b.unittest.TestCase.parseFullyQualifiedName('foo.bar');
-    assert.equal(p.suiteName, 'foo');
-    assert.equal(p.testCaseName, 'bar');
+    assert.strictEqual(p.suiteName, 'foo');
+    assert.strictEqual(p.testCaseName, 'bar');
   });
 });
 </script>

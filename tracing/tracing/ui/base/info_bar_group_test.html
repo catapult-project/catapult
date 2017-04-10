@@ -30,7 +30,7 @@ tr.b.unittest.testSuite(function() {
         'Message 2',
         [{buttonText: 'button 2', onClick: function() {}}]);
     infoBarGroup.clearMessages();
-    assert.equal(infoBarGroup.children.length, 0);
+    assert.strictEqual(infoBarGroup.children.length, 0);
   });
 
   test('group-populate-clear-repopulate', function() {

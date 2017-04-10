@@ -40,8 +40,8 @@ tr.b.unittest.testSuite(function() {
 
     assert.isFalse(m.hasImportWarnings);
 
-    assert.equal(m.processes[0].threads[0].sliceGroup.slices[0].start, 0);
-    assert.equal(m.processes[0].threads[0].sliceGroup.slices[1].start, 2);
+    assert.strictEqual(m.processes[0].threads[0].sliceGroup.slices[0].start, 0);
+    assert.strictEqual(m.processes[0].threads[0].sliceGroup.slices[1].start, 2);
   });
 
 
@@ -54,7 +54,7 @@ tr.b.unittest.testSuite(function() {
     var m = tr.c.TestUtils.newModelWithEvents([ftrace]);
 
     assert.isFalse(m.hasImportWarnings);
-    assert.equal(m.processes[1].threads[0].sliceGroup.slices[0].start, 0);
+    assert.strictEqual(m.processes[1].threads[0].sliceGroup.slices[0].start, 0);
   });
 
   test('import_traceEventWithNoClockDomainAndFtrace', function() {
@@ -80,11 +80,12 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(m.hasImportWarnings);
 
     // Chrome events shouldn't be shifted.
-    assert.equal(m.processes[0].threads[0].sliceGroup.slices[0].start, 0);
-    assert.equal(m.processes[0].threads[0].sliceGroup.slices[1].start, 2);
+    assert.strictEqual(m.processes[0].threads[0].sliceGroup.slices[0].start, 0);
+    assert.strictEqual(m.processes[0].threads[0].sliceGroup.slices[1].start, 2);
 
     // Ftrace events should be shifted forward by 10ms.
-    assert.equal(m.processes[1].threads[0].sliceGroup.slices[0].start, 11);
+    assert.strictEqual(
+        m.processes[1].threads[0].sliceGroup.slices[0].start, 11);
   });
 
   test('import_traceEventWithClockDomainAndFtrace', function() {
@@ -113,11 +114,12 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(m.hasImportWarnings);
 
     // Chrome events shouldn't be shifted.
-    assert.equal(m.processes[0].threads[0].sliceGroup.slices[0].start, 0);
-    assert.equal(m.processes[0].threads[0].sliceGroup.slices[1].start, 2);
+    assert.strictEqual(m.processes[0].threads[0].sliceGroup.slices[0].start, 0);
+    assert.strictEqual(m.processes[0].threads[0].sliceGroup.slices[1].start, 2);
 
     // Ftrace events should be shifted forward by 10ms.
-    assert.equal(m.processes[1].threads[0].sliceGroup.slices[0].start, 11);
+    assert.strictEqual(
+        m.processes[1].threads[0].sliceGroup.slices[0].start, 11);
   });
 });
 </script>

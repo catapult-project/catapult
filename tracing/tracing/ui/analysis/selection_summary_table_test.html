@@ -28,8 +28,8 @@ tr.b.unittest.testSuite(function() {
 
     var tableEl = tr.b.findDeepElementMatching(
         summaryTable, 'tr-ui-b-table');
-    assert.equal(tableEl.tableRows[0].value, '<empty>');
-    assert.equal(tableEl.tableRows[1].value, '<empty>');
+    assert.strictEqual(tableEl.tableRows[0].value, '<empty>');
+    assert.strictEqual(tableEl.tableRows[1].value, '<empty>');
   });
 
   test('emptySelection', function() {
@@ -41,8 +41,8 @@ tr.b.unittest.testSuite(function() {
 
     var tableEl = tr.b.findDeepElementMatching(
         summaryTable, 'tr-ui-b-table');
-    assert.equal(tableEl.tableRows[0].value, '<empty>');
-    assert.equal(tableEl.tableRows[1].value, '<empty>');
+    assert.strictEqual(tableEl.tableRows[0].value, '<empty>');
+    assert.strictEqual(tableEl.tableRows[1].value, '<empty>');
   });
 
   test('selection', function() {
@@ -64,10 +64,10 @@ tr.b.unittest.testSuite(function() {
 
     var tableEl = tr.b.findDeepElementMatching(
         summaryTable, 'tr-ui-b-table');
-    assert.equal(tableEl.tableRows[0].value.value, 0);
+    assert.strictEqual(tableEl.tableRows[0].value.value, 0);
     assert.strictEqual(tableEl.tableRows[0].value.unit,
         tr.b.Unit.byName.timeStampInMs);
-    assert.equal(tableEl.tableRows[1].value.value, 3);
+    assert.strictEqual(tableEl.tableRows[1].value.value, 3);
     assert.strictEqual(tableEl.tableRows[1].value.unit,
         tr.b.Unit.byName.timeDurationInMs);
   });

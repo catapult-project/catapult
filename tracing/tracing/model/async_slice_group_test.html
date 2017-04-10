@@ -34,10 +34,10 @@ tr.b.unittest.testSuite(function() {
     var g = new AsyncSliceGroup(t1);
     g.push(newAsyncSlice(0, 1, t1, t1));
     g.push(newAsyncSlice(1, 1.5, t1, t1));
-    assert.equal(g.length, 2);
+    assert.strictEqual(g.length, 2);
     g.updateBounds();
-    assert.equal(g.bounds.min, 0);
-    assert.equal(g.bounds.max, 2.5);
+    assert.strictEqual(g.bounds.min, 0);
+    assert.strictEqual(g.bounds.max, 2.5);
   });
 
   test('asyncSliceGroupStableId', function() {
@@ -46,9 +46,9 @@ tr.b.unittest.testSuite(function() {
     var thread = process.getOrCreateThread(456);
     var group = new AsyncSliceGroup(thread);
 
-    assert.equal(process.stableId, 123);
-    assert.equal(thread.stableId, '123.456');
-    assert.equal(group.stableId, '123.456.AsyncSliceGroup');
+    assert.strictEqual(process.stableId, 123);
+    assert.strictEqual(thread.stableId, '123.456');
+    assert.strictEqual(group.stableId, '123.456.AsyncSliceGroup');
   });
 
   test('asyncSliceParentContainerSetAtPush', function() {

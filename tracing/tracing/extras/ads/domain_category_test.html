@@ -14,24 +14,24 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   var DomainCategory = tr.e.ads.DomainCategory;
   test('domainCategory', function() {
-    assert.equal(
+    assert.strictEqual(
         'Ads',
         DomainCategory.fromDomain('https://parnter.googleadservices.com'));
-    assert.equal(
+    assert.strictEqual(
         'Analytics',
         DomainCategory.fromDomain('https://x.adobetag.com'));
-    assert.equal(
+    assert.strictEqual(
         'Social',
         DomainCategory.fromDomain('http://x.facebook.net'));
-    assert.equal(
+    assert.strictEqual(
         'Content Recommendation',
         DomainCategory.fromDomain('http://xyz.outbrain.com'));
-    assert.equal(
+    assert.strictEqual(
         'Tracing', DomainCategory.fromDomain('chrome://tracing'));
-    assert.equal(
+    assert.strictEqual(
         'Extensions',
         DomainCategory.fromDomain('chrome-extension://oiuy325oiu'));
-    assert.equal(
+    assert.strictEqual(
         'Other',
         DomainCategory.fromDomain('http://xyz.outbrain.com.au'));
   });

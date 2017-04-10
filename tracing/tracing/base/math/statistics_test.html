@@ -106,22 +106,22 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('divideIfPossibleOrZero', function() {
-    assert.equal(Statistics.divideIfPossibleOrZero(1, 2), 0.5);
-    assert.equal(Statistics.divideIfPossibleOrZero(0, 2), 0);
-    assert.equal(Statistics.divideIfPossibleOrZero(1, 0), 0);
-    assert.equal(Statistics.divideIfPossibleOrZero(0, 0), 0);
+    assert.strictEqual(Statistics.divideIfPossibleOrZero(1, 2), 0.5);
+    assert.strictEqual(Statistics.divideIfPossibleOrZero(0, 2), 0);
+    assert.strictEqual(Statistics.divideIfPossibleOrZero(1, 0), 0);
+    assert.strictEqual(Statistics.divideIfPossibleOrZero(0, 0), 0);
   });
 
   test('sumBasic', function() {
-    assert.equal(Statistics.sum([1, 2, 3]), 6);
+    assert.strictEqual(Statistics.sum([1, 2, 3]), 6);
   });
 
   test('sumWithFunctor', function() {
     var ctx = {};
     var ary = [1, 2, 3];
-    assert.equal(12, Statistics.sum(ary, function(x, i) {
-      assert.equal(this, ctx);
-      assert.equal(ary[i], x);
+    assert.strictEqual(12, Statistics.sum(ary, function(x, i) {
+      assert.strictEqual(this, ctx);
+      assert.strictEqual(ary[i], x);
       return x * 2;
     }, ctx));
   });
@@ -130,22 +130,22 @@ tr.b.unittest.testSuite(function() {
     var ctx = {};
     var ary = [1, 2, 3];
     function func(x, i) {
-      assert.equal(this, ctx);
-      assert.equal(ary[i], x);
+      assert.strictEqual(this, ctx);
+      assert.strictEqual(ary[i], x);
       return x;
     }
-    assert.equal(Statistics.max(ary, func, ctx), 3);
-    assert.equal(Statistics.min(ary, func, ctx), 1);
+    assert.strictEqual(Statistics.max(ary, func, ctx), 3);
+    assert.strictEqual(Statistics.min(ary, func, ctx), 1);
 
     var range = Statistics.range(ary, func, ctx);
     assert.isFalse(range.isEmpty);
-    assert.equal(range.min, 1);
-    assert.equal(range.max, 3);
+    assert.strictEqual(range.min, 1);
+    assert.strictEqual(range.max, 3);
   });
 
   test('maxExtrema', function() {
-    assert.equal(Statistics.max([]), -Infinity);
-    assert.equal(Statistics.min([]), Infinity);
+    assert.strictEqual(Statistics.max([]), -Infinity);
+    assert.strictEqual(Statistics.min([]), Infinity);
   });
 
   test('meanBasic', function() {
@@ -193,21 +193,23 @@ tr.b.unittest.testSuite(function() {
       {value: 20, weight: 1},
       {value: 30, weight: 6}
     ];
-    assert.equal(23, Statistics.weightedMean(data, getWeight, getValue));
+    assert.strictEqual(23, Statistics.weightedMean(data, getWeight, getValue));
 
     data = [
       {value: 10, weight: 0},
       {value: 20, weight: 0},
       {value: 30, weight: 0}
     ];
-    assert.equal(undefined, Statistics.weightedMean(data, getWeight, getValue));
+    assert.strictEqual(
+        undefined, Statistics.weightedMean(data, getWeight, getValue));
 
     data = [
       {value: 10, weight: -10},
       {value: 20, weight: 5},
       {value: 30, weight: 5}
     ];
-    assert.equal(undefined, Statistics.weightedMean(data, getWeight, getValue));
+    assert.strictEqual(
+        undefined, Statistics.weightedMean(data, getWeight, getValue));
   });
 
   test('weightedMean_positionDependent', function() {
@@ -215,31 +217,31 @@ tr.b.unittest.testSuite(function() {
       return idx;
     }
     // 3 has weight of 0, 6 has weight of 1, 9 has weight of 2
-    assert.equal(8, Statistics.weightedMean([3, 6, 9], getWeight));
+    assert.strictEqual(8, Statistics.weightedMean([3, 6, 9], getWeight));
   });
 
   test('max_positionDependent', function() {
     function getValue(element, idx) {
       return element * idx;
     }
-    assert.equal(6, Statistics.max([1, 2, 3], getValue));
+    assert.strictEqual(6, Statistics.max([1, 2, 3], getValue));
   });
 
   test('min_positionDependent', function() {
     function getValue(element, idx) {
       return element * idx;
     }
-    assert.equal(-6, Statistics.min([1, 2, -3], getValue));
+    assert.strictEqual(-6, Statistics.min([1, 2, -3], getValue));
   });
 
   test('varianceBasic', function() {
     // In [2, 4, 4, 2], all items have a deviation of 1.0 from the mean so the
     // population variance is 4.0 / 4 = 1.0, but the sample variance is 4.0 / 3.
-    assert.equal(Statistics.variance([2, 4, 4, 2]), 4.0 / 3);
+    assert.strictEqual(Statistics.variance([2, 4, 4, 2]), 4.0 / 3);
 
     // In [1, 2, 3], the squared deviations are 1.0, 0.0 and 1.0 respectively;
     // population variance 2.0 / 3 but sample variance is 2.0 / 2 = 1.0.
-    assert.equal(Statistics.variance([1, 2, 3]), 1.0);
+    assert.strictEqual(Statistics.variance([1, 2, 3]), 1.0);
   });
 
   test('varianceWithFunctor', function() {
@@ -248,14 +250,14 @@ tr.b.unittest.testSuite(function() {
                {x: 4},
                {x: 4},
                {x: 2}];
-    assert.equal(4.0 / 3, Statistics.variance(ary, function(d) {
-      assert.equal(ctx, this);
+    assert.strictEqual(4.0 / 3, Statistics.variance(ary, function(d) {
+      assert.strictEqual(ctx, this);
       return d.x;
     }, ctx));
   });
 
   test('stddevBasic', function() {
-    assert.equal(Statistics.stddev([2, 4, 4, 2]), Math.sqrt(4.0 / 3));
+    assert.strictEqual(Statistics.stddev([2, 4, 4, 2]), Math.sqrt(4.0 / 3));
   });
 
   test('stddevWithFunctor', function() {
@@ -264,8 +266,8 @@ tr.b.unittest.testSuite(function() {
                {x: 4},
                {x: 4},
                {x: 2}];
-    assert.equal(Math.sqrt(4.0 / 3), Statistics.stddev(ary, function(d) {
-      assert.equal(ctx, this);
+    assert.strictEqual(Math.sqrt(4.0 / 3), Statistics.stddev(ary, function(d) {
+      assert.strictEqual(ctx, this);
       return d.x;
     }, ctx));
   });
@@ -283,13 +285,13 @@ tr.b.unittest.testSuite(function() {
                {x: 8},
                {x: 9}];
     function func(d, i) {
-      assert.equal(ctx, this);
+      assert.strictEqual(ctx, this);
       return d.x;
     }
-    assert.equal(Statistics.percentile(ary, 0, func, ctx), 0);
-    assert.equal(Statistics.percentile(ary, .5, func, ctx), 4);
-    assert.equal(Statistics.percentile(ary, .75, func, ctx), 6);
-    assert.equal(Statistics.percentile(ary, 1, func, ctx), 9);
+    assert.strictEqual(Statistics.percentile(ary, 0, func, ctx), 0);
+    assert.strictEqual(Statistics.percentile(ary, .5, func, ctx), 4);
+    assert.strictEqual(Statistics.percentile(ary, .75, func, ctx), 6);
+    assert.strictEqual(Statistics.percentile(ary, 1, func, ctx), 9);
   });
 
   test('percentile_positionDependent', function() {
@@ -305,14 +307,14 @@ tr.b.unittest.testSuite(function() {
                {x: 8},
                {x: 9}];
     function func(d, i) {
-      assert.equal(ctx, this);
-      assert.equal(d.x, i);
+      assert.strictEqual(ctx, this);
+      assert.strictEqual(d.x, i);
       return d.x * i;
     }
-    assert.equal(Statistics.percentile(ary, 0, func, ctx), 0);
-    assert.equal(Statistics.percentile(ary, .5, func, ctx), 16);
-    assert.equal(Statistics.percentile(ary, .75, func, ctx), 36);
-    assert.equal(Statistics.percentile(ary, 1, func, ctx), 81);
+    assert.strictEqual(Statistics.percentile(ary, 0, func, ctx), 0);
+    assert.strictEqual(Statistics.percentile(ary, .5, func, ctx), 16);
+    assert.strictEqual(Statistics.percentile(ary, .75, func, ctx), 36);
+    assert.strictEqual(Statistics.percentile(ary, 1, func, ctx), 81);
   });
 
   test('normalizeSamples', function() {
@@ -362,49 +364,49 @@ tr.b.unittest.testSuite(function() {
   test('discrepancy_Analytic', function() {
     var samples = [];
     var d = Statistics.discrepancy(samples);
-    assert.equal(d, 0.0);
+    assert.strictEqual(d, 0.0);
 
     samples = [0.5];
     d = Statistics.discrepancy(samples);
-    assert.equal(d, 0.5);
+    assert.strictEqual(d, 0.5);
 
     samples = [0.0, 1.0];
     d = Statistics.discrepancy(samples);
-    assert.equal(d, 1.0);
+    assert.strictEqual(d, 1.0);
 
     samples = [0.5, 0.5, 0.5];
     d = Statistics.discrepancy(samples);
-    assert.equal(d, 1.0);
+    assert.strictEqual(d, 1.0);
 
     samples = [1.0 / 8.0, 3.0 / 8.0, 5.0 / 8.0, 7.0 / 8.0];
     d = Statistics.discrepancy(samples);
-    assert.equal(d, 0.25);
+    assert.strictEqual(d, 0.25);
 
     samples = [1.0 / 8.0, 5.0 / 8.0, 5.0 / 8.0, 7.0 / 8.0];
     d = Statistics.discrepancy(samples);
-    assert.equal(d, 0.5);
+    assert.strictEqual(d, 0.5);
 
     samples = [1.0 / 8.0, 3.0 / 8.0, 5.0 / 8.0, 5.0 / 8.0, 7.0 / 8.0];
     d = Statistics.discrepancy(samples);
-    assert.equal(d, 0.4);
+    assert.strictEqual(d, 0.4);
 
     samples = [0.0, 1.0 / 3.0, 2.0 / 3.0, 1.0];
     d = Statistics.discrepancy(samples);
-    assert.equal(d, 0.5);
+    assert.strictEqual(d, 0.5);
 
     samples = Statistics.normalizeSamples(samples).normalized_samples;
     d = Statistics.discrepancy(samples);
-    assert.equal(d, 0.25);
+    assert.strictEqual(d, 0.25);
   });
 
   test('timestampsDiscrepancy', function() {
     var timestamps = [];
     var dAbs = Statistics.timestampsDiscrepancy(timestamps, true);
-    assert.equal(dAbs, 0.0);
+    assert.strictEqual(dAbs, 0.0);
 
     timestamps = [4];
     dAbs = Statistics.timestampsDiscrepancy(timestamps, true);
-    assert.equal(dAbs, 0.5);
+    assert.strictEqual(dAbs, 0.5);
 
     var timestampsA = [0, 1, 2, 3, 5, 6];
     var timestampsB = [0, 1, 2, 3, 5, 7];
@@ -434,7 +436,7 @@ tr.b.unittest.testSuite(function() {
     var d1 = Statistics.timestampsDiscrepancy(samples[1]);
     var d2 = Statistics.timestampsDiscrepancy(samples[2]);
     var d = Statistics.timestampsDiscrepancy(samples);
-    assert.equal(d, Math.max(d0, d1, d2));
+    assert.strictEqual(d, Math.max(d0, d1, d2));
   });
 
   /**
@@ -454,11 +456,11 @@ tr.b.unittest.testSuite(function() {
   test('durationsDiscrepancy', function() {
     var durations = [];
     var d = Statistics.durationsDiscrepancy(durations);
-    assert.equal(d, 0.0);
+    assert.strictEqual(d, 0.0);
 
     durations = [4];
     d = Statistics.durationsDiscrepancy(durations);
-    assert.equal(d, 4.0);
+    assert.strictEqual(d, 4.0);
 
     var durationsA = [1, 1, 1, 1, 1];
     var durationsB = [1, 1, 2, 1, 1];
@@ -493,7 +495,7 @@ tr.b.unittest.testSuite(function() {
     Statistics.uniformlySampleStream(samples, 6, 'F', 5);
     // Can't really assert anything more than the length since the elements are
     // drawn at random.
-    assert.equal(samples.length, 5);
+    assert.strictEqual(samples.length, 5);
 
     // Try starting with a non-empty array.
     samples = [0, 0, 0];
@@ -511,11 +513,11 @@ tr.b.unittest.testSuite(function() {
     Statistics.mergeSampledStreams(samples, 9, ['F', 'G', 'H', 'I', 'J'], 7, 5);
     // Can't really assert anything more than the length since the elements are
     // drawn at random.
-    assert.equal(samples.length, 5);
+    assert.strictEqual(samples.length, 5);
 
     var samples = ['A', 'B'];
     Statistics.mergeSampledStreams(samples, 2, ['F', 'G', 'H', 'I', 'J'], 7, 5);
-    assert.equal(samples.length, 5);
+    assert.strictEqual(samples.length, 5);
   });
 
   test('mannWhitneyUTestSmokeTest', function() {

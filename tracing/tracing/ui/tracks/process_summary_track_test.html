@@ -32,7 +32,7 @@ tr.b.unittest.testSuite(function() {
 
     var rects = ProcessSummaryTrack.buildRectsFromProcess(process);
 
-    assert.equal(rects.length, 1);
+    assert.strictEqual(rects.length, 1);
     var rect = rects[0];
     assert.closeTo(rect.start, 1, 1e-5);
     assert.closeTo(rect.end, 8, 1e-5);
@@ -64,7 +64,7 @@ tr.b.unittest.testSuite(function() {
 
     var rects = ProcessSummaryTrack.buildRectsFromProcess(process);
 
-    assert.equal(4, rects.length);
+    assert.strictEqual(4, rects.length);
     assert.closeTo(rects[0].start, 1, 1e-5);
     assert.closeTo(rects[0].end, 8, 1e-5);
     assert.closeTo(rects[1].start, 9, 1e-5);
@@ -93,7 +93,7 @@ tr.b.unittest.testSuite(function() {
 
     var rects = ProcessSummaryTrack.buildRectsFromProcess(process);
 
-    assert.equal(3, rects.length);
+    assert.strictEqual(3, rects.length);
     assert.closeTo(rects[0].start, 4, 1e-5);
     assert.closeTo(rects[0].end, 9, 1e-5);
     assert.closeTo(rects[1].start, 9, 1e-5);
@@ -102,8 +102,8 @@ tr.b.unittest.testSuite(function() {
     assert.closeTo(rects[2].end, 25, 1e-5);
 
     // middle rect represents important slice, so colorId & title are preserved
-    assert.equal(rects[1].title, model.importantSlice.title);
-    assert.equal(rects[1].colorId, model.importantSlice.colorId);
+    assert.strictEqual(rects[1].title, model.importantSlice.title);
+    assert.strictEqual(rects[1].colorId, model.importantSlice.colorId);
   });
 });
 </script>

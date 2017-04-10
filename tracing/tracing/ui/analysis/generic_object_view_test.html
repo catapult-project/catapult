@@ -18,19 +18,20 @@ tr.b.unittest.testSuite(function() {
   test('undefinedValue', function() {
     var view = document.createElement('tr-ui-a-generic-object-view');
     view.object = undefined;
-    assert.equal(Polymer.dom(view.$.content).textContent, 'undefined');
+    assert.strictEqual(Polymer.dom(view.$.content).textContent, 'undefined');
   });
 
   test('nullValue', function() {
     var view = document.createElement('tr-ui-a-generic-object-view');
     view.object = null;
-    assert.equal(Polymer.dom(view.$.content).textContent, 'null');
+    assert.strictEqual(Polymer.dom(view.$.content).textContent, 'null');
   });
 
   test('stringValue', function() {
     var view = document.createElement('tr-ui-a-generic-object-view');
     view.object = 'string value';
-    assert.equal(Polymer.dom(view.$.content).textContent, '"string value"');
+    assert.strictEqual(
+        Polymer.dom(view.$.content).textContent, '"string value"');
   });
 
   test('multiLineStringValue', function() {
@@ -51,26 +52,26 @@ tr.b.unittest.testSuite(function() {
   test('jsonObjectStringValue', function() {
     var view = document.createElement('tr-ui-a-generic-object-view');
     view.object = '{"x": 1}';
-    assert.equal(view.$.content.children.length, 1);
-    assert.equal(view.$.content.children[0].children.length, 4);
+    assert.strictEqual(view.$.content.children.length, 1);
+    assert.strictEqual(view.$.content.children[0].children.length, 4);
   });
 
   test('jsonArrayStringValue', function() {
     var view = document.createElement('tr-ui-a-generic-object-view');
     view.object = '[1,2,3]';
-    assert.equal(view.$.content.children.length, 3);
+    assert.strictEqual(view.$.content.children.length, 3);
   });
 
   test('booleanValue', function() {
     var view = document.createElement('tr-ui-a-generic-object-view');
     view.object = false;
-    assert.equal(Polymer.dom(view.$.content).textContent, 'false');
+    assert.strictEqual(Polymer.dom(view.$.content).textContent, 'false');
   });
 
   test('numberValue', function() {
     var view = document.createElement('tr-ui-a-generic-object-view');
     view.object = 3.14159;
-    assert.equal(Polymer.dom(view.$.content).textContent, '3.14159');
+    assert.strictEqual(Polymer.dom(view.$.content).textContent, '3.14159');
   });
 
   test('objectSnapshotValue', function() {
@@ -133,7 +134,7 @@ tr.b.unittest.testSuite(function() {
     view.object = [{col0: 'object', col1: 0},
                    {col2: 'Object', col3: 1}];
     this.addHTMLOutput(view);
-    assert.equal(undefined, tr.b.findDeepElementMatching(
+    assert.strictEqual(undefined, tr.b.findDeepElementMatching(
         view.$.content, 'table'));
   });
 
@@ -141,7 +142,7 @@ tr.b.unittest.testSuite(function() {
     var view = document.createElement('tr-ui-a-generic-object-view');
     view.object = [{key: {deep: 'object values make isTable() return false'}}];
     this.addHTMLOutput(view);
-    assert.equal(undefined, tr.b.findDeepElementMatching(
+    assert.strictEqual(undefined, tr.b.findDeepElementMatching(
         view.$.content, 'table'));
   });
 
@@ -154,12 +155,14 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(view);
 
     var table = tr.b.findDeepElementMatching(view.$.content, 'tr-ui-b-table');
-    assert.equal('col0', table.tableColumns[0].title);
-    assert.equal('col1', table.tableColumns[1].title);
-    assert.equal('object', table.tableColumns[0].value(table.tableRows[0]));
-    assert.equal('Object', table.tableColumns[0].value(table.tableRows[1]));
-    assert.equal(0, table.tableColumns[1].value(table.tableRows[0]));
-    assert.equal(1, table.tableColumns[1].value(table.tableRows[1]));
+    assert.strictEqual('col0', table.tableColumns[0].title);
+    assert.strictEqual('col1', table.tableColumns[1].title);
+    assert.strictEqual(
+        'object', table.tableColumns[0].value(table.tableRows[0]));
+    assert.strictEqual(
+        'Object', table.tableColumns[0].value(table.tableRows[1]));
+    assert.strictEqual(0, table.tableColumns[1].value(table.tableRows[0]));
+    assert.strictEqual(1, table.tableColumns[1].value(table.tableRows[1]));
     assert.isDefined(table.tableColumns[0].cmp);
     assert.isDefined(table.tableColumns[1].cmp);
     assert.isUndefined(table.tableColumns[2].cmp);
@@ -200,8 +203,8 @@ tr.b.unittest.testSuite(function() {
     var m = tr.b.findDeepElementMatching(
         view.$.content, 'tr-v-ui-scalar-span');
     assert.isDefined(m);
-    assert.equal(m.value, .3);
-    assert.equal(m.unit, tr.b.Unit.byName.normalizedPercentage);
+    assert.strictEqual(m.value, .3);
+    assert.strictEqual(m.unit, tr.b.Unit.byName.normalizedPercentage);
   });
 
   test('httpLink', function() {

@@ -31,20 +31,21 @@ tr.b.unittest.testSuite(function() {
         'prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ==> ' +
         'next_comm=SurfaceFlinger next_pid=178 next_prio=112');
     assert.isNotNull(x);
-    assert.equal(x.threadName, '<idle>');
-    assert.equal(x.pid, '0');
-    assert.equal(x.cpuNumber, '001');
-    assert.equal(x.timestamp, '4467.843475');
-    assert.equal(x.eventName, 'sched_switch');
-    assert.equal('prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R' +
+    assert.strictEqual(x.threadName, '<idle>');
+    assert.strictEqual(x.pid, '0');
+    assert.strictEqual(x.cpuNumber, '001');
+    assert.strictEqual(x.timestamp, '4467.843475');
+    assert.strictEqual(x.eventName, 'sched_switch');
+    assert.strictEqual(
+        'prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R' +
         ' ==> next_comm=SurfaceFlinger next_pid=178 next_prio=112', x.details);
 
     var x = p('Binder-Thread #-647   [001]   260.464294: sched_switch: ' +
         'prev_comm=Binder Thread # prev_pid=647 prev_prio=120 prev_state=D ' +
         ' ==> next_comm=.android.chrome next_pid=1562 next_prio=120');
     assert.isNotNull(x);
-    assert.equal(x.threadName, 'Binder-Thread #');
-    assert.equal(x.pid, '647');
+    assert.strictEqual(x.threadName, 'Binder-Thread #');
+    assert.strictEqual(x.pid, '647');
   });
 
   test('lineParserWithIRQInfo', function() {
@@ -52,12 +53,12 @@ tr.b.unittest.testSuite(function() {
     var x = p('     systrace.sh-5441  [001] d...  1031.091570: ' +
         'sched_wakeup: comm=debugd pid=4978 prio=120 success=1 target_cpu=000');
     assert.isNotNull(x);
-    assert.equal(x.threadName, 'systrace.sh');
-    assert.equal(x.pid, '5441');
-    assert.equal(x.cpuNumber, '001');
-    assert.equal(x.timestamp, '1031.091570');
-    assert.equal(x.eventName, 'sched_wakeup');
-    assert.equal(x.details, 'comm=debugd pid=4978 prio=120 success=1 target_cpu=000'); // @suppress longLineCheck
+    assert.strictEqual(x.threadName, 'systrace.sh');
+    assert.strictEqual(x.pid, '5441');
+    assert.strictEqual(x.cpuNumber, '001');
+    assert.strictEqual(x.timestamp, '1031.091570');
+    assert.strictEqual(x.eventName, 'sched_wakeup');
+    assert.strictEqual(x.details, 'comm=debugd pid=4978 prio=120 success=1 target_cpu=000'); // @suppress longLineCheck
   });
 
   test('lineParserWithIRQInfoNeedResched', function() {
@@ -65,22 +66,22 @@ tr.b.unittest.testSuite(function() {
     var x = p('     systrace.sh-5441  [001] .N..  1031.091570: ' +
         'sched_wakeup: comm=debugd pid=4978 prio=120 success=1 target_cpu=000');
     assert.isNotNull(x);
-    assert.equal(x.threadName, 'systrace.sh');
-    assert.equal(x.pid, '5441');
-    assert.equal(x.cpuNumber, '001');
-    assert.equal(x.timestamp, '1031.091570');
-    assert.equal(x.eventName, 'sched_wakeup');
-    assert.equal(x.details, 'comm=debugd pid=4978 prio=120 success=1 target_cpu=000'); // @suppress longLineCheck
+    assert.strictEqual(x.threadName, 'systrace.sh');
+    assert.strictEqual(x.pid, '5441');
+    assert.strictEqual(x.cpuNumber, '001');
+    assert.strictEqual(x.timestamp, '1031.091570');
+    assert.strictEqual(x.eventName, 'sched_wakeup');
+    assert.strictEqual(x.details, 'comm=debugd pid=4978 prio=120 success=1 target_cpu=000'); // @suppress longLineCheck
 
     var x = p('     systrace.sh-5441  [001] .n..  1031.091570: ' +
         'sched_wakeup: comm=debugd pid=4978 prio=120 success=1 target_cpu=000');
     assert.isNotNull(x);
-    assert.equal(x.threadName, 'systrace.sh');
+    assert.strictEqual(x.threadName, 'systrace.sh');
 
     var x = p('     systrace.sh-5441  [001] .p..  1031.091570: ' +
         'sched_wakeup: comm=debugd pid=4978 prio=120 success=1 target_cpu=000');
     assert.isNotNull(x);
-    assert.equal(x.threadName, 'systrace.sh');
+    assert.strictEqual(x.threadName, 'systrace.sh');
   });
 
   test('lineParserWithTGID', function() {
@@ -88,18 +89,18 @@ tr.b.unittest.testSuite(function() {
     var x = p('     systrace.sh-5441  (54321) [001] d...  1031.091570: ' +
         'sched_wakeup: comm=debugd pid=4978 prio=120 success=1 target_cpu=000');
     assert.isNotNull(x);
-    assert.equal(x.threadName, 'systrace.sh');
-    assert.equal(x.pid, '5441');
-    assert.equal(x.tgid, '54321');
-    assert.equal(x.cpuNumber, '001');
-    assert.equal(x.timestamp, '1031.091570');
-    assert.equal(x.eventName, 'sched_wakeup');
-    assert.equal(x.details, 'comm=debugd pid=4978 prio=120 success=1 target_cpu=000'); // @suppress longLineCheck
+    assert.strictEqual(x.threadName, 'systrace.sh');
+    assert.strictEqual(x.pid, '5441');
+    assert.strictEqual(x.tgid, '54321');
+    assert.strictEqual(x.cpuNumber, '001');
+    assert.strictEqual(x.timestamp, '1031.091570');
+    assert.strictEqual(x.eventName, 'sched_wakeup');
+    assert.strictEqual(x.details, 'comm=debugd pid=4978 prio=120 success=1 target_cpu=000'); // @suppress longLineCheck
 
     var x = p('     systrace.sh-5441  (  321) [001] d...  1031.091570: ' +
         'sched_wakeup: comm=debugd pid=4978 prio=120 success=1 target_cpu=000');
     assert.isNotNull(x);
-    assert.equal(x.tgid, '321');
+    assert.strictEqual(x.tgid, '321');
 
     var x = p('     systrace.sh-5441  (-----) [001] d...  1031.091570: ' +
         'sched_wakeup: comm=debugd pid=4978 prio=120 success=1 target_cpu=000');
@@ -112,18 +113,18 @@ tr.b.unittest.testSuite(function() {
     var x = p('     systrace.sh-5441  (54321) [001] .N..  1031.091570: ' +
         'sched_wakeup: comm=debugd pid=4978 prio=120 success=1 target_cpu=000');
     assert.isNotNull(x);
-    assert.equal(x.threadName, 'systrace.sh');
-    assert.equal(x.pid, '5441');
-    assert.equal(x.tgid, '54321');
-    assert.equal(x.cpuNumber, '001');
-    assert.equal(x.timestamp, '1031.091570');
-    assert.equal(x.eventName, 'sched_wakeup');
-    assert.equal(x.details, 'comm=debugd pid=4978 prio=120 success=1 target_cpu=000'); // @suppress longLineCheck
+    assert.strictEqual(x.threadName, 'systrace.sh');
+    assert.strictEqual(x.pid, '5441');
+    assert.strictEqual(x.tgid, '54321');
+    assert.strictEqual(x.cpuNumber, '001');
+    assert.strictEqual(x.timestamp, '1031.091570');
+    assert.strictEqual(x.eventName, 'sched_wakeup');
+    assert.strictEqual(x.details, 'comm=debugd pid=4978 prio=120 success=1 target_cpu=000'); // @suppress longLineCheck
 
     var x = p('     systrace.sh-5441  (  321) [001] .n..  1031.091570: ' +
         'sched_wakeup: comm=debugd pid=4978 prio=120 success=1 target_cpu=000');
     assert.isNotNull(x);
-    assert.equal(x.tgid, '321');
+    assert.strictEqual(x.tgid, '321');
 
     var x = p('     systrace.sh-5441  (-----) [001] .p..  1031.091570: ' +
         'sched_wakeup: comm=debugd pid=4978 prio=120 success=1 target_cpu=000');
@@ -144,7 +145,7 @@ tr.b.unittest.testSuite(function() {
         'prev_state=x ==> next_comm=kworker/1:0 next_pid=7873 ' +
         'next_prio=120';
     var detected = detectParser(lineWithLegacyFmt);
-    assert.equal(lineParserWithLegacyFmt, detected);
+    assert.strictEqual(lineParserWithLegacyFmt, detected);
 
     var lineWithIRQInfo =
         'systrace.sh-8170  [001] d... 15180.978813: sched_switch: ' +
@@ -152,7 +153,7 @@ tr.b.unittest.testSuite(function() {
         'prev_state=x ==> next_comm=kworker/1:0 next_pid=7873 ' +
         'next_prio=120';
     var detected = detectParser(lineWithIRQInfo);
-    assert.equal(lineParserWithIRQInfo, detected);
+    assert.strictEqual(lineParserWithIRQInfo, detected);
 
     var lineWithTGID =
         'systrace.sh-8170  (54321) [001] d... 15180.978813: sched_switch: ' +
@@ -160,18 +161,18 @@ tr.b.unittest.testSuite(function() {
         'prev_state=x ==> next_comm=kworker/1:0 next_pid=7873 ' +
         'next_prio=120';
     var detected = detectParser(lineWithTGID);
-    assert.equal(lineParserWithTGID, detected);
+    assert.strictEqual(lineParserWithTGID, detected);
   });
 
   test('traceEventClockSyncRE', function() {
     var re = FTraceImporterTestExports.traceEventClockSyncRE;
     var x = re.exec('trace_event_clock_sync: parent_ts=19581477508');
     assert.isNotNull(x);
-    assert.equal(x[1], '19581477508');
+    assert.strictEqual(x[1], '19581477508');
 
     var x = re.exec('trace_event_clock_sync: parent_ts=123.456');
     assert.isNotNull(x);
-    assert.equal(x[1], '123.456');
+    assert.strictEqual(x[1], '123.456');
   });
 
   test('genericClockSync', function() {
@@ -304,10 +305,10 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(m.hasImportWarnings);
 
     var c = m.kernel.cpus[1];
-    assert.equal(c.slices.length, 2);
+    assert.strictEqual(c.slices.length, 2);
 
-    assert.equal(c.slices[0].title, 'SurfaceFlinger');
-    assert.equal(c.slices[0].start, 4467843.475);
+    assert.strictEqual(c.slices[0].title, 'SurfaceFlinger');
+    assert.strictEqual(c.slices[0].start, 4467843.475);
     assert.closeTo(.536 - .475, c.slices[0].duration, 1e-5);
   });
 
@@ -330,10 +331,10 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(m.hasImportWarnings);
 
     var c = m.kernel.cpus[1];
-    assert.equal(c.slices.length, 2);
+    assert.strictEqual(c.slices.length, 2);
 
-    assert.equal(c.slices[0].title, 'Surface Flinger ');
-    assert.equal(c.slices[0].start, 4467843.475);
+    assert.strictEqual(c.slices[0].title, 'Surface Flinger ');
+    assert.strictEqual(c.slices[0].start, 4467843.475);
     assert.closeTo(.536 - .475, c.slices[0].duration, 1e-5);
   });
 
@@ -356,12 +357,14 @@ tr.b.unittest.testSuite(function() {
       assert.isDefined(m.processes[360]);
 
       assert.isDefined(m.processes[124].counters['android.StatusBar']);
-      assert.equal(m.processes[124].counters['android.StatusBar'].numSamples,
-          1);
+      assert.strictEqual(
+          m.processes[124].counters['android.StatusBar'].numSamples, 1);
       assert.isDefined(m.processes[124].counters['android.VSYNC']);
-      assert.equal(2, m.processes[124].counters['android.VSYNC'].numSamples);
+      assert.strictEqual(
+          2, m.processes[124].counters['android.VSYNC'].numSamples);
       assert.isDefined(m.processes[360].counters['android.iq']);
-      assert.equal(1, m.processes[360].counters['android.iq'].numSamples);
+      assert.strictEqual(
+          1, m.processes[360].counters['android.iq'].numSamples);
     }, function(err) {
       throw err;
     });
@@ -398,12 +401,14 @@ tr.b.unittest.testSuite(function() {
     assert.isDefined(m.processes[360]);
 
     assert.isDefined(m.processes[124].counters['android.StatusBar']);
-    assert.equal(m.processes[124].counters['android.StatusBar'].numSamples,
-        1);
+    assert.strictEqual(
+        m.processes[124].counters['android.StatusBar'].numSamples, 1);
     assert.isDefined(m.processes[124].counters['android.VSYNC']);
-    assert.equal(2, m.processes[124].counters['android.VSYNC'].numSamples);
+    assert.strictEqual(
+        2, m.processes[124].counters['android.VSYNC'].numSamples);
     assert.isDefined(m.processes[360].counters['android.iq']);
-    assert.equal(1, m.processes[360].counters['android.iq'].numSamples);
+    assert.strictEqual(
+        1, m.processes[360].counters['android.iq'].numSamples);
   });
 
   test('clockSync', function() {
@@ -426,7 +431,7 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(m.hasImportWarnings);
 
     var c = m.kernel.cpus[1];
-    assert.equal(c.slices.length, 2);
+    assert.strictEqual(c.slices.length, 2);
 
     assert.closeTo(
         (467.843475 - (467.843 - 0.1)) * 1000,
@@ -453,7 +458,7 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(m.hasImportWarnings);
 
     var c = m.kernel.cpus[1];
-    assert.equal(c.slices.length, 2);
+    assert.strictEqual(c.slices.length, 2);
 
     assert.closeTo((15180.978813 - 0) * 1000, c.slices[0].start, 1e-5);
 
@@ -498,7 +503,7 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(m.hasImportWarnings);
 
     var c = m.processes[9304].threads[8182].sliceGroup;
-    assert.equal(c.slices.length, 1);
+    assert.strictEqual(c.slices.length, 1);
 
     assert.closeTo((2068001.677892 - 0) * 1000, c.slices[0].start, 1e-5);
     assert.closeTo(
@@ -523,8 +528,8 @@ tr.b.unittest.testSuite(function() {
     var m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
-    assert.equal(tr.b.dictionaryLength(m.kernel.cpus), 2);
-    assert.equal(m.kernel.bestGuessAtCpuCount, 2);
+    assert.strictEqual(tr.b.dictionaryLength(m.kernel.cpus), 2);
+    assert.strictEqual(m.kernel.bestGuessAtCpuCount, 2);
   });
 });
 </script>

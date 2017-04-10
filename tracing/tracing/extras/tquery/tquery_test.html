@@ -46,7 +46,7 @@ tr.b.unittest.testSuite(function() {
     var tquery = new tr.e.tquery.TQuery(model);
 
     return tquery.ready().then(function(selection) {
-      assert.equal(selection.length, 3);
+      assert.strictEqual(selection.length, 3);
     });
   });
 
@@ -54,12 +54,12 @@ tr.b.unittest.testSuite(function() {
     var model = createTestModel(3);
     var tquery = new tr.e.tquery.TQuery(model);
 
-    assert.equal(tquery.selection.length, 3);
+    assert.strictEqual(tquery.selection.length, 3);
 
     // Selection should get reset when the model changes.
     var model = createTestModel(5);
     tquery.onModelChanged(model);
-    assert.equal(tquery.selection.length, 5);
+    assert.strictEqual(tquery.selection.length, 5);
   });
 
   test('tqueryPassThroughFiltering', function() {
@@ -67,7 +67,7 @@ tr.b.unittest.testSuite(function() {
     var tquery = new tr.e.tquery.TQuery(model);
 
     var result = tquery.filter().filter().selection;
-    assert.equal(result.length, 3);
+    assert.strictEqual(result.length, 3);
   });
 
   test('tqueryFilterHasTitle', function() {
@@ -80,16 +80,16 @@ tr.b.unittest.testSuite(function() {
     var tquery = new tr.e.tquery.TQuery(model);
 
     var result = tquery.filter(hasTitle('a')).selection;
-    assert.equal(result.length, 1);
-    assert.equal(tr.b.getOnlyElement(result).guid, 1);
+    assert.strictEqual(result.length, 1);
+    assert.strictEqual(tr.b.getOnlyElement(result).guid, 1);
 
     var result = tquery.filter('b').selection;
-    assert.equal(result.length, 1);
-    assert.equal(tr.b.getOnlyElement(result).guid, 2);
+    assert.strictEqual(result.length, 1);
+    assert.strictEqual(tr.b.getOnlyElement(result).guid, 2);
 
     var result = tquery.filter(/^c$/).selection;
-    assert.equal(result.length, 1);
-    assert.equal(tr.b.getOnlyElement(result).guid, 3);
+    assert.strictEqual(result.length, 1);
+    assert.strictEqual(tr.b.getOnlyElement(result).guid, 3);
   });
 
   test('tqueryFilterHasAncestor', function() {
@@ -102,15 +102,15 @@ tr.b.unittest.testSuite(function() {
     var tquery = new tr.e.tquery.TQuery(model);
 
     var result = tquery.filter(hasAncestor('b')).selection;
-    assert.equal(result.length, 1);
-    assert.equal(tr.b.getOnlyElement(result).guid, 4);
+    assert.strictEqual(result.length, 1);
+    assert.strictEqual(tr.b.getOnlyElement(result).guid, 4);
 
     var result = tquery.filter(hasAncestor()).selection;
-    assert.equal(result.length, 1);
-    assert.equal(tr.b.getOnlyElement(result).guid, 4);
+    assert.strictEqual(result.length, 1);
+    assert.strictEqual(tr.b.getOnlyElement(result).guid, 4);
 
     var result = tquery.filter(hasAncestor('a')).selection;
-    assert.equal(result.length, 0);
+    assert.strictEqual(result.length, 0);
   });
 
   test('tqueryFilterAllOf', function() {
@@ -123,15 +123,15 @@ tr.b.unittest.testSuite(function() {
     var tquery = new tr.e.tquery.TQuery(model);
 
     var result = tquery.filter(allOf('a1')).selection;
-    assert.equal(result.length, 1);
-    assert.equal(tr.b.getOnlyElement(result).guid, 1);
+    assert.strictEqual(result.length, 1);
+    assert.strictEqual(tr.b.getOnlyElement(result).guid, 1);
 
     var result = tquery.filter(allOf('a1', /1/)).selection;
-    assert.equal(result.length, 1);
-    assert.equal(tr.b.getOnlyElement(result).guid, 1);
+    assert.strictEqual(result.length, 1);
+    assert.strictEqual(tr.b.getOnlyElement(result).guid, 1);
 
     var result = tquery.filter(allOf()).selection;
-    assert.equal(result.length, 3);
+    assert.strictEqual(result.length, 3);
   });
 
   test('tqueryFilterAnyOf', function() {
@@ -144,18 +144,18 @@ tr.b.unittest.testSuite(function() {
     var tquery = new tr.e.tquery.TQuery(model);
 
     var result = tquery.filter(anyOf('a', 'b')).selection;
-    assert.equal(result.length, 2);
+    assert.strictEqual(result.length, 2);
     var nextGuid = 1;
     for (var event of result) {
-      assert.equal(event.guid, nextGuid++);
+      assert.strictEqual(event.guid, nextGuid++);
     }
 
     var result = tquery.filter(anyOf('not there', 'a')).selection;
-    assert.equal(result.length, 1);
-    assert.equal(tr.b.getOnlyElement(result).guid, 1);
+    assert.strictEqual(result.length, 1);
+    assert.strictEqual(tr.b.getOnlyElement(result).guid, 1);
 
     var result = tquery.filter(anyOf()).selection;
-    assert.equal(result.length, 3);
+    assert.strictEqual(result.length, 3);
   });
 
   test('tqueryFilterIsTopLevel', function() {
@@ -168,15 +168,15 @@ tr.b.unittest.testSuite(function() {
     var tquery = new tr.e.tquery.TQuery(model);
 
     var result = tquery.filter(isTopLevel()).selection;
-    assert.equal(result.length, 3);
+    assert.strictEqual(result.length, 3);
     var nextGuid = 1;
     for (var event of result) {
-      assert.equal(event.guid, nextGuid++);
+      assert.strictEqual(event.guid, nextGuid++);
     }
 
     var result = tquery.filter(isTopLevel('a')).selection;
-    assert.equal(result.length, 1);
-    assert.equal(tr.b.getOnlyElement(result).guid, 1);
+    assert.strictEqual(result.length, 1);
+    assert.strictEqual(tr.b.getOnlyElement(result).guid, 1);
   });
 
   test('tqueryFilterHasDuration', function() {
@@ -190,21 +190,21 @@ tr.b.unittest.testSuite(function() {
     var tquery = new tr.e.tquery.TQuery(model);
 
     var result = tquery.filter(hasDuration(1.5, 2.5)).selection;
-    assert.equal(result.length, 1);
-    assert.equal(tr.b.getOnlyElement(result).guid, 2);
+    assert.strictEqual(result.length, 1);
+    assert.strictEqual(tr.b.getOnlyElement(result).guid, 2);
 
     var result = tquery.filter(hasDuration(3, Infinity)).selection;
-    assert.equal(result.length, 1);
-    assert.equal(tr.b.getOnlyElement(result).guid, 3);
+    assert.strictEqual(result.length, 1);
+    assert.strictEqual(tr.b.getOnlyElement(result).guid, 3);
 
     var result = tquery.filter(hasDuration(-1, 0)).selection;
-    assert.equal(result.length, 0);
+    assert.strictEqual(result.length, 0);
 
     var result = tquery.filter(hasDuration(function(d) {
       return d > 2;
     })).selection;
-    assert.equal(result.length, 1);
-    assert.equal(tr.b.getOnlyElement(result).guid, 3);
+    assert.strictEqual(result.length, 1);
+    assert.strictEqual(tr.b.getOnlyElement(result).guid, 3);
   });
 
   test('tqueryFilterNot', function() {
@@ -217,10 +217,10 @@ tr.b.unittest.testSuite(function() {
     var tquery = new tr.e.tquery.TQuery(model);
 
     var result = tquery.filter(not(/a/)).selection;
-    assert.equal(result.length, 2);
+    assert.strictEqual(result.length, 2);
     var nextGuid = 2;
     for (var event of result) {
-      assert.equal(event.guid, nextGuid++);
+      assert.strictEqual(event.guid, nextGuid++);
     }
 
     // Test a not() without any subexpressions.
@@ -240,8 +240,8 @@ tr.b.unittest.testSuite(function() {
     var tquery = new tr.e.tquery.TQuery(model);
 
     var result = tquery.filter(noneOf(/a/, /b/)).selection;
-    assert.equal(result.length, 1);
-    assert.equal(tr.b.getOnlyElement(result).guid, 3);
+    assert.strictEqual(result.length, 1);
+    assert.strictEqual(tr.b.getOnlyElement(result).guid, 3);
   });
 });
 </script>

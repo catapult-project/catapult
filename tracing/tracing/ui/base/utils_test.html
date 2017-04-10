@@ -41,26 +41,27 @@ tr.b.unittest.testSuite(function() {
     var e = tr.ui.b.instantiateTemplate(
         '#instantiate-template-polymer-test',
         THIS_DOC);
-    assert.equal(e.children.length, 1);
-    assert.equal(e.children[0].testProperty, 'Test');
+    assert.strictEqual(e.children.length, 1);
+    assert.strictEqual(e.children[0].testProperty, 'Test');
   });
 
   test('instantiateTemplateMultipleTemplates', function() {
     var outerElement = tr.ui.b.instantiateTemplate(
         '#multiple-template-test',
         THIS_DOC);
-    assert.equal(outerElement.children.length, 2);
-    assert.equal(outerElement.children[1].testProperty, 'Test');
+    assert.strictEqual(outerElement.children.length, 2);
+    assert.strictEqual(outerElement.children[1].testProperty, 'Test');
 
     // Make sure we can still instantiate inner templates, if we need them.
     var innerElement = THIS_DOC.importNode(
         outerElement.children[0].content, true);
-    assert.equal(innerElement.children.length, 2);
-    assert.equal(innerElement.children[0].testProperty, 'Test');
-    assert.equal(
+    assert.strictEqual(innerElement.children.length, 2);
+    assert.strictEqual(innerElement.children[0].testProperty, 'Test');
+    assert.strictEqual(
         innerElement.children[1].getAttribute('test-attribute'),
         'TestAttribute');
-    assert.equal(Polymer.dom(innerElement.children[1]).textContent, 'Foo');
+    assert.strictEqual(
+        Polymer.dom(innerElement.children[1]).textContent, 'Foo');
   });
 
   test('extractUrlStringAcceptsBothVersions', function() {
@@ -68,8 +69,8 @@ tr.b.unittest.testSuite(function() {
     var newStyleUrl = 'url("content")';
     var expectedResult = 'content';
 
-    assert.equal(tr.ui.b.extractUrlString(oldStyleUrl), expectedResult);
-    assert.equal(tr.ui.b.extractUrlString(newStyleUrl), expectedResult);
+    assert.strictEqual(tr.ui.b.extractUrlString(oldStyleUrl), expectedResult);
+    assert.strictEqual(tr.ui.b.extractUrlString(newStyleUrl), expectedResult);
   });
 });
 </script>

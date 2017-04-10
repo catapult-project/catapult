@@ -28,15 +28,15 @@ tr.b.unittest.testSuite(function() {
     var cpu = new Cpu({}, 1);
     cpu.slices.push(tr.c.TestUtils.newSliceEx({start: 1, duration: 3}));
     cpu.updateBounds();
-    assert.equal(cpu.bounds.min, 1);
-    assert.equal(cpu.bounds.max, 4);
+    assert.strictEqual(cpu.bounds.min, 1);
+    assert.strictEqual(cpu.bounds.max, 4);
   });
 
   test('getOrCreateCounter', function() {
     var cpu = new Cpu({}, 1);
     var ctrBar = cpu.getOrCreateCounter('foo', 'bar');
     var ctrBar2 = cpu.getOrCreateCounter('foo', 'bar');
-    assert.equal(ctrBar, ctrBar2);
+    assert.strictEqual(ctrBar, ctrBar2);
   });
 
   test('shiftTimestampsForward', function() {
@@ -51,8 +51,8 @@ tr.b.unittest.testSuite(function() {
     };
     cpu.slices.push(tr.c.TestUtils.newSliceEx({start: 1, duration: 3}));
     cpu.shiftTimestampsForward(0.32);
-    assert.equal(1, shiftCount);
-    assert.equal(cpu.slices[0].start, 1.32);
+    assert.strictEqual(1, shiftCount);
+    assert.strictEqual(cpu.slices[0].start, 1.32);
   });
 
 
@@ -76,19 +76,21 @@ tr.b.unittest.testSuite(function() {
       newThreadSlice(t2, SCHEDULING_STATE.RUNNING, 20, 10, cpu)];
     cpu.slices = [newCpuSliceNamed(cpu, 'x', 0, 10, t2),
       newCpuSliceNamed(cpu, 'x', 20, 10, t2)];
-    assert.equal(cpu.slices[0].getAssociatedTimeslice(), t2.timeSlices[0]);
-    assert.equal(cpu.slices[1].getAssociatedTimeslice(), t2.timeSlices[2]);
+    assert.strictEqual(
+        cpu.slices[0].getAssociatedTimeslice(), t2.timeSlices[0]);
+    assert.strictEqual(
+        cpu.slices[1].getAssociatedTimeslice(), t2.timeSlices[2]);
 
-    assert.equal(t2.timeSlices[0].getAssociatedCpuSlice(), cpu.slices[0]);
+    assert.strictEqual(t2.timeSlices[0].getAssociatedCpuSlice(), cpu.slices[0]);
     assert.isUndefined(t2.timeSlices[1].getAssociatedCpuSlice());
-    assert.equal(t2.timeSlices[2].getAssociatedCpuSlice(), cpu.slices[1]);
+    assert.strictEqual(t2.timeSlices[2].getAssociatedCpuSlice(), cpu.slices[1]);
 
-    assert.equal(cpu.indexOf(cpu.slices[0]), 0);
-    assert.equal(cpu.indexOf(cpu.slices[1]), 1);
+    assert.strictEqual(cpu.indexOf(cpu.slices[0]), 0);
+    assert.strictEqual(cpu.indexOf(cpu.slices[1]), 1);
 
-    assert.equal(t2.indexOfTimeSlice(t2.timeSlices[0]), 0);
-    assert.equal(t2.indexOfTimeSlice(t2.timeSlices[1]), 1);
-    assert.equal(t2.indexOfTimeSlice(t2.timeSlices[2]), 2);
+    assert.strictEqual(t2.indexOfTimeSlice(t2.timeSlices[0]), 0);
+    assert.strictEqual(t2.indexOfTimeSlice(t2.timeSlices[1]), 1);
+    assert.strictEqual(t2.indexOfTimeSlice(t2.timeSlices[2]), 2);
   });
 
   test('putToSleepFor', function() {
@@ -110,7 +112,7 @@ tr.b.unittest.testSuite(function() {
     assert.isUndefined(t2.timeSlices[0].getCpuSliceThatTookCpu());
 
     // t2 lost the cpu to t3 at t=10
-    assert.equal(
+    assert.strictEqual(
         cpu.slices[1],
         t2.timeSlices[1].getCpuSliceThatTookCpu());
   });
@@ -145,39 +147,39 @@ tr.b.unittest.testSuite(function() {
     cpu.switchActiveThread(60, {}, 1, 'thread one', {});
     cpu.closeActiveThread(70, {});
 
-    assert.equal(cpu.slices.length, 5);
+    assert.strictEqual(cpu.slices.length, 5);
 
-    assert.equal(cpu.slices[0].title, 'thread one');
-    assert.equal(cpu.slices[0].start, 10);
-    assert.equal(cpu.slices[0].duration, 5);
-    assert.equal(Object.keys(cpu.slices[0].args).length, 2);
-    assert.equal(cpu.slices[0].args.a, 1);
-    assert.equal(cpu.slices[0].args.b, 2);
+    assert.strictEqual(cpu.slices[0].title, 'thread one');
+    assert.strictEqual(cpu.slices[0].start, 10);
+    assert.strictEqual(cpu.slices[0].duration, 5);
+    assert.strictEqual(Object.keys(cpu.slices[0].args).length, 2);
+    assert.strictEqual(cpu.slices[0].args.a, 1);
+    assert.strictEqual(cpu.slices[0].args.b, 2);
 
-    assert.equal(cpu.slices[1].title, 'thread two');
-    assert.equal(cpu.slices[1].start, 15);
-    assert.equal(cpu.slices[1].duration, 15);
-    assert.equal(Object.keys(cpu.slices[1].args).length, 2);
-    assert.equal(cpu.slices[1].args.c, 4);
-    assert.equal(cpu.slices[1].args.d, 5);
+    assert.strictEqual(cpu.slices[1].title, 'thread two');
+    assert.strictEqual(cpu.slices[1].start, 15);
+    assert.strictEqual(cpu.slices[1].duration, 15);
+    assert.strictEqual(Object.keys(cpu.slices[1].args).length, 2);
+    assert.strictEqual(cpu.slices[1].args.c, 4);
+    assert.strictEqual(cpu.slices[1].args.d, 5);
 
-    assert.equal(cpu.slices[2].title, 'thread three');
-    assert.equal(cpu.slices[2].start, 30);
-    assert.equal(cpu.slices[2].duration, 10);
-    assert.equal(Object.keys(cpu.slices[2].args).length, 2);
-    assert.equal(cpu.slices[2].args.e, 6);
-    assert.equal(cpu.slices[2].args.f, 7);
+    assert.strictEqual(cpu.slices[2].title, 'thread three');
+    assert.strictEqual(cpu.slices[2].start, 30);
+    assert.strictEqual(cpu.slices[2].duration, 10);
+    assert.strictEqual(Object.keys(cpu.slices[2].args).length, 2);
+    assert.strictEqual(cpu.slices[2].args.e, 6);
+    assert.strictEqual(cpu.slices[2].args.f, 7);
 
-    assert.equal(cpu.slices[3].title, 'thread four');
-    assert.equal(cpu.slices[3].start, 50);
-    assert.equal(cpu.slices[3].duration, 10);
-    assert.equal(Object.keys(cpu.slices[3].args).length, 1);
-    assert.equal(cpu.slices[3].args.g, 8);
+    assert.strictEqual(cpu.slices[3].title, 'thread four');
+    assert.strictEqual(cpu.slices[3].start, 50);
+    assert.strictEqual(cpu.slices[3].duration, 10);
+    assert.strictEqual(Object.keys(cpu.slices[3].args).length, 1);
+    assert.strictEqual(cpu.slices[3].args.g, 8);
 
-    assert.equal(cpu.slices[4].title, 'thread one');
-    assert.equal(cpu.slices[4].start, 60);
-    assert.equal(cpu.slices[4].duration, 10);
-    assert.equal(Object.keys(cpu.slices[4].args).length, 0);
+    assert.strictEqual(cpu.slices[4].title, 'thread one');
+    assert.strictEqual(cpu.slices[4].start, 60);
+    assert.strictEqual(cpu.slices[4].duration, 10);
+    assert.strictEqual(Object.keys(cpu.slices[4].args).length, 0);
   });
 
   test('getFrequencyStats', function() {
@@ -195,9 +197,9 @@ tr.b.unittest.testSuite(function() {
 
     var range = tr.b.math.Range.fromExplicitRange(10, 90);
     var stats = cpu.getFreqStatsForRange(range);
-    assert.equal(stats[100000], 60);
-    assert.equal(stats[300000], 10);
-    assert.equal(stats[500000], 10);
+    assert.strictEqual(stats[100000], 60);
+    assert.strictEqual(stats[300000], 10);
+    assert.strictEqual(stats[500000], 10);
   });
 });
 </script>

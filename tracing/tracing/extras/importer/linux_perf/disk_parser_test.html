@@ -78,42 +78,42 @@ tr.b.unittest.testSuite(function() {
     assert.isDefined(f2fsSyncThread);
     assert.isDefined(f2fsWriteThread);
 
-    assert.equal(blockThread.asyncSliceGroup.length, 4);
+    assert.strictEqual(blockThread.asyncSliceGroup.length, 4);
 
     var slice = blockThread.asyncSliceGroup.slices[0];
-    assert.equal(slice.category, 'block');
-    assert.equal(slice.title, 'write sync');
-    assert.equal(slice.args.device, '179,0');
-    assert.equal(slice.args.error, 0);
-    assert.equal(slice.args.numSectors, 16);
-    assert.equal(slice.args.sector, 3427120);
+    assert.strictEqual(slice.category, 'block');
+    assert.strictEqual(slice.title, 'write sync');
+    assert.strictEqual(slice.args.device, '179,0');
+    assert.strictEqual(slice.args.error, 0);
+    assert.strictEqual(slice.args.numSectors, 16);
+    assert.strictEqual(slice.args.sector, 3427120);
 
-    assert.equal(ext4Thread.asyncSliceGroup.length, 1);
+    assert.strictEqual(ext4Thread.asyncSliceGroup.length, 1);
 
     slice = ext4Thread.asyncSliceGroup.slices[0];
-    assert.equal(slice.category, 'ext4');
-    assert.equal(slice.title, 'fdatasync');
-    assert.equal(slice.args.device, '259,1');
-    assert.equal(slice.args.error, 0);
-    assert.equal(slice.args.inode, 81993);
+    assert.strictEqual(slice.category, 'ext4');
+    assert.strictEqual(slice.title, 'fdatasync');
+    assert.strictEqual(slice.args.device, '259,1');
+    assert.strictEqual(slice.args.error, 0);
+    assert.strictEqual(slice.args.inode, 81993);
 
-    assert.equal(f2fsSyncThread.asyncSliceGroup.length, 1);
+    assert.strictEqual(f2fsSyncThread.asyncSliceGroup.length, 1);
 
     slice = f2fsSyncThread.asyncSliceGroup.slices[0];
-    assert.equal(slice.category, 'f2fs');
-    assert.equal(slice.title, 'fsync');
-    assert.equal(slice.args.device, '259,14');
-    assert.equal(slice.args.error, 0);
-    assert.equal(slice.args.inode, 4882);
+    assert.strictEqual(slice.category, 'f2fs');
+    assert.strictEqual(slice.title, 'fsync');
+    assert.strictEqual(slice.args.device, '259,14');
+    assert.strictEqual(slice.args.error, 0);
+    assert.strictEqual(slice.args.inode, 4882);
 
-    assert.equal(f2fsWriteThread.asyncSliceGroup.length, 1);
+    assert.strictEqual(f2fsWriteThread.asyncSliceGroup.length, 1);
 
     slice = f2fsWriteThread.asyncSliceGroup.slices[0];
-    assert.equal(slice.category, 'f2fs');
-    assert.equal(slice.title, 'f2fs_write');
-    assert.equal(slice.args.device, '253,2');
-    assert.equal(slice.args.inode, 3342);
-    assert.equal(slice.args.error, false);
+    assert.strictEqual(slice.category, 'f2fs');
+    assert.strictEqual(slice.title, 'f2fs_write');
+    assert.strictEqual(slice.args.device, '253,2');
+    assert.strictEqual(slice.args.inode, 3342);
+    assert.strictEqual(slice.args.error, false);
   });
 });
 </script>

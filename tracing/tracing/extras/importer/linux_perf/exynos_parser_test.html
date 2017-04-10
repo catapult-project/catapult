@@ -33,9 +33,11 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(m.hasImportWarnings);
 
     var c0 = m.kernel.cpus[0];
-    assert.equal(c0.slices.length, 0);
-    assert.equal(c0.counters['.INT Frequency'].series[0].samples.length, 3);
-    assert.equal(c0.counters['.MIF Frequency'].series[0].samples.length, 1);
+    assert.strictEqual(c0.slices.length, 0);
+    assert.strictEqual(
+        c0.counters['.INT Frequency'].series[0].samples.length, 3);
+    assert.strictEqual(
+        c0.counters['.MIF Frequency'].series[0].samples.length, 1);
   });
 
   test('exynosPageFlipSlowRequestImport', function() {
@@ -64,17 +66,19 @@ tr.b.unittest.testSuite(function() {
     // there are 2 threads:
     //   (1) "exynos_flip_state (pipe:0, fb:25)"
     //   (2) "exynos_flip_state (pipe:0, fb:26)"
-    assert.equal(threads.length, 2);
+    assert.strictEqual(threads.length, 2);
 
     // in the test data, event of fb=26 occurs first, so it's thread[0]
     var gfxFbId26Thread = threads[0]; // thread where fb === 26
     var gfxFbId25Thread = threads[1]; // thread where fb === 25
-    assert.equal(gfxFbId25Thread.name, 'exynos_flip_state (pipe:0, fb:25)');
-    assert.equal(gfxFbId26Thread.name, 'exynos_flip_state (pipe:0, fb:26)');
+    assert.strictEqual(
+        gfxFbId25Thread.name, 'exynos_flip_state (pipe:0, fb:25)');
+    assert.strictEqual(
+        gfxFbId26Thread.name, 'exynos_flip_state (pipe:0, fb:26)');
     // Every state (except for 'flipped') will start a new slice.
     // The last event will not be closed, so it's not a slice
-    assert.equal(gfxFbId25Thread.sliceGroup.length, 3);
-    assert.equal(gfxFbId26Thread.sliceGroup.length, 3);
+    assert.strictEqual(gfxFbId25Thread.sliceGroup.length, 3);
+    assert.strictEqual(gfxFbId26Thread.sliceGroup.length, 3);
   });
 
   test('exynosPageFlipFastRequestImport', function() {
@@ -111,17 +115,19 @@ tr.b.unittest.testSuite(function() {
     // there are 2 threads:
     //   (1) "exynos_flip_state (pipe:0, fb:25)"
     //   (2) "exynos_flip_state (pipe:0, fb:26)"
-    assert.equal(threads.length, 2);
+    assert.strictEqual(threads.length, 2);
 
     // in the test data, event of fb=26 occurs first, so it's thread[0]
     var gfxFbId26Thread = threads[0]; // thread where fb === 26
     var gfxFbId25Thread = threads[1]; // thread where fb === 25
-    assert.equal(gfxFbId25Thread.name, 'exynos_flip_state (pipe:0, fb:25)');
-    assert.equal(gfxFbId26Thread.name, 'exynos_flip_state (pipe:0, fb:26)');
+    assert.strictEqual(
+        gfxFbId25Thread.name, 'exynos_flip_state (pipe:0, fb:25)');
+    assert.strictEqual(
+        gfxFbId26Thread.name, 'exynos_flip_state (pipe:0, fb:26)');
     // Every state (except for 'flipped') will start a new slice.
     // The last event will not be closed, so it's not a slice
-    assert.equal(gfxFbId25Thread.sliceGroup.length, 4);
-    assert.equal(gfxFbId26Thread.sliceGroup.length, 4);
+    assert.strictEqual(gfxFbId25Thread.sliceGroup.length, 4);
+    assert.strictEqual(gfxFbId26Thread.sliceGroup.length, 4);
   });
 });
 </script>

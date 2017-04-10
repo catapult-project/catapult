@@ -52,8 +52,8 @@ tr.b.unittest.testSuite(function() {
 
     var viewRect =
         view.getBoundingClientRect();
-    assert.equal(viewRect.height, 400);
-    assert.equal(viewRect.width, 800);
+    assert.strictEqual(viewRect.height, 400);
+    assert.strictEqual(viewRect.width, 800);
   });
 });
 </script>

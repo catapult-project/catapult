@@ -23,12 +23,12 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(div.hasEventListener('foo'));
 
     tr.b.dispatchSimpleEvent(div, 'foo');
-    assert.equal(listenerCallCount, 1);
+    assert.strictEqual(listenerCallCount, 1);
 
     div.removeEventListener('foo', listener);
 
     tr.b.dispatchSimpleEvent(div, 'foo');
-    assert.equal(listenerCallCount, 1);
+    assert.strictEqual(listenerCallCount, 1);
 
     assert.isFalse(div.hasEventListener('foo'));
   });
@@ -49,12 +49,12 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(div.hasEventListener('foo'));
 
     tr.b.dispatchSimpleEventAsync(div, 'foo');
-    assert.equal(listenerCallCount, 1);
+    assert.strictEqual(listenerCallCount, 1);
 
     div.removeEventListener('foo', listener);
 
     tr.b.dispatchSimpleEventAsync(div, 'foo');
-    assert.equal(listenerCallCount, 1);
+    assert.strictEqual(listenerCallCount, 1);
 
     assert.isFalse(div.hasEventListener('foo'));
   });

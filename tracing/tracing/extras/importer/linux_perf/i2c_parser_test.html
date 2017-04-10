@@ -35,48 +35,48 @@ tr.b.unittest.testSuite(function() {
         `Expected no import warnings but got ${m.importWarnings}`);
 
     var threads = m.getAllThreads();
-    assert.equal(threads.length, 2);
+    assert.strictEqual(threads.length, 2);
 
     var threads = m.findAllThreadsNamed('i2c adapter 3');
-    assert.equal(threads.length, 1);
-    assert.equal(threads[0].sliceGroup.length, 1);
+    assert.strictEqual(threads.length, 1);
+    assert.strictEqual(threads[0].sliceGroup.length, 1);
     var slice = threads[0].sliceGroup.slices[0];
-    assert.equal(slice.title, 'i2c write');
+    assert.strictEqual(slice.title, 'i2c write');
     assert.isDefined(slice.args);
-    assert.equal(slice.args['Message number'], '0');
-    assert.equal(slice.args['Address'], '020');
-    assert.equal(slice.args['Flags'], '0000');
-    assert.equal(slice.args['Data Length'], '2');
-    assert.equal(slice.args['Data'], '[15-00]');
+    assert.strictEqual(slice.args['Message number'], '0');
+    assert.strictEqual(slice.args['Address'], '020');
+    assert.strictEqual(slice.args['Flags'], '0000');
+    assert.strictEqual(slice.args['Data Length'], '2');
+    assert.strictEqual(slice.args['Data'], '[15-00]');
 
     var threads = m.findAllThreadsNamed('i2c adapter 7');
-    assert.equal(threads.length, 1);
-    assert.equal(threads[0].sliceGroup.length, 3);
+    assert.strictEqual(threads.length, 1);
+    assert.strictEqual(threads[0].sliceGroup.length, 3);
 
     var slice = threads[0].sliceGroup.slices[0];
-    assert.equal(slice.title, 'i2c write');
-    assert.equal(slice.args['Message number'], '0');
-    assert.equal(slice.args['Address'], '01d');
-    assert.equal(slice.args['Flags'], '0000');
-    assert.equal(slice.args['Data Length'], '1');
-    assert.equal(slice.args['Data'], '[00]');
+    assert.strictEqual(slice.title, 'i2c write');
+    assert.strictEqual(slice.args['Message number'], '0');
+    assert.strictEqual(slice.args['Address'], '01d');
+    assert.strictEqual(slice.args['Flags'], '0000');
+    assert.strictEqual(slice.args['Data Length'], '1');
+    assert.strictEqual(slice.args['Data'], '[00]');
 
     slice = threads[0].sliceGroup.slices[1];
-    assert.equal(slice.title, 'i2c read');
-    assert.equal(slice.args['Message number'], '1');
-    assert.equal(slice.args['Address'], '01d');
-    assert.equal(slice.args['Flags'], '0001');
-    assert.equal(slice.args['Data Length'], '1');
+    assert.strictEqual(slice.title, 'i2c read');
+    assert.strictEqual(slice.args['Message number'], '1');
+    assert.strictEqual(slice.args['Address'], '01d');
+    assert.strictEqual(slice.args['Flags'], '0001');
+    assert.strictEqual(slice.args['Data Length'], '1');
 
     slice = threads[0].sliceGroup.slices[2];
-    assert.equal(slice.title, 'i2c reply');
-    assert.equal(slice.args['Message number'], '1');
-    assert.equal(slice.args['Address'], '01d');
-    assert.equal(slice.args['Flags'], '0001');
-    assert.equal(slice.args['Data Length'], '1');
-    assert.equal(slice.args['Data'], '[01]');
-    assert.equal(slice.args['Number of messages'], '2');
-    assert.equal(slice.args['Return'], '2');
+    assert.strictEqual(slice.title, 'i2c reply');
+    assert.strictEqual(slice.args['Message number'], '1');
+    assert.strictEqual(slice.args['Address'], '01d');
+    assert.strictEqual(slice.args['Flags'], '0001');
+    assert.strictEqual(slice.args['Data Length'], '1');
+    assert.strictEqual(slice.args['Data'], '[01]');
+    assert.strictEqual(slice.args['Number of messages'], '2');
+    assert.strictEqual(slice.args['Return'], '2');
   });
 });
 </script>

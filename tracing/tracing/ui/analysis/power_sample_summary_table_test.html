@@ -55,11 +55,12 @@ tr.b.unittest.testSuite(function() {
     table.samples = new EventSet(series.samples);
 
     assert.lengthOf(table.$.table.tableRows, 1);
-    assert.equal(table.$.table.tableRows[0].min, 1);
-    assert.equal(table.$.table.tableRows[0].max, 1);
-    assert.equal(table.$.table.tableRows[0].timeWeightedAverageInW, 'N/A');
-    assert.equal(table.$.table.tableRows[0].energyConsumedInJ, 'N/A');
-    assert.equal(table.$.table.tableRows[0].sampleCount, 1);
+    assert.strictEqual(table.$.table.tableRows[0].min, 1);
+    assert.strictEqual(table.$.table.tableRows[0].max, 1);
+    assert.strictEqual(
+        table.$.table.tableRows[0].timeWeightedAverageInW, 'N/A');
+    assert.strictEqual(table.$.table.tableRows[0].energyConsumedInJ, 'N/A');
+    assert.strictEqual(table.$.table.tableRows[0].sampleCount, 1);
   });
 
   test('setSamples_twoPowerSamples', function() {
@@ -72,11 +73,11 @@ tr.b.unittest.testSuite(function() {
     table.samples = new EventSet(series.samples);
 
     assert.lengthOf(table.$.table.tableRows, 1);
-    assert.equal(table.$.table.tableRows[0].min, 1);
-    assert.equal(table.$.table.tableRows[0].max, 2);
-    assert.equal(table.$.table.tableRows[0].timeWeightedAverageInW, 1);
-    assert.equal(table.$.table.tableRows[0].energyConsumedInJ, 1);
-    assert.equal(table.$.table.tableRows[0].sampleCount, 2);
+    assert.strictEqual(table.$.table.tableRows[0].min, 1);
+    assert.strictEqual(table.$.table.tableRows[0].max, 2);
+    assert.strictEqual(table.$.table.tableRows[0].timeWeightedAverageInW, 1);
+    assert.strictEqual(table.$.table.tableRows[0].energyConsumedInJ, 1);
+    assert.strictEqual(table.$.table.tableRows[0].sampleCount, 2);
   });
 
   test('setSamples_threePowerSamples', function() {
@@ -90,11 +91,11 @@ tr.b.unittest.testSuite(function() {
     table.samples = new EventSet(series.samples);
 
     assert.lengthOf(table.$.table.tableRows, 1);
-    assert.equal(table.$.table.tableRows[0].min, 1);
-    assert.equal(table.$.table.tableRows[0].max, 3);
-    assert.equal(table.$.table.tableRows[0].timeWeightedAverageInW, 1.5);
-    assert.equal(table.$.table.tableRows[0].energyConsumedInJ, 3);
-    assert.equal(table.$.table.tableRows[0].sampleCount, 3);
+    assert.strictEqual(table.$.table.tableRows[0].min, 1);
+    assert.strictEqual(table.$.table.tableRows[0].max, 3);
+    assert.strictEqual(table.$.table.tableRows[0].timeWeightedAverageInW, 1.5);
+    assert.strictEqual(table.$.table.tableRows[0].energyConsumedInJ, 3);
+    assert.strictEqual(table.$.table.tableRows[0].sampleCount, 3);
   });
 
   test('setSamples_columnsInitialized', function() {
@@ -112,25 +113,25 @@ tr.b.unittest.testSuite(function() {
 
     assert.lengthOf(columns, 5);
 
-    assert.equal(columns[0].title, 'Min power');
-    assert.equal(columns[0].width, '100px');
-    assert.equal(columns[0].value(row), '1.000 W');
+    assert.strictEqual(columns[0].title, 'Min power');
+    assert.strictEqual(columns[0].width, '100px');
+    assert.strictEqual(columns[0].value(row), '1.000 W');
 
-    assert.equal(columns[1].title, 'Max power');
-    assert.equal(columns[1].width, '100px');
-    assert.equal(columns[1].value(row), '3.000 W');
+    assert.strictEqual(columns[1].title, 'Max power');
+    assert.strictEqual(columns[1].width, '100px');
+    assert.strictEqual(columns[1].value(row), '3.000 W');
 
-    assert.equal(columns[2].title, 'Time-weighted average');
-    assert.equal(columns[2].width, '100px');
-    assert.equal(columns[2].value(row), '1.500 W');
+    assert.strictEqual(columns[2].title, 'Time-weighted average');
+    assert.strictEqual(columns[2].width, '100px');
+    assert.strictEqual(columns[2].value(row), '1.500 W');
 
-    assert.equal(columns[3].title, 'Energy consumed');
-    assert.equal(columns[3].width, '100px');
-    assert.equal(columns[3].value(row), '3.000 J');
+    assert.strictEqual(columns[3].title, 'Energy consumed');
+    assert.strictEqual(columns[3].width, '100px');
+    assert.strictEqual(columns[3].value(row), '3.000 J');
 
-    assert.equal(columns[4].title, 'Sample count');
-    assert.equal(columns[4].width, '100%');
-    assert.equal(columns[4].value(row), 3);
+    assert.strictEqual(columns[4].title, 'Sample count');
+    assert.strictEqual(columns[4].width, '100%');
+    assert.strictEqual(columns[4].value(row), 3);
   });
 });
 </script>

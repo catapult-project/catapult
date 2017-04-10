@@ -19,7 +19,7 @@ tr.b.unittest.testSuite(function() {
   test('checkSelectionState_undefinedModelItem', function() {
     var proxyItem = new ProxySelectableItem(undefined);
     assert.isFalse(proxyItem.selected);
-    assert.equal(proxyItem.selectionState, SelectionState.NONE);
+    assert.strictEqual(proxyItem.selectionState, SelectionState.NONE);
   });
 
   test('checkSelectionState_definedModelItem', function() {
@@ -27,12 +27,12 @@ tr.b.unittest.testSuite(function() {
     var modelItem = {selectionState: SelectionState.SELECTED};
     var proxyItem = new ProxySelectableItem(modelItem);
     assert.isTrue(proxyItem.selected);
-    assert.equal(proxyItem.selectionState, SelectionState.SELECTED);
+    assert.strictEqual(proxyItem.selectionState, SelectionState.SELECTED);
 
     // Change the selection state of the model event to highlighted.
     modelItem.selectionState = SelectionState.HIGHLIGHTED;
     assert.isFalse(proxyItem.selected);
-    assert.equal(proxyItem.selectionState, SelectionState.HIGHLIGHTED);
+    assert.strictEqual(proxyItem.selectionState, SelectionState.HIGHLIGHTED);
   });
 });
 </script>

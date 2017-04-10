@@ -23,30 +23,30 @@ tr.b.unittest.testSuite(function() {
     var x = re.exec('prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ' +
         '==> next_comm=SurfaceFlinger next_pid=178 next_prio=112');
     assert.isNotNull(x);
-    assert.equal(x[1], 'swapper');
-    assert.equal(x[2], '0');
-    assert.equal(x[3], '120');
-    assert.equal(x[4], 'R');
-    assert.equal(x[5], 'SurfaceFlinger');
-    assert.equal(x[6], '178');
-    assert.equal(x[7], '112');
+    assert.strictEqual(x[1], 'swapper');
+    assert.strictEqual(x[2], '0');
+    assert.strictEqual(x[3], '120');
+    assert.strictEqual(x[4], 'R');
+    assert.strictEqual(x[5], 'SurfaceFlinger');
+    assert.strictEqual(x[6], '178');
+    assert.strictEqual(x[7], '112');
 
     var x = re.exec('prev_comm=.android.chrome prev_pid=1562 prev_prio=120 prev_state=R ==> next_comm=Binder Thread # next_pid=195 next_prio=120'); // @suppress longLineCheck
     assert.isNotNull(x);
-    assert.equal(x[1], '.android.chrome');
-    assert.equal(x[5], 'Binder Thread #');
+    assert.strictEqual(x[1], '.android.chrome');
+    assert.strictEqual(x[5], 'Binder Thread #');
 
     var x = re.exec('prev_comm=Binder Thread # prev_pid=1562 prev_prio=120 prev_state=R ==> next_comm=.android.chrome next_pid=195 next_prio=120'); // @suppress longLineCheck
     assert.isNotNull(x);
-    assert.equal(x[1], 'Binder Thread #');
-    assert.equal(x[5], '.android.chrome');
+    assert.strictEqual(x[1], 'Binder Thread #');
+    assert.strictEqual(x[5], '.android.chrome');
 
     // explicit test for prev_state of D|W
     var x = re.exec('prev_comm=.android.chrome prev_pid=1562 prev_prio=120 ' +
         'prev_state=D|W ==> next_comm=Binder Thread # next_pid=195 ' +
         'next_prio=120');
     assert.isNotNull(x);
-    assert.equal(x[4], 'D|W');
+    assert.strictEqual(x[4], 'D|W');
   });
 
   test('schedWakeupRE', function() {
@@ -54,17 +54,17 @@ tr.b.unittest.testSuite(function() {
     var x = re.exec(
         'comm=SensorService pid=207 prio=112 success=1 target_cpu=000');
     assert.isNotNull(x);
-    assert.equal(x[1], 'SensorService');
-    assert.equal(x[2], '207');
-    assert.equal(x[3], '112');
-    assert.equal(x[4], '000');
+    assert.strictEqual(x[1], 'SensorService');
+    assert.strictEqual(x[2], '207');
+    assert.strictEqual(x[3], '112');
+    assert.strictEqual(x[4], '000');
     var y = re.exec(
         'comm=SensorService pid=207 prio=112 target_cpu=000');
     assert.isNotNull(y);
-    assert.equal(y[1], 'SensorService');
-    assert.equal(y[2], '207');
-    assert.equal(y[3], '112');
-    assert.equal(y[4], '000');
+    assert.strictEqual(y[1], 'SensorService');
+    assert.strictEqual(y[2], '207');
+    assert.strictEqual(y[3], '112');
+    assert.strictEqual(y[4], '000');
   });
 
   test('importOneSequenceWithSchedWakeUp', function() {
@@ -84,26 +84,29 @@ tr.b.unittest.testSuite(function() {
 
     var thread = m.findAllThreadsNamed('Binder_1')[0];
     var timeSlices = thread.timeSlices;
-    assert.equal(timeSlices.length, 4);
+    assert.strictEqual(timeSlices.length, 4);
 
     var runningSlice = timeSlices[0];
-    assert.equal(runningSlice.schedulingState, SCHEDULING_STATE.RUNNING);
+    assert.strictEqual(runningSlice.schedulingState, SCHEDULING_STATE.RUNNING);
     assert.closeTo(12622506.890, runningSlice.start, 1e-5);
     assert.closeTo(.918 - .890, runningSlice.duration, 1e-5);
 
     var sleepSlice = timeSlices[1];
-    assert.equal(sleepSlice.schedulingState, SCHEDULING_STATE.UNINTR_SLEEP);
+    assert.strictEqual(
+        sleepSlice.schedulingState, SCHEDULING_STATE.UNINTR_SLEEP);
     assert.closeTo(12622506.918, sleepSlice.start, 1e-5);
     assert.closeTo(.936 - .918, sleepSlice.duration, 1e-5);
 
     var wakeupSlice = timeSlices[2];
-    assert.equal(wakeupSlice.schedulingState, SCHEDULING_STATE.RUNNABLE);
+    assert.strictEqual(
+        wakeupSlice.schedulingState, SCHEDULING_STATE.RUNNABLE);
     assert.closeTo(12622506.936, wakeupSlice.start, 1e-5);
     assert.closeTo(.950 - .936, wakeupSlice.duration, 1e-5);
-    assert.equal(wakeupSlice.args['wakeup from tid'], 584);
+    assert.strictEqual(wakeupSlice.args['wakeup from tid'], 584);
 
     var runningSlice2 = timeSlices[3];
-    assert.equal(runningSlice2.schedulingState, SCHEDULING_STATE.RUNNING);
+    assert.strictEqual(
+        runningSlice2.schedulingState, SCHEDULING_STATE.RUNNING);
     assert.closeTo(12622506.950, runningSlice2.start, 1e-5);
     assert.closeTo(7.253 - 6.950, runningSlice2.duration, 1e-5);
   });
@@ -125,12 +128,13 @@ tr.b.unittest.testSuite(function() {
       m = newModel(lines.join('\n'));
     });
     assert.isTrue(m.hasImportWarnings);
-    assert.equal(m.importWarnings[0].message, 'Unrecognized sleep state: F|O');
+    assert.strictEqual(
+        m.importWarnings[0].message, 'Unrecognized sleep state: F|O');
 
     var thread = m.findAllThreadsNamed('Binder_1')[0];
     var timeSlices = thread.timeSlices;
 
-    assert.equal(timeSlices[1].schedulingState, SCHEDULING_STATE.UNKNOWN);
+    assert.strictEqual(timeSlices[1].schedulingState, SCHEDULING_STATE.UNKNOWN);
   });
 
   test('importWithUninterruptibleSleep', function() {
@@ -168,10 +172,10 @@ tr.b.unittest.testSuite(function() {
 
     var thread = m.findAllThreadsNamed('Binder_1')[0];
     var timeSlices = thread.timeSlices;
-    assert.equal(timeSlices.length, 4);
+    assert.strictEqual(timeSlices.length, 4);
 
     var wakeKillSlice = timeSlices[1];
-    assert.equal(wakeKillSlice.schedulingState,
+    assert.strictEqual(wakeKillSlice.schedulingState,
         SCHEDULING_STATE.UNINTR_SLEEP_WAKE_KILL);
     assert.closeTo(12622506.918, wakeKillSlice.start, 1e-5);
     assert.closeTo(.936 - .918, wakeKillSlice.duration, 1e-5);
@@ -215,10 +219,10 @@ tr.b.unittest.testSuite(function() {
 
     var thread = m.findAllThreadsNamed('Binder_1')[0];
     var timeSlices = thread.timeSlices;
-    assert.equal(timeSlices.length, 4);
+    assert.strictEqual(timeSlices.length, 4);
 
     var wakeKillSlice = timeSlices[1];
-    assert.equal(wakeKillSlice.schedulingState,
+    assert.strictEqual(wakeKillSlice.schedulingState,
         SCHEDULING_STATE.UNINTR_SLEEP_WAKE_KILL_IO);
     assert.closeTo(12622506.918, wakeKillSlice.start, 1e-5);
     assert.closeTo(.936 - .918, wakeKillSlice.duration, 1e-5);

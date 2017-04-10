@@ -45,7 +45,7 @@ tr.b.unittest.testSuite(function() {
     });
 
     var m = tr.c.TestUtils.newModelWithEvents([combined]);
-    assert.equal(tr.b.dictionaryValues(m.processes).length, 1);
+    assert.strictEqual(tr.b.dictionaryValues(m.processes).length, 1);
 
     var p1 = m.processes[1];
     assert.isDefined(p1);
@@ -55,11 +55,11 @@ tr.b.unittest.testSuite(function() {
     assert.isDefined(t2);
     assert.isDefined(t3);
 
-    assert.equal(1, 1, t2.sliceGroup.length);
-    assert.equal(t2.sliceGroup.slices[0].title, 'taskA');
+    assert.strictEqual(1, 1, t2.sliceGroup.length);
+    assert.strictEqual(t2.sliceGroup.slices[0].title, 'taskA');
 
-    assert.equal(t3.sliceGroup.length, 1);
-    assert.equal(t3.sliceGroup.slices[0].title, 'taskB');
+    assert.strictEqual(t3.sliceGroup.length, 1);
+    assert.strictEqual(t3.sliceGroup.slices[0].title, 'taskB');
   });
 
   test('canImportCompressedSingleSubtrace', function() {
@@ -67,7 +67,7 @@ tr.b.unittest.testSuite(function() {
         'H4sIACKfFVUC/wsuLUpLTE51y8nMS08t0jVSUIg2MDCMV' +
         'dDT0zNUMDQwMNAzsFIAIqcaw5qSxOJsR65gfDqMEDpcATiC61ZbAAAA');
     var m = tr.c.TestUtils.newModelWithEvents([compressedTrace]);
-    assert.equal(1, tr.b.dictionaryValues(m.processes).length);
+    assert.strictEqual(1, tr.b.dictionaryValues(m.processes).length);
 
     var p1 = m.processes[1];
     assert.isDefined(p1);
@@ -75,8 +75,8 @@ tr.b.unittest.testSuite(function() {
     var t2 = p1.threads[2];
     assert.isDefined(t2);
 
-    assert.equal(1, t2.sliceGroup.length, 1);
-    assert.equal('taskA', t2.sliceGroup.slices[0].title);
+    assert.strictEqual(1, t2.sliceGroup.length, 1);
+    assert.strictEqual('taskA', t2.sliceGroup.slices[0].title);
   });
 
   test('canImportSubtracesRecursively', function() {
@@ -107,7 +107,7 @@ tr.b.unittest.testSuite(function() {
     });
 
     var m = tr.c.TestUtils.newModelWithEvents([outerTrace]);
-    assert.equal(tr.b.dictionaryValues(m.processes).length, 1);
+    assert.strictEqual(tr.b.dictionaryValues(m.processes).length, 1);
 
     var p1 = m.processes[1];
     assert.isDefined(p1);
@@ -117,11 +117,11 @@ tr.b.unittest.testSuite(function() {
     assert.isDefined(t2);
     assert.isDefined(t3);
 
-    assert.equal(1, 1, t2.sliceGroup.length);
-    assert.equal(t2.sliceGroup.slices[0].title, 'taskA');
+    assert.strictEqual(1, 1, t2.sliceGroup.length);
+    assert.strictEqual(t2.sliceGroup.slices[0].title, 'taskA');
 
-    assert.equal(t3.sliceGroup.length, 1);
-    assert.equal(t3.sliceGroup.slices[0].title, 'taskB');
+    assert.strictEqual(t3.sliceGroup.length, 1);
+    assert.strictEqual(t3.sliceGroup.slices[0].title, 'taskB');
   });
 
   test('withImportFailure', function() {
@@ -146,8 +146,8 @@ tr.b.unittest.testSuite(function() {
       }
     });
     var t2 = m.processes[1].threads[2];
-    assert.equal(t2.sliceGroup.length, 3);
-    assert.equal(t2.sliceGroup.topLevelSlices.length, 2);
+    assert.strictEqual(t2.sliceGroup.length, 3);
+    assert.strictEqual(t2.sliceGroup.topLevelSlices.length, 2);
   });
 
   test('sortsSamples', function() {
@@ -159,9 +159,9 @@ tr.b.unittest.testSuite(function() {
       'tick,0x9a,184,0,0x0,5',
       'tick,0x9b,0,0,0x0,5',
       'tick,0x9c,185,0,0x0,5']);
-    assert.equal(m.samples[0].start, 0);
-    assert.equal(m.samples[1].start, 0.184);
-    assert.equal(m.samples[2].start, 0.185);
+    assert.strictEqual(m.samples[0].start, 0);
+    assert.strictEqual(m.samples[1].start, 0.184);
+    assert.strictEqual(m.samples[2].start, 0.185);
   });
 
   test('sortsGlobalMemoryDumps', function() {
@@ -173,9 +173,9 @@ tr.b.unittest.testSuite(function() {
         m.globalMemoryDumps.push(new tr.model.GlobalMemoryDump(m, 3));
       }
     });
-    assert.equal(m.globalMemoryDumps[0].start, 0);
-    assert.equal(m.globalMemoryDumps[1].start, 2);
-    assert.equal(m.globalMemoryDumps[2].start, 4);
+    assert.strictEqual(m.globalMemoryDumps[0].start, 0);
+    assert.strictEqual(m.globalMemoryDumps[1].start, 2);
+    assert.strictEqual(m.globalMemoryDumps[2].start, 4);
   });
 
   test('finalizesProcessMemoryDumps', function() {
@@ -201,9 +201,9 @@ tr.b.unittest.testSuite(function() {
     });
 
     // Check the sort order.
-    assert.equal(p.memoryDumps[0].start, 2);
-    assert.equal(p.memoryDumps[1].start, 4);
-    assert.equal(p.memoryDumps[2].start, 6);
+    assert.strictEqual(p.memoryDumps[0].start, 2);
+    assert.strictEqual(p.memoryDumps[1].start, 4);
+    assert.strictEqual(p.memoryDumps[2].start, 6);
 
     // Check that the most recent VM regions are linked correctly.
     assert.isUndefined(p.memoryDumps[0].mostRecentVmRegions);

@@ -42,8 +42,8 @@ tr.b.unittest.testSuite(function() {
     var histograms = new tr.v.HistogramSet();
     tr.metrics.sh.loadingMetric(histograms, model);
     var hist = histograms.getHistogramNamed('timeToFirstContentfulPaint');
-    assert.equal(1, hist.running.count);
-    assert.equal(800, hist.running.mean);
+    assert.strictEqual(1, hist.running.count);
+    assert.strictEqual(800, hist.running.mean);
   });
 
   test('timeToFirstContentfulPaintIgnoringWarmCache', function() {
@@ -111,8 +111,8 @@ tr.b.unittest.testSuite(function() {
     var histograms = new tr.v.HistogramSet();
     tr.metrics.sh.loadingMetric(histograms, model);
     var hist = histograms.getHistogramNamed('timeToFirstContentfulPaint');
-    assert.equal(1, hist.running.count);
-    assert.equal(400, hist.running.mean);
+    assert.strictEqual(1, hist.running.count);
+    assert.strictEqual(400, hist.running.mean);
   });
 
   test('timeToFirstMeaningfulPaint', function() {
@@ -151,8 +151,8 @@ tr.b.unittest.testSuite(function() {
     var histograms = new tr.v.HistogramSet();
     tr.metrics.sh.loadingMetric(histograms, model);
     var hist = histograms.getHistogramNamed('timeToFirstMeaningfulPaint');
-    assert.equal(1, hist.running.count);
-    assert.equal(800, hist.running.mean);
+    assert.strictEqual(1, hist.running.count);
+    assert.strictEqual(800, hist.running.mean);
   });
 
   //             [--------------------------]
@@ -213,10 +213,10 @@ tr.b.unittest.testSuite(function() {
     var hist = histograms.getHistogramNamed('cpuTimeToFirstMeaningfulPaint');
     assert.deepEqual(hist.sampleValues, [40]);
     var histBin = hist.getBinForValue(40);
-    assert.equal(histBin.diagnosticMaps[0].get('Breakdown of [navStart, FMP]')
-        .get('other'), 35);
-    assert.equal(histBin.diagnosticMaps[0].get('Breakdown of [navStart, FMP]')
-        .get('resource_loading'), 15);
+    assert.strictEqual(histBin.diagnosticMaps[0]
+        .get('Breakdown of [navStart, FMP]').get('other'), 35);
+    assert.strictEqual(histBin.diagnosticMaps[0]
+        .get('Breakdown of [navStart, FMP]').get('resource_loading'), 15);
   });
 
   //             [-------------]        [------------------]
@@ -274,8 +274,8 @@ tr.b.unittest.testSuite(function() {
     var histograms = new tr.v.HistogramSet();
     tr.metrics.sh.loadingMetric(histograms, model);
     var hist = histograms.getHistogramNamed('cpuTimeToFirstMeaningfulPaint');
-    assert.equal(1, hist.running.count);
-    assert.equal(110, hist.running.mean);
+    assert.strictEqual(1, hist.running.count);
+    assert.strictEqual(110, hist.running.mean);
   });
 
   // Render 1:
@@ -374,11 +374,11 @@ tr.b.unittest.testSuite(function() {
     var hist = histograms.getHistogramNamed('cpuTimeToFirstMeaningfulPaint');
     assert.deepEqual(hist.sampleValues, [50, 100]);
     var histBin1 = hist.getBinForValue(50);
-    assert.equal(histBin1.diagnosticMaps[0].get('Breakdown of [navStart, FMP]')
-        .get('resource_loading'), 50);
+    assert.strictEqual(histBin1.diagnosticMaps[0]
+        .get('Breakdown of [navStart, FMP]').get('resource_loading'), 50);
     var histBin2 = hist.getBinForValue(100);
-    assert.equal(histBin2.diagnosticMaps[0].get('Breakdown of [navStart, FMP]')
-        .get('other'), 100);
+    assert.strictEqual(histBin2.diagnosticMaps[0]
+        .get('Breakdown of [navStart, FMP]').get('other'), 100);
   });
 
   test('timeToInteractive', function() {
@@ -462,15 +462,15 @@ tr.b.unittest.testSuite(function() {
     var histograms = new tr.v.HistogramSet();
     tr.metrics.sh.loadingMetric(histograms, model);
     var hist = histograms.getHistogramNamed('timeToFirstInteractive');
-    assert.equal(1, hist.running.count);
-    assert.equal(15200, hist.running.mean);
+    assert.strictEqual(1, hist.running.count);
+    assert.strictEqual(15200, hist.running.mean);
     var binsWithSampleDiagnosticMaps = hist.allBins.filter(
         bin => bin.diagnosticMaps.length > 0);
     var diagnostic = binsWithSampleDiagnosticMaps[0].diagnosticMaps[0].get(
         'Navigation infos');
-    assert.equal(diagnostic.value.start, 200);
-    assert.equal(diagnostic.value.interactive, 15400);
-    assert.equal(diagnostic.value.pid, 1984);
+    assert.strictEqual(diagnostic.value.start, 200);
+    assert.strictEqual(diagnostic.value.interactive, 15400);
+    assert.strictEqual(diagnostic.value.pid, 1984);
   });
 
   test('multiTimeToInteractive', function() {
@@ -569,9 +569,9 @@ tr.b.unittest.testSuite(function() {
     var histograms = new tr.v.HistogramSet();
     tr.metrics.sh.loadingMetric(histograms, model);
     var hist = histograms.getHistogramNamed('timeToFirstInteractive');
-    assert.equal(2, hist.running.count);
-    assert.equal(4000, hist.running.min);
-    assert.equal(15200, hist.running.max);
+    assert.strictEqual(2, hist.running.count);
+    assert.strictEqual(4000, hist.running.min);
+    assert.strictEqual(15200, hist.running.max);
   });
 
   test('webView', function() {
@@ -614,11 +614,11 @@ tr.b.unittest.testSuite(function() {
     var histograms = new tr.v.HistogramSet();
     tr.metrics.sh.loadingMetric(histograms, model);
     var fcp = histograms.getHistogramNamed('timeToFirstContentfulPaint');
-    assert.equal(1, fcp.running.count);
-    assert.equal(400, fcp.running.mean);
+    assert.strictEqual(1, fcp.running.count);
+    assert.strictEqual(400, fcp.running.mean);
     var fmp = histograms.getHistogramNamed('timeToFirstMeaningfulPaint');
-    assert.equal(1, fmp.running.count);
-    assert.equal(800, fmp.running.mean);
+    assert.strictEqual(1, fmp.running.count);
+    assert.strictEqual(800, fmp.running.mean);
   });
 
   test('testGetNetworkEvents', function() {
@@ -703,7 +703,7 @@ tr.b.unittest.testSuite(function() {
 
     const partialNetworkEvents = tr.metrics.sh.getNetworkEventsInRange(
         rendererHelper.process, tr.b.math.Range.fromExplicitRange(0, 460));
-    assert.equal(2, partialNetworkEvents.length);
+    assert.strictEqual(2, partialNetworkEvents.length);
     assert.sameDeepMembers(
         [netEvent1, netEvent2],
         partialNetworkEvents);

@@ -220,7 +220,7 @@ tr.b.unittest.testSuite(function() {
     let aHist = new tr.v.Histogram('aHist', tr.b.Unit.byName.count);
     let histograms = new tr.v.HistogramSet([aHist]);
 
-    assert.equal(histograms.getHistogramNamed('aHist'), aHist);
+    assert.strictEqual(histograms.getHistogramNamed('aHist'), aHist);
   });
 
   test('getHistogramNamed_multipleHistogramsFound', function() {

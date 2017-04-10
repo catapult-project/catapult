@@ -144,12 +144,12 @@ tr.b.unittest.testSuite(function() {
         internalFlows = row.selection;
       }
     });
-    assert.equal(inFlows.length, 1);
-    assert.equal(tr.b.getOnlyElement(inFlows).title, 'a_b');
-    assert.equal(outFlows.length, 1);
-    assert.equal(tr.b.getOnlyElement(outFlows).title, 'bbb_c');
-    assert.equal(internalFlows.length, 1);
-    assert.equal(tr.b.getOnlyElement(internalFlows).title, 'b_bbb');
+    assert.strictEqual(inFlows.length, 1);
+    assert.strictEqual(tr.b.getOnlyElement(inFlows).title, 'a_b');
+    assert.strictEqual(outFlows.length, 1);
+    assert.strictEqual(tr.b.getOnlyElement(outFlows).title, 'bbb_c');
+    assert.strictEqual(internalFlows.length, 1);
+    assert.strictEqual(tr.b.getOnlyElement(internalFlows).title, 'b_bbb');
   });
 
   test('validateConnectedEvents', function() {

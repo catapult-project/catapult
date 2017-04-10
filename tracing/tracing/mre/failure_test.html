@@ -35,11 +35,11 @@ tr.b.unittest.testSuite(function() {
 
     var failure = tr.mre.Failure.fromDict(failureDict);
 
-    assert.equal(failure.functionHandleString, 'foo.html:Foo');
-    assert.equal(failure.traceCanonicalUrl, 'file://foo.html');
-    assert.equal(failure.failureTypeName, 'err');
-    assert.equal(failure.description, 'desc');
-    assert.equal(failure.stack, 'stack');
+    assert.strictEqual(failure.functionHandleString, 'foo.html:Foo');
+    assert.strictEqual(failure.traceCanonicalUrl, 'file://foo.html');
+    assert.strictEqual(failure.failureTypeName, 'err');
+    assert.strictEqual(failure.description, 'desc');
+    assert.strictEqual(failure.stack, 'stack');
   });
 });
 

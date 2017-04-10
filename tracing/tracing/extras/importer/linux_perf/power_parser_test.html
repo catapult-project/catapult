@@ -31,12 +31,14 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(m.hasImportWarnings);
 
     var c0 = m.kernel.cpus[0];
-    assert.equal(c0.slices.length, 0);
-    assert.equal(c0.counters['.Clock Frequency'].series[0].samples.length, 1);
+    assert.strictEqual(c0.slices.length, 0);
+    assert.strictEqual(
+        c0.counters['.Clock Frequency'].series[0].samples.length, 1);
 
     var c1 = m.kernel.cpus[1];
-    assert.equal(c1.slices.length, 0);
-    assert.equal(c1.counters['.Clock Frequency'].series[0].samples.length, 2);
+    assert.strictEqual(c1.slices.length, 0);
+    assert.strictEqual(
+        c1.counters['.Clock Frequency'].series[0].samples.length, 2);
   });
 
   test('cpuFrequencyImport', function() {
@@ -54,12 +56,14 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(m.hasImportWarnings);
 
     var c0 = m.kernel.cpus[0];
-    assert.equal(c0.slices.length, 0);
-    assert.equal(c0.counters['.Clock Frequency'].series[0].samples.length, 2);
+    assert.strictEqual(c0.slices.length, 0);
+    assert.strictEqual(
+        c0.counters['.Clock Frequency'].series[0].samples.length, 2);
 
     var c1 = m.kernel.cpus[1];
-    assert.equal(c1.slices.length, 0);
-    assert.equal(c1.counters['.Clock Frequency'].series[0].samples.length, 2);
+    assert.strictEqual(c1.slices.length, 0);
+    assert.strictEqual(
+        c1.counters['.Clock Frequency'].series[0].samples.length, 2);
   });
 
   test('cpuIdleImport', function() {
@@ -81,12 +85,12 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(m.hasImportWarnings);
 
     var c0 = m.kernel.cpus[0];
-    assert.equal(c0.slices.length, 0);
-    assert.equal(c0.counters['.C-State'].series[0].samples.length, 2);
+    assert.strictEqual(c0.slices.length, 0);
+    assert.strictEqual(c0.counters['.C-State'].series[0].samples.length, 2);
 
     var c1 = m.kernel.cpus[1];
-    assert.equal(c1.slices.length, 0);
-    assert.equal(c1.counters['.C-State'].series[0].samples.length, 4);
+    assert.strictEqual(c1.slices.length, 0);
+    assert.strictEqual(c1.counters['.C-State'].series[0].samples.length, 4);
   });
 });
 </script>

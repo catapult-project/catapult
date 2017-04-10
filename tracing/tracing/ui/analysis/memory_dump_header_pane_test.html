@@ -32,10 +32,11 @@ tr.b.unittest.testSuite(function() {
   function checkMemoryDumpHeaderPane(viewEl, containerMemoryDumps,
       expectedLabelText, expectedChildPaneRequested, expectedSelectorVisible) {
     // The default aggregation mode is DIFF.
-    assert.equal(viewEl.aggregationMode, AggregationMode.DIFF);
+    assert.strictEqual(viewEl.aggregationMode, AggregationMode.DIFF);
 
     // Check the text in the label.
-    assert.equal(Polymer.dom(viewEl.$.label).textContent, expectedLabelText);
+    assert.strictEqual(
+        Polymer.dom(viewEl.$.label).textContent, expectedLabelText);
 
     // Check the visibility of aggregation mode selector.
     var aggregationModeContainerVisible =
@@ -59,10 +60,11 @@ tr.b.unittest.testSuite(function() {
     function checkLastChildPane(expectedChildPaneCount) {
       assert.lengthOf(childPanes, expectedChildPaneCount);
       var lastChildPane = childPanes[expectedChildPaneCount - 1];
-      assert.equal(lastChildPane.tagName, 'TR-UI-A-MEMORY-DUMP-OVERVIEW-PANE');
+      assert.strictEqual(
+          lastChildPane.tagName, 'TR-UI-A-MEMORY-DUMP-OVERVIEW-PANE');
       assert.deepEqual(lastChildPane.processMemoryDumps,
           expectedProcessMemoryDumps);
-      assert.equal(lastChildPane.aggregationMode, viewEl.aggregationMode);
+      assert.strictEqual(lastChildPane.aggregationMode, viewEl.aggregationMode);
     }
 
     checkLastChildPane(1);
@@ -78,12 +80,12 @@ tr.b.unittest.testSuite(function() {
 
     selector.selectedValue = AggregationMode.MAX;
     viewEl.rebuild();
-    assert.equal(viewEl.aggregationMode, AggregationMode.MAX);
+    assert.strictEqual(viewEl.aggregationMode, AggregationMode.MAX);
     checkLastChildPane(2);
 
     selector.selectedValue = AggregationMode.DIFF;
     viewEl.rebuild();
-    assert.equal(viewEl.aggregationMode, AggregationMode.DIFF);
+    assert.strictEqual(viewEl.aggregationMode, AggregationMode.DIFF);
     checkLastChildPane(3);
   }
 

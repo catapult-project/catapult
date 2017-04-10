@@ -198,7 +198,7 @@ tr.b.unittest.testSuite(function() {
     x = (2.1 / wW) * vW;
     track.addIntersectingEventsInRangeToSelection(
         x, x + 1, y, y + 1, selection);
-    assert.equal(0, selection.length);
+    assert.strictEqual(0, selection.length);
 
     var selection = new EventSet();
     x = (6.8 / wW) * vW;
@@ -210,7 +210,7 @@ tr.b.unittest.testSuite(function() {
     x = (9.9 / wW) * vW;
     track.addIntersectingEventsInRangeToSelection(
         x, x + 1, y, y + 1, selection);
-    assert.equal(0, selection.length);
+    assert.strictEqual(0, selection.length);
   });
 
   test('elide', function() {
@@ -252,7 +252,7 @@ tr.b.unittest.testSuite(function() {
                 track.context(),
                 smalltitle),
             1);
-    assert.equal(smalltitle, stringWidthPair.string);
+    assert.strictEqual(smalltitle, stringWidthPair.string);
 
     // Keep shrinking the slice until eliding starts.
     var elidedWhenSmallEnough = false;
@@ -291,7 +291,7 @@ tr.b.unittest.testSuite(function() {
 
     // And elided text ends with ...
     var len = stringWidthPair.string.length;
-    assert.equal('...', stringWidthPair.string.substring(len - 3, len));
+    assert.strictEqual('...', stringWidthPair.string.substring(len - 3, len));
   });
 
   test('rectTrackAddItemNearToProvidedEvent', function() {
@@ -312,21 +312,23 @@ tr.b.unittest.testSuite(function() {
     ret = track.addEventNearToProvidedEventToSelection(
         tr.b.getFirstElement(sel), 1, selRight);
     assert.isTrue(ret);
-    assert.equal(track.rects[2].modelItem, tr.b.getFirstElement(selRight));
+    assert.strictEqual(
+        track.rects[2].modelItem, tr.b.getFirstElement(selRight));
 
     // Select to the right of the 2nd b.
     var selRight2 = new EventSet();
     ret = track.addEventNearToProvidedEventToSelection(
         tr.b.getFirstElement(sel), 2, selRight2);
     assert.isTrue(ret);
-    assert.equal(track.rects[3].modelItem, tr.b.getFirstElement(selRight2));
+    assert.strictEqual(
+        track.rects[3].modelItem, tr.b.getFirstElement(selRight2));
 
     // Select to 2 to the right of the 2nd b.
     var selRightOfRight = new EventSet();
     ret = track.addEventNearToProvidedEventToSelection(
         tr.b.getFirstElement(selRight), 1, selRightOfRight);
     assert.isTrue(ret);
-    assert.equal(track.rects[3].modelItem,
+    assert.strictEqual(track.rects[3].modelItem,
         tr.b.getFirstElement(selRightOfRight));
 
     // Select to the right of the rightmost slice.
@@ -334,7 +336,7 @@ tr.b.unittest.testSuite(function() {
     ret = track.addEventNearToProvidedEventToSelection(
         tr.b.getFirstElement(selRightOfRight), 1, selNone);
     assert.isFalse(ret);
-    assert.equal(0, selNone.length);
+    assert.strictEqual(0, selNone.length);
 
     // Select A and then select left.
     var sel = new EventSet();
@@ -346,7 +348,7 @@ tr.b.unittest.testSuite(function() {
     ret = track.addEventNearToProvidedEventToSelection(
         tr.b.getFirstElement(sel), -1, selNone);
     assert.isFalse(ret);
-    assert.equal(0, selNone.length);
+    assert.strictEqual(0, selNone.length);
   });
 
   test('rectTrackAddClosestEventToSelection', function() {
@@ -361,12 +363,12 @@ tr.b.unittest.testSuite(function() {
     // Before with not range.
     var sel = new EventSet();
     track.addClosestEventToSelection(0, 0, 0, 0, sel);
-    assert.equal(0, sel.length);
+    assert.strictEqual(0, sel.length);
 
     // Before with negative range.
     var sel = new EventSet();
     track.addClosestEventToSelection(1.5, -10, 0, 0, sel);
-    assert.equal(0, sel.length);
+    assert.strictEqual(0, sel.length);
 
     // Before first slice.
     var sel = new EventSet();
@@ -386,7 +388,7 @@ tr.b.unittest.testSuite(function() {
     // Between slices with bad range.
     var sel = new EventSet();
     track.addClosestEventToSelection(2.05, 0.03, 0, 0, sel);
-    assert.equal(0, sel.length);
+    assert.strictEqual(0, sel.length);
 
     // Within slice closer to end.
     var sel = new EventSet();
@@ -396,7 +398,7 @@ tr.b.unittest.testSuite(function() {
     // Within slice with bad range.
     var sel = new EventSet();
     track.addClosestEventToSelection(1.8, 0.1, 0, 0, sel);
-    assert.equal(0, sel.length);
+    assert.strictEqual(0, sel.length);
 
     // After last slice with good range.
     var sel = new EventSet();
@@ -406,7 +408,7 @@ tr.b.unittest.testSuite(function() {
     // After last slice with bad range.
     var sel = new EventSet();
     track.addClosestEventToSelection(10, 1, 0, 0, sel);
-    assert.equal(0, sel.length);
+    assert.strictEqual(0, sel.length);
   });
 });
 </script>

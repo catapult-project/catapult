@@ -193,15 +193,15 @@ tr.b.unittest.testSuite(function() {
 
     var threadsNoThread = traceNoThread.getAllThreads();
     var threadsWithThread = traceWithThread.getAllThreads();
-    assert.equal(threadsNoThread.length, 1);
-    assert.equal(threadsWithThread.length, 1);
+    assert.strictEqual(threadsNoThread.length, 1);
+    assert.strictEqual(threadsWithThread.length, 1);
 
     var maliThreadNoThread = threadsNoThread[0];
     var maliThreadWithThread = threadsWithThread[0];
-    assert.equal(maliThreadNoThread.tid, 'mali');
-    assert.equal(maliThreadWithThread.tid, 'mali-1878934320');
-    assert.equal(maliThreadNoThread.sliceGroup.length, 9);
-    assert.equal(maliThreadWithThread.sliceGroup.length, 9);
+    assert.strictEqual(maliThreadNoThread.tid, 'mali');
+    assert.strictEqual(maliThreadWithThread.tid, 'mali-1878934320');
+    assert.strictEqual(maliThreadNoThread.sliceGroup.length, 9);
+    assert.strictEqual(maliThreadWithThread.sliceGroup.length, 9);
   });
 
   test('DVFSFrequencyImport', function() {
@@ -215,11 +215,11 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(m.hasImportWarnings);
 
     var counters = m.getAllCounters();
-    assert.equal(counters.length, 1);
+    assert.strictEqual(counters.length, 1);
 
     var c0 = counters[0];
-    assert.equal(c0.name, 'DVFS Frequency');
-    assert.equal(c0.series[0].samples.length, 2);
+    assert.strictEqual(c0.name, 'DVFS Frequency');
+    assert.strictEqual(c0.series[0].samples.length, 2);
   });
 
   test('DVFSVoltageImport', function() {
@@ -233,11 +233,11 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(m.hasImportWarnings);
 
     var counters = m.getAllCounters();
-    assert.equal(counters.length, 1);
+    assert.strictEqual(counters.length, 1);
 
     var c0 = counters[0];
-    assert.equal(c0.name, 'DVFS Voltage');
-    assert.equal(c0.series[0].samples.length, 2);
+    assert.strictEqual(c0.name, 'DVFS Voltage');
+    assert.strictEqual(c0.series[0].samples.length, 2);
   });
 
   test('DVFSUtilizationImport', function() {
@@ -251,11 +251,11 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(m.hasImportWarnings);
 
     var counters = m.getAllCounters();
-    assert.equal(counters.length, 1);
+    assert.strictEqual(counters.length, 1);
 
     var c0 = counters[0];
-    assert.equal(c0.name, 'DVFS Utilization');
-    assert.equal(c0.series[0].samples.length, 2);
+    assert.strictEqual(c0.name, 'DVFS Utilization');
+    assert.strictEqual(c0.series[0].samples.length, 2);
   });
 
   test('maliHWCImport', function() {
@@ -471,12 +471,12 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(m.hasImportWarnings);
 
     var counters = m.getAllCounters();
-    assert.equal(counters.length, 103);
+    assert.strictEqual(counters.length, 103);
 
     // all counters should have 1 sample
     for (var tI = 0; tI < counters.length; tI++) {
       var counter = counters[tI];
-      assert.equal(counter.series[0].samples.length, 1);
+      assert.strictEqual(counter.series[0].samples.length, 1);
     }
     // TODO(sleffler) verify counter names? (not sure if it's worth the effort)
   });

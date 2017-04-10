@@ -28,7 +28,7 @@ tr.b.unittest.testSuite(function() {
     var selection = new EventSet();
     selection.push(fe1);
     selection.push(fe2);
-    assert.equal(selection.length, 2);
+    assert.strictEqual(selection.length, 2);
 
     var subView = document.createElement('tr-ui-a-multi-flow-event-sub-view');
     subView.selection = selection;

@@ -21,11 +21,11 @@ tr.b.unittest.testSuite(function() {
         ['green', new tr.b.Color(0, 255, 0)],
         ['blue', new tr.b.Color(0, 0, 255)],
     ]));
-    assert.equal(scheme.getColor('red').toString(),
+    assert.strictEqual(scheme.getColor('red').toString(),
         (new tr.b.Color(255, 0, 0)).toString());
-    assert.equal(scheme.getColor('green').toString(),
+    assert.strictEqual(scheme.getColor('green').toString(),
         (new tr.b.Color(0, 255, 0)).toString());
-    assert.equal(scheme.getColor('blue').toString(),
+    assert.strictEqual(scheme.getColor('blue').toString(),
         (new tr.b.Color(0, 0, 255)).toString());
   });
 
@@ -53,9 +53,12 @@ tr.b.unittest.testSuite(function() {
   test('differentSchemesGiveTheSameColorsForTheSameNames', function() {
     var a = tr.b.FixedColorScheme.fromNames(['foo', 'bar', 'baz']);
     var b = tr.b.FixedColorScheme.fromNames(['foo', 'bar', 'baz']);
-    assert.equal(a.getColor('foo').toString(), b.getColor('foo').toString());
-    assert.equal(a.getColor('bar').toString(), b.getColor('bar').toString());
-    assert.equal(a.getColor('baz').toString(), b.getColor('baz').toString());
+    assert.strictEqual(
+        a.getColor('foo').toString(), b.getColor('foo').toString());
+    assert.strictEqual(
+        a.getColor('bar').toString(), b.getColor('bar').toString());
+    assert.strictEqual(
+        a.getColor('baz').toString(), b.getColor('baz').toString());
   });
 });
 </script>

@@ -37,7 +37,7 @@ tr.b.unittest.testSuite(function() {
     assert.isUndefined(vp.trackForEvent(slice));
     vp.rebuildEventToTrackMap();
 
-    assert.equal(vp.trackForEvent(slice), 'track');
+    assert.strictEqual(vp.trackForEvent(slice), 'track');
   });
 
   test('shiftedSelection', function() {

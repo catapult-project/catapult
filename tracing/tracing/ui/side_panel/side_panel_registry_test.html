@@ -32,8 +32,8 @@ tr.b.unittest.testSuite(function() {
     });
 
     var typeInfos = SidePanelRegistry.getAllRegisteredTypeInfos();
-    assert.equal(typeInfos[0].constructor().tagName, 'DIV');
-    assert.equal(typeInfos[1].constructor().tagName, 'SPAN');
+    assert.strictEqual(typeInfos[0].constructor().tagName, 'DIV');
+    assert.strictEqual(typeInfos[1].constructor().tagName, 'SPAN');
     assert.lengthOf(typeInfos, 2);
   }, testOptions);
 });

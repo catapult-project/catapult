@@ -22,7 +22,7 @@ tr.b.unittest.testSuite(function() {
     var slice = new ThreadSlice('', 'a', 0, 1, {}, 1);
     track.slices = [slice];
     var me0 = track.rects[0].modelItem;
-    assert.equal(slice, me0);
+    assert.strictEqual(slice, me0);
   });
 });
 </script>

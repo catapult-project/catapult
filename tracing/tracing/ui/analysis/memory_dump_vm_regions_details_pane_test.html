@@ -224,7 +224,7 @@ tr.b.unittest.testSuite(function() {
       expectedVirtualSize, expectedProtectionFlags,
       expectedProportionalResidentValues, expectedPrivateDirtyResidentValues,
       expectedSwappedValues, expectedSubRowCount, expectedContexts) {
-    assert.equal(columns[0].formatTitle(row), expectedTitle);
+    assert.strictEqual(columns[0].formatTitle(row), expectedTitle);
     checkStringFields(row, columns[1], expectedStartAddress);
     checkSizeNumericFields(row, columns[2], expectedVirtualSize);
     checkStringFields(row, columns[3], expectedProtectionFlags);

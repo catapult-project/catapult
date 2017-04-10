@@ -23,7 +23,7 @@ tr.b.unittest.testSuite(function() {
     });
     var eltInDocument = Polymer.dom(document)
         .querySelector('.a-div-class>.a-span-class');
-    assert.equal(Polymer.dom(eltInDocument).textContent, testText);
+    assert.strictEqual(Polymer.dom(eltInDocument).textContent, testText);
     Polymer.dom(eltInDocument.parentElement).removeChild(eltInDocument);
   });
 
@@ -45,8 +45,8 @@ tr.b.unittest.testSuite(function() {
     });
     var eltInDocument = Polymer.dom(document)
         .querySelector('.a-link-class');
-    assert.equal(Polymer.dom(eltInDocument).textContent, 'Google');
-    assert.equal(eltInDocument.href, 'http://www.google.com/');
+    assert.strictEqual(Polymer.dom(eltInDocument).textContent, 'Google');
+    assert.strictEqual(eltInDocument.href, 'http://www.google.com/');
     Polymer.dom(eltInDocument.parentElement).removeChild(eltInDocument);
   });
 
@@ -90,8 +90,8 @@ tr.b.unittest.testSuite(function() {
          {label: '100%', value: 1},
          {label: '200%', value: 2}
         ]);
-    assert.equal(target.scale, 0.25);
-    assert.equal(sel.selectedIndex, 2);
+    assert.strictEqual(target.scale, 0.25);
+    assert.strictEqual(sel.selectedIndex, 2);
   });
 
   test('selectorSettingsDefault', function() {
@@ -110,8 +110,8 @@ tr.b.unittest.testSuite(function() {
          {label: '100%', value: 1},
          {label: '200%', value: 2}
         ]);
-    assert.equal(target.scale, 0.375);
-    assert.equal(sel.selectedIndex, 3);
+    assert.strictEqual(target.scale, 0.375);
+    assert.strictEqual(sel.selectedIndex, 3);
   });
 
   test('selectorSettingsChanged', function() {
@@ -130,24 +130,24 @@ tr.b.unittest.testSuite(function() {
          {label: '100%', value: 1},
          {label: '200%', value: 2}
         ]);
-    assert.equal(sel.selectedValue, 0.375);
+    assert.strictEqual(sel.selectedValue, 0.375);
     sel.selectedValue = 0.75;
-    assert.equal(target.scale, 0.75);
-    assert.equal(sel.selectedValue, 0.75);
-    assert.equal(undefined), 0.75, tr.b.Settings.get('myScale');
+    assert.strictEqual(target.scale, 0.75);
+    assert.strictEqual(sel.selectedValue, 0.75);
+    assert.strictEqual(undefined), 0.75, tr.b.Settings.get('myScale');
   });
 
   test('asHTMLOrTextNode_string', function() {
     // Default owner document.
     var node = tr.ui.b.asHTMLOrTextNode('Hello, World!');
     assert.instanceOf(node, Node);
-    assert.equal(Polymer.dom(node).textContent, 'Hello, World!');
+    assert.strictEqual(Polymer.dom(node).textContent, 'Hello, World!');
     assert.strictEqual(node.ownerDocument, document);
 
     // Custom owner document.
     var node = tr.ui.b.asHTMLOrTextNode('Bye, World!', THIS_DOC);
     assert.instanceOf(node, Node);
-    assert.equal(Polymer.dom(node).textContent, 'Bye, World!');
+    assert.strictEqual(Polymer.dom(node).textContent, 'Bye, World!');
     assert.strictEqual(node.ownerDocument, THIS_DOC);
   });
 

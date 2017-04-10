@@ -42,8 +42,8 @@ tr.b.unittest.testSuite(function() {
     lav.viewProperty = 'item';
 
     var lavListView = lav.listView;
-    assert.equal(lavListView.children.length, 3);
-    assert.equal(Polymer.dom(lavListView.children[0]).textContent, '1');
+    assert.strictEqual(lavListView.children.length, 3);
+    assert.strictEqual(Polymer.dom(lavListView.children[0]).textContent, '1');
   });
 
   test('listViewNamingWithProperty', function() {
@@ -71,8 +71,8 @@ tr.b.unittest.testSuite(function() {
     lav.viewProperty = 'item';
 
     var lavListView = lav.listView;
-    assert.equal(lavListView.children.length, 3);
-    assert.equal(Polymer.dom(lavListView.children[0]).textContent, '1');
+    assert.strictEqual(lavListView.children.length, 3);
+    assert.strictEqual(Polymer.dom(lavListView.children[0]).textContent, '1');
   });
 
   test('selectionChangesView', function() {
@@ -90,9 +90,9 @@ tr.b.unittest.testSuite(function() {
     lav.viewProperty = 'item';
     var lavListView = lav.listView;
 
-    assert.equal(list[0], view.item);
+    assert.strictEqual(list[0], view.item);
     lavListView.children[1].selected = true;
-    assert.equal(list[1], view.item);
+    assert.strictEqual(list[1], view.item);
   });
 });
 </script>

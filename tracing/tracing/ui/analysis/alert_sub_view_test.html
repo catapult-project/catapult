@@ -30,7 +30,7 @@ tr.b.unittest.testSuite(function() {
         }]);
 
     var alert = new tr.model.Alert(alertInfo, 5, [slice]);
-    assert.equal(1, alert.associatedEvents.length);
+    assert.strictEqual(1, alert.associatedEvents.length);
 
     var subView = document.createElement('tr-ui-a-alert-sub-view');
     subView.selection = new tr.model.EventSet(alert);

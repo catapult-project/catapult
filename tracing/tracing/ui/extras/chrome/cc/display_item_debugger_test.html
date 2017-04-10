@@ -35,7 +35,7 @@ tr.b.unittest.testSuite(function() {
     dbg.displayItemList = displayItemList;
     assert.isDefined(dbg.displayItemList_);
     assert.isDefined(dbg.picture_);
-    assert.equal(dbg.displayItemList_.items.length, 2);
+    assert.strictEqual(dbg.displayItemList_.items.length, 2);
     dbg.style.border = '1px solid black';
   });
 
@@ -63,7 +63,7 @@ tr.b.unittest.testSuite(function() {
     dbg.displayItemList = displayItemList;
     assert.isDefined(dbg.displayItemList_);
     assert.isDefined(dbg.picture_);
-    assert.equal(dbg.displayItemList_.items.length, 5);
+    assert.strictEqual(dbg.displayItemList_.items.length, 5);
 
     var initialPicture = dbg.picture_;
     assert.isAbove(initialPicture.guid, 0);
@@ -83,7 +83,7 @@ tr.b.unittest.testSuite(function() {
     listView.selectedElement = undefined;
     updatedPicture = dbg.picture_;
     assert.isAbove(updatedPicture.guid, 0);
-    assert.equal(initialPicture.guid, updatedPicture.guid);
+    assert.strictEqual(initialPicture.guid, updatedPicture.guid);
 
     dbg.style.border = '1px solid black';
   });
@@ -111,8 +111,9 @@ tr.b.unittest.testSuite(function() {
     var onSaveDisplayListCalled = false;
     dbg.saveFile_ = function(filename, rawData) {
       onSaveDisplayListCalled = true;
-      assert.equal(filename, 'displayitemlist.json');
-      assert.equal(rawData, '["BeginClipDisplayItem","EndClipDisplayItem"]');
+      assert.strictEqual(filename, 'displayitemlist.json');
+      assert.strictEqual(
+          rawData, '["BeginClipDisplayItem","EndClipDisplayItem"]');
     };
     dbg.onExportDisplayListClicked_();
     assert(onSaveDisplayListCalled);
@@ -120,8 +121,8 @@ tr.b.unittest.testSuite(function() {
     var onSaveSkPictureCalled = false;
     dbg.saveFile_ = function(filename, rawData) {
       onSaveSkPictureCalled = true;
-      assert.equal(filename, 'skpicture.skp');
-      assert.equal(rawData, 'skpicture');
+      assert.strictEqual(filename, 'skpicture.skp');
+      assert.strictEqual(rawData, 'skpicture');
     };
     dbg.onExportSkPictureClicked_();
     assert(onSaveSkPictureCalled);

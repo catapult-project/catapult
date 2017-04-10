@@ -30,7 +30,7 @@ tr.b.unittest.testSuite(function() {
 
     var selection = new EventSet();
     selection.push(ie);
-    assert.equal(selection.length, 1);
+    assert.strictEqual(selection.length, 1);
 
     var subView = document.createElement(
         'tr-ui-a-single-instant-event-sub-view');

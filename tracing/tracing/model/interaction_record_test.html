@@ -49,7 +49,7 @@ tr.b.unittest.testSuite(function() {
 
     var sel = new tr.model.EventSet();
 
-    assert.equal(CompoundEventSelectionState.NOT_SELECTED,
+    assert.strictEqual(CompoundEventSelectionState.NOT_SELECTED,
         model.ir1.computeCompoundEvenSelectionState(sel));
   });
 
@@ -59,7 +59,7 @@ tr.b.unittest.testSuite(function() {
     var sel = new tr.model.EventSet();
     sel.push(model.ir1);
 
-    assert.equal(CompoundEventSelectionState.EVENT_SELECTED,
+    assert.strictEqual(CompoundEventSelectionState.EVENT_SELECTED,
         model.ir1.computeCompoundEvenSelectionState(sel));
   });
 
@@ -70,7 +70,7 @@ tr.b.unittest.testSuite(function() {
     sel.push(model.ir1);
     sel.push(model.s1);
 
-    assert.equal(
+    assert.strictEqual(
         CompoundEventSelectionState.EVENT_AND_SOME_ASSOCIATED_SELECTED,
         model.ir1.computeCompoundEvenSelectionState(sel));
   });
@@ -82,7 +82,8 @@ tr.b.unittest.testSuite(function() {
     sel.push(model.s1);
     sel.push(model.s2);
 
-    assert.equal(CompoundEventSelectionState.ALL_ASSOCIATED_EVENTS_SELECTED,
+    assert.strictEqual(
+        CompoundEventSelectionState.ALL_ASSOCIATED_EVENTS_SELECTED,
         model.ir1.computeCompoundEvenSelectionState(sel));
   });
 
@@ -94,7 +95,8 @@ tr.b.unittest.testSuite(function() {
     sel.push(model.s1);
     sel.push(model.s2);
 
-    assert.equal(CompoundEventSelectionState.EVENT_AND_ALL_ASSOCIATED_SELECTED,
+    assert.strictEqual(
+        CompoundEventSelectionState.EVENT_AND_ALL_ASSOCIATED_SELECTED,
         model.ir1.computeCompoundEvenSelectionState(sel));
   });
 
@@ -105,9 +107,9 @@ tr.b.unittest.testSuite(function() {
     var ir2 = TestUtils.newInteractionRecord(model, 10, 10);
     var ir3 = TestUtils.newInteractionRecord(model, 20, 10);
 
-    assert.equal('UserExpectation.' + ir1.guid, ir1.stableId);
-    assert.equal('UserExpectation.' + ir2.guid, ir2.stableId);
-    assert.equal('UserExpectation.' + ir3.guid, ir3.stableId);
+    assert.strictEqual('UserExpectation.' + ir1.guid, ir1.stableId);
+    assert.strictEqual('UserExpectation.' + ir2.guid, ir2.stableId);
+    assert.strictEqual('UserExpectation.' + ir3.guid, ir3.stableId);
   });
 });
 </script>

@@ -358,7 +358,7 @@ tr.b.unittest.testSuite(function() {
     table.selectedColumnIndex = 9;
     assert.lengthOf(viewEl.requestedChildPanes, 2);
     var lastChildPane = viewEl.requestedChildPanes[1];
-    assert.equal(
+    assert.strictEqual(
         lastChildPane.tagName, 'TR-UI-A-MEMORY-DUMP-ALLOCATOR-DETAILS-PANE');
     assert.strictEqual(lastChildPane.aggregationMode, AggregationMode.DIFF);
     assert.deepEqual(lastChildPane.memoryAllocatorDumps,
@@ -410,7 +410,8 @@ tr.b.unittest.testSuite(function() {
       if (expectedSelectedRowTitle === undefined) {
         assert.isUndefined(table.selectedTableRow);
       } else {
-        assert.equal(table.selectedTableRow.title, expectedSelectedRowTitle);
+        assert.strictEqual(
+            table.selectedTableRow.title, expectedSelectedRowTitle);
       }
 
       callback(viewEl, viewEl.$.table);
@@ -434,7 +435,7 @@ tr.b.unittest.testSuite(function() {
         [18350080, 18350080, 18350080], 'Process 2', 3, /* PSS */
         function(view, table) {
           var childPane = view.createChildPane();
-          assert.equal(
+          assert.strictEqual(
               childPane.tagName, 'TR-UI-A-MEMORY-DUMP-VM-REGIONS-DETAILS-PANE');
           assert.deepEqual(tr.b.asArray(childPane.vmRegions),
               extractVmRegions(processMemoryDumps, 2));
@@ -455,7 +456,7 @@ tr.b.unittest.testSuite(function() {
         [18350080, 18350080, 18350080], 'Process 2', 3, /* PSS */
         function(view, table) {
           var childPane = view.createChildPane();
-          assert.equal(
+          assert.strictEqual(
               childPane.tagName, 'TR-UI-A-MEMORY-DUMP-VM-REGIONS-DETAILS-PANE');
           assert.deepEqual(tr.b.asArray(childPane.vmRegions),
               extractVmRegions(processMemoryDumps, 2));
@@ -484,7 +485,7 @@ tr.b.unittest.testSuite(function() {
         [31457280, 29884416, undefined], 'Process 1', 1, /* Total resident */
         function(view, table) {
           var childPane = view.createChildPane();
-          assert.equal(
+          assert.strictEqual(
               childPane.tagName, 'TR-UI-A-MEMORY-DUMP-VM-REGIONS-DETAILS-PANE');
           assert.deepEqual(tr.b.asArray(childPane.vmRegions),
               extractVmRegions(processMemoryDumps, 1));

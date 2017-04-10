@@ -35,9 +35,9 @@ tr.b.unittest.testSuite(function() {
     var mtl0 = tr.mre.ModuleToLoad.fromDict(moduleDict0);
     var mtl1 = tr.mre.ModuleToLoad.fromDict(moduleDict1);
 
-    assert.equal(mtl0.href, '/foo');
+    assert.strictEqual(mtl0.href, '/foo');
     assert.isUndefined(mtl0.filename);
-    assert.equal(mtl1.filename, 'foo.html');
+    assert.strictEqual(mtl1.filename, 'foo.html');
     assert.isUndefined(mtl1.href);
   });
 
@@ -45,10 +45,10 @@ tr.b.unittest.testSuite(function() {
     var mtl0 = new tr.mre.ModuleToLoad('/foo');
     var mtl1 = new tr.mre.ModuleToLoad(undefined, 'foo.html');
 
-    assert.equal(
+    assert.strictEqual(
         mtl0.toString(),
         'ModuleToLoad(href="/foo")');
-    assert.equal(
+    assert.strictEqual(
         mtl1.toString(),
         'ModuleToLoad(filename="foo.html")');
   });
@@ -80,9 +80,9 @@ tr.b.unittest.testSuite(function() {
 
     var handle = tr.mre.FunctionHandle.fromDict(handleDict);
 
-    assert.equal(handle.modulesToLoad.length, 1);
-    assert.equal(handle.modulesToLoad[0].href, '/foo');
-    assert.equal(handle.functionName, 'Bar');
+    assert.strictEqual(handle.modulesToLoad.length, 1);
+    assert.strictEqual(handle.modulesToLoad[0].href, '/foo');
+    assert.strictEqual(handle.functionName, 'Bar');
   });
 
   test('hasHrefsTest', function() {
@@ -112,7 +112,7 @@ tr.b.unittest.testSuite(function() {
     var module = new tr.mre.ModuleToLoad('/foo');
     var handle = new tr.mre.FunctionHandle([module], 'Bar', {'a': 'b'});
 
-    assert.equal(
+    assert.strictEqual(
         handle.toString(),
         'FunctionHandle(modulesToLoad=[ModuleToLoad(href="/foo")], ' +
         'functionName="Bar", options="{"a":"b"}")');

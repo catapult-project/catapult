@@ -99,10 +99,10 @@ tr.b.unittest.testSuite(function() {
     var foo = browserObject.getSnapshotAt(1.2);
     assert.isDefined(foo);
 
-    assert.equal(m.renderer1Main.sliceGroup.slices.length, 1);
+    assert.strictEqual(m.renderer1Main.sliceGroup.slices.length, 1);
     var slice = m.renderer1Main.sliceGroup.slices[0];
-    assert.equal(slice.title, 'b');
-    assert.equal(slice.args.bar, foo);
+    assert.strictEqual(slice.title, 'b');
+    assert.strictEqual(slice.args.bar, foo);
   });
 
   test('filterTracingUI', function() {

@@ -21,13 +21,13 @@ tr.b.unittest.testSuite(function() {
     var sample1 = new PowerSample(series, 0.0, 1000.0);
     var sample2 = new PowerSample(series, 1.0, 2000.0);
 
-    assert.equal(sample1.series, series);
-    assert.equal(sample1.start, 0.0);
-    assert.equal(sample1.powerInW, 1000.0);
+    assert.strictEqual(sample1.series, series);
+    assert.strictEqual(sample1.start, 0.0);
+    assert.strictEqual(sample1.powerInW, 1000.0);
 
-    assert.equal(sample2.series, series);
-    assert.equal(sample2.start, 1.0);
-    assert.equal(sample2.powerInW, 2000.0);
+    assert.strictEqual(sample2.series, series);
+    assert.strictEqual(sample2.start, 1.0);
+    assert.strictEqual(sample2.powerInW, 2000.0);
   });
 
   test('addBoundsToRange', function() {
@@ -39,13 +39,13 @@ tr.b.unittest.testSuite(function() {
     var range = new tr.b.math.Range();
     sample1.addBoundsToRange(range);
 
-    assert.equal(range.min, 0);
-    assert.equal(range.max, 0);
+    assert.strictEqual(range.min, 0);
+    assert.strictEqual(range.max, 0);
 
     sample2.addBoundsToRange(range);
 
-    assert.equal(range.min, 0);
-    assert.equal(range.max, 1);
+    assert.strictEqual(range.min, 0);
+    assert.strictEqual(range.max, 1);
   });
 });
 </script>

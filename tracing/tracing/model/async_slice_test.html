@@ -29,9 +29,9 @@ tr.b.unittest.testSuite(function() {
     var sC = group.push(newAsyncSliceEx(
         { title: 'sC', start: 20.0, duration: 30.0 }));
 
-    assert.equal(group.stableId + '.0', sA.stableId);
-    assert.equal(group.stableId + '.1', sB.stableId);
-    assert.equal(group.stableId + '.2', sC.stableId);
+    assert.strictEqual(group.stableId + '.0', sA.stableId);
+    assert.strictEqual(group.stableId + '.1', sB.stableId);
+    assert.strictEqual(group.stableId + '.2', sC.stableId);
   });
 
   test('setParentContainerForSubSlices', function() {
@@ -46,8 +46,8 @@ tr.b.unittest.testSuite(function() {
     asyncSlice.subSlices.push(subSlice1);
     asyncSlice.subSlices.push(subSlice2);
     asyncSlice.parentContainer = t1;
-    assert.equal(asyncSlice.subSlices.length, 2);
-    assert.equal(subSlice1.subSlices.length, 1);
+    assert.strictEqual(asyncSlice.subSlices.length, 2);
+    assert.strictEqual(subSlice1.subSlices.length, 1);
     assert.deepEqual(asyncSlice.parentContainer, t1);
     assert.deepEqual(subSlice1.parentContainer, t1);
     assert.deepEqual(subSlice2.parentContainer, t1);

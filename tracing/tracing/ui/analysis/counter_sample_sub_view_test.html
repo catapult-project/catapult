@@ -42,18 +42,18 @@ tr.b.unittest.testSuite(function() {
     var rows = analysisEl.$.table.tableRows;
     assert.lengthOf(rows, 1);
     assert.isTrue(rows[0].isExpanded);
-    assert.equal(rows[0].counter, 'ctr1');
-    assert.equal(rows[0].series, 'series1');
-    assert.equal(rows[0].start, 0);
-    assert.equal(rows[0].value, 0);
+    assert.strictEqual(rows[0].counter, 'ctr1');
+    assert.strictEqual(rows[0].series, 'series1');
+    assert.strictEqual(rows[0].start, 0);
+    assert.strictEqual(rows[0].value, 0);
 
     // The second sample should be listed as a subrow of the first.
     var subRows = rows[0].subRows;
     assert.lengthOf(subRows, 1);
     assert.isUndefined(subRows[0].counter);
     assert.isUndefined(subRows[0].series);
-    assert.equal(subRows[0].start, 1);
-    assert.equal(subRows[0].value, 10);
+    assert.strictEqual(subRows[0].start, 1);
+    assert.strictEqual(subRows[0].value, 10);
   });
 
   test('instantiate_singleSampleDoesntHaveSubrows', function() {
@@ -71,10 +71,10 @@ tr.b.unittest.testSuite(function() {
     // series.
     var rows = analysisEl.$.table.tableRows;
     assert.lengthOf(rows, 1);
-    assert.equal(rows[0].counter, 'ctr1');
-    assert.equal(rows[0].series, 'series1');
-    assert.equal(rows[0].start, 0);
-    assert.equal(rows[0].value, 0);
+    assert.strictEqual(rows[0].counter, 'ctr1');
+    assert.strictEqual(rows[0].series, 'series1');
+    assert.strictEqual(rows[0].start, 0);
+    assert.strictEqual(rows[0].value, 0);
     assert.isUndefined(rows[0].subRows);
   });
 
@@ -99,23 +99,23 @@ tr.b.unittest.testSuite(function() {
     // series.
     var rows = analysisEl.$.table.tableRows;
     assert.lengthOf(rows, 2);
-    assert.equal(rows[0].counter, 'ctr1');
-    assert.equal(rows[0].series, 'series1');
-    assert.equal(rows[0].start, 1);
-    assert.equal(rows[0].value, 10);
+    assert.strictEqual(rows[0].counter, 'ctr1');
+    assert.strictEqual(rows[0].series, 'series1');
+    assert.strictEqual(rows[0].start, 1);
+    assert.strictEqual(rows[0].value, 10);
 
-    assert.equal(rows[1].counter, 'ctr1');
-    assert.equal(rows[1].series, 'series2');
-    assert.equal(rows[1].start, 3);
-    assert.equal(rows[1].value, 30);
+    assert.strictEqual(rows[1].counter, 'ctr1');
+    assert.strictEqual(rows[1].series, 'series2');
+    assert.strictEqual(rows[1].start, 3);
+    assert.strictEqual(rows[1].value, 30);
 
     // The subsequent samples should be listed as subrows of the first.
     var subRows1 = rows[0].subRows;
     assert.lengthOf(subRows1, 1);
     assert.isUndefined(subRows1[0].counter);
     assert.isUndefined(subRows1[0].series);
-    assert.equal(subRows1[0].start, 2);
-    assert.equal(subRows1[0].value, 20);
+    assert.strictEqual(subRows1[0].start, 2);
+    assert.strictEqual(subRows1[0].value, 20);
 
     assert.isUndefined(rows[1].subRows);
   });
@@ -140,16 +140,16 @@ tr.b.unittest.testSuite(function() {
     // Each sample should be a header row with no subrows.
     var rows = analysisEl.$.table.tableRows;
     assert.lengthOf(rows, 2);
-    assert.equal(rows[0].counter, 'ctr1');
-    assert.equal(rows[0].series, 'series1');
-    assert.equal(rows[0].start, 1);
-    assert.equal(rows[0].value, 10);
+    assert.strictEqual(rows[0].counter, 'ctr1');
+    assert.strictEqual(rows[0].series, 'series1');
+    assert.strictEqual(rows[0].start, 1);
+    assert.strictEqual(rows[0].value, 10);
     assert.isUndefined(rows[0].subRows);
 
-    assert.equal(rows[1].counter, 'ctr2');
-    assert.equal(rows[1].series, 'series2');
-    assert.equal(rows[1].start, 2);
-    assert.equal(rows[1].value, 20);
+    assert.strictEqual(rows[1].counter, 'ctr2');
+    assert.strictEqual(rows[1].series, 'series2');
+    assert.strictEqual(rows[1].start, 2);
+    assert.strictEqual(rows[1].value, 20);
     assert.isUndefined(rows[1].subRows);
   });
 

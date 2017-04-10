@@ -15,11 +15,11 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('nameConvert', function() {
-    assert.equal(tr.e.cc.convertNameToJSConvention('_foo'), '_foo');
-    assert.equal(tr.e.cc.convertNameToJSConvention('foo_'), 'foo_');
-    assert.equal(tr.e.cc.convertNameToJSConvention('foo'), 'foo');
-    assert.equal(tr.e.cc.convertNameToJSConvention('foo_bar'), 'fooBar');
-    assert.equal(tr.e.cc.convertNameToJSConvention('foo_bar_baz'),
+    assert.strictEqual(tr.e.cc.convertNameToJSConvention('_foo'), '_foo');
+    assert.strictEqual(tr.e.cc.convertNameToJSConvention('foo_'), 'foo_');
+    assert.strictEqual(tr.e.cc.convertNameToJSConvention('foo'), 'foo');
+    assert.strictEqual(tr.e.cc.convertNameToJSConvention('foo_bar'), 'fooBar');
+    assert.strictEqual(tr.e.cc.convertNameToJSConvention('foo_bar_baz'),
         'fooBarBaz');
   });
 

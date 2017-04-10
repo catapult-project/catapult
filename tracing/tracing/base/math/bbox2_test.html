@@ -18,19 +18,19 @@ tr.b.unittest.testSuite(function() {
     var x = vec2.create();
     vec2.set(x, 10, 10);
     bbox.addVec2(x);
-    assert.equal(bbox.minVec2[0], 10);
-    assert.equal(bbox.minVec2[1], 10);
-    assert.equal(bbox.maxVec2[0], 10);
-    assert.equal(bbox.maxVec2[1], 10);
+    assert.strictEqual(bbox.minVec2[0], 10);
+    assert.strictEqual(bbox.minVec2[1], 10);
+    assert.strictEqual(bbox.maxVec2[0], 10);
+    assert.strictEqual(bbox.maxVec2[1], 10);
 
     // Mutate x.
     vec2.set(x, 11, 11);
 
     // Bbox shouldn't have changed.
-    assert.equal(bbox.minVec2[0], 10);
-    assert.equal(bbox.minVec2[1], 10);
-    assert.equal(bbox.maxVec2[0], 10);
-    assert.equal(bbox.maxVec2[1], 10);
+    assert.strictEqual(bbox.minVec2[0], 10);
+    assert.strictEqual(bbox.minVec2[1], 10);
+    assert.strictEqual(bbox.maxVec2[0], 10);
+    assert.strictEqual(bbox.maxVec2[1], 10);
   });
 });
 </script>

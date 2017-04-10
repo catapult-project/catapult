@@ -37,16 +37,16 @@ tr.b.unittest.testSuite(function() {
     snapshot.layoutObjectsById[layoutObject.id] = layoutObject;
 
     assert.strictEqual(snapshot, layoutObject.snapshot);
-    assert.equal('LayoutView', layoutObject.name);
-    assert.equal('deadbeef', layoutObject.id);
-    assert.equal(1, layoutObject.otherPropertyNames.length);
-    assert.equal(1, layoutObject.getProperty('other'));
+    assert.strictEqual('LayoutView', layoutObject.name);
+    assert.strictEqual('deadbeef', layoutObject.id);
+    assert.strictEqual(1, layoutObject.otherPropertyNames.length);
+    assert.strictEqual(1, layoutObject.getProperty('other'));
     assert.isTrue(layoutObject.hasChildLayoutObjects);
     var child = layoutObject.childLayoutObjects[0];
-    assert.equal('LayoutBlockFlow', child.name);
-    assert.equal('beef2', child.id);
-    assert.equal(1, child.otherPropertyNames.length);
-    assert.equal(2, child.getProperty('other'));
+    assert.strictEqual('LayoutBlockFlow', child.name);
+    assert.strictEqual('beef2', child.id);
+    assert.strictEqual(1, child.otherPropertyNames.length);
+    assert.strictEqual(2, child.getProperty('other'));
 
     assert.isUndefined(layoutObject.previousSnapshotLayoutObject);
     assert.isUndefined(layoutObject.nextSnapshotLayoutObject);
@@ -55,7 +55,7 @@ tr.b.unittest.testSuite(function() {
     layoutObject.traverseTree(function(node) {
       count += 1;
     });
-    assert.equal(2, count);
+    assert.strictEqual(2, count);
 
     var nextSnapshot = new FakeSnapshot();
     nextSnapshot.previousSnapshot = snapshot;

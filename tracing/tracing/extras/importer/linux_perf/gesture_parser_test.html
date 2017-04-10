@@ -108,22 +108,22 @@ tr.b.unittest.testSuite(function() {
     var m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
     var threads = m.getAllThreads();
-    assert.equal(threads.length, 1);
+    assert.strictEqual(threads.length, 1);
 
     var gestureThread = threads[0];
-    assert.equal(gestureThread.name, 'gesture');
-    assert.equal(gestureThread.sliceGroup.length, 21);
-    assert.equal('touchpad_gesture',
+    assert.strictEqual(gestureThread.name, 'gesture');
+    assert.strictEqual(gestureThread.sliceGroup.length, 21);
+    assert.strictEqual('touchpad_gesture',
         gestureThread.sliceGroup.slices[0].category);
-    assert.equal('GestureLog',
+    assert.strictEqual('GestureLog',
         gestureThread.sliceGroup.slices[0].title);
-    assert.equal('touchpad_gesture',
+    assert.strictEqual('touchpad_gesture',
         gestureThread.sliceGroup.slices[2].category);
-    assert.equal('HandleTimer',
+    assert.strictEqual('HandleTimer',
         gestureThread.sliceGroup.slices[2].title);
-    assert.equal('touchpad_gesture',
+    assert.strictEqual('touchpad_gesture',
         gestureThread.sliceGroup.slices[14].category);
-    assert.equal('SyncInterpret',
+    assert.strictEqual('SyncInterpret',
         gestureThread.sliceGroup.slices[14].title);
   });
 
@@ -181,7 +181,7 @@ tr.b.unittest.testSuite(function() {
     var m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
     var threads = m.getAllThreads();
-    assert.equal(threads.length, 1);
+    assert.strictEqual(threads.length, 1);
   });
 
   test('importError', function() {
@@ -206,7 +206,7 @@ tr.b.unittest.testSuite(function() {
     var m = newModel(lines.join('\n'));
 
     assert.isTrue(m.hasImportWarnings);
-    assert.equal(m.importWarnings.length, 7);
+    assert.strictEqual(m.importWarnings.length, 7);
   });
 });
 </script>

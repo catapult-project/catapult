@@ -33,7 +33,7 @@ tr.b.unittest.testSuite(function() {
       listenerWasCalled = false;
       Unit.currentTimeDisplayMode = TimeDisplayModes.ns;
       assert.isTrue(listenerWasCalled);
-      assert.equal(Unit.currentTimeDisplayMode, TimeDisplayModes.ns);
+      assert.strictEqual(Unit.currentTimeDisplayMode, TimeDisplayModes.ns);
     } finally {
       Unit.removeEventListener('display-mode-changed', listener);
       Unit.reset();
@@ -214,32 +214,32 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('energyInJoules', function() {
-    assert.equal(Unit.byName.energyInJoules.format(1000), '1,000.000 J');
-    assert.equal(Unit.byName.energyInJoules.format(1), '1.000 J');
-    assert.equal(Unit.byName.energyInJoules.format(.005), '0.005 J');
-    assert.equal(Unit.byName.energyInJoules.format(.0005), '0.001 J');
-    assert.equal(Unit.byName.energyInJoules.format(.0004), '0.000 J');
+    assert.strictEqual(Unit.byName.energyInJoules.format(1000), '1,000.000 J');
+    assert.strictEqual(Unit.byName.energyInJoules.format(1), '1.000 J');
+    assert.strictEqual(Unit.byName.energyInJoules.format(.005), '0.005 J');
+    assert.strictEqual(Unit.byName.energyInJoules.format(.0005), '0.001 J');
+    assert.strictEqual(Unit.byName.energyInJoules.format(.0004), '0.000 J');
   });
 
   test('powerInWatts', function() {
-    assert.equal(Unit.byName.powerInWatts.format(1000), '1,000.000 W');
-    assert.equal(Unit.byName.powerInWatts.format(1), '1.000 W');
-    assert.equal(Unit.byName.powerInWatts.format(.001), '0.001 W');
-    assert.equal(Unit.byName.powerInWatts.format(.001005), '0.001 W');
+    assert.strictEqual(Unit.byName.powerInWatts.format(1000), '1,000.000 W');
+    assert.strictEqual(Unit.byName.powerInWatts.format(1), '1.000 W');
+    assert.strictEqual(Unit.byName.powerInWatts.format(.001), '0.001 W');
+    assert.strictEqual(Unit.byName.powerInWatts.format(.001005), '0.001 W');
   });
 
   test('unitlessNumber', function() {
-    assert.equal(Unit.byName.unitlessNumber.format(1), '1.000');
-    assert.equal(Unit.byName.unitlessNumber.format(1.23), '1.230');
-    assert.equal(Unit.byName.unitlessNumber.format(-1.23), '-1.230');
-    assert.equal(Unit.byName.unitlessNumber.format(0), '0.000');
+    assert.strictEqual(Unit.byName.unitlessNumber.format(1), '1.000');
+    assert.strictEqual(Unit.byName.unitlessNumber.format(1.23), '1.230');
+    assert.strictEqual(Unit.byName.unitlessNumber.format(-1.23), '-1.230');
+    assert.strictEqual(Unit.byName.unitlessNumber.format(0), '0.000');
   });
 
   test('count', function() {
-    assert.equal(Unit.byName.count.format(0), '0');
-    assert.equal(Unit.byName.count.format(1), '1');
-    assert.equal(Unit.byName.count.format(1.4), '1');
-    assert.equal(Unit.byName.count.format(100), '100');
+    assert.strictEqual(Unit.byName.count.format(0), '0');
+    assert.strictEqual(Unit.byName.count.format(1), '1');
+    assert.strictEqual(Unit.byName.count.format(1.4), '1');
+    assert.strictEqual(Unit.byName.count.format(100), '100');
   });
 });
 </script>

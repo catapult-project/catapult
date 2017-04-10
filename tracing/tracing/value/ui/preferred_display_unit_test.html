@@ -16,7 +16,7 @@ tr.b.unittest.testSuite(function() {
     let unit = document.createElement('tr-v-ui-preferred-display-unit');
     let ms = tr.b.TimeDisplayModes.ms;
     unit.preferredDisplayUnit = ms;
-    assert.equal(unit.preferredDisplayUnit, ms);
+    assert.strictEqual(unit.preferredDisplayUnit, ms);
   });
 });
 </script>

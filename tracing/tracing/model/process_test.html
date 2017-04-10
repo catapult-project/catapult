@@ -22,7 +22,7 @@ tr.b.unittest.testSuite(function() {
     var process = new tr.model.Process(model, 7);
     var ctrBar = process.getOrCreateCounter('foo', 'bar');
     var ctrBar2 = process.getOrCreateCounter('foo', 'bar');
-    assert.equal(ctrBar2, ctrBar);
+    assert.strictEqual(ctrBar2, ctrBar);
   });
 
   test('shiftTimestampsForward', function() {
@@ -55,11 +55,11 @@ tr.b.unittest.testSuite(function() {
     };
 
     process.shiftTimestampsForward(0.32);
-    assert.equal(shiftCount, 2);
-    assert.equal(instantEvent.start, 100.32);
-    assert.equal(frame.start, 100.32);
-    assert.equal(frame.end, 200.32);
-    assert.equal(memoryDump.start, 100.32);
+    assert.strictEqual(shiftCount, 2);
+    assert.strictEqual(instantEvent.start, 100.32);
+    assert.strictEqual(frame.start, 100.32);
+    assert.strictEqual(frame.end, 200.32);
+    assert.strictEqual(memoryDump.start, 100.32);
   });
 
   test('compareOnPID', function() {

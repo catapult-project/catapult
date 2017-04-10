@@ -20,20 +20,20 @@ tr.b.unittest.testSuite(function() {
     var device = { stableId: 'test' };
     var series = new ResourceUsageSeries(device);
 
-    assert.equal(series.stableId, 'test.ResourceUsageSeries');
+    assert.strictEqual(series.stableId, 'test.ResourceUsageSeries');
   });
 
   test('device', function() {
     var device = new tr.model.Device(new Model());
     var series = new ResourceUsageSeries(device);
 
-    assert.equal(series.device, device);
+    assert.strictEqual(series.device, device);
   });
 
   test('addUsageSample', function() {
     var series = new ResourceUsageSeries(new Model().device);
 
-    assert.equal(series.samples.length, 0);
+    assert.strictEqual(series.samples.length, 0);
 
     var sample1 = series.addUsageSample(0, 1);
     var sample2 = series.addUsageSample(1, 2);
@@ -46,7 +46,7 @@ tr.b.unittest.testSuite(function() {
     series.addUsageSample(0, 1);
     series.addUsageSample(1000, 2);
 
-    assert.equal(series.computeResourceTimeConsumedInMs(0, 1000), 1000);
+    assert.strictEqual(series.computeResourceTimeConsumedInMs(0, 1000), 1000);
   });
 
   test('getResourceTimeConsumed_twoIntervals', function() {
@@ -55,14 +55,14 @@ tr.b.unittest.testSuite(function() {
     series.addUsageSample(1000, 2);
     series.addUsageSample(2000, 2);
 
-    assert.equal(series.computeResourceTimeConsumedInMs(0, 2000), 3000);
+    assert.strictEqual(series.computeResourceTimeConsumedInMs(0, 2000), 3000);
   });
 
   test('getResourceTimeConsumed_oneSample', function() {
     var series = new ResourceUsageSeries(new Model().device);
     series.addUsageSample(1000, 1);
 
-    assert.equal(series.computeResourceTimeConsumedInMs(0, 2000), 0);
+    assert.strictEqual(series.computeResourceTimeConsumedInMs(0, 2000), 0);
   });
 
   test('getResourceTimeConsumed_samplesAfterStart', function() {
@@ -70,7 +70,7 @@ tr.b.unittest.testSuite(function() {
     series.addUsageSample(1000, 1);
     series.addUsageSample(2000, 2);
 
-    assert.equal(series.computeResourceTimeConsumedInMs(0, 2000), 1000);
+    assert.strictEqual(series.computeResourceTimeConsumedInMs(0, 2000), 1000);
   });
 
   test('getResourceTimeConsumed_extraSamplesBeforeStart', function() {
@@ -80,7 +80,8 @@ tr.b.unittest.testSuite(function() {
     series.addUsageSample(2000, 1);
     series.addUsageSample(3000, 1);
 
-    assert.equal(series.computeResourceTimeConsumedInMs(2000, 4000), 1000);
+    assert.strictEqual(
+        series.computeResourceTimeConsumedInMs(2000, 4000), 1000);
   });
 
   test('getResourceTimeConsumed_extraSamplesAfterEnd', function() {
@@ -90,7 +91,7 @@ tr.b.unittest.testSuite(function() {
     series.addUsageSample(2000, 1);
     series.addUsageSample(3000, 10);
 
-    assert.equal(series.computeResourceTimeConsumedInMs(0, 2000), 2000);
+    assert.strictEqual(series.computeResourceTimeConsumedInMs(0, 2000), 2000);
   });
 
   test('shiftTimestampsForward', function() {
@@ -101,13 +102,13 @@ tr.b.unittest.testSuite(function() {
 
     series.shiftTimestampsForward(2);
 
-    assert.equal(series.samples[0].start, 2);
-    assert.equal(series.samples[1].start, 3);
+    assert.strictEqual(series.samples[0].start, 2);
+    assert.strictEqual(series.samples[1].start, 3);
 
     series.shiftTimestampsForward(-4);
 
-    assert.equal(series.samples[0].start, -2);
-    assert.equal(series.samples[1].start, -1);
+    assert.strictEqual(series.samples[0].start, -2);
+    assert.strictEqual(series.samples[1].start, -1);
   });
 
 
@@ -118,14 +119,14 @@ tr.b.unittest.testSuite(function() {
     series.addUsageSample(1, 2);
     series.updateBounds();
 
-    assert.equal(series.bounds.min, 0);
-    assert.equal(series.bounds.max, 1);
+    assert.strictEqual(series.bounds.min, 0);
+    assert.strictEqual(series.bounds.max, 1);
 
     series.addUsageSample(4, 3);
     series.updateBounds();
 
-    assert.equal(series.bounds.min, 0);
-    assert.equal(series.bounds.max, 4);
+    assert.strictEqual(series.bounds.min, 0);
+    assert.strictEqual(series.bounds.max, 4);
   });
 
   test('childEvents_empty', function() {

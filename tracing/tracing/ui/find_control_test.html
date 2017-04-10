@@ -42,7 +42,7 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(ctl);
     ctl.$.filter.value = 'test';
     ctl.updateHitCountEl();
-    assert.equal(ctl.$.hitCount.textContent, '1 of 2');
+    assert.strictEqual(ctl.$.hitCount.textContent, '1 of 2');
   });
 
   test('updateHitCountEl_emptyFilter', function() {
@@ -60,7 +60,7 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(ctl);
     ctl.$.filter.value = '';
     ctl.updateHitCountEl();
-    assert.equal(ctl.$.hitCount.textContent, '');
+    assert.strictEqual(ctl.$.hitCount.textContent, '');
   });
 });
 </script>

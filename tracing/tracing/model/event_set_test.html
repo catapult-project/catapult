@@ -29,44 +29,44 @@ tr.b.unittest.testSuite(function() {
     var eventSet = new tr.model.EventSet();
     eventSet.push(t1.sliceGroup.slices[0]);
 
-    assert.equal(eventSet.bounds.min, 1);
-    assert.equal(eventSet.bounds.max, 4);
+    assert.strictEqual(eventSet.bounds.min, 1);
+    assert.strictEqual(eventSet.bounds.max, 4);
     assert.deepEqual(eventSet.asSet(), new tr.model.EventSet(
         t1.sliceGroup.slices[0]).asSet());
 
     eventSet.push(t1.sliceGroup.slices[1]);
-    assert.equal(eventSet.bounds.min, 1);
-    assert.equal(eventSet.bounds.max, 6);
+    assert.strictEqual(eventSet.bounds.min, 1);
+    assert.strictEqual(eventSet.bounds.max, 6);
     assert.deepEqual(eventSet.asSet(), new tr.model.EventSet(
         [t1.sliceGroup.slices[0], t1.sliceGroup.slices[1]]).asSet());
 
     eventSet.clear();
-    assert.equal(eventSet.length, 0);
+    assert.strictEqual(eventSet.length, 0);
   });
 
   test('push_noEvents', function() {
     var eventSet = new tr.model.EventSet();
     eventSet.push();
-    assert.equal(eventSet.length, 0);
+    assert.strictEqual(eventSet.length, 0);
   });
 
   test('push_oneEvent', function() {
     var eventSet = new tr.model.EventSet();
     eventSet.push({guid: 1});
-    assert.equal(eventSet.length, 1);
+    assert.strictEqual(eventSet.length, 1);
   });
 
   test('push_multipleEvents', function() {
     var eventSet = new tr.model.EventSet();
     eventSet.push({guid: 1}, {guid: 2}, {guid: 3});
-    assert.equal(eventSet.length, 3);
+    assert.strictEqual(eventSet.length, 3);
   });
 
   test('push_multiplePushes', function() {
     var eventSet = new tr.model.EventSet();
     eventSet.push({guid: 1}, {guid: 2}, {guid: 3});
     eventSet.push({guid: 4}, {guid: 5}, {guid: 6});
-    assert.equal(eventSet.length, 6);
+    assert.strictEqual(eventSet.length, 6);
   });
 
   test('push_noGuidThrows', function() {
@@ -80,7 +80,7 @@ tr.b.unittest.testSuite(function() {
 
     var expectedId = 1;
     for (var event of eventSet) {
-      assert.equal(event.guid, expectedId++);
+      assert.strictEqual(event.guid, expectedId++);
     }
   });
 
@@ -92,10 +92,10 @@ tr.b.unittest.testSuite(function() {
 
     eventSet.push(sample1);
     eventSet.push(sample2);
-    assert.equal(eventSet.length, 2);
+    assert.strictEqual(eventSet.length, 2);
 
     eventSet.push(sample1);
-    assert.equal(eventSet.length, 2);
+    assert.strictEqual(eventSet.length, 2);
   });
 
   test('userFriendlyNameSingular', function() {
@@ -160,7 +160,7 @@ tr.b.unittest.testSuite(function() {
     ]);
 
     var eventsByTitle = eventSet.getEventsOrganizedByTitle();
-    assert.equal(2, tr.b.dictionaryLength(eventsByTitle));
+    assert.strictEqual(2, tr.b.dictionaryLength(eventsByTitle));
     assert.sameMembers(eventsByTitle['a'].toArray(),
                  [t1.sliceGroup.slices[0], t1.sliceGroup.slices[1]]);
     assert.sameMembers(eventsByTitle['b'].toArray(),
@@ -176,7 +176,7 @@ tr.b.unittest.testSuite(function() {
       return 's' + event.start;
     }
     var eventsByCallback = eventSet.getEventsOrganizedByCallback(getEventKey);
-    assert.equal(2, tr.b.dictionaryLength(eventsByCallback));
+    assert.strictEqual(2, tr.b.dictionaryLength(eventsByCallback));
     assert.sameMembers(eventsByCallback.s1.toArray(), [a1, b1]);
     assert.sameMembers(eventsByCallback.s2.toArray(), [a2]);
   });
@@ -187,7 +187,7 @@ tr.b.unittest.testSuite(function() {
     var c = new tr.model.AsyncSlice('', 'c', 0, 1, {}, 3);
     var eventSet = new tr.model.EventSet([a, b, c]);
     var eventsByBaseType = eventSet.getEventsOrganizedByBaseType(true);
-    assert.equal(2, tr.b.dictionaryLength(eventsByBaseType));
+    assert.strictEqual(2, tr.b.dictionaryLength(eventsByBaseType));
     assert.sameMembers(eventsByBaseType.slice.toArray(), [a, b]);
     assert.sameMembers(eventsByBaseType.asyncSlice.toArray(), [c]);
 
@@ -197,7 +197,7 @@ tr.b.unittest.testSuite(function() {
     assert.sameMembers(eventsByBaseType.asyncSlice.toArray(), [c]);
     for (var baseType in eventsByBaseType) {
       if (baseType !== 'slice' && baseType !== 'asyncSlice') {
-        assert.equal(0, eventsByBaseType[baseType].length);
+        assert.strictEqual(0, eventsByBaseType[baseType].length);
       }
     }
   });

@@ -246,8 +246,8 @@ tr.b.unittest.testSuite(function() {
 
   test('basic', function() {
     let hist = new tr.v.Histogram('', unitlessNumber, TEST_BOUNDARIES);
-    assert.equal(hist.getBinForValue(250).range.min, 200);
-    assert.equal(hist.getBinForValue(250).range.max, 300);
+    assert.strictEqual(hist.getBinForValue(250).range.min, 200);
+    assert.strictEqual(hist.getBinForValue(250).range.max, 300);
 
     hist.addSample(-1, {foo: new tr.v.d.Generic('a')});
     hist.addSample(0, {foo: new tr.v.d.Generic('b')});
@@ -255,18 +255,18 @@ tr.b.unittest.testSuite(function() {
     hist.addSample(500, {foo: new tr.v.d.Generic('c')});
     hist.addSample(999, {foo: new tr.v.d.Generic('d')});
     hist.addSample(1000, {foo: new tr.v.d.Generic('d')});
-    assert.equal(hist.allBins[0].count, 1);
+    assert.strictEqual(hist.allBins[0].count, 1);
 
-    assert.equal(hist.getBinForValue(0).count, 2);
+    assert.strictEqual(hist.getBinForValue(0).count, 2);
     assert.deepEqual(
         hist.getBinForValue(0).diagnosticMaps.map(dm => dm.get('foo').value),
         ['b', 'c']);
 
-    assert.equal(hist.getBinForValue(500).count, 1);
-    assert.equal(hist.getBinForValue(999).count, 1);
+    assert.strictEqual(hist.getBinForValue(500).count, 1);
+    assert.strictEqual(hist.getBinForValue(999).count, 1);
 
-    assert.equal(hist.allBins[hist.allBins.length - 1].count, 1);
-    assert.equal(hist.numValues, 6);
+    assert.strictEqual(hist.allBins[hist.allBins.length - 1].count, 1);
+    assert.strictEqual(hist.numValues, 6);
     assert.closeTo(hist.average, 416.3, 0.1);
   });
 
@@ -278,7 +278,7 @@ tr.b.unittest.testSuite(function() {
     hist.addSample(undefined);
     hist.addSample(NaN);
 
-    assert.equal(hist.numNans, 4);
+    assert.strictEqual(hist.numNans, 4);
     assert.deepEqual(hist.nanDiagnosticMaps.map(dm => dm.get('foo').value),
                                              ['b', 'c']);
 
@@ -307,37 +307,37 @@ tr.b.unittest.testSuite(function() {
 
     hist0.addHistogram(hist1);
 
-    assert.equal(hist0.numNans, 2);
+    assert.strictEqual(hist0.numNans, 2);
     assert.deepEqual(hist0.nanDiagnosticMaps.map(dmd => dmd.get('foo').value),
                      ['e0', 'e1']);
 
-    assert.equal(hist0.allBins[0].count, 2);
+    assert.strictEqual(hist0.allBins[0].count, 2);
     assert.deepEqual(
         hist0.allBins[0].diagnosticMaps.map(dmd => dmd.get('foo').value),
         ['a0', 'a1']);
 
-    assert.equal(hist0.getBinForValue(0).count, 4);
+    assert.strictEqual(hist0.getBinForValue(0).count, 4);
     assert.deepEqual(
         hist0.getBinForValue(0).diagnosticMaps.map(dmd => dmd.get('foo').value),
         ['b0', 'c0', 'b1', 'c1']);
 
-    assert.equal(hist0.getBinForValue(500).count, 1);
+    assert.strictEqual(hist0.getBinForValue(500).count, 1);
     assert.deepEqual(
         hist0.getBinForValue(500).diagnosticMaps.map(dmd =>
           dmd.get('foo').value),
         ['c0']);
 
-    assert.equal(hist0.getBinForValue(999).count, 1);
+    assert.strictEqual(hist0.getBinForValue(999).count, 1);
     assert.deepEqual(
         hist0.getBinForValue(999).diagnosticMaps.map(dmd =>
           dmd.get('foo').value),
         ['d1']);
 
-    assert.equal(hist0.allBins[hist0.allBins.length - 1].count, 2);
+    assert.strictEqual(hist0.allBins[hist0.allBins.length - 1].count, 2);
     assert.deepEqual(hist0.allBins[hist0.allBins.length - 1].diagnosticMaps.map(
         dmd => dmd.get('foo').value), ['d0', 'd1']);
 
-    assert.equal(hist0.numValues, 10);
+    assert.strictEqual(hist0.numValues, 10);
     assert.closeTo(hist0.average, 349.7, 0.1);
 
     let hist02 = tr.v.Histogram.fromDict(hist0.asDict());

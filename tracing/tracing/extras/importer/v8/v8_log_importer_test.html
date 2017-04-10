@@ -29,10 +29,10 @@ tr.b.unittest.testSuite(function() {
     var m = newModel(lines.join('\n'));
     var p = m.processes[-32];
     var t = p.findAllThreadsNamed('V8')[0];
-    assert.equal(t.samples.length, 1);
-    assert.equal(t.samples[0].title, 'V8 PC');
-    assert.equal(t.samples[0].start, 12158 / 1000);
-    assert.equal(t.samples[0].leafNode.title, '/usr/lib/libc++.1.dylib');
+    assert.strictEqual(t.samples.length, 1);
+    assert.strictEqual(t.samples[0].title, 'V8 PC');
+    assert.strictEqual(t.samples[0].start, 12158 / 1000);
+    assert.strictEqual(t.samples[0].leafNode.title, '/usr/lib/libc++.1.dylib');
   });
 
   test('tickEventInGeneratedCode', function() {
@@ -44,8 +44,8 @@ tr.b.unittest.testSuite(function() {
     var p = m.processes[-32];
     var threads = p.findAllThreadsNamed('V8');
     var t = threads[0];
-    assert.equal(t.samples.length, 1);
-    assert.equal(t.samples[0].leafNode.title, 'StringAddStub');
+    assert.strictEqual(t.samples.length, 1);
+    assert.strictEqual(t.samples[0].leafNode.title, 'StringAddStub');
   });
 
   test('tickEventInUknownCode', function() {
@@ -57,8 +57,8 @@ tr.b.unittest.testSuite(function() {
     var p = m.processes[-32];
     var threads = p.findAllThreadsNamed('V8');
     var t = threads[0];
-    assert.equal(t.samples.length, 1);
-    assert.equal(t.samples[0].leafNode.title, 'unknown');
+    assert.strictEqual(t.samples.length, 1);
+    assert.strictEqual(t.samples[0].leafNode.title, 'unknown');
   });
 
   test('tickEventWithStack', function() {
@@ -68,7 +68,7 @@ tr.b.unittest.testSuite(function() {
     var m = newModel(lines.join('\n'));
     var p = m.processes[-32];
     var t = p.findAllThreadsNamed('V8')[0];
-    assert.equal(t.samples.length, 1);
+    assert.strictEqual(t.samples.length, 1);
     assert.deepEqual(
         ['InstantiateFunction native apinatives.js:26:29 url: unknown'],
         t.samples[0].userFriendlyStack);
@@ -82,16 +82,16 @@ tr.b.unittest.testSuite(function() {
     var m = newModel(lines.join('\n'));
     var p = m.processes[-32];
     var t = p.findAllThreadsNamed('V8')[0];
-    assert.equal(t.samples.length, 2);
-    assert.equal(t.samples[0].start, 528674 / 1000);
-    assert.equal(t.samples[1].start, 536213 / 1000);
+    assert.strictEqual(t.samples.length, 2);
+    assert.strictEqual(t.samples[0].start, 528674 / 1000);
+    assert.strictEqual(t.samples[1].start, 536213 / 1000);
     assert.deepEqual(
         ['InstantiateFunction native apinatives.js:26:29 url: unknown'],
         t.samples[0].userFriendlyStack);
     assert.deepEqual(
         ['InstantiateFunction native apinatives.js:26:29 url: unknown'],
         t.samples[1].userFriendlyStack);
-    assert.equal(t.samples[0].leafNode,
+    assert.strictEqual(t.samples[0].leafNode,
         t.samples[1].leafNode);
   });
 
@@ -104,10 +104,10 @@ tr.b.unittest.testSuite(function() {
     var m = newModel(lines.join('\n'));
     var p = m.processes[-32];
     var t = p.findAllThreadsNamed('V8')[0];
-    assert.equal(t.samples.length, 2);
+    assert.strictEqual(t.samples.length, 2);
 
-    assert.equal(t.samples[0].start, 528674 / 1000);
-    assert.equal(t.samples[1].start, 536213 / 1000);
+    assert.strictEqual(t.samples[0].start, 528674 / 1000);
+    assert.strictEqual(t.samples[1].start, 536213 / 1000);
     assert.deepEqual(
         ['InstantiateFunction native apinatives.js:26:29 url: unknown',
           '~Instantiate native apinatives.js:9:21 url: unknown'],
@@ -117,7 +117,7 @@ tr.b.unittest.testSuite(function() {
           '~Instantiate native apinatives.js:9:21 url: unknown'],
         t.samples[1].userFriendlyStack);
 
-    assert.equal(t.samples[0].leafNode, t.samples[1].leafNode);
+    assert.strictEqual(t.samples[0].leafNode, t.samples[1].leafNode);
   });
 
   test('threeTickEventsWithTwoStackFrames', function() {
@@ -132,10 +132,10 @@ tr.b.unittest.testSuite(function() {
     var threads = p.findAllThreadsNamed('V8');
 
     var t = threads[0];
-    assert.equal(t.samples.length, 3);
-    assert.equal(t.samples[0].start, 518328 / 1000);
-    assert.equal(t.samples[1].start, 528674 / 1000);
-    assert.equal(t.samples[2].start, 536213 / 1000);
+    assert.strictEqual(t.samples.length, 3);
+    assert.strictEqual(t.samples[0].start, 518328 / 1000);
+    assert.strictEqual(t.samples[1].start, 528674 / 1000);
+    assert.strictEqual(t.samples[2].start, 536213 / 1000);
     assert.deepEqual(
         ['~Instantiate native apinatives.js:9:21 url: unknown'],
         t.samples[0].userFriendlyStack);
@@ -150,8 +150,8 @@ tr.b.unittest.testSuite(function() {
 
     var topLevelNode = t.samples[0].leafNode;
     var leafNode = t.samples[1].leafNode;
-    assert.equal(t.samples[2].leafNode, leafNode);
-    assert.equal(topLevelNode, leafNode.parentNode);
+    assert.strictEqual(t.samples[2].leafNode, leafNode);
+    assert.strictEqual(topLevelNode, leafNode.parentNode);
   });
 
   test('twoSubStacks', function() {
@@ -169,13 +169,13 @@ tr.b.unittest.testSuite(function() {
     var p = m.processes[-32];
     var threads = p.findAllThreadsNamed('V8');
     var t = threads[0];
-    assert.equal(t.samples.length, 5);
+    assert.strictEqual(t.samples.length, 5);
 
-    assert.equal(t.samples[0].start, 518328 / 1000);
-    assert.equal(t.samples[1].start, 528674 / 1000);
-    assert.equal(t.samples[2].start, 536213 / 1000);
-    assert.equal(t.samples[3].start, 794049 / 1000);
-    assert.equal(t.samples[4].start, 799145 / 1000);
+    assert.strictEqual(t.samples[0].start, 518328 / 1000);
+    assert.strictEqual(t.samples[1].start, 528674 / 1000);
+    assert.strictEqual(t.samples[2].start, 536213 / 1000);
+    assert.strictEqual(t.samples[3].start, 794049 / 1000);
+    assert.strictEqual(t.samples[4].start, 799145 / 1000);
 
     assert.deepEqual(
         ['~Instantiate native apinatives.js:9:21 url: unknown'],
@@ -195,11 +195,11 @@ tr.b.unittest.testSuite(function() {
 
     var firstNode = t.samples[0].leafNode;
     var firstChildNode = t.samples[1].leafNode;
-    assert.equal(firstChildNode, t.samples[2].leafNode);
-    assert.equal(firstNode, firstChildNode.parentNode);
+    assert.strictEqual(firstChildNode, t.samples[2].leafNode);
+    assert.strictEqual(firstNode, firstChildNode.parentNode);
 
     var secondNode = t.samples[3].leafNode;
-    assert.equal(secondNode, t.samples[4].leafNode);
+    assert.strictEqual(secondNode, t.samples[4].leafNode);
     assert.isUndefined(secondNode.parentNode);
   });
 
@@ -209,9 +209,9 @@ tr.b.unittest.testSuite(function() {
     var p = m.processes[-32];
     var threads = p.findAllThreadsNamed('V8 Timers');
     assert.isDefined(threads);
-    assert.equal(threads.length, 1);
+    assert.strictEqual(threads.length, 1);
     var t = threads[0];
-    assert.equal(t.sliceGroup.length, 1);
+    assert.strictEqual(t.sliceGroup.length, 1);
   });
 
   test('processThreadCreation', function() {
@@ -222,9 +222,9 @@ tr.b.unittest.testSuite(function() {
     assert.isDefined(p);
     var threads = p.findAllThreadsNamed('V8 Timers');
     assert.isDefined(threads);
-    assert.equal(1, threads.length);
+    assert.strictEqual(1, threads.length);
     var t = threads[0];
-    assert.equal('V8 Timers', t.name);
+    assert.strictEqual('V8 Timers', t.name);
   });
 
   test('canImport', function() {
@@ -246,12 +246,12 @@ tr.b.unittest.testSuite(function() {
     var m = newModel(lines.join('\n'));
     var p = m.processes[-32];
     var t = p.findAllThreadsNamed('V8')[0];
-    assert.equal(t.samples.length, 3);
-    assert.equal(t.samples[0].leafNode.title,
+    assert.strictEqual(t.samples.length, 3);
+    assert.strictEqual(t.samples[0].leafNode.title,
         'v8::internal::Heap::AllocateByteArray');
-    assert.equal(t.samples[1].leafNode.title,
+    assert.strictEqual(t.samples[1].leafNode.title,
         'v8::internal::Utf8StringKey::AsHandle');
-    assert.equal(t.samples[2].leafNode.title,
+    assert.strictEqual(t.samples[2].leafNode.title,
         '/usr/loca/v8/out/native/d8');
   });
 
@@ -268,7 +268,7 @@ tr.b.unittest.testSuite(function() {
     var m = newModel(lines.join('\n'));
     var p = m.processes[-32];
     var t = p.findAllThreadsNamed('V8')[0];
-    assert.equal(t.samples.length, 4);
+    assert.strictEqual(t.samples.length, 4);
     assert.deepEqual(t.samples[0].userFriendlyStack, [
       'v8::internal::Utf8StringKey::AsHandle url: /usr/loca/v8/out/native/d8',
       'InstantiateFunction native apinatives.js:26:29 url: unknown'

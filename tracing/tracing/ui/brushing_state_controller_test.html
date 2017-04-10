@@ -87,7 +87,7 @@ tr.b.unittest.testSuite(function() {
         function() {
           brushingStateController.currentBrushingState = bs2;
         }));
-    assert.equal(brushingStateController.currentBrushingState, bs2);
+    assert.strictEqual(brushingStateController.currentBrushingState, bs2);
     assert.isTrue(
         brushingStateController.currentBrushingState.isAppliedToModel);
 
@@ -124,7 +124,7 @@ tr.b.unittest.testSuite(function() {
           timelineView.model = m2;
           brushingStateController.modelDidChange();
         }));
-    assert.equal(
+    assert.strictEqual(
         brushingStateController.currentBrushingState.selection.length, 0);
   });
 

@@ -65,7 +65,7 @@ tr.b.unittest.testSuite(function() {
 
     assert.instanceOf(numeric, Scalar,
         errorMessagePrefix + 'be an instance of Scalar');
-    assert.equal(numeric.unit, expectedUnit,
+    assert.strictEqual(numeric.unit, expectedUnit,
         errorMessagePrefix + 'have unit \'' + expectedUnit.unitName +
         '\' but got \'' + numeric.unit.unitName + '\' instead');
 
@@ -75,7 +75,7 @@ tr.b.unittest.testSuite(function() {
       assert.closeTo(
           numeric.value, expectedValue, opt_delta, valueErrorMessage);
     } else {
-      assert.equal(numeric.value, expectedValue, valueErrorMessage);
+      assert.strictEqual(numeric.value, expectedValue, valueErrorMessage);
     }
   }
 
@@ -487,7 +487,7 @@ tr.b.unittest.testSuite(function() {
         // Check full name, parent, and container dump.
         var expectedFullName = namePrefix + treeRecipe['name'];
         var quantifiedName = dump.quantifiedName;
-        assert.equal(dump.fullName, expectedFullName,
+        assert.strictEqual(dump.fullName, expectedFullName,
             quantifiedName + ' has invalid full name');
         assert.strictEqual(dump.parent, expectedParent,
             quantifiedName + ' has invalid parent');

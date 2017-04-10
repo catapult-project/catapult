@@ -29,8 +29,9 @@ tr.b.unittest.testSuite(function() {
     var m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
-    assert.equal(m.processes['1155'].threads['1155'].sliceGroup.length, 1);
-    assert.equal(m.processes['33'].threads['33'].sliceGroup.length, 1);
+    assert.strictEqual(
+        m.processes['1155'].threads['1155'].sliceGroup.length, 1);
+    assert.strictEqual(m.processes['33'].threads['33'].sliceGroup.length, 1);
   });
 
   test('memreclaimDirectReclaim', function() {
@@ -58,16 +59,16 @@ tr.b.unittest.testSuite(function() {
 
     var threads = m.getAllThreads();
 
-    assert.equal(threads.length, 3);
+    assert.strictEqual(threads.length, 3);
 
     var Binder8 = threads[0];
     var touchFusion = threads[1];
     var RenderThread = threads[2];
 
     /* make sure there are the expected amount of slices per thread */
-    assert.equal(Binder8.sliceGroup.length, 2);
-    assert.equal(touchFusion.sliceGroup.length, 2);
-    assert.equal(RenderThread.sliceGroup.length, 4);
+    assert.strictEqual(Binder8.sliceGroup.length, 2);
+    assert.strictEqual(touchFusion.sliceGroup.length, 2);
+    assert.strictEqual(RenderThread.sliceGroup.length, 4);
 
     /* make sure the slices have information to display to the
      * user when selected
@@ -76,7 +77,7 @@ tr.b.unittest.testSuite(function() {
     var iterateMe = [Binder8, touchFusion, RenderThread];
     iterateMe.forEach(function(thread) {
       for (var i = 0; i < thread.sliceGroup.length; i++) {
-        assert.equal(thread.sliceGroup.slices[i].args !== undefined, true);
+        assert.isDefined(thread.sliceGroup.slices[i].args);
       }
     });
   });
@@ -155,14 +156,14 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();
-    assert.equal(threads.length, 1);
+    assert.strictEqual(threads.length, 1);
 
     var thread = threads[0];
 
-    assert.equal(thread.sliceGroup.length, 6);
+    assert.strictEqual(thread.sliceGroup.length, 6);
 
     thread.sliceGroup.slices.forEach(function(slice) {
-      assert.equal(slice.args !== undefined, true);
+      assert.strictEqual(slice.args !== undefined, true);
     });
   });
 });

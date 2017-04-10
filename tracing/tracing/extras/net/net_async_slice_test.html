@@ -21,10 +21,10 @@ tr.b.unittest.testSuite(function() {
     var s = new NetAsyncSlice('netlog', 'HTTP_STREAM_JOB', 7, 0, {});
     s.duration = 100;
 
-    assert.equal(
+    assert.strictEqual(
         AsyncSlice.subTypes.getConstructor('netlog', 'HTTP_STREAM_JOB'),
         NetAsyncSlice);
-    assert.equal(s.viewSubGroupTitle, 'NetLog');
+    assert.strictEqual(s.viewSubGroupTitle, 'NetLog');
   });
 
   test('import', function() {
@@ -34,7 +34,7 @@ tr.b.unittest.testSuite(function() {
     ];
     var m = tr.c.TestUtils.newModelWithEvents([events]);
     var t2 = m.getOrCreateProcess(1).getOrCreateThread(2);
-    assert.equal(t2.asyncSliceGroup.length, 1);
+    assert.strictEqual(t2.asyncSliceGroup.length, 1);
     assert.instanceOf(t2.asyncSliceGroup.slices[0], NetAsyncSlice);
   });
 
@@ -45,8 +45,8 @@ tr.b.unittest.testSuite(function() {
     // Make sure isTopLevel is populated in the constructor.
     assert.isTrue(slice.isTopLevel);
     // URL is exposed as the title of the parent slice.
-    assert.equal(slice.title, 'https://google.com');
-    assert.equal(slice.url, 'https://google.com');
+    assert.strictEqual(slice.title, 'https://google.com');
+    assert.strictEqual(slice.url, 'https://google.com');
   });
 
   test('ExposeURLNested', function() {
@@ -59,10 +59,10 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(slice.isTopLevel);
     assert.isFalse(childSlice.isTopLevel);
     // URL is exposed as the title of the parent slice.
-    assert.equal(slice.title, 'http://test.url');
-    assert.equal(slice.title, 'http://test.url');
-    assert.equal(childSlice.title, 'b');
-    assert.equal(childSlice.url, 'http://test.url');
+    assert.strictEqual(slice.title, 'http://test.url');
+    assert.strictEqual(slice.title, 'http://test.url');
+    assert.strictEqual(childSlice.title, 'b');
+    assert.strictEqual(childSlice.url, 'http://test.url');
   });
 
   test('ExposeURLNestedNoURL', function() {
@@ -73,10 +73,10 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(slice.isTopLevel);
     assert.isFalse(childSlice.isTopLevel);
     // URL is exposed as the title of the parent slice.
-    assert.equal(slice.title, 'a');
-    assert.equal(slice.url, undefined);
-    assert.equal(childSlice.title, 'b');
-    assert.equal(childSlice.url, undefined);
+    assert.strictEqual(slice.title, 'a');
+    assert.strictEqual(slice.url, undefined);
+    assert.strictEqual(childSlice.title, 'b');
+    assert.strictEqual(childSlice.url, undefined);
   });
 
   test('ExposeURLNestedBothChildrenHaveURL', function() {
@@ -91,9 +91,9 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(childSlice1.isTopLevel);
     assert.isFalse(childSlice2.isTopLevel);
     // Parent should take the first url param that it finds.
-    assert.equal(slice.title, 'http://test.url.net');
-    assert.equal(childSlice1.title, 'b');
-    assert.equal(childSlice2.title, 'c');
+    assert.strictEqual(slice.title, 'http://test.url.net');
+    assert.strictEqual(childSlice1.title, 'b');
+    assert.strictEqual(childSlice2.title, 'c');
   });
 
   test('ExposeURLNestedBothParentAndChildHaveURL', function() {
@@ -110,9 +110,9 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(childSlice1.isTopLevel);
     assert.isFalse(childSlice2.isTopLevel);
     // Parent should take its own url param if there is one.
-    assert.equal(slice.title, 'parent123.url.com');
-    assert.equal(childSlice1.title, 'b');
-    assert.equal(childSlice2.title, 'c');
+    assert.strictEqual(slice.title, 'parent123.url.com');
+    assert.strictEqual(childSlice1.title, 'b');
+    assert.strictEqual(childSlice2.title, 'c');
   });
 
   test('ExposeURLDoNotComputeUrlTwice', function() {
@@ -127,15 +127,15 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(childSlice1.isTopLevel);
     assert.isFalse(childSlice2.isTopLevel);
     // Parent should take its child's url param.
-    assert.equal(slice.title, 'http://test.url.net');
-    assert.equal(childSlice1.title, 'b');
-    assert.equal(childSlice2.title, 'c');
+    assert.strictEqual(slice.title, 'http://test.url.net');
+    assert.strictEqual(childSlice1.title, 'b');
+    assert.strictEqual(childSlice2.title, 'c');
     // Now if we change the url param of the child, the parent's title should
     // remain the same. We do not recompute.
     childSlice1.args.params.url = 'example.com';
-    assert.equal(slice.title, 'http://test.url.net');
-    assert.equal(childSlice1.title, 'b');
-    assert.equal(childSlice2.title, 'c');
+    assert.strictEqual(slice.title, 'http://test.url.net');
+    assert.strictEqual(childSlice1.title, 'b');
+    assert.strictEqual(childSlice2.title, 'c');
   });
 
   test('ExposeSourceTypeAsTitle', function() {
@@ -152,20 +152,20 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(childSlice1.isTopLevel);
     assert.isFalse(childSlice2.isTopLevel);
     // Parent should take its own source_type.
-    assert.equal(slice.title, 'UDP_SOCKET');
-    assert.equal(childSlice1.title, 'b');
-    assert.equal(childSlice2.title, 'c');
+    assert.strictEqual(slice.title, 'UDP_SOCKET');
+    assert.strictEqual(childSlice1.title, 'b');
+    assert.strictEqual(childSlice2.title, 'c');
   });
 
   test('ByteCountBasic', function() {
     var slice = new NetAsyncSlice('', 'URL_REQUEST_JOB_BYTES_READ', 0, 1,
                                   {params: {byte_count: 12}}, 0, true);
-    assert.equal(slice.byteCount, 12);
+    assert.strictEqual(slice.byteCount, 12);
   });
 
   test('NoByteCount', function() {
     var slice = new NetAsyncSlice('', 'a', 0, 1, {}, 0, true);
-    assert.equal(slice.byteCount, 0);
+    assert.strictEqual(slice.byteCount, 0);
   });
 
   test('ByteCountNested', function() {
@@ -174,8 +174,8 @@ tr.b.unittest.testSuite(function() {
     var childSlice = new NetAsyncSlice('', 'URL_REQUEST_JOB_BYTES_READ', 0, 1,
                                        {params: {byte_count: 50}});
     slice.subSlices = [childSlice];
-    assert.equal(slice.byteCount, 62);
-    assert.equal(childSlice.byteCount, 50);
+    assert.strictEqual(slice.byteCount, 62);
+    assert.strictEqual(childSlice.byteCount, 50);
   });
 
   test('ByteCountTwoChildren', function() {
@@ -186,9 +186,9 @@ tr.b.unittest.testSuite(function() {
     var childSlice2 = new NetAsyncSlice('', 'URL_REQUEST_JOB_BYTES_READ', 0, 1,
                                         {params: {byte_count: 20}});
     slice.subSlices = [childSlice1, childSlice2];
-    assert.equal(slice.byteCount, 82);
-    assert.equal(childSlice1.byteCount, 50);
-    assert.equal(childSlice2.byteCount, 20);
+    assert.strictEqual(slice.byteCount, 82);
+    assert.strictEqual(childSlice1.byteCount, 50);
+    assert.strictEqual(childSlice2.byteCount, 20);
   });
 });
 </script>

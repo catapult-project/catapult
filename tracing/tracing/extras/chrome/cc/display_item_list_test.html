@@ -37,10 +37,10 @@ tr.b.unittest.testSuite(function() {
     var snapshot = instance.snapshots[0];
 
     var items = snapshot.items;
-    assert.equal(items.length, 2);
+    assert.strictEqual(items.length, 2);
 
-    assert.equal(items[0], 'BeginClipDisplayItem');
-    assert.equal(items[1], 'EndClipDisplayItem');
+    assert.strictEqual(items[0], 'BeginClipDisplayItem');
+    assert.strictEqual(items[1], 'EndClipDisplayItem');
   });
 });
 </script>

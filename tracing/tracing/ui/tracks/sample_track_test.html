@@ -27,7 +27,7 @@ tr.b.unittest.testSuite(function() {
     var sample = new Sample(10, 'instructions_retired', node);
     track.samples = [sample];
     var me0 = track.rects[0].modelItem;
-    assert.equal(me0, sample);
+    assert.strictEqual(me0, sample);
   });
 });
 </script>

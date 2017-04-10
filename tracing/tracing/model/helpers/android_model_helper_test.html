@@ -105,8 +105,8 @@ tr.b.unittest.testSuite(function() {
     SINGLE_FRAME_CUSTOM_MODELS.forEach(function(customizeModelCallback) {
       var model = tr.c.TestUtils.newModel(customizeModelCallback);
       var helper = model.getOrCreateHelper(AndroidModelHelper);
-      assert.equal(helper.apps[0].uiThread, model.uiThread);
-      assert.equal(helper.apps[0].renderThread, model.renderThread);
+      assert.strictEqual(helper.apps[0].uiThread, model.uiThread);
+      assert.strictEqual(helper.apps[0].renderThread, model.renderThread);
     });
   });
 
@@ -120,7 +120,7 @@ tr.b.unittest.testSuite(function() {
         assert.isTrue(importantSlice instanceof tr.model.Slice);
         seen++;
       });
-      assert.equal(seen, 1);
+      assert.strictEqual(seen, 1);
     });
   });
 
@@ -128,10 +128,10 @@ tr.b.unittest.testSuite(function() {
     SINGLE_FRAME_CUSTOM_MODELS.forEach(function(customizeModelCallback) {
       var model = tr.c.TestUtils.newModel(customizeModelCallback);
       var helper = model.getOrCreateHelper(AndroidModelHelper);
-      assert.equal(helper.apps.length, 1);
+      assert.strictEqual(helper.apps.length, 1);
 
       var frames = helper.apps[0].getFrames();
-      assert.equal(frames.length, 1);
+      assert.strictEqual(frames.length, 1);
       assert.closeTo(frames[0].totalDuration, 80, 1e-5);
 
       assert.closeTo(frames[0].start, 10, 1e-5);
@@ -210,11 +210,11 @@ tr.b.unittest.testSuite(function() {
     var helper = model.getOrCreateHelper(AndroidModelHelper);
 
     var frames = helper.apps[0].getFrames();
-    assert.equal(frames.length, 6);
+    assert.strictEqual(frames.length, 6);
     for (var i = 0; i < 6; i++) {
       var shouldMissDeadline = i >= 3;
       var missedDeadline = frames[i].args['deadline'] < frames[i].end;
-      assert.equal(shouldMissDeadline, missedDeadline);
+      assert.strictEqual(shouldMissDeadline, missedDeadline);
     }
   });
 
@@ -237,13 +237,13 @@ tr.b.unittest.testSuite(function() {
       counter.addSeries(series);
     });
     var helper = model.getOrCreateHelper(AndroidModelHelper);
-    assert.equal(helper.apps.length, 1);
+    assert.strictEqual(helper.apps.length, 1);
 
     var inputSamples = helper.apps[0].getInputSamples();
-    assert.equal(inputSamples.length, 3);
-    assert.equal(inputSamples[0].timestamp, 10);
-    assert.equal(inputSamples[1].timestamp, 30);
-    assert.equal(inputSamples[2].timestamp, 40);
+    assert.strictEqual(inputSamples.length, 3);
+    assert.strictEqual(inputSamples[0].timestamp, 10);
+    assert.strictEqual(inputSamples[1].timestamp, 30);
+    assert.strictEqual(inputSamples[2].timestamp, 40);
   });
 
   test('appAnimations', function() {
@@ -256,12 +256,12 @@ tr.b.unittest.testSuite(function() {
           uiThread, uiThread));
     });
     var helper = model.getOrCreateHelper(AndroidModelHelper);
-    assert.equal(helper.apps.length, 1);
+    assert.strictEqual(helper.apps.length, 1);
 
     var animations = helper.apps[0].getAnimationAsyncSlices();
-    assert.equal(animations.length, 1);
-    assert.equal(animations[0].start, 0);
-    assert.equal(animations[0].end, 10);
+    assert.strictEqual(animations.length, 1);
+    assert.strictEqual(animations[0].start, 0);
+    assert.strictEqual(animations[0].end, 10);
   });
 });
 </script>

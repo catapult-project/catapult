@@ -53,9 +53,11 @@ tr.b.unittest.testSuite(function() {
     sOuter.subSlices.push(sInner);
     assert.isTrue(sOuter instanceof tr.e.cc.InputLatencyAsyncSlice);
     assert.isTrue(sInner instanceof tr.e.cc.InputLatencyAsyncSlice);
-    assert.equal(sOuter.inputLatency, 10);
-    assert.equal(tr.e.cc.INPUT_EVENT_TYPE_NAMES.SCROLL_UPDATE, sInner.typeName);
-    assert.equal(tr.e.cc.INPUT_EVENT_TYPE_NAMES.SCROLL_UPDATE, sOuter.typeName);
+    assert.strictEqual(sOuter.inputLatency, 10);
+    assert.strictEqual(
+        tr.e.cc.INPUT_EVENT_TYPE_NAMES.SCROLL_UPDATE, sInner.typeName);
+    assert.strictEqual(
+        tr.e.cc.INPUT_EVENT_TYPE_NAMES.SCROLL_UPDATE, sOuter.typeName);
   });
 
   test('matchByType_newStyle', function() {
@@ -75,8 +77,9 @@ tr.b.unittest.testSuite(function() {
     });
 
     assert.isTrue(sInfo instanceof tr.e.cc.InputLatencyAsyncSlice);
-    assert.equal(sInfo.inputLatency, 10);
-    assert.equal(tr.e.cc.INPUT_EVENT_TYPE_NAMES.SCROLL_UPDATE, sInfo.typeName);
+    assert.strictEqual(sInfo.inputLatency, 10);
+    assert.strictEqual(
+        tr.e.cc.INPUT_EVENT_TYPE_NAMES.SCROLL_UPDATE, sInfo.typeName);
   });
 
   test('unknownType', function() {
@@ -95,7 +98,7 @@ tr.b.unittest.testSuite(function() {
         }
       }
     });
-    assert.equal(tr.e.cc.INPUT_EVENT_TYPE_NAMES.UNKNOWN, sInfo.typeName);
+    assert.strictEqual(tr.e.cc.INPUT_EVENT_TYPE_NAMES.UNKNOWN, sInfo.typeName);
   });
 
   test('getAssociatedEventsBypassRendererMain', function() {
@@ -252,7 +255,7 @@ tr.b.unittest.testSuite(function() {
         isTopLevel: true,
         startThread: mainBrowserThread
       }));
-      assert.equal(tr.e.cc.INPUT_EVENT_TYPE_NAMES.SCROLL_UPDATE,
+      assert.strictEqual(tr.e.cc.INPUT_EVENT_TYPE_NAMES.SCROLL_UPDATE,
           m.as0.typeName);
 
       m.as1 = mainBrowserThread.asyncSliceGroup.push(newAsyncSliceEx({
@@ -267,7 +270,7 @@ tr.b.unittest.testSuite(function() {
         isTopLevel: true,
         startThread: mainBrowserThread
       }));
-      assert.equal(tr.e.cc.INPUT_EVENT_TYPE_NAMES.SCROLL_UPDATE,
+      assert.strictEqual(tr.e.cc.INPUT_EVENT_TYPE_NAMES.SCROLL_UPDATE,
           m.as1.typeName);
 
       m.as2 = compositorThread.asyncSliceGroup.push(newAsyncSliceEx({
@@ -284,7 +287,7 @@ tr.b.unittest.testSuite(function() {
         isTopLevel: true,
         startThread: compositorThread
       }));
-      assert.equal(tr.e.cc.INPUT_EVENT_TYPE_NAMES.LATENCY_SCROLL_UPDATE,
+      assert.strictEqual(tr.e.cc.INPUT_EVENT_TYPE_NAMES.LATENCY_SCROLL_UPDATE,
           m.as2.typeName);
     });
 

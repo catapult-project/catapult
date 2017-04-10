@@ -64,25 +64,25 @@ tr.b.unittest.testSuite(function() {
         scopedId, 'cat', 'Frame', 20, {foo: 2});
 
     collection.updateBounds();
-    assert.equal(collection.bounds.min, 10);
-    assert.equal(collection.bounds.max, 20);
+    assert.strictEqual(collection.bounds.min, 10);
+    assert.strictEqual(collection.bounds.max, 20);
 
     var s0 = collection.getSnapshotAt(scopedId, 1);
     assert.isUndefined(s0);
 
     var s1 = collection.getSnapshotAt(scopedId, 10);
-    assert.equal(s1.args.foo, 1);
+    assert.strictEqual(s1.args.foo, 1);
 
     var s2 = collection.getSnapshotAt(scopedId, 15);
-    assert.equal(s2.args.foo, 1);
-    assert.equal(s1, s2);
+    assert.strictEqual(s2.args.foo, 1);
+    assert.strictEqual(s1, s2);
 
     var s3 = collection.getSnapshotAt(scopedId, 20);
-    assert.equal(s3.args.foo, 2);
-    assert.equal(s1.object, s3.object);
+    assert.strictEqual(s3.args.foo, 2);
+    assert.strictEqual(s1.object, s3.object);
 
     var s4 = collection.getSnapshotAt(scopedId, 25);
-    assert.equal(s4, s3);
+    assert.strictEqual(s4, s3);
   });
 
   test('twoObjectsSharingOneID', function() {
@@ -98,12 +98,12 @@ tr.b.unittest.testSuite(function() {
         scopedId, 'skia', 'Picture', 25);
 
     var frame = collection.getObjectInstanceAt(scopedId, 10);
-    assert.equal(frame.category, 'tr.e.cc');
-    assert.equal(frame.name, 'Frame');
+    assert.strictEqual(frame.category, 'tr.e.cc');
+    assert.strictEqual(frame.name, 'Frame');
 
     var picture = collection.getObjectInstanceAt(scopedId, 20);
-    assert.equal(picture.category, 'skia');
-    assert.equal(picture.name, 'Picture');
+    assert.strictEqual(picture.category, 'skia');
+    assert.strictEqual(picture.name, 'Picture');
 
     var typeNames = Object.keys(collection.getAllInstancesByTypeName());
     typeNames.sort();
@@ -129,13 +129,13 @@ tr.b.unittest.testSuite(function() {
         scopedId, 'cat', 'Frame', 15);
 
     collection.updateBounds();
-    assert.equal(collection.bounds.min, 10);
-    assert.equal(collection.bounds.max, 15);
+    assert.strictEqual(collection.bounds.min, 10);
+    assert.strictEqual(collection.bounds.max, 15);
 
     var s10 = collection.getSnapshotAt(scopedId, 10);
     var i10 = s10.objectInstance;
-    assert.equal(i10.creationTs, 10);
-    assert.equal(i10.deletionTs, 15);
+    assert.strictEqual(i10.creationTs, 10);
+    assert.strictEqual(i10.deletionTs, 15);
   });
 
   test('boundsOnUndeletedObject', function() {
@@ -147,8 +147,8 @@ tr.b.unittest.testSuite(function() {
         scopedId, 'cat', 'Frame', 15, {foo: 1});
 
     collection.updateBounds();
-    assert.equal(10, collection.bounds.min);
-    assert.equal(15, collection.bounds.max);
+    assert.strictEqual(10, collection.bounds.min);
+    assert.strictEqual(15, collection.bounds.max);
   });
 
   test('snapshotWithCustomBaseTypeThenDelete', function() {
@@ -159,10 +159,10 @@ tr.b.unittest.testSuite(function() {
     collection.idWasDeleted(
         scopedId, 'cat', 'cc::LayerImpl', 15);
     collection.updateBounds();
-    assert.equal(10, collection.bounds.min);
-    assert.equal(15, collection.bounds.max);
-    assert.equal(s10.objectInstance.name, 'cc::PictureLayerImpl');
-    assert.equal(s10.objectInstance.baseTypeName, 'cc::LayerImpl');
+    assert.strictEqual(10, collection.bounds.min);
+    assert.strictEqual(15, collection.bounds.max);
+    assert.strictEqual(s10.objectInstance.name, 'cc::PictureLayerImpl');
+    assert.strictEqual(s10.objectInstance.baseTypeName, 'cc::LayerImpl');
   });
 
   test('newWithSnapshotThatChangesBaseType', function() {
@@ -173,11 +173,11 @@ tr.b.unittest.testSuite(function() {
     var s15 = collection.addSnapshot(
         scopedId, 'cat', 'cc::PictureLayerImpl', 15, {}, 'cc::LayerImpl');
     collection.updateBounds();
-    assert.equal(10, collection.bounds.min);
-    assert.equal(15, collection.bounds.max);
-    assert.equal(s15.objectInstance, i10);
-    assert.equal(i10.name, 'cc::PictureLayerImpl');
-    assert.equal(i10.baseTypeName, 'cc::LayerImpl');
+    assert.strictEqual(10, collection.bounds.min);
+    assert.strictEqual(15, collection.bounds.max);
+    assert.strictEqual(s15.objectInstance, i10);
+    assert.strictEqual(i10.name, 'cc::PictureLayerImpl');
+    assert.strictEqual(i10.baseTypeName, 'cc::LayerImpl');
   });
 
   test('deleteThenSnapshotWithCustomBase', function() {
@@ -188,9 +188,9 @@ tr.b.unittest.testSuite(function() {
     var s15 = collection.addSnapshot(
         scopedId, 'cat', 'cc::PictureLayerImpl', 15, {}, 'cc::LayerImpl');
     collection.updateBounds();
-    assert.equal(10, collection.bounds.min);
-    assert.equal(15, collection.bounds.max);
-    assert.equal(s15.objectInstance.name, 'cc::PictureLayerImpl');
+    assert.strictEqual(10, collection.bounds.min);
+    assert.strictEqual(15, collection.bounds.max);
+    assert.strictEqual(s15.objectInstance.name, 'cc::PictureLayerImpl');
   });
 
   test('autoDelete', function() {
@@ -204,7 +204,7 @@ tr.b.unittest.testSuite(function() {
 
     var s10 = collection.getSnapshotAt(scopedId, 10);
     var i10 = s10.objectInstance;
-    assert.equal(15, i10.deletionTs);
+    assert.strictEqual(15, i10.deletionTs);
   });
 
   test('differentScopes', function() {
@@ -221,10 +221,10 @@ tr.b.unittest.testSuite(function() {
         scopedId2, 'cat', 'cc::object', 15);
 
     var instance = collection.getObjectInstanceAt(scopedId1, 10);
-    assert.equal(instance.name, 'ptr::object');
+    assert.strictEqual(instance.name, 'ptr::object');
 
     var instance = collection.getObjectInstanceAt(scopedId2, 10);
-    assert.equal(instance.name, 'cc::object');
+    assert.strictEqual(instance.name, 'cc::object');
   });
 });
 </script>

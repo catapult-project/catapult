@@ -38,10 +38,10 @@ tr.b.unittest.testSuite(function() {
 
     var ops = snapshot.getOps();
     if (!ops) return;
-    assert.equal(ops.length, 142);
+    assert.strictEqual(ops.length, 142);
 
     var op0 = ops[0];
-    assert.equal(op0.cmd_string, 'Save');
+    assert.strictEqual(op0.cmd_string, 'Save');
     assert.instanceOf(op0.info, Array);
   });
 });

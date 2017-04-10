@@ -16,7 +16,7 @@ tr.b.unittest.testSuite(function() {
     var checkbox = document.createElement('tr-ui-b-checkbox');
     checkbox.label = 'Yo like pizza?';
     this.addHTMLOutput(checkbox);
-    assert.equal(checkbox.label, 'Yo like pizza?');
+    assert.strictEqual(checkbox.label, 'Yo like pizza?');
     assert.isFalse(checkbox.checked);
   });
 
@@ -25,7 +25,7 @@ tr.b.unittest.testSuite(function() {
     checkbox.label = 'Yo like cookie?';
     checkbox.checked = true;
     this.addHTMLOutput(checkbox);
-    assert.equal(checkbox.label, 'Yo like cookie?');
+    assert.strictEqual(checkbox.label, 'Yo like cookie?');
     assert.isTrue(checkbox.checked);
   });
 

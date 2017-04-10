@@ -85,28 +85,28 @@ tr.b.unittest.testSuite(function() {
     ];
 
     var m = makeModel(events);
-    assert.equal(m.numProcesses, 1);
+    assert.strictEqual(m.numProcesses, 1);
     var p = m.processes[52];
     assert.isDefined(p);
 
-    assert.equal(p.numThreads, 1);
+    assert.strictEqual(p.numThreads, 1);
     var t = p.threads[53];
     assert.isDefined(t);
-    assert.equal(t.sliceGroup.length, 2);
-    assert.equal(t.tid, 53);
+    assert.strictEqual(t.sliceGroup.length, 2);
+    assert.strictEqual(t.tid, 53);
     var slice = t.sliceGroup.slices[0];
-    assert.equal(slice.title, 'a');
-    assert.equal(slice.category, 'foo');
-    assert.equal(slice.start, 0);
+    assert.strictEqual(slice.title, 'a');
+    assert.strictEqual(slice.category, 'foo');
+    assert.strictEqual(slice.start, 0);
     assert.closeTo((560 - 520) / 1000, slice.duration, 1e-5);
-    assert.equal(slice.subSlices.length, 0);
+    assert.strictEqual(slice.subSlices.length, 0);
 
     slice = t.sliceGroup.slices[1];
-    assert.equal(slice.title, 'b');
-    assert.equal(slice.category, 'bar');
+    assert.strictEqual(slice.title, 'b');
+    assert.strictEqual(slice.category, 'bar');
     assert.closeTo((629 - 520) / 1000, slice.start, 1e-5);
     assert.closeTo((631 - 629) / 1000, slice.duration, 1e-5);
-    assert.equal(slice.subSlices.length, 0);
+    assert.strictEqual(slice.subSlices.length, 0);
   });
 
   test('basicSingleThreadNonnestedParsingWithCpuDuration', function() {
@@ -118,30 +118,30 @@ tr.b.unittest.testSuite(function() {
     ];
 
     var m = makeModel(events);
-    assert.equal(m.numProcesses, 1);
+    assert.strictEqual(m.numProcesses, 1);
     var p = m.processes[52];
     assert.isDefined(p);
 
-    assert.equal(p.numThreads, 1);
+    assert.strictEqual(p.numThreads, 1);
     var t = p.threads[53];
     assert.isDefined(t);
-    assert.equal(t.sliceGroup.length, 2);
-    assert.equal(t.tid, 53);
+    assert.strictEqual(t.sliceGroup.length, 2);
+    assert.strictEqual(t.tid, 53);
     var slice = t.sliceGroup.slices[0];
-    assert.equal(slice.title, 'a');
-    assert.equal(slice.category, 'foo');
-    assert.equal(slice.start, 0);
+    assert.strictEqual(slice.title, 'a');
+    assert.strictEqual(slice.category, 'foo');
+    assert.strictEqual(slice.start, 0);
     assert.closeTo((560 - 520) / 1000, slice.duration, 1e-5);
     assert.closeTo((259 - 221) / 1000, slice.cpuDuration, 1e-5);
-    assert.equal(slice.subSlices.length, 0);
+    assert.strictEqual(slice.subSlices.length, 0);
 
     slice = t.sliceGroup.slices[1];
-    assert.equal(slice.title, 'b');
-    assert.equal(slice.category, 'bar');
+    assert.strictEqual(slice.title, 'b');
+    assert.strictEqual(slice.category, 'bar');
     assert.closeTo((629 - 520) / 1000, slice.start, 1e-5);
     assert.closeTo((631 - 629) / 1000, slice.duration, 1e-5);
     assert.closeTo((331 - 329) / 1000, slice.cpuDuration, 1e-5);
-    assert.equal(slice.subSlices.length, 0);
+    assert.strictEqual(slice.subSlices.length, 0);
   });
 
   test('argumentDupeCreatesNonFailingImportError', function() {
@@ -166,9 +166,9 @@ tr.b.unittest.testSuite(function() {
     var t = m.processes[1].threads[1];
     var sA = findSliceNamed(t.sliceGroup, 'a');
 
-    assert.equal(sA.args.x, 2);
+    assert.strictEqual(sA.args.x, 2);
     assert.isTrue(m.hasImportWarnings);
-    assert.equal(1, m.importWarnings.length);
+    assert.strictEqual(1, m.importWarnings.length);
   });
 
   test('importMissingArgs', function() {
@@ -199,18 +199,18 @@ tr.b.unittest.testSuite(function() {
     ];
 
     var m = makeModel(events);
-    assert.equal(m.numProcesses, 1);
+    assert.strictEqual(m.numProcesses, 1);
     var p = m.processes[52];
     assert.isDefined(p);
 
-    assert.equal(p.numThreads, 1);
+    assert.strictEqual(p.numThreads, 1);
     var t = p.threads[53];
     assert.isDefined(t);
-    assert.equal(t.sliceGroup.length, 1);
-    assert.equal(t.tid, 53);
+    assert.strictEqual(t.sliceGroup.length, 1);
+    assert.strictEqual(t.tid, 53);
     var slice = t.sliceGroup.slices[0];
-    assert.equal(slice.title, 'a');
-    assert.equal(slice.category, 'foo');
+    assert.strictEqual(slice.title, 'a');
+    assert.strictEqual(slice.category, 'foo');
   });
 
   test('beginEndNameMismatch', function() {
@@ -221,7 +221,7 @@ tr.b.unittest.testSuite(function() {
 
     var m = makeModel(events);
     assert.isTrue(m.hasImportWarnings);
-    assert.equal(m.importWarnings.length, 1);
+    assert.strictEqual(m.importWarnings.length, 1);
   });
 
   test('nestedParsing', function() {
@@ -237,21 +237,21 @@ tr.b.unittest.testSuite(function() {
     var sA = findSliceNamed(t.sliceGroup, 'a');
     var sB = findSliceNamed(t.sliceGroup, 'b');
 
-    assert.equal(sA.title, 'a');
-    assert.equal(sA.category, 'foo');
-    assert.equal(sA.start, 0.001);
-    assert.equal(sA.duration, 0.003);
-    assert.equal(sA.selfTime, 0.002);
-    assert.equal(sA.cpuSelfTime, 0.001);
+    assert.strictEqual(sA.title, 'a');
+    assert.strictEqual(sA.category, 'foo');
+    assert.strictEqual(sA.start, 0.001);
+    assert.strictEqual(sA.duration, 0.003);
+    assert.strictEqual(sA.selfTime, 0.002);
+    assert.strictEqual(sA.cpuSelfTime, 0.001);
 
-    assert.equal(sB.title, 'b');
-    assert.equal(sB.category, 'bar');
-    assert.equal(sB.start, 0.002);
-    assert.equal(sB.duration, 0.001);
+    assert.strictEqual(sB.title, 'b');
+    assert.strictEqual(sB.category, 'bar');
+    assert.strictEqual(sB.start, 0.002);
+    assert.strictEqual(sB.duration, 0.001);
 
-    assert.equal(1, sA.subSlices.length);
-    assert.equal(sB, sA.subSlices[0]);
-    assert.equal(sA, sB.parentSlice);
+    assert.strictEqual(1, sA.subSlices.length);
+    assert.strictEqual(sB, sA.subSlices[0]);
+    assert.strictEqual(sA, sB.parentSlice);
   });
 
   test('nestedParsingWithTwoSubSlices', function() {
@@ -270,28 +270,28 @@ tr.b.unittest.testSuite(function() {
     var sB = findSliceNamed(t.sliceGroup, 'b');
     var sC = findSliceNamed(t.sliceGroup, 'c');
 
-    assert.equal(sA.title, 'a');
-    assert.equal(sA.category, 'foo');
-    assert.equal(sA.start, 0.001);
-    assert.equal(sA.duration, 0.007);
-    assert.equal(sA.selfTime, 0.004);
-    assert.equal(sA.cpuSelfTime, 0.005);
+    assert.strictEqual(sA.title, 'a');
+    assert.strictEqual(sA.category, 'foo');
+    assert.strictEqual(sA.start, 0.001);
+    assert.strictEqual(sA.duration, 0.007);
+    assert.strictEqual(sA.selfTime, 0.004);
+    assert.strictEqual(sA.cpuSelfTime, 0.005);
 
-    assert.equal(sB.title, 'b');
-    assert.equal(sB.category, 'bar');
-    assert.equal(sB.start, 0.002);
-    assert.equal(sB.duration, 0.001);
+    assert.strictEqual(sB.title, 'b');
+    assert.strictEqual(sB.category, 'bar');
+    assert.strictEqual(sB.start, 0.002);
+    assert.strictEqual(sB.duration, 0.001);
 
-    assert.equal(sC.title, 'c');
-    assert.equal(sC.category, 'baz');
-    assert.equal(sC.start, 0.005);
-    assert.equal(sC.duration, 0.002);
+    assert.strictEqual(sC.title, 'c');
+    assert.strictEqual(sC.category, 'baz');
+    assert.strictEqual(sC.start, 0.005);
+    assert.strictEqual(sC.duration, 0.002);
 
-    assert.equal(sA.subSlices.length, 2);
-    assert.equal(sA.subSlices[0], sB);
-    assert.equal(sA.subSlices[1], sC);
-    assert.equal(sB.parentSlice, sA);
-    assert.equal(sC.parentSlice, sA);
+    assert.strictEqual(sA.subSlices.length, 2);
+    assert.strictEqual(sA.subSlices[0], sB);
+    assert.strictEqual(sA.subSlices[1], sC);
+    assert.strictEqual(sB.parentSlice, sA);
+    assert.strictEqual(sC.parentSlice, sA);
   });
 
   test('nestedParsingWithDoubleNesting', function() {
@@ -310,30 +310,30 @@ tr.b.unittest.testSuite(function() {
     var sB = findSliceNamed(t.sliceGroup, 'b');
     var sC = findSliceNamed(t.sliceGroup, 'c');
 
-    assert.equal(sA.title, 'a');
-    assert.equal(sA.category, 'foo');
-    assert.equal(sA.start, 0.001);
-    assert.equal(sA.duration, 0.007);
-    assert.equal(sA.selfTime, 0.002);
+    assert.strictEqual(sA.title, 'a');
+    assert.strictEqual(sA.category, 'foo');
+    assert.strictEqual(sA.start, 0.001);
+    assert.strictEqual(sA.duration, 0.007);
+    assert.strictEqual(sA.selfTime, 0.002);
 
-    assert.equal(sB.title, 'b');
-    assert.equal(sB.category, 'bar');
-    assert.equal(sB.start, 0.002);
-    assert.equal(sB.duration, 0.005);
-    assert.equal(sA.selfTime, 0.002);
+    assert.strictEqual(sB.title, 'b');
+    assert.strictEqual(sB.category, 'bar');
+    assert.strictEqual(sB.start, 0.002);
+    assert.strictEqual(sB.duration, 0.005);
+    assert.strictEqual(sA.selfTime, 0.002);
 
-    assert.equal(sC.title, 'c');
-    assert.equal(sC.category, 'baz');
-    assert.equal(sC.start, 0.003);
-    assert.equal(sC.duration, 0.002);
+    assert.strictEqual(sC.title, 'c');
+    assert.strictEqual(sC.category, 'baz');
+    assert.strictEqual(sC.start, 0.003);
+    assert.strictEqual(sC.duration, 0.002);
 
-    assert.equal(sA.subSlices.length, 1);
-    assert.equal(sA.subSlices[0], sB);
-    assert.equal(sB.parentSlice, sA);
+    assert.strictEqual(sA.subSlices.length, 1);
+    assert.strictEqual(sA.subSlices[0], sB);
+    assert.strictEqual(sB.parentSlice, sA);
 
-    assert.equal(sB.subSlices.length, 1);
-    assert.equal(sB.subSlices[0], sC);
-    assert.equal(sC.parentSlice, sB);
+    assert.strictEqual(sB.subSlices.length, 1);
+    assert.strictEqual(sB.subSlices[0], sC);
+    assert.strictEqual(sC.parentSlice, sB);
   });
 
 
@@ -351,7 +351,7 @@ tr.b.unittest.testSuite(function() {
     var t1 = p.threads[1];
     var t2 = p.threads[2];
     assert.isTrue(t1.sliceGroup.slices[0].didNotFinish);
-    assert.equal(t1.sliceGroup.slices[0].end, 0.001);
+    assert.strictEqual(t1.sliceGroup.slices[0].end, 0.001);
   });
 
   test('autoclosingLoneBegin', function() {
@@ -363,11 +363,11 @@ tr.b.unittest.testSuite(function() {
     var p = m.processes[1];
     var t = p.threads[1];
     var slice = t.sliceGroup.slices[0];
-    assert.equal(slice.title, 'a');
-    assert.equal(slice.category, 'foo');
+    assert.strictEqual(slice.title, 'a');
+    assert.strictEqual(slice.category, 'foo');
     assert.isTrue(slice.didNotFinish);
-    assert.equal(slice.start, 0);
-    assert.equal(slice.duration, 0);
+    assert.strictEqual(slice.start, 0);
+    assert.strictEqual(slice.duration, 0);
   });
 
   test('autoclosingWithSubTasks', function() {
@@ -384,9 +384,9 @@ tr.b.unittest.testSuite(function() {
     var sB1 = findSliceNamed(t.sliceGroup, 'b1');
     var sB2 = findSliceNamed(t.sliceGroup, 'b2');
 
-    assert.equal(sA.end, 0.003);
-    assert.equal(sB1.end, 0.003);
-    assert.equal(sB2.end, 0.003);
+    assert.strictEqual(sA.end, 0.003);
+    assert.strictEqual(sB1.end, 0.003);
+    assert.strictEqual(sB2.end, 0.003);
   });
 
   test('autoclosingWithEventsOutsideBounds', function() {
@@ -402,23 +402,23 @@ tr.b.unittest.testSuite(function() {
     var m = makeModel(events);
     var p = m.processes[1];
     var t = p.threads[1];
-    assert.equal(t.sliceGroup.length, 2);
+    assert.strictEqual(t.sliceGroup.length, 2);
 
     var slice = findSliceNamed(t.sliceGroup, 'a');
-    assert.equal(slice.title, 'a');
-    assert.equal(slice.category, 'foo');
-    assert.equal(slice.start, 0);
-    assert.equal(slice.duration, 0.003);
+    assert.strictEqual(slice.title, 'a');
+    assert.strictEqual(slice.category, 'foo');
+    assert.strictEqual(slice.start, 0);
+    assert.strictEqual(slice.duration, 0.003);
 
     var t2 = p.threads[2];
     var slice2 = findSliceNamed(t2.sliceGroup, 'c');
-    assert.equal(slice2.title, 'c');
-    assert.equal(slice2.category, 'bar');
-    assert.equal(slice2.start, 0.001);
-    assert.equal(slice2.duration, 0.001);
+    assert.strictEqual(slice2.title, 'c');
+    assert.strictEqual(slice2.category, 'bar');
+    assert.strictEqual(slice2.start, 0.001);
+    assert.strictEqual(slice2.duration, 0.001);
 
-    assert.equal(m.bounds.min, 0.000);
-    assert.equal(m.bounds.max, 0.003);
+    assert.strictEqual(m.bounds.min, 0.000);
+    assert.strictEqual(m.bounds.max, 0.003);
   });
 
   test('nestedAutoclosing', function() {
@@ -439,8 +439,8 @@ tr.b.unittest.testSuite(function() {
     var sA2 = findSliceNamed(t1.sliceGroup, 'a2');
     var sB = findSliceNamed(t2.sliceGroup, 'b');
 
-    assert.equal(sA1.end, 0.0015);
-    assert.equal(sA2.end, 0.0015);
+    assert.strictEqual(sA1.end, 0.0015);
+    assert.strictEqual(sA2.end, 0.0015);
   });
 
   test('taskColoring', function() {
@@ -461,16 +461,16 @@ tr.b.unittest.testSuite(function() {
     var p = m.processes[1];
     var t = p.threads[1];
     var a1 = t.sliceGroup.slices[0];
-    assert.equal(a1.title, 'a');
-    assert.equal(a1.category, 'foo');
+    assert.strictEqual(a1.title, 'a');
+    assert.strictEqual(a1.category, 'foo');
     var b = t.sliceGroup.slices[1];
-    assert.equal(b.title, 'b');
-    assert.equal(b.category, 'bar');
+    assert.strictEqual(b.title, 'b');
+    assert.strictEqual(b.category, 'bar');
     assert.notEqual(b.colorId, a1.colorId);
     var a2 = t.sliceGroup.slices[2];
-    assert.equal(a2.title, 'a');
-    assert.equal(a2.category, 'baz');
-    assert.equal(a1.colorId, a2.colorId);
+    assert.strictEqual(a2.title, 'a');
+    assert.strictEqual(a2.category, 'baz');
+    assert.strictEqual(a1.colorId, a2.colorId);
   });
 
   test('durationColorArgument', function() {
@@ -482,7 +482,7 @@ tr.b.unittest.testSuite(function() {
     var m = makeModel(events);
     var p = m.processes[1];
     var t = p.threads[1];
-    assert.equal(t.sliceGroup.slices[0].colorId,
+    assert.strictEqual(t.sliceGroup.slices[0].colorId,
         ColorScheme.getColorIdForReservedName('thread_state_unknown'));
   });
 
@@ -495,7 +495,7 @@ tr.b.unittest.testSuite(function() {
     var m = makeModel(events);
     var p = m.processes[1];
     var t = p.threads[1];
-    assert.equal(t.sliceGroup.slices[0].colorId,
+    assert.strictEqual(t.sliceGroup.slices[0].colorId,
         ColorScheme.getColorIdForReservedName('thread_state_unknown'));
   });
 
@@ -507,7 +507,7 @@ tr.b.unittest.testSuite(function() {
     var m = makeModel(events);
     var p = m.processes[1];
     var t = p.threads[1];
-    assert.equal(t.sliceGroup.slices[0].colorId,
+    assert.strictEqual(t.sliceGroup.slices[0].colorId,
         ColorScheme.getColorIdForReservedName('generic_work'));
   });
 
@@ -520,7 +520,7 @@ tr.b.unittest.testSuite(function() {
     var m = makeModel(events);
     var p = m.processes[1];
     var t = p.threads[1];
-    assert.equal(t.asyncSliceGroup.slices[0].colorId,
+    assert.strictEqual(t.asyncSliceGroup.slices[0].colorId,
         ColorScheme.getColorIdForReservedName('generic_work'));
   });
 
@@ -533,7 +533,7 @@ tr.b.unittest.testSuite(function() {
     var m = makeModel(events);
     var p = m.processes[1];
     var t = p.threads[1];
-    assert.equal(t.asyncSliceGroup.slices[0].colorId,
+    assert.strictEqual(t.asyncSliceGroup.slices[0].colorId,
         ColorScheme.getColorIdForReservedName('generic_work'));
   });
 
@@ -545,7 +545,7 @@ tr.b.unittest.testSuite(function() {
     var m = makeModel(events);
     var p = m.processes[1];
     var t = p.threads[1];
-    assert.equal(t.sliceGroup.slices[0].colorId,
+    assert.strictEqual(t.sliceGroup.slices[0].colorId,
         ColorScheme.getColorIdForReservedName('generic_work'));
   });
 
@@ -556,7 +556,7 @@ tr.b.unittest.testSuite(function() {
 
     var m = makeModel(events);
     var p = m.processes[1];
-    assert.equal(p.instantEvents[0].colorId,
+    assert.strictEqual(p.instantEvents[0].colorId,
         ColorScheme.getColorIdForReservedName('generic_work'));
   });
 
@@ -567,9 +567,9 @@ tr.b.unittest.testSuite(function() {
 
     var m = makeModel(events);
     var p = m.processes[1];
-    assert.equal(p.counters['foo.a[1]'].series[0].color,
+    assert.strictEqual(p.counters['foo.a[1]'].series[0].color,
         ColorScheme.getColorIdForReservedName('generic_work'));
-    assert.equal(p.counters['foo.a[1]'].series.length, 1);
+    assert.strictEqual(p.counters['foo.a[1]'].series.length, 1);
   });
 
   test('objectColorArgument', function() {
@@ -582,7 +582,7 @@ tr.b.unittest.testSuite(function() {
     var m = makeModel(events);
     var p = m.processes[1];
     var i = p.objects.instanceMapsByScopedId_['ptr'][1].instances[0];
-    assert.equal(i.colorId,
+    assert.strictEqual(i.colorId,
         ColorScheme.getColorIdForReservedName('generic_work'));
   });
 
@@ -596,7 +596,7 @@ tr.b.unittest.testSuite(function() {
     var m = makeModel(events);
     var p = m.processes[1];
     var i = p.objects.instanceMapsByScopedId_['ptr'][1].instances[0];
-    assert.equal(i.colorId,
+    assert.strictEqual(i.colorId,
         ColorScheme.getColorIdForReservedName('generic_work'));
   });
 
@@ -608,37 +608,37 @@ tr.b.unittest.testSuite(function() {
       {name: 'b', args: {}, pid: 1, ts: 4, cat: 'bar', tid: 2, ph: 'E'}
     ];
     var m = makeModel(events);
-    assert.equal(m.numProcesses, 1);
+    assert.strictEqual(m.numProcesses, 1);
     var p = m.processes[1];
     assert.isDefined(p);
 
-    assert.equal(p.numThreads, 2);
+    assert.strictEqual(p.numThreads, 2);
 
     // Check thread 1.
     var t = p.threads[1];
     assert.isDefined(t);
-    assert.equal(t.sliceGroup.length, 1);
-    assert.equal(t.tid, 1);
+    assert.strictEqual(t.sliceGroup.length, 1);
+    assert.strictEqual(t.tid, 1);
 
     var slice = t.sliceGroup.slices[0];
-    assert.equal(slice.title, 'a');
-    assert.equal(slice.category, 'foo');
-    assert.equal(slice.start, 0);
-    assert.equal(slice.duration, (2 - 1) / 1000);
-    assert.equal(slice.subSlices.length, 0);
+    assert.strictEqual(slice.title, 'a');
+    assert.strictEqual(slice.category, 'foo');
+    assert.strictEqual(slice.start, 0);
+    assert.strictEqual(slice.duration, (2 - 1) / 1000);
+    assert.strictEqual(slice.subSlices.length, 0);
 
     // Check thread 2.
     var t = p.threads[2];
     assert.isDefined(t);
-    assert.equal(t.sliceGroup.length, 1);
-    assert.equal(t.tid, 2);
+    assert.strictEqual(t.sliceGroup.length, 1);
+    assert.strictEqual(t.tid, 2);
 
     slice = t.sliceGroup.slices[0];
-    assert.equal(slice.title, 'b');
-    assert.equal(slice.category, 'bar');
-    assert.equal(slice.start, (3 - 1) / 1000);
-    assert.equal(slice.duration, (4 - 3) / 1000);
-    assert.equal(slice.subSlices.length, 0);
+    assert.strictEqual(slice.title, 'b');
+    assert.strictEqual(slice.category, 'bar');
+    assert.strictEqual(slice.start, (3 - 1) / 1000);
+    assert.strictEqual(slice.duration, (4 - 3) / 1000);
+    assert.strictEqual(slice.subSlices.length, 0);
   });
 
   test('multiplePidParsing', function() {
@@ -649,40 +649,40 @@ tr.b.unittest.testSuite(function() {
       {name: 'b', args: {}, pid: 2, ts: 4, cat: 'bar', tid: 2, ph: 'E'}
     ];
     var m = makeModel(events);
-    assert.equal(m.numProcesses, 2);
+    assert.strictEqual(m.numProcesses, 2);
     var p = m.processes[1];
     assert.isDefined(p);
 
-    assert.equal(p.numThreads, 1);
+    assert.strictEqual(p.numThreads, 1);
 
     // Check process 1 thread 1.
     var t = p.threads[1];
     assert.isDefined(t);
-    assert.equal(t.sliceGroup.length, 1);
-    assert.equal(t.tid, 1);
+    assert.strictEqual(t.sliceGroup.length, 1);
+    assert.strictEqual(t.tid, 1);
 
     var slice = t.sliceGroup.slices[0];
-    assert.equal(slice.title, 'a');
-    assert.equal(slice.category, 'foo');
-    assert.equal(slice.start, 0);
-    assert.equal(slice.duration, (2 - 1) / 1000);
-    assert.equal(slice.subSlices.length, 0);
+    assert.strictEqual(slice.title, 'a');
+    assert.strictEqual(slice.category, 'foo');
+    assert.strictEqual(slice.start, 0);
+    assert.strictEqual(slice.duration, (2 - 1) / 1000);
+    assert.strictEqual(slice.subSlices.length, 0);
 
     // Check process 2 thread 2.
     var p = m.processes[2];
     assert.isDefined(p);
-    assert.equal(p.numThreads, 1);
+    assert.strictEqual(p.numThreads, 1);
     var t = p.threads[2];
     assert.isDefined(t);
-    assert.equal(t.sliceGroup.length, 1);
-    assert.equal(t.tid, 2);
+    assert.strictEqual(t.sliceGroup.length, 1);
+    assert.strictEqual(t.tid, 2);
 
     slice = t.sliceGroup.slices[0];
-    assert.equal(slice.title, 'b');
-    assert.equal(slice.category, 'bar');
-    assert.equal(slice.start, (3 - 1) / 1000);
-    assert.equal(slice.duration, (4 - 3) / 1000);
-    assert.equal(slice.subSlices.length, 0);
+    assert.strictEqual(slice.title, 'b');
+    assert.strictEqual(slice.category, 'bar');
+    assert.strictEqual(slice.start, (3 - 1) / 1000);
+    assert.strictEqual(slice.duration, (4 - 3) / 1000);
+    assert.strictEqual(slice.subSlices.length, 0);
 
     // Check getAllThreads.
     assert.deepEqual(m.getAllThreads(),
@@ -698,7 +698,7 @@ tr.b.unittest.testSuite(function() {
         pid: 2, ts: 0, tid: 1, ph: 'M'}
     ];
     var m = makeModel(events);
-    assert.equal(m.processes[1].name, 'SomeProcessName');
+    assert.strictEqual(m.processes[1].name, 'SomeProcessName');
   });
 
   // Process labels.
@@ -723,8 +723,8 @@ tr.b.unittest.testSuite(function() {
         pid: 2, ts: 0, tid: 1, ph: 'M'}
     ];
     var m = makeModel(events);
-    assert.equal(m.processes[1].uptime_seconds, 10);
-    assert.equal(m.processes[2].uptime_seconds, 20);
+    assert.strictEqual(m.processes[1].uptime_seconds, 10);
+    assert.strictEqual(m.processes[2].uptime_seconds, 20);
   });
 
   // Process sort index.
@@ -752,8 +752,8 @@ tr.b.unittest.testSuite(function() {
         pid: 2, ts: 0, tid: 2, ph: 'M'}
     ];
     var m = makeModel(events, false, false);
-    assert.equal(m.processes[1].threads[1].name, 'Thread 1');
-    assert.equal(m.processes[2].threads[2].name, 'Thread 2');
+    assert.strictEqual(m.processes[1].threads[1].name, 'Thread 1');
+    assert.strictEqual(m.processes[2].threads[2].name, 'Thread 2');
   });
 
   // Thread sort index.
@@ -783,8 +783,8 @@ tr.b.unittest.testSuite(function() {
         pid: 14, ts: 0, tid: 0, ph: 'M'}
     ];
     var m = makeModel(events);
-    assert.equal(m.kernel.softwareMeasuredCpuCount, 4);
-    assert.equal(m.kernel.bestGuessAtCpuCount, 4);
+    assert.strictEqual(m.kernel.softwareMeasuredCpuCount, 4);
+    assert.strictEqual(m.kernel.bestGuessAtCpuCount, 4);
   });
 
   test('cpuCountsWithSandboxBeingConfused', function() {
@@ -795,8 +795,8 @@ tr.b.unittest.testSuite(function() {
         pid: 14, ts: 0, tid: 0, ph: 'M'}
     ];
     var m = makeModel(events);
-    assert.equal(m.kernel.softwareMeasuredCpuCount, 4);
-    assert.equal(m.kernel.bestGuessAtCpuCount, 4);
+    assert.strictEqual(m.kernel.softwareMeasuredCpuCount, 4);
+    assert.strictEqual(m.kernel.bestGuessAtCpuCount, 4);
   });
 
   test('parsingWhenEndComesFirst', function() {
@@ -808,13 +808,13 @@ tr.b.unittest.testSuite(function() {
     var m = makeModel(events, false);
     var p = m.processes[1];
     var t = p.threads[1];
-    assert.equal(t.sliceGroup.length, 1);
-    assert.equal(t.sliceGroup.slices[0].title, 'a');
-    assert.equal(t.sliceGroup.slices[0].category, 'foo');
-    assert.equal(t.sliceGroup.slices[0].start, 0.004);
-    assert.equal(t.sliceGroup.slices[0].duration, 0.001);
+    assert.strictEqual(t.sliceGroup.length, 1);
+    assert.strictEqual(t.sliceGroup.slices[0].title, 'a');
+    assert.strictEqual(t.sliceGroup.slices[0].category, 'foo');
+    assert.strictEqual(t.sliceGroup.slices[0].start, 0.004);
+    assert.strictEqual(t.sliceGroup.slices[0].duration, 0.001);
     assert.isTrue(m.hasImportWarnings);
-    assert.equal(m.importWarnings.length, 1);
+    assert.strictEqual(m.importWarnings.length, 1);
   });
 
   test('immediateParsing', function() {
@@ -830,29 +830,29 @@ tr.b.unittest.testSuite(function() {
     var p = m.processes[1];
     var t = p.threads[1];
 
-    assert.equal(t.sliceGroup.length, 3);
-    assert.equal(t.sliceGroup.slices[0].start, 0.001);
-    assert.equal(t.sliceGroup.slices[0].duration, 0.003);
-    assert.equal(t.sliceGroup.slices[1].start, 0.002);
-    assert.equal(t.sliceGroup.slices[1].duration, 0);
-    assert.equal(t.sliceGroup.slices[2].start, 0.004);
+    assert.strictEqual(t.sliceGroup.length, 3);
+    assert.strictEqual(t.sliceGroup.slices[0].start, 0.001);
+    assert.strictEqual(t.sliceGroup.slices[0].duration, 0.003);
+    assert.strictEqual(t.sliceGroup.slices[1].start, 0.002);
+    assert.strictEqual(t.sliceGroup.slices[1].duration, 0);
+    assert.strictEqual(t.sliceGroup.slices[2].start, 0.004);
 
     var slice = findSliceNamed(t.sliceGroup, 'a');
-    assert.equal(slice.title, 'a');
-    assert.equal(slice.category, 'foo');
-    assert.equal(slice.duration, 0.003);
+    assert.strictEqual(slice.title, 'a');
+    assert.strictEqual(slice.category, 'foo');
+    assert.strictEqual(slice.duration, 0.003);
 
     var immed = findSliceNamed(t.sliceGroup, 'immediate');
-    assert.equal(immed.title, 'immediate');
-    assert.equal(immed.category, 'bar');
-    assert.equal(immed.start, 0.002);
-    assert.equal(immed.duration, 0);
+    assert.strictEqual(immed.title, 'immediate');
+    assert.strictEqual(immed.category, 'bar');
+    assert.strictEqual(immed.start, 0.002);
+    assert.strictEqual(immed.duration, 0);
 
     var slower = findSliceNamed(t.sliceGroup, 'slower');
-    assert.equal(slower.title, 'slower');
-    assert.equal(slower.category, 'baz');
-    assert.equal(slower.start, 0.004);
-    assert.equal(slower.duration, 0);
+    assert.strictEqual(slower.title, 'slower');
+    assert.strictEqual(slower.category, 'baz');
+    assert.strictEqual(slower.start, 0.004);
+    assert.strictEqual(slower.duration, 0);
   });
 
   test('simpleCounter', function() {
@@ -869,13 +869,13 @@ tr.b.unittest.testSuite(function() {
     var p = m.processes[1];
     var ctr = m.processes[1].counters['foo.ctr'];
 
-    assert.equal(ctr.name, 'ctr');
-    assert.equal(ctr.category, 'foo');
-    assert.equal(ctr.numSamples, 3);
-    assert.equal(ctr.numSeries, 1);
+    assert.strictEqual(ctr.name, 'ctr');
+    assert.strictEqual(ctr.category, 'foo');
+    assert.strictEqual(ctr.numSamples, 3);
+    assert.strictEqual(ctr.numSeries, 1);
 
-    assert.equal(ctr.series[0].name, 'value');
-    assert.equal(ctr.series[0].color,
+    assert.strictEqual(ctr.series[0].name, 'value');
+    assert.strictEqual(ctr.series[0].color,
         ColorScheme.getColorIdForGeneralPurposeString('ctr.value'));
 
     assert.deepEqual(ctr.timestamps, [0, 0.01, 0.02]);
@@ -887,7 +887,7 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual(samples, [0, 10, 0]);
 
     assert.deepEqual(ctr.totals, [0, 10, 0]);
-    assert.equal(ctr.maxTotal, 10);
+    assert.strictEqual(ctr.maxTotal, 10);
   });
 
   test('instanceCounter', function() {
@@ -908,10 +908,10 @@ tr.b.unittest.testSuite(function() {
     var m = makeModel(events);
     var p = m.processes[1];
     var ctr = m.processes[1].counters['foo.ctr[0]'];
-    assert.equal(ctr.name, 'ctr[0]');
-    assert.equal(ctr.category, 'foo');
-    assert.equal(ctr.numSamples, 2);
-    assert.equal(ctr.numSeries, 1);
+    assert.strictEqual(ctr.name, 'ctr[0]');
+    assert.strictEqual(ctr.category, 'foo');
+    assert.strictEqual(ctr.numSamples, 2);
+    assert.strictEqual(ctr.numSeries, 1);
 
     assert.deepEqual(ctr.timestamps, [0, 0.01]);
     var samples = [];
@@ -921,10 +921,10 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual(samples, [0, 10]);
 
     ctr = m.processes[1].counters['foo.ctr[1]'];
-    assert.equal(ctr.name, 'ctr[1]');
-    assert.equal(ctr.category, 'foo');
-    assert.equal(ctr.numSamples, 3);
-    assert.equal(ctr.numSeries, 1);
+    assert.strictEqual(ctr.name, 'ctr[1]');
+    assert.strictEqual(ctr.category, 'foo');
+    assert.strictEqual(ctr.numSamples, 3);
+    assert.strictEqual(ctr.numSeries, 1);
     assert.deepEqual(ctr.timestamps, [0.01, 0.015, 0.02]);
 
     samples = [];
@@ -934,10 +934,10 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual(samples, [10, 20, 30]);
 
     ctr = m.processes[1].counters['bar.ctr[2]'];
-    assert.equal(ctr.name, 'ctr[2]');
-    assert.equal(ctr.category, 'bar');
-    assert.equal(ctr.numSamples, 1);
-    assert.equal(ctr.numSeries, 1);
+    assert.strictEqual(ctr.name, 'ctr[2]');
+    assert.strictEqual(ctr.category, 'bar');
+    assert.strictEqual(ctr.numSamples, 1);
+    assert.strictEqual(ctr.numSeries, 1);
     assert.deepEqual(ctr.timestamps, [0.025]);
     var samples = [];
     ctr.series[0].samples.forEach(function(sample) {
@@ -976,9 +976,9 @@ tr.b.unittest.testSuite(function() {
 
     ctr.updateBounds();
 
-    assert.equal(ctr.bounds.min, 0);
-    assert.equal(ctr.bounds.max, 7);
-    assert.equal(ctr.maxTotal, 8);
+    assert.strictEqual(ctr.bounds.min, 0);
+    assert.strictEqual(ctr.bounds.max, 7);
+    assert.strictEqual(ctr.maxTotal, 8);
     assert.deepEqual([0, 0,
       1, 1,
       1, 2,
@@ -998,18 +998,18 @@ tr.b.unittest.testSuite(function() {
     var m = makeModel(events);
     var p = m.processes[1];
     var ctr = m.processes[1].counters['foo.ctr'];
-    assert.equal(ctr.name, 'ctr');
+    assert.strictEqual(ctr.name, 'ctr');
 
-    assert.equal(ctr.name, 'ctr');
-    assert.equal(ctr.category, 'foo');
-    assert.equal(ctr.numSamples, 3);
-    assert.equal(ctr.numSeries, 2);
+    assert.strictEqual(ctr.name, 'ctr');
+    assert.strictEqual(ctr.category, 'foo');
+    assert.strictEqual(ctr.numSamples, 3);
+    assert.strictEqual(ctr.numSeries, 2);
 
-    assert.equal(ctr.series[0].name, 'value1');
-    assert.equal(ctr.series[1].name, 'value2');
-    assert.equal(ctr.series[0].color,
+    assert.strictEqual(ctr.series[0].name, 'value1');
+    assert.strictEqual(ctr.series[1].name, 'value2');
+    assert.strictEqual(ctr.series[0].color,
         ColorScheme.getColorIdForGeneralPurposeString('ctr.value1'));
-    assert.equal(ctr.series[1].color,
+    assert.strictEqual(ctr.series[1].color,
         ColorScheme.getColorIdForGeneralPurposeString('ctr.value2'));
 
     assert.deepEqual(ctr.timestamps, [0, 0.01, 0.02]);
@@ -1027,7 +1027,7 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual([0, 7,
       10, 14,
       0, 1], ctr.totals);
-    assert.equal(ctr.maxTotal, 14);
+    assert.strictEqual(ctr.maxTotal, 14);
   });
 
   test('importObjectInsteadOfArray', function() {
@@ -1037,7 +1037,7 @@ tr.b.unittest.testSuite(function() {
     ] };
 
     var m = makeModel(events);
-    assert.equal(m.numProcesses, 1);
+    assert.strictEqual(m.numProcesses, 1);
   });
 
   test('importString', function() {
@@ -1047,7 +1047,7 @@ tr.b.unittest.testSuite(function() {
     ];
 
     var m = makeModel(JSON.stringify(events));
-    assert.equal(m.numProcesses, 1);
+    assert.strictEqual(m.numProcesses, 1);
   });
 
   test('importStringWithLeadingSpaces', function() {
@@ -1057,7 +1057,7 @@ tr.b.unittest.testSuite(function() {
     ];
 
     var m = makeModel(' ' + JSON.stringify(events));
-    assert.equal(m.numProcesses, 1);
+    assert.strictEqual(m.numProcesses, 1);
   });
 
   test('importStringWithTrailingNewLine', function() {
@@ -1067,7 +1067,7 @@ tr.b.unittest.testSuite(function() {
     ];
 
     var m = makeModel(JSON.stringify(events) + '\n');
-    assert.equal(m.numProcesses, 1);
+    assert.strictEqual(m.numProcesses, 1);
   });
 
   test('importStringWithMissingCloseSquareBracket', function() {
@@ -1077,12 +1077,12 @@ tr.b.unittest.testSuite(function() {
     ];
 
     var tmp = JSON.stringify(events);
-    assert.equal(tmp[tmp.length - 1], ']');
+    assert.strictEqual(tmp[tmp.length - 1], ']');
 
     // Drop off the trailing ]
     var dropped = tmp.substring(0, tmp.length - 1);
     var m = makeModel(dropped);
-    assert.equal(m.numProcesses, 1);
+    assert.strictEqual(m.numProcesses, 1);
   });
 
   test('importStringWithEndingCommaButMissingCloseSquareBracket', function() {
@@ -1094,8 +1094,8 @@ tr.b.unittest.testSuite(function() {
     var text = lines.join('\n');
 
     var m = makeModel(text);
-    assert.equal(m.numProcesses, 1);
-    assert.equal(m.processes[52].threads[53].sliceGroup.length, 1);
+    assert.strictEqual(m.numProcesses, 1);
+    assert.strictEqual(m.processes[52].threads[53].sliceGroup.length, 1);
   });
 
   test('importStringWithMissingCloseSquareBracketAndNewline', function() {
@@ -1105,12 +1105,12 @@ tr.b.unittest.testSuite(function() {
     ];
 
     var tmp = JSON.stringify(events);
-    assert.equal(tmp[tmp.length - 1], ']');
+    assert.strictEqual(tmp[tmp.length - 1], ']');
 
     // Drop off the trailing ] and add a newline
     var dropped = tmp.substring(0, tmp.length - 1);
     var m = makeModel(dropped + '\n');
-    assert.equal(m.numProcesses, 1);
+    assert.strictEqual(m.numProcesses, 1);
   });
 
   test('ImportStringEndingCommaButMissingCloseSquareBracketCRLF', function() {
@@ -1122,8 +1122,8 @@ tr.b.unittest.testSuite(function() {
     var text = lines.join('\r\n');
 
     var m = makeModel(text);
-    assert.equal(m.numProcesses, 1);
-    assert.equal(m.processes[52].threads[53].sliceGroup.length, 1);
+    assert.strictEqual(m.numProcesses, 1);
+    assert.strictEqual(m.processes[52].threads[53].sliceGroup.length, 1);
   });
 
   test('importOldFormat', function() {
@@ -1135,8 +1135,8 @@ tr.b.unittest.testSuite(function() {
     ];
     var text = lines.join('\n');
     var m = makeModel(text);
-    assert.equal(m.numProcesses, 1);
-    assert.equal(m.processes[9].threads[8].sliceGroup.length, 1);
+    assert.strictEqual(m.numProcesses, 1);
+    assert.strictEqual(m.processes[9].threads[8].sliceGroup.length, 1);
   });
 
   test('startFinishOneSliceOneThread', function() {
@@ -1151,17 +1151,17 @@ tr.b.unittest.testSuite(function() {
     var m = makeModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
-    assert.equal(t.asyncSliceGroup.slices.length, 1);
-    assert.equal(t.asyncSliceGroup.slices[0].title, 'a');
-    assert.equal(t.asyncSliceGroup.slices[0].category, 'cat');
+    assert.strictEqual(t.asyncSliceGroup.slices.length, 1);
+    assert.strictEqual(t.asyncSliceGroup.slices[0].title, 'a');
+    assert.strictEqual(t.asyncSliceGroup.slices[0].category, 'cat');
     assert.isTrue(t.asyncSliceGroup.slices[0].isTopLevel);
-    assert.equal(t.asyncSliceGroup.slices[0].id, ':ptr:72');
-    assert.equal(t.asyncSliceGroup.slices[0].args.foo, 'bar');
-    assert.equal(t.asyncSliceGroup.slices[0].start, 0);
+    assert.strictEqual(t.asyncSliceGroup.slices[0].id, ':ptr:72');
+    assert.strictEqual(t.asyncSliceGroup.slices[0].args.foo, 'bar');
+    assert.strictEqual(t.asyncSliceGroup.slices[0].start, 0);
     assert.closeTo(
         (60 - 24) / 1000, t.asyncSliceGroup.slices[0].duration, 1e-5);
-    assert.equal(t.asyncSliceGroup.slices[0].startThread, t);
-    assert.equal(t.asyncSliceGroup.slices[0].endThread, t);
+    assert.strictEqual(t.asyncSliceGroup.slices[0].startThread, t);
+    assert.strictEqual(t.asyncSliceGroup.slices[0].endThread, t);
   });
 
   test('endArgsAddedToSlice', function() {
@@ -1171,22 +1171,22 @@ tr.b.unittest.testSuite(function() {
     ];
 
     var m = makeModel(events);
-    assert.equal(m.numProcesses, 1);
+    assert.strictEqual(m.numProcesses, 1);
     var p = m.processes[52];
     assert.isDefined(p);
 
-    assert.equal(p.numThreads, 1);
+    assert.strictEqual(p.numThreads, 1);
     var t = p.threads[53];
     assert.isDefined(t);
-    assert.equal(t.sliceGroup.length, 1);
-    assert.equal(t.tid, 53);
+    assert.strictEqual(t.sliceGroup.length, 1);
+    assert.strictEqual(t.tid, 53);
     var slice = t.sliceGroup.slices[0];
-    assert.equal(slice.title, 'a');
-    assert.equal(slice.category, 'foo');
-    assert.equal(slice.start, 0);
-    assert.equal(slice.subSlices.length, 0);
-    assert.equal(slice.args['x'], 1);
-    assert.equal(slice.args['y'], 2);
+    assert.strictEqual(slice.title, 'a');
+    assert.strictEqual(slice.category, 'foo');
+    assert.strictEqual(slice.start, 0);
+    assert.strictEqual(slice.subSlices.length, 0);
+    assert.strictEqual(slice.args['x'], 1);
+    assert.strictEqual(slice.args['y'], 2);
   });
 
   test('endArgOverrwritesOriginalArgValueIfDuplicated', function() {
@@ -1196,19 +1196,19 @@ tr.b.unittest.testSuite(function() {
     ];
 
     var m = makeModel(events);
-    assert.equal(m.numProcesses, 1);
+    assert.strictEqual(m.numProcesses, 1);
     var p = m.processes[52];
     assert.isDefined(p);
 
-    assert.equal(p.numThreads, 1);
+    assert.strictEqual(p.numThreads, 1);
     var t = p.threads[53];
     assert.isDefined(t);
     var slice = t.sliceGroup.slices[0];
-    assert.equal(slice.title, 'b');
-    assert.equal(slice.category, 'foo');
-    assert.equal(slice.start, 0);
-    assert.equal(slice.subSlices.length, 0);
-    assert.equal(slice.args['z'], 4);
+    assert.strictEqual(slice.title, 'b');
+    assert.strictEqual(slice.category, 'foo');
+    assert.strictEqual(slice.start, 0);
+    assert.strictEqual(slice.subSlices.length, 0);
+    assert.strictEqual(slice.args['z'], 4);
   });
 
   test('asyncEndArgsAddedToSlice', function() {
@@ -1223,16 +1223,16 @@ tr.b.unittest.testSuite(function() {
     var m = makeModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
-    assert.equal(t.asyncSliceGroup.slices.length, 1);
+    assert.strictEqual(t.asyncSliceGroup.slices.length, 1);
     var parentSlice = t.asyncSliceGroup.slices[0];
-    assert.equal(parentSlice.title, 'c');
-    assert.equal(parentSlice.category, 'foo');
+    assert.strictEqual(parentSlice.title, 'c');
+    assert.strictEqual(parentSlice.category, 'foo');
     assert.isTrue(parentSlice.isTopLevel);
-    assert.equal(parentSlice.args['x'], 1);
-    assert.equal(parentSlice.args['y'], 2);
+    assert.strictEqual(parentSlice.args['x'], 1);
+    assert.strictEqual(parentSlice.args['y'], 2);
 
     assert.isDefined(parentSlice.subSlices);
-    assert.equal(parentSlice.subSlices.length, 0);
+    assert.strictEqual(parentSlice.subSlices.length, 0);
   });
 
   test('asyncEndArgOverwritesOriginalArgValueIfDuplicated', function() {
@@ -1247,15 +1247,15 @@ tr.b.unittest.testSuite(function() {
     var m = makeModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
-    assert.equal(t.asyncSliceGroup.slices.length, 1);
+    assert.strictEqual(t.asyncSliceGroup.slices.length, 1);
     var parentSlice = t.asyncSliceGroup.slices[0];
-    assert.equal(parentSlice.title, 'd');
-    assert.equal(parentSlice.category, 'foo');
+    assert.strictEqual(parentSlice.title, 'd');
+    assert.strictEqual(parentSlice.category, 'foo');
     assert.isTrue(parentSlice.isTopLevel);
-    assert.equal(parentSlice.args['z'], 4);
+    assert.strictEqual(parentSlice.args['z'], 4);
 
     assert.isDefined(parentSlice.subSlices);
-    assert.equal(parentSlice.subSlices.length, 0);
+    assert.strictEqual(parentSlice.subSlices.length, 0);
   });
 
   test('asyncStepsInOneThread', function() {
@@ -1269,27 +1269,27 @@ tr.b.unittest.testSuite(function() {
     var m = makeModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
-    assert.equal(t.asyncSliceGroup.slices.length, 1);
+    assert.strictEqual(t.asyncSliceGroup.slices.length, 1);
     var parentSlice = t.asyncSliceGroup.slices[0];
-    assert.equal(parentSlice.title, 'a');
-    assert.equal(parentSlice.category, 'foo');
+    assert.strictEqual(parentSlice.title, 'a');
+    assert.strictEqual(parentSlice.category, 'foo');
     assert.isTrue(parentSlice.isTopLevel);
-    assert.equal(parentSlice.start, 0);
-    assert.equal(parentSlice.args['x'], 1);
+    assert.strictEqual(parentSlice.start, 0);
+    assert.strictEqual(parentSlice.args['x'], 1);
     assert.isUndefined(parentSlice.args['y']);
-    assert.equal(parentSlice.args['z'], 3);
+    assert.strictEqual(parentSlice.args['z'], 3);
 
     assert.isDefined(parentSlice.subSlices);
-    assert.equal(parentSlice.subSlices.length, 1);
+    assert.strictEqual(parentSlice.subSlices.length, 1);
 
     var subSlice = parentSlice.subSlices[0];
-    assert.equal(subSlice.title, 'a:s1');
-    assert.equal(subSlice.category, 'foo');
+    assert.strictEqual(subSlice.title, 'a:s1');
+    assert.strictEqual(subSlice.category, 'foo');
     assert.isFalse(subSlice.isTopLevel);
     assert.closeTo((548 - 524) / 1000, subSlice.start, 1e-5);
     assert.closeTo((560 - 548) / 1000, subSlice.duration, 1e-5);
     assert.isUndefined(subSlice.args['x']);
-    assert.equal(subSlice.args['y'], 2);
+    assert.strictEqual(subSlice.args['y'], 2);
     assert.isUndefined(subSlice.args['z']);
   });
 
@@ -1335,26 +1335,26 @@ tr.b.unittest.testSuite(function() {
     var m = makeModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
-    assert.equal(t.asyncSliceGroup.slices.length, 1);
+    assert.strictEqual(t.asyncSliceGroup.slices.length, 1);
     var parentSlice = t.asyncSliceGroup.slices[0];
-    assert.equal(parentSlice.title, 'a');
-    assert.equal(parentSlice.category, 'foo');
+    assert.strictEqual(parentSlice.title, 'a');
+    assert.strictEqual(parentSlice.category, 'foo');
     assert.isTrue(parentSlice.isTopLevel);
-    assert.equal(parentSlice.start, 0);
-    assert.equal(parentSlice.args['x'], 1);
+    assert.strictEqual(parentSlice.start, 0);
+    assert.strictEqual(parentSlice.args['x'], 1);
     assert.isUndefined(parentSlice.args['y']);
-    assert.equal(parentSlice.args['z'], 3);
+    assert.strictEqual(parentSlice.args['z'], 3);
 
     assert.isDefined(parentSlice.subSlices);
-    assert.equal(parentSlice.subSlices.length, 1);
+    assert.strictEqual(parentSlice.subSlices.length, 1);
     var subSlice = parentSlice.subSlices[0];
-    assert.equal(subSlice.title, 'a:s1');
-    assert.equal(subSlice.category, 'foo');
+    assert.strictEqual(subSlice.title, 'a:s1');
+    assert.strictEqual(subSlice.category, 'foo');
     assert.isFalse(subSlice.isTopLevel);
-    assert.equal(subSlice.start, 0);
+    assert.strictEqual(subSlice.start, 0);
     assert.closeTo((548 - 524) / 1000, subSlice.duration, 1e-5);
     assert.isUndefined(subSlice.args['x']);
-    assert.equal(subSlice.args['y'], 2);
+    assert.strictEqual(subSlice.args['y'], 2);
     assert.isUndefined(subSlice.args['z']);
   });
 
@@ -1399,7 +1399,7 @@ tr.b.unittest.testSuite(function() {
     var m = makeModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
-    assert.equal(t.asyncSliceGroup.slices.length, 3);
+    assert.strictEqual(t.asyncSliceGroup.slices.length, 3);
 
     var noTTSNoField = t.asyncSliceGroup.slices[0];
     assert.isUndefined(noTTSNoField.cpuStart);
@@ -1425,13 +1425,13 @@ tr.b.unittest.testSuite(function() {
     var m = makeModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
-    assert.equal(t.asyncSliceGroup.slices.length, 1);
+    assert.strictEqual(t.asyncSliceGroup.slices.length, 1);
 
     var asyncSlice = t.asyncSliceGroup.slices[0];
     assert.isDefined(asyncSlice);
-    assert.equal(asyncSlice.duration, 10);
-    assert.equal(asyncSlice.cpuStart, 100);
-    assert.equal(asyncSlice.cpuDuration, 5);
+    assert.strictEqual(asyncSlice.duration, 10);
+    assert.strictEqual(asyncSlice.cpuStart, 100);
+    assert.strictEqual(asyncSlice.cpuDuration, 5);
   });
 
   test('nestableAsyncBasic', function() {
@@ -1449,19 +1449,19 @@ tr.b.unittest.testSuite(function() {
     var m = makeModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
-    assert.equal(t.asyncSliceGroup.slices.length, 1);
+    assert.strictEqual(t.asyncSliceGroup.slices.length, 1);
     var parentSlice = t.asyncSliceGroup.slices[0];
-    assert.equal(parentSlice.title, 'a');
-    assert.equal(parentSlice.category, 'foo');
+    assert.strictEqual(parentSlice.title, 'a');
+    assert.strictEqual(parentSlice.category, 'foo');
     assert.isTrue(parentSlice.isTopLevel);
 
     assert.isDefined(parentSlice.subSlices);
-    assert.equal(parentSlice.subSlices.length, 1);
+    assert.strictEqual(parentSlice.subSlices.length, 1);
     var subSlice = parentSlice.subSlices[0];
     assert.isFalse(subSlice.isTopLevel);
     // Arguments should include both BEGIN and END event.
-    assert.equal(subSlice.args['x'], 1);
-    assert.equal(subSlice.args['y'], 2);
+    assert.strictEqual(subSlice.args['x'], 1);
+    assert.strictEqual(subSlice.args['y'], 2);
     assert.sameMembers(subSlice.subSlices, []);
   });
 
@@ -1477,14 +1477,14 @@ tr.b.unittest.testSuite(function() {
     var m = makeModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
-    assert.equal(t.asyncSliceGroup.slices.length, 1);
+    assert.strictEqual(t.asyncSliceGroup.slices.length, 1);
     var slice = t.asyncSliceGroup.slices[0];
-    assert.equal(slice.title, 'name');
-    assert.equal(slice.category, 'foo');
+    assert.strictEqual(slice.title, 'name');
+    assert.strictEqual(slice.category, 'foo');
     assert.isTrue(slice.isTopLevel);
 
     assert.isDefined(slice.subSlices);
-    assert.equal(slice.subSlices.length, 0);
+    assert.strictEqual(slice.subSlices.length, 0);
 
     assert.deepEqual(slice.args, {});
   });
@@ -1508,31 +1508,31 @@ tr.b.unittest.testSuite(function() {
     var m = makeModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
-    assert.equal(t.asyncSliceGroup.slices.length, 3);
+    assert.strictEqual(t.asyncSliceGroup.slices.length, 3);
 
     var sliceA = t.asyncSliceGroup.slices[0];
     // Arguments should include both BEGIN and END event.
-    assert.equal(sliceA.args['x'], 1);
-    assert.equal(sliceA.args['y'], 2);
+    assert.strictEqual(sliceA.args['x'], 1);
+    assert.strictEqual(sliceA.args['y'], 2);
     var paramsA = sliceA.args['params'];
     assert.isDefined(paramsA);
-    assert.equal(paramsA.p1, 'hello');
-    assert.equal(paramsA.p2, 123);
-    assert.equal(paramsA.p3, 'hi');
+    assert.strictEqual(paramsA.p1, 'hello');
+    assert.strictEqual(paramsA.p2, 123);
+    assert.strictEqual(paramsA.p3, 'hi');
     assert.isTrue(sliceA.isTopLevel);
 
     var sliceB = t.asyncSliceGroup.slices[1];
     // Arguments should include both BEGIN and END event.
     var paramsB = sliceB.args['params'];
     assert.isDefined(paramsB);
-    assert.equal(paramsB.p4, 'foo');
+    assert.strictEqual(paramsB.p4, 'foo');
     assert.isTrue(sliceB.isTopLevel);
 
     var sliceC = t.asyncSliceGroup.slices[2];
     // Arguments should include both BEGIN and END event.
     var paramsC = sliceC.args['params'];
     assert.isDefined(paramsC);
-    assert.equal(paramsC.p5, 'bar');
+    assert.strictEqual(paramsC.p5, 'bar');
     assert.isTrue(sliceC.isTopLevel);
   });
 
@@ -1566,42 +1566,42 @@ tr.b.unittest.testSuite(function() {
     assert.isDefined(t);
     // Perfectly matched events should not produce a warning.
     assert.isFalse(m.hasImportWarnings);
-    assert.equal(t.asyncSliceGroup.slices.length, 1);
+    assert.strictEqual(t.asyncSliceGroup.slices.length, 1);
 
     var l1Slice = t.asyncSliceGroup.slices[0];
-    assert.equal(l1Slice.title, 'l1');
+    assert.strictEqual(l1Slice.title, 'l1');
     assert.closeTo(0, l1Slice.start, 1e-5);
     assert.closeTo(9 / 1000, l1Slice.duration, 1e-5);
     assert.isTrue(l1Slice.isTopLevel);
 
     assert.isDefined(l1Slice.subSlices);
-    assert.equal(l1Slice.subSlices.length, 1);
+    assert.strictEqual(l1Slice.subSlices.length, 1);
     var l2Slice = l1Slice.subSlices[0];
-    assert.equal(l2Slice.title, 'l2');
+    assert.strictEqual(l2Slice.title, 'l2');
     assert.closeTo(1 / 1000, l2Slice.start, 1e-5);
     assert.closeTo(7 / 1000, l2Slice.duration, 1e-5);
     assert.isFalse(l2Slice.isTopLevel);
 
     assert.isDefined(l2Slice.subSlices);
-    assert.equal(l2Slice.subSlices.length, 1);
+    assert.strictEqual(l2Slice.subSlices.length, 1);
     var l3Slice = l2Slice.subSlices[0];
-    assert.equal(l3Slice.title, 'l3');
+    assert.strictEqual(l3Slice.title, 'l3');
     assert.closeTo(2 / 1000, l3Slice.start, 1e-5);
     assert.closeTo(5 / 1000, l3Slice.duration, 1e-5);
     assert.isFalse(l3Slice.isTopLevel);
 
     assert.isDefined(l3Slice.subSlices);
-    assert.equal(l3Slice.subSlices.length, 1);
+    assert.strictEqual(l3Slice.subSlices.length, 1);
     var l4Slice = l3Slice.subSlices[0];
-    assert.equal(l4Slice.title, 'l4');
+    assert.strictEqual(l4Slice.title, 'l4');
     assert.closeTo(3 / 1000, l4Slice.start, 1e-5);
     assert.closeTo(3 / 1000, l4Slice.duration, 1e-5);
     assert.isFalse(l4Slice.isTopLevel);
 
     assert.isDefined(l4Slice.subSlices);
-    assert.equal(l4Slice.subSlices.length, 1);
+    assert.strictEqual(l4Slice.subSlices.length, 1);
     var l5Slice = l4Slice.subSlices[0];
-    assert.equal(l5Slice.title, 'l5');
+    assert.strictEqual(l5Slice.title, 'l5');
     assert.closeTo(4 / 1000, l5Slice.start, 1e-5);
     assert.closeTo(1 / 1000, l5Slice.duration, 1e-5);
     assert.isFalse(l5Slice.isTopLevel);
@@ -1622,24 +1622,24 @@ tr.b.unittest.testSuite(function() {
     var m = makeModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
-    assert.equal(t.asyncSliceGroup.slices.length, 2);
+    assert.strictEqual(t.asyncSliceGroup.slices.length, 2);
     var instantSlice = t.asyncSliceGroup.slices[0];
-    assert.equal(instantSlice.title, 'c');
+    assert.strictEqual(instantSlice.title, 'c');
     assert.closeTo(0, instantSlice.start, 1e-5);
     assert.closeTo(0, instantSlice.duration, 1e-5);
     assert.sameMembers(instantSlice.subSlices, []);
     assert.isTrue(instantSlice.isTopLevel);
 
     var nestedSlice = t.asyncSliceGroup.slices[1];
-    assert.equal(nestedSlice.title, 'a');
+    assert.strictEqual(nestedSlice.title, 'a');
     assert.closeTo(0, nestedSlice.start, 1e-5);
     assert.closeTo((565 - 524) / 1000, nestedSlice.duration, 1e-5);
     assert.isTrue(nestedSlice.isTopLevel);
     assert.isDefined(nestedSlice.subSlices);
-    assert.equal(nestedSlice.subSlices.length, 1);
+    assert.strictEqual(nestedSlice.subSlices.length, 1);
     var nestedInstantSlice = nestedSlice.subSlices[0];
     assert.sameMembers(nestedInstantSlice.subSlices, []);
-    assert.equal(nestedInstantSlice.title, 'd');
+    assert.strictEqual(nestedInstantSlice.title, 'd');
     assert.isFalse(nestedInstantSlice.isTopLevel);
   });
 
@@ -1658,28 +1658,28 @@ tr.b.unittest.testSuite(function() {
     assert.isDefined(t);
     // Unmatched BEGIN should produce a warning.
     assert.isTrue(m.hasImportWarnings);
-    assert.equal(t.asyncSliceGroup.slices.length, 1);
+    assert.strictEqual(t.asyncSliceGroup.slices.length, 1);
     var parentSlice = t.asyncSliceGroup.slices[0];
-    assert.equal(parentSlice.title, 'a');
-    assert.equal(parentSlice.category, 'foo');
+    assert.strictEqual(parentSlice.title, 'a');
+    assert.strictEqual(parentSlice.category, 'foo');
     assert.isTrue(parentSlice.isTopLevel);
     assert.closeTo(0, parentSlice.start, 0.0001);
     // Unmatched BEGIN event ends at the last event of that ID.
     assert.closeTo(36 / 1000, parentSlice.duration, 0.0001);
     // Arguments should include only include its arguments.
     assert.isUndefined(parentSlice.args['y']);
-    assert.equal(parentSlice.args['x'], 1);
+    assert.strictEqual(parentSlice.args['x'], 1);
     assert.isDefined(parentSlice.error);
 
     assert.isDefined(parentSlice.subSlices);
-    assert.equal(parentSlice.subSlices.length, 1);
+    assert.strictEqual(parentSlice.subSlices.length, 1);
     var subSlice = parentSlice.subSlices[0];
     assert.isFalse(subSlice.isTopLevel);
     assert.closeTo(1 / 1000, subSlice.start, 1e-5);
     assert.closeTo(35 / 1000, subSlice.duration, 1e-5);
     assert.sameMembers(subSlice.subSlices, []);
     // Arguments should include those of the END event.
-    assert.equal(subSlice.args['y'], 2);
+    assert.strictEqual(subSlice.args['y'], 2);
     assert.sameMembers(subSlice.subSlices, []);
   });
 
@@ -1700,31 +1700,31 @@ tr.b.unittest.testSuite(function() {
     assert.isDefined(t);
     // Unmatched BEGIN should produce a warning.
     assert.isTrue(m.hasImportWarnings);
-    assert.equal(t.asyncSliceGroup.slices.length, 1);
+    assert.strictEqual(t.asyncSliceGroup.slices.length, 1);
     var parentSlice = t.asyncSliceGroup.slices[0];
-    assert.equal(parentSlice.title, 'a');
-    assert.equal(parentSlice.category, 'foo');
+    assert.strictEqual(parentSlice.title, 'a');
+    assert.strictEqual(parentSlice.category, 'foo');
     assert.isTrue(parentSlice.isTopLevel);
     assert.closeTo(0, parentSlice.start, 1e-5);
     assert.closeTo(41 / 1000, parentSlice.duration, 1e-5);
     // Arguments should include both BEGIN and END event.
-    assert.equal(parentSlice.args['y'], 2);
-    assert.equal(parentSlice.args['z'], 3);
+    assert.strictEqual(parentSlice.args['y'], 2);
+    assert.strictEqual(parentSlice.args['z'], 3);
     assert.isUndefined(parentSlice.args['x']);
 
     assert.isDefined(parentSlice.subSlices);
-    assert.equal(parentSlice.subSlices.length, 2);
+    assert.strictEqual(parentSlice.subSlices.length, 2);
     var subSliceInstant = parentSlice.subSlices[0];
     var subSliceUnmatched = parentSlice.subSlices[1];
-    assert.equal(subSliceInstant.title, 'c');
+    assert.strictEqual(subSliceInstant.title, 'c');
     assert.isFalse(subSliceInstant.isTopLevel);
-    assert.equal(subSliceUnmatched.title, 'b');
+    assert.strictEqual(subSliceUnmatched.title, 'b');
     assert.isFalse(subSliceUnmatched.isTopLevel);
     // Unmatched BEGIN ends at the last event of that ID.
     assert.closeTo(1 / 1000, subSliceUnmatched.start, 1e-5);
     assert.closeTo(40 / 1000, subSliceUnmatched.duration, 1e-5);
     assert.sameMembers(subSliceUnmatched.subSlices, []);
-    assert.equal(subSliceUnmatched.args['x'], 1);
+    assert.strictEqual(subSliceUnmatched.args['x'], 1);
     assert.isUndefined(subSliceUnmatched['y']);
     assert.isDefined(subSliceUnmatched.error);
     assert.closeTo(1 / 1000, subSliceInstant.start, 1e-5);
@@ -1748,10 +1748,10 @@ tr.b.unittest.testSuite(function() {
     assert.isDefined(t);
     // Unmatched END should produce a warning.
     assert.isTrue(m.hasImportWarnings);
-    assert.equal(t.asyncSliceGroup.slices.length, 2);
+    assert.strictEqual(t.asyncSliceGroup.slices.length, 2);
     var unmatchedSlice = t.asyncSliceGroup.slices[0];
     var slice = t.asyncSliceGroup.slices[1];
-    assert.equal(unmatchedSlice.title, 'a');
+    assert.strictEqual(unmatchedSlice.title, 'a');
     assert.closeTo(0, unmatchedSlice.start, 1e-5);
     assert.isTrue(unmatchedSlice.isTopLevel);
     // Unmatched END event begins at the first event of that ID. In this
@@ -1759,17 +1759,17 @@ tr.b.unittest.testSuite(function() {
     assert.closeTo(0 / 1000, unmatchedSlice.duration, 1e-5);
     assert.isUndefined(unmatchedSlice.args['x']);
     assert.isUndefined(unmatchedSlice.args['y']);
-    assert.equal(unmatchedSlice.args['z'], 3);
+    assert.strictEqual(unmatchedSlice.args['z'], 3);
     assert.isDefined(unmatchedSlice.error);
     assert.sameMembers(unmatchedSlice.subSlices, []);
 
-    assert.equal(slice.title, 'b');
+    assert.strictEqual(slice.title, 'b');
     assert.isTrue(slice.isTopLevel);
     assert.closeTo(1 / 1000, slice.start, 1e-5);
     assert.closeTo(35 / 1000, slice.duration, 1e-5);
     // Arguments should include both BEGIN and END event.
-    assert.equal(slice.args['x'], 1);
-    assert.equal(slice.args['y'], 2);
+    assert.strictEqual(slice.args['x'], 1);
+    assert.strictEqual(slice.args['y'], 2);
     assert.sameMembers(slice.subSlices, []);
   });
 
@@ -1790,23 +1790,23 @@ tr.b.unittest.testSuite(function() {
     assert.isDefined(t);
     // Unmatched END should produce a warning.
     assert.isTrue(m.hasImportWarnings);
-    assert.equal(t.asyncSliceGroup.slices.length, 1);
+    assert.strictEqual(t.asyncSliceGroup.slices.length, 1);
     var parentSlice = t.asyncSliceGroup.slices[0];
-    assert.equal(parentSlice.title, 'a');
+    assert.strictEqual(parentSlice.title, 'a');
     assert.isTrue(parentSlice.isTopLevel);
     assert.closeTo(0, parentSlice.start, 1e-5);
     assert.closeTo(41 / 1000, parentSlice.duration, 1e-5);
     // Arguments should include both BEGIN and END event.
-    assert.equal(parentSlice.args['x'], 1);
-    assert.equal(parentSlice.args['y'], 2);
+    assert.strictEqual(parentSlice.args['x'], 1);
+    assert.strictEqual(parentSlice.args['y'], 2);
 
     assert.isDefined(parentSlice.subSlices);
-    assert.equal(parentSlice.subSlices.length, 2);
+    assert.strictEqual(parentSlice.subSlices.length, 2);
     var subSliceInstant = parentSlice.subSlices[0];
     var subSliceUnmatched = parentSlice.subSlices[1];
-    assert.equal(subSliceInstant.title, 'c');
+    assert.strictEqual(subSliceInstant.title, 'c');
     assert.isFalse(subSliceInstant.isTopLevel);
-    assert.equal(subSliceUnmatched.title, 'b');
+    assert.strictEqual(subSliceUnmatched.title, 'b');
     assert.isFalse(subSliceUnmatched.isTopLevel);
     // Unmatched END begins at the first event of that ID.
     assert.closeTo(0 / 1000, subSliceUnmatched.start, 1e-5);
@@ -1814,7 +1814,7 @@ tr.b.unittest.testSuite(function() {
     // Arguments should include both BEGIN and END event.
     assert.isUndefined(subSliceUnmatched.args['x']);
     assert.isUndefined(subSliceUnmatched.args['y']);
-    assert.equal(subSliceUnmatched.args['z'], 3);
+    assert.strictEqual(subSliceUnmatched.args['z'], 3);
     assert.isDefined(subSliceUnmatched.error);
 
     assert.sameMembers(subSliceUnmatched.subSlices, []);
@@ -1840,21 +1840,21 @@ tr.b.unittest.testSuite(function() {
     var m = makeModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
-    assert.equal(t.asyncSliceGroup.slices.length, 2);
+    assert.strictEqual(t.asyncSliceGroup.slices.length, 2);
     var eventASlice = t.asyncSliceGroup.slices[0];
-    assert.equal(eventASlice.title, 'EVENT_A');
-    assert.equal(eventASlice.category, 'foo');
-    assert.equal(eventASlice.id, 'foo::ptr:72');
+    assert.strictEqual(eventASlice.title, 'EVENT_A');
+    assert.strictEqual(eventASlice.category, 'foo');
+    assert.strictEqual(eventASlice.id, 'foo::ptr:72');
     assert.isTrue(eventASlice.isTopLevel);
-    assert.equal(eventASlice.args['x'], 1);
+    assert.strictEqual(eventASlice.args['x'], 1);
     assert.sameMembers(eventASlice.subSlices, []);
 
     var eventBSlice = t.asyncSliceGroup.slices[1];
-    assert.equal(eventBSlice.title, 'EVENT_B');
-    assert.equal(eventBSlice.category, 'bar');
-    assert.equal(eventBSlice.id, 'bar::ptr:72');
+    assert.strictEqual(eventBSlice.title, 'EVENT_B');
+    assert.strictEqual(eventBSlice.category, 'bar');
+    assert.strictEqual(eventBSlice.id, 'bar::ptr:72');
     assert.isTrue(eventBSlice.isTopLevel);
-    assert.equal(eventBSlice.args['y'], 2);
+    assert.strictEqual(eventBSlice.args['y'], 2);
     assert.sameMembers(eventBSlice.subSlices, []);
   });
 
@@ -1882,11 +1882,11 @@ tr.b.unittest.testSuite(function() {
     var m = makeModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
-    assert.equal(t.asyncSliceGroup.slices.length, 1);
+    assert.strictEqual(t.asyncSliceGroup.slices.length, 1);
     var slice = t.asyncSliceGroup.slices[0];
 
-    assert.equal(slice.startStackFrame.title, 'main');
-    assert.equal(slice.endStackFrame.title, 'frame7');
+    assert.strictEqual(slice.startStackFrame.title, 'main');
+    assert.strictEqual(slice.endStackFrame.title, 'frame7');
   });
 
   test('processLocalAsync', function() {
@@ -1904,25 +1904,25 @@ tr.b.unittest.testSuite(function() {
     var m = makeModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
-    assert.equal(t.asyncSliceGroup.slices.length, 1);
+    assert.strictEqual(t.asyncSliceGroup.slices.length, 1);
     var parentSlice = t.asyncSliceGroup.slices[0];
-    assert.equal(parentSlice.title, 'a');
-    assert.equal(parentSlice.category, 'foo');
+    assert.strictEqual(parentSlice.title, 'a');
+    assert.strictEqual(parentSlice.category, 'foo');
     assert.isTrue(parentSlice.isTopLevel);
     assert.isDefined(parentSlice.subSlices);
-    assert.equal(parentSlice.subSlices.length, 0);
+    assert.strictEqual(parentSlice.subSlices.length, 0);
 
     t = m.processes[54].threads[55];
     assert.isDefined(t);
-    assert.equal(t.asyncSliceGroup.slices.length, 1);
+    assert.strictEqual(t.asyncSliceGroup.slices.length, 1);
     parentSlice = t.asyncSliceGroup.slices[0];
-    assert.equal(parentSlice.title, 'b');
-    assert.equal(parentSlice.category, 'foo');
-    assert.equal(parentSlice.args['x'], 1);
-    assert.equal(parentSlice.args['y'], 2);
+    assert.strictEqual(parentSlice.title, 'b');
+    assert.strictEqual(parentSlice.category, 'foo');
+    assert.strictEqual(parentSlice.args['x'], 1);
+    assert.strictEqual(parentSlice.args['y'], 2);
     assert.isTrue(parentSlice.isTopLevel);
     assert.isDefined(parentSlice.subSlices);
-    assert.equal(parentSlice.subSlices.length, 0);
+    assert.strictEqual(parentSlice.subSlices.length, 0);
   });
 
   test('globalAsync', function() {
@@ -1940,19 +1940,19 @@ tr.b.unittest.testSuite(function() {
     var m = makeModel(events);
     var t = m.processes[52].threads[53];
     assert.isDefined(t);
-    assert.equal(t.asyncSliceGroup.slices.length, 1);
+    assert.strictEqual(t.asyncSliceGroup.slices.length, 1);
     var parentSlice = t.asyncSliceGroup.slices[0];
-    assert.equal(parentSlice.title, 'a');
-    assert.equal(parentSlice.category, 'foo');
+    assert.strictEqual(parentSlice.title, 'a');
+    assert.strictEqual(parentSlice.category, 'foo');
     assert.isTrue(parentSlice.isTopLevel);
 
     assert.isDefined(parentSlice.subSlices);
-    assert.equal(parentSlice.subSlices.length, 1);
+    assert.strictEqual(parentSlice.subSlices.length, 1);
     var subSlice = parentSlice.subSlices[0];
     assert.isFalse(subSlice.isTopLevel);
     // Arguments should include both BEGIN and END event.
-    assert.equal(subSlice.args['x'], 1);
-    assert.equal(subSlice.args['y'], 2);
+    assert.strictEqual(subSlice.args['x'], 1);
+    assert.strictEqual(subSlice.args['y'], 2);
     assert.sameMembers(subSlice.subSlices, []);
 
     assert.isUndefined(m.processes[54].threads[55]);
@@ -1970,14 +1970,14 @@ tr.b.unittest.testSuite(function() {
     assert.isDefined(p);
     var t = p.threads[53];
     assert.isDefined(t);
-    assert.equal(t.samples_.length, 4);
-    assert.equal(t.samples_[0].start, 0.0);
-    assert.equal(t.samples_[1].start, 0.0);
+    assert.strictEqual(t.samples_.length, 4);
+    assert.strictEqual(t.samples_[0].start, 0.0);
+    assert.strictEqual(t.samples_[1].start, 0.0);
     assert.closeTo(0.01, t.samples_[2].start, 1e-5);
-    assert.equal(t.samples_[0].leafNode.title, 'a');
-    assert.equal(t.samples_[1].leafNode.title, 'b');
-    assert.equal(t.samples_[2].leafNode.title, 'c');
-    assert.equal(t.samples_[3].leafNode, t.samples[0].leafNode);
+    assert.strictEqual(t.samples_[0].leafNode.title, 'a');
+    assert.strictEqual(t.samples_[1].leafNode.title, 'b');
+    assert.strictEqual(t.samples_[2].leafNode.title, 'c');
+    assert.strictEqual(t.samples_[3].leafNode, t.samples[0].leafNode);
     assert.isFalse(m.hasImportWarnings);
   });
 
@@ -2004,9 +2004,9 @@ tr.b.unittest.testSuite(function() {
     var p = m.processes[1];
     var t = p.threads[2];
 
-    assert.equal(t.samples.length, 1);
-    assert.equal(t.samples_[0].start, 0.0);
-    assert.equal(t.samples_[0].leafNode.title, 'frame7');
+    assert.strictEqual(t.samples.length, 1);
+    assert.strictEqual(t.samples_[0].start, 0.0);
+    assert.strictEqual(t.samples_[0].leafNode.title, 'frame7');
     assert.isFalse(m.hasImportWarnings);
   });
 
@@ -2022,7 +2022,7 @@ tr.b.unittest.testSuite(function() {
     var t = p.threads[53];
     assert.isDefined(t);
     assert.isDefined(t);
-    assert.equal(t.samples_.length, 3);
+    assert.strictEqual(t.samples_.length, 3);
     assert.isFalse(m.hasImportWarnings);
   });
 
@@ -2043,7 +2043,7 @@ tr.b.unittest.testSuite(function() {
     var t = p.threads[2];
 
     assert.isFalse(m.hasImportWarnings);
-    assert.equal(t.samples.length, 2);
+    assert.strictEqual(t.samples.length, 2);
 
     var sample = t.samples_[0];
     assert.deepEqual(sample.userFriendlyStack,
@@ -2070,7 +2070,7 @@ tr.b.unittest.testSuite(function() {
     var t = p.threads[2];
 
     assert.isFalse(m.hasImportWarnings);
-    assert.equal(t.samples.length, 2);
+    assert.strictEqual(t.samples.length, 2);
 
     var sample = t.samples_[0];
     assert.deepEqual(sample.userFriendlyStack,
@@ -2088,26 +2088,26 @@ tr.b.unittest.testSuite(function() {
       {ts: 50000, pid: 1, tid: 1, ph: 'D', cat: 'c', id: '0x1000', name: 'a', args: {}} // @suppress longLineCheck
     ];
     var m = makeModel(events, false);
-    assert.equal(m.bounds.min, 10);
-    assert.equal(m.bounds.max, 50);
+    assert.strictEqual(m.bounds.min, 10);
+    assert.strictEqual(m.bounds.max, 50);
     assert.isFalse(m.hasImportWarnings);
 
     var p = m.processes[1];
     assert.isDefined(p);
 
     var i10 = p.objects.getObjectInstanceAt(new ScopedId('ptr', '0x1000'), 10);
-    assert.equal(i10.category, 'c');
-    assert.equal(i10.creationTs, 10);
-    assert.equal(i10.deletionTs, 50);
-    assert.equal(i10.snapshots.length, 2);
+    assert.strictEqual(i10.category, 'c');
+    assert.strictEqual(i10.creationTs, 10);
+    assert.strictEqual(i10.deletionTs, 50);
+    assert.strictEqual(i10.snapshots.length, 2);
 
     var s15 = i10.snapshots[0];
-    assert.equal(s15.ts, 15);
-    assert.equal(s15.args, 15);
+    assert.strictEqual(s15.ts, 15);
+    assert.strictEqual(s15.args, 15);
 
     var s20 = i10.snapshots[1];
-    assert.equal(s20.ts, 20);
-    assert.equal(s20.args, 20);
+    assert.strictEqual(s20.ts, 20);
+    assert.strictEqual(s20.args, 20);
   });
 
   test('importImplicitObjects', function() {
@@ -2137,24 +2137,24 @@ tr.b.unittest.testSuite(function() {
     var subObjectInstances = p1.objects.getAllInstancesByTypeName()[
         'subObject'];
 
-    assert.equal(subObjectInstances.length, 2);
+    assert.strictEqual(subObjectInstances.length, 2);
     var subObject1 = p1.objects.getObjectInstanceAt(
         new ScopedId('ptr', '0x1'), 15);
-    assert.equal(subObject1.name, 'subObject');
-    assert.equal(subObject1.creationTs, 15);
+    assert.strictEqual(subObject1.name, 'subObject');
+    assert.strictEqual(subObject1.creationTs, 15);
 
-    assert.equal(subObject1.snapshots.length, 2);
-    assert.equal(subObject1.snapshots[0].ts, 15);
-    assert.equal(subObject1.snapshots[0].args.foo, 1);
-    assert.equal(subObject1.snapshots[1].ts, 20);
-    assert.equal(subObject1.snapshots[1].args.foo, 2);
+    assert.strictEqual(subObject1.snapshots.length, 2);
+    assert.strictEqual(subObject1.snapshots[0].ts, 15);
+    assert.strictEqual(subObject1.snapshots[0].args.foo, 1);
+    assert.strictEqual(subObject1.snapshots[1].ts, 20);
+    assert.strictEqual(subObject1.snapshots[1].args.foo, 2);
 
     var subObject2 = p1.objects.getObjectInstanceAt(
         new ScopedId('ptr', '0x2'), 20);
-    assert.equal(subObject2.name, 'subObject');
-    assert.equal(subObject2.creationTs, 20);
-    assert.equal(subObject2.snapshots.length, 1);
-    assert.equal(subObject2.snapshots[0].ts, 20);
+    assert.strictEqual(subObject2.name, 'subObject');
+    assert.strictEqual(subObject2.creationTs, 20);
+    assert.strictEqual(subObject2.snapshots.length, 1);
+    assert.strictEqual(subObject2.snapshots[0].ts, 20);
   });
 
   test('importImplicitObjectWithCategoryOverride', function() {
@@ -2176,7 +2176,7 @@ tr.b.unittest.testSuite(function() {
     var subObjectInstances = p1.objects.getAllInstancesByTypeName()[
         'subObject'];
 
-    assert.equal(subObjectInstances.length, 1);
+    assert.strictEqual(subObjectInstances.length, 1);
   });
 
   test('importImplicitObjectWithBaseTypeOverride', function() {
@@ -2191,10 +2191,10 @@ tr.b.unittest.testSuite(function() {
 
     var m = makeModel(events);
     var p1 = m.processes[1];
-    assert.equal(m.importWarnings.length, 0);
+    assert.strictEqual(m.importWarnings.length, 0);
 
     var iA = p1.objects.getObjectInstanceAt(new ScopedId('ptr', '0x1000'), 10);
-    assert.equal(iA.snapshots.length, 1);
+    assert.strictEqual(iA.snapshots.length, 1);
   });
 
   test('importIDRefs', function() {
@@ -2217,7 +2217,7 @@ tr.b.unittest.testSuite(function() {
     var s15 = iA.getSnapshotAt(15);
 
     var taskSlice = p1.threads[1].sliceGroup.slices[0];
-    assert.equal(taskSlice.args.my_object, s15);
+    assert.strictEqual(taskSlice.args.my_object, s15);
   });
 
   test('importIDRefsThatPointAtEachOther', function() {
@@ -2249,7 +2249,7 @@ tr.b.unittest.testSuite(function() {
     var foo15 = iFoo.getSnapshotAt(15);
 
     var taskSlice = p1.threads[1].sliceGroup.slices[0];
-    assert.equal(taskSlice.args.my_object, foo15);
+    assert.strictEqual(taskSlice.args.my_object, foo15);
   });
 
   test('importArrayWithIDs', function() {
@@ -2267,7 +2267,7 @@ tr.b.unittest.testSuite(function() {
 
     var sA = p1.objects.getSnapshotAt(new ScopedId('ptr', '0x1000'), 15);
     assert.isTrue(sA.args.x instanceof Array);
-    assert.equal(sA.args.x.length, 3);
+    assert.strictEqual(sA.args.x.length, 3);
     assert.isTrue(sA.args.x[0] instanceof tr.model.ObjectSnapshot);
     assert.isTrue(sA.args.x[1] instanceof tr.model.ObjectSnapshot);
     assert.isTrue(sA.args.x[2] instanceof tr.model.ObjectSnapshot);
@@ -2337,17 +2337,17 @@ tr.b.unittest.testSuite(function() {
     var t = m.processes[52].threads[53];
 
     assert.isDefined(t);
-    assert.equal(m.flowEvents.length, 2);
-    assert.equal(m.flowIntervalTree.size, 2);
+    assert.strictEqual(m.flowEvents.length, 2);
+    assert.strictEqual(m.flowIntervalTree.size, 2);
 
     var f0 = m.flowEvents[0];
-    assert.equal(f0.title, 'a');
-    assert.equal(f0.category, 'foo');
-    assert.equal(f0.id, 72);
+    assert.strictEqual(f0.title, 'a');
+    assert.strictEqual(f0.category, 'foo');
+    assert.strictEqual(f0.id, 72);
     assert.closeTo(f0.start, 0.001, 1e-5);
     assert.closeTo(12 / 1000, f0.duration, 1e-5);
-    assert.equal(f0.startSlice.title, 'aSlice');
-    assert.equal(f0.endSlice.title, 'bSlice');
+    assert.strictEqual(f0.startSlice.title, 'aSlice');
+    assert.strictEqual(f0.endSlice.title, 'bSlice');
 
     // TODO(nduca): Replace this assertion with something better when
     // flow events don't create synthetic slices on their own.
@@ -2355,13 +2355,13 @@ tr.b.unittest.testSuite(function() {
     assert.isDefined(f0.endSlice);
 
     var f1 = m.flowEvents[1];
-    assert.equal(f1.title, f0.title);
-    assert.equal(f1.category, f0.category);
-    assert.equal(f1.id, f0.id);
+    assert.strictEqual(f1.title, f0.title);
+    assert.strictEqual(f1.category, f0.category);
+    assert.strictEqual(f1.id, f0.id);
     assert.closeTo(20 / 1000, f1.duration, 1e-5);
 
-    assert.equal(f1.startSlice.title, 'bSlice');
-    assert.equal(f1.endSlice.title, 'cSlice');
+    assert.strictEqual(f1.startSlice.title, 'bSlice');
+    assert.strictEqual(f1.endSlice.title, 'cSlice');
 
     assert.deepEqual(f0.startSlice.outFlowEvents, [f0]);
     assert.deepEqual(f0.endSlice.inFlowEvents, [f0]);
@@ -2382,18 +2382,18 @@ tr.b.unittest.testSuite(function() {
     ];
 
     var m = makeModel(events, false, false);
-    assert.equal(m.flowEvents.length, 1);
+    assert.strictEqual(m.flowEvents.length, 1);
 
     var f0 = m.flowEvents[0];
 
-    assert.equal(f0.title, 'flow');
-    assert.equal(f0.category, 'foo');
-    assert.equal(f0.id, 72);
-    assert.equal(f0.start, .548);
+    assert.strictEqual(f0.title, 'flow');
+    assert.strictEqual(f0.category, 'foo');
+    assert.strictEqual(f0.id, 72);
+    assert.strictEqual(f0.start, .548);
     assert.closeTo(32 / 1000, f0.duration, 1e-5);
-    assert.equal(f0.startSlice.title, 'slice1');
+    assert.strictEqual(f0.startSlice.title, 'slice1');
     assert.deepEqual(f0.startSlice.outFlowEvents, [f0]);
-    assert.equal(f0.endSlice.title, 'slice3');
+    assert.strictEqual(f0.endSlice.title, 'slice3');
     assert.deepEqual(f0.endSlice.inFlowEvents, [f0]);
   });
 
@@ -2410,18 +2410,18 @@ tr.b.unittest.testSuite(function() {
     ];
 
     var m = makeModel(events, false, false);
-    assert.equal(m.flowEvents.length, 1);
+    assert.strictEqual(m.flowEvents.length, 1);
 
     var f0 = m.flowEvents[0];
 
-    assert.equal(f0.title, 'flow');
-    assert.equal(f0.category, 'input');
-    assert.equal(f0.id, 72);
-    assert.equal(f0.start, .548);
+    assert.strictEqual(f0.title, 'flow');
+    assert.strictEqual(f0.category, 'input');
+    assert.strictEqual(f0.id, 72);
+    assert.strictEqual(f0.start, .548);
     assert.closeTo(32 / 1000, f0.duration, 1e-5);
-    assert.equal(f0.startSlice.title, 'slice1');
+    assert.strictEqual(f0.startSlice.title, 'slice1');
     assert.deepEqual(f0.startSlice.outFlowEvents, [f0]);
-    assert.equal(f0.endSlice.title, 'slice2');
+    assert.strictEqual(f0.endSlice.title, 'slice2');
     assert.deepEqual(f0.endSlice.inFlowEvents, [f0]);
   });
 
@@ -2438,18 +2438,18 @@ tr.b.unittest.testSuite(function() {
     ];
 
     var m = makeModel(events, false, false);
-    assert.equal(m.flowEvents.length, 1);
+    assert.strictEqual(m.flowEvents.length, 1);
 
     var f0 = m.flowEvents[0];
 
-    assert.equal(f0.title, 'flow');
-    assert.equal(f0.category, 'disabled-by-default-ipc.flow');
-    assert.equal(f0.id, 72);
-    assert.equal(f0.start, .548);
+    assert.strictEqual(f0.title, 'flow');
+    assert.strictEqual(f0.category, 'disabled-by-default-ipc.flow');
+    assert.strictEqual(f0.id, 72);
+    assert.strictEqual(f0.start, .548);
     assert.closeTo(32 / 1000, f0.duration, 1e-5);
-    assert.equal(f0.startSlice.title, 'slice1');
+    assert.strictEqual(f0.startSlice.title, 'slice1');
     assert.deepEqual(f0.startSlice.outFlowEvents, [f0]);
-    assert.equal(f0.endSlice.title, 'slice2');
+    assert.strictEqual(f0.endSlice.title, 'slice2');
     assert.deepEqual(f0.endSlice.inFlowEvents, [f0]);
   });
 
@@ -2466,18 +2466,18 @@ tr.b.unittest.testSuite(function() {
     ];
 
     var m = makeModel(events, false, false);
-    assert.equal(m.flowEvents.length, 1);
+    assert.strictEqual(m.flowEvents.length, 1);
 
     var f0 = m.flowEvents[0];
 
-    assert.equal(f0.title, 'flow');
-    assert.equal(f0.category, 'foo');
-    assert.equal(f0.id, 72);
-    assert.equal(f0.start, .548);
+    assert.strictEqual(f0.title, 'flow');
+    assert.strictEqual(f0.category, 'foo');
+    assert.strictEqual(f0.id, 72);
+    assert.strictEqual(f0.start, .548);
     assert.closeTo(32 / 1000, f0.duration, 1e-5);
-    assert.equal(f0.startSlice.title, 'slice1');
+    assert.strictEqual(f0.startSlice.title, 'slice1');
     assert.deepEqual(f0.startSlice.outFlowEvents, [f0]);
-    assert.equal(f0.endSlice.title, 'slice2');
+    assert.strictEqual(f0.endSlice.title, 'slice2');
     assert.deepEqual(f0.endSlice.inFlowEvents, [f0]);
   });
 
@@ -2495,7 +2495,7 @@ tr.b.unittest.testSuite(function() {
 
     var m = makeModel(events);
 
-    assert.equal(m.flowEvents.length, 0);
+    assert.strictEqual(m.flowEvents.length, 0);
   });
 
   test('importFlowV2OnePair', function() {
@@ -2507,13 +2507,13 @@ tr.b.unittest.testSuite(function() {
 
     var m = makeModel(events);
 
-    assert.equal(m.flowEvents.length, 1);
+    assert.strictEqual(m.flowEvents.length, 1);
 
     var f0 = m.flowEvents[0];
 
-    assert.equal(f0.startSlice.title, 'producer');
+    assert.strictEqual(f0.startSlice.title, 'producer');
     assert.deepEqual(f0.startSlice.outFlowEvents, [f0]);
-    assert.equal(f0.endSlice.title, 'consumer');
+    assert.strictEqual(f0.endSlice.title, 'consumer');
     assert.deepEqual(f0.endSlice.inFlowEvents, [f0]);
   });
 
@@ -2527,19 +2527,19 @@ tr.b.unittest.testSuite(function() {
 
     var m = makeModel(events);
 
-    assert.equal(m.flowEvents.length, 2);
+    assert.strictEqual(m.flowEvents.length, 2);
 
     var f0 = m.flowEvents[0];
     var f1 = m.flowEvents[1];
 
-    assert.equal(f0.startSlice.title, 'producer');
+    assert.strictEqual(f0.startSlice.title, 'producer');
     assert.deepEqual(f0.startSlice.outFlowEvents, [f0]);
-    assert.equal(f0.endSlice.title, 'step');
+    assert.strictEqual(f0.endSlice.title, 'step');
     assert.deepEqual(f0.endSlice.inFlowEvents, [f0]);
 
-    assert.equal(f1.startSlice.title, 'step');
+    assert.strictEqual(f1.startSlice.title, 'step');
     assert.deepEqual(f1.startSlice.outFlowEvents, [f1]);
-    assert.equal(f1.endSlice.title, 'consumer');
+    assert.strictEqual(f1.endSlice.title, 'consumer');
     assert.deepEqual(f1.endSlice.inFlowEvents, [f1]);
   });
 
@@ -2553,20 +2553,20 @@ tr.b.unittest.testSuite(function() {
 
     var m = makeModel(events);
 
-    assert.equal(m.flowEvents.length, 2);
+    assert.strictEqual(m.flowEvents.length, 2);
 
     var f0 = m.flowEvents[0];
     var f1 = m.flowEvents[1];
 
-    assert.equal(f0.startSlice.title, 'producer');
-    assert.equal(f1.startSlice.title, 'producer');
+    assert.strictEqual(f0.startSlice.title, 'producer');
+    assert.strictEqual(f1.startSlice.title, 'producer');
 
-    assert.equal(f0.startSlice.outFlowEvents.length, 2);
+    assert.strictEqual(f0.startSlice.outFlowEvents.length, 2);
     assert.deepEqual(f0.startSlice.outFlowEvents, [f0, f1]);
     assert.deepEqual(f1.startSlice.outFlowEvents, [f0, f1]);
 
-    assert.equal(f0.endSlice.title, 'consumer1');
-    assert.equal(f1.endSlice.title, 'consumer2');
+    assert.strictEqual(f0.endSlice.title, 'consumer1');
+    assert.strictEqual(f1.endSlice.title, 'consumer2');
     assert.deepEqual(f0.endSlice.inFlowEvents, [f0]);
     assert.deepEqual(f1.endSlice.inFlowEvents, [f1]);
   });
@@ -2581,7 +2581,7 @@ tr.b.unittest.testSuite(function() {
 
     var m = makeModel(events);
 
-    assert.equal(m.flowEvents.length, 1);
+    assert.strictEqual(m.flowEvents.length, 1);
   });
 
   // This test creates a flow event that stops on the same timestamp that
@@ -2601,24 +2601,24 @@ tr.b.unittest.testSuite(function() {
     var endT = m.processes[70].threads[71];
 
     assert.isDefined(startT);
-    assert.equal(startT.sliceGroup.slices.length, 1);
+    assert.strictEqual(startT.sliceGroup.slices.length, 1);
 
     assert.isDefined(endT);
-    assert.equal(endT.sliceGroup.slices.length, 1);
+    assert.strictEqual(endT.sliceGroup.slices.length, 1);
 
-    assert.equal(m.flowEvents.length, 1);
+    assert.strictEqual(m.flowEvents.length, 1);
 
     // f0 represents 's' to 'f'
     var f0 = m.flowEvents[0];
 
-    assert.equal(f0.title, 'PostTask');
-    assert.equal(f0.category, 'foo');
-    assert.equal(f0.id, 72);
-    assert.equal(f0.start, .548);
+    assert.strictEqual(f0.title, 'PostTask');
+    assert.strictEqual(f0.category, 'foo');
+    assert.strictEqual(f0.id, 72);
+    assert.strictEqual(f0.start, .548);
     assert.closeTo(32 / 1000, f0.duration, 1e-5);
-    assert.equal(f0.startSlice.title, 'SomeTask');
+    assert.strictEqual(f0.startSlice.title, 'SomeTask');
     assert.deepEqual(f0.startSlice.outFlowEvents, [f0]);
-    assert.equal(f0.endSlice.title, 'RunTask');
+    assert.strictEqual(f0.endSlice.title, 'RunTask');
     assert.deepEqual(f0.endSlice.inFlowEvents, [f0]);
 
     // TODO(nduca): Add assertions about the flow slices, esp that they were
@@ -2645,7 +2645,7 @@ tr.b.unittest.testSuite(function() {
 
     var expected = [0.4, 0.0, 0.412];
     var m = makeModel(events);
-    assert.equal(m.flowIntervalTree.size, 3);
+    assert.strictEqual(m.flowIntervalTree.size, 3);
 
     var order = m.flowEvents.map(function(x) { return x.start; });
     for (var i = 0; i < expected.length; ++i) {
@@ -2661,32 +2661,32 @@ tr.b.unittest.testSuite(function() {
     ];
 
     var m = makeModel(events);
-    assert.equal(m.numProcesses, 1);
+    assert.strictEqual(m.numProcesses, 1);
     var p = m.processes[52];
     assert.isDefined(p);
 
-    assert.equal(p.numThreads, 1);
+    assert.strictEqual(p.numThreads, 1);
     var t = p.threads[53];
     assert.isDefined(t);
-    assert.equal(t.sliceGroup.slices.length, 3);
-    assert.equal(t.tid, 53);
+    assert.strictEqual(t.sliceGroup.slices.length, 3);
+    assert.strictEqual(t.tid, 53);
 
     var slice = t.sliceGroup.slices[0];
-    assert.equal(slice.title, 'a');
-    assert.equal(slice.category, 'baz');
+    assert.strictEqual(slice.title, 'a');
+    assert.strictEqual(slice.category, 'baz');
     assert.closeTo(0, slice.start, 1e-5);
     assert.closeTo(1 / 1000, slice.duration, 1e-5);
-    assert.equal(slice.subSlices.length, 0);
+    assert.strictEqual(slice.subSlices.length, 0);
 
     slice = t.sliceGroup.slices[1];
-    assert.equal(slice.title, 'b');
-    assert.equal(slice.category, 'foo');
+    assert.strictEqual(slice.title, 'b');
+    assert.strictEqual(slice.category, 'foo');
     assert.closeTo((730 - 629) / 1000, slice.start, 1e-5);
     assert.closeTo(20 / 1000, slice.duration, 1e-5);
-    assert.equal(slice.subSlices.length, 1);
+    assert.strictEqual(slice.subSlices.length, 1);
 
     slice = t.sliceGroup.slices[2];
-    assert.equal(slice.title, 'c');
+    assert.strictEqual(slice.title, 'c');
     assert.isTrue(slice.didNotFinish);
     assert.closeTo(10 / 1000, slice.duration, 1e-5);
   });
@@ -2724,15 +2724,15 @@ tr.b.unittest.testSuite(function() {
 
     var m = makeModel(eventData);
 
-    assert.equal(m.flowEvents.length, 2);
+    assert.strictEqual(m.flowEvents.length, 2);
 
     var f0 = m.flowEvents[0];
-    assert.equal(f0.startStackFrame.title, 'fn1');
-    assert.equal(f0.endStackFrame.title, 'fn2');
+    assert.strictEqual(f0.startStackFrame.title, 'fn1');
+    assert.strictEqual(f0.endStackFrame.title, 'fn2');
 
     var f1 = m.flowEvents[1];
-    assert.equal(f1.startStackFrame.title, 'fn2');
-    assert.equal(f1.endStackFrame.title, 'fn3');
+    assert.strictEqual(f1.startStackFrame.title, 'fn2');
+    assert.strictEqual(f1.endStackFrame.title, 'fn3');
   });
 
   test('importCompleteEventWithCpuDuration', function() {
@@ -2743,36 +2743,36 @@ tr.b.unittest.testSuite(function() {
     ];
 
     var m = makeModel(events);
-    assert.equal(m.numProcesses, 1);
+    assert.strictEqual(m.numProcesses, 1);
     var p = m.processes[52];
     assert.isDefined(p);
 
-    assert.equal(p.numThreads, 1);
+    assert.strictEqual(p.numThreads, 1);
     var t = p.threads[53];
     assert.isDefined(t);
-    assert.equal(t.sliceGroup.slices.length, 3);
-    assert.equal(t.tid, 53);
+    assert.strictEqual(t.sliceGroup.slices.length, 3);
+    assert.strictEqual(t.tid, 53);
 
     var slice = t.sliceGroup.slices[0];
-    assert.equal(slice.title, 'a');
-    assert.equal(slice.category, 'baz');
+    assert.strictEqual(slice.title, 'a');
+    assert.strictEqual(slice.category, 'baz');
     assert.closeTo(0, slice.start, 1e-5);
     assert.closeTo(1 / 1000, slice.duration, 1e-5);
     assert.closeTo(12 / 1000, slice.cpuStart, 1e-5);
     assert.closeTo(1 / 1000, slice.cpuDuration, 1e-5);
-    assert.equal(slice.subSlices.length, 0);
+    assert.strictEqual(slice.subSlices.length, 0);
 
     slice = t.sliceGroup.slices[1];
-    assert.equal(slice.title, 'b');
-    assert.equal(slice.category, 'foo');
+    assert.strictEqual(slice.title, 'b');
+    assert.strictEqual(slice.category, 'foo');
     assert.closeTo((730 - 629) / 1000, slice.start, 1e-5);
     assert.closeTo(20 / 1000, slice.duration, 1e-5);
     assert.closeTo(110 / 1000, slice.cpuStart, 1e-5);
     assert.closeTo(16 / 1000, slice.cpuDuration, 1e-5);
-    assert.equal(slice.subSlices.length, 1);
+    assert.strictEqual(slice.subSlices.length, 1);
 
     slice = t.sliceGroup.slices[2];
-    assert.equal(slice.title, 'c');
+    assert.strictEqual(slice.title, 'c');
     assert.isTrue(slice.didNotFinish);
     assert.closeTo(10 / 1000, slice.duration, 1e-5);
   });
@@ -2789,20 +2789,20 @@ tr.b.unittest.testSuite(function() {
     var sA = findSliceNamed(t.sliceGroup, 'a');
     var sB = findSliceNamed(t.sliceGroup, 'b');
 
-    assert.equal(sA.title, 'a');
-    assert.equal(sA.category, 'baz');
-    assert.equal(sA.start, 244654227.065);
-    assert.equal(sA.duration, 36.075);
+    assert.strictEqual(sA.title, 'a');
+    assert.strictEqual(sA.category, 'baz');
+    assert.strictEqual(sA.start, 244654227.065);
+    assert.strictEqual(sA.duration, 36.075);
     assert.closeTo(0.03, sA.selfTime, 1e-5);
 
-    assert.equal(sB.title, 'b');
-    assert.equal(sB.category, 'foo');
-    assert.equal(sB.start, 244654227.095);
-    assert.equal(sB.duration, 36.045);
+    assert.strictEqual(sB.title, 'b');
+    assert.strictEqual(sB.category, 'foo');
+    assert.strictEqual(sB.start, 244654227.095);
+    assert.strictEqual(sB.duration, 36.045);
 
-    assert.equal(sA.subSlices.length, 1);
-    assert.equal(sA.subSlices[0], sB);
-    assert.equal(sB.parentSlice, sA);
+    assert.strictEqual(sA.subSlices.length, 1);
+    assert.strictEqual(sA.subSlices[0], sB);
+    assert.strictEqual(sB.parentSlice, sA);
   });
 
 
@@ -2840,15 +2840,15 @@ tr.b.unittest.testSuite(function() {
     var p = m.processes[1];
     var t = p.threads[2];
     assert.isDefined(t);
-    assert.equal(t.sliceGroup.slices.length, 2);
+    assert.strictEqual(t.sliceGroup.slices.length, 2);
 
     var s0 = t.sliceGroup.slices[0];
-    assert.equal(s0.startStackFrame.title, 'frame7');
+    assert.strictEqual(s0.startStackFrame.title, 'frame7');
     assert.isUndefined(s0.endStackFrame);
 
     var s1 = t.sliceGroup.slices[1];
-    assert.equal(s1.startStackFrame.title, 'frame8');
-    assert.equal(s1.endStackFrame.title, 'frame9');
+    assert.strictEqual(s1.startStackFrame.title, 'frame8');
+    assert.strictEqual(s1.endStackFrame.title, 'frame9');
   });
 
   test('importAsyncEventWithSameTimestamp', function() {
@@ -2866,19 +2866,19 @@ tr.b.unittest.testSuite(function() {
     var m = makeModel(events);
     var t = m.processes[52].threads[53];
 
-    assert.equal(t.asyncSliceGroup.slices.length, 1);
+    assert.strictEqual(t.asyncSliceGroup.slices.length, 1);
     var parentSlice = t.asyncSliceGroup.slices[0];
-    assert.equal(parentSlice.title, 'a');
-    assert.equal(parentSlice.category, 'foo');
+    assert.strictEqual(parentSlice.title, 'a');
+    assert.strictEqual(parentSlice.category, 'foo');
     assert.isTrue(parentSlice.isTopLevel);
 
     assert.isDefined(parentSlice.subSlices);
     var subSlices = parentSlice.subSlices;
-    assert.equal(subSlices.length, 1000);
+    assert.strictEqual(subSlices.length, 1000);
     // Slices should be sorted according to 'ts'. And if 'ts' is the same,
     // slices should keep the order that they were recorded.
     for (var i = 0; i < 1000; i++) {
-      assert.equal(i + 1, subSlices[i].args['seq']);
+      assert.strictEqual(i + 1, subSlices[i].args['seq']);
       assert.isFalse(subSlices[i].isTopLevel);
     }
   });
@@ -2924,27 +2924,27 @@ tr.b.unittest.testSuite(function() {
     };
     var m = makeModel(events, false);
     assert.isDefined(m.kernel.cpus[0]);
-    assert.equal(m.getAllThreads().length, 1);
+    assert.strictEqual(m.getAllThreads().length, 1);
 
-    assert.equal(m.samples.length, 3);
+    assert.strictEqual(m.samples.length, 3);
 
     var t1 = m.processes[1].threads[1];
-    assert.equal(t1.samples.length, 3);
+    assert.strictEqual(t1.samples.length, 3);
 
     var c0 = m.kernel.cpus[0];
     var c1 = m.kernel.cpus[1];
-    assert.equal(c0.samples.length, 2);
-    assert.equal(c1.samples.length, 1);
+    assert.strictEqual(c0.samples.length, 2);
+    assert.strictEqual(c1.samples.length, 1);
 
-    assert.equal(m.samples[0].cpu, c0);
-    assert.equal(m.samples[0].thread, t1);
-    assert.equal(m.samples[0].title, 'cycles:HG');
-    assert.equal(m.samples[0].start, 1);
+    assert.strictEqual(m.samples[0].cpu, c0);
+    assert.strictEqual(m.samples[0].thread, t1);
+    assert.strictEqual(m.samples[0].title, 'cycles:HG');
+    assert.strictEqual(m.samples[0].start, 1);
     assert.deepEqual(
       ['a_sub', 'a', 'main'],
         m.samples[0].userFriendlyStack
             .map(x => x.substr(0, x.indexOf('url') - 1)));
-    assert.equal(m.samples[0].weight, 1);
+    assert.strictEqual(m.samples[0].weight, 1);
   });
 
   test('importMemoryDumps_verifyProcessAndGlobalMemoryDumpLinks', function() {
@@ -3007,34 +3007,37 @@ tr.b.unittest.testSuite(function() {
     assert.isDefined(p2);
 
     // Check that Model and Process objects contain the right dumps.
-    assert.equal(m.globalMemoryDumps.length, 2);
-    assert.equal(p1.memoryDumps.length, 2);
-    assert.equal(p2.memoryDumps.length, 1);
+    assert.strictEqual(m.globalMemoryDumps.length, 2);
+    assert.strictEqual(p1.memoryDumps.length, 2);
+    assert.strictEqual(p2.memoryDumps.length, 1);
 
-    assert.equal(m.globalMemoryDumps[0].start, 10);
-    assert.equal(p1.memoryDumps[0].start, 10);
-    assert.equal(p2.memoryDumps[0].start, 11);
-    assert.equal(m.globalMemoryDumps[0].duration, 1);
-    assert.equal(p1.memoryDumps[0].duration, 0);
-    assert.equal(p2.memoryDumps[0].duration, 0);
+    assert.strictEqual(m.globalMemoryDumps[0].start, 10);
+    assert.strictEqual(p1.memoryDumps[0].start, 10);
+    assert.strictEqual(p2.memoryDumps[0].start, 11);
+    assert.strictEqual(m.globalMemoryDumps[0].duration, 1);
+    assert.strictEqual(p1.memoryDumps[0].duration, 0);
+    assert.strictEqual(p2.memoryDumps[0].duration, 0);
 
-    assert.equal(m.globalMemoryDumps[1].start, 13);
-    assert.equal(p1.memoryDumps[1].start, 13);
-    assert.equal(m.globalMemoryDumps[1].duration, 0);
-    assert.equal(p1.memoryDumps[1].duration, 0);
+    assert.strictEqual(m.globalMemoryDumps[1].start, 13);
+    assert.strictEqual(p1.memoryDumps[1].start, 13);
+    assert.strictEqual(m.globalMemoryDumps[1].duration, 0);
+    assert.strictEqual(p1.memoryDumps[1].duration, 0);
 
     // Check that GlobalMemoryDump and ProcessMemoryDump objects are
     // interconnected correctly.
-    assert.equal(p1.memoryDumps[0],
+    assert.strictEqual(p1.memoryDumps[0],
         m.globalMemoryDumps[0].processMemoryDumps[42]);
-    assert.equal(p2.memoryDumps[0],
+    assert.strictEqual(p2.memoryDumps[0],
         m.globalMemoryDumps[0].processMemoryDumps[43]);
-    assert.equal(p1.memoryDumps[0].globalMemoryDump, m.globalMemoryDumps[0]);
-    assert.equal(p2.memoryDumps[0].globalMemoryDump, m.globalMemoryDumps[0]);
+    assert.strictEqual(
+        p1.memoryDumps[0].globalMemoryDump, m.globalMemoryDumps[0]);
+    assert.strictEqual(
+        p2.memoryDumps[0].globalMemoryDump, m.globalMemoryDumps[0]);
 
-    assert.equal(p1.memoryDumps[1],
-        m.globalMemoryDumps[1].processMemoryDumps[42]);
-    assert.equal(p1.memoryDumps[1].globalMemoryDump, m.globalMemoryDumps[1]);
+    assert.strictEqual(
+        p1.memoryDumps[1], m.globalMemoryDumps[1].processMemoryDumps[42]);
+    assert.strictEqual(
+        p1.memoryDumps[1].globalMemoryDump, m.globalMemoryDumps[1]);
   });
 
   test('importMemoryDumps_totalResidentBytesOnly', function() {
@@ -3057,7 +3060,7 @@ tr.b.unittest.testSuite(function() {
     var p = m.getProcess(42);
     var d = p.memoryDumps[0];
 
-    assert.equal(d.totals.residentBytes, 9007199254740991);
+    assert.strictEqual(d.totals.residentBytes, 9007199254740991);
     assert.isUndefined(d.totals.peakResidentBytes);
     assert.isUndefined(d.totals.arePeakResidentBytesResettable);
     assert.isUndefined(d.totals.platformSpecific);
@@ -3087,8 +3090,8 @@ tr.b.unittest.testSuite(function() {
     var p = m.getProcess(42);
     var d = p.memoryDumps[0];
 
-    assert.equal(d.totals.residentBytes, 9007199254740991);
-    assert.equal(d.totals.peakResidentBytes, 13510798882111488);
+    assert.strictEqual(d.totals.residentBytes, 9007199254740991);
+    assert.strictEqual(d.totals.peakResidentBytes, 13510798882111488);
     assert.isTrue(d.totals.arePeakResidentBytesResettable);
     assert.isUndefined(d.totals.platformSpecific);
     assert.isUndefined(d.mostRecentVmRegions);
@@ -3117,7 +3120,7 @@ tr.b.unittest.testSuite(function() {
     var p = m.getProcess(42);
     var d = p.memoryDumps[0];
 
-    assert.equal(d.totals.residentBytes, 9007199254740991);
+    assert.strictEqual(d.totals.residentBytes, 9007199254740991);
     assert.isUndefined(d.totals.peakResidentBytes);
     assert.isUndefined(d.totals.arePeakResidentBytesResettable);
     assert.deepEqual(d.totals.platformSpecific,
@@ -3238,7 +3241,7 @@ tr.b.unittest.testSuite(function() {
       }
     ]);
 
-    assert.equal(d.totals.residentBytes, 0);
+    assert.strictEqual(d.totals.residentBytes, 0);
     assert.isUndefined(d.totals.peakResidentBytes);
     assert.isUndefined(d.totals.arePeakResidentBytesResettable);
     assert.isUndefined(d.totals.platformSpecific);
@@ -3321,7 +3324,7 @@ tr.b.unittest.testSuite(function() {
     var p = m.getProcess(42);
     var d = p.memoryDumps[0];
 
-    assert.equal(d.memoryAllocatorDumps.length, 2);
+    assert.strictEqual(d.memoryAllocatorDumps.length, 2);
 
     var oilpanRoot = d.getMemoryAllocatorDumpByFullName('oilpan');
     var v8Root = d.getMemoryAllocatorDumpByFullName('v8');
@@ -3336,30 +3339,30 @@ tr.b.unittest.testSuite(function() {
       'effective_size': 32768,
       'inner_size': 4096
     }, {});
-    assert.equal(oilpanRoot.children.length, 2);
+    assert.strictEqual(oilpanRoot.children.length, 2);
 
     var oilpanBucket1 = d.getMemoryAllocatorDumpByFullName(
         'oilpan/heap2/bucket1');
     assert.isDefined(oilpanBucket1);
-    assert.equal(oilpanBucket1.fullName, 'oilpan/heap2/bucket1');
-    assert.equal(oilpanBucket1.name, 'bucket1');
+    assert.strictEqual(oilpanBucket1.fullName, 'oilpan/heap2/bucket1');
+    assert.strictEqual(oilpanBucket1.name, 'bucket1');
     checkDumpNumericsAndDiagnostics(oilpanBucket1, {
       'objects_count': new Scalar(unitlessNumber_smallerIsBetter, 31),
       'size': 8192,
       'effective_size': 8192,
       'inner_size': 8192
     }, {});
-    assert.equal(oilpanBucket1.children.length, 0);
+    assert.strictEqual(oilpanBucket1.children.length, 0);
 
     assert.isDefined(oilpanBucket1.parent);
-    assert.equal(oilpanBucket1.parent.fullName, 'oilpan/heap2');
-    assert.equal(oilpanBucket1.parent.name, 'heap2');
+    assert.strictEqual(oilpanBucket1.parent.fullName, 'oilpan/heap2');
+    assert.strictEqual(oilpanBucket1.parent.name, 'heap2');
     assert.include(oilpanBucket1.parent.children, oilpanBucket1);
 
     assert.isDefined(oilpanBucket1.parent.parent);
     assert.strictEqual(oilpanBucket1.parent.parent, oilpanRoot);
 
-    assert.equal(d.totals.residentBytes, 256);
+    assert.strictEqual(d.totals.residentBytes, 256);
     assert.isUndefined(d.totals.peakResidentBytes);
     assert.isUndefined(d.totals.arePeakResidentBytesResettable);
     assert.isUndefined(d.totals.platformSpecific);
@@ -3421,7 +3424,7 @@ tr.b.unittest.testSuite(function() {
     var p = m.getProcess(42);
     var d = p.memoryDumps[0];
 
-    assert.equal(d.memoryAllocatorDumps.length, 2);
+    assert.strictEqual(d.memoryAllocatorDumps.length, 2);
 
     var oilpanRoot = d.getMemoryAllocatorDumpByFullName('oilpan');
     var v8Root = d.getMemoryAllocatorDumpByFullName('v8');
@@ -3436,30 +3439,30 @@ tr.b.unittest.testSuite(function() {
       'effective_size': 24576,
       'inner_size': 20480
     }, {});
-    assert.equal(oilpanRoot.children.length, 2);
+    assert.strictEqual(oilpanRoot.children.length, 2);
 
     var oilpanBucket1 = d.getMemoryAllocatorDumpByFullName(
         'oilpan/heap2/bucket1');
     assert.isDefined(oilpanBucket1);
-    assert.equal(oilpanBucket1.fullName, 'oilpan/heap2/bucket1');
-    assert.equal(oilpanBucket1.name, 'bucket1');
+    assert.strictEqual(oilpanBucket1.fullName, 'oilpan/heap2/bucket1');
+    assert.strictEqual(oilpanBucket1.name, 'bucket1');
     checkDumpNumericsAndDiagnostics(oilpanBucket1, {
       'objects_count': new Scalar(unitlessNumber_smallerIsBetter, 31),
       'size': 8192,
       'effective_size': 8192,
       'inner_size': 8192
     }, {});
-    assert.equal(oilpanBucket1.children.length, 0);
+    assert.strictEqual(oilpanBucket1.children.length, 0);
 
     assert.isDefined(oilpanBucket1.parent);
-    assert.equal(oilpanBucket1.parent.fullName, 'oilpan/heap2');
-    assert.equal(oilpanBucket1.parent.name, 'heap2');
+    assert.strictEqual(oilpanBucket1.parent.fullName, 'oilpan/heap2');
+    assert.strictEqual(oilpanBucket1.parent.name, 'heap2');
     assert.include(oilpanBucket1.parent.children, oilpanBucket1);
 
     assert.isDefined(oilpanBucket1.parent.parent);
     assert.strictEqual(oilpanBucket1.parent.parent, oilpanRoot);
 
-    assert.equal(d.totals.residentBytes, 256);
+    assert.strictEqual(d.totals.residentBytes, 256);
     assert.isUndefined(d.totals.peakResidentBytes);
     assert.isUndefined(d.totals.arePeakResidentBytesResettable);
     assert.isUndefined(d.totals.platformSpecific);
@@ -3515,7 +3518,7 @@ tr.b.unittest.testSuite(function() {
     var pmd = p.memoryDumps[0];
 
     assert.isUndefined(gmd.totals);
-    assert.equal(pmd.totals.residentBytes, 256);
+    assert.strictEqual(pmd.totals.residentBytes, 256);
     assert.isUndefined(pmd.totals.peakResidentBytes);
     assert.isUndefined(pmd.totals.arePeakResidentBytesResettable);
     assert.isUndefined(pmd.totals.platformSpecific);
@@ -3523,8 +3526,8 @@ tr.b.unittest.testSuite(function() {
     assert.isUndefined(gmd.mostRecentVmRegions);
     assert.isUndefined(pmd.mostRecentVmRegions);
 
-    assert.equal(gmd.memoryAllocatorDumps.length, 1);
-    assert.equal(pmd.memoryAllocatorDumps.length, 1);
+    assert.strictEqual(gmd.memoryAllocatorDumps.length, 1);
+    assert.strictEqual(pmd.memoryAllocatorDumps.length, 1);
 
     // Global memory allocator dumps.
     var sharedBitmapManager = gmd.getMemoryAllocatorDumpByFullName(
@@ -3775,7 +3778,7 @@ tr.b.unittest.testSuite(function() {
     assert.include(globalDumpShared.ownedBy, browserDumpLocalOwnsLink);
     assert.strictEqual(browserDumpLocalOwnsLink.source, browserDumpLocal);
     assert.strictEqual(browserDumpLocalOwnsLink.target, globalDumpShared);
-    assert.equal(browserDumpLocalOwnsLink.importance, 0);
+    assert.strictEqual(browserDumpLocalOwnsLink.importance, 0);
 
     // Renderer memory allocator dump.
     assert.lengthOf(rendererDump.memoryAllocatorDumps, 1);
@@ -3800,7 +3803,7 @@ tr.b.unittest.testSuite(function() {
     assert.include(globalDumpShared.ownedBy, rendererDumpLocalOwnsLink);
     assert.strictEqual(rendererDumpLocalOwnsLink.source, rendererDumpLocal);
     assert.strictEqual(rendererDumpLocalOwnsLink.target, globalDumpShared);
-    assert.equal(rendererDumpLocalOwnsLink.importance, 1);
+    assert.strictEqual(rendererDumpLocalOwnsLink.importance, 1);
 
     // GPU memory allocator dumps.
     assert.lengthOf(gpuDump.memoryAllocatorDumps, 2);
@@ -3823,7 +3826,7 @@ tr.b.unittest.testSuite(function() {
     assert.include(globalDumpShared.ownedBy, gpuDumpLocal1OwnsLink);
     assert.strictEqual(gpuDumpLocal1OwnsLink.source, gpuDumpLocal1);
     assert.strictEqual(gpuDumpLocal1OwnsLink.target, globalDumpShared);
-    assert.equal(gpuDumpLocal1OwnsLink.importance, -1);
+    assert.strictEqual(gpuDumpLocal1OwnsLink.importance, -1);
 
     var gpuDumpLocal1RetainsLink = gpuDumpLocal1.retains[0];
     assert.include(rendererDumpLocal.retainedBy, gpuDumpLocal1RetainsLink);
@@ -3849,7 +3852,7 @@ tr.b.unittest.testSuite(function() {
     assert.include(gpuDumpLocal1.ownedBy, gpuDumpLocal2OwnsLink);
     assert.strictEqual(gpuDumpLocal2OwnsLink.source, gpuDumpLocal2);
     assert.strictEqual(gpuDumpLocal2OwnsLink.target, gpuDumpLocal1);
-    assert.equal(gpuDumpLocal2OwnsLink.importance, 1);
+    assert.strictEqual(gpuDumpLocal2OwnsLink.importance, 1);
   });
 
   test('importMemoryDumps_memoryAllocatorDumpsMissingFields', function() {
@@ -3875,7 +3878,7 @@ tr.b.unittest.testSuite(function() {
     var p = m.getProcess(42);
     var d = p.memoryDumps[0];
 
-    assert.equal(d.memoryAllocatorDumps.length, 1);
+    assert.strictEqual(d.memoryAllocatorDumps.length, 1);
     var noCrashRoot = d.getMemoryAllocatorDumpByFullName('no_crash');
     assert.lengthOf(noCrashRoot.children, 0);
     checkDumpNumericsAndDiagnostics(noCrashRoot, {}, {});
@@ -4369,7 +4372,7 @@ tr.b.unittest.testSuite(function() {
 
     var partitionAllocDump1 = hds1['partition_alloc'];
     assert.strictEqual(partitionAllocDump1.processMemoryDump, pmd1);
-    assert.equal(partitionAllocDump1.allocatorName, 'partition_alloc');
+    assert.strictEqual(partitionAllocDump1.allocatorName, 'partition_alloc');
     var partitionAllocEntries1 = partitionAllocDump1.entries;
     assert.lengthOf(partitionAllocEntries1, 2);
     checkHeapEntry(partitionAllocEntries1[0], partitionAllocDump1, 4096,
@@ -4384,7 +4387,7 @@ tr.b.unittest.testSuite(function() {
 
     var partitionAllocDump2 = hds2['partition_alloc'];
     assert.strictEqual(partitionAllocDump2.processMemoryDump, pmd2);
-    assert.equal(partitionAllocDump2.allocatorName, 'partition_alloc');
+    assert.strictEqual(partitionAllocDump2.allocatorName, 'partition_alloc');
     var partitionAllocEntries2 = partitionAllocDump2.entries;
     assert.lengthOf(partitionAllocEntries2, 2);
     checkHeapEntry(partitionAllocEntries2[0], partitionAllocDump2, 8192,
@@ -4405,7 +4408,7 @@ tr.b.unittest.testSuite(function() {
 
     var partitionAllocDump3 = hds3['partition_alloc'];
     assert.strictEqual(partitionAllocDump3.processMemoryDump, pmd3);
-    assert.equal(partitionAllocDump3.allocatorName, 'partition_alloc');
+    assert.strictEqual(partitionAllocDump3.allocatorName, 'partition_alloc');
     var partitionAllocEntries3 = partitionAllocDump3.entries;
     assert.lengthOf(partitionAllocEntries3, 6);
     checkHeapEntry(partitionAllocEntries3[0], partitionAllocDump3, 3043272,
@@ -4425,7 +4428,7 @@ tr.b.unittest.testSuite(function() {
 
     var mallocDump3 = hds3['malloc'];
     assert.strictEqual(mallocDump3.processMemoryDump, pmd3);
-    assert.equal(mallocDump3.allocatorName, 'malloc');
+    assert.strictEqual(mallocDump3.allocatorName, 'malloc');
     var mallocEntries3 = mallocDump3.entries;
     assert.lengthOf(mallocEntries3, 4);
     checkHeapEntry(mallocEntries3[0], mallocDump3, 1929, undefined /* root */,
@@ -4701,7 +4704,7 @@ tr.b.unittest.testSuite(function() {
 
     var partitionAllocDump1 = hds1['partition_alloc'];
     assert.strictEqual(partitionAllocDump1.processMemoryDump, pmd1);
-    assert.equal(partitionAllocDump1.allocatorName, 'partition_alloc');
+    assert.strictEqual(partitionAllocDump1.allocatorName, 'partition_alloc');
     var partitionAllocEntries1 = partitionAllocDump1.entries;
     assert.lengthOf(partitionAllocEntries1, 2);
     checkHeapEntry(partitionAllocEntries1[0], partitionAllocDump1, 4096,
@@ -4718,7 +4721,7 @@ tr.b.unittest.testSuite(function() {
 
     var partitionAllocDump2 = hds2['partition_alloc'];
     assert.strictEqual(partitionAllocDump2.processMemoryDump, pmd2);
-    assert.equal(partitionAllocDump2.allocatorName, 'partition_alloc');
+    assert.strictEqual(partitionAllocDump2.allocatorName, 'partition_alloc');
     var partitionAllocEntries2 = partitionAllocDump2.entries;
     assert.lengthOf(partitionAllocEntries2, 3);
     checkHeapEntry(partitionAllocEntries2[0], partitionAllocDump2, 8192,
@@ -4745,7 +4748,7 @@ tr.b.unittest.testSuite(function() {
 
     var partitionAllocDump3 = hds3['partition_alloc'];
     assert.strictEqual(partitionAllocDump3.processMemoryDump, pmd3);
-    assert.equal(partitionAllocDump3.allocatorName, 'partition_alloc');
+    assert.strictEqual(partitionAllocDump3.allocatorName, 'partition_alloc');
     var partitionAllocEntries3 = partitionAllocDump3.entries;
     assert.lengthOf(partitionAllocEntries3, 7);
     checkHeapEntry(partitionAllocEntries3[0], partitionAllocDump3, 6086545,
@@ -4768,7 +4771,7 @@ tr.b.unittest.testSuite(function() {
 
     var mallocDump3 = hds3['malloc'];
     assert.strictEqual(mallocDump3.processMemoryDump, pmd3);
-    assert.equal(mallocDump3.allocatorName, 'malloc');
+    assert.strictEqual(mallocDump3.allocatorName, 'malloc');
     var mallocEntries3 = mallocDump3.entries;
     assert.lengthOf(mallocEntries3, 4);
     checkHeapEntry(mallocEntries3[0], mallocDump3, 1929, undefined /* root */,
@@ -4804,7 +4807,7 @@ tr.b.unittest.testSuite(function() {
 
     var winheapDump = hds4['winheap'];
     assert.strictEqual(winheapDump.processMemoryDump, pmd4);
-    assert.equal(winheapDump.allocatorName, 'winheap');
+    assert.strictEqual(winheapDump.allocatorName, 'winheap');
     var winheapEntries = winheapDump.entries;
     assert.lengthOf(winheapEntries, 1);
     checkHeapEntry(winheapEntries[0], winheapDump, 65536,
@@ -4817,7 +4820,7 @@ tr.b.unittest.testSuite(function() {
 
     var mallocDump4 = hds5['malloc'];
     assert.strictEqual(mallocDump4.processMemoryDump, pmd5);
-    assert.equal(mallocDump4.allocatorName, 'malloc');
+    assert.strictEqual(mallocDump4.allocatorName, 'malloc');
     var mallocEntries4 = mallocDump4.entries;
     assert.lengthOf(mallocEntries4, 1);
     checkHeapEntry(mallocEntries4[0], mallocDump4, 43981,
@@ -5255,10 +5258,10 @@ tr.b.unittest.testSuite(function() {
     var p = m.processes[1];
     var t = p.threads[2];
     assert.isDefined(t);
-    assert.equal(t.sliceGroup.slices.length, 1);
+    assert.strictEqual(t.sliceGroup.slices.length, 1);
 
     var s0 = t.sliceGroup.slices[0];
-    assert.equal(s0.startStackFrame.title, 'frame7');
+    assert.strictEqual(s0.startStackFrame.title, 'frame7');
     assert.isUndefined(s0.endStackFrame);
   });
 
@@ -5291,11 +5294,11 @@ tr.b.unittest.testSuite(function() {
     var p = m.processes[1];
     var t = p.threads[2];
     assert.isDefined(t);
-    assert.equal(t.sliceGroup.slices.length, 1);
+    assert.strictEqual(t.sliceGroup.slices.length, 1);
 
     var s0 = t.sliceGroup.slices[0];
-    assert.equal(s0.startStackFrame.title, 'frame7');
-    assert.equal(s0.endStackFrame.title, 'frame8');
+    assert.strictEqual(s0.startStackFrame.title, 'frame7');
+    assert.strictEqual(s0.endStackFrame.title, 'frame8');
   });
 
   test('annotationParsing', function() {
@@ -5318,10 +5321,10 @@ tr.b.unittest.testSuite(function() {
 
     var m = makeModel(eventData);
     var annotations = m.getAllAnnotations();
-    assert.equal(annotations.length, 3);
+    assert.strictEqual(annotations.length, 3);
 
     assert.isTrue(annotations[0] instanceof tr.model.XMarkerAnnotation);
-    assert.equal(annotations[0].timestamp, 12);
+    assert.strictEqual(annotations[0].timestamp, 12);
 
     assert.isTrue(annotations[1] instanceof tr.model.RectAnnotation);
     assert.deepEqual(annotations[1].startLocation, location1);
@@ -5329,7 +5332,7 @@ tr.b.unittest.testSuite(function() {
 
     assert.isTrue(
         annotations[2] instanceof tr.model.CommentBoxAnnotation);
-    assert.equal(annotations[2].text, 'test');
+    assert.strictEqual(annotations[2].text, 'test');
     assert.deepEqual(annotations[2].location, location1);
   });
 
@@ -5339,7 +5342,7 @@ tr.b.unittest.testSuite(function() {
       displayTimeUnit: 'ns'
     };
     var m = makeModel(JSON.stringify(eventData));
-    assert.equal(m.intrinsicTimeUnit, tr.b.TimeDisplayModes.ns);
+    assert.strictEqual(m.intrinsicTimeUnit, tr.b.TimeDisplayModes.ns);
   });
 
   test('extractBattorSubTraces', function() {
@@ -5364,8 +5367,8 @@ tr.b.unittest.testSuite(function() {
     var importer = new tr.e.importer.TraceEventImporter(m, eventData);
     var subTraces = importer.extractSubtraces();
     assert.isTrue(subTraces instanceof Array);
-    assert.equal(subTraces.length, 1);
-    assert.equal(subTraces[0], battorLog);
+    assert.strictEqual(subTraces.length, 1);
+    assert.strictEqual(subTraces[0], battorLog);
   });
 
   test('metadataParsing', function() {
@@ -5380,9 +5383,9 @@ tr.b.unittest.testSuite(function() {
 
     var m = makeModel(eventData);
     assert.isTrue(m.metadata instanceof Array);
-    assert.equal(m.metadata.length, 1);
-    assert.equal(m.metadata[0].name, 'metadata');
-    assert.equal(m.metadata[0].value, metadataValue);
+    assert.strictEqual(m.metadata.length, 1);
+    assert.strictEqual(m.metadata[0].name, 'metadata');
+    assert.strictEqual(m.metadata[0].value, metadataValue);
   });
 
   test('importTraceConfigAsMetadata', function() {
@@ -5402,9 +5405,9 @@ tr.b.unittest.testSuite(function() {
 
     var m = makeModel(eventData);
     assert.isTrue(m.metadata instanceof Array);
-    assert.equal(m.metadata.length, 1);
-    assert.equal(m.metadata[0].name, 'TraceConfig');
-    assert.equal(m.metadata[0].value, traceConfigData);
+    assert.strictEqual(m.metadata.length, 1);
+    assert.strictEqual(m.metadata[0].name, 'TraceConfig');
+    assert.strictEqual(m.metadata[0].value, traceConfigData);
   });
 
   test('importMarks', function() {
@@ -5422,12 +5425,12 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(t.sliceGroup.slices, 2);
 
     var s0 = t.sliceGroup.slices[0];
-    assert.equal(s0.title, 'mark1');
-    assert.equal(s0.start, 0);
+    assert.strictEqual(s0.title, 'mark1');
+    assert.strictEqual(s0.start, 0);
 
     var s1 = t.sliceGroup.slices[1];
-    assert.equal(s1.title, 'mark2');
-    assert.equal(s1.start, .01);
+    assert.strictEqual(s1.title, 'mark2');
+    assert.strictEqual(s1.start, .01);
   });
 
   test('createNestableAsyncSlicesForUserTimingWithoutArgs', function() {
@@ -5555,33 +5558,33 @@ tr.b.unittest.testSuite(function() {
     assert(m.numProcesses, 1);
     var p = m.processes[1];
     assert.isDefined(p);
-    assert.equal(p.numThreads, 1);
+    assert.strictEqual(p.numThreads, 1);
     var t = p.threads[2];
     var asyncSliceGroup = t.asyncSliceGroup;
-    assert.equal(asyncSliceGroup.length, 2);
+    assert.strictEqual(asyncSliceGroup.length, 2);
     for (var i = 0; i < asyncSliceGroup.length; ++i) {
       assert.isTrue(asyncSliceGroup.slices[i] instanceof MeasureAsyncSlice);
     }
 
     var groupA = asyncSliceGroup.slices[0];
-    assert.equal(groupA.viewSubGroupTitle, 'A');
-    assert.equal(groupA.title, 'a1');
-    assert.equal(groupA.subSlices.length, 0);
+    assert.strictEqual(groupA.viewSubGroupTitle, 'A');
+    assert.strictEqual(groupA.title, 'a1');
+    assert.strictEqual(groupA.subSlices.length, 0);
     var groupB = asyncSliceGroup.slices[1];
-    assert.equal(groupB.viewSubGroupTitle, 'B');
-    assert.equal(groupB.title, 'b1');
-    assert.equal(groupB.subSlices.length, 2);
+    assert.strictEqual(groupB.viewSubGroupTitle, 'B');
+    assert.strictEqual(groupB.title, 'b1');
+    assert.strictEqual(groupB.subSlices.length, 2);
     var groupBSubSlice1 = groupB.subSlices[0];
-    assert.equal(groupBSubSlice1.viewSubGroupTitle, 'B');
-    assert.equal(groupBSubSlice1.title, 'b2');
-    assert.equal(groupBSubSlice1.subSlices.length, 1);
-    assert.equal(groupBSubSlice1.subSlices[0].viewSubGroupTitle, 'B');
-    assert.equal(groupBSubSlice1.subSlices[0].title, 'b3');
-    assert.equal(groupBSubSlice1.subSlices[0].subSlices.length, 0);
+    assert.strictEqual(groupBSubSlice1.viewSubGroupTitle, 'B');
+    assert.strictEqual(groupBSubSlice1.title, 'b2');
+    assert.strictEqual(groupBSubSlice1.subSlices.length, 1);
+    assert.strictEqual(groupBSubSlice1.subSlices[0].viewSubGroupTitle, 'B');
+    assert.strictEqual(groupBSubSlice1.subSlices[0].title, 'b3');
+    assert.strictEqual(groupBSubSlice1.subSlices[0].subSlices.length, 0);
     var groupBSubSlice2 = groupB.subSlices[1];
-    assert.equal(groupBSubSlice2.viewSubGroupTitle, 'B');
-    assert.equal(groupBSubSlice2.title, 'b4');
-    assert.equal(groupBSubSlice2.subSlices.length, 0);
+    assert.strictEqual(groupBSubSlice2.viewSubGroupTitle, 'B');
+    assert.strictEqual(groupBSubSlice2.title, 'b4');
+    assert.strictEqual(groupBSubSlice2.subSlices.length, 0);
   });
 
   test('createNestableAsyncSlicesForUserTimingWithArgs', function() {
@@ -5643,23 +5646,23 @@ tr.b.unittest.testSuite(function() {
     assert(m.numProcesses, 1);
     var p = m.processes[1];
     assert.isDefined(p);
-    assert.equal(p.numThreads, 1);
+    assert.strictEqual(p.numThreads, 1);
     var t = p.threads[2];
     var asyncSliceGroup = t.asyncSliceGroup;
-    assert.equal(asyncSliceGroup.length, 2);
+    assert.strictEqual(asyncSliceGroup.length, 2);
     for (var i = 0; i < asyncSliceGroup.length; ++i) {
       assert.isTrue(asyncSliceGroup.slices[i] instanceof MeasureAsyncSlice);
     }
 
     var a1 = asyncSliceGroup.slices[0];
-    assert.equal(a1.viewSubGroupTitle, 'A');
-    assert.equal(a1.title, 'a1');
-    assert.equal(a1.subSlices.length, 0);
+    assert.strictEqual(a1.viewSubGroupTitle, 'A');
+    assert.strictEqual(a1.title, 'a1');
+    assert.strictEqual(a1.subSlices.length, 0);
     assert.deepEqual(a1.args, {a: 1});
     var a2 = asyncSliceGroup.slices[1];
-    assert.equal(a2.viewSubGroupTitle, 'A');
-    assert.equal(a2.title, 'a2');
-    assert.equal(a2.subSlices.length, 0);
+    assert.strictEqual(a2.viewSubGroupTitle, 'A');
+    assert.strictEqual(a2.title, 'a2');
+    assert.strictEqual(a2.subSlices.length, 0);
     assert.deepEqual(a2.args, {a: 2, b: 2});
   });
 
@@ -5720,30 +5723,30 @@ tr.b.unittest.testSuite(function() {
     assert(m.numProcesses, 1);
     var p = m.processes[1];
     assert.isDefined(p);
-    assert.equal(p.numThreads, 1);
+    assert.strictEqual(p.numThreads, 1);
     var t = p.threads[2];
     var asyncSliceGroup = t.asyncSliceGroup;
-    assert.equal(asyncSliceGroup.length, 3);
+    assert.strictEqual(asyncSliceGroup.length, 3);
     assert.isTrue(asyncSliceGroup.slices[0] instanceof MeasureAsyncSlice);
     assert.isFalse(asyncSliceGroup.slices[1] instanceof MeasureAsyncSlice);
     assert.isFalse(asyncSliceGroup.slices[2] instanceof MeasureAsyncSlice);
 
     var a1 = asyncSliceGroup.slices[0];
-    assert.equal(a1.viewSubGroupTitle, 'A');
-    assert.equal(a1.title, 'a1');
-    assert.equal(a1.subSlices.length, 1);
+    assert.strictEqual(a1.viewSubGroupTitle, 'A');
+    assert.strictEqual(a1.title, 'a1');
+    assert.strictEqual(a1.subSlices.length, 1);
     var a2 = a1.subSlices[0];
-    assert.equal(a2.viewSubGroupTitle, 'A');
-    assert.equal(a2.title, 'a2');
-    assert.equal(a2.subSlices.length, 0);
+    assert.strictEqual(a2.viewSubGroupTitle, 'A');
+    assert.strictEqual(a2.title, 'a2');
+    assert.strictEqual(a2.subSlices.length, 0);
     var B = asyncSliceGroup.slices[1];
-    assert.equal(B.viewSubGroupTitle, 'B');
-    assert.equal(B.title, 'B');
-    assert.equal(B.subSlices.length, 0);
+    assert.strictEqual(B.viewSubGroupTitle, 'B');
+    assert.strictEqual(B.title, 'B');
+    assert.strictEqual(B.subSlices.length, 0);
     var C = asyncSliceGroup.slices[2];
-    assert.equal(C.viewSubGroupTitle, 'C');
-    assert.equal(C.title, 'C');
-    assert.equal(C.subSlices.length, 0);
+    assert.strictEqual(C.viewSubGroupTitle, 'C');
+    assert.strictEqual(C.title, 'C');
+    assert.strictEqual(C.subSlices.length, 0);
   });
 
   test('clockSync_requesterWithoutMetadata', function() {
@@ -5789,7 +5792,7 @@ tr.b.unittest.testSuite(function() {
     var m = makeModel(events);
 
     // Make sure that our clock domain was chosen as the model.
-    assert.equal(
+    assert.strictEqual(
         m.clockSyncManager.getModelTimeTransformer(ClockDomainId.BATTOR)(.005),
         .005);
     assert.isFalse(m.hasImportWarnings);
@@ -5811,11 +5814,11 @@ tr.b.unittest.testSuite(function() {
     m.clockSyncManager.addClockSyncMarker(
         ClockDomainId.LINUX_CLOCK_MONOTONIC, 'abc', 15);
 
-    assert.equal(
+    assert.strictEqual(
         m.clockSyncManager.getModelTimeTransformer(
             ClockDomainId.TELEMETRY)(10),
         10);
-    assert.equal(
+    assert.strictEqual(
         m.clockSyncManager.getModelTimeTransformer(
             ClockDomainId.LINUX_CLOCK_MONOTONIC)(10),
         10);
@@ -5851,11 +5854,11 @@ tr.b.unittest.testSuite(function() {
     m.clockSyncManager.addClockSyncMarker(
         ClockDomainId.TELEMETRY, 'abc', 15);
 
-    assert.equal(
+    assert.strictEqual(
         m.clockSyncManager.getModelTimeTransformer(
             ClockDomainId.UNKNOWN_CHROME_LEGACY)(10),
         10);
-    assert.equal(
+    assert.strictEqual(
         m.clockSyncManager.getModelTimeTransformer(
             ClockDomainId.TELEMETRY)(15),
         10);
@@ -5932,7 +5935,7 @@ tr.b.unittest.testSuite(function() {
     };
     var m = makeModel(events, false);
     var samples = m.samples;
-    assert.equal(m.samples.length, 4);
+    assert.strictEqual(m.samples.length, 4);
     assert.deepEqual(samples.map(sample => sample.start.toFixed(3)), [
       '0.011',
       '0.012',
@@ -5961,8 +5964,8 @@ tr.b.unittest.testSuite(function() {
     var event = {pid: 1, ph: 'b', id: '0x1000'};
     var id = tr.e.importer.TraceEventImporter.scopedIdForEvent_(event);
     assert.isDefined(id);
-    assert.equal('0x1000', id.id);
-    assert.equal('ptr', id.scope);
+    assert.strictEqual('0x1000', id.id);
+    assert.strictEqual('ptr', id.scope);
     assert.isUndefined(id.pid);
   });
 
@@ -5970,26 +5973,26 @@ tr.b.unittest.testSuite(function() {
     var event = {pid: 1, ph: '(', id: '0x1000'};
     var id = tr.e.importer.TraceEventImporter.scopedIdForEvent_(event);
     assert.isDefined(id);
-    assert.equal('0x1000', id.id);
-    assert.equal('ptr', id.scope);
-    assert.equal(1, id.pid);
+    assert.strictEqual('0x1000', id.id);
+    assert.strictEqual('ptr', id.scope);
+    assert.strictEqual(1, id.pid);
   });
 
   test('scopedIdForEvent_defaultScopeProcessLocalId', function() {
     var event = {pid: 1, ph: 'b', id2: {local: '0x1000'}};
     var id = tr.e.importer.TraceEventImporter.scopedIdForEvent_(event);
     assert.isDefined(id);
-    assert.equal('0x1000', id.id);
-    assert.equal('ptr', id.scope);
-    assert.equal(1, id.pid);
+    assert.strictEqual('0x1000', id.id);
+    assert.strictEqual('ptr', id.scope);
+    assert.strictEqual(1, id.pid);
   });
 
   test('scopedIdForEvent_defaultScopeGlobalId', function() {
     var event = {pid: 1, ph: '(', id2: {global: '0x1000'}};
     var id = tr.e.importer.TraceEventImporter.scopedIdForEvent_(event);
     assert.isDefined(id);
-    assert.equal('0x1000', id.id);
-    assert.equal('ptr', id.scope);
+    assert.strictEqual('0x1000', id.id);
+    assert.strictEqual('ptr', id.scope);
     assert.isUndefined(id.pid);
   });
 
@@ -5997,8 +6000,8 @@ tr.b.unittest.testSuite(function() {
     var event = {pid: 1, ph: '(', id2: {global: '0x1000'}, scope: 'scope'};
     var id = tr.e.importer.TraceEventImporter.scopedIdForEvent_(event);
     assert.isDefined(id);
-    assert.equal('0x1000', id.id);
-    assert.equal('scope', id.scope);
+    assert.strictEqual('0x1000', id.id);
+    assert.strictEqual('scope', id.scope);
     assert.isUndefined(id.pid);
   });
 

@@ -31,7 +31,7 @@ tr.b.unittest.testSuite(function() {
     var modelHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
     tr.e.chrome.ChromeTestUtils.addLoadingEvent(model, {start: 1, end: 10});
-    assert.equal(1, modelHelper.browserHelper.getLoadingEventsInRange(
+    assert.strictEqual(1, modelHelper.browserHelper.getLoadingEventsInRange(
         getRange(0, 100)).length);
   });
 
@@ -40,7 +40,7 @@ tr.b.unittest.testSuite(function() {
     var modelHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
     tr.e.chrome.ChromeTestUtils.addCommitLoadEvent(model, {start: 1, end: 10});
-    assert.equal(1,
+    assert.strictEqual(1,
         modelHelper.browserHelper.getCommitProvisionalLoadEventsInRange(
             getRange(0, 100)).length);
   });
@@ -51,7 +51,7 @@ tr.b.unittest.testSuite(function() {
         tr.model.helpers.ChromeModelHelper);
     tr.e.chrome.ChromeTestUtils.addInputEvent(
         model, INPUT_TYPE.UNKNOWN, {start: 1, end: 10});
-    assert.equal(1, modelHelper.browserHelper.getLatencyEventsInRange(
+    assert.strictEqual(1, modelHelper.browserHelper.getLatencyEventsInRange(
         getRange(0, 100)).length);
   });
 

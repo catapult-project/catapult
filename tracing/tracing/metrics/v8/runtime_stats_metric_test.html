@@ -19,9 +19,10 @@ tr.b.unittest.testSuite(function() {
   function checkRuntimeHistogram_(histograms, name, count, duration,
       breakdownHistograms) {
     var countHistogram = histograms.getHistogramNamed(`${name}:count`);
-    assert.equal(tr.b.getOnlyElement(countHistogram.sampleValues), count);
+    assert.strictEqual(tr.b.getOnlyElement(countHistogram.sampleValues), count);
     var durationHistogram = histograms.getHistogramNamed(`${name}:duration`);
-    assert.equal(tr.b.getOnlyElement(durationHistogram.sampleValues), duration);
+    assert.strictEqual(
+        tr.b.getOnlyElement(durationHistogram.sampleValues), duration);
 
     if (breakdownHistograms === undefined) return;
     var countBin = tr.b.getOnlyElement(countHistogram.allBins.filter(
@@ -181,8 +182,8 @@ tr.b.unittest.testSuite(function() {
 
     var histograms = new tr.v.HistogramSet();
     tr.metrics.v8.runtimeStatsMetric(histograms, model);
-    assert.equal(histograms.length, 48);
-    assert.equal(histograms.sourceHistograms.length, 24);
+    assert.strictEqual(histograms.length, 48);
+    assert.strictEqual(histograms.sourceHistograms.length, 24);
 
     // A few of the top level ones.
     checkRuntimeHistogram_(histograms, 'IC', 8, 0.088, ['LoadIC_Miss',
@@ -298,8 +299,8 @@ tr.b.unittest.testSuite(function() {
 
     var histograms = new tr.v.HistogramSet();
     tr.metrics.v8.runtimeStatsMetric(histograms, model);
-    assert.equal(histograms.length, 44);
-    assert.equal(histograms.sourceHistograms.length, 24);
+    assert.strictEqual(histograms.length, 44);
+    assert.strictEqual(histograms.sourceHistograms.length, 24);
 
     // A few of the top level ones.
     checkRuntimeHistogram_(histograms, 'IC', 8, 0.088, ['LoadIC_Miss',
@@ -461,7 +462,7 @@ tr.b.unittest.testSuite(function() {
 
     var histograms = new tr.v.HistogramSet();
     tr.metrics.v8.runtimeStatsTotalMetric(histograms, model);
-    assert.equal(histograms.length, 120);
+    assert.strictEqual(histograms.length, 120);
 
     // Check total:
     checkRuntimeHistogram_(histograms, 'IC', 20, 0.109);
@@ -550,7 +551,7 @@ tr.b.unittest.testSuite(function() {
 
     var histograms = new tr.v.HistogramSet();
     tr.metrics.v8.runtimeStatsTotalMetric(histograms, model);
-    assert.equal(histograms.length, 24);
+    assert.strictEqual(histograms.length, 24);
 
     // Check total:
     checkRuntimeHistogram_(histograms, 'IC', 8, 0.057);

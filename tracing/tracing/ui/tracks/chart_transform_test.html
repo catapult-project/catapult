@@ -40,67 +40,67 @@ tr.b.unittest.testSuite(function() {
   test('checkFields', function() {
     var t = buildChartTransform();
 
-    assert.equal(t.pixelRatio, 3);
+    assert.strictEqual(t.pixelRatio, 3);
 
-    assert.equal(t.leftViewX, 0);
-    assert.equal(t.rightViewX, 500);
-    assert.equal(t.leftTimestamp, 20);
-    assert.equal(t.rightTimestamp, 1020);
+    assert.strictEqual(t.leftViewX, 0);
+    assert.strictEqual(t.rightViewX, 500);
+    assert.strictEqual(t.leftTimestamp, 20);
+    assert.strictEqual(t.rightTimestamp, 1020);
 
-    assert.equal(t.outerTopViewY, 0);
-    assert.equal(t.innerTopViewY, 15);
-    assert.equal(t.innerBottomViewY, 75);
-    assert.equal(t.outerBottomViewY, 80);
+    assert.strictEqual(t.outerTopViewY, 0);
+    assert.strictEqual(t.innerTopViewY, 15);
+    assert.strictEqual(t.innerBottomViewY, 75);
+    assert.strictEqual(t.outerBottomViewY, 80);
   });
 
   test('checkWorldXToViewX', function() {
     var t = buildChartTransform();
 
-    assert.equal(t.worldXToViewX(-100), -60);
-    assert.equal(t.worldXToViewX(0), -10);
-    assert.equal(t.worldXToViewX(520), 250);
-    assert.equal(t.worldXToViewX(1020), 500);
-    assert.equal(t.worldXToViewX(1200), 590);
+    assert.strictEqual(t.worldXToViewX(-100), -60);
+    assert.strictEqual(t.worldXToViewX(0), -10);
+    assert.strictEqual(t.worldXToViewX(520), 250);
+    assert.strictEqual(t.worldXToViewX(1020), 500);
+    assert.strictEqual(t.worldXToViewX(1200), 590);
   });
 
   test('checkViewXToWorldX', function() {
     var t = buildChartTransform();
 
-    assert.equal(t.viewXToWorldX(-60), -100);
-    assert.equal(t.viewXToWorldX(-10), 0);
-    assert.equal(t.viewXToWorldX(250), 520);
-    assert.equal(t.viewXToWorldX(500), 1020);
-    assert.equal(t.viewXToWorldX(590), 1200);
+    assert.strictEqual(t.viewXToWorldX(-60), -100);
+    assert.strictEqual(t.viewXToWorldX(-10), 0);
+    assert.strictEqual(t.viewXToWorldX(250), 520);
+    assert.strictEqual(t.viewXToWorldX(500), 1020);
+    assert.strictEqual(t.viewXToWorldX(590), 1200);
   });
 
   test('checkWorldYToViewY', function() {
     var t = buildChartTransform();
 
-    assert.equal(t.worldYToViewY(-200), 105);
-    assert.equal(t.worldYToViewY(-100), 75);
-    assert.equal(t.worldYToViewY(0), 45);
-    assert.equal(t.worldYToViewY(100), 15);
-    assert.equal(t.worldYToViewY(200), -15);
+    assert.strictEqual(t.worldYToViewY(-200), 105);
+    assert.strictEqual(t.worldYToViewY(-100), 75);
+    assert.strictEqual(t.worldYToViewY(0), 45);
+    assert.strictEqual(t.worldYToViewY(100), 15);
+    assert.strictEqual(t.worldYToViewY(200), -15);
   });
 
   test('checkViewYToWorldY', function() {
     var t = buildChartTransform();
 
-    assert.equal(t.viewYToWorldY(105), -200);
-    assert.equal(t.viewYToWorldY(75), -100);
-    assert.equal(t.viewYToWorldY(45), 0);
-    assert.equal(t.viewYToWorldY(15), 100);
-    assert.equal(t.viewYToWorldY(-15), 200);
+    assert.strictEqual(t.viewYToWorldY(105), -200);
+    assert.strictEqual(t.viewYToWorldY(75), -100);
+    assert.strictEqual(t.viewYToWorldY(45), 0);
+    assert.strictEqual(t.viewYToWorldY(15), 100);
+    assert.strictEqual(t.viewYToWorldY(-15), 200);
   });
 
   test('checkVectorToWorldDistance', function() {
     var t = buildChartTransform();
 
-    assert.equal(t.vectorToWorldDistance(105), 350);
-    assert.equal(t.vectorToWorldDistance(75), 250);
-    assert.equal(t.vectorToWorldDistance(45), 150);
-    assert.equal(t.vectorToWorldDistance(15), 50);
-    assert.equal(t.vectorToWorldDistance(-15), 50);
+    assert.strictEqual(t.vectorToWorldDistance(105), 350);
+    assert.strictEqual(t.vectorToWorldDistance(75), 250);
+    assert.strictEqual(t.vectorToWorldDistance(45), 150);
+    assert.strictEqual(t.vectorToWorldDistance(15), 50);
+    assert.strictEqual(t.vectorToWorldDistance(-15), 50);
   });
 });
 </script>

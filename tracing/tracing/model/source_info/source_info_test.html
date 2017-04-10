@@ -20,7 +20,7 @@ tr.b.unittest.testSuite(function() {
     };
     for (var url in urlDomains) {
       var sourceInfo = new tr.model.source_info.SourceInfo(url);
-      assert.equal(urlDomains[url], sourceInfo.domain);
+      assert.strictEqual(urlDomains[url], sourceInfo.domain);
     }
   });
 });

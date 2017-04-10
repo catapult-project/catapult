@@ -26,7 +26,7 @@ tr.b.unittest.testSuite(function() {
 
     var event = new Event();
     var selectableItem2 = new SelectableItem(event);
-    assert.equal(selectableItem2.modelItem, event);
+    assert.strictEqual(selectableItem2.modelItem, event);
   });
 
   test('checkSelected', function() {
@@ -55,7 +55,7 @@ tr.b.unittest.testSuite(function() {
     var selection = [];
     selectableItem.addToSelection(selection);
     assert.lengthOf(selection, 1);
-    assert.equal(selection[0], event);
+    assert.strictEqual(selection[0], event);
   });
 
   test('checkAddToTrackMap_undefinedModelItem', function() {
@@ -73,7 +73,7 @@ tr.b.unittest.testSuite(function() {
     var track = {};
     selectableItem.addToTrackMap(eventToTrackMap, track);
     assert.lengthOf(Object.keys(eventToTrackMap), 1);
-    assert.equal(eventToTrackMap[event.guid], track);
+    assert.strictEqual(eventToTrackMap[event.guid], track);
   });
 });
 </script>

@@ -75,20 +75,20 @@ tr.b.unittest.testSuite(function() {
     var selection = new EventSet();
     track.addIntersectingEventsInRangeToSelectionInWorldSpace(
         8, 8.1, 0.1, selection);
-    assert.equal(selection.length, 0);
+    assert.strictEqual(selection.length, 0);
 
     // Hit the first snapshot, via pixel-nearness.
     selection = new EventSet();
     track.addIntersectingEventsInRangeToSelectionInWorldSpace(
         9.98, 9.99, 0.1, selection);
-    assert.equal(selection.length, 1);
+    assert.strictEqual(selection.length, 1);
     assert.instanceOf(tr.b.getOnlyElement(selection), tr.model.ObjectSnapshot);
 
     // Hit the instance, between the 1st and 2nd snapshots
     selection = new EventSet();
     track.addIntersectingEventsInRangeToSelectionInWorldSpace(
         20, 20.1, 0.1, selection);
-    assert.equal(selection.length, 1);
+    assert.strictEqual(selection.length, 1);
     assert.instanceOf(tr.b.getOnlyElement(selection), tr.model.ObjectInstance);
   });
 

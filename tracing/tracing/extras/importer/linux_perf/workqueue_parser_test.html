@@ -28,8 +28,10 @@ tr.b.unittest.testSuite(function() {
     });
     assert.isFalse(m.hasImportWarnings);
 
-    assert.equal(m.processes['6880'].threads['6880'].sliceGroup.length, 1);
-    assert.equal(m.processes['7269'].threads['7269'].sliceGroup.length, 1);
+    assert.strictEqual(
+        m.processes['6880'].threads['6880'].sliceGroup.length, 1);
+    assert.strictEqual(
+        m.processes['7269'].threads['7269'].sliceGroup.length, 1);
   });
 });
 </script>

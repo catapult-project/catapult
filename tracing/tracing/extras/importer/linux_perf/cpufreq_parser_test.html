@@ -29,19 +29,19 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();
-    assert.equal(threads.length, 1);
+    assert.strictEqual(threads.length, 1);
 
     var thread = threads[0];
-    assert.equal(thread.sliceGroup.slices[0].args['cpu'], 0);
-    assert.equal(thread.sliceGroup.slices[0].args['load'], 2);
-    assert.equal(thread.sliceGroup.slices[0].args['cur'], 2000000);
-    assert.equal(thread.sliceGroup.slices[0].args['targ'], 300000);
+    assert.strictEqual(thread.sliceGroup.slices[0].args['cpu'], 0);
+    assert.strictEqual(thread.sliceGroup.slices[0].args['load'], 2);
+    assert.strictEqual(thread.sliceGroup.slices[0].args['cur'], 2000000);
+    assert.strictEqual(thread.sliceGroup.slices[0].args['targ'], 300000);
 
-    assert.equal(thread.sliceGroup.slices[1].args['cpu'], 0);
-    assert.equal(thread.sliceGroup.slices[1].args['load'], 12);
-    assert.equal(thread.sliceGroup.slices[1].args['cur'], 1000000);
-    assert.equal(thread.sliceGroup.slices[1].args['actual'], 1000000);
-    assert.equal(thread.sliceGroup.slices[1].args['targ'], 200000);
+    assert.strictEqual(thread.sliceGroup.slices[1].args['cpu'], 0);
+    assert.strictEqual(thread.sliceGroup.slices[1].args['load'], 12);
+    assert.strictEqual(thread.sliceGroup.slices[1].args['cur'], 1000000);
+    assert.strictEqual(thread.sliceGroup.slices[1].args['actual'], 1000000);
+    assert.strictEqual(thread.sliceGroup.slices[1].args['targ'], 200000);
   });
 
   test('cpuFreqNotYetImport', function() {
@@ -55,19 +55,19 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();
-    assert.equal(threads.length, 1);
+    assert.strictEqual(threads.length, 1);
 
     var thread = threads[0];
-    assert.equal(thread.sliceGroup.slices[0].args['cpu'], 1);
-    assert.equal(thread.sliceGroup.slices[0].args['load'], 10);
-    assert.equal(thread.sliceGroup.slices[0].args['cur'], 700000);
-    assert.equal(thread.sliceGroup.slices[0].args['targ'], 200000);
+    assert.strictEqual(thread.sliceGroup.slices[0].args['cpu'], 1);
+    assert.strictEqual(thread.sliceGroup.slices[0].args['load'], 10);
+    assert.strictEqual(thread.sliceGroup.slices[0].args['cur'], 700000);
+    assert.strictEqual(thread.sliceGroup.slices[0].args['targ'], 200000);
 
-    assert.equal(thread.sliceGroup.slices[1].args['cpu'], 1);
-    assert.equal(thread.sliceGroup.slices[1].args['load'], 10);
-    assert.equal(thread.sliceGroup.slices[1].args['cur'], 700000);
-    assert.equal(thread.sliceGroup.slices[1].args['actual'], 1000000);
-    assert.equal(thread.sliceGroup.slices[1].args['targ'], 200000);
+    assert.strictEqual(thread.sliceGroup.slices[1].args['cpu'], 1);
+    assert.strictEqual(thread.sliceGroup.slices[1].args['load'], 10);
+    assert.strictEqual(thread.sliceGroup.slices[1].args['cur'], 700000);
+    assert.strictEqual(thread.sliceGroup.slices[1].args['actual'], 1000000);
+    assert.strictEqual(thread.sliceGroup.slices[1].args['targ'], 200000);
   });
 
   test('cpuFreqSetSpeedImport', function() {
@@ -79,12 +79,12 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();
-    assert.equal(threads.length, 1);
+    assert.strictEqual(threads.length, 1);
 
     var thread = threads[0];
-    assert.equal(thread.sliceGroup.slices[0].args['cpu'], 0);
-    assert.equal(thread.sliceGroup.slices[0].args['targ'], 200000);
-    assert.equal(thread.sliceGroup.slices[0].args['actual'], 700000);
+    assert.strictEqual(thread.sliceGroup.slices[0].args['cpu'], 0);
+    assert.strictEqual(thread.sliceGroup.slices[0].args['targ'], 200000);
+    assert.strictEqual(thread.sliceGroup.slices[0].args['actual'], 700000);
   });
 
   test('cpuFreqAlreadyImport', function() {
@@ -95,14 +95,14 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();
-    assert.equal(threads.length, 1);
+    assert.strictEqual(threads.length, 1);
 
     var thread = threads[0];
-    assert.equal(thread.sliceGroup.slices[0].args['cpu'], 0);
-    assert.equal(thread.sliceGroup.slices[0].args['load'], 18);
-    assert.equal(thread.sliceGroup.slices[0].args['cur'], 200000);
-    assert.equal(thread.sliceGroup.slices[0].args['actual'], 700000);
-    assert.equal(thread.sliceGroup.slices[0].args['targ'], 200000);
+    assert.strictEqual(thread.sliceGroup.slices[0].args['cpu'], 0);
+    assert.strictEqual(thread.sliceGroup.slices[0].args['load'], 18);
+    assert.strictEqual(thread.sliceGroup.slices[0].args['cur'], 200000);
+    assert.strictEqual(thread.sliceGroup.slices[0].args['actual'], 700000);
+    assert.strictEqual(thread.sliceGroup.slices[0].args['targ'], 200000);
   });
 
   test('cpuFreqBoostImport', function() {
@@ -114,10 +114,10 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();
-    assert.equal(threads.length, 1);
+    assert.strictEqual(threads.length, 1);
 
     var thread = threads[0];
-    assert.equal(thread.sliceGroup.slices[0].args['type'], 'pulse');
+    assert.strictEqual(thread.sliceGroup.slices[0].args['type'], 'pulse');
   });
 
   test('cpuFreqUnBoostImport', function() {
@@ -129,10 +129,10 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();
-    assert.equal(threads.length, 1);
+    assert.strictEqual(threads.length, 1);
 
     var thread = threads[0];
-    assert.equal(thread.sliceGroup.slices[0].args['type'], 'pulse');
+    assert.strictEqual(thread.sliceGroup.slices[0].args['type'], 'pulse');
   });
 
   test('cpuFreqUpImport', function() {
@@ -144,12 +144,12 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();
-    assert.equal(threads.length, 1);
+    assert.strictEqual(threads.length, 1);
 
     var thread = threads[0];
-    assert.equal(thread.sliceGroup.slices[0].args['cpu'], 1);
-    assert.equal(thread.sliceGroup.slices[0].args['targ'], 1400000);
-    assert.equal(thread.sliceGroup.slices[0].args['actual'], 800000);
+    assert.strictEqual(thread.sliceGroup.slices[0].args['cpu'], 1);
+    assert.strictEqual(thread.sliceGroup.slices[0].args['targ'], 1400000);
+    assert.strictEqual(thread.sliceGroup.slices[0].args['actual'], 800000);
   });
 
   test('cpuFreqDownImport', function() {
@@ -161,12 +161,12 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();
-    assert.equal(threads.length, 1);
+    assert.strictEqual(threads.length, 1);
 
     var thread = threads[0];
-    assert.equal(thread.sliceGroup.slices[0].args['cpu'], 3);
-    assert.equal(thread.sliceGroup.slices[0].args['targ'], 800000);
-    assert.equal(thread.sliceGroup.slices[0].args['actual'], 1000000);
+    assert.strictEqual(thread.sliceGroup.slices[0].args['cpu'], 3);
+    assert.strictEqual(thread.sliceGroup.slices[0].args['targ'], 800000);
+    assert.strictEqual(thread.sliceGroup.slices[0].args['actual'], 1000000);
   });
 });
 </script>

@@ -15,7 +15,8 @@ tr.b.unittest.testSuite(function() {
   var CompoundEventSelectionState = tr.model.CompoundEventSelectionState;
 
   function checkSquareColor(colorLegend, expectedColor) {
-    assert.equal(getComputedStyle(colorLegend.$.square).color, expectedColor);
+    assert.strictEqual(
+        getComputedStyle(colorLegend.$.square).color, expectedColor);
   }
 
   test('noLabelSet', function() {

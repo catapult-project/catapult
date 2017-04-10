@@ -30,7 +30,7 @@ tr.b.unittest.testSuite(function() {
 
     var view = new PictureOpsListView();
     view.picture = snapshot;
-    assert.equal(view.opsList_.children.length, 142);
+    assert.strictEqual(view.opsList_.children.length, 142);
   });
 
   test('selection', function() {

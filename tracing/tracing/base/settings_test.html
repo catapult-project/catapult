@@ -10,7 +10,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   function assertSettingIs(expectedValue, key) {
-    assert.equal(tr.b.Settings.get(key), expectedValue);
+    assert.strictEqual(tr.b.Settings.get(key), expectedValue);
   }
 
   // Old settings versions used to stringify objects instead of putting them
@@ -20,15 +20,15 @@ tr.b.unittest.testSuite(function() {
     var storage = tr.b.Settings.getAlternativeStorageInstance();
     storage.setItem(tr.b.Settings.namespace_('key'), 'hello world');
 
-    assert.equal(tr.b.Settings.get('key', 'value'), 'value');
+    assert.strictEqual(tr.b.Settings.get('key', 'value'), 'value');
   });
 
   test('setGetString', function() {
     var settings = new tr.b.Settings();
     settings.set('my_key', 'my_val');
-    assert.equal(settings.get('my_key'), 'my_val');
+    assert.strictEqual(settings.get('my_key'), 'my_val');
     // tr.b.Settings() is a singleton
-    assert.equal(tr.b.Settings().get('my_key'), 'my_val');
+    assert.strictEqual(tr.b.Settings().get('my_key'), 'my_val');
   });
 
   test('setGetNumber', function() {
@@ -74,16 +74,16 @@ tr.b.unittest.testSuite(function() {
   test('getDefault', function() {
     var settings = new tr.b.Settings();
     // default_val should be returned if value isn't set.
-    assert.equal(settings.get('my_key', 'default_val'), 'default_val');
+    assert.strictEqual(settings.get('my_key', 'default_val'), 'default_val');
   });
 
   test('setGetPrefix', function() {
     var settings = new tr.b.Settings();
     settings.set('key_a', 'foo', 'my_prefix');
-    assert.equal(settings.get('key_a', undefined, 'my_prefix'), 'foo');
-    assert.equal(settings.get('key_a', 'bar', 'my_prefix'), 'foo');
+    assert.strictEqual(settings.get('key_a', undefined, 'my_prefix'), 'foo');
+    assert.strictEqual(settings.get('key_a', 'bar', 'my_prefix'), 'foo');
     assert.isUndefined(settings.get('key_a'));
-    assert.equal(settings.get('key_a', 'bar'), 'bar');
+    assert.strictEqual(settings.get('key_a', 'bar'), 'bar');
   });
 
   test('keys', function() {

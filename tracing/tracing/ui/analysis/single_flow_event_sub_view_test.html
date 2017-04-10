@@ -42,7 +42,7 @@ tr.b.unittest.testSuite(function() {
 
     var selection = new EventSet();
     selection.push(model.fe);
-    assert.equal(selection.length, 1);
+    assert.strictEqual(selection.length, 1);
 
     var subView = document.createElement('tr-ui-a-single-event-sub-view');
     subView.isFlow = true;

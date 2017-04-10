@@ -34,7 +34,7 @@ tr.b.unittest.testSuite(function() {
 
     var selection = new EventSet();
     selection.push(t53.sliceGroup.slices[0]);
-    assert.equal(selection.length, 1);
+    assert.strictEqual(selection.length, 1);
 
     return selection;
   }
@@ -142,7 +142,8 @@ tr.b.unittest.testSuite(function() {
         analysisEl, /End Stack Trace/);
     assert.isDefined(e);
     assert.isDefined(Polymer.dom(e).nextSibling.children[0].stackFrame);
-    assert.equal(Polymer.dom(e).nextSibling.children[0].stackFrame.title, 'b2');
+    assert.strictEqual(
+        Polymer.dom(e).nextSibling.children[0].stackFrame.title, 'b2');
   });
 
   test('instantiate_withDifferentStartAndEndStackFrames', function() {
@@ -158,14 +159,14 @@ tr.b.unittest.testSuite(function() {
         analysisEl, /Start Stack Trace/);
     assert.isDefined(eA);
     assert.isDefined(Polymer.dom(eA).nextSibling.children[0].stackFrame);
-    assert.equal(
+    assert.strictEqual(
         Polymer.dom(eA).nextSibling.children[0].stackFrame.title, 'a2');
 
     var eB = tr.b.findDeepElementWithTextContent(
         analysisEl, /End Stack Trace/);
     assert.isDefined(eB);
     assert.isDefined(Polymer.dom(eB).nextSibling.children[0].stackFrame);
-    assert.equal(
+    assert.strictEqual(
         Polymer.dom(eB).nextSibling.children[0].stackFrame.title, 'b2');
   });
 
@@ -182,7 +183,8 @@ tr.b.unittest.testSuite(function() {
         analysisEl, /Start\+End Stack Trace/);
     assert.isDefined(e);
     assert.isDefined(Polymer.dom(e).nextSibling.children[0].stackFrame);
-    assert.equal(Polymer.dom(e).nextSibling.children[0].stackFrame.title, 'a2');
+    assert.strictEqual(
+        Polymer.dom(e).nextSibling.children[0].stackFrame.title, 'a2');
   });
 
   test('analyzeSelectionWithSingleSlice', function() {
@@ -193,12 +195,12 @@ tr.b.unittest.testSuite(function() {
 
     var table = tr.b.findDeepElementMatching(
         subView, 'tr-ui-b-table');
-    assert.equal(table.tableRows.length, 3);
-    assert.equal(table.tableRows[0].value, 'b');
-    assert.equal(table.tableRows[1].value.value, 0);
+    assert.strictEqual(table.tableRows.length, 3);
+    assert.strictEqual(table.tableRows[0].value, 'b');
+    assert.strictEqual(table.tableRows[1].value.value, 0);
     assert.strictEqual(table.tableRows[1].value.unit,
         tr.b.Unit.byName.timeStampInMs);
-    assert.equal(table.tableRows[2].value.value, 0.002);
+    assert.strictEqual(table.tableRows[2].value.value, 0.002);
     assert.strictEqual(table.tableRows[2].value.unit,
         tr.b.Unit.byName.timeDurationInMs);
   });
@@ -212,13 +214,13 @@ tr.b.unittest.testSuite(function() {
 
     var table = tr.b.findDeepElementMatching(
         subView, 'tr-ui-b-table');
-    assert.equal(table.tableRows.length, 4);
-    assert.equal(table.tableRows[0].value, 'b');
-    assert.equal(table.tableRows[1].value, 'foo');
-    assert.equal(table.tableRows[2].value.value, 0);
+    assert.strictEqual(table.tableRows.length, 4);
+    assert.strictEqual(table.tableRows[0].value, 'b');
+    assert.strictEqual(table.tableRows[1].value, 'foo');
+    assert.strictEqual(table.tableRows[2].value.value, 0);
     assert.strictEqual(table.tableRows[2].value.unit,
         tr.b.Unit.byName.timeStampInMs);
-    assert.equal(table.tableRows[3].value.value, 0.002);
+    assert.strictEqual(table.tableRows[3].value.value, 0.002);
     assert.strictEqual(table.tableRows[3].value.unit,
         tr.b.Unit.byName.timeDurationInMs);
   });
@@ -238,7 +240,7 @@ tr.b.unittest.testSuite(function() {
 
     var selection = new EventSet();
     selection.push(t1.sliceGroup.slices[0]);
-    assert.equal(selection.length, 1);
+    assert.strictEqual(selection.length, 1);
 
     var subView = document.createElement('tr-ui-a-single-event-sub-view');
     subView.selection = selection;

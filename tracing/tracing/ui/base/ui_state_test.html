@@ -88,13 +88,13 @@ tr.b.unittest.testSuite(function() {
     var uiState = UIState.fromUserFriendlyString(model, vp, str);
 
     assert.isDefined(uiState);
-    assert.equal(uiState.location.xWorld, -50125.51231);
-    assert.equal(
+    assert.strictEqual(uiState.location.xWorld, -50125.51231);
+    assert.strictEqual(
         uiState.location.getContainingTrack(vp).eventContainer.stableId,
         '1.2');
-    assert.equal(uiState.scaleX, 1.12345);
+    assert.strictEqual(uiState.scaleX, 1.12345);
 
-    assert.equal(uiState.toUserFriendlyString(vp), str);
+    assert.strictEqual(uiState.toUserFriendlyString(vp), str);
   });
 });
 </script>

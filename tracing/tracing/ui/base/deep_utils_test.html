@@ -54,7 +54,7 @@ tr.b.unittest.testSuite(function() {
 
     var b = tr.b.findDeepElementMatching(d, 'tr-ui-b-deep-utils-test-b.x');
     assert.isDefined(b);
-    assert.equal(b.tagName, 'TR-UI-B-DEEP-UTILS-TEST-B');
+    assert.strictEqual(b.tagName, 'TR-UI-B-DEEP-UTILS-TEST-B');
   });
 
   test('testFindDeepElementsMatching', function() {
@@ -62,8 +62,8 @@ tr.b.unittest.testSuite(function() {
 
     var a = tr.b.findDeepElementsMatching(d, 'tr-ui-b-deep-utils-test-a.x');
     assert.isDefined(a);
-    assert.equal(a[0].tagName, 'TR-UI-B-DEEP-UTILS-TEST-A');
-    assert.equal(a[1].tagName, 'TR-UI-B-DEEP-UTILS-TEST-A');
+    assert.strictEqual(a[0].tagName, 'TR-UI-B-DEEP-UTILS-TEST-A');
+    assert.strictEqual(a[1].tagName, 'TR-UI-B-DEEP-UTILS-TEST-A');
   });
 });
 </script>

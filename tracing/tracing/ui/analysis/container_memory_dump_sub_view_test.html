@@ -124,18 +124,18 @@ tr.b.unittest.testSuite(function() {
     var unsetViewEl = document.createElement(
         'tr-ui-a-container-memory-dump-sub-view');
     this.addHTMLOutput(unsetViewEl);
-    assert.equal(unsetViewEl.getBoundingClientRect().width, 0);
-    assert.equal(unsetViewEl.getBoundingClientRect().height, 0);
+    assert.strictEqual(unsetViewEl.getBoundingClientRect().width, 0);
+    assert.strictEqual(unsetViewEl.getBoundingClientRect().height, 0);
 
     var undefinedViewEl = createViewWithSelection(undefined);
     this.addHTMLOutput(undefinedViewEl);
-    assert.equal(undefinedViewEl.getBoundingClientRect().width, 0);
-    assert.equal(undefinedViewEl.getBoundingClientRect().height, 0);
+    assert.strictEqual(undefinedViewEl.getBoundingClientRect().width, 0);
+    assert.strictEqual(undefinedViewEl.getBoundingClientRect().height, 0);
 
     var emptyViewEl = createViewWithSelection([]);
     this.addHTMLOutput(emptyViewEl);
-    assert.equal(emptyViewEl.getBoundingClientRect().width, 0);
-    assert.equal(emptyViewEl.getBoundingClientRect().height, 0);
+    assert.strictEqual(emptyViewEl.getBoundingClientRect().width, 0);
+    assert.strictEqual(emptyViewEl.getBoundingClientRect().height, 0);
   });
 
   test('instantiate_singleGlobalMemoryDump', function() {
@@ -293,7 +293,7 @@ tr.b.unittest.testSuite(function() {
           // changed).
           assert.strictEqual(
               overviewTableEl.selectedTableRow, overviewTableEl.tableRows[1]);
-          assert.equal(overviewTableEl.selectedColumnIndex, 11);
+          assert.strictEqual(overviewTableEl.selectedColumnIndex, 11);
           checkVmRegionsPane(undefined);
           checkAllocatorPane(2 /* PID */, 'v8',
               false /* no heap details pane */);
@@ -323,11 +323,11 @@ tr.b.unittest.testSuite(function() {
     var rows = tableEl.tableRows;
     var col = tableEl.tableColumns[0];
 
-    assert.equal(Polymer.dom(col.value(rows[0])).textContent,
+    assert.strictEqual(Polymer.dom(col.value(rows[0])).textContent,
         '2 memory dumps in Process 1');
-    assert.equal(Polymer.dom(col.value(rows[1])).textContent,
+    assert.strictEqual(Polymer.dom(col.value(rows[1])).textContent,
         '3 memory dumps in Process 2');
-    assert.equal(Polymer.dom(col.value(rows[2])).textContent,
+    assert.strictEqual(Polymer.dom(col.value(rows[2])).textContent,
         '1 memory dump in Process 4');
 
     // Check that the analysis link is associated with the right dumps.
@@ -341,7 +341,7 @@ tr.b.unittest.testSuite(function() {
     var subRow = rows[1].subRows[0];
 
     // Check the timestamp.
-    assert.equal(col.value(subRow).children[0].value, 42);
+    assert.strictEqual(col.value(subRow).children[0].value, 42);
 
     // Check that the analysis link is associated with the right dump.
     assert.isTrue(col.value(subRow).selection.equals(

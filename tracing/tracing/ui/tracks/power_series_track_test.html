@@ -113,7 +113,7 @@ tr.b.unittest.testSuite(function() {
     var containerToTrackMap = new tr.ui.tracks.ContainerToTrackMap();
     powerSeriesTrack.addContainersToTrackMap(containerToTrackMap);
 
-    assert.equal(
+    assert.strictEqual(
         containerToTrackMap.getTrackByStableId('Device.PowerSeries'),
         powerSeriesTrack);
   });

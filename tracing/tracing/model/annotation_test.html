@@ -22,13 +22,13 @@ tr.b.unittest.testSuite(function() {
     var start = new tr.model.Location(50, fakeYComponents1);
     var end = new tr.model.Location(100, fakeYComponents2);
     var rectAnnotation = new tr.model.RectAnnotation(start, end);
-    assert.equal(rectAnnotation.startLocation, start);
-    assert.equal(rectAnnotation.endLocation, end);
+    assert.strictEqual(rectAnnotation.startLocation, start);
+    assert.strictEqual(rectAnnotation.endLocation, end);
   });
 
   test('xMarkerAnnotation', function() {
     var xMarkerAnnotation = new tr.model.XMarkerAnnotation(90);
-    assert.equal(xMarkerAnnotation.timestamp, 90);
+    assert.strictEqual(xMarkerAnnotation.timestamp, 90);
   });
 
   test('commentBoxAnnotation', function() {
@@ -37,8 +37,8 @@ tr.b.unittest.testSuite(function() {
     var text = 'abc';
     var commentBoxAnnotation =
         new tr.model.CommentBoxAnnotation(location, text);
-    assert.equal(commentBoxAnnotation.location, location);
-    assert.equal(commentBoxAnnotation.text, text);
+    assert.strictEqual(commentBoxAnnotation.location, location);
+    assert.strictEqual(commentBoxAnnotation.text, text);
   });
 });
 </script>

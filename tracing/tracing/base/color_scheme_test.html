@@ -29,7 +29,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('getColorForReservedNameAsString', function() {
-    assert.equal('rgb(0,0,0)',
+    assert.strictEqual('rgb(0,0,0)',
         ColorScheme.getColorForReservedNameAsString('black'));
     assert.throws(ColorScheme.getColorForReservedNameAsString.bind(
         undefined, 'NOT_A_RESERVED_NAME'));

@@ -33,19 +33,19 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(m.hasImportWarnings);
 
     var threads = m.getAllThreads();
-    assert.equal(threads.length, 3);
+    assert.strictEqual(threads.length, 3);
 
     var threads = m.findAllThreadsNamed('irqs cpu 1');
-    assert.equal(threads.length, 1);
-    assert.equal(threads[0].sliceGroup.length, 1);
+    assert.strictEqual(threads.length, 1);
+    assert.strictEqual(threads[0].sliceGroup.length, 1);
 
     var threads = m.findAllThreadsNamed('softirq cpu 0');
-    assert.equal(threads.length, 1);
-    assert.equal(threads[0].sliceGroup.length, 1);
+    assert.strictEqual(threads.length, 1);
+    assert.strictEqual(threads[0].sliceGroup.length, 1);
 
     var threads = m.findAllThreadsNamed('irqs cpu 2');
-    assert.equal(threads.length, 1);
-    assert.equal(threads[0].sliceGroup.length, 1);
+    assert.strictEqual(threads.length, 1);
+    assert.strictEqual(threads[0].sliceGroup.length, 1);
   });
 });
 </script>

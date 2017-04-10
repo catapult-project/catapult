@@ -24,7 +24,7 @@ tr.b.unittest.testSuite(function() {
     var importer = new tr.e.importer.gcloud_trace.GcloudTraceImporter(model,
         JSON.stringify(trace));
     var subtraces = importer.extractSubtraces();
-    assert.equal(1, subtraces.length);
+    assert.strictEqual(1, subtraces.length);
     // Note there are, in fact, use cases for traces with no events (spans).
     assert.deepEqual([], subtraces[0].traceEvents);
   });
@@ -60,29 +60,31 @@ tr.b.unittest.testSuite(function() {
     var importer = new tr.e.importer.gcloud_trace.GcloudTraceImporter(model,
         JSON.stringify(trace));
     var subtraces = importer.extractSubtraces();
-    assert.equal(1, subtraces.length);
-    assert.equal(2, subtraces[0].traceEvents.length);
+    assert.strictEqual(1, subtraces.length);
+    assert.strictEqual(2, subtraces[0].traceEvents.length);
 
     var span1Event = subtraces[0].traceEvents[0];
-    assert.equal('tracespan', span1Event.cat);
-    assert.equal('/first', span1Event.name);
-    assert.equal(1441298400841000, span1Event.ts);
-    assert.equal(15000, span1Event.dur);
-    assert.equal('123', span1Event.pid);
-    assert.equal('123', span1Event.tid);
-    assert.equal('2015-09-03T16:40:00.856599389Z', span1Event.args['End Time']);
-    assert.equal('1', span1Event.args['Span ID']);
-    assert.equal('value1', span1Event.args['key1']);
-    assert.equal('value2', span1Event.args['key2']);
-    assert.equal('2015-09-03T16:40:00.856599389Z', span1Event.args['End Time']);
+    assert.strictEqual('tracespan', span1Event.cat);
+    assert.strictEqual('/first', span1Event.name);
+    assert.strictEqual(1441298400841000, span1Event.ts);
+    assert.strictEqual(15000, span1Event.dur);
+    assert.strictEqual('123', span1Event.pid);
+    assert.strictEqual('123', span1Event.tid);
+    assert.strictEqual(
+        '2015-09-03T16:40:00.856599389Z', span1Event.args['End Time']);
+    assert.strictEqual('1', span1Event.args['Span ID']);
+    assert.strictEqual('value1', span1Event.args['key1']);
+    assert.strictEqual('value2', span1Event.args['key2']);
+    assert.strictEqual(
+        '2015-09-03T16:40:00.856599389Z', span1Event.args['End Time']);
 
     var span2Event = subtraces[0].traceEvents[1];
-    assert.equal('tracespan', span2Event.cat);
-    assert.equal('/second', span2Event.name);
-    assert.equal(1441298400842000, span2Event.ts);
-    assert.equal(9000, span2Event.dur);
-    assert.equal('123', span2Event.pid);
-    assert.equal('123', span2Event.tid);
+    assert.strictEqual('tracespan', span2Event.cat);
+    assert.strictEqual('/second', span2Event.name);
+    assert.strictEqual(1441298400842000, span2Event.ts);
+    assert.strictEqual(9000, span2Event.dur);
+    assert.strictEqual('123', span2Event.pid);
+    assert.strictEqual('123', span2Event.tid);
   });
 
   test('canImport', function() {

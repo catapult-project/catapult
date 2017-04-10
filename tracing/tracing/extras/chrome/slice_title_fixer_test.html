@@ -15,11 +15,11 @@ tr.b.unittest.testSuite(function() {
   var stfFromEvent = tr.e.chrome.SliceTitleFixer.fromEvent;
 
   test('sliceTitleFixer', function() {
-    assert.equal(stfFromEvent({
+    assert.strictEqual(stfFromEvent({
       title: 'SomeDummy:event'
     }), 'SomeDummy:event');
 
-    assert.equal(stfFromEvent({
+    assert.strictEqual(stfFromEvent({
       title: 'EventWith:sourceFunction',
       args: {'src_func': 'theSource'}
     }), 'EventWith:sourceFunction <- theSource');

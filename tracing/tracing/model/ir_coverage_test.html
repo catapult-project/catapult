@@ -67,8 +67,8 @@ tr.b.unittest.testSuite(function() {
     }
 
     var coverage = tr.model.getIRCoverageFromModel(model);
-    assert.equal(3, coverage.associatedEventsCount);
-    assert.equal(1, coverage.unassociatedEventsCount);
+    assert.strictEqual(3, coverage.associatedEventsCount);
+    assert.strictEqual(1, coverage.unassociatedEventsCount);
     assert.closeTo(0.75, coverage.coveredEventsCountRatio, 1e-3);
     assert.closeTo(0.8, coverage.associatedEventsCpuTimeMs, 1e-3);
     assert.closeTo(0.8, coverage.unassociatedEventsCpuTimeMs, 1e-3);
@@ -78,12 +78,12 @@ tr.b.unittest.testSuite(function() {
   test('zeroCPU', function() {
     var model = createModel();
     var coverage = tr.model.getIRCoverageFromModel(model);
-    assert.equal(3, coverage.associatedEventsCount);
-    assert.equal(1, coverage.unassociatedEventsCount);
+    assert.strictEqual(3, coverage.associatedEventsCount);
+    assert.strictEqual(1, coverage.unassociatedEventsCount);
     assert.closeTo(0.75, coverage.coveredEventsCountRatio, 1e-3);
     assert.closeTo(0.0, coverage.associatedEventsCpuTimeMs, 1e-3);
     assert.closeTo(0.0, coverage.unassociatedEventsCpuTimeMs, 1e-3);
-    assert.equal(undefined, coverage.coveredEventsCpuTimeRatio, 1e-3);
+    assert.strictEqual(undefined, coverage.coveredEventsCpuTimeRatio, 1e-3);
   });
 });
 </script>

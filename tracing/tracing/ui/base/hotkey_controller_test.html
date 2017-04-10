@@ -35,7 +35,7 @@ tr.b.unittest.testSuite(function() {
       var subElement = document.createElement('div');
       Polymer.dom(elementShadow).appendChild(subElement);
 
-      assert.equal(tr.b.getHotkeyControllerForElement(subElement), hkc);
+      assert.strictEqual(tr.b.getHotkeyControllerForElement(subElement), hkc);
 
       var didGetCalled = false;
       hkc.addHotKey(new tr.ui.b.HotKey({
@@ -72,12 +72,14 @@ tr.b.unittest.testSuite(function() {
 
       var subElement = document.createElement('div');
       Polymer.dom(elementShadow).appendChild(subElement);
-      assert.equal(tr.b.getHotkeyControllerForElement(elementShadow), hkc);
+      assert.strictEqual(
+          tr.b.getHotkeyControllerForElement(elementShadow), hkc);
 
       var subHKC = document.createElement('tv-ui-b-hotkey-controller');
       Polymer.dom(subElement).appendChild(subHKC);
 
-      assert.equal(tr.b.getHotkeyControllerForElement(subElement), subHKC);
+      assert.strictEqual(
+          tr.b.getHotkeyControllerForElement(subElement), subHKC);
 
       var didGetCalled = false;
       subHKC.addHotKey(new tr.ui.b.HotKey({

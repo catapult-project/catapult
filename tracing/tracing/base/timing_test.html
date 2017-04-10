@@ -16,12 +16,12 @@ tr.b.unittest.testSuite(function() {
     if (tr.isHeadless) return;
 
     var name1 = tr.b._computeUserTimingMarkName('Test', 'test1', {'a': 1});
-    assert.equal(name1, 'Test:test1/eyJhIjoxfQ==');
+    assert.strictEqual(name1, 'Test:test1/eyJhIjoxfQ==');
     var name2 = tr.b._computeUserTimingMarkName('Test', 'test2');
-    assert.equal(name2, 'Test:test2');
+    assert.strictEqual(name2, 'Test:test2');
     var name3 = tr.b._computeUserTimingMarkName(
         'Test', 'test1', {'a': 1, 'b': {'c': 2}});
-    assert.equal(name3, 'Test:test1/eyJhIjoxLCJiIjp7ImMiOjJ9fQ==');
+    assert.strictEqual(name3, 'Test:test1/eyJhIjoxLCJiIjp7ImMiOjJ9fQ==');
   });
 
   test('TimingMarkWithoutArgs', function() {
@@ -60,7 +60,7 @@ tr.b.unittest.testSuite(function() {
       for (var i = 0; i <= 1000; ++i) {
         x += i;
       }
-      assert.equal(x, 500500);
+      assert.strictEqual(x, 500500);
     })();
     var result = window.performance.getEntriesByName('Test:addTo1000');
     var duration = parseFloat(result[0].duration);
@@ -75,7 +75,7 @@ tr.b.unittest.testSuite(function() {
       for (var i = 0; i <= 100; ++i) {
         x += i;
       }
-      assert.equal(x, 5050);
+      assert.strictEqual(x, 5050);
     })();
     var result = window.performance.getEntriesByName('Test:addTo100');
     var duration = parseFloat(result[0].duration);

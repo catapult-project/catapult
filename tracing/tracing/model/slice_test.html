@@ -103,9 +103,9 @@ tr.b.unittest.testSuite(function() {
 
     group.createSubSlices();
 
-    assert.equal(sA.mostTopLevelSlice, sA);
-    assert.equal(sB.mostTopLevelSlice, sA);
-    assert.equal(sC.mostTopLevelSlice, sA);
+    assert.strictEqual(sA.mostTopLevelSlice, sA);
+    assert.strictEqual(sB.mostTopLevelSlice, sA);
+    assert.strictEqual(sC.mostTopLevelSlice, sA);
   });
 
   test('enumerateAllAncestors', function() {
@@ -213,9 +213,9 @@ tr.b.unittest.testSuite(function() {
     var sC = group.pushSlice(newSliceEx(
         { title: 'sC', start: 20.0, duration: 30.0 }));
 
-    assert.equal(group.stableId + '.0', sA.stableId);
-    assert.equal(group.stableId + '.1', sB.stableId);
-    assert.equal(group.stableId + '.2', sC.stableId);
+    assert.strictEqual(group.stableId + '.0', sA.stableId);
+    assert.strictEqual(group.stableId + '.1', sB.stableId);
+    assert.strictEqual(group.stableId + '.2', sC.stableId);
   });
 
   test('cantInstantiateDirectly', function() {

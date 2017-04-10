@@ -45,12 +45,12 @@ tr.b.unittest.testSuite(function() {
     didFireSelectionChange = false;
     i2.click();
     assert.isTrue(didFireSelectionChange);
-    assert.equal(view.selectedElement, i2);
+    assert.strictEqual(view.selectedElement, i2);
 
     didFireSelectionChange = false;
     i3.click();
     assert.isTrue(didFireSelectionChange);
-    assert.equal(view.selectedElement, i3);
+    assert.strictEqual(view.selectedElement, i3);
 
     // Click the same target again.
     didFireSelectionChange = false;
@@ -61,7 +61,7 @@ tr.b.unittest.testSuite(function() {
     didFireSelectionChange = false;
     i1.click();
     assert.isTrue(didFireSelectionChange);
-    assert.equal(view.selectedElement, i1);
+    assert.strictEqual(view.selectedElement, i1);
   });
 });
 </script>

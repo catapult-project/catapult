@@ -31,13 +31,13 @@ tr.b.unittest.testSuite(function() {
     var sel1 = document.createElement('tr-ui-b-mouse-mode-selector');
     sel1.defaultMode_ = MOUSE_SELECTOR_MODE.ZOOM;
     sel1.settingsKey = 'foo';
-    assert.equal(sel1.mode, MOUSE_SELECTOR_MODE.ZOOM);
+    assert.strictEqual(sel1.mode, MOUSE_SELECTOR_MODE.ZOOM);
 
     sel1.mode = MOUSE_SELECTOR_MODE.PANSCAN;
 
     var sel2 = document.createElement('tr-ui-b-mouse-mode-selector');
     sel2.settingsKey = 'foo';
-    assert.equal(sel2.mode, MOUSE_SELECTOR_MODE.PANSCAN);
+    assert.strictEqual(sel2.mode, MOUSE_SELECTOR_MODE.PANSCAN);
   });
 });
 </script>

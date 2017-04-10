@@ -31,19 +31,19 @@ tr.b.unittest.testSuite(function() {
       var c1 = m.kernel.getOrCreateCpu(1);
       var c2 = m.kernel.getOrCreateCpu(2);
     });
-    assert.equal(m.kernel.bestGuessAtCpuCount, 2);
+    assert.strictEqual(m.kernel.bestGuessAtCpuCount, 2);
   });
 
   test('bestGuessAtCpuCountWithSoftwareCpuCount', function() {
     var m = newModel([], function(m) {
       m.kernel.softwareMeasuredCpuCount = 2;
     });
-    assert.equal(m.kernel.bestGuessAtCpuCount, 2);
+    assert.strictEqual(m.kernel.bestGuessAtCpuCount, 2);
   });
 
   test('kernelStableId', function() {
     var model = newModel([]);
-    assert.equal(model.kernel.stableId, 'Kernel');
+    assert.strictEqual(model.kernel.stableId, 'Kernel');
   });
 
   test('kernelTimeShifting', function() {
@@ -62,11 +62,11 @@ tr.b.unittest.testSuite(function() {
 
     m.kernel.shiftTimestampsForward(2);
 
-    assert.equal(ctr1.series[0].samples[0].timestamp, 102);
-    assert.equal(ctr1.series[0].samples[1].timestamp, 202);
+    assert.strictEqual(ctr1.series[0].samples[0].timestamp, 102);
+    assert.strictEqual(ctr1.series[0].samples[1].timestamp, 202);
 
-    assert.equal(ctr2.series[0].samples[0].timestamp, 302);
-    assert.equal(ctr2.series[0].samples[1].timestamp, 402);
+    assert.strictEqual(ctr2.series[0].samples[0].timestamp, 302);
+    assert.strictEqual(ctr2.series[0].samples[1].timestamp, 402);
   });
 });
 </script>

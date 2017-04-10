@@ -27,7 +27,7 @@ tr.b.unittest.testSuite(function() {
 
     var groups = CounterSample.groupByTimestamp([slice0Sample1, slice0Sample0,
       slice1Sample1, slice1Sample0]);
-    assert.equal(groups.length, 2);
+    assert.strictEqual(groups.length, 2);
     assert.deepEqual(groups[0], [slice0Sample0, slice0Sample1]);
     assert.deepEqual(groups[1], [slice1Sample0, slice1Sample1]);
   });
@@ -39,8 +39,8 @@ tr.b.unittest.testSuite(function() {
 
     var slice0Sample0 = slice0.addCounterSample(0, 0);
     var slice0Sample1 = slice0.addCounterSample(1, 100);
-    assert.equal(slice0Sample0.getSampleIndex(), 0);
-    assert.equal(slice0Sample1.getSampleIndex(), 1);
+    assert.strictEqual(slice0Sample0.getSampleIndex(), 0);
+    assert.strictEqual(slice0Sample1.getSampleIndex(), 1);
   });
 });
 </script>

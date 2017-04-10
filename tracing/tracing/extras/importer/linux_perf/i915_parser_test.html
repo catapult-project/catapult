@@ -83,9 +83,9 @@ tr.b.unittest.testSuite(function() {
     assert.isDefined(i915RegThread);
     assert.isDefined(i915GpuFreqThread);
 
-    assert.equal(i915GemThread.sliceGroup.length, 3);
+    assert.strictEqual(i915GemThread.sliceGroup.length, 3);
 
-    assert.equal(i915FlipThread.sliceGroup.length, 1);
+    assert.strictEqual(i915FlipThread.sliceGroup.length, 1);
 
     assert.closeTo(
         2784.774864 * 1000.0,
@@ -96,9 +96,9 @@ tr.b.unittest.testSuite(function() {
         i915FlipThread.sliceGroup.slices[0].duration,
         1e-5);
 
-    assert.equal(i915GemRingThread.sliceGroup.length, 7);
-    assert.equal(i915RegThread.sliceGroup.length, 1);
-    assert.equal(i915GpuFreqThread.sliceGroup.length, 1);
+    assert.strictEqual(i915GemRingThread.sliceGroup.length, 7);
+    assert.strictEqual(i915RegThread.sliceGroup.length, 1);
+    assert.strictEqual(i915GpuFreqThread.sliceGroup.length, 1);
   });
 });
 </script>

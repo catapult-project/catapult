@@ -99,7 +99,7 @@ tr.b.unittest.testSuite(function() {
     tr.metrics.sh.expectedQueueingTimeMetric(histograms, model);
     let interactiveEQT = histograms.getHistogramNamed(
         'interactive:500ms_window:renderer_eqt');
-    assert.equal(0, interactiveEQT.numValues);
+    assert.strictEqual(0, interactiveEQT.numValues);
   });
 
   test('expectedQueueingTime_multipleInteractive', function() {
@@ -134,7 +134,7 @@ tr.b.unittest.testSuite(function() {
         'interactive:500ms_window:renderer_eqt');
     // TODO(ulan): Support multiple interactive time windows when
     // https://crbug.com/692112 is fixed.
-    assert.equal(0, interactiveEQT.numValues);
+    assert.strictEqual(0, interactiveEQT.numValues);
   });
 
   test('expectedQueueingTime_multipleRenderersAggregates', function() {
@@ -176,7 +176,7 @@ tr.b.unittest.testSuite(function() {
     tr.metrics.sh.expectedQueueingTimeMetric(histograms, model);
     let eqt = histograms.getHistogramNamed(
         'interactive:500ms_window:renderer_eqt');
-    assert.equal(0.05, eqt.average);
+    assert.strictEqual(0.05, eqt.average);
   });
 
   test('expectedQueueingTime_relatedV8Histograms', function() {

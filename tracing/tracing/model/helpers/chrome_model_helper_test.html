@@ -39,7 +39,7 @@ tr.b.unittest.testSuite(function() {
     var modelHelper = m.getOrCreateHelper(tr.model.helpers.ChromeModelHelper);
     var latencyEvents = modelHelper.browserHelper.getLatencyEventsInRange(
         m.bounds);
-    assert.equal(latencyEvents.length, 1);
+    assert.strictEqual(latencyEvents.length, 1);
   });
 
   test('getFrametime', function() {
@@ -90,46 +90,46 @@ tr.b.unittest.testSuite(function() {
         tr.model.helpers.IMPL_FRAMETIME_TYPE, m.bounds);
     var frametimeData = tr.model.helpers.getFrametimeDataFromEvents(
         frameEvents);
-    assert.equal(frametimeData.length, 9);
+    assert.strictEqual(frametimeData.length, 9);
     for (var i = 0; i < frametimeData.length; i++) {
-      assert.equal(frametimeData[i].frametime, 16 + i % 2);
+      assert.strictEqual(frametimeData[i].frametime, 16 + i % 2);
     }
     // No main rendering stats.
     frameEvents = modelHelper.browserHelper.getFrameEventsInRange(
         tr.model.helpers.MAIN_FRAMETIME_TYPE, m.bounds);
-    assert.equal(frameEvents.length, 0);
+    assert.strictEqual(frameEvents.length, 0);
 
 
     // Testing renderer 3508 impl and main rendering stats.
     frameEvents = modelHelper.rendererHelpers[3508].getFrameEventsInRange(
         tr.model.helpers.MAIN_FRAMETIME_TYPE, m.bounds);
     frametimeData = tr.model.helpers.getFrametimeDataFromEvents(frameEvents);
-    assert.equal(frametimeData.length, 9);
+    assert.strictEqual(frametimeData.length, 9);
     for (var i = 0; i < frametimeData.length; i++) {
-      assert.equal(frametimeData[i].frametime, 16 + i % 2);
+      assert.strictEqual(frametimeData[i].frametime, 16 + i % 2);
     }
 
     // No impl rendering stats.
     frameEvents = modelHelper.rendererHelpers[3508].getFrameEventsInRange(
         tr.model.helpers.IMPL_FRAMETIME_TYPE, m.bounds);
-    assert.equal(frameEvents.length, 0);
+    assert.strictEqual(frameEvents.length, 0);
 
 
     // Testing renderer 3509 impl and main rendering stats.
     frameEvents = modelHelper.rendererHelpers[3509].getFrameEventsInRange(
         tr.model.helpers.IMPL_FRAMETIME_TYPE, m.bounds);
     frametimeData = tr.model.helpers.getFrametimeDataFromEvents(frameEvents);
-    assert.equal(frametimeData.length, 9);
+    assert.strictEqual(frametimeData.length, 9);
     for (var i = 0; i < frametimeData.length; i++) {
-      assert.equal(frametimeData[i].frametime, 16 + i % 2);
+      assert.strictEqual(frametimeData[i].frametime, 16 + i % 2);
     }
 
     frameEvents = modelHelper.rendererHelpers[3509].getFrameEventsInRange(
         tr.model.helpers.MAIN_FRAMETIME_TYPE, m.bounds);
     frametimeData = tr.model.helpers.getFrametimeDataFromEvents(frameEvents);
-    assert.equal(frametimeData.length, 9);
+    assert.strictEqual(frametimeData.length, 9);
     for (var i = 0; i < frametimeData.length; i++) {
-      assert.equal(frametimeData[i].frametime, 16 + i % 2);
+      assert.strictEqual(frametimeData[i].frametime, 16 + i % 2);
     }
   });
 

@@ -46,15 +46,15 @@ tr.b.unittest.testSuite(function() {
     var summaryTableEl = tr.b.findDeepElementMatching(
         viewEl, 'tr-ui-a-multi-event-summary-table');
     assert.isTrue(summaryTableEl.showTotals);
-    assert.equal(tr.b.dictionaryLength(summaryTableEl.eventsByTitle), 2);
+    assert.strictEqual(tr.b.dictionaryLength(summaryTableEl.eventsByTitle), 2);
 
     var selectionSummaryTableEl = tr.b.findDeepElementMatching(
         viewEl, 'tr-ui-a-selection-summary-table');
-    assert.equal(selectionSummaryTableEl.selection, selection);
+    assert.strictEqual(selectionSummaryTableEl.selection, selection);
 
     var radioPickerEl =
         tr.b.findDeepElementMatching(viewEl, 'tr-ui-b-radio-picker');
-    assert.equal(radioPickerEl.style.display, 'none');
+    assert.strictEqual(radioPickerEl.style.display, 'none');
   });
 
   test('sameTitles', function() {
@@ -80,15 +80,15 @@ tr.b.unittest.testSuite(function() {
     var summaryTableEl = tr.b.findDeepElementMatching(
         viewEl, 'tr-ui-a-multi-event-summary-table');
     assert.isFalse(summaryTableEl.showTotals);
-    assert.equal(tr.b.dictionaryLength(summaryTableEl.eventsByTitle), 1);
+    assert.strictEqual(tr.b.dictionaryLength(summaryTableEl.eventsByTitle), 1);
 
     var selectionSummaryTableEl = tr.b.findDeepElementMatching(
         viewEl, 'tr-ui-a-selection-summary-table');
-    assert.equal(selectionSummaryTableEl.selection, selection);
+    assert.strictEqual(selectionSummaryTableEl.selection, selection);
 
     var radioPickerEl =
         tr.b.findDeepElementMatching(viewEl, 'tr-ui-b-radio-picker');
-    assert.equal(radioPickerEl.style.display, 'block');
+    assert.strictEqual(radioPickerEl.style.display, 'block');
   });
 });
 </script>

@@ -15,7 +15,7 @@ tr.b.unittest.testSuite(function() {
   test('inactive', function() {
     var icon = document.createElement('tr-ui-b-mouse-mode-icon');
     icon.mode = MOUSE_SELECTOR_MODE.SELECTION;
-    assert.equal(icon.modeName, 'SELECTION');
+    assert.strictEqual(icon.modeName, 'SELECTION');
     icon.acceleratorKey = 'a';
     this.addHTMLOutput(icon);
   });
@@ -23,7 +23,7 @@ tr.b.unittest.testSuite(function() {
   test('active', function() {
     var icon = document.createElement('tr-ui-b-mouse-mode-icon');
     icon.mode = MOUSE_SELECTOR_MODE.SELECTION;
-    assert.equal(icon.modeName, 'SELECTION');
+    assert.strictEqual(icon.modeName, 'SELECTION');
     icon.active = true;
     this.addHTMLOutput(icon);
   });
@@ -34,7 +34,7 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(icon);
 
     return Promise.resolve().then(function() {
-      assert.equal(icon.mode, 1);
+      assert.strictEqual(icon.mode, 1);
     });
   });
 });

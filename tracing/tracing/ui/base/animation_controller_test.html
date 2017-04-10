@@ -61,7 +61,7 @@ tr.b.unittest.testSuite(function() {
     controller.queueAnimation(animation);
 
     tr.b.forcePendingRAFTasksToRun(0);
-    assert.equal(animation.tickCount, 1);
+    assert.strictEqual(animation.tickCount, 1);
     controller.cancelActiveAnimation();
     assert.isFalse(controller.hasActiveAnimation);
     assert.isTrue(animation.didStopEarlyCalled);
@@ -80,11 +80,11 @@ tr.b.unittest.testSuite(function() {
     controller.queueAnimation(animation);
 
     tr.b.forcePendingRAFTasksToRun(0);
-    assert.equal(animation.tickCount, 1);
+    assert.strictEqual(animation.tickCount, 1);
     assert.isTrue(controller.hasActiveAnimation);
 
     tr.b.forcePendingRAFTasksToRun(100);
-    assert.equal(animation.tickCount, 2);
+    assert.strictEqual(animation.tickCount, 2);
     assert.isFalse(controller.hasActiveAnimation);
   });
 
@@ -150,13 +150,13 @@ tr.b.unittest.testSuite(function() {
     var a2 = new AnimationThatCanTakeOverForSimpleAnimation();
     controller.queueAnimation(a1, 0);
     assert.isTrue(a1.startCalled);
-    assert.equal(a1.tickCount, 0);
+    assert.strictEqual(a1.tickCount, 0);
     controller.queueAnimation(a2, 10);
     assert.isTrue(a1.didStopEarlyCalled);
     assert.isTrue(a1.wasTakenOver);
-    assert.equal(a1.tickCount, 1);
+    assert.strictEqual(a1.tickCount, 1);
 
-    assert.equal(a1, a2.takeOverForAnimation);
+    assert.strictEqual(a1, a2.takeOverForAnimation);
     assert.isTrue(a2.startCalled);
 
     controller.cancelActiveAnimation();

@@ -18,9 +18,9 @@ tr.b.unittest.testSuite(function() {
     var event = {};
     var point = new ChartPoint(event, 42, -7);
 
-    assert.equal(point.modelItem, event);
-    assert.equal(point.x, 42);
-    assert.equal(point.y, -7);
+    assert.strictEqual(point.modelItem, event);
+    assert.strictEqual(point.x, 42);
+    assert.strictEqual(point.y, -7);
     assert.isUndefined(point.yBase);
   });
 
@@ -28,10 +28,10 @@ tr.b.unittest.testSuite(function() {
     var event = {};
     var point = new ChartPoint(event, 111, 222, 333);
 
-    assert.equal(point.modelItem, event);
-    assert.equal(point.x, 111);
-    assert.equal(point.y, 222);
-    assert.equal(point.yBase, 333);
+    assert.strictEqual(point.modelItem, event);
+    assert.strictEqual(point.x, 111);
+    assert.strictEqual(point.y, 222);
+    assert.strictEqual(point.yBase, 333);
   });
 });
 </script>
