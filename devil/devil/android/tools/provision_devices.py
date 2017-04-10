@@ -358,10 +358,11 @@ def _RemoveSystemApp(device, system_app):
     path = os.path.join(directory, system_app)
     if device.PathExists(path):
       found_paths.append(path)
-  if not found_paths:
+  if found_paths:
+    device.RemovePath(found_paths, force=True, recursive=True)
+  else:
     logger.warning('Could not find install location for system app %s',
                    system_app)
-  device.RemovePath(found_paths, force=True, recursive=True)
 
 def RemoveSystemApps(device, system_app_remove_list):
   """Attempts to remove the provided system apps from the given device.
