@@ -27,6 +27,7 @@ _EXCLUDED_PATHS = (
     r'.*README\.md$',
     r'^dashboard[\\/]dashboard[\\/]templates[\\/].*',
     r'^experimental[\\/]heatmap[\\/].*',
+    r'^experimental[\\/]trace_on_tap[\\/]third_party[\\/].*',
     r'^perf_insights[\\/]test_data[\\/].*',
     r'^perf_insights[\\/]third_party[\\/].*',
     r'^third_party[\\/].*',
