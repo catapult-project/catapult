@@ -22,14 +22,12 @@ roll catapult DEPs. In this case you would need to do a manual roll. Here are
 instructions for rolling catapult DEPS, your CL would also include any other
 changes to chromium needed to complete the roll.
 
-First, commit to catapult. Then check the [mirror]
-(https://chromium.googlesource.com/external/github.com/catapult-project/catapult.git)
+First, commit to catapult. Then check the [mirror](https://chromium.googlesource.com/external/github.com/catapult-project/catapult.git)
 to find the git hash of your commit. (Note: it may take a few minutes to be
 mirrored).
 
-Then edit Chrome's [src/DEPS]
-(https://code.google.com/p/chromium/codesearch#chromium/src/DEPS) file. Look for
-a line like:
+Then edit Chrome's [src/DEPS](https://code.google.com/p/chromium/codesearch#chromium/src/DEPS)
+file. Look for a line like:
 
 ```
   'src/third_party/catapult':

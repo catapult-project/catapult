@@ -206,7 +206,7 @@ would make it more readable.
 <script>
 'use strict';
 (function(){   // Use this if you need to define constants scoped to that element.
-Polymer('tr-bar’, {
+Polymer('tr-bar', {
   // ... or here.
 });
 })();
