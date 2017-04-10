@@ -349,7 +349,7 @@ def DisableNetwork(device):
 def DisableSystemChrome(device):
   # The system chrome version on the device interferes with some tests.
   device.RunShellCommand(['pm', 'disable', 'com.android.chrome'],
-                         check_return=True)
+                         as_root=True, check_return=True)
 
 
 def _RemoveSystemApp(device, system_app):
