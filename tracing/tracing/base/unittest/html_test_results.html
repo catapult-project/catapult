@@ -74,6 +74,10 @@ found in the LICENSE file.
     color: darkorange;
   }
 
+  .unittest-skipped {
+    color: blue;
+  }
+
   .unittest-exception {
     color: red;
     font-weight: bold;
@@ -99,6 +103,10 @@ found in the LICENSE file.
 </template>
 
 <template id="x-html-test-case-flaky-template">
+  <div id="message"></div>
+</template>
+
+<template id="x-html-test-case-skipped-template">
   <div id="message"></div>
 </template>
 
@@ -194,6 +202,17 @@ tr.exportTo('tr.b.unittest', function() {
       this.updateColorAndStatus_();
     },
 
+    addSkipped: function() {
+      var skippedEl = document.createElement('x-html-test-case-skipped');
+      Polymer.dom(skippedEl).appendChild(tr.ui.b.instantiateTemplate(
+          '#x-html-test-case-skipped-template', THIS_DOC));
+      Polymer.dom(Polymer.dom(skippedEl).querySelector('#message'))
+          .textContent = 'SKIPPED';
+      Polymer.dom(Polymer.dom(this).querySelector('#details')).appendChild(
+          skippedEl);
+      this.updateColorAndStatus_();
+    },
+
     addHTMLOutput: function(element) {
       var htmlResultEl = document.createElement('x-html-test-case-html-result');
       Polymer.dom(htmlResultEl).appendChild(element);
@@ -221,6 +240,10 @@ tr.exportTo('tr.b.unittest', function() {
 
     get isFlaky() {
       return !!Polymer.dom(this).querySelector('x-html-test-case-flaky');
+    },
+
+    get isSkipped() {
+      return !!Polymer.dom(this).querySelector('x-html-test-case-skipped');
     },
 
     get duration() {
@@ -251,6 +274,9 @@ tr.exportTo('tr.b.unittest', function() {
       } else if (this.isFlaky) {
         colorCls = 'unittest-flaky';
         status = 'flaky';
+      } else if (this.isSkipped) {
+        colorCls = 'unittest-skipped';
+        status = 'skipped';
       } else if (this.testStatus_ === TestStatus.PENDING) {
         colorCls = 'unittest-pending';
         status = 'pending';
@@ -298,6 +324,7 @@ tr.exportTo('tr.b.unittest', function() {
       this.numTestsThatPassed_ = 0;
       this.numTestsThatFailed_ = 0;
       this.numFlakyTests_ = 0;
+      this.numSkippedTests_ = 0;
       this.showHTMLOutput_ = false;
       this.showPendingAndPassedTests_ = false;
       this.linkifyCallback_ = undefined;
@@ -413,6 +440,11 @@ tr.exportTo('tr.b.unittest', function() {
       this.updateDisplayStateForResult_(this.currentTestCaseResult_);
     },
 
+    setCurrentTestSkipped: function() {
+      this.currentTestCaseResult_.addSkipped();
+      this.updateDisplayStateForResult_(this.currentTestCaseResult_);
+    },
+
     setReturnValueFromCurrentTest: function(returnValue) {
       this.currentTestCaseResult_.testReturnValue = returnValue;
     },
@@ -433,6 +465,10 @@ tr.exportTo('tr.b.unittest', function() {
         resultString = 'FLAKY';
         this.numFlakyTests_ += 1;
         tr.b.dispatchSimpleEvent(this, 'testflaky');
+      } else if (testCaseResult.isSkipped) {
+        resultString = 'SKIPPED';
+        this.numSkippedTests_ += 1;
+        tr.b.dispatchSimpleEvent(this, 'testskipped');
       } else {
         resultString = 'PASSED';
         this.numTestsThatPassed_ += 1;
@@ -460,8 +496,14 @@ tr.exportTo('tr.b.unittest', function() {
         numTestsThatPassed: this.numTestsThatPassed_,
         numTestsThatFailed: this.numTestsThatFailed_,
         numFlakyTests: this.numFlakyTests_,
+        numSkippedTests: this.numSkippedTests_,
         totalRunTime: this.totalRunTime_
       };
+    },
+
+    didAllTestsPass: function() {
+      // A test counts as failing if it failed or it was skipped.
+      return this.numTestsThatFailed_ + this.numSkippedTests_ === 0;
     },
 
     notifyTestResultToDevServer_: function(result, extraMsg) {
@@ -473,12 +515,13 @@ tr.exportTo('tr.b.unittest', function() {
 
     notifyTestCompletionToDevServer_: function() {
       if (this.numTestsThatPassed_ + this.numTestsThatFailed_ +
-          this.numFlakyTests_ === 0) {
+          this.numFlakyTests_ + this.numSkippedTests_ === 0) {
         return;
       }
-      var data = this.numTestsThatFailed_ === 0 ? 'ALL_PASSED' : 'HAD_FAILURES';
+      let data = this.didAllTestsPass() ? 'ALL_PASSED' : 'HAD_FAILURES';
       data += '\nPassed tests: ' + this.numTestsThatPassed_ +
               '  Failed tests: ' + this.numTestsThatFailed_ +
+              '  Skipped tests: ' + this.numSkippedTests_ +
               '  Flaky tests: ' + this.numFlakyTests_;
 
       tr.b.postAsync('/tracing/notify_tests_completed', data);

@@ -70,6 +70,10 @@ found in the LICENSE file.
     color: darkorange;
   }
 
+  x-base-interactive-test-runner > #shortform-results > .skipped {
+    color: blue;
+  }
+
   x-base-interactive-test-runner > #results-container {
     flex: 1 1 auto;
     min-height: 0;
@@ -182,6 +186,7 @@ tr.exportTo('tr.b.unittest', function() {
       this.onResultsStatsChanged_ = this.onResultsStatsChanged_.bind(this);
       this.onTestFailed_ = this.onTestFailed_.bind(this);
       this.onTestFlaky_ = this.onTestFlaky_.bind(this);
+      this.onTestSkipped_ = this.onTestSkipped_.bind(this);
       this.onTestPassed_ = this.onTestPassed_.bind(this);
 
       Polymer.dom(this).appendChild(tr.ui.b.instantiateTemplate(
@@ -365,12 +370,22 @@ tr.exportTo('tr.b.unittest', function() {
           .appendChild(span);
     },
 
+    onTestSkipped_: function() {
+      var span = document.createElement('span');
+      Polymer.dom(span).classList.add('skipped');
+      Polymer.dom(span).appendChild(document.createTextNode('s'));
+      Polymer.dom(Polymer.dom(this).querySelector('#shortform-results'))
+          .appendChild(span);
+    },
+
     onResultsStatsChanged_: function() {
       var statsEl = Polymer.dom(this).querySelector('#stats');
       var stats = this.results_.getStats();
       var numTestsOverall = this.runner_.testCases.length;
       var numTestsThatRan = stats.numTestsThatPassed +
-          stats.numTestsThatFailed + stats.numFlakyTests;
+          stats.numTestsThatFailed +
+          stats.numFlakyTests +
+          stats.numSkippedTests;
       Polymer.dom(statsEl).innerHTML =
           '<span>' + numTestsThatRan + '/' + numTestsOverall +
           '</span> tests run, ' +
@@ -378,6 +393,8 @@ tr.exportTo('tr.b.unittest', function() {
           '</span> failures, ' +
           '<span class="unittest-flaky">' + stats.numFlakyTests +
           '</span> flaky, ' +
+          '<span class="unittest-skipped">' + stats.numSkippedTests +
+          '</span> skipped, ' +
           ' in ' + stats.totalRunTime.toFixed(2) + 'ms.';
     },
 
@@ -404,6 +421,7 @@ tr.exportTo('tr.b.unittest', function() {
         this.results_.removeEventListener('testpassed', this.onTestPassed_);
         this.results_.removeEventListener('testfailed', this.onTestFailed_);
         this.results_.removeEventListener('testflaky', this.onTestFlaky_);
+        this.results_.removeEventListener('testskipped', this.onTestSkipped_);
         this.results_.removeEventListener('statschange',
             this.onResultsStatsChanged_);
         delete this.results_.getHRefForTestCase;
@@ -419,6 +437,7 @@ tr.exportTo('tr.b.unittest', function() {
       this.results_.addEventListener('testpassed', this.onTestPassed_);
       this.results_.addEventListener('testfailed', this.onTestFailed_);
       this.results_.addEventListener('testflaky', this.onTestFlaky_);
+      this.results_.addEventListener('testskipped', this.onTestSkipped_);
       this.results_.addEventListener('statschange',
           this.onResultsStatsChanged_);
       Polymer.dom(resultsContainer).appendChild(this.results_);

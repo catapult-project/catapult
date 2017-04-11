@@ -151,6 +151,15 @@ tr.exportTo('tr.b.unittest', function() {
           'TestRunner', 'RunTest', {testName: this.currentTestCase_.name});
       this.results_.willRunTest(this.currentTestCase_);
 
+      if (this.isCurrentTestSkipped_()) {
+        this.results_.setCurrentTestSkipped();
+        this.results_.didCurrentTestEnd();
+        this.currentMark_.end();
+        this.currentTestCase_ = undefined;
+        this.scheduleRunOneTestCase_();
+        return;
+      }
+
       if (this.isCurrentTestFlaky_()) {
         this.results_.setCurrentTestFlaky();
         this.results_.didCurrentTestEnd();
@@ -200,7 +209,11 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     isCurrentTestFlaky_: function() {
-      return !!this.currentTestCase_.options['flaky'];
+      return !!this.currentTestCase_.options.flaky;
+    },
+
+    isCurrentTestSkipped_: function() {
+      return !!this.currentTestCase_.options.skipped;
     },
 
     setUpCurrentTestCase_: function() {
