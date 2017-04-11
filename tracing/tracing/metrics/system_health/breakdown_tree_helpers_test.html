@@ -249,5 +249,88 @@ tr.b.unittest.testSuite(function() {
       }
     }, breakdownTree['v8_runtime']);
   });
+
+  function createNetworkEvent(start, end, cat) {
+    return tr.c.TestUtils.newAsyncSliceEx({
+      cat,
+      title: 'network events',
+      start,
+      duration: end - start,
+    });
+  }
+
+  test('testBlockedOnNetwork_onlyNetEvent', function() {
+    const model = tr.c.TestUtils.newModel(model => {
+      const mainThread = model.getOrCreateProcess(0)
+          .getOrCreateThread(0);
+      mainThread.name = 'CrRendererMain';
+      const networkEvent = createNetworkEvent(100, 200, 'net');
+      mainThread.asyncSliceGroup.push(networkEvent);
+    });
+    const rendererHelper = model.getOrCreateHelper(
+        tr.model.helpers.ChromeModelHelper)
+        .rendererHelpers[0];
+    const rangeOfInterest = tr.b.math.Range.fromExplicitRange(0, 150);
+    const networkEvents = tr.metrics.sh.getNetworkEventsInRange(
+        rendererHelper.process, rangeOfInterest);
+    const breakdownTree = tr.metrics.sh.generateWallClockTimeBreakdownTree(
+        rendererHelper.mainThread, networkEvents, rangeOfInterest);
+    assert.equal(breakdownTree['blocked_on_network'].total, 50);
+    assert.equal(breakdownTree['idle'].total, 100);
+  });
+
+  test('testBlockedOnNetwork_netEventAndMainThreadEvent', function() {
+    const model = tr.c.TestUtils.newModel(model => {
+      const mainThread = model.getOrCreateProcess(0)
+          .getOrCreateThread(0);
+      mainThread.name = 'CrRendererMain';
+      const networkEvent = createNetworkEvent(100, 200, 'net');
+      mainThread.asyncSliceGroup.push(networkEvent);
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'blink',
+        title: 'FrameView::layout',
+        start: 160,
+        duration: 140,
+      }));
+    });
+    const rendererHelper = model.getOrCreateHelper(
+        tr.model.helpers.ChromeModelHelper)
+        .rendererHelpers[0];
+    const rangeOfInterest = tr.b.math.Range.fromExplicitRange(150, 320);
+    const networkEvents = tr.metrics.sh.getNetworkEventsInRange(
+        rendererHelper.process, rangeOfInterest);
+    const breakdownTree = tr.metrics.sh.generateWallClockTimeBreakdownTree(
+        rendererHelper.mainThread, networkEvents, rangeOfInterest);
+    assert.equal(breakdownTree['layout'].total, 140);
+    assert.equal(breakdownTree['blocked_on_network'].total, 10);
+    assert.equal(breakdownTree['idle'].total, 20);
+  });
+
+  test('testBlockedOnNetwork_rangeEmpty', function() {
+    const model = tr.c.TestUtils.newModel(model => {
+      const mainThread = model.getOrCreateProcess(0)
+          .getOrCreateThread(0);
+      mainThread.name = 'CrRendererMain';
+      const networkEvent = createNetworkEvent(100, 200, 'net');
+      mainThread.asyncSliceGroup.push(networkEvent);
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'blink',
+        title: 'FrameView::layout',
+        start: 160,
+        duration: 140,
+      }));
+    });
+    const rendererHelper = model.getOrCreateHelper(
+        tr.model.helpers.ChromeModelHelper)
+        .rendererHelpers[0];
+    const rangeOfInterest = new tr.b.math.Range();
+    const networkEvents = tr.metrics.sh.getNetworkEventsInRange(
+        rendererHelper.process, rangeOfInterest);
+    const breakdownTree = tr.metrics.sh.generateWallClockTimeBreakdownTree(
+        rendererHelper.mainThread, networkEvents, rangeOfInterest);
+    assert.equal(breakdownTree['layout'].total, 0);
+    assert.equal(breakdownTree['blocked_on_network'].total, 0);
+    assert.equal(breakdownTree['idle'].total, 0);
+  });
 });
 </script>

@@ -25,6 +25,12 @@ tr.exportTo('tr.metrics.sh', function() {
       tr.b.Unit.byName.timeDurationInMs_smallerIsBetter;
   var RelatedEventSet = tr.v.d.RelatedEventSet;
 
+  /**
+   * @param  {!tr.model.Process} process
+   * @param  {!tr.b.math.Range} range
+   * @return {Array.<tr.model.Event>} An array of network events of a process
+   * and that are intersecting a range.
+   */
   function getNetworkEventsInRange(process, range) {
     const networkEvents = [];
     for (const thread of Object.values(process.threads)) {
@@ -47,7 +53,7 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   /**
-   * @param {Object.<string, Object>} breakdownTree
+   * @param {!Object.<string, Object>} breakdownTree
    * @return {tr.v.d.Breakdown} A breakdown with categories and the total time
    * (ms) spent under each category.
    */
