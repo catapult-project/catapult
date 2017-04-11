@@ -38,7 +38,7 @@ tr.b.unittest.testSuite(() => {
     const element = ['foo', ['all']];
     const params = d.listTestsRequestParams(element, true);
     const testPathDict = JSON.parse(params.test_path_dict);
-    assert.equal(testPathDict.foo, 'all');
+    assert.strictEqual(testPathDict.foo, 'all');
   });
 
   test('requestParamsImportant', () => {

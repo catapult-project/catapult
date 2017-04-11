@@ -74,7 +74,7 @@ tr.b.unittest.testSuite(function() {
 
     return new Promise(function(resolve) {
       function check() {
-        assert.equal(2, quickLog.logList.length);
+        assert.strictEqual(2, quickLog.logList.length);
         resolve();
       }
       setTimeout(check, 10);
@@ -125,10 +125,11 @@ tr.b.unittest.testSuite(function() {
 
     return new Promise(function(resolve) {
       function check() {
-        assert.equal(3, quickLog.logList.length);
-        assert.equal('Updated first message.', quickLog.logList[0].message);
-        assert.equal('Third message.', quickLog.logList[1].message);
-        assert.equal('Second message.', quickLog.logList[2].message);
+        assert.strictEqual(3, quickLog.logList.length);
+        assert.strictEqual(
+            'Updated first message.', quickLog.logList[0].message);
+        assert.strictEqual('Third message.', quickLog.logList[1].message);
+        assert.strictEqual('Second message.', quickLog.logList[2].message);
         resolve();
       }
       setTimeout(check, 10);

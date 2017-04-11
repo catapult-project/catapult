@@ -210,7 +210,7 @@ tr.b.unittest.testSuite(function() {
     ];
     return new Promise(function(resolve) {
       function check() {
-        assert.equal(table.alertList[0].xsrfToken, 'abcdef012345');
+        assert.strictEqual(table.alertList[0].xsrfToken, 'abcdef012345');
         resolve();
       }
       setTimeout(check, 10);

@@ -24,7 +24,7 @@ tr.b.unittest.testSuite(function() {
   };
 
   test('getCurrentPathWithParams encodes value', function() {
-    assert.equal(
+    assert.strictEqual(
         window.location.pathname + '?key=some%20value',
         uri.getCurrentPathWithParams({'key': 'some value'}));
   }, testOptions);
@@ -33,21 +33,21 @@ tr.b.unittest.testSuite(function() {
     uri.getQueryString = function() {
       return '?foo=bar&x=y';
     };
-    assert.equal('bar', uri.getParameter('foo'));
+    assert.strictEqual('bar', uri.getParameter('foo'));
   }, testOptions);
 
   test('getParameter not at start', function() {
     uri.getQueryString = function() {
       return '?foo=bar&x=y';
     };
-    assert.equal('y', uri.getParameter('x'));
+    assert.strictEqual('y', uri.getParameter('x'));
   }, testOptions);
 
   test('getParameter decodes hex sequences and plus signs', function() {
     uri.getQueryString = function() {
       return '?foo=bar%2C+baz';
     };
-    assert.equal('bar, baz', uri.getParameter('foo'));
+    assert.strictEqual('bar, baz', uri.getParameter('foo'));
   }, testOptions);
 
   test('getAllParameters basic', function() {

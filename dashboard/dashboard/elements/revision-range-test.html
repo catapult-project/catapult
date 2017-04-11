@@ -15,24 +15,25 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   test('displayRevisionRange works with simple revision ranges', function() {
     var range = document.createElement('revision-range');
-    assert.equal(range.computeRevisionRange(20030, 20050), '20030 - 20050');
+    assert.strictEqual(
+        range.computeRevisionRange(20030, 20050), '20030 - 20050');
   });
 
   test('displayRevisionRange works with single revisions', function() {
     var range = document.createElement('revision-range');
-    assert.equal(range.computeRevisionRange(20030, 20030), '20030');
+    assert.strictEqual(range.computeRevisionRange(20030, 20030), '20030');
   });
 
   test('getDisplayRevisionRange formats Chrome/Chrome OS versions', function() {
     var range = document.createElement('revision-range');
-    assert.equal(
+    assert.strictEqual(
         range.computeRevisionRange(18120000539000000, 18120000539000000),
         'Cr 1812.0 / CrOS 5390.0.0');
   });
 
   test('getDisplayRevisionRange formats timestamps', function() {
     var range = document.createElement('revision-range');
-    assert.equal(
+    assert.strictEqual(
         range.computeRevisionRange(1420001111, 1420001111),
         '2014-12-31T04:45:11.000Z');
   });

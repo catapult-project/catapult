@@ -32,9 +32,9 @@ tr.b.unittest.testSuite(function() {
       this.send = function(data) {
         if (expectedData != undefined) {
           try {
-            assert.equal(data, expectedData);
+            assert.strictEqual(data, expectedData);
           } catch (err) {
-            assert.equal(true, true);
+            assert.strictEqual(true, true);
           }
         }
         this.onload();
