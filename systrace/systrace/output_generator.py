@@ -26,6 +26,7 @@ _SYSTRACE_TO_TRACE_DATA_NAME_MAPPING = {
     'powerTraceAsString': trace_data.BATTOR_TRACE_PART,
     'systraceController': trace_data.TELEMETRY_PART,
     'traceEvents': trace_data.CHROME_TRACE_PART,
+    'waltTrace': trace_data.WALT_TRACE_PART,
 }
 _SYSTRACE_HEADER = 'Systrace'
 

@@ -205,6 +205,40 @@ tr.b.unittest.testSuite(function() {
         3);
   });
 
+  test('clockTypeMarker', function() {
+    const lines = [
+      '# tracer: nop',
+      '#',
+      '# clock_type=LINUX_CLOCK_MONOTONIC',
+      '#           TASK-PID    CPU#    TIMESTAMP  FUNCTION',
+      '#              | |       |          |         |',
+      '<0>-0  (-----) [001] ...1 15.050: tracing_mark_write: ' +
+          'trace_event_clock_sync: name=some_sync_id'
+    ];
+
+    const io = new tr.importer.ImportOptions();
+    const m = new tr.Model();
+    const i = new tr.importer.Import(m, io);
+
+    m.clockSyncManager.addClockSyncMarker(
+        ClockDomainId.LINUX_FTRACE_GLOBAL, 'some_sync_id', 50);
+
+    i.importTraces([lines.join('\n')]);
+
+    assert.isFalse(m.hasImportWarnings);
+    // The clock sync happened at 15050 in the linux monotonic domain and at 50
+    // in the ftrace global domain. This means the ftrace global timestamps need
+    // 15000 added to them in order to be on the linux monotonic timeline.
+    assert.strictEqual(
+        m.clockSyncManager.getModelTimeTransformer(
+            ClockDomainId.LINUX_FTRACE_GLOBAL)(3),
+        15003);
+    assert.strictEqual(
+        m.clockSyncManager.getModelTimeTransformer(
+            ClockDomainId.LINUX_CLOCK_MONOTONIC)(3),
+        3);
+  });
+
   test('canImport', function() {
     var lines = [
       '# tracer: nop',

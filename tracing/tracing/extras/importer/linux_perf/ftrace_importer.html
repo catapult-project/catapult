@@ -69,6 +69,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     this.parsers_ = [];
     this.eventHandlers_ = {};
     this.haveClockSyncedMonotonicToGlobal_ = false;
+    this.clockDomainId_ = tr.model.ClockDomainId.LINUX_FTRACE_GLOBAL;
   }
 
   var TestExports = {};
@@ -352,7 +353,6 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
      */
     importClockSyncMarkers: function() {
       this.lazyInit_();
-
       this.forEachLine_(function(text, eventBase, cpuNumber, pid, ts) {
         var eventName = eventBase.eventName;
         if (eventName !== 'tracing_mark_write' && eventName !== '0') {
@@ -379,7 +379,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     importEvents: function() {
       var modelTimeTransformer =
           this.model_.clockSyncManager.getModelTimeTransformer(
-              tr.model.ClockDomainId.LINUX_FTRACE_GLOBAL);
+              this.clockDomainId_);
 
       this.importCpuData_(modelTimeTransformer);
       this.buildMapFromLinuxPidsToThreads_();
@@ -764,7 +764,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
         }
 
         this.model_.clockSyncManager.addClockSyncMarker(
-            tr.model.ClockDomainId.LINUX_FTRACE_GLOBAL, name, ts);
+            this.clockDomainId_, name, ts);
         return true;
       }
 
@@ -773,7 +773,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var event = /name=([\w\-]+)/.exec(eventBase.details);
       if (event) {
         this.model_.clockSyncManager.addClockSyncMarker(
-            tr.model.ClockDomainId.LINUX_FTRACE_GLOBAL, event[1], ts);
+            this.clockDomainId_, event[1], ts);
         return true;
       }
 
@@ -798,7 +798,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       // according to the ftrace 'global' clock, and that same timestamp
       // according to clock_gettime(CLOCK_MONOTONIC).
       this.model_.clockSyncManager.addClockSyncMarker(
-          tr.model.ClockDomainId.LINUX_FTRACE_GLOBAL,
+          this.clockDomainId_,
           MONOTONIC_TO_FTRACE_GLOBAL_SYNC_ID, ts);
       this.model_.clockSyncManager.addClockSyncMarker(
           tr.model.ClockDomainId.LINUX_CLOCK_MONOTONIC,
@@ -885,7 +885,17 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var lineParser = undefined;
       for (var lineNumber = 0; lineNumber < lines.length; ++lineNumber) {
         var line = lines[lineNumber].trim();
-        if (line.length === 0 || /^#/.test(line)) continue;
+        if (line.length === 0) continue;
+        if (/^#/.test(line)) {
+          const clockType = /^# clock_type=([A-Z_]+)$/.exec(line);
+          // This allows the clock domain to be specified through a comment,
+          // Ex. "# clock_type=LINUX_CLOCK_MONOTONIC".
+          // This is used in the WALT trace agent.
+          if (clockType) {
+            this.clockDomainId_ = clockType[1];
+          }
+          continue;
+        }
 
         if (!lineParser) {
           lineParser = autoDetectLineParser(line);
