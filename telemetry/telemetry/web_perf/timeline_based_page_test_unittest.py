@@ -39,6 +39,15 @@ class TestTimelinebasedMeasurementPage(page_module.Page):
       with action_runner.CreateGestureInteraction('Scroll'):
         action_runner.ScrollPage()
 
+class FailedTimelinebasedMeasurementPage(page_module.Page):
+
+  def __init__(self, ps, base_dir):
+    super(FailedTimelinebasedMeasurementPage, self).__init__(
+        'file://interaction_enabled_page.html', ps, base_dir)
+
+  def RunPageInteractions(self, action_runner):
+    action_runner.TapElement('#does-not-exist')
+
 
 class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
 
@@ -114,6 +123,21 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
         'Gesture_Scroll', 'frame_time_discrepancy')
     self.assertEquals(len(v), 1)
 
+  @decorators.Isolated
+  def testTraceCaptureUponFailure(self):
+    ps = self.CreateEmptyPageSet()
+    ps.AddStory(FailedTimelinebasedMeasurementPage(ps, ps.base_dir))
+
+    options = tbm_module.Options()
+    options.config.enable_chrome_trace = True
+    options.SetTimelineBasedMetrics(['sampleMetric'])
+
+    tbm = tbm_module.TimelineBasedMeasurement(options)
+    results = self.RunMeasurement(tbm, ps, self._options)
+
+    self.assertEquals(1, len(results.failures))
+    self.assertEquals(1, len(results.FindAllTraceValues()))
+
   # Fails on chromeos: crbug.com/483212
   @decorators.Disabled('chromeos')
   @decorators.Isolated
@@ -144,6 +168,7 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
     self.assertEquals(len(v_foo), 1)
     self.assertEquals(v_foo[0].value, 50)
     self.assertIsNotNone(v_foo[0].page)
+
 
   @decorators.Disabled('chromeos')
   def testFirstPaintMetricSmoke(self):

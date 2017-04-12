@@ -38,12 +38,14 @@ class StoryTest(object):
     """
     raise NotImplementedError()
 
-  def DidRunStory(self, platform):
+  def DidRunStory(self, platform, results):
     """Override to do any action after running the story, e.g., clean up.
 
     This is run after state.DidRunStory. And this is always called even if the
-    test run failed.
+    test run failed. The |results| object can be used to stored debugging info
+    related to run.
     Args:
       platform: The platform that the story will run on.
+      results: The results of running the story.
     """
     raise NotImplementedError()

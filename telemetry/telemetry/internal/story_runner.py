@@ -109,7 +109,7 @@ def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
       # if state.DidRunStory raises exception, things are messed up badly and we
       # do not need to run test.DidRunStory at that point.
       if isinstance(test, story_test.StoryTest):
-        test.DidRunStory(state.platform)
+        test.DidRunStory(state.platform, results)
       else:
         test.DidRunPage(state.platform)
       # TODO(mikecase): Remove this logging once Android perf bots are swarmed.

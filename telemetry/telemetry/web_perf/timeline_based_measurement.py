@@ -309,10 +309,12 @@ class TimelineBasedMeasurement(story_test.StoryTest):
     finally:
       trace_result.CleanUpAllTraces()
 
-  def DidRunStory(self, platform):
+  def DidRunStory(self, platform, results):
     """Clean up after running the story."""
     if platform.tracing_controller.is_tracing_running:
-      platform.tracing_controller.StopTracing()
+      trace_result = platform.tracing_controller.StopTracing()
+      trace_value = trace.TraceValue(results.current_page, trace_result)
+      results.AddValue(trace_value)
 
   def _ComputeTimelineBasedMetrics(self, results, trace_value):
     metrics = self._tbm_options.GetTimelineBasedMetrics()
