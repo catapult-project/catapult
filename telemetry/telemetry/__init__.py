@@ -57,7 +57,6 @@ _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'modulegraph')
 _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'mox3')
 _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'png')
 _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'pyfakefs')
-_AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'pyserial')
 _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'web-page-replay')
 _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'websocket-client')
 
