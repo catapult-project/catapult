@@ -444,12 +444,18 @@ class DeviceUtils(object):
       CommandFailedError if root could not be enabled.
       CommandTimeoutError on timeout.
     """
-    if self.IsUserBuild():
-      raise device_errors.CommandFailedError(
-          'Cannot enable root in user builds.', str(self))
     if 'needs_su' in self._cache:
       del self._cache['needs_su']
-    self.adb.Root()
+
+    try:
+      self.adb.Root()
+    except device_errors.AdbCommandFailedError:
+      if self.IsUserBuild():
+        raise device_errors.CommandFailedError(
+            'Unable to root device with user build.', str(self))
+      else:
+        raise  # Failed probably due to some other reason.
+
     self.WaitUntilFullyBooted()
 
   @decorators.WithTimeoutAndRetriesFromInstance()

@@ -315,22 +315,22 @@ class DeviceUtilsEnableRootTest(DeviceUtilsTest):
 
   def testEnableRoot_succeeds(self):
     with self.assertCalls(
-        (self.call.device.IsUserBuild(), False),
-         self.call.adb.Root(),
-         self.call.device.WaitUntilFullyBooted()):
+        self.call.adb.Root(),
+        self.call.device.WaitUntilFullyBooted()):
       self.device.EnableRoot()
 
   def testEnableRoot_userBuild(self):
     with self.assertCalls(
+        (self.call.adb.Root(), self.AdbCommandError()),
         (self.call.device.IsUserBuild(), True)):
       with self.assertRaises(device_errors.CommandFailedError):
         self.device.EnableRoot()
 
   def testEnableRoot_rootFails(self):
     with self.assertCalls(
-        (self.call.device.IsUserBuild(), False),
-        (self.call.adb.Root(), self.CommandError())):
-      with self.assertRaises(device_errors.CommandFailedError):
+        (self.call.adb.Root(), self.AdbCommandError()),
+        (self.call.device.IsUserBuild(), False)):
+      with self.assertRaises(device_errors.AdbCommandFailedError):
         self.device.EnableRoot()
 
 
