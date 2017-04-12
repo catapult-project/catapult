@@ -135,7 +135,7 @@ class AdbWrapper(object):
     Example of use:
     with PersistentShell('123456789') as pshell:
         pshell.RunCommand('which ls')
-        pshell.RunCommandAndClose('echo TEST')
+        pshell.RunCommand('echo TEST', close=True)
     '''
     def __init__(self, serial):
       """Initialization function:

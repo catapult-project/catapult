@@ -1539,10 +1539,17 @@ class DeviceUtilsGoHomeTest(DeviceUtilsTest):
 class DeviceUtilsForceStopTest(DeviceUtilsTest):
 
   def testForceStop(self):
+    with self.assertCalls(
+        (self.call.device.GetPids('test.package'), {'test.package': [1111]}),
+        (self.call.device.RunShellCommand(
+            ['am', 'force-stop', 'test.package'],
+            check_return=True),
+         ['Success'])):
+      self.device.ForceStop('test.package')
+
+  def testForceStop_NoProcessFound(self):
     with self.assertCall(
-        self.call.adb.Shell('p=test.package;if [[ "$(ps)" = *$p* ]]; then '
-                            'am force-stop $p; fi'),
-        ''):
+        self.call.device.GetPids('test.package'), {}):
       self.device.ForceStop('test.package')
 
 
