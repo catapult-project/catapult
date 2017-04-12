@@ -46,7 +46,6 @@ class TestAdbWrapper(device_test_case.DeviceTestCase):
     with self.assertRaises(device_errors.AdbCommandFailedError):
       self._adb.Shell('echo test', expect_status=1)
 
-  @unittest.skip("https://github.com/catapult-project/catapult/issues/2574")
   def testPersistentShell(self):
     # We need to access the device serial number here in order
     # to create the persistent shell.
