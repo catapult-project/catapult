@@ -130,6 +130,8 @@ def generate_dummy_ca_cert(subject='_WebPageReplayCert'):
   ca_cert.set_pubkey(key)
   ca_cert.add_extensions([
       crypto.X509Extension('basicConstraints', True, 'CA:TRUE'),
+      crypto.X509Extension('subjectAltName', False, 'DNS:' + subject),
+      crypto.X509Extension('nsCertType', True, 'sslCA'),
       crypto.X509Extension('extendedKeyUsage', True,
                            ('serverAuth,clientAuth,emailProtection,'
                             'timeStamping,msCodeInd,msCodeCom,msCTLSign,'
@@ -228,13 +230,20 @@ def generate_cert(root_ca_cert_str, server_cert_str, server_host):
   Returns:
     a PEM formatted certificate string
   """
+  EXTENSION_WHITELIST = set(['subjectAltName'])
+
   if openssl_import_error:
     raise openssl_import_error  # pylint: disable=raising-bad-type
 
   common_name = server_host
+  reused_extensions = []
   if server_cert_str:
     original_cert = load_cert(server_cert_str)
     common_name = original_cert.get_subject().commonName
+    for i in xrange(original_cert.get_extension_count()):
+      original_cert_extension = original_cert.get_extension(i)
+      if original_cert_extension.get_short_name() in EXTENSION_WHITELIST:
+        reused_extensions.append(original_cert_extension)
 
   ca_cert = load_cert(root_ca_cert_str)
   ca_key = load_privatekey(root_ca_cert_str)
@@ -246,10 +255,7 @@ def generate_cert(root_ca_cert_str, server_cert_str, server_host):
   cert.set_issuer(ca_cert.get_subject())
   cert.set_serial_number(int(time.time()*10000))
   cert.set_pubkey(ca_key)
-  cert.add_extensions([
-    crypto.X509Extension('subjectAltName', False, 'DNS:' + server_host),
-    crypto.X509Extension('extendedKeyUsage', False, 'serverAuth,clientAuth'),
-  ])
+  cert.add_extensions(reused_extensions)
   cert.sign(ca_key, 'sha256')
 
   return _dump_cert(cert)
