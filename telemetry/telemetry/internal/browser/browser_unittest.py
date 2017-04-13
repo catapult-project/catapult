@@ -20,6 +20,8 @@ from telemetry.testing import browser_test_case
 from telemetry.testing import options_for_unittests
 from telemetry.timeline import tracing_config
 
+from devil.android import app_ui
+
 import mock
 import py_utils
 
@@ -137,6 +139,13 @@ class BrowserTest(browser_test_case.BrowserTestCase):
     self.assertTrue(tracing_controller.is_tracing_running)
     tracing_controller.StopTracing()
     self.assertFalse(tracing_controller.is_tracing_running)
+
+  @decorators.Enabled('android')
+  def testGetAppUi(self):
+    self.assertTrue(self._browser.supports_app_ui_interactions)
+    ui = self._browser.GetAppUi()
+    self.assertTrue(isinstance(ui, app_ui.AppUi))
+    self.assertIsNotNone(ui.WaitForUiNode(resource_id='action_bar_root'))
 
 
 class CommandLineBrowserTest(browser_test_case.BrowserTestCase):

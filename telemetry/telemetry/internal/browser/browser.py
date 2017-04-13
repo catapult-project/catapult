@@ -306,6 +306,18 @@ class Browser(app.App):
     return self._browser_backend.SymbolizeMinidump(minidump_path)
 
   @property
+  def supports_app_ui_interactions(self):
+    """True if the browser supports Android app UI interactions."""
+    return self._browser_backend.supports_app_ui_interactions
+
+  def GetAppUi(self):
+    """Returns an AppUi object to interact with app's UI.
+
+       See devil.android.app_ui for the documentation of the API provided."""
+    assert self.supports_app_ui_interactions
+    return self._browser_backend.GetAppUi()
+
+  @property
   def supports_system_info(self):
     return self._browser_backend.supports_system_info
 

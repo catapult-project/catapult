@@ -95,6 +95,10 @@ class BrowserBackend(app_backend.AppBackend):
     raise NotImplementedError()
 
   @property
+  def supports_app_ui_interactions(self):
+    return False
+
+  @property
   def supports_system_info(self):
     return False
 
