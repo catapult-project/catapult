@@ -25,6 +25,10 @@ _TASK_QUEUE_NAME = 'benchmark-health-queue'
 _BENCHMARK_SHEET_ID = '1xaAo0_SU3iDfGdqDJZX_jRV0QtkufwHUKH3kQKF3YQs'
 _BENCHMARK_SHEET_NAME = 'All benchmarks'
 _BENCHMARK_RANGE = 'A2:B'
+_INVALID_BENCHMARK_NAMES = [
+    'Benchmark name',
+    'See //tools/perf/generate_perf_data.py to make changes'
+]
 
 
 class GenerateBenchmarkHealthReportHandler(request_handler.RequestHandler):
@@ -103,6 +107,8 @@ class GenerateBenchmarkHealthReportHandler(request_handler.RequestHandler):
           if len(row) == 0:
             continue
           benchmark = row[0]
+          if benchmark in _INVALID_BENCHMARK_NAMES:
+            continue
           owner = None
           if len(row) == 2:
             owner = row[1]
