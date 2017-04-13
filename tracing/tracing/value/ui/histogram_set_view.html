@@ -90,7 +90,7 @@ tr.exportTo('tr.v.ui', function() {
     async build(histograms, opt_progress) {
       const progress = opt_progress || (() => Promise.resolve());
 
-      if (histograms.length === 0) {
+      if (histograms === undefined || histograms.length === 0) {
         this.$.container.style.display = 'none';
         this.$.zero.style.display = 'block';
         this.style.display = 'block';
