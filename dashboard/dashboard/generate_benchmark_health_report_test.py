@@ -60,7 +60,7 @@ class GenerateBenchmarkHealthReportHandlerTest(testing_common.TestCase):
         'sunspider': {
             'Total': {},
             'ref': {},
-            'BenchmarkDuration': {},
+            'benchmark_duration': {},
         },
         'page_cycler': {
             'warm': {
@@ -69,13 +69,15 @@ class GenerateBenchmarkHealthReportHandlerTest(testing_common.TestCase):
             }
         }
     })
-    testing_common.AddRows('ChromiumPerf/windows/sunspider/BenchmarkDuration', {
-        12345: {'timestamp':  datetime.datetime.now(), 'value': 5},
-        12344: {
-            'timestamp': datetime.datetime.now() - datetime.timedelta(days=10),
-            'value': 7
-        },
-    })
+    testing_common.AddRows(
+        'ChromiumPerf/windows/sunspider/benchmark_duration', {
+            12345: {'timestamp':  datetime.datetime.now(), 'value': 5},
+            12344: {
+                'timestamp': datetime.datetime.now() - datetime.timedelta(
+                    days=10),
+                'value': 7
+            },
+        })
     anomaly.Anomaly(bug_id=None,
                     test=utils.TestKey('ChromiumPerf/windows/sunspider/Total'),
                     is_improvement=False,

@@ -140,7 +140,7 @@ class GenerateBenchmarkHealthReportHandler(request_handler.RequestHandler):
     if not benchmark:
       return
 
-    durations_pattern = '%s/*/%s/BenchmarkDuration' % (master, benchmark_name)
+    durations_pattern = '%s/*/%s/benchmark_duration' % (master, benchmark_name)
     test_paths = list_tests.GetTestsMatchingPattern(durations_pattern)
     futures = set()
     for test_path in test_paths:
