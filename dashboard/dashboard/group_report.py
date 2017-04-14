@@ -89,7 +89,13 @@ class GroupReportHandler(chart_handler.ChartHandler):
     stoppage_alert_query = stoppage_alert.StoppageAlert.query(
         stoppage_alert.StoppageAlert.bug_id == bug_id)
     stoppage_alerts = stoppage_alert_query.fetch(limit=_DISPLAY_LIMIT)
-    self._ShowAlerts(anomalies + stoppage_alerts, None, bug_id)
+    # If there are any anomalies on the bug, use anomaly extra columns.
+    extra_columns = None
+    if len(anomalies) > 0:
+      extra_columns = 'anomalies'
+    elif len(stoppage_alerts) > 0:
+      extra_columns = 'stoppage_alerts'
+    self._ShowAlerts(anomalies + stoppage_alerts, None, bug_id, extra_columns)
 
   def _ShowAlertsAroundRevision(self, rev):
     """Shows a alerts whose revision range includes the given revision.
@@ -111,7 +117,8 @@ class GroupReportHandler(chart_handler.ChartHandler):
     stoppage_alert_query = stoppage_alert.StoppageAlert.query(
         stoppage_alert.StoppageAlert.end_revision == rev)
     stoppage_alerts = stoppage_alert_query.fetch(limit=_DISPLAY_LIMIT)
-    self._ShowAlerts(anomalies + stoppage_alerts)
+    # Always show anomalies extra_columns for alerts around revision.
+    self._ShowAlerts(anomalies + stoppage_alerts, None, None, 'anomalies')
 
   def _ShowAlertsForKeys(self, keys):
     """Show alerts for |keys|.
@@ -135,7 +142,13 @@ class GroupReportHandler(chart_handler.ChartHandler):
 
     requested_anomalies = utils.GetMulti(keys)
 
+    extra_columns = None
     for i, anomaly_entity in enumerate(requested_anomalies):
+      if isinstance(anomaly_entity, anomaly.Anomaly):
+        extra_columns = 'anomalies'
+      elif (isinstance(anomaly_entity, stoppage_alert.StoppageAlert) and
+            extra_columns is None):
+        extra_columns = 'stoppage_alerts'
       if anomaly_entity is None:
         raise request_handler.InvalidInputError(
             'No Anomaly found for key %s.' % urlsafe_keys[i])
@@ -164,9 +177,10 @@ class GroupReportHandler(chart_handler.ChartHandler):
           anomalies.append(anomaly_entity)
     else:
       anomalies = requested_anomalies
-    self._ShowAlerts(anomalies, urlsafe_keys)
+    self._ShowAlerts(anomalies, urlsafe_keys, None, extra_columns)
 
-  def _ShowAlerts(self, alert_list, selected_keys=None, bug_id=None):
+  def _ShowAlerts(
+      self, alert_list, selected_keys=None, bug_id=None, extra_columns=None):
     """Responds to an XHR from /group_report page with a JSON list of alerts.
 
     Args:
@@ -182,6 +196,7 @@ class GroupReportHandler(chart_handler.ChartHandler):
     values = {
         'alert_list': alert_dicts[:_DISPLAY_LIMIT],
         'bug_id': bug_id,
+        'extra_columns': extra_columns,
         'test_suites': update_test_suites.FetchCachedTestSuites(),
         'selected_keys': selected_keys,
     }
