@@ -32,7 +32,7 @@ tr.b.unittest.testSuite(function() {
             documentLoaderURL: 'http://example.com'
           });
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'blink.user_timing,rail',
+        cat: 'loading,rail,devtools.timeline',
         title: 'firstContentfulPaint',
         start: 1000,
         duration: 0.0,
@@ -73,7 +73,7 @@ tr.b.unittest.testSuite(function() {
             documentLoaderURL: 'http://example.com'
           });
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'blink.user_timing,rail',
+        cat: 'loading,rail,devtools.timeline',
         title: 'firstContentfulPaint',
         start: 1000,
         duration: 0.0,
@@ -101,7 +101,7 @@ tr.b.unittest.testSuite(function() {
             documentLoaderURL: 'http://example.com'
           });
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'blink.user_timing,rail',
+        cat: 'loading,rail,devtools.timeline',
         title: 'firstContentfulPaint',
         start: 2400,
         duration: 0.0,
@@ -593,7 +593,7 @@ tr.b.unittest.testSuite(function() {
             documentLoaderURL: 'http://example.com'
           });
       rendererThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'blink.user_timing,rail',
+        cat: 'loading,rail,devtools.timeline',
         title: 'firstContentfulPaint',
         start: 600,
         duration: 0.0,

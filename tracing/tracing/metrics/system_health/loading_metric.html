@@ -141,11 +141,11 @@ tr.exportTo('tr.metrics.sh', function() {
     return snapshot;
   }
 
-  function findAllUserTimingEvents(rendererHelper, title) {
+  function findAllEvents(rendererHelper, category, title) {
     var targetEvents = [];
 
     for (var ev of rendererHelper.process.getDescendantEvents()) {
-      if (!hasCategoryAndName(ev, 'blink.user_timing', title)) continue;
+      if (!hasCategoryAndName(ev, category, title)) continue;
       targetEvents.push(ev);
     }
 
@@ -182,9 +182,8 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   function collectTimeToEvent(
-      eventName, rendererHelper, navigationStartFinder) {
-    var targetEvents =
-        findAllUserTimingEvents(rendererHelper, eventName);
+      category, eventName, rendererHelper, navigationStartFinder) {
+    var targetEvents = findAllEvents(rendererHelper, category, eventName);
     var samples = [];
     for (var ev of targetEvents) {
       if (rendererHelper.isTelemetryInternalEvent(ev)) continue;
@@ -429,9 +428,11 @@ tr.exportTo('tr.metrics.sh', function() {
     var navigationStartFinder = new NavigationStartFinder(rendererHelper);
 
     var firstContentfulPaintSamples = collectTimeToEvent(
-        'firstContentfulPaint', rendererHelper, navigationStartFinder);
+        'loading', 'firstContentfulPaint',
+        rendererHelper, navigationStartFinder);
     var onLoadSamples = collectTimeToEvent(
-        'loadEventStart', rendererHelper, navigationStartFinder);
+        'blink.user_timing', 'loadEventStart',
+        rendererHelper, navigationStartFinder);
     var {firstMeaningfulPaintSamples, firstMeaningfulPaintCpuTimeSamples,
         firstInteractiveSamples} =
         collectFirstMeaningfulPaintAndTimeToInteractiveForRenderer(

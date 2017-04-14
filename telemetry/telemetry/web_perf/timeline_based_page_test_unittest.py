@@ -170,6 +170,9 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
     self.assertIsNotNone(v_foo[0].page)
 
 
+  # TODO(ksakamoto): enable this in reference once the reference build of
+  # telemetry is updated.
+  @decorators.Disabled('reference')
   @decorators.Disabled('chromeos')
   def testFirstPaintMetricSmoke(self):
     ps = self.CreateEmptyPageSet()
@@ -190,13 +193,9 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
         'timeToFirstContentfulPaint_max')
     self.assertEquals(len(v_ttfcp_max), 1)
     self.assertIsNotNone(v_ttfcp_max[0].page)
-    # TODO(kouhei): enable this once the reference build of telemetry is
-    # updated.
-    #  self.assertGreater(v_ttfcp_max[0].value, 0)
+    self.assertGreater(v_ttfcp_max[0].value, 0)
 
     v_ttfmp_max = results.FindAllPageSpecificValuesNamed(
        'timeToFirstMeaningfulPaint_max')
     self.assertEquals(len(v_ttfmp_max), 1)
-    # TODO(ksakamoto): enable this once the reference build of telemetry is
-    # updated.
-    # self.assertIsNotNone(v_ttfmp_max[0].page)
+    self.assertIsNotNone(v_ttfmp_max[0].page)
