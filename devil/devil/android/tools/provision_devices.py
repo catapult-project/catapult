@@ -37,7 +37,6 @@ from devil.android import device_errors
 from devil.android import device_temp_file
 from devil.android import device_utils
 from devil.android import settings
-from devil.android.constants import chrome
 from devil.android.sdk import adb_wrapper
 from devil.android.sdk import intent
 from devil.android.sdk import keyevent
@@ -208,16 +207,14 @@ def WipeChromeData(device):
   """
   try:
     if device.IsUserBuild():
-      _UninstallIfMatch(device, _CHROME_PACKAGE_REGEX,
-                        chrome.PACKAGE_INFO['chrome_stable'].package)
+      _UninstallIfMatch(device, _CHROME_PACKAGE_REGEX)
       device.RunShellCommand('rm -rf %s/*' % device.GetExternalStoragePath(),
                              shell=True, check_return=True)
       device.RunShellCommand('rm -rf /data/local/tmp/*',
                              shell=True, check_return=True)
     else:
       device.EnableRoot()
-      _UninstallIfMatch(device, _CHROME_PACKAGE_REGEX,
-                        chrome.PACKAGE_INFO['chrome_stable'].package)
+      _UninstallIfMatch(device, _CHROME_PACKAGE_REGEX)
       _WipeUnderDirIfMatch(device, '/data/app-lib/', _CHROME_PACKAGE_REGEX)
       _WipeUnderDirIfMatch(device, '/data/tombstones/', _TOMBSTONE_REGEX)
 
@@ -232,7 +229,7 @@ def WipeChromeData(device):
                      'Attempting to continue.')
 
 
-def _UninstallIfMatch(device, pattern, app_to_keep):
+def _UninstallIfMatch(device, pattern):
   installed_packages = device.RunShellCommand(
       ['pm', 'list', 'packages'], check_return=True)
   installed_system_packages = [
@@ -240,9 +237,8 @@ def _UninstallIfMatch(device, pattern, app_to_keep):
           ['pm', 'list', 'packages', '-s'], check_return=True)]
   for package_output in installed_packages:
     package = package_output.split(":")[1]
-    if pattern.match(package) and not package == app_to_keep:
-      if not device.IsUserBuild() or package not in installed_system_packages:
-        device.Uninstall(package)
+    if pattern.match(package) and package not in installed_system_packages:
+      device.Uninstall(package)
 
 
 def _WipeUnderDirIfMatch(device, path, pattern):
