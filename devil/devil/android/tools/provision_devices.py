@@ -352,17 +352,15 @@ def DisableSystemChrome(device):
                          as_root=True, check_return=True)
 
 
-def _RemoveSystemApp(device, system_app):
+def _FindSystemAppPaths(device, system_app_list):
   found_paths = []
-  for directory in _SYSTEM_APP_DIRECTORIES:
-    path = os.path.join(directory, system_app)
-    if device.PathExists(path):
-      found_paths.append(path)
-  if found_paths:
-    device.RemovePath(found_paths, force=True, recursive=True)
-  else:
-    logger.warning('Could not find install location for system app %s',
-                   system_app)
+  for system_app in system_app_list:
+    for directory in _SYSTEM_APP_DIRECTORIES:
+      path = os.path.join(directory, system_app)
+      if device.PathExists(path):
+        found_paths.append(path)
+  return found_paths
+
 
 def RemoveSystemApps(device, system_app_remove_list):
   """Attempts to remove the provided system apps from the given device.
@@ -374,19 +372,20 @@ def RemoveSystemApps(device, system_app_remove_list):
   """
   device.EnableRoot()
   if device.HasRoot():
-    # Disable Marshmallow's Verity security feature
-    if device.build_version_sdk >= version_codes.MARSHMALLOW:
-      logger.info('Disabling Verity on %s', device.serial)
-      device.adb.DisableVerity()
-      device.Reboot()
-      device.WaitUntilFullyBooted()
-      device.EnableRoot()
+    system_app_paths = _FindSystemAppPaths(device, system_app_remove_list)
+    if system_app_paths:
+      # Disable Marshmallow's Verity security feature
+      if device.build_version_sdk >= version_codes.MARSHMALLOW:
+        logger.info('Disabling Verity on %s', device.serial)
+        device.adb.DisableVerity()
+        device.Reboot()
+        device.WaitUntilFullyBooted()
+        device.EnableRoot()
 
-    device.adb.Remount()
-    device.RunShellCommand(['stop'], check_return=True)
-    for system_app in system_app_remove_list:
-      _RemoveSystemApp(device, system_app)
-    device.RunShellCommand(['start'], check_return=True)
+      device.adb.Remount()
+      device.RunShellCommand(['stop'], check_return=True)
+      device.RemovePath(system_app_paths, force=True, recursive=True)
+      device.RunShellCommand(['start'], check_return=True)
   else:
     raise device_errors.CommandFailedError(
         'Failed to remove system apps from non-rooted device', str(device))
