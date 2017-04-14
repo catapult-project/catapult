@@ -81,6 +81,52 @@ found in the LICENSE file.
   <script>
     'use strict';
 
+    // TODO(eakuefner): generalize this request memoization pattern. See
+    // https://github.com/catapult-project/catapult/issues/3441.
+    tr.exportTo('d', function() {
+      class Subtests {
+        constructor() {
+          this.subtestPromises_ = new Map();
+        }
+
+        // TODO(eakuefner): implemement cancellation by wrapping
+        async getSubtestsForPath(path) {
+          if (this.subtestPromises_.has(path)) {
+            return await this.subtestPromises_.get(path);
+          }
+          const subtests = this.fetchAndProcessSubtests_(path);
+          this.subtestPromises_[path] = subtests;
+          return await subtests;
+        }
+
+        prepopulate(obj) {
+          for (const [path, subtests] of Object.entries(obj)) {
+            this.subtestPromises_.set(path, Promise.resolve(subtests));
+          }
+        }
+
+        async fetchAndProcessSubtests_(path) {
+          const params = {
+            type: 'pattern'
+          };
+          params.p = `${path}/*`;
+          const fullSubtests = await simple_xhr.asPromise(
+              '/list_tests', params);
+          // TODO(eakuefner): Standardize logic for dealing with test paths on
+          // the client side. See
+          // https://github.com/catapult-project/catapult/issues/3443.
+          const subtests = [];
+          for (const fullSubtest of fullSubtests) {
+            subtests.push({
+              name: fullSubtest.substring(fullSubtest.lastIndexOf('/') + 1)});
+          }
+          return subtests;
+        }
+      }
+
+      return {Subtests};
+    });
+
     Polymer({
 
       is: 'test-picker',
@@ -134,6 +180,11 @@ found in the LICENSE file.
           ])
         },
 
+        subtests: {
+          type: Object,
+          value: () => new d.Subtests()
+        },
+
         xsrfToken: { notify: true }
 
       },
@@ -146,6 +197,7 @@ found in the LICENSE file.
         this.enableAddSeries = false;
         this.selectedSuite = null;
         this.suiteDescription = null;
+        this.updatingSubtestMenus = false;
         this.set('selectionModels.0.datalist', this.getSuiteItems());
       },
 
@@ -227,13 +279,12 @@ found in the LICENSE file.
       onDropdownSelect: function(event) {
         var model = event.model;
         var boxIndex = model.index;
+        if (this.updatingSubtestMenus) return;
         if (boxIndex === undefined) {
           return;
         } else if (boxIndex == 0) {
           this.updateTestSuiteDescription();
           this.updateBotMenu();
-        } else if (boxIndex == 1) {
-          this.sendSubtestRequest();
         } else {
           // Update all the next dropdown menus for subtests.
           this.updateSubtestMenus(boxIndex + 1);
@@ -262,15 +313,17 @@ found in the LICENSE file.
       /**
        * Updates bot dropdown menu with bot items.
        */
-      updateBotMenu: function() {
+      updateBotMenu: async function() {
         var menu = this.getSelectionMenu(1);
         var botItems = this.getBotItems();
         menu.set('items', botItems);
         menu.set('disabled', botItems.length === 0);
         this.subtestDict = null;
-        // If there's a selection, send a subtest request.
+        // If there's a selection, update the subtest menus.
         if (menu.selectedItem) {
-          this.sendSubtestRequest();
+          this.updatingSubtestMenus = true;
+          await this.updateSubtestMenus(2);
+          this.updatingSubtestMenus = false;
         } else {
           // Clear all subtest menus.
           this.splice('selectionModels', 2);
@@ -279,84 +332,52 @@ found in the LICENSE file.
       },
 
       /**
-       * Sends a request for subtestDict base on selected test suite and bot.
-       */
-      sendSubtestRequest: function() {
-        if (this.subtestXhr) {
-          this.subtestXhr.abort();
-          this.subtestXhr = null;
-        }
-        var bot = this.getCheckedBot();
-        // If no bot is selected, just leave the current subtests.
-        if (bot === null) {
-          return;
-        }
-        var suite = this.getCheckedSuite();
-        if (!suite) {
-          return;
-        }
-
-        this.loading = true;
-
-        var params = {
-          type: 'sub_tests',
-          suite: suite,
-          bots: bot,
-          xsrf_token: this.xsrfToken
-        };
-        this.subtestXhr = simple_xhr.send(
-            '/list_tests',
-            params,
-            function(response) {
-              this.loading = false;
-              this.subtestDict = response;
-              // Start at first subtest menu.
-              this.updateSubtestMenus(2);
-            }.bind(this),
-            function(error) {
-              // TODO: Display error.
-              this.loading = false;
-            }.bind(this)
-        );
-      },
-
-      /**
        * Updates all subtest menus starting at 'startIndex'.
        */
-      updateSubtestMenus: function(startIndex) {
-        var subtestDict = this.getSubtestAtIndex(startIndex);
+      updateSubtestMenus: async function(startIndex) {
+        let subtests = await this.subtests.getSubtestsForPath(
+            this.getCurrentSelectedPathUpTo(startIndex));
 
         // Update existing subtest menu.
         for (var i = startIndex; i < this.selectionModels.length; i++) {
-          // Remove the rest of the menu if no subtestDict.
-          if (!subtestDict || Object.keys(subtestDict).length == 0) {
+          // Remove the rest of the menu if no subtests.
+          if (subtests.length === 0) {
             this.splice('selectionModels', i);
             this.updateAddButtonState();
             return;
           }
-          var subtestItems = this.getSubtestItems(subtestDict);
-          var menu = this.getSelectionMenu(i);
-          menu.set('items', subtestItems);
+          const menu = this.getSelectionMenu(i);
+          this.updatingSubtestMenus = true;
+          menu.set('items', subtests);
+          this.updatingSubtestMenus = false;
 
-          // If there are selected item, update next menu.
+          // If there is a selected item, update the next menu.
           if (menu.selectedItem) {
-            subtestDict = subtestDict[menu.selectedName]['sub_tests'];
+            const selectedPath = this.getCurrentSelectedPathUpTo(i + 1, false);
+            if (selectedPath !== undefined) {
+              subtests = await this.subtests.getSubtestsForPath(selectedPath);
+            } else {
+              subtests = [];
+            }
           } else {
-            subtestDict = null;
+            subtests = [];
           }
         }
 
-        // Check if we still need to add a subtest menu.
-        if (subtestDict && Object.keys(subtestDict).length > 0) {
-          var subtestItems = this.getSubtestItems(subtestDict);
+        // If we reached the last iteration but still have subtests, that means
+        // that the last extant subtest selection still has subtests and we need
+        // to put those in a new menu.
+        if (subtests.length > 0) {
           this.push('selectionModels', {
             placeholder: this.SUBTEST_LABEL,
-            datalist: subtestItems,
+            datalist: subtests,
             disabled: false,
           });
+          this.updatingSubtestMenus = true;
           Polymer.dom.flush();
-          var menu = this.getSelectionMenu(this.selectionModels.length - 1);
-          menu.set('items', subtestItems);
+          const menu = this.getSelectionMenu(this.selectionModels.length - 1);
+          menu.set('items', subtests);
+          this.updatingSubtestMenus = false;
         }
 
         this.updateAddButtonState();
@@ -365,32 +386,6 @@ found in the LICENSE file.
       updateAddButtonState: async function() {
         this.enableAddSeries = (
             (await this.getCurrentSelection()) instanceof Array);
-      },
-
-      getSubtestAtIndex: function(index) {
-        var subtestDict = this.subtestDict;
-        for (var i = 2; i < index; i++) {
-          var test = this.getSelectionMenu(i).selectedName;
-          if (test in subtestDict) {
-            subtestDict = subtestDict[test]['sub_tests'];
-          } else {
-            return null;
-          }
-        }
-        return subtestDict;
-      },
-
-      getSubtestItems: function(subtestDict) {
-        var subtestItems = [];
-        var subtestNames = Object.keys(subtestDict).sort();
-        for (var i = 0; i < subtestNames.length; i++) {
-          var name = subtestNames[i];
-          subtestItems.push({
-            name: name,
-            tag: (subtestDict[name]['deprecated'] ? this.DEPRECATED_TAG : '')
-          });
-        }
-        return subtestItems;
       },
 
       getCheckedBot: function() {
@@ -437,29 +432,7 @@ found in the LICENSE file.
        * Gets the current selection from the menus.
        */
       getCurrentSelection: async function() {
-        var level = 0;
-        var parts = [];
-        while (true) {
-          var menu = this.getSelectionMenu(level);
-          if (!menu || !menu.selectedItem) {
-            // A selection is only valid if it specifies at least one subtest
-            // component, which is the third level.
-            if (level <= 2) return null;
-            break;
-          } else {
-            // We want to collect all the subtest components so we can form
-            // the full test path after this loop is done.
-            if (level >= 2) parts.push(menu.selectedItem.name);
-          }
-          level += 1;
-        }
-
-        var suite = this.getSelectionMenu(0).selectedItem.name;
-        var bot = this.getCheckedBot();
-        parts.unshift(suite);
-        parts.unshift(bot);
-
-        var path = parts.join('/');
+        const path = this.getCurrentSelectedPathUpTo(-1, true);
 
         // If the paths are the same, this means that the selected path has
         // already been confirmed as valid by the previous request to
@@ -478,7 +451,6 @@ found in the LICENSE file.
             this.getSubtestsForPath(path, true),
             this.getSubtestsForPath(path, false)]);
         } catch (e) {
-          // TODO(eakuefner): Improve this error handling.
           this.loading = false;
           return null;
         }
@@ -486,8 +458,40 @@ found in the LICENSE file.
         this.currentSelectedPath_ = path;
         this.currentSelectedTests_ = selectedTests;
         this.currentUnselectedTests_ = unselectedTests;
-        this.updateSubtestMenus(2);
+        this.updatingSubtestMenus = true;
+        await this.updateSubtestMenus(2);
+        this.updatingSubtestMenus = false;
         return selectedTests;
+      },
+
+      getCurrentSelectedPathUpTo: function(maxLevel, onlyValid) {
+        let level = 0;
+        const parts = [];
+        while (true) {
+          if (maxLevel !== -1 && level >= maxLevel) {
+            break;
+          }
+          const menu = this.getSelectionMenu(level);
+          if (onlyValid && (!menu || !menu.selectedItem)) {
+            // A selection is only valid if it specifies at least one subtest
+            // component, which is the third level.
+            if (level <= 2) return undefined;
+            break;
+          } else {
+            // We want to collect all the subtest components so we can form
+            // the full test path after this loop is done.
+            if (level >= 2) parts.push(menu.selectedItem.name);
+          }
+          level += 1;
+        }
+
+        const suite = this.getSelectionMenu(0).selectedItem.name;
+        const bot = this.getCheckedBot();
+        parts.unshift(suite);
+        parts.unshift(bot);
+
+        if (parts.length < maxLevel) return undefined;
+        return parts.join('/');
       },
 
       getCurrentSelectedPath: function() {

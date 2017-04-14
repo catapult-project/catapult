@@ -109,9 +109,8 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual(actualSuites, expectedSuites);
   }, testOptions);
 
-  test('fullPathRetained', function() {
-    testing_common.addXhrMock('*', JSON.stringify(MOCK_RESPONSE));
-    let testPicker = document.createElement('test-picker');
+  test('fullPathRetained', async function() {
+    const testPicker = document.createElement('test-picker');
     testPicker.testSuites = {
       'endure': {
         'mas': {'Chromium': {'mac': false, 'win7': true}},
@@ -125,19 +124,30 @@ tr.b.unittest.testSuite(function() {
         'mon': ['select-multiple-add/select-multiple-add.html']
       }
     };
+    testPicker.subtests.prepopulate({
+      'Chromium/mac/blink_perf': [{name: 'textarea-edit'}],
+      'Chromium/mac/blink_perf/textarea-edit': [
+        {name: 'textarea_edit.html'}]
+    });
 
-    let suiteMenu = testPicker.getSelectionMenu(0);
+    const suiteMenu = testPicker.getSelectionMenu(0);
     suiteMenu.selectedItem = suiteMenu.items[0];
 
-    let botMenu = testPicker.getSelectionMenu(1);
-    botMenu.selectedItem = botMenu.items[0];
+    const botMenu = testPicker.getSelectionMenu(1);
+    // Pick the second bot menu item because the first is the master.
+    botMenu.selectedItem = botMenu.items[1];
 
-    let benchmarkMenu = testPicker.getSelectionMenu(2);
-    let expectedBenchmark = benchmarkMenu.items[0].name;
+    // We need to do this manuallyto make sure the next menu is populated.
+    await testPicker.updateSubtestMenus(2);
+
+    const benchmarkMenu = testPicker.getSelectionMenu(2);
+    const expectedBenchmark = benchmarkMenu.items[0].name;
     benchmarkMenu.selectedItem = benchmarkMenu.items[0];
 
-    let metricMenu = testPicker.getSelectionMenu(3);
-    let expectedMetric = metricMenu.items[0].name;
+    await testPicker.updateSubtestMenus(3);
+
+    const metricMenu = testPicker.getSelectionMenu(3);
+    const expectedMetric = metricMenu.items[0].name;
     metricMenu.selectedItem = metricMenu.items[0];
 
     // Now pick a new bot
@@ -147,9 +157,8 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual(metricMenu.selectedItem.name, expectedMetric);
   }, testOptions);
 
-  test('getCurrentSelectionReturnsNullIfInvalid', async function() {
-    testing_common.addXhrMock('*', JSON.stringify(MOCK_RESPONSE));
-    let testPicker = document.createElement('test-picker');
+  test('getCurrentSelectionReturnsUndefinedIfInvalid', async function() {
+    const testPicker = document.createElement('test-picker');
     testPicker.testSuites = {
       'endure': {
         'mas': {'Chromium': {'mac': false, 'win7': true}},
@@ -164,13 +173,35 @@ tr.b.unittest.testSuite(function() {
       }
     };
 
-    let suiteMenu = testPicker.getSelectionMenu(0);
+    const suiteMenu = testPicker.getSelectionMenu(0);
     suiteMenu.selectedItem = suiteMenu.items[0];
 
-    let botMenu = testPicker.getSelectionMenu(1);
+    const botMenu = testPicker.getSelectionMenu(1);
     botMenu.selectedItem = botMenu.items[0];
 
-    assert.isNull(await testPicker.getCurrentSelection());
+    assert.isUndefined(await testPicker.getCurrentSelection());
+  });
+
+  test('prepopulateSubtests', async function() {
+    const testPicker = document.createElement('test-picker');
+    testPicker.subtests.prepopulate({foo: 'bar'});
+    assert.strictEqual(
+        await testPicker.subtests.getSubtestsForPath('foo'), 'bar');
+  });
+
+  test('getSubtestsForPath', async function() {
+    testing_common.addXhrMock('*', JSON.stringify(['foo/bar']));
+    const testPicker = document.createElement('test-picker');
+    assert.deepEqual(
+        await testPicker.subtests.getSubtestsForPath('foo'), [{name: 'bar'}]);
+    testing_common.clearXhrMock();
+  });
+
+  test('subtestsStoresPromises', async function() {
+    testing_common.addXhrMock('*', JSON.stringify(['foo/bar']));
+    const testPicker = document.createElement('test-picker');
+    assert.instanceOf(
+        testPicker.subtests.getSubtestsForPath('foo'), Promise);
     testing_common.clearXhrMock();
   });
 });
