@@ -85,11 +85,13 @@ def ProvisionDevices(
     reboot_timeout=None,
     remove_system_webview=False,
     system_app_remove_list=None,
+    system_package_remove_list=None,
     wipe=True):
   blacklist = (device_blacklist.Blacklist(blacklist_file)
                if blacklist_file
                else None)
   system_app_remove_list = system_app_remove_list or []
+  system_package_remove_list = system_package_remove_list or []
   try:
     devices = script_common.GetDevices(devices, blacklist)
   except device_errors.NoDevicesError:
@@ -126,9 +128,10 @@ def ProvisionDevices(
   if remove_system_webview:
     system_app_remove_list.extend(_SYSTEM_WEBVIEW_NAMES)
 
-  if system_app_remove_list:
+  if system_app_remove_list or system_package_remove_list:
     steps.append(ProvisionStep(
-        lambda d: RemoveSystemApps(d, system_app_remove_list)))
+        lambda d: RemoveSystemApps(
+            d, system_app_remove_list, system_package_remove_list)))
 
   steps.append(ProvisionStep(SetDate))
   steps.append(ProvisionStep(CheckExternalStorage))
@@ -348,6 +351,13 @@ def DisableSystemChrome(device):
                          as_root=True, check_return=True)
 
 
+def _FindSystemPackagePaths(device, system_package_list):
+  found_paths = []
+  for system_package in system_package_list:
+    found_paths.extend(device.GetApplicationPaths(system_package))
+  return [p for p in found_paths if p.startswith('/system/')]
+
+
 def _FindSystemAppPaths(device, system_app_list):
   found_paths = []
   for system_app in system_app_list:
@@ -358,17 +368,22 @@ def _FindSystemAppPaths(device, system_app_list):
   return found_paths
 
 
-def RemoveSystemApps(device, system_app_remove_list):
+def RemoveSystemApps(
+    device, system_app_remove_list, system_package_remove_list):
   """Attempts to remove the provided system apps from the given device.
 
   Arguments:
     device: The device to remove the system apps from.
     system_app_remove_list: A list of app names to remove, e.g.
         ['WebViewGoogle', 'GoogleVrCore']
+    system_package_remove_list: A list of app packages to remove, e.g.
+        ['com.google.android.webview']
   """
   device.EnableRoot()
   if device.HasRoot():
-    system_app_paths = _FindSystemAppPaths(device, system_app_remove_list)
+    system_app_paths = (
+        _FindSystemAppPaths(device, system_app_remove_list) +
+        _FindSystemPackagePaths(device, system_package_remove_list))
     if system_app_paths:
       # Disable Marshmallow's Verity security feature
       if device.build_version_sdk >= version_codes.MARSHMALLOW:
@@ -546,7 +561,8 @@ def main(raw_args):
       help='disable Java property asserts and JNI checking')
   parser.add_argument(
       '--disable-system-chrome', action='store_true',
-      help='Disable the system chrome from devices.')
+      help='DEPRECATED: use --remove-system-packages com.android.google '
+           'Disable the system chrome from devices.')
   parser.add_argument(
       '--emulators', action='store_true',
       help='provision only emulators and ignore usb devices '
@@ -568,10 +584,16 @@ def main(raw_args):
            '(default: %s)' % _DEFAULT_TIMEOUTS.HELP_TEXT)
   parser.add_argument(
       '--remove-system-apps', nargs='*', dest='system_app_remove_list',
-      help='the names of system apps to remove')
+      help='DEPRECATED: use --remove-system-packages instead. '
+           'The names of system apps to remove. ')
+  parser.add_argument(
+      '--remove-system-packages', nargs='*', dest='system_package_remove_list',
+      help='The names of system packages to remove.')
   parser.add_argument(
       '--remove-system-webview', action='store_true',
-      help='Remove the system webview from devices.')
+      help='DEPRECATED: use --remove-system-packages '
+           'com.google.android.webview com.android.webview '
+           'Remove the system webview from devices.')
   parser.add_argument(
       '--skip-wipe', action='store_true', default=False,
       help='do not wipe device data during provisioning')
@@ -623,6 +645,7 @@ def main(raw_args):
         reboot_timeout=args.reboot_timeout,
         remove_system_webview=args.remove_system_webview,
         system_app_remove_list=args.system_app_remove_list,
+        system_package_remove_list=args.system_package_remove_list,
         wipe=not args.skip_wipe and not args.emulators)
   except (device_errors.DeviceUnreachableError, device_errors.NoDevicesError):
     logging.exception('Unable to provision local devices.')
