@@ -58,3 +58,29 @@ class StoryTest(unittest.TestCase):
 
     s = story.Story(SharedStateBar, make_javascript_deterministic=True)
     self.assertTrue(s.make_javascript_deterministic)
+
+  def testInvalidTags(self):
+    with self.assertRaises(ValueError):
+      story.Story(SharedStateBar, tags=['a@'])
+    with self.assertRaises(ValueError):
+      story.Story(SharedStateBar, tags=['a:b'])
+    with self.assertRaises(ValueError):
+      story.Story(SharedStateBar, tags=['tags with space'])
+    with self.assertRaises(ValueError):
+      story.Story(SharedStateBar, tags=['a:b'])
+    with self.assertRaises(ValueError):
+      story.Story(SharedStateBar, tags=[''])
+    with self.assertRaises(ValueError):
+      story.Story(SharedStateBar, tags=['aaaaaa~1'])
+    with self.assertRaises(ValueError):
+      story.Story(SharedStateBar, tags=['tag-with-dash'])
+    with self.assertRaises(ValueError):
+      story.Story(SharedStateBar, tags=['a'*51])
+
+
+  def testValidTags(self):
+    story.Story(SharedStateBar, tags=['abc'])
+    story.Story(SharedStateBar, tags=['a'*50, 'b'*25 + 'a'*25])
+    story.Story(SharedStateBar, tags=['a_b'])
+    story.Story(SharedStateBar, tags=['_1'])
+    story.Story(SharedStateBar, tags=['1honda_2tesla_3airplanes'])

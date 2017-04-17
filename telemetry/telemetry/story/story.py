@@ -9,6 +9,9 @@ from telemetry.story import shared_state as shared_state_module
 _next_story_id = 0
 
 
+_VALID_TAG_RE = re.compile(r'^[\w]+$')
+
+
 class Story(object):
   """A class styled on unittest.TestCase for creating story tests.
 
@@ -56,6 +59,14 @@ class Story(object):
       tags = set(tags)
     else:
       assert isinstance(tags, set)
+    for t in tags:
+      if not _VALID_TAG_RE.match(t):
+        raise ValueError(
+            'Invalid tag string: %s. Tag can only contain alphanumeric and '
+            'underscore characters.' % t)
+      if len(t) > 50:
+        raise ValueError('Invalid tag string: %s. Tag can have at most 50 '
+                         'characters')
     self._tags = tags
     self._is_local = is_local
     self._make_javascript_deterministic = make_javascript_deterministic
