@@ -3,6 +3,10 @@
 # found in the LICENSE file.
 
 UA_TYPE_MAPPING = {
+  'chromeos':
+      'Mozilla/5.0 (X11; CrOS x86_64 9202.60.0) '
+      'AppleWebKit/537.36 (KHTML, like Gecko) '
+      'Chrome/57.0.2987.137 Safari/537.36',
   'desktop':
       'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_3) '
       'AppleWebKit/537.36 (KHTML, like Gecko) '

@@ -7,6 +7,7 @@ import os
 import sys
 
 from telemetry.core import exceptions
+from telemetry.core import platform as platform_module
 from telemetry.core import util
 from telemetry import decorators
 from telemetry.internal.browser import browser_finder
@@ -339,7 +340,10 @@ class SharedMobilePageState(SharedPageState):
 
 
 class SharedDesktopPageState(SharedPageState):
-  _device_type = 'desktop'
+  if platform_module.GetHostPlatform().GetOSName() == 'chromeos':
+    _device_type = 'chromeos'
+  else:
+    _device_type = 'desktop'
 
 
 class SharedTabletPageState(SharedPageState):
