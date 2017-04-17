@@ -137,7 +137,6 @@ indexes:
   - name: timestamp
     direction: desc
 
-
 # Might be unused!
 # This index would enable querying for points for a particular test,
 # filtering or sorting by revision, and possibly doing a projection
@@ -191,6 +190,22 @@ indexes:
   - name: parent_test
   - name: timestamp
     direction: desc
+
+# Used for returning timeseries of diagnostics.
+- kind: SparseDiagnostic
+  properties:
+  - name: start_revision
+    direction: desc
+  - name: end_revision
+    direction: desc
+
+- kind: SparseDiagnostic
+  properties:
+  - name: start_revision
+    direction: desc
+  - name: end_revision
+    direction: desc
+  - name: internal_only
 
 # May be used in send_stoppage_alert_emails to fetch recent StoppageAlert
 # entities for a particular sheriff, for both internal-only and public alerts.
