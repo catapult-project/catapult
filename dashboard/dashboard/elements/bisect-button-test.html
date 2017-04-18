@@ -25,5 +25,27 @@ tr.b.unittest.testSuite(function() {
     var button = document.createElement('bisect-button');
     this.addHTMLOutput(button);
   }, testOptions);
+
+  test('onlyOneRevision_ButtonDisabled', function() {
+    var button = document.createElement('bisect-button');
+    button.bisectInfo = {
+      goodRev: 1,
+      badRev: 2,
+      canBisect: true
+    };
+    this.addHTMLOutput(button);
+    assert.isTrue(button.$.button.disabled);
+  }, testOptions);
+
+  test('moreThanOneRevision_ButtonEnabled', function() {
+    var button = document.createElement('bisect-button');
+    button.bisectInfo = {
+      goodRev: 1,
+      badRev: 10,
+      canBisect: true
+    };
+    this.addHTMLOutput(button);
+    assert.isFalse(button.$.button.disabled);
+  }, testOptions);
 });
 </script>

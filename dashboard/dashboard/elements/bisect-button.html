@@ -38,7 +38,7 @@ found in the LICENSE file.
     </style>
     <paper-button raised
         id="button"
-        disabled$={{!bisectInfo.canBisect}}
+        disabled$={{!computeCanBisect(bisectInfo)}}
         on-click="onBisect">Bisect</paper-button>
     <bisect-form
         id="bisect"
@@ -61,6 +61,16 @@ found in the LICENSE file.
           },
           bugId: { notify: true },
           xsrfToken: { notify: true }
+        },
+
+        /**
+         * Determines whether or not this is bisectable.
+         */
+        computeCanBisect: function(bisectInfo) {
+          // If there's only a single revision in the range, bisecting
+          // is pointless and the button should be disabled.
+          return (bisectInfo != null && bisectInfo.canBisect &&
+              (bisectInfo.badRev > bisectInfo.goodRev + 1));
         },
 
         /**
