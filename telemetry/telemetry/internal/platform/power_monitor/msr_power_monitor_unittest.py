@@ -12,7 +12,8 @@ from telemetry.internal.platform import win_platform_backend
 
 
 class MsrPowerMonitorTest(unittest.TestCase):
-  @decorators.Enabled('xp', 'win7', 'win8')  # http://crbug.com/479337
+  @decorators.Disabled('all') # http://crbug.com/712486
+  #@decorators.Enabled('xp', 'win7', 'win8')  # http://crbug.com/479337
   def testMsrRuns(self):
     platform_backend = win_platform_backend.WinPlatformBackend()
     power_monitor = msr_power_monitor.MsrPowerMonitorWin(platform_backend)
