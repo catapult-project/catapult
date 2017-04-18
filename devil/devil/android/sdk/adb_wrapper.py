@@ -37,6 +37,7 @@ DEFAULT_RETRIES = 2
 
 _ADB_VERSION_RE = re.compile(r'Android Debug Bridge version (\d+\.\d+\.\d+)')
 _EMULATOR_RE = re.compile(r'^emulator-[0-9]+$')
+_DEVICE_NOT_FOUND_RE = re.compile(r"error: device '(?P<serial>.+)' not found")
 _READY_STATE = 'device'
 _VERITY_DISABLE_RE = re.compile(r'Verity (already )?disabled')
 _VERITY_ENABLE_RE = re.compile(r'Verity (already )?enabled')
@@ -253,14 +254,17 @@ class AdbWrapper(object):
       else:
         raise
 
-    if status != 0:
-      raise device_errors.AdbCommandFailedError(
-          args, output, status, device_serial)
-    # This catches some errors, including when the device drops offline;
-    # unfortunately adb is very inconsistent with error reporting so many
-    # command failures present differently.
-    if check_error and output.startswith('error:'):
-      raise device_errors.AdbCommandFailedError(args, output)
+    # Best effort to catch errors from adb; unfortunately adb is very
+    # inconsistent with error reporting so many command failures present
+    # differently.
+    if status != 0 or (check_error and output.startswith('error:')):
+      m = _DEVICE_NOT_FOUND_RE.match(output)
+      if m is not None and m.group('serial') == device_serial:
+        raise device_errors.DeviceUnreachableError(device_serial)
+      else:
+        raise device_errors.AdbCommandFailedError(
+            args, output, status, device_serial)
+
     return output
   # pylint: enable=unused-argument
 

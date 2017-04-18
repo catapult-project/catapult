@@ -4,6 +4,22 @@
 
 """
 Exception classes raised by AdbWrapper and DeviceUtils.
+
+The class hierarchy for device exceptions is:
+
+    base_error.BaseError
+     +-- CommandFailedError
+     |    +-- AdbCommandFailedError
+     |    |    +-- AdbShellCommandFailedError
+     |    +-- FastbootCommandFailedError
+     |    +-- DeviceVersionError
+     |    +-- DeviceChargingError
+     +-- CommandTimeoutError
+     +-- DeviceUnreachableError
+     +-- NoDevicesError
+     +-- MultipleDevicesError
+     +-- NoAdbError
+
 """
 
 from devil import base_error

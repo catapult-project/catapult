@@ -22,7 +22,8 @@ def PrepareDevices(*_args):
       d.WaitUntilFullyBooted(timeout=5, retries=0)
       live_devices.append(str(d))
     except (device_errors.CommandFailedError,
-            device_errors.CommandTimeoutError):
+            device_errors.CommandTimeoutError,
+            device_errors.DeviceUnreachableError):
       pass
   with _devices_lock:
     _devices.update(set(live_devices))
@@ -51,4 +52,3 @@ class DeviceTestCase(unittest.TestCase):
     with _devices_lock:
       _devices.add(self.serial)
       _devices_condition.notify()
-

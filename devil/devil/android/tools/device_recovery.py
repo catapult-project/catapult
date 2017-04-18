@@ -64,7 +64,8 @@ def RecoverDevice(device, blacklist, should_reboot=lambda device: True):
     try:
       device.WaitUntilFullyBooted(retries=0)
     except (device_errors.CommandTimeoutError,
-            device_errors.CommandFailedError):
+            device_errors.CommandFailedError,
+            device_errors.DeviceUnreachableError):
       logger.exception('Failure while waiting for %s. '
                        'Attempting to recover.', str(device))
     try:
@@ -83,7 +84,8 @@ def RecoverDevice(device, blacklist, should_reboot=lambda device: True):
           # exception willbe thrown at that level.
           device.adb.Shell('echo b > /proc/sysrq-trigger', expect_status=None,
                            timeout=5, retries=0)
-    except device_errors.CommandFailedError:
+    except (device_errors.CommandFailedError,
+            device_errors.DeviceUnreachableError):
       logger.exception('Failed to reboot %s.', str(device))
       if blacklist:
         blacklist.Extend([device.adb.GetDeviceSerial()],
@@ -97,7 +99,8 @@ def RecoverDevice(device, blacklist, should_reboot=lambda device: True):
     try:
       device.WaitUntilFullyBooted(
           retries=0, timeout=device.REBOOT_DEFAULT_TIMEOUT)
-    except device_errors.CommandFailedError:
+    except (device_errors.CommandFailedError,
+            device_errors.DeviceUnreachableError):
       logger.exception('Failure while waiting for %s.', str(device))
       if blacklist:
         blacklist.Extend([device.adb.GetDeviceSerial()],

@@ -38,6 +38,11 @@ class TestAdbWrapper(device_test_case.DeviceTestCase):
       f.write(contents)
     return path
 
+  def testDeviceUnreachable(self):
+    with self.assertRaises(device_errors.DeviceUnreachableError):
+      bad_adb = adb_wrapper.AdbWrapper('device_gone')
+      bad_adb.Shell('echo test')
+
   def testShell(self):
     output = self._adb.Shell('echo test', expect_status=0)
     self.assertEqual(output.strip(), 'test')
@@ -108,7 +113,7 @@ class TestAdbWrapper(device_test_case.DeviceTestCase):
       try:
         self._adb.Shell('start')
         break
-      except device_errors.AdbCommandFailedError:
+      except device_errors.DeviceUnreachableError:
         time.sleep(1)
     self._adb.Remount()
 

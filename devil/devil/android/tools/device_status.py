@@ -51,7 +51,8 @@ def _BatteryStatus(device, blacklist):
       if blacklist:
         blacklist.Extend([device.adb.GetDeviceSerial()], reason='low_battery')
 
-  except device_errors.CommandFailedError:
+  except (device_errors.CommandFailedError,
+          device_errors.DeviceUnreachableError):
     logger.exception('Failed to get battery information for %s',
                      str(device))
 
@@ -66,7 +67,8 @@ def _IMEISlice(device):
       m = _RE_DEVICE_ID.match(l)
       if m:
         imei_slice = m.group(1)[-6:]
-  except device_errors.CommandFailedError:
+  except (device_errors.CommandFailedError,
+          device_errors.DeviceUnreachableError):
     logger.exception('Failed to get IMEI slice for %s', str(device))
 
   return imei_slice
@@ -143,7 +145,8 @@ def DeviceStatus(devices, blacklist):
             'wifi_ip': wifi_ip,
           })
 
-        except device_errors.CommandFailedError:
+        except (device_errors.CommandFailedError,
+                device_errors.DeviceUnreachableError):
           logger.exception('Failure while getting device status for %s.',
                            str(device))
           if blacklist:

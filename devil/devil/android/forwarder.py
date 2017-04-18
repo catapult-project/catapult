@@ -46,7 +46,8 @@ def _LogMapFailureDiagnostics(device):
     logger.info('Last 50 lines of logcat:')
     for logcat_line in device.adb.Logcat(dump=True)[-50:]:
       logger.info('    %s', logcat_line)
-  except device_errors.CommandFailedError:
+  except (device_errors.CommandFailedError,
+          device_errors.DeviceUnreachableError):
     # Grabbing the device forwarder log is also best-effort. Ignore all errors.
     logger.warning('Failed to get the contents of the logcat.')
 
@@ -57,7 +58,8 @@ def _LogMapFailureDiagnostics(device):
     for line in ps_out:
       if 'device_forwarder' in line:
         logger.info('    %s', line)
-  except device_errors.CommandFailedError:
+  except (device_errors.CommandFailedError,
+          device_errors.DeviceUnreachableError):
     logger.warning('Failed to list currently running device_forwarder '
                    'instances.')
 
@@ -154,7 +156,8 @@ class Forwarder(object):
         if exit_code != 0:
           try:
             instance._KillDeviceLocked(device, tool)
-          except device_errors.CommandFailedError:
+          except (device_errors.CommandFailedError,
+                  device_errors.DeviceUnreachableError):
             # We don't want the failure to kill the device forwarder to
             # supersede the original failure to map.
             logging.warning(

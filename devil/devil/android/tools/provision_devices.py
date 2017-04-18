@@ -172,7 +172,8 @@ def ProvisionDevice(device, steps, blacklist, reboot_timeout=None):
     if blacklist:
       blacklist.Extend([str(device)], reason='provision_timeout')
 
-  except device_errors.CommandFailedError:
+  except (device_errors.CommandFailedError,
+          device_errors.DeviceUnreachableError):
     logger.exception('Failed to provision device %s. Adding to blacklist.',
                      str(device))
     if blacklist:
