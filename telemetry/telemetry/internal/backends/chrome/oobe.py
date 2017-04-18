@@ -37,7 +37,8 @@ class Oobe(web_contents.WebContents):
 
   def _ExecuteOobeApi(self, api, *args):
     logging.info('Invoking %s' % api)
-    self.WaitForJavaScriptCondition("typeof Oobe == 'function'", timeout=120)
+    self.WaitForJavaScriptCondition(
+        "typeof Oobe == 'function' && Oobe.readyForTesting", timeout=120)
 
     if self.EvaluateJavaScript(
         "typeof {{ @api }} == 'undefined'", api=api):
