@@ -24,6 +24,10 @@ tr.b.unittest.testSuite(function() {
     });
   });
 
+  test('assert_equal_is_forbidden', function() {
+    assert.throws(() => assert.equal(0, '0'));
+  });
+
   /* To test failures remove comments
   test('fail', function() {
     assert.strictEqual(true, false);

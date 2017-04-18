@@ -275,8 +275,8 @@ tr.b.unittest.testSuite(function() {
         rendererHelper.process, rangeOfInterest);
     const breakdownTree = tr.metrics.sh.generateWallClockTimeBreakdownTree(
         rendererHelper.mainThread, networkEvents, rangeOfInterest);
-    assert.equal(breakdownTree['blocked_on_network'].total, 50);
-    assert.equal(breakdownTree['idle'].total, 100);
+    assert.strictEqual(breakdownTree['blocked_on_network'].total, 50);
+    assert.strictEqual(breakdownTree['idle'].total, 100);
   });
 
   test('testBlockedOnNetwork_netEventAndMainThreadEvent', function() {
@@ -301,9 +301,9 @@ tr.b.unittest.testSuite(function() {
         rendererHelper.process, rangeOfInterest);
     const breakdownTree = tr.metrics.sh.generateWallClockTimeBreakdownTree(
         rendererHelper.mainThread, networkEvents, rangeOfInterest);
-    assert.equal(breakdownTree['layout'].total, 140);
-    assert.equal(breakdownTree['blocked_on_network'].total, 10);
-    assert.equal(breakdownTree['idle'].total, 20);
+    assert.strictEqual(breakdownTree['layout'].total, 140);
+    assert.strictEqual(breakdownTree['blocked_on_network'].total, 10);
+    assert.strictEqual(breakdownTree['idle'].total, 20);
   });
 
   test('testBlockedOnNetwork_rangeEmpty', function() {
@@ -328,9 +328,9 @@ tr.b.unittest.testSuite(function() {
         rendererHelper.process, rangeOfInterest);
     const breakdownTree = tr.metrics.sh.generateWallClockTimeBreakdownTree(
         rendererHelper.mainThread, networkEvents, rangeOfInterest);
-    assert.equal(breakdownTree['layout'].total, 0);
-    assert.equal(breakdownTree['blocked_on_network'].total, 0);
-    assert.equal(breakdownTree['idle'].total, 0);
+    assert.strictEqual(breakdownTree['layout'].total, 0);
+    assert.strictEqual(breakdownTree['blocked_on_network'].total, 0);
+    assert.strictEqual(breakdownTree['idle'].total, 0);
   });
 });
 </script>
