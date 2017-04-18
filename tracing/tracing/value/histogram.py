@@ -330,6 +330,10 @@ class Diagnostic(object):
     assert self._guid is None
     self._guid = g
 
+  @property
+  def is_inline(self):
+    return self._guid is None
+
   def AsDictOrReference(self):
     if self._guid:
       return self._guid
@@ -350,6 +354,19 @@ class Diagnostic(object):
     if dct['type'] not in Diagnostic.REGISTRY:
       raise ValueError('Unrecognized diagnostic type: ' + dct['type'])
     return Diagnostic.REGISTRY[dct['type']].FromDict(dct)
+
+  def Inline(self):
+    """Inlines a shared diagnostic.
+
+    Any diagnostic that has a guid will be serialized as a reference, because it
+    is assumed that diagnostics with guids are shared. This method removes the
+    guid so that the diagnostic will be serialized by value.
+
+    Inling is used for example in the dashboard, where certain types of shared
+    diagnostics that vary on a per-upload basis are inlined for efficiency
+    reasons.
+    """
+    self._guid = None
 
   def CanAddDiagnostic(self, unused_other_diagnostic, unused_name,
                        unused_parent_hist, unused_other_parent_hist):

@@ -672,6 +672,18 @@ class RelatedHistogramBreakdownUnittest(unittest.TestCase):
 
 
 class DiagnosticMapUnittest(unittest.TestCase):
+  def testInlineSharedDiagnostic(self):
+    generic = histogram.Generic('generic diagnostic')
+    hist = histogram.Histogram('', 'count')
+    _ = generic.guid  # First access sets guid
+    hist.diagnostics['foo'] = generic
+    generic.Inline()
+    self.assertTrue(generic.is_inline)
+    hist_dict = hist.AsDict()
+    diag_dict = hist_dict['diagnostics']['foo']
+    self.assertIsInstance(diag_dict, dict)
+    self.assertEqual(diag_dict['type'], 'Generic')
+
   def testMerge(self):
     events = histogram.RelatedEventSet()
     events.Add({
