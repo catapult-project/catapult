@@ -169,6 +169,27 @@ class GraphJsonTest(testing_common.TestCase):
     self.CheckFlotJson(flot_json_str, 150, 2, 15850, 16000, step=1)
     self.assertEqual('*', response.headers.get('Access-Control-Allow-Origin'))
 
+  def testPost_NanFiltered(self):
+    self._AddTestColumns(start_rev=15700, end_rev=16000, step=1)
+
+    test_key = utils.OldStyleTestKey('ChromiumGPU/win7/dromaeo/jslib')
+    row_key = utils.GetRowKey(test_key, 15900)
+    row = row_key.get()
+    row.value = float('nan')
+    row.put()
+
+    graphs = {
+        'test_path_dict': {
+            'ChromiumGPU/win7/dromaeo/jslib': [],
+        }
+    }
+    # If the request is valid, a valid response will be returned.
+    response = self.testapp.post(
+        '/graph_json', {'graphs': json.dumps(graphs)})
+    flot_json_str = response.body
+    rows = json.loads(flot_json_str)['data']['0']['data']
+    self.assertEqual(149, len(rows))
+
   def testPost_InvalidRequest_ReportsError(self):
     self.testapp.post('/graph_json', {}, status=500)
     self.testapp.post('/graph_json', {'graphs': ''}, status=500)

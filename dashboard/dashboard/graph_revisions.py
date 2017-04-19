@@ -16,6 +16,7 @@ long time. This module also provides a function for updating the cache.
 
 import bisect
 import json
+import math
 
 from google.appengine.ext import ndb
 
@@ -44,6 +45,15 @@ class GraphRevisionsHandler(request_handler.RequestHandler):
     rows = namespaced_stored_object.Get(_CACHE_KEY % test_path)
     if not rows:
       rows = _UpdateCache(utils.TestKey(test_path))
+
+    # TODO(simonhatch): Need to filter out NaN values.
+    # https://github.com/catapult-project/catapult/issues/3474
+    def _NaNtoNone(x):
+      if math.isnan(x):
+        return None
+      return x
+    rows = [
+        (_NaNtoNone(r[0]), _NaNtoNone(r[1]), _NaNtoNone(r[2])) for r in rows]
     self.response.out.write(json.dumps(rows))
 
 

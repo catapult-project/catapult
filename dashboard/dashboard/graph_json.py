@@ -12,6 +12,7 @@ import copy
 import datetime
 import json
 import logging
+import math
 import re
 
 from google.appengine.ext import ndb
@@ -460,7 +461,12 @@ def _GetFlotJson(revision_map, tests):
       if timestamp and type(timestamp) is datetime.datetime:
         point_info['timestamp'] = utils.TimestampMilliseconds(timestamp)
 
+      # TODO(simonhatch): Need to filter out NaN values.
+      # https://github.com/catapult-project/catapult/issues/3474
       point_list = [revision, point_info['value']]
+      if math.isnan(point_info['value']):
+        continue
+
       if 'error' in point_info:
         error = point_info['error']
         error_bars[series_index][0]['data'].append(

@@ -64,6 +64,14 @@ class GraphRevisionsTest(testing_common.TestCase):
         '/graph_revisions', {'test_path': 'ChromiumPerf/win7/dromaeo/dom'})
     self.assertEqual([[1, 2, 3]], json.loads(response.body))
 
+  def testPost_CacheSet_NanBecomesNone(self):
+    stored_object.Set(
+        'externally_visible__num_revisions_ChromiumPerf/win7/dromaeo/dom',
+        [[1, 2, 3], [4, float('nan'), 6]])
+    response = self.testapp.post(
+        '/graph_revisions', {'test_path': 'ChromiumPerf/win7/dromaeo/dom'})
+    self.assertEqual([[1, 2, 3], [4, None, 6]], json.loads(response.body))
+
   def testAddRowsToCache(self):
     self._AddMockData()
     rows = []
