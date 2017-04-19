@@ -38,7 +38,8 @@ class LocalDirectoryCorpusDriver(corpus_driver.CorpusDriver):
 
   @staticmethod
   def CheckAndCreateInitArguments(parser, args):
-    trace_dir = os.path.abspath(os.path.expanduser(args.trace_directory))
+    del args  # Unused by LocalDirectoryCorpusDriver.
+    trace_dir = os.getcwd()
     if not os.path.exists(trace_dir):
       parser.error('Trace directory does not exist')
       return None
