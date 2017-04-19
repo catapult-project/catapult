@@ -22,6 +22,7 @@ from tracing.trace_data import trace_data
 OUTPUT_CONTROLLER_TRACE_ = False
 CONTROLLER_TRACE_DATA_KEY = 'controllerTraceDataKey'
 _SYSTRACE_TO_TRACE_DATA_NAME_MAPPING = {
+    'androidProcessDump': trace_data.ANDROID_PROCESS_DATA_PART,
     'systemTraceEvents': trace_data.ATRACE_PART,
     'powerTraceAsString': trace_data.BATTOR_TRACE_PART,
     'systraceController': trace_data.TELEMETRY_PART,
@@ -59,7 +60,7 @@ def GenerateHTMLOutput(trace_results, output_file_name):
   # Java verison of systrace. Java systrace is expected to be deleted at a later
   # date. We should consolidate this logic when that happens.
 
-  if len(trace_results) > 2:
+  if len(trace_results) > 3:
     NewGenerateHTMLOutput(trace_results, output_file_name)
     return os.path.abspath(output_file_name)
 

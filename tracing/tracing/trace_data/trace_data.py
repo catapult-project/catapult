@@ -43,6 +43,7 @@ class TraceDataPart(object):
     return hash(self.raw_field_name)
 
 
+ANDROID_PROCESS_DATA_PART = TraceDataPart('androidProcessDump')
 ATRACE_PART = TraceDataPart('systemTraceEvents')
 BATTOR_TRACE_PART = TraceDataPart('powerTraceAsString')
 CHROME_TRACE_PART = TraceDataPart('traceEvents')
@@ -53,7 +54,8 @@ TAB_ID_PART = TraceDataPart('tabIds')
 TELEMETRY_PART = TraceDataPart('telemetry')
 WALT_TRACE_PART = TraceDataPart('waltTraceEvents')
 
-ALL_TRACE_PARTS = {ATRACE_PART,
+ALL_TRACE_PARTS = {ANDROID_PROCESS_DATA_PART,
+                   ATRACE_PART,
                    BATTOR_TRACE_PART,
                    CHROME_TRACE_PART,
                    CPU_TRACE_DATA,

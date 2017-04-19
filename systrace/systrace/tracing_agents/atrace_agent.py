@@ -34,7 +34,6 @@ MIN_TIME_BETWEEN_STATUS_UPDATES = 0.2
 TRACE_START_REGEXP = r'TRACE\:'
 # Plain-text trace data should always start with this string.
 TRACE_TEXT_HEADER = '# tracer'
-_FIX_THREAD_IDS = True
 _FIX_MISSING_TGIDS = True
 _FIX_CIRCULAR_TRACES = True
 
@@ -277,15 +276,6 @@ class AtraceAgent(tracing_agents.TracingAgent):
                             'written.')
       sys.exit(1)
 
-    if _FIX_THREAD_IDS:
-      # Issue ps command to device and patch thread names
-      # TODO(catapult:#3215): Migrate to device.GetPids()
-      ps_dump = self._device_utils.RunShellCommand(
-          'ps -T -o USER,TID,PPID,VSIZE,RSS,WCHAN,ADDR=PC,S,CMD || ps -t',
-          shell=True, check_return=True)
-      thread_names = extract_thread_list(ps_dump)
-      trace_data = fix_thread_names(trace_data, thread_names)
-
     if _FIX_MISSING_TGIDS:
       # Issue printf command to device and patch tgids
       procfs_dump = self._device_utils.RunShellCommand(
@@ -298,37 +288,6 @@ class AtraceAgent(tracing_agents.TracingAgent):
       trace_data = fix_circular_traces(trace_data)
 
     return trace_data
-
-
-def extract_thread_list(trace_lines):
-  """Removes the thread list from the given trace data.
-
-  Args:
-    trace_lines: The text portion of the trace
-
-  Returns:
-    a map of thread ids to thread names
-  """
-
-  threads = {}
-  # Assume any line that starts with USER is the header
-  header = -1
-  for i, line in enumerate(trace_lines):
-    cols = line.split()
-    if len(cols) >= 8 and cols[0] == 'USER':
-      header = i
-      break
-  if header == -1:
-    return threads
-  for line in trace_lines[header + 1:]:
-    cols = line.split(None, 8)
-    if len(cols) == 9:
-      tid = int(cols[1])
-      name = cols[8]
-      threads[tid] = name
-
-  return threads
-
 
 def extract_tgids(trace_lines):
   """Removes the procfs dump from the given trace text
@@ -379,36 +338,6 @@ def strip_and_decompress_trace(trace_data):
   while trace_data and trace_data[0] == '\n':
     trace_data = trace_data[1:]
 
-  return trace_data
-
-
-def fix_thread_names(trace_data, thread_names):
-  """Replaces thread ids with their names.
-
-  Args:
-    trace_data: The atrace data.
-    thread_names: A mapping of thread ids to thread names.
-  Returns:
-    The updated trace data.
-  """
-
-  def repl(m):
-    tid = int(m.group(2))
-    if tid > 0:
-      name = thread_names.get(tid)
-      if name is None:
-        name = m.group(1)
-        if name == '<...>':
-          name = '<' + str(tid) + '>'
-        thread_names[tid] = name
-      return name + '-' + m.group(2)
-    else:
-      return m.group(0)
-
-  # matches something like:
-  # Binder_2-895, or com.google.android.inputmethod.latin-1078 etc...
-  trace_data = re.sub(r'^\s*(\S+)-(\d+)', repl, trace_data,
-                      flags=re.MULTILINE)
   return trace_data
 
 

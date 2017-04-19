@@ -104,6 +104,7 @@
       'tracing/extras/chrome_config.html',
       'tracing/extras/cpu/cpu_usage_auditor.html',
       'tracing/extras/importer/android/event_log_importer.html',
+      'tracing/extras/importer/android/process_data_importer.html',
       'tracing/extras/importer/battor_importer.html',
       'tracing/extras/importer/ddms_importer.html',
       'tracing/extras/importer/etw/etw_importer.html',
