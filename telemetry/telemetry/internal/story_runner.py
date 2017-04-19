@@ -5,7 +5,6 @@
 import logging
 import optparse
 import os
-import subprocess
 import sys
 import time
 
@@ -233,12 +232,6 @@ def Run(test, story_set, finder_options, results, max_failures=None,
 
           results.WillRunPage(story, storyset_repeat_counter)
           try:
-            # Log ps on n7s to determine if adb changed processes.
-            # crbug.com/667470
-            if 'Nexus 7' in state.platform.GetDeviceTypeName():
-              ps_output = subprocess.check_output(['ps', '-ef'])
-              logging.info('Ongoing processes:\n%s', ps_output)
-
             state.platform.WaitForTemperature(35)
             _WaitForThermalThrottlingIfNeeded(state.platform)
             _RunStoryAndProcessErrorIfNeeded(story, results, state, test)
