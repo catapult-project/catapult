@@ -44,6 +44,19 @@ found in the LICENSE file.
       display: flex;
       justify-content: center;
     }
+
+    .bar {
+      width: 100px;
+      height: 100px;
+    }
+    .pass {
+      background-color: #7b7;
+      width: 100%;
+    }
+    .fail {
+      background-color: #d66;
+      width: 100%;
+    }
     </style>
 
     <app-route route="{{route}}" pattern="/:jobId" data="{{data}}"></app-route>
@@ -79,7 +92,10 @@ found in the LICENSE file.
             <tr>
               <th>{{quest(questIndex)}}</th>
               <template is="dom-repeat" items="{{jobInfo.state.changes}}" as="change" index-as="changeIndex">
-                <td>{{resultValues(changeIndex, questIndex)}}</td>
+                <td class="bar">
+                  <div class="pass" style="height: {{passPercent(changeIndex, questIndex)}}%"></div>
+                  <div class="fail" style="height: {{failPercent(changeIndex, questIndex)}}%"></div>
+                </td>
               </template>
             <tr>
           </template>
@@ -122,8 +138,14 @@ found in the LICENSE file.
         return this.jobInfo.state.quests[questIndex];
       },
 
-      resultValues: function(changeIndex, questIndex) {
-        return this.jobInfo.state.result_values[changeIndex][questIndex];
+      passPercent: function(changeIndex, questIndex) {
+        var allResultValues = this.jobInfo.state.result_values;
+        var values = allResultValues[changeIndex][questIndex];
+        return 100 * values.filter(x => x == 0).length / values.length;
+      },
+
+      failPercent: function(changeIndex, questIndex) {
+        return 100 - this.passPercent(changeIndex, questIndex);
       },
 
       deselected: function() {
