@@ -13,6 +13,7 @@ import tempfile
 import traceback
 
 from py_trace_event import trace_time
+from telemetry.core import exceptions
 from telemetry.internal.platform import tracing_agent
 from telemetry.internal.platform.tracing_agent import (
     chrome_tracing_devtools_manager)
@@ -36,15 +37,15 @@ def ClearStarupTracingStateIfNeeded(platform_backend):
         ['rm', '-f', trace_config_file], check_return=True, as_root=True)
 
 
-class ChromeTracingStartedError(Exception):
+class ChromeTracingStartedError(exceptions.Error):
   pass
 
 
-class ChromeTracingStoppedError(Exception):
+class ChromeTracingStoppedError(exceptions.Error):
   pass
 
 
-class ChromeClockSyncError(Exception):
+class ChromeClockSyncError(exceptions.Error):
   pass
 
 

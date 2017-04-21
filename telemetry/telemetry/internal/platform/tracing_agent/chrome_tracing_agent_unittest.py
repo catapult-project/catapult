@@ -73,7 +73,9 @@ class FakeDevtoolsClient(object):
     self.is_tracing_running = False
     self.remote_port = remote_port
     self.will_raise_exception_in_stop_tracing = False
+    self.will_raise_exception_in_clock_sync = False
     self.collected = False
+    self.chrome_branch_number = 9001
 
   def IsAlive(self):
     return self.is_alive
@@ -98,6 +100,14 @@ class FakeDevtoolsClient(object):
   def GetUpdatedInspectableContexts(self):
     return FakeContextMap([])
 
+  def RecordChromeClockSyncMarker(self, sync_id):
+    del sync_id # unused
+    if self.will_raise_exception_in_clock_sync:
+      raise Exception
+
+  def GetChromeBranchNumber(self):
+    return self.chrome_branch_number
+
 
 class ChromeTracingAgentTest(unittest.TestCase):
   def setUp(self):
@@ -105,12 +115,15 @@ class ChromeTracingAgentTest(unittest.TestCase):
     self.platform2 = FakePlatformBackend()
     self.platform3 = FakePlatformBackend()
 
-  def StartTracing(self, platform_backend, enable_chrome_trace=True):
+  def StartTracing(self, platform_backend, enable_chrome_trace=True,
+                   throw_exception=False):
     assert chrome_tracing_agent.ChromeTracingAgent.IsSupported(platform_backend)
     agent = chrome_tracing_agent.ChromeTracingAgent(platform_backend)
     config = tracing_config.TracingConfig()
     config.enable_chrome_trace = enable_chrome_trace
     config.chrome_trace_config.category_filter.AddIncludedCategory('foo')
+    if throw_exception:
+      agent._trace_config = True
     agent._platform_backend.tracing_controller_backend.is_tracing_running = True
     agent._test_config = config
     agent.StartAgentTracing(config, 10)
@@ -122,6 +135,7 @@ class ChromeTracingAgentTest(unittest.TestCase):
   def StopTracing(self, agent):
     agent._platform_backend.tracing_controller_backend.is_tracing_running = (
         False)
+    agent.RecordClockSyncMarker('123', lambda *unused: True)
     agent.StopAgentTracing()
     agent.CollectAgentTraceData(None)
 
@@ -312,6 +326,63 @@ class ChromeTracingAgentTest(unittest.TestCase):
     # Start & Stop tracing on platform 1 should work just fine.
     tracing_agent2 = self.StartTracing(self.platform1)
     self.StopTracing(tracing_agent2)
+
+  def testExceptionRaisedInStartTracing(self):
+    devtool1 = FakeDevtoolsClient(1)
+    devtool2 = FakeDevtoolsClient(2)
+    # Register devtools 1, 2 on platform 1
+    chrome_tracing_devtools_manager.RegisterDevToolsClient(
+        devtool1, self.platform1)
+    chrome_tracing_devtools_manager.RegisterDevToolsClient(
+        devtool2, self.platform1)
+
+    with self.assertRaises(chrome_tracing_agent.ChromeTracingStartedError):
+      self.StartTracing(self.platform1, throw_exception=True)
+
+    # Tracing is stopped on both devtools clients even if there is exception.
+    self.assertFalse(devtool1.is_tracing_running)
+    self.assertFalse(devtool2.is_tracing_running)
+
+    devtool1.is_alive = False
+    devtool2.is_alive = False
+    # Register devtools 3 on platform 1 should not raise any exception.
+    devtool3 = FakeDevtoolsClient(3)
+    chrome_tracing_devtools_manager.RegisterDevToolsClient(
+        devtool3, self.platform1)
+
+    # Start & Stop tracing on platform 1 should work just fine.
+    tracing_agent2 = self.StartTracing(self.platform1)
+    self.assertTrue(devtool3.is_tracing_running)
+    self.assertIsNotNone(tracing_agent2.trace_config)
+
+    self.StopTracing(tracing_agent2)
+    self.assertIsNone(tracing_agent2.trace_config)
+    self.assertFalse(devtool3.is_tracing_running)
+
+  def testExceptionRaisedInClockSync(self):
+    devtool1 = FakeDevtoolsClient(1)
+    # Register devtools 1, 2 on platform 1
+    chrome_tracing_devtools_manager.RegisterDevToolsClient(
+        devtool1, self.platform1)
+    tracing_agent1 = self.StartTracing(self.platform1)
+
+    self.assertTrue(devtool1.is_tracing_running)
+
+    devtool1.will_raise_exception_in_clock_sync = True
+    with self.assertRaises(chrome_tracing_agent.ChromeClockSyncError):
+      self.StopTracing(tracing_agent1)
+
+    devtool1.is_alive = False
+    # Register devtools 2 on platform 1 should not raise any exception.
+    devtool2 = FakeDevtoolsClient(2)
+    chrome_tracing_devtools_manager.RegisterDevToolsClient(
+        devtool2, self.platform1)
+
+    # Start & Stop tracing on platform 1 should work just fine.
+    tracing_agent2 = self.StartTracing(self.platform1)
+    self.StopTracing(tracing_agent2)
+    self.assertIsNone(tracing_agent2.trace_config)
+    self.assertFalse(devtool2.is_tracing_running)
 
   @decorators.Enabled('android')
   def testCreateAndRemoveTraceConfigFileOnAndroid(self):
