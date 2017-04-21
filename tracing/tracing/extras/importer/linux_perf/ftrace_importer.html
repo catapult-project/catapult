@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/color_scheme.html">
 <link rel="import" href="/tracing/base/iteration_helpers.html">
+<link rel="import" href="/tracing/base/trace_stream.html">
 <link rel="import" href="/tracing/extras/importer/linux_perf/android_parser.html">
 <link rel="import" href="/tracing/extras/importer/linux_perf/binder_parser.html">
 <link rel="import" href="/tracing/extras/importer/linux_perf/bus_parser.html">
@@ -86,9 +87,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       '\\s+(\\d+\\.\\d+):\\s+(\\S+):\\s(.*)$');
   var lineParserWithTGID = function(line) {
     var groups = lineREWithTGID.exec(line);
-    if (!groups) {
-      return groups;
-    }
+    if (!groups) return groups;
 
     var tgid = groups[3];
     if (tgid[0] === '-') tgid = undefined;
@@ -113,9 +112,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       '\\s+(\\d+\\.\\d+):\\s+(\\S+):\\s(.*)$');
   var lineParserWithIRQInfo = function(line) {
     var groups = lineREWithIRQInfo.exec(line);
-    if (!groups) {
-      return groups;
-    }
+    if (!groups) return groups;
     return {
       threadName: groups[1],
       pid: groups[2],
@@ -169,15 +166,9 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
    */
   function autoDetectLineParser(line) {
     if (line[0] === '{') return false;
-    if (lineREWithTGID.test(line)) {
-      return lineParserWithTGID;
-    }
-    if (lineREWithIRQInfo.test(line)) {
-      return lineParserWithIRQInfo;
-    }
-    if (lineREWithLegacyFmt.test(line)) {
-      return lineParserWithLegacyFmt;
-    }
+    if (lineREWithTGID.test(line)) return lineParserWithTGID;
+    if (lineREWithIRQInfo.test(line)) return lineParserWithIRQInfo;
+    if (lineREWithLegacyFmt.test(line)) return lineParserWithLegacyFmt;
     return undefined;
   }
   TestExports.autoDetectLineParser = autoDetectLineParser;
@@ -191,6 +182,8 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
    * @return {boolean} True when events is a linux perf array.
    */
   FTraceImporter.canImport = function(events) {
+    if (events instanceof tr.b.TraceStream) events = events.header;
+
     if (!(typeof(events) === 'string' || events instanceof String)) {
       return false;
     }
@@ -203,18 +196,12 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       return true;
     }
 
-    if (/^# tracer:/.test(events)) {
-      return true;
-    }
+    if (/^# tracer:/.test(events)) return true;
 
     var lineBreakIndex = events.indexOf('\n');
-    if (lineBreakIndex > -1) {
-      events = events.substring(0, lineBreakIndex);
-    }
+    if (lineBreakIndex > -1) events = events.substring(0, lineBreakIndex);
 
-    if (autoDetectLineParser(events)) {
-      return true;
-    }
+    if (autoDetectLineParser(events)) return true;
 
     return false;
   };
@@ -222,48 +209,34 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
   FTraceImporter._extractEventsFromSystraceHTML = function(
       incomingEvents, produceResult) {
     var failure = {ok: false};
-    if (produceResult === undefined) {
-      produceResult = true;
-    }
+    if (produceResult === undefined) produceResult = true;
 
-    if (!/^<!DOCTYPE html>/.test(incomingEvents)) {
-      return failure;
-    }
+    const header = incomingEvents instanceof tr.b.TraceStream ?
+        incomingEvents.header : incomingEvents;
+    if (!/^<!DOCTYPE html>/.test(header)) return failure;
     var r = new tr.importer.SimpleLineReader(incomingEvents);
 
     // Try to find the data...
-    if (!r.advanceToLineMatching(/^  <script>$/)) {
-      return failure;
-    }
-    if (!r.advanceToLineMatching(/^  var linuxPerfData = "\\$/)) {
-      return failure;
-    }
+    if (!r.advanceToLineMatching(/^  <script>$/)) return failure;
+    if (!r.advanceToLineMatching(/^  var linuxPerfData = "\\$/)) return failure;
 
     var eventsBeginAtLine = r.curLineNumber + 1;
     r.beginSavingLines();
-    if (!r.advanceToLineMatching(/^  <\/script>$/)) {
-      return failure;
-    }
+    if (!r.advanceToLineMatching(/^  <\/script>$/)) return failure;
 
     var rawEvents = r.endSavingLinesAndGetResult();
 
     // Drop off first and last event as it contains the tag.
     rawEvents = rawEvents.slice(1, rawEvents.length - 1);
 
-    if (!r.advanceToLineMatching(/^<\/body>$/)) {
-      return failure;
-    }
-    if (!r.advanceToLineMatching(/^<\/html>$/)) {
-      return failure;
-    }
+    if (!r.advanceToLineMatching(/^<\/body>$/)) return failure;
+    if (!r.advanceToLineMatching(/^<\/html>$/)) return failure;
 
     function endsWith(str, suffix) {
       return str.indexOf(suffix, str.length - suffix.length) !== -1;
     }
     function stripSuffix(str, suffix) {
-      if (!endsWith(str, suffix)) {
-        return str;
-      }
+      if (!endsWith(str, suffix)) return str;
       return str.substring(str, str.length - suffix.length);
     }
 
@@ -283,9 +256,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     // treating absence of that trailing string as a failure.
     var oldLastEvent = events[events.length - 1];
     var newLastEvent = stripSuffix(oldLastEvent, '\\n";');
-    if (newLastEvent === oldLastEvent) {
-      return failure;
-    }
+    if (newLastEvent === oldLastEvent) return failure;
     events[events.length - 1] = newLastEvent;
 
     return {ok: true,
@@ -296,13 +267,11 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
   FTraceImporter._extractEventsFromSystraceMultiHTML = function(
       incomingEvents, produceResult) {
     var failure = {ok: false};
-    if (produceResult === undefined) {
-      produceResult = true;
-    }
+    if (produceResult === undefined) produceResult = true;
 
-    if (!(new RegExp('^<!DOCTYPE HTML>', 'i').test(incomingEvents))) {
-      return failure;
-    }
+    const header = incomingEvents instanceof tr.b.TraceStream ?
+        incomingEvents.header : incomingEvents;
+    if (!(new RegExp('^<!DOCTYPE HTML>', 'i').test(header))) return failure;
 
     var r = new tr.importer.SimpleLineReader(incomingEvents);
 
@@ -325,12 +294,8 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       events = events.slice(1, events.length - 1);
     }
 
-    if (!r.advanceToLineMatching(/^<\/body>$/)) {
-      return failure;
-    }
-    if (!r.advanceToLineMatching(/^<\/html>$/)) {
-      return failure;
-    }
+    if (!r.advanceToLineMatching(/^<\/body>$/)) return failure;
+    if (!r.advanceToLineMatching(/^<\/html>$/)) return failure;
 
     return {ok: true,
       lines: produceResult ? events : undefined,
@@ -355,9 +320,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       this.lazyInit_();
       this.forEachLine_(function(text, eventBase, cpuNumber, pid, ts) {
         var eventName = eventBase.eventName;
-        if (eventName !== 'tracing_mark_write' && eventName !== '0') {
-          return;
-        }
+        if (eventName !== 'tracing_mark_write' && eventName !== '0') return;
 
         if (traceEventClockSyncRE.exec(eventBase.details) ||
             genericClockSyncRE.exec(eventBase.details)) {
@@ -872,59 +835,67 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
      * Walks the this.events_ structure and populates this.lines_.
      */
     parseLines_: function() {
-      var lines = [];
       var extractResult = FTraceImporter._extractEventsFromSystraceHTML(
           this.events_, true);
       if (!extractResult.ok) {
         extractResult = FTraceImporter._extractEventsFromSystraceMultiHTML(
             this.events_, true);
       }
-      var lines = extractResult.ok ?
-        extractResult.lines : this.events_.split('\n');
-
-      var lineParser = undefined;
-      for (var lineNumber = 0; lineNumber < lines.length; ++lineNumber) {
-        var line = lines[lineNumber].trim();
-        if (line.length === 0) continue;
-        if (/^#/.test(line)) {
-          const clockType = /^# clock_type=([A-Z_]+)$/.exec(line);
-          // This allows the clock domain to be specified through a comment,
-          // Ex. "# clock_type=LINUX_CLOCK_MONOTONIC".
-          // This is used in the WALT trace agent.
-          if (clockType) {
-            this.clockDomainId_ = clockType[1];
-          }
-          continue;
+      let lineParser = undefined;
+      if (extractResult.ok) {
+        for (const line of extractResult.lines) {
+          lineParser = this.parseLine_(line, lineParser);
         }
+      } else {
+        const r = new tr.importer.SimpleLineReader(this.events_);
+        for (const line of r) {
+          lineParser = this.parseLine_(line, lineParser);
+        }
+      }
+    },
 
+    parseLine_: function(line, lineParser) {
+      line = line.trim();
+      if (line.length === 0) return lineParser;
+      if (/^#/.test(line)) {
+        const clockType = /^# clock_type=([A-Z_]+)$/.exec(line);
+        // This allows the clock domain to be specified through a comment,
+        // Ex. "# clock_type=LINUX_CLOCK_MONOTONIC".
+        // This is used in the WALT trace agent.
+        if (clockType) {
+          this.clockDomainId_ = clockType[1];
+        }
+        return lineParser;
+      }
+
+      if (!lineParser) {
+        lineParser = autoDetectLineParser(line);
         if (!lineParser) {
-          lineParser = autoDetectLineParser(line);
-          if (!lineParser) {
-            this.model_.importWarning({
-              type: 'parse_error',
-              message: 'Cannot parse line: ' + line
-            });
-            continue;
-          }
-        }
-
-        var eventBase = lineParser(line);
-        if (!eventBase) {
           this.model_.importWarning({
             type: 'parse_error',
-            message: 'Unrecognized line: ' + line
+            message: 'Cannot parse line: ' + line
           });
-          continue;
+          return lineParser;
         }
-
-        this.lines_.push([
-          line,
-          eventBase,
-          parseInt(eventBase.cpuNumber),
-          parseInt(eventBase.pid),
-          parseFloat(eventBase.timestamp) * 1000
-        ]);
       }
+
+      var eventBase = lineParser(line);
+      if (!eventBase) {
+        this.model_.importWarning({
+          type: 'parse_error',
+          message: 'Unrecognized line: ' + line
+        });
+        return lineParser;
+      }
+
+      this.lines_.push([
+        line,
+        eventBase,
+        parseInt(eventBase.cpuNumber),
+        parseInt(eventBase.pid),
+        parseFloat(eventBase.timestamp) * 1000
+      ]);
+      return lineParser;
     },
 
     /**

@@ -40,6 +40,15 @@ tr.exportTo('tr.b', function() {
       return this.header_;
     }
 
+    get data() {
+      return this.data_;
+    }
+
+    toString() {
+      this.rewind();
+      return this.readNumBytes(Number.MAX_VALUE);
+    }
+
     readUntilDelimiter(delim) {
       if (delim.length !== 1) {
         throw new Error('delim must be exactly one character');

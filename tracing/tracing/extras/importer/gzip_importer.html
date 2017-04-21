@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/in_memory_trace_stream.html">
 <link rel="import" href="/tracing/extras/importer/jszip.html">
 <link rel="import" href="/tracing/importer/importer.html">
 <link rel="import" href="/tracing/model/model.html">
@@ -25,10 +26,16 @@ tr.exportTo('tr.e.importer', function() {
 
   function GzipImporter(model, eventData) {
     // Normalize the data into an Uint8Array.
+    this.inflateAsTraceStream = false;
     if (typeof(eventData) === 'string' || eventData instanceof String) {
       eventData = JSZip.utils.transformTo('uint8array', eventData);
     } else if (eventData instanceof ArrayBuffer) {
       eventData = new Uint8Array(eventData);
+    } else if (eventData instanceof tr.b.InMemoryTraceStream) {
+      // This importer does not support processing general TraceStreams, only
+      // InMemoryTraceStreams for now.
+      eventData = eventData.data;
+      this.inflateAsTraceStream_ = true;
     } else {
       throw new Error('Unknown gzip data format');
     }
@@ -42,6 +49,12 @@ tr.exportTo('tr.e.importer', function() {
    * @return {boolean} Whether obj looks like gzip compressed data.
    */
   GzipImporter.canImport = function(eventData) {
+    // This importer does not support processing general TraceStreams, only
+    // InMemoryTraceStreams for now.
+    if (eventData instanceof tr.b.InMemoryTraceStream) {
+      eventData = eventData.header;
+    }
+
     var header;
     if (eventData instanceof ArrayBuffer) {
       header = new Uint8Array(eventData.slice(0, GZIP_MEMBER_HEADER_ID_SIZE));
@@ -115,6 +128,11 @@ tr.exportTo('tr.e.importer', function() {
     // Inflate the data using jszip.
     var inflatedData =
         JSZip.compressions['DEFLATE'].uncompress(data.subarray(position));
+
+    if (this.inflateAsTraceStream_) {
+      return GzipImporter.transformToStream(inflatedData);
+    }
+
     var string = GzipImporter.transformToString(inflatedData);
 
     if (inflatedData.length > 0 && string.length === 0) {
@@ -123,6 +141,12 @@ tr.exportTo('tr.e.importer', function() {
     }
 
     return string;
+  };
+
+  GzipImporter.transformToStream = function(data) {
+    let type = JSZip.utils.getTypeOf(data);
+    if (type === 'uint8array') return new tr.b.InMemoryTraceStream(data, false);
+    throw new Error(`Cannot transform ${type} to TraceStream.`);
   };
 
   /**
@@ -144,9 +168,7 @@ tr.exportTo('tr.e.importer', function() {
     }
 
     var type = JSZip.utils.getTypeOf(data);
-    if (type === 'string') {
-      return data;  // We already have a string.
-    }
+    if (type === 'string') return data;  // We already have a string.
 
     if (type === 'array') {
       // TextDecoder requires an ArrayBuffer or an ArrayBufferView.

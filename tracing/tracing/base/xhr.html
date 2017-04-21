@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/base.html">
+<link rel="import" href="/tracing/base/in_memory_trace_stream.html">
 
 <script>
 'use strict';
@@ -93,7 +94,7 @@ tr.exportTo('tr.b', function() {
     });
   }
 
-  function getSync(url) {
+  function getSync(url, asTraceStream) {
     // Browser.
     if (!tr.isHeadless) return xhr('GET', url, false);
 
@@ -116,7 +117,12 @@ tr.exportTo('tr.b', function() {
 
     // Vinn.
     try {
-      if (isBinary) return readbuffer(filename);
+      if (asTraceStream) {
+        return new tr.b.InMemoryTraceStream(
+            new Uint8Array(readbuffer(filename)), isBinary);
+      } else if (isBinary) {
+        return readbuffer(filename);
+      }
       return read(filename);
     } catch (ex) {
       if (ex.message) {

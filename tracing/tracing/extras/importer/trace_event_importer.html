@@ -9,9 +9,11 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/color_scheme.html">
 <link rel="import" href="/tracing/base/math/range.html">
 <link rel="import" href="/tracing/base/scalar.html">
+<link rel="import" href="/tracing/base/trace_stream.html">
 <link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/base/utils.html">
 <link rel="import" href="/tracing/extras/importer/heap_dump_trace_event_importer.html">
+<link rel="import" href="/tracing/extras/importer/oboe.html">
 <link rel="import" href="/tracing/extras/importer/trace_code_entry.html">
 <link rel="import" href="/tracing/extras/importer/trace_code_map.html">
 <link rel="import" href="/tracing/extras/importer/v8/codemap.html">
@@ -121,6 +123,7 @@ tr.exportTo('tr.e.importer', function() {
   // The complete list of fields on the trace that should not be treated as
   // trace metadata.
   var NON_METADATA_FIELDS = new Set([
+    'displayTimeUnit',
     'samples',
     'stackFrames',
     'traceAnnotations',
@@ -129,6 +132,7 @@ tr.exportTo('tr.e.importer', function() {
   ]);
 
   function TraceEventImporter(model, eventData) {
+    this.hasEvents_ = undefined;  // Set properly when importEvents is called.
     this.importPriority = 1;
     this.model_ = model;
     this.events_ = undefined;
@@ -196,53 +200,38 @@ tr.exportTo('tr.e.importer', function() {
       this.events_ = eventData;
     }
 
-    this.traceAnnotations_ = this.events_.traceAnnotations;
-
     // Some trace_event implementations put the actual trace events
     // inside a container. E.g { ... , traceEvents: [ ] }
     // If we see that, just pull out the trace events.
     if (this.events_.traceEvents) {
-      var container = this.events_;
+      const container = this.events_;
       this.events_ = this.events_.traceEvents;
 
-      // Some trace authors store subtraces as specific properties of the trace.
-      for (var subtraceField of SUBTRACE_FIELDS) {
+      for (const subtraceField of SUBTRACE_FIELDS) {
         if (container[subtraceField]) {
-          this.subtraces_.push(container[subtraceField]);
+          this.storeSubtrace_(container[subtraceField]);
         }
       }
-
-      // Sampling data.
-      this.sampleEvents_ = container.samples;
-      this.stackFrameEvents_ = container.stackFrames;
-
-      // Some implementations specify displayTimeUnit
-      if (container.displayTimeUnit) {
-        var unitName = container.displayTimeUnit;
-        var unit = tr.b.TimeDisplayModes[unitName];
-        if (unit === undefined) {
-          throw new Error('Unit ' + unitName + ' is not supported.');
-        }
-        this.model_.intrinsicTimeUnit = unit;
+      this.storeSamples_(container.samples);
+      this.storeStackFrames_(container.stackFrames);
+      this.storeDisplayTimeUnit_(container.displayTimeUnit);
+      this.storeTraceAnnotations_(container.traceAnnotations);
+      this.storeMetadata_(container);
+    } else if (this.events_ instanceof tr.b.TraceStream) {
+      const parser = oboe()
+          .node('{cat ph}', function(e) { return oboe.drop; })
+          .node('!.powerTraceAsString', this.storeSubtrace_.bind(this))
+          .node('!.systemTraceEvents', this.storeSubtrace_.bind(this))
+          .node('!.samples', this.storeSamples_.bind(this))
+          .node('!.stackFrames', this.storeStackFrames_.bind(this))
+          .node('!.displayTimeUnit', this.storeDisplayTimeUnit_.bind(this))
+          .node('!.traceAnnotations', this.storeTraceAnnotations_.bind(this))
+          .done(this.storeMetadata_.bind(this));
+      this.events_.rewind();
+      while (this.events_.hasData) {
+        parser.write(this.events_.readNumBytes());
       }
-
-      // Any other fields in the container should be treated as metadata.
-      for (var fieldName in container) {
-        if (NON_METADATA_FIELDS.has(fieldName)) continue;
-
-        this.model_.metadata.push(
-            { name: fieldName, value: container[fieldName] });
-
-        if (fieldName === 'metadata') {
-          var metadata = container[fieldName];
-          if (metadata['highres-ticks']) {
-            this.model_.isTimeHighResolution = metadata['highres-ticks'];
-          }
-          if (metadata['clock-domain']) {
-            this.clockDomainId_ = metadata['clock-domain'];
-          }
-        }
-      }
+      parser.finish();
     }
   }
 
@@ -255,6 +244,11 @@ tr.exportTo('tr.e.importer', function() {
     //   - eventData that starts with [ are probably trace_event
     //   - eventData that starts with { are probably trace_event
     // May be encoded JSON. Treat files that start with { as importable by us.
+    if (eventData instanceof tr.b.TraceStream) {
+      if (eventData.isBinary) return false;
+      eventData = eventData.header;
+    }
+
     if (typeof(eventData) === 'string' || eventData instanceof String) {
       eventData = eventData.trim();
       return eventData[0] === '{' || eventData[0] === '[';
@@ -271,7 +265,8 @@ tr.exportTo('tr.e.importer', function() {
         if (eventData.traceEvents.length && eventData.traceEvents[0].ph) {
           return true;
         }
-        if (eventData.samples.length && eventData.stackFrames !== undefined) {
+        if (eventData.samples && eventData.samples.length &&
+            eventData.stackFrames !== undefined) {
           return true;
         }
       }
@@ -1079,24 +1074,36 @@ tr.exportTo('tr.e.importer', function() {
     },
 
     importClockSyncMarkers: function() {
-      for (var i = 0; i < this.events_.length; i++) {
-        var event = this.events_[i];
-
-        var isLegacyChromeClockSync = isLegacyChromeClockSyncEvent(event);
-        if (event.ph !== 'c' && !isLegacyChromeClockSync) continue;
-
-        var eventSizeInBytes =
-            this.model_.importOptions.trackDetailedModelStats ?
-                JSON.stringify(event).length : undefined;
-
-        this.model_.stats.willProcessBasicTraceEvent(
-            'clock_sync', event.cat, event.name, event.ts, eventSizeInBytes);
-
-        if (isLegacyChromeClockSync) {
-          this.processLegacyChromeClockSyncEvent(event);
-        } else {
-          this.processClockSyncEvent(event);
+      if (this.events_ instanceof tr.b.TraceStream) {
+        const parser = oboe().node(
+            '{cat ph}', this.importClockSyncMarker_.bind(this));
+        this.events_.rewind();
+        while (this.events_.hasData) {
+          parser.write(this.events_.readNumBytes());
         }
+        parser.finish();
+      } else {
+        for (let i = 0; i < this.events_.length; i++) {
+          this.importClockSyncMarker_(this.events_[i]);
+        }
+      }
+    },
+
+    importClockSyncMarker_: function(event) {
+      const isLegacyChromeClockSync = isLegacyChromeClockSyncEvent(event);
+      if (event.ph !== 'c' && !isLegacyChromeClockSync) return;
+
+      const eventSizeInBytes =
+          this.model_.importOptions.trackDetailedModelStats ?
+              JSON.stringify(event).length : undefined;
+
+      this.model_.stats.willProcessBasicTraceEvent(
+          'clock_sync', event.cat, event.name, event.ts, eventSizeInBytes);
+
+      if (isLegacyChromeClockSync) {
+        this.processLegacyChromeClockSyncEvent(event);
+      } else {
+        this.processClockSyncEvent(event);
       }
     },
 
@@ -1105,95 +1112,199 @@ tr.exportTo('tr.e.importer', function() {
      * model_.
      */
     importEvents: function() {
+      this.hasEvents_ = false;
       if (this.stackFrameEvents_) {
         this.importStackFrames_(this.stackFrameEvents_, 'g');
       }
 
-      if (this.traceAnnotations_) {
-        this.importAnnotations_();
+      if (this.traceAnnotations_) this.importAnnotations_();
+
+      if (this.events_ instanceof tr.b.TraceStream) {
+        const parser = oboe().node('{cat ph}', this.processEvent_.bind(this));
+        this.events_.rewind();
+        while (this.events_.hasData) {
+          parser.write(this.events_.readNumBytes());
+        }
+        parser.finish();
+      } else {
+        for (let eI = 0; eI < this.events_.length; eI++) {
+          this.processEvent_(this.events_[eI]);
+        }
       }
 
-      var importOptions = this.model_.importOptions;
-      var trackDetailedModelStats = importOptions.trackDetailedModelStats;
+      this.processV8Events();
 
-      var modelStats = this.model_.stats;
+      // Remove all the root stack frame children as they should
+      // already be added.
+      for (const frame of Object.values(this.v8ProcessRootStackFrame_)) {
+        frame.removeAllChildren();
+      }
+    },
 
-      var events = this.events_;
-      for (var eI = 0; eI < events.length; eI++) {
-        var event = events[eI];
+    // Some trace authors store subtraces as specific properties of the trace.
+    storeSubtrace_: function(subtrace) {
+      this.subtraces_.push(subtrace);
+      return oboe.drop;
+    },
 
-        if (event.args === '__stripped__') {
-          event.argsStripped = true;
-          event.args = undefined;
+    storeSamples_: function(samples) {
+      this.sampleEvents_ = samples;
+      return oboe.drop;
+    },
+
+    storeStackFrames_: function(stackFrames) {
+      this.stackFrameEvents_ = stackFrames;
+      return oboe.drop;
+    },
+
+    // Some implementations specify displayTimeUnit
+    storeDisplayTimeUnit_: function(unitName) {
+      if (!unitName) return;
+      const unit = tr.b.TimeDisplayModes[unitName];
+      if (unit === undefined) {
+        throw new Error('Unit ' + unitName + ' is not supported.');
+      }
+      this.model_.intrinsicTimeUnit = unit;
+      return oboe.drop;
+    },
+
+    storeTraceAnnotations_: function(traceAnnotations) {
+      this.traceAnnotations_ = traceAnnotations;
+      return oboe.drop;
+    },
+
+    // Any fields in the container that is not in NON_METADATA_FIELDS should be
+    // treated as metadata.
+    storeMetadata_: function(container) {
+      for (const fieldName of Object.keys(container)) {
+        if (NON_METADATA_FIELDS.has(fieldName)) continue;
+        this.model_.metadata.push(
+            { name: fieldName, value: container[fieldName] });
+        if (fieldName !== 'metadata') continue;
+        const metadata = container[fieldName];
+        if (metadata['highres-ticks']) {
+          this.model_.isTimeHighResolution = metadata['highres-ticks'];
         }
-
-        var eventSizeInBytes;
-        if (trackDetailedModelStats) {
-          eventSizeInBytes = JSON.stringify(event).length;
-        } else {
-          eventSizeInBytes = undefined;
+        if (metadata['clock-domain']) {
+          this.clockDomainId_ = metadata['clock-domain'];
         }
+      }
+      return oboe.drop;
+    },
 
-        if (event.ph === 'B' || event.ph === 'E') {
+    processEvent_: function(event) {
+      this.hasEvents_ = true;
+      const importOptions = this.model_.importOptions;
+      const trackDetailedModelStats = importOptions.trackDetailedModelStats;
+      const modelStats = this.model_.stats;
+
+      if (event.args === '__stripped__') {
+        event.argsStripped = true;
+        event.args = undefined;
+      }
+
+      let eventSizeInBytes = undefined;
+      if (trackDetailedModelStats) {
+        eventSizeInBytes = JSON.stringify(event).length;
+      }
+
+      switch (event.ph) {
+        case 'B':
+        case 'E':
           modelStats.willProcessBasicTraceEvent(
               'begin_end (non-compact)', event.cat, event.name, event.ts,
               eventSizeInBytes);
           this.processDurationEvent(event);
-        } else if (event.ph === 'X') {
+          break;
+
+        case 'X': {
           modelStats.willProcessBasicTraceEvent(
               'begin_end (compact)', event.cat, event.name, event.ts,
               eventSizeInBytes);
-          var slice = this.processCompleteEvent(event);
+          const slice = this.processCompleteEvent(event);
           // TODO(yuhaoz): If Chrome supports creating other events with flow,
           // we will need to call processFlowEvent for them also.
           // https://github.com/catapult-project/catapult/issues/1259
           if (slice !== undefined && event.bind_id !== undefined) {
             this.processFlowEvent(event, slice);
           }
-        } else if (event.ph === 'b' || event.ph === 'e' || event.ph === 'n' ||
-                   event.ph === 'S' || event.ph === 'F' || event.ph === 'T' ||
-                   event.ph === 'p') {
+          break;
+        }
+
+        case 'b':
+        case 'e':
+        case 'n':
+        case 'S':
+        case 'F':
+        case 'T':
+        case 'p':
           modelStats.willProcessBasicTraceEvent(
               'async', event.cat, event.name, event.ts, eventSizeInBytes);
           this.processAsyncEvent(event);
+          break;
 
         // Note, I is historic. The instant event marker got changed, but we
         // want to support loading old trace files so we have both I and i.
-        } else if (event.ph === 'I' || event.ph === 'i' || event.ph === 'R') {
+        case 'I':
+        case 'i':
+        case 'R':
           modelStats.willProcessBasicTraceEvent(
               'instant', event.cat, event.name, event.ts, eventSizeInBytes);
           this.processInstantEvent(event);
-        } else if (event.ph === 'P') {
+          break;
+
+        case 'P':
           modelStats.willProcessBasicTraceEvent(
               'samples', event.cat, event.name, event.ts, eventSizeInBytes);
           this.processTraceSampleEvent(event);
-        } else if (event.ph === 'C') {
+          break;
+
+        case 'C':
           modelStats.willProcessBasicTraceEvent(
               'counters', event.cat, event.name, event.ts, eventSizeInBytes);
           this.processCounterEvent(event);
-        } else if (event.ph === 'M') {
+          break;
+
+        case 'M':
           modelStats.willProcessBasicTraceEvent(
               'metadata', event.cat, event.name, event.ts, eventSizeInBytes);
           this.processMetadataEvent(event);
-        } else if (event.ph === 'N' || event.ph === 'D' || event.ph === 'O') {
+          break;
+
+        case 'N':
+        case 'D':
+        case 'O':
           modelStats.willProcessBasicTraceEvent(
               'objects', event.cat, event.name, event.ts, eventSizeInBytes);
           this.processObjectEvent(event);
-        } else if (event.ph === 's' || event.ph === 't' || event.ph === 'f') {
+          break;
+
+        case 's':
+        case 't':
+        case 'f':
           modelStats.willProcessBasicTraceEvent(
               'flows', event.cat, event.name, event.ts, eventSizeInBytes);
           this.processFlowEvent(event);
-        } else if (event.ph === 'v') {
+          break;
+
+        case 'v':
           modelStats.willProcessBasicTraceEvent(
               'memory_dumps', event.cat, event.name, event.ts,
               eventSizeInBytes);
           this.processMemoryDumpEvent(event);
-        } else if (event.ph === '(' || event.ph === ')') {
+          break;
+
+        case '(':
+        case ')':
           this.processContextEvent(event);
-        } else if (event.ph === 'c') {
-          // No-op. Clock sync events have already been processed in
-          // importClockSyncMarkers().
-        } else {
+          break;
+
+        // No-op. Clock sync events have already been processed in
+        // importClockSyncMarkers().
+        case 'c':
+          break;
+
+        default:
           modelStats.willProcessBasicTraceEvent(
               'unknown', event.cat, event.name, event.ts, eventSizeInBytes);
           this.model_.importWarning({
@@ -1201,15 +1312,8 @@ tr.exportTo('tr.e.importer', function() {
             message: 'Unrecognized event phase: ' +
                 event.ph + ' (' + event.name + ')'
           });
-        }
       }
-      this.processV8Events();
-
-      // Remove all the root stack frame children as they should
-      // already be added.
-      for (var frame of Object.values(this.v8ProcessRootStackFrame_)) {
-        frame.removeAllChildren();
-      }
+      return oboe.drop;
     },
 
     importStackFrames_: function(rawStackFrames, idPrefix) {
@@ -1424,7 +1528,9 @@ tr.exportTo('tr.e.importer', function() {
 
       // If this is the only importer, then fake-create the threads.
       var events = this.sampleEvents_;
-      if (this.events_.length === 0) {
+      if (this.hasEvents_ === undefined) {
+        throw new Error('importEvents is not run before importSampleData');
+      } else if (!this.hasEvents_) {
         for (var i = 0; i < events.length; i++) {
           var event = events[i];
           m.getOrCreateProcess(event.tid).getOrCreateThread(event.tid);

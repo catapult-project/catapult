@@ -54,6 +54,7 @@ tr.exportTo('tr.mre', function() {
     // TODO(eakuefner): assert startswith file://
     FileHandle.call(this, canonicalUrl);
     this.urlToLoad = urlToLoad;
+    this.loadAsTraceStream_ = false;
   }
 
   URLFileHandle.prototype = {
@@ -66,7 +67,7 @@ tr.exportTo('tr.mre', function() {
 
     load: function() {
       try {
-        return tr.b.getSync(this.urlToLoad);
+        return tr.b.getSync(this.urlToLoad, this.loadAsTraceStream_);
       } catch (ex) {
         var err = new Error('Could not open ' + this.urlToLoad);
         err.name = 'FileLoadingError';

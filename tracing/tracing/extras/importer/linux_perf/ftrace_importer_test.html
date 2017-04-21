@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/in_memory_trace_stream.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/extras/importer/linux_perf/ftrace_importer.html">
 <link rel="import" href="/tracing/importer/import.html">
@@ -443,6 +444,52 @@ tr.b.unittest.testSuite(function() {
     assert.isDefined(m.processes[360].counters['android.iq']);
     assert.strictEqual(
         1, m.processes[360].counters['android.iq'].numSamples);
+  });
+
+  test('importTraceStream', function() {
+    const lines = [
+      '<!DoCTYPE hTml>', // check must be case insensitive
+      '<body>',
+      '  <div class="view">',
+      '  <\/div>',
+      '  <script class="trace-data" type="application/text">',
+      'test1',
+      'test2',
+      '  <\/script>',
+      '  <script class="trace-data" type="application/text">',
+      '# tracer: nop',
+      '#',
+      '#            TASK-PID    CPU#    TIMESTAMP  FUNCTION',
+      '#               | |       |          |         |',
+      '     hwc_eventmon-336   [000] 50260.929925: 0: C|124|VSYNC|1',
+      '         Binder_1-340   [000] 50260.935656: 0: C|124|StatusBar|1',
+      '     hwc_eventmon-336   [000] 50260.946573: 0: C|124|VSYNC|0',
+      '      InputReader-419   [000] 50262.538578: 0: C|360|iq|1',
+      '  <\/script>',
+      '<\/body>',
+      '<\/html>'
+    ];
+    const inputStr = lines.join('\n');
+    const buffer = new ArrayBuffer(inputStr.length);
+    const bufferView = new Uint8Array(buffer);
+    for (let i = 0; i < bufferView.length; i++) {
+      bufferView[i] = inputStr.charCodeAt(i);
+    }
+
+    const m = newModel(new tr.b.InMemoryTraceStream(bufferView));
+    assert.isFalse(m.hasImportWarnings);
+
+    assert.isDefined(m.processes[124]);
+    assert.isDefined(m.processes[360]);
+
+    assert.isDefined(m.processes[124].counters['android.StatusBar']);
+    assert.strictEqual(
+        m.processes[124].counters['android.StatusBar'].numSamples, 1);
+    assert.isDefined(m.processes[124].counters['android.VSYNC']);
+    assert.strictEqual(
+        2, m.processes[124].counters['android.VSYNC'].numSamples);
+    assert.isDefined(m.processes[360].counters['android.iq']);
+    assert.strictEqual(1, m.processes[360].counters['android.iq'].numSamples);
   });
 
   test('clockSync', function() {
