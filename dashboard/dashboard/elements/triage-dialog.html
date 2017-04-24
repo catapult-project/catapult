@@ -363,6 +363,19 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
         return this.getBugTitleForStoppageAlert();
       },
 
+      getSuiteNameForAlert: function(alert) {
+        // TODO(eakuefner): Ideally the TestMetadata can specify it's own
+        // template, but that functionality is blocked on a working histogram
+        // pipeline. So for now we just hard code a list of suites that specify
+        // an additional subtest entry to make life easier for sheriffs.
+        // https://github.com/catapult-project/catapult/issues/3150
+        const SUITES_WITH_SUBTEST_ENTRY = ['v8'];
+        if (SUITES_WITH_SUBTEST_ENTRY.indexOf(alert.testsuite) == -1) {
+          return alert.testsuite;
+        }
+        return alert.testsuite + '/' + alert.test.split('/')[0];
+      },
+
       getBugTitleForAnomaly: function() {
         var type = 'improvement';
         var percentMin = Infinity;
@@ -413,21 +426,22 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
           minMax = percentMin + '%';
         }
 
-        var alert = this.alerts[0];
-        var summary = '{{range}} {{type}} in {{suite}} at {{start}}:{{end}}'.
+        let suiteTitle = this.getSuiteNameForAlert(this.alerts[0]);
+        let summary = '{{range}} {{type}} in {{suite}} at {{start}}:{{end}}'.
             replace('{{range}}', minMax).
             replace('{{type}}', type).
-            replace('{{suite}}', alert.testsuite).
+            replace('{{suite}}', suiteTitle).
             replace('{{start}}', startRev).
             replace('{{end}}', endRev);
         return summary;
       },
 
       getBugTitleForStoppageAlert: function() {
-        var alert = this.alerts[0];
-        var summary =
+        let alert = this.alerts[0];
+        let suiteTitle = this.getSuiteNameForAlert(alert);
+        let summary =
             'No data received for {{suite}} from {{bot}} since {{rev}}'.
-                replace('{{suite}}', alert.testsuite).
+                replace('{{suite}}', suiteTitle).
                 replace('{{bot}}', alert.bot).
                 replace('{{rev}}', alert.end_revision);
         return summary;
