@@ -558,8 +558,10 @@ found in the LICENSE file.
           if (unitInfo &&
               unitInfo.name != 'unitlessNumber' &&
               unitInfo.name != 'count') {
+            var conversionFactor = unitInfo.conversionFactor || 1;
+            var value = item[key] * conversionFactor;
             unitInfo = unitInfo.name;
-            return (tr.b.Unit.byName[unitInfo].format(item[key]));
+            return tr.b.Unit.byName[unitInfo].format(value);
           }
   
           var value = item[key];
