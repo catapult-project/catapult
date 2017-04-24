@@ -342,6 +342,7 @@ class StartBisectTest(testing_common.TestCase):
         ],
         {
             'page_cycler.morejs': {
+                'benchmark_duration': {},
                 'times': {
                     'page_load_time': {},
                     'page_load_time_ref': {},
@@ -445,6 +446,13 @@ class StartBisectTest(testing_common.TestCase):
 
     response = self.testapp.post('/start_try_job', {
         'test_path': 'ChromiumPerf/android-nexus7/octane/Total/Score',
+        'step': 'prefill-info',
+    })
+    info = json.loads(response.body)
+    self.assertEqual(info['story_filter'], '')
+
+    response = self.testapp.post('/start_try_job', {
+        'test_path': 'ChromiumPerf/win7/page_cycler.morejs/benchmark_duration',
         'step': 'prefill-info',
     })
     info = json.loads(response.body)

@@ -84,10 +84,14 @@ _NON_TELEMETRY_TEST_COMMANDS = {
         '{CHROMIUM_OUTPUT_DIR}',
     ],
 }
-_DISABLE_STORY_FILTER = set([
+_DISABLE_STORY_FILTER_SUITE_LIST = set([
     'octane',  # Has a single story.
     'memory.top_10_mobile',  # Stories are not independent.
     'memory.top_10_mobile_stress',  # Stories are not independent.
+])
+
+_DISABLE_STORY_FILTER_STORY_LIST = set([
+    'benchmark_duration', # Needs all stories to run to be relevant.
 ])
 
 
@@ -531,9 +535,10 @@ def GuessStoryFilter(test_path):
   suite_name, story_name = test_path_parts[2], test_path_parts[-1]
   if any([
       _IsNonTelemetrySuiteName(suite_name),
-      suite_name in _DISABLE_STORY_FILTER,
+      suite_name in _DISABLE_STORY_FILTER_SUITE_LIST,
       suite_name.startswith('media.') and '.html?' not in story_name,
-      suite_name.startswith('webrtc.')]):
+      suite_name.startswith('webrtc.'),
+      story_name in _DISABLE_STORY_FILTER_STORY_LIST]):
     return ''
   test_key = utils.TestKey(test_path)
   subtest_keys = list_tests.GetTestDescendants(test_key)
