@@ -36,6 +36,7 @@ try:
   import win32gui  # pylint: disable=import-error
   import win32pipe  # pylint: disable=import-error
   import win32process  # pylint: disable=import-error
+  import winerror  # pylint: disable=import-error
   try:
     import winreg  # pylint: disable=import-error
   except ImportError:
@@ -52,6 +53,7 @@ except ImportError:
   win32pipe = None
   win32process = None
   win32security = None
+  winerror = None
   winreg = None
 
 
@@ -425,12 +427,19 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
     # It seems safest to send the WM_CLOSE messages after discovering
     # all of the sub-process's windows.
     def find_chrome_windows(hwnd, hwnds):
-      _, win_pid = win32process.GetWindowThreadProcessId(hwnd)
-      if (pid == win_pid and
-          win32gui.IsWindowVisible(hwnd) and
-          win32gui.IsWindowEnabled(hwnd) and
-          win32gui.GetClassName(hwnd).lower().startswith(app_name)):
-        hwnds.append(hwnd)
+      try:
+        _, win_pid = win32process.GetWindowThreadProcessId(hwnd)
+        if (pid == win_pid and
+            win32gui.IsWindowVisible(hwnd) and
+            win32gui.IsWindowEnabled(hwnd) and
+            win32gui.GetClassName(hwnd).lower().startswith(app_name)):
+          hwnds.append(hwnd)
+      except pywintypes.error, e:
+        error_code = e[0]
+        # Some windows may close after enumeration and before the calls above,
+        # so ignore those.
+        if error_code != winerror.ERROR_INVALID_WINDOW_HANDLE:
+          raise
       return True
     hwnds = []
     win32gui.EnumWindows(find_chrome_windows, hwnds)
