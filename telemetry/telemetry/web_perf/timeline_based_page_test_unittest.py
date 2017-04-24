@@ -123,6 +123,7 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
         'Gesture_Scroll', 'frame_time_discrepancy')
     self.assertEquals(len(v), 1)
 
+  @decorators.Disabled('chromeos')
   @decorators.Isolated
   def testTraceCaptureUponFailure(self):
     ps = self.CreateEmptyPageSet()
