@@ -238,6 +238,21 @@ tr.exportTo('tr.b', function() {
     return stringColorIdCache.get(string);
   };
 
+  /**
+   * @return {Number} A color id generated consistently from a |colorId| and
+   * number |n|.
+   */
+  ColorScheme.getAnotherColorId = function(colorId, n) {
+    return (colorId + n) % numColorsPerVariant;
+  };
+
+  /**
+   * @return {Number} A color ID that the |offset| variant of |colorId|.
+   */
+  ColorScheme.getVariantColorId = function(colorId, offset) {
+    return colorId + offset;
+  };
+
   return {
     ColorScheme,
   };

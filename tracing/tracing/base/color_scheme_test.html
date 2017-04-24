@@ -45,5 +45,18 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(isValidColorId(
         ColorScheme.getColorIdForGeneralPurposeString('constructor')));
   });
+
+  test('getAnotherColorId', function() {
+    const colorId = ColorScheme.getColorIdForGeneralPurposeString('black');
+    assert.isTrue(isValidColorId(
+        ColorScheme.getAnotherColorId(colorId, 300)));
+  });
+
+  test('getVariantColorId', function() {
+    const colorId = ColorScheme.getColorIdForGeneralPurposeString('black');
+    const offset = ColorScheme.properties.brightenedOffsets[0];
+    assert.isTrue(isValidColorId(
+        ColorScheme.getVariantColorId(colorId, offset)));
+  });
 });
 </script>

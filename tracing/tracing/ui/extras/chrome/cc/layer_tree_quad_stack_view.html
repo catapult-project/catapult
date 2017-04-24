@@ -986,7 +986,8 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
         var colorId = ColorScheme.getColorIdForGeneralPurposeString(
             highlight.colorKey);
-        colorId += ColorScheme.properties.brightenedOffsets[0];
+        const offset = ColorScheme.properties.brightenedOffsets[0];
+        colorId = ColorScheme.getVariantColorId(colorId, offset);
 
         var color = ColorScheme.colors[colorId];
 
