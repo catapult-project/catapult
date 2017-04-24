@@ -273,6 +273,28 @@ class ProcessAlertsTest(testing_common.TestCase):
     self.assertEqual(10011, anomalies[0].end_revision)
     self.assertTrue(anomalies[0].internal_only)
 
+  def testProcessTest_CreatesAnAnomaly_RefMovesToo_BenchmarkDuration(self):
+    testing_common.AddTests(
+        ['ChromiumGPU'], ['linux-release'], {
+            'foo': {'benchmark_duration': {'ref': {}}},
+        })
+    ref = utils.TestKey(
+        'ChromiumGPU/linux-release/foo/benchmark_duration/ref').get()
+    non_ref = utils.TestKey(
+        'ChromiumGPU/linux-release/foo/benchmark_duration').get()
+    test_container_key = utils.GetTestContainerKey(ref.key)
+    test_container_key_non_ref = utils.GetTestContainerKey(non_ref.key)
+    for row in _TEST_ROW_DATA:
+      graph_data.Row(id=row[0], value=row[1], parent=test_container_key).put()
+      graph_data.Row(id=row[0], value=row[1],
+                     parent=test_container_key_non_ref).put()
+    sheriff.Sheriff(
+        email='a@google.com', id='sheriff', patterns=[ref.test_path]).put()
+    ref.put()
+    find_anomalies.ProcessTests([ref.key])
+    new_anomalies = anomaly.Anomaly.query().fetch()
+    self.assertEqual(1, len(new_anomalies))
+
   def testProcessTest_AnomaliesMatchRefSeries_NoAlertCreated(self):
     # Tests that a Anomaly entity is not created if both the test and its
     # corresponding ref build series have the same data.
