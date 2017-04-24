@@ -335,9 +335,7 @@ tr.exportTo('tr.v', function() {
       if (percent < 0 || percent > 1) {
         throw new Error('percent must be in [0,1]');
       }
-      if (this.numValues === 0) {
-        return 0;
-      }
+      if (this.numValues === 0) return undefined;
       if (this.allBins.length === 1) {
         // Copy sampleValues, don't sort them in place, in order to preserve
         // insertion order.
@@ -582,6 +580,7 @@ tr.exportTo('tr.v', function() {
       }
       if (statName.substr(0, 4) === 'pct_') {
         let percent = percentFromString(statName.substr(4));
+        if (this.numValues === 0) return undefined;
         let percentile = this.getApproximatePercentile(percent);
         return new tr.b.Scalar(this.unit, percentile);
       }

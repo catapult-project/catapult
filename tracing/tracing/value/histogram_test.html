@@ -59,9 +59,9 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(0, hist.getStatisticScalar('sum').value);
     assert.strictEqual(0, hist.getStatisticScalar('nans').value);
     assert.strictEqual(0, hist.getStatisticScalar('count').value);
-    assert.strictEqual(0, hist.getStatisticScalar('pct_000').value);
-    assert.strictEqual(0, hist.getStatisticScalar('pct_050').value);
-    assert.strictEqual(0, hist.getStatisticScalar('pct_100').value);
+    assert.isUndefined(hist.getStatisticScalar('pct_000'));
+    assert.isUndefined(hist.getStatisticScalar('pct_050'));
+    assert.isUndefined(hist.getStatisticScalar('pct_100'));
 
     assert.isFalse(hist.canCompare());
     assert.throws(() => hist.getStatisticScalar(tr.v.DELTA + 'avg'));
@@ -588,12 +588,12 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(stats.get('sum').value, 0);
     assert.strictEqual(stats.get('avg'), undefined);
     assert.strictEqual(stats.get('std'), undefined);
-    assert.strictEqual(stats.get('pct_000').value, 0);
-    assert.strictEqual(stats.get('pct_001').value, 0);
-    assert.strictEqual(stats.get('pct_010').value, 0);
-    assert.strictEqual(stats.get('pct_050').value, 0);
-    assert.strictEqual(stats.get('pct_099_5').value, 0);
-    assert.strictEqual(stats.get('pct_100').value, 0);
+    assert.isUndefined(stats.get('pct_000'));
+    assert.isUndefined(stats.get('pct_001'));
+    assert.isUndefined(stats.get('pct_010'));
+    assert.isUndefined(stats.get('pct_050'));
+    assert.isUndefined(stats.get('pct_099_5'));
+    assert.isUndefined(stats.get('pct_100'));
   });
 
   test('sampleValues', function() {
@@ -646,8 +646,8 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(clone.allBins, 1);
     assert.deepEqual(dict, clone.asDict());
 
-    assert.strictEqual(0, hist.getApproximatePercentile(0));
-    assert.strictEqual(0, hist.getApproximatePercentile(1));
+    assert.isUndefined(hist.getApproximatePercentile(0));
+    assert.isUndefined(hist.getApproximatePercentile(1));
     hist.addSample(0);
     assert.strictEqual(0, hist.getApproximatePercentile(0));
     assert.strictEqual(0, hist.getApproximatePercentile(1));
