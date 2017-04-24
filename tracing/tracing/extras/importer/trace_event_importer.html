@@ -2757,6 +2757,15 @@ tr.exportTo('tr.e.importer', function() {
             continue;
           }
           byteStats[byteStatName] = parseInt(rawByteStatValue, 16);
+          // OSX does not report PSS and instead emits all zeros.
+          // Zero is a valid value for some byteStats but not PSS so this could
+          // could to confusion when we later compute with and display the PSS.
+          // To avoid this we ignore zero PSS values (since PSS should never
+          // be zero). See: github.com/catapult-project/catapult/issues/3501
+          if (byteStatName === 'proportionalResident' &&
+              byteStats[byteStatName] === 0) {
+            byteStats[byteStatName] = undefined;
+          }
         }
 
         vmRegions[i] = new tr.model.VMRegion(
