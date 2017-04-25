@@ -43,15 +43,9 @@ CPU_TEMP_SENSORS = [
 ]
 
 DEVICE_FILE_VERSION = 1
-# TODO(bpastene): Remove the old file once sysmon has been updated to read the
-# new status file.
-DEVICE_FILES = [
-    os.path.join(os.path.expanduser('~'), 'android_device_status.json'),
-    os.path.join(
-        os.path.expanduser('~'), '.android',
-        '%s__android_device_status.json' % socket.gethostname().split('.')[0]
-    ),
-]
+DEVICE_FILE = os.path.join(
+    os.path.expanduser('~'), '.android',
+    '%s__android_device_status.json' % socket.gethostname().split('.')[0])
 
 MEM_INFO_REGEX = re.compile(r'.*?\:\s*(\d+)\s*kB') # ex: 'MemTotal:   185735 kB'
 
@@ -220,9 +214,8 @@ def main(argv):
   while True:
     start = time.time()
     status_dict = get_all_status(blacklist)
-    for device_file in DEVICE_FILES:
-      with open(device_file, 'wb') as f:
-        json.dump(status_dict, f, indent=2, sort_keys=True)
+    with open(DEVICE_FILE, 'wb') as f:
+      json.dump(status_dict, f, indent=2, sort_keys=True)
     logging.info('Got status of all devices in %.2fs.', time.time() - start)
     time.sleep(60)
 
