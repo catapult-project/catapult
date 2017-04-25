@@ -135,13 +135,14 @@ class FileBugHandler(request_handler.RequestHandler):
     http = oauth2_decorator.DECORATOR.http()
     service = issue_tracker_service.IssueTrackerService(http)
 
-    bug_id = service.NewBug(
+    new_bug_response = service.NewBug(
         summary, description, labels=labels, components=components, owner=owner,
         cc=cc)
-    if not bug_id:
-      self.RenderHtml('bug_result.html', {'error': 'Error creating bug!'})
+    if 'error' in new_bug_response:
+      self.RenderHtml('bug_result.html', {'error': new_bug_response['error']})
       return
 
+    bug_id = new_bug_response['bug_id']
     bug_data.Bug(id=bug_id).put()
 
     alert_group.ModifyAlertsAndAssociatedGroups(alerts, bug_id=bug_id)

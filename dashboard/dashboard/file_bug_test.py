@@ -39,7 +39,7 @@ class MockIssueTrackerService(object):
   def NewBug(cls, *args, **kwargs):
     cls.new_bug_args = args
     cls.new_bug_kwargs = kwargs
-    return cls.bug_id
+    return {'bug_id': cls.bug_id}
 
   @classmethod
   def AddBugComment(cls, *args, **kwargs):
