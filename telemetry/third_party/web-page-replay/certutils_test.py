@@ -125,16 +125,10 @@ class CertutilsTest(unittest.TestCase):
     with open(ca_cert_path, 'r') as ca_cert_file:
       ca_cert_str = ca_cert_file.read()
     cert_string = certutils.generate_cert(ca_cert_str, cert_string,
-                                          'host.com')
+                                          'host')
     cert = certutils.load_cert(cert_string)
     self.assertEqual(issuer, cert.get_issuer().commonName)
     self.assertEqual(subject, cert.get_subject().commonName)
-    self.assertEqual(2, cert.get_version())
-    self.assertEqual(2, cert.get_extension_count())
-    self.assertEqual(b"subjectAltName", cert.get_extension(0).get_short_name())
-    self.assertEqual(b"extendedKeyUsage",
-                     cert.get_extension(1).get_short_name())
-
 
 
 if __name__ == '__main__':

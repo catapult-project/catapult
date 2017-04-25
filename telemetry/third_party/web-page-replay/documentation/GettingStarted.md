@@ -14,11 +14,43 @@ $ git clone https://github.com/chromium/web-page-replay.git
 ```
 $ cd web-page-replay
 ```
-## Network simulation
-For network simulation, you can use https://github.com/WPO-Foundation/tsproxy
-which works on most platforms. More realistic network simulation options can be
-achieved through using tools like dummynet, but those only support limited
-platforms.
+## Linux-specific install steps
+On Linux, Dummynet must be installed to simulate network conditions.
+
+1. For the Linux code, try downloading the [latest linux sources from Marta
+Carbone](http://info.iet.unipi.it/~marta/dummynet/). These are more up-to-date than what is found on the [Dummynet
+homepage](http://info.iet.unipi.it/~luigi/dummynet/).
+2. Build and install:
+```
+$ tar -C /tmp -xvzf ipfw3-20120119.tgz
+$ cd /tmp/ipfw3-20120119
+$ make
+[Ignore output like the following:]
+        echo "  ERROR: Kernel configuration is invalid.";\
+        echo "         include/generated/autoconf.h or
+include/config/auto.conf are missing.";\
+        echo "         Run 'make oldconfig && make prepare' on kernel
+src to fix it.";\
+[The lines will print without "echo" if there is an actual error.]
+$ sudo insmod dummynet2/ipfw_mod.ko
+$ sudo cp ipfw/ipfw /usr/local/sbin
+```
+3. To remove it later
+```
+$ sudo rmmod ipfw_mod.ko
+```
+## Windows-specific install steps
+*Windows support is experimental and not well tested.* On Windows XP, the
+Dummynet driver must be installed to simulate network conditions
+(Drivers for Windows Vista and Windows 7 are currently unavailable).
+
+1. Control Panel -> Network Connections -> Right-click adapter in use ->
+select Properties
+2. Click Install... -> Service -> Add... -> Have Disk...
+3. Browse... ->
+web-page-replay-read-only\third_party\ipfw_win32\netipfw.inf
+4. Click Open -> Ok -> Ok
+  - Accept any warnings for installing an unknown driver
 
 # Record
 First you must record the web page or pages that you wish to replay.
