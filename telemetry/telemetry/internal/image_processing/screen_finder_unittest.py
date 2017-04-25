@@ -41,7 +41,7 @@ else:
       return self.ScreenFinder(fg)
 
     # https://github.com/catapult-project/catapult/issues/3510
-    @decorators.Disabled('linux')
+    @decorators.Disabled('mac', 'linux')
     @decorators.Isolated
     def testBasicFunctionality(self):
       def CheckCorners(corners, expected):
