@@ -55,10 +55,17 @@
       "cloud_storage_base_folder": "binary_dependencies",
       "cloud_storage_bucket": "chromium-telemetry",
       "file_info": {
-        "mac_x86_64": {
-          "cloud_storage_hash": "ee2a4110b6d78b0b824395e998a738bf813c23d7",
+        "linux_x86_64": {
+          "cloud_storage_hash": "85be3046d2fef651206d7daadbd1b34af2a005f5",
           "download_path": "../../third_party/cv2/lib/cv2.zip",
-          "path_within_archive": "."
+          "path_within_archive": ".",
+          "version_in_cs": "2.4.13.2"
+        },
+        "mac_x86_64": {
+          "cloud_storage_hash": "02c027767869d9910a71df103cb4d021dc1f57bd",
+          "download_path": "../../third_party/cv2/lib/cv2.zip",
+          "path_within_archive": ".",
+          "version_in_cs": "2.4.13.2"
         }
       }
     },
@@ -242,10 +249,17 @@
       "cloud_storage_base_folder": "binary_dependencies",
       "cloud_storage_bucket": "chromium-telemetry",
       "file_info": {
-        "mac_x86_64": {
-          "cloud_storage_hash": "cb1f52f1e02e025339a3c19bb0c5159323b36eab",
+        "linux_x86_64": {
+          "cloud_storage_hash": "58b6664311a625727f246e3783571dad940bd934",
           "download_path": "../../third_party/numpy/lib/numpy.zip",
-          "path_within_archive": "."
+          "path_within_archive": ".",
+          "version_in_cs": "1.11.3"
+        },
+        "mac_x86_64": {
+          "cloud_storage_hash": "6d7e32ab79a73c91b4c3c0a708a3790818be6e78",
+          "download_path": "../../third_party/numpy/lib/numpy.zip",
+          "path_within_archive": ".",
+          "version_in_cs": "1.11.3"
         }
       }
     },

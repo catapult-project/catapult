@@ -1,0 +1,89 @@
+#!/usr/bin/env python
+# Copyright 2017 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+DESCRIPTION = '''\
+Downloads numpy via pip, packages it as a zip, and updates \
+binary_dependencies.json and Cloud Storage with the result.'''
+
+import argparse
+import glob
+import os
+import shutil
+import sys
+import virtualenv
+
+# Catapult imports
+SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
+CATAPULT_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, '..', '..', '..'))
+sys.path.append(os.path.join(CATAPULT_ROOT, 'common', 'py_utils'))
+from py_utils import shell_util as sh
+sys.path.append(os.path.join(CATAPULT_ROOT, 'telemetry'))
+from telemetry.core import platform as platform_module
+sys.path.append(os.path.join(CATAPULT_ROOT, 'dependency_manager'))
+from dependency_manager import base_config
+
+# Dependency update helper
+def update_dependency(dependency, path, version):
+  config = os.path.join(CATAPULT_ROOT, 'telemetry', 'telemetry', 'internal',
+      'binary_dependencies.json')
+
+  os_name = platform_module.GetHostPlatform().GetOSName()
+  arch_name = platform_module.GetHostPlatform().GetArchName()
+  platform = "{}_{}".format(os_name, arch_name)
+
+  c = base_config.BaseConfig(config, writable=True)
+  c.AddCloudStorageDependencyUpdateJob(
+      dependency, platform, path, version=version, execute_job=True)
+
+# Main
+def main(version):
+  outdir = os.path.join(SCRIPT_DIR, 'lib')
+  if os.path.exists(outdir):
+    shutil.rmtree(outdir)
+  os.mkdir(outdir)
+
+  zip_full_base = os.path.join(outdir, 'numpy')
+  zip_result = None
+
+  with sh.ScopedTempDir():
+    virtualenv.create_environment('env')
+    with sh.ScopedChangeDir('env'):
+      sh.CallProgram(['bin', 'pip'], 'install', 'numpy=={}'.format(version))
+      root_dir = glob.glob(os.path.join('lib', 'python2.*', 'site-packages'))
+      if len(root_dir) != 1:
+        raise Exception('Expected one glob match, found ' + len(root_dir))
+      root_dir = root_dir[0]
+      print 'Zipping result...'
+      zip_result = shutil.make_archive(
+          base_name=zip_full_base,
+          format='zip',
+          root_dir=root_dir,
+          base_dir='numpy')
+    print 'Uploading zip...'
+    update_dependency('numpy', zip_result, version)
+
+    print '''\
+  Don't forget to run:
+  $ GYP_DEFINES=fetch_telemetry_dependencies=1 \
+  bin/fetch_telemetry_binary_dependencies
+  if you want to use the new dependency version locally!'''
+
+if __name__ == '__main__':
+  VERSION_HELP = '''\
+      Numpy package version, e.g. 1.11.3. For a release list, see \
+      <https://github.com/numpy/numpy/tree/master/doc/release>. \
+      For version support, see \
+      `telemetry/telemetry/internal/util/external_modules.py`.'''
+
+  try:
+    parser = argparse.ArgumentParser(description=DESCRIPTION)
+    parser.add_argument('version', help=VERSION_HELP)
+    args = parser.parse_args()
+
+    os.chdir(SCRIPT_DIR)
+    main(args.version)
+  except Exception as e:
+    print '{}: {}'.format(type(e).__name__, e.message)
+    sys.exit(1)
