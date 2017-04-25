@@ -211,6 +211,16 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(dstDict.b, 30);
   });
 
+  test('inPlaceFilter_simple', function() {
+    let someThisArg = {};
+    let list = [1, 2, 3, 4];
+    tr.b.inPlaceFilter(list, function(item) {
+      assert.strictEqual(this, someThisArg);
+      return item % 2 === 0;
+    }, someThisArg);
+    assert.deepEqual(list, [2, 4]);
+  });
+
   test('invertArrayOfDicts_defaultGetter', function() {
     var array = [
       {a: 6, b: 5},

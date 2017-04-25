@@ -42,23 +42,6 @@ tr.exportTo('tr.model', function() {
   var PROVIDED_SIZE_LESS_THAN_LARGEST_OWNER =
       MemoryAllocatorDumpInfoType.PROVIDED_SIZE_LESS_THAN_LARGEST_OWNER;
 
-  // TODO(petrcermak): Move this to tracing/base/iteration_helpers.html.
-  function inPlaceFilter(array, predicate, opt_this) {
-    opt_this = opt_this || this;
-    var nextPosition = 0;
-    for (var i = 0; i < array.length; i++) {
-      if (!predicate.call(opt_this, array[i], i)) continue;
-      if (nextPosition < i) {
-        array[nextPosition] = array[i];  // Move elements only if necessary.
-      }
-      nextPosition++;
-    }
-
-    if (nextPosition < array.length) {
-      array.length = nextPosition;  // Truncate the array only if necessary.
-    }
-  }
-
   function getSize(dump) {
     var numeric = dump.numerics[SIZE_NUMERIC_NAME];
     if (numeric === undefined) return 0;
@@ -138,7 +121,7 @@ tr.exportTo('tr.model', function() {
       });
 
       function removeWeakDumpsFromListRecursively(dumps) {
-        inPlaceFilter(dumps, function(dump) {
+        tr.b.inPlaceFilter(dumps, function(dump) {
           if (dump.weak) {
             // The dump is weak, so remove it. This will implicitly remove all
             // its descendants, which are also weak due to the initial marking
@@ -149,7 +132,7 @@ tr.exportTo('tr.model', function() {
           // This dump is non-weak, so keep it. Recursively remove its weak
           // descendants and ownership links from weak dumps instead.
           removeWeakDumpsFromListRecursively(dump.children);
-          inPlaceFilter(dump.ownedBy, function(ownershipLink) {
+          tr.b.inPlaceFilter(dump.ownedBy, function(ownershipLink) {
             return !ownershipLink.source.weak;
           });
 

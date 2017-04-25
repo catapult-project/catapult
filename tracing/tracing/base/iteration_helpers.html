@@ -207,6 +207,22 @@ tr.exportTo('tr.b', function() {
     return result;
   }
 
+  function inPlaceFilter(array, predicate, opt_this) {
+    opt_this = opt_this || this;
+    var nextPosition = 0;
+    for (var i = 0; i < array.length; i++) {
+      if (!predicate.call(opt_this, array[i], i)) continue;
+      if (nextPosition < i) {
+        array[nextPosition] = array[i];  // Move elements only if necessary.
+      }
+      nextPosition++;
+    }
+
+    if (nextPosition < array.length) {
+      array.length = nextPosition;  // Truncate the array only if necessary.
+    }
+  }
+
   function iterObjectFieldsRecursively(object, func) {
     if (!(object instanceof Object)) return;
 
@@ -394,6 +410,7 @@ tr.exportTo('tr.b', function() {
     groupIntoMap,
     mapItems,
     filterItems,
+    inPlaceFilter,
     iterObjectFieldsRecursively,
     invertArrayOfDicts,
     arrayToDict,
