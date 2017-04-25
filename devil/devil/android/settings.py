@@ -138,31 +138,25 @@ class ContentSettings(dict):
     raise ValueError('Unsupported type %s' % type(value))
 
   def iteritems(self):
-    # Example row:
-    # 'Row: 0 _id=13, name=logging_id2, value=-1fccbaa546705b05'
     for row in self._device.RunShellCommand(
         ['content', 'query', '--uri', 'content://%s' % self._table],
         check_return=True, as_root=True):
-      fields = row.split(', ')
-      key = None
-      value = None
-      for field in fields:
-        k, _, v = field.partition('=')
-        if k == 'name':
-          key = v
-        elif k == 'value':
-          value = v
+      key, value = _ParseContentRow(row)
       if not key:
         continue
-      if not value:
-        value = ''
       yield key, value
 
   def __getitem__(self, key):
-    return self._device.RunShellCommand(
+    query_row = self._device.RunShellCommand(
         ['content', 'query', '--uri', 'content://%s' % self._table,
          '--where', "name='%s'" % key],
-        check_return=True, as_root=True).strip()
+        check_return=True, as_root=True, single_line=True)
+    parsed_key, parsed_value = _ParseContentRow(query_row)
+    if parsed_key is None:
+      raise KeyError('key=%s not found' % key)
+    if parsed_key != key:
+      raise KeyError('Expected key=%s, but got key=%s' % (key, parsed_key))
+    return parsed_value
 
   def __setitem__(self, key, value):
     if key in self:
@@ -271,3 +265,19 @@ commit transaction;""" % {
         ['sqlite3', db, cmd], check_return=True, as_root=True)
     if output_msg:
       logger.info(' '.join(output_msg))
+
+
+def _ParseContentRow(row):
+  """Parse key, value entries from a row string."""
+  # Example row:
+  # 'Row: 0 _id=13, name=logging_id2, value=-1fccbaa546705b05'
+  fields = row.split(', ')
+  key = None
+  value = ''
+  for field in fields:
+    k, _, v = field.partition('=')
+    if k == 'name':
+      key = v
+    elif k == 'value':
+      value = v
+  return key, value
