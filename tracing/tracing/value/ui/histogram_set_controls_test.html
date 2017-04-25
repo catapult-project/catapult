@@ -194,7 +194,7 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(picker.currentGroupKeys, 1);
     assert.strictEqual(picker.currentGroupKeys[0],
         tr.v.HistogramSet.GROUPINGS.HISTOGRAM_NAME.key);
-    assert.strictEqual('none', picker.style.display);
+    assert.strictEqual('block', picker.style.display);
 
     controls.viewState.groupings = [
       tr.v.HistogramSet.GROUPINGS.STORY_NAME,
