@@ -5,6 +5,7 @@
 import os
 import unittest
 
+from telemetry import decorators
 from telemetry.core import util
 from telemetry.internal.image_processing import frame_generator
 from telemetry.internal.util import external_modules
@@ -24,6 +25,9 @@ else:
       self.VideoFileFrameGenerator = \
           video_file_frame_generator.VideoFileFrameGenerator
 
+    # https://github.com/catapult-project/catapult/issues/3510
+    @decorators.Disabled('mac', 'linux')
+    @decorators.Isolated
     def testVideoFileFrameGeneratorSuccess(self):
       vid = os.path.join(util.GetUnittestDataDir(), 'screen_3_frames.mov')
       fg = self.VideoFileFrameGenerator(vid)
@@ -55,6 +59,9 @@ else:
         stopped = True
       self.assertTrue(stopped)
 
+    # https://github.com/catapult-project/catapult/issues/3510
+    @decorators.Disabled('mac', 'linux')
+    @decorators.Isolated
     def testVideoFileFrameGeneratorSkipFrames(self):
       vid = os.path.join(util.GetUnittestDataDir(), 'screen_3_frames.mov')
       fg = self.VideoFileFrameGenerator(vid, 2)
@@ -69,6 +76,9 @@ else:
         stopped = True
       self.assertTrue(stopped)
 
+    # https://github.com/catapult-project/catapult/issues/3510
+    @decorators.Disabled('mac', 'linux')
+    @decorators.Isolated
     def testVideoFileFrameGeneratorFailure(self):
       vid = os.path.join(util.GetUnittestDataDir(), 'screen_3_frames.mov')
       try:
