@@ -170,9 +170,18 @@ class TestGetRemotePath(fake_filesystem_unittest.TestCase):
       self.fs.CreateFile(os.path.join(unzip_location, 'another_extra_path'))
     unzip_mock.side_effect = _UnzipFileMock
 
+    # Create a stale directory that's expected to get deleted
+    stale_unzip_path_glob = os.path.join(
+        os.path.dirname(self.download_path), 'unzip_dir_*')
+    stale_path = os.path.join(
+        os.path.dirname(self.download_path), 'unzip_dir_stale')
+    self.fs.CreateDirectory(stale_path)
+    self.fs.CreateFile(os.path.join(stale_path, 'some_file'))
+
     self.assertFalse(os.path.exists(dep_path))
     zip_info = archive_info.ArchiveInfo(
-        self.download_path, unzip_path, path_within_archive)
+        self.download_path, unzip_path, path_within_archive,
+        stale_unzip_path_glob)
     self.cs_info = cloud_storage_info.CloudStorageInfo(
         'cs_bucket', 'cs_hash', self.download_path, 'cs_remote_path',
         version_in_cs='1.2.3.4', archive_info=zip_info)
@@ -185,6 +194,9 @@ class TestGetRemotePath(fake_filesystem_unittest.TestCase):
     self.assertTrue(stat.S_IMODE(os.stat(os.path.abspath(dep_path)).st_mode) &
                     (stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR))
     unzip_mock.assert_called_once_with(self.download_path, unzip_path)
+
+    # Stale directory should have been deleted
+    self.assertFalse(os.path.exists(stale_path))
 
     # Should not need to unzip a second time, but should return the same path.
     unzip_mock.reset_mock()

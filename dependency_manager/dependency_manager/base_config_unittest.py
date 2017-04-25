@@ -11,6 +11,7 @@ from py_utils import cloud_storage
 import mock
 from pyfakefs import fake_filesystem_unittest
 from pyfakefs import fake_filesystem
+from pyfakefs import fake_filesystem_glob
 
 import dependency_manager
 from dependency_manager import uploader
@@ -1383,7 +1384,7 @@ class BaseConfigTest(unittest.TestCase):
                     'download_path': 'download_path111',
                     'cs_remote_path': 'cs_path111',
                     'version_in_cs': 'version_111',
-                    'path_in_archive': 'path/in/archive',
+                    'path_within_archive': 'path/within/archive',
                     'local_paths': ['local_path1110', 'local_path1111']
                 }
             }
@@ -1486,3 +1487,39 @@ class BaseConfigTest(unittest.TestCase):
       deps_seen.append(dep_info)
     dep_info_mock.assert_call_args(expected_calls)
     self.assertItemsEqual(expected_dep_info, deps_seen)
+
+  @mock.patch('dependency_manager.base_config.json')
+  @mock.patch('os.path.exists')
+  @mock.patch('__builtin__.open')
+  def testIterDependenciesStaleGlob(self, open_mock, exists_mock, json_mock):
+    json_mock.load.return_value = self.one_dep_dict
+    config = self.config_class('file_path')
+
+    abspath = os.path.abspath
+    should_match = set(map(abspath, [
+        'dep_all_the_variables_0123456789abcdef0123456789abcdef01234567',
+        'dep_all_the_variables_123456789abcdef0123456789abcdef012345678']))
+    # Not testing case changes, because Windows is case-insensitive.
+    should_not_match = set(map(abspath, [
+        # A configuration that doesn't unzip shouldn't clear any stale unzips.
+        'dep_plat1_arch1_0123456789abcdef0123456789abcdef01234567',
+        # "Hash" component less than 40 characters (not a valid SHA1 hash).
+        'dep_all_the_variables_0123456789abcdef0123456789abcdef0123456',
+        # "Hash" component greater than 40 characters (not a valid SHA1 hash).
+        'dep_all_the_variables_0123456789abcdef0123456789abcdef012345678',
+        # "Hash" component not comprised of hex (not a valid SHA1 hash).
+        'dep_all_the_variables_0123456789gggggg0123456789gggggg01234567']))
+
+    # Create a fake filesystem just for glob to use
+    fake_fs = fake_filesystem.FakeFilesystem()
+    fake_glob = fake_filesystem_glob.FakeGlobModule(fake_fs)
+    for stale_dir in set.union(should_match, should_not_match):
+      fake_fs.CreateDirectory(stale_dir)
+      fake_fs.CreateFile(os.path.join(stale_dir, 'some_file'))
+
+    for dep_info in config.IterDependencyInfo():
+      if dep_info.platform == 'all_the_variables':
+        cs_info = dep_info.cloud_storage_info
+        actual_glob = cs_info._archive_info._stale_unzip_path_glob
+        actual_matches = set(fake_glob.glob(actual_glob))
+        self.assertItemsEqual(should_match, actual_matches)

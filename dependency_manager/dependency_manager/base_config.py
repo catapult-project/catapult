@@ -165,8 +165,13 @@ class BaseConfig(object):
             unzip_path = os.path.abspath(
                 os.path.join(os.path.dirname(download_path),
                              '%s_%s_%s' % (dependency, platform, cs_hash)))
+            stale_unzip_path_glob = os.path.abspath(
+                os.path.join(os.path.dirname(download_path),
+                             '%s_%s_%s' % (dependency, platform,
+                                           '[0-9a-f]' * 40)))
             zip_info = archive_info.ArchiveInfo(
-                download_path, unzip_path, path_within_archive)
+                download_path, unzip_path, path_within_archive,
+                stale_unzip_path_glob)
 
           cs_info = cloud_storage_info.CloudStorageInfo(
               cs_bucket, cs_hash, download_path, cs_remote_path,

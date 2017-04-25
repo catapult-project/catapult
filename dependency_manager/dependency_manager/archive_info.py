@@ -2,7 +2,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import glob
 import os
+import shutil
 
 from dependency_manager import exceptions
 from dependency_manager import dependency_manager_util
@@ -10,7 +12,8 @@ from dependency_manager import dependency_manager_util
 
 class ArchiveInfo(object):
 
-  def __init__(self, archive_file, unzip_path, path_within_archive):
+  def __init__(self, archive_file, unzip_path, path_within_archive,
+               stale_unzip_path_glob=None):
     """ Container for the information needed to unzip a downloaded archive.
 
     Args:
@@ -25,12 +28,16 @@ class ArchiveInfo(object):
                 file_path: Unzip the file downloaded from cloud_storage.
                     |file_path| is the path to the expected dependency,
                     relative to the unzipped archive path.
+        stale_unzip_path_glob: Optional argument specifying a glob matching
+            string which matches directories that should be removed before this
+            archive is extracted (if it is extracted at all).
     """
     self._archive_file = archive_file
     self._unzip_path = unzip_path
     self._path_within_archive = path_within_archive
     self._dependency_path = os.path.join(
         self._unzip_path, self._path_within_archive)
+    self._stale_unzip_path_glob = stale_unzip_path_glob
     if not self._has_minimum_data:
       raise ValueError(
           'Not enough information specified to initialize an archive info.'
@@ -38,6 +45,10 @@ class ArchiveInfo(object):
 
   def GetUnzippedPath(self):
     if self.ShouldUnzipArchive():
+      # Remove stale unzip results
+      if self._stale_unzip_path_glob:
+        for path in glob.glob(self._stale_unzip_path_glob):
+          shutil.rmtree(path)
       # TODO(aiolos): Replace UnzipFile with zipfile.extractall once python
       # version 2.7.4 or later can safely be assumed.
       dependency_manager_util.UnzipArchive(
