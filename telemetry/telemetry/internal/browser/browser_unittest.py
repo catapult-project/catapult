@@ -273,7 +273,9 @@ class BrowserRestoreSessionTest(unittest.TestCase):
 
 class TestBrowserOperationDoNotLeakTempFiles(unittest.TestCase):
 
-  @decorators.Enabled('win', 'mac', 'linux')
+  @decorators.Enabled('win', 'linux')
+  # TODO(ashleymarie): Re-enable on mac
+  # BUG=catapult:#3523
   @decorators.Isolated
   def testBrowserNotLeakingTempFiles(self):
     options = options_for_unittests.GetCopy()
