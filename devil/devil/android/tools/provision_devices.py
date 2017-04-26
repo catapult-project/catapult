@@ -119,7 +119,7 @@ def ProvisionDevices(
 
   if max_battery_temp:
     steps.append(ProvisionStep(
-        lambda d: WaitForTemperature(d, max_battery_temp)))
+        lambda d: WaitForBatteryTemperature(d, max_battery_temp)))
 
   if min_battery_level:
     steps.append(ProvisionStep(
@@ -447,7 +447,7 @@ def WaitForCharge(device, min_battery_level):
     battery.ChargeDeviceToLevel(min_battery_level)
 
 
-def WaitForTemperature(device, max_battery_temp):
+def WaitForBatteryTemperature(device, max_battery_temp):
   try:
     battery = battery_utils.BatteryUtils(device)
     battery.LetBatteryCoolToTemperature(max_battery_temp)

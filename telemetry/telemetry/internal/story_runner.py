@@ -232,7 +232,7 @@ def Run(test, story_set, finder_options, results, max_failures=None,
 
           results.WillRunPage(story, storyset_repeat_counter)
           try:
-            state.platform.WaitForTemperature(35)
+            state.platform.WaitForBatteryTemperature(35)
             _WaitForThermalThrottlingIfNeeded(state.platform)
             _RunStoryAndProcessErrorIfNeeded(story, results, state, test)
           except exceptions.Error:

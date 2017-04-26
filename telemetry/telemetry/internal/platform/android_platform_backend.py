@@ -811,7 +811,7 @@ class AndroidPlatformBackend(
         ['log', '-p', 'i', '-t', TELEMETRY_LOGCAT_TAG, message],
         check_return=True)
 
-  def WaitForTemperature(self, temp):
+  def WaitForBatteryTemperature(self, temp):
     # Temperature is in tenths of a degree C, so we convert to that scale.
     self._battery.LetBatteryCoolToTemperature(temp * 10)
 

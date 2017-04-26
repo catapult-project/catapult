@@ -70,7 +70,7 @@ class FakePlatform(object):
   def StopAllLocalServers(self):
     pass
 
-  def WaitForTemperature(self, _):
+  def WaitForBatteryTemperature(self, _):
     pass
 
 

@@ -51,7 +51,7 @@ class FakePlatform(object):
   def GetOSName(self):
     pass
 
-  def WaitForTemperature(self, _):
+  def WaitForBatteryTemperature(self, _):
     pass
 
   def GetDeviceTypeName(self):

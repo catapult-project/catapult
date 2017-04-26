@@ -300,9 +300,5 @@ class PlatformBackend(object):
   def HasBattOrConnected(self):
     return battor_wrapper.IsBattOrConnected(self.GetOSName())
 
-  def WaitForTemperature(self, temp):
-    """Waits for device under test to cool down to temperature given.
-    Args:
-      temp: temperature target in degrees C.
-    """
+  def WaitForBatteryTemperature(self, temp):
     pass

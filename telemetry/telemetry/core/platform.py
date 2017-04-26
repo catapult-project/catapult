@@ -421,5 +421,10 @@ class Platform(object):
   def HasBattOrConnected(self):
     return  self._platform_backend.HasBattOrConnected()
 
-  def WaitForTemperature(self, temp):
-    return self._platform_backend.WaitForTemperature(temp)
+  def WaitForBatteryTemperature(self, temp):
+    """Waits for the battery on the device under test to cool down to temp.
+
+    Args:
+      temp: temperature target in degrees C.
+    """
+    return self._platform_backend.WaitForBatteryTemperature(temp)
