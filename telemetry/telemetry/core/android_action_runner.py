@@ -70,8 +70,15 @@ class AndroidActionRunner(object):
     Args:
       string: The string to send to the device.
     """
-    self._platform_backend.device.RunShellCommand(
-        ['input', 'text', string], check_return=True)
+    # Spaces should be input as keyevents since 'input text <text>' does not
+    # work with space. Pass space character to account for strings with multiple
+    # spaces.
+    words = string.split(' ')
+    for i in range(0, len(words)):
+      if i is not 0:
+        self.InputKeyEvent(keyevent.KEYCODE_SPACE)
+      self._platform_backend.device.RunShellCommand(
+          ['input', 'text', words[i]], check_return=True)
 
   def InputKeyEvent(self, keycode):
     """Send a single key input to the device.
@@ -105,7 +112,7 @@ class AndroidActionRunner(object):
       duration: The length of time of the swipe in milliseconds
     """
     cmd = ['input', 'swipe']
-    cmd.expand(str(x) for x in (left_start_coord, top_start_coord,
+    cmd.extend(str(x) for x in (left_start_coord, top_start_coord,
                                 left_end_coord, top_end_coord, duration))
     self._platform_backend.device.RunShellCommand(cmd, check_return=True)
 
