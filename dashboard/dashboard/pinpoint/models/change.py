@@ -4,7 +4,11 @@
 
 import collections
 
+from dashboard.common import namespaced_stored_object
 from dashboard.services import gitiles_service
+
+
+_REPOSITORIES_KEY = 'repositories'
 
 
 class NonLinearError(Exception):
@@ -15,7 +19,7 @@ class Change(collections.namedtuple('Change',
                                     ('base_commit', 'deps', 'patch'))):
   """A particular set of Deps with or without an additional patch applied.
 
-  For example, a Change might sync to chromium/src@9064a40 and catapult@8f26966,
+  For example, a Change might sync to src@9064a40 and catapult@8f26966,
   then apply patch 2423293002.
   """
 
@@ -30,6 +34,12 @@ class Change(collections.namedtuple('Change',
       patch: An optional patch to apply to the Change. A string of the format:
           <gerrit or rietveld>/<server hostname>/<change id>/<patch set>
     """
+    if patch and len(patch.split('/')) != 4:
+      raise ValueError(
+          'patch must be a string of the format: '
+          '<gerrit or rietveld>/<server hostname>/<change id>/<patch set>. '
+          'Got "%s".' % patch)
+
     # TODO: deps is unordered. Make it a frozenset.
     return super(Change, cls).__new__(cls, base_commit, tuple(deps), patch)
 
@@ -88,7 +98,22 @@ class Dep(collections.namedtuple('Dep', ('repository', 'git_hash'))):
   """A git repository pinned to a particular commit."""
 
   def __str__(self):
-    return self.repository.split('/')[-1] + '@' + self.git_hash[:7]
+    return self.repository + '@' + self.git_hash[:7]
+
+  @property
+  def repository_url(self):
+    """The HTTPS URL of the repository as passed to `git clone`."""
+    repositories = namespaced_stored_object.Get(_REPOSITORIES_KEY)
+    return repositories[self.repository]['repository_url']
+
+  def Validate(self):
+    """Validate the Dep to ensure it has a valid repository and git hash.
+
+    Raises:
+      KeyError: The repository name is not in the local datastore.
+      gitiles_service.NotFoundError: The git hash is not valid.
+    """
+    gitiles_service.CommitInfo(self.repository_url, self.git_hash)
 
   @classmethod
   def Midpoint(cls, dep_a, dep_b):
@@ -112,7 +137,7 @@ class Dep(collections.namedtuple('Dep', ('repository', 'git_hash'))):
       raise ValueError("Can't find the midpoint of Deps in differing "
                        'repositories: "%s" and "%s"' % (dep_a, dep_b))
 
-    commits = gitiles_service.CommitRange(dep_a.repository,
+    commits = gitiles_service.CommitRange(dep_a.repository_url,
                                           dep_a.git_hash, dep_b.git_hash)
     # We don't handle NotFoundErrors because we assume that all Deps either came
     # from this method or were already validated elsewhere.

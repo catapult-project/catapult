@@ -11,9 +11,19 @@ from dashboard.pinpoint.models import change
 
 class ChangeTest(unittest.TestCase):
 
+  def setUp(self):
+    patcher = mock.patch('dashboard.common.namespaced_stored_object.Get')
+    self.addCleanup(patcher.stop)
+    get = patcher.start()
+    get.return_value = {
+        'src': {
+            'repository_url': 'https://chromium.googlesource.com/chromium/src'
+        }
+    }
+
   def testChange(self):
-    base_commit = change.Dep('chromium/src', 'aaa7336')
-    dep = change.Dep('external/github.com/catapult-project/catapult', 'e0a2efb')
+    base_commit = change.Dep('src', 'aaa7336')
+    dep = change.Dep('catapult', 'e0a2efb')
     patch = 'rietveld/codereview.chromium.org/2565263002/20001'
 
     # Also test the deps conversion to tuple.
@@ -38,43 +48,43 @@ class ChangeTest(unittest.TestCase):
         {'commit': '1ef4789'},
     ]
 
-    change_a = change.Change(change.Dep('chromium/src', '0e57e2b'),
+    change_a = change.Change(change.Dep('src', '0e57e2b'),
                              (change.Dep('catapult', 'e0a2efb'),))
-    change_b = change.Change(change.Dep('chromium/src', 'babe852'),
+    change_b = change.Change(change.Dep('src', 'babe852'),
                              (change.Dep('catapult', 'e0a2efb'),))
     self.assertEqual(change.Change.Midpoint(change_a, change_b),
-                     change.Change(change.Dep('chromium/src', '949b36d'),
+                     change.Change(change.Dep('src', '949b36d'),
                                    (change.Dep('catapult', 'e0a2efb'),)))
 
   def testMidpointRaisesWithDifferingNumberOfDeps(self):
-    change_a = change.Change(change.Dep('chromium/src', '0e57e2b'))
-    change_b = change.Change(change.Dep('chromium/src', 'babe852'),
+    change_a = change.Change(change.Dep('src', '0e57e2b'))
+    change_b = change.Change(change.Dep('src', 'babe852'),
                              (change.Dep('catapult', 'e0a2efb'),))
     with self.assertRaises(change.NonLinearError):
       change.Change.Midpoint(change_a, change_b)
 
   def testMidpointRaisesWithDifferingPatch(self):
-    change_a = change.Change(change.Dep('chromium/src', '0e57e2b'))
-    change_b = change.Change(change.Dep('chromium/src', 'babe852'),
-                             patch='patch')
+    change_a = change.Change(change.Dep('src', '0e57e2b'))
+    change_b = change.Change(change.Dep('src', 'babe852'),
+                             patch='rietveld/example.org/2565263002/20001')
     with self.assertRaises(change.NonLinearError):
       change.Change.Midpoint(change_a, change_b)
 
   def testMidpointRaisesWithDifferingRepository(self):
-    change_a = change.Change(change.Dep('chromium/src', '0e57e2b'))
-    change_b = change.Change(change.Dep('not/chromium/src', 'babe852'))
+    change_a = change.Change(change.Dep('src', '0e57e2b'))
+    change_b = change.Change(change.Dep('not_src', 'babe852'))
     with self.assertRaises(change.NonLinearError):
       change.Change.Midpoint(change_a, change_b)
 
   def testMidpointRaisesWithTheSameChange(self):
-    c = change.Change(change.Dep('chromium/src', '0e57e2b'))
+    c = change.Change(change.Dep('src', '0e57e2b'))
     with self.assertRaises(change.NonLinearError):
       change.Change.Midpoint(c, c)
 
   def testMidpointRaisesWithMultipleDifferingCommits(self):
-    change_a = change.Change(change.Dep('chromium/src', '0e57e2b'),
+    change_a = change.Change(change.Dep('src', '0e57e2b'),
                              (change.Dep('catapult', 'e0a2efb'),))
-    change_b = change.Change(change.Dep('chromium/src', 'babe852'),
+    change_b = change.Change(change.Dep('src', 'babe852'),
                              (change.Dep('catapult', 'bfa19de'),))
     with self.assertRaises(change.NonLinearError):
       change.Change.Midpoint(change_a, change_b)
@@ -83,20 +93,50 @@ class ChangeTest(unittest.TestCase):
   def testMidpointReturnsNoneWithAdjacentCommits(self, commit_range):
     commit_range.return_value = [{'commit': 'b57345e'}]
 
-    change_a = change.Change(change.Dep('chromium/src', '949b36d'))
-    change_b = change.Change(change.Dep('chromium/src', 'b57345e'))
+    change_a = change.Change(change.Dep('src', '949b36d'))
+    change_b = change.Change(change.Dep('src', 'b57345e'))
     self.assertIsNone(change.Change.Midpoint(change_a, change_b))
 
 
 class DepTest(unittest.TestCase):
 
-  def testDep(self):
-    dep = change.Dep('chromium/src', 'aaa7336')
+  def setUp(self):
+    patcher = mock.patch('dashboard.common.namespaced_stored_object.Get')
+    self.addCleanup(patcher.stop)
+    get = patcher.start()
+    get.return_value = {
+        'src': {
+            'repository_url': 'https://chromium.googlesource.com/chromium/src'
+        }
+    }
 
-    self.assertEqual(dep, change.Dep('chromium/src', 'aaa7336'))
+  def testDep(self):
+    dep = change.Dep('src', 'aaa7336')
+
+    self.assertEqual(dep, change.Dep('src', 'aaa7336'))
     self.assertEqual(str(dep), 'src@aaa7336')
-    self.assertEqual(dep.repository, 'chromium/src')
+    self.assertEqual(dep.repository, 'src')
     self.assertEqual(dep.git_hash, 'aaa7336')
+    self.assertEqual(dep.repository_url,
+                     'https://chromium.googlesource.com/chromium/src')
+
+  @mock.patch('dashboard.services.gitiles_service.CommitInfo')
+  def testValidateSuccess(self, _):
+    dep = change.Dep('src', '0e57e2b')
+    dep.Validate()
+
+  def testValidateFailureFromUnknownRepo(self):
+    dep = change.Dep('catapult', '0e57e2b')
+    with self.assertRaises(KeyError):
+      dep.Validate()
+
+  @mock.patch('dashboard.services.gitiles_service.CommitInfo')
+  def testValidateFailureFromUnknownCommit(self, commit_info):
+    commit_info.side_effect = KeyError()
+
+    dep = change.Dep('src', '0e57e2b')
+    with self.assertRaises(KeyError):
+      dep.Validate()
 
   @mock.patch('dashboard.services.gitiles_service.CommitRange')
   def testMidpointSuccess(self, commit_range):
@@ -107,14 +147,14 @@ class DepTest(unittest.TestCase):
         {'commit': '1ef4789'},
     ]
 
-    dep_a = change.Dep('chromium/src', '0e57e2b')
-    dep_b = change.Dep('chromium/src', 'babe852')
+    dep_a = change.Dep('src', '0e57e2b')
+    dep_b = change.Dep('src', 'babe852')
     self.assertEqual(change.Dep.Midpoint(dep_a, dep_b),
-                     change.Dep('chromium/src', '949b36d'))
+                     change.Dep('src', '949b36d'))
 
   def testMidpointRaisesWithDifferingRepositories(self):
-    dep_a = change.Dep('chromium/src', '0e57e2b')
-    dep_b = change.Dep('not/chromium/src', 'babe852')
+    dep_a = change.Dep('src', '0e57e2b')
+    dep_b = change.Dep('not_src', 'babe852')
 
     with self.assertRaises(ValueError):
       change.Dep.Midpoint(dep_a, dep_b)
@@ -123,14 +163,14 @@ class DepTest(unittest.TestCase):
   def testMidpointReturnsNoneWithAdjacentCommits(self, commit_range):
     commit_range.return_value = [{'commit': 'b57345e'}]
 
-    dep_a = change.Dep('chromium/src', '949b36d')
-    dep_b = change.Dep('chromium/src', 'b57345e')
+    dep_a = change.Dep('src', '949b36d')
+    dep_b = change.Dep('src', 'b57345e')
     self.assertIsNone(change.Dep.Midpoint(dep_a, dep_b))
 
   @mock.patch('dashboard.services.gitiles_service.CommitRange')
   def testMidpointReturnsNoneWithEmptyRange(self, commit_range):
     commit_range.return_value = []
 
-    dep_b = change.Dep('chromium/src', 'b57345e')
-    dep_a = change.Dep('chromium/src', '949b36d')
+    dep_b = change.Dep('src', 'b57345e')
+    dep_a = change.Dep('src', '949b36d')
     self.assertIsNone(change.Dep.Midpoint(dep_a, dep_b))

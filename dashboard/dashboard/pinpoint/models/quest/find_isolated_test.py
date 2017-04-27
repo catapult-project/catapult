@@ -46,7 +46,7 @@ class _FindIsolatedTest(unittest.TestCase):
 class IsolateLookupTest(_FindIsolatedTest):
 
   def testIsolateLookupSuccess(self):
-    change = change_module.Change(change_module.Dep('chromium/src', 'f9f2b720'))
+    change = change_module.Change(change_module.Dep('src', 'f9f2b720'))
     execution = find_isolated.FindIsolated('Mac Pro Perf').Start(change)
     execution.Poll()
 
@@ -54,7 +54,7 @@ class IsolateLookupTest(_FindIsolatedTest):
     self.assertEqual(execution.result_arguments, {'isolated_hash': '7c7e90be'})
 
   def testIsolateLookupSuccessWithOneDep(self):
-    base_commit = change_module.Dep('chromium/src', 'f9f2b720')
+    base_commit = change_module.Dep('src', 'f9f2b720')
     deps = (change_module.Dep('repository 2', 'githash2'),)
     change = change_module.Change(base_commit, deps)
     execution = find_isolated.FindIsolated('Mac Pro Perf').Start(change)
@@ -64,7 +64,7 @@ class IsolateLookupTest(_FindIsolatedTest):
     self.assertEqual(execution.result_arguments, {'isolated_hash': 'isohash2'})
 
   def testChangeHasMultipleDeps(self):
-    base_commit = change_module.Dep('chromium/src', 'f9f2b720')
+    base_commit = change_module.Dep('src', 'f9f2b720')
     deps = (
         change_module.Dep('repository 2', 'githash2'),
         change_module.Dep('repository 3', 'githash3')
@@ -77,15 +77,15 @@ class IsolateLookupTest(_FindIsolatedTest):
 
   def testChangeHasPatch(self):
     change = change_module.Change(
-        change_module.Dep('chromium/src', 'f9f2b720'),
-        patch='patch/rietveld/codereview.chromium.org/2570613003/1')
+        change_module.Dep('src', 'f9f2b720'),
+        patch='rietveld/codereview.chromium.org/2570613003/1')
     execution = find_isolated.FindIsolated('Mac Pro Perf').Start(change)
     execution.Poll()
 
     self.assertExecutionFailure(execution)
 
   def testNoIsolatedAvailable(self):
-    change = change_module.Change(change_module.Dep('chromium/src', 'bad_hash'))
+    change = change_module.Change(change_module.Dep('src', 'bad_hash'))
     execution = find_isolated.FindIsolated('Mac Pro Perf').Start(change)
 
     execution.Poll()
@@ -110,8 +110,7 @@ class BuilderLookupTest(_FindIsolatedTest):
         for builder, _ in builder_testers)
 
     for builder, tester in builder_testers:
-      change = change_module.Change(
-          change_module.Dep('chromium/src', 'git hash'))
+      change = change_module.Change(change_module.Dep('src', 'git hash'))
       execution = find_isolated.FindIsolated(tester).Start(change)
       execution.Poll()
 

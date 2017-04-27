@@ -703,8 +703,9 @@ def _PerformPerfTryJob(perf_job):
 
   # Get the base config file contents and make a patch.
   try:
-    base_config = gitiles_service.FileContents('chromium/src', 'master',
-                                               _PERF_CONFIG_PATH)
+    base_config = gitiles_service.FileContents(
+        'https://chromium.googlesource.com/chromium/src', 'master',
+        _PERF_CONFIG_PATH)
   except (urlfetch.Error, gitiles_service.NotFoundError):
     base_config = None
 

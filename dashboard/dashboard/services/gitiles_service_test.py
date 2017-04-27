@@ -44,8 +44,10 @@ class GitilesTest(unittest.TestCase):
         ],
     }
     _SetFetchReturnValues(mock_fetch, return_value)
-    self.assertEqual(gitiles_service.CommitInfo('repo', 'commit_hash'),
-                     return_value)
+    self.assertEqual(
+        gitiles_service.CommitInfo('https://chromium.googlesource.com/repo',
+                                   'commit_hash'),
+        return_value)
     mock_fetch.assert_called_once_with(
         'https://chromium.googlesource.com/repo/+/commit_hash?format=JSON')
 
@@ -88,7 +90,8 @@ class GitilesTest(unittest.TestCase):
     }
     _SetFetchReturnValues(mock_fetch, return_value)
     self.assertEqual(
-        gitiles_service.CommitRange('repo', 'commit_0_hash', 'commit_2_hash'),
+        gitiles_service.CommitRange('https://chromium.googlesource.com/repo',
+                                    'commit_0_hash', 'commit_2_hash'),
         return_value['log'])
     mock_fetch.assert_called_once_with(
         'https://chromium.googlesource.com/repo/+log/'
@@ -112,14 +115,16 @@ class GitilesTest(unittest.TestCase):
     _SetFetchReturnValues(mock_fetch, return_value_1, return_value_2)
 
     self.assertEqual(
-        gitiles_service.CommitRange('repo', 'commit_0_hash', 'commit_4_hash'),
+        gitiles_service.CommitRange('https://chromium.googlesource.com/repo',
+                                    'commit_0_hash', 'commit_4_hash'),
         return_value_1['log'] + return_value_2['log'])
 
   def testFileContents(self, mock_fetch):
     mock_fetch.return_value = mock.MagicMock(
         content='aGVsbG8=', status_code=200)
     self.assertEqual(
-        gitiles_service.FileContents('repo', 'commit_hash', 'path'),
+        gitiles_service.FileContents('https://chromium.googlesource.com/repo',
+                                     'commit_hash', 'path'),
         'hello')
     mock_fetch.assert_called_once_with(
         'https://chromium.googlesource.com/repo/+/commit_hash/path?format=TEXT')
@@ -127,31 +132,27 @@ class GitilesTest(unittest.TestCase):
   def testRetries(self, mock_fetch):
     mock_fetch.side_effect = urlfetch.Error()
     with self.assertRaises(urlfetch.Error):
-      gitiles_service.FileContents('repo', 'commit_hash', 'path')
+      gitiles_service.FileContents('https://chromium.googlesource.com/repo',
+                                   'commit_hash', 'path')
 
     mock_fetch.side_effect = urlfetch.Error(), mock.MagicMock(
         content='aGVsbG8=', status_code=200)
     self.assertEqual(
-        gitiles_service.FileContents('repo', 'commit_hash', 'path'),
+        gitiles_service.FileContents('https://chromium.googlesource.com/repo',
+                                     'commit_hash', 'path'),
         'hello')
 
     mock_fetch.side_effect = Exception(), mock.MagicMock(
         content='aGVsbG8=', status_code=200)
     with self.assertRaises(Exception):
-      gitiles_service.FileContents('repo', 'commit_hash', 'path')
+      gitiles_service.FileContents('https://chromium.googlesource.com/repo',
+                                   'commit_hash', 'path')
 
   def testNotFound(self, mock_fetch):
     mock_fetch.side_effect = gitiles_service.NotFoundError()
     with self.assertRaises(gitiles_service.NotFoundError):
-      gitiles_service.FileContents('repo', 'commit_hash', 'path')
-
-  def testCustomHostname(self, mock_fetch):
-    mock_fetch.return_value = mock.MagicMock(
-        content='aGVsbG8=', status_code=200)
-    gitiles_service.FileContents('repo', 'commit_hash', 'path',
-                                 hostname='https://example.com')
-    mock_fetch.assert_called_once_with(
-        'https://example.com/repo/+/commit_hash/path?format=TEXT')
+      gitiles_service.FileContents('https://chromium.googlesource.com/repo',
+                                   'commit_hash', 'path')
 
 
 def _SetFetchReturnValues(mock_fetch, *return_values):

@@ -10,7 +10,6 @@ import json
 from google.appengine.api import urlfetch
 
 
-_DEFAULT_HOSTNAME = 'https://chromium.googlesource.com'
 _PADDING = ")]}'\n"  # Gitiles padding.
 
 
@@ -18,13 +17,12 @@ class NotFoundError(Exception):
   """Raised when Gitiles gives a HTTP 404 error."""
 
 
-def CommitInfo(repository, git_hash, hostname=_DEFAULT_HOSTNAME):
+def CommitInfo(repository_url, git_hash):
   """Fetches information about a commit.
 
   Args:
-    repository: The git repository.
+    repository_url: The url of the git repository.
     git_hash: The git hash of the commit.
-    hostname: The hostname of the gitiles service, including the protocol.
 
   Returns:
     A dictionary containing the author, message, time, file changes, and other
@@ -35,19 +33,17 @@ def CommitInfo(repository, git_hash, hostname=_DEFAULT_HOSTNAME):
     urlfetch.Error: A network or HTTP error occurred.
   """
   # TODO: Update the docstrings in this file.
-  url = '%s/%s/+/%s?format=JSON' % (hostname, repository, git_hash)
+  url = '%s/+/%s?format=JSON' % (repository_url, git_hash)
   return _RequestJson(url)
 
 
-def CommitRange(repository, first_git_hash, last_git_hash,
-                hostname=_DEFAULT_HOSTNAME):
+def CommitRange(repository_url, first_git_hash, last_git_hash):
   """Fetches the commits in between first and last, including the latter.
 
   Args:
-    repository: The git repository.
+    repository_url: The git url of the repository.
     first_git_hash: The git hash of the earliest commit in the range.
     last_git_hash: The git hash of the latest commit in the range.
-    hostname: The hostname of the gitiles service, including the protocol.
 
   Returns:
     A list of dictionaries, one for each commit after the first commit up to
@@ -62,22 +58,21 @@ def CommitRange(repository, first_git_hash, last_git_hash,
   """
   commits = []
   while last_git_hash:
-    url = '%s/%s/+log/%s..%s?format=JSON' % (
-        hostname, repository, first_git_hash, last_git_hash)
+    url = '%s/+log/%s..%s?format=JSON' % (
+        repository_url, first_git_hash, last_git_hash)
     response = _RequestJson(url)
     commits += response['log']
     last_git_hash = response.get('next')
   return commits
 
 
-def FileContents(repository, git_hash, path, hostname=_DEFAULT_HOSTNAME):
+def FileContents(repository_url, git_hash, path):
   """Fetches the contents of a file at a particular commit.
 
   Args:
-    repository: The git repository.
+    repository_url: The git url of the repository.
     git_hash: The git hash of the commit, or "HEAD".
     path: The path in the repository to the file.
-    hostname: The hostname of the gitiles service, including the protocol.
 
   Returns:
     A string containing the file contents.
@@ -86,7 +81,7 @@ def FileContents(repository, git_hash, path, hostname=_DEFAULT_HOSTNAME):
     NotFoundError: The repository, commit, or file was not found in Gitiles.
     urlfetch.Error: A network or HTTP error occurred.
   """
-  url = '%s/%s/+/%s/%s?format=TEXT' % (hostname, repository, git_hash, path)
+  url = '%s/+/%s/%s?format=TEXT' % (repository_url, git_hash, path)
   return base64.b64decode(_Request(url))
 
 

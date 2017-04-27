@@ -6,7 +6,6 @@ import webapp2
 
 from dashboard.pinpoint.models import change
 from dashboard.pinpoint.models import job as job_module
-from dashboard.services import gitiles_service
 
 
 class NewHandler(webapp2.RequestHandler):
@@ -19,20 +18,17 @@ class NewHandler(webapp2.RequestHandler):
     test_suite = 'speedometer'
     test = None
     metric = None
-    commits = (('chromium/src', '2c1f8ed028edcb44c954cb2a0625a8f278933481'),
-               ('chromium/src', '858ceafc7cf4f11a6549b8c1ace839a45d943d68'),)
+    deps = (change.Dep('src', '2c1f8ed028edcb44c954cb2a0625a8f278933481'),
+            change.Dep('src', '858ceafc7cf4f11a6549b8c1ace839a45d943d68'),)
 
     # Validate parameters.
     if metric and not test_suite:
       raise ValueError("Specified a metric but there's no test_suite to run.")
 
     # Validate commit hashes.
-    for repository, git_hash in commits:
-      try:
-        gitiles_service.CommitInfo(repository, git_hash)
-      except gitiles_service.NotFoundError:
-        raise ValueError('Could not find the commit with Gitiles: %s@%s' %
-                         (repository, git_hash))
+    for dep in deps:
+      if not dep.Validate():
+        raise ValueError('Could not find the commit with Gitiles: %s' % dep)
 
     # Convert parameters to canonical internal representation.
 
@@ -45,8 +41,8 @@ class NewHandler(webapp2.RequestHandler):
         auto_explore=True)
 
     # Add changes.
-    for repository, git_hash in commits:
-      job.AddChange(change.Change(change.Dep(repository, git_hash)))
+    for dep in deps:
+      job.AddChange(change.Change(dep))
 
     # Put job into datastore.
     job_id = job.put().urlsafe()
