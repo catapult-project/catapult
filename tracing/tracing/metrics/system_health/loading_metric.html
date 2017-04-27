@@ -79,7 +79,7 @@ tr.exportTo('tr.metrics.sh', function() {
       if (!hasCategoryAndName(ev, 'blink.user_timing', 'navigationStart')) {
         continue;
       }
-      var frameIdRef = ev.args['frame'];
+      var frameIdRef = ev.args.frame;
       var list = this.navigationStartsForFrameId_[frameIdRef];
       if (list === undefined) {
         this.navigationStartsForFrameId_[frameIdRef] = list = [];
@@ -127,14 +127,14 @@ tr.exportTo('tr.metrics.sh', function() {
     var snapshot;
 
     var objects = rendererHelper.process.objects;
-    var frameLoaderInstances = objects.instancesByTypeName_['FrameLoader'];
+    var frameLoaderInstances = objects.instancesByTypeName_.FrameLoader;
     if (frameLoaderInstances === undefined) return undefined;
 
     var snapshot;
     for (var instance of frameLoaderInstances) {
       if (!instance.isAliveAt(ts)) continue;
       var maybeSnapshot = instance.getSnapshotAt(ts);
-      if (frameIdRef !== maybeSnapshot.args['frame']['id_ref']) continue;
+      if (frameIdRef !== maybeSnapshot.args.frame.id_ref) continue;
       snapshot = maybeSnapshot;
     }
 
@@ -159,7 +159,7 @@ tr.exportTo('tr.metrics.sh', function() {
         continue;
       }
       if (rendererHelper.isTelemetryInternalEvent(ev)) continue;
-      var frameIdRef = ev.args['frame'];
+      var frameIdRef = ev.args.frame;
       if (frameIdRef === undefined) continue;
       var list = candidatesForFrameId[frameIdRef];
       if (list === undefined) {
@@ -187,7 +187,7 @@ tr.exportTo('tr.metrics.sh', function() {
     var samples = [];
     for (var ev of targetEvents) {
       if (rendererHelper.isTelemetryInternalEvent(ev)) continue;
-      var frameIdRef = ev.args['frame'];
+      var frameIdRef = ev.args.frame;
       var snapshot =
         findFrameLoaderSnapshotAt(rendererHelper, frameIdRef, ev.start);
       if (snapshot === undefined || !snapshot.args.isLoadingMainFrame) continue;

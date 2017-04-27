@@ -98,14 +98,14 @@ tr.b.unittest.testSuite(function() {
   test('addVerticalLine modifies options object', function() {
     var options = {};
     debug_alert.addVerticalLine(options, 30200);
-    assert.strictEqual(2, options['grid']['markings'][0]['xaxis']['from']);
-    assert.strictEqual(2, options['grid']['markings'][0]['xaxis']['to']);
+    assert.strictEqual(2, options.grid.markings[0].xaxis.from);
+    assert.strictEqual(2, options.grid.markings[0].xaxis.to);
   }, testOptions);
 
   test('addVerticalLine does nothing when given no revision', function() {
     var options = {};
     debug_alert.addVerticalLine(options, undefined);
-    assert.isUndefined(options['grid']);
+    assert.isUndefined(options.grid);
   }, testOptions);
 });
 </script>

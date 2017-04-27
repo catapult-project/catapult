@@ -499,7 +499,7 @@ tr.exportTo('tr.ui.analysis', function() {
   // TODO(petrcermak): Consider moving this to tracing/ui/base/dom_helpers.html.
   function isElementDisplayed(element) {
     var style = getComputedStyle(element);
-    var displayed = style['display'];
+    var displayed = style.display;
     if (displayed === undefined) return true;
     return displayed.indexOf('none') === -1;
   }

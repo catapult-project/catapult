@@ -54,8 +54,8 @@ tr.b.unittest.testSuite(function() {
 
   test('onRemoveBug sends request with parameters', function() {
     var box = document.createElement('alert-remove-box');
-    box['key'] = 'alert-key';
-    box['xsrfToken'] = 'xsrf-token';
+    box.key = 'alert-key';
+    box.xsrfToken = 'xsrf-token';
     window.XMLHttpRequest = new XMLHttpRequestMock(
         '{"bug_id": "REMOVE"}',
         'xsrf_token=xsrf-token&keys=alert-key&bug_id=REMOVE');

@@ -55,8 +55,8 @@ tr.exportTo('tr.model.helpers', function() {
     if (surfaceFlinger && surfaceFlinger.hasVsyncs) {
       var start = Statistics.min(threadTimeRanges,
           function(threadTimeRanges) { return threadTimeRanges.start; });
-      args['deadline'] = surfaceFlinger.getFrameDeadline(start);
-      args['frameKickoff'] = surfaceFlinger.getFrameKickoff(start);
+      args.deadline = surfaceFlinger.getFrameDeadline(start);
+      args.frameKickoff = surfaceFlinger.getFrameKickoff(start);
     }
     var events = getSlicesForThreadTimeRanges(threadTimeRanges);
     return new Frame(events, threadTimeRanges, args);

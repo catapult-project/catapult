@@ -131,10 +131,10 @@ found in the LICENSE file.
         var params = {};
         simple_xhr.send('/_ah/api/jobs', params,
             function(response) {
-              this.jobs = response['jobs_list'];
-              this.totalJobsCount = response['jobs_count'];
-              this.totalJobsCountMax = response['jobs_count_max'];
-              this.xsrfToken = response['xsrf_token'];
+              this.jobs = response.jobs_list;
+              this.totalJobsCount = response.jobs_count;
+              this.totalJobsCountMax = response.jobs_count_max;
+              this.xsrfToken = response.xsrf_token;
               this.loading = false;
             }.bind(this),
             function(msg) {

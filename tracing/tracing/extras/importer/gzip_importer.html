@@ -127,7 +127,7 @@ tr.exportTo('tr.e.importer', function() {
 
     // Inflate the data using jszip.
     var inflatedData =
-        JSZip.compressions['DEFLATE'].uncompress(data.subarray(position));
+        JSZip.compressions.DEFLATE.uncompress(data.subarray(position));
 
     if (this.inflateAsTraceStream_) {
       return GzipImporter.transformToStream(inflatedData);

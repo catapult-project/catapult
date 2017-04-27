@@ -177,22 +177,22 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(thread.name, 'SandboxedProces');
     assert.strictEqual(thread.sliceGroup.length, 3);
 
-    assert.strictEqual(thread.sliceGroup.slices[0].args['arg1'], '1');
-    assert.strictEqual(thread.sliceGroup.slices[0].args['arg2'], '2');
+    assert.strictEqual(thread.sliceGroup.slices[0].args.arg1, '1');
+    assert.strictEqual(thread.sliceGroup.slices[0].args.arg2, '2');
 
-    assert.strictEqual(thread.sliceGroup.slices[1].args['source'], 'test=test');
+    assert.strictEqual(thread.sliceGroup.slices[1].args.source, 'test=test');
     assert.strictEqual(thread.sliceGroup.slices[1].category, 'cat2');
     assert.strictEqual('DeferOrRunPendingTask',
         thread.sliceGroup.slices[1].title);
-    assert.strictEqual(thread.sliceGroup.slices[1].args['task'], 'xyz');
+    assert.strictEqual(thread.sliceGroup.slices[1].args.task, 'xyz');
 
     assert.strictEqual('ipc/ipc_sync_message_filter.cc:Send',
-        thread.sliceGroup.slices[2].args['source']);
+        thread.sliceGroup.slices[2].args.source);
 
     assert.strictEqual(thread.asyncSliceGroup.length, 1);
-    assert.strictEqual(thread.asyncSliceGroup.slices[0].args['arg1'], '1');
-    assert.strictEqual(thread.asyncSliceGroup.slices[0].args['arg2'], '2');
-    assert.strictEqual(thread.asyncSliceGroup.slices[0].args['arg3'], '3');
+    assert.strictEqual(thread.asyncSliceGroup.slices[0].args.arg1, '1');
+    assert.strictEqual(thread.asyncSliceGroup.slices[0].args.arg2, '2');
+    assert.strictEqual(thread.asyncSliceGroup.slices[0].args.arg3, '3');
 
     var counters = m.getAllCounters();
     assert.strictEqual(counters.length, 1);

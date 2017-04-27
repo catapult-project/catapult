@@ -84,13 +84,13 @@ tr.exportTo('tr.metrics.sh', function() {
           // When the V8 Runtime Object contains 2 values, the 2nd value
           // always represents the V8 Runtime duration.
           if (v8RuntimeObject[runtimeCall].length === 2) {
-            if (breakdownTree['v8_runtime'].events[runtimeCall] === undefined) {
-              breakdownTree['v8_runtime'].events[runtimeCall] = 0;
+            if (breakdownTree.v8_runtime.events[runtimeCall] === undefined) {
+              breakdownTree.v8_runtime.events[runtimeCall] = 0;
             }
             var runtimeTime = tr.b.Unit.timestampFromUs(
                 v8RuntimeObject[runtimeCall][1] * timeIntersectionRatio);
-            breakdownTree['v8_runtime'].total += runtimeTime;
-            breakdownTree['v8_runtime'].events[runtimeCall] += runtimeTime;
+            breakdownTree.v8_runtime.total += runtimeTime;
+            breakdownTree.v8_runtime.events[runtimeCall] += runtimeTime;
           }
         }
       }

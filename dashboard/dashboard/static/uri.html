@@ -86,21 +86,21 @@ var uri = (function() {
   Controller.prototype.onPageStateChanged = function(event) {
     var detail = event.detail;
     var state = {
-      'stateName': detail['stateName'],
-      'params': detail['params'],
-      'state': detail['state']
+      'stateName': detail.stateName,
+      'params': detail.params,
+      'state': detail.state
     };
 
     if (detail.id && detail.id.length > 0) {
-      state['id'] = detail.id;
+      state.id = detail.id;
     } else if (detail.target) {
       if (!detail.target.getAttribute('uniqueid')) {
         Polymer.dom(detail.target).setAttribute(
             'uniqueid', Controller.uniqueId());
       }
-      state['id'] = detail.target.getAttribute('uniqueid');
+      state.id = detail.target.getAttribute('uniqueid');
     }
-    if (state['state']) {
+    if (state.state) {
       this.sendShortURIRequest_(state);
     } else {
       this.updateUri_(state);
@@ -113,11 +113,11 @@ var uri = (function() {
    */
   Controller.prototype.updateUri_ = function(state) {
     var params = uri.getAllParameters();
-    if (!state || !state['params']) {
+    if (!state || !state.params) {
       params = {};
     } else {
-      for (var k in state['params']) {
-        var value = state['params'][k];
+      for (var k in state.params) {
+        var value = state.params[k];
         if (value) {
           params[k] = value;
         } else {
@@ -144,10 +144,10 @@ var uri = (function() {
     var state = event.state;
     var uriChangeEvent = new CustomEvent('urichange', {
       'detail': {
-        'id': state['id'],
-        'stateName': state['stateName'],
-        'params': state['params'],
-        'state': state['state']
+        'id': state.id,
+        'stateName': state.stateName,
+        'params': state.params,
+        'state': state.state
       },
       'bubbles': true,
       'cancelable': true
@@ -177,9 +177,9 @@ var uri = (function() {
     var request = new XMLHttpRequest();
     request.onload = () => {
       var response = JSON.parse(request.responseText);
-      var stateId = response['sid'];
-      state['params'] = state['params'] || {};
-      state['params']['sid'] = stateId;
+      var stateId = response.sid;
+      state.params = state.params || {};
+      state.params.sid = stateId;
       this.updateUri_(state);
       this.firePageStateRequestEvent_('complete');
     };

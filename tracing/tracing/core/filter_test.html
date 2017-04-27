@@ -73,8 +73,8 @@ tr.b.unittest.testSuite(function() {
 
     var s0 = tr.c.TestUtils.newSliceEx(
         {cat: 'cat', title: 'a', start: 1, duration: 3});
-    s0.args['key'] = 'value';
-    s0.args['anotherKey'] = 'anotherValue';
+    s0.args.key = 'value';
+    s0.args.anotherKey = 'anotherValue';
     assert.isTrue(new FullTextFilter('cat').matchSlice(s0));
     assert.isTrue(new FullTextFilter('a').matchSlice(s0));
     assert.isTrue(new FullTextFilter('key').matchSlice(s0));
@@ -84,23 +84,23 @@ tr.b.unittest.testSuite(function() {
 
     var s1 = tr.c.TestUtils.newSliceEx(
         {cat: 'cat', title: 'a', start: 1, duration: 3});
-    s1.args['key'] = 123;
+    s1.args.key = 123;
     assert.isTrue(new FullTextFilter('123').matchSlice(s1));
 
     var s2 = tr.c.TestUtils.newSliceEx(
         {cat: 'cat', title: 'a', start: 1, duration: 3});
-    s2.args['key'] = ['innerValue1', 'innerValue2'];
+    s2.args.key = ['innerValue1', 'innerValue2'];
     assert.isTrue(new FullTextFilter('innerValue1').matchSlice(s2));
     assert.isTrue(new FullTextFilter('innerValue2').matchSlice(s2));
 
     var s3 = tr.c.TestUtils.newSliceEx(
         {cat: 'cat', title: 'a', start: 1, duration: 3});
-    s3.args['key'] = ['one', 'two', 'three'];
+    s3.args.key = ['one', 'two', 'three'];
     assert.isTrue(new FullTextFilter('two').matchSlice(s3));
 
     var s4 = tr.c.TestUtils.newSliceEx(
         {cat: 'cat', title: 'a', start: 1, duration: 3});
-    s4.args['key'] = undefined;
+    s4.args.key = undefined;
     assert.isFalse(new FullTextFilter('not there').matchSlice(s4));
   });
 });

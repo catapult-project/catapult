@@ -24,13 +24,13 @@ tr.b.unittest.testSuite(function() {
     var stats1 = {};
     var stats2 = {};
 
-    stats1['committed_memory'] = 2000000;
-    stats2['committed_memory'] = 3000000;
+    stats1.committed_memory = 2000000;
+    stats2.committed_memory = 3000000;
 
-    stats1['meminfo'] = {};
-    stats1.meminfo['free'] = 10000;
-    stats2['meminfo'] = {};
-    stats2.meminfo['free'] = 20000;
+    stats1.meminfo = {};
+    stats1.meminfo.free = 10000;
+    stats2.meminfo = {};
+    stats2.meminfo.free = 20000;
 
     snapshots.push(new tr.e.system_stats.SystemStatsSnapshot(objectInstance,
                                                              10, stats1));

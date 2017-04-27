@@ -135,8 +135,8 @@ found in the LICENSE file.
           return;
         }
         var params = uri.getAllParameters();
-        params['sortby'] = sender['sortBy'];
-        params['sortdirection'] = sender['sortDirection'];
+        params.sortby = sender.sortBy;
+        params.sortdirection = sender.sortDirection;
         var newUri = uri.getCurrentPathWithParams(params);
         history.pushState(params, '', newUri);
       },
@@ -145,22 +145,22 @@ found in the LICENSE file.
         var params = {};
         var revA = uri.getParameter('revA');
         if (revA) {
-          params['revA'] = revA;
+          params.revA = revA;
         }
         var revB = uri.getParameter('revB');
         if (revB) {
-          params['revB'] = revB;
+          params.revB = revB;
         }
         var m = uri.getParameter('m');
         if (m) {
-          params['m'] = m;
+          params.m = m;
         }
-        params['anomalies'] = true;
+        params.anomalies = true;
         var path = this.tableName;
         this.loading = true;
         simple_xhr.send('/speed_releasing/' + path, params,
             function(response) {
-              this.anomalies = response['anomalies'];
+              this.anomalies = response.anomalies;
               this.loading = false;
             }.bind(this),
             function(msg) {

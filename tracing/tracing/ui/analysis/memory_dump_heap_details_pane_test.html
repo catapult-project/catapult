@@ -211,11 +211,11 @@ tr.b.unittest.testSuite(function() {
     var cells = node.cells;
     assert.includeMembers(EXPECTED_CELLS, Object.keys(cells));
 
-    var sizeCell = cells['Size'];
+    var sizeCell = cells.Size;
     var sizeFields = sizeCell ? sizeCell.fields : undefined;
     checkSizeNumericFields(sizeFields, undefined, expectedNodeStructure.size);
 
-    var countCell = cells['Count'];
+    var countCell = cells.Count;
     var countFields = countCell ? countCell.fields : undefined;
     checkNumericFields(countFields, undefined, expectedNodeStructure.count,
         count_smallerIsBetter);

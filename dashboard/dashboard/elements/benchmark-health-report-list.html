@@ -89,7 +89,7 @@ found in the LICENSE file.
       computeNumMonitored: benchmarks => {
         var numMonitored = 0;
         for (let benchmark of benchmarks) {
-          if (benchmark['monitored']) {
+          if (benchmark.monitored) {
             numMonitored++;
           }
         }
@@ -99,7 +99,7 @@ found in the LICENSE file.
       computeNumUnmonitored: benchmarks => {
         var numUnmonitored = 0;
         for (let benchmark of benchmarks) {
-          if (!benchmark['monitored']) {
+          if (!benchmark.monitored) {
             numUnmonitored++;
           }
         }
@@ -112,7 +112,7 @@ found in the LICENSE file.
         };
         simple_xhr.send('/benchmark_health_report', params,
             response => {
-              this.benchmarkList = response['benchmarks'];
+              this.benchmarkList = response.benchmarks;
               this.error = false;
               this.loading = false;
             },

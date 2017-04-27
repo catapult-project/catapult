@@ -213,7 +213,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(frames.length, 6);
     for (var i = 0; i < 6; i++) {
       var shouldMissDeadline = i >= 3;
-      var missedDeadline = frames[i].args['deadline'] < frames[i].end;
+      var missedDeadline = frames[i].args.deadline < frames[i].end;
       assert.strictEqual(shouldMissDeadline, missedDeadline);
     }
   });

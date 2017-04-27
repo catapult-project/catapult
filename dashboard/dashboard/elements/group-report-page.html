@@ -238,19 +238,19 @@ found in the LICENSE file.
       },
 
       onToggleImprovements: function(event, details) {
-        var alertList = this.alertsTable['alertList'];
+        var alertList = this.alertsTable.alertList;
         var improvementsToggle = event.currentTarget;
         if (improvementsToggle.hasAttribute('active')) {
           for (var i = 0; i < alertList.length; i++) {
             var alert = alertList[i];
-            if (alert['improvement']) {
+            if (alert.improvement) {
               this.alertsTable.setAlertList(i, 'hideRow', false);
             }
           }
         } else {
           for (var i = 0; i < alertList.length; i++) {
             var alert = alertList[i];
-            if (alert['improvement'] && !alert['selected']) {
+            if (alert.improvement && !alert.selected) {
               this.alertsTable.setAlertList(i, 'hideRow', true);
               this.alertsTable.setAlertList(i, 'selected', false);
             }
@@ -262,12 +262,12 @@ found in the LICENSE file.
       },
 
       alertChangedRevisions: function(event) {
-        var alertList = this.alertsTable['alertList'];
-        var nudgedAlert = event.detail['alerts'][0];
+        var alertList = this.alertsTable.alertList;
+        var nudgedAlert = event.detail.alerts[0];
         for (var i = 0; i < alertList.length; i++) {
-          if (alertList[i]['key'] == nudgedAlert['key']) {
-            alertList[i].start_revision = event.detail['startRev'];
-            alertList[i].end_revision = event.detail['endRev'];
+          if (alertList[i].key == nudgedAlert.key) {
+            alertList[i].start_revision = event.detail.startRev;
+            alertList[i].end_revision = event.detail.endRev;
             // Make the table update its list of checked alerts.
             this.alertsTable.onCheckboxChange();
             return;
@@ -277,8 +277,8 @@ found in the LICENSE file.
 
       onGraphClose: function(event) {
         // Un-check the alert in the table.
-        var key = event.target['alertKey'];
-        var alertList = this.alertsTable['alertList'];
+        var key = event.target.alertKey;
+        var alertList = this.alertsTable.alertList;
         for (var i = 0; i < alertList.length; i++) {
           if (alertList[i].key == key) {
             alertList[i].selected = false;
@@ -297,10 +297,10 @@ found in the LICENSE file.
 
       getTestPath: function(alert) {
         return [
-          alert['master'],
-          alert['bot'],
-          alert['testsuite'],
-          alert['test']
+          alert.master,
+          alert.bot,
+          alert.testsuite,
+          alert.test
         ].join('/');
       },
 
@@ -346,7 +346,7 @@ found in the LICENSE file.
         for (var i = 0; i < alerts.length; i++) {
           var alert = alerts[i];
           var chart = document.createElement('chart-container');
-          this.graphElements_[alert['key']] = chart;
+          this.graphElements_[alert.key] = chart;
           if (insertBefore &&
               Polymer.dom(containerElement).children.length > 0) {
             Polymer.dom(containerElement).insertBefore(
@@ -357,10 +357,10 @@ found in the LICENSE file.
 
           // Set graph params.
           var graphParams = {
-            'rev': alert['end_revision']
+            'rev': alert.end_revision
           };
           chart.graphParams = graphParams;
-          chart.alertKey = alert['key'];
+          chart.alertKey = alert.key;
           chart.addSeriesGroup([this.getTestPathAndSelectedSeries(alert)]);
           chart.addEventListener('chartclosed', this.onGraphClose, false);
           chart.addEventListener('alertChangedRevisions',
@@ -442,35 +442,35 @@ found in the LICENSE file.
         var params = {};
         var sid = uri.getParameter('sid');
         if (sid) {
-          params['sid'] = sid;
+          params.sid = sid;
         }
         var keys = uri.getParameter('keys');
         if (keys) {
-          params['keys'] = keys;
+          params.keys = keys;
         }
         var bugId = uri.getParameter('bug_id');
         if (bugId) {
-          params['bug_id'] = bugId;
+          params.bug_id = bugId;
         }
         var rev = uri.getParameter('rev');
         if (rev) {
-          params['rev'] = rev;
+          params.rev = rev;
         }
         simple_xhr.send('/group_report', params,
             function(response) {
-              this.revisionInfo = response['revision_info'];
-              this.loginLink = response['login_url'];
-              this.isInternalUser = response['is_internal_user'];
-              this.testSuites = response['test_suites'];
-              this.xsrfToken = response['xsrf_token'];
-              this.warningBug = response['warning_bug'];
-              this.warningMessage = response['warning_message'];
-              this.setExtraColumns(response['extra_columns']);
-              this.alertList = response['alert_list'];
+              this.revisionInfo = response.revision_info;
+              this.loginLink = response.login_url;
+              this.isInternalUser = response.is_internal_user;
+              this.testSuites = response.test_suites;
+              this.xsrfToken = response.xsrf_token;
+              this.warningBug = response.warning_bug;
+              this.warningMessage = response.warning_message;
+              this.setExtraColumns(response.extra_columns);
+              this.alertList = response.alert_list;
               if (this.alertList.length == 0) {
-                this.missing = response['display_username'];
+                this.missing = response.display_username;
               }
-              this.selectedKeys = response['selected_keys'];
+              this.selectedKeys = response.selected_keys;
               if (this.warningMessage) {
                 this.fire('display-toast', {
                   'content': this.$.warningtoast,

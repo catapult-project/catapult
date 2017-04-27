@@ -29,7 +29,7 @@
       "curly": ["error", "multi-line", "consistent"],
       "default-case": "off",
       "dot-location": "off",
-      "dot-notation": "off",
+      "dot-notation": "error",
       "eol-last": "error",
       "eqeqeq": "error",
       "generator-star-spacing": ["error", "after"],

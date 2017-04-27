@@ -177,28 +177,28 @@ found in the LICENSE file.
 
         var params = {};
         if (this.alertKey) {
-          params['key'] = this.alertKey;
+          params.key = this.alertKey;
         } else if (this.testPath && this.testRev) {
-          params['test_path'] = this.testPath;
-          params['rev'] = this.testRev;
+          params.test_path = this.testPath;
+          params.rev = this.testRev;
         } else {
           this.error = 'No alert or test specified.';
           return;
         }
         simple_xhr.send('/stoppage_alert_debugging_info', params,
             function(response) {
-              this.testPath = response['test_path'];
-              this.currentCommitPos = response['current_commit_pos'];
-              this.nextCommitPos = response['next_commit_pos'];
-              this.currentLogdogUri = response['current_logdog_uri'];
-              this.nextLogdogUri = response['next_logdog_uri'];
+              this.testPath = response.test_path;
+              this.currentCommitPos = response.current_commit_pos;
+              this.nextCommitPos = response.next_commit_pos;
+              this.currentLogdogUri = response.current_logdog_uri;
+              this.nextLogdogUri = response.next_logdog_uri;
               this.currentBuildbotStatusPage =
-                response['current_buildbot_status_page'];
-              this.nextBuildbotStatusPage = response['next_buildbot_status_page'];
+                response.current_buildbot_status_page;
+              this.nextBuildbotStatusPage = response.next_buildbot_status_page;
               this.currentResult = this.getTestResultFromBuildbotStepResult(
-                  response['current_result']);
+                  response.current_result);
               this.nextResult = this.getTestResultFromBuildbotStepResult(
-                  response['next_result']);
+                  response.next_result);
               this.loading = false;
             }.bind(this),
             function(msg) {

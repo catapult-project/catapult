@@ -60,8 +60,8 @@ tr.b.unittest.testSuite(function() {
 
   test('warning added for stale series', function() {
     var graphJson = testing_common.deepCopy(dromaeoCharts.graphSelectedJson);
-    for (var annotation in graphJson['annotations']['0']) {
-      graphJson['annotations']['0'][annotation]['timestamp'] -= 8 * 86400000;
+    for (var annotation in graphJson.annotations['0']) {
+      graphJson.annotations['0'][annotation].timestamp -= 8 * 86400000;
     }
     testing_common.mockChartJson(dromaeoCharts, graphJson);
     var chart = createChart();

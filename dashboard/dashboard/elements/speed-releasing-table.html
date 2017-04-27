@@ -264,7 +264,7 @@ found in the LICENSE file.
           } else {
             var relDiff = (valueB / valueA) - 1;
           }
-          return (tr.b.Unit.byName['normalizedPercentage'].format(relDiff));
+          return (tr.b.Unit.byName.normalizedPercentage.format(relDiff));
         }
       },
 
@@ -382,35 +382,35 @@ found in the LICENSE file.
         var params = {};
         var revA = uri.getParameter('revA');
         if (revA) {
-          params['revA'] = revA;
+          params.revA = revA;
         }
         var revB = uri.getParameter('revB');
         if (revB) {
-          params['revB'] = revB;
+          params.revB = revB;
         }
         var m = uri.getParameter('m');
         if (m) {
-          params['m'] = m;
+          params.m = m;
         }
         var path = this.tableName;
         this.loading = true;
         simple_xhr.send('/speed_releasing/' + path, params,
             function(response) {
-              this.tableConfig.bots = response['table_bots'];
-              this.tableConfig.tests = response['table_tests'];
-              this.tableConfig.layout = response['table_layout'];
-              this.tableConfig.name = response['name'];
-              this.xsrfToken = response['xsrf_token'];
-              this.tableConfig.values = response['values'];
-              this.tableConfig.revisions = response['revisions'];
-              this.tableConfig.units = response['units'];
-              this.tableConfig.categories = response['categories'];
-              this.tableConfig.urlMap = response['urls'];
-              this.tableConfig.displayRevisions = response['display_revisions'];
+              this.tableConfig.bots = response.table_bots;
+              this.tableConfig.tests = response.table_tests;
+              this.tableConfig.layout = response.table_layout;
+              this.tableConfig.name = response.name;
+              this.xsrfToken = response.xsrf_token;
+              this.tableConfig.values = response.values;
+              this.tableConfig.revisions = response.revisions;
+              this.tableConfig.units = response.units;
+              this.tableConfig.categories = response.categories;
+              this.tableConfig.urlMap = response.urls;
+              this.tableConfig.displayRevisions = response.display_revisions;
               this.tableConfig.displayMilestones =
-                  response['display_milestones'];
+                  response.display_milestones;
               this.tableConfig.navigationMilestones =
-                  response['navigation_milestones'];
+                  response.navigation_milestones;
               this.loading = false;
             }.bind(this),
             function(msg) {

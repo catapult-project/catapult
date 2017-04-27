@@ -31,10 +31,10 @@ found in the LICENSE file.
 
     is: 'alert-icon',
     initialize: function(alertAnnotation, alertKey) {
-      var bugId = alertAnnotation['bug_id'];
-      var improvement = alertAnnotation['improvement'];
-      var recovered = alertAnnotation['recovered'];
-      var key = alertAnnotation['key'];
+      var bugId = alertAnnotation.bug_id;
+      var improvement = alertAnnotation.improvement;
+      var recovered = alertAnnotation.recovered;
+      var key = alertAnnotation.key;
 
       this.$.icon.icon = 'report';
       var color = 'black';

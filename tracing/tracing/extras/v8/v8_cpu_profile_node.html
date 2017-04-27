@@ -75,18 +75,18 @@ tr.exportTo('tr.e.v8', function() {
   };
 
   V8CpuProfileNode.constructFromObject = function(profileTree, node) {
-    let nodeId = node['id'];
+    let nodeId = node.id;
     if (nodeId === 1) {
       // Ignore fake root.
       // The node with id 1 is a fake root for the profile tree,
       // since we are using map, we don't really need it.
       return undefined;
     }
-    var parentNode = profileTree.getNode(node['parent']);
-    var profileNode = new V8CpuProfileNode(nodeId, node['callFrame'],
+    var parentNode = profileTree.getNode(node.parent);
+    var profileNode = new V8CpuProfileNode(nodeId, node.callFrame,
                                            parentNode);
-    if (node['deoptReason'] !== undefined) {
-      profileNode.deoptReason = node['deoptReason'];
+    if (node.deoptReason !== undefined) {
+      profileNode.deoptReason = node.deoptReason;
     }
     return profileNode;
   };

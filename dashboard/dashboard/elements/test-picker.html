@@ -215,7 +215,7 @@ found in the LICENSE file.
           // A suite is considered unmonitored if there are no monitored
           // subtests.
           var suiteInfo = this.testSuites[suite];
-          return !suiteInfo['mon'] || suiteInfo['mon'].length == 0;
+          return !suiteInfo.mon || suiteInfo.mon.length == 0;
         };
 
         for (var suite in this.testSuites) {
@@ -224,7 +224,7 @@ found in the LICENSE file.
           };
 
           var tags = [];
-          if (this.testSuites[suite]['dep']) {
+          if (this.testSuites[suite].dep) {
             suiteItem.deprecated = true;
             tags.push(this.DEPRECATED_TAG);
           }
@@ -248,7 +248,7 @@ found in the LICENSE file.
         if (!this.testSuites[suite]) {
           return [];
         }
-        var dict = this.testSuites[suite]['mas'];
+        var dict = this.testSuites[suite].mas;
         var botMenuItems = [];
         var masters = Object.keys(dict).sort();
         for (var i = 0; i < masters.length; i++) {
@@ -300,7 +300,7 @@ found in the LICENSE file.
           return;
         }
 
-        var description = this.testSuites[suite]['des'];
+        var description = this.testSuites[suite].des;
         if (description) {
           var descriptionHTML = '<b>' + suite + '</b>: ';
           descriptionHTML += this.convertMarkdownLinks(description);
@@ -392,7 +392,7 @@ found in the LICENSE file.
         var botMenu = this.getSelectionMenu(1);
         if (botMenu.selectedItem) {
           let item = botMenu.selectedItem;
-          return item['group'] + '/' + item['name'];
+          return item.group + '/' + item.name;
         }
         return null;
       },

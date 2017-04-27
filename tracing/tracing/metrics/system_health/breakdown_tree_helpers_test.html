@@ -103,20 +103,20 @@ tr.b.unittest.testSuite(function() {
       events: {
         'HTMLDocumentParser::didReceiveParsedChunkFromBackgroundParser': 150
       }
-    }, breakdownTree['parseHTML']);
+    }, breakdownTree.parseHTML);
     assert.deepEqual({
       total: 120,
       events: {
         'FrameView::layout': 100,
         'WebViewImpl::layout': 20,
       }
-    }, breakdownTree['layout']);
+    }, breakdownTree.layout);
     assert.deepEqual({
       total: 110,
       events: {
         'V8.Execute': 110,
       }
-    }, breakdownTree['script_execute']);
+    }, breakdownTree.script_execute);
     assert.deepEqual({
       total: 0.302,
       events: {
@@ -124,7 +124,7 @@ tr.b.unittest.testSuite(function() {
         'GC': 0.11,
         'ICMiss': 0.15,
       }
-    }, breakdownTree['v8_runtime']);
+    }, breakdownTree.v8_runtime);
   });
 
   test('testWallClockTimeBreakdownIntersectingBoundary', function() {
@@ -148,20 +148,20 @@ tr.b.unittest.testSuite(function() {
       events: {
         'HTMLDocumentParser::didReceiveParsedChunkFromBackgroundParser': 93.75
       }
-    }, breakdownTree['parseHTML']);
+    }, breakdownTree.parseHTML);
     assert.deepEqual({
       total: 110,
       events: {
         'FrameView::layout': 100,
         'WebViewImpl::layout': 10,
       }
-    }, breakdownTree['layout']);
+    }, breakdownTree.layout);
     assert.deepEqual({
       total: 55,
       events: {
         'V8.Execute': 55,
       }
-    }, breakdownTree['script_execute']);
+    }, breakdownTree.script_execute);
     assert.deepEqual({
       total: 0.151,
       events: {
@@ -169,7 +169,7 @@ tr.b.unittest.testSuite(function() {
         'GC': 0.055,
         'ICMiss': 0.075,
       }
-    }, breakdownTree['v8_runtime']);
+    }, breakdownTree.v8_runtime);
   });
 
   test('testCpuTimeBreakdownNoIntersectingBoundary', function() {
@@ -182,20 +182,20 @@ tr.b.unittest.testSuite(function() {
       events: {
         'HTMLDocumentParser::didReceiveParsedChunkFromBackgroundParser': 120
       }
-    }, breakdownTree['parseHTML']);
+    }, breakdownTree.parseHTML);
     assert.deepEqual({
       total: 96,
       events: {
         'FrameView::layout': 80,
         'WebViewImpl::layout': 16,
       }
-    }, breakdownTree['layout']);
+    }, breakdownTree.layout);
     assert.deepEqual({
       total: 88,
       events: {
         'V8.Execute': 88,
       }
-    }, breakdownTree['script_execute']);
+    }, breakdownTree.script_execute);
     assert.deepEqual({
       total: 0.302,
       events: {
@@ -203,7 +203,7 @@ tr.b.unittest.testSuite(function() {
         'GC': 0.11,
         'ICMiss': 0.15,
       }
-    }, breakdownTree['v8_runtime']);
+    }, breakdownTree.v8_runtime);
   });
 
   test('testCpuTimeBreakdownIntersectingBoundary', function() {
@@ -226,20 +226,20 @@ tr.b.unittest.testSuite(function() {
       events: {
         'HTMLDocumentParser::didReceiveParsedChunkFromBackgroundParser': 75
       }
-    }, breakdownTree['parseHTML']);
+    }, breakdownTree.parseHTML);
     assert.deepEqual({
       total: 88,
       events: {
         'FrameView::layout': 80,
         'WebViewImpl::layout': 8,
       }
-    }, breakdownTree['layout']);
+    }, breakdownTree.layout);
     assert.deepEqual({
       total: 44,
       events: {
         'V8.Execute': 44,
       }
-    }, breakdownTree['script_execute']);
+    }, breakdownTree.script_execute);
     assert.deepEqual({
       total: 0.151,
       events: {
@@ -247,7 +247,7 @@ tr.b.unittest.testSuite(function() {
         'GC': 0.055,
         'ICMiss': 0.075
       }
-    }, breakdownTree['v8_runtime']);
+    }, breakdownTree.v8_runtime);
   });
 
   function createNetworkEvent(start, end, cat) {
@@ -275,8 +275,8 @@ tr.b.unittest.testSuite(function() {
         rendererHelper.process, rangeOfInterest);
     const breakdownTree = tr.metrics.sh.generateWallClockTimeBreakdownTree(
         rendererHelper.mainThread, networkEvents, rangeOfInterest);
-    assert.strictEqual(breakdownTree['blocked_on_network'].total, 50);
-    assert.strictEqual(breakdownTree['idle'].total, 100);
+    assert.strictEqual(breakdownTree.blocked_on_network.total, 50);
+    assert.strictEqual(breakdownTree.idle.total, 100);
   });
 
   test('testBlockedOnNetwork_netEventAndMainThreadEvent', function() {
@@ -301,9 +301,9 @@ tr.b.unittest.testSuite(function() {
         rendererHelper.process, rangeOfInterest);
     const breakdownTree = tr.metrics.sh.generateWallClockTimeBreakdownTree(
         rendererHelper.mainThread, networkEvents, rangeOfInterest);
-    assert.strictEqual(breakdownTree['layout'].total, 140);
-    assert.strictEqual(breakdownTree['blocked_on_network'].total, 10);
-    assert.strictEqual(breakdownTree['idle'].total, 20);
+    assert.strictEqual(breakdownTree.layout.total, 140);
+    assert.strictEqual(breakdownTree.blocked_on_network.total, 10);
+    assert.strictEqual(breakdownTree.idle.total, 20);
   });
 
   test('testBlockedOnNetwork_rangeEmpty', function() {
@@ -328,9 +328,9 @@ tr.b.unittest.testSuite(function() {
         rendererHelper.process, rangeOfInterest);
     const breakdownTree = tr.metrics.sh.generateWallClockTimeBreakdownTree(
         rendererHelper.mainThread, networkEvents, rangeOfInterest);
-    assert.strictEqual(breakdownTree['layout'].total, 0);
-    assert.strictEqual(breakdownTree['blocked_on_network'].total, 0);
-    assert.strictEqual(breakdownTree['idle'].total, 0);
+    assert.strictEqual(breakdownTree.layout.total, 0);
+    assert.strictEqual(breakdownTree.blocked_on_network.total, 0);
+    assert.strictEqual(breakdownTree.idle.total, 0);
   });
 });
 </script>

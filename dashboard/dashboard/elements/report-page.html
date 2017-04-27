@@ -88,19 +88,19 @@ found in the LICENSE file.
       ready: function() {
         simple_xhr.send('/report', uri.getAllParameters(),
             function(response) {
-              this.isInternalUser = response['is_internal_user'];
-              this.loginUrl = response['login_url'];
-              this.revisionInfo = response['revision_info'];
-              this.warningBug = response['warning_bug'];
-              this.warningMessage = response['warning_message'];
+              this.isInternalUser = response.is_internal_user;
+              this.loginUrl = response.login_url;
+              this.revisionInfo = response.revision_info;
+              this.warningBug = response.warning_bug;
+              this.warningMessage = response.warning_message;
               if (this.warningMessage) {
                 this.fire('display-toast', {
                   'content': this.$.warningtoast,
                   'error': true
                 });
               }
-              this.xsrfToken = response['xsrf_token'];
-              this.testSuites = response['test_suites'];
+              this.xsrfToken = response.xsrf_token;
+              this.testSuites = response.test_suites;
               for (var i = 0; i < this.charts.length; i++) {
                 this.setChartData(this.charts[i]);
               }
@@ -138,7 +138,7 @@ found in the LICENSE file.
         }
 
         // Add charts.
-        const legacyChartStates = pageState['charts'];
+        const legacyChartStates = pageState.charts;
         const chartStates = [];
 
         for (const legacyChartState of legacyChartStates) {
@@ -232,7 +232,7 @@ found in the LICENSE file.
         };
 
         if (this.charts.length == 0) {
-          event.detail['params'] = null;
+          event.detail.params = null;
           this.graphParams = {};
           this.testPicker.hasChart = false;
         }
@@ -250,7 +250,7 @@ found in the LICENSE file.
           if (chart == event.target) {
             continue;
           }
-          chart.onRevisionRange(event, event['detail'], null);
+          chart.onRevisionRange(event, event.detail, null);
         }
       },
 

@@ -162,14 +162,14 @@ the trace process after the user clicks on the trace button.
                 'xsrf_token': this.xsrfToken
               },
               function successCallback(info) {
-                this.bot = info['bisect_bot'];
-                this.botList = info['all_bots'];
+                this.bot = info.bisect_bot;
+                this.botList = info.all_bots;
 
                 Polymer.dom.flush();
 
-                this.email = info['email'];
-                this.suite = info['suite'];
-                this.page = info['page'];
+                this.email = info.email;
+                this.suite = info.suite;
+                this.page = info.page;
                 this.loading = false;
               }.bind(this),
               function errorCallback(msg) {
@@ -209,12 +209,12 @@ the trace process after the user clicks on the trace button.
             'xsrf_token': this.xsrfToken
           };
           if (this.bugId) {
-            params['bug_id'] = this.bugId;
+            params.bug_id = this.bugId;
           }
           simple_xhr.send(
               '/start_try_job', params,
               function(info) {
-                this.lastSubmittedJobId = info['issue_id'];
+                this.lastSubmittedJobId = info.issue_id;
                 this.fire('display-toast', {'content': this.$.jobsubmitted});
                 this.close();
               }.bind(this),

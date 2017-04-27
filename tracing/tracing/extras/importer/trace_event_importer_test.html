@@ -642,7 +642,7 @@ tr.b.unittest.testSuite(function() {
   test('objectColorArgument', function() {
     function checkModel(m) {
       const p = m.processes[1];
-      const i = p.objects.instanceMapsByScopedId_['ptr'][1].instances[0];
+      const i = p.objects.instanceMapsByScopedId_.ptr[1].instances[0];
       assert.strictEqual(i.colorId,
           ColorScheme.getColorIdForReservedName('generic_work'));
     }
@@ -658,7 +658,7 @@ tr.b.unittest.testSuite(function() {
   test('objectColorEnd', function() {
     function checkModel(m) {
       const p = m.processes[1];
-      const i = p.objects.instanceMapsByScopedId_['ptr'][1].instances[0];
+      const i = p.objects.instanceMapsByScopedId_.ptr[1].instances[0];
       assert.strictEqual(i.colorId,
           ColorScheme.getColorIdForReservedName('generic_work'));
     }
@@ -1293,8 +1293,8 @@ tr.b.unittest.testSuite(function() {
       assert.strictEqual(slice.category, 'foo');
       assert.strictEqual(slice.start, 0);
       assert.strictEqual(slice.subSlices.length, 0);
-      assert.strictEqual(slice.args['x'], 1);
-      assert.strictEqual(slice.args['y'], 2);
+      assert.strictEqual(slice.args.x, 1);
+      assert.strictEqual(slice.args.y, 2);
     }
 
     const events = [
@@ -1318,7 +1318,7 @@ tr.b.unittest.testSuite(function() {
       assert.strictEqual(slice.category, 'foo');
       assert.strictEqual(slice.start, 0);
       assert.strictEqual(slice.subSlices.length, 0);
-      assert.strictEqual(slice.args['z'], 4);
+      assert.strictEqual(slice.args.z, 4);
     }
 
     const events = [
@@ -1337,8 +1337,8 @@ tr.b.unittest.testSuite(function() {
       assert.strictEqual(parentSlice.title, 'c');
       assert.strictEqual(parentSlice.category, 'foo');
       assert.isTrue(parentSlice.isTopLevel);
-      assert.strictEqual(parentSlice.args['x'], 1);
-      assert.strictEqual(parentSlice.args['y'], 2);
+      assert.strictEqual(parentSlice.args.x, 1);
+      assert.strictEqual(parentSlice.args.y, 2);
 
       assert.isDefined(parentSlice.subSlices);
       assert.strictEqual(parentSlice.subSlices.length, 0);
@@ -1363,7 +1363,7 @@ tr.b.unittest.testSuite(function() {
       assert.strictEqual(parentSlice.title, 'd');
       assert.strictEqual(parentSlice.category, 'foo');
       assert.isTrue(parentSlice.isTopLevel);
-      assert.strictEqual(parentSlice.args['z'], 4);
+      assert.strictEqual(parentSlice.args.z, 4);
 
       assert.isDefined(parentSlice.subSlices);
       assert.strictEqual(parentSlice.subSlices.length, 0);
@@ -1389,9 +1389,9 @@ tr.b.unittest.testSuite(function() {
       assert.strictEqual(parentSlice.category, 'foo');
       assert.isTrue(parentSlice.isTopLevel);
       assert.strictEqual(parentSlice.start, 0);
-      assert.strictEqual(parentSlice.args['x'], 1);
-      assert.isUndefined(parentSlice.args['y']);
-      assert.strictEqual(parentSlice.args['z'], 3);
+      assert.strictEqual(parentSlice.args.x, 1);
+      assert.isUndefined(parentSlice.args.y);
+      assert.strictEqual(parentSlice.args.z, 3);
 
       assert.isDefined(parentSlice.subSlices);
       assert.strictEqual(parentSlice.subSlices.length, 1);
@@ -1402,9 +1402,9 @@ tr.b.unittest.testSuite(function() {
       assert.isFalse(subSlice.isTopLevel);
       assert.closeTo((548 - 524) / 1000, subSlice.start, 1e-5);
       assert.closeTo((560 - 548) / 1000, subSlice.duration, 1e-5);
-      assert.isUndefined(subSlice.args['x']);
-      assert.strictEqual(subSlice.args['y'], 2);
-      assert.isUndefined(subSlice.args['z']);
+      assert.isUndefined(subSlice.args.x);
+      assert.strictEqual(subSlice.args.y, 2);
+      assert.isUndefined(subSlice.args.z);
     }
 
     const events = [
@@ -1458,9 +1458,9 @@ tr.b.unittest.testSuite(function() {
       assert.strictEqual(parentSlice.category, 'foo');
       assert.isTrue(parentSlice.isTopLevel);
       assert.strictEqual(parentSlice.start, 0);
-      assert.strictEqual(parentSlice.args['x'], 1);
-      assert.isUndefined(parentSlice.args['y']);
-      assert.strictEqual(parentSlice.args['z'], 3);
+      assert.strictEqual(parentSlice.args.x, 1);
+      assert.isUndefined(parentSlice.args.y);
+      assert.strictEqual(parentSlice.args.z, 3);
 
       assert.isDefined(parentSlice.subSlices);
       assert.strictEqual(parentSlice.subSlices.length, 1);
@@ -1470,9 +1470,9 @@ tr.b.unittest.testSuite(function() {
       assert.isFalse(subSlice.isTopLevel);
       assert.strictEqual(subSlice.start, 0);
       assert.closeTo((548 - 524) / 1000, subSlice.duration, 1e-5);
-      assert.isUndefined(subSlice.args['x']);
-      assert.strictEqual(subSlice.args['y'], 2);
-      assert.isUndefined(subSlice.args['z']);
+      assert.isUndefined(subSlice.args.x);
+      assert.strictEqual(subSlice.args.y, 2);
+      assert.isUndefined(subSlice.args.z);
     }
 
     const events = [
@@ -1584,8 +1584,8 @@ tr.b.unittest.testSuite(function() {
       const subSlice = parentSlice.subSlices[0];
       assert.isFalse(subSlice.isTopLevel);
       // Arguments should include both BEGIN and END event.
-      assert.strictEqual(subSlice.args['x'], 1);
-      assert.strictEqual(subSlice.args['y'], 2);
+      assert.strictEqual(subSlice.args.x, 1);
+      assert.strictEqual(subSlice.args.y, 2);
       assert.sameMembers(subSlice.subSlices, []);
     }
 
@@ -1636,9 +1636,9 @@ tr.b.unittest.testSuite(function() {
 
       const sliceA = t.asyncSliceGroup.slices[0];
       // Arguments should include both BEGIN and END event.
-      assert.strictEqual(sliceA.args['x'], 1);
-      assert.strictEqual(sliceA.args['y'], 2);
-      const paramsA = sliceA.args['params'];
+      assert.strictEqual(sliceA.args.x, 1);
+      assert.strictEqual(sliceA.args.y, 2);
+      const paramsA = sliceA.args.params;
       assert.isDefined(paramsA);
       assert.strictEqual(paramsA.p1, 'hello');
       assert.strictEqual(paramsA.p2, 123);
@@ -1647,14 +1647,14 @@ tr.b.unittest.testSuite(function() {
 
       const sliceB = t.asyncSliceGroup.slices[1];
       // Arguments should include both BEGIN and END event.
-      const paramsB = sliceB.args['params'];
+      const paramsB = sliceB.args.params;
       assert.isDefined(paramsB);
       assert.strictEqual(paramsB.p4, 'foo');
       assert.isTrue(sliceB.isTopLevel);
 
       const sliceC = t.asyncSliceGroup.slices[2];
       // Arguments should include both BEGIN and END event.
-      const paramsC = sliceC.args['params'];
+      const paramsC = sliceC.args.params;
       assert.isDefined(paramsC);
       assert.strictEqual(paramsC.p5, 'bar');
       assert.isTrue(sliceC.isTopLevel);
@@ -1803,8 +1803,8 @@ tr.b.unittest.testSuite(function() {
       // Unmatched BEGIN event ends at the last event of that ID.
       assert.closeTo(36 / 1000, parentSlice.duration, 0.0001);
       // Arguments should include only include its arguments.
-      assert.isUndefined(parentSlice.args['y']);
-      assert.strictEqual(parentSlice.args['x'], 1);
+      assert.isUndefined(parentSlice.args.y);
+      assert.strictEqual(parentSlice.args.x, 1);
       assert.isDefined(parentSlice.error);
 
       assert.isDefined(parentSlice.subSlices);
@@ -1815,7 +1815,7 @@ tr.b.unittest.testSuite(function() {
       assert.closeTo(35 / 1000, subSlice.duration, 1e-5);
       assert.sameMembers(subSlice.subSlices, []);
       // Arguments should include those of the END event.
-      assert.strictEqual(subSlice.args['y'], 2);
+      assert.strictEqual(subSlice.args.y, 2);
       assert.sameMembers(subSlice.subSlices, []);
     }
 
@@ -1844,9 +1844,9 @@ tr.b.unittest.testSuite(function() {
       assert.closeTo(0, parentSlice.start, 1e-5);
       assert.closeTo(41 / 1000, parentSlice.duration, 1e-5);
       // Arguments should include both BEGIN and END event.
-      assert.strictEqual(parentSlice.args['y'], 2);
-      assert.strictEqual(parentSlice.args['z'], 3);
-      assert.isUndefined(parentSlice.args['x']);
+      assert.strictEqual(parentSlice.args.y, 2);
+      assert.strictEqual(parentSlice.args.z, 3);
+      assert.isUndefined(parentSlice.args.x);
 
       assert.isDefined(parentSlice.subSlices);
       assert.strictEqual(parentSlice.subSlices.length, 2);
@@ -1860,8 +1860,8 @@ tr.b.unittest.testSuite(function() {
       assert.closeTo(1 / 1000, subSliceUnmatched.start, 1e-5);
       assert.closeTo(40 / 1000, subSliceUnmatched.duration, 1e-5);
       assert.sameMembers(subSliceUnmatched.subSlices, []);
-      assert.strictEqual(subSliceUnmatched.args['x'], 1);
-      assert.isUndefined(subSliceUnmatched['y']);
+      assert.strictEqual(subSliceUnmatched.args.x, 1);
+      assert.isUndefined(subSliceUnmatched.y);
       assert.isDefined(subSliceUnmatched.error);
       assert.closeTo(1 / 1000, subSliceInstant.start, 1e-5);
       assert.closeTo(0, subSliceInstant.duration, 1e-5);
@@ -1896,9 +1896,9 @@ tr.b.unittest.testSuite(function() {
       // Unmatched END event begins at the first event of that ID. In this
       // case, the first event happens to be the same unmatched event.
       assert.closeTo(0 / 1000, unmatchedSlice.duration, 1e-5);
-      assert.isUndefined(unmatchedSlice.args['x']);
-      assert.isUndefined(unmatchedSlice.args['y']);
-      assert.strictEqual(unmatchedSlice.args['z'], 3);
+      assert.isUndefined(unmatchedSlice.args.x);
+      assert.isUndefined(unmatchedSlice.args.y);
+      assert.strictEqual(unmatchedSlice.args.z, 3);
       assert.isDefined(unmatchedSlice.error);
       assert.sameMembers(unmatchedSlice.subSlices, []);
 
@@ -1907,8 +1907,8 @@ tr.b.unittest.testSuite(function() {
       assert.closeTo(1 / 1000, slice.start, 1e-5);
       assert.closeTo(35 / 1000, slice.duration, 1e-5);
       // Arguments should include both BEGIN and END event.
-      assert.strictEqual(slice.args['x'], 1);
-      assert.strictEqual(slice.args['y'], 2);
+      assert.strictEqual(slice.args.x, 1);
+      assert.strictEqual(slice.args.y, 2);
       assert.sameMembers(slice.subSlices, []);
     }
 
@@ -1937,8 +1937,8 @@ tr.b.unittest.testSuite(function() {
       assert.closeTo(0, parentSlice.start, 1e-5);
       assert.closeTo(41 / 1000, parentSlice.duration, 1e-5);
       // Arguments should include both BEGIN and END event.
-      assert.strictEqual(parentSlice.args['x'], 1);
-      assert.strictEqual(parentSlice.args['y'], 2);
+      assert.strictEqual(parentSlice.args.x, 1);
+      assert.strictEqual(parentSlice.args.y, 2);
 
       assert.isDefined(parentSlice.subSlices);
       assert.strictEqual(parentSlice.subSlices.length, 2);
@@ -1952,9 +1952,9 @@ tr.b.unittest.testSuite(function() {
       assert.closeTo(0 / 1000, subSliceUnmatched.start, 1e-5);
       assert.closeTo(1 / 1000, subSliceUnmatched.duration, 1e-5);
       // Arguments should include both BEGIN and END event.
-      assert.isUndefined(subSliceUnmatched.args['x']);
-      assert.isUndefined(subSliceUnmatched.args['y']);
-      assert.strictEqual(subSliceUnmatched.args['z'], 3);
+      assert.isUndefined(subSliceUnmatched.args.x);
+      assert.isUndefined(subSliceUnmatched.args.y);
+      assert.strictEqual(subSliceUnmatched.args.z, 3);
       assert.isDefined(subSliceUnmatched.error);
 
       assert.sameMembers(subSliceUnmatched.subSlices, []);
@@ -1986,7 +1986,7 @@ tr.b.unittest.testSuite(function() {
       assert.strictEqual(eventASlice.category, 'foo');
       assert.strictEqual(eventASlice.id, 'foo::ptr:72');
       assert.isTrue(eventASlice.isTopLevel);
-      assert.strictEqual(eventASlice.args['x'], 1);
+      assert.strictEqual(eventASlice.args.x, 1);
       assert.sameMembers(eventASlice.subSlices, []);
 
       const eventBSlice = t.asyncSliceGroup.slices[1];
@@ -1994,7 +1994,7 @@ tr.b.unittest.testSuite(function() {
       assert.strictEqual(eventBSlice.category, 'bar');
       assert.strictEqual(eventBSlice.id, 'bar::ptr:72');
       assert.isTrue(eventBSlice.isTopLevel);
-      assert.strictEqual(eventBSlice.args['y'], 2);
+      assert.strictEqual(eventBSlice.args.y, 2);
       assert.sameMembers(eventBSlice.subSlices, []);
     }
 
@@ -2064,8 +2064,8 @@ tr.b.unittest.testSuite(function() {
       parentSlice = t.asyncSliceGroup.slices[0];
       assert.strictEqual(parentSlice.title, 'b');
       assert.strictEqual(parentSlice.category, 'foo');
-      assert.strictEqual(parentSlice.args['x'], 1);
-      assert.strictEqual(parentSlice.args['y'], 2);
+      assert.strictEqual(parentSlice.args.x, 1);
+      assert.strictEqual(parentSlice.args.y, 2);
       assert.isTrue(parentSlice.isTopLevel);
       assert.isDefined(parentSlice.subSlices);
       assert.strictEqual(parentSlice.subSlices.length, 0);
@@ -2099,8 +2099,8 @@ tr.b.unittest.testSuite(function() {
       const subSlice = parentSlice.subSlices[0];
       assert.isFalse(subSlice.isTopLevel);
       // Arguments should include both BEGIN and END event.
-      assert.strictEqual(subSlice.args['x'], 1);
-      assert.strictEqual(subSlice.args['y'], 2);
+      assert.strictEqual(subSlice.args.x, 1);
+      assert.strictEqual(subSlice.args.y, 2);
       assert.sameMembers(subSlice.subSlices, []);
 
       assert.isUndefined(m.processes[54].threads[55]);
@@ -2294,8 +2294,8 @@ tr.b.unittest.testSuite(function() {
 
       const iA = p1.objects.getObjectInstanceAt(
           new ScopedId('ptr', '0x1000'), 10);
-      const subObjectInstances = p1.objects.getAllInstancesByTypeName()[
-          'subObject'];
+      const subObjectInstances =
+          p1.objects.getAllInstancesByTypeName().subObject;
 
       assert.strictEqual(subObjectInstances.length, 2);
       const subObject1 = p1.objects.getObjectInstanceAt(
@@ -2344,8 +2344,8 @@ tr.b.unittest.testSuite(function() {
 
       const iA = p1.objects.getObjectInstanceAt(
           new ScopedId('ptr', '0x1000'), 10);
-      const subObjectInstances = p1.objects.getAllInstancesByTypeName()[
-          'subObject'];
+      const subObjectInstances =
+          p1.objects.getAllInstancesByTypeName().subObject;
 
       assert.strictEqual(subObjectInstances.length, 1);
     }
@@ -3085,7 +3085,7 @@ tr.b.unittest.testSuite(function() {
       // Slices should be sorted according to 'ts'. And if 'ts' is the same,
       // slices should keep the order that they were recorded.
       for (let i = 0; i < 1000; i++) {
-        assert.strictEqual(i + 1, subSlices[i].args['seq']);
+        assert.strictEqual(i + 1, subSlices[i].args.seq);
         assert.isFalse(subSlices[i].isTopLevel);
       }
     }
@@ -4530,7 +4530,7 @@ tr.b.unittest.testSuite(function() {
       const hds1 = pmd1.heapDumps;
       assert.sameMembers(Object.keys(hds1), ['partition_alloc']);
 
-      const partitionAllocDump1 = hds1['partition_alloc'];
+      const partitionAllocDump1 = hds1.partition_alloc;
       assert.strictEqual(partitionAllocDump1.processMemoryDump, pmd1);
       assert.strictEqual(partitionAllocDump1.allocatorName, 'partition_alloc');
       const partitionAllocEntries1 = partitionAllocDump1.entries;
@@ -4545,7 +4545,7 @@ tr.b.unittest.testSuite(function() {
       const hds2 = pmd2.heapDumps;
       assert.sameMembers(Object.keys(hds2), ['partition_alloc']);
 
-      const partitionAllocDump2 = hds2['partition_alloc'];
+      const partitionAllocDump2 = hds2.partition_alloc;
       assert.strictEqual(partitionAllocDump2.processMemoryDump, pmd2);
       assert.strictEqual(partitionAllocDump2.allocatorName, 'partition_alloc');
       const partitionAllocEntries2 = partitionAllocDump2.entries;
@@ -4566,7 +4566,7 @@ tr.b.unittest.testSuite(function() {
       const hds3 = pmd3.heapDumps;
       assert.sameMembers(Object.keys(hds3), ['partition_alloc', 'malloc']);
 
-      const partitionAllocDump3 = hds3['partition_alloc'];
+      const partitionAllocDump3 = hds3.partition_alloc;
       assert.strictEqual(partitionAllocDump3.processMemoryDump, pmd3);
       assert.strictEqual(partitionAllocDump3.allocatorName, 'partition_alloc');
       const partitionAllocEntries3 = partitionAllocDump3.entries;
@@ -4587,7 +4587,7 @@ tr.b.unittest.testSuite(function() {
             'TimerBase::run', 'MessageLoop::RunTask'],
           undefined /* sum over all types */);
 
-      const mallocDump3 = hds3['malloc'];
+      const mallocDump3 = hds3.malloc;
       assert.strictEqual(mallocDump3.processMemoryDump, pmd3);
       assert.strictEqual(mallocDump3.allocatorName, 'malloc');
       const mallocEntries3 = mallocDump3.entries;
@@ -4775,7 +4775,7 @@ tr.b.unittest.testSuite(function() {
       const hds1 = pmd1.heapDumps;
       assert.sameMembers(Object.keys(hds1), ['partition_alloc']);
 
-      const partitionAllocDump1 = hds1['partition_alloc'];
+      const partitionAllocDump1 = hds1.partition_alloc;
       assert.strictEqual(partitionAllocDump1.processMemoryDump, pmd1);
       assert.strictEqual(partitionAllocDump1.allocatorName, 'partition_alloc');
       const partitionAllocEntries1 = partitionAllocDump1.entries;
@@ -4792,7 +4792,7 @@ tr.b.unittest.testSuite(function() {
       const hds2 = pmd2.heapDumps;
       assert.sameMembers(Object.keys(hds2), ['partition_alloc']);
 
-      const partitionAllocDump2 = hds2['partition_alloc'];
+      const partitionAllocDump2 = hds2.partition_alloc;
       assert.strictEqual(partitionAllocDump2.processMemoryDump, pmd2);
       assert.strictEqual(partitionAllocDump2.allocatorName, 'partition_alloc');
       const partitionAllocEntries2 = partitionAllocDump2.entries;
@@ -4819,7 +4819,7 @@ tr.b.unittest.testSuite(function() {
       const hds3 = pmd3.heapDumps;
       assert.sameMembers(Object.keys(hds3), ['partition_alloc', 'malloc']);
 
-      const partitionAllocDump3 = hds3['partition_alloc'];
+      const partitionAllocDump3 = hds3.partition_alloc;
       assert.strictEqual(partitionAllocDump3.processMemoryDump, pmd3);
       assert.strictEqual(partitionAllocDump3.allocatorName, 'partition_alloc');
       const partitionAllocEntries3 = partitionAllocDump3.entries;
@@ -4843,7 +4843,7 @@ tr.b.unittest.testSuite(function() {
             'TimerBase::run', 'MessageLoop::RunTask'],
           undefined /* sum over all types */);
 
-      const mallocDump3 = hds3['malloc'];
+      const mallocDump3 = hds3.malloc;
       assert.strictEqual(mallocDump3.processMemoryDump, pmd3);
       assert.strictEqual(mallocDump3.allocatorName, 'malloc');
       const mallocEntries3 = mallocDump3.entries;
@@ -4879,7 +4879,7 @@ tr.b.unittest.testSuite(function() {
       const hds4 = pmd4.heapDumps;
       assert.sameMembers(Object.keys(hds4), ['winheap']);
 
-      const winheapDump = hds4['winheap'];
+      const winheapDump = hds4.winheap;
       assert.strictEqual(winheapDump.processMemoryDump, pmd4);
       assert.strictEqual(winheapDump.allocatorName, 'winheap');
       const winheapEntries = winheapDump.entries;
@@ -4892,7 +4892,7 @@ tr.b.unittest.testSuite(function() {
       const hds5 = pmd5.heapDumps;
       assert.sameMembers(Object.keys(hds5), ['malloc']);
 
-      const mallocDump4 = hds5['malloc'];
+      const mallocDump4 = hds5.malloc;
       assert.strictEqual(mallocDump4.processMemoryDump, pmd5);
       assert.strictEqual(mallocDump4.allocatorName, 'malloc');
       const mallocEntries4 = mallocDump4.entries;
@@ -5228,7 +5228,7 @@ tr.b.unittest.testSuite(function() {
 
       const heapDumps = pmd1.heapDumps;
       assert.sameMembers(Object.keys(heapDumps), ['partition_alloc']);
-      const heapDump = heapDumps['partition_alloc'];
+      const heapDump = heapDumps.partition_alloc;
       assert.strictEqual(heapDump.processMemoryDump, pmd1);
       assert.strictEqual(heapDump.allocatorName, 'partition_alloc');
       const entries = heapDump.entries;

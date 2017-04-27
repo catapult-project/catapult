@@ -111,29 +111,29 @@ tr.exportTo('tr.ui.e.system_stats', function() {
               timeIntervalSeconds);
         } else {
           if (statName === 'sectors_read') {
-            stats['bytes_read_per_sec'] = (stats['sectors_read'] -
-                                           prevStats['sectors_read']) *
+            stats.bytes_read_per_sec = (stats.sectors_read -
+                                           prevStats.sectors_read) *
                                           512 / timeIntervalSeconds;
           }
           if (statName === 'sectors_written') {
-            stats['bytes_written_per_sec'] =
-                (stats['sectors_written'] -
-                 prevStats['sectors_written']) *
+            stats.bytes_written_per_sec =
+                (stats.sectors_written -
+                 prevStats.sectors_written) *
                 512 / timeIntervalSeconds;
           }
           if (statName === 'pgmajfault') {
-            stats['pgmajfault_per_sec'] = (stats['pgmajfault'] -
-                                           prevStats['pgmajfault']) /
+            stats.pgmajfault_per_sec = (stats.pgmajfault -
+                                           prevStats.pgmajfault) /
                                           timeIntervalSeconds;
           }
           if (statName === 'pswpin') {
-            stats['bytes_swpin_per_sec'] = (stats['pswpin'] -
-                                            prevStats['pswpin']) *
+            stats.bytes_swpin_per_sec = (stats.pswpin -
+                                            prevStats.pswpin) *
                                            1000 / timeIntervalSeconds;
           }
           if (statName === 'pswpout') {
-            stats['bytes_swpout_per_sec'] = (stats['pswpout'] -
-                                             prevStats['pswpout']) *
+            stats.bytes_swpout_per_sec = (stats.pswpout -
+                                             prevStats.pswpout) *
                                             1000 / timeIntervalSeconds;
           }
         }

@@ -41,12 +41,12 @@ var debug_alert = (function() {
         tickFormatter: xAxisTickFormatter
       }
     };
-    if (window['REVISION']) {
-      addVerticalLine(chartOptions, window['REVISION']);
+    if (window.REVISION) {
+      addVerticalLine(chartOptions, window.REVISION);
     }
-    var container = window['$']('#plot');
-    var plot = window['$']['plot'](container, window['DATA'], chartOptions);
-    var anomalyPoints = window['DATA'][ANOMALY_POINTS_INDEX].data;
+    var container = window.$('#plot');
+    var plot = window.$.plot(container, window.DATA, chartOptions);
+    var anomalyPoints = window.DATA[ANOMALY_POINTS_INDEX].data;
     addAnomalyLabels(container, plot, anomalyPoints);
   };
 
@@ -63,12 +63,12 @@ var debug_alert = (function() {
    * @param {number} revision The revision at which to put the vertical line.
    */
   var addVerticalLine = function(chartOptions, revision) {
-    if (!window['LOOKUP'] || !revision) {
+    if (!window.LOOKUP || !revision) {
       // Can't get the index of the given revision.
       return;
     }
-    var x = indexOfClosest(window['LOOKUP'], revision);
-    chartOptions['grid'] = {
+    var x = indexOfClosest(window.LOOKUP, revision);
+    chartOptions.grid = {
       'markings': [
         {
           'xaxis': {'from': x, 'to': x},
@@ -104,7 +104,7 @@ var debug_alert = (function() {
   var xAxisTickFormatter = function(val, unusedAxis) {
     val = Math.round(val);
     val = Math.max(0, val);
-    return window['LOOKUP'][val];
+    return window.LOOKUP[val];
   };
 
   /**
@@ -116,10 +116,10 @@ var debug_alert = (function() {
   var addAnomalyLabels = function(container, plot, anomalyPoints) {
     // First we need to get a few attributes of the plot; for details,
     // see https://github.com/flot/flot/blob/master/API.md#plot-methods.
-    var axes = plot['getAxes']();
-    var xp2c = axes['xaxis']['p2c'];
-    var yp2c = axes['yaxis']['p2c'];
-    var flotTickLabelWidth = axes['yaxis']['labelWidth'];
+    var axes = plot.getAxes();
+    var xp2c = axes.xaxis.p2c;
+    var yp2c = axes.yaxis.p2c;
+    var flotTickLabelWidth = axes.yaxis.labelWidth;
 
     for (var i = 0; i < anomalyPoints.length; i++) {
       // Calculate the distance from the left to position the label. Here we
@@ -139,7 +139,7 @@ var debug_alert = (function() {
       // Below we are assuming that the anomaly data series and
       // ANOMALIES array are the same size and contain information about
       // corresponding anomalies.
-      var anomaly = window['ANOMALIES'][i];
+      var anomaly = window.ANOMALIES[i];
       var labelContent = anomalyDescription(anomaly);
       var labelElement = makeLabel(labelContent, leftPos, topPos);
       container.append(labelElement);
@@ -152,9 +152,9 @@ var debug_alert = (function() {
    * @return {string} An HTML string to put in a label.
    */
   var anomalyDescription = function(anomaly) {
-    var index = anomaly['x_value'];
-    var revision = window['LOOKUP'][index];
-    var percentChanged = 100 * anomaly['relative_change'];
+    var index = anomaly.x_value;
+    var revision = window.LOOKUP[index];
+    var percentChanged = 100 * anomaly.relative_change;
     return revision + '<br>' + percentChanged.toFixed(2) + '%';
   };
 

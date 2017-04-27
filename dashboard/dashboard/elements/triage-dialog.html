@@ -191,7 +191,7 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
             return;
           }
           var data = JSON.parse(e.data);
-          if (data['action'] == 'bug_create_result') {
+          if (data.action == 'bug_create_result') {
             if (this.bugWindow) {
               this.bugWindow.close();
             }
@@ -199,7 +199,7 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
             this.close();
             this.fire('triaged', {
               'alerts': this.alerts,
-              'bugid': data['bug_id']
+              'bugid': data.bug_id
             });
             e.preventDefault();
             e.stopPropagation();
@@ -214,10 +214,10 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
        *     bug_result.html.
        */
       showCreatedBugResult: function(data) {
-        this.lastSubmittedBugId = data['bug_id'];
-        this.lastSubmittedTryJobId = data['issue_id'];
-        this.lastSubmittedTryJobUrl = data['issue_url'];
-        this.lastSubmittedTryJobError = data['bisect_error'];
+        this.lastSubmittedBugId = data.bug_id;
+        this.lastSubmittedTryJobId = data.issue_id;
+        this.lastSubmittedTryJobUrl = data.issue_url;
+        this.lastSubmittedTryJobError = data.bisect_error;
         this.fire('display-toast', {'content': this.$.jobsubmitted});
       },
 

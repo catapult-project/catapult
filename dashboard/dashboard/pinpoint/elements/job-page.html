@@ -158,7 +158,7 @@ found in the LICENSE file.
         var params = {job_id: this.data.jobId};
         simple_xhr.send('/_ah/api/job', params,
             function(response) {
-              var jobInfo = response['data'];
+              var jobInfo = response.data;
               this.set('jobInfo', jobInfo);
 
               var jobProperties = [];

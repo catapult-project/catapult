@@ -73,8 +73,8 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(
         '2015-09-03T16:40:00.856599389Z', span1Event.args['End Time']);
     assert.strictEqual('1', span1Event.args['Span ID']);
-    assert.strictEqual('value1', span1Event.args['key1']);
-    assert.strictEqual('value2', span1Event.args['key2']);
+    assert.strictEqual('value1', span1Event.args.key1);
+    assert.strictEqual('value2', span1Event.args.key2);
     assert.strictEqual(
         '2015-09-03T16:40:00.856599389Z', span1Event.args['End Time']);
 

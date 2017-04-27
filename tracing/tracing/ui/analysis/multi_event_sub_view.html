@@ -84,8 +84,8 @@ tr.exportTo('tr.ui.analysis', function() {
       diagnostics[fieldName] = new tr.v.d.Scalar(new tr.b.Scalar(
         tr.b.Unit.byName.timeDurationInMs, slice[fieldName]));
     }
-    diagnostics['args'] = new tr.v.d.Generic(slice.args);
-    diagnostics['event'] = new tr.v.d.RelatedEventSet(slice);
+    diagnostics.args = new tr.v.d.Generic(slice.args);
+    diagnostics.event = new tr.v.d.RelatedEventSet(slice);
     return diagnostics;
   }
 

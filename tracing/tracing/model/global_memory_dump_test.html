@@ -200,15 +200,15 @@ tr.b.unittest.testSuite(function() {
       if (treeRecipes === undefined) return;
 
       function buildDumpTreeRecursively(treeRecipe, namePrefix) {
-        var skipBuild = treeRecipe['skip_build'];
-        var name = treeRecipe['name'];
-        var guid = treeRecipe['guid'];
-        var owns = treeRecipe['owns'];
-        var size = treeRecipe['size'];
-        var numerics = treeRecipe['numerics'];
-        var diagnostics = treeRecipe['diagnostics'];
-        var importance = treeRecipe['importance'];
-        var weak = treeRecipe['weak'];
+        var skipBuild = treeRecipe.skip_build;
+        var name = treeRecipe.name;
+        var guid = treeRecipe.guid;
+        var owns = treeRecipe.owns;
+        var size = treeRecipe.size;
+        var numerics = treeRecipe.numerics;
+        var diagnostics = treeRecipe.diagnostics;
+        var importance = treeRecipe.importance;
+        var weak = treeRecipe.weak;
 
         assert.notStrictEqual(skipBuild, true);
         assert.isDefined(name);
@@ -236,7 +236,7 @@ tr.b.unittest.testSuite(function() {
         if (treeRecipe.children !== undefined) {
           treeRecipe.children.forEach(function(childTreeRecipe) {
             // Virtual children are added during size calculation.
-            if (childTreeRecipe['skip_build'] === true) return;
+            if (childTreeRecipe.skip_build === true) return;
             var childDump =
                 buildDumpTreeRecursively(childTreeRecipe, fullName + '/');
             childDump.parent = dump;
@@ -469,7 +469,7 @@ tr.b.unittest.testSuite(function() {
       }
 
       var expectedTreeRecipes = treeRecipes.filter(function(treeRecipe) {
-        return !treeRecipe['expected_removed'];
+        return !treeRecipe.expected_removed;
       });
 
       assert.isDefined(memoryAllocatorDumps,
@@ -482,10 +482,10 @@ tr.b.unittest.testSuite(function() {
 
       function checkDumpTree(dump, treeRecipe, expectedParent, namePrefix) {
         // Test sanity check.
-        assert.isFalse(!!treeRecipe['expected_removed']);
+        assert.isFalse(!!treeRecipe.expected_removed);
 
         // Check full name, parent, and container dump.
-        var expectedFullName = namePrefix + treeRecipe['name'];
+        var expectedFullName = namePrefix + treeRecipe.name;
         var quantifiedName = dump.quantifiedName;
         assert.strictEqual(dump.fullName, expectedFullName,
             quantifiedName + ' has invalid full name');
@@ -498,22 +498,22 @@ tr.b.unittest.testSuite(function() {
             'is not indexed in its container memory dump');
 
         // Check the guid of the dump.
-        assert.strictEqual(dump.guid, treeRecipe['guid'],
+        assert.strictEqual(dump.guid, treeRecipe.guid,
             quantifiedName + ' has invalid guid');
 
         // Check that the 'weak' flag is correct.
-        assert.strictEqual(dump.weak, !!treeRecipe['weak'],
+        assert.strictEqual(dump.weak, !!treeRecipe.weak,
             quantifiedName + ' has invalid weak flag');
 
         // Check that sizes were calculated correctly.
         assertDumpSizes(dump,
-            treeRecipe['expected_size'],
-            treeRecipe['expected_effective_size'],
-            treeRecipe['expected_infos'],
-            treeRecipe['expected_owned_by_sibling_sizes']);
+            treeRecipe.expected_size,
+            treeRecipe.expected_effective_size,
+            treeRecipe.expected_infos,
+            treeRecipe.expected_owned_by_sibling_sizes);
 
         // Check that the 'owns' link is correct.
-        if (treeRecipe['owns'] === undefined) {
+        if (treeRecipe.owns === undefined) {
           assert.isUndefined(dump.owns,
               quantifiedName + ' was expected not to own another dump');
         } else {
@@ -522,13 +522,13 @@ tr.b.unittest.testSuite(function() {
               ' was expected to have an \'owns\' link');
           assert.strictEqual(ownershipLink.source, dump,
               'the \'owns\' link of ' + quantifiedName + ' has invalid source');
-          var expectedImportance = treeRecipe['importance'];
+          var expectedImportance = treeRecipe.importance;
           assert.strictEqual(ownershipLink.importance, expectedImportance,
               'expected the importance of the \'owns\' link of ' +
               quantifiedName + ' to be ' + expectedImportance +
               ' but got ' + ownershipLink.importance);
           var ownedDump = ownershipLink.target;
-          assert.strictEqual(ownedDump.guid, treeRecipe['owns'],
+          assert.strictEqual(ownedDump.guid, treeRecipe.owns,
               'the \'owns\' link of ' + quantifiedName +
               ' has an invalid target');
           assert.include(ownedDump.ownedBy, ownershipLink,
@@ -538,7 +538,7 @@ tr.b.unittest.testSuite(function() {
 
         // Check that the number of 'ownedBy' links is correct.
         var expectedOwnedByLinksCount =
-            treeRecipe['expected_owned_by_links_count'];
+            treeRecipe.expected_owned_by_links_count;
         if (expectedOwnedByLinksCount !== undefined) {
           assert.lengthOf(dump.ownedBy, expectedOwnedByLinksCount,
               'expected ' + quantifiedName + ' to have ' +
@@ -550,7 +550,7 @@ tr.b.unittest.testSuite(function() {
         var actualChildren = dump.children;
         var expectedChildren = (treeRecipe.children || []).filter(
             function(childRecipe) {
-              return !childRecipe['expected_removed'];
+              return !childRecipe.expected_removed;
             });
         assert.lengthOf(actualChildren, expectedChildren.length,
             'expected ' + quantifiedName + ' to have ' +

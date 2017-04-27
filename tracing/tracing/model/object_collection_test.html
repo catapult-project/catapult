@@ -112,10 +112,10 @@ tr.b.unittest.testSuite(function() {
         typeNames);
     assert.deepEqual(
         [frame],
-        collection.getAllInstancesByTypeName()['Frame']);
+        collection.getAllInstancesByTypeName().Frame);
     assert.deepEqual(
         [picture],
-        collection.getAllInstancesByTypeName()['Picture']);
+        collection.getAllInstancesByTypeName().Picture);
   });
 
   test('createSnapDelete', function() {

@@ -529,17 +529,17 @@ found in the LICENSE file.
       computeIsPlural: (n) => n > 1,
 
       getDisplayStartRev: function(item) {
-        if (item['display_start']) {
-          return item['display_start'];
+        if (item.display_start) {
+          return item.display_start;
         }
-        return item['start_revision'];
+        return item.start_revision;
       },
 
       getDisplayEndRev: function(item) {
-        if (item['display_end']) {
-          return item['display_end'];
+        if (item.display_end) {
+          return item.display_end;
         }
-        return item['end_revision'];
+        return item.end_revision;
       },
 
       /**
@@ -806,7 +806,7 @@ found in the LICENSE file.
       onUntriaged: function(event, detail) {
         var key = detail.key;
         for (var i = 0; i < this.alertList.length; i++) {
-          if (this.alertList[i]['key'] == key) {
+          if (this.alertList[i].key == key) {
             this.setAlertList(i, 'bug_id', null);
           }
         }
@@ -1009,8 +1009,8 @@ found in the LICENSE file.
         var commonRange = { start: -Infinity, end: Infinity };
         for (var alert of alerts) {
           var alertRange = {
-            start: alert['start_revision'],
-            end: alert['end_revision']
+            start: alert.start_revision,
+            end: alert.end_revision
           };
 
           commonRange = findRangeIntersection(commonRange, alertRange);

@@ -159,9 +159,9 @@ found in the LICENSE file.
         };
         simple_xhr.send('/benchmark_health_report', params,
             response => {
-              this.alerts = response['alerts'];
-              this.bots = response['bots'];
-              this.monitored = response['monitored'];
+              this.alerts = response.alerts;
+              this.bots = response.bots;
+              this.monitored = response.monitored;
               this.loading = false;
               var bugIds = new Set();
               for (let alert of this.alerts) {

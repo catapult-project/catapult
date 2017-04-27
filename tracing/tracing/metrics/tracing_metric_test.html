@@ -134,7 +134,7 @@ tr.b.unittest.testSuite(function() {
     tr.metrics.tracingMetric(histograms, model);
 
     var memoryCategorySize = events.filter(
-        slice => slice['cat'] === MEMORY_INFRA_TRACING_CATEGORY).reduce(
+        slice => slice.cat === MEMORY_INFRA_TRACING_CATEGORY).reduce(
         (acc, slice) => acc + JSON.stringify(slice).length, 0);
     var totalSizeHistogram = histograms.getHistogramNamed(
         'total_memory_dump_size');

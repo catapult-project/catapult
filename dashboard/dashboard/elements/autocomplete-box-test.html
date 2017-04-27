@@ -28,10 +28,10 @@ tr.b.unittest.testSuite(function() {
   var item = function(name, opt_group, opt_head) {
     var item = {'name': name};
     if (opt_group !== undefined) {
-      item['group'] = opt_group;
+      item.group = opt_group;
     }
     if (opt_head !== undefined) {
-      item['head'] = opt_head;
+      item.head = opt_head;
     }
     return item;
   };

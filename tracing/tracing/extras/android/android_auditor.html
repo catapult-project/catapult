@@ -50,7 +50,7 @@ tr.exportTo('tr.e.audits', function() {
   }
 
   function frameMissedDeadline(frame) {
-    return frame.args['deadline'] && frame.args['deadline'] < frame.end;
+    return frame.args.deadline && frame.args.deadline < frame.end;
   }
 
   /** Builder object for EventInfo docLink structures */

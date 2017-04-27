@@ -32,7 +32,7 @@ found in the LICENSE file.
       xhr.open('POST', '/list_tests');
       xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
       xhr.send('type=pattern&has_rows=0&p=' + encodeURIComponent(pattern) +
-               '&xsrf_token=' + encodeURIComponent(window['XSRF_TOKEN']));
+               '&xsrf_token=' + encodeURIComponent(window.XSRF_TOKEN));
       document.getElementById('test-list').innerHTML =
           '<img src="//www.google.com/images/loading.gif">';
       return false;

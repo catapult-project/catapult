@@ -252,7 +252,7 @@ tr.exportTo('tr.ui.analysis', function() {
             var countValue = stackFrameNode.values[1];
             if (countValue.totalState >= this.minDisplayedTotalState_) {
               var count = countValue.total;
-              numerics['Count'] = new Scalar(
+              numerics.Count = new Scalar(
                   count_smallerIsBetter, count);
             }
             return numerics;

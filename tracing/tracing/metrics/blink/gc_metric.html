@@ -168,7 +168,7 @@ tr.exportTo('tr.metrics.blink', function() {
       var inside = 0;
       var overrun = 0;
       if (idleTask) {
-        var allottedTime = idleTask['args']['allotted_time_ms'];
+        var allottedTime = idleTask.args.allotted_time_ms;
         if (event.duration > allottedTime) {
           overrun = event.duration - allottedTime;
           // Don't count time over the deadline as being inside idle time.

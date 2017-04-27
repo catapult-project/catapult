@@ -242,14 +242,14 @@ found in the LICENSE file.
           xsrf_token: this.xsrfToken
         };
         if (this.logFilter) {
-          params['filter'] = this.logFilter;
+          params.filter = this.logFilter;
         }
         if (this.logList.length > 0) {
           if (latest) {
-            params['after_timestamp'] = this.logList[0].timestamp;
+            params.after_timestamp = this.logList[0].timestamp;
           } else {
             var lastLog = this.logList[this.logList.length - 1];
-            params['before_timestamp'] = lastLog.timestamp;
+            params.before_timestamp = lastLog.timestamp;
           }
         }
         this.xhr = simple_xhr.send('/get_logs', params,

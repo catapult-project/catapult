@@ -161,9 +161,9 @@ tr.b.unittest.testSuite(function() {
 
     var eventsByTitle = eventSet.getEventsOrganizedByTitle();
     assert.strictEqual(2, tr.b.dictionaryLength(eventsByTitle));
-    assert.sameMembers(eventsByTitle['a'].toArray(),
+    assert.sameMembers(eventsByTitle.a.toArray(),
                  [t1.sliceGroup.slices[0], t1.sliceGroup.slices[1]]);
-    assert.sameMembers(eventsByTitle['b'].toArray(),
+    assert.sameMembers(eventsByTitle.b.toArray(),
                  [t1.sliceGroup.slices[2]]);
   });
 

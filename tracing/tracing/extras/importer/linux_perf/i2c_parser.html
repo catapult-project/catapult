@@ -144,7 +144,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var args = thread.lastEntryArgs;
       if (args !== undefined) {
         args['Number of messages'] = numMessages;
-        args['Return'] = ret;
+        args.Return = ret;
       }
 
       pushLastSliceIfNeeded(thread, event[1], ts);

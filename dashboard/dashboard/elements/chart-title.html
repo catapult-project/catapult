@@ -162,8 +162,8 @@ found in the LICENSE file.
           var suite = this.seriesGroupList[i].path.split('/')[2];
           if (this.testSuites &&
               this.testSuites[suite] &&
-              this.testSuites[suite]['des']) {
-            suiteDescriptions[suite] = this.testSuites[suite]['des'];
+              this.testSuites[suite].des) {
+            suiteDescriptions[suite] = this.testSuites[suite].des;
           }
         }
         var suiteNames = Object.keys(suiteDescriptions);

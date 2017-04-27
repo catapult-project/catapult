@@ -41,7 +41,7 @@ tr.b.unittest.testSuite(function() {
 
   test('instantiate', function() {
     var objects = createObjects();
-    var frames = objects.getAllInstancesByTypeName()['Frame'];
+    var frames = objects.getAllInstancesByTypeName().Frame;
     frames[0].snapshots[1].selectionState =
         tr.model.SelectionState.SELECTED;
 
@@ -66,7 +66,7 @@ tr.b.unittest.testSuite(function() {
 
   test('selectionHitTestingWithThreadTrack', function() {
     var objects = createObjects();
-    var frames = objects.getAllInstancesByTypeName()['Frame'];
+    var frames = objects.getAllInstancesByTypeName().Frame;
 
     var track = ObjectInstanceTrack(new Viewport());
     track.objectInstances = frames;
@@ -94,7 +94,7 @@ tr.b.unittest.testSuite(function() {
 
   test('addEventNearToProvidedEventToSelection', function() {
     var objects = createObjects();
-    var frames = objects.getAllInstancesByTypeName()['Frame'];
+    var frames = objects.getAllInstancesByTypeName().Frame;
 
     var track = ObjectInstanceTrack(new Viewport());
     track.objectInstances = frames;

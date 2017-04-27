@@ -35,13 +35,13 @@ tr.b.unittest.testSuite(function() {
     infoBar.visible = true;
     this.addHTMLOutput(infoBar);
 
-    assert.strictEqual(getComputedStyle(infoBar)['display'], 'flex');
+    assert.strictEqual(getComputedStyle(infoBar).display, 'flex');
 
     infoBar.visible = false;
-    assert.strictEqual(getComputedStyle(infoBar)['display'], 'none');
+    assert.strictEqual(getComputedStyle(infoBar).display, 'none');
 
     infoBar.visible = true;
-    assert.strictEqual(getComputedStyle(infoBar)['display'], 'flex');
+    assert.strictEqual(getComputedStyle(infoBar).display, 'flex');
   });
 });
 </script>

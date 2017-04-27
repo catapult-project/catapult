@@ -90,7 +90,7 @@ found in the LICENSE file.
         if (minRevRange) {
           var info = 'Minimum revision range for ' + alerts.length;
           info += (alerts.length == 1) ? ' alert: ' : ' alerts: ';
-          info += minRevRange['start'] + ':' + minRevRange['end'];
+          info += minRevRange.start + ':' + minRevRange.end;
           this.$.revision_range.innerText = info;
           return;
         }
@@ -107,9 +107,9 @@ found in the LICENSE file.
        * @return {Array.<Object>} List of alerts.
        */
       getCheckedOrAllAlerts: function(alerts, minRevRange) {
-        var alerts = this.alertsTable['checkedAlerts'];
+        var alerts = this.alertsTable.checkedAlerts;
         if (!alerts || alerts.length == 0) {
-          alerts = this.alertsTable['alertList'].filter(
+          alerts = this.alertsTable.alertList.filter(
               function(alertRow) {
                 return !alertRow.hideRow;
               });
@@ -126,11 +126,11 @@ found in the LICENSE file.
        */
       getTestPathFromStartRev: function(alerts, startRevision) {
         for (var i = 0; i < alerts.length; i++) {
-          if (alerts[i]['start_revision'] == startRevision) {
-            return alerts[i]['master'] + '/' +
-                   alerts[i]['bot'] + '/' +
-                   alerts[i]['testsuite'] + '/' +
-                   alerts[i]['test'];
+          if (alerts[i].start_revision == startRevision) {
+            return alerts[i].master + '/' +
+                   alerts[i].bot + '/' +
+                   alerts[i].testsuite + '/' +
+                   alerts[i].test;
           }
         }
         return null;

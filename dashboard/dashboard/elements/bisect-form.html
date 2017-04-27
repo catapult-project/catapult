@@ -240,16 +240,16 @@ the bisect process after the user clicks on the bisect button.
                 'xsrf_token': this.xsrfToken
               },
               function successCallback(info) {
-                this.bot = info['bisect_bot'];
-                this.botList = info['all_bots'];
-                this.metric = info['default_metric'];
-                this.metricList = info['all_metrics'];
-                this.storyFilter = info['story_filter'];
-                this.email = info['email'];
-                this.suite = info['suite'];
-                this.master = info['master'];
-                this.internalOnly = info['internal_only'];
-                this.isAdmin = info['is_admin'];
+                this.bot = info.bisect_bot;
+                this.botList = info.all_bots;
+                this.metric = info.default_metric;
+                this.metricList = info.all_metrics;
+                this.storyFilter = info.story_filter;
+                this.email = info.email;
+                this.suite = info.suite;
+                this.master = info.master;
+                this.internalOnly = info.internal_only;
+                this.isAdmin = info.is_admin;
 
                 this.loading = false;
               }.bind(this),
@@ -285,19 +285,19 @@ the bisect process after the user clicks on the bisect button.
             'xsrf_token': this.xsrfToken
           };
           if (this.bugId) {
-            params['bug_id'] = this.bugId;
+            params.bug_id = this.bugId;
           }
           simple_xhr.send(
               '/start_try_job', params,
               function successCallback(info) {
-                this.lastSubmittedJobId = info['issue_id'];
-                this.lastSubmittedJobUrl = info['issue_url'];
+                this.lastSubmittedJobId = info.issue_id;
+                this.lastSubmittedJobUrl = info.issue_url;
                 this.fire('display-toast', {'content': this.$.jobsubmitted});
 
                 // Refresh bisect result log element.
                 var bisectLog = document.getElementById('bisect-result-log');
                 if (bisectLog) {
-                  bisectLog['refresh']();
+                  bisectLog.refresh();
                 }
 
                 this.close();

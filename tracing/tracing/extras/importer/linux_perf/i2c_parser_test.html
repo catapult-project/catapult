@@ -44,10 +44,10 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(slice.title, 'i2c write');
     assert.isDefined(slice.args);
     assert.strictEqual(slice.args['Message number'], '0');
-    assert.strictEqual(slice.args['Address'], '020');
-    assert.strictEqual(slice.args['Flags'], '0000');
+    assert.strictEqual(slice.args.Address, '020');
+    assert.strictEqual(slice.args.Flags, '0000');
     assert.strictEqual(slice.args['Data Length'], '2');
-    assert.strictEqual(slice.args['Data'], '[15-00]');
+    assert.strictEqual(slice.args.Data, '[15-00]');
 
     var threads = m.findAllThreadsNamed('i2c adapter 7');
     assert.strictEqual(threads.length, 1);
@@ -56,27 +56,27 @@ tr.b.unittest.testSuite(function() {
     var slice = threads[0].sliceGroup.slices[0];
     assert.strictEqual(slice.title, 'i2c write');
     assert.strictEqual(slice.args['Message number'], '0');
-    assert.strictEqual(slice.args['Address'], '01d');
-    assert.strictEqual(slice.args['Flags'], '0000');
+    assert.strictEqual(slice.args.Address, '01d');
+    assert.strictEqual(slice.args.Flags, '0000');
     assert.strictEqual(slice.args['Data Length'], '1');
-    assert.strictEqual(slice.args['Data'], '[00]');
+    assert.strictEqual(slice.args.Data, '[00]');
 
     slice = threads[0].sliceGroup.slices[1];
     assert.strictEqual(slice.title, 'i2c read');
     assert.strictEqual(slice.args['Message number'], '1');
-    assert.strictEqual(slice.args['Address'], '01d');
-    assert.strictEqual(slice.args['Flags'], '0001');
+    assert.strictEqual(slice.args.Address, '01d');
+    assert.strictEqual(slice.args.Flags, '0001');
     assert.strictEqual(slice.args['Data Length'], '1');
 
     slice = threads[0].sliceGroup.slices[2];
     assert.strictEqual(slice.title, 'i2c reply');
     assert.strictEqual(slice.args['Message number'], '1');
-    assert.strictEqual(slice.args['Address'], '01d');
-    assert.strictEqual(slice.args['Flags'], '0001');
+    assert.strictEqual(slice.args.Address, '01d');
+    assert.strictEqual(slice.args.Flags, '0001');
     assert.strictEqual(slice.args['Data Length'], '1');
-    assert.strictEqual(slice.args['Data'], '[01]');
+    assert.strictEqual(slice.args.Data, '[01]');
     assert.strictEqual(slice.args['Number of messages'], '2');
-    assert.strictEqual(slice.args['Return'], '2');
+    assert.strictEqual(slice.args.Return, '2');
   });
 });
 </script>

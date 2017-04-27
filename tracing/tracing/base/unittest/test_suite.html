@@ -27,11 +27,11 @@ tr.exportTo('tr.b.unittest', function() {
 
     global.flakyTest = function(testCaseOrName, opt_testFn, opt_options) {
       if (testCaseOrName instanceof TestCase) {
-        testCaseOrName.options['flaky'] = true;
+        testCaseOrName.options.flaky = true;
         test(testCaseOrName);
       } else {
         var options = Object.assign({}, opt_options || {});
-        options['flaky'] = true;
+        options.flaky = true;
         test(testCaseOrName, opt_testFn, options);
       }
     }.bind(this);

@@ -100,7 +100,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
         return;
       }
 
-      if (message['method']) {
+      if (message.method) {
         var listener = this.notificationListenersByMethodName_[message.method];
         if (listener === undefined) {
           return;

@@ -97,9 +97,9 @@ found in the LICENSE file.
       var params = getUrlParameters();
       if (params) {
         var quickLog = document.getElementById('quick-log');
-        quickLog.initialize('Log: ' + params['name'],
-            params['namespace'],
-            params['name']);
+        quickLog.initialize('Log: ' + params.name,
+            params.namespace,
+            params.name);
         quickLog.show();
       }
     }

@@ -757,29 +757,29 @@ tr.exportTo('tr.e.importer', function() {
       // Sampling usually happens in a separate thread, but start time is issued
       // in the main thread, in order to get the correct thread object,
       // we should use pid and tid from main thread.
-      if (data['startTime'] !== undefined) {
+      if (data.startTime !== undefined) {
         this.profileInfo_.set(event.id, {
-          startTime: data['startTime'],
+          startTime: data.startTime,
           pid: event.pid,
           tid: event.tid
         });
       }
-      let timeDeltas = data['timeDeltas'];
+      let timeDeltas = data.timeDeltas;
       for (let sampleType in data) {
         if (sampleType === 'timeDeltas' || sampleType === 'startTime') {
           continue;
         }
         // The length of samples array and the length of timeDeltas array
         // should be the same.
-        if (data[sampleType]['samples'] && timeDeltas &&
-            data[sampleType]['samples'].length !== timeDeltas.length) {
+        if (data[sampleType].samples && timeDeltas &&
+            data[sampleType].samples.length !== timeDeltas.length) {
           // eslint-disable-next-line
           throw new Error('samples and timeDeltas array should have same length');
         }
 
-        let profileTree = this.getOrCreateProfileTree_(sampleType, event['id']);
-        let nodes = data[sampleType]['nodes'];
-        let samples = data[sampleType]['samples'];
+        let profileTree = this.getOrCreateProfileTree_(sampleType, event.id);
+        let nodes = data[sampleType].nodes;
+        let samples = data[sampleType].samples;
         if (nodes !== undefined) {
           for (let node of nodes) {
             // Get the sepcific ProfileNode type based on sampleType.

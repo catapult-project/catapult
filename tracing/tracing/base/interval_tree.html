@@ -330,13 +330,13 @@ tr.exportTo('tr.b', function() {
     dump: function() {
       var ret = {};
       if (this.leftNode_) {
-        ret['left'] = this.leftNode_.dump();
+        ret.left = this.leftNode_.dump();
       }
 
-      ret['data'] = this.data_.map(function(d) { return [d.low, d.high]; });
+      ret.data = this.data_.map(function(d) { return [d.low, d.high]; });
 
       if (this.rightNode_) {
-        ret['right'] = this.rightNode_.dump();
+        ret.right = this.rightNode_.dump();
       }
 
       return ret;

@@ -701,7 +701,7 @@ tr.b.unittest.testSuite(function() {
               pmd.heapDumps = {};
             }
             if (mask & HAS_ALLOCATOR_HEAP_DUMP) {
-              pmd.heapDumps['Allocator'] = new HeapDump(pmd, 'Allocator');
+              pmd.heapDumps.Allocator = new HeapDump(pmd, 'Allocator');
             }
             var mad = new MemoryAllocatorDump(pmd, 'Allocator');
             if (!(mask & MISSING_SIZE)) {

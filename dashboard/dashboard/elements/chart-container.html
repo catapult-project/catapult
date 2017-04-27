@@ -779,7 +779,7 @@ triaging functionality in the chart.
           // TODO(eakuefner): Figure out how to remove this parameter since in
           // list mode we only need it for the _MAX_UNSELECTED_TESTS hack.
           if (isSelected) {
-            params['is_selected'] = true;
+            params.is_selected = true;
           }
 
           this.updateSeriesGroupLoadingCounter(pathsForUpdate, true);
@@ -819,7 +819,7 @@ triaging functionality in the chart.
           }
           var seriesIndices = Object.keys(json.data);
           return (seriesIndices.length > 0 &&
-                  json.data[seriesIndices[0]]['data'].length > 0);
+                  json.data[seriesIndices[0]].data.length > 0);
         },
 
         /**
@@ -903,7 +903,7 @@ triaging functionality in the chart.
           if (series) {
             var lastIndex = Math.max.apply(Math, Object.keys(series));
             if ('timestamp' in series[lastIndex]) {
-              return series[lastIndex]['timestamp'];
+              return series[lastIndex].timestamp;
             }
           }
           return null;
@@ -955,9 +955,9 @@ triaging functionality in the chart.
             this.json.annotations[nextIndex] = newJson.annotations[index];
             newSeries[nextIndex] = newJson.annotations.series[index];
 
-            this.updateErrorBarsIndex(newJson['error_bars'][index], nextIndex,
+            this.updateErrorBarsIndex(newJson.error_bars[index], nextIndex,
                 color);
-            this.json['error_bars'][nextIndex] = newJson['error_bars'][index];
+            this.json.error_bars[nextIndex] = newJson.error_bars[index];
           }
 
           this.updateForNewSeries(newSeries, isSelected);
@@ -1267,10 +1267,10 @@ triaging functionality in the chart.
          */
         onRevisionRange: function(event, detail) {
           var newGraphParams = tr.b.deepCopy(this.graphParams);
-          newGraphParams['rev'] = null;
-          newGraphParams['num_points'] = null;
-          newGraphParams['start_rev'] = detail.start_rev;
-          newGraphParams['end_rev'] = detail.end_rev;
+          newGraphParams.rev = null;
+          newGraphParams.num_points = null;
+          newGraphParams.start_rev = detail.start_rev;
+          newGraphParams.end_rev = detail.end_rev;
           this.graphParams = newGraphParams;
           this.reloadChart();
           this.fireChartStateChangedEvent(null);
@@ -1354,7 +1354,7 @@ triaging functionality in the chart.
           var annotations = this.json.annotations;
           if (!annotations[seriesIndex] ||
               !annotations[seriesIndex][dataIndex] ||
-              !annotations[seriesIndex][dataIndex]['g_anomaly']) {
+              !annotations[seriesIndex][dataIndex].g_anomaly) {
             return false;
           }
           return true;
@@ -1488,7 +1488,7 @@ triaging functionality in the chart.
           if (!this.jsonHasData(this.json)) {
             return [];
           }
-          if (!this.json['error_bars']) {
+          if (!this.json.error_bars) {
             return [];
           }
 
@@ -1505,9 +1505,9 @@ triaging functionality in the chart.
           // Add in error bars after data.
           for (var i = 0; i < this.indicesToGraph.length; i++) {
             var index = this.indicesToGraph[i];
-            if (index >= 0 && this.json['error_bars'][index]) {
-              data.push(tr.b.deepCopy(this.json['error_bars'][index][0]));
-              data.push(tr.b.deepCopy(this.json['error_bars'][index][1]));
+            if (index >= 0 && this.json.error_bars[index]) {
+              data.push(tr.b.deepCopy(this.json.error_bars[index][0]));
+              data.push(tr.b.deepCopy(this.json.error_bars[index][1]));
             } else {
               return [];
             }
@@ -1628,7 +1628,7 @@ triaging functionality in the chart.
           var annotations = this.json.annotations;
           if (annotations[seriesIndex] && annotations[seriesIndex][dataIndex]) {
             var annotation = annotations[seriesIndex][dataIndex];
-            var defaultRev = annotation['a_default_rev'];
+            var defaultRev = annotation.a_default_rev;
             if (defaultRev && annotation[defaultRev]) {
               return getDisplayRevision(annotation[defaultRev]);
             }
@@ -1665,7 +1665,7 @@ triaging functionality in the chart.
             for (var dataIndex = 0; dataIndex < dataLength; dataIndex++) {
               var a = annotations[jsonSeriesIndex][dataIndex];
               if (!annotations[jsonSeriesIndex][dataIndex] ||
-                  !annotations[jsonSeriesIndex][dataIndex]['g_anomaly'] ||
+                  !annotations[jsonSeriesIndex][dataIndex].g_anomaly ||
                   flotData[flotIndex].data[dataIndex][1] < minHeight ||
                   flotData[flotIndex].data[dataIndex][1] > maxHeight) {
                 continue;
@@ -1679,7 +1679,7 @@ triaging functionality in the chart.
 
               var alertIcon = document.createElement('alert-icon');
               alertIcon.initialize(
-                  annotations[jsonSeriesIndex][dataIndex]['g_anomaly'],
+                  annotations[jsonSeriesIndex][dataIndex].g_anomaly,
                   this.alertKey);
               Polymer.dom(
                   this.$['alert-icon-container']).appendChild(alertIcon);
@@ -1710,7 +1710,7 @@ triaging functionality in the chart.
             delete this.json.data[indexToRemove];
             delete this.json.annotations.series[indexToRemove];
             delete this.json.annotations[indexToRemove];
-            delete this.json['error_bars'][indexToRemove];
+            delete this.json.error_bars[indexToRemove];
             if (this.indicesToGraph.indexOf(indexToRemove) != -1) {
               this.splice('indicesToGraph',
                   this.indicesToGraph.indexOf(indexToRemove), 1);
@@ -1860,7 +1860,7 @@ triaging functionality in the chart.
               continue;
             }
             var displayRevision = data[i][0];
-            if (annotation['a_default_rev']) {
+            if (annotation.a_default_rev) {
               displayRevision = annotation[annotation.a_default_rev];
             }
             displayRevision = getDisplayRevision(displayRevision);
@@ -1884,9 +1884,9 @@ triaging functionality in the chart.
           // Get the anomaly info object, and add a few fields.
           var annotation = this.json.annotations[jsonSeriesIndex][dataIndex];
           var anomalyInfo = annotation.g_anomaly;
-          anomalyInfo['nudgeList'] = nudgeList;
-          anomalyInfo['seriesIndex'] = jsonSeriesIndex;
-          anomalyInfo['dataIndex'] = dataIndex;
+          anomalyInfo.nudgeList = nudgeList;
+          anomalyInfo.seriesIndex = jsonSeriesIndex;
+          anomalyInfo.dataIndex = dataIndex;
 
           // The alerts and triaged lists are attributes of chart-tooltip
           // which are used for showing information about anomalies. The alerts
@@ -1927,7 +1927,7 @@ triaging functionality in the chart.
 
           // Update the bug id locally.
           var annotation = this.json.annotations[jsonSeriesIndex][dataIndex];
-          annotation['g_anomaly']['bug_id'] = bugId;
+          annotation.g_anomaly.bug_id = bugId;
           this.$.tooltip.bugId = bugId;
           if (!bugId) {
             this.$.tooltip.alerts = this.$.tooltip.triagedAlerts;
@@ -1937,7 +1937,7 @@ triaging functionality in the chart.
             this.$.tooltip.triagedAlerts = this.$.tooltip.alerts;
             this.$.tooltip.alerts = null;
             var data = this.json.annotations[jsonSeriesIndex][dataIndex];
-            this.$.tooltip.alertKey = data['g_anomaly'].key;
+            this.$.tooltip.alertKey = data.g_anomaly.key;
           }
           // Refresh the anomalies to make the one with the new bug id black.
           this.showAlerts();
@@ -1954,11 +1954,11 @@ triaging functionality in the chart.
           var dataIndex = event.detail.alerts[0].dataIndex;
           var newDataIndex = event.detail.newDataIndex;
           var seriesAnnotations = this.json.annotations[jsonSeriesIndex];
-          var alertInfo = seriesAnnotations[dataIndex]['g_anomaly'];
-          alertInfo['start_revision'] = event.detail.startRev;
-          alertInfo['end_revision'] = event.detail.endRev;
-          seriesAnnotations[dataIndex]['g_anomaly'] = null;
-          seriesAnnotations[newDataIndex]['g_anomaly'] = alertInfo;
+          var alertInfo = seriesAnnotations[dataIndex].g_anomaly;
+          alertInfo.start_revision = event.detail.startRev;
+          alertInfo.end_revision = event.detail.endRev;
+          seriesAnnotations[dataIndex].g_anomaly = null;
+          seriesAnnotations[newDataIndex].g_anomaly = alertInfo;
           event.detail.alerts[0].dataIndex = newDataIndex;
           this.showAlerts();
         },
@@ -2063,20 +2063,20 @@ triaging functionality in the chart.
             opt_triaged = null;
           }
           this.$.tooltip.triagedAlerts = opt_triaged;
-          if (annotation['g_anomaly']) {
-            if (annotation.g_anomaly['bug_id']) {
-              this.$.tooltip.bugId = annotation['g_anomaly']['bug_id'];
+          if (annotation.g_anomaly) {
+            if (annotation.g_anomaly.bug_id) {
+              this.$.tooltip.bugId = annotation.g_anomaly.bug_id;
               this.$.tooltip.alertInvalidOrIgnored =
-                  annotation['g_anomaly']['bug_id'] < 0;
-              this.$.tooltip.alertKey = annotation['g_anomaly']['key'];
+                  annotation.g_anomaly.bug_id < 0;
+              this.$.tooltip.alertKey = annotation.g_anomaly.key;
             }
-            this.$.tooltip.recovered = annotation['g_anomaly']['recovered'];
+            this.$.tooltip.recovered = annotation.g_anomaly.recovered;
           }
 
           var traceRerunInfo = [];
-          if (annotation['a_trace_rerun_options']) {
-            for (var i in annotation['a_trace_rerun_options']) {
-              var currentOption = annotation['a_trace_rerun_options'][i];
+          if (annotation.a_trace_rerun_options) {
+            for (var i in annotation.a_trace_rerun_options) {
+              var currentOption = annotation.a_trace_rerun_options[i];
               traceRerunInfo.push({
                 'name': i,
                 'option': currentOption
@@ -2135,7 +2135,7 @@ triaging functionality in the chart.
           if (!annotation) {
             return null;
           }
-          var defaultRevType = annotation['a_default_rev'];
+          var defaultRevType = annotation.a_default_rev;
           if (defaultRevType && annotation[defaultRevType]) {
             return annotation[defaultRevType];
           }
@@ -2188,7 +2188,7 @@ triaging functionality in the chart.
             } else if (key == 'a_tracing_uri') {
               links.push({
                 'text': 'Trace',
-                'url': annotation['a_tracing_uri']
+                'url': annotation.a_tracing_uri
               });
             } else if (key.indexOf('a_') === 0) {
               var match = TOOLTIP_LINK_REGEX.exec(annotation[key]);
@@ -2248,7 +2248,7 @@ triaging functionality in the chart.
             }
             var revisionRangeInfo = this.getRevisionRangeInfo(
                 revisionTypeKey, start, end);
-            if (revisionTypeKey == annotation['a_default_rev']) {
+            if (revisionTypeKey == annotation.a_default_rev) {
               // The default revision type will be inserted afterwards.
               defaultRevisionRangeInfo = revisionRangeInfo;
             } else {
@@ -2257,8 +2257,8 @@ triaging functionality in the chart.
           }
           // Revisions are sorted by name, with the default first.
           revisionRangeInfoObjects.sort(function(a, b) {
-            var aName = a['name'].toLowerCase();
-            var bName = b['name'].toLowerCase();
+            var aName = a.name.toLowerCase();
+            var bName = b.name.toLowerCase();
             return aName.localeCompare(bName);
           });
           if (defaultRevisionRangeInfo) {
@@ -2281,8 +2281,8 @@ triaging functionality in the chart.
          */
         getRevisionRangeInfo: function(revisionTypeKey, start, end) {
           var revisionInfo = this.revisionInfo[revisionTypeKey];
-          var revisionTypeKey = revisionInfo['name'];
-          var urlTemplate = revisionInfo['url'];
+          var revisionTypeKey = revisionInfo.name;
+          var urlTemplate = revisionInfo.url;
 
           if (!isNaN(start) && !isNaN(end) && Number(start) > Number(end)) {
             var temp = start;

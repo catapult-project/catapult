@@ -248,13 +248,13 @@ tr.exportTo('tr.metrics.sh', function() {
               source: 'reported_by_os',
               property: RESIDENT_SIZE,
               component: ['system_memory'],
-              value: processDump.totals['residentBytes']
+              value: processDump.totals.residentBytes
             });
             addProcessScalar({
               source: 'reported_by_os',
               property: PEAK_RESIDENT_SIZE,
               component: ['system_memory'],
-              value: processDump.totals['peakResidentBytes']
+              value: processDump.totals.peakResidentBytes
             });
           }
 
@@ -273,7 +273,7 @@ tr.exportTo('tr.metrics.sh', function() {
             });
             // Some dump providers add allocated objects size as
             // "allocated_objects" child dump.
-            if (rootAllocatorDump.numerics['allocated_objects_size'] ===
+            if (rootAllocatorDump.numerics.allocated_objects_size ===
                     undefined) {
               var allocatedObjectsDump =
                   rootAllocatorDump.getDescendantDumpByFullName(
@@ -283,7 +283,7 @@ tr.exportTo('tr.metrics.sh', function() {
                   source: 'reported_by_chrome',
                   component: [rootAllocatorDump.name],
                   property: ALLOCATED_OBJECTS_SIZE,
-                  value: allocatedObjectsDump.numerics['size']
+                  value: allocatedObjectsDump.numerics.size
                 });
               }
             }
@@ -344,13 +344,13 @@ tr.exportTo('tr.metrics.sh', function() {
       source: 'reported_by_chrome',
       component: ['v8'],
       property: CODE_AND_METADATA_SIZE,
-      value: v8Dump.numerics['code_and_metadata_size']
+      value: v8Dump.numerics.code_and_metadata_size
     });
     addProcessScalar({
       source: 'reported_by_chrome',
       component: ['v8'],
       property: CODE_AND_METADATA_SIZE,
-      value: v8Dump.numerics['bytecode_and_metadata_size']
+      value: v8Dump.numerics.bytecode_and_metadata_size
     });
   }
 
@@ -650,14 +650,14 @@ tr.exportTo('tr.metrics.sh', function() {
               component: componentPath,
               property: PROPORTIONAL_RESIDENT_SIZE,
               value: node === undefined ?
-                  0 : (node.byteStats['proportionalResident'] || 0)
+                  0 : (node.byteStats.proportionalResident || 0)
             });
             addProcessScalar({
               source: 'reported_by_os',
               component: componentPath,
               property: PRIVATE_DIRTY_SIZE,
               value: node === undefined ?
-                  0 : (node.byteStats['privateDirtyResident'] || 0)
+                  0 : (node.byteStats.privateDirtyResident || 0)
             });
           }
 
@@ -671,7 +671,7 @@ tr.exportTo('tr.metrics.sh', function() {
                 source: 'reported_by_os',
                 component: ['gpu_memory', memtrackChildDump.name],
                 property: PROPORTIONAL_RESIDENT_SIZE,
-                value: memtrackChildDump.numerics['memtrack_pss']
+                value: memtrackChildDump.numerics.memtrack_pss
               });
             });
           }
