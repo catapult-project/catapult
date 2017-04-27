@@ -63,7 +63,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     getObjectInstanceColor: function(instance) {
-      const offset = this.getColorIdOffset_(instant);
+      const offset = this.getColorIdOffset_(instance);
       const colorId = ColorScheme.getVariantColorId(instance.colorId, offset);
       return colors[colorId].toStringWithAlphaOverride(0.25);
     },
