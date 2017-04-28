@@ -497,8 +497,11 @@ def SetDate(device):
       raise device_errors.CommandFailedError(
           'Failed to set date & time.', device_serial=str(device))
     device.EnableRoot()
+    # The following intent can take a bit to complete when ran shortly after
+    # device boot-up.
     device.BroadcastIntent(
-        intent.Intent(action='android.intent.action.TIME_SET'))
+        intent.Intent(action='android.intent.action.TIME_SET'),
+        timeout=180)
 
 
 def LogDeviceProperties(device):
