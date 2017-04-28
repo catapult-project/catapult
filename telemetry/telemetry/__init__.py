@@ -7,6 +7,13 @@ import os
 import sys
 import glob
 
+try:
+  # This enables much better stack upon native code crashes.
+  import faulthandler
+  faulthandler.enable()
+except ImportError:
+  pass
+
 
 # Ensure Python >= 2.7.
 if sys.version_info < (2, 7):
