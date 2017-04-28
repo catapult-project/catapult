@@ -4,6 +4,7 @@
 
 import unittest
 
+from telemetry.core import platform as platform_module
 from telemetry.internal import story_runner
 from telemetry.page import page
 from telemetry.page import legacy_page_test
@@ -82,8 +83,12 @@ class SharedPageStateTests(unittest.TestCase):
   def testPageStatesUserAgentType(self):
     self.assertUserAgentSetCorrectly(
         shared_page_state.SharedMobilePageState, 'mobile')
-    self.assertUserAgentSetCorrectly(
-        shared_page_state.SharedDesktopPageState, 'desktop')
+    if platform_module.GetHostPlatform().GetOSName() == 'chromeos':
+      self.assertUserAgentSetCorrectly(
+          shared_page_state.SharedDesktopPageState, 'chromeos')
+    else:
+      self.assertUserAgentSetCorrectly(
+          shared_page_state.SharedDesktopPageState, 'desktop')
     self.assertUserAgentSetCorrectly(
         shared_page_state.SharedTabletPageState, 'tablet')
     self.assertUserAgentSetCorrectly(
