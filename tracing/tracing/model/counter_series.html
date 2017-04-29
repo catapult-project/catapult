@@ -61,26 +61,26 @@ tr.exportTo('tr.model', function() {
       return this.timestamps_;
     },
 
-    getSample: function(idx) {
+    getSample(idx) {
       return this.samples_[idx];
     },
 
-    getTimestamp: function(idx) {
+    getTimestamp(idx) {
       return this.timestamps_[idx];
     },
 
-    addCounterSample: function(ts, val) {
+    addCounterSample(ts, val) {
       var sample = new CounterSample(this, ts, val);
       this.addSample(sample);
       return sample;
     },
 
-    addSample: function(sample) {
+    addSample(sample) {
       this.timestamps_.push(sample.timestamp);
       this.samples_.push(sample);
     },
 
-    getStatistics: function(sampleIndices) {
+    getStatistics(sampleIndices) {
       var sum = 0;
       var min = Number.MAX_VALUE;
       var max = -Number.MAX_VALUE;
@@ -94,26 +94,26 @@ tr.exportTo('tr.model', function() {
       }
 
       return {
-        min: min,
-        max: max,
+        min,
+        max,
         avg: (sum / sampleIndices.length),
         start: this.getSample(sampleIndices[0]).value,
         end: this.getSample(sampleIndices.length - 1).value
       };
     },
 
-    shiftTimestampsForward: function(amount) {
+    shiftTimestampsForward(amount) {
       for (var i = 0; i < this.timestamps_.length; ++i) {
         this.timestamps_[i] += amount;
         this.samples_[i].timestamp = this.timestamps_[i];
       }
     },
 
-    childEvents: function* () {
+    * childEvents() {
       yield* this.samples_;
     },
 
-    childEventContainers: function* () {
+    * childEventContainers() {
     }
   };
 

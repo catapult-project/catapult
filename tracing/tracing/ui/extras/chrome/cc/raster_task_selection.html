@@ -106,7 +106,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       return highlights;
     },
 
-    createAnalysis: function() {
+    createAnalysis() {
       var sel = new tr.model.EventSet();
       this.slices_.forEach(function(slice) {
         sel.push(slice);
@@ -122,7 +122,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       return analysis;
     },
 
-    findEquivalent: function(lthi) {
+    findEquivalent(lthi) {
       // Raster tasks are only valid in one LTHI.
       return undefined;
     },

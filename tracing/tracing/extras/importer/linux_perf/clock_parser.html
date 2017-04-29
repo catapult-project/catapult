@@ -36,7 +36,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
   ClockParser.prototype = {
     __proto__: Parser.prototype,
 
-    traceMarkWriteClockEvent: function(eventName, cpuNumber, pid, ts,
+    traceMarkWriteClockEvent(eventName, cpuNumber, pid, ts,
         eventBase, threadName) {
       var event = /(\S+) state=(\d+) cpu_id=(\d+)/.exec(eventBase.details);
 

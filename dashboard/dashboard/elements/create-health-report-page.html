@@ -173,7 +173,7 @@ found in the LICENSE file.
         }
       },
 
-      onSubmit: function() {
+      onSubmit() {
         var valid = this.validateInputs();
         if (valid) {
           this.checkToken();
@@ -181,7 +181,7 @@ found in the LICENSE file.
         this.error = '';
       },
 
-      checkToken: function() {
+      checkToken() {
         var params = {
           getToken: true,
         };
@@ -197,7 +197,7 @@ found in the LICENSE file.
             }.bind(this));
       },
 
-      buildTable: function() {
+      buildTable() {
         this.loading = true;
         var override = 0;
         if (this.selectedTableConfig == this.name) {
@@ -209,7 +209,7 @@ found in the LICENSE file.
           tableBots: this.bots,
           tableTests: this.tests,
           xsrf_token: this.xsrfToken,
-          override: override,
+          override,
         };
         simple_xhr.send('/create_health_report', params,
             function(response) {
@@ -229,7 +229,7 @@ found in the LICENSE file.
       /*
        * Goes and grabs the table_config details to populate the form with.
        */
-      onEditChanged: function(e) {
+      onEditChanged(e) {
         this.selectedTableConfig = e.detail.item.label;
         if (!this.selectedTableConfig) {
           this.name = '';
@@ -261,7 +261,7 @@ found in the LICENSE file.
             }.bind(this));
       },
 
-      validateInputs: function() {
+      validateInputs() {
         var valid = true;
         if (!this.name) {
           valid = false;
@@ -282,7 +282,7 @@ found in the LICENSE file.
         return valid;
       },
 
-      ready: function() {
+      ready() {
         var params = {
           getTableConfigList: true,
           xsrf_token: this.xsrfToken,

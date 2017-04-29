@@ -24,11 +24,11 @@ tr.exportTo('tr.e.gpu', function() {
   StateSnapshot.prototype = {
     __proto__: ObjectSnapshot.prototype,
 
-    preInitialize: function() {
+    preInitialize() {
       this.screenshot_ = undefined;
     },
 
-    initialize: function() {
+    initialize() {
       if (this.args.screenshot) {
         this.screenshot_ = this.args.screenshot;
       }

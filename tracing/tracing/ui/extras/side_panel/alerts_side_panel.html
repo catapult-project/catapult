@@ -43,7 +43,7 @@ Polymer({
   behaviors: [tr.ui.behaviors.SidePanel],
 
 
-  ready: function() {
+  ready() {
     this.rangeOfInterest_ = new tr.b.math.Range();
     this.selection_ = undefined;
   },
@@ -67,7 +67,7 @@ Polymer({
    * Fires a selection event selecting all alerts of the specified
    * type.
    */
-  selectAlertsOfType: function(alertTypeString) {
+  selectAlertsOfType(alertTypeString) {
     var alertsOfType = this.model_.alerts.filter(function(alert) {
       return alert.title === alertTypeString;
     });
@@ -82,7 +82,7 @@ Polymer({
    * alert type string and each value is a list of alerts with that
    * type.
    */
-  alertsByType_: function(alerts) {
+  alertsByType_(alerts) {
     var alertsByType = {};
     alerts.forEach(function(alert) {
       if (!alertsByType[alert.title]) {
@@ -94,7 +94,7 @@ Polymer({
     return alertsByType;
   },
 
-  alertsTableRows_: function(alertsByType) {
+  alertsTableRows_(alertsByType) {
     return Object.keys(alertsByType).map(function(key) {
       return {
         alertType: key,
@@ -103,22 +103,22 @@ Polymer({
     });
   },
 
-  alertsTableColumns_: function() {
+  alertsTableColumns_() {
     return [
       {
         title: 'Alert type',
-        value: function(row) { return row.alertType; },
+        value(row) { return row.alertType; },
         width: '180px'
       },
       {
         title: 'Count',
         width: '100%',
-        value: function(row) { return row.count; }
+        value(row) { return row.count; }
       }
     ];
   },
 
-  createAlertsTable_: function(alerts) {
+  createAlertsTable_(alerts) {
     var alertsByType = this.alertsByType_(alerts);
 
     var table = document.createElement('tr-ui-b-table');
@@ -135,7 +135,7 @@ Polymer({
     return table;
   },
 
-  updateContents_: function() {
+  updateContents_() {
     Polymer.dom(this.$.result_area).textContent = '';
     if (this.model_ === undefined) return;
 
@@ -143,7 +143,7 @@ Polymer({
     Polymer.dom(this.$.result_area).appendChild(panel);
   },
 
-  supportsModel: function(m) {
+  supportsModel(m) {
     if (m === undefined) {
       return {
         supported: false,

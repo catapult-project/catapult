@@ -54,7 +54,7 @@ Polymer({
   is: 'tr-ui-a-single-object-instance-sub-view',
   behaviors: [tr.ui.analysis.AnalysisSubView],
 
-  created: function() {
+  created() {
     this.currentSelection_ = undefined;
   },
 
@@ -92,7 +92,7 @@ Polymer({
     }
   },
 
-  appendGenericAnalysis_: function(instance) {
+  appendGenericAnalysis_(instance) {
     var html = '';
     html += '<div class="title">' +
         instance.typeName + ' ' +

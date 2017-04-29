@@ -36,7 +36,7 @@ tr.exportTo('tr.ui.tracks', function() {
   PowerSeriesTrack.prototype = {
     __proto__: ChartTrack.prototype,
 
-    decorate: function(viewport) {
+    decorate(viewport) {
       ChartTrack.prototype.decorate.call(this, viewport);
       Polymer.dom(this).classList.add('power-series-track');
       this.heading = 'Power';
@@ -54,11 +54,11 @@ tr.exportTo('tr.ui.tracks', function() {
       return (this.powerSeries_ && this.powerSeries_.samples.length > 0);
     },
 
-    addContainersToTrackMap: function(containerToTrackMap) {
+    addContainersToTrackMap(containerToTrackMap) {
       containerToTrackMap.addContainer(this.powerSeries_, this);
     },
 
-    buildChartSeries_: function() {
+    buildChartSeries_() {
       if (!this.hasVisibleContent) return [];
 
       var seriesYAxis = new tr.ui.tracks.ChartSeriesYAxis(0, undefined);

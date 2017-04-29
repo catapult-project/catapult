@@ -71,7 +71,7 @@ tr.exportTo('tr.e.importer.battor', function() {
     /**
      * Imports clock sync markers from the trace into into this.model_.
      */
-    importClockSyncMarkers: function() {
+    importClockSyncMarkers() {
       for (var [syncId, ts] of this.syncTimestampsById_) {
         this.model_.clockSyncManager.addClockSyncMarker(
             tr.model.ClockDomainId.BATTOR, syncId, ts);
@@ -81,7 +81,7 @@ tr.exportTo('tr.e.importer.battor', function() {
     /**
      * Imports the events from the trace into this.model_.
      */
-    importEvents: function() {
+    importEvents() {
       if (this.model_.device.powerSeries) {
         this.model_.importWarning({
           type: 'import_error',
@@ -107,7 +107,7 @@ tr.exportTo('tr.e.importer.battor', function() {
      * Given the BattOr trace as a string, parse it and store the results in
      * this.samples_ and this.syncTimestampsById_.
      */
-    parseTrace_: function(trace) {
+    parseTrace_(trace) {
       var lines = trace.split('\n');
 
       for (var line of lines) {

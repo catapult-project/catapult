@@ -17,7 +17,7 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   function createModel(start, end, slices) {
     var opts = {
-      customizeModelCallback: function(model) {
+      customizeModelCallback(model) {
         var process = model.getOrCreateProcess(1);
         var thread = process.getOrCreateThread(2);
         var group = thread.sliceGroup;

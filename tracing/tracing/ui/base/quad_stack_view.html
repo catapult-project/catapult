@@ -374,7 +374,7 @@ tr.exportTo('tr.ui.b', function() {
   QuadStackView.prototype = {
     __proto__: HTMLDivElement.prototype,
 
-    decorate: function() {
+    decorate() {
       this.className = 'quad-stack-view';
 
       var node = tr.ui.b.instantiateTemplate('#quad-stack-view-template',
@@ -410,7 +410,7 @@ tr.exportTo('tr.ui.b', function() {
       this.pixelRatio_ = window.devicePixelRatio || 1;
     },
 
-    updateHeaderVisibility_: function() {
+    updateHeaderVisibility_() {
       if (this.headerText) {
         Polymer.dom(this).querySelector('#header').style.display = '';
       } else {
@@ -427,7 +427,7 @@ tr.exportTo('tr.ui.b', function() {
       this.updateHeaderVisibility_();
     },
 
-    onStackingDistanceChange_: function(e) {
+    onStackingDistanceChange_(e) {
       tr.b.Settings.set('quadStackView.stackingDistance',
           this.stackingDistance);
       this.scheduleRender();
@@ -459,7 +459,7 @@ tr.exportTo('tr.ui.b', function() {
       this.chromeQuad_ = undefined;
     },
 
-    resize: function() {
+    resize() {
       if (!this.offsetParent) return true;
 
       var width = parseInt(window.getComputedStyle(this.offsetParent).width);
@@ -482,7 +482,7 @@ tr.exportTo('tr.ui.b', function() {
       return true;
     },
 
-    readyToDraw: function() {
+    readyToDraw() {
       // If src isn't set yet, set it to ensure we can use
       // the image to draw onto a canvas.
       if (!this.chromeImages_.left.src) {
@@ -557,17 +557,17 @@ tr.exportTo('tr.ui.b', function() {
       return this.chromeQuad_;
     },
 
-    scheduleRender: function() {
+    scheduleRender() {
       if (this.redrawScheduled_) return false;
       this.redrawScheduled_ = true;
       tr.b.requestAnimationFrame(this.render, this);
     },
 
-    onRenderRequired_: function(e) {
+    onRenderRequired_(e) {
       this.scheduleRender();
     },
 
-    stackTransformAndProcessQuads_: function(
+    stackTransformAndProcessQuads_(
         numPasses, handleQuadFunc, includeChromeQuad, opt_arg1, opt_arg2) {
       var mv = this.camera_.modelViewMatrix;
       var p = this.camera_.projectionMatrix;
@@ -610,7 +610,7 @@ tr.exportTo('tr.ui.b', function() {
       }
     },
 
-    render: function() {
+    render() {
       this.redrawScheduled_ = false;
 
       if (!this.readyToDraw()) {
@@ -633,7 +633,7 @@ tr.exportTo('tr.ui.b', function() {
       quadCanvas.width = 0; // Hack: Frees the quadCanvas' resources.
     },
 
-    trackMouse_: function() {
+    trackMouse_() {
       this.mouseModeSelector_ = document.createElement(
           'tr-ui-b-mouse-mode-selector');
       this.mouseModeSelector_.targetElement = this.canvas_;
@@ -661,7 +661,7 @@ tr.exportTo('tr.ui.b', function() {
           this.onSelectionUpdate_.bind(this));
     },
 
-    extractRelativeMousePosition_: function(e) {
+    extractRelativeMousePosition_(e) {
       var br = this.canvas_.getBoundingClientRect();
       return [
         this.pixelRatio_ * (e.clientX - this.canvas_.offsetLeft - br.left),
@@ -669,7 +669,7 @@ tr.exportTo('tr.ui.b', function() {
       ];
     },
 
-    onSelectionUpdate_: function(e) {
+    onSelectionUpdate_(e) {
       var mousePos = this.extractRelativeMousePosition_(e);
       var res = [];
       function handleQuad(passNumber, quad, p1, p2, p3, p4) {

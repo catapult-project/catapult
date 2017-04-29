@@ -31,11 +31,11 @@ Polymer({
   is: 'tr-ui-a-multi-object-sub-view',
   behaviors: [tr.ui.analysis.AnalysisSubView],
 
-  created: function() {
+  created() {
     this.currentSelection_ = undefined;
   },
 
-  ready: function() {
+  ready() {
     this.$.content.showHeader = false;
   },
 
@@ -57,7 +57,7 @@ Polymer({
     table.tableColumns = [
       {
         title: 'First',
-        value: function(event) {
+        value(event) {
           if (event instanceof tr.model.ObjectSnapshot) {
             return tr.v.ui.createScalarSpan(event.ts, timeSpanConfig);
           }
@@ -80,7 +80,7 @@ Polymer({
       },
       {
         title: 'Second',
-        value: function(event) {
+        value(event) {
           var linkEl = document.createElement('tr-ui-a-analysis-link');
           linkEl.setSelectionAndContent(function() {
             return new tr.model.EventSet(event);

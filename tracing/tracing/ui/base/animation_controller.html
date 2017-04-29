@@ -58,7 +58,7 @@ tr.exportTo('tr.ui.b', function() {
       return !!this.activeAnimation_;
     },
 
-    queueAnimation: function(animation, opt_now) {
+    queueAnimation(animation, opt_now) {
       if (this.target_ === undefined) {
         throw new Error('Cannot queue animations without a target');
       }
@@ -96,7 +96,7 @@ tr.exportTo('tr.ui.b', function() {
       tr.b.requestAnimationFrame(this.tickActiveAnimation_, this);
     },
 
-    cancelActiveAnimation: function(opt_now) {
+    cancelActiveAnimation(opt_now) {
       if (!this.activeAnimation_) return;
       var now;
       if (opt_now !== undefined) {
@@ -108,7 +108,7 @@ tr.exportTo('tr.ui.b', function() {
       this.activeAnimation_ = undefined;
     },
 
-    tickActiveAnimation_: function(frameBeginTime) {
+    tickActiveAnimation_(frameBeginTime) {
       this.tickScheduled_ = false;
       if (!this.activeAnimation_) return;
 

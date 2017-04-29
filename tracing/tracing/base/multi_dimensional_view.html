@@ -357,7 +357,7 @@ tr.exportTo('tr.b', function() {
      * Important: No paths can be added to a builder once either view has been
      * built!
      */
-    addPath: function(path, values, valueKind) {
+    addPath(path, values, valueKind) {
       if (this.buildRoot_ === undefined) {
         throw new Error(
             'Paths cannot be added after either view has been built');
@@ -406,7 +406,7 @@ tr.exportTo('tr.b', function() {
       }
     },
 
-    buildView: function(viewType) {
+    buildView(viewType) {
       switch (viewType) {
         case MultiDimensionalViewBuilder.ViewType.TOP_DOWN_TREE_VIEW:
           return this.buildTopDownTreeView();
@@ -425,7 +425,7 @@ tr.exportTo('tr.b', function() {
      * Note that no more paths can be added to the builder once either view has
      * been built.
      */
-    buildTopDownTreeView: function() {
+    buildTopDownTreeView() {
       if (this.topDownTreeViewRoot_ === undefined) {
         var treeViewRoot = this.buildRoot_;
         this.buildRoot_ = undefined;
@@ -448,7 +448,7 @@ tr.exportTo('tr.b', function() {
      * Note that no more paths can be added to the builder once either view has
      * been built.
      */
-    buildTopDownHeavyView: function() {
+    buildTopDownHeavyView() {
       if (this.topDownHeavyViewRoot_ === undefined) {
         this.topDownHeavyViewRoot_ = this.buildGenericHeavyView_(
             this.addDimensionToTopDownHeavyViewNode_.bind(this));
@@ -462,7 +462,7 @@ tr.exportTo('tr.b', function() {
      * Note that no more paths can be added to the builder once either view has
      * been built.
      */
-    buildBottomUpHeavyView: function() {
+    buildBottomUpHeavyView() {
       if (this.bottomUpHeavyViewNode_ === undefined) {
         this.bottomUpHeavyViewNode_ = this.buildGenericHeavyView_(
             this.addDimensionToBottomUpHeavyViewNode_.bind(this));
@@ -470,12 +470,12 @@ tr.exportTo('tr.b', function() {
       return this.bottomUpHeavyViewNode_;
     },
 
-    createRootNode_: function() {
+    createRootNode_() {
       return new MultiDimensionalViewNode(
           new Array(this.dimensions_) /* title */, this.valueCount_);
     },
 
-    getOrCreateChildNode_: function(
+    getOrCreateChildNode_(
         parentNode, dimension, childDimensionTitle) {
       if (dimension < 0 || dimension >= this.dimensions_) {
         throw new Error('Invalid dimension');
@@ -539,7 +539,7 @@ tr.exportTo('tr.b', function() {
      *                         .         |B,2|         .         |B,2|
      *                         .         +---+         .         +---+
      */
-    setUpMissingChildRelationships_: function(node, firstDimensionToSetUp) {
+    setUpMissingChildRelationships_(node, firstDimensionToSetUp) {
       // Missing child relationships of this node wrt dimensions 0, ...,
       // (firstDimensionToSetUp - 1) and all descendants of the associated
       // children have already been set up. Now we do the same for dimensions
@@ -707,7 +707,7 @@ tr.exportTo('tr.b', function() {
      * on total(N, V) (unless N contains the EXACT value of total(N, V), in
      * which case its relevant totalState won't be modified).
      */
-    finalizeTotalValues_: function(
+    finalizeTotalValues_(
         node, firstDimensionToFinalize, dimensionalSelfSumsMap) {
       // Dimension D -> Value index V -> dimensionalSelfSum(|node|, V)[D].
       var dimensionalSelfSums = new Array(this.dimensions_);
@@ -773,7 +773,7 @@ tr.exportTo('tr.b', function() {
     /**
      * Build a generic heavy view of the multi-dimensional view.
      */
-    buildGenericHeavyView_: function(treeViewNodeHandler) {
+    buildGenericHeavyView_(treeViewNodeHandler) {
       // 1. Clone the root node of the top-down tree view node (except
       // children).
       var treeViewRoot = this.buildTopDownTreeView();
@@ -807,7 +807,7 @@ tr.exportTo('tr.b', function() {
      * top-down tree-view node wrt multiple dimensions to a generic heavy-view
      * node (depending on the type of the target heavy view).
      */
-    addDimensionsToGenericHeavyViewNode_: function(treeViewParentNode,
+    addDimensionsToGenericHeavyViewNode_(treeViewParentNode,
         heavyViewParentNode, startDimension, recursionDepthTrackers,
         previousDimensionsRecursive, treeViewNodeHandler) {
       for (var d = startDimension; d < this.dimensions_; d++) {
@@ -822,7 +822,7 @@ tr.exportTo('tr.b', function() {
      * node wrt a single dimension to a generic heavy-view node (depending on
      * the type of the target heavy view).
      */
-    addDimensionDescendantsToGenericHeavyViewNode_: function(treeViewParentNode,
+    addDimensionDescendantsToGenericHeavyViewNode_(treeViewParentNode,
         heavyViewParentNode, currentDimension, recursionDepthTrackers,
         previousDimensionsRecursive, treeViewNodeHandler) {
       var treeViewChildren = treeViewParentNode.children[currentDimension];
@@ -889,7 +889,7 @@ tr.exportTo('tr.b', function() {
      * keep track of the path we traversed along the current dimension (to
      * determine whether total value should be added or not).
      */
-    addDimensionToTopDownHeavyViewNode_: function(
+    addDimensionToTopDownHeavyViewNode_(
         treeViewChildNode, heavyViewParentNode, currentDimension,
         recursionDepthTrackers, previousDimensionsRecursive) {
       this.addDimensionToTopDownHeavyViewNodeRecursively_(treeViewChildNode,
@@ -897,7 +897,7 @@ tr.exportTo('tr.b', function() {
           previousDimensionsRecursive, 1 /* subTreeDepth */);
     },
 
-    addDimensionToTopDownHeavyViewNodeRecursively_: function(
+    addDimensionToTopDownHeavyViewNodeRecursively_(
         treeViewChildNode, heavyViewParentNode, currentDimension,
         recursionDepthTrackers, previousDimensionsRecursive, subTreeDepth) {
       var recursionDepthTracker = recursionDepthTrackers[currentDimension];
@@ -983,7 +983,7 @@ tr.exportTo('tr.b', function() {
      * (C) (rather than the ancestor's values) are added to the corresponding
      * heavy-view node (B##).
      */
-    addDimensionToBottomUpHeavyViewNode_: function(
+    addDimensionToBottomUpHeavyViewNode_(
         treeViewChildNode, heavyViewParentNode, currentDimension,
         recursionDepthTrackers, previousDimensionsRecursive) {
       var recursionDepthTracker = recursionDepthTrackers[currentDimension];
@@ -1019,7 +1019,7 @@ tr.exportTo('tr.b', function() {
       }
     },
 
-    addNodeValues_: function(sourceNode, targetNode, addTotal) {
+    addNodeValues_(sourceNode, targetNode, addTotal) {
       var targetNodeValues = targetNode.values;
       var sourceNodeValues = sourceNode.values;
       for (var v = 0; v < this.valueCount_; v++) {
@@ -1061,7 +1061,7 @@ tr.exportTo('tr.b', function() {
   }
 
   RecursionDepthTracker.prototype = {
-    push: function(viewNode) {
+    push(viewNode) {
       if (this.bottomIndex === 0) {
         throw new Error('Cannot push to a full tracker');
       }
@@ -1091,7 +1091,7 @@ tr.exportTo('tr.b', function() {
       this.currentTrackerNode_ = childTrackerNode;
     },
 
-    pop: function() {
+    pop() {
       if (this.bottomIndex === this.topIndex) {
         throw new Error('Cannot pop from an empty tracker');
       }
@@ -1107,10 +1107,10 @@ tr.exportTo('tr.b', function() {
       return this.currentTrackerNode_.recursionDepth;
     },
 
-    createNode_: function(recursionDepth, parent) {
+    createNode_(recursionDepth, parent) {
       return {
-        recursionDepth: recursionDepth,
-        parent: parent,
+        recursionDepth,
+        parent,
         children: new Map()
       };
     }

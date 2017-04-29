@@ -39,7 +39,7 @@ Polymer({
   is: 'tr-ui-a-single-user-expectation-sub-view',
   behaviors: [tr.ui.analysis.AnalysisSubView],
 
-  created: function() {
+  created() {
     this.currentSelection_ = undefined;
   },
 
@@ -67,7 +67,7 @@ Polymer({
     return tr.b.getOnlyElement(this.currentSelection_).associatedEvents;
   },
 
-  onCustomizeRows_: function(event) {
+  onCustomizeRows_(event) {
     var ue = tr.b.getOnlyElement(this.selection);
 
     if (ue.rawCpuMs) {

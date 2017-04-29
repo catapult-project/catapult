@@ -84,7 +84,7 @@ found in the LICENSE file.
 Polymer({
   is: 'tr-ui-scripting-control',
 
-  _isEnterKey: function(event) {
+  _isEnterKey(event) {
     // Check if in IME.
     // Remove keyIdentifier after reference build rolls past M51 when
     // KeyboardEvent.key was added.
@@ -92,7 +92,7 @@ Polymer({
       (event.key === 'Enter' || event.keyIdentifier === 'Enter');
   },
 
-  _setFocused: function(focused) {
+  _setFocused(focused) {
     var promptEl = this.$.prompt;
     if (focused) {
       promptEl.focus();
@@ -115,17 +115,17 @@ Polymer({
     }
   },
 
-  onConsoleFocus: function(e) {
+  onConsoleFocus(e) {
     e.stopPropagation();
     this._setFocused(true);
   },
 
-  onConsoleBlur: function(e) {
+  onConsoleBlur(e) {
     e.stopPropagation();
     this._setFocused(false);
   },
 
-  promptKeyDown: function(e) {
+  promptKeyDown(e) {
     e.stopPropagation();
     if (!this._isEnterKey(e)) return;
 
@@ -156,7 +156,7 @@ Polymer({
     promptEl.scrollIntoView();
   },
 
-  addLine_: function(line) {
+  addLine_(line) {
     var historyEl = this.$.history;
     if (historyEl.innerText.length !== 0) {
       historyEl.innerText += '\n';
@@ -164,11 +164,11 @@ Polymer({
     historyEl.innerText += line;
   },
 
-  promptKeyPress: function(e) {
+  promptKeyPress(e) {
     e.stopPropagation();
   },
 
-  toggleVisibility: function() {
+  toggleVisibility() {
     var root = this.$.root;
     if (!this.visible) {
       Polymer.dom(root).classList.remove('hidden');

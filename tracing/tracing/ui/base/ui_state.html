@@ -63,7 +63,7 @@ tr.exportTo('tr.ui.b', function() {
       return this.scaleX_;
     },
 
-    toUserFriendlyString: function(viewport) {
+    toUserFriendlyString(viewport) {
       var timestamp = this.location_.xWorld;
       var stableId =
           this.location_.getContainingTrack(viewport).eventContainer.stableId;
@@ -71,7 +71,7 @@ tr.exportTo('tr.ui.b', function() {
       return timestamp.toFixed(5) + '@' + stableId + 'x' + scaleX.toFixed(5);
     },
 
-    toDict: function() {
+    toDict() {
       return {
         location: this.location_.toDict(),
         scaleX: this.scaleX_

@@ -18,7 +18,7 @@ tr.b.unittest.testSuite(function() {
   var FAKE_TEST_PATH = 'MyMaster/my-bot/my-benchmark/MyStory/MyMetric';
 
   var testOptions = {
-    tearDown: function() {
+    tearDown() {
       testing_common.clearXhrMock();
     }
   };

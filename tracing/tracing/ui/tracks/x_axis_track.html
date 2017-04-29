@@ -34,7 +34,7 @@ tr.exportTo('tr.ui.tracks', function() {
   XAxisTrack.prototype = {
     __proto__: tr.ui.tracks.Track.prototype,
 
-    decorate: function(viewport) {
+    decorate(viewport) {
       tr.ui.tracks.Track.prototype.decorate.call(this, viewport);
       Polymer.dom(this).classList.add('x-axis-track');
       this.strings_secs_ = [];
@@ -50,13 +50,13 @@ tr.exportTo('tr.ui.tracks', function() {
       Polymer.dom(this).appendChild(heading);
     },
 
-    detach: function() {
+    detach() {
       tr.ui.tracks.Track.prototype.detach.call(this);
       this.viewport.removeEventListener('change',
           this.viewportChange_);
     },
 
-    viewportChange_: function() {
+    viewportChange_() {
       if (this.viewport.interestRange.isEmpty) {
         Polymer.dom(this).classList.remove('tall-mode');
       } else {
@@ -64,7 +64,7 @@ tr.exportTo('tr.ui.tracks', function() {
       }
     },
 
-    draw: function(type, viewLWorld, viewRWorld) {
+    draw(type, viewLWorld, viewRWorld) {
       switch (type) {
         case tr.ui.tracks.DrawType.GRID:
           this.drawGrid_(viewLWorld, viewRWorld);
@@ -78,7 +78,7 @@ tr.exportTo('tr.ui.tracks', function() {
       }
     },
 
-    drawGrid_: function(viewLWorld, viewRWorld) {
+    drawGrid_(viewLWorld, viewRWorld) {
       var ctx = this.context();
       var pixelRatio = window.devicePixelRatio || 1;
 
@@ -285,13 +285,13 @@ tr.exportTo('tr.ui.tracks', function() {
      *     viewspace.
      * @param {Selection} selection Selection to which to add results.
      */
-    addIntersectingEventsInRangeToSelection: function(
+    addIntersectingEventsInRangeToSelection(
         loVX, hiVX, loY, hiY, selection) {
       // Does nothing. There's nothing interesting to pick on the xAxis
       // track.
     },
 
-    addAllEventsMatchingFilterToSelection: function(filter, selection) {
+    addAllEventsMatchingFilterToSelection(filter, selection) {
     }
   };
 

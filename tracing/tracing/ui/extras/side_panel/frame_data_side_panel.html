@@ -111,7 +111,7 @@ tr.exportTo('tr.ui.e.s', function() {
     // +- Frame Tree |   2  |  c
     //  +- Frame     |   1  |  c
     //  +- Subframe  |   1  |  d
-    tree: function(rows, rowMap) {
+    tree(rows, rowMap) {
       // Finds the parent of a specific row. When there is conflict between the
       // browser's dump of the frame tree and the renderers', use the browser's.
       var getParentRow = function(row) {
@@ -172,7 +172,7 @@ tr.exportTo('tr.ui.e.s', function() {
     is: 'tr-ui-e-s-frame-data-side-panel',
     behaviors: [tr.ui.behaviors.SidePanel],
 
-    ready: function() {
+    ready() {
       this.model_ = undefined;
       this.rangeOfInterest_ = new tr.b.math.Range();
 
@@ -189,13 +189,13 @@ tr.exportTo('tr.ui.e.s', function() {
       }.bind(this));
     },
 
-    selectEventSet_: function(eventSet) {
+    selectEventSet_(eventSet) {
       var event = new tr.model.RequestSelectionChangeEvent();
       event.selection = eventSet;
       this.dispatchEvent(event);
     },
 
-    createFrameDataTableColumns_: function() {
+    createFrameDataTableColumns_() {
       return [
         {
           title: 'Renderer',
@@ -227,7 +227,7 @@ tr.exportTo('tr.ui.e.s', function() {
       ];
     },
 
-    createFrameDataTableRows_: function() {
+    createFrameDataTableRows_() {
       if (!this.model_) return [];
 
       // Gather contexts into skeletons of rows.
@@ -274,12 +274,12 @@ tr.exportTo('tr.ui.e.s', function() {
       return groupFunction(rows, rowMap);
     },
 
-    updateContents_: function() {
+    updateContents_() {
       this.$.table.tableRows = this.createFrameDataTableRows_();
       this.$.table.rebuild();
     },
 
-    supportsModel: function(m) {
+    supportsModel(m) {
       if (!m) {
         return {
           supported: false,

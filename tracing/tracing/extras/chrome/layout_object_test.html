@@ -15,7 +15,7 @@ tr.b.unittest.testSuite(function() {
     this.layoutObjectsById = {};
   }
   FakeSnapshot.prototype = {
-    getLayoutObjectById: function(id) {
+    getLayoutObjectById(id) {
       return this.layoutObjectsById[id];
     }
   };

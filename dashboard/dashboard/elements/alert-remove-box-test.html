@@ -43,11 +43,11 @@ tr.b.unittest.testSuite(function() {
   }
 
   var testOptions = {
-    setUp: function() {
+    setUp() {
       this.actual_window_XMLHttpRequest = window.XMLHttpRequest;
     },
 
-    tearDown: function() {
+    tearDown() {
       window.XMLHttpRequest = this.actual_window_XMLHttpRequest;
     }
   };

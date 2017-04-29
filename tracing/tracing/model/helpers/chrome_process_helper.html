@@ -46,7 +46,7 @@ tr.exportTo('tr.model.helpers', function() {
       return this.process.pid;
     },
 
-    isTelemetryInternalEvent: function(slice) {
+    isTelemetryInternalEvent(slice) {
       if (this.telemetryInternalRanges_ === undefined) {
         this.findTelemetryInternalRanges_();
       }
@@ -58,7 +58,7 @@ tr.exportTo('tr.model.helpers', function() {
       return false;
     },
 
-    findTelemetryInternalRanges_: function() {
+    findTelemetryInternalRanges_() {
       this.telemetryInternalRanges_ = [];
       var start = 0;
       for (var thread of Object.values(this.process.threads)) {
@@ -75,7 +75,7 @@ tr.exportTo('tr.model.helpers', function() {
       }
     },
 
-    getFrameEventsInRange: function(frametimeType, range) {
+    getFrameEventsInRange(frametimeType, range) {
       var titleToGet = (frametimeType === MAIN_FRAMETIME_TYPE ?
         MAIN_RENDERING_STATS : IMPL_RENDERING_STATS);
 

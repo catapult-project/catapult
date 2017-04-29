@@ -60,7 +60,7 @@ Polymer({
   is: 'tr-ui-e-drive-comments-side-panel',
   behaviors: [tr.ui.behaviors.SidePanel],
 
-  ready: function() {
+  ready() {
     this.rangeOfInterest_ = new tr.b.math.Range();
     this.selection_ = undefined;
     this.comments_ = [];
@@ -68,11 +68,11 @@ Polymer({
     this.textAreaFocused = false;
   },
 
-  setCommentProvider: function(commentProvider) {
+  setCommentProvider(commentProvider) {
     this.commentProvider_ = commentProvider;
   },
 
-  attached: function() {
+  attached() {
     if (this.commentProvider_ === undefined) {
       this.commentProvider_ =
           new tr.ui.e.drive.analysis.DefaultCommentProvider();
@@ -80,11 +80,11 @@ Polymer({
     this.commentProvider_.attachToElement(this);
   },
 
-  detached: function() {
+  detached() {
     this.commentProvider_.detachFromElement();
   },
 
-  commentClick: function(event) {
+  commentClick(event) {
     var anchor = event.currentTarget.comment.anchor;
     if (!anchor) return;
 
@@ -111,7 +111,7 @@ Polymer({
     this.model.addAnnotation(this.annotationFromComment_);
   },
 
-  textareaKeypress: function(event) {
+  textareaKeypress(event) {
     // Check for return key.
     if (event.keyCode === 13 && !event.ctrlKey) {
       this.commentProvider_.addComment(this.$.commentinput.value);
@@ -121,11 +121,11 @@ Polymer({
     return true;
   },
 
-  textAreaFocus: function(event) {
+  textAreaFocus(event) {
     this.textAreaFocused = true;
   },
 
-  textAreaBlur: function(event) {
+  textAreaBlur(event) {
     this.textAreaFocused = false;
   },
 
@@ -158,11 +158,11 @@ Polymer({
     this.selection_ = selection;
   },
 
-  updateContents_: function() {
+  updateContents_() {
     this.commentProvider_.updateComments();
   },
 
-  supportsModel: function(m) {
+  supportsModel(m) {
     if (m === undefined) {
       return {
         supported: false,

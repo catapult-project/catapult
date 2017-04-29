@@ -190,7 +190,7 @@ tr.exportTo('tr.e.importer', function() {
      * Called by the Model to check whether the importer just encapsulates
      * the actual trace data which needs to be imported by another importer.
      */
-    isTraceDataContainer: function() {
+    isTraceDataContainer() {
       return true;
     },
 
@@ -198,7 +198,7 @@ tr.exportTo('tr.e.importer', function() {
      * Called by the Model to extract subtraces from the event data. The
      * subtraces are passed on to other importers that can recognize them.
      */
-    extractSubtraces: function() {
+    extractSubtraces() {
       var eventData = GzipImporter.inflateGzipData_(this.gzipData_);
       return eventData ? [eventData] : [];
     }

@@ -75,7 +75,7 @@ found in the LICENSE file.
       /**
        * Sets the title of the chart based on the current state of the chart.
        */
-      update: function() {
+      update() {
         var testPaths = this.getTestPaths();
         var title = this.makeTitleFromTestPaths(testPaths);
         var selectedSeries = this.getFirstSelectedSeries();
@@ -97,7 +97,7 @@ found in the LICENSE file.
         this.suiteDescriptions = this.getSuitesAndDescriptions();
       },
 
-      onClicked: function(event) {
+      onClicked(event) {
         var index = event.model.index;
         if (index == this.currentIndex) {
           return;
@@ -115,7 +115,7 @@ found in the LICENSE file.
        * @param {Array.<string>} testPaths An list of test paths.
        * @return {string} The longest test path that is the prefix
        */
-      makeTitleFromTestPaths: function(testPaths) {
+      makeTitleFromTestPaths(testPaths) {
         if (testPaths.length == 1) {
           return testPaths[0];
         }
@@ -130,7 +130,7 @@ found in the LICENSE file.
         return prefix ? prefix + '/...' : '...';
       },
 
-      getTestPaths: function() {
+      getTestPaths() {
         var testPaths = [];
         for (var i = 0; i < this.seriesGroupList.length; i++) {
           testPaths.push(this.seriesGroupList[i].path);
@@ -138,7 +138,7 @@ found in the LICENSE file.
         return testPaths;
       },
 
-      getFirstSelectedSeries: function() {
+      getFirstSelectedSeries() {
         for (var i = 0; i < this.seriesGroupList.length; i++) {
           var testPath = this.seriesGroupList[i].path;
           var parts = testPath.split('/');
@@ -156,7 +156,7 @@ found in the LICENSE file.
         return null;
       },
 
-      getSuitesAndDescriptions: function() {
+      getSuitesAndDescriptions() {
         var suiteDescriptions = {};
         for (var i = 0; i < this.seriesGroupList.length; i++) {
           var suite = this.seriesGroupList[i].path.split('/')[2];
@@ -181,7 +181,7 @@ found in the LICENSE file.
        * @param {Array.<string>} testPaths An list of test paths.
        * @return {string} The longest test path that is the prefix
        */
-      longestCommonTestPathPrefix: function(testPaths) {
+      longestCommonTestPathPrefix(testPaths) {
         var partArrays = testPaths.map(function(path) {
           return path.split('/');
         });
@@ -193,7 +193,7 @@ found in the LICENSE file.
        * @return {Array} The longest Array such that all Arrays in the input
        *     contain this Array as a prefix.
        */
-      longestCommonSubArray: function(arrays) {
+      longestCommonSubArray(arrays) {
         if (arrays.length == 0) {
           return [];
         }

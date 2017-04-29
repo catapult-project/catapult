@@ -21,7 +21,7 @@ tr.exportTo('tr.mre', function() {
   }
 
   Failure.prototype = {
-    asDict: function() {
+    asDict() {
       // TODO(eakuefner): Serialize job once reduction is implemented.
       return {
         function_handle_string: this.functionHandleString,

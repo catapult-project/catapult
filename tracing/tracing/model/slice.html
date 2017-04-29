@@ -93,7 +93,7 @@ tr.exportTo('tr.model', function() {
       return this.bind_id_;
     },
 
-    findDescendentSlice: function(targetTitle) {
+    findDescendentSlice(targetTitle) {
       if (!this.subSlices) {
         return undefined;
       }
@@ -113,7 +113,7 @@ tr.exportTo('tr.model', function() {
       return this.parentSlice.mostTopLevelSlice;
     },
 
-    getProcess: function() {
+    getProcess() {
       var thread = this.parentContainer;
       if (thread && thread.getProcess) {
         return thread.getProcess();
@@ -147,7 +147,7 @@ tr.exportTo('tr.model', function() {
      * [      D     ]
      *   [C1]  [C2]
      */
-    findTopmostSlicesRelativeToThisSlice: function* (eventPredicate) {
+    * findTopmostSlicesRelativeToThisSlice(eventPredicate) {
       if (eventPredicate(this)) {
         yield this;
         return;
@@ -179,7 +179,7 @@ tr.exportTo('tr.model', function() {
      * to the function call order. We just need to perform a DFS, and start
      * recording the slices after we see the occurance of E.
      */
-    iterateAllSubsequentSlices: function(callback, opt_this) {
+    iterateAllSubsequentSlices(callback, opt_this) {
       var parentStack = [];
       var started = false;
 
@@ -222,7 +222,7 @@ tr.exportTo('tr.model', function() {
      *  [C] [E][F]  [H]
      * will yield D, then A, in the order from the leaves to the root.
      */
-    enumerateAllAncestors: function* () {
+    * enumerateAllAncestors() {
       let curSlice = this.parentSlice;
       while (curSlice) {
         yield curSlice;
@@ -234,7 +234,7 @@ tr.exportTo('tr.model', function() {
       return Array.from(this.enumerateAllAncestors());
     },
 
-    iterateEntireHierarchy: function(callback, opt_this) {
+    iterateEntireHierarchy(callback, opt_this) {
       var mostTopLevelSlice = this.mostTopLevelSlice;
       callback.call(opt_this, mostTopLevelSlice);
       mostTopLevelSlice.iterateAllSubsequentSlices(callback, opt_this);
@@ -276,7 +276,7 @@ tr.exportTo('tr.model', function() {
       return res;
     },
 
-    enumerateAllDescendents: function* () {
+    * enumerateAllDescendents() {
       for (var slice of this.subSlices) {
         yield slice;
       }

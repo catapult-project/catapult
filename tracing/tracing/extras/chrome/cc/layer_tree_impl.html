@@ -27,14 +27,14 @@ tr.exportTo('tr.e.cc', function() {
   LayerTreeImplSnapshot.prototype = {
     __proto__: ObjectSnapshot.prototype,
 
-    preInitialize: function() {
+    preInitialize() {
       tr.e.cc.preInitializeObject(this);
       this.layerTreeHostImpl = undefined;
       this.whichTree = undefined;
       this.sourceFrameNumber = undefined;
     },
 
-    initialize: function() {
+    initialize() {
       tr.e.cc.moveRequiredFieldsFromArgsToToplevel(
           this, ['renderSurfaceLayerList']);
       tr.e.cc.moveOptionalFieldsFromArgsToToplevel(
@@ -70,7 +70,7 @@ tr.exportTo('tr.e.cc', function() {
       }
     },
 
-    _initializeTracedInputLatencies: function(modelHelper) {
+    _initializeTracedInputLatencies(modelHelper) {
       var latencyEvents = modelHelper.browserHelper.getLatencyEventsInRange(
           modelHelper.model.bounds);
 
@@ -128,7 +128,7 @@ tr.exportTo('tr.e.cc', function() {
       return totalBytes;
     },
 
-    iterLayers: function(func, thisArg) {
+    iterLayers(func, thisArg) {
       var visitedLayers = {};
       function visitLayer(layer, depth, isMask, isReplica) {
         if (visitedLayers[layer.layerId]) return;
@@ -155,7 +155,7 @@ tr.exportTo('tr.e.cc', function() {
         }
       }
     },
-    findLayerWithId: function(id) {
+    findLayerWithId(id) {
       var foundLayer = undefined;
       function visitLayer(layer) {
         if (layer.layerId === id) {

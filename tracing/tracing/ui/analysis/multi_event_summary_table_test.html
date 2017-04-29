@@ -89,7 +89,7 @@ tr.b.unittest.testSuite(function() {
     // aren't read. Note that 'duration' is read since it is used by the
     // EventSet to get the range.
     var failProp = {
-      get: function() {
+      get() {
         throw new Error('Should not be called');
       }
     };

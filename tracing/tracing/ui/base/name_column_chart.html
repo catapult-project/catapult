@@ -39,7 +39,7 @@ tr.exportTo('tr.ui.b', function() {
       this.margin.right = Math.max(this.margin.right, xAxisTickOverhangPx);
     },
 
-    getXForDatum_: function(datum, index) {
+    getXForDatum_(datum, index) {
       return index;
     },
 
@@ -47,7 +47,7 @@ tr.exportTo('tr.ui.b', function() {
       return 0.5;
     },
 
-    updateXAxis_: function(xAxis) {
+    updateXAxis_(xAxis) {
       xAxis.selectAll('*').remove();
       if (this.hideXAxis) return;
 

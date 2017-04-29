@@ -53,12 +53,12 @@ found in the LICENSE file.
     is: 'tr-ui-a-multi-sample-sub-view',
     behaviors: [tr.ui.analysis.AnalysisSubView],
 
-    created: function() {
+    created() {
       this.viewOption_ = undefined;
       this.selection_ = undefined;
     },
 
-    ready: function() {
+    ready() {
       var viewSelector = tr.ui.b.createSelector(
           this, 'viewOption', 'tracing.ui.analysis.multi_sample_sub_view',
           MultiDimensionalViewBuilder.ViewType.TOP_DOWN_TREE_VIEW,
@@ -98,7 +98,7 @@ found in the LICENSE file.
       this.updateContents_();
     },
 
-    createSamplingSummary_: function(selection, viewOption) {
+    createSamplingSummary_(selection, viewOption) {
       var builder = new MultiDimensionalViewBuilder(
           1 /* dimensions */, 1 /* valueCount */);
       var samples = selection.filter(
@@ -112,7 +112,7 @@ found in the LICENSE file.
       return builder.buildView(viewOption);
     },
 
-    processSampleRows_: function(rows) {
+    processSampleRows_(rows) {
       for (var row of rows) {
         var title = row.title[0];
         var results = /(.*) (Deoptimized reason: .*)/.exec(title);
@@ -138,7 +138,7 @@ found in the LICENSE file.
       }
     },
 
-    updateContents_: function() {
+    updateContents_() {
       if (this.selection === undefined) {
         this.$.table.tableColumns = [];
         this.$.table.tableRows = [];
@@ -156,7 +156,7 @@ found in the LICENSE file.
         this.createSamplesColumn_('Self'),
         {
           title: 'Function Name',
-          value: function(row) {
+          value(row) {
             // For function that got deoptimized, show function name
             // as red italic with a tooltip
             if (row.deoptReason !== undefined) {
@@ -176,7 +176,7 @@ found in the LICENSE file.
         },
         {
           title: 'Location',
-          value: function(row) { return row.url; },
+          value(row) { return row.url; },
           width: '250px',
           cmp: (a, b) => a.url.localeCompare(b.url),
         }
@@ -190,11 +190,11 @@ found in the LICENSE file.
       this.$.table.rebuild();
     },
 
-    createPercentColumn_: function(title, samplingDataTotal) {
+    createPercentColumn_(title, samplingDataTotal) {
       var field = title.toLowerCase();
       return {
         title: title + ' percent',
-        value: function(row) {
+        value(row) {
           return tr.v.ui.createScalarSpan(
               row.values[0][field] / samplingDataTotal, {
                 customContextRange: tr.b.math.Range.PERCENT_RANGE,
@@ -207,11 +207,11 @@ found in the LICENSE file.
       };
     },
 
-    createSamplesColumn_: function(title) {
+    createSamplesColumn_(title) {
       var field = title.toLowerCase();
       return {
         title: title + ' samples',
-        value: function(row) {
+        value(row) {
           return tr.v.ui.createScalarSpan(row.values[0][field], {
             unit: tr.b.Unit.byName.unitlessNumber,
             context: { maximumFractionDigits: 0 },

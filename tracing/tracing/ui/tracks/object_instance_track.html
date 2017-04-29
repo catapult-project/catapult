@@ -33,7 +33,7 @@ tr.exportTo('tr.ui.tracks', function() {
   ObjectInstanceTrack.prototype = {
     __proto__: tr.ui.tracks.Track.prototype,
 
-    decorate: function(viewport) {
+    decorate(viewport) {
       tr.ui.tracks.Track.prototype.decorate.call(this, viewport);
       Polymer.dom(this).classList.add('object-instance-track');
       this.objectInstances_ = [];
@@ -90,7 +90,7 @@ tr.exportTo('tr.ui.tracks', function() {
       return 7 * (window.devicePixelRatio || 1);
     },
 
-    draw: function(type, viewLWorld, viewRWorld) {
+    draw(type, viewLWorld, viewRWorld) {
       switch (type) {
         case tr.ui.tracks.DrawType.GENERAL_EVENT:
           this.drawLetterDots_(viewLWorld, viewRWorld);
@@ -98,7 +98,7 @@ tr.exportTo('tr.ui.tracks', function() {
       }
     },
 
-    drawLetterDots_: function(viewLWorld, viewRWorld) {
+    drawLetterDots_(viewLWorld, viewRWorld) {
       var ctx = this.context();
       var pixelRatio = window.devicePixelRatio || 1;
 
@@ -193,7 +193,7 @@ tr.exportTo('tr.ui.tracks', function() {
       }
     },
 
-    addEventsToTrackMap: function(eventToTrackMap) {
+    addEventsToTrackMap(eventToTrackMap) {
       if (this.objectInstance_ !== undefined) {
         this.objectInstance_.forEach(function(obj) {
           eventToTrackMap.addEvent(obj, this);
@@ -207,7 +207,7 @@ tr.exportTo('tr.ui.tracks', function() {
       }
     },
 
-    addIntersectingEventsInRangeToSelectionInWorldSpace: function(
+    addIntersectingEventsInRangeToSelectionInWorldSpace(
         loWX, hiWX, viewPixWidthWorld, selection) {
       // Pick snapshots first.
       var foundSnapshot = false;
@@ -244,7 +244,7 @@ tr.exportTo('tr.ui.tracks', function() {
      * @return {boolean} Whether an event was found.
      * @private
      */
-    addEventNearToProvidedEventToSelection: function(event, offset, selection) {
+    addEventNearToProvidedEventToSelection(event, offset, selection) {
       var events;
       if (event instanceof tr.model.ObjectSnapshot) {
         events = this.objectSnapshots_;
@@ -263,10 +263,10 @@ tr.exportTo('tr.ui.tracks', function() {
       return false;
     },
 
-    addAllEventsMatchingFilterToSelection: function(filter, selection) {
+    addAllEventsMatchingFilterToSelection(filter, selection) {
     },
 
-    addClosestEventToSelection: function(worldX, worldMaxDist, loY, hiY,
+    addClosestEventToSelection(worldX, worldMaxDist, loY, hiY,
         selection) {
       var snapshot = tr.b.math.findClosestElementInSortedArray(
           this.objectSnapshots_,

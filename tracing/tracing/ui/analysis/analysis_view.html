@@ -114,7 +114,7 @@ using custom elements specialized for different event types.
   Polymer({
     is: 'tr-ui-a-analysis-view',
 
-    ready: function() {
+    ready() {
       this.brushingStateController_ = undefined;
       this.lastSelection_ = undefined;
       this.tabView_ = document.createElement('tr-ui-b-tab-view');
@@ -161,7 +161,7 @@ using custom elements specialized for different event types.
       return this.brushingStateController_.selection;
     },
 
-    onSelectionChanged_: function(e) {
+    onSelectionChanged_(e) {
       if (this.lastSelection_ && this.selection.equals(this.lastSelection_)) {
         return;
       }
@@ -183,7 +183,7 @@ using custom elements specialized for different event types.
       this.tabView_.resetSubViews(newSubViews);
     },
 
-    onSelectedSubViewChanged_: function() {
+    onSelectedSubViewChanged_() {
       var selectedSubView = this.tabView_.selectedSubView;
 
       if (!selectedSubView) {
@@ -197,7 +197,7 @@ using custom elements specialized for different event types.
     },
 
     /** Changes the highlighted related events if possible. */
-    maybeChangeRelatedEvents_: function(events) {
+    maybeChangeRelatedEvents_(events) {
       if (this.brushingStateController) {
         this.brushingStateController.changeAnalysisViewRelatedEvents(events);
       }

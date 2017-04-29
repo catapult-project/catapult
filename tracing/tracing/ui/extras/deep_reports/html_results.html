@@ -30,35 +30,35 @@ and updates the table internally.
 Polymer({
   is: 'tr-ui-e-deep-reports-html-results',
 
-  created: function() {
+  created() {
     this.hasColumnNamed_ = {};
     this.pageToRowMap_ = new WeakMap();
   },
 
-  ready: function() {
+  ready() {
     var table = this.$.table;
     table.tableColumns = [
       {
         title: 'Label',
-        value: function(row) { return row.label; },
+        value(row) { return row.label; },
         width: '350px'
       }
     ];
     this.clear();
   },
 
-  clear: function() {
+  clear() {
     this.$.table.tableRows = [];
   },
 
-  addColumnIfNeeded_: function(columnName) {
+  addColumnIfNeeded_(columnName) {
     if (this.hasColumnNamed_[columnName]) return;
 
     this.hasColumnNamed_[columnName] = true;
 
     var column = {
       title: columnName,
-      value: function(row) {
+      value(row) {
         if (row[columnName] === undefined) return '';
         return row[columnName];
       }
@@ -82,7 +82,7 @@ Polymer({
     this.$.table.tableColumns = columns;
   },
 
-  getRowForPage_: function(page) {
+  getRowForPage_(page) {
     if (!this.pageToRowMap_.has(page)) {
       var i = page.url.lastIndexOf('/');
       var baseName = page.url.substring(i + 1);
@@ -106,7 +106,7 @@ Polymer({
     return this.pageToRowMap_.get(page);
   },
 
-  addValue: function(value) {
+  addValue(value) {
     /* Value is expected to be a scalar telemetry-style Value. */
     if (value.type !== 'scalar') {
       throw new Error('wat');

@@ -485,7 +485,7 @@ tr.exportTo('tr.v.ui', function() {
         } else {
           x = new tr.b.Scalar(this.histogram.unit, x).toString();
         }
-        chartData.push({x: x, y: bin.count});
+        chartData.push({x, y: bin.count});
         binCounts.push(bin.count);
       }
 

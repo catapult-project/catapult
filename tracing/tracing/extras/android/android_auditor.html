@@ -58,7 +58,7 @@ tr.exportTo('tr.e.audits', function() {
     this.docLinks = [];
   }
   DocLinkBuilder.prototype = {
-    addAppVideo: function(name, videoId) {
+    addAppVideo(name, videoId) {
       this.docLinks.push({
         label: 'Video Link',
         textContent: ('Android Performance Patterns: ' + name),
@@ -66,7 +66,7 @@ tr.exportTo('tr.e.audits', function() {
       });
       return this;
     },
-    addDacRef: function(name, link) {
+    addDacRef(name, link) {
       this.docLinks.push({
         label: 'Doc Link',
         textContent: (name + ' documentation'),
@@ -74,7 +74,7 @@ tr.exportTo('tr.e.audits', function() {
       });
       return this;
     },
-    build: function() {
+    build() {
       return this.docLinks;
     }
   };
@@ -377,7 +377,7 @@ tr.exportTo('tr.e.audits', function() {
   AndroidAuditor.prototype = {
     __proto__: Auditor.prototype,
 
-    renameAndSort_: function() {
+    renameAndSort_() {
       this.model.kernel.important = false;// auto collapse
       // SurfaceFlinger first, other processes sorted by slice count
       this.model.getAllProcesses().forEach(function(process) {
@@ -421,7 +421,7 @@ tr.exportTo('tr.e.audits', function() {
       });
     },
 
-    pushFramesAndJudgeJank_: function() {
+    pushFramesAndJudgeJank_() {
       var badFramesObserved = 0;
       var framesObserved = 0;
       var surfaceFlinger = this.helper.surfaceFlinger;
@@ -457,7 +457,7 @@ tr.exportTo('tr.e.audits', function() {
       }
     },
 
-    pushEventInfo_: function() {
+    pushEventInfo_() {
       var appAnnotator = new AppAnnotator();
       this.helper.apps.forEach(function(app) {
         if (app.uiThread) {
@@ -469,7 +469,7 @@ tr.exportTo('tr.e.audits', function() {
       });
     },
 
-    runAnnotate: function() {
+    runAnnotate() {
       if (!this.helper) return;
 
       this.renameAndSort_();
@@ -481,7 +481,7 @@ tr.exportTo('tr.e.audits', function() {
       });
     },
 
-    runAudit: function() {
+    runAudit() {
       if (!this.helper) return;
 
       var alerts = this.model.alerts;
@@ -525,7 +525,7 @@ tr.exportTo('tr.e.audits', function() {
       this.addInputInteractionRecords();
     },
 
-    addRenderingInteractionRecords: function() {
+    addRenderingInteractionRecords() {
       var events = [];
       this.helper.apps.forEach(function(app) {
         events.push.apply(events, app.getAnimationAsyncSlices());
@@ -543,7 +543,7 @@ tr.exportTo('tr.e.audits', function() {
           tr.b.math.convertEventsToRanges(events), 30, mergerFunction);
     },
 
-    addInputInteractionRecords: function() {
+    addInputInteractionRecords() {
       var inputSamples = [];
       this.helper.apps.forEach(function(app) {
         inputSamples.push.apply(inputSamples, app.getInputSamples());
@@ -573,7 +573,7 @@ tr.exportTo('tr.e.audits', function() {
   }
 
   AppAnnotator.prototype = {
-    build_: function() {
+    build_() {
       var registerEventInfo = function(dict) {
         this.titleInfoLookup.set(dict.title, new EventInfo(
             dict.title, dict.description, dict.docLinks));
@@ -716,7 +716,7 @@ tr.exportTo('tr.e.audits', function() {
         description: 'The CPU has finished producing drawing commands, and is flushing drawing work to the GPU, and posting that buffer to the consumer (which is often SurfaceFlinger window composition). Once this is completed, the GPU can produce the frame content without any involvement from the CPU.'}); // @suppress longLineCheck
     },
 
-    applyEventInfosRecursive_: function(parentNames, slice) {
+    applyEventInfosRecursive_(parentNames, slice) {
       var checkExpectedParentNames = function(expectedParentNames) {
         if (!expectedParentNames) return true;
         return expectedParentNames.some(function(name) {
@@ -752,7 +752,7 @@ tr.exportTo('tr.e.audits', function() {
       }
     },
 
-    applyEventInfos: function(sliceGroup) {
+    applyEventInfos(sliceGroup) {
       sliceGroup.topLevelSlices.forEach(function(slice) {
         this.applyEventInfosRecursive_(new Map(), slice);
       }, this);

@@ -37,7 +37,7 @@ tr.exportTo('tr.ui.tracks', function() {
       return this.guid_;
     },
 
-    valueToUnitRange: function(value) {
+    valueToUnitRange(value) {
       if (this.bounds.isEmpty) {
         throw new Error('Chart series y-axis bounds are empty');
       }
@@ -46,7 +46,7 @@ tr.exportTo('tr.ui.tracks', function() {
       return (value - bounds.min) / bounds.range;
     },
 
-    unitRangeToValue: function(unitRange) {
+    unitRangeToValue(unitRange) {
       if (this.bounds.isEmpty) {
         throw new Error('Chart series y-axis bounds are empty');
       }
@@ -60,7 +60,7 @@ tr.exportTo('tr.ui.tracks', function() {
      * See the description of autoSetFromRange for the optional configuration
      * argument flags.
      */
-    autoSetFromSeries: function(series, opt_config) {
+    autoSetFromSeries(series, opt_config) {
       var range = new tr.b.math.Range();
       series.forEach(function(s) {
         range.addRange(s.range);
@@ -92,7 +92,7 @@ tr.exportTo('tr.ui.tracks', function() {
      * Observe that if no configuration is provided (or all flags are set to
      * false), this method will only modify the y-axis bounds if they are empty.
      */
-    autoSetFromRange: function(range, opt_config) {
+    autoSetFromRange(range, opt_config) {
       if (range.isEmpty) return;
 
       var bounds = this.bounds;
@@ -129,7 +129,7 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
 
-    majorMarkHeightWorld_: function(transform, pixelRatio) {
+    majorMarkHeightWorld_(transform, pixelRatio) {
       var idealMajorMarkHeightPx = IDEAL_MAJOR_MARK_HEIGHT_PX * pixelRatio;
       var idealMajorMarkHeightWorld =
           transform.vectorToWorldDistance(idealMajorMarkHeightPx);
@@ -137,7 +137,7 @@ tr.exportTo('tr.ui.tracks', function() {
       return tr.b.math.preferredNumberLargerThanMin(idealMajorMarkHeightWorld);
     },
 
-    draw: function(ctx, transform, showYAxisLabels, showYGridLines) {
+    draw(ctx, transform, showYAxisLabels, showYGridLines) {
       if (!showYAxisLabels && !showYGridLines) return;
 
       var pixelRatio = transform.pixelRatio;

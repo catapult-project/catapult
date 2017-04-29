@@ -168,7 +168,7 @@ tr.exportTo('tr.b.unittest', function() {
   InteractiveTestRunner.prototype = {
     __proto__: HTMLDivElement.prototype,
 
-    decorate: function() {
+    decorate() {
       this.allTests_ = undefined;
 
       this.suppressStateChange_ = false;
@@ -274,7 +274,7 @@ tr.exportTo('tr.b.unittest', function() {
       }
     },
 
-    onShortFormatClick_: function(e) {
+    onShortFormatClick_(e) {
       this.shortFormat_ =
           Polymer.dom(this).querySelector('#short-format').checked;
       this.updateShortFormResultsDisplay_();
@@ -284,13 +284,13 @@ tr.exportTo('tr.b.unittest', function() {
       }
     },
 
-    updateShortFormResultsDisplay_: function() {
+    updateShortFormResultsDisplay_() {
       var display = this.shortFormat_ ? '' : 'none';
       Polymer.dom(this).querySelector('#shortform-results').style.display =
           display;
     },
 
-    updateResultsGivenShortFormat_: function() {
+    updateResultsGivenShortFormat_() {
       if (!this.results_) return;
 
       if (this.testFilterString_.length || this.testSuiteName_.length) {
@@ -328,7 +328,7 @@ tr.exportTo('tr.b.unittest', function() {
       }
     },
 
-    onTestTypeToRunClick_: function(e) {
+    onTestTypeToRunClick_(e) {
       switch (e.target.value) {
         case 'unit':
           this.testTypeToRun_ = tr.b.unittest.TestTypes.UNITTEST;
@@ -349,12 +349,12 @@ tr.exportTo('tr.b.unittest', function() {
       }
     },
 
-    onTestPassed_: function() {
+    onTestPassed_() {
       Polymer.dom(Polymer.dom(this).querySelector('#shortform-results')).
           appendChild(document.createTextNode('.'));
     },
 
-    onTestFailed_: function() {
+    onTestFailed_() {
       var span = document.createElement('span');
       Polymer.dom(span).classList.add('fail');
       Polymer.dom(span).appendChild(document.createTextNode('F'));
@@ -362,7 +362,7 @@ tr.exportTo('tr.b.unittest', function() {
           .appendChild(span);
     },
 
-    onTestFlaky_: function() {
+    onTestFlaky_() {
       var span = document.createElement('span');
       Polymer.dom(span).classList.add('flaky');
       Polymer.dom(span).appendChild(document.createTextNode('~'));
@@ -370,7 +370,7 @@ tr.exportTo('tr.b.unittest', function() {
           .appendChild(span);
     },
 
-    onTestSkipped_: function() {
+    onTestSkipped_() {
       var span = document.createElement('span');
       Polymer.dom(span).classList.add('skipped');
       Polymer.dom(span).appendChild(document.createTextNode('s'));
@@ -378,7 +378,7 @@ tr.exportTo('tr.b.unittest', function() {
           .appendChild(span);
     },
 
-    onResultsStatsChanged_: function() {
+    onResultsStatsChanged_() {
       var statsEl = Polymer.dom(this).querySelector('#stats');
       var stats = this.results_.getStats();
       var numTestsOverall = this.runner_.testCases.length;
@@ -398,7 +398,7 @@ tr.exportTo('tr.b.unittest', function() {
           ' in ' + stats.totalRunTime.toFixed(2) + 'ms.';
     },
 
-    scheduleRerun_: function() {
+    scheduleRerun_() {
       if (this.rerunPending_) return;
       if (this.runner_) {
         this.rerunPending_ = true;
@@ -414,7 +414,7 @@ tr.exportTo('tr.b.unittest', function() {
       this.beginRunning_();
     },
 
-    beginRunning_: function() {
+    beginRunning_() {
       var resultsContainer =
           Polymer.dom(this).querySelector('#results-container');
       if (this.results_) {
@@ -460,7 +460,7 @@ tr.exportTo('tr.b.unittest', function() {
           this.runCompleted_.bind(this));
     },
 
-    setState: function(state, opt_suppressStateChange) {
+    setState(state, opt_suppressStateChange) {
       this.suppressStateChange_ = true;
       if (state.testFilterString !== undefined) {
         this.testFilterString = state.testFilterString;
@@ -492,7 +492,7 @@ tr.exportTo('tr.b.unittest', function() {
       this.suppressStateChange_ = false;
     },
 
-    getDefaultState: function() {
+    getDefaultState() {
       return {
         testFilterString: '',
         testSuiteName: '',
@@ -501,7 +501,7 @@ tr.exportTo('tr.b.unittest', function() {
       };
     },
 
-    getState: function() {
+    getState() {
       return {
         testFilterString: this.testFilterString_,
         testSuiteName: this.testSuiteName_,
@@ -510,11 +510,11 @@ tr.exportTo('tr.b.unittest', function() {
       };
     },
 
-    getHRefForTestCase: function(testCases) {
+    getHRefForTestCase(testCases) {
       return undefined;
     },
 
-    runCompleted_: function() {
+    runCompleted_() {
       this.runner_ = undefined;
     }
   };

@@ -85,7 +85,7 @@ tr.exportTo('tr.model', function() {
       return this.vmRegions !== undefined;
     },
 
-    setUpTracingOverheadOwnership: function(opt_model) {
+    setUpTracingOverheadOwnership(opt_model) {
       // Make sure that calling this method twice won't lead to
       // 'double-discounting'.
       if (this.tracingOverheadOwnershipSetUp_) return;
@@ -161,7 +161,7 @@ tr.exportTo('tr.model', function() {
       }
     },
 
-    discountTracingOverheadFromVmRegions: function(opt_model) {
+    discountTracingOverheadFromVmRegions(opt_model) {
       // Make sure that calling this method twice won't lead to
       // 'double-discounting'.
       if (this.tracingOverheadDiscountedFromVmRegions_) return;
@@ -211,7 +211,7 @@ tr.exportTo('tr.model', function() {
           this.vmRegions.addRegion(tr.model.VMRegion.fromDict({
             mappedFile: '[discounted tracing overhead]',
             sizeInBytes: hasSizeInBytes ? -discountedSize : undefined,
-            byteStats: byteStats
+            byteStats
           }));
         }
       }

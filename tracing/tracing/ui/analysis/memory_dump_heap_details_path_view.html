@@ -39,7 +39,7 @@ tr.exportTo('tr.ui.analysis', function() {
   HeapDetailsPathColumn.prototype = {
     __proto__: tr.ui.analysis.HeapDetailsTitleColumn.prototype,
 
-    formatTitle: function(row) {
+    formatTitle(row) {
       var title = tr.ui.analysis.HeapDetailsTitleColumn.prototype.
           formatTitle.call(this, row);
       if (row.dimension === tr.ui.analysis.HeapDetailsRowDimension.ROOT) {
@@ -64,19 +64,19 @@ tr.exportTo('tr.ui.analysis', function() {
     is: 'tr-ui-a-memory-dump-heap-details-path-view',
     behaviors: [tr.ui.analysis.RebuildableBehavior],
 
-    created: function() {
+    created() {
       this.selectedNode_ = undefined;
       this.aggregationMode_ = undefined;
     },
 
-    ready: function() {
+    ready() {
       this.$.table.addEventListener('selection-changed', function(event) {
         this.selectedNode_ = this.$.table.selectedTableRow;
         this.didSelectedNodeChange_();
       }.bind(this));
     },
 
-    didSelectedNodeChange_: function() {
+    didSelectedNodeChange_() {
       this.dispatchEvent(new tr.b.Event('selected-node-changed'));
     },
 
@@ -99,7 +99,7 @@ tr.exportTo('tr.ui.analysis', function() {
       this.scheduleRebuild_();
     },
 
-    onRebuild_: function() {
+    onRebuild_() {
       if (this.selectedNode_ === undefined) {
         this.$.table.clear();
         return;
@@ -118,7 +118,7 @@ tr.exportTo('tr.ui.analysis', function() {
       this.$.table.selectedTableRow = rows[rows.length - 1];
     },
 
-    createRows_: function(node) {
+    createRows_(node) {
       var rows = [];
       while (node) {
         rows.push(node);
@@ -128,7 +128,7 @@ tr.exportTo('tr.ui.analysis', function() {
       return rows;
     },
 
-    createColumns_: function(rows) {
+    createColumns_(rows) {
       var titleColumn = new HeapDetailsPathColumn('Current path');
       titleColumn.width = '200px';
 

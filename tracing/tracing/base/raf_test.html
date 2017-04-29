@@ -184,7 +184,7 @@ tr.b.unittest.testSuite(function() {
       var pendingIdleCallbacks = [];
       window.requestIdleCallback = function(callback) {
         var deadline = {
-          timeRemaining: function() {
+          timeRemaining() {
             return idleTime;
           }
         };

@@ -85,7 +85,7 @@ found in the LICENSE file.
         }
       },
 
-      ready: function() {
+      ready() {
         simple_xhr.send('/report', uri.getAllParameters(),
             function(response) {
               this.isInternalUser = response.is_internal_user;
@@ -125,7 +125,7 @@ found in the LICENSE file.
        * On 'uriload' event, adds charts from the current query parameters.
        * @param {Object} event Event object.
        */
-      onUriLoad: function(event) {
+      onUriLoad(event) {
         const params = event.detail.params;
         const pageState = event.detail.state;
         if (!pageState) {
@@ -163,7 +163,7 @@ found in the LICENSE file.
        * TODO(sullivan): this should be done with polymer templates, not
        * JS code.
        */
-      setChartData: function(chart) {
+      setChartData(chart) {
         chart.isInternalUser = this.isInternalUser;
         chart.testSuites = this.testSuites;
         chart.revisionInfo = this.revisionInfo;
@@ -176,7 +176,7 @@ found in the LICENSE file.
        * @param {Array.<d.SeriesGroup>} seriesGroups A list of SeriesGroups.
        * @param {boolean} isPrepend True for prepend, false for append.
        */
-      addChart: function(seriesGroups, isPrepend) {
+      addChart(seriesGroups, isPrepend) {
         // TODO(sullivan): This should be done with a polymer template, not
         // JavaScript-built DOM!!
         var container = this.$['charts-container'];
@@ -208,7 +208,7 @@ found in the LICENSE file.
       /**
        * On chart closed, update URI.
        */
-      onChartClosed: function(event) {
+      onChartClosed(event) {
         var chart = event.target;
         var index = this.charts.indexOf(chart);
         if (index > -1) {
@@ -221,7 +221,7 @@ found in the LICENSE file.
       /**
        * Triggers page state change handler with 'numchartchanged' event.
        */
-      fireNumChartChangedEvent: function() {
+      fireNumChartChangedEvent() {
         // Send page state change event.
         var event = document.createEvent('Event');
         event.initEvent('numchartchanged', true, true);
@@ -244,7 +244,7 @@ found in the LICENSE file.
        * When the revision range changes for one graph, update the rest of
        * the graphs and the URI.
        */
-      onRevisionRangeChanged: function(_, event) {
+      onRevisionRangeChanged(_, event) {
         for (var i = 0; i < this.charts.length; i++) {
           var chart = this.charts[i];
           if (chart == event.target) {
@@ -257,7 +257,7 @@ found in the LICENSE file.
       /**
        * On 'Add' button clicked, add a chart for the current selection.
        */
-      onAddChartButtonClicked: async function(event) {
+      async onAddChartButtonClicked(event) {
         const selectedPaths = await this.testPicker.getCurrentSelection();
         if (selectedPaths) {
           const mainPath = this.testPicker.getCurrentSelectedPath();
@@ -274,7 +274,7 @@ found in the LICENSE file.
        *
        * @return {Object} Dictionary of page state data.
        */
-      getPageState: function() {
+      getPageState() {
         var chartStates = [];
         for (var i = 0; i < this.charts.length; i++) {
           var chart = this.charts[i];
@@ -293,7 +293,7 @@ found in the LICENSE file.
       /**
        * Handles displaying loading messages on 'pagestaterequest' event.
        */
-      onPageStateRequest: function(event) {
+      onPageStateRequest(event) {
         var status = event.detail.status;
         if (status == 'loading') {
           this.fire('display-toast', {'text': 'Saving report...'});

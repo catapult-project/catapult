@@ -25,11 +25,11 @@ tr.exportTo('tr.e.cc', function() {
   RenderPassSnapshot.prototype = {
     __proto__: ObjectSnapshot.prototype,
 
-    preInitialize: function() {
+    preInitialize() {
       tr.e.cc.preInitializeObject(this);
     },
 
-    initialize: function() {
+    initialize() {
       tr.e.cc.moveRequiredFieldsFromArgsToToplevel(
           this, ['quadList']);
     }

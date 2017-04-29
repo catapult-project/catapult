@@ -22,7 +22,7 @@ tr.b.unittest.testSuite(function() {
 
   function createSelection(customizeThreadCallback) {
     var model = tr.c.TestUtils.newModelWithEvents([], {
-      customizeModelCallback: function(model) {
+      customizeModelCallback(model) {
         var t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
         customizeThreadCallback(t53, model);
       }

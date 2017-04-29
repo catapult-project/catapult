@@ -34,7 +34,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
   LayerPicker.prototype = {
     __proto__: HTMLUnknownElement.prototype,
 
-    decorate: function() {
+    decorate() {
       this.lthi_ = undefined;
       this.controls_ = document.createElement('top-controls');
       this.renderPassQuads_ = false;
@@ -108,7 +108,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.updateContents_();
     },
 
-    getRenderPassInfos_: function() {
+    getRenderPassInfos_() {
       if (!this.lthiSnapshot_) return [];
 
       var renderPassInfo = [];
@@ -128,7 +128,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       return renderPassInfo;
     },
 
-    getLayerInfos_: function() {
+    getLayerInfos_() {
       if (!this.lthiSnapshot_) return [];
 
       var tree = this.lthiSnapshot_.getTree(this.whichTree_);
@@ -154,8 +154,8 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         if (visitedLayers[layer.layerId]) return;
 
         visitedLayers[layer.layerId] = true;
-        var info = {layer: layer,
-          depth: depth};
+        var info = {layer,
+          depth};
 
         if (layer.args.drawsContent) {
           info.name = layer.objectInstance.name;
@@ -178,7 +178,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       return layerInfos;
     },
 
-    updateContents_: function() {
+    updateContents_() {
       if (this.renderPassQuads_) {
         this.updateRenderPassContents_();
       } else {
@@ -186,7 +186,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       }
     },
 
-    updateRenderPassContents_: function() {
+    updateRenderPassContents_() {
       this.itemList_.clear();
 
       var selectedRenderPassId;
@@ -214,7 +214,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       }, this);
     },
 
-    updateLayerContents_: function() {
+    updateLayerContents_() {
       this.changingItemSelection_ = true;
       try {
         this.itemList_.clear();
@@ -262,7 +262,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       }
     },
 
-    createElementWithDepth_: function(depth) {
+    createElementWithDepth_(depth) {
       var item = document.createElement('div');
 
       var indentEl = Polymer.dom(item).appendChild(tr.ui.b.createSpan());
@@ -274,7 +274,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       return item;
     },
 
-    onItemSelectionChanged_: function(e) {
+    onItemSelectionChanged_(e) {
       if (this.changingItemSelection_) return;
       if (this.renderPassQuads_) {
         this.onRenderPassSelected_(e);
@@ -284,7 +284,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       tr.b.dispatchSimpleEvent(this, 'selection-change', false);
     },
 
-    onRenderPassSelected_: function(e) {
+    onRenderPassSelected_(e) {
       var selectedRenderPass;
       var selectedRenderPassId;
       if (this.itemList_.selectedElement) {
@@ -301,7 +301,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       }
     },
 
-    onLayerSelected_: function(e) {
+    onLayerSelected_(e) {
       var selectedLayer;
       if (this.itemList_.selectedElement) {
         selectedLayer = this.itemList_.selectedElement.layer;

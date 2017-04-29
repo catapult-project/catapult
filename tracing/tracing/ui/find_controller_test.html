@@ -31,7 +31,7 @@ tr.b.unittest.testSuite(function() {
   }
 
   FakeBrushingStateController.prototype = {
-    addAllEventsMatchingFilterToSelectionAsTask: function(filter, selection) {
+    addAllEventsMatchingFilterToSelectionAsTask(filter, selection) {
       return new Task(function() {
         var n = this.addAllEventsMatchingFilterToSelectionReturnValue.length;
         for (var i = 0; i < n; i++) {
@@ -41,20 +41,20 @@ tr.b.unittest.testSuite(function() {
       }, this);
     },
 
-    uiStateFromString: function(string) {
+    uiStateFromString(string) {
       return undefined;
     },
 
-    findTextChangedTo: function(selection) {
+    findTextChangedTo(selection) {
       this.findMatches = selection;
       this.selection = new tr.model.EventSet();
     },
 
-    findFocusChangedTo: function(selection) {
+    findFocusChangedTo(selection) {
       this.selection = selection;
     },
 
-    findTextCleared: function(selection) {
+    findTextCleared(selection) {
       this.selection = new tr.model.EventSet();
       this.findMatches = new tr.model.EventSet();
     }

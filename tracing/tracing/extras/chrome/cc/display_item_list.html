@@ -32,7 +32,7 @@ tr.exportTo('tr.e.cc', function() {
   DisplayItemListSnapshot.prototype = {
     __proto__: tr.e.cc.PictureSnapshot.prototype,
 
-    initialize: function() {
+    initialize() {
       tr.e.cc.PictureSnapshot.prototype.initialize.call(this);
       this.displayItems_ = this.args.params.items;
     },

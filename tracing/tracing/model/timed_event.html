@@ -37,7 +37,7 @@ tr.exportTo('tr.model', function() {
       return this.start + this.duration;
     },
 
-    addBoundsToRange: function(range) {
+    addBoundsToRange(range) {
       range.addValue(this.start);
       range.addValue(this.end);
     },
@@ -45,7 +45,7 @@ tr.exportTo('tr.model', function() {
     // TODO(charliea): Can this be implemented in terms of Event.range()?
     // Returns true if 'that' TimedEvent is fully contained within 'this' timed
     // event.
-    bounds: function(that, opt_precisionUnit) {
+    bounds(that, opt_precisionUnit) {
       if (opt_precisionUnit === undefined) {
         opt_precisionUnit = tr.b.TimeDisplayModes.ms;
       }

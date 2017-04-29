@@ -33,7 +33,7 @@ var CHART_TITLE = 'Power (W) by ms since vertical sync';
 Polymer({
   is: 'tr-ui-a-frame-power-usage-chart',
 
-  ready: function() {
+  ready() {
     this.chart_ = undefined;
     this.samples_ = new EventSet();
     this.vSyncTimestamps_ = [];
@@ -59,14 +59,14 @@ Polymer({
    * Sets the data that powers the chart. Vsync timestamps must be in
    * chronological order.
    */
-  setData: function(samples, vSyncTimestamps) {
+  setData(samples, vSyncTimestamps) {
     this.samples_ = (samples === undefined) ? new EventSet() : samples;
     this.vSyncTimestamps_ =
         (vSyncTimestamps === undefined) ? [] : vSyncTimestamps;
     if (this.isAttached) this.updateContents_();
   },
 
-  updateContents_: function() {
+  updateContents_() {
     this.clearChart_();
 
     var data = this.getDataForLineChart_();
@@ -79,7 +79,7 @@ Polymer({
     this.chart_.data = data;
   },
 
-  clearChart_: function() {
+  clearChart_() {
     var content = this.$.content;
     while (Polymer.dom(content).firstChild) {
       Polymer.dom(content).removeChild(Polymer.dom(content).firstChild);
@@ -97,7 +97,7 @@ Polymer({
    * Returns an array of data points for the chart. Each element in the array
    * is of the form { x: <ms since vsync>, f<frame#>: <power in mW> }.
    */
-  getDataForLineChart_: function() {
+  getDataForLineChart_() {
     var sortedSamples = this.sortSamplesByTimestampAscending_(this.samples);
     var vSyncTimestamps = this.vSyncTimestamps.slice();
 
@@ -125,7 +125,7 @@ Polymer({
     return points;
   },
 
-  sortSamplesByTimestampAscending_: function(samples) {
+  sortSamplesByTimestampAscending_(samples) {
     return samples.toArray().sort(function(smpl1, smpl2) {
       return smpl1.start - smpl2.start;
     });

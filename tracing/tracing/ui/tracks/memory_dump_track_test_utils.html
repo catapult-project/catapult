@@ -56,7 +56,7 @@ tr.exportTo('tr.ui.tracks', function() {
       var size = data.size;
       assert.typeOf(size, 'number');  // Sanity check.
       return newAllocatorDump(memoryDump, allocatorName,
-          {numerics: {size: size}});
+          {numerics: {size}});
     });
 
     // Add ownership links between them.

@@ -53,11 +53,11 @@ tr.exportTo('tr.ui.analysis', function() {
     is: 'tr-ui-a-memory-dump-header-pane',
     behaviors: [tr.ui.analysis.StackedPane],
 
-    created: function() {
+    created() {
       this.containerMemoryDumps_ = undefined;
     },
 
-    ready: function() {
+    ready() {
       Polymer.dom(this.$.aggregation_mode_container).appendChild(
           tr.ui.b.createSelector(this, 'aggregationMode',
               'memoryDumpHeaderPane.aggregationMode',
@@ -106,13 +106,13 @@ tr.exportTo('tr.ui.analysis', function() {
       return this.aggregationMode_;
     },
 
-    onRebuild_: function() {
+    onRebuild_() {
       this.updateLabel_();
       this.updateAggregationModeSelector_();
       this.changeChildPane_();
     },
 
-    updateLabel_: function() {
+    updateLabel_() {
       Polymer.dom(this.$.label).textContent = '';
 
       if (this.containerMemoryDumps_ === undefined ||
@@ -143,7 +143,7 @@ tr.exportTo('tr.ui.analysis', function() {
       }
     },
 
-    updateAggregationModeSelector_: function() {
+    updateAggregationModeSelector_() {
       var displayStyle;
       if (this.containerMemoryDumps_ === undefined ||
           this.containerMemoryDumps_.length <= 1) {
@@ -154,7 +154,7 @@ tr.exportTo('tr.ui.analysis', function() {
       this.$.aggregation_mode_container.style.display = displayStyle;
     },
 
-    changeChildPane_: function() {
+    changeChildPane_() {
       this.childPaneBuilder = function() {
         if (this.containerMemoryDumps_ === undefined ||
             this.containerMemoryDumps_.length <= 0) {

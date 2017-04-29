@@ -129,7 +129,7 @@ found in the LICENSE file.
         },
       },
 
-      onPushHistoryState: function(event, detail) {
+      onPushHistoryState(event, detail) {
         var sender = event.currentTarget;
         if (!sender) {
           return;
@@ -141,7 +141,7 @@ found in the LICENSE file.
         history.pushState(params, '', newUri);
       },
 
-      ready: function() {
+      ready() {
         var params = {};
         var revA = uri.getParameter('revA');
         if (revA) {

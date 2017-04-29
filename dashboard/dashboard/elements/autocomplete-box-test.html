@@ -26,7 +26,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   var item = function(name, opt_group, opt_head) {
-    var item = {'name': name};
+    var item = {name};
     if (opt_group !== undefined) {
       item.group = opt_group;
     }
@@ -37,13 +37,13 @@ tr.b.unittest.testSuite(function() {
   };
 
   var testOptions = {
-    setUp: function() {
+    setUp() {
       this.foo = {'name': 'Foo'};
       this.fooish = {'name': 'Fooish'};
       this.bar = {'name': 'Bar'};
     },
 
-    tearDown: function() {
+    tearDown() {
     },
   };
 

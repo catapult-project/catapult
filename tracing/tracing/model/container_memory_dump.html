@@ -42,7 +42,7 @@ tr.exportTo('tr.model', function() {
   ContainerMemoryDump.prototype = {
     __proto__: tr.model.TimedEvent.prototype,
 
-    shiftTimestampsForward: function(amount) {
+    shiftTimestampsForward(amount) {
       this.start += amount;
     },
 
@@ -55,7 +55,7 @@ tr.exportTo('tr.model', function() {
       this.forceRebuildingMemoryAllocatorDumpByFullNameIndex();
     },
 
-    getMemoryAllocatorDumpByFullName: function(fullName) {
+    getMemoryAllocatorDumpByFullName(fullName) {
       if (this.memoryAllocatorDumps_ === undefined) return undefined;
 
       // Lazily generate the index if necessary.
@@ -74,12 +74,12 @@ tr.exportTo('tr.model', function() {
       return this.memoryAllocatorDumpsByFullName_[fullName];
     },
 
-    forceRebuildingMemoryAllocatorDumpByFullNameIndex: function() {
+    forceRebuildingMemoryAllocatorDumpByFullNameIndex() {
       // Clear the index and generate it lazily.
       this.memoryAllocatorDumpsByFullName_ = undefined;
     },
 
-    iterateRootAllocatorDumps: function(fn, opt_this) {
+    iterateRootAllocatorDumps(fn, opt_this) {
       if (this.memoryAllocatorDumps === undefined) return;
       this.memoryAllocatorDumps.forEach(fn, opt_this || this);
     }

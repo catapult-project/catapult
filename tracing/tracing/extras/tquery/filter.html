@@ -30,11 +30,11 @@ tr.exportTo('tr.e.tquery', function() {
   Filter.prototype = {
     __proto__: tr.c.ScriptingObject.prototype,
 
-    evaluate: function(context) {
+    evaluate(context) {
       throw new Error('Not implemented');
     },
 
-    matchValue_: function(value, expected) {
+    matchValue_(value, expected) {
       if (expected instanceof RegExp) {
         return expected.test(value);
       } else if (expected instanceof Function) {

@@ -67,11 +67,11 @@ tr.exportTo('tr.model', function() {
       }
     },
 
-    addChild: function(child) {
+    addChild(child) {
       this.children.push(child);
     },
 
-    removeChild: function(child) {
+    removeChild(child) {
       var i = this.children.indexOf(child.id);
       if (i === -1) {
         throw new Error('omg');
@@ -79,7 +79,7 @@ tr.exportTo('tr.model', function() {
       this.children.splice(i, 1);
     },
 
-    removeAllChildren: function() {
+    removeAllChildren() {
       for (var i = 0; i < this.children.length; i++) {
         this.children[i].parentFrame_ = undefined;
       }
@@ -99,7 +99,7 @@ tr.exportTo('tr.model', function() {
       return stack;
     },
 
-    getUserFriendlyStackTrace: function() {
+    getUserFriendlyStackTrace() {
       return this.stackTrace.map(function(x) { return x.title; });
     }
   };

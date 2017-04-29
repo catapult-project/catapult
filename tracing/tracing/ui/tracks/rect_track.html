@@ -31,7 +31,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     __proto__: tr.ui.tracks.Track.prototype,
 
-    decorate: function(viewport) {
+    decorate(viewport) {
       tr.ui.tracks.Track.prototype.decorate.call(this, viewport);
       Polymer.dom(this).classList.add('rect-track');
       this.asyncStyle_ = false;
@@ -99,7 +99,7 @@ tr.exportTo('tr.ui.tracks', function() {
       return this.rects_.length > 0;
     },
 
-    draw: function(type, viewLWorld, viewRWorld) {
+    draw(type, viewLWorld, viewRWorld) {
       switch (type) {
         case tr.ui.tracks.DrawType.GENERAL_EVENT:
           this.drawRects_(viewLWorld, viewRWorld);
@@ -107,7 +107,7 @@ tr.exportTo('tr.ui.tracks', function() {
       }
     },
 
-    drawRects_: function(viewLWorld, viewRWorld) {
+    drawRects_(viewLWorld, viewRWorld) {
       var ctx = this.context();
 
       ctx.save();
@@ -144,7 +144,7 @@ tr.exportTo('tr.ui.tracks', function() {
           yOffset);
     },
 
-    addEventsToTrackMap: function(eventToTrackMap) {
+    addEventsToTrackMap(eventToTrackMap) {
       if (this.rects_ === undefined || this.rects_ === null) {
         return;
       }
@@ -154,7 +154,7 @@ tr.exportTo('tr.ui.tracks', function() {
       }, this);
     },
 
-    addIntersectingEventsInRangeToSelectionInWorldSpace: function(
+    addIntersectingEventsInRangeToSelectionInWorldSpace(
         loWX, hiWX, viewPixWidthWorld, selection) {
       function onRect(rect) {
         rect.addToSelection(selection);
@@ -182,7 +182,7 @@ tr.exportTo('tr.ui.tracks', function() {
      * @return {boolean} Whether an event was found.
      * @private
      */
-    addEventNearToProvidedEventToSelection: function(event, offset, selection) {
+    addEventNearToProvidedEventToSelection(event, offset, selection) {
       var index = tr.b.findFirstIndexInArray(this.rects_, function(rect) {
         return rect.modelItem === event;
       });
@@ -195,7 +195,7 @@ tr.exportTo('tr.ui.tracks', function() {
       return true;
     },
 
-    addAllEventsMatchingFilterToSelection: function(filter, selection) {
+    addAllEventsMatchingFilterToSelection(filter, selection) {
       for (var i = 0; i < this.rects_.length; ++i) {
         // TODO(petrcermak): Rather than unpacking the proxy item here,
         // we should probably add an addToSelectionIfMatching(selection, filter)
@@ -209,7 +209,7 @@ tr.exportTo('tr.ui.tracks', function() {
       }
     },
 
-    addClosestEventToSelection: function(worldX, worldMaxDist, loY, hiY,
+    addClosestEventToSelection(worldX, worldMaxDist, loY, hiY,
         selection) {
       var rect = tr.b.math.findClosestIntervalInSortedIntervals(
           this.rects_,

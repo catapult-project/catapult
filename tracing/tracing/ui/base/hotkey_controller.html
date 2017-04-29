@@ -17,7 +17,7 @@ found in the LICENSE file.
 Polymer({
   is: 'tv-ui-b-hotkey-controller',
 
-  created: function() {
+  created() {
     this.isAttached_ = false;
     this.globalMode_ = false;
     this.slavedToParentController_ = undefined;
@@ -35,7 +35,7 @@ Polymer({
     this.onCapturingKeyPress_ = this.onKey_.bind(this, true);
   },
 
-  attached: function() {
+  attached() {
     this.isAttached_ = true;
 
     var host = this.findHost_();
@@ -67,7 +67,7 @@ Polymer({
     host.addEventListener('keypress', this.onCapturingKeyPress_, true);
   },
 
-  detached: function() {
+  detached() {
     this.isAttached_ = false;
 
     var host = this.curHost_;
@@ -88,7 +88,7 @@ Polymer({
     host.removeEventListener('keypress', this.onCapturingKeyPress_, true);
   },
 
-  addChildController_: function(controller) {
+  addChildController_(controller) {
     var i = this.childControllers_.indexOf(controller);
     if (i !== -1) {
       throw new Error('Controller already registered');
@@ -96,7 +96,7 @@ Polymer({
     this.childControllers_.push(controller);
   },
 
-  removeChildController_: function(controller) {
+  removeChildController_(controller) {
     var i = this.childControllers_.indexOf(controller);
     if (i === -1) {
       throw new Error('Controller not registered');
@@ -105,7 +105,7 @@ Polymer({
     return controller;
   },
 
-  getKeyMapForEventType_: function(eventType, useCapture) {
+  getKeyMapForEventType_(eventType, useCapture) {
     if (eventType === 'keydown') {
       if (!useCapture) {
         return this.bubblingKeyDownHotKeys_;
@@ -122,7 +122,7 @@ Polymer({
     throw new Error('Unsupported key event');
   },
 
-  addHotKey: function(hotKey) {
+  addHotKey(hotKey) {
     if (!(hotKey instanceof tr.ui.b.HotKey)) {
       throw new Error('hotKey must be a tr.ui.b.HotKey');
     }
@@ -144,7 +144,7 @@ Polymer({
     return hotKey;
   },
 
-  removeHotKey: function(hotKey) {
+  removeHotKey(hotKey) {
     if (!(hotKey instanceof tr.ui.b.HotKey)) {
       throw new Error('hotKey must be a tr.ui.b.HotKey');
     }
@@ -188,7 +188,7 @@ Polymer({
     return this;
   },
 
-  childRequestsGeneralFocus: function(child) {
+  childRequestsGeneralFocus(child) {
     var topmost = this.topmostConroller_;
     if (topmost.curHost_) {
       if (topmost.curHost_.hasAttribute('tabIndex')) {
@@ -205,7 +205,7 @@ Polymer({
     }
   },
 
-  childRequestsBlur: function(child) {
+  childRequestsBlur(child) {
     child.blur();
 
     var topmost = this.topmostConroller_;
@@ -214,7 +214,7 @@ Polymer({
     }
   },
 
-  findHost_: function() {
+  findHost_() {
     if (this.globalMode_) return document.body;
     if (this.parentElement) return this.parentElement;
     if (!Polymer.dom(this).parentNode) return this.host;
@@ -224,7 +224,7 @@ Polymer({
     return node.host;
   },
 
-  appendMatchingHotKeysTo_: function(matchedHotKeys,
+  appendMatchingHotKeysTo_(matchedHotKeys,
       useCapture, e) {
     var localKeyMap = this.getKeyMapForEventType_(e.type, useCapture);
     var localHotKey = localKeyMap[e.keyCode];
@@ -239,7 +239,7 @@ Polymer({
     }
   },
 
-  onKey_: function(useCapture, e) {
+  onKey_(useCapture, e) {
     // Keys dispatched to INPUT elements still bubble, even when they're
     // handled. So, skip any events that targeted the input element.
     if (!useCapture && e.path[0].tagName === 'INPUT') return;

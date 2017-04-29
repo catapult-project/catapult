@@ -51,7 +51,7 @@ found in the LICENSE file.
        * The url params determine what data to request from
        * /group_report. sid is a hash of a group of keys.
        */
-      ready: function() {
+      ready() {
         this.benchmark = uri.getParameter('benchmark');
         this.master = uri.getParameter('master', 'ChromiumPerf');
         this.numDays = uri.getParameter('num_days', 30);

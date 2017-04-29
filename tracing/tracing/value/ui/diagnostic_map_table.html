@@ -59,7 +59,7 @@ found in the LICENSE file.
       let columns = [];
       function makeColumn(title) {
         return {
-          title: title,
+          title,
           value(map) {
             let diagnostic = map.get(title);
             if (!diagnostic) return '';

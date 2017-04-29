@@ -33,11 +33,11 @@ tr.exportTo('tr.e.cc', function() {
   LayerTreeHostImplSnapshot.prototype = {
     __proto__: ObjectSnapshot.prototype,
 
-    preInitialize: function() {
+    preInitialize() {
       tr.e.cc.preInitializeObject(this);
     },
 
-    initialize: function() {
+    initialize() {
       tr.e.cc.moveRequiredFieldsFromArgsToToplevel(
           this, ['deviceViewportSize',
             'activeTree']);
@@ -69,7 +69,7 @@ tr.exportTo('tr.e.cc', function() {
     /**
      * Get all of tile scales and their associated names.
      */
-    getContentsScaleNames: function() {
+    getContentsScaleNames() {
       var scales = {};
       for (var i = 0; i < this.activeTiles.length; ++i) {
         var tile = this.activeTiles[i];
@@ -83,7 +83,7 @@ tr.exportTo('tr.e.cc', function() {
       return scales;
     },
 
-    getTree: function(whichTree) {
+    getTree(whichTree) {
       if (whichTree === constants.ACTIVE_TREE) {
         return this.activeTree;
       }

@@ -46,7 +46,7 @@ tr.exportTo('tr.ui', function() {
     is: 'tr-ui-sp-metrics-side-panel',
     behaviors: [tr.ui.behaviors.SidePanel],
 
-    ready: function() {
+    ready() {
       this.model_ = undefined;
 
       this.rangeOfInterest_ = undefined;
@@ -101,7 +101,7 @@ tr.exportTo('tr.ui', function() {
       return tr.b.math.Statistics.mean(this.metricLatenciesMs_);
     },
 
-    onMetricChange_: function() {
+    onMetricChange_() {
       this.currentMetricTypeInfo_ =
         tr.metrics.MetricRegistry.findTypeInfoWithName(
             this.currentMetricName_);
@@ -109,7 +109,7 @@ tr.exportTo('tr.ui', function() {
       this.updateContents_();
     },
 
-    onRecompute_: function() {
+    onRecompute_() {
       this.updateContents_();
     },
 
@@ -117,7 +117,7 @@ tr.exportTo('tr.ui', function() {
       return 'Metrics';
     },
 
-    supportsModel: function(m) {
+    supportsModel(m) {
       if (!m) {
         return {
           supported: false,
@@ -175,7 +175,7 @@ tr.exportTo('tr.ui', function() {
       }
     },
 
-    updateContents_: async function() {
+    async updateContents_() {
       Polymer.dom(this.$.error).textContent = '';
       this.$.results.style.display = 'none';
 

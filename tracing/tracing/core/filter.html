@@ -25,23 +25,23 @@ tr.exportTo('tr.c', function() {
   Filter.prototype = {
     __proto__: Object.prototype,
 
-    matchCounter: function(counter) {
+    matchCounter(counter) {
       return true;
     },
 
-    matchCpu: function(cpu) {
+    matchCpu(cpu) {
       return true;
     },
 
-    matchProcess: function(process) {
+    matchProcess(process) {
       return true;
     },
 
-    matchSlice: function(slice) {
+    matchSlice(slice) {
       return true;
     },
 
-    matchThread: function(thread) {
+    matchThread(thread) {
       return true;
     }
   };
@@ -62,7 +62,7 @@ tr.exportTo('tr.c', function() {
   TitleOrCategoryFilter.prototype = {
     __proto__: Filter.prototype,
 
-    matchSlice: function(slice) {
+    matchSlice(slice) {
       if (slice.title === undefined && slice.category === undefined) {
         return false;
       }
@@ -86,7 +86,7 @@ tr.exportTo('tr.c', function() {
   ExactTitleFilter.prototype = {
     __proto__: Filter.prototype,
 
-    matchSlice: function(slice) {
+    matchSlice(slice) {
       return slice.title === this.text_;
     }
   };
@@ -105,7 +105,7 @@ tr.exportTo('tr.c', function() {
   FullTextFilter.prototype = {
     __proto__: Filter.prototype,
 
-    matchObject_: function(obj) {
+    matchObject_(obj) {
       for (var key in obj) {
         if (!obj.hasOwnProperty(key)) continue;
         if (this.regex_.test(key)) return true;
@@ -114,7 +114,7 @@ tr.exportTo('tr.c', function() {
       return false;
     },
 
-    matchSlice: function(slice) {
+    matchSlice(slice) {
       if (this.titleOrCategoryFilter_.matchSlice(slice)) return true;
       return this.matchObject_(slice.args);
     }

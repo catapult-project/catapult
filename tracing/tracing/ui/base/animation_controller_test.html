@@ -22,19 +22,19 @@ tr.b.unittest.testSuite(function() {
   SimpleAnimation.prototype = {
     __proto__: tr.ui.b.Animation.prototype,
 
-    canTakeOverFor: function(existingAnimation) {
+    canTakeOverFor(existingAnimation) {
       return false;
     },
 
-    takeOverFor: function(existingAnimation, newStartTimestamp, target) {
+    takeOverFor(existingAnimation, newStartTimestamp, target) {
       throw new Error('Not implemented');
     },
 
-    start: function(timestamp, target) {
+    start(timestamp, target) {
       this.startCalled = true;
     },
 
-    didStopEarly: function(timestamp, target, willBeTakenOver) {
+    didStopEarly(timestamp, target, willBeTakenOver) {
       this.didStopEarlyCalled = true;
       this.wasTakenOver = willBeTakenOver;
     },
@@ -42,7 +42,7 @@ tr.b.unittest.testSuite(function() {
     /**
      * @return {boolean} true if the animation is finished.
      */
-    tick: function(timestamp, target) {
+    tick(timestamp, target) {
       this.tickCount++;
       return timestamp >= this.stopTime;
     }
@@ -51,7 +51,7 @@ tr.b.unittest.testSuite(function() {
   test('cancel', function() {
     var target = {
       x: 0,
-      cloneAnimationState: function() { return {x: this.x}; }
+      cloneAnimationState() { return {x: this.x}; }
     };
 
     var controller = new tr.ui.b.AnimationController();
@@ -70,7 +70,7 @@ tr.b.unittest.testSuite(function() {
   test('simple', function() {
     var target = {
       x: 0,
-      cloneAnimationState: function() { return {x: this.x}; }
+      cloneAnimationState() { return {x: this.x}; }
     };
 
     var controller = new tr.ui.b.AnimationController();
@@ -94,7 +94,7 @@ tr.b.unittest.testSuite(function() {
 
     var target = {
       x: 0,
-      cloneAnimationState: function() { return {x: this.x}; }
+      cloneAnimationState() { return {x: this.x}; }
     };
 
     var controller = new tr.ui.b.AnimationController();
@@ -124,15 +124,15 @@ tr.b.unittest.testSuite(function() {
     __proto__: tr.ui.b.Animation.prototype,
 
 
-    canTakeOverFor: function(existingAnimation) {
+    canTakeOverFor(existingAnimation) {
       return existingAnimation instanceof SimpleAnimation;
     },
 
-    takeOverFor: function(existingAnimation, newStartTimestamp, target) {
+    takeOverFor(existingAnimation, newStartTimestamp, target) {
       this.takeOverForAnimation = existingAnimation;
     },
 
-    start: function(timestamp, target) {
+    start(timestamp, target) {
       this.startCalled = true;
     }
   };
@@ -140,7 +140,7 @@ tr.b.unittest.testSuite(function() {
   test('takeOver', function() {
     var target = {
       x: 0,
-      cloneAnimationState: function() { return {x: this.x}; }
+      cloneAnimationState() { return {x: this.x}; }
     };
 
     var controller = new tr.ui.b.AnimationController();

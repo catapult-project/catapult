@@ -22,7 +22,7 @@ tr.exportTo('tr.mre', function() {
   FileHandle.prototype = {
     get canonicalUrl() { return this.canonicalUrl_; },
 
-    asDict: function() {
+    asDict() {
       var d = {
         canonical_url: this.canonicalUrl_
       };
@@ -33,7 +33,7 @@ tr.exportTo('tr.mre', function() {
       }
     },
 
-    load: function() {
+    load() {
       throw new Error('Not implemented');
     }
   };
@@ -60,12 +60,12 @@ tr.exportTo('tr.mre', function() {
   URLFileHandle.prototype = {
     __proto__: FileHandle.prototype,
 
-    _asDictInto: function(handleDict) {
+    _asDictInto(handleDict) {
       handleDict.urlToLoad = this.urlToLoad;
       handleDict.type = 'url';
     },
 
-    load: function() {
+    load() {
       try {
         return tr.b.getSync(this.urlToLoad, this.loadAsTraceStream_);
       } catch (ex) {
@@ -89,12 +89,12 @@ tr.exportTo('tr.mre', function() {
   InMemoryFileHandle.prototype = {
     __proto__: FileHandle.prototype,
 
-    _asDictInto: function(handleDict) {
+    _asDictInto(handleDict) {
       handleDict.data = this.fileData;
       handleDict.type = 'in-memory';
     },
 
-    load: function() {
+    load() {
       return this.fileData;
     }
   };

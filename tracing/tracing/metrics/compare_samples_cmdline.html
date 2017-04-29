@@ -250,7 +250,7 @@ var buildComparisonResultOutput = function(a, b) {
 
 var SampleComparison = {
 
-  compareBuildbotOutputs: function(
+  compareBuildbotOutputs(
       buildbotOutputAPathList, buildbotOutputBPathList, metric) {
     var aPaths = buildbotOutputAPathList.split(',');
     var bPaths = buildbotOutputBPathList.split(',');
@@ -259,7 +259,7 @@ var SampleComparison = {
     return buildComparisonResultOutput(sampleA, sampleB);
   },
 
-  compareValuesets: function(histogramsAPathList, histogramsBPathList, metric) {
+  compareValuesets(histogramsAPathList, histogramsBPathList, metric) {
     var aPaths = histogramsAPathList.split(',');
     var bPaths = histogramsBPathList.split(',');
     var histogramsA = new tr.v.HistogramSet();
@@ -278,7 +278,7 @@ var SampleComparison = {
     return buildComparisonResultOutput(sampleA, sampleB);
   },
 
-  compareCharts: function(chartPathListA, chartPathListB, metric) {
+  compareCharts(chartPathListA, chartPathListB, metric) {
     var aPaths = chartPathListA.split(',');
     var bPaths = chartPathListB.split(',');
     var chartsA = parseFiles(aPaths);

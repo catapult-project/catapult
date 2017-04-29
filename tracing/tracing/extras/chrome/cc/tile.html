@@ -26,11 +26,11 @@ tr.exportTo('tr.e.cc', function() {
   TileSnapshot.prototype = {
     __proto__: ObjectSnapshot.prototype,
 
-    preInitialize: function() {
+    preInitialize() {
       tr.e.cc.preInitializeObject(this);
     },
 
-    initialize: function() {
+    initialize() {
       tr.e.cc.moveOptionalFieldsFromArgsToToplevel(
           this, ['layerId', 'contentsScale', 'contentRect']);
       if (this.args.managedState) {
@@ -69,7 +69,7 @@ tr.exportTo('tr.e.cc', function() {
       }
     },
 
-    getTypeForLayer: function(layer) {
+    getTypeForLayer(layer) {
       var type = this.type_;
       if (type === tr.e.cc.tileTypes.unknown) {
         if (this.contentsScale < layer.idealContentsScale) {

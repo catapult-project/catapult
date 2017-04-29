@@ -21,7 +21,7 @@ found in the LICENSE file.
 Polymer({
   is: 'tr-v-ui-scalar-map-table',
 
-  created: function() {
+  created() {
     /** @type {!Map.<string, !tr.b.Scalar>} */
     this.scalarMap_ = new Map();
 
@@ -29,16 +29,16 @@ Polymer({
     this.significance_ = new Map();
   },
 
-  ready: function() {
+  ready() {
     this.$.table.showHeader = false;
     this.$.table.tableColumns = [
       {
-        value: function(row) {
+        value(row) {
           return row.name;
         }
       },
       {
-        value: function(row) {
+        value(row) {
           let span = tr.v.ui.createScalarSpan(row.value);
           if (row.significance !== undefined) {
             span.significance = row.significance;
@@ -69,12 +69,12 @@ Polymer({
    * @param {string} key
    * @param {!tr.b.math.Statistics.Significance} significance
    */
-  setSignificanceForKey: function(key, significance) {
+  setSignificanceForKey(key, significance) {
     this.significance_.set(key, significance);
     this.updateContents_();
   },
 
-  updateContents_: function() {
+  updateContents_() {
     let rows = [];
     for (let [key, scalar] of this.scalarMap) {
       rows.push({

@@ -37,7 +37,7 @@ tr.exportTo('tr.model', function() {
   }
 
   ModelSettings.prototype = {
-    buildObjectsByKeyMap_: function() {
+    buildObjectsByKeyMap_() {
       var objects = [];
       this.model.iterateAllPersistableObjects(function(o) {
         objects.push(o);
@@ -69,7 +69,7 @@ tr.exportTo('tr.model', function() {
       this.objectsByKey_ = objectsByKey;
     },
 
-    removeNonuniqueKeysFromSettings_: function() {
+    removeNonuniqueKeysFromSettings_() {
       var settings = Settings.get('trace_model_settings', {});
       var settingsChanged = false;
       Object.keys(settings).forEach(function(objectKey) {
@@ -84,13 +84,13 @@ tr.exportTo('tr.model', function() {
       }
     },
 
-    hasUniqueSettingKey: function(object) {
+    hasUniqueSettingKey(object) {
       var objectKey = object.getSettingsKey();
       if (!objectKey) return false;
       return this.objectsByKey_[objectKey] !== undefined;
     },
 
-    getSettingFor: function(object, objectLevelKey, defaultValue) {
+    getSettingFor(object, objectLevelKey, defaultValue) {
       var objectKey = object.getSettingsKey();
       if (!objectKey || !this.objectsByKey_[objectKey]) {
         var settings = this.getEphemeralSettingsFor_(object);
@@ -112,7 +112,7 @@ tr.exportTo('tr.model', function() {
       return defaultValue;
     },
 
-    setSettingFor: function(object, objectLevelKey, value) {
+    setSettingFor(object, objectLevelKey, value) {
       var objectKey = object.getSettingsKey();
       if (!objectKey || !this.objectsByKey_[objectKey]) {
         this.getEphemeralSettingsFor_(object)[objectLevelKey] = value;
@@ -130,7 +130,7 @@ tr.exportTo('tr.model', function() {
       Settings.set('trace_model_settings', settings);
     },
 
-    getEphemeralSettingsFor_: function(object) {
+    getEphemeralSettingsFor_(object) {
       if (object.guid === undefined) {
         throw new Error('Only objects with GUIDs can be persisted');
       }

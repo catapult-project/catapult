@@ -55,7 +55,7 @@ Polymer({
    * If no state has been persisted yet or there is no ancestor element with
    * a brushingStateController field, this method returns undefined.
    */
-  get: function() {
+  get() {
     var viewId = this.viewId;
     if (!viewId) {
       throw new Error('Element must have a view-id attribute!');
@@ -76,7 +76,7 @@ Polymer({
    * If there is no ancestor element with a brushingStateController field,
    * this method does nothing.
    */
-  set: function(state) {
+  set(state) {
     var viewId = this.viewId;
     if (!viewId) {
       throw new Error('Element must have a view-id attribute!');

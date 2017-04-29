@@ -136,7 +136,7 @@ found in the LICENSE file.
         }
       },
 
-      getTestResultFromBuildbotStepResult: function(buildbotStepResult) {
+      getTestResultFromBuildbotStepResult(buildbotStepResult) {
         // The buildbot step result comes from the buildbot JSON API via milo
         // service. The buildbot JSON API is documented here:
         // https://buildbot.buildbot.net/json/help with a specific build
@@ -169,7 +169,7 @@ found in the LICENSE file.
         return testResult;
       },
 
-      open: function() {
+      open() {
         var dialog = this.$['debug-dialog'];
         dialog.open();
         this.loading = true;

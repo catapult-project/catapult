@@ -21,7 +21,7 @@ tr.exportTo('tr.b', function() {
      *
      * @return {number} globally unique id.
      */
-    allocateSimple: function() {
+    allocateSimple() {
       return nextGUID++;
     },
 
@@ -29,7 +29,7 @@ tr.exportTo('tr.b', function() {
      *
      * @return {number} last guid.
      */
-    getLastSimpleGuid: function() {
+    getLastSimpleGuid() {
       return nextGUID - 1;
     },
 
@@ -46,7 +46,7 @@ tr.exportTo('tr.b', function() {
      *
      * @return {string} universally unique id.
      */
-    allocateUUID4: function() {
+    allocateUUID4() {
       return UUID4_PATTERN.replace(/[xy]/g, function(c) {
         var r = parseInt(Math.random() * 16);
         if (c === 'y') r = (r & 3) + 8;

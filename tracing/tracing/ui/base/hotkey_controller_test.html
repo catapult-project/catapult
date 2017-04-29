@@ -41,7 +41,7 @@ tr.b.unittest.testSuite(function() {
       hkc.addHotKey(new tr.ui.b.HotKey({
         eventType: 'keydown',
         keyCode: 73, useCapture: true,
-        callback: function() {
+        callback() {
           didGetCalled = true;
         }
       }));
@@ -85,7 +85,7 @@ tr.b.unittest.testSuite(function() {
       subHKC.addHotKey(new tr.ui.b.HotKey({
         eventType: 'keydown',
         keyCode: 73, useCapture: true,
-        callback: function() {
+        callback() {
           didGetCalled = true;
         }
       }));
@@ -115,7 +115,7 @@ tr.b.unittest.testSuite(function() {
       hkc.addHotKey(new tr.ui.b.HotKey({
         eventType: 'keypress',
         keyCode: 'a'.charCodeAt(0), useCapture: false,
-        callback: function() {
+        callback() {
           didGetCalled = true;
         }
       }));

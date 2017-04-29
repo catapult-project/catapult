@@ -106,7 +106,7 @@ tr.exportTo('tr.model', function() {
           parentAsyncSliceGroup.slices.indexOf(this);
     },
 
-    findTopmostSlicesRelativeToThisSlice: function* (eventPredicate, opt_this) {
+    * findTopmostSlicesRelativeToThisSlice(eventPredicate, opt_this) {
       if (eventPredicate(this)) {
         yield this;
         return;
@@ -116,7 +116,7 @@ tr.exportTo('tr.model', function() {
       }
     },
 
-    findDescendentSlice: function(targetTitle) {
+    findDescendentSlice(targetTitle) {
       if (!this.subSlices) return undefined;
 
       for (var i = 0; i < this.subSlices.length; i++) {
@@ -129,7 +129,7 @@ tr.exportTo('tr.model', function() {
       return undefined;
     },
 
-    enumerateAllDescendents: function* () {
+    * enumerateAllDescendents() {
       for (var slice of this.subSlices) {
         yield slice;
       }
@@ -138,7 +138,7 @@ tr.exportTo('tr.model', function() {
       }
     },
 
-    compareTo: function(that) {
+    compareTo(that) {
       return this.title.localeCompare(that.title);
     }
   };

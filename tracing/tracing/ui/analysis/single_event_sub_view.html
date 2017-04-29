@@ -48,18 +48,18 @@ Polymer({
     }
   },
 
-  ready: function() {
+  ready() {
     this.currentSelection_ = undefined;
     this.$.table.tableColumns = [
       {
         title: 'Label',
-        value: function(row) { return row.name; },
+        value(row) { return row.name; },
         width: '150px'
       },
       {
         title: 'Value',
         width: '100%',
-        value: function(row) { return row.value; }
+        value(row) { return row.value; }
       }
     ];
     this.$.table.showHeader = false;
@@ -76,12 +76,12 @@ Polymer({
     this.setSelectionWithoutErrorChecks(selection);
   },
 
-  setSelectionWithoutErrorChecks: function(selection) {
+  setSelectionWithoutErrorChecks(selection) {
     this.currentSelection_ = selection;
     this.updateContents_();
   },
 
-  getFlowEventRows_: function(event) {
+  getFlowEventRows_(event) {
     // TODO(nduca): Figure out if there is a cleaner way to do this.
 
     var rows = this.getEventRowsHelper_(event);
@@ -113,7 +113,7 @@ Polymer({
     return rows;
   },
 
-  getEventRowsHelper_: function(event) {
+  getEventRowsHelper_(event) {
     var rows = [];
 
     if (event.error) {
@@ -267,7 +267,7 @@ Polymer({
     return rows;
   },
 
-  getEventRows_: function(event) {
+  getEventRows_(event) {
     if (this.isFlow) {
       return this.getFlowEventRows_(event);
     }
@@ -275,7 +275,7 @@ Polymer({
     return this.getEventRowsHelper_(event);
   },
 
-  addArgsToRows_: function(rows, args) {
+  addArgsToRows_(rows, args) {
     var n = 0;
     for (var argName in args) {
       n += 1;
@@ -297,13 +297,13 @@ Polymer({
           name: 'Args',
           value: '',
           isExpanded: true,
-          subRows: subRows
+          subRows
         });
       }
     }
   },
 
-  addContextsToRows_: function(rows, contexts) {
+  addContextsToRows_(rows, contexts) {
     if (contexts.length) {
       var subRows = contexts.map(function(context) {
         var contextView =
@@ -315,12 +315,12 @@ Polymer({
         name: 'Contexts',
         value: '',
         isExpanded: true,
-        subRows: subRows
+        subRows
       });
     }
   },
 
-  updateContents_: function() {
+  updateContents_() {
     if (this.currentSelection_ === undefined) {
       this.$.table.rows = [];
       this.$.table.rebuild();

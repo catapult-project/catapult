@@ -30,7 +30,7 @@ tr.exportTo('tr.ui.b', function() {
      * This can be used to build animations that accelerate as pairs of them are
      * queued.
      */
-    canTakeOverFor: function(existingAnimation) {
+    canTakeOverFor(existingAnimation) {
       throw new Error('Not implemented');
     },
 
@@ -42,11 +42,11 @@ tr.exportTo('tr.ui.b', function() {
      * job of finishing(or transitioning away from) the effect the existing
      * animation was trying to accomplish.
      */
-    takeOverFor: function(existingAnimation, newStartTimestamp, target) {
+    takeOverFor(existingAnimation, newStartTimestamp, target) {
       throw new Error('Not implemented');
     },
 
-    start: function(timestamp, target) {
+    start(timestamp, target) {
       throw new Error('Not implemented');
     },
 
@@ -60,14 +60,14 @@ tr.exportTo('tr.ui.b', function() {
      * @param {boolean} willBeTakenOverByAnotherAnimation Whether this animation
      * is going to be handed to another animation's takeOverFor function.
      */
-    didStopEarly: function(timestamp, target,
+    didStopEarly(timestamp, target,
         willBeTakenOverByAnotherAnimation) {
     },
 
     /**
      * @return {boolean} true if the animation is finished.
      */
-    tick: function(timestamp, target) {
+    tick(timestamp, target) {
       throw new Error('Not implemented');
     }
   };

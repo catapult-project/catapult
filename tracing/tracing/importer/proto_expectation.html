@@ -69,16 +69,16 @@ tr.exportTo('tr.importer', function() {
     },
 
     // Return true if any associatedEvent's typeName is in typeNames.
-    containsTypeNames: function(typeNames) {
+    containsTypeNames(typeNames) {
       return this.associatedEvents.some(
           x => typeNames.indexOf(x.typeName) >= 0);
     },
 
-    containsSliceTitle: function(title) {
+    containsSliceTitle(title) {
       return this.associatedEvents.some(x => title === x.title);
     },
 
-    createInteractionRecord: function(model) {
+    createInteractionRecord(model) {
       if (this.type !== ProtoExpectation.IGNORED_TYPE && !this.isValid) {
         model.importWarning({
           type: 'ProtoExpectation',
@@ -133,7 +133,7 @@ tr.exportTo('tr.importer', function() {
     // The types need not match: ignored ProtoExpectations might be merged
     // into overlapping ProtoExpectations, and Touch-only Animations are merged
     // into Tap Responses.
-    merge: function(other) {
+    merge(other) {
       this.initiatorType = combineInitiatorTypes(
           this.initiatorType, other.initiatorType);
 
@@ -148,7 +148,7 @@ tr.exportTo('tr.importer', function() {
 
     // Include |event| in this ProtoExpectation, expanding start/end to include
     // it.
-    pushEvent: function(event) {
+    pushEvent(event) {
       // Usually, this method will be called while iterating over a list of
       // events sorted by start time, so this method won't usually change
       // this.start. However, this will sometimes be called for
@@ -160,22 +160,22 @@ tr.exportTo('tr.importer', function() {
     },
 
     // Returns true if timestamp is contained in this ProtoExpectation.
-    containsTimestampInclusive: function(timestamp) {
+    containsTimestampInclusive(timestamp) {
       return (this.start <= timestamp) && (timestamp <= this.end);
     },
 
     // Return true if the other event intersects this ProtoExpectation.
-    intersects: function(other) {
+    intersects(other) {
       // http://stackoverflow.com/questions/325933
       return (other.start < this.end) && (other.end > this.start);
     },
 
-    isNear: function(event, threshold) {
+    isNear(event, threshold) {
       return (this.end + threshold) > event.start;
     },
 
     // Return a string describing this ProtoExpectation for debugging.
-    debug: function() {
+    debug() {
       var debugString = this.type + '(';
       debugString += parseInt(this.start) + ' ';
       debugString += parseInt(this.end);

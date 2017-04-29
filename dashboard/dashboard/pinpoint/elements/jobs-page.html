@@ -108,7 +108,7 @@ found in the LICENSE file.
 
       computeIsSingular: count => count === 1,
 
-      computeJobCountString: function() {
+      computeJobCountString() {
         if (this.totalJobsCount === 1) {
           return '1 job';
         }
@@ -118,15 +118,15 @@ found in the LICENSE file.
         return String(this.totalJobsCountMax) + ' or more jobs.';
       },
 
-      getJobCount: function() {
+      getJobCount() {
         return this.jobs.length;
       },
 
-      deselected: function() {
+      deselected() {
         this.jobs = [];
       },
 
-      selected: function() {
+      selected() {
         this.loading = true;
         var params = {};
         simple_xhr.send('/_ah/api/jobs', params,

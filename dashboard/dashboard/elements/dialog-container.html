@@ -44,23 +44,23 @@ It was designed to contain paper-card elements for the chart-tooltip.
 
     // TODO(aiolos): Add animation on open/close.
 
-    updatePositionFromCoords: function(top, left) {
+    updatePositionFromCoords(top, left) {
       if (!this.positionisfixed) {
         this.style.left = (left + 15) + 'px';
         this.style.top = (top + 15) + 'px';
       }
     },
 
-    toggleFixed: function() {
+    toggleFixed() {
       this.positionisfixed = !this.positionisfixed;
     },
 
-    open: function() {
+    open() {
       this.opened = true;
       this.style.visibility = 'visible';
     },
 
-    close: function() {
+    close() {
       this.opened = false;
       this.style.visibility = 'hidden';
     },

@@ -52,13 +52,13 @@ tr.exportTo('tr.model', function() {
       throw new Error('Not implemented');
     },
 
-    childEventContainers: function* () {
+    * childEventContainers() {
       yield* tr.b.dictionaryValues(this.threads);
       yield* tr.b.dictionaryValues(this.counters);
       yield this.objects;
     },
 
-    iterateAllPersistableObjects: function(cb) {
+    iterateAllPersistableObjects(cb) {
       cb(this);
       for (var tid in this.threads) {
         this.threads[tid].iterateAllPersistableObjects(cb);
@@ -80,7 +80,7 @@ tr.exportTo('tr.model', function() {
      * Shifts all the timestamps inside this process forward by the amount
      * specified.
      */
-    shiftTimestampsForward: function(amount) {
+    shiftTimestampsForward(amount) {
       for (var child of this.childEventContainers()) {
         child.shiftTimestampsForward(amount);
       }
@@ -89,14 +89,14 @@ tr.exportTo('tr.model', function() {
     /**
      * Closes any open slices.
      */
-    autoCloseOpenSlices: function() {
+    autoCloseOpenSlices() {
       for (var tid in this.threads) {
         var thread = this.threads[tid];
         thread.autoCloseOpenSlices();
       }
     },
 
-    autoDeleteObjects: function(maxTimestamp) {
+    autoDeleteObjects(maxTimestamp) {
       this.objects.autoDeleteObjects(maxTimestamp);
     },
 
@@ -104,28 +104,28 @@ tr.exportTo('tr.model', function() {
      * Called by the model after finalizing imports,
      * but before joining refs.
      */
-    preInitializeObjects: function() {
+    preInitializeObjects() {
       this.objects.preInitializeAllObjects();
     },
 
     /**
      * Called by the model after joining refs.
      */
-    initializeObjects: function() {
+    initializeObjects() {
       this.objects.initializeAllObjects();
     },
 
     /**
      * Merge slices from the kernel with those from userland for each thread.
      */
-    mergeKernelWithUserland: function() {
+    mergeKernelWithUserland() {
       for (var tid in this.threads) {
         var thread = this.threads[tid];
         thread.mergeKernelWithUserland();
       }
     },
 
-    updateBounds: function() {
+    updateBounds() {
       this.bounds.reset();
       for (var tid in this.threads) {
         this.threads[tid].updateBounds();
@@ -139,7 +139,7 @@ tr.exportTo('tr.model', function() {
       this.bounds.addRange(this.objects.bounds);
     },
 
-    addCategoriesToDict: function(categoriesDict) {
+    addCategoriesToDict(categoriesDict) {
       for (var tid in this.threads) {
         this.threads[tid].addCategoriesToDict(categoriesDict);
       }
@@ -149,7 +149,7 @@ tr.exportTo('tr.model', function() {
       this.objects.addCategoriesToDict(categoriesDict);
     },
 
-    findAllThreadsMatching: function(predicate, opt_this) {
+    findAllThreadsMatching(predicate, opt_this) {
       var threads = [];
       for (var tid in this.threads) {
         var thread = this.threads[tid];
@@ -164,7 +164,7 @@ tr.exportTo('tr.model', function() {
      * @param {String} The name of the thread to find.
      * @return {Array} An array of all the matched threads.
      */
-    findAllThreadsNamed: function(name) {
+    findAllThreadsNamed(name) {
       var threads = this.findAllThreadsMatching(function(thread) {
         if (!thread.name) return false;
         return thread.name === name;
@@ -172,7 +172,7 @@ tr.exportTo('tr.model', function() {
       return threads;
     },
 
-    findAtMostOneThreadNamed: function(name) {
+    findAtMostOneThreadNamed(name) {
       var threads = this.findAllThreadsNamed(name);
       if (threads.length === 0) return undefined;
       if (threads.length > 1) {
@@ -184,7 +184,7 @@ tr.exportTo('tr.model', function() {
     /**
      * Removes threads from the process that are fully empty.
      */
-    pruneEmptyContainers: function() {
+    pruneEmptyContainers() {
       var threadsToKeep = {};
       for (var tid in this.threads) {
         var thread = this.threads[tid];
@@ -199,7 +199,7 @@ tr.exportTo('tr.model', function() {
      * @return {TimelineThread} The thread identified by tid on this process,
      * or undefined if it doesn't exist.
      */
-    getThread: function(tid) {
+    getThread(tid) {
       return this.threads[tid];
     },
 
@@ -207,7 +207,7 @@ tr.exportTo('tr.model', function() {
      * @return {TimelineThread} The thread identified by tid on this process,
      * creating it if it doesn't exist.
      */
-    getOrCreateThread: function(tid) {
+    getOrCreateThread(tid) {
       if (!this.threads[tid]) {
         this.threads[tid] = new Thread(this, tid);
       }
@@ -218,7 +218,7 @@ tr.exportTo('tr.model', function() {
      * @return {Counter} The counter on this process with the given
      * category/name combination, creating it if it doesn't exist.
      */
-    getOrCreateCounter: function(cat, name) {
+    getOrCreateCounter(cat, name) {
       var id = cat + '.' + name;
       if (!this.counters[id]) {
         this.counters[id] = new Counter(this, id, cat, name);
@@ -226,11 +226,11 @@ tr.exportTo('tr.model', function() {
       return this.counters[id];
     },
 
-    getSettingsKey: function() {
+    getSettingsKey() {
       throw new Error('Not implemented');
     },
 
-    createSubSlices: function() {
+    createSubSlices() {
       for (var tid in this.threads) {
         this.threads[tid].createSubSlices();
       }

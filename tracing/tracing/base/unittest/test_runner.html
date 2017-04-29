@@ -88,15 +88,15 @@ tr.exportTo('tr.b.unittest', function() {
   TestRunner.prototype = {
     __proto__: Object.prototype,
 
-    beginRunning: function() {
+    beginRunning() {
       if (this.pendingTestCases_.length) {
         throw new Error('Tests still running!');
       }
 
       this.runCompletedPromise = new Promise(function(resolve, reject) {
         this.runCompletedResolver_ = {
-          resolve: resolve,
-          reject: reject
+          resolve,
+          reject
         };
       }.bind(this));
 
@@ -109,7 +109,7 @@ tr.exportTo('tr.b.unittest', function() {
       return this.runCompletedPromise;
     },
 
-    beginToStopRunning: function() {
+    beginToStopRunning() {
       if (!this.runCompletedResolver_) {
         throw new Error('Still running');
       }
@@ -125,7 +125,7 @@ tr.exportTo('tr.b.unittest', function() {
       return this.results_;
     },
 
-    scheduleRunOneTestCase_: function() {
+    scheduleRunOneTestCase_() {
       if (this.runOneTestCaseScheduled_) return;
       this.runOneTestCaseScheduled_ = true;
 
@@ -138,7 +138,7 @@ tr.exportTo('tr.b.unittest', function() {
       }
     },
 
-    runOneTestCase_: function() {
+    runOneTestCase_() {
       this.runOneTestCaseScheduled_ = false;
 
       if (this.pendingTestCases_.length === 0) {
@@ -208,15 +208,15 @@ tr.exportTo('tr.b.unittest', function() {
           }.bind(this));
     },
 
-    isCurrentTestFlaky_: function() {
+    isCurrentTestFlaky_() {
       return !!this.currentTestCase_.options.flaky;
     },
 
-    isCurrentTestSkipped_: function() {
+    isCurrentTestSkipped_() {
       return !!this.currentTestCase_.options.skipped;
     },
 
-    setUpCurrentTestCase_: function() {
+    setUpCurrentTestCase_() {
       // Try setting it up. Return true if succeeded.
       installGlobalTestHooks(this);
       try {
@@ -228,7 +228,7 @@ tr.exportTo('tr.b.unittest', function() {
       return true;
     },
 
-    runCurrentTestCase_: function() {
+    runCurrentTestCase_() {
       return new Promise(function(resolve, reject) {
         try {
           var maybePromise = this.currentTestCase_.run();
@@ -251,14 +251,14 @@ tr.exportTo('tr.b.unittest', function() {
       }.bind(this));
     },
 
-    hadInternalError_: function(outerE) {
+    hadInternalError_(outerE) {
       this.results.didRunTests();
 
       this.runCompletedResolver_.reject(outerE);
       this.runCompletedResolver_ = undefined;
     },
 
-    tearDownCurrentTestCase_: function() {
+    tearDownCurrentTestCase_() {
       try {
         this.currentTestCase_.tearDown();
       } catch (error) {
@@ -268,7 +268,7 @@ tr.exportTo('tr.b.unittest', function() {
       uninstallGlobalTestHooks();
     },
 
-    didFinishRunningAllTests_: function() {
+    didFinishRunningAllTests_() {
       this.results.didRunTests();
       this.runCompletedResolver_.resolve();
       this.runCompletedResolver_ = undefined;

@@ -12,15 +12,15 @@ found in the LICENSE file.
   Polymer({
     is: 'tr-v-ui-preferred-display-unit',
 
-    ready: function() {
+    ready() {
       this.preferredTimeDisplayMode_ = undefined;
     },
 
-    attached: function() {
+    attached() {
       tr.b.Unit.didPreferredTimeDisplayUnitChange();
     },
 
-    detached: function() {
+    detached() {
       tr.b.Unit.didPreferredTimeDisplayUnitChange();
     },
 

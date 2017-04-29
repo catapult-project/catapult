@@ -363,7 +363,7 @@ tr.exportTo('tr.metrics.sh', function() {
    */
   function powerMetric(histograms, model) {
     var data = {
-      model: model,
+      model,
       histograms: {}
     };
     for (var interval of computeTimeIntervals_(model)) {

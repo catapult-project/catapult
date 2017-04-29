@@ -628,24 +628,24 @@ tr.b.unittest.testSuite(function() {
   test('overviewCharts', async function() {
     const boundaries = tr.v.HistogramBinBoundaries.createLinear(0, 150, 10);
     const histograms = new tr.v.HistogramSet([
-      newHistogram('foo', {boundaries: boundaries, samples: [0], telemetry: {
+      newHistogram('foo', {boundaries, samples: [0], telemetry: {
         storyDisplayName: 'story0', label: '0'}}),
-      newHistogram('foo', {boundaries: boundaries, samples: [10], telemetry: {
+      newHistogram('foo', {boundaries, samples: [10], telemetry: {
         storyDisplayName: 'story0', label: '1'}}),
 
-      newHistogram('foo', {boundaries: boundaries, samples: [100], telemetry: {
+      newHistogram('foo', {boundaries, samples: [100], telemetry: {
         storyDisplayName: 'story1', label: '0'}}),
-      newHistogram('foo', {boundaries: boundaries, samples: [110], telemetry: {
+      newHistogram('foo', {boundaries, samples: [110], telemetry: {
         storyDisplayName: 'story1', label: '1'}}),
 
-      newHistogram('bar', {boundaries: boundaries, samples: [0], telemetry: {
+      newHistogram('bar', {boundaries, samples: [0], telemetry: {
         storyDisplayName: 'story0', label: '0'}}),
-      newHistogram('bar', {boundaries: boundaries, samples: [9], telemetry: {
+      newHistogram('bar', {boundaries, samples: [9], telemetry: {
         storyDisplayName: 'story0', label: '1'}}),
 
-      newHistogram('bar', {boundaries: boundaries, samples: [90], telemetry: {
+      newHistogram('bar', {boundaries, samples: [90], telemetry: {
         storyDisplayName: 'story1', label: '0'}}),
-      newHistogram('bar', {boundaries: boundaries, samples: [99], telemetry: {
+      newHistogram('bar', {boundaries, samples: [99], telemetry: {
         storyDisplayName: 'story1', label: '1'}}),
     ]);
     const now = new Date().getTime();
@@ -1379,14 +1379,14 @@ tr.b.unittest.testSuite(function() {
                       Math.random() * 1e3, {x: new tr.v.d.Generic(i)}]),
                     telemetry: {
                       storyGroupingKeys: {
-                        storyGroupingKey0: storyGroupingKey0,
-                        storyGroupingKey1: storyGroupingKey1,
+                        storyGroupingKey0,
+                        storyGroupingKey1,
                       },
-                      benchmarkName: benchmarkName,
+                      benchmarkName,
                       storyDisplayName: storyName,
                       benchmarkStartMs: startMs,
                       storysetRepeatCounter: storysetCounter,
-                      label: label,
+                      label,
                     },
                   }));
                 }

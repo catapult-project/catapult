@@ -36,11 +36,11 @@ tr.exportTo('tr.b', function() {
     }
 
     HeadlessEvent.prototype = {
-      preventDefault: function() {
+      preventDefault() {
         this.defaultPrevented = true;
       },
 
-      stopPropagation: function() {
+      stopPropagation() {
         this.cancelBubble = true;
       }
     };

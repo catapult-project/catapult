@@ -50,7 +50,7 @@ tr.exportTo('tr.model', function() {
      *
      * Note: Samples must be added in chronological order.
      */
-    addPowerSample: function(ts, val) {
+    addPowerSample(ts, val) {
       var sample = new PowerSample(this, ts, val);
       this.samples_.push(sample);
       return sample;
@@ -60,7 +60,7 @@ tr.exportTo('tr.model', function() {
      * Returns the total energy (in Joules) consumed between the specified
      * start and end timestamps (in milliseconds).
      */
-    getEnergyConsumedInJ: function(start, end) {
+    getEnergyConsumedInJ(start, end) {
       var measurementRange = tr.b.math.Range.fromExplicitRange(start, end);
 
       var energyConsumedInJ = 0;
@@ -94,7 +94,7 @@ tr.exportTo('tr.model', function() {
       return energyConsumedInJ;
     },
 
-    getSamplesWithinRange: function(start, end) {
+    getSamplesWithinRange(start, end) {
       var startIndex = tr.b.math.findLowIndexInSortedArray(
           this.samples, x => x.start, start);
       var endIndex = tr.b.math.findLowIndexInSortedArray(
@@ -102,13 +102,13 @@ tr.exportTo('tr.model', function() {
       return this.samples.slice(startIndex, endIndex);
     },
 
-    shiftTimestampsForward: function(amount) {
+    shiftTimestampsForward(amount) {
       for (var i = 0; i < this.samples_.length; ++i) {
         this.samples_[i].start += amount;
       }
     },
 
-    updateBounds: function() {
+    updateBounds() {
       this.bounds.reset();
 
       if (this.samples_.length === 0) return;
@@ -117,7 +117,7 @@ tr.exportTo('tr.model', function() {
       this.bounds.addValue(this.samples_[this.samples_.length - 1].start);
     },
 
-    childEvents: function* () {
+    * childEvents() {
       yield* this.samples_;
     },
   };

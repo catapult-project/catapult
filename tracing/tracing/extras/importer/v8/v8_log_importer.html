@@ -97,7 +97,7 @@ tr.exportTo('tr.e.importer.v8', function() {
       return 'V8LogImporter';
     },
 
-    processTimerEvent_: function(name, startInUs, lengthInUs) {
+    processTimerEvent_(name, startInUs, lengthInUs) {
       var args = TimerEventDefaultArgs[name];
       if (args === undefined) return;
       var startInMs = tr.b.convertUnit(startInUs,
@@ -112,7 +112,7 @@ tr.exportTo('tr.e.importer.v8', function() {
       this.v8_timer_thread_.sliceGroup.pushSlice(slice);
     },
 
-    processTimerEventStart_: function(name, startInUs) {
+    processTimerEventStart_(name, startInUs) {
       var args = TimerEventDefaultArgs[name];
       if (args === undefined) return;
       var startInMs = tr.b.convertUnit(startInUs,
@@ -121,14 +121,14 @@ tr.exportTo('tr.e.importer.v8', function() {
       this.v8_timer_thread_.sliceGroup.beginSlice('v8', name, startInMs, args);
     },
 
-    processTimerEventEnd_: function(name, endInUs) {
+    processTimerEventEnd_(name, endInUs) {
       var endInMs = tr.b.convertUnit(endInUs,
           tr.b.UnitPrefixScale.METRIC.MICRO,
           tr.b.UnitPrefixScale.METRIC.MILLI);
       this.v8_timer_thread_.sliceGroup.endSlice(endInMs);
     },
 
-    processCodeCreateEvent_: function(type, kind, address, size, name,
+    processCodeCreateEvent_(type, kind, address, size, name,
         maybeFunc) {
       function parseState(s) {
         switch (s) {
@@ -169,15 +169,15 @@ tr.exportTo('tr.e.importer.v8', function() {
       }
     },
 
-    processCodeMoveEvent_: function(from, to) {
+    processCodeMoveEvent_(from, to) {
       this.code_map_.moveCode(from, to);
     },
 
-    processCodeDeleteEvent_: function(address) {
+    processCodeDeleteEvent_(address) {
       this.code_map_.deleteCode(address);
     },
 
-    processSharedLibrary_: function(name, start, end) {
+    processSharedLibrary_(name, start, end) {
       var codeEntry = new CodeEntry(end - start, name,
                                      CodeEntry.TYPE.SHARED_LIB);
       codeEntry.kind = -3;  // External code kind.
@@ -191,13 +191,13 @@ tr.exportTo('tr.e.importer.v8', function() {
       this.code_map_.addLibrary(start, codeEntry);
     },
 
-    processCppSymbol_: function(address, size, name) {
+    processCppSymbol_(address, size, name) {
       var codeEntry = new CodeEntry(size, name, CodeEntry.TYPE.CPP);
       codeEntry.kind = -1;
       this.code_map_.addStaticCode(address, codeEntry);
     },
 
-    processTickEvent_: function(pc, startInUs, isExternalCallback,
+    processTickEvent_(pc, startInUs, isExternalCallback,
         tosOrExternalCallback, vmstate, stack) {
       var startInMs = tr.b.convertUnit(startInUs,
           tr.b.UnitPrefixScale.METRIC.MICRO,
@@ -292,15 +292,15 @@ tr.exportTo('tr.e.importer.v8', function() {
           undefined, 1));
     },
 
-    processDistortion_: function(distortionInPicoseconds) {
+    processDistortion_(distortionInPicoseconds) {
       // Do nothing.
     },
 
-    processPlotRange_: function(start, end) {
+    processPlotRange_(start, end) {
       // Do nothing.
     },
 
-    processV8Version_: function(major, minor, build, patch, candidate) {
+    processV8Version_(major, minor, build, patch, candidate) {
       // Do nothing.
     },
 
@@ -308,7 +308,7 @@ tr.exportTo('tr.e.importer.v8', function() {
      * Walks through the events_ list and outputs the structures discovered to
      * model_.
      */
-    importEvents: function() {
+    importEvents() {
       var logreader = new tr.e.importer.v8.LogReader(
           { 'timer-event': {
             parsers: [null, parseInt, parseInt],

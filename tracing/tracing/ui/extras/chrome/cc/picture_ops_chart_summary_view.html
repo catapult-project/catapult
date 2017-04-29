@@ -41,7 +41,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
   PictureOpsChartSummaryView.prototype = {
     __proto__: HTMLDivElement.prototype,
 
-    decorate: function() {
+    decorate() {
       this.picture_ = undefined;
       this.pictureDataProcessed_ = false;
 
@@ -85,11 +85,11 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.updateChartContents();
     },
 
-    hide: function() {
+    hide() {
       Polymer.dom(this).classList.add('hidden');
     },
 
-    show: function() {
+    show() {
       Polymer.dom(this).classList.remove('hidden');
 
       if (this.pictureDataProcessed_) return;
@@ -99,7 +99,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.updateChartContents();
     },
 
-    onMouseMove_: function(e) {
+    onMouseMove_(e) {
       var lastBarMouseOverTarget = this.currentBarMouseOverTarget_;
       this.currentBarMouseOverTarget_ = null;
 
@@ -125,7 +125,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.drawChartContents_();
     },
 
-    updateChartContents: function() {
+    updateChartContents() {
       if (this.requiresRedraw) {
         this.updateChartDimensions_();
       }
@@ -133,7 +133,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.drawChartContents_();
     },
 
-    updateChartDimensions_: function() {
+    updateChartDimensions_() {
       this.chartWidth_ = this.offsetWidth;
       this.chartHeight_ = this.offsetHeight;
 
@@ -149,7 +149,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.chartCtx_.scale(this.chartScale_, this.chartScale_);
     },
 
-    processPictureData_: function() {
+    processPictureData_() {
       this.resetOpsTimingData_();
       this.pictureDataProcessed_ = true;
 
@@ -166,7 +166,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.collapseOpsToTimingBuckets_(ops);
     },
 
-    drawChartContents_: function() {
+    drawChartContents_() {
       this.clearChartContents_();
 
       if (this.opsTimingData_.length === 0) {
@@ -183,14 +183,14 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.drawTooltip_();
     },
 
-    drawLineAtBottomOfChart_: function() {
+    drawLineAtBottomOfChart_() {
       this.chartCtx_.strokeStyle = '#AAA';
       this.chartCtx_.moveTo(0, this.chartHeight_ - 0.5);
       this.chartCtx_.lineTo(this.chartWidth_, this.chartHeight_ - 0.5);
       this.chartCtx_.stroke();
     },
 
-    drawTooltip_: function() {
+    drawTooltip_() {
       var tooltipData = this.opsTimingData_[this.currentBarMouseOverTarget_];
       var tooltipTitle = tooltipData.cmd_string;
       var tooltipTime = tooltipData.cmd_time.toFixed(4);
@@ -235,7 +235,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           left + 8, top + 22);
     },
 
-    drawBars_: function() {
+    drawBars_() {
       var len = this.opsTimingData_.length;
       var max = this.opsTimingData_[0].cmd_time;
       var min = this.opsTimingData_[len - 1].cmd_time;
@@ -265,21 +265,21 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       }
     },
 
-    getOpColor_: function(opName) {
+    getOpColor_(opName) {
       var characters = opName.split('');
       var hue = characters.reduce(this.reduceNameToHue, 0) % 360;
 
       return 'hsl(' + hue + ', 30%, 50%)';
     },
 
-    reduceNameToHue: function(previousValue, currentValue, index, array) {
+    reduceNameToHue(previousValue, currentValue, index, array) {
       // Get the char code and apply a magic adjustment value so we get
       // pretty colors from around the rainbow.
       return Math.round(previousValue + currentValue.charCodeAt(0) *
           HUE_CHAR_CODE_ADJUSTMENT);
     },
 
-    drawChartAxes_: function() {
+    drawChartAxes_() {
       var len = this.opsTimingData_.length;
       var max = this.opsTimingData_[0].cmd_time;
       var min = this.opsTimingData_[len - 1].cmd_time;
@@ -363,11 +363,11 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.chartCtx_.restore();
     },
 
-    clearChartContents_: function() {
+    clearChartContents_() {
       this.chartCtx_.clearRect(0, 0, this.chartWidth_, this.chartHeight_);
     },
 
-    showNoTimingDataMessage_: function() {
+    showNoTimingDataMessage_() {
       this.chartCtx_.font = '800 italic 14px Arial';
       this.chartCtx_.fillStyle = '#333';
       this.chartCtx_.textAlign = 'center';
@@ -376,7 +376,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           this.chartWidth_ * 0.5, this.chartHeight_ * 0.5);
     },
 
-    collapseOpsToTimingBuckets_: function(ops) {
+    collapseOpsToTimingBuckets_(ops) {
       var opsTimingDataIndexHash_ = {};
       var timingData = this.opsTimingData_;
       var op;
@@ -409,7 +409,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.collapseTimingBucketsToOther_(4);
     },
 
-    collapseTimingBucketsToOther_: function(count) {
+    collapseTimingBucketsToOther_(count) {
       var timingData = this.opsTimingData_;
       var otherSource = timingData.splice(count, timingData.length - count);
       var otherDestination = null;
@@ -427,11 +427,11 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       }
     },
 
-    sortTimingBucketsByOpTimeDescending_: function(a, b) {
+    sortTimingBucketsByOpTimeDescending_(a, b) {
       return b.cmd_time - a.cmd_time;
     },
 
-    resetOpsTimingData_: function() {
+    resetOpsTimingData_() {
       this.opsTimingData_.length = 0;
     }
   };

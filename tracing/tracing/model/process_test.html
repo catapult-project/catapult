@@ -36,7 +36,7 @@ tr.b.unittest.testSuite(function() {
 
     var slice = new tr.model.ThreadSlice('', 'a', 0, 1, {}, 4);
     var frame =
-        new tr.model.Frame([slice], [{thread: thread, start: 100, end: 200}]);
+        new tr.model.Frame([slice], [{thread, start: 100, end: 200}]);
     process.frames.push(frame);
 
     var memoryDump = new tr.model.GlobalMemoryDump(model, 100);

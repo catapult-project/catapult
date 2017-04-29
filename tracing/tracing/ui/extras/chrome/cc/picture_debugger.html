@@ -122,7 +122,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
   PictureDebugger.prototype = {
     __proto__: HTMLDivElement.prototype,
 
-    decorate: function() {
+    decorate() {
       var node = tr.ui.b.instantiateTemplate(
           '#tr-ui-e-chrome-cc-picture-debugger-template', THIS_DOC);
 
@@ -195,7 +195,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         eventType: 'keypress',
         thisArg: this,
         keyCode: 'h'.charCodeAt(0),
-        callback: function(e) {
+        callback(e) {
           this.moveSelectedOpBy(-1);
           e.stopPropagation();
         }
@@ -204,7 +204,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         eventType: 'keypress',
         thisArg: this,
         keyCode: 'l'.charCodeAt(0),
-        callback: function(e) {
+        callback(e) {
           this.moveSelectedOpBy(1);
           e.stopPropagation();
         }
@@ -218,7 +218,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.mutationObserver_.observe(leftPanel, { attributes: true });
     },
 
-    onMutation_: function(mutations) {
+    onMutation_(mutations) {
       for (var m = 0; m < mutations.length; m++) {
         // A style change would indicate that the element has resized
         // so we should re-render the chart.
@@ -233,7 +233,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       }
     },
 
-    onSaveAsSkPictureClicked_: function() {
+    onSaveAsSkPictureClicked_() {
       // Decode base64 data into a String
       var rawData = tr.b.Base64.atob(this.picture_.getBase64SkpData());
 
@@ -290,7 +290,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.scheduleUpdateContents_();
     },
 
-    getRasterCanvasSize_: function() {
+    getRasterCanvasSize_() {
       var style = window.getComputedStyle(this.rasterArea_);
       var width =
           Math.max(parseInt(style.width), this.picture_.layerRect.width);
@@ -298,12 +298,12 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           Math.max(parseInt(style.height), this.picture_.layerRect.height);
 
       return {
-        width: width,
-        height: height
+        width,
+        height
       };
     },
 
-    scheduleUpdateContents_: function() {
+    scheduleUpdateContents_() {
       if (this.updateContentsPending_) return;
 
       this.updateContentsPending_ = true;
@@ -312,7 +312,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       );
     },
 
-    updateContents_: function() {
+    updateContents_() {
       this.updateContentsPending_ = false;
 
       if (this.picture_) {
@@ -344,7 +344,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.drawPicture_();
     },
 
-    drawPicture_: function() {
+    drawPicture_() {
       var size = this.getRasterCanvasSize_();
       if (size.width !== this.rasterCanvas_.width) {
         this.rasterCanvas_.width = size.width;
@@ -365,7 +365,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           h * this.zoomScaleValue_);
     },
 
-    rasterize_: function() {
+    rasterize_() {
       if (this.picture_) {
         this.picture_.rasterize(
             {
@@ -376,12 +376,12 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       }
     },
 
-    onRasterComplete_: function(pictureAsImageData) {
+    onRasterComplete_(pictureAsImageData) {
       this.pictureAsImageData_ = pictureAsImageData;
       this.scheduleUpdateContents_();
     },
 
-    moveSelectedOpBy: function(increment) {
+    moveSelectedOpBy(increment) {
       if (this.selectedOpIndex === undefined) {
         this.selectedOpIndex = 0;
         return;
@@ -404,12 +404,12 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.drawOpsChartView_.selectedOpIndex = index;
     },
 
-    onChartBarClicked_: function(e) {
+    onChartBarClicked_(e) {
       this.drawOpsView_.selectedOpIndex =
           this.drawOpsChartView_.selectedOpIndex;
     },
 
-    onChangeDrawOps_: function(e) {
+    onChangeDrawOps_(e) {
       this.rasterize_();
       this.scheduleUpdateContents_();
 
@@ -430,7 +430,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       }
     },
 
-    trackMouse_: function() {
+    trackMouse_() {
       this.mouseModeSelector_ = document.createElement(
           'tr-ui-b-mouse-mode-selector');
       this.mouseModeSelector_.targetElement = this.rasterArea_;
@@ -450,7 +450,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           this.onEndZoom_.bind(this));
     },
 
-    onBeginZoom_: function(e) {
+    onBeginZoom_(e) {
       this.isZooming_ = true;
 
       this.lastMouseViewPos_ = this.extractRelativeMousePosition_(e);
@@ -458,7 +458,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       e.preventDefault();
     },
 
-    onUpdateZoom_: function(e) {
+    onUpdateZoom_(e) {
       if (!this.isZooming_) return;
 
       var currentMouseViewPos = this.extractRelativeMousePosition_(e);
@@ -475,13 +475,13 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.lastMouseViewPos_ = currentMouseViewPos;
     },
 
-    onEndZoom_: function(e) {
+    onEndZoom_(e) {
       this.lastMouseViewPos_ = undefined;
       this.isZooming_ = false;
       e.preventDefault();
     },
 
-    extractRelativeMousePosition_: function(e) {
+    extractRelativeMousePosition_(e) {
       return {
         x: e.clientX - this.rasterArea_.offsetLeft,
         y: e.clientY - this.rasterArea_.offsetTop

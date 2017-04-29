@@ -35,7 +35,7 @@ tr.exportTo('tr.model', function() {
       return 'tr.ui.analysis.CpuSlice';
     },
 
-    getAssociatedTimeslice: function() {
+    getAssociatedTimeslice() {
       if (!this.threadThatWasRunning) {
         return undefined;
       }

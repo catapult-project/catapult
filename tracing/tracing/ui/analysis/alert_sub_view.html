@@ -38,18 +38,18 @@ Polymer({
   is: 'tr-ui-a-alert-sub-view',
   behaviors: [tr.ui.analysis.AnalysisSubView],
 
-  ready: function() {
+  ready() {
     this.currentSelection_ = undefined;
     this.$.table.tableColumns = [
       {
         title: 'Label',
-        value: function(row) { return row.name; },
+        value(row) { return row.name; },
         width: '150px'
       },
       {
         title: 'Value',
         width: '100%',
-        value: function(row) { return row.value; }
+        value(row) { return row.value; }
       }
     ];
     this.$.table.showHeader = false;
@@ -64,7 +64,7 @@ Polymer({
     this.updateContents_();
   },
 
-  getRowsForSingleAlert_: function(alert) {
+  getRowsForSingleAlert_(alert) {
     var rows = [];
 
     // Arguments
@@ -120,7 +120,7 @@ Polymer({
     return rows;
   },
 
-  getRowsForAlerts_: function(alerts) {
+  getRowsForAlerts_(alerts) {
     if (alerts.length === 1) {
       var rows = [{
         name: 'Alert',
@@ -140,7 +140,7 @@ Polymer({
     }, this);
   },
 
-  updateContents_: function() {
+  updateContents_() {
     if (this.currentSelection_ === undefined) {
       this.$.table.rows = [];
       this.$.table.rebuild();

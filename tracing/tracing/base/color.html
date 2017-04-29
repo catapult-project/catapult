@@ -125,7 +125,7 @@ tr.exportTo('tr.b', function() {
   };
 
   Color.prototype = {
-    clone: function() {
+    clone() {
       var c = new Color();
       c.r = this.r;
       c.g = this.g;
@@ -134,7 +134,7 @@ tr.exportTo('tr.b', function() {
       return c;
     },
 
-    blendOver: function(bgColor) {
+    blendOver(bgColor) {
       var oneMinusThisAlpha = 1 - this.a;
       var outA = this.a + bgColor.a * oneMinusThisAlpha;
       var bgBlend = (bgColor.a * oneMinusThisAlpha) / bgColor.a;
@@ -145,7 +145,7 @@ tr.exportTo('tr.b', function() {
           outA);
     },
 
-    brighten: function(opt_k) {
+    brighten(opt_k) {
       var k;
       k = opt_k || 0.45;
 
@@ -156,14 +156,14 @@ tr.exportTo('tr.b', function() {
           this.a);
     },
 
-    lighten: function(k, opt_maxL) {
+    lighten(k, opt_maxL) {
       var maxL = opt_maxL !== undefined ? opt_maxL : 1.0;
       var hsl = this.toHSL();
       hsl.l = Math.min(hsl.l + k, maxL);
       return Color.fromHSL(hsl);
     },
 
-    darken: function(opt_k) {
+    darken(opt_k) {
       var k;
       if (opt_k !== undefined) {
         k = opt_k;
@@ -178,7 +178,7 @@ tr.exportTo('tr.b', function() {
           this.a);
     },
 
-    desaturate: function(opt_desaturateFactor) {
+    desaturate(opt_desaturateFactor) {
       var desaturateFactor;
       if (opt_desaturateFactor !== undefined) {
         desaturateFactor = opt_desaturateFactor;
@@ -191,11 +191,11 @@ tr.exportTo('tr.b', function() {
       return Color.fromHSL(hsl);
     },
 
-    withAlpha: function(a) {
+    withAlpha(a) {
       return new Color(this.r, this.g, this.b, a);
     },
 
-    toString: function() {
+    toString() {
       if (this.a !== undefined) {
         return 'rgba(' +
             this.r + ',' + this.g + ',' +
@@ -211,7 +211,7 @@ tr.exportTo('tr.b', function() {
      * |l| Lightness in [0, 1].
      * |a| Alpha in [0, 1]
      */
-    toHSL: function() {
+    toHSL() {
       var r = this.r / 255;
       var g = this.g / 255;
       var b = this.b / 255;
@@ -244,10 +244,10 @@ tr.exportTo('tr.b', function() {
         h /= 6;
       }
 
-      return {h: h, s: s, l: l, a: this.a};
+      return {h, s, l, a: this.a};
     },
 
-    toStringWithAlphaOverride: function(alpha) {
+    toStringWithAlphaOverride(alpha) {
       return 'rgba(' +
           this.r + ',' + this.g + ',' +
           this.b + ',' + alpha + ')';

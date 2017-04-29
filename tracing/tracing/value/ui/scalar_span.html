@@ -239,7 +239,7 @@ Polymer({
     }
   },
 
-  created: function() {
+  created() {
     this.value_ = undefined;
     this.unit_ = undefined;
 
@@ -301,13 +301,13 @@ Polymer({
     return this.lazyContextController_;
   },
 
-  hasContext_: function(contextGroup) {
+  hasContext_(contextGroup) {
     // The ordering here is important. It ensures that we avoid a DOM traversal
     // when the span doesn't have a context group.
     return !!(contextGroup && this.contextController_);
   },
 
-  contextGroupChanged_: function(newContextGroup, oldContextGroup) {
+  contextGroupChanged_(newContextGroup, oldContextGroup) {
     this.detachFromContextControllerIfPossible_(oldContextGroup);
     if (!this.attachToContextControllerIfPossible_(newContextGroup)) {
       // If the span failed to attach to a controller, it won't receive a
@@ -316,7 +316,7 @@ Polymer({
     }
   },
 
-  attachToContextControllerIfPossible_: function(contextGroup) {
+  attachToContextControllerIfPossible_(contextGroup) {
     if (!this.hasContext_(contextGroup)) return false;
 
     this.contextController_.addEventListener(
@@ -325,7 +325,7 @@ Polymer({
     return true;
   },
 
-  detachFromContextControllerIfPossible_: function(contextGroup) {
+  detachFromContextControllerIfPossible_(contextGroup) {
     if (!this.hasContext_(contextGroup)) return;
 
     this.contextController_.removeEventListener(
@@ -333,14 +333,14 @@ Polymer({
     this.contextController_.onScalarSpanRemoved(contextGroup, this);
   },
 
-  attached: function() {
+  attached() {
     tr.b.Unit.addEventListener(
         'display-mode-changed', this.updateContents_.bind(this));
     this.shouldSearchForContextController_ = true;
     this.attachToContextControllerIfPossible_(this.contextGroup);
   },
 
-  detached: function() {
+  detached() {
     tr.b.Unit.removeEventListener(
         'display-mode-changed', this.updateContents_.bind(this));
     this.detachFromContextControllerIfPossible_(this.contextGroup);
@@ -348,7 +348,7 @@ Polymer({
     this.lazyContextController_ = undefined;
   },
 
-  onContextUpdated_: function() {
+  onContextUpdated_() {
     this.updateSparkline_();
   },
 
@@ -371,7 +371,7 @@ Polymer({
     this.updateSparkline_();
   },
 
-  setValueAndUnit: function(value, unit) {
+  setValueAndUnit(value, unit) {
     this.value_ = value;
     this.unit_ = unit;
     this.updateContents_();
@@ -410,7 +410,7 @@ Polymer({
     }
   },
 
-  updateSparkline_: function() {
+  updateSparkline_() {
     Polymer.dom(this.$.sparkline).classList.remove('positive');
     Polymer.dom(this.$.sparkline).classList.remove('better');
     Polymer.dom(this.$.sparkline).classList.remove('worse');
@@ -462,7 +462,7 @@ Polymer({
     }
   },
 
-  buildSparklineStyle_: function(ratio, isWidth) {
+  buildSparklineStyle_(ratio, isWidth) {
     // To avoid visual glitches around the zero value bar, we subtract 1 pixel
     // from the width of the element and multiply the remainder (100% - 1px) by
     // |ratio|. The extra pixel is used for the sparkline border. This allows
@@ -482,7 +482,7 @@ Polymer({
     return position;
   },
 
-  updateContents_: function() {
+  updateContents_() {
     Polymer.dom(this.$.content).textContent = '';
     Polymer.dom(this.$.content).classList.remove('better');
     Polymer.dom(this.$.content).classList.remove('worse');
@@ -499,7 +499,7 @@ Polymer({
     this.updateDelta_();
   },
 
-  updateDelta_: function() {
+  updateDelta_() {
     let changeClass = this.changeClassName_;
     if (!changeClass) {
       this.$.significance.style.display = 'none';

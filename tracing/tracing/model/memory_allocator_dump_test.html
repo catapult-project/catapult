@@ -111,7 +111,7 @@ tr.b.unittest.testSuite(function() {
       // With model parameter.
       var mockModel = {
         warnings: [],
-        importWarning: function(warning) {
+        importWarning(warning) {
           this.warnings.push(warning);
         }
       };

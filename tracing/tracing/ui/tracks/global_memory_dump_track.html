@@ -28,7 +28,7 @@ tr.exportTo('tr.ui.tracks', function() {
   GlobalMemoryDumpTrack.prototype = {
     __proto__: tr.ui.tracks.ContainerTrack.prototype,
 
-    decorate: function(viewport) {
+    decorate(viewport) {
       tr.ui.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
       this.memoryDumps_ = undefined;
     },
@@ -42,7 +42,7 @@ tr.exportTo('tr.ui.tracks', function() {
       this.updateContents_();
     },
 
-    updateContents_: function() {
+    updateContents_() {
       this.clearTracks_();
 
       // Show no tracks if there are no dumps.
@@ -53,7 +53,7 @@ tr.exportTo('tr.ui.tracks', function() {
       this.appendAllocatedMemoryTrack_();
     },
 
-    appendDumpDotsTrack_: function() {
+    appendDumpDotsTrack_() {
       var items = tr.ui.tracks.buildMemoryLetterDots(this.memoryDumps_);
       if (!items) return;
 
@@ -63,7 +63,7 @@ tr.exportTo('tr.ui.tracks', function() {
       Polymer.dom(this).appendChild(track);
     },
 
-    appendUsedMemoryTrack_: function() {
+    appendUsedMemoryTrack_() {
       var series = tr.ui.tracks.buildGlobalUsedMemoryChartSeries(
           this.memoryDumps_);
       if (!series) return;
@@ -76,7 +76,7 @@ tr.exportTo('tr.ui.tracks', function() {
       Polymer.dom(this).appendChild(track);
     },
 
-    appendAllocatedMemoryTrack_: function() {
+    appendAllocatedMemoryTrack_() {
       var series = tr.ui.tracks.buildGlobalAllocatedMemoryChartSeries(
           this.memoryDumps_);
       if (!series) return;

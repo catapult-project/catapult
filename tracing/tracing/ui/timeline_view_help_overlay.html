@@ -233,7 +233,7 @@ found in the LICENSE file.
 Polymer({
   is: 'tr-ui-timeline-view-help-overlay',
 
-  ready: function() {
+  ready() {
     var mod = tr.isMac ? 'cmd ' : 'ctrl';
     var spans = Polymer.dom(this.root).querySelectorAll(
         'span.mod');

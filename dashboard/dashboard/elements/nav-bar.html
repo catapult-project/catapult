@@ -197,7 +197,7 @@ found in the LICENSE file.
     'use strict';
     Polymer({
       is: 'nav-bar',
-      ready: function() {
+      ready() {
         simple_xhr.send('/navbar',
                         {'path': location.pathname + location.search},
             function(response) {
@@ -213,7 +213,7 @@ found in the LICENSE file.
        * @param {Array} labels A list of labels to apply to the bug.
        * @param {Array} cc A list of email addresses to cc on the bug.
        */
-      openCrBugWindow: function(summary, comment, labels, cc) {
+      openCrBugWindow(summary, comment, labels, cc) {
         var url = 'https://code.google.com/p/chromium/issues/entry?';
         url += [
           'summary=' + encodeURIComponent(summary),
@@ -230,7 +230,7 @@ found in the LICENSE file.
        * @param {string} comment The description of the bug.
        * @param {string} label Label to apply to the bug.
        */
-      openGitHubIssueWindow: function(summary, comment, label) {
+      openGitHubIssueWindow(summary, comment, label) {
         var url = 'https://github.com/catapult-project/catapult/issues/new?';
         url += [
           'title=' + encodeURIComponent(summary),
@@ -243,7 +243,7 @@ found in the LICENSE file.
       /**
        * Opens a window to report a general dashboard bug.
        */
-      reportBug: function() {
+      reportBug() {
         var os = this.guessOS();
         var chromeVersion = 'unknown';
         var chromeVersionMatch = navigator.userAgent.match(/Chrome\/(\S*)/);
@@ -266,7 +266,7 @@ found in the LICENSE file.
        * Guesses user's OS from user agent string (for pre-filling bug labels).
        * @return {string} The name of an OS.
        */
-      guessOS: function() {
+      guessOS() {
         var userAgentContains = function(s) {
           return navigator.userAgent.indexOf(s) != -1;
         };
@@ -284,7 +284,7 @@ found in the LICENSE file.
         return 'unknown';
       },
 
-      fileIpWhitelistRequest: function() {
+      fileIpWhitelistRequest() {
         var description = 'Please whitelist the following IP addresses ' +
             'to send data to the Chrome Perf Dashboard:\n' +
             '<IP ADDRESSES HERE>\n\n' +
@@ -294,7 +294,7 @@ found in the LICENSE file.
         this.openCrBugWindow('IP Whitelist Request', description, labels, []);
       },
 
-      fileBotWhitelistRequest: function() {
+      fileBotWhitelistRequest() {
         var description = 'Please make the following bots and all their data ' +
             'publicly available, with no google.com login required: \n' +
             '<BOT NAMES HERE>\n\n';
@@ -303,7 +303,7 @@ found in the LICENSE file.
         this.openCrBugWindow('Bot Whitelist Request', description, labels, []);
       },
 
-      fileMonitoringRequest: function() {
+      fileMonitoringRequest() {
         var description = 'Please add monitoring for the following tests:\n\n' +
             'Test owner (see http://go/perf-test-owners):\n' +
             'Buildbot master name:\n' +

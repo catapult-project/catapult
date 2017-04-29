@@ -39,14 +39,14 @@ found in the LICENSE file.
 Polymer({
   is: 'tr-ui-a-multi-event-summary-table',
 
-  ready: function() {
+  ready() {
     this.showTotals_ = false;
     this.eventsHaveDuration_ = true;
     this.eventsHaveSubRows_ = true;
     this.eventsByTitle_ = undefined;
   },
 
-  updateTableColumns_: function(rows, maxValues) {
+  updateTableColumns_(rows, maxValues) {
     var hasCpuData = false;
     var hasAlerts = false;
     rows.forEach(function(row) {
@@ -67,7 +67,7 @@ Polymer({
 
     columns.push({
       title: 'Name',
-      value: function(row) {
+      value(row) {
         if (row.title === 'Totals') return 'Totals';
 
         var linkEl = document.createElement('tr-ui-a-analysis-link');
@@ -77,23 +77,23 @@ Polymer({
         return linkEl;
       },
       width: '350px',
-      cmp: function(rowA, rowB) {
+      cmp(rowA, rowB) {
         return rowA.title.localeCompare(rowB.title);
       }
     });
     if (this.eventsHaveDuration_) {
       columns.push({
         title: 'Wall Duration',
-        value: function(row) {
+        value(row) {
           return tr.v.ui.createScalarSpan(row.duration, {
             unit: tr.b.Unit.byName.timeDurationInMs,
             customContextRange: row.totalsRow ? undefined :
                 tr.b.math.Range.fromExplicitRange(0, maxValues.duration),
-            ownerDocument: ownerDocument,
+            ownerDocument,
           });
         },
         width: '<upated further down>',
-        cmp: function(rowA, rowB) {
+        cmp(rowA, rowB) {
           return rowA.duration - rowB.duration;
         }
       });
@@ -102,16 +102,16 @@ Polymer({
     if (this.eventsHaveDuration_ && hasCpuData) {
       columns.push({
         title: 'CPU Duration',
-        value: function(row) {
+        value(row) {
           return tr.v.ui.createScalarSpan(row.cpuDuration, {
             unit: tr.b.Unit.byName.timeDurationInMs,
             customContextRange: row.totalsRow ? undefined :
                 tr.b.math.Range.fromExplicitRange(0, maxValues.cpuDuration),
-            ownerDocument: ownerDocument,
+            ownerDocument,
           });
         },
         width: '<upated further down>',
-        cmp: function(rowA, rowB) {
+        cmp(rowA, rowB) {
           return rowA.cpuDuration - rowB.cpuDuration;
         }
       });
@@ -120,16 +120,16 @@ Polymer({
     if (this.eventsHaveSubRows_ && this.eventsHaveDuration_) {
       columns.push({
         title: 'Self time',
-        value: function(row) {
+        value(row) {
           return tr.v.ui.createScalarSpan(row.selfTime, {
             unit: tr.b.Unit.byName.timeDurationInMs,
             customContextRange: row.totalsRow ? undefined :
                 tr.b.math.Range.fromExplicitRange(0, maxValues.selfTime),
-            ownerDocument: ownerDocument,
+            ownerDocument,
           });
         },
         width: '<upated further down>',
-        cmp: function(rowA, rowB) {
+        cmp(rowA, rowB) {
           return rowA.selfTime - rowB.selfTime;
         }
       });
@@ -138,16 +138,16 @@ Polymer({
     if (this.eventsHaveSubRows_ && this.eventsHaveDuration_ && hasCpuData) {
       columns.push({
         title: 'CPU Self Time',
-        value: function(row) {
+        value(row) {
           return tr.v.ui.createScalarSpan(row.cpuSelfTime, {
             unit: tr.b.Unit.byName.timeDurationInMs,
             customContextRange: row.totalsRow ? undefined :
                 tr.b.math.Range.fromExplicitRange(0, maxValues.cpuSelfTime),
-            ownerDocument: ownerDocument,
+            ownerDocument,
           });
         },
         width: '<upated further down>',
-        cmp: function(rowA, rowB) {
+        cmp(rowA, rowB) {
           return rowA.cpuSelfTime - rowB.cpuSelfTime;
         }
       });
@@ -156,17 +156,17 @@ Polymer({
     if (this.eventsHaveDuration_) {
       columns.push({
         title: 'Average ' + (hasCpuData ? 'CPU' : 'Wall') + ' Duration',
-        value: function(row) {
+        value(row) {
           var totalDuration = hasCpuData ? row.cpuDuration : row.duration;
           return tr.v.ui.createScalarSpan(totalDuration / row.numEvents, {
             unit: tr.b.Unit.byName.timeDurationInMs,
             customContextRange: row.totalsRow ? undefined :
                 tr.b.math.Range.fromExplicitRange(0, maxValues.duration),
-            ownerDocument: ownerDocument,
+            ownerDocument,
           });
         },
         width: '<upated further down>',
-        cmp: function(rowA, rowB) {
+        cmp(rowA, rowB) {
           if (hasCpuData) {
             return rowA.cpuDuration / rowA.numEvents -
                 rowB.cpuDuration / rowB.numEvents;
@@ -179,11 +179,11 @@ Polymer({
 
     columns.push({
       title: 'Occurrences',
-      value: function(row) {
+      value(row) {
         return row.numEvents;
       },
       width: '<upated further down>',
-      cmp: function(rowA, rowB) {
+      cmp(rowA, rowB) {
         return rowA.numEvents - rowB.numEvents;
       }
     });
@@ -192,11 +192,11 @@ Polymer({
     if (hasAlerts) {
       columns.push({
         title: 'Num Alerts',
-        value: function(row) {
+        value(row) {
           return row.numAlerts;
         },
         width: '<upated further down>',
-        cmp: function(rowA, rowB) {
+        cmp(rowA, rowB) {
           return rowA.numAlerts - rowB.numAlerts;
         }
       });
@@ -221,7 +221,7 @@ Polymer({
     }
   },
 
-  configure: function(config) {
+  configure(config) {
     if (config.eventsByTitle === undefined) {
       throw new Error('Required: eventsByTitle');
     }
@@ -293,7 +293,7 @@ Polymer({
     this.updateContents_();
   },
 
-  updateContents_: function() {
+  updateContents_() {
     var eventsByTitle;
     if (this.eventsByTitle_ !== undefined) {
       eventsByTitle = this.eventsByTitle_;

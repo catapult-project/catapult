@@ -21,7 +21,7 @@ tr.exportTo('tr.ui.tracks', function() {
   AlertTrack.prototype = {
     __proto__: tr.ui.tracks.LetterDotTrack.prototype,
 
-    decorate: function(viewport) {
+    decorate(viewport) {
       tr.ui.tracks.LetterDotTrack.prototype.decorate.call(this, viewport);
       this.heading = 'Alerts';
       this.alerts_ = undefined;

@@ -17,7 +17,7 @@ found in the LICENSE file.
   Polymer({
     is: 'tr-v-ui-scalar-diagnostic-span',
 
-    ready: function() {
+    ready() {
       this.diagnostic_ = undefined;
     },
 
@@ -30,7 +30,7 @@ found in the LICENSE file.
       this.updateContents_();
     },
 
-    updateContents_: function() {
+    updateContents_() {
       this.$.scalar.setValueAndUnit(this.diagnostic.value.value,
           this.diagnostic.value.unit);
     }

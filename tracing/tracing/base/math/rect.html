@@ -61,16 +61,16 @@ tr.exportTo('tr.b.math', function() {
       return this.y + this.height;
     },
 
-    toString: function() {
+    toString() {
       return 'Rect(' + this.x + ', ' + this.y + ', ' +
           this.width + ', ' + this.height + ')';
     },
 
-    toArray: function() {
+    toArray() {
       return [this.x, this.y, this.width, this.height];
     },
 
-    clone: function() {
+    clone() {
       var rect = new Rect();
       rect.x = this.x;
       rect.y = this.y;
@@ -79,13 +79,13 @@ tr.exportTo('tr.b.math', function() {
       return rect;
     },
 
-    enlarge: function(pad) {
+    enlarge(pad) {
       var rect = new Rect();
       this.enlargeFast(rect, pad);
       return rect;
     },
 
-    enlargeFast: function(out, pad) {
+    enlargeFast(out, pad) {
       out.x = this.x - pad;
       out.y = this.y - pad;
       out.width = this.width + 2 * pad;
@@ -93,21 +93,21 @@ tr.exportTo('tr.b.math', function() {
       return out;
     },
 
-    size: function() {
+    size() {
       return {width: this.width, height: this.height};
     },
 
-    scale: function(s) {
+    scale(s) {
       var rect = new Rect();
       this.scaleFast(rect, s);
       return rect;
     },
 
-    scaleSize: function(s) {
+    scaleSize(s) {
       return Rect.fromXYWH(this.x, this.y, this.width * s, this.height * s);
     },
 
-    scaleFast: function(out, s) {
+    scaleFast(out, s) {
       out.x = this.x * s;
       out.y = this.y * s;
       out.width = this.width * s;
@@ -115,13 +115,13 @@ tr.exportTo('tr.b.math', function() {
       return out;
     },
 
-    translate: function(v) {
+    translate(v) {
       var rect = new Rect();
       this.translateFast(rect, v);
       return rect;
     },
 
-    translateFast: function(out, v) {
+    translateFast(out, v) {
       out.x = this.x + v[0];
       out.y = this.x + v[1];
       out.width = this.width;
@@ -129,7 +129,7 @@ tr.exportTo('tr.b.math', function() {
       return out;
     },
 
-    asUVRectInside: function(containingRect) {
+    asUVRectInside(containingRect) {
       var rect = new Rect();
       rect.x = (this.x - containingRect.x) / containingRect.width;
       rect.y = (this.y - containingRect.y) / containingRect.height;
@@ -138,7 +138,7 @@ tr.exportTo('tr.b.math', function() {
       return rect;
     },
 
-    intersects: function(that) {
+    intersects(that) {
       var ok = true;
       ok &= this.x < that.right;
       ok &= this.right > that.x;
@@ -147,7 +147,7 @@ tr.exportTo('tr.b.math', function() {
       return ok;
     },
 
-    equalTo: function(rect) {
+    equalTo(rect) {
       return rect &&
              (this.x === rect.x) &&
              (this.y === rect.y) &&

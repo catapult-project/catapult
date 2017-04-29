@@ -25,7 +25,7 @@ tr.b.unittest.testSuite(function() {
     var model = tr.c.TestUtils.newModelWithEvents([], {
       shiftWorldToZero: false,
       pruneContainers: false,
-      customizeModelCallback: function(model) {
+      customizeModelCallback(model) {
         t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
         model.samples.push(newSampleNamed(t53, 'X', 'my-category',
                                           ['a', 'b', 'c'], 0.184));

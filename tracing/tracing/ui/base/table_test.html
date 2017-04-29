@@ -62,12 +62,12 @@ tr.b.unittest.testSuite(function() {
     var columns = [
       {
         title: 'First Column',
-        value: function(row) { return row.firstData; },
+        value(row) { return row.firstData; },
         width: '300px'
       },
       {
         title: 'Second Column',
-        value: function(row) { return row.secondData; }
+        value(row) { return row.secondData; }
       }
     ];
 
@@ -98,12 +98,12 @@ tr.b.unittest.testSuite(function() {
     var columns = [
       {
         title: 'First Column',
-        value: function(row) { return row.firstData; },
+        value(row) { return row.firstData; },
         width: '300px'
       },
       {
         title: 'Second Column',
-        value: function(row) { return row.secondData; }
+        value(row) { return row.secondData; }
       }
     ];
 
@@ -128,12 +128,12 @@ tr.b.unittest.testSuite(function() {
     var columns = [
       {
         title: 'First Column',
-        value: function(row) { return row.firstData; },
+        value(row) { return row.firstData; },
         width: '200px'
       },
       {
         title: 'Second Column',
-        value: function(row) { return row.secondData; }
+        value(row) { return row.secondData; }
       }
     ];
 
@@ -164,12 +164,12 @@ tr.b.unittest.testSuite(function() {
     var columns = [
       {
         title: 'First Column',
-        value: function(row) { return row.firstData; },
+        value(row) { return row.firstData; },
         width: '200px'
       },
       {
         title: 'Second Column',
-        value: function(row) { return row.secondData; }
+        value(row) { return row.secondData; }
       }
     ];
 
@@ -210,12 +210,12 @@ tr.b.unittest.testSuite(function() {
     var columns = [
       {
         title: 'First Column',
-        value: function(row) { return row.firstData; },
+        value(row) { return row.firstData; },
         width: '250px'
       },
       {
         title: 'Second Column',
-        value: function(row) { return row.secondData; },
+        value(row) { return row.secondData; },
         width: '50%'
       }
     ];
@@ -269,14 +269,14 @@ tr.b.unittest.testSuite(function() {
     var columns = [
       {
         title: 'First Column',
-        value: function(row) { return row.firstData; },
+        value(row) { return row.firstData; },
         width: '50%'
       },
       {
         title: 'Second Column',
-        value: function(row) { return row.secondData; },
+        value(row) { return row.secondData; },
         width: '250px',
-        cmp: function(rowA, rowB) {
+        cmp(rowA, rowB) {
           return rowA.secondData.toString().localeCompare(
               rowB.secondData.toString());
         },
@@ -378,12 +378,12 @@ tr.b.unittest.testSuite(function() {
     var columns = [
       {
         title: 'a',
-        value: function(row) { return row.a; },
+        value(row) { return row.a; },
         width: '150px'
       },
       {
         title: 'a',
-        value: function(row) { return row.b; },
+        value(row) { return row.b; },
         width: '50%'
       }
     ];
@@ -430,7 +430,7 @@ tr.b.unittest.testSuite(function() {
     var columns = [
       {
         title: 'a',
-        value: function(row) { return row.a; },
+        value(row) { return row.a; },
         width: '150px'
       }
     ];
@@ -461,12 +461,12 @@ tr.b.unittest.testSuite(function() {
     var columns = [
       {
         title: 'a',
-        value: function(row) { return row.a; },
+        value(row) { return row.a; },
         width: '150px'
       },
       {
         title: 'a',
-        value: function(row) { return row.b; },
+        value(row) { return row.b; },
         width: '50%'
       }
     ];
@@ -501,12 +501,12 @@ tr.b.unittest.testSuite(function() {
     var columns = [
       {
         title: 'Title',
-        value: function(row) { return row.a; },
+        value(row) { return row.a; },
         width: '150px'
       },
       {
         title: 'Value',
-        value: function(row) { return row.b; },
+        value(row) { return row.b; },
         width: '100%',
         showExpandButtons: true
       }
@@ -524,12 +524,12 @@ tr.b.unittest.testSuite(function() {
     var columns = [
       {
         title: 'Title',
-        value: function(row) { return row.a; },
+        value(row) { return row.a; },
         width: '150px'
       },
       {
         title: 'Value',
-        value: function(row) { return row.b; },
+        value(row) { return row.b; },
         width: '100%'
       }
     ];
@@ -570,8 +570,8 @@ tr.b.unittest.testSuite(function() {
     var columns = [
       {
         title: 'Column',
-        value: function(row) { return row.value; },
-        cmp: function(rowA, rowB) {
+        value(row) { return row.value; },
+        cmp(rowA, rowB) {
           return rowA.value.toString().localeCompare(
               rowB.value.toString());
         }
@@ -627,13 +627,13 @@ tr.b.unittest.testSuite(function() {
     var columns = [
       {
         title: 'Column 0',
-        value: function(row) { return row.value0; },
-        cmp: function(rowA, rowB) { return rowA.value0 - rowB.value0; }
+        value(row) { return row.value0; },
+        cmp(rowA, rowB) { return rowA.value0 - rowB.value0; }
       },
       {
         title: 'Column 1',
-        value: function(row) { return row.value1; },
-        cmp: function(rowA, rowB) { return rowA.value1 - rowB.value1; }
+        value(row) { return row.value1; },
+        cmp(rowA, rowB) { return rowA.value1 - rowB.value1; }
       }
     ];
 
@@ -674,8 +674,8 @@ tr.b.unittest.testSuite(function() {
     var columns = [
       {
         title: 'Column',
-        value: function(row) { return row.value; },
-        cmp: function(rowA, rowB) {
+        value(row) { return row.value; },
+        cmp(rowA, rowB) {
           return rowA.value.toString().localeCompare(
               rowB.value.toString());
         }
@@ -738,8 +738,8 @@ tr.b.unittest.testSuite(function() {
     var columns = [
       {
         title: 'Column',
-        value: function(row) { return row.value; },
-        cmp: function(rowA, rowB) {
+        value(row) { return row.value; },
+        cmp(rowA, rowB) {
           return rowA.value.toString().localeCompare(
               rowB.value.toString());
         }
@@ -785,8 +785,8 @@ tr.b.unittest.testSuite(function() {
     var columns = [
       {
         title: 'Title',
-        value: function(row) { return row.value; },
-        cmp: function(rowA, rowB) {
+        value(row) { return row.value; },
+        cmp(rowA, rowB) {
           return rowA.value.toString().localeCompare(
               rowB.value.toString());
         },
@@ -795,23 +795,23 @@ tr.b.unittest.testSuite(function() {
       },
       {
         title: 'A',
-        value: function(row) { return row.a; },
+        value(row) { return row.a; },
         width: '25%'
       },
       {
         title: 'B',
-        value: function(row) { return row.b; },
+        value(row) { return row.b; },
         width: '25%'
       },
       {
         title: 'C',
-        value: function(row) { return row.c; },
+        value(row) { return row.c; },
         width: '25%',
         supportsCellSelection: false
       },
       {
         title: 'D',
-        value: function(row) { return row.d; },
+        value(row) { return row.d; },
         width: '25%'
       }
     ];
@@ -1276,12 +1276,12 @@ tr.b.unittest.testSuite(function() {
     table.tableColumns = [
       {
         title: 'First Column',
-        value: function(row) { return row.firstData; },
+        value(row) { return row.firstData; },
         width: '100px'
       },
       {
         title: 'Second Column',
-        value: function(row) { return row.secondData; },
+        value(row) { return row.secondData; },
         width: '100px'
       }
     ];
@@ -1293,7 +1293,7 @@ tr.b.unittest.testSuite(function() {
     table.tableColumns = [
       {
         title: 'First Column',
-        value: function(row) { return row.firstData; },
+        value(row) { return row.firstData; },
         width: '200px'
       }
     ];
@@ -1303,23 +1303,23 @@ tr.b.unittest.testSuite(function() {
     var columns = [
       {
         title: 'Title',
-        value: function(row) { return row.a; },
+        value(row) { return row.a; },
         width: '150px',
         supportsCellSelection: false
       },
       {
         title: 'Col1',
-        value: function(row) { return row.b; },
+        value(row) { return row.b; },
         width: '33%'
       },
       {
         title: 'Col2',
-        value: function(row) { return row.b * 2; },
+        value(row) { return row.b * 2; },
         width: '33%'
       },
       {
         title: 'Col3',
-        value: function(row) { return row.b * 3; },
+        value(row) { return row.b * 3; },
         width: '33%'
       }
     ];
@@ -1346,23 +1346,23 @@ tr.b.unittest.testSuite(function() {
     var columns = [
       {
         title: 'Title',
-        value: function(row) { return row.a; },
+        value(row) { return row.a; },
         width: '150px',
         supportsCellSelection: false
       },
       {
         title: 'Col1',
-        value: function(row) { return row.b; },
+        value(row) { return row.b; },
         width: '33%'
       },
       {
         title: 'Col2',
-        value: function(row) { return row.b * 2; },
+        value(row) { return row.b * 2; },
         width: '33%'
       },
       {
         title: 'Col3',
-        value: function(row) { return row.b * 3; },
+        value(row) { return row.b * 3; },
         width: '33%'
       }
     ];
@@ -1389,23 +1389,23 @@ tr.b.unittest.testSuite(function() {
     var columns = [
       {
         title: 'Title',
-        value: function(row) { return row.a; },
+        value(row) { return row.a; },
         width: '150px',
         supportsCellSelection: false
       },
       {
         title: 'Col1',
-        value: function(row) { return row.b; },
+        value(row) { return row.b; },
         width: '33%'
       },
       {
         title: 'Col2',
-        value: function(row) { return row.b * 2; },
+        value(row) { return row.b * 2; },
         width: '33%'
       },
       {
         title: 'Col3',
-        value: function(row) { return row.b * 3; },
+        value(row) { return row.b * 3; },
         width: '33%'
       }
     ];
@@ -1457,13 +1457,13 @@ tr.b.unittest.testSuite(function() {
     var columns = [
       {
         title: 'Title',
-        value: function(row) { return row.a; },
+        value(row) { return row.a; },
         width: '150px',
         supportsCellSelection: false
       },
       {
         title: 'Value',
-        value: function(row) { return row.b; },
+        value(row) { return row.b; },
         width: '150px'
       }
     ];
@@ -1557,12 +1557,12 @@ tr.b.unittest.testSuite(function() {
     var columns = [
       {
         title: firstColumnTitle,
-        value: function(row) { return row.firstData; },
+        value(row) { return row.firstData; },
         width: '200px'
       },
       {
         title: secondColumnTitle,
-        value: function(row) { return row.secondData; }
+        value(row) { return row.secondData; }
       }
     ];
 
@@ -1597,7 +1597,7 @@ tr.b.unittest.testSuite(function() {
       {
         title: 'a',
         align: ColumnAlignment.RIGHT,
-        value: function(row) {
+        value(row) {
           return row.a;
         }
       }
@@ -1619,7 +1619,7 @@ tr.b.unittest.testSuite(function() {
     var columns = [
       {
         title: 'a',
-        value: function(row) {
+        value(row) {
           return row.a;
         }
       }
@@ -1650,7 +1650,7 @@ tr.b.unittest.testSuite(function() {
     var columns = [
       {
         title: 'Column',
-        value: function(row) { return row.firstData; }
+        value(row) { return row.firstData; }
       }
     ];
 
@@ -1676,7 +1676,7 @@ tr.b.unittest.testSuite(function() {
     var columns = [
       {
         title: 'Column',
-        value: function(row) { return row.data; }
+        value(row) { return row.data; }
       }
     ];
 
@@ -1719,7 +1719,7 @@ tr.b.unittest.testSuite(function() {
     table.tableColumns = [
       {
         title: 'Column',
-        value: function(row) { return row.data; },
+        value(row) { return row.data; },
         supportsCellSelection: false
       }
     ];
@@ -1741,11 +1741,11 @@ tr.b.unittest.testSuite(function() {
     var columns = [
       {
         title: 'Name',
-        value: function(row) { return row.name; }
+        value(row) { return row.name; }
       },
       {
         title: 'Value',
-        value: function(row) { return row.value; }
+        value(row) { return row.value; }
       }
     ];
 
@@ -1827,12 +1827,12 @@ tr.b.unittest.testSuite(function() {
     var columns = [
       {
         title: 'Name',
-        value: function(row) { return row.name; }
+        value(row) { return row.name; }
       },
       {
         title: 'Value',
-        value: function(row) { return row.value; },
-        cmp: function(x, y) { return x.value - y.value; }
+        value(row) { return row.value; },
+        cmp(x, y) { return x.value - y.value; }
       }
     ];
 
@@ -1887,18 +1887,18 @@ tr.b.unittest.testSuite(function() {
   test('shouldPreserveSortWhenColumnsChange', function() {
     var name = {
       title: 'Name',
-      value: function(row) { return row.name; },
+      value(row) { return row.name; },
     };
 
     var count = {
       title: 'Count',
-      value: function(row) { return row.count; },
+      value(row) { return row.count; },
       cmp: (rowA, rowB) => rowA.a - rowB.a,
     };
 
     var otherCount = {
       title: 'Count',
-      value: function(row) { return row.count; },
+      value(row) { return row.count; },
       cmp: (rowA, rowB) => rowA.a - rowB.a,
     };
 
@@ -2028,23 +2028,23 @@ tr.b.unittest.testSuite(function() {
     var columns = [
       {
         title: 'Title',
-        value: function(row) { return row.a; },
+        value(row) { return row.a; },
         width: '150px',
         supportsCellSelection: false
       },
       {
         title: 'Col1',
-        value: function(row) { return row.b; },
+        value(row) { return row.b; },
         width: '33%'
       },
       {
         title: 'Col2',
-        value: function(row) { return row.b * 2; },
+        value(row) { return row.b * 2; },
         width: '33%'
       },
       {
         title: 'Col3',
-        value: function(row) { return row.b * 3; },
+        value(row) { return row.b * 3; },
         width: '33%'
       }
     ];

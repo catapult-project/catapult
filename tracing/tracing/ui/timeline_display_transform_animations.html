@@ -45,11 +45,11 @@ tr.exportTo('tr.ui', function() {
       return this.deltaY !== 0;
     },
 
-    canTakeOverFor: function(existingAnimation) {
+    canTakeOverFor(existingAnimation) {
       return existingAnimation instanceof TimelineDisplayTransformPanAnimation;
     },
 
-    takeOverFor: function(existing, timestamp, target) {
+    takeOverFor(existing, timestamp, target) {
       var remainingDeltaXOnExisting = existing.goalPanX - target.panX;
       var remainingDeltaYOnExisting = existing.goalPanY - target.panY;
       var remainingTimeOnExisting = timestamp - (
@@ -61,13 +61,13 @@ tr.exportTo('tr.ui', function() {
       this.durationMs += remainingTimeOnExisting;
     },
 
-    start: function(timestamp, target) {
+    start(timestamp, target) {
       this.startTimeMs = timestamp;
       this.startPanX = target.panX;
       this.startPanY = target.panY;
     },
 
-    tick: function(timestamp, target) {
+    tick(timestamp, target) {
       var percentDone = (timestamp - this.startTimeMs) / this.durationMs;
       percentDone = tr.b.math.clamp(percentDone, 0, 1);
 
@@ -137,22 +137,22 @@ tr.exportTo('tr.ui', function() {
       return this.startPanY !== this.goalFocalPointY;
     },
 
-    canTakeOverFor: function(existingAnimation) {
+    canTakeOverFor(existingAnimation) {
       return false;
     },
 
-    takeOverFor: function(existingAnimation, timestamp, target) {
+    takeOverFor(existingAnimation, timestamp, target) {
       this.goalScaleX = target.scaleX * this.zoomInRatioX;
     },
 
-    start: function(timestamp, target) {
+    start(timestamp, target) {
       this.startTimeMs = timestamp;
       this.startScaleX = target.scaleX;
       this.goalScaleX = this.zoomInRatioX * target.scaleX;
       this.startPanY = target.panY;
     },
 
-    tick: function(timestamp, target) {
+    tick(timestamp, target) {
       var percentDone = (timestamp - this.startTimeMs) / this.durationMs;
       percentDone = tr.b.math.clamp(percentDone, 0, 1);
 

@@ -92,7 +92,7 @@ tr.exportTo('tr.e.cc', function() {
       return this.typeName_;
     },
 
-    checkTypeName_: function() {
+    checkTypeName_() {
       if (!this.typeName_) {
         throw new Error('Unable to determine typeName');
       }
@@ -108,7 +108,7 @@ tr.exportTo('tr.e.cc', function() {
       }
     },
 
-    determineModernTypeName_: function() {
+    determineModernTypeName_() {
       // This method works both on modern events titled like
       // "InputLatency::Foo" and also on the legacy subSlices titled like
       // "InputLatency:Foo". Modern events' titles contain 2 colons, whereas the
@@ -124,7 +124,7 @@ tr.exportTo('tr.e.cc', function() {
       this.checkTypeName_();
     },
 
-    determineLegacyTypeName_: function() {
+    determineLegacyTypeName_() {
       // Iterate over all descendent subSlices.
       for (var subSlice of this.enumerateAllDescendents()) {
         // If |subSlice| is not an InputLatencyAsyncSlice, then ignore it.
@@ -162,7 +162,7 @@ tr.exportTo('tr.e.cc', function() {
       this.checkTypeName_();
     },
 
-    getRendererHelper: function(sourceSlices) {
+    getRendererHelper(sourceSlices) {
       var traceModel = this.startThread.parent.model;
       var modelHelper = traceModel.getOrCreateHelper(
           tr.model.helpers.ChromeModelHelper);
@@ -198,14 +198,14 @@ tr.exportTo('tr.e.cc', function() {
       return undefined;
     },
 
-    addEntireSliceHierarchy: function(slice) {
+    addEntireSliceHierarchy(slice) {
       this.associatedEvents_.push(slice);
       slice.iterateAllSubsequentSlices(function(subsequentSlice) {
         this.associatedEvents_.push(subsequentSlice);
       }, this);
     },
 
-    addDirectlyAssociatedEvents: function(flowEvents) {
+    addDirectlyAssociatedEvents(flowEvents) {
       var slices = [];
 
       flowEvents.forEach(function(flowEvent) {
@@ -229,7 +229,7 @@ tr.exportTo('tr.e.cc', function() {
     // InputLatency::GestureScrollUpdate slice.
     // The C++ CL that makes this connection is at:
     // https://codereview.chromium.org/1178963003
-    addScrollUpdateEvents: function(rendererHelper) {
+    addScrollUpdateEvents(rendererHelper) {
       if (!rendererHelper || !rendererHelper.compositorThread) {
         return;
       }
@@ -274,7 +274,7 @@ tr.exportTo('tr.e.cc', function() {
     // Return true if the slice hierarchy is tracked by LatencyInfo of other
     // input latency events. If the slice hierarchy is tracked by both, this
     // function still returns true.
-    belongToOtherInputs: function(slice, flowEvents) {
+    belongToOtherInputs(slice, flowEvents) {
       var fromOtherInputs = false;
 
       slice.iterateEntireHierarchy(function(subsequentSlice) {
@@ -295,7 +295,7 @@ tr.exportTo('tr.e.cc', function() {
     },
 
     // Return true if |event| triggers slices of other inputs.
-    triggerOtherInputs: function(event, flowEvents) {
+    triggerOtherInputs(event, flowEvents) {
       if (event.outFlowEvents === undefined ||
           event.outFlowEvents.length === 0) {
         return false;
@@ -321,7 +321,7 @@ tr.exportTo('tr.e.cc', function() {
 
     // Follow outgoing flow of subsequentSlices in the current hierarchy.
     // We also handle cases where different inputs interfere with each other.
-    followSubsequentSlices: function(event, queue, visited, flowEvents) {
+    followSubsequentSlices(event, queue, visited, flowEvents) {
       var stopFollowing = false;
       var inputAck = false;
 
@@ -365,7 +365,7 @@ tr.exportTo('tr.e.cc', function() {
     },
 
     // Follow outgoing flow events of the current slice.
-    followCurrentSlice: function(event, queue, visited) {
+    followCurrentSlice(event, queue, visited) {
       event.outFlowEvents.forEach(function(outflow) {
         if ((outflow.category === POSTTASK_FLOW_EVENT ||
             outflow.category === IPC_FLOW_EVENT) &&
@@ -381,7 +381,7 @@ tr.exportTo('tr.e.cc', function() {
       }, this);
     },
 
-    backtraceFromDraw: function(beginImplFrame, visited) {
+    backtraceFromDraw(beginImplFrame, visited) {
       var pendingEventQueue = [];
       pendingEventQueue.push(beginImplFrame.mostTopLevelSlice);
 
@@ -405,7 +405,7 @@ tr.exportTo('tr.e.cc', function() {
       }
     },
 
-    sortRasterizerSlices: function(rasterWorkerThreads,
+    sortRasterizerSlices(rasterWorkerThreads,
         sortedRasterizerSlices) {
       rasterWorkerThreads.forEach(function(rasterizer) {
         Array.prototype.push.apply(sortedRasterizerSlices,
@@ -424,7 +424,7 @@ tr.exportTo('tr.e.cc', function() {
     // same as the prepare_tiles_id of TileManager::PrepareTiles
     // The C++ CL that makes this connection is at:
     // https://codereview.chromium.org/1208683002/
-    addRasterizationEvents: function(prepareTiles, rendererHelper,
+    addRasterizationEvents(prepareTiles, rendererHelper,
         visited, flowEvents, sortedRasterizerSlices) {
       if (!prepareTiles.args.prepare_tiles_id) return;
 
@@ -474,7 +474,7 @@ tr.exportTo('tr.e.cc', function() {
       }
     },
 
-    addOtherCausallyRelatedEvents: function(rendererHelper, sourceSlices,
+    addOtherCausallyRelatedEvents(rendererHelper, sourceSlices,
         flowEvents, sortedRasterizerSlices) {
       var pendingEventQueue = [];
       // Keep track of visited nodes when traversing a DAG

@@ -35,119 +35,119 @@ tr.exportTo('tr.ui.analysis', function() {
       return this.currentSelection_;
     },
 
-    updateContents_: function() {
+    updateContents_() {
       this.set('$.content.textContent', '');
       if (!this.currentSelection_) return;
 
       var columns = [
         {
           title: 'Tag/Name',
-          value: function(layoutObject) {
+          value(layoutObject) {
             return layoutObject.tag || ':' + layoutObject.name;
           }
         },
 
         {
           title: 'htmlId',
-          value: function(layoutObject) {
+          value(layoutObject) {
             return layoutObject.htmlId || '';
           }
         },
 
         {
           title: 'classNames',
-          value: function(layoutObject) {
+          value(layoutObject) {
             return layoutObject.classNames || '';
           }
         },
 
         {
           title: 'reasons',
-          value: function(layoutObject) {
+          value(layoutObject) {
             return layoutObject.needsLayoutReasons.join(', ');
           }
         },
 
         {
           title: 'width',
-          value: function(layoutObject) {
+          value(layoutObject) {
             return layoutObject.absoluteRect.width;
           }
         },
 
         {
           title: 'height',
-          value: function(layoutObject) {
+          value(layoutObject) {
             return layoutObject.absoluteRect.height;
           }
         },
 
         {
           title: 'absX',
-          value: function(layoutObject) {
+          value(layoutObject) {
             return layoutObject.absoluteRect.left;
           }
         },
 
         {
           title: 'absY',
-          value: function(layoutObject) {
+          value(layoutObject) {
             return layoutObject.absoluteRect.top;
           }
         },
 
         {
           title: 'relX',
-          value: function(layoutObject) {
+          value(layoutObject) {
             return layoutObject.relativeRect.left;
           }
         },
 
         {
           title: 'relY',
-          value: function(layoutObject) {
+          value(layoutObject) {
             return layoutObject.relativeRect.top;
           }
         },
 
         {
           title: 'float',
-          value: function(layoutObject) {
+          value(layoutObject) {
             return layoutObject.isFloat ? 'float' : '';
           }
         },
 
         {
           title: 'positioned',
-          value: function(layoutObject) {
+          value(layoutObject) {
             return layoutObject.isPositioned ? 'positioned' : '';
           }
         },
 
         {
           title: 'relative',
-          value: function(layoutObject) {
+          value(layoutObject) {
             return layoutObject.isRelativePositioned ? 'relative' : '';
           }
         },
 
         {
           title: 'sticky',
-          value: function(layoutObject) {
+          value(layoutObject) {
             return layoutObject.isStickyPositioned ? 'sticky' : '';
           }
         },
 
         {
           title: 'anonymous',
-          value: function(layoutObject) {
+          value(layoutObject) {
             return layoutObject.isAnonymous ? 'anonymous' : '';
           }
         },
 
         {
           title: 'row',
-          value: function(layoutObject) {
+          value(layoutObject) {
             if (layoutObject.tableRow === undefined) {
               return '';
             }
@@ -157,7 +157,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
         {
           title: 'col',
-          value: function(layoutObject) {
+          value(layoutObject) {
             if (layoutObject.tableCol === undefined) {
               return '';
             }
@@ -167,7 +167,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
         {
           title: 'rowSpan',
-          value: function(layoutObject) {
+          value(layoutObject) {
             if (layoutObject.tableRowSpan === undefined) {
               return '';
             }
@@ -177,7 +177,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
         {
           title: 'colSpan',
-          value: function(layoutObject) {
+          value(layoutObject) {
             if (layoutObject.tableColSpan === undefined) {
               return '';
             }
@@ -187,7 +187,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
         {
           title: 'address',
-          value: function(layoutObject) {
+          value(layoutObject) {
             return layoutObject.id.toString(16);
           }
         }

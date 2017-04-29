@@ -82,7 +82,7 @@ tr.exportTo('tr.b', function() {
       if (value === undefined) {
         throw new Error('Settings.set: value must not be undefined');
       }
-      var v = JSON.stringify({value: value});
+      var v = JSON.stringify({value});
       inputClass.storage_.setItem(
           inputClass.namespace_(key, opt_namespace), v);
     };
@@ -149,7 +149,7 @@ tr.exportTo('tr.b', function() {
     this.itemsAsArray_ = undefined;
   }
   HeadlessStorage.prototype = {
-    key: function(index) {
+    key(index) {
       return this.itemsAsArray[index];
     },
 
@@ -165,14 +165,14 @@ tr.exportTo('tr.b', function() {
       return this.itemsAsArray_;
     },
 
-    getItem: function(key) {
+    getItem(key) {
       if (!this.hasItem_[key]) {
         return null;
       }
       return this.items_[key];
     },
 
-    removeItem: function(key) {
+    removeItem(key) {
       if (!this.hasItem_[key]) {
         return;
       }
@@ -184,7 +184,7 @@ tr.exportTo('tr.b', function() {
       return value;
     },
 
-    setItem: function(key, value) {
+    setItem(key, value) {
       if (this.hasItem_[key]) {
         this.items_[key] = value;
         return;

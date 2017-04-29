@@ -60,7 +60,7 @@ tr.exportTo('tr.ui.analysis', function() {
      * This method should therefore NOT be overriden by subclasses. The
      * formatTitle method should be overriden instead when necessary.
      */
-    value: function(row) {
+    value(row) {
       var formattedTitle = this.formatTitle(row);
 
       var contexts = row.contexts;
@@ -121,11 +121,11 @@ tr.exportTo('tr.ui.analysis', function() {
      * Format the title associated with a given row. This method is intended to
      * be overriden by subclasses.
      */
-    formatTitle: function(row) {
+    formatTitle(row) {
       return row.title;
     },
 
-    cmp: function(rowA, rowB) {
+    cmp(rowA, rowB) {
       return COLLATOR.compare(rowA.title, rowB.title);
     }
   };
@@ -243,7 +243,7 @@ tr.exportTo('tr.ui.analysis', function() {
       column.shouldSetContextGroup = !!config.shouldSetContextGroup;
       positions.push({
         importance: matchingRule.importance,
-        column: column
+        column
       });
     });
 
@@ -301,7 +301,7 @@ tr.exportTo('tr.ui.analysis', function() {
       return this.name;
     },
 
-    cell: function(row) {
+    cell(row) {
       var cell = row;
       var cellPath = this.cellPath;
       for (var i = 0; i < cellPath.length; i++) {
@@ -311,11 +311,11 @@ tr.exportTo('tr.ui.analysis', function() {
       return cell;
     },
 
-    aggregateCells: function(row, subRows) {
+    aggregateCells(row, subRows) {
       // No generic aggregation.
     },
 
-    fields: function(row) {
+    fields(row) {
       var cell = this.cell(row);
       if (cell === undefined) return undefined;
       return cell.fields;
@@ -325,7 +325,7 @@ tr.exportTo('tr.ui.analysis', function() {
      * Format a cell associated with this column from the given row. This
      * method is not intended to be overriden.
      */
-    value: function(row) {
+    value(row) {
       var fields = this.fields(row);
       if (this.hasAllRelevantFieldsUndefined(fields)) return '';
 
@@ -378,7 +378,7 @@ tr.exportTo('tr.ui.analysis', function() {
      * Returns true iff all fields of a row which are relevant for the current
      * aggregation mode (e.g. first and last field for diff mode) are undefined.
      */
-    hasAllRelevantFieldsUndefined: function(fields) {
+    hasAllRelevantFieldsUndefined(fields) {
       if (fields === undefined) return true;
 
       switch (this.aggregationMode) {
@@ -399,7 +399,7 @@ tr.exportTo('tr.ui.analysis', function() {
      * field relevant for the current aggregation mode is guaranteed to be
      * defined.
      */
-    color: function(fields, contexts) {
+    color(fields, contexts) {
       return undefined;
     },
 
@@ -407,7 +407,7 @@ tr.exportTo('tr.ui.analysis', function() {
      * Format an arbitrary number of fields. At least one field relevant for
      * the current aggregation mode is guaranteed to be defined.
      */
-    formatFields: function(fields) {
+    formatFields(fields) {
       if (fields.length === 1) {
         return this.formatSingleField(fields[0]);
       }
@@ -421,7 +421,7 @@ tr.exportTo('tr.ui.analysis', function() {
      * (e.g. show '1.0 KiB' instead of '1024' for Scalar(s) representing
      * bytes).
      */
-    formatSingleField: function(field) {
+    formatSingleField(field) {
       throw new Error('Not implemented');
     },
 
@@ -433,7 +433,7 @@ tr.exportTo('tr.ui.analysis', function() {
      * formatMultipleFieldsDiff) are intended to be overriden by field type
      * specific columns.
      */
-    formatMultipleFields: function(fields) {
+    formatMultipleFields(fields) {
       switch (this.aggregationMode) {
         case MemoryColumn.AggregationMode.DIFF:
           return this.formatMultipleFieldsDiff(
@@ -450,15 +450,15 @@ tr.exportTo('tr.ui.analysis', function() {
       }
     },
 
-    formatMultipleFieldsDiff: function(firstField, lastField) {
+    formatMultipleFieldsDiff(firstField, lastField) {
       throw new Error('Not implemented');
     },
 
-    formatMultipleFieldsMax: function(fields) {
+    formatMultipleFieldsMax(fields) {
       return this.formatSingleField(this.getMaxField(fields));
     },
 
-    cmp: function(rowA, rowB) {
+    cmp(rowA, rowB) {
       var fieldsA = this.fields(rowA);
       var fieldsB = this.fields(rowB);
 
@@ -483,7 +483,7 @@ tr.exportTo('tr.ui.analysis', function() {
      * for the current aggregation mode is guaranteed to be defined in each of
      * the two lists.
      */
-    compareFields: function(fieldsA, fieldsB) {
+    compareFields(fieldsA, fieldsB) {
       if (fieldsA.length === 1) {
         return this.compareSingleFields(fieldsA[0], fieldsB[0]);
       }
@@ -495,7 +495,7 @@ tr.exportTo('tr.ui.analysis', function() {
      *
      * This method is intended to be overriden by field type specific columns.
      */
-    compareSingleFields: function(fieldA, fieldB) {
+    compareSingleFields(fieldA, fieldB) {
       throw new Error('Not implemented');
     },
 
@@ -508,7 +508,7 @@ tr.exportTo('tr.ui.analysis', function() {
      * compareMultipleFieldsDiff) are intended to be overriden by field type
      * specific columns.
      */
-    compareMultipleFields: function(fieldsA, fieldsB) {
+    compareMultipleFields(fieldsA, fieldsB) {
       switch (this.aggregationMode) {
         case MemoryColumn.AggregationMode.DIFF:
           return this.compareMultipleFieldsDiff(
@@ -523,17 +523,17 @@ tr.exportTo('tr.ui.analysis', function() {
       }
     },
 
-    compareMultipleFieldsDiff: function(firstFieldA, lastFieldA, firstFieldB,
+    compareMultipleFieldsDiff(firstFieldA, lastFieldA, firstFieldB,
         lastFieldB) {
       throw new Error('Not implemented');
     },
 
-    compareMultipleFieldsMax: function(fieldsA, fieldsB) {
+    compareMultipleFieldsMax(fieldsA, fieldsB) {
       return this.compareSingleFields(
           this.getMaxField(fieldsA), this.getMaxField(fieldsB));
     },
 
-    getMaxField: function(fields) {
+    getMaxField(fields) {
       return fields.reduce(function(accumulator, field) {
         if (field === undefined) {
           return accumulator;
@@ -546,11 +546,11 @@ tr.exportTo('tr.ui.analysis', function() {
       }.bind(this), undefined);
     },
 
-    addInfos: function(fields, contexts, infos) {
+    addInfos(fields, contexts, infos) {
       // No generic infos.
     },
 
-    getImportance: function(importanceRules) {
+    getImportance(importanceRules) {
       if (importanceRules.length === 0) return 0;
 
       // Find the first matching rule.
@@ -579,11 +579,11 @@ tr.exportTo('tr.ui.analysis', function() {
   StringMemoryColumn.prototype = {
     __proto__: MemoryColumn.prototype,
 
-    formatSingleField: function(string) {
+    formatSingleField(string) {
       return string;
     },
 
-    formatMultipleFieldsDiff: function(firstString, lastString) {
+    formatMultipleFieldsDiff(firstString, lastString) {
       if (firstString === undefined) {
         // String was added ("+NEW_VALUE" in red).
         var spanEl = tr.ui.b.createSpan({color: 'red'});
@@ -613,11 +613,11 @@ tr.exportTo('tr.ui.analysis', function() {
       return spanEl;
     },
 
-    compareSingleFields: function(stringA, stringB) {
+    compareSingleFields(stringA, stringB) {
       return COLLATOR.compare(stringA, stringB);
     },
 
-    compareMultipleFieldsDiff: function(firstStringA, lastStringA, firstStringB,
+    compareMultipleFieldsDiff(firstStringA, lastStringA, firstStringB,
         lastStringB) {
       // If one of the strings was added (and the other one wasn't), mark the
       // corresponding diff as greater.
@@ -681,7 +681,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
     align: tr.ui.b.TableFormat.ColumnAlignment.RIGHT,
 
-    aggregateCells: function(row, subRows) {
+    aggregateCells(row, subRows) {
       var subRowCells = subRows.map(this.cell, this);
 
       // Determine if there is at least one defined numeric in the sub-row
@@ -746,7 +746,7 @@ tr.exportTo('tr.ui.analysis', function() {
       }
     },
 
-    formatSingleField: function(numeric) {
+    formatSingleField(numeric) {
       return tr.v.ui.createScalarSpan(numeric, {
         context: this.getFormattingContext(numeric.unit),
         contextGroup: this.shouldSetContextGroup ? this.name : undefined,
@@ -754,32 +754,32 @@ tr.exportTo('tr.ui.analysis', function() {
       });
     },
 
-    getFormattingContext: function(unit) {
+    getFormattingContext(unit) {
       return undefined;
     },
 
-    formatMultipleFieldsDiff: function(firstNumeric, lastNumeric) {
+    formatMultipleFieldsDiff(firstNumeric, lastNumeric) {
       return this.formatSingleField(
           this.getDiffField_(firstNumeric, lastNumeric));
     },
 
-    compareSingleFields: function(numericA, numericB) {
+    compareSingleFields(numericA, numericB) {
       return numericA.value - numericB.value;
     },
 
-    compareMultipleFieldsDiff: function(firstNumericA, lastNumericA,
+    compareMultipleFieldsDiff(firstNumericA, lastNumericA,
         firstNumericB, lastNumericB) {
       return this.getDiffFieldValue_(firstNumericA, lastNumericA) -
           this.getDiffFieldValue_(firstNumericB, lastNumericB);
     },
 
-    getDiffField_: function(firstNumeric, lastNumeric) {
+    getDiffField_(firstNumeric, lastNumeric) {
       var definedNumeric = firstNumeric || lastNumeric;
       return new tr.b.Scalar(definedNumeric.unit.correspondingDeltaUnit,
           this.getDiffFieldValue_(firstNumeric, lastNumeric));
     },
 
-    getDiffFieldValue_: function(firstNumeric, lastNumeric) {
+    getDiffFieldValue_(firstNumeric, lastNumeric) {
       var firstValue = firstNumeric === undefined ? 0 : firstNumeric.value;
       var lastValue = lastNumeric === undefined ? 0 : lastNumeric.value;
       var diff = lastValue - firstValue;
@@ -871,7 +871,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
   function createWarningInfo(message) {
     return {
-      message: message,
+      message,
       icon: String.fromCharCode(9888),
       color: 'red'
     };
@@ -886,7 +886,7 @@ tr.exportTo('tr.ui.analysis', function() {
   DetailsNumericMemoryColumn.prototype = {
     __proto__: NumericMemoryColumn.prototype,
 
-    getFormattingContext: function(unit) {
+    getFormattingContext(unit) {
       if (unit.baseUnit === tr.b.Unit.byName.sizeInBytes) {
         return { unitPrefix: tr.b.UnitPrefixScale.BINARY.KIBI };
       }

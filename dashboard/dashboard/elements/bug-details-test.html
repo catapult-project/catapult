@@ -86,7 +86,7 @@ const errorResponse = new Error('invalid bug!');
 var xhrCalls = 0;  // Keeps track of misses on the cache.
 
 var testOptions = {
-  setUp: function() {
+  setUp() {
     // TODO(eakuefner) Be able to correctly mock XHR here.
     // See https://github.com/catapult-project/catapult/issues/3449
     d.BugDetails.reset();
@@ -96,12 +96,12 @@ var testOptions = {
       return await mockResponse;
     };
   },
-  tearDown: function() {
+  tearDown() {
   }
 };
 
 var testOptionsForError = {
-  setUp: function() {
+  setUp() {
     d.BugDetails.reset();
     xhrCalls = 0;
     d.BugDetails.makeMonorailCall = async function(bugId) {
@@ -109,7 +109,7 @@ var testOptionsForError = {
       return Promise.reject(errorResponse);
     };
   },
-  tearDown: function() {
+  tearDown() {
   }
 };
 

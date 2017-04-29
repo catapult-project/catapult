@@ -70,11 +70,11 @@ tr.exportTo('tr.model', function() {
       this.timestamp_ = timestamp;
     },
 
-    addBoundsToRange: function(range) {
+    addBoundsToRange(range) {
       range.addValue(this.timestamp);
     },
 
-    getSampleIndex: function() {
+    getSampleIndex() {
       return tr.b.math.findLowIndexInSortedArray(
           this.series.timestamps,
           function(x) { return x; },

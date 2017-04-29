@@ -101,9 +101,9 @@ tr.b.unittest.testSuite(function() {
     }
 
     timedPerfTest(name, testFn, {
-      setUp: setUp,
-      tearDown: tearDown,
-      iterations: iterations
+      setUp,
+      tearDown,
+      iterations
     });
   }
 

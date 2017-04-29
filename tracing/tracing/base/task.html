@@ -64,7 +64,7 @@ tr.exportTo('tr.b', function() {
     /*
      * See constructor documentation on semantics of subtasks.
      */
-    subTask: function(cb, thisArg) {
+    subTask(cb, thisArg) {
       if (cb instanceof Task) {
         this.subTasks_.push(cb);
       } else {
@@ -76,7 +76,7 @@ tr.exportTo('tr.b', function() {
     /**
      * Runs the current task and returns the task that should be executed next.
      */
-    run: function() {
+    run() {
       if (this.runCb_ !== undefined) this.runCb_.call(this.thisArg_, this);
       var subTasks = this.subTasks_;
       this.subTasks_ = undefined; // Prevent more subTasks from being posted.
@@ -98,7 +98,7 @@ tr.exportTo('tr.b', function() {
     /*
      * See constructor documentation on semantics of after tasks.
      */
-    after: function(cb, thisArg) {
+    after(cb, thisArg) {
       if (this.afterTask_) {
         throw new Error('Has an after task already');
       }
@@ -116,7 +116,7 @@ tr.exportTo('tr.b', function() {
      * This is because task system doesn't support catching currently.
      * At the time of writing, this is considered to be an acceptable tradeoff.
      */
-    timedAfter: function(groupName, cb, thisArg, opt_args) {
+    timedAfter(groupName, cb, thisArg, opt_args) {
       if (cb.name === '') {
         throw new Error('Anonymous Task is not allowed');
       }
@@ -129,7 +129,7 @@ tr.exportTo('tr.b', function() {
      * This is because task system doesn't support catching currently.
      * At the time of writing, this is considered to be an acceptable tradeoff.
      */
-    namedTimedAfter: function(groupName, name, cb, thisArg, opt_args) {
+    namedTimedAfter(groupName, name, cb, thisArg, opt_args) {
       if (this.afterTask_) {
         throw new Error('Has an after task already');
       }
@@ -152,7 +152,7 @@ tr.exportTo('tr.b', function() {
     /*
      * Adds a task after the chain of tasks.
      */
-    enqueue: function(cb, thisArg) {
+    enqueue(cb, thisArg) {
       if (!this.afterTask_) return this.after(cb, thisArg);
       return this.afterTask_.enqueue(cb, thisArg);
     }

@@ -28,7 +28,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     __proto__: ContainerTrack.prototype,
 
-    decorate: function(viewport) {
+    decorate(viewport) {
       ContainerTrack.prototype.decorate.call(this, viewport);
 
       Polymer.dom(this).classList.add('device-track');
@@ -54,19 +54,19 @@ tr.exportTo('tr.ui.tracks', function() {
           this.powerSeriesTrack_.hasVisibleContent);
     },
 
-    addContainersToTrackMap: function(containerToTrackMap) {
+    addContainersToTrackMap(containerToTrackMap) {
       tr.ui.tracks.ContainerTrack.prototype.addContainersToTrackMap.call(
           this, containerToTrackMap);
       containerToTrackMap.addContainer(this.device, this);
     },
 
-    addEventsToTrackMap: function(eventToTrackMap) {
+    addEventsToTrackMap(eventToTrackMap) {
       this.tracks_.forEach(function(track) {
         track.addEventsToTrackMap(eventToTrackMap);
       });
     },
 
-    appendPowerSeriesTrack_: function() {
+    appendPowerSeriesTrack_() {
       this.powerSeriesTrack_ = new tr.ui.tracks.PowerSeriesTrack(this.viewport);
       this.powerSeriesTrack_.powerSeries = this.device.powerSeries;
 
@@ -77,7 +77,7 @@ tr.exportTo('tr.ui.tracks', function() {
       }
     },
 
-    updateContents_: function() {
+    updateContents_() {
       this.clearTracks_();
       this.appendPowerSeriesTrack_();
     }

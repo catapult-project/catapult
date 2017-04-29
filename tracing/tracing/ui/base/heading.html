@@ -54,7 +54,7 @@ Polymer({
   DOWN_ARROW: String.fromCharCode(0x25BE),
   RIGHT_ARROW: String.fromCharCode(0x25B8),
 
-  ready: function(viewport) {
+  ready(viewport) {
     // Minus 6 === 1px border + 5px padding right.
     this.style.width = (tr.ui.b.constants.HEADING_WIDTH - 6) + 'px';
 
@@ -106,11 +106,11 @@ Polymer({
     this.updateContents_();
   },
 
-  onHeadingDivClicked_: function() {
+  onHeadingDivClicked_() {
     this.dispatchEvent(new tr.b.Event('heading-clicked', true));
   },
 
-  updateContents_: function() {
+  updateContents_() {
     if (this.arrowVisible_) {
       this.$.arrow.style.display = '';
     } else {

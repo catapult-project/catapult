@@ -42,7 +42,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
   PowerParser.prototype = {
     __proto__: Parser.prototype,
 
-    cpuStateSlice: function(ts, targetCpuNumber, eventType, cpuState) {
+    cpuStateSlice(ts, targetCpuNumber, eventType, cpuState) {
       var targetCpu = this.importer.getOrCreateCpu(targetCpuNumber);
       var powerCounter;
       if (eventType !== '1') {
@@ -64,7 +64,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       });
     },
 
-    cpuIdleSlice: function(ts, targetCpuNumber, cpuState) {
+    cpuIdleSlice(ts, targetCpuNumber, cpuState) {
       var targetCpu = this.importer.getOrCreateCpu(targetCpuNumber);
       var powerCounter = targetCpu.getOrCreateCounter('', 'C-State');
       if (powerCounter.numSeries === 0) {
@@ -78,7 +78,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       });
     },
 
-    cpuFrequencySlice: function(ts, targetCpuNumber, powerState) {
+    cpuFrequencySlice(ts, targetCpuNumber, powerState) {
       var targetCpu = this.importer.getOrCreateCpu(targetCpuNumber);
       var powerCounter =
           targetCpu.getOrCreateCounter('', 'Clock Frequency');
@@ -92,7 +92,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       });
     },
 
-    cpuFrequencyLimitsSlice: function(ts, targetCpuNumber, minFreq, maxFreq) {
+    cpuFrequencyLimitsSlice(ts, targetCpuNumber, minFreq, maxFreq) {
       var targetCpu = this.importer.getOrCreateCpu(targetCpuNumber);
       var powerCounter =
           targetCpu.getOrCreateCounter('', 'Clock Frequency Limits');
@@ -117,7 +117,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     /**
      * Parses power events and sets up state in the importer.
      */
-    powerStartEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+    powerStartEvent(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /type=(\d+) state=(\d) cpu_id=(\d+)/.exec(eventBase.details);
       if (!event) return false;
 
@@ -127,7 +127,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       return true;
     },
 
-    powerFrequencyEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+    powerFrequencyEvent(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /type=(\d+) state=(\d+) cpu_id=(\d+)/
           .exec(eventBase.details);
       if (!event) return false;
@@ -138,7 +138,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       return true;
     },
 
-    cpuFrequencyEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+    cpuFrequencyEvent(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /state=(\d+) cpu_id=(\d+)/.exec(eventBase.details);
       if (!event) return false;
 
@@ -148,7 +148,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       return true;
     },
 
-    cpuFrequencyLimitsEvent: function(eventName, cpu, pid, ts, eventBase) {
+    cpuFrequencyLimitsEvent(eventName, cpu, pid, ts, eventBase) {
       var event = /min=(\d+) max=(\d+) cpu_id=(\d+)/.exec(eventBase.details);
       if (!event) return false;
 
@@ -159,7 +159,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       return true;
     },
 
-    cpuIdleEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+    cpuIdleEvent(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /state=(\d+) cpu_id=(\d+)/.exec(eventBase.details);
       if (!event) return false;
 

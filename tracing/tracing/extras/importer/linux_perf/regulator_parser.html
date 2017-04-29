@@ -57,7 +57,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     /**
      * Get or create a counter with one series.
      */
-    getCtr_: function(ctrName, valueName) {
+    getCtr_(ctrName, valueName) {
       var ctr = this.model_.kernel
         .getOrCreateCounter(null, 'vreg ' + ctrName + ' ' + valueName);
       // Initialize the counter's series fields if needed.
@@ -72,7 +72,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     /**
      * Parses regulator events and sets up state in the importer.
      */
-    regulatorEnableEvent: function(eventName, cpuNum, pid, ts, eventBase) {
+    regulatorEnableEvent(eventName, cpuNum, pid, ts, eventBase) {
       var event = regulatorEnableRE.exec(eventBase.details);
       if (!event) return false;
 
@@ -84,16 +84,16 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       return true;
     },
 
-    regulatorEnableDelayEvent: function(eventName, cpuNum, pid, ts, eventBase) {
+    regulatorEnableDelayEvent(eventName, cpuNum, pid, ts, eventBase) {
       return true;
     },
 
-    regulatorEnableCompleteEvent: function(eventName, cpuNum, pid, ts,
+    regulatorEnableCompleteEvent(eventName, cpuNum, pid, ts,
         eventBase) {
       return true;
     },
 
-    regulatorDisableEvent: function(eventName, cpuNum, pid, ts, eventBase) {
+    regulatorDisableEvent(eventName, cpuNum, pid, ts, eventBase) {
       var event = regulatorDisableRE.exec(eventBase.details);
       if (!event) return false;
 
@@ -105,16 +105,16 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       return true;
     },
 
-    regulatorDisableCompleteEvent: function(eventName, cpuNum, pid, ts,
+    regulatorDisableCompleteEvent(eventName, cpuNum, pid, ts,
         eventBase) {
       return true;
     },
 
-    regulatorSetVoltageEvent: function(eventName, cpuNum, pid, ts, eventBase) {
+    regulatorSetVoltageEvent(eventName, cpuNum, pid, ts, eventBase) {
       return true;
     },
 
-    regulatorSetVoltageCompleteEvent: function(eventName, cpuNum, pid, ts,
+    regulatorSetVoltageCompleteEvent(eventName, cpuNum, pid, ts,
         eventBase) {
       var event = regulatorSetVoltageCompleteRE.exec(eventBase.details);
       if (!event) return false;

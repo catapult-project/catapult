@@ -29,11 +29,11 @@ Polymer({
   is: 'tr-ui-a-single-sample-sub-view',
   behaviors: [tr.ui.analysis.AnalysisSubView],
 
-  created: function() {
+  created() {
     this.currentSelection_ = undefined;
   },
 
-  ready: function() {
+  ready() {
     this.$.content.tableColumns = [
       {
         title: '',

@@ -77,7 +77,7 @@ tr.exportTo('tr.model.helpers', function() {
   };
 
   AndroidModelHelper.prototype = {
-    iterateImportantSlices: function(callback) {
+    iterateImportantSlices(callback) {
       if (this.surfaceFlinger) {
         iterateImportantThreadSlices(
             this.surfaceFlinger.thread,

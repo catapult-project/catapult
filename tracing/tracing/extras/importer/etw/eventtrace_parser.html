@@ -36,7 +36,7 @@ tr.exportTo('tr.e.importer.etw', function() {
   EventTraceParser.prototype = {
     __proto__: Parser.prototype,
 
-    decodeFields: function(header, decoder) {
+    decodeFields(header, decoder) {
       if (header.version !== 2) {
         throw new Error('Incompatible EventTrace event version.');
       }
@@ -67,33 +67,33 @@ tr.exportTo('tr.e.importer.etw', function() {
       var logFileNameString = decoder.decodeW16String();
 
       return {
-        bufferSize: bufferSize,
-        version: version,
-        providerVersion: providerVersion,
-        numberOfProcessors: numberOfProcessors,
-        endTime: endTime,
-        timerResolution: timerResolution,
-        maxFileSize: maxFileSize,
-        logFileMode: logFileMode,
-        buffersWritten: buffersWritten,
-        startBuffers: startBuffers,
-        pointerSize: pointerSize,
-        eventsLost: eventsLost,
-        cpuSpeed: cpuSpeed,
-        loggerName: loggerName,
-        logFileName: logFileName,
-        timeZoneInformation: timeZoneInformation,
-        bootTime: bootTime,
-        perfFreq: perfFreq,
-        startTime: startTime,
-        reservedFlags: reservedFlags,
-        buffersLost: buffersLost,
-        sessionNameString: sessionNameString,
-        logFileNameString: logFileNameString
+        bufferSize,
+        version,
+        providerVersion,
+        numberOfProcessors,
+        endTime,
+        timerResolution,
+        maxFileSize,
+        logFileMode,
+        buffersWritten,
+        startBuffers,
+        pointerSize,
+        eventsLost,
+        cpuSpeed,
+        loggerName,
+        logFileName,
+        timeZoneInformation,
+        bootTime,
+        perfFreq,
+        startTime,
+        reservedFlags,
+        buffersLost,
+        sessionNameString,
+        logFileNameString
       };
     },
 
-    decodeHeader: function(header, decoder) {
+    decodeHeader(header, decoder) {
       var fields = this.decodeFields(header, decoder);
       // TODO(etienneb): Update the Model with |fields|.
       return true;

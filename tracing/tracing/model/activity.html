@@ -40,11 +40,11 @@ tr.exportTo('tr.model', function() {
   Activity.prototype = {
     __proto__: tr.model.TimedEvent.prototype,
 
-    shiftTimestampsForward: function(amount) {
+    shiftTimestampsForward(amount) {
       this.start += amount;
     },
 
-    addBoundsToRange: function(range) {
+    addBoundsToRange(range) {
       range.addValue(this.start);
       range.addValue(this.end);
     }

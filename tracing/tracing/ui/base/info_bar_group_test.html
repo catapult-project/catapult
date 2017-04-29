@@ -14,10 +14,10 @@ tr.b.unittest.testSuite(function() {
     var infoBarGroup = document.createElement('tr-ui-b-info-bar-group');
     infoBarGroup.addMessage(
         'Message 1',
-        [{buttonText: 'ok', onClick: function() {}}]);
+        [{buttonText: 'ok', onClick() {}}]);
     infoBarGroup.addMessage(
         'Message 2',
-        [{buttonText: 'button 2', onClick: function() {}}]);
+        [{buttonText: 'button 2', onClick() {}}]);
     this.addHTMLOutput(infoBarGroup);
   });
 
@@ -25,10 +25,10 @@ tr.b.unittest.testSuite(function() {
     var infoBarGroup = document.createElement('tr-ui-b-info-bar-group');
     infoBarGroup.addMessage(
         'Message 1',
-        [{buttonText: 'ok', onClick: function() {}}]);
+        [{buttonText: 'ok', onClick() {}}]);
     infoBarGroup.addMessage(
         'Message 2',
-        [{buttonText: 'button 2', onClick: function() {}}]);
+        [{buttonText: 'button 2', onClick() {}}]);
     infoBarGroup.clearMessages();
     assert.strictEqual(infoBarGroup.children.length, 0);
   });
@@ -37,14 +37,14 @@ tr.b.unittest.testSuite(function() {
     var infoBarGroup = document.createElement('tr-ui-b-info-bar-group');
     infoBarGroup.addMessage(
         'Message 1',
-        [{buttonText: 'ok', onClick: function() {}}]);
+        [{buttonText: 'ok', onClick() {}}]);
     infoBarGroup.addMessage(
         'Message 2',
-        [{buttonText: 'button 2', onClick: function() {}}]);
+        [{buttonText: 'button 2', onClick() {}}]);
     infoBarGroup.clearMessages();
     infoBarGroup.addMessage(
         'Message 1',
-        [{buttonText: 'ok', onClick: function() {}}]);
+        [{buttonText: 'ok', onClick() {}}]);
     this.addHTMLOutput(infoBarGroup);
   });
 });

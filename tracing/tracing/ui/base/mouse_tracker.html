@@ -48,7 +48,7 @@ tr.exportTo('tr.ui.b', function() {
       }
     },
 
-    onMouseDown_: function(e) {
+    onMouseDown_(e) {
       if (e.button !== 0) return true;
 
       e = this.remakeEvent_(e, 'mouse-tracker-start');
@@ -62,12 +62,12 @@ tr.exportTo('tr.ui.b', function() {
       return true;
     },
 
-    onMouseMove_: function(e) {
+    onMouseMove_(e) {
       e = this.remakeEvent_(e, 'mouse-tracker-move');
       this.targetElement_.dispatchEvent(e);
     },
 
-    onMouseUp_: function(e) {
+    onMouseUp_(e) {
       document.removeEventListener('mousemove', this.onMouseMove_);
       document.removeEventListener('mouseup', this.onMouseUp_);
       this.targetElement_.removeEventListener('blur', this.onMouseUp_);
@@ -77,7 +77,7 @@ tr.exportTo('tr.ui.b', function() {
       this.targetElement_.dispatchEvent(e);
     },
 
-    remakeEvent_: function(e, newType) {
+    remakeEvent_(e, newType) {
       var remade = new tr.b.Event(newType, true, true);
       remade.x = e.x;
       remade.y = e.y;

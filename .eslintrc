@@ -114,6 +114,7 @@
       "no-whitespace-before-property": "off",
       "no-with": "error",
       "object-curly-spacing": "off",
+      "object-shorthand": ["error", "always"],
       "one-var": ["error", {
         var: "never",
         let: "never",

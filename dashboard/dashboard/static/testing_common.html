@@ -148,12 +148,12 @@ var testing_common = (function() {
   function mockChartJson(mockData, mockSelectedData, sid) {
     if (sid) {
       var selectedParams = {
-        'sid': sid,
+        sid,
         'test_path_dict': mockData.testPathDict,
         'is_selected': true
       };
       var unselectedParams = {
-        'sid': sid,
+        sid,
         'test_path_dict': mockData.testPathDict
       };
     } else {
@@ -180,14 +180,14 @@ var testing_common = (function() {
   }
 
   return {
-    addXhrMock: addXhrMock,
-    clearXhrMock: clearXhrMock,
-    deepCopy: deepCopy,
-    addToFixture: addToFixture,
-    clearFixture: clearFixture,
-    mockChartJson: mockChartJson,
-    paramString: paramString,
-    sortQueryPart: sortQueryPart
+    addXhrMock,
+    clearXhrMock,
+    deepCopy,
+    addToFixture,
+    clearFixture,
+    mockChartJson,
+    paramString,
+    sortQueryPart
   };
 })();
 

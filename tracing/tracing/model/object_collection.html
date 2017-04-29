@@ -40,14 +40,14 @@ tr.exportTo('tr.model', function() {
   ObjectCollection.prototype = {
     __proto__: tr.model.EventContainer.prototype,
 
-    childEvents: function* () {
+    * childEvents() {
       for (var instance of this.getAllObjectInstances()) {
         yield instance;
         yield* instance.snapshots;
       }
     },
 
-    createObjectInstance_: function(
+    createObjectInstance_(
         parent, scopedId, category, name, creationTs, opt_baseTypeName) {
       var constructor = tr.model.ObjectInstance.subTypes.getConstructor(
           category, name);
@@ -63,7 +63,7 @@ tr.exportTo('tr.model', function() {
       return instance;
     },
 
-    getOrCreateInstanceMap_: function(scopedId) {
+    getOrCreateInstanceMap_(scopedId) {
       var dict;
       if (scopedId.scope in this.instanceMapsByScopedId_) {
         dict = this.instanceMapsByScopedId_[scopedId.scope];
@@ -79,12 +79,12 @@ tr.exportTo('tr.model', function() {
       return instanceMap;
     },
 
-    idWasCreated: function(scopedId, category, name, ts) {
+    idWasCreated(scopedId, category, name, ts) {
       var instanceMap = this.getOrCreateInstanceMap_(scopedId);
       return instanceMap.idWasCreated(category, name, ts);
     },
 
-    addSnapshot: function(
+    addSnapshot(
         scopedId, category, name, ts, args, opt_baseTypeName) {
       var instanceMap = this.getOrCreateInstanceMap_(scopedId);
       var snapshot = instanceMap.addSnapshot(
@@ -111,7 +111,7 @@ tr.exportTo('tr.model', function() {
       return snapshot;
     },
 
-    idWasDeleted: function(scopedId, category, name, ts) {
+    idWasDeleted(scopedId, category, name, ts) {
       var instanceMap = this.getOrCreateInstanceMap_(scopedId);
       var deletedInstance = instanceMap.idWasDeleted(category, name, ts);
       if (!deletedInstance) return;
@@ -132,7 +132,7 @@ tr.exportTo('tr.model', function() {
       }
     },
 
-    autoDeleteObjects: function(maxTimestamp) {
+    autoDeleteObjects(maxTimestamp) {
       for (var imapById of Object.values(this.instanceMapsByScopedId_)) {
         for (var i2imap of Object.values(imapById)) {
           var lastInstance = i2imap.lastInstance;
@@ -146,7 +146,7 @@ tr.exportTo('tr.model', function() {
       }
     },
 
-    getObjectInstanceAt: function(scopedId, ts) {
+    getObjectInstanceAt(scopedId, ts) {
       var instanceMap;
       if (scopedId.scope in this.instanceMapsByScopedId_) {
         instanceMap = this.instanceMapsByScopedId_[scopedId.scope][scopedId.id];
@@ -155,13 +155,13 @@ tr.exportTo('tr.model', function() {
       return instanceMap.getInstanceAt(ts);
     },
 
-    getSnapshotAt: function(scopedId, ts) {
+    getSnapshotAt(scopedId, ts) {
       var instance = this.getObjectInstanceAt(scopedId, ts);
       if (!instance) return undefined;
       return instance.getSnapshotAt(ts);
     },
 
-    iterObjectInstances: function(iter, opt_this) {
+    iterObjectInstances(iter, opt_this) {
       opt_this = opt_this || this;
       for (var imapById of Object.values(this.instanceMapsByScopedId_)) {
         for (var i2imap of Object.values(imapById)) {
@@ -170,39 +170,39 @@ tr.exportTo('tr.model', function() {
       }
     },
 
-    getAllObjectInstances: function() {
+    getAllObjectInstances() {
       var instances = [];
       this.iterObjectInstances(function(i) { instances.push(i); });
       return instances;
     },
 
-    getAllInstancesNamed: function(name) {
+    getAllInstancesNamed(name) {
       return this.instancesByTypeName_[name];
     },
 
-    getAllInstancesByTypeName: function() {
+    getAllInstancesByTypeName() {
       return this.instancesByTypeName_;
     },
 
-    preInitializeAllObjects: function() {
+    preInitializeAllObjects() {
       this.iterObjectInstances(function(instance) {
         instance.preInitialize();
       });
     },
 
-    initializeAllObjects: function() {
+    initializeAllObjects() {
       this.iterObjectInstances(function(instance) {
         instance.initialize();
       });
     },
 
-    initializeInstances: function() {
+    initializeInstances() {
       this.iterObjectInstances(function(instance) {
         instance.initialize();
       });
     },
 
-    updateBounds: function() {
+    updateBounds() {
       this.bounds.reset();
       this.iterObjectInstances(function(instance) {
         instance.updateBounds();
@@ -210,13 +210,13 @@ tr.exportTo('tr.model', function() {
       }, this);
     },
 
-    shiftTimestampsForward: function(amount) {
+    shiftTimestampsForward(amount) {
       this.iterObjectInstances(function(instance) {
         instance.shiftTimestampsForward(amount);
       });
     },
 
-    addCategoriesToDict: function(categoriesDict) {
+    addCategoriesToDict(categoriesDict) {
       this.iterObjectInstances(function(instance) {
         categoriesDict[instance.category] = true;
       });

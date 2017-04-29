@@ -169,7 +169,7 @@ tr.exportTo('tr.e.chrome', function() {
       return this.childLayoutObjects_;
     },
 
-    traverseTree: function(cb, opt_this) {
+    traverseTree(cb, opt_this) {
       cb.call(opt_this, this);
       if (!this.hasChildLayoutObjects) return;
       this.childLayoutObjects.forEach(function(child) {
@@ -185,7 +185,7 @@ tr.exportTo('tr.e.chrome', function() {
       return names;
     },
 
-    getProperty: function(name) {
+    getProperty(name) {
       return this.otherProperties_[name];
     },
 

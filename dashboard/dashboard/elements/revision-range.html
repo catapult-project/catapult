@@ -83,7 +83,7 @@ to allow it to show links).
           start: { notify: true }
         },
 
-        computeRevisionRange: function(start, end) {
+        computeRevisionRange(start, end) {
           if (!start || !end) {
             return '';
           }

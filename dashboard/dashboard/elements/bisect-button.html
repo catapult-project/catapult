@@ -66,7 +66,7 @@ found in the LICENSE file.
         /**
          * Determines whether or not this is bisectable.
          */
-        computeCanBisect: function(bisectInfo) {
+        computeCanBisect(bisectInfo) {
           // If there's only a single revision in the range, bisecting
           // is pointless and the button should be disabled.
           return (bisectInfo != null && bisectInfo.canBisect &&
@@ -76,7 +76,7 @@ found in the LICENSE file.
         /**
          * Displays the bisect-form when the bisect button is clicked.
          */
-        onBisect: function() {
+        onBisect() {
           this.$.bisect.show();
         }
       });

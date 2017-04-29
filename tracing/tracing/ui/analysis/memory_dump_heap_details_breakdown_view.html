@@ -47,7 +47,7 @@ tr.exportTo('tr.ui.analysis', function() {
   EmptyFillerColumn.prototype = {
     title: '',
 
-    value: function() {
+    value() {
       return '';
     },
   };
@@ -56,12 +56,12 @@ tr.exportTo('tr.ui.analysis', function() {
     is: 'tr-ui-a-memory-dump-heap-details-breakdown-view',
     behaviors: [tr.ui.analysis.RebuildableBehavior],
 
-    created: function() {
+    created() {
       this.displayedNode_ = undefined;
       this.dimensionToTab_ = new Map();
     },
 
-    ready: function() {
+    ready() {
       this.scheduleRebuild_();
       this.root.addEventListener('keydown', this.onKeyDown_.bind(this), true);
     },
@@ -86,7 +86,7 @@ tr.exportTo('tr.ui.analysis', function() {
       }
     },
 
-    onRebuild_: function() {
+    onRebuild_() {
       var previouslySelectedTab = this.$.tabs.selectedSubView;
       var previouslySelectedTabFocused = false;
       var previouslySelectedDimension = undefined;
@@ -131,7 +131,7 @@ tr.exportTo('tr.ui.analysis', function() {
       }
     },
 
-    onKeyDown_: function(keyEvent) {
+    onKeyDown_(keyEvent) {
       if (!this.displayedNode_) return;
 
       var keyHandled = false;
@@ -167,14 +167,14 @@ tr.exportTo('tr.ui.analysis', function() {
     is: 'tr-ui-a-memory-dump-heap-details-breakdown-view-tab',
     behaviors: [tr.ui.analysis.RebuildableBehavior],
 
-    created: function() {
+    created() {
       this.dimension_ = undefined;
       this.nodes_ = undefined;
       this.aggregationMode_ = undefined;
       this.displayLongTail_ = false;
     },
 
-    ready: function() {
+    ready() {
       this.$.table.addEventListener('step-into', function(tableEvent) {
         var viewEvent = new tr.b.Event('enter-node');
         viewEvent.node = tableEvent.tableRow;
@@ -248,11 +248,11 @@ tr.exportTo('tr.ui.analysis', function() {
       this.scheduleRebuild_();
     },
 
-    focus: function() {
+    focus() {
       this.$.table.focus();
     },
 
-    blur: function() {
+    blur() {
       this.$.table.blur();
     },
 
@@ -260,7 +260,7 @@ tr.exportTo('tr.ui.analysis', function() {
       return this.$.table.isFocused;
     },
 
-    onRebuild_: function() {
+    onRebuild_() {
       this.$.table.selectionMode = tr.ui.b.TableFormat.SelectionMode.ROW;
       this.$.table.emptyValue = 'Cannot break down by ' +
           this.dimensionLabel_.toLowerCase() + ' any further.';
@@ -278,7 +278,7 @@ tr.exportTo('tr.ui.analysis', function() {
       this.$.table.rebuild();
     },
 
-    createColumns_: function(rows) {
+    createColumns_(rows) {
       var titleColumn = new tr.ui.analysis.HeapDetailsTitleColumn(
           this.dimensionLabel_);
       titleColumn.width = '400px';
@@ -321,7 +321,7 @@ tr.exportTo('tr.ui.analysis', function() {
       }
     },
 
-    longTailVisibleInfoBar_: function(rowStats) {
+    longTailVisibleInfoBar_(rowStats) {
       var [total, visible, hidden] = rowStats;
       var couldHide = total - RESONABLE_NUMBER_OF_ROWS;
       this.$.info.message = 'Showing ' + total + ' rows. This may be slow.';
@@ -331,7 +331,7 @@ tr.exportTo('tr.ui.analysis', function() {
       this.$.info.visible = true;
     },
 
-    longTailHiddenInfoBar_: function(rowStats) {
+    longTailHiddenInfoBar_(rowStats) {
       var [total, visible, hidden] = rowStats;
       this.$.info.message = 'Hiding the smallest ' + hidden + ' rows.';
       this.$.info.removeAllButtons();
@@ -339,7 +339,7 @@ tr.exportTo('tr.ui.analysis', function() {
       this.$.info.visible = true;
     },
 
-    hideInfoBar_: function() {
+    hideInfoBar_() {
       this.$.info.visible = false;
     },
 

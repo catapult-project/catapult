@@ -34,7 +34,7 @@ tr.exportTo('tr.model.source_info', function() {
       return this.scriptId_;
     },
 
-    toString: function() {
+    toString() {
       var str = this.isNative_ ? '[native v8] ' : '';
       return str +
           tr.model.source_info.SourceInfo.prototype.toString.call(this);

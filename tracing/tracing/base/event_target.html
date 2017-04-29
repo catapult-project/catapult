@@ -39,7 +39,7 @@ tr.exportTo('tr.b', function() {
      * @param {!Function|{handleEvent:Function}} handler The handler for the
      *     event. This is called when the event is dispatched.
      */
-    addEventListener: function(type, handler) {
+    addEventListener(type, handler) {
       if (!this.listeners_) {
         this.listeners_ = Object.create(null);
       }
@@ -59,7 +59,7 @@ tr.exportTo('tr.b', function() {
      * @param {!Function|{handleEvent:Function}} handler The handler for the
      *     event.
      */
-    removeEventListener: function(type, handler) {
+    removeEventListener(type, handler) {
       if (!this.listeners_) return;
       if (type in this.listeners_) {
         var handlers = this.listeners_[type];
@@ -82,7 +82,7 @@ tr.exportTo('tr.b', function() {
      * @return {boolean} Whether the default action was prevented. If someone
      *     calls preventDefault on the event object then this returns false.
      */
-    dispatchEvent: function(event) {
+    dispatchEvent(event) {
       if (!this.listeners_) return true;
 
       // Since we are using DOM Event objects we need to override some of the
@@ -111,7 +111,7 @@ tr.exportTo('tr.b', function() {
       return !prevented && event.rawReturnValue;
     },
 
-    dispatchAsync: async function(event) {
+    async dispatchAsync(event) {
       if (!this.listeners_) return true;
 
       const listeners = this.listeners_[event.type];
@@ -126,7 +126,7 @@ tr.exportTo('tr.b', function() {
       }));
     },
 
-    hasEventListener: function(type) {
+    hasEventListener(type) {
       return (this.listeners_ !== undefined &&
               this.listeners_[type] !== undefined);
     }

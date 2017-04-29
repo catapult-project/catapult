@@ -29,7 +29,7 @@ tr.b.unittest.testSuite(function() {
       return { stableId: '1.2' };
     },
 
-    getBoundingClientRect: function() {
+    getBoundingClientRect() {
       return { top: 5, height: 2 };
     },
 
@@ -41,7 +41,7 @@ tr.b.unittest.testSuite(function() {
   function FakeViewPort() {
     this.containerToTrackMap = {
       // "1.2" is the only valid stableId this test function accepts.
-      getTrackByStableId: function(stableId) {
+      getTrackByStableId(stableId) {
         if (stableId === '1.2') {
           return new FakeTrack;
         }

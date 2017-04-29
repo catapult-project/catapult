@@ -32,12 +32,12 @@ tr.exportTo('tr.ui.annotations', function() {
   CommentBoxAnnotationView.prototype = {
     __proto__: tr.ui.annotations.AnnotationView.prototype,
 
-    removeTextArea: function() {
+    removeTextArea() {
       Polymer.dom(Polymer.dom(this.textArea_).parentNode).removeChild(
           this.textArea_);
     },
 
-    draw: function(ctx) {
+    draw(ctx) {
       var coords = this.annotation_.location.toViewCoordinates(this.viewport_);
       if (coords.viewX < 0) {
         if (this.textArea_) {

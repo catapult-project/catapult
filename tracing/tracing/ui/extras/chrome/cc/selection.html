@@ -52,7 +52,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
      * Called when the selection is made active in the layer view. Must return
      * an HTMLElement that explains this selection in detail.
      */
-    createAnalysis: function() {
+    createAnalysis() {
       throw new Error('Not implemented');
     },
 
@@ -60,7 +60,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
      * Should try to create the equivalent selection in the provided LTHI,
      * or undefined if it can't be done.
      */
-    findEquivalent: function(lthi) {
+    findEquivalent(lthi) {
       throw new Error('Not implemented');
     }
   };
@@ -95,7 +95,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       return this.renderPass_;
     },
 
-    createAnalysis: function() {
+    createAnalysis() {
       var dataView = document.createElement(
           'tr-ui-a-generic-object-view-with-label');
       dataView.label = 'RenderPass ' + this.renderPassId_;
@@ -137,7 +137,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       return this.layer_;
     },
 
-    createAnalysis: function() {
+    createAnalysis() {
       var dataView = document.createElement(
           'tr-ui-a-generic-object-view-with-label');
       dataView.label = 'Layer ' + this.layer_.layerId;
@@ -152,7 +152,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       return this.layer_.objectInstance.typeName;
     },
 
-    findEquivalent: function(lthi) {
+    findEquivalent(lthi) {
       var layer = lthi.activeTree.findLayerWithId(this.layer_.layerId) ||
           lthi.pendingTree.findLayerWithId(this.layer_.layerId);
       if (!layer) return undefined;
@@ -190,7 +190,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       return highlights;
     },
 
-    createAnalysis: function() {
+    createAnalysis() {
       var analysis = document.createElement(
           'tr-ui-a-generic-object-view-with-label');
       analysis.label = 'Tile ' + this.tile_.objectInstance.id + ' on layer ' +
@@ -206,7 +206,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       return analysis;
     },
 
-    findEquivalent: function(lthi) {
+    findEquivalent(lthi) {
       var tileInstance = this.tile_.tileInstance;
       if (lthi.ts < tileInstance.creationTs ||
           lthi.ts >= tileInstance.deletionTs) {
@@ -251,7 +251,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       return highlights;
     },
 
-    createAnalysis: function() {
+    createAnalysis() {
       var analysis = document.createElement(
           'tr-ui-a-generic-object-view-with-label');
       analysis.label = this.rectType_ + ' on layer ' + this.layer_.layerId;
@@ -259,7 +259,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       return analysis;
     },
 
-    findEquivalent: function(lthi) {
+    findEquivalent(lthi) {
       return undefined;
     }
   };
@@ -283,7 +283,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       return this.layer_.layerId;
     },
 
-    createAnalysis: function() {
+    createAnalysis() {
       var analysis = document.createElement(
           'tr-ui-a-generic-object-view-with-label');
       analysis.label = 'Animation Bounds of layer ' + this.layer_.layerId;

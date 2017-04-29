@@ -27,14 +27,14 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
   DisplayItemSnapshotView.prototype = {
     __proto__: tr.ui.analysis.ObjectSnapshotView.prototype,
 
-    decorate: function() {
+    decorate() {
       Polymer.dom(this).classList.add(
           'tr-ui-e-chrome-cc-display-item-list-view');
       this.displayItemDebugger_ = new tr.ui.e.chrome.cc.DisplayItemDebugger();
       Polymer.dom(this).appendChild(this.displayItemDebugger_);
     },
 
-    updateContents: function() {
+    updateContents() {
       if (this.objectSnapshot_ && this.displayItemDebugger_) {
         this.displayItemDebugger_.displayItemList = this.objectSnapshot_;
       }

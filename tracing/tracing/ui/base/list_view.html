@@ -28,7 +28,7 @@ tr.exportTo('tr.ui.b', function() {
   ListView.prototype = {
     __proto__: tr.ui.b.ContainerThatDecoratesItsChildren.prototype,
 
-    decorate: function() {
+    decorate() {
       tr.ui.b.ContainerThatDecoratesItsChildren.prototype.decorate.call(this);
 
       Polymer.dom(this).classList.add('x-list-view');
@@ -40,7 +40,7 @@ tr.exportTo('tr.ui.b', function() {
       this.selectionChanged_ = false;
     },
 
-    decorateChild_: function(item) {
+    decorateChild_(item) {
       Polymer.dom(item).classList.add('list-item');
       item.addEventListener('click', this.onItemClicked_, true);
 
@@ -68,7 +68,7 @@ tr.exportTo('tr.ui.b', function() {
           });
     },
 
-    undecorateChild_: function(item) {
+    undecorateChild_(item) {
       this.selectionChanged_ |= item.selected;
 
       Polymer.dom(item).classList.remove('list-item');
@@ -76,11 +76,11 @@ tr.exportTo('tr.ui.b', function() {
       delete item.selected;
     },
 
-    beginDecorating_: function() {
+    beginDecorating_() {
       this.selectionChanged_ = false;
     },
 
-    doneDecoratingForNow_: function() {
+    doneDecoratingForNow_() {
       if (this.selectionChanged_) {
         tr.b.dispatchSimpleEvent(this, 'selection-changed', false);
       }
@@ -107,12 +107,12 @@ tr.exportTo('tr.ui.b', function() {
       el.selected = true;
     },
 
-    getElementByIndex: function(index) {
+    getElementByIndex(index) {
       return Polymer.dom(this)
           .querySelector('.list-item:nth-child(' + index + ')');
     },
 
-    clear: function() {
+    clear() {
       var changed = this.selectedElement !== undefined;
       tr.ui.b.ContainerThatDecoratesItsChildren.prototype.clear.call(this);
       if (changed) {
@@ -120,7 +120,7 @@ tr.exportTo('tr.ui.b', function() {
       }
     },
 
-    onItemClicked_: function(e) {
+    onItemClicked_(e) {
       var currentSelectedElement = this.selectedElement;
       if (currentSelectedElement) {
         Polymer.dom(currentSelectedElement).removeAttribute('selected');
@@ -135,7 +135,7 @@ tr.exportTo('tr.ui.b', function() {
       tr.b.dispatchSimpleEvent(this, 'selection-changed', false);
     },
 
-    onKeyDown_: function(e) {
+    onKeyDown_(e) {
       if (this.selectedElement === undefined) return;
 
       if (e.keyCode === 38) { // Up arrow.
@@ -157,7 +157,7 @@ tr.exportTo('tr.ui.b', function() {
       }
     },
 
-    addItem: function(textContent) {
+    addItem(textContent) {
       var item = document.createElement('div');
       Polymer.dom(item).textContent = textContent;
       Polymer.dom(this).appendChild(item);

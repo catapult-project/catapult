@@ -26,13 +26,13 @@ tr.exportTo('tr.ui.tracks', function() {
 
     __proto__: tr.ui.tracks.MultiRowTrack.prototype,
 
-    decorate: function(viewport) {
+    decorate(viewport) {
       tr.ui.tracks.MultiRowTrack.prototype.decorate.call(this, viewport);
       Polymer.dom(this).classList.add('async-slice-group-track');
       this.group_ = undefined;
     },
 
-    addSubTrack_: function(slices) {
+    addSubTrack_(slices) {
       var track = new tr.ui.tracks.SliceTrack(this.viewport);
       track.slices = slices;
       Polymer.dom(this).appendChild(track);
@@ -53,7 +53,7 @@ tr.exportTo('tr.ui.tracks', function() {
       return this.group;
     },
 
-    addContainersToTrackMap: function(containerToTrackMap) {
+    addContainersToTrackMap(containerToTrackMap) {
       tr.ui.tracks.MultiRowTrack.prototype.addContainersToTrackMap.apply(
           this, arguments);
       containerToTrackMap.addContainer(this.group, this);
@@ -69,7 +69,7 @@ tr.exportTo('tr.ui.tracks', function() {
      * subSlices recursively into rows below parent slice according to which
      * nested level the child is in.
      */
-    buildSubRows_: function(slices, opt_skipSort) {
+    buildSubRows_(slices, opt_skipSort) {
       if (!opt_skipSort) {
         slices.sort(function(x, y) {
           return x.start - y.start;

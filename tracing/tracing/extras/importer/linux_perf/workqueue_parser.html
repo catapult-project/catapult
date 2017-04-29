@@ -48,7 +48,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     /**
      * Parses workqueue events and sets up state in the importer.
      */
-    executeStartEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+    executeStartEvent(eventName, cpuNumber, pid, ts, eventBase) {
       var event = workqueueExecuteStartRE.exec(eventBase.details);
       if (!event) return false;
 
@@ -59,7 +59,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       return true;
     },
 
-    executeEndEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+    executeEndEvent(eventName, cpuNumber, pid, ts, eventBase) {
       var event = workqueueExecuteEndRE.exec(eventBase.details);
       if (!event) return false;
 
@@ -78,12 +78,12 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       return true;
     },
 
-    executeQueueWork: function(eventName, cpuNumber, pid, ts, eventBase) {
+    executeQueueWork(eventName, cpuNumber, pid, ts, eventBase) {
       // TODO: Do something with this event?
       return true;
     },
 
-    executeActivateWork: function(eventName, cpuNumber, pid, ts, eventBase) {
+    executeActivateWork(eventName, cpuNumber, pid, ts, eventBase) {
       // TODO: Do something with this event?
       return true;
     }

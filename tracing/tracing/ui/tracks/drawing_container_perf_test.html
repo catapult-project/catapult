@@ -34,7 +34,7 @@ tr.b.unittest.testSuite(function() {
   DCPerfTestCase.prototype = {
     __proto__: tr.b.unittest.PerfTestCase.prototype,
 
-    setUp: function(model) {
+    setUp(model) {
       this.viewportDiv = document.createElement('div');
 
       this.viewport = new tr.ui.TimelineViewport(this.viewportDiv);
@@ -65,7 +65,7 @@ tr.b.unittest.testSuite(function() {
       this.viewport.setDisplayTransformImmediately(dt);
     },
 
-    runOneIteration: function() {
+    runOneIteration() {
       this.drawingContainer.draw_();
     }
   };
@@ -78,7 +78,7 @@ tr.b.unittest.testSuite(function() {
   GeneralDCPerfTestCase.prototype = {
     __proto__: DCPerfTestCase.prototype,
 
-    setUp: function() {
+    setUp() {
       var model = getOrCreateGeneralModel();
       DCPerfTestCase.prototype.setUp.call(this, model);
     }
@@ -102,7 +102,7 @@ tr.b.unittest.testSuite(function() {
   AsyncDCPerfTestCase.prototype = {
     __proto__: DCPerfTestCase.prototype,
 
-    setUp: function() {
+    setUp() {
       var model = tr.c.TestUtils.newModel(function(m) {
         var proc = m.getOrCreateProcess(1);
         for (var tid = 1; tid <= 5; tid++) {

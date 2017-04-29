@@ -67,7 +67,7 @@ tr.exportTo('tr.e.importer.etw', function() {
   Decoder.prototype = {
     __proto__: Object.prototype,
 
-    reset: function(base64Payload) {
+    reset(base64Payload) {
       var decodedSize = tr.b.Base64.getDecodedBufferLength(base64Payload);
       if (decodedSize > this.payload_.byteLength) {
         this.payload_ = new DataView(new ArrayBuffer(decodedSize));
@@ -77,29 +77,29 @@ tr.exportTo('tr.e.importer.etw', function() {
       this.position_ = 0;
     },
 
-    skip: function(length) {
+    skip(length) {
       this.position_ += length;
     },
 
-    decodeUInt8: function() {
+    decodeUInt8() {
       var result = this.payload_.getUint8(this.position_, true);
       this.position_ += 1;
       return result;
     },
 
-    decodeUInt16: function() {
+    decodeUInt16() {
       var result = this.payload_.getUint16(this.position_, true);
       this.position_ += 2;
       return result;
     },
 
-    decodeUInt32: function() {
+    decodeUInt32() {
       var result = this.payload_.getUint32(this.position_, true);
       this.position_ += 4;
       return result;
     },
 
-    decodeUInt64ToString: function() {
+    decodeUInt64ToString() {
       // Javascript isn't able to manage 64-bit numeric values.
       var low = this.decodeUInt32();
       var high = this.decodeUInt32();
@@ -109,38 +109,38 @@ tr.exportTo('tr.e.importer.etw', function() {
       return result;
     },
 
-    decodeInt8: function() {
+    decodeInt8() {
       var result = this.payload_.getInt8(this.position_, true);
       this.position_ += 1;
       return result;
     },
 
-    decodeInt16: function() {
+    decodeInt16() {
       var result = this.payload_.getInt16(this.position_, true);
       this.position_ += 2;
       return result;
     },
 
-    decodeInt32: function() {
+    decodeInt32() {
       var result = this.payload_.getInt32(this.position_, true);
       this.position_ += 4;
       return result;
     },
 
-    decodeInt64ToString: function() {
+    decodeInt64ToString() {
       // Javascript isn't able to manage 64-bit numeric values.
       // Fallback to unsigned 64-bit hexa value.
       return this.decodeUInt64ToString();
     },
 
-    decodeUInteger: function(is64) {
+    decodeUInteger(is64) {
       if (is64) {
         return this.decodeUInt64ToString();
       }
       return this.decodeUInt32();
     },
 
-    decodeString: function() {
+    decodeString() {
       var str = '';
       while (true) {
         var c = this.decodeUInt8();
@@ -149,7 +149,7 @@ tr.exportTo('tr.e.importer.etw', function() {
       }
     },
 
-    decodeW16String: function() {
+    decodeW16String() {
       var str = '';
       while (true) {
         var c = this.decodeUInt16();
@@ -158,7 +158,7 @@ tr.exportTo('tr.e.importer.etw', function() {
       }
     },
 
-    decodeFixedW16String: function(length) {
+    decodeFixedW16String(length) {
       var oldPosition = this.position_;
       var str = '';
       for (var i = 0; i < length; i++) {
@@ -172,7 +172,7 @@ tr.exportTo('tr.e.importer.etw', function() {
       return str;
     },
 
-    decodeBytes: function(length) {
+    decodeBytes(length) {
       var bytes = [];
       for (var i = 0; i < length; ++i) {
         var c = this.decodeUInt8();
@@ -181,7 +181,7 @@ tr.exportTo('tr.e.importer.etw', function() {
       return bytes;
     },
 
-    decodeSID: function(is64) {
+    decodeSID(is64) {
       // Decode the TOKEN_USER structure.
       var pSid = this.decodeUInteger(is64);
       var attributes = this.decodeUInt32();
@@ -205,13 +205,13 @@ tr.exportTo('tr.e.importer.etw', function() {
       var sid = this.decodeBytes(4 * subAuthorityCount);
 
       return {
-        pSid: pSid,
-        attributes: attributes,
-        sid: sid
+        pSid,
+        attributes,
+        sid
       };
     },
 
-    decodeSystemTime: function() {
+    decodeSystemTime() {
       // Decode the SystemTime structure.
       var wYear = this.decodeInt16();
       var wMonth = this.decodeInt16();
@@ -222,18 +222,18 @@ tr.exportTo('tr.e.importer.etw', function() {
       var wSecond = this.decodeInt16();
       var wMilliseconds = this.decodeInt16();
       return {
-        wYear: wYear,
-        wMonth: wMonth,
-        wDayOfWeek: wDayOfWeek,
-        wDay: wDay,
-        wHour: wHour,
-        wMinute: wMinute,
-        wSecond: wSecond,
-        wMilliseconds: wMilliseconds
+        wYear,
+        wMonth,
+        wDayOfWeek,
+        wDay,
+        wHour,
+        wMinute,
+        wSecond,
+        wMilliseconds
       };
     },
 
-    decodeTimeZoneInformation: function() {
+    decodeTimeZoneInformation() {
       // Decode the TimeZoneInformation structure.
       var bias = this.decodeUInt32();
       var standardName = this.decodeFixedW16String(32);
@@ -243,13 +243,13 @@ tr.exportTo('tr.e.importer.etw', function() {
       var daylightDate = this.decodeSystemTime();
       var daylightBias = this.decodeUInt32();
       return {
-        bias: bias,
-        standardName: standardName,
-        standardDate: standardDate,
-        standardBias: standardBias,
-        daylightName: daylightName,
-        daylightDate: daylightDate,
-        daylightBias: daylightBias
+        bias,
+        standardName,
+        standardDate,
+        standardBias,
+        daylightName,
+        daylightDate,
+        daylightBias
       };
     }
 
@@ -310,15 +310,15 @@ tr.exportTo('tr.e.importer.etw', function() {
       return this.model_;
     },
 
-    createThreadIfNeeded: function(pid, tid) {
+    createThreadIfNeeded(pid, tid) {
       this.tidsToPid_[tid] = pid;
     },
 
-    removeThreadIfPresent: function(tid) {
+    removeThreadIfPresent(tid) {
       this.tidsToPid_[tid] = undefined;
     },
 
-    getPidFromWindowsTid: function(tid) {
+    getPidFromWindowsTid(tid) {
       if (tid === 0) return 0;
       var pid = this.tidsToPid_[tid];
       if (pid === undefined) {
@@ -328,7 +328,7 @@ tr.exportTo('tr.e.importer.etw', function() {
       return pid;
     },
 
-    getThreadFromWindowsTid: function(tid) {
+    getThreadFromWindowsTid(tid) {
       var pid = this.getPidFromWindowsTid(tid);
       var process = this.model_.getProcess(pid);
       if (!process) return undefined;
@@ -339,7 +339,7 @@ tr.exportTo('tr.e.importer.etw', function() {
      * Retrieve the Cpu for a given cpuNumber.
      * @return {Cpu} A Cpu corresponding to the given cpuNumber.
      */
-    getOrCreateCpu: function(cpuNumber) {
+    getOrCreateCpu(cpuNumber) {
       var cpu = this.model_.kernel.getOrCreateCpu(cpuNumber);
       return cpu;
     },
@@ -347,7 +347,7 @@ tr.exportTo('tr.e.importer.etw', function() {
     /**
      * Imports the data in this.events_ into this.model_.
      */
-    importEvents: function() {
+    importEvents() {
       this.events_.content.forEach(this.parseInfo.bind(this));
 
       if (this.walltime_ === undefined || this.ticks_ === undefined) {
@@ -361,12 +361,12 @@ tr.exportTo('tr.e.importer.etw', function() {
       this.events_.content.forEach(this.parseEvent.bind(this));
     },
 
-    importTimestamp: function(timestamp) {
+    importTimestamp(timestamp) {
       var ts = parseInt(timestamp, 16);
       return (ts - this.walltime_ + this.ticks_) / 1000.;
     },
 
-    parseInfo: function(event) {
+    parseInfo(event) {
       // Retrieve clock sync information.
       if (event.hasOwnProperty('guid') &&
           event.hasOwnProperty('walltime') &&
@@ -410,7 +410,7 @@ tr.exportTo('tr.e.importer.etw', function() {
       return true;
     },
 
-    parseEvent: function(event) {
+    parseEvent(event) {
       if (!event.hasOwnProperty('guid') ||
           !event.hasOwnProperty('op') ||
           !event.hasOwnProperty('ver') ||
@@ -428,7 +428,7 @@ tr.exportTo('tr.e.importer.etw', function() {
         opcode: event.op,
         version: event.ver,
         cpu: event.cpu,
-        timestamp: timestamp,
+        timestamp,
         is64: this.is64bit_
       };
 
@@ -454,7 +454,7 @@ tr.exportTo('tr.e.importer.etw', function() {
     /**
      * Registers a windows ETW event handler used by parseEvent().
      */
-    registerEventHandler: function(guid, opcode, handler) {
+    registerEventHandler(guid, opcode, handler) {
       if (this.handlers_[guid] === undefined) {
         this.handlers_[guid] = [];
       }
@@ -464,7 +464,7 @@ tr.exportTo('tr.e.importer.etw', function() {
     /**
      * Retrieves a registered event handler.
      */
-    getEventHandler: function(guid, opcode) {
+    getEventHandler(guid, opcode) {
       if (this.handlers_[guid] === undefined) {
         return undefined;
       }

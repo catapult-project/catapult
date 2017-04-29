@@ -33,7 +33,7 @@ tr.exportTo('tr.model', function() {
   }
 
   TimeToObjectInstanceMap.prototype = {
-    idWasCreated: function(category, name, ts) {
+    idWasCreated(category, name, ts) {
       if (this.instances.length === 0) {
         this.instances.push(this.createObjectInstanceFunction_(
             this.parent, this.scopedId, category, name, ts));
@@ -53,7 +53,7 @@ tr.exportTo('tr.model', function() {
       return lastInstance;
     },
 
-    addSnapshot: function(category, name, ts, args, opt_baseTypeName) {
+    addSnapshot(category, name, ts, args, opt_baseTypeName) {
       if (this.instances.length === 0) {
         this.instances.push(this.createObjectInstanceFunction_(
             this.parent, this.scopedId, category, name, ts, opt_baseTypeName));
@@ -127,7 +127,7 @@ tr.exportTo('tr.model', function() {
       return this.instances[this.instances.length - 1];
     },
 
-    idWasDeleted: function(category, name, ts) {
+    idWasDeleted(category, name, ts) {
       if (this.instances.length === 0) {
         this.instances.push(this.createObjectInstanceFunction_(
             this.parent, this.scopedId, category, name, ts));
@@ -154,7 +154,7 @@ tr.exportTo('tr.model', function() {
       return lastInstance;
     },
 
-    getInstanceAt: function(ts) {
+    getInstanceAt(ts) {
       var i = tr.b.math.findIndexInSortedIntervals(
           this.instances,
           function(inst) { return inst.creationTs; },

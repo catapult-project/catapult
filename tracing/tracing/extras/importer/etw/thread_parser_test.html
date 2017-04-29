@@ -48,7 +48,7 @@ tr.b.unittest.testSuite(function() {
     var fields;
 
     // Validate a version 1 32-bit payload.
-    header = { guid: guid, opcode: kThreadStartOpcode, version: 1, is64: 0 };
+    header = { guid, opcode: kThreadStartOpcode, version: 1, is64: 0 };
     decoder.reset(kThreadStartPayload32bitV1);
     fields = parser.decodeFields(header, decoder);
 
@@ -63,7 +63,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(fields.waitMode, -1);
 
     // Validate an End version 1 32-bit payload.
-    header = { guid: guid, opcode: kThreadEndOpcode, version: 1, is64: 0 };
+    header = { guid, opcode: kThreadEndOpcode, version: 1, is64: 0 };
     decoder.reset(kThreadStartPayload32bitV1);
     fields = parser.decodeFields(header, decoder);
 
@@ -71,7 +71,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(fields.threadId, 1868);
 
     // Validate a version 2 64-bit payload.
-    header = { guid: guid, opcode: kThreadDCStartOpcode, version: 2, is64: 1 };
+    header = { guid, opcode: kThreadDCStartOpcode, version: 2, is64: 1 };
     decoder.reset(kThreadDCStartPayload64bitV2);
     fields = parser.decodeFields(header, decoder);
 
@@ -87,7 +87,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(fields.subProcessTag, 0);
 
     // Validate a version 3 32-bit payload.
-    header = { guid: guid, opcode: kThreadStartOpcode, version: 3, is64: 0 };
+    header = { guid, opcode: kThreadStartOpcode, version: 3, is64: 0 };
     decoder.reset(kThreadStartPayload32bitV3);
     fields = parser.decodeFields(header, decoder);
 
@@ -107,7 +107,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(fields.threadFlags, 0);
 
     // Validate a version 3 64-bit payload.
-    header = { guid: guid, opcode: kThreadStartOpcode, version: 3, is64: 1 };
+    header = { guid, opcode: kThreadStartOpcode, version: 3, is64: 1 };
     decoder.reset(kThreadStartPayload64bitV3);
     fields = parser.decodeFields(header, decoder);
 
@@ -136,7 +136,7 @@ tr.b.unittest.testSuite(function() {
 
 
     // Validate a version 2 CSwitch 32-bit payload.
-    header = { guid: guid, opcode: kThreadCSwitchOpcode, version: 2, is64: 0 };
+    header = { guid, opcode: kThreadCSwitchOpcode, version: 2, is64: 0 };
     decoder.reset(kThreadCSwitchPayload32bitV2);
     fields = parser.decodeCSwitchFields(header, decoder);
 
@@ -154,7 +154,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(fields.reserved, 18470);
 
     // Validate a version 2 CSwitch 64-bit payload.
-    header = { guid: guid, opcode: kThreadCSwitchOpcode, version: 2, is64: 1 };
+    header = { guid, opcode: kThreadCSwitchOpcode, version: 2, is64: 1 };
     decoder.reset(kThreadCSwitchPayload64bitV2);
     fields = parser.decodeCSwitchFields(header, decoder);
 

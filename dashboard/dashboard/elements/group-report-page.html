@@ -237,7 +237,7 @@ found in the LICENSE file.
         return charts;
       },
 
-      onToggleImprovements: function(event, details) {
+      onToggleImprovements(event, details) {
         var alertList = this.alertsTable.alertList;
         var improvementsToggle = event.currentTarget;
         if (improvementsToggle.hasAttribute('active')) {
@@ -261,7 +261,7 @@ found in the LICENSE file.
         this.showingImprovements = !this.showingImprovements;
       },
 
-      alertChangedRevisions: function(event) {
+      alertChangedRevisions(event) {
         var alertList = this.alertsTable.alertList;
         var nudgedAlert = event.detail.alerts[0];
         for (var i = 0; i < alertList.length; i++) {
@@ -275,7 +275,7 @@ found in the LICENSE file.
         }
       },
 
-      onGraphClose: function(event) {
+      onGraphClose(event) {
         // Un-check the alert in the table.
         var key = event.target.alertKey;
         var alertList = this.alertsTable.alertList;
@@ -295,7 +295,7 @@ found in the LICENSE file.
         delete this.graphElements_[key];
       },
 
-      getTestPath: function(alert) {
+      getTestPath(alert) {
         return [
           alert.master,
           alert.bot,
@@ -304,7 +304,7 @@ found in the LICENSE file.
         ].join('/');
       },
 
-      getTestPathAndSelectedSeries: function(alert) {
+      getTestPathAndSelectedSeries(alert) {
         // Show the test for the alert, as well as the corresponding ref build
         // if possible.
         var testPath = this.getTestPath(alert);
@@ -330,14 +330,14 @@ found in the LICENSE file.
         return [testPath, [testName]];
       },
 
-      setChartData: function(chart) {
+      setChartData(chart) {
         chart.revisionInfo = this.revisionInfo;
         chart.xsrfToken = this.xsrfToken;
         chart.isInternalUser = this.isInternalUser;
         chart.testSuites = this.testSuites;
       },
 
-      addGraph: function(alerts, insertBefore) {
+      addGraph(alerts, insertBefore) {
         if (!alerts) {
           return;
         }
@@ -369,7 +369,7 @@ found in the LICENSE file.
         }
       },
 
-      onAlertSelectionChange: function() {
+      onAlertSelectionChange() {
         // Make a set of all alerts that are checked in the table.
         var alerts = {};
         this.alertsTable.checkedAlerts.forEach(function(a) {
@@ -400,7 +400,7 @@ found in the LICENSE file.
        * Sets the extra columns on the alerts table based on the type of alerts
        * in the list for the table.
        */
-      setExtraColumns: function(extraColumns) {
+      setExtraColumns(extraColumns) {
         if (extraColumns == 'anomalies') {
           this.set('extraColumns', [
             {
@@ -437,7 +437,7 @@ found in the LICENSE file.
        * The url params determine what data to request from
        * /group_report. sid is a hash of a group of keys.
        */
-      ready: function() {
+      ready() {
         this.graphElements_ = {};
         var params = {};
         var sid = uri.getParameter('sid');
@@ -495,7 +495,7 @@ found in the LICENSE file.
               this.missing = 'Unknown';
             }.bind(this));
       },
-      computeOr: function(error, loading) {
+      computeOr(error, loading) {
         return error || loading;
       }
     });

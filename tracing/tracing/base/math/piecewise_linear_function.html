@@ -27,7 +27,7 @@ tr.exportTo('tr.b.math', function() {
      * (x1, y1) and (x2, y2).
      * Pieces must be pushed in the order of increasing x coordinate.
      */
-    push: function(x1, y1, x2, y2) {
+    push(x1, y1, x2, y2) {
       if (x1 >= x2) {
         throw new Error('Invalid segment');
       }
@@ -43,7 +43,7 @@ tr.exportTo('tr.b.math', function() {
     /**
      *  Returns the size of the set A such that for all x in A: f(x) < y.
      */
-    partBelow: function(y) {
+    partBelow(y) {
       return this.pieces.reduce((acc, p) => (acc + p.partBelow(y)), 0);
     },
 
@@ -70,7 +70,7 @@ tr.exportTo('tr.b.math', function() {
     * Returns the minimum possible value y such that the percentage of x points
     * that have f(x) <= y is approximately equal to the given |percent|.
     */
-    percentile: function(percent) {
+    percentile(percent) {
       if (!(percent >= 0 && percent <= 1)) {
         throw new Error('percent must be [0,1]');
       }
@@ -108,7 +108,7 @@ tr.exportTo('tr.b.math', function() {
     * More formally:
     * max(x2 - x1) such that for all x in [x1 .. x2]: f(x) < y.
     */
-    partBelow: function(y) {
+    partBelow(y) {
       var width = this.width;
       if (width === 0) return 0;
       var minY = this.min;

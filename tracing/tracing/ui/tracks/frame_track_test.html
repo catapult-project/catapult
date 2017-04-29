@@ -33,7 +33,7 @@ tr.b.unittest.testSuite(function() {
         thread.sliceGroup.pushSlice(slice);
         var events = [slice];
         var threadTimeRanges =
-            [{thread: thread, start: slice.start, end: slice.end}];
+            [{thread, start: slice.start, end: slice.end}];
         process.frames.push(new Frame(events, threadTimeRanges));
       }
       frames = process.frames;

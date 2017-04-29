@@ -449,7 +449,7 @@ tr.exportTo('tr.ui.b', function() {
 
           if (!this.isDatumFieldSeries_(seriesKey)) return;
 
-          var singleSeriesDatum = {x: x};
+          var singleSeriesDatum = {x};
           singleSeriesDatum[seriesKey] = multiSeriesDatum[seriesKey];
           dataBySeriesKey[seriesKey].push(singleSeriesDatum);
         }, this);

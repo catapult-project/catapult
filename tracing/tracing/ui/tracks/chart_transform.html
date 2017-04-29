@@ -62,24 +62,24 @@ tr.exportTo('tr.ui.tracks', function() {
   }
 
   ChartTransform.prototype = {
-    worldXToViewX: function(worldX) {
+    worldXToViewX(worldX) {
       return this.displayTransform_.xWorldToView(worldX);
     },
 
-    viewXToWorldX: function(viewX) {
+    viewXToWorldX(viewX) {
       return this.displayTransform_.xViewToWorld(viewX);
     },
 
-    vectorToWorldDistance: function(viewY) {
+    vectorToWorldDistance(viewY) {
       return this.axis_.bounds.range * Math.abs(viewY / this.innerHeight_);
     },
 
-    viewYToWorldY: function(viewY) {
+    viewYToWorldY(viewY) {
       return this.axis_.unitRangeToValue(
           1 - (viewY - this.innerTopViewY) / this.innerHeight_);
     },
 
-    worldYToViewY: function(worldY) {
+    worldYToViewY(worldY) {
       var innerHeightCoefficient = 1 - this.axis_.valueToUnitRange(worldY);
       return innerHeightCoefficient * this.innerHeight_ + this.innerTopViewY;
     }

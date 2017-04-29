@@ -50,11 +50,11 @@ tr.exportTo('tr.model', function() {
       return this.name;
     },
 
-    addBoundsToRange: function(range) {
+    addBoundsToRange(range) {
       range.addRange(this.bounds);
     },
 
-    addSnapshot: function(ts, args, opt_name, opt_baseTypeName) {
+    addSnapshot(ts, args, opt_name, opt_baseTypeName) {
       if (ts < this.creationTs) {
         throw new Error('Snapshots must be >= instance.creationTs');
       }
@@ -95,7 +95,7 @@ tr.exportTo('tr.model', function() {
       return snapshot;
     },
 
-    wasDeleted: function(ts) {
+    wasDeleted(ts) {
       var lastSnapshot;
       if (this.snapshots.length > 0) {
         lastSnapshot = this.snapshots[this.snapshots.length - 1];
@@ -112,7 +112,7 @@ tr.exportTo('tr.model', function() {
     /**
      * See ObjectSnapshot constructor notes on object initialization.
      */
-    preInitialize: function() {
+    preInitialize() {
       for (var i = 0; i < this.snapshots.length; i++) {
         this.snapshots[i].preInitialize();
       }
@@ -121,13 +121,13 @@ tr.exportTo('tr.model', function() {
     /**
      * See ObjectSnapshot constructor notes on object initialization.
      */
-    initialize: function() {
+    initialize() {
       for (var i = 0; i < this.snapshots.length; i++) {
         this.snapshots[i].initialize();
       }
     },
 
-    isAliveAt: function(ts) {
+    isAliveAt(ts) {
       if (ts < this.creationTs && this.creationTsWasExplicit) {
         return false;
       }
@@ -138,7 +138,7 @@ tr.exportTo('tr.model', function() {
       return true;
     },
 
-    getSnapshotAt: function(ts) {
+    getSnapshotAt(ts) {
       if (ts < this.creationTs) {
         if (this.creationTsWasExplicit) {
           throw new Error('ts must be within lifetime of this instance');
@@ -174,7 +174,7 @@ tr.exportTo('tr.model', function() {
       return this.snapshots[i];
     },
 
-    updateBounds: function() {
+    updateBounds() {
       this.bounds.reset();
       this.bounds.addValue(this.creationTs);
       if (this.deletionTs !== Number.MAX_VALUE) {
@@ -184,7 +184,7 @@ tr.exportTo('tr.model', function() {
       }
     },
 
-    shiftTimestampsForward: function(amount) {
+    shiftTimestampsForward(amount) {
       this.creationTs += amount;
       if (this.deletionTs !== Number.MAX_VALUE) {
         this.deletionTs += amount;

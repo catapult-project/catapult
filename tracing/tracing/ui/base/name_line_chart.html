@@ -21,7 +21,7 @@ tr.exportTo('tr.ui.b', function() {
   NameLineChart.prototype = {
     __proto__: LineChart.prototype,
 
-    getXForDatum_: function(datum, index) {
+    getXForDatum_(datum, index) {
       return index;
     },
 
@@ -39,7 +39,7 @@ tr.exportTo('tr.ui.b', function() {
       tr.ui.b.NameColumnChart.prototype.updateMargins_.call(this);
     },
 
-    updateXAxis_: function(xAxis) {
+    updateXAxis_(xAxis) {
       xAxis.selectAll('*').remove();
       if (this.hideXAxis) return;
 

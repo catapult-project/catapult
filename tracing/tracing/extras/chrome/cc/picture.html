@@ -43,11 +43,11 @@ tr.exportTo('tr.e.cc', function() {
       return this.guid_;
     },
 
-    getBase64SkpData: function() {
+    getBase64SkpData() {
       return this.skp64_;
     },
 
-    getOps: function() {
+    getOps() {
       if (!PictureSnapshot.CanGetOps()) {
         console.error(PictureSnapshot.HowToEnablePictureDebugging());
         return undefined;
@@ -67,7 +67,7 @@ tr.exportTo('tr.e.cc', function() {
       return ops;
     },
 
-    getOpTimings: function() {
+    getOpTimings() {
       if (!PictureSnapshot.CanGetOpTimings()) {
         console.error(PictureSnapshot.HowToEnablePictureDebugging());
         return undefined;
@@ -97,7 +97,7 @@ tr.exportTo('tr.e.cc', function() {
      * @return {Array} Skia ops where op.cmd_time contains the associated time
      *         for a given op.
      */
-    tagOpsWithTimings: function(ops) {
+    tagOpsWithTimings(ops) {
       var opTimings = [];
       for (var iteration = 0; iteration < OPS_TIMING_ITERATIONS; iteration++) {
         opTimings[iteration] = this.getOpTimings();
@@ -130,7 +130,7 @@ tr.exportTo('tr.e.cc', function() {
      * @param {function(tr.e.cc.PictureAsImageData)} The callback function that
      *     is called after rasterization is complete or fails.
      */
-    rasterize: function(params, rasterCompleteCallback) {
+    rasterize(params, rasterCompleteCallback) {
       if (!PictureSnapshot.CanRasterize() || !PictureSnapshot.CanGetOps()) {
         rasterCompleteCallback(new tr.e.cc.PictureAsImageData(
             this, tr.e.cc.PictureSnapshot.HowToEnablePictureDebugging()));
@@ -212,11 +212,11 @@ tr.exportTo('tr.e.cc', function() {
       return this.guid_;
     },
 
-    getBase64SkpData: function() {
+    getBase64SkpData() {
       throw new Error('Not available with a LayeredPicture.');
     },
 
-    getOps: function() {
+    getOps() {
       var ops = [];
       for (var i = 0; i < this.pictures_.length; ++i) {
         ops = ops.concat(this.pictures_[i].getOps());
@@ -224,7 +224,7 @@ tr.exportTo('tr.e.cc', function() {
       return ops;
     },
 
-    getOpTimings: function() {
+    getOpTimings() {
       var opTimings = this.pictures_[0].getOpTimings();
       for (var i = 1; i < this.pictures_.length; ++i) {
         var timings = this.pictures_[i].getOpTimings();
@@ -234,7 +234,7 @@ tr.exportTo('tr.e.cc', function() {
       return opTimings;
     },
 
-    tagOpsWithTimings: function(ops) {
+    tagOpsWithTimings(ops) {
       var opTimings = [];
       for (var iteration = 0; iteration < OPS_TIMING_ITERATIONS; iteration++) {
         opTimings[iteration] = this.getOpTimings();
@@ -253,7 +253,7 @@ tr.exportTo('tr.e.cc', function() {
       return ops;
     },
 
-    rasterize: function(params, rasterCompleteCallback) {
+    rasterize(params, rasterCompleteCallback) {
       this.picturesAsImageData_ = [];
       var rasterCallback = function(pictureAsImageData) {
         this.picturesAsImageData_.push(pictureAsImageData);
@@ -371,12 +371,12 @@ tr.exportTo('tr.e.cc', function() {
   PictureSnapshot.prototype = {
     __proto__: ObjectSnapshot.prototype,
 
-    preInitialize: function() {
+    preInitialize() {
       tr.e.cc.preInitializeObject(this);
       this.rasterResult_ = undefined;
     },
 
-    initialize: function() {
+    initialize() {
       // If we have an alias args, that means this picture was represented
       // by an alias, and the real args is in alias.args.
       if (this.args.alias) {
@@ -407,23 +407,23 @@ tr.exportTo('tr.e.cc', function() {
       return this.picture_.guid;
     },
 
-    getBase64SkpData: function() {
+    getBase64SkpData() {
       return this.picture_.getBase64SkpData();
     },
 
-    getOps: function() {
+    getOps() {
       return this.picture_.getOps();
     },
 
-    getOpTimings: function() {
+    getOpTimings() {
       return this.picture_.getOpTimings();
     },
 
-    tagOpsWithTimings: function(ops) {
+    tagOpsWithTimings(ops) {
       return this.picture_.tagOpsWithTimings(ops);
     },
 
-    rasterize: function(params, rasterCompleteCallback) {
+    rasterize(params, rasterCompleteCallback) {
       this.picture_.rasterize(params, rasterCompleteCallback);
     }
   };

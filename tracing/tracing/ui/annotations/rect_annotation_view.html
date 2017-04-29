@@ -25,7 +25,7 @@ tr.exportTo('tr.ui.annotations', function() {
   RectAnnotationView.prototype = {
     __proto__: tr.ui.annotations.AnnotationView.prototype,
 
-    draw: function(ctx) {
+    draw(ctx) {
       var dt = this.viewport_.currentDisplayTransform;
       var startCoords =
           this.annotation_.startLocation.toViewCoordinates(this.viewport_);

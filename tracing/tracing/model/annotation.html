@@ -47,21 +47,21 @@ tr.exportTo('tr.model', function() {
     },
 
     // Invoked by trace model when this annotation is removed.
-    onRemove: function() {
+    onRemove() {
     },
 
-    toDict: function() {
+    toDict() {
       throw new Error('Not implemented');
     },
 
-    getOrCreateView: function(viewport) {
+    getOrCreateView(viewport) {
       if (!this.view_) {
         this.view_ = this.createView_(viewport);
       }
       return this.view_;
     },
 
-    createView_: function() {
+    createView_() {
       throw new Error('Not implemented');
     }
   };

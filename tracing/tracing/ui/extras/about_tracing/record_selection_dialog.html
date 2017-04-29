@@ -225,7 +225,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
   RecordSelectionDialog.prototype = {
     __proto__: tr.ui.b.Overlay.prototype,
 
-    decorate: function() {
+    decorate() {
       tr.ui.b.Overlay.prototype.decorate.call(this);
       this.title = 'Record a new trace...';
 
@@ -356,7 +356,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       throw new Error('Dont use this!');
     },
 
-    usingPreset_: function() {
+    usingPreset_() {
       return this.currentlyChosenPreset_.length > 0;
     },
 
@@ -381,7 +381,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       this.updatePresetDescription_();
     },
 
-    updateManualSelectionView_: function() {
+    updateManualSelectionView_() {
       var classList = Polymer.dom(this.categoriesView_).classList;
       if (!this.usingPreset_()) {
         classList.remove('categories-column-view-hidden');
@@ -394,7 +394,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       }
     },
 
-    updateCategoryColumnView_: function(shouldReadFromSettings) {
+    updateCategoryColumnView_(shouldReadFromSettings) {
       var categorySet = Polymer.dom(this).querySelectorAll('.categories');
       for (var i = 0; i < categorySet.length; ++i) {
         var categoryGroup = categorySet[i].children;
@@ -407,7 +407,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       }
     },
 
-    onClickEditCategories: function() {
+    onClickEditCategories() {
       if (!this.usingPreset_()) return;
 
       if (!this.editCategoriesOpened_) {
@@ -425,7 +425,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       this.recordButtonEl_.focus();
     },
 
-    changeEditCategoriesState_: function(editCategoriesState) {
+    changeEditCategoriesState_(editCategoriesState) {
       var presetOptionsGroup = Polymer.dom(this).querySelector(
           '.labeled-option-group');
       if (!presetOptionsGroup) return;
@@ -439,7 +439,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       }
     },
 
-    updatePresetDescription_: function() {
+    updatePresetDescription_() {
       var description = Polymer.dom(this).querySelector(
           '.category-description');
       if (this.usingPreset_()) {
@@ -455,7 +455,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       }
     },
 
-    categoryFilter: function() {
+    categoryFilter() {
       if (this.usingPreset_()) {
         var categories = [];
         var allCategories = this.allCategories_();
@@ -499,17 +499,17 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       return results.join(',');
     },
 
-    clickRecordButton: function() {
+    clickRecordButton() {
       this.recordButtonEl_.click();
     },
 
-    onRecordButtonClicked_: function() {
+    onRecordButtonClicked_() {
       this.visible = false;
       tr.b.dispatchSimpleEvent(this, 'recordclick');
       return false;
     },
 
-    collectInputs_: function(inputs, isChecked) {
+    collectInputs_(inputs, isChecked) {
       var inputsLength = inputs.length;
       var categories = [];
       for (var i = 0; i < inputsLength; ++i) {
@@ -521,27 +521,27 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       return categories;
     },
 
-    unselectedCategories_: function() {
+    unselectedCategories_() {
       var inputs =
           Polymer.dom(this.enabledCategoriesContainerEl_).querySelectorAll(
               'input');
       return this.collectInputs_(inputs, false);
     },
 
-    enabledDisabledByDefaultCategories_: function() {
+    enabledDisabledByDefaultCategories_() {
       var inputs =
           Polymer.dom(this.disabledCategoriesContainerEl_).querySelectorAll(
               'input');
       return this.collectInputs_(inputs, true);
     },
 
-    onVisibleChange_: function() {
+    onVisibleChange_() {
       if (this.visible) {
         this.updateForm_();
       }
     },
 
-    buildInputs_: function(inputs, checkedDefault, parent) {
+    buildInputs_(inputs, checkedDefault, parent) {
       var inputsLength = inputs.length;
       for (var i = 0; i < inputsLength; i++) {
         var category = inputs[i];
@@ -568,7 +568,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       }
     },
 
-    allCategories_: function() {
+    allCategories_() {
       // Dedup the categories. We may have things in settings that are also
       // returned when we query the category list.
       var categorySet = {};
@@ -581,7 +581,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       return categorySet;
     },
 
-    updateForm_: function() {
+    updateForm_() {
       function ignoreCaseCompare(a, b) {
         return a.toLowerCase().localeCompare(b.toLowerCase());
       }
@@ -619,7 +619,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       }
     },
 
-    updateSetting_: function(e) {
+    updateSetting_(e) {
       var checkbox = e.target;
       tr.b.Settings.set(checkbox.value, checkbox.checked, this.settings_key_);
 
@@ -638,7 +638,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       }
     },
 
-    createGroupSelectButtons_: function(parent) {
+    createGroupSelectButtons_(parent) {
       var flipInputs = function(dir) {
         var inputs = Polymer.dom(parent).querySelectorAll('input');
         for (var i = 0; i < inputs.length; i++) {
@@ -662,7 +662,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       };
     },
 
-    setWarningDialogOverlayText_: function(messages) {
+    setWarningDialogOverlayText_(messages) {
       var contentDiv = document.createElement('div');
 
       for (var i = 0; i < messages.length; ++i) {
@@ -674,7 +674,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       Polymer.dom(this.warningOverlay_).appendChild(contentDiv);
     },
 
-    createDefaultDisabledWarningDialog_: function(warningLink) {
+    createDefaultDisabledWarningDialog_(warningLink) {
       function onClickHandler(evt) {
         this.warningOverlay_ = tr.ui.b.Overlay();
         this.warningOverlay_.parentEl_ = this;

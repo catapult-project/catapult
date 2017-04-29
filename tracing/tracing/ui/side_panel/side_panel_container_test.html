@@ -25,7 +25,7 @@ tr.b.unittest.testSuite(function() {
   }
 
   FakeBrushingStateController.prototype = {
-    addEventListener: function(name, cb) {
+    addEventListener(name, cb) {
     }
   };
 
@@ -33,7 +33,7 @@ tr.b.unittest.testSuite(function() {
     var m = tr.c.TestUtils.newModelWithEvents([], {
       shiftWorldToZero: false,
       pruneContainers: false,
-      customizeModelCallback: function(m) {
+      customizeModelCallback(m) {
         var browserProcess = m.getOrCreateProcess(1);
         var browserMain = browserProcess.getOrCreateThread(2);
         browserMain.sliceGroup.beginSlice('cat', 'Task', 0);

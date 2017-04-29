@@ -104,7 +104,7 @@ Polymer({
    *      If a pane builder is provided and returns a pane, the new pane is
    *      appended to the view (after the provided parent, or at the top).
    */
-  setPaneBuilder: function(paneBuilder, opt_parentPane) {
+  setPaneBuilder(paneBuilder, opt_parentPane) {
     var paneContainer = this.$.pane_container;
 
     // If the parent pane is provided, it must be an HTML element and a child
@@ -173,7 +173,7 @@ Polymer({
    * child panes when they're being rebuilt and the newly constructed child
    * panes would be rebuilt as well).
    */
-  rebuild: function() {
+  rebuild() {
     var currentPane = Polymer.dom(this.$.pane_container).firstElementChild;
     while (currentPane) {
       currentPane.rebuild();

@@ -33,7 +33,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
   LayerView.prototype = {
     __proto__: HTMLDivElement.prototype,
 
-    decorate: function() {
+    decorate() {
       this.layerTreeQuadStackView_ =
           new tr.ui.e.chrome.cc.LayerTreeQuadStackView();
       this.dragBar_ = document.createElement('tr-ui-b-drag-handle');
@@ -75,11 +75,11 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.layerTreeQuadStackView_.selection = newValue;
     },
 
-    regenerateContent: function() {
+    regenerateContent() {
       this.layerTreeQuadStackView_.regenerateContent();
     },
 
-    layerTreeQuadStackViewSelectionChanged_: function() {
+    layerTreeQuadStackViewSelectionChanged_() {
       var selection = this.layerTreeQuadStackView_.selection;
       if (selection) {
         this.dragBar_.style.display = '';
@@ -107,7 +107,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       tr.b.dispatchSimpleEvent(this, 'selection-change');
     },
 
-    createPictureBtn_: function(pictures) {
+    createPictureBtn_(pictures) {
       if (!(pictures instanceof Array)) {
         pictures = [pictures];
       }
@@ -126,7 +126,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       return link;
     },
 
-    onRequestSelectionChangeFromAnalysisEl_: function(e) {
+    onRequestSelectionChangeFromAnalysisEl_(e) {
       if (!(e.selection instanceof tr.ui.e.chrome.cc.Selection)) {
         return;
       }

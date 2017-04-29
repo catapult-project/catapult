@@ -94,7 +94,7 @@ tr.exportTo('tr.ui.analysis', function() {
   AllocatorDumpNameColumn.prototype = {
     __proto__: tr.ui.analysis.TitleColumn.prototype,
 
-    formatTitle: function(row) {
+    formatTitle(row) {
       if (!row.suballocation) {
         return row.title;
       }
@@ -137,7 +137,7 @@ tr.exportTo('tr.ui.analysis', function() {
   }
 
   SizeInfoMessageBuilder.prototype = {
-    append: function(/* arguments */) {
+    append(/* arguments */) {
       this.parts_.push.apply(
           this.parts_, Array.prototype.slice.apply(arguments));
     },
@@ -179,7 +179,7 @@ tr.exportTo('tr.ui.analysis', function() {
      *                                             [...]
      *                                             - [itemN-message]
      */
-    appendMap: function(
+    appendMap(
         map, hasPluralSuffix, emptyText, itemCallback, opt_this) {
       opt_this = opt_this || this;
       if (map.size === 0) {
@@ -204,7 +204,7 @@ tr.exportTo('tr.ui.analysis', function() {
       }
     },
 
-    appendImportanceRange: function(range) {
+    appendImportanceRange(range) {
       this.append(' (importance: ');
       if (range.min === range.max) {
         this.append(range.min);
@@ -214,18 +214,18 @@ tr.exportTo('tr.ui.analysis', function() {
       this.append(')');
     },
 
-    appendSizeIfDefined: function(size) {
+    appendSizeIfDefined(size) {
       if (size !== undefined) {
         this.append(' (', tr.b.Unit.byName.sizeInBytes.format(size), ')');
       }
     },
 
-    appendSomeTimestampsQuantifier: function() {
+    appendSomeTimestampsQuantifier() {
       this.append(
           ' ', tr.ui.analysis.MemoryColumn.SOME_TIMESTAMPS_INFO_QUANTIFIER);
     },
 
-    build: function() {
+    build() {
       return this.parts_.join('');
     }
   };
@@ -247,7 +247,7 @@ tr.exportTo('tr.ui.analysis', function() {
       });
     },
 
-    addInfos: function(numerics, memoryAllocatorDumps, infos) {
+    addInfos(numerics, memoryAllocatorDumps, infos) {
       if (memoryAllocatorDumps === undefined) return;
 
       // Quantified name of an owner dump (of the given dump) -> {count,
@@ -352,7 +352,7 @@ tr.exportTo('tr.ui.analysis', function() {
       }
     },
 
-    getAndUpdateOwnershipEntry_: function(
+    getAndUpdateOwnershipEntry_(
         map, dump, link, opt_withSharerNameToEntry) {
       var entry = getAndUpdateEntry(map, dump.quantifiedName,
           function(newEntry) {
@@ -383,13 +383,13 @@ tr.exportTo('tr.ui.analysis', function() {
       });
     },
 
-    addInfos: function(numerics, memoryAllocatorDumps, infos) {
+    addInfos(numerics, memoryAllocatorDumps, infos) {
       if (memoryAllocatorDumps === undefined) return;
       this.addOverlapInfo_(numerics, memoryAllocatorDumps, infos);
       this.addProvidedSizeWarningInfos_(numerics, memoryAllocatorDumps, infos);
     },
 
-    addOverlapInfo_: function(numerics, memoryAllocatorDumps, infos) {
+    addOverlapInfo_(numerics, memoryAllocatorDumps, infos) {
       // Sibling allocator dump name -> {count, size}. The latter field (size)
       // is omitted in multi-selection mode.
       var siblingNameToEntry = new Map();
@@ -435,7 +435,7 @@ tr.exportTo('tr.ui.analysis', function() {
       }
     },
 
-    addProvidedSizeWarningInfos_: function(numerics, memoryAllocatorDumps,
+    addProvidedSizeWarningInfos_(numerics, memoryAllocatorDumps,
         infos) {
       // Info type (see MemoryAllocatorDumpInfoType) -> {count, providedSize,
       // dependencySize}. The latter two fields (providedSize and
@@ -524,13 +524,13 @@ tr.exportTo('tr.ui.analysis', function() {
     is: 'tr-ui-a-memory-dump-allocator-details-pane',
     behaviors: [tr.ui.analysis.StackedPane],
 
-    created: function() {
+    created() {
       this.memoryAllocatorDumps_ = undefined;
       this.heapDumps_ = undefined;
       this.aggregationMode_ = undefined;
     },
 
-    ready: function() {
+    ready() {
       this.$.table.selectionMode = tr.ui.b.TableFormat.SelectionMode.ROW;
     },
 
@@ -573,7 +573,7 @@ tr.exportTo('tr.ui.analysis', function() {
       return this.aggregationMode_;
     },
 
-    onRebuild_: function() {
+    onRebuild_() {
       if (this.memoryAllocatorDumps_ === undefined ||
           this.memoryAllocatorDumps_.length === 0) {
         // Show the info text (hide the table).
@@ -625,13 +625,13 @@ tr.exportTo('tr.ui.analysis', function() {
       }
     },
 
-    createRows_: function() {
+    createRows_() {
       return [
         this.createAllocatorRowRecursively_(this.memoryAllocatorDumps_)
       ];
     },
 
-    createAllocatorRowRecursively_: function(dumps) {
+    createAllocatorRowRecursively_(dumps) {
       // Get the name of the memory allocator dumps. We can use any defined
       // dump in dumps since they all have the same name.
       var definedDump = tr.b.findFirstInArray(dumps);
@@ -685,12 +685,12 @@ tr.exportTo('tr.ui.analysis', function() {
       }
 
       var row = {
-        title: title,
+        title,
         fullNames: [fullName],
         contexts: dumps,
-        numericCells: numericCells,
-        diagnosticCells: diagnosticCells,
-        suballocatedBy: suballocatedBy
+        numericCells,
+        diagnosticCells,
+        suballocatedBy
       };
 
       // Child memory dump name (dict key) -> Timestamp (list index) ->
@@ -732,7 +732,7 @@ tr.exportTo('tr.ui.analysis', function() {
       return row;
     },
 
-    classifySuballocationRow_: function(suballocationRow, rootNode) {
+    classifySuballocationRow_(suballocationRow, rootNode) {
       if (rootNode === undefined) {
         rootNode = {
           children: {},
@@ -803,7 +803,7 @@ tr.exportTo('tr.ui.analysis', function() {
       return rootNode;
     },
 
-    createSuballocationRowRecursively_: function(name, node) {
+    createSuballocationRowRecursively_(name, node) {
       var childCount = Object.keys(node.children).length;
       if (childCount === 0) {
         if (node.row === undefined) {
@@ -851,12 +851,12 @@ tr.exportTo('tr.ui.analysis', function() {
       return {
         title: name,
         suballocation: true,
-        contexts: contexts,
-        subRows: subRows
+        contexts,
+        subRows
       };
     },
 
-    createColumns_: function(rows) {
+    createColumns_(rows) {
       var titleColumn = new AllocatorDumpNameColumn();
       titleColumn.width = '200px';
 

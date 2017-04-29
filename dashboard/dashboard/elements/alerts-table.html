@@ -435,7 +435,7 @@ found in the LICENSE file.
 
       if (end < start) return null;
 
-      return { start: start, end: end };
+      return { start, end };
     }
 
     Polymer({
@@ -523,19 +523,19 @@ found in the LICENSE file.
       /**
        * Custom element lifecycle callback, called once this element is ready.
        */
-      ready: function() {
+      ready() {
       },
 
       computeIsPlural: (n) => n > 1,
 
-      getDisplayStartRev: function(item) {
+      getDisplayStartRev(item) {
         if (item.display_start) {
           return item.display_start;
         }
         return item.start_revision;
       },
 
-      getDisplayEndRev: function(item) {
+      getDisplayEndRev(item) {
         if (item.display_end) {
           return item.display_end;
         }
@@ -547,7 +547,7 @@ found in the LICENSE file.
        * KiB as appropriate. Accepts tbmv1 and tbmv2 units. Also handles
        * showing bug-details, which is used by speed releasing.
        */
-      computeExtraColumnValue: function(item, key) {
+      computeExtraColumnValue(item, key) {
         if (key === 'absolute_delta') {
           var unitName = item.units;
           if (tr.b.Unit.byName[unitName]) {
@@ -591,7 +591,7 @@ found in the LICENSE file.
 
       isBugDetailsKey: key => key === 'bug_details',
 
-      setAlertList: function(i, property, value) {
+      setAlertList(i, property, value) {
         this.set('alertList.' + i + '.' + property, value);
       },
 
@@ -599,7 +599,7 @@ found in the LICENSE file.
        * Initializes the table.
        * This should be called after this.alertList has been set.
        */
-      alertListChanged: function() {
+      alertListChanged() {
         // Some calls to alertListChanged can change the alert list.
         // If that happens, don't do anything.
         if (this.recursingAlertListChanged) {
@@ -619,7 +619,7 @@ found in the LICENSE file.
         });
       },
 
-      updateAlertList: function() {
+      updateAlertList() {
         this.recursingAlertListChanged = true;
         this.initRowsBasedOnQueryParameters();
         this.showAlertsGrouped();
@@ -632,7 +632,7 @@ found in the LICENSE file.
       /**
        * Displays alerts in groups.
        */
-      showAlertsGrouped: function() {
+      showAlertsGrouped() {
         var groupMap = {};
         var alertOrder = [];
         // Normally we should modify values in alertsList via
@@ -703,7 +703,7 @@ found in the LICENSE file.
       /**
        * Toggles expansion of a group of alerts.
        */
-      onExpandGroupButtonClicked: function(event, detail) {
+      onExpandGroupButtonClicked(event, detail) {
         var row = event.currentTarget.closest('tr');
         // alertIndex = rowIndex - 1 due to the table header row.
         var alertIndex = row.rowIndex - 1;
@@ -721,7 +721,7 @@ found in the LICENSE file.
       /**
        *  Shows, hides and checks alert rows depending on URL parameters.
        */
-      initRowsBasedOnQueryParameters: function() {
+      initRowsBasedOnQueryParameters() {
         // When we're looking at alerts for a particular bug, we usually want
         // to see the graphs right away, but we also don't want to select too
         // many alerts at once.
@@ -735,7 +735,7 @@ found in the LICENSE file.
        * Checks the alerts enumerated in the "keys" query parameter parameter.
        * @param {array} alerts The array of alerts to modify.
        */
-      selectAlertsInKeysParameter: function(alerts) {
+      selectAlertsInKeysParameter(alerts) {
         var showImprovements = uri.getParameter('improvements', false);
         if (!this.selectedKeys) return;
 
@@ -759,7 +759,7 @@ found in the LICENSE file.
       /**
        * Selects the first |n| alerts in the table from the top.
        */
-      selectFirstNAlerts: function(n) {
+      selectFirstNAlerts(n) {
         for (var i = 0; i < Math.min(n, this.alertList.length); i++) {
           this.alertList[i].selected = true;
           this.alertList[i].hideRow = false;
@@ -770,7 +770,7 @@ found in the LICENSE file.
        * Shows or hides the bug id column depending on whether there are any
        * triaged alerts listed in the table.
        */
-      updateBugColumn: function() {
+      updateBugColumn() {
         // We need the xsrf token to be set in the individual bug-info-span
         // element, and this can be done by setting it in the alert objects,
         // and binding xsrfToken in the template above.
@@ -803,7 +803,7 @@ found in the LICENSE file.
        * @param {Event} event The event object.
        * @param {Object} detail Parameters sent with the event.
        */
-      onUntriaged: function(event, detail) {
+      onUntriaged(event, detail) {
         var key = detail.key;
         for (var i = 0; i < this.alertList.length; i++) {
           if (this.alertList[i].key == key) {
@@ -815,7 +815,7 @@ found in the LICENSE file.
       /**
        * Either unchecks or checks all alerts.
        */
-      onHeaderCheckboxChange: function(event, detail) {
+      onHeaderCheckboxChange(event, detail) {
         for (var i = 0; i < this.alertList.length; i++) {
           var alert = this.alertList[i];
           if (event.currentTarget.checked) {
@@ -830,7 +830,7 @@ found in the LICENSE file.
         this.onCheckboxChange();
       },
 
-      sortByChanged: function() {
+      sortByChanged() {
         // TODO(simonhatch): Similar to the async updates in alertListChanged,
         // async the sort updates since we touch alertList.
         this.async(function() {
@@ -839,7 +839,7 @@ found in the LICENSE file.
         });
       },
 
-      sortDirectionChanged: function() {
+      sortDirectionChanged() {
         // TODO(simonhatch): Similar to the async updates in alertListChanged,
         // async the sort updates since we touch alertList.
         this.async(function() {
@@ -853,7 +853,7 @@ found in the LICENSE file.
        * @param {Event} event Clicked event.
        * @param {Object} detail Detail Object.
        */
-      columnHeaderClicked: function(event, detail) {
+      columnHeaderClicked(event, detail) {
         this.sortBy = event.currentTarget.id;
         var newDirection = 'down';
         // Because the <th> element may have been added based on an entry in
@@ -868,7 +868,7 @@ found in the LICENSE file.
       /**
        * Update the table headers to indicate the current table sorting.
        */
-      updateHeaders: function() {
+      updateHeaders() {
         var headers = Polymer.dom(this.$.alerts).querySelectorAll('th');
         for (var i = 0; i < headers.length; i++) {
           if (headers[i].id == this.sortBy) {
@@ -884,7 +884,7 @@ found in the LICENSE file.
        * Sorts the alert list according to the current values of the properties
        * sortDirection and sortBy.
        */
-      sort: function() {
+      sort() {
         var order = this.sortDirection == 'down' ? 1 : -1;
         var sortBy = this.sortBy;
 
@@ -1003,7 +1003,7 @@ found in the LICENSE file.
        * @return {?Object} An object containing start and end revision,
        *     or null if the checked alerts don't overlap.
        */
-      getCommonRevisionRange: function(alerts) {
+      getCommonRevisionRange(alerts) {
         if (!alerts || alerts.length == 0) return null;
 
         var commonRange = { start: -Infinity, end: Infinity };
@@ -1024,7 +1024,7 @@ found in the LICENSE file.
       /**
        * Handles shift-click selecting checkboxes and selecting rows in group.
        */
-      onRowClicked: function(event, detail) {
+      onRowClicked(event, detail) {
         if (event.shiftKey && this.previousCheckboxId &&
             this.currentCheckboxId) {
           if (this.previousCheckboxId == this.currentCheckboxId) {
@@ -1064,7 +1064,7 @@ found in the LICENSE file.
       /**
        * Checks or unchecks hidden group member rows.
        */
-      updateGroupCheckboxes: function(alert, alertIndex, isChecked) {
+      updateGroupCheckboxes(alert, alertIndex, isChecked) {
         if (alert.rowType == 'group-header' && !alert.expanded) {
           for (var i = alertIndex + 1; i < this.alertList.length; i++) {
             if (this.alertList[i].rowType == 'group-member') {
@@ -1080,7 +1080,7 @@ found in the LICENSE file.
        * Event handler for the change event of any of the checkboxes for any
        * alert in the table.
        */
-      onCheckboxChange: function(event, detail) {
+      onCheckboxChange(event, detail) {
         if (event && event.currentTarget) {
           // Checks group member rows.
           var alertIndex = Polymer.dom(Polymer.dom(
@@ -1108,7 +1108,7 @@ found in the LICENSE file.
       /**
        * Checks the header checkbox if all checkboxes below are checked.
        */
-      updateHeaderCheckbox: function() {
+      updateHeaderCheckbox() {
         if (this.checkedAlerts.length == this.alertList.length) {
           this.$['header-checkbox'].checked = true;
         } else {
@@ -1120,7 +1120,7 @@ found in the LICENSE file.
        * Disables or enables the triage and graph buttons depending on whether
        * there are any alerts currently checked.
        */
-      maybeDisableButtons: function() {
+      maybeDisableButtons() {
         var buttonsDisabled = this.checkedAlerts.length == 0;
         this.$['file-bug-button'].disabled = buttonsDisabled;
         this.$['graph-button'].disabled = buttonsDisabled;
@@ -1131,7 +1131,7 @@ found in the LICENSE file.
        * to /short_uri with the keys. The reply is a hash of
        * the keys, which we redirect the new tab to.
        */
-      showGraphs: function() {
+      showGraphs() {
         var newTab = window.open('about:blank');
 
         simple_xhr.send('/short_uri',
@@ -1149,13 +1149,13 @@ found in the LICENSE file.
        * Shows the UI to file a bug on the given group of alerts.
        * @param {Event} e The event for the button click.
        */
-      showTriageDialog: function(e) {
+      showTriageDialog(e) {
         this.$.triage.alerts = this.checkedAlerts;
         this.$.triage.show();
         e.stopPropagation();
       },
 
-      getAlertIndexByKey: function(key) {
+      getAlertIndexByKey(key) {
         for (var i = 0; i < this.alertList.length; i++) {
           if (this.alertList[i].key == key) {
             return i;
@@ -1169,7 +1169,7 @@ found in the LICENSE file.
        * for alerts that have been triaged.
        * @param {Event} e The event for button click.
        */
-      onTriaged: function(e) {
+      onTriaged(e) {
         var triagedKeys = e.detail.alerts.map(function(alert) {
           return alert.key;
         });
@@ -1188,7 +1188,7 @@ found in the LICENSE file.
         this.updateBugColumn();
       },
 
-      isHighlighted: function(commonRevisionRange, alert) {
+      isHighlighted(commonRevisionRange, alert) {
         if (commonRevisionRange == null) return false;
 
         var alertRevisionRange = {

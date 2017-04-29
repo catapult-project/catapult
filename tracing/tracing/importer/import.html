@@ -66,9 +66,9 @@ tr.exportTo('tr.importer', function() {
      * eventData should correspond to a single trace file and will be handled by
      * a separate importer.
      */
-    importTraces: function(traces) {
+    importTraces(traces) {
       var progressMeter = {
-        update: function(msg) {}
+        update(msg) {}
       };
 
       tr.b.Task.RunSynchronously(
@@ -80,7 +80,7 @@ tr.exportTo('tr.importer', function() {
      * does so using idle callbacks, putting up an import dialog
      * during the import process.
      */
-    importTracesWithProgressDialog: function(traces) {
+    importTracesWithProgressDialog(traces) {
       if (tr.isHeadless) {
         throw new Error('Cannot use this method in headless mode.');
       }
@@ -110,7 +110,7 @@ tr.exportTo('tr.importer', function() {
      * updating the progressMeter as it goes. Parameters are as defined in
      * importTraces.
      */
-    createImportTracesTask: function(progressMeter, traces) {
+    createImportTracesTask(progressMeter, traces) {
       var importStartTimeMs = performance.now();
       if (this.importing_) {
         throw new Error('Already importing.');
@@ -311,7 +311,7 @@ tr.exportTo('tr.importer', function() {
       return importTask;
     },
 
-    createImporter_: function(eventData) {
+    createImporter_(eventData) {
       var importerConstructor = tr.importer.Importer.findImporterFor(eventData);
       if (!importerConstructor) {
         throw new Error('Couldn\'t create an importer for the provided ' +
@@ -320,7 +320,7 @@ tr.exportTo('tr.importer', function() {
       return new importerConstructor(this.model_, eventData);
     },
 
-    hasEventDataDecoder_: function(importers) {
+    hasEventDataDecoder_(importers) {
       for (var i = 0; i < importers.length; ++i) {
         if (!importers[i].isTraceDataContainer()) return true;
       }

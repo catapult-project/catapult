@@ -38,7 +38,7 @@ tr.exportTo('tr.c', function() {
       return this.brushingStateController_;
     },
 
-    onModelChanged_: function() {
+    onModelChanged_() {
       this.scriptObjectValues_.forEach(function(v) {
         if (v.onModelChanged) {
           v.onModelChanged(this.brushingStateController.model);
@@ -46,12 +46,12 @@ tr.exportTo('tr.c', function() {
       }, this);
     },
 
-    addScriptObject: function(name, value) {
+    addScriptObject(name, value) {
       this.scriptObjectNames_.push(name);
       this.scriptObjectValues_.push(value);
     },
 
-    executeCommand: function(command) {
+    executeCommand(command) {
       var f = new Function(
           this.scriptObjectNames_, 'return eval(' + command + ')');
       return f.apply(null, this.scriptObjectValues_);

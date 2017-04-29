@@ -45,7 +45,7 @@ found in the LICENSE file.
       'tap': 'onTap_'
     },
 
-    created: function() {
+    created() {
       this.tapCallback_ = undefined;
       this.cellTitle_ = '';
     },
@@ -64,7 +64,7 @@ found in the LICENSE file.
       return this.cellTitle_;
     },
 
-    clearSideContent: function() {
+    clearSideContent() {
       Polymer.dom(this.$.side).textContent = '';
     },
 
@@ -85,7 +85,7 @@ found in the LICENSE file.
       return this.tapCallback_;
     },
 
-    onTap_: function() {
+    onTap_() {
       if (this.tapCallback_) {
         this.tapCallback_();
       }

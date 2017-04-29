@@ -140,7 +140,7 @@ tr.exportTo('tr.ui.b', function() {
     /**
      * Initializes the overlay element.
      */
-    decorate: function() {
+    decorate() {
       Polymer.dom(this).classList.add('overlay');
 
       this.parentEl_ = this.ownerDocument.body;
@@ -181,11 +181,11 @@ tr.exportTo('tr.ui.b', function() {
       // use it for something more useful.
       Object.defineProperty(
           this, 'title', {
-            get: function() {
+            get() {
               return Polymer.dom(Polymer.dom(this.shadow_)
                   .querySelector('title')).textContent;
             },
-            set: function(title) {
+            set(title) {
               Polymer.dom(Polymer.dom(this.shadow_).querySelector('title'))
                   .textContent = title;
             }
@@ -214,11 +214,11 @@ tr.exportTo('tr.ui.b', function() {
       this.dispatchEvent(e);
     },
 
-    onVisibleChange_: function() {
+    onVisibleChange_() {
       this.visible_ ? this.show_() : this.hide_();
     },
 
-    show_: function() {
+    show_() {
       Polymer.dom(this.parentEl_).appendChild(this);
 
       if (this.userCanClose_) {
@@ -244,7 +244,7 @@ tr.exportTo('tr.ui.b', function() {
       this.focus();
     },
 
-    hide_: function() {
+    hide_() {
       Polymer.dom(this.parentEl_).removeChild(this);
 
       this.parentEl_.removeEventListener('focusin', this.onFocusIn_);
@@ -257,7 +257,7 @@ tr.exportTo('tr.ui.b', function() {
       document.removeEventListener('click', this.onDocumentClick_);
     },
 
-    onClose_: function(e) {
+    onClose_(e) {
       this.visible = false;
       if ((e.type !== 'keydown') ||
           (e.type === 'keydown' && e.keyCode === 27)) {
@@ -267,7 +267,7 @@ tr.exportTo('tr.ui.b', function() {
       tr.b.dispatchSimpleEvent(this, 'closeclick');
     },
 
-    onFocusIn_: function(e) {
+    onFocusIn_(e) {
       if (e.target === this) return;
 
       tr.b.timeout(0).then(() => this.focus());
@@ -275,7 +275,7 @@ tr.exportTo('tr.ui.b', function() {
       e.stopPropagation();
     },
 
-    didButtonBarMutate_: function(e) {
+    didButtonBarMutate_(e) {
       var hasButtons = this.buttons.children.length > 0;
       if (hasButtons) {
         Polymer.dom(this.shadow_).querySelector('button-bar').style.display =
@@ -286,7 +286,7 @@ tr.exportTo('tr.ui.b', function() {
       }
     },
 
-    onKeyDown_: function(e) {
+    onKeyDown_(e) {
       // Disallow shift-tab back to another element.
       if (e.keyCode === 9 &&  // tab
           e.shiftKey &&
@@ -300,11 +300,11 @@ tr.exportTo('tr.ui.b', function() {
       this.onClose_(e);
     },
 
-    onClick_: function(e) {
+    onClick_(e) {
       e.stopPropagation();
     },
 
-    onDocumentClick_: function(e) {
+    onDocumentClick_(e) {
       if (!this.userCanClose_) return;
 
       this.onClose_(e);

@@ -269,10 +269,10 @@ tr.b.unittest.testSuite(function() {
         containerToTrack.getTrackByStableId('123.456.SliceGroup'));
 
     vp.modelTrackContainer = {
-      addContainersToTrackMap: function(containerToTrackMap) {
+      addContainersToTrackMap(containerToTrackMap) {
         processTrack.addContainersToTrackMap(containerToTrackMap);
       },
-      addEventListener: function() {}
+      addEventListener() {}
     };
     vp.rebuildContainerToTrackMap();
 

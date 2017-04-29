@@ -55,7 +55,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     /**
      * Parses memreclaim events and sets up state in the importer.
      */
-    kswapdWake: function(eventName, cpuNumber, pid, ts, eventBase) {
+    kswapdWake(eventName, cpuNumber, pid, ts, eventBase) {
       var event = kswapdWakeRE.exec(eventBase.details);
       if (!event) return false;
 
@@ -78,7 +78,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       return true;
     },
 
-    kswapdSleep: function(eventName, cpuNumber, pid, ts, eventBase) {
+    kswapdSleep(eventName, cpuNumber, pid, ts, eventBase) {
       var tgid = parseInt(eventBase.tgid);
 
       var kthread = this.importer.getOrCreateKernelThread(
@@ -97,7 +97,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       return true;
     },
 
-    reclaimBegin: function(eventName, cpuNumber, pid, ts, eventBase) {
+    reclaimBegin(eventName, cpuNumber, pid, ts, eventBase) {
       var event = reclaimBeginRE.exec(eventBase.details);
       if (!event) return false;
 
@@ -114,7 +114,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       return true;
     },
 
-    reclaimEnd: function(eventName, cpuNumber, pid, ts, eventBase) {
+    reclaimEnd(eventName, cpuNumber, pid, ts, eventBase) {
       var event = reclaimEndRE.exec(eventBase.details);
       if (!event) return false;
 

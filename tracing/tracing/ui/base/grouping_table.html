@@ -41,7 +41,7 @@ tr.exportTo('tr.ui.b', function() {
   }
 
   Row.prototype = {
-    getCurrentGroupingKeyFunc_: function() {
+    getCurrentGroupingKeyFunc_() {
       if (this.groupingKeyFuncs_.length === 0) return undefined;
       return this.groupingKeyFuncs_[0];
     },
@@ -57,7 +57,7 @@ tr.exportTo('tr.ui.b', function() {
       return this.rowStats_;
     },
 
-    rebuildSubRowsIfNeeded_: function() {
+    rebuildSubRowsIfNeeded_() {
       if (this.subRowsBuilt_) return;
       this.subRowsBuilt_ = true;
 
@@ -107,7 +107,7 @@ tr.exportTo('tr.ui.b', function() {
   Polymer({
     is: 'tr-ui-b-grouping-table',
 
-    created: function() {
+    created() {
       this.dataToGroup_ = undefined;
       this.groupBy_ = undefined;
       this.rowStatsConstructor_ = undefined;
@@ -208,11 +208,11 @@ tr.exportTo('tr.ui.b', function() {
       this.updateContents_();
     },
 
-    rebuild: function() {
+    rebuild() {
       this.$.table.rebuild();
     },
 
-    updateContents_: function() {
+    updateContents_() {
       var groupBy = this.groupBy_ || [];
       var dataToGroup = this.dataToGroup_ || [];
       var rowStatsConstructor = this.rowStatsConstructor_ || function() {};

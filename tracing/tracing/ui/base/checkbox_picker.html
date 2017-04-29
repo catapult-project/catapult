@@ -26,14 +26,14 @@ found in the LICENSE file.
 
 Polymer({
   is: 'tr-ui-b-checkbox-picker',
-  created: function() {
+  created() {
     this.needsInit_ = true;
     this.settingsKey_ = undefined;
     this.is_ready_ = false;
     this.checkboxes_ = undefined;
   },
 
-  ready: function() {
+  ready() {
     this.is_ready_ = true;
     this.maybeInit_();
     this.maybeRenderCheckboxes_();
@@ -51,7 +51,7 @@ Polymer({
     this.maybeInit_();
   },
 
-  maybeInit_: function() {
+  maybeInit_() {
     if (!this.needsInit_) return;
     if (this.settingsKey_ === undefined) return;
     if (this.checkboxes_ === undefined) return;
@@ -78,7 +78,7 @@ Polymer({
     this.maybeRenderCheckboxes_();
   },
 
-  maybeRenderCheckboxes_: function() {
+  maybeRenderCheckboxes_() {
     if (!this.is_ready_) return;
     if (this.checkboxes_ === undefined) return;
     for (var key in this.checkboxes_) {
@@ -86,14 +86,14 @@ Polymer({
     }
   },
 
-  selectCheckbox: function(key) {
+  selectCheckbox(key) {
     if (!(key in this.checkboxes_)) {
       throw new Error(key + ' does not exists');
     }
     this.checkboxes_[key].checked = true;
   },
 
-  unselectCheckbox: function(key) {
+  unselectCheckbox(key) {
     if (!(key in this.checkboxes_)) {
       throw new Error(key + ' does not exists');
     }

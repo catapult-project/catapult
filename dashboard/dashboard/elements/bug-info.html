@@ -66,7 +66,7 @@ found in the LICENSE file.
        * @param {Number} bugId A bug ID number.
        * @param {HTMLElement} alertsTable HTML element of alerts-table.
        */
-      initialize: function(bugId, alertsTable) {
+      initialize(bugId, alertsTable) {
         this.$.container.style.display = '';
         this.bugId = bugId;
         this.alertsTable = alertsTable;
@@ -78,7 +78,7 @@ found in the LICENSE file.
       /**
        * Displays bug info; this will be either a revision range or a warning.
        */
-      updateBugInfo: function() {
+      updateBugInfo() {
         var alerts = this.getCheckedOrAllAlerts();
         if (alerts.length == 0) {
           this.$.warning.textContent =
@@ -106,7 +106,7 @@ found in the LICENSE file.
        *
        * @return {Array.<Object>} List of alerts.
        */
-      getCheckedOrAllAlerts: function(alerts, minRevRange) {
+      getCheckedOrAllAlerts(alerts, minRevRange) {
         var alerts = this.alertsTable.checkedAlerts;
         if (!alerts || alerts.length == 0) {
           alerts = this.alertsTable.alertList.filter(
@@ -124,7 +124,7 @@ found in the LICENSE file.
        *
        * @return {?string} The test path.
        */
-      getTestPathFromStartRev: function(alerts, startRevision) {
+      getTestPathFromStartRev(alerts, startRevision) {
         for (var i = 0; i < alerts.length; i++) {
           if (alerts[i].start_revision == startRevision) {
             return alerts[i].master + '/' +

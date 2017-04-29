@@ -191,7 +191,7 @@ found in the LICENSE file.
 
       computeAnd: (x, y) => x && y,
 
-      ready: function() {
+      ready() {
         this.pageStateLoading = true;
         this.hasChart = false;
         this.enableAddSeries = false;
@@ -201,7 +201,7 @@ found in the LICENSE file.
         this.set('selectionModels.0.datalist', this.getSuiteItems());
       },
 
-      testSuitesChanged: function() {
+      testSuitesChanged() {
         this.set('selectionModels.0.datalist', this.getSuiteItems());
         this.getSelectionMenu(0).items = this.selectionModels[0].datalist;
       },
@@ -209,7 +209,7 @@ found in the LICENSE file.
       /**
        * Gets a list of menu items for test suites.
        */
-      getSuiteItems: function() {
+      getSuiteItems() {
         var suiteMenuItems = [];
         var isUnmonitored = suite => {
           // A suite is considered unmonitored if there are no monitored
@@ -243,7 +243,7 @@ found in the LICENSE file.
       /**
        * Gets a list of bot menu items base on the selected test suite.
        */
-      getBotItems: function() {
+      getBotItems() {
         var suite = this.getSelectionMenu(0).selectedName;
         if (!this.testSuites[suite]) {
           return [];
@@ -254,7 +254,7 @@ found in the LICENSE file.
         for (var i = 0; i < masters.length; i++) {
           var groupItem = {
             name: masters[i],
-            suite: suite,
+            suite,
             head: true
           };
           botMenuItems.push(groupItem);
@@ -263,7 +263,7 @@ found in the LICENSE file.
           for (var j = 0; j < botNames.length; j++) {
             var name = botNames[j];
             var botItem = {
-              name: name,
+              name,
               group: masters[i],
               tag: (bots[name] ? this.DEPRECATED_TAG : '')
             };
@@ -276,7 +276,7 @@ found in the LICENSE file.
       /**
        * Handles dropdown menu select; updates the subsequent menu accordingly.
        */
-      onDropdownSelect: function(event) {
+      onDropdownSelect(event) {
         var model = event.model;
         var boxIndex = model.index;
         if (this.updatingSubtestMenus) return;
@@ -291,7 +291,7 @@ found in the LICENSE file.
         }
       },
 
-      updateTestSuiteDescription: function() {
+      updateTestSuiteDescription() {
         // Display the test suite description if there is one.
         var descriptionElement = this.$['suite-description'];
         var suite = this.getSelectionMenu(0).selectedName;
@@ -313,7 +313,7 @@ found in the LICENSE file.
       /**
        * Updates bot dropdown menu with bot items.
        */
-      updateBotMenu: async function() {
+      async updateBotMenu() {
         var menu = this.getSelectionMenu(1);
         var botItems = this.getBotItems();
         menu.set('items', botItems);
@@ -334,7 +334,7 @@ found in the LICENSE file.
       /**
        * Updates all subtest menus starting at 'startIndex'.
        */
-      updateSubtestMenus: async function(startIndex) {
+      async updateSubtestMenus(startIndex) {
         let subtests = await this.subtests.getSubtestsForPath(
             this.getCurrentSelectedPathUpTo(startIndex));
 
@@ -383,12 +383,12 @@ found in the LICENSE file.
         this.updateAddButtonState();
       },
 
-      updateAddButtonState: async function() {
+      async updateAddButtonState() {
         this.enableAddSeries = (
             (await this.getCurrentSelection()) instanceof Array);
       },
 
-      getCheckedBot: function() {
+      getCheckedBot() {
         var botMenu = this.getSelectionMenu(1);
         if (botMenu.selectedItem) {
           let item = botMenu.selectedItem;
@@ -397,12 +397,12 @@ found in the LICENSE file.
         return null;
       },
 
-      getCheckedSuite: function() {
+      getCheckedSuite() {
         var suiteMenu = this.getSelectionMenu(0);
         return suiteMenu.selectedName;
       },
 
-      getSelectionMenu: function(index) {
+      getSelectionMenu(index) {
         Polymer.dom.flush();
         return Polymer.dom(this.$.container).children[index];
       },
@@ -410,7 +410,7 @@ found in the LICENSE file.
       /**
        * Handler for drag start event for series drag button.
        */
-      onSeriesButtonDragStart: async function(event, detail) {
+      async onSeriesButtonDragStart(event, detail) {
         event.dataTransfer.setData('type', 'seriesdnd');
         event.dataTransfer.setData(
             'data', JSON.stringify({
@@ -424,14 +424,14 @@ found in the LICENSE file.
       /**
        * Fires add event on 'Add' button clicked.
        */
-      onAddButtonClicked: function(event, detail) {
+      onAddButtonClicked(event, detail) {
         this.fire('add');
       },
 
       /**
        * Gets the current selection from the menus.
        */
-      getCurrentSelection: async function() {
+      async getCurrentSelection() {
         const path = this.getCurrentSelectedPathUpTo(-1, true);
 
         // If the paths are the same, this means that the selected path has
@@ -464,7 +464,7 @@ found in the LICENSE file.
         return selectedTests;
       },
 
-      getCurrentSelectedPathUpTo: function(maxLevel, onlyValid) {
+      getCurrentSelectedPathUpTo(maxLevel, onlyValid) {
         let level = 0;
         const parts = [];
         while (true) {
@@ -494,15 +494,15 @@ found in the LICENSE file.
         return parts.join('/');
       },
 
-      getCurrentSelectedPath: function() {
+      getCurrentSelectedPath() {
         return this.currentSelectedPath_;
       },
 
-      getCurrentUnselected: function() {
+      getCurrentUnselected() {
         return this.currentUnselectedTests_;
       },
 
-      getSubtestsForPath: async function(path, returnSelected) {
+      async getSubtestsForPath(path, returnSelected) {
         // TODO(eakuefner): Reimplement cancellation and memoize.
         // TODO(eakuefner): Fix error handling.
         const params = {
@@ -527,7 +527,7 @@ found in the LICENSE file.
        * @return {number} negative if suiteA should be before suiteB,
        *     positive if suiteA should be after suiteB, zero if they're equal.
        */
-      compareTestSuiteItem: function(suiteA, suiteB) {
+      compareTestSuiteItem(suiteA, suiteB) {
         if (!suiteA.deprecated && suiteB.deprecated) {
           return -1;
         }
@@ -556,7 +556,7 @@ found in the LICENSE file.
        * @param {string} text A link in markdown format.
        * @return {string} A hyperlink string.
        */
-      convertMarkdownLinks: function(text) {
+      convertMarkdownLinks(text) {
         return text.replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2">$1</a>');
       }
     });

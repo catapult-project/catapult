@@ -161,7 +161,7 @@ tr.exportTo('tr.ui.analysis', function() {
       return this.lazyCells_;
     },
 
-    releaseStackFrameNodesIfPossible_: function() {
+    releaseStackFrameNodesIfPossible_() {
       if (this.lazyCells_ && this.lazyChildNodes_) {
         // Don't unnecessarily hold a reference to the stack frame nodes when
         // we don't need them anymore.
@@ -169,7 +169,7 @@ tr.exportTo('tr.ui.analysis', function() {
       }
     },
 
-    addDimensionChildNodes_: function(dimension, dimensionIndex) {
+    addDimensionChildNodes_(dimension, dimensionIndex) {
       // Child title -> Timestamp (list index) -> Child
       // MultiDimensionalViewNode.
       var dimensionChildTitleToStackFrameNodes = tr.b.invertArrayOfDicts(
@@ -187,7 +187,7 @@ tr.exportTo('tr.ui.analysis', function() {
       this.lazyChildNodes_.set(dimension, dimensionChildNodes);
     },
 
-    convertStackFrameNodeDimensionToChildDict_: function(
+    convertStackFrameNodeDimensionToChildDict_(
         stackFrameNode, dimensionIndex) {
       var childDict = {};
 
@@ -239,7 +239,7 @@ tr.exportTo('tr.ui.analysis', function() {
       return childDict;
     },
 
-    addCells_: function() {
+    addCells_() {
       // Transform a chronological list of heap stack frame tree nodes into a
       // dictionary of cells (where each cell contains a chronological list
       // of the values of its numeric).
@@ -264,14 +264,14 @@ tr.exportTo('tr.ui.analysis', function() {
     is: 'tr-ui-a-memory-dump-heap-details-pane',
     behaviors: [tr.ui.analysis.StackedPane],
 
-    created: function() {
+    created() {
       this.heapDumps_ = undefined;
       this.viewMode_ = undefined;
       this.aggregationMode_ = undefined;
       this.cachedBuilders_ = new Map();
     },
 
-    ready: function() {
+    ready() {
       this.$.info_bar.message = 'Note: Values displayed in the heavy view ' +
           'are lower bounds (except for the root).';
 
@@ -363,7 +363,7 @@ tr.exportTo('tr.ui.analysis', function() {
       }
     },
 
-    onRebuild_: function() {
+    onRebuild_() {
       if (this.heapDumps_ === undefined ||
           this.heapDumps_.length === 0) {
         // Show the info text (hide the table and the view mode selector).
@@ -388,7 +388,7 @@ tr.exportTo('tr.ui.analysis', function() {
       this.$.breakdown_view.rebuild();
     },
 
-    createHeapTree_: function() {
+    createHeapTree_() {
       var definedHeapDump = tr.b.findFirstInArray(this.heapDumps_);
       if (definedHeapDump === undefined) return undefined;
 
@@ -402,7 +402,7 @@ tr.exportTo('tr.ui.analysis', function() {
           this.heavyView);
     },
 
-    createStackFrameTrees_: function(heapDumps) {
+    createStackFrameTrees_(heapDumps) {
       var builders = heapDumps.map(heapDump => this.createBuilder_(heapDump));
       var views = builders.map(builder => {
         if (builder === undefined) return undefined;
@@ -411,7 +411,7 @@ tr.exportTo('tr.ui.analysis', function() {
       return views;
     },
 
-    createBuilder_: function(heapDump) {
+    createBuilder_(heapDump) {
       if (heapDump === undefined) return undefined;
 
       if (this.cachedBuilders_.has(heapDump)) {

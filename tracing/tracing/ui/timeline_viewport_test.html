@@ -28,10 +28,10 @@ tr.b.unittest.testSuite(function() {
     var slice = { guid: 1 };
 
     vp.modelTrackContainer = {
-      addEventsToTrackMap: function(eventToTrackMap) {
+      addEventsToTrackMap(eventToTrackMap) {
         eventToTrackMap.addEvent(slice, 'track');
       },
-      addEventListener: function() {}
+      addEventListener() {}
     };
 
     assert.isUndefined(vp.trackForEvent(slice));

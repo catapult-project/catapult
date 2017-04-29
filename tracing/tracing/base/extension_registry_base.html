@@ -33,7 +33,7 @@ tr.exportTo('tr.b', function() {
     this.frozen_ = false;
   }
   ExtensionRegistryOptions.prototype = {
-    freeze: function() {
+    freeze() {
       if (this.frozen_) {
         throw new Error('Frozen');
       }
@@ -77,7 +77,7 @@ tr.exportTo('tr.b', function() {
       return this.defaultTypeInfo_;
     },
 
-    validateConstructor: function(constructor) {
+    validateConstructor(constructor) {
       if (!this.mandatoryBaseClass) return;
       var curProto = constructor.prototype.__proto__;
       var ok = false;

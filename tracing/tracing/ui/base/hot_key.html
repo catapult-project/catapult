@@ -52,11 +52,11 @@ tr.exportTo('tr.ui.b', function() {
       return this.helpText_;
     },
 
-    call: function(e) {
+    call(e) {
       this.callback_.call(this.thisArg_, e);
     },
 
-    pushKeyCode_: function(keyCode) {
+    pushKeyCode_(keyCode) {
       this.keyCodes_.push(keyCode);
     }
   };

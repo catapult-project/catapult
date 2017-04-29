@@ -26,7 +26,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     __proto__: tr.ui.tracks.ContainerTrack.prototype,
 
-    decorate: function(viewport) {
+    decorate(viewport) {
       tr.ui.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
       this.tooltip_ = '';
       this.heading_ = '';
@@ -46,7 +46,7 @@ tr.exportTo('tr.ui.tracks', function() {
       return this.itemsToGroup_;
     },
 
-    setItemsToGroup: function(itemsToGroup, opt_groupingSource) {
+    setItemsToGroup(itemsToGroup, opt_groupingSource) {
       this.itemsToGroup_ = itemsToGroup;
       this.groupingSource_ = opt_groupingSource;
       this.updateContents_();
@@ -90,7 +90,7 @@ tr.exportTo('tr.ui.tracks', function() {
       this.expandedStateChanged_();
     },
 
-    onHeadingClicked_: function(e) {
+    onHeadingClicked_(e) {
       if (this.subRows.length <= 1) return;
 
       this.expanded = !this.expanded;
@@ -105,7 +105,7 @@ tr.exportTo('tr.ui.tracks', function() {
       e.stopPropagation();
     },
 
-    updateExpandedStateFromGroupingSource_: function() {
+    updateExpandedStateFromGroupingSource_() {
       if (this.groupingSource_) {
         var numSubRows = this.subRows.length;
         var modelSettings = new tr.model.ModelSettings(
@@ -125,7 +125,7 @@ tr.exportTo('tr.ui.tracks', function() {
       }
     },
 
-    expandedStateChanged_: function() {
+    expandedStateChanged_() {
       var minH = Math.max(2, Math.ceil(18 / this.children.length));
       var h = (this.expanded_ ? 18 : minH) + 'px';
 
@@ -143,7 +143,7 @@ tr.exportTo('tr.ui.tracks', function() {
       }
     },
 
-    updateContents_: function() {
+    updateContents_() {
       tr.ui.tracks.ContainerTrack.prototype.updateContents_.call(this);
       if (!this.itemsToGroup_) {
         this.updateHeadingAndTooltip_();
@@ -178,7 +178,7 @@ tr.exportTo('tr.ui.tracks', function() {
       this.expandedStateChanged_();
     },
 
-    updateHeadingAndTooltip_: function() {
+    updateHeadingAndTooltip_() {
       if (!Polymer.dom(this).firstChild) return;
 
       Polymer.dom(this).firstChild.heading = this.heading_;
@@ -189,15 +189,15 @@ tr.exportTo('tr.ui.tracks', function() {
      * Breaks up the list of slices into N rows, each of which is a list of
      * slices that are non overlapping.
      */
-    buildSubRows_: function(itemsToGroup) {
+    buildSubRows_(itemsToGroup) {
       throw new Error('Not implemented');
     },
 
-    addSubTrack_: function(subRowItems) {
+    addSubTrack_(subRowItems) {
       throw new Error('Not implemented');
     },
 
-    areArrayContentsSame_: function(a, b) {
+    areArrayContentsSame_(a, b) {
       if (!a || !b) return false;
 
       if (!a.length || !b.length) return false;

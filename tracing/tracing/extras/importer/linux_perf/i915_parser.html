@@ -76,14 +76,14 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
   I915Parser.prototype = {
     __proto__: Parser.prototype,
 
-    i915FlipOpenSlice: function(ts, obj, plane) {
+    i915FlipOpenSlice(ts, obj, plane) {
       // use i915_flip_obj_plane?
       var kthread = this.importer.getOrCreatePseudoThread('i915_flip');
       kthread.openSliceTS = ts;
       kthread.openSlice = 'flip:' + obj + '/' + plane;
     },
 
-    i915FlipCloseSlice: function(ts, args) {
+    i915FlipCloseSlice(ts, args) {
       var kthread = this.importer.getOrCreatePseudoThread('i915_flip');
       if (kthread.openSlice) {
         var slice = new tr.model.ThreadSlice('', kthread.openSlice,
@@ -97,7 +97,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       kthread.openSlice = undefined;
     },
 
-    i915GemObjectSlice: function(ts, eventName, obj, args) {
+    i915GemObjectSlice(ts, eventName, obj, args) {
       var kthread = this.importer.getOrCreatePseudoThread('i915_gem');
       kthread.openSlice = eventName + ':' + obj;
       var slice = new tr.model.ThreadSlice('', kthread.openSlice,
@@ -107,7 +107,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       kthread.thread.sliceGroup.pushSlice(slice);
     },
 
-    i915GemRingSlice: function(ts, eventName, dev, ring, args) {
+    i915GemRingSlice(ts, eventName, dev, ring, args) {
       var kthread = this.importer.getOrCreatePseudoThread('i915_gem_ring');
       kthread.openSlice = eventName + ':' + dev + '.' + ring;
       var slice = new tr.model.ThreadSlice('', kthread.openSlice,
@@ -117,7 +117,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       kthread.thread.sliceGroup.pushSlice(slice);
     },
 
-    i915RegSlice: function(ts, eventName, reg, args) {
+    i915RegSlice(ts, eventName, reg, args) {
       var kthread = this.importer.getOrCreatePseudoThread('i915_reg');
       kthread.openSlice = eventName + ':' + reg;
       var slice = new tr.model.ThreadSlice('', kthread.openSlice,
@@ -127,7 +127,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       kthread.thread.sliceGroup.pushSlice(slice);
     },
 
-    i915FreqChangeSlice: function(ts, eventName, args) {
+    i915FreqChangeSlice(ts, eventName, args) {
       var kthread = this.importer.getOrCreatePseudoThread('i915_gpu_freq');
       kthread.openSlice = eventName;
       var slice = new tr.model.ThreadSlice('', kthread.openSlice,
@@ -140,7 +140,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     /**
      * Parses i915 driver events and sets up state in the importer.
      */
-    gemObjectCreateEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+    gemObjectCreateEvent(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /obj=(\w+), size=(\d+)/.exec(eventBase.details);
       if (!event) return false;
 
@@ -148,13 +148,13 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var size = parseInt(event[2]);
       this.i915GemObjectSlice(ts, eventName, obj,
           {
-            obj: obj,
-            size: size
+            obj,
+            size
           });
       return true;
     },
 
-    gemObjectBindEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+    gemObjectBindEvent(eventName, cpuNumber, pid, ts, eventBase) {
       // TODO(sleffler) mappable
       var event = /obj=(\w+), offset=(\w+), size=(\d+)/.exec(eventBase.details);
       if (!event) return false;
@@ -164,14 +164,14 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var size = parseInt(event[3]);
       this.i915ObjectGemSlice(ts, eventName + ':' + obj,
           {
-            obj: obj,
-            offset: offset,
-            size: size
+            obj,
+            offset,
+            size
           });
       return true;
     },
 
-    gemObjectChangeDomainEvent: function(eventName, cpuNumber, pid, ts,
+    gemObjectChangeDomainEvent(eventName, cpuNumber, pid, ts,
         eventBase) {
       var event = /obj=(\w+), read=(\w+=>\w+), write=(\w+=>\w+)/
           .exec(eventBase.details);
@@ -182,14 +182,14 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var write = event[3];
       this.i915GemObjectSlice(ts, eventName, obj,
           {
-            obj: obj,
-            read: read,
-            write: write
+            obj,
+            read,
+            write
           });
       return true;
     },
 
-    gemObjectPreadWriteEvent: function(eventName, cpuNumber, pid, ts,
+    gemObjectPreadWriteEvent(eventName, cpuNumber, pid, ts,
         eventBase) {
       var event = /obj=(\w+), offset=(\d+), len=(\d+)/.exec(eventBase.details);
       if (!event) return false;
@@ -199,14 +199,14 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var len = parseInt(event[3]);
       this.i915GemObjectSlice(ts, eventName, obj,
           {
-            obj: obj,
-            offset: offset,
-            len: len
+            obj,
+            offset,
+            len
           });
       return true;
     },
 
-    gemObjectFaultEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+    gemObjectFaultEvent(eventName, cpuNumber, pid, ts, eventBase) {
       // TODO(sleffler) writable
       var event = /obj=(\w+), (\w+) index=(\d+)/.exec(eventBase.details);
       if (!event) return false;
@@ -216,26 +216,26 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var index = parseInt(event[3]);
       this.i915GemObjectSlice(ts, eventName, obj,
           {
-            obj: obj,
-            type: type,
-            index: index
+            obj,
+            type,
+            index
           });
       return true;
     },
 
-    gemObjectDestroyEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+    gemObjectDestroyEvent(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /obj=(\w+)/.exec(eventBase.details);
       if (!event) return false;
 
       var obj = event[1];
       this.i915GemObjectSlice(ts, eventName, obj,
           {
-            obj: obj
+            obj
           });
       return true;
     },
 
-    gemRingDispatchEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+    gemRingDispatchEvent(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /dev=(\d+), ring=(\d+), seqno=(\d+)/.exec(eventBase.details);
       if (!event) return false;
 
@@ -244,14 +244,14 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var seqno = parseInt(event[3]);
       this.i915GemRingSlice(ts, eventName, dev, ring,
           {
-            dev: dev,
-            ring: ring,
-            seqno: seqno
+            dev,
+            ring,
+            seqno
           });
       return true;
     },
 
-    gemRingFlushEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+    gemRingFlushEvent(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /dev=(\d+), ring=(\w+), invalidate=(\w+), flush=(\w+)/
           .exec(eventBase.details);
       if (!event) return false;
@@ -262,15 +262,15 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var flush = event[4];
       this.i915GemRingSlice(ts, eventName, dev, ring,
           {
-            dev: dev,
-            ring: ring,
-            invalidate: invalidate,
-            flush: flush
+            dev,
+            ring,
+            invalidate,
+            flush
           });
       return true;
     },
 
-    gemRequestEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+    gemRequestEvent(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /dev=(\d+), ring=(\d+), seqno=(\d+)/.exec(eventBase.details);
       if (!event) return false;
 
@@ -279,14 +279,14 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var seqno = parseInt(event[3]);
       this.i915GemRingSlice(ts, eventName, dev, ring,
           {
-            dev: dev,
-            ring: ring,
-            seqno: seqno
+            dev,
+            ring,
+            seqno
           });
       return true;
     },
 
-    gemRingWaitEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+    gemRingWaitEvent(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /dev=(\d+), ring=(\d+)/.exec(eventBase.details);
       if (!event) return false;
 
@@ -294,13 +294,13 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var ring = parseInt(event[2]);
       this.i915GemRingSlice(ts, eventName, dev, ring,
           {
-            dev: dev,
-            ring: ring
+            dev,
+            ring
           });
       return true;
     },
 
-    regRWEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+    regRWEvent(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /(\w+) reg=(\w+), len=(\d+), val=(\(\w+, \w+\))/
           .exec(eventBase.details);
       if (!event) return false;
@@ -311,15 +311,15 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var data = event[3];
       this.i915RegSlice(ts, rw, reg,
           {
-            rw: rw,
-            reg: reg,
-            len: len,
-            data: data
+            rw,
+            reg,
+            len,
+            data
           });
       return true;
     },
 
-    flipEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+    flipEvent(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /plane=(\d+), obj=(\w+)/.exec(eventBase.details);
       if (!event) return false;
 
@@ -330,20 +330,20 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       } else {
         this.i915FlipCloseSlice(ts,
             {
-              obj: obj,
-              plane: plane
+              obj,
+              plane
             });
       }
       return true;
     },
 
-    gpuFrequency: function(eventName, cpuNumver, pid, ts, eventBase) {
+    gpuFrequency(eventName, cpuNumver, pid, ts, eventBase) {
       var event = /new_freq=(\d+)/.exec(eventBase.details);
       if (!event) return false;
       var freq = parseInt(event[1]);
 
       this.i915FreqChangeSlice(ts, eventName, {
-        freq: freq
+        freq
       });
       return true;
     }

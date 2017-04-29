@@ -31,7 +31,7 @@ found in the LICENSE file.
   Polymer({
     is: 'tr-ui-b-resize-sensor',
 
-    attached: function() {
+    attached() {
       // ResizeSensor only works if it's rooted in a document when it's
       // created, so wait until the tr-ui-b-resize-sensor is attached to the
       // DOM before creating the ResizeSensor.
@@ -43,7 +43,7 @@ found in the LICENSE file.
       // this.root.
     },
 
-    onResize_: function() {
+    onResize_() {
       this.dispatchEvent(new tr.b.Event('resize', false, false));
     }
   });

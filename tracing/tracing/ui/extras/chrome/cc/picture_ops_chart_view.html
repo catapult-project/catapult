@@ -40,7 +40,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
   PictureOpsChartView.prototype = {
     __proto__: HTMLDivElement.prototype,
 
-    decorate: function() {
+    decorate() {
       this.picture_ = undefined;
       this.pictureOps_ = undefined;
       this.opCosts_ = undefined;
@@ -118,7 +118,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.dimensionsHaveChanged = true;
     },
 
-    processPictureData_: function() {
+    processPictureData_() {
       if (this.pictureOps_ === undefined) return;
 
       var totalOpCost = 0;
@@ -139,7 +139,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.totalOpCost_ = totalOpCost;
     },
 
-    extractBarIndex_: function(e) {
+    extractBarIndex_(e) {
       var index = undefined;
 
       if (this.pictureOps_ === undefined ||
@@ -169,7 +169,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       return index;
     },
 
-    onClick_: function(e) {
+    onClick_(e) {
       var barClicked = this.extractBarIndex_(e);
 
       if (barClicked === undefined) return;
@@ -186,7 +186,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       tr.b.dispatchSimpleEvent(this, 'selection-changed', false);
     },
 
-    onMouseMove_: function(e) {
+    onMouseMove_(e) {
       var lastBarMouseOverTarget = this.currentBarMouseOverTarget_;
       this.currentBarMouseOverTarget_ = this.extractBarIndex_(e);
 
@@ -197,7 +197,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.drawChartContents_();
     },
 
-    scrollSelectedItemIntoViewIfNecessary: function() {
+    scrollSelectedItemIntoViewIfNecessary() {
       if (this.selectedOpIndex === undefined) {
         return;
       }
@@ -215,7 +215,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.scrollLeft = (targetLeft - width * 0.5);
     },
 
-    updateChartContents: function() {
+    updateChartContents() {
       if (this.dimensionsHaveChanged) {
         this.updateChartDimensions_();
       }
@@ -223,7 +223,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.drawChartContents_();
     },
 
-    updateChartDimensions_: function() {
+    updateChartDimensions_() {
       if (!this.pictureOps_) return;
 
       var width = CHART_PADDING_LEFT + CHART_PADDING_RIGHT +
@@ -252,7 +252,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.dimensionsHaveChanged = false;
     },
 
-    drawChartContents_: function() {
+    drawChartContents_() {
       this.clearChartContents_();
 
       if (this.pictureOps_ === undefined ||
@@ -275,7 +275,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.drawTooltip_();
     },
 
-    drawSelection_: function() {
+    drawSelection_() {
       if (this.selectedOpIndex === undefined) {
         return;
       }
@@ -286,7 +286,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           width, this.chartHeight_ - CHART_PADDING_TOP - CHART_PADDING_BOTTOM);
     },
 
-    drawChartAxes_: function() {
+    drawChartAxes_() {
       var min = this.opCosts_[0];
       var max = this.opCosts_[this.opCosts_.length - 1];
       var height = this.chartHeight_ - AXIS_PADDING_TOP - AXIS_PADDING_BOTTOM;
@@ -337,7 +337,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.chartCtx_.restore();
     },
 
-    drawLinesAtTickMarks_: function() {
+    drawLinesAtTickMarks_() {
       var height = this.chartHeight_ - AXIS_PADDING_TOP - AXIS_PADDING_BOTTOM;
       var width = this.chartWidth_ - AXIS_PADDING_LEFT - AXIS_PADDING_RIGHT;
       var tickYInterval = height / (VERTICAL_TICKS - 1);
@@ -361,7 +361,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.chartCtx_.closePath();
     },
 
-    drawLineAtBottomOfChart_: function() {
+    drawLineAtBottomOfChart_() {
       this.chartCtx_.strokeStyle = '#AAA';
       this.chartCtx_.beginPath();
       this.chartCtx_.moveTo(0, this.chartHeight_ - 0.5);
@@ -370,7 +370,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.chartCtx_.closePath();
     },
 
-    drawTooltip_: function() {
+    drawTooltip_() {
       var tooltipData = this.pictureOps_[this.currentBarMouseOverTarget_];
       var tooltipTitle = tooltipData.cmd_string;
       var tooltipTime = tooltipData.cmd_time.toFixed(4);
@@ -417,7 +417,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           toolTipTimePercentage + '%)', left + 8, top + 22);
     },
 
-    drawBars_: function() {
+    drawBars_() {
       var op;
       var opColor = 0;
       var opHeight = 0;
@@ -454,7 +454,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       }
     },
 
-    getOpColor_: function(opName, hover) {
+    getOpColor_(opName, hover) {
       var characters = opName.split('');
 
       var hue = characters.reduce(this.reduceNameToHue, 0) % 360;
@@ -464,18 +464,18 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       return 'hsl(' + hue + ', ' + saturation + '%, ' + lightness + '%)';
     },
 
-    reduceNameToHue: function(previousValue, currentValue, index, array) {
+    reduceNameToHue(previousValue, currentValue, index, array) {
       // Get the char code and apply a magic adjustment value so we get
       // pretty colors from around the rainbow.
       return Math.round(previousValue + currentValue.charCodeAt(0) *
           HUE_CHAR_CODE_ADJUSTMENT);
     },
 
-    clearChartContents_: function() {
+    clearChartContents_() {
       this.chartCtx_.clearRect(0, 0, this.chartWidth_, this.chartHeight_);
     },
 
-    showNoTimingDataMessage_: function() {
+    showNoTimingDataMessage_() {
       this.chartCtx_.font = '800 italic 14px Arial';
       this.chartCtx_.fillStyle = '#333';
       this.chartCtx_.textAlign = 'center';

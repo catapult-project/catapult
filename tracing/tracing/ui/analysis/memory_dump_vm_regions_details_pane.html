@@ -154,12 +154,12 @@ tr.exportTo('tr.ui.analysis', function() {
     is: 'tr-ui-a-memory-dump-vm-regions-details-pane',
     behaviors: [tr.ui.analysis.StackedPane],
 
-    created: function() {
+    created() {
       this.vmRegions_ = undefined;
       this.aggregationMode_ = undefined;
     },
 
-    ready: function() {
+    ready() {
       this.$.table.selectionMode = tr.ui.b.TableFormat.SelectionMode.ROW;
     },
 
@@ -203,7 +203,7 @@ tr.exportTo('tr.ui.analysis', function() {
       return this.aggregationMode_;
     },
 
-    onRebuild_: function() {
+    onRebuild_() {
       if (this.vmRegions_ === undefined || this.vmRegions_.length === 0) {
         // Show the info text (hide the table).
         this.$.info_text.style.display = 'block';
@@ -234,7 +234,7 @@ tr.exportTo('tr.ui.analysis', function() {
       tr.ui.analysis.expandTableRowsRecursively(this.$.table);
     },
 
-    createRows_: function(timeToVmRegionTree) {
+    createRows_(timeToVmRegionTree) {
       // Determine if any start address is outside the 32-bit range.
       var is64BitAddress = timeToVmRegionTree.some(function(vmRegionTree) {
         if (vmRegionTree === undefined) return false;
@@ -249,7 +249,7 @@ tr.exportTo('tr.ui.analysis', function() {
       ];
     },
 
-    createClassificationNodeRow: function(timeToNode, is64BitAddress) {
+    createClassificationNodeRow(timeToNode, is64BitAddress) {
       // Get any defined classification node so that we can extract the
       // properties which don't change over time.
       var definedNode = tr.b.findFirstInArray(timeToNode);
@@ -292,11 +292,11 @@ tr.exportTo('tr.ui.analysis', function() {
         title: definedNode.title,
         contexts: timeToNode,
         variableCells: this.createVariableCells_(timeToNode),
-        subRows: subRows
+        subRows
       };
     },
 
-    createRegionRow_: function(timeToRegion, is64BitAddress) {
+    createRegionRow_(timeToRegion, is64BitAddress) {
       // Get any defined VM region so that we can extract the properties which
       // don't change over time.
       var definedRegion = tr.b.findFirstInArray(timeToRegion);
@@ -314,7 +314,7 @@ tr.exportTo('tr.ui.analysis', function() {
      *
      * Note that there are currently no such properties of classification nodes.
      */
-    createConstantCells_: function(definedRegion, is64BitAddress) {
+    createConstantCells_(definedRegion, is64BitAddress) {
       return tr.ui.analysis.createCells([definedRegion], function(region) {
         var startAddress = region.startAddress;
         if (startAddress === undefined) return undefined;
@@ -326,7 +326,7 @@ tr.exportTo('tr.ui.analysis', function() {
      * Create cells for VM region (classification node) properties which DO
      * change over time.
      */
-    createVariableCells_: function(timeToRegion) {
+    createVariableCells_(timeToRegion) {
       return tr.ui.analysis.createCells(timeToRegion, function(region) {
         var fields = {};
 
@@ -352,7 +352,7 @@ tr.exportTo('tr.ui.analysis', function() {
       });
     },
 
-    createColumns_: function(rows) {
+    createColumns_(rows) {
       var titleColumn = new tr.ui.analysis.TitleColumn('Mapped file');
       titleColumn.width = '200px';
 

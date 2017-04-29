@@ -127,7 +127,7 @@ tr.exportTo('tr.ui.tracks', function() {
           idToName[id] || id);
       var renderingConfig = {
         chartType: tr.ui.tracks.ChartSeriesType.AREA,
-        colorId: colorId,
+        colorId,
         backgroundOpacity: 0.8
       };
       return new tr.ui.tracks.ChartSeries(idToTimestampToPoint[id],

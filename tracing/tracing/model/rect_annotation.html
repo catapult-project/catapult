@@ -41,7 +41,7 @@ tr.exportTo('tr.model', function() {
       return this.endLocation_;
     },
 
-    toDict: function() {
+    toDict() {
       return {
         typeName: 'rect',
         args: {
@@ -51,7 +51,7 @@ tr.exportTo('tr.model', function() {
       };
     },
 
-    createView_: function(viewport) {
+    createView_(viewport) {
       return new tr.ui.annotations.RectAnnotationView(viewport, this);
     }
   };

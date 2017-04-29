@@ -267,7 +267,7 @@ tr.exportTo('tr.metrics.sh', function() {
               addProcessScalar({
                 source: 'reported_by_chrome',
                 component: [rootAllocatorDump.name],
-                property: property,
+                property,
                 value: rootAllocatorDump.numerics[property.name]
               });
             });
@@ -367,7 +367,7 @@ tr.exportTo('tr.metrics.sh', function() {
       addProcessScalar({
         source: 'reported_by_chrome',
         component: componentPath,
-        property: property,
+        property,
         value: componentDump.numerics[property.name]
       });
     });
@@ -375,7 +375,7 @@ tr.exportTo('tr.metrics.sh', function() {
 
   var PROCESS_COUNT = {
     unit: count_smallerIsBetter,
-    buildDescriptionPrefix: function(componentPath, processName) {
+    buildDescriptionPrefix(componentPath, processName) {
       if (componentPath.length > 0) {
         throw new Error('Unexpected process count non-empty component path: ' +
             componentPath.join(':'));
@@ -388,7 +388,7 @@ tr.exportTo('tr.metrics.sh', function() {
   var EFFECTIVE_SIZE = {
     name: 'effective_size',
     unit: sizeInBytes_smallerIsBetter,
-    buildDescriptionPrefix: function(componentPath, processName) {
+    buildDescriptionPrefix(componentPath, processName) {
       return buildChromeValueDescriptionPrefix(componentPath, processName, {
         userFriendlyPropertyName: 'effective size',
         componentPreposition: 'of'
@@ -399,7 +399,7 @@ tr.exportTo('tr.metrics.sh', function() {
   var ALLOCATED_OBJECTS_SIZE = {
     name: 'allocated_objects_size',
     unit: sizeInBytes_smallerIsBetter,
-    buildDescriptionPrefix: function(componentPath, processName) {
+    buildDescriptionPrefix(componentPath, processName) {
       return buildChromeValueDescriptionPrefix(componentPath, processName, {
         userFriendlyPropertyName: 'size of all objects allocated',
         totalUserFriendlyPropertyName: 'size of all allocated objects',
@@ -411,7 +411,7 @@ tr.exportTo('tr.metrics.sh', function() {
   var LOCKED_SIZE = {
     name: 'locked_size',
     unit: sizeInBytes_smallerIsBetter,
-    buildDescriptionPrefix: function(componentPath, processName) {
+    buildDescriptionPrefix(componentPath, processName) {
       return buildChromeValueDescriptionPrefix(componentPath, processName, {
         userFriendlyPropertyName: 'locked (pinned) size',
         componentPreposition: 'of'
@@ -422,7 +422,7 @@ tr.exportTo('tr.metrics.sh', function() {
   var PEAK_SIZE = {
     name: 'peak_size',
     unit: sizeInBytes_smallerIsBetter,
-    buildDescriptionPrefix: function(componentPath, processName) {
+    buildDescriptionPrefix(componentPath, processName) {
       return buildChromeValueDescriptionPrefix(componentPath, processName, {
         userFriendlyPropertyName: 'peak size',
         componentPreposition: 'of'
@@ -433,7 +433,7 @@ tr.exportTo('tr.metrics.sh', function() {
   var CODE_AND_METADATA_SIZE = {
     name: 'code_and_metadata_size',
     unit: sizeInBytes_smallerIsBetter,
-    buildDescriptionPrefix: function(componentPath, processName) {
+    buildDescriptionPrefix(componentPath, processName) {
       return buildChromeValueDescriptionPrefix(componentPath, processName, {
         userFriendlyPropertyNamePrefix: 'size of',
         userFriendlyPropertyName: 'code and metadata'
@@ -512,7 +512,7 @@ tr.exportTo('tr.metrics.sh', function() {
   var RESIDENT_SIZE = {
     name: 'resident_size',
     unit: sizeInBytes_smallerIsBetter,
-    buildDescriptionPrefix: function(componentPath, processName) {
+    buildDescriptionPrefix(componentPath, processName) {
       return buildOsValueDescriptionPrefix(componentPath, processName,
           'resident set size (RSS)');
     }
@@ -521,7 +521,7 @@ tr.exportTo('tr.metrics.sh', function() {
   var PEAK_RESIDENT_SIZE = {
     name: 'peak_resident_size',
     unit: sizeInBytes_smallerIsBetter,
-    buildDescriptionPrefix: function(componentPath, processName) {
+    buildDescriptionPrefix(componentPath, processName) {
       return buildOsValueDescriptionPrefix(componentPath, processName,
           'peak resident set size');
     }
@@ -530,7 +530,7 @@ tr.exportTo('tr.metrics.sh', function() {
   var PROPORTIONAL_RESIDENT_SIZE = {
     name: 'proportional_resident_size',
     unit: sizeInBytes_smallerIsBetter,
-    buildDescriptionPrefix: function(componentPath, processName) {
+    buildDescriptionPrefix(componentPath, processName) {
       return buildOsValueDescriptionPrefix(componentPath, processName,
           'proportional resident size (PSS)');
     }
@@ -539,7 +539,7 @@ tr.exportTo('tr.metrics.sh', function() {
   var PRIVATE_DIRTY_SIZE = {
     name: 'private_dirty_size',
     unit: sizeInBytes_smallerIsBetter,
-    buildDescriptionPrefix: function(componentPath, processName) {
+    buildDescriptionPrefix(componentPath, processName) {
       return buildOsValueDescriptionPrefix(componentPath, processName,
           'private dirty size');
     }

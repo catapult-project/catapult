@@ -36,7 +36,7 @@ found in the LICENSE file.
 Polymer({
   is: 'tr-ui-b-chart-legend-key',
 
-  ready: function() {
+  ready() {
     this.$.checkbox.addEventListener(
         'change', this.onCheckboxChange_.bind(this));
   },
@@ -45,7 +45,7 @@ Polymer({
    * Dispatch an event when the checkbox is toggled.
    * The checkbox is visible when optional is set to true.
    */
-  onCheckboxChange_: function() {
+  onCheckboxChange_() {
     tr.b.dispatchSimpleEvent(this, tr.ui.b.DataSeriesEnableChangeEventType,
         true, false,
         {key: Polymer.dom(this).textContent, enabled: this.enabled});
@@ -115,7 +115,7 @@ Polymer({
     this.$.link.title = title;
   },
 
-  updateContents_: function() {
+  updateContents_() {
     this.$.link.style.display = this.target ? '' : 'none';
     this.$.label.style.display = this.target ? 'none' : '';
     this.$.label.htmlFor = this.optional ? 'checkbox' : '';

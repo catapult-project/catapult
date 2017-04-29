@@ -55,7 +55,7 @@ tr.b.unittest.testSuite(function() {
     var fields;
 
     // Validate a version 1 32-bit payload.
-    header = { guid: guid, opcode: kProcessStartOpcode, version: 1, is64: 0 };
+    header = { guid, opcode: kProcessStartOpcode, version: 1, is64: 0 };
     decoder.reset(kProcessStartPayload32bitV1);
     fields = parser.decodeFields(header, decoder);
 
@@ -67,7 +67,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(fields.imageFileName, 'notepad.exe');
 
     // Validate a version 2 32-bit payload.
-    header = { guid: guid, opcode: kProcessStartOpcode, version: 2, is64: 0 };
+    header = { guid, opcode: kProcessStartOpcode, version: 2, is64: 0 };
     decoder.reset(kProcessStartPayload32bitV2);
     fields = parser.decodeFields(header, decoder);
 
@@ -81,7 +81,7 @@ tr.b.unittest.testSuite(function() {
         '\"C:\\Windows\\system32\\notepad.exe\" ');
 
     // Validate a version 3 32-bit payload.
-    header = { guid: guid, opcode: kProcessStartOpcode, version: 3, is64: 0 };
+    header = { guid, opcode: kProcessStartOpcode, version: 3, is64: 0 };
     decoder.reset(kProcessStartPayload32bitV3);
     fields = parser.decodeFields(header, decoder);
 
@@ -96,7 +96,7 @@ tr.b.unittest.testSuite(function() {
         '\"C:\\Windows\\system32\\notepad.exe\" ');
 
     // Validate a version 3 64-bit payload.
-    header = { guid: guid, opcode: kProcessStartOpcode, version: 3, is64: 1 };
+    header = { guid, opcode: kProcessStartOpcode, version: 3, is64: 1 };
     decoder.reset(kProcessStartPayload64bitV3);
     fields = parser.decodeFields(header, decoder);
 
@@ -110,7 +110,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(fields.commandLine, 'xperf  -d out.etl');
 
     // Validate a version 4 64-bit payload.
-    header = { guid: guid, opcode: kProcessStartOpcode, version: 4, is64: 1 };
+    header = { guid, opcode: kProcessStartOpcode, version: 4, is64: 1 };
     decoder.reset(kProcessStartPayload64bitV4);
     fields = parser.decodeFields(header, decoder);
 
@@ -127,7 +127,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(fields.applicationId, '');
 
     // Validate a version 5 64-bit payload.
-    header = { guid: guid, opcode: kProcessDefunctOpcode, version: 5, is64: 1 };
+    header = { guid, opcode: kProcessDefunctOpcode, version: 5, is64: 1 };
     decoder.reset(kProcessDefunctPayload64bitV5);
     fields = parser.decodeFields(header, decoder);
 

@@ -44,7 +44,7 @@ tr.exportTo('tr.ui.b', function() {
      * @param {sliceDuration} Where the title must fit (in world coords).
      * @return {ElidedStringWidthPair} Elided string and width.
      */
-    get: function(ctx, pixWidth, title, width, sliceDuration) {
+    get(ctx, pixWidth, title, width, sliceDuration) {
       var elidedDict = elidedTitleCacheDict.get(title);
       if (!elidedDict) {
         elidedDict = new Map();
@@ -78,7 +78,7 @@ tr.exportTo('tr.ui.b', function() {
       return stringWidthPair;
     },
 
-    quickMeasureText_: function(ctx, text) {
+    quickMeasureText_(ctx, text) {
       var w = this.textWidthMap.get(text);
       if (!w) {
         w = ctx.measureText(text).width;
@@ -87,11 +87,11 @@ tr.exportTo('tr.ui.b', function() {
       return w;
     },
 
-    labelWidth: function(ctx, title) {
+    labelWidth(ctx, title) {
       return this.quickMeasureText_(ctx, title) + 2;
     },
 
-    labelWidthWorld: function(ctx, title, pixWidth) {
+    labelWidthWorld(ctx, title, pixWidth) {
       return this.labelWidth(ctx, title) * pixWidth;
     }
   };

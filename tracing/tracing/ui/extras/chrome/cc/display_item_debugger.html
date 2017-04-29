@@ -136,7 +136,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
   DisplayItemDebugger.prototype = {
     __proto__: HTMLDivElement.prototype,
 
-    decorate: function() {
+    decorate() {
       var node = tr.ui.b.instantiateTemplate(
           '#tr-ui-e-chrome-cc-display-item-debugger-template', THIS_DOC);
 
@@ -245,7 +245,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.scheduleUpdateContents_();
     },
 
-    getRasterCanvasSize_: function() {
+    getRasterCanvasSize_() {
       var style = window.getComputedStyle(this.rasterArea_);
       var width = parseInt(style.width);
       var height = parseInt(style.height);
@@ -255,12 +255,12 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       }
 
       return {
-        width: width,
-        height: height
+        width,
+        height
       };
     },
 
-    scheduleUpdateContents_: function() {
+    scheduleUpdateContents_() {
       if (this.updateContentsPending_) return;
 
       this.updateContentsPending_ = true;
@@ -269,7 +269,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       );
     },
 
-    updateContents_: function() {
+    updateContents_() {
       this.updateContentsPending_ = false;
 
       if (this.picture_) {
@@ -298,7 +298,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.drawPicture_();
     },
 
-    drawPicture_: function() {
+    drawPicture_() {
       var size = this.getRasterCanvasSize_();
       if (size.width !== this.rasterCanvas_.width) {
         this.rasterCanvas_.width = size.width;
@@ -319,7 +319,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           h * this.zoomScaleValue_);
     },
 
-    rasterize_: function() {
+    rasterize_() {
       if (this.picture_) {
         this.picture_.rasterize(
             {
@@ -329,12 +329,12 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       }
     },
 
-    onRasterComplete_: function(pictureAsImageData) {
+    onRasterComplete_(pictureAsImageData) {
       this.pictureAsImageData_ = pictureAsImageData;
       this.scheduleUpdateContents_();
     },
 
-    onDisplayItemListSelection_: function(e) {
+    onDisplayItemListSelection_(e) {
       var selected = this.displayItemListView_.selectedElement;
 
       if (!selected) {
@@ -353,13 +353,13 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       }
     },
 
-    onDisplayItemInfoClick_: function(e) {
+    onDisplayItemInfoClick_(e) {
       if (e && e.target === this.displayItemInfo_) {
         this.displayItemListView_.selectedElement = undefined;
       }
     },
 
-    updateDrawOpsList_: function(showOpsList) {
+    updateDrawOpsList_(showOpsList) {
       if (showOpsList) {
         this.pictureOpsListView_.picture = this.picture_;
         if (this.pictureOpsListView_.numOps > 0) {
@@ -374,7 +374,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       }
     },
 
-    trackMouse_: function() {
+    trackMouse_() {
       this.mouseModeSelector_ = document.createElement(
           'tr-ui-b-mouse-mode-selector');
       this.mouseModeSelector_.targetElement = this.rasterArea_;
@@ -394,7 +394,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           this.onEndZoom_.bind(this));
     },
 
-    onBeginZoom_: function(e) {
+    onBeginZoom_(e) {
       this.isZooming_ = true;
 
       this.lastMouseViewPos_ = this.extractRelativeMousePosition_(e);
@@ -402,7 +402,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       e.preventDefault();
     },
 
-    onUpdateZoom_: function(e) {
+    onUpdateZoom_(e) {
       if (!this.isZooming_) return;
 
       var currentMouseViewPos = this.extractRelativeMousePosition_(e);
@@ -419,20 +419,20 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.lastMouseViewPos_ = currentMouseViewPos;
     },
 
-    onEndZoom_: function(e) {
+    onEndZoom_(e) {
       this.lastMouseViewPos_ = undefined;
       this.isZooming_ = false;
       e.preventDefault();
     },
 
-    extractRelativeMousePosition_: function(e) {
+    extractRelativeMousePosition_(e) {
       return {
         x: e.clientX - this.rasterArea_.offsetLeft,
         y: e.clientY - this.rasterArea_.offsetTop
       };
     },
 
-    saveFile_: function(filename, rawData) {
+    saveFile_(filename, rawData) {
       if (!rawData) return;
 
       // Convert this String into an Uint8Array
@@ -458,12 +458,12 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       link.dispatchEvent(event);
     },
 
-    onExportDisplayListClicked_: function() {
+    onExportDisplayListClicked_() {
       var rawData = JSON.stringify(this.displayItemList_.items);
       this.saveFile_(this.displayListFilename_.value, rawData);
     },
 
-    onExportSkPictureClicked_: function() {
+    onExportSkPictureClicked_() {
       var rawData = tr.b.Base64.atob(this.picture_.getBase64SkpData());
       this.saveFile_(this.skpFilename_.value, rawData);
     }

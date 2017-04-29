@@ -33,14 +33,14 @@ tr.exportTo('tr.model', function() {
   }
 
   ModelIndices.prototype = {
-    addEventWithId: function(id, event) {
+    addEventWithId(id, event) {
       if (!this.flowEventsById_.hasOwnProperty(id)) {
         this.flowEventsById_[id] = [];
       }
       this.flowEventsById_[id].push(event);
     },
 
-    getFlowEventsWithId: function(id) {
+    getFlowEventsWithId(id) {
       if (!this.flowEventsById_.hasOwnProperty(id)) {
         return [];
       }

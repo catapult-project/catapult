@@ -24,7 +24,7 @@ tr.b.unittest.testSuite(function() {
     var model = tr.c.TestUtils.newModelWithEvents([], {
       shiftWorldToZero: false,
       pruneContainers: false,
-      customizeModelCallback: function(model) {
+      customizeModelCallback(model) {
         var p100 = model.getOrCreateProcess(100);
         for (var i = 0; i < numThreads; i++) {
           var t = p100.getOrCreateThread(101 + i);

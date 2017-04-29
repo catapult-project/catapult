@@ -25,7 +25,7 @@ tr.exportTo('tr.ui.tracks', function() {
   CounterTrack.prototype = {
     __proto__: tr.ui.tracks.ChartTrack.prototype,
 
-    decorate: function(viewport) {
+    decorate(viewport) {
       tr.ui.tracks.ChartTrack.prototype.decorate.call(this, viewport);
       Polymer.dom(this).classList.add('counter-track');
     },
@@ -40,7 +40,7 @@ tr.exportTo('tr.ui.tracks', function() {
       this.autoSetAllAxes({expandMax: true});
     },
 
-    getModelEventFromItem: function(chartValue) {
+    getModelEventFromItem(chartValue) {
       return chartValue;
     }
   };

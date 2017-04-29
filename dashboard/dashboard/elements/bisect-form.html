@@ -217,18 +217,18 @@ the bisect process after the user clicks on the bisect button.
           xsrfToken: { notify: true }
         },
 
-        computeHasError: function(e) {
+        computeHasError(e) {
           return !!e;
         },
 
-        computeIsSelected: function(name, reference) {
+        computeIsSelected(name, reference) {
           return name == reference;
         },
 
         /**
          * Initializes and shows the bisect form.
          */
-        show: function() {
+        show() {
           this.isAdmin = false,
           this.useStaging = false,
           this.loading = true;
@@ -265,7 +265,7 @@ the bisect process after the user clicks on the bisect button.
         /**
          * Makes a request to /start_try_job to perform a bisect.
          */
-        onSendToTrybot: function(event) {
+        onSendToTrybot(event) {
           event.preventDefault();
           this.loading = true;
           var params = {
@@ -311,7 +311,7 @@ the bisect process after the user clicks on the bisect button.
               }.bind(this));
         },
 
-        earlierRevisionChanged: function() {
+        earlierRevisionChanged() {
           this.error = '';
           if (!validateRev(this.earlierRevision)) {
             this.error = 'Revisions should be git commit positions or hashes.';
@@ -320,7 +320,7 @@ the bisect process after the user clicks on the bisect button.
           this.onRevisionsChange();
         },
 
-        laterRevisionChanged: function() {
+        laterRevisionChanged() {
           this.error = '';
           if (!validateRev(this.laterRevision)) {
             this.error = 'Revisions should be git commit positions or hashes.';
@@ -329,7 +329,7 @@ the bisect process after the user clicks on the bisect button.
           this.onRevisionsChange();
         },
 
-        onRevisionsChange: function() {
+        onRevisionsChange() {
           if (this.earlierRevision == this.laterRevision) {
             this.error = (
                 '"Both "earlier" and "later" are the same.');
@@ -344,14 +344,14 @@ the bisect process after the user clicks on the bisect button.
           }
         },
 
-        open: function() {
+        open() {
           this.$.container.open();
         },
 
-        close: function() {
+        close() {
           this.$.container.close();
         },
-        isNotReturnCode: function(bisectMode) {
+        isNotReturnCode(bisectMode) {
           return bisectMode != 'return_code';
         }
       });

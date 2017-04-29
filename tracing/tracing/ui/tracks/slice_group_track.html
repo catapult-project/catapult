@@ -25,7 +25,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     __proto__: tr.ui.tracks.MultiRowTrack.prototype,
 
-    decorate: function(viewport) {
+    decorate(viewport) {
       tr.ui.tracks.MultiRowTrack.prototype.decorate.call(this, viewport);
       Polymer.dom(this).classList.add('slice-group-track');
       this.group_ = undefined;
@@ -34,7 +34,7 @@ tr.exportTo('tr.ui.tracks', function() {
       this.defaultToCollapsedWhenSubRowCountMoreThan = 100;
     },
 
-    addSubTrack_: function(slices) {
+    addSubTrack_(slices) {
       var track = new tr.ui.tracks.SliceTrack(this.viewport);
       track.slices = slices;
       Polymer.dom(this).appendChild(track);
@@ -54,7 +54,7 @@ tr.exportTo('tr.ui.tracks', function() {
       return this.group;
     },
 
-    addContainersToTrackMap: function(containerToTrackMap) {
+    addContainersToTrackMap(containerToTrackMap) {
       tr.ui.tracks.MultiRowTrack.prototype.addContainersToTrackMap.apply(
           this, arguments);
       containerToTrackMap.addContainer(this.group, this);
@@ -64,7 +64,7 @@ tr.exportTo('tr.ui.tracks', function() {
      * Breaks up the list of slices into N rows, each of which is a list of
      * slices that are non overlapping.
      */
-    buildSubRows_: function(slices) {
+    buildSubRows_(slices) {
       var precisionUnit = this.group.model.intrinsicTimeUnit;
 
       // This function works by walking through slices by start time.

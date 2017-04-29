@@ -88,7 +88,7 @@ An element displaying basic information about a display item in a list view.
   Polymer({
     is: 'tr-ui-e-chrome-cc-display-item-list-item',
 
-    created: function() {
+    created() {
       // TODO(charliea): Why is setAttribute necessary here but not below? We
       // should reach out to the Polymer team to figure out.
       Polymer.dom(this).setAttribute('name', '');
@@ -120,15 +120,15 @@ An element displaying basic information about a display item in a list view.
       }
     },
 
-    stopPropagation: function(e) {
+    stopPropagation(e) {
       e.stopPropagation();
     },
 
-    _computeIf: function(richDetails) {
+    _computeIf(richDetails) {
       return richDetails && richDetails.skp64;
     },
 
-    _computeHref: function(richDetails) {
+    _computeHref(richDetails) {
       return 'data:application/octet-stream;base64,' + richDetails.skp64;
     }
   });

@@ -22,7 +22,7 @@ tr.exportTo('tr.ui.tracks', function() {
   Track.prototype = {
     __proto__: tr.ui.b.ContainerThatDecoratesItsChildren.prototype,
 
-    decorate: function(viewport) {
+    decorate(viewport) {
       tr.ui.b.ContainerThatDecoratesItsChildren.prototype.decorate.call(this);
       if (viewport === undefined) {
         throw new Error('viewport is required when creating a Track.');
@@ -49,12 +49,12 @@ tr.exportTo('tr.ui.tracks', function() {
     get eventContainer() {
     },
 
-    invalidateDrawingContainer: function() {
+    invalidateDrawingContainer() {
       var dc = this.drawingContainer;
       if (dc) dc.invalidate();
     },
 
-    context: function() {
+    context() {
       // This is a little weird here, but we have to be able to walk up the
       // parent tree to get the context.
       if (!Polymer.dom(this).parentNode) return undefined;
@@ -65,16 +65,16 @@ tr.exportTo('tr.ui.tracks', function() {
       return Polymer.dom(this).parentNode.context();
     },
 
-    decorateChild_: function(childTrack) {
+    decorateChild_(childTrack) {
     },
 
-    undecorateChild_: function(childTrack) {
+    undecorateChild_(childTrack) {
       if (childTrack.detach) {
         childTrack.detach();
       }
     },
 
-    updateContents_: function() {
+    updateContents_() {
     },
 
     /**
@@ -82,7 +82,7 @@ tr.exportTo('tr.ui.tracks', function() {
      * context necessary for the track's contents to be drawn in the right place
      * given the current pan and zoom.
      */
-    drawTrack: function(type) {
+    drawTrack(type) {
       var ctx = this.context();
 
       var pixelRatio = window.devicePixelRatio || 1;
@@ -100,16 +100,16 @@ tr.exportTo('tr.ui.tracks', function() {
       ctx.restore();
     },
 
-    draw: function(type, viewLWorld, viewRWorld) {
+    draw(type, viewLWorld, viewRWorld) {
     },
 
-    addEventsToTrackMap: function(eventToTrackMap) {
+    addEventsToTrackMap(eventToTrackMap) {
     },
 
-    addContainersToTrackMap: function(containerToTrackMap) {
+    addContainersToTrackMap(containerToTrackMap) {
     },
 
-    addIntersectingEventsInRangeToSelection: function(
+    addIntersectingEventsInRangeToSelection(
         loVX, hiVX, loVY, hiVY, selection) {
       var pixelRatio = window.devicePixelRatio || 1;
       var dt = this.viewport.currentDisplayTransform;
@@ -126,7 +126,7 @@ tr.exportTo('tr.ui.tracks', function() {
           loWX, hiWX, viewPixWidthWorld, selection);
     },
 
-    addIntersectingEventsInRangeToSelectionInWorldSpace: function(
+    addIntersectingEventsInRangeToSelectionInWorldSpace(
         loWX, hiWX, viewPixWidthWorld, selection) {
     },
 
@@ -141,11 +141,11 @@ tr.exportTo('tr.ui.tracks', function() {
      * @param {number} hiY Upper Y bound of the search interval in view space.
      * @param {Selection} selection Selection to which to add hits.
      */
-    addClosestEventToSelection: function(
+    addClosestEventToSelection(
         worldX, worldMaxDist, loY, hiY, selection) {
     },
 
-    addClosestInstantEventToSelection: function(instantEvents, worldX,
+    addClosestInstantEventToSelection(instantEvents, worldX,
         worldMaxDist, selection) {
       var instantEvent = tr.b.math.findClosestElementInSortedArray(
           instantEvents,

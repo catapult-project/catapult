@@ -69,18 +69,18 @@ tr.exportTo('tr.model', function() {
       return this.pid;
     },
 
-    compareTo: function(that) {
+    compareTo(that) {
       return Process.compare(this, that);
     },
 
-    childEvents: function* () {
+    * childEvents() {
       yield* ProcessBase.prototype.childEvents.call(this);
       yield* this.instantEvents;
       yield* this.frames;
       yield* this.memoryDumps;
     },
 
-    addLabelIfNeeded: function(labelName) {
+    addLabelIfNeeded(labelName) {
       for (var i = 0; i < this.labels.length; i++) {
         if (this.labels[i] === labelName) return;
       }
@@ -110,13 +110,13 @@ tr.exportTo('tr.model', function() {
       return 'pid: ' + this.pid;
     },
 
-    getSettingsKey: function() {
+    getSettingsKey() {
       if (!this.name) return undefined;
       if (!this.labels.length) return 'processes.' + this.name;
       return 'processes.' + this.name + '.' + this.labels.join('.');
     },
 
-    shiftTimestampsForward: function(amount) {
+    shiftTimestampsForward(amount) {
       for (var i = 0; i < this.instantEvents.length; i++) {
         this.instantEvents[i].start += amount;
       }
@@ -137,7 +137,7 @@ tr.exportTo('tr.model', function() {
           .shiftTimestampsForward.apply(this, arguments);
     },
 
-    updateBounds: function() {
+    updateBounds() {
       tr.model.ProcessBase.prototype.updateBounds.apply(this);
 
       for (var i = 0; i < this.frames.length; i++) {
@@ -153,7 +153,7 @@ tr.exportTo('tr.model', function() {
       }
     },
 
-    sortMemoryDumps: function() {
+    sortMemoryDumps() {
       this.memoryDumps.sort(function(x, y) {
         return x.start - y.start;
       });

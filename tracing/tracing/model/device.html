@@ -42,7 +42,7 @@ tr.exportTo('tr.model', function() {
   Device.prototype = {
     __proto__: tr.model.EventContainer.prototype,
 
-    compareTo: function(that) {
+    compareTo(that) {
       return Device.compare(this, that);
     },
 
@@ -58,7 +58,7 @@ tr.exportTo('tr.model', function() {
       return 'Device';
     },
 
-    getSettingsKey: function() {
+    getSettingsKey() {
       return 'device';
     },
 
@@ -86,7 +86,7 @@ tr.exportTo('tr.model', function() {
       this.vSyncTimestamps_ = value;
     },
 
-    updateBounds: function() {
+    updateBounds() {
       this.bounds.reset();
       for (var child of this.childEventContainers()) {
         child.updateBounds();
@@ -94,7 +94,7 @@ tr.exportTo('tr.model', function() {
       }
     },
 
-    shiftTimestampsForward: function(amount) {
+    shiftTimestampsForward(amount) {
       for (var child of this.childEventContainers()) {
         child.shiftTimestampsForward(amount);
       }
@@ -104,10 +104,10 @@ tr.exportTo('tr.model', function() {
       }
     },
 
-    addCategoriesToDict: function(categoriesDict) {
+    addCategoriesToDict(categoriesDict) {
     },
 
-    childEventContainers: function* () {
+    * childEventContainers() {
       if (this.powerSeries_) {
         yield this.powerSeries_;
       }

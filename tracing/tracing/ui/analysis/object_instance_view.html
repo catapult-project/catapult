@@ -17,7 +17,7 @@ tr.exportTo('tr.ui.analysis', function() {
   ObjectInstanceView.prototype = {
     __proto__: HTMLDivElement.prototype,
 
-    decorate: function() {
+    decorate() {
       this.objectInstance_ = undefined;
     },
 
@@ -42,7 +42,7 @@ tr.exportTo('tr.ui.analysis', function() {
       this.updateContents();
     },
 
-    updateContents: function() {
+    updateContents() {
       throw new Error('Not implemented');
     }
   };

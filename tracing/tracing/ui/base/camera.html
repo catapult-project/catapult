@@ -31,7 +31,7 @@ tr.exportTo('tr.ui.b', function() {
   Camera.prototype = {
     __proto__: HTMLUnknownElement.prototype,
 
-    decorate: function(eventSource) {
+    decorate(eventSource) {
       this.eventSource_ = eventSource;
 
       this.eventSource_.addEventListener('beginpan',
@@ -100,7 +100,7 @@ tr.exportTo('tr.ui.b', function() {
       return 1 + gazeVector[2];
     },
 
-    loadCameraFromSettings: function(settings) {
+    loadCameraFromSettings(settings) {
       this.eye_ = settings.get(
           'eye', this.eye_, constants.SETTINGS_NAMESPACE);
       this.gazeTarget_ = settings.get(
@@ -111,7 +111,7 @@ tr.exportTo('tr.ui.b', function() {
       this.dispatchRenderEvent_();
     },
 
-    saveCameraToSettings: function(settings) {
+    saveCameraToSettings(settings) {
       settings.set(
           'eye', this.eye_, constants.SETTINGS_NAMESPACE);
       settings.set(
@@ -120,7 +120,7 @@ tr.exportTo('tr.ui.b', function() {
           'rotation', this.rotation_, constants.SETTINGS_NAMESPACE);
     },
 
-    resetCamera: function() {
+    resetCamera() {
       this.eye_ = [0, 0, constants.DEFAULT_EYE_DISTANCE];
       this.gazeTarget_ = [0, 0, 0];
       this.rotation_ = [0, 0];
@@ -147,7 +147,7 @@ tr.exportTo('tr.ui.b', function() {
       this.dispatchRenderEvent_();
     },
 
-    updatePanByDelta: function(delta) {
+    updatePanByDelta(delta) {
       var rect =
           tr.ui.b.windowRectForElement(this.canvas_).
               scaleSize(this.pixelRatio_);
@@ -203,7 +203,7 @@ tr.exportTo('tr.ui.b', function() {
       this.dispatchRenderEvent_();
     },
 
-    updateZoomByDelta: function(delta) {
+    updateZoomByDelta(delta) {
       var deltaY = delta[1];
       deltaY = tr.b.math.clamp(deltaY, -50, 50);
       var scale = 1.0 - deltaY / 100.0;
@@ -227,7 +227,7 @@ tr.exportTo('tr.ui.b', function() {
       this.dispatchRenderEvent_();
     },
 
-    updateRotateByDelta: function(delta) {
+    updateRotateByDelta(delta) {
       delta[0] *= 0.5;
       delta[1] *= 0.5;
 
@@ -269,12 +269,12 @@ tr.exportTo('tr.ui.b', function() {
 
 
     // Event callbacks.
-    onPanBegin_: function(e) {
+    onPanBegin_(e) {
       this.panning_ = true;
       this.lastMousePosition_ = this.getMousePosition_(e);
     },
 
-    onPanUpdate_: function(e) {
+    onPanUpdate_(e) {
       if (!this.panning_) return;
 
       var delta = this.getMouseDelta_(e, this.lastMousePosition_);
@@ -282,11 +282,11 @@ tr.exportTo('tr.ui.b', function() {
       this.updatePanByDelta(delta);
     },
 
-    onPanEnd_: function(e) {
+    onPanEnd_(e) {
       this.panning_ = false;
     },
 
-    onZoomBegin_: function(e) {
+    onZoomBegin_(e) {
       this.zooming_ = true;
 
       var p = this.getMousePosition_(e);
@@ -295,7 +295,7 @@ tr.exportTo('tr.ui.b', function() {
       this.zoomPoint_ = p;
     },
 
-    onZoomUpdate_: function(e) {
+    onZoomUpdate_(e) {
       if (!this.zooming_) return;
 
       var delta = this.getMouseDelta_(e, this.lastMousePosition_);
@@ -303,17 +303,17 @@ tr.exportTo('tr.ui.b', function() {
       this.updateZoomByDelta(delta);
     },
 
-    onZoomEnd_: function(e) {
+    onZoomEnd_(e) {
       this.zooming_ = false;
       this.zoomPoint_ = undefined;
     },
 
-    onRotateBegin_: function(e) {
+    onRotateBegin_(e) {
       this.rotating_ = true;
       this.lastMousePosition_ = this.getMousePosition_(e);
     },
 
-    onRotateUpdate_: function(e) {
+    onRotateUpdate_(e) {
       if (!this.rotating_) return;
 
       var delta = this.getMouseDelta_(e, this.lastMousePosition_);
@@ -321,24 +321,24 @@ tr.exportTo('tr.ui.b', function() {
       this.updateRotateByDelta(delta);
     },
 
-    onRotateEnd_: function(e) {
+    onRotateEnd_(e) {
       this.rotating_ = false;
     },
 
 
     // Misc helper functions.
-    getMousePosition_: function(e) {
+    getMousePosition_(e) {
       var rect = tr.ui.b.windowRectForElement(this.canvas_);
       return [(e.clientX - rect.x) * this.pixelRatio_,
         (e.clientY - rect.y) * this.pixelRatio_];
     },
 
-    getMouseDelta_: function(e, p) {
+    getMouseDelta_(e, p) {
       var newP = this.getMousePosition_(e);
       return [newP[0] - p[0], newP[1] - p[1]];
     },
 
-    dispatchRenderEvent_: function() {
+    dispatchRenderEvent_() {
       tr.b.dispatchSimpleEvent(this, 'renderrequired', false, false);
     }
   };

@@ -43,14 +43,14 @@ tr.exportTo('tr.mre', function() {
   }
 
   ModuleToLoad.prototype = {
-    asDict: function() {
+    asDict() {
       if (this.href !== undefined) {
         return {'href': this.href};
       }
       return {'filename': this.filename};
     },
 
-    toString: function() {
+    toString() {
       if (this.href !== undefined) {
         return 'ModuleToLoad(href="' + this.href + '")';
       }
@@ -79,7 +79,7 @@ tr.exportTo('tr.mre', function() {
       return this.options_;
     },
 
-    asDict: function() {
+    asDict() {
       return {
         'modules_to_load': this.modulesToLoad.map(
             function(m) {return m.asDict();}),
@@ -88,14 +88,14 @@ tr.exportTo('tr.mre', function() {
       };
     },
 
-    asUserFriendlyString: function() {
+    asUserFriendlyString() {
       var parts = this.modulesToLoad.map(function(mtl) {return mtl.filename;});
       parts.push(this.functionName);
       parts.push(JSON.stringify(this.options_));
       return parts.join(',');
     },
 
-    hasHrefs: function() {
+    hasHrefs() {
       for (var module in this.modulesToLoad) {
         if (this.modulesToLoad[module].href !== undefined) {
           return true;
@@ -104,7 +104,7 @@ tr.exportTo('tr.mre', function() {
       return false;
     },
 
-    load: function() {
+    load() {
       if (this.hasHrefs()) {
         var err = new Error(
             'FunctionHandle named ' + this.functionName +
@@ -134,7 +134,7 @@ tr.exportTo('tr.mre', function() {
       return func;
     },
 
-    toString: function() {
+    toString() {
       var modulesToLoadStr = this.modulesToLoad.map(function(module) {
         return module.toString();
       });

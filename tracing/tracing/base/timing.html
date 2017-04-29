@@ -37,7 +37,7 @@ tr.exportTo('tr.b', function() {
   Timing.mark = function(groupName, functionName, opt_args) {
     if (tr.isHeadless) {
       return {
-        end: function() {}
+        end() {}
       };
     }
     var userTimingMarkName = computeUserTimingMarkName(
@@ -46,7 +46,7 @@ tr.exportTo('tr.b', function() {
     var markEndName = 'tvcm.mark' + Timing.nextMarkNumber++;
     window.performance.mark(markBeginName);
     return {
-      end: function() {
+      end() {
         window.performance.mark(markEndName);
         window.performance.measure(userTimingMarkName,
             markBeginName,

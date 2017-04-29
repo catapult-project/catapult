@@ -58,7 +58,7 @@ var uri = (function() {
       var params = uri.getAllParameters();
       var uriLoadEvent = new CustomEvent('uriload', {
         'detail': {
-          'params': params,
+          params,
           'state': pageState
         },
         'bubbles': true,
@@ -199,7 +199,7 @@ var uri = (function() {
    */
   Controller.prototype.firePageStateRequestEvent_ = function(status) {
     var event = new CustomEvent('pagestaterequest', {
-      'detail': {'status': status}
+      'detail': {status}
     });
     window.dispatchEvent(event);
   };
@@ -272,12 +272,12 @@ var uri = (function() {
 
 
   return {
-    Controller: Controller,
-    getParameter: getParameter,
-    getAllParameters: getAllParameters,
-    getCurrentPathWithParams: getCurrentPathWithParams,
-    getQueryString: getQueryString,
-    getPathName: getPathName,
+    Controller,
+    getParameter,
+    getAllParameters,
+    getCurrentPathWithParams,
+    getQueryString,
+    getPathName,
   };
 })();
 

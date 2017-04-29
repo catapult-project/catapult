@@ -60,7 +60,7 @@ tr.exportTo('tr.model', function() {
       return 'CPU ' + this.cpuNumber;
     },
 
-    findTopmostSlicesInThisContainer: function* (eventPredicate, opt_this) {
+    * findTopmostSlicesInThisContainer(eventPredicate, opt_this) {
       // All CpuSlices are toplevel since CpuSlices do not nest.
       for (var s of this.slices) {
         yield* s.findTopmostSlicesRelativeToThisSlice(
@@ -68,7 +68,7 @@ tr.exportTo('tr.model', function() {
       }
     },
 
-    childEvents: function* () {
+    * childEvents() {
       yield* this.slices;
 
       if (this.samples_) {
@@ -76,7 +76,7 @@ tr.exportTo('tr.model', function() {
       }
     },
 
-    childEventContainers: function* () {
+    * childEventContainers() {
       yield* tr.b.dictionaryValues(this.counters);
     },
 
@@ -84,7 +84,7 @@ tr.exportTo('tr.model', function() {
      * @return {Counter} The counter on this CPU with the given category/name
      * combination, creating it if it doesn't exist.
      */
-    getOrCreateCounter: function(cat, name) {
+    getOrCreateCounter(cat, name) {
       var id = cat + '.' + name;
       if (!this.counters[id]) {
         this.counters[id] = new Counter(this, id, cat, name);
@@ -96,7 +96,7 @@ tr.exportTo('tr.model', function() {
      * @return {Counter} the counter on this CPU with the given category/name
      * combination, or undefined if it doesn't exist.
      */
-    getCounter: function(cat, name) {
+    getCounter(cat, name) {
       var id = cat + '.' + name;
       if (!this.counters[id]) {
         return undefined;
@@ -108,7 +108,7 @@ tr.exportTo('tr.model', function() {
      * Shifts all the timestamps inside this CPU forward by the amount
      * specified.
      */
-    shiftTimestampsForward: function(amount) {
+    shiftTimestampsForward(amount) {
       for (var sI = 0; sI < this.slices.length; sI++) {
         this.slices[sI].start = (this.slices[sI].start + amount);
       }
@@ -120,7 +120,7 @@ tr.exportTo('tr.model', function() {
     /**
      * Updates the range based on the current slices attached to the cpu.
      */
-    updateBounds: function() {
+    updateBounds() {
       this.bounds_.reset();
       if (this.slices.length) {
         this.bounds_.addValue(this.slices[0].start);
@@ -137,13 +137,13 @@ tr.exportTo('tr.model', function() {
       }
     },
 
-    createSubSlices: function() {
+    createSubSlices() {
       this.samples_ = this.kernel.model.samples.filter(function(sample) {
         return sample.cpu === this;
       }, this);
     },
 
-    addCategoriesToDict: function(categoriesDict) {
+    addCategoriesToDict(categoriesDict) {
       for (var i = 0; i < this.slices.length; i++) {
         categoriesDict[this.slices[i].category] = true;
       }
@@ -158,7 +158,7 @@ tr.exportTo('tr.model', function() {
     /*
      * Returns the index of the slice in the CPU's slices, or undefined.
      */
-    indexOf: function(cpuSlice) {
+    indexOf(cpuSlice) {
       var i = tr.b.math.findLowIndexInSortedArray(
           this.slices,
           function(slice) { return slice.start; },
@@ -172,7 +172,7 @@ tr.exportTo('tr.model', function() {
      * at which the thread was unscheduled. |args| is merged with the arguments
      * specified when the thread was initially scheduled.
      */
-    closeActiveThread: function(endTimestamp, args) {
+    closeActiveThread(endTimestamp, args) {
       // Don't generate a slice if the last active thread is the idle task.
       if (this.lastActiveThread_ === undefined ||
           this.lastActiveThread_ === 0) {
@@ -207,7 +207,7 @@ tr.exportTo('tr.model', function() {
       this.lastActiveArgs_ = undefined;
     },
 
-    switchActiveThread: function(timestamp, oldThreadArgs, newThreadId,
+    switchActiveThread(timestamp, oldThreadArgs, newThreadId,
         newThreadName, newThreadArgs) {
       // Close the previous active thread and generate a slice.
       this.closeActiveThread(timestamp, oldThreadArgs);
@@ -225,7 +225,7 @@ tr.exportTo('tr.model', function() {
      * and the duration at this frequency in milliseconds as the value,
      * for the range that was specified.
      */
-    getFreqStatsForRange: function(range) {
+    getFreqStatsForRange(range) {
       var stats = {};
 
       function addStatsForFreq(freqSample, index) {

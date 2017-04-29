@@ -27,7 +27,7 @@ tr.b.unittest.testSuite(function() {
       shiftWorldToZero: false,
       pruneEmptyContainers: false,
       trackDetailedModelStats: true,
-      customizeModelCallback: function(m) {
+      customizeModelCallback(m) {
         var p1 = m.getOrCreateProcess(1);
         var t2 = p1.getOrCreateThread(2);
         t2.sliceGroup.pushSlice(TestUtils.newSliceEx({

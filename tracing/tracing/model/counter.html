@@ -55,10 +55,10 @@ tr.exportTo('tr.model', function() {
       return this.name_;
     },
 
-    childEvents: function* () {
+    * childEvents() {
     },
 
-    childEventContainers: function* () {
+    * childEventContainers() {
       yield* this.series;
     },
 
@@ -78,14 +78,14 @@ tr.exportTo('tr.model', function() {
       throw new Error('Bad counter API. No cookie.');
     },
 
-    addSeries: function(series) {
+    addSeries(series) {
       series.counter = this;
       series.seriesIndex = this.series_.length;
       this.series_.push(series);
       return series;
     },
 
-    getSeries: function(idx) {
+    getSeries(idx) {
       return this.series_[idx];
     },
 
@@ -119,7 +119,7 @@ tr.exportTo('tr.model', function() {
      * @return {Object} An array of statistics. Each element in the array
      * has data for one of the series in the selected counter.
      */
-    getSampleStatistics: function(sampleIndices) {
+    getSampleStatistics(sampleIndices) {
       sampleIndices.sort();
 
       var ret = [];
@@ -133,7 +133,7 @@ tr.exportTo('tr.model', function() {
      * Shifts all the timestamps inside this counter forward by the amount
      * specified.
      */
-    shiftTimestampsForward: function(amount) {
+    shiftTimestampsForward(amount) {
       for (var i = 0; i < this.series_.length; ++i) {
         this.series_[i].shiftTimestampsForward(amount);
       }
@@ -142,7 +142,7 @@ tr.exportTo('tr.model', function() {
     /**
      * Updates the bounds for this counter based on the samples it contains.
      */
-    updateBounds: function() {
+    updateBounds() {
       this.totals = [];
       this.maxTotal = 0;
       this.bounds.reset();

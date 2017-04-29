@@ -108,7 +108,7 @@ tr.exportTo('tr.ui.tracks', function() {
   }
 
   ChartSeries.prototype = {
-    useRenderingConfig_: function(opt_renderingConfig) {
+    useRenderingConfig_(opt_renderingConfig) {
       var config = opt_renderingConfig || {};
 
       // Store all configuration flags as private properties.
@@ -134,7 +134,7 @@ tr.exportTo('tr.ui.tracks', function() {
       return range;
     },
 
-    draw: function(ctx, transform, highDetails) {
+    draw(ctx, transform, highDetails) {
       if (this.points === undefined || this.points.length === 0) {
         return;
       }
@@ -156,7 +156,7 @@ tr.exportTo('tr.ui.tracks', function() {
           highDetails);
     },
 
-    drawComponent_: function(ctx, transform, component, highDetails) {
+    drawComponent_(ctx, transform, component, highDetails) {
       // We need to consider extra pixels outside the visible area to avoid
       // visual glitches due to non-zero width of dots.
       var extraPixels = 0;
@@ -500,7 +500,7 @@ tr.exportTo('tr.ui.tracks', function() {
       ctx.restore();
     },
 
-    addIntersectingEventsInRangeToSelectionInWorldSpace: function(
+    addIntersectingEventsInRangeToSelectionInWorldSpace(
         loWX, hiWX, viewPixWidthWorld, selection) {
       var points = this.points;
 
@@ -525,7 +525,7 @@ tr.exportTo('tr.ui.tracks', function() {
           selectPoint);
     },
 
-    addEventNearToProvidedEventToSelection: function(event, offset, selection) {
+    addEventNearToProvidedEventToSelection(event, offset, selection) {
       if (this.points === undefined) return false;
 
       var index = tr.b.findFirstIndexInArray(this.points, function(point) {
@@ -540,7 +540,7 @@ tr.exportTo('tr.ui.tracks', function() {
       return true;
     },
 
-    addClosestEventToSelection: function(worldX, worldMaxDist, loY, hiY,
+    addClosestEventToSelection(worldX, worldMaxDist, loY, hiY,
         selection) {
       if (this.points === undefined) return;
 

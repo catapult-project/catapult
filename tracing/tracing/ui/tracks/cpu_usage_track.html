@@ -36,7 +36,7 @@ tr.exportTo('tr.ui.tracks', function() {
   CpuUsageTrack.prototype = {
     __proto__: ChartTrack.prototype,
 
-    decorate: function(viewport) {
+    decorate(viewport) {
       ChartTrack.prototype.decorate.call(this, viewport);
       this.classList.add('cpu-usage-track');
       this.heading = 'CPU usage';
@@ -44,7 +44,7 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     // Given a tr.Model, it creates a cpu usage series and a graph.
-    initialize: function(model) {
+    initialize(model) {
       if (model !== undefined) {
         this.cpuUsageSeries_ = model.device.cpuUsageSeries;
       } else {
@@ -59,11 +59,11 @@ tr.exportTo('tr.ui.tracks', function() {
           this.cpuUsageSeries_.samples.length > 0;
     },
 
-    addContainersToTrackMap: function(containerToTrackMap) {
+    addContainersToTrackMap(containerToTrackMap) {
       containerToTrackMap.addContainer(this.series_, this);
     },
 
-    buildChartSeries_: function(yAxis, color) {
+    buildChartSeries_(yAxis, color) {
       if (!this.hasVisibleContent) return [];
 
       var yAxis = new tr.ui.tracks.ChartSeriesYAxis(0, undefined);

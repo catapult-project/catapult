@@ -57,7 +57,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
   CpufreqParser.prototype = {
     __proto__: Parser.prototype,
 
-    cpufreqSlice: function(ts, eventName, cpu, args) {
+    cpufreqSlice(ts, eventName, cpu, args) {
       // TODO(sleffler) should be per-cpu
       var kthread = this.importer.getOrCreatePseudoThread('cpufreq');
       kthread.openSlice = eventName;
@@ -68,7 +68,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       kthread.thread.sliceGroup.pushSlice(slice);
     },
 
-    cpufreqBoostSlice: function(ts, eventName, args) {
+    cpufreqBoostSlice(ts, eventName, args) {
       var kthread = this.importer.getOrCreatePseudoThread('cpufreq_boost');
       kthread.openSlice = eventName;
       var slice = new tr.model.ThreadSlice('', kthread.openSlice,
@@ -81,20 +81,20 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     /**
      * Parses cpufreq events and sets up state in the importer.
      */
-    cpufreqUpDownEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+    cpufreqUpDownEvent(eventName, cpuNumber, pid, ts, eventBase) {
       var data = splitData(eventBase.details);
       this.cpufreqSlice(ts, eventName, data.cpu, data);
       return true;
     },
 
-    cpufreqTargetEvent: function(eventName, cpuNumber, pid, ts,
+    cpufreqTargetEvent(eventName, cpuNumber, pid, ts,
         eventBase) {
       var data = splitData(eventBase.details);
       this.cpufreqSlice(ts, eventName, data.cpu, data);
       return true;
     },
 
-    cpufreqBoostUnboostEvent: function(eventName, cpuNumber, pid, ts,
+    cpufreqBoostUnboostEvent(eventName, cpuNumber, pid, ts,
         eventBase) {
       this.cpufreqBoostSlice(ts, eventName,
           {

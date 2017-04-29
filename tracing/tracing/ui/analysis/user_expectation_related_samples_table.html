@@ -26,12 +26,12 @@ found in the LICENSE file.
 Polymer({
   is: 'tr-ui-a-user-expectation-related-samples-table',
 
-  ready: function() {
+  ready() {
     this.samples_ = [];
     this.$.table.tableColumns = [
       {
         title: 'Event(s)',
-        value: function(row) {
+        value(row) {
           var typeEl = document.createElement('span');
           typeEl.innerText = row.type;
           if (row.tooltip) {
@@ -44,7 +44,7 @@ Polymer({
       {
         title: 'Link',
         width: '100%',
-        value: function(row) {
+        value(row) {
           var linkEl = document.createElement('tr-ui-a-analysis-link');
           if (row.name) {
             linkEl.setSelectionAndContent(row.selection, row.name);
@@ -57,7 +57,7 @@ Polymer({
     ];
   },
 
-  hasRelatedSamples: function() {
+  hasRelatedSamples() {
     return (this.samples_ && this.samples_.length > 0);
   },
 
@@ -78,7 +78,7 @@ Polymer({
     this.updateContents_();
   },
 
-  updateContents_: function() {
+  updateContents_() {
     var table = this.$.table;
     if (this.samples_ && this.samples_.length > 0) {
       table.tableRows = this.samples_.slice();

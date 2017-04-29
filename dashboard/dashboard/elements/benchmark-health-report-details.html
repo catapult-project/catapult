@@ -120,7 +120,7 @@ found in the LICENSE file.
         }
       },
 
-      countAlerts: function(bugCheck, alerts) {
+      countAlerts(bugCheck, alerts) {
         var count = 0;
         for (var alert of alerts) {
           if (bugCheck(alert.bug_id)) {
@@ -132,15 +132,15 @@ found in the LICENSE file.
 
       computeSuccessfulLoad: (loading, error) => !(loading || error),
 
-      computeNumInvalid: function(alerts) {
+      computeNumInvalid(alerts) {
         return this.countAlerts(this.isInvalidAlert, alerts);
       },
 
-      computeNumValid: function(alerts) {
+      computeNumValid(alerts) {
         return this.countAlerts(this.isValidAlert, alerts);
       },
 
-      computeNumUntriaged: function(alerts) {
+      computeNumUntriaged(alerts) {
         return this.countAlerts(this.isUntriagedAlert, alerts);
       },
 
@@ -151,7 +151,7 @@ found in the LICENSE file.
 
       isUntriagedAlert: bugId => (bugId == null),
 
-      ready: function() {
+      ready() {
         var params = {
           'master': this.master,
           'benchmark': this.benchmark,

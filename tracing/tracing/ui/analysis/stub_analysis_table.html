@@ -22,7 +22,7 @@ tr.exportTo('tr.ui.analysis', function() {
       return this.ownerDocument_;
     },
 
-    appendChild: function(node) {
+    appendChild(node) {
       if (node.tagName === 'TFOOT' || node.tagName === 'THEAD' ||
               node.tagName === 'TBODY') {
         node.__proto__ = StubAnalysisTable.prototype;

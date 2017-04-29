@@ -14,11 +14,11 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   var testOptions = {
-    setUp: function() {
+    setUp() {
       window.originalGetQueryString_ = uri.getQueryString;
     },
 
-    tearDown: function() {
+    tearDown() {
       uri.getQueryString = window.originalGetQueryString_;
     }
   };

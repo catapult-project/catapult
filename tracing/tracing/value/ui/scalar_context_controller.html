@@ -69,13 +69,13 @@ tr.exportTo('tr.v.ui', function() {
   Polymer({
     is: 'tr-v-ui-scalar-context-controller',
 
-    created: function() {
+    created() {
       this.host_ = undefined;
       this.groupToContext_ = new Map();
       this.dirtyGroups_ = new Set();
     },
 
-    attached: function() {
+    attached() {
       if (this.host_) {
         throw new Error(
             'Scalar context controller is already attached to a host');
@@ -91,7 +91,7 @@ tr.exportTo('tr.v.ui', function() {
       this.host_ = host;
     },
 
-    detached: function() {
+    detached() {
       if (!this.host_) {
         throw new Error('Scalar context controller is not attached to a host');
       }
@@ -104,11 +104,11 @@ tr.exportTo('tr.v.ui', function() {
       this.host_ = undefined;
     },
 
-    getContext: function(group) {
+    getContext(group) {
       return this.groupToContext_.get(group);
     },
 
-    onScalarSpanAdded: function(group, span) {
+    onScalarSpanAdded(group, span) {
       let context = this.groupToContext_.get(group);
       if (context === undefined) {
         context = {
@@ -124,7 +124,7 @@ tr.exportTo('tr.v.ui', function() {
       this._markGroupDirtyAndScheduleUpdate(group);
     },
 
-    onScalarSpanRemoved: function(group, span) {
+    onScalarSpanRemoved(group, span) {
       let context = this.groupToContext_.get(group);
       if (!context.spans.has(span)) {
         throw new Error('Scalar span not registered with group: ' + group);
@@ -133,7 +133,7 @@ tr.exportTo('tr.v.ui', function() {
       this._markGroupDirtyAndScheduleUpdate(group);
     },
 
-    onScalarSpanUpdated: function(group, span) {
+    onScalarSpanUpdated(group, span) {
       let context = this.groupToContext_.get(group);
       if (!context.spans.has(span)) {
         throw new Error('Scalar span not registered with group: ' + group);
@@ -141,7 +141,7 @@ tr.exportTo('tr.v.ui', function() {
       this._markGroupDirtyAndScheduleUpdate(group);
     },
 
-    _markGroupDirtyAndScheduleUpdate: function(group) {
+    _markGroupDirtyAndScheduleUpdate(group) {
       let alreadyDirty = this.dirtyGroups_.size > 0;
       this.dirtyGroups_.add(group);
       if (!alreadyDirty) {
@@ -150,7 +150,7 @@ tr.exportTo('tr.v.ui', function() {
       }
     },
 
-    updateContext: function() {
+    updateContext() {
       let groups = this.dirtyGroups_;
       if (groups.size === 0) return;
       this.dirtyGroups_ = new Set();
@@ -164,7 +164,7 @@ tr.exportTo('tr.v.ui', function() {
       this.dispatchEvent(event);
     },
 
-    updateGroup_: function(group) {
+    updateGroup_(group) {
       let context = this.groupToContext_.get(group);
       if (context.spans.size === 0) {
         this.groupToContext_.delete(group);

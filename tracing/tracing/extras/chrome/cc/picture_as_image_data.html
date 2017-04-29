@@ -46,11 +46,11 @@ tr.exportTo('tr.e.cc', function() {
       return this.imageData_;
     },
 
-    isPending: function() {
+    isPending() {
       return this.error_ === undefined && this.imageData_ === undefined;
     },
 
-    asCanvas: function() {
+    asCanvas() {
       if (!this.imageData_) return;
 
       var canvas = document.createElement('canvas');

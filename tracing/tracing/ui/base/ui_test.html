@@ -15,7 +15,7 @@ tr.b.unittest.testSuite(function() {
   TestElement.prototype = {
     __proto__: HTMLDivElement.prototype,
 
-    decorate: function() {
+    decorate() {
       if (!this.decorateCallCount) {
         this.decorateCallCount = 0;
       }
@@ -26,7 +26,7 @@ tr.b.unittest.testSuite(function() {
   var Base = tr.ui.b.define('div');
   Base.prototype = {
     __proto__: HTMLDivElement.prototype,
-    decorate: function() {
+    decorate() {
       this.decoratedAsBase = true;
     },
     set baseProperty(v) {
@@ -71,7 +71,7 @@ tr.b.unittest.testSuite(function() {
     var Sub = tr.ui.b.define('sub', Base);
     Sub.prototype = {
       __proto__: Base.prototype,
-      decorate: function() {
+      decorate() {
         this.decoratedAsSub = true;
       }
     };
@@ -93,7 +93,7 @@ tr.b.unittest.testSuite(function() {
   var NoArgs = tr.ui.b.define('div');
   NoArgs.prototype = {
     __proto__: HTMLDivElement.prototype,
-    decorate: function() {
+    decorate() {
       this.noArgsDecorated_ = true;
     },
     get noArgsDecorated() {
@@ -104,7 +104,7 @@ tr.b.unittest.testSuite(function() {
   var Args = tr.ui.b.define('args', NoArgs);
   Args.prototype = {
     __proto__: NoArgs.prototype,
-    decorate: function(first) {
+    decorate(first) {
       this.first_ = first;
       this.argsDecorated_ = true;
     },
@@ -119,7 +119,7 @@ tr.b.unittest.testSuite(function() {
   var ArgsChild = tr.ui.b.define('args-child', Args);
   ArgsChild.prototype = {
     __proto__: Args.prototype,
-    decorate: function(_, second) {
+    decorate(_, second) {
       this.second_ = second;
       this.argsChildDecorated_ = true;
     },
@@ -137,7 +137,7 @@ tr.b.unittest.testSuite(function() {
   var ArgsDecoratingChild = tr.ui.b.define('args-decorating-child', Args);
   ArgsDecoratingChild.prototype = {
     __proto__: Args.prototype,
-    decorate: function(first, second) {
+    decorate(first, second) {
       Args.prototype.decorate.call(this, first);
       this.second_ = second;
       this.argsDecoratingChildDecorated_ = true;
@@ -194,7 +194,7 @@ tr.b.unittest.testSuite(function() {
     cls.prototype = {
       __proto__: HTMLDivElement.prototype,
 
-      decorate: function() {
+      decorate() {
         Polymer.dom(this).setAttribute('width', 200);
         Polymer.dom(this).setAttribute('height', 200);
         Polymer.dom(this).setAttribute('viewPort', '0 0 200 200');
@@ -218,7 +218,7 @@ tr.b.unittest.testSuite(function() {
     cls.prototype = {
       __proto__: HTMLDivElement.prototype,
 
-      decorate: function() {
+      decorate() {
         Polymer.dom(this).setAttribute('width', 200);
         Polymer.dom(this).setAttribute('height', 200);
         Polymer.dom(this).setAttribute('viewPort', '0 0 200 200');

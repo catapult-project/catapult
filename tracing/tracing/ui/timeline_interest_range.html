@@ -41,7 +41,7 @@ tr.exportTo('tr.ui', function() {
       return this.range_.isEmpty;
     },
 
-    reset: function() {
+    reset() {
       this.range_.reset();
       this.leftSelected_ = false;
       this.rightSelected_ = false;
@@ -68,13 +68,13 @@ tr.exportTo('tr.ui', function() {
       this.viewport_.dispatchChangeEvent();
     },
 
-    set: function(range) {
+    set(range) {
       this.range_.reset();
       this.range_.addRange(range);
       this.viewport_.dispatchChangeEvent();
     },
 
-    setMinAndMax: function(min, max) {
+    setMinAndMax(min, max) {
       this.range_.min = min;
       this.range_.max = max;
       this.viewport_.dispatchChangeEvent();
@@ -84,7 +84,7 @@ tr.exportTo('tr.ui', function() {
       return this.range_.range;
     },
 
-    asRangeObject: function() {
+    asRangeObject() {
       var range = new tr.b.math.Range();
       range.addRange(this.range_);
       return range;
@@ -130,7 +130,7 @@ tr.exportTo('tr.ui', function() {
       this.viewport_.dispatchChangeEvent();
     },
 
-    draw: function(ctx, viewLWorld, viewRWorld) {
+    draw(ctx, viewLWorld, viewRWorld) {
       if (this.range_.isEmpty) return;
 
       var dt = this.viewport_.currentDisplayTransform;
@@ -167,7 +167,7 @@ tr.exportTo('tr.ui', function() {
       ctx.lineWidth = 1;
     },
 
-    drawLine_: function(ctx, viewLWorld, viewRWorld, height, ts, selected) {
+    drawLine_(ctx, viewLWorld, viewRWorld, height, ts, selected) {
       if (ts < viewLWorld || ts >= viewRWorld) return;
 
       var dt = this.viewport_.currentDisplayTransform;
@@ -190,7 +190,7 @@ tr.exportTo('tr.ui', function() {
       ctx.restore();
     },
 
-    drawIndicators: function(ctx, viewLWorld, viewRWorld) {
+    drawIndicators(ctx, viewLWorld, viewRWorld) {
       if (this.leftSnapIndicator_) {
         this.drawIndicator_(ctx, viewLWorld, viewRWorld,
             this.range_.min,
@@ -205,7 +205,7 @@ tr.exportTo('tr.ui', function() {
       }
     },
 
-    drawIndicator_: function(ctx, viewLWorld, viewRWorld,
+    drawIndicator_(ctx, viewLWorld, viewRWorld,
         xWorld, si, selected) {
       var dt = this.viewport_.currentDisplayTransform;
 

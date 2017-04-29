@@ -36,12 +36,12 @@ Polymer({
     },
   },
 
-  created: function() {
+  created() {
     this.active_ = false;
     this.acceleratorKey_ = undefined;
   },
 
-  ready: function() {
+  ready() {
     this.updateContents_();
   },
 
@@ -62,7 +62,7 @@ Polymer({
     this.modeName = modeName;
   },
 
-  modeNameChanged: function() {
+  modeNameChanged() {
     this.updateContents_();
   },
 
@@ -89,7 +89,7 @@ Polymer({
     this.updateContents_();
   },
 
-  updateContents_: function() {
+  updateContents_() {
     if (this.modeName === undefined) return;
 
     var mode = this.mode;

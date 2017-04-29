@@ -126,7 +126,7 @@ tr.exportTo('tr.b.unittest', function() {
   HTMLTestCaseResult.prototype = {
     __proto__: HTMLDivElement.prototype,
 
-    decorate: function() {
+    decorate() {
       Polymer.dom(this).appendChild(tr.ui.b.instantiateTemplate(
           '#x-html-test-case-result-template', THIS_DOC));
       this.testCase_ = undefined;
@@ -164,7 +164,7 @@ tr.exportTo('tr.b.unittest', function() {
       this.testCaseHRef_ = href;
       this.updateTitle_();
     },
-    updateTitle_: function() {
+    updateTitle_() {
       var titleEl = Polymer.dom(this).querySelector('#title');
       if (this.testCase_ === undefined) {
         Polymer.dom(titleEl).textContent = '';
@@ -180,7 +180,7 @@ tr.exportTo('tr.b.unittest', function() {
       }
     },
 
-    addError: function(normalizedException) {
+    addError(normalizedException) {
       var errorEl = document.createElement('x-html-test-case-error');
       Polymer.dom(errorEl).appendChild(tr.ui.b.instantiateTemplate(
           '#x-html-test-case-error-template', THIS_DOC));
@@ -191,7 +191,7 @@ tr.exportTo('tr.b.unittest', function() {
       this.updateColorAndStatus_();
     },
 
-    addFlaky: function() {
+    addFlaky() {
       var flakyEl = document.createElement('x-html-test-case-flaky');
       Polymer.dom(flakyEl).appendChild(tr.ui.b.instantiateTemplate(
           '#x-html-test-case-flaky-template', THIS_DOC));
@@ -202,7 +202,7 @@ tr.exportTo('tr.b.unittest', function() {
       this.updateColorAndStatus_();
     },
 
-    addSkipped: function() {
+    addSkipped() {
       var skippedEl = document.createElement('x-html-test-case-skipped');
       Polymer.dom(skippedEl).appendChild(tr.ui.b.instantiateTemplate(
           '#x-html-test-case-skipped-template', THIS_DOC));
@@ -213,14 +213,14 @@ tr.exportTo('tr.b.unittest', function() {
       this.updateColorAndStatus_();
     },
 
-    addHTMLOutput: function(element) {
+    addHTMLOutput(element) {
       var htmlResultEl = document.createElement('x-html-test-case-html-result');
       Polymer.dom(htmlResultEl).appendChild(element);
       Polymer.dom(Polymer.dom(this).querySelector('#details'))
           .appendChild(htmlResultEl);
     },
 
-    updateHTMLOutputDisplayState_: function() {
+    updateHTMLOutputDisplayState_() {
       var htmlResults =
           Polymer.dom(this).querySelectorAll('x-html-test-case-html-result');
       var display;
@@ -265,7 +265,7 @@ tr.exportTo('tr.b.unittest', function() {
       this.updateHTMLOutputDisplayState_();
     },
 
-    updateColorAndStatus_: function() {
+    updateColorAndStatus_() {
       var colorCls;
       var status;
       if (this.hadErrors) {
@@ -317,7 +317,7 @@ tr.exportTo('tr.b.unittest', function() {
   HTMLTestResults.prototype = {
     __proto__: HTMLUnknownElement.prototype,
 
-    decorate: function() {
+    decorate() {
       this.testCaseResultsByCaseGUID_ = {};
       this.currentTestCaseStartTime_ = undefined;
       this.totalRunTime_ = 0;
@@ -339,7 +339,7 @@ tr.exportTo('tr.b.unittest', function() {
       this.headless_ = headless;
     },
 
-    getHRefForTestCase: function(testCase) {
+    getHRefForTestCase(testCase) {
       /* Override this to create custom links */
       return undefined;
     },
@@ -371,7 +371,7 @@ tr.exportTo('tr.b.unittest', function() {
       }
     },
 
-    updateDisplayStateForResult_: function(res) {
+    updateDisplayStateForResult_(res) {
       var display;
       if (this.showPendingAndPassedTests_) {
         if (res.testStatus === TestStatus.RUNNING ||
@@ -386,7 +386,7 @@ tr.exportTo('tr.b.unittest', function() {
       res.style.display = display;
     },
 
-    willRunTests: function(testCases) {
+    willRunTests(testCases) {
       this.timeAtBeginningOfTest_ = window.performance.now();
       testCases.forEach(function(testCase, i) {
         var testCaseResult = new HTMLTestCaseResult();
@@ -407,7 +407,7 @@ tr.exportTo('tr.b.unittest', function() {
       }, this);
     },
 
-    willRunTest: function(testCase) {
+    willRunTest(testCase) {
       this.currentTestCaseResult_ = this.testCaseResultsByCaseGUID_[
           testCase.guid];
       this.currentTestCaseStartTime_ = window.performance.now();
@@ -416,7 +416,7 @@ tr.exportTo('tr.b.unittest', function() {
       this.log_(testCase.fullyQualifiedName + ': ');
     },
 
-    addErrorForCurrentTest: function(error) {
+    addErrorForCurrentTest(error) {
       this.log_('\n');
 
       var normalizedException = tr.b.normalizeException(error);
@@ -430,26 +430,26 @@ tr.exportTo('tr.b.unittest', function() {
       }
     },
 
-    addHTMLOutputForCurrentTest: function(element) {
+    addHTMLOutputForCurrentTest(element) {
       this.currentTestCaseResult_.addHTMLOutput(element);
       this.updateDisplayStateForResult_(this.currentTestCaseResult_);
     },
 
-    setCurrentTestFlaky: function() {
+    setCurrentTestFlaky() {
       this.currentTestCaseResult_.addFlaky();
       this.updateDisplayStateForResult_(this.currentTestCaseResult_);
     },
 
-    setCurrentTestSkipped: function() {
+    setCurrentTestSkipped() {
       this.currentTestCaseResult_.addSkipped();
       this.updateDisplayStateForResult_(this.currentTestCaseResult_);
     },
 
-    setReturnValueFromCurrentTest: function(returnValue) {
+    setReturnValueFromCurrentTest(returnValue) {
       this.currentTestCaseResult_.testReturnValue = returnValue;
     },
 
-    didCurrentTestEnd: function() {
+    didCurrentTestEnd() {
       var now = window.performance.now();
       var testCaseResult = this.currentTestCaseResult_;
       var testCaseDuration = now - this.currentTestCaseStartTime_;
@@ -484,14 +484,14 @@ tr.exportTo('tr.b.unittest', function() {
       this.currentTestCaseResult_ = undefined;
     },
 
-    didRunTests: function() {
+    didRunTests() {
       this.log_('[DONE]\n');
       if (this.headless_) {
         this.notifyTestCompletionToDevServer_();
       }
     },
 
-    getStats: function() {
+    getStats() {
       return {
         numTestsThatPassed: this.numTestsThatPassed_,
         numTestsThatFailed: this.numTestsThatFailed_,
@@ -501,19 +501,19 @@ tr.exportTo('tr.b.unittest', function() {
       };
     },
 
-    didAllTestsPass: function() {
+    didAllTestsPass() {
       // A test counts as failing if it failed or it was skipped.
       return this.numTestsThatFailed_ + this.numSkippedTests_ === 0;
     },
 
-    notifyTestResultToDevServer_: function(result, extraMsg) {
+    notifyTestResultToDevServer_(result, extraMsg) {
       var req = new XMLHttpRequest();
       var testName = this.currentTestCaseResult_.testCase.fullyQualifiedName;
       var data = result + '  ' + testName + ' ' + (extraMsg || '');
       tr.b.postAsync('/tracing/notify_test_result', data);
     },
 
-    notifyTestCompletionToDevServer_: function() {
+    notifyTestCompletionToDevServer_() {
       if (this.numTestsThatPassed_ + this.numTestsThatFailed_ +
           this.numFlakyTests_ + this.numSkippedTests_ === 0) {
         return;
@@ -527,7 +527,7 @@ tr.exportTo('tr.b.unittest', function() {
       tr.b.postAsync('/tracing/notify_tests_completed', data);
     },
 
-    log_: function(msg) {
+    log_(msg) {
       tr.b.dispatchSimpleEvent(this, 'statschange');
     }
   };

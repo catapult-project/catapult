@@ -46,7 +46,7 @@ tr.b.unittest.testSuite(function() {
 
     // Validate a version 2 32-bit payload.
     header = {
-      guid: guid, opcode: kEventTraceHeaderOpcode, version: 2, is64: 0
+      guid, opcode: kEventTraceHeaderOpcode, version: 2, is64: 0
     };
     decoder.reset(kEventTraceHeaderPayload32bitV2);
     fields = parser.decodeFields(header, decoder);
@@ -82,7 +82,7 @@ tr.b.unittest.testSuite(function() {
 
     // Validate a version 2 64-bit payload.
     header = {
-      guid: guid, opcode: kEventTraceHeaderOpcode, version: 2, is64: 1
+      guid, opcode: kEventTraceHeaderOpcode, version: 2, is64: 1
     };
     decoder.reset(kEventTraceHeaderPayload64bitV2);
     fields = parser.decodeFields(header, decoder);

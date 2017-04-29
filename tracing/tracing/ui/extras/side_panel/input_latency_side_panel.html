@@ -45,7 +45,7 @@ Polymer({
   behaviors: [tr.ui.behaviors.SidePanel],
 
 
-  ready: function() {
+  ready() {
     this.rangeOfInterest_ = new tr.b.math.Range();
     this.frametimeType_ = tr.model.helpers.IMPL_FRAMETIME_TYPE;
     this.latencyChart_ = undefined;
@@ -101,13 +101,13 @@ Polymer({
   },
 
   // This function is for testing purpose.
-  setBrushedIndices: function(mouseDownIndex, curIndex) {
+  setBrushedIndices(mouseDownIndex, curIndex) {
     this.mouseDownIndex_ = mouseDownIndex;
     this.curMouseIndex_ = curIndex;
     this.updateBrushedRange_();
   },
 
-  updateBrushedRange_: function() {
+  updateBrushedRange_() {
     if (this.latencyChart_ === undefined) return;
 
     var r = new tr.b.math.Range();
@@ -137,7 +137,7 @@ Polymer({
     this.latencyChart_.dispatchEvent(event);
   },
 
-  registerMouseEventForLatencyChart_: function() {
+  registerMouseEventForLatencyChart_() {
     this.latencyChart_.addEventListener('item-mousedown', function(e) {
       this.mouseDownIndex_ = e.index;
       this.curMouseIndex_ = e.index;
@@ -157,7 +157,7 @@ Polymer({
     }.bind(this));
   },
 
-  updateToolbar_: function() {
+  updateToolbar_() {
     var browserProcess = this.modelHelper_.browserProcess;
     var labels = [];
 
@@ -200,7 +200,7 @@ Polymer({
     return this.rangeOfInterest_;
   },
 
-  createLatencyLineChart: function(data, title, parentNode) {
+  createLatencyLineChart(data, title, parentNode) {
     var chart = new tr.ui.b.LineChart();
     Polymer.dom(parentNode).appendChild(chart);
     var width = 600;
@@ -213,7 +213,7 @@ Polymer({
     return chart;
   },
 
-  updateContents_: function() {
+  updateContents_() {
     var resultArea = this.$.result_area;
     this.latencyChart_ = undefined;
     this.frametimeChart_ = undefined;
@@ -293,7 +293,7 @@ Polymer({
     this.updateContents_();
   },
 
-  supportsModel: function(m) {
+  supportsModel(m) {
     if (m === undefined) {
       return {
         supported: false,

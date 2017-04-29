@@ -31,7 +31,7 @@ tr.exportTo('tr.importer', function() {
   }
 
   ContextProcessor.prototype = {
-    enterContext: function(contextType, scopedId) {
+    enterContext(contextType, scopedId) {
       var newActiveContexts = [this.getOrCreateContext_(contextType, scopedId)];
       for (var oldContext of this.activeContexts_) {
         if (oldContext.type === contextType) {
@@ -47,14 +47,14 @@ tr.exportTo('tr.importer', function() {
       this.cachedEntryForActiveContexts_ = undefined;
     },
 
-    leaveContext: function(contextType, scopedId) {
+    leaveContext(contextType, scopedId) {
       this.leaveContextImpl_(context =>
           context.type === contextType &&
           context.snapshot.scope === scopedId.scope &&
           context.snapshot.idRef === scopedId.id);
     },
 
-    destroyContext: function(scopedId) {
+    destroyContext(scopedId) {
       // Remove all matching contexts from stacks.
       for (var stack of Object.values(this.stackPerType_)) {
         // Perform in-place filtering instead of Array.prototype.filter to
@@ -75,7 +75,7 @@ tr.exportTo('tr.importer', function() {
           context.snapshot.idRef === scopedId.id);
     },
 
-    leaveContextImpl_: function(predicate) {
+    leaveContextImpl_(predicate) {
       var newActiveContexts = [];
       for (var oldContext of this.activeContexts_) {
         if (predicate(oldContext)) {
@@ -93,7 +93,7 @@ tr.exportTo('tr.importer', function() {
       this.cachedEntryForActiveContexts_ = undefined;
     },
 
-    getOrCreateContext_: function(contextType, scopedId) {
+    getOrCreateContext_(contextType, scopedId) {
       var context = {
         type: contextType,
         snapshot: {
@@ -111,21 +111,21 @@ tr.exportTo('tr.importer', function() {
       return context;
     },
 
-    pushContext_: function(context) {
+    pushContext_(context) {
       if (!(context.type in this.stackPerType_)) {
         this.stackPerType_[context.type] = [];
       }
       this.stackPerType_[context.type].push(context);
     },
 
-    popContext_: function(contextType) {
+    popContext_(contextType) {
       if (!(contextType in this.stackPerType_)) {
         return undefined;
       }
       return this.stackPerType_[contextType].pop();
     },
 
-    getContextKey_: function(context) {
+    getContextKey_(context) {
       return [
         context.type,
         context.snapshot.scope,
@@ -133,7 +133,7 @@ tr.exportTo('tr.importer', function() {
       ].join('\x00');
     },
 
-    getSnapshotKey_: function(scopedId) {
+    getSnapshotKey_(scopedId) {
       return [
         scopedId.scope,
         scopedId.idRef
@@ -171,7 +171,7 @@ tr.exportTo('tr.importer', function() {
       return this.cachedEntryForActiveContexts_;
     },
 
-    invalidateContextCacheForSnapshot: function(scopedId) {
+    invalidateContextCacheForSnapshot(scopedId) {
       var snapshotKey = this.getSnapshotKey_(scopedId);
       if (!(snapshotKey in this.seenSnapshots_)) return;
 

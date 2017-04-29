@@ -36,7 +36,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
   ExynosParser.prototype = {
     __proto__: Parser.prototype,
 
-    exynosBusfreqSample: function(name, ts, frequency) {
+    exynosBusfreqSample(name, ts, frequency) {
       var targetCpu = this.importer.getOrCreateCpu(0);
       var counter = targetCpu.getOrCreateCounter('', name);
       if (counter.numSeries === 0) {
@@ -52,7 +52,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     /**
      * Parses exynos_busfreq_target_int events and sets up state.
      */
-    busfreqTargetIntEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+    busfreqTargetIntEvent(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /frequency=(\d+)/.exec(eventBase.details);
       if (!event) return false;
 
@@ -63,7 +63,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     /**
      * Parses exynos_busfreq_target_mif events and sets up state.
      */
-    busfreqTargetMifEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+    busfreqTargetMifEvent(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /frequency=(\d+)/.exec(eventBase.details);
       if (!event) return false;
 
@@ -71,14 +71,14 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       return true;
     },
 
-    exynosPageFlipStateOpenSlice: function(ts, pipe, fb, state) {
+    exynosPageFlipStateOpenSlice(ts, pipe, fb, state) {
       var kthread = this.importer.getOrCreatePseudoThread(
           'exynos_flip_state (pipe:' + pipe + ', fb:' + fb + ')');
       kthread.openSliceTS = ts;
       kthread.openSlice = state;
     },
 
-    exynosPageFlipStateCloseSlice: function(ts, pipe, fb, args) {
+    exynosPageFlipStateCloseSlice(ts, pipe, fb, args) {
       var kthread = this.importer.getOrCreatePseudoThread(
           'exynos_flip_state (pipe:' + pipe + ', fb:' + fb + ')');
       if (kthread.openSlice) {
@@ -95,7 +95,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     /**
      * Parses page_flip_state events and sets up state in the importer.
      */
-    pageFlipStateEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+    pageFlipStateEvent(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /pipe=(\d+), fb=(\d+), state=(.*)/.exec(eventBase.details);
       if (!event) return false;
 
@@ -105,8 +105,8 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
       this.exynosPageFlipStateCloseSlice(ts, pipe, fb,
           {
-            pipe: pipe,
-            fb: fb
+            pipe,
+            fb
           });
       if (state !== 'flipped') {
         this.exynosPageFlipStateOpenSlice(ts, pipe, fb, state);

@@ -58,7 +58,7 @@ tr.exportTo('tr.e.importer.etw', function() {
   ThreadParser.prototype = {
     __proto__: Parser.prototype,
 
-    decodeFields: function(header, decoder) {
+    decodeFields(header, decoder) {
       if (header.version > 3) {
         throw new Error('Incompatible Thread event version.');
       }
@@ -122,26 +122,26 @@ tr.exportTo('tr.e.importer.etw', function() {
       }
 
       return {
-        processId: processId,
-        threadId: threadId,
-        stackBase: stackBase,
-        stackLimit: stackLimit,
-        userStackBase: userStackBase,
-        userStackLimit: userStackLimit,
-        affinity: affinity,
-        startAddr: startAddr,
-        win32StartAddr: win32StartAddr,
-        tebBase: tebBase,
-        subProcessTag: subProcessTag,
-        waitMode: waitMode,
-        basePriority: basePriority,
-        pagePriority: pagePriority,
-        ioPriority: ioPriority,
-        threadFlags: threadFlags
+        processId,
+        threadId,
+        stackBase,
+        stackLimit,
+        userStackBase,
+        userStackLimit,
+        affinity,
+        startAddr,
+        win32StartAddr,
+        tebBase,
+        subProcessTag,
+        waitMode,
+        basePriority,
+        pagePriority,
+        ioPriority,
+        threadFlags
       };
     },
 
-    decodeCSwitchFields: function(header, decoder) {
+    decodeCSwitchFields(header, decoder) {
       if (header.version !== 2) {
         throw new Error('Incompatible Thread event version.');
       }
@@ -161,46 +161,46 @@ tr.exportTo('tr.e.importer.etw', function() {
       var reserved = decoder.decodeUInt32();
 
       return {
-        newThreadId: newThreadId,
-        oldThreadId: oldThreadId,
-        newThreadPriority: newThreadPriority,
-        oldThreadPriority: oldThreadPriority,
-        previousCState: previousCState,
-        spareByte: spareByte,
-        oldThreadWaitReason: oldThreadWaitReason,
-        oldThreadWaitMode: oldThreadWaitMode,
-        oldThreadState: oldThreadState,
-        oldThreadWaitIdealProcessor: oldThreadWaitIdealProcessor,
-        newThreadWaitTime: newThreadWaitTime,
-        reserved: reserved
+        newThreadId,
+        oldThreadId,
+        newThreadPriority,
+        oldThreadPriority,
+        previousCState,
+        spareByte,
+        oldThreadWaitReason,
+        oldThreadWaitMode,
+        oldThreadState,
+        oldThreadWaitIdealProcessor,
+        newThreadWaitTime,
+        reserved
       };
     },
 
-    decodeStart: function(header, decoder) {
+    decodeStart(header, decoder) {
       var fields = this.decodeFields(header, decoder);
       this.importer.createThreadIfNeeded(fields.processId, fields.threadId);
       return true;
     },
 
-    decodeEnd: function(header, decoder) {
+    decodeEnd(header, decoder) {
       var fields = this.decodeFields(header, decoder);
       this.importer.removeThreadIfPresent(fields.threadId);
       return true;
     },
 
-    decodeDCStart: function(header, decoder) {
+    decodeDCStart(header, decoder) {
       var fields = this.decodeFields(header, decoder);
       this.importer.createThreadIfNeeded(fields.processId, fields.threadId);
       return true;
     },
 
-    decodeDCEnd: function(header, decoder) {
+    decodeDCEnd(header, decoder) {
       var fields = this.decodeFields(header, decoder);
       this.importer.removeThreadIfPresent(fields.threadId);
       return true;
     },
 
-    decodeCSwitch: function(header, decoder) {
+    decodeCSwitch(header, decoder) {
       var fields = this.decodeCSwitchFields(header, decoder);
       var cpu = this.importer.getOrCreateCpu(header.cpu);
       var newThread =

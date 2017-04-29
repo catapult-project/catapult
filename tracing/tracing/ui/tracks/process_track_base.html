@@ -39,7 +39,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     __proto__: tr.ui.tracks.ContainerTrack.prototype,
 
-    decorate: function(viewport) {
+    decorate(viewport) {
       tr.ui.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
 
       this.processBase_ = undefined;
@@ -106,13 +106,13 @@ tr.exportTo('tr.ui.tracks', function() {
       return true;
     },
 
-    onHeaderClick_: function(e) {
+    onHeaderClick_(e) {
       e.stopPropagation();
       e.preventDefault();
       this.expanded = !this.expanded;
     },
 
-    updateContents_: function() {
+    updateContents_() {
       this.clearTracks_();
 
       if (!this.processBase_) return;
@@ -135,16 +135,16 @@ tr.exportTo('tr.ui.tracks', function() {
       this.didAppendTracks_();
     },
 
-    willAppendTracks_: function() {
+    willAppendTracks_() {
     },
 
-    didAppendTracks_: function() {
+    didAppendTracks_() {
     },
 
-    appendMemoryDumpTrack_: function() {
+    appendMemoryDumpTrack_() {
     },
 
-    appendSummaryTrack_: function() {
+    appendSummaryTrack_() {
       var track = new tr.ui.tracks.ProcessSummaryTrack(this.viewport);
       track.process = this.process;
       if (!track.hasVisibleContent) return;
@@ -152,7 +152,7 @@ tr.exportTo('tr.ui.tracks', function() {
       // no spacing track, since this track only shown in collapsed state
     },
 
-    appendFrameTrack_: function() {
+    appendFrameTrack_() {
       var frames = this.process ? this.process.frames : undefined;
       if (!frames || !frames.length) return;
 
@@ -161,7 +161,7 @@ tr.exportTo('tr.ui.tracks', function() {
       Polymer.dom(this).appendChild(track);
     },
 
-    appendObjectInstanceTracks_: function() {
+    appendObjectInstanceTracks_() {
       var instancesByTypeName =
           this.processBase_.objects.getAllInstancesByTypeName();
       var instanceTypeNames = Object.keys(instancesByTypeName);
@@ -226,7 +226,7 @@ tr.exportTo('tr.ui.tracks', function() {
       }
     },
 
-    appendCounterTracks_: function() {
+    appendCounterTracks_() {
       // Add counter tracks for this process.
       var counters = tr.b.dictionaryValues(this.processBase.counters);
       counters.sort(tr.model.Counter.compare);
@@ -240,7 +240,7 @@ tr.exportTo('tr.ui.tracks', function() {
       }.bind(this));
     },
 
-    appendThreadTracks_: function() {
+    appendThreadTracks_() {
       // Get a sorted list of threads.
       var threads = tr.b.dictionaryValues(this.processBase.threads);
       threads.sort(tr.model.Thread.compare);

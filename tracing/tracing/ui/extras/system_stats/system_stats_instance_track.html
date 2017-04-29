@@ -55,7 +55,7 @@ tr.exportTo('tr.ui.e.system_stats', function() {
 
     __proto__: tr.ui.tracks.StackedBarsTrack.prototype,
 
-    decorate: function(viewport) {
+    decorate(viewport) {
       tr.ui.tracks.StackedBarsTrack.prototype.decorate.call(this, viewport);
       Polymer.dom(this).classList.add('tr-ui-e-system-stats-instance-track');
       this.objectInstance_ = null;
@@ -77,7 +77,7 @@ tr.exportTo('tr.ui.e.system_stats', function() {
       }
     },
 
-    computeRates_: function(snapshots) {
+    computeRates_(snapshots) {
       for (var i = 0; i < snapshots.length; i++) {
         var snapshot = snapshots[i];
         var stats = snapshot.getStats();
@@ -102,7 +102,7 @@ tr.exportTo('tr.ui.e.system_stats', function() {
       }
     },
 
-    computeRatesRecursive_: function(prevStats, stats,
+    computeRatesRecursive_(prevStats, stats,
         timeIntervalSeconds) {
       for (var statName in stats) {
         if (stats[statName] instanceof Object) {
@@ -140,7 +140,7 @@ tr.exportTo('tr.ui.e.system_stats', function() {
       }
     },
 
-    computeMaxStats_: function(snapshots) {
+    computeMaxStats_(snapshots) {
       var maxStats = {};
       statCount = 0;
 
@@ -155,7 +155,7 @@ tr.exportTo('tr.ui.e.system_stats', function() {
       return maxStats;
     },
 
-    computeMaxStatsRecursive_: function(stats, maxStats, excludedStats) {
+    computeMaxStatsRecursive_(stats, maxStats, excludedStats) {
       for (var statName in stats) {
         if (stats[statName] instanceof Object) {
           if (!(statName in maxStats)) {
@@ -195,7 +195,7 @@ tr.exportTo('tr.ui.e.system_stats', function() {
       this.style.height = height;
     },
 
-    draw: function(type, viewLWorld, viewRWorld) {
+    draw(type, viewLWorld, viewRWorld) {
       switch (type) {
         case tr.ui.tracks.DrawType.GENERAL_EVENT:
           this.drawStatBars_(viewLWorld, viewRWorld);
@@ -203,7 +203,7 @@ tr.exportTo('tr.ui.e.system_stats', function() {
       }
     },
 
-    drawStatBars_: function(viewLWorld, viewRWorld) {
+    drawStatBars_(viewLWorld, viewRWorld) {
       var ctx = this.context();
       var pixelRatio = window.devicePixelRatio || 1;
 
@@ -280,7 +280,7 @@ tr.exportTo('tr.ui.e.system_stats', function() {
       ctx.lineWidth = 1;
     },
 
-    drawStatBarsRecursive_: function(snapshot,
+    drawStatBarsRecursive_(snapshot,
         leftView,
         rightView,
         height,
@@ -326,7 +326,7 @@ tr.exportTo('tr.ui.e.system_stats', function() {
       return currentY;
     },
 
-    drawStatNames_: function(leftView, height, currentY, prefix, maxStats) {
+    drawStatNames_(leftView, height, currentY, prefix, maxStats) {
       var ctx = this.context();
 
       ctx.textAlign = 'end';

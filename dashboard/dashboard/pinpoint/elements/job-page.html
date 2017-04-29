@@ -134,25 +134,25 @@ found in the LICENSE file.
         }
       },
 
-      quest: function(questIndex) {
+      quest(questIndex) {
         return this.jobInfo.state.quests[questIndex];
       },
 
-      passPercent: function(changeIndex, questIndex) {
+      passPercent(changeIndex, questIndex) {
         var allResultValues = this.jobInfo.state.result_values;
         var values = allResultValues[changeIndex][questIndex];
         return 100 * values.filter(x => x == 0).length / values.length;
       },
 
-      failPercent: function(changeIndex, questIndex) {
+      failPercent(changeIndex, questIndex) {
         return 100 - this.passPercent(changeIndex, questIndex);
       },
 
-      deselected: function() {
+      deselected() {
         this.set('jobProperties', []);
       },
 
-      selected: function() {
+      selected() {
         this.loading = true;
 
         var params = {job_id: this.data.jobId};

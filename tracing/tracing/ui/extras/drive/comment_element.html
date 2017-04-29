@@ -73,11 +73,11 @@ Polymer({
     }
   },
 
-  _commentChanged: function() {
+  _commentChanged() {
     this.createdDate = new Date(this.comment.createdDate).toLocaleString();
   },
 
-  _computeCommentContentPrefix: function(comment) {
+  _computeCommentContentPrefix(comment) {
     return comment.anchor ? '&#9875;&nbsp;' : '';
   }
 });

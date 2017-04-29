@@ -59,7 +59,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     /**
      * Parses scheduler events and sets up state in the CPUs of the importer.
      */
-    schedSwitchEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+    schedSwitchEvent(eventName, cpuNumber, pid, ts, eventBase) {
       var event = schedSwitchRE.exec(eventBase.details);
       if (!event) return false;
 
@@ -100,7 +100,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       return true;
     },
 
-    schedWakeupEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+    schedWakeupEvent(eventName, cpuNumber, pid, ts, eventBase) {
       var event = schedWakeupRE.exec(eventBase.details);
       if (!event) return false;
 
@@ -112,7 +112,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       return true;
     },
 
-    schedCpuHotplugEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+    schedCpuHotplugEvent(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /cpu (\d+) (.+) error=(\d+)/.exec(eventBase.details);
       if (!event) return false;
 
@@ -134,7 +134,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       return true;
     },
 
-    schedBlockedEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+    schedBlockedEvent(eventName, cpuNumber, pid, ts, eventBase) {
       var event = schedBlockedRE.exec(eventBase.details);
       if (!event) return false;
 

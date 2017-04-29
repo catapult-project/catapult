@@ -40,7 +40,7 @@ found in the LICENSE file.
 Polymer({
   is: 'tr-ui-e-chrome-cc-raster-task-view',
 
-  created: function() {
+  created() {
     this.selection_ = undefined;
   },
 
@@ -50,7 +50,7 @@ Polymer({
     this.updateContents_();
   },
 
-  updateColumns_: function(hadCpuDurations) {
+  updateColumns_(hadCpuDurations) {
     var timeSpanConfig = {
       unit: tr.b.Unit.byName.timeDurationInMs,
       ownerDocument: this.ownerDocument
@@ -59,7 +59,7 @@ Polymer({
     var columns = [
       {
         title: 'Layer',
-        value: function(row) {
+        value(row) {
           if (row.isTotals) return 'Totals';
           if (row.layer) {
             var linkEl = document.createElement('tr-ui-a-analysis-link');
@@ -76,37 +76,37 @@ Polymer({
       },
       {
         title: 'Num Tiles',
-        value: function(row) { return row.numTiles; },
-        cmp: function(a, b) { return a.numTiles - b.numTiles; }
+        value(row) { return row.numTiles; },
+        cmp(a, b) { return a.numTiles - b.numTiles; }
       },
       {
         title: 'Num Analysis Tasks',
-        value: function(row) { return row.numAnalysisTasks; },
-        cmp: function(a, b) {
+        value(row) { return row.numAnalysisTasks; },
+        cmp(a, b) {
           return a.numAnalysisTasks - b.numAnalysisTasks;
         }
       },
       {
         title: 'Num Raster Tasks',
-        value: function(row) { return row.numRasterTasks; },
-        cmp: function(a, b) { return a.numRasterTasks - b.numRasterTasks; }
+        value(row) { return row.numRasterTasks; },
+        cmp(a, b) { return a.numRasterTasks - b.numRasterTasks; }
       },
       {
         title: 'Wall Duration (ms)',
-        value: function(row) {
+        value(row) {
           return tr.v.ui.createScalarSpan(row.duration, timeSpanConfig);
         },
-        cmp: function(a, b) { return a.duration - b.duration; }
+        cmp(a, b) { return a.duration - b.duration; }
       }
     ];
 
     if (hadCpuDurations) {
       columns.push({
         title: 'CPU Duration (ms)',
-        value: function(row) {
+        value(row) {
           return tr.v.ui.createScalarSpan(row.cpuDuration, timeSpanConfig);
         },
-        cmp: function(a, b) { return a.cpuDuration - b.cpuDuration; }
+        cmp(a, b) { return a.cpuDuration - b.cpuDuration; }
       });
     }
 
@@ -125,7 +125,7 @@ Polymer({
     this.$.content.sortColumnIndex = columns.length - 1;
   },
 
-  updateContents_: function() {
+  updateContents_() {
     var table = this.$.content;
 
     if (this.selection_.length === 0) {
@@ -156,8 +156,8 @@ Polymer({
       }
       if (costsByLayerId[layerId] === undefined) {
         costsByLayerId[layerId] = {
-          layerId: layerId,
-          layer: layer,
+          layerId,
+          layer,
           numTiles: 0,
           numAnalysisTasks: 0,
           numRasterTasks: 0,

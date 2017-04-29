@@ -58,7 +58,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     /**
      * Parses irq events and sets up state in the mporter.
      */
-    irqHandlerEntryEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+    irqHandlerEntryEvent(eventName, cpuNumber, pid, ts, eventBase) {
       var event = irqHandlerEntryRE.exec(eventBase.details);
       if (!event) return false;
 
@@ -73,7 +73,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       return true;
     },
 
-    irqHandlerExitEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+    irqHandlerExitEvent(eventName, cpuNumber, pid, ts, eventBase) {
       var event = irqHandlerExitRE.exec(eventBase.details);
       if (!event) return false;
 
@@ -88,7 +88,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
             '',
             'IRQ (' + thread.irqName + ')',
             ColorScheme.getColorIdForGeneralPurposeString(event[1]),
-            thread.lastEntryTs, { ret: ret },
+            thread.lastEntryTs, { ret },
             duration);
         thread.thread.sliceGroup.pushSlice(slice);
       }
@@ -97,11 +97,11 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       return true;
     },
 
-    softirqRaiseEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+    softirqRaiseEvent(eventName, cpuNumber, pid, ts, eventBase) {
       return true;
     },
 
-    softirqEntryEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+    softirqEntryEvent(eventName, cpuNumber, pid, ts, eventBase) {
       var event = softirqRE.exec(eventBase.details);
       if (!event) return false;
 
@@ -113,7 +113,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       return true;
     },
 
-    softirqExitEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+    softirqExitEvent(eventName, cpuNumber, pid, ts, eventBase) {
       var event = softirqRE.exec(eventBase.details);
       if (!event) return false;
 
@@ -127,7 +127,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
         var slice = new tr.model.ThreadSlice(
             '', action,
             ColorScheme.getColorIdForGeneralPurposeString(event[1]),
-            thread.lastEntryTs, { vec: vec },
+            thread.lastEntryTs, { vec },
             duration);
         thread.thread.sliceGroup.pushSlice(slice);
       }
@@ -137,7 +137,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     /**
      * Parses ipi events and sets up state in the mporter.
      */
-    ipiEntryEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+    ipiEntryEvent(eventName, cpuNumber, pid, ts, eventBase) {
       var thread = this.importer.getOrCreatePseudoThread(
           'irqs cpu ' + cpuNumber);
       thread.lastEntryTs = ts;
@@ -145,7 +145,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       return true;
     },
 
-    ipiExitEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+    ipiExitEvent(eventName, cpuNumber, pid, ts, eventBase) {
       var event = ipiHandlerExitRE.exec(eventBase.details);
       if (!event) return false;
 

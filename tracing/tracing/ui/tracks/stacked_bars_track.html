@@ -25,7 +25,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     __proto__: tr.ui.tracks.Track.prototype,
 
-    decorate: function(viewport) {
+    decorate(viewport) {
       tr.ui.tracks.Track.prototype.decorate.call(this, viewport);
       Polymer.dom(this).classList.add('stacked-bars-track');
       this.objectInstance_ = null;
@@ -46,7 +46,7 @@ tr.exportTo('tr.ui.tracks', function() {
       this.heading_.tooltip = tooltip;
     },
 
-    addEventsToTrackMap: function(eventToTrackMap) {
+    addEventsToTrackMap(eventToTrackMap) {
       var objectSnapshots = this.objectInstance_.snapshots;
       objectSnapshots.forEach(function(obj) {
         eventToTrackMap.addEvent(obj, this);
@@ -56,7 +56,7 @@ tr.exportTo('tr.ui.tracks', function() {
     /**
      * Used to hit-test clicks in the graph.
      */
-    addIntersectingEventsInRangeToSelectionInWorldSpace: function(
+    addIntersectingEventsInRangeToSelectionInWorldSpace(
         loWX, hiWX, viewPixWidthWorld, selection) {
       function onSnapshot(snapshot) {
         selection.push(snapshot);
@@ -93,7 +93,7 @@ tr.exportTo('tr.ui.tracks', function() {
      * @return {boolean} Whether an event was found.
      * @private
      */
-    addEventNearToProvidedEventToSelection: function(event, offset, selection) {
+    addEventNearToProvidedEventToSelection(event, offset, selection) {
       if (!(event instanceof tr.model.ObjectSnapshot)) {
         throw new Error('Unrecognized event');
       }
@@ -107,10 +107,10 @@ tr.exportTo('tr.ui.tracks', function() {
       return false;
     },
 
-    addAllEventsMatchingFilterToSelection: function(filter, selection) {
+    addAllEventsMatchingFilterToSelection(filter, selection) {
     },
 
-    addClosestEventToSelection: function(worldX, worldMaxDist, loY, hiY,
+    addClosestEventToSelection(worldX, worldMaxDist, loY, hiY,
         selection) {
       var snapshot = tr.b.math.findClosestElementInSortedArray(
           this.objectInstance_.snapshots,

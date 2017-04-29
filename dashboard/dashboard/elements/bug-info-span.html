@@ -46,7 +46,7 @@ TODO(qyearsley): Expand this element and use it in chart-tooltip.
 
       computeIsPositive: n => n > 0,
 
-      statusString: function() {
+      statusString() {
         if (this.bugId == -1) return 'Invalid';
         if (this.bugId == -2) return 'Ignored';
         if (this.recovered) return 'Recovered';

@@ -193,17 +193,17 @@ found in the LICENSE file.
       /**
        * Custom element lifecycle callback, called once this element is ready.
        */
-      ready: function() {
+      ready() {
         // You can't actually manipulate the array until after initialization,
         // none of the changes persist.
         this.async(() => this.sort());
       },
 
-      sortByChanged: function() {
+      sortByChanged() {
         this.sort();
       },
 
-      sortDirectionChanged: function() {
+      sortDirectionChanged() {
         this.sort();
       },
 
@@ -212,7 +212,7 @@ found in the LICENSE file.
        * @param {Event} event Clicked event.
        * @param {Object} detail Detail Object.
        */
-      columnHeaderClicked: function(event, detail) {
+      columnHeaderClicked(event, detail) {
         if (this.sortBy == event.currentTarget.id) {
           this.sortDescending = !this.sortDescending;
         } else {
@@ -224,7 +224,7 @@ found in the LICENSE file.
       /**
        * Update the table headers to indicate the current table sorting.
        */
-      updateHeaders: function() {
+      updateHeaders() {
         var headers = Polymer.dom(this.$.jobs).querySelectorAll('th');
         for (var i = 0; i < headers.length; i++) {
           if (headers[i].id == this.sortBy) {
@@ -240,7 +240,7 @@ found in the LICENSE file.
        * Sorts the jobs list according to the current values of the properties
        * sortDirection and sortBy.
        */
-      sort: function() {
+      sort() {
         var sortBy = this.sortBy;
 
         var jobs = this.jobsList.slice();

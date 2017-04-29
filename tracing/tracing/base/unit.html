@@ -84,11 +84,11 @@ tr.exportTo('tr.b', function() {
   }
 
   Unit.prototype = {
-    asJSON: function() {
+    asJSON() {
       return this.jsonName;
     },
 
-    getUnitScale_: function(opt_context) {
+    getUnitScale_(opt_context) {
       var formatSpec = this.formatSpec_;
       var formatSpecWasFunction = false;
       if (typeof formatSpec === 'function') {
@@ -149,7 +149,7 @@ tr.exportTo('tr.b', function() {
      * @param {number} [opt_context.deltaValue] - Format the value based on
      *   this delta between it and another number instead of the actual value.
      */
-    format: function(value, opt_context) {
+    format(value, opt_context) {
       var signString = '';
       if (value < 0) {
         signString = '-';
@@ -199,11 +199,11 @@ tr.exportTo('tr.b', function() {
   };
 
   Object.defineProperty(Unit, 'currentTimeDisplayMode', {
-    get: function() {
+    get() {
       return Unit.currentTimeDisplayMode_;
     },
     // Use tr-v-ui-preferred-display-unit element instead of directly setting.
-    set: function(value) {
+    set(value) {
       if (Unit.currentTimeDisplayMode_ === value) return;
 
       Unit.currentTimeDisplayMode_ = value;
@@ -314,7 +314,7 @@ tr.exportTo('tr.b', function() {
       if (typeof formatSpec === 'function') formatSpec = formatSpec();
       var baseSymbol = formatSpec.unitScale ?
           formatSpec.unitScale[0].baseSymbol : (formatSpec.baseSymbol || '');
-      scaleBaseUnit = { value: 1, symbol: baseSymbol, baseSymbol: baseSymbol };
+      scaleBaseUnit = { value: 1, symbol: baseSymbol, baseSymbol };
     }
     var unit = new Unit(unitName, jsonName, scaleBaseUnit,
         isDelta, improvementDirection, params.formatSpec);
@@ -345,7 +345,7 @@ tr.exportTo('tr.b', function() {
     baseUnitName: 'timeDurationInMs',
     baseJsonName: 'ms',
     scaleBaseUnit: tr.b.UnitScale.TIME.MILLI_SEC,
-    formatSpec: function() {
+    formatSpec() {
       return Unit.currentTimeDisplayMode_.formatSpec;
     }
   });
@@ -354,7 +354,7 @@ tr.exportTo('tr.b', function() {
     baseUnitName: 'timeStampInMs',
     baseJsonName: 'tsMs',
     scaleBaseUnit: tr.b.UnitScale.TIME.MILLI_SEC,
-    formatSpec: function() {
+    formatSpec() {
       return Unit.currentTimeDisplayMode_.formatSpec;
     }
   });

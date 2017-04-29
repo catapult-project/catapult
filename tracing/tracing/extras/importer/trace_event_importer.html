@@ -320,7 +320,7 @@ tr.exportTo('tr.e.importer', function() {
       return 'TraceEventImporter';
     },
 
-    extractSubtraces: function() {
+    extractSubtraces() {
       // Because subtraces can be quite large, we need to make sure that we
       // don't hold a reference to the memory.
       var subtraces = this.subtraces_;
@@ -331,7 +331,7 @@ tr.exportTo('tr.e.importer', function() {
     /**
      * Deep copying is only needed if the trace was given to us as events.
      */
-    deepCopyIfNeeded_: function(obj) {
+    deepCopyIfNeeded_(obj) {
       if (obj === undefined) obj = {};
       if (this.eventsWereFromString_) return obj;
       return deepCopy(obj);
@@ -340,7 +340,7 @@ tr.exportTo('tr.e.importer', function() {
     /**
      * Always perform deep copying.
      */
-    deepCopyAlways_: function(obj) {
+    deepCopyAlways_(obj) {
       if (obj === undefined) obj = {};
       return deepCopy(obj);
     },
@@ -348,28 +348,28 @@ tr.exportTo('tr.e.importer', function() {
     /**
      * Helper to process an async event.
      */
-    processAsyncEvent: function(event) {
+    processAsyncEvent(event) {
       var thread = this.model_.getOrCreateProcess(event.pid).
           getOrCreateThread(event.tid);
       this.allAsyncEvents_.push({
         sequenceNumber: this.allAsyncEvents_.length,
-        event: event,
-        thread: thread
+        event,
+        thread
       });
     },
 
     /**
      * Helper to process a flow event.
      */
-    processFlowEvent: function(event, opt_slice) {
+    processFlowEvent(event, opt_slice) {
       var thread = this.model_.getOrCreateProcess(event.pid).
           getOrCreateThread(event.tid);
       this.allFlowEvents_.push({
         refGuid: tr.b.GUID.getLastSimpleGuid(),
         sequenceNumber: this.allFlowEvents_.length,
-        event: event,
+        event,
         slice: opt_slice,  // slice for events that have flow info
-        thread: thread
+        thread
       });
     },
 
@@ -377,7 +377,7 @@ tr.exportTo('tr.e.importer', function() {
      * Helper that creates and adds samples to a Counter object based on
      * 'C' phase events.
      */
-    processCounterEvent: function(event) {
+    processCounterEvent(event) {
       var ctrName;
       if (event.id !== undefined) {
         ctrName = event.name + '[' + event.id + ']';
@@ -417,13 +417,13 @@ tr.exportTo('tr.e.importer', function() {
       });
     },
 
-    processObjectEvent: function(event) {
+    processObjectEvent(event) {
       var thread = this.model_.getOrCreateProcess(event.pid).
           getOrCreateThread(event.tid);
       this.allObjectEvents_.push({
         sequenceNumber: this.allObjectEvents_.length,
-        event: event,
-        thread: thread});
+        event,
+        thread});
       if (thread.guid in this.contextProcessorPerThread) {
         var processor = this.contextProcessorPerThread[thread.guid];
         var scopedId = TraceEventImporter.scopedIdForEvent_(event);
@@ -439,7 +439,7 @@ tr.exportTo('tr.e.importer', function() {
       }
     },
 
-    processContextEvent: function(event) {
+    processContextEvent(event) {
       var thread = this.model_.getOrCreateProcess(event.pid).
           getOrCreateThread(event.tid);
       if (!(thread.guid in this.contextProcessorPerThread)) {
@@ -461,14 +461,14 @@ tr.exportTo('tr.e.importer', function() {
       }
     },
 
-    setContextsFromThread_: function(thread, slice) {
+    setContextsFromThread_(thread, slice) {
       if (thread.guid in this.contextProcessorPerThread) {
         slice.contexts =
             this.contextProcessorPerThread[thread.guid].activeContexts;
       }
     },
 
-    processDurationEvent: function(event) {
+    processDurationEvent(event) {
       var thread = this.model_.getOrCreateProcess(event.pid)
         .getOrCreateThread(event.tid);
       var ts = this.toModelTimeFromUs_(event.ts);
@@ -531,7 +531,7 @@ tr.exportTo('tr.e.importer', function() {
       }
     },
 
-    mergeArgsInto_: function(dstArgs, srcArgs, eventName) {
+    mergeArgsInto_(dstArgs, srcArgs, eventName) {
       for (var arg in srcArgs) {
         if (dstArgs[arg] !== undefined) {
           this.model_.importWarning({
@@ -545,7 +545,7 @@ tr.exportTo('tr.e.importer', function() {
       }
     },
 
-    processCompleteEvent: function(event) {
+    processCompleteEvent(event) {
       // Preventing the overhead slices from making it into the model. This
       // only applies to legacy traces, as the overhead traces have been
       // removed from the chromium code.
@@ -584,7 +584,7 @@ tr.exportTo('tr.e.importer', function() {
       return slice;
     },
 
-    processJitCodeEvent: function(event) {
+    processJitCodeEvent(event) {
       if (this.v8ProcessCodeMaps_[event.pid] === undefined) {
         this.v8ProcessCodeMaps_[event.pid] = new tr.e.importer.TraceCodeMap();
       }
@@ -601,7 +601,7 @@ tr.exportTo('tr.e.importer', function() {
       }
     },
 
-    processMetadataEvent: function(event) {
+    processMetadataEvent(event) {
       // V8 JIT events are currently logged as phase 'M' so we need to
       // separate them out and handle specially.
       if (event.name === 'JitCodeAdded' || event.name === 'JitCodeMoved') {
@@ -677,7 +677,7 @@ tr.exportTo('tr.e.importer', function() {
       }
     },
 
-    processInstantEvent: function(event) {
+    processInstantEvent(event) {
       // V8 JIT events were logged as phase 'I' in the old format,
       // so we need to separate them out and handle specially.
       if (event.name === 'JitCodeAdded' || event.name === 'JitCodeMoved') {
@@ -726,7 +726,7 @@ tr.exportTo('tr.e.importer', function() {
       }
     },
 
-    getOrCreateProfileTree_: function(sampleType, id) {
+    getOrCreateProfileTree_(sampleType, id) {
       if (!this.profileTrees_.has(sampleType)) {
         this.profileTrees_.set(sampleType, new Map());
       }
@@ -745,7 +745,7 @@ tr.exportTo('tr.e.importer', function() {
       return profileTree;
     },
 
-    processSample: function(event) {
+    processSample(event) {
       if (event.args === undefined || event.args.data === undefined) {
         return;
       }
@@ -809,7 +809,7 @@ tr.exportTo('tr.e.importer', function() {
       }
     },
 
-    processLegacyV8Sample: function(event) {
+    processLegacyV8Sample(event) {
       var data = event.args.data;
       var sampleType = 'legacySample';
       var ProfileNodeType =
@@ -881,7 +881,7 @@ tr.exportTo('tr.e.importer', function() {
                             node.sampleTitle, node, thread));
     },
 
-    processTraceSampleEvent: function(event) {
+    processTraceSampleEvent(event) {
       if (event.name === 'V8Sample' || event.name.startsWith('Profile')) {
         this.v8SamplingData_.push(event);
         return;
@@ -917,7 +917,7 @@ tr.exportTo('tr.e.importer', function() {
       this.model_.samples.push(sample);
     },
 
-    processMemoryDumpEvent: function(event) {
+    processMemoryDumpEvent(event) {
       // TODO(chiniforooshan): Make memory dumps either use local or global IDs
       // instead of the generic IDs with different phases.
       // https://github.com/catapult-project/catapult/issues/2957
@@ -963,7 +963,7 @@ tr.exportTo('tr.e.importer', function() {
       processEvents.push(event);
     },
 
-    processClockSyncEvent: function(event) {
+    processClockSyncEvent(event) {
       if (event.ph !== 'c') {
         throw new Error('Invalid clock sync event phase "' + event.ph + '".');
       }
@@ -1009,7 +1009,7 @@ tr.exportTo('tr.e.importer', function() {
       }
     },
 
-    processLegacyChromeClockSyncEvent: function(event) {
+    processLegacyChromeClockSyncEvent(event) {
       // Older versions of Chrome don't support the devtools clock sync API, but
       // Telemetry can work around this by creating clock sync events via
       // console.time & console.timeEnd, which issue trace events as long as the
@@ -1045,7 +1045,7 @@ tr.exportTo('tr.e.importer', function() {
 
     // Because the order of Jit code events and V8 samples are not guaranteed,
     // We store them in an array, sort by timestamp, and then process them.
-    processV8Events: function() {
+    processV8Events() {
       this.v8SamplingData_.sort(function(a, b) {
         if (a.ts !== b.ts) return a.ts - b.ts;
         if (a.ph === 'M' || a.ph === 'I') {
@@ -1073,7 +1073,7 @@ tr.exportTo('tr.e.importer', function() {
       }
     },
 
-    importClockSyncMarkers: function() {
+    importClockSyncMarkers() {
       if (this.events_ instanceof tr.b.TraceStream) {
         const parser = oboe().node(
             '{cat ph}', this.importClockSyncMarker_.bind(this));
@@ -1089,7 +1089,7 @@ tr.exportTo('tr.e.importer', function() {
       }
     },
 
-    importClockSyncMarker_: function(event) {
+    importClockSyncMarker_(event) {
       const isLegacyChromeClockSync = isLegacyChromeClockSyncEvent(event);
       if (event.ph !== 'c' && !isLegacyChromeClockSync) return;
 
@@ -1111,7 +1111,7 @@ tr.exportTo('tr.e.importer', function() {
      * Walks through the events_ list and outputs the structures discovered to
      * model_.
      */
-    importEvents: function() {
+    importEvents() {
       this.hasEvents_ = false;
       if (this.stackFrameEvents_) {
         this.importStackFrames_(this.stackFrameEvents_, 'g');
@@ -1142,23 +1142,23 @@ tr.exportTo('tr.e.importer', function() {
     },
 
     // Some trace authors store subtraces as specific properties of the trace.
-    storeSubtrace_: function(subtrace) {
+    storeSubtrace_(subtrace) {
       this.subtraces_.push(subtrace);
       return oboe.drop;
     },
 
-    storeSamples_: function(samples) {
+    storeSamples_(samples) {
       this.sampleEvents_ = samples;
       return oboe.drop;
     },
 
-    storeStackFrames_: function(stackFrames) {
+    storeStackFrames_(stackFrames) {
       this.stackFrameEvents_ = stackFrames;
       return oboe.drop;
     },
 
     // Some implementations specify displayTimeUnit
-    storeDisplayTimeUnit_: function(unitName) {
+    storeDisplayTimeUnit_(unitName) {
       if (!unitName) return;
       const unit = tr.b.TimeDisplayModes[unitName];
       if (unit === undefined) {
@@ -1168,14 +1168,14 @@ tr.exportTo('tr.e.importer', function() {
       return oboe.drop;
     },
 
-    storeTraceAnnotations_: function(traceAnnotations) {
+    storeTraceAnnotations_(traceAnnotations) {
       this.traceAnnotations_ = traceAnnotations;
       return oboe.drop;
     },
 
     // Any fields in the container that is not in NON_METADATA_FIELDS should be
     // treated as metadata.
-    storeMetadata_: function(container) {
+    storeMetadata_(container) {
       for (const fieldName of Object.keys(container)) {
         if (NON_METADATA_FIELDS.has(fieldName)) continue;
         this.model_.metadata.push(
@@ -1192,7 +1192,7 @@ tr.exportTo('tr.e.importer', function() {
       return oboe.drop;
     },
 
-    processEvent_: function(event) {
+    processEvent_(event) {
       this.hasEvents_ = true;
       const importOptions = this.model_.importOptions;
       const trackDetailedModelStats = importOptions.trackDetailedModelStats;
@@ -1316,7 +1316,7 @@ tr.exportTo('tr.e.importer', function() {
       return oboe.drop;
     },
 
-    importStackFrames_: function(rawStackFrames, idPrefix) {
+    importStackFrames_(rawStackFrames, idPrefix) {
       var model = this.model_;
 
       for (var id in rawStackFrames) {
@@ -1397,7 +1397,7 @@ tr.exportTo('tr.e.importer', function() {
       }
     },
 
-    importObjectTypeNameMap_: function(rawObjectTypeNameMap, pid) {
+    importObjectTypeNameMap_(rawObjectTypeNameMap, pid) {
       if (pid in this.objectTypeNameMap_) {
         this.model_.importWarning({
           type: 'metadata_parse_error',
@@ -1445,7 +1445,7 @@ tr.exportTo('tr.e.importer', function() {
       this.objectTypeNameMap_[pid] = objectTypeNameMap;
     },
 
-    importAnnotations_: function() {
+    importAnnotations_() {
       for (var id in this.traceAnnotations_) {
         var annotation = tr.model.Annotation.fromDictIfPossible(
             this.traceAnnotations_[id]);
@@ -1465,7 +1465,7 @@ tr.exportTo('tr.e.importer', function() {
      * Called by the Model after all other importers have imported their
      * events.
      */
-    finalizeImport: function() {
+    finalizeImport() {
       if (this.softwareMeasuredCpuCount_ !== undefined) {
         this.model_.kernel.softwareMeasuredCpuCount =
             this.softwareMeasuredCpuCount_;
@@ -1482,7 +1482,7 @@ tr.exportTo('tr.e.importer', function() {
      * or as a direct stack frame reference. This handles either case and
      * if found, returns the stackframe.
      */
-    getStackFrameForEvent_: function(event, opt_lookForEndEvent) {
+    getStackFrameForEvent_(event, opt_lookForEndEvent) {
       var sf;
       var stack;
       if (opt_lookForEndEvent) {
@@ -1517,12 +1517,12 @@ tr.exportTo('tr.e.importer', function() {
       return stackFrame;
     },
 
-    resolveStackToStackFrame_: function(pid, stack) {
+    resolveStackToStackFrame_(pid, stack) {
       // TODO(alph,fmeawad): Add codemap resolution code here.
       return undefined;
     },
 
-    importSampleData: function() {
+    importSampleData() {
       if (!this.sampleEvents_) return;
       var m = this.model_;
 
@@ -1572,7 +1572,7 @@ tr.exportTo('tr.e.importer', function() {
       }
     },
 
-    createAsyncSlices_: function() {
+    createAsyncSlices_() {
       if (this.allAsyncEvents_.length === 0) return;
 
       this.allAsyncEvents_.sort(function(x, y) {
@@ -1651,7 +1651,7 @@ tr.exportTo('tr.e.importer', function() {
       this.createNestableAsyncSlices_(nestableAsyncEventsByKey);
     },
 
-    createLegacyAsyncSlices_: function(legacyEvents) {
+    createLegacyAsyncSlices_(legacyEvents) {
       if (legacyEvents.length === 0) return;
 
       legacyEvents.sort(function(x, y) {
@@ -1812,7 +1812,7 @@ tr.exportTo('tr.e.importer', function() {
       }
     },
 
-    createNestableAsyncSlices_: function(nestableEventsByKey) {
+    createNestableAsyncSlices_(nestableEventsByKey) {
       for (var key in nestableEventsByKey) {
         var eventStateEntries = nestableEventsByKey[key];
         // Stack of enclosing BEGIN events.
@@ -1966,7 +1966,7 @@ tr.exportTo('tr.e.importer', function() {
       }
     },
 
-    assertStepTypeMatches_: function(stepType, event) {
+    assertStepTypeMatches_(stepType, event) {
       if (stepType !== event.event.ph) {
         this.model_.importWarning({
           type: 'async_slice_parse_error',
@@ -2016,7 +2016,7 @@ tr.exportTo('tr.e.importer', function() {
       return false;
     },
 
-    createFlowSlices_: function() {
+    createFlowSlices_() {
       if (this.allFlowEvents_.length === 0) return;
 
       var createFlowEvent = function(thread, event, opt_slice) {
@@ -2259,7 +2259,7 @@ tr.exportTo('tr.e.importer', function() {
      * This function creates objects described via the N, D, and O phase
      * events.
      */
-    createExplicitObjects_: function() {
+    createExplicitObjects_() {
       if (this.allObjectEvents_.length === 0) return;
 
       var processEvent = function(objectEventState) {
@@ -2375,7 +2375,7 @@ tr.exportTo('tr.e.importer', function() {
       }
     },
 
-    createImplicitObjects_: function() {
+    createImplicitObjects_() {
       for (var proc of Object.values(this.model_.processes)) {
         this.createImplicitObjectsForProcess_(proc);
       }
@@ -2384,7 +2384,7 @@ tr.exportTo('tr.e.importer', function() {
     // Here, we collect all the snapshots that internally contain a
     // Javascript-level object inside their args list that has an "id" field,
     // and turn that into a snapshot of the instance referred to by id.
-    createImplicitObjectsForProcess_: function(process) {
+    createImplicitObjectsForProcess_(process) {
       function processField(referencingObject,
           referencingObjectFieldName,
           referencingObjectFieldValue,
@@ -2498,13 +2498,13 @@ tr.exportTo('tr.e.importer', function() {
       }, this);
     },
 
-    createMemoryDumps_: function() {
+    createMemoryDumps_() {
       for (var dumpId in this.allMemoryDumpEvents_) {
         this.createGlobalMemoryDump_(this.allMemoryDumpEvents_[dumpId], dumpId);
       }
     },
 
-    createGlobalMemoryDump_: function(dumpIdEvents, dumpId) {
+    createGlobalMemoryDump_(dumpIdEvents, dumpId) {
       // 1. Create a GlobalMemoryDump for the provided process memory dump
       // the events, all of which have the same dump ID.
 
@@ -2559,7 +2559,7 @@ tr.exportTo('tr.e.importer', function() {
           dumpIdEvents, dumpId);
     },
 
-    createProcessMemoryDump_: function(globalMemoryDump,
+    createProcessMemoryDump_(globalMemoryDump,
         globalMemoryAllocatorDumpsByFullName, levelsOfDetail,
         allMemoryAllocatorDumpsByGuid, processEvents, pid, dumpId) {
       // Calculate the range of the process memory dump.
@@ -2638,7 +2638,7 @@ tr.exportTo('tr.e.importer', function() {
               processMemoryAllocatorDumpsByFullName);
     },
 
-    parseMemoryDumpTotals_: function(processMemoryDump, dumps, pid, dumpId) {
+    parseMemoryDumpTotals_(processMemoryDump, dumps, pid, dumpId) {
       var rawTotals = dumps.process_totals;
       if (rawTotals === undefined) return;
 
@@ -2709,7 +2709,7 @@ tr.exportTo('tr.e.importer', function() {
       processMemoryDump.totals = totals;
     },
 
-    parseMemoryDumpVmRegions_: function(processMemoryDump, dumps, pid, dumpId) {
+    parseMemoryDumpVmRegions_(processMemoryDump, dumps, pid, dumpId) {
       var rawProcessMmaps = dumps.process_mmaps;
       if (rawProcessMmaps === undefined) return;
 
@@ -2780,7 +2780,7 @@ tr.exportTo('tr.e.importer', function() {
           tr.model.VMRegionClassificationNode.fromRegions(vmRegions);
     },
 
-    parseMemoryDumpHeapDumps_: function(processMemoryDump, dumps, pid, dumpId) {
+    parseMemoryDumpHeapDumps_(processMemoryDump, dumps, pid, dumpId) {
       var rawHeapDumps = dumps.heaps;
       if (rawHeapDumps === undefined) return;
 
@@ -2825,7 +2825,7 @@ tr.exportTo('tr.e.importer', function() {
       }
     },
 
-    parseMemoryDumpLevelOfDetail_: function(levelsOfDetail, dumps, pid,
+    parseMemoryDumpLevelOfDetail_(levelsOfDetail, dumps, pid,
         dumpId) {
       var rawLevelOfDetail = dumps.level_of_detail;
       var level;
@@ -2862,7 +2862,7 @@ tr.exportTo('tr.e.importer', function() {
       }
     },
 
-    updateMemoryDumpLevelOfDetail_: function(levelsOfDetail, scope, level) {
+    updateMemoryDumpLevelOfDetail_(levelsOfDetail, scope, level) {
       // If all process memory dump events have the same level of detail (for
       // the particular 'process' or 'global' scope), return true.
       if (!(scope in levelsOfDetail) || level === levelsOfDetail[scope]) {
@@ -2880,7 +2880,7 @@ tr.exportTo('tr.e.importer', function() {
       return false;
     },
 
-    parseMemoryDumpAllocatorDumps_: function(processMemoryDump,
+    parseMemoryDumpAllocatorDumps_(processMemoryDump,
         globalMemoryDump, processMemoryAllocatorDumpsByFullName,
         globalMemoryAllocatorDumpsByFullName, allMemoryAllocatorDumpsByGuid,
         dumps, pid, dumpId) {
@@ -3040,7 +3040,7 @@ tr.exportTo('tr.e.importer', function() {
       }
     },
 
-    inferMemoryAllocatorDumpTree_: function(memoryAllocatorDumpsByFullName) {
+    inferMemoryAllocatorDumpTree_(memoryAllocatorDumpsByFullName) {
       var rootAllocatorDumps = [];
 
       var fullNames = Object.keys(memoryAllocatorDumpsByFullName);
@@ -3144,7 +3144,7 @@ tr.exportTo('tr.e.importer', function() {
       return rootAllocatorDumps;
     },
 
-    parseMemoryDumpAllocatorEdges_: function(allMemoryAllocatorDumpsByGuid,
+    parseMemoryDumpAllocatorEdges_(allMemoryAllocatorDumpsByGuid,
         dumpIdEvents, dumpId) {
       for (var pid in dumpIdEvents) {
         var processEvents = dumpIdEvents[pid];
@@ -3228,7 +3228,7 @@ tr.exportTo('tr.e.importer', function() {
      * Converts |ts| (in microseconds) to a timestamp in the model clock domain
      * (in milliseconds).
      */
-    toModelTimeFromUs_: function(ts) {
+    toModelTimeFromUs_(ts) {
       if (!this.toModelTime_) {
         this.toModelTime_ =
             this.model_.clockSyncManager.getModelTimeTransformer(
@@ -3242,7 +3242,7 @@ tr.exportTo('tr.e.importer', function() {
      * Converts |ts| (in microseconds) to a timestamp in the model clock domain
      * (in milliseconds). If |ts| is undefined, undefined is returned.
      */
-    maybeToModelTimeFromUs_: function(ts) {
+    maybeToModelTimeFromUs_(ts) {
       if (ts === undefined) {
         return undefined;
       }

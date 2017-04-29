@@ -164,7 +164,7 @@ was just clicked.
         pointId: { notify: true },
         revisions: {
           type: Array,
-          value: function() {
+          value() {
             return [];
           },
           notify: true
@@ -183,7 +183,7 @@ was just clicked.
         xsrfToken: { notify: true }
       },
 
-      testPathChanged: function() {
+      testPathChanged() {
         if (this.testPath) {
           var parts = this.testPath.split('/');
           this.seriesName = parts.pop();
@@ -194,7 +194,7 @@ was just clicked.
       /**
        * Shows the CL descriptions for the given revision range.
        */
-      onRevisionRangeClick: function(event, detail) {
+      onRevisionRangeClick(event, detail) {
         window.open(
             event.currentTarget.href, 'changelog', 'width=1000,height=1000');
         event.preventDefault();
@@ -205,7 +205,7 @@ was just clicked.
        * This method is called whenever the value of this.alerts changes,
        * e.g. by chart-container when an alert is triaged.
        */
-      alertsChanged: function() {
+      alertsChanged() {
         // The triage-dialog should be shown when there is some non-triaged
         // alert, and hidden otherwise.
         if (this.alerts && this.alerts.length) {
@@ -218,36 +218,36 @@ was just clicked.
       /**
        * Fires a 'triaged' event, which should be caught in chart-container.
        */
-      onUntriaged: function(event, detail) {
+      onUntriaged(event, detail) {
         this.fire('triaged', {
           'alerts': this.triagedAlerts,
           'bugid': null
         });
       },
 
-      open: function() {
+      open() {
         var oldLeft = this.$.container.offsetLeft;
         var oldTop = this.$.container.offsetTop;
         openAtPosition(oldTop, oldLeft);
       },
 
-      close: function() {
+      close() {
         if (this.$.container.opened) {
           this.$.container.close();
         }
       },
 
-      openAtPosition: function(top, left) {
+      openAtPosition(top, left) {
         this.$.container.updatePositionFromCoords(top, left);
         if (!this.$.container.opened) {
           this.$.container.open();
         }
       },
 
-      bugNotInvalid: function(bugId) {
+      bugNotInvalid(bugId) {
         return bugId != -1;
       },
-      bugNotIgnored: function(bugId) {
+      bugNotIgnored(bugId) {
         return bugId != -2;
       }
     });

@@ -18,14 +18,14 @@ tr.exportTo('tr.e.importer', function() {
   }
 
   TraceCodeMap.prototype = {
-    addEntry: function(addressHex, size, name, scriptId) {
+    addEntry(addressHex, size, name, scriptId) {
       var entry = new tr.e.importer.TraceCodeEntry(
           this.getAddress_(addressHex), size, name, scriptId);
 
       this.addEntry_(addressHex, entry);
     },
 
-    moveEntry: function(oldAddressHex, newAddressHex, size) {
+    moveEntry(oldAddressHex, newAddressHex, size) {
       var entry = this.getBank_(oldAddressHex)
           .removeEntry(this.getAddress_(oldAddressHex));
       if (!entry) return;
@@ -35,24 +35,24 @@ tr.exportTo('tr.e.importer', function() {
       this.addEntry_(newAddressHex, entry);
     },
 
-    lookupEntry: function(addressHex) {
+    lookupEntry(addressHex) {
       return this.getBank_(addressHex)
           .lookupEntry(this.getAddress_(addressHex));
     },
 
-    addEntry_: function(addressHex, entry) {
+    addEntry_(addressHex, entry) {
       // FIXME: Handle bank spanning addresses ...
       this.getBank_(addressHex).addEntry(entry);
     },
 
-    getAddress_: function(addressHex) {
+    getAddress_(addressHex) {
       // 13 hex digits === 52 bits, double mantissa fits 53 bits.
       var bankSizeHexDigits = 13;
       addressHex = addressHex.slice(2);  // cut 0x prefix.
       return parseInt(addressHex.slice(-bankSizeHexDigits), 16);
     },
 
-    getBank_: function(addressHex) {
+    getBank_(addressHex) {
       addressHex = addressHex.slice(2);  // cut 0x prefix.
 
       // 13 hex digits === 52 bits, double mantissa fits 53 bits.
@@ -73,7 +73,7 @@ tr.exportTo('tr.e.importer', function() {
   }
 
   TraceCodeBank.prototype = {
-    removeEntry: function(address) {
+    removeEntry(address) {
       // findLowIndexInSortedArray returns 1 for empty. Just handle the
       // empty list and bail early.
       if (this.entries_.length === 0) return undefined;
@@ -87,7 +87,7 @@ tr.exportTo('tr.e.importer', function() {
       return entry;
     },
 
-    lookupEntry: function(address) {
+    lookupEntry(address) {
       var index = tr.b.math.findHighIndexInSortedArray(
           this.entries_, function(e) { return address - e.address; }) - 1;
       var entry = this.entries_[index];
@@ -95,7 +95,7 @@ tr.exportTo('tr.e.importer', function() {
           address < entry.address + entry.size ? entry : undefined;
     },
 
-    addEntry: function(newEntry) {
+    addEntry(newEntry) {
       // findLowIndexInSortedArray returns 1 for empty list. Just push the
       // new address as it's the only item.
       if (this.entries_.length === 0) {

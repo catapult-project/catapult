@@ -30,12 +30,12 @@ found in the LICENSE file.
 Polymer({
   is: 'tr-ui-a-power-sample-table',
 
-  ready: function() {
+  ready() {
     this.$.table.tableColumns = [
       {
         title: 'Time',
         width: '100px',
-        value: function(row) {
+        value(row) {
           return tr.v.ui.createScalarSpan(row.start, {
             unit: tr.b.Unit.byName.timeStampInMs
           });
@@ -44,7 +44,7 @@ Polymer({
       {
         title: 'Power',
         width: '100%',
-        value: function(row) {
+        value(row) {
           return tr.v.ui.createScalarSpan(row.powerInW, {
             unit: tr.b.Unit.byName.powerInWatts
           });
@@ -63,7 +63,7 @@ Polymer({
     this.updateContents_();
   },
 
-  updateContents_: function() {
+  updateContents_() {
     if (this.sample === undefined) {
       this.$.table.tableRows = [];
     } else {
@@ -90,7 +90,7 @@ Polymer({
   is: 'tr-ui-a-single-power-sample-sub-view',
   behaviors: [tr.ui.analysis.AnalysisSubView],
 
-  ready: function() {
+  ready() {
     this.currentSelection_ = undefined;
   },
 
@@ -103,7 +103,7 @@ Polymer({
     this.updateContents_();
   },
 
-  updateContents_: function() {
+  updateContents_() {
     if (this.selection.length !== 1) {
       throw new Error('Cannot pass multiple samples to sample table.');
     }

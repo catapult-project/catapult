@@ -51,7 +51,7 @@ found in the LICENSE file.
 Polymer({
   is: 'tr-ui-b-drag-handle',
 
-  created: function() {
+  created() {
     this.lastMousePos_ = 0;
     this.onMouseMove_ = this.onMouseMove_.bind(this);
     this.onMouseUp_ = this.onMouseUp_.bind(this);
@@ -102,14 +102,14 @@ Polymer({
     this.horizontal = !v;
   },
 
-  forceMutationObserverFlush_: function() {
+  forceMutationObserverFlush_() {
     var records = this.observer_.takeRecords();
     if (records.length) {
       this.didTargetMutate_(records);
     }
   },
 
-  didTargetMutate_: function(e) {
+  didTargetMutate_(e) {
     var modeSize = this.targetSizesByModeKey_[this.modeKey_];
     if (modeSize !== undefined) {
       this.setTargetSize_(modeSize);
@@ -125,7 +125,7 @@ Polymer({
     return this.horizontal_ ? 'height' : 'width';
   },
 
-  getTargetSize_: function() {
+  getTargetSize_() {
     // If style is not set, start off with computed height.
     var targetStyleKey = this.targetStyleKey_;
     if (!this.target_.style[targetStyleKey]) {
@@ -137,13 +137,13 @@ Polymer({
     return size;
   },
 
-  setTargetSize_: function(s) {
+  setTargetSize_(s) {
     this.target_.style[this.targetStyleKey_] = s + 'px';
     this.targetSizesByModeKey_[this.modeKey_] = s;
     tr.b.dispatchSimpleEvent(this, 'drag-handle-resize', true, false);
   },
 
-  applyDelta_: function(delta) {
+  applyDelta_(delta) {
     // Apply new size to the container.
     var curSize = this.getTargetSize_();
     var newSize;
@@ -155,7 +155,7 @@ Polymer({
     this.setTargetSize_(newSize);
   },
 
-  onMouseMove_: function(e) {
+  onMouseMove_(e) {
     // Compute the difference in height position.
     var curMousePos = this.horizontal_ ? e.clientY : e.clientX;
     var delta = this.lastMousePos_ - curMousePos;
@@ -167,7 +167,7 @@ Polymer({
     return true;
   },
 
-  onMouseDown_: function(e) {
+  onMouseDown_(e) {
     if (!this.target_) return;
     this.forceMutationObserverFlush_();
     this.lastMousePos_ = this.horizontal_ ? e.clientY : e.clientX;
@@ -177,7 +177,7 @@ Polymer({
     return true;
   },
 
-  onMouseUp_: function(e) {
+  onMouseUp_(e) {
     document.removeEventListener('mousemove', this.onMouseMove_);
     document.removeEventListener('mouseup', this.onMouseUp_);
     e.preventDefault();

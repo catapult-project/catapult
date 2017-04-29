@@ -17,14 +17,14 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   var testOptions = {
-    setUp: function() {
+    setUp() {
       d.BugDetails.reset();
       var obj = {};
       obj[12345] = Promise.resolve(mockBug);
       obj[54321] = Promise.resolve(mockBug);
       d.BugDetails.prepopulate(obj);
     },
-    tearDown: function() {
+    tearDown() {
       testing_common.clearXhrMock();
     }
   };
@@ -238,7 +238,7 @@ tr.b.unittest.testSuite(function() {
   test('instantiate', function() {
     var mockResponse = {
       'revisions': [1, 2],
-      'anomalies': anomalies
+      anomalies
     };
     uri.getPathName = function() { return ''; };
     testing_common.addXhrMock('/speed_releasing/undefined?anomalies=true',

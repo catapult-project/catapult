@@ -42,7 +42,7 @@ tr.exportTo('tr.ui.analysis', function() {
      * free to change this behavior (e.g. if a pane has lots of data to display,
      * it might decide to defer rebuilding in order not to cause jank).
      */
-    appended: function() {
+    appended() {
       this.rebuild();
     }
   };

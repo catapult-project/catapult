@@ -58,22 +58,22 @@ found in the LICENSE file.
     is: 'tr-ui-sp-file-size-stats-side-panel',
     behaviors: [tr.ui.behaviors.SidePanel],
 
-    ready: function() {
+    ready() {
       this.model_ = undefined;
       this.selection_ = new tr.model.EventSet();
       this.$.picker.settingsKey = 'tr-ui-sp-file-size-stats-side-panel-picker';
       this.$.picker.possibleGroups = [
         {
           key: 'phase', label: 'Event Type',
-          dataFn: function(eventStat) { return eventStat.phase; }
+          dataFn(eventStat) { return eventStat.phase; }
         },
         {
           key: 'category', label: 'Category',
-          dataFn: function(eventStat) { return eventStat.category; }
+          dataFn(eventStat) { return eventStat.category; }
         },
         {
           key: 'title', label: 'Title',
-          dataFn: function(eventStat) { return eventStat.title; }
+          dataFn(eventStat) { return eventStat.title; }
         }
       ];
       // If the picker did not restore currentGroupKeys from Settings,
@@ -89,7 +89,7 @@ found in the LICENSE file.
       return 'File Size Stats';
     },
 
-    supportsModel: function(m) {
+    supportsModel(m) {
       if (!m) {
         return {
           supported: false,
@@ -133,17 +133,17 @@ found in the LICENSE file.
       this.selection_ = selection;
     },
 
-    createColumns_: function(stats) {
+    createColumns_(stats) {
       var columns = [
         {
           title: 'Title',
-          value: function(row) {
+          value(row) {
             var titleEl = document.createElement('span');
             Polymer.dom(titleEl).textContent = row.title;
             titleEl.style.textOverflow = 'ellipsis';
             return titleEl;
           },
-          cmp: function(a, b) {
+          cmp(a, b) {
             return a.title.localeCompare(b.title);
           },
           width: '400px'
@@ -151,10 +151,10 @@ found in the LICENSE file.
         {
           title: 'Num Events',
           align: tr.ui.b.TableFormat.ColumnAlignment.RIGHT,
-          value: function(row) {
+          value(row) {
             return row.rowStats.numEvents;
           },
-          cmp: function(a, b) {
+          cmp(a, b) {
             return a.rowStats.numEvents - b.rowStats.numEvents;
           },
           width: '80px'
@@ -164,13 +164,13 @@ found in the LICENSE file.
       if (stats && stats.hasEventSizesinBytes) {
         columns.push({
           title: 'Bytes',
-          value: function(row) {
+          value(row) {
             var value = new tr.b.Scalar(tr.b.Unit.byName.sizeInBytes,
                 row.rowStats.totalEventSizeinBytes);
             var spanEl = tr.v.ui.createScalarSpan(value);
             return spanEl;
           },
-          cmp: function(a, b) {
+          cmp(a, b) {
             return a.rowStats.totalEventSizeinBytes -
                 b.rowStats.totalEventSizeinBytes;
           },
@@ -180,7 +180,7 @@ found in the LICENSE file.
       return columns;
     },
 
-    updateContents_: function() {
+    updateContents_() {
       var table = this.$.table;
 
       var columns = this.createColumns_(this.model.stats);
@@ -193,7 +193,7 @@ found in the LICENSE file.
         );
         return {
           numEvents: sum,
-          totalEventSizeinBytes: totalEventSizeinBytes
+          totalEventSizeinBytes
         };
       };
       table.tableColumns = columns;

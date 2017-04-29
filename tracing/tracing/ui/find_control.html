@@ -83,7 +83,7 @@ found in the LICENSE file.
 Polymer({
   is: 'tr-ui-find-control',
 
-  filterKeyDown: function(e) {
+  filterKeyDown(e) {
     if (e.keyCode === 27) {
       var hkc = tr.b.getHotkeyControllerForElement(this);
       if (hkc) {
@@ -103,17 +103,17 @@ Polymer({
     }
   },
 
-  filterBlur: function(e) {
+  filterBlur(e) {
     this.updateHitCountEl();
   },
 
-  filterFocus: function(e) {
+  filterFocus(e) {
     this.$.filter.select();
   },
 
   // Prevent that the input text is deselected after focusing the find
   // control with the mouse.
-  filterMouseUp: function(e) {
+  filterMouseUp(e) {
     e.preventDefault();
   },
 
@@ -126,7 +126,7 @@ Polymer({
     this.updateHitCountEl();
   },
 
-  focus: function() {
+  focus() {
     this.$.filter.focus();
   },
 
@@ -134,7 +134,7 @@ Polymer({
     return this === document.activeElement;
   },
 
-  filterTextChanged: function() {
+  filterTextChanged() {
     Polymer.dom(this.$.hitCount).textContent = '';
     this.$.spinner.style.visibility = 'visible';
     this.$.spinner.style.animation = 'spin 1s linear infinite';
@@ -145,21 +145,21 @@ Polymer({
     }.bind(this));
   },
 
-  findNext: function() {
+  findNext() {
     if (this.controller) {
       this.controller.findNext();
     }
     this.updateHitCountEl();
   },
 
-  findPrevious: function() {
+  findPrevious() {
     if (this.controller) {
       this.controller.findPrevious();
     }
     this.updateHitCountEl();
   },
 
-  updateHitCountEl: function() {
+  updateHitCountEl() {
     if (!this.controller || this.$.filter.value.length === 0) {
       Polymer.dom(this.$.hitCount).textContent = '';
       return;
@@ -170,7 +170,7 @@ Polymer({
     Polymer.dom(this.$.hitCount).textContent = (i + 1) + ' of ' + n;
   },
 
-  setText: function(string) {
+  setText(string) {
     this.$.filter.value = string;
   }
 });

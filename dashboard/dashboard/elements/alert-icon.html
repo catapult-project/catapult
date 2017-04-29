@@ -30,7 +30,7 @@ found in the LICENSE file.
   Polymer({
 
     is: 'alert-icon',
-    initialize: function(alertAnnotation, alertKey) {
+    initialize(alertAnnotation, alertKey) {
       var bugId = alertAnnotation.bug_id;
       var improvement = alertAnnotation.improvement;
       var recovered = alertAnnotation.recovered;
@@ -61,7 +61,7 @@ found in the LICENSE file.
       }
     },
 
-    setPosition: function(top, left) {
+    setPosition(top, left) {
       this.$.icon.style.top = top + 'px';
       this.$.icon.style.left = left + 'px';
     }

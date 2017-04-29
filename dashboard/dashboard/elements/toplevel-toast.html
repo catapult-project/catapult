@@ -27,11 +27,11 @@ found in the LICENSE file.
     'use strict';
     Polymer({
       is: 'toplevel-toast',
-      ready: function() {
+      ready() {
         document.addEventListener(
             'display-toast', this.displayToast.bind(this));
       },
-      displayToast: function(event) {
+      displayToast(event) {
         var detail = event.detail;
         Polymer.dom.flush();
         // We use a window.requestAnimationFrame here because the content div

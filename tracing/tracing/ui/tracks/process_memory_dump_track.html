@@ -26,7 +26,7 @@ tr.exportTo('tr.ui.tracks', function() {
   ProcessMemoryDumpTrack.prototype = {
     __proto__: tr.ui.tracks.ContainerTrack.prototype,
 
-    decorate: function(viewport) {
+    decorate(viewport) {
       tr.ui.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
       this.memoryDumps_ = undefined;
     },
@@ -40,7 +40,7 @@ tr.exportTo('tr.ui.tracks', function() {
       this.updateContents_();
     },
 
-    updateContents_: function() {
+    updateContents_() {
       this.clearTracks_();
 
       // Show no tracks if there are no dumps.
@@ -49,7 +49,7 @@ tr.exportTo('tr.ui.tracks', function() {
       this.appendAllocatedMemoryTrack_();
     },
 
-    appendAllocatedMemoryTrack_: function() {
+    appendAllocatedMemoryTrack_() {
       var series = tr.ui.tracks.buildProcessAllocatedMemoryChartSeries(
           this.memoryDumps_);
       if (!series) return;

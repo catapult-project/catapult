@@ -228,7 +228,7 @@ tr.b.unittest.testSuite(function() {
           if (!(owns in ownerDumps)) {
             ownerDumps[owns] = [];
           }
-          ownerDumps[owns].push({dump: dump, importance: importance});
+          ownerDumps[owns].push({dump, importance});
         } else {
           assert.isUndefined(importance);  // Test sanity check.
         }

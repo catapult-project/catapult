@@ -140,7 +140,7 @@ found in the LICENSE file.
 Polymer({
   is: 'tr-ui-timeline-view',
 
-  attached: function() {
+  attached() {
     this.async(function() {
       this.trackViewContainer_ = Polymer.dom(this).querySelector(
           '#track_view_container');
@@ -150,7 +150,7 @@ Polymer({
     });
   },
 
-  ready: function() {
+  ready() {
     this.tabIndex = 0; // Let the timeline able to receive key events.
 
     this.titleEl_ = this.$.title;
@@ -236,7 +236,7 @@ Polymer({
     return this.$.hkc;
   },
 
-  updateDocumentFavicon: function() {
+  updateDocumentFavicon() {
     var hue;
     if (!this.model) {
       hue = 'blue';
@@ -282,7 +282,7 @@ Polymer({
     this.trackView_.viewport.highlightVSync = highlightVSync;
   },
 
-  initHelpButton_: function() {
+  initHelpButton_() {
     var helpButtonEl = this.$.view_help_button;
 
     var dlg = new tr.ui.b.Overlay();
@@ -300,7 +300,7 @@ Polymer({
     helpButtonEl.addEventListener('click', onClick.bind(this));
   },
 
-  initConsoleButton_: function() {
+  initConsoleButton_() {
     var toggleEl = this.$.view_console_button;
 
     function onClick(e) {
@@ -311,7 +311,7 @@ Polymer({
     toggleEl.addEventListener('click', onClick.bind(this));
   },
 
-  initMetadataButton_: function() {
+  initMetadataButton_() {
     var showEl = this.$.view_metadata_button;
 
     function onClick(e) {
@@ -333,7 +333,7 @@ Polymer({
     this.updateMetadataButtonVisibility_();
   },
 
-  updateMetadataButtonVisibility_: function() {
+  updateMetadataButtonVisibility_() {
     var showEl = this.$.view_metadata_button;
     showEl.style.display =
         (this.model && this.model.metadata.length) ? '' : 'none';
@@ -461,7 +461,7 @@ Polymer({
     throw new Error('This is deprecated. Please set globalMode to true.');
   },
 
-  bindKeyListeners_: function() {
+  bindKeyListeners_() {
     var hkc = this.hotkeyController;
 
     // Shortcuts that *can* steal focus from the console and the filter text
@@ -471,7 +471,7 @@ Polymer({
       keyCode: '`'.charCodeAt(0),
       useCapture: true,
       thisArg: this,
-      callback: function(e) {
+      callback(e) {
         this.scriptingCtl_.toggleVisibility();
         if (!this.scriptingCtl_.hasFocus) {
           this.focus();
@@ -486,7 +486,7 @@ Polymer({
       keyCode: '/'.charCodeAt(0),
       useCapture: true,
       thisArg: this,
-      callback: function(e) {
+      callback(e) {
         if (this.scriptingCtl_.hasFocus) return;
 
         if (this.findCtl_.hasFocus) {
@@ -505,7 +505,7 @@ Polymer({
       keyCode: '?'.charCodeAt(0),
       useCapture: false,
       thisArg: this,
-      callback: function(e) {
+      callback(e) {
         this.$.view_help_button.click();
         e.stopPropagation();
       }
@@ -516,14 +516,14 @@ Polymer({
       keyCode: 'v'.charCodeAt(0),
       useCapture: false,
       thisArg: this,
-      callback: function(e) {
+      callback(e) {
         this.toggleHighlightVSync_();
         e.stopPropagation();
       }
     }));
   },
 
-  onViewportChanged_: function(e) {
+  onViewportChanged_(e) {
     var spc = this.sidePanelContainer_;
     if (!this.trackView_) {
       spc.rangeOfInterest.reset();
@@ -540,12 +540,12 @@ Polymer({
     }
   },
 
-  toggleHighlightVSync_: function() {
+  toggleHighlightVSync_() {
     this.highlightVSyncCheckbox_.checked =
         !this.highlightVSyncCheckbox_.checked;
   },
 
-  setFindCtlText: function(string) {
+  setFindCtlText(string) {
     this.findCtl_.setText(string);
   }
 });

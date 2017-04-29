@@ -37,13 +37,13 @@ tr.exportTo('tr.model', function() {
       return this.selectionState === SelectionState.SELECTED;
     },
 
-    addToSelection: function(selection) {
+    addToSelection(selection) {
       var modelItem = this.modelItem_;
       if (!modelItem) return;
       selection.push(modelItem);
     },
 
-    addToTrackMap: function(eventToTrackMap, track) {
+    addToTrackMap(eventToTrackMap, track) {
       var modelItem = this.modelItem_;
       if (!modelItem) return;
       eventToTrackMap.addEvent(modelItem, track);

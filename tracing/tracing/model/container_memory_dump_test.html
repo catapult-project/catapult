@@ -127,7 +127,7 @@ tr.b.unittest.testSuite(function() {
     var visitedAllocatorDumps = [];
     containerDump.iterateRootAllocatorDumps(
         function(dump) { this.visitedAllocatorDumps.push(dump); },
-        { visitedAllocatorDumps: visitedAllocatorDumps });
+        { visitedAllocatorDumps });
     assert.sameMembers(visitedAllocatorDumps, [oilpanDump, v8Dump]);
   });
 

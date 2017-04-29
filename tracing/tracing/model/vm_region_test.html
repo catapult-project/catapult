@@ -20,7 +20,7 @@ tr.b.unittest.testSuite(function() {
     var vmRegion = VMRegion.fromDict({
       startAddress: 256,
       sizeInBytes: 336,
-      protectionFlags: protectionFlags,
+      protectionFlags,
       mappedFile: '[stack:20310]',
       byteStats: {
         privateDirtyResident: 96,
@@ -100,7 +100,7 @@ tr.b.unittest.testSuite(function() {
 
   function checkClassificationRules(mappedFile, expectedPath) {
     var region = VMRegion.fromDict({
-      mappedFile: mappedFile,
+      mappedFile,
       sizeInBytes: 16,
       byteStats: {
         privateDirtyResident: 7

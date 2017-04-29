@@ -31,7 +31,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     __proto__: tr.ui.tracks.ContainerTrack.prototype,
 
-    decorate: function(viewport) {
+    decorate(viewport) {
       tr.ui.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
 
       this.header_ = document.createElement('tr-ui-b-heading');
@@ -55,7 +55,7 @@ tr.exportTo('tr.ui.tracks', function() {
       this.updateContents_();
     },
 
-    onHeaderClick_: function(e) {
+    onHeaderClick_(e) {
       e.stopPropagation();
       e.preventDefault();
       this.expanded = !this.expanded;
@@ -80,7 +80,7 @@ tr.exportTo('tr.ui.tracks', function() {
       this.updateContents_();
     },
 
-    updateContents_: function() {
+    updateContents_() {
       this.detach();
       if (this.collapsible_) {
         Polymer.dom(this).appendChild(this.header_);

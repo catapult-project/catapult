@@ -18,7 +18,7 @@ tr.exportTo('tr.b.unittest', function() {
   function HTMLImportsModuleLoader() {
   }
   HTMLImportsModuleLoader.prototype = {
-    loadModule: function(testRelpath, moduleName) {
+    loadModule(testRelpath, moduleName) {
       return new Promise(function(resolve, reject) {
         var importEl = document.createElement('link');
         importEl.moduleName = moduleName;
@@ -26,8 +26,8 @@ tr.exportTo('tr.b.unittest', function() {
         Polymer.dom(importEl).setAttribute('href', testRelpath);
 
         importEl.addEventListener('load', function() {
-          resolve({testRelpath: testRelpath,
-            moduleName: moduleName});
+          resolve({testRelpath,
+            moduleName});
         });
         importEl.addEventListener('error', function(e) {
           reject('Error loading &#60;link rel="import" href="' +
@@ -38,7 +38,7 @@ tr.exportTo('tr.b.unittest', function() {
       });
     },
 
-    getCurrentlyExecutingModuleName: function() {
+    getCurrentlyExecutingModuleName() {
       if (!document.currentScript) {
         throw new Error('Cannot call testSuite except during load.');
       }
@@ -48,7 +48,7 @@ tr.exportTo('tr.b.unittest', function() {
       return name;
     },
 
-    guessModuleNameFromURL_: function(url) {
+    guessModuleNameFromURL_(url) {
       var m = /.+?:\/\/.+?(\/.+)/.exec(url);
       if (!m) {
         throw new Error('Guessing module name failed');
@@ -69,11 +69,11 @@ tr.exportTo('tr.b.unittest', function() {
     this.currentlyExecutingModuleInfo_ = undefined;
   }
   HeadlessModuleLoader.prototype = {
-    loadModule: function(testRelpath, moduleName) {
+    loadModule(testRelpath, moduleName) {
       return Promise.resolve().then(function() {
         var moduleInfo = {
-          testRelpath: testRelpath,
-          moduleName: moduleName
+          testRelpath,
+          moduleName
         };
         if (this.currentlyExecutingModuleInfo_ !== undefined) {
           throw new Error('WAT');
@@ -94,7 +94,7 @@ tr.exportTo('tr.b.unittest', function() {
       }.bind(this));
     },
 
-    getCurrentlyExecutingModuleName: function() {
+    getCurrentlyExecutingModuleName() {
       if (this.currentlyExecutingModuleInfo_ === undefined) {
         throw new Error('No currently loading module');
       }
@@ -122,7 +122,7 @@ tr.exportTo('tr.b.unittest', function() {
   SuiteLoader.prototype = {
     __proto__: tr.b.EventTarget.prototype,
 
-    beginLoadingModules_: function(testRelpaths) {
+    beginLoadingModules_(testRelpaths) {
       // Hooks!
       this.bindGlobalHooks_();
 
@@ -183,7 +183,7 @@ tr.exportTo('tr.b.unittest', function() {
           }.bind(this));
     },
 
-    bindGlobalHooks_: function() {
+    bindGlobalHooks_() {
       if (global._currentSuiteLoader !== undefined) {
         throw new Error('A suite loader exists already');
       }
@@ -200,14 +200,14 @@ tr.exportTo('tr.b.unittest', function() {
       }.bind(this);
     },
 
-    unbindGlobalHooks_: function() {
+    unbindGlobalHooks_() {
       global._currentSuiteLoader = undefined;
 
       global.onerror = this.oldGlobalOnError_;
       this.oldGlobalOnError_ = undefined;
     },
 
-    constructAndRegisterTestSuite: function(suiteConstructor) {
+    constructAndRegisterTestSuite(suiteConstructor) {
       var name = this.currentModuleLoader_.getCurrentlyExecutingModuleName();
 
       var testSuite = new tr.b.unittest.TestSuite(
@@ -220,7 +220,7 @@ tr.exportTo('tr.b.unittest', function() {
       this.dispatchEvent(e);
     },
 
-    getAllTests: function() {
+    getAllTests() {
       var tests = [];
       this.testSuites.forEach(function(suite) {
         tests.push.apply(tests, suite.tests);
@@ -228,7 +228,7 @@ tr.exportTo('tr.b.unittest', function() {
       return tests;
     },
 
-    findTestWithFullyQualifiedName: function(fullyQualifiedName) {
+    findTestWithFullyQualifiedName(fullyQualifiedName) {
       for (var i = 0; i < this.testSuites.length; i++) {
         var suite = this.testSuites[i];
         for (var j = 0; j < suite.tests.length; j++) {

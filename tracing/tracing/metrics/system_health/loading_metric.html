@@ -89,7 +89,7 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   NavigationStartFinder.prototype = {
-    findNavigationStartEventForFrameBeforeTimestamp: function(frameIdRef, ts) {
+    findNavigationStartEventForFrameBeforeTimestamp(frameIdRef, ts) {
       var list = this.navigationStartsForFrameId_[frameIdRef];
       if (list === undefined) return undefined;
       var eventBeforeTimestamp;
@@ -239,7 +239,7 @@ tr.exportTo('tr.metrics.sh', function() {
         }),
       }
     });
-    return {firstMeaningfulPaint: fmpMarkerEvent.start, url: url};
+    return {firstMeaningfulPaint: fmpMarkerEvent.start, url};
   }
 
   function addFirstMeaningfulPaintCpuTimeSample(samples, rendererHelper,

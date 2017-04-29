@@ -26,7 +26,7 @@ tr.exportTo('tr.ui.tracks', function() {
   KernelTrack.prototype = {
     __proto__: ProcessTrackBase.prototype,
 
-    decorate: function(viewport) {
+    decorate(viewport) {
       ProcessTrackBase.prototype.decorate.call(this, viewport);
     },
 
@@ -48,13 +48,13 @@ tr.exportTo('tr.ui.tracks', function() {
       return this.children.length > 1;
     },
 
-    addContainersToTrackMap: function(containerToTrackMap) {
+    addContainersToTrackMap(containerToTrackMap) {
       tr.ui.tracks.ProcessTrackBase.prototype.addContainersToTrackMap.call(
           this, containerToTrackMap);
       containerToTrackMap.addContainer(this.kernel, this);
     },
 
-    willAppendTracks_: function() {
+    willAppendTracks_() {
       var cpus = tr.b.dictionaryValues(this.kernel.cpus);
       cpus.sort(tr.model.Cpu.compare);
 

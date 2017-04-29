@@ -59,14 +59,14 @@ tr.exportTo('tr.e.audits', function() {
   VSyncAuditor.prototype = {
     __proto__: tr.c.Auditor.prototype,
 
-    runAnnotate: function() {
+    runAnnotate() {
       this.model.device.vSyncTimestamps = this.findVSyncTimestamps(this.model);
     },
 
     /**
      * Returns an array of the most accurate VSync times available in the model.
      */
-    findVSyncTimestamps: function(model) {
+    findVSyncTimestamps(model) {
       var times = [];
 
       // Only keep the most precise VSync data.

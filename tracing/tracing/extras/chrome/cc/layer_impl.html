@@ -28,14 +28,14 @@ tr.exportTo('tr.e.cc', function() {
   LayerImplSnapshot.prototype = {
     __proto__: ObjectSnapshot.prototype,
 
-    preInitialize: function() {
+    preInitialize() {
       tr.e.cc.preInitializeObject(this);
 
       this.layerTreeImpl_ = undefined;
       this.parentLayer = undefined;
     },
 
-    initialize: function() {
+    initialize() {
       // Defaults.
       this.invalidation = new tr.e.cc.Region();
       this.annotatedInvalidation = new tr.e.cc.Region();
@@ -135,7 +135,7 @@ tr.exportTo('tr.e.cc', function() {
   PictureLayerImplSnapshot.prototype = {
     __proto__: LayerImplSnapshot.prototype,
 
-    initialize: function() {
+    initialize() {
       LayerImplSnapshot.prototype.initialize.call(this);
 
       if (this.args.invalidation) {

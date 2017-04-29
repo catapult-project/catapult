@@ -94,7 +94,7 @@ tr.b.unittest.testSuite(function() {
     var model = tr.c.TestUtils.newModelWithEvents([], {
       shiftWorldToZero: false,
       pruneContainers: false,
-      customizeModelCallback: function(model) {
+      customizeModelCallback(model) {
         cpu = model.kernel.getOrCreateCpu(1);
         thread = model.getOrCreateProcess(1).getOrCreateThread(2);
 

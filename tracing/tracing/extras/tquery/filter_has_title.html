@@ -20,7 +20,7 @@ tr.exportTo('tr.e.tquery', function() {
   FilterHasTitle.prototype = {
     __proto__: tr.e.tquery.Filter.prototype,
 
-    evaluate: function(context) {
+    evaluate(context) {
       return this.matchValue_(context.event.title, this.expected);
     }
   };

@@ -25,7 +25,7 @@ tr.exportTo('tr.ui.b', function() {
   ListAndAssociatedView.prototype = {
     __proto__: HTMLDivElement.prototype,
 
-    decorate: function() {
+    decorate() {
       this.list_ = undefined;
       this.listProperty_ = undefined;
       this.view_ = undefined;
@@ -78,7 +78,7 @@ tr.exportTo('tr.ui.b', function() {
       this.updateChildren_();
     },
 
-    updateChildren_: function() {
+    updateChildren_() {
       var complete = this.list_ &&
           this.listProperty_ &&
           this.view_ &&
@@ -116,7 +116,7 @@ tr.exportTo('tr.ui.b', function() {
       }
     },
 
-    onSelectionChanged_: function(e) {
+    onSelectionChanged_(e) {
       var setter = this.view_.__lookupSetter__(this.viewProperty_);
       if (!setter) {
         var prop = this.viewProperty_;

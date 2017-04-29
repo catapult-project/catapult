@@ -77,7 +77,7 @@ found in the LICENSE file.
 Polymer({
   is: 'tr-ui-b-dropdown',
 
-  ready: function() {
+  ready() {
     this.$.outer.tabIndex = 0;
   },
 
@@ -85,7 +85,7 @@ Polymer({
     return this.$.icon;
   },
 
-  onOuterKeyDown_: function(e) {
+  onOuterKeyDown_(e) {
     if (e.keyCode === ' '.charCodeAt(0)) {
       this.toggle_();
       e.preventDefault();
@@ -93,7 +93,7 @@ Polymer({
     }
   },
 
-  onOuterClick_: function(e) {
+  onOuterClick_(e) {
     var or = this.$.outer.getBoundingClientRect();
     var inside = true;
     inside &= e.clientX >= or.left;
@@ -106,7 +106,7 @@ Polymer({
     this.toggle_();
   },
 
-  toggle_: function() {
+  toggle_() {
     if (!this.isOpen) {
       this.show();
     } else {
@@ -114,7 +114,7 @@ Polymer({
     }
   },
 
-  show: function() {
+  show() {
     if (this.isOpen) return;
 
     Polymer.dom(this.$.outer).classList.add('open');
@@ -130,19 +130,19 @@ Polymer({
     this.$.dialog.style.left = ddr.left + 'px';
   },
 
-  onDialogClick_: function(e) {
+  onDialogClick_(e) {
     if (!this.isOpen) return;
     if (e.srcElement !== this.$.dialog) return;
     e.preventDefault();
     this.close();
   },
 
-  onDialogCancel_: function(e) {
+  onDialogCancel_(e) {
     e.preventDefault();
     this.close();
   },
 
-  close: function() {
+  close() {
     if (!this.isOpen) return;
     this.$.dialog.close();
     Polymer.dom(this.$.outer).classList.remove('open');

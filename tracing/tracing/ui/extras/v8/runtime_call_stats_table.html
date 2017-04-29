@@ -38,17 +38,17 @@ tr.exportTo('tr.ui.e.v8', function() {
   Polymer({
     is: 'tr-ui-e-v8-runtime-call-stats-table',
 
-    ready: function() {
+    ready() {
       this.table_ = this.$.table;
       this.totalTime_ = 0;
     },
 
-    constructTable_: function(totalTime) {
+    constructTable_(totalTime) {
       this.table_.selectionMode = tr.ui.b.TableFormat.SelectionMode.ROW;
       this.table_.tableColumns = [
         {
           title: 'Name',
-          value: function(row) {
+          value(row) {
             var typeEl = document.createElement('span');
             typeEl.innerText = row.name;
             if (!(row instanceof tr.e.v8.RuntimeStatsGroup)) {
@@ -70,37 +70,37 @@ tr.exportTo('tr.ui.e.v8', function() {
         },
         {
           title: 'Time',
-          value: function(row) {
+          value(row) {
             var typeEl = document.createElement('span');
             typeEl.innerText = (row.time / 1000.0).toFixed(3) + ' ms';
             return typeEl;
           },
           width: '100px',
-          cmp: function(a, b) {
+          cmp(a, b) {
             return a.time - b.time;
           }
         },
         {
           title: 'Count',
-          value: function(row) {
+          value(row) {
             var typeEl = document.createElement('span');
             typeEl.innerText = row.count;
             return typeEl;
           },
           width: '100px',
-          cmp: function(a, b) {
+          cmp(a, b) {
             return a.count - b.count;
           }
         },
         {
           title: 'Percent',
-          value: function(row) {
+          value(row) {
             var typeEl = document.createElement('span');
             typeEl.innerText = (row.time / totalTime * 100).toFixed(3) + '%';
             return typeEl;
           },
           width: '100px',
-          cmp: function(a, b) {
+          cmp(a, b) {
             return a.time - b.time;
           }
         }

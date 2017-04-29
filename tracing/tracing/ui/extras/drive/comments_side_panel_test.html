@@ -27,19 +27,19 @@ tr.b.unittest.testSuite(function() {
   StubCommentProvider.prototype = {
     comments_: [],
 
-    attachToElement: function(attachedElement) {
+    attachToElement(attachedElement) {
       this.attachedElement_ = attachedElement;
       this.updateComments();
     },
 
-    detachFromElement: function() {
+    detachFromElement() {
     },
 
-    updateComments: function() {
+    updateComments() {
       this.attachedElement_.comments_ = this.comments_;
     },
 
-    addDummyComment: function(content) {
+    addDummyComment(content) {
       var newComment = {
         author: {
           displayName: 'Casper the Friendly Ghost',
@@ -50,13 +50,13 @@ tr.b.unittest.testSuite(function() {
         },
         createdDate: Date.now(),
         anchor: (this.comments_.length) % 2 ? 1 : 0,
-        content: content
+        content
       };
 
       this.comments_.push(newComment);
     },
 
-    addComment: function(body) {
+    addComment(body) {
       this.addDummyComment(body);
       this.updateComments();
     }

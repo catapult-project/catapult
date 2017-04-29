@@ -299,7 +299,7 @@ found in the LICENSE file.
 
       getLabel: toggleState => (toggleState ? 'hide' : 'show'),
 
-      onSheriffChange: function(e) {
+      onSheriffChange(e) {
         var sheriff = e.detail.item.label;
         if (!sheriff) {
           return;
@@ -315,7 +315,7 @@ found in the LICENSE file.
         window.location.href = uri.getCurrentPathWithParams(params);
       },
 
-      onToggleTriaged: function(e) {
+      onToggleTriaged(e) {
         var params = uri.getAllParameters();
         if (params.triaged) {
           delete params.triaged;
@@ -327,7 +327,7 @@ found in the LICENSE file.
         window.location.href = uri.getCurrentPathWithParams(params);
       },
 
-      onToggleImprovements: function(e) {
+      onToggleImprovements(e) {
         var params = uri.getAllParameters();
         if (params.improvements) {
           delete params.improvements;
@@ -345,7 +345,7 @@ found in the LICENSE file.
        * /alerts. This will perform a paged query, starting at the cursor and
        * returning up to 500 more anomalies.
        */
-      onShowMoreAnomalies: function() {
+      onShowMoreAnomalies() {
         var params = uri.getAllParameters();
         if (this.anomalyCursor != null) {
           params.anomaly_cursor = this.anomalyCursor;
@@ -374,7 +374,7 @@ found in the LICENSE file.
        * Similar to the anomaly show more button, gets the next 500 stoppage
        * alerts.
        */
-      onShowMoreStoppageAlerts: function() {
+      onShowMoreStoppageAlerts() {
         var params = uri.getAllParameters();
         if (this.stoppageAlertCursor != null) {
           params.stoppage_alert_cursor = this.stoppageAlertCursor;
@@ -400,7 +400,7 @@ found in the LICENSE file.
             }.bind(this));
       },
 
-      onPopState: function(e) {
+      onPopState(e) {
         // Pop State event will have a non-null state if this came from an
         // actual pop instead of the load event.
         if (e.state) {
@@ -408,7 +408,7 @@ found in the LICENSE file.
         }
       },
 
-      onPushHistoryState: function(event, detail) {
+      onPushHistoryState(event, detail) {
         var sender = event.currentTarget;
         if (!sender) {
           return;
@@ -420,7 +420,7 @@ found in the LICENSE file.
         history.pushState(params, '', newUri);
       },
 
-      updateFromURIParameters: function() {
+      updateFromURIParameters() {
         this.sortBy = uri.getParameter('sortby', 'end_revision');
         this.sortDirection = uri.getParameter('sortdirection', 'down');
         this.selectedSheriffIndex = this.sheriffList.indexOf(
@@ -429,15 +429,15 @@ found in the LICENSE file.
         this.showingTriaged = uri.getParameter('triaged', false);
       },
 
-      getAlertCount: function(anomalyListLength) {
+      getAlertCount(anomalyListLength) {
         return this.getCount(false, anomalyListLength);
       },
 
-      getStoppageCount: function(stoppageAlertsListLength) {
+      getStoppageCount(stoppageAlertsListLength) {
         return this.getCount(true, stoppageAlertsListLength);
       },
 
-      getCount: function(isStoppage, trueLength) {
+      getCount(isStoppage, trueLength) {
         var totalCount = isStoppage ? this.totalStoppageAlertCount :
           this.totalAnomalyCount;
         if (trueLength < totalCount) {
@@ -446,7 +446,7 @@ found in the LICENSE file.
         return totalCount;
       },
 
-      ready: function() {
+      ready() {
         this.sheriff = uri.getParameter('sheriff', 'Chromium Perf Sheriff');
         this.showImprovements = uri.getParameter('improvements', false);
         this.showTriaged = uri.getParameter('triaged', false);

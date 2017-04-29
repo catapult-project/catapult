@@ -221,7 +221,7 @@ tr.exportTo('tr.b.math', function() {
     }
     return {
       normalized_samples: samples,
-      scale: scale
+      scale
     };
   };
 
@@ -558,7 +558,7 @@ tr.exportTo('tr.b.math', function() {
      * @param {number} x A value from the random distribution.
      * @return {number} probability density at x.
      */
-    computeDensity: function(x) {
+    computeDensity(x) {
       throw Error('Not implemented');
     },
 
@@ -568,7 +568,7 @@ tr.exportTo('tr.b.math', function() {
      * @param {number} x A value from the random distribution.
      * @return {number} P(X<x).
      */
-    computePercentile: function(x) {
+    computePercentile(x) {
       throw Error('Not implemented');
     },
 
@@ -579,7 +579,7 @@ tr.exportTo('tr.b.math', function() {
      * @param {number} x A value from the random distribution.
      * @return {number} P(X>x).
      */
-    computeComplementaryPercentile: function(x) {
+    computeComplementaryPercentile(x) {
       return 1 - this.computePercentile(x);
     },
 
@@ -634,11 +634,11 @@ tr.exportTo('tr.b.math', function() {
   Statistics.UniformDistribution.prototype = {
     __proto__: Distribution.prototype,
 
-    computeDensity: function(x) {
+    computeDensity(x) {
       return 1 / this.range.range;
     },
 
-    computePercentile: function(x) {
+    computePercentile(x) {
       return tr.b.math.normalize(x, this.range.min, this.range.max);
     },
 
@@ -678,13 +678,13 @@ tr.exportTo('tr.b.math', function() {
   Statistics.NormalDistribution.prototype = {
     __proto__: Distribution.prototype,
 
-    computeDensity: function(x) {
+    computeDensity(x) {
       var scale = (1.0 / (this.standardDeviation * Math.sqrt(2.0 * Math.PI)));
       var exponent = -Math.pow(x - this.mean, 2) / (2.0 * this.variance);
       return scale * Math.exp(exponent);
     },
 
-    computePercentile: function(x) {
+    computePercentile(x) {
       var standardizedX = ((x - this.mean) /
                            Math.sqrt(2.0 * this.variance));
       return (1.0 + tr.b.math.erf(standardizedX)) / 2.0;
@@ -729,11 +729,11 @@ tr.exportTo('tr.b.math', function() {
   Statistics.LogNormalDistribution.prototype = {
     __proto__: Statistics.NormalDistribution.prototype,
 
-    computeDensity: function(x) {
+    computeDensity(x) {
       return this.normalDistribution_.computeDensity(Math.log(x)) / x;
     },
 
-    computePercentile: function(x) {
+    computePercentile(x) {
       return this.normalDistribution_.computePercentile(Math.log(x));
     },
 

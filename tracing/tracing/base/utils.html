@@ -83,7 +83,7 @@ tr.exportTo('tr.b', function() {
 
     var msg = e.message ? e.message : 'Unknown';
     return {
-      typeName: typeName,
+      typeName,
       message: msg,
       stack: e.stack ? e.stack : [msg]
     };

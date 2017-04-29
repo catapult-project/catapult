@@ -65,7 +65,7 @@ tr.exportTo('tr.ui.b', function() {
      * Changes the y position and height for subsequent fillRect
      * calls. x and width are specifieid on the fillRect calls.
      */
-    setYandH: function(y, h) {
+    setYandH(y, h) {
       if (this.y_ === y &&
           this.h_ === h) {
         return;
@@ -83,7 +83,7 @@ tr.exportTo('tr.ui.b', function() {
      *     in the renderer's color pallete.
      * @param {number} alpha The opacity of the rectangle as 0.0-1.0 number.
      */
-    fillRect: function(x, w, colorId, alpha) {
+    fillRect(x, w, colorId, alpha) {
       var r = x + w;
       if (w < this.minRectSize_) {
         if (r - this.mergeStartX_ > this.maxMergeDist_) {
@@ -118,7 +118,7 @@ tr.exportTo('tr.ui.b', function() {
      * Commits any pending fillRect operations to the underlying graphics
      * context.
      */
-    flush: function() {
+    flush() {
       if (this.merging_) {
         this.ctx_.fillStyle = this.pallette_[this.mergedColorId_];
         this.ctx_.globalAlpha = this.mergedAlpha_;

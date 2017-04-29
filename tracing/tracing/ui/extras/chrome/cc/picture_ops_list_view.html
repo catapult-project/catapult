@@ -36,7 +36,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
   PictureOpsListView.prototype = {
     __proto__: HTMLDivElement.prototype,
 
-    decorate: function() {
+    decorate() {
       this.opsList_ = new tr.ui.b.ListView();
       Polymer.dom(this).appendChild(this.opsList_);
 
@@ -57,7 +57,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.updateContents_();
     },
 
-    updateContents_: function() {
+    updateContents_() {
       this.opsList_.clear();
 
       if (!this.picture_) return;
@@ -112,7 +112,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       }
     },
 
-    onSelectionChanged_: function(e) {
+    onSelectionChanged_(e) {
       var beforeSelectedOp = true;
 
       // Deselect on re-selection.
@@ -176,7 +176,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
      * @return {Array} Skia ops where op.annotations contains the associated
      *         annotations for a given op.
      */
-    opsTaggedWithAnnotations_: function(ops) {
+    opsTaggedWithAnnotations_(ops) {
       // This algorithm works by walking all the ops and pushing any
       // annotations onto a stack. When a non-annotation op is found, the
       // annotations stack is traversed and stored with the op.

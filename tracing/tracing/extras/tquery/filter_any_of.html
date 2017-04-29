@@ -33,7 +33,7 @@ tr.exportTo('tr.e.tquery', function() {
       return this.subExpressions_;
     },
 
-    evaluate: function(context) {
+    evaluate(context) {
       if (!this.subExpressions.length) return true;
       for (var i = 0; i < this.subExpressions.length; i++) {
         if (this.subExpressions[i].evaluate(context)) return true;

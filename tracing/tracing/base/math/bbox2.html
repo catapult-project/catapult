@@ -28,7 +28,7 @@ tr.exportTo('tr.b.math', function() {
   BBox2.prototype = {
     __proto__: Object.prototype,
 
-    reset: function() {
+    reset() {
       this.isEmpty_ = true;
       this.min_ = undefined;
       this.max_ = undefined;
@@ -38,13 +38,13 @@ tr.exportTo('tr.b.math', function() {
       return this.isEmpty_;
     },
 
-    addBBox2: function(bbox2) {
+    addBBox2(bbox2) {
       if (bbox2.isEmpty) return;
       this.addVec2(bbox2.min_);
       this.addVec2(bbox2.max_);
     },
 
-    clone: function() {
+    clone() {
       var bbox = new BBox2();
       bbox.addBBox2(this);
       return bbox;
@@ -53,7 +53,7 @@ tr.exportTo('tr.b.math', function() {
     /**
      * Adds x, y to the range.
      */
-    addXY: function(x, y) {
+    addXY(x, y) {
       if (this.isEmpty_) {
         this.max_ = vec2.create();
         this.min_ = vec2.create();
@@ -71,7 +71,7 @@ tr.exportTo('tr.b.math', function() {
     /**
      * Adds value_x, value_y in the form [value_x,value_y] to the range.
      */
-    addVec2: function(value) {
+    addVec2(value) {
       if (this.isEmpty_) {
         this.max_ = vec2.create();
         this.min_ = vec2.create();
@@ -86,7 +86,7 @@ tr.exportTo('tr.b.math', function() {
       this.min_[1] = Math.min(this.min_[1], value[1]);
     },
 
-    addQuad: function(quad) {
+    addQuad(quad) {
       this.addVec2(quad.p1);
       this.addVec2(quad.p2);
       this.addVec2(quad.p3);
@@ -134,13 +134,13 @@ tr.exportTo('tr.b.math', function() {
       return this.max_[1] - this.min_[1];
     },
 
-    toString: function() {
+    toString() {
       if (this.isEmpty_) return 'empty';
       return 'min=(' + this.min_[0] + ',' + this.min_[1] + ') ' +
           'max=(' + this.max_[0] + ',' + this.max_[1] + ')';
     },
 
-    asRect: function() {
+    asRect() {
       return tr.b.math.Rect.fromXYWH(
           this.min_[0],
           this.min_[1],

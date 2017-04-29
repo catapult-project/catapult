@@ -82,7 +82,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     __proto__: tr.ui.tracks.ContainerTrack.prototype,
 
-    decorate: function(viewport) {
+    decorate(viewport) {
       tr.ui.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
       Polymer.dom(this).classList.add('model-track');
 
@@ -101,7 +101,7 @@ tr.exportTo('tr.ui.tracks', function() {
       this.updateContents_();
     },
 
-    detach: function() {
+    detach() {
       tr.ui.tracks.ContainerTrack.prototype.detach.call(this);
     },
 
@@ -121,7 +121,7 @@ tr.exportTo('tr.ui.tracks', function() {
       return this.children.length > 0;
     },
 
-    updateContents_: function() {
+    updateContents_() {
       Polymer.dom(this).textContent = '';
       if (!this.model_) return;
 
@@ -132,10 +132,10 @@ tr.exportTo('tr.ui.tracks', function() {
       }
     },
 
-    updateContentsForUpperMode_: function() {
+    updateContentsForUpperMode_() {
     },
 
-    updateContentsForLowerMode_: function() {
+    updateContentsForLowerMode_() {
       if (this.model_.userModel.expectations.length > 1) {
         var mrt = new tr.ui.tracks.InteractionTrack(this.viewport_);
         mrt.model = this.model_;
@@ -178,17 +178,17 @@ tr.exportTo('tr.ui.tracks', function() {
       this.updateAnnotations_();
     },
 
-    getContentBounds: function() { return this.model.bounds; },
+    getContentBounds() { return this.model.bounds; },
 
-    addAnnotation: function(annotation) {
+    addAnnotation(annotation) {
       this.model.addAnnotation(annotation);
     },
 
-    removeAnnotation: function(annotation) {
+    removeAnnotation(annotation) {
       this.model.removeAnnotation(annotation);
     },
 
-    updateAnnotations_: function() {
+    updateAnnotations_() {
       this.annotationViews_ = [];
       var annotations = this.model_.getAllAnnotations();
       for (var i = 0; i < annotations.length; i++) {
@@ -198,7 +198,7 @@ tr.exportTo('tr.ui.tracks', function() {
       this.invalidateDrawingContainer();
     },
 
-    addEventsToTrackMap: function(eventToTrackMap) {
+    addEventsToTrackMap(eventToTrackMap) {
       if (!this.model_) return;
 
       var tracks = this.children;
@@ -214,7 +214,7 @@ tr.exportTo('tr.ui.tracks', function() {
       }.bind(this));
     },
 
-    appendDeviceTrack_: function() {
+    appendDeviceTrack_() {
       var device = this.model.device;
       var track = new tr.ui.tracks.DeviceTrack(this.viewport);
       track.device = this.model.device;
@@ -222,7 +222,7 @@ tr.exportTo('tr.ui.tracks', function() {
       Polymer.dom(this).appendChild(track);
     },
 
-    appendKernelTrack_: function() {
+    appendKernelTrack_() {
       var kernel = this.model.kernel;
       var track = new tr.ui.tracks.KernelTrack(this.viewport);
       track.kernel = this.model.kernel;
@@ -230,7 +230,7 @@ tr.exportTo('tr.ui.tracks', function() {
       Polymer.dom(this).appendChild(track);
     },
 
-    appendCpuUsageTrack_: function() {
+    appendCpuUsageTrack_() {
       var track = new tr.ui.tracks.CpuUsageTrack(this.viewport);
       track.initialize(this.model);
       if (!track.hasVisibleContent) return;
@@ -238,7 +238,7 @@ tr.exportTo('tr.ui.tracks', function() {
       this.appendChild(track);
     },
 
-    appendCpuUsageTrack_: function() {
+    appendCpuUsageTrack_() {
       var track = new tr.ui.tracks.CpuUsageTrack(this.viewport);
       track.initialize(this.model);
       if (!track.hasVisibleContent) return;
@@ -246,7 +246,7 @@ tr.exportTo('tr.ui.tracks', function() {
       this.appendChild(track);
     },
 
-    drawTrack: function(type) {
+    drawTrack(type) {
       var ctx = this.context();
       if (!this.model_) return;
 
@@ -322,7 +322,7 @@ tr.exportTo('tr.ui.tracks', function() {
       tr.ui.tracks.ContainerTrack.prototype.drawTrack.call(this, type);
     },
 
-    drawFlowArrows_: function(viewLWorld, viewRWorld) {
+    drawFlowArrows_(viewLWorld, viewRWorld) {
       var ctx = this.context();
       var dt = this.viewport.currentDisplayTransform;
       dt.applyTransformToCanvas(ctx);
@@ -349,7 +349,7 @@ tr.exportTo('tr.ui.tracks', function() {
       }
     },
 
-    drawFlowArrow_: function(ctx, flowEvent,
+    drawFlowArrow_(ctx, flowEvent,
         canvasBounds, pixWidth) {
       var pixelRatio = window.devicePixelRatio || 1;
 
@@ -436,7 +436,7 @@ tr.exportTo('tr.ui.tracks', function() {
     /**
      * Highlights VSync events on the model track (using "zebra" striping).
      */
-    drawVSyncHighlight: function(ctx, dt, viewLWorld, viewRWorld, viewHeight) {
+    drawVSyncHighlight(ctx, dt, viewLWorld, viewRWorld, viewHeight) {
       if (!this.viewport_.highlightVSync) {
         return;
       }
@@ -477,7 +477,7 @@ tr.exportTo('tr.ui.tracks', function() {
       }
     },
 
-    calculateTrackY_: function(track, canvasBounds) {
+    calculateTrackY_(track, canvasBounds) {
       var bounds = track.getBoundingClientRect();
       var size = bounds.left + bounds.top + bounds.bottom + bounds.right;
       if (size === 0) {
@@ -488,7 +488,7 @@ tr.exportTo('tr.ui.tracks', function() {
       return bounds.top - canvasBounds.top + (bounds.height / 2);
     },
 
-    addIntersectingEventsInRangeToSelectionInWorldSpace: function(
+    addIntersectingEventsInRangeToSelectionInWorldSpace(
         loWX, hiWX, viewPixWidthWorld, selection) {
       function onPickHit(instantEvent) {
         selection.push(instantEvent);
@@ -505,7 +505,7 @@ tr.exportTo('tr.ui.tracks', function() {
           apply(this, arguments);
     },
 
-    addClosestEventToSelection: function(worldX, worldMaxDist, loY, hiY,
+    addClosestEventToSelection(worldX, worldMaxDist, loY, hiY,
         selection) {
       this.addClosestInstantEventToSelection(this.model_.instantEvents,
           worldX, worldMaxDist, selection);

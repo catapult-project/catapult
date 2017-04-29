@@ -25,7 +25,7 @@ found in the LICENSE file.
 Polymer({
   is: 'tr-ui-a-stack-frame',
 
-  ready: function() {
+  ready() {
     this.stackFrame_ = undefined;
     this.$.table.tableColumns = [];
     this.$.table.showHeader = true;
@@ -59,14 +59,14 @@ Polymer({
     if (hasName) {
       cols.push({
         title: 'Name',
-        value: function(row) { return row.name; }
+        value(row) { return row.name; }
       });
     }
 
     if (hasTitle) {
       cols.push({
         title: 'Title',
-        value: function(row) { return row.title; }
+        value(row) { return row.title; }
       });
     }
 
@@ -74,7 +74,7 @@ Polymer({
     table.rebuild();
   },
 
-  tableForTesting: function() {
+  tableForTesting() {
     return this.$.table;
   }
 });

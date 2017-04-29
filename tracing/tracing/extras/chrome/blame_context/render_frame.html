@@ -26,7 +26,7 @@ tr.exportTo('tr.e.chrome', function() {
   RenderFrameSnapshot.prototype = {
     __proto__: BlameContextSnapshot.prototype,
 
-    referencedAt: function(item, object, field) {
+    referencedAt(item, object, field) {
       if (item instanceof tr.e.chrome.FrameTreeNodeSnapshot &&
           object === item.args &&
           field === 'renderFrame') {

@@ -31,7 +31,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
   DrmParser.prototype = {
     __proto__: Parser.prototype,
 
-    drmVblankSlice: function(ts, eventName, args) {
+    drmVblankSlice(ts, eventName, args) {
       var kthread = this.importer.getOrCreatePseudoThread('drm_vblank');
       kthread.openSlice = eventName;
       var slice = new tr.model.ThreadSlice('', kthread.openSlice,
@@ -44,7 +44,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     /**
      * Parses drm driver events and sets up state in the importer.
      */
-    vblankEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+    vblankEvent(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /crtc=(\d+), seq=(\d+)/.exec(eventBase.details);
       if (!event) return false;
 
@@ -52,8 +52,8 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var seq = parseInt(event[2]);
       this.drmVblankSlice(ts, 'vblank:' + crtc,
           {
-            crtc: crtc,
-            seq: seq
+            crtc,
+            seq
           });
       return true;
     }

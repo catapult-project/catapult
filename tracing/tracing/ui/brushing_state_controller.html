@@ -36,7 +36,7 @@ tr.exportTo('tr.c', function() {
   BrushingStateController.prototype = {
     __proto__: tr.b.EventTarget.prototype,
 
-    dispatchChangeEvent_: function() {
+    dispatchChangeEvent_() {
       var e = new tr.b.Event('change', false, false);
       this.dispatchEvent(e);
     },
@@ -79,13 +79,13 @@ tr.exportTo('tr.c', function() {
       }
     },
 
-    modelWillChange: function() {
+    modelWillChange() {
       if (this.currentBrushingState_.isAppliedToModel) {
         this.currentBrushingState_.unapplyFromEventSelectionStates();
       }
     },
 
-    modelDidChange: function() {
+    modelDidChange() {
       this.selections_ = {};
 
       this.currentBrushingState_ = new BrushingState();
@@ -97,7 +97,7 @@ tr.exportTo('tr.c', function() {
       this.dispatchChangeEvent_();
     },
 
-    onUserInitiatedSelectionChange_: function() {
+    onUserInitiatedSelectionChange_() {
       var selection = this.selection;
       if (this.historyEnabled) {
         // Save the selection so that when back button is pressed,
@@ -111,7 +111,7 @@ tr.exportTo('tr.c', function() {
       }
     },
 
-    onPopState_: function(e) {
+    onPopState_(e) {
       if (e.state === null) return;
 
       var selection = this.selections_[e.state.selection_guid];
@@ -174,7 +174,7 @@ tr.exportTo('tr.c', function() {
      * @param {Selection} selection The selection to add matches to.
      * @return {Task} which performs the filtering.
      */
-    addAllEventsMatchingFilterToSelectionAsTask: function(filter, selection) {
+    addAllEventsMatchingFilterToSelectionAsTask(filter, selection) {
       var timelineView = this.timelineView_.trackView;
       if (!timelineView) {
         return new tr.b.Task();
@@ -183,13 +183,13 @@ tr.exportTo('tr.c', function() {
           filter, selection);
     },
 
-    findTextChangedTo: function(allPossibleMatches) {
+    findTextChangedTo(allPossibleMatches) {
       var newBrushingState = this.currentBrushingState_.clone();
       newBrushingState.findMatches = allPossibleMatches;
       this.currentBrushingState = newBrushingState;
     },
 
-    findFocusChangedTo: function(currentFocus) {
+    findFocusChangedTo(currentFocus) {
       var newBrushingState = this.currentBrushingState_.clone();
       newBrushingState.selection = currentFocus;
       this.currentBrushingState = newBrushingState;
@@ -197,7 +197,7 @@ tr.exportTo('tr.c', function() {
       this.onUserInitiatedSelectionChange_();
     },
 
-    findTextCleared: function() {
+    findTextCleared() {
       if (this.xNavStringMarker_ !== undefined) {
         this.model.removeAnnotation(this.xNavStringMarker_);
         this.xNavStringMarker_ = undefined;
@@ -216,16 +216,16 @@ tr.exportTo('tr.c', function() {
       this.onUserInitiatedSelectionChange_();
     },
 
-    uiStateFromString: function(string) {
+    uiStateFromString(string) {
       return tr.ui.b.UIState.fromUserFriendlyString(
           this.model, this.viewport, string);
     },
 
-    navToPosition: function(uiState, showNavLine) {
+    navToPosition(uiState, showNavLine) {
       this.trackView.navToPosition(uiState, showNavLine);
     },
 
-    changeSelectionFromTimeline: function(selection) {
+    changeSelectionFromTimeline(selection) {
       var newBrushingState = this.currentBrushingState_.clone();
       newBrushingState.selection = selection;
       newBrushingState.findMatches = new EventSet();
@@ -234,14 +234,14 @@ tr.exportTo('tr.c', function() {
       this.onUserInitiatedSelectionChange_();
     },
 
-    showScriptControlSelection: function(selection) {
+    showScriptControlSelection(selection) {
       var newBrushingState = this.currentBrushingState_.clone();
       newBrushingState.selection = selection;
       newBrushingState.findMatches = new EventSet();
       this.currentBrushingState = newBrushingState;
     },
 
-    changeSelectionFromRequestSelectionChangeEvent: function(selection) {
+    changeSelectionFromRequestSelectionChangeEvent(selection) {
       var newBrushingState = this.currentBrushingState_.clone();
       newBrushingState.selection = selection;
       newBrushingState.findMatches = new EventSet();
@@ -250,23 +250,23 @@ tr.exportTo('tr.c', function() {
       this.onUserInitiatedSelectionChange_();
     },
 
-    changeAnalysisViewRelatedEvents: function(eventSet) {
+    changeAnalysisViewRelatedEvents(eventSet) {
       var newBrushingState = this.currentBrushingState_.clone();
       newBrushingState.analysisViewRelatedEvents = eventSet;
       this.currentBrushingState = newBrushingState;
     },
 
-    changeAnalysisLinkHoveredEvents: function(eventSet) {
+    changeAnalysisLinkHoveredEvents(eventSet) {
       var newBrushingState = this.currentBrushingState_.clone();
       newBrushingState.analysisLinkHoveredEvents = eventSet;
       this.currentBrushingState = newBrushingState;
     },
 
-    getViewSpecificBrushingState: function(viewId) {
+    getViewSpecificBrushingState(viewId) {
       return this.currentBrushingState.viewSpecificBrushingStates[viewId];
     },
 
-    changeViewSpecificBrushingState: function(viewId, newState) {
+    changeViewSpecificBrushingState(viewId, newState) {
       var oldStates = this.currentBrushingState_.viewSpecificBrushingStates;
       var newStates = {};
       for (var id in oldStates) {

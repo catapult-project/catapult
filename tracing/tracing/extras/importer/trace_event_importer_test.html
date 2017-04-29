@@ -4416,13 +4416,13 @@ tr.b.unittest.testSuite(function() {
           }
           events.push({
             name: 'process_' + pid,
-            pid: pid,
+            pid,
             ts: 10,
             ph: 'v',
             id: '0x0001',
             cat: 'memory-infra',
             args: {
-              dumps: dumps
+              dumps
             }
           });
         });

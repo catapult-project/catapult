@@ -25,12 +25,12 @@ tr.exportTo('tr.b.math', function() {
   Range.prototype = {
     __proto__: Object.prototype,
 
-    clone: function() {
+    clone() {
       if (this.isEmpty) return new Range();
       return Range.fromExplicitRange(this.min_, this.max_);
     },
 
-    reset: function() {
+    reset() {
       this.isEmpty_ = true;
       this.min_ = undefined;
       this.max_ = undefined;
@@ -40,13 +40,13 @@ tr.exportTo('tr.b.math', function() {
       return this.isEmpty_;
     },
 
-    addRange: function(range) {
+    addRange(range) {
       if (range.isEmpty) return;
       this.addValue(range.min);
       this.addValue(range.max);
     },
 
-    addValue: function(value) {
+    addValue(value) {
       if (this.isEmpty_) {
         this.max_ = value;
         this.min_ = value;
@@ -106,73 +106,73 @@ tr.exportTo('tr.b.math', function() {
           tr.b.math.greaterPower(this.max_, opt_base));
     },
 
-    normalize: function(x) {
+    normalize(x) {
       return tr.b.math.normalize(x, this.min, this.max);
     },
 
-    lerp: function(x) {
+    lerp(x) {
       return tr.b.math.lerp(x, this.min, this.max);
     },
 
-    clamp: function(x) {
+    clamp(x) {
       return tr.b.math.clamp(x, this.min, this.max);
     },
 
-    equals: function(that) {
+    equals(that) {
       if (this.isEmpty && that.isEmpty) return true;
       if (this.isEmpty !== that.isEmpty) return false;
       return (tr.b.math.approximately(this.min, that.min) &&
           tr.b.math.approximately(this.max, that.max));
     },
 
-    containsExplicitRangeInclusive: function(min, max) {
+    containsExplicitRangeInclusive(min, max) {
       if (this.isEmpty) return false;
       return this.min_ <= min && max <= this.max_;
     },
 
-    containsExplicitRangeExclusive: function(min, max) {
+    containsExplicitRangeExclusive(min, max) {
       if (this.isEmpty) return false;
       return this.min_ < min && max < this.max_;
     },
 
-    intersectsExplicitRangeInclusive: function(min, max) {
+    intersectsExplicitRangeInclusive(min, max) {
       if (this.isEmpty) return false;
       return this.min_ <= max && min <= this.max_;
     },
 
-    intersectsExplicitRangeExclusive: function(min, max) {
+    intersectsExplicitRangeExclusive(min, max) {
       if (this.isEmpty) return false;
       return this.min_ < max && min < this.max_;
     },
 
-    containsRangeInclusive: function(range) {
+    containsRangeInclusive(range) {
       if (range.isEmpty) return false;
       return this.containsExplicitRangeInclusive(range.min_, range.max_);
     },
 
-    containsRangeExclusive: function(range) {
+    containsRangeExclusive(range) {
       if (range.isEmpty) return false;
       return this.containsExplicitRangeExclusive(range.min_, range.max_);
     },
 
-    intersectsRangeInclusive: function(range) {
+    intersectsRangeInclusive(range) {
       if (range.isEmpty) return false;
       return this.intersectsExplicitRangeInclusive(range.min_, range.max_);
     },
 
-    intersectsRangeExclusive: function(range) {
+    intersectsRangeExclusive(range) {
       if (range.isEmpty) return false;
       return this.intersectsExplicitRangeExclusive(range.min_, range.max_);
     },
 
-    findExplicitIntersectionDuration: function(min, max) {
+    findExplicitIntersectionDuration(min, max) {
       var min = Math.max(this.min, min);
       var max = Math.min(this.max, max);
       if (max < min) return 0;
       return max - min;
     },
 
-    findIntersection: function(range) {
+    findIntersection(range) {
       if (this.isEmpty || range.isEmpty) return new Range();
 
       var min = Math.max(this.min, range.min);
@@ -183,7 +183,7 @@ tr.exportTo('tr.b.math', function() {
       return Range.fromExplicitRange(min, max);
     },
 
-    toJSON: function() {
+    toJSON() {
       if (this.isEmpty_) return {isEmpty: true};
       return {
         isEmpty: false,
@@ -205,7 +205,7 @@ tr.exportTo('tr.b.math', function() {
      * @param {Object=} opt_this An optional this argument to be passed to
      *        opt_keyFunc.
      */
-    filterArray: function(array, opt_keyFunc, opt_this) {
+    filterArray(array, opt_keyFunc, opt_this) {
       if (this.isEmpty_) return [];
       // Binary search. |test| is a function that should return true when we
       // need to explore the left branch and false to explore the right branch.

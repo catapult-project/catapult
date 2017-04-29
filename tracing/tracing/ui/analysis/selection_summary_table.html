@@ -32,22 +32,22 @@ found in the LICENSE file.
 
 Polymer({
   is: 'tr-ui-a-selection-summary-table',
-  created: function() {
+  created() {
     this.selection_ = new tr.b.math.Range();
   },
 
-  ready: function() {
+  ready() {
     this.$.table.showHeader = false;
     this.$.table.tableColumns = [
       {
         title: 'Name',
-        value: function(row) { return row.title; },
+        value(row) { return row.title; },
         width: '350px'
       },
       {
         title: 'Value',
         width: '100%',
-        value: function(row) {
+        value(row) {
           return row.value;
         }
       }
@@ -63,7 +63,7 @@ Polymer({
     this.updateContents_();
   },
 
-  updateContents_: function() {
+  updateContents_() {
     var selection = this.selection_;
     var rows = [];
     var hasRange;

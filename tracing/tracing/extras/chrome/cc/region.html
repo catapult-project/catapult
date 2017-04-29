@@ -42,14 +42,14 @@ tr.exportTo('tr.e.cc', function() {
   Region.prototype = {
     __proto__: Region.prototype,
 
-    rectIntersects: function(r) {
+    rectIntersects(r) {
       for (var i = 0; i < this.rects.length; i++) {
         if (this.rects[i].intersects(r)) return true;
       }
       return false;
     },
 
-    addRect: function(r) {
+    addRect(r) {
       this.rects.push(r);
     }
   };

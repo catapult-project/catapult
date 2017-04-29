@@ -192,14 +192,14 @@ found in the LICENSE file.
         },
       },
 
-      getCurrOrRef: function(index) {
+      getCurrOrRef(index) {
         return index ? 'Reference' : 'Current';
       },
 
       /**
        * Gets the specified value given a rev, bot, test.
        */
-      getValue: function(rev, bot, test) {
+      getValue(rev, bot, test) {
         var value = this.tableConfig.values[rev][bot][test];
         if (value === null || value === undefined) {
           return 'n/a';
@@ -219,7 +219,7 @@ found in the LICENSE file.
        * Calls this.getDelta and checks if the result is an improvement,
        * regression, or zero.
        */
-      getDeltaClassName: function(bot, test) {
+      getDeltaClassName(bot, test) {
         // Passes in true; arbitrary choice since either true, false, or any
         // other option would still result in the same positive or negative
         // result.
@@ -236,7 +236,7 @@ found in the LICENSE file.
       /**
        * Computes the abs/relative difference for the specified test.
        */
-      getDelta: function(bot, test, abs) {
+      getDelta(bot, test, abs) {
         if (this.tableConfig.revisions.length === 2) {
           var revA = this.tableConfig.revisions[1];
           var revB = this.tableConfig.revisions[0];
@@ -268,16 +268,16 @@ found in the LICENSE file.
         }
       },
 
-      getPrettyTestName: function(test) {
+      getPrettyTestName(test) {
         return this.tableConfig.layout[test][1];
       },
 
-      getCategory: function(test, index) {
+      getCategory(test, index) {
         var category = this.tableConfig.layout[test][0];
         return category;
       },
 
-      getCategoryCount: function(test) {
+      getCategoryCount(test) {
         var category = this.tableConfig.layout[test][0];
         return this.tableConfig.categories[category];
       },
@@ -303,7 +303,7 @@ found in the LICENSE file.
        * know it is the beginning of categoryC (category counts are not 0
        * based, but dom-repeat's index is).
        */
-      isFirstInCategory: function(index, test) {
+      isFirstInCategory(index, test) {
         var category = this.tableConfig.layout[test][0];
         var keys = Object.keys(this.tableConfig.categories);
         var categoryIndex = keys.indexOf(category);
@@ -323,7 +323,7 @@ found in the LICENSE file.
        * table rows. The class will add a dark line to help separate
        * categories visually.
        */
-      getIsFirstInCategoryClass: function(index, test) {
+      getIsFirstInCategoryClass(index, test) {
         var isFirstInCategory = this.isFirstInCategory(index, test);
         if (isFirstInCategory) {
           return 'first-in-category';
@@ -331,15 +331,15 @@ found in the LICENSE file.
         return '';
       },
 
-      getURL: function(bot, test) {
+      getURL(bot, test) {
         return this.tableConfig.urlMap[bot + '/' + test];
       },
 
-      getStartMilestoneLabel: function() {
+      getStartMilestoneLabel() {
         return 'M' + this.tableConfig.displayMilestones[0];
       },
 
-      getEndMilestoneLabel: function() {
+      getEndMilestoneLabel() {
         if (this.tableConfig.displayMilestones[0] ===
             this.tableConfig.displayMilestones[1]) {
           return 'M' + (this.tableConfig.displayMilestones[1] + 1);
@@ -347,15 +347,15 @@ found in the LICENSE file.
         return 'M' + this.tableConfig.displayMilestones[1];
       },
 
-      prevMilestone: function() {
+      prevMilestone() {
         this.navigateMilestones(0);
       },
 
-      nextMilestone: function() {
+      nextMilestone() {
         this.navigateMilestones(1);
       },
 
-      navigateMilestones: function(i) {
+      navigateMilestones(i) {
         if (this.tableConfig.navigationMilestones[i] != null) {
           window.location.href = window.location.pathname + '?m=' +
                  this.tableConfig.navigationMilestones[i];
@@ -363,22 +363,22 @@ found in the LICENSE file.
         return null;
       },
 
-      getPrevMilestoneLabel: function() {
+      getPrevMilestoneLabel() {
         return this.getMilestoneLabel(0);
       },
 
-      getNextMilestoneLabel: function() {
+      getNextMilestoneLabel() {
         return this.getMilestoneLabel(1);
       },
 
-      getMilestoneLabel: function(i) {
+      getMilestoneLabel(i) {
         if (this.tableConfig.navigationMilestones[i] != null) {
           return this.tableConfig.navigationMilestones[i];
         }
         return null;
       },
 
-      ready: function() {
+      ready() {
         var params = {};
         var revA = uri.getParameter('revA');
         if (revA) {

@@ -25,7 +25,7 @@ tr.exportTo('tr.ui.tracks', function() {
   CpuTrack.prototype = {
     __proto__: tr.ui.tracks.ContainerTrack.prototype,
 
-    decorate: function(viewport) {
+    decorate(viewport) {
       tr.ui.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
       Polymer.dom(this).classList.add('cpu-track');
       this.detailedMode_ = true;
@@ -71,7 +71,7 @@ tr.exportTo('tr.ui.tracks', function() {
       return false;
     },
 
-    updateContents_: function() {
+    updateContents_() {
       this.detach();
       if (!this.cpu_) return;
 
@@ -97,7 +97,7 @@ tr.exportTo('tr.ui.tracks', function() {
       }
     },
 
-    appendSamplesTracks_: function() {
+    appendSamplesTracks_() {
       var samples = this.cpu_.samples;
       if (samples === undefined || samples.length === 0) {
         return;

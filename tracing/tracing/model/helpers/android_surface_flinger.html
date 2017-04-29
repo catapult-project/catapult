@@ -78,7 +78,7 @@ tr.exportTo('tr.model.helpers', function() {
       return !!this.appVsyncTimestamps_ && !!this.sfVsyncTimestamps_;
     },
 
-    getFrameKickoff: function(timestamp) {
+    getFrameKickoff(timestamp) {
       if (!this.hasVsyncs) {
         throw new Error('cannot query vsync info without vsyncs');
       }
@@ -92,7 +92,7 @@ tr.exportTo('tr.model.helpers', function() {
       return this.appVsyncTimestamps_[firstGreaterIndex - 1];
     },
 
-    getFrameDeadline: function(timestamp) {
+    getFrameDeadline(timestamp) {
       if (!this.hasVsyncs) {
         throw new Error('cannot query vsync info without vsyncs');
       }

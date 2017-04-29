@@ -526,7 +526,7 @@ triaging functionality in the chart.
          * property observers have been set up.
          * See https://github.com/Polymer/polymer/releases/tag/v0.0.20131025
          */
-        ready: function() {
+        ready() {
           // Handler for the 'resize' event.
           this.resizeHandler = this.onResize.bind(this);
 
@@ -564,7 +564,7 @@ triaging functionality in the chart.
         /**
          * Binds event handlers for events that are fired by Flot.
          */
-        initializePlotEventListeners: function() {
+        initializePlotEventListeners() {
           var plot = $(this.$.plot);
           plot.bind('plotselected', this.onPlotSelected.bind(this));
           plot.bind('plotselecting', this.onPlotSelecting.bind(this));
@@ -581,7 +581,7 @@ triaging functionality in the chart.
          * in the legend.
          *
          **/
-        updateSeriesGroupDisplayNames: function() {
+        updateSeriesGroupDisplayNames() {
           if (this.seriesGroupList.length > 1) {
             let pathLengths = this.seriesGroupList.map(
                 p => p.path.split('/').length);
@@ -626,7 +626,7 @@ triaging functionality in the chart.
          * @param {boolean} collapse Whether unchecked and unimportant
          *     series should start off hidden.
          */
-        addSeriesGroup: function(testPathAndSelected, collapse) {
+        addSeriesGroup(testPathAndSelected, collapse) {
           // Checks if test path already exists.
           var testPathSet = {};
           this.seriesGroupList.forEach(function(group) {
@@ -653,7 +653,7 @@ triaging functionality in the chart.
             var seriesGroup = {
               path: testPath,
               tests: [],
-              collapse: collapse,
+              collapse,
               numPendingRequests: 0
             };
             if (selectedTraces.length > 0) {
@@ -707,7 +707,7 @@ triaging functionality in the chart.
          * @param {boolean} collapse Whether unchecked and unimportant
          *     series should start off hidden.
          */
-        addSeriesGroup2: function(seriesGroup, collapse) {
+        addSeriesGroup2(seriesGroup, collapse) {
           const mainPath = seriesGroup.mainPath;
           const selectedPaths = seriesGroup.selectedPaths;
           const unselectedPaths = seriesGroup.unselectedPaths;
@@ -730,8 +730,8 @@ triaging functionality in the chart.
 
           const legacySeriesGroup = {
             path: mainPath,
-            tests: tests,
-            collapse: collapse,
+            tests,
+            collapse,
             numPendingRequests: 0
           };
 
@@ -760,7 +760,7 @@ triaging functionality in the chart.
          * @param {String} mainPath If a list of tests is supplied, the main
          *     path to which they belong, for updating the counter.
          */
-        sendGraphJsonRequest: function(
+        sendGraphJsonRequest(
             testPathDictOrList, isSelected, mainPath) {
           // TODO(eakuefner): Get rid of mainPath once loading counter is
           // cleaned up
@@ -813,7 +813,7 @@ triaging functionality in the chart.
           this.graphJsonRequests.push(req);
         },
 
-        jsonHasData: function(json) {
+        jsonHasData(json) {
           if (!('data' in json)) {
             return;
           }
@@ -828,7 +828,7 @@ triaging functionality in the chart.
          * @param {Array} testPaths List of test paths.
          * @param {boolean} increment True to add one, False to subtract one.
          */
-        updateSeriesGroupLoadingCounter: function(testPaths, increment) {
+        updateSeriesGroupLoadingCounter(testPaths, increment) {
           var testPathToGroupIndex = {};
           for (var i = 0; i < this.seriesGroupList.length; i++) {
             testPathToGroupIndex[this.seriesGroupList[i].path] = i;
@@ -842,7 +842,7 @@ triaging functionality in the chart.
           }.bind(this));
         },
 
-        checkForInternalUser: function() {
+        checkForInternalUser() {
           if (!this.isInternalUser) {
             this.addWarnings(
                 'Note that some data is only available when logged in.');
@@ -852,7 +852,7 @@ triaging functionality in the chart.
         /**
          * Adds a warning message if it doesn't exist.
          */
-        addWarnings: function(warning) {
+        addWarnings(warning) {
           for (var i = 0; i < this.warnings.length; i++) {
             if (this.warnings[i].value.indexOf(warning) == 0) {
               return;
@@ -864,7 +864,7 @@ triaging functionality in the chart.
         /**
          * Adds warnings for selected series that are stale or have no data.
          */
-        updateWarningsForSelectedSeries: function() {
+        updateWarningsForSelectedSeries() {
           this.warnings = this.warnings.filter(function(value) {
             return (value.indexOf('Graph out of date!') == -1 &&
                     value.indexOf('No data available.') == -1);
@@ -898,7 +898,7 @@ triaging functionality in the chart.
           }
         },
 
-        getSeriesLatestTimestamp: function(seriesIndex) {
+        getSeriesLatestTimestamp(seriesIndex) {
           var series = this.json.annotations[seriesIndex];
           if (series) {
             var lastIndex = Math.max.apply(Math, Object.keys(series));
@@ -918,7 +918,7 @@ triaging functionality in the chart.
          * @param {boolean} isSelected Whether this should be selected or
          *     unselected set of series.
          */
-        updateJson: function(newJson, isSelected) {
+        updateJson(newJson, isSelected) {
           if (!this.nextSeriesIndex) {
             this.nextSeriesIndex = Object.keys(this.json.data).length;
           }
@@ -970,7 +970,7 @@ triaging functionality in the chart.
          * @param {boolean} isSelected Whether this should be selected or
          *     unselected set of series.
          */
-        updateForNewSeries: function(series, isSelected) {
+        updateForNewSeries(series, isSelected) {
           if (!this.drawable) {
             // Cache the new series until the chart is drawable.
             this.newDrawableSeries = this.newDrawableSeries || [];
@@ -1019,7 +1019,7 @@ triaging functionality in the chart.
          *
          * @param {Array} testList List of test object.
          */
-        updateSeriesGroupList: function(testList) {
+        updateSeriesGroupList(testList) {
           var testPathToGroupIndex = {};
           for (var i = 0; i < this.seriesGroupList.length; i++) {
             testPathToGroupIndex[this.seriesGroupList[i].path] = i;
@@ -1056,7 +1056,7 @@ triaging functionality in the chart.
          * @param {Object} newTest Contains information about a series
          * displayed in chart-legend.
          */
-        updateSeriesGroup: function(seriesGroupIndex, newTest) {
+        updateSeriesGroup(seriesGroupIndex, newTest) {
           // Update series if its data has not been loaded.
           var testIndex = this.getTestIndexInSeriesGroup(
               seriesGroupIndex, newTest.name);
@@ -1083,7 +1083,7 @@ triaging functionality in the chart.
         /**
          * Adds a test to seriesGroup and determines if it should be hidden.
          */
-        addTestToSeriesGroup: function(seriesGroupIndex, test) {
+        addTestToSeriesGroup(seriesGroupIndex, test) {
           var seriesGroup = this.seriesGroupList[seriesGroupIndex];
           if (seriesGroup.collapse && !test.selected && !test.important) {
             test.hidden = true;
@@ -1098,7 +1098,7 @@ triaging functionality in the chart.
               seriesGroup.tests.sort(this.compareTest));
         },
 
-        getTestIndexInSeriesGroup: function(seriesGroupIndex, name) {
+        getTestIndexInSeriesGroup(seriesGroupIndex, name) {
           var tests = this.seriesGroupList[seriesGroupIndex].tests;
           for (var i = 0; i < tests.length; i++) {
             if (name == tests[i].name) {
@@ -1113,7 +1113,7 @@ triaging functionality in the chart.
          *
          * This is called on graph revision range changed.
          */
-        reloadChart: function() {
+        reloadChart() {
           this.graphJsonRequests.forEach(function(request) {
             request.abort();
           });
@@ -1156,12 +1156,12 @@ triaging functionality in the chart.
           }
         },
 
-        updateJsonDataIndex: function(jsonData, index) {
+        updateJsonDataIndex(jsonData, index) {
           jsonData.index = 'line_' + index;
           jsonData.id = 'line_' + index;
         },
 
-        updateErrorBarsIndex: function(errorBarsData, index, color) {
+        updateErrorBarsIndex(errorBarsData, index, color) {
           var top = errorBarsData[0];
           var bottom = errorBarsData[1];
           top.id = 'top_' + index;
@@ -1175,7 +1175,7 @@ triaging functionality in the chart.
         /**
          * Updates the list of indices of traces to plot with seriesGroupList.
          */
-        updateIndicesToGraph: function() {
+        updateIndicesToGraph() {
           this.set('indicesToGraph', []);
           for (var i = 0; i < this.seriesGroupList.length; i++) {
             var tests = this.seriesGroupList[i].tests;
@@ -1190,7 +1190,7 @@ triaging functionality in the chart.
         /**
          * Sorts by tests by important and then by name.
          */
-        compareTest: function(testA, testB) {
+        compareTest(testA, testB) {
           if (testA.important && !testB.important) {
             return -1;
           }
@@ -1206,7 +1206,7 @@ triaging functionality in the chart.
           return 0;
         },
 
-        updateSlider: function() {
+        updateSlider() {
           if (this.seriesGroupList.length == 0 ||
               this.seriesGroupList[0].tests.length == 0) {
             return;
@@ -1222,12 +1222,12 @@ triaging functionality in the chart.
          * element is removed from the DOM.
          * See: http://www.polymer-project.org/polymer.html#lifecyclemethods
          */
-        detached: function() {
+        detached() {
           this.drawable = false;
           window.removeEventListener('resize', this.resizeHandler);
         },
 
-        attached: function() {
+        attached() {
           this.drawable = true;
           // This likely only happens in the unit test, but if series have
           // been added before the element became drawable, update now.
@@ -1241,7 +1241,7 @@ triaging functionality in the chart.
         /**
          * Handler for the click event of X button on the top-right corner.
          */
-        closeChartClicked: function() {
+        closeChartClicked() {
           Polymer.dom(Polymer.dom(this).parentNode).removeChild(this);
           this.fire('chartclosed', {
             target: this,
@@ -1265,7 +1265,7 @@ triaging functionality in the chart.
          *     event. This is set in graph.js and it contains 'start_rev' and
          *     'end_rev'.
          */
-        onRevisionRange: function(event, detail) {
+        onRevisionRange(event, detail) {
           var newGraphParams = tr.b.deepCopy(this.graphParams);
           newGraphParams.rev = null;
           newGraphParams.num_points = null;
@@ -1279,7 +1279,7 @@ triaging functionality in the chart.
         /**
          * Sets the Y-axis label based on the units of the data.
          */
-        updateYAxisLabel: function() {
+        updateYAxisLabel() {
           // If the series annotations are properly populated, then there will
           // be at least one entry and it will have the properties 'units' and
           // 'better'. All traces in one chart should have the same units.
@@ -1310,7 +1310,7 @@ triaging functionality in the chart.
          *
          * This map is used to update y-axis scale base on selected traces.
          */
-        updateSmartAutoscaleMap: function() {
+        updateSmartAutoscaleMap() {
           this.yAxisScaleMap = {};
           for (var seriesIndex in this.json.data) {
             var data = this.json.data[seriesIndex].data;
@@ -1333,7 +1333,7 @@ triaging functionality in the chart.
          * @param {Array.<number>} values List of series data values.
          * @return {Object} An object containing min and max number.
          */
-        determineMinMax: function(seriesIndex, values) {
+        determineMinMax(seriesIndex, values) {
           values = values.filter(function(v) {
             return v != null;
           });
@@ -1350,7 +1350,7 @@ triaging functionality in the chart.
         /**
          * Checks whether a series at a point has an anomaly.
          */
-        hasAnomaly: function(seriesIndex, dataIndex) {
+        hasAnomaly(seriesIndex, dataIndex) {
           var annotations = this.json.annotations;
           if (!annotations[seriesIndex] ||
               !annotations[seriesIndex][dataIndex] ||
@@ -1365,7 +1365,7 @@ triaging functionality in the chart.
          * This function sets values in this.chartOptions based on the
          * contents of this.yAxisScaleMap.
          */
-        setSmartAutoscale: function() {
+        setSmartAutoscale() {
           if (!this.indicesToGraph.length || this.indicesToGraph.length <= 0 ||
               !this.yAxisScaleMap) {
             return;
@@ -1398,7 +1398,7 @@ triaging functionality in the chart.
          *
          * @param {Object} axis An object containing min and max number.
          */
-        addAxisMargin: function(axis) {
+        addAxisMargin(axis) {
           var margin = 0.2; // Flot's default for autoscaleMargin.
           var min = axis.min;
           var max = axis.max;
@@ -1424,7 +1424,7 @@ triaging functionality in the chart.
          * This method is called when the property 'indicesToGraph' changes.
          * @param {?Array.<number>} oldValue Old value of indicesToGraph.
          */
-        indicesToGraphChanged: function() {
+        indicesToGraphChanged() {
           this.updateChart();
           this.$.title.update();
         },
@@ -1434,7 +1434,7 @@ triaging functionality in the chart.
          * If there's a warning, we want to update the background color of the
          * chart.
          */
-        warningsChanged: function() {
+        warningsChanged() {
           var backgroundColor = ((this.warnings.length) ? '#e6e6e6' : null);
           this.chartOptions.grid.backgroundColor = backgroundColor;
           if (this.chart) {
@@ -1447,7 +1447,7 @@ triaging functionality in the chart.
         /**
          * Updates the currently displayed chart.
          */
-        updateChart: function() {
+        updateChart() {
           if (!this.drawable) {
             return;
           }
@@ -1484,7 +1484,7 @@ triaging functionality in the chart.
          * The data to plot is based on this.json and this.indicesToGraph.
          * @return {Array.<Object>} Data to plot. This could be an empty array.
          */
-        getDataForFlot: function() {
+        getDataForFlot() {
           if (!this.jsonHasData(this.json)) {
             return [];
           }
@@ -1536,7 +1536,7 @@ triaging functionality in the chart.
          *
          * @param {Array.<Object>} data Flot graph data.
          */
-        createFixedXAxis: function(data) {
+        createFixedXAxis(data) {
           // Make a map of all revisions for all data series to a series index
           // and data index.
           var allRevisions = {};
@@ -1611,7 +1611,7 @@ triaging functionality in the chart.
          * @param {Object} axis Not used.
          * @return {string} A string that should be shown on the X-axis.
          */
-        formatXAxis: function(val, axis) {
+        formatXAxis(val, axis) {
           var lookupIndex = Math.round(Math.max(val, 0));
           if (!this.revisionMap) {
             // this.revisionMap may not yet be set by this.createFixedXAxis.
@@ -1642,14 +1642,14 @@ triaging functionality in the chart.
          * @param {Object} axis Not used.
          * @return {string} A string.
          */
-        formatYAxis: function(val, axis) {
+        formatYAxis(val, axis) {
           return formatNumber(val);
         },
 
         /**
          * Adds all of the alert icons to the chart and sets their positions.
          */
-        showAlerts: function() {
+        showAlerts() {
           this.clearAlertIcons();
           var minHeight = this.chart.getAxes().yaxis.min;
           var maxHeight = this.chart.getAxes().yaxis.max;
@@ -1693,14 +1693,14 @@ triaging functionality in the chart.
           }
         },
 
-        clearAlertIcons: function() {
+        clearAlertIcons() {
           Polymer.dom(this.$['alert-icon-container']).innerHTML = '';
         },
 
         /**
          * Handler for 'onSeriesGroupClosed' event.
          */
-        onSeriesGroupClosed: function(event) {
+        onSeriesGroupClosed(event) {
           var groupIndex = event.detail.groupIndex;
           var seriesGroup = this.splice('seriesGroupList', groupIndex, 1)[0];
 
@@ -1729,7 +1729,7 @@ triaging functionality in the chart.
          * series group from the test path created from clicked title
          * parts.
          */
-        onTitleClicked: function(event, detail) {
+        onTitleClicked(event, detail) {
           var titleParts = event.detail.titleParts;
           var partIndex = event.detail.partIndex;
           var testPath = titleParts.slice(0, partIndex + 1).join('/');
@@ -1743,7 +1743,7 @@ triaging functionality in the chart.
         /**
          * Handler for 'mouseleave' event, hides the tooltip.
          */
-        onMouseLeave: function(event) {
+        onMouseLeave(event) {
           this.hideTooltip();
         },
 
@@ -1755,7 +1755,7 @@ triaging functionality in the chart.
          * @param {Event} event Event object.
          * @param {Object} ranges Object containing the selected range.
          */
-        onPlotSelected: function(event, ranges) {
+        onPlotSelected(event, ranges) {
           this.selecting = false;
           this.lastSelectedDelta = ranges;
         },
@@ -1765,7 +1765,7 @@ triaging functionality in the chart.
          * @param {Event} event Event object.
          * @param {Object} ranges An object containing the selected range.
          */
-        onPlotSelecting: function(event, ranges) {
+        onPlotSelecting(event, ranges) {
           if (!ranges) {
             return;
           }
@@ -1786,7 +1786,7 @@ triaging functionality in the chart.
          * Handler for 'plotunselected' event, fired when selection is
          * cancelled.
          */
-        onPlotUnselected: function() {
+        onPlotUnselected() {
           this.selecting = false;
           this.showDelta = false;
         },
@@ -1797,7 +1797,7 @@ triaging functionality in the chart.
          * @param {Object} pos An object which contains the keys "x" and "y".
          * @param {Object} item An object of the item clicked, null otherwise.
          */
-        onPlotClick: function(event, pos, item) {
+        onPlotClick(event, pos, item) {
           if (this.lastSelectedDelta) {
             var from = this.lastSelectedDelta.yaxis.from;
             var to = this.lastSelectedDelta.yaxis.to;
@@ -1836,7 +1836,7 @@ triaging functionality in the chart.
          * @param {number} dataIndex Index into an array of points.
          * @param {Event} The click event.
          */
-        onAlertClick: function(flotSeriesIndex, dataIndex, event) {
+        onAlertClick(flotSeriesIndex, dataIndex, event) {
           // Note: this.chart.getData() returns a list of series objects
           // (including series objects for error regions).
           var jsonSeriesIndex = this.chart.getData()[flotSeriesIndex].index;
@@ -1877,7 +1877,7 @@ triaging functionality in the chart.
               value: Math.round(data[i][1] * 100) / 100,
               selected: i == dataIndex,
               dataIndex: i,
-              amount: amount
+              amount
             });
           }
 
@@ -1910,7 +1910,7 @@ triaging functionality in the chart.
          * @param {number} dataIndex Index into an array of points.
          * @param {Event} The click event.
          */
-        onAlertMouseOver: function(flotSeriesIndex, dataIndex, event) {
+        onAlertMouseOver(flotSeriesIndex, dataIndex, event) {
           if (!this.stickyTooltip) {
             this.showTooltip(flotSeriesIndex, dataIndex);
           }
@@ -1920,7 +1920,7 @@ triaging functionality in the chart.
          * This is the event handler for a 'triaged' event on the
          * chart-tooltip.
          */
-        onBugTriaged: function(event) {
+        onBugTriaged(event) {
           var jsonSeriesIndex = event.detail.alerts[0].seriesIndex;
           var dataIndex = event.detail.alerts[0].dataIndex;
           var bugId = event.detail.bugid;
@@ -1949,7 +1949,7 @@ triaging functionality in the chart.
          * The alertChangedRevisions event is fired from the triage dialog when
          * an alert is nudged.
          */
-        onAlertChangedRevisions: function(event) {
+        onAlertChangedRevisions(event) {
           var jsonSeriesIndex = event.detail.alerts[0].seriesIndex;
           var dataIndex = event.detail.alerts[0].dataIndex;
           var newDataIndex = event.detail.newDataIndex;
@@ -1971,7 +1971,7 @@ triaging functionality in the chart.
          * @param {Object} pos Position object.
          * @param {Object} item Item being hovered over.
          */
-        onPlotHover: function(event, pos, item) {
+        onPlotHover(event, pos, item) {
           // If the current tooltip is sticky, just leave it.
           if (this.stickyTooltip) {
             return;
@@ -2002,7 +2002,7 @@ triaging functionality in the chart.
          * @param {Array=} opt_alerts Array of alerts.
          * @param {Array=} opt_triaged A boolean.
          */
-        showTooltip: function(
+        showTooltip(
             flotSeriesIndex, dataIndex, opt_alerts, opt_triaged) {
           // Reset the properties of the tooltip so that nothing is left over
           // from the last time that showTooltip was called on another point.
@@ -2093,7 +2093,7 @@ triaging functionality in the chart.
             badRev: this.getRevisionForBisect(jsonSeriesIndex, dataIndex),
             goodRev: this.getRevisionForBisect(jsonSeriesIndex, dataIndex - 1),
             testPath: series.path,
-            traceRerunInfo: traceRerunInfo
+            traceRerunInfo
           };
 
           // Un-hide and position the tooltip box.
@@ -2106,7 +2106,7 @@ triaging functionality in the chart.
         /**
          * Reset the chart-tooltip's properties.
          */
-        resetTooltip: function() {
+        resetTooltip() {
           this.$.tooltip.testPath = null;
           this.$.tooltip.value = null;
           this.$.tooltip.stddev = null;
@@ -2129,7 +2129,7 @@ triaging functionality in the chart.
          * @param {number} dataIndex The index of the point in the series.
          * @return {?(number|string)} A revision to put in the bisect form.
          */
-        getRevisionForBisect: function(jsonSeriesIndex, dataIndex) {
+        getRevisionForBisect(jsonSeriesIndex, dataIndex) {
           // If the data point contains a default revision type, use that.
           var annotation = this.json.annotations[jsonSeriesIndex][dataIndex];
           if (!annotation) {
@@ -2151,7 +2151,7 @@ triaging functionality in the chart.
         /**
          * Hides the tooltip only if it's not sticky.
          */
-        hideTooltip: function() {
+        hideTooltip() {
           if (this.stickyTooltip) {
             return;
           }
@@ -2161,7 +2161,7 @@ triaging functionality in the chart.
         /**
          * Force-hides the tooltip.
          */
-        hideTooltipEvenIfSticky: function() {
+        hideTooltipEvenIfSticky() {
           this.stickyTooltip = false;
           this.currentItem = null;
           this.hideTooltip();
@@ -2175,7 +2175,7 @@ triaging functionality in the chart.
          * @return {Array.<Object>} List of objects with properties text and
          *     url.
          */
-        getTooltipLinks: function(annotation, testPath, pointId) {
+        getTooltipLinks(annotation, testPath, pointId) {
           var links = [];
           for (var key in annotation) {
             if (key == 'g_anomaly') {
@@ -2226,7 +2226,7 @@ triaging functionality in the chart.
          * @return {Array.<Object>} An array of information needed for showing
          *     change log links for different types of revisions.
          */
-        getRevisions: function(seriesIndex, dataIndex) {
+        getRevisions(seriesIndex, dataIndex) {
           var annotationSeries = this.json.annotations[seriesIndex];
           var annotation = annotationSeries[dataIndex];
           var previousAnnotation = annotationSeries[dataIndex - 1];
@@ -2279,7 +2279,7 @@ triaging functionality in the chart.
          * @return {Object} The information necessary for showing a link for
          *     a change log for a particular revision range.
          */
-        getRevisionRangeInfo: function(revisionTypeKey, start, end) {
+        getRevisionRangeInfo(revisionTypeKey, start, end) {
           var revisionInfo = this.revisionInfo[revisionTypeKey];
           var revisionTypeKey = revisionInfo.name;
           var urlTemplate = revisionInfo.url;
@@ -2311,9 +2311,9 @@ triaging functionality in the chart.
 
           return {
             'name': revisionTypeKey,
-            'url': url,
-            'start': start,
-            'end': end,
+            url,
+            start,
+            end,
             'displayStart': getDisplayRevision(start),
             'displayEnd': getDisplayRevision(end)
           };
@@ -2331,7 +2331,7 @@ triaging functionality in the chart.
          * @param {string} start Start version string.
          * @param {string} end End version string.
          */
-        fillInChromeOSChangeLogURL: function(urlTemplate, start, end) {
+        fillInChromeOSChangeLogURL(urlTemplate, start, end) {
           var urlEndVersion = end.substring(end.indexOf('.') + 1);
           var urlStartVersion = '';
           if (start) {
@@ -2352,7 +2352,7 @@ triaging functionality in the chart.
          * original graph' link has been clicked, the original Y-axis range
          * should be restored.
          */
-        onViewOriginal: function() {
+        onViewOriginal() {
           this.chartOptions.yaxis.min = null;
           this.chartOptions.yaxis.max = null;
           this.$.original.hidden = true;
@@ -2363,7 +2363,7 @@ triaging functionality in the chart.
          * Handler for resize event.
          * @param {Event} event Event object.
          */
-        onResize: function(event) {
+        onResize(event) {
           // Try not to resize graphs until the user has stopped resizing
           clearTimeout(this.resizeTimer);
           this.resizeTimer = setTimeout(this.resizeGraph.bind(this), 100);
@@ -2372,7 +2372,7 @@ triaging functionality in the chart.
         /**
          * Resizes the chart if it's present.
          */
-        resizeGraph: function() {
+        resizeGraph() {
           if (!this.chart || this.$.plot.offsetWidth == 0) {
             return;
           }
@@ -2383,19 +2383,19 @@ triaging functionality in the chart.
         /**
          * On collapseLegend change, updates graph and chart-revision sizes.
          */
-        collapseLegendChanged: function() {
+        collapseLegendChanged() {
           this.onResize();
           this.$.slider.onResize();
         },
 
-        seriesMouseover: function(event) {
+        seriesMouseover(event) {
           var index = event.detail.index;
           if (this.indicesToGraph.indexOf(index) != -1) {
             this.highlightSeries([index]);
           }
         },
 
-        seriesMouseout: function(event) {
+        seriesMouseout(event) {
           this.undoSeriesHighlighting();
         },
 
@@ -2407,7 +2407,7 @@ triaging functionality in the chart.
          * @param {Array.<number>} targetIndices List of series indices to
          *     highlight.
          */
-        highlightSeries: function(targetIndices) {
+        highlightSeries(targetIndices) {
           var flotData = this.chart.getData();
           if (!flotData) {
             return;
@@ -2429,7 +2429,7 @@ triaging functionality in the chart.
           this.chart.draw();
         },
 
-        undoSeriesHighlighting: function() {
+        undoSeriesHighlighting() {
           if (!this.chart) {
             return;
           }
@@ -2458,7 +2458,7 @@ triaging functionality in the chart.
          * @return {?number} The index of the series that filled line
          * correspond to, null if series is not a filled line.
          */
-        getSeriesFillIndex: function(series) {
+        getSeriesFillIndex(series) {
           if (!series.fillBetween) {
             return null;
           }
@@ -2468,7 +2468,7 @@ triaging functionality in the chart.
           return parseInt(index);
         },
 
-        updateSeriesHighlighting: function(series, lineWidth, opacity,
+        updateSeriesHighlighting(series, lineWidth, opacity,
             fill, shadowSize) {
           if (series.fillBetween) {
             series.lines.fill = fill;
@@ -2485,7 +2485,7 @@ triaging functionality in the chart.
         /**
          * Allows onDrop to be triggered.
          */
-        allowDrop: function(event) {
+        allowDrop(event) {
           if (this.droppable) {
             event.preventDefault();
           }
@@ -2495,7 +2495,7 @@ triaging functionality in the chart.
          * Handler for on-drop event, fired when a series group is dropped
          * onto this chart-container.
          */
-        onDrop: function(event) {
+        onDrop(event) {
           event.preventDefault();
           var dataTransfer = event.dataTransfer;
           if (dataTransfer.getData('type') != 'seriesdnd') {
@@ -2510,11 +2510,11 @@ triaging functionality in the chart.
           this.fireChartStateChangedEvent(this.seriesGroupList);
         },
 
-        legendSeriesDragStart: function(event) {
+        legendSeriesDragStart(event) {
           this.droppable = false;
         },
 
-        legendSeriesDragEnd: function(event) {
+        legendSeriesDragEnd(event) {
           this.droppable = true;
         },
 
@@ -2527,16 +2527,16 @@ triaging functionality in the chart.
          *    is used to generate state ID.  If none is specified, only
          *    'this.graphParams' is sent.
          */
-        fireChartStateChangedEvent: function(state) {
+        fireChartStateChangedEvent(state) {
           this.fire('chartstatechanged', {
             target: this,
             stateName: 'chartstatechanged',
             params: this.graphParams,
-            state: state
+            state
           });
         },
 
-        onUriChanged: function(event) {
+        onUriChanged(event) {
           var detail = event.detail;
           if (detail.stateName != 'chartstatechanged') {
             return;
@@ -2565,7 +2565,7 @@ triaging functionality in the chart.
          *
          * @return {Array} List of pair of test path and selected series.
          */
-        getState: function() {
+        getState() {
           var state = [];
           this.seriesGroupList.forEach(function(seriesGroup) {
             var selected = [];

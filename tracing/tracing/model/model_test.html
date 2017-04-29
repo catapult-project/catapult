@@ -314,7 +314,7 @@ tr.b.unittest.testSuite(function() {
     RefCountingSnapshot.prototype = {
       __proto__: tr.model.ObjectSnapshot.prototype,
 
-      referencedAt: function() {
+      referencedAt() {
         ++this.refCount;
       }
     };
@@ -322,7 +322,7 @@ tr.b.unittest.testSuite(function() {
     var typeName = 'RefCountingSnapshot';
     tr.model.ObjectSnapshot.subTypes.register(
         RefCountingSnapshot,
-        {typeName: typeName});
+        {typeName});
 
     var m = new tr.Model();
     var p = m.getOrCreateProcess(1);

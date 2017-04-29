@@ -55,14 +55,14 @@ function* getEventDescendents(event) {
 Polymer({
   is: 'tr-ui-a-related-events',
 
-  ready: function() {
+  ready() {
     this.eventGroups_ = [];
     this.cancelFunctions_ = [];
 
     this.$.table.tableColumns = [
       {
         title: 'Event(s)',
-        value: function(row) {
+        value(row) {
           let typeEl = document.createElement('span');
           typeEl.innerText = row.type;
           if (row.tooltip) {
@@ -75,7 +75,7 @@ Polymer({
       {
         title: 'Link',
         width: '100%',
-        value: function(row) {
+        value(row) {
           let linkEl = document.createElement('tr-ui-a-analysis-link');
           if (row.name) {
             linkEl.setSelectionAndContent(row.selection, row.name);
@@ -88,11 +88,11 @@ Polymer({
     ];
   },
 
-  hasRelatedEvents: function() {
+  hasRelatedEvents() {
     return (this.eventGroups_ && this.eventGroups_.length > 0);
   },
 
-  setRelatedEvents: function(eventSet) {
+  setRelatedEvents(eventSet) {
     this.cancelAllTasks_();
     this.eventGroups_ = [];
     this.addRuntimeCallStats_(eventSet);
@@ -105,7 +105,7 @@ Polymer({
     this.updateContents_();
   },
 
-  addConnectedFlows_: function(eventSet) {
+  addConnectedFlows_(eventSet) {
     let classifier = new tr.ui.analysis.FlowClassifier();
     eventSet.forEach(function(slice) {
       if (slice.inFlowEvents) {
@@ -123,7 +123,7 @@ Polymer({
 
     let addToEventGroups = function(type, flowEvent) {
       this.eventGroups_.push({
-        type: type,
+        type,
         selection: new tr.model.EventSet(flowEvent),
         name: flowEvent.title
       });
@@ -137,14 +137,14 @@ Polymer({
         addToEventGroups.bind(this, 'Internal flow'));
   },
 
-  cancelAllTasks_: function() {
+  cancelAllTasks_() {
     this.cancelFunctions_.forEach(function(cancelFunction) {
       cancelFunction();
     });
     this.cancelFunctions_ = [];
   },
 
-  addConnectedEvents_: function(eventSet) {
+  addConnectedEvents_(eventSet) {
     this.cancelFunctions_.push(this.createEventsLinkIfNeeded_(
         'Preceding events',
         'Add all events that have led to the selected one(s), connected by ' +
@@ -188,7 +188,7 @@ Polymer({
         }.bind(this)));
   },
 
-  createEventsLinkIfNeeded_: function(title, tooltip, events, connectedFn) {
+  createEventsLinkIfNeeded_(title, tooltip, events, connectedFn) {
     events = new tr.model.EventSet(events);
     let eventsToProcess = new Set(events);
     // for (let event of events)
@@ -231,7 +231,7 @@ Polymer({
       if (!wasChanged) return;
       this.eventGroups_.push({
         type: title,
-        tooltip: tooltip,
+        tooltip,
         selection: events
       });
       this.updateContents_();
@@ -244,7 +244,7 @@ Polymer({
     return cancelTask;
   },
 
-  addOverlappingSamples_: function(eventSet) {
+  addOverlappingSamples_(eventSet) {
     let samples = new tr.model.EventSet();
     for (let slice of eventSet) {
       if (!slice.parentContainer || !slice.parentContainer.samples) {
@@ -268,7 +268,7 @@ Polymer({
     }
   },
 
-  addV8Slices_: function(eventSet) {
+  addV8Slices_(eventSet) {
     let v8Slices = new tr.model.EventSet();
     for (let slice of eventSet) {
       if (slice.category === 'v8') {
@@ -284,7 +284,7 @@ Polymer({
     }
   },
 
-  addRuntimeCallStats_: function(eventSet) {
+  addRuntimeCallStats_(eventSet) {
     let slices = new tr.model.EventSet();
     for (let slice of eventSet) {
       if (slice.category === 'v8' && slice.runtimeCallStats) {
@@ -301,7 +301,7 @@ Polymer({
     }
   },
 
-  addV8GCObjectStats_: function(eventSet) {
+  addV8GCObjectStats_(eventSet) {
     let slices = new tr.model.EventSet();
     for (let slice of eventSet) {
       if (slice.title === 'V8.GC_Objects_Stats') {
@@ -317,7 +317,7 @@ Polymer({
     }
   },
 
-  addOverlappingV8ICStats_: function(eventSet) {
+  addOverlappingV8ICStats_(eventSet) {
     let slices = new tr.model.EventSet();
     for (let slice of eventSet) {
       if (!slice.parentContainer || !slice.parentContainer.sliceGroup) {
@@ -342,7 +342,7 @@ Polymer({
     }
   },
 
-  updateContents_: function() {
+  updateContents_() {
     let table = this.$.table;
     if (this.eventGroups_ === undefined) {
       table.tableRows = [];

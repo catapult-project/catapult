@@ -151,7 +151,7 @@ the trace process after the user clicks on the trace button.
         /**
          * Initializes and shows the trace form.
          */
-        show: function() {
+        show() {
           this.open();
           this.loading = true;
 
@@ -184,7 +184,7 @@ the trace process after the user clicks on the trace button.
         /**
          * Gets the currently selected rerun option from the select menu.
          */
-        getRerunOptions: function() {
+        getRerunOptions() {
           var selected = this.$['rerun-options'].selectedOptions[0];
           if (selected) {
             return selected.value;
@@ -195,7 +195,7 @@ the trace process after the user clicks on the trace button.
         /**
          * Makes a request to /start_try_job to perform a perf try job.
          */
-        onSendToTrybot: function(event) {
+        onSendToTrybot(event) {
           event.preventDefault();
           this.loading = true;
           var params = {
@@ -227,7 +227,7 @@ the trace process after the user clicks on the trace button.
               }.bind(this));
         },
 
-        earlierRevisionChanged: function() {
+        earlierRevisionChanged() {
           this.error = '';
           if (!validateRev(this.earlierRevision)) {
             this.error = 'Revisions should be git commit positions or hashes.';
@@ -236,7 +236,7 @@ the trace process after the user clicks on the trace button.
           this.onRevisionsChange();
         },
 
-        laterRevisionChanged: function() {
+        laterRevisionChanged() {
           this.error = '';
           if (!validateRev(this.laterRevision)) {
             this.error = 'Revisions should be git commit positions or hashes.';
@@ -245,7 +245,7 @@ the trace process after the user clicks on the trace button.
           this.onRevisionsChange();
         },
 
-        onRevisionsChange: function() {
+        onRevisionsChange() {
           if (!/^\d+$/.test(this.earlierRevision) ||
               !/^\d+$/.test(this.laterRevision)) {
             return;
@@ -256,11 +256,11 @@ the trace process after the user clicks on the trace button.
           }
         },
 
-        open: function() {
+        open() {
           this.$.container.open();
         },
 
-        close: function() {
+        close() {
           this.$.container.close();
         }
       });

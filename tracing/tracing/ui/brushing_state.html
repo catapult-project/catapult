@@ -31,7 +31,7 @@ tr.exportTo('tr.ui.b', function() {
       return this.guid_;
     },
 
-    clone: function() {
+    clone() {
       var that = new BrushingState();
       that.selection_ = this.selection_;
       that.findMatches_ = this.findMatches_;
@@ -42,7 +42,7 @@ tr.exportTo('tr.ui.b', function() {
       return that;
     },
 
-    equals: function(that) {
+    equals(that) {
       if (!this.selection_.equals(that.selection_)) {
         return false;
       }
@@ -187,7 +187,7 @@ tr.exportTo('tr.ui.b', function() {
      * this is done by calling unapplyFromModelSelectionState on the
      * old brushing state first.
      */
-    applyToEventSelectionStates: function(model) {
+    applyToEventSelectionStates(model) {
       this.appliedToModel_ = model;
 
       var dimmedEvents = this.dimmedEvents_;
@@ -237,7 +237,7 @@ tr.exportTo('tr.ui.b', function() {
       }
     },
 
-    transferModelOwnershipToClone: function(that) {
+    transferModelOwnershipToClone(that) {
       if (!this.appliedToModel_) {
         throw new Error('Not applied');
       }
@@ -252,7 +252,7 @@ tr.exportTo('tr.ui.b', function() {
      * and returns the default selection states. The caller should store this
      * value and pass it into applyFromModelSelectionStat when that is called.
      */
-    unapplyFromEventSelectionStates: function() {
+    unapplyFromEventSelectionStates() {
       if (!this.appliedToModel_) {
         throw new Error('Not applied');
       }

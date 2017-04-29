@@ -81,18 +81,18 @@ tr.exportTo('tr.model', function() {
           this.containerMemoryDump.containerName;
     },
 
-    getDescendantDumpByFullName: function(fullName) {
+    getDescendantDumpByFullName(fullName) {
       return this.containerMemoryDump.getMemoryAllocatorDumpByFullName(
           this.fullName + '/' + fullName);
     },
 
-    isDescendantOf: function(otherDump) {
+    isDescendantOf(otherDump) {
       if (this === otherDump) return true;
       if (this.parent === undefined) return false;
       return this.parent.isDescendantOf(otherDump);
     },
 
-    addNumeric: function(name, numeric) {
+    addNumeric(name, numeric) {
       if (!(numeric instanceof tr.b.Scalar)) {
         throw new Error('Numeric value must be an instance of Scalar.');
       }
@@ -102,7 +102,7 @@ tr.exportTo('tr.model', function() {
       this.numerics[name] = numeric;
     },
 
-    addDiagnostic: function(name, text) {
+    addDiagnostic(name, text) {
       if (typeof text !== 'string') {
         throw new Error('Diagnostic text must be a string.');
       }
@@ -112,7 +112,7 @@ tr.exportTo('tr.model', function() {
       this.diagnostics[name] = text;
     },
 
-    aggregateNumericsRecursively: function(opt_model) {
+    aggregateNumericsRecursively(opt_model) {
       var numericNames = new Set();
 
       // Aggregate descendants's numerics recursively and gather children's

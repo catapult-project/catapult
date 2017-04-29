@@ -45,7 +45,7 @@ tr.exportTo('tr.e.audits', function() {
   ChromeAuditor.prototype = {
     __proto__: Auditor.prototype,
 
-    runAnnotate: function() {
+    runAnnotate() {
       if (!this.modelHelper) return;
 
       for (var pid in this.modelHelper.rendererHelpers) {
@@ -60,12 +60,12 @@ tr.exportTo('tr.e.audits', function() {
     /**
      * Called by import to install userFriendlyCategoryDriver.
      */
-    installUserFriendlyCategoryDriverIfNeeded: function() {
+    installUserFriendlyCategoryDriverIfNeeded() {
       this.model.addUserFriendlyCategoryDriver(
           tr.e.chrome.ChromeUserFriendlyCategoryDriver);
     },
 
-    runAudit: function() {
+    runAudit() {
       if (!this.modelHelper) return;
 
       this.model.replacePIDRefsInPatchups(

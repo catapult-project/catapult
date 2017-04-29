@@ -57,7 +57,7 @@ tr.exportTo('tr.model', function() {
      * Updates the bounds of the event container. After updating, this.bounds
      * will describe the range of timestamps of all ancestor events.
      */
-    updateBounds: function() {
+    updateBounds() {
       throw new Error('Not implemented');
     },
 
@@ -66,7 +66,7 @@ tr.exportTo('tr.model', function() {
     /**
      * Shifts the timestamps for ancestor events by 'amount' milliseconds.
      */
-    shiftTimestampsForward: function(amount) {
+    shiftTimestampsForward(amount) {
       throw new Error('Not implemented');
     },
 
@@ -74,14 +74,14 @@ tr.exportTo('tr.model', function() {
     /**
     * Returns an iterable of all child events.
     */
-    childEvents: function* () {
+    * childEvents() {
     },
 
     /**
      * Returns an iterable of all events in this and descendant
      * event containers.
      */
-    getDescendantEvents: function* () {
+    * getDescendantEvents() {
       yield* this.childEvents();
       for (var container of this.childEventContainers()) {
         yield* container.getDescendantEvents();
@@ -91,13 +91,13 @@ tr.exportTo('tr.model', function() {
     /**
      * Returns an iterable of all child event containers.
      */
-    childEventContainers: function* () {
+    * childEventContainers() {
     },
 
     /**
     * Returns an iterable containing this and all descendant event containers.
     */
-    getDescendantEventContainers: function* () {
+    * getDescendantEventContainers() {
       yield this;
       for (var container of this.childEventContainers()) {
         yield* container.getDescendantEventContainers();
@@ -108,7 +108,7 @@ tr.exportTo('tr.model', function() {
      * Finds topmost slices in this container (see docstring for
      * findTopmostSlices).
      */
-    findTopmostSlicesInThisContainer: function* (eventPredicate, opt_this) {
+    * findTopmostSlicesInThisContainer(eventPredicate, opt_this) {
     },
 
     /**
@@ -125,13 +125,13 @@ tr.exportTo('tr.model', function() {
      * the  left is not the topmost C, and the right one is, even though it is
      * not itself a top-level slice.
      */
-    findTopmostSlices: function* (eventPredicate) {
+    * findTopmostSlices(eventPredicate) {
       for (var ec of this.getDescendantEventContainers()) {
         yield* ec.findTopmostSlicesInThisContainer(eventPredicate);
       }
     },
 
-    findTopmostSlicesNamed: function* (name) {
+    * findTopmostSlicesNamed(name) {
       yield* this.findTopmostSlices(e => e.title === name);
     }
   };

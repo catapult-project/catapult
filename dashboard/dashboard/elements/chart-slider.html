@@ -42,7 +42,7 @@ found in the LICENSE file.
       /**
        * Initializes the element. This is a lifecycle callback method.
        */
-      ready: function() {
+      ready() {
         this.data = null;
         this.dragType = 'none';
         this.drawable = true;
@@ -101,7 +101,7 @@ found in the LICENSE file.
       /**
        * Updates the element when it's removed. This is a lifecycle callback.
        */
-      leftView: function() {
+      leftView() {
         this.drawable = false;
         window.removeEventListener('resize', this.resizeHandler);
       },
@@ -109,7 +109,7 @@ found in the LICENSE file.
       /**
        * Requests new data to update the graph when the test path is set.
        */
-      testpathChanged: function() {
+      testpathChanged() {
         var postdata = 'test_path=' + encodeURIComponent(this.testpath);
         var request = new XMLHttpRequest();
         request.onload = this.onLoadGraph.bind(this, request);
@@ -123,7 +123,7 @@ found in the LICENSE file.
        * Updates the chart when graph data is received.
        * @param {XMLHttpRequest} request The request for data.
        */
-      onLoadGraph: function(request) {
+      onLoadGraph(request) {
         if (!this.drawable) {
           return;
         }
@@ -144,21 +144,21 @@ found in the LICENSE file.
       /**
        * Updates the selection state when |this.startrev| is changed.
        */
-      startrevChanged: function() {
+      startrevChanged() {
         this.updateSelection();
       },
 
       /**
        * Updates the selection state when |this.endrev| is changed.
        */
-      endrevChanged: function() {
+      endrevChanged() {
         this.updateSelection();
       },
 
       /**
        * Updates the selection state when the startrev attribute is changed.
        */
-      updateSelection: function() {
+      updateSelection() {
         if (!this.startrev ||
             !this.endrev ||
             !this.revisionToIndexMap ||
@@ -205,7 +205,7 @@ found in the LICENSE file.
        * @param {number} revision An X-value.
        * @return {number} An index number.
        */
-      getPreviousIndexForRev: function(revision) {
+      getPreviousIndexForRev(revision) {
         for (var i = this.data.length - 1; i >= 0; i--) {
           if (revision > this.data[i][0]) {
             return i;
@@ -220,7 +220,7 @@ found in the LICENSE file.
        * @param {Object=} opt_axis Not used.
        * @return {string} A string to display at one point a long the X-axis.
        */
-      tickFormatter: function(xValue, opt_axis) {
+      tickFormatter(xValue, opt_axis) {
         xValue = Math.max(0, Math.round(xValue));
         xValue = Math.min(xValue, this.data.length - 1);
         if (this.data[xValue] && this.data[xValue][2]) {
@@ -236,7 +236,7 @@ found in the LICENSE file.
        * @param {MouseEvent} event Mouse event object.
        * @return {string} One of "start", "move", "end", or "none".
        */
-      getMouseDragType: function(event) {
+      getMouseDragType(event) {
         if (!this.chart) {
           return 'none';
         }
@@ -263,7 +263,7 @@ found in the LICENSE file.
        * @param {string} dragType One of "start", "move", "end", or "none".
        * @return {string} One of "move", "col-resize", or "auto".
        */
-      getCursorForDragType: function(dragType) {
+      getCursorForDragType(dragType) {
         switch (dragType) {
           case 'move':
             return 'move';
@@ -279,7 +279,7 @@ found in the LICENSE file.
        * Gets the position of the mouse selection relative to the chart.
        * @param {MouseEvent} event Mouse event object.
        */
-      getGraphPosFromMouseEvent: function(event) {
+      getGraphPosFromMouseEvent(event) {
         var boundingRect = this.$.revisions_container.getBoundingClientRect();
         var plotOffset = this.chart.getPlotOffset();
         var posX = event.pageX - boundingRect.left - plotOffset.left;
@@ -301,7 +301,7 @@ found in the LICENSE file.
        * Updates the selected revision range as the user moves the mouse.
        * @param {MouseEvent} event Mouse event object.
        */
-      onMouseMove: function(event) {
+      onMouseMove(event) {
         // Stop Flot from handling the selection.
         event.stopPropagation();
         if (!this.data || this.data.length == 0) {
@@ -336,7 +336,7 @@ found in the LICENSE file.
        * Sets the selection start when the user starts to drag.
        * @param {MouseEvent} event Mouse event object.
        */
-      onMouseDown: function(event) {
+      onMouseDown(event) {
         // Stop Flot from handling the selection.
         event.stopPropagation();
 
@@ -351,8 +351,8 @@ found in the LICENSE file.
         var pos = this.getGraphPosFromMouseEvent(event);
         this.selectionStart = {
           index: pos.index,
-          from: from,
-          to: to
+          from,
+          to
         };
         document.body.style.cursor = this.getCursorForDragType(this.dragType);
 
@@ -364,7 +364,7 @@ found in the LICENSE file.
        * Fires a "revisionrange" event when the user is finished selecting.
        * @param {MouseEvent} event A "mouseup" event.
        */
-      onMouseUp: function(event) {
+      onMouseUp(event) {
         if (this.dragType == 'none') {
           return;
         }
@@ -386,7 +386,7 @@ found in the LICENSE file.
       /**
        * Sets a timer to resize after a certain amount of time.
        */
-      onResize: function(event) {
+      onResize(event) {
         // Try not to resize graphs until the user has stopped resizing.
         clearTimeout(this.resizeTimer);
         this.resizeTimer = setTimeout(this.resizeGraph.bind(this), 100);
@@ -395,7 +395,7 @@ found in the LICENSE file.
       /**
        * Resizes the graph.
        */
-      resizeGraph: function() {
+      resizeGraph() {
         if (!this.chart) {
           return;
         }

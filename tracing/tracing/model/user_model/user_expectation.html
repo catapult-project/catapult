@@ -49,7 +49,7 @@ tr.exportTo('tr.model.um', function() {
   UserExpectation.prototype = {
     __proto__: tr.model.TimedEvent.prototype,
 
-    computeCompoundEvenSelectionState: function(selection) {
+    computeCompoundEvenSelectionState(selection) {
       var cess = CompoundEventSelectionState.NOT_SELECTED;
       if (selection.contains(this)) {
         cess |= CompoundEventSelectionState.EVENT_SELECTED;
@@ -165,7 +165,7 @@ tr.exportTo('tr.model.um', function() {
       {
         name: 'userExpectation',
         pluralName: 'userExpectations',
-        subTypes: subTypes
+        subTypes
       });
 
   return {

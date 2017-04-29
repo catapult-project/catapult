@@ -26,7 +26,7 @@ found in the LICENSE file.
   Polymer({
     is: 'tr-ui-b-checkbox',
 
-    created: function() {
+    created() {
       this.needsInit_ = true;
       this.defaultCheckedValue_ = undefined;
       this.settingsKey_ = undefined;
@@ -35,7 +35,7 @@ found in the LICENSE file.
       this.is_ready_ = false;
     },
 
-    ready: function() {
+    ready() {
       this.is_ready_ = true;
       this.$.checkbox.addEventListener('click', function() {
         this.checked = this.$.checkbox.checked;
@@ -43,7 +43,7 @@ found in the LICENSE file.
       this.maybeUpdateElements_();
     },
 
-    maybeUpdateElements_: function() {
+    maybeUpdateElements_() {
       if (!this.is_ready_) return;
       this.$.label.innerText = this.label_;
       this.$.checkbox.checked = this.checked_;
@@ -73,7 +73,7 @@ found in the LICENSE file.
       this.maybeInit_();
     },
 
-    maybeInit_: function() {
+    maybeInit_() {
       if (!this.needsInit_) return;
       if (this.settingsKey_ === undefined) return;
       if (this.defaultCheckedValue_ === undefined) return;

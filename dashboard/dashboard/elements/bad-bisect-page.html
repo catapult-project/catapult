@@ -80,19 +80,19 @@ found in the LICENSE file.
         }
       },
 
-      computeIsFormShowing: function(error, headline) {
+      computeIsFormShowing(error, headline) {
         return !error && !headline;
       },
 
-      computeIsHeadlineShowing: function(error, headline) {
+      computeIsHeadlineShowing(error, headline) {
         return !error && headline;
       },
 
-      updateFromURIParameters: function() {
+      updateFromURIParameters() {
         this.try_job_id = uri.getParameter('try_job_id', '');
       },
 
-      onConfirm: function() {
+      onConfirm() {
         var params = {
           'try_job_id': this.try_job_id,
           'xsrf_token': this.xsrfToken
@@ -111,7 +111,7 @@ found in the LICENSE file.
             }.bind(this));
       },
 
-      ready: function() {
+      ready() {
         var params = {
           try_job_id: uri.getParameter('try_job_id', '')
         };

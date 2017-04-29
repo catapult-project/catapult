@@ -67,11 +67,11 @@ tr.exportTo('tr.model', function() {
       return this.parent.stableId + '.' + this.tid;
     },
 
-    compareTo: function(that) {
+    compareTo(that) {
       return Thread.compare(this, that);
     },
 
-    childEventContainers: function* () {
+    * childEventContainers() {
       if (this.sliceGroup.length) {
         yield this.sliceGroup;
       }
@@ -83,13 +83,13 @@ tr.exportTo('tr.model', function() {
       }
     },
 
-    childEvents: function* () {
+    * childEvents() {
       if (this.timeSlices) {
         yield* this.timeSlices;
       }
     },
 
-    iterateAllPersistableObjects: function(cb) {
+    iterateAllPersistableObjects(cb) {
       cb(this);
       if (this.sliceGroup.length) {
         cb(this.sliceGroup);
@@ -101,7 +101,7 @@ tr.exportTo('tr.model', function() {
      * Shifts all the timestamps inside this thread forward by the amount
      * specified.
      */
-    shiftTimestampsForward: function(amount) {
+    shiftTimestampsForward(amount) {
       this.sliceGroup.shiftTimestampsForward(amount);
 
       if (this.timeSlices) {
@@ -133,7 +133,7 @@ tr.exportTo('tr.model', function() {
      * Updates the bounds based on the
      * current objects associated with the thread.
      */
-    updateBounds: function() {
+    updateBounds() {
       this.bounds.reset();
 
       this.sliceGroup.updateBounds();
@@ -158,7 +158,7 @@ tr.exportTo('tr.model', function() {
       }
     },
 
-    addCategoriesToDict: function(categoriesDict) {
+    addCategoriesToDict(categoriesDict) {
       for (var i = 0; i < this.sliceGroup.length; i++) {
         categoriesDict[this.sliceGroup.slices[i].category] = true;
       }
@@ -175,12 +175,12 @@ tr.exportTo('tr.model', function() {
       }
     },
 
-    autoCloseOpenSlices: function() {
+    autoCloseOpenSlices() {
       this.sliceGroup.autoCloseOpenSlices();
       this.kernelSliceGroup.autoCloseOpenSlices();
     },
 
-    mergeKernelWithUserland: function() {
+    mergeKernelWithUserland() {
       if (this.kernelSliceGroup.length > 0) {
         var newSlices = SliceGroup.merge(
             this.sliceGroup, this.kernelSliceGroup);
@@ -190,7 +190,7 @@ tr.exportTo('tr.model', function() {
       }
     },
 
-    createSubSlices: function() {
+    createSubSlices() {
       this.sliceGroup.createSubSlices();
       this.samples_ = this.parent.model.samples.filter(function(sample) {
         return sample.thread === this;
@@ -212,21 +212,21 @@ tr.exportTo('tr.model', function() {
           (this.name ? ', name: ' + this.name : '');
     },
 
-    getSettingsKey: function() {
+    getSettingsKey() {
       if (!this.name) return undefined;
       var parentKey = this.parent.getSettingsKey();
       if (!parentKey) return undefined;
       return parentKey + '.' + this.name;
     },
 
-    getProcess: function() {
+    getProcess() {
       return this.parent;
     },
 
     /*
      * Returns the index of the slice in the timeSlices array, or undefined.
      */
-    indexOfTimeSlice: function(timeSlice) {
+    indexOfTimeSlice(timeSlice) {
       var i = tr.b.math.findLowIndexInSortedArray(
           this.timeSlices,
           function(slice) { return slice.start; },
@@ -242,7 +242,7 @@ tr.exportTo('tr.model', function() {
      * Additionally, stats.total contains the total time
      * spent running on all CPUs.
      */
-    getCpuStatsForRange: function(range) {
+    getCpuStatsForRange(range) {
       var stats = {};
       stats.total = 0;
 
@@ -274,7 +274,7 @@ tr.exportTo('tr.model', function() {
       return stats;
     },
 
-    getSchedulingStatsForRange: function(start, end) {
+    getSchedulingStatsForRange(start, end) {
       var stats = {};
 
       if (!this.timeSlices) return stats;

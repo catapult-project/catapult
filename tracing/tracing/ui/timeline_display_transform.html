@@ -22,17 +22,17 @@ tr.exportTo('tr.ui', function() {
   }
 
   TimelineDisplayTransform.prototype = {
-    set: function(that) {
+    set(that) {
       this.scaleX = that.scaleX;
       this.panX = that.panX;
       this.panY = that.panY;
     },
 
-    clone: function() {
+    clone() {
       return new TimelineDisplayTransform(this);
     },
 
-    equals: function(that) {
+    equals(that) {
       var eq = true;
       if (that === undefined || that === null) {
         return false;
@@ -43,7 +43,7 @@ tr.exportTo('tr.ui', function() {
       return !!eq;
     },
 
-    almostEquals: function(that) {
+    almostEquals(that) {
       var eq = true;
       if (that === undefined || that === null) {
         return false;
@@ -54,11 +54,11 @@ tr.exportTo('tr.ui', function() {
       return !!eq;
     },
 
-    incrementPanXInViewUnits: function(xDeltaView) {
+    incrementPanXInViewUnits(xDeltaView) {
       this.panX += this.xViewVectorToWorld(xDeltaView);
     },
 
-    xPanWorldPosToViewPos: function(worldX, viewX, viewWidth) {
+    xPanWorldPosToViewPos(worldX, viewX, viewWidth) {
       if (typeof viewX === 'string') {
         if (viewX === 'left') {
           viewX = 0;
@@ -73,7 +73,7 @@ tr.exportTo('tr.ui', function() {
       this.panX = (viewX / this.scaleX) - worldX;
     },
 
-    xPanWorldBoundsIntoView: function(worldMin, worldMax, viewWidth) {
+    xPanWorldBoundsIntoView(worldMin, worldMax, viewWidth) {
       if (this.xWorldToView(worldMin) < 0) {
         this.xPanWorldPosToViewPos(worldMin, 'left', viewWidth);
       } else if (this.xWorldToView(worldMax) > viewWidth) {
@@ -81,35 +81,35 @@ tr.exportTo('tr.ui', function() {
       }
     },
 
-    xSetWorldBounds: function(worldMin, worldMax, viewWidth) {
+    xSetWorldBounds(worldMin, worldMax, viewWidth) {
       var worldWidth = worldMax - worldMin;
       var scaleX = viewWidth / worldWidth;
       var panX = -worldMin;
       this.setPanAndScale(panX, scaleX);
     },
 
-    setPanAndScale: function(p, s) {
+    setPanAndScale(p, s) {
       this.scaleX = s;
       this.panX = p;
     },
 
-    xWorldToView: function(x) {
+    xWorldToView(x) {
       return (x + this.panX) * this.scaleX;
     },
 
-    xWorldVectorToView: function(x) {
+    xWorldVectorToView(x) {
       return x * this.scaleX;
     },
 
-    xViewToWorld: function(x) {
+    xViewToWorld(x) {
       return (x / this.scaleX) - this.panX;
     },
 
-    xViewVectorToWorld: function(x) {
+    xViewVectorToWorld(x) {
       return x / this.scaleX;
     },
 
-    applyTransformToCanvas: function(ctx) {
+    applyTransformToCanvas(ctx) {
       ctx.transform(this.scaleX, 0, 0, 1, this.panX * this.scaleX, 0);
     }
   };

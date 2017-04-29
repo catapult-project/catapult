@@ -115,7 +115,7 @@ tr.exportTo('tr.e.importer.android', function() {
      * @return {string} the full activity name (including package) from
      * a component
      */
-    getFullActivityName: function(component) {
+    getFullActivityName(component) {
       var componentSplit = component.split('/');
       if (componentSplit[1].startsWith('.')) {
         return componentSplit[0] + componentSplit[1];
@@ -127,12 +127,12 @@ tr.exportTo('tr.e.importer.android', function() {
     /**
      * @return {string} the process name of a component
      */
-    getProcName: function(component) {
+    getProcName(component) {
       var componentSplit = component.split('/');
       return componentSplit[0];
     },
 
-    findOrCreateActivity: function(activityName) {
+    findOrCreateActivity(activityName) {
       if (activityName in activityMap) {
         return activityMap[activityName];
       }
@@ -144,27 +144,27 @@ tr.exportTo('tr.e.importer.android', function() {
       return activity;
     },
 
-    deleteActivity: function(activityName) {
+    deleteActivity(activityName) {
       delete activityMap[activityName];
     },
 
-    handleCreateActivity: function(ts, activityName) {
+    handleCreateActivity(ts, activityName) {
       var activity = this.findOrCreateActivity(activityName);
       activity.state = ACTIVITY_STATE.CREATED;
       activity.createdTs = ts;
     },
 
-    handleFocusActivity: function(ts, procName, activityName) {
+    handleFocusActivity(ts, procName, activityName) {
       var activity = this.findOrCreateActivity(activityName);
       activity.lastFocusedTs = ts;
     },
 
-    handleProcStartForActivity: function(ts, activityName) {
+    handleProcStartForActivity(ts, activityName) {
       var activity = this.findOrCreateActivity(activityName);
       activity.procStartTs = ts;
     },
 
-    handleOnResumeCalled: function(ts, pid, activityName) {
+    handleOnResumeCalled(ts, pid, activityName) {
       var activity = this.findOrCreateActivity(activityName);
       activity.state = ACTIVITY_STATE.RESUMED;
       activity.lastResumeTs = ts;
@@ -173,7 +173,7 @@ tr.exportTo('tr.e.importer.android', function() {
       activity.pid = pid;
     },
 
-    handleOnPauseCalled: function(ts, activityName) {
+    handleOnPauseCalled(ts, activityName) {
       var activity = this.findOrCreateActivity(activityName);
       activity.state = ACTIVITY_STATE.PAUSED;
       activity.lastPauseTs = ts;
@@ -184,16 +184,16 @@ tr.exportTo('tr.e.importer.android', function() {
       }
     },
 
-    handleLaunchTime: function(ts, activityName, launchTime) {
+    handleLaunchTime(ts, activityName, launchTime) {
       var activity = this.findOrCreateActivity(activityName);
       activity.launchTime = launchTime;
     },
 
-    handleDestroyActivity: function(ts, activityName) {
+    handleDestroyActivity(ts, activityName) {
       this.deleteActivity(activityName);
     },
 
-    addActivityToProcess: function(activity) {
+    addActivityToProcess(activity) {
       if (activity.pid === undefined) return;
       var process = this.model_.getOrCreateProcess(activity.pid);
       // The range of the activity is the time from resume to time
@@ -209,7 +209,7 @@ tr.exportTo('tr.e.importer.android', function() {
       process.activities.push(newActivity);
     },
 
-    parseAmLine_: function(line) {
+    parseAmLine_(line) {
       var match = eventLogActivityRE.exec(line);
       if (!match) return;
 
@@ -285,7 +285,7 @@ tr.exportTo('tr.e.importer.android', function() {
       }
     },
 
-    importEvents: function() {
+    importEvents() {
       // Check if we have a mapping from real-time to CLOCK_MONOTONIC
       if (isNaN(this.model_.realtime_to_monotonic_offset_ms)) {
         this.model_.importWarning({

@@ -58,7 +58,7 @@ tr.exportTo('tr.e.importer.etw', function() {
   ProcessParser.prototype = {
     __proto__: Parser.prototype,
 
-    decodeFields: function(header, decoder) {
+    decodeFields(header, decoder) {
       if (header.version > 5) {
         throw new Error('Incompatible Process event version.');
       }
@@ -118,24 +118,24 @@ tr.exportTo('tr.e.importer.etw', function() {
       }
 
       return {
-        pageDirectoryBase: pageDirectoryBase,
-        uniqueProcessKey: uniqueProcessKey,
-        processId: processId,
-        parentId: parentId,
-        sessionId: sessionId,
-        exitStatus: exitStatus,
-        directoryTableBase: directoryTableBase,
-        flags: flags,
-        userSID: userSID,
-        imageFileName: imageFileName,
-        commandLine: commandLine,
-        packageFullName: packageFullName,
-        applicationId: applicationId,
-        exitTime: exitTime
+        pageDirectoryBase,
+        uniqueProcessKey,
+        processId,
+        parentId,
+        sessionId,
+        exitStatus,
+        directoryTableBase,
+        flags,
+        userSID,
+        imageFileName,
+        commandLine,
+        packageFullName,
+        applicationId,
+        exitTime
       };
     },
 
-    decodeStart: function(header, decoder) {
+    decodeStart(header, decoder) {
       var fields = this.decodeFields(header, decoder);
       var process = this.model.getOrCreateProcess(fields.processId);
       if (process.hasOwnProperty('has_ended')) {
@@ -148,14 +148,14 @@ tr.exportTo('tr.e.importer.etw', function() {
       return true;
     },
 
-    decodeEnd: function(header, decoder) {
+    decodeEnd(header, decoder) {
       var fields = this.decodeFields(header, decoder);
       var process = this.model.getOrCreateProcess(fields.processId);
       process.has_ended = true;
       return true;
     },
 
-    decodeDCStart: function(header, decoder) {
+    decodeDCStart(header, decoder) {
       var fields = this.decodeFields(header, decoder);
       var process = this.model.getOrCreateProcess(fields.processId);
       if (process.hasOwnProperty('has_ended')) {
@@ -165,14 +165,14 @@ tr.exportTo('tr.e.importer.etw', function() {
       return true;
     },
 
-    decodeDCEnd: function(header, decoder) {
+    decodeDCEnd(header, decoder) {
       var fields = this.decodeFields(header, decoder);
       var process = this.model.getOrCreateProcess(fields.processId);
       process.has_ended = true;
       return true;
     },
 
-    decodeDefunct: function(header, decoder) {
+    decodeDefunct(header, decoder) {
       var fields = this.decodeFields(header, decoder);
       // TODO(etienneb): Update the Model with |fields|.
       return true;

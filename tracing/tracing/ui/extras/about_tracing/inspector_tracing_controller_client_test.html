@@ -19,8 +19,8 @@ tr.b.unittest.testSuite(function() {
       this.req = function(method, params) {
         var msg = JSON.stringify({
           id: 1,
-          method: method,
-          params: params
+          method,
+          params
         });
         return new (function() {
           this.msg = msg;

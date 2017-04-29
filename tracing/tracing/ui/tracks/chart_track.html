@@ -33,7 +33,7 @@ tr.exportTo('tr.ui.tracks', function() {
   ChartTrack.prototype = {
     __proto__: tr.ui.tracks.Track.prototype,
 
-    decorate: function(viewport) {
+    decorate(viewport) {
       tr.ui.tracks.Track.prototype.decorate.call(this, viewport);
       Polymer.dom(this).classList.add('chart-track');
       this.series_ = undefined;
@@ -111,7 +111,7 @@ tr.exportTo('tr.ui.tracks', function() {
       return !!this.series && this.series.length > 0;
     },
 
-    calculateAxisDataAndPadding_: function() {
+    calculateAxisDataAndPadding_() {
       if (!this.series_) {
         this.axes_ = undefined;
         this.axisGuidToAxisData_ = undefined;
@@ -145,7 +145,7 @@ tr.exportTo('tr.ui.tracks', function() {
       this.bottomPadding_ = bottomPadding;
     },
 
-    draw: function(type, viewLWorld, viewRWorld) {
+    draw(type, viewLWorld, viewRWorld) {
       switch (type) {
         case tr.ui.tracks.DrawType.GENERAL_EVENT:
           this.drawChart_(viewLWorld, viewRWorld);
@@ -153,7 +153,7 @@ tr.exportTo('tr.ui.tracks', function() {
       }
     },
 
-    drawChart_: function(viewLWorld, viewRWorld) {
+    drawChart_(viewLWorld, viewRWorld) {
       if (!this.series_) return;
 
       var ctx = this.context();
@@ -207,7 +207,7 @@ tr.exportTo('tr.ui.tracks', function() {
       ctx.restore();
     },
 
-    addEventsToTrackMap: function(eventToTrackMap) {
+    addEventsToTrackMap(eventToTrackMap) {
       // TODO(petrcermak): Consider adding the series to the track map instead
       // of the track (a potential performance optimization).
       this.series_.forEach(function(series) {
@@ -217,7 +217,7 @@ tr.exportTo('tr.ui.tracks', function() {
       }, this);
     },
 
-    addIntersectingEventsInRangeToSelectionInWorldSpace: function(
+    addIntersectingEventsInRangeToSelectionInWorldSpace(
         loWX, hiWX, viewPixWidthWorld, selection) {
       this.series_.forEach(function(series) {
         series.addIntersectingEventsInRangeToSelectionInWorldSpace(
@@ -225,7 +225,7 @@ tr.exportTo('tr.ui.tracks', function() {
       }, this);
     },
 
-    addEventNearToProvidedEventToSelection: function(event, offset, selection) {
+    addEventNearToProvidedEventToSelection(event, offset, selection) {
       var foundItem = false;
       this.series_.forEach(function(series) {
         foundItem = foundItem || series.addEventNearToProvidedEventToSelection(
@@ -234,11 +234,11 @@ tr.exportTo('tr.ui.tracks', function() {
       return foundItem;
     },
 
-    addAllEventsMatchingFilterToSelection: function(filter, selection) {
+    addAllEventsMatchingFilterToSelection(filter, selection) {
       // Do nothing.
     },
 
-    addClosestEventToSelection: function(worldX, worldMaxDist, loY, hiY,
+    addClosestEventToSelection(worldX, worldMaxDist, loY, hiY,
         selection) {
       this.series_.forEach(function(series) {
         series.addClosestEventToSelection(
@@ -253,7 +253,7 @@ tr.exportTo('tr.ui.tracks', function() {
      * See the description of ChartSeriesYAxis.autoSetFromRange for the optional
      * configuration argument flags.
      */
-    autoSetAllAxes: function(opt_config) {
+    autoSetAllAxes(opt_config) {
       for (var axisData of Object.values(this.axisGuidToAxisData_)) {
         var seriesYAxis = axisData.axis;
         var series = axisData.series;
@@ -268,7 +268,7 @@ tr.exportTo('tr.ui.tracks', function() {
      * See the description of ChartSeriesYAxis.autoSetFromRange for the optional
      * configuration argument flags.
      */
-    autoSetAxis: function(seriesYAxis, opt_config) {
+    autoSetAxis(seriesYAxis, opt_config) {
       var series = this.axisGuidToAxisData_[seriesYAxis.guid].series;
       seriesYAxis.autoSetFromSeries(series, opt_config);
     }

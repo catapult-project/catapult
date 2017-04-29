@@ -28,7 +28,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     __proto__: tr.ui.tracks.MultiRowTrack.prototype,
 
-    decorate: function(viewport) {
+    decorate(viewport) {
       tr.ui.tracks.MultiRowTrack.prototype.decorate.call(this, viewport);
       Polymer.dom(this).classList.add('object-instance-group-track');
       this.objectInstances_ = undefined;
@@ -42,7 +42,7 @@ tr.exportTo('tr.ui.tracks', function() {
       this.setItemsToGroup(objectInstances);
     },
 
-    addSubTrack_: function(objectInstances) {
+    addSubTrack_(objectInstances) {
       var hasMultipleRows = this.subRows.length > 1;
       var track = new tr.ui.tracks.ObjectInstanceTrack(this.viewport);
       track.objectInstances = objectInstances;
@@ -50,7 +50,7 @@ tr.exportTo('tr.ui.tracks', function() {
       return track;
     },
 
-    buildSubRows_: function(objectInstances) {
+    buildSubRows_(objectInstances) {
       objectInstances.sort(function(x, y) {
         return x.creationTs - y.creationTs;
       });
@@ -76,7 +76,7 @@ tr.exportTo('tr.ui.tracks', function() {
       }
       return subRows;
     },
-    updateHeadingAndTooltip_: function() {
+    updateHeadingAndTooltip_() {
     }
   };
 

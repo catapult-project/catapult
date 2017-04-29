@@ -19,8 +19,8 @@ tr.b.unittest.testSuite(function() {
 
   function topLevelOptions(pid, id) {
     return {
-      pid: pid,
-      id: id,
+      pid,
+      id,
       cat: 'blink',
       scope: 'PlatformThread',
       name: 'TopLevel'
@@ -29,8 +29,8 @@ tr.b.unittest.testSuite(function() {
 
   function renderFrameOptions(pid, id, parent) {
     return {
-      pid: pid,
-      id: id,
+      pid,
+      id,
       cat: 'blink',
       scope: 'RenderFrame',
       name: 'RenderFrame',
@@ -43,8 +43,8 @@ tr.b.unittest.testSuite(function() {
 
   function frameTreeNodeOptions(pid, id, opt_renderFrame, opt_parentId) {
     var ans = {
-      pid: pid,
-      id: id,
+      pid,
+      id,
       cat: 'navigation',
       scope: 'FrameTreeNode',
       name: 'FrameTreeNode',
@@ -103,7 +103,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   function newAttributedSlice(model, pid, start, duration, context) {
-    var slice = TestUtils.newSliceEx({start: start, duration: duration});
+    var slice = TestUtils.newSliceEx({start, duration});
     slice.contexts = [{type: 'FrameBlameContext', snapshot: context}];
     model.getOrCreateProcess(pid).getOrCreateThread(1).sliceGroup.pushSlice(
         slice);

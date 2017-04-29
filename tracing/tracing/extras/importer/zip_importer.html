@@ -49,11 +49,11 @@ tr.exportTo('tr.e.importer', function() {
       return 'ZipImporter';
     },
 
-    isTraceDataContainer: function() {
+    isTraceDataContainer() {
       return true;
     },
 
-    extractSubtraces: function() {
+    extractSubtraces() {
       var zip = new JSZip(this.eventData_);
       var subtraces = [];
       for (var idx in zip.files) {

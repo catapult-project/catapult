@@ -29,9 +29,9 @@ tr.exportTo('tr.ui.tracks', function() {
     // build list of start/end ops for each top level or important slice
     var pushOp = function(isStart, time, slice) {
       ops.push({
-        isStart: isStart,
-        time: time,
-        slice: slice
+        isStart,
+        time,
+        slice
       });
     };
     for (var tid in process.threads) {
@@ -108,7 +108,7 @@ tr.exportTo('tr.ui.tracks', function() {
   ProcessSummaryTrack.prototype = {
     __proto__: tr.ui.tracks.RectTrack.prototype,
 
-    decorate: function(viewport) {
+    decorate(viewport) {
       tr.ui.tracks.RectTrack.prototype.decorate.call(this, viewport);
     },
 

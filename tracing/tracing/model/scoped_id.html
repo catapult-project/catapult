@@ -24,12 +24,12 @@ tr.exportTo('tr.model', function() {
   }
 
   ScopedId.prototype = {
-    toString: function() {
+    toString() {
       var pidStr = this.pid === undefined ? '' : 'pid: ' + this.pid + ', ';
       return '{' + pidStr + 'scope: ' + this.scope + ', id: ' + this.id + '}';
     },
 
-    toStringWithDelimiter: function(delim) {
+    toStringWithDelimiter(delim) {
       return (this.pid === undefined ? '' : this.pid) + delim +
           this.scope + delim + this.id;
     }

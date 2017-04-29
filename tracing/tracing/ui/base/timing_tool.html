@@ -36,12 +36,12 @@ tr.exportTo('tr.ui.b', function() {
 
   TimingTool.prototype = {
 
-    onEnterTiming: function(e) {
+    onEnterTiming(e) {
       this.targetElement_.addEventListener('mousemove', this.onMouseMove_);
       this.targetElement_.addEventListener('dblclick', this.onDblClick_);
     },
 
-    onBeginTiming: function(e) {
+    onBeginTiming(e) {
       if (!this.isTouchPointInsideTrackBounds_(e.clientX, e.clientY)) {
         return;
       }
@@ -52,7 +52,7 @@ tr.exportTo('tr.ui.b', function() {
       this.updateSnapIndicators_(pt);
     },
 
-    updateSnapIndicators_: function(pt) {
+    updateSnapIndicators_(pt) {
       if (!pt.snapped) return;
 
       var ir = this.viewport_.interestRange;
@@ -64,35 +64,35 @@ tr.exportTo('tr.ui.b', function() {
       }
     },
 
-    onUpdateTiming: function(e) {
+    onUpdateTiming(e) {
       var pt = this.getSnappedToEventPosition_(e);
       this.mouseMoveAt_(pt.x, pt.y, true);
       this.updateSnapIndicators_(pt);
     },
 
-    onEndTiming: function(e) {
+    onEndTiming(e) {
       this.mouseUp_();
     },
 
-    onExitTiming: function(e) {
+    onExitTiming(e) {
       this.targetElement_.removeEventListener('mousemove', this.onMouseMove_);
       this.targetElement_.removeEventListener('dblclick', this.onDblClick_);
     },
 
-    onMouseMove_: function(e) {
+    onMouseMove_(e) {
       if (e.button) return;
 
       var worldX = this.getWorldXFromEvent_(e);
       this.mouseMoveAt_(worldX, e.clientY, false);
     },
 
-    onDblClick_: function(e) {
+    onDblClick_(e) {
       // TODO(nduca): Implement dobuleclicking.
     },
 
     ////////////////////////////////////////////////////////////////////////////
 
-    isTouchPointInsideTrackBounds_: function(clientX, clientY) {
+    isTouchPointInsideTrackBounds_(clientX, clientY) {
       if (!this.viewport_ ||
           !this.viewport_.modelTrackContainer ||
           !this.viewport_.modelTrackContainer.canvas) {
@@ -109,7 +109,7 @@ tr.exportTo('tr.ui.b', function() {
       return false;
     },
 
-    mouseDownAt_: function(worldX, y) {
+    mouseDownAt_(worldX, y) {
       var ir = this.viewport_.interestRange;
       var dt = this.viewport_.currentDisplayTransform;
 
@@ -145,7 +145,7 @@ tr.exportTo('tr.ui.b', function() {
       this.isMovingLeftEdge_ = false;
     },
 
-    mouseMoveAt_: function(worldX, y, mouseDown) {
+    mouseMoveAt_(worldX, y, mouseDown) {
       var ir = this.viewport_.interestRange;
 
       if (mouseDown) {
@@ -178,7 +178,7 @@ tr.exportTo('tr.ui.b', function() {
       return;
     },
 
-    updateMovingEdge_: function(newWorldX) {
+    updateMovingEdge_(newWorldX) {
       var ir = this.viewport_.interestRange;
       var a = ir.min;
       var b = ir.max;
@@ -205,7 +205,7 @@ tr.exportTo('tr.ui.b', function() {
       }
     },
 
-    mouseUp_: function() {
+    mouseUp_() {
       var dt = this.viewport_.currentDisplayTransform;
       var ir = this.viewport_.interestRange;
 
@@ -219,7 +219,7 @@ tr.exportTo('tr.ui.b', function() {
       }
     },
 
-    getWorldXFromEvent_: function(e) {
+    getWorldXFromEvent_(e) {
       var pixelRatio = window.devicePixelRatio || 1;
       var canvas = this.viewport_.modelTrackContainer.canvas;
       var worldOffset = canvas.getBoundingClientRect().left;
@@ -240,7 +240,7 @@ tr.exportTo('tr.ui.b', function() {
      *     the mouse position.
      * }
      */
-    getSnappedToEventPosition_: function(e) {
+    getSnappedToEventPosition_(e) {
       var pixelRatio = window.devicePixelRatio || 1;
       var EVENT_SNAP_RANGE = 16 * pixelRatio;
 

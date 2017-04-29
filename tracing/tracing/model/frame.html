@@ -65,7 +65,7 @@ tr.exportTo('tr.model', function() {
       return this.perfClass_;
     },
 
-    shiftTimestampsForward: function(amount) {
+    shiftTimestampsForward(amount) {
       this.start += amount;
       this.end += amount;
 
@@ -75,7 +75,7 @@ tr.exportTo('tr.model', function() {
       }
     },
 
-    addBoundsToRange: function(range) {
+    addBoundsToRange(range) {
       range.addValue(this.start);
       range.addValue(this.end);
     }

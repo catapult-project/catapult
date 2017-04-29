@@ -21,32 +21,32 @@ tr.exportTo('tr.ui.analysis', function() {
   }
 
   FlowClassifier.prototype = {
-    getFS_: function(event) {
+    getFS_(event) {
       var fs = this.eventsByGUID_[event.guid];
       if (fs === undefined) {
         this.numEvents_++;
         fs = {
           state: 0,
-          event: event
+          event
         };
         this.eventsByGUID_[event.guid] = fs;
       }
       return fs;
     },
 
-    addInFlow: function(event) {
+    addInFlow(event) {
       var fs = this.getFS_(event);
       fs.state |= FLOW_IN;
       return event;
     },
 
-    addOutFlow: function(event) {
+    addOutFlow(event) {
       var fs = this.getFS_(event);
       fs.state |= FLOW_OUT;
       return event;
     },
 
-    hasEvents: function() {
+    hasEvents() {
       return this.numEvents_ > 0;
     },
 

@@ -68,7 +68,7 @@ tr.exportTo('tr.model', function() {
       }
     },
 
-    clear: function() {
+    clear() {
       this.bounds_ = new tr.b.math.Range();
       this.events_.clear();
     },
@@ -77,7 +77,7 @@ tr.exportTo('tr.model', function() {
      * Pushes each argument onto the EventSet. Returns the number of
      * arguments pushed.
      */
-    push: function(...events) {
+    push(...events) {
       var numPushed;
       for (var event of events) {
         if (event.guid === undefined) {
@@ -100,27 +100,27 @@ tr.exportTo('tr.model', function() {
       return numPushed;
     },
 
-    contains: function(event) {
+    contains(event) {
       if (this.events_.has(event)) return event;
       return undefined;
     },
 
-    addEventSet: function(eventSet) {
+    addEventSet(eventSet) {
       for (var event of eventSet) {
         this.push(event);
       }
     },
 
-    intersectionIsEmpty: function(otherEventSet) {
+    intersectionIsEmpty(otherEventSet) {
       return !this.some(event => otherEventSet.contains(event));
     },
 
-    equals: function(that) {
+    equals(that) {
       if (this.length !== that.length) return false;
       return this.every(event => that.contains(event));
     },
 
-    sortEvents: function(compare) {
+    sortEvents(compare) {
       // Convert to array, then sort, then convert back
       var ary = this.toArray();
       ary.sort(compare);
@@ -131,7 +131,7 @@ tr.exportTo('tr.model', function() {
       }
     },
 
-    getEventsOrganizedByBaseType: function(opt_pruneEmpty) {
+    getEventsOrganizedByBaseType(opt_pruneEmpty) {
       var allTypeInfos = EventRegistry.getAllRegisteredTypeInfos();
 
       var events = this.getEventsOrganizedByCallback(function(event) {
@@ -165,7 +165,7 @@ tr.exportTo('tr.model', function() {
       return events;
     },
 
-    getEventsOrganizedByTitle: function() {
+    getEventsOrganizedByTitle() {
       return this.getEventsOrganizedByCallback(function(event) {
         if (event.title === undefined) {
           throw new Error('An event didn\'t have a title!');
@@ -179,12 +179,12 @@ tr.exportTo('tr.model', function() {
      * @param {*=} opt_this
      * @return {!Object}
      */
-    getEventsOrganizedByCallback: function(cb, opt_this) {
+    getEventsOrganizedByCallback(cb, opt_this) {
       var groupedEvents = tr.b.group(this, cb, opt_this || this);
       return tr.b.mapItems(groupedEvents, (_, events) => new EventSet(events));
     },
 
-    enumEventsOfType: function(type, func) {
+    enumEventsOfType(type, func) {
       for (var event of this) {
         if (event instanceof type) {
           func(event);
@@ -214,7 +214,7 @@ tr.exportTo('tr.model', function() {
       return this.length + ' ' + tmp;
     },
 
-    filter: function(fn, opt_this) {
+    filter(fn, opt_this) {
       var res = new EventSet();
       for (var event of this) {
         if (fn.call(opt_this, event)) {
@@ -225,7 +225,7 @@ tr.exportTo('tr.model', function() {
       return res;
     },
 
-    toArray: function() {
+    toArray() {
       var ary = [];
       for (var event of this) {
         ary.push(event);
@@ -233,13 +233,13 @@ tr.exportTo('tr.model', function() {
       return ary;
     },
 
-    forEach: function(fn, opt_this) {
+    forEach(fn, opt_this) {
       for (var event of this) {
         fn.call(opt_this, event);
       }
     },
 
-    map: function(fn, opt_this) {
+    map(fn, opt_this) {
       var res = [];
       for (var event of this) {
         res.push(fn.call(opt_this, event));
@@ -247,7 +247,7 @@ tr.exportTo('tr.model', function() {
       return res;
     },
 
-    every: function(fn, opt_this) {
+    every(fn, opt_this) {
       for (var event of this) {
         if (!fn.call(opt_this, event)) {
           return false;
@@ -256,7 +256,7 @@ tr.exportTo('tr.model', function() {
       return true;
     },
 
-    some: function(fn, opt_this) {
+    some(fn, opt_this) {
       for (var event of this) {
         if (fn.call(opt_this, event)) {
           return true;
@@ -265,7 +265,7 @@ tr.exportTo('tr.model', function() {
       return false;
     },
 
-    asDict: function() {
+    asDict() {
       var stableIds = [];
       for (var event of this) {
         stableIds.push(event.stableId);
@@ -273,7 +273,7 @@ tr.exportTo('tr.model', function() {
       return {'events': stableIds};
     },
 
-    asSet: function() {
+    asSet() {
       return this.events_;
     }
   };

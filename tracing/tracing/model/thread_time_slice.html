@@ -62,7 +62,7 @@ tr.exportTo('tr.model', function() {
   ThreadTimeSlice.prototype = {
     __proto__: Slice.prototype,
 
-    getColorForState_: function(state) {
+    getColorForState_(state) {
       var getColorIdForReservedName =
           tr.b.ColorScheme.getColorIdForReservedName;
 
@@ -98,7 +98,7 @@ tr.exportTo('tr.model', function() {
       return 'tr.ui.analysis.ThreadTimeSlice';
     },
 
-    getAssociatedCpuSlice: function() {
+    getAssociatedCpuSlice() {
       if (!this.cpuOnWhichThreadWasRunning) return undefined;
       var cpuSlices = this.cpuOnWhichThreadWasRunning.slices;
       for (var i = 0; i < cpuSlices.length; i++) {
@@ -110,7 +110,7 @@ tr.exportTo('tr.model', function() {
       return undefined;
     },
 
-    getCpuSliceThatTookCpu: function() {
+    getCpuSliceThatTookCpu() {
       if (this.cpuOnWhichThreadWasRunning) return undefined;
       var curIndex = this.thread.indexOfTimeSlice(this);
       var cpuSliceWhenLastRunning;

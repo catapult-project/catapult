@@ -273,11 +273,11 @@ tr.exportTo('tr.model', function() {
       return children === undefined || children.length === 0;
     },
 
-    addRegion: function(region) {
+    addRegion(region) {
       this.addRegionRecursively_(region, true /* addStatsToThisNode */);
     },
 
-    someRegion: function(fn, opt_this) {
+    someRegion(fn, opt_this) {
       if (this.regions_ !== undefined) {
         // Leaf node (or caching internal node).
         return this.regions_.some(fn, opt_this);
@@ -289,7 +289,7 @@ tr.exportTo('tr.model', function() {
       });
     },
 
-    addRegionRecursively_: function(region, addStatsToThisNode) {
+    addRegionRecursively_(region, addStatsToThisNode) {
       if (addStatsToThisNode) {
         this.addStatsFromRegion_(region);
       }
@@ -327,7 +327,7 @@ tr.exportTo('tr.model', function() {
       matchedChild.addRegionRecursively_(region, true);
     },
 
-    buildTree_: function() {
+    buildTree_() {
       var cachedRegions = this.regions_;
       this.regions_ = undefined;
 
@@ -340,7 +340,7 @@ tr.exportTo('tr.model', function() {
       }
     },
 
-    buildChildNodesRecursively_: function() {
+    buildChildNodesRecursively_() {
       if (this.children_ !== undefined) {
         throw new Error(
             'Internal error: Classification node already has children');
@@ -363,7 +363,7 @@ tr.exportTo('tr.model', function() {
       });
     },
 
-    addStatsFromRegion_: function(region) {
+    addStatsFromRegion_(region) {
       this.hasRegions = true;
 
       // Aggregate virtual size.

@@ -24,11 +24,11 @@ tr.exportTo('tr.ui.tracks', function() {
   ContainerTrack.prototype = {
     __proto__: tr.ui.tracks.Track.prototype,
 
-    decorate: function(viewport) {
+    decorate(viewport) {
       tr.ui.tracks.Track.prototype.decorate.call(this, viewport);
     },
 
-    detach: function() {
+    detach() {
       Polymer.dom(this).textContent = '';
     },
 
@@ -42,7 +42,7 @@ tr.exportTo('tr.ui.tracks', function() {
       return tracks;
     },
 
-    drawTrack: function(type) {
+    drawTrack(type) {
       this.tracks_.forEach(function(track) {
         track.drawTrack(type);
       });
@@ -60,7 +60,7 @@ tr.exportTo('tr.ui.tracks', function() {
      *     viewspace space.
      * @param {Selection} selection Selection to which to add results.
      */
-    addIntersectingEventsInRangeToSelection: function(
+    addIntersectingEventsInRangeToSelection(
         loVX, hiVX, loY, hiY, selection) {
       for (var i = 0; i < this.tracks_.length; i++) {
         var trackClientRect = this.tracks_[i].getBoundingClientRect();
@@ -76,20 +76,20 @@ tr.exportTo('tr.ui.tracks', function() {
           apply(this, arguments);
     },
 
-    addEventsToTrackMap: function(eventToTrackMap) {
+    addEventsToTrackMap(eventToTrackMap) {
       for (var track of this.tracks_) {
         track.addEventsToTrackMap(eventToTrackMap);
       }
     },
 
-    addAllEventsMatchingFilterToSelection: function(filter, selection) {
+    addAllEventsMatchingFilterToSelection(filter, selection) {
       for (var i = 0; i < this.tracks_.length; i++) {
         this.tracks_[i].addAllEventsMatchingFilterToSelection(
             filter, selection);
       }
     },
 
-    addAllEventsMatchingFilterToSelectionAsTask: function(filter, selection) {
+    addAllEventsMatchingFilterToSelectionAsTask(filter, selection) {
       var task = new Task();
       for (var i = 0; i < this.tracks_.length; i++) {
         task.subTask(function(i) {
@@ -102,7 +102,7 @@ tr.exportTo('tr.ui.tracks', function() {
       return task;
     },
 
-    addClosestEventToSelection: function(
+    addClosestEventToSelection(
         worldX, worldMaxDist, loY, hiY, selection) {
       for (var i = 0; i < this.tracks_.length; i++) {
         var trackClientRect = this.tracks_[i].getBoundingClientRect();
@@ -118,13 +118,13 @@ tr.exportTo('tr.ui.tracks', function() {
           apply(this, arguments);
     },
 
-    addContainersToTrackMap: function(containerToTrackMap) {
+    addContainersToTrackMap(containerToTrackMap) {
       this.tracks_.forEach(function(track) {
         track.addContainersToTrackMap(containerToTrackMap);
       });
     },
 
-    clearTracks_: function() {
+    clearTracks_() {
       this.tracks_.forEach(function(track) {
         Polymer.dom(this).removeChild(track);
       }, this);

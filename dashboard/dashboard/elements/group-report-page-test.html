@@ -91,10 +91,10 @@ tr.b.unittest.testSuite(function() {
   var originalGetQueryString;
 
   var testOptions = {
-    setUp: function() {
+    setUp() {
       originalGetQueryString = uri.getQueryString;
     },
-    tearDown: function() {
+    tearDown() {
       uri.getQueryString = originalGetQueryString;
       // When testing locally, comment this out to make the checkboxes in
       // the table work correctly. They do an XHR, but the mock has already

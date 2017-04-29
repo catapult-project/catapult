@@ -58,7 +58,7 @@ function isTable(object) {
 Polymer({
   is: 'tr-ui-a-generic-object-view',
 
-  ready: function() {
+  ready() {
     this.object_ = undefined;
   },
 
@@ -71,12 +71,12 @@ Polymer({
     this.updateContents_();
   },
 
-  updateContents_: function() {
+  updateContents_() {
     Polymer.dom(this.$.content).textContent = '';
     this.appendElementsForType_('', this.object_, 0, 0, 5, '');
   },
 
-  appendElementsForType_: function(
+  appendElementsForType_(
       label, object, indent, depth, maxDepth, suffix) {
     if (depth > maxDepth) {
       this.appendSimpleText_(
@@ -190,7 +190,7 @@ Polymer({
         label, object, indent, depth, maxDepth, suffix);
   },
 
-  appendElementsForArray_: function(
+  appendElementsForArray_(
       label, object, indent, depth, maxDepth, suffix) {
     if (object.length === 0) {
       this.appendSimpleText_(label, indent, '[]', suffix);
@@ -253,7 +253,7 @@ Polymer({
     return;
   },
 
-  appendElementsForObject_: function(
+  appendElementsForObject_(
       label, object, indent, depth, maxDepth, suffix) {
     var keys = Object.keys(object);
     if (keys.length === 0) {
@@ -275,7 +275,7 @@ Polymer({
     }
   },
 
-  appendElementWithLabel_: function(label, indent, dataElement, suffix) {
+  appendElementWithLabel_(label, indent, dataElement, suffix) {
     var row = document.createElement('div');
 
     var indentSpan = document.createElement('span');
@@ -298,7 +298,7 @@ Polymer({
     Polymer.dom(this.$.content).appendChild(row);
   },
 
-  appendSimpleText_: function(label, indent, text, suffix) {
+  appendSimpleText_(label, indent, text, suffix) {
     var el = this.ownerDocument.createElement('span');
     Polymer.dom(el).textContent = text;
     this.appendElementWithLabel_(label, indent, el, suffix);
@@ -322,7 +322,7 @@ Polymer({
 Polymer({
   is: 'tr-ui-a-generic-object-view-with-label',
 
-  ready: function() {
+  ready() {
     this.labelEl_ = document.createElement('div');
     this.genericObjectView_ =
         document.createElement('tr-ui-a-generic-object-view');

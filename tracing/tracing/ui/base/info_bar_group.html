@@ -23,16 +23,16 @@ found in the LICENSE file.
 Polymer({
   is: 'tr-ui-b-info-bar-group',
 
-  ready: function() {
+  ready() {
     this.messages_ = [];
   },
 
-  clearMessages: function() {
+  clearMessages() {
     this.messages_ = [];
     this.updateContents_();
   },
 
-  addMessage: function(text, opt_buttons) {
+  addMessage(text, opt_buttons) {
     opt_buttons = opt_buttons || [];
     for (var i = 0; i < opt_buttons.length; i++) {
       if (opt_buttons[i].buttonText === undefined) {
@@ -44,13 +44,13 @@ Polymer({
     }
 
     this.messages_.push({
-      text: text,
+      text,
       buttons: opt_buttons || []
     });
     this.updateContents_();
   },
 
-  updateContents_: function() {
+  updateContents_() {
     Polymer.dom(this.$.messages).textContent = '';
     this.messages_.forEach(function(message) {
       var bar = document.createElement('tr-ui-b-info-bar');

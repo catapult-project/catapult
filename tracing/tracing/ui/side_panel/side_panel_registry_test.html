@@ -14,11 +14,11 @@ tr.b.unittest.testSuite(function() {
   var SidePanelRegistry = tr.ui.side_panel.SidePanelRegistry;
 
   var testOptions = {
-    setUp: function() {
+    setUp() {
       SidePanelRegistry.pushCleanStateBeforeTest();
     },
 
-    tearDown: function() {
+    tearDown() {
       SidePanelRegistry.popCleanStateAfterTest();
     },
   };

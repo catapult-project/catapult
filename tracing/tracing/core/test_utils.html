@@ -57,7 +57,7 @@ tr.exportTo('tr.c', function() {
 
     return {
       start: options[startFieldName],
-      duration: duration
+      duration
     };
   }
 
@@ -307,14 +307,14 @@ tr.exportTo('tr.c', function() {
 
   TestUtils.newInteractionRecord = function(parentModel, start, duration) {
     return new tr.model.um.StubExpectation({
-      parentModel: parentModel, start: start, duration: duration});
+      parentModel, start, duration});
   };
 
   TestUtils.newModel = function(customizeModelCallback) {
     return TestUtils.newModelWithEvents([], {
       shiftWorldToZero: false,
       pruneEmptyContainers: false,
-      customizeModelCallback: customizeModelCallback
+      customizeModelCallback
     });
   };
 
@@ -345,7 +345,7 @@ tr.exportTo('tr.c', function() {
     return TestUtils.newModelWithEvents([], {
       shiftWorldToZero: false,
       pruneEmptyContainers: false,
-      customizeModelCallback: customizeModelCallback,
+      customizeModelCallback,
       auditorConstructors: [auditor]
     });
   };
@@ -364,7 +364,7 @@ tr.exportTo('tr.c', function() {
   };
 
   TestUtils.SourceGenerator.prototype = {
-    push: function(/* arguments */) {
+    push(/* arguments */) {
       if (this.currentLineEmpty_) {
         this.sourceList_.push(' '.repeat(this.currentIndent_));
         this.currentLineEmpty_ = false;
@@ -373,23 +373,23 @@ tr.exportTo('tr.c', function() {
           this.sourceList_, Array.prototype.slice.call(arguments));
     },
 
-    pushComment: function(/* arguments */) {
+    pushComment(/* arguments */) {
       this.currentLineCommentList_.push.apply(
           this.currentLineCommentList_, Array.prototype.slice.call(arguments));
     },
 
-    build: function() {
+    build() {
       this.finishLine_();
       return this.sourceList_.join('');
     },
 
-    breakLine: function() {
+    breakLine() {
       this.finishLine_();
       this.push('\n');
       this.currentLineEmpty_ = true;
     },
 
-    finishLine_: function() {
+    finishLine_() {
       if (this.currentLineCommentList_.length === 0) return;
       this.push('  // ');
       this.push.apply(this, this.currentLineCommentList_);
@@ -397,7 +397,7 @@ tr.exportTo('tr.c', function() {
       this.currentLineCommentList_ = [];
     },
 
-    indentBlock: function(spaces, breakLine, blockCallback, opt_this) {
+    indentBlock(spaces, breakLine, blockCallback, opt_this) {
       opt_this = opt_this || this;
       this.currentIndent_ += spaces;
       if (breakLine) this.breakLine();
@@ -405,7 +405,7 @@ tr.exportTo('tr.c', function() {
       this.currentIndent_ -= spaces;
     },
 
-    formatSingleLineList: function(list, itemCallback, opt_this) {
+    formatSingleLineList(list, itemCallback, opt_this) {
       opt_this = opt_this || this;
       this.push('[');
       tr.b.asArray(list).forEach(function(item, index) {
@@ -415,7 +415,7 @@ tr.exportTo('tr.c', function() {
       this.push(']');
     },
 
-    formatMultiLineList: function(list, itemCallback, opt_this) {
+    formatMultiLineList(list, itemCallback, opt_this) {
       opt_this = opt_this || this;
       this.push('[');
       this.indentBlock(2, false /* don't break line */, function() {
@@ -429,7 +429,7 @@ tr.exportTo('tr.c', function() {
       this.push(']');
     },
 
-    formatString: function(string) {
+    formatString(string) {
       if (string === undefined) {
         this.push('undefined');
       } else {

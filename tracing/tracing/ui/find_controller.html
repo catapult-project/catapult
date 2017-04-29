@@ -37,7 +37,7 @@ tr.exportTo('tr.ui', function() {
       return this.brushingStateController_;
     },
 
-    enqueueOperation_: function(operation) {
+    enqueueOperation_(operation) {
       var task;
       if (operation instanceof tr.b.Task) {
         task = operation;
@@ -61,7 +61,7 @@ tr.exportTo('tr.ui', function() {
      * Updates the filter hits based on the provided |filterText|. Returns a
      * promise which resolves when |filterHits| has been refreshed.
      */
-    startFiltering: function(filterText) {
+    startFiltering(filterText) {
       var sc = this.brushingStateController_;
       if (!sc) return;
 
@@ -123,7 +123,7 @@ tr.exportTo('tr.ui', function() {
       return this.currentHitIndex_;
     },
 
-    find_: function(dir) {
+    find_(dir) {
       var firstHit = this.currentHitIndex_ === -1;
       if (firstHit && dir < 0) {
         this.currentHitIndex_ = 0;
@@ -138,11 +138,11 @@ tr.exportTo('tr.ui', function() {
           new tr.model.EventSet(this.filterHits[this.currentHitIndex]));
     },
 
-    findNext: function() {
+    findNext() {
       this.find_(1);
     },
 
-    findPrevious: function() {
+    findPrevious() {
       this.find_(-1);
     }
   };

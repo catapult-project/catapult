@@ -54,7 +54,7 @@ Polymer({
    * finished row construction. This hook gives us the opportunity to customize
    * the rows present in the sub view.
    */
-  onCustomizeRows_: function(e) {
+  onCustomizeRows_(e) {
     var event = tr.b.getOnlyElement(this.currentSelection_);
     var rows = e.rows;
 

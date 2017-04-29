@@ -68,7 +68,7 @@ tr.exportTo('tr.model', function() {
       this.endTime_ = value;
     },
 
-    add: function(node) {
+    add(node) {
       if (this.tree_.has(node.id)) {
         throw new Error('Conflict id in the profile tree.');
       }
@@ -76,7 +76,7 @@ tr.exportTo('tr.model', function() {
       return node;
     },
 
-    getNode: function(nodeId) {
+    getNode(nodeId) {
       return this.tree_.get(nodeId);
     }
   };

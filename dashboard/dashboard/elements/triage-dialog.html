@@ -178,7 +178,7 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
        * Custom element lifecycle callback.
        * Called when the triage-dialog element is ready.
        */
-      ready: function() {
+      ready() {
         this.bugWindow = null;
         this.close();
         // Event listener for the message event.
@@ -213,7 +213,7 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
        * @param {object} dataObject with info about filed bug set from
        *     bug_result.html.
        */
-      showCreatedBugResult: function(data) {
+      showCreatedBugResult(data) {
         this.lastSubmittedBugId = data.bug_id;
         this.lastSubmittedTryJobId = data.issue_id;
         this.lastSubmittedTryJobUrl = data.issue_url;
@@ -224,7 +224,7 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
       /**
        * Initializes and displays the triage dialog.
        */
-      show: function() {
+      show() {
         if (this.alerts && this.alerts.length && this.alerts[0].nudgeList) {
           this.set('nudgeList', this.alerts[0].nudgeList);
         } else {
@@ -237,7 +237,7 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
       /**
        * Updates the this.alertKeys based on this.alerts.
        */
-      alertsChanged: function() {
+      alertsChanged() {
         this.alertKeys = [];
         if (this.alerts && this.alerts.length) {
           this.alertKeys = this.alerts.map(function(a) { return a.key; });
@@ -247,7 +247,7 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
       /**
        * Opens a window with the /file_bug page, and fills in the form.
        */
-      fileNewBug: function() {
+      fileNewBug() {
         var bugTitle = this.getBugTitle();
         var data = [
           {name: 'keys', value: this.alertKeys.join(',')},
@@ -260,7 +260,7 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
        * Opens a window with the /associate_alerts page, which allows the user
        * to associate an alert with an existing issue.
        */
-      associateWithBug: function() {
+      associateWithBug() {
         this.bugWindow = this.openAndPost('/associate_alerts',
             [{name: 'keys', value: this.alertKeys.join(',')}], 'edit_bugs');
       },
@@ -268,21 +268,21 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
       /**
        * Marks an alert as invalid.
        */
-      markInvalid: function() {
+      markInvalid() {
         this.changeBugId(-1, 'Alert(s) marked invalid.');
       },
 
       /**
        * Marks an alert as invalid.
        */
-      markIgnored: function() {
+      markIgnored() {
         this.changeBugId(-2, 'Alert(s) marked ignored.');
       },
 
       /**
        * Changes the bug ID of the selected alerts.
        */
-      changeBugId: function(bugId, successMessage) {
+      changeBugId(bugId, successMessage) {
         var params = {
           keys: this.alertKeys,
           xsrf_token: this.xsrfToken
@@ -314,7 +314,7 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
       /**
        * Move an alert's position.
        */
-      nudgeAlert: function() {
+      nudgeAlert() {
         var info = this.getNudgedInfo();
         var params = {
           'keys': this.alertKeys,
@@ -347,7 +347,7 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
        * Gets the item in the nudge list that was selected.
        * Note that this.nudgeList is populated in chart-container.
        */
-      getNudgedInfo: function() {
+      getNudgedInfo() {
         var index = this.$.nudgeSelect.selectedIndex;
         return this.nudgeList[index];
       },
@@ -356,14 +356,14 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
        * Returns a default bug title to use when filing a new bug.
        * @return {string} The bug title.
        */
-      getBugTitle: function() {
+      getBugTitle() {
         if (this.alerts[0].percent_changed) {
           return this.getBugTitleForAnomaly();
         }
         return this.getBugTitleForStoppageAlert();
       },
 
-      getSuiteNameForAlert: function(alert) {
+      getSuiteNameForAlert(alert) {
         // TODO(eakuefner): Ideally the TestMetadata can specify it's own
         // template, but that functionality is blocked on a working histogram
         // pipeline. So for now we just hard code a list of suites that specify
@@ -376,7 +376,7 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
         return alert.testsuite + '/' + alert.test.split('/')[0];
       },
 
-      getBugTitleForAnomaly: function() {
+      getBugTitleForAnomaly() {
         var type = 'improvement';
         var percentMin = Infinity;
         var percentMax = -Infinity;
@@ -436,7 +436,7 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
         return summary;
       },
 
-      getBugTitleForStoppageAlert: function() {
+      getBugTitleForStoppageAlert() {
         let alert = this.alerts[0];
         let suiteTitle = this.getSuiteNameForAlert(alert);
         let summary =
@@ -459,7 +459,7 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
        * @param {string} target Window name.
        * @return {Object} The window that was opened.
        */
-      openAndPost: function(url, data, target) {
+      openAndPost(url, data, target) {
         var popup = window.open('about:blank', target, 'width=600,height=480');
         var form = document.createElement('form');
         form.action = url;
@@ -480,11 +480,11 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
         return popup;
       },
 
-      open: function() {
+      open() {
         this.$.container.hidden = false;
       },
 
-      close: function() {
+      close() {
         this.$.container.hidden = true;
       }
     });

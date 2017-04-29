@@ -41,7 +41,7 @@ tr.b.unittest.testSuite(function() {
       var model = tr.c.TestUtils.newModel(modelCallback);
       var valueNameToValues = {};
       var fakeValueList = {
-        addHistogram: function(value) {
+        addHistogram(value) {
           var values = valueNameToValues[value.name];
           if (values === undefined) {
             valueNameToValues[value.name] = values = [];
@@ -58,7 +58,7 @@ tr.b.unittest.testSuite(function() {
       var expectedValueNames = Object.keys(expectedNumerics).sort();
       assert.deepEqual(actualValueNames, expectedValueNames, {
         // Build the long error message lazily.
-        toString: function() {
+        toString() {
           var errorMessageParts = [];
           function addValueNamesToError(type, valueNames, otherValueNames) {
             var otherValueNamesSet = new Set(otherValueNames);

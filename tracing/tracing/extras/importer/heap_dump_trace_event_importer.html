@@ -45,7 +45,7 @@ tr.exportTo('tr.e.importer', function() {
      * @param {!string} allocatorName e.g. malloc.
      * @return {!tr.model.HeapDump} on success or undefined on an error.
      */
-    parseRawHeapDump: function(rawHeapDump, allocatorName) {
+    parseRawHeapDump(rawHeapDump, allocatorName) {
       var model = this.model_;
       var processMemoryDump = this.processMemoryDump_;
       var heapDump = new tr.model.HeapDump(processMemoryDump, allocatorName);

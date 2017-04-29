@@ -282,13 +282,13 @@ found in the LICENSE file.
         showDelta: { notify: true }
       },
 
-      computeIsPositive: function(iterInfo, prop) {
+      computeIsPositive(iterInfo, prop) {
         return iterInfo.base[prop] > 0;
       },
       computeIsUndefined: x => x === undefined,
       computeSelectionIsAll: seriesGroup => seriesGroup.selection == 'all',
 
-      getTestIndexInSeriesGroup: function(seriesGroupIndex, name) {
+      getTestIndexInSeriesGroup(seriesGroupIndex, name) {
         var tests = this.seriesGroupList[seriesGroupIndex].tests;
         for (var i = 0; i < tests.length; i++) {
           if (name == tests[i].name) {
@@ -301,7 +301,7 @@ found in the LICENSE file.
       /**
        * Event handler for the change event of any of the checkboxes.
        */
-      onCheckboxClicked: function(event, detail) {
+      onCheckboxClicked(event, detail) {
         var test = event.model.test;
         var seriesGroupIndex = this.$.grouplist.indexForElement(event.target);
         var testIndex = this.getTestIndexInSeriesGroup(
@@ -337,7 +337,7 @@ found in the LICENSE file.
        *
        * @param {Object} seriesGroup A group of series.
        */
-      updateSeriesGroupCheckedState: function(seriesGroupIndex) {
+      updateSeriesGroupCheckedState(seriesGroupIndex) {
         var allSelected = [];
         var allUnselected = [];
         var seriesGroup = this.seriesGroupList[seriesGroupIndex];
@@ -368,7 +368,7 @@ found in the LICENSE file.
       /**
        * Returns true if only important series are selected.
        */
-      importantSelected: function(tests) {
+      importantSelected(tests) {
         var hasImportant = false;
         for (var i = 0; i < tests.length; i++) {
           var test = tests[i];
@@ -388,7 +388,7 @@ found in the LICENSE file.
        * Updates numHidden properties for a seriesGroup.  This is to show the
        * number of hidden series link.
        */
-      updateNumHidden: function(seriesGroupIndex) {
+      updateNumHidden(seriesGroupIndex) {
         var numHidden = 0;
         var numCanHide = 0;
         var seriesGroup = this.seriesGroupList[seriesGroupIndex];
@@ -416,7 +416,7 @@ found in the LICENSE file.
       /**
        * Event handler for the change event of check all checkboxes.
        */
-      onCheckAllCheckboxClicked: function(event, detail) {
+      onCheckAllCheckboxClicked(event, detail) {
         var sender = event.currentTarget;
         var groupIndex = event.model.groupIndex;
 
@@ -439,7 +439,7 @@ found in the LICENSE file.
       /**
        * Event handler for series group close button clicked.
        */
-      onCloseSeriesGroupClicked: function(event, detail) {
+      onCloseSeriesGroupClicked(event, detail) {
         var model = event.model;
         this.fire('seriesgroupclosed', {'groupIndex': model.groupIndex});
       },
@@ -447,7 +447,7 @@ found in the LICENSE file.
       /**
        * Event handler for click event of expand link.
        */
-      onExpandSeriesClicked: function(event, detail) {
+      onExpandSeriesClicked(event, detail) {
         var groupIndex = this.$.grouplist.modelForElement(
             event.target).groupIndex;
         var isCollapse = event.currentTarget.text == 'less' ? true : false;
@@ -470,7 +470,7 @@ found in the LICENSE file.
         this.updateNumHidden(groupIndex);
       },
 
-      fireChartStateChangedEvent: function() {
+      fireChartStateChangedEvent() {
         this.fire('chartstatechanged', {
           target: this,
           stateName: 'chartstatechanged',
@@ -483,7 +483,7 @@ found in the LICENSE file.
        * Updates this.indicesToGraph to contain all traces.
        * @param {Event=} opt_noEvent The click event, not used.
        */
-      onSelectAll: function(opt_noEvent) {
+      onSelectAll(opt_noEvent) {
         this.set('indicesToGraph', []);
         for (var i = 0; i < this.seriesGroupList.length; i++) {
           var group = this.seriesGroupList[i];
@@ -502,7 +502,7 @@ found in the LICENSE file.
        * Handler for the click event of the deselect all traces button.
        * @param {Event=} opt_noEvent The click event, not used.
        */
-      onDeselectAll: function(opt_noEvent) {
+      onDeselectAll(opt_noEvent) {
         this.set('indicesToGraph', []);
         for (var i = 0; i < this.seriesGroupList.length; i++) {
           var group = this.seriesGroupList[i];
@@ -522,7 +522,7 @@ found in the LICENSE file.
        * Note: The property 'coreTraces' is set in graph.js.
        * @param {Event=} opt_event The click event, not used.
        */
-      onSelectCore: function(opt_noEvent) {
+      onSelectCore(opt_noEvent) {
         this.set('indicesToGraph', []);
         for (var i = 0; i < this.seriesGroupList.length; i++) {
           var group = this.seriesGroupList[i];
@@ -539,13 +539,13 @@ found in the LICENSE file.
         this.fireChartStateChangedEvent();
       },
 
-      seriesMouseover: function(event, detail) {
+      seriesMouseover(event, detail) {
         this.fire('seriesmouseover', {
           'index': event.model.index
         });
       },
 
-      seriesMouseout: function(event, detail) {
+      seriesMouseout(event, detail) {
         this.fire('seriesmouseout', {
           'index': event.model.index
         });
@@ -556,7 +556,7 @@ found in the LICENSE file.
        * @param {number} index The index to add or remove.
        * @param {boolean} selected Whether to add the index.
        */
-      updateIndicesToGraph: function(index, selected) {
+      updateIndicesToGraph(index, selected) {
         if (selected) {
           if (this.indicesToGraph.indexOf(index) == -1) {
             this.push('indicesToGraph', index);
@@ -572,7 +572,7 @@ found in the LICENSE file.
       /**
        * Toggles legend window to collapse or expand.
        */
-      toggleLegend: function() {
+      toggleLegend() {
         this.$['collapsible-legend'].toggle();
         this.collapseLegend = !this.collapseLegend;
       }

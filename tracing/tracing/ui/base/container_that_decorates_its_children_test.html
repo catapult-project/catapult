@@ -24,12 +24,12 @@ tr.b.unittest.testSuite(function() {
   SimpleContainer.prototype = {
     __proto__: tr.ui.b.ContainerThatDecoratesItsChildren.prototype,
 
-    decorateChild_: function(child) {
+    decorateChild_(child) {
       assert.isFalse(child.decorated);
       child.decorated = true;
     },
 
-    undecorateChild_: function(child) {
+    undecorateChild_(child) {
       assert.isTrue(child.decorated);
       child.decorated = false;
     }

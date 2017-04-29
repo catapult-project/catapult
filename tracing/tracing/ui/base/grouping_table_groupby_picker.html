@@ -54,7 +54,7 @@ tr.exportTo('tr.ui.b', function() {
   Polymer({
     is: 'tr-ui-b-grouping-table-groupby-picker-group',
 
-    created: function() {
+    created() {
       this.picker_ = undefined;
       this.group_ = undefined;
     },
@@ -98,15 +98,15 @@ tr.exportTo('tr.ui.b', function() {
         'inline';
     },
 
-    moveLeft_: function() {
+    moveLeft_() {
       this.picker.moveLeft_(this);
     },
 
-    moveRight_: function() {
+    moveRight_() {
       this.picker.moveRight_(this);
     },
 
-    onEnableChanged_: function() {
+    onEnableChanged_() {
       if (!this.enabled) {
         this.$.left.style.display = 'none';
         this.$.right.style.display = 'none';
@@ -118,7 +118,7 @@ tr.exportTo('tr.ui.b', function() {
   Polymer({
     is: 'tr-ui-b-grouping-table-groupby-picker',
 
-    created: function() {
+    created() {
       this.settingsKey_ = undefined;
     },
 
@@ -133,7 +133,7 @@ tr.exportTo('tr.ui.b', function() {
       }
     },
 
-    restoreSetting_: function() {
+    restoreSetting_() {
       this.currentGroupKeys = tr.b.Settings.get(this.settingsKey_,
           this.currentGroupKeys);
     },
@@ -155,7 +155,7 @@ tr.exportTo('tr.ui.b', function() {
       this.updateFirstLast_();
     },
 
-    updateFirstLast_: function() {
+    updateFirstLast_() {
       var groupEls = this.$.container.children;
       var enabledGroupEls = [...groupEls].filter(el => el.enabled);
       for (var i = 0; i < enabledGroupEls.length; ++i) {
@@ -214,7 +214,7 @@ tr.exportTo('tr.ui.b', function() {
       this.onCurrentGroupsChanged_();
     },
 
-    moveLeft_: function(groupEl) {
+    moveLeft_(groupEl) {
       var reference = groupEl.previousSibling;
       Polymer.dom(this.$.container).removeChild(groupEl);
       Polymer.dom(this.$.container).insertBefore(groupEl, reference);
@@ -225,7 +225,7 @@ tr.exportTo('tr.ui.b', function() {
       }
     },
 
-    moveRight_: function(groupEl) {
+    moveRight_(groupEl) {
       var reference = groupEl.nextSibling.nextSibling;
       Polymer.dom(this.$.container).removeChild(groupEl);
       if (reference) {
@@ -240,12 +240,12 @@ tr.exportTo('tr.ui.b', function() {
       }
     },
 
-    onCurrentGroupsChanged_: function() {
+    onCurrentGroupsChanged_() {
       this.dispatchEvent(new tr.b.Event('current-groups-changed'));
       tr.b.Settings.set(this.settingsKey_, this.currentGroupKeys);
     },
 
-    onEnableChanged_: function(groupEl) {
+    onEnableChanged_(groupEl) {
       this.updateFirstLast_();
       this.onCurrentGroupsChanged_();
     }

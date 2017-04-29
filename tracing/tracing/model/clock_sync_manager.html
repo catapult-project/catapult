@@ -92,7 +92,7 @@ tr.exportTo('tr.model', function() {
      *                  unspecified, it's assumed to be the same as the start,
      *                  indicating an instantaneous sync.
      */
-    addClockSyncMarker: function(domainId, syncId, startTs, opt_endTs) {
+    addClockSyncMarker(domainId, syncId, startTs, opt_endTs) {
       this.onDomainSeen_(domainId);
 
       if (tr.b.dictionaryValues(ClockDomainId).indexOf(domainId) < 0) {
@@ -149,7 +149,7 @@ tr.exportTo('tr.model', function() {
      * domains are viable candidates, the one with the clock domain ID that is
      * the first alphabetically is selected.
      */
-    getModelTimeTransformer: function(domainId) {
+    getModelTimeTransformer(domainId) {
       this.onDomainSeen_(domainId);
 
       if (!this.modelDomainId_) {
@@ -163,13 +163,13 @@ tr.exportTo('tr.model', function() {
      * Returns the error associated with the transformation given by
      * |getModelTimeTransformer(domainId)|.
      */
-    getTimeTransformerError: function(fromDomainId, toDomainId) {
+    getTimeTransformerError(fromDomainId, toDomainId) {
       this.onDomainSeen_(fromDomainId);
       this.onDomainSeen_(toDomainId);
       return this.getTimeTransformerRaw_(fromDomainId, toDomainId).error;
     },
 
-    getTimeTransformerRaw_: function(fromDomainId, toDomainId) {
+    getTimeTransformerRaw_(fromDomainId, toDomainId) {
       var transformer =
           this.getTransformerBetween_(fromDomainId, toDomainId);
       if (!transformer) {
@@ -185,7 +185,7 @@ tr.exportTo('tr.model', function() {
      * Returns a function that, given a timestamp in the "from" domain, returns
      * a timestamp in the "to" domain.
      */
-    getTransformerBetween_: function(fromDomainId, toDomainId) {
+    getTransformerBetween_(fromDomainId, toDomainId) {
       // Do a breadth-first search from the "from" domain until we reach the
       // "to" domain.
       var visitedDomainIds = new Set();
@@ -249,7 +249,7 @@ tr.exportTo('tr.model', function() {
      * Chrome clock domain is present, the first clock domain alphabetically
      * is selected.
      */
-    selectModelDomainId_: function() {
+    selectModelDomainId_() {
       this.ensureAllDomainsAreConnected_();
 
       // While we're migrating to the new clock sync system, we have to make
@@ -268,7 +268,7 @@ tr.exportTo('tr.model', function() {
     },
 
     /** Throws an error if all domains are not connected. */
-    ensureAllDomainsAreConnected_: function() {
+    ensureAllDomainsAreConnected_() {
       // NOTE: this is a ridiculously inefficient way to do this. Given how few
       // clock domains we're likely to have, this shouldn't be a problem.
       var firstDomainId = undefined;
@@ -289,7 +289,7 @@ tr.exportTo('tr.model', function() {
     },
 
     /** Observer called each time that a clock domain is seen. */
-    onDomainSeen_: function(domainId) {
+    onDomainSeen_(domainId) {
       if (domainId === ClockDomainId.UNKNOWN_CHROME_LEGACY &&
           !this.domainsSeen_.has(ClockDomainId.UNKNOWN_CHROME_LEGACY)) {
         // UNKNOWN_CHROME_LEGACY was just seen for the first time: collapse it
@@ -315,7 +315,7 @@ tr.exportTo('tr.model', function() {
      * Observer called when a complete sync is made involving |marker1| and
      * |marker2|.
      */
-    onSyncCompleted_: function(marker1, marker2) {
+    onSyncCompleted_(marker1, marker2) {
       var forwardTransformer = Transformer.fromMarkers(marker1, marker2);
       var backwardTransformer = Transformer.fromMarkers(marker2, marker1);
 
@@ -331,7 +331,7 @@ tr.exportTo('tr.model', function() {
     },
 
     /** Makes timestamps in the two clock domains interchangeable. */
-    collapseDomains_: function(domain1Id, domain2Id) {
+    collapseDomains_(domain1Id, domain2Id) {
       this.getOrCreateTransformerMap_(domain1Id)[domain2Id] =
           this.getOrCreateTransformerMap_(domain2Id)[domain1Id] =
               Transformer.IDENTITY;
@@ -341,7 +341,7 @@ tr.exportTo('tr.model', function() {
      * Returns (and creates if it doesn't exist) the transformer map describing
      * how to transform timestamps between directly connected clock domains.
      */
-    getOrCreateTransformerMap_: function(domainId) {
+    getOrCreateTransformerMap_(domainId) {
       if (!this.transformerMapByDomainId_[domainId]) {
         this.transformerMapByDomainId_[domainId] = {};
       }
@@ -353,7 +353,7 @@ tr.exportTo('tr.model', function() {
      * @return {string} The clock sync graph represented in the DOT language.
      * This is useful for debugging incorrect clock sync behavior.
      */
-    computeDotGraph: function() {
+    computeDotGraph() {
       let dotString = 'graph {\n';
 
       const domainsSeen = [...this.domainsSeen_].sort();

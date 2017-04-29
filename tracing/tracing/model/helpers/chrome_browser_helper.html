@@ -48,7 +48,7 @@ tr.exportTo('tr.model.helpers', function() {
       return this.modelHelper.rendererHelpers;
     },
 
-    getLoadingEventsInRange: function(rangeOfInterest) {
+    getLoadingEventsInRange(rangeOfInterest) {
       return this.getAllAsyncSlicesMatching(function(slice) {
         return slice.title.indexOf('WebContentsImpl Loading') === 0 &&
             rangeOfInterest.intersectsExplicitRangeInclusive(
@@ -56,7 +56,7 @@ tr.exportTo('tr.model.helpers', function() {
       });
     },
 
-    getCommitProvisionalLoadEventsInRange: function(rangeOfInterest) {
+    getCommitProvisionalLoadEventsInRange(rangeOfInterest) {
       return this.getAllAsyncSlicesMatching(function(slice) {
         return slice.title === 'RenderFrameImpl::didCommitProvisionalLoad' &&
             rangeOfInterest.intersectsExplicitRangeInclusive(
@@ -78,7 +78,7 @@ tr.exportTo('tr.model.helpers', function() {
       return hasLatency;
     },
 
-    getLatencyEventsInRange: function(rangeOfInterest) {
+    getLatencyEventsInRange(rangeOfInterest) {
       return this.getAllAsyncSlicesMatching(function(slice) {
         return (slice.title.indexOf('InputLatency') === 0) &&
             rangeOfInterest.intersectsExplicitRangeInclusive(
@@ -86,7 +86,7 @@ tr.exportTo('tr.model.helpers', function() {
       });
     },
 
-    getAllAsyncSlicesMatching: function(pred, opt_this) {
+    getAllAsyncSlicesMatching(pred, opt_this) {
       var events = [];
       this.iterAllThreads(function(thread) {
         for (var slice of thread.getDescendantEvents()) {
@@ -98,7 +98,7 @@ tr.exportTo('tr.model.helpers', function() {
       return events;
     },
 
-    iterAllThreads: function(func, opt_this) {
+    iterAllThreads(func, opt_this) {
       for (var thread of Object.values(this.process.threads)) {
         func.call(opt_this, thread);
       }

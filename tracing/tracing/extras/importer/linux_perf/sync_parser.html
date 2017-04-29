@@ -46,7 +46,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     /**
      * Parses sync events and sets up state in the importer.
      */
-    timelineEvent: function(eventName, cpuNumber, pid,
+    timelineEvent(eventName, cpuNumber, pid,
         ts, eventBase) {
       var event = syncTimelineRE.exec(eventBase.details);
       if (!event) return false;
@@ -69,7 +69,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       return true;
     },
 
-    syncWaitEvent: function(eventName, cpuNumber, pid, ts,
+    syncWaitEvent(eventName, cpuNumber, pid, ts,
         eventBase) {
       var event = syncWaitRE.exec(eventBase.details);
       if (!event) return false;
@@ -107,7 +107,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       return true;
     },
 
-    syncPtEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+    syncPtEvent(eventName, cpuNumber, pid, ts, eventBase) {
       return !!syncPtRE.exec(eventBase.details);
     }
   };

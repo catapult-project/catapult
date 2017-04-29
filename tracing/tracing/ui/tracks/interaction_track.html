@@ -27,7 +27,7 @@ tr.exportTo('tr.ui.tracks', function() {
   InteractionTrack.prototype = {
     __proto__: tr.ui.tracks.MultiRowTrack.prototype,
 
-    decorate: function(viewport) {
+    decorate(viewport) {
       tr.ui.tracks.MultiRowTrack.prototype.decorate.call(this, viewport);
       this.heading = 'Interactions';
       this.subRows_ = [];
@@ -36,14 +36,14 @@ tr.exportTo('tr.ui.tracks', function() {
     set model(model) {
       this.setItemsToGroup(model.userModel.expectations, {
         guid: tr.b.GUID.allocateSimple(),
-        model: model,
-        getSettingsKey: function() {
+        model,
+        getSettingsKey() {
           return undefined;
         }
       });
     },
 
-    buildSubRows_: function(slices) {
+    buildSubRows_(slices) {
       if (this.subRows_.length) {
         return this.subRows_;
       }
@@ -53,7 +53,7 @@ tr.exportTo('tr.ui.tracks', function() {
       return this.subRows_;
     },
 
-    addSubTrack_: function(slices) {
+    addSubTrack_(slices) {
       var track = new tr.ui.tracks.SliceTrack(this.viewport);
       track.slices = slices;
       Polymer.dom(this).appendChild(track);

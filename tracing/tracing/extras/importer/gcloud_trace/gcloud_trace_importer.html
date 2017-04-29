@@ -47,12 +47,12 @@ tr.exportTo('tr.e.importer.gcloud_trace', function() {
      * Called by the Model to extract subtraces from the event data. The
      * subtraces are passed on to other importers that can recognize them.
      */
-    extractSubtraces: function() {
+    extractSubtraces() {
       var traceEvents = this.createEventsForTrace();
       return traceEvents ? [traceEvents] : [];
     },
 
-    createEventsForTrace: function() {
+    createEventsForTrace() {
       var events = [];
       var trace = JSON.parse(this.eventData_);
       var spanLength = trace.spans.length;
@@ -64,7 +64,7 @@ tr.exportTo('tr.e.importer.gcloud_trace', function() {
       };
     },
 
-    createEventForSpan: function(traceId, span) {
+    createEventForSpan(traceId, span) {
       var newArgs = {};
       if (span.labels) {
         newArgs = JSON.parse(JSON.stringify(span.labels));

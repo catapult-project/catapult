@@ -23,11 +23,11 @@ tr.exportTo('tr.ui.tracks', function() {
   ProcessTrack.prototype = {
     __proto__: ProcessTrackBase.prototype,
 
-    decorate: function(viewport) {
+    decorate(viewport) {
       tr.ui.tracks.ProcessTrackBase.prototype.decorate.call(this, viewport);
     },
 
-    drawTrack: function(type) {
+    drawTrack(type) {
       switch (type) {
         case tr.ui.tracks.DrawType.INSTANT_EVENT:
           if (!this.processBase.instantEvents ||
@@ -72,7 +72,7 @@ tr.exportTo('tr.ui.tracks', function() {
       tr.ui.tracks.ContainerTrack.prototype.drawTrack.call(this, type);
     },
 
-    drawBackground_: function() {
+    drawBackground_() {
       var ctx = this.context();
       var canvasBounds = ctx.canvas.getBoundingClientRect();
       var pixelRatio = window.devicePixelRatio || 1;
@@ -107,13 +107,13 @@ tr.exportTo('tr.ui.tracks', function() {
       return this.process;
     },
 
-    addContainersToTrackMap: function(containerToTrackMap) {
+    addContainersToTrackMap(containerToTrackMap) {
       tr.ui.tracks.ProcessTrackBase.prototype.addContainersToTrackMap.apply(
           this, arguments);
       containerToTrackMap.addContainer(this.process, this);
     },
 
-    appendMemoryDumpTrack_: function() {
+    appendMemoryDumpTrack_() {
       var processMemoryDumps = this.process.memoryDumps;
       if (processMemoryDumps.length) {
         var pmdt = new tr.ui.tracks.ProcessMemoryDumpTrack(this.viewport_);
@@ -122,7 +122,7 @@ tr.exportTo('tr.ui.tracks', function() {
       }
     },
 
-    addIntersectingEventsInRangeToSelectionInWorldSpace: function(
+    addIntersectingEventsInRangeToSelectionInWorldSpace(
         loWX, hiWX, viewPixWidthWorld, selection) {
       function onPickHit(instantEvent) {
         selection.push(instantEvent);
@@ -139,7 +139,7 @@ tr.exportTo('tr.ui.tracks', function() {
           apply(this, arguments);
     },
 
-    addClosestEventToSelection: function(worldX, worldMaxDist, loY, hiY,
+    addClosestEventToSelection(worldX, worldMaxDist, loY, hiY,
         selection) {
       this.addClosestInstantEventToSelection(this.processBase.instantEvents,
           worldX, worldMaxDist, selection);

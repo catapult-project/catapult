@@ -77,7 +77,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
   ProfilingView.prototype = {
     __proto__: HTMLDivElement.prototype,
 
-    decorate: function(tracingControllerClient) {
+    decorate(tracingControllerClient) {
       Polymer.dom(this).appendChild(
           tr.ui.b.instantiateTemplate('#profiling-view-template', THIS_DOC));
 
@@ -101,7 +101,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       this.timelineView_.hotkeyController.addHotKey(new tr.ui.b.HotKey({
         eventType: 'keypress',
         keyCode: 'r'.charCodeAt(0),
-        callback: function(e) {
+        callback(e) {
           this.beginRecording();
           event.stopPropagation();
         },
@@ -128,7 +128,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
 
     // Detach all document event listeners. Without this the tests can get
     // confused as the element may still be listening when the next test runs.
-    detach_: function() {
+    detach_() {
       this.detachDragAndDrop_();
     },
 
@@ -141,18 +141,18 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       this.updateTracingControllerSpecificState_();
     },
 
-    updateTracingControllerSpecificState_: function() {
+    updateTracingControllerSpecificState_() {
       var isInspector = this.tracingControllerClient_ instanceof
           tr.ui.e.about_tracing.InspectorTracingControllerClient;
 
       if (isInspector) {
         this.infoBarGroup_.addMessage(
             'This about:tracing is connected to a remote device...',
-            [{buttonText: 'Wow!', onClick: function() {}}]);
+            [{buttonText: 'Wow!', onClick() {}}]);
       }
     },
 
-    beginRecording: function() {
+    beginRecording() {
       if (this.isRecording_) {
         throw new Error('Already recording');
       }
@@ -182,15 +182,15 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
 
     ///////////////////////////////////////////////////////////////////////////
 
-    clearActiveTrace: function() {
+    clearActiveTrace() {
       this.saveButton_.disabled = true;
       this.activeTrace_ = undefined;
     },
 
-    setActiveTrace: function(filename, data) {
+    setActiveTrace(filename, data) {
       this.activeTrace_ = {
-        filename: filename,
-        data: data
+        filename,
+        data
       };
 
       this.infoBarGroup_.clearMessages();
@@ -213,7 +213,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
 
     ///////////////////////////////////////////////////////////////////////////
 
-    initButtons_: function() {
+    initButtons_() {
       this.recordButton_.addEventListener(
           'click', function(event) {
             event.stopPropagation();
@@ -231,7 +231,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       this.saveButton_.disabled = true;
     },
 
-    requestFilename_: function() {
+    requestFilename_() {
       // unsafe filename patterns:
       var illegalRe = /[\/\?<>\\:\*\|":]/g;
       var controlRe = /[\x00-\x1f\x80-\x9f]/g;
@@ -274,7 +274,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
           .replace(/\s+/g, '_');
     },
 
-    onSaveClicked_: function() {
+    onSaveClicked_() {
       // Create a blob URL from the binary array.
       var blob = new Blob([this.activeTrace_.data],
                           {type: 'application/octet-binary'});
@@ -290,7 +290,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       }
     },
 
-    onLoadClicked_: function() {
+    onLoadClicked_() {
       var inputElement = document.createElement('input');
       inputElement.type = 'file';
       inputElement.multiple = false;
@@ -316,7 +316,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
 
     ///////////////////////////////////////////////////////////////////////////
 
-    initDragAndDrop_: function() {
+    initDragAndDrop_() {
       this.dropHandler_ = this.dropHandler_.bind(this);
       this.ignoreDragEvent_ = this.ignoreDragEvent_.bind(this);
       document.addEventListener('dragstart', this.ignoreDragEvent_, false);
@@ -327,7 +327,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       document.addEventListener('drop', this.dropHandler_, false);
     },
 
-    detachDragAndDrop_: function() {
+    detachDragAndDrop_() {
       document.removeEventListener('dragstart', this.ignoreDragEvent_);
       document.removeEventListener('dragend', this.ignoreDragEvent_);
       document.removeEventListener('dragenter', this.ignoreDragEvent_);
@@ -336,12 +336,12 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       document.removeEventListener('drop', this.dropHandler_);
     },
 
-    ignoreDragEvent_: function(e) {
+    ignoreDragEvent_(e) {
       e.preventDefault();
       return false;
     },
 
-    dropHandler_: function(e) {
+    dropHandler_(e) {
       if (this.isAnyDialogUp_) return;
 
       e.stopPropagation();

@@ -24,7 +24,7 @@ tr.exportTo('tr.mre', function() {
     get mapFunctionHandle() { return this.mapFunctionHandle_; },
     get guid() { return this.guid_; },
 
-    asDict: function() {
+    asDict() {
       return {
         map_function_handle: this.mapFunctionHandle_.asDict(),
         guid: this.guid_.toString()

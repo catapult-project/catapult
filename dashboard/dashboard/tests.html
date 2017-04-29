@@ -33,7 +33,7 @@ found in the LICENSE file.
     window.addEventListener('load', function() {
       tr.b.unittest.loadAndRunTests({
         title: 'All Dashboard Tests',
-        getAllSuiteRelPathsAsync: function() {
+        getAllSuiteRelPathsAsync() {
           return tr.b.getAsync('/dashboard/tests').then(function(json) {
             return JSON.parse(json).test_relpaths;
           }).catch (function(e) {

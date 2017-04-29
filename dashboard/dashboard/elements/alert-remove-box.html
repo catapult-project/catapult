@@ -48,7 +48,7 @@ an alert from an issue on the issue tracker.
       /**
        * Sends a request to /edit_anomalies to reset the bug ID of this alert.
        */
-      onRemoveBug: function(event, detail) {
+      onRemoveBug(event, detail) {
         event.preventDefault();
         this.loading = true;
         var params = {

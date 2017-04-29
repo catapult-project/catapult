@@ -83,7 +83,7 @@ found in the LICENSE file.
 Polymer({
   is: 'tr-ui-side-panel-container',
 
-  ready: function() {
+  ready() {
     this.activePanelContainer_ = this.$.active_panel_container;
     this.tabStrip_ = this.$.tab_strip;
 
@@ -116,7 +116,7 @@ Polymer({
     }
   },
 
-  onSelectionChanged_: function() {
+  onSelectionChanged_() {
     if (this.activePanel) {
       this.activePanel.selection = this.selection;
     }
@@ -126,7 +126,7 @@ Polymer({
     return this.brushingStateController_.model;
   },
 
-  onModelChanged_: function() {
+  onModelChanged_() {
     this.activePanelType_ = undefined;
     this.updateContents_();
   },
@@ -189,7 +189,7 @@ Polymer({
     this.activePanelType_ = panelType;
   },
 
-  getPanelTypeForConstructor_: function(constructor) {
+  getPanelTypeForConstructor_(constructor) {
     for (var i = 0; i < this.tabStrip_.children.length; i++) {
       if (this.tabStrip_.children[i].panelType.constructor === constructor) {
         return this.tabStrip_.children[i].panelType;
@@ -197,7 +197,7 @@ Polymer({
     }
   },
 
-  getLabelElementForPanelType_: function(panelType) {
+  getLabelElementForPanelType_(panelType) {
     for (var i = 0; i < this.tabStrip_.children.length; i++) {
       if (this.tabStrip_.children[i].panelType === panelType) {
         return this.tabStrip_.children[i];
@@ -206,7 +206,7 @@ Polymer({
     return undefined;
   },
 
-  updateContents_: function() {
+  updateContents_() {
     var previouslyActivePanelType = this.activePanelType;
 
     Polymer.dom(this.tabStrip_).textContent = '';

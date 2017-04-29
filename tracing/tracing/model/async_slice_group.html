@@ -45,7 +45,7 @@ tr.exportTo('tr.model', function() {
       return this.parentContainer_.stableId + '.AsyncSliceGroup';
     },
 
-    getSettingsKey: function() {
+    getSettingsKey() {
       if (!this.name_) return undefined;
       var parentKey = this.parentContainer_.getSettingsKey();
       if (!parentKey) return undefined;
@@ -55,7 +55,7 @@ tr.exportTo('tr.model', function() {
     /**
      * Helper function that pushes the provided slice onto the slices array.
      */
-    push: function(slice) {
+    push(slice) {
       slice.parentContainer = this.parentContainer;
       this.slices.push(slice);
       return slice;
@@ -72,7 +72,7 @@ tr.exportTo('tr.model', function() {
      * Shifts all the timestamps inside this group forward by the amount
      * specified, including all nested subSlices if there are any.
      */
-    shiftTimestampsForward: function(amount) {
+    shiftTimestampsForward(amount) {
       for (var sI = 0; sI < this.slices.length; sI++) {
         var slice = this.slices[sI];
         slice.start = (slice.start + amount);
@@ -91,7 +91,7 @@ tr.exportTo('tr.model', function() {
     /**
      * Updates the bounds for this group based on the slices it contains.
      */
-    updateBounds: function() {
+    updateBounds() {
       this.bounds.reset();
       for (var i = 0; i < this.slices.length; i++) {
         this.bounds.addValue(this.slices[i].start);
@@ -132,7 +132,7 @@ tr.exportTo('tr.model', function() {
       return this.viewSubGroups_;
     },
 
-    findTopmostSlicesInThisContainer: function* (eventPredicate, opt_this) {
+    * findTopmostSlicesInThisContainer(eventPredicate, opt_this) {
       for (var slice of this.slices) {
         if (slice.isTopLevel) {
           yield* slice.findTopmostSlicesRelativeToThisSlice(
@@ -141,7 +141,7 @@ tr.exportTo('tr.model', function() {
       }
     },
 
-    childEvents: function* () {
+    * childEvents() {
       // Async slices normally don't have sub-slices, and when they do,
       // the sub-slice is specific to the type of async slice. Thus,
       // it is not expected for sub-slices to themselves have sub-sub-slices,
@@ -154,7 +154,7 @@ tr.exportTo('tr.model', function() {
       }
     },
 
-    childEventContainers: function* () {
+    * childEventContainers() {
     }
   };
 

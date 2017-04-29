@@ -24,7 +24,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   var testOptions = {
-    tearDown: function() {
+    tearDown() {
       testing_common.clearXhrMock();
       testing_common.clearFixture();
     }

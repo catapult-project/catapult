@@ -215,7 +215,7 @@ found in the LICENSE file.
       formatDate: d => d.getFullYear() + '-' + (d.getMonth() + 1) +
                       '-' + d.getDate(),
 
-      ready: async function() {
+      async ready() {
         if (this.bugId > 0) {
           this.isValidBug = true;
           try {

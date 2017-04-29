@@ -166,8 +166,8 @@ found in the LICENSE file.
       };
 
       return {
-        getDriveFileId: function() { return driveFileId_; },
-        constants: constants
+        getDriveFileId() { return driveFileId_; },
+        constants
       };
     });
 
@@ -202,7 +202,7 @@ found in the LICENSE file.
       }
 
       gapi.load('picker', {'callback': onPickerApiLoad});
-      gapi.load('auth', {'callback': function() {
+      gapi.load('auth', {'callback'() {
         onAuthApiLoad(true, onAuthResultSuccess);
         return tr.b.timeout(30e3)
             .then(() => onAuthApiLoad(true, function() {}))
@@ -276,7 +276,7 @@ found in the LICENSE file.
 
     function loadFileFromDrive(fileId) {
       gapi.client.load('drive', 'v2', function() {
-        var request = gapi.client.drive.files.get({'fileId': fileId});
+        var request = gapi.client.drive.files.get({fileId});
         request.execute(function(resp) { downloadFile(resp); });
         driveFileId_ = fileId;
         gapi.load('drive-share', initShareButton);

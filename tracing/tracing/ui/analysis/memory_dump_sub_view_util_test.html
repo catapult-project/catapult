@@ -277,7 +277,7 @@ tr.b.unittest.testSuite(function() {
     var columns = MemoryColumn.fromRows(rows, {
       cellKey: 'fields',
       aggregationMode: AggregationMode.MAX,
-      rules: rules,
+      rules,
       shouldSetContextGroup: true
     });
     assert.lengthOf(columns, 4);
@@ -328,7 +328,7 @@ tr.b.unittest.testSuite(function() {
     var columns = [
       {
         title: 'First Column',
-        value: function(row) { return row.firstData; }
+        value(row) { return row.firstData; }
       }
     ];
     MemoryColumn.spaceEqually(columns);
@@ -338,11 +338,11 @@ tr.b.unittest.testSuite(function() {
     var columns = [
       {
         title: 'First Column',
-        value: function(row) { return row.firstData; }
+        value(row) { return row.firstData; }
       },
       {
         title: 'Second Column',
-        value: function(row) { return row.firstData; }
+        value(row) { return row.firstData; }
       }
     ];
     MemoryColumn.spaceEqually(columns);
@@ -435,7 +435,7 @@ tr.b.unittest.testSuite(function() {
     var c2 = new MemoryColumn('color', ['x'],
         AggregationMode.DIFF);
     Object.defineProperty(c2, 'color', {
-      get: function() {
+      get() {
         throw new Error('The color should never be retrieved');
       }
     });
@@ -1005,7 +1005,7 @@ tr.b.unittest.testSuite(function() {
     var columns = [
       {
         title: 'Single column',
-        value: function(row) { return row.data; },
+        value(row) { return row.data; },
         width: '100px'
       }
     ];

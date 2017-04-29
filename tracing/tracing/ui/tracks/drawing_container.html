@@ -45,7 +45,7 @@ tr.exportTo('tr.ui.tracks', function() {
   DrawingContainer.prototype = {
     __proto__: tr.ui.tracks.Track.prototype,
 
-    decorate: function(viewport) {
+    decorate(viewport) {
       tr.ui.tracks.Track.prototype.decorate.call(this, viewport);
       Polymer.dom(this).classList.add('drawing-container');
 
@@ -69,25 +69,25 @@ tr.exportTo('tr.ui.tracks', function() {
       return this.canvas_;
     },
 
-    context: function() {
+    context() {
       return this.ctx_;
     },
 
-    viewportChange_: function() {
+    viewportChange_() {
       this.invalidate();
     },
 
-    windowResized_: function() {
+    windowResized_() {
       this.invalidate();
     },
 
-    scrollChanged_: function() {
+    scrollChanged_() {
       if (this.updateOffsetY_()) {
         this.invalidate();
       }
     },
 
-    invalidate: function() {
+    invalidate() {
       if (this.rafPending_) return;
 
       this.rafPending_ = true;
@@ -95,14 +95,14 @@ tr.exportTo('tr.ui.tracks', function() {
       tr.b.requestPreAnimationFrame(this.preDraw_, this);
     },
 
-    preDraw_: function() {
+    preDraw_() {
       this.rafPending_ = false;
       this.updateCanvasSizeIfNeeded_();
 
       tr.b.requestAnimationFrameInThisFrameIfPossible(this.draw_, this);
     },
 
-    draw_: function() {
+    draw_() {
       this.ctx_.clearRect(0, 0, this.canvas_.width, this.canvas_.height);
 
       var typesToDraw = [
@@ -137,7 +137,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     // Update's this.offsetY_, returning true if the value has changed
     // and thus a redraw is needed, or false if it did not change.
-    updateOffsetY_: function() {
+    updateOffsetY_() {
       var maxYDelta = window.innerHeight * REDRAW_SLOP;
       var newOffset = this.scrollTop - maxYDelta;
       if (Math.abs(newOffset - this.offsetY_) <= maxYDelta) return false;
@@ -152,7 +152,7 @@ tr.exportTo('tr.ui.tracks', function() {
       return false;
     },
 
-    updateCanvasSizeIfNeeded_: function() {
+    updateCanvasSizeIfNeeded_() {
       var visibleChildTracks =
           tr.b.asArray(this.children).filter(this.visibleFilter_);
 
@@ -190,13 +190,13 @@ tr.exportTo('tr.ui.tracks', function() {
       }
     },
 
-    visibleFilter_: function(element) {
+    visibleFilter_(element) {
       if (!(element instanceof tr.ui.tracks.Track)) return false;
 
       return window.getComputedStyle(element).display !== 'none';
     },
 
-    addClosestEventToSelection: function(
+    addClosestEventToSelection(
         worldX, worldMaxDist, loY, hiY, selection) {
       for (var i = 0; i < this.children.length; ++i) {
         if (!(this.children[i] instanceof tr.ui.tracks.Track)) {
@@ -215,7 +215,7 @@ tr.exportTo('tr.ui.tracks', function() {
           apply(this, arguments);
     },
 
-    addEventsToTrackMap: function(eventToTrackMap) {
+    addEventsToTrackMap(eventToTrackMap) {
       for (var i = 0; i < this.children.length; ++i) {
         if (!(this.children[i] instanceof tr.ui.tracks.Track)) {
           continue;

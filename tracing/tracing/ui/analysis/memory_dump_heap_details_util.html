@@ -38,7 +38,7 @@ tr.exportTo('tr.ui.analysis', function() {
   HeapDetailsTitleColumn.prototype = {
     __proto__: tr.ui.analysis.TitleColumn.prototype,
 
-    formatTitle: function(row) {
+    formatTitle(row) {
       if (row.dimension === HeapDetailsRowDimension.ROOT) {
         return row.title;
       }
@@ -69,7 +69,7 @@ tr.exportTo('tr.ui.analysis', function() {
   AllocationCountColumn.prototype = {
     __proto__: tr.ui.analysis.DetailsNumericMemoryColumn.prototype,
 
-    getFormattingContext: function(unit) {
+    getFormattingContext(unit) {
       return { minimumFractionDigits: 0 };
     }
   };

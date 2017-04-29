@@ -33,14 +33,14 @@ tr.exportTo('tr.b', function() {
   }
 
   SinebowColorGenerator.prototype = {
-    colorForKey: function(key) {
+    colorForKey(key) {
       if (!this.keyToColor[key]) {
         this.keyToColor[key] = this.nextColor();
       }
       return this.keyToColor[key];
     },
 
-    nextColor: function() {
+    nextColor() {
       var components = SinebowColorGenerator.nthColor(this.colorIndex_++);
       return tr.b.Color.fromString(SinebowColorGenerator.calculateColor(
           components[0], components[1], components[2],

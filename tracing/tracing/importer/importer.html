@@ -26,40 +26,40 @@ tr.exportTo('tr.importer', function() {
      * Called by the Model to check whether the importer type stores the actual
      * trace data or just holds it as container for further extraction.
      */
-    isTraceDataContainer: function() {
+    isTraceDataContainer() {
       return false;
     },
 
     /**
      * Called by the Model to extract one or more subtraces from the event data.
      */
-    extractSubtraces: function() {
+    extractSubtraces() {
       return [];
     },
 
     /**
      * Called to import clock sync markers into the Model.
      */
-    importClockSyncMarkers: function() {
+    importClockSyncMarkers() {
     },
 
     /**
      * Called to import events into the Model.
      */
-    importEvents: function() {
+    importEvents() {
     },
 
     /**
      * Called to import sample data into the Model.
      */
-    importSampleData: function() {
+    importSampleData() {
     },
 
     /**
      * Called by the Model after all other importers have imported their
      * events.
      */
-    finalizeImport: function() {
+    finalizeImport() {
     }
   };
 

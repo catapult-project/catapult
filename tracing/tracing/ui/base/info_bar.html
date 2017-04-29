@@ -41,7 +41,7 @@ found in the LICENSE file.
 Polymer({
   is: 'tr-ui-b-info-bar',
 
-  ready: function() {
+  ready() {
     this.messageEl_ = this.$.message;
     this.buttonsEl_ = this.$.buttons;
 
@@ -64,11 +64,11 @@ Polymer({
     this.hidden = !visible;
   },
 
-  removeAllButtons: function() {
+  removeAllButtons() {
     Polymer.dom(this.buttonsEl_).textContent = '';
   },
 
-  addButton: function(text, clickCallback) {
+  addButton(text, clickCallback) {
     var button = document.createElement('button');
     Polymer.dom(button).textContent = text;
     button.addEventListener('click', clickCallback);

@@ -17,7 +17,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   var testOptions = {
-    tearDown: function() {
+    tearDown() {
       testing_common.clearXhrMock();
     }
   };
@@ -118,8 +118,8 @@ tr.b.unittest.testSuite(function() {
     'name': 'fakeTable',
     'values': testData,
     'units': unitMap,
-    'revisions': revisions,
-    'categories': categories,
+    revisions,
+    categories,
     'urls': urlMap,
     'display_revisions': displayRevisions,
     'display_milestones': [55, 55],

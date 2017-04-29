@@ -274,7 +274,7 @@ tr.exportTo('tr.e.importer.v8', function() {
       this.name_ = value;
     },
 
-    toString: function() {
+    toString() {
       this.name_ + ': ' + this.size.toString(16);
     }
   };
@@ -319,15 +319,15 @@ tr.exportTo('tr.e.importer.v8', function() {
     /**
      * Returns raw node name (without type decoration).
      */
-    getRawName: function() {
+    getRawName() {
       return this.func.getName();
     },
 
-    isJSFunction: function() {
+    isJSFunction() {
       return true;
     },
 
-    toString: function() {
+    toString() {
       return this.type + ': ' + this.name + ': ' + this.size.toString(16);
     }
   };

@@ -50,7 +50,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
   DiskParser.prototype = {
     __proto__: Parser.prototype,
 
-    openAsyncSlice: function(ts, category, threadName, pid, key, name) {
+    openAsyncSlice(ts, category, threadName, pid, key, name) {
       var kthread = this.importer.getOrCreateKernelThread(
           category + ':' + threadName, pid);
       var asyncSliceConstructor =
@@ -68,7 +68,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       kthread.openAsyncSlices[key] = slice;
     },
 
-    closeAsyncSlice: function(ts, category, threadName, pid, key, args) {
+    closeAsyncSlice(ts, category, threadName, pid, key, args) {
       var kthread = this.importer.getOrCreateKernelThread(
           category + ':' + threadName, pid);
       if (kthread.openAsyncSlices) {
@@ -90,7 +90,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     /**
      * Parses events and sets up state in the importer.
      */
-    f2fsWriteBeginEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+    f2fsWriteBeginEvent(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /dev = \((\d+,\d+)\), ino = (\d+), pos = (\d+), len = (\d+), flags = (\d+)/. // @suppress longLineCheck
           exec(eventBase.details);
       if (!event) return false;
@@ -104,7 +104,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       return true;
     },
 
-    f2fsWriteEndEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+    f2fsWriteEndEvent(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /dev = \((\d+,\d+)\), ino = (\d+), pos = (\d+), len = (\d+), copied = (\d+)/. // @suppress longLineCheck
           exec(eventBase.details);
       if (!event) return false;
@@ -117,14 +117,14 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var key = device + '-' + inode + '-' + pos + '-' + len;
       this.closeAsyncSlice(ts, 'f2fs', eventBase.threadName, eventBase.pid,
           key, {
-            device: device,
-            inode: inode,
-            error: error
+            device,
+            inode,
+            error
           });
       return true;
     },
 
-    ext4WriteBeginEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+    ext4WriteBeginEvent(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /dev (\d+,\d+) ino (\d+) pos (\d+) len (\d+) flags (\d+)/.
           exec(eventBase.details);
       if (!event) return false;
@@ -138,7 +138,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       return true;
     },
 
-    ext4WriteEndEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+    ext4WriteEndEvent(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /dev (\d+,\d+) ino (\d+) pos (\d+) len (\d+) copied (\d+)/.
           exec(eventBase.details);
       if (!event) return false;
@@ -151,14 +151,14 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var key = device + '-' + inode + '-' + pos + '-' + len;
       this.closeAsyncSlice(ts, 'ext4', eventBase.threadName, eventBase.pid,
           key, {
-            device: device,
-            inode: inode,
-            error: error
+            device,
+            inode,
+            error
           });
       return true;
     },
 
-    f2fsSyncFileEnterEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+    f2fsSyncFileEnterEvent(eventName, cpuNumber, pid, ts, eventBase) {
       var event = new RegExp(
           'dev = \\((\\d+,\\d+)\\), ino = (\\d+), pino = (\\d+), i_mode = (\\S+), ' + // @suppress longLineCheck
           'i_size = (\\d+), i_nlink = (\\d+), i_blocks = (\\d+), i_advise = (\\d+)'). // @suppress longLineCheck
@@ -173,7 +173,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       return true;
     },
 
-    f2fsSyncFileExitEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+    f2fsSyncFileExitEvent(eventName, cpuNumber, pid, ts, eventBase) {
       var event = new RegExp('dev = \\((\\d+,\\d+)\\), ino = (\\d+), checkpoint is (\\S+), ' + // @suppress longLineCheck
           'datasync = (\\d+), ret = (\\d+)').
           exec(eventBase.details.replace('not needed', 'not_needed'));
@@ -185,14 +185,14 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var key = device + '-' + inode;
       this.closeAsyncSlice(ts, 'f2fs', eventBase.threadName, eventBase.pid,
           key, {
-            device: device,
-            inode: inode,
-            error: error
+            device,
+            inode,
+            error
           });
       return true;
     },
 
-    ext4SyncFileEnterEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+    ext4SyncFileEnterEvent(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /dev (\d+,\d+) ino (\d+) parent (\d+) datasync (\d+)/.
           exec(eventBase.details);
       if (!event) return false;
@@ -207,7 +207,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       return true;
     },
 
-    ext4SyncFileExitEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+    ext4SyncFileExitEvent(eventName, cpuNumber, pid, ts, eventBase) {
       var event = /dev (\d+,\d+) ino (\d+) ret (\d+)/.exec(eventBase.details);
       if (!event) return false;
 
@@ -217,14 +217,14 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var key = device + '-' + inode;
       this.closeAsyncSlice(ts, 'ext4', eventBase.threadName, eventBase.pid,
           key, {
-            device: device,
-            inode: inode,
-            error: error
+            device,
+            inode,
+            error
           });
       return true;
     },
 
-    blockRqIssueEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+    blockRqIssueEvent(eventName, cpuNumber, pid, ts, eventBase) {
       var event = new RegExp('(\\d+,\\d+) (F)?([DWRN])(F)?(A)?(S)?(M)? ' +
           '\\d+ \\(.*\\) (\\d+) \\+ (\\d+) \\[.*\\]').exec(eventBase.details);
       if (!event) return false;
@@ -272,7 +272,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       return true;
     },
 
-    blockRqCompleteEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
+    blockRqCompleteEvent(eventName, cpuNumber, pid, ts, eventBase) {
       var event = new RegExp('(\\d+,\\d+) (F)?([DWRN])(F)?(A)?(S)?(M)? ' +
           '\\(.*\\) (\\d+) \\+ (\\d+) \\[(.*)\\]').exec(eventBase.details);
       if (!event) return false;
@@ -284,10 +284,10 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var key = device + '-' + sector + '-' + numSectors;
       this.closeAsyncSlice(ts, 'block', eventBase.threadName, eventBase.pid,
           key, {
-            device: device,
-            sector: sector,
-            numSectors: numSectors,
-            error: error
+            device,
+            sector,
+            numSectors,
+            error
           });
       return true;
     }

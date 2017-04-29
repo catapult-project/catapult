@@ -116,10 +116,10 @@ tr.exportTo('tr.ui.b', function() {
         var heightPx = bottom - this.yScale_(sum);
         bottom -= heightPx;
         stacks.push({
-          key: key,
+          key,
           value: datum[key],
           color: this.getDataSeries(key).color,
-          heightPx: heightPx,
+          heightPx,
           topPx: bottom,
           underflow: sum < this.dataRange.min,
           overflow: sum > this.dataRange.max,
@@ -142,9 +142,9 @@ tr.exportTo('tr.ui.b', function() {
         var clampedValue = this.dataRange.clamp(datum[key]);
         var topPx = this.yScale_(Math.max(clampedValue, this.getYScaleMin_()));
         stacks.push({
-          key: key,
+          key,
           value: datum[key],
-          topPx: topPx,
+          topPx,
           heightPx: this.yScale_.range()[0] - topPx,
           color: this.getDataSeries(key).color,
           underflow: datum[key] < this.dataRange.min,

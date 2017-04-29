@@ -20,7 +20,7 @@ tr.b.unittest.testSuite(function() {
     var m = tr.c.TestUtils.newModelWithEvents([], {
       shiftWorldToZero: false,
       pruneContainers: false,
-      customizeModelCallback: function(model) {
+      customizeModelCallback(model) {
         t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
         traces.forEach(function(trace, index) {
           model.samples.push(

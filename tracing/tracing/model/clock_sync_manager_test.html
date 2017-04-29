@@ -15,7 +15,7 @@ tr.b.unittest.testSuite(function() {
   var ClockSyncManager = tr.model.ClockSyncManager;
 
   var testOptions = {
-    setUp: function() {
+    setUp() {
       // Add a few testing clock domains to the list of permissible domains.
       ClockDomainId.DOMAIN_1 = 'DOMAIN1';
       ClockDomainId.DOMAIN_2 = 'DOMAIN2';
@@ -24,7 +24,7 @@ tr.b.unittest.testSuite(function() {
       ClockDomainId.DOMAIN_5 = 'DOMAIN5';
     },
 
-    tearDown: function() {
+    tearDown() {
       delete ClockDomainId.DOMAIN_1;
       delete ClockDomainId.DOMAIN_2;
       delete ClockDomainId.DOMAIN_3;

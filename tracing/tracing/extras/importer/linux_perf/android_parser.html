@@ -52,7 +52,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
   AndroidParser.prototype = {
     __proto__: Parser.prototype,
 
-    openAsyncSlice: function(thread, category, name, cookie, ts, args) {
+    openAsyncSlice(thread, category, name, cookie, ts, args) {
       var asyncSliceConstructor =
          tr.model.AsyncSlice.subTypes.getConstructor(
              category, name);
@@ -69,7 +69,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       this.openAsyncSlices[key] = slice;
     },
 
-    closeAsyncSlice: function(thread, category, name, cookie, ts, args) {
+    closeAsyncSlice(thread, category, name, cookie, ts, args) {
       if (!this.openAsyncSlices) {
         // No async slices have been started.
         return;
@@ -100,7 +100,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       delete this.openAsyncSlices[key];
     },
 
-    traceMarkWriteAndroidEvent: function(eventName, cpuNumber, pid, ts,
+    traceMarkWriteAndroidEvent(eventName, cpuNumber, pid, ts,
         eventBase) {
       var eventData = eventBase.details.split('|');
       switch (eventData[0]) {

@@ -122,7 +122,7 @@ tr.exportTo('tr.ui.analysis', function() {
   ProcessNameColumn.prototype = {
     __proto__: tr.ui.analysis.TitleColumn.prototype,
 
-    formatTitle: function(row) {
+    formatTitle(row) {
       if (row.contexts === undefined) {
         return row.title;  // Total row.
       }
@@ -153,15 +153,15 @@ tr.exportTo('tr.ui.analysis', function() {
       });
     },
 
-    getFormattingContext: function(unit) {
+    getFormattingContext(unit) {
       return { unitPrefix: tr.b.UnitPrefixScale.BINARY.MEBI };
     },
 
-    color: function(numerics, processMemoryDumps) {
+    color(numerics, processMemoryDumps) {
       return UsedMemoryColumn.COLOR;
     },
 
-    getChildPaneBuilder: function(processMemoryDumps) {
+    getChildPaneBuilder(processMemoryDumps) {
       if (processMemoryDumps === undefined) return undefined;
 
       var vmRegions = lazyMap(processMemoryDumps, function(pmd) {
@@ -188,7 +188,7 @@ tr.exportTo('tr.ui.analysis', function() {
   PeakMemoryColumn.prototype = {
     __proto__: UsedMemoryColumn.prototype,
 
-    addInfos: function(numerics, processMemoryDumps, infos) {
+    addInfos(numerics, processMemoryDumps, infos) {
       if (processMemoryDumps === undefined) return;  // Total row.
 
       var resettableValueCount = 0;
@@ -229,7 +229,7 @@ tr.exportTo('tr.ui.analysis', function() {
   ByteStatColumn.prototype = {
     __proto__: UsedMemoryColumn.prototype,
 
-    color: function(numerics, processMemoryDumps) {
+    color(numerics, processMemoryDumps) {
       if (processMemoryDumps === undefined) {
         return UsedMemoryColumn.COLOR;  // Total row.
       }
@@ -248,7 +248,7 @@ tr.exportTo('tr.ui.analysis', function() {
       return UsedMemoryColumn.COLOR;
     },
 
-    addInfos: function(numerics, processMemoryDumps, infos) {
+    addInfos(numerics, processMemoryDumps, infos) {
       if (processMemoryDumps === undefined) return;  // Total row.
 
       var olderValueCount = 0;
@@ -340,11 +340,11 @@ tr.exportTo('tr.ui.analysis', function() {
       return titleEl;
     },
 
-    getFormattingContext: function(unit) {
+    getFormattingContext(unit) {
       return { unitPrefix: tr.b.UnitPrefixScale.BINARY.MEBI };
     },
 
-    addInfos: function(numerics, processMemoryDumps, infos) {
+    addInfos(numerics, processMemoryDumps, infos) {
       if (processMemoryDumps === undefined) return;
 
       var heapDumpCount = 0;
@@ -388,7 +388,7 @@ tr.exportTo('tr.ui.analysis', function() {
       }
     },
 
-    getChildPaneBuilder: function(processMemoryDumps) {
+    getChildPaneBuilder(processMemoryDumps) {
       if (processMemoryDumps === undefined) return undefined;
 
       var memoryAllocatorDumps = lazyMap(processMemoryDumps, function(pmd) {
@@ -431,7 +431,7 @@ tr.exportTo('tr.ui.analysis', function() {
       });
     },
 
-    color: function(numerics, processMemoryDumps) {
+    color(numerics, processMemoryDumps) {
       return TracingColumn.COLOR;
     }
   };
@@ -454,12 +454,12 @@ tr.exportTo('tr.ui.analysis', function() {
     is: 'tr-ui-a-memory-dump-overview-pane',
     behaviors: [tr.ui.analysis.StackedPane],
 
-    created: function() {
+    created() {
       this.processMemoryDumps_ = undefined;
       this.aggregationMode_ = undefined;
     },
 
-    ready: function() {
+    ready() {
       this.$.table.selectionMode = tr.ui.b.TableFormat.SelectionMode.CELL;
       this.$.table.addEventListener('selection-changed',
           function(tableEvent) {
@@ -521,12 +521,12 @@ tr.exportTo('tr.ui.analysis', function() {
       return selectedMemoryCell;
     },
 
-    changeChildPane_: function() {
+    changeChildPane_() {
       this.storeSelection_();
       this.childPaneBuilder = this.determineChildPaneBuilderFromSelection_();
     },
 
-    determineChildPaneBuilderFromSelection_: function() {
+    determineChildPaneBuilderFromSelection_() {
       if (this.processMemoryDumps_ === undefined ||
           this.processMemoryDumps_.length === 0) {
         return undefined;
@@ -542,7 +542,7 @@ tr.exportTo('tr.ui.analysis', function() {
       return selectedColumn.getChildPaneBuilder(selectedTableRow.contexts);
     },
 
-    onRebuild_: function() {
+    onRebuild_() {
       if (this.processMemoryDumps_ === undefined ||
           this.processMemoryDumps_.length === 0) {
         // Show the info text (hide the table).
@@ -570,7 +570,7 @@ tr.exportTo('tr.ui.analysis', function() {
       this.restoreSelection_();
     },
 
-    createRows_: function() {
+    createRows_() {
       // Timestamp (list index) -> Process ID (dict key) -> PMD.
       var timeToPidToProcessMemoryDump = this.processMemoryDumps_;
 
@@ -659,13 +659,13 @@ tr.exportTo('tr.ui.analysis', function() {
             return {
               title: process.userFriendlyName,
               contexts: timeToDump,
-              usedMemoryCells: usedMemoryCells,
-              allocatorCells: allocatorCells
+              usedMemoryCells,
+              allocatorCells
             };
           }));
     },
 
-    createFooterRows_: function(rows, columns) {
+    createFooterRows_(rows, columns) {
       // Add a 'Total' row if there are at least two process memory dumps.
       if (rows.length <= 1) return [];
 
@@ -675,7 +675,7 @@ tr.exportTo('tr.ui.analysis', function() {
       return [totalRow];
     },
 
-    createColumns_: function(rows) {
+    createColumns_(rows) {
       var titleColumn = new ProcessNameColumn();
       titleColumn.width = '200px';
 
@@ -698,7 +698,7 @@ tr.exportTo('tr.ui.analysis', function() {
       return columns;
     },
 
-    storeSelection_: function() {
+    storeSelection_() {
       var selectedRowTitle;
       var selectedRow = this.$.table.selectedTableRow;
       if (selectedRow !== undefined) {
@@ -716,7 +716,7 @@ tr.exportTo('tr.ui.analysis', function() {
           {rowTitle: selectedRowTitle, columnName: selectedColumnName});
     },
 
-    restoreSelection_: function() {
+    restoreSelection_() {
       var settings = this.$.state.get();
       if (settings === undefined || settings.rowTitle === undefined ||
           settings.columnName === undefined) {

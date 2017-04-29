@@ -114,11 +114,11 @@ tr.b.unittest.testSuite(function() {
   var originalGetQueryString;
 
   var testOptions = {
-    setUp: function() {
+    setUp() {
       events.startSiloingListeners();
       originalGetQueryString = uri.getQueryString;
     },
-    tearDown: function() {
+    tearDown() {
       uri.getQueryString = originalGetQueryString;
       // Comment this out to interact with the page! Otherwise the mock gets
       // torn down before you can interact with the UI.

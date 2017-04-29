@@ -69,7 +69,7 @@ tr.exportTo('tr.model', function() {
       return 'global space';
     },
 
-    finalizeGraph: function() {
+    finalizeGraph() {
       // 1. Transitively remove weak memory allocator dumps and all their
       // owners and descendants from the model. This must be performed before
       // any other steps.
@@ -109,7 +109,7 @@ tr.exportTo('tr.model', function() {
       this.forceRebuildingMemoryAllocatorDumpByFullNameIndices();
     },
 
-    removeWeakDumps: function() {
+    removeWeakDumps() {
       // Mark all transitive owners and children of weak memory allocator dumps
       // as weak.
       this.traverseAllocatorDumpsInDepthFirstPreOrder(function(dump) {
@@ -166,7 +166,7 @@ tr.exportTo('tr.model', function() {
      * Please refer to the Memory Dump Graph Metric Calculation design document
      * for more details (https://goo.gl/fKg0dt).
      */
-    calculateSizes: function() {
+    calculateSizes() {
       this.traverseAllocatorDumpsInDepthFirstPostOrder(
           this.calculateMemoryAllocatorDumpSize_.bind(this));
     },
@@ -176,7 +176,7 @@ tr.exportTo('tr.model', function() {
      * that the size of both the children and owners of the dump has already
      * been calculated.
      */
-    calculateMemoryAllocatorDumpSize_: function(dump) {
+    calculateMemoryAllocatorDumpSize_(dump) {
       // This flag becomes true if the size numeric of the current dump should
       // be defined, i.e. if (1) the current dump's size numeric is defined,
       // (2) the size of at least one of its children is defined or (3) the
@@ -226,7 +226,7 @@ tr.exportTo('tr.model', function() {
           dump.infos.push({
             type: dependencyInfoType,
             providedSize: size,
-            dependencySize: dependencySize
+            dependencySize
           });
         }.bind(this);
       }
@@ -347,7 +347,7 @@ tr.exportTo('tr.model', function() {
      * This method assumes that the size of all contained memory allocator
      * dumps has already been calculated [see calculateSizes()].
      */
-    calculateEffectiveSizes: function() {
+    calculateEffectiveSizes() {
       // 1. Calculate not-owned and not-owning sub-sizes of all MADs
       // (depth-first post-order traversal).
       this.traverseAllocatorDumpsInDepthFirstPostOrder(
@@ -404,7 +404,7 @@ tr.exportTo('tr.model', function() {
      * sub-sizes of both the children and owners of the dump have already been
      * calculated [depth-first post-order traversal].
      */
-    calculateDumpSubSizes_: function(dump) {
+    calculateDumpSubSizes_(dump) {
       // Completely skip dumps with undefined size.
       if (!hasSize(dump)) return;
 
@@ -496,7 +496,7 @@ tr.exportTo('tr.model', function() {
      * been calculated. Note that the method doesn't make any assumptions about
      * the order in which dumps are visited.
      */
-    calculateDumpOwnershipCoefficient_: function(dump) {
+    calculateDumpOwnershipCoefficient_(dump) {
       // Completely skip dumps with undefined size.
       if (!hasSize(dump)) return;
 
@@ -616,7 +616,7 @@ tr.exportTo('tr.model', function() {
      * coefficients of the dump's parent and owned MADs (if present)
      * [depth-first pre-order traversal] have already been calculated.
      */
-    calculateDumpCumulativeOwnershipCoefficient_: function(dump) {
+    calculateDumpCumulativeOwnershipCoefficient_(dump) {
       // Completely skip dumps with undefined size.
       if (!hasSize(dump)) return;
 
@@ -656,7 +656,7 @@ tr.exportTo('tr.model', function() {
      * it's a non-leaf node) [depth-first post-order traversal] have already
      * been calculated.
      */
-    calculateDumpEffectiveSize_: function(dump) {
+    calculateDumpEffectiveSize_(dump) {
       // Completely skip dumps with undefined size. As a result, each dump will
       // have defined effective size if and only if it has defined size.
       if (!hasSize(dump)) {
@@ -684,7 +684,7 @@ tr.exportTo('tr.model', function() {
           tr.b.Unit.byName.sizeInBytes_smallerIsBetter, effectiveSize);
     },
 
-    aggregateNumerics: function() {
+    aggregateNumerics() {
       // 1. Aggregate numerics in this global memory dump.
       this.iterateRootAllocatorDumps(function(dump) {
         dump.aggregateNumericsRecursively(this.model);
@@ -703,7 +703,7 @@ tr.exportTo('tr.model', function() {
       }
     },
 
-    propagateNumericsAndDiagnosticsRecursively: function(globalAllocatorDump) {
+    propagateNumericsAndDiagnosticsRecursively(globalAllocatorDump) {
       ['numerics', 'diagnostics'].forEach(function(field) {
         for (var [name, value] of Object.entries(globalAllocatorDump[field])) {
           globalAllocatorDump.ownedBy.forEach(function(ownershipLink) {
@@ -724,13 +724,13 @@ tr.exportTo('tr.model', function() {
           this.propagateNumericsAndDiagnosticsRecursively, this);
     },
 
-    setUpTracingOverheadOwnership: function() {
+    setUpTracingOverheadOwnership() {
       for (var dump of Object.values(this.processMemoryDumps)) {
         dump.setUpTracingOverheadOwnership(this.model);
       }
     },
 
-    discountTracingOverheadFromVmRegions: function() {
+    discountTracingOverheadFromVmRegions() {
       // TODO(petrcermak): Consider factoring out all the finalization code and
       // constants to a single file.
       for (var dump of Object.values(this.processMemoryDumps)) {
@@ -738,20 +738,20 @@ tr.exportTo('tr.model', function() {
       }
     },
 
-    forceRebuildingMemoryAllocatorDumpByFullNameIndices: function() {
+    forceRebuildingMemoryAllocatorDumpByFullNameIndices() {
       this.iterateContainerDumps(function(containerDump) {
         containerDump.forceRebuildingMemoryAllocatorDumpByFullNameIndex();
       });
     },
 
-    iterateContainerDumps: function(fn) {
+    iterateContainerDumps(fn) {
       fn.call(this, this);
       for (var processDump of Object.values(this.processMemoryDumps)) {
         fn.call(this, processDump);
       }
     },
 
-    iterateAllRootAllocatorDumps: function(fn) {
+    iterateAllRootAllocatorDumps(fn) {
       this.iterateContainerDumps(function(containerDump) {
         containerDump.iterateRootAllocatorDumps(fn, this);
       });
@@ -763,7 +763,7 @@ tr.exportTo('tr.model', function() {
      * dump itself. This method will throw an exception if the graph contains
      * a cycle.
      */
-    traverseAllocatorDumpsInDepthFirstPostOrder: function(fn) {
+    traverseAllocatorDumpsInDepthFirstPostOrder(fn) {
       var visitedDumps = new WeakSet();
       var openDumps = new WeakSet();
 
@@ -799,7 +799,7 @@ tr.exportTo('tr.model', function() {
      * dump itself. This method will not visit some dumps if the graph contains
      * a cycle.
      */
-    traverseAllocatorDumpsInDepthFirstPreOrder: function(fn) {
+    traverseAllocatorDumpsInDepthFirstPreOrder(fn) {
       var visitedDumps = new WeakSet();
 
       function visit(dump) {

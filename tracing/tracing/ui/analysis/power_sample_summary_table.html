@@ -27,26 +27,26 @@ found in the LICENSE file.
 Polymer({
   is: 'tr-ui-a-power-sample-summary-table',
 
-  ready: function() {
+  ready() {
     this.$.table.tableColumns = [
       {
         title: 'Min power',
         width: '100px',
-        value: function(row) {
+        value(row) {
           return tr.b.Unit.byName.powerInWatts.format(row.min);
         }
       },
       {
         title: 'Max power',
         width: '100px',
-        value: function(row) {
+        value(row) {
           return tr.b.Unit.byName.powerInWatts.format(row.max);
         }
       },
       {
         title: 'Time-weighted average',
         width: '100px',
-        value: function(row) {
+        value(row) {
           return tr.b.Unit.byName.powerInWatts.format(
               row.timeWeightedAverageInW);
         }
@@ -54,14 +54,14 @@ Polymer({
       {
         title: 'Energy consumed',
         width: '100px',
-        value: function(row) {
+        value(row) {
           return tr.b.Unit.byName.energyInJoules.format(row.energyConsumedInJ);
         }
       },
       {
         title: 'Sample count',
         width: '100%',
-        value: function(row) { return row.sampleCount; }
+        value(row) { return row.sampleCount; }
       }
     ];
     this.samples = new tr.model.EventSet();
@@ -79,7 +79,7 @@ Polymer({
     this.updateContents_();
   },
 
-  updateContents_: function() {
+  updateContents_() {
     if (this.samples.length === 0) {
       this.$.table.tableRows = [];
     } else {
@@ -95,13 +95,13 @@ Polymer({
     this.$.table.rebuild();
   },
 
-  getMin: function() {
+  getMin() {
     return Math.min.apply(null, this.samples.map(function(sample) {
       return sample.powerInW;
     }));
   },
 
-  getMax: function() {
+  getMax() {
     return Math.max.apply(null, this.samples.map(function(sample) {
       return sample.powerInW;
     }));
@@ -111,7 +111,7 @@ Polymer({
    * Returns a time-weighted average of the power consumption (Watts)
    * in between the first sample (inclusive) and last sample (exclusive).
    */
-  getTimeWeightedAverageInW: function() {
+  getTimeWeightedAverageInW() {
     var energyConsumedInJ = this.getEnergyConsumedInJ();
 
     if (energyConsumedInJ === 'N/A') return 'N/A';
@@ -124,7 +124,7 @@ Polymer({
   },
 
 
-  getEnergyConsumedInJ: function() {
+  getEnergyConsumedInJ() {
     if (this.samples.length < 2) return 'N/A';
 
     var bounds = this.samples.bounds;

@@ -57,7 +57,7 @@ tr.exportTo('tr.e.importer.android.process_data', function() {
       return this.model_;
     },
 
-    parseEventData: function(data) {
+    parseEventData(data) {
       let allDumpedProcesses = {};
 
       let parseProcesses = false;
@@ -91,7 +91,7 @@ tr.exportTo('tr.e.importer.android.process_data', function() {
             allDumpedProcesses[pid] = {};
           }
           allDumpedProcesses[pid] = {
-            'name': cols[8], 'pid': pid, 'comm': cols[9]
+            'name': cols[8], pid, 'comm': cols[9]
           };
           continue;
         }
@@ -126,14 +126,14 @@ tr.exportTo('tr.e.importer.android.process_data', function() {
           if (allDumpedProcesses[pid].threads === undefined) {
             allDumpedProcesses[pid].threads = {};
           }
-          allDumpedProcesses[pid].threads[tid] = {'tid': tid, 'name': name};
+          allDumpedProcesses[pid].threads[tid] = {tid, name};
           continue;
         }
       }
       return allDumpedProcesses;
     },
 
-    importEvents: function() {
+    importEvents() {
       // Merge the snapshots into a single object, indexable by PID.
 
       const allDumpedProcesses = this.parseEventData(this.processDataLines);

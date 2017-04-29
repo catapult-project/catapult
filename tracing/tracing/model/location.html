@@ -23,7 +23,7 @@ tr.exportTo('tr.model', function() {
   }
 
   YComponent.prototype = {
-    toDict: function() {
+    toDict() {
       return {
         stableId: this.stableId,
         yPercentOffset: this.yPercentOffset
@@ -108,7 +108,7 @@ tr.exportTo('tr.model', function() {
      * Returns the first valid containing track based on the
      * internal yComponents.
      */
-    getContainingTrack: function(viewport) {
+    getContainingTrack(viewport) {
       var containerToTrack = viewport.containerToTrackMap;
       for (var i in this.yComponents_) {
         var yComponent = this.yComponents_[i];
@@ -121,7 +121,7 @@ tr.exportTo('tr.model', function() {
      * Calculates and returns x and y coordinates of the current location with
      * respect to the timeline's canvas.
      */
-    toViewCoordinates: function(viewport) {
+    toViewCoordinates(viewport) {
       var dt = viewport.currentDisplayTransform;
       var containerToTrack = viewport.containerToTrackMap;
       var viewX = dt.xWorldToView(this.xWorld_);
@@ -138,12 +138,12 @@ tr.exportTo('tr.model', function() {
       }
 
       return {
-        viewX: viewX,
-        viewY: viewY
+        viewX,
+        viewY
       };
     },
 
-    toDict: function() {
+    toDict() {
       return {
         xWorld: this.xWorld_,
         yComponents: this.yComponents_

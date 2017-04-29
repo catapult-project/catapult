@@ -16,11 +16,11 @@ found in the LICENSE file.
 tr.exportTo('tr.ui.e.about_tracing', function() {
   // Interface used by inspector when it hands data to us from the backend.
   window.DevToolsAPI = {
-    setToolbarColors: function() { },
-    addExtensions: function() { },
-    setInspectedPageId: function() { },
+    setToolbarColors() { },
+    addExtensions() { },
+    setInspectedPageId() { },
 
-    dispatchMessage: function(payload) {
+    dispatchMessage(payload) {
       throw new Error('Should have been patched by InspectorConnection');
     }
   };
@@ -43,30 +43,30 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
   }
 
   InspectorConnection.prototype = {
-    req: function(method, params) {
+    req(method, params) {
       var id = this.nextRequestId_++;
       var msg = JSON.stringify({
-        id: id,
-        method: method,
-        params: params
+        id,
+        method,
+        params
       });
       var devtoolsMessageStr = JSON.stringify(
-        {'id': id, 'method': 'dispatchProtocolMessage', 'params': [msg]});
+        {id, 'method': 'dispatchProtocolMessage', 'params': [msg]});
       DevToolsHost.sendMessageToEmbedder(devtoolsMessageStr);
 
       return new Promise(function(resolve, reject) {
         this.pendingRequestResolversId_[id] = {
-          resolve: resolve,
-          reject: reject
+          resolve,
+          reject
         };
       }.bind(this));
     },
 
-    setNotificationListener: function(method, listener) {
+    setNotificationListener(method, listener) {
       this.notificationListenersByMethodName_[method] = listener;
     },
 
-    dispatchMessage_: function(payload) {
+    dispatchMessage_(payload) {
       var isStringPayload = typeof payload === 'string';
       // Special handling for Tracing.dataCollected because it is high
       // bandwidth.

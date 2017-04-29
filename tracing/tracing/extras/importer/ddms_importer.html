@@ -43,20 +43,20 @@ tr.exportTo('tr.e.importer.ddms', function() {
   Reader.prototype = {
     __proto__: Object.prototype,
 
-    uint8: function() {
+    uint8() {
       var result = this.data_[this.position_];
       this.position_ += 1;
       return result;
     },
 
-    uint16: function() {
+    uint16() {
       var result = 0;
       result += this.uint8();
       result += this.uint8() << 8;
       return result;
     },
 
-    uint32: function() {
+    uint32() {
       var result = 0;
       result += this.uint8();
       result += this.uint8() << 8;
@@ -65,7 +65,7 @@ tr.exportTo('tr.e.importer.ddms', function() {
       return result;
     },
 
-    uint64: function() {
+    uint64() {
       // Javascript isn't able to manage 64-bit numeric values.
       var low = this.uint32();
       var high = this.uint32();
@@ -75,11 +75,11 @@ tr.exportTo('tr.e.importer.ddms', function() {
       return result;
     },
 
-    seekTo: function(position) {
+    seekTo(position) {
       this.position_ = position;
     },
 
-    hasMore: function() {
+    hasMore() {
       return this.position_ < this.data_.length;
     }
   };
@@ -123,7 +123,7 @@ tr.exportTo('tr.e.importer.ddms', function() {
     /**
      * Imports the data in this.data_ into this.model_.
      */
-    importEvents: function() {
+    importEvents() {
       var divider = this.data_.indexOf(kMethodLutEndMarker) +
           kMethodLutEndMarker.length;
       this.metadata_ = this.data_.slice(0, divider);
@@ -151,7 +151,7 @@ tr.exportTo('tr.e.importer.ddms', function() {
       }
     },
 
-    parseTraceEntry: function(reader) {
+    parseTraceEntry(reader) {
       var tid = reader.uint16();
       var methodPacked = reader.uint32();
       var cpuSinceStart = reader.uint32();
@@ -168,7 +168,7 @@ tr.exportTo('tr.e.importer.ddms', function() {
       }
     },
 
-    parseThreads: function() {
+    parseThreads() {
       var threads = this.metadata_.slice(this.metadata_.indexOf(kThreadsStart) +
           kThreadsStart.length);
       threads = threads.slice(0, threads.indexOf('\n*'));
@@ -176,18 +176,18 @@ tr.exportTo('tr.e.importer.ddms', function() {
       threads.forEach(this.parseThread.bind(this));
     },
 
-    parseThread: function(threadLine) {
+    parseThread(threadLine) {
       var tid = threadLine.slice(0, threadLine.indexOf('\t'));
       var thread = this.getTid(parseInt(tid));
       thread.name = threadLine.slice(threadLine.indexOf('\t') + 1);
     },
 
-    getTid: function(tid) {
+    getTid(tid) {
       return this.model_.getOrCreateProcess(kPid)
           .getOrCreateThread(tid);
     },
 
-    parseMethods: function() {
+    parseMethods() {
       var methods = this.metadata_.slice(this.metadata_.indexOf(kMethodsStart) +
           kMethodsStart.length);
       methods = methods.slice(0, methods.indexOf('\n*'));
@@ -195,18 +195,18 @@ tr.exportTo('tr.e.importer.ddms', function() {
       methods.forEach(this.parseMethod.bind(this));
     },
 
-    parseMethod: function(methodLine) {
+    parseMethod(methodLine) {
       var data = methodLine.split('\t');
       var methodId = parseInt(data[0]);
       var methodName = data[1] + '.' + data[2] + data[3];
       this.addMethod(methodId, methodName);
     },
 
-    addMethod: function(methodId, methodName) {
+    addMethod(methodId, methodName) {
       this.methods_[methodId] = methodName;
     },
 
-    getMethodName: function(methodId) {
+    getMethodName(methodId) {
       return this.methods_[methodId];
     }
   };

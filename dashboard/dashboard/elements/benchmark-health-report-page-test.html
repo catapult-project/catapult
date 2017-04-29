@@ -18,7 +18,7 @@ tr.b.unittest.testSuite(function() {
   var originalGetParameter;
 
   var testOptions = {
-    setUp: function() {
+    setUp() {
       originalGetParameter = uri.getParameter;
       d.BugDetails.reset();
       var obj = {};
@@ -26,7 +26,7 @@ tr.b.unittest.testSuite(function() {
       obj[687592] = Promise.resolve(mockBugResponse1);
       d.BugDetails.prepopulate(obj);
     },
-    tearDown: function() {
+    tearDown() {
       uri.getParameter = originalGetParameter;
       testing_common.clearXhrMock();
     }

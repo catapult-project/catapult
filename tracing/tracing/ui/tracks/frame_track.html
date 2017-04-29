@@ -26,7 +26,7 @@ tr.exportTo('tr.ui.tracks', function() {
   FrameTrack.prototype = {
     __proto__: tr.ui.tracks.LetterDotTrack.prototype,
 
-    decorate: function(viewport) {
+    decorate(viewport) {
       tr.ui.tracks.LetterDotTrack.prototype.decorate.call(this, viewport);
       this.heading = 'Frames';
 

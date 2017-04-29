@@ -47,42 +47,42 @@ tr.exportTo('tr.b.unittest', function() {
       return this.numSkippedTests_;
     },
 
-    willRunTests: function(testCases) {
+    willRunTests(testCases) {
     },
 
-    willRunTest: function(testCase) {
+    willRunTest(testCase) {
       this.write_(testCase.name + ' (' + testCase.suite.name + ') ... ');
       this.currentTestCaseHadErrors_ = false;
       this.currentTestIsFlaky_ = false;
       this.currentTestIsSkipped_ = false;
     },
 
-    addErrorForCurrentTest: function(error) {
+    addErrorForCurrentTest(error) {
       if (!this.currentTestCaseHadErrors_) this.write_('FAIL\n');
       var normalizedException = tr.b.normalizeException(error);
       this.write_(normalizedException.stack + '\n');
       this.currentTestCaseHadErrors_ = true;
     },
 
-    addHTMLOutputForCurrentTest: function(element) {
+    addHTMLOutputForCurrentTest(element) {
       this.curHTMLOutput_.push(element);
     },
 
-    setCurrentTestFlaky: function() {
+    setCurrentTestFlaky() {
       if (!this.currentTestIsFlaky_) this.write_('FLAKY\n');
       this.currentTestIsFlaky_ = true;
     },
 
-    setCurrentTestSkipped: function() {
+    setCurrentTestSkipped() {
       if (!this.currentTestIsSkipped_) this.write_('SKIPPED\n');
       this.currentTestIsSkipped_ = true;
     },
 
-    setReturnValueFromCurrentTest: function(returnValue) {
+    setReturnValueFromCurrentTest(returnValue) {
       this.write_('[RESULT] ' + JSON.stringify(returnValue) + '\n');
     },
 
-    didCurrentTestEnd: function() {
+    didCurrentTestEnd() {
       if (this.currentTestCaseHadErrors_) {
         this.numTestsThatFailed_ += 1;
       } else if (this.currentTestIsFlaky_) {
@@ -95,7 +95,7 @@ tr.exportTo('tr.b.unittest', function() {
       }
     },
 
-    didRunTests: function() {
+    didRunTests() {
       this.write_('\n------------------------------------------------------' +
                '----------------\n');
       if (this.numTestsThatRan === 1) {
@@ -123,7 +123,7 @@ tr.exportTo('tr.b.unittest', function() {
       }
     },
 
-    write_: function(msg) {
+    write_(msg) {
       if (tr.isVinn) {
         global.write(msg);
       } else {

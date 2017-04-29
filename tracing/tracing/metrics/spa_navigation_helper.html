@@ -232,7 +232,7 @@ tr.exportTo('tr.metrics', function() {
                 isNavStartAsyncSlice ? navStartEvent : undefined,
             goToIndexSlice: isNavStartAsyncSlice ? undefined : navStartEvent
           },
-          firstPaintEvent: firstPaintEvent,
+          firstPaintEvent,
           url: spaNavEvent.args.url
         });
       }

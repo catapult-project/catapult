@@ -110,7 +110,7 @@ tr.exportTo('tr.b.unittest', function() {
       return this.tests_;
     },
 
-    addTest: function(test) {
+    addTest(test) {
       if (test.suite !== undefined) {
         throw new Error('Test suite is already assigned');
       }

@@ -79,7 +79,7 @@ found in the LICENSE file.
 Polymer({
   is: 'tr-ui-timeline-track-view',
 
-  ready: function() {
+  ready() {
     this.displayTransform_ = new tr.ui.TimelineDisplayTransform();
     this.model_ = undefined;
 
@@ -158,7 +158,7 @@ Polymer({
     this.isZooming_ = false;
   },
 
-  initMouseModeSelector: function() {
+  initMouseModeSelector() {
     this.mouseModeSelector_ = document.createElement(
         'tr-ui-b-mouse-mode-selector');
     this.mouseModeSelector_.targetElement = this;
@@ -232,7 +232,7 @@ Polymer({
     this.timelineView_ = view;
   },
 
-  onSelectionChanged_: function() {
+  onSelectionChanged_() {
     this.showHintText_('Press \'m\' to mark current selection');
     this.viewport_.dispatchChangeEvent();
   },
@@ -245,7 +245,7 @@ Polymer({
     throw new Error('DO NOT CALL THIS');
   },
 
-  detach: function() {
+  detach() {
     this.modelTrack_.detach();
     this.upperModelTrack_.detach();
 
@@ -294,7 +294,7 @@ Polymer({
    * When it is, the method installs the iframe-based resize detection hook
    * and then runs setInitialViewport_, if present.
    */
-  pollIfViewportAttached_: function() {
+  pollIfViewportAttached_() {
     if (!this.viewport_.isAttachedToDocumentOrInTestMode ||
         this.viewport_.clientWidth === 0) {
       return;
@@ -307,7 +307,7 @@ Polymer({
     this.setInitialViewport_();
   },
 
-  setInitialViewport_: function() {
+  setInitialViewport_() {
     // We need the canvas size to be up-to-date at this point. We maybe in
     // here before the raf fires, so the size may have not been updated since
     // the canvas was resized.
@@ -340,7 +340,7 @@ Polymer({
    * @param {Selection} selection The selection to add matches to.
    * @return {Task} which performs the filtering.
    */
-  addAllEventsMatchingFilterToSelectionAsTask: function(filter, selection) {
+  addAllEventsMatchingFilterToSelectionAsTask(filter, selection) {
     var modelTrack = this.modelTrack_;
     var firstT = modelTrack.addAllEventsMatchingFilterToSelectionAsTask(
         filter, selection);
@@ -351,7 +351,7 @@ Polymer({
     return firstT;
   },
 
-  onMouseMove_: function(e) {
+  onMouseMove_(e) {
     // Zooming requires the delta since the last mousemove so we need to avoid
     // tracking it when the zoom interaction is active.
     if (this.isZooming_) return;
@@ -359,27 +359,27 @@ Polymer({
     this.storeLastMousePos_(e);
   },
 
-  onTouchStart_: function(e) {
+  onTouchStart_(e) {
     this.storeLastTouchPositions_(e);
     this.focusElements_();
   },
 
-  onTouchMove_: function(e) {
+  onTouchMove_(e) {
     e.preventDefault();
     this.onUpdateTransformForTouch_(e);
   },
 
-  onTouchEnd_: function(e) {
+  onTouchEnd_(e) {
     this.storeLastTouchPositions_(e);
     this.focusElements_();
   },
 
-  addHotKeys_: function() {
+  addHotKeys_() {
     this.addKeyDownHotKeys_();
     this.addKeyPressHotKeys_();
   },
 
-  addKeyPressHotKey: function(dict) {
+  addKeyPressHotKey(dict) {
     dict.eventType = 'keypress';
     dict.useCapture = false;
     dict.thisArg = this;
@@ -387,10 +387,10 @@ Polymer({
     this.$.hotkey_controller.addHotKey(binding);
   },
 
-  addKeyPressHotKeys_: function() {
+  addKeyPressHotKeys_() {
     this.addKeyPressHotKey({
       keyCodes: ['w'.charCodeAt(0), ','.charCodeAt(0)],
-      callback: function(e) {
+      callback(e) {
         this.zoomBy_(1.5, true);
         e.stopPropagation();
       }
@@ -398,7 +398,7 @@ Polymer({
 
     this.addKeyPressHotKey({
       keyCodes: ['s'.charCodeAt(0), 'o'.charCodeAt(0)],
-      callback: function(e) {
+      callback(e) {
         this.zoomBy_(1 / 1.5, true);
         e.stopPropagation();
       }
@@ -406,7 +406,7 @@ Polymer({
 
     this.addKeyPressHotKey({
       keyCode: 'g'.charCodeAt(0),
-      callback: function(e) {
+      callback(e) {
         this.onGridToggle_(true);
         e.stopPropagation();
       }
@@ -414,7 +414,7 @@ Polymer({
 
     this.addKeyPressHotKey({
       keyCode: 'G'.charCodeAt(0),
-      callback: function(e) {
+      callback(e) {
         this.onGridToggle_(false);
         e.stopPropagation();
       }
@@ -422,7 +422,7 @@ Polymer({
 
     this.addKeyPressHotKey({
       keyCodes: ['W'.charCodeAt(0), '<'.charCodeAt(0)],
-      callback: function(e) {
+      callback(e) {
         this.zoomBy_(10, true);
         e.stopPropagation();
       }
@@ -430,7 +430,7 @@ Polymer({
 
     this.addKeyPressHotKey({
       keyCodes: ['S'.charCodeAt(0), 'O'.charCodeAt(0)],
-      callback: function(e) {
+      callback(e) {
         this.zoomBy_(1 / 10, true);
         e.stopPropagation();
       }
@@ -438,7 +438,7 @@ Polymer({
 
     this.addKeyPressHotKey({
       keyCode: 'a'.charCodeAt(0),
-      callback: function(e) {
+      callback(e) {
         this.queueSmoothPan_(this.viewWidth_ * 0.3, 0);
         e.stopPropagation();
       }
@@ -446,7 +446,7 @@ Polymer({
 
     this.addKeyPressHotKey({
       keyCodes: ['d'.charCodeAt(0), 'e'.charCodeAt(0)],
-      callback: function(e) {
+      callback(e) {
         this.queueSmoothPan_(this.viewWidth_ * -0.3, 0);
         e.stopPropagation();
       }
@@ -454,7 +454,7 @@ Polymer({
 
     this.addKeyPressHotKey({
       keyCode: 'A'.charCodeAt(0),
-      callback: function(e) {
+      callback(e) {
         this.queueSmoothPan_(viewWidth * 0.5, 0);
         e.stopPropagation();
       }
@@ -462,7 +462,7 @@ Polymer({
 
     this.addKeyPressHotKey({
       keyCode: 'D'.charCodeAt(0),
-      callback: function(e) {
+      callback(e) {
         this.queueSmoothPan_(viewWidth * -0.5, 0);
         e.stopPropagation();
       }
@@ -470,7 +470,7 @@ Polymer({
 
     this.addKeyPressHotKey({
       keyCode: '0'.charCodeAt(0),
-      callback: function(e) {
+      callback(e) {
         this.setInitialViewport_();
         e.stopPropagation();
       }
@@ -478,7 +478,7 @@ Polymer({
 
     this.addKeyPressHotKey({
       keyCode: 'f'.charCodeAt(0),
-      callback: function(e) {
+      callback(e) {
         this.zoomToSelection();
         e.stopPropagation();
       }
@@ -486,7 +486,7 @@ Polymer({
 
     this.addKeyPressHotKey({
       keyCode: 'm'.charCodeAt(0),
-      callback: function(e) {
+      callback(e) {
         this.setCurrentSelectionAsInterestRange_();
         e.stopPropagation();
       }
@@ -494,7 +494,7 @@ Polymer({
 
     this.addKeyPressHotKey({
       keyCode: 'p'.charCodeAt(0),
-      callback: function(e) {
+      callback(e) {
         this.selectPowerSamplesInCurrentTimeRange_();
         e.stopPropagation();
       }
@@ -502,7 +502,7 @@ Polymer({
 
     this.addKeyPressHotKey({
       keyCode: 'h'.charCodeAt(0),
-      callback: function(e) {
+      callback(e) {
         this.toggleHighDetails_();
         e.stopPropagation();
       }
@@ -513,7 +513,7 @@ Polymer({
     return this.modelTrackContainer_.canvas.clientWidth;
   },
 
-  addKeyDownHotKeys_: function() {
+  addKeyDownHotKeys_() {
     var addBinding = function(dict) {
       dict.eventType = 'keydown';
       dict.useCapture = false;
@@ -524,7 +524,7 @@ Polymer({
 
     addBinding({
       keyCode: 37, // Left arrow.
-      callback: function(e) {
+      callback(e) {
         var curSel = this.brushingStateController_.selection;
         var sel = this.viewport.getShiftedSelection(curSel, -1);
 
@@ -541,7 +541,7 @@ Polymer({
 
     addBinding({
       keyCode: 39, // Right arrow.
-      callback: function(e) {
+      callback(e) {
         var curSel = this.brushingStateController_.selection;
         var sel = this.viewport.getShiftedSelection(curSel, 1);
         if (sel) {
@@ -556,7 +556,7 @@ Polymer({
     });
   },
 
-  onDblClick_: function(e) {
+  onDblClick_(e) {
     if (this.mouseModeSelector_.mode !==
         tr.ui.b.MOUSE_SELECTOR_MODE.SELECTION) {
       return;
@@ -576,7 +576,7 @@ Polymer({
     this.brushingStateController.changeSelectionFromTimeline(selection);
   },
 
-  onMouseWheel_: function(e) {
+  onMouseWheel_(e) {
     if (!e.altKey) return;
 
     var delta = e.wheelDelta / 120;
@@ -585,7 +585,7 @@ Polymer({
     e.preventDefault();
   },
 
-  onMouseDown_: function(e) {
+  onMouseDown_(e) {
     if (this.mouseModeSelector_.mode !==
         tr.ui.b.MOUSE_SELECTOR_MODE.SELECTION) {
       return;
@@ -640,7 +640,7 @@ Polymer({
         }.bind(this));
   },
 
-  queueSmoothPan_: function(viewDeltaX, deltaY) {
+  queueSmoothPan_(viewDeltaX, deltaY) {
     var deltaX = this.viewport_.currentDisplayTransform.xViewVectorToWorld(
         viewDeltaX);
     var animation = new tr.ui.TimelineDisplayTransformPanAnimation(
@@ -653,7 +653,7 @@ Polymer({
    * @param {Number} scale The scale factor to apply.  If <1, zooms out.
    * @param {boolean} Whether to change the zoom level smoothly.
    */
-  zoomBy_: function(scale, smooth) {
+  zoomBy_(scale, smooth) {
     if (scale <= 0) {
       return;
     }
@@ -683,7 +683,7 @@ Polymer({
   /**
    * Zoom into the current selection.
    */
-  zoomToSelection: function() {
+  zoomToSelection() {
     if (!this.brushingStateController.selectionOfInterest.length) return;
 
     var bounds = this.brushingStateController.selectionOfInterest.bounds;
@@ -707,7 +707,7 @@ Polymer({
   /**
    * Pan the view so the current selection becomes visible.
    */
-  panToSelection: function() {
+  panToSelection() {
     if (!this.brushingStateController.selectionOfInterest.length) return;
 
     var bounds = this.brushingStateController.selectionOfInterest.bounds;
@@ -740,7 +740,7 @@ Polymer({
     this.viewport_.queueDisplayTransformAnimation(animation);
   },
 
-  navToPosition: function(uiState, showNavLine) {
+  navToPosition(uiState, showNavLine) {
     var location = uiState.location;
     var scaleX = uiState.scaleX;
     var track = location.getContainingTrack(this.viewport_);
@@ -770,7 +770,7 @@ Polymer({
     this.model.addAnnotation(this.xNavStringMarker_);
   },
 
-  selectPowerSamplesInCurrentTimeRange_: function() {
+  selectPowerSamplesInCurrentTimeRange_() {
     var selectionBounds = this.brushingStateController_.selection.bounds;
     if (this.model.device.powerSeries && !selectionBounds.empty) {
       var events = this.model.device.powerSeries.getSamplesWithinRange(
@@ -780,7 +780,7 @@ Polymer({
     }
   },
 
-  setCurrentSelectionAsInterestRange_: function() {
+  setCurrentSelectionAsInterestRange_() {
     var selectionBounds = this.brushingStateController_.selection.bounds;
     if (selectionBounds.empty) {
       this.viewport_.interestRange.reset();
@@ -795,18 +795,18 @@ Polymer({
     }
   },
 
-  toggleHighDetails_: function() {
+  toggleHighDetails_() {
     this.viewport_.highDetails = !this.viewport_.highDetails;
   },
 
-  hideDragBox_: function() {
+  hideDragBox_() {
     this.$.drag_box.style.left = '-1000px';
     this.$.drag_box.style.top = '-1000px';
     this.$.drag_box.style.width = 0;
     this.$.drag_box.style.height = 0;
   },
 
-  setDragBoxPosition_: function(xStart, yStart, xEnd, yEnd) {
+  setDragBoxPosition_(xStart, yStart, xEnd, yEnd) {
     var loY = Math.min(yStart, yEnd);
     var hiY = Math.max(yStart, yEnd);
     var loX = Math.min(xStart, xEnd);
@@ -875,7 +875,7 @@ Polymer({
     this.dispatchEvent(e);
   },
 
-  onGridToggle_: function(left) {
+  onGridToggle_(left) {
     var selection = this.brushingStateController_.selection;
     var tb = left ? selection.bounds.min : selection.bounds.max;
 
@@ -901,15 +901,15 @@ Polymer({
         (numIntervalsSinceStart + 1) * this.viewport_.gridStep_;
   },
 
-  storeLastMousePos_: function(e) {
+  storeLastMousePos_(e) {
     this.lastMouseViewPos_ = this.extractRelativeMousePosition_(e);
   },
 
-  storeLastTouchPositions_: function(e) {
+  storeLastTouchPositions_(e) {
     this.lastTouchViewPositions_ = this.extractRelativeTouchPositions_(e);
   },
 
-  extractRelativeMousePosition_: function(e) {
+  extractRelativeMousePosition_(e) {
     var canv = this.modelTrackContainer_.canvas;
     return {
       x: e.clientX - canv.offsetLeft,
@@ -917,7 +917,7 @@ Polymer({
     };
   },
 
-  extractRelativeTouchPositions_: function(e) {
+  extractRelativeTouchPositions_(e) {
     var canv = this.modelTrackContainer_.canvas;
 
     var touches = [];
@@ -930,25 +930,25 @@ Polymer({
     return touches;
   },
 
-  storeInitialMouseDownPos_: function(e) {
+  storeInitialMouseDownPos_(e) {
     var position = this.extractRelativeMousePosition_(e);
 
     this.mouseViewPosAtMouseDown_.x = position.x;
     this.mouseViewPosAtMouseDown_.y = position.y;
   },
 
-  focusElements_: function() {
+  focusElements_() {
     this.$.hotkey_controller.childRequestsGeneralFocus(this);
   },
 
-  storeInitialInteractionPositionsAndFocus_: function(e) {
+  storeInitialInteractionPositionsAndFocus_(e) {
     this.storeInitialMouseDownPos_(e);
     this.storeLastMousePos_(e);
 
     this.focusElements_();
   },
 
-  onBeginPanScan_: function(e) {
+  onBeginPanScan_(e) {
     var vp = this.viewport_;
     this.viewportDisplayTransformAtMouseDown_ =
         vp.currentDisplayTransform.clone();
@@ -958,7 +958,7 @@ Polymer({
     e.preventDefault();
   },
 
-  onUpdatePanScan_: function(e) {
+  onUpdatePanScan_(e) {
     if (!this.isPanningAndScanning_) return;
 
     var viewWidth = this.viewWidth_;
@@ -981,7 +981,7 @@ Polymer({
     this.storeLastMousePos_(e);
   },
 
-  onEndPanScan_: function(e) {
+  onEndPanScan_(e) {
     this.isPanningAndScanning_ = false;
 
     this.storeLastMousePos_(e);
@@ -991,7 +991,7 @@ Polymer({
     }
   },
 
-  onBeginSelection_: function(e) {
+  onBeginSelection_(e) {
     var canv = this.modelTrackContainer_.canvas;
     var rect = this.modelTrack_.getBoundingClientRect();
     var canvRect = canv.getBoundingClientRect();
@@ -1012,7 +1012,7 @@ Polymer({
     e.preventDefault();
   },
 
-  onUpdateSelection_: function(e) {
+  onUpdateSelection_(e) {
     if (!this.dragBeginEvent_) return;
 
     // Update the drag box
@@ -1024,7 +1024,7 @@ Polymer({
         this.dragBoxXEnd_, this.dragBoxYEnd_);
   },
 
-  onEndSelection_: function(e) {
+  onEndSelection_(e) {
     e.preventDefault();
 
     if (!this.dragBeginEvent_) return;
@@ -1061,14 +1061,14 @@ Polymer({
     this.brushingStateController_.changeSelectionFromTimeline(selection);
   },
 
-  onBeginZoom_: function(e) {
+  onBeginZoom_(e) {
     this.isZooming_ = true;
 
     this.storeInitialInteractionPositionsAndFocus_(e);
     e.preventDefault();
   },
 
-  onUpdateZoom_: function(e) {
+  onUpdateZoom_(e) {
     if (!this.isZooming_) return;
 
     var newPosition = this.extractRelativeMousePosition_(e);
@@ -1080,7 +1080,7 @@ Polymer({
     this.storeLastMousePos_(e);
   },
 
-  onEndZoom_: function(e) {
+  onEndZoom_(e) {
     this.isZooming_ = false;
 
     if (!e.isClick) {
@@ -1088,7 +1088,7 @@ Polymer({
     }
   },
 
-  computeTouchCenter_: function(positions) {
+  computeTouchCenter_(positions) {
     var xSum = 0;
     var ySum = 0;
     for (var i = 0; i < positions.length; ++i) {
@@ -1101,7 +1101,7 @@ Polymer({
     };
   },
 
-  computeTouchSpan_: function(positions) {
+  computeTouchSpan_(positions) {
     var xMin = Number.MAX_VALUE;
     var yMin = Number.MAX_VALUE;
     var xMax = Number.MIN_VALUE;
@@ -1116,7 +1116,7 @@ Polymer({
         (yMin - yMax) * (yMin - yMax));
   },
 
-  onUpdateTransformForTouch_: function(e) {
+  onUpdateTransformForTouch_(e) {
     var newPositions = this.extractRelativeTouchPositions_(e);
     var currentPositions = this.lastTouchViewPositions_;
 
@@ -1147,13 +1147,13 @@ Polymer({
     this.storeLastTouchPositions_(e);
   },
 
-  initHintText_: function() {
+  initHintText_() {
     this.$.hint_text.style.display = 'none';
 
     this.pendingHintTextClearTimeout_ = undefined;
   },
 
-  showHintText_: function(text) {
+  showHintText_(text) {
     if (this.pendingHintTextClearTimeout_) {
       window.clearTimeout(this.pendingHintTextClearTimeout_);
       this.pendingHintTextClearTimeout_ = undefined;
@@ -1164,7 +1164,7 @@ Polymer({
     this.$.hint_text.style.display = '';
   },
 
-  hideHintText_: function() {
+  hideHintText_() {
     this.pendingHintTextClearTimeout_ = undefined;
     this.$.hint_text.style.display = 'none';
   }

@@ -53,7 +53,7 @@ Polymer({
   is: 'tr-ui-a-single-object-snapshot-sub-view',
   behaviors: [tr.ui.analysis.AnalysisSubView],
 
-  created: function() {
+  created() {
     this.currentSelection_ = undefined;
   },
 
@@ -90,7 +90,7 @@ Polymer({
     }
   },
 
-  appendGenericAnalysis_: function(snapshot) {
+  appendGenericAnalysis_(snapshot) {
     var instance = snapshot.objectInstance;
 
     Polymer.dom(this).textContent = '';
