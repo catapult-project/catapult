@@ -140,6 +140,18 @@ _DEVICE_PROFILES = [
     'voltage': '/sys/class/power_supply/max77843-fuelgauge/voltage_now',
     'current': '/sys/class/power_supply/max77843-charger/current_now',
   },
+  { # Cherry Mobile One
+    'name': ['W6210 (4560MMX_b fingerprint)'],
+    'enable_command': (
+        'echo "0 0" > /proc/mtk_battery_cmd/current_cmd && '
+        'dumpsys battery reset'),
+    'disable_command': (
+        'echo "0 1" > /proc/mtk_battery_cmd/current_cmd && '
+        'dumpsys battery set ac 0 && dumpsys battery set usb 0'),
+    'charge_counter': None,
+    'voltage': None,
+    'current': None,
+},
 ]
 
 # The list of useful dumpsys columns.
