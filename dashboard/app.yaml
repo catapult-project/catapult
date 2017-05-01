@@ -80,6 +80,11 @@ handlers:
   upload: gl-matrix-min.js
   secure: always
 
+- url: /add_histograms_queue
+  script: dashboard.dispatcher.APP
+  login: admin
+  secure: always
+
 - url: /add_point_queue
   script: dashboard.dispatcher.APP
   login: admin

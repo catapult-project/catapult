@@ -27,4 +27,5 @@ class Histogram(JsonModel):
 
 class SparseDiagnostic(JsonModel):
   # Need for intersecting range queries.
-  start_revision, end_revision = ndb.IntegerProperty(indexed=True)
+  start_revision = ndb.IntegerProperty(indexed=True)
+  end_revision = ndb.IntegerProperty(indexed=True)

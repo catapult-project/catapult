@@ -40,6 +40,13 @@ queue:
    retry_parameters:
      task_retry_limit: 1
 
+ - name: histograms-queue
+   rate: 100/s
+   max_concurrent_requests: 100
+   retry_parameters:
+     task_retry_limit: 8
+     min_backoff_seconds: 2
+
  - name: job-queue
    rate: 1/s
    retry_parameters:
