@@ -10,6 +10,7 @@ import sys
 from google.appengine.api import mail
 
 from dashboard import email_template
+from dashboard.common import datastore_hooks
 from dashboard.common import request_handler
 from dashboard.models import anomaly
 from dashboard.models import sheriff
@@ -33,15 +34,26 @@ class EmailSummaryHandler(request_handler.RequestHandler):
   def get(self):
     """Emails sheriffs with anomalies identified in most-recent 24 hours."""
 
-    # Get all Sheriffs that have requested an e-mail summary.
-    sheriffs_to_email_query = sheriff.Sheriff.query(
-        sheriff.Sheriff.summarize == True)
+    if self.request.get('internal_only') == '1':
+      datastore_hooks.SetPrivilegedRequest()
+      _QueryAndSendSummaryEmails(True)
+    else:
+      _QueryAndSendSummaryEmails(False)
 
-    # Start time after which to get anomalies.
-    start_time = datetime.datetime.now() - datetime.timedelta(hours=24)
 
-    for sheriff_entity in sheriffs_to_email_query.fetch():
-      _SendSummaryEmail(sheriff_entity, start_time)
+def _QueryAndSendSummaryEmails(internal_only):
+  # Get all Sheriffs that have requested an e-mail summary.
+  sheriffs_to_email_query = sheriff.Sheriff.query()
+  sheriffs_to_email_query = sheriffs_to_email_query.filter(
+      sheriff.Sheriff.summarize == True)
+  sheriffs_to_email_query = sheriffs_to_email_query.filter(
+      sheriff.Sheriff.internal_only == internal_only)
+
+  # Start time after which to get anomalies.
+  start_time = datetime.datetime.now() - datetime.timedelta(hours=24)
+
+  for sheriff_entity in sheriffs_to_email_query.fetch():
+    _SendSummaryEmail(sheriff_entity, start_time)
 
 
 def _SendSummaryEmail(sheriff_entity, start_time):

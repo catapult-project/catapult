@@ -60,10 +60,11 @@ class EmailSummaryTest(testing_common.TestCase):
     anomaly_time = datetime.datetime.now() - datetime.timedelta(hours=36)
     self._AddAnomalies(10120, 10140, 100, 150, sheriff_key, anomaly_time)
 
-  def _AddFourNewAlertsWithSummaryForOnlyTwo(self):
+  def _AddFourNewAlertsWithSummaryForOnlyTwo(self, internal_only=False):
     sheriff_key = sheriff.Sheriff(
         id='Chromium Perf Sheriff', email='anandc@google.com',
-        summarize=True, labels=['Performance-Sheriff']).put()
+        summarize=True, labels=['Performance-Sheriff'],
+        internal_only=internal_only).put()
     testing_common.AddTests(['ChromiumGPU'], ['linux-release'], {
         'scrolling-benchmark': {
             'first_paint': {},
@@ -78,7 +79,7 @@ class EmailSummaryTest(testing_common.TestCase):
   def _AddAlertsForFreakinHugeRegressions(self):
     sheriff_key = sheriff.Sheriff(
         id='Chromium Perf Sheriff', email='anandc@google.com',
-        summarize=True).put()
+        summarize=True, internal_only=False).put()
     testing_common.AddTests(['ChromiumGPU'], ['linux-release'], {
         'scrolling-benchmark': {
             'first_paint': {},
@@ -93,7 +94,7 @@ class EmailSummaryTest(testing_common.TestCase):
     sheriff_key = sheriff.Sheriff(
         id='Chromium Perf Sheriff', email='anandc@google.com',
         labels=['Performance-Sheriff'],
-        summarize=True).put()
+        summarize=True, internal_only=False).put()
     testing_common.AddTests(['ChromiumGPU'], ['linux-release'], {
         'scrolling-benchmark': {
             'first_paint': {},
@@ -106,9 +107,11 @@ class EmailSummaryTest(testing_common.TestCase):
   def _AddAlertsForTwoSheriffsWithSummary(self):
     """Adds alerts for two separate sheriffs which both have summarize=True."""
     sheriff1 = sheriff.Sheriff(
-        id='Sheriff1', email='anandc@google.com', summarize=True).put()
+        id='Sheriff1', email='anandc@google.com', summarize=True,
+        internal_only=False).put()
     sheriff2 = sheriff.Sheriff(
-        id='Sheriff2', email='anandc@chromium.org', summarize=True).put()
+        id='Sheriff2', email='anandc@chromium.org', summarize=True,
+        internal_only=False).put()
     testing_common.AddTests(['ChromiumGPU'], ['linux-release'], {
         'scrolling-benchmark': {
             'first_paint': {},
@@ -123,6 +126,33 @@ class EmailSummaryTest(testing_common.TestCase):
     self._AddFourNewAlertsWithSummaryForOnlyTwo()
     bug_label_patterns.AddBugLabelPattern('label1', '*/*/*/first_paint')
     self.testapp.get('/email_summary')
+    messages = self.mail_stub.get_sent_messages()
+    self.assertEqual(1, len(messages))
+    self.assertEqual(
+        'Chromium Perf Sheriff: 2 anomalies found at 9995:10010.',
+        messages[0].subject)
+    self.assertEqual('gasper-alerts@google.com', messages[0].sender)
+    self.assertEqual('anandc@google.com', messages[0].to)
+    html = str(messages[0].html)
+    self.assertIn('2 Total Anomalies', html)
+    self.assertIn('A <b>100.0%</b> regression', html)
+    self.assertNotIn('A <b>50.0%</b> regression', html)
+    self.assertIn(
+        'labels=Type-Bug-Regression,Pri-2,Performance-Sheriff\'', html)
+    self.assertIn(
+        'labels=Type-Bug-Regression,Pri-2,Performance-Sheriff,label1\'', html)
+
+  def testGet_SheriffWithSummary_DoesntEmailInternalOnly(self):
+    self._AddFourNewAlertsWithSummaryForOnlyTwo(internal_only=True)
+    bug_label_patterns.AddBugLabelPattern('label1', '*/*/*/first_paint')
+    self.testapp.get('/email_summary')
+    messages = self.mail_stub.get_sent_messages()
+    self.assertEqual(0, len(messages))
+
+  def testGet_SheriffWithSummary_EmailsInternalOnly(self):
+    self._AddFourNewAlertsWithSummaryForOnlyTwo(internal_only=True)
+    bug_label_patterns.AddBugLabelPattern('label1', '*/*/*/first_paint')
+    self.testapp.get('/email_summary?internal_only=1')
     messages = self.mail_stub.get_sent_messages()
     self.assertEqual(1, len(messages))
     self.assertEqual(

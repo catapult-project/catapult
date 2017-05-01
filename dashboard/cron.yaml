@@ -15,6 +15,10 @@ cron:
   url: /email_summary
   schedule: every 24 hours
 
+- description: Send e-mails with daily anomaly summaries for internal data.
+  url: /email_summary?internal_only=1
+  schedule: every 24 hours
+
 - description: Send data stoppage alert emails.
   url: /send_stoppage_alert_emails
   schedule: every 24 hours
