@@ -4,7 +4,6 @@
 
 import json
 import os
-import unittest
 
 from telemetry import decorators
 from telemetry import story
@@ -158,39 +157,3 @@ class PageTestUnitTest(page_test_test_case.PageTestTestCase):
     measurement = PageTestWithAction()
     self.RunMeasurement(measurement, story_set, options=self._options)
     self.assertTrue(page.run_test_action_called)
-
-
-class MultiTabPageTestUnitTest(unittest.TestCase):
-
-  def testNoTabForPageReturnsFalse(self):
-    class PageTestWithoutTabForPage(legacy_page_test.LegacyPageTest):
-
-      def ValidateAndMeasurePage(self, *_):
-        pass
-    test = PageTestWithoutTabForPage()
-    self.assertFalse(test.is_multi_tab_test)
-
-  def testHasTabForPageReturnsTrue(self):
-    class PageTestWithTabForPage(legacy_page_test.LegacyPageTest):
-
-      def ValidateAndMeasurePage(self, *_):
-        pass
-
-      def TabForPage(self, *_):
-        pass
-    test = PageTestWithTabForPage()
-    self.assertTrue(test.is_multi_tab_test)
-
-  def testHasTabForPageInAncestor(self):
-    class PageTestWithTabForPage(legacy_page_test.LegacyPageTest):
-
-      def ValidateAndMeasurePage(self, *_):
-        pass
-
-      def TabForPage(self, *_):
-        pass
-
-    class PageTestWithTabForPageInParent(PageTestWithTabForPage):
-      pass
-    test = PageTestWithTabForPageInParent()
-    self.assertTrue(test.is_multi_tab_test)

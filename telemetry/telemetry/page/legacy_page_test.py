@@ -21,13 +21,6 @@ class TestNotSupportedOnPlatformError(Exception):
   """
 
 
-class MultiTabTestAppCrashError(Exception):
-  """Exception raised after browser or tab crash for multi-tab tests.
-
-  Used to abort the test rather than try to recover from an unknown state.
-  """
-
-
 class MeasurementFailure(Failure):
   """Exception raised when an undesired but designed-for problem."""
 
@@ -67,17 +60,6 @@ class LegacyPageTest(object):
         needs_browser_restart_after_each_page)
     self._clear_cache_before_each_run = clear_cache_before_each_run
     self._close_tabs_before_run = True
-
-  @property
-  def is_multi_tab_test(self):
-    """Returns True if the test opens multiple tabs.
-
-    If the test overrides TabForPage, it is deemed a multi-tab test.
-    Multi-tab tests do not retry after tab or browser crashes, whereas,
-    single-tab tests too. That is because the state of multi-tab tests
-    (e.g., how many tabs are open, etc.) is unknown after crashes.
-    """
-    return self.TabForPage.__func__ is not LegacyPageTest.TabForPage.__func__
 
   @property
   def clear_cache_before_each_run(self):

@@ -370,31 +370,6 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     self.assertGreater(latencies_by_page_in_ms['slow'],
                        latencies_by_page_in_ms['fast'] + 300 - 2)
 
-  # Ensure that story_runner allows >1 tab for multi-tab test.
-  @decorators.Enabled('has tabs')
-  def testMultipleTabsOkayForMultiTabTest(self):
-    story_set = story.StorySet()
-    page = page_module.Page(
-        'file://blank.html', story_set, base_dir=util.GetUnittestDataDir())
-    story_set.AddStory(page)
-
-    class TestMultiTabs(legacy_page_test.LegacyPageTest):
-      def TabForPage(self, page, browser):
-        del page  # unused
-        return browser.tabs.New()
-
-      def ValidateAndMeasurePage(self, page, tab, results):
-        del page, results  # unused
-        assert len(tab.browser.tabs) == 2
-
-    test = TestMultiTabs()
-    options = options_for_unittests.GetCopy()
-    options.output_formats = ['none']
-    options.suppress_gtest_report = True
-    SetUpStoryRunnerArguments(options)
-    results = results_options.CreateResults(EmptyMetadataForTest(), options)
-    story_runner.Run(test, story_set, options, results)
-
   # Ensure that story_runner allows the test to customize the browser
   # before it launches.
   def testBrowserBeforeLaunch(self):
@@ -594,7 +569,6 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     self.CaptureFormattedException()
 
     class SingleTabTest(legacy_page_test.LegacyPageTest):
-      # Test is not multi-tab because it does not override TabForPage.
 
       def ValidateAndMeasurePage(self, *_):
         pass
@@ -605,24 +579,6 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     self.assertEquals([], GetSuccessfulPageRuns(results))
     self.assertEquals(2, len(results.failures))  # max_failures + 1
     self.assertFormattedExceptionIsEmpty()
-
-  @decorators.Enabled('has tabs')
-  def testMultipleTabsMeansCrashRaises(self):
-    self.CaptureFormattedException()
-
-    class MultipleTabsTest(legacy_page_test.LegacyPageTest):
-      # Test *is* multi-tab because it overrides TabForPage.
-
-      def TabForPage(self, page, browser):
-        return browser.tabs.New()
-
-      def ValidateAndMeasurePage(self, *_):
-        pass
-
-    test = MultipleTabsTest()
-    with self.assertRaises(legacy_page_test.MultiTabTestAppCrashError):
-      self._RunPageTestThatRaisesAppCrashException(test, max_failures=1)
-    self.assertFormattedExceptionOnlyHas('AppCrashException')
 
   def testWebPageReplay(self):
     story_set = example_domain.ExampleDomainPageSet()

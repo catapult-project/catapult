@@ -6,7 +6,6 @@ import logging
 import os
 import sys
 
-from telemetry.core import exceptions
 from telemetry.core import platform as platform_module
 from telemetry.core import util
 from telemetry import decorators
@@ -14,7 +13,6 @@ from telemetry.internal.browser import browser_finder
 from telemetry.internal.browser import browser_finder_exceptions
 from telemetry.internal.browser import browser_info as browser_info_module
 from telemetry.internal.platform.profiler import profiler_finder
-from telemetry.internal.util import exception_formatter
 from telemetry.internal.util import file_handle
 from telemetry.page import cache_temperature
 from telemetry.page import traffic_setting
@@ -218,10 +216,9 @@ class SharedPageState(story.SharedState):
       if len(self.browser.tabs) == 0:
         self.browser.tabs.New()
 
-      # Ensure only one tab is open, unless the test is a multi-tab test.
-      if not self._test.is_multi_tab_test:
-        while len(self.browser.tabs) > 1:
-          self.browser.tabs[-1].Close()
+      # Ensure only one tab is open.
+      while len(self.browser.tabs) > 1:
+        self.browser.tabs[-1].Close()
 
       # Must wait for tab to commit otherwise it can commit after the next
       # navigation has begun and RenderFrameHostManager::DidNavigateMainFrame()
@@ -295,18 +292,10 @@ class SharedPageState(story.SharedState):
     return self._test
 
   def RunStory(self, results):
-    try:
-      self._PreparePage()
-      self._current_page.Run(self)
-      self._test.ValidateAndMeasurePage(
-          self._current_page, self._current_tab, results)
-    except exceptions.Error:
-      if self._test.is_multi_tab_test:
-        # Avoid trying to recover from an unknown multi-tab state.
-        exception_formatter.PrintFormattedException(
-            msg='Telemetry Error during multi tab test:')
-        raise legacy_page_test.MultiTabTestAppCrashError
-      raise
+    self._PreparePage()
+    self._current_page.Run(self)
+    self._test.ValidateAndMeasurePage(
+        self._current_page, self._current_tab, results)
 
   def TearDownState(self):
     self._StopBrowser()
