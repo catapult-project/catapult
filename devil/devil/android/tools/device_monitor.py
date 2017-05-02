@@ -50,7 +50,7 @@ DEVICE_FILE = os.path.join(
 MEM_INFO_REGEX = re.compile(r'.*?\:\s*(\d+)\s*kB') # ex: 'MemTotal:   185735 kB'
 
 
-def get_device_status(device):
+def get_device_status_unsafe(device):
   """Polls the given device for various info.
 
     Returns: A dict of the following format:
@@ -150,6 +150,14 @@ def get_device_status(device):
     logging.exception('Unable to read /proc/uptime')
 
   status['state'] = 'available'
+  return status
+
+
+def get_device_status(device):
+  try:
+    status = get_device_status_unsafe(device)
+  except device_errors.DeviceUnreachableError:
+    status = {'state': 'offline'}
   return status
 
 
