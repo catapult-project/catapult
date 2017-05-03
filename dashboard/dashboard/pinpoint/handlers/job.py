@@ -8,7 +8,7 @@ import webapp2
 from dashboard.pinpoint.models import job as job_module
 
 
-class JobHandler(webapp2.RequestHandler):
+class Job(webapp2.RequestHandler):
 
   def post(self):
     job_id = self.request.get('job_id')

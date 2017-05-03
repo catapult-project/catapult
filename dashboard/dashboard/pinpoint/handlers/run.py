@@ -7,7 +7,7 @@ import webapp2
 from dashboard.pinpoint.models import job as job_module
 
 
-class RunHandler(webapp2.RequestHandler):
+class Run(webapp2.RequestHandler):
   """Handler that runs a Pinpoint job."""
 
   def post(self, job_id):

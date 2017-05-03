@@ -19,9 +19,9 @@ class IsolatedTest(unittest.TestCase):
 
   def setUp(self):
     app = webapp2.WSGIApplication([
-        webapp2.Route(r'/isolated', isolated.IsolatedHandler),
+        webapp2.Route(r'/isolated', isolated.Isolated),
         webapp2.Route(r'/isolated/<builder_name>/<git_hash>/<target>',
-                      isolated.IsolatedHandler),
+                      isolated.Isolated),
     ])
     self.testapp = webtest.TestApp(app)
     self.testapp.extra_environ.update({'REMOTE_ADDR': 'remote_ip'})

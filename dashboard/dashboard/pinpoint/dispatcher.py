@@ -6,24 +6,20 @@
 
 import webapp2
 
-from dashboard.pinpoint.handlers import isolated
-from dashboard.pinpoint.handlers import job
-from dashboard.pinpoint.handlers import list_jobs
-from dashboard.pinpoint.handlers import new
-from dashboard.pinpoint.handlers import run
+from dashboard.pinpoint import handlers
 
 
 _URL_MAPPING = [
     # Public API.
-    webapp2.Route(r'/api/isolated', isolated.IsolatedHandler),
+    webapp2.Route(r'/api/isolated', handlers.Isolated),
     webapp2.Route(r'/api/isolated/<builder_name>/<git_hash>/<target>',
-                  isolated.IsolatedHandler),
-    webapp2.Route(r'/api/job', job.JobHandler),
-    webapp2.Route(r'/api/jobs', list_jobs.ListJobsHandler),
-    webapp2.Route(r'/api/new', new.NewHandler),
+                  handlers.Isolated),
+    webapp2.Route(r'/api/job', handlers.Job),
+    webapp2.Route(r'/api/jobs', handlers.Jobs),
+    webapp2.Route(r'/api/new', handlers.New),
 
     # Used internally by Pinpoint. Not accessible from the public API.
-    webapp2.Route(r'/api/run/<job_id>', run.RunHandler),
+    webapp2.Route(r'/api/run/<job_id>', handlers.Run),
 ]
 
 APP = webapp2.WSGIApplication(_URL_MAPPING, debug=False)

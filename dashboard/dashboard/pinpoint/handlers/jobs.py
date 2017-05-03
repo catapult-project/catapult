@@ -5,15 +5,15 @@
 """Provides the web interface for displaying an overview of jobs."""
 
 import json
+import webapp2
 
-from dashboard.pinpoint import request_handler
 from dashboard.pinpoint.models import job as job_module
 
 _MAX_JOBS_TO_FETCH = 100
 _MAX_JOBS_TO_COUNT = 1000
 
 
-class ListJobsHandler(request_handler.RequestHandler):
+class Jobs(webapp2.RequestHandler):
   """Shows an overview of recent anomalies for perf sheriffing."""
 
   def post(self):

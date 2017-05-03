@@ -11,15 +11,15 @@ import webtest
 from google.appengine.ext import ndb
 from google.appengine.ext import testbed
 
+from dashboard.pinpoint.handlers import jobs
 from dashboard.pinpoint.models import job as job_module
-from dashboard.pinpoint.handlers import list_jobs
 
 
-class ListJobsTest(unittest.TestCase):
+class JobsTest(unittest.TestCase):
 
   def setUp(self):
     app = webapp2.WSGIApplication([
-        webapp2.Route(r'/list_jobs', list_jobs.ListJobsHandler),
+        webapp2.Route(r'/jobs', jobs.Jobs),
     ])
     self.testapp = webtest.TestApp(app)
     self.testapp.extra_environ.update({'REMOTE_ADDR': 'remote_ip'})
@@ -43,7 +43,7 @@ class ListJobsTest(unittest.TestCase):
         auto_explore=True)
     job.put()
 
-    data = json.loads(self.testapp.post('/list_jobs').body)
+    data = json.loads(self.testapp.post('/jobs').body)
 
     self.assertEqual(1, data['jobs_count'])
     self.assertEqual(1, len(data['jobs_list']))

@@ -19,7 +19,7 @@ from dashboard.pinpoint.models import isolated
 
 
 # TODO: Use Cloud Endpoints to make a proper API with a proper response.
-class IsolatedHandler(webapp2.RequestHandler):
+class Isolated(webapp2.RequestHandler):
   """Handler for managing isolateds.
 
   A post request adds new isolated information.

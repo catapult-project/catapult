@@ -8,7 +8,7 @@ from dashboard.pinpoint.models import change
 from dashboard.pinpoint.models import job as job_module
 
 
-class NewHandler(webapp2.RequestHandler):
+class New(webapp2.RequestHandler):
   """Handler that cooks up a fresh Pinpoint job."""
 
   def post(self):
