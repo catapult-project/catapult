@@ -129,7 +129,7 @@ found in the LICENSE file.
       selected() {
         this.loading = true;
         var params = {};
-        simple_xhr.send('/_ah/api/jobs', params,
+        simple_xhr.send('/api/jobs', params,
             function(response) {
               this.jobs = response.jobs_list;
               this.totalJobsCount = response.jobs_count;

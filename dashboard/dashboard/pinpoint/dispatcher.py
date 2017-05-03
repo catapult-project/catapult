@@ -14,16 +14,16 @@ from dashboard.pinpoint.handlers import run
 
 
 _URL_MAPPING = [
-    # UI Stuff
-    webapp2.Route(r'/_ah/api/job', job.JobHandler),
-    webapp2.Route(r'/_ah/api/jobs', list_jobs.ListJobsHandler),
-
-    # Actual functionality
-    webapp2.Route(r'/isolated', isolated.IsolatedHandler),
-    webapp2.Route(r'/isolated/<builder_name>/<git_hash>/<target>',
+    # Public API.
+    webapp2.Route(r'/api/isolated', isolated.IsolatedHandler),
+    webapp2.Route(r'/api/isolated/<builder_name>/<git_hash>/<target>',
                   isolated.IsolatedHandler),
-    webapp2.Route(r'/new', new.NewHandler),
-    webapp2.Route(r'/run/<job_id>', run.RunHandler),
+    webapp2.Route(r'/api/job', job.JobHandler),
+    webapp2.Route(r'/api/jobs', list_jobs.ListJobsHandler),
+    webapp2.Route(r'/api/new', new.NewHandler),
+
+    # Used internally by Pinpoint. Not accessible from the public API.
+    webapp2.Route(r'/api/run/<job_id>', run.RunHandler),
 ]
 
 APP = webapp2.WSGIApplication(_URL_MAPPING, debug=False)

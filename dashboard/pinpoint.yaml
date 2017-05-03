@@ -13,6 +13,15 @@ libraries:
 
 handlers:
 
+- url: /api/run/.*
+  script: dashboard.pinpoint.dispatcher.APP
+  login: admin
+  secure: always
+
+- url: /api/.*
+  script: dashboard.pinpoint.dispatcher.APP
+  secure: always
+
 - url: /components/(.*)/(.*\.(html|js|css))$
   static_files: polymer/components/\1/\2
   upload: polymer/components/.*/.*\.(html|js|css)$
@@ -41,23 +50,6 @@ handlers:
 - url: /favicon.ico
   static_files: dashboard/static/favicon.ico
   upload: dashboard/static/favicon.ico
-  secure: always
-
-- url: /run/.*
-  script: dashboard.pinpoint.dispatcher.APP
-  login: admin
-  secure: always
-
-- url: /_ah/api/.*
-  script: dashboard.pinpoint.dispatcher.APP
-  secure: always
-
-- url: /isolated/.*
-  script: dashboard.pinpoint.dispatcher.APP
-  secure: always
-
-- url: /new
-  script: dashboard.pinpoint.dispatcher.APP
   secure: always
 
 - url: /.*
