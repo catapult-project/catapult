@@ -59,7 +59,8 @@ tr.b.unittest.testSuite(function() {
     let span = document.createElement('tr-v-ui-histogram-span');
     this.addHTMLOutput(span);
     span.histogram = h;
-    span.brushedBins = h.allBins;
+    span.brushedBinRange = tr.b.math.Range.fromExplicitRange(
+        0, h.allBins.length);
     let breakdowns = tr.b.findDeepElementsMatchingPredicate(
         span, e => e.tagName === 'TR-V-UI-BREAKDOWN-SPAN');
     assert.lengthOf(breakdowns, 1);
@@ -86,7 +87,8 @@ tr.b.unittest.testSuite(function() {
     span.canMergeSampleDiagnostics = false;
     this.addHTMLOutput(span);
     span.histogram = h;
-    span.brushedBins = h.allBins;
+    span.brushedBinRange = tr.b.math.Range.fromExplicitRange(
+        0, h.allBins.length);
     const breakdowns = tr.b.findDeepElementsMatchingPredicate(
         span, e => e.tagName === 'TR-V-UI-BREAKDOWN-SPAN');
     assert.lengthOf(breakdowns, 5);

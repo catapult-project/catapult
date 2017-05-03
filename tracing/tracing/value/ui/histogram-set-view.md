@@ -68,4 +68,4 @@ This document outlines the MVC architecture of the implementation of the UI.
              * Main entry points:
                 * build(allHistograms, sourceHistograms, displayLabels, progressIndicator):Promise
                 * onViewStateUpdate_(delta)
-    * Soon, another module will propagate settings back and forth between the HistogramSetViewState and the URL search params.
+    * The [HistogramSetLocation](/tracing/tracing/value/ui/histogram_set_location.html) synchronizes the HistogramSetViewState with the URL using the HTML5 history API.

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/value/ui/histogram_set_location.html">
+
+<script>
+'use strict';
+/* eslint-disable max-len */
+tr.b.unittest.testSuite(function() {
+  class TestLocus {
+    constructor() {
+      this.origin = 'proto://host';
+      this.pathname = '/pathname';
+      this.search = '';
+      this.listener_ = undefined;
+    }
+
+    pushState(url) {
+      this.search = url.slice(url.indexOf('?'));
+    }
+
+    addPopStateListener(listener) {
+      this.listener_ = listener;
+    }
+
+    async popState(search) {
+      this.search = search;
+      await this.listener_();
+    }
+  }
+
+  test('viewStateUpdate', async function() {
+    const locus = new TestLocus();
+    const hsl = new tr.v.ui.HistogramSetLocation(locus);
+    await hsl.build(new tr.v.ui.HistogramSetViewState());
+
+    await hsl.viewState.update({
+      displayStatisticName: 'avg',
+      groupings: [
+        tr.v.HistogramSet.GROUPINGS.HISTOGRAM_NAME,
+        tr.v.HistogramSet.GROUPINGS.STORY_NAME,
+      ],
+      sortColumnIndex: undefined,
+    });
+    assert.strictEqual(locus.search, '?s=avg&g=name.story');
+
+    await hsl.viewState.update({searchQuery: 'foo'});
+    assert.strictEqual(locus.search, '?q=foo&s=avg&g=name.story');
+
+    await hsl.viewState.update({referenceDisplayLabel: 'bar'});
+    assert.strictEqual(locus.search, '?q=foo&r=bar&s=avg&g=name.story');
+
+    await hsl.viewState.update({showAll: true});
+    assert.strictEqual(locus.search, '?q=foo&r=bar&s=avg&a=&g=name.story');
+
+    await hsl.viewState.update({sortColumnIndex: 2});
+    assert.strictEqual(locus.search, '?q=foo&r=bar&s=avg&a=&g=name.story&c=2');
+
+    await hsl.viewState.update({sortDescending: true});
+    assert.strictEqual(locus.search, '?q=foo&r=bar&s=avg&a=&g=name.story&c=2&d=');
+
+    await hsl.viewState.update({constrainNameColumn: false});
+    assert.strictEqual(locus.search,
+        '?q=foo&r=bar&s=avg&a=&g=name.story&c=2&d=&n=0');
+
+    const rowState = new tr.v.ui.HistogramSetTableRowState();
+    rowState.cells.set('Value', new tr.v.ui.HistogramSetTableCellState());
+    await hsl.viewState.update({tableRowStates: new Map([['fmp', rowState]])});
+    assert.strictEqual(locus.search,
+        '?q=foo&r=bar&s=avg&a=&g=name.story&c=2&d=&n=0');
+
+    await hsl.viewState.tableRowStates.get('fmp').update({isExpanded: true});
+    assert.strictEqual(locus.search,
+        '?q=foo&r=bar&s=avg&a=&g=name.story&c=2&d=&n=0&t=fmp-(e-1)');
+
+    await hsl.viewState.tableRowStates.get('fmp').cells.get('Value').update({
+      isOpen: true,
+    });
+    assert.strictEqual(locus.search,
+        '?q=foo&r=bar&s=avg&a=&g=name.story&c=2&d=&n=0&t=fmp-(e-1.c-(Value-(o-1)))');
+  });
+
+  test('popState', async function() {
+    const locus = new TestLocus();
+    const hsl = new tr.v.ui.HistogramSetLocation(locus);
+    await hsl.build(new tr.v.ui.HistogramSetViewState());
+
+    await locus.popState('?q=foo&r=bar&s=qux&a=&c=2&d=&g=name.story');
+    assert.strictEqual('foo', hsl.viewState.searchQuery);
+    assert.strictEqual('bar', hsl.viewState.referenceDisplayLabel);
+    assert.strictEqual('qux', hsl.viewState.displayStatisticName);
+    assert.isTrue(hsl.viewState.showAll);
+    assert.lengthOf(hsl.viewState.groupings, 2);
+    assert.strictEqual('name', hsl.viewState.groupings[0].key);
+    assert.strictEqual('story', hsl.viewState.groupings[1].key);
+    assert.strictEqual(2, hsl.viewState.sortColumnIndex);
+    assert.isTrue(hsl.viewState.sortDescending);
+
+    // onPopState_ should ignore missing rows and cells
+    await locus.popState('?t=f%3Am_p-(o-1)');
+    assert.strictEqual(0, hsl.viewState.tableRowStates.size);
+
+    await hsl.viewState.update({tableRowStates: new Map([
+        ['f:m_p', new tr.v.ui.HistogramSetTableRowState()],
+    ])});
+    assert.isFalse(hsl.viewState.tableRowStates.get('f:m_p').isExpanded);
+
+    await locus.popState('?t=f%3Am_p-(e-1)');
+    assert.strictEqual(0, hsl.viewState.tableRowStates.get('f:m_p').cells.size);
+    assert.isTrue(hsl.viewState.tableRowStates.get('f:m_p').isExpanded);
+
+    await hsl.viewState.tableRowStates.get('f:m_p').update({cells: new Map([
+        ['Value', new tr.v.ui.HistogramSetTableCellState()],
+    ])});
+    assert.isFalse(hsl.viewState.tableRowStates.get('f:m_p').cells.get('Value').isOpen);
+
+    await locus.popState('?t=f%3Am_p-(c-(Value-(o-1)))');
+    assert.isTrue(hsl.viewState.tableRowStates.get('f:m_p').cells.get('Value').isOpen);
+  });
+});
+</script>

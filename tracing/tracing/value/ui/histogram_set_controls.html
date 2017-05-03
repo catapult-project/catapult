@@ -139,15 +139,14 @@ tr.exportTo('tr.v.ui', function() {
       this.viewState_ = undefined;
       this.rowListener_ = this.onRowViewStateUpdate_.bind(this);
       this.baseStatisticNames_ = [];
+
+      // When onViewStateUpdate_() copies multiple properties from the viewState
+      // to polymer properties, disable onUserChange_ until all properties are
+      // copied in order to prevent nested mutations to the ViewState.
+      this.isInOnViewStateUpdate_ = false;
     },
 
     ready() {
-      // TODO(simonhatch): Not totally clear if this is the right solution or
-      // we should be routing settings through ViewState somehow. This at
-      // least fixes the broken cookies issue for #3490, and we can consult
-      // with benjhayden about the correct solution.
-      this.$.picker.settingsKey = (
-          'tr-v-ui-histogram-set-controls-groupby-picker');
       this.$.picker.addEventListener('current-groups-changed',
           this.onGroupsChanged_.bind(this));
     },
@@ -169,18 +168,31 @@ tr.exportTo('tr.v.ui', function() {
 
     onUserChange_() {
       if (!this.viewState) return;
+      if (this.isInOnViewStateUpdate_) return;
 
       let displayStatisticName = this.displayStatisticName;
       if (this.viewState.referenceDisplayLabel === '' &&
           this.referenceDisplayLabel !== '' &&
           this.baseStatisticNames.length) {
-        this.statisticNames = this.baseStatisticNames.concat(
-            tr.v.Histogram.getDeltaStatisticsNames(this.baseStatisticNames));
+        // The user selected a reference display label.
         displayStatisticName = `${tr.v.DELTA}${this.displayStatisticName}`;
         // Can't set this.displayStatisticName before updating viewState -- that
         // would cause an infinite loop of onUserChange_().
       }
+      if (this.referenceDisplayLabel === '' &&
+          this.viewState.referenceDisplayLabel !== '' &&
+          this.baseStatisticNames.length) {
+        // The user unset the reference display label.
+        // Ensure that displayStatisticName is not a delta statistic.
+        const deltaIndex = displayStatisticName.indexOf(tr.v.DELTA);
+        if (deltaIndex >= 0) {
+          displayStatisticName = displayStatisticName.slice(deltaIndex + 1);
+        } else if (!this.baseStatisticNames.includes(displayStatisticName)) {
+          displayStatisticName = 'avg';
+        }
+      }
 
+      // Propagate updates from the user to the view state.
       this.viewState.update({
         searchQuery: this.searchQuery,
         showAll: this.showAll,
@@ -191,9 +203,23 @@ tr.exportTo('tr.v.ui', function() {
       if (this.displayStatisticName !== displayStatisticName) {
         this.displayStatisticName = displayStatisticName;
       }
+
+      if (this.referenceDisplayLabel &&
+          this.statisticNames.length === this.baseStatisticNames.length) {
+        // When a reference column is selected, delta statistics should be
+        // available.
+        this.statisticNames = this.baseStatisticNames.concat(
+            tr.v.Histogram.getDeltaStatisticsNames(this.baseStatisticNames));
+      } else if (!this.referenceDisplayLabel &&
+          this.statisticNames.length > this.baseStatisticNames.length) {
+        // When a reference column is not selected, delta statistics should not
+        // be available.
+        this.statisticNames = this.baseStatisticNames;
+      }
     },
 
     onViewStateUpdate_(event) {
+      this.isInOnViewStateUpdate_ = true;
       if (event.delta.searchQuery) {
         this.searchQuery = this.viewState.searchQuery;
       }
@@ -220,6 +246,8 @@ tr.exportTo('tr.v.ui', function() {
         this.$.hide_overview.style.display = anyShowing ? 'inline' : 'none';
         this.$.show_overview.style.display = anyShowing ? 'none' : 'inline';
       }
+      this.isInOnViewStateUpdate_ = false;
+      this.onUserChange_();
     },
 
     onRowViewStateUpdate_(event) {
@@ -293,6 +321,10 @@ tr.exportTo('tr.v.ui', function() {
       this.statisticNames = names;
     },
 
+    get statisticNames() {
+      return Array.from(this.$.statistic.options).map(o => o.value);
+    },
+
     set statisticNames(names) {
       this.$.statistic.style.display = (names.length < 2) ? 'none' : 'inline';
 
@@ -308,6 +340,9 @@ tr.exportTo('tr.v.ui', function() {
 
       if (names.includes(this.viewState.displayStatisticName)) {
         this.displayStatisticName = this.viewState.displayStatisticName;
+        // Polymer doesn't reset the value when the options change, so do that
+        // manually.
+        this.$.statistic.value = this.displayStatisticName;
       } else {
         this.viewState.displayStatisticName = names[0] || '';
       }

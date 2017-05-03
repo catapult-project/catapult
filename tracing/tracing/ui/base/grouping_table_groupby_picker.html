@@ -134,6 +134,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     restoreSetting_() {
+      if (this.settingsKey_ === undefined) return;
       this.currentGroupKeys = tr.b.Settings.get(this.settingsKey_,
           this.currentGroupKeys);
     },

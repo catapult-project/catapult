@@ -27,14 +27,19 @@ tr.exportTo('tr.v.ui', function() {
       this.nameCell_ = undefined;
       this.cells_ = new Map();
       this.subRows_ = [];
+
+      // Don't assign viewState.subRows or cells. There can't be anything
+      // listening to viewState, so avoid the overhead of dispatching an event.
       for (const subHierarchy of hierarchy.subRows) {
         const subRow = new HistogramSetTableRow(
             subHierarchy, baseTable, rootViewState);
         this.subRows_.push(subRow);
         this.viewState.subRows.set(subRow.name, subRow.viewState);
       }
-      // Don't assign this.viewState.subRows. There can't be anything listening
-      // to it, so avoid the overhead of dispatching an event.
+      for (const columnName of this.columns.keys()) {
+        this.viewState.cells.set(
+            columnName, new tr.v.ui.HistogramSetTableCellState());
+      }
     }
 
     /**
@@ -118,27 +123,12 @@ tr.exportTo('tr.v.ui', function() {
       return this.nameCell_;
     }
 
-    getCell(displayLabel) {
-      // Build all of the cells at once so that we only need to set
-      // this.viewState.cells once, which dispatches an event to the nameCell.
-      if (!this.cells.has(displayLabel)) this.buildCells();
-      return this.cells.get(displayLabel);
-    }
-
-    buildCells() {
-      const cellStates = new Map();
-      for (const displayLabel of this.columns.keys()) {
-        const cell = document.createElement('tr-v-ui-histogram-set-table-cell');
-        cell.build(this, displayLabel);
-        this.cells.set(displayLabel, cell);
-
-        const previousState = this.viewState.cells.get(displayLabel);
-        if (previousState !== undefined) {
-          cell.viewState.updateFromViewState(previousState);
-        }
-        cellStates.set(displayLabel, cell.viewState);
-      }
-      this.viewState.cells = cellStates;
+    getCell(columnName) {
+      if (this.cells.has(columnName)) return this.cells.get(columnName);
+      const cell = document.createElement('tr-v-ui-histogram-set-table-cell');
+      cell.build(this, columnName, this.viewState.cells.get(columnName));
+      this.cells.set(columnName, cell);
+      return cell;
     }
 
     compareNames(other) {

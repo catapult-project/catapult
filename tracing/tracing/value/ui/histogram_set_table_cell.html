@@ -100,8 +100,7 @@ tr.exportTo('tr.v.ui', function() {
     is: 'tr-v-ui-histogram-set-table-cell',
 
     created() {
-      this.viewState_ = new tr.v.ui.HistogramSetTableCellState();
-      this.viewState.addUpdateListener(this.onViewStateUpdate_.bind(this));
+      this.viewState_ = undefined;
       this.rootListener_ = this.onRootStateUpdate_.bind(this);
       this.row_ = undefined;
       this.displayLabel_ = '';
@@ -126,16 +125,22 @@ tr.exportTo('tr.v.ui', function() {
       // lifetimes are the same as |this|.
     },
 
-    build(row, displayLabel) {
+    build(row, displayLabel, viewState) {
       this.row_ = row;
       this.displayLabel_ = displayLabel;
-      this.row.viewState.addUpdateListener(this.onRowStateUpdate_.bind(this));
+      this.viewState_ = viewState;
+      this.histogram_ = this.row.columns.get(displayLabel);
 
+      if (this.viewState) {
+        // this.viewState is undefined when this.histogram_ is undefined.
+        // In that case, onViewStateUpdate_ wouldn't be able to do anything
+        // anyway.
+        this.viewState.addUpdateListener(this.onViewStateUpdate_.bind(this));
+      }
+      this.row.viewState.addUpdateListener(this.onRowStateUpdate_.bind(this));
       if (this.isAttached) {
         this.row.rootViewState.addUpdateListener(this.rootListener_);
       }
-
-      this.histogram_ = this.row.columns.get(displayLabel);
 
       // this.histogram_ and this.referenceHistogram might be undefined,
       // a HistogramSet of unmergeable Histograms, or a Histogram.
@@ -211,9 +216,9 @@ tr.exportTo('tr.v.ui', function() {
       if (open && this.histogramSpan_ === undefined) {
         this.histogramSpan_ = document.createElement('tr-v-ui-histogram-span');
         this.$.histogram.appendChild(this.histogramSpan_);
+        this.histogramSpan_.viewState = this.viewState;
         this.histogramSpan_.referenceHistogram = this.referenceHistogram;
         this.histogramSpan_.histogram = this.histogram;
-        this.histogramSpan_.viewState = this.viewState;
       }
 
       this.viewState.isOpen = open;
@@ -297,7 +302,7 @@ tr.exportTo('tr.v.ui', function() {
 
       if (this.histogramSpan_) {
         // Reset in case HistogramSetViewState.referenceDisplayLabel changed.
-        this.histogramSpan_ = referenceHistogram;
+        this.histogramSpan_.referenceHistogram = referenceHistogram;
       }
 
       if ((referenceHistogram instanceof tr.v.Histogram) &&

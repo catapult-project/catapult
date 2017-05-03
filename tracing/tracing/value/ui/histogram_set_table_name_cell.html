@@ -177,6 +177,11 @@ tr.exportTo('tr.v.ui', function() {
         this.title += '\n' + this.row.description;
       }
 
+      if (this.row.overviewDataRange.isEmpty ||
+          this.row.overviewDataRange.min === this.row.overviewDataRange.max) {
+        this.$.show_overview.style.display = 'none';
+      }
+
       let histogramCount = 0;
       for (const cell of this.row.columns.values()) {
         if (cell instanceof tr.v.Histogram &&
@@ -286,16 +291,7 @@ tr.exportTo('tr.v.ui', function() {
       if (event.delta.isOverviewed) {
         this.isOverviewed = this.row.viewState.isOverviewed;
       }
-      if (event.delta.cells) {
-        if (event.delta.cells.previous) {
-          for (const cellState of event.delta.cells.previous.values()) {
-            cellState.removeUpdateListener(this.cellListener_);
-          }
-        }
-        for (const cellState of event.delta.cells.current.values()) {
-          cellState.addUpdateListener(this.cellListener_);
-        }
-      }
+      // This assumes that cell states are not updated.
     },
 
     onCellStateUpdate_(event) {

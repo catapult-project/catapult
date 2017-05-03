@@ -11,6 +11,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/base/name_bar_chart.html">
 <link rel="import" href="/tracing/value/ui/diagnostic_map_table.html">
 <link rel="import" href="/tracing/value/ui/diagnostic_span.html">
+<link rel="import" href="/tracing/value/ui/histogram_set_view_state.html">
 <link rel="import" href="/tracing/value/ui/scalar_map_table.html">
 
 <dom-module id='tr-v-ui-histogram-span'>
@@ -81,8 +82,7 @@ tr.exportTo('tr.v.ui', function() {
       this.graphWidth_ = undefined;
       this.graphHeight_ = undefined;
       this.mouseDownBin_ = undefined;
-      this.brushedBins_ = [];
-      this.prevBrushedBins_ = [];
+      this.prevBrushedBinRange_ = new tr.b.math.Range();
       this.canMergeSampleDiagnostics_ = true;
     },
 
@@ -96,6 +96,7 @@ tr.exportTo('tr.v.ui', function() {
       }
       this.viewState_ = vs;
       this.viewState.addUpdateListener(this.viewStateListener_);
+      if (this.isAttached) this.updateContents_();
     },
 
     onViewStateUpdate_(event) {
@@ -218,28 +219,18 @@ tr.exportTo('tr.v.ui', function() {
     },
 
     get brushedBins() {
-      return this.brushedBins_;
-    },
-
-    set brushedBins(bins) {
-      if (this.chart_ === undefined) return;
-      this.brushedBins_ = bins;
-      if (this.chart_ === undefined) return;
-      let brushedBinIndices = new tr.b.math.Range();
-      for (let bin of bins) {
-        brushedBinIndices.addValue(this.histogram.allBins.indexOf(bin));
+      const bins = [];
+      if (this.histogram && !this.brushedBinRange.isEmpty) {
+        for (let i = this.brushedBinRange.min;
+            i < this.brushedBinRange.max; ++i) {
+          bins.push(this.histogram.allBins[i]);
+        }
       }
-      if (brushedBinIndices.max !== this.viewState.brushedBinRange.max ||
-          brushedBinIndices.max !== this.viewState.brushedBinRange.max) {
-        this.viewState.brushedBinRange = brushedBinIndices;
-      }
-      this.chart_.brushedRange = brushedBinIndices;
-      this.updateDiagnostics_();
+      return bins;
     },
 
     get brushedBinRange() {
-      if (this.chart_ === undefined) return new tr.b.math.Range();
-      return this.chart_.brushedRange;
+      return this.viewState.brushedBinRange;
     },
 
     set brushedBinRange(r) {
@@ -248,11 +239,9 @@ tr.exportTo('tr.v.ui', function() {
       const current = this.brushedBinRange;
       if (r.min === current.min && r.max === current.max) return;
 
-      const brushedBins = [];
-      for (let i = r.min; i <= r.max; ++i) {
-        brushedBins.push(this.histogram.allBins[i]);
-      }
-      this.brushedBins = brushedBins;
+      this.chart_.brushedRange = r;
+      this.viewState.brushedBinRange = r;
+      this.updateDiagnostics_();
     },
 
     get mergeSampleDiagnostics() {
@@ -265,18 +254,13 @@ tr.exportTo('tr.v.ui', function() {
     },
 
     updateBrushedRange_(binIndex) {
-      let brushedBinIndices = new tr.b.math.Range();
-      brushedBinIndices.addValue(tr.b.math.clamp(
+      let brushedBinRange = new tr.b.math.Range();
+      brushedBinRange.addValue(tr.b.math.clamp(
           this.mouseDownBinIndex_, 0, this.histogram.allBins.length - 1));
-      brushedBinIndices.addValue(tr.b.math.clamp(
+      brushedBinRange.addValue(tr.b.math.clamp(
           binIndex, 0, this.histogram.allBins.length - 1));
-      brushedBinIndices.max += 1;
-      this.chart_.brushedRange = brushedBinIndices;
-
-      this.brushedBins_ = [];
-      for (let i = brushedBinIndices.min; i < brushedBinIndices.max; ++i) {
-        this.brushedBins.push(this.histogram.allBins[i]);
-      }
+      brushedBinRange.max += 1;
+      this.brushedBinRange = brushedBinRange;
     },
 
     onMouseDown_(chartEvent) {
@@ -284,7 +268,7 @@ tr.exportTo('tr.v.ui', function() {
       if (!this.histogram) {
         return;
       }
-      this.prevBrushedBins_ = this.brushedBins_;
+      this.prevBrushedBinRange_ = this.brushedBinRange;
       this.mouseDownBinIndex_ = chartEvent.y;
       this.updateBrushedRange_(chartEvent.y);
     },
@@ -303,13 +287,11 @@ tr.exportTo('tr.v.ui', function() {
         return;
       }
       this.updateBrushedRange_(chartEvent.y);
-      if (this.prevBrushedBins_.length === 1 &&
-          this.brushedBins_.length === 1 &&
-          this.prevBrushedBins_[0] === this.brushedBins_[0]) {
-        this.brushedBins_ = [];
-        this.chart_.brushedRange = new tr.b.math.Range();
+      if (this.prevBrushedBinRange_.range === 1 &&
+          this.brushedBinRange.range === 1 &&
+          this.prevBrushedBinRange_.min === this.brushedBinRange.min) {
+        this.brushedBinRange = new tr.b.math.Range();
       }
-      this.updateDiagnostics_();
       this.mouseDownBinIndex_ = undefined;
     },
 
@@ -393,7 +375,7 @@ tr.exportTo('tr.v.ui', function() {
       this.$.drag_handle.style.display = 'none';
       this.$.sample_diagnostics_container.style.display = 'none';
       this.$.container.style.justifyContent = '';
-      this.brushedBins_ = [];
+      this.brushedBinRange = new tr.b.math.Range();
 
       while (Polymer.dom(this.$.chart).lastChild) {
         Polymer.dom(this.$.chart).removeChild(
@@ -427,7 +409,8 @@ tr.exportTo('tr.v.ui', function() {
       }
 
       if (this.histogram.numValues <= 1) {
-        this.brushedBins_ = this.histogram.allBins;
+        this.brushedBinRange = tr.b.math.Range.fromExplicitRange(
+            0, this.histogram.allBins.length);
         this.updateDiagnostics_();
         this.$.container.style.justifyContent = 'flex-end';
         return;
@@ -455,7 +438,8 @@ tr.exportTo('tr.v.ui', function() {
             }
           ];
         }
-        this.brushedBins_ = this.histogram.allBins;
+        this.brushedBinRange = tr.b.math.Range.fromExplicitRange(
+            0, this.histogram.allBins.length);
         this.updateDiagnostics_();
         return;
       }
@@ -473,7 +457,8 @@ tr.exportTo('tr.v.ui', function() {
       this.chart_.hideLegend = true;
       this.chart_.getDataSeries('y').color = 'blue';
       this.chart_.xAxisLabel = '#';
-      this.chart_.brushedRange = new tr.b.math.Range();
+      this.chart_.brushedRange = this.brushedBinRange;
+      this.updateDiagnostics_();
 
       let chartData = [];
       let binCounts = [];

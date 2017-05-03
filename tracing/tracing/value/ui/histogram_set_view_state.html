@@ -36,6 +36,50 @@ tr.exportTo('tr.v.ui', function() {
       this.define('subRows', new Map());
     }
 
+    asCompactDict() {
+      const result = {};
+      if (this.isExpanded) result.e = '1';
+      if (this.isOverviewed) result.o = '1';
+      const cells = {};
+      for (const [name, cell] of this.cells) {
+        const cellDict = cell.asCompactDict();
+        if (cellDict === undefined) continue;
+        cells[name] = cellDict;
+      }
+      if (Object.keys(cells).length > 0) result.c = cells;
+
+      const subRows = {};
+      for (const [name, row] of this.subRows) {
+        const rowDict = row.asCompactDict();
+        if (rowDict === undefined) continue;
+        subRows[name] = rowDict;
+      }
+      if (Object.keys(subRows).length > 0) result.r = subRows;
+
+      if (Object.keys(result).length === 0) return undefined;
+
+      return result;
+    }
+
+    async updateFromCompactDict(dict) {
+      await this.update({
+        isExpanded: dict.e === '1',
+        isOverviewed: dict.o === '1',
+      });
+
+      for (const [name, cellDict] of Object.entries(dict.c || {})) {
+        const cell = this.cells.get(name);
+        if (cell === undefined) continue;
+        await cell.updateFromCompactDict(cellDict);
+      }
+
+      for (const [name, subRowDict] of Object.entries(dict.r || {})) {
+        const subRow = this.subRows.get(name);
+        if (subRow === undefined) continue;
+        await subRow.updateFromCompactDict(subRowDict);
+      }
+    }
+
     * walk() {
       yield this;
       for (const row of this.subRows.values()) yield* row.walk();
@@ -54,6 +98,34 @@ tr.exportTo('tr.v.ui', function() {
       this.define('isOpen', false);
       this.define('brushedBinRange', new tr.b.math.Range());
       this.define('mergeSampleDiagnostics', true);
+    }
+
+    asCompactDict() {
+      const result = {};
+      if (this.isOpen) result.o = '1';
+      if (!this.mergeSampleDiagnostics) result.m = '0';
+      if (!this.brushedBinRange.isEmpty) {
+        result.b = this.brushedBinRange.min + '_' + this.brushedBinRange.max;
+      }
+      if (Object.keys(result).length === 0) return undefined;
+      return result;
+    }
+
+    async updateFromCompactDict(dict) {
+      let binRange = this.brushedBinRange;
+      if (dict.b) {
+        let [bMin, bMax] = dict.b.split('_');
+        bMin = parseInt(bMin);
+        bMax = parseInt(bMax);
+        if (bMin !== binRange.min || bMax !== binRange.max) {
+          binRange = tr.b.math.Range.fromExplicitRange(bMin, bMax);
+        }
+      }
+      await this.update({
+        isOpen: dict.o === '1',
+        brushedBinRange: binRange,
+        mergeSampleDiagnostics: dict.m !== '0',
+      });
     }
   }
 

@@ -26,8 +26,12 @@ tr.exportTo('tr.v', function() {
       this.key = key;
       this.callback = callback;
       this.label = opt_label || key;
+
+      HistogramGrouping.KEYS_TO_GROUPINGS.set(key, this);
     }
   }
+
+  HistogramGrouping.KEYS_TO_GROUPINGS = new Map();
 
   class HistogramSet {
     constructor(opt_histograms) {
