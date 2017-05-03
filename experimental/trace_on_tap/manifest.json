@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "TraceOnTap",
-  "version": "1.0.9",
+  "version": "1.0.11",
   "author": "Primiano Tucci <primiano@chromium.org>",
   "description": "Grabs a chrome trace, uploads it and files a bug with one tap.",
   "background": {

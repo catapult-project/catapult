@@ -34,7 +34,7 @@ class TraceUploader {
       try {
         const resp = JSON.parse(this.xhr_.response);
         const url = 'https://storage.cloud.google.com/' + TraceUploader.BUCKET +
-                     '/' + resp.id.split('/')[1];
+                     '/' + resp.id.split('/')[1] + '?authuser=1';
         if (this.onUploadComplete !== undefined) {
           this.onUploadComplete(url);
         }

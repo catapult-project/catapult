@@ -83,3 +83,11 @@ a {
   font-size: 12px;
   font-weight: 200;
 }
+
+#disclaimer {
+  font-size: 10px;
+  color: #999;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: solid 1px #eee;
+}
