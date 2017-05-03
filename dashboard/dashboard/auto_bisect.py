@@ -16,9 +16,6 @@ from dashboard.models import anomaly
 from dashboard.models import graph_data
 from dashboard.models import try_job
 
-# Days between successive bisect restarts.
-_BISECT_RESTART_PERIOD_DAYS = [0, 1, 7, 14]
-
 
 class AutoBisectHandler(request_handler.RequestHandler):
   """URL endpoint for a cron job to automatically run bisects."""
@@ -55,7 +52,7 @@ def _RestartFailedBisectJobs():
   all_successful = True
   for job in bisect_jobs:
     if job.run_count > 0:
-      if job.run_count <= len(_BISECT_RESTART_PERIOD_DAYS):
+      if job.run_count <= 1:
         if _IsBisectJobDueForRestart(job):
           logging.info('RestartingFailedBisect: job.key: %s', str(job.key.id()))
           # Start bisect right away if this is the first retry. Otherwise,
@@ -204,8 +201,7 @@ def _MakeBisectTryJob(bug_id, run_count=0):
 
 def _IsBisectJobDueForRestart(bisect_job):
   """Whether bisect job is due for restart."""
-  old_timestamp = (datetime.datetime.now() - datetime.timedelta(
-      days=_BISECT_RESTART_PERIOD_DAYS[bisect_job.run_count - 1]))
+  old_timestamp = (datetime.datetime.now() - datetime.timedelta(days=0))
   return bisect_job.last_ran_timestamp <= old_timestamp
 
 

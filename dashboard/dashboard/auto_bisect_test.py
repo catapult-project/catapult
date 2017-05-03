@@ -46,23 +46,6 @@ class AutoBisectTest(testing_common.TestCase):
     self.assertFalse(mock_perform_bisect.called)
 
   @mock.patch.object(auto_bisect.start_try_job, 'PerformBisect')
-  def testPost_FailedJobRunTwice_JobRestarted(self, mock_perform_bisect):
-    testing_common.AddTests(
-        ['ChromiumPerf'], ['linux-release'], {'sunspider': {'score': {}}})
-    test_key = utils.TestKey('ChromiumPerf/linux-release/sunspider/score')
-    anomaly.Anomaly(
-        bug_id=111, test=test_key,
-        start_revision=300100, end_revision=300200,
-        median_before_anomaly=100, median_after_anomaly=200).put()
-    try_job.TryJob(
-        bug_id=111, status='failed',
-        last_ran_timestamp=datetime.datetime.now() - datetime.timedelta(days=8),
-        run_count=2).put()
-    self.testapp.post('/auto_bisect')
-    mock_perform_bisect.assert_called_once_with(
-        try_job.TryJob.query(try_job.TryJob.bug_id == 111).get())
-
-  @mock.patch.object(auto_bisect.start_try_job, 'PerformBisect')
   def testPost_FailedJobRunOnce_JobRestarted(self, mock_perform_bisect):
     try_job.TryJob(
         bug_id=222, status='failed',
@@ -77,7 +60,7 @@ class AutoBisectTest(testing_common.TestCase):
     job_key = try_job.TryJob(
         bug_id=333, status='failed',
         last_ran_timestamp=datetime.datetime.now(),
-        run_count=len(auto_bisect._BISECT_RESTART_PERIOD_DAYS) + 1).put()
+        run_count=2).put()
     job = job_key.get()
     self.testapp.post('/auto_bisect')
     self.assertIsNone(job_key.get())
@@ -225,18 +208,6 @@ class TickMonitoringCustomMetricTest(testing_common.TestCase):
         bug_id=222, status='failed',
         last_ran_timestamp=datetime.datetime.now(),
         run_count=1).put()
-    self.testapp.post('/auto_bisect')
-    self.assertEqual(0, mock_tick.call_count)
-
-  @mock.patch.object(auto_bisect.start_try_job, 'PerformBisect')
-  @mock.patch.object(utils, 'TickMonitoringCustomMetric')
-  def testPost_RunCount2_ExceptionInPerformBisect_CustomMetricNotTicked(
-      self, mock_tick, mock_perform_bisect):
-    mock_perform_bisect.side_effect = request_handler.InvalidInputError()
-    try_job.TryJob(
-        bug_id=111, status='failed',
-        last_ran_timestamp=datetime.datetime.now() - datetime.timedelta(days=8),
-        run_count=2).put()
     self.testapp.post('/auto_bisect')
     self.assertEqual(0, mock_tick.call_count)
 
