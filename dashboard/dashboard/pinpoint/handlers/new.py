@@ -27,8 +27,7 @@ class NewHandler(webapp2.RequestHandler):
 
     # Validate commit hashes.
     for dep in deps:
-      if not dep.Validate():
-        raise ValueError('Could not find the commit with Gitiles: %s' % dep)
+      dep.Validate()
 
     # Convert parameters to canonical internal representation.
 
