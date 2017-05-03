@@ -327,6 +327,14 @@ def _GetJsonBenchmarkList(possible_browser, possible_reference_browser,
     }
   }
   for benchmark_class in benchmark_classes:
+    # Filter out benchmarks in tools/perf/contrib/ directory
+    # This is a terrible hack but we should no longer need this
+    # _GetJsonBenchmarkList once all the perf bots are moved to swarming
+    # (crbug.com/715565)
+    if ('contrib' in
+        os.path.abspath(sys.modules[benchmark_class.__module__].__file__)):
+      continue
+
     if not _IsBenchmarkEnabled(benchmark_class, possible_browser):
       continue
 
