@@ -231,7 +231,90 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(0.025, v8eqt.average);
   });
 
+  test('expectedQueueingTimeCompileUnoptimized', function() {
+    let model = tr.c.TestUtils.newModel((model) => {
+      let rendererProcess = model.getOrCreateProcess(1984);
+      let mainThread = rendererProcess.getOrCreateThread(2);
+      mainThread.name = 'CrRendererMain';
+      addInteractiveTimestamp(rendererProcess, mainThread, 200);
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'toplevel',
+        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
+        start: 0,
+        duration: 100,
+      }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'v8',
+        title: 'V8.GCFinalizeMC',
+        start: 50,
+        duration: 50,
+      }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'toplevel',
+        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
+        start: 3000,
+        duration: 10,
+      }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'disabled-by-default-v8.compile',
+        title: 'V8.RecompileSynchronous',
+        start: 3000,
+        duration: 5,
+      }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'toplevel',
+        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
+        start: 4000,
+        duration: 100,
+      }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'disabled-by-default-v8.compile',
+        title: 'V8.CompileCode',
+        start: 4000,
+        duration: 20,
+      }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'disabled-by-default-v8.compile',
+        title: 'V8.ParseFunction',
+        start: 4000,
+        duration: 10,
+      }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'disabled-by-default-v8.compile',
+        title: 'V8.CompileCode',
+        start: 4030,
+        duration: 10,
+      }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'toplevel',
+        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
+        start: 9000,
+        duration: 10,
+      }));
+      mainThread.sliceGroup.createSubSlices();
+    });
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.expectedQueueingTimeMetric(histograms, model);
+    const eqt = histograms.getHistogramNamed(
+        'total:500ms_window:renderer_eqt');
+    const optimizeEqt = eqt.diagnostics.get('v8').get('v8:compile:optimize');
+    assert.strictEqual(0.025, optimizeEqt.average);
+    const parseEqt = eqt.diagnostics.get('v8').get('v8:compile:parse');
+    assert.strictEqual(0.1, parseEqt.average);
+    const compileUnoptimizeEqt = eqt.diagnostics.get('v8').get(
+        'v8:compile:compile-unoptimize');
+    assert.strictEqual(0.4, compileUnoptimizeEqt.average);
+  });
+
   test('contributionToExpectedQueueingTime', function() {
+    function filterFunction_(slice) {
+      let duration = 0;
+      for (let sub of slice.findTopmostSlicesRelativeToThisSlice(
+          event => event.title === 'V8.GCFinalizeMC')) {
+        duration += sub.duration;
+      }
+      return {start: slice.start, end: slice.start + duration};
+    }
     let model = tr.c.TestUtils.newModel((model) => {
       let rendererProcess = model.getOrCreateProcess(1984);
       let mainThread = rendererProcess.getOrCreateThread(2);
@@ -279,8 +362,8 @@ tr.b.unittest.testSuite(function() {
     const rendererToInteractiveTimestamps =
         tr.e.chrome.getInteractiveTimestamps(model);
     let contribution = tr.metrics.sh.contributionToExpectedQueueingTime(
-        (event => event.title === 'V8.GCFinalizeMC'), 'v8:gc',
-        rendererToInteractiveTimestamps, histograms, model);
+        filterFunction_, 'v8:gc', rendererToInteractiveTimestamps, histograms,
+        model);
     let interactiveEQT = contribution.interactive;
     assert.strictEqual(0.025, interactiveEQT.average);
     let totalEQT = contribution.total;

@@ -33,25 +33,66 @@ tr.exportTo('tr.metrics.sh', function() {
   const EQT_BOUNDARIES = tr.v.HistogramBinBoundaries
       .createExponential(0.01, WINDOW_SIZE_MS, 50);
   const V8_EVENT_NAMES_TO_FILTERS = new Map([
-    ['v8', tr.metrics.v8.utils.isV8Event],
-    ['v8:compile', tr.metrics.v8.utils.isCompileEvent],
-    ['v8:execute', tr.metrics.v8.utils.isV8ExecuteEvent],
-    ['v8:gc', tr.metrics.v8.utils.isGarbageCollectionEvent],
-    ['v8:gc:full-mark-compactor', tr.metrics.v8.utils.isFullMarkCompactorEvent],
+    ['v8', fromPredicate_(tr.metrics.v8.utils.isV8Event)],
+    ['v8:compile', fromPredicate_(tr.metrics.v8.utils.isCompileEvent)],
+    [
+      'v8:compile:optimize',
+      fromPredicate_(tr.metrics.v8.utils.isCompileOptimizeEvent)
+    ],
+    [
+      'v8:compile:parse',
+      fromPredicate_(tr.metrics.v8.utils.isCompileParseEvent)
+    ],
+    [
+      'v8:compile:compile-unoptimize',
+      filterCompileUnoptimizeAndSubtractParseEvents_
+    ],
+    ['v8:execute', fromPredicate_(tr.metrics.v8.utils.isV8ExecuteEvent)],
+    ['v8:gc', fromPredicate_(tr.metrics.v8.utils.isGarbageCollectionEvent)],
+    [
+      'v8:gc:full-mark-compactor',
+      fromPredicate_(tr.metrics.v8.utils.isFullMarkCompactorEvent)
+    ],
     [
       'v8:gc:incremental-marking',
-      tr.metrics.v8.utils.isIncrementalMarkingEvent
+      fromPredicate_(tr.metrics.v8.utils.isIncrementalMarkingEvent)
     ],
     [
       'v8:gc:latency-mark-compactor',
-      tr.metrics.v8.utils.isLatencyMarkCompactorEvent
+      fromPredicate_(tr.metrics.v8.utils.isLatencyMarkCompactorEvent)
     ],
     [
       'v8:gc:memory-mark-compactor',
-      tr.metrics.v8.utils.isMemoryMarkCompactorEvent
+      fromPredicate_(tr.metrics.v8.utils.isMemoryMarkCompactorEvent)
     ],
-    ['v8:gc:scavenger', tr.metrics.v8.utils.isScavengerEvent]
+    ['v8:gc:scavenger', fromPredicate_(tr.metrics.v8.utils.isScavengerEvent)]
   ]);
+
+  /**
+   * @param {function} function to filter sub slices withnin a slice.
+   * @returns {function} function to compute the duration corresponding to the
+   *     sub slices that satisfy the eventPredicate in a given slice.
+   */
+  function fromPredicate_(eventPredicate) {
+    return function(slice) {
+      const duration = durationOfTopmostSubSlices(slice, eventPredicate);
+      return {start: slice.start, end: slice.start + duration};
+    };
+  }
+
+  /**
+   * @param {!tr.model.Slice} The slice which has to be filtered.
+   * @returns {{start:number, end:number}} A range whose duration is the total
+   *     duration of the compile unoptimize events after subtracting the
+   *     duration of any parse events within the slice. The start of the slice
+   *     is same as the original slice.
+   */
+  function filterCompileUnoptimizeAndSubtractParseEvents_(slice) {
+    const duration = durationOfTopmostSubSlices(slice,
+        tr.metrics.v8.utils.isCompileUnoptimizeEvent,
+        tr.metrics.v8.utils.isCompileParseEvent);
+    return {start: slice.start, end: slice.start + duration};
+  }
 
   /**
    * Returns true if the slice contains a forced GC event. Some stories force
@@ -158,9 +199,9 @@ tr.exportTo('tr.metrics.sh', function() {
     if (!model.categories.includes('v8')) return;
     const breakdownForTotal = new tr.v.d.RelatedHistogramMap();
     const breakdownForInteractive = new tr.v.d.RelatedHistogramMap();
-    for (let [eventName, filter] of V8_EVENT_NAMES_TO_FILTERS) {
+    for (let [eventName, filterFunction] of V8_EVENT_NAMES_TO_FILTERS) {
       const contribution = contributionToExpectedQueueingTime(
-          filter, eventName, rendererToInteractiveTimestamps,
+          filterFunction, eventName, rendererToInteractiveTimestamps,
           histograms, model);
       breakdownForTotal.set(eventName, contribution.total);
       breakdownForInteractive.set(eventName, contribution.interactive);
@@ -171,12 +212,16 @@ tr.exportTo('tr.metrics.sh', function() {
 
   /**
    * @returns {number} the total duration of topmost subslices of the given
-   *     slice that satisfy the given predicate.
+   *     slice that satisfy the given predicate after filtering out any
+         events that satisfy the subEventPredicate in the subslices.
    */
-  function durationOfTopmostSubSlices(slice, predicate) {
+  function durationOfTopmostSubSlices(slice, predicate, subEventPredicate) {
     let duration = 0;
     for (let sub of slice.findTopmostSlicesRelativeToThisSlice(predicate)) {
       duration += sub.duration;
+      if (subEventPredicate !== null && subEventPredicate !== undefined) {
+        duration -= durationOfTopmostSubSlices(sub, subEventPredicate);
+      }
     }
     return duration;
   }
@@ -197,7 +242,8 @@ tr.exportTo('tr.metrics.sh', function() {
    * Each renderer process adds one sample to the histograms.
    * Both histograms are added to the given histogram set.
    *
-   * @param eventPredicate the predicate for selecting events.
+   * @param filterFunction a function to compute the duration of the sub
+   *     slices satisfying a particular predicate within the given slice.
    * @param eventName the name describing the selected events. This name will be
    *     added to metric names.
    * @param rendererToInteractiveTimestamps a map from renderer pid to an array
@@ -205,7 +251,7 @@ tr.exportTo('tr.metrics.sh', function() {
    * @returns {{total: !tr.v.Histogram, interactive: !tr.v.Histogram}}
    */
   function contributionToExpectedQueueingTime(
-      eventPredicate, eventName, rendererToInteractiveTimestamps, histograms,
+      filterFunction, eventName, rendererToInteractiveTimestamps, histograms,
       model) {
     const chromeHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
@@ -226,13 +272,7 @@ tr.exportTo('tr.metrics.sh', function() {
       if (rendererHelper.isChromeTracingUI) continue;
       const tasks = rendererHelper.mainThread.sliceGroup.topLevelSlices
           .filter(slice => slice.duration > 0 && !containsForcedGC_(slice))
-          .map(slice => {
-            return {
-              start: slice.start,
-              end: slice.start +
-                  durationOfTopmostSubSlices(slice, eventPredicate)
-            };
-          });
+          .map(filterFunction);
       totalHistogram.addSample(
           tr.e.chrome.maxExpectedQueueingTimeInSlidingWindow(
               rendererHelper.mainThread.bounds.min,
