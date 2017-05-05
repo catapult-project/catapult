@@ -148,7 +148,7 @@ tr.exportTo('tr.b.unittest', function() {
 
       this.currentTestCase_ = this.pendingTestCases_.splice(0, 1)[0];
       this.currentMark_ = tr.b.Timing.mark(
-          'TestRunner', 'RunTest', {testName: this.currentTestCase_.name});
+          'TestRunner', this.currentTestCase_.name);
       this.results_.willRunTest(this.currentTestCase_);
 
       if (this.isCurrentTestSkipped_()) {

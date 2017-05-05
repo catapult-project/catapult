@@ -111,45 +111,6 @@ tr.exportTo('tr.b', function() {
     },
 
     /*
-     * See constructor documentation on semantics of after tasks.
-     * Note: timedAfter doesn't work when a task throws an exception.
-     * This is because task system doesn't support catching currently.
-     * At the time of writing, this is considered to be an acceptable tradeoff.
-     */
-    timedAfter(groupName, cb, thisArg, opt_args) {
-      if (cb.name === '') {
-        throw new Error('Anonymous Task is not allowed');
-      }
-      return this.namedTimedAfter(groupName, cb.name, cb, thisArg, opt_args);
-    },
-
-    /*
-     * See constructor documentation on semantics of after tasks.
-     * Note: namedTimedAfter doesn't work when a task throws an exception.
-     * This is because task system doesn't support catching currently.
-     * At the time of writing, this is considered to be an acceptable tradeoff.
-     */
-    namedTimedAfter(groupName, name, cb, thisArg, opt_args) {
-      if (this.afterTask_) {
-        throw new Error('Has an after task already');
-      }
-      var realTask;
-      if (cb instanceof Task) {
-        realTask = cb;
-      } else {
-        realTask = new Task(cb, thisArg);
-      }
-      this.afterTask_ = new Task(function(task) {
-        var markedTask = Timing.mark(groupName, name, opt_args);
-        task.subTask(realTask, thisArg);
-        task.subTask(function() {
-          markedTask.end();
-        }, thisArg);
-      }, thisArg);
-      return this.afterTask_;
-    },
-
-    /*
      * Adds a task after the chain of tasks.
      */
     enqueue(cb, thisArg) {
