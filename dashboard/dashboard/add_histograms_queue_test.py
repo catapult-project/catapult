@@ -40,8 +40,11 @@ class AddHistogramsQueueTest(testing_common.TestCase):
     test_key = utils.TestKey(test_path)
     self.testapp.post('/add_histograms_queue', params)
 
+    original_histogram = json.loads(TEST_HISTOGRAM)
+
     histograms = histogram.Histogram.query().fetch()
     self.assertEqual(1, len(histograms))
+    self.assertEqual(original_histogram['guid'], histograms[0].key.id())
 
     h = histograms[0]
     self.assertEqual(TEST_HISTOGRAM, h.data)

@@ -46,13 +46,14 @@ class AddHistogramsQueueHandler(request_handler.RequestHandler):
     data_dict = json.loads(data)
     revision = int(self.request.get('revision'))
     test_key = utils.TestKey(self.request.get('test_path'))
+    guid = data_dict['guid']
 
     if data_dict.get('type') in add_histograms.SPARSE_DIAGNOSTIC_TYPES:
       entity = histogram.SparseDiagnostic(
-          data=data, test=test_key, start_revision=revision,
+          id=guid, data=data, test=test_key, start_revision=revision,
           end_revision=revision)
     else:
       entity = histogram.Histogram(
-          data=data, test=test_key, revision=revision)
+          id=guid, data=data, test=test_key, revision=revision)
 
     entity.put()
