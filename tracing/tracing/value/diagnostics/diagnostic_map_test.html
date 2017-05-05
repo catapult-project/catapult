@@ -14,7 +14,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('clone', function() {
-    let diagnostics = new tr.v.d.DiagnosticMap();
+    const diagnostics = new tr.v.d.DiagnosticMap();
     diagnostics.set('generic', new tr.v.d.Generic({a: ['b', 3]}));
     diagnostics.set('breakdown', new tr.v.d.Breakdown());
     diagnostics.set('events', new tr.v.d.RelatedEventSet());
@@ -23,7 +23,7 @@ tr.b.unittest.testSuite(function() {
     diagnostics.set('histogram breakdown',
         new tr.v.d.RelatedHistogramBreakdown());
 
-    let clone = tr.v.d.DiagnosticMap.fromDict(diagnostics.asDict());
+    const clone = tr.v.d.DiagnosticMap.fromDict(diagnostics.asDict());
     assert.instanceOf(clone.get('generic'), tr.v.d.Generic);
     assert.deepEqual(clone.get('generic').value,
         diagnostics.get('generic').value);

@@ -353,7 +353,10 @@ class Diagnostic(object):
   def FromDict(dct):
     if dct['type'] not in Diagnostic.REGISTRY:
       raise ValueError('Unrecognized diagnostic type: ' + dct['type'])
-    return Diagnostic.REGISTRY[dct['type']].FromDict(dct)
+    diagnostic = Diagnostic.REGISTRY[dct['type']].FromDict(dct)
+    if 'guid' in dct:
+      diagnostic.guid = dct['guid']
+    return diagnostic
 
   def Inline(self):
     """Inlines a shared diagnostic.

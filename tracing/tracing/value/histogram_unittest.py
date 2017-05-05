@@ -672,6 +672,8 @@ class RelatedHistogramBreakdownUnittest(unittest.TestCase):
 
 
 class DiagnosticMapUnittest(unittest.TestCase):
+  # TODO(eakuefner): Find a better place for these non-map tests once we
+  # break up the Python implementation more.
   def testInlineSharedDiagnostic(self):
     generic = histogram.Generic('generic diagnostic')
     hist = histogram.Histogram('', 'count')
@@ -683,6 +685,15 @@ class DiagnosticMapUnittest(unittest.TestCase):
     diag_dict = hist_dict['diagnostics']['foo']
     self.assertIsInstance(diag_dict, dict)
     self.assertEqual(diag_dict['type'], 'Generic')
+
+  def testDiagnosticGuidDeserialized(self):
+    d = {
+        'type': 'Generic',
+        'value': '',
+        'guid': 'bar'
+    }
+    g = histogram.Diagnostic.FromDict(d)
+    self.assertEqual('bar', g.guid)
 
   def testMerge(self):
     events = histogram.RelatedEventSet()

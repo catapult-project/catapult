@@ -102,7 +102,9 @@ tr.exportTo('tr.v.d', function() {
         throw new Error('Unrecognized diagnostic type: ' + d.type);
       }
 
-      return typeInfo.constructor.fromDict(d);
+      const diagnostic = typeInfo.constructor.fromDict(d);
+      if (d.guid !== undefined) diagnostic.guid = d.guid;
+      return diagnostic;
     }
   }
 
