@@ -323,6 +323,9 @@ class AndroidPlatformBackend(
   def GetOSVersionName(self):
     return self._device.GetProp('ro.build.id')[0]
 
+  def GetOSVersionDetailString(self):
+    return ''  # TODO(kbr): Implement this.
+
   def CanFlushIndividualFilesFromSystemCache(self):
     return False
 

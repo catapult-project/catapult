@@ -4,6 +4,7 @@
 
 import logging
 import os
+import re
 import shutil
 import tempfile
 import unittest
@@ -124,6 +125,19 @@ class BrowserTest(browser_test_case.BrowserTestCase):
   def testGetSystemTotalMemory(self):
     self.assertTrue(self._browser.memory_stats['SystemTotalPhysicalMemory'] > 0)
 
+  def testSystemInfoModelNameOnMac(self):
+    if self._browser.platform.GetOSName() != 'mac':
+      self.skipTest('This test is only run on macOS')
+      return
+
+    if not self._browser.supports_system_info:
+      logging.warning(
+          'Browser does not support getting system info, skipping test.')
+      return
+
+    info = self._browser.GetSystemInfo()
+    model_name_re = r"[a-zA-Z]* [0-9.]*"
+    self.assertNotEqual(re.match(model_name_re, info.model_name), None)
 
   # crbug.com/628836 (CrOS, where system-guest indicates ChromeOS guest)
   # github.com/catapult-project/catapult/issues/3130 (Windows)

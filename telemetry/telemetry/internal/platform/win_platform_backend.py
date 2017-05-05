@@ -270,6 +270,10 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
         'Unknown win version: %s, CurrentMajorVersionNumber: %s' %
         (os_version, value))
 
+  @decorators.Cache
+  def GetOSVersionDetailString(self):
+    return platform.uname()[3]
+
   def CanFlushIndividualFilesFromSystemCache(self):
     return True
 

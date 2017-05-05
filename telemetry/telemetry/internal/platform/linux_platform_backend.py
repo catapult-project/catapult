@@ -69,6 +69,9 @@ class LinuxPlatformBackend(
         break
     return os_version.OSVersion(codename, version)
 
+  def GetOSVersionDetailString(self):
+    return ''  # TODO(kbr): Implement this.
+
   def CanFlushIndividualFilesFromSystemCache(self):
     return True
 

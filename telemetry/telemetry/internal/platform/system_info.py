@@ -23,7 +23,11 @@ class SystemInfo(object):
            supported.
          gpu (object containing GPUInfo's required attributes)
     """
-    return cls(attrs["model_name"], attrs["gpu"])
+    model_name = attrs["model_name"]
+    model_version = attrs.get('model_version', '')
+    if model_name and model_version:
+      model_name += ' ' + model_version
+    return cls(model_name, attrs["gpu"])
 
   @property
   def model_name(self):

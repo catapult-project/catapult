@@ -67,6 +67,9 @@ class FakePlatform(object):
   def GetOSVersionName(self):
     raise NotImplementedError
 
+  def GetOSVersionDetailString(self):
+    raise NotImplementedError
+
   def StopAllLocalServers(self):
     pass
 
@@ -96,6 +99,9 @@ class FakeLinuxPlatform(FakePlatform):
 
   def GetOSVersionName(self):
     return 'trusty'
+
+  def GetOSVersionDetailString(self):
+    return ''
 
   def CanTakeScreenshot(self):
     return bool(self.screenshot_png_data)

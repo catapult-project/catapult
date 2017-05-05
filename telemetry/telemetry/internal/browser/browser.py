@@ -114,6 +114,9 @@ class Browser(app.App):
     logging.info('OS: %s %s',
                  self._platform_backend.platform.GetOSName(),
                  self._platform_backend.platform.GetOSVersionName())
+    os_detail = self._platform_backend.platform.GetOSVersionDetailString()
+    if os_detail:
+      logging.info('Detailed OS version: %s', os_detail)
     if self.supports_system_info:
       system_info = self.GetSystemInfo()
       if system_info.model_name:

@@ -173,6 +173,9 @@ class PlatformBackend(object):
   def GetOSVersionName(self):
     raise NotImplementedError()
 
+  def GetOSVersionDetailString(self):
+    raise NotImplementedError()
+
   def CanFlushIndividualFilesFromSystemCache(self):
     raise NotImplementedError()
 

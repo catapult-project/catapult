@@ -21,6 +21,9 @@ class IosPlatformBackend(posix_platform_backend.PosixPlatformBackend):
     logging.warn('Not implemented')
     return '7.1'
 
+  def GetOSVersionDetailString(self):
+    return ''  # TODO(kbr): Implement this.
+
   def SetFullPerformanceModeEnabled(self, enabled):
     logging.warn('Not implemented')
     return

@@ -163,6 +163,12 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
 
     raise NotImplementedError('Unknown mac version %s.' % os_version)
 
+  @decorators.Cache
+  def GetOSVersionDetailString(self):
+    product = subprocess.check_output(['sw_vers', '-productVersion']).strip()
+    build = subprocess.check_output(['sw_vers', '-buildVersion']).strip()
+    return product + ' ' + build
+
   def CanTakeScreenshot(self):
     return True
 

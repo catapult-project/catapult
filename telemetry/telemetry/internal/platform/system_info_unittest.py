@@ -66,3 +66,17 @@ class TestSystemInfo(unittest.TestCase):
         raise
       except KeyError:
         pass
+
+  def testModelNameAndVersion(self):
+    data = {
+        'model_name': 'MacBookPro',
+        'model_version': '10.1',
+        'gpu': {
+            'devices': [
+                {'vendor_id': 1000, 'device_id': 2000,
+                 'vendor_string': 'a', 'device_string': 'b'},
+            ]
+        }
+    }
+    info = system_info.SystemInfo.FromDict(data)
+    self.assertEquals(info.model_name, 'MacBookPro 10.1')

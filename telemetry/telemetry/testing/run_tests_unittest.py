@@ -35,6 +35,9 @@ class MockPlatform(object):
   def GetOSVersionName(self):
     return self.os_version_name
 
+  def GetOSVersionDetailString(self):
+    return ''
+
 
 class RunTestsUnitTest(unittest.TestCase):
 

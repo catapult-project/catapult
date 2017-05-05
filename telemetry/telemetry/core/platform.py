@@ -149,11 +149,12 @@ class Platform(object):
     Examples: VISTA, WIN7, LION, MOUNTAINLION"""
     return self._platform_backend.GetOSVersionName()
 
-  def GetOSVersionNumber(self):
-    """Returns an integer description of the Platform OS major version.
+  def GetOSVersionDetailString(self):
+    """Returns more detailed information about the OS version than
+    GetOSVersionName, if available. Otherwise returns the empty string.
 
-    Examples: On Mac, 13 for Mavericks, 14 for Yosemite."""
-    return self._platform_backend.GetOSVersionNumber()
+    Examples: '10.12.4' on macOS."""
+    return self._platform_backend.GetOSVersionDetailString()
 
   def GetSystemTotalPhysicalMemory(self):
     """Returns an integer with the total physical memory in bytes."""
