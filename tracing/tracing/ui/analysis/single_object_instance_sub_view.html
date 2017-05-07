@@ -73,7 +73,7 @@ Polymer({
   },
 
   set selection(selection) {
-    var instance = tr.b.getOnlyElement(selection);
+    const instance = tr.b.getOnlyElement(selection);
     if (!(instance instanceof tr.model.ObjectInstance)) {
       throw new Error('Only supports object instances');
     }
@@ -81,10 +81,10 @@ Polymer({
     Polymer.dom(this.$.content).textContent = '';
     this.currentSelection_ = selection;
 
-    var typeInfo = tr.ui.analysis.ObjectInstanceView.getTypeInfo(
+    const typeInfo = tr.ui.analysis.ObjectInstanceView.getTypeInfo(
         instance.category, instance.typeName);
     if (typeInfo) {
-      var customView = new typeInfo.constructor();
+      const customView = new typeInfo.constructor();
       Polymer.dom(this.$.content).appendChild(customView);
       customView.modelEvent = instance;
     } else {
@@ -93,7 +93,7 @@ Polymer({
   },
 
   appendGenericAnalysis_(instance) {
-    var html = '';
+    let html = '';
     html += '<div class="title">' +
         instance.typeName + ' ' +
         instance.id + '</div>\n';
@@ -110,9 +110,9 @@ Polymer({
     html += '<tr><td>snapshots:</td><td id="snapshots"></td></tr>\n';
     html += '</table>';
     Polymer.dom(this.$.content).innerHTML = html;
-    var snapshotsEl = Polymer.dom(this.$.content).querySelector('#snapshots');
+    const snapshotsEl = Polymer.dom(this.$.content).querySelector('#snapshots');
     instance.snapshots.forEach(function(snapshot) {
-      var snapshotLink = document.createElement('tr-ui-a-analysis-link');
+      const snapshotLink = document.createElement('tr-ui-a-analysis-link');
       snapshotLink.selection = new tr.model.EventSet(snapshot);
       Polymer.dom(snapshotsEl).appendChild(snapshotLink);
     });

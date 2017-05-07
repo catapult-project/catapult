@@ -13,22 +13,22 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var ProcessTrack = tr.ui.tracks.ProcessTrack;
-  var ThreadTrack = tr.ui.tracks.ThreadTrack;
-  var SliceGroup = tr.model.SliceGroup;
-  var SliceGroupTrack = tr.ui.tracks.SliceGroupTrack;
-  var newSliceEx = tr.c.TestUtils.newSliceEx;
+  const ProcessTrack = tr.ui.tracks.ProcessTrack;
+  const ThreadTrack = tr.ui.tracks.ThreadTrack;
+  const SliceGroup = tr.model.SliceGroup;
+  const SliceGroupTrack = tr.ui.tracks.SliceGroupTrack;
+  const newSliceEx = tr.c.TestUtils.newSliceEx;
 
   test('subRowBuilderBasic', function() {
-    var m = new tr.Model();
-    var t1 = m.getOrCreateProcess(1).getOrCreateThread(2);
-    var group = t1.sliceGroup;
-    var sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 2}));
-    var sB = group.pushSlice(newSliceEx({title: 'a', start: 3, duration: 1}));
+    const m = new tr.Model();
+    const t1 = m.getOrCreateProcess(1).getOrCreateThread(2);
+    const group = t1.sliceGroup;
+    const sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 2}));
+    const sB = group.pushSlice(newSliceEx({title: 'a', start: 3, duration: 1}));
 
-    var track = new SliceGroupTrack(new tr.ui.TimelineViewport());
+    const track = new SliceGroupTrack(new tr.ui.TimelineViewport());
     track.group = group;
-    var subRows = track.subRows;
+    const subRows = track.subRows;
 
     assert.strictEqual(track.badSlices_.length, 0);
     assert.strictEqual(subRows.length, 1);
@@ -37,15 +37,15 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('subRowBuilderBasic2', function() {
-    var m = new tr.Model();
-    var t1 = m.getOrCreateProcess(1).getOrCreateThread(2);
-    var group = t1.sliceGroup;
-    var sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 4}));
-    var sB = group.pushSlice(newSliceEx({title: 'b', start: 3, duration: 1}));
+    const m = new tr.Model();
+    const t1 = m.getOrCreateProcess(1).getOrCreateThread(2);
+    const group = t1.sliceGroup;
+    const sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 4}));
+    const sB = group.pushSlice(newSliceEx({title: 'b', start: 3, duration: 1}));
 
-    var track = new SliceGroupTrack(new tr.ui.TimelineViewport());
+    const track = new SliceGroupTrack(new tr.ui.TimelineViewport());
     track.group = group;
-    var subRows = track.subRows;
+    const subRows = track.subRows;
 
     assert.strictEqual(track.badSlices_.length, 0);
     assert.strictEqual(subRows.length, 2);
@@ -56,16 +56,16 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('subRowBuilderNestedExactly', function() {
-    var m = new tr.Model();
-    var t1 = m.getOrCreateProcess(1).getOrCreateThread(2);
-    var group = t1.sliceGroup;
+    const m = new tr.Model();
+    const t1 = m.getOrCreateProcess(1).getOrCreateThread(2);
+    const group = t1.sliceGroup;
 
-    var sB = group.pushSlice(newSliceEx({title: 'b', start: 1, duration: 4}));
-    var sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 4}));
+    const sB = group.pushSlice(newSliceEx({title: 'b', start: 1, duration: 4}));
+    const sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 4}));
 
-    var track = new SliceGroupTrack(new tr.ui.TimelineViewport());
+    const track = new SliceGroupTrack(new tr.ui.TimelineViewport());
     track.group = group;
-    var subRows = track.subRows;
+    const subRows = track.subRows;
 
     assert.strictEqual(track.badSlices_.length, 0);
     assert.strictEqual(subRows.length, 2);
@@ -76,16 +76,16 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('subRowBuilderInstantEvents', function() {
-    var m = new tr.Model();
-    var t1 = m.getOrCreateProcess(1).getOrCreateThread(2);
-    var group = t1.sliceGroup;
+    const m = new tr.Model();
+    const t1 = m.getOrCreateProcess(1).getOrCreateThread(2);
+    const group = t1.sliceGroup;
 
-    var sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 0}));
-    var sB = group.pushSlice(newSliceEx({title: 'b', start: 2, duration: 0}));
+    const sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 0}));
+    const sB = group.pushSlice(newSliceEx({title: 'b', start: 2, duration: 0}));
 
-    var track = new SliceGroupTrack(new tr.ui.TimelineViewport());
+    const track = new SliceGroupTrack(new tr.ui.TimelineViewport());
     track.group = group;
-    var subRows = track.subRows;
+    const subRows = track.subRows;
 
     assert.strictEqual(track.badSlices_.length, 0);
     assert.strictEqual(subRows.length, 1);
@@ -94,16 +94,16 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('subRowBuilderTwoInstantEvents', function() {
-    var m = new tr.Model();
-    var t1 = m.getOrCreateProcess(1).getOrCreateThread(2);
-    var group = t1.sliceGroup;
+    const m = new tr.Model();
+    const t1 = m.getOrCreateProcess(1).getOrCreateThread(2);
+    const group = t1.sliceGroup;
 
-    var sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 0}));
-    var sB = group.pushSlice(newSliceEx({title: 'b', start: 1, duration: 0}));
+    const sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 0}));
+    const sB = group.pushSlice(newSliceEx({title: 'b', start: 1, duration: 0}));
 
-    var track = new SliceGroupTrack(new tr.ui.TimelineViewport());
+    const track = new SliceGroupTrack(new tr.ui.TimelineViewport());
     track.group = group;
-    var subRows = track.subRows;
+    const subRows = track.subRows;
 
     assert.strictEqual(track.badSlices_.length, 0);
     assert.strictEqual(subRows.length, 2);
@@ -112,19 +112,19 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('subRowBuilderOutOfOrderAddition', function() {
-    var m = new tr.Model();
-    var t1 = m.getOrCreateProcess(1).getOrCreateThread(2);
-    var group = t1.sliceGroup;
+    const m = new tr.Model();
+    const t1 = m.getOrCreateProcess(1).getOrCreateThread(2);
+    const group = t1.sliceGroup;
 
     // Pattern being tested:
     // [    a     ][   b   ]
     // Where insertion is done backward.
-    var sB = group.pushSlice(newSliceEx({title: 'b', start: 3, duration: 1}));
-    var sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 2}));
+    const sB = group.pushSlice(newSliceEx({title: 'b', start: 3, duration: 1}));
+    const sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 2}));
 
-    var track = new SliceGroupTrack(new tr.ui.TimelineViewport());
+    const track = new SliceGroupTrack(new tr.ui.TimelineViewport());
     track.group = group;
-    var subRows = track.subRows;
+    const subRows = track.subRows;
 
     assert.strictEqual(track.badSlices_.length, 0);
     assert.strictEqual(subRows.length, 1);
@@ -133,20 +133,20 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('subRowBuilderOutOfOrderAddition2', function() {
-    var m = new tr.Model();
-    var t1 = m.getOrCreateProcess(1).getOrCreateThread(2);
-    var group = t1.sliceGroup;
+    const m = new tr.Model();
+    const t1 = m.getOrCreateProcess(1).getOrCreateThread(2);
+    const group = t1.sliceGroup;
 
     // Pattern being tested:
     // [    a     ]
     //   [  b   ]
     // Where insertion is done backward.
-    var sB = group.pushSlice(newSliceEx({title: 'b', start: 3, duration: 1}));
-    var sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 5}));
+    const sB = group.pushSlice(newSliceEx({title: 'b', start: 3, duration: 1}));
+    const sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 5}));
 
-    var track = new SliceGroupTrack(new tr.ui.TimelineViewport());
+    const track = new SliceGroupTrack(new tr.ui.TimelineViewport());
     track.group = group;
-    var subRows = track.subRows;
+    const subRows = track.subRows;
 
     assert.strictEqual(track.badSlices_.length, 0);
     assert.strictEqual(subRows.length, 2);
@@ -157,20 +157,22 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('subRowBuilderOnNestedZeroLength', function() {
-    var m = new tr.Model();
-    var t1 = m.getOrCreateProcess(1).getOrCreateThread(2);
-    var group = t1.sliceGroup;
+    const m = new tr.Model();
+    const t1 = m.getOrCreateProcess(1).getOrCreateThread(2);
+    const group = t1.sliceGroup;
 
     // Pattern being tested:
     // [    a    ]
     // [  b1 ]  []<- b2 where b2.duration = 0 and b2.end === a.end.
-    var sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 3}));
-    var sB1 = group.pushSlice(newSliceEx({title: 'b1', start: 1, duration: 2}));
-    var sB2 = group.pushSlice(newSliceEx({title: 'b2', start: 4, duration: 0}));
+    const sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 3}));
+    const sB1 = group.pushSlice(newSliceEx(
+        {title: 'b1', start: 1, duration: 2}));
+    const sB2 = group.pushSlice(newSliceEx(
+        {title: 'b2', start: 4, duration: 0}));
 
-    var track = new SliceGroupTrack(new tr.ui.TimelineViewport());
+    const track = new SliceGroupTrack(new tr.ui.TimelineViewport());
     track.group = group;
-    var subRows = track.subRows;
+    const subRows = track.subRows;
 
     assert.strictEqual(track.badSlices_.length, 0);
     assert.strictEqual(subRows.length, 2);
@@ -179,20 +181,21 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('subRowBuilderOnGroup1', function() {
-    var m = new tr.Model();
-    var t1 = m.getOrCreateProcess(1).getOrCreateThread(2);
-    var group = t1.sliceGroup;
+    const m = new tr.Model();
+    const t1 = m.getOrCreateProcess(1).getOrCreateThread(2);
+    const group = t1.sliceGroup;
 
     // Pattern being tested:
     // [    a     ]   [  c   ]
     //   [  b   ]
-    var sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 3}));
-    var sB = group.pushSlice(newSliceEx({title: 'b', start: 1.5, duration: 1}));
-    var sC = group.pushSlice(newSliceEx({title: 'c', start: 5, duration: 0}));
+    const sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 3}));
+    const sB = group.pushSlice(newSliceEx(
+        {title: 'b', start: 1.5, duration: 1}));
+    const sC = group.pushSlice(newSliceEx({title: 'c', start: 5, duration: 0}));
 
-    var track = new SliceGroupTrack(new tr.ui.TimelineViewport());
+    const track = new SliceGroupTrack(new tr.ui.TimelineViewport());
     track.group = group;
-    var subRows = track.subRows;
+    const subRows = track.subRows;
 
     assert.strictEqual(track.badSlices_.length, 0);
     assert.strictEqual(subRows.length, 2);
@@ -201,25 +204,26 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('subRowBuilderOnGroup2', function() {
-    var m = new tr.Model();
-    var t1 = m.getOrCreateProcess(1).getOrCreateThread(2);
-    var group = t1.sliceGroup;
+    const m = new tr.Model();
+    const t1 = m.getOrCreateProcess(1).getOrCreateThread(2);
+    const group = t1.sliceGroup;
 
     // Pattern being tested:
     // [    a     ]   [  d   ]
     //   [  b   ]
     //    [ c ]
-    var sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 3}));
-    var sB = group.pushSlice(newSliceEx({title: 'b', start: 1.5, duration: 1}));
-    var sC = group.pushSlice(newSliceEx(
+    const sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 3}));
+    const sB = group.pushSlice(newSliceEx(
+        {title: 'b', start: 1.5, duration: 1}));
+    const sC = group.pushSlice(newSliceEx(
         {title: 'c', start: 1.75, duration: 0.5}));
-    var sD = group.pushSlice(newSliceEx(
+    const sD = group.pushSlice(newSliceEx(
         {title: 'c', start: 5, duration: 0.25}));
 
-    var track = new SliceGroupTrack(new tr.ui.TimelineViewport());
+    const track = new SliceGroupTrack(new tr.ui.TimelineViewport());
     track.group = group;
 
-    var subRows = track.subRows;
+    const subRows = track.subRows;
     assert.strictEqual(track.badSlices_.length, 0);
     assert.strictEqual(subRows.length, 3);
     assert.deepEqual(subRows[0], [sA, sD]);
@@ -228,14 +232,15 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('trackFiltering', function() {
-    var m = new tr.Model();
-    var t1 = m.getOrCreateProcess(1).getOrCreateThread(2);
-    var group = t1.sliceGroup;
+    const m = new tr.Model();
+    const t1 = m.getOrCreateProcess(1).getOrCreateThread(2);
+    const group = t1.sliceGroup;
 
-    var sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 3}));
-    var sB = group.pushSlice(newSliceEx({title: 'b', start: 1.5, duration: 1}));
+    const sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 3}));
+    const sB = group.pushSlice(newSliceEx(
+        {title: 'b', start: 1.5, duration: 1}));
 
-    var track = new SliceGroupTrack(new tr.ui.TimelineViewport());
+    const track = new SliceGroupTrack(new tr.ui.TimelineViewport());
     track.group = group;
 
     assert.strictEqual(track.subRows.length, 2);
@@ -243,16 +248,16 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('sliceGroupContainerMap', function() {
-    var vp = new tr.ui.TimelineViewport();
-    var containerToTrack = vp.containerToTrackMap;
-    var model = new tr.Model();
-    var process = model.getOrCreateProcess(123);
-    var thread = process.getOrCreateThread(456);
-    var group = new SliceGroup(thread);
+    const vp = new tr.ui.TimelineViewport();
+    const containerToTrack = vp.containerToTrackMap;
+    const model = new tr.Model();
+    const process = model.getOrCreateProcess(123);
+    const thread = process.getOrCreateThread(456);
+    const group = new SliceGroup(thread);
 
-    var processTrack = new ProcessTrack(vp);
-    var threadTrack = new ThreadTrack(vp);
-    var groupTrack = new SliceGroupTrack(vp);
+    const processTrack = new ProcessTrack(vp);
+    const threadTrack = new ThreadTrack(vp);
+    const groupTrack = new SliceGroupTrack(vp);
     processTrack.process = process;
     threadTrack.thread = thread;
     groupTrack.group = group;

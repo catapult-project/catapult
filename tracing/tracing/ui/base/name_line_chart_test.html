@@ -12,7 +12,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('instantiation_singleSeries', function() {
-    var chart = new tr.ui.b.NameLineChart();
+    const chart = new tr.ui.b.NameLineChart();
     this.addHTMLOutput(chart);
     chart.data = [
       {x: 'apple', value: 100},
@@ -23,14 +23,14 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('undefined', function() {
-    var chart = new tr.ui.b.NameLineChart();
+    const chart = new tr.ui.b.NameLineChart();
     assert.throws(function() {
       chart.data = undefined;
     });
   });
 
   test('instantiation_twoSeries', function() {
-    var chart = new tr.ui.b.NameLineChart();
+    const chart = new tr.ui.b.NameLineChart();
     this.addHTMLOutput(chart);
     chart.data = [
       {x: 'apple', alpha: 100, beta: 50},
@@ -39,14 +39,14 @@ tr.b.unittest.testSuite(function() {
       {x: 'dog', alpha: 50, beta: 125}
     ];
 
-    var r = new tr.b.math.Range();
+    const r = new tr.b.math.Range();
     r.addValue(20);
     r.addValue(40);
     chart.brushedRange = r;
   });
 
   test('instantiation_twoSparseSeriesWithFirstValueSparse', function() {
-    var chart = new tr.ui.b.NameLineChart();
+    const chart = new tr.ui.b.NameLineChart();
     this.addHTMLOutput(chart);
     chart.data = [
       {x: 'apple', alpha: 20, beta: undefined},
@@ -58,7 +58,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiation_twoSparseSeriesWithFirstValueNotSparse', function() {
-    var chart = new tr.ui.b.NameLineChart();
+    const chart = new tr.ui.b.NameLineChart();
     this.addHTMLOutput(chart);
     chart.data = [
       {x: 'apple', alpha: 20, beta: 40},
@@ -70,7 +70,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiation_interactiveBrushing', function() {
-    var chart = new tr.ui.b.NameLineChart();
+    const chart = new tr.ui.b.NameLineChart();
     this.addHTMLOutput(chart);
     chart.data = [
       {x: 'apple', value: 50},
@@ -83,11 +83,11 @@ tr.b.unittest.testSuite(function() {
       {x: 'happy', value: 20}
     ];
 
-    var mouseDownIndex = undefined;
-    var currentMouseIndex = undefined;
+    let mouseDownIndex = undefined;
+    let currentMouseIndex = undefined;
 
     function updateBrushedRange() {
-      var r = new tr.b.math.Range();
+      const r = new tr.b.math.Range();
       r.min = Math.max(0, Math.min(mouseDownIndex, currentMouseIndex));
       r.max = Math.min(chart.data.length, Math.max(mouseDownIndex,
           currentMouseIndex) + 1);

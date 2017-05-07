@@ -13,7 +13,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('i915Import', function() {
-    var lines = [
+    const lines = [
       // NB: spliced from different traces; mismatched timestamps don't matter
       '          chrome-1223  [000]  2784.773556: i915_gem_object_pwrite: ' +
                  'obj=ffff88013f13fc00, offset=0, len=2984',
@@ -46,16 +46,16 @@ tr.b.unittest.testSuite(function() {
               'intel_gpu_freq_change: new_freq=350'
 
     ];
-    var m = tr.c.TestUtils.newModelWithEvents([lines.join('\n')], {
+    const m = tr.c.TestUtils.newModelWithEvents([lines.join('\n')], {
       shiftWorldToZero: false
     });
     assert.isFalse(m.hasImportWarnings);
 
-    var i915GemThread = undefined;
-    var i915FlipThread = undefined;
-    var i915GemRingThread = undefined;
-    var i915RegThread = undefined;
-    var i915GpuFreqThread = undefined;
+    let i915GemThread = undefined;
+    let i915FlipThread = undefined;
+    let i915GemRingThread = undefined;
+    let i915RegThread = undefined;
+    let i915GpuFreqThread = undefined;
     m.getAllThreads().forEach(function(t) {
       switch (t.name) {
         case 'i915_gem':

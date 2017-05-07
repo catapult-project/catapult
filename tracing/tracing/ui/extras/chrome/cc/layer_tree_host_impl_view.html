@@ -23,7 +23,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
    * Displays a LayerTreeHostImpl snapshot in a human readable form.
    * @constructor
    */
-  var LayerTreeHostImplSnapshotView = tr.ui.b.define(
+  const LayerTreeHostImplSnapshotView = tr.ui.b.define(
       'tr-ui-e-chrome-cc-layer-tree-host-impl-snapshot-view',
       tr.ui.analysis.ObjectSnapshotView);
 
@@ -65,8 +65,8 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     set objectSnapshot(objectSnapshot) {
       this.objectSnapshot_ = objectSnapshot;
 
-      var lthi = this.objectSnapshot;
-      var layerTreeImpl;
+      const lthi = this.objectSnapshot;
+      let layerTreeImpl;
       if (lthi) {
         layerTreeImpl = lthi.getTree(this.layerPicker_.whichTree);
       }

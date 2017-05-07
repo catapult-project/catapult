@@ -14,20 +14,20 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var Model = tr.Model;
-  var newSliceEx = tr.c.TestUtils.newSliceEx;
+  const Model = tr.Model;
+  const newSliceEx = tr.c.TestUtils.newSliceEx;
 
   test('summaryRowNoCpu', function() {
-    var model = new Model();
-    var thread = model.getOrCreateProcess(1).getOrCreateThread(2);
-    var tsg = thread.sliceGroup;
+    const model = new Model();
+    const thread = model.getOrCreateProcess(1).getOrCreateThread(2);
+    const tsg = thread.sliceGroup;
 
     tsg.pushSlice(newSliceEx({title: 'a', start: 0, end: 3}));
     tsg.pushSlice(newSliceEx({title: 'bb', start: 1, end: 2}));
     tsg.pushSlice(newSliceEx({title: 'bb', start: 4, end: 5}));
     tsg.createSubSlices();
 
-    var row = new tr.ui.analysis.MultiEventSummary('x', tsg.slices.slice(0));
+    const row = new tr.ui.analysis.MultiEventSummary('x', tsg.slices.slice(0));
     assert.strictEqual(row.duration, 5);
     assert.strictEqual(row.selfTime, 4);
     assert.isUndefined(row.cpuDuration);
@@ -35,9 +35,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('summaryRowWithCpu', function() {
-    var model = new Model();
-    var thread = model.getOrCreateProcess(1).getOrCreateThread(2);
-    var tsg = thread.sliceGroup;
+    const model = new Model();
+    const thread = model.getOrCreateProcess(1).getOrCreateThread(2);
+    const tsg = thread.sliceGroup;
 
     tsg.pushSlice(newSliceEx({title: 'a', start: 0, end: 3,
       cpuStart: 0, cpuEnd: 3}));
@@ -47,7 +47,7 @@ tr.b.unittest.testSuite(function() {
       cpuStart: 3, cpuEnd: 3.75}));
     tsg.createSubSlices();
 
-    var row = new tr.ui.analysis.MultiEventSummary('x', tsg.slices.slice(0));
+    const row = new tr.ui.analysis.MultiEventSummary('x', tsg.slices.slice(0));
     assert.strictEqual(row.duration, 5);
     assert.strictEqual(row.selfTime, 4);
     assert.strictEqual(row.cpuDuration, 4.5);
@@ -59,16 +59,16 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('summaryRowNonSlice', function() {
-    var model = new Model();
-    var thread = model.getOrCreateProcess(1).getOrCreateThread(2);
-    var tsg = thread.sliceGroup;
+    const model = new Model();
+    const thread = model.getOrCreateProcess(1).getOrCreateThread(2);
+    const tsg = thread.sliceGroup;
 
-    var fe1 = new tr.model.FlowEvent('cat', 1234, 'title', 7, 10, {});
-    var fe2 = new tr.model.FlowEvent('cat', 1234, 'title', 8, 20, {});
+    const fe1 = new tr.model.FlowEvent('cat', 1234, 'title', 7, 10, {});
+    const fe2 = new tr.model.FlowEvent('cat', 1234, 'title', 8, 20, {});
     model.flowEvents.push(fe1);
     model.flowEvents.push(fe2);
 
-    var row = new tr.ui.analysis.MultiEventSummary('a', [fe1, fe2]);
+    const row = new tr.ui.analysis.MultiEventSummary('a', [fe1, fe2]);
     assert.strictEqual(row.duration, 0);
     assert.strictEqual(row.selfTime, 0);
     assert.isUndefined(row.cpuDuration);
@@ -77,21 +77,21 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('summaryNumAlerts', function() {
-    var slice = newSliceEx({title: 'b', start: 0, duration: 0.002});
+    const slice = newSliceEx({title: 'b', start: 0, duration: 0.002});
 
-    var ALERT_INFO_1 = new tr.model.EventInfo(
+    const ALERT_INFO_1 = new tr.model.EventInfo(
         'Alert 1', 'Critical alert');
 
-    var alert = new tr.model.Alert(ALERT_INFO_1, 5, [slice]);
+    const alert = new tr.model.Alert(ALERT_INFO_1, 5, [slice]);
 
-    var row = new tr.ui.analysis.MultiEventSummary('a', [slice]);
+    const row = new tr.ui.analysis.MultiEventSummary('a', [slice]);
     assert.strictEqual(row.numAlerts, 1);
   });
 
   test('argSummary', function() {
-    var model = new Model();
-    var thread = model.getOrCreateProcess(1).getOrCreateThread(2);
-    var tsg = thread.sliceGroup;
+    const model = new Model();
+    const thread = model.getOrCreateProcess(1).getOrCreateThread(2);
+    const tsg = thread.sliceGroup;
 
     tsg.pushSlice(newSliceEx({title: 'a', start: 0, end: 3,
       args: {value1: 3, value2: 'x', value3: 1}}));
@@ -101,7 +101,7 @@ tr.b.unittest.testSuite(function() {
       args: {value1: 3, value2: 'z', value3: 'x'}}));
     tsg.createSubSlices();
 
-    var row = new tr.ui.analysis.MultiEventSummary('x', tsg.slices.slice(0));
+    const row = new tr.ui.analysis.MultiEventSummary('x', tsg.slices.slice(0));
     assert.deepEqual(row.totalledArgs, {value1: 9});
     assert.deepEqual(row.untotallableArgs, ['value2', 'value3']);
     assert.strictEqual(row.maxDuration, 3);

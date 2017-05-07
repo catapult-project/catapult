@@ -21,13 +21,13 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
    */
   function RasterTaskSelection(selection) {
     tr.ui.e.chrome.cc.Selection.call(this);
-    var whySupported = RasterTaskSelection.whySuported(selection);
+    const whySupported = RasterTaskSelection.whySuported(selection);
     if (!whySupported.ok) {
       throw new Error('Fail: ' + whySupported.why);
     }
     this.slices_ = tr.b.asArray(selection);
     this.tiles_ = this.slices_.map(function(slice) {
-      var tile = tr.e.cc.getTileFromRasterTaskSlice(slice);
+      const tile = tr.e.cc.getTileFromRasterTaskSlice(slice);
       if (tile === undefined) {
         throw new Error('This should never happen due to .supports check.');
       }
@@ -44,13 +44,13 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       return {ok: false, why: 'Selection must be non empty'};
     }
 
-    var referenceSnapshot = undefined;
-    for (var event of selection) {
+    let referenceSnapshot = undefined;
+    for (const event of selection) {
       if (!(event instanceof tr.model.Slice)) {
         return {ok: false, why: 'Not a slice'};
       }
 
-      var tile = tr.e.cc.getTileFromRasterTaskSlice(event);
+      const tile = tr.e.cc.getTileFromRasterTaskSlice(event);
       if (tile === undefined) {
         return {ok: false, why: 'No tile found'};
       }
@@ -81,8 +81,8 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     get associatedLayerId() {
-      var tile0 = this.tiles_[0];
-      var allSameLayer = this.tiles_.every(function(tile) {
+      const tile0 = this.tiles_[0];
+      const allSameLayer = this.tiles_.every(function(tile) {
         tile.layerId === tile0.layerId;
       });
       if (allSameLayer) {
@@ -92,12 +92,12 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     get extraHighlightsByLayerId() {
-      var highlights = {};
+      const highlights = {};
       this.tiles_.forEach(function(tile, i) {
         if (highlights[tile.layerId] === undefined) {
           highlights[tile.layerId] = [];
         }
-        var slice = this.slices_[i];
+        const slice = this.slices_[i];
         highlights[tile.layerId].push({
           colorKey: slice.title,
           rect: tile.layerRect
@@ -107,12 +107,12 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     createAnalysis() {
-      var sel = new tr.model.EventSet();
+      const sel = new tr.model.EventSet();
       this.slices_.forEach(function(slice) {
         sel.push(slice);
       });
 
-      var analysis;
+      let analysis;
       if (sel.length === 1) {
         analysis = document.createElement('tr-ui-a-single-event-sub-view');
       } else {

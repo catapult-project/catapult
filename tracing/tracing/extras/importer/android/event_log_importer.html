@@ -26,9 +26,9 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.e.importer.android', function() {
-  var Importer = tr.importer.Importer;
+  const Importer = tr.importer.Importer;
 
-  var ACTIVITY_STATE = {
+  const ACTIVITY_STATE = {
     NONE: 'none',
     CREATED: 'created',
     STARTED: 'started',
@@ -38,7 +38,7 @@ tr.exportTo('tr.e.importer.android', function() {
     DESTROYED: 'destroyed'
   };
 
-  var activityMap = {};
+  const activityMap = {};
 
   /**
    * Imports android event log data (adb logcat -b events)
@@ -53,38 +53,38 @@ tr.exportTo('tr.e.importer.android', function() {
   // Generic format of event log entries.
   // Sample event log entry that this matches (split over 2 lines):
   // 08-11 13:12:31.405   880  2645 I am_focused_activity: [0,com.google.android.googlequicksearchbox/com.google.android.launcher.GEL] // @suppress longLineCheck
-  var eventLogActivityRE = new RegExp(
+  const eventLogActivityRE = new RegExp(
       '(\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}.\\d+)' +
       '\\s+(\\d+)\\s+(\\d+)\\s+([A-Z])\\s*' +
       '(am_\\w+)\\s*:(.*)');
 
   // 08-28 03:58:21.834   888  3177 I am_create_activity: [0,5972200,30,com.nxp.taginfolite/.activities.MainView,android.intent.action.MAIN,NULL,NULL,270532608] // @suppress longLineCheck
   // Store the name of the created activity only
-  var amCreateRE = new RegExp('\s*\\[.*,.*,.*,(.*),.*,.*,.*,.*\\]');
+  const amCreateRE = new RegExp('\s*\\[.*,.*,.*,(.*),.*,.*,.*,.*\\]');
 
   // 07-22 12:22:19.504   920  2504 I am_focused_activity: [0,com.android.systemui/.recents.RecentsActivity] // @suppress longLineCheck
   // Store the name of the focused activity only
-  var amFocusedRE = new RegExp('\s*\\[\\d+,(.*)\\]');
+  const amFocusedRE = new RegExp('\s*\\[\\d+,(.*)\\]');
 
   // 07-21 19:56:12.315   920  2261 I am_proc_start: [0,19942,10062,com.google.android.talk,broadcast,com.google.android.talk/com.google.android.apps.hangouts.realtimechat.RealTimeChatService$AlarmReceiver] // @suppress longLineCheck
   // We care about proc starts on behalf of activities, and store the activity
-  var amProcStartRE = new RegExp('\s*\\[\\d+,\\d+,\\d+,.*,activity,(.*)\\]');
+  const amProcStartRE = new RegExp('\s*\\[\\d+,\\d+,\\d+,.*,activity,(.*)\\]');
 
   // 07-22 12:21:43.490  2893  2893 I am_on_resume_called: [0,com.google.android.launcher.GEL] // @suppress longLineCheck
   // Store the activity name only
-  var amOnResumeRE = new RegExp('\s*\\[\\d+,(.*)\\]');
+  const amOnResumeRE = new RegExp('\s*\\[\\d+,(.*)\\]');
 
   // 07-22 12:22:19.545  2893  2893 I am_on_paused_called: [0,com.google.android.launcher.GEL] // @suppress longLineCheck
   // Store the activity name only
-  var amOnPauseRE = new RegExp('\s*\\[\\d+,(.*)\\]');
+  const amOnPauseRE = new RegExp('\s*\\[\\d+,(.*)\\]');
 
   // 08-28 03:51:54.456   888   907 I am_activity_launch_time: [0,185307115,com.google.android.googlequicksearchbox/com.google.android.launcher.GEL,1174,1174] // @suppress longLineCheck
   // Store the activity name and launch times
-  var amLaunchTimeRE = new RegExp('\s*\\[\\d+,\\d+,(.*),(\\d+),(\\d+)');
+  const amLaunchTimeRE = new RegExp('\s*\\[\\d+,\\d+,(.*),(\\d+),(\\d+)');
 
   // 08-28 03:58:15.854   888   902 I am_destroy_activity: [0,203516597,29,com.android.chrome/com.google.android.apps.chrome.Main,finish-idle] // @suppress longLineCheck
   // Store the activity name only
-  var amDestroyRE = new RegExp('\s*\\[\\d+,\\d+,\\d+,(.*)\\]');
+  const amDestroyRE = new RegExp('\s*\\[\\d+,\\d+,\\d+,(.*)\\]');
 
   /**
    * @return {boolean} True when events is an android event log array.
@@ -116,7 +116,7 @@ tr.exportTo('tr.e.importer.android', function() {
      * a component
      */
     getFullActivityName(component) {
-      var componentSplit = component.split('/');
+      const componentSplit = component.split('/');
       if (componentSplit[1].startsWith('.')) {
         return componentSplit[0] + componentSplit[1];
       }
@@ -128,7 +128,7 @@ tr.exportTo('tr.e.importer.android', function() {
      * @return {string} the process name of a component
      */
     getProcName(component) {
-      var componentSplit = component.split('/');
+      const componentSplit = component.split('/');
       return componentSplit[0];
     },
 
@@ -136,7 +136,7 @@ tr.exportTo('tr.e.importer.android', function() {
       if (activityName in activityMap) {
         return activityMap[activityName];
       }
-      var activity = {
+      const activity = {
         state: ACTIVITY_STATE.NONE,
         name: activityName
       };
@@ -149,23 +149,23 @@ tr.exportTo('tr.e.importer.android', function() {
     },
 
     handleCreateActivity(ts, activityName) {
-      var activity = this.findOrCreateActivity(activityName);
+      const activity = this.findOrCreateActivity(activityName);
       activity.state = ACTIVITY_STATE.CREATED;
       activity.createdTs = ts;
     },
 
     handleFocusActivity(ts, procName, activityName) {
-      var activity = this.findOrCreateActivity(activityName);
+      const activity = this.findOrCreateActivity(activityName);
       activity.lastFocusedTs = ts;
     },
 
     handleProcStartForActivity(ts, activityName) {
-      var activity = this.findOrCreateActivity(activityName);
+      const activity = this.findOrCreateActivity(activityName);
       activity.procStartTs = ts;
     },
 
     handleOnResumeCalled(ts, pid, activityName) {
-      var activity = this.findOrCreateActivity(activityName);
+      const activity = this.findOrCreateActivity(activityName);
       activity.state = ACTIVITY_STATE.RESUMED;
       activity.lastResumeTs = ts;
       // on_resume_called shows the actual PID; use this
@@ -174,7 +174,7 @@ tr.exportTo('tr.e.importer.android', function() {
     },
 
     handleOnPauseCalled(ts, activityName) {
-      var activity = this.findOrCreateActivity(activityName);
+      const activity = this.findOrCreateActivity(activityName);
       activity.state = ACTIVITY_STATE.PAUSED;
       activity.lastPauseTs = ts;
       // Create a new AndroidActivity representing the foreground state,
@@ -185,7 +185,7 @@ tr.exportTo('tr.e.importer.android', function() {
     },
 
     handleLaunchTime(ts, activityName, launchTime) {
-      var activity = this.findOrCreateActivity(activityName);
+      const activity = this.findOrCreateActivity(activityName);
       activity.launchTime = launchTime;
     },
 
@@ -195,13 +195,13 @@ tr.exportTo('tr.e.importer.android', function() {
 
     addActivityToProcess(activity) {
       if (activity.pid === undefined) return;
-      var process = this.model_.getOrCreateProcess(activity.pid);
+      const process = this.model_.getOrCreateProcess(activity.pid);
       // The range of the activity is the time from resume to time
       // of pause; limit the start time to the beginning of the model
-      var range = tr.b.math.Range.fromExplicitRange(
+      const range = tr.b.math.Range.fromExplicitRange(
           Math.max(this.model_.bounds.min, activity.lastResumeTs),
           activity.lastPauseTs);
-      var newActivity = new tr.model.Activity(activity.name,
+      const newActivity = new tr.model.Activity(activity.name,
           'Android Activity', range,
           {created: activity.createdTs,
             procstart: activity.procStartTs,
@@ -210,7 +210,7 @@ tr.exportTo('tr.e.importer.android', function() {
     },
 
     parseAmLine_(line) {
-      var match = eventLogActivityRE.exec(line);
+      let match = eventLogActivityRE.exec(line);
       if (!match) return;
 
       // Possible activity life-cycles:
@@ -231,18 +231,18 @@ tr.exportTo('tr.e.importer.android', function() {
       // The Android event log will eventually contain the year once this
       // CL is in a release:
       // https://android-review.googlesource.com/#/c/168900
-      var firstRealtimeTs = this.model_.bounds.min -
+      const firstRealtimeTs = this.model_.bounds.min -
           this.model_.realtime_to_monotonic_offset_ms;
-      var year = new Date(firstRealtimeTs).getFullYear();
-      var ts = match[1].substring(0, 5) + '-' + year + ' ' +
+      const year = new Date(firstRealtimeTs).getFullYear();
+      const ts = match[1].substring(0, 5) + '-' + year + ' ' +
           match[1].substring(5, match[1].length);
 
-      var monotonicTs = Date.parse(ts) +
+      const monotonicTs = Date.parse(ts) +
           this.model_.realtime_to_monotonic_offset_ms;
 
-      var pid = match[2];
-      var action = match[5];
-      var data = match[6];
+      const pid = match[2];
+      const action = match[5];
+      const data = match[6];
 
       if (action === 'am_create_activity') {
         match = amCreateRE.exec(data);
@@ -299,12 +299,12 @@ tr.exportTo('tr.e.importer.android', function() {
       // model, and dump all event log data outside of those bounds
       this.model_.updateBounds();
 
-      var lines = this.events_.split('\n');
+      const lines = this.events_.split('\n');
       lines.forEach(this.parseAmLine_, this);
 
       // Iterate over all created activities that are not destroyed yet
-      for (var activityName in activityMap) {
-        var activity = activityMap[activityName];
+      for (const activityName in activityMap) {
+        const activity = activityMap[activityName];
         // If we're still in the foreground, store the activity anyway
         if (activity.state === ACTIVITY_STATE.RESUMED) {
           // Set the pause timestamp to the end of the model bounds

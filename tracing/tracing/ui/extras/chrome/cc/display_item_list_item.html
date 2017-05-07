@@ -83,7 +83,7 @@ An element displaying basic information about a display item in a list view.
   // "FooDisplayItem" as the first capture and "type=hello\nworld" as the
   // second. Either capture could be the empty string, but this regex will
   // still successfully match.
-  var DETAILS_SPLIT_REGEX = /^(\S*)\s*([\S\s]*)$/;
+  const DETAILS_SPLIT_REGEX = /^(\S*)\s*([\S\s]*)$/;
 
   Polymer({
     is: 'tr-ui-e-chrome-cc-display-item-list-item',
@@ -109,7 +109,7 @@ An element displaying basic information about a display item in a list view.
         this.rawDetails = '';
         this.richDetails = undefined;
       } else if (typeof data === 'string') {
-        var match = data.match(DETAILS_SPLIT_REGEX);
+        const match = data.match(DETAILS_SPLIT_REGEX);
         this.name = match[1];
         this.rawDetails = match[2];
         this.richDetails = undefined;

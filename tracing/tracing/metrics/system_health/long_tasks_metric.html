@@ -14,11 +14,11 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.metrics.sh', function() {
-  var LONG_TASK_MS = 50;
+  const LONG_TASK_MS = 50;
 
   // Anything longer than this should be so rare that its length beyond this is
   // uninteresting.
-  var LONGEST_TASK_MS = 1000;
+  const LONGEST_TASK_MS = 1000;
 
   /**
    * This helper function calls |cb| for each of the top-level tasks on the
@@ -52,7 +52,7 @@ tr.exportTo('tr.metrics.sh', function() {
    * @param {Object=} opt_this Context object.
    */
   function iterateRendererMainThreads(model, cb, opt_this) {
-    var modelHelper = model.getOrCreateHelper(
+    const modelHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
     if (modelHelper !== undefined) {
       tr.b.dictionaryValues(modelHelper.rendererHelpers).forEach(
@@ -73,13 +73,14 @@ tr.exportTo('tr.metrics.sh', function() {
    * @param {!Object=} opt_options
    */
   function longTasksMetric(histograms, model, opt_options) {
-    var rangeOfInterest = opt_options ? opt_options.rangeOfInterest : undefined;
-    var longTaskHist = new tr.v.Histogram('long tasks',
+    const rangeOfInterest = opt_options ? opt_options.rangeOfInterest :
+      undefined;
+    const longTaskHist = new tr.v.Histogram('long tasks',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
         tr.v.HistogramBinBoundaries.createLinear(
             LONG_TASK_MS, LONGEST_TASK_MS, 40));
     longTaskHist.description = 'durations of long tasks';
-    var slices = new tr.model.EventSet();
+    const slices = new tr.model.EventSet();
     iterateRendererMainThreads(model, function(thread) {
       iterateLongTopLevelTasksOnThreadInRange(
           thread, rangeOfInterest, function(task) {
@@ -91,8 +92,8 @@ tr.exportTo('tr.metrics.sh', function() {
     });
     histograms.addHistogram(longTaskHist);
 
-    var sampleForEvent = undefined;
-    var breakdown = tr.v.d.RelatedHistogramBreakdown.buildFromEvents(
+    const sampleForEvent = undefined;
+    const breakdown = tr.v.d.RelatedHistogramBreakdown.buildFromEvents(
         histograms, 'long tasks ', slices,
         e => (model.getUserFriendlyCategoryFromEvent(e) || 'unknown'),
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, sampleForEvent,

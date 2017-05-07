@@ -13,7 +13,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('basic', function() {
-    var rp = document.createElement('tr-ui-b-radio-picker');
+    const rp = document.createElement('tr-ui-b-radio-picker');
     rp.items = [
       {key: 'Toyota', label: 'I want to drive Toyota'},
       {key: 'Boeing', label: 'I want to fly'},
@@ -26,14 +26,14 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('persistentState_setSelectedKeyAfterSettingItems', function() {
-    var items = [
+    const items = [
       {key: 'Toyota', label: 'I want to drive Toyota'},
       {key: 'Boeing', label: 'I want to fly'},
       {key: 'Submarine', label: 'I want to swim'}
     ];
-    var container1 = tr.ui.b.createDiv({textContent: 'Radio Picker One'});
+    const container1 = tr.ui.b.createDiv({textContent: 'Radio Picker One'});
     container1.style.border = 'solid';
-    var rp = document.createElement('tr-ui-b-radio-picker');
+    const rp = document.createElement('tr-ui-b-radio-picker');
     rp.items = items;
     rp.settingsKey = 'radio-picker-test-one';
     Polymer.dom(container1).appendChild(rp);
@@ -42,10 +42,10 @@ tr.b.unittest.testSuite(function() {
     rp.select('Toyota');
     assert.strictEqual(rp.selectedKey, 'Toyota');
 
-    var container2 = tr.ui.b.createDiv({
+    const container2 = tr.ui.b.createDiv({
       textContent: 'Radio Picker Two (same settingKey as Radio Picker One)'});
     container2.style.border = 'solid';
-    var rp2 = document.createElement('tr-ui-b-radio-picker');
+    const rp2 = document.createElement('tr-ui-b-radio-picker');
     rp2.items = items;
     rp2.settingsKey = 'radio-picker-test-one';
     Polymer.dom(container2).appendChild(rp2);
@@ -55,14 +55,14 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('persistentState_setSelectedKeyBeforeSettingItems', function() {
-    var items = [
+    const items = [
       {key: 'Toyota', label: 'I want to drive Toyota'},
       {key: 'Boeing', label: 'I want to fly'},
       {key: 'Submarine', label: 'I want to swim'}
     ];
-    var container1 = tr.ui.b.createDiv({textContent: 'Radio Picker One'});
+    const container1 = tr.ui.b.createDiv({textContent: 'Radio Picker One'});
     container1.style.border = 'solid';
-    var rp = document.createElement('tr-ui-b-radio-picker');
+    const rp = document.createElement('tr-ui-b-radio-picker');
     rp.settingsKey = 'radio-picker-test-two';
     rp.items = items;
     Polymer.dom(container1).appendChild(rp);
@@ -71,10 +71,10 @@ tr.b.unittest.testSuite(function() {
     rp.select('Boeing');
     assert.strictEqual(rp.selectedKey, 'Boeing');
 
-    var container2 = tr.ui.b.createDiv({
+    const container2 = tr.ui.b.createDiv({
       textContent: 'Radio Picker Two (same settingKey as Radio Picker One)'});
     container2.style.border = 'solid';
-    var rp2 = document.createElement('tr-ui-b-radio-picker');
+    const rp2 = document.createElement('tr-ui-b-radio-picker');
     rp2.settingsKey = 'radio-picker-test-two';
     Polymer.dom(container2).appendChild(rp2);
     this.addHTMLOutput(container2);
@@ -84,17 +84,17 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('changeEventFired', function() {
-    var items = [
+    const items = [
       {key: 'Toyota', label: 'I want to drive Toyota'},
       {key: 'Boeing', label: 'I want to fly'},
       {key: 'Submarine', label: 'I want to swim'}
     ];
-    var rp = document.createElement('tr-ui-b-radio-picker');
+    const rp = document.createElement('tr-ui-b-radio-picker');
     rp.items = items;
     this.addHTMLOutput(rp);
     rp.select('Boeing');
     assert.strictEqual(rp.selectedKey, 'Boeing');
-    var fired = false;
+    let fired = false;
     rp.addEventListener('change', function(e) {
       fired = true;
       assert.strictEqual('Toyota', e.target.selectedKey);
@@ -104,12 +104,12 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('verticalAttribute', function() {
-    var items = [
+    const items = [
       {key: 'Toyota', label: 'I want to drive Toyota'},
       {key: 'Boeing', label: 'I want to fly'},
       {key: 'Submarine', label: 'I want to swim'}
     ];
-    var rp = document.createElement('tr-ui-b-radio-picker');
+    const rp = document.createElement('tr-ui-b-radio-picker');
     rp.items = items;
     this.addHTMLOutput(rp);
     assert.isNull(rp.getAttribute('vertical'));

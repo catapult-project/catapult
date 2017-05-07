@@ -114,7 +114,7 @@ found in the LICENSE file.
     'use strict';
     
     tr.exportTo('d', function() {
-      var BugDetails = {
+      const BugDetails = {
         allDetails_: new Map()
       };
 
@@ -219,7 +219,7 @@ found in the LICENSE file.
         if (this.bugId > 0) {
           this.isValidBug = true;
           try {
-            var details = await d.BugDetails.getBugDetails(this.bugId);
+            const details = await d.BugDetails.getBugDetails(this.bugId);
             this.bisects = details.bisects;
             this.comments = details.comments;
             this.owner = details.owner;

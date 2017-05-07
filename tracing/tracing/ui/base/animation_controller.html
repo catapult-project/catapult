@@ -63,7 +63,7 @@ tr.exportTo('tr.ui.b', function() {
         throw new Error('Cannot queue animations without a target');
       }
 
-      var now;
+      let now;
       if (opt_now !== undefined) {
         now = opt_now;
       } else {
@@ -74,7 +74,7 @@ tr.exportTo('tr.ui.b', function() {
         // Must tick the animation before stopping it case its about to stop,
         // and to update the target with its final sets of edits up to this
         // point.
-        var done = this.activeAnimation_.tick(now, this.target_);
+        const done = this.activeAnimation_.tick(now, this.target_);
         if (done) {
           this.activeAnimation_ = undefined;
         }
@@ -98,7 +98,7 @@ tr.exportTo('tr.ui.b', function() {
 
     cancelActiveAnimation(opt_now) {
       if (!this.activeAnimation_) return;
-      var now;
+      let now;
       if (opt_now !== undefined) {
         now = opt_now;
       } else {
@@ -117,9 +117,9 @@ tr.exportTo('tr.ui.b', function() {
         return;
       }
 
-      var oldTargetState = this.target_.cloneAnimationState();
+      const oldTargetState = this.target_.cloneAnimationState();
 
-      var done = this.activeAnimation_.tick(frameBeginTime, this.target_);
+      const done = this.activeAnimation_.tick(frameBeginTime, this.target_);
       if (done) {
         this.activeAnimation_ = undefined;
       }
@@ -130,7 +130,7 @@ tr.exportTo('tr.ui.b', function() {
       }
 
       if (oldTargetState) {
-        var e = new tr.b.Event('didtick');
+        const e = new tr.b.Event('didtick');
         e.oldTargetState = oldTargetState;
         this.dispatchEvent(e, false, false);
       }

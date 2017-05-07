@@ -18,7 +18,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
    * Displays a tile in a human readable form.
    * @constructor
    */
-  var TileSnapshotView = tr.ui.b.define(
+  const TileSnapshotView = tr.ui.b.define(
       'tr-ui-e-chrome-cc-tile-snapshot-view',
       tr.ui.analysis.ObjectSnapshotView);
 
@@ -33,8 +33,8 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     updateContents() {
-      var tile = this.objectSnapshot_;
-      var layerTreeHostImpl = tile.containingSnapshot;
+      const tile = this.objectSnapshot_;
+      const layerTreeHostImpl = tile.containingSnapshot;
       if (!layerTreeHostImpl) return;
 
       this.layerTreeView_.objectSnapshot = layerTreeHostImpl;

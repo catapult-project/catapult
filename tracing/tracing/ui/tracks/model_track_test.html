@@ -17,16 +17,16 @@ tr.b.unittest.testSuite(function() {
   const VIEW_R_WORLD = 1000;
 
   function testGenerateStripes(times, expectedRanges) {
-    var ranges = tr.ui.tracks.ModelTrack.generateStripes_(
+    const ranges = tr.ui.tracks.ModelTrack.generateStripes_(
         times, VIEW_L_WORLD, VIEW_R_WORLD);
 
     assert.sameDeepMembers(ranges, expectedRanges);
   }
 
   test('generateStripesInside', function() {
-    var range200To500 = Range.fromExplicitRange(200, 500);
-    var range800To900 = Range.fromExplicitRange(800, 900);
-    var range998To999 = Range.fromExplicitRange(998, 999);
+    const range200To500 = Range.fromExplicitRange(200, 500);
+    const range800To900 = Range.fromExplicitRange(800, 900);
+    const range998To999 = Range.fromExplicitRange(998, 999);
     testGenerateStripes([], []);
     testGenerateStripes([200, 500], [range200To500]);
     testGenerateStripes([200, 500, 800, 900], [range200To500, range800To900]);
@@ -36,7 +36,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('generateStripesOutside', function() {
-    var range101To999 = Range.fromExplicitRange(101, 999);
+    const range101To999 = Range.fromExplicitRange(101, 999);
     // Far left.
     testGenerateStripes([0, 99], []);
     testGenerateStripes([0, 10, 50, 99], []);
@@ -57,12 +57,12 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('generateStripesOverlap', function() {
-    var rangeLeftWorldTo101 = Range.fromExplicitRange(VIEW_L_WORLD, 101);
-    var range102To103 = Range.fromExplicitRange(102, 103);
-    var range200To900 = Range.fromExplicitRange(200, 900);
-    var range997To998 = Range.fromExplicitRange(997, 998);
-    var range999ToRightWorld = Range.fromExplicitRange(999, VIEW_R_WORLD);
-    var rangeLeftWorldToRightWorld =
+    const rangeLeftWorldTo101 = Range.fromExplicitRange(VIEW_L_WORLD, 101);
+    const range102To103 = Range.fromExplicitRange(102, 103);
+    const range200To900 = Range.fromExplicitRange(200, 900);
+    const range997To998 = Range.fromExplicitRange(997, 998);
+    const range999ToRightWorld = Range.fromExplicitRange(999, VIEW_R_WORLD);
+    const rangeLeftWorldToRightWorld =
         Range.fromExplicitRange(VIEW_L_WORLD, VIEW_R_WORLD);
 
 
@@ -109,11 +109,11 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('generateStripesOdd', function() {
-    var range500To900 = Range.fromExplicitRange(500, 900);
-    var rangeLeftWorldTo200 = Range.fromExplicitRange(VIEW_L_WORLD, 200);
-    var rangeLeftWorldTo500 = Range.fromExplicitRange(VIEW_L_WORLD, 500);
-    var range500ToRightWorld = Range.fromExplicitRange(500, VIEW_R_WORLD);
-    var rangeLeftWorldToRightWorld =
+    const range500To900 = Range.fromExplicitRange(500, 900);
+    const rangeLeftWorldTo200 = Range.fromExplicitRange(VIEW_L_WORLD, 200);
+    const rangeLeftWorldTo500 = Range.fromExplicitRange(VIEW_L_WORLD, 500);
+    const range500ToRightWorld = Range.fromExplicitRange(500, VIEW_R_WORLD);
+    const rangeLeftWorldToRightWorld =
         Range.fromExplicitRange(VIEW_L_WORLD, VIEW_R_WORLD);
 
     // One VSync.
@@ -135,15 +135,15 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('generateStripesBorder', function() {
-    var rangeLeftWorldToLeftWorld =
+    const rangeLeftWorldToLeftWorld =
         Range.fromExplicitRange(VIEW_L_WORLD, VIEW_L_WORLD);
-    var rangeRightWorldToRightWorld =
+    const rangeRightWorldToRightWorld =
         Range.fromExplicitRange(VIEW_R_WORLD, VIEW_R_WORLD);
-    var rangeLeftWorldToRightWorld =
+    const rangeLeftWorldToRightWorld =
         Range.fromExplicitRange(VIEW_L_WORLD, VIEW_R_WORLD);
-    var rangeLeftWorldTo200 = Range.fromExplicitRange(VIEW_L_WORLD, 200);
-    var range200To500 = Range.fromExplicitRange(200, 500);
-    var range500ToRightWorld = Range.fromExplicitRange(500, VIEW_R_WORLD);
+    const rangeLeftWorldTo200 = Range.fromExplicitRange(VIEW_L_WORLD, 200);
+    const range200To500 = Range.fromExplicitRange(200, 500);
+    const range500ToRightWorld = Range.fromExplicitRange(500, VIEW_R_WORLD);
     testGenerateStripes([0, VIEW_L_WORLD], [rangeLeftWorldToLeftWorld]);
     testGenerateStripes(
         [VIEW_L_WORLD, VIEW_L_WORLD],

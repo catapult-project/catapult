@@ -15,7 +15,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.model', function() {
-  var ResourceUsageSample = tr.model.ResourceUsageSample;
+  const ResourceUsageSample = tr.model.ResourceUsageSample;
 
   /**
    * A container holding a time series of samples giving the
@@ -49,7 +49,7 @@ tr.exportTo('tr.model', function() {
      * Note: Samples must be added in chronological order.
      */
     addUsageSample(ts, val) {
-      var sample = new ResourceUsageSample(this, ts, val);
+      const sample = new ResourceUsageSample(this, ts, val);
       this.samples_.push(sample);
       return sample;
     }
@@ -59,25 +59,25 @@ tr.exportTo('tr.model', function() {
      * the specified start and end timestamps (in milliseconds).
      */
     computeResourceTimeConsumedInMs(start, end) {
-      var measurementRange = tr.b.math.Range.fromExplicitRange(start, end);
+      const measurementRange = tr.b.math.Range.fromExplicitRange(start, end);
 
-      var resourceTimeInMs = 0;
-      var startIndex = tr.b.math.findLowIndexInSortedArray(
+      let resourceTimeInMs = 0;
+      let startIndex = tr.b.math.findLowIndexInSortedArray(
           this.samples, x => x.start, start) - 1;
-      var endIndex = tr.b.math.findLowIndexInSortedArray(
+      const endIndex = tr.b.math.findLowIndexInSortedArray(
           this.samples, x => x.start, end);
 
       if (startIndex < 0) startIndex = 0;
 
-      for (var i = startIndex; i < endIndex; i++) {
-        var sample = this.samples[i];
-        var nextSample = this.samples[i + 1];
+      for (let i = startIndex; i < endIndex; i++) {
+        const sample = this.samples[i];
+        const nextSample = this.samples[i + 1];
 
-        var sampleRange = new tr.b.math.Range();
+        const sampleRange = new tr.b.math.Range();
         sampleRange.addValue(sample.start);
         sampleRange.addValue(nextSample ? nextSample.start : sample.start);
 
-        var intersectionRangeInMs = measurementRange.findIntersection(
+        const intersectionRangeInMs = measurementRange.findIntersection(
             sampleRange);
 
         resourceTimeInMs += intersectionRangeInMs.duration * sample.usage;
@@ -87,15 +87,15 @@ tr.exportTo('tr.model', function() {
     }
 
     getSamplesWithinRange(start, end) {
-      var startIndex = tr.b.math.findLowIndexInSortedArray(
+      const startIndex = tr.b.math.findLowIndexInSortedArray(
           this.samples, x => x.start, start);
-      var endIndex = tr.b.math.findLowIndexInSortedArray(
+      const endIndex = tr.b.math.findLowIndexInSortedArray(
           this.samples, x => x.start, end);
       return this.samples.slice(startIndex, endIndex);
     }
 
     shiftTimestampsForward(amount) {
-      for (var i = 0; i < this.samples_.length; ++i) {
+      for (let i = 0; i < this.samples_.length; ++i) {
         this.samples_[i].start += amount;
       }
     }

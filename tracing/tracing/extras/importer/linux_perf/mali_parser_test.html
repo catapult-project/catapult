@@ -19,7 +19,7 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('maliDDKImport', function() {
-    var linesNoThread = [
+    const linesNoThread = [
       // Row 1 open
       '           chrome-1780  [001] ...1   28.562633: tracing_mark_write: ' +
           'mali_driver: cros_trace_print_enter: ' +
@@ -103,7 +103,7 @@ tr.b.unittest.testSuite(function() {
           'gles/src/dispatch/mali_gles_dispatch_entrypoints.c992'
     ];
 
-    var linesWithThread = [
+    const linesWithThread = [
       // Row 1 open
       '           chrome-1780  [001] ...1   28.562633: tracing_mark_write: ' +
           'mali_driver: (mali-1878934320) cros_trace_print_enter: ' +
@@ -186,18 +186,18 @@ tr.b.unittest.testSuite(function() {
           'mali_driver: (mali-1878934320) cros_trace_print_exit: ' +
           'gles/src/dispatch/mali_gles_dispatch_entrypoints.c@992'
     ];
-    var traceNoThread = newModel(linesNoThread.join('\n'));
-    var traceWithThread = newModel(linesWithThread.join('\n'));
+    const traceNoThread = newModel(linesNoThread.join('\n'));
+    const traceWithThread = newModel(linesWithThread.join('\n'));
     assert.isFalse(traceNoThread.hasImportWarnings);
     assert.isFalse(traceWithThread.hasImportWarnings);
 
-    var threadsNoThread = traceNoThread.getAllThreads();
-    var threadsWithThread = traceWithThread.getAllThreads();
+    const threadsNoThread = traceNoThread.getAllThreads();
+    const threadsWithThread = traceWithThread.getAllThreads();
     assert.strictEqual(threadsNoThread.length, 1);
     assert.strictEqual(threadsWithThread.length, 1);
 
-    var maliThreadNoThread = threadsNoThread[0];
-    var maliThreadWithThread = threadsWithThread[0];
+    const maliThreadNoThread = threadsNoThread[0];
+    const maliThreadWithThread = threadsWithThread[0];
     assert.strictEqual(maliThreadNoThread.tid, 'mali');
     assert.strictEqual(maliThreadWithThread.tid, 'mali-1878934320');
     assert.strictEqual(maliThreadNoThread.sliceGroup.length, 9);
@@ -205,61 +205,61 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('DVFSFrequencyImport', function() {
-    var lines = [
+    const lines = [
       '     kworker/u:0-5     [001] ....  1174.839552: mali_dvfs_set_clock: ' +
                      'frequency=266',
       '     kworker/u:0-5     [000] ....  1183.840486: mali_dvfs_set_clock: ' +
                      'frequency=400'
     ];
-    var m = newModel(lines.join('\n'));
+    const m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
-    var counters = m.getAllCounters();
+    const counters = m.getAllCounters();
     assert.strictEqual(counters.length, 1);
 
-    var c0 = counters[0];
+    const c0 = counters[0];
     assert.strictEqual(c0.name, 'DVFS Frequency');
     assert.strictEqual(c0.series[0].samples.length, 2);
   });
 
   test('DVFSVoltageImport', function() {
-    var lines = [
+    const lines = [
       '    kworker/u:0-5     [001] ....  1174.839562: mali_dvfs_set_voltage: ' +
                      'voltage=937500',
       '    kworker/u:0-5     [000] ....  1183.840009: mali_dvfs_set_voltage: ' +
                      'voltage=1100000'
     ];
-    var m = newModel(lines.join('\n'));
+    const m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
-    var counters = m.getAllCounters();
+    const counters = m.getAllCounters();
     assert.strictEqual(counters.length, 1);
 
-    var c0 = counters[0];
+    const c0 = counters[0];
     assert.strictEqual(c0.name, 'DVFS Voltage');
     assert.strictEqual(c0.series[0].samples.length, 2);
   });
 
   test('DVFSUtilizationImport', function() {
-    var lines = [
+    const lines = [
       '     kworker/u:0-5     [001] ....  1174.839552: mali_dvfs_event: ' +
                      'utilization=7',
       '     kworker/u:0-5     [000] ....  1183.840486: mali_dvfs_event: ' +
                      'utilization=37'
     ];
-    var m = newModel(lines.join('\n'));
+    const m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
-    var counters = m.getAllCounters();
+    const counters = m.getAllCounters();
     assert.strictEqual(counters.length, 1);
 
-    var c0 = counters[0];
+    const c0 = counters[0];
     assert.strictEqual(c0.name, 'DVFS Utilization');
     assert.strictEqual(c0.series[0].samples.length, 2);
   });
 
   test('maliHWCImport', function() {
-    var lines = [
+    const lines = [
       '     kworker/u:0-5     [000] ....    78.896588: ' +
                      'mali_hwc_ACTIVE: val=238',
       '     kworker/u:0-5     [000] ....    79.046889: ' +
@@ -467,15 +467,15 @@ tr.b.unittest.testSuite(function() {
       '     kworker/u:0-5     [000] ....    79.046851: ' +
                      'mali_hwc_VCACHE_MISS: val=70'
     ];
-    var m = newModel(lines.join('\n'));
+    const m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
-    var counters = m.getAllCounters();
+    const counters = m.getAllCounters();
     assert.strictEqual(counters.length, 103);
 
     // all counters should have 1 sample
-    for (var tI = 0; tI < counters.length; tI++) {
-      var counter = counters[tI];
+    for (let tI = 0; tI < counters.length; tI++) {
+      const counter = counters[tI];
       assert.strictEqual(counter.series[0].samples.length, 1);
     }
     // TODO(sleffler) verify counter names? (not sure if it's worth the effort)

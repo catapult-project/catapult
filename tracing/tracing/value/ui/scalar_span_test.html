@@ -18,8 +18,8 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  let Scalar = tr.b.Scalar;
-  let Unit = tr.b.Unit;
+  const Scalar = tr.b.Scalar;
+  const Unit = tr.b.Unit;
   const THIS_DOC = document.currentScript.ownerDocument;
 
   const EXAMPLE_MEMORY_FORMATTING_CONTEXT = {
@@ -38,8 +38,8 @@ tr.b.unittest.testSuite(function() {
   }
 
   function checkScalarSpan(test, value, unit, expectedContent, opt_options) {
-    let options = opt_options || {};
-    let span = tr.v.ui.createScalarSpan(new tr.b.Scalar(unit, value),
+    const options = opt_options || {};
+    const span = tr.v.ui.createScalarSpan(new tr.b.Scalar(unit, value),
         {significance: options.significance});
 
     test.addHTMLOutput(span);
@@ -61,11 +61,11 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('instantiate_significance', function() {
-    let countD = Unit.byName.count.correspondingDeltaUnit;
-    let countSIBD = Unit.byName.count_smallerIsBetter.correspondingDeltaUnit;
-    let countBIBD = Unit.byName.count_biggerIsBetter.correspondingDeltaUnit;
+    const countD = Unit.byName.count.correspondingDeltaUnit;
+    const countSIBD = Unit.byName.count_smallerIsBetter.correspondingDeltaUnit;
+    const countBIBD = Unit.byName.count_biggerIsBetter.correspondingDeltaUnit;
 
-    let zero = String.fromCharCode(177) + '0';
+    const zero = String.fromCharCode(177) + '0';
 
     checkScalarSpan(this, 0, countSIBD, zero, {
       significance: tr.b.math.Statistics.Significance.DONT_CARE,
@@ -300,9 +300,9 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(span);
 
     // Inline.
-    let div = document.createElement('div');
+    const div = document.createElement('div');
     this.addHTMLOutput(div);
-    let inlineSpan = tr.v.ui.createScalarSpan(
+    const inlineSpan = tr.v.ui.createScalarSpan(
         new Scalar(Unit.byName.powerInWatts, 3.14),
         {inline: true});
     assert.strictEqual(Polymer.dom(inlineSpan.$.content).textContent,
@@ -377,7 +377,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiate_withWarning', function() {
-    let span = document.createElement('tr-v-ui-scalar-span');
+    const span = document.createElement('tr-v-ui-scalar-span');
     span.value = 400000000;
     span.unit = Unit.byName.sizeInBytes;
     span.warning = 'There is a problem with this size';
@@ -385,21 +385,21 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiate_withCustomContextRange', function() {
-    let span = document.createElement('tr-v-ui-scalar-span');
+    const span = document.createElement('tr-v-ui-scalar-span');
     span.value = new Scalar(Unit.byName.unitlessNumber, 0.99);
     span.customContextRange = tr.b.math.Range.fromExplicitRange(0, 3);
     this.addHTMLOutput(span);
   });
 
   test('instantiate_withRightAlign', function() {
-    let span = document.createElement('tr-v-ui-scalar-span');
+    const span = document.createElement('tr-v-ui-scalar-span');
     span.value = new Scalar(Unit.byName.timeStampInMs, 5.777);
     span.leftAlign = true;
     this.addHTMLOutput(span);
   });
 
   test('instantiate_withContext', function() {
-    let span = document.createElement('tr-v-ui-scalar-span');
+    const span = document.createElement('tr-v-ui-scalar-span');
     span.value = new Scalar(
         Unit.byName.unitlessNumberDelta_smallerIsBetter, 42);
     span.context = { maximumFractionDigits: 2 };
@@ -408,33 +408,33 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('deltaAndNonDeltaHaveSimilarHeights', function() {
-    let spanA = document.createElement('tr-v-ui-scalar-span');
+    const spanA = document.createElement('tr-v-ui-scalar-span');
     spanA.setValueAndUnit(400, Unit.byName.timeDurationInMs);
     checkSignificance(spanA, '');
 
-    let spanB = document.createElement('tr-v-ui-scalar-span');
+    const spanB = document.createElement('tr-v-ui-scalar-span');
     spanB.setValueAndUnit(400, Unit.byName.timeDurationInMsDelta);
     checkSignificance(spanB, '');
 
-    let spanC = document.createElement('tr-v-ui-scalar-span');
+    const spanC = document.createElement('tr-v-ui-scalar-span');
     spanC.setValueAndUnit(
         400, Unit.byName.timeDurationInMsDelta_smallerIsBetter);
     spanC.significance = tr.b.math.Statistics.Significance.SIGNIFICANT;
     checkSignificance(spanC, 'significantly_worse');
 
-    let spanD = document.createElement('tr-v-ui-scalar-span');
+    const spanD = document.createElement('tr-v-ui-scalar-span');
     spanD.setValueAndUnit(
         400, Unit.byName.timeDurationInMsDelta_biggerIsBetter);
     spanD.significance = tr.b.math.Statistics.Significance.SIGNIFICANT;
     checkSignificance(spanD, 'significantly_better');
 
-    let spanE = document.createElement('tr-v-ui-scalar-span');
+    const spanE = document.createElement('tr-v-ui-scalar-span');
     spanE.setValueAndUnit(
         400, Unit.byName.timeDurationInMsDelta_smallerIsBetter);
     spanE.significance = tr.b.math.Statistics.Significance.INSIGNIFICANT;
     checkSignificance(spanE, 'insignificant');
 
-    let overall = document.createElement('div');
+    const overall = document.createElement('div');
     overall.style.display = 'flex';
     // These spans must be on separate lines so that Chrome has the option of
     // making their heights different. The point of the test is that Chrome
@@ -447,7 +447,7 @@ tr.b.unittest.testSuite(function() {
     Polymer.dom(overall).appendChild(spanE);
     this.addHTMLOutput(overall);
 
-    let expectedHeight = spanA.getBoundingClientRect().height;
+    const expectedHeight = spanA.getBoundingClientRect().height;
     assert.strictEqual(expectedHeight, spanB.getBoundingClientRect().height);
     assert.strictEqual(expectedHeight, spanC.getBoundingClientRect().height);
     assert.strictEqual(expectedHeight, spanD.getBoundingClientRect().height);
@@ -455,14 +455,14 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('warningAndNonWarningHaveSimilarHeights', function() {
-    let spanA = document.createElement('tr-v-ui-scalar-span');
+    const spanA = document.createElement('tr-v-ui-scalar-span');
     spanA.setValueAndUnit(400, Unit.byName.timeDurationInMs);
 
-    let spanB = document.createElement('tr-v-ui-scalar-span');
+    const spanB = document.createElement('tr-v-ui-scalar-span');
     spanB.setValueAndUnit(400, Unit.byName.timeDurationInMs);
     spanB.warning = 'There is a problem with this time';
 
-    let overall = document.createElement('div');
+    const overall = document.createElement('div');
     overall.style.display = 'flex';
     // These spans must be on separate lines so that Chrome has the option of
     // making their heights different. The point of the test is that Chrome
@@ -472,8 +472,8 @@ tr.b.unittest.testSuite(function() {
     Polymer.dom(overall).appendChild(spanB);
     this.addHTMLOutput(overall);
 
-    let rectA = spanA.getBoundingClientRect();
-    let rectB = spanB.getBoundingClientRect();
+    const rectA = spanA.getBoundingClientRect();
+    const rectB = spanB.getBoundingClientRect();
     assert.strictEqual(rectA.height, rectB.height);
   });
 
@@ -481,7 +481,7 @@ tr.b.unittest.testSuite(function() {
     try {
       Unit.currentTimeDisplayMode = tr.b.TimeDisplayModes.ns;
 
-      let span = document.createElement('tr-v-ui-scalar-span');
+      const span = document.createElement('tr-v-ui-scalar-span');
       span.setValueAndUnit(73, Unit.byName.timeStampInMs);
       this.addHTMLOutput(span);
 
@@ -495,10 +495,10 @@ tr.b.unittest.testSuite(function() {
 
   function checkSparkline(span, expectation) {
     tr.b.forceAllPendingTasksToRunForTest();
-    let sparklineEl = span.$.sparkline;
-    let computedStyle = getComputedStyle(sparklineEl);
+    const sparklineEl = span.$.sparkline;
+    const computedStyle = getComputedStyle(sparklineEl);
 
-    let expectedDisplay = expectation.display || 'block';
+    const expectedDisplay = expectation.display || 'block';
     assert.strictEqual(computedStyle.display, expectedDisplay);
     if (expectedDisplay === 'none') {
       // Test expectation sanity check.
@@ -515,69 +515,69 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('customContextRange', function() {
-    let div = document.createElement('div');
+    const div = document.createElement('div');
     div.style.width = '101px';  // One extra pixel for sparkline border.
     this.addHTMLOutput(div);
 
     // No custom context range.
-    let span1 = tr.v.ui.createScalarSpan(0, {
+    const span1 = tr.v.ui.createScalarSpan(0, {
       unit: Unit.byName.timeStampInMs
     });
     Polymer.dom(div).appendChild(span1);
     checkSparkline(span1, {display: 'none'});
-    let span2 = tr.v.ui.createScalarSpan(0, {
+    const span2 = tr.v.ui.createScalarSpan(0, {
       unit: Unit.byName.timeStampInMs,
       customContextRange: undefined
     });
     Polymer.dom(div).appendChild(span2);
     checkSparkline(span2, {display: 'none'});
-    let span3 = tr.v.ui.createScalarSpan(0, {
+    const span3 = tr.v.ui.createScalarSpan(0, {
       unit: Unit.byName.timeStampInMs,
       customContextRange: new tr.b.math.Range()  // Empty range.
     });
     Polymer.dom(div).appendChild(span3);
     checkSparkline(span3, {display: 'none'});
 
-    let range = tr.b.math.Range.fromExplicitRange(-15, 15);
+    const range = tr.b.math.Range.fromExplicitRange(-15, 15);
 
     // Values inside custom context range.
-    let span4 = tr.v.ui.createScalarSpan(-15, {
+    const span4 = tr.v.ui.createScalarSpan(-15, {
       unit: Unit.byName.timeStampInMs,
       customContextRange: range
     });
     Polymer.dom(div).appendChild(span4);
     checkSparkline(span4, {left: 0, width: 51});
-    let span5 = tr.v.ui.createScalarSpan(-14, {
+    const span5 = tr.v.ui.createScalarSpan(-14, {
       unit: Unit.byName.timeStampInMs,
       customContextRange: range
     });
     Polymer.dom(div).appendChild(span5);
     checkSparkline(span5, {left: 3.33, width: 47.67});
-    let span6 = tr.v.ui.createScalarSpan(-10, {
+    const span6 = tr.v.ui.createScalarSpan(-10, {
       unit: Unit.byName.timeStampInMs,
       customContextRange: range
     });
     Polymer.dom(div).appendChild(span6);
     checkSparkline(span6, {left: 16.67, width: 34.33});
-    let span7 = tr.v.ui.createScalarSpan(0, {
+    const span7 = tr.v.ui.createScalarSpan(0, {
       unit: Unit.byName.timeStampInMs,
       customContextRange: range
     });
     Polymer.dom(div).appendChild(span7);
     checkSparkline(span7, {left: 50, width: 1});
-    let span8 = tr.v.ui.createScalarSpan(10, {
+    const span8 = tr.v.ui.createScalarSpan(10, {
       unit: Unit.byName.timeStampInMs,
       customContextRange: range
     });
     Polymer.dom(div).appendChild(span8);
     checkSparkline(span8, {left: 50, width: 34.33, classList: ['positive']});
-    let span9 = tr.v.ui.createScalarSpan(14, {
+    const span9 = tr.v.ui.createScalarSpan(14, {
       unit: Unit.byName.timeStampInMs,
       customContextRange: range
     });
     Polymer.dom(div).appendChild(span9);
     checkSparkline(span9, {left: 50, width: 47.67, classList: ['positive']});
-    let span10 = tr.v.ui.createScalarSpan(15, {
+    const span10 = tr.v.ui.createScalarSpan(15, {
       unit: Unit.byName.timeStampInMs,
       customContextRange: range
     });
@@ -585,13 +585,13 @@ tr.b.unittest.testSuite(function() {
     checkSparkline(span10, {left: 50, width: 51, classList: ['positive']});
 
     // Values outside custom context range.
-    let span11 = tr.v.ui.createScalarSpan(-20, {
+    const span11 = tr.v.ui.createScalarSpan(-20, {
       unit: Unit.byName.timeStampInMs,
       customContextRange: range
     });
     Polymer.dom(div).appendChild(span11);
     checkSparkline(span11, {left: 0, width: 51});
-    let span12 = tr.v.ui.createScalarSpan(20, {
+    const span12 = tr.v.ui.createScalarSpan(20, {
       unit: Unit.byName.timeStampInMs,
       customContextRange: range
     });
@@ -604,20 +604,20 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('contextControllerChanges', function() {
-    let div = document.createElement('div');
+    const div = document.createElement('div');
     div.style.width = '101px';  // One extra pixel for sparkline border.
     this.addHTMLOutput(div);
 
     div.appendChild(
         document.createElement('tr-v-ui-scalar-context-controller'));
 
-    let s1 = tr.v.ui.createScalarSpan(10, {
+    const s1 = tr.v.ui.createScalarSpan(10, {
       unit: Unit.byName.powerInWatts
     });
     Polymer.dom(div).appendChild(s1);
     checkSparkline(s1, {display: 'none'});
 
-    let s2 = tr.v.ui.createScalarSpan(20, {
+    const s2 = tr.v.ui.createScalarSpan(20, {
       unit: Unit.byName.powerInWatts,
       contextGroup: 'A'
     });
@@ -625,7 +625,7 @@ tr.b.unittest.testSuite(function() {
     checkSparkline(s1, {display: 'none'});
     checkSparkline(s2, {left: 0, width: 101, classList: ['positive']});
 
-    let s3 = tr.v.ui.createScalarSpan(30, {
+    const s3 = tr.v.ui.createScalarSpan(30, {
       unit: Unit.byName.powerInWatts,
       contextGroup: 'A'
     });
@@ -634,7 +634,7 @@ tr.b.unittest.testSuite(function() {
     checkSparkline(s2, {left: 0, width: 67.67, classList: ['positive']});
     checkSparkline(s3, {left: 0, width: 101, classList: ['positive']});
 
-    let s4 = tr.v.ui.createScalarSpan(40, {
+    const s4 = tr.v.ui.createScalarSpan(40, {
       unit: Unit.byName.powerInWatts,
       contextGroup: 'B'
     });
@@ -722,48 +722,48 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('deltaSparkline_noImprovementDirection', function() {
-    let div = document.createElement('div');
+    const div = document.createElement('div');
     div.style.width = '101px';  // One extra pixel for sparkline border.
     this.addHTMLOutput(div);
     div.appendChild(
         document.createElement('tr-v-ui-scalar-context-controller'));
 
-    let span1 = tr.v.ui.createScalarSpan(20971520, {
+    const span1 = tr.v.ui.createScalarSpan(20971520, {
       unit: Unit.byName.sizeInBytesDelta,
       contextGroup: 'test'
     });
     Polymer.dom(div).appendChild(span1);
-    let span2 = tr.v.ui.createScalarSpan(15728640, {
+    const span2 = tr.v.ui.createScalarSpan(15728640, {
       unit: Unit.byName.sizeInBytesDelta,
       contextGroup: 'test'
     });
     Polymer.dom(div).appendChild(span2);
-    let span3 = tr.v.ui.createScalarSpan(12582912, {
+    const span3 = tr.v.ui.createScalarSpan(12582912, {
       unit: Unit.byName.sizeInBytesDelta,
       contextGroup: 'test'
     });
     Polymer.dom(div).appendChild(span3);
-    let span4 = tr.v.ui.createScalarSpan(11534336, {
+    const span4 = tr.v.ui.createScalarSpan(11534336, {
       unit: Unit.byName.sizeInBytesDelta,
       contextGroup: 'test'
     });
     Polymer.dom(div).appendChild(span4);
-    let span5 = tr.v.ui.createScalarSpan(10485760, {
+    const span5 = tr.v.ui.createScalarSpan(10485760, {
       unit: Unit.byName.sizeInBytesDelta,
       contextGroup: 'test'
     });
     Polymer.dom(div).appendChild(span5);
-    let span6 = tr.v.ui.createScalarSpan(9437184, {
+    const span6 = tr.v.ui.createScalarSpan(9437184, {
       unit: Unit.byName.sizeInBytesDelta,
       contextGroup: 'test'
     });
     Polymer.dom(div).appendChild(span6);
-    let span7 = tr.v.ui.createScalarSpan(8388608, {
+    const span7 = tr.v.ui.createScalarSpan(8388608, {
       unit: Unit.byName.sizeInBytesDelta,
       contextGroup: 'test'
     });
     Polymer.dom(div).appendChild(span7);
-    let span8 = tr.v.ui.createScalarSpan(5242880, {
+    const span8 = tr.v.ui.createScalarSpan(5242880, {
       unit: Unit.byName.sizeInBytesDelta,
       contextGroup: 'test'
     });
@@ -782,48 +782,48 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('deltaSparkline_smallerIsBetter', function() {
-    let div = document.createElement('div');
+    const div = document.createElement('div');
     div.style.width = '101px';  // One extra pixel for sparkline border.
     this.addHTMLOutput(div);
     div.appendChild(
         document.createElement('tr-v-ui-scalar-context-controller'));
 
-    let span1 = tr.v.ui.createScalarSpan(5242880, {
+    const span1 = tr.v.ui.createScalarSpan(5242880, {
       unit: Unit.byName.sizeInBytesDelta_smallerIsBetter,
       contextGroup: 'test'
     });
     Polymer.dom(div).appendChild(span1);
-    let span2 = tr.v.ui.createScalarSpan(0, {
+    const span2 = tr.v.ui.createScalarSpan(0, {
       unit: Unit.byName.sizeInBytesDelta_smallerIsBetter,
       contextGroup: 'test'
     });
     Polymer.dom(div).appendChild(span2);
-    let span3 = tr.v.ui.createScalarSpan(-3145728, {
+    const span3 = tr.v.ui.createScalarSpan(-3145728, {
       unit: Unit.byName.sizeInBytesDelta_smallerIsBetter,
       contextGroup: 'test'
     });
     Polymer.dom(div).appendChild(span3);
-    let span4 = tr.v.ui.createScalarSpan(-4194304, {
+    const span4 = tr.v.ui.createScalarSpan(-4194304, {
       unit: Unit.byName.sizeInBytesDelta_smallerIsBetter,
       contextGroup: 'test'
     });
     Polymer.dom(div).appendChild(span4);
-    let span5 = tr.v.ui.createScalarSpan(-5242880, {
+    const span5 = tr.v.ui.createScalarSpan(-5242880, {
       unit: Unit.byName.sizeInBytesDelta_smallerIsBetter,
       contextGroup: 'test'
     });
     Polymer.dom(div).appendChild(span5);
-    let span6 = tr.v.ui.createScalarSpan(-6291456, {
+    const span6 = tr.v.ui.createScalarSpan(-6291456, {
       unit: Unit.byName.sizeInBytesDelta_smallerIsBetter,
       contextGroup: 'test'
     });
     Polymer.dom(div).appendChild(span6);
-    let span7 = tr.v.ui.createScalarSpan(-7340032, {
+    const span7 = tr.v.ui.createScalarSpan(-7340032, {
       unit: Unit.byName.sizeInBytesDelta_smallerIsBetter,
       contextGroup: 'test'
     });
     Polymer.dom(div).appendChild(span7);
-    let span8 = tr.v.ui.createScalarSpan(-15728640, {
+    const span8 = tr.v.ui.createScalarSpan(-15728640, {
       unit: Unit.byName.sizeInBytesDelta_smallerIsBetter,
       contextGroup: 'test'
     });
@@ -843,48 +843,48 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('deltaSparkline_biggerIsBetter', function() {
-    let div = document.createElement('div');
+    const div = document.createElement('div');
     div.style.width = '101px';  // One extra pixel for sparkline border.
     this.addHTMLOutput(div);
     div.appendChild(
         document.createElement('tr-v-ui-scalar-context-controller'));
 
-    let span1 = tr.v.ui.createScalarSpan(0, {
+    const span1 = tr.v.ui.createScalarSpan(0, {
       unit: Unit.byName.sizeInBytesDelta_biggerIsBetter,
       contextGroup: 'test'
     });
     Polymer.dom(div).appendChild(span1);
-    let span2 = tr.v.ui.createScalarSpan(-5242880, {
+    const span2 = tr.v.ui.createScalarSpan(-5242880, {
       unit: Unit.byName.sizeInBytesDelta_biggerIsBetter,
       contextGroup: 'test'
     });
     Polymer.dom(div).appendChild(span2);
-    let span3 = tr.v.ui.createScalarSpan(-8388608, {
+    const span3 = tr.v.ui.createScalarSpan(-8388608, {
       unit: Unit.byName.sizeInBytesDelta_biggerIsBetter,
       contextGroup: 'test'
     });
     Polymer.dom(div).appendChild(span3);
-    let span4 = tr.v.ui.createScalarSpan(-9437184, {
+    const span4 = tr.v.ui.createScalarSpan(-9437184, {
       unit: Unit.byName.sizeInBytesDelta_biggerIsBetter,
       contextGroup: 'test'
     });
     Polymer.dom(div).appendChild(span4);
-    let span5 = tr.v.ui.createScalarSpan(-10485760, {
+    const span5 = tr.v.ui.createScalarSpan(-10485760, {
       unit: Unit.byName.sizeInBytesDelta_biggerIsBetter,
       contextGroup: 'test'
     });
     Polymer.dom(div).appendChild(span5);
-    let span6 = tr.v.ui.createScalarSpan(-11534336, {
+    const span6 = tr.v.ui.createScalarSpan(-11534336, {
       unit: Unit.byName.sizeInBytesDelta_biggerIsBetter,
       contextGroup: 'test'
     });
     Polymer.dom(div).appendChild(span6);
-    let span7 = tr.v.ui.createScalarSpan(-12582912, {
+    const span7 = tr.v.ui.createScalarSpan(-12582912, {
       unit: Unit.byName.sizeInBytesDelta_biggerIsBetter,
       contextGroup: 'test'
     });
     Polymer.dom(div).appendChild(span7);
-    let span8 = tr.v.ui.createScalarSpan(-20971520, {
+    const span8 = tr.v.ui.createScalarSpan(-20971520, {
       unit: Unit.byName.sizeInBytesDelta_biggerIsBetter,
       contextGroup: 'test'
     });
@@ -903,11 +903,11 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('classListChanges', function() {
-    let div = document.createElement('div');
+    const div = document.createElement('div');
     div.style.width = '200px';
     this.addHTMLOutput(div);
 
-    let span = tr.v.ui.createScalarSpan(10, {
+    const span = tr.v.ui.createScalarSpan(10, {
       unit: Unit.byName.energyInJoulesDelta_smallerIsBetter,
       significance: tr.b.math.Statistics.Significance.SIGNIFICANT,
       customContextRange: tr.b.math.Range.fromExplicitRange(-20, 20)
@@ -968,7 +968,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('sparkline_uncentered', function() {
-    let div = document.createElement('div');
+    const div = document.createElement('div');
     this.addHTMLOutput(div);
     div.appendChild(
         document.createElement('tr-v-ui-scalar-context-controller'));
@@ -992,7 +992,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('sparkline_centered', function() {
-    let div = document.createElement('div');
+    const div = document.createElement('div');
     this.addHTMLOutput(div);
     div.appendChild(
         document.createElement('tr-v-ui-scalar-context-controller'));

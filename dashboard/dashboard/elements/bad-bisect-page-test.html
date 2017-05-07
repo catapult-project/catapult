@@ -14,20 +14,20 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var testOptions = {
+  const testOptions = {
     tearDown() {
       testing_common.clearXhrMock();
     }
   };
 
   test('instantiation', function() {
-    var mockResponse = {
+    let mockResponse = {
       'xsrf_token': '12345'
     };
     testing_common.addXhrMock('*', JSON.stringify(mockResponse));
-    var page = document.createElement('bad-bisect-page');
+    const page = document.createElement('bad-bisect-page');
 
-    var mockResponse = {
+    mockResponse = {
       'headline': 'yay'
     };
     testing_common.addXhrMock('*', JSON.stringify(mockResponse));

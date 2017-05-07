@@ -13,7 +13,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('i2cImport', function() {
-    var lines = [
+    const lines = [
 
       ' /system/bin/surfaceflinger-516   (  516) [002] ...1  6481.291425: ' +
         'i2c_write: i2c-3 #0 a=020 f=0000 l=2 [15-00]',
@@ -28,19 +28,19 @@ tr.b.unittest.testSuite(function() {
       ' kworker/u8:5-9309  ( 9309) [001] ...1  6481.366732: ' +
         'i2c_result: i2c-7 n=2 ret=2'
     ];
-    var m = tr.c.TestUtils.newModelWithEvents([lines.join('\n')], {
+    const m = tr.c.TestUtils.newModelWithEvents([lines.join('\n')], {
       shiftWorldToZero: false
     });
     assert.isFalse(m.hasImportWarnings,
         `Expected no import warnings but got ${m.importWarnings}`);
 
-    var threads = m.getAllThreads();
+    let threads = m.getAllThreads();
     assert.strictEqual(threads.length, 2);
 
-    var threads = m.findAllThreadsNamed('i2c adapter 3');
+    threads = m.findAllThreadsNamed('i2c adapter 3');
     assert.strictEqual(threads.length, 1);
     assert.strictEqual(threads[0].sliceGroup.length, 1);
-    var slice = threads[0].sliceGroup.slices[0];
+    let slice = threads[0].sliceGroup.slices[0];
     assert.strictEqual(slice.title, 'i2c write');
     assert.isDefined(slice.args);
     assert.strictEqual(slice.args['Message number'], '0');
@@ -49,11 +49,11 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(slice.args['Data Length'], '2');
     assert.strictEqual(slice.args.Data, '[15-00]');
 
-    var threads = m.findAllThreadsNamed('i2c adapter 7');
+    threads = m.findAllThreadsNamed('i2c adapter 7');
     assert.strictEqual(threads.length, 1);
     assert.strictEqual(threads[0].sliceGroup.length, 3);
 
-    var slice = threads[0].sliceGroup.slices[0];
+    slice = threads[0].sliceGroup.slices[0];
     assert.strictEqual(slice.title, 'i2c write');
     assert.strictEqual(slice.args['Message number'], '0');
     assert.strictEqual(slice.args.Address, '01d');

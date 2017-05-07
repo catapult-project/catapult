@@ -19,14 +19,14 @@ tr.b.unittest.testSuite(function() {
   // AsyncSliceGroupTrack.buildSubRows_ can lay them out in as few tracks as
   // possible, so that they mesh instead of stacking unnecessarily.
   test('instantiate', function() {
-    var div = document.createElement('div');
-    var viewport = new tr.ui.TimelineViewport(div);
-    var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
+    const div = document.createElement('div');
+    const viewport = new tr.ui.TimelineViewport(div);
+    const drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
     Polymer.dom(div).appendChild(drawingContainer);
-    var track = new tr.ui.tracks.InteractionTrack(viewport);
+    const track = new tr.ui.tracks.InteractionTrack(viewport);
     track.model = tr.c.TestUtils.newModel(function(model) {
-      var process = model.getOrCreateProcess(1);
-      var thread = process.getOrCreateThread(1);
+      const process = model.getOrCreateProcess(1);
+      const thread = process.getOrCreateThread(1);
       thread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
           {start: 0, duration: 200}));
       model.userModel.expectations.push(new tr.model.um.StubExpectation(

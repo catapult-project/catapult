@@ -14,28 +14,28 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var CounterSeries = tr.model.CounterSeries;
-  var Model = tr.Model;
-  var ThreadSlice = tr.model.ThreadSlice;
-  var VSyncAuditor = tr.e.audits.VSyncAuditor;
+  const CounterSeries = tr.model.CounterSeries;
+  const Model = tr.Model;
+  const ThreadSlice = tr.model.ThreadSlice;
+  const VSyncAuditor = tr.e.audits.VSyncAuditor;
 
   function testFindVSyncTimestamps(slices, counters, expectedTimes) {
-    var model = buildModel(slices, counters);
-    var auditor = new VSyncAuditor(model);
+    const model = buildModel(slices, counters);
+    const auditor = new VSyncAuditor(model);
     assert.deepEqual(auditor.findVSyncTimestamps(model), expectedTimes);
   }
 
   function buildModel(slices, counters) {
-    var model = new Model();
-    var process = model.getOrCreateProcess(1);
-    for (var i = 0; i < slices.length; i++) {
-      var thread = process.getOrCreateThread(i);
-      for (var j = 0; j < slices[i].length; j++) {
+    const model = new Model();
+    const process = model.getOrCreateProcess(1);
+    for (let i = 0; i < slices.length; i++) {
+      const thread = process.getOrCreateThread(i);
+      for (let j = 0; j < slices[i].length; j++) {
         thread.sliceGroup.pushSlice(slices[i][j]);
       }
     }
-    for (var i = 0; i < counters.length; i++) {
-      var counter = process.getOrCreateCounter(
+    for (let i = 0; i < counters.length; i++) {
+      const counter = process.getOrCreateCounter(
           counters[i].category,
           counters[i].name);
       counter.addSeries(counters[i].series);
@@ -48,8 +48,8 @@ tr.b.unittest.testSuite(function() {
   }
 
   function buildCounterSeries(name, timestamps) {
-    var series = new CounterSeries(name, '');
-    for (var i = 0; i < timestamps.length; i++) {
+    const series = new CounterSeries(name, '');
+    for (let i = 0; i < timestamps.length; i++) {
       series.addCounterSample(timestamps[i], 1);
     }
     return series;
@@ -122,7 +122,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('findBeginFrame', function() {
-    var title = 'DisplayScheduler::BeginFrame';
+    const title = 'DisplayScheduler::BeginFrame';
     testFindVSyncTimestamps([[
       new ThreadSlice('', title, 0, 2, { args: { frame_time_us: 1000 } }),
       new ThreadSlice('', title, 0, 4, { args: { frame_time_us: 3000 } })
@@ -130,7 +130,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('findBeginFrame_noFrameTime', function() {
-    var title = 'DisplayScheduler::BeginFrame';
+    const title = 'DisplayScheduler::BeginFrame';
     testFindVSyncTimestamps([[
       new ThreadSlice('', title, 0, 2, {}),
       new ThreadSlice('', title, 0, 4, { args: {} })

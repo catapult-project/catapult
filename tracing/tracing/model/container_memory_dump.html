@@ -60,7 +60,7 @@ tr.exportTo('tr.model', function() {
 
       // Lazily generate the index if necessary.
       if (this.memoryAllocatorDumpsByFullName_ === undefined) {
-        var index = {};
+        const index = {};
         function addDumpsToIndex(dumps) {
           dumps.forEach(function(dump) {
             index[dump.fullName] = dump;

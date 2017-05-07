@@ -59,7 +59,7 @@ tr.exportTo('tr.b.unittest', function() {
 
     addErrorForCurrentTest(error) {
       if (!this.currentTestCaseHadErrors_) this.write_('FAIL\n');
-      var normalizedException = tr.b.normalizeException(error);
+      const normalizedException = tr.b.normalizeException(error);
       this.write_(normalizedException.stack + '\n');
       this.currentTestCaseHadErrors_ = true;
     },
@@ -104,10 +104,10 @@ tr.exportTo('tr.b.unittest', function() {
         this.write_('Ran ' + this.numTestsThatRan + ' tests\n');
       }
 
-      let errorString = 'errors=' + this.numTestsThatFailed;
-      let flakyString = 'flaky=' + this.numFlakyTests;
-      let skippedString = 'skipped=' + this.numSkippedTests;
-      let messages = [];
+      const errorString = 'errors=' + this.numTestsThatFailed;
+      const flakyString = 'flaky=' + this.numFlakyTests;
+      const skippedString = 'skipped=' + this.numSkippedTests;
+      const messages = [];
       if (this.numTestsThatFailed > 0) messages.push(errorString);
       if (this.numFlakyTests > 0) messages.push(flakyString);
       if (this.numSkippedTests > 0) messages.push(skippedString);

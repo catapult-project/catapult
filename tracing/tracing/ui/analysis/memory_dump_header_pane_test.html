@@ -15,12 +15,12 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var AggregationMode = tr.ui.analysis.MemoryColumn.AggregationMode;
-  var isElementDisplayed = tr.ui.analysis.isElementDisplayed;
+  const AggregationMode = tr.ui.analysis.MemoryColumn.AggregationMode;
+  const isElementDisplayed = tr.ui.analysis.isElementDisplayed;
 
   function createAndCheckMemoryDumpHeaderPane(test, containerMemoryDumps,
       expectedLabelText, expectedChildPaneRequested, expectedSelectorVisible) {
-    var viewEl =
+    const viewEl =
         tr.ui.analysis.createTestPane('tr-ui-a-memory-dump-header-pane');
     viewEl.containerMemoryDumps = containerMemoryDumps;
     viewEl.rebuild();
@@ -39,9 +39,9 @@ tr.b.unittest.testSuite(function() {
         Polymer.dom(viewEl.$.label).textContent, expectedLabelText);
 
     // Check the visibility of aggregation mode selector.
-    var aggregationModeContainerVisible =
+    const aggregationModeContainerVisible =
         isElementDisplayed(viewEl.$.aggregation_mode_container);
-    var childPanes = viewEl.requestedChildPanes;
+    const childPanes = viewEl.requestedChildPanes;
 
     // Check the requested child panes.
     if (containerMemoryDumps === undefined ||
@@ -53,13 +53,13 @@ tr.b.unittest.testSuite(function() {
       return;
     }
 
-    var expectedProcessMemoryDumps = containerMemoryDumps.map(
+    const expectedProcessMemoryDumps = containerMemoryDumps.map(
         function(containerMemoryDump) {
           return containerMemoryDump.processMemoryDumps;
         });
     function checkLastChildPane(expectedChildPaneCount) {
       assert.lengthOf(childPanes, expectedChildPaneCount);
-      var lastChildPane = childPanes[expectedChildPaneCount - 1];
+      const lastChildPane = childPanes[expectedChildPaneCount - 1];
       assert.strictEqual(
           lastChildPane.tagName, 'TR-UI-A-MEMORY-DUMP-OVERVIEW-PANE');
       assert.deepEqual(lastChildPane.processMemoryDumps,
@@ -76,7 +76,7 @@ tr.b.unittest.testSuite(function() {
     }
 
     assert.isTrue(aggregationModeContainerVisible);
-    var selector = tr.b.findDeepElementMatching(viewEl, 'select');
+    const selector = tr.b.findDeepElementMatching(viewEl, 'select');
 
     selector.selectedValue = AggregationMode.MAX;
     viewEl.rebuild();

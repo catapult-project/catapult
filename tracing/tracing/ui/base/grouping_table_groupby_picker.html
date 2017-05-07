@@ -49,7 +49,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.b', function() {
-  var THIS_DOC = document.currentScript.ownerDocument;
+  const THIS_DOC = document.currentScript.ownerDocument;
 
   Polymer({
     is: 'tr-ui-b-grouping-table-groupby-picker-group',
@@ -145,8 +145,8 @@ tr.exportTo('tr.ui.b', function() {
 
     set possibleGroups(possibleGroups) {
       Polymer.dom(this.$.container).textContent = '';
-      for (var i = 0; i < possibleGroups.length; ++i) {
-        var groupEl = document.createElement(
+      for (let i = 0; i < possibleGroups.length; ++i) {
+        const groupEl = document.createElement(
             'tr-ui-b-grouping-table-groupby-picker-group');
         groupEl.picker = this;
         groupEl.group = possibleGroups[i];
@@ -157,9 +157,9 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     updateFirstLast_() {
-      var groupEls = this.$.container.children;
-      var enabledGroupEls = [...groupEls].filter(el => el.enabled);
-      for (var i = 0; i < enabledGroupEls.length; ++i) {
+      const groupEls = this.$.container.children;
+      const enabledGroupEls = [...groupEls].filter(el => el.enabled);
+      for (let i = 0; i < enabledGroupEls.length; ++i) {
         enabledGroupEls[i].isFirst = i === 0;
         enabledGroupEls[i].isLast = i === enabledGroupEls.length - 1;
       }
@@ -170,8 +170,8 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     get currentGroups() {
-      var groups = [];
-      for (var groupEl of this.$.container.children) {
+      const groups = [];
+      for (const groupEl of this.$.container.children) {
         if (groupEl.enabled) {
           groups.push(groupEl.group);
         }
@@ -185,16 +185,16 @@ tr.exportTo('tr.ui.b', function() {
         return;
       }
 
-      var possibleGroups = new Map();
-      for (var group of this.possibleGroups) {
+      const possibleGroups = new Map();
+      for (const group of this.possibleGroups) {
         possibleGroups.set(group.key, group);
       }
 
-      var groupEls = this.$.container.children;
+      const groupEls = this.$.container.children;
 
-      var i = 0;
+      let i = 0;
       for (i = 0; i < newKeys.length; ++i) {
-        var group = possibleGroups.get(newKeys[i]);
+        const group = possibleGroups.get(newKeys[i]);
         if (group === undefined) {
           newKeys.splice(i, 1);
           --i;
@@ -205,7 +205,7 @@ tr.exportTo('tr.ui.b', function() {
         possibleGroups.delete(newKeys[i]);
       }
 
-      for (var group of possibleGroups.values()) {
+      for (const group of possibleGroups.values()) {
         groupEls[i].group = group;
         groupEls[i].enabled = false;
         ++i;
@@ -216,7 +216,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     moveLeft_(groupEl) {
-      var reference = groupEl.previousSibling;
+      const reference = groupEl.previousSibling;
       Polymer.dom(this.$.container).removeChild(groupEl);
       Polymer.dom(this.$.container).insertBefore(groupEl, reference);
       this.updateFirstLast_();
@@ -227,7 +227,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     moveRight_(groupEl) {
-      var reference = groupEl.nextSibling.nextSibling;
+      const reference = groupEl.nextSibling.nextSibling;
       Polymer.dom(this.$.container).removeChild(groupEl);
       if (reference) {
         Polymer.dom(this.$.container).insertBefore(groupEl, reference);

@@ -19,30 +19,31 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var VMRegion = tr.model.VMRegion;
-  var VMRegionClassificationNode = tr.model.VMRegionClassificationNode;
-  var BACKGROUND = tr.model.ContainerMemoryDump.LevelOfDetail.BACKGROUND;
-  var LIGHT = tr.model.ContainerMemoryDump.LevelOfDetail.LIGHT;
-  var DETAILED = tr.model.ContainerMemoryDump.LevelOfDetail.DETAILED;
-  var SIZE_DELTA = tr.model.MemoryDumpTestUtils.SIZE_DELTA;
-  var addProcessMemoryDump = tr.model.MemoryDumpTestUtils.addProcessMemoryDump;
-  var addGlobalMemoryDump = tr.model.MemoryDumpTestUtils.addGlobalMemoryDump;
-  var newAllocatorDump = tr.model.MemoryDumpTestUtils.newAllocatorDump;
-  var addChildDump = tr.model.MemoryDumpTestUtils.addChildDump;
-  var addOwnershipLink = tr.model.MemoryDumpTestUtils.addOwnershipLink;
-  var count_smallerIsBetter = tr.b.Unit.byName.count_smallerIsBetter;
-  var sizeInBytes_smallerIsBetter =
+  const VMRegion = tr.model.VMRegion;
+  const VMRegionClassificationNode = tr.model.VMRegionClassificationNode;
+  const BACKGROUND = tr.model.ContainerMemoryDump.LevelOfDetail.BACKGROUND;
+  const LIGHT = tr.model.ContainerMemoryDump.LevelOfDetail.LIGHT;
+  const DETAILED = tr.model.ContainerMemoryDump.LevelOfDetail.DETAILED;
+  const SIZE_DELTA = tr.model.MemoryDumpTestUtils.SIZE_DELTA;
+  const addProcessMemoryDump =
+    tr.model.MemoryDumpTestUtils.addProcessMemoryDump;
+  const addGlobalMemoryDump = tr.model.MemoryDumpTestUtils.addGlobalMemoryDump;
+  const newAllocatorDump = tr.model.MemoryDumpTestUtils.newAllocatorDump;
+  const addChildDump = tr.model.MemoryDumpTestUtils.addChildDump;
+  const addOwnershipLink = tr.model.MemoryDumpTestUtils.addOwnershipLink;
+  const count_smallerIsBetter = tr.b.Unit.byName.count_smallerIsBetter;
+  const sizeInBytes_smallerIsBetter =
       tr.b.Unit.byName.sizeInBytes_smallerIsBetter;
 
   function memoryMetricTest(
       name, modelCallback, opt_options, expectedNumerics) {
     test(name, function() {
       // Create a model and a fake value list.
-      var model = tr.c.TestUtils.newModel(modelCallback);
-      var valueNameToValues = {};
-      var fakeValueList = {
+      const model = tr.c.TestUtils.newModel(modelCallback);
+      const valueNameToValues = {};
+      const fakeValueList = {
         addHistogram(value) {
-          var values = valueNameToValues[value.name];
+          let values = valueNameToValues[value.name];
           if (values === undefined) {
             valueNameToValues[value.name] = values = [];
           }
@@ -54,14 +55,14 @@ tr.b.unittest.testSuite(function() {
       tr.metrics.sh.memoryMetric(fakeValueList, model, opt_options);
 
       // Check that the names of the added values match expectations.
-      var actualValueNames = Object.keys(valueNameToValues).sort();
-      var expectedValueNames = Object.keys(expectedNumerics).sort();
+      const actualValueNames = Object.keys(valueNameToValues).sort();
+      const expectedValueNames = Object.keys(expectedNumerics).sort();
       assert.deepEqual(actualValueNames, expectedValueNames, {
         // Build the long error message lazily.
         toString() {
-          var errorMessageParts = [];
+          const errorMessageParts = [];
           function addValueNamesToError(type, valueNames, otherValueNames) {
-            var otherValueNamesSet = new Set(otherValueNames);
+            const otherValueNamesSet = new Set(otherValueNames);
             errorMessageParts.push(type, ' value names:');
             if (valueNames.length === 0) {
               errorMessageParts.push('\n(empty)');
@@ -84,13 +85,14 @@ tr.b.unittest.testSuite(function() {
       });
 
       // Check that the numeric values of the added values match expectations.
-      for (var [valueName, actualValues] of Object.entries(valueNameToValues)) {
+      for (const [valueName, actualValues] of
+          Object.entries(valueNameToValues)) {
         assert.lengthOf(actualValues, 1,
             'Multiple \'' + valueName + '\' values');
-        var actualHistogram = actualValues[0];
+        const actualHistogram = actualValues[0];
         assert.instanceOf(actualHistogram, tr.v.Histogram);
 
-        var expectedHistogram = expectedNumerics[valueName];
+        const expectedHistogram = expectedNumerics[valueName];
         assert.strictEqual(actualHistogram.unit, expectedHistogram.unit,
             'Invalid \'' + valueName + '\' unit (expected: ' +
             expectedHistogram.unit.unitName, + ', actual: ' +
@@ -110,9 +112,9 @@ tr.b.unittest.testSuite(function() {
             'Invalid \'' + valueName + '\' Histogram sum');
 
         // Check that the bin counts match.
-        var binToCount = new Map();
+        const binToCount = new Map();
         expectedHistogram.value.forEach(function(value) {
-          var bin = actualHistogram.getBinForValue(value);
+          const bin = actualHistogram.getBinForValue(value);
           binToCount.set(bin, (binToCount.get(bin) || 0) + 1);
         });
         actualHistogram.allBins.forEach(function(bin) {
@@ -132,21 +134,21 @@ tr.b.unittest.testSuite(function() {
   }
 
   function createProcessWithName(model, name) {
-    var uniquePid =
+    const uniquePid =
         Math.max.apply(null, Object.keys(model.processes).concat([0])) + 1;
-    var process = model.getOrCreateProcess(uniquePid);
+    const process = model.getOrCreateProcess(uniquePid);
     process.name = name;
     return process;
   }
 
   function createChromeBrowserProcess(model) {
-    var process = createProcessWithName(model, 'Browser');
+    const process = createProcessWithName(model, 'Browser');
     process.getOrCreateThread(1).name = 'CrBrowserMain';
     return process;
   }
 
   function createWebViewProcess(model) {
-    var process = createChromeBrowserProcess(model);
+    const process = createChromeBrowserProcess(model);
     process.getOrCreateThread(2).name = 'Chrome_InProcRendererThread';
     return process;
   }
@@ -329,7 +331,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   memoryMetricTest('dumpCountsOnly_webview', function(model) {
-    var p = createWebViewProcess(model);
+    const p = createWebViewProcess(model);
     addProcessMemoryDump(addGlobalMemoryDump(
         model, {ts: 45, levelOfDetail: LIGHT}), p, {ts: 45});
     addProcessMemoryDump(addGlobalMemoryDump(
@@ -378,15 +380,15 @@ tr.b.unittest.testSuite(function() {
   });
 
   memoryMetricTest('generalValues_chrome', function(model) {
-    var pBrowser = createChromeBrowserProcess(model);
-    var pRendererA = createProcessWithName(model, 'Renderer');
-    var pRendererB = createProcessWithName(model, 'Renderer');
-    var pPpapi = createProcessWithName(model, 'PPAPI Process');
-    var pUnknown = createProcessWithName(model, undefined);
+    const pBrowser = createChromeBrowserProcess(model);
+    const pRendererA = createProcessWithName(model, 'Renderer');
+    const pRendererB = createProcessWithName(model, 'Renderer');
+    const pPpapi = createProcessWithName(model, 'PPAPI Process');
+    const pUnknown = createProcessWithName(model, undefined);
 
     // Timestamp 1.
-    var gmd1 = addGlobalMemoryDump(model, {ts: 20});
-    var pmdBrowser1 = addProcessMemoryDump(gmd1, pBrowser, {ts: 19});
+    const gmd1 = addGlobalMemoryDump(model, {ts: 20});
+    const pmdBrowser1 = addProcessMemoryDump(gmd1, pBrowser, {ts: 19});
     pmdBrowser1.memoryAllocatorDumps = [
       newAllocatorDump(pmdBrowser1, 'malloc', {numerics: {
         size: 8,
@@ -397,13 +399,13 @@ tr.b.unittest.testSuite(function() {
       residentBytes: 200,
       peakResidentBytes: 230
     };
-    var pmdRendererA1 = addProcessMemoryDump(gmd1, pRendererA, {ts: 20});
+    const pmdRendererA1 = addProcessMemoryDump(gmd1, pRendererA, {ts: 20});
     pmdRendererA1.memoryAllocatorDumps = (function() {
-      var mallocDump =
+      const mallocDump =
           newAllocatorDump(pmdRendererA1, 'malloc', {numerics: {size: 16}});
-      var partitionAllocDump =
+      const partitionAllocDump =
           newAllocatorDump(pmdRendererA1, 'partition_alloc');
-      var v8Dump = newAllocatorDump(pmdRendererA1, 'v8',
+      const v8Dump = newAllocatorDump(pmdRendererA1, 'v8',
           {numerics: {code_and_metadata_size: 16}});
       addOwnershipLink(
           addChildDump(partitionAllocDump, 'allocated_objects',
@@ -412,7 +414,7 @@ tr.b.unittest.testSuite(function() {
               {numerics: {size: 24}}));
       return [mallocDump, partitionAllocDump, v8Dump];
     })();
-    var pmdGpu1 = addProcessMemoryDump(gmd1, pPpapi, {ts: 21});
+    const pmdGpu1 = addProcessMemoryDump(gmd1, pPpapi, {ts: 21});
     pmdGpu1.memoryAllocatorDumps = [
       newAllocatorDump(pmdGpu1, 'gpu', {numerics: {
         size: 30,
@@ -421,32 +423,32 @@ tr.b.unittest.testSuite(function() {
     ];
 
     // Timestamp 2.
-    var gmd2 = addGlobalMemoryDump(model, {ts: 40});
-    var pmdBrowser2 = addProcessMemoryDump(gmd2, pBrowser, {ts: 41});
+    const gmd2 = addGlobalMemoryDump(model, {ts: 40});
+    const pmdBrowser2 = addProcessMemoryDump(gmd2, pBrowser, {ts: 41});
     pmdBrowser2.memoryAllocatorDumps = (function() {
-      var mallocDump = newAllocatorDump(pmdBrowser2, 'malloc',
+      const mallocDump = newAllocatorDump(pmdBrowser2, 'malloc',
           {numerics: {size: 120}});
-      var tracingDump =
+      const tracingDump =
           newAllocatorDump(pmdBrowser2, 'tracing', {numerics: {size: 40}});
       return [mallocDump, tracingDump];
     })();
-    var pmdRendererA2 = addProcessMemoryDump(gmd2, pRendererA, {ts: 39});
+    const pmdRendererA2 = addProcessMemoryDump(gmd2, pRendererA, {ts: 39});
     pmdRendererA2.memoryAllocatorDumps = (function() {
-      var partitionAllocDump =
+      const partitionAllocDump =
           newAllocatorDump(pmdRendererA2, 'partition_alloc');
       addOwnershipLink(
           addChildDump(partitionAllocDump, 'allocated_objects',
               {numerics: {size: 320}}),
           addChildDump(partitionAllocDump, 'partitions',
               {numerics: {size: 240}}));
-      var v8Dump = newAllocatorDump(pmdRendererA2, 'v8',
+      const v8Dump = newAllocatorDump(pmdRendererA2, 'v8',
           {numerics: {size: 650}});
-      var isolateDumpA = addChildDump(v8Dump, 'isolate_A');
+      const isolateDumpA = addChildDump(v8Dump, 'isolate_A');
       addChildDump(isolateDumpA, 'malloc', {numerics: {
         size: 1,
         peak_size: 2
       }});
-      var heapDumpA = addChildDump(isolateDumpA, 'heap_spaces', {numerics: {
+      const heapDumpA = addChildDump(isolateDumpA, 'heap_spaces', {numerics: {
         size: 42,
         allocated_objects_size: 36
       }});
@@ -474,12 +476,12 @@ tr.b.unittest.testSuite(function() {
         allocated_objects_size: 11,
         size: 12
       }});
-      var isolateDumpB = addChildDump(v8Dump, 'isolate_B');
+      const isolateDumpB = addChildDump(v8Dump, 'isolate_B');
       addChildDump(isolateDumpB, 'malloc', {numerics: {
         size: 10,
         peak_size: 20
       }});
-      var heapDumpB = addChildDump(isolateDumpB, 'heap_spaces', {numerics: {
+      const heapDumpB = addChildDump(isolateDumpB, 'heap_spaces', {numerics: {
         size: 12,
         allocated_objects_size: 6
       }});
@@ -507,7 +509,7 @@ tr.b.unittest.testSuite(function() {
         allocated_objects_size: 1,
         size: 2
       }});
-      var isolateDumpC = addChildDump(v8Dump, 'isolate_C');
+      const isolateDumpC = addChildDump(v8Dump, 'isolate_C');
       addChildDump(isolateDumpC, 'malloc', {numerics: {
         size: 100,
       }});
@@ -515,13 +517,13 @@ tr.b.unittest.testSuite(function() {
         size: 2,
         allocated_objects_size: 1
       }});
-      var isolateDumpD = addChildDump(v8Dump, 'isolate_D');
+      const isolateDumpD = addChildDump(v8Dump, 'isolate_D');
       addChildDump(isolateDumpD, 'malloc', {numerics: {
         peak_size: 200,
       }});
       return [partitionAllocDump, v8Dump];
     })();
-    var pmdRendererB2 = addProcessMemoryDump(gmd2, pRendererB, {ts: 40});
+    const pmdRendererB2 = addProcessMemoryDump(gmd2, pRendererB, {ts: 40});
     pmdRendererB2.memoryAllocatorDumps = [
       newAllocatorDump(pmdRendererB2, 'v8', {numerics: {
         size: 970,
@@ -531,46 +533,46 @@ tr.b.unittest.testSuite(function() {
       newAllocatorDump(pmdRendererB2, 'malloc',
           {numerics: {allocated_objects_size: 750}})
     ];
-    var pmdUnknown = addProcessMemoryDump(gmd2, pUnknown, {ts: 42});
+    const pmdUnknown = addProcessMemoryDump(gmd2, pUnknown, {ts: 42});
     pmdUnknown.memoryAllocatorDumps = [
       newAllocatorDump(pmdRendererB2, 'v8', {numerics: {size: 111}})
     ];
 
     // Timestamp 3.
-    var gmd3 = addGlobalMemoryDump(model, {ts: 60});
-    var pmdBrowser3 = addProcessMemoryDump(gmd3, pBrowser, {ts: 60});
+    const gmd3 = addGlobalMemoryDump(model, {ts: 60});
+    const pmdBrowser3 = addProcessMemoryDump(gmd3, pBrowser, {ts: 60});
     pmdBrowser3.memoryAllocatorDumps = [
       newAllocatorDump(pmdBrowser3, 'malloc', {numerics: {
         size: 8000,
         allocated_objects_size: 4000
       }})
     ];
-    var pmdRendererB3 = addProcessMemoryDump(gmd3, pRendererB, {ts: 61});
+    const pmdRendererB3 = addProcessMemoryDump(gmd3, pRendererB, {ts: 61});
     // Intentionally pmdRendererB3.memoryAllocatorDumps undefined.
-    var pmdGpu3 = addProcessMemoryDump(gmd3, pPpapi, {ts: 59});
+    const pmdGpu3 = addProcessMemoryDump(gmd3, pPpapi, {ts: 59});
     pmdGpu3.memoryAllocatorDumps = [
       newAllocatorDump(pmdGpu3, 'gpu', {numerics: {size: 300}})
     ];
 
     // Timestamp 4.
-    var gmd4 = addGlobalMemoryDump(model, {ts: 80});
-    var pmdBrowser4 = addProcessMemoryDump(gmd4, pBrowser, {ts: 81});
+    const gmd4 = addGlobalMemoryDump(model, {ts: 80});
+    const pmdBrowser4 = addProcessMemoryDump(gmd4, pBrowser, {ts: 81});
     pmdBrowser4.memoryAllocatorDumps = [
       newAllocatorDump(pmdBrowser4, 'malloc', {numerics: {size: 80000}})
     ];
-    var pmdRendererB4 = addProcessMemoryDump(gmd4, pRendererB, {ts: 79});
+    const pmdRendererB4 = addProcessMemoryDump(gmd4, pRendererB, {ts: 79});
     pmdRendererB4.memoryAllocatorDumps = (function() {
-      var v8Dump = newAllocatorDump(pmdRendererB4, 'v8', {numerics: {
+      const v8Dump = newAllocatorDump(pmdRendererB4, 'v8', {numerics: {
         code_and_metadata_size: 21,
         bytecode_and_metadata_size: 35,
         size: 9e5
       }});
-      var partitionAllocDump = newAllocatorDump(pmdRendererB4,
+      const partitionAllocDump = newAllocatorDump(pmdRendererB4,
           'partition_alloc', {numerics: {size: 5e5}});
       addOwnershipLink(partitionAllocDump, v8Dump);
       return [v8Dump, partitionAllocDump];
     })();
-    var pmdGpu4 = addProcessMemoryDump(gmd4, pPpapi, {ts: 80});
+    const pmdGpu4 = addProcessMemoryDump(gmd4, pPpapi, {ts: 80});
     pmdGpu4.memoryAllocatorDumps = [
       newAllocatorDump(pmdGpu4, 'gpu',
           {numerics: {memtrack_pss: 666 /* ignored */}})
@@ -1117,41 +1119,41 @@ tr.b.unittest.testSuite(function() {
   });
 
   memoryMetricTest('detailedValues_unknownBrowser', function(model) {
-    var pBrowser = createProcessWithName(model, 'Browser');
-    var pRendererA = createProcessWithName(model, 'Renderer');
-    var pRendererB = createProcessWithName(model, 'Renderer');
-    var pRendererC = createProcessWithName(model, 'Renderer');
-    var pGpu = createProcessWithName(model, 'GPU Process');
+    const pBrowser = createProcessWithName(model, 'Browser');
+    const pRendererA = createProcessWithName(model, 'Renderer');
+    const pRendererB = createProcessWithName(model, 'Renderer');
+    const pRendererC = createProcessWithName(model, 'Renderer');
+    const pGpu = createProcessWithName(model, 'GPU Process');
 
     // Timestamp 1.
-    var gmd1 = addGlobalMemoryDump(model, {ts: 10, levelOfDetail: DETAILED});
-    var pmdBrowser1 = addProcessMemoryDump(gmd1, pBrowser, {ts: 9});
+    const gmd1 = addGlobalMemoryDump(model, {ts: 10, levelOfDetail: DETAILED});
+    const pmdBrowser1 = addProcessMemoryDump(gmd1, pBrowser, {ts: 9});
     pmdBrowser1.vmRegions = VMRegionClassificationNode.fromRegions([
       new VMRegion(0xABCD, 128, 0, '/dev/ashmem/dalvik-non moving space',
           {privateDirtyResident: 8})
     ]);
     pmdBrowser1.heapDumps = (function() {
-      var mallocDump = new tr.model.HeapDump(pmdBrowser1, 'malloc');
+      const mallocDump = new tr.model.HeapDump(pmdBrowser1, 'malloc');
       mallocDump.addEntry(undefined, undefined, 100, 500);
       return {'malloc': mallocDump};
     })();
 
-    var pmdRendererA1 = addProcessMemoryDump(gmd1, pRendererA, {ts: 10});
+    const pmdRendererA1 = addProcessMemoryDump(gmd1, pRendererA, {ts: 10});
     pmdRendererA1.vmRegions = VMRegionClassificationNode.fromRegions([
       new VMRegion(0xEF01, 256, 0, '[anon:libc_malloc]',
           {privateDirtyResident: 17})
     ]);
-    var pmdRendererB1 = addProcessMemoryDump(gmd1, pRendererB, {ts: 11});
+    const pmdRendererB1 = addProcessMemoryDump(gmd1, pRendererB, {ts: 11});
     pmdRendererB1.vmRegions = VMRegionClassificationNode.fromRegions([
       new VMRegion(0x2345, 512, 0, '[heap]',
           {proportionalResident: 67, privateDirtyResident: 34}),
       new VMRegion(0x7f29, 128, 0, '[stack:25451]',
           {proportionalResident: 20, privateDirtyResident: 16})
     ]);
-    var pmdGpu1 = addProcessMemoryDump(gmd1, pGpu, {ts: 10});
+    const pmdGpu1 = addProcessMemoryDump(gmd1, pGpu, {ts: 10});
     pmdGpu1.memoryAllocatorDumps = (function() {
-      var gpuDump = newAllocatorDump(pmdGpu1, 'gpu');
-      var memtrackDump = addChildDump(gpuDump, 'android_memtrack');
+      const gpuDump = newAllocatorDump(pmdGpu1, 'gpu');
+      const memtrackDump = addChildDump(gpuDump, 'android_memtrack');
       addChildDump(memtrackDump, 'gl', {numerics: {memtrack_pss: 100}});
       addChildDump(memtrackDump, 'graphics', {numerics: {memtrack_pss: 200}});
       return [gpuDump];
@@ -1159,42 +1161,42 @@ tr.b.unittest.testSuite(function() {
 
     // Timestamp 2 (light global memory dump, so it should be skipped for
     // mmaps_* values).
-    var gmd2 = addGlobalMemoryDump(model, {ts: 20, levelOfDetail: LIGHT});
-    var pmdBrowser2 = addProcessMemoryDump(gmd2, pBrowser, {ts: 18});
+    const gmd2 = addGlobalMemoryDump(model, {ts: 20, levelOfDetail: LIGHT});
+    const pmdBrowser2 = addProcessMemoryDump(gmd2, pBrowser, {ts: 18});
     pmdBrowser2.vmRegions = VMRegionClassificationNode.fromRegions([
       new VMRegion(0x999, 999, 999, '/dev/ashmem/dalvik-main space',
           {proportionalResident: 999})
     ]);
-    var pmdRendererB2 = addProcessMemoryDump(gmd2, pRendererB, {ts: 21});
-    var pmdRendererC2 = addProcessMemoryDump(gmd2, pRendererC, {ts: 22});
-    var pmdGpu2 = addProcessMemoryDump(gmd2, pGpu, {ts: 20});
+    const pmdRendererB2 = addProcessMemoryDump(gmd2, pRendererB, {ts: 21});
+    const pmdRendererC2 = addProcessMemoryDump(gmd2, pRendererC, {ts: 22});
+    const pmdGpu2 = addProcessMemoryDump(gmd2, pGpu, {ts: 20});
     pmdGpu2.memoryAllocatorDumps = (function() {
-      var gpuDump = newAllocatorDump(pmdGpu2, 'gpu');
-      var memtrackDump = addChildDump(gpuDump, 'android_memtrack');
+      const gpuDump = newAllocatorDump(pmdGpu2, 'gpu');
+      const memtrackDump = addChildDump(gpuDump, 'android_memtrack');
       addChildDump(memtrackDump, 'gl', {numerics: {memtrack_pss: 12345}});
       return [gpuDump];
     })();
 
     // Timestamp 3.
-    var gmd3 = addGlobalMemoryDump(model, {ts: 30, levelOfDetail: DETAILED});
-    var pmdBrowser3 = addProcessMemoryDump(gmd3, pBrowser, {ts: 30});
+    const gmd3 = addGlobalMemoryDump(model, {ts: 30, levelOfDetail: DETAILED});
+    const pmdBrowser3 = addProcessMemoryDump(gmd3, pBrowser, {ts: 30});
     pmdBrowser3.vmRegions = VMRegionClassificationNode.fromRegions([
       new VMRegion(0xABCD, 1024, 0, '/dev/ashmem/dalvik-non moving space',
           {proportionalResident: 3, privateDirtyResident: 80})
     ]);
-    var pmdRendererA3 = addProcessMemoryDump(gmd3, pRendererA, {ts: 29});
+    const pmdRendererA3 = addProcessMemoryDump(gmd3, pRendererA, {ts: 29});
     // Intentionally pmdRendererA3.vmRegions undefined.
-    var pmdRendererC3 = addProcessMemoryDump(gmd3, pRendererC, {ts: 31});
+    const pmdRendererC3 = addProcessMemoryDump(gmd3, pRendererC, {ts: 31});
     pmdRendererC3.vmRegions = VMRegionClassificationNode.fromRegions([
       new VMRegion(0x2345, 2048, 0, '/no/matching/category',
           {proportionalResident: 200}),
       new VMRegion(0x2345, 2048, 0, '/dev/ashmem', {proportionalResident: 500}),
     ]);
-    var pmdGpu3 = addProcessMemoryDump(gmd3, pGpu, {ts: 30});
+    const pmdGpu3 = addProcessMemoryDump(gmd3, pGpu, {ts: 30});
     pmdGpu3.memoryAllocatorDumps = (function() {
-      var gpuDump = newAllocatorDump(pmdGpu3, 'gpu',
+      const gpuDump = newAllocatorDump(pmdGpu3, 'gpu',
           {numerics: {memtrack_pss: 6000 /* ignored */}});
-      var memtrackDump = addChildDump(gpuDump, 'android_memtrack',
+      const memtrackDump = addChildDump(gpuDump, 'android_memtrack',
           {numerics: {memtrack_pss: 5000 /* ignored */}});
       addChildDump(memtrackDump, 'gl', {numerics: {memtrack_pss: 3000}});
       addChildDump(memtrackDump, 'graphics', {numerics: {ignored: 2000}});
@@ -1207,8 +1209,8 @@ tr.b.unittest.testSuite(function() {
     ]);
 
     // Timestamp 4.
-    var gmd4 = addGlobalMemoryDump(model, {ts: 40, levelOfDetail: DETAILED});
-    var pmdBrowser4 = addProcessMemoryDump(gmd4, pBrowser, {ts: 40});
+    const gmd4 = addGlobalMemoryDump(model, {ts: 40, levelOfDetail: DETAILED});
+    const pmdBrowser4 = addProcessMemoryDump(gmd4, pBrowser, {ts: 40});
   }, undefined /* opt_options */, {
     'memory:unknown_browser:all_processes:dump_count:detailed': {
       value: [3],
@@ -1655,11 +1657,11 @@ tr.b.unittest.testSuite(function() {
   });
 
   memoryMetricTest('combined_chrome', function(model) {
-    var pBrowser = createChromeBrowserProcess(model);
+    const pBrowser = createChromeBrowserProcess(model);
 
     // Timestamp 1.
-    var gmd1 = addGlobalMemoryDump(model, {ts: 10, levelOfDetail: DETAILED});
-    var pmdBrowser1 = addProcessMemoryDump(gmd1, pBrowser, {ts: 10});
+    const gmd1 = addGlobalMemoryDump(model, {ts: 10, levelOfDetail: DETAILED});
+    const pmdBrowser1 = addProcessMemoryDump(gmd1, pBrowser, {ts: 10});
     pmdBrowser1.vmRegions = VMRegionClassificationNode.fromRegions([
       new VMRegion(0xABCD, 128, 0, '/dev/ashmem/dalvik-non moving space',
           {privateDirtyResident: 100})
@@ -1667,15 +1669,15 @@ tr.b.unittest.testSuite(function() {
 
     // Timestamp 2 (light global memory dump, so it should be skipped for
     // mmaps_* values).
-    var gmd2 = addGlobalMemoryDump(model, {ts: 20, levelOfDetail: LIGHT});
-    var pmdBrowser2 = addProcessMemoryDump(gmd2, pBrowser, {ts: 20});
+    const gmd2 = addGlobalMemoryDump(model, {ts: 20, levelOfDetail: LIGHT});
+    const pmdBrowser2 = addProcessMemoryDump(gmd2, pBrowser, {ts: 20});
     pmdBrowser2.memoryAllocatorDumps = [
       newAllocatorDump(pmdBrowser2, 'malloc', {numerics: {size: 32}})
     ];
 
     // Timestamp 3.
-    var gmd3 = addGlobalMemoryDump(model, {ts: 30, levelOfDetail: DETAILED});
-    var pmdBrowser3 = addProcessMemoryDump(gmd3, pBrowser, {ts: 30});
+    const gmd3 = addGlobalMemoryDump(model, {ts: 30, levelOfDetail: DETAILED});
+    const pmdBrowser3 = addProcessMemoryDump(gmd3, pBrowser, {ts: 30});
     pmdBrowser3.memoryAllocatorDumps = [
       newAllocatorDump(pmdBrowser3, 'malloc', {numerics: {size: 48}})
     ];
@@ -1912,42 +1914,42 @@ tr.b.unittest.testSuite(function() {
   });
 
   memoryMetricTest('combined_multipleBrowsers', function(model) {
-    var pWebView = createWebViewProcess(model);
-    var pChrome1 = createChromeBrowserProcess(model);
-    var pRenderer1 = createProcessWithName(model, 'Renderer');
-    var pGpu1 = createProcessWithName(model, 'GPU Process');
-    var pUnknownBrowser = createProcessWithName(model, 'Browser');
-    var pChrome2 = createChromeBrowserProcess(model);
-    var pRenderer2 = createProcessWithName(model, 'Renderer');
+    const pWebView = createWebViewProcess(model);
+    const pChrome1 = createChromeBrowserProcess(model);
+    const pRenderer1 = createProcessWithName(model, 'Renderer');
+    const pGpu1 = createProcessWithName(model, 'GPU Process');
+    const pUnknownBrowser = createProcessWithName(model, 'Browser');
+    const pChrome2 = createChromeBrowserProcess(model);
+    const pRenderer2 = createProcessWithName(model, 'Renderer');
 
     // Timestamp 1 (WebView).
-    var gmd1 = addGlobalMemoryDump(model, {ts: 0, levelOfDetail: LIGHT});
-    var pmdBrowser1 = addProcessMemoryDump(gmd1, pWebView, {ts: 0});
+    const gmd1 = addGlobalMemoryDump(model, {ts: 0, levelOfDetail: LIGHT});
+    const pmdBrowser1 = addProcessMemoryDump(gmd1, pWebView, {ts: 0});
     pmdBrowser1.memoryAllocatorDumps = [
       newAllocatorDump(pmdBrowser1, 'malloc', {numerics: {size: 2}}),
       newAllocatorDump(pmdBrowser1, 'v8', {numerics: {size: 4}})
     ];
 
     // Timestamp 2 (Chrome 1 + Renderer + GPU Process).
-    var gmd2 = addGlobalMemoryDump(model, {ts: 10, levelOfDetail: DETAILED});
-    var pmdBrowser2 = addProcessMemoryDump(gmd2, pChrome1, {ts: 12});
+    const gmd2 = addGlobalMemoryDump(model, {ts: 10, levelOfDetail: DETAILED});
+    const pmdBrowser2 = addProcessMemoryDump(gmd2, pChrome1, {ts: 12});
     pmdBrowser2.vmRegions = VMRegionClassificationNode.fromRegions([
       new VMRegion(0xABCD, 9999, 0, '/dev/ashmem/dalvik-non moving space',
           {privateDirtyResident: 8})
     ]);
-    var pmdGpu2 = addProcessMemoryDump(gmd2, pGpu1, {ts: 8});
+    const pmdGpu2 = addProcessMemoryDump(gmd2, pGpu1, {ts: 8});
     pmdGpu2.vmRegions = VMRegionClassificationNode.fromRegions([
       new VMRegion(0xABCD, 9999, 0, '/dev/ashmem/dalvik-non moving space',
           {privateDirtyResident: 16})
     ]);
-    var pmdRenderer2 = addProcessMemoryDump(gmd2, pRenderer1, {ts: 8});
+    const pmdRenderer2 = addProcessMemoryDump(gmd2, pRenderer1, {ts: 8});
     pmdRenderer2.memoryAllocatorDumps = [
       newAllocatorDump(pmdBrowser2, 'malloc', {numerics: {size: 32}})
     ];
 
     // Timestamp 3 (Chrome 2).
-    var gmd3 = addGlobalMemoryDump(model, {ts: 20, levelOfDetail: DETAILED});
-    var pmdBrowser3 = addProcessMemoryDump(gmd3, pChrome2, {ts: 20});
+    const gmd3 = addGlobalMemoryDump(model, {ts: 20, levelOfDetail: DETAILED});
+    const pmdBrowser3 = addProcessMemoryDump(gmd3, pChrome2, {ts: 20});
     pmdBrowser3.memoryAllocatorDumps = [
       newAllocatorDump(pmdBrowser3, 'malloc', {numerics: {size: 64}}),
       newAllocatorDump(pmdBrowser3, 'sqlite', {numerics: {size: 128}}),
@@ -1962,38 +1964,38 @@ tr.b.unittest.testSuite(function() {
     ]);
 
     // Timestamp 4 (Chrome 2 + Renderer).
-    var gmd4 = addGlobalMemoryDump(model, {ts: 30, levelOfDetail: LIGHT});
-    var pmdBrowser4 = addProcessMemoryDump(gmd4, pChrome2, {ts: 28});
+    const gmd4 = addGlobalMemoryDump(model, {ts: 30, levelOfDetail: LIGHT});
+    const pmdBrowser4 = addProcessMemoryDump(gmd4, pChrome2, {ts: 28});
     pmdBrowser4.memoryAllocatorDumps = [
       newAllocatorDump(pmdBrowser4, 'malloc', {numerics: {size: 512}}),
       newAllocatorDump(pmdBrowser3, 'discardable', {numerics: {size: 16777216}})
     ];
-    var pmdRenderer4 = addProcessMemoryDump(gmd4, pRenderer2, {ts: 32});
+    const pmdRenderer4 = addProcessMemoryDump(gmd4, pRenderer2, {ts: 32});
     pmdRenderer4.memoryAllocatorDumps = [
       newAllocatorDump(pmdRenderer4, 'malloc', {numerics: {size: 1024}}),
       newAllocatorDump(pmdRenderer4, 'v8', {numerics: {size: 2048}})
     ];
 
     // Timestamp 5 (Unknown browser).
-    var gmd5 = addGlobalMemoryDump(model, {ts: 40, levelOfDetail: LIGHT});
-    var pmdBrowser5 = addProcessMemoryDump(gmd5, pUnknownBrowser, {ts: 40});
+    const gmd5 = addGlobalMemoryDump(model, {ts: 40, levelOfDetail: LIGHT});
+    const pmdBrowser5 = addProcessMemoryDump(gmd5, pUnknownBrowser, {ts: 40});
     pmdBrowser5.memoryAllocatorDumps = [
       newAllocatorDump(pmdBrowser5, 'malloc', {numerics: {size: 4096}}),
       newAllocatorDump(pmdBrowser5, 'sqlite', {numerics: {size: 8192}}),
     ];
 
     // Timestamp 6 (WebView).
-    var gmd6 = addGlobalMemoryDump(model, {ts: 50, levelOfDetail: DETAILED});
-    var pmdBrowser6 = addProcessMemoryDump(gmd6, pWebView, {ts: 50});
+    const gmd6 = addGlobalMemoryDump(model, {ts: 50, levelOfDetail: DETAILED});
+    const pmdBrowser6 = addProcessMemoryDump(gmd6, pWebView, {ts: 50});
     pmdBrowser6.memoryAllocatorDumps = (function() {
-      var mallocDump = newAllocatorDump(pmdBrowser6, 'malloc',
+      const mallocDump = newAllocatorDump(pmdBrowser6, 'malloc',
           {numerics: {size: 16384}});
-      var v8Dump = newAllocatorDump(pmdBrowser6, 'v8', {numerics: {
+      const v8Dump = newAllocatorDump(pmdBrowser6, 'v8', {numerics: {
         allocated_objects_size: 32768,
         code_and_metadata_size: 33554432,
         size: 67108864
       }});
-      var isolateDump = addChildDump(v8Dump, 'isolate');
+      const isolateDump = addChildDump(v8Dump, 'isolate');
       addChildDump(isolateDump, 'malloc', {numerics: {
         size: 1,
         peak_size: 2
@@ -2006,8 +2008,8 @@ tr.b.unittest.testSuite(function() {
     ]);
 
     // Timestamp 7 (Chrome 1 + GPU Process).
-    var gmd7 = addGlobalMemoryDump(model, {ts: 60, levelOfDetail: DETAILED});
-    var pmdBrowser7 = addProcessMemoryDump(gmd7, pChrome1, {ts: 63});
+    const gmd7 = addGlobalMemoryDump(model, {ts: 60, levelOfDetail: DETAILED});
+    const pmdBrowser7 = addProcessMemoryDump(gmd7, pChrome1, {ts: 63});
     pmdBrowser7.memoryAllocatorDumps = [
       newAllocatorDump(pmdBrowser4, 'malloc', {numerics: {size: 131072}}),
       newAllocatorDump(pmdBrowser4, 'sqlite', {numerics: {size: 262144}})
@@ -2016,26 +2018,28 @@ tr.b.unittest.testSuite(function() {
       new VMRegion(0xABCD, 999999, 0, '/dev/ashmem/dalvik-non moving space',
           {privateDirtyResident: 524288})
     ]);
-    var pmdGpu7 = addProcessMemoryDump(gmd7, pGpu1, {ts: 57});
+    const pmdGpu7 = addProcessMemoryDump(gmd7, pGpu1, {ts: 57});
     pmdGpu7.memoryAllocatorDumps = (function() {
-      var gpuDump = newAllocatorDump(pmdGpu7, 'gpu',
+      const gpuDump = newAllocatorDump(pmdGpu7, 'gpu',
           {numerics: {size: 1048576}});
-      var memtrackDump = addChildDump(gpuDump, 'android_memtrack');
+      const memtrackDump = addChildDump(gpuDump, 'android_memtrack');
       addChildDump(memtrackDump, 'gl', {numerics: {memtrack_pss: 2097152}});
       return [gpuDump];
     })();
 
     // Timestamp 8 (Chrome 1).
-    var gmd8 = addGlobalMemoryDump(model, {ts: 76, levelOfDetail: BACKGROUND});
-    var pmdBrowser8 = addProcessMemoryDump(gmd8, pChrome1, {ts: 80});
+    const gmd8 = addGlobalMemoryDump(
+        model, {ts: 76, levelOfDetail: BACKGROUND});
+    const pmdBrowser8 = addProcessMemoryDump(gmd8, pChrome1, {ts: 80});
     pmdBrowser8.memoryAllocatorDumps = [
       newAllocatorDump(pmdBrowser5, 'malloc', {numerics: {size: 1024}}),
       newAllocatorDump(pmdBrowser5, 'sqlite', {numerics: {size: 2048}}),
     ];
 
     // Timestamp 9 (WebView).
-    var gmd9 = addGlobalMemoryDump(model, {ts: 90, levelOfDetail: BACKGROUND});
-    var pmdBrowser9 = addProcessMemoryDump(gmd9, pWebView, {ts: 90});
+    const gmd9 = addGlobalMemoryDump(
+        model, {ts: 90, levelOfDetail: BACKGROUND});
+    const pmdBrowser9 = addProcessMemoryDump(gmd9, pWebView, {ts: 90});
     pmdBrowser9.memoryAllocatorDumps = [
       newAllocatorDump(pmdBrowser5, 'v8', {numerics: {size: 4096}}),
       newAllocatorDump(pmdBrowser5, 'sqlite', {numerics: {size: 2048}}),
@@ -3260,8 +3264,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   memoryMetricTest('rangeOfInterest', function(model) {
-    var pChrome = createChromeBrowserProcess(model);
-    var pWebView = createWebViewProcess(model);
+    const pChrome = createChromeBrowserProcess(model);
+    const pWebView = createWebViewProcess(model);
 
     // Chrome: only the LIGHT dumps should be kept.
     addProcessMemoryDump(addGlobalMemoryDump(
@@ -3575,13 +3579,13 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('allProcessesHasBreakdown', function() {
-    var model = tr.c.TestUtils.newModel(function(model) {
-      var pBrowser = createChromeBrowserProcess(model);
-      var pRenderer = createProcessWithName(model, 'Renderer');
-      var pGpu = createProcessWithName(model, 'GPU Process');
+    const model = tr.c.TestUtils.newModel(function(model) {
+      const pBrowser = createChromeBrowserProcess(model);
+      const pRenderer = createProcessWithName(model, 'Renderer');
+      const pGpu = createProcessWithName(model, 'GPU Process');
 
-      var gmd = addGlobalMemoryDump(model, {ts: 20});
-      var pmdBrowser = addProcessMemoryDump(gmd, pBrowser, {ts: 19});
+      const gmd = addGlobalMemoryDump(model, {ts: 20});
+      const pmdBrowser = addProcessMemoryDump(gmd, pBrowser, {ts: 19});
       pmdBrowser.memoryAllocatorDumps = [
         newAllocatorDump(pmdBrowser, 'malloc', {numerics: {
           size: 8,
@@ -3589,12 +3593,12 @@ tr.b.unittest.testSuite(function() {
         }})
       ];
 
-      var pmdRenderer = addProcessMemoryDump(gmd, pRenderer, {ts: 20});
+      const pmdRenderer = addProcessMemoryDump(gmd, pRenderer, {ts: 20});
       pmdRenderer.memoryAllocatorDumps = [
         newAllocatorDump(pmdRenderer, 'malloc', {numerics: {size: 16}})
       ];
 
-      var pmdGpu = addProcessMemoryDump(gmd, pGpu, {ts: 21});
+      const pmdGpu = addProcessMemoryDump(gmd, pGpu, {ts: 21});
       pmdGpu.memoryAllocatorDumps = [
         newAllocatorDump(pmdGpu, 'gpu', {numerics: {
           size: 30,
@@ -3603,33 +3607,33 @@ tr.b.unittest.testSuite(function() {
       ];
     });
 
-    var histograms = new tr.v.HistogramSet();
+    const histograms = new tr.v.HistogramSet();
     tr.metrics.sh.memoryMetric(histograms, model);
-    var prefix = 'memory:chrome:';
-    var suffix = ':reported_by_chrome:malloc:effective_size';
-    var allHistogram =
+    const prefix = 'memory:chrome:';
+    const suffix = ':reported_by_chrome:malloc:effective_size';
+    const allHistogram =
         histograms.getHistogramNamed(`${prefix}all_processes${suffix}`);
-    var rendererHistogram =
+    const rendererHistogram =
         histograms.getHistogramNamed(`${prefix}renderer_processes${suffix}`);
-    var browserHistogram =
+    const browserHistogram =
         histograms.getHistogramNamed(`${prefix}browser_process${suffix}`);
 
-    var breakdown = allHistogram.diagnostics.get('processes');
+    const breakdown = allHistogram.diagnostics.get('processes');
     assert.strictEqual(breakdown.get('browser_process'), browserHistogram);
     assert.strictEqual(breakdown.get('renderer_processes'), rendererHistogram);
     assert.strictEqual(breakdown.get('gpu_process'), undefined);
   });
 
   test('dumpIdBrowserClashThrows', function() {
-    var model = tr.c.TestUtils.newModel(function(model) {
-      var pWebView = createWebViewProcess(model);
-      var pChrome = createChromeBrowserProcess(model);
+    const model = tr.c.TestUtils.newModel(function(model) {
+      const pWebView = createWebViewProcess(model);
+      const pChrome = createChromeBrowserProcess(model);
 
-      var gmd = addGlobalMemoryDump(model, {ts: 10});
+      const gmd = addGlobalMemoryDump(model, {ts: 10});
       addProcessMemoryDump(gmd, pWebView, {ts: 9});
       addProcessMemoryDump(gmd, pChrome, {ts: 11});
     });
-    var histograms = new tr.v.HistogramSet();
+    const histograms = new tr.v.HistogramSet();
 
     assert.throws(function() {
       tr.metrics.sh.memoryMetric(histograms, model);

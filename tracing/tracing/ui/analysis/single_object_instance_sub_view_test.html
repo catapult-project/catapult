@@ -14,17 +14,18 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var ObjectInstance = tr.model.ObjectInstance;
+  const ObjectInstance = tr.model.ObjectInstance;
 
   test('analyzeSelectionWithObjectInstanceUnknownType', function() {
-    var i10 = new ObjectInstance({}, '0x1000', 'cat', 'someUnhandledName', 10);
-    var s10 = i10.addSnapshot(10, {foo: 1});
-    var s20 = i10.addSnapshot(20, {foo: 2});
+    const i10 = new ObjectInstance(
+        {}, '0x1000', 'cat', 'someUnhandledName', 10);
+    const s10 = i10.addSnapshot(10, {foo: 1});
+    const s20 = i10.addSnapshot(20, {foo: 2});
 
-    var selection = new tr.model.EventSet();
+    const selection = new tr.model.EventSet();
     selection.push(i10);
 
-    var view =
+    const view =
         document.createElement('tr-ui-a-single-object-instance-sub-view');
     view.selection = selection;
     this.addHTMLOutput(view);

@@ -28,7 +28,7 @@ tr.exportTo('tr.model', function() {
       throw new Error('Missing typeName argument');
     }
 
-    var typeInfo = Annotation.findTypeInfoMatching(function(typeInfo) {
+    const typeInfo = Annotation.findTypeInfoMatching(function(typeInfo) {
       return typeInfo.metadata.typeName === args.typeName;
     });
 
@@ -66,7 +66,7 @@ tr.exportTo('tr.model', function() {
     }
   };
 
-  var options = new tr.b.ExtensionRegistryOptions(tr.b. BASIC_REGISTRY_MODE);
+  const options = new tr.b.ExtensionRegistryOptions(tr.b. BASIC_REGISTRY_MODE);
   tr.b.decorateExtensionRegistry(Annotation, options);
 
   Annotation.addEventListener('will-register', function(e) {

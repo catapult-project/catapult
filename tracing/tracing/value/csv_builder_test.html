@@ -13,7 +13,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('csvBuilder', function() {
-    let hist0 = new tr.v.Histogram('hist0', tr.b.Unit.byName.sizeInBytes,
+    const hist0 = new tr.v.Histogram('hist0', tr.b.Unit.byName.sizeInBytes,
         tr.v.HistogramBinBoundaries.createLinear(0, 1e3, 10));
     hist0.customizeSummaryOptions({
       nans: true,
@@ -35,7 +35,7 @@ tr.b.unittest.testSuite(function() {
     }
     hist0.addSample(NaN);
 
-    let hist1 = new tr.v.Histogram('hist1', tr.b.Unit.byName.sigma);
+    const hist1 = new tr.v.Histogram('hist1', tr.b.Unit.byName.sigma);
     hist0.customizeSummaryOptions({
       std: false,
       count: false,
@@ -44,7 +44,7 @@ tr.b.unittest.testSuite(function() {
       max: false,
     });
 
-    let histograms = new tr.v.HistogramSet([hist0, hist1]);
+    const histograms = new tr.v.HistogramSet([hist0, hist1]);
     let csv = new tr.v.CSVBuilder(histograms);
     csv.build();
     csv = csv.toString().split('\n');

@@ -14,8 +14,8 @@ found in the LICENSE file.
  * @fileoverview Parses regulator events in the Linux event trace format.
  */
 tr.exportTo('tr.e.importer.linux_perf', function() {
-  var ColorScheme = tr.b.ColorScheme;
-  var Parser = tr.e.importer.linux_perf.Parser;
+  const ColorScheme = tr.b.ColorScheme;
+  const Parser = tr.e.importer.linux_perf.Parser;
 
   /**
    * Parses linux regulator trace events.
@@ -43,13 +43,13 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
   }
 
   // Matches the regulator_enable record
-  var regulatorEnableRE = /name=(.+)/;
+  const regulatorEnableRE = /name=(.+)/;
 
   // Matches the regulator_disable record
-  var regulatorDisableRE = /name=(.+)/;
+  const regulatorDisableRE = /name=(.+)/;
 
   // Matches the regulator_set_voltage_complete record
-  var regulatorSetVoltageCompleteRE = /name=(\S+), val=(\d+)/;
+  const regulatorSetVoltageCompleteRE = /name=(\S+), val=(\d+)/;
 
   RegulatorParser.prototype = {
     __proto__: Parser.prototype,
@@ -58,7 +58,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
      * Get or create a counter with one series.
      */
     getCtr_(ctrName, valueName) {
-      var ctr = this.model_.kernel
+      const ctr = this.model_.kernel
         .getOrCreateCounter(null, 'vreg ' + ctrName + ' ' + valueName);
       // Initialize the counter's series fields if needed.
       if (ctr.series[0] === undefined) {
@@ -73,12 +73,12 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
      * Parses regulator events and sets up state in the importer.
      */
     regulatorEnableEvent(eventName, cpuNum, pid, ts, eventBase) {
-      var event = regulatorEnableRE.exec(eventBase.details);
+      const event = regulatorEnableRE.exec(eventBase.details);
       if (!event) return false;
 
-      var name = event[1];
+      const name = event[1];
 
-      var ctr = this.getCtr_(name, 'enabled');
+      const ctr = this.getCtr_(name, 'enabled');
       ctr.series[0].addCounterSample(ts, 1);
 
       return true;
@@ -94,12 +94,12 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     },
 
     regulatorDisableEvent(eventName, cpuNum, pid, ts, eventBase) {
-      var event = regulatorDisableRE.exec(eventBase.details);
+      const event = regulatorDisableRE.exec(eventBase.details);
       if (!event) return false;
 
-      var name = event[1];
+      const name = event[1];
 
-      var ctr = this.getCtr_(name, 'enabled');
+      const ctr = this.getCtr_(name, 'enabled');
       ctr.series[0].addCounterSample(ts, 0);
 
       return true;
@@ -116,13 +116,13 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
     regulatorSetVoltageCompleteEvent(eventName, cpuNum, pid, ts,
         eventBase) {
-      var event = regulatorSetVoltageCompleteRE.exec(eventBase.details);
+      const event = regulatorSetVoltageCompleteRE.exec(eventBase.details);
       if (!event) return false;
 
-      var name = event[1];
-      var voltage = parseInt(event[2]);
+      const name = event[1];
+      const voltage = parseInt(event[2]);
 
-      var ctr = this.getCtr_(name, 'voltage');
+      const ctr = this.getCtr_(name, 'voltage');
       ctr.series[0].addCounterSample(ts, voltage);
 
       return true;

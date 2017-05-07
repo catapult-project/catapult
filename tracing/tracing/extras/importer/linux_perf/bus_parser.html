@@ -17,8 +17,8 @@ found in the LICENSE file.
  * userland.
  */
 tr.exportTo('tr.e.importer.linux_perf', function() {
-  var ColorScheme = tr.b.ColorScheme;
-  var Parser = tr.e.importer.linux_perf.Parser;
+  const ColorScheme = tr.b.ColorScheme;
+  const Parser = tr.e.importer.linux_perf.Parser;
 
   /**
    * Parses linux trace mark events that were inserted in the trace by userland.
@@ -39,30 +39,30 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
     traceMarkWriteBusEvent(eventName, cpuNumber, pid, ts,
         eventBase, threadName) {
-      var re = new RegExp('bus=(\\S+) rw_bytes=(\\d+) r_bytes=(\\d+) ' +
+      const re = new RegExp('bus=(\\S+) rw_bytes=(\\d+) r_bytes=(\\d+) ' +
                             'w_bytes=(\\d+) cycles=(\\d+) ns=(\\d+)');
-      var event = re.exec(eventBase.details);
+      const event = re.exec(eventBase.details);
 
-      var name = event[1];
-      var rwBytes = parseInt(event[2]);
-      var rBytes = parseInt(event[3]);
-      var wBytes = parseInt(event[4]);
-      var cycles = parseInt(event[5]);
-      var ns = parseInt(event[6]);
+      const name = event[1];
+      const rwBytes = parseInt(event[2]);
+      const rBytes = parseInt(event[3]);
+      const wBytes = parseInt(event[4]);
+      const cycles = parseInt(event[5]);
+      const ns = parseInt(event[6]);
 
       // BW in MiB/s.
-      var sec = tr.b.convertUnit(ns, tr.b.UnitPrefixScale.METRIC.NANO,
+      const sec = tr.b.convertUnit(ns, tr.b.UnitPrefixScale.METRIC.NANO,
           tr.b.UnitPrefixScale.METRIC.NONE);
-      var readBandwidthInBps = rBytes / sec;
-      var readBandwidthInMiBps = tr.b.convertUnit(readBandwidthInBps,
+      const readBandwidthInBps = rBytes / sec;
+      const readBandwidthInMiBps = tr.b.convertUnit(readBandwidthInBps,
           tr.b.UnitPrefixScale.BINARY.NONE,
           tr.b.UnitPrefixScale.BINARY.MEBI);
-      var writeBandwidthInBps = wBytes / sec;
-      var writeBandwidthInMiBps = tr.b.convertUnit(writeBandwidthInBps,
+      const writeBandwidthInBps = wBytes / sec;
+      const writeBandwidthInMiBps = tr.b.convertUnit(writeBandwidthInBps,
           tr.b.UnitPrefixScale.BINARY.NONE,
           tr.b.UnitPrefixScale.BINARY.MEBI);
 
-      var ctr = this.model_.kernel
+      let ctr = this.model_.kernel
               .getOrCreateCounter(null, 'bus ' + name + ' read');
       if (ctr.numSeries === 0) {
         ctr.addSeries(new tr.model.CounterSeries('value',

@@ -22,40 +22,40 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('bestGuessAtCpuCountWithNoData', function() {
-    var m = newModel([]);
+    const m = newModel([]);
     assert.isUndefined(m.kernel.bestGuessAtCpuCount);
   });
 
   test('bestGuessAtCpuCountWithCpuData', function() {
-    var m = newModel([], function(m) {
-      var c1 = m.kernel.getOrCreateCpu(1);
-      var c2 = m.kernel.getOrCreateCpu(2);
+    const m = newModel([], function(m) {
+      const c1 = m.kernel.getOrCreateCpu(1);
+      const c2 = m.kernel.getOrCreateCpu(2);
     });
     assert.strictEqual(m.kernel.bestGuessAtCpuCount, 2);
   });
 
   test('bestGuessAtCpuCountWithSoftwareCpuCount', function() {
-    var m = newModel([], function(m) {
+    const m = newModel([], function(m) {
       m.kernel.softwareMeasuredCpuCount = 2;
     });
     assert.strictEqual(m.kernel.bestGuessAtCpuCount, 2);
   });
 
   test('kernelStableId', function() {
-    var model = newModel([]);
+    const model = newModel([]);
     assert.strictEqual(model.kernel.stableId, 'Kernel');
   });
 
   test('kernelTimeShifting', function() {
-    var m = newModel([]);
-    var ctr1 = m.kernel.getOrCreateCounter('cat', 'ctr1');
-    var series1 = new tr.model.CounterSeries('a', 0);
+    const m = newModel([]);
+    const ctr1 = m.kernel.getOrCreateCounter('cat', 'ctr1');
+    const series1 = new tr.model.CounterSeries('a', 0);
     series1.addCounterSample(100, 5);
     series1.addCounterSample(200, 5);
     ctr1.addSeries(series1);
 
-    var ctr2 = m.kernel.getOrCreateCpu(1).getOrCreateCounter('cat', 'ctr2');
-    var series2 = new tr.model.CounterSeries('b', 0);
+    const ctr2 = m.kernel.getOrCreateCpu(1).getOrCreateCounter('cat', 'ctr2');
+    const series2 = new tr.model.CounterSeries('b', 0);
     series2.addCounterSample(300, 5);
     series2.addCounterSample(400, 5);
     ctr2.addSeries(series2);

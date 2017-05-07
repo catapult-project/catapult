@@ -13,9 +13,9 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var TitleOrCategoryFilter = tr.c.TitleOrCategoryFilter;
-  var ExactTitleFilter = tr.c.ExactTitleFilter;
-  var FullTextFilter = tr.c.FullTextFilter;
+  const TitleOrCategoryFilter = tr.c.TitleOrCategoryFilter;
+  const ExactTitleFilter = tr.c.ExactTitleFilter;
+  const FullTextFilter = tr.c.FullTextFilter;
 
   test('titleOrCategoryFilter', function() {
     assert.throw(function() {
@@ -25,7 +25,7 @@ tr.b.unittest.testSuite(function() {
       new TitleOrCategoryFilter('');
     });
 
-    var s0 = tr.c.TestUtils.newSliceEx(
+    const s0 = tr.c.TestUtils.newSliceEx(
         {cat: 'cat', title: 'a', start: 1, duration: 3});
     assert.isTrue(new TitleOrCategoryFilter('a').matchSlice(s0));
     assert.isTrue(new TitleOrCategoryFilter('cat').matchSlice(s0));
@@ -33,7 +33,7 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(new TitleOrCategoryFilter('b').matchSlice(s0));
     assert.isFalse(new TitleOrCategoryFilter('X').matchSlice(s0));
 
-    var s1 = tr.c.TestUtils.newSliceEx(
+    const s1 = tr.c.TestUtils.newSliceEx(
         {cat: 'cat', title: 'abc', start: 1, duration: 3});
     assert.isTrue(new TitleOrCategoryFilter('abc').matchSlice(s1));
     assert.isTrue(new TitleOrCategoryFilter('Abc').matchSlice(s1));
@@ -51,12 +51,12 @@ tr.b.unittest.testSuite(function() {
       new ExactTitleFilter('');
     });
 
-    var s0 = tr.c.TestUtils.newSliceEx({title: 'a', start: 1, duration: 3});
+    const s0 = tr.c.TestUtils.newSliceEx({title: 'a', start: 1, duration: 3});
     assert.isTrue(new ExactTitleFilter('a').matchSlice(s0));
     assert.isFalse(new ExactTitleFilter('b').matchSlice(s0));
     assert.isFalse(new ExactTitleFilter('A').matchSlice(s0));
 
-    var s1 = tr.c.TestUtils.newSliceEx({title: 'abc', start: 1, duration: 3});
+    const s1 = tr.c.TestUtils.newSliceEx({title: 'abc', start: 1, duration: 3});
     assert.isTrue(new ExactTitleFilter('abc').matchSlice(s1));
     assert.isFalse(new ExactTitleFilter('Abc').matchSlice(s1));
     assert.isFalse(new ExactTitleFilter('bc').matchSlice(s1));
@@ -71,7 +71,7 @@ tr.b.unittest.testSuite(function() {
       new FullTextFilter('');
     });
 
-    var s0 = tr.c.TestUtils.newSliceEx(
+    const s0 = tr.c.TestUtils.newSliceEx(
         {cat: 'cat', title: 'a', start: 1, duration: 3});
     s0.args.key = 'value';
     s0.args.anotherKey = 'anotherValue';
@@ -82,23 +82,23 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(new FullTextFilter('anotherValue').matchSlice(s0));
     assert.isFalse(new FullTextFilter('not there').matchSlice(s0));
 
-    var s1 = tr.c.TestUtils.newSliceEx(
+    const s1 = tr.c.TestUtils.newSliceEx(
         {cat: 'cat', title: 'a', start: 1, duration: 3});
     s1.args.key = 123;
     assert.isTrue(new FullTextFilter('123').matchSlice(s1));
 
-    var s2 = tr.c.TestUtils.newSliceEx(
+    const s2 = tr.c.TestUtils.newSliceEx(
         {cat: 'cat', title: 'a', start: 1, duration: 3});
     s2.args.key = ['innerValue1', 'innerValue2'];
     assert.isTrue(new FullTextFilter('innerValue1').matchSlice(s2));
     assert.isTrue(new FullTextFilter('innerValue2').matchSlice(s2));
 
-    var s3 = tr.c.TestUtils.newSliceEx(
+    const s3 = tr.c.TestUtils.newSliceEx(
         {cat: 'cat', title: 'a', start: 1, duration: 3});
     s3.args.key = ['one', 'two', 'three'];
     assert.isTrue(new FullTextFilter('two').matchSlice(s3));
 
-    var s4 = tr.c.TestUtils.newSliceEx(
+    const s4 = tr.c.TestUtils.newSliceEx(
         {cat: 'cat', title: 'a', start: 1, duration: 3});
     s4.args.key = undefined;
     assert.isFalse(new FullTextFilter('not there').matchSlice(s4));

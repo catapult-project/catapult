@@ -15,15 +15,15 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   test('FindMetricByName', function() {
     function aMetric(histograms, model) {
-      var n1 = new tr.v.Histogram('foo', tr.b.Unit.byName.count);
+      const n1 = new tr.v.Histogram('foo', tr.b.Unit.byName.count);
       n1.addSample(1);
       histograms.addHistogram(n1);
     }
     tr.metrics.MetricRegistry.register(aMetric);
 
     function bMetric(histograms, model) {
-      var n1 = new tr.v.Histogram('foo', tr.b.Unit.byName.count);
-      var n2 = new tr.v.Histogram('bar', tr.b.Unit.byName.count);
+      const n1 = new tr.v.Histogram('foo', tr.b.Unit.byName.count);
+      const n2 = new tr.v.Histogram('bar', tr.b.Unit.byName.count);
       n1.addSample(1);
       n2.addSample(2);
       histograms.addHistogram(n1);
@@ -32,9 +32,9 @@ tr.b.unittest.testSuite(function() {
     tr.metrics.MetricRegistry.register(bMetric);
 
     function cMetric(histograms, model) {
-      var n1 = new tr.v.Histogram('foo', tr.b.Unit.byName.count);
-      var n2 = new tr.v.Histogram('bar', tr.b.Unit.byName.count);
-      var n3 = new tr.v.Histogram('baz', tr.b.Unit.byName.count);
+      const n1 = new tr.v.Histogram('foo', tr.b.Unit.byName.count);
+      const n2 = new tr.v.Histogram('bar', tr.b.Unit.byName.count);
+      const n3 = new tr.v.Histogram('baz', tr.b.Unit.byName.count);
       n1.addSample(1);
       n2.addSample(2);
       n3.addSample(3);
@@ -44,7 +44,7 @@ tr.b.unittest.testSuite(function() {
     }
     tr.metrics.MetricRegistry.register(cMetric);
 
-    var typeInfo = tr.metrics.MetricRegistry.findTypeInfoWithName(
+    const typeInfo = tr.metrics.MetricRegistry.findTypeInfoWithName(
         'bMetric');
     assert.strictEqual(typeInfo.constructor, bMetric);
   });

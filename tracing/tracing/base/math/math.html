@@ -17,10 +17,10 @@ found in the LICENSE file.
 // global scope by hand.
 (function(global) {
   if (tr.isNode) {
-    var glMatrixAbsPath = HTMLImportsLoader.hrefToAbsolutePath(
+    const glMatrixAbsPath = HTMLImportsLoader.hrefToAbsolutePath(
         '/gl-matrix-min.js');
-    var glMatrixModule = require(glMatrixAbsPath);
-    for (var exportName in glMatrixModule) {
+    const glMatrixModule = require(glMatrixAbsPath);
+    for (const exportName in glMatrixModule) {
       global[exportName] = glMatrixModule[exportName];
     }
   }
@@ -31,7 +31,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.b.math', function() {
-  var PREFERRED_NUMBER_SERIES_MULTIPLIERS = [1, 2, 5, 10];
+  const PREFERRED_NUMBER_SERIES_MULTIPLIERS = [1, 2, 5, 10];
 
   /* Returns true when x and y are within delta of each other. */
   function approximately(x, y, delta) {
@@ -44,7 +44,7 @@ tr.exportTo('tr.b.math', function() {
   }
 
   function lerp(percentage, lo, hi) {
-    var range = hi - lo;
+    const range = hi - lo;
     return lo + percentage * range;
   }
 
@@ -69,39 +69,39 @@ tr.exportTo('tr.b.math', function() {
   function erf(x) {
     // save the sign of x
     // erf(-x) = -erf(x);
-    var sign = (x >= 0) ? 1 : -1;
+    const sign = (x >= 0) ? 1 : -1;
     x = Math.abs(x);
 
     // constants
-    var a1 = 0.254829592;
-    var a2 = -0.284496736;
-    var a3 = 1.421413741;
-    var a4 = -1.453152027;
-    var a5 = 1.061405429;
-    var p = 0.3275911;
+    const a1 = 0.254829592;
+    const a2 = -0.284496736;
+    const a3 = 1.421413741;
+    const a4 = -1.453152027;
+    const a5 = 1.061405429;
+    const p = 0.3275911;
 
     // Abramowitz and Stegun formula 7.1.26
     // maximum error: 1.5e-7
-    var t = 1.0 / (1.0 + p * x);
-    var y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t *
+    const t = 1.0 / (1.0 + p * x);
+    const y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t *
       Math.exp(-x * x);
     return sign * y;
   }
 
-  var tmpVec2 = vec2.create();
-  var tmpVec2b = vec2.create();
-  var tmpVec4 = vec4.create();
-  var tmpMat2d = mat2d.create();
+  const tmpVec2 = vec2.create();
+  const tmpVec2b = vec2.create();
+  const tmpVec4 = vec4.create();
+  const tmpMat2d = mat2d.create();
 
   vec2.createFromArray = function(arr) {
     if (arr.length !== 2) throw new Error('Should be length 2');
-    var v = vec2.create();
+    const v = vec2.create();
     vec2.set(v, arr[0], arr[1]);
     return v;
   };
 
   vec2.createXY = function(x, y) {
-    var v = vec2.create();
+    const v = vec2.create();
     vec2.set(v, x, y);
     return v;
   };
@@ -119,9 +119,9 @@ tr.exportTo('tr.b.math', function() {
 
   vec2.interpolatePiecewiseFunction = function(points, x) {
     if (x < points[0][0]) return points[0][1];
-    for (var i = 1; i < points.length; ++i) {
+    for (let i = 1; i < points.length; ++i) {
       if (x < points[i][0]) {
-        var percent = normalize(x, points[i - 1][0], points[i][0]);
+        const percent = normalize(x, points[i - 1][0], points[i][0]);
         return lerp(percent, points[i - 1][1], points[i][1]);
       }
     }
@@ -129,7 +129,7 @@ tr.exportTo('tr.b.math', function() {
   };
 
   vec3.createXYZ = function(x, y, z) {
-    var v = vec3.create();
+    const v = vec3.create();
     vec3.set(v, x, y, z);
     return v;
   };
@@ -177,7 +177,7 @@ tr.exportTo('tr.b.math', function() {
    * @return {number}
    */
   function lesserPower(x, opt_base) {
-    var base = opt_base || 10;
+    const base = opt_base || 10;
     return Math.pow(base, Math.floor(logOrLog10(x, base)));
   }
 
@@ -187,7 +187,7 @@ tr.exportTo('tr.b.math', function() {
    * @return {number}
    */
   function greaterPower(x, opt_base) {
-    var base = opt_base || 10;
+    const base = opt_base || 10;
     return Math.pow(base, Math.ceil(logOrLog10(x, base)));
   }
 
@@ -209,13 +209,13 @@ tr.exportTo('tr.b.math', function() {
    *  https://en.wikipedia.org/wiki/Preferred_number
    */
   function preferredNumberLargerThanMin(min) {
-    var absMin = Math.abs(min);
+    const absMin = Math.abs(min);
     // The conservative guess is the largest power of 10 less than
     // or equal to |absMin|.
-    var conservativeGuess = tr.b.math.lesserPower(absMin);
-    var minPreferedNumber = undefined;
-    for (var multiplier of PREFERRED_NUMBER_SERIES_MULTIPLIERS) {
-      var tightenedGuess = conservativeGuess * multiplier;
+    const conservativeGuess = tr.b.math.lesserPower(absMin);
+    let minPreferedNumber = undefined;
+    for (const multiplier of PREFERRED_NUMBER_SERIES_MULTIPLIERS) {
+      const tightenedGuess = conservativeGuess * multiplier;
       if (tightenedGuess >= absMin) {
         minPreferedNumber = tightenedGuess;
         break;

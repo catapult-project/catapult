@@ -100,8 +100,8 @@ found in the LICENSE file.
       },
 
       ready() {
-        var params = {};
-        var path = uri.getPathName();
+        const params = {};
+        let path = uri.getPathName();
         if (!path) { // Go get the list.
           path = '';
           simple_xhr.send('/speed_releasing/' + path, params,

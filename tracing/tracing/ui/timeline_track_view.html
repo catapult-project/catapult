@@ -196,7 +196,7 @@ Polymer({
     this.mouseModeSelector_.addEventListener('exittiming',
         this.timingTool_.onExitTiming.bind(this.timingTool_));
 
-    var m = tr.ui.b.MOUSE_SELECTOR_MODE;
+    const m = tr.ui.b.MOUSE_SELECTOR_MODE;
     this.mouseModeSelector_.supportedModeMask =
         m.SELECTION | m.PANSCAN | m.ZOOM | m.TIMING;
     this.mouseModeSelector_.settingsKey =
@@ -269,7 +269,7 @@ Polymer({
       throw new Error('Model cannot be undefined');
     }
 
-    var modelInstanceChanged = this.model_ !== model;
+    const modelInstanceChanged = this.model_ !== model;
     this.model_ = model;
     this.modelTrack_.model = model;
     this.upperModelTrack_.model = model;
@@ -312,10 +312,10 @@ Polymer({
     // here before the raf fires, so the size may have not been updated since
     // the canvas was resized.
     this.modelTrackContainer_.updateCanvasSizeIfNeeded_();
-    var w = this.modelTrackContainer_.canvas.width;
+    const w = this.modelTrackContainer_.canvas.width;
 
-    var min;
-    var range;
+    let min;
+    let range;
 
     if (this.model_.bounds.isEmpty) {
       min = 0;
@@ -328,7 +328,7 @@ Polymer({
       range = this.model_.bounds.range;
     }
 
-    var boost = range * 0.15;
+    const boost = range * 0.15;
     this.displayTransform_.set(this.viewport_.currentDisplayTransform);
     this.displayTransform_.xSetWorldBounds(
         min - boost, min + range + boost, w);
@@ -341,10 +341,10 @@ Polymer({
    * @return {Task} which performs the filtering.
    */
   addAllEventsMatchingFilterToSelectionAsTask(filter, selection) {
-    var modelTrack = this.modelTrack_;
-    var firstT = modelTrack.addAllEventsMatchingFilterToSelectionAsTask(
+    const modelTrack = this.modelTrack_;
+    const firstT = modelTrack.addAllEventsMatchingFilterToSelectionAsTask(
         filter, selection);
-    var lastT = firstT.after(function() {
+    const lastT = firstT.after(function() {
       this.upperModelTrack_.addAllEventsMatchingFilterToSelection(
           filter, selection);
     }, this);
@@ -383,7 +383,7 @@ Polymer({
     dict.eventType = 'keypress';
     dict.useCapture = false;
     dict.thisArg = this;
-    var binding = new tr.ui.b.HotKey(dict);
+    const binding = new tr.ui.b.HotKey(dict);
     this.$.hotkey_controller.addHotKey(binding);
   },
 
@@ -514,19 +514,19 @@ Polymer({
   },
 
   addKeyDownHotKeys_() {
-    var addBinding = function(dict) {
+    const addBinding = function(dict) {
       dict.eventType = 'keydown';
       dict.useCapture = false;
       dict.thisArg = this;
-      var binding = new tr.ui.b.HotKey(dict);
+      const binding = new tr.ui.b.HotKey(dict);
       this.$.hotkey_controller.addHotKey(binding);
     }.bind(this);
 
     addBinding({
       keyCode: 37, // Left arrow.
       callback(e) {
-        var curSel = this.brushingStateController_.selection;
-        var sel = this.viewport.getShiftedSelection(curSel, -1);
+        const curSel = this.brushingStateController_.selection;
+        const sel = this.viewport.getShiftedSelection(curSel, -1);
 
         if (sel) {
           this.brushingStateController.changeSelectionFromTimeline(sel);
@@ -542,8 +542,8 @@ Polymer({
     addBinding({
       keyCode: 39, // Right arrow.
       callback(e) {
-        var curSel = this.brushingStateController_.selection;
-        var sel = this.viewport.getShiftedSelection(curSel, 1);
+        const curSel = this.brushingStateController_.selection;
+        const sel = this.viewport.getShiftedSelection(curSel, 1);
         if (sel) {
           this.brushingStateController.changeSelectionFromTimeline(sel);
           this.panToSelection();
@@ -562,13 +562,13 @@ Polymer({
       return;
     }
 
-    var curSelection = this.brushingStateController_.selection;
+    const curSelection = this.brushingStateController_.selection;
     if (!curSelection.length || !tr.b.getOnlyElement(curSelection).title) {
       return;
     }
 
-    var selection = new tr.model.EventSet();
-    var filter = new tr.c.ExactTitleFilter(
+    const selection = new tr.model.EventSet();
+    const filter = new tr.c.ExactTitleFilter(
         tr.b.getOnlyElement(curSelection).title);
     this.modelTrack_.addAllEventsMatchingFilterToSelection(filter,
         selection);
@@ -579,8 +579,8 @@ Polymer({
   onMouseWheel_(e) {
     if (!e.altKey) return;
 
-    var delta = e.wheelDelta / 120;
-    var zoomScale = Math.pow(1.5, delta);
+    const delta = e.wheelDelta / 120;
+    const zoomScale = Math.pow(1.5, delta);
     this.zoomBy_(zoomScale);
     e.preventDefault();
   },
@@ -604,13 +604,13 @@ Polymer({
       this.xNavStringMarker_ = undefined;
     }
 
-    var dt = this.viewport_.currentDisplayTransform;
+    const dt = this.viewport_.currentDisplayTransform;
     tr.ui.b.trackMouseMovesUntilMouseUp(function(e) { // Mouse move handler.
       // If mouse event is on ruler, don't do anything.
       if (e.target === this.rulerTrack_) return;
 
-      var relativePosition = this.extractRelativeMousePosition_(e);
-      var loc = tr.model.Location.fromViewCoordinates(
+      const relativePosition = this.extractRelativeMousePosition_(e);
+      const loc = tr.model.Location.fromViewCoordinates(
           this.viewport_, relativePosition.x, relativePosition.y);
       // Not all points on the timeline represents a valid location.
       // ex. process header tracks, letter dot tracks.
@@ -626,7 +626,7 @@ Polymer({
       }
 
       // Set the findcontrol's text to nav string of current state.
-      var state = new tr.ui.b.UIState(loc,
+      const state = new tr.ui.b.UIState(loc,
           this.viewport_.currentDisplayTransform.scaleX);
       this.timelineView_.setFindCtlText(
           state.toUserFriendlyString(this.viewport_));
@@ -641,9 +641,9 @@ Polymer({
   },
 
   queueSmoothPan_(viewDeltaX, deltaY) {
-    var deltaX = this.viewport_.currentDisplayTransform.xViewVectorToWorld(
+    const deltaX = this.viewport_.currentDisplayTransform.xViewVectorToWorld(
         viewDeltaX);
-    var animation = new tr.ui.TimelineDisplayTransformPanAnimation(
+    const animation = new tr.ui.TimelineDisplayTransformPanAnimation(
         deltaX, deltaY);
     this.viewport_.queueDisplayTransformAnimation(animation);
   },
@@ -659,14 +659,14 @@ Polymer({
     }
 
     smooth = !!smooth;
-    var vp = this.viewport_;
-    var pixelRatio = window.devicePixelRatio || 1;
+    const vp = this.viewport_;
+    const pixelRatio = window.devicePixelRatio || 1;
 
-    var goalFocalPointXView = this.lastMouseViewPos_.x * pixelRatio;
-    var goalFocalPointXWorld = vp.currentDisplayTransform.xViewToWorld(
+    const goalFocalPointXView = this.lastMouseViewPos_.x * pixelRatio;
+    const goalFocalPointXWorld = vp.currentDisplayTransform.xViewToWorld(
         goalFocalPointXView);
     if (smooth) {
-      var animation = new tr.ui.TimelineDisplayTransformZoomToAnimation(
+      const animation = new tr.ui.TimelineDisplayTransformZoomToAnimation(
           goalFocalPointXWorld, goalFocalPointXView,
           vp.currentDisplayTransform.panY,
           scale);
@@ -686,18 +686,18 @@ Polymer({
   zoomToSelection() {
     if (!this.brushingStateController.selectionOfInterest.length) return;
 
-    var bounds = this.brushingStateController.selectionOfInterest.bounds;
+    const bounds = this.brushingStateController.selectionOfInterest.bounds;
     if (!bounds.range) return;
 
-    var worldCenter = bounds.center;
-    var viewCenter = this.modelTrackContainer_.canvas.width / 2;
-    var adjustedWorldRange = bounds.range * 1.25;
-    var newScale = this.modelTrackContainer_.canvas.width /
+    const worldCenter = bounds.center;
+    const viewCenter = this.modelTrackContainer_.canvas.width / 2;
+    const adjustedWorldRange = bounds.range * 1.25;
+    const newScale = this.modelTrackContainer_.canvas.width /
         adjustedWorldRange;
-    var zoomInRatio = newScale /
+    const zoomInRatio = newScale /
         this.viewport_.currentDisplayTransform.scaleX;
 
-    var animation = new tr.ui.TimelineDisplayTransformZoomToAnimation(
+    const animation = new tr.ui.TimelineDisplayTransformZoomToAnimation(
         worldCenter, viewCenter,
         this.viewport_.currentDisplayTransform.panY,
         zoomInRatio);
@@ -710,19 +710,19 @@ Polymer({
   panToSelection() {
     if (!this.brushingStateController.selectionOfInterest.length) return;
 
-    var bounds = this.brushingStateController.selectionOfInterest.bounds;
-    var worldCenter = bounds.center;
-    var viewWidth = this.viewWidth_;
+    const bounds = this.brushingStateController.selectionOfInterest.bounds;
+    const worldCenter = bounds.center;
+    const viewWidth = this.viewWidth_;
 
-    var dt = this.viewport_.currentDisplayTransform;
+    const dt = this.viewport_.currentDisplayTransform;
     if (false && !bounds.range) {
       if (dt.xWorldToView(bounds.center) < 0 ||
           dt.xWorldToView(bounds.center) > viewWidth) {
         this.displayTransform_.set(dt);
         this.displayTransform_.xPanWorldPosToViewPos(
             worldCenter, 'center', viewWidth);
-        var deltaX = this.displayTransform_.panX - dt.panX;
-        var animation = new tr.ui.TimelineDisplayTransformPanAnimation(
+        const deltaX = this.displayTransform_.panX - dt.panX;
+        const animation = new tr.ui.TimelineDisplayTransformPanAnimation(
             deltaX, 0);
         this.viewport_.queueDisplayTransformAnimation(animation);
       }
@@ -734,27 +734,27 @@ Polymer({
         bounds.min,
         bounds.max,
         viewWidth);
-    var deltaX = this.displayTransform_.panX - dt.panX;
-    var animation = new tr.ui.TimelineDisplayTransformPanAnimation(
+    const deltaX = this.displayTransform_.panX - dt.panX;
+    const animation = new tr.ui.TimelineDisplayTransformPanAnimation(
         deltaX, 0);
     this.viewport_.queueDisplayTransformAnimation(animation);
   },
 
   navToPosition(uiState, showNavLine) {
-    var location = uiState.location;
-    var scaleX = uiState.scaleX;
-    var track = location.getContainingTrack(this.viewport_);
+    const location = uiState.location;
+    const scaleX = uiState.scaleX;
+    const track = location.getContainingTrack(this.viewport_);
 
-    var worldCenter = location.xWorld;
-    var viewCenter = this.modelTrackContainer_.canvas.width / 5;
-    var zoomInRatio = scaleX /
+    const worldCenter = location.xWorld;
+    const viewCenter = this.modelTrackContainer_.canvas.width / 5;
+    const zoomInRatio = scaleX /
         this.viewport_.currentDisplayTransform.scaleX;
 
     // Vertically scroll so track is in view.
     track.scrollIntoViewIfNeeded();
 
     // Perform zoom and panX animation.
-    var animation = new tr.ui.TimelineDisplayTransformZoomToAnimation(
+    const animation = new tr.ui.TimelineDisplayTransformZoomToAnimation(
         worldCenter, viewCenter,
         this.viewport_.currentDisplayTransform.panY,
         zoomInRatio);
@@ -771,17 +771,17 @@ Polymer({
   },
 
   selectPowerSamplesInCurrentTimeRange_() {
-    var selectionBounds = this.brushingStateController_.selection.bounds;
+    const selectionBounds = this.brushingStateController_.selection.bounds;
     if (this.model.device.powerSeries && !selectionBounds.empty) {
-      var events = this.model.device.powerSeries.getSamplesWithinRange(
+      const events = this.model.device.powerSeries.getSamplesWithinRange(
           selectionBounds.min, selectionBounds.max);
-      var selection = new tr.model.EventSet(events);
+      const selection = new tr.model.EventSet(events);
       this.brushingStateController_.changeSelectionFromTimeline(selection);
     }
   },
 
   setCurrentSelectionAsInterestRange_() {
-    var selectionBounds = this.brushingStateController_.selection.bounds;
+    const selectionBounds = this.brushingStateController_.selection.bounds;
     if (selectionBounds.empty) {
       this.viewport_.interestRange.reset();
       return;
@@ -807,37 +807,37 @@ Polymer({
   },
 
   setDragBoxPosition_(xStart, yStart, xEnd, yEnd) {
-    var loY = Math.min(yStart, yEnd);
-    var hiY = Math.max(yStart, yEnd);
-    var loX = Math.min(xStart, xEnd);
-    var hiX = Math.max(xStart, xEnd);
-    var modelTrackRect = this.modelTrack_.getBoundingClientRect();
-    var dragRect = {left: loX, top: loY, width: hiX - loX, height: hiY - loY};
+    const loY = Math.min(yStart, yEnd);
+    const hiY = Math.max(yStart, yEnd);
+    const loX = Math.min(xStart, xEnd);
+    const hiX = Math.max(xStart, xEnd);
+    const modelTrackRect = this.modelTrack_.getBoundingClientRect();
+    const dragRect = {left: loX, top: loY, width: hiX - loX, height: hiY - loY};
 
     dragRect.right = dragRect.left + dragRect.width;
     dragRect.bottom = dragRect.top + dragRect.height;
 
-    var modelTrackContainerRect =
+    const modelTrackContainerRect =
         this.modelTrackContainer_.getBoundingClientRect();
-    var clipRect = {
+    const clipRect = {
       left: modelTrackContainerRect.left,
       top: modelTrackContainerRect.top,
       right: modelTrackContainerRect.right,
       bottom: modelTrackContainerRect.bottom
     };
 
-    var headingWidth = window.getComputedStyle(
+    const headingWidth = window.getComputedStyle(
         Polymer.dom(this).querySelector('tr-ui-b-heading')).width;
-    var trackTitleWidth = parseInt(headingWidth);
+    const trackTitleWidth = parseInt(headingWidth);
     clipRect.left = clipRect.left + trackTitleWidth;
 
-    var intersectRect_ = function(r1, r2) {
+    const intersectRect_ = function(r1, r2) {
       if (r2.left > r1.right || r2.right < r1.left ||
           r2.top > r1.bottom || r2.bottom < r1.top) {
         return false;
       }
 
-      var results = {};
+      const results = {};
       results.left = Math.max(r1.left, r2.left);
       results.top = Math.max(r1.top, r2.top);
       results.right = Math.min(r1.right, r2.right);
@@ -850,7 +850,7 @@ Polymer({
     // TODO(dsinclair): intersectRect_ can return false (which should actually
     // be undefined) but we use finalDragBox without checking the return value
     // which could potentially blowup. Fix this .....
-    var finalDragBox = intersectRect_(clipRect, dragRect);
+    const finalDragBox = intersectRect_(clipRect, dragRect);
 
     this.$.drag_box.style.left = finalDragBox.left + 'px';
     this.$.drag_box.style.width = finalDragBox.width + 'px';
@@ -858,26 +858,26 @@ Polymer({
     this.$.drag_box.style.height = finalDragBox.height + 'px';
     this.$.drag_box.style.whiteSpace = 'nowrap';
 
-    var pixelRatio = window.devicePixelRatio || 1;
-    var canv = this.modelTrackContainer_.canvas;
-    var dt = this.viewport_.currentDisplayTransform;
-    var loWX = dt.xViewToWorld(
+    const pixelRatio = window.devicePixelRatio || 1;
+    const canv = this.modelTrackContainer_.canvas;
+    const dt = this.viewport_.currentDisplayTransform;
+    const loWX = dt.xViewToWorld(
         (loX - canv.offsetLeft) * pixelRatio);
-    var hiWX = dt.xViewToWorld(
+    const hiWX = dt.xViewToWorld(
         (hiX - canv.offsetLeft) * pixelRatio);
 
     Polymer.dom(this.$.drag_box).textContent =
         tr.b.Unit.byName.timeDurationInMs.format(hiWX - loWX);
 
-    var e = new tr.b.Event('selectionChanging');
+    const e = new tr.b.Event('selectionChanging');
     e.loWX = loWX;
     e.hiWX = hiWX;
     this.dispatchEvent(e);
   },
 
   onGridToggle_(left) {
-    var selection = this.brushingStateController_.selection;
-    var tb = left ? selection.bounds.min : selection.bounds.max;
+    const selection = this.brushingStateController_.selection;
+    const tb = left ? selection.bounds.min : selection.bounds.max;
 
     // Toggle the grid off if the grid is on, the marker position is the same
     // and the same element is selected (same timebase).
@@ -891,7 +891,7 @@ Polymer({
     }
 
     // Shift the timebase left until its just left of model_.bounds.min.
-    var numIntervalsSinceStart = Math.ceil((tb - this.model_.bounds.min) /
+    const numIntervalsSinceStart = Math.ceil((tb - this.model_.bounds.min) /
         this.viewport_.gridStep_);
 
     this.viewport_.gridEnabled = true;
@@ -910,7 +910,7 @@ Polymer({
   },
 
   extractRelativeMousePosition_(e) {
-    var canv = this.modelTrackContainer_.canvas;
+    const canv = this.modelTrackContainer_.canvas;
     return {
       x: e.clientX - canv.offsetLeft,
       y: e.clientY - canv.offsetTop
@@ -918,10 +918,10 @@ Polymer({
   },
 
   extractRelativeTouchPositions_(e) {
-    var canv = this.modelTrackContainer_.canvas;
+    const canv = this.modelTrackContainer_.canvas;
 
-    var touches = [];
-    for (var i = 0; i < e.touches.length; ++i) {
+    const touches = [];
+    for (let i = 0; i < e.touches.length; ++i) {
       touches.push({
         x: e.touches[i].clientX - canv.offsetLeft,
         y: e.touches[i].clientY - canv.offsetTop
@@ -931,7 +931,7 @@ Polymer({
   },
 
   storeInitialMouseDownPos_(e) {
-    var position = this.extractRelativeMousePosition_(e);
+    const position = this.extractRelativeMousePosition_(e);
 
     this.mouseViewPosAtMouseDown_.x = position.x;
     this.mouseViewPosAtMouseDown_.y = position.y;
@@ -949,7 +949,7 @@ Polymer({
   },
 
   onBeginPanScan_(e) {
-    var vp = this.viewport_;
+    const vp = this.viewport_;
     this.viewportDisplayTransformAtMouseDown_ =
         vp.currentDisplayTransform.clone();
     this.isPanningAndScanning_ = true;
@@ -961,13 +961,13 @@ Polymer({
   onUpdatePanScan_(e) {
     if (!this.isPanningAndScanning_) return;
 
-    var viewWidth = this.viewWidth_;
+    const viewWidth = this.viewWidth_;
 
-    var pixelRatio = window.devicePixelRatio || 1;
-    var xDeltaView = pixelRatio * (this.lastMouseViewPos_.x -
+    const pixelRatio = window.devicePixelRatio || 1;
+    const xDeltaView = pixelRatio * (this.lastMouseViewPos_.x -
         this.mouseViewPosAtMouseDown_.x);
 
-    var yDelta = this.lastMouseViewPos_.y -
+    const yDelta = this.lastMouseViewPos_.y -
         this.mouseViewPosAtMouseDown_.y;
 
     this.displayTransform_.set(this.viewportDisplayTransformAtMouseDown_);
@@ -992,11 +992,11 @@ Polymer({
   },
 
   onBeginSelection_(e) {
-    var canv = this.modelTrackContainer_.canvas;
-    var rect = this.modelTrack_.getBoundingClientRect();
-    var canvRect = canv.getBoundingClientRect();
+    const canv = this.modelTrackContainer_.canvas;
+    const rect = this.modelTrack_.getBoundingClientRect();
+    const canvRect = canv.getBoundingClientRect();
 
-    var inside = rect &&
+    const inside = rect &&
         e.clientX >= rect.left &&
         e.clientX < rect.right &&
         e.clientY >= rect.top &&
@@ -1031,25 +1031,25 @@ Polymer({
 
     // Stop the dragging.
     this.hideDragBox_();
-    var eDown = this.dragBeginEvent_;
+    const eDown = this.dragBeginEvent_;
     this.dragBeginEvent_ = undefined;
 
     // Figure out extents of the drag.
-    var loY = Math.min(eDown.clientY, e.clientY);
-    var hiY = Math.max(eDown.clientY, e.clientY);
-    var loX = Math.min(eDown.clientX, e.clientX);
-    var hiX = Math.max(eDown.clientX, e.clientX);
+    const loY = Math.min(eDown.clientY, e.clientY);
+    const hiY = Math.max(eDown.clientY, e.clientY);
+    const loX = Math.min(eDown.clientX, e.clientX);
+    const hiX = Math.max(eDown.clientX, e.clientX);
 
     // Convert to worldspace.
-    var canv = this.modelTrackContainer_.canvas;
-    var worldOffset = canv.getBoundingClientRect().left;
-    var loVX = loX - worldOffset;
-    var hiVX = hiX - worldOffset;
+    const canv = this.modelTrackContainer_.canvas;
+    const worldOffset = canv.getBoundingClientRect().left;
+    const loVX = loX - worldOffset;
+    const hiVX = hiX - worldOffset;
 
     // Figure out what has been selected.
-    var selection = new tr.model.EventSet();
+    const selection = new tr.model.EventSet();
     if (eDown.appendSelection) {
-      var previousSelection = this.brushingStateController_.selection;
+      const previousSelection = this.brushingStateController_.selection;
       if (previousSelection !== undefined) {
         selection.addEventSet(previousSelection);
       }
@@ -1071,9 +1071,9 @@ Polymer({
   onUpdateZoom_(e) {
     if (!this.isZooming_) return;
 
-    var newPosition = this.extractRelativeMousePosition_(e);
+    const newPosition = this.extractRelativeMousePosition_(e);
 
-    var zoomScaleValue = 1 + (this.lastMouseViewPos_.y -
+    const zoomScaleValue = 1 + (this.lastMouseViewPos_.y -
         newPosition.y) * 0.01;
 
     this.zoomBy_(zoomScaleValue, false);
@@ -1089,9 +1089,9 @@ Polymer({
   },
 
   computeTouchCenter_(positions) {
-    var xSum = 0;
-    var ySum = 0;
-    for (var i = 0; i < positions.length; ++i) {
+    let xSum = 0;
+    let ySum = 0;
+    for (let i = 0; i < positions.length; ++i) {
       xSum += positions[i].x;
       ySum += positions[i].y;
     }
@@ -1102,11 +1102,11 @@ Polymer({
   },
 
   computeTouchSpan_(positions) {
-    var xMin = Number.MAX_VALUE;
-    var yMin = Number.MAX_VALUE;
-    var xMax = Number.MIN_VALUE;
-    var yMax = Number.MIN_VALUE;
-    for (var i = 0; i < positions.length; ++i) {
+    let xMin = Number.MAX_VALUE;
+    let yMin = Number.MAX_VALUE;
+    let xMax = Number.MIN_VALUE;
+    let yMax = Number.MIN_VALUE;
+    for (let i = 0; i < positions.length; ++i) {
       xMin = Math.min(xMin, positions[i].x);
       yMin = Math.min(yMin, positions[i].y);
       xMax = Math.max(xMax, positions[i].x);
@@ -1117,25 +1117,25 @@ Polymer({
   },
 
   onUpdateTransformForTouch_(e) {
-    var newPositions = this.extractRelativeTouchPositions_(e);
-    var currentPositions = this.lastTouchViewPositions_;
+    const newPositions = this.extractRelativeTouchPositions_(e);
+    const currentPositions = this.lastTouchViewPositions_;
 
-    var newCenter = this.computeTouchCenter_(newPositions);
-    var currentCenter = this.computeTouchCenter_(currentPositions);
+    const newCenter = this.computeTouchCenter_(newPositions);
+    const currentCenter = this.computeTouchCenter_(currentPositions);
 
-    var newSpan = this.computeTouchSpan_(newPositions);
-    var currentSpan = this.computeTouchSpan_(currentPositions);
+    const newSpan = this.computeTouchSpan_(newPositions);
+    const currentSpan = this.computeTouchSpan_(currentPositions);
 
-    var vp = this.viewport_;
-    var viewWidth = this.viewWidth_;
-    var pixelRatio = window.devicePixelRatio || 1;
+    const vp = this.viewport_;
+    const viewWidth = this.viewWidth_;
+    const pixelRatio = window.devicePixelRatio || 1;
 
-    var xDelta = pixelRatio * (newCenter.x - currentCenter.x);
-    var yDelta = newCenter.y - currentCenter.y;
-    var zoomScaleValue = currentSpan > 10 ? newSpan / currentSpan : 1;
+    const xDelta = pixelRatio * (newCenter.x - currentCenter.x);
+    const yDelta = newCenter.y - currentCenter.y;
+    const zoomScaleValue = currentSpan > 10 ? newSpan / currentSpan : 1;
 
-    var viewFocus = pixelRatio * newCenter.x;
-    var worldFocus = vp.currentDisplayTransform.xViewToWorld(viewFocus);
+    const viewFocus = pixelRatio * newCenter.x;
+    const worldFocus = vp.currentDisplayTransform.xViewToWorld(viewFocus);
 
     this.displayTransform_.set(vp.currentDisplayTransform);
     this.displayTransform_.scaleX *= zoomScaleValue;

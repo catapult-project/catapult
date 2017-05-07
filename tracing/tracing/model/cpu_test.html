@@ -13,19 +13,19 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var ColorScheme = tr.b.ColorScheme;
-  var Cpu = tr.model.Cpu;
-  var newThreadSlice = tr.c.TestUtils.newThreadSlice;
+  const ColorScheme = tr.b.ColorScheme;
+  const Cpu = tr.model.Cpu;
+  const newThreadSlice = tr.c.TestUtils.newThreadSlice;
 
   test('cpuBounds_Empty', function() {
-    var cpu = new Cpu({}, 1);
+    const cpu = new Cpu({}, 1);
     cpu.updateBounds();
     assert.isUndefined(cpu.bounds.min);
     assert.isUndefined(cpu.bounds.max);
   });
 
   test('cpuBounds_OneSlice', function() {
-    var cpu = new Cpu({}, 1);
+    const cpu = new Cpu({}, 1);
     cpu.slices.push(tr.c.TestUtils.newSliceEx({start: 1, duration: 3}));
     cpu.updateBounds();
     assert.strictEqual(cpu.bounds.min, 1);
@@ -33,17 +33,17 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('getOrCreateCounter', function() {
-    var cpu = new Cpu({}, 1);
-    var ctrBar = cpu.getOrCreateCounter('foo', 'bar');
-    var ctrBar2 = cpu.getOrCreateCounter('foo', 'bar');
+    const cpu = new Cpu({}, 1);
+    const ctrBar = cpu.getOrCreateCounter('foo', 'bar');
+    const ctrBar2 = cpu.getOrCreateCounter('foo', 'bar');
     assert.strictEqual(ctrBar, ctrBar2);
   });
 
   test('shiftTimestampsForward', function() {
-    var cpu = new Cpu({}, 1);
-    var ctr = cpu.getOrCreateCounter('foo', 'bar');
+    const cpu = new Cpu({}, 1);
+    const ctr = cpu.getOrCreateCounter('foo', 'bar');
     cpu.slices.push(tr.c.TestUtils.newSliceEx({start: 1, duration: 3}));
-    var shiftCount = 0;
+    let shiftCount = 0;
     ctr.shiftTimestampsForward = function(ts) {
       if (ts === 0.32) {
         shiftCount++;
@@ -57,7 +57,7 @@ tr.b.unittest.testSuite(function() {
 
 
   function newCpuSliceNamed(cpu, name, start, duration, opt_thread) {
-    var s = new tr.model.CpuSlice(
+    const s = new tr.model.CpuSlice(
         'cat', name, 0, start, {}, duration);
     s.cpu = cpu;
     if (opt_thread) {
@@ -67,10 +67,10 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('getTimesliceForCpuSlice', function() {
-    var m = new tr.Model();
-    var SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
-    var cpu = m.kernel.getOrCreateCpu(1);
-    var t2 = m.getOrCreateProcess(1).getOrCreateThread(2);
+    const m = new tr.Model();
+    const SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
+    const cpu = m.kernel.getOrCreateCpu(1);
+    const t2 = m.getOrCreateProcess(1).getOrCreateThread(2);
     t2.timeSlices = [newThreadSlice(t2, SCHEDULING_STATE.RUNNING, 0, 10, cpu),
       newThreadSlice(t2, SCHEDULING_STATE.SLEEPING, 10, 10),
       newThreadSlice(t2, SCHEDULING_STATE.RUNNING, 20, 10, cpu)];
@@ -94,12 +94,12 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('putToSleepFor', function() {
-    var m = new tr.Model();
-    var SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
-    var cpu = m.kernel.getOrCreateCpu(1);
+    const m = new tr.Model();
+    const SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
+    const cpu = m.kernel.getOrCreateCpu(1);
 
-    var t2 = m.getOrCreateProcess(1).getOrCreateThread(2);
-    var t3 = m.getOrCreateProcess(1).getOrCreateThread(3);
+    const t2 = m.getOrCreateProcess(1).getOrCreateThread(2);
+    const t3 = m.getOrCreateProcess(1).getOrCreateThread(3);
     t2.timeSlices = [newThreadSlice(t2, SCHEDULING_STATE.RUNNING, 0, 10, cpu),
       newThreadSlice(t2, SCHEDULING_STATE.SLEEPING, 10, 10),
       newThreadSlice(t2, SCHEDULING_STATE.RUNNING, 20, 10, cpu)];
@@ -118,12 +118,12 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('putToSleepForNothing', function() {
-    var m = new tr.Model();
-    var SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
-    var cpu = m.kernel.getOrCreateCpu(1);
+    const m = new tr.Model();
+    const SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
+    const cpu = m.kernel.getOrCreateCpu(1);
 
-    var t2 = m.getOrCreateProcess(1).getOrCreateThread(2);
-    var t3 = m.getOrCreateProcess(1).getOrCreateThread(3);
+    const t2 = m.getOrCreateProcess(1).getOrCreateThread(2);
+    const t3 = m.getOrCreateProcess(1).getOrCreateThread(3);
     t2.timeSlices = [newThreadSlice(t2, SCHEDULING_STATE.RUNNING, 0, 10, cpu),
       newThreadSlice(t2, SCHEDULING_STATE.SLEEPING, 10, 10),
       newThreadSlice(t2, SCHEDULING_STATE.RUNNING, 20, 10, cpu)];
@@ -135,8 +135,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('switchActiveThread', function() {
-    var m = new tr.Model();
-    var cpu = m.kernel.getOrCreateCpu(1);
+    const m = new tr.Model();
+    const cpu = m.kernel.getOrCreateCpu(1);
 
     cpu.switchActiveThread(5, {}, 0, 'idle thread', {});
     cpu.switchActiveThread(10, {}, 1, 'thread one', {a: 1});
@@ -183,10 +183,10 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('getFrequencyStats', function() {
-    var m = new tr.Model();
-    var cpu = m.kernel.getOrCreateCpu(1);
-    var powerCounter = cpu.getOrCreateCounter('', 'Clock Frequency');
-    var series = powerCounter.addSeries(new tr.model.CounterSeries('state',
+    const m = new tr.Model();
+    const cpu = m.kernel.getOrCreateCpu(1);
+    const powerCounter = cpu.getOrCreateCounter('', 'Clock Frequency');
+    const series = powerCounter.addSeries(new tr.model.CounterSeries('state',
         ColorScheme.getColorIdForGeneralPurposeString('test')));
 
     series.addCounterSample(0, 100000);
@@ -195,8 +195,8 @@ tr.b.unittest.testSuite(function() {
     series.addCounterSample(80, 500000);
     series.addCounterSample(100, 300000);
 
-    var range = tr.b.math.Range.fromExplicitRange(10, 90);
-    var stats = cpu.getFreqStatsForRange(range);
+    const range = tr.b.math.Range.fromExplicitRange(10, 90);
+    const stats = cpu.getFreqStatsForRange(range);
     assert.strictEqual(stats[100000], 60);
     assert.strictEqual(stats[300000], 10);
     assert.strictEqual(stats[500000], 10);

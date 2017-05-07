@@ -51,18 +51,18 @@ Polymer({
   },
 
   updateColumns_(hadCpuDurations) {
-    var timeSpanConfig = {
+    const timeSpanConfig = {
       unit: tr.b.Unit.byName.timeDurationInMs,
       ownerDocument: this.ownerDocument
     };
 
-    var columns = [
+    const columns = [
       {
         title: 'Layer',
         value(row) {
           if (row.isTotals) return 'Totals';
           if (row.layer) {
-            var linkEl = document.createElement('tr-ui-a-analysis-link');
+            const linkEl = document.createElement('tr-ui-a-analysis-link');
             linkEl.setSelectionAndContent(
                 function() {
                   return new tr.ui.e.chrome.cc.LayerSelection(costs.layer);
@@ -110,14 +110,14 @@ Polymer({
       });
     }
 
-    var colWidthPercentage;
+    let colWidthPercentage;
     if (columns.length === 1) {
       colWidthPercentage = '100%';
     } else {
       colWidthPercentage = (100 / (columns.length - 1)).toFixed(3) + '%';
     }
 
-    for (var i = 1; i < columns.length; i++) {
+    for (let i = 1; i < columns.length; i++) {
       columns[i].width = colWidthPercentage;
     }
 
@@ -126,7 +126,7 @@ Polymer({
   },
 
   updateContents_() {
-    var table = this.$.content;
+    const table = this.$.content;
 
     if (this.selection_.length === 0) {
       this.$.link.setSelectionAndContent(undefined, '');
@@ -136,18 +136,18 @@ Polymer({
       return;
     }
     // LTHI link.
-    var lthi = tr.e.cc.getTileFromRasterTaskSlice(
+    const lthi = tr.e.cc.getTileFromRasterTaskSlice(
         tr.b.getFirstElement(this.selection_)).containingSnapshot;
     this.$.link.setSelectionAndContent(function() {
       return new tr.model.EventSet(lthi);
     }, lthi.userFriendlyName);
 
     // Get costs by layer.
-    var costsByLayerId = {};
+    const costsByLayerId = {};
     function getCurrentCostsForLayerId(tile) {
-      var layerId = tile.layerId;
-      var lthi = tile.containingSnapshot;
-      var layer;
+      const layerId = tile.layerId;
+      const lthi = tile.containingSnapshot;
+      let layer;
       if (lthi.activeTree) {
         layer = lthi.activeTree.findLayerWithId(layerId);
       }
@@ -168,17 +168,17 @@ Polymer({
       return costsByLayerId[layerId];
     }
 
-    var totalDuration = 0;
-    var totalCpuDuration = 0;
-    var totalNumAnalyzeTasks = 0;
-    var totalNumRasterizeTasks = 0;
-    var hadCpuDurations = false;
+    let totalDuration = 0;
+    let totalCpuDuration = 0;
+    let totalNumAnalyzeTasks = 0;
+    let totalNumRasterizeTasks = 0;
+    let hadCpuDurations = false;
 
-    var tilesThatWeHaveSeen = {};
+    const tilesThatWeHaveSeen = {};
 
     this.selection_.forEach(function(slice) {
-      var tile = tr.e.cc.getTileFromRasterTaskSlice(slice);
-      var curCosts = getCurrentCostsForLayerId(tile);
+      const tile = tr.e.cc.getTileFromRasterTaskSlice(slice);
+      const curCosts = getCurrentCostsForLayerId(tile);
 
       if (!tilesThatWeHaveSeen[tile.objectInstance.id]) {
         tilesThatWeHaveSeen[tile.objectInstance.id] = true;

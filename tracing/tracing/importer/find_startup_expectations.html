@@ -12,12 +12,12 @@ found in the LICENSE file.
 
 tr.exportTo('tr.importer', function() {
   function getAllFrameEvents(modelHelper) {
-    var frameEvents = [];
+    const frameEvents = [];
     frameEvents.push.apply(frameEvents,
         modelHelper.browserHelper.getFrameEventsInRange(
             tr.model.helpers.IMPL_FRAMETIME_TYPE, modelHelper.model.bounds));
 
-    for (var renderer of Object.values(modelHelper.rendererHelpers)) {
+    for (const renderer of Object.values(modelHelper.rendererHelpers)) {
       frameEvents.push.apply(frameEvents, renderer.getFrameEventsInRange(
           tr.model.helpers.IMPL_FRAMETIME_TYPE, modelHelper.model.bounds));
     }
@@ -30,12 +30,12 @@ tr.exportTo('tr.importer', function() {
     function isStartupSlice(slice) {
       return slice.title === 'BrowserMainLoop::CreateThreads';
     }
-    var events = modelHelper.browserHelper.getAllAsyncSlicesMatching(
+    const events = modelHelper.browserHelper.getAllAsyncSlicesMatching(
         isStartupSlice);
-    var deduper = new tr.model.EventSet();
+    const deduper = new tr.model.EventSet();
     events.forEach(function(event) {
-      var sliceGroup = event.parentContainer.sliceGroup;
-      var slice = sliceGroup && sliceGroup.findFirstSlice();
+      const sliceGroup = event.parentContainer.sliceGroup;
+      const slice = sliceGroup && sliceGroup.findFirstSlice();
       if (slice) {
         deduper.push(slice);
       }
@@ -47,9 +47,9 @@ tr.exportTo('tr.importer', function() {
   // |closingEvents| and return an array containing a load interaction record
   // for each pair.
   function findStartupExpectations(modelHelper) {
-    var openingEvents = getStartupEvents(modelHelper);
-    var closingEvents = getAllFrameEvents(modelHelper);
-    var startups = [];
+    const openingEvents = getStartupEvents(modelHelper);
+    const closingEvents = getAllFrameEvents(modelHelper);
+    const startups = [];
     openingEvents.forEach(function(openingEvent) {
       closingEvents.forEach(function(closingEvent) {
         // Ignore opening event that already have a closing event.
@@ -70,7 +70,7 @@ tr.exportTo('tr.importer', function() {
         // This is the first closing event for this opening event, record it.
         openingEvent.closingEvent = closingEvent;
         closingEvent.openingEvent = openingEvent;
-        var se = new tr.model.um.StartupExpectation(
+        const se = new tr.model.um.StartupExpectation(
             modelHelper.model, openingEvent.start,
             closingEvent.end - openingEvent.start);
         se.associatedEvents.push(openingEvent);

@@ -18,7 +18,7 @@ tr.b.unittest.testSuite(function() {
   const TEST_BOUNDARIES = tr.v.HistogramBinBoundaries.createLinear(0, 10, 10);
 
   test('build', function() {
-    let histograms = new tr.v.HistogramSet();
+    const histograms = new tr.v.HistogramSet();
     let events = new tr.model.EventSet([
       {
         guid: 9,
@@ -46,14 +46,14 @@ tr.b.unittest.testSuite(function() {
       }
     ]);
 
-    let sampleForEvent = undefined;
-    let diagnostic = tr.v.d.RelatedHistogramBreakdown.buildFromEvents(
+    const sampleForEvent = undefined;
+    const diagnostic = tr.v.d.RelatedHistogramBreakdown.buildFromEvents(
         histograms, 'foo-', events,
         tr.e.chrome.ChromeUserFriendlyCategoryDriver.fromEvent,
         tr.b.Unit.byName.timeDurationInMs, sampleForEvent, TEST_BOUNDARIES);
 
     assert.lengthOf(diagnostic, 2);
-    let scriptHist = histograms.getHistogramNamed('foo-script_execute');
+    const scriptHist = histograms.getHistogramNamed('foo-script_execute');
     assert.instanceOf(scriptHist, tr.v.Histogram);
     assert.lengthOf(scriptHist.allBins[2].diagnosticMaps, 1);
     assert.strictEqual(scriptHist, diagnostic.get('script_execute'));
@@ -70,7 +70,7 @@ tr.b.unittest.testSuite(function() {
         [...scriptHist.allBins[3].diagnosticMaps[0]
             .get('relatedEvents')][0]);
 
-    let styleHist = histograms.getHistogramNamed('foo-style');
+    const styleHist = histograms.getHistogramNamed('foo-style');
     assert.instanceOf(styleHist, tr.v.Histogram);
     assert.lengthOf(styleHist.allBins[4].diagnosticMaps, 1);
     relatedEvents = styleHist.allBins[4].diagnosticMaps[0]

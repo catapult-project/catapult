@@ -40,22 +40,22 @@ Polymer({
   updateContents_() {
     Polymer.dom(this).textContent = '';
 
-    let rows = [];
+    const rows = [];
 
-    let histogramNames = new Set();
-    for (let [name, hist] of this.diagnostic) {
+    const histogramNames = new Set();
+    for (const [name, hist] of this.diagnostic) {
       histogramNames.add(hist.name);
     }
     if (histogramNames.size > 1) {
-      let link = document.createElement('tr-ui-a-analysis-link');
+      const link = document.createElement('tr-ui-a-analysis-link');
       link.setSelectionAndContent(Array.from(histogramNames), 'Select All');
       rows.push([link, '']);
     }
 
-    for (let [name, hist] of this.diagnostic) {
-      let link = document.createElement('tr-ui-a-analysis-link');
+    for (const [name, hist] of this.diagnostic) {
+      const link = document.createElement('tr-ui-a-analysis-link');
       link.setSelectionAndContent([hist.name], name);
-      let scalarSpan = tr.v.ui.createScalarSpan(hist);
+      const scalarSpan = tr.v.ui.createScalarSpan(hist);
       rows.push([link, scalarSpan]);
     }
     this.$.table.tableRows = rows;

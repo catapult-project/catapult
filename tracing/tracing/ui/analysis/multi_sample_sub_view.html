@@ -47,7 +47,7 @@ found in the LICENSE file.
 'use strict';
 
 (function() {
-  var MultiDimensionalViewBuilder = tr.b.MultiDimensionalViewBuilder;
+  const MultiDimensionalViewBuilder = tr.b.MultiDimensionalViewBuilder;
 
   Polymer({
     is: 'tr-ui-a-multi-sample-sub-view',
@@ -59,7 +59,7 @@ found in the LICENSE file.
     },
 
     ready() {
-      var viewSelector = tr.ui.b.createSelector(
+      const viewSelector = tr.ui.b.createSelector(
           this, 'viewOption', 'tracing.ui.analysis.multi_sample_sub_view',
           MultiDimensionalViewBuilder.ViewType.TOP_DOWN_TREE_VIEW,
           [
@@ -99,9 +99,9 @@ found in the LICENSE file.
     },
 
     createSamplingSummary_(selection, viewOption) {
-      var builder = new MultiDimensionalViewBuilder(
+      const builder = new MultiDimensionalViewBuilder(
           1 /* dimensions */, 1 /* valueCount */);
-      var samples = selection.filter(
+      const samples = selection.filter(
           event => event instanceof tr.model.Sample);
 
       samples.forEach(function(sample) {
@@ -113,9 +113,9 @@ found in the LICENSE file.
     },
 
     processSampleRows_(rows) {
-      for (var row of rows) {
-        var title = row.title[0];
-        var results = /(.*) (Deoptimized reason: .*)/.exec(title);
+      for (const row of rows) {
+        let title = row.title[0];
+        let results = /(.*) (Deoptimized reason: .*)/.exec(title);
         if (results !== null) {
           row.deoptReason = results[2];
           title = results[1];
@@ -146,10 +146,10 @@ found in the LICENSE file.
         return;
       }
 
-      var samplingData = this.createSamplingSummary_(
+      const samplingData = this.createSamplingSummary_(
           this.selection, this.viewOption);
-      var total = samplingData.values[0].total;
-      var columns = [
+      const total = samplingData.values[0].total;
+      const columns = [
         this.createPercentColumn_('Total', total),
         this.createSamplesColumn_('Total'),
         this.createPercentColumn_('Self', total),
@@ -160,7 +160,7 @@ found in the LICENSE file.
             // For function that got deoptimized, show function name
             // as red italic with a tooltip
             if (row.deoptReason !== undefined) {
-              var spanEl = tr.ui.b.createSpan({
+              const spanEl = tr.ui.b.createSpan({
                 italic: true,
                 color: '#F44336',
                 tooltip: row.deoptReason
@@ -191,7 +191,7 @@ found in the LICENSE file.
     },
 
     createPercentColumn_(title, samplingDataTotal) {
-      var field = title.toLowerCase();
+      const field = title.toLowerCase();
       return {
         title: title + ' percent',
         value(row) {
@@ -208,7 +208,7 @@ found in the LICENSE file.
     },
 
     createSamplesColumn_(title) {
-      var field = title.toLowerCase();
+      const field = title.toLowerCase();
       return {
         title: title + ' samples',
         value(row) {

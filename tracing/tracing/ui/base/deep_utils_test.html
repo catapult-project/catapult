@@ -50,17 +50,17 @@ Polymer({
 
 tr.b.unittest.testSuite(function() {
   test('testFindDeepElementMatching', function() {
-    var d = document.createElement('tr-ui-b-deep-utils-test-d');
+    const d = document.createElement('tr-ui-b-deep-utils-test-d');
 
-    var b = tr.b.findDeepElementMatching(d, 'tr-ui-b-deep-utils-test-b.x');
+    const b = tr.b.findDeepElementMatching(d, 'tr-ui-b-deep-utils-test-b.x');
     assert.isDefined(b);
     assert.strictEqual(b.tagName, 'TR-UI-B-DEEP-UTILS-TEST-B');
   });
 
   test('testFindDeepElementsMatching', function() {
-    var d = document.createElement('tr-ui-b-deep-utils-test-d');
+    const d = document.createElement('tr-ui-b-deep-utils-test-d');
 
-    var a = tr.b.findDeepElementsMatching(d, 'tr-ui-b-deep-utils-test-a.x');
+    const a = tr.b.findDeepElementsMatching(d, 'tr-ui-b-deep-utils-test-a.x');
     assert.isDefined(a);
     assert.strictEqual(a[0].tagName, 'TR-UI-B-DEEP-UTILS-TEST-A');
     assert.strictEqual(a[1].tagName, 'TR-UI-B-DEEP-UTILS-TEST-A');

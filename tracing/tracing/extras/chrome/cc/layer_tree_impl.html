@@ -14,8 +14,8 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.e.cc', function() {
-  var constants = tr.e.cc.constants;
-  var ObjectSnapshot = tr.model.ObjectSnapshot;
+  const constants = tr.e.cc.constants;
+  const ObjectSnapshot = tr.model.ObjectSnapshot;
 
   /**
    * @constructor
@@ -52,7 +52,7 @@ tr.exportTo('tr.e.cc', function() {
       } else {
         // The SPv2 version, where the layer list contains all
         // non-mask, non-replica layers.
-        for (var i = 0; i < this.layers.length; i++) {
+        for (let i = 0; i < this.layers.length; i++) {
           this.layers[i].layerTreeImpl = this;
         }
       }
@@ -61,8 +61,8 @@ tr.exportTo('tr.e.cc', function() {
           this.args.swapPromiseTraceIds.length) {
         this.tracedInputLatencies = [];
 
-        var ownProcess = this.objectInstance.parent;
-        var modelHelper = ownProcess.model.getOrCreateHelper(
+        const ownProcess = this.objectInstance.parent;
+        const modelHelper = ownProcess.model.getOrCreateHelper(
             tr.model.helpers.ChromeModelHelper);
         if (modelHelper) {
           this._initializeTracedInputLatencies(modelHelper);
@@ -71,12 +71,12 @@ tr.exportTo('tr.e.cc', function() {
     },
 
     _initializeTracedInputLatencies(modelHelper) {
-      var latencyEvents = modelHelper.browserHelper.getLatencyEventsInRange(
+      const latencyEvents = modelHelper.browserHelper.getLatencyEventsInRange(
           modelHelper.model.bounds);
 
       // Convert all ids to InputLatency Async objects.
       latencyEvents.forEach(function(event) {
-        for (var i = 0; i < this.args.swapPromiseTraceIds.length; i++) {
+        for (let i = 0; i < this.args.swapPromiseTraceIds.length; i++) {
           if (!event.args.data || !event.args.data.trace_id) {
             continue;
           }
@@ -96,15 +96,15 @@ tr.exportTo('tr.e.cc', function() {
       // Old chrome's don't produce sourceFrameNumber.
       if (this.sourceFrameNumber === undefined) return;
 
-      var thisLTHI = this.layerTreeHostImpl;
-      var thisLTHIIndex = thisLTHI.objectInstance.snapshots.indexOf(
+      const thisLTHI = this.layerTreeHostImpl;
+      const thisLTHIIndex = thisLTHI.objectInstance.snapshots.indexOf(
           thisLTHI);
-      var prevLTHIIndex = thisLTHIIndex - 1;
+      const prevLTHIIndex = thisLTHIIndex - 1;
       if (prevLTHIIndex < 0 ||
           prevLTHIIndex >= thisLTHI.objectInstance.snapshots.length) {
         return false;
       }
-      var prevLTHI = thisLTHI.objectInstance.snapshots[prevLTHIIndex];
+      const prevLTHI = thisLTHI.objectInstance.snapshots[prevLTHIIndex];
       if (!prevLTHI.activeTree) return false;
 
       // Old chrome's don't produce sourceFrameNumber.
@@ -113,13 +113,13 @@ tr.exportTo('tr.e.cc', function() {
     },
 
     get otherTree() {
-      var other = this.whichTree === constants.ACTIVE_TREE ?
+      const other = this.whichTree === constants.ACTIVE_TREE ?
           constants.PENDING_TREE : constants.ACTIVE_TREE;
       return this.layerTreeHostImpl.getTree(other);
     },
 
     get gpuMemoryUsageInBytes() {
-      var totalBytes = 0;
+      let totalBytes = 0;
       this.iterLayers(function(layer) {
         if (layer.gpuMemoryUsageInBytes !== undefined) {
           totalBytes += layer.gpuMemoryUsageInBytes;
@@ -129,14 +129,14 @@ tr.exportTo('tr.e.cc', function() {
     },
 
     iterLayers(func, thisArg) {
-      var visitedLayers = {};
+      const visitedLayers = {};
       function visitLayer(layer, depth, isMask, isReplica) {
         if (visitedLayers[layer.layerId]) return;
 
         visitedLayers[layer.layerId] = true;
         func.call(thisArg, layer, depth, isMask, isReplica);
         if (layer.children) {
-          for (var i = 0; i < layer.children.length; i++) {
+          for (let i = 0; i < layer.children.length; i++) {
             visitLayer(layer.children[i], depth + 1);
           }
         }
@@ -150,13 +150,13 @@ tr.exportTo('tr.e.cc', function() {
       if (this.rootLayer) {
         visitLayer(this.rootLayer, 0, false, false);
       } else {
-        for (var i = 0; i < this.layers.length; i++) {
+        for (let i = 0; i < this.layers.length; i++) {
           visitLayer(this.layers[i], 0, false, false);
         }
       }
     },
     findLayerWithId(id) {
-      var foundLayer = undefined;
+      let foundLayer = undefined;
       function visitLayer(layer) {
         if (layer.layerId === id) {
           foundLayer = layer;

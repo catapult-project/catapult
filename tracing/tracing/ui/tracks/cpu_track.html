@@ -20,7 +20,7 @@ tr.exportTo('tr.ui.tracks', function() {
    * Visualizes a Cpu using a series of SliceTracks.
    * @constructor
    */
-  var CpuTrack =
+  const CpuTrack =
       tr.ui.b.define('cpu-track', tr.ui.tracks.ContainerTrack);
   CpuTrack.prototype = {
     __proto__: tr.ui.tracks.ContainerTrack.prototype,
@@ -61,7 +61,7 @@ tr.exportTo('tr.ui.tracks', function() {
     get hasVisibleContent() {
       if (this.cpu_ === undefined) return false;
 
-      var cpu = this.cpu_;
+      const cpu = this.cpu_;
       if (cpu.slices.length) return true;
 
       if (cpu.samples && cpu.samples.length) return true;
@@ -75,9 +75,9 @@ tr.exportTo('tr.ui.tracks', function() {
       this.detach();
       if (!this.cpu_) return;
 
-      var slices = this.cpu_.slices;
+      const slices = this.cpu_.slices;
       if (slices.length) {
-        var track = new tr.ui.tracks.SliceTrack(this.viewport);
+        const track = new tr.ui.tracks.SliceTrack(this.viewport);
         track.slices = slices;
         track.heading = this.cpu_.userFriendlyName + ':';
         Polymer.dom(this).appendChild(track);
@@ -86,9 +86,9 @@ tr.exportTo('tr.ui.tracks', function() {
       if (this.detailedMode_) {
         this.appendSamplesTracks_();
 
-        for (var counterName in this.cpu_.counters) {
-          var counter = this.cpu_.counters[counterName];
-          track = new tr.ui.tracks.CounterTrack(this.viewport);
+        for (const counterName in this.cpu_.counters) {
+          const counter = this.cpu_.counters[counterName];
+          const track = new tr.ui.tracks.CounterTrack(this.viewport);
           track.heading = this.cpu_.userFriendlyName + ' ' +
               counter.name + ':';
           track.counter = counter;
@@ -98,11 +98,11 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     appendSamplesTracks_() {
-      var samples = this.cpu_.samples;
+      const samples = this.cpu_.samples;
       if (samples === undefined || samples.length === 0) {
         return;
       }
-      var samplesByTitle = {};
+      const samplesByTitle = {};
       samples.forEach(function(sample) {
         if (samplesByTitle[sample.title] === undefined) {
           samplesByTitle[sample.title] = [];
@@ -110,20 +110,20 @@ tr.exportTo('tr.ui.tracks', function() {
         samplesByTitle[sample.title].push(sample);
       });
 
-      var sampleTitles = Object.keys(samplesByTitle);
+      const sampleTitles = Object.keys(samplesByTitle);
       sampleTitles.sort();
 
       sampleTitles.forEach(function(sampleTitle) {
-        var samples = samplesByTitle[sampleTitle];
-        var samplesTrack = new tr.ui.tracks.SliceTrack(this.viewport);
+        const samples = samplesByTitle[sampleTitle];
+        const samplesTrack = new tr.ui.tracks.SliceTrack(this.viewport);
         samplesTrack.group = this.cpu_;
         samplesTrack.slices = samples;
         samplesTrack.heading = this.cpu_.userFriendlyName + ': ' +
             sampleTitle;
         samplesTrack.tooltip = this.cpu_.userFriendlyDetails;
         samplesTrack.selectionGenerator = function() {
-          var selection = new tr.model.EventSet();
-          for (var i = 0; i < samplesTrack.slices.length; i++) {
+          const selection = new tr.model.EventSet();
+          for (let i = 0; i < samplesTrack.slices.length; i++) {
             selection.push(samplesTrack.slices[i]);
           }
           return selection;

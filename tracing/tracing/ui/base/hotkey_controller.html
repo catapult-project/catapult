@@ -38,7 +38,7 @@ Polymer({
   attached() {
     this.isAttached_ = true;
 
-    var host = this.findHost_();
+    const host = this.findHost_();
     if (host.__hotkeyController) {
       throw new Error('Multiple hotkey controllers attached to this host');
     }
@@ -46,13 +46,13 @@ Polymer({
     host.__hotkeyController = this;
     this.curHost_ = host;
 
-    var parentElement;
+    let parentElement;
     if (host.parentElement) {
       parentElement = host.parentElement;
     } else {
       parentElement = Polymer.dom(host).parentNode.host;
     }
-    var parentController = tr.b.getHotkeyControllerForElement(
+    const parentController = tr.b.getHotkeyControllerForElement(
         parentElement);
 
     if (parentController) {
@@ -70,7 +70,7 @@ Polymer({
   detached() {
     this.isAttached_ = false;
 
-    var host = this.curHost_;
+    const host = this.curHost_;
     if (!host) return;
 
     delete host.__hotkeyController;
@@ -89,7 +89,7 @@ Polymer({
   },
 
   addChildController_(controller) {
-    var i = this.childControllers_.indexOf(controller);
+    const i = this.childControllers_.indexOf(controller);
     if (i !== -1) {
       throw new Error('Controller already registered');
     }
@@ -97,7 +97,7 @@ Polymer({
   },
 
   removeChildController_(controller) {
-    var i = this.childControllers_.indexOf(controller);
+    const i = this.childControllers_.indexOf(controller);
     if (i === -1) {
       throw new Error('Controller not registered');
     }
@@ -127,18 +127,18 @@ Polymer({
       throw new Error('hotKey must be a tr.ui.b.HotKey');
     }
 
-    var keyMap = this.getKeyMapForEventType_(
+    const keyMap = this.getKeyMapForEventType_(
         hotKey.eventType, hotKey.useCapture);
 
-    for (var i = 0; i < hotKey.keyCodes.length; i++) {
-      var keyCode = hotKey.keyCodes[i];
+    for (let i = 0; i < hotKey.keyCodes.length; i++) {
+      const keyCode = hotKey.keyCodes[i];
       if (keyMap[keyCode]) {
         throw new Error('Key is already bound for keyCode=' + keyCode);
       }
     }
 
-    for (var i = 0; i < hotKey.keyCodes.length; i++) {
-      var keyCode = hotKey.keyCodes[i];
+    for (let i = 0; i < hotKey.keyCodes.length; i++) {
+      const keyCode = hotKey.keyCodes[i];
       keyMap[keyCode] = hotKey;
     }
     return hotKey;
@@ -149,18 +149,18 @@ Polymer({
       throw new Error('hotKey must be a tr.ui.b.HotKey');
     }
 
-    var keyMap = this.getKeyMapForEventType_(
+    const keyMap = this.getKeyMapForEventType_(
         hotKey.eventType, hotKey.useCapture);
 
-    for (var i = 0; i < hotKey.keyCodes.length; i++) {
-      var keyCode = hotKey.keyCodes[i];
+    for (let i = 0; i < hotKey.keyCodes.length; i++) {
+      const keyCode = hotKey.keyCodes[i];
       if (!keyMap[keyCode]) {
         throw new Error('Key is not bound for keyCode=' + keyCode);
       }
       keyMap[keyCode] = hotKey;
     }
-    for (var i = 0; i < hotKey.keyCodes.length; i++) {
-      var keyCode = hotKey.keyCodes[i];
+    for (let i = 0; i < hotKey.keyCodes.length; i++) {
+      const keyCode = hotKey.keyCodes[i];
       delete keyMap[keyCode];
     }
     return hotKey;
@@ -171,7 +171,7 @@ Polymer({
   },
 
   set globalMode(globalMode) {
-    var wasAttached = this.isAttached_;
+    const wasAttached = this.isAttached_;
     if (wasAttached) {
       this.detached();
     }
@@ -189,7 +189,7 @@ Polymer({
   },
 
   childRequestsGeneralFocus(child) {
-    var topmost = this.topmostConroller_;
+    const topmost = this.topmostConroller_;
     if (topmost.curHost_) {
       if (topmost.curHost_.hasAttribute('tabIndex')) {
         topmost.curHost_.focus();
@@ -208,7 +208,7 @@ Polymer({
   childRequestsBlur(child) {
     child.blur();
 
-    var topmost = this.topmostConroller_;
+    const topmost = this.topmostConroller_;
     if (topmost.curHost_) {
       topmost.curHost_.focus();
     }
@@ -226,14 +226,14 @@ Polymer({
 
   appendMatchingHotKeysTo_(matchedHotKeys,
       useCapture, e) {
-    var localKeyMap = this.getKeyMapForEventType_(e.type, useCapture);
-    var localHotKey = localKeyMap[e.keyCode];
+    const localKeyMap = this.getKeyMapForEventType_(e.type, useCapture);
+    const localHotKey = localKeyMap[e.keyCode];
     if (localHotKey) {
       matchedHotKeys.push(localHotKey);
     }
 
-    for (var i = 0; i < this.childControllers_.length; i++) {
-      var controller = this.childControllers_[i];
+    for (let i = 0; i < this.childControllers_.length; i++) {
+      const controller = this.childControllers_[i];
       controller.appendMatchingHotKeysTo_(matchedHotKeys,
           useCapture, e);
     }
@@ -244,9 +244,9 @@ Polymer({
     // handled. So, skip any events that targeted the input element.
     if (!useCapture && e.path[0].tagName === 'INPUT') return;
 
-    var sortedControllers;
+    let sortedControllers;
 
-    var matchedHotKeys = [];
+    const matchedHotKeys = [];
     this.appendMatchingHotKeysTo_(matchedHotKeys, useCapture, e);
 
     if (matchedHotKeys.length === 0) return false;
@@ -259,9 +259,9 @@ Polymer({
     }
 
 
-    var hotKey = matchedHotKeys[0];
+    const hotKey = matchedHotKeys[0];
 
-    var prevented = 0;
+    let prevented = 0;
     prevented |= hotKey.call(e);
 
     // We want to return false if preventDefaulted, or one of the handlers
@@ -274,7 +274,7 @@ Polymer({
 'use strict';
 tr.exportTo('tr.b', function() {
   function getHotkeyControllerForElement(refElement) {
-    var curElement = refElement;
+    let curElement = refElement;
     while (curElement) {
       if (curElement.tagName === 'tv-ui-b-hotkey-controller') {
         return curElement;
@@ -296,7 +296,7 @@ tr.exportTo('tr.b', function() {
   }
 
   function findHost(initialNode) {
-    var node = initialNode;
+    let node = initialNode;
     while (Polymer.dom(node).parentNode) {
       node = Polymer.dom(node).parentNode;
     }

@@ -15,9 +15,9 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var ClockDomainId = tr.model.ClockDomainId;
-  var FTraceImporter = tr.e.importer.linux_perf.FTraceImporter;
-  var FTraceImporterTestExports =
+  const ClockDomainId = tr.model.ClockDomainId;
+  const FTraceImporter = tr.e.importer.linux_perf.FTraceImporter;
+  const FTraceImporterTestExports =
       tr.e.importer.linux_perf._FTraceImporterTestExports;
 
   function newModel(events) {
@@ -27,8 +27,8 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('lineParserWithLegacyFmt', function() {
-    var p = FTraceImporterTestExports.lineParserWithLegacyFmt;
-    var x = p('   <idle>-0     [001]  4467.843475: sched_switch: ' +
+    const p = FTraceImporterTestExports.lineParserWithLegacyFmt;
+    let x = p('   <idle>-0     [001]  4467.843475: sched_switch: ' +
         'prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ==> ' +
         'next_comm=SurfaceFlinger next_pid=178 next_prio=112');
     assert.isNotNull(x);
@@ -41,7 +41,7 @@ tr.b.unittest.testSuite(function() {
         'prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R' +
         ' ==> next_comm=SurfaceFlinger next_pid=178 next_prio=112', x.details);
 
-    var x = p('Binder-Thread #-647   [001]   260.464294: sched_switch: ' +
+    x = p('Binder-Thread #-647   [001]   260.464294: sched_switch: ' +
         'prev_comm=Binder Thread # prev_pid=647 prev_prio=120 prev_state=D ' +
         ' ==> next_comm=.android.chrome next_pid=1562 next_prio=120');
     assert.isNotNull(x);
@@ -50,8 +50,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('lineParserWithIRQInfo', function() {
-    var p = FTraceImporterTestExports.lineParserWithIRQInfo;
-    var x = p('     systrace.sh-5441  [001] d...  1031.091570: ' +
+    const p = FTraceImporterTestExports.lineParserWithIRQInfo;
+    const x = p('     systrace.sh-5441  [001] d...  1031.091570: ' +
         'sched_wakeup: comm=debugd pid=4978 prio=120 success=1 target_cpu=000');
     assert.isNotNull(x);
     assert.strictEqual(x.threadName, 'systrace.sh');
@@ -63,8 +63,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('lineParserWithIRQInfoNeedResched', function() {
-    var p = FTraceImporterTestExports.lineParserWithIRQInfo;
-    var x = p('     systrace.sh-5441  [001] .N..  1031.091570: ' +
+    const p = FTraceImporterTestExports.lineParserWithIRQInfo;
+    let x = p('     systrace.sh-5441  [001] .N..  1031.091570: ' +
         'sched_wakeup: comm=debugd pid=4978 prio=120 success=1 target_cpu=000');
     assert.isNotNull(x);
     assert.strictEqual(x.threadName, 'systrace.sh');
@@ -74,20 +74,20 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(x.eventName, 'sched_wakeup');
     assert.strictEqual(x.details, 'comm=debugd pid=4978 prio=120 success=1 target_cpu=000'); // @suppress longLineCheck
 
-    var x = p('     systrace.sh-5441  [001] .n..  1031.091570: ' +
+    x = p('     systrace.sh-5441  [001] .n..  1031.091570: ' +
         'sched_wakeup: comm=debugd pid=4978 prio=120 success=1 target_cpu=000');
     assert.isNotNull(x);
     assert.strictEqual(x.threadName, 'systrace.sh');
 
-    var x = p('     systrace.sh-5441  [001] .p..  1031.091570: ' +
+    x = p('     systrace.sh-5441  [001] .p..  1031.091570: ' +
         'sched_wakeup: comm=debugd pid=4978 prio=120 success=1 target_cpu=000');
     assert.isNotNull(x);
     assert.strictEqual(x.threadName, 'systrace.sh');
   });
 
   test('lineParserWithTGID', function() {
-    var p = FTraceImporterTestExports.lineParserWithTGID;
-    var x = p('     systrace.sh-5441  (54321) [001] d...  1031.091570: ' +
+    const p = FTraceImporterTestExports.lineParserWithTGID;
+    let x = p('     systrace.sh-5441  (54321) [001] d...  1031.091570: ' +
         'sched_wakeup: comm=debugd pid=4978 prio=120 success=1 target_cpu=000');
     assert.isNotNull(x);
     assert.strictEqual(x.threadName, 'systrace.sh');
@@ -98,20 +98,20 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(x.eventName, 'sched_wakeup');
     assert.strictEqual(x.details, 'comm=debugd pid=4978 prio=120 success=1 target_cpu=000'); // @suppress longLineCheck
 
-    var x = p('     systrace.sh-5441  (  321) [001] d...  1031.091570: ' +
+    x = p('     systrace.sh-5441  (  321) [001] d...  1031.091570: ' +
         'sched_wakeup: comm=debugd pid=4978 prio=120 success=1 target_cpu=000');
     assert.isNotNull(x);
     assert.strictEqual(x.tgid, '321');
 
-    var x = p('     systrace.sh-5441  (-----) [001] d...  1031.091570: ' +
+    x = p('     systrace.sh-5441  (-----) [001] d...  1031.091570: ' +
         'sched_wakeup: comm=debugd pid=4978 prio=120 success=1 target_cpu=000');
     assert.isNotNull(x);
     assert.isUndefined(x.tgid);
   });
 
   test('lineParserWithTGIDNeedResched', function() {
-    var p = FTraceImporterTestExports.lineParserWithTGID;
-    var x = p('     systrace.sh-5441  (54321) [001] .N..  1031.091570: ' +
+    const p = FTraceImporterTestExports.lineParserWithTGID;
+    let x = p('     systrace.sh-5441  (54321) [001] .N..  1031.091570: ' +
         'sched_wakeup: comm=debugd pid=4978 prio=120 success=1 target_cpu=000');
     assert.isNotNull(x);
     assert.strictEqual(x.threadName, 'systrace.sh');
@@ -122,62 +122,63 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(x.eventName, 'sched_wakeup');
     assert.strictEqual(x.details, 'comm=debugd pid=4978 prio=120 success=1 target_cpu=000'); // @suppress longLineCheck
 
-    var x = p('     systrace.sh-5441  (  321) [001] .n..  1031.091570: ' +
+    x = p('     systrace.sh-5441  (  321) [001] .n..  1031.091570: ' +
         'sched_wakeup: comm=debugd pid=4978 prio=120 success=1 target_cpu=000');
     assert.isNotNull(x);
     assert.strictEqual(x.tgid, '321');
 
-    var x = p('     systrace.sh-5441  (-----) [001] .p..  1031.091570: ' +
+    x = p('     systrace.sh-5441  (-----) [001] .p..  1031.091570: ' +
         'sched_wakeup: comm=debugd pid=4978 prio=120 success=1 target_cpu=000');
     assert.isNotNull(x);
     assert.isUndefined(x.tgid);
   });
 
   test('autodetectLineCornerCases', function() {
-    var detectParser = FTraceImporterTestExports.autoDetectLineParser;
-    var lineParserWithLegacyFmt =
+    const detectParser = FTraceImporterTestExports.autoDetectLineParser;
+    const lineParserWithLegacyFmt =
         FTraceImporterTestExports.lineParserWithLegacyFmt;
-    var lineParserWithIRQInfo = FTraceImporterTestExports.lineParserWithIRQInfo;
-    var lineParserWithTGID = FTraceImporterTestExports.lineParserWithTGID;
+    const lineParserWithIRQInfo =
+      FTraceImporterTestExports.lineParserWithIRQInfo;
+    const lineParserWithTGID = FTraceImporterTestExports.lineParserWithTGID;
 
-    var lineWithLegacyFmt =
+    const lineWithLegacyFmt =
         'systrace.sh-8170  [001] 15180.978813: sched_switch: ' +
         'prev_comm=systrace.sh prev_pid=8170 prev_prio=120 ' +
         'prev_state=x ==> next_comm=kworker/1:0 next_pid=7873 ' +
         'next_prio=120';
-    var detected = detectParser(lineWithLegacyFmt);
+    let detected = detectParser(lineWithLegacyFmt);
     assert.strictEqual(lineParserWithLegacyFmt, detected);
 
-    var lineWithIRQInfo =
+    const lineWithIRQInfo =
         'systrace.sh-8170  [001] d... 15180.978813: sched_switch: ' +
         'prev_comm=systrace.sh prev_pid=8170 prev_prio=120 ' +
         'prev_state=x ==> next_comm=kworker/1:0 next_pid=7873 ' +
         'next_prio=120';
-    var detected = detectParser(lineWithIRQInfo);
+    detected = detectParser(lineWithIRQInfo);
     assert.strictEqual(lineParserWithIRQInfo, detected);
 
-    var lineWithTGID =
+    const lineWithTGID =
         'systrace.sh-8170  (54321) [001] d... 15180.978813: sched_switch: ' +
         'prev_comm=systrace.sh prev_pid=8170 prev_prio=120 ' +
         'prev_state=x ==> next_comm=kworker/1:0 next_pid=7873 ' +
         'next_prio=120';
-    var detected = detectParser(lineWithTGID);
+    detected = detectParser(lineWithTGID);
     assert.strictEqual(lineParserWithTGID, detected);
   });
 
   test('traceEventClockSyncRE', function() {
-    var re = FTraceImporterTestExports.traceEventClockSyncRE;
-    var x = re.exec('trace_event_clock_sync: parent_ts=19581477508');
+    const re = FTraceImporterTestExports.traceEventClockSyncRE;
+    let x = re.exec('trace_event_clock_sync: parent_ts=19581477508');
     assert.isNotNull(x);
     assert.strictEqual(x[1], '19581477508');
 
-    var x = re.exec('trace_event_clock_sync: parent_ts=123.456');
+    x = re.exec('trace_event_clock_sync: parent_ts=123.456');
     assert.isNotNull(x);
     assert.strictEqual(x[1], '123.456');
   });
 
   test('genericClockSync', function() {
-    var lines = [
+    const lines = [
       '# tracer: nop',
       '#',
       '#           TASK-PID    CPU#    TIMESTAMP  FUNCTION',
@@ -185,9 +186,9 @@ tr.b.unittest.testSuite(function() {
       'sh-26121 [000] ...1 15.050: tracing_mark_write: trace_event_clock_sync: name=battor regulator=8941_smbb_boost' // @suppress longLineCheck
     ];
 
-    var io = new tr.importer.ImportOptions();
-    var m = new tr.Model();
-    var i = new tr.importer.Import(m, io);
+    const io = new tr.importer.ImportOptions();
+    const m = new tr.Model();
+    const i = new tr.importer.Import(m, io);
 
     m.clockSyncManager.addClockSyncMarker(ClockDomainId.BATTOR, 'battor', 50);
 
@@ -241,7 +242,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('canImport', function() {
-    var lines = [
+    let lines = [
       '# tracer: nop',
       '#',
       '#           TASK-PID    CPU#    TIMESTAMP  FUNCTION',
@@ -264,14 +265,14 @@ tr.b.unittest.testSuite(function() {
     ];
     assert.isTrue(FTraceImporter.canImport(lines.join('\n')));
 
-    var lines = [
+    lines = [
       '          <idle>-0     [001]  4467.843475: sched_switch: ' +
           'prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ==> ' +
               'next_comm=SurfaceFlinger next_pid=178 next_prio=112'
     ];
     assert.isTrue(FTraceImporter.canImport(lines.join('\n')));
 
-    var lines = [
+    lines = [
       '          <idle>-0     [001]  4467.843475: sched_switch: ' +
           'prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ==> ' +
           'next_comm=SurfaceFlinger next_pid=178 next_prio=112',
@@ -283,7 +284,7 @@ tr.b.unittest.testSuite(function() {
     ];
     assert.isTrue(FTraceImporter.canImport(lines.join('\n')));
 
-    var lines = [
+    lines = [
       'SomeRandomText',
       'More random text'
     ];
@@ -291,7 +292,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('canImport34AndLater', function() {
-    var lines = [
+    let lines = [
       '# tracer: nop',
       '#',
       '# entries-in-buffer/entries-written: 55191/55191   #P:2',
@@ -311,7 +312,7 @@ tr.b.unittest.testSuite(function() {
     ];
     assert.isTrue(FTraceImporter.canImport(lines.join('\n')));
 
-    var lines = [
+    lines = [
       '     systrace.sh-5441  [001] d...  1031.091570: sched_wakeup: ' +
           'comm=debugd pid=4978 prio=120 success=1 target_cpu=000',
       '     systrace.sh-5441  [001] d...  1031.091584: sched_switch: ' +
@@ -322,7 +323,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('importOneSequence', function() {
-    var lines = [
+    const lines = [
       '          <idle>-0     [001]  4467.843475: sched_switch: ' +
           'prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ==> ' +
           'next_comm=SurfaceFlinger next_pid=178 next_prio=112',
@@ -336,10 +337,10 @@ tr.b.unittest.testSuite(function() {
           'prev_comm=kworker/u:2 prev_pid=2844 prev_prio=120 ' +
           'prev_state=S ==> next_comm=swapper next_pid=0 next_prio=120'
     ];
-    var m = newModel(lines.join('\n'));
+    const m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
-    var c = m.kernel.cpus[1];
+    const c = m.kernel.cpus[1];
     assert.strictEqual(c.slices.length, 2);
 
     assert.strictEqual(c.slices[0].title, 'SurfaceFlinger');
@@ -348,7 +349,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('importOneSequenceWithSpacyThreadName', function() {
-    var lines = [
+    const lines = [
       '          <idle>-0     [001]  4467.843475: sched_switch: ' +
           'prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ==> ' +
           'next_comm=Surface Flinger  next_pid=178 next_prio=112',
@@ -362,10 +363,10 @@ tr.b.unittest.testSuite(function() {
           'prev_comm=kworker/u:2 prev_pid=2844 prev_prio=120 ' +
           'prev_state=S ==> next_comm=swapper next_pid=0 next_prio=120'
     ];
-    var m = newModel(lines.join('\n'));
+    const m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
-    var c = m.kernel.cpus[1];
+    const c = m.kernel.cpus[1];
     assert.strictEqual(c.slices.length, 2);
 
     assert.strictEqual(c.slices[0].title, 'Surface Flinger ');
@@ -374,18 +375,18 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('importWithNewline', function() {
-    var lines = [
+    const lines = [
       ''
     ];
-    var m = newModel(lines.join('\n'));
+    const m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
   });
 
   test('importSystraceHtml', function() {
-    var p = tr.b.getAsync(
+    const p = tr.b.getAsync(
         '/test_data/trivial_systrace.html');
     return p.then(function(data) {
-      var m = newModel(data);
+      const m = newModel(data);
       assert.isFalse(m.hasImportWarnings);
 
       assert.isDefined(m.processes[124]);
@@ -406,7 +407,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('importMultiTraceHtml', function() {
-    var lines = [
+    const lines = [
       '<!DoCTYPE hTml>', // check must be case insensitive
       '<body>',
       '  <div class="view">',
@@ -429,7 +430,7 @@ tr.b.unittest.testSuite(function() {
       '<\/html>'
     ];
 
-    var m = newModel(lines.join('\n'));
+    const m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
     assert.isDefined(m.processes[124]);
@@ -493,7 +494,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('clockSync', function() {
-    var lines = [
+    const lines = [
       '          <idle>-0     [001]  4467.843475: sched_switch: ' +
           'prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ' +
           '==> next_comm=SurfaceFlinger next_pid=178 next_prio=112',
@@ -508,10 +509,10 @@ tr.b.unittest.testSuite(function() {
       '     kworker/u:2-2844  [001]  4467.843000: 0: ' +
           'trace_event_clock_sync: parent_ts=0.1'
     ];
-    var m = newModel(lines.join('\n'));
+    const m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
-    var c = m.kernel.cpus[1];
+    const c = m.kernel.cpus[1];
     assert.strictEqual(c.slices.length, 2);
 
     assert.closeTo(
@@ -521,7 +522,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('clockSyncMarkWrite', function() {
-    var lines = [
+    const lines = [
       'systrace.sh-8170  [001] 15180.978813: sched_switch: ' +
           'prev_comm=systrace.sh prev_pid=8170 prev_prio=120 ' +
           'prev_state=x ==> next_comm=kworker/1:0 next_pid=7873 ' +
@@ -535,10 +536,10 @@ tr.b.unittest.testSuite(function() {
       'systrace.sh-8182  [000] 15186.203900: tracing_mark_write: ' +
           'trace_event_clock_sync: parent_ts=0'
     ];
-    var m = newModel(lines.join('\n'));
+    const m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
-    var c = m.kernel.cpus[1];
+    const c = m.kernel.cpus[1];
     assert.strictEqual(c.slices.length, 2);
 
     assert.closeTo((15180.978813 - 0) * 1000, c.slices[0].start, 1e-5);
@@ -554,13 +555,13 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('clockSyncMarkWriteSecondIgnored', function() {
-    var lines = [
+    const lines = [
       'systrace.sh-8182  [000] 15186.203900: tracing_mark_write: ' +
           'trace_event_clock_sync: parent_ts=0',
       'systrace.sh-8182  [000] 15187.203900: tracing_mark_write: ' +
           'trace_event_clock_sync: parent_ts=0'
     ];
-    var m = newModel(lines.join('\n'));
+    const m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
     assert.strictEqual(
@@ -574,16 +575,16 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('tracingMarkWriteEOLCleanup', function() {
-    var lines = [
+    const lines = [
       'systrace.sh-8182  [001] ...1 2068001.677892: tracing_mark_write: ' +
           'B|9304|test\\n\\',
       'systrace.sh-8182  [002] ...1 2068991.686415: tracing_mark_write: E\\n\\'
     ];
 
-    var m = newModel(lines.join('\n'));
+    const m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
-    var c = m.processes[9304].threads[8182].sliceGroup;
+    const c = m.processes[9304].threads[8182].sliceGroup;
     assert.strictEqual(c.slices.length, 1);
 
     assert.closeTo((2068001.677892 - 0) * 1000, c.slices[0].start, 1e-5);
@@ -594,7 +595,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('cpuCount', function() {
-    var lines = [
+    const lines = [
       'systrace.sh-8170  [001] 15180.978813: sched_switch: ' +
           'prev_comm=systrace.sh prev_pid=8170 prev_prio=120 ' +
           'prev_state=x ==> next_comm=kworker/1:0 next_pid=7873 ' +
@@ -606,7 +607,7 @@ tr.b.unittest.testSuite(function() {
           'prev_pid=4404 prev_prio=120 prev_state=S ==> ' +
           'next_comm=dbus-daemon next_pid=510 next_prio=120'
     ];
-    var m = newModel(lines.join('\n'));
+    const m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
     assert.strictEqual(tr.b.dictionaryLength(m.kernel.cpus), 2);

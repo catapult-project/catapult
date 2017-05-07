@@ -31,13 +31,13 @@ found in the LICENSE file.
 
     is: 'alert-icon',
     initialize(alertAnnotation, alertKey) {
-      var bugId = alertAnnotation.bug_id;
-      var improvement = alertAnnotation.improvement;
-      var recovered = alertAnnotation.recovered;
-      var key = alertAnnotation.key;
+      const bugId = alertAnnotation.bug_id;
+      const improvement = alertAnnotation.improvement;
+      const recovered = alertAnnotation.recovered;
+      const key = alertAnnotation.key;
 
       this.$.icon.icon = 'report';
-      var color = 'black';
+      let color = 'black';
       if (!bugId && !improvement) {
         color = 'red';
       } else if (!bugId && improvement) {

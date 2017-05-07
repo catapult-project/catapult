@@ -13,7 +13,7 @@ found in the LICENSE file.
  * @type {!Object}
  * @const
  */
-var global = this.window || this.global;
+const global = this.window || this.global;
 
 /** Platform, package, object property, and Event support. */
 this.tr = (function() {
@@ -28,10 +28,10 @@ this.tr = (function() {
    * @private
    */
   function exportPath(name) {
-    var parts = name.split('.');
-    var cur = global;
+    const parts = name.split('.');
+    let cur = global;
 
-    for (var part; parts.length && (part = parts.shift());) {
+    for (let part; parts.length && (part = parts.shift());) {
       if (part in cur) {
         cur = cur[part];
       } else {
@@ -42,10 +42,10 @@ this.tr = (function() {
   }
 
   function isExported(name) {
-    var parts = name.split('.');
-    var cur = global;
+    const parts = name.split('.');
+    let cur = global;
 
-    for (var part; parts.length && (part = parts.shift());) {
+    for (let part; parts.length && (part = parts.shift());) {
       if (part in cur) {
         cur = cur[part];
       } else {
@@ -56,25 +56,25 @@ this.tr = (function() {
   }
 
   function isDefined(name) {
-    var parts = name.split('.');
+    const parts = name.split('.');
 
-    var curObject = global;
+    let curObject = global;
 
-    for (var i = 0; i < parts.length; i++) {
-      var partName = parts[i];
-      var nextObject = curObject[partName];
+    for (let i = 0; i < parts.length; i++) {
+      const partName = parts[i];
+      const nextObject = curObject[partName];
       if (nextObject === undefined) return false;
       curObject = nextObject;
     }
     return true;
   }
 
-  var panicElement = undefined;
-  var rawPanicMessages = [];
+  let panicElement = undefined;
+  const rawPanicMessages = [];
   function showPanicElementIfNeeded() {
     if (panicElement) return;
 
-    var panicOverlay = document.createElement('div');
+    const panicOverlay = document.createElement('div');
     panicOverlay.style.backgroundColor = 'white';
     panicOverlay.style.border = '3px solid red';
     panicOverlay.style.boxSizing = 'border-box';
@@ -113,7 +113,7 @@ this.tr = (function() {
     }
 
     showPanicElementIfNeeded();
-    var panicMessageEl = document.createElement('div');
+    const panicMessageEl = document.createElement('div');
     panicMessageEl.innerHTML =
         '<h2 id="message"></h2>' +
         '<pre id="details"></pre>';
@@ -137,14 +137,14 @@ this.tr = (function() {
   }
 
   function exportTo(namespace, fn) {
-    var obj = exportPath(namespace);
-    var exports = fn();
+    const obj = exportPath(namespace);
+    const exports = fn();
 
-    for (var propertyName in exports) {
+    for (const propertyName in exports) {
       // Maybe we should check the prototype chain here? The current usage
       // pattern is always using an object literal so we only care about own
       // properties.
-      var propertyDescriptor = Object.getOwnPropertyDescriptor(exports,
+      const propertyDescriptor = Object.getOwnPropertyDescriptor(exports,
           propertyName);
       if (propertyDescriptor) {
         Object.defineProperty(obj, propertyName, propertyDescriptor);

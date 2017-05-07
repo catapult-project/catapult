@@ -15,9 +15,9 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.model', function() {
-  var EventRegistry = tr.model.EventRegistry;
+  const EventRegistry = tr.model.EventRegistry;
 
-  var RequestSelectionChangeEvent = tr.b.Event.bind(
+  const RequestSelectionChangeEvent = tr.b.Event.bind(
       undefined, 'requestSelectionChange', true, false);
 
   /**
@@ -31,7 +31,7 @@ tr.exportTo('tr.model', function() {
 
     if (opt_events) {
       if (opt_events instanceof Array) {
-        for (var event of opt_events) {
+        for (const event of opt_events) {
           this.push(event);
         }
       } else if (opt_events instanceof EventSet) {
@@ -63,7 +63,7 @@ tr.exportTo('tr.model', function() {
     },
 
     * [Symbol.iterator]() {
-      for (var event of this.events_) {
+      for (const event of this.events_) {
         yield event;
       }
     },
@@ -78,8 +78,8 @@ tr.exportTo('tr.model', function() {
      * arguments pushed.
      */
     push(...events) {
-      var numPushed;
-      for (var event of events) {
+      let numPushed;
+      for (const event of events) {
         if (event.guid === undefined) {
           throw new Error('Event must have a GUID');
         }
@@ -106,7 +106,7 @@ tr.exportTo('tr.model', function() {
     },
 
     addEventSet(eventSet) {
-      for (var event of eventSet) {
+      for (const event of eventSet) {
         this.push(event);
       }
     },
@@ -122,21 +122,21 @@ tr.exportTo('tr.model', function() {
 
     sortEvents(compare) {
       // Convert to array, then sort, then convert back
-      var ary = this.toArray();
+      const ary = this.toArray();
       ary.sort(compare);
 
       this.clear();
-      for (var event of ary) {
+      for (const event of ary) {
         this.push(event);
       }
     },
 
     getEventsOrganizedByBaseType(opt_pruneEmpty) {
-      var allTypeInfos = EventRegistry.getAllRegisteredTypeInfos();
+      const allTypeInfos = EventRegistry.getAllRegisteredTypeInfos();
 
-      var events = this.getEventsOrganizedByCallback(function(event) {
-        var maxEventIndex = -1;
-        var maxEventTypeInfo = undefined;
+      const events = this.getEventsOrganizedByCallback(function(event) {
+        let maxEventIndex = -1;
+        let maxEventTypeInfo = undefined;
 
         allTypeInfos.forEach(function(eventTypeInfo, eventIndex) {
           if (!(event instanceof eventTypeInfo.constructor)) return;
@@ -180,12 +180,12 @@ tr.exportTo('tr.model', function() {
      * @return {!Object}
      */
     getEventsOrganizedByCallback(cb, opt_this) {
-      var groupedEvents = tr.b.group(this, cb, opt_this || this);
+      const groupedEvents = tr.b.group(this, cb, opt_this || this);
       return tr.b.mapItems(groupedEvents, (_, events) => new EventSet(events));
     },
 
     enumEventsOfType(type, func) {
-      for (var event of this) {
+      for (const event of this) {
         if (event instanceof type) {
           func(event);
         }
@@ -197,26 +197,26 @@ tr.exportTo('tr.model', function() {
         throw new Error('Empty event set');
       }
 
-      var eventsByBaseType = this.getEventsOrganizedByBaseType(true);
-      var eventTypeName = Object.keys(eventsByBaseType)[0];
+      const eventsByBaseType = this.getEventsOrganizedByBaseType(true);
+      const eventTypeName = Object.keys(eventsByBaseType)[0];
 
       if (this.length === 1) {
-        var tmp = EventRegistry.getUserFriendlySingularName(eventTypeName);
+        const tmp = EventRegistry.getUserFriendlySingularName(eventTypeName);
         return tr.b.getOnlyElement(this.events_).userFriendlyName;
       }
 
-      var numEventTypes = tr.b.dictionaryLength(eventsByBaseType);
+      const numEventTypes = tr.b.dictionaryLength(eventsByBaseType);
       if (numEventTypes !== 1) {
         return this.length + ' events of various types';
       }
 
-      var tmp = EventRegistry.getUserFriendlyPluralName(eventTypeName);
+      const tmp = EventRegistry.getUserFriendlyPluralName(eventTypeName);
       return this.length + ' ' + tmp;
     },
 
     filter(fn, opt_this) {
-      var res = new EventSet();
-      for (var event of this) {
+      const res = new EventSet();
+      for (const event of this) {
         if (fn.call(opt_this, event)) {
           res.push(event);
         }
@@ -226,29 +226,29 @@ tr.exportTo('tr.model', function() {
     },
 
     toArray() {
-      var ary = [];
-      for (var event of this) {
+      const ary = [];
+      for (const event of this) {
         ary.push(event);
       }
       return ary;
     },
 
     forEach(fn, opt_this) {
-      for (var event of this) {
+      for (const event of this) {
         fn.call(opt_this, event);
       }
     },
 
     map(fn, opt_this) {
-      var res = [];
-      for (var event of this) {
+      const res = [];
+      for (const event of this) {
         res.push(fn.call(opt_this, event));
       }
       return res;
     },
 
     every(fn, opt_this) {
-      for (var event of this) {
+      for (const event of this) {
         if (!fn.call(opt_this, event)) {
           return false;
         }
@@ -257,7 +257,7 @@ tr.exportTo('tr.model', function() {
     },
 
     some(fn, opt_this) {
-      for (var event of this) {
+      for (const event of this) {
         if (fn.call(opt_this, event)) {
           return true;
         }
@@ -266,8 +266,8 @@ tr.exportTo('tr.model', function() {
     },
 
     asDict() {
-      var stableIds = [];
-      for (var event of this) {
+      const stableIds = [];
+      for (const event of this) {
         stableIds.push(event.stableId);
       }
       return {'events': stableIds};
@@ -279,7 +279,7 @@ tr.exportTo('tr.model', function() {
   };
 
   EventSet.IMMUTABLE_EMPTY_SET = (function() {
-    var s = new EventSet();
+    const s = new EventSet();
     s.push = function() {
       throw new Error('Cannot push to an immutable event set');
     };

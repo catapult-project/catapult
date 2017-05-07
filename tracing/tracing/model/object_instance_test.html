@@ -13,27 +13,27 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('getSnapshotAtWithImplicitCreation', function() {
-    var instance = new tr.model.ObjectInstance(
+    const instance = new tr.model.ObjectInstance(
         {}, '0x1000', 'cat', 'n', 10);
-    var s10 = instance.addSnapshot(10, 'a');
+    let s10 = instance.addSnapshot(10, 'a');
     instance.addSnapshot(40, 'b');
     instance.wasDeleted(60);
 
-    var s1 = instance.getSnapshotAt(1);
+    const s1 = instance.getSnapshotAt(1);
     assert.strictEqual(s1, s10);
 
-    var s10 = instance.getSnapshotAt(10);
+    s10 = instance.getSnapshotAt(10);
     assert.strictEqual(s10.args, 'a');
     assert.strictEqual(instance.getSnapshotAt(15), s10);
 
-    var s40 = instance.getSnapshotAt(40);
+    const s40 = instance.getSnapshotAt(40);
     assert.strictEqual(s40.args, 'b');
     assert.strictEqual(instance.getSnapshotAt(50), s40);
     assert.strictEqual(instance.getSnapshotAt(59.9), s40);
   });
 
   test('getSnapshotAtWithExplicitCreation', function() {
-    var instance = new tr.model.ObjectInstance(
+    const instance = new tr.model.ObjectInstance(
         {}, '0x1000', 'cat', 'n', 10);
     instance.creationTsWasExplicit = true;
     instance.addSnapshot(10, 'a');
@@ -43,24 +43,24 @@ tr.b.unittest.testSuite(function() {
       instance.getSnapshotAt(1);
     });
 
-    var s10 = instance.getSnapshotAt(10);
+    const s10 = instance.getSnapshotAt(10);
     assert.strictEqual(s10.args, 'a');
     assert.strictEqual(instance.getSnapshotAt(15), s10);
   });
 
   test('getSnapshotBeforeFirstSnapshot', function() {
-    var instance = new tr.model.ObjectInstance(
+    const instance = new tr.model.ObjectInstance(
         {}, '0x1000', 'cat', 'n', 10);
-    var s15 = instance.addSnapshot(15, 'a');
+    const s15 = instance.addSnapshot(15, 'a');
     instance.wasDeleted(40);
 
     assert.strictEqual(instance.getSnapshotAt(10), s15);
   });
 
   test('getSnapshotAfterLastSnapshot', function() {
-    var instance = new tr.model.ObjectInstance(
+    const instance = new tr.model.ObjectInstance(
         {}, '0x1000', 'cat', 'n', 10);
-    var s15 = instance.addSnapshot(15, 'a');
+    const s15 = instance.addSnapshot(15, 'a');
     instance.wasDeleted(40);
 
     assert.strictEqual(instance.getSnapshotAt(20), s15);

@@ -22,7 +22,7 @@ Polymer({
 
   set selection(selection) {
     Polymer.dom(this).textContent = '';
-    var realView = document.createElement('tr-ui-a-multi-event-sub-view');
+    const realView = document.createElement('tr-ui-a-multi-event-sub-view');
     realView.eventsHaveDuration = false;
     realView.eventsHaveSubRows = false;
 
@@ -39,7 +39,7 @@ Polymer({
   get relatedEventsToHighlight() {
     if (!this.currentSelection_) return undefined;
 
-    var selection = new tr.model.EventSet();
+    const selection = new tr.model.EventSet();
     this.currentSelection_.forEach(function(frameEvent) {
       frameEvent.associatedEvents.forEach(function(event) {
         selection.push(event);

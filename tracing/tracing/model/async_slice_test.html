@@ -11,22 +11,22 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var AsyncSlice = tr.model.AsyncSlice;
-  var Process = tr.model.Process;
-  var Thread = tr.model.Thread;
-  var newAsyncSlice = tr.c.TestUtils.newAsyncSlice;
-  var newAsyncSliceEx = tr.c.TestUtils.newAsyncSliceEx;
-  var newFakeThread = tr.c.TestUtils.newFakeThread;
+  const AsyncSlice = tr.model.AsyncSlice;
+  const Process = tr.model.Process;
+  const Thread = tr.model.Thread;
+  const newAsyncSlice = tr.c.TestUtils.newAsyncSlice;
+  const newAsyncSliceEx = tr.c.TestUtils.newAsyncSliceEx;
+  const newFakeThread = tr.c.TestUtils.newFakeThread;
 
   test('stableId', function() {
-    var thread = newFakeThread();
-    var group = thread.asyncSliceGroup;
+    const thread = newFakeThread();
+    const group = thread.asyncSliceGroup;
 
-    var sA = group.push(newAsyncSliceEx(
+    const sA = group.push(newAsyncSliceEx(
         { title: 'sA', start: 0.0, duration: 10.0 }));
-    var sB = group.push(newAsyncSliceEx(
+    const sB = group.push(newAsyncSliceEx(
         { title: 'sB', start: 10.0, duration: 20.0 }));
-    var sC = group.push(newAsyncSliceEx(
+    const sC = group.push(newAsyncSliceEx(
         { title: 'sC', start: 20.0, duration: 30.0 }));
 
     assert.strictEqual(group.stableId + '.0', sA.stableId);
@@ -35,13 +35,13 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('setParentContainerForSubSlices', function() {
-    var model = new tr.Model();
-    var p1 = new Process(model, 1);
-    var t1 = new Thread(p1, 1);
-    var asyncSlice = newAsyncSlice(0, 10, t1, t1);
-    var subSlice1 = newAsyncSlice(1, 5, t1, t1);
-    var subSlice2 = newAsyncSlice(6, 9, t1, t1);
-    var subSlice3 = newAsyncSlice(2, 3, t1, t1);
+    const model = new tr.Model();
+    const p1 = new Process(model, 1);
+    const t1 = new Thread(p1, 1);
+    const asyncSlice = newAsyncSlice(0, 10, t1, t1);
+    const subSlice1 = newAsyncSlice(1, 5, t1, t1);
+    const subSlice2 = newAsyncSlice(6, 9, t1, t1);
+    const subSlice3 = newAsyncSlice(2, 3, t1, t1);
     subSlice1.subSlices.push(subSlice3);
     asyncSlice.subSlices.push(subSlice1);
     asyncSlice.subSlices.push(subSlice2);

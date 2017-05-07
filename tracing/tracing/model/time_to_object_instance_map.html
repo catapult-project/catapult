@@ -41,7 +41,7 @@ tr.exportTo('tr.model', function() {
         return this.instances[0];
       }
 
-      var lastInstance = this.instances[this.instances.length - 1];
+      let lastInstance = this.instances[this.instances.length - 1];
       if (ts < lastInstance.deletionTs) {
         throw new Error('Mutation of the TimeToObjectInstanceMap must be ' +
                         'done in ascending timestamp order.');
@@ -59,13 +59,13 @@ tr.exportTo('tr.model', function() {
             this.parent, this.scopedId, category, name, ts, opt_baseTypeName));
       }
 
-      var i = tr.b.math.findIndexInSortedIntervals(
+      const i = tr.b.math.findIndexInSortedIntervals(
           this.instances,
           function(inst) { return inst.creationTs; },
           function(inst) { return inst.deletionTs - inst.creationTs; },
           ts);
 
-      var instance;
+      let instance;
       if (i < 0) {
         instance = this.instances[0];
         if (ts > instance.deletionTs ||
@@ -99,9 +99,9 @@ tr.exportTo('tr.model', function() {
           // Search backward from the right for an instance that was definitely
           // deleted before this ts. Any time an instance is found that has a
           // moveable creationTs
-          var lastValidIndex;
-          for (var i = this.instances.length - 1; i >= 0; i--) {
-            var tmp = this.instances[i];
+          let lastValidIndex;
+          for (let i = this.instances.length - 1; i >= 0; i--) {
+            const tmp = this.instances[i];
             if (ts >= tmp.deletionTs) break;
             if (tmp.creationTsWasExplicit === false &&
                 tmp.snapshots.length === 0) {
@@ -132,7 +132,7 @@ tr.exportTo('tr.model', function() {
         this.instances.push(this.createObjectInstanceFunction_(
             this.parent, this.scopedId, category, name, ts));
       }
-      var lastInstance = this.instances[this.instances.length - 1];
+      let lastInstance = this.instances[this.instances.length - 1];
       if (ts < lastInstance.creationTs) {
         throw new Error('Cannot delete an id before it was created');
       }
@@ -155,7 +155,7 @@ tr.exportTo('tr.model', function() {
     },
 
     getInstanceAt(ts) {
-      var i = tr.b.math.findIndexInSortedIntervals(
+      const i = tr.b.math.findIndexInSortedIntervals(
           this.instances,
           function(inst) { return inst.creationTs; },
           function(inst) { return inst.deletionTs - inst.creationTs; },

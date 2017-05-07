@@ -12,13 +12,13 @@ found in the LICENSE file.
  * This file contains TestSelection, a class for managing a set
  * of test data series to plot on one chart.
  */
-var testselection = (function() {
+const testselection = (function() {
   /**
    * @param {string} test Test path, not including master/bot.
    * @return {boolean} True if the test is "important". Note that this is
    *     different from "important" flag for data that's sent to /add_point.
    */
-  var isImportant = function(test, testSuites) {
+  const isImportant = function(test, testSuites) {
     return isChartLevel_(test) || isMonitored_(test, testSuites);
   };
 
@@ -26,7 +26,7 @@ var testselection = (function() {
    * @param {string} testPath Test path.
    * @return {string} Test without master/bot.
    */
-  var testFromTestPath_ = function(testPath) {
+  const testFromTestPath_ = function(testPath) {
     return testPath.split('/').slice(2).join('/');
   };
 
@@ -34,7 +34,7 @@ var testselection = (function() {
    * @param {string} test Test path, not including master/bot.
    * @return {boolean} True if the test name only has two parts.
    */
-  var isChartLevel_ = function(test) {
+  const isChartLevel_ = function(test) {
     return test.split('/').length <= 2;
   };
 
@@ -42,12 +42,12 @@ var testselection = (function() {
    * @param {string} test Test path, not including master/bot.
    * @return {boolean} True if the test name only has two parts.
    */
-  var isMonitored_ = function(test, testSuites) {
-    var parts = test.split('/');
-    var testSuiteName = parts[0];
-    var subTestPath = parts.slice(1).join('/');
+  const isMonitored_ = function(test, testSuites) {
+    const parts = test.split('/');
+    const testSuiteName = parts[0];
+    const subTestPath = parts.slice(1).join('/');
     if (testSuites && testSuites[testSuiteName]) {
-      var important = testSuites[testSuiteName].mon;
+      const important = testSuites[testSuiteName].mon;
       if (important && important.indexOf(subTestPath) != -1) {
         return true;
       }
@@ -61,7 +61,7 @@ var testselection = (function() {
    * as well as (optionally) the revision range to plot.
    * @constructor
    */
-  var TestSelection = function(testSuites) {
+  const TestSelection = function(testSuites) {
     this.testSuites = testSuites;
 
     /**
@@ -84,7 +84,7 @@ var testselection = (function() {
       this.testPathDict_[testPath] = [];
     }
     if (selectedTraces) {
-      for (var i = 0; i < selectedTraces.length; i++) {
+      for (let i = 0; i < selectedTraces.length; i++) {
         if (this.testPathDict_[testPath].indexOf(selectedTraces[i]) == -1) {
           this.testPathDict_[testPath].push(selectedTraces[i]);
         }
@@ -106,10 +106,10 @@ var testselection = (function() {
    *     tests, then others and their corresponding ref tests.
    */
   TestSelection.prototype.getTests = function() {
-    var core = this.getCoreTests_();
-    var nonCore = this.complementaryTests_(core);
-    var coreSorted = Object.keys(core).sort();
-    var othersSorted = Object.keys(nonCore).sort();
+    const core = this.getCoreTests_();
+    const nonCore = this.complementaryTests_(core);
+    const coreSorted = Object.keys(core).sort();
+    const othersSorted = Object.keys(nonCore).sort();
     return coreSorted.concat(othersSorted);
   };
 
@@ -118,8 +118,8 @@ var testselection = (function() {
    *     Array of selected series under that test path.
    */
   TestSelection.prototype.getTestPathAndSelectedSeries = function() {
-    var testPathAndSelected = [];
-    for (var testPath in this.testPathDict_) {
+    const testPathAndSelected = [];
+    for (const testPath in this.testPathDict_) {
       testPathAndSelected.push([testPath, this.testPathDict_[testPath]]);
     }
     return testPathAndSelected;
@@ -131,9 +131,9 @@ var testselection = (function() {
    *     in the given set of tests to true.
    */
   TestSelection.prototype.complementaryTests_ = function(testSet) {
-    var complement = {};
-    for (var testPath in this.testPathDict_) {
-      var test = testFromTestPath_(testPath);
+    const complement = {};
+    for (const testPath in this.testPathDict_) {
+      const test = testFromTestPath_(testPath);
       if (!testSet[test]) {
         complement[test] = true;
       }
@@ -146,12 +146,12 @@ var testselection = (function() {
    * @return {Object.<string,boolean>} Dict of core test to important boolean.
    */
   TestSelection.prototype.getCoreTests_ = function() {
-    var core = {};
-    for (var testPath in this.testPathDict_) {
-      var test = testFromTestPath_(testPath);
+    const core = {};
+    for (const testPath in this.testPathDict_) {
+      const test = testFromTestPath_(testPath);
       if (isImportant(test, this.testSuites)) {
         core[test] = true;
-        var ref = this.getCorrespondingRef_(testPath);
+        const ref = this.getCorrespondingRef_(testPath);
         if (ref) {
           core[ref] = true;
         }
@@ -167,10 +167,10 @@ var testselection = (function() {
    */
   TestSelection.prototype.getCorrespondingRef_ = function(
       testPath) {
-    var testParts = testPath.split('/');
-    var lastPart = testParts[testParts.length - 1];
-    var traces = this.testPathDict_[testPath];
-    var test = testFromTestPath_(testPath);
+    const testParts = testPath.split('/');
+    const lastPart = testParts[testParts.length - 1];
+    const traces = this.testPathDict_[testPath];
+    const test = testFromTestPath_(testPath);
     if (lastPart + '_ref' in traces) {
       return test + '_ref';
     }

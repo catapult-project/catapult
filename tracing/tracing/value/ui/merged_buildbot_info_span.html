@@ -41,7 +41,7 @@ Polymer({
       return;
     }
 
-    let rows = [];
+    const rows = [];
 
     if (this.diagnostic.displayMasterNames.size) {
       rows.push([
@@ -61,8 +61,8 @@ Polymer({
         Array.from(this.diagnostic.buildNumbers).join(', ')
       ]);
     }
-    for (let logUri of this.diagnostic.logUris) {
-      let anchor = document.createElement('a');
+    for (const logUri of this.diagnostic.logUris) {
+      const anchor = document.createElement('a');
       anchor.href = logUri;
       anchor.innerText = logUri;
       rows.push(['log', anchor]);

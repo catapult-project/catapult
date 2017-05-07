@@ -11,7 +11,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.e.chrome', function() {
-  var KNOWN_PROPERTIES = {
+  const KNOWN_PROPERTIES = {
     absX: 1,
     absY: 1,
     address: 1,
@@ -81,7 +81,7 @@ tr.exportTo('tr.e.chrome', function() {
       }.bind(this));
     }
 
-    for (var property in args) {
+    for (const property in args) {
       if (!KNOWN_PROPERTIES[property]) {
         this.otherProperties_[property] = args[property];
       }
@@ -178,8 +178,8 @@ tr.exportTo('tr.e.chrome', function() {
     },
 
     get otherPropertyNames() {
-      var names = [];
-      for (var name in this.otherProperties_) {
+      const names = [];
+      for (const name in this.otherProperties_) {
         names.push(name);
       }
       return names;

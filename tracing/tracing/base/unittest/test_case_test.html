@@ -10,7 +10,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('parseFullyQualifiedName', function() {
-    var p = tr.b.unittest.TestCase.parseFullyQualifiedName('foo.bar');
+    const p = tr.b.unittest.TestCase.parseFullyQualifiedName('foo.bar');
     assert.strictEqual(p.suiteName, 'foo');
     assert.strictEqual(p.testCaseName, 'bar');
   });

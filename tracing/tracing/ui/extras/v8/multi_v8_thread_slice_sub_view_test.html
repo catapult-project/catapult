@@ -13,10 +13,10 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var newSliceEx = tr.c.TestUtils.newSliceEx;
+  const newSliceEx = tr.c.TestUtils.newSliceEx;
 
   function createModel() {
-    var m = tr.c.TestUtils.newModel(function(m) {
+    const m = tr.c.TestUtils.newModel(function(m) {
       m.p1 = m.getOrCreateProcess(1);
       m.t2 = m.p1.getOrCreateThread(2);
 
@@ -50,16 +50,16 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('selectMultiV8ThreadSlices', function() {
-    var m = createModel();
+    const m = createModel();
 
-    var viewEl =
+    const viewEl =
         document.createElement('tr-ui-e-multi-v8-thread-slice-sub-view');
-    var selection = new tr.model.EventSet();
+    const selection = new tr.model.EventSet();
     selection.push(m.s1);
     selection.push(m.s2);
     viewEl.selection = selection;
     this.addHTMLOutput(viewEl);
-    var rows = viewEl.$.runtimeCallStats.$.table.tableRows;
+    const rows = viewEl.$.runtimeCallStats.$.table.tableRows;
     assert.lengthOf(rows, 12);
     assert.deepEqual(rows.map(r => r.time), [
       2714,

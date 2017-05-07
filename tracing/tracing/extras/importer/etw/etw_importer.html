@@ -53,8 +53,8 @@ found in the LICENSE file.
 
 tr.exportTo('tr.e.importer.etw', function() {
   // GUID and opcode of a Thread DCStart event, as defined at the link above.
-  var kThreadGuid = '3D6FA8D1-FE05-11D0-9DDA-00C04FD7BA7C';
-  var kThreadDCStartOpcode = 3;
+  const kThreadGuid = '3D6FA8D1-FE05-11D0-9DDA-00C04FD7BA7C';
+  const kThreadDCStartOpcode = 3;
 
   /**
    * Represents the raw bytes payload decoder.
@@ -68,7 +68,7 @@ tr.exportTo('tr.e.importer.etw', function() {
     __proto__: Object.prototype,
 
     reset(base64Payload) {
-      var decodedSize = tr.b.Base64.getDecodedBufferLength(base64Payload);
+      const decodedSize = tr.b.Base64.getDecodedBufferLength(base64Payload);
       if (decodedSize > this.payload_.byteLength) {
         this.payload_ = new DataView(new ArrayBuffer(decodedSize));
       }
@@ -82,47 +82,47 @@ tr.exportTo('tr.e.importer.etw', function() {
     },
 
     decodeUInt8() {
-      var result = this.payload_.getUint8(this.position_, true);
+      const result = this.payload_.getUint8(this.position_, true);
       this.position_ += 1;
       return result;
     },
 
     decodeUInt16() {
-      var result = this.payload_.getUint16(this.position_, true);
+      const result = this.payload_.getUint16(this.position_, true);
       this.position_ += 2;
       return result;
     },
 
     decodeUInt32() {
-      var result = this.payload_.getUint32(this.position_, true);
+      const result = this.payload_.getUint32(this.position_, true);
       this.position_ += 4;
       return result;
     },
 
     decodeUInt64ToString() {
       // Javascript isn't able to manage 64-bit numeric values.
-      var low = this.decodeUInt32();
-      var high = this.decodeUInt32();
-      var lowStr = ('0000000' + low.toString(16)).substr(-8);
-      var highStr = ('0000000' + high.toString(16)).substr(-8);
-      var result = highStr + lowStr;
+      const low = this.decodeUInt32();
+      const high = this.decodeUInt32();
+      const lowStr = ('0000000' + low.toString(16)).substr(-8);
+      const highStr = ('0000000' + high.toString(16)).substr(-8);
+      const result = highStr + lowStr;
       return result;
     },
 
     decodeInt8() {
-      var result = this.payload_.getInt8(this.position_, true);
+      const result = this.payload_.getInt8(this.position_, true);
       this.position_ += 1;
       return result;
     },
 
     decodeInt16() {
-      var result = this.payload_.getInt16(this.position_, true);
+      const result = this.payload_.getInt16(this.position_, true);
       this.position_ += 2;
       return result;
     },
 
     decodeInt32() {
-      var result = this.payload_.getInt32(this.position_, true);
+      const result = this.payload_.getInt32(this.position_, true);
       this.position_ += 4;
       return result;
     },
@@ -141,28 +141,28 @@ tr.exportTo('tr.e.importer.etw', function() {
     },
 
     decodeString() {
-      var str = '';
+      let str = '';
       while (true) {
-        var c = this.decodeUInt8();
+        const c = this.decodeUInt8();
         if (!c) return str;
         str = str + String.fromCharCode(c);
       }
     },
 
     decodeW16String() {
-      var str = '';
+      let str = '';
       while (true) {
-        var c = this.decodeUInt16();
+        const c = this.decodeUInt16();
         if (!c) return str;
         str = str + String.fromCharCode(c);
       }
     },
 
     decodeFixedW16String(length) {
-      var oldPosition = this.position_;
-      var str = '';
-      for (var i = 0; i < length; i++) {
-        var c = this.decodeUInt16();
+      const oldPosition = this.position_;
+      let str = '';
+      for (let i = 0; i < length; i++) {
+        const c = this.decodeUInt16();
         if (!c) break;
         str = str + String.fromCharCode(c);
       }
@@ -173,9 +173,9 @@ tr.exportTo('tr.e.importer.etw', function() {
     },
 
     decodeBytes(length) {
-      var bytes = [];
-      for (var i = 0; i < length; ++i) {
-        var c = this.decodeUInt8();
+      const bytes = [];
+      for (let i = 0; i < length; ++i) {
+        const c = this.decodeUInt8();
         bytes.push(c);
       }
       return bytes;
@@ -183,8 +183,8 @@ tr.exportTo('tr.e.importer.etw', function() {
 
     decodeSID(is64) {
       // Decode the TOKEN_USER structure.
-      var pSid = this.decodeUInteger(is64);
-      var attributes = this.decodeUInt32();
+      const pSid = this.decodeUInteger(is64);
+      const attributes = this.decodeUInt32();
 
       // Skip padding.
       if (is64) {
@@ -192,8 +192,8 @@ tr.exportTo('tr.e.importer.etw', function() {
       }
 
       // Decode the SID structure.
-      var revision = this.decodeUInt8();
-      var subAuthorityCount = this.decodeUInt8();
+      const revision = this.decodeUInt8();
+      const subAuthorityCount = this.decodeUInt8();
       this.decodeUInt16();
       this.decodeUInt32();
 
@@ -202,7 +202,7 @@ tr.exportTo('tr.e.importer.etw', function() {
             'Invalid SID revision: could not decode the SID structure.');
       }
 
-      var sid = this.decodeBytes(4 * subAuthorityCount);
+      const sid = this.decodeBytes(4 * subAuthorityCount);
 
       return {
         pSid,
@@ -213,14 +213,14 @@ tr.exportTo('tr.e.importer.etw', function() {
 
     decodeSystemTime() {
       // Decode the SystemTime structure.
-      var wYear = this.decodeInt16();
-      var wMonth = this.decodeInt16();
-      var wDayOfWeek = this.decodeInt16();
-      var wDay = this.decodeInt16();
-      var wHour = this.decodeInt16();
-      var wMinute = this.decodeInt16();
-      var wSecond = this.decodeInt16();
-      var wMilliseconds = this.decodeInt16();
+      const wYear = this.decodeInt16();
+      const wMonth = this.decodeInt16();
+      const wDayOfWeek = this.decodeInt16();
+      const wDay = this.decodeInt16();
+      const wHour = this.decodeInt16();
+      const wMinute = this.decodeInt16();
+      const wSecond = this.decodeInt16();
+      const wMilliseconds = this.decodeInt16();
       return {
         wYear,
         wMonth,
@@ -235,13 +235,13 @@ tr.exportTo('tr.e.importer.etw', function() {
 
     decodeTimeZoneInformation() {
       // Decode the TimeZoneInformation structure.
-      var bias = this.decodeUInt32();
-      var standardName = this.decodeFixedW16String(32);
-      var standardDate = this.decodeSystemTime();
-      var standardBias = this.decodeUInt32();
-      var daylightName = this.decodeFixedW16String(32);
-      var daylightDate = this.decodeSystemTime();
-      var daylightBias = this.decodeUInt32();
+      const bias = this.decodeUInt32();
+      const standardName = this.decodeFixedW16String(32);
+      const standardDate = this.decodeSystemTime();
+      const standardBias = this.decodeUInt32();
+      const daylightName = this.decodeFixedW16String(32);
+      const daylightDate = this.decodeSystemTime();
+      const daylightBias = this.decodeUInt32();
       return {
         bias,
         standardName,
@@ -275,7 +275,7 @@ tr.exportTo('tr.e.importer.etw', function() {
     this.tidsToPid_ = {};
 
     // Instantiate the parsers; this will register handlers for known events.
-    var allTypeInfos = tr.e.importer.etw.Parser.getAllRegisteredTypeInfos();
+    const allTypeInfos = tr.e.importer.etw.Parser.getAllRegisteredTypeInfos();
     this.parsers_ = allTypeInfos.map(
         function(typeInfo) {
           return new typeInfo.constructor(this);
@@ -320,7 +320,7 @@ tr.exportTo('tr.e.importer.etw', function() {
 
     getPidFromWindowsTid(tid) {
       if (tid === 0) return 0;
-      var pid = this.tidsToPid_[tid];
+      const pid = this.tidsToPid_[tid];
       if (pid === undefined) {
         // Kernel threads are not defined.
         return 0;
@@ -329,8 +329,8 @@ tr.exportTo('tr.e.importer.etw', function() {
     },
 
     getThreadFromWindowsTid(tid) {
-      var pid = this.getPidFromWindowsTid(tid);
-      var process = this.model_.getProcess(pid);
+      const pid = this.getPidFromWindowsTid(tid);
+      const process = this.model_.getProcess(pid);
       if (!process) return undefined;
       return process.getThread(tid);
     },
@@ -340,7 +340,7 @@ tr.exportTo('tr.e.importer.etw', function() {
      * @return {Cpu} A Cpu corresponding to the given cpuNumber.
      */
     getOrCreateCpu(cpuNumber) {
-      var cpu = this.model_.kernel.getOrCreateCpu(cpuNumber);
+      const cpu = this.model_.kernel.getOrCreateCpu(cpuNumber);
       return cpu;
     },
 
@@ -362,7 +362,7 @@ tr.exportTo('tr.e.importer.etw', function() {
     },
 
     importTimestamp(timestamp) {
-      var ts = parseInt(timestamp, 16);
+      const ts = parseInt(timestamp, 16);
       return (ts - this.walltime_ + this.ticks_) / 1000.;
     },
 
@@ -384,7 +384,7 @@ tr.exportTo('tr.e.importer.etw', function() {
           event.hasOwnProperty('payload') &&
           event.guid === kThreadGuid &&
           event.op === kThreadDCStartOpcode) {
-        var decodedSize = tr.b.Base64.getDecodedBufferLength(event.payload);
+        const decodedSize = tr.b.Base64.getDecodedBufferLength(event.payload);
 
         if (event.ver === 1) {
           if (decodedSize >= 52) {
@@ -420,10 +420,10 @@ tr.exportTo('tr.e.importer.etw', function() {
         return false;
       }
 
-      var timestamp = this.importTimestamp(event.ts);
+      const timestamp = this.importTimestamp(event.ts);
 
       // Create the event header.
-      var header = {
+      const header = {
         guid: event.guid,
         opcode: event.op,
         version: event.ver,
@@ -433,11 +433,11 @@ tr.exportTo('tr.e.importer.etw', function() {
       };
 
       // Set the payload to decode.
-      var decoder = this.decoder_;
+      const decoder = this.decoder_;
       decoder.reset(event.payload);
 
       // Retrieve the handler to decode the payload.
-      var handler = this.getEventHandler(header.guid, header.opcode);
+      const handler = this.getEventHandler(header.guid, header.opcode);
       if (!handler) return false;
 
       if (!handler(header, decoder)) {

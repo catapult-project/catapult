@@ -13,8 +13,8 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   function create100PxWideViewportInto10WideWorld() {
-    var vp = new tr.ui.TimelineViewport(document.createElement('div'));
-    var tempDisplayTransform = new tr.ui.TimelineDisplayTransform();
+    const vp = new tr.ui.TimelineViewport(document.createElement('div'));
+    const tempDisplayTransform = new tr.ui.TimelineDisplayTransform();
     tempDisplayTransform.xSetWorldBounds(0, 10, 100);
     vp.setDisplayTransformImmediately(tempDisplayTransform);
 
@@ -25,10 +25,10 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('dragLeftInterestRegion', function() {
-    var vp = create100PxWideViewportInto10WideWorld();
+    const vp = create100PxWideViewportInto10WideWorld();
     vp.interestRange.min = 1;
     vp.interestRange.max = 9;
-    var tool = new tr.ui.b.TimingTool(vp);
+    const tool = new tr.ui.b.TimingTool(vp);
 
     tool.mouseDownAt_(1.1, 0);
     assert.isTrue(vp.interestRange.leftSelected);
@@ -40,10 +40,10 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('dragRightInterestRegion', function() {
-    var vp = create100PxWideViewportInto10WideWorld();
+    const vp = create100PxWideViewportInto10WideWorld();
     vp.interestRange.min = 1;
     vp.interestRange.max = 9;
-    var tool = new tr.ui.b.TimingTool(vp);
+    const tool = new tr.ui.b.TimingTool(vp);
 
     tool.mouseDownAt_(9.1, 0);
     assert.isTrue(vp.interestRange.rightSelected);
@@ -55,10 +55,10 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('dragInNewSpace', function() {
-    var vp = create100PxWideViewportInto10WideWorld();
+    const vp = create100PxWideViewportInto10WideWorld();
     vp.interestRange.min = 1;
     vp.interestRange.max = 9;
-    var tool = new tr.ui.b.TimingTool(vp);
+    const tool = new tr.ui.b.TimingTool(vp);
 
     tool.mouseDownAt_(5, 0);
     assert.isTrue(vp.interestRange.rightSelected);

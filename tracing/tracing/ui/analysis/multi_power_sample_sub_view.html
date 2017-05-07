@@ -58,8 +58,8 @@ Polymer({
   },
 
   updateContents_() {
-    var samples = this.selection;
-    var vSyncTimestamps = (!samples ? [] :
+    const samples = this.selection;
+    const vSyncTimestamps = (!samples ? [] :
         tr.b.getFirstElement(samples).series.device.vSyncTimestamps);
 
     this.$.summaryTable.samples = samples;

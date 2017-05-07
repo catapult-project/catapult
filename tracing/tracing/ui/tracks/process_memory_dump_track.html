@@ -13,14 +13,14 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.tracks', function() {
-  var ALLOCATED_MEMORY_TRACK_HEIGHT = 50;
+  const ALLOCATED_MEMORY_TRACK_HEIGHT = 50;
 
   /**
    * A track that displays an array of ProcessMemoryDump objects.
    * @constructor
    * @extends {ContainerTrack}
    */
-  var ProcessMemoryDumpTrack = tr.ui.b.define(
+  const ProcessMemoryDumpTrack = tr.ui.b.define(
       'process-memory-dump-track', tr.ui.tracks.ContainerTrack);
 
   ProcessMemoryDumpTrack.prototype = {
@@ -50,11 +50,11 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     appendAllocatedMemoryTrack_() {
-      var series = tr.ui.tracks.buildProcessAllocatedMemoryChartSeries(
+      const series = tr.ui.tracks.buildProcessAllocatedMemoryChartSeries(
           this.memoryDumps_);
       if (!series) return;
 
-      var track = new tr.ui.tracks.ChartTrack(this.viewport);
+      const track = new tr.ui.tracks.ChartTrack(this.viewport);
       track.heading = 'Memory per component';
       track.height = ALLOCATED_MEMORY_TRACK_HEIGHT + 'px';
       track.series = series;

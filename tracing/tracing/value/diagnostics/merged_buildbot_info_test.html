@@ -15,7 +15,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('merge', function() {
-    let buildbotA = new tr.v.d.BuildbotInfo({
+    const buildbotA = new tr.v.d.BuildbotInfo({
       displayMasterName: 'a',
       displayBotName: 'b',
       buildbotMasterName: 'c',
@@ -24,7 +24,7 @@ tr.b.unittest.testSuite(function() {
       logUri: 'e',
     });
 
-    let buildbotB = new tr.v.d.BuildbotInfo({
+    const buildbotB = new tr.v.d.BuildbotInfo({
       displayMasterName: 'f',
       displayBotName: 'g',
       buildbotMasterName: 'h',
@@ -37,7 +37,7 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(buildbotA.canAddDiagnostic(buildbotB));
     assert.isFalse(buildbotB.canAddDiagnostic(buildbotA));
 
-    let merged = new tr.v.d.MergedBuildbotInfo();
+    const merged = new tr.v.d.MergedBuildbotInfo();
 
     assert.isFalse(merged.canAddDiagnostic(new tr.v.d.Generic('')));
     assert.isTrue(merged.canAddDiagnostic(buildbotA));
@@ -46,14 +46,14 @@ tr.b.unittest.testSuite(function() {
     merged.addDiagnostic(buildbotA);
     merged.addDiagnostic(buildbotB);
 
-    let merged2 = new tr.v.d.MergedBuildbotInfo();
+    const merged2 = new tr.v.d.MergedBuildbotInfo();
     merged2.addDiagnostic(buildbotB);
     merged2.addDiagnostic(buildbotA);
     assert.isTrue(merged2.equals(merged));
     assert.isTrue(merged.equals(merged2));
 
     // Test round-tripping.
-    let clone = tr.v.d.Diagnostic.fromDict(merged.asDict());
+    const clone = tr.v.d.Diagnostic.fromDict(merged.asDict());
 
     assert.deepEqual(Array.from(clone.displayMasterNames), ['a', 'f']);
     assert.deepEqual(Array.from(clone.displayBotNames), ['b', 'g']);

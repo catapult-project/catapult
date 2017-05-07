@@ -54,7 +54,7 @@ tr.exportTo('tr.ui.analysis', function() {
       // chronologically.
       this.dumpsByContainerName_ = tr.b.group(
           this.currentSelection_.toArray(), dump => dump.containerName);
-      for (var dumps of Object.values(this.dumpsByContainerName_)) {
+      for (const dumps of Object.values(this.dumpsByContainerName_)) {
         dumps.sort((a, b) => a.start - b.start);
       }
 
@@ -74,7 +74,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
       if (this.dumpsByContainerName_ === undefined) return;
 
-      var containerNames = Object.keys(this.dumpsByContainerName_);
+      const containerNames = Object.keys(this.dumpsByContainerName_);
       if (containerNames.length === 0) return;
 
       if (containerNames.length > 1) {
@@ -85,13 +85,13 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     buildViewForSingleContainerName_() {
-      var containerMemoryDumps =
+      const containerMemoryDumps =
           tr.b.dictionaryValues(this.dumpsByContainerName_)[0];
-      var dumpView = this.ownerDocument.createElement(
+      const dumpView = this.ownerDocument.createElement(
           'tr-ui-a-stacked-pane-view');
       Polymer.dom(this.$.content).appendChild(dumpView);
       dumpView.setPaneBuilder(function() {
-        var headerPane = document.createElement(
+        const headerPane = document.createElement(
             'tr-ui-a-memory-dump-header-pane');
         headerPane.containerMemoryDumps = containerMemoryDumps;
         return headerPane;
@@ -100,10 +100,10 @@ tr.exportTo('tr.ui.analysis', function() {
 
     buildViewForMultipleContainerNames_() {
       // TODO(petrcermak): Provide a more sophisticated view for this case.
-      var ownerDocument = this.ownerDocument;
+      const ownerDocument = this.ownerDocument;
 
-      var rows = tr.b.dictionaryValues(tr.b.mapItems(this.dumpsByContainerName_,
-          function(containerName, dumps) {
+      const rows = tr.b.dictionaryValues(tr.b.mapItems(
+          this.dumpsByContainerName_, function(containerName, dumps) {
             return {
               containerName,
               subRows: dumps,
@@ -114,7 +114,7 @@ tr.exportTo('tr.ui.analysis', function() {
         return a.containerName.localeCompare(b.containerName);
       });
 
-      var columns = [
+      const columns = [
         {
           title: 'Dump',
 
@@ -126,7 +126,7 @@ tr.exportTo('tr.ui.analysis', function() {
           },
 
           singleDumpValue_(row) {
-            var linkEl = ownerDocument.createElement('tr-ui-a-analysis-link');
+            const linkEl = ownerDocument.createElement('tr-ui-a-analysis-link');
             linkEl.setSelectionAndContent(new tr.model.EventSet([row]));
             Polymer.dom(linkEl).appendChild(tr.v.ui.createScalarSpan(
                 row.start, {
@@ -137,7 +137,7 @@ tr.exportTo('tr.ui.analysis', function() {
           },
 
           groupedDumpValue_(row) {
-            var linkEl = ownerDocument.createElement('tr-ui-a-analysis-link');
+            const linkEl = ownerDocument.createElement('tr-ui-a-analysis-link');
             linkEl.setSelectionAndContent(new tr.model.EventSet(row.subRows));
             Polymer.dom(linkEl).appendChild(tr.ui.b.createSpan({
               ownerDocument,
@@ -154,7 +154,7 @@ tr.exportTo('tr.ui.analysis', function() {
         }
       ];
 
-      var table = this.ownerDocument.createElement('tr-ui-b-table');
+      const table = this.ownerDocument.createElement('tr-ui-b-table');
       table.tableColumns = columns;
       table.tableRows = rows;
       table.showHeader = false;

@@ -11,7 +11,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.b.math', function() {
-  var PERCENTILE_PRECISION = 1e-7;
+  const PERCENTILE_PRECISION = 1e-7;
   /**
    * A function that consists of linear pieces.
    * See https://en.wikipedia.org/wiki/Piecewise_linear_function.
@@ -56,8 +56,8 @@ tr.exportTo('tr.b.math', function() {
     },
 
     get average() {
-      var weightedSum = 0;
-      var totalWeight = 0;
+      let weightedSum = 0;
+      let totalWeight = 0;
       this.pieces.forEach(function(piece) {
         weightedSum += piece.width * piece.average;
         totalWeight += piece.width;
@@ -74,13 +74,13 @@ tr.exportTo('tr.b.math', function() {
       if (!(percent >= 0 && percent <= 1)) {
         throw new Error('percent must be [0,1]');
       }
-      var lower = this.min;
-      var upper = this.max;
-      var total = this.partBelow(upper);
+      let lower = this.min;
+      let upper = this.max;
+      const total = this.partBelow(upper);
       if (total === 0) return 0;
       while (upper - lower > PERCENTILE_PRECISION) {
-        var middle = (lower + upper) / 2;
-        var below = this.partBelow(middle);
+        const middle = (lower + upper) / 2;
+        const below = this.partBelow(middle);
         if (below / total < percent) {
           lower = middle;
         } else {
@@ -109,10 +109,10 @@ tr.exportTo('tr.b.math', function() {
     * max(x2 - x1) such that for all x in [x1 .. x2]: f(x) < y.
     */
     partBelow(y) {
-      var width = this.width;
+      const width = this.width;
       if (width === 0) return 0;
-      var minY = this.min;
-      var maxY = this.max;
+      const minY = this.min;
+      const maxY = this.max;
       if (y >= maxY) return width;
       if (y < minY) return 0;
       return (y - minY) / (maxY - minY) * width;

@@ -11,14 +11,14 @@ found in the LICENSE file.
 /* eslint-disable no-console */
 
 function discoverMetrics(args) {
-  for (var i = 0; i < args.length; i++) {
-    var filename = args[i];
+  for (let i = 0; i < args.length; i++) {
+    const filename = args[i];
     HTMLImportsLoader.loadHTML(filename);
   }
 
-  var metrics = tr.metrics.MetricRegistry.getAllRegisteredTypeInfos();
-  var discoveredMetricNames = [];
-  for (var i = 0; i < metrics.length; i++) {
+  const metrics = tr.metrics.MetricRegistry.getAllRegisteredTypeInfos();
+  const discoveredMetricNames = [];
+  for (let i = 0; i < metrics.length; i++) {
     discoveredMetricNames.push(metrics[i].constructor.name);
   }
   console.log(JSON.stringify(discoveredMetricNames));

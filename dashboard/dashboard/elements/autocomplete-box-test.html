@@ -25,8 +25,8 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var item = function(name, opt_group, opt_head) {
-    var item = {name};
+  const item = function(name, opt_group, opt_head) {
+    const item = {name};
     if (opt_group !== undefined) {
       item.group = opt_group;
     }
@@ -36,7 +36,7 @@ tr.b.unittest.testSuite(function() {
     return item;
   };
 
-  var testOptions = {
+  const testOptions = {
     setUp() {
       this.foo = {'name': 'Foo'};
       this.fooish = {'name': 'Fooish'};
@@ -48,7 +48,7 @@ tr.b.unittest.testSuite(function() {
   };
 
   test('empty_query', function() {
-    var fixture = document.createElement('autocomplete-box-test-fixture');
+    const fixture = document.createElement('autocomplete-box-test-fixture');
     fixture.set('items', [this.foo, this.fooish, this.bar]);
     fixture.set('query', '');
     assert.deepEqual(fixture.get('suggestedItems'), [
@@ -59,7 +59,7 @@ tr.b.unittest.testSuite(function() {
   }, testOptions);
 
   test('simple_query', function() {
-    var fixture = document.createElement('autocomplete-box-test-fixture');
+    const fixture = document.createElement('autocomplete-box-test-fixture');
     fixture.set('items', [this.foo, this.fooish, this.bar]);
     fixture.set('query', 'Foo');
     assert.deepEqual(fixture.get('suggestedItems'), [
@@ -69,7 +69,7 @@ tr.b.unittest.testSuite(function() {
   }, testOptions);
 
   test('simple_update_query', function() {
-    var fixture = document.createElement('autocomplete-box-test-fixture');
+    const fixture = document.createElement('autocomplete-box-test-fixture');
     fixture.set('items', [this.foo, this.fooish, this.bar]);
     fixture.set('query', 'Foo');
     fixture.set('query', 'Foois');
@@ -79,7 +79,7 @@ tr.b.unittest.testSuite(function() {
   }, testOptions);
 
   test('simple_update_items', function() {
-    var fixture = document.createElement('autocomplete-box-test-fixture');
+    const fixture = document.createElement('autocomplete-box-test-fixture');
     fixture.set('items', [this.foo, this.fooish, this.bar]);
     fixture.set('query', 'Foo');
     fixture.shift('items');
@@ -89,7 +89,7 @@ tr.b.unittest.testSuite(function() {
   }, testOptions);
 
   test('simple_selecting_an_item', function() {
-    var fixture = document.createElement('autocomplete-box-test-fixture');
+    const fixture = document.createElement('autocomplete-box-test-fixture');
     fixture.set('items', [this.foo, this.fooish, this.bar]);
     assert.deepEqual(fixture.get('selectedItem'), null);
     fixture.selectItem(this.foo);
@@ -99,18 +99,18 @@ tr.b.unittest.testSuite(function() {
   }, testOptions);
 
   test('simple_selecting_head_element_does_nothing', function() {
-    var fixture = document.createElement('autocomplete-box-test-fixture');
-    var animals = item('Animals', undefined, true);
-    var lion = item('Lion', 'Animals');
-    var elephant = item('Elephant', 'Animals');
-    var cucumber = item('Cucumber');
+    const fixture = document.createElement('autocomplete-box-test-fixture');
+    const animals = item('Animals', undefined, true);
+    const lion = item('Lion', 'Animals');
+    const elephant = item('Elephant', 'Animals');
+    const cucumber = item('Cucumber');
     fixture.set('items', [animals, lion, elephant, cucumber]);
     fixture.selectItem(animals);
     assert.deepEqual(fixture.get('selectedItem'), null);
   }, testOptions);
 
   test('simple_selecting_another_item', function() {
-    var fixture = document.createElement('autocomplete-box-test-fixture');
+    const fixture = document.createElement('autocomplete-box-test-fixture');
     fixture.set('items', [this.foo, this.fooish, this.bar]);
     fixture.selectItem(this.foo);
     fixture.selectItem(this.bar);
@@ -118,7 +118,7 @@ tr.b.unittest.testSuite(function() {
   }, testOptions);
 
   test('simple_selecting_an_item_twice', function() {
-    var fixture = document.createElement('autocomplete-box-test-fixture');
+    const fixture = document.createElement('autocomplete-box-test-fixture');
     fixture.set('items', [this.foo, this.fooish, this.bar]);
     fixture.selectItem(this.foo);
     fixture.selectItem(this.foo);
@@ -126,7 +126,7 @@ tr.b.unittest.testSuite(function() {
   }, testOptions);
 
   test('preserves_selected_on_items_update', function() {
-    var fixture = document.createElement('autocomplete-box-test-fixture');
+    const fixture = document.createElement('autocomplete-box-test-fixture');
     fixture.set('items', [this.foo, this.fooish, this.bar]);
     fixture.set('selectedItem', this.bar);
     fixture.set('items', [item('Foo'), item('Bar')]);
@@ -134,7 +134,7 @@ tr.b.unittest.testSuite(function() {
   }, testOptions);
 
   test('selecting_clears_the_query', function() {
-    var fixture = document.createElement('autocomplete-box-test-fixture');
+    const fixture = document.createElement('autocomplete-box-test-fixture');
     fixture.set('items', [this.foo, this.fooish, this.bar]);
     fixture.set('query', 'foo');
     fixture.selectItem(this.foo);
@@ -142,7 +142,7 @@ tr.b.unittest.testSuite(function() {
   }, testOptions);
 
   test('has_suggestions', function() {
-    var fixture = document.createElement('autocomplete-box-test-fixture');
+    const fixture = document.createElement('autocomplete-box-test-fixture');
     fixture.set('items', [this.foo, this.fooish, this.bar]);
     assert.isTrue(fixture.get('hasSuggestions'));
     fixture.set('query', 'Baz');
@@ -150,7 +150,7 @@ tr.b.unittest.testSuite(function() {
   }, testOptions);
 
   test('show_dropdown', function() {
-    var fixture = document.createElement('autocomplete-box-test-fixture');
+    const fixture = document.createElement('autocomplete-box-test-fixture');
     fixture.set('items', [this.foo, this.fooish, this.bar]);
     assert.isFalse(fixture.get('showDropdown'));
     fixture.set('dropdownOpen', true);
@@ -162,7 +162,7 @@ tr.b.unittest.testSuite(function() {
   }, testOptions);
 
   test('maybe_backspace_selection', function() {
-    var fixture = document.createElement('autocomplete-box-test-fixture');
+    const fixture = document.createElement('autocomplete-box-test-fixture');
     fixture.set('items', [this.foo, this.fooish, this.bar]);
     fixture.set('selectedItem', this.foo);
     fixture.maybeBackspaceSelection();
@@ -170,7 +170,7 @@ tr.b.unittest.testSuite(function() {
   }, testOptions);
 
   test('maybe_select_locus', function() {
-    var fixture = document.createElement('autocomplete-box-test-fixture');
+    const fixture = document.createElement('autocomplete-box-test-fixture');
 
     fixture.set('items', [this.foo, this.fooish, this.bar]);
     fixture.maybeSelectLocus();
@@ -190,7 +190,7 @@ tr.b.unittest.testSuite(function() {
   }, testOptions);
 
   test('selected_item', function() {
-    var fixture = document.createElement('autocomplete-box-test-fixture');
+    const fixture = document.createElement('autocomplete-box-test-fixture');
     fixture.set('items', [this.foo, this.fooish, this.bar]);
     assert.strictEqual(fixture.get('selectedItem'), null);
     assert.strictEqual(fixture.get('selectedName'), '');
@@ -200,7 +200,7 @@ tr.b.unittest.testSuite(function() {
   }, testOptions);
 
   test('instantiate', function() {
-    var box = document.createElement('autocomplete-box');
+    const box = document.createElement('autocomplete-box');
     box.placeholder = 'Placeholder text';
     box.items = [
         {'name': 'Apples'},
@@ -211,7 +211,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiate_overlapping', function() {
-    var box = document.createElement('autocomplete-box');
+    const box = document.createElement('autocomplete-box');
     box.placeholder = 'Placeholder text';
     box.items = [
         {'name': 'Foo'},
@@ -238,7 +238,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiate_complex', function() {
-    var box = document.createElement('autocomplete-box');
+    const box = document.createElement('autocomplete-box');
     box.placeholder = 'Placeholder text';
     box.multi = true;
     box.items = [

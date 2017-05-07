@@ -13,7 +13,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('instantiate', function() {
-    var picture = new tr.e.cc.PictureSnapshot({id: '31415'}, 10, {
+    const picture = new tr.e.cc.PictureSnapshot({id: '31415'}, 10, {
       'params': {
         'opaque_rect': [-15, -15, 0, 0],
         'layer_rect': [-15, -15, 46, 833]
@@ -23,7 +23,7 @@ tr.b.unittest.testSuite(function() {
     picture.preInitialize();
     picture.initialize();
 
-    var dbg = new tr.ui.e.chrome.cc.PictureDebugger();
+    const dbg = new tr.ui.e.chrome.cc.PictureDebugger();
     this.addHTMLOutput(dbg);
     dbg.picture = picture;
     dbg.style.border = '1px solid black';

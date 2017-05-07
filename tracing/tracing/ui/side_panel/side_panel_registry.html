@@ -29,7 +29,7 @@ tr.exportTo('tr.ui.side_panel', function() {
    */
   function SidePanelRegistry() {}
 
-  var options = new tr.b.ExtensionRegistryOptions(tr.b.BASIC_REGISTRY_MODE);
+  const options = new tr.b.ExtensionRegistryOptions(tr.b.BASIC_REGISTRY_MODE);
   tr.b.decorateExtensionRegistry(SidePanelRegistry, options);
 
   return {

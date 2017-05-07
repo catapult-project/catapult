@@ -21,7 +21,7 @@ tr.exportTo('tr.ui.tracks', function() {
    * @constructor
    * @extends {MultiRowTrack}
    */
-  var InteractionTrack = tr.ui.b.define(
+  const InteractionTrack = tr.ui.b.define(
       'interaction-track', tr.ui.tracks.MultiRowTrack);
 
   InteractionTrack.prototype = {
@@ -54,7 +54,7 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     addSubTrack_(slices) {
-      var track = new tr.ui.tracks.SliceTrack(this.viewport);
+      const track = new tr.ui.tracks.SliceTrack(this.viewport);
       track.slices = slices;
       Polymer.dom(this).appendChild(track);
       return track;

@@ -13,7 +13,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.tracks', function() {
-  var ContainerTrack = tr.ui.tracks.ContainerTrack;
+  const ContainerTrack = tr.ui.tracks.ContainerTrack;
 
   // TODO(charliea): Make this track collapsible.
   /**
@@ -22,7 +22,7 @@ tr.exportTo('tr.ui.tracks', function() {
    * @constructor
    * @extends {ContainerTrack}
    */
-  var DeviceTrack = tr.ui.b.define('device-track', ContainerTrack);
+  const DeviceTrack = tr.ui.b.define('device-track', ContainerTrack);
 
   DeviceTrack.prototype = {
 

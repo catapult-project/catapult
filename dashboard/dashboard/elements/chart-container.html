@@ -202,10 +202,10 @@ triaging functionality in the chart.
     'use strict';
     (function() {
       // Regex for links in series annotation which are shown in tooltip.
-      var TOOLTIP_LINK_REGEX = /\[(.+?)\]\((.+?)\)/;
+      const TOOLTIP_LINK_REGEX = /\[(.+?)\]\((.+?)\)/;
 
       // Sinebow generator for graph color picking.
-      var GENERATOR = new tr.b.SinebowColorGenerator();
+      const GENERATOR = new tr.b.SinebowColorGenerator();
 
       /**
        * Returns a date corresponding to the given timestamp, or null.
@@ -214,9 +214,9 @@ triaging functionality in the chart.
        *     null.
        */
       function getDateDisplay(rev) {
-        var timestampSecondsRegex = /^[\d]{10}$/;
-        var timestampMillisecondsRegex = /^[\d]{13}$/;
-        var d = null;
+        const timestampSecondsRegex = /^[\d]{10}$/;
+        const timestampMillisecondsRegex = /^[\d]{13}$/;
+        let d = null;
         if (timestampSecondsRegex.test(rev)) {
           d = new Date(rev * 1000);
         } else if (timestampMillisecondsRegex.test(rev)) {
@@ -240,11 +240,11 @@ triaging functionality in the chart.
        */
       function getDisplayRevision(rev) {
         // Truncate git sha1 to 7 chars.
-        var gitRegex = /^[a-f0-9]{40}$/;
+        const gitRegex = /^[a-f0-9]{40}$/;
         if (gitRegex.test(rev)) {
           return rev.substring(0, 7);
         }
-        var d = getDateDisplay(rev);
+        const d = getDateDisplay(rev);
         if (d) {
           return d;
         }
@@ -257,8 +257,8 @@ triaging functionality in the chart.
        * @return {string} A string.
        */
       function formatNumber(val) {
-        var num = Number(val);
-        var options = {
+        const num = Number(val);
+        const options = {
           minimumSignificantDigits: 2,
           maximumSignificantDigits: 6
         };
@@ -287,7 +287,7 @@ triaging functionality in the chart.
       }
 
       function arrayUnique(array) {
-        var dict = {};
+        const dict = {};
         array.forEach(function(item) {
           dict[item] = true;
         });
@@ -565,7 +565,7 @@ triaging functionality in the chart.
          * Binds event handlers for events that are fired by Flot.
          */
         initializePlotEventListeners() {
-          var plot = $(this.$.plot);
+          const plot = $(this.$.plot);
           plot.bind('plotselected', this.onPlotSelected.bind(this));
           plot.bind('plotselecting', this.onPlotSelecting.bind(this));
           plot.bind('plotunselected', this.onPlotUnselected.bind(this));
@@ -583,15 +583,15 @@ triaging functionality in the chart.
          **/
         updateSeriesGroupDisplayNames() {
           if (this.seriesGroupList.length > 1) {
-            let pathLengths = this.seriesGroupList.map(
+            const pathLengths = this.seriesGroupList.map(
                 p => p.path.split('/').length);
-            var minPathLength = Math.min.apply(null, pathLengths) - 1;
+            const minPathLength = Math.min.apply(null, pathLengths) - 1;
 
             // This just scans the paths to find the last point at which all the
             // paths were identical.
-            for (var commonIndex = 0; commonIndex < minPathLength;
-                commonIndex++) {
-              let parts = this.seriesGroupList.map(
+            let commonIndex = 0;
+            for (; commonIndex < minPathLength; commonIndex++) {
+              const parts = this.seriesGroupList.map(
                   p => p.path.split('/')[commonIndex]);
               if (!parts.every(p => p == parts[0])) {
                 break;
@@ -602,10 +602,10 @@ triaging functionality in the chart.
               // Once it has an index where they differ, we create a prefix
               // for the display name starting there.
               for (let i = 0; i < this.seriesGroupList.length; i++) {
-                let prefix = this.seriesGroupList[i].path.split(
+                const prefix = this.seriesGroupList[i].path.split(
                     '/').slice(commonIndex, minPathLength).join('/');
                 for (let j = 0; j < this.seriesGroupList[i].tests.length; j++) {
-                  let displayName = prefix + '/' + (
+                  const displayName = prefix + '/' + (
                       this.seriesGroupList[i].tests[j].name);
                   this.set(
                       'seriesGroupList.' + i + '.tests.' + j + '.displayName',
@@ -628,7 +628,7 @@ triaging functionality in the chart.
          */
         addSeriesGroup(testPathAndSelected, collapse) {
           // Checks if test path already exists.
-          var testPathSet = {};
+          const testPathSet = {};
           this.seriesGroupList.forEach(function(group) {
             testPathSet[group.path] = true;
           });
@@ -644,28 +644,28 @@ triaging functionality in the chart.
           // series, so there would be a quicker response for the selected
           // series. But, if the selected series is unknown, we default to
           // send an unselected series.
-          var selectedTestPathDict = {};
-          var unSelectedTestPathDict = {};
-          for (var i = 0; i < testPathAndSelected.length; i++) {
-            var testPath = testPathAndSelected[i][0];
-            var selectedTraces = testPathAndSelected[i][1];
+          const selectedTestPathDict = {};
+          const unSelectedTestPathDict = {};
+          for (let i = 0; i < testPathAndSelected.length; i++) {
+            const testPath = testPathAndSelected[i][0];
+            let selectedTraces = testPathAndSelected[i][1];
             selectedTraces = arrayUnique(selectedTraces);
-            var seriesGroup = {
+            const seriesGroup = {
               path: testPath,
               tests: [],
               collapse,
               numPendingRequests: 0
             };
             if (selectedTraces.length > 0) {
-              var selected = selectedTraces[0];
+              const selected = selectedTraces[0];
               if (this.SERIES_SELECTION_OPTIONS.indexOf(selected) != -1) {
                 seriesGroup.selection = selectedTraces[0];
                 selectedTestPathDict[testPath] = [];
               } else {
                 // Create test data here for selected traces so they can
                 // be initially shown in chart legend.
-                for (var j = 0; j < selectedTraces.length; j++) {
-                  var testData = {
+                for (let j = 0; j < selectedTraces.length; j++) {
+                  const testData = {
                     name: selectedTraces[j],
                     displayName: selectedTraces[j],
                     selected: true
@@ -764,16 +764,17 @@ triaging functionality in the chart.
             testPathDictOrList, isSelected, mainPath) {
           // TODO(eakuefner): Get rid of mainPath once loading counter is
           // cleaned up
-          var params = JSON.parse(JSON.stringify(this.graphParams));
+          const params = JSON.parse(JSON.stringify(this.graphParams));
 
+          let pathsForUpdate;
           if (testPathDictOrList instanceof Array) {
-            var testPaths = testPathDictOrList;
+            const testPaths = testPathDictOrList;
             params.test_path_list = testPathDictOrList;
-            var pathsForUpdate = [mainPath];
+            pathsForUpdate = [mainPath];
           } else {
-            var testPaths = Object.keys(testPathDictOrList);
+            const testPaths = Object.keys(testPathDictOrList);
             params.test_path_dict = testPathDictOrList;
-            var pathsForUpdate = testPaths;
+            pathsForUpdate = testPaths;
           }
 
           // TODO(eakuefner): Figure out how to remove this parameter since in
@@ -784,7 +785,7 @@ triaging functionality in the chart.
 
           this.updateSeriesGroupLoadingCounter(pathsForUpdate, true);
 
-          var req = simple_xhr.send(
+          const req = simple_xhr.send(
               '/graph_json',
               {'graphs': JSON.stringify(params)},
               function(json) {
@@ -817,7 +818,7 @@ triaging functionality in the chart.
           if (!('data' in json)) {
             return;
           }
-          var seriesIndices = Object.keys(json.data);
+          const seriesIndices = Object.keys(json.data);
           return (seriesIndices.length > 0 &&
                   json.data[seriesIndices[0]].data.length > 0);
         },
@@ -829,14 +830,14 @@ triaging functionality in the chart.
          * @param {boolean} increment True to add one, False to subtract one.
          */
         updateSeriesGroupLoadingCounter(testPaths, increment) {
-          var testPathToGroupIndex = {};
-          for (var i = 0; i < this.seriesGroupList.length; i++) {
+          const testPathToGroupIndex = {};
+          for (let i = 0; i < this.seriesGroupList.length; i++) {
             testPathToGroupIndex[this.seriesGroupList[i].path] = i;
           }
 
-          var delta = (increment) ? 1 : -1;
+          const delta = (increment) ? 1 : -1;
           testPaths.forEach(function(testPath) {
-            var index = testPathToGroupIndex[testPath];
+            const index = testPathToGroupIndex[testPath];
             this.set('seriesGroupList.' + index + '.numPendingRequests',
                 this.seriesGroupList[index].numPendingRequests + delta);
           }.bind(this));
@@ -853,7 +854,7 @@ triaging functionality in the chart.
          * Adds a warning message if it doesn't exist.
          */
         addWarnings(warning) {
-          for (var i = 0; i < this.warnings.length; i++) {
+          for (let i = 0; i < this.warnings.length; i++) {
             if (this.warnings[i].value.indexOf(warning) == 0) {
               return;
             }
@@ -870,25 +871,25 @@ triaging functionality in the chart.
                     value.indexOf('No data available.') == -1);
           });
 
-          for (var i = 0; i < this.indicesToGraph.length; i++) {
-            var index = this.indicesToGraph[i];
-            var series = this.json.annotations[index];
+          for (let i = 0; i < this.indicesToGraph.length; i++) {
+            const index = this.indicesToGraph[i];
+            const series = this.json.annotations[index];
             if (!series) {
               this.warnings.push('No data available.');
             }
           }
 
-          var hasRevParams = ('rev' in this.graphParams ||
+          const hasRevParams = ('rev' in this.graphParams ||
                               'start_rev' in this.graphParams ||
                               'end_rev' in this.graphParams);
           if (hasRevParams) {
             return;
           }
-          for (var i = 0; i < this.indicesToGraph.length; i++) {
-            var index = this.indicesToGraph[i];
-            var timestamp = this.getSeriesLatestTimestamp(index);
+          for (let i = 0; i < this.indicesToGraph.length; i++) {
+            const index = this.indicesToGraph[i];
+            const timestamp = this.getSeriesLatestTimestamp(index);
             if (timestamp != null) {
-              var currentTime = new Date().getTime();
+              const currentTime = new Date().getTime();
               if (timestamp < currentTime - this.STALE_DATA_DELTA_MS) {
                 this.warnings.push('Graph out of date! Last data received: ' +
                                    new Date(timestamp).toISOString());
@@ -899,9 +900,9 @@ triaging functionality in the chart.
         },
 
         getSeriesLatestTimestamp(seriesIndex) {
-          var series = this.json.annotations[seriesIndex];
+          const series = this.json.annotations[seriesIndex];
           if (series) {
-            var lastIndex = Math.max.apply(Math, Object.keys(series));
+            const lastIndex = Math.max.apply(Math, Object.keys(series));
             if ('timestamp' in series[lastIndex]) {
               return series[lastIndex].timestamp;
             }
@@ -923,16 +924,16 @@ triaging functionality in the chart.
             this.nextSeriesIndex = Object.keys(this.json.data).length;
           }
 
-          var testPathToSeriesIndex = {};
-          var series = this.json.annotations.series;
-          for (var i in series) {
+          const testPathToSeriesIndex = {};
+          const series = this.json.annotations.series;
+          for (const i in series) {
             testPathToSeriesIndex[series[i].path] = parseInt(i);
           }
 
-          var newSeries = {};
-          for (var index in newJson.data) {
-            var testPath = newJson.annotations.series[index].path;
-            var nextIndex = null;
+          const newSeries = {};
+          for (const index in newJson.data) {
+            const testPath = newJson.annotations.series[index].path;
+            let nextIndex = null;
             if (testPath in testPathToSeriesIndex) {
               nextIndex = testPathToSeriesIndex[testPath];
             } else {
@@ -940,7 +941,7 @@ triaging functionality in the chart.
               this.nextSeriesIndex++;
             }
 
-            var color = GENERATOR.colorForKey(testPath).toString();
+            const color = GENERATOR.colorForKey(testPath).toString();
             newJson.data[index].color = color;
             this.updateJsonDataIndex(newJson.data[index], nextIndex);
             this.json.data[nextIndex] = newJson.data[index];
@@ -984,10 +985,10 @@ triaging functionality in the chart.
             return;
           }
 
-          var testList = [];
-          for (var i in series) {
+          const testList = [];
+          for (let i in series) {
             i = parseInt(i);
-            var test = {
+            const test = {
               name: series[i].name,
               displayName: series[i].name,
               path: series[i].path,
@@ -1020,18 +1021,18 @@ triaging functionality in the chart.
          * @param {Array} testList List of test object.
          */
         updateSeriesGroupList(testList) {
-          var testPathToGroupIndex = {};
-          for (var i = 0; i < this.seriesGroupList.length; i++) {
+          const testPathToGroupIndex = {};
+          for (let i = 0; i < this.seriesGroupList.length; i++) {
             testPathToGroupIndex[this.seriesGroupList[i].path] = i;
           }
 
-          for (var i = 0; i < testList.length; i++) {
-            var test = testList[i];
-            var seriesGroupIndex = null;
+          for (let i = 0; i < testList.length; i++) {
+            const test = testList[i];
+            let seriesGroupIndex = null;
             if (test.path in testPathToGroupIndex) {
               seriesGroupIndex = testPathToGroupIndex[test.path];
             } else {
-              var parentPath = test.path.substring(0,
+              const parentPath = test.path.substring(0,
                   test.path.lastIndexOf('/'));
               if (parentPath in testPathToGroupIndex) {
                 seriesGroupIndex = testPathToGroupIndex[parentPath];
@@ -1058,10 +1059,10 @@ triaging functionality in the chart.
          */
         updateSeriesGroup(seriesGroupIndex, newTest) {
           // Update series if its data has not been loaded.
-          var testIndex = this.getTestIndexInSeriesGroup(
+          let testIndex = this.getTestIndexInSeriesGroup(
               seriesGroupIndex, newTest.name);
           if (testIndex != null) {
-            for (var key in newTest) {
+            for (const key in newTest) {
               this.set('seriesGroupList.' + seriesGroupIndex + '.tests.' +
                        testIndex + '.' + key,
                   newTest[key]);
@@ -1084,7 +1085,7 @@ triaging functionality in the chart.
          * Adds a test to seriesGroup and determines if it should be hidden.
          */
         addTestToSeriesGroup(seriesGroupIndex, test) {
-          var seriesGroup = this.seriesGroupList[seriesGroupIndex];
+          const seriesGroup = this.seriesGroupList[seriesGroupIndex];
           if (seriesGroup.collapse && !test.selected && !test.important) {
             test.hidden = true;
             if (seriesGroup.numHidden == undefined) {
@@ -1099,8 +1100,8 @@ triaging functionality in the chart.
         },
 
         getTestIndexInSeriesGroup(seriesGroupIndex, name) {
-          var tests = this.seriesGroupList[seriesGroupIndex].tests;
-          for (var i = 0; i < tests.length; i++) {
+          const tests = this.seriesGroupList[seriesGroupIndex].tests;
+          for (let i = 0; i < tests.length; i++) {
             if (name == tests[i].name) {
               return i;
             }
@@ -1125,14 +1126,14 @@ triaging functionality in the chart.
           this.warnings = [];
 
           // Create params out of seriesGroupList to make /graph_json request.
-          var selectedTestPathDict = {};
-          var unSelectedTestPathDict = {};
-          for (var i = 0; i < this.seriesGroupList.length; i++) {
-            var testPath = this.seriesGroupList[i].path;
-            var tests = this.seriesGroupList[i].tests;
-            var selectedTraces = [];
-            for (var j = 0; j < tests.length; j++) {
-              var test = tests[j];
+          const selectedTestPathDict = {};
+          const unSelectedTestPathDict = {};
+          for (let i = 0; i < this.seriesGroupList.length; i++) {
+            const testPath = this.seriesGroupList[i].path;
+            const tests = this.seriesGroupList[i].tests;
+            const selectedTraces = [];
+            for (let j = 0; j < tests.length; j++) {
+              const test = tests[j];
               if (test.selected) {
                 selectedTraces.push(test.name);
               } else {
@@ -1162,8 +1163,8 @@ triaging functionality in the chart.
         },
 
         updateErrorBarsIndex(errorBarsData, index, color) {
-          var top = errorBarsData[0];
-          var bottom = errorBarsData[1];
+          const top = errorBarsData[0];
+          const bottom = errorBarsData[1];
           top.id = 'top_' + index;
           top.fillBetween = 'line_' + index;
           top.color = color;
@@ -1177,9 +1178,9 @@ triaging functionality in the chart.
          */
         updateIndicesToGraph() {
           this.set('indicesToGraph', []);
-          for (var i = 0; i < this.seriesGroupList.length; i++) {
-            var tests = this.seriesGroupList[i].tests;
-            for (var j = 0; j < tests.length; j++) {
+          for (let i = 0; i < this.seriesGroupList.length; i++) {
+            const tests = this.seriesGroupList[i].tests;
+            for (let j = 0; j < tests.length; j++) {
               if (tests[j].selected && tests[j].index != undefined) {
                 this.push('indicesToGraph', tests[j].index);
               }
@@ -1211,7 +1212,7 @@ triaging functionality in the chart.
               this.seriesGroupList[0].tests.length == 0) {
             return;
           }
-          var firstTestPath = this.seriesGroupList[0].tests[0].path;
+          const firstTestPath = this.seriesGroupList[0].tests[0].path;
           if (firstTestPath && firstTestPath != this.$.slider.testpath) {
             this.$.slider.testpath = firstTestPath;
           }
@@ -1232,7 +1233,7 @@ triaging functionality in the chart.
           // This likely only happens in the unit test, but if series have
           // been added before the element became drawable, update now.
           if (this.newDrawableSeries) {
-            for (var drawableSeries of this.newDrawableSeries) {
+            for (const drawableSeries of this.newDrawableSeries) {
               this.updateForNewSeries(drawableSeries[0], drawableSeries[1]);
             }
           }
@@ -1266,7 +1267,7 @@ triaging functionality in the chart.
          *     'end_rev'.
          */
         onRevisionRange(event, detail) {
-          var newGraphParams = tr.b.deepCopy(this.graphParams);
+          const newGraphParams = tr.b.deepCopy(this.graphParams);
           newGraphParams.rev = null;
           newGraphParams.num_points = null;
           newGraphParams.start_rev = detail.start_rev;
@@ -1283,8 +1284,8 @@ triaging functionality in the chart.
           // If the series annotations are properly populated, then there will
           // be at least one entry and it will have the properties 'units' and
           // 'better'. All traces in one chart should have the same units.
-          var series = this.json.annotations.series;
-          var seriesIndices = Object.keys(series);
+          const series = this.json.annotations.series;
+          const seriesIndices = Object.keys(series);
           if (seriesIndices.length == 0) {
             return;
           }
@@ -1292,7 +1293,7 @@ triaging functionality in the chart.
           seriesIndices.sort(function(a, b) {
             return a - b;
           });
-          var seriesData = series[seriesIndices[0]];
+          const seriesData = series[seriesIndices[0]];
 
           if (seriesData.units) {
             this.chartYAxisLabel = seriesData.units;
@@ -1312,14 +1313,14 @@ triaging functionality in the chart.
          */
         updateSmartAutoscaleMap() {
           this.yAxisScaleMap = {};
-          for (var seriesIndex in this.json.data) {
-            var data = this.json.data[seriesIndex].data;
-            var values = [];
-            for (var dataIndex = 0; dataIndex < data.length; dataIndex++) {
+          for (const seriesIndex in this.json.data) {
+            const data = this.json.data[seriesIndex].data;
+            const values = [];
+            for (let dataIndex = 0; dataIndex < data.length; dataIndex++) {
               values.push(data[dataIndex][1]);
             }
             if (values.length > 0) {
-              var scale = this.determineMinMax(seriesIndex, values);
+              const scale = this.determineMinMax(seriesIndex, values);
               this.yAxisScaleMap[seriesIndex] = scale;
             }
           }
@@ -1351,7 +1352,7 @@ triaging functionality in the chart.
          * Checks whether a series at a point has an anomaly.
          */
         hasAnomaly(seriesIndex, dataIndex) {
-          var annotations = this.json.annotations;
+          const annotations = this.json.annotations;
           if (!annotations[seriesIndex] ||
               !annotations[seriesIndex][dataIndex] ||
               !annotations[seriesIndex][dataIndex].g_anomaly) {
@@ -1372,14 +1373,14 @@ triaging functionality in the chart.
           }
 
           // Get the min/max of the min/max of all graphs in indicesToGraph.
-          var firstIndex = this.indicesToGraph[0];
+          const firstIndex = this.indicesToGraph[0];
           if (!(firstIndex in this.yAxisScaleMap)) {
             return;
           }
-          var min = this.yAxisScaleMap[firstIndex].min;
-          var max = this.yAxisScaleMap[firstIndex].max;
-          for (var i = 0; i < this.indicesToGraph.length; i++) {
-            var scale = this.yAxisScaleMap[this.indicesToGraph[i]];
+          let min = this.yAxisScaleMap[firstIndex].min;
+          let max = this.yAxisScaleMap[firstIndex].max;
+          for (let i = 0; i < this.indicesToGraph.length; i++) {
+            const scale = this.yAxisScaleMap[this.indicesToGraph[i]];
             if (scale && scale.min < min) {
               min = scale.min;
             }
@@ -1399,10 +1400,10 @@ triaging functionality in the chart.
          * @param {Object} axis An object containing min and max number.
          */
         addAxisMargin(axis) {
-          var margin = 0.2; // Flot's default for autoscaleMargin.
-          var min = axis.min;
-          var max = axis.max;
-          var delta = max - min;
+          const margin = 0.2; // Flot's default for autoscaleMargin.
+          let min = axis.min;
+          let max = axis.max;
+          const delta = max - min;
           if (delta == 0.0) {
             min -= axis.min == 0 ? 1 : margin;
             max += axis.max == 0 ? 1 : margin;
@@ -1435,7 +1436,7 @@ triaging functionality in the chart.
          * chart.
          */
         warningsChanged() {
-          var backgroundColor = ((this.warnings.length) ? '#e6e6e6' : null);
+          const backgroundColor = ((this.warnings.length) ? '#e6e6e6' : null);
           this.chartOptions.grid.backgroundColor = backgroundColor;
           if (this.chart) {
             this.chart.getOptions().grid.backgroundColor = backgroundColor;
@@ -1452,7 +1453,7 @@ triaging functionality in the chart.
             return;
           }
 
-          var data = this.getDataForFlot();
+          let data = this.getDataForFlot();
           if (data.length == 0) {
             data = [[]];
             this.chart = $.plot(this.$.plot, data, this.chartOptions);
@@ -1460,15 +1461,15 @@ triaging functionality in the chart.
             return;
           }
 
-          var startRev = uri.getParameter('start_rev');
-          var endRev = uri.getParameter('end_rev');
-          var firstSeriesIsEmpty = data[0].data.length == 0;
+          const startRev = uri.getParameter('start_rev');
+          const endRev = uri.getParameter('end_rev');
+          const firstSeriesIsEmpty = data[0].data.length == 0;
           if (startRev && endRev && firstSeriesIsEmpty) {
             this.warnings.push('Data not available for revision range ' +
                                startRev + ':' + endRev + '.');
           }
 
-          var isNotZoomedIn = this.$.original.hidden;
+          const isNotZoomedIn = this.$.original.hidden;
           if (isNotZoomedIn) {
             this.setSmartAutoscale();
           }
@@ -1492,9 +1493,9 @@ triaging functionality in the chart.
             return [];
           }
 
-          var data = [];
-          for (var i = 0; i < this.indicesToGraph.length; i++) {
-            var index = this.indicesToGraph[i];
+          const data = [];
+          for (let i = 0; i < this.indicesToGraph.length; i++) {
+            const index = this.indicesToGraph[i];
             if (index >= 0 && this.json.data[index]) {
               data.push(tr.b.deepCopy(this.json.data[index]));
             } else {
@@ -1503,8 +1504,8 @@ triaging functionality in the chart.
           }
 
           // Add in error bars after data.
-          for (var i = 0; i < this.indicesToGraph.length; i++) {
-            var index = this.indicesToGraph[i];
+          for (let i = 0; i < this.indicesToGraph.length; i++) {
+            const index = this.indicesToGraph[i];
             if (index >= 0 && this.json.error_bars[index]) {
               data.push(tr.b.deepCopy(this.json.error_bars[index][0]));
               data.push(tr.b.deepCopy(this.json.error_bars[index][1]));
@@ -1539,7 +1540,7 @@ triaging functionality in the chart.
         createFixedXAxis(data) {
           // Make a map of all revisions for all data series to a series index
           // and data index.
-          var allRevisions = {};
+          const allRevisions = {};
           if (!this.json ||
               !this.json.data ||
               this.indicesToGraph.length == 0) {
@@ -1547,18 +1548,18 @@ triaging functionality in the chart.
           }
 
           // Only create axis for selected series.
-          for (var i = 0; i < this.indicesToGraph.length; i++) {
-            var index = this.indicesToGraph[i];
-            var series = this.json.data[index];
-            var numPoints = series.data.length;
-            for (var dataIndex = 0; dataIndex < numPoints; dataIndex++) {
-              var revision = series.data[dataIndex][0];
+          for (let i = 0; i < this.indicesToGraph.length; i++) {
+            const index = this.indicesToGraph[i];
+            const series = this.json.data[index];
+            const numPoints = series.data.length;
+            for (let dataIndex = 0; dataIndex < numPoints; dataIndex++) {
+              const revision = series.data[dataIndex][0];
               allRevisions[revision] = [series.index, dataIndex];
             }
           }
 
           // Make an ordered list of all revision numbers for any series.
-          var orderedRevisions = Object.keys(allRevisions).sort(function(a, b) {
+          const orderedRevisions = Object.keys(allRevisions).sort(function(a, b) {
             return a - b;
           });
           if (orderedRevisions.length == 0) {
@@ -1575,10 +1576,10 @@ triaging functionality in the chart.
 
           // We also want to make a reverse-lookup object which maps values in
           // in |orderedRevisions| to their indexes. This will be used below.
-          var revisionToIndexMap = {};
+          const revisionToIndexMap = {};
 
-          for (var i = 0; i < orderedRevisions.length; i++) {
-            var rev = orderedRevisions[i];
+          for (let i = 0; i < orderedRevisions.length; i++) {
+            const rev = orderedRevisions[i];
             this.revisionMap[i] =
                 [rev, allRevisions[rev][0], allRevisions[rev][1]];
             revisionToIndexMap[rev] = i;
@@ -1586,11 +1587,11 @@ triaging functionality in the chart.
 
           // Now that we have all the data we need cached, update the revisions
           // for each of the data points that will be shown on the graph.
-          for (var seriesIndex = 0; seriesIndex < data.length; seriesIndex++) {
-            var series = data[seriesIndex];
-            var numPoints = series.data.length;
-            for (var dataIndex = 0; dataIndex < numPoints; dataIndex++) {
-              var revision = series.data[dataIndex][0];
+          for (let seriesIndex = 0; seriesIndex < data.length; seriesIndex++) {
+            const series = data[seriesIndex];
+            const numPoints = series.data.length;
+            for (let dataIndex = 0; dataIndex < numPoints; dataIndex++) {
+              const revision = series.data[dataIndex][0];
               series.data[dataIndex][0] = revisionToIndexMap[revision];
             }
           }
@@ -1612,23 +1613,23 @@ triaging functionality in the chart.
          * @return {string} A string that should be shown on the X-axis.
          */
         formatXAxis(val, axis) {
-          var lookupIndex = Math.round(Math.max(val, 0));
+          const lookupIndex = Math.round(Math.max(val, 0));
           if (!this.revisionMap) {
             // this.revisionMap may not yet be set by this.createFixedXAxis.
             return '';
           }
-          var lookup = this.revisionMap[lookupIndex];
+          const lookup = this.revisionMap[lookupIndex];
           if (!lookup) {
             return '';
           }
-          var rev = lookup[0];
-          var seriesIndex = lookup[1];
-          var dataIndex = lookup[2];
+          const rev = lookup[0];
+          const seriesIndex = lookup[1];
+          const dataIndex = lookup[2];
 
-          var annotations = this.json.annotations;
+          const annotations = this.json.annotations;
           if (annotations[seriesIndex] && annotations[seriesIndex][dataIndex]) {
-            var annotation = annotations[seriesIndex][dataIndex];
-            var defaultRev = annotation.a_default_rev;
+            const annotation = annotations[seriesIndex][dataIndex];
+            const defaultRev = annotation.a_default_rev;
             if (defaultRev && annotation[defaultRev]) {
               return getDisplayRevision(annotation[defaultRev]);
             }
@@ -1651,19 +1652,19 @@ triaging functionality in the chart.
          */
         showAlerts() {
           this.clearAlertIcons();
-          var minHeight = this.chart.getAxes().yaxis.min;
-          var maxHeight = this.chart.getAxes().yaxis.max;
-          var xOffset = this.chartOptions.yaxis.labelWidth;
-          var flotData = this.chart.getData();
-          var annotations = this.json.annotations;
-          for (var flotIndex = 0; flotIndex < flotData.length; flotIndex++) {
-            var jsonSeriesIndex = flotData[flotIndex].index;
+          const minHeight = this.chart.getAxes().yaxis.min;
+          const maxHeight = this.chart.getAxes().yaxis.max;
+          const xOffset = this.chartOptions.yaxis.labelWidth;
+          const flotData = this.chart.getData();
+          const annotations = this.json.annotations;
+          for (let flotIndex = 0; flotIndex < flotData.length; flotIndex++) {
+            const jsonSeriesIndex = flotData[flotIndex].index;
             if (jsonSeriesIndex == null || !annotations[jsonSeriesIndex]) {
               continue;
             }
-            var dataLength = flotData[flotIndex].data.length;
-            for (var dataIndex = 0; dataIndex < dataLength; dataIndex++) {
-              var a = annotations[jsonSeriesIndex][dataIndex];
+            const dataLength = flotData[flotIndex].data.length;
+            for (let dataIndex = 0; dataIndex < dataLength; dataIndex++) {
+              const a = annotations[jsonSeriesIndex][dataIndex];
               if (!annotations[jsonSeriesIndex][dataIndex] ||
                   !annotations[jsonSeriesIndex][dataIndex].g_anomaly ||
                   flotData[flotIndex].data[dataIndex][1] < minHeight ||
@@ -1671,13 +1672,13 @@ triaging functionality in the chart.
                 continue;
               }
 
-              var flotPoint = flotData[flotIndex].data[dataIndex];
-              var left = xOffset + Math.round(
+              const flotPoint = flotData[flotIndex].data[dataIndex];
+              const left = xOffset + Math.round(
                   flotData[flotIndex].xaxis.p2c(flotPoint[0]));
-              var top = Math.round(
+              const top = Math.round(
                   flotData[flotIndex].yaxis.p2c(flotPoint[1]));
 
-              var alertIcon = document.createElement('alert-icon');
+              const alertIcon = document.createElement('alert-icon');
               alertIcon.initialize(
                   annotations[jsonSeriesIndex][dataIndex].g_anomaly,
                   this.alertKey);
@@ -1701,12 +1702,12 @@ triaging functionality in the chart.
          * Handler for 'onSeriesGroupClosed' event.
          */
         onSeriesGroupClosed(event) {
-          var groupIndex = event.detail.groupIndex;
-          var seriesGroup = this.splice('seriesGroupList', groupIndex, 1)[0];
+          const groupIndex = event.detail.groupIndex;
+          const seriesGroup = this.splice('seriesGroupList', groupIndex, 1)[0];
 
-          var tests = seriesGroup.tests;
-          for (var i = 0; i < tests.length; i++) {
-            var indexToRemove = tests[i].index;
+          const tests = seriesGroup.tests;
+          for (let i = 0; i < tests.length; i++) {
+            const indexToRemove = tests[i].index;
             delete this.json.data[indexToRemove];
             delete this.json.annotations.series[indexToRemove];
             delete this.json.annotations[indexToRemove];
@@ -1730,9 +1731,9 @@ triaging functionality in the chart.
          * parts.
          */
         onTitleClicked(event, detail) {
-          var titleParts = event.detail.titleParts;
-          var partIndex = event.detail.partIndex;
-          var testPath = titleParts.slice(0, partIndex + 1).join('/');
+          const titleParts = event.detail.titleParts;
+          const partIndex = event.detail.partIndex;
+          const testPath = titleParts.slice(0, partIndex + 1).join('/');
           this.json = tr.b.deepCopy(this.DEFAULT_JSON_PROPERTIES);
           this.set('seriesGroupList', []);
           this.set('indicesToGraph', []);
@@ -1776,7 +1777,7 @@ triaging functionality in the chart.
 
           this.showDelta = true;
 
-          var delta = Math.abs(ranges.yaxis.to - ranges.yaxis.from);
+          const delta = Math.abs(ranges.yaxis.to - ranges.yaxis.from);
           this.deltaAbsolute = delta.toFixed(2);
           this.deltaPercent =
               (delta * 100 / this.firstSelectedValue).toFixed(2);
@@ -1799,14 +1800,14 @@ triaging functionality in the chart.
          */
         onPlotClick(event, pos, item) {
           if (this.lastSelectedDelta) {
-            var from = this.lastSelectedDelta.yaxis.from;
-            var to = this.lastSelectedDelta.yaxis.to;
+            const from = this.lastSelectedDelta.yaxis.from;
+            const to = this.lastSelectedDelta.yaxis.to;
             if (pos.y == from || pos.y == to) {
               // Flot sends a spurious click event at the end of the selection.
               return;
             }
-            var min = Math.min(from, to);
-            var max = Math.max(from, to);
+            const min = Math.min(from, to);
+            const max = Math.max(from, to);
             if (pos.y > min && pos.y < max) {
               this.chartOptions.yaxis.min = min;
               this.chartOptions.yaxis.max = max;
@@ -1839,32 +1840,32 @@ triaging functionality in the chart.
         onAlertClick(flotSeriesIndex, dataIndex, event) {
           // Note: this.chart.getData() returns a list of series objects
           // (including series objects for error regions).
-          var jsonSeriesIndex = this.chart.getData()[flotSeriesIndex].index;
+          const jsonSeriesIndex = this.chart.getData()[flotSeriesIndex].index;
           if (jsonSeriesIndex == null) {
             return;
           }
-          var data = this.json.data[jsonSeriesIndex].data;
+          const data = this.json.data[jsonSeriesIndex].data;
 
           // Populate the nudgeList array with information about nearby
           // revisions. Each entry in the nudgeList is an object with basic
           // information about a point.
-          var nudgeList = [];
-          for (var i = Math.max(1, dataIndex - 5);
+          const nudgeList = [];
+          for (let i = Math.max(1, dataIndex - 5);
                i < Math.min(dataIndex + 5, data.length - 1);
                i++) {
             // Get annotation information about this nearby point.
             // This might be null if there are gaps in the data series.
             // In that case, we can just not add the point to the nudge list.
-            var annotation = this.json.annotations[jsonSeriesIndex][i];
+            const annotation = this.json.annotations[jsonSeriesIndex][i];
             if (!annotation) {
               continue;
             }
-            var displayRevision = data[i][0];
+            let displayRevision = data[i][0];
             if (annotation.a_default_rev) {
               displayRevision = annotation[annotation.a_default_rev];
             }
             displayRevision = getDisplayRevision(displayRevision);
-            var amount = ' 0: ';
+            let amount = ' 0: ';
             if (i < dataIndex) {
               amount = '-' + (dataIndex - i) + ': ';
             } else if (i > dataIndex) {
@@ -1882,8 +1883,8 @@ triaging functionality in the chart.
           }
 
           // Get the anomaly info object, and add a few fields.
-          var annotation = this.json.annotations[jsonSeriesIndex][dataIndex];
-          var anomalyInfo = annotation.g_anomaly;
+          const annotation = this.json.annotations[jsonSeriesIndex][dataIndex];
+          const anomalyInfo = annotation.g_anomaly;
           anomalyInfo.nudgeList = nudgeList;
           anomalyInfo.seriesIndex = jsonSeriesIndex;
           anomalyInfo.dataIndex = dataIndex;
@@ -1891,8 +1892,8 @@ triaging functionality in the chart.
           // The alerts and triaged lists are attributes of chart-tooltip
           // which are used for showing information about anomalies. The alerts
           // list is also used for showing the triage dialog.
-          var alerts = null;
-          var triaged = null;
+          let alerts = null;
+          let triaged = null;
           if (anomalyInfo.bug_id) {
             triaged = [anomalyInfo];
           } else {
@@ -1921,12 +1922,12 @@ triaging functionality in the chart.
          * chart-tooltip.
          */
         onBugTriaged(event) {
-          var jsonSeriesIndex = event.detail.alerts[0].seriesIndex;
-          var dataIndex = event.detail.alerts[0].dataIndex;
-          var bugId = event.detail.bugid;
+          const jsonSeriesIndex = event.detail.alerts[0].seriesIndex;
+          const dataIndex = event.detail.alerts[0].dataIndex;
+          const bugId = event.detail.bugid;
 
           // Update the bug id locally.
-          var annotation = this.json.annotations[jsonSeriesIndex][dataIndex];
+          const annotation = this.json.annotations[jsonSeriesIndex][dataIndex];
           annotation.g_anomaly.bug_id = bugId;
           this.$.tooltip.bugId = bugId;
           if (!bugId) {
@@ -1936,7 +1937,7 @@ triaging functionality in the chart.
             this.$.tooltip.alertInvalidOrIgnored = bugId < 0;
             this.$.tooltip.triagedAlerts = this.$.tooltip.alerts;
             this.$.tooltip.alerts = null;
-            var data = this.json.annotations[jsonSeriesIndex][dataIndex];
+            const data = this.json.annotations[jsonSeriesIndex][dataIndex];
             this.$.tooltip.alertKey = data.g_anomaly.key;
           }
           // Refresh the anomalies to make the one with the new bug id black.
@@ -1950,11 +1951,11 @@ triaging functionality in the chart.
          * an alert is nudged.
          */
         onAlertChangedRevisions(event) {
-          var jsonSeriesIndex = event.detail.alerts[0].seriesIndex;
-          var dataIndex = event.detail.alerts[0].dataIndex;
-          var newDataIndex = event.detail.newDataIndex;
-          var seriesAnnotations = this.json.annotations[jsonSeriesIndex];
-          var alertInfo = seriesAnnotations[dataIndex].g_anomaly;
+          const jsonSeriesIndex = event.detail.alerts[0].seriesIndex;
+          const dataIndex = event.detail.alerts[0].dataIndex;
+          const newDataIndex = event.detail.newDataIndex;
+          const seriesAnnotations = this.json.annotations[jsonSeriesIndex];
+          const alertInfo = seriesAnnotations[dataIndex].g_anomaly;
           alertInfo.start_revision = event.detail.startRev;
           alertInfo.end_revision = event.detail.endRev;
           seriesAnnotations[dataIndex].g_anomaly = null;
@@ -2013,29 +2014,29 @@ triaging functionality in the chart.
             return;
           }
 
-          var flotData = this.chart.getData();
-          var jsonSeriesIndex = this.chart.getData()[flotSeriesIndex].index;
+          const flotData = this.chart.getData();
+          const jsonSeriesIndex = this.chart.getData()[flotSeriesIndex].index;
           if (jsonSeriesIndex == null) {
             // TODO: Display error.
             return;
           }
 
           // Set the main properties of the tooltip.
-          var series = this.json.annotations.series[jsonSeriesIndex];
-          var annotation = this.json.annotations[jsonSeriesIndex][dataIndex];
+          const series = this.json.annotations.series[jsonSeriesIndex];
+          const annotation = this.json.annotations[jsonSeriesIndex][dataIndex];
 
           // In the data from this.chart.getData(), the series indexes are
           // different, and the point x-values are all converted to indexes.
-          var pointFromChart = flotData[flotSeriesIndex].data[dataIndex];
+          const pointFromChart = flotData[flotSeriesIndex].data[dataIndex];
 
           // The data from /graph_json is the data as it originally came,
           // and the x-values are the original Row IDs.
-          var seriesFromJson = this.json.data[jsonSeriesIndex];
-          var pointFromJson = seriesFromJson.data[dataIndex];
+          const seriesFromJson = this.json.data[jsonSeriesIndex];
+          const pointFromJson = seriesFromJson.data[dataIndex];
 
-          var xValue = pointFromChart[0];
-          var pointId = pointFromJson[0];
-          var yValue = pointFromJson[1];
+          const xValue = pointFromChart[0];
+          const pointId = pointFromJson[0];
+          const yValue = pointFromJson[1];
 
           this.$.tooltip.testPath = series.path;
           this.$.tooltip.isLastPoint =
@@ -2050,7 +2051,7 @@ triaging functionality in the chart.
           this.$.tooltip.links = this.getTooltipLinks(annotation, series.path,
               pointId);
           if (annotation.timestamp) {
-            var d = new Date(annotation.timestamp);
+            const d = new Date(annotation.timestamp);
             this.$.tooltip.timestamp = d.toISOString();
           }
 
@@ -2073,10 +2074,10 @@ triaging functionality in the chart.
             this.$.tooltip.recovered = annotation.g_anomaly.recovered;
           }
 
-          var traceRerunInfo = [];
+          const traceRerunInfo = [];
           if (annotation.a_trace_rerun_options) {
-            for (var i in annotation.a_trace_rerun_options) {
-              var currentOption = annotation.a_trace_rerun_options[i];
+            for (const i in annotation.a_trace_rerun_options) {
+              const currentOption = annotation.a_trace_rerun_options[i];
               traceRerunInfo.push({
                 'name': i,
                 'option': currentOption
@@ -2097,8 +2098,8 @@ triaging functionality in the chart.
           };
 
           // Un-hide and position the tooltip box.
-          var top = flotData[flotSeriesIndex].yaxis.p2c(yValue);
-          var left = flotData[flotSeriesIndex].xaxis.p2c(xValue) +
+          const top = flotData[flotSeriesIndex].yaxis.p2c(yValue);
+          const left = flotData[flotSeriesIndex].xaxis.p2c(xValue) +
               this.chartOptions.yaxis.labelWidth;
           this.$.tooltip.openAtPosition(top, left);
         },
@@ -2131,17 +2132,17 @@ triaging functionality in the chart.
          */
         getRevisionForBisect(jsonSeriesIndex, dataIndex) {
           // If the data point contains a default revision type, use that.
-          var annotation = this.json.annotations[jsonSeriesIndex][dataIndex];
+          const annotation = this.json.annotations[jsonSeriesIndex][dataIndex];
           if (!annotation) {
             return null;
           }
-          var defaultRevType = annotation.a_default_rev;
+          const defaultRevType = annotation.a_default_rev;
           if (defaultRevType && annotation[defaultRevType]) {
             return annotation[defaultRevType];
           }
 
           // Otherwise, use the x-value of the point (aka the point ID).
-          var point = this.json.data[jsonSeriesIndex].data[dataIndex];
+          const point = this.json.data[jsonSeriesIndex].data[dataIndex];
           if (point && point[0]) {
             return point[0];
           }
@@ -2176,10 +2177,10 @@ triaging functionality in the chart.
          *     url.
          */
         getTooltipLinks(annotation, testPath, pointId) {
-          var links = [];
-          for (var key in annotation) {
+          const links = [];
+          for (const key in annotation) {
             if (key == 'g_anomaly') {
-              var debugUrl = '/debug_alert?test_path=' + testPath +
+              const debugUrl = '/debug_alert?test_path=' + testPath +
                              '&rev=' + pointId;
               links.push({
                 'text': 'Debug alert',
@@ -2191,7 +2192,7 @@ triaging functionality in the chart.
                 'url': annotation.a_tracing_uri
               });
             } else if (key.indexOf('a_') === 0) {
-              var match = TOOLTIP_LINK_REGEX.exec(annotation[key]);
+              const match = TOOLTIP_LINK_REGEX.exec(annotation[key]);
               if (match) {
                 links.push({
                   'text': match[1],
@@ -2227,12 +2228,12 @@ triaging functionality in the chart.
          *     change log links for different types of revisions.
          */
         getRevisions(seriesIndex, dataIndex) {
-          var annotationSeries = this.json.annotations[seriesIndex];
-          var annotation = annotationSeries[dataIndex];
-          var previousAnnotation = annotationSeries[dataIndex - 1];
-          var defaultRevisionRangeInfo = null;
-          var revisionRangeInfoObjects = [];
-          for (var revisionTypeKey in annotation) {
+          const annotationSeries = this.json.annotations[seriesIndex];
+          const annotation = annotationSeries[dataIndex];
+          const previousAnnotation = annotationSeries[dataIndex - 1];
+          let defaultRevisionRangeInfo = null;
+          const revisionRangeInfoObjects = [];
+          for (const revisionTypeKey in annotation) {
             if (revisionTypeKey.indexOf('r_') != 0) {
               continue;  // Not a revision.
             }
@@ -2240,13 +2241,13 @@ triaging functionality in the chart.
               // TODO: Display error.
               continue;
             }
-            var end = annotation[revisionTypeKey];
-            var start = -1;
+            const end = annotation[revisionTypeKey];
+            let start = -1;
             if (dataIndex > 0 && previousAnnotation &&
                 previousAnnotation[revisionTypeKey]) {
               start = previousAnnotation[revisionTypeKey];
             }
-            var revisionRangeInfo = this.getRevisionRangeInfo(
+            const revisionRangeInfo = this.getRevisionRangeInfo(
                 revisionTypeKey, start, end);
             if (revisionTypeKey == annotation.a_default_rev) {
               // The default revision type will be inserted afterwards.
@@ -2257,8 +2258,8 @@ triaging functionality in the chart.
           }
           // Revisions are sorted by name, with the default first.
           revisionRangeInfoObjects.sort(function(a, b) {
-            var aName = a.name.toLowerCase();
-            var bName = b.name.toLowerCase();
+            const aName = a.name.toLowerCase();
+            const bName = b.name.toLowerCase();
             return aName.localeCompare(bName);
           });
           if (defaultRevisionRangeInfo) {
@@ -2280,12 +2281,12 @@ triaging functionality in the chart.
          *     a change log for a particular revision range.
          */
         getRevisionRangeInfo(revisionTypeKey, start, end) {
-          var revisionInfo = this.revisionInfo[revisionTypeKey];
-          var revisionTypeKey = revisionInfo.name;
-          var urlTemplate = revisionInfo.url;
+          const revisionInfo = this.revisionInfo[revisionTypeKey];
+          revisionTypeKey = revisionInfo.name;
+          const urlTemplate = revisionInfo.url;
 
           if (!isNaN(start) && !isNaN(end) && Number(start) > Number(end)) {
-            var temp = start;
+            const temp = start;
             start = end;
             end = temp;
           }
@@ -2298,7 +2299,7 @@ triaging functionality in the chart.
 
           // If the substring R1_trim is found in the URL template, we assume
           // that it's the URL template for Chrome OS versions.
-          var url = '';
+          let url = '';
           if (urlTemplate.indexOf('{{R1_trim}}') != -1) {
             url = this.fillInChromeOSChangeLogURL(urlTemplate, start, end);
           } else {
@@ -2332,14 +2333,14 @@ triaging functionality in the chart.
          * @param {string} end End version string.
          */
         fillInChromeOSChangeLogURL(urlTemplate, start, end) {
-          var urlEndVersion = end.substring(end.indexOf('.') + 1);
-          var urlStartVersion = '';
+          const urlEndVersion = end.substring(end.indexOf('.') + 1);
+          let urlStartVersion = '';
           if (start) {
             urlStartVersion = start.substring(start.indexOf('.') + 1);
           } else {
             urlStartVersion = urlEndVersion;
           }
-          var url = urlTemplate.replace('{{R1_trim}}', urlStartVersion);
+          let url = urlTemplate.replace('{{R1_trim}}', urlStartVersion);
           url = url.replace('{{R2_trim}}', urlEndVersion);
           return url;
         },
@@ -2389,7 +2390,7 @@ triaging functionality in the chart.
         },
 
         seriesMouseover(event) {
-          var index = event.detail.index;
+          const index = event.detail.index;
           if (this.indicesToGraph.indexOf(index) != -1) {
             this.highlightSeries([index]);
           }
@@ -2408,13 +2409,13 @@ triaging functionality in the chart.
          *     highlight.
          */
         highlightSeries(targetIndices) {
-          var flotData = this.chart.getData();
+          const flotData = this.chart.getData();
           if (!flotData) {
             return;
           }
 
-          for (var i = 0; i < flotData.length; i++) {
-            var series = flotData[i];
+          for (let i = 0; i < flotData.length; i++) {
+            const series = flotData[i];
             if (targetIndices.indexOf(this.getSeriesFillIndex(series)) != -1) {
               continue;
             }
@@ -2433,11 +2434,11 @@ triaging functionality in the chart.
           if (!this.chart) {
             return;
           }
-          var flotData = this.chart.getData();
+          const flotData = this.chart.getData();
           if (!flotData) {
             return;
           }
-          for (var i = 0; i < flotData.length; i++) {
+          for (let i = 0; i < flotData.length; i++) {
             this.updateSeriesHighlighting(
                 flotData[i],
                 this.DEFAULT_SERIES_PROPERTIES.lineWidth,
@@ -2464,7 +2465,7 @@ triaging functionality in the chart.
           }
           // fillBetween is a string 'line_X' (labeled by graph_json.py),
           // where X is a series index that filled line correspond to.
-          var index = series.fillBetween.replace(/[^0-9]/g, '');
+          const index = series.fillBetween.replace(/[^0-9]/g, '');
           return parseInt(index);
         },
 
@@ -2476,7 +2477,7 @@ triaging functionality in the chart.
             series.shadowSize = shadowSize;
             series.lines.lineWidth = lineWidth;
           }
-          var rgb = series.color.split(/[\(\)]/g)[1];
+          let rgb = series.color.split(/[\(\)]/g)[1];
           rgb = rgb.split(',');
           rgb[3] = opacity;
           series.color = 'rgba(' + rgb.join(',') + ')';
@@ -2497,11 +2498,11 @@ triaging functionality in the chart.
          */
         onDrop(event) {
           event.preventDefault();
-          var dataTransfer = event.dataTransfer;
+          const dataTransfer = event.dataTransfer;
           if (dataTransfer.getData('type') != 'seriesdnd') {
             return;
           }
-          var data = JSON.parse(dataTransfer.getData('data'));
+          const data = JSON.parse(dataTransfer.getData('data'));
           if (data) {
             const seriesGroup = new d.SeriesGroup(
                 data.mainPath, data.selectedPaths, data.unselectedPaths);
@@ -2537,14 +2538,14 @@ triaging functionality in the chart.
         },
 
         onUriChanged(event) {
-          var detail = event.detail;
+          const detail = event.detail;
           if (detail.stateName != 'chartstatechanged') {
             return;
           }
 
-          var isSameTarget = (detail.id == this.getAttribute('uniqueid') ||
+          const isSameTarget = (detail.id == this.getAttribute('uniqueid') ||
               detail.id == this.$.legend.getAttribute('uniqueid'));
-          var shouldReload = false;
+          let shouldReload = false;
           if (isSameTarget) {
             this.set('seriesGroupList', detail.state);
             shouldReload = true;
@@ -2566,12 +2567,12 @@ triaging functionality in the chart.
          * @return {Array} List of pair of test path and selected series.
          */
         getState() {
-          var state = [];
+          const state = [];
           this.seriesGroupList.forEach(function(seriesGroup) {
-            var selected = [];
-            var unselected = [];
-            var tests = seriesGroup.tests;
-            for (var i = 0; i < tests.length; i++) {
+            let selected = [];
+            const unselected = [];
+            const tests = seriesGroup.tests;
+            for (let i = 0; i < tests.length; i++) {
               if (tests[i].selected) {
                 selected.push(tests[i].name);
               } else {

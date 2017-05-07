@@ -22,14 +22,14 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.e.chrome.cc', function() {
-  var constants = tr.e.cc.constants;
-  var RENDER_PASS_QUADS =
+  const constants = tr.e.cc.constants;
+  const RENDER_PASS_QUADS =
       Math.max(constants.ACTIVE_TREE, constants.PENDING_TREE) + 1;
 
   /**
    * @constructor
    */
-  var LayerPicker = tr.ui.b.define('tr-ui-e-chrome-cc-layer-picker');
+  const LayerPicker = tr.ui.b.define('tr-ui-e-chrome-cc-layer-picker');
 
   LayerPicker.prototype = {
     __proto__: HTMLUnknownElement.prototype,
@@ -56,7 +56,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
            {label: 'Render pass quads', value: RENDER_PASS_QUADS}]));
 
       this.showPureTransformLayers_ = false;
-      var showPureTransformLayers = tr.ui.b.createCheckBox(
+      const showPureTransformLayers = tr.ui.b.createCheckBox(
           this, 'showPureTransformLayers',
           'layerPicker.showPureTransformLayers', false,
           'Transform layers');
@@ -111,15 +111,15 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     getRenderPassInfos_() {
       if (!this.lthiSnapshot_) return [];
 
-      var renderPassInfo = [];
+      const renderPassInfo = [];
       if (!this.lthiSnapshot_.args.frame ||
           !this.lthiSnapshot_.args.frame.renderPasses) {
         return renderPassInfo;
       }
 
-      var renderPasses = this.lthiSnapshot_.args.frame.renderPasses;
-      for (var i = 0; i < renderPasses.length; ++i) {
-        var info = {renderPass: renderPasses[i],
+      const renderPasses = this.lthiSnapshot_.args.frame.renderPasses;
+      for (let i = 0; i < renderPasses.length; ++i) {
+        const info = {renderPass: renderPasses[i],
           depth: 0,
           id: i,
           name: 'cc::RenderPass'};
@@ -131,12 +131,12 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     getLayerInfos_() {
       if (!this.lthiSnapshot_) return [];
 
-      var tree = this.lthiSnapshot_.getTree(this.whichTree_);
+      const tree = this.lthiSnapshot_.getTree(this.whichTree_);
       if (!tree) return [];
 
-      var layerInfos = [];
+      const layerInfos = [];
 
-      var showPureTransformLayers = this.showPureTransformLayers_;
+      const showPureTransformLayers = this.showPureTransformLayers_;
 
       function isPureTransformLayer(layer) {
         if (layer.args.compositingReasons &&
@@ -149,12 +149,12 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
         return true;
       }
-      var visitedLayers = {};
+      const visitedLayers = {};
       function visitLayer(layer, depth, isMask, isReplica) {
         if (visitedLayers[layer.layerId]) return;
 
         visitedLayers[layer.layerId] = true;
-        var info = {layer,
+        const info = {layer,
           depth};
 
         if (layer.args.drawsContent) {
@@ -189,18 +189,18 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     updateRenderPassContents_() {
       this.itemList_.clear();
 
-      var selectedRenderPassId;
+      let selectedRenderPassId;
       if (this.selection_ && this.selection_.associatedRenderPassId) {
         selectedRenderPassId = this.selection_.associatedRenderPassId;
       }
 
-      var renderPassInfos = this.getRenderPassInfos_();
+      const renderPassInfos = this.getRenderPassInfos_();
       renderPassInfos.forEach(function(renderPassInfo) {
-        var renderPass = renderPassInfo.renderPass;
-        var id = renderPassInfo.id;
+        const renderPass = renderPassInfo.renderPass;
+        const id = renderPassInfo.id;
 
-        var item = this.createElementWithDepth_(renderPassInfo.depth);
-        var labelEl = Polymer.dom(item).appendChild(tr.ui.b.createSpan());
+        const item = this.createElementWithDepth_(renderPassInfo.depth);
+        const labelEl = Polymer.dom(item).appendChild(tr.ui.b.createSpan());
 
         Polymer.dom(labelEl).textContent = renderPassInfo.name + ' ' + id;
         item.renderPass = renderPass;
@@ -219,22 +219,22 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       try {
         this.itemList_.clear();
 
-        var selectedLayerId;
+        let selectedLayerId;
         if (this.selection_ && this.selection_.associatedLayerId) {
           selectedLayerId = this.selection_.associatedLayerId;
         }
 
-        var layerInfos = this.getLayerInfos_();
+        const layerInfos = this.getLayerInfos_();
         layerInfos.forEach(function(layerInfo) {
-          var layer = layerInfo.layer;
-          var id = layer.layerId;
+          const layer = layerInfo.layer;
+          const id = layer.layerId;
 
-          var item = this.createElementWithDepth_(layerInfo.depth);
-          var labelEl = Polymer.dom(item).appendChild(tr.ui.b.createSpan());
+          const item = this.createElementWithDepth_(layerInfo.depth);
+          const labelEl = Polymer.dom(item).appendChild(tr.ui.b.createSpan());
 
           Polymer.dom(labelEl).textContent = layerInfo.name + ' ' + id;
 
-          var notesEl = Polymer.dom(item).appendChild(tr.ui.b.createSpan());
+          const notesEl = Polymer.dom(item).appendChild(tr.ui.b.createSpan());
           if (layerInfo.isMaskLayer) {
             Polymer.dom(notesEl).textContent += '(mask)';
           }
@@ -244,7 +244,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
           if ((layer.gpuMemoryUsageInBytes !== undefined) &&
               (layer.gpuMemoryUsageInBytes > 0)) {
-            var gpuUsageStr = tr.b.Unit.byName.sizeInBytes.format(
+            const gpuUsageStr = tr.b.Unit.byName.sizeInBytes.format(
                 layer.gpuMemoryUsageInBytes);
             Polymer.dom(notesEl).textContent += ' (' + gpuUsageStr + ' MiB)';
           }
@@ -263,11 +263,11 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     createElementWithDepth_(depth) {
-      var item = document.createElement('div');
+      const item = document.createElement('div');
 
-      var indentEl = Polymer.dom(item).appendChild(tr.ui.b.createSpan());
+      const indentEl = Polymer.dom(item).appendChild(tr.ui.b.createSpan());
       indentEl.style.whiteSpace = 'pre';
-      for (var i = 0; i < depth; i++) {
+      for (let i = 0; i < depth; i++) {
         Polymer.dom(indentEl).textContent =
             Polymer.dom(indentEl).textContent + ' ';
       }
@@ -285,8 +285,8 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     onRenderPassSelected_(e) {
-      var selectedRenderPass;
-      var selectedRenderPassId;
+      let selectedRenderPass;
+      let selectedRenderPassId;
       if (this.itemList_.selectedElement) {
         selectedRenderPass = this.itemList_.selectedElement.renderPass;
         selectedRenderPassId =
@@ -302,7 +302,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     onLayerSelected_(e) {
-      var selectedLayer;
+      let selectedLayer;
       if (this.itemList_.selectedElement) {
         selectedLayer = this.itemList_.selectedElement.layer;
       }

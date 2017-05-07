@@ -44,9 +44,9 @@ found in the LICENSE file.
         return;
       }
 
-      let columnTitles = new Set();
-      for (let map of this.diagnosticMaps_) {
-        for (let [name, diagnostic] of map) {
+      const columnTitles = new Set();
+      for (const map of this.diagnosticMaps_) {
+        for (const [name, diagnostic] of map) {
           // https://github.com/catapult-project/catapult/issues/2842
           if (diagnostic instanceof tr.v.d.UnmergeableDiagnosticSet) continue;
           if (diagnostic instanceof tr.v.d.CollectedRelatedEventSet) continue;
@@ -56,19 +56,19 @@ found in the LICENSE file.
         }
       }
 
-      let columns = [];
+      const columns = [];
       function makeColumn(title) {
         return {
           title,
           value(map) {
-            let diagnostic = map.get(title);
+            const diagnostic = map.get(title);
             if (!diagnostic) return '';
 
             return tr.v.ui.createDiagnosticSpan(diagnostic);
           }
         };
       }
-      for (let title of columnTitles) {
+      for (const title of columnTitles) {
         columns.push(makeColumn(title));
       }
 

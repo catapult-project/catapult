@@ -75,7 +75,7 @@ tr.exportTo('tr.e.importer.v8', function() {
    * @param {number} to The destination address.
    */
   CodeMap.prototype.moveCode = function(from, to) {
-    var removedNode = this.dynamics_.remove(from);
+    const removedNode = this.dynamics_.remove(from);
     this.deleteAllCoveredNodes_(this.dynamics_, to,
         to + removedNode.value.size);
     this.dynamics_.insert(to, removedNode.value);
@@ -88,7 +88,7 @@ tr.exportTo('tr.e.importer.v8', function() {
    * @param {number} start The starting address of the entry being deleted.
    */
   CodeMap.prototype.deleteCode = function(start) {
-    var removedNode = this.dynamics_.remove(start);
+    const removedNode = this.dynamics_.remove(start);
   };
 
   /**
@@ -118,7 +118,7 @@ tr.exportTo('tr.e.importer.v8', function() {
    * @private
    */
   CodeMap.prototype.markPages_ = function(start, end) {
-    for (var addr = start; addr <= end;
+    for (let addr = start; addr <= end;
          addr += CodeMap.PAGE_SIZE) {
       this.pages_[addr >>> CodeMap.PAGE_ALIGNMENT] = 1;
     }
@@ -128,17 +128,17 @@ tr.exportTo('tr.e.importer.v8', function() {
    * @private
    */
   CodeMap.prototype.deleteAllCoveredNodes_ = function(tree, start, end) {
-    var toDelete = [];
-    var addr = end - 1;
+    const toDelete = [];
+    let addr = end - 1;
     while (addr >= start) {
-      var node = tree.findGreatestLessThan(addr);
+      const node = tree.findGreatestLessThan(addr);
       if (!node) break;
-      var start2 = node.key;
-      var end2 = start2 + node.value.size;
+      const start2 = node.key;
+      const end2 = start2 + node.value.size;
       if (start2 < end && start < end2) toDelete.push(start2);
       addr = start2 - 1;
     }
-    for (var i = 0, l = toDelete.length; i < l; ++i) tree.remove(toDelete[i]);
+    for (let i = 0, l = toDelete.length; i < l; ++i) tree.remove(toDelete[i]);
   };
 
   /**
@@ -152,7 +152,7 @@ tr.exportTo('tr.e.importer.v8', function() {
    * @private
    */
   CodeMap.prototype.findInTree_ = function(tree, addr) {
-    var node = tree.findGreatestLessThan(addr);
+    const node = tree.findGreatestLessThan(addr);
     return node && this.isAddressBelongsTo_(addr, node) ? node.value : null;
   };
 
@@ -162,7 +162,7 @@ tr.exportTo('tr.e.importer.v8', function() {
    * @param {number} addr Address.
    */
   CodeMap.prototype.findEntryInLibraries = function(addr) {
-    var pageAddr = addr >>> CodeMap.PAGE_ALIGNMENT;
+    const pageAddr = addr >>> CodeMap.PAGE_ALIGNMENT;
     if (pageAddr in this.pages_) {
       return this.findInTree_(this.libraries_, addr);
     }
@@ -176,17 +176,17 @@ tr.exportTo('tr.e.importer.v8', function() {
    * @param {number} addr Address.
    */
   CodeMap.prototype.findEntry = function(addr) {
-    var pageAddr = addr >>> CodeMap.PAGE_ALIGNMENT;
+    const pageAddr = addr >>> CodeMap.PAGE_ALIGNMENT;
     if (pageAddr in this.pages_) {
       // Static code entries can contain "holes" of unnamed code.
       // In this case, the whole library is assigned to this address.
       return this.findInTree_(this.statics_, addr) ||
           this.findInTree_(this.libraries_, addr);
     }
-    var min = this.dynamics_.findMin();
-    var max = this.dynamics_.findMax();
+    const min = this.dynamics_.findMin();
+    const max = this.dynamics_.findMax();
     if (max !== null && addr < (max.key + max.value.size) && addr >= min.key) {
-      var dynaEntry = this.findInTree_(this.dynamics_, addr);
+      const dynaEntry = this.findInTree_(this.dynamics_, addr);
       if (dynaEntry === null) return null;
       // Dedupe entry name.
       if (!dynaEntry.nameUpdated_) {
@@ -205,7 +205,7 @@ tr.exportTo('tr.e.importer.v8', function() {
    */
   CodeMap.prototype.findDynamicEntryByStartAddress =
       function(addr) {
-        var node = this.dynamics_.find(addr);
+        const node = this.dynamics_.find(addr);
         return node ? node.value : null;
       };
 
@@ -349,7 +349,7 @@ tr.exportTo('tr.e.importer.v8', function() {
      * Returns node name.
      */
     get name() {
-      var name = this.name_;
+      let name = this.name_;
       if (name.length === 0) {
         name = '<anonymous>';
       } else if (name.charAt(0) === ' ') {
@@ -373,7 +373,7 @@ tr.exportTo('tr.e.importer.v8', function() {
       this.knownNames_[name] = 0;
       return name;
     }
-    var count = ++this.knownNames_[name];
+    const count = ++this.knownNames_[name];
     return name + ' {' + count + '}';
   };
   return {

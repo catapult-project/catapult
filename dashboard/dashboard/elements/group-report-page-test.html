@@ -13,7 +13,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-var GRAPH_JSON = {
+const GRAPH_JSON = {
   'data': {
     '0': {
       'color': 0,
@@ -78,7 +78,7 @@ var GRAPH_JSON = {
   }
 };
 
-var GRAPH_REVISION_JSON = [
+const GRAPH_REVISION_JSON = [
    [348164, 24290, 1445661677000],
    [348167, 22206, 1445674668000],
    [348182, 24170, 1445685601000],
@@ -88,9 +88,9 @@ var GRAPH_REVISION_JSON = [
 
 
 tr.b.unittest.testSuite(function() {
-  var originalGetQueryString;
+  let originalGetQueryString;
 
-  var testOptions = {
+  const testOptions = {
     setUp() {
       originalGetQueryString = uri.getQueryString;
     },
@@ -104,7 +104,7 @@ tr.b.unittest.testSuite(function() {
   };
 
   test('instantiation', function() {
-    var mockResponse = {
+    const mockResponse = {
       'alert_list': [
         {
           'key': '12345',
@@ -156,19 +156,19 @@ tr.b.unittest.testSuite(function() {
     testing_common.addXhrMock(
         '/graph_revisions?test_path=Chromium%2Fwin%2Fsunspider%2FTotal',
         JSON.stringify(GRAPH_REVISION_JSON));
-    var page = document.createElement('group-report-page');
+    const page = document.createElement('group-report-page');
     this.addHTMLOutput(page);
     assert.isFalse(page.$.container.hidden);
   }, testOptions);
 
   test('error', function() {
-    var mockResponse = {
+    const mockResponse = {
       'error': 'something is wrong!!!'
     };
     uri.getQueryString = function() { return '?keys=12345'; };
     testing_common.addXhrMock('/group_report?keys=12345',
         JSON.stringify(mockResponse));
-    var page = document.createElement('group-report-page');
+    const page = document.createElement('group-report-page');
     this.addHTMLOutput(page);
     assert.isTrue(page.$.container.hidden);
   }, testOptions);

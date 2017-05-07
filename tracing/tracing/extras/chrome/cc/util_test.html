@@ -24,7 +24,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('objectConvertNested', function() {
-    var object = {
+    const object = {
       un_disturbed: true,
       args: {
         foo_bar: {
@@ -32,7 +32,7 @@ tr.b.unittest.testSuite(function() {
         }
       }
     };
-    var expected = {
+    const expected = {
       un_disturbed: true,
       args: {
         fooBar: {
@@ -45,14 +45,14 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('arrayConvert', function() {
-    var object = {
+    const object = {
       un_disturbed: true,
       args: [
         {foo_bar: 7},
         {foo_bar: 8}
       ]
     };
-    var expected = {
+    const expected = {
       un_disturbed: true,
       args: [
         {fooBar: 7},
@@ -64,7 +64,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('quadCoversion', function() {
-    var object = {
+    const object = {
       args: {
         some_quad: [1, 2, 3, 4, 5, 6, 7, 8]
       }
@@ -74,7 +74,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('quadConversionNested', function() {
-    var object = {
+    const object = {
       args: {
         nested_field: {
           a_quad: [1, 2, 3, 4, 5, 6, 7, 8]
@@ -88,7 +88,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('rectCoversion', function() {
-    var object = {
+    const object = {
       args: {
         some_rect: [1, 2, 3, 4]
       }
@@ -98,7 +98,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('rectCoversionNested', function() {
-    var object = {
+    const object = {
       args: {
         nested_field: {
           a_rect: [1, 2, 3, 4]

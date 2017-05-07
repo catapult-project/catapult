@@ -38,7 +38,8 @@ tr.exportTo('tr.ui.annotations', function() {
     },
 
     draw(ctx) {
-      var coords = this.annotation_.location.toViewCoordinates(this.viewport_);
+      const coords = this.annotation_.location.toViewCoordinates(
+          this.viewport_);
       if (coords.viewX < 0) {
         if (this.textArea_) {
           this.textArea_.style.visibility = 'hidden';

@@ -12,15 +12,15 @@ found in the LICENSE file.
 
 tr.exportTo('tr.importer', function() {
   // This global instant event marks the start of a navigation.
-  var NAVIGATION_START = 'NavigationTiming navigationStart';
+  const NAVIGATION_START = 'NavigationTiming navigationStart';
 
   // This render-process instant event marks the first contentful paint in a
   // main frame.
-  var FIRST_CONTENTFUL_PAINT_TITLE = 'firstContentfulPaint';
+  const FIRST_CONTENTFUL_PAINT_TITLE = 'firstContentfulPaint';
 
   function findLoadExpectations(modelHelper) {
-    var events = [];
-    for (var event of modelHelper.model.getDescendantEvents()) {
+    const events = [];
+    for (const event of modelHelper.model.getDescendantEvents()) {
       if ((event.title === NAVIGATION_START) ||
           (event.title === FIRST_CONTENTFUL_PAINT_TITLE)) {
         events.push(event);
@@ -28,13 +28,13 @@ tr.exportTo('tr.importer', function() {
     }
     events.sort(tr.importer.compareEvents);
 
-    var loads = [];
-    var startEvent = undefined;
+    const loads = [];
+    let startEvent = undefined;
     // TODO(alexandermont): What's supposed to happen if there are two
     // NAVIGATION_STARTs with no FIRST_CONTENTFUL_PAINT_TITLE between
     // them? Are you supposed to just "lose" the first NAVIGATION_START,
     // like what's happening now?
-    for (var event of events) {
+    for (const event of events) {
       if (event.title === NAVIGATION_START) {
         startEvent = event;
       } else if (event.title === FIRST_CONTENTFUL_PAINT_TITLE) {

@@ -15,7 +15,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var ColorScheme = tr.b.ColorScheme;
+  const ColorScheme = tr.b.ColorScheme;
 
   function createMainProcesses(m) {
     m.browserProcess = m.getOrCreateProcess(1);
@@ -31,7 +31,7 @@ tr.b.unittest.testSuite(function() {
   }
 
   function newInputLatencyEvent(tsStart, tsEnd, opt_args) {
-    var e = new tr.model.AsyncSlice(
+    const e = new tr.model.AsyncSlice(
         'benchmark', 'InputLatency',
         ColorScheme.getColorIdForGeneralPurposeString('InputLatency'),
         tsStart, opt_args);
@@ -40,7 +40,7 @@ tr.b.unittest.testSuite(function() {
   }
 
   function newImplRenderingStatsEvent(ts, opt_args) {
-    var e = new tr.model.ThreadSlice(
+    const e = new tr.model.ThreadSlice(
         'benchmark', 'BenchmarkInstrumentation::ImplThreadRenderingStats',
         ColorScheme.getColorIdForGeneralPurposeString('x'),
         ts, opt_args, 0);
@@ -50,7 +50,7 @@ tr.b.unittest.testSuite(function() {
   test('simple', function() {
     tr.c.TestUtils.newModelWithAuditor(function(m) {
       createMainProcesses(m);
-      var bAsyncSlices = m.browserMain.asyncSliceGroup;
+      const bAsyncSlices = m.browserMain.asyncSliceGroup;
       bAsyncSlices.push(newInputLatencyEvent(100, 130));
       bAsyncSlices.push(newInputLatencyEvent(116, 150));
       bAsyncSlices.push(newInputLatencyEvent(133, 166));
@@ -58,7 +58,7 @@ tr.b.unittest.testSuite(function() {
       bAsyncSlices.push(newInputLatencyEvent(166, 200));
       bAsyncSlices.push(newInputLatencyEvent(183, 216));
 
-      var rm1Slices = m.renderer1Compositor.sliceGroup;
+      const rm1Slices = m.renderer1Compositor.sliceGroup;
       rm1Slices.pushSlice(newImplRenderingStatsEvent(113));
       rm1Slices.pushSlice(newImplRenderingStatsEvent(130));
       rm1Slices.pushSlice(newImplRenderingStatsEvent(147));
@@ -72,7 +72,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('refsToBrowser', function() {
-    var events = [
+    const events = [
       // An object created and snapshotted in the browser process.
       {ts: 1000, pid: 1, tid: 2, ph: 'N', cat: 'c', id: '0x1000', name: 'a',
         args: {}},
@@ -86,27 +86,27 @@ tr.b.unittest.testSuite(function() {
         args: {bar: {pid_ref: -1, id_ref: '0x1000'}}}
     ];
 
-    var m = tr.c.TestUtils.newModelWithEvents([events], {
+    const m = tr.c.TestUtils.newModelWithEvents([events], {
       shiftWorldToZero: false,
       pruneEmptyContainers: false,
       customizeModelCallback: createMainProcesses,
       auditorConstructors: [tr.e.audits.ChromeAuditor]
     });
 
-    var browserObject = m.browserProcess.objects.getObjectInstanceAt(
+    const browserObject = m.browserProcess.objects.getObjectInstanceAt(
         new tr.model.ScopedId('ptr', '0x1000'), 1.2);
     assert.isDefined(browserObject);
-    var foo = browserObject.getSnapshotAt(1.2);
+    const foo = browserObject.getSnapshotAt(1.2);
     assert.isDefined(foo);
 
     assert.strictEqual(m.renderer1Main.sliceGroup.slices.length, 1);
-    var slice = m.renderer1Main.sliceGroup.slices[0];
+    const slice = m.renderer1Main.sliceGroup.slices[0];
     assert.strictEqual(slice.title, 'b');
     assert.strictEqual(slice.args.bar, foo);
   });
 
   test('filterTracingUI', function() {
-    var m = tr.c.TestUtils.newModelWithAuditor(function(m) {
+    const m = tr.c.TestUtils.newModelWithAuditor(function(m) {
       m.browserProcess = m.getOrCreateProcess(1);
       m.browserMain = m.browserProcess.getOrCreateThread(2);
       m.browserMain.name = 'CrBrowserMain';

@@ -18,17 +18,17 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var newSliceEx = tr.c.TestUtils.newSliceEx;
-  var newFlowEventEx = tr.c.TestUtils.newFlowEventEx;
+  const newSliceEx = tr.c.TestUtils.newSliceEx;
+  const newFlowEventEx = tr.c.TestUtils.newFlowEventEx;
 
   function createModel() {
-    var m = tr.c.TestUtils.newModel(function(m) {
+    const m = tr.c.TestUtils.newModel(function(m) {
       m.p1 = m.getOrCreateProcess(1);
 
       m.t2 = m.p1.getOrCreateThread(2);
       m.t3 = m.p1.getOrCreateThread(3);
       m.t4 = m.p1.getOrCreateThread(4);
-      var node = tr.c.TestUtils.newProfileNodes(m, ['fake']);
+      const node = tr.c.TestUtils.newProfileNodes(m, ['fake']);
 
       // Setup samples and slices in this way:
       //     0    5    10   15   20
@@ -104,10 +104,10 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('instantiate', function() {
-    var m = createModel();
+    const m = createModel();
 
-    var viewEl = document.createElement('tr-ui-a-related-events');
-    var selection = new tr.model.EventSet(
+    const viewEl = document.createElement('tr-ui-a-related-events');
+    const selection = new tr.model.EventSet(
         [m.sA, m.f0, m.sAA, m.f1, m.sB, m.f2, m.sBB, m.sBBB, m.f3, m.sC]);
     viewEl.setRelatedEvents(selection);
     this.addHTMLOutput(viewEl);
@@ -120,16 +120,16 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('validateFlows', function() {
-    var m = createModel();
+    const m = createModel();
 
-    var viewEl = document.createElement('tr-ui-a-related-events');
+    const viewEl = document.createElement('tr-ui-a-related-events');
     viewEl.setRelatedEvents(new tr.model.EventSet([m.sB, m.sBB, m.sBBB]));
     this.addHTMLOutput(viewEl);
     tr.b.forceAllPendingTasksToRunForTest();
 
-    var inFlows;
-    var outFlows;
-    var internalFlows;
+    let inFlows;
+    let outFlows;
+    let internalFlows;
     viewEl.$.table.tableRows.forEach(function(row) {
       if (row.type === 'Incoming flow') {
         assert.isUndefined(inFlows);
@@ -153,16 +153,16 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('validateConnectedEvents', function() {
-    var m = createModel();
+    const m = createModel();
 
-    var viewEl = document.createElement('tr-ui-a-related-events');
+    const viewEl = document.createElement('tr-ui-a-related-events');
     viewEl.setRelatedEvents(new tr.model.EventSet([m.sBB]));
     this.addHTMLOutput(viewEl);
     tr.b.forceAllPendingTasksToRunForTest();
 
-    var precedingEvents;
-    var followingEvents;
-    var allEvents;
+    let precedingEvents;
+    let followingEvents;
+    let allEvents;
     viewEl.$.table.tableRows.forEach(function(row) {
       if (row.type === 'Preceding events') {
         assert.isUndefined(precedingEvents);
@@ -178,17 +178,17 @@ tr.b.unittest.testSuite(function() {
       }
     });
 
-    var precedingTitles = precedingEvents.map(function(e) {
+    const precedingTitles = precedingEvents.map(function(e) {
       return e.title;
     });
     assert.sameMembers(precedingTitles, ['a', 'a_b', 'b', 'bb']);
 
-    var followingTitles = followingEvents.map(function(e) {
+    const followingTitles = followingEvents.map(function(e) {
       return e.title;
     });
     assert.sameMembers(followingTitles, ['bb', 'bbb', 'bbb_c', 'c']);
 
-    var allTitles = allEvents.map(function(e) {
+    const allTitles = allEvents.map(function(e) {
       return e.title;
     });
     assert.sameMembers(allTitles,
@@ -196,14 +196,14 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('validateOverlappingSamples', function() {
-    var m = createModel();
+    const m = createModel();
 
-    var viewEl = document.createElement('tr-ui-a-related-events');
+    const viewEl = document.createElement('tr-ui-a-related-events');
     viewEl.setRelatedEvents(new tr.model.EventSet([m.sB]));
     this.addHTMLOutput(viewEl);
     tr.b.forceAllPendingTasksToRunForTest();
 
-    var overlappingSamples;
+    let overlappingSamples;
     viewEl.$.table.tableRows.forEach(function(row) {
       if (row.type === 'Overlapping samples') {
         assert.isUndefined(overlappingSamples);
@@ -211,7 +211,7 @@ tr.b.unittest.testSuite(function() {
       }
     });
 
-    var samplesTitles = overlappingSamples.map(function(e) {
+    const samplesTitles = overlappingSamples.map(function(e) {
       return e.title;
     });
     assert.sameMembers(samplesTitles,

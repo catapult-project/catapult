@@ -13,7 +13,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('syncEventImport', function() {
-    var lines = [
+    const lines = [
       's3c-fb-92            (     0) [000] ...1  7206.550061: sync_timeline: name=s3c-fb value=7094', // @suppress longLineCheck
       'TimedEventQueue-2700 (     0) [001] ...1  7206.569027: sync_wait: begin name=SurfaceView:6 state=1', // @suppress longLineCheck
       'TimedEventQueue-2700 (     0) [001] ...1  7206.569038: sync_pt: name=malitl_124_0x40b6406c value=7289', // @suppress longLineCheck
@@ -32,19 +32,19 @@ tr.b.unittest.testSuite(function() {
       's3c-fb-92            (     0) [000] ...1  7206.591244: sync_wait: end name=vb2 state=1' // @suppress longLineCheck
     ];
 
-    var m = tr.c.TestUtils.newModelWithEvents([lines.join('\n')], {
+    const m = tr.c.TestUtils.newModelWithEvents([lines.join('\n')], {
       shiftWorldToZero: false
     });
     assert.isFalse(m.hasImportWarnings);
 
-    var threads = m.getAllThreads();
+    let threads = m.getAllThreads();
     assert.strictEqual(threads.length, 4);
 
-    var threads = m.findAllThreadsNamed('s3c-fb');
+    threads = m.findAllThreadsNamed('s3c-fb');
     assert.strictEqual(threads.length, 1);
     assert.strictEqual(threads[0].sliceGroup.length, 1);
 
-    var threads = m.findAllThreadsNamed('kworker/u:5');
+    threads = m.findAllThreadsNamed('kworker/u:5');
     assert.strictEqual(threads.length, 1);
     assert.strictEqual(threads[0].sliceGroup.length, 1);
     assert.strictEqual('fence_wait("display")',

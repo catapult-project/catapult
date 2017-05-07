@@ -35,10 +35,10 @@ Polymer({
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var THIS_DOC = document.currentScript.ownerDocument;
+  const THIS_DOC = document.currentScript.ownerDocument;
 
   test('instantiateTemplatePolymer', function() {
-    var e = tr.ui.b.instantiateTemplate(
+    const e = tr.ui.b.instantiateTemplate(
         '#instantiate-template-polymer-test',
         THIS_DOC);
     assert.strictEqual(e.children.length, 1);
@@ -46,14 +46,14 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiateTemplateMultipleTemplates', function() {
-    var outerElement = tr.ui.b.instantiateTemplate(
+    const outerElement = tr.ui.b.instantiateTemplate(
         '#multiple-template-test',
         THIS_DOC);
     assert.strictEqual(outerElement.children.length, 2);
     assert.strictEqual(outerElement.children[1].testProperty, 'Test');
 
     // Make sure we can still instantiate inner templates, if we need them.
-    var innerElement = THIS_DOC.importNode(
+    const innerElement = THIS_DOC.importNode(
         outerElement.children[0].content, true);
     assert.strictEqual(innerElement.children.length, 2);
     assert.strictEqual(innerElement.children[0].testProperty, 'Test');
@@ -65,9 +65,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('extractUrlStringAcceptsBothVersions', function() {
-    var oldStyleUrl = 'url(content)';
-    var newStyleUrl = 'url("content")';
-    var expectedResult = 'content';
+    const oldStyleUrl = 'url(content)';
+    const newStyleUrl = 'url("content")';
+    const expectedResult = 'content';
 
     assert.strictEqual(tr.ui.b.extractUrlString(oldStyleUrl), expectedResult);
     assert.strictEqual(tr.ui.b.extractUrlString(newStyleUrl), expectedResult);

@@ -84,7 +84,7 @@ tr.exportTo('tr.ui.b', function() {
      * @param {number} alpha The opacity of the rectangle as 0.0-1.0 number.
      */
     fillRect(x, w, colorId, alpha) {
-      var r = x + w;
+      const r = x + w;
       if (w < this.minRectSize_) {
         if (r - this.mergeStartX_ > this.maxMergeDist_) {
           this.flush();

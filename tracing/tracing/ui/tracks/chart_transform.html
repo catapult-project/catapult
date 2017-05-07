@@ -80,7 +80,7 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     worldYToViewY(worldY) {
-      var innerHeightCoefficient = 1 - this.axis_.valueToUnitRange(worldY);
+      const innerHeightCoefficient = 1 - this.axis_.valueToUnitRange(worldY);
       return innerHeightCoefficient * this.innerHeight_ + this.innerTopViewY;
     }
   };

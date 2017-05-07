@@ -14,15 +14,15 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.tracks', function() {
-  var USED_MEMORY_TRACK_HEIGHT = 50;
-  var ALLOCATED_MEMORY_TRACK_HEIGHT = 50;
+  const USED_MEMORY_TRACK_HEIGHT = 50;
+  const ALLOCATED_MEMORY_TRACK_HEIGHT = 50;
 
   /**
    * A track that displays an array of GlobalMemoryDump objects.
    * @constructor
    * @extends {ContainerTrack}
    */
-  var GlobalMemoryDumpTrack = tr.ui.b.define(
+  const GlobalMemoryDumpTrack = tr.ui.b.define(
       'global-memory-dump-track', tr.ui.tracks.ContainerTrack);
 
   GlobalMemoryDumpTrack.prototype = {
@@ -54,21 +54,21 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     appendDumpDotsTrack_() {
-      var items = tr.ui.tracks.buildMemoryLetterDots(this.memoryDumps_);
+      const items = tr.ui.tracks.buildMemoryLetterDots(this.memoryDumps_);
       if (!items) return;
 
-      var track = new tr.ui.tracks.LetterDotTrack(this.viewport);
+      const track = new tr.ui.tracks.LetterDotTrack(this.viewport);
       track.heading = 'Memory Dumps';
       track.items = items;
       Polymer.dom(this).appendChild(track);
     },
 
     appendUsedMemoryTrack_() {
-      var series = tr.ui.tracks.buildGlobalUsedMemoryChartSeries(
+      const series = tr.ui.tracks.buildGlobalUsedMemoryChartSeries(
           this.memoryDumps_);
       if (!series) return;
 
-      var track = new tr.ui.tracks.ChartTrack(this.viewport);
+      const track = new tr.ui.tracks.ChartTrack(this.viewport);
       track.heading = 'Memory per process';
       track.height = USED_MEMORY_TRACK_HEIGHT + 'px';
       track.series = series;
@@ -77,11 +77,11 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     appendAllocatedMemoryTrack_() {
-      var series = tr.ui.tracks.buildGlobalAllocatedMemoryChartSeries(
+      const series = tr.ui.tracks.buildGlobalAllocatedMemoryChartSeries(
           this.memoryDumps_);
       if (!series) return;
 
-      var track = new tr.ui.tracks.ChartTrack(this.viewport);
+      const track = new tr.ui.tracks.ChartTrack(this.viewport);
       track.heading = 'Memory per component';
       track.height = ALLOCATED_MEMORY_TRACK_HEIGHT + 'px';
       track.series = series;

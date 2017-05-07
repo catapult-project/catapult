@@ -14,8 +14,8 @@ found in the LICENSE file.
  * @fileoverview Parses i2c driver events in the Linux event trace format.
  */
 tr.exportTo('tr.e.importer.linux_perf', function() {
-  var ColorScheme = tr.b.ColorScheme;
-  var Parser = tr.e.importer.linux_perf.Parser;
+  const ColorScheme = tr.b.ColorScheme;
+  const Parser = tr.e.importer.linux_perf.Parser;
 
   /**
    * Parses linux i2c trace events.
@@ -35,13 +35,13 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
   }
 
   // Matches the i2c_write and i2c_reply records
-  var i2cWriteReplyRE = new RegExp(
+  const i2cWriteReplyRE = new RegExp(
       'i2c-(\\d+) #(\\d+) a=([\\da-fA-F]+) f=([\\da-fA-F]+) l=(\\d+) ' +
       '(\\[[\\da-fA-F\\-]+\\])');
   // Matches the i2c_read record
-  var i2cReadRE = /i2c-(\d+) #(\d+) a=([\da-fA-F]+) f=([\da-fA-F]+) l=(\d+)/;
+  const i2cReadRE = /i2c-(\d+) #(\d+) a=([\da-fA-F]+) f=([\da-fA-F]+) l=(\d+)/;
   // Matches the i2c_result record
-  var i2cResultRE = /i2c-(\d+) n=(\d+) ret=(\d+)/;
+  const i2cResultRE = /i2c-(\d+) n=(\d+) ret=(\d+)/;
 
   I2cParser.prototype = {
     __proto__: Parser.prototype,
@@ -50,16 +50,16 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
      * Parses i2c events and sets up state in the importer.
      */
     i2cWriteEvent(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = i2cWriteReplyRE.exec(eventBase.details);
+      const event = i2cWriteReplyRE.exec(eventBase.details);
       if (!event) return false;
 
-      var adapterNumber = parseInt(event[1]);
-      var messageNumber = event[2];
-      var address = event[3];
-      var flags = event[4];
-      var dataLength = event[5];
-      var data = event[6];
-      var thread = this.importer.getOrCreatePseudoThread(
+      const adapterNumber = parseInt(event[1]);
+      const messageNumber = event[2];
+      const address = event[3];
+      const flags = event[4];
+      const dataLength = event[5];
+      const data = event[6];
+      const thread = this.importer.getOrCreatePseudoThread(
           'i2c adapter ' + adapterNumber);
 
       pushLastSliceIfNeeded(thread, event[1], ts);
@@ -78,15 +78,15 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     },
 
     i2cReadEvent(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = i2cReadRE.exec(eventBase.details);
+      const event = i2cReadRE.exec(eventBase.details);
       if (!event) return false;
 
-      var adapterNumber = parseInt(event[1]);
-      var messageNumber = event[2];
-      var address = event[3];
-      var flags = event[4];
-      var dataLength = event[5];
-      var thread = this.importer.getOrCreatePseudoThread(
+      const adapterNumber = parseInt(event[1]);
+      const messageNumber = event[2];
+      const address = event[3];
+      const flags = event[4];
+      const dataLength = event[5];
+      const thread = this.importer.getOrCreatePseudoThread(
           'i2c adapter ' + adapterNumber);
 
       pushLastSliceIfNeeded(thread, event[1], ts);
@@ -104,16 +104,16 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     },
 
     i2cReplyEvent(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = i2cWriteReplyRE.exec(eventBase.details);
+      const event = i2cWriteReplyRE.exec(eventBase.details);
       if (!event) return false;
 
-      var adapterNumber = parseInt(event[1]);
-      var messageNumber = event[2];
-      var address = event[3];
-      var flags = event[4];
-      var dataLength = event[5];
-      var data = event[6];
-      var thread = this.importer.getOrCreatePseudoThread(
+      const adapterNumber = parseInt(event[1]);
+      const messageNumber = event[2];
+      const address = event[3];
+      const flags = event[4];
+      const dataLength = event[5];
+      const data = event[6];
+      const thread = this.importer.getOrCreatePseudoThread(
           'i2c adapter ' + adapterNumber);
 
       pushLastSliceIfNeeded(thread, event[1], ts);
@@ -132,16 +132,16 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     },
 
     i2cResultEvent(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = i2cResultRE.exec(eventBase.details);
+      const event = i2cResultRE.exec(eventBase.details);
       if (!event) return false;
 
-      var adapterNumber = parseInt(event[1]);
-      var numMessages = event[2];
-      var ret = event[3];
-      var thread = this.importer.getOrCreatePseudoThread(
+      const adapterNumber = parseInt(event[1]);
+      const numMessages = event[2];
+      const ret = event[3];
+      const thread = this.importer.getOrCreatePseudoThread(
           'i2c adapter ' + adapterNumber);
 
-      var args = thread.lastEntryArgs;
+      const args = thread.lastEntryArgs;
       if (args !== undefined) {
         args['Number of messages'] = numMessages;
         args.Return = ret;
@@ -159,8 +159,8 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
   function pushLastSliceIfNeeded(thread, id, currentTs) {
     if (thread.lastEntryTs !== undefined) {
-      var duration = currentTs - thread.lastEntryTs;
-      var slice = new tr.model.ThreadSlice(
+      const duration = currentTs - thread.lastEntryTs;
+      const slice = new tr.model.ThreadSlice(
             '', thread.lastEntryTitle,
             ColorScheme.getColorIdForGeneralPurposeString(id),
             thread.lastEntryTs, thread.lastEntryArgs, duration);

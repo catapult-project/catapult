@@ -22,7 +22,7 @@ tr.exportTo('tr.v.d', function() {
     }
 
     clone() {
-      let clone = new tr.v.d.MergedDeviceInfo();
+      const clone = new tr.v.d.MergedDeviceInfo();
       clone.addDiagnostic(this);
       return clone;
     }
@@ -38,13 +38,13 @@ tr.exportTo('tr.v.d', function() {
 
     addDiagnostic(otherDiagnostic) {
       if (otherDiagnostic instanceof MergedDeviceInfo) {
-        for (let name of otherDiagnostic.osNames) {
+        for (const name of otherDiagnostic.osNames) {
           this.osNames.add(name);
         }
-        for (let name of otherDiagnostic.osVersions) {
+        for (const name of otherDiagnostic.osVersions) {
           this.osVersions.add(name);
         }
-        for (let name of otherDiagnostic.chromeVersions) {
+        for (const name of otherDiagnostic.chromeVersions) {
           this.chromeVersions.add(name);
         }
         return this;
@@ -79,14 +79,14 @@ tr.exportTo('tr.v.d', function() {
     }
 
     static fromDict(d) {
-      let info = new MergedDeviceInfo();
-      for (let chromeVersion of d.chromeVersions) {
+      const info = new MergedDeviceInfo();
+      for (const chromeVersion of d.chromeVersions) {
         info.chromeVersions.add(chromeVersion);
       }
-      for (let osName of d.osNames) {
+      for (const osName of d.osNames) {
         info.osNames.add(osName);
       }
-      for (let osVersion of d.osVersions) {
+      for (const osVersion of d.osVersions) {
         info.osVersions.add(osVersion);
       }
       return info;

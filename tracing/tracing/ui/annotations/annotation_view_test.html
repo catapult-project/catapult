@@ -19,14 +19,14 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   function createPopulatedTimeline() {
-    var model = new tr.Model();
-    var process = model.getOrCreateProcess(1);
-    var thread = process.getOrCreateThread(2);
+    const model = new tr.Model();
+    const process = model.getOrCreateProcess(1);
+    const thread = process.getOrCreateThread(2);
     thread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
         {title: 'a', start: 80, duration: 50}));
 
-    var timeline = document.createElement('tr-ui-timeline-track-view');
-    var vp = new tr.ui.TimelineViewport(timeline);
+    const timeline = document.createElement('tr-ui-timeline-track-view');
+    const vp = new tr.ui.TimelineViewport(timeline);
     timeline.model = model;
     timeline.style.maxHeight = '600px';
 
@@ -34,34 +34,34 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('rectAnnotation', function() {
-    var fakeYComponents1 = [{stableId: '1.2', yPercentOffset: 0.3}];
-    var fakeYComponents2 = [{stableId: '1.2', yPercentOffset: 0.9}];
-    var start = new tr.model.Location(50, fakeYComponents1);
-    var end = new tr.model.Location(100, fakeYComponents2);
-    var rectAnnotation = new tr.model.RectAnnotation(start, end);
+    const fakeYComponents1 = [{stableId: '1.2', yPercentOffset: 0.3}];
+    const fakeYComponents2 = [{stableId: '1.2', yPercentOffset: 0.9}];
+    const start = new tr.model.Location(50, fakeYComponents1);
+    const end = new tr.model.Location(100, fakeYComponents2);
+    const rectAnnotation = new tr.model.RectAnnotation(start, end);
 
-    var timeline = createPopulatedTimeline();
+    const timeline = createPopulatedTimeline();
     timeline.model.addAnnotation(rectAnnotation);
     this.addHTMLOutput(timeline);
   });
 
   test('xMarkerAnnotation', function() {
-    var xMarkerAnnotation = new tr.model.XMarkerAnnotation(90);
+    const xMarkerAnnotation = new tr.model.XMarkerAnnotation(90);
 
-    var timeline = createPopulatedTimeline();
-    var model = timeline.model;
+    const timeline = createPopulatedTimeline();
+    const model = timeline.model;
     timeline.model.addAnnotation(xMarkerAnnotation);
     this.addHTMLOutput(timeline);
   });
 
   test('commentBoxAnnotation', function() {
-    var fakeYComponents = [{stableId: '1.2', yPercentOffset: 0.5}];
-    var location = new tr.model.Location(120, fakeYComponents);
-    var text = 'abc';
-    var commentBoxAnnotation =
+    const fakeYComponents = [{stableId: '1.2', yPercentOffset: 0.5}];
+    const location = new tr.model.Location(120, fakeYComponents);
+    const text = 'abc';
+    const commentBoxAnnotation =
         new tr.model.CommentBoxAnnotation(location, text);
 
-    var timeline = createPopulatedTimeline();
+    const timeline = createPopulatedTimeline();
     timeline.model.addAnnotation(commentBoxAnnotation);
     this.addHTMLOutput(timeline);
   });

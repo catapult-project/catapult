@@ -15,8 +15,8 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('executionMetricBasic', function() {
-    var model = tr.c.TestUtils.newModel();
-    var histograms = new tr.v.HistogramSet();
+    const model = tr.c.TestUtils.newModel();
+    const histograms = new tr.v.HistogramSet();
 
     tr.metrics.v8.executionMetric(histograms, model);
 
@@ -47,7 +47,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('noDoubleCounting', function() {
-    var events = [
+    const events = [
       {name: 'V8.Execute', args: {}, pid: 52, ts: 0, cat: 'foo', tid: 53,
         ph: 'B'},
       {name: 'V8.Execute', args: {}, pid: 52, ts: 100, cat: 'foo', tid: 53,
@@ -58,13 +58,13 @@ tr.b.unittest.testSuite(function() {
         ph: 'E'}
     ];
 
-    var model = tr.c.TestUtils.newModelWithEvents(JSON.stringify(events), {
+    const model = tr.c.TestUtils.newModelWithEvents(JSON.stringify(events), {
       shiftWorldToZero: false
     });
-    var histograms = new tr.v.HistogramSet();
+    const histograms = new tr.v.HistogramSet();
     tr.metrics.v8.executionMetric(histograms, model);
 
-    var value = histograms.getHistogramNamed('v8_execution_wall_total');
+    const value = histograms.getHistogramNamed('v8_execution_wall_total');
     assert.closeTo(value.running.sum, 0.1, 1e-5);
   });
 });

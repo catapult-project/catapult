@@ -11,9 +11,9 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.analysis', function() {
-  var FLOW_IN = 0x1;
-  var FLOW_OUT = 0x2;
-  var FLOW_IN_OUT = FLOW_IN | FLOW_OUT;
+  const FLOW_IN = 0x1;
+  const FLOW_OUT = 0x2;
+  const FLOW_IN_OUT = FLOW_IN | FLOW_OUT;
 
   function FlowClassifier() {
     this.numEvents_ = 0;
@@ -22,7 +22,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
   FlowClassifier.prototype = {
     getFS_(event) {
-      var fs = this.eventsByGUID_[event.guid];
+      let fs = this.eventsByGUID_[event.guid];
       if (fs === undefined) {
         this.numEvents_++;
         fs = {
@@ -35,13 +35,13 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     addInFlow(event) {
-      var fs = this.getFS_(event);
+      const fs = this.getFS_(event);
       fs.state |= FLOW_IN;
       return event;
     },
 
     addOutFlow(event) {
-      var fs = this.getFS_(event);
+      const fs = this.getFS_(event);
       fs.state |= FLOW_OUT;
       return event;
     },
@@ -51,9 +51,9 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     get inFlowEvents() {
-      var selection = new tr.model.EventSet();
-      for (var guid in this.eventsByGUID_) {
-        var fs = this.eventsByGUID_[guid];
+      const selection = new tr.model.EventSet();
+      for (const guid in this.eventsByGUID_) {
+        const fs = this.eventsByGUID_[guid];
         if (fs.state === FLOW_IN) {
           selection.push(fs.event);
         }
@@ -62,9 +62,9 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     get outFlowEvents() {
-      var selection = new tr.model.EventSet();
-      for (var guid in this.eventsByGUID_) {
-        var fs = this.eventsByGUID_[guid];
+      const selection = new tr.model.EventSet();
+      for (const guid in this.eventsByGUID_) {
+        const fs = this.eventsByGUID_[guid];
         if (fs.state === FLOW_OUT) {
           selection.push(fs.event);
         }
@@ -73,9 +73,9 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     get internalFlowEvents() {
-      var selection = new tr.model.EventSet();
-      for (var guid in this.eventsByGUID_) {
-        var fs = this.eventsByGUID_[guid];
+      const selection = new tr.model.EventSet();
+      for (const guid in this.eventsByGUID_) {
+        const fs = this.eventsByGUID_[guid];
         if (fs.state === FLOW_IN_OUT) {
           selection.push(fs.event);
         }

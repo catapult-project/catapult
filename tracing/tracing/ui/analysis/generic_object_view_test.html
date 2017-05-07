@@ -16,70 +16,70 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('undefinedValue', function() {
-    var view = document.createElement('tr-ui-a-generic-object-view');
+    const view = document.createElement('tr-ui-a-generic-object-view');
     view.object = undefined;
     assert.strictEqual(Polymer.dom(view.$.content).textContent, 'undefined');
   });
 
   test('nullValue', function() {
-    var view = document.createElement('tr-ui-a-generic-object-view');
+    const view = document.createElement('tr-ui-a-generic-object-view');
     view.object = null;
     assert.strictEqual(Polymer.dom(view.$.content).textContent, 'null');
   });
 
   test('stringValue', function() {
-    var view = document.createElement('tr-ui-a-generic-object-view');
+    const view = document.createElement('tr-ui-a-generic-object-view');
     view.object = 'string value';
     assert.strictEqual(
         Polymer.dom(view.$.content).textContent, '"string value"');
   });
 
   test('multiLineStringValue', function() {
-    var view = document.createElement('tr-ui-a-generic-object-view');
+    const view = document.createElement('tr-ui-a-generic-object-view');
     view.object = 'i am a\n  string value\ni have\n  various indents';
     this.addHTMLOutput(view);
-    var c = view.$.content;
+    const c = view.$.content;
   });
 
   test('multiLineStringValueInsideObject', function() {
-    var view = document.createElement('tr-ui-a-generic-object-view');
+    const view = document.createElement('tr-ui-a-generic-object-view');
     view.object = {key: 'i am a\n  string value\ni have\n  various indents',
       value: 'simple'};
     this.addHTMLOutput(view);
-    var c = view.$.content;
+    const c = view.$.content;
   });
 
   test('jsonObjectStringValue', function() {
-    var view = document.createElement('tr-ui-a-generic-object-view');
+    const view = document.createElement('tr-ui-a-generic-object-view');
     view.object = '{"x": 1}';
     assert.strictEqual(view.$.content.children.length, 1);
     assert.strictEqual(view.$.content.children[0].children.length, 4);
   });
 
   test('jsonArrayStringValue', function() {
-    var view = document.createElement('tr-ui-a-generic-object-view');
+    const view = document.createElement('tr-ui-a-generic-object-view');
     view.object = '[1,2,3]';
     assert.strictEqual(view.$.content.children.length, 3);
   });
 
   test('booleanValue', function() {
-    var view = document.createElement('tr-ui-a-generic-object-view');
+    const view = document.createElement('tr-ui-a-generic-object-view');
     view.object = false;
     assert.strictEqual(Polymer.dom(view.$.content).textContent, 'false');
   });
 
   test('numberValue', function() {
-    var view = document.createElement('tr-ui-a-generic-object-view');
+    const view = document.createElement('tr-ui-a-generic-object-view');
     view.object = 3.14159;
     assert.strictEqual(Polymer.dom(view.$.content).textContent, '3.14159');
   });
 
   test('objectSnapshotValue', function() {
-    var view = document.createElement('tr-ui-a-generic-object-view');
+    const view = document.createElement('tr-ui-a-generic-object-view');
 
-    var i10 = new tr.model.ObjectInstance(
+    const i10 = new tr.model.ObjectInstance(
         {}, '0x1000', 'cat', 'name', 10);
-    var s10 = i10.addSnapshot(10, {foo: 1});
+    const s10 = i10.addSnapshot(10, {foo: 1});
 
     view.object = s10;
     this.addHTMLOutput(view);
@@ -88,11 +88,11 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('objectInstanceValue', function() {
-    var view = document.createElement('tr-ui-a-generic-object-view');
+    const view = document.createElement('tr-ui-a-generic-object-view');
 
-    var i10 = new tr.model.ObjectInstance(
+    const i10 = new tr.model.ObjectInstance(
         {}, '0x1000', 'cat', 'name', 10);
-    var s10 = i10.addSnapshot(10, {foo: 1});
+    const s10 = i10.addSnapshot(10, {foo: 1});
 
     view.object = i10;
     assert.strictEqual(view.$.content.children[0].dataElement.tagName,
@@ -100,37 +100,37 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiate_emptyArrayValue', function() {
-    var view = document.createElement('tr-ui-a-generic-object-view');
+    const view = document.createElement('tr-ui-a-generic-object-view');
     view.object = [];
     this.addHTMLOutput(view);
   });
 
   test('instantiate_twoValueArrayValue', function() {
-    var view = document.createElement('tr-ui-a-generic-object-view');
+    const view = document.createElement('tr-ui-a-generic-object-view');
     view.object = [1, 2];
     this.addHTMLOutput(view);
   });
 
   test('instantiate_twoValueBArrayValue', function() {
-    var view = document.createElement('tr-ui-a-generic-object-view');
+    const view = document.createElement('tr-ui-a-generic-object-view');
     view.object = [1, {x: 1}];
     this.addHTMLOutput(view);
   });
 
   test('instantiate_arrayValue', function() {
-    var view = document.createElement('tr-ui-a-generic-object-view');
+    const view = document.createElement('tr-ui-a-generic-object-view');
     view.object = [1, 2, 'three'];
     this.addHTMLOutput(view);
   });
 
   test('instantiate_arrayWithSimpleObjectValue', function() {
-    var view = document.createElement('tr-ui-a-generic-object-view');
+    const view = document.createElement('tr-ui-a-generic-object-view');
     view.object = [{simple: 'object'}];
     this.addHTMLOutput(view);
   });
 
   test('instantiate_arrayWithComplexObjectValue', function() {
-    var view = document.createElement('tr-ui-a-generic-object-view');
+    const view = document.createElement('tr-ui-a-generic-object-view');
     view.object = [{col0: 'object', col1: 0},
                    {col2: 'Object', col3: 1}];
     this.addHTMLOutput(view);
@@ -139,7 +139,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiate_arrayWithDeepObjectValue', function() {
-    var view = document.createElement('tr-ui-a-generic-object-view');
+    const view = document.createElement('tr-ui-a-generic-object-view');
     view.object = [{key: {deep: 'object values make isTable() return false'}}];
     this.addHTMLOutput(view);
     assert.strictEqual(undefined, tr.b.findDeepElementMatching(
@@ -147,14 +147,14 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('jsonTableValue', function() {
-    var view = document.createElement('tr-ui-a-generic-object-view');
+    const view = document.createElement('tr-ui-a-generic-object-view');
     view.object = [
       {col0: 'object', col1: 0, col2: 'foo'},
       {col0: 'Object', col1: 1, col2: 42}
     ];
     this.addHTMLOutput(view);
 
-    var table = tr.b.findDeepElementMatching(view.$.content, 'tr-ui-b-table');
+    const table = tr.b.findDeepElementMatching(view.$.content, 'tr-ui-b-table');
     assert.strictEqual('col0', table.tableColumns[0].title);
     assert.strictEqual('col1', table.tableColumns[1].title);
     assert.strictEqual(
@@ -169,7 +169,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiate_objectValue', function() {
-    var view = document.createElement('tr-ui-a-generic-object-view');
+    const view = document.createElement('tr-ui-a-generic-object-view');
     view.object = {
       'entry_one': 'entry_one_value',
       'entry_two': 2,
@@ -179,7 +179,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('timeDurationValue', function() {
-    var view = document.createElement('tr-ui-a-generic-object-view');
+    const view = document.createElement('tr-ui-a-generic-object-view');
     view.object =
         new tr.b.Scalar(tr.b.Unit.byName.timeDurationInMs, 3);
     this.addHTMLOutput(view);
@@ -188,7 +188,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('timeStampValue', function() {
-    var view = document.createElement('tr-ui-a-generic-object-view');
+    const view = document.createElement('tr-ui-a-generic-object-view');
     view.object = new tr.b.Scalar(tr.b.Unit.byName.timeStampInMs, 3);
     this.addHTMLOutput(view);
     assert.isDefined(tr.b.findDeepElementMatching(
@@ -196,11 +196,11 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('scalarValue', function() {
-    var view = document.createElement('tr-ui-a-generic-object-view');
+    const view = document.createElement('tr-ui-a-generic-object-view');
     view.object =
         new tr.b.Scalar(tr.b.Unit.byName.normalizedPercentage, .3);
     this.addHTMLOutput(view);
-    var m = tr.b.findDeepElementMatching(
+    const m = tr.b.findDeepElementMatching(
         view.$.content, 'tr-v-ui-scalar-span');
     assert.isDefined(m);
     assert.strictEqual(m.value, .3);
@@ -208,11 +208,11 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('httpLink', function() {
-    var view = document.createElement('tr-ui-a-generic-object-view');
-    var url = 'https://google.com/chrome';
+    const view = document.createElement('tr-ui-a-generic-object-view');
+    const url = 'https://google.com/chrome';
     view.object = {a: url};
     this.addHTMLOutput(view);
-    var a = tr.b.findDeepElementMatching(view.$.content, 'a');
+    const a = tr.b.findDeepElementMatching(view.$.content, 'a');
     assert.isDefined(a);
     assert.strictEqual(url, a.href);
     assert.strictEqual(url, a.textContent);

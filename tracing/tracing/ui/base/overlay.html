@@ -125,14 +125,14 @@ found in the LICENSE file.
 tr.exportTo('tr.ui.b', function() {
   if (tr.isHeadless) return {};
 
-  var THIS_DOC = document.currentScript.ownerDocument;
+  const THIS_DOC = document.currentScript.ownerDocument;
 
   /**
    * Creates a new overlay element. It will not be visible until shown.
    * @constructor
    * @extends {HTMLDivElement}
    */
-  var Overlay = tr.ui.b.define('overlay');
+  const Overlay = tr.ui.b.define('overlay');
 
   Overlay.prototype = {
     __proto__: HTMLDivElement.prototype,
@@ -158,7 +158,7 @@ tr.exportTo('tr.ui.b', function() {
           tr.ui.b.Overlay.prototype.onVisibleChange_.bind(this), true);
 
       // Setup the shadow root
-      var createShadowRoot = this.createShadowRoot ||
+      const createShadowRoot = this.createShadowRoot ||
           this.webkitCreateShadowRoot;
       this.shadow_ = createShadowRoot.call(this);
       Polymer.dom(this.shadow_).appendChild(
@@ -210,7 +210,7 @@ tr.exportTo('tr.ui.b', function() {
       if (this.visible_ === newValue) return;
 
       this.visible_ = newValue;
-      var e = new tr.b.Event('visible-change');
+      const e = new tr.b.Event('visible-change');
       this.dispatchEvent(e);
     },
 
@@ -232,7 +232,7 @@ tr.exportTo('tr.ui.b', function() {
 
       // Focus the first thing we find that makes sense. (Skip the close button
       // as it doesn't make sense as the first thing to focus.)
-      var elList =
+      const elList =
           Polymer.dom(this).querySelectorAll('button, input, list, select, a');
       if (elList.length > 0) {
         if (elList[0] === this.closeBtn_) {
@@ -276,7 +276,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     didButtonBarMutate_(e) {
-      var hasButtons = this.buttons.children.length > 0;
+      const hasButtons = this.buttons.children.length > 0;
       if (hasButtons) {
         Polymer.dom(this.shadow_).querySelector('button-bar').style.display =
             undefined;
@@ -312,19 +312,19 @@ tr.exportTo('tr.ui.b', function() {
   };
 
   Overlay.showError = function(msg, opt_err) {
-    var o = new Overlay();
+    const o = new Overlay();
     o.title = 'Error';
     Polymer.dom(o).textContent = msg;
     if (opt_err) {
-      var e = tr.b.normalizeException(opt_err);
+      const e = tr.b.normalizeException(opt_err);
 
-      var stackDiv = document.createElement('pre');
+      const stackDiv = document.createElement('pre');
       Polymer.dom(stackDiv).textContent = e.stack;
       stackDiv.style.paddingLeft = '8px';
       stackDiv.style.margin = 0;
       Polymer.dom(o).appendChild(stackDiv);
     }
-    var b = document.createElement('button');
+    const b = document.createElement('button');
     Polymer.dom(b).textContent = 'OK';
     b.addEventListener('click', function() {
       o.visible = false;

@@ -18,9 +18,9 @@ found in the LICENSE file.
  * @fileoverview Provides the Cpu class.
  */
 tr.exportTo('tr.model', function() {
-  var ColorScheme = tr.b.ColorScheme;
-  var Counter = tr.model.Counter;
-  var CpuSlice = tr.model.CpuSlice;
+  const ColorScheme = tr.b.ColorScheme;
+  const Counter = tr.model.Counter;
+  const CpuSlice = tr.model.CpuSlice;
 
   /**
    * The Cpu represents a Cpu from the kernel's point of view.
@@ -62,7 +62,7 @@ tr.exportTo('tr.model', function() {
 
     * findTopmostSlicesInThisContainer(eventPredicate, opt_this) {
       // All CpuSlices are toplevel since CpuSlices do not nest.
-      for (var s of this.slices) {
+      for (const s of this.slices) {
         yield* s.findTopmostSlicesRelativeToThisSlice(
             eventPredicate, opt_this);
       }
@@ -85,7 +85,7 @@ tr.exportTo('tr.model', function() {
      * combination, creating it if it doesn't exist.
      */
     getOrCreateCounter(cat, name) {
-      var id = cat + '.' + name;
+      const id = cat + '.' + name;
       if (!this.counters[id]) {
         this.counters[id] = new Counter(this, id, cat, name);
       }
@@ -97,7 +97,7 @@ tr.exportTo('tr.model', function() {
      * combination, or undefined if it doesn't exist.
      */
     getCounter(cat, name) {
-      var id = cat + '.' + name;
+      const id = cat + '.' + name;
       if (!this.counters[id]) {
         return undefined;
       }
@@ -109,10 +109,10 @@ tr.exportTo('tr.model', function() {
      * specified.
      */
     shiftTimestampsForward(amount) {
-      for (var sI = 0; sI < this.slices.length; sI++) {
+      for (let sI = 0; sI < this.slices.length; sI++) {
         this.slices[sI].start = (this.slices[sI].start + amount);
       }
-      for (var id in this.counters) {
+      for (const id in this.counters) {
         this.counters[id].shiftTimestampsForward(amount);
       }
     },
@@ -126,7 +126,7 @@ tr.exportTo('tr.model', function() {
         this.bounds_.addValue(this.slices[0].start);
         this.bounds_.addValue(this.slices[this.slices.length - 1].end);
       }
-      for (var id in this.counters) {
+      for (const id in this.counters) {
         this.counters[id].updateBounds();
         this.bounds_.addRange(this.counters[id].bounds);
       }
@@ -144,13 +144,13 @@ tr.exportTo('tr.model', function() {
     },
 
     addCategoriesToDict(categoriesDict) {
-      for (var i = 0; i < this.slices.length; i++) {
+      for (let i = 0; i < this.slices.length; i++) {
         categoriesDict[this.slices[i].category] = true;
       }
-      for (var id in this.counters) {
+      for (const id in this.counters) {
         categoriesDict[this.counters[id].category] = true;
       }
-      for (var i = 0; i < this.samples_.length; i++) {
+      for (let i = 0; i < this.samples_.length; i++) {
         categoriesDict[this.samples_[i].category] = true;
       }
     },
@@ -159,7 +159,7 @@ tr.exportTo('tr.model', function() {
      * Returns the index of the slice in the CPU's slices, or undefined.
      */
     indexOf(cpuSlice) {
-      var i = tr.b.math.findLowIndexInSortedArray(
+      const i = tr.b.math.findLowIndexInSortedArray(
           this.slices,
           function(slice) { return slice.start; },
           cpuSlice.start);
@@ -186,12 +186,12 @@ tr.exportTo('tr.model', function() {
 
       // Merge |args| with |this.lastActiveArgs_|. If a key is in both
       // dictionaries, the value from |args| is used.
-      for (var key in args) {
+      for (const key in args) {
         this.lastActiveArgs_[key] = args[key];
       }
 
-      var duration = endTimestamp - this.lastActiveTimestamp_;
-      var slice = new tr.model.CpuSlice(
+      const duration = endTimestamp - this.lastActiveTimestamp_;
+      const slice = new tr.model.CpuSlice(
           '', this.lastActiveName_,
           ColorScheme.getColorIdForGeneralPurposeString(this.lastActiveName_),
           this.lastActiveTimestamp_,
@@ -226,28 +226,28 @@ tr.exportTo('tr.model', function() {
      * for the range that was specified.
      */
     getFreqStatsForRange(range) {
-      var stats = {};
+      const stats = {};
 
       function addStatsForFreq(freqSample, index) {
         // Counters don't have an explicit end or duration;
         // calculate the end by looking at the starting point
         // of the next value in the series, or if that doesn't
         // exist, assume this frequency is held until the end.
-        var freqEnd = (index < freqSample.series_.length - 1) ?
+        const freqEnd = (index < freqSample.series_.length - 1) ?
             freqSample.series_.samples_[index + 1].timestamp : range.max;
 
-        var freqRange = tr.b.math.Range.fromExplicitRange(freqSample.timestamp,
-            freqEnd);
-        var intersection = freqRange.findIntersection(range);
+        const freqRange = tr.b.math.Range.fromExplicitRange(
+            freqSample.timestamp, freqEnd);
+        const intersection = freqRange.findIntersection(range);
         if (!(freqSample.value in stats)) {
           stats[freqSample.value] = 0;
         }
         stats[freqSample.value] += intersection.duration;
       }
 
-      var freqCounter = this.getCounter('', 'Clock Frequency');
+      const freqCounter = this.getCounter('', 'Clock Frequency');
       if (freqCounter !== undefined) {
-        var freqSeries = freqCounter.getSeries(0);
+        const freqSeries = freqCounter.getSeries(0);
         if (!freqSeries) return;
 
         tr.b.math.iterateOverIntersectingIntervals(freqSeries.samples_,

@@ -16,7 +16,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   function createBasicModel() {
-    var lines = [
+    const lines = [
       'Android.launcher-584   [001] d..3 12622.506890: sched_switch: prev_comm=Android.launcher prev_pid=584 prev_prio=120 prev_state=R+ ==> next_comm=Binder_1 next_pid=217 next_prio=120', // @suppress longLineCheck
       '       Binder_1-217   [001] d..3 12622.506918: sched_switch: prev_comm=Binder_1 prev_pid=217 prev_prio=120 prev_state=D ==> next_comm=Android.launcher next_pid=584 next_prio=120', // @suppress longLineCheck
       'Android.launcher-584   [001] d..4 12622.506936: sched_wakeup: comm=Binder_1 pid=217 prio=120 success=1 target_cpu=001', // @suppress longLineCheck
@@ -32,15 +32,15 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('instantiate', function() {
-    var m = createBasicModel();
-    var cpu = m.kernel.cpus[1];
+    const m = createBasicModel();
+    const cpu = m.kernel.cpus[1];
     assert.isDefined(cpu);
 
-    var selection = new tr.model.EventSet();
+    const selection = new tr.model.EventSet();
     selection.push(cpu.slices[0]);
     selection.push(cpu.slices[1]);
 
-    var viewEl = document.createElement('tr-ui-a-multi-cpu-slice-sub-view');
+    const viewEl = document.createElement('tr-ui-a-multi-cpu-slice-sub-view');
     viewEl.selection = selection;
     this.addHTMLOutput(viewEl);
   });

@@ -66,13 +66,13 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.b', function() {
-  var MOUSE_SELECTOR_MODE = tr.ui.b.MOUSE_SELECTOR_MODE;
-  var MOUSE_SELECTOR_MODE_INFOS = tr.ui.b.MOUSE_SELECTOR_MODE_INFOS;
+  const MOUSE_SELECTOR_MODE = tr.ui.b.MOUSE_SELECTOR_MODE;
+  const MOUSE_SELECTOR_MODE_INFOS = tr.ui.b.MOUSE_SELECTOR_MODE_INFOS;
 
 
-  var MIN_MOUSE_SELECTION_DISTANCE = 4;
+  const MIN_MOUSE_SELECTION_DISTANCE = 4;
 
-  var MODIFIER = {
+  const MODIFIER = {
     SHIFT: 0x1,
     SPACE: 0x2,
     CMD_OR_CTRL: 0x4
@@ -173,7 +173,7 @@ tr.exportTo('tr.ui.b', function() {
       this.settingsKey_ = settingsKey;
       if (!this.settingsKey_) return;
 
-      var mode = tr.b.Settings.get(this.settingsKey_ + '.mode', undefined);
+      let mode = tr.b.Settings.get(this.settingsKey_ + '.mode', undefined);
       // Modes changed from 1,2,3,4 to 0x1, 0x2, 0x4, 0x8. Fix any stray
       // settings to the best of our abilities.
       if (MOUSE_SELECTOR_MODE_INFOS[mode] === undefined) {
@@ -189,7 +189,7 @@ tr.exportTo('tr.ui.b', function() {
       if (!mode) mode = this.defaultMode_;
       this.mode = mode;
 
-      var pos = tr.b.Settings.get(this.settingsKey_ + '.pos', undefined);
+      const pos = tr.b.Settings.get(this.settingsKey_ + '.pos', undefined);
       if (pos) this.pos = pos;
     },
 
@@ -212,13 +212,13 @@ tr.exportTo('tr.ui.b', function() {
 
       this.supportedModeMask_ = supportedModeMask;
       Polymer.dom(this.buttonsEl_).textContent = '';
-      for (var modeName in MOUSE_SELECTOR_MODE) {
+      for (const modeName in MOUSE_SELECTOR_MODE) {
         if (modeName === 'ALL_MODES') continue;
 
-        var mode = MOUSE_SELECTOR_MODE[modeName];
+        const mode = MOUSE_SELECTOR_MODE[modeName];
         if ((this.supportedModeMask_ & mode) === 0) continue;
 
-        var button = document.createElement('tr-ui-b-mouse-mode-icon');
+        const button = document.createElement('tr-ui-b-mouse-mode-icon');
         button.mode = mode;
         Polymer.dom(button).classList.add('tool-button');
 
@@ -227,8 +227,8 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     getButtonForMode_(mode) {
-      for (var i = 0; i < this.buttonsEl_.children.length; i++) {
-        var buttonEl = this.buttonsEl_.children[i];
+      for (let i = 0; i < this.buttonsEl_.children.length; i++) {
+        const buttonEl = this.buttonsEl_.children[i];
         if (buttonEl.mode === mode) {
           return buttonEl;
         }
@@ -253,17 +253,17 @@ tr.exportTo('tr.ui.b', function() {
         }
       }
 
-      var modeInfo;
+      let modeInfo;
 
       if (this.currentMode_ === newMode) return;
 
       if (this.currentMode_) {
-        var buttonEl = this.getButtonForMode_(this.currentMode_);
+        const buttonEl = this.getButtonForMode_(this.currentMode_);
         if (buttonEl) buttonEl.active = false;
 
         // End event.
         if (this.isInteracting_) {
-          var mouseEvent = this.createEvent_(
+          const mouseEvent = this.createEvent_(
               MOUSE_SELECTOR_MODE_INFOS[this.mode].eventNames.end);
           this.dispatchEvent(mouseEvent);
         }
@@ -276,7 +276,7 @@ tr.exportTo('tr.ui.b', function() {
       this.currentMode_ = newMode;
 
       if (this.currentMode_) {
-        var buttonEl = this.getButtonForMode_(this.currentMode_);
+        const buttonEl = this.getButtonForMode_(this.currentMode_);
         if (buttonEl) buttonEl.active = true;
 
         // Entering a new mode resets mouse down pos.
@@ -291,7 +291,7 @@ tr.exportTo('tr.ui.b', function() {
 
         // Begin event.
         if (this.isInteracting_) {
-          var mouseEvent = this.createEvent_(
+          const mouseEvent = this.createEvent_(
               MOUSE_SELECTOR_MODE_INFOS[this.mode].eventNames.begin);
           this.dispatchEvent(mouseEvent);
         }
@@ -310,7 +310,7 @@ tr.exportTo('tr.ui.b', function() {
 
       if (!this.buttonsEl_) return;
 
-      var buttonEl = this.getButtonForMode_(mode);
+      const buttonEl = this.getButtonForMode_(mode);
       if (buttonEl) {
         buttonEl.acceleratorKey = String.fromCharCode(keyCode);
       }
@@ -322,7 +322,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     createEvent_(eventName, sourceEvent) {
-      var event = new tr.b.Event(eventName, true);
+      const event = new tr.b.Event(eventName, true);
       event.clientX = this.mousePos_.x;
       event.clientY = this.mousePos_.y;
       event.deltaX = this.mousePos_.x - this.mouseDownPos_.x;
@@ -348,7 +348,7 @@ tr.exportTo('tr.ui.b', function() {
     onMouseDown_(e) {
       if (e.button !== 0) return;
       this.setCurrentMousePosFromEvent_(e);
-      var mouseEvent = this.createEvent_(
+      const mouseEvent = this.createEvent_(
           MOUSE_SELECTOR_MODE_INFOS[this.mode].eventNames.begin, e);
       if (this.mode === MOUSE_SELECTOR_MODE.SELECTION) {
         mouseEvent.appendSelection = isCmdOrCtrlPressed(e);
@@ -362,7 +362,7 @@ tr.exportTo('tr.ui.b', function() {
     onMouseMove_(e) {
       this.setCurrentMousePosFromEvent_(e);
 
-      var mouseEvent = this.createEvent_(
+      const mouseEvent = this.createEvent_(
           MOUSE_SELECTOR_MODE_INFOS[this.mode].eventNames.update, e);
       this.dispatchEvent(mouseEvent);
 
@@ -374,7 +374,7 @@ tr.exportTo('tr.ui.b', function() {
     onMouseUp_(e) {
       if (e.button !== 0) return;
 
-      var mouseEvent = this.createEvent_(
+      const mouseEvent = this.createEvent_(
           MOUSE_SELECTOR_MODE_INFOS[this.mode].eventNames.end, e);
       mouseEvent.isClick = this.isClick_;
       this.dispatchEvent(mouseEvent);
@@ -423,11 +423,11 @@ tr.exportTo('tr.ui.b', function() {
         this.spacePressed_ = false;
       }
 
-      var didHandleKey = false;
-      for (var [modeStr, keyCode] of Object.entries(this.modeToKeyCodeMap_)) {
+      let didHandleKey = false;
+      for (const [modeStr, keyCode] of Object.entries(this.modeToKeyCodeMap_)) {
         if (e.keyCode === keyCode) {
           this.modeBeforeAlternativeModeActivated_ = undefined;
-          var mode = parseInt(modeStr);
+          const mode = parseInt(modeStr);
           this.mode = mode;
           didHandleKey = true;
         }
@@ -442,14 +442,14 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     updateAlternativeModeState_(e) {
-      var shiftPressed = e.shiftKey;
-      var spacePressed = this.spacePressed_;
-      var cmdOrCtrlPressed = isCmdOrCtrlPressed(e);
+      const shiftPressed = e.shiftKey;
+      const spacePressed = this.spacePressed_;
+      const cmdOrCtrlPressed = isCmdOrCtrlPressed(e);
 
       // Figure out the new mode
-      var smm = this.supportedModeMask_;
-      var newMode;
-      var isNewModeAnAlternativeMode = false;
+      const smm = this.supportedModeMask_;
+      let newMode;
+      let isNewModeAnAlternativeMode = false;
       if (shiftPressed &&
           (this.modifierToModeMap_[MODIFIER.SHIFT] & smm) !== 0) {
         newMode = this.modifierToModeMap_[MODIFIER.SHIFT];
@@ -509,15 +509,15 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     constrainPositionToBounds_(pos) {
-      var parent = this.offsetParent || document.body;
-      var parentRect = tr.ui.b.windowRectForElement(parent);
+      const parent = this.offsetParent || document.body;
+      const parentRect = tr.ui.b.windowRectForElement(parent);
 
-      var top = 0;
-      var bottom = parentRect.height - this.offsetHeight;
-      var left = 0;
-      var right = parentRect.width - this.offsetWidth;
+      const top = 0;
+      const bottom = parentRect.height - this.offsetHeight;
+      const left = 0;
+      const right = parentRect.width - this.offsetWidth;
 
-      var res = {};
+      const res = {};
       res.x = Math.max(pos.x, left);
       res.x = Math.min(res.x, right);
 
@@ -530,12 +530,12 @@ tr.exportTo('tr.ui.b', function() {
       e.preventDefault();
       e.stopImmediatePropagation();
 
-      var mouseDownPos = {
+      const mouseDownPos = {
         x: e.clientX - this.offsetLeft,
         y: e.clientY - this.offsetTop
       };
       tr.ui.b.trackMouseMovesUntilMouseUp(function(e) {
-        var pos = {};
+        const pos = {};
         pos.x = e.clientX - mouseDownPos.x;
         pos.y = e.clientY - mouseDownPos.y;
         this.pos = pos;
@@ -545,9 +545,9 @@ tr.exportTo('tr.ui.b', function() {
     checkIsClick_(e) {
       if (!this.isInteracting_ || !this.isClick_) return;
 
-      var deltaX = this.mousePos_.x - this.mouseDownPos_.x;
-      var deltaY = this.mousePos_.y - this.mouseDownPos_.y;
-      var minDist = MIN_MOUSE_SELECTION_DISTANCE;
+      const deltaX = this.mousePos_.x - this.mouseDownPos_.x;
+      const deltaY = this.mousePos_.y - this.mouseDownPos_.y;
+      const minDist = MIN_MOUSE_SELECTION_DISTANCE;
 
       if (deltaX * deltaX + deltaY * deltaY > minDist * minDist) {
         this.isClick_ = false;
@@ -557,10 +557,10 @@ tr.exportTo('tr.ui.b', function() {
     dispatchClickEvents_(e) {
       if (!this.isClick_) return;
 
-      var modeInfo = MOUSE_SELECTOR_MODE_INFOS[MOUSE_SELECTOR_MODE.SELECTION];
-      var eventNames = modeInfo.eventNames;
+      const modeInfo = MOUSE_SELECTOR_MODE_INFOS[MOUSE_SELECTOR_MODE.SELECTION];
+      const eventNames = modeInfo.eventNames;
 
-      var mouseEvent = this.createEvent_(eventNames.begin);
+      let mouseEvent = this.createEvent_(eventNames.begin);
       mouseEvent.appendSelection = isCmdOrCtrlPressed(e);
       this.dispatchEvent(mouseEvent);
 

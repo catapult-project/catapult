@@ -18,11 +18,11 @@ found in the LICENSE file.
  * to an actual importer.
  */
 tr.exportTo('tr.e.importer', function() {
-  var GZIP_MEMBER_HEADER_ID_SIZE = 3;
+  const GZIP_MEMBER_HEADER_ID_SIZE = 3;
 
-  var GZIP_HEADER_ID1 = 0x1f;
-  var GZIP_HEADER_ID2 = 0x8b;
-  var GZIP_DEFLATE_COMPRESSION = 8;
+  const GZIP_HEADER_ID1 = 0x1f;
+  const GZIP_HEADER_ID2 = 0x8b;
+  const GZIP_DEFLATE_COMPRESSION = 8;
 
   function GzipImporter(model, eventData) {
     // Normalize the data into an Uint8Array.
@@ -55,7 +55,7 @@ tr.exportTo('tr.e.importer', function() {
       eventData = eventData.header;
     }
 
-    var header;
+    let header;
     if (eventData instanceof ArrayBuffer) {
       header = new Uint8Array(eventData.slice(0, GZIP_MEMBER_HEADER_ID_SIZE));
     } else if (typeof(eventData) === 'string' || eventData instanceof String) {
@@ -75,7 +75,7 @@ tr.exportTo('tr.e.importer', function() {
    * @return {string} Inflated data.
    */
   GzipImporter.inflateGzipData_ = function(data) {
-    var position = 0;
+    let position = 0;
 
     function getByte() {
       if (position >= data.length) {
@@ -85,8 +85,8 @@ tr.exportTo('tr.e.importer', function() {
     }
 
     function getWord() {
-      var low = getByte();
-      var high = getByte();
+      const low = getByte();
+      const high = getByte();
       return (high << 8) + low;
     }
 
@@ -98,27 +98,27 @@ tr.exportTo('tr.e.importer', function() {
       while (getByte() !== 0) {}
     }
 
-    var id1 = getByte();
-    var id2 = getByte();
+    const id1 = getByte();
+    const id2 = getByte();
     if (id1 !== GZIP_HEADER_ID1 || id2 !== GZIP_HEADER_ID2) {
       throw new Error('Not gzip data');
     }
-    var compressionMethod = getByte();
+    const compressionMethod = getByte();
     if (compressionMethod !== GZIP_DEFLATE_COMPRESSION) {
       throw new Error('Unsupported compression method: ' + compressionMethod);
     }
-    var flags = getByte();
-    var haveHeaderCrc = flags & (1 << 1);
-    var haveExtraFields = flags & (1 << 2);
-    var haveFileName = flags & (1 << 3);
-    var haveComment = flags & (1 << 4);
+    const flags = getByte();
+    const haveHeaderCrc = flags & (1 << 1);
+    const haveExtraFields = flags & (1 << 2);
+    const haveFileName = flags & (1 << 3);
+    const haveComment = flags & (1 << 4);
 
     // Skip modification time, extra flags and OS.
     skipBytes(4 + 1 + 1);
 
     // Skip remaining fields before compressed data.
     if (haveExtraFields) {
-      var bytesToSkip = getWord();
+      const bytesToSkip = getWord();
       skipBytes(bytesToSkip);
     }
     if (haveFileName) skipZeroTerminatedString();
@@ -126,14 +126,14 @@ tr.exportTo('tr.e.importer', function() {
     if (haveHeaderCrc) getWord();
 
     // Inflate the data using jszip.
-    var inflatedData =
+    const inflatedData =
         JSZip.compressions.DEFLATE.uncompress(data.subarray(position));
 
     if (this.inflateAsTraceStream_) {
       return GzipImporter.transformToStream(inflatedData);
     }
 
-    var string = GzipImporter.transformToString(inflatedData);
+    const string = GzipImporter.transformToString(inflatedData);
 
     if (inflatedData.length > 0 && string.length === 0) {
       throw new RangeError('Inflated gzip data too long to fit into a string' +
@@ -144,7 +144,7 @@ tr.exportTo('tr.e.importer', function() {
   };
 
   GzipImporter.transformToStream = function(data) {
-    let type = JSZip.utils.getTypeOf(data);
+    const type = JSZip.utils.getTypeOf(data);
     if (type === 'uint8array') return new tr.b.InMemoryTraceStream(data, false);
     throw new Error(`Cannot transform ${type} to TraceStream.`);
   };
@@ -167,7 +167,7 @@ tr.exportTo('tr.e.importer', function() {
       return JSZip.utils.transformTo('string', data);
     }
 
-    var type = JSZip.utils.getTypeOf(data);
+    const type = JSZip.utils.getTypeOf(data);
     if (type === 'string') return data;  // We already have a string.
 
     if (type === 'array') {
@@ -175,7 +175,7 @@ tr.exportTo('tr.e.importer', function() {
       data = new Uint8Array(data);
     }
 
-    var decoder = new TextDecoder('utf-8');
+    const decoder = new TextDecoder('utf-8');
     return decoder.decode(data);
   };
 
@@ -199,7 +199,7 @@ tr.exportTo('tr.e.importer', function() {
      * subtraces are passed on to other importers that can recognize them.
      */
     extractSubtraces() {
-      var eventData = GzipImporter.inflateGzipData_(this.gzipData_);
+      const eventData = GzipImporter.inflateGzipData_(this.gzipData_);
       return eventData ? [eventData] : [];
     }
   };

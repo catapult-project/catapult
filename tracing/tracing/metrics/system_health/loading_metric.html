@@ -19,11 +19,11 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.metrics.sh', function() {
-  var RESPONSIVENESS_THRESHOLD_MS = 50;
-  var INTERACTIVE_WINDOW_SIZE_MS = 5 * 1000;
-  var timeDurationInMs_smallerIsBetter =
+  const RESPONSIVENESS_THRESHOLD_MS = 50;
+  const INTERACTIVE_WINDOW_SIZE_MS = 5 * 1000;
+  const timeDurationInMs_smallerIsBetter =
       tr.b.Unit.byName.timeDurationInMs_smallerIsBetter;
-  var RelatedEventSet = tr.v.d.RelatedEventSet;
+  const RelatedEventSet = tr.v.d.RelatedEventSet;
 
   /**
    * @param  {!tr.model.Process} process
@@ -58,11 +58,11 @@ tr.exportTo('tr.metrics.sh', function() {
    * (ms) spent under each category.
    */
   function createBreakdownDiagnostic(breakdownTree) {
-    var breakdownDiagnostic = new tr.v.d.Breakdown();
+    const breakdownDiagnostic = new tr.v.d.Breakdown();
     breakdownDiagnostic.colorScheme =
         tr.v.d.COLOR_SCHEME_CHROME_USER_FRIENDLY_CATEGORY_DRIVER;
 
-    for (let label in breakdownTree) {
+    for (const label in breakdownTree) {
       breakdownDiagnostic.set(label, breakdownTree[label].total);
     }
     return breakdownDiagnostic;
@@ -75,12 +75,12 @@ tr.exportTo('tr.metrics.sh', function() {
    */
   function NavigationStartFinder(rendererHelper) {
     this.navigationStartsForFrameId_ = {};
-    for (var ev of rendererHelper.mainThread.sliceGroup.childEvents()) {
+    for (const ev of rendererHelper.mainThread.sliceGroup.childEvents()) {
       if (!hasCategoryAndName(ev, 'blink.user_timing', 'navigationStart')) {
         continue;
       }
-      var frameIdRef = ev.args.frame;
-      var list = this.navigationStartsForFrameId_[frameIdRef];
+      const frameIdRef = ev.args.frame;
+      let list = this.navigationStartsForFrameId_[frameIdRef];
       if (list === undefined) {
         this.navigationStartsForFrameId_[frameIdRef] = list = [];
       }
@@ -90,10 +90,10 @@ tr.exportTo('tr.metrics.sh', function() {
 
   NavigationStartFinder.prototype = {
     findNavigationStartEventForFrameBeforeTimestamp(frameIdRef, ts) {
-      var list = this.navigationStartsForFrameId_[frameIdRef];
+      const list = this.navigationStartsForFrameId_[frameIdRef];
       if (list === undefined) return undefined;
-      var eventBeforeTimestamp;
-      for (var ev of list) {
+      let eventBeforeTimestamp;
+      for (const ev of list) {
         if (ev.start > ts) continue;
         if (eventBeforeTimestamp === undefined) {
           eventBeforeTimestamp = ev;
@@ -104,13 +104,13 @@ tr.exportTo('tr.metrics.sh', function() {
     }
   };
 
-  var FIRST_PAINT_BOUNDARIES = tr.v.HistogramBinBoundaries
+  const FIRST_PAINT_BOUNDARIES = tr.v.HistogramBinBoundaries
     .createLinear(0, 1e3, 20)  // 50ms step to 1s
     .addLinearBins(3e3, 20) // 100ms step to 3s
     .addExponentialBins(20e3, 20);
 
   function createHistogram(name) {
-    var histogram = new tr.v.Histogram(name,
+    const histogram = new tr.v.Histogram(name,
         timeDurationInMs_smallerIsBetter, FIRST_PAINT_BOUNDARIES);
     histogram.customizeSummaryOptions({
       avg: true,
@@ -124,16 +124,14 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   function findFrameLoaderSnapshotAt(rendererHelper, frameIdRef, ts) {
-    var snapshot;
-
-    var objects = rendererHelper.process.objects;
-    var frameLoaderInstances = objects.instancesByTypeName_.FrameLoader;
+    const objects = rendererHelper.process.objects;
+    const frameLoaderInstances = objects.instancesByTypeName_.FrameLoader;
     if (frameLoaderInstances === undefined) return undefined;
 
-    var snapshot;
-    for (var instance of frameLoaderInstances) {
+    let snapshot;
+    for (const instance of frameLoaderInstances) {
       if (!instance.isAliveAt(ts)) continue;
-      var maybeSnapshot = instance.getSnapshotAt(ts);
+      const maybeSnapshot = instance.getSnapshotAt(ts);
       if (frameIdRef !== maybeSnapshot.args.frame.id_ref) continue;
       snapshot = maybeSnapshot;
     }
@@ -142,9 +140,9 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   function findAllEvents(rendererHelper, category, title) {
-    var targetEvents = [];
+    const targetEvents = [];
 
-    for (var ev of rendererHelper.process.getDescendantEvents()) {
+    for (const ev of rendererHelper.process.getDescendantEvents()) {
       if (!hasCategoryAndName(ev, category, title)) continue;
       targetEvents.push(ev);
     }
@@ -153,15 +151,15 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   function findFirstMeaningfulPaintCandidates(rendererHelper) {
-    var candidatesForFrameId = {};
-    for (var ev of rendererHelper.process.getDescendantEvents()) {
+    const candidatesForFrameId = {};
+    for (const ev of rendererHelper.process.getDescendantEvents()) {
       if (!hasCategoryAndName(ev, 'loading', 'firstMeaningfulPaintCandidate')) {
         continue;
       }
       if (rendererHelper.isTelemetryInternalEvent(ev)) continue;
-      var frameIdRef = ev.args.frame;
+      const frameIdRef = ev.args.frame;
       if (frameIdRef === undefined) continue;
-      var list = candidatesForFrameId[frameIdRef];
+      let list = candidatesForFrameId[frameIdRef];
       if (list === undefined) {
         candidatesForFrameId[frameIdRef] = list = [];
       }
@@ -170,7 +168,7 @@ tr.exportTo('tr.metrics.sh', function() {
     return candidatesForFrameId;
   }
 
-  var URL_BLACKLIST = [
+  const URL_BLACKLIST = [
     'about:blank',
     // Chrome on Android creates main frames with the below URL for plugins.
     'data:text/html,pluginplaceholderdata',
@@ -183,24 +181,24 @@ tr.exportTo('tr.metrics.sh', function() {
 
   function collectTimeToEvent(
       category, eventName, rendererHelper, navigationStartFinder) {
-    var targetEvents = findAllEvents(rendererHelper, category, eventName);
-    var samples = [];
-    for (var ev of targetEvents) {
+    const targetEvents = findAllEvents(rendererHelper, category, eventName);
+    const samples = [];
+    for (const ev of targetEvents) {
       if (rendererHelper.isTelemetryInternalEvent(ev)) continue;
-      var frameIdRef = ev.args.frame;
-      var snapshot =
+      const frameIdRef = ev.args.frame;
+      const snapshot =
         findFrameLoaderSnapshotAt(rendererHelper, frameIdRef, ev.start);
       if (snapshot === undefined || !snapshot.args.isLoadingMainFrame) continue;
-      var url = snapshot.args.documentLoaderURL;
+      const url = snapshot.args.documentLoaderURL;
       if (shouldIgnoreURL(url)) continue;
-      var navigationStartEvent = navigationStartFinder.
+      const navigationStartEvent = navigationStartFinder.
         findNavigationStartEventForFrameBeforeTimestamp(
           frameIdRef, ev.start);
       // Ignore layout w/o preceding navigationStart, as they are not
       // attributed to any time-to-X metric.
       if (navigationStartEvent === undefined) continue;
 
-      var timeToEvent = ev.start - navigationStartEvent.start;
+      const timeToEvent = ev.start - navigationStartEvent.start;
       samples.push({
         value: timeToEvent,
         diagnostics: {url: new tr.v.d.Generic(url)}
@@ -244,20 +242,20 @@ tr.exportTo('tr.metrics.sh', function() {
 
   function addFirstMeaningfulPaintCpuTimeSample(samples, rendererHelper,
       frameIdRef, navigationStart, fmpMarkerEvent) {
-    var navStartToFMPCpuRange = tr.b.math.Range.fromExplicitRange(
+    const navStartToFMPCpuRange = tr.b.math.Range.fromExplicitRange(
         navigationStart.cpuStart, fmpMarkerEvent.cpuStart);
-    var snapshot = findFrameLoaderSnapshotAt(
+    const snapshot = findFrameLoaderSnapshotAt(
         rendererHelper, frameIdRef, fmpMarkerEvent.start);
     if (!snapshot || !snapshot.args.isLoadingMainFrame) return;
-    var url = snapshot.args.documentLoaderURL;
+    const url = snapshot.args.documentLoaderURL;
     if (shouldIgnoreURL(url)) return;
 
-    var mainThreadCpuTime = getMainThreadCpuTime(
+    const mainThreadCpuTime = getMainThreadCpuTime(
         rendererHelper, navStartToFMPCpuRange);
 
-    var breakdownTree = tr.metrics.sh.generateCpuTimeBreakdownTree(
+    const breakdownTree = tr.metrics.sh.generateCpuTimeBreakdownTree(
         rendererHelper.mainThread, navStartToFMPCpuRange);
-    var breakdownDiagnostic = createBreakdownDiagnostic(breakdownTree);
+    const breakdownDiagnostic = createBreakdownDiagnostic(breakdownTree);
     samples.push({
       value: mainThreadCpuTime,
       diagnostics: {
@@ -275,12 +273,12 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   function getMainThreadCpuTime(rendererHelper, rangeOfInterest) {
-    var mainThreadCpuTime = 0;
-    for (var slice of rendererHelper.mainThread.sliceGroup.topLevelSlices) {
+    let mainThreadCpuTime = 0;
+    for (const slice of rendererHelper.mainThread.sliceGroup.topLevelSlices) {
       if (!slice.cpuDuration) continue;
-      var sliceRange = tr.b.math.Range.fromExplicitRange(slice.cpuStart,
+      const sliceRange = tr.b.math.Range.fromExplicitRange(slice.cpuStart,
           slice.cpuStart + slice.cpuDuration);
-      var intersection = rangeOfInterest.findIntersection(sliceRange);
+      const intersection = rangeOfInterest.findIntersection(sliceRange);
       mainThreadCpuTime += intersection.duration;
     }
 
@@ -301,7 +299,7 @@ tr.exportTo('tr.metrics.sh', function() {
     // For more details on why TaskQueueManager::ProcessTaskFromWorkQueue is
     // chosen as a proxy for all un-interruptable task on renderer thread, see
     // https://github.com/GoogleChrome/lighthouse/issues/489
-    // TODO(nedn): replace this with just "var ev of rendererHelper..." once
+    // TODO(nedn): replace this with just "const ev of rendererHelper..." once
     // canary binary is updated.
     // (https://github.com/catapult-project/catapult/issues/2586)
     for (const ev of [...rendererHelper.mainThread.sliceGroup.childEvents()]) {
@@ -367,12 +365,12 @@ tr.exportTo('tr.metrics.sh', function() {
    */
   function collectFirstMeaningfulPaintAndTimeToInteractiveForRenderer(
       rendererHelper, navigationStartFinder) {
-    var firstMeaningfulPaintSamples = [];
-    var firstMeaningfulPaintCpuTimeSamples = [];
-    var firstInteractiveSamples = [];
+    const firstMeaningfulPaintSamples = [];
+    const firstMeaningfulPaintCpuTimeSamples = [];
+    const firstInteractiveSamples = [];
 
     function addSamples(frameIdRef, navigationStart, fmpMarkerEvent) {
-      var data = addFirstMeaningfulPaintSample(
+      const data = addFirstMeaningfulPaintSample(
           firstMeaningfulPaintSamples, rendererHelper,
           frameIdRef, navigationStart, fmpMarkerEvent);
       addFirstMeaningfulPaintCpuTimeSample(
@@ -385,16 +383,16 @@ tr.exportTo('tr.metrics.sh', function() {
       }
     }
 
-    var candidatesForFrameId =
+    const candidatesForFrameId =
         findFirstMeaningfulPaintCandidates(rendererHelper);
 
-    for (var frameIdRef in candidatesForFrameId) {
-      var navigationStart = undefined;
-      var lastCandidate = undefined;
+    for (const frameIdRef in candidatesForFrameId) {
+      let navigationStart = undefined;
+      let lastCandidate = undefined;
 
       // Iterate over the FMP candidates, remembering the last one.
-      for (var ev of candidatesForFrameId[frameIdRef]) {
-        var navigationStartForThisCandidate = navigationStartFinder.
+      for (const ev of candidatesForFrameId[frameIdRef]) {
+        const navigationStartForThisCandidate = navigationStartFinder.
           findNavigationStartEventForFrameBeforeTimestamp(
             frameIdRef, ev.start);
         // Ignore candidate w/o preceding navigationStart, as they are not
@@ -425,15 +423,15 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   function collectLoadingMetricsForRenderer(rendererHelper) {
-    var navigationStartFinder = new NavigationStartFinder(rendererHelper);
+    const navigationStartFinder = new NavigationStartFinder(rendererHelper);
 
-    var firstContentfulPaintSamples = collectTimeToEvent(
+    const firstContentfulPaintSamples = collectTimeToEvent(
         'loading', 'firstContentfulPaint',
         rendererHelper, navigationStartFinder);
-    var onLoadSamples = collectTimeToEvent(
+    const onLoadSamples = collectTimeToEvent(
         'blink.user_timing', 'loadEventStart',
         rendererHelper, navigationStartFinder);
-    var {firstMeaningfulPaintSamples, firstMeaningfulPaintCpuTimeSamples,
+    const {firstMeaningfulPaintSamples, firstMeaningfulPaintCpuTimeSamples,
         firstInteractiveSamples} =
         collectFirstMeaningfulPaintAndTimeToInteractiveForRenderer(
             rendererHelper, navigationStartFinder);
@@ -447,37 +445,37 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   function addSamplesToHistogram(samples, histogram) {
-    for (var sample of samples) {
+    for (const sample of samples) {
       histogram.addSample(sample.value, sample.diagnostics);
     }
   }
 
   function loadingMetric(histograms, model) {
-    var firstContentfulPaintHistogram = createHistogram(
+    const firstContentfulPaintHistogram = createHistogram(
         'timeToFirstContentfulPaint');
     firstContentfulPaintHistogram.description =
         'time to first contentful paint';
-    var onLoadHistogram = createHistogram('timeToOnload');
+    const onLoadHistogram = createHistogram('timeToOnload');
     onLoadHistogram.description = 'time to onload. ' +
         'This is temporary metric used for PCv1/v2 sanity checking';
-    var firstMeaningfulPaintHistogram = createHistogram(
+    const firstMeaningfulPaintHistogram = createHistogram(
         'timeToFirstMeaningfulPaint');
     firstMeaningfulPaintHistogram.description =
         'time to first meaningful paint';
-    var firstMeaningfulPaintCpuTimeHistogram = createHistogram(
+    const firstMeaningfulPaintCpuTimeHistogram = createHistogram(
         'cpuTimeToFirstMeaningfulPaint');
     firstMeaningfulPaintCpuTimeHistogram.description =
         'CPU time to first meaningful paint';
-    var firstInteractiveHistogram = createHistogram('timeToFirstInteractive');
+    const firstInteractiveHistogram = createHistogram('timeToFirstInteractive');
     firstInteractiveHistogram.description = 'time to first interactive';
 
-    var chromeHelper = model.getOrCreateHelper(
+    const chromeHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
-    for (var pid in chromeHelper.rendererHelpers) {
-      var rendererHelper = chromeHelper.rendererHelpers[pid];
+    for (const pid in chromeHelper.rendererHelpers) {
+      const rendererHelper = chromeHelper.rendererHelpers[pid];
       if (rendererHelper.isChromeTracingUI) continue;
 
-      var {firstContentfulPaintSamples, onLoadSamples,
+      const {firstContentfulPaintSamples, onLoadSamples,
            firstMeaningfulPaintSamples, firstMeaningfulPaintCpuTimeSamples,
            firstInteractiveSamples} =
           collectLoadingMetricsForRenderer(rendererHelper);

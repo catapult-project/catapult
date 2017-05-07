@@ -14,7 +14,7 @@ found in the LICENSE file.
  * @fileoverview Time currentDisplayUnit
  */
 tr.exportTo('tr.b', function() {
-  var msDisplayMode = {
+  const msDisplayMode = {
     scale: 1e-3,
     suffix: 'ms',
     // Compares a < b with adjustments to precision errors.
@@ -27,7 +27,7 @@ tr.exportTo('tr.b', function() {
     }
   };
 
-  var nsDisplayMode = {
+  const nsDisplayMode = {
     scale: 1e-9,
     suffix: 'ns',
     // Compares a < b with adjustments to precision errors.
@@ -40,7 +40,7 @@ tr.exportTo('tr.b', function() {
     }
   };
 
-  var TimeDisplayModes = {
+  const TimeDisplayModes = {
     ns: nsDisplayMode,
     ms: msDisplayMode
   };

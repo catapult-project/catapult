@@ -19,10 +19,10 @@ found in the LICENSE file.
 // global scope by hand.
 (function(global) {
   if (tr.isNode) {
-    var mwuAbsPath = HTMLImportsLoader.hrefToAbsolutePath(
+    const mwuAbsPath = HTMLImportsLoader.hrefToAbsolutePath(
         '/mannwhitneyu.js');
-    var mwuModule = require(mwuAbsPath);
-    for (var exportName in mwuModule) {
+    const mwuModule = require(mwuAbsPath);
+    for (const exportName in mwuModule) {
       global[exportName] = mwuModule[exportName];
     }
   }
@@ -36,9 +36,9 @@ found in the LICENSE file.
 /* eslint-disable catapult-camelcase */
 
 tr.exportTo('tr.b.math', function() {
-  var identity = x => x;
+  const identity = x => x;
 
-  var Statistics = {};
+  const Statistics = {};
 
   /* Returns the quotient, or zero if the denominator is zero.*/
   Statistics.divideIfPossibleOrZero = function(numerator, denominator) {
@@ -47,21 +47,21 @@ tr.exportTo('tr.b.math', function() {
   };
 
   Statistics.sum = function(ary, opt_func, opt_this) {
-    var func = opt_func || identity;
-    var ret = 0;
-    var i = 0;
-    for (var elt of ary) {
+    const func = opt_func || identity;
+    let ret = 0;
+    let i = 0;
+    for (const elt of ary) {
       ret += func.call(opt_this, elt, i++);
     }
     return ret;
   };
 
   Statistics.mean = function(ary, opt_func, opt_this) {
-    var func = opt_func || identity;
-    var sum = 0;
-    var i = 0;
+    const func = opt_func || identity;
+    let sum = 0;
+    let i = 0;
 
-    for (var elt of ary) {
+    for (const elt of ary) {
       sum += func.call(opt_this, elt, i++);
     }
 
@@ -71,14 +71,14 @@ tr.exportTo('tr.b.math', function() {
   };
 
   Statistics.geometricMean = function(ary, opt_func, opt_this) {
-    var func = opt_func || identity;
-    var i = 0;
-    var logsum = 0;
+    const func = opt_func || identity;
+    let i = 0;
+    let logsum = 0;
 
     // The geometric mean is expressed as the arithmetic mean of logarithms
     // in order to prevent overflow.
-    for (var elt of ary) {
-      var x = func.call(opt_this, elt, i++);
+    for (const elt of ary) {
+      const x = func.call(opt_this, elt, i++);
       if (x <= 0) return 0;
       logsum += Math.log(Math.abs(x));
     }
@@ -91,16 +91,16 @@ tr.exportTo('tr.b.math', function() {
   // Returns undefined if the sum of the weights is zero.
   Statistics.weightedMean = function(
       ary, weightCallback, opt_valueCallback, opt_this) {
-    var valueCallback = opt_valueCallback || identity;
-    var numerator = 0;
-    var denominator = 0;
-    var i = -1;
+    const valueCallback = opt_valueCallback || identity;
+    let numerator = 0;
+    let denominator = 0;
+    let i = -1;
 
-    for (var elt of ary) {
+    for (const elt of ary) {
       i++;
-      var value = valueCallback.call(opt_this, elt, i);
+      const value = valueCallback.call(opt_this, elt, i);
       if (value === undefined) continue;
-      var weight = weightCallback.call(opt_this, elt, i, value);
+      const weight = weightCallback.call(opt_this, elt, i, value);
       numerator += weight * value;
       denominator += weight;
     }
@@ -113,12 +113,12 @@ tr.exportTo('tr.b.math', function() {
   Statistics.variance = function(ary, opt_func, opt_this) {
     if (ary.length === 0) return undefined;
     if (ary.length === 1) return 0;
-    var func = opt_func || identity;
-    var mean = Statistics.mean(ary, func, opt_this);
-    var sumOfSquaredDistances = Statistics.sum(
+    const func = opt_func || identity;
+    const mean = Statistics.mean(ary, func, opt_this);
+    const sumOfSquaredDistances = Statistics.sum(
         ary,
         function(d, i) {
-          var v = func.call(this, d, i) - mean;
+          const v = func.call(this, d, i) - mean;
           return v * v;
         },
         opt_this);
@@ -132,30 +132,30 @@ tr.exportTo('tr.b.math', function() {
   };
 
   Statistics.max = function(ary, opt_func, opt_this) {
-    var func = opt_func || identity;
-    var ret = -Infinity;
-    var i = 0;
-    for (var elt of ary) {
+    const func = opt_func || identity;
+    let ret = -Infinity;
+    let i = 0;
+    for (const elt of ary) {
       ret = Math.max(ret, func.call(opt_this, elt, i++));
     }
     return ret;
   };
 
   Statistics.min = function(ary, opt_func, opt_this) {
-    var func = opt_func || identity;
-    var ret = Infinity;
-    var i = 0;
-    for (var elt of ary) {
+    const func = opt_func || identity;
+    let ret = Infinity;
+    let i = 0;
+    for (const elt of ary) {
       ret = Math.min(ret, func.call(opt_this, elt, i++));
     }
     return ret;
   };
 
   Statistics.range = function(ary, opt_func, opt_this) {
-    var func = opt_func || identity;
-    var ret = new tr.b.math.Range();
-    var i = 0;
-    for (var elt of ary) {
+    const func = opt_func || identity;
+    const ret = new tr.b.math.Range();
+    let i = 0;
+    for (const elt of ary) {
       ret.addValue(func.call(opt_this, elt, i++));
     }
     return ret;
@@ -166,14 +166,14 @@ tr.exportTo('tr.b.math', function() {
       throw new Error('percent must be [0,1]');
     }
 
-    var func = opt_func || identity;
-    var tmp = new Array(ary.length);
-    var i = 0;
-    for (var elt of ary) {
+    const func = opt_func || identity;
+    const tmp = new Array(ary.length);
+    let i = 0;
+    for (const elt of ary) {
       tmp[i] = func.call(opt_this, elt, i++);
     }
     tmp.sort((a, b) => a - b);
-    var idx = Math.floor((ary.length - 1) * percent);
+    const idx = Math.floor((ary.length - 1) * percent);
     return tmp[idx];
   };
 
@@ -202,10 +202,10 @@ tr.exportTo('tr.b.math', function() {
           return a - b;
         }
     );
-    var low = Math.min.apply(null, samples);
-    var high = Math.max.apply(null, samples);
-    var newLow = 0.5 / samples.length;
-    var newHigh = (samples.length - 0.5) / samples.length;
+    const low = Math.min.apply(null, samples);
+    const high = Math.max.apply(null, samples);
+    const newLow = 0.5 / samples.length;
+    const newHigh = (samples.length - 0.5) / samples.length;
     if (high - low === 0.0) {
       // Samples is an array of 0.5 in this case.
       samples = Array.apply(null, new Array(samples.length)).map(
@@ -215,8 +215,8 @@ tr.exportTo('tr.b.math', function() {
         scale: 1.0
       };
     }
-    var scale = (newHigh - newLow) / (high - low);
-    for (var i = 0; i < samples.length; i++) {
+    const scale = (newHigh - newLow) / (high - low);
+    for (let i = 0; i < samples.length; i++) {
       samples[i] = (samples[i] - low) * scale + newLow;
     }
     return {
@@ -237,20 +237,20 @@ tr.exportTo('tr.b.math', function() {
   Statistics.discrepancy = function(samples, opt_locationCount) {
     if (samples.length === 0) return 0.0;
 
-    var maxLocalDiscrepancy = 0;
-    var invSampleCount = 1.0 / samples.length;
-    var locations = [];
+    let maxLocalDiscrepancy = 0;
+    const invSampleCount = 1.0 / samples.length;
+    const locations = [];
     // For each location, stores the number of samples less than that location.
-    var countLess = [];
+    const countLess = [];
     // For each location, stores the number of samples less than or equal to
     // that location.
-    var countLessEqual = [];
+    const countLessEqual = [];
 
     if (opt_locationCount !== undefined) {
       // Generate list of equally spaced locations.
-      var sampleIndex = 0;
-      for (var i = 0; i < opt_locationCount; i++) {
-        var location = i / (opt_locationCount - 1);
+      let sampleIndex = 0;
+      for (let i = 0; i < opt_locationCount; i++) {
+        const location = i / (opt_locationCount - 1);
         locations.push(location);
         while (sampleIndex < samples.length &&
           samples[sampleIndex] < location) {
@@ -270,7 +270,7 @@ tr.exportTo('tr.b.math', function() {
         countLess.push(0);
         countLessEqual.push(0);
       }
-      for (var i = 0; i < samples.length; i++) {
+      for (let i = 0; i < samples.length; i++) {
         locations.push(samples[i]);
         countLess.push(i);
         countLessEqual.push(i + 1);
@@ -295,20 +295,20 @@ tr.exportTo('tr.b.math', function() {
     // see https://en.wikipedia.org/wiki/Maximum_subarray_problem.
 
     // The maximum of (countClosed(k, i-1)/N - length(k, i-1)) for any k < i-1.
-    var maxDiff = 0;
+    let maxDiff = 0;
     // The minimum of (countOpen(k, i-1)/N - length(k, i-1)) for any k < i-1.
-    var minDiff = 0;
-    for (var i = 1; i < locations.length; i++) {
-      var length = locations[i] - locations[i - 1];
-      var countClosed = countLessEqual[i] - countLess[i - 1];
-      var countOpen = countLess[i] - countLessEqual[i - 1];
+    let minDiff = 0;
+    for (let i = 1; i < locations.length; i++) {
+      const length = locations[i] - locations[i - 1];
+      const countClosed = countLessEqual[i] - countLess[i - 1];
+      const countOpen = countLess[i] - countLessEqual[i - 1];
       // Number of points that are added if we extend a closed range that
       // ends at location (i-1).
-      var countClosedIncrement =
+      const countClosedIncrement =
           countLessEqual[i] - countLessEqual[i - 1];
       // Number of points that are added if we extend an open range that
       // ends at location (i-1).
-      var countOpenIncrement = countLess[i] - countLess[i - 1];
+      const countOpenIncrement = countLess[i] - countLess[i - 1];
 
       // Either extend the previous optimal range or start a new one.
       maxDiff = Math.max(
@@ -362,17 +362,17 @@ tr.exportTo('tr.b.math', function() {
     if (opt_absolute === undefined) opt_absolute = true;
 
     if (Array.isArray(timestamps[0])) {
-      var rangeDiscrepancies = timestamps.map(function(r) {
+      const rangeDiscrepancies = timestamps.map(function(r) {
         return Statistics.timestampsDiscrepancy(r);
       });
       return Math.max.apply(null, rangeDiscrepancies);
     }
 
-    var s = Statistics.normalizeSamples(timestamps);
-    var samples = s.normalized_samples;
-    var sampleScale = s.scale;
-    var discrepancy = Statistics.discrepancy(samples, opt_locationCount);
-    var invSampleCount = 1.0 / samples.length;
+    const s = Statistics.normalizeSamples(timestamps);
+    const samples = s.normalized_samples;
+    const sampleScale = s.scale;
+    let discrepancy = Statistics.discrepancy(samples, opt_locationCount);
+    const invSampleCount = 1.0 / samples.length;
     if (opt_absolute === true) {
       // Compute absolute discrepancy
       discrepancy /= sampleScale;
@@ -405,7 +405,7 @@ tr.exportTo('tr.b.math', function() {
       durations, opt_absolute, opt_locationCount) {
     if (durations.length === 0) return 0.0;
 
-    var timestamps = durations.reduce(function(prev, curr, index, array) {
+    const timestamps = durations.reduce(function(prev, curr, index, array) {
       prev.push(prev[prev.length - 1] + curr);
       return prev;
     }, [0]);
@@ -425,7 +425,7 @@ tr.exportTo('tr.b.math', function() {
       return samples;
     }
     while (samples.length > count) {
-      var i = parseInt(Math.random() * samples.length);
+      const i = parseInt(Math.random() * samples.length);
       samples.splice(i, 1);
     }
     return samples;
@@ -464,11 +464,11 @@ tr.exportTo('tr.b.math', function() {
       return;
     }
 
-    var probToKeep = numSamples / streamLength;
+    const probToKeep = numSamples / streamLength;
     if (Math.random() > probToKeep) return;  // New sample was rejected.
 
     // Keeping it, replace an alement randomly.
-    var index = Math.floor(Math.random() * numSamples);
+    const index = Math.floor(Math.random() * numSamples);
     samples[index] = newElement;
   };
 
@@ -494,8 +494,8 @@ tr.exportTo('tr.b.math', function() {
     if (streamLengthB < numSamples) {
       // samplesB has not reached max capacity so every sample of stream B were
       // chosen with certainty. Add them one by one into samplesA.
-      var nbElements = Math.min(streamLengthB, samplesB.length);
-      for (var i = 0; i < nbElements; ++i) {
+      const nbElements = Math.min(streamLengthB, samplesB.length);
+      for (let i = 0; i < nbElements; ++i) {
         Statistics.uniformlySampleStream(samplesA, streamLengthA + i + 1,
             samplesB[i], numSamples);
       }
@@ -504,14 +504,14 @@ tr.exportTo('tr.b.math', function() {
     if (streamLengthA < numSamples) {
       // samplesA has not reached max capacity so every sample of stream A were
       // chosen with certainty. Add them one by one into samplesB.
-      var nbElements = Math.min(streamLengthA, samplesA.length);
-      var tempSamples = samplesB.slice();
-      for (var i = 0; i < nbElements; ++i) {
+      const nbElements = Math.min(streamLengthA, samplesA.length);
+      const tempSamples = samplesB.slice();
+      for (let i = 0; i < nbElements; ++i) {
         Statistics.uniformlySampleStream(tempSamples, streamLengthB + i + 1,
             samplesA[i], numSamples);
       }
       // Copy that back into the first vector.
-      for (var i = 0; i < tempSamples.length; ++i) {
+      for (let i = 0; i < tempSamples.length; ++i) {
         samplesA[i] = tempSamples[i];
       }
       return;
@@ -529,9 +529,9 @@ tr.exportTo('tr.b.math', function() {
     //   = numSamples / (streamLengthA + streamLengthB)
     // A similar computation shows we have the same probability of keeping any
     // element in samplesB. Magic!
-    var nbElements = Math.min(numSamples, samplesB.length);
-    var probOfSwapping = streamLengthB / (streamLengthA + streamLengthB);
-    for (var i = 0; i < nbElements; ++i) {
+    const nbElements = Math.min(numSamples, samplesB.length);
+    const probOfSwapping = streamLengthB / (streamLengthA + streamLengthB);
+    for (let i = 0; i < nbElements; ++i) {
       if (Math.random() < probOfSwapping) {
         samplesA[i] = samplesB[i];
       }
@@ -679,13 +679,13 @@ tr.exportTo('tr.b.math', function() {
     __proto__: Distribution.prototype,
 
     computeDensity(x) {
-      var scale = (1.0 / (this.standardDeviation * Math.sqrt(2.0 * Math.PI)));
-      var exponent = -Math.pow(x - this.mean, 2) / (2.0 * this.variance);
+      const scale = (1.0 / (this.standardDeviation * Math.sqrt(2.0 * Math.PI)));
+      const exponent = -Math.pow(x - this.mean, 2) / (2.0 * this.variance);
       return scale * Math.exp(exponent);
     },
 
     computePercentile(x) {
-      var standardizedX = ((x - this.mean) /
+      const standardizedX = ((x - this.mean) /
                            Math.sqrt(2.0 * this.variance));
       return (1.0 + tr.b.math.erf(standardizedX)) / 2.0;
     },
@@ -743,8 +743,8 @@ tr.exportTo('tr.b.math', function() {
     },
 
     get variance() {
-      var nm = this.normalDistribution_.mean;
-      var nv = this.normalDistribution_.variance;
+      const nm = this.normalDistribution_.mean;
+      const nv = this.normalDistribution_.variance;
       return (Math.exp(2 * (nm + nv)) -
               Math.exp(2 * nm + nv));
     },
@@ -784,9 +784,9 @@ tr.exportTo('tr.b.math', function() {
   Statistics.LogNormalDistribution.fromMedianAndDiminishingReturns =
     function(median, diminishingReturns) {
       diminishingReturns = Math.log(diminishingReturns / median);
-      var shape = Math.sqrt(1 - 3 * diminishingReturns -
+      const shape = Math.sqrt(1 - 3 * diminishingReturns -
           Math.sqrt(Math.pow(diminishingReturns - 3, 2) - 8)) / 2;
-      var location = Math.log(median);
+      const location = Math.log(median);
       return new Statistics.LogNormalDistribution(location, shape);
     };
 
@@ -821,8 +821,8 @@ tr.exportTo('tr.b.math', function() {
    * @return {!HypothesisTestResult}
    */
   Statistics.mwu = function(a, b, opt_alpha, opt_reqSampleSize) {
-    var result = mannwhitneyu.test(a, b);
-    var alpha = opt_alpha || Statistics.DEFAULT_ALPHA;
+    const result = mannwhitneyu.test(a, b);
+    const alpha = opt_alpha || Statistics.DEFAULT_ALPHA;
     if (result.p < alpha) {
       result.significance = Statistics.Significance.SIGNIFICANT;
     } else if (opt_reqSampleSize && (a.length < opt_reqSampleSize ||

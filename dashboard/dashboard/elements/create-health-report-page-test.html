@@ -15,7 +15,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var testOptions = {
+  const testOptions = {
     tearDown() {
       testing_common.clearXhrMock();
     }
@@ -31,21 +31,21 @@ tr.b.unittest.testSuite(function() {
   };
 
   test('onSubmit sends request with parameters', function() {
-    var tableQuery = '/create_health_report?' +
+    let tableQuery = '/create_health_report?' +
         testing_common.paramString(readyParams);
     testing_common.addXhrMock(tableQuery, JSON.stringify(mockTableConfigs));
 
-    var tokenParams = {
+    const tokenParams = {
       getToken: true
     };
-    var mockTokenResponse = {
+    const mockTokenResponse = {
       'xsrf_token': 'fakeToken'
     };
-    var query = '/create_health_report?' +
+    const query = '/create_health_report?' +
         testing_common.paramString(tokenParams);
     testing_common.addXhrMock(query, JSON.stringify(mockTokenResponse));
 
-    var tableParams = {
+    const tableParams = {
       tableBots: 'testBot',
       tableLayout: 'testLayout',
       tableName: 'testName',
@@ -53,16 +53,16 @@ tr.b.unittest.testSuite(function() {
       xsrf_token: 'fakeToken',
       override: 0
     };
-    var mockTableResponse = {
+    const mockTableResponse = {
       'xsrf_token': 'fakeToken',
       'name': 'testName',
       'override': 0
     };
-    var tableQuery = '/create_health_report?' +
+    tableQuery = '/create_health_report?' +
         testing_common.paramString(tableParams);
     testing_common.addXhrMock(tableQuery, JSON.stringify(mockTableResponse));
 
-    var page = document.createElement('create-health-report-page');
+    const page = document.createElement('create-health-report-page');
     page.name = 'testName';
     page.bots = 'testBot';
     page.tests = 'testTest';
@@ -72,10 +72,10 @@ tr.b.unittest.testSuite(function() {
   }, testOptions);
 
   test('instantiation', function() {
-    var tableQuery = '/create_health_report?' +
+    const tableQuery = '/create_health_report?' +
         testing_common.paramString(readyParams);
     testing_common.addXhrMock(tableQuery, JSON.stringify(mockTableConfigs));
-    var page = document.createElement('create-health-report-page');
+    const page = document.createElement('create-health-report-page');
     this.addHTMLOutput(page);
   }, testOptions);
 });

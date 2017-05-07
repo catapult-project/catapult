@@ -20,24 +20,24 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var Model = tr.Model;
-  var GlobalMemoryDump = tr.model.GlobalMemoryDump;
-  var ProcessMemoryDump = tr.model.ProcessMemoryDump;
-  var MemoryAllocatorDump = tr.model.MemoryAllocatorDump;
-  var MemoryAllocatorDumpLink = tr.model.MemoryAllocatorDumpLink;
-  var Scalar = tr.b.Scalar;
-  var sizeInBytes_smallerIsBetter =
+  const Model = tr.Model;
+  const GlobalMemoryDump = tr.model.GlobalMemoryDump;
+  const ProcessMemoryDump = tr.model.ProcessMemoryDump;
+  const MemoryAllocatorDump = tr.model.MemoryAllocatorDump;
+  const MemoryAllocatorDumpLink = tr.model.MemoryAllocatorDumpLink;
+  const Scalar = tr.b.Scalar;
+  const sizeInBytes_smallerIsBetter =
       tr.b.Unit.byName.sizeInBytes_smallerIsBetter;
-  var newAllocatorDump = tr.model.MemoryDumpTestUtils.newAllocatorDump;
-  var addChildDump = tr.model.MemoryDumpTestUtils.addChildDump;
-  var addOwnershipLink = tr.model.MemoryDumpTestUtils.addOwnershipLink;
-  var checkDumpNumericsAndDiagnostics =
+  const newAllocatorDump = tr.model.MemoryDumpTestUtils.newAllocatorDump;
+  const addChildDump = tr.model.MemoryDumpTestUtils.addChildDump;
+  const addOwnershipLink = tr.model.MemoryDumpTestUtils.addOwnershipLink;
+  const checkDumpNumericsAndDiagnostics =
       tr.model.MemoryDumpTestUtils.checkDumpNumericsAndDiagnostics;
-  var SIZE_DELTA = tr.model.MemoryDumpTestUtils.SIZE_DELTA;
-  var MemoryAllocatorDumpInfoType = tr.model.MemoryAllocatorDumpInfoType;
-  var PROVIDED_SIZE_LESS_THAN_AGGREGATED_CHILDREN =
+  const SIZE_DELTA = tr.model.MemoryDumpTestUtils.SIZE_DELTA;
+  const MemoryAllocatorDumpInfoType = tr.model.MemoryAllocatorDumpInfoType;
+  const PROVIDED_SIZE_LESS_THAN_AGGREGATED_CHILDREN =
       MemoryAllocatorDumpInfoType.PROVIDED_SIZE_LESS_THAN_AGGREGATED_CHILDREN;
-  var PROVIDED_SIZE_LESS_THAN_LARGEST_OWNER =
+  const PROVIDED_SIZE_LESS_THAN_LARGEST_OWNER =
       MemoryAllocatorDumpInfoType.PROVIDED_SIZE_LESS_THAN_LARGEST_OWNER;
 
   function buildArgPusher(array) {
@@ -50,7 +50,7 @@ tr.b.unittest.testSuite(function() {
   }
 
   function assertUndefinedNumeric(dump, numericName) {
-    var numeric = dump.numerics[numericName];
+    const numeric = dump.numerics[numericName];
     assert.isUndefined(numeric, 'expected numeric \'' + numericName +
         '\' of memory allocator dump \'' + dump.fullName + '\' in ' +
         dump.containerMemoryDump.userFriendlyName + ' to be undefined');
@@ -58,8 +58,8 @@ tr.b.unittest.testSuite(function() {
 
   function assertDefinedNumeric(dump, numericName, expectedUnit, expectedValue,
       opt_delta) {
-    var numeric = dump.numerics[numericName];
-    var errorMessagePrefix = 'expected numeric \'' + numericName +
+    const numeric = dump.numerics[numericName];
+    const errorMessagePrefix = 'expected numeric \'' + numericName +
         '\' of memory allocator dump \'' + dump.fullName + '\' in ' +
         dump.containerMemoryDump.userFriendlyName + ' to ';
 
@@ -69,7 +69,7 @@ tr.b.unittest.testSuite(function() {
         errorMessagePrefix + 'have unit \'' + expectedUnit.unitName +
         '\' but got \'' + numeric.unit.unitName + '\' instead');
 
-    var valueErrorMessage = errorMessagePrefix + 'have value \'' +
+    const valueErrorMessage = errorMessagePrefix + 'have value \'' +
         expectedValue + '\' but got \'' + numeric.value + '\'';
     if (opt_delta !== undefined) {
       assert.closeTo(
@@ -97,13 +97,13 @@ tr.b.unittest.testSuite(function() {
     assertSizeNumeric(dump, 'effective_size', expectedEffectiveSize);
 
     // Check the 'infos' list.
-    var expectedInfos = opt_expectedInfos || [];
-    var actualInfos = dump.infos;
+    const expectedInfos = opt_expectedInfos || [];
+    const actualInfos = dump.infos;
     assert.lengthOf(actualInfos, expectedInfos.length,
         'expected memory allocator dump \'' + dump.fullName + '\' in ' +
         dump.containerMemoryDump.userFriendlyName + ' to have ' +
         expectedInfos.length + ' infos but got ' + actualInfos.length);
-    for (var k = 0; k < actualInfos.length; k++) {
+    for (let k = 0; k < actualInfos.length; k++) {
       assert.deepEqual(actualInfos[k], expectedInfos[k],
           'info ' + k + ' of memory allocator dump \'' + dump.fullName +
           '\' in ' + dump.containerMemoryDump.userFriendlyName +
@@ -111,9 +111,9 @@ tr.b.unittest.testSuite(function() {
     }
 
     // Checked the 'ownedBySiblingSizes' map.
-    var expectedOwnedBySiblingSizes = opt_expectedOwnedBySiblingSizes || {};
-    var actualOwnedBySiblingSizes = {};
-    for (var siblingDump of dump.ownedBySiblingSizes.keys()) {
+    const expectedOwnedBySiblingSizes = opt_expectedOwnedBySiblingSizes || {};
+    const actualOwnedBySiblingSizes = {};
+    for (const siblingDump of dump.ownedBySiblingSizes.keys()) {
       assert.strictEqual(siblingDump.parent, dump.parent);
       actualOwnedBySiblingSizes[siblingDump.name] =
           dump.ownedBySiblingSizes.get(siblingDump);
@@ -125,18 +125,18 @@ tr.b.unittest.testSuite(function() {
   }
 
   function createContainerDumps(processMemoryDumpCount, opt_model) {
-    var model = opt_model;
+    let model = opt_model;
     if (model === undefined) {
       model = new Model();
     }
 
-    var gmd = new GlobalMemoryDump(model, 0);
+    const gmd = new GlobalMemoryDump(model, 0);
     model.globalMemoryDumps.push(gmd);
 
-    var pmds = [];
-    for (var i = 0; i < processMemoryDumpCount; i++) {
-      var process = model.getOrCreateProcess(i);
-      var pmd = new ProcessMemoryDump(gmd, process, 0);
+    const pmds = [];
+    for (let i = 0; i < processMemoryDumpCount; i++) {
+      const process = model.getOrCreateProcess(i);
+      const pmd = new ProcessMemoryDump(gmd, process, 0);
       gmd.processMemoryDumps[i] = pmd;
       process.memoryDumps.push(pmd);
       pmds.push(pmd);
@@ -193,28 +193,29 @@ tr.b.unittest.testSuite(function() {
   function buildDumpTrees(allTreeRecipes, opt_model) {
     assert.isAbove(allTreeRecipes.length, 0);
 
-    var ownerDumps = {};  // owned GUID -> {dump: owner, importance: optional}.
-    var ownableDumps = {};  // ownable GUID -> ownable dump.
+    // owned GUID -> {dump: owner, importance: optional}.
+    const ownerDumps = {};
+    const ownableDumps = {};  // ownable GUID -> ownable dump.
 
     function buildAndAddDumpTrees(containerDump, treeRecipes) {
       if (treeRecipes === undefined) return;
 
       function buildDumpTreeRecursively(treeRecipe, namePrefix) {
-        var skipBuild = treeRecipe.skip_build;
-        var name = treeRecipe.name;
-        var guid = treeRecipe.guid;
-        var owns = treeRecipe.owns;
-        var size = treeRecipe.size;
-        var numerics = treeRecipe.numerics;
-        var diagnostics = treeRecipe.diagnostics;
-        var importance = treeRecipe.importance;
-        var weak = treeRecipe.weak;
+        const skipBuild = treeRecipe.skip_build;
+        const name = treeRecipe.name;
+        const guid = treeRecipe.guid;
+        const owns = treeRecipe.owns;
+        const size = treeRecipe.size;
+        const numerics = treeRecipe.numerics;
+        const diagnostics = treeRecipe.diagnostics;
+        const importance = treeRecipe.importance;
+        const weak = treeRecipe.weak;
 
         assert.notStrictEqual(skipBuild, true);
         assert.isDefined(name);
 
-        var fullName = namePrefix + name;
-        var dump = new MemoryAllocatorDump(containerDump, fullName, guid);
+        const fullName = namePrefix + name;
+        const dump = new MemoryAllocatorDump(containerDump, fullName, guid);
 
         if (size !== undefined) {
           dump.addNumeric(
@@ -237,7 +238,7 @@ tr.b.unittest.testSuite(function() {
           treeRecipe.children.forEach(function(childTreeRecipe) {
             // Virtual children are added during size calculation.
             if (childTreeRecipe.skip_build === true) return;
-            var childDump =
+            const childDump =
                 buildDumpTreeRecursively(childTreeRecipe, fullName + '/');
             childDump.parent = dump;
             dump.children.push(childDump);
@@ -245,12 +246,12 @@ tr.b.unittest.testSuite(function() {
         }
 
         if (numerics !== undefined) {
-          for (var [name, item] of Object.entries(numerics)) {
+          for (const [name, item] of Object.entries(numerics)) {
             dump.addNumeric(name, item);
           }
         }
         if (diagnostics !== undefined) {
-          for (var [name, item] of Object.entries(diagnostics)) {
+          for (const [name, item] of Object.entries(diagnostics)) {
             dump.addDiagnostic(name, item);
           }
         }
@@ -260,22 +261,22 @@ tr.b.unittest.testSuite(function() {
         return dump;
       }
 
-      var memoryAllocatorDumps = treeRecipes.map(function(treeRecipe) {
+      const memoryAllocatorDumps = treeRecipes.map(function(treeRecipe) {
         return buildDumpTreeRecursively(treeRecipe, '');
       });
       containerDump.memoryAllocatorDumps = memoryAllocatorDumps;
     }
 
     // Recursively build memory allocator dump trees for all container dumps.
-    var containerDumps = createContainerDumps(
+    const containerDumps = createContainerDumps(
         allTreeRecipes.length - 1, opt_model);
-    for (var i = 0; i < allTreeRecipes.length; i++) {
+    for (let i = 0; i < allTreeRecipes.length; i++) {
       buildAndAddDumpTrees(containerDumps[i], allTreeRecipes[i]);
     }
 
     // Hook up ownership links.
-    for (var [ownedGuid, ownershipInfos] of Object.entries(ownerDumps)) {
-      var ownedDump = ownableDumps[ownedGuid];
+    for (const [ownedGuid, ownershipInfos] of Object.entries(ownerDumps)) {
+      const ownedDump = ownableDumps[ownedGuid];
       assert.isDefined(ownedDump, 'Tree recipes don\'t contain a memory ' +
           'allocator dump with guid \'' + ownedGuid + '\'');
 
@@ -292,7 +293,7 @@ tr.b.unittest.testSuite(function() {
   // hierarchy of container and memory allocator dumps from tree recipes
   // correctly.
   test('testSanityCheck_buildDumpTrees', function() {
-    var containerDumps = buildDumpTrees([
+    const containerDumps = buildDumpTrees([
       [  // GMD.
         {
           'name': 'globalSharedDump1',
@@ -346,9 +347,9 @@ tr.b.unittest.testSuite(function() {
       ]
     ]);
     assert.lengthOf(containerDumps, 3);
-    var gmd = containerDumps[0];
-    var pmd1 = containerDumps[1];
-    var pmd2 = containerDumps[2];
+    const gmd = containerDumps[0];
+    const pmd1 = containerDumps[1];
+    const pmd2 = containerDumps[2];
 
     function checkDump(dump, expectedGuid, expectedFullName, expectedParent,
         expectedChildrenCount, expectedSize, expectedIsOwner,
@@ -378,7 +379,7 @@ tr.b.unittest.testSuite(function() {
 
     function checkOwnershipLink(expectedSourceDump, expectedTargetDump,
         expectedImportance) {
-      var link = expectedSourceDump.owns;
+      const link = expectedSourceDump.owns;
       assert.isDefined(link);
       assert.instanceOf(link, MemoryAllocatorDumpLink);
       assert.strictEqual(link.source, expectedSourceDump);
@@ -389,10 +390,10 @@ tr.b.unittest.testSuite(function() {
 
     // GMD memory allocator dumps.
     assert.lengthOf(gmd.memoryAllocatorDumps, 2);
-    var globalSharedDump1 = gmd.memoryAllocatorDumps[0];
+    const globalSharedDump1 = gmd.memoryAllocatorDumps[0];
     checkDump(globalSharedDump1, undefined, 'globalSharedDump1', undefined, 0,
         123, false, 0, gmd);
-    var globalSharedDump2 = gmd.memoryAllocatorDumps[1];
+    const globalSharedDump2 = gmd.memoryAllocatorDumps[1];
     checkDump(globalSharedDump2, undefined, 'globalSharedDump2', undefined, 0,
         undefined, true, 0, gmd);
 
@@ -401,21 +402,21 @@ tr.b.unittest.testSuite(function() {
 
     // PMD2 memory allocator dumps.
     assert.lengthOf(pmd2.memoryAllocatorDumps, 1);
-    var v8Dump = pmd2.memoryAllocatorDumps[0];
+    const v8Dump = pmd2.memoryAllocatorDumps[0];
     checkDump(v8Dump, undefined, 'v8', undefined, 2, undefined, false, 0,
         pmd2);
-    var isolate1Dump = v8Dump.children[0];
+    const isolate1Dump = v8Dump.children[0];
     checkDump(isolate1Dump, 7, 'v8/isolate1', v8Dump, 0, undefined, false, 1,
         pmd2, true /* weak dump */);
-    var isolate3Dump = v8Dump.children[1];
+    const isolate3Dump = v8Dump.children[1];
     checkDump(isolate3Dump, 60, 'v8/isolate3', v8Dump, 3, 54, false, 0, pmd2);
-    var obj1Dump = isolate3Dump.children[0];
+    const obj1Dump = isolate3Dump.children[0];
     checkDump(obj1Dump, 3, 'v8/isolate3/obj1', isolate3Dump, 0, 89, false, 2,
         pmd2);
-    var obj2Dump = isolate3Dump.children[1];
+    const obj2Dump = isolate3Dump.children[1];
     checkDump(obj2Dump, undefined, 'v8/isolate3/obj2', isolate3Dump, 0,
         undefined, true, 0, pmd2, true /* weak dump */);
-    var obj3Dump = isolate3Dump.children[2];
+    const obj3Dump = isolate3Dump.children[2];
     checkDump(obj3Dump, undefined, 'v8/isolate3/obj3', isolate3Dump, 0,
         undefined, true, 0, pmd2);
 
@@ -456,11 +457,11 @@ tr.b.unittest.testSuite(function() {
   function checkDumpTrees(containerDumps, allTreeRecipes) {
     assert.lengthOf(containerDumps, allTreeRecipes.length);
 
-    for (var i = 0; i < containerDumps.length; i++) {
-      var containerDump = containerDumps[i];
-      var treeRecipes = allTreeRecipes[i];
+    for (let i = 0; i < containerDumps.length; i++) {
+      const containerDump = containerDumps[i];
+      const treeRecipes = allTreeRecipes[i];
 
-      var memoryAllocatorDumps = containerDump.memoryAllocatorDumps;
+      const memoryAllocatorDumps = containerDump.memoryAllocatorDumps;
       if (treeRecipes === undefined) {
         assert.isUndefined(memoryAllocatorDumps,
             'expected undefined memory allocator dumps in ' +
@@ -468,7 +469,7 @@ tr.b.unittest.testSuite(function() {
         continue;
       }
 
-      var expectedTreeRecipes = treeRecipes.filter(function(treeRecipe) {
+      const expectedTreeRecipes = treeRecipes.filter(function(treeRecipe) {
         return !treeRecipe.expected_removed;
       });
 
@@ -485,8 +486,8 @@ tr.b.unittest.testSuite(function() {
         assert.isFalse(!!treeRecipe.expected_removed);
 
         // Check full name, parent, and container dump.
-        var expectedFullName = namePrefix + treeRecipe.name;
-        var quantifiedName = dump.quantifiedName;
+        const expectedFullName = namePrefix + treeRecipe.name;
+        const quantifiedName = dump.quantifiedName;
         assert.strictEqual(dump.fullName, expectedFullName,
             quantifiedName + ' has invalid full name');
         assert.strictEqual(dump.parent, expectedParent,
@@ -517,17 +518,17 @@ tr.b.unittest.testSuite(function() {
           assert.isUndefined(dump.owns,
               quantifiedName + ' was expected not to own another dump');
         } else {
-          var ownershipLink = dump.owns;
+          const ownershipLink = dump.owns;
           assert.isDefined(dump.owns, quantifiedName +
               ' was expected to have an \'owns\' link');
           assert.strictEqual(ownershipLink.source, dump,
               'the \'owns\' link of ' + quantifiedName + ' has invalid source');
-          var expectedImportance = treeRecipe.importance;
+          const expectedImportance = treeRecipe.importance;
           assert.strictEqual(ownershipLink.importance, expectedImportance,
               'expected the importance of the \'owns\' link of ' +
               quantifiedName + ' to be ' + expectedImportance +
               ' but got ' + ownershipLink.importance);
-          var ownedDump = ownershipLink.target;
+          const ownedDump = ownershipLink.target;
           assert.strictEqual(ownedDump.guid, treeRecipe.owns,
               'the \'owns\' link of ' + quantifiedName +
               ' has an invalid target');
@@ -537,7 +538,7 @@ tr.b.unittest.testSuite(function() {
         }
 
         // Check that the number of 'ownedBy' links is correct.
-        var expectedOwnedByLinksCount =
+        const expectedOwnedByLinksCount =
             treeRecipe.expected_owned_by_links_count;
         if (expectedOwnedByLinksCount !== undefined) {
           assert.lengthOf(dump.ownedBy, expectedOwnedByLinksCount,
@@ -547,8 +548,8 @@ tr.b.unittest.testSuite(function() {
         }
 
         // Check children recursively.
-        var actualChildren = dump.children;
-        var expectedChildren = (treeRecipe.children || []).filter(
+        const actualChildren = dump.children;
+        const expectedChildren = (treeRecipe.children || []).filter(
             function(childRecipe) {
               return !childRecipe.expected_removed;
             });
@@ -556,13 +557,13 @@ tr.b.unittest.testSuite(function() {
             'expected ' + quantifiedName + ' to have ' +
             expectedChildren.length + ' children but got ' +
             actualChildren.length);
-        for (var k = 0; k < actualChildren.length; k++) {
+        for (let k = 0; k < actualChildren.length; k++) {
           checkDumpTree(actualChildren[k], expectedChildren[k], dump,
               expectedFullName + '/');
         }
       }
 
-      for (var j = 0; j < memoryAllocatorDumps.length; j++) {
+      for (let j = 0; j < memoryAllocatorDumps.length; j++) {
         checkDumpTree(
             memoryAllocatorDumps[j], expectedTreeRecipes[j], undefined, '');
       }
@@ -574,10 +575,10 @@ tr.b.unittest.testSuite(function() {
   // this file (where it is expected to pass), we only need to verify that it
   // does indeed fail in several cases where it should.
   test('testSanityCheck_checkDumpTrees_invalidName', function() {
-    var containerDumps = createContainerDumps(0);
-    var gmd = containerDumps[0];
-    var v8Dump = new MemoryAllocatorDump(gmd, 'v8');
-    var heapsDump =
+    const containerDumps = createContainerDumps(0);
+    const gmd = containerDumps[0];
+    const v8Dump = new MemoryAllocatorDump(gmd, 'v8');
+    const heapsDump =
         new MemoryAllocatorDump(gmd, 'heaps');  // Should be 'v8/heaps'.
     v8Dump.children.push(heapsDump);
     heapsDump.parent = v8Dump;
@@ -600,8 +601,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('testSanityCheck_checkDumpTrees_invalidGuid', function() {
-    var containerDumps = createContainerDumps(0);
-    var gmd = containerDumps[0];
+    const containerDumps = createContainerDumps(0);
+    const gmd = containerDumps[0];
     gmd.memoryAllocatorDumps = [new MemoryAllocatorDump(gmd, 'v8', 42)];
 
     assert.throws(function() {
@@ -617,9 +618,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('testSanityCheck_checkDumpTrees_invalidStructure', function() {
-    var containerDumps = createContainerDumps(0);
-    var gmd = containerDumps[0];
-    var rootDump = new MemoryAllocatorDump(gmd, 'root');
+    const containerDumps = createContainerDumps(0);
+    const gmd = containerDumps[0];
+    const rootDump = new MemoryAllocatorDump(gmd, 'root');
     addChildDump(rootDump, 'child1');
     gmd.memoryAllocatorDumps = [rootDump];
 
@@ -645,11 +646,11 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('testSanityCheck_checkDumpTrees_invalidParentLink', function() {
-    var containerDumps = createContainerDumps(0);
-    var gmd = containerDumps[0];
-    var rootDump = new MemoryAllocatorDump(gmd, 'root');
-    var parentDump = addChildDump(rootDump, 'parent');
-    var childDump = addChildDump(parentDump, 'child');
+    const containerDumps = createContainerDumps(0);
+    const gmd = containerDumps[0];
+    const rootDump = new MemoryAllocatorDump(gmd, 'root');
+    const parentDump = addChildDump(rootDump, 'parent');
+    const childDump = addChildDump(parentDump, 'child');
     childDump.parent = rootDump;  // This should correctly be parentDump.
     gmd.memoryAllocatorDumps = [rootDump];
 
@@ -675,10 +676,10 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('testSanityCheck_checkDumpTrees_invalidSize', function() {
-    var containerDumps = createContainerDumps(1);
-    var gmd = containerDumps[0];
-    var pmd = containerDumps[1];
-    var rootDump = newAllocatorDump(pmd, 'root', {numerics: {size: 100}});
+    const containerDumps = createContainerDumps(1);
+    const gmd = containerDumps[0];
+    const pmd = containerDumps[1];
+    const rootDump = newAllocatorDump(pmd, 'root', {numerics: {size: 100}});
     addChildDump(rootDump, 'parent', {numerics: {size: 49}});
     pmd.memoryAllocatorDumps = [rootDump];
 
@@ -702,10 +703,10 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('testSanityCheck_checkDumpTrees_invalidEffectiveSize', function() {
-    var containerDumps = createContainerDumps(1);
-    var gmd = containerDumps[0];
-    var pmd = containerDumps[1];
-    var rootDump = newAllocatorDump(pmd, 'root',
+    const containerDumps = createContainerDumps(1);
+    const gmd = containerDumps[0];
+    const pmd = containerDumps[1];
+    const rootDump = newAllocatorDump(pmd, 'root',
         {numerics: {effective_size: 99}});
     addChildDump(rootDump, 'parent', {numerics: {effective_size: 50}});
     pmd.memoryAllocatorDumps = [rootDump];
@@ -730,8 +731,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('testSanityCheck_checkDumpTrees_invalidInfoCount', function() {
-    var containerDumps = createContainerDumps(0);
-    var gmd = containerDumps[0];
+    const containerDumps = createContainerDumps(0);
+    const gmd = containerDumps[0];
     gmd.memoryAllocatorDumps = [
       newAllocatorDump(gmd, 'v8', {numerics: {size: 50}})
     ];
@@ -756,9 +757,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('testSanityCheck_checkDumpTrees_invalidInfo', function() {
-    var containerDumps = createContainerDumps(0);
-    var gmd = containerDumps[0];
-    var v8Dump = newAllocatorDump(gmd, 'v8', {numerics: {size: 50}});
+    const containerDumps = createContainerDumps(0);
+    const gmd = containerDumps[0];
+    const v8Dump = newAllocatorDump(gmd, 'v8', {numerics: {size: 50}});
     v8Dump.infos.push({
       type: PROVIDED_SIZE_LESS_THAN_AGGREGATED_CHILDREN,
       providedSize: 40,
@@ -787,9 +788,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('testSanityCheck_checkDumpTrees_invalidOwnedBySiblingSizes', function() {
-    var containerDumps = createContainerDumps(0);
-    var gmd = containerDumps[0];
-    var v8Dump = new MemoryAllocatorDump(gmd, 'v8');
+    const containerDumps = createContainerDumps(0);
+    const gmd = containerDumps[0];
+    const v8Dump = new MemoryAllocatorDump(gmd, 'v8');
     addChildDump(v8Dump, 'child1', {guid: 42});
     addChildDump(v8Dump, 'child2');
     gmd.memoryAllocatorDumps = [v8Dump];
@@ -819,10 +820,10 @@ tr.b.unittest.testSuite(function() {
 
   test('testSanityCheck_checkDumpTrees_invalidWeakFlag',
       function() {
-        var containerDumps = createContainerDumps(0);
-        var gmd = containerDumps[0];
-        var parentDump = new MemoryAllocatorDump(gmd, 'parent');
-        var childDump = addChildDump(parentDump, 'child');
+        const containerDumps = createContainerDumps(0);
+        const gmd = containerDumps[0];
+        const parentDump = new MemoryAllocatorDump(gmd, 'parent');
+        const childDump = addChildDump(parentDump, 'child');
         childDump.weak = true;
         gmd.memoryAllocatorDumps = [parentDump];
 
@@ -861,13 +862,13 @@ tr.b.unittest.testSuite(function() {
       });
 
   test('testSanityCheck_checkDumpTrees_dumpNotRemoved', function() {
-    var containerDumps = createContainerDumps(0);
-    var gmd = containerDumps[0];
-    var parentDump = new MemoryAllocatorDump(gmd, 'parent');
-    for (var i = 1; i <= 3; i++) {
+    const containerDumps = createContainerDumps(0);
+    const gmd = containerDumps[0];
+    const parentDump = new MemoryAllocatorDump(gmd, 'parent');
+    for (let i = 1; i <= 3; i++) {
       addChildDump(parentDump, 'child' + i);
     }
-    var otherDump = new MemoryAllocatorDump(gmd, 'other');
+    const otherDump = new MemoryAllocatorDump(gmd, 'other');
     gmd.memoryAllocatorDumps = [parentDump, otherDump];
 
     // Child MAD not removed.
@@ -924,15 +925,15 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('testSanityCheck_checkDumpTrees_invalidOwnership', function() {
-    var containerDumps = createContainerDumps(1);
-    var gmd = containerDumps[0];
-    var pmd1 = containerDumps[1];
-    var ownedDump = new MemoryAllocatorDump(gmd, 'owned', 42);
-    var ownerDump1 = new MemoryAllocatorDump(pmd1, 'owner1');
-    var link1 = addOwnershipLink(ownerDump1, ownedDump);
-    var ownerDump2 = new MemoryAllocatorDump(pmd1, 'owner2');
-    var link2 = addOwnershipLink(ownerDump2, ownedDump, 3);
-    var nonOwnerDump = new MemoryAllocatorDump(pmd1, 'non-owner', 90);
+    const containerDumps = createContainerDumps(1);
+    const gmd = containerDumps[0];
+    const pmd1 = containerDumps[1];
+    const ownedDump = new MemoryAllocatorDump(gmd, 'owned', 42);
+    const ownerDump1 = new MemoryAllocatorDump(pmd1, 'owner1');
+    const link1 = addOwnershipLink(ownerDump1, ownedDump);
+    const ownerDump2 = new MemoryAllocatorDump(pmd1, 'owner2');
+    const link2 = addOwnershipLink(ownerDump2, ownedDump, 3);
+    const nonOwnerDump = new MemoryAllocatorDump(pmd1, 'non-owner', 90);
     gmd.memoryAllocatorDumps = [ownedDump];
     pmd1.memoryAllocatorDumps = [ownerDump1, ownerDump2, nonOwnerDump];
 
@@ -1142,13 +1143,13 @@ tr.b.unittest.testSuite(function() {
    * details about the structure of tree recipes.
    */
   function testSizesCalculation(allTreeRecipes) {
-    var m = new Model();
-    var io = new tr.importer.ImportOptions();
+    const m = new Model();
+    const io = new tr.importer.ImportOptions();
     io.showImportWarnings = false;
     m.importOptions = io;
 
-    var containerDumps = buildDumpTrees(allTreeRecipes, m);
-    var gmd = containerDumps[0];
+    const containerDumps = buildDumpTrees(allTreeRecipes, m);
+    const gmd = containerDumps[0];
     gmd.calculateSizes();
     gmd.calculateEffectiveSizes();
     gmd.forceRebuildingMemoryAllocatorDumpByFullNameIndices();
@@ -1205,13 +1206,13 @@ tr.b.unittest.testSuite(function() {
    * details about the structure of tree recipes.
    */
   function testWeakDumpRemoval(allTreeRecipes) {
-    var m = new tr.Model();
-    var io = new tr.importer.ImportOptions();
+    const m = new tr.Model();
+    const io = new tr.importer.ImportOptions();
     io.showImportWarnings = false;
     m.importOptions = io;
 
-    var containerDumps = buildDumpTrees(allTreeRecipes, m);
-    var gmd = containerDumps[0];
+    const containerDumps = buildDumpTrees(allTreeRecipes, m);
+    const gmd = containerDumps[0];
     gmd.removeWeakDumps();
     gmd.forceRebuildingMemoryAllocatorDumpByFullNameIndices();
     checkDumpTrees(containerDumps, allTreeRecipes);
@@ -1264,25 +1265,25 @@ tr.b.unittest.testSuite(function() {
   /////////////////////////////////////////////////////////////////////////////
 
   test('iterateContainerDumps_withoutProcessMemoryDumps', function() {
-    var containerDumps = createContainerDumps(0);
-    var gmd = containerDumps[0];
+    const containerDumps = createContainerDumps(0);
+    const gmd = containerDumps[0];
 
-    var visitedContainerDumps = [];
+    const visitedContainerDumps = [];
     gmd.iterateContainerDumps(buildArgPusher(visitedContainerDumps));
     assertEqualUniqueMembers(visitedContainerDumps, containerDumps);
   });
 
   test('iterateContainerDumps_withProcessMemoryDumps', function() {
-    var containerDumps = createContainerDumps(2);
-    var gmd = containerDumps[0];
+    const containerDumps = createContainerDumps(2);
+    const gmd = containerDumps[0];
 
-    var visitedContainerDumps = [];
+    const visitedContainerDumps = [];
     gmd.iterateContainerDumps(buildArgPusher(visitedContainerDumps));
     assertEqualUniqueMembers(visitedContainerDumps, containerDumps);
   });
 
   test('iterateAllRootAllocatorDumps', function() {
-    var containerDumps = buildDumpTrees([
+    const containerDumps = buildDumpTrees([
       [  // GMD.
         {
           'name': 'globalSharedDump1'
@@ -1302,10 +1303,10 @@ tr.b.unittest.testSuite(function() {
         }
       ]
     ]);
-    var gmd = containerDumps[0];
-    var pmd = containerDumps[1];
+    const gmd = containerDumps[0];
+    const pmd = containerDumps[1];
 
-    var visitedAllocatorDumps = [];
+    const visitedAllocatorDumps = [];
     gmd.iterateAllRootAllocatorDumps(buildArgPusher(visitedAllocatorDumps));
     assertEqualUniqueMembers(visitedAllocatorDumps, [
       gmd.getMemoryAllocatorDumpByFullName('globalSharedDump1'),
@@ -1316,7 +1317,7 @@ tr.b.unittest.testSuite(function() {
 
   test('traverseAllocatorDumpsInDepthFirstOrder_oneTreeWithoutOwners',
       function() {
-        var containerDumps = buildDumpTrees([
+        const containerDumps = buildDumpTrees([
           [  // GMD.
             {
               'name': 'root',
@@ -1336,10 +1337,10 @@ tr.b.unittest.testSuite(function() {
             }
           ]
         ]);
-        var gmd = containerDumps[0];
+        const gmd = containerDumps[0];
 
     // Post-order.
-        var visitedAllocatorDumps = [];
+        let visitedAllocatorDumps = [];
         gmd.traverseAllocatorDumpsInDepthFirstPostOrder(
             buildArgPusher(visitedAllocatorDumps));
         assert.deepEqual(visitedAllocatorDumps, [
@@ -1350,7 +1351,7 @@ tr.b.unittest.testSuite(function() {
         ]);
 
     // Pre-order.
-        var visitedAllocatorDumps = [];
+        visitedAllocatorDumps = [];
         gmd.traverseAllocatorDumpsInDepthFirstPreOrder(
             buildArgPusher(visitedAllocatorDumps));
         assert.deepEqual(visitedAllocatorDumps, [
@@ -1363,7 +1364,7 @@ tr.b.unittest.testSuite(function() {
 
   test('traverseAllocatorDumpsInDepthFirstOrder_oneTreeWithOwners',
       function() {
-        var containerDumps = buildDumpTrees([
+        const containerDumps = buildDumpTrees([
       [],  // GMD.
           [  // PMD.
             {
@@ -1390,11 +1391,11 @@ tr.b.unittest.testSuite(function() {
             }
           ]
         ]);
-        var gmd = containerDumps[0];
-        var pmd = containerDumps[1];
+        const gmd = containerDumps[0];
+        const pmd = containerDumps[1];
 
     // Post-order.
-        var visitedAllocatorDumps = [];
+        let visitedAllocatorDumps = [];
         gmd.traverseAllocatorDumpsInDepthFirstPostOrder(
             buildArgPusher(visitedAllocatorDumps));
         assert.deepEqual(visitedAllocatorDumps, [
@@ -1406,7 +1407,7 @@ tr.b.unittest.testSuite(function() {
         ]);
 
     // Pre-order.
-        var visitedAllocatorDumps = [];
+        visitedAllocatorDumps = [];
         gmd.traverseAllocatorDumpsInDepthFirstPreOrder(
             buildArgPusher(visitedAllocatorDumps));
         assert.deepEqual(visitedAllocatorDumps, [
@@ -1419,7 +1420,7 @@ tr.b.unittest.testSuite(function() {
       });
 
   test('traverseAllocatorDumpsInDepthFirstOrder_multipleTrees', function() {
-    var containerDumps = buildDumpTrees([
+    const containerDumps = buildDumpTrees([
       [  // GMD.
         {
           'name': 'shared',
@@ -1472,11 +1473,11 @@ tr.b.unittest.testSuite(function() {
         }
       ]
     ]);
-    var gmd = containerDumps[0];
-    var pmd = containerDumps[1];
+    const gmd = containerDumps[0];
+    const pmd = containerDumps[1];
 
     // Post-order.
-    var visitedAllocatorDumps = [];
+    let visitedAllocatorDumps = [];
     gmd.traverseAllocatorDumpsInDepthFirstPostOrder(
         buildArgPusher(visitedAllocatorDumps));
     assert.deepEqual(visitedAllocatorDumps, [
@@ -1494,7 +1495,7 @@ tr.b.unittest.testSuite(function() {
     ]);
 
     // Pre-order.
-    var visitedAllocatorDumps = [];
+    visitedAllocatorDumps = [];
     gmd.traverseAllocatorDumpsInDepthFirstPreOrder(
         buildArgPusher(visitedAllocatorDumps));
     assert.deepEqual(visitedAllocatorDumps, [
@@ -1513,7 +1514,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('traverseAllocatorDumpsInDepthFirstPostOrder_cycle', function() {
-    var containerDumps = buildDumpTrees([
+    const containerDumps = buildDumpTrees([
       [  // GMD.
         {
           'name': 'shared',
@@ -1539,7 +1540,7 @@ tr.b.unittest.testSuite(function() {
         }
       ]
     ]);
-    var gmd = containerDumps[0];
+    const gmd = containerDumps[0];
 
     // Post-order.
     assert.throws(function() {
@@ -1547,7 +1548,7 @@ tr.b.unittest.testSuite(function() {
     }, /contains.*cycle/);
 
     // Pre-order.
-    var visitedAllocatorDumps = [];
+    const visitedAllocatorDumps = [];
     gmd.traverseAllocatorDumpsInDepthFirstPreOrder(
         buildArgPusher(visitedAllocatorDumps));
     assert.deepEqual(visitedAllocatorDumps, []);
@@ -3405,7 +3406,7 @@ tr.b.unittest.testSuite(function() {
   // Check that size calculation is NOT preceded by numeric aggregation, which
   // would recursively sum up size numerics.
   test('finalizeGraph_aggregation', function() {
-    var model = tr.c.TestUtils.newModel(function(model) {
+    const model = tr.c.TestUtils.newModel(function(model) {
       buildDumpTrees([
         undefined,  // GMD.
         [  // PMD.
@@ -3427,16 +3428,16 @@ tr.b.unittest.testSuite(function() {
         ]
       ], model);
     });
-    var pmd = model.getProcess(0).memoryDumps[0];
+    const pmd = model.getProcess(0).memoryDumps[0];
 
-    var rootDump = pmd.getMemoryAllocatorDumpByFullName('root');
+    const rootDump = pmd.getMemoryAllocatorDumpByFullName('root');
     assertDumpSizes(rootDump, 20, 20);
 
-    var ownerChildDump = pmd.getMemoryAllocatorDumpByFullName(
+    const ownerChildDump = pmd.getMemoryAllocatorDumpByFullName(
         'root/owner_child');
     assertDumpSizes(ownerChildDump, 7, 7);
 
-    var ownedChildDump = pmd.getMemoryAllocatorDumpByFullName(
+    const ownedChildDump = pmd.getMemoryAllocatorDumpByFullName(
         'root/owned_child');
     assertDumpSizes(ownedChildDump, 20, 13, [] /* expectedInfos */,
         {'owner_child': 7} /* expectedOwnedBySiblingSizes */);
@@ -3445,7 +3446,7 @@ tr.b.unittest.testSuite(function() {
   // Check that numeric and diagnostics propagation and aggregation are
   // performed in the correct order.
   test('finalizeGraph_propagation', function() {
-    var model = tr.c.TestUtils.newModel(function(model) {
+    const model = tr.c.TestUtils.newModel(function(model) {
       buildDumpTrees([
         [  // GMD.
           {
@@ -3513,7 +3514,7 @@ tr.b.unittest.testSuite(function() {
         ]
       ], model);
     });
-    var pmd = model.getProcess(0).memoryDumps[0];
+    const pmd = model.getProcess(0).memoryDumps[0];
 
     checkDumpNumericsAndDiagnostics(
         pmd.getMemoryAllocatorDumpByFullName('direct_owner'),
@@ -3558,7 +3559,7 @@ tr.b.unittest.testSuite(function() {
 
   // Check that weak dumps are removed before size size calculation.
   test('finalizeGraph_weakDumpRemoval', function() {
-    var model = tr.c.TestUtils.newModel(function(model) {
+    const model = tr.c.TestUtils.newModel(function(model) {
       buildDumpTrees([
         undefined,  // GMD.
         [  // PMD.
@@ -3592,13 +3593,13 @@ tr.b.unittest.testSuite(function() {
         ]
       ], model);
     });
-    var pmd = model.getProcess(0).memoryDumps[0];
+    const pmd = model.getProcess(0).memoryDumps[0];
 
-    var rootDump = pmd.getMemoryAllocatorDumpByFullName('root');
+    const rootDump = pmd.getMemoryAllocatorDumpByFullName('root');
     assertDumpSizes(rootDump, 120, 120);
     assert.lengthOf(rootDump.children, 1);
 
-    var strongChildDump = pmd.getMemoryAllocatorDumpByFullName(
+    const strongChildDump = pmd.getMemoryAllocatorDumpByFullName(
         'root/strong_child');
     assertDumpSizes(strongChildDump, 120, 120);
     assert.lengthOf(strongChildDump.ownedBy, 0);
@@ -3612,10 +3613,10 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('indicesUpdatedCorrectly', function() {
-    var gmd;
-    var rootDump;
-    var childDump;
-    var model = tr.c.TestUtils.newModel(function(model) {
+    let gmd;
+    let rootDump;
+    let childDump;
+    const model = tr.c.TestUtils.newModel(function(model) {
       gmd = new GlobalMemoryDump(model, 10);
       model.globalMemoryDumps.push(gmd);
 
@@ -3642,7 +3643,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(gmd.getMemoryAllocatorDumpByFullName('root'), rootDump);
     assert.strictEqual(
         gmd.getMemoryAllocatorDumpByFullName('root/child'), childDump);
-    var unspecifiedDump =
+    const unspecifiedDump =
         gmd.getMemoryAllocatorDumpByFullName('root/<unspecified>');
     assert.strictEqual(unspecifiedDump.fullName, 'root/<unspecified>');
     assert.strictEqual(unspecifiedDump.parent, rootDump);

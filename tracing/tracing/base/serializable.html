@@ -64,9 +64,8 @@ tr.exportTo('tr.b', function() {
       }
 
       const dict = {type: this.constructor.name};
-      for (let [name, value] of this.properties_) {
-        name = name.replace(/_$/, '');
-        dict[name] = visit(value);
+      for (const [name, value] of this.properties_) {
+        dict[name.replace(/_$/, '')] = visit(value);
       }
       return dict;
     }
@@ -93,7 +92,7 @@ tr.exportTo('tr.b', function() {
     }
   }
 
-  let options = new tr.b.ExtensionRegistryOptions(tr.b.BASIC_REGISTRY_MODE);
+  const options = new tr.b.ExtensionRegistryOptions(tr.b.BASIC_REGISTRY_MODE);
   options.defaultMetadata = {};
   options.mandatoryBaseClass = Serializable;
   tr.b.decorateExtensionRegistry(Serializable, options);

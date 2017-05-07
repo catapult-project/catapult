@@ -50,8 +50,8 @@ Polymer({
   },
 
   set mode(mode) {
-    var modeInfo = tr.ui.b.MOUSE_SELECTOR_MODE_INFOS[mode];
-    var modeName = tr.b.findFirstKeyInDictMatching(
+    const modeInfo = tr.ui.b.MOUSE_SELECTOR_MODE_INFOS[mode];
+    const modeName = tr.b.findFirstKeyInDictMatching(
         tr.ui.b.MOUSE_SELECTOR_MODE,
         function(modeName, candidateMode) {
           return candidateMode === mode;
@@ -92,23 +92,23 @@ Polymer({
   updateContents_() {
     if (this.modeName === undefined) return;
 
-    var mode = this.mode;
+    const mode = this.mode;
     if (mode === undefined) {
       throw new Error('Invalid mode');
     }
 
-    var modeInfo = tr.ui.b.MOUSE_SELECTOR_MODE_INFOS[mode];
+    const modeInfo = tr.ui.b.MOUSE_SELECTOR_MODE_INFOS[mode];
     if (!modeInfo) {
       throw new Error('Invalid mode');
     }
 
-    var title = modeInfo.title;
+    let title = modeInfo.title;
     if (this.acceleratorKey_) {
       title = title + ' (' + this.acceleratorKey_ + ')';
     }
     this.title = title;
 
-    var bp;
+    let bp;
     if (this.active_) {
       bp = modeInfo.activeBackgroundPosition;
     } else {

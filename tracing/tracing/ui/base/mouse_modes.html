@@ -9,7 +9,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.b', function() {
-  var MOUSE_SELECTOR_MODE = {};
+  const MOUSE_SELECTOR_MODE = {};
   MOUSE_SELECTOR_MODE.SELECTION = 0x1;
   MOUSE_SELECTOR_MODE.PANSCAN = 0x2;
   MOUSE_SELECTOR_MODE.ZOOM = 0x4;
@@ -17,7 +17,7 @@ tr.exportTo('tr.ui.b', function() {
   MOUSE_SELECTOR_MODE.ROTATE = 0x10;
   MOUSE_SELECTOR_MODE.ALL_MODES = 0x1F;
 
-  var MOUSE_SELECTOR_MODE_INFOS = {};
+  const MOUSE_SELECTOR_MODE_INFOS = {};
   MOUSE_SELECTOR_MODE_INFOS[MOUSE_SELECTOR_MODE.PANSCAN] = {
     mode: MOUSE_SELECTOR_MODE.PANSCAN,
     title: 'pan',

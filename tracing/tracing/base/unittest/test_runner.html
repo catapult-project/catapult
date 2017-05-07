@@ -11,11 +11,11 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.b.unittest', function() {
-  var realTvOnAnimationFrameError;
-  var realGlobalOnError;
-  var realGlobalHistoryPushState;
+  let realTvOnAnimationFrameError;
+  let realGlobalOnError;
+  let realGlobalHistoryPushState;
 
-  var NUM_TESTS_PER_RIC = 16;
+  const NUM_TESTS_PER_RIC = 16;
 
   function installGlobalTestHooks(runner) {
     realTvOnAnimationFrameError = tr.b.onAnimationFrameError;
@@ -49,7 +49,7 @@ tr.exportTo('tr.b.unittest', function() {
       global.sessionStorage.clear();
     }
 
-    var e = new tr.b.Event('tr-unittest-will-run');
+    const e = new tr.b.Event('tr-unittest-will-run');
     TestRunner.dispatchEvent(e);
   }
 
@@ -230,8 +230,9 @@ tr.exportTo('tr.b.unittest', function() {
 
     runCurrentTestCase_() {
       return new Promise(function(resolve, reject) {
+        let maybePromise;
         try {
-          var maybePromise = this.currentTestCase_.run();
+          maybePromise = this.currentTestCase_.run();
         } catch (error) {
           reject(error);
           return;

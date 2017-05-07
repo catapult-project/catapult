@@ -24,20 +24,20 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var findSliceNamed = tr.c.TestUtils.findSliceNamed;
-  var ClockDomainId = tr.model.ClockDomainId;
-  var ColorScheme = tr.b.ColorScheme;
-  var MeasureAsyncSlice = tr.e.measure.MeasureAsyncSlice;
-  var ScopedId = tr.model.ScopedId;
-  var VMRegion = tr.model.VMRegion;
-  var Scalar = tr.b.Scalar;
-  var unitlessNumber_smallerIsBetter =
+  const findSliceNamed = tr.c.TestUtils.findSliceNamed;
+  const ClockDomainId = tr.model.ClockDomainId;
+  const ColorScheme = tr.b.ColorScheme;
+  const MeasureAsyncSlice = tr.e.measure.MeasureAsyncSlice;
+  const ScopedId = tr.model.ScopedId;
+  const VMRegion = tr.model.VMRegion;
+  const Scalar = tr.b.Scalar;
+  const unitlessNumber_smallerIsBetter =
       tr.b.Unit.byName.unitlessNumber_smallerIsBetter;
-  var checkDumpNumericsAndDiagnostics =
+  const checkDumpNumericsAndDiagnostics =
       tr.model.MemoryDumpTestUtils.checkDumpNumericsAndDiagnostics;
-  var checkVMRegions = tr.model.MemoryDumpTestUtils.checkVMRegions;
-  var LIGHT = tr.model.ContainerMemoryDump.LevelOfDetail.LIGHT;
-  var DETAILED = tr.model.ContainerMemoryDump.LevelOfDetail.DETAILED;
+  const checkVMRegions = tr.model.MemoryDumpTestUtils.checkVMRegions;
+  const LIGHT = tr.model.ContainerMemoryDump.LevelOfDetail.LIGHT;
+  const DETAILED = tr.model.ContainerMemoryDump.LevelOfDetail.DETAILED;
 
   function makeModel(events, opt_shift, opt_prune) {
     return tr.c.TestUtils.newModelWithEvents([events], {
@@ -61,7 +61,7 @@ tr.b.unittest.testSuite(function() {
   }
 
   function getFrame(heapEntry, distance) {
-    var frame = heapEntry.leafStackFrame;
+    let frame = heapEntry.leafStackFrame;
     for (; distance > 0; distance--) {
       frame = frame.parentFrame;
     }
@@ -799,13 +799,13 @@ tr.b.unittest.testSuite(function() {
 
   // Process uptime.
   test('processUptime', function() {
-    var events = [
+    const events = [
       {name: 'process_uptime_seconds', args: {uptime: 10},
         pid: 1, ts: 0, tid: 1, ph: 'M'},
       {name: 'process_uptime_seconds', args: {uptime: 20},
         pid: 2, ts: 0, tid: 1, ph: 'M'}
     ];
-    var m = makeModel(events);
+    const m = makeModel(events);
     assert.strictEqual(m.processes[1].uptime_seconds, 10);
     assert.strictEqual(m.processes[2].uptime_seconds, 20);
   });
@@ -1055,11 +1055,11 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('multiCounterUpdateBounds', function() {
-    var ctr = new tr.model.Counter(undefined, 'testBasicCounter',
+    const ctr = new tr.model.Counter(undefined, 'testBasicCounter',
         '', 'testBasicCounter');
-    var value1Series = new tr.model.CounterSeries(
+    const value1Series = new tr.model.CounterSeries(
         'value1', 'testBasicCounter.value1');
-    var value2Series = new tr.model.CounterSeries(
+    const value2Series = new tr.model.CounterSeries(
         'value2', 'testBasicCounter.value2');
     ctr.addSeries(value1Series);
     ctr.addSeries(value2Series);
@@ -3090,12 +3090,12 @@ tr.b.unittest.testSuite(function() {
       }
     }
 
-    let events = [];
+    const events = [];
     // Events are added with ts 0, 1, 1, 2, 2, 3, 3 ...500, 500, 1000
     // and use 'seq' to track the order of when the event is recorded.
     events.push({name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 0, ph: 'S', args: {'seq': 0}});  // @suppress longLineCheck
 
-    for (var i = 1; i <= 1000; i++) {
+    for (let i = 1; i <= 1000; i++) {
       events.push({name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: Math.round(i / 2), ph: 'T', args: {'seq': i}});  // @suppress longLineCheck
     }
 
@@ -4403,7 +4403,7 @@ tr.b.unittest.testSuite(function() {
       const events = [];
       pmdSpecifications.forEach(function(singlePmdSpecifications, pid) {
         singlePmdSpecifications.forEach(function(singlePmdSpecification) {
-          var dumps = {};
+          const dumps = {};
           if (singlePmdSpecification.levelOfDetail !== undefined) {
             dumps.level_of_detail = singlePmdSpecification.levelOfDetail;
           }
@@ -6357,8 +6357,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('scopedIdForEvent_defaultScopeAsyncEvent', function() {
-    var event = {pid: 1, ph: 'b', id: '0x1000'};
-    var id = tr.e.importer.TraceEventImporter.scopedIdForEvent_(event);
+    const event = {pid: 1, ph: 'b', id: '0x1000'};
+    const id = tr.e.importer.TraceEventImporter.scopedIdForEvent_(event);
     assert.isDefined(id);
     assert.strictEqual('0x1000', id.id);
     assert.strictEqual('ptr', id.scope);
@@ -6366,8 +6366,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('scopedIdForEvent_defaultScopeContextEvent', function() {
-    var event = {pid: 1, ph: '(', id: '0x1000'};
-    var id = tr.e.importer.TraceEventImporter.scopedIdForEvent_(event);
+    const event = {pid: 1, ph: '(', id: '0x1000'};
+    const id = tr.e.importer.TraceEventImporter.scopedIdForEvent_(event);
     assert.isDefined(id);
     assert.strictEqual('0x1000', id.id);
     assert.strictEqual('ptr', id.scope);
@@ -6375,8 +6375,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('scopedIdForEvent_defaultScopeProcessLocalId', function() {
-    var event = {pid: 1, ph: 'b', id2: {local: '0x1000'}};
-    var id = tr.e.importer.TraceEventImporter.scopedIdForEvent_(event);
+    const event = {pid: 1, ph: 'b', id2: {local: '0x1000'}};
+    const id = tr.e.importer.TraceEventImporter.scopedIdForEvent_(event);
     assert.isDefined(id);
     assert.strictEqual('0x1000', id.id);
     assert.strictEqual('ptr', id.scope);
@@ -6384,8 +6384,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('scopedIdForEvent_defaultScopeGlobalId', function() {
-    var event = {pid: 1, ph: '(', id2: {global: '0x1000'}};
-    var id = tr.e.importer.TraceEventImporter.scopedIdForEvent_(event);
+    const event = {pid: 1, ph: '(', id2: {global: '0x1000'}};
+    const id = tr.e.importer.TraceEventImporter.scopedIdForEvent_(event);
     assert.isDefined(id);
     assert.strictEqual('0x1000', id.id);
     assert.strictEqual('ptr', id.scope);
@@ -6393,8 +6393,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('scopedIdForEvent_explicitScopeGlobalId', function() {
-    var event = {pid: 1, ph: '(', id2: {global: '0x1000'}, scope: 'scope'};
-    var id = tr.e.importer.TraceEventImporter.scopedIdForEvent_(event);
+    const event = {pid: 1, ph: '(', id2: {global: '0x1000'}, scope: 'scope'};
+    const id = tr.e.importer.TraceEventImporter.scopedIdForEvent_(event);
     assert.isDefined(id);
     assert.strictEqual('0x1000', id.id);
     assert.strictEqual('scope', id.scope);

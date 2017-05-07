@@ -15,27 +15,28 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var Viewport = tr.ui.TimelineViewport;
-  var GlobalMemoryDumpTrack = tr.ui.tracks.GlobalMemoryDumpTrack;
-  var createTestGlobalMemoryDumps = tr.ui.tracks.createTestGlobalMemoryDumps;
+  const Viewport = tr.ui.TimelineViewport;
+  const GlobalMemoryDumpTrack = tr.ui.tracks.GlobalMemoryDumpTrack;
+  const createTestGlobalMemoryDumps = tr.ui.tracks.createTestGlobalMemoryDumps;
 
   function instantiateTrack(withVMRegions, withAllocatorDumps,
       expectedTrackCount) {
-    var dumps = createTestGlobalMemoryDumps(withVMRegions, withAllocatorDumps);
+    const dumps = createTestGlobalMemoryDumps(
+        withVMRegions, withAllocatorDumps);
 
-    var div = document.createElement('div');
-    var viewport = new Viewport(div);
-    var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
+    const div = document.createElement('div');
+    const viewport = new Viewport(div);
+    const drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
     Polymer.dom(div).appendChild(drawingContainer);
 
-    var track = new GlobalMemoryDumpTrack(viewport);
+    const track = new GlobalMemoryDumpTrack(viewport);
     Polymer.dom(drawingContainer).appendChild(track);
     drawingContainer.invalidate();
 
     track.memoryDumps = dumps;
     this.addHTMLOutput(div);
 
-    var dt = new tr.ui.TimelineDisplayTransform();
+    const dt = new tr.ui.TimelineDisplayTransform();
     dt.xSetWorldBounds(0, 50, track.clientWidth);
     track.viewport.setDisplayTransformImmediately(dt);
 

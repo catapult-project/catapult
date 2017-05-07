@@ -47,8 +47,8 @@ Polymer({
   },
 
   updateTableColumns_(rows, maxValues) {
-    var hasCpuData = false;
-    var hasAlerts = false;
+    let hasCpuData = false;
+    let hasAlerts = false;
     rows.forEach(function(row) {
       if (row.cpuDuration !== undefined) {
         hasCpuData = true;
@@ -61,16 +61,16 @@ Polymer({
       }
     });
 
-    var ownerDocument = this.ownerDocument;
+    const ownerDocument = this.ownerDocument;
 
-    var columns = [];
+    const columns = [];
 
     columns.push({
       title: 'Name',
       value(row) {
         if (row.title === 'Totals') return 'Totals';
 
-        var linkEl = document.createElement('tr-ui-a-analysis-link');
+        const linkEl = document.createElement('tr-ui-a-analysis-link');
         linkEl.setSelectionAndContent(function() {
           return new tr.model.EventSet(row.events);
         }, row.title);
@@ -157,7 +157,7 @@ Polymer({
       columns.push({
         title: 'Average ' + (hasCpuData ? 'CPU' : 'Wall') + ' Duration',
         value(row) {
-          var totalDuration = hasCpuData ? row.cpuDuration : row.duration;
+          const totalDuration = hasCpuData ? row.cpuDuration : row.duration;
           return tr.v.ui.createScalarSpan(totalDuration / row.numEvents, {
             unit: tr.b.Unit.byName.timeDurationInMs,
             customContextRange: row.totalsRow ? undefined :
@@ -188,7 +188,7 @@ Polymer({
       }
     });
 
-    var alertsColumnIndex;
+    let alertsColumnIndex;
     if (hasAlerts) {
       columns.push({
         title: 'Num Alerts',
@@ -202,14 +202,14 @@ Polymer({
       });
       alertsColumnIndex = columns.length - 1;
     }
-    var colWidthPercentage;
+    let colWidthPercentage;
     if (columns.length === 1) {
       colWidthPercentage = '100%';
     } else {
       colWidthPercentage = (100 / (columns.length - 1)).toFixed(3) + '%';
     }
 
-    for (var i = 1; i < columns.length; i++) {
+    for (let i = 1; i < columns.length; i++) {
       columns[i].width = colWidthPercentage;
     }
 
@@ -294,18 +294,18 @@ Polymer({
   },
 
   updateContents_() {
-    var eventsByTitle;
+    let eventsByTitle;
     if (this.eventsByTitle_ !== undefined) {
       eventsByTitle = this.eventsByTitle_;
     } else {
       eventsByTitle = [];
     }
 
-    var allEvents = new tr.model.EventSet();
-    var rows = [];
-    for (var [title, eventsOfSingleTitle] of Object.entries(eventsByTitle)) {
-      for (var event of eventsOfSingleTitle) allEvents.push(event);
-      var row = new tr.ui.analysis.MultiEventSummary(
+    const allEvents = new tr.model.EventSet();
+    const rows = [];
+    for (const [title, eventsOfSingleTitle] of Object.entries(eventsByTitle)) {
+      for (const event of eventsOfSingleTitle) allEvents.push(event);
+      const row = new tr.ui.analysis.MultiEventSummary(
           title, eventsOfSingleTitle);
       rows.push(row);
     }
@@ -313,7 +313,7 @@ Polymer({
     this.updateTableColumns_(rows);
     this.$.table.tableRows = rows;
 
-    var maxValues = {
+    const maxValues = {
       duration: undefined,
       selfTime: undefined,
       cpuSelfTime: undefined,
@@ -321,17 +321,17 @@ Polymer({
     };
 
     if (this.eventsHaveDuration) {
-      for (var column in maxValues) {
+      for (const column in maxValues) {
         maxValues[column] = tr.b.math.Statistics.max(rows, function(event) {
           return event[column];
         });
       }
     }
 
-    var footerRows = [];
+    const footerRows = [];
 
     if (this.showTotals_) {
-      var multiEventSummary = new tr.ui.analysis.MultiEventSummary(
+      const multiEventSummary = new tr.ui.analysis.MultiEventSummary(
         'Totals', allEvents);
       footerRows.push(multiEventSummary);
     }

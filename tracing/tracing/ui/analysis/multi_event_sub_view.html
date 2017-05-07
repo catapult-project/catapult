@@ -68,7 +68,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.analysis', function() {
-  var EVENT_FIELD = [
+  const EVENT_FIELD = [
     {key: 'start', label: 'Start'},
     {key: 'cpuDuration', label: 'CPU Duration'},
     {key: 'duration', label: 'Duration'},
@@ -77,9 +77,9 @@ tr.exportTo('tr.ui.analysis', function() {
   ];
 
   function buildDiagnostics_(slice) {
-    var diagnostics = {};
-    for (var item of EVENT_FIELD) {
-      var fieldName = item.key;
+    const diagnostics = {};
+    for (const item of EVENT_FIELD) {
+      const fieldName = item.key;
       if (slice[fieldName] === undefined) continue;
       diagnostics[fieldName] = new tr.v.d.Scalar(new tr.b.Scalar(
         tr.b.Unit.byName.timeDurationInMs, slice[fieldName]));
@@ -151,8 +151,8 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     buildHistogram_(selectedKey) {
-      var leftBoundary = Number.MAX_VALUE;
-      var rightBoundary = tr.b.math.Statistics.percentile(
+      let leftBoundary = Number.MAX_VALUE;
+      let rightBoundary = tr.b.math.Statistics.percentile(
           this.currentSelection_, 0.95,
           function(value) {
             leftBoundary = Math.min(leftBoundary, value[selectedKey]);
@@ -160,14 +160,14 @@ tr.exportTo('tr.ui.analysis', function() {
           });
 
       if (leftBoundary === rightBoundary) rightBoundary += 1;
-      var histogram = new tr.v.Histogram(
+      const histogram = new tr.v.Histogram(
         '',
         tr.b.Unit.byName.timeDurationInMs,
         tr.v.HistogramBinBoundaries.createLinear(
             leftBoundary, rightBoundary,
             Math.ceil(Math.sqrt(this.currentSelection_.length))));
       histogram.customizeSummaryOptions({sum: false});
-      for (var slice of this.currentSelection_) {
+      for (const slice of this.currentSelection_) {
         histogram.addSample(slice[selectedKey],
             buildDiagnostics_(slice));
       }
@@ -176,11 +176,11 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     updateContents_() {
-      var selection = this.currentSelection_;
+      const selection = this.currentSelection_;
       if (!selection) return;
 
-      var eventsByTitle = selection.getEventsOrganizedByTitle();
-      var numTitles = tr.b.dictionaryLength(eventsByTitle);
+      const eventsByTitle = selection.getEventsOrganizedByTitle();
+      const numTitles = tr.b.dictionaryLength(eventsByTitle);
 
       this.$.eventSummaryTable.configure({
         showTotals: numTitles > 1,

@@ -19,8 +19,8 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('schedSwitchRE', function() {
-    var re = tr.e.importer.linux_perf._SchedParserTestExports.schedSwitchRE;
-    var x = re.exec('prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ' +
+    const re = tr.e.importer.linux_perf._SchedParserTestExports.schedSwitchRE;
+    let x = re.exec('prev_comm=swapper prev_pid=0 prev_prio=120 prev_state=R ' +
         '==> next_comm=SurfaceFlinger next_pid=178 next_prio=112');
     assert.isNotNull(x);
     assert.strictEqual(x[1], 'swapper');
@@ -31,18 +31,18 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(x[6], '178');
     assert.strictEqual(x[7], '112');
 
-    var x = re.exec('prev_comm=.android.chrome prev_pid=1562 prev_prio=120 prev_state=R ==> next_comm=Binder Thread # next_pid=195 next_prio=120'); // @suppress longLineCheck
+    x = re.exec('prev_comm=.android.chrome prev_pid=1562 prev_prio=120 prev_state=R ==> next_comm=Binder Thread # next_pid=195 next_prio=120'); // @suppress longLineCheck
     assert.isNotNull(x);
     assert.strictEqual(x[1], '.android.chrome');
     assert.strictEqual(x[5], 'Binder Thread #');
 
-    var x = re.exec('prev_comm=Binder Thread # prev_pid=1562 prev_prio=120 prev_state=R ==> next_comm=.android.chrome next_pid=195 next_prio=120'); // @suppress longLineCheck
+    x = re.exec('prev_comm=Binder Thread # prev_pid=1562 prev_prio=120 prev_state=R ==> next_comm=.android.chrome next_pid=195 next_prio=120'); // @suppress longLineCheck
     assert.isNotNull(x);
     assert.strictEqual(x[1], 'Binder Thread #');
     assert.strictEqual(x[5], '.android.chrome');
 
     // explicit test for prev_state of D|W
-    var x = re.exec('prev_comm=.android.chrome prev_pid=1562 prev_prio=120 ' +
+    x = re.exec('prev_comm=.android.chrome prev_pid=1562 prev_prio=120 ' +
         'prev_state=D|W ==> next_comm=Binder Thread # next_pid=195 ' +
         'next_prio=120');
     assert.isNotNull(x);
@@ -50,15 +50,15 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('schedWakeupRE', function() {
-    var re = tr.e.importer.linux_perf._SchedParserTestExports.schedWakeupRE;
-    var x = re.exec(
+    const re = tr.e.importer.linux_perf._SchedParserTestExports.schedWakeupRE;
+    const x = re.exec(
         'comm=SensorService pid=207 prio=112 success=1 target_cpu=000');
     assert.isNotNull(x);
     assert.strictEqual(x[1], 'SensorService');
     assert.strictEqual(x[2], '207');
     assert.strictEqual(x[3], '112');
     assert.strictEqual(x[4], '000');
-    var y = re.exec(
+    const y = re.exec(
         'comm=SensorService pid=207 prio=112 target_cpu=000');
     assert.isNotNull(y);
     assert.strictEqual(y[1], 'SensorService');
@@ -68,8 +68,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('importOneSequenceWithSchedWakeUp', function() {
-    var SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
-    var lines = [
+    const SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
+    const lines = [
       'ndroid.launcher-584   [001] d..3 12622.506890: sched_switch: prev_comm=ndroid.launcher prev_pid=584 prev_prio=120 prev_state=R+ ==> next_comm=Binder_1 next_pid=217 next_prio=120', // @suppress longLineCheck
       '       Binder_1-217   [001] d..3 12622.506918: sched_switch: prev_comm=Binder_1 prev_pid=217 prev_prio=120 prev_state=D ==> next_comm=ndroid.launcher next_pid=584 next_prio=120', // @suppress longLineCheck
       'ndroid.launcher-584   [001] d..4 12622.506936: sched_wakeup: comm=Binder_1 pid=217 prio=120 success=1 target_cpu=001', // @suppress longLineCheck
@@ -79,32 +79,32 @@ tr.b.unittest.testSuite(function() {
       '       Binder_1-217   [001] d..3 12622.507253: sched_switch: prev_comm=Binder_1 prev_pid=217 prev_prio=120 prev_state=S ==> next_comm=ndroid.launcher next_pid=584 next_prio=120' // @suppress longLineCheck
     ];
 
-    var m = newModel(lines.join('\n'));
+    const m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
-    var thread = m.findAllThreadsNamed('Binder_1')[0];
-    var timeSlices = thread.timeSlices;
+    const thread = m.findAllThreadsNamed('Binder_1')[0];
+    const timeSlices = thread.timeSlices;
     assert.strictEqual(timeSlices.length, 4);
 
-    var runningSlice = timeSlices[0];
+    const runningSlice = timeSlices[0];
     assert.strictEqual(runningSlice.schedulingState, SCHEDULING_STATE.RUNNING);
     assert.closeTo(12622506.890, runningSlice.start, 1e-5);
     assert.closeTo(.918 - .890, runningSlice.duration, 1e-5);
 
-    var sleepSlice = timeSlices[1];
+    const sleepSlice = timeSlices[1];
     assert.strictEqual(
         sleepSlice.schedulingState, SCHEDULING_STATE.UNINTR_SLEEP);
     assert.closeTo(12622506.918, sleepSlice.start, 1e-5);
     assert.closeTo(.936 - .918, sleepSlice.duration, 1e-5);
 
-    var wakeupSlice = timeSlices[2];
+    const wakeupSlice = timeSlices[2];
     assert.strictEqual(
         wakeupSlice.schedulingState, SCHEDULING_STATE.RUNNABLE);
     assert.closeTo(12622506.936, wakeupSlice.start, 1e-5);
     assert.closeTo(.950 - .936, wakeupSlice.duration, 1e-5);
     assert.strictEqual(wakeupSlice.args['wakeup from tid'], 584);
 
-    var runningSlice2 = timeSlices[3];
+    const runningSlice2 = timeSlices[3];
     assert.strictEqual(
         runningSlice2.schedulingState, SCHEDULING_STATE.RUNNING);
     assert.closeTo(12622506.950, runningSlice2.start, 1e-5);
@@ -112,8 +112,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('importWithUnknownSleepState', function() {
-    var SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
-    var lines = [
+    const SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
+    const lines = [
       'ndroid.launcher-584   [001] d..3 12622.506890: sched_switch: prev_comm=ndroid.launcher prev_pid=584 prev_prio=120 prev_state=R+ ==> next_comm=Binder_1 next_pid=217 next_prio=120', // @suppress longLineCheck
       '       Binder_1-217   [001] d..3 12622.506918: sched_switch: prev_comm=Binder_1 prev_pid=217 prev_prio=120 prev_state=F|O ==> next_comm=ndroid.launcher next_pid=584 next_prio=120', // @suppress longLineCheck
       'ndroid.launcher-584   [001] d..4 12622.506936: sched_wakeup: comm=Binder_1 pid=217 prio=120 success=1 target_cpu=001', // @suppress longLineCheck
@@ -123,7 +123,7 @@ tr.b.unittest.testSuite(function() {
       '       Binder_1-217   [001] d..3 12622.507253: sched_switch: prev_comm=Binder_1 prev_pid=217 prev_prio=120 prev_state=F|O ==> next_comm=ndroid.launcher next_pid=584 next_prio=120' // @suppress longLineCheck
     ];
 
-    var m;
+    let m;
     assert.doesNotThrow(function() {
       m = newModel(lines.join('\n'));
     });
@@ -131,15 +131,15 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(
         m.importWarnings[0].message, 'Unrecognized sleep state: F|O');
 
-    var thread = m.findAllThreadsNamed('Binder_1')[0];
-    var timeSlices = thread.timeSlices;
+    const thread = m.findAllThreadsNamed('Binder_1')[0];
+    const timeSlices = thread.timeSlices;
 
     assert.strictEqual(timeSlices[1].schedulingState, SCHEDULING_STATE.UNKNOWN);
   });
 
   test('importWithUninterruptibleSleep', function() {
-    var SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
-    var lines = [
+    const SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
+    const lines = [
       'ndroid.launcher-584   [001] d..3 12622.506890: sched_switch: ' +
           'prev_comm=ndroid.launcher prev_pid=584 ' +
           'prev_prio=120 prev_state=R+ ' +
@@ -167,14 +167,14 @@ tr.b.unittest.testSuite(function() {
           '==> next_comm=ndroid.launcher next_pid=584 next_prio=120'
     ];
 
-    var m = newModel(lines.join('\n'));
+    const m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
-    var thread = m.findAllThreadsNamed('Binder_1')[0];
-    var timeSlices = thread.timeSlices;
+    const thread = m.findAllThreadsNamed('Binder_1')[0];
+    const timeSlices = thread.timeSlices;
     assert.strictEqual(timeSlices.length, 4);
 
-    var wakeKillSlice = timeSlices[1];
+    const wakeKillSlice = timeSlices[1];
     assert.strictEqual(wakeKillSlice.schedulingState,
         SCHEDULING_STATE.UNINTR_SLEEP_WAKE_KILL);
     assert.closeTo(12622506.918, wakeKillSlice.start, 1e-5);
@@ -182,8 +182,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('importWithUninterruptibleSleepAndBlockedReason', function() {
-    var SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
-    var lines = [
+    const SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
+    const lines = [
       'ndroid.launcher-584   [001] d..3 12622.506890: sched_switch: ' +
           'prev_comm=ndroid.launcher prev_pid=584 ' +
           'prev_prio=120 prev_state=R+ ' +
@@ -214,14 +214,14 @@ tr.b.unittest.testSuite(function() {
           '==> next_comm=ndroid.launcher next_pid=584 next_prio=120'
     ];
 
-    var m = newModel(lines.join('\n'));
+    const m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
-    var thread = m.findAllThreadsNamed('Binder_1')[0];
-    var timeSlices = thread.timeSlices;
+    const thread = m.findAllThreadsNamed('Binder_1')[0];
+    const timeSlices = thread.timeSlices;
     assert.strictEqual(timeSlices.length, 4);
 
-    var wakeKillSlice = timeSlices[1];
+    const wakeKillSlice = timeSlices[1];
     assert.strictEqual(wakeKillSlice.schedulingState,
         SCHEDULING_STATE.UNINTR_SLEEP_WAKE_KILL_IO);
     assert.closeTo(12622506.918, wakeKillSlice.start, 1e-5);
@@ -229,17 +229,17 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('importWithTgids', function() {
-    var SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
-    var lines = [
+    const SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
+    const lines = [
       'kworker/u12:4-9393 ( 9393) [002] d..3 10386.798979: sched_switch: ' +
           'prev_comm=kworker/u12:4 prev_pid=9393 prev_prio=120 ' +
           'prev_state=S ==> next_comm=swapper/2 next_pid=0 next_prio=120',
     ];
 
-    var m = newModel(lines.join('\n'));
+    const m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
-    var p = m.processes[9393];
+    const p = m.processes[9393];
     assert.strictEqual(p.pid, 9393);
   });
 });

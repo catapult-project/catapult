@@ -14,8 +14,8 @@ found in the LICENSE file.
 /* eslint-disable no-console */
 
 if (tr.isHeadless) {
-  let charts = JSON.parse(tr.b.getSync('file://' + sys.argv[1]));
-  let histograms = new tr.v.HistogramSet();
+  const charts = JSON.parse(tr.b.getSync('file://' + sys.argv[1]));
+  const histograms = new tr.v.HistogramSet();
   tr.v.ChartJsonConverter.convertChartJson(charts, histograms);
   console.log(JSON.stringify(histograms.asDicts()));
 }

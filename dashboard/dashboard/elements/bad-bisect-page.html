@@ -93,7 +93,7 @@ found in the LICENSE file.
       },
 
       onConfirm() {
-        var params = {
+        const params = {
           'try_job_id': this.try_job_id,
           'xsrf_token': this.xsrfToken
         };
@@ -112,7 +112,7 @@ found in the LICENSE file.
       },
 
       ready() {
-        var params = {
+        const params = {
           try_job_id: uri.getParameter('try_job_id', '')
         };
 

@@ -17,10 +17,10 @@ tr.b.unittest.testSuite(function() {
   }
 
   function createPane(paneId, opt_rebuildPaneCallback, opt_appendedCallback) {
-    var paneEl = document.createElement('tr-ui-a-stacked-pane');
+    const paneEl = document.createElement('tr-ui-a-stacked-pane');
     paneEl.paneId = paneId;
 
-    var divEl = document.createElement('div');
+    const divEl = document.createElement('div');
     Polymer.dom(divEl).textContent = 'Pane ' + paneId;
     divEl.style.width = '400px';
     divEl.style.background = '#ccc';
@@ -45,21 +45,21 @@ tr.b.unittest.testSuite(function() {
   }
 
   function assertPanes(paneView, expectedPaneIds) {
-    var actualPaneIds = paneView.panesForTesting.map(function(pane) {
+    const actualPaneIds = paneView.panesForTesting.map(function(pane) {
       return pane.paneId;
     });
     assert.deepEqual(actualPaneIds, expectedPaneIds);
   }
 
   test('instantiate_empty', function() {
-    var viewEl = createPaneView();
+    const viewEl = createPaneView();
     viewEl.rebuild();
     assertPanes(viewEl, []);
     // Don't add the pane to HTML output because it has zero height.
   });
 
   test('instantiate_singlePane', function() {
-    var viewEl = createPaneView();
+    const viewEl = createPaneView();
 
     viewEl.setPaneBuilder(createPaneBuilder(1));
     viewEl.rebuild();
@@ -69,7 +69,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiate_multiplePanes', function() {
-    var viewEl = createPaneView();
+    const viewEl = createPaneView();
 
     viewEl.setPaneBuilder(createPaneBuilder(1));
     viewEl.setPaneBuilder(createPaneBuilder(2), viewEl.panesForTesting[0]);
@@ -80,7 +80,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('changePanes', function() {
-    var viewEl = createPaneView();
+    const viewEl = createPaneView();
 
     viewEl.setPaneBuilder(createPaneBuilder(1));
     assertPanes(viewEl, [1]);
@@ -110,18 +110,18 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('childPanes', function() {
-    var viewEl = createPaneView();
+    const viewEl = createPaneView();
 
     viewEl.setPaneBuilder(createPaneBuilder(1));
     assertPanes(viewEl, [1]);
 
     // Pane 1 requests a child pane 2.
-    var pane1 = viewEl.panesForTesting[0];
+    const pane1 = viewEl.panesForTesting[0];
     pane1.childPaneBuilder = createPaneBuilder(2);
     assertPanes(viewEl, [1, 2]);
 
     // Pane 2 requests removing its child pane (nothing happens).
-    var pane2 = viewEl.panesForTesting[1];
+    const pane2 = viewEl.panesForTesting[1];
     pane2.childPaneBuilder = undefined;
     assertPanes(viewEl, [1, 2]);
 
@@ -155,10 +155,10 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('rebuild', function() {
-    var viewEl = createPaneView();
+    const viewEl = createPaneView();
 
-    var rebuiltPaneIds = [];
-    var rebuildPaneCallback = function() {
+    const rebuiltPaneIds = [];
+    const rebuildPaneCallback = function() {
       rebuiltPaneIds.push(this.paneId);
     };
 
@@ -192,8 +192,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('appended', function() {
-    var viewEl = createPaneView();
-    var didFireAppended;
+    const viewEl = createPaneView();
+    let didFireAppended;
 
     didFireAppended = false;
     viewEl.setPaneBuilder(createPaneBuilder(1, undefined, function() {

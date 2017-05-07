@@ -235,7 +235,7 @@ found in the LICENSE file.
           this.xhr = null;
         }
         this.setState('loading');
-        var params = {
+        const params = {
           namespace: this.logNamespace,
           name: this.logName,
           size: this.MAX_LOG_REQUEST_SIZE,
@@ -248,7 +248,7 @@ found in the LICENSE file.
           if (latest) {
             params.after_timestamp = this.logList[0].timestamp;
           } else {
-            var lastLog = this.logList[this.logList.length - 1];
+            const lastLog = this.logList[this.logList.length - 1];
             params.before_timestamp = lastLog.timestamp;
           }
         }
@@ -272,17 +272,17 @@ found in the LICENSE file.
        * @param {Array.<Object>} newLogs Array of log objects.
        */
       updateLogs(newLogs) {
-        var insertBefore = true;
+        let insertBefore = true;
         if (this.logList.length) {
-          var lastTimestamp = newLogs[newLogs.length - 1].timestamp;
+          const lastTimestamp = newLogs[newLogs.length - 1].timestamp;
           insertBefore = lastTimestamp >= this.logList[0].timestamp;
         }
 
-        var table = this.$.logs;
+        const table = this.$.logs;
         if (insertBefore) {
           newLogs.reverse();
         }
-        for (var i = 0; i < newLogs.length; i++) {
+        for (let i = 0; i < newLogs.length; i++) {
           this.removeLog(table, newLogs[i]);
           this.insertLog(table, newLogs[i], insertBefore);
         }
@@ -302,15 +302,15 @@ found in the LICENSE file.
         } else {
           this.logList.push(log);
         }
-        var row = document.createElement('tr');
-        var expandTd = document.createElement('td');
+        const row = document.createElement('tr');
+        const expandTd = document.createElement('td');
         Polymer.dom(row).appendChild(expandTd);
-        var span = document.createElement('span');
+        const span = document.createElement('span');
         span.className = 'toggle-arrow arrow-right';
         Polymer.dom(expandTd).appendChild(span);
 
-        var td = document.createElement('td');
-        var messageDiv = document.createElement('div');
+        const td = document.createElement('td');
+        const messageDiv = document.createElement('div');
         messageDiv.className = 'message';
         Polymer.dom(row).appendChild(td);
         Polymer.dom(td).appendChild(messageDiv);
@@ -325,7 +325,7 @@ found in the LICENSE file.
        * @param {Object} log A log object.
        */
       removeLog(table, log) {
-        for (var i = 0; i < this.logList.length; i++) {
+        for (let i = 0; i < this.logList.length; i++) {
           if (log.id == this.logList[i].id) {
             this.logList.splice(i, 1);
             table.deleteRow(i);
@@ -337,7 +337,7 @@ found in the LICENSE file.
        * Toggles show/hide log.
        */
       onLogToggleClick(messageDiv, e) {
-        var arrowIcon = e.target;
+        const arrowIcon = e.target;
         if (arrowIcon.className.indexOf('arrow-right') > -1) {
           arrowIcon.className = 'toggle-arrow arrow-down';
           messageDiv.className = 'message expand';
@@ -380,9 +380,9 @@ found in the LICENSE file.
        * Scrolls into view if log container is out of view.
        */
       scrollIntoView() {
-        var el = this.$.content;
-        var bottomOfPage = window.pageYOffset + window.innerHeight;
-        var bottomOfEl = el.offsetTop + el.offsetHeight;
+        const el = this.$.content;
+        const bottomOfPage = window.pageYOffset + window.innerHeight;
+        const bottomOfEl = el.offsetTop + el.offsetHeight;
         if (bottomOfEl > bottomOfPage) {
           el.scrollIntoView();
         }

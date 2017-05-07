@@ -25,7 +25,7 @@ tr.exportTo('tr.ui.e.deep_reports', function() {
     if (dict.type !== 'scalar') {
       throw new Error('wat');
     }
-    var v = new ScalarValue(page, dict.name, dict.units, dict.value);
+    const v = new ScalarValue(page, dict.name, dict.units, dict.value);
     v.important = dict.important;
     v.description = dict.description;
     v.value = dict.value;

@@ -13,11 +13,11 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var AsyncSlice = tr.model.AsyncSlice;
-  var MeasureAsyncSlice = tr.e.measure.MeasureAsyncSlice;
+  const AsyncSlice = tr.model.AsyncSlice;
+  const MeasureAsyncSlice = tr.e.measure.MeasureAsyncSlice;
 
   test('basic', function() {
-    var s = new MeasureAsyncSlice(
+    const s = new MeasureAsyncSlice(
       'blink.user_timing', 'createImports', 7, 0, {});
     s.duration = 100;
 
@@ -28,20 +28,20 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('import', function() {
-    var events = [
+    const events = [
       {name: 'createImports', args: {}, pid: 1, ts: 100,
         cat: 'blink.user_timing', tid: 2, ph: 'b', id: 71},
       {name: 'createImports', args: {}, pid: 1, ts: 200,
         cat: 'blink.user_timing', tid: 2, ph: 'e', id: 71}
     ];
-    var m = tr.c.TestUtils.newModelWithEvents([events]);
-    var t2 = m.getOrCreateProcess(1).getOrCreateThread(2);
+    const m = tr.c.TestUtils.newModelWithEvents([events]);
+    const t2 = m.getOrCreateProcess(1).getOrCreateThread(2);
     assert.strictEqual(t2.asyncSliceGroup.length, 1);
     assert.instanceOf(t2.asyncSliceGroup.slices[0], MeasureAsyncSlice);
   });
 
   test('groupMeasureAsyncSlice', function() {
-    var events = [
+    const events = [
       {name: 'createImports', args: {}, pid: 1, ts: 100,
         cat: 'blink.user_timing', tid: 2, ph: 'b', id: 71},
       {name: 'createImports', args: {}, pid: 1, ts: 200,
@@ -51,8 +51,8 @@ tr.b.unittest.testSuite(function() {
       {name: 'runAutoClosers', args: {}, pid: 1, ts: 310,
         cat: 'blink.user_timing', tid: 2, ph: 'e', id: 72}
     ];
-    var m = tr.c.TestUtils.newModelWithEvents([events]);
-    var t2 = m.getOrCreateProcess(1).getOrCreateThread(2);
+    const m = tr.c.TestUtils.newModelWithEvents([events]);
+    const t2 = m.getOrCreateProcess(1).getOrCreateThread(2);
     assert.strictEqual(t2.asyncSliceGroup.length, 2);
     assert.strictEqual(t2.asyncSliceGroup.slices[0].title, 'createImports');
     assert.strictEqual(t2.asyncSliceGroup.slices[1].title, 'runAutoClosers');

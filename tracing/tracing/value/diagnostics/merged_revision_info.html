@@ -17,7 +17,7 @@ tr.exportTo('tr.v.d', function() {
   class MergedRevisionInfo extends tr.v.d.Diagnostic {
     constructor(opt_info) {
       super();
-      let info = opt_info || {};
+      const info = opt_info || {};
       this.chromiumCommitPositions_ = new Set(
           info.chromiumCommitPositions || []);
       this.v8CommitPositions_ = new Set(info.v8CommitPositions || []);
@@ -30,7 +30,7 @@ tr.exportTo('tr.v.d', function() {
     }
 
     clone() {
-      let clone = new MergedRevisionInfo();
+      const clone = new MergedRevisionInfo();
       clone.addDiagnostic(this);
       return clone;
     }
@@ -46,16 +46,16 @@ tr.exportTo('tr.v.d', function() {
 
     addDiagnostic(otherDiagnostic, name, parentHist, otherParentHist) {
       if (otherDiagnostic instanceof MergedRevisionInfo) {
-        for (let pos of otherDiagnostic.chromiumCommitPositions) {
+        for (const pos of otherDiagnostic.chromiumCommitPositions) {
           this.chromiumCommitPositions.add(pos);
         }
-        for (let pos of otherDiagnostic.v8CommitPositions) {
+        for (const pos of otherDiagnostic.v8CommitPositions) {
           this.v8CommitPositions.add(pos);
         }
-        for (let repo of REPO_NAMES) {
-          for (let otherRevs of otherDiagnostic[repo]) {
+        for (const repo of REPO_NAMES) {
+          for (const otherRevs of otherDiagnostic[repo]) {
             let found = false;
-            for (let revs of this[repo]) {
+            for (const revs of this[repo]) {
               if (otherRevs[0] === revs[0] &&
                   otherRevs[1] === revs[1]) {
                 found = true;
@@ -78,10 +78,10 @@ tr.exportTo('tr.v.d', function() {
         this.v8CommitPositions.add(otherDiagnostic.v8CommitPosition);
       }
 
-      for (let repo of REPO_NAMES) {
-        let otherRevs = otherDiagnostic[repo];
+      for (const repo of REPO_NAMES) {
+        const otherRevs = otherDiagnostic[repo];
         let found = false;
-        for (let revs of this[repo]) {
+        for (const revs of this[repo]) {
           if (otherRevs[0] === revs[0] &&
               otherRevs[1] === revs[1]) {
             found = true;

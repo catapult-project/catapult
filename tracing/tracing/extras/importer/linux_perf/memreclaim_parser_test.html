@@ -19,14 +19,14 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('memreclaimImport', function() {
-    var lines = [
+    const lines = [
       ' surfaceflinger-1155  ( 1155) [001] ...1 12839.528756: mm_vmscan_direct_reclaim_begin: order=0 may_writepage=1 gfp_flags=GFP_KERNEL|GFP_NOWARN|GFP_ZERO|0x2', // @suppress longLineCheck
       ' surfaceflinger-1155  ( 1155) [001] ...1 12839.531950: mm_vmscan_direct_reclaim_end: nr_reclaimed=66', // @suppress longLineCheck
       ' kswapd0-33    (   33) [001] ...1 12838.491407: mm_vmscan_kswapd_wake: nid=0 order=0', // @suppress longLineCheck
       ' kswapd0-33    (   33) [001] ...1 12838.529770: mm_vmscan_kswapd_wake: nid=0 order=2', // @suppress longLineCheck
       ' kswapd0-33    (   33) [001] ...1 12840.545737: mm_vmscan_kswapd_sleep: nid=0'// @suppress longLineCheck
     ];
-    var m = newModel(lines.join('\n'));
+    const m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
     assert.strictEqual(
@@ -35,7 +35,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('memreclaimDirectReclaim', function() {
-    var lines = [
+    const lines = [
       'RenderThread-9844 ( 9786) [001] ...1  1734.106078: mm_vmscan_direct_reclaim_begin: order=5 may_writepage=1 gfp_flags=GFP_KERNEL|GFP_NOWARN|0x2', // @suppress longLineCheck
       'RenderThread-9844 ( 9786) [001] ...1  1734.107619: mm_vmscan_direct_reclaim_end: nr_reclaimed=72', // @suppress longLineCheck
       'RenderThread-9844 ( 9786) [001] ...1  1734.107738: mm_vmscan_direct_reclaim_begin: order=4 may_writepage=1 gfp_flags=GFP_KERNEL|GFP_NOWARN|0x2', // @suppress longLineCheck
@@ -54,16 +54,16 @@ tr.b.unittest.testSuite(function() {
       'touchFusion-88    (   88) [000] ...1  1736.530857: mm_vmscan_direct_reclaim_end: nr_reclaimed=39'// @suppress longLineCheck
     ];
 
-    var m = newModel(lines.join('\n'));
+    const m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
-    var threads = m.getAllThreads();
+    const threads = m.getAllThreads();
 
     assert.strictEqual(threads.length, 3);
 
-    var Binder8 = threads[0];
-    var touchFusion = threads[1];
-    var RenderThread = threads[2];
+    const Binder8 = threads[0];
+    const touchFusion = threads[1];
+    const RenderThread = threads[2];
 
     /* make sure there are the expected amount of slices per thread */
     assert.strictEqual(Binder8.sliceGroup.length, 2);
@@ -74,16 +74,16 @@ tr.b.unittest.testSuite(function() {
      * user when selected
      */
 
-    var iterateMe = [Binder8, touchFusion, RenderThread];
+    const iterateMe = [Binder8, touchFusion, RenderThread];
     iterateMe.forEach(function(thread) {
-      for (var i = 0; i < thread.sliceGroup.length; i++) {
+      for (let i = 0; i < thread.sliceGroup.length; i++) {
         assert.isDefined(thread.sliceGroup.slices[i].args);
       }
     });
   });
 
   test('memreclaimKswapd', function() {
-    var lines = [
+    const lines = [
       'kswapd0-48    (   48) [001] ...1  1734.210437: mm_vmscan_kswapd_wake: nid=0 order=5', // @suppress longLineCheck
       'kswapd0-48    (   48) [001] ...1  1734.227291: mm_vmscan_kswapd_wake: nid=0 order=0', // @suppress longLineCheck
       'kswapd0-48    (   48) [001] ...1  1734.237585: mm_vmscan_kswapd_wake: nid=0 order=0', // @suppress longLineCheck
@@ -152,13 +152,13 @@ tr.b.unittest.testSuite(function() {
       'kswapd0-48    (   48) [000] ...1  1740.876601: mm_vmscan_kswapd_sleep: nid=0'// @suppress longLineCheck
     ];
 
-    var m = newModel(lines.join('\n'));
+    const m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
-    var threads = m.getAllThreads();
+    const threads = m.getAllThreads();
     assert.strictEqual(threads.length, 1);
 
-    var thread = threads[0];
+    const thread = threads[0];
 
     assert.strictEqual(thread.sliceGroup.length, 6);
 

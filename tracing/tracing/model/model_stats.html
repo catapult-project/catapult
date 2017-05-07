@@ -31,8 +31,8 @@ tr.exportTo('tr.model', function() {
 
     willProcessBasicTraceEvent(phase, category, title, ts,
         opt_eventSizeinBytes) {
-      var key = phase + '/' + category + '/' + title;
-      var eventStats = this.traceEventCountsByKey_.get(key);
+      const key = phase + '/' + category + '/' + title;
+      let eventStats = this.traceEventCountsByKey_.get(key);
       if (eventStats === undefined) {
         eventStats = {
           phase,
@@ -46,9 +46,9 @@ tr.exportTo('tr.model', function() {
       }
       eventStats.numEvents++;
 
-      var timeIntervalKey = Math.floor(
+      const timeIntervalKey = Math.floor(
           tr.b.Unit.timestampFromUs(ts) / this.TIME_INTERVAL_SIZE_IN_MS);
-      var eventStatsByTimeInverval =
+      let eventStatsByTimeInverval =
           this.traceEventStatsInTimeIntervals_.get(timeIntervalKey);
       if (eventStatsByTimeInverval === undefined) {
         eventStatsByTimeInverval = {

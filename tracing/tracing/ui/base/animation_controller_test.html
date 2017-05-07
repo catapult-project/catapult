@@ -49,15 +49,15 @@ tr.b.unittest.testSuite(function() {
   };
 
   test('cancel', function() {
-    var target = {
+    const target = {
       x: 0,
       cloneAnimationState() { return {x: this.x}; }
     };
 
-    var controller = new tr.ui.b.AnimationController();
+    const controller = new tr.ui.b.AnimationController();
     controller.target = target;
 
-    var animation = new SimpleAnimation({stopTime: 100});
+    const animation = new SimpleAnimation({stopTime: 100});
     controller.queueAnimation(animation);
 
     tr.b.forcePendingRAFTasksToRun(0);
@@ -68,15 +68,15 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('simple', function() {
-    var target = {
+    const target = {
       x: 0,
       cloneAnimationState() { return {x: this.x}; }
     };
 
-    var controller = new tr.ui.b.AnimationController();
+    const controller = new tr.ui.b.AnimationController();
     controller.target = target;
 
-    var animation = new SimpleAnimation({stopTime: 100});
+    const animation = new SimpleAnimation({stopTime: 100});
     controller.queueAnimation(animation);
 
     tr.b.forcePendingRAFTasksToRun(0);
@@ -92,16 +92,16 @@ tr.b.unittest.testSuite(function() {
     // Clear all pending rafs so if something is lingering it will blow up here.
     tr.b.forcePendingRAFTasksToRun(0);
 
-    var target = {
+    const target = {
       x: 0,
       cloneAnimationState() { return {x: this.x}; }
     };
 
-    var controller = new tr.ui.b.AnimationController();
+    const controller = new tr.ui.b.AnimationController();
     controller.target = target;
 
-    var a1 = new SimpleAnimation({stopTime: 100});
-    var a2 = new SimpleAnimation({stopTime: 100});
+    const a1 = new SimpleAnimation({stopTime: 100});
+    const a2 = new SimpleAnimation({stopTime: 100});
     controller.queueAnimation(a1, 0);
     assert.isTrue(a1.startCalled);
     controller.queueAnimation(a2, 50);
@@ -138,16 +138,16 @@ tr.b.unittest.testSuite(function() {
   };
 
   test('takeOver', function() {
-    var target = {
+    const target = {
       x: 0,
       cloneAnimationState() { return {x: this.x}; }
     };
 
-    var controller = new tr.ui.b.AnimationController();
+    const controller = new tr.ui.b.AnimationController();
     controller.target = target;
 
-    var a1 = new SimpleAnimation({stopTime: 100});
-    var a2 = new AnimationThatCanTakeOverForSimpleAnimation();
+    const a1 = new SimpleAnimation({stopTime: 100});
+    const a2 = new AnimationThatCanTakeOverForSimpleAnimation();
     controller.queueAnimation(a1, 0);
     assert.isTrue(a1.startCalled);
     assert.strictEqual(a1.tickCount, 0);

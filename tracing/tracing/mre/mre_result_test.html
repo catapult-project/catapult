@@ -13,14 +13,14 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('mreResultAsDictTest', function() {
-    var result = new tr.mre.MreResult();
+    const result = new tr.mre.MreResult();
 
-    var failure = new tr.mre.Failure('1', '2', '3', 'err', 'desc', 'stack');
+    const failure = new tr.mre.Failure('1', '2', '3', 'err', 'desc', 'stack');
     result.addFailure(failure);
 
     result.addPair('foo', 'bar');
 
-    var resultDict = result.asDict();
+    const resultDict = result.asDict();
 
     assert.deepEqual(resultDict.failures, [failure.asDict()]);
     assert.deepEqual(resultDict.pairs, {foo: 'bar'});

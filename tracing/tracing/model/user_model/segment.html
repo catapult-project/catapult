@@ -31,7 +31,7 @@ tr.exportTo('tr.model.um', function() {
     }
 
     clone() {
-      var clone = new Segment(this.start, this.duration);
+      const clone = new Segment(this.start, this.duration);
       clone.expectations.push(...this.expectations);
       return clone;
     }

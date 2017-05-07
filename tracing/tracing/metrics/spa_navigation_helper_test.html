@@ -22,19 +22,19 @@ tr.b.unittest.testSuite(function() {
       'FrameLoader::updateForSameDocumentNavigation';
 
   function createChromeProcessesOnModel(model) {
-    let rendererProcess = model.getOrCreateProcess(RENDERER_PROCESS_ID);
-    let mainThread = rendererProcess.getOrCreateThread(
+    const rendererProcess = model.getOrCreateProcess(RENDERER_PROCESS_ID);
+    const mainThread = rendererProcess.getOrCreateThread(
         RENDERER_PROCESS_MAIN_THREAD_ID);
     mainThread.name = 'CrRendererMain';
-    let browserProcess = model.getOrCreateProcess(BROWSER_PROCESS_ID);
-    let browserMainThread = browserProcess.getOrCreateThread(
+    const browserProcess = model.getOrCreateProcess(BROWSER_PROCESS_ID);
+    const browserMainThread = browserProcess.getOrCreateThread(
         BROWSER_PROCESS_MAIN_THREAD_ID);
     browserMainThread.name = 'CrBrowserMain';
   }
 
   function addThreadSlice(model, title, timestamp, args) {
-    let rendererProcess = model.getOrCreateProcess(RENDERER_PROCESS_ID);
-    let mainThread = rendererProcess.getOrCreateThread(
+    const rendererProcess = model.getOrCreateProcess(RENDERER_PROCESS_ID);
+    const mainThread = rendererProcess.getOrCreateThread(
         RENDERER_PROCESS_MAIN_THREAD_ID);
 
     mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
@@ -47,7 +47,7 @@ tr.b.unittest.testSuite(function() {
   }
 
   function addLatencyInfoFlowEvent(model, timestamp, bindId) {
-    let latencyInfoFlowSlice = tr.c.TestUtils.newSliceEx({
+    const latencyInfoFlowSlice = tr.c.TestUtils.newSliceEx({
       cat: 'input,benchmark',
       title: 'LatencyInfo.Flow',
       start: timestamp,
@@ -55,7 +55,7 @@ tr.b.unittest.testSuite(function() {
       bindId,
       args: {step: 'handleInputEventMain'}
     });
-    let handleInputEventSlice = tr.c.TestUtils.newSliceEx({
+    const handleInputEventSlice = tr.c.TestUtils.newSliceEx({
       cat: 'blink,rail',
       title: 'WebViewImpl::handleInputEvent',
       start: timestamp + 1, // Assume handleInputEvent always delays 1ms.
@@ -63,8 +63,8 @@ tr.b.unittest.testSuite(function() {
       args: {type: 'MouseUp'}
     });
 
-    let rendererProcess = model.getOrCreateProcess(RENDERER_PROCESS_ID);
-    let mainThread = rendererProcess.getOrCreateThread(
+    const rendererProcess = model.getOrCreateProcess(RENDERER_PROCESS_ID);
+    const mainThread = rendererProcess.getOrCreateThread(
         RENDERER_PROCESS_MAIN_THREAD_ID);
 
     handleInputEventSlice.parentSlice = latencyInfoFlowSlice;
@@ -73,8 +73,8 @@ tr.b.unittest.testSuite(function() {
   }
 
   function addInputLatencySlice(model, start, traceId) {
-    let browserProcess = model.getOrCreateProcess(BROWSER_PROCESS_ID);
-    let browserMainThread = browserProcess.getOrCreateThread(
+    const browserProcess = model.getOrCreateProcess(BROWSER_PROCESS_ID);
+    const browserMainThread = browserProcess.getOrCreateThread(
         BROWSER_PROCESS_MAIN_THREAD_ID);
 
     browserMainThread.sliceGroup.pushSlice(tr.c.TestUtils.newAsyncSliceEx({
@@ -91,8 +91,8 @@ tr.b.unittest.testSuite(function() {
   }
 
   function addGoToIndexSlice(model, timestamp) {
-    let browserProcess = model.getOrCreateProcess(BROWSER_PROCESS_ID);
-    let browserMainThread = browserProcess.getOrCreateThread(
+    const browserProcess = model.getOrCreateProcess(BROWSER_PROCESS_ID);
+    const browserMainThread = browserProcess.getOrCreateThread(
         BROWSER_PROCESS_MAIN_THREAD_ID);
 
     browserMainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
@@ -104,12 +104,12 @@ tr.b.unittest.testSuite(function() {
   }
 
   function getSpaNavigations(model) {
-    let modelHelper = model.getOrCreateHelper(
+    const modelHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
-    let rendererHelpers = modelHelper.rendererHelpers;
-    let browserHelper = modelHelper.browserHelper;
+    const rendererHelpers = modelHelper.rendererHelpers;
+    const browserHelper = modelHelper.browserHelper;
     let spaNavigations = [];
-    for (let rendererHelper of Object.values(rendererHelpers)) {
+    for (const rendererHelper of Object.values(rendererHelpers)) {
       spaNavigations = spaNavigations.concat(
           tr.metrics.findSpaNavigationsOnRenderer(
               rendererHelper, browserHelper));
@@ -118,52 +118,52 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('findSpaNavigations_noSpaNavEvent', function() {
-    let model = tr.c.TestUtils.newModel(model => {
+    const model = tr.c.TestUtils.newModel(model => {
       createChromeProcessesOnModel(model);
       addLatencyInfoFlowEvent(model, 75, '0x600000057');
       addInputLatencySlice(model, 55, 25769803863);
       addThreadSlice(model, PAINT_UPDATE_TITLE, 101);
     });
-    let spaNavigations = getSpaNavigations(model);
+    const spaNavigations = getSpaNavigations(model);
     assert.lengthOf(spaNavigations, 0);
   });
 
   test('findSpaNavigations_noLatencyInfoFlowEvent', function() {
-    let model = tr.c.TestUtils.newModel(model => {
+    const model = tr.c.TestUtils.newModel(model => {
       createChromeProcessesOnModel(model);
       addThreadSlice(model, SPA_NAVIGATION_EVENT_TITLE, 100);
       addInputLatencySlice(model, 55, 25769803863);
       addThreadSlice(model, PAINT_UPDATE_TITLE, 101);
     });
-    let spaNavigations = getSpaNavigations(model);
+    const spaNavigations = getSpaNavigations(model);
     assert.lengthOf(spaNavigations, 0);
   });
 
   test('findSpaNavigations_noNavStartEvent', function() {
-    let model = tr.c.TestUtils.newModel(model => {
+    const model = tr.c.TestUtils.newModel(model => {
       createChromeProcessesOnModel(model);
       addThreadSlice(model, SPA_NAVIGATION_EVENT_TITLE, 100);
       addLatencyInfoFlowEvent(model, 75, '0x600000057');
       addThreadSlice(model, PAINT_UPDATE_TITLE, 101);
     });
-    let spaNavigations = getSpaNavigations(model);
+    const spaNavigations = getSpaNavigations(model);
     assert.lengthOf(spaNavigations, 0);
   });
 
   test('findSpaNavigations_noFirstPaintEvent', function() {
-    let model = tr.c.TestUtils.newModel(model => {
+    const model = tr.c.TestUtils.newModel(model => {
       createChromeProcessesOnModel(model);
       addThreadSlice(model, SPA_NAVIGATION_EVENT_TITLE, 100);
       addLatencyInfoFlowEvent(model, 75, '0x600000057');
       addInputLatencySlice(model, 55, 25769803863);
     });
-    let spaNavigations = getSpaNavigations(model);
+    const spaNavigations = getSpaNavigations(model);
     assert.lengthOf(spaNavigations, 0);
   });
 
   test('findSpaNavigations_inputLatencyAsNavStart', function() {
     const URL = 'https://11111';
-    let model = tr.c.TestUtils.newModel(model => {
+    const model = tr.c.TestUtils.newModel(model => {
       createChromeProcessesOnModel(model);
       addThreadSlice(model, SPA_NAVIGATION_EVENT_TITLE, 100,
           {url: URL});
@@ -171,7 +171,7 @@ tr.b.unittest.testSuite(function() {
       addInputLatencySlice(model, 55, 25769803863);
       addThreadSlice(model, PAINT_UPDATE_TITLE, 101);
     });
-    let spaNavigations = getSpaNavigations(model);
+    const spaNavigations = getSpaNavigations(model);
     assert.lengthOf(spaNavigations, 1);
     assert.strictEqual(
         spaNavigations[0].navStartCandidates.inputLatencyAsyncSlice.start, 55);
@@ -183,14 +183,14 @@ tr.b.unittest.testSuite(function() {
 
   test('findSpaNavigations_goToIndexAsNavStart', function() {
     const URL = 'https://11111';
-    let model = tr.c.TestUtils.newModel(model => {
+    const model = tr.c.TestUtils.newModel(model => {
       createChromeProcessesOnModel(model);
       addThreadSlice(model, SPA_NAVIGATION_EVENT_TITLE, 100,
           {url: URL});
       addGoToIndexSlice(model, 55);
       addThreadSlice(model, PAINT_UPDATE_TITLE, 101);
     });
-    let spaNavigations = getSpaNavigations(model);
+    const spaNavigations = getSpaNavigations(model);
     assert.lengthOf(spaNavigations, 1);
     assert.strictEqual(
         spaNavigations[0].navStartCandidates.goToIndexSlice.start, 55);
@@ -204,7 +204,7 @@ tr.b.unittest.testSuite(function() {
     const URL1 = 'https://11111';
     const URL2 = 'https://22222';
     const URL3 = 'https://33333';
-    let model = tr.c.TestUtils.newModel(model => {
+    const model = tr.c.TestUtils.newModel(model => {
       createChromeProcessesOnModel(model);
       addThreadSlice(model, SPA_NAVIGATION_EVENT_TITLE, 100,
           {url: URL1});
@@ -227,7 +227,7 @@ tr.b.unittest.testSuite(function() {
       addThreadSlice(model, PAINT_UPDATE_TITLE, 201);
       addThreadSlice(model, PAINT_UPDATE_TITLE, 301);
     });
-    let spaNavigations = getSpaNavigations(model);
+    const spaNavigations = getSpaNavigations(model);
     assert.lengthOf(spaNavigations, 3);
     spaNavigations.sort((spa1, spa2) =>
         spa1.navStartCandidates.inputLatencyAsyncSlice.start -

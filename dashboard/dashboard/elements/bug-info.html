@@ -79,16 +79,16 @@ found in the LICENSE file.
        * Displays bug info; this will be either a revision range or a warning.
        */
       updateBugInfo() {
-        var alerts = this.getCheckedOrAllAlerts();
+        const alerts = this.getCheckedOrAllAlerts();
         if (alerts.length == 0) {
           this.$.warning.textContent =
               'WARNING: There appear to be no alerts associated with this bug.';
           return;
         }
 
-        var minRevRange = this.alertsTable.getCommonRevisionRange(alerts);
+        const minRevRange = this.alertsTable.getCommonRevisionRange(alerts);
         if (minRevRange) {
-          var info = 'Minimum revision range for ' + alerts.length;
+          let info = 'Minimum revision range for ' + alerts.length;
           info += (alerts.length == 1) ? ' alert: ' : ' alerts: ';
           info += minRevRange.start + ':' + minRevRange.end;
           this.$.revision_range.innerText = info;
@@ -107,7 +107,7 @@ found in the LICENSE file.
        * @return {Array.<Object>} List of alerts.
        */
       getCheckedOrAllAlerts(alerts, minRevRange) {
-        var alerts = this.alertsTable.checkedAlerts;
+        let alerts = this.alertsTable.checkedAlerts;
         if (!alerts || alerts.length == 0) {
           alerts = this.alertsTable.alertList.filter(
               function(alertRow) {
@@ -125,7 +125,7 @@ found in the LICENSE file.
        * @return {?string} The test path.
        */
       getTestPathFromStartRev(alerts, startRevision) {
-        for (var i = 0; i < alerts.length; i++) {
+        for (let i = 0; i < alerts.length; i++) {
           if (alerts[i].start_revision == startRevision) {
             return alerts[i].master + '/' +
                    alerts[i].bot + '/' +

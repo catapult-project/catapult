@@ -19,7 +19,7 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('powerFrequencyImport', function() {
-    var lines = [
+    const lines = [
       ' kworker/0:3-6880  [000]  2784.783015: power_frequency: ' +
                  'type=2 state=1000000 cpu_id=0',
       ' kworker/1:2-7269  [001]  2784.788993: power_frequency: ' +
@@ -27,22 +27,22 @@ tr.b.unittest.testSuite(function() {
       ' kworker/1:2-7269  [001]  2784.993120: power_frequency: ' +
                  'type=2 state=1300000 cpu_id=1'
     ];
-    var m = newModel(lines.join('\n'));
+    const m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
-    var c0 = m.kernel.cpus[0];
+    const c0 = m.kernel.cpus[0];
     assert.strictEqual(c0.slices.length, 0);
     assert.strictEqual(
         c0.counters['.Clock Frequency'].series[0].samples.length, 1);
 
-    var c1 = m.kernel.cpus[1];
+    const c1 = m.kernel.cpus[1];
     assert.strictEqual(c1.slices.length, 0);
     assert.strictEqual(
         c1.counters['.Clock Frequency'].series[0].samples.length, 2);
   });
 
   test('cpuFrequencyImport', function() {
-    var lines = [
+    const lines = [
       '     kworker/1:0-9665  [001] 15051.007301: cpu_frequency: ' +
                      'state=800000 cpu_id=1',
       '     kworker/1:0-9665  [001] 15051.010278: cpu_frequency: ' +
@@ -52,22 +52,22 @@ tr.b.unittest.testSuite(function() {
       '     kworker/0:2-7972  [000] 15051.020304: cpu_frequency: ' +
                      'state=800000 cpu_id=0'
     ];
-    var m = newModel(lines.join('\n'));
+    const m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
-    var c0 = m.kernel.cpus[0];
+    const c0 = m.kernel.cpus[0];
     assert.strictEqual(c0.slices.length, 0);
     assert.strictEqual(
         c0.counters['.Clock Frequency'].series[0].samples.length, 2);
 
-    var c1 = m.kernel.cpus[1];
+    const c1 = m.kernel.cpus[1];
     assert.strictEqual(c1.slices.length, 0);
     assert.strictEqual(
         c1.counters['.Clock Frequency'].series[0].samples.length, 2);
   });
 
   test('cpuIdleImport', function() {
-    var lines = [
+    const lines = [
       '          <idle>-0     [000] 15050.992883: cpu_idle: ' +
           'state=1 cpu_id=0',
       '          <idle>-0     [000] 15050.993027: cpu_idle: ' +
@@ -81,14 +81,14 @@ tr.b.unittest.testSuite(function() {
       '          <idle>-0     [001] 15050.993457: cpu_idle: ' +
           'state=4294967295 cpu_id=1'
     ];
-    var m = newModel(lines.join('\n'));
+    const m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
-    var c0 = m.kernel.cpus[0];
+    const c0 = m.kernel.cpus[0];
     assert.strictEqual(c0.slices.length, 0);
     assert.strictEqual(c0.counters['.C-State'].series[0].samples.length, 2);
 
-    var c1 = m.kernel.cpus[1];
+    const c1 = m.kernel.cpus[1];
     assert.strictEqual(c1.slices.length, 0);
     assert.strictEqual(c1.counters['.C-State'].series[0].samples.length, 4);
   });

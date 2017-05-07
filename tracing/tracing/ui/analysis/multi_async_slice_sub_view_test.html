@@ -14,12 +14,12 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var newAsyncSliceEx = tr.c.TestUtils.newAsyncSliceEx;
+  const newAsyncSliceEx = tr.c.TestUtils.newAsyncSliceEx;
 
   test('instantiate', function() {
-    var model = new tr.Model();
-    var p1 = model.getOrCreateProcess(1);
-    var t1 = p1.getOrCreateThread(1);
+    const model = new tr.Model();
+    const p1 = model.getOrCreateProcess(1);
+    const t1 = p1.getOrCreateThread(1);
     t1.asyncSliceGroup.push(newAsyncSliceEx({
       title: 'a',
       start: 10,
@@ -35,11 +35,11 @@ tr.b.unittest.testSuite(function() {
       endThread: t1
     }));
 
-    var selection = new tr.model.EventSet();
+    const selection = new tr.model.EventSet();
     selection.push(t1.asyncSliceGroup.slices[0]);
     selection.push(t1.asyncSliceGroup.slices[1]);
 
-    var viewEl = document.createElement('tr-ui-a-multi-async-slice-sub-view');
+    const viewEl = document.createElement('tr-ui-a-multi-async-slice-sub-view');
     viewEl.selection = selection;
     this.addHTMLOutput(viewEl);
   });

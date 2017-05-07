@@ -26,7 +26,7 @@ tr.exportTo('tr.v.d', function() {
     }
 
     clone() {
-      let clone = new tr.v.d.CollectedGeneric();
+      const clone = new tr.v.d.CollectedGeneric();
       clone.addDiagnostic(this);
       return clone;
     }

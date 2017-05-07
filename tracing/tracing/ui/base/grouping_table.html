@@ -61,16 +61,16 @@ tr.exportTo('tr.ui.b', function() {
       if (this.subRowsBuilt_) return;
       this.subRowsBuilt_ = true;
 
-      var groupingKeyFunc = this.getCurrentGroupingKeyFunc_();
+      const groupingKeyFunc = this.getCurrentGroupingKeyFunc_();
       if (groupingKeyFunc === undefined) {
         this.subRows_ = undefined;
         return;
       }
 
-      var dataByKey = {};
-      var hasValues = false;
+      const dataByKey = {};
+      let hasValues = false;
       this.data_.forEach(function(datum) {
-        var key = groupingKeyFunc(datum);
+        const key = groupingKeyFunc(datum);
         hasValues = hasValues || (key !== undefined);
         if (dataByKey[key] === undefined) {
           dataByKey[key] = [];
@@ -83,8 +83,8 @@ tr.exportTo('tr.ui.b', function() {
       }
 
       this.subRows_ = [];
-      for (var key in dataByKey) {
-        var row = new Row(key,
+      for (const key in dataByKey) {
+        const row = new Row(key,
                           dataByKey[key],
                           this.groupingKeyFuncs_.slice(1),
                           this.rowStatsConstructor_);
@@ -213,11 +213,11 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     updateContents_() {
-      var groupBy = this.groupBy_ || [];
-      var dataToGroup = this.dataToGroup_ || [];
-      var rowStatsConstructor = this.rowStatsConstructor_ || function() {};
+      const groupBy = this.groupBy_ || [];
+      const dataToGroup = this.dataToGroup_ || [];
+      const rowStatsConstructor = this.rowStatsConstructor_ || function() {};
 
-      var superRow = new Row('', dataToGroup, groupBy,
+      const superRow = new Row('', dataToGroup, groupBy,
                              rowStatsConstructor);
       this.$.table.tableRows = superRow.subRows || [];
     }

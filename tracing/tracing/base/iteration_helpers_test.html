@@ -9,11 +9,11 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var comparePossiblyUndefinedValues = tr.b.comparePossiblyUndefinedValues;
-  var compareArrays = tr.b.compareArrays;
-  var asArray = tr.b.asArray;
-  var getOnlyElement = tr.b.getOnlyElement;
-  var getFirstElement = tr.b.getFirstElement;
+  const comparePossiblyUndefinedValues = tr.b.comparePossiblyUndefinedValues;
+  const compareArrays = tr.b.compareArrays;
+  const asArray = tr.b.asArray;
+  const getOnlyElement = tr.b.getOnlyElement;
+  const getFirstElement = tr.b.getFirstElement;
 
   test('setsEqual', function() {
     assert.isTrue(tr.b.setsEqual(new Set(), new Set()));
@@ -104,15 +104,15 @@ tr.b.unittest.testSuite(function() {
 
   test('group', function() {
     // Empty array
-    var srcArray = [];
-    var fn = function(curr) { return (curr % 2); };
-    var dstDict = {};
+    let srcArray = [];
+    const fn = function(curr) { return (curr % 2); };
+    let dstDict = {};
 
     assert.deepEqual(tr.b.group(srcArray, fn), dstDict);
 
     // Non-empty array
-    var srcArray = [0, 1, 2, 3, 4, 5, 6];
-    var dstDict = {
+    srcArray = [0, 1, 2, 3, 4, 5, 6];
+    dstDict = {
       0: [0, 2, 4, 6],
       1: [1, 3, 5]
     };
@@ -122,15 +122,15 @@ tr.b.unittest.testSuite(function() {
 
   test('groupIntoMap', function() {
     // Empty array
-    var srcArray = [];
-    var fn = function(curr) { return (curr % 2); };
-    var dstDict = {};
+    let srcArray = [];
+    const fn = function(curr) { return (curr % 2); };
+    const dstDict = {};
 
     assert.deepEqual(tr.b.groupIntoMap(srcArray, fn), dstDict);
 
     // Non-empty array
-    var srcArray = [0, 1, 2, 3, 4, 5, 6];
-    var dstMap = new Map([
+    srcArray = [0, 1, 2, 3, 4, 5, 6];
+    const dstMap = new Map([
       [0, [0, 2, 4, 6]],
       [1, [1, 3, 5]]
     ]);
@@ -140,8 +140,8 @@ tr.b.unittest.testSuite(function() {
 
   test('mapItems', function() {
     // Empty dictionary.
-    var srcDict = {};
-    var dstDict = tr.b.mapItems(srcDict, function(key, value) {
+    let srcDict = {};
+    let dstDict = tr.b.mapItems(srcDict, function(key, value) {
       return value;
     });
     assert.lengthOf(Object.keys(srcDict), 0);
@@ -149,8 +149,8 @@ tr.b.unittest.testSuite(function() {
     assert.notStrictEqual(dstDict, srcDict);
 
     // Non-empty dictionary.
-    var srcDict = {a: 0, b: 30};
-    var dstDict = tr.b.mapItems(srcDict, function(key, value) {
+    srcDict = {a: 0, b: 30};
+    dstDict = tr.b.mapItems(srcDict, function(key, value) {
       return 9 * value / 5 + 32;
     });
     assert.lengthOf(Object.keys(srcDict), 2);
@@ -162,8 +162,8 @@ tr.b.unittest.testSuite(function() {
     assert.notStrictEqual(dstDict, srcDict);
 
     // Optional 'this' argument.
-    var srcDict = {c: '?', d: '!', e: '.'};
-    var dstDict = tr.b.mapItems(srcDict, function(key, value) {
+    srcDict = {c: '?', d: '!', e: '.'};
+    dstDict = tr.b.mapItems(srcDict, function(key, value) {
       return key + this.delimiter + value;
     }, {delimiter: '='});
     assert.lengthOf(Object.keys(srcDict), 3);
@@ -177,8 +177,8 @@ tr.b.unittest.testSuite(function() {
     assert.notStrictEqual(dstDict, srcDict);
 
     // Inherited properties should not be mapped.
-    var srcDict = {__proto__: {a: 10}};
-    var dstDict = tr.b.mapItems(srcDict, function(key, value) {
+    srcDict = {__proto__: {a: 10}};
+    dstDict = tr.b.mapItems(srcDict, function(key, value) {
       return value;
     });
     assert.lengthOf(Object.keys(srcDict), 0);
@@ -186,9 +186,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('filterItemsSimple', function() {
-    var someThisArg = {};
-    var srcDict = {a: 0, b: 30};
-    var dstDict = tr.b.filterItems(srcDict, function(key, value) {
+    const someThisArg = {};
+    const srcDict = {a: 0, b: 30};
+    const dstDict = tr.b.filterItems(srcDict, function(key, value) {
       assert.strictEqual(this, someThisArg);
       return value >= 30;
     }, someThisArg);
@@ -197,14 +197,14 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('filterItemsInheritedProps', function() {
-    var srcDict = {
+    const srcDict = {
       a: 0,
       b: 30,
       __proto__: {
         c: 40
       }
     };
-    var dstDict = tr.b.filterItems(srcDict, function(key, value) {
+    const dstDict = tr.b.filterItems(srcDict, function(key, value) {
       return value >= 30;
     });
     assert.lengthOf(Object.keys(dstDict), 1);
@@ -212,8 +212,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('inPlaceFilter_simple', function() {
-    let someThisArg = {};
-    let list = [1, 2, 3, 4];
+    const someThisArg = {};
+    const list = [1, 2, 3, 4];
     tr.b.inPlaceFilter(list, function(item) {
       assert.strictEqual(this, someThisArg);
       return item % 2 === 0;
@@ -222,13 +222,13 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('invertArrayOfDicts_defaultGetter', function() {
-    var array = [
+    const array = [
       {a: 6, b: 5},
       undefined,
       {a: 4, b: 3, c: 2},
       {b: 1, c: 0}
     ];
-    var dict = tr.b.invertArrayOfDicts(array);
+    const dict = tr.b.invertArrayOfDicts(array);
     assert.sameMembers(Object.keys(dict), ['a', 'b', 'c']);
     assert.deepEqual(tr.b.asArray(dict.a), [6, undefined, 4, undefined]);
     assert.deepEqual(tr.b.asArray(dict.b), [5, undefined, 3, 1]);
@@ -236,14 +236,14 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('invertArrayOfDicts_customGetter', function() {
-    var fakeThis = { itemToDict: JSON.parse };
-    var array = [
+    const fakeThis = { itemToDict: JSON.parse };
+    const array = [
       '{"a": "test", "b": true}',
       '{}',
       '{invalid-json}',
       '{"a": 42, "c": false}'
     ];
-    var dict = tr.b.invertArrayOfDicts(array, function(item) {
+    const dict = tr.b.invertArrayOfDicts(array, function(item) {
       try {
         return this.itemToDict(item);
       } catch (e) {
@@ -260,9 +260,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('arrayToDict', function() {
-    var fakeThis = { prefix: 'key_' };
-    var array = [5, undefined, 'test'];
-    var dict = tr.b.arrayToDict(array, function(value) {
+    const fakeThis = { prefix: 'key_' };
+    const array = [5, undefined, 'test'];
+    const dict = tr.b.arrayToDict(array, function(value) {
       return this.prefix + value;
     }, fakeThis);
     assert.deepEqual(dict, {
@@ -280,33 +280,33 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(tr.b.identity(-273.15), -273.15);
 
     // List.
-    var list = ['list', 'with', 1, undefined, 'value'];
+    const list = ['list', 'with', 1, undefined, 'value'];
     assert.strictEqual(tr.b.identity(list), list);
 
     // Object.
-    var object = {'hasItems': true};
+    const object = {'hasItems': true};
     assert.strictEqual(tr.b.identity(object), object);
   });
 
   test('findFirstKeyInDictMatching', function() {
-    var dict = {a: 1, b: 2, c: 3};
+    const dict = {a: 1, b: 2, c: 3};
 
-    var k = tr.b.findFirstKeyInDictMatching(dict, function(key, value) {
+    let k = tr.b.findFirstKeyInDictMatching(dict, function(key, value) {
       return value === 2;
     }, this);
     assert.strictEqual(k, 'b');
 
-    var k = tr.b.findFirstKeyInDictMatching(dict, function(key, value) {
+    k = tr.b.findFirstKeyInDictMatching(dict, function(key, value) {
       return false;
     }, this);
     assert.strictEqual(k, undefined);
   });
 
   test('dictionaryContainsValue', function() {
-    var emptyDict = {};
+    const emptyDict = {};
     assert.isFalse(tr.b.dictionaryContainsValue(emptyDict, 'missing'));
 
-    var nonEmptyDict = {a: 42, b: 'value'};
+    const nonEmptyDict = {a: 42, b: 'value'};
     assert.isTrue(tr.b.dictionaryContainsValue(nonEmptyDict, 42));
     assert.isTrue(tr.b.dictionaryContainsValue(nonEmptyDict, 'value'));
     assert.isFalse(tr.b.dictionaryContainsValue(nonEmptyDict, 'a'));
@@ -315,11 +315,11 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('mapValues', function() {
-    var map = new Map();
+    const map = new Map();
     map.set('a', 1);
     map.set('b', 2);
     map.set('c', 3);
-    var values = tr.b.mapValues(map);
+    const values = tr.b.mapValues(map);
     assert.strictEqual(values.length, 3);
     assert.sameMembers([1, 2, 3], values);
   });

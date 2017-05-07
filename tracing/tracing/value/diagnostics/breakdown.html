@@ -19,7 +19,7 @@ tr.exportTo('tr.v.d', function() {
     }
 
     clone() {
-      let clone = new Breakdown();
+      const clone = new Breakdown();
       clone.colorScheme = this.colorScheme;
       clone.addDiagnostic(this);
       return clone;
@@ -31,7 +31,7 @@ tr.exportTo('tr.v.d', function() {
     }
 
     addDiagnostic(otherDiagnostic) {
-      for (let [name, value] of otherDiagnostic) {
+      for (const [name, value] of otherDiagnostic) {
         this.set(name, this.get(name) + value);
       }
       return this;
@@ -60,14 +60,14 @@ tr.exportTo('tr.v.d', function() {
     }
 
     * [Symbol.iterator]() {
-      for (let pair of this.values_) {
+      for (const pair of this.values_) {
         yield pair;
       }
     }
 
     asDictInto_(d) {
       d.values = {};
-      for (let [name, value] of this) {
+      for (const [name, value] of this) {
         d.values[name] = tr.b.numberToJson(value);
       }
       if (this.colorScheme) {
@@ -76,8 +76,8 @@ tr.exportTo('tr.v.d', function() {
     }
 
     static fromDict(d) {
-      let breakdown = new Breakdown();
-      for (let [name, value] of Object.entries(d.values)) {
+      const breakdown = new Breakdown();
+      for (const [name, value] of Object.entries(d.values)) {
         breakdown.set(name, tr.b.numberFromJson(value));
       }
       if (d.colorScheme) {

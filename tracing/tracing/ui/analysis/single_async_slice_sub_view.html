@@ -54,7 +54,7 @@ Polymer({
 
   getEventRows_(event) {
     // TODO(nduca): Figure out if there is a cleaner way to do this.
-    var rows = this.__proto__.__proto__.getEventRows_(event);
+    const rows = this.__proto__.__proto__.getEventRows_(event);
 
     // Put the ID up top.
     rows.splice(0, 0, {

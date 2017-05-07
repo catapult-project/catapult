@@ -111,12 +111,12 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.analysis', function() {
-  var Scalar = tr.b.Scalar;
-  var sizeInBytes_smallerIsBetter =
+  const Scalar = tr.b.Scalar;
+  const sizeInBytes_smallerIsBetter =
       tr.b.Unit.byName.sizeInBytes_smallerIsBetter;
-  var count_smallerIsBetter = tr.b.Unit.byName.count_smallerIsBetter;
-  var MultiDimensionalViewBuilder = tr.b.MultiDimensionalViewBuilder;
-  var TotalState = tr.b.MultiDimensionalViewNode.TotalState;
+  const count_smallerIsBetter = tr.b.Unit.byName.count_smallerIsBetter;
+  const MultiDimensionalViewBuilder = tr.b.MultiDimensionalViewBuilder;
+  const TotalState = tr.b.MultiDimensionalViewNode.TotalState;
 
   /** @{constructor} */
   function HeapDumpTreeNode(
@@ -172,14 +172,14 @@ tr.exportTo('tr.ui.analysis', function() {
     addDimensionChildNodes_(dimension, dimensionIndex) {
       // Child title -> Timestamp (list index) -> Child
       // MultiDimensionalViewNode.
-      var dimensionChildTitleToStackFrameNodes = tr.b.invertArrayOfDicts(
+      const dimensionChildTitleToStackFrameNodes = tr.b.invertArrayOfDicts(
           this.stackFrameNodes_,
           node => this.convertStackFrameNodeDimensionToChildDict_(
               node, dimensionIndex));
 
       // Child title (list index) -> Child HeapDumpTreeNode.
-      var dimensionChildNodes = [];
-      for (var [childTitle, childStackFrameNodes] of
+      const dimensionChildNodes = [];
+      for (const [childTitle, childStackFrameNodes] of
           Object.entries(dimensionChildTitleToStackFrameNodes)) {
         dimensionChildNodes.push(new HeapDumpTreeNode(childStackFrameNodes,
             dimension, childTitle, this.heavyView_, this));
@@ -189,13 +189,13 @@ tr.exportTo('tr.ui.analysis', function() {
 
     convertStackFrameNodeDimensionToChildDict_(
         stackFrameNode, dimensionIndex) {
-      var childDict = {};
+      const childDict = {};
 
-      var displayedChildrenTotalSize = 0;
-      var displayedChildrenTotalCount = 0;
-      var hasDisplayedChildren = false;
-      var allDisplayedChildrenHaveDisplayedCounts = true;
-      for (var child of stackFrameNode.children[dimensionIndex].values()) {
+      let displayedChildrenTotalSize = 0;
+      let displayedChildrenTotalCount = 0;
+      let hasDisplayedChildren = false;
+      let allDisplayedChildrenHaveDisplayedCounts = true;
+      for (const child of stackFrameNode.children[dimensionIndex].values()) {
         if (child.values[0].totalState < this.minDisplayedTotalState_) {
           continue;
         }
@@ -208,18 +208,18 @@ tr.exportTo('tr.ui.analysis', function() {
         hasDisplayedChildren = true;
       }
 
-      var nodeTotalSize = stackFrameNode.values[0].total;
-      var nodeTotalCount = stackFrameNode.values[1].total;
+      const nodeTotalSize = stackFrameNode.values[0].total;
+      const nodeTotalCount = stackFrameNode.values[1].total;
 
       // Add '<other>' node if necessary in tree-view.
-      var hasUnclassifiedSizeOrCount =
+      const hasUnclassifiedSizeOrCount =
           displayedChildrenTotalSize < nodeTotalSize ||
           displayedChildrenTotalCount < nodeTotalCount;
       if (!this.heavyView_ && hasUnclassifiedSizeOrCount &&
           hasDisplayedChildren) {
-        var otherTitle = stackFrameNode.title.slice();
+        const otherTitle = stackFrameNode.title.slice();
         otherTitle[dimensionIndex] = '<other>';
-        var otherNode = new tr.b.MultiDimensionalViewNode(otherTitle, 2);
+        const otherNode = new tr.b.MultiDimensionalViewNode(otherTitle, 2);
         childDict[otherTitle[dimensionIndex]] = otherNode;
 
         // '<other>' node size.
@@ -245,13 +245,13 @@ tr.exportTo('tr.ui.analysis', function() {
       // of the values of its numeric).
       this.lazyCells_ = tr.ui.analysis.createCells(this.stackFrameNodes_,
           function(stackFrameNode) {
-            var size = stackFrameNode.values[0].total;
-            var numerics = {
+            const size = stackFrameNode.values[0].total;
+            const numerics = {
               'Size': new Scalar(sizeInBytes_smallerIsBetter, size)
             };
-            var countValue = stackFrameNode.values[1];
+            const countValue = stackFrameNode.values[1];
             if (countValue.totalState >= this.minDisplayedTotalState_) {
-              var count = countValue.total;
+              const count = countValue.total;
               numerics.Count = new Scalar(
                   count_smallerIsBetter, count);
             }
@@ -389,13 +389,13 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     createHeapTree_() {
-      var definedHeapDump = tr.b.findFirstInArray(this.heapDumps_);
+      const definedHeapDump = tr.b.findFirstInArray(this.heapDumps_);
       if (definedHeapDump === undefined) return undefined;
 
       // The title of the root node is the name of the allocator.
-      var rootRowTitle = definedHeapDump.allocatorName;
+      const rootRowTitle = definedHeapDump.allocatorName;
 
-      var stackFrameTrees = this.createStackFrameTrees_(this.heapDumps_);
+      const stackFrameTrees = this.createStackFrameTrees_(this.heapDumps_);
 
       return new HeapDumpTreeNode(stackFrameTrees,
           tr.ui.analysis.HeapDetailsRowDimension.ROOT, rootRowTitle,
@@ -403,8 +403,8 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     createStackFrameTrees_(heapDumps) {
-      var builders = heapDumps.map(heapDump => this.createBuilder_(heapDump));
-      var views = builders.map(builder => {
+      const builders = heapDumps.map(heapDump => this.createBuilder_(heapDump));
+      const views = builders.map(builder => {
         if (builder === undefined) return undefined;
         return builder.buildView(this.viewMode);
       });
@@ -418,18 +418,18 @@ tr.exportTo('tr.ui.analysis', function() {
         return this.cachedBuilders_.get(heapDump);
       }
 
-      var dimensions = 2; // stack frames, object type
-      var valueCount = 2; // size, count
-      var builder = new MultiDimensionalViewBuilder(dimensions, valueCount);
+      const dimensions = 2; // stack frames, object type
+      const valueCount = 2; // size, count
+      const builder = new MultiDimensionalViewBuilder(dimensions, valueCount);
 
       // Build the heap tree.
-      for (var entry of heapDump.entries) {
-        var leafStackFrame = entry.leafStackFrame;
-        var stackTracePath = leafStackFrame === undefined ?
+      for (const entry of heapDump.entries) {
+        const leafStackFrame = entry.leafStackFrame;
+        const stackTracePath = leafStackFrame === undefined ?
             [] : leafStackFrame.getUserFriendlyStackTrace().reverse();
 
-        var objectTypeName = entry.objectTypeName;
-        var objectTypeNamePath = objectTypeName === undefined ?
+        const objectTypeName = entry.objectTypeName;
+        const objectTypeNamePath = objectTypeName === undefined ?
             [] : [objectTypeName];
 
         builder.addPath([stackTracePath, objectTypeNamePath],

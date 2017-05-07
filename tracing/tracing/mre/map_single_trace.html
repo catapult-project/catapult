@@ -17,14 +17,14 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.mre', function() {
-  var Failure = tr.mre.Failure;
+  const Failure = tr.mre.Failure;
 
   function runAndConvertErrorsToFailures(result, job,
       traceHandle, cb, opt_this) {
     try {
       cb.call(opt_this);
     } catch (e) {
-      var err = tr.b.normalizeException(e);
+      const err = tr.b.normalizeException(e);
       // TODO(eakuefner): Set job once reduction is implemented.
       result.addFailure(new Failure(
           job, job.mapFunctionHandle.asUserFriendlyString(),
@@ -34,8 +34,8 @@ tr.exportTo('tr.mre', function() {
 
   function mapSingleTrace(result, model, options, mapFunction) {
     // Map the function.
-    var numPairsBeforeMapping = tr.b.dictionaryLength(result.pairs);
-    var numFailuresBeforeMapping = result.failures.length;
+    const numPairsBeforeMapping = tr.b.dictionaryLength(result.pairs);
+    const numFailuresBeforeMapping = result.failures.length;
     try {
       mapFunction(result, model, options);
     } catch (ex) {
@@ -43,11 +43,11 @@ tr.exportTo('tr.mre', function() {
       throw ex;
     }
 
-    var addedPairs = (tr.b.dictionaryLength(result.pairs) >
+    const addedPairs = (tr.b.dictionaryLength(result.pairs) >
         numPairsBeforeMapping);
-    var addedFailures = result.failures.length > numFailuresBeforeMapping;
+    const addedFailures = result.failures.length > numFailuresBeforeMapping;
     if (!(addedPairs || addedFailures)) {
-      var err = new Error('Mapper did not add any results!');
+      const err = new Error('Mapper did not add any results!');
       err.name = 'NoResultsAddedError';
       throw err;
     }

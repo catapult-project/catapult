@@ -10,18 +10,18 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-var GREEK_SMALL_LETTER_MU = String.fromCharCode(956);
+const GREEK_SMALL_LETTER_MU = String.fromCharCode(956);
 
 tr.exportTo('tr.b', function() {
-  var SECONDS_IN_A_MINUTE = 60;
-  var SECONDS_IN_AN_HOUR = SECONDS_IN_A_MINUTE * 60;
-  var SECONDS_IN_A_DAY = SECONDS_IN_AN_HOUR * 24;
-  var SECONDS_IN_A_WEEK = SECONDS_IN_A_DAY * 7;
-  var SECONDS_IN_A_YEAR = SECONDS_IN_A_DAY * 365.2422;
-  var SECONDS_IN_A_MONTH = SECONDS_IN_A_YEAR / 12;
+  const SECONDS_IN_A_MINUTE = 60;
+  const SECONDS_IN_AN_HOUR = SECONDS_IN_A_MINUTE * 60;
+  const SECONDS_IN_A_DAY = SECONDS_IN_AN_HOUR * 24;
+  const SECONDS_IN_A_WEEK = SECONDS_IN_A_DAY * 7;
+  const SECONDS_IN_A_YEAR = SECONDS_IN_A_DAY * 365.2422;
+  const SECONDS_IN_A_MONTH = SECONDS_IN_A_YEAR / 12;
 
-  var UnitPrefixScale = {};
-  var UnitScale = {};
+  const UnitPrefixScale = {};
+  const UnitScale = {};
 
   function defineUnitPrefixScale(name, prefixes) {
     if (UnitPrefixScale[name] !== undefined) {
@@ -66,14 +66,14 @@ tr.exportTo('tr.b', function() {
     if (!prefixScale) {
       throw new Error('Cannot create UnitScale without a prefix scale.');
     }
-    var unitScale = {};
-    for (var curPrefix of Object.keys(prefixScale)) {
-      var curScale = prefixScale[curPrefix];
+    const unitScale = {};
+    for (const curPrefix of Object.keys(prefixScale)) {
+      const curScale = prefixScale[curPrefix];
       if (curScale.symbol === undefined || !curScale.value) {
         throw new Error(
             `Cannot convert PrefixScale with malformed prefix ${curScale}.`);
       }
-      var name = curPrefix === 'NONE' ? baseName : `${curPrefix}_${baseName}`;
+      const name = curPrefix === 'NONE' ? baseName : `${curPrefix}_${baseName}`;
       unitScale[name] = {
         value: curScale.value,
         symbol: curScale.symbol + baseSymbol,
@@ -98,8 +98,8 @@ tr.exportTo('tr.b', function() {
   */
   function convertUnit(value, fromScale, toScale) {
     if (value === undefined) return undefined;
-    var fromScaleBase = fromScale.baseSymbol;
-    var toScaleBase = toScale.baseSymbol;
+    const fromScaleBase = fromScale.baseSymbol;
+    const toScaleBase = toScale.baseSymbol;
     if (fromScaleBase !== undefined && toScaleBase !== undefined &&
         fromScaleBase !== toScaleBase) {
       throw new Error(

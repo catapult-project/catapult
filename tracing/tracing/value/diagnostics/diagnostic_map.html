@@ -65,7 +65,7 @@ tr.exportTo('tr.v.d', function() {
      * @param {Object} dict
      */
     addDicts(dict) {
-      for (var [name, diagnosticDict] of Object.entries(dict)) {
+      for (const [name, diagnosticDict] of Object.entries(dict)) {
         if (typeof diagnosticDict === 'string') {
           this.set(name, new tr.v.d.DiagnosticRef(diagnosticDict));
         } else {
@@ -75,13 +75,13 @@ tr.exportTo('tr.v.d', function() {
     }
 
     resolveSharedDiagnostics(histograms, opt_required) {
-      for (let [name, diagnostic] of this) {
-        if (!(diagnostic instanceof tr.v.d.DiagnosticRef)) {
+      for (const [name, value] of this) {
+        if (!(value instanceof tr.v.d.DiagnosticRef)) {
           continue;
         }
 
-        let guid = diagnostic.guid;
-        diagnostic = histograms.lookupDiagnostic(guid);
+        const guid = value.guid;
+        const diagnostic = histograms.lookupDiagnostic(guid);
         if (diagnostic instanceof tr.v.d.Diagnostic) {
           this.set(name, diagnostic);
         } else if (opt_required) {
@@ -91,36 +91,36 @@ tr.exportTo('tr.v.d', function() {
     }
 
     asDict() {
-      let dict = {};
-      for (let [name, diagnostic] of this) {
+      const dict = {};
+      for (const [name, diagnostic] of this) {
         dict[name] = diagnostic.asDictOrReference();
       }
       return dict;
     }
 
     static fromDict(d) {
-      let diagnostics = new DiagnosticMap();
+      const diagnostics = new DiagnosticMap();
       diagnostics.addDicts(d);
       return diagnostics;
     }
 
     static fromObject(obj) {
-      let diagnostics = new DiagnosticMap();
-      for (let [name, diagnostic] of Object.entries(obj)) {
+      const diagnostics = new DiagnosticMap();
+      for (const [name, diagnostic] of Object.entries(obj)) {
         diagnostics.set(name, diagnostic);
       }
       return diagnostics;
     }
 
     addDiagnostics(other) {
-      for (let [name, otherDiagnostic] of other) {
+      for (const [name, otherDiagnostic] of other) {
         if (name === MERGED_FROM_DIAGNOSTIC_KEY ||
             name === MERGED_TO_DIAGNOSTIC_KEY ||
             name === tr.v.d.GroupingPath) {
           continue;
         }
 
-        let myDiagnostic = this.get(name);
+        const myDiagnostic = this.get(name);
 
         if (myDiagnostic !== undefined &&
             myDiagnostic.canAddDiagnostic(otherDiagnostic)) {
@@ -144,7 +144,7 @@ tr.exportTo('tr.v.d', function() {
         // another way of cloning that is specifically targeted at supporting
         // merging: clone().
 
-        let clone = otherDiagnostic.clone();
+        const clone = otherDiagnostic.clone();
 
         if (myDiagnostic === undefined) {
           this.set(name, clone);
@@ -167,7 +167,7 @@ tr.exportTo('tr.v.d', function() {
      * @param {!tr.v.Histogram} parentHist
      */
     mergeRelationships(parentHist) {
-      for (let [name, diagnostic] of this) {
+      for (const [name, diagnostic] of this) {
         if (!(diagnostic instanceof tr.v.d.RelatedHistogramSet) &&
             !(diagnostic instanceof tr.v.d.RelatedHistogramMap) &&
             !(diagnostic instanceof tr.v.d.RelatedHistogramBreakdown) &&
@@ -175,8 +175,8 @@ tr.exportTo('tr.v.d', function() {
           continue;
         }
 
-        for (let otherHist of this.get(MERGED_FROM_DIAGNOSTIC_KEY)) {
-          let otherDiagnostic = otherHist.diagnostics.get(name);
+        for (const otherHist of this.get(MERGED_FROM_DIAGNOSTIC_KEY)) {
+          const otherDiagnostic = otherHist.diagnostics.get(name);
           if (!(otherDiagnostic instanceof tr.v.d.RelatedHistogramSet) &&
               !(otherDiagnostic instanceof tr.v.d.RelatedHistogramMap) &&
               !(otherDiagnostic instanceof tr.v.d.RelatedHistogramBreakdown) &&

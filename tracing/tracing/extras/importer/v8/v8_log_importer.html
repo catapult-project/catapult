@@ -8,9 +8,9 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/color_scheme.html">
 <link rel="import" href="/tracing/extras/importer/v8/codemap.html">
 <link rel="import" href="/tracing/extras/importer/v8/log_reader.html">
+<link rel="import" href="/tracing/extras/v8/v8_cpu_profile_node.html">
 <link rel="import" href="/tracing/importer/importer.html">
 <link rel="import" href="/tracing/model/model.html">
-<link rel="import" href="/tracing/model/profile_node.html">
 <link rel="import" href="/tracing/model/profile_tree.html">
 <link rel="import" href="/tracing/model/slice.html">
 
@@ -22,14 +22,13 @@ found in the LICENSE file.
  * @fileoverview V8LogImporter imports v8.log files into the provided model.
  */
 tr.exportTo('tr.e.importer.v8', function() {
-  var CodeEntry = tr.e.importer.v8.CodeMap.CodeEntry;
-  var CodeMap = tr.e.importer.v8.CodeMap;
-  var ColorScheme = tr.b.ColorScheme;
-  var DynamicFuncCodeEntry = tr.e.importer.v8.CodeMap.DynamicFuncCodeEntry;
-  var FunctionEntry = tr.e.importer.v8.CodeMap.FunctionEntry;
-  var ProfileNodeType =
-      tr.model.ProfileNode.subTypes.getConstructor(undefined,
-          'legacySample');
+  const CodeEntry = tr.e.importer.v8.CodeMap.CodeEntry;
+  const CodeMap = tr.e.importer.v8.CodeMap;
+  const ColorScheme = tr.b.ColorScheme;
+  const DynamicFuncCodeEntry = tr.e.importer.v8.CodeMap.DynamicFuncCodeEntry;
+  const FunctionEntry = tr.e.importer.v8.CodeMap.FunctionEntry;
+  const ProfileNodeType = tr.model.ProfileNode.subTypes.getConstructor(
+      undefined, 'legacySample');
 
   function V8LogImporter(model, eventData) {
     this.importPriority = 3;
@@ -55,10 +54,10 @@ tr.exportTo('tr.e.importer.v8', function() {
     this.v8_stack_timeline_ = [];
   }
 
-  var kV8BinarySuffixes = ['/d8', '/libv8.so'];
+  const kV8BinarySuffixes = ['/d8', '/libv8.so'];
 
 
-  var TimerEventDefaultArgs = {
+  const TimerEventDefaultArgs = {
     'V8.Execute': { pause: false, no_execution: false},
     'V8.External': { pause: false, no_execution: true},
     'V8.CompileFullCode': { pause: true, no_execution: true},
@@ -98,31 +97,31 @@ tr.exportTo('tr.e.importer.v8', function() {
     },
 
     processTimerEvent_(name, startInUs, lengthInUs) {
-      var args = TimerEventDefaultArgs[name];
+      const args = TimerEventDefaultArgs[name];
       if (args === undefined) return;
-      var startInMs = tr.b.convertUnit(startInUs,
+      const startInMs = tr.b.convertUnit(startInUs,
           tr.b.UnitPrefixScale.METRIC.MICRO,
           tr.b.UnitPrefixScale.METRIC.MILLI);
-      var lengthInMs = tr.b.convertUnit(lengthInUs,
+      const lengthInMs = tr.b.convertUnit(lengthInUs,
           tr.b.UnitPrefixScale.METRIC.MICRO,
           tr.b.UnitPrefixScale.METRIC.MILLI);
-      var colorId = ColorScheme.getColorIdForGeneralPurposeString(name);
-      var slice = new tr.model.ThreadSlice('v8', name, colorId, startInMs,
+      const colorId = ColorScheme.getColorIdForGeneralPurposeString(name);
+      const slice = new tr.model.ThreadSlice('v8', name, colorId, startInMs,
           args, lengthInMs);
       this.v8_timer_thread_.sliceGroup.pushSlice(slice);
     },
 
     processTimerEventStart_(name, startInUs) {
-      var args = TimerEventDefaultArgs[name];
+      const args = TimerEventDefaultArgs[name];
       if (args === undefined) return;
-      var startInMs = tr.b.convertUnit(startInUs,
+      const startInMs = tr.b.convertUnit(startInUs,
           tr.b.UnitPrefixScale.METRIC.MICRO,
           tr.b.UnitPrefixScale.METRIC.MILLI);
       this.v8_timer_thread_.sliceGroup.beginSlice('v8', name, startInMs, args);
     },
 
     processTimerEventEnd_(name, endInUs) {
-      var endInMs = tr.b.convertUnit(endInUs,
+      const endInMs = tr.b.convertUnit(endInUs,
           tr.b.UnitPrefixScale.METRIC.MICRO,
           tr.b.UnitPrefixScale.METRIC.MILLI);
       this.v8_timer_thread_.sliceGroup.endSlice(endInMs);
@@ -140,9 +139,9 @@ tr.exportTo('tr.e.importer.v8', function() {
       }
 
       if (maybeFunc.length) {
-        var funcAddr = parseInt(maybeFunc[0]);
-        var state = parseState(maybeFunc[1]);
-        var func = this.code_map_.findDynamicEntryByStartAddress(funcAddr);
+        const funcAddr = parseInt(maybeFunc[0]);
+        const state = parseState(maybeFunc[1]);
+        let func = this.code_map_.findDynamicEntryByStartAddress(funcAddr);
         if (!func) {
           func = new FunctionEntry(name);
           func.kind = kind;
@@ -151,7 +150,7 @@ tr.exportTo('tr.e.importer.v8', function() {
           // Function object has been overwritten with a new one.
           func.name = name;
         }
-        var entry = this.code_map_.findDynamicEntryByStartAddress(address);
+        let entry = this.code_map_.findDynamicEntryByStartAddress(address);
         if (entry) {
           if (entry.size === size && entry.func === func) {
             // Entry state has changed.
@@ -163,7 +162,7 @@ tr.exportTo('tr.e.importer.v8', function() {
           this.code_map_.addCode(address, entry);
         }
       } else {
-        var codeEntry = new CodeEntry(size, name);
+        const codeEntry = new CodeEntry(size, name);
         codeEntry.kind = kind;
         this.code_map_.addCode(address, codeEntry);
       }
@@ -178,11 +177,11 @@ tr.exportTo('tr.e.importer.v8', function() {
     },
 
     processSharedLibrary_(name, start, end) {
-      var codeEntry = new CodeEntry(end - start, name,
+      const codeEntry = new CodeEntry(end - start, name,
                                      CodeEntry.TYPE.SHARED_LIB);
       codeEntry.kind = -3;  // External code kind.
-      for (var i = 0; i < kV8BinarySuffixes.length; i++) {
-        var suffix = kV8BinarySuffixes[i];
+      for (let i = 0; i < kV8BinarySuffixes.length; i++) {
+        const suffix = kV8BinarySuffixes[i];
         if (name.indexOf(suffix, name.length - suffix.length) >= 0) {
           codeEntry.kind = -1;  // V8 runtime code kind.
           break;
@@ -192,19 +191,19 @@ tr.exportTo('tr.e.importer.v8', function() {
     },
 
     processCppSymbol_(address, size, name) {
-      var codeEntry = new CodeEntry(size, name, CodeEntry.TYPE.CPP);
+      const codeEntry = new CodeEntry(size, name, CodeEntry.TYPE.CPP);
       codeEntry.kind = -1;
       this.code_map_.addStaticCode(address, codeEntry);
     },
 
     processTickEvent_(pc, startInUs, isExternalCallback,
         tosOrExternalCallback, vmstate, stack) {
-      var startInMs = tr.b.convertUnit(startInUs,
+      const startInMs = tr.b.convertUnit(startInUs,
           tr.b.UnitPrefixScale.METRIC.MICRO,
           tr.b.UnitPrefixScale.METRIC.MILLI);
 
       function findChildWithEntryID(stackFrame, entryID) {
-        for (var i = 0; i < stackFrame.children.length; i++) {
+        for (let i = 0; i < stackFrame.children.length; i++) {
           if (stackFrame.children[i].entryID === entryID) {
             return stackFrame.children[i];
           }
@@ -213,11 +212,11 @@ tr.exportTo('tr.e.importer.v8', function() {
       }
 
       function processStack(pc, func, stack) {
-        var fullStack = func ? [pc, func] : [pc];
-        var prevFrame = pc;
-        for (var i = 0, n = stack.length; i < n; ++i) {
-          var frame = stack[i];
-          var firstChar = frame.charAt(0);
+        const fullStack = func ? [pc, func] : [pc];
+        let prevFrame = pc;
+        for (let i = 0, n = stack.length; i < n; ++i) {
+          const frame = stack[i];
+          const firstChar = frame.charAt(0);
           if (firstChar === '+' || firstChar === '-') {
             // An offset from the previous frame.
             prevFrame += parseInt(frame, 16);
@@ -241,7 +240,7 @@ tr.exportTo('tr.e.importer.v8', function() {
       } else if (tosOrExternalCallback) {
         // Find out, if top of stack was pointing inside a JS function
         // meaning that we have encountered a frameless invocation.
-        var funcEntry = this.code_map_.findEntry(tosOrExternalCallback);
+        const funcEntry = this.code_map_.findEntry(tosOrExternalCallback);
         if (!funcEntry ||
             !funcEntry.isJSFunction ||
             !funcEntry.isJSFunction()) {
@@ -249,31 +248,31 @@ tr.exportTo('tr.e.importer.v8', function() {
         }
       }
 
-      var processedStack = processStack(pc, tosOrExternalCallback, stack);
-      var node = undefined;
-      var lastNode = undefined;
+      let processedStack = processStack(pc, tosOrExternalCallback, stack);
+      let node = undefined;
+      let lastNode = undefined;
       // v8 log stacks are inverted, leaf first and the root at the end.
       processedStack = processedStack.reverse();
-      for (var i = 0, n = processedStack.length; i < n; i++) {
-        var frame = processedStack[i];
+      for (let i = 0, n = processedStack.length; i < n; i++) {
+        const frame = processedStack[i];
         if (!frame) break;
-        var entry = this.code_map_.findEntry(frame);
+        const entry = this.code_map_.findEntry(frame);
 
         if (!entry && i !== 0) {
           continue;
         }
 
-        var sourceInfo = undefined;
+        let sourceInfo = undefined;
         if (entry && entry.type === CodeEntry.TYPE.CPP) {
-          var libEntry = this.code_map_.findEntryInLibraries(frame);
+          const libEntry = this.code_map_.findEntryInLibraries(frame);
           if (libEntry) {
             sourceInfo = {
               file: libEntry.name
             };
           }
         }
-        var entryId = entry ? entry.id : -1;
-        var node = this.profileTree_.getNode(entryId);
+        const entryId = entry ? entry.id : -1;
+        node = this.profileTree_.getNode(entryId);
         if (node === undefined) {
           node = this.profileTree_.add(new ProfileNodeType(
             entryId, {
@@ -286,10 +285,8 @@ tr.exportTo('tr.e.importer.v8', function() {
         }
         lastNode = node;
       }
-      this.model_.samples.push(
-          new tr.model.Sample(
-          startInMs, 'V8 PC', node, this.v8_thread_,
-          undefined, 1));
+      this.model_.samples.push(new tr.model.Sample(
+          startInMs, 'V8 PC', node, this.v8_thread_, undefined, 1));
     },
 
     processDistortion_(distortionInPicoseconds) {
@@ -309,7 +306,7 @@ tr.exportTo('tr.e.importer.v8', function() {
      * model_.
      */
     importEvents() {
-      var logreader = new tr.e.importer.v8.LogReader(
+      const logreader = new tr.e.importer.v8.LogReader(
           { 'timer-event': {
             parsers: [null, parseInt, parseInt],
             processor: this.processTimerEvent_.bind(this)
@@ -368,15 +365,15 @@ tr.exportTo('tr.e.importer.v8', function() {
           this.model_.getOrCreateProcess(-32).getOrCreateThread(2);
       this.v8_thread_.name = 'V8';
 
-      var lines = this.logData_.split('\n');
-      for (var i = 0; i < lines.length; i++) {
+      const lines = this.logData_.split('\n');
+      for (let i = 0; i < lines.length; i++) {
         logreader.processLogLine(lines[i]);
       }
 
       function addSlices(slices, thread) {
-        for (var i = 0; i < slices.length; i++) {
-          var duration = slices[i].end - slices[i].start;
-          var slice = new tr.model.ThreadSlice('v8', slices[i].name,
+        for (let i = 0; i < slices.length; i++) {
+          const duration = slices[i].end - slices[i].start;
+          const slice = new tr.model.ThreadSlice('v8', slices[i].name,
               ColorScheme.getColorIdForGeneralPurposeString(slices[i].name),
               slices[i].start, {}, duration);
           thread.sliceGroup.pushSlice(slice);

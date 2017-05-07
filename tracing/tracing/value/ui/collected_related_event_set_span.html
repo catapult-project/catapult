@@ -28,10 +28,10 @@ found in the LICENSE file.
 
     updateContents_() {
       Polymer.dom(this).textContent = '';
-      for (let [canonicalUrl, events] of this.diagnostic) {
-        let link = document.createElement('a');
+      for (const [canonicalUrl, events] of this.diagnostic) {
+        const link = document.createElement('a');
         if (events.length === 1) {
-          let event = tr.b.getOnlyElement(events);
+          const event = tr.b.getOnlyElement(events);
           link.textContent = event.title + ' ' +
             tr.b.Unit.byName.timeDurationInMs.format(event.duration);
         } else {

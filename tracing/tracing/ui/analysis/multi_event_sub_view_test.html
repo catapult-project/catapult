@@ -15,14 +15,14 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var Model = tr.Model;
-  var Thread = tr.model.Thread;
-  var EventSet = tr.model.EventSet;
-  var newSliceEx = tr.c.TestUtils.newSliceEx;
+  const Model = tr.Model;
+  const Thread = tr.model.Thread;
+  const EventSet = tr.model.EventSet;
+  const newSliceEx = tr.c.TestUtils.newSliceEx;
 
   test('differentTitles', function() {
-    var model = new Model();
-    var t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
+    const model = new Model();
+    const t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
     t53.sliceGroup.pushSlice(newSliceEx(
         {title: 'a', start: 0.0, duration: 0.04}));
     t53.sliceGroup.pushSlice(newSliceEx(
@@ -31,62 +31,62 @@ tr.b.unittest.testSuite(function() {
         {title: 'aa', start: 0.5, duration: 0.5}));
     t53.sliceGroup.createSubSlices();
 
-    var t53track = {};
+    const t53track = {};
     t53track.thread = t53;
 
-    var selection = new EventSet();
+    const selection = new EventSet();
     selection.push(t53.sliceGroup.slices[0]);
     selection.push(t53.sliceGroup.slices[1]);
     selection.push(t53.sliceGroup.slices[2]);
 
-    var viewEl = document.createElement('tr-ui-a-multi-event-sub-view');
+    const viewEl = document.createElement('tr-ui-a-multi-event-sub-view');
     viewEl.selection = selection;
     this.addHTMLOutput(viewEl);
 
-    var summaryTableEl = tr.b.findDeepElementMatching(
+    const summaryTableEl = tr.b.findDeepElementMatching(
         viewEl, 'tr-ui-a-multi-event-summary-table');
     assert.isTrue(summaryTableEl.showTotals);
     assert.strictEqual(tr.b.dictionaryLength(summaryTableEl.eventsByTitle), 2);
 
-    var selectionSummaryTableEl = tr.b.findDeepElementMatching(
+    const selectionSummaryTableEl = tr.b.findDeepElementMatching(
         viewEl, 'tr-ui-a-selection-summary-table');
     assert.strictEqual(selectionSummaryTableEl.selection, selection);
 
-    var radioPickerEl =
+    const radioPickerEl =
         tr.b.findDeepElementMatching(viewEl, 'tr-ui-b-radio-picker');
     assert.strictEqual(radioPickerEl.style.display, 'none');
   });
 
   test('sameTitles', function() {
-    var model = new Model();
-    var t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
+    const model = new Model();
+    const t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
     t53.sliceGroup.pushSlice(newSliceEx(
         {title: 'c', start: 0.0, duration: 0.04}));
     t53.sliceGroup.pushSlice(newSliceEx(
         {title: 'c', start: 0.12, duration: 0.06}));
     t53.sliceGroup.createSubSlices();
 
-    var t53track = {};
+    const t53track = {};
     t53track.thread = t53;
 
-    var selection = new EventSet();
+    const selection = new EventSet();
     selection.push(t53.sliceGroup.slices[0]);
     selection.push(t53.sliceGroup.slices[1]);
 
-    var viewEl = document.createElement('tr-ui-a-multi-event-sub-view');
+    const viewEl = document.createElement('tr-ui-a-multi-event-sub-view');
     viewEl.selection = selection;
     this.addHTMLOutput(viewEl);
 
-    var summaryTableEl = tr.b.findDeepElementMatching(
+    const summaryTableEl = tr.b.findDeepElementMatching(
         viewEl, 'tr-ui-a-multi-event-summary-table');
     assert.isFalse(summaryTableEl.showTotals);
     assert.strictEqual(tr.b.dictionaryLength(summaryTableEl.eventsByTitle), 1);
 
-    var selectionSummaryTableEl = tr.b.findDeepElementMatching(
+    const selectionSummaryTableEl = tr.b.findDeepElementMatching(
         viewEl, 'tr-ui-a-selection-summary-table');
     assert.strictEqual(selectionSummaryTableEl.selection, selection);
 
-    var radioPickerEl =
+    const radioPickerEl =
         tr.b.findDeepElementMatching(viewEl, 'tr-ui-b-radio-picker');
     assert.strictEqual(radioPickerEl.style.display, 'block');
   });

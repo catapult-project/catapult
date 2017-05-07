@@ -24,7 +24,7 @@ tr.exportTo('tr.v.d', function() {
     }
 
     clone() {
-      let clone = new MergedBuildbotInfo();
+      const clone = new MergedBuildbotInfo();
       clone.addDiagnostic(this);
       return clone;
     }
@@ -62,22 +62,22 @@ tr.exportTo('tr.v.d', function() {
 
     addDiagnostic(otherDiagnostic) {
       if (otherDiagnostic instanceof MergedBuildbotInfo) {
-        for (let name of otherDiagnostic.displayMasterNames) {
+        for (const name of otherDiagnostic.displayMasterNames) {
           this.displayMasterNames.add(name);
         }
-        for (let name of otherDiagnostic.displayBotNames) {
+        for (const name of otherDiagnostic.displayBotNames) {
           this.displayBotNames.add(name);
         }
-        for (let name of otherDiagnostic.buildbotMasterNames) {
+        for (const name of otherDiagnostic.buildbotMasterNames) {
           this.buildbotMasterNames.add(name);
         }
-        for (let name of otherDiagnostic.buildbotNames) {
+        for (const name of otherDiagnostic.buildbotNames) {
           this.buildbotNames.add(name);
         }
-        for (let name of otherDiagnostic.buildNumbers) {
+        for (const name of otherDiagnostic.buildNumbers) {
           this.buildNumbers.add(name);
         }
-        for (let name of otherDiagnostic.logUris) {
+        for (const name of otherDiagnostic.logUris) {
           this.logUris.add(name);
         }
         return this;
@@ -139,23 +139,23 @@ tr.exportTo('tr.v.d', function() {
     }
 
     static fromDict(d) {
-      let info = new MergedBuildbotInfo();
-      for (let name of d.displayMasterNames) {
+      const info = new MergedBuildbotInfo();
+      for (const name of d.displayMasterNames) {
         info.displayMasterNames.add(name);
       }
-      for (let name of d.displayBotNames) {
+      for (const name of d.displayBotNames) {
         info.displayBotNames.add(name);
       }
-      for (let name of d.buildbotMasterNames) {
+      for (const name of d.buildbotMasterNames) {
         info.buildbotMasterNames.add(name);
       }
-      for (let name of d.buildbotNames) {
+      for (const name of d.buildbotNames) {
         info.buildbotNames.add(name);
       }
-      for (let name of d.buildNumbers) {
+      for (const name of d.buildNumbers) {
         info.buildNumbers.add(name);
       }
-      for (let name of d.logUris) {
+      for (const name of d.logUris) {
         info.logUris.add(name);
       }
       return info;

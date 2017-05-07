@@ -15,12 +15,12 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var newSliceEx = tr.c.TestUtils.newSliceEx;
-  var newFlowEventEx = tr.c.TestUtils.newFlowEventEx;
+  const newSliceEx = tr.c.TestUtils.newSliceEx;
+  const newFlowEventEx = tr.c.TestUtils.newFlowEventEx;
 
   test('instantiate', function() {
-    var model = new tr.Model();
-    var t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
+    const model = new tr.Model();
+    const t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
     t53.sliceGroup.pushSlice(
         newSliceEx({title: 'a', start: 0.0, duration: 0.5,
           type: tr.model.ThreadSlice}));
@@ -29,17 +29,18 @@ tr.b.unittest.testSuite(function() {
           type: tr.model.ThreadSlice}));
     t53.sliceGroup.createSubSlices();
 
-    var selection = new tr.model.EventSet();
+    const selection = new tr.model.EventSet();
     selection.push(t53.sliceGroup.slices[0]);
     selection.push(t53.sliceGroup.slices[1]);
 
-    var viewEl = document.createElement('tr-ui-a-multi-thread-slice-sub-view');
+    const viewEl = document.createElement(
+        'tr-ui-a-multi-thread-slice-sub-view');
     viewEl.selection = selection;
     this.addHTMLOutput(viewEl);
   });
 
   test('withFlows', function() {
-    var m = tr.c.TestUtils.newModel(function(m) {
+    const m = tr.c.TestUtils.newModel(function(m) {
       m.p1 = m.getOrCreateProcess(1);
 
       m.t2 = m.p1.getOrCreateThread(2);
@@ -72,12 +73,13 @@ tr.b.unittest.testSuite(function() {
       });
     });
 
-    var selection = new tr.model.EventSet();
+    const selection = new tr.model.EventSet();
     selection.push(m.sA);
     selection.push(m.sB);
     selection.push(m.sC);
 
-    var viewEl = document.createElement('tr-ui-a-multi-thread-slice-sub-view');
+    const viewEl = document.createElement(
+        'tr-ui-a-multi-thread-slice-sub-view');
     viewEl.selection = selection;
     this.addHTMLOutput(viewEl);
   });

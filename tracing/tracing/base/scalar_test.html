@@ -16,14 +16,14 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('nonNumberScalarThrows', function() {
-    var unit = tr.b.Unit.byName.sizeInBytes;
+    const unit = tr.b.Unit.byName.sizeInBytes;
     assert.throws(function() { new tr.b.Scalar(unit, 'foo'); });
   });
 
   test('scalarBasic', function() {
-    var unit = tr.b.Unit.byName.sizeInBytes;
+    const unit = tr.b.Unit.byName.sizeInBytes;
 
-    var d = {
+    const d = {
       unit: unit.asJSON(),
       value: 42
     };

@@ -9,22 +9,22 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var createDragHandle = function() {
-    var el = document.createElement('div');
+  const createDragHandle = function() {
+    const el = document.createElement('div');
     el.style.border = '1px solid black';
     el.style.width = '200px';
     el.style.height = '200px';
     el.style.display = 'flex';
     el.style.flexDirection = 'column';
 
-    var upperEl = document.createElement('div');
+    const upperEl = document.createElement('div');
     upperEl.style.flex = '1 1 auto';
     upperEl.style.minHeight = '0';
 
-    var lowerEl = document.createElement('div');
+    const lowerEl = document.createElement('div');
     lowerEl.style.height = '100px';
 
-    var dragHandle = document.createElement('tr-ui-b-drag-handle');
+    const dragHandle = document.createElement('tr-ui-b-drag-handle');
     dragHandle.target = lowerEl;
 
     Polymer.dom(el).appendChild(upperEl);
@@ -45,19 +45,19 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('applyDelta', function() {
-    var el = createDragHandle();
+    const el = createDragHandle();
     this.addHTMLOutput(el);
 
-    var dragHandle = el.dragHandle;
-    var oldHeight = el.getLowerElHeight();
+    const dragHandle = el.dragHandle;
+    const oldHeight = el.getLowerElHeight();
     dragHandle.applyDelta_(10);
     assert.strictEqual(el.getLowerElHeight(), oldHeight + 10);
   });
 
   test('classNameMutation', function() {
-    var el = createDragHandle();
+    const el = createDragHandle();
 
-    var styleEl = document.createElement('style');
+    const styleEl = document.createElement('style');
     Polymer.dom(styleEl).textContent =
         '.mode-a { height: 100px; } .mode-b { height: 50px; }';
     Polymer.dom(document.head).appendChild(styleEl);
@@ -65,7 +65,7 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(el);
 
     try {
-      var dragHandle = el.dragHandle;
+      const dragHandle = el.dragHandle;
       el.lowerEl.className = 'mode-a';
       assert.strictEqual(el.getLowerElHeight(), 100);
 

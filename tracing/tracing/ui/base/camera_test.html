@@ -13,7 +13,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   function createQuads() {
-    var quads = [
+    const quads = [
       tr.b.math.Quad.fromXYWH(-500, -500, 30, 30), // 4 corners
       tr.b.math.Quad.fromXYWH(-500, 470, 30, 30),
       tr.b.math.Quad.fromXYWH(470, -500, 30, 30),
@@ -35,8 +35,8 @@ tr.b.unittest.testSuite(function() {
   }
 
   function createQuadStackView(testFramework) {
-    var quads = createQuads();
-    var view = new tr.ui.b.QuadStackView();
+    const quads = createQuads();
+    const view = new tr.ui.b.QuadStackView();
     // simulate the constraints of the layer-tree-view
     view.style.height = '400px';
     view.style.width = '800px';
@@ -48,9 +48,9 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('initialState', function() {
-    var view = createQuadStackView(this);
+    const view = createQuadStackView(this);
 
-    var viewRect =
+    const viewRect =
         view.getBoundingClientRect();
     assert.strictEqual(viewRect.height, 400);
     assert.strictEqual(viewRect.width, 800);

@@ -24,7 +24,7 @@ found in the LICENSE file.
  * @fileoverview Helper functions for use in tracing tests.
  */
 tr.exportTo('tr.c', function() {
-  var ColorScheme = tr.b.ColorScheme;
+  const ColorScheme = tr.b.ColorScheme;
 
   function _getStartAndCpuDurationFromDict(
       options, required, startFieldName, durationFieldName, endFieldName) {
@@ -48,7 +48,7 @@ tr.exportTo('tr.c', function() {
       }
     }
 
-    var duration;
+    let duration;
     if (options[durationFieldName] !== undefined) {
       duration = options[durationFieldName];
     } else {
@@ -81,10 +81,10 @@ tr.exportTo('tr.c', function() {
 
   TestUtils.newAsyncSliceNamed = function(
       name, start, duration, startThread, endThread) {
-    var asyncSliceConstructor =
+    const asyncSliceConstructor =
         tr.model.AsyncSlice.subTypes.getConstructor('', name);
 
-    var s = new asyncSliceConstructor('', name, 0, start);
+    const s = new asyncSliceConstructor('', name, 0, start);
     s.duration = duration;
     s.startThread = startThread;
     s.endThread = endThread;
@@ -92,23 +92,23 @@ tr.exportTo('tr.c', function() {
   };
 
   TestUtils.newAsyncSliceEx = function(options) {
-    var sd = TestUtils.getStartAndDurationFromDict(options);
+    const sd = TestUtils.getStartAndDurationFromDict(options);
 
-    var cat = options.cat ? options.cat : 'cat';
-    var title = options.title ? options.title : 'a';
-    var colorId = options.colorId || 0;
+    const cat = options.cat ? options.cat : 'cat';
+    const title = options.title ? options.title : 'a';
+    const colorId = options.colorId || 0;
 
-    var isTopLevel;
+    let isTopLevel;
     if (options.isTopLevel !== undefined) {
       isTopLevel = options.isTopLevel;
     } else {
       isTopLevel = false;
     }
 
-    var asyncSliceConstructor =
+    const asyncSliceConstructor =
         tr.model.AsyncSlice.subTypes.getConstructor(cat, title);
 
-    var slice = new asyncSliceConstructor(
+    const slice = new asyncSliceConstructor(
         cat,
         title,
         colorId,
@@ -145,37 +145,37 @@ tr.exportTo('tr.c', function() {
   };
 
   TestUtils.newCounterNamed = function(parent, name) {
-    var s = new tr.model.Counter(parent, name, null, name);
+    const s = new tr.model.Counter(parent, name, null, name);
     return s;
   };
 
   TestUtils.newCounterCategory = function(parent, category, name) {
-    var s = new tr.model.Counter(parent, name, category, name);
+    const s = new tr.model.Counter(parent, name, category, name);
     return s;
   };
 
   TestUtils.newCounterSeries = function() {
-    var s = new tr.model.CounterSeries('a', 0);
+    const s = new tr.model.CounterSeries('a', 0);
     return s;
   };
 
   TestUtils.newFlowEventEx = function(options) {
     if (options.start === undefined) throw new Error('Too little info');
 
-    var title = options.title ? options.title : 'a';
+    const title = options.title ? options.title : 'a';
 
-    var colorId = options.colorId ? options.colorId : 0;
+    const colorId = options.colorId ? options.colorId : 0;
 
-    var sd = TestUtils.getStartAndDurationFromDict(options);
+    const sd = TestUtils.getStartAndDurationFromDict(options);
 
-    var id;
+    let id;
     if (options.id !== undefined) {
       id = options.id;
     } else {
       id = tr.b.GUID.allocateSimple();
     }
 
-    var event = new tr.model.FlowEvent(
+    const event = new tr.model.FlowEvent(
         options.cat ? options.cat : 'cat',
         id,
         title,
@@ -205,7 +205,7 @@ tr.exportTo('tr.c', function() {
   };
 
   TestUtils.newThreadSlice = function(thread, state, start, duration, opt_cpu) {
-    var s = new tr.model.ThreadTimeSlice(
+    const s = new tr.model.ThreadTimeSlice(
         thread, state, 'cat', start, {}, duration);
     if (opt_cpu) {
       s.cpuOnWhichThreadWasRunning = opt_cpu;
@@ -215,38 +215,39 @@ tr.exportTo('tr.c', function() {
 
   TestUtils.newSampleNamed = function(
       thread, sampleName, category, frameNames, start) {
-    var model;
+    let model;
     if (thread.parent) {
       model = thread.parent.model;
     } else {
       model = undefined;
     }
-    var node = TestUtils.newProfileNodes(model, frameNames);
-    var s = new tr.model.Sample(start, sampleName, node, thread, undefined, 1);
+    const node = TestUtils.newProfileNodes(model, frameNames);
+    const s = new tr.model.Sample(
+        start, sampleName, node, thread, undefined, 1);
     return s;
   };
 
   TestUtils.newSliceEx = function(options) {
-    var sd = TestUtils.getStartAndDurationFromDict(options);
+    const sd = TestUtils.getStartAndDurationFromDict(options);
 
-    var title = options.title ? options.title : 'a';
+    const title = options.title ? options.title : 'a';
 
-    var colorId = options.colorId ? options.colorId : 0;
+    const colorId = options.colorId ? options.colorId : 0;
 
-    var cpuSD = _maybeGetCpuStartAndCpuDurationFromDict(options);
+    const cpuSD = _maybeGetCpuStartAndCpuDurationFromDict(options);
 
-    var cat = options.cat ? options.cat : 'cat';
+    const cat = options.cat ? options.cat : 'cat';
 
-    var bindId = options.bindId ? options.bindId : 0;
+    const bindId = options.bindId ? options.bindId : 0;
 
-    var type;
+    let type;
     if (options.type) {
       type = options.type;
     } else {
       type = tr.model.ThreadSlice.subTypes.getConstructor(cat, title);
     }
 
-    var slice = new type(
+    const slice = new type(
         cat,
         title,
         colorId,
@@ -262,7 +263,7 @@ tr.exportTo('tr.c', function() {
   };
 
   TestUtils.newStackTrace = function(model, titles) {
-    var frame = undefined;
+    let frame = undefined;
     titles.forEach(function(title) {
       frame = new tr.model.StackFrame(
           frame, tr.b.GUID.allocateSimple(), title, 7);
@@ -277,8 +278,8 @@ tr.exportTo('tr.c', function() {
   };
 
   TestUtils.newProfileNodes = function(model, titles) {
-    var node = undefined;
-    for (var title of titles) {
+    let node = undefined;
+    for (const title of titles) {
       node = TestUtils.newProfileNode(model, title, node);
     }
     return node;
@@ -299,7 +300,7 @@ tr.exportTo('tr.c', function() {
     if (slices instanceof tr.model.SliceGroup) {
       slices = slices.slices;
     }
-    for (var i = 0; i < slices.length; i++) {
+    for (let i = 0; i < slices.length; i++) {
       if (slices[i].title === name) return slices[i];
     }
     return undefined;
@@ -323,7 +324,7 @@ tr.exportTo('tr.c', function() {
 
     opts = opts || {};
 
-    var io = new tr.importer.ImportOptions();
+    const io = new tr.importer.ImportOptions();
     io.showImportWarnings = false;
     io.customizeModelCallback = opts.customizeModelCallback;
     io.trackDetailedModelStats = opts.trackDetailedModelStats === undefined ?
@@ -335,8 +336,8 @@ tr.exportTo('tr.c', function() {
     io.auditorConstructors = opts.auditorConstructors === undefined ?
         [] : opts.auditorConstructors;
 
-    var m = new tr.Model();
-    var i = new tr.importer.Import(m, io);
+    const m = new tr.Model();
+    const i = new tr.importer.Import(m, io);
     i.importTraces(events);
     return m;
   };
@@ -351,7 +352,7 @@ tr.exportTo('tr.c', function() {
   };
 
   TestUtils.newFakeThread = function() {
-    var process = {model: {}};
+    const process = {model: {}};
     return new tr.model.Thread(process);
   };
 
@@ -439,53 +440,53 @@ tr.exportTo('tr.c', function() {
   };
 
   TestUtils.addSourceListing = function(test, source) {
-    var testSourceEl = document.createElement('pre');
+    const testSourceEl = document.createElement('pre');
     testSourceEl.style.fontFamily = 'monospace';
     Polymer.dom(testSourceEl).textContent = source;
 
-    var copyButtonEl = document.createElement('button');
+    const copyButtonEl = document.createElement('button');
     Polymer.dom(copyButtonEl).textContent = 'Copy into to clipboard';
     copyButtonEl.addEventListener('click', function() {
-      var selection = window.getSelection();
+      const selection = window.getSelection();
 
       // Store the original selection.
-      var originalRanges = new Array(selection.rangeCount);
-      for (var i = 0; i < originalRanges.length; i++) {
+      const originalRanges = new Array(selection.rangeCount);
+      for (let i = 0; i < originalRanges.length; i++) {
         originalRanges[i] = selection.getRangeAt(i);
       }
 
       // Copy the generated test source code into clipboard.
       selection.removeAllRanges();
-      var range = document.createRange();
+      const range = document.createRange();
       range.selectNode(testSourceEl);
       selection.addRange(range);
       document.execCommand('copy');
 
       // Restore the original selection.
       selection.removeAllRanges();
-      for (var i = 0; i < originalRanges.length; i++) {
+      for (let i = 0; i < originalRanges.length; i++) {
         selection.addRange(originalRanges[i]);
       }
     });
 
-    var outputEl = document.createElement('div');
+    const outputEl = document.createElement('div');
     Polymer.dom(outputEl).appendChild(copyButtonEl);
     Polymer.dom(outputEl).appendChild(testSourceEl);
     test.addHTMLOutput(outputEl);
   };
 
   TestUtils.newInstantEvent = function(options) {
-    var title = options.title;
-    var start = options.start;
+    const title = options.title;
+    const start = options.start;
     if ((title === undefined) ||
         (title === '') ||
         (start === undefined)) {
       throw new Error('too little information');
     }
 
-    var category = options.category || 'category';
-    var colorId = options.colorId || 0;
-    var args = options.args || {};
+    const category = options.category || 'category';
+    const colorId = options.colorId || 0;
+    const args = options.args || {};
     return new tr.model.InstantEvent(
         category, title, colorId, start, args);
   };

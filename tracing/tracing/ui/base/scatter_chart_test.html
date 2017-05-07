@@ -12,7 +12,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('instantiation_singleSeries', function() {
-    var chart = new tr.ui.b.ScatterChart();
+    const chart = new tr.ui.b.ScatterChart();
     this.addHTMLOutput(chart);
     chart.data = [
       {x: 10, y: 100, radius: 2, color: 'red'},
@@ -23,7 +23,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiation_interactiveBrushing', function() {
-    var chart = new tr.ui.b.ScatterChart();
+    const chart = new tr.ui.b.ScatterChart();
     this.addHTMLOutput(chart);
     chart.data = [
       {x: 10, y: 50, radius: 2, color: 'blue'},
@@ -36,15 +36,15 @@ tr.b.unittest.testSuite(function() {
       {x: 80, y: 20, radius: 9, color: 'red'}
     ];
 
-    var mouseDown = undefined;
+    let mouseDown = undefined;
 
     function updateBrushedRange(e) {
-      var xRange = new tr.b.math.Range();
+      const xRange = new tr.b.math.Range();
       if (e.x !== mouseDown.x) {
         xRange.addValue(mouseDown.x);
         xRange.addValue(e.x);
       }
-      var yRange = new tr.b.math.Range();
+      const yRange = new tr.b.math.Range();
       if (e.y !== mouseDown.y) {
         yRange.addValue(mouseDown.y);
         yRange.addValue(e.y);

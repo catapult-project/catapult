@@ -13,10 +13,10 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var rendererPid = 12345;
-  var model = tr.c.TestUtils.newModel(function(model) {
-    var rendererProcess = model.getOrCreateProcess(rendererPid);
-    var mainThread = rendererProcess.getOrCreateThread(2);
+  const rendererPid = 12345;
+  const model = tr.c.TestUtils.newModel(function(model) {
+    const rendererProcess = model.getOrCreateProcess(rendererPid);
+    const mainThread = rendererProcess.getOrCreateThread(2);
     mainThread.name = 'CrRendererMain';
 
     // Our main thread looks like:
@@ -87,16 +87,16 @@ tr.b.unittest.testSuite(function() {
     }));
   });
 
-  var chromeHelper = model.getOrCreateHelper(
+  const chromeHelper = model.getOrCreateHelper(
       tr.model.helpers.ChromeModelHelper);
 
-  var rendererHelper = chromeHelper.rendererHelpers[rendererPid];
+  const rendererHelper = chromeHelper.rendererHelpers[rendererPid];
 
   test('testWallClockTimeBreakdownNoIntersectingBoundary', function() {
     const rangeOfInterest = tr.b.math.Range.fromExplicitRange(0, 1000);
     const networkEvents = tr.metrics.sh.getNetworkEventsInRange(
         rendererHelper.process, rangeOfInterest);
-    var breakdownTree = tr.metrics.sh.generateWallClockTimeBreakdownTree(
+    const breakdownTree = tr.metrics.sh.generateWallClockTimeBreakdownTree(
         rendererHelper.mainThread, networkEvents, rangeOfInterest);
     assert.deepEqual({
       total: 150,
@@ -141,7 +141,7 @@ tr.b.unittest.testSuite(function() {
     const rangeOfInterest = tr.b.math.Range.fromExplicitRange(275, 610);
     const networkEvents = tr.metrics.sh.getNetworkEventsInRange(
         rendererHelper.process, rangeOfInterest);
-    var breakdownTree = tr.metrics.sh.generateWallClockTimeBreakdownTree(
+    const breakdownTree = tr.metrics.sh.generateWallClockTimeBreakdownTree(
         rendererHelper.mainThread, networkEvents, rangeOfInterest);
     assert.deepEqual({
       total: 93.75,

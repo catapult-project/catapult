@@ -68,10 +68,10 @@ found in the LICENSE file.
       if (!window.location.search) {
         return null;
       }
-      var result = {};
-      var parts = window.location.search.substring(1).split('&');
-      for (var i = 0; i < parts.length; i++) {
-        var pair = parts[i].split('=');
+      const result = {};
+      const parts = window.location.search.substring(1).split('&');
+      for (let i = 0; i < parts.length; i++) {
+        const pair = parts[i].split('=');
         result[pair[0]] = decodeURIComponent(pair[1]);
       }
       return result;
@@ -81,9 +81,9 @@ found in the LICENSE file.
      * Handles "Load log" button click.
      */
     function loadLogs() {
-      var quickLog = document.getElementById('quick-log');
-      var logNamespace = document.getElementById('log-namespace').value;
-      var logName = document.getElementById('log-name').value;
+      const quickLog = document.getElementById('quick-log');
+      const logNamespace = document.getElementById('log-namespace').value;
+      const logName = document.getElementById('log-name').value;
       if (logNamespace && logName) {
         quickLog.initialize('Log: ' + logName, logNamespace, logName);
         quickLog.show();
@@ -94,9 +94,9 @@ found in the LICENSE file.
      * Loads log if URL parameters are specified.
      */
     function initialize() {
-      var params = getUrlParameters();
+      const params = getUrlParameters();
       if (params) {
-        var quickLog = document.getElementById('quick-log');
+        const quickLog = document.getElementById('quick-log');
         quickLog.initialize('Log: ' + params.name,
             params.namespace,
             params.name);

@@ -186,10 +186,10 @@ found in the LICENSE file.
  * to be enabled/disabled during tr.c.
  */
 tr.exportTo('tr.ui.e.about_tracing', function() {
-  var THIS_DOC = document.currentScript.ownerDocument;
-  var RecordSelectionDialog = tr.ui.b.define('div');
+  const THIS_DOC = document.currentScript.ownerDocument;
+  const RecordSelectionDialog = tr.ui.b.define('div');
 
-  var DEFAULT_PRESETS = [
+  const DEFAULT_PRESETS = [
     {title: 'Web developer',
       categoryFilter: ['blink', 'cc', 'netlog', 'renderer.scheduler',
         'toplevel', 'v8']},
@@ -210,17 +210,17 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     {title: 'Manually select settings',
       categoryFilter: []}
   ];
-  var RECORDING_MODES = [
+  const RECORDING_MODES = [
     {'label': 'Record until full',
       'value': 'record-until-full'},
     {'label': 'Record continuously',
       'value': 'record-continuously'},
     {'label': 'Record as much as possible',
       'value': 'record-as-much-as-possible'}];
-  var DEFAULT_RECORD_MODE = 'record-until-full';
-  var DEFAULT_CONTINUOUS_TRACING = true;
-  var DEFAULT_SYSTEM_TRACING = true;
-  var DEFAULT_SAMPLING_TRACING = false;
+  const DEFAULT_RECORD_MODE = 'record-until-full';
+  const DEFAULT_CONTINUOUS_TRACING = true;
+  const DEFAULT_SYSTEM_TRACING = true;
+  const DEFAULT_SAMPLING_TRACING = false;
 
   RecordSelectionDialog.prototype = {
     __proto__: tr.ui.b.Overlay.prototype,
@@ -231,7 +231,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
 
       Polymer.dom(this).classList.add('record-dialog-overlay');
 
-      var node =
+      const node =
           tr.ui.b.instantiateTemplate('#record-selection-dialog-template',
               THIS_DOC);
       Polymer.dom(this).appendChild(node);
@@ -339,8 +339,8 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       }
       this.categories_ = c;
 
-      for (var i = 0; i < this.categories_.length; i++) {
-        var split = this.categories_[i].split(',');
+      for (let i = 0; i < this.categories_.length; i++) {
+        const split = this.categories_[i].split(',');
         this.categories_[i] = split.shift();
         if (split.length > 0) {
           this.categories_ = this.categories_.concat(split);
@@ -382,7 +382,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     },
 
     updateManualSelectionView_() {
-      var classList = Polymer.dom(this.categoriesView_).classList;
+      const classList = Polymer.dom(this.categoriesView_).classList;
       if (!this.usingPreset_()) {
         classList.remove('categories-column-view-hidden');
       } else {
@@ -395,11 +395,11 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     },
 
     updateCategoryColumnView_(shouldReadFromSettings) {
-      var categorySet = Polymer.dom(this).querySelectorAll('.categories');
-      for (var i = 0; i < categorySet.length; ++i) {
-        var categoryGroup = categorySet[i].children;
-        for (var j = 0; j < categoryGroup.length; ++j) {
-          var categoryEl = categoryGroup[j].children[0];
+      const categorySet = Polymer.dom(this).querySelectorAll('.categories');
+      for (let i = 0; i < categorySet.length; ++i) {
+        const categoryGroup = categorySet[i].children;
+        for (let j = 0; j < categoryGroup.length; ++j) {
+          const categoryEl = categoryGroup[j].children[0];
           categoryEl.checked = shouldReadFromSettings ?
               tr.b.Settings.get(categoryEl.value, false, this.settings_key_) :
               false;
@@ -412,8 +412,8 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
 
       if (!this.editCategoriesOpened_) {
         this.updateCategoryColumnView_(false);
-        for (var i = 0; i < this.currentlyChosenPreset_.length; ++i) {
-          var categoryEl = this.querySelector('#' +
+        for (let i = 0; i < this.currentlyChosenPreset_.length; ++i) {
+          const categoryEl = this.querySelector('#' +
               this.currentlyChosenPreset_[i]);
           if (!categoryEl) continue;
           categoryEl.checked = true;
@@ -426,7 +426,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     },
 
     changeEditCategoriesState_(editCategoriesState) {
-      var presetOptionsGroup = Polymer.dom(this).querySelector(
+      const presetOptionsGroup = Polymer.dom(this).querySelector(
           '.labeled-option-group');
       if (!presetOptionsGroup) return;
 
@@ -440,7 +440,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     },
 
     updatePresetDescription_() {
-      var description = Polymer.dom(this).querySelector(
+      const description = Polymer.dom(this).querySelector(
           '.category-description');
       if (this.usingPreset_()) {
         description.innerText = this.currentlyChosenPreset_;
@@ -457,10 +457,10 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
 
     categoryFilter() {
       if (this.usingPreset_()) {
-        var categories = [];
-        var allCategories = this.allCategories_();
-        for (var category in allCategories) {
-          var disabled = category.indexOf('disabled-by-default-') === 0;
+        const categories = [];
+        const allCategories = this.allCategories_();
+        for (const category in allCategories) {
+          const disabled = category.indexOf('disabled-by-default-') === 0;
           if (this.currentlyChosenPreset_.indexOf(category) >= 0) {
             if (disabled) {
               categories.push(category);
@@ -474,10 +474,10 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
         return categories.join(',');
       }
 
-      var categories = this.unselectedCategories_();
-      var categoriesLength = categories.length;
-      var negatedCategories = [];
-      for (var i = 0; i < categoriesLength; ++i) {
+      let categories = this.unselectedCategories_();
+      const categoriesLength = categories.length;
+      const negatedCategories = [];
+      for (let i = 0; i < categoriesLength; ++i) {
         // Skip any category with a , as it will cause issues when we negate.
         // Both sides should have been added as separate categories, these can
         // only come from settings.
@@ -486,10 +486,10 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       }
       categories = negatedCategories.join(',');
 
-      var disabledCategories = this.enabledDisabledByDefaultCategories_();
+      let disabledCategories = this.enabledDisabledByDefaultCategories_();
       disabledCategories = disabledCategories.join(',');
 
-      var results = [];
+      const results = [];
       if (categories !== '') {
         results.push(categories);
       }
@@ -510,10 +510,10 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     },
 
     collectInputs_(inputs, isChecked) {
-      var inputsLength = inputs.length;
-      var categories = [];
-      for (var i = 0; i < inputsLength; ++i) {
-        var input = inputs[i];
+      const inputsLength = inputs.length;
+      const categories = [];
+      for (let i = 0; i < inputsLength; ++i) {
+        const input = inputs[i];
         if (input.checked === isChecked) {
           categories.push(input.value);
         }
@@ -522,14 +522,14 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     },
 
     unselectedCategories_() {
-      var inputs =
+      const inputs =
           Polymer.dom(this.enabledCategoriesContainerEl_).querySelectorAll(
               'input');
       return this.collectInputs_(inputs, false);
     },
 
     enabledDisabledByDefaultCategories_() {
-      var inputs =
+      const inputs =
           Polymer.dom(this.disabledCategoriesContainerEl_).querySelectorAll(
               'input');
       return this.collectInputs_(inputs, true);
@@ -542,11 +542,11 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     },
 
     buildInputs_(inputs, checkedDefault, parent) {
-      var inputsLength = inputs.length;
-      for (var i = 0; i < inputsLength; i++) {
-        var category = inputs[i];
+      const inputsLength = inputs.length;
+      for (let i = 0; i < inputsLength; i++) {
+        const category = inputs[i];
 
-        var inputEl = document.createElement('input');
+        const inputEl = document.createElement('input');
         inputEl.type = 'checkbox';
         inputEl.id = category;
         inputEl.value = category;
@@ -555,12 +555,12 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
             category, checkedDefault, this.settings_key_);
         inputEl.onclick = this.updateSetting_.bind(this);
 
-        var labelEl = document.createElement('label');
+        const labelEl = document.createElement('label');
         Polymer.dom(labelEl).textContent =
             category.replace('disabled-by-default-', '');
         Polymer.dom(labelEl).setAttribute('for', category);
 
-        var divEl = document.createElement('div');
+        const divEl = document.createElement('div');
         Polymer.dom(divEl).appendChild(inputEl);
         Polymer.dom(divEl).appendChild(labelEl);
 
@@ -571,11 +571,11 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     allCategories_() {
       // Dedup the categories. We may have things in settings that are also
       // returned when we query the category list.
-      var categorySet = {};
-      var allCategories =
+      const categorySet = {};
+      const allCategories =
           this.categories_.concat(tr.b.Settings.keys(this.settings_key_));
-      var allCategoriesLength = allCategories.length;
-      for (var i = 0; i < allCategoriesLength; ++i) {
+      const allCategoriesLength = allCategories.length;
+      for (let i = 0; i < allCategoriesLength; ++i) {
         categorySet[allCategories[i]] = true;
       }
       return categorySet;
@@ -592,10 +592,10 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
 
       this.recordButtonEl_.focus();
 
-      var allCategories = this.allCategories_();
-      var categories = [];
-      var disabledCategories = [];
-      for (var category in allCategories) {
+      const allCategories = this.allCategories_();
+      let categories = [];
+      let disabledCategories = [];
+      for (const category in allCategories) {
         if (category.indexOf('disabled-by-default-') === 0) {
           disabledCategories.push(category);
         } else {
@@ -620,7 +620,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     },
 
     updateSetting_(e) {
-      var checkbox = e.target;
+      const checkbox = e.target;
       tr.b.Settings.set(checkbox.value, checkbox.checked, this.settings_key_);
 
       // Change the current record mode to 'Manually select settings' from
@@ -628,10 +628,10 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       // and user selects/deselects any category in 'Edit Categories' mode.
       if (this.usingPreset_()) {
         this.currentlyChosenPreset_ = []; /* manually select settings */
-        var categoryEl = this.querySelector(
+        const categoryEl = this.querySelector(
             '#category-preset-Manually-select-settings');
         categoryEl.checked = true;
-        var description = Polymer.dom(this).querySelector(
+        const description = Polymer.dom(this).querySelector(
             '.category-description');
         description.innerText = '';
         Polymer.dom(description).classList.add('category-description-hidden');
@@ -639,9 +639,9 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     },
 
     createGroupSelectButtons_(parent) {
-      var flipInputs = function(dir) {
-        var inputs = Polymer.dom(parent).querySelectorAll('input');
-        for (var i = 0; i < inputs.length; i++) {
+      const flipInputs = function(dir) {
+        const inputs = Polymer.dom(parent).querySelectorAll('input');
+        for (let i = 0; i < inputs.length; i++) {
           if (inputs[i].checked === dir) continue;
           // click() is used so the settings will be correclty stored. Setting
           // checked does not trigger the onclick (or onchange) callback.
@@ -649,13 +649,13 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
         }
       };
 
-      var allBtn = Polymer.dom(parent).querySelector('.all-btn');
+      const allBtn = Polymer.dom(parent).querySelector('.all-btn');
       allBtn.onclick = function(evt) {
         flipInputs(true);
         evt.preventDefault();
       };
 
-      var noneBtn = Polymer.dom(parent).querySelector('.none-btn');
+      const noneBtn = Polymer.dom(parent).querySelector('.none-btn');
       noneBtn.onclick = function(evt) {
         flipInputs(false);
         evt.preventDefault();
@@ -663,10 +663,10 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     },
 
     setWarningDialogOverlayText_(messages) {
-      var contentDiv = document.createElement('div');
+      const contentDiv = document.createElement('div');
 
-      for (var i = 0; i < messages.length; ++i) {
-        var messageDiv = document.createElement('div');
+      for (let i = 0; i < messages.length; ++i) {
+        const messageDiv = document.createElement('div');
         Polymer.dom(messageDiv).textContent = messages[i];
         Polymer.dom(contentDiv).appendChild(messageDiv);
       }

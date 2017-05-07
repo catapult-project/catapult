@@ -52,7 +52,7 @@ found in the LICENSE file.
       is: 'index-page',
 
       onDeselectedPage(e) {
-        let page = e.detail.item;
+        const page = e.detail.item;
         // Need to call the the page.* functions async since this callback is
         // called sync while the route is being modified.
         if ('deselected' in page) {
@@ -61,7 +61,7 @@ found in the LICENSE file.
       },
 
       onSelectedPage(e) {
-        let page = e.detail.item;
+        const page = e.detail.item;
         // Need to call the the page.* functions async since this callback is
         // called sync while the route is being modified.
         if ('selected' in page) {

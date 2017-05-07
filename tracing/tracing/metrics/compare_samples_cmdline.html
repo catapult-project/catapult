@@ -14,14 +14,14 @@ found in the LICENSE file.
 'use strict';
 /* eslint-disable no-console */
 
-var escapeChars = s => s.replace(/[\:|=\/#&,]/g, '_');
+const escapeChars = s => s.replace(/[\:|=\/#&,]/g, '_');
 
 function findUnescapedKey(escaped, d) {
   if (!d) {
     return undefined;
   }
 
-  for (var k of Object.keys(d)) {
+  for (const k of Object.keys(d)) {
     if (escapeChars(k) === escapeChars(escaped)) {
       return k;
     }
@@ -30,9 +30,9 @@ function findUnescapedKey(escaped, d) {
 
 function geoMeanFromHistogram(h) {
   if (!h.hasOwnProperty('buckets')) return 0.0;
-  var count = 0;
-  var sumOfLogs = 0;
-  for (var bucket of h.buckets) {
+  let count = 0;
+  let sumOfLogs = 0;
+  for (const bucket of h.buckets) {
     if (bucket.hasOwnProperty('high')) {
       bucket.mean = (bucket.low + bucket.high) / 2.0;
     } else {
@@ -49,7 +49,7 @@ function geoMeanFromHistogram(h) {
 }
 
 function guessFullTIRMetricName(metricName) {
-  var parts = metricName.split('/');
+  const parts = metricName.split('/');
   if (parts.length === 2) {
     return metricName + '/summary';
   }
@@ -57,10 +57,10 @@ function guessFullTIRMetricName(metricName) {
 }
 
 function splitMetric(metricName) {
-  var parts = metricName.split('/');
-  var interactionName;
-  var traceName = 'summary';
-  var chartName = parts[0];
+  const parts = metricName.split('/');
+  let interactionName;
+  let traceName = 'summary';
+  let chartName = parts[0];
   if (parts.length === 3) {
     // parts[1] is the interactionName
     if (parts[1]) chartName = parts[1] + '@@' + chartName;
@@ -74,12 +74,12 @@ function splitMetric(metricName) {
 }
 
 function valuesFromCharts(listOfCharts, metricName) {
-  var allValues = [];
-  var chartAndTrace = splitMetric(metricName);
-  for (var charts of listOfCharts) {
-    var chartName = findUnescapedKey(chartAndTrace[0], charts.charts);
+  const allValues = [];
+  const chartAndTrace = splitMetric(metricName);
+  for (const charts of listOfCharts) {
+    const chartName = findUnescapedKey(chartAndTrace[0], charts.charts);
     if (chartName) {
-      var traceName = findUnescapedKey(
+      const traceName = findUnescapedKey(
           chartAndTrace[1], charts.charts[chartName]);
       if (traceName) {
         if (charts.charts[chartName][traceName].type ===
@@ -102,21 +102,21 @@ function valuesFromCharts(listOfCharts, metricName) {
 }
 
 function valuesFromChartsWithFallback(listOfCharts, metricName) {
-  var allValues = valuesFromCharts(listOfCharts, metricName);
+  const allValues = valuesFromCharts(listOfCharts, metricName);
   if (allValues.length > 0) return allValues;
 
   // If this had a tir_label, the "summary" part may have been stripped by
   // the dashboard during upload. We can re-add it here.
-  var fullMetricName = guessFullTIRMetricName(metricName);
+  const fullMetricName = guessFullTIRMetricName(metricName);
   if (!fullMetricName) return [];
 
   return valuesFromCharts(listOfCharts, fullMetricName);
 }
 
 function rawValuesByMetricName(histograms, metricName) {
-  var interactionRecord;
-  var valueName;
-  var [itrPlusChart, story] = splitMetric(metricName);
+  let interactionRecord;
+  let valueName;
+  const [itrPlusChart, story] = splitMetric(metricName);
   if (itrPlusChart.indexOf('@@') > -1) {
     [interactionRecord, valueName] = itrPlusChart.split('@@');
   } else if (itrPlusChart.indexOf('-') > -1) {
@@ -125,7 +125,7 @@ function rawValuesByMetricName(histograms, metricName) {
   } else {
     valueName = itrPlusChart;
   }
-  var values = histograms.getHistogramsNamed(valueName);
+  let values = histograms.getHistogramsNamed(valueName);
   if (!values || values.length === 0) {
     // If there was a dash in the chart name, but it wasn't an
     // interaction record.
@@ -136,15 +136,15 @@ function rawValuesByMetricName(histograms, metricName) {
       throw new Error('No values with name ' + valueName);
     }
   }
-  var filtered = [];
-  for (var value of values) {
+  const filtered = [];
+  for (const value of values) {
     if (value.name !== valueName) continue;
-    var ii = tr.v.d.TelemetryInfo.getFromHistogram(value);
+    const ii = tr.v.d.TelemetryInfo.getFromHistogram(value);
     if (interactionRecord) {
-      var irParts = [];
-      var keys = Array.from(ii.storyGroupingKeys.keys());
+      const irParts = [];
+      const keys = Array.from(ii.storyGroupingKeys.keys());
       keys.sort();
-      for (var key of keys) {
+      for (const key of keys) {
         irParts.push(ii.storyGroupingKeys.get(key));
       }
       if (interactionRecord === irParts.join('_') &&
@@ -158,8 +158,8 @@ function rawValuesByMetricName(histograms, metricName) {
     }
   }
 
-  var rawValues = [];
-  for (var val of filtered) {
+  let rawValues = [];
+  for (const val of filtered) {
     if (val instanceof tr.v.Histogram) {
       rawValues = rawValues.concat(val.sampleValues);
     } else {
@@ -170,59 +170,60 @@ function rawValuesByMetricName(histograms, metricName) {
 }
 
 function parseFiles(files) {
-  var results = [];
-  for (var path of files) {
-    var current = tr.b.getSync('file://' + path);
+  const results = [];
+  for (const path of files) {
+    const current = tr.b.getSync('file://' + path);
     results.push(JSON.parse(current));
   }
   return results;
 }
 
-var escapeForRegExp = s => s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+const escapeForRegExp = s => s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
 
-var strFromRE = re => re.toString().split('/')[1];
+const strFromRE = re => re.toString().split('/')[1];
 
 function valuesFromBuildbotOutput(out, metric) {
   if (!out) return [];
 
-  var stringVals = [];
-  var floatVals = [];
-  var chartAndTrace = splitMetric(metric);
-  var metricRE = escapeForRegExp(
+  let stringVals = [];
+  const floatVals = [];
+  const chartAndTrace = splitMetric(metric);
+  const metricRE = escapeForRegExp(
       'RESULT ' + chartAndTrace[0] + ': ' + chartAndTrace[1] + '=');
-  var singleResultRE = new RegExp(metricRE +
+  const singleResultRE = new RegExp(metricRE +
       strFromRE(/\s*([-]?[\d\.]+)/), 'g');
-  var multiResultsRE = new RegExp(metricRE +
+  const multiResultsRE = new RegExp(metricRE +
       strFromRE(/\s*\[\s*([\d\., -]+)\s*\]/), 'g');
-  var meanStdDevRE = new RegExp(metricRE +
+  const meanStdDevRE = new RegExp(metricRE +
       strFromRE(/\s*\{\s*([-]?\d*(?:\.\d*)?),\s*([-]?\d*(?:\.\d*)?)\}/), 'g');
-  for (var line of out.split(/\r?\n/)) {
-    var singleResultMatch = singleResultRE.exec(line);
-    var multiResultsMatch = multiResultsRE.exec(line);
-    var meanStdDevMatch = meanStdDevRE.exec(line);
+  for (const line of out.split(/\r?\n/)) {
+    const singleResultMatch = singleResultRE.exec(line);
+    const multiResultsMatch = multiResultsRE.exec(line);
+    const meanStdDevMatch = meanStdDevRE.exec(line);
     if (singleResultMatch && singleResultMatch.length > 1) {
       stringVals.push(singleResultMatch[1]);
     } else if (multiResultsMatch && multiResultsMatch.length > 1) {
-      var values = multiResultsMatch[1].split(',');
+      const values = multiResultsMatch[1].split(',');
       stringVals = stringVals.concat(values);
     } else if (meanStdDevMatch && meanStdDevMatch.length > 1) {
       stringVals.push(meanStdDevMatch[1]);
     }
   }
-  for (var val of stringVals) {
-    var f = parseFloat(val);
+  for (const val of stringVals) {
+    const f = parseFloat(val);
     if (!isNaN(f)) floatVals.push(f);
   }
   return floatVals;
 }
 
 function parseMultipleBuildbotStreams(files, metric) {
-  var allValues = [];
-  for (var path of files) {
+  let allValues = [];
+  for (const path of files) {
+    let contents;
     try {
-      var contents = tr.b.getSync('file://' + path);
+      contents = tr.b.getSync('file://' + path);
     } catch (ex) {
-      var err = new Error('Could not open' + path);
+      const err = new Error('Could not open' + path);
       err.name = 'File loading error';
       throw err;
     }
@@ -231,13 +232,14 @@ function parseMultipleBuildbotStreams(files, metric) {
   return allValues;
 }
 
-var buildComparisonResultOutput = function(a, b) {
+const buildComparisonResultOutput = function(a, b) {
+  let comparisonResult;
   if (!a.length || !b.length) {
-    var comparisonResult = {
+    comparisonResult = {
       significance: tr.b.math.Statistics.Significance.NEED_MORE_DATA
     };
   } else {
-    var comparisonResult = tr.b.math.Statistics.mwu(
+    comparisonResult = tr.b.math.Statistics.mwu(
         a, b, tr.b.math.Statistics.DEFAULT_ALPHA,
         tr.b.math.Statistics.MAX_SUGGESTED_SAMPLE_SIZE);
   }
@@ -248,52 +250,50 @@ var buildComparisonResultOutput = function(a, b) {
   };
 };
 
-var SampleComparison = {
+const SampleComparison = {
 
   compareBuildbotOutputs(
       buildbotOutputAPathList, buildbotOutputBPathList, metric) {
-    var aPaths = buildbotOutputAPathList.split(',');
-    var bPaths = buildbotOutputBPathList.split(',');
-    var sampleA = parseMultipleBuildbotStreams(aPaths, metric);
-    var sampleB = parseMultipleBuildbotStreams(bPaths, metric);
+    const aPaths = buildbotOutputAPathList.split(',');
+    const bPaths = buildbotOutputBPathList.split(',');
+    const sampleA = parseMultipleBuildbotStreams(aPaths, metric);
+    const sampleB = parseMultipleBuildbotStreams(bPaths, metric);
     return buildComparisonResultOutput(sampleA, sampleB);
   },
 
   compareValuesets(histogramsAPathList, histogramsBPathList, metric) {
-    var aPaths = histogramsAPathList.split(',');
-    var bPaths = histogramsBPathList.split(',');
-    var histogramsA = new tr.v.HistogramSet();
-    var histogramsB = new tr.v.HistogramSet();
-    var dictsA = parseFiles(aPaths);
-    var dictsB = parseFiles(bPaths);
-    for (var d of dictsA) {
+    const aPaths = histogramsAPathList.split(',');
+    const bPaths = histogramsBPathList.split(',');
+    const histogramsA = new tr.v.HistogramSet();
+    const histogramsB = new tr.v.HistogramSet();
+    const dictsA = parseFiles(aPaths);
+    const dictsB = parseFiles(bPaths);
+    for (const d of dictsA) {
       histogramsA.importDicts(d);
     }
-    for (var d of dictsB) {
+    for (const d of dictsB) {
       histogramsB.importDicts(d);
     }
 
-    var sampleA = rawValuesByMetricName(histogramsA, metric);
-    var sampleB = rawValuesByMetricName(histogramsB, metric);
+    const sampleA = rawValuesByMetricName(histogramsA, metric);
+    const sampleB = rawValuesByMetricName(histogramsB, metric);
     return buildComparisonResultOutput(sampleA, sampleB);
   },
 
   compareCharts(chartPathListA, chartPathListB, metric) {
-    var aPaths = chartPathListA.split(',');
-    var bPaths = chartPathListB.split(',');
-    var chartsA = parseFiles(aPaths);
-    var chartsB = parseFiles(bPaths);
-    var sampleA = valuesFromChartsWithFallback(chartsA, metric);
-    var sampleB = valuesFromChartsWithFallback(chartsB, metric);
+    const aPaths = chartPathListA.split(',');
+    const bPaths = chartPathListB.split(',');
+    const chartsA = parseFiles(aPaths);
+    const chartsB = parseFiles(bPaths);
+    const sampleA = valuesFromChartsWithFallback(chartsA, metric);
+    const sampleB = valuesFromChartsWithFallback(chartsB, metric);
     return buildComparisonResultOutput(sampleA, sampleB);
   }
 
 };
 
 if (tr.isHeadless) {
-  var method;
-  var rest;
-  [method, ...rest] = sys.argv.slice(1);
+  const [method, ...rest] = sys.argv.slice(1);
   if (SampleComparison[method]) {
     console.log(JSON.stringify(SampleComparison[method](...rest)));
   }

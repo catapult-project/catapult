@@ -63,7 +63,7 @@ Polymer({
       {
         title: 'Event(s)',
         value(row) {
-          let typeEl = document.createElement('span');
+          const typeEl = document.createElement('span');
           typeEl.innerText = row.type;
           if (row.tooltip) {
             typeEl.title = row.tooltip;
@@ -76,7 +76,7 @@ Polymer({
         title: 'Link',
         width: '100%',
         value(row) {
-          let linkEl = document.createElement('tr-ui-a-analysis-link');
+          const linkEl = document.createElement('tr-ui-a-analysis-link');
           if (row.name) {
             linkEl.setSelectionAndContent(row.selection, row.name);
           } else {
@@ -106,7 +106,7 @@ Polymer({
   },
 
   addConnectedFlows_(eventSet) {
-    let classifier = new tr.ui.analysis.FlowClassifier();
+    const classifier = new tr.ui.analysis.FlowClassifier();
     eventSet.forEach(function(slice) {
       if (slice.inFlowEvents) {
         slice.inFlowEvents.forEach(function(flow) {
@@ -121,7 +121,7 @@ Polymer({
     });
     if (!classifier.hasEvents()) return;
 
-    let addToEventGroups = function(type, flowEvent) {
+    const addToEventGroups = function(type, flowEvent) {
       this.eventGroups_.push({
         type,
         selection: new tr.model.EventSet(flowEvent),
@@ -190,7 +190,7 @@ Polymer({
 
   createEventsLinkIfNeeded_(title, tooltip, events, connectedFn) {
     events = new tr.model.EventSet(events);
-    let eventsToProcess = new Set(events);
+    const eventsToProcess = new Set(events);
     // for (let event of events)
     //  eventsToProcess.add(event);
     let wasChanged = false;
@@ -200,17 +200,17 @@ Polymer({
       if (isCanceled) return;
       // Let's grant ourselves a budget of 8 ms. If time runs out, then
       // create another task to do the rest.
-      let timeout = window.performance.now() + 8;
+      const timeout = window.performance.now() + 8;
       // TODO(alexandermont): Don't check window.performance.now
       // every iteration.
       while (eventsToProcess.size > 0 &&
           window.performance.now() <= timeout) {
         // Get the next event.
-        let nextEvent = tr.b.getFirstElement(eventsToProcess);
+        const nextEvent = tr.b.getFirstElement(eventsToProcess);
         eventsToProcess.delete(nextEvent);
 
         // Add the connected events to the list.
-        for (let eventToAdd of connectedFn(nextEvent)) {
+        for (const eventToAdd of connectedFn(nextEvent)) {
           if (!events.contains(eventToAdd)) {
             events.push(eventToAdd);
             eventsToProcess.add(eventToAdd);
@@ -221,7 +221,7 @@ Polymer({
       if (eventsToProcess.size > 0) {
         // There are still events to process, but we ran out of time. Post
         // more work for later.
-        let newTask = new tr.b.Task(
+        const newTask = new tr.b.Task(
               addEventsUntilTimeout.bind(this), this);
         task.after(newTask);
         task = newTask;
@@ -245,17 +245,17 @@ Polymer({
   },
 
   addOverlappingSamples_(eventSet) {
-    let samples = new tr.model.EventSet();
-    for (let slice of eventSet) {
+    const samples = new tr.model.EventSet();
+    for (const slice of eventSet) {
       if (!slice.parentContainer || !slice.parentContainer.samples) {
         continue;
       }
-      let candidates = slice.parentContainer.samples;
-      let range = tr.b.math.Range.fromExplicitRange(
+      const candidates = slice.parentContainer.samples;
+      const range = tr.b.math.Range.fromExplicitRange(
           slice.start, slice.start + slice.duration);
-      let filteredSamples = range.filterArray(
+      const filteredSamples = range.filterArray(
           candidates, function(value) {return value.start;});
-      for (let sample of filteredSamples) {
+      for (const sample of filteredSamples) {
         samples.push(sample);
       }
     }
@@ -269,8 +269,8 @@ Polymer({
   },
 
   addV8Slices_(eventSet) {
-    let v8Slices = new tr.model.EventSet();
-    for (let slice of eventSet) {
+    const v8Slices = new tr.model.EventSet();
+    for (const slice of eventSet) {
       if (slice.category === 'v8') {
         v8Slices.push(slice);
       }
@@ -285,8 +285,8 @@ Polymer({
   },
 
   addRuntimeCallStats_(eventSet) {
-    let slices = new tr.model.EventSet();
-    for (let slice of eventSet) {
+    const slices = new tr.model.EventSet();
+    for (const slice of eventSet) {
       if (slice.category === 'v8' && slice.runtimeCallStats) {
         slices.push(slice);
       }
@@ -302,8 +302,8 @@ Polymer({
   },
 
   addV8GCObjectStats_(eventSet) {
-    let slices = new tr.model.EventSet();
-    for (let slice of eventSet) {
+    const slices = new tr.model.EventSet();
+    for (const slice of eventSet) {
       if (slice.title === 'V8.GC_Objects_Stats') {
         slices.push(slice);
       }
@@ -318,18 +318,18 @@ Polymer({
   },
 
   addOverlappingV8ICStats_(eventSet) {
-    let slices = new tr.model.EventSet();
-    for (let slice of eventSet) {
+    const slices = new tr.model.EventSet();
+    for (const slice of eventSet) {
       if (!slice.parentContainer || !slice.parentContainer.sliceGroup) {
         continue;
       }
-      let sliceGroup = slice.parentContainer.sliceGroup.slices;
-      let range = tr.b.math.Range.fromExplicitRange(
+      const sliceGroup = slice.parentContainer.sliceGroup.slices;
+      const range = tr.b.math.Range.fromExplicitRange(
           slice.start, slice.start + slice.duration);
-      let filteredSlices = range.filterArray(
+      const filteredSlices = range.filterArray(
           sliceGroup, value => value.start);
-      let icSlices = filteredSlices.filter(x => x.title === 'V8.ICStats');
-      for (let icSlice of icSlices) {
+      const icSlices = filteredSlices.filter(x => x.title === 'V8.ICStats');
+      for (const icSlice of icSlices) {
         slices.push(icSlice);
       }
     }
@@ -343,7 +343,7 @@ Polymer({
   },
 
   updateContents_() {
-    let table = this.$.table;
+    const table = this.$.table;
     if (this.eventGroups_ === undefined) {
       table.tableRows = [];
     } else {

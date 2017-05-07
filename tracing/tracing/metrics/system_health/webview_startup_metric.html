@@ -14,22 +14,22 @@ found in the LICENSE file.
 
 tr.exportTo('tr.metrics.sh', function() {
   function webviewStartupMetric(histograms, model) {
-    var startupWallHist = new tr.v.Histogram('webview_startup_wall_time',
+    const startupWallHist = new tr.v.Histogram('webview_startup_wall_time',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter);
     startupWallHist.description = 'WebView startup wall time';
-    var startupCPUHist = new tr.v.Histogram('webview_startup_cpu_time',
+    const startupCPUHist = new tr.v.Histogram('webview_startup_cpu_time',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter);
     startupCPUHist.description = 'WebView startup CPU time';
-    var loadWallHist = new tr.v.Histogram('webview_url_load_wall_time',
+    const loadWallHist = new tr.v.Histogram('webview_url_load_wall_time',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter);
     loadWallHist.description = 'WebView blank URL load wall time';
-    var loadCPUHist = new tr.v.Histogram('webview_url_load_cpu_time',
+    const loadCPUHist = new tr.v.Histogram('webview_url_load_cpu_time',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter);
     loadCPUHist.description = 'WebView blank URL load CPU time';
 
     // TODO(alexandermont): Only iterate over the processes and threads that
     // could contain these events.
-    for (var slice of model.getDescendantEvents()) {
+    for (const slice of model.getDescendantEvents()) {
       if (!(slice instanceof tr.model.ThreadSlice)) continue;
 
       // WebViewStartupInterval is the title of the section of code that is

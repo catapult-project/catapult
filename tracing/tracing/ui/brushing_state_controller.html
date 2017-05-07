@@ -17,10 +17,10 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.c', function() {
-  var BrushingState = tr.ui.b.BrushingState;
-  var EventSet = tr.model.EventSet;
-  var SelectionState = tr.model.SelectionState;
-  var Viewport = tr.ui.TimelineViewport;
+  const BrushingState = tr.ui.b.BrushingState;
+  const EventSet = tr.model.EventSet;
+  const SelectionState = tr.model.SelectionState;
+  const Viewport = tr.ui.TimelineViewport;
 
   function BrushingStateController(timelineView) {
     tr.b.EventTarget.call(this);
@@ -37,7 +37,7 @@ tr.exportTo('tr.c', function() {
     __proto__: tr.b.EventTarget.prototype,
 
     dispatchChangeEvent_() {
-      var e = new tr.b.Event('change', false, false);
+      const e = new tr.b.Event('change', false, false);
       this.dispatchEvent(e);
     },
 
@@ -91,19 +91,19 @@ tr.exportTo('tr.c', function() {
       this.currentBrushingState_ = new BrushingState();
       this.currentBrushingState_.applyToEventSelectionStates(this.model);
 
-      var e = new tr.b.Event('model-changed', false, false);
+      const e = new tr.b.Event('model-changed', false, false);
       this.dispatchEvent(e);
 
       this.dispatchChangeEvent_();
     },
 
     onUserInitiatedSelectionChange_() {
-      var selection = this.selection;
+      const selection = this.selection;
       if (this.historyEnabled) {
         // Save the selection so that when back button is pressed,
         // it could be retrieved.
         this.selections_[selection.guid] = selection;
-        var state = {
+        const state = {
           selection_guid: selection.guid
         };
 
@@ -114,9 +114,9 @@ tr.exportTo('tr.c', function() {
     onPopState_(e) {
       if (e.state === null) return;
 
-      var selection = this.selections_[e.state.selection_guid];
+      const selection = this.selections_[e.state.selection_guid];
       if (selection) {
-        var newState = this.currentBrushingState_.clone();
+        const newState = this.currentBrushingState_.clone();
         newState.selection = selection;
         this.currentBrushingState = newState;
       }
@@ -146,7 +146,7 @@ tr.exportTo('tr.c', function() {
       // This function uses value-equality on the states so that state can
       // changed to a clone of itself without causing a change event, while
       // still having the actual state object change to the new clone.
-      var hasValueChanged = !this.currentBrushingState_.equals(
+      const hasValueChanged = !this.currentBrushingState_.equals(
           newBrushingState);
 
       if (newBrushingState !== this.currentBrushingState_ && !hasValueChanged) {
@@ -175,7 +175,7 @@ tr.exportTo('tr.c', function() {
      * @return {Task} which performs the filtering.
      */
     addAllEventsMatchingFilterToSelectionAsTask(filter, selection) {
-      var timelineView = this.timelineView_.trackView;
+      const timelineView = this.timelineView_.trackView;
       if (!timelineView) {
         return new tr.b.Task();
       }
@@ -184,13 +184,13 @@ tr.exportTo('tr.c', function() {
     },
 
     findTextChangedTo(allPossibleMatches) {
-      var newBrushingState = this.currentBrushingState_.clone();
+      const newBrushingState = this.currentBrushingState_.clone();
       newBrushingState.findMatches = allPossibleMatches;
       this.currentBrushingState = newBrushingState;
     },
 
     findFocusChangedTo(currentFocus) {
-      var newBrushingState = this.currentBrushingState_.clone();
+      const newBrushingState = this.currentBrushingState_.clone();
       newBrushingState.selection = currentFocus;
       this.currentBrushingState = newBrushingState;
 
@@ -208,7 +208,7 @@ tr.exportTo('tr.c', function() {
         this.guideLineAnnotation_ = undefined;
       }
 
-      var newBrushingState = this.currentBrushingState_.clone();
+      const newBrushingState = this.currentBrushingState_.clone();
       newBrushingState.selection = new EventSet();
       newBrushingState.findMatches = new EventSet();
       this.currentBrushingState = newBrushingState;
@@ -226,7 +226,7 @@ tr.exportTo('tr.c', function() {
     },
 
     changeSelectionFromTimeline(selection) {
-      var newBrushingState = this.currentBrushingState_.clone();
+      const newBrushingState = this.currentBrushingState_.clone();
       newBrushingState.selection = selection;
       newBrushingState.findMatches = new EventSet();
       this.currentBrushingState = newBrushingState;
@@ -235,14 +235,14 @@ tr.exportTo('tr.c', function() {
     },
 
     showScriptControlSelection(selection) {
-      var newBrushingState = this.currentBrushingState_.clone();
+      const newBrushingState = this.currentBrushingState_.clone();
       newBrushingState.selection = selection;
       newBrushingState.findMatches = new EventSet();
       this.currentBrushingState = newBrushingState;
     },
 
     changeSelectionFromRequestSelectionChangeEvent(selection) {
-      var newBrushingState = this.currentBrushingState_.clone();
+      const newBrushingState = this.currentBrushingState_.clone();
       newBrushingState.selection = selection;
       newBrushingState.findMatches = new EventSet();
       this.currentBrushingState = newBrushingState;
@@ -251,13 +251,13 @@ tr.exportTo('tr.c', function() {
     },
 
     changeAnalysisViewRelatedEvents(eventSet) {
-      var newBrushingState = this.currentBrushingState_.clone();
+      const newBrushingState = this.currentBrushingState_.clone();
       newBrushingState.analysisViewRelatedEvents = eventSet;
       this.currentBrushingState = newBrushingState;
     },
 
     changeAnalysisLinkHoveredEvents(eventSet) {
-      var newBrushingState = this.currentBrushingState_.clone();
+      const newBrushingState = this.currentBrushingState_.clone();
       newBrushingState.analysisLinkHoveredEvents = eventSet;
       this.currentBrushingState = newBrushingState;
     },
@@ -267,9 +267,9 @@ tr.exportTo('tr.c', function() {
     },
 
     changeViewSpecificBrushingState(viewId, newState) {
-      var oldStates = this.currentBrushingState_.viewSpecificBrushingStates;
-      var newStates = {};
-      for (var id in oldStates) {
+      const oldStates = this.currentBrushingState_.viewSpecificBrushingStates;
+      const newStates = {};
+      for (const id in oldStates) {
         newStates[id] = oldStates[id];
       }
       if (newState === undefined) {
@@ -278,7 +278,7 @@ tr.exportTo('tr.c', function() {
         newStates[viewId] = newState;
       }
 
-      var newBrushingState = this.currentBrushingState_.clone();
+      const newBrushingState = this.currentBrushingState_.clone();
       newBrushingState.viewSpecificBrushingStates = newStates;
       this.currentBrushingState = newBrushingState;
     }
@@ -288,7 +288,7 @@ tr.exportTo('tr.c', function() {
     if (tr.isHeadless) {
       throw new Error('Unsupported');
     }
-    var currentElement = element;
+    let currentElement = element;
     while (currentElement) {
       if (currentElement.brushingStateController) {
         return currentElement.brushingStateController;
@@ -301,7 +301,7 @@ tr.exportTo('tr.c', function() {
       }
 
       // Possibly inside a shadow DOM.
-      var currentNode = currentElement;
+      let currentNode = currentElement;
       while (Polymer.dom(currentNode).parentNode) {
         currentNode = Polymer.dom(currentNode).parentNode;
       }

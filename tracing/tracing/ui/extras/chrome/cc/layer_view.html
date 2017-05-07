@@ -23,12 +23,12 @@ found in the LICENSE file.
  */
 
 tr.exportTo('tr.ui.e.chrome.cc', function() {
-  var constants = tr.e.cc.constants;
+  const constants = tr.e.cc.constants;
 
   /**
    * @constructor
    */
-  var LayerView = tr.ui.b.define('tr-ui-e-chrome-cc-layer-view');
+  const LayerView = tr.ui.b.define('tr-ui-e-chrome-cc-layer-view');
 
   LayerView.prototype = {
     __proto__: HTMLDivElement.prototype,
@@ -80,24 +80,24 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     layerTreeQuadStackViewSelectionChanged_() {
-      var selection = this.layerTreeQuadStackView_.selection;
+      const selection = this.layerTreeQuadStackView_.selection;
       if (selection) {
         this.dragBar_.style.display = '';
         this.analysisEl_.style.display = '';
         Polymer.dom(this.analysisEl_).textContent = '';
 
-        var layer = selection.layer;
+        const layer = selection.layer;
         if (layer && layer.args && layer.args.pictures) {
           Polymer.dom(this.analysisEl_).appendChild(
               this.createPictureBtn_(layer.args.pictures));
         }
 
-        var analysis = selection.createAnalysis();
+        const analysis = selection.createAnalysis();
         Polymer.dom(this.analysisEl_).appendChild(analysis);
       } else {
         this.dragBar_.style.display = 'none';
         this.analysisEl_.style.display = 'none';
-        var analysis = Polymer.dom(this.analysisEl_).firstChild;
+        const analysis = Polymer.dom(this.analysisEl_).firstChild;
         if (analysis) {
           Polymer.dom(this.analysisEl_).removeChild(analysis);
         }
@@ -112,13 +112,13 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         pictures = [pictures];
       }
 
-      var link = document.createElement('tr-ui-a-analysis-link');
+      const link = document.createElement('tr-ui-a-analysis-link');
       link.selection = function() {
-        var layeredPicture = new tr.e.cc.LayeredPicture(pictures);
-        var snapshot = new tr.e.cc.PictureSnapshot(layeredPicture);
+        const layeredPicture = new tr.e.cc.LayeredPicture(pictures);
+        const snapshot = new tr.e.cc.PictureSnapshot(layeredPicture);
         snapshot.picture = layeredPicture;
 
-        var selection = new tr.model.EventSet();
+        const selection = new tr.model.EventSet();
         selection.push(snapshot);
         return selection;
       };

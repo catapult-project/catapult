@@ -5,7 +5,8 @@
 'use strict';
 
 // A single LTHI sort of manually created from a Google search for cats.
-var g_catLTHIEvents = [
+// This cannot be const because this file may be loaded more than once.
+global.g_catLTHIEvents = [
   {
     'name': 'cc::Picture',
     'args': {

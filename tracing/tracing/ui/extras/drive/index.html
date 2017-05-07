@@ -146,12 +146,12 @@ found in the LICENSE file.
 
   // Needs to be global as it's passed through the Google API as a
   // GET parameter.
-  var onAPIClientLoaded_ = null;
+  let onAPIClientLoaded_ = null;
 
   (function() {
     tr.exportTo('tr.ui.e.drive', function() {
-      var appId = '239864068844';
-      var constants = {
+      const appId = '239864068844';
+      const constants = {
         APP_ID: appId,
         ANCHOR_NAME: appId + '.trace_viewer',
         DEVELOPER_KEY: 'AIzaSyDR-6_wL9vHg1_oz4JHk8IQAkv2_Y0Y8-M',
@@ -172,18 +172,18 @@ found in the LICENSE file.
     });
 
 
-    var pickerApiLoaded_ = false;
-    var oauthToken_ = null;
+    let pickerApiLoaded_ = false;
+    let oauthToken_ = null;
 
-    var timelineViewEl_ = null;
-    var driveDocument_ = null;
-    var shareClient_ = null;
-    var fileIdToLoad_ = null;
-    var driveFileId_ = null;
+    let timelineViewEl_ = null;
+    let driveDocument_ = null;
+    let shareClient_ = null;
+    let fileIdToLoad_ = null;
+    let driveFileId_ = null;
 
     function parseGETParameter(val) {
-      var result = null;
-      var tmp = [];
+      let result = null;
+      let tmp = [];
       location.search.substr(1).split('&').forEach(function(item) {
         tmp = item.split('=');
         if (tmp[0] === val) {
@@ -195,9 +195,9 @@ found in the LICENSE file.
 
     // Use the Google API Loader script to load the google.picker script.
     onAPIClientLoaded_ = function() {
-      var driveState = parseGETParameter('state');
+      const driveState = parseGETParameter('state');
       if (driveState !== null) {
-        var driveStateJson = JSON.parse(driveState);
+        const driveStateJson = JSON.parse(driveState);
         fileIdToLoad_ = String(driveStateJson.ids);
       }
 
@@ -246,9 +246,9 @@ found in the LICENSE file.
 
     function createPicker() {
       if (pickerApiLoaded_ && oauthToken_) {
-        var view = new google.picker.View(google.picker.ViewId.DOCS);
+        const view = new google.picker.View(google.picker.ViewId.DOCS);
         view.setMimeTypes('application/json,application/octet-stream');
-        var picker = new google.picker.PickerBuilder()
+        const picker = new google.picker.PickerBuilder()
                        .enableFeature(google.picker.Feature.NAV_HIDDEN)
                        .enableFeature(google.picker.Feature.MULTISELECT_ENABLED)
                        .setAppId(tr.ui.e.drive.constants.APP_ID)
@@ -276,7 +276,7 @@ found in the LICENSE file.
 
     function loadFileFromDrive(fileId) {
       gapi.client.load('drive', 'v2', function() {
-        var request = gapi.client.drive.files.get({fileId});
+        const request = gapi.client.drive.files.get({fileId});
         request.execute(function(resp) { downloadFile(resp); });
         driveFileId_ = fileId;
         gapi.load('drive-share', initShareButton);
@@ -285,7 +285,7 @@ found in the LICENSE file.
 
     function downloadFile(file) {
       if (file.downloadUrl) {
-        var downloadingOverlay = tr.ui.b.Overlay();
+        const downloadingOverlay = tr.ui.b.Overlay();
         downloadingOverlay.title = 'Downloading...';
         downloadingOverlay.userCanClose = false;
         downloadingOverlay.msgEl = document.createElement('div');
@@ -296,8 +296,8 @@ found in the LICENSE file.
         };
         downloadingOverlay.visible = true;
 
-        var accessToken = gapi.auth.getToken().access_token;
-        var xhr = new XMLHttpRequest();
+        const accessToken = gapi.auth.getToken().access_token;
+        const xhr = new XMLHttpRequest();
         xhr.open('GET', file.downloadUrl);
         xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
         xhr.onload = function() {
@@ -316,15 +316,15 @@ found in the LICENSE file.
     }
 
     function displayAllCollaborators() {
-      var allCollaborators = driveDocument_.getCollaborators();
-      var collaboratorCount = allCollaborators.length;
-      var collabspan = document.getElementById('collabs');
+      const allCollaborators = driveDocument_.getCollaborators();
+      const collaboratorCount = allCollaborators.length;
+      const collabspan = document.getElementById('collabs');
       Polymer.dom(collabspan).innerHTML = '';
-      var imageList = [];
-      for (var i = 0; i < collaboratorCount; i++) {
-        var user = allCollaborators[i];
+      const imageList = [];
+      for (let i = 0; i < collaboratorCount; i++) {
+        const user = allCollaborators[i];
 
-        var img = document.createElement('img');
+        const img = document.createElement('img');
         img.src = user.photoUrl;
         img.alt = user.displayName;
         img.height = 30;
@@ -334,26 +334,26 @@ found in the LICENSE file.
         imageList.push({'image': img, 'name': user.displayName});
       }
       for (i = 0; i < imageList.length; i++) {
-        var collabTooltip = tr.ui.b.createDiv({
+        const collabTooltip = tr.ui.b.createDiv({
           className: 'collaborator-tooltip'
         });
-        var collabTooltipContent = tr.ui.b.createDiv({
+        const collabTooltipContent = tr.ui.b.createDiv({
           className: 'collaborator-tooltip-content'
         });
         Polymer.dom(collabTooltipContent).textContent = imageList[i].name;
         Polymer.dom(collabTooltip).appendChild(collabTooltipContent);
         Polymer.dom(collabspan).appendChild(collabTooltip);
-        var collabTooltipArrow = tr.ui.b.createDiv({
+        const collabTooltipArrow = tr.ui.b.createDiv({
           className: 'collaborator-tooltip-arrow'});
         Polymer.dom(collabTooltip).appendChild(collabTooltipArrow);
-        var collabTooltipArrowBefore = tr.ui.b.createDiv({
+        const collabTooltipArrowBefore = tr.ui.b.createDiv({
           className: 'collaborator-tooltip-arrow-before'});
         Polymer.dom(collabTooltipArrow).appendChild(collabTooltipArrowBefore);
-        var collabTooltipArrowAfter = tr.ui.b.createDiv({
+        const collabTooltipArrowAfter = tr.ui.b.createDiv({
           className: 'collaborator-tooltip-arrow-after'});
         Polymer.dom(collabTooltipArrow).appendChild(collabTooltipArrowAfter);
 
-        var rect = imageList[i].image.getBoundingClientRect();
+        const rect = imageList[i].image.getBoundingClientRect();
         collabTooltip.style.top = (rect.bottom - 6) + 'px';
         collabTooltip.style.left =
             (rect.left + 16 - (collabTooltip.offsetWidth / 2)) + 'px';
@@ -396,17 +396,17 @@ found in the LICENSE file.
             onRealtimeError);
       });
 
-      var traces = [];
-      var filenames = [];
+      const traces = [];
+      const filenames = [];
       filenames.push(filename);
       traces.push(content);
       createViewFromTraces(filenames, traces);
     }
 
     function createViewFromTraces(filenames, traces) {
-      var m = new tr.Model();
-      var i = new tr.importer.Import(m);
-      var p = i.importTracesWithProgressDialog(traces);
+      const m = new tr.Model();
+      const i = new tr.importer.Import(m);
+      const p = i.importTracesWithProgressDialog(traces);
       p.then(
           function() {
             timelineViewEl_.model = m;
@@ -415,7 +415,7 @@ found in the LICENSE file.
             timelineViewEl_.viewTitle = '';
           },
           function(err) {
-            var downloadingOverlay = new tr.ui.b.Overlay();
+            const downloadingOverlay = new tr.ui.b.Overlay();
             Polymer.dom(downloadingOverlay).textContent =
                 tr.b.normalizeException(err).message;
             downloadingOverlay.title = 'Import error';
@@ -438,7 +438,7 @@ found in the LICENSE file.
     function onLoad() {
       timelineViewEl_ = Polymer.dom(document).querySelector('x-timeline-view');
       timelineViewEl_.globalMode = true;
-      var navbar = document.getElementById('navbar');
+      const navbar = document.getElementById('navbar');
       timelineViewEl_.style.top = navbar.offsetHeight + 'px';
       tr.ui.b.decorate(timelineViewEl_, tr.ui.TimelineView);
     }

@@ -18,31 +18,31 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('getOrCreateCounter', function() {
-    var model = new tr.Model();
-    var process = new tr.model.Process(model, 7);
-    var ctrBar = process.getOrCreateCounter('foo', 'bar');
-    var ctrBar2 = process.getOrCreateCounter('foo', 'bar');
+    const model = new tr.Model();
+    const process = new tr.model.Process(model, 7);
+    const ctrBar = process.getOrCreateCounter('foo', 'bar');
+    const ctrBar2 = process.getOrCreateCounter('foo', 'bar');
     assert.strictEqual(ctrBar2, ctrBar);
   });
 
   test('shiftTimestampsForward', function() {
-    var model = new tr.Model();
-    var process = new tr.model.Process(model, 7);
-    var ctr = process.getOrCreateCounter('foo', 'bar');
-    var thread = process.getOrCreateThread(1);
+    const model = new tr.Model();
+    const process = new tr.model.Process(model, 7);
+    const ctr = process.getOrCreateCounter('foo', 'bar');
+    const thread = process.getOrCreateThread(1);
 
-    var instantEvent = new tr.model.InstantEvent('cat', 'event1', 1, 100);
+    const instantEvent = new tr.model.InstantEvent('cat', 'event1', 1, 100);
     process.instantEvents.push(instantEvent);
 
-    var slice = new tr.model.ThreadSlice('', 'a', 0, 1, {}, 4);
-    var frame =
+    const slice = new tr.model.ThreadSlice('', 'a', 0, 1, {}, 4);
+    const frame =
         new tr.model.Frame([slice], [{thread, start: 100, end: 200}]);
     process.frames.push(frame);
 
-    var memoryDump = new tr.model.GlobalMemoryDump(model, 100);
+    const memoryDump = new tr.model.GlobalMemoryDump(model, 100);
     process.memoryDumps.push(memoryDump);
 
-    var shiftCount = 0;
+    let shiftCount = 0;
     thread.shiftTimestampsForward = function(ts) {
       if (ts === 0.32) {
         shiftCount++;
@@ -63,47 +63,47 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('compareOnPID', function() {
-    var model = new tr.Model();
-    var p1 = new tr.model.Process(model, 1);
+    let model = new tr.Model();
+    const p1 = new tr.model.Process(model, 1);
     p1.name = 'Renderer';
 
-    var model = new tr.Model();
-    var p2 = new tr.model.Process(model, 2);
+    model = new tr.Model();
+    const p2 = new tr.model.Process(model, 2);
     p2.name = 'Renderer';
 
     assert.isBelow(p1.compareTo(p2), 0);
   });
 
   test('compareOnSortIndex', function() {
-    var model = new tr.Model();
-    var p1 = new tr.model.Process(model, 1);
+    const model = new tr.Model();
+    const p1 = new tr.model.Process(model, 1);
     p1.name = 'Renderer';
     p1.sortIndex = 1;
 
-    var p2 = new tr.model.Process(model, 2);
+    const p2 = new tr.model.Process(model, 2);
     p2.name = 'Renderer';
 
     assert.isAbove(p1.compareTo(p2), 0);
   });
 
   test('compareOnName', function() {
-    var model = new tr.Model();
-    var p1 = new tr.model.Process(model, 1);
+    const model = new tr.Model();
+    const p1 = new tr.model.Process(model, 1);
     p1.name = 'Browser';
 
-    var p2 = new tr.model.Process(model, 2);
+    const p2 = new tr.model.Process(model, 2);
     p2.name = 'Renderer';
 
     assert.isBelow(p1.compareTo(p2), 0);
   });
 
   test('compareOnLabels', function() {
-    var model = new tr.Model();
-    var p1 = new tr.model.Process(model, 1);
+    const model = new tr.Model();
+    const p1 = new tr.model.Process(model, 1);
     p1.name = 'Renderer';
     p1.labels = ['a'];
 
-    var p2 = new tr.model.Process(model, 2);
+    const p2 = new tr.model.Process(model, 2);
     p2.name = 'Renderer';
     p2.labels = ['b'];
 
@@ -111,12 +111,12 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('compareOnUptime', function() {
-    var model = new tr.Model();
-    var p1 = new tr.model.Process(model, 1);
+    const model = new tr.Model();
+    const p1 = new tr.model.Process(model, 1);
     p1.name = 'Renderer';
     p1.uptime_seconds = 10;
 
-    var p2 = new tr.model.Process(model, 2);
+    const p2 = new tr.model.Process(model, 2);
     p2.name = 'Renderer';
     p2.uptime_seconds = 20;
 

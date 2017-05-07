@@ -11,13 +11,13 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.model.um', function() {
-  var LOAD_SUBTYPE_NAMES = {
+  const LOAD_SUBTYPE_NAMES = {
     SUCCESSFUL: 'Successful',
     FAILED: 'Failed',
   };
 
-  var DOES_LOAD_SUBTYPE_NAME_EXIST = {};
-  for (var key in LOAD_SUBTYPE_NAMES) {
+  const DOES_LOAD_SUBTYPE_NAME_EXIST = {};
+  for (const key in LOAD_SUBTYPE_NAMES) {
     DOES_LOAD_SUBTYPE_NAME_EXIST[LOAD_SUBTYPE_NAMES[key]] = true;
   }
 

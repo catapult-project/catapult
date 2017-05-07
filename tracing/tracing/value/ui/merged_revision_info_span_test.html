@@ -14,7 +14,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('instantiate', function() {
-    let aRevs = new tr.v.d.RevisionInfo({
+    const aRevs = new tr.v.d.RevisionInfo({
       chromium: ['b10563e'],
       v8: ['0a12a6'],
       catapult: ['e6e086'],
@@ -22,7 +22,7 @@ tr.b.unittest.testSuite(function() {
       skia: ['966bb3'],
       webrtc: ['277b25'],
     });
-    let bRevs = new tr.v.d.RevisionInfo({
+    const bRevs = new tr.v.d.RevisionInfo({
       chromium: ['e2ebe328', 'b10563e'],
       v8: ['0a12a6', '921d88'],
       catapult: ['e6e086', 'bf0f62'],
@@ -30,9 +30,9 @@ tr.b.unittest.testSuite(function() {
       skia: ['966bb3', 'db402c'],
       webrtc: ['277b25', 'f8b262'],
     });
-    let merged = aRevs.clone();
+    const merged = aRevs.clone();
     merged.addDiagnostic(bRevs);
-    let span = tr.v.ui.createDiagnosticSpan(merged);
+    const span = tr.v.ui.createDiagnosticSpan(merged);
     assert.strictEqual('TR-V-UI-MERGED-REVISION-INFO-SPAN', span.tagName);
     this.addHTMLOutput(span);
   });

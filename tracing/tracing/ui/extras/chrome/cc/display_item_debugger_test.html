@@ -13,7 +13,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('instantiate', function() {
-    var displayItemList = new tr.e.cc.DisplayItemListSnapshot(
+    const displayItemList = new tr.e.cc.DisplayItemListSnapshot(
       {id: '31415'},
       10,
         {
@@ -28,7 +28,7 @@ tr.b.unittest.testSuite(function() {
     displayItemList.preInitialize();
     displayItemList.initialize();
 
-    var dbg = new tr.ui.e.chrome.cc.DisplayItemDebugger();
+    const dbg = new tr.ui.e.chrome.cc.DisplayItemDebugger();
     this.addHTMLOutput(dbg);
     assert.isUndefined(dbg.displayItemList_);
     assert.isUndefined(dbg.picture_);
@@ -40,7 +40,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('selections', function() {
-    var displayItemList = new tr.e.cc.DisplayItemListSnapshot(
+    const displayItemList = new tr.e.cc.DisplayItemListSnapshot(
       {id: '31415'},
       10,
         {
@@ -58,20 +58,20 @@ tr.b.unittest.testSuite(function() {
     displayItemList.preInitialize();
     displayItemList.initialize();
 
-    var dbg = new tr.ui.e.chrome.cc.DisplayItemDebugger();
+    const dbg = new tr.ui.e.chrome.cc.DisplayItemDebugger();
     this.addHTMLOutput(dbg);
     dbg.displayItemList = displayItemList;
     assert.isDefined(dbg.displayItemList_);
     assert.isDefined(dbg.picture_);
     assert.strictEqual(dbg.displayItemList_.items.length, 5);
 
-    var initialPicture = dbg.picture_;
+    const initialPicture = dbg.picture_;
     assert.isAbove(initialPicture.guid, 0);
 
     // Select the drawing display item and make sure the picture updates.
-    var listView = dbg.displayItemListView_;
+    const listView = dbg.displayItemListView_;
     listView.selectedElement = listView.getElementByIndex(3);
-    var updatedPicture = dbg.picture_;
+    let updatedPicture = dbg.picture_;
     assert.isAbove(updatedPicture.guid, 0);
     assert.notEqual(initialPicture.guid, updatedPicture.guid);
 
@@ -89,7 +89,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('export', function() {
-    var displayItemList = new tr.e.cc.DisplayItemListSnapshot(
+    const displayItemList = new tr.e.cc.DisplayItemListSnapshot(
       {id: '31415'},
       10,
         {
@@ -104,11 +104,11 @@ tr.b.unittest.testSuite(function() {
     displayItemList.preInitialize();
     displayItemList.initialize();
 
-    var dbg = new tr.ui.e.chrome.cc.DisplayItemDebugger();
+    const dbg = new tr.ui.e.chrome.cc.DisplayItemDebugger();
     this.addHTMLOutput(dbg);
     dbg.displayItemList = displayItemList;
 
-    var onSaveDisplayListCalled = false;
+    let onSaveDisplayListCalled = false;
     dbg.saveFile_ = function(filename, rawData) {
       onSaveDisplayListCalled = true;
       assert.strictEqual(filename, 'displayitemlist.json');
@@ -118,7 +118,7 @@ tr.b.unittest.testSuite(function() {
     dbg.onExportDisplayListClicked_();
     assert(onSaveDisplayListCalled);
 
-    var onSaveSkPictureCalled = false;
+    let onSaveSkPictureCalled = false;
     dbg.saveFile_ = function(filename, rawData) {
       onSaveSkPictureCalled = true;
       assert.strictEqual(filename, 'skpicture.skp');

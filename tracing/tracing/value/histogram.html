@@ -98,7 +98,7 @@ tr.exportTo('tr.v', function() {
     fromDict(dict) {
       this.count = dict[0];
       if (dict.length > 1) {
-        for (let map of dict[1]) {
+        for (const map of dict[1]) {
           this.diagnosticMaps.push(tr.v.d.DiagnosticMap.fromDict(map));
         }
       }
@@ -148,7 +148,7 @@ tr.exportTo('tr.v', function() {
     constructor(name, unit, opt_binBoundaries) {
       let binBoundaries = opt_binBoundaries;
       if (!binBoundaries) {
-        let baseUnit = unit.baseUnit ? unit.baseUnit : unit;
+        const baseUnit = unit.baseUnit ? unit.baseUnit : unit;
         binBoundaries = DEFAULT_BOUNDARIES_FOR_UNIT.get(baseUnit.unitName);
       }
 
@@ -212,7 +212,7 @@ tr.exportTo('tr.v', function() {
     }
 
     static fromDict(dict) {
-      let hist = new Histogram(dict.name, tr.b.Unit.fromJSON(dict.unit),
+      const hist = new Histogram(dict.name, tr.b.Unit.fromJSON(dict.unit),
           HistogramBinBoundaries.fromDict(dict.binBoundaries));
       hist.guid = dict.guid;
       if (dict.shortName) {
@@ -233,7 +233,7 @@ tr.exportTo('tr.v', function() {
             hist.allBins[i].fromDict(dict.allBins[i]);
           }
         } else {
-          for (var [i, binDict] of Object.entries(dict.allBins)) {
+          for (const [i, binDict] of Object.entries(dict.allBins)) {
             hist.allBins[i] = new HistogramBin(hist.allBins[i].range);
             hist.allBins[i].fromDict(binDict);
           }
@@ -255,7 +255,7 @@ tr.exportTo('tr.v', function() {
         hist.numNans = dict.numNans;
       }
       if (dict.nanDiagnostics) {
-        for (let map of dict.nanDiagnostics) {
+        for (const map of dict.nanDiagnostics) {
           hist.nanDiagnosticMaps.push(tr.v.d.DiagnosticMap.fromDict(map));
         }
       }
@@ -315,7 +315,7 @@ tr.exportTo('tr.v', function() {
         throw new Error('Unable to compute a p-value');
       }
 
-      let testResult = tr.b.math.Statistics.mwu(
+      const testResult = tr.b.math.Statistics.mwu(
           this.sampleValues, other.sampleValues, opt_alpha);
       return testResult.significance;
     }
@@ -339,13 +339,13 @@ tr.exportTo('tr.v', function() {
       if (this.allBins.length === 1) {
         // Copy sampleValues, don't sort them in place, in order to preserve
         // insertion order.
-        let sortedSampleValues = this.sampleValues.slice().sort(
+        const sortedSampleValues = this.sampleValues.slice().sort(
             (x, y) => x - y);
         return sortedSampleValues[Math.floor((sortedSampleValues.length - 1) *
             percent)];
       }
       let valuesToSkip = Math.floor((this.numValues - 1) * percent);
-      for (let bin of this.allBins) {
+      for (const bin of this.allBins) {
         valuesToSkip -= bin.count;
         if (valuesToSkip >= 0) continue;
         if (bin.range.min === -Number.MAX_VALUE) {
@@ -412,7 +412,7 @@ tr.exportTo('tr.v', function() {
     }
 
     sampleValuesInto(samples) {
-      for (let sampleValue of this.sampleValues) {
+      for (const sampleValue of this.sampleValues) {
         samples.push(sampleValue);
       }
     }
@@ -435,8 +435,8 @@ tr.exportTo('tr.v', function() {
         return false;
       }
       for (let i = 0; i < this.binBoundariesDict_.length; ++i) {
-        let slice = this.binBoundariesDict_[i];
-        let otherSlice = other.binBoundariesDict_[i];
+        const slice = this.binBoundariesDict_[i];
+        const otherSlice = other.binBoundariesDict_[i];
         if (slice instanceof Array) {
           if (!(otherSlice instanceof Array)) {
             return false;
@@ -509,10 +509,10 @@ tr.exportTo('tr.v', function() {
 
       this.diagnostics.addDiagnostics(other.diagnostics);
 
-      for (let [stat, option] of other.summaryOptions) {
+      for (const [stat, option] of other.summaryOptions) {
         if (stat === 'percentile') {
-          for (let percent of option) {
-            let percentiles = this.summaryOptions.get(stat);
+          for (const percent of option) {
+            const percentiles = this.summaryOptions.get(stat);
             if (percentiles.indexOf(percent) < 0) {
               percentiles.push(percent);
             }
@@ -539,7 +539,7 @@ tr.exportTo('tr.v', function() {
      * @param {!Array.<number>=} summaryOptions.percentile Numbers in (0,1)
      */
     customizeSummaryOptions(summaryOptions) {
-      for (var [key, value] of Object.entries(summaryOptions)) {
+      for (const [key, value] of Object.entries(summaryOptions)) {
         this.summaryOptions.set(key, value);
       }
     }
@@ -579,9 +579,9 @@ tr.exportTo('tr.v', function() {
             tr.b.Unit.byName.count_smallerIsBetter, this.numValues);
       }
       if (statName.substr(0, 4) === 'pct_') {
-        let percent = percentFromString(statName.substr(4));
+        const percent = percentFromString(statName.substr(4));
         if (this.numValues === 0) return undefined;
-        let percentile = this.getApproximatePercentile(percent);
+        const percentile = this.getApproximatePercentile(percent);
         return new tr.b.Scalar(this.unit, percentile);
       }
 
@@ -618,7 +618,7 @@ tr.exportTo('tr.v', function() {
             opt_referenceHistogram.standardDeviation);
       }
 
-      let mwu = opt_mwu || tr.b.math.Statistics.mwu(
+      const mwu = opt_mwu || tr.b.math.Statistics.mwu(
           this.sampleValues, opt_referenceHistogram.sampleValues);
       if (statName === P_VALUE_NAME) {
         return new tr.b.Scalar(tr.b.Unit.byName.unitlessNumber, mwu.p);
@@ -634,10 +634,10 @@ tr.exportTo('tr.v', function() {
      * @return {!Array.<string>} names of enabled summary statistics
      */
     get statisticsNames() {
-      let statisticsNames = new Set();
-      for (let [statName, option] of this.summaryOptions) {
+      const statisticsNames = new Set();
+      for (const [statName, option] of this.summaryOptions) {
         if (statName === 'percentile') {
-          for (let pctile of option) {
+          for (const pctile of option) {
             statisticsNames.add('pct_' + tr.v.percentToString(pctile));
           }
         } else if (option) {
@@ -711,9 +711,9 @@ tr.exportTo('tr.v', function() {
      * @return {!Map.<string, Scalar>}
      */
     get statisticsScalars() {
-      let results = new Map();
-      for (let statName of this.statisticsNames) {
-        let scalar = this.getStatisticScalar(statName);
+      const results = new Map();
+      for (const statName of this.statisticsNames) {
+        const scalar = this.getStatisticScalar(statName);
         if (scalar === undefined) continue;
         results.set(statName, scalar);
       }
@@ -730,15 +730,16 @@ tr.exportTo('tr.v', function() {
      * @return {!tr.v.Histogram}
      */
     clone() {
-      let binBoundaries = HistogramBinBoundaries.fromDict(
+      const binBoundaries = HistogramBinBoundaries.fromDict(
           this.binBoundariesDict_);
-      let hist = new Histogram(this.name, this.unit, binBoundaries);
-      for (let [stat, option] of this.summaryOptions) {
+      const hist = new Histogram(this.name, this.unit, binBoundaries);
+      for (const [stat, option] of this.summaryOptions) {
         // Copy arrays.
         if (stat === 'percentile') {
-          option = Array.from(option);
+          hist.summaryOptions.set(stat, Array.from(option));
+        } else {
+          hist.summaryOptions.set(stat, option);
         }
-        hist.summaryOptions.set(stat, option);
       }
       hist.addHistogram(this);
       return hist;
@@ -764,16 +765,19 @@ tr.exportTo('tr.v', function() {
       for (const [name, diagnostic] of this.diagnostics) {
         rebinned.diagnostics.set(name, diagnostic);
       }
-      for (let [stat, option] of this.summaryOptions) {
+      for (const [stat, option] of this.summaryOptions) {
         // Copy the array of percentiles.
-        if (stat === 'percentile') option = Array.from(option);
-        rebinned.summaryOptions.set(stat, option);
+        if (stat === 'percentile') {
+          rebinned.summaryOptions.set(stat, Array.from(option));
+        } else {
+          rebinned.summaryOptions.set(stat, option);
+        }
       }
       return rebinned;
     }
 
     asDict() {
-      let dict = {};
+      const dict = {};
       dict.name = this.name;
       dict.unit = this.unit.asJSON();
       dict.guid = this.guid;
@@ -806,16 +810,19 @@ tr.exportTo('tr.v', function() {
         dict.allBins = this.allBinsAsDict_();
       }
 
-      let summaryOptions = {};
+      const summaryOptions = {};
       let anyOverriddenSummaryOptions = false;
-      for (let [name, option] of this.summaryOptions) {
+      for (const [name, value] of this.summaryOptions) {
+        let option;
         if (name === 'percentile') {
-          if (option.length === 0) {
+          if (value.length === 0) {
             continue;
           }
-          option = option.slice();
-        } else if (option === DEFAULT_SUMMARY_OPTIONS.get(name)) {
+          option = Array.from(value);
+        } else if (value === DEFAULT_SUMMARY_OPTIONS.get(name)) {
           continue;
+        } else {
+          option = value;
         }
         summaryOptions[name] = option;
         anyOverriddenSummaryOptions = true;
@@ -837,7 +844,7 @@ tr.exportTo('tr.v', function() {
       // empty. The array form is more efficient when fewer than half of
       // allBins are empty.
 
-      let numBins = this.allBins.length;
+      const numBins = this.allBins.length;
 
       // If allBins are empty, then don't serialize anything for them.
       let emptyBins = 0;
@@ -853,9 +860,9 @@ tr.exportTo('tr.v', function() {
       }
 
       if (emptyBins > (numBins / 2)) {
-        let allBinsDict = {};
+        const allBinsDict = {};
         for (let i = 0; i < numBins; ++i) {
-          let bin = this.allBins[i];
+          const bin = this.allBins[i];
           if (bin.count > 0) {
             allBinsDict[i] = bin.asDict();
           }
@@ -863,7 +870,7 @@ tr.exportTo('tr.v', function() {
         return allBinsDict;
       }
 
-      let allBinsArray = [];
+      const allBinsArray = [];
       for (let i = 0; i < numBins; ++i) {
         allBinsArray.push(this.allBins[i].asDict());
       }
@@ -949,8 +956,8 @@ tr.exportTo('tr.v', function() {
      * @param {Array.<number>} binBoundaries
      */
     static createWithBoundaries(binBoundaries) {
-      let builder = new HistogramBinBoundaries(binBoundaries[0]);
-      for (let boundary of binBoundaries.slice(1)) {
+      const builder = new HistogramBinBoundaries(binBoundaries[0]);
+      for (const boundary of binBoundaries.slice(1)) {
         builder.addBinBoundary(boundary);
       }
       return builder;
@@ -1005,13 +1012,13 @@ tr.exportTo('tr.v', function() {
       // boundaries, caching the HistogramBinBoundaries not only speeds up
       // loading, but also prevents a bug where buildBinRanges_ is occasionally
       // non-deterministic, which causes similar Histograms to be unmergeable.
-      let cacheKey = JSON.stringify(dict);
+      const cacheKey = JSON.stringify(dict);
       if (HISTOGRAM_BIN_BOUNDARIES_CACHE.has(cacheKey)) {
         return HISTOGRAM_BIN_BOUNDARIES_CACHE.get(cacheKey);
       }
 
-      let binBoundaries = new HistogramBinBoundaries(dict[0]);
-      for (let slice of dict.slice(1)) {
+      const binBoundaries = new HistogramBinBoundaries(dict[0]);
+      for (const slice of dict.slice(1)) {
         if (!(slice instanceof Array)) {
           binBoundaries.addBinBoundary(slice);
           continue;
@@ -1071,23 +1078,23 @@ tr.exportTo('tr.v', function() {
             -Number.MAX_VALUE, prevBoundary));
       }
 
-      for (let slice of this.builder_.slice(1)) {
+      for (const slice of this.builder_.slice(1)) {
         if (!(slice instanceof Array)) {
           this.binRanges_.push(
               tr.b.math.Range.fromExplicitRange(prevBoundary, slice));
           prevBoundary = slice;
           continue;
         }
-        let nextMaxBinBoundary = slice[1];
-        let binCount = slice[2];
-        let sliceMinBinBoundary = prevBoundary;
+        const nextMaxBinBoundary = slice[1];
+        const binCount = slice[2];
+        const sliceMinBinBoundary = prevBoundary;
 
         switch (slice[0]) {
           case HistogramBinBoundaries.SLICE_TYPE.LINEAR:
             {
-              let binWidth = (nextMaxBinBoundary - prevBoundary) / binCount;
+              const binWidth = (nextMaxBinBoundary - prevBoundary) / binCount;
               for (let i = 1; i < binCount; i++) {
-                let boundary = sliceMinBinBoundary + i * binWidth;
+                const boundary = sliceMinBinBoundary + i * binWidth;
                 this.binRanges_.push(tr.b.math.Range.fromExplicitRange(
                     prevBoundary, boundary));
                 prevBoundary = boundary;
@@ -1097,10 +1104,10 @@ tr.exportTo('tr.v', function() {
 
           case HistogramBinBoundaries.SLICE_TYPE.EXPONENTIAL:
             {
-              let binExponentWidth =
+              const binExponentWidth =
                   Math.log(nextMaxBinBoundary / prevBoundary) / binCount;
               for (let i = 1; i < binCount; i++) {
-                let boundary = sliceMinBinBoundary * Math.exp(
+                const boundary = sliceMinBinBoundary * Math.exp(
                     i * binExponentWidth);
                 this.binRanges_.push(tr.b.math.Range.fromExplicitRange(
                     prevBoundary, boundary));

@@ -27,9 +27,9 @@ if (tr.isVinn) {
   global.JSZip = global.window.JSZip;
   global.window = undefined;
 } else if (tr.isNode) {
-  var jsZipAbsPath = HTMLImportsLoader.hrefToAbsolutePath(
+  const jsZipAbsPath = HTMLImportsLoader.hrefToAbsolutePath(
       '/jszip.min.js');
-  var jsZipModule = require(jsZipAbsPath);
+  const jsZipModule = require(jsZipAbsPath);
   global.JSZip = jsZipModule;
 }
 </script>

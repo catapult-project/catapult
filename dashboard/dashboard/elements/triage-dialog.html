@@ -190,7 +190,7 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
           if (!e || !e.data) {
             return;
           }
-          var data = JSON.parse(e.data);
+          const data = JSON.parse(e.data);
           if (data.action == 'bug_create_result') {
             if (this.bugWindow) {
               this.bugWindow.close();
@@ -248,8 +248,8 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
        * Opens a window with the /file_bug page, and fills in the form.
        */
       fileNewBug() {
-        var bugTitle = this.getBugTitle();
-        var data = [
+        const bugTitle = this.getBugTitle();
+        const data = [
           {name: 'keys', value: this.alertKeys.join(',')},
           {name: 'summary', value: bugTitle}
         ];
@@ -283,7 +283,7 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
        * Changes the bug ID of the selected alerts.
        */
       changeBugId(bugId, successMessage) {
-        var params = {
+        const params = {
           keys: this.alertKeys,
           xsrf_token: this.xsrfToken
         };
@@ -315,8 +315,8 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
        * Move an alert's position.
        */
       nudgeAlert() {
-        var info = this.getNudgedInfo();
-        var params = {
+        const info = this.getNudgedInfo();
+        const params = {
           'keys': this.alertKeys,
           'new_start_revision': info.startRevision,
           'new_end_revision': info.endRevision,
@@ -348,7 +348,7 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
        * Note that this.nudgeList is populated in chart-container.
        */
       getNudgedInfo() {
-        var index = this.$.nudgeSelect.selectedIndex;
+        const index = this.$.nudgeSelect.selectedIndex;
         return this.nudgeList[index];
       },
 
@@ -377,18 +377,18 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
       },
 
       getBugTitleForAnomaly() {
-        var type = 'improvement';
-        var percentMin = Infinity;
-        var percentMax = -Infinity;
-        var maxRegressionFound = false;
-        var startRev = Infinity;
-        var endRev = -Infinity;
-        for (var i = 0; i < this.alerts.length; i++) {
-          var alert = this.alerts[i];
+        let type = 'improvement';
+        let percentMin = Infinity;
+        let percentMax = -Infinity;
+        let maxRegressionFound = false;
+        let startRev = Infinity;
+        let endRev = -Infinity;
+        for (let i = 0; i < this.alerts.length; i++) {
+          const alert = this.alerts[i];
           if (!alert.improvement) {
             type = 'regression';
           }
-          var percent = Infinity;
+          let percent = Infinity;
           if (alert.percent_changed == this.FREAKIN_HUGE &&
               !maxRegressionFound) {
             maxRegressionFound = true;
@@ -412,7 +412,7 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
         // Round the percentages to 1 decimal place.
         percentMin = Math.round(percentMin * 10) / 10;
         percentMax = Math.round(percentMax * 10) / 10;
-        var minMax = percentMin + '%-' + percentMax + '%';
+        let minMax = percentMin + '%-' + percentMax + '%';
         if (maxRegressionFound) {
           if (percentMin == Infinity) {
             // Both percentMin and percentMax were at Infinity.
@@ -426,8 +426,8 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
           minMax = percentMin + '%';
         }
 
-        let suiteTitle = this.getSuiteNameForAlert(this.alerts[0]);
-        let summary = '{{range}} {{type}} in {{suite}} at {{start}}:{{end}}'.
+        const suiteTitle = this.getSuiteNameForAlert(this.alerts[0]);
+        const summary = '{{range}} {{type}} in {{suite}} at {{start}}:{{end}}'.
             replace('{{range}}', minMax).
             replace('{{type}}', type).
             replace('{{suite}}', suiteTitle).
@@ -437,9 +437,9 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
       },
 
       getBugTitleForStoppageAlert() {
-        let alert = this.alerts[0];
-        let suiteTitle = this.getSuiteNameForAlert(alert);
-        let summary =
+        const alert = this.alerts[0];
+        const suiteTitle = this.getSuiteNameForAlert(alert);
+        const summary =
             'No data received for {{suite}} from {{bot}} since {{rev}}'.
                 replace('{{suite}}', suiteTitle).
                 replace('{{bot}}', alert.bot).
@@ -460,14 +460,14 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
        * @return {Object} The window that was opened.
        */
       openAndPost(url, data, target) {
-        var popup = window.open('about:blank', target, 'width=600,height=480');
-        var form = document.createElement('form');
+        const popup = window.open('about:blank', target, 'width=600,height=480');
+        const form = document.createElement('form');
         form.action = url;
         form.method = 'POST';
         form.target = target;
         if (data) {
-          for (var i = 0; i < data.length; i++) {
-            var input = document.createElement('textarea');
+          for (let i = 0; i < data.length; i++) {
+            const input = document.createElement('textarea');
             input.name = data[i].name;
             input.value = (typeof data[i].value === 'object' ?
                 JSON.stringify(data[i].value) : data[i].value);

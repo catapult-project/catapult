@@ -51,7 +51,7 @@ an alert from an issue on the issue tracker.
       onRemoveBug(event, detail) {
         event.preventDefault();
         this.loading = true;
-        var params = {
+        const params = {
           'keys': this.key,
           'bug_id': 'REMOVE',
           'xsrf_token': this.xsrfToken

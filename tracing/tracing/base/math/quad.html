@@ -10,24 +10,24 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.b.math', function() {
-  var tmpVec2s = [];
-  for (var i = 0; i < 8; i++) {
+  const tmpVec2s = [];
+  for (let i = 0; i < 8; i++) {
     tmpVec2s[i] = vec2.create();
   }
 
-  var tmpVec2a = vec4.create();
-  var tmpVec4a = vec4.create();
-  var tmpVec4b = vec4.create();
-  var tmpMat4 = mat4.create();
-  var tmpMat4b = mat4.create();
+  const tmpVec2a = vec4.create();
+  const tmpVec4a = vec4.create();
+  const tmpVec4b = vec4.create();
+  const tmpMat4 = mat4.create();
+  const tmpMat4b = mat4.create();
 
-  var p00 = vec2.createXY(0, 0);
-  var p10 = vec2.createXY(1, 0);
-  var p01 = vec2.createXY(0, 1);
-  var p11 = vec2.createXY(1, 1);
+  const p00 = vec2.createXY(0, 0);
+  const p10 = vec2.createXY(1, 0);
+  const p01 = vec2.createXY(0, 1);
+  const p11 = vec2.createXY(1, 1);
 
-  var lerpingVecA = vec2.create();
-  var lerpingVecB = vec2.create();
+  const lerpingVecA = vec2.create();
+  const lerpingVecB = vec2.create();
   function lerpVec2(out, a, b, amt) {
     vec2.scale(lerpingVecA, a, amt);
     vec2.scale(lerpingVecB, b, 1 - amt);
@@ -47,7 +47,7 @@ tr.exportTo('tr.b.math', function() {
   }
 
   Quad.fromXYWH = function(x, y, w, h) {
-    var q = new Quad();
+    const q = new Quad();
     vec2.set(q.p1, x, y);
     vec2.set(q.p2, x + w, y);
     vec2.set(q.p3, x + w, y + h);
@@ -62,7 +62,7 @@ tr.exportTo('tr.b.math', function() {
   };
 
   Quad.from4Vecs = function(p1, p2, p3, p4) {
-    var q = new Quad();
+    const q = new Quad();
     vec2.set(q.p1, p1[0], p1[1]);
     vec2.set(q.p2, p2[0], p2[1]);
     vec2.set(q.p3, p3[0], p3[1]);
@@ -74,7 +74,7 @@ tr.exportTo('tr.b.math', function() {
     if (arr.length !== 8) {
       throw new Error('Array must be 8 long');
     }
-    var q = new Quad();
+    const q = new Quad();
     q.p1[0] = arr[0];
     q.p1[1] = arr[1];
     q.p2[0] = arr[2];
@@ -93,17 +93,17 @@ tr.exportTo('tr.b.math', function() {
     },
 
     boundingRect() {
-      var x0 = Math.min(this.p1[0], this.p2[0], this.p3[0], this.p4[0]);
-      var y0 = Math.min(this.p1[1], this.p2[1], this.p3[1], this.p4[1]);
+      const x0 = Math.min(this.p1[0], this.p2[0], this.p3[0], this.p4[0]);
+      const y0 = Math.min(this.p1[1], this.p2[1], this.p3[1], this.p4[1]);
 
-      var x1 = Math.max(this.p1[0], this.p2[0], this.p3[0], this.p4[0]);
-      var y1 = Math.max(this.p1[1], this.p2[1], this.p3[1], this.p4[1]);
+      const x1 = Math.max(this.p1[0], this.p2[0], this.p3[0], this.p4[0]);
+      const y1 = Math.max(this.p1[1], this.p2[1], this.p3[1], this.p4[1]);
 
       return new tr.b.math.Rect.fromXYWH(x0, y0, x1 - x0, y1 - y0);
     },
 
     clone() {
-      var q = new Quad();
+      const q = new Quad();
       vec2.copy(q.p1, this.p1);
       vec2.copy(q.p2, this.p2);
       vec2.copy(q.p3, this.p3);
@@ -112,7 +112,7 @@ tr.exportTo('tr.b.math', function() {
     },
 
     scale(s) {
-      var q = new Quad();
+      const q = new Quad();
       this.scaleFast(q, s);
       return q;
     },
@@ -126,7 +126,7 @@ tr.exportTo('tr.b.math', function() {
 
     isRectangle() {
       // Simple rectangle check. Note: will not handle out-of-order components.
-      var bounds = this.boundingRect();
+      const bounds = this.boundingRect();
       return (
           bounds.x === this.p1[0] &&
           bounds.y === this.p1[1] &&
@@ -140,41 +140,37 @@ tr.exportTo('tr.b.math', function() {
     },
 
     projectUnitRect(rect) {
-      var q = new Quad();
+      const q = new Quad();
       this.projectUnitRectFast(q, rect);
       return q;
     },
 
     projectUnitRectFast(dstQuad, rect) {
-      var v12 = tmpVec2s[0];
-      var v14 = tmpVec2s[1];
-      var v23 = tmpVec2s[2];
-      var v43 = tmpVec2s[3];
-      var l12;
-      var l14;
-      var l23;
-      var l43;
+      const v12 = tmpVec2s[0];
+      const v14 = tmpVec2s[1];
+      const v23 = tmpVec2s[2];
+      const v43 = tmpVec2s[3];
 
       vec2.sub(v12, this.p2, this.p1);
-      l12 = vec2.length(v12);
+      const l12 = vec2.length(v12);
       vec2.scale(v12, v12, 1 / l12);
 
       vec2.sub(v14, this.p4, this.p1);
-      l14 = vec2.length(v14);
+      const l14 = vec2.length(v14);
       vec2.scale(v14, v14, 1 / l14);
 
       vec2.sub(v23, this.p3, this.p2);
-      l23 = vec2.length(v23);
+      const l23 = vec2.length(v23);
       vec2.scale(v23, v23, 1 / l23);
 
       vec2.sub(v43, this.p3, this.p4);
-      l43 = vec2.length(v43);
+      const l43 = vec2.length(v43);
       vec2.scale(v43, v43, 1 / l43);
 
-      var b12 = tmpVec2s[0];
-      var b14 = tmpVec2s[1];
-      var b23 = tmpVec2s[2];
-      var b43 = tmpVec2s[3];
+      const b12 = tmpVec2s[0];
+      const b14 = tmpVec2s[1];
+      const b23 = tmpVec2s[2];
+      const b43 = tmpVec2s[3];
       lerpVec2(b12, v12, v43, rect.y);
       lerpVec2(b43, v12, v43, 1 - rect.bottom);
       lerpVec2(b14, v14, v23, rect.x);
@@ -217,9 +213,9 @@ tr.exportTo('tr.b.math', function() {
   }
 
   function pointInTriangle2(pt, p1, p2, p3) {
-    var b1 = sign(pt, p1, p2) < 0.0;
-    var b2 = sign(pt, p2, p3) < 0.0;
-    var b3 = sign(pt, p3, p1) < 0.0;
+    const b1 = sign(pt, p1, p2) < 0.0;
+    const b2 = sign(pt, p2, p3) < 0.0;
+    const b3 = sign(pt, p3, p1) < 0.0;
     return ((b1 === b2) && (b2 === b3));
   }
 

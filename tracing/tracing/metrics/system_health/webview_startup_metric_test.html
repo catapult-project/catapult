@@ -14,7 +14,7 @@ found in the LICENSE file.
 
 function makeTestModel() {
   return tr.c.TestUtils.newModel(function(model) {
-    var mainThread = model.getOrCreateProcess(1).getOrCreateThread(2);
+    const mainThread = model.getOrCreateProcess(1).getOrCreateThread(2);
     mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
       cat: 'webview',
       title: 'WebViewStartupInterval',
@@ -36,7 +36,7 @@ function makeTestModel() {
 
 tr.b.unittest.testSuite(function() {
   test('webviewStartupMetric', function() {
-    var histograms = new tr.v.HistogramSet();
+    const histograms = new tr.v.HistogramSet();
     tr.metrics.sh.webviewStartupMetric(histograms, makeTestModel());
     assert.closeTo(42, histograms.getHistogramNamed(
         'webview_startup_wall_time').average, 1e-2);

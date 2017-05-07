@@ -48,21 +48,21 @@ tr.exportTo('tr.model', function() {
    * the timeline's drawing canvas.
    */
   Location.fromViewCoordinates = function(viewport, viewX, viewY) {
-    var dt = viewport.currentDisplayTransform;
-    var xWorld = dt.xViewToWorld(viewX);
-    var yComponents = [];
+    const dt = viewport.currentDisplayTransform;
+    const xWorld = dt.xViewToWorld(viewX);
+    const yComponents = [];
 
     // Since we're given coordinates within the timeline canvas, we need to
     // convert them to document coordinates to get the element.
-    var elem = document.elementFromPoint(
+    let elem = document.elementFromPoint(
         viewX + viewport.modelTrackContainer.canvas.offsetLeft,
         viewY + viewport.modelTrackContainer.canvas.offsetTop);
     // Build yComponents by calculating percentage offset with respect to
     // each parent track.
     while (elem instanceof tr.ui.tracks.Track) {
       if (elem.eventContainer) {
-        var boundRect = elem.getBoundingClientRect();
-        var yPercentOffset = (viewY - boundRect.top) / boundRect.height;
+        const boundRect = elem.getBoundingClientRect();
+        const yPercentOffset = (viewY - boundRect.top) / boundRect.height;
         yComponents.push(
             new YComponent(elem.eventContainer.stableId, yPercentOffset));
       }
@@ -74,20 +74,20 @@ tr.exportTo('tr.model', function() {
   };
 
   Location.fromStableIdAndTimestamp = function(viewport, stableId, ts) {
-    var xWorld = ts;
-    var yComponents = [];
+    const xWorld = ts;
+    const yComponents = [];
 
     // The y components' percentage offsets will be calculated with respect to
     // the boundingRect's top of containing track.
-    var containerToTrack = viewport.containerToTrackMap;
-    var elem = containerToTrack.getTrackByStableId(stableId);
+    const containerToTrack = viewport.containerToTrackMap;
+    let elem = containerToTrack.getTrackByStableId(stableId);
     if (!elem) return;
 
-    var firstY = elem.getBoundingClientRect().top;
+    const firstY = elem.getBoundingClientRect().top;
     while (elem instanceof tr.ui.tracks.Track) {
       if (elem.eventContainer) {
-        var boundRect = elem.getBoundingClientRect();
-        var yPercentOffset = (firstY - boundRect.top) / boundRect.height;
+        const boundRect = elem.getBoundingClientRect();
+        const yPercentOffset = (firstY - boundRect.top) / boundRect.height;
         yComponents.push(
             new YComponent(elem.eventContainer.stableId, yPercentOffset));
       }
@@ -109,10 +109,10 @@ tr.exportTo('tr.model', function() {
      * internal yComponents.
      */
     getContainingTrack(viewport) {
-      var containerToTrack = viewport.containerToTrackMap;
-      for (var i in this.yComponents_) {
-        var yComponent = this.yComponents_[i];
-        var track = containerToTrack.getTrackByStableId(yComponent.stableId);
+      const containerToTrack = viewport.containerToTrackMap;
+      for (const i in this.yComponents_) {
+        const yComponent = this.yComponents_[i];
+        const track = containerToTrack.getTrackByStableId(yComponent.stableId);
         if (track !== undefined) return track;
       }
     },
@@ -122,16 +122,16 @@ tr.exportTo('tr.model', function() {
      * respect to the timeline's canvas.
      */
     toViewCoordinates(viewport) {
-      var dt = viewport.currentDisplayTransform;
-      var containerToTrack = viewport.containerToTrackMap;
-      var viewX = dt.xWorldToView(this.xWorld_);
+      const dt = viewport.currentDisplayTransform;
+      const containerToTrack = viewport.containerToTrackMap;
+      const viewX = dt.xWorldToView(this.xWorld_);
 
-      var viewY = -1;
-      for (var index in this.yComponents_) {
-        var yComponent = this.yComponents_[index];
-        var track = containerToTrack.getTrackByStableId(yComponent.stableId);
+      let viewY = -1;
+      for (const index in this.yComponents_) {
+        const yComponent = this.yComponents_[index];
+        const track = containerToTrack.getTrackByStableId(yComponent.stableId);
         if (track !== undefined) {
-          var boundRect = track.getBoundingClientRect();
+          const boundRect = track.getBoundingClientRect();
           viewY = yComponent.yPercentOffset * boundRect.height + boundRect.top;
           break;
         }

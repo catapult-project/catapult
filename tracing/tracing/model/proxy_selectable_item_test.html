@@ -13,19 +13,19 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var ProxySelectableItem = tr.model.ProxySelectableItem;
-  var SelectionState = tr.model.SelectionState;
+  const ProxySelectableItem = tr.model.ProxySelectableItem;
+  const SelectionState = tr.model.SelectionState;
 
   test('checkSelectionState_undefinedModelItem', function() {
-    var proxyItem = new ProxySelectableItem(undefined);
+    const proxyItem = new ProxySelectableItem(undefined);
     assert.isFalse(proxyItem.selected);
     assert.strictEqual(proxyItem.selectionState, SelectionState.NONE);
   });
 
   test('checkSelectionState_definedModelItem', function() {
     // Start with a selected model event.
-    var modelItem = {selectionState: SelectionState.SELECTED};
-    var proxyItem = new ProxySelectableItem(modelItem);
+    const modelItem = {selectionState: SelectionState.SELECTED};
+    const proxyItem = new ProxySelectableItem(modelItem);
     assert.isTrue(proxyItem.selected);
     assert.strictEqual(proxyItem.selectionState, SelectionState.SELECTED);
 

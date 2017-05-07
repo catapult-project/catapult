@@ -13,7 +13,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('binderParserImport', function() {
-    var lines = [
+    const lines = [
       'binderLibTest-10619 (10619) [001] ...1 25191.335749: ' +
         'binder_transaction: transaction=489053 dest_node=489048 ' +
         'dest_proc=10670 dest_thread=0 reply=0 flags=0x10 code=0xd',
@@ -48,17 +48,17 @@ tr.b.unittest.testSuite(function() {
         ' trace_event_clock_sync: parent_ts=25196.050781'
     ];
 
-    var m = tr.c.TestUtils.newModelWithEvents([lines.join('\n')], {
+    const m = tr.c.TestUtils.newModelWithEvents([lines.join('\n')], {
       shfitWorldToZero: false
     });
     assert.isFalse(m.hasImportWarnings);
 
-    var threads = m.getAllThreads();
+    const threads = m.getAllThreads();
     assert.strictEqual(threads.length, 4);
   });
 
   test('binderRecursiveTest', function() {
-    var lines = [
+    const lines = [
       'binderLibTest-10619 (10619) [001] ...1 25191.335749: ' +
         'binder_transaction: transaction=489053 dest_node=489048 ' +
         'dest_proc=10670 dest_thread=0 reply=0 flags=0x10 code=0xd',
@@ -93,12 +93,12 @@ tr.b.unittest.testSuite(function() {
         ' trace_event_clock_sync: parent_ts=25196.050781'
     ];
 
-    var m = tr.c.TestUtils.newModelWithEvents([lines.join('\n')], {
+    const m = tr.c.TestUtils.newModelWithEvents([lines.join('\n')], {
       shfitWorldToZero: false
     });
-    var threads = m.getAllThreads();
+    const threads = m.getAllThreads();
 
-    var thread = threads[0];
+    let thread = threads[0];
     assert.strictEqual(thread.parent.pid, 3454);
     assert.strictEqual(thread.tid, 3454);
     assert.strictEqual(thread.name, '/system/bin/servicemanager');
@@ -106,10 +106,10 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(thread.sliceGroup.length, 2);
 
     /* check flow events for service manager */
-    var mainSlice = thread.sliceGroup.slices[0];
+    let mainSlice = thread.sliceGroup.slices[0];
     assert.strictEqual(mainSlice.inFlowEvents.length, 1);
     assert.strictEqual(mainSlice.outFlowEvents.length, 1);
-    var internalSlice = thread.sliceGroup.slices[1];
+    let internalSlice = thread.sliceGroup.slices[1];
     assert.strictEqual(internalSlice.outFlowEvents.length, 1);
 
     /* check name of slice */
@@ -161,8 +161,8 @@ tr.b.unittest.testSuite(function() {
 
     assert.strictEqual(mainSlice.title, 'binder reply');
 
-    var recursive = thread.sliceGroup.slices[1];
-    var recursiveInternal = thread.sliceGroup.slices[2];
+    let recursive = thread.sliceGroup.slices[1];
+    let recursiveInternal = thread.sliceGroup.slices[2];
     assert.strictEqual(recursive.inFlowEvents.length, 1);
     assert.strictEqual(recursive.outFlowEvents.length, 1);
     assert.strictEqual(recursiveInternal.inFlowEvents.length, 1);
@@ -171,8 +171,8 @@ tr.b.unittest.testSuite(function() {
 
     /* check second recursive slice and internal */
 
-    var recursive = thread.sliceGroup.slices[3];
-    var recursiveInternal = thread.sliceGroup.slices[4];
+    recursive = thread.sliceGroup.slices[3];
+    recursiveInternal = thread.sliceGroup.slices[4];
     assert.strictEqual(recursive.inFlowEvents.length, 1);
     assert.strictEqual(recursive.outFlowEvents.length, 1);
     assert.strictEqual(recursiveInternal.inFlowEvents.length, 1);
@@ -181,7 +181,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('binderSimpleAsync', function() {
-    var lines = [
+    const lines = [
       '/system/bin/surfaceflinger-3462  ( 3462) [000] ...1 108286.109437:' +
         ' binder_transaction: transaction=923419 dest_node=175950' +
         ' dest_proc=4044 dest_thread=0 reply=0 flags=0x11 code=0x1',
@@ -189,20 +189,20 @@ tr.b.unittest.testSuite(function() {
         ' binder_transaction_received: transaction=923419'
     ];
 
-    var m = tr.c.TestUtils.newModelWithEvents([lines.join('\n')], {
+    const m = tr.c.TestUtils.newModelWithEvents([lines.join('\n')], {
       shfitWorldToZero: false
     });
     assert.isFalse(m.hasImportWarnings);
 
-    var threads = m.getAllThreads(0);
+    const threads = m.getAllThreads(0);
     assert.strictEqual(threads.length, 2);
 
-    var thread = threads[0];
+    let thread = threads[0];
     assert.strictEqual(thread.tid, 3462);
     assert.strictEqual(thread.name, '/system/bin/surfaceflinger');
     assert.strictEqual(thread.sliceGroup.length, 1);
 
-    var slice = thread.sliceGroup.slices[0];
+    let slice = thread.sliceGroup.slices[0];
     assert.strictEqual(slice.outFlowEvents.length, 1);
     assert.strictEqual(slice.inFlowEvents.length, 0);
     assert.strictEqual(slice.title, 'binder transaction async');

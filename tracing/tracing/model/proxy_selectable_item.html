@@ -12,8 +12,8 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.model', function() {
-  var SelectableItem = tr.model.SelectableItem;
-  var SelectionState = tr.model.SelectionState;
+  const SelectableItem = tr.model.SelectableItem;
+  const SelectionState = tr.model.SelectionState;
 
   /**
    * A ProxySelectableItem is a selectable item which is not a model item itself
@@ -30,7 +30,7 @@ tr.exportTo('tr.model', function() {
     __proto__: SelectableItem.prototype,
 
     get selectionState() {
-      var modelItem = this.modelItem_;
+      const modelItem = this.modelItem_;
       if (modelItem === undefined) {
         return SelectionState.NONE;
       }

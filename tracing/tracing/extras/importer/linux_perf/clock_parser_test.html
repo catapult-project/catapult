@@ -13,7 +13,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('clock', function() {
-    var lines = [
+    const lines = [
       'cfinteractive-23    [000] d..2  8113.233768: clock_set_rate: ' +
           'fout_apll state=500000000 cpu_id=0',
 
@@ -45,12 +45,12 @@ tr.b.unittest.testSuite(function() {
           'fout_apll state=500000000 cpu_id=0'
     ];
 
-    var m = tr.c.TestUtils.newModelWithEvents([lines.join('\n')], {
+    const m = tr.c.TestUtils.newModelWithEvents([lines.join('\n')], {
       shiftWorldToZero: false
     });
     assert.isFalse(m.hasImportWarnings);
 
-    var counters = m.getAllCounters();
+    const counters = m.getAllCounters();
     assert.strictEqual(counters.length, 1);
 
     assert.strictEqual(counters[0].series[0].samples.length, 10);

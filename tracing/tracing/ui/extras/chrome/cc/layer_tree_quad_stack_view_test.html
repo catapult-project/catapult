@@ -19,15 +19,15 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('tileCoverageRectCount', function() {
-    var m = tr.c.TestUtils.newModelWithEvents([g_catLTHIEvents]);
-    var p = m.processes[1];
+    const m = tr.c.TestUtils.newModelWithEvents([g_catLTHIEvents]);
+    const p = m.processes[1];
 
-    var instance = p.objects.getAllInstancesNamed('cc::LayerTreeHostImpl')[0];
-    var lthi = instance.snapshots[0];
-    var numLayers = lthi.activeTree.renderSurfaceLayerList.length;
-    var layer = lthi.activeTree.renderSurfaceLayerList[numLayers - 1];
+    const instance = p.objects.getAllInstancesNamed('cc::LayerTreeHostImpl')[0];
+    const lthi = instance.snapshots[0];
+    const numLayers = lthi.activeTree.renderSurfaceLayerList.length;
+    const layer = lthi.activeTree.renderSurfaceLayerList[numLayers - 1];
 
-    var view = new tr.ui.e.chrome.cc.LayerTreeQuadStackView();
+    const view = new tr.ui.e.chrome.cc.LayerTreeQuadStackView();
     view.layerTreeImpl = lthi.activeTree;
     view.selection = new tr.ui.e.chrome.cc.LayerSelection(layer);
     view.howToShowTiles = 'none';
@@ -37,10 +37,10 @@ tr.b.unittest.testSuite(function() {
 
     // There should be some quads drawn with all "show" checkboxes off,
     // but that number can change with new features added.
-    var aQuads = view.generateLayerQuads();
+    const aQuads = view.generateLayerQuads();
     view.howToShowTiles = 'coverage';
-    var bQuads = view.generateLayerQuads();
-    var numCoverageRects = bQuads.length - aQuads.length;
+    const bQuads = view.generateLayerQuads();
+    const numCoverageRects = bQuads.length - aQuads.length;
 
     // We know we have 5 coverage rects in lthi cats.
     assert.strictEqual(numCoverageRects, 5);

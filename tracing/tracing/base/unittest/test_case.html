@@ -10,7 +10,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.b.unittest', function() {
-  var TestTypes = tr.b.unittest.TestTypes;
+  const TestTypes = tr.b.unittest.TestTypes;
 
   function TestCase(name, opt_testFn, opt_options) {
     if (!name) {
@@ -30,7 +30,7 @@ tr.exportTo('tr.b.unittest', function() {
   }
 
   TestCase.parseFullyQualifiedName = function(fqn) {
-    var i = fqn.lastIndexOf('.');
+    const i = fqn.lastIndexOf('.');
     if (i === -1) {
       throw new Error('FullyQualifiedNames must have a period in them');
     }
@@ -110,22 +110,22 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     run() {
-      var durations = [];
-      var iterations = this.iterations;
-      for (var i = 0; i < iterations; ++i) {
-        var start = window.performance.now();
+      const durations = [];
+      const iterations = this.iterations;
+      for (let i = 0; i < iterations; ++i) {
+        const start = window.performance.now();
         this.runOneIteration();
-        var duration = window.performance.now() - start;
+        const duration = window.performance.now() - start;
         durations.push(duration);
       }
 
-      var durationStrings = durations.map(function(d) {
+      const durationStrings = durations.map(function(d) {
         return d.toFixed(2) + 'ms';
       });
-      var average = tr.b.math.Statistics.mean(durations);
-      var min = tr.b.math.Statistics.min(durations);
+      const average = tr.b.math.Statistics.mean(durations);
+      const min = tr.b.math.Statistics.min(durations);
 
-      var summaryString = ' [';
+      let summaryString = ' [';
       summaryString += 'min ' + min.toFixed(2) + 'ms, ';
       summaryString += 'avg ' + average.toFixed(2) + 'ms';
       summaryString += ']';

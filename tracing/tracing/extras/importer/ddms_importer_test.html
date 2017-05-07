@@ -13,7 +13,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var Base64 = tr.b.Base64;
+  const Base64 = tr.b.Base64;
 
   test('canImport', function() {
     assert.isFalse(tr.e.importer.ddms.DdmsImporter.canImport('string'));
@@ -22,34 +22,34 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('parseThreads', function() {
-    var m = tr.c.TestUtils.newModelWithEvents(TEST_DATA, {
+    const m = tr.c.TestUtils.newModelWithEvents(TEST_DATA, {
       shiftWorldToZero: false
     });
     assert.isFalse(m.hasImportWarnings);
 
-    var threads = m.getAllThreads();
+    let threads = m.getAllThreads();
     assert.strictEqual(threads.length, 2);
     threads = m.findAllThreadsNamed('main');
     assert.strictEqual(threads.length, 1);
-    var thread = threads[0];
+    const thread = threads[0];
     assert.strictEqual(thread.tid, 2703);
   });
 
   test('parseMethods', function() {
-    var m = tr.c.TestUtils.newModelWithEvents(TEST_DATA, {
+    const m = tr.c.TestUtils.newModelWithEvents(TEST_DATA, {
       shiftWorldToZero: false
     });
     assert.isFalse(m.hasImportWarnings);
 
-    var threads = m.findAllThreadsNamed('Binder_1');
+    const threads = m.findAllThreadsNamed('Binder_1');
     assert.strictEqual(threads.length, 1);
-    var thread = threads[0];
+    const thread = threads[0];
     assert.strictEqual(thread.sliceGroup.length, 22);
     assert.strictEqual('android.os.Binder.execTransact(IJJI)Z',
         thread.sliceGroup.slices[0].title);
   });
 
-  var TEST_DATA = Base64.atob(
+  const TEST_DATA = Base64.atob(
       'KnZlcnNpb24KMwpkYXRhLWZpbGUtb3ZlcmZsb3c9ZmFsc2UKY2' +
       'xvY2s9ZHVhbAplbGFwc2VkLXRpbWUtdXNlYz02MzMwNzc5Cm51' +
       'bS1tZXRob2QtY2FsbHM9NzYKY2xvY2stY2FsbC1vdmVyaGVhZC' +

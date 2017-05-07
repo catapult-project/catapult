@@ -28,10 +28,10 @@ found in the LICENSE file.
 
 tr.exportTo('tr.ui.b', function() {
   // This does not include the tick labels.
-  var D3_Y_AXIS_WIDTH_PX = 9;
+  const D3_Y_AXIS_WIDTH_PX = 9;
 
   // This includes the tick labels.
-  var D3_X_AXIS_HEIGHT_PX = 23;
+  const D3_X_AXIS_HEIGHT_PX = 23;
 
   // For charts with log y-axes, the y-axis tick values may need to be sanitized
   // if the data is zero or negative.
@@ -40,7 +40,7 @@ tr.exportTo('tr.ui.b', function() {
     return defaultValue;
   }
 
-  var ChartBase2D = tr.ui.b.define('chart-base-2d', tr.ui.b.ChartBase);
+  const ChartBase2D = tr.ui.b.define('chart-base-2d', tr.ui.b.ChartBase);
 
   ChartBase2D.prototype = {
     __proto__: tr.ui.b.ChartBase.prototype,
@@ -153,8 +153,8 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     getSampleWidth_(data, index, leftSide) {
-      var leftIndex;
-      var rightIndex;
+      let leftIndex;
+      let rightIndex;
       if (leftSide) {
         leftIndex = Math.max(index - 1, 0);
         rightIndex = index;
@@ -162,9 +162,9 @@ tr.exportTo('tr.ui.b', function() {
         leftIndex = index;
         rightIndex = Math.min(index + 1, data.length - 1);
       }
-      var leftWidth = this.getXForDatum_(data[index], index) -
+      const leftWidth = this.getXForDatum_(data[index], index) -
         this.getXForDatum_(data[leftIndex], leftIndex);
-      var rightWidth = this.getXForDatum_(data[rightIndex], rightIndex) -
+      const rightWidth = this.getXForDatum_(data[rightIndex], rightIndex) -
         this.getXForDatum_(data[index], index);
       return tr.b.math.Statistics.mean([leftWidth, rightWidth]);
     },
@@ -219,11 +219,11 @@ tr.exportTo('tr.ui.b', function() {
     computeScaleTickWidth_(scale) {
       if (this.data.length === 0) return 0;
 
-      var tickValues = scale.ticks();
-      var format = scale.tickFormat();
+      let tickValues = scale.ticks();
+      let format = scale.tickFormat();
 
       if (this.isYLogScale_) {
-        var enclosingPowers = this.dataRange.enclosingPowers();
+        const enclosingPowers = this.dataRange.enclosingPowers();
         tickValues = [
           sanitizePower(enclosingPowers.min, 1),
           sanitizePower(enclosingPowers.max, 10),
@@ -262,7 +262,7 @@ tr.exportTo('tr.ui.b', function() {
 
       this.drawXAxis_(xAxis);
 
-      var label = xAxis.append('text').attr('class', 'label');
+      const label = xAxis.append('text').attr('class', 'label');
       this.drawXAxisTicks_(xAxis);
       this.drawXAxisLabel_(label);
       xAxis[0][0].style.opacity = 1;
@@ -283,12 +283,12 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     drawXAxisTicks_(xAxis) {
-      var previousRight = undefined;
+      let previousRight = undefined;
       xAxis.selectAll('.tick')[0].forEach(function(tick) {
-        var currentLeft = tick.transform.baseVal[0].matrix.e;
+        const currentLeft = tick.transform.baseVal[0].matrix.e;
         if ((previousRight === undefined) ||
             (currentLeft > (previousRight + 3))) {
-          var currentWidth = tick.getBBox().width;
+          const currentWidth = tick.getBBox().width;
           previousRight = currentLeft + currentWidth;
         } else {
           tick.style.opacity = 0;
@@ -310,10 +310,10 @@ tr.exportTo('tr.ui.b', function() {
     updateDataRange_() {
       if (this.overrideDataRange_ !== undefined) return;
 
-      var dataBySeriesKey = this.getDataBySeriesKey_();
+      const dataBySeriesKey = this.getDataBySeriesKey_();
       this.autoDataRange_.reset();
-      for (var [series, values] of Object.entries(dataBySeriesKey)) {
-        for (var i = 0; i < values.length; i++) {
+      for (const [series, values] of Object.entries(dataBySeriesKey)) {
+        for (let i = 0; i < values.length; i++) {
           this.autoDataRange_.addValue(values[i][series]);
         }
       }
@@ -322,12 +322,12 @@ tr.exportTo('tr.ui.b', function() {
       // to display.
       this.yLogScaleMin_ = undefined;
       if (this.autoDataRange_.min !== undefined) {
-        var minValue = this.autoDataRange_.min;
+        let minValue = this.autoDataRange_.min;
         if (minValue === 0) {
           minValue = 1;
         }
 
-        var onePowerLess = tr.b.math.lesserPower(minValue / 10);
+        const onePowerLess = tr.b.math.lesserPower(minValue / 10);
         this.yLogScaleMin_ = onePowerLess;
       }
     },
@@ -340,21 +340,21 @@ tr.exportTo('tr.ui.b', function() {
       this.drawYAxis_(yAxis);
       this.drawYAxisTicks_(yAxis);
 
-      var label = yAxis.append('text').attr('class', 'label');
+      const label = yAxis.append('text').attr('class', 'label');
       this.drawYAxisLabel_(label);
     },
 
     drawYAxis_(yAxis) {
-      var axisModifier = d3.svg.axis()
+      let axisModifier = d3.svg.axis()
         .scale(this.yScale_)
         .orient('left');
 
       if (this.isYLogScale_) {
         if (this.yLogScaleMin_ === undefined) return;
-        var tickValues = [];
-        var enclosingPowers = this.dataRange.enclosingPowers();
-        var maxPower = sanitizePower(enclosingPowers.max, 10);
-        for (var power = sanitizePower(enclosingPowers.min, 1);
+        const tickValues = [];
+        const enclosingPowers = this.dataRange.enclosingPowers();
+        const maxPower = sanitizePower(enclosingPowers.max, 10);
+        for (let power = sanitizePower(enclosingPowers.min, 1);
              power <= maxPower;
              power *= 10) {
           tickValues.push(power);
@@ -374,7 +374,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     drawYAxisLabel_(label) {
-      var labelWidthPx = Math.ceil(tr.ui.b.getSVGTextSize(
+      const labelWidthPx = Math.ceil(tr.ui.b.getSVGTextSize(
           this.chartAreaElement, this.yAxisLabel).width);
       label
           .attr('x', -labelWidthPx)
@@ -383,11 +383,11 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     drawYAxisTicks_(yAxis) {
-      var previousTop = undefined;
+      let previousTop = undefined;
       yAxis.selectAll('.tick')[0].forEach(function(tick) {
-        var bbox = tick.getBBox();
-        var currentTop = tick.transform.baseVal[0].matrix.f;
-        var currentBottom = currentTop + bbox.height;
+        const bbox = tick.getBBox();
+        const currentTop = tick.transform.baseVal[0].matrix.f;
+        const currentBottom = currentTop + bbox.height;
         if ((previousTop === undefined) ||
             (previousTop > (currentBottom + 3))) {
           previousTop = currentTop;
@@ -412,7 +412,7 @@ tr.exportTo('tr.ui.b', function() {
 
       this.updateScales_();
       super.updateContents_();
-      var chartAreaSel = d3.select(this.chartAreaElement);
+      const chartAreaSel = d3.select(this.chartAreaElement);
       this.updateXAxis_(chartAreaSel.select('.x.axis'));
       this.updateYAxis_(chartAreaSel.select('.y.axis'));
       this.updateBrushContents_(chartAreaSel.select('#brushes'));
@@ -433,13 +433,13 @@ tr.exportTo('tr.ui.b', function() {
      * @return {Object} A map of series data by series key.
      */
     getDataBySeriesKey_() {
-      var dataBySeriesKey = {};
-      for (var [key, series] of this.seriesByKey_) {
+      const dataBySeriesKey = {};
+      for (const [key, series] of this.seriesByKey_) {
         dataBySeriesKey[key] = [];
       }
 
       this.data_.forEach(function(multiSeriesDatum, index) {
-        var x = this.getXForDatum_(multiSeriesDatum, index);
+        const x = this.getXForDatum_(multiSeriesDatum, index);
 
         d3.keys(multiSeriesDatum).forEach(function(seriesKey) {
           // Skip 'x' - it's not a series
@@ -449,7 +449,7 @@ tr.exportTo('tr.ui.b', function() {
 
           if (!this.isDatumFieldSeries_(seriesKey)) return;
 
-          var singleSeriesDatum = {x};
+          const singleSeriesDatum = {x};
           singleSeriesDatum[seriesKey] = multiSeriesDatum[seriesKey];
           dataBySeriesKey[seriesKey].push(singleSeriesDatum);
         }, this);
@@ -459,7 +459,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     getChartPointAtClientPoint_(clientPoint) {
-      var rect = this.getBoundingClientRect();
+      const rect = this.getBoundingClientRect();
       return {
         x: clientPoint.x - rect.left - this.margin.left,
         y: clientPoint.y - rect.top - this.margin.top
@@ -476,13 +476,13 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     getDataPointAtClientPoint_(clientX, clientY) {
-      var chartPoint = this.getChartPointAtClientPoint_(
+      const chartPoint = this.getChartPointAtClientPoint_(
           {x: clientX, y: clientY});
       return this.getDataPointAtChartPoint_(chartPoint);
     },
 
     prepareDataEvent_(mouseEvent, dataEvent) {
-      var dataPoint = this.getDataPointAtClientPoint_(
+      const dataPoint = this.getDataPointAtClientPoint_(
           mouseEvent.clientX, mouseEvent.clientY);
       dataEvent.x = dataPoint.x;
       dataEvent.y = dataPoint.y;
@@ -494,7 +494,7 @@ tr.exportTo('tr.ui.b', function() {
           this.onMouseUp_.bind(this, mouseEvent.button));
       mouseEvent.preventDefault();
       mouseEvent.stopPropagation();
-      var dataEvent = new tr.b.Event('item-mousedown');
+      const dataEvent = new tr.b.Event('item-mousedown');
       dataEvent.button = mouseEvent.button;
       Polymer.dom(this).classList.add('updating-brushing-state');
       this.prepareDataEvent_(mouseEvent, dataEvent);
@@ -506,7 +506,7 @@ tr.exportTo('tr.ui.b', function() {
         mouseEvent.preventDefault();
         mouseEvent.stopPropagation();
       }
-      var dataEvent = new tr.b.Event('item-mousemove');
+      const dataEvent = new tr.b.Event('item-mousemove');
       dataEvent.button = button;
       this.prepareDataEvent_(mouseEvent, dataEvent);
       this.dispatchEvent(dataEvent);
@@ -515,7 +515,7 @@ tr.exportTo('tr.ui.b', function() {
     onMouseUp_(button, mouseEvent) {
       mouseEvent.preventDefault();
       mouseEvent.stopPropagation();
-      var dataEvent = new tr.b.Event('item-mouseup');
+      const dataEvent = new tr.b.Event('item-mouseup');
       dataEvent.button = button;
       this.prepareDataEvent_(mouseEvent, dataEvent);
       this.dispatchEvent(dataEvent);

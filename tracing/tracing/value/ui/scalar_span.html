@@ -33,10 +33,10 @@ tr.exportTo('tr.v.ui', function() {
   function createScalarSpan(value, opt_config) {
     if (value === undefined) return '';
 
-    let config = opt_config || {};
-    let ownerDocument = config.ownerDocument || document;
+    const config = opt_config || {};
+    const ownerDocument = config.ownerDocument || document;
 
-    let span = ownerDocument.createElement('tr-v-ui-scalar-span');
+    const span = ownerDocument.createElement('tr-v-ui-scalar-span');
 
     let numericValue;
     if (value instanceof tr.b.Scalar) {
@@ -47,7 +47,7 @@ tr.exportTo('tr.v.ui', function() {
       if (numericValue === undefined) return '';
       span.setValueAndUnit(numericValue, value.unit);
     } else {
-      let unit = config.unit;
+      const unit = config.unit;
       if (unit === undefined) {
         throw new Error(
             'Unit must be provided in config when value is a number');
@@ -422,16 +422,16 @@ Polymer({
     // Custom context range takes precedence over controller context range.
     let range = this.customContextRange_;
     if (!range && this.hasContext_(this.contextGroup)) {
-      let context = this.contextController_.getContext(this.contextGroup);
+      const context = this.contextController_.getContext(this.contextGroup);
       if (context) {
         range = context.range;
       }
     }
     if (!range || range.isEmpty) return;
 
-    let leftPoint = Math.min(range.min, 0);
-    let rightPoint = Math.max(range.max, 0);
-    let pointDistance = rightPoint - leftPoint;
+    const leftPoint = Math.min(range.min, 0);
+    const rightPoint = Math.max(range.max, 0);
+    const pointDistance = rightPoint - leftPoint;
     if (pointDistance === 0) {
       // This can happen, for example, when all spans within the context have
       // zero values (so |range| is [0, 0]).
@@ -456,7 +456,7 @@ Polymer({
         width / pointDistance, true);
 
     // Set the sparkline color (if applicable).
-    let changeClass = this.changeClassName_;
+    const changeClass = this.changeClassName_;
     if (changeClass) {
       Polymer.dom(this.$.sparkline).classList.add(changeClass);
     }
@@ -583,7 +583,7 @@ Polymer({
 
   set warning(warning) {
     this.warning_ = warning;
-    let warningEl = this.$.warning;
+    const warningEl = this.$.warning;
     if (this.warning_) {
       warningEl.title = warning;
       warningEl.style.display = 'inline';

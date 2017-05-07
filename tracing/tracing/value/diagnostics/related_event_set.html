@@ -32,7 +32,7 @@ tr.exportTo('tr.v.d', function() {
       if (opt_events) {
         if (opt_events instanceof tr.model.EventSet ||
             opt_events instanceof Array) {
-          for (let event of opt_events) {
+          for (const event of opt_events) {
             this.add(event);
           }
         } else {
@@ -42,7 +42,7 @@ tr.exportTo('tr.v.d', function() {
     }
 
     clone() {
-      let clone = new tr.v.d.CollectedRelatedEventSet();
+      const clone = new tr.v.d.CollectedRelatedEventSet();
       clone.addDiagnostic(this);
       return clone;
     }
@@ -76,7 +76,7 @@ tr.exportTo('tr.v.d', function() {
     }
 
     * [Symbol.iterator]() {
-      for (let event of this.eventsByStableId_.values()) {
+      for (const event of this.eventsByStableId_.values()) {
         yield event;
       }
     }
@@ -96,10 +96,10 @@ tr.exportTo('tr.v.d', function() {
      * @param {boolean=} opt_required
      */
     resolve(model, opt_required) {
-      for (let [stableId, event] of this.eventsByStableId_) {
-        if (!(event instanceof tr.v.d.EventRef)) continue;
+      for (const [stableId, value] of this.eventsByStableId_) {
+        if (!(value instanceof tr.v.d.EventRef)) continue;
 
-        event = model.getEventByStableId(stableId);
+        const event = model.getEventByStableId(stableId);
         if (event instanceof tr.model.Event) {
           this.eventsByStableId_.set(stableId, event);
         } else if (opt_required) {
@@ -110,7 +110,7 @@ tr.exportTo('tr.v.d', function() {
 
     asDictInto_(d) {
       d.events = [];
-      for (let event of this) {
+      for (const event of this) {
         d.events.push({
           stableId: event.stableId,
           title: event.title,

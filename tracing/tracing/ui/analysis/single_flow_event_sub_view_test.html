@@ -14,12 +14,12 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var Model = tr.Model;
-  var EventSet = tr.model.EventSet;
-  var TestUtils = tr.c.TestUtils;
+  const Model = tr.Model;
+  const EventSet = tr.model.EventSet;
+  const TestUtils = tr.c.TestUtils;
 
   test('analyzeSelectionWithSingleEvent', function() {
-    var model = TestUtils.newModel(function(model) {
+    const model = TestUtils.newModel(function(model) {
       model.p1 = model.getOrCreateProcess(1);
       model.t2 = model.p1.getOrCreateThread(model.p1);
       model.sA = model.t2.sliceGroup.pushSlice(TestUtils.newSliceEx({
@@ -40,11 +40,11 @@ tr.b.unittest.testSuite(function() {
       model.flowEvents.push(model.fe);
     });
 
-    var selection = new EventSet();
+    const selection = new EventSet();
     selection.push(model.fe);
     assert.strictEqual(selection.length, 1);
 
-    var subView = document.createElement('tr-ui-a-single-event-sub-view');
+    const subView = document.createElement('tr-ui-a-single-event-sub-view');
     subView.isFlow = true;
     subView.selection = selection;
     this.addHTMLOutput(subView);

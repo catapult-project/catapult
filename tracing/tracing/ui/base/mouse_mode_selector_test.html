@@ -10,9 +10,9 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var MOUSE_SELECTOR_MODE = tr.ui.b.MOUSE_SELECTOR_MODE;
+  const MOUSE_SELECTOR_MODE = tr.ui.b.MOUSE_SELECTOR_MODE;
   test('instantiate', function() {
-    var sel = document.createElement('tr-ui-b-mouse-mode-selector');
+    const sel = document.createElement('tr-ui-b-mouse-mode-selector');
     sel.supportedModeMask =
         MOUSE_SELECTOR_MODE.SELECTION |
         MOUSE_SELECTOR_MODE.PANSCAN;
@@ -20,7 +20,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('changeMaskWithUnsupportedMode', function() {
-    var sel = document.createElement('tr-ui-b-mouse-mode-selector');
+    const sel = document.createElement('tr-ui-b-mouse-mode-selector');
     sel.mode = MOUSE_SELECTOR_MODE.SELECTION;
     assert.throw(function() {
       sel.supportedModeMask = MOUSE_SELECTOR_MODE.ZOOM;
@@ -28,14 +28,14 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('modePersists', function() {
-    var sel1 = document.createElement('tr-ui-b-mouse-mode-selector');
+    const sel1 = document.createElement('tr-ui-b-mouse-mode-selector');
     sel1.defaultMode_ = MOUSE_SELECTOR_MODE.ZOOM;
     sel1.settingsKey = 'foo';
     assert.strictEqual(sel1.mode, MOUSE_SELECTOR_MODE.ZOOM);
 
     sel1.mode = MOUSE_SELECTOR_MODE.PANSCAN;
 
-    var sel2 = document.createElement('tr-ui-b-mouse-mode-selector');
+    const sel2 = document.createElement('tr-ui-b-mouse-mode-selector');
     sel2.settingsKey = 'foo';
     assert.strictEqual(sel2.mode, MOUSE_SELECTOR_MODE.PANSCAN);
   });

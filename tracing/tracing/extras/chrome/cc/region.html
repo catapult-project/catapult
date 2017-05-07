@@ -22,8 +22,8 @@ tr.exportTo('tr.e.cc', function() {
       throw new Error('Array must consist be a multiple of 4 in length');
     }
 
-    var r = new Region();
-    for (var i = 0; i < array.length; i += 4) {
+    const r = new Region();
+    for (let i = 0; i < array.length; i += 4) {
       r.rects.push(tr.b.math.Rect.fromXYWH(array[i], array[i + 1],
           array[i + 2], array[i + 3]));
     }
@@ -43,7 +43,7 @@ tr.exportTo('tr.e.cc', function() {
     __proto__: Region.prototype,
 
     rectIntersects(r) {
-      for (var i = 0; i < this.rects.length; i++) {
+      for (let i = 0; i < this.rects.length; i++) {
         if (this.rects[i].intersects(r)) return true;
       }
       return false;

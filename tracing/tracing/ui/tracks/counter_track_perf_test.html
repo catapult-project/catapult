@@ -14,7 +14,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   function getSynchronous(url) {
-    var req = new XMLHttpRequest();
+    const req = new XMLHttpRequest();
     req.open('GET', url, false);
     // Without the mime type specified like this, the file's bytes are not
     // retrieved correctly.
@@ -23,25 +23,25 @@ tr.b.unittest.testSuite(function() {
     return req.responseText;
   }
 
-  var ZOOM_STEPS = 10;
-  var ZOOM_COEFFICIENT = 1.2;
+  const ZOOM_STEPS = 10;
+  const ZOOM_COEFFICIENT = 1.2;
 
-  var model = undefined;
+  let model = undefined;
 
-  var drawingContainer;
-  var viewportDiv;
+  let drawingContainer;
+  let viewportDiv;
 
-  var viewportWidth;
-  var worldMid;
+  let viewportWidth;
+  let worldMid;
 
-  var startScale = undefined;
+  let startScale = undefined;
 
   function timedCounterTrackPerfTest(name, testFn, iterations) {
     function setUpOnce() {
       if (model !== undefined) return;
 
-      var fileUrl = '/test_data/counter_tracks.html';
-      var events = getSynchronous(fileUrl);
+      const fileUrl = '/test_data/counter_tracks.html';
+      const events = getSynchronous(fileUrl);
       model = tr.c.TestUtils.newModelWithEvents([events]);
     }
 
@@ -49,12 +49,12 @@ tr.b.unittest.testSuite(function() {
       setUpOnce();
       viewportDiv = document.createElement('div');
 
-      var viewport = new tr.ui.TimelineViewport(viewportDiv);
+      const viewport = new tr.ui.TimelineViewport(viewportDiv);
 
       drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
       viewport.modelTrackContainer = drawingContainer;
 
-      var modelTrack = new tr.ui.tracks.ModelTrack(viewport);
+      const modelTrack = new tr.ui.tracks.ModelTrack(viewport);
       Polymer.dom(drawingContainer).appendChild(modelTrack);
 
       modelTrack.model = model;
@@ -68,24 +68,24 @@ tr.b.unittest.testSuite(function() {
 
       // Size the viewport.
       viewportWidth = drawingContainer.canvas.width;
-      var min = model.bounds.min;
-      var range = model.bounds.range;
+      const min = model.bounds.min;
+      const range = model.bounds.range;
       worldMid = min + range / 2;
 
-      var boost = range * 0.15;
-      var dt = new tr.ui.TimelineDisplayTransform();
+      const boost = range * 0.15;
+      const dt = new tr.ui.TimelineDisplayTransform();
       dt.xSetWorldBounds(min - boost, min + range + boost, viewportWidth);
       modelTrack.viewport.setDisplayTransformImmediately(dt);
       startScale = dt.scaleX;
 
       // Select half of the counter samples.
-      for (var pid in model.processes) {
-        var counters = model.processes[pid].counters;
-        for (var cid in counters) {
-          var series = counters[cid].series;
-          for (var i = 0; i < series.length; i++) {
-            var samples = series[i].samples;
-            for (var j = Math.floor(samples.length / 2); j < samples.length;
+      for (const pid in model.processes) {
+        const counters = model.processes[pid].counters;
+        for (const cid in counters) {
+          const series = counters[cid].series;
+          for (let i = 0; i < series.length; i++) {
+            const samples = series[i].samples;
+            for (let j = Math.floor(samples.length / 2); j < samples.length;
                  j++) {
               samples[j].selectionState =
                   tr.model.SelectionState.SELECTED;
@@ -107,14 +107,15 @@ tr.b.unittest.testSuite(function() {
     });
   }
 
-  var n110100 = [1, 10, 100];
+  const n110100 = [1, 10, 100];
   n110100.forEach(function(val) {
     timedCounterTrackPerfTest(
         'draw_softwareCanvas_' + val,
         function() {
-          var scale = startScale;
-          for (var i = 0; i < ZOOM_STEPS; i++) {
-            var dt = drawingContainer.viewport.currentDisplayTransform.clone();
+          let scale = startScale;
+          for (let i = 0; i < ZOOM_STEPS; i++) {
+            const dt =
+              drawingContainer.viewport.currentDisplayTransform.clone();
             scale *= ZOOM_COEFFICIENT;
             dt.scaleX = scale;
             dt.xPanWorldPosToViewPos(worldMid, 'center', viewportWidth);

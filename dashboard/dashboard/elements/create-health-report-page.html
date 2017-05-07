@@ -174,7 +174,7 @@ found in the LICENSE file.
       },
 
       onSubmit() {
-        var valid = this.validateInputs();
+        const valid = this.validateInputs();
         if (valid) {
           this.checkToken();
         }
@@ -182,7 +182,7 @@ found in the LICENSE file.
       },
 
       checkToken() {
-        var params = {
+        const params = {
           getToken: true,
         };
         simple_xhr.send('/create_health_report', params,
@@ -199,11 +199,11 @@ found in the LICENSE file.
 
       buildTable() {
         this.loading = true;
-        var override = 0;
+        let override = 0;
         if (this.selectedTableConfig == this.name) {
           override = 1;  // Tell server it is okay to override the config.
         }
-        var params = {
+        const params = {
           tableLayout: this.layout,
           tableName: this.name,
           tableBots: this.bots,
@@ -238,7 +238,7 @@ found in the LICENSE file.
           this.layout = '';
           return;
         }
-        var params = {
+        const params = {
           getTableConfigDetails: this.selectedTableConfig,
           xsrf_token: this.xsrfToken,
         };
@@ -247,11 +247,11 @@ found in the LICENSE file.
               this.loading = false;
               this.name = response.table_name;
               this.bots = '';
-              for (var i in response.table_bots) {
+              for (const i in response.table_bots) {
                 this.bots += (response.table_bots[i] + '\n');
               }
               this.tests = '';
-              for (var k in response.table_tests) {
+              for (const k in response.table_tests) {
                 this.tests += (response.table_tests[k] + '\n');
               }
               this.layout = response.table_layout;
@@ -262,7 +262,7 @@ found in the LICENSE file.
       },
 
       validateInputs() {
-        var valid = true;
+        let valid = true;
         if (!this.name) {
           valid = false;
           this.$.name.invalid = true;
@@ -283,7 +283,7 @@ found in the LICENSE file.
       },
 
       ready() {
-        var params = {
+        const params = {
           getTableConfigList: true,
           xsrf_token: this.xsrfToken,
         };

@@ -103,14 +103,14 @@ Polymer({
   },
 
   forceMutationObserverFlush_() {
-    var records = this.observer_.takeRecords();
+    const records = this.observer_.takeRecords();
     if (records.length) {
       this.didTargetMutate_(records);
     }
   },
 
   didTargetMutate_(e) {
-    var modeSize = this.targetSizesByModeKey_[this.modeKey_];
+    const modeSize = this.targetSizesByModeKey_[this.modeKey_];
     if (modeSize !== undefined) {
       this.setTargetSize_(modeSize);
       return;
@@ -127,12 +127,12 @@ Polymer({
 
   getTargetSize_() {
     // If style is not set, start off with computed height.
-    var targetStyleKey = this.targetStyleKey_;
+    const targetStyleKey = this.targetStyleKey_;
     if (!this.target_.style[targetStyleKey]) {
       this.target_.style[targetStyleKey] =
           window.getComputedStyle(this.target_)[targetStyleKey];
     }
-    var size = parseInt(this.target_.style[targetStyleKey]);
+    const size = parseInt(this.target_.style[targetStyleKey]);
     this.targetSizesByModeKey_[this.modeKey_] = size;
     return size;
   },
@@ -145,8 +145,8 @@ Polymer({
 
   applyDelta_(delta) {
     // Apply new size to the container.
-    var curSize = this.getTargetSize_();
-    var newSize;
+    const curSize = this.getTargetSize_();
+    let newSize;
     if (this.target_ === this.nextElementSibling) {
       newSize = curSize + delta;
     } else {
@@ -157,8 +157,8 @@ Polymer({
 
   onMouseMove_(e) {
     // Compute the difference in height position.
-    var curMousePos = this.horizontal_ ? e.clientY : e.clientX;
-    var delta = this.lastMousePos_ - curMousePos;
+    const curMousePos = this.horizontal_ ? e.clientY : e.clientX;
+    const delta = this.lastMousePos_ - curMousePos;
 
     this.applyDelta_(delta);
 

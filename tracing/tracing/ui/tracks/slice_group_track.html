@@ -18,7 +18,7 @@ tr.exportTo('tr.ui.tracks', function() {
    * @constructor
    * @extends {MultiRowTrack}
    */
-  var SliceGroupTrack = tr.ui.b.define(
+  const SliceGroupTrack = tr.ui.b.define(
       'slice-group-track', tr.ui.tracks.MultiRowTrack);
 
   SliceGroupTrack.prototype = {
@@ -35,7 +35,7 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     addSubTrack_(slices) {
-      var track = new tr.ui.tracks.SliceTrack(this.viewport);
+      const track = new tr.ui.tracks.SliceTrack(this.viewport);
       track.slices = slices;
       Polymer.dom(this).appendChild(track);
       return track;
@@ -65,7 +65,7 @@ tr.exportTo('tr.ui.tracks', function() {
      * slices that are non overlapping.
      */
     buildSubRows_(slices) {
-      var precisionUnit = this.group.model.intrinsicTimeUnit;
+      const precisionUnit = this.group.model.intrinsicTimeUnit;
 
       // This function works by walking through slices by start time.
       //
@@ -99,8 +99,8 @@ tr.exportTo('tr.ui.tracks', function() {
       //  2:    [c][d]
       if (!slices.length) return [];
 
-      var ops = [];
-      for (var i = 0; i < slices.length; i++) {
+      const ops = [];
+      for (let i = 0; i < slices.length; i++) {
         if (slices[i].subSlices) {
           slices[i].subSlices.splice(0,
               slices[i].subSlices.length);
@@ -109,8 +109,8 @@ tr.exportTo('tr.ui.tracks', function() {
       }
 
       ops.sort(function(ix, iy) {
-        var x = slices[ix];
-        var y = slices[iy];
+        const x = slices[ix];
+        const y = slices[iy];
         if (x.start !== y.start) return x.start - y.start;
 
         // Elements get inserted into the slices array in order of when the
@@ -120,19 +120,19 @@ tr.exportTo('tr.ui.tracks', function() {
         return ix - iy;
       });
 
-      var subRows = [[]];
+      const subRows = [[]];
       this.badSlices_ = [];  // TODO(simonjam): Connect this again.
 
-      for (var i = 0; i < ops.length; i++) {
-        var op = ops[i];
-        var slice = slices[op];
+      for (let i = 0; i < ops.length; i++) {
+        const op = ops[i];
+        const slice = slices[op];
 
         // Try to fit the slice into the existing subrows.
-        var inserted = false;
-        for (var j = subRows.length - 1; j >= 0; j--) {
+        let inserted = false;
+        for (let j = subRows.length - 1; j >= 0; j--) {
           if (subRows[j].length === 0) continue;
 
-          var insertedSlice = subRows[j][subRows[j].length - 1];
+          const insertedSlice = subRows[j][subRows[j].length - 1];
           if (slice.start < insertedSlice.start) {
             this.badSlices_.push(slice);
             inserted = true;

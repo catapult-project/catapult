@@ -63,11 +63,11 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.analysis', function() {
-  var Scalar = tr.b.Scalar;
-  var sizeInBytes_smallerIsBetter =
+  const Scalar = tr.b.Scalar;
+  const sizeInBytes_smallerIsBetter =
       tr.b.Unit.byName.sizeInBytes_smallerIsBetter;
 
-  var CONSTANT_COLUMN_RULES = [
+  const CONSTANT_COLUMN_RULES = [
     {
       condition: 'Start address',
       importance: 0,
@@ -75,7 +75,7 @@ tr.exportTo('tr.ui.analysis', function() {
     }
   ];
 
-  var VARIABLE_COLUMN_RULES = [
+  const VARIABLE_COLUMN_RULES = [
     {
       condition: 'Virtual size',
       importance: 7,
@@ -118,7 +118,7 @@ tr.exportTo('tr.ui.analysis', function() {
     }
   ];
 
-  var BYTE_STAT_COLUMN_MAP = {
+  const BYTE_STAT_COLUMN_MAP = {
     'proportionalResident': 'PSS',
     'privateDirtyResident': 'Private dirty',
     'privateCleanResident': 'Private clean',
@@ -129,7 +129,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
   function hexString(address, is64BitAddress) {
     if (address === undefined) return undefined;
-    var hexPadding = is64BitAddress ? '0000000000000000' : '00000000';
+    const hexPadding = is64BitAddress ? '0000000000000000' : '00000000';
     return (hexPadding + address.toString(16)).substr(-hexPadding.length);
   }
 
@@ -218,8 +218,8 @@ tr.exportTo('tr.ui.analysis', function() {
       this.$.info_text.style.display = 'none';
       this.$.table.style.display = 'block';
 
-      var rows = this.createRows_(this.vmRegions_);
-      var columns = this.createColumns_(rows);
+      const rows = this.createRows_(this.vmRegions_);
+      const columns = this.createColumns_(rows);
 
       // Note: There is no need to aggregate fields of the VM regions because
       // the classification tree already takes care of that.
@@ -236,7 +236,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
     createRows_(timeToVmRegionTree) {
       // Determine if any start address is outside the 32-bit range.
-      var is64BitAddress = timeToVmRegionTree.some(function(vmRegionTree) {
+      const is64BitAddress = timeToVmRegionTree.some(function(vmRegionTree) {
         if (vmRegionTree === undefined) return false;
         return vmRegionTree.someRegion(function(region) {
           if (region.startAddress === undefined) return false;
@@ -252,41 +252,41 @@ tr.exportTo('tr.ui.analysis', function() {
     createClassificationNodeRow(timeToNode, is64BitAddress) {
       // Get any defined classification node so that we can extract the
       // properties which don't change over time.
-      var definedNode = tr.b.findFirstInArray(timeToNode);
+      const definedNode = tr.b.findFirstInArray(timeToNode);
 
       // Child node ID (list index) -> Timestamp (list index) ->
       // VM region classification node.
-      var childNodeIdToTimeToNode = tr.b.dictionaryValues(
+      const childNodeIdToTimeToNode = tr.b.dictionaryValues(
           tr.b.invertArrayOfDicts(timeToNode, function(node) {
-            var children = node.children;
+            const children = node.children;
             if (children === undefined) return undefined;
-            var childMap = {};
+            const childMap = {};
             children.forEach(function(childNode) {
               if (!childNode.hasRegions) return;
               childMap[childNode.title] = childNode;
             });
             return childMap;
           }));
-      var childNodeSubRows = childNodeIdToTimeToNode.map(
+      const childNodeSubRows = childNodeIdToTimeToNode.map(
           function(timeToChildNode) {
             return this.createClassificationNodeRow(
                 timeToChildNode, is64BitAddress);
           }, this);
 
       // Region ID (list index) -> Timestamp (list index) -> VM region.
-      var regionIdToTimeToRegion = tr.b.dictionaryValues(
+      const regionIdToTimeToRegion = tr.b.dictionaryValues(
           tr.b.invertArrayOfDicts(timeToNode, function(node) {
-            var regions = node.regions;
+            const regions = node.regions;
             if (regions === undefined) return undefined;
             return tr.b.arrayToDict(regions, function(region) {
               return region.uniqueIdWithinProcess;
             });
           }));
-      var regionSubRows = regionIdToTimeToRegion.map(function(timeToRegion) {
+      const regionSubRows = regionIdToTimeToRegion.map(function(timeToRegion) {
         return this.createRegionRow_(timeToRegion, is64BitAddress);
       }, this);
 
-      var subRows = childNodeSubRows.concat(regionSubRows);
+      const subRows = childNodeSubRows.concat(regionSubRows);
 
       return {
         title: definedNode.title,
@@ -299,7 +299,7 @@ tr.exportTo('tr.ui.analysis', function() {
     createRegionRow_(timeToRegion, is64BitAddress) {
       // Get any defined VM region so that we can extract the properties which
       // don't change over time.
-      var definedRegion = tr.b.findFirstInArray(timeToRegion);
+      const definedRegion = tr.b.findFirstInArray(timeToRegion);
 
       return {
         title: definedRegion.mappedFile,
@@ -316,7 +316,7 @@ tr.exportTo('tr.ui.analysis', function() {
      */
     createConstantCells_(definedRegion, is64BitAddress) {
       return tr.ui.analysis.createCells([definedRegion], function(region) {
-        var startAddress = region.startAddress;
+        const startAddress = region.startAddress;
         if (startAddress === undefined) return undefined;
         return { 'Start address': hexString(startAddress, is64BitAddress) };
       });
@@ -328,21 +328,21 @@ tr.exportTo('tr.ui.analysis', function() {
      */
     createVariableCells_(timeToRegion) {
       return tr.ui.analysis.createCells(timeToRegion, function(region) {
-        var fields = {};
+        const fields = {};
 
-        var sizeInBytes = region.sizeInBytes;
+        const sizeInBytes = region.sizeInBytes;
         if (sizeInBytes !== undefined) {
           fields['Virtual size'] = new Scalar(
                 sizeInBytes_smallerIsBetter, sizeInBytes);
         }
-        var protectionFlags = region.protectionFlagsToString;
+        const protectionFlags = region.protectionFlagsToString;
         if (protectionFlags !== undefined) {
           fields['Protection flags'] = protectionFlags;
         }
 
-        for (var [byteStatName, columnName] of
+        for (const [byteStatName, columnName] of
             Object.entries(BYTE_STAT_COLUMN_MAP)) {
-          var byteStat = region.byteStats[byteStatName];
+          const byteStat = region.byteStats[byteStatName];
           if (byteStat === undefined) continue;
           fields[columnName] = new Scalar(
               sizeInBytes_smallerIsBetter, byteStat);
@@ -353,23 +353,23 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     createColumns_(rows) {
-      var titleColumn = new tr.ui.analysis.TitleColumn('Mapped file');
+      const titleColumn = new tr.ui.analysis.TitleColumn('Mapped file');
       titleColumn.width = '200px';
 
-      var constantColumns = tr.ui.analysis.MemoryColumn.fromRows(rows, {
+      const constantColumns = tr.ui.analysis.MemoryColumn.fromRows(rows, {
         cellKey: 'constantCells',
         aggregationMode: undefined,
         rules: CONSTANT_COLUMN_RULES
       });
-      var variableColumns = tr.ui.analysis.MemoryColumn.fromRows(rows, {
+      const variableColumns = tr.ui.analysis.MemoryColumn.fromRows(rows, {
         cellKey: 'variableCells',
         aggregationMode: this.aggregationMode_,
         rules: VARIABLE_COLUMN_RULES
       });
-      var fieldColumns = constantColumns.concat(variableColumns);
+      const fieldColumns = constantColumns.concat(variableColumns);
       tr.ui.analysis.MemoryColumn.spaceEqually(fieldColumns);
 
-      var columns = [titleColumn].concat(fieldColumns);
+      const columns = [titleColumn].concat(fieldColumns);
       return columns;
     }
   });

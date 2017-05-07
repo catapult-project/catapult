@@ -112,11 +112,11 @@ Polymer({
    * in between the first sample (inclusive) and last sample (exclusive).
    */
   getTimeWeightedAverageInW() {
-    var energyConsumedInJ = this.getEnergyConsumedInJ();
+    const energyConsumedInJ = this.getEnergyConsumedInJ();
 
     if (energyConsumedInJ === 'N/A') return 'N/A';
 
-    var durationInS = tr.b.convertUnit(this.samples.bounds.duration,
+    const durationInS = tr.b.convertUnit(this.samples.bounds.duration,
         tr.b.UnitPrefixScale.METRIC.MILLI,
         tr.b.UnitPrefixScale.METRIC.NONE);
 
@@ -127,8 +127,8 @@ Polymer({
   getEnergyConsumedInJ() {
     if (this.samples.length < 2) return 'N/A';
 
-    var bounds = this.samples.bounds;
-    var series = tr.b.getFirstElement(this.samples).series;
+    const bounds = this.samples.bounds;
+    const series = tr.b.getFirstElement(this.samples).series;
     return series.getEnergyConsumedInJ(bounds.min, bounds.max);
   }
 });

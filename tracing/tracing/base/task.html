@@ -11,7 +11,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.b', function() {
-  var Timing = tr.b.Timing;
+  const Timing = tr.b.Timing;
   /**
    * A task is a combination of a run callback, a set of subtasks, and an after
    * task.
@@ -78,7 +78,7 @@ tr.exportTo('tr.b', function() {
      */
     run() {
       if (this.runCb_ !== undefined) this.runCb_.call(this.thisArg_, this);
-      var subTasks = this.subTasks_;
+      const subTasks = this.subTasks_;
       this.subTasks_ = undefined; // Prevent more subTasks from being posted.
 
       if (!subTasks.length) return this.afterTask_;
@@ -88,7 +88,7 @@ tr.exportTo('tr.b', function() {
       // afterTask of all the subtasks so the point upward to each other, e.g.
       // subTask[0].afterTask to subTask[1] and so on. Then, the last subTask's
       // afterTask points at this task's afterTask.
-      for (var i = 1; i < subTasks.length; i++) {
+      for (let i = 1; i < subTasks.length; i++) {
         subTasks[i - 1].afterTask_ = subTasks[i];
       }
       subTasks[subTasks.length - 1].afterTask_ = this.afterTask_;
@@ -120,7 +120,7 @@ tr.exportTo('tr.b', function() {
   };
 
   Task.RunSynchronously = function(task) {
-    var curTask = task;
+    let curTask = task;
     while (curTask) {
       curTask = curTask.run();
     }
@@ -132,7 +132,7 @@ tr.exportTo('tr.b', function() {
    */
   Task.RunWhenIdle = function(task) {
     return new Promise(function(resolve, reject) {
-      var curTask = task;
+      let curTask = task;
       function runAnother() {
         try {
           curTask = curTask.run();

@@ -15,7 +15,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('clockSyncLatencyMetric', function() {
-    var model = new tr.Model();
+    const model = new tr.Model();
     model.clockSyncManager.addClockSyncMarker(
         tr.model.ClockDomainId.TELEMETRY, 'ID01', 1.0, 4.0);
     model.clockSyncManager.addClockSyncMarker(
@@ -25,23 +25,23 @@ tr.b.unittest.testSuite(function() {
     model.clockSyncManager.addClockSyncMarker(
         tr.model.ClockDomainId.WIN_QPC, 'ID02', 5.0);
 
-    var battorToWinQpcName = 'clock_sync_latency_' +
+    const battorToWinQpcName = 'clock_sync_latency_' +
         tr.model.ClockDomainId.BATTOR.toLowerCase() + '_to_' +
         tr.model.ClockDomainId.WIN_QPC.toLowerCase();
-    var winQpcToTelemetryName = 'clock_sync_latency_' +
+    const winQpcToTelemetryName = 'clock_sync_latency_' +
         tr.model.ClockDomainId.TELEMETRY.toLowerCase() + '_to_' +
         tr.model.ClockDomainId.WIN_QPC.toLowerCase();
-    var battorToTelemetryName = 'clock_sync_latency_' +
+    const battorToTelemetryName = 'clock_sync_latency_' +
         tr.model.ClockDomainId.BATTOR.toLowerCase() + '_to_' +
         tr.model.ClockDomainId.TELEMETRY.toLowerCase();
 
-    var histograms = new tr.v.HistogramSet();
+    const histograms = new tr.v.HistogramSet();
     tr.metrics.sh.clockSyncLatencyMetric(histograms, model);
 
-    var battorToWinQpcValue = undefined;
-    var winQpcToTelemetryValue = undefined;
-    var battorToTelemetryValue = undefined;
-    for (var value of histograms) {
+    let battorToWinQpcValue = undefined;
+    let winQpcToTelemetryValue = undefined;
+    let battorToTelemetryValue = undefined;
+    for (const value of histograms) {
       if (value.name === battorToWinQpcName) {
         battorToWinQpcValue = value;
       } else if (value.name === winQpcToTelemetryName) {

@@ -72,7 +72,7 @@ using custom elements specialized for different event types.
 <script>
 'use strict';
 (function() {
-  var EventRegistry = tr.model.EventRegistry;
+  const EventRegistry = tr.model.EventRegistry;
 
   /** Returns the label that goes next to the list of tabs. */
   function getTabStripLabel(numEvents) {
@@ -85,7 +85,7 @@ using custom elements specialized for different event types.
   }
 
   function createSubView(subViewTypeInfo, selection) {
-    var tagName;
+    let tagName;
     if (selection.length === 1) {
       tagName = subViewTypeInfo.singleTagName;
     } else {
@@ -96,9 +96,9 @@ using custom elements specialized for different event types.
       throw new Error('No view registered for ' +
                       subViewTypeInfo.eventConstructor.name);
     }
-    var subView = document.createElement(tagName);
+    const subView = document.createElement(tagName);
 
-    var title;
+    let title;
     if (selection.length === 1) {
       title = subViewTypeInfo.singleTitle;
     } else {
@@ -170,12 +170,12 @@ using custom elements specialized for different event types.
       this.tallMode = false;
 
       this.tabView_.label = getTabStripLabel(this.selection.length);
-      var eventsByBaseTypeName =
+      const eventsByBaseTypeName =
           this.selection.getEventsOrganizedByBaseType(true);
 
-      var ASV = tr.ui.analysis.AnalysisSubView;
-      var eventsByTagName = ASV.getEventsOrganizedByTypeInfo(this.selection);
-      var newSubViews = [];
+      const ASV = tr.ui.analysis.AnalysisSubView;
+      const eventsByTagName = ASV.getEventsOrganizedByTypeInfo(this.selection);
+      const newSubViews = [];
       eventsByTagName.forEach(function(events, typeInfo) {
         newSubViews.push(createSubView(typeInfo, events));
       });
@@ -184,7 +184,7 @@ using custom elements specialized for different event types.
     },
 
     onSelectedSubViewChanged_() {
-      var selectedSubView = this.tabView_.selectedSubView;
+      const selectedSubView = this.tabView_.selectedSubView;
 
       if (!selectedSubView) {
         this.tallMode = false;

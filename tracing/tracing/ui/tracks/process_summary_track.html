@@ -13,29 +13,29 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.tracks', function() {
-  var ColorScheme = tr.b.ColorScheme;
+  const ColorScheme = tr.b.ColorScheme;
 
   /**
    * Visualizes a Process's state using a series of rects to represent activity.
    * @constructor
    */
-  var ProcessSummaryTrack = tr.ui.b.define('process-summary-track',
+  const ProcessSummaryTrack = tr.ui.b.define('process-summary-track',
       tr.ui.tracks.RectTrack);
 
   ProcessSummaryTrack.buildRectsFromProcess = function(process) {
     if (!process) return [];
 
-    var ops = [];
+    const ops = [];
     // build list of start/end ops for each top level or important slice
-    var pushOp = function(isStart, time, slice) {
+    const pushOp = function(isStart, time, slice) {
       ops.push({
         isStart,
         time,
         slice
       });
     };
-    for (var tid in process.threads) {
-      var sliceGroup = process.threads[tid].sliceGroup;
+    for (const tid in process.threads) {
+      const sliceGroup = process.threads[tid].sliceGroup;
 
       sliceGroup.topLevelSlices.forEach(function(slice) {
         pushOp(true, slice.start, undefined);
@@ -50,7 +50,7 @@ tr.exportTo('tr.ui.tracks', function() {
     }
     ops.sort(function(a, b) { return a.time - b.time; });
 
-    var rects = [];
+    const rects = [];
     /**
      * Build a row of rects which display one way for unimportant activity,
      * and during important slices, show up as those important slices.
@@ -58,8 +58,9 @@ tr.exportTo('tr.ui.tracks', function() {
      * If an important slice starts in the middle of another,
      * just drop it on the floor.
      */
-    var genericColorId = ColorScheme.getColorIdForReservedName('generic_work');
-    var pushRect = function(start, end, slice) {
+    const genericColorId = ColorScheme.getColorIdForReservedName(
+        'generic_work');
+    const pushRect = function(start, end, slice) {
       rects.push(new tr.ui.tracks.Rect(
           slice, /* modelItem: show selection state of slice if present */
           slice ? slice.title : '', /* title */
@@ -67,9 +68,9 @@ tr.exportTo('tr.ui.tracks', function() {
           start, /* start */
           end - start /* duration */));
     };
-    var depth = 0;
-    var currentSlice = undefined;
-    var lastStart = undefined;
+    let depth = 0;
+    let currentSlice = undefined;
+    let lastStart = undefined;
     ops.forEach(function(op) {
       depth += op.isStart ? 1 : -1;
 

@@ -16,14 +16,14 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var testOptions = {
+  const testOptions = {
     tearDown() {
       testing_common.clearXhrMock();
     }
   };
 
   test('instantiation', function() {
-    var mockResponse = {
+    const mockResponse = {
       'anomaly_list': [
         {
           'end_revision': 405670,
@@ -220,7 +220,7 @@ tr.b.unittest.testSuite(function() {
       'show_more_stoppage_alerts': false
     };
     testing_common.addXhrMock('*', JSON.stringify(mockResponse));
-    var page = document.createElement('alerts-page');
+    const page = document.createElement('alerts-page');
     this.addHTMLOutput(page);
   }, testOptions);
 });

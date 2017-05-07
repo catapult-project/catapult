@@ -27,15 +27,15 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.tracks', function() {
-  var SelectionState = tr.model.SelectionState;
-  var ColorScheme = tr.b.ColorScheme;
-  var EventPresenter = tr.ui.b.EventPresenter;
+  const SelectionState = tr.model.SelectionState;
+  const ColorScheme = tr.b.ColorScheme;
+  const EventPresenter = tr.ui.b.EventPresenter;
 
   /**
    * Visualizes a Model by building ProcessTracks and CpuTracks.
    * @constructor
    */
-  var ModelTrack = tr.ui.b.define('model-track', tr.ui.tracks.ContainerTrack);
+  const ModelTrack = tr.ui.b.define('model-track', tr.ui.tracks.ContainerTrack);
 
   ModelTrack.VSYNC_HIGHLIGHT_ALPHA = 0.1;
   ModelTrack.VSYNC_DENSITY_TRANSPARENT = 0.20;
@@ -59,18 +59,18 @@ tr.exportTo('tr.ui.tracks', function() {
     if (times.length === 0) return [];
 
     // Find the lowest and highest index within the viewport.
-    var lowIndex =
+    const lowIndex =
         tr.b.math.findLowIndexInSortedArray(times, tr.b.identity, minTime);
-    var highIndex = lowIndex - 1;
+    let highIndex = lowIndex - 1;
     while (times[highIndex + 1] <= maxTime) {
       highIndex++;
     }
 
-    var stripes = [];
+    const stripes = [];
     // Must start at an even index and end at an odd index.
-    for (var i = lowIndex - (lowIndex % 2); i <= highIndex; i += 2) {
-      var left = i < lowIndex ? minTime : times[i];
-      var right = i + 1 > highIndex ? maxTime : times[i + 1];
+    for (let i = lowIndex - (lowIndex % 2); i <= highIndex; i += 2) {
+      const left = i < lowIndex ? minTime : times[i];
+      const right = i + 1 > highIndex ? maxTime : times[i + 1];
       stripes.push(tr.b.math.Range.fromExplicitRange(left, right));
     }
 
@@ -137,19 +137,19 @@ tr.exportTo('tr.ui.tracks', function() {
 
     updateContentsForLowerMode_() {
       if (this.model_.userModel.expectations.length > 1) {
-        var mrt = new tr.ui.tracks.InteractionTrack(this.viewport_);
+        const mrt = new tr.ui.tracks.InteractionTrack(this.viewport_);
         mrt.model = this.model_;
         Polymer.dom(this).appendChild(mrt);
       }
 
       if (this.model_.alerts.length) {
-        var at = new tr.ui.tracks.AlertTrack(this.viewport_);
+        const at = new tr.ui.tracks.AlertTrack(this.viewport_);
         at.alerts = this.model_.alerts;
         Polymer.dom(this).appendChild(at);
       }
 
       if (this.model_.globalMemoryDumps.length) {
-        var gmdt = new tr.ui.tracks.GlobalMemoryDumpTrack(this.viewport_);
+        const gmdt = new tr.ui.tracks.GlobalMemoryDumpTrack(this.viewport_);
         gmdt.memoryDumps = this.model_.globalMemoryDumps;
         Polymer.dom(this).appendChild(gmdt);
       }
@@ -159,13 +159,13 @@ tr.exportTo('tr.ui.tracks', function() {
       this.appendKernelTrack_();
 
       // Get a sorted list of processes.
-      var processes = this.model_.getAllProcesses();
+      const processes = this.model_.getAllProcesses();
       processes.sort(tr.model.Process.compare);
 
-      for (var i = 0; i < processes.length; ++i) {
-        var process = processes[i];
+      for (let i = 0; i < processes.length; ++i) {
+        const process = processes[i];
 
-        var track = new tr.ui.tracks.ProcessTrack(this.viewport);
+        const track = new tr.ui.tracks.ProcessTrack(this.viewport);
         track.process = process;
         if (!track.hasVisibleContent) continue;
 
@@ -190,8 +190,8 @@ tr.exportTo('tr.ui.tracks', function() {
 
     updateAnnotations_() {
       this.annotationViews_ = [];
-      var annotations = this.model_.getAllAnnotations();
-      for (var i = 0; i < annotations.length; i++) {
+      const annotations = this.model_.getAllAnnotations();
+      for (let i = 0; i < annotations.length; i++) {
         this.annotationViews_.push(
             annotations[i].getOrCreateView(this.viewport_));
       }
@@ -201,37 +201,37 @@ tr.exportTo('tr.ui.tracks', function() {
     addEventsToTrackMap(eventToTrackMap) {
       if (!this.model_) return;
 
-      var tracks = this.children;
-      for (var i = 0; i < tracks.length; ++i) {
+      const tracks = this.children;
+      for (let i = 0; i < tracks.length; ++i) {
         tracks[i].addEventsToTrackMap(eventToTrackMap);
       }
 
       if (this.instantEvents === undefined) return;
 
-      var vp = this.viewport_;
+      const vp = this.viewport_;
       this.instantEvents.forEach(function(ev) {
         eventToTrackMap.addEvent(ev, this);
       }.bind(this));
     },
 
     appendDeviceTrack_() {
-      var device = this.model.device;
-      var track = new tr.ui.tracks.DeviceTrack(this.viewport);
+      const device = this.model.device;
+      const track = new tr.ui.tracks.DeviceTrack(this.viewport);
       track.device = this.model.device;
       if (!track.hasVisibleContent) return;
       Polymer.dom(this).appendChild(track);
     },
 
     appendKernelTrack_() {
-      var kernel = this.model.kernel;
-      var track = new tr.ui.tracks.KernelTrack(this.viewport);
+      const kernel = this.model.kernel;
+      const track = new tr.ui.tracks.KernelTrack(this.viewport);
       track.kernel = this.model.kernel;
       if (!track.hasVisibleContent) return;
       Polymer.dom(this).appendChild(track);
     },
 
     appendCpuUsageTrack_() {
-      var track = new tr.ui.tracks.CpuUsageTrack(this.viewport);
+      const track = new tr.ui.tracks.CpuUsageTrack(this.viewport);
       track.initialize(this.model);
       if (!track.hasVisibleContent) return;
 
@@ -239,7 +239,7 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     appendCpuUsageTrack_() {
-      var track = new tr.ui.tracks.CpuUsageTrack(this.viewport);
+      const track = new tr.ui.tracks.CpuUsageTrack(this.viewport);
       track.initialize(this.model);
       if (!track.hasVisibleContent) return;
 
@@ -247,19 +247,19 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     drawTrack(type) {
-      var ctx = this.context();
+      const ctx = this.context();
       if (!this.model_) return;
 
-      var pixelRatio = window.devicePixelRatio || 1;
-      var bounds = this.getBoundingClientRect();
-      var canvasBounds = ctx.canvas.getBoundingClientRect();
+      const pixelRatio = window.devicePixelRatio || 1;
+      const bounds = this.getBoundingClientRect();
+      const canvasBounds = ctx.canvas.getBoundingClientRect();
 
       ctx.save();
       ctx.translate(0, pixelRatio * (bounds.top - canvasBounds.top));
 
-      var dt = this.viewport.currentDisplayTransform;
-      var viewLWorld = dt.xViewToWorld(0);
-      var viewRWorld = dt.xViewToWorld(bounds.width * pixelRatio);
+      const dt = this.viewport.currentDisplayTransform;
+      const viewLWorld = dt.xViewToWorld(0);
+      const viewRWorld = dt.xViewToWorld(bounds.width * pixelRatio);
 
       switch (type) {
         case tr.ui.tracks.DrawType.GRID:
@@ -311,7 +311,7 @@ tr.exportTo('tr.ui.tracks', function() {
           return;
 
         case tr.ui.tracks.DrawType.ANNOTATIONS:
-          for (var i = 0; i < this.annotationViews_.length; i++) {
+          for (let i = 0; i < this.annotationViews_.length; i++) {
             this.annotationViews_[i].draw(ctx);
           }
           ctx.restore();
@@ -323,23 +323,23 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     drawFlowArrows_(viewLWorld, viewRWorld) {
-      var ctx = this.context();
-      var dt = this.viewport.currentDisplayTransform;
+      const ctx = this.context();
+      const dt = this.viewport.currentDisplayTransform;
       dt.applyTransformToCanvas(ctx);
 
-      var pixWidth = dt.xViewVectorToWorld(1);
+      const pixWidth = dt.xViewVectorToWorld(1);
 
       ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
       ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
       ctx.lineWidth = pixWidth > 1.0 ? 1 : pixWidth;
 
-      var events =
+      const events =
           this.model_.flowIntervalTree.findIntersection(viewLWorld, viewRWorld);
 
       // When not showing flow events, show only highlighted/selected ones.
-      var onlyHighlighted = !this.viewport.showFlowEvents;
-      var canvasBounds = ctx.canvas.getBoundingClientRect();
-      for (var i = 0; i < events.length; ++i) {
+      const onlyHighlighted = !this.viewport.showFlowEvents;
+      const canvasBounds = ctx.canvas.getBoundingClientRect();
+      for (let i = 0; i < events.length; ++i) {
         if (onlyHighlighted &&
             events[i].selectionState !== SelectionState.SELECTED &&
             events[i].selectionState !== SelectionState.HIGHLIGHTED) {
@@ -351,17 +351,17 @@ tr.exportTo('tr.ui.tracks', function() {
 
     drawFlowArrow_(ctx, flowEvent,
         canvasBounds, pixWidth) {
-      var pixelRatio = window.devicePixelRatio || 1;
+      const pixelRatio = window.devicePixelRatio || 1;
 
-      var startTrack = this.viewport.trackForEvent(flowEvent.startSlice);
-      var endTrack = this.viewport.trackForEvent(flowEvent.endSlice);
+      const startTrack = this.viewport.trackForEvent(flowEvent.startSlice);
+      const endTrack = this.viewport.trackForEvent(flowEvent.endSlice);
 
       // TODO(nduca): Figure out how to draw flow arrows even when
       // processes are collapsed, bug #931.
       if (startTrack === undefined || endTrack === undefined) return;
 
-      var startBounds = startTrack.getBoundingClientRect();
-      var endBounds = endTrack.getBoundingClientRect();
+      const startBounds = startTrack.getBoundingClientRect();
+      const endBounds = endTrack.getBoundingClientRect();
 
       if (flowEvent.selectionState === SelectionState.SELECTED) {
         ctx.shadowBlur = 1;
@@ -378,11 +378,11 @@ tr.exportTo('tr.ui.tracks', function() {
         ctx.shadowOffsetX = 0;
         ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
       } else {
-        var hasBoost = false;
-        var startSlice = flowEvent.startSlice;
+        let hasBoost = false;
+        const startSlice = flowEvent.startSlice;
         hasBoost |= startSlice.selectionState === SelectionState.SELECTED;
         hasBoost |= startSlice.selectionState === SelectionState.HIGHLIGHTED;
-        var endSlice = flowEvent.endSlice;
+        const endSlice = flowEvent.endSlice;
         hasBoost |= endSlice.selectionState === SelectionState.SELECTED;
         hasBoost |= endSlice.selectionState === SelectionState.HIGHLIGHTED;
         if (hasBoost) {
@@ -397,19 +397,19 @@ tr.exportTo('tr.ui.tracks', function() {
         }
       }
 
-      var startSize = startBounds.left + startBounds.top +
+      const startSize = startBounds.left + startBounds.top +
           startBounds.bottom + startBounds.right;
-      var endSize = endBounds.left + endBounds.top +
+      const endSize = endBounds.left + endBounds.top +
           endBounds.bottom + endBounds.right;
       // Nothing to do if both ends of the track are collapsed.
       if (startSize === 0 && endSize === 0) return;
 
-      var startY = this.calculateTrackY_(startTrack, canvasBounds);
-      var endY = this.calculateTrackY_(endTrack, canvasBounds);
+      const startY = this.calculateTrackY_(startTrack, canvasBounds);
+      const endY = this.calculateTrackY_(endTrack, canvasBounds);
 
-      var pixelStartY = pixelRatio * startY;
-      var pixelEndY = pixelRatio * endY;
-      var half = (flowEvent.end - flowEvent.start) / 2;
+      const pixelStartY = pixelRatio * startY;
+      const pixelEndY = pixelRatio * endY;
+      const half = (flowEvent.end - flowEvent.start) / 2;
 
       ctx.beginPath();
       ctx.moveTo(flowEvent.start, pixelStartY);
@@ -419,13 +419,13 @@ tr.exportTo('tr.ui.tracks', function() {
           flowEvent.end, pixelEndY);
       ctx.stroke();
 
-      var arrowWidth = 5 * pixWidth * pixelRatio;
-      var distance = flowEvent.end - flowEvent.start;
+      const arrowWidth = 5 * pixWidth * pixelRatio;
+      const distance = flowEvent.end - flowEvent.start;
       if (distance <= (2 * arrowWidth)) return;
 
-      var tipX = flowEvent.end;
-      var tipY = pixelEndY;
-      var arrowHeight = (endBounds.height / 4) * pixelRatio;
+      const tipX = flowEvent.end;
+      const tipY = pixelEndY;
+      const arrowHeight = (endBounds.height / 4) * pixelRatio;
       tr.ui.b.drawTriangle(ctx,
           tipX, tipY,
           tipX - arrowWidth, tipY - arrowHeight,
@@ -441,45 +441,45 @@ tr.exportTo('tr.ui.tracks', function() {
         return;
       }
 
-      var stripes = ModelTrack.generateStripes_(
+      const stripes = ModelTrack.generateStripes_(
           this.vSyncTimes_, viewLWorld, viewRWorld);
       if (stripes.length === 0) {
         return;
       }
 
-      var vSyncHighlightColor =
+      const vSyncHighlightColor =
           new tr.b.Color(ColorScheme.getColorForReservedNameAsString(
               'vsync_highlight_color'));
 
-      var stripeRange = stripes[stripes.length - 1].max - stripes[0].min;
-      var stripeDensity =
+      const stripeRange = stripes[stripes.length - 1].max - stripes[0].min;
+      const stripeDensity =
         stripeRange ? stripes.length / (dt.scaleX * stripeRange) : 0;
-      var clampedStripeDensity =
+      const clampedStripeDensity =
           tr.b.math.clamp(stripeDensity, ModelTrack.VSYNC_DENSITY_OPAQUE,
               ModelTrack.VSYNC_DENSITY_TRANSPARENT);
-      var opacity =
+      const opacity =
           (ModelTrack.VSYNC_DENSITY_TRANSPARENT - clampedStripeDensity) /
           ModelTrack.VSYNC_DENSITY_RANGE;
       if (opacity === 0) {
         return;
       }
 
-      var pixelRatio = window.devicePixelRatio || 1;
-      var height = viewHeight * pixelRatio;
+      const pixelRatio = window.devicePixelRatio || 1;
+      const height = viewHeight * pixelRatio;
 
       ctx.fillStyle = vSyncHighlightColor.toStringWithAlphaOverride(
           ModelTrack.VSYNC_HIGHLIGHT_ALPHA * opacity);
 
-      for (var i = 0; i < stripes.length; i++) {
-        var xLeftView = dt.xWorldToView(stripes[i].min);
-        var xRightView = dt.xWorldToView(stripes[i].max);
+      for (let i = 0; i < stripes.length; i++) {
+        const xLeftView = dt.xWorldToView(stripes[i].min);
+        const xRightView = dt.xWorldToView(stripes[i].max);
         ctx.fillRect(xLeftView, 0, xRightView - xLeftView, height);
       }
     },
 
     calculateTrackY_(track, canvasBounds) {
-      var bounds = track.getBoundingClientRect();
-      var size = bounds.left + bounds.top + bounds.bottom + bounds.right;
+      const bounds = track.getBoundingClientRect();
+      const size = bounds.left + bounds.top + bounds.bottom + bounds.right;
       if (size === 0) {
         return this.calculateTrackY_(
             Polymer.dom(track).parentNode, canvasBounds);
@@ -493,7 +493,7 @@ tr.exportTo('tr.ui.tracks', function() {
       function onPickHit(instantEvent) {
         selection.push(instantEvent);
       }
-      var instantEventWidth = 3 * viewPixWidthWorld;
+      const instantEventWidth = 3 * viewPixWidthWorld;
       tr.b.math.iterateOverIntersectingIntervals(this.model_.instantEvents,
           function(x) { return x.start; },
           function(x) { return x.duration + instantEventWidth; },

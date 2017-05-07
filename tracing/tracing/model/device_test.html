@@ -13,12 +13,12 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var Device = tr.model.Device;
-  var Model = tr.Model;
-  var PowerSeries = tr.model.PowerSeries;
+  const Device = tr.model.Device;
+  const Model = tr.Model;
+  const PowerSeries = tr.model.PowerSeries;
 
   test('updateBounds', function() {
-    var device = new Device(new Model());
+    const device = new Device(new Model());
     device.powerSeries = new PowerSeries(device);
 
     // Verify that the bounds match the lowest and highest timestamps.
@@ -38,7 +38,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('shiftTimestampsForward', function() {
-    var device = new Device(new Model());
+    const device = new Device(new Model());
     device.powerSeries = new PowerSeries(device);
 
     device.powerSeries.addPowerSample(100, 2);
@@ -50,19 +50,19 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('childEventContainers_noPowerSeries', function() {
-    var device = new Device(new Model());
-    var childEventContainers = [];
-    for (var container of device.childEventContainers()) {
+    const device = new Device(new Model());
+    const childEventContainers = [];
+    for (const container of device.childEventContainers()) {
       childEventContainers.push(container);
     }
     assert.deepEqual(childEventContainers, []);
   });
 
   test('childEventContainers_powerSeries', function() {
-    var device = new Device(new Model());
+    const device = new Device(new Model());
     device.powerSeries = new PowerSeries(device);
-    var childEventContainers = [];
-    for (var container of device.childEventContainers()) {
+    const childEventContainers = [];
+    for (const container of device.childEventContainers()) {
       childEventContainers.push(container);
     }
     assert.deepEqual(childEventContainers, [device.powerSeries]);

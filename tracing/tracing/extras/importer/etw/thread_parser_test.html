@@ -14,38 +14,38 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   // Constants for Thread events.
-  var guid = '3D6FA8D1-FE05-11D0-9DDA-00C04FD7BA7C';
-  var kThreadStartOpcode = 1;
-  var kThreadEndOpcode = 2;
-  var kThreadDCStartOpcode = 3;
-  var kThreadCSwitchOpcode = 36;
+  const guid = '3D6FA8D1-FE05-11D0-9DDA-00C04FD7BA7C';
+  const kThreadStartOpcode = 1;
+  const kThreadEndOpcode = 2;
+  const kThreadDCStartOpcode = 3;
+  const kThreadCSwitchOpcode = 36;
 
-  var kThreadStartPayload32bitV1 =
+  const kThreadStartPayload32bitV1 =
       'BAAAAEwHAAAAYLfzADC38wAAAAAAAAAAhdse9wAAAAD/AAAA';
 
-  var kThreadEndPayload32bitV1 = 'BAAAALQAAAA=';
+  const kThreadEndPayload32bitV1 = 'BAAAALQAAAA=';
 
 
-  var kThreadDCStartPayload64bitV2 =
+  const kThreadDCStartPayload64bitV2 =
       'AAAAAAAAAAAAYPUCAPj//wAA9QIA+P//AAAAAAAAAAAAAAAAAAAAAIAlxwEA+P//gCXHA' +
       'QD4//8AAAAAAAAAAAAAAAA=';
 
-  var kThreadStartPayload32bitV3 =
+  const kThreadStartPayload32bitV3 =
       'LAIAACwTAAAAUJixACCYsQAA1QAAwNQAAwAAAOkDq3cA4P1/AAAAAAkFAgA=';
 
-  var kThreadStartPayload64bitV3 =
+  const kThreadStartPayload64bitV3 =
       'eCEAAJQUAAAAMA4nAND//wDQDScA0P//MP0LBgAAAAAAgAsGAAAAAP8AAAAAAAAALP1YX' +
       'AAAAAAAwBL/AAAAAAAAAAAIBQIA';
 
-  var kThreadCSwitchPayload32bitV2 = 'AAAAACwRAAAACQAAFwABABIAAAAmSAAA';
-  var kThreadCSwitchPayload64bitV2 = 'zAgAAAAAAAAIAAEAAAACBAEAAACHbYg0';
+  const kThreadCSwitchPayload32bitV2 = 'AAAAACwRAAAACQAAFwABABIAAAAmSAAA';
+  const kThreadCSwitchPayload64bitV2 = 'zAgAAAAAAAAIAAEAAAACBAEAAACHbYg0';
 
   test('DecodeFields', function() {
-    var importer = new tr.e.importer.etw.EtwImporter('dummy', []);
-    var decoder = importer.decoder_;
-    var parser = new tr.e.importer.etw.ThreadParser(importer);
-    var header;
-    var fields;
+    const importer = new tr.e.importer.etw.EtwImporter('dummy', []);
+    const decoder = importer.decoder_;
+    const parser = new tr.e.importer.etw.ThreadParser(importer);
+    let header;
+    let fields;
 
     // Validate a version 1 32-bit payload.
     header = { guid, opcode: kThreadStartOpcode, version: 1, is64: 0 };
@@ -128,11 +128,11 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('DecodeCSwitchFields', function() {
-    var importer = new tr.e.importer.etw.EtwImporter('dummy', []);
-    var decoder = importer.decoder_;
-    var parser = new tr.e.importer.etw.ThreadParser(importer);
-    var header;
-    var fields;
+    const importer = new tr.e.importer.etw.EtwImporter('dummy', []);
+    const decoder = importer.decoder_;
+    const parser = new tr.e.importer.etw.ThreadParser(importer);
+    let header;
+    let fields;
 
 
     // Validate a version 2 CSwitch 32-bit payload.

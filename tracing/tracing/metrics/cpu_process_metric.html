@@ -13,13 +13,13 @@ found in the LICENSE file.
 
 tr.exportTo('tr.metrics.sh', function() {
   function getCpuSnapshotsFromModel(model) {
-    var snapshots = [];
-    for (var pid in model.processes) {
-      var snapshotInstances = model.processes[pid].objects.getAllInstancesNamed(
-          'CPUSnapshots');
+    const snapshots = [];
+    for (const pid in model.processes) {
+      const snapshotInstances =
+        model.processes[pid].objects.getAllInstancesNamed('CPUSnapshots');
       if (!snapshotInstances) continue;
 
-      for (var object of snapshotInstances[0].snapshots) {
+      for (const object of snapshotInstances[0].snapshots) {
         snapshots.push(object.args.processes);
       }
     }
@@ -27,9 +27,9 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   function getProcessSumsFromSnapshot(snapshot) {
-    var processSums = new Map();
-    for (var processData of snapshot) {
-      var processName = processData.name;
+    const processSums = new Map();
+    for (const processData of snapshot) {
+      const processName = processData.name;
       if (!(processSums.has(processName))) {
         processSums.set(processName, {sum: 0.0, paths: new Set()});
       }
@@ -44,10 +44,10 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   function buildNumericsFromSnapshots(snapshots) {
-    var processNumerics = new Map();
-    for (var snapshot of snapshots) {
-      var processSums = getProcessSumsFromSnapshot(snapshot);
-      for (var [processName, processData] of processSums.entries()) {
+    const processNumerics = new Map();
+    for (const snapshot of snapshots) {
+      const processSums = getProcessSumsFromSnapshot(snapshot);
+      for (const [processName, processData] of processSums.entries()) {
         if (!(processNumerics.has(processName))) {
           processNumerics.set(processName, {
             numeric: new tr.v.Histogram('cpu:percent:' + processName,
@@ -57,7 +57,7 @@ tr.exportTo('tr.metrics.sh', function() {
         }
         processNumerics.get(processName).numeric.addSample(
             processData.sum / 100.0);
-        for (var path of processData.paths) {
+        for (const path of processData.paths) {
           processNumerics.get(processName).paths.add(path);
         }
       }
@@ -66,15 +66,15 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   function cpuProcessMetric(histograms, model) {
-    var snapshots = getCpuSnapshotsFromModel(model);
-    var processNumerics = buildNumericsFromSnapshots(snapshots);
-    for (var [processName, processData] of processNumerics) {
-      var numeric = processData.numeric;
+    const snapshots = getCpuSnapshotsFromModel(model);
+    const processNumerics = buildNumericsFromSnapshots(snapshots);
+    for (const [processName, processData] of processNumerics) {
+      const numeric = processData.numeric;
       // Treat missing snapshots as zeros. A process is missing from a snapshots
       // when its CPU usage was below minimum threshold when the snapshot was
       // taken.
-      var missingSnapshotCount = snapshots.length - numeric.numValues;
-      for (var i = 0; i < missingSnapshotCount; i++) {
+      const missingSnapshotCount = snapshots.length - numeric.numValues;
+      for (let i = 0; i < missingSnapshotCount; i++) {
         numeric.addSample(0);
       }
       numeric.diagnostics.set('paths', new

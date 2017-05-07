@@ -34,7 +34,7 @@ tr.exportTo('tr.v.d', function() {
     }
 
     clone() {
-      let clone = new RelatedHistogramBreakdown();
+      const clone = new RelatedHistogramBreakdown();
       clone.colorScheme = this.colorScheme;
       // RelatedHistogramMap.addDiagnostic() is no-op.
       return clone;
@@ -75,8 +75,8 @@ tr.exportTo('tr.v.d', function() {
     }
 
     static fromDict(d) {
-      let diagnostic = new RelatedHistogramBreakdown();
-      for (let [name, guid] of Object.entries(d.values)) {
+      const diagnostic = new RelatedHistogramBreakdown();
+      for (const [name, guid] of Object.entries(d.values)) {
         diagnostic.set(name, new tr.v.d.HistogramRef(guid));
       }
       if (d.colorScheme) diagnostic.colorScheme = d.colorScheme;
@@ -104,14 +104,15 @@ tr.exportTo('tr.v.d', function() {
     */
     static buildFromEvents(histograms, namePrefix, events, categoryForEvent,
         unit, opt_sampleForEvent, opt_binBoundaries, opt_this) {
-      let sampleForEvent = opt_sampleForEvent || ((event) => event.cpuSelfTime);
+      const sampleForEvent = opt_sampleForEvent ||
+        ((event) => event.cpuSelfTime);
 
-      let diagnostic = new RelatedHistogramBreakdown();
-      for (let event of events) {
-        let sample = sampleForEvent.call(opt_this, event);
+      const diagnostic = new RelatedHistogramBreakdown();
+      for (const event of events) {
+        const sample = sampleForEvent.call(opt_this, event);
         if (sample === undefined) continue;
 
-        let eventCategory = categoryForEvent.call(opt_this, event);
+        const eventCategory = categoryForEvent.call(opt_this, event);
         let hist = diagnostic.get(eventCategory);
         if (hist === undefined) {
           hist = new tr.v.Histogram(

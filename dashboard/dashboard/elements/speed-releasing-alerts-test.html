@@ -16,10 +16,10 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var testOptions = {
+  const testOptions = {
     setUp() {
       d.BugDetails.reset();
-      var obj = {};
+      const obj = {};
       obj[12345] = Promise.resolve(mockBug);
       obj[54321] = Promise.resolve(mockBug);
       d.BugDetails.prepopulate(obj);
@@ -236,14 +236,14 @@ tr.b.unittest.testSuite(function() {
   };
 
   test('instantiate', function() {
-    var mockResponse = {
+    const mockResponse = {
       'revisions': [1, 2],
       anomalies
     };
     uri.getPathName = function() { return ''; };
     testing_common.addXhrMock('/speed_releasing/undefined?anomalies=true',
         JSON.stringify(mockResponse));
-    var page = document.createElement('speed-releasing-alerts');
+    const page = document.createElement('speed-releasing-alerts');
     this.addHTMLOutput(page);
   }, testOptions);
 });

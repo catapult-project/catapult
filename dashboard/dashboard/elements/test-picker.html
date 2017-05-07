@@ -210,20 +210,20 @@ found in the LICENSE file.
        * Gets a list of menu items for test suites.
        */
       getSuiteItems() {
-        var suiteMenuItems = [];
-        var isUnmonitored = suite => {
+        const suiteMenuItems = [];
+        const isUnmonitored = suite => {
           // A suite is considered unmonitored if there are no monitored
           // subtests.
-          var suiteInfo = this.testSuites[suite];
+          const suiteInfo = this.testSuites[suite];
           return !suiteInfo.mon || suiteInfo.mon.length == 0;
         };
 
-        for (var suite in this.testSuites) {
-          var suiteItem = {
+        for (const suite in this.testSuites) {
+          const suiteItem = {
             name: suite
           };
 
-          var tags = [];
+          const tags = [];
           if (this.testSuites[suite].dep) {
             suiteItem.deprecated = true;
             tags.push(this.DEPRECATED_TAG);
@@ -244,25 +244,25 @@ found in the LICENSE file.
        * Gets a list of bot menu items base on the selected test suite.
        */
       getBotItems() {
-        var suite = this.getSelectionMenu(0).selectedName;
+        const suite = this.getSelectionMenu(0).selectedName;
         if (!this.testSuites[suite]) {
           return [];
         }
-        var dict = this.testSuites[suite].mas;
-        var botMenuItems = [];
-        var masters = Object.keys(dict).sort();
-        for (var i = 0; i < masters.length; i++) {
-          var groupItem = {
+        const dict = this.testSuites[suite].mas;
+        const botMenuItems = [];
+        const masters = Object.keys(dict).sort();
+        for (let i = 0; i < masters.length; i++) {
+          const groupItem = {
             name: masters[i],
             suite,
             head: true
           };
           botMenuItems.push(groupItem);
-          var bots = dict[masters[i]];
-          var botNames = Object.keys(dict[masters[i]]).sort();
-          for (var j = 0; j < botNames.length; j++) {
-            var name = botNames[j];
-            var botItem = {
+          const bots = dict[masters[i]];
+          const botNames = Object.keys(dict[masters[i]]).sort();
+          for (let j = 0; j < botNames.length; j++) {
+            const name = botNames[j];
+            const botItem = {
               name,
               group: masters[i],
               tag: (bots[name] ? this.DEPRECATED_TAG : '')
@@ -277,8 +277,8 @@ found in the LICENSE file.
        * Handles dropdown menu select; updates the subsequent menu accordingly.
        */
       onDropdownSelect(event) {
-        var model = event.model;
-        var boxIndex = model.index;
+        const model = event.model;
+        const boxIndex = model.index;
         if (this.updatingSubtestMenus) return;
         if (boxIndex === undefined) {
           return;
@@ -293,16 +293,16 @@ found in the LICENSE file.
 
       updateTestSuiteDescription() {
         // Display the test suite description if there is one.
-        var descriptionElement = this.$['suite-description'];
-        var suite = this.getSelectionMenu(0).selectedName;
+        const descriptionElement = this.$['suite-description'];
+        const suite = this.getSelectionMenu(0).selectedName;
         if (!this.testSuites[suite]) {
           Polymer.dom(descriptionElement).innerHTML = '';
           return;
         }
 
-        var description = this.testSuites[suite].des;
+        const description = this.testSuites[suite].des;
         if (description) {
-          var descriptionHTML = '<b>' + suite + '</b>: ';
+          let descriptionHTML = '<b>' + suite + '</b>: ';
           descriptionHTML += this.convertMarkdownLinks(description);
           Polymer.dom(descriptionElement).innerHTML = descriptionHTML;
         } else {
@@ -314,8 +314,8 @@ found in the LICENSE file.
        * Updates bot dropdown menu with bot items.
        */
       async updateBotMenu() {
-        var menu = this.getSelectionMenu(1);
-        var botItems = this.getBotItems();
+        const menu = this.getSelectionMenu(1);
+        const botItems = this.getBotItems();
         menu.set('items', botItems);
         menu.set('disabled', botItems.length === 0);
         this.subtestDict = null;
@@ -339,7 +339,7 @@ found in the LICENSE file.
             this.getCurrentSelectedPathUpTo(startIndex));
 
         // Update existing subtest menu.
-        for (var i = startIndex; i < this.selectionModels.length; i++) {
+        for (let i = startIndex; i < this.selectionModels.length; i++) {
           // Remove the rest of the menu if no subtests.
           if (subtests.length === 0) {
             this.splice('selectionModels', i);
@@ -389,16 +389,16 @@ found in the LICENSE file.
       },
 
       getCheckedBot() {
-        var botMenu = this.getSelectionMenu(1);
+        const botMenu = this.getSelectionMenu(1);
         if (botMenu.selectedItem) {
-          let item = botMenu.selectedItem;
+          const item = botMenu.selectedItem;
           return item.group + '/' + item.name;
         }
         return null;
       },
 
       getCheckedSuite() {
-        var suiteMenu = this.getSelectionMenu(0);
+        const suiteMenu = this.getSelectionMenu(0);
         return suiteMenu.selectedName;
       },
 
@@ -540,8 +540,8 @@ found in the LICENSE file.
         if (!suiteB.unmonitored && suiteA.unmonitored) {
           return 1;
         }
-        var nameALower = suiteA.name.toLowerCase();
-        var nameBLower = suiteB.name.toLowerCase();
+        const nameALower = suiteA.name.toLowerCase();
+        const nameBLower = suiteB.name.toLowerCase();
         if (nameALower > nameBLower) {
           return 1;
         }

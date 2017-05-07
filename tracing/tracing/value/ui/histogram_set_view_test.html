@@ -14,10 +14,10 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('instantiate0', async function() {
-    let view = document.createElement('tr-v-ui-histogram-set-view');
-    let histograms = new tr.v.HistogramSet();
+    const view = document.createElement('tr-v-ui-histogram-set-view');
+    const histograms = new tr.v.HistogramSet();
 
-    let hist = new tr.v.Histogram('foo', tr.b.Unit.byName.normalizedPercentage);
+    const hist = new tr.v.Histogram('a', tr.b.Unit.byName.normalizedPercentage);
     for (let i = 0; i < 1e2; ++i) {
       hist.addSample(Math.random());
     }

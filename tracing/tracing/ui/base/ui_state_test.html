@@ -13,7 +13,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var UIState = tr.ui.b.UIState;
+  const UIState = tr.ui.b.UIState;
 
   function FakeModel() {
     this.processes = { 1: { threads: { 2: { stableId: '1.2' } } } };
@@ -51,8 +51,8 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('invalidStableId', function() {
-    var model = new FakeModel;
-    var vp = new FakeViewPort;
+    const model = new FakeModel;
+    const vp = new FakeViewPort;
     assert.throws(function() {
       UIState.fromUserFriendlyString(model, vp, '15@1.3x6');
     });
@@ -65,8 +65,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('invalidScaleX', function() {
-    var model = new FakeModel;
-    var vp = new FakeViewPort;
+    const model = new FakeModel;
+    const vp = new FakeViewPort;
     assert.isUndefined(UIState.fromUserFriendlyString(model, vp, '1@1.2x-1'));
     assert.throws(function() {
       UIState.fromUserFriendlyString(model, vp, '1@1.2x0');
@@ -74,18 +74,18 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('invalidSyntax', function() {
-    var model = new FakeModel;
-    var vp = new FakeViewPort;
+    const model = new FakeModel;
+    const vp = new FakeViewPort;
     assert.isUndefined(UIState.fromUserFriendlyString(model, vp, '5'));
     assert.isUndefined(UIState.fromUserFriendlyString(model, vp, '5@x5'));
     assert.isUndefined(UIState.fromUserFriendlyString(model, vp, 'ab@1.2x5'));
   });
 
   test('validString', function() {
-    var model = new FakeModel;
-    var vp = new FakeViewPort;
-    var str = '-50125.51231@1.2x1.12345';
-    var uiState = UIState.fromUserFriendlyString(model, vp, str);
+    const model = new FakeModel;
+    const vp = new FakeViewPort;
+    const str = '-50125.51231@1.2x1.12345';
+    const uiState = UIState.fromUserFriendlyString(model, vp, str);
 
     assert.isDefined(uiState);
     assert.strictEqual(uiState.location.xWorld, -50125.51231);

@@ -15,24 +15,24 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var Model = tr.Model;
-  var Thread = tr.model.Thread;
-  var EventSet = tr.model.EventSet;
-  var newSliceEx = tr.c.TestUtils.newSliceEx;
+  const Model = tr.Model;
+  const Thread = tr.model.Thread;
+  const EventSet = tr.model.EventSet;
+  const newSliceEx = tr.c.TestUtils.newSliceEx;
 
   function createSelection(customizeThreadCallback) {
-    var model = tr.c.TestUtils.newModelWithEvents([], {
+    const model = tr.c.TestUtils.newModelWithEvents([], {
       customizeModelCallback(model) {
-        var t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
+        const t53 = model.getOrCreateProcess(52).getOrCreateThread(53);
         customizeThreadCallback(t53, model);
       }
     });
 
-    var t53 = model.processes[52].threads[53];
-    var t53track = {};
+    const t53 = model.processes[52].threads[53];
+    const t53track = {};
     t53track.thread = t53;
 
-    var selection = new EventSet();
+    const selection = new EventSet();
     selection.push(t53.sliceGroup.slices[0]);
     assert.strictEqual(selection.length, 1);
 
@@ -40,14 +40,16 @@ tr.b.unittest.testSuite(function() {
   }
 
   function createSelectionWithSingleSlice(opt_options) {
-    var options = opt_options || {};
+    const options = opt_options || {};
     return createSelection(function(t53, model) {
+      let fA;
+      let fB;
       if (options.withStartStackFrame || options.withEndStackFrame) {
-        var fA = tr.c.TestUtils.newStackTrace(model, ['a1', 'a2']);
-        var fB = tr.c.TestUtils.newStackTrace(model, ['b1', 'b2']);
+        fA = tr.c.TestUtils.newStackTrace(model, ['a1', 'a2']);
+        fB = tr.c.TestUtils.newStackTrace(model, ['b1', 'b2']);
       }
 
-      var slice = newSliceEx({title: 'b', start: 0, duration: 0.002});
+      const slice = newSliceEx({title: 'b', start: 0, duration: 0.002});
       slice.category = options.withCategory ? 'foo' : '';
 
       if (options.withStartStackFrame) {
@@ -63,32 +65,32 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('instantiate_withSingleSlice', function() {
-    var selection = createSelectionWithSingleSlice();
+    const selection = createSelectionWithSingleSlice();
 
-    var analysisEl = document.createElement('tr-ui-a-single-event-sub-view');
+    const analysisEl = document.createElement('tr-ui-a-single-event-sub-view');
     analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
   });
 
   test('alerts', function() {
-    var slice = newSliceEx({title: 'b', start: 0, duration: 0.002});
+    const slice = newSliceEx({title: 'b', start: 0, duration: 0.002});
 
-    var ALERT_INFO_1 = new tr.model.EventInfo(
+    const ALERT_INFO_1 = new tr.model.EventInfo(
         'Alert 1', 'Critical alert');
 
-    var alert = new tr.model.Alert(ALERT_INFO_1, 5, [slice]);
+    const alert = new tr.model.Alert(ALERT_INFO_1, 5, [slice]);
 
-    var selection = new EventSet();
+    const selection = new EventSet();
     selection.push(slice);
 
-    var analysisEl = document.createElement('tr-ui-a-single-event-sub-view');
+    const analysisEl = document.createElement('tr-ui-a-single-event-sub-view');
     analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
   });
 
   test('instantiate_withSingleSliceWithArg', function() {
-    var selection = createSelection(function(t53) {
-      var slice = newSliceEx({title: 'my_slice', start: 0, duration: 1.0});
+    const selection = createSelection(function(t53) {
+      const slice = newSliceEx({title: 'my_slice', start: 0, duration: 1.0});
       slice.args = {
         'complex': {
           'b': '2 as a string',
@@ -98,47 +100,47 @@ tr.b.unittest.testSuite(function() {
       t53.sliceGroup.pushSlice(slice);
     });
 
-    var subView = document.createElement('tr-ui-a-single-event-sub-view');
+    const subView = document.createElement('tr-ui-a-single-event-sub-view');
     subView.selection = selection;
     this.addHTMLOutput(subView);
 
-    var gov = tr.b.findDeepElementMatching(subView,
+    const gov = tr.b.findDeepElementMatching(subView,
         'tr-ui-a-generic-object-view');
     assert.isDefined(gov);
   });
 
 
   test('instantiate_withSingleSliceCategory', function() {
-    var selection = createSelectionWithSingleSlice({withCategory: true});
+    const selection = createSelectionWithSingleSlice({withCategory: true});
 
-    var analysisEl = document.createElement('tr-ui-a-single-event-sub-view');
+    const analysisEl = document.createElement('tr-ui-a-single-event-sub-view');
     analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
   });
 
   test('instantiate_withSingleStartStackFrame', function() {
-    var selection = createSelectionWithSingleSlice(
+    const selection = createSelectionWithSingleSlice(
         {withStartStackFrame: 'a'});
 
-    var analysisEl = document.createElement('tr-ui-a-single-event-sub-view');
+    const analysisEl = document.createElement('tr-ui-a-single-event-sub-view');
     analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
 
-    var e = tr.b.findDeepElementWithTextContent(
+    const e = tr.b.findDeepElementWithTextContent(
         analysisEl, /Start Stack Trace/);
     assert.isDefined(e);
     assert.isDefined(Polymer.dom(e).nextSibling.children[0].stackFrame);
   });
 
   test('instantiate_withSingleEndStackFrame', function() {
-    var selection = createSelectionWithSingleSlice(
+    const selection = createSelectionWithSingleSlice(
         {withEndStackFrame: 'b'});
 
-    var analysisEl = document.createElement('tr-ui-a-single-event-sub-view');
+    const analysisEl = document.createElement('tr-ui-a-single-event-sub-view');
     analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
 
-    var e = tr.b.findDeepElementWithTextContent(
+    const e = tr.b.findDeepElementWithTextContent(
         analysisEl, /End Stack Trace/);
     assert.isDefined(e);
     assert.isDefined(Polymer.dom(e).nextSibling.children[0].stackFrame);
@@ -147,22 +149,22 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiate_withDifferentStartAndEndStackFrames', function() {
-    var selection = createSelectionWithSingleSlice(
+    const selection = createSelectionWithSingleSlice(
         {withStartStackFrame: 'a',
           withEndStackFrame: 'b'});
 
-    var analysisEl = document.createElement('tr-ui-a-single-event-sub-view');
+    const analysisEl = document.createElement('tr-ui-a-single-event-sub-view');
     analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
 
-    var eA = tr.b.findDeepElementWithTextContent(
+    const eA = tr.b.findDeepElementWithTextContent(
         analysisEl, /Start Stack Trace/);
     assert.isDefined(eA);
     assert.isDefined(Polymer.dom(eA).nextSibling.children[0].stackFrame);
     assert.strictEqual(
         Polymer.dom(eA).nextSibling.children[0].stackFrame.title, 'a2');
 
-    var eB = tr.b.findDeepElementWithTextContent(
+    const eB = tr.b.findDeepElementWithTextContent(
         analysisEl, /End Stack Trace/);
     assert.isDefined(eB);
     assert.isDefined(Polymer.dom(eB).nextSibling.children[0].stackFrame);
@@ -171,15 +173,15 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiate_withSameStartAndEndStackFrames', function() {
-    var selection = createSelectionWithSingleSlice(
+    const selection = createSelectionWithSingleSlice(
         {withStartStackFrame: 'a',
           withEndStackFrame: 'a'});
 
-    var analysisEl = document.createElement('tr-ui-a-single-event-sub-view');
+    const analysisEl = document.createElement('tr-ui-a-single-event-sub-view');
     analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
 
-    var e = tr.b.findDeepElementWithTextContent(
+    const e = tr.b.findDeepElementWithTextContent(
         analysisEl, /Start\+End Stack Trace/);
     assert.isDefined(e);
     assert.isDefined(Polymer.dom(e).nextSibling.children[0].stackFrame);
@@ -188,12 +190,12 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('analyzeSelectionWithSingleSlice', function() {
-    var selection = createSelectionWithSingleSlice();
-    var subView = document.createElement('tr-ui-a-single-event-sub-view');
+    const selection = createSelectionWithSingleSlice();
+    const subView = document.createElement('tr-ui-a-single-event-sub-view');
     subView.selection = selection;
     this.addHTMLOutput(subView);
 
-    var table = tr.b.findDeepElementMatching(
+    const table = tr.b.findDeepElementMatching(
         subView, 'tr-ui-b-table');
     assert.strictEqual(table.tableRows.length, 3);
     assert.strictEqual(table.tableRows[0].value, 'b');
@@ -206,13 +208,13 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('analyzeSelectionWithSingleSliceCategory', function() {
-    var selection = createSelectionWithSingleSlice({withCategory: true});
+    const selection = createSelectionWithSingleSlice({withCategory: true});
 
-    var subView = document.createElement('tr-ui-a-single-event-sub-view');
+    const subView = document.createElement('tr-ui-a-single-event-sub-view');
     subView.selection = selection;
     this.addHTMLOutput(subView);
 
-    var table = tr.b.findDeepElementMatching(
+    const table = tr.b.findDeepElementMatching(
         subView, 'tr-ui-b-table');
     assert.strictEqual(table.tableRows.length, 4);
     assert.strictEqual(table.tableRows[0].value, 'b');
@@ -226,40 +228,40 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiate_withSingleSliceContainingIDRef', function() {
-    var model = new Model();
-    var p1 = model.getOrCreateProcess(1);
-    var myObjectSlice = p1.objects.addSnapshot(
+    const model = new Model();
+    const p1 = model.getOrCreateProcess(1);
+    const myObjectSlice = p1.objects.addSnapshot(
         '0x1000', 'cat', 'my_object', 0);
 
-    var t1 = p1.getOrCreateThread(1);
+    const t1 = p1.getOrCreateThread(1);
     t1.sliceGroup.pushSlice(newSliceEx({title: 'b', start: 0, duration: 2}));
     t1.sliceGroup.slices[0].args.my_object = myObjectSlice;
 
-    var t1track = {};
+    const t1track = {};
     t1track.thread = t1;
 
-    var selection = new EventSet();
+    const selection = new EventSet();
     selection.push(t1.sliceGroup.slices[0]);
     assert.strictEqual(selection.length, 1);
 
-    var subView = document.createElement('tr-ui-a-single-event-sub-view');
+    const subView = document.createElement('tr-ui-a-single-event-sub-view');
     subView.selection = selection;
     this.addHTMLOutput(subView);
 
-    var analysisLink = tr.b.findDeepElementMatching(subView,
+    const analysisLink = tr.b.findDeepElementMatching(subView,
         'tr-ui-a-analysis-link');
     assert.isDefined(analysisLink);
   });
 
   test('instantiate_withSingleSliceContainingInfo', function() {
-    var slice = newSliceEx({title: 'b', start: 0, duration: 1});
+    const slice = newSliceEx({title: 'b', start: 0, duration: 1});
     slice.info = new tr.model.EventInfo(
         'Info title', 'Description');
 
-    var selection = new EventSet();
+    const selection = new EventSet();
     selection.push(slice);
 
-    var analysisEl = document.createElement('tr-ui-a-single-event-sub-view');
+    const analysisEl = document.createElement('tr-ui-a-single-event-sub-view');
     analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
   });

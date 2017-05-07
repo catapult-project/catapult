@@ -3,13 +3,14 @@
 // found in the LICENSE file.
 'use strict';
 
-var fs = require('fs');
-var path = require('path');
+const fs = require('fs');
+const path = require('path');
 
-var catapultPath = fs.realpathSync(path.join(__dirname, '..', '..'));
-var catapultBuildPath = path.join(catapultPath, 'catapult_build');
+const catapultPath = fs.realpathSync(path.join(__dirname, '..', '..'));
+const catapultBuildPath = path.join(catapultPath, 'catapult_build');
 
-var nodeBootstrap = require(path.join(catapultBuildPath, 'node_bootstrap.js'));
+const nodeBootstrap = require(path.join(
+    catapultBuildPath, 'node_bootstrap.js'));
 
 HTMLImportsLoader.addArrayToSourcePath(
     nodeBootstrap.getSourcePathsForProject('tracing'));

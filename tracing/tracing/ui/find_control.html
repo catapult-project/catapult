@@ -85,7 +85,7 @@ Polymer({
 
   filterKeyDown(e) {
     if (e.keyCode === 27) {
-      var hkc = tr.b.getHotkeyControllerForElement(this);
+      const hkc = tr.b.getHotkeyControllerForElement(this);
       if (hkc) {
         hkc.childRequestsBlur(this);
       } else {
@@ -165,8 +165,8 @@ Polymer({
       return;
     }
 
-    var n = this.controller.filterHits.length;
-    var i = n === 0 ? -1 : this.controller.currentHitIndex;
+    const n = this.controller.filterHits.length;
+    const i = n === 0 ? -1 : this.controller.currentHitIndex;
     Polymer.dom(this.$.hitCount).textContent = (i + 1) + ' of ' + n;
   },
 

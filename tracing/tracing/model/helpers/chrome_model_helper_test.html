@@ -16,10 +16,10 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var newAsyncSliceEx = tr.c.TestUtils.newAsyncSliceEx;
+  const newAsyncSliceEx = tr.c.TestUtils.newAsyncSliceEx;
 
   test('getLatencyData', function() {
-    var m = tr.e.chrome.ChromeTestUtils.newChromeModel(function(m) {
+    const m = tr.e.chrome.ChromeTestUtils.newChromeModel(function(m) {
       m.browserMain.asyncSliceGroup.push(newAsyncSliceEx({
         title: 'InputLatency::GestureScrollUpdate',
         cat: 'benchmark',
@@ -36,15 +36,15 @@ tr.b.unittest.testSuite(function() {
       }));
     });
 
-    var modelHelper = m.getOrCreateHelper(tr.model.helpers.ChromeModelHelper);
-    var latencyEvents = modelHelper.browserHelper.getLatencyEventsInRange(
+    const modelHelper = m.getOrCreateHelper(tr.model.helpers.ChromeModelHelper);
+    const latencyEvents = modelHelper.browserHelper.getLatencyEventsInRange(
         m.bounds);
     assert.strictEqual(latencyEvents.length, 1);
   });
 
   test('getFrametime', function() {
-    var frameTs;
-    var events = [];
+    let frameTs;
+    const events = [];
     // Browser process 3507
     events.push({'cat': '__metadata', 'pid': 3507, 'tid': 3507, 'ts': 0, 'ph': 'M', 'name': 'thread_name', 'args': {'name': 'CrBrowserMain'}}); // @suppress longLineCheck
 
@@ -61,14 +61,14 @@ tr.b.unittest.testSuite(function() {
 
     frameTs = 0;
     // Add impl rendering stats for browser process 3507
-    for (var i = 0; i < 10; i++) {
+    for (let i = 0; i < 10; i++) {
       events.push({'cat': 'benchmark', 'pid': 3507, 'tid': 3507, 'ts': frameTs, 'ph': 'i', 'name': 'BenchmarkInstrumentation::ImplThreadRenderingStats', 's': 't'}); // @suppress longLineCheck
       frameTs += 16000 + 1000 * (i % 2);
     }
 
     frameTs = 0;
     // Add main rendering stats for renderer process 3508
-    for (var i = 0; i < 10; i++) {
+    for (let i = 0; i < 10; i++) {
       events.push({'cat': 'benchmark', 'pid': 3508, 'tid': 3508, 'ts': frameTs, 'ph': 'i', 'name': 'BenchmarkInstrumentation::MainThreadRenderingStats', 's': 't'}); // @suppress longLineCheck
       frameTs += 16000 + 1000 * (i % 2);
     }
@@ -76,22 +76,22 @@ tr.b.unittest.testSuite(function() {
 
     frameTs = 0;
     // Add impl and main rendering stats for renderer process 3509
-    for (var i = 0; i < 10; i++) {
+    for (let i = 0; i < 10; i++) {
       events.push({'cat': 'benchmark', 'pid': 3509, 'tid': 3511, 'ts': frameTs, 'ph': 'i', 'name': 'BenchmarkInstrumentation::ImplThreadRenderingStats', 's': 't'}); // @suppress longLineCheck
       events.push({'cat': 'benchmark', 'pid': 3509, 'tid': 3509, 'ts': frameTs, 'ph': 'i', 'name': 'BenchmarkInstrumentation::MainThreadRenderingStats', 's': 't'}); // @suppress longLineCheck
       frameTs += 16000 + 1000 * (i % 2);
     }
 
-    var m = tr.c.TestUtils.newModelWithEvents([events]);
-    var modelHelper = m.getOrCreateHelper(tr.model.helpers.ChromeModelHelper);
+    const m = tr.c.TestUtils.newModelWithEvents([events]);
+    const modelHelper = m.getOrCreateHelper(tr.model.helpers.ChromeModelHelper);
 
     // Testing browser impl and main rendering stats.
-    var frameEvents = modelHelper.browserHelper.getFrameEventsInRange(
+    let frameEvents = modelHelper.browserHelper.getFrameEventsInRange(
         tr.model.helpers.IMPL_FRAMETIME_TYPE, m.bounds);
-    var frametimeData = tr.model.helpers.getFrametimeDataFromEvents(
+    let frametimeData = tr.model.helpers.getFrametimeDataFromEvents(
         frameEvents);
     assert.strictEqual(frametimeData.length, 9);
-    for (var i = 0; i < frametimeData.length; i++) {
+    for (let i = 0; i < frametimeData.length; i++) {
       assert.strictEqual(frametimeData[i].frametime, 16 + i % 2);
     }
     // No main rendering stats.
@@ -105,7 +105,7 @@ tr.b.unittest.testSuite(function() {
         tr.model.helpers.MAIN_FRAMETIME_TYPE, m.bounds);
     frametimeData = tr.model.helpers.getFrametimeDataFromEvents(frameEvents);
     assert.strictEqual(frametimeData.length, 9);
-    for (var i = 0; i < frametimeData.length; i++) {
+    for (let i = 0; i < frametimeData.length; i++) {
       assert.strictEqual(frametimeData[i].frametime, 16 + i % 2);
     }
 
@@ -120,7 +120,7 @@ tr.b.unittest.testSuite(function() {
         tr.model.helpers.IMPL_FRAMETIME_TYPE, m.bounds);
     frametimeData = tr.model.helpers.getFrametimeDataFromEvents(frameEvents);
     assert.strictEqual(frametimeData.length, 9);
-    for (var i = 0; i < frametimeData.length; i++) {
+    for (let i = 0; i < frametimeData.length; i++) {
       assert.strictEqual(frametimeData[i].frametime, 16 + i % 2);
     }
 
@@ -128,30 +128,30 @@ tr.b.unittest.testSuite(function() {
         tr.model.helpers.MAIN_FRAMETIME_TYPE, m.bounds);
     frametimeData = tr.model.helpers.getFrametimeDataFromEvents(frameEvents);
     assert.strictEqual(frametimeData.length, 9);
-    for (var i = 0; i < frametimeData.length; i++) {
+    for (let i = 0; i < frametimeData.length; i++) {
       assert.strictEqual(frametimeData[i].frametime, 16 + i % 2);
     }
   });
 
   test('multipleBrowsers', function() {
-    var m = tr.c.TestUtils.newModel(function(model) {
-      var browserProcess1 = model.getOrCreateProcess(1);
+    const m = tr.c.TestUtils.newModel(function(model) {
+      const browserProcess1 = model.getOrCreateProcess(1);
       browserProcess1.getOrCreateThread(2).name = 'CrBrowserMain';
 
-      var browserProcess2 = model.getOrCreateProcess(3);
+      const browserProcess2 = model.getOrCreateProcess(3);
       browserProcess2.getOrCreateThread(4);
       browserProcess2.getOrCreateThread(5).name = 'CrBrowserMain';
 
-      var nonBrowserProcess = model.getOrCreateProcess(6);
+      const nonBrowserProcess = model.getOrCreateProcess(6);
       nonBrowserProcess.getOrCreateThread(7);
 
-      var browserProcess3 = model.getOrCreateProcess(8);
+      const browserProcess3 = model.getOrCreateProcess(8);
       browserProcess3.getOrCreateThread(9).name = 'CrBrowserMain';
       browserProcess3.getOrCreateThread(10);
     });
 
-    var modelHelper = m.getOrCreateHelper(tr.model.helpers.ChromeModelHelper);
-    var browserHelpers = modelHelper.browserHelpers;
+    const modelHelper = m.getOrCreateHelper(tr.model.helpers.ChromeModelHelper);
+    const browserHelpers = modelHelper.browserHelpers;
 
     // Check that the correct processes were marked as Chrome browser processes.
     assert.sameMembers(browserHelpers.map(h => h.process.pid), [1, 3, 8]);

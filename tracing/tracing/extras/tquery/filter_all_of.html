@@ -22,7 +22,7 @@ tr.exportTo('tr.e.tquery', function() {
 
     set subExpressions(exprs) {
       this.subExpressions_ = [];
-      for (var i = 0; i < exprs.length; i++) {
+      for (let i = 0; i < exprs.length; i++) {
         this.subExpressions_.push(
             tr.e.tquery.Filter.normalizeFilterExpression(exprs[i]));
       }
@@ -34,7 +34,7 @@ tr.exportTo('tr.e.tquery', function() {
 
     evaluate(context) {
       if (!this.subExpressions.length) return true;
-      for (var i = 0; i < this.subExpressions.length; i++) {
+      for (let i = 0; i < this.subExpressions.length; i++) {
         if (!this.subExpressions[i].evaluate(context)) {
           return false;
         }
@@ -44,8 +44,8 @@ tr.exportTo('tr.e.tquery', function() {
   };
   tr.c.ScriptingObjectRegistry.register(
       function() {
-        var exprs = [];
-        for (var i = 0; i < arguments.length; i++) {
+        const exprs = [];
+        for (let i = 0; i < arguments.length; i++) {
           exprs.push(arguments[i]);
         }
         return new FilterAllOf(exprs);

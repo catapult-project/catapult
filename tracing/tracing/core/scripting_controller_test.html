@@ -29,23 +29,23 @@ tr.b.unittest.testSuite(function() {
   };
 
   test('scriptingControllerBasicArithmetic', function() {
-    var brushingStateController = new FakeBrushingStateController();
-    var controller = new tr.c.ScriptingController(brushingStateController);
-    var result = controller.executeCommand('1 + 1');
+    const brushingStateController = new FakeBrushingStateController();
+    const controller = new tr.c.ScriptingController(brushingStateController);
+    const result = controller.executeCommand('1 + 1');
     assert.strictEqual(result, 2);
   });
 
   test('scriptingControllerNonLocalContext', function() {
-    var brushingStateController = new FakeBrushingStateController();
-    var controller = new tr.c.ScriptingController(brushingStateController);
-    var x = 1;
+    const brushingStateController = new FakeBrushingStateController();
+    const controller = new tr.c.ScriptingController(brushingStateController);
+    const x = 1;
     controller.executeCommand('x = 2');
     assert.strictEqual(x, 1);
   });
 
   test('scriptingControllerModifyGlobalContext', function() {
-    var brushingStateController = new FakeBrushingStateController();
-    var controller = new tr.c.ScriptingController(brushingStateController);
+    const brushingStateController = new FakeBrushingStateController();
+    const controller = new tr.c.ScriptingController(brushingStateController);
     global._x = 1;
     controller.executeCommand('_x = 2');
     assert.strictEqual(global._x, 2);
@@ -53,23 +53,23 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('scriptingControllerPersistentContext', function() {
-    var brushingStateController = new FakeBrushingStateController();
-    var controller = new tr.c.ScriptingController(brushingStateController);
+    const brushingStateController = new FakeBrushingStateController();
+    const controller = new tr.c.ScriptingController(brushingStateController);
     controller.executeCommand('a = 42');
-    var result = controller.executeCommand('a');
+    const result = controller.executeCommand('a');
     assert.strictEqual(result, 42);
   });
 
   test('scriptingControllerAddScriptObject', function() {
-    var brushingStateController = new FakeBrushingStateController();
-    var controller = new tr.c.ScriptingController(brushingStateController);
+    const brushingStateController = new FakeBrushingStateController();
+    const controller = new tr.c.ScriptingController(brushingStateController);
     controller.addScriptObject('z', 123);
-    var result = controller.executeCommand('z');
+    const result = controller.executeCommand('z');
     assert.strictEqual(result, 123);
   });
 
   test('scriptingControllerObjectRegistry', function() {
-    var brushingStateController = new FakeBrushingStateController();
+    const brushingStateController = new FakeBrushingStateController();
 
     tr.c.ScriptingObjectRegistry.register(
         function() { return 123; },
@@ -77,8 +77,8 @@ tr.b.unittest.testSuite(function() {
           name: 'testFunctionName'
         }
     );
-    var controller = new tr.c.ScriptingController(brushingStateController);
-    var result = controller.executeCommand('testFunctionName()');
+    const controller = new tr.c.ScriptingController(brushingStateController);
+    const result = controller.executeCommand('testFunctionName()');
     assert.strictEqual(result, 123);
   });
 });

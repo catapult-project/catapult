@@ -14,36 +14,36 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var ColorScheme = tr.b.ColorScheme;
-  var Counter = tr.model.Counter;
-  var Viewport = tr.ui.TimelineViewport;
-  var CounterTrack = tr.ui.tracks.CounterTrack;
+  const ColorScheme = tr.b.ColorScheme;
+  const Counter = tr.model.Counter;
+  const Viewport = tr.ui.TimelineViewport;
+  const CounterTrack = tr.ui.tracks.CounterTrack;
 
-  var runTest = function(timestamps, samples, testFn) {
-    var testEl = document.createElement('div');
+  const runTest = function(timestamps, samples, testFn) {
+    const testEl = document.createElement('div');
 
-    var ctr = new Counter(undefined, 'foo', '', 'foo');
-    var n = samples.length;
+    const ctr = new Counter(undefined, 'foo', '', 'foo');
+    const n = samples.length;
 
-    for (var i = 0; i < n; ++i) {
+    for (let i = 0; i < n; ++i) {
       ctr.addSeries(new tr.model.CounterSeries('value' + i,
           ColorScheme.getColorIdForGeneralPurposeString('value' + i)));
     }
 
-    for (var i = 0; i < samples.length; ++i) {
-      for (var k = 0; k < timestamps.length; ++k) {
+    for (let i = 0; i < samples.length; ++i) {
+      for (let k = 0; k < timestamps.length; ++k) {
         ctr.series[i].addCounterSample(timestamps[k], samples[i][k]);
       }
     }
 
     ctr.updateBounds();
 
-    var viewport = new Viewport(testEl);
+    const viewport = new Viewport(testEl);
 
-    var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
+    const drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
     Polymer.dom(testEl).appendChild(drawingContainer);
 
-    var track = new CounterTrack(viewport);
+    const track = new CounterTrack(viewport);
     Polymer.dom(drawingContainer).appendChild(track);
     this.addHTMLOutput(testEl);
 
@@ -52,11 +52,11 @@ tr.b.unittest.testSuite(function() {
     // use the track header to figure out our positioning.
     drawingContainer.updateCanvasSizeIfNeeded_();
 
-    var pixelRatio = window.devicePixelRatio || 1;
+    const pixelRatio = window.devicePixelRatio || 1;
 
     track.heading = ctr.name;
     track.counter = ctr;
-    var dt = new tr.ui.TimelineDisplayTransform();
+    const dt = new tr.ui.TimelineDisplayTransform();
     dt.xSetWorldBounds(0, 10, track.clientWidth * pixelRatio);
     track.viewport.setDisplayTransformImmediately(dt);
 
@@ -64,7 +64,7 @@ tr.b.unittest.testSuite(function() {
   };
 
   test('instantiate', function() {
-    var ctr = new Counter(undefined, 'testBasicCounter', '',
+    const ctr = new Counter(undefined, 'testBasicCounter', '',
         'testBasicCounter');
     ctr.addSeries(new tr.model.CounterSeries('value1',
         ColorScheme.getColorIdForGeneralPurposeString(
@@ -73,24 +73,24 @@ tr.b.unittest.testSuite(function() {
         ColorScheme.getColorIdForGeneralPurposeString(
             'testBasicCounter.value2')));
 
-    var timestamps = [0, 1, 2, 3, 4, 5, 6, 7];
-    var samples = [[0, 3, 1, 2, 3, 1, 3, 3.1],
+    const timestamps = [0, 1, 2, 3, 4, 5, 6, 7];
+    const samples = [[0, 3, 1, 2, 3, 1, 3, 3.1],
                    [5, 3, 1, 1.1, 0, 7, 0, 0.5]];
-    for (var i = 0; i < samples.length; ++i) {
-      for (var k = 0; k < timestamps.length; ++k) {
+    for (let i = 0; i < samples.length; ++i) {
+      for (let k = 0; k < timestamps.length; ++k) {
         ctr.series[i].addCounterSample(timestamps[k], samples[i][k]);
       }
     }
 
     ctr.updateBounds();
 
-    var div = document.createElement('div');
-    var viewport = new Viewport(div);
+    const div = document.createElement('div');
+    const viewport = new Viewport(div);
 
-    var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
+    const drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
     Polymer.dom(div).appendChild(drawingContainer);
 
-    var track = new CounterTrack(viewport);
+    const track = new CounterTrack(viewport);
     Polymer.dom(drawingContainer).appendChild(track);
 
     this.addHTMLOutput(div);
@@ -98,29 +98,29 @@ tr.b.unittest.testSuite(function() {
 
     track.heading = ctr.name;
     track.counter = ctr;
-    var dt = new tr.ui.TimelineDisplayTransform();
+    const dt = new tr.ui.TimelineDisplayTransform();
     dt.xSetWorldBounds(0, 7.7, track.clientWidth);
     track.viewport.setDisplayTransformImmediately(dt);
   });
 
   test('basicCounterXPointPicking', function() {
-    var timestamps = [0, 1, 2, 3, 4, 5, 6, 7];
-    var samples = [[0, 3, 1, 2, 3, 1, 3, 3.1],
+    const timestamps = [0, 1, 2, 3, 4, 5, 6, 7];
+    const samples = [[0, 3, 1, 2, 3, 1, 3, 3.1],
                    [5, 3, 1, 1.1, 0, 7, 0, 0.5]];
 
     runTest.call(this, timestamps, samples, function(ctr, container, track) {
-      var clientRect = track.getBoundingClientRect();
-      var y75 = clientRect.top + (0.75 * clientRect.height);
+      const clientRect = track.getBoundingClientRect();
+      const y75 = clientRect.top + (0.75 * clientRect.height);
 
       // In bounds.
-      var sel = new tr.model.EventSet();
-      var x = 0.15 * clientRect.width;
+      let sel = new tr.model.EventSet();
+      let x = 0.15 * clientRect.width;
       track.addIntersectingEventsInRangeToSelection(
           x, x + 1, y75, y75 + 1, sel);
 
-      var nextSeriesIndex = 1;
+      let nextSeriesIndex = 1;
       assert.strictEqual(sel.length, 2);
-      for (var event of sel) {
+      for (const event of sel) {
         assert.strictEqual(event.series.counter, ctr);
         assert.strictEqual(event.getSampleIndex(), 1);
         assert.strictEqual(event.series.seriesIndex, nextSeriesIndex--);
@@ -128,13 +128,13 @@ tr.b.unittest.testSuite(function() {
 
       // Outside bounds.
       sel = new tr.model.EventSet();
-      var x = -0.5 * clientRect.width;
+      x = -0.5 * clientRect.width;
       track.addIntersectingEventsInRangeToSelection(
           x, x + 1, y75, y75 + 1, sel);
       assert.strictEqual(sel.length, 0);
 
       sel = new tr.model.EventSet();
-      var x = 0.8 * clientRect.width;
+      x = 0.8 * clientRect.width;
       track.addIntersectingEventsInRangeToSelection(
           x, x + 1, y75, y75 + 1, sel);
       assert.strictEqual(sel.length, 0);
@@ -142,60 +142,60 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('counterTrackAddClosestEventToSelection', function() {
-    var timestamps = [0, 1, 2, 3, 4, 5, 6, 7];
-    var samples = [[0, 4, 1, 2, 3, 1, 3, 3.1],
+    const timestamps = [0, 1, 2, 3, 4, 5, 6, 7];
+    const samples = [[0, 4, 1, 2, 3, 1, 3, 3.1],
                    [5, 3, 1, 1.1, 0, 7, 0, 0.5]];
 
     runTest.call(this, timestamps, samples, function(ctr, container, track) {
       // Before with not range.
-      var sel = new tr.model.EventSet();
+      let sel = new tr.model.EventSet();
       track.addClosestEventToSelection(-1, 0, 0, 0, sel);
       assert.strictEqual(sel.length, 0);
 
       // Before with negative range.
-      var sel = new tr.model.EventSet();
+      sel = new tr.model.EventSet();
       track.addClosestEventToSelection(-1, -10, 0, 0, sel);
       assert.strictEqual(sel.length, 0);
 
       // Before first sample.
-      var sel = new tr.model.EventSet();
+      sel = new tr.model.EventSet();
       track.addClosestEventToSelection(-1, 1, 0, 0, sel);
       assert.strictEqual(sel.length, 2);
-      for (var event of sel) {
+      for (const event of sel) {
         assert.strictEqual(event.getSampleIndex(), 0);
       }
 
       // Between and closer to sample before.
-      var sel = new tr.model.EventSet();
+      sel = new tr.model.EventSet();
       track.addClosestEventToSelection(1.3, 1, 0, 0, sel);
       assert.strictEqual(sel.length, 2);
-      for (var event of sel) {
+      for (const event of sel) {
         assert.strictEqual(event.getSampleIndex(), 1);
       }
 
       // Between samples with bad range.
-      var sel = new tr.model.EventSet();
+      sel = new tr.model.EventSet();
       track.addClosestEventToSelection(1.45, 0.25, 0, 0, sel);
       assert.strictEqual(sel.length, 0);
 
       // Between and closer to next sample.
-      var sel = new tr.model.EventSet();
+      sel = new tr.model.EventSet();
       track.addClosestEventToSelection(4.7, 6, 0, 0, sel);
       assert.strictEqual(sel.length, 2);
-      for (var event of sel) {
+      for (const event of sel) {
         assert.strictEqual(event.getSampleIndex(), 5);
       }
 
       // After last sample with good range.
-      var sel = new tr.model.EventSet();
+      sel = new tr.model.EventSet();
       track.addClosestEventToSelection(8.5, 2, 0, 0, sel);
       assert.strictEqual(sel.length, 2);
-      for (var event of sel) {
+      for (const event of sel) {
         assert.strictEqual(event.getSampleIndex(), 7);
       }
 
       // After last sample with bad range.
-      var sel = new tr.model.EventSet();
+      sel = new tr.model.EventSet();
       track.addClosestEventToSelection(10, 1, 0, 0, sel);
       assert.strictEqual(sel.length, 0);
     });

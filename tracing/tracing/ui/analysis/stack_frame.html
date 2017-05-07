@@ -36,7 +36,7 @@ Polymer({
   },
 
   set stackFrame(stackFrame) {
-    var table = this.$.table;
+    const table = this.$.table;
 
     this.stackFrame_ = stackFrame;
     if (stackFrame === undefined) {
@@ -46,8 +46,8 @@ Polymer({
       return;
     }
 
-    var hasName = false;
-    var hasTitle = false;
+    let hasName = false;
+    let hasTitle = false;
 
     table.tableRows = stackFrame.stackTrace;
     table.tableRows.forEach(function(row) {
@@ -55,7 +55,7 @@ Polymer({
       hasTitle |= row.title !== undefined;
     });
 
-    var cols = [];
+    const cols = [];
     if (hasName) {
       cols.push({
         title: 'Name',

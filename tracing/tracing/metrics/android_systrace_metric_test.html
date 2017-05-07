@@ -47,14 +47,14 @@ tr.b.unittest.testSuite(function() {
       'tracing_mark_write: E';
 
   function makeModel(systraceLines) {
-    var events = JSON.stringify({
+    const events = JSON.stringify({
       traceEvents: [],
       systemTraceEvents: SYSTRACE_CLOCK_SYNC + '\n' + systraceLines.join('\n')
     });
-    var model = tr.c.TestUtils.newModelWithEvents([events]);
+    const model = tr.c.TestUtils.newModelWithEvents([events]);
     // Fix missing process names.
-    for (var pid in model.processes) {
-      var process = model.processes[pid];
+    for (const pid in model.processes) {
+      const process = model.processes[pid];
       if (process.name !== undefined) continue;
       if (process.threads[pid] !== undefined) {
         process.name = process.threads[pid].name;
@@ -64,23 +64,23 @@ tr.b.unittest.testSuite(function() {
   }
 
   function testStartup(systrace, expectedTimeInMs) {
-    var histograms = new tr.v.HistogramSet();
+    const histograms = new tr.v.HistogramSet();
     tr.metrics.sh.androidSystraceMetric(histograms, makeModel(systrace));
     assert.lengthOf(histograms, 1);
-    var startupHist = histograms.getHistogramNamed(
+    const startupHist = histograms.getHistogramNamed(
         'android:systrace:startup:com.android.apps.sms').running;
     assert.strictEqual(startupHist.count, 1);
     assert.closeTo(startupHist.mean, expectedTimeInMs, 1e-5);
   }
 
   test('androidSystraceMetric_startup_noData', function() {
-    var histograms = new tr.v.HistogramSet();
+    const histograms = new tr.v.HistogramSet();
     tr.metrics.sh.androidSystraceMetric(histograms, makeModel([]));
     assert.lengthOf(histograms, 0);
   });
 
   test('androidSystraceMetric_startup_simple', function() {
-    var systrace = [
+    const systrace = [
       SYSTRACE_SYSTEM_SERVER_ANNOTATION,
       SYSTRACE_TOUCH_SLICE,
       SYSTRACE_LAUNCH_SLICE,
@@ -90,7 +90,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('androidSystraceMetric_startup_noTouch', function() {
-    var systrace = [
+    const systrace = [
       SYSTRACE_SYSTEM_SERVER_ANNOTATION,
       SYSTRACE_LAUNCH_SLICE,
       SYSTRACE_DRAW_SLICE
@@ -99,7 +99,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('androidSystraceMetric_startup_noDraw', function() {
-    var systrace = [
+    const systrace = [
       SYSTRACE_SYSTEM_SERVER_ANNOTATION,
       SYSTRACE_TOUCH_SLICE,
       SYSTRACE_LAUNCH_SLICE,
@@ -108,7 +108,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('androidSystraceMetric_startup_noTouchNoDraw', function() {
-    var systrace = [
+    const systrace = [
       SYSTRACE_SYSTEM_SERVER_ANNOTATION,
       SYSTRACE_LAUNCH_SLICE,
     ];
@@ -116,22 +116,22 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('androidSystraceMetric_threadtime_simple', function() {
-    let model = tr.c.TestUtils.newModel(model => {
-      let process = model.getOrCreateProcess(42);
+    const model = tr.c.TestUtils.newModel(model => {
+      const process = model.getOrCreateProcess(42);
       process.name = 'garbage_producer';
-      let thread = process.getOrCreateThread(42);
+      const thread = process.getOrCreateThread(42);
       thread.timeSlices = [
         tr.c.TestUtils.newThreadSlice(thread, 'Sleeping', 0, 100),
         tr.c.TestUtils.newThreadSlice(thread, 'Running', 100, 400)
       ];
     });
 
-    let histograms = new tr.v.HistogramSet();
+    const histograms = new tr.v.HistogramSet();
     tr.metrics.sh.androidSystraceMetric(histograms, model);
     assert.lengthOf(histograms, 5);
 
-    let assertHistValue = function(name, expectedValue) {
-      let hist = histograms.getHistogramNamed(
+    const assertHistValue = function(name, expectedValue) {
+      const hist = histograms.getHistogramNamed(
           `android:systrace:threadtime:garbage_producer:${name}`);
       assert.strictEqual(hist.running.count, 1);
       assert.closeTo(hist.running.mean, expectedValue, 1e-5);

@@ -12,14 +12,14 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('domain', function() {
-    var urlDomains = {
+    const urlDomains = {
       'http://www.google.com': 'http://www.google.com',
       'http://www.google.com/bla': 'http://www.google.com',
       'http://www.google.com:1234': 'http://www.google.com',
       'bad url': undefined
     };
-    for (var url in urlDomains) {
-      var sourceInfo = new tr.model.source_info.SourceInfo(url);
+    for (const url in urlDomains) {
+      const sourceInfo = new tr.model.source_info.SourceInfo(url);
       assert.strictEqual(urlDomains[url], sourceInfo.domain);
     }
   });

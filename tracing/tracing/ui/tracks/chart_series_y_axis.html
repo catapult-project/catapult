@@ -13,11 +13,11 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.tracks', function() {
-  var ColorScheme = tr.b.ColorScheme;
-  var IDEAL_MAJOR_MARK_HEIGHT_PX = 30;
-  var AXIS_LABLE_MARGIN_PX = 10;
-  var AXIS_LABLE_FONT_SIZE_PX = 9;
-  var AXIS_LABLE_FONT = 'Arial';
+  const ColorScheme = tr.b.ColorScheme;
+  const IDEAL_MAJOR_MARK_HEIGHT_PX = 30;
+  const AXIS_LABLE_MARGIN_PX = 10;
+  const AXIS_LABLE_FONT_SIZE_PX = 9;
+  const AXIS_LABLE_FONT = 'Arial';
 
   /**
    * A vertical axis for a (set of) chart series which maps an arbitrary range
@@ -41,7 +41,7 @@ tr.exportTo('tr.ui.tracks', function() {
       if (this.bounds.isEmpty) {
         throw new Error('Chart series y-axis bounds are empty');
       }
-      var bounds = this.bounds;
+      const bounds = this.bounds;
       if (bounds.range === 0) return 0;
       return (value - bounds.min) / bounds.range;
     },
@@ -61,7 +61,7 @@ tr.exportTo('tr.ui.tracks', function() {
      * argument flags.
      */
     autoSetFromSeries(series, opt_config) {
-      var range = new tr.b.math.Range();
+      const range = new tr.b.math.Range();
       series.forEach(function(s) {
         range.addRange(s.range);
       }, this);
@@ -95,7 +95,7 @@ tr.exportTo('tr.ui.tracks', function() {
     autoSetFromRange(range, opt_config) {
       if (range.isEmpty) return;
 
-      var bounds = this.bounds;
+      const bounds = this.bounds;
       if (bounds.isEmpty) {
         bounds.addRange(range);
         return;
@@ -103,9 +103,9 @@ tr.exportTo('tr.ui.tracks', function() {
 
       if (!opt_config) return;
 
-      var useRangeMin = (opt_config.expandMin && range.min < bounds.min ||
+      const useRangeMin = (opt_config.expandMin && range.min < bounds.min ||
                          opt_config.shrinkMin && range.min > bounds.min);
-      var useRangeMax = (opt_config.expandMax && range.max > bounds.max ||
+      const useRangeMax = (opt_config.expandMax && range.max > bounds.max ||
                          opt_config.shrinkMax && range.max < bounds.max);
 
       // Neither bound is modified.
@@ -130,8 +130,8 @@ tr.exportTo('tr.ui.tracks', function() {
 
 
     majorMarkHeightWorld_(transform, pixelRatio) {
-      var idealMajorMarkHeightPx = IDEAL_MAJOR_MARK_HEIGHT_PX * pixelRatio;
-      var idealMajorMarkHeightWorld =
+      const idealMajorMarkHeightPx = IDEAL_MAJOR_MARK_HEIGHT_PX * pixelRatio;
+      const idealMajorMarkHeightWorld =
           transform.vectorToWorldDistance(idealMajorMarkHeightPx);
 
       return tr.b.math.preferredNumberLargerThanMin(idealMajorMarkHeightWorld);
@@ -140,14 +140,14 @@ tr.exportTo('tr.ui.tracks', function() {
     draw(ctx, transform, showYAxisLabels, showYGridLines) {
       if (!showYAxisLabels && !showYGridLines) return;
 
-      var pixelRatio = transform.pixelRatio;
-      var viewTop = transform.outerTopViewY;
-      var worldTop = transform.viewYToWorldY(viewTop);
-      var viewBottom = transform.outerBottomViewY;
-      var viewHeight = viewBottom - viewTop;
-      var viewLeft = transform.leftViewX;
-      var viewRight = transform.rightViewX;
-      var labelLeft = transform.leftYLabel;
+      const pixelRatio = transform.pixelRatio;
+      const viewTop = transform.outerTopViewY;
+      const worldTop = transform.viewYToWorldY(viewTop);
+      const viewBottom = transform.outerBottomViewY;
+      const viewHeight = viewBottom - viewTop;
+      const viewLeft = transform.leftViewX;
+      const viewRight = transform.rightViewX;
+      const labelLeft = transform.leftYLabel;
 
       ctx.save();
       ctx.lineWidth = pixelRatio;
@@ -170,14 +170,14 @@ tr.exportTo('tr.ui.tracks', function() {
       ctx.beginPath();
       ctx.strokeStyle = ColorScheme.getColorForReservedNameAsString('grey');
 
-      var majorMarkHeight = this.majorMarkHeightWorld_(transform, pixelRatio);
-      var maxMajorMark = Math.max(transform.viewYToWorldY(viewTop),
+      const majorMarkHeight = this.majorMarkHeightWorld_(transform, pixelRatio);
+      const maxMajorMark = Math.max(transform.viewYToWorldY(viewTop),
           Math.abs(transform.viewYToWorldY(viewBottom)));
-      for (var curWorldY = 0;
+      for (let curWorldY = 0;
           curWorldY <= maxMajorMark;
           curWorldY += majorMarkHeight) {
-        var roundedUnitValue = Math.floor(curWorldY * 1000000) / 1000000;
-        var curViewYPositive = transform.worldYToViewY(curWorldY);
+        const roundedUnitValue = Math.floor(curWorldY * 1000000) / 1000000;
+        const curViewYPositive = transform.worldYToViewY(curWorldY);
         if (curViewYPositive >= viewTop) {
           if (showYAxisLabels) {
             ctx.fillText(roundedUnitValue, viewLeft + AXIS_LABLE_MARGIN_PX,
@@ -189,7 +189,7 @@ tr.exportTo('tr.ui.tracks', function() {
           }
         }
 
-        var curViewYNegative = transform.worldYToViewY(-1 * curWorldY);
+        const curViewYNegative = transform.worldYToViewY(-1 * curWorldY);
         if (curViewYNegative <= viewBottom) {
           if (showYAxisLabels) {
             ctx.fillText(roundedUnitValue, viewLeft + AXIS_LABLE_MARGIN_PX,

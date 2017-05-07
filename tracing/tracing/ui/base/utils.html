@@ -14,7 +14,7 @@ found in the LICENSE file.
 tr.exportTo('tr.ui.b', function() {
   function instantiateTemplate(selector, doc) {
     doc = doc || document;
-    var el = Polymer.dom(doc).querySelector(selector);
+    const el = Polymer.dom(doc).querySelector(selector);
     if (!el) {
       throw new Error('Element not found');
     }
@@ -23,9 +23,9 @@ tr.exportTo('tr.ui.b', function() {
   }
 
   function windowRectForElement(element) {
-    var position = [element.offsetLeft, element.offsetTop];
-    var size = [element.offsetWidth, element.offsetHeight];
-    var node = element.offsetParent;
+    const position = [element.offsetLeft, element.offsetTop];
+    const size = [element.offsetWidth, element.offsetHeight];
+    let node = element.offsetParent;
     while (node) {
       position[0] += node.offsetLeft;
       position[1] += node.offsetTop;
@@ -35,8 +35,8 @@ tr.exportTo('tr.ui.b', function() {
   }
 
   function scrollIntoViewIfNeeded(el) {
-    var pr = el.parentElement.getBoundingClientRect();
-    var cr = el.getBoundingClientRect();
+    const pr = el.parentElement.getBoundingClientRect();
+    const cr = el.getBoundingClientRect();
     if (cr.top < pr.top) {
       el.scrollIntoView(true);
     } else if (cr.bottom > pr.bottom) {
@@ -45,7 +45,7 @@ tr.exportTo('tr.ui.b', function() {
   }
 
   function extractUrlString(url) {
-    var extracted = url.replace(/url\((.*)\)/, '$1');
+    let extracted = url.replace(/url\((.*)\)/, '$1');
 
     // In newer versions of chrome, the contents of url() will be quoted. Remove
     // these quotes as well. If quotes are not present, match will fail and this

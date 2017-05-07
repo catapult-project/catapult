@@ -16,7 +16,7 @@ found in the LICENSE file.
  * @fileoverview FindController.
  */
 tr.exportTo('tr.ui', function() {
-  var Task = tr.b.Task;
+  const Task = tr.b.Task;
 
   function FindController(brushingStateController) {
     this.brushingStateController_ = brushingStateController;
@@ -38,7 +38,7 @@ tr.exportTo('tr.ui', function() {
     },
 
     enqueueOperation_(operation) {
-      var task;
+      let task;
       if (operation instanceof tr.b.Task) {
         task = operation;
       } else {
@@ -62,7 +62,7 @@ tr.exportTo('tr.ui', function() {
      * promise which resolves when |filterHits| has been refreshed.
      */
     startFiltering(filterText) {
-      var sc = this.brushingStateController_;
+      const sc = this.brushingStateController_;
       if (!sc) return;
 
       // TODO(beaudoin): Cancel anything left in the task queue, without
@@ -76,12 +76,12 @@ tr.exportTo('tr.ui', function() {
       // UIState.fromUserFriendlyString will throw an error only if the string
       // is syntactically correct to a UI state string but with invalid values.
       // It will return undefined if there is no syntactic match.
-      var stateFromString;
+      let stateFromString;
       try {
         stateFromString = sc.uiStateFromString(filterText);
       } catch (e) {
         this.enqueueOperation_(function() {
-          var overlay = new tr.ui.b.Overlay();
+          const overlay = new tr.ui.b.Overlay();
           Polymer.dom(overlay).textContent = e.message;
           overlay.title = 'UI State Navigation Error';
           overlay.visible = true;
@@ -97,8 +97,8 @@ tr.exportTo('tr.ui', function() {
         if (filterText.length === 0) {
           this.enqueueOperation_(sc.findTextCleared.bind(sc));
         } else {
-          var filter = new tr.c.FullTextFilter(filterText);
-          var filterHitSet = new tr.model.EventSet();
+          const filter = new tr.c.FullTextFilter(filterText);
+          const filterHitSet = new tr.model.EventSet();
           this.enqueueOperation_(sc.addAllEventsMatchingFilterToSelectionAsTask(
               filter, filterHitSet));
           this.enqueueOperation_(function() {
@@ -124,12 +124,12 @@ tr.exportTo('tr.ui', function() {
     },
 
     find_(dir) {
-      var firstHit = this.currentHitIndex_ === -1;
+      const firstHit = this.currentHitIndex_ === -1;
       if (firstHit && dir < 0) {
         this.currentHitIndex_ = 0;
       }
 
-      var N = this.filterHits.length;
+      const N = this.filterHits.length;
       this.currentHitIndex_ = (this.currentHitIndex_ + dir + N) % N;
 
       if (!this.brushingStateController_) return;

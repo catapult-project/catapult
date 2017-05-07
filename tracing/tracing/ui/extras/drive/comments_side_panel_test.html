@@ -40,7 +40,7 @@ tr.b.unittest.testSuite(function() {
     },
 
     addDummyComment(content) {
-      var newComment = {
+      const newComment = {
         author: {
           displayName: 'Casper the Friendly Ghost',
           picture: {
@@ -63,7 +63,7 @@ tr.b.unittest.testSuite(function() {
   };
 
   test('instantiate', function() {
-    var panel = document.createElement('tr-ui-e-drive-comments-side-panel');
+    const panel = document.createElement('tr-ui-e-drive-comments-side-panel');
     panel.setCommentProvider(new StubCommentProvider);
     this.addHTMLOutput(panel);
   });

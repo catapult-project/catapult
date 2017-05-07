@@ -19,20 +19,20 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var EventSet = tr.model.EventSet;
-  var ObjectInstanceTrack = tr.ui.tracks.ObjectInstanceTrack;
-  var Viewport = tr.ui.TimelineViewport;
+  const EventSet = tr.model.EventSet;
+  const ObjectInstanceTrack = tr.ui.tracks.ObjectInstanceTrack;
+  const Viewport = tr.ui.TimelineViewport;
 
-  var createObjects = function() {
-    var objects = new tr.model.ObjectCollection({});
-    var scopedId1 = new tr.model.ScopedId('ptr', '0x1000');
+  const createObjects = function() {
+    const objects = new tr.model.ObjectCollection({});
+    const scopedId1 = new tr.model.ScopedId('ptr', '0x1000');
     objects.idWasCreated(scopedId1, 'tr.e.cc', 'Frame', 10);
     objects.addSnapshot(scopedId1, 'tr.e.cc', 'Frame', 10, 'snapshot-1');
     objects.addSnapshot(scopedId1, 'tr.e.cc', 'Frame', 25, 'snapshot-2');
     objects.addSnapshot(scopedId1, 'tr.e.cc', 'Frame', 40, 'snapshot-3');
     objects.idWasDeleted(scopedId1, 'tr.e.cc', 'Frame', 45);
 
-    var scopedId2 = new tr.model.ScopedId('ptr', '0x1001');
+    const scopedId2 = new tr.model.ScopedId('ptr', '0x1001');
     objects.idWasCreated(scopedId2, 'skia', 'Picture', 20);
     objects.addSnapshot(scopedId2, 'skia', 'Picture', 20, 'snapshot-1');
     objects.idWasDeleted(scopedId2, 'skia', 'Picture', 25);
@@ -40,18 +40,18 @@ tr.b.unittest.testSuite(function() {
   };
 
   test('instantiate', function() {
-    var objects = createObjects();
-    var frames = objects.getAllInstancesByTypeName().Frame;
+    const objects = createObjects();
+    const frames = objects.getAllInstancesByTypeName().Frame;
     frames[0].snapshots[1].selectionState =
         tr.model.SelectionState.SELECTED;
 
-    var div = document.createElement('div');
+    const div = document.createElement('div');
 
-    var viewport = new Viewport(div);
-    var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
+    const viewport = new Viewport(div);
+    const drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
     Polymer.dom(div).appendChild(drawingContainer);
 
-    var track = ObjectInstanceTrack(viewport);
+    const track = ObjectInstanceTrack(viewport);
     Polymer.dom(drawingContainer).appendChild(track);
 
     this.addHTMLOutput(div);
@@ -59,20 +59,20 @@ tr.b.unittest.testSuite(function() {
 
     track.heading = 'testBasic';
     track.objectInstances = frames;
-    var dt = new tr.ui.TimelineDisplayTransform();
+    const dt = new tr.ui.TimelineDisplayTransform();
     dt.xSetWorldBounds(0, 50, track.clientWidth);
     track.viewport.setDisplayTransformImmediately(dt);
   });
 
   test('selectionHitTestingWithThreadTrack', function() {
-    var objects = createObjects();
-    var frames = objects.getAllInstancesByTypeName().Frame;
+    const objects = createObjects();
+    const frames = objects.getAllInstancesByTypeName().Frame;
 
-    var track = ObjectInstanceTrack(new Viewport());
+    const track = ObjectInstanceTrack(new Viewport());
     track.objectInstances = frames;
 
     // Hit outside range
-    var selection = new EventSet();
+    let selection = new EventSet();
     track.addIntersectingEventsInRangeToSelectionInWorldSpace(
         8, 8.1, 0.1, selection);
     assert.strictEqual(selection.length, 0);
@@ -93,13 +93,13 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('addEventNearToProvidedEventToSelection', function() {
-    var objects = createObjects();
-    var frames = objects.getAllInstancesByTypeName().Frame;
+    const objects = createObjects();
+    const frames = objects.getAllInstancesByTypeName().Frame;
 
-    var track = ObjectInstanceTrack(new Viewport());
+    const track = ObjectInstanceTrack(new Viewport());
     track.objectInstances = frames;
 
-    var instance = new tr.model.ObjectInstance(
+    const instance = new tr.model.ObjectInstance(
         {}, new tr.model.ScopedId('ptr', '0x1000'), 'cat', 'n', 10);
 
     assert.doesNotThrow(function() {

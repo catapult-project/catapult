@@ -88,18 +88,18 @@ tr.exportTo('tr.model', function() {
 
     updateBounds() {
       this.bounds.reset();
-      for (var child of this.childEventContainers()) {
+      for (const child of this.childEventContainers()) {
         child.updateBounds();
         this.bounds.addRange(child.bounds);
       }
     },
 
     shiftTimestampsForward(amount) {
-      for (var child of this.childEventContainers()) {
+      for (const child of this.childEventContainers()) {
         child.shiftTimestampsForward(amount);
       }
 
-      for (var i = 0; i < this.vSyncTimestamps_.length; i++) {
+      for (let i = 0; i < this.vSyncTimestamps_.length; i++) {
         this.vSyncTimestamps_[i] += amount;
       }
     },

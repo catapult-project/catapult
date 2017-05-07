@@ -95,16 +95,16 @@ Polymer({
   },
 
   set selection(selection) {
-    var cpuSlice = tr.b.getOnlyElement(selection);
+    const cpuSlice = tr.b.getOnlyElement(selection);
     if (!(cpuSlice instanceof tr.model.CpuSlice)) {
       throw new Error('Only supports thread time slices');
     }
 
     this.currentSelection_ = selection;
 
-    var thread = cpuSlice.threadThatWasRunning;
+    const thread = cpuSlice.threadThatWasRunning;
 
-    var root = Polymer.dom(this.root);
+    const root = Polymer.dom(this.root);
     if (thread) {
       Polymer.dom(root.querySelector('#process-name')).textContent =
           thread.parent.userFriendlyName;
@@ -122,13 +122,13 @@ Polymer({
     root.querySelector('#duration').setValueAndUnit(
         cpuSlice.duration, tr.b.Unit.byName.timeDurationInMs);
 
-    var runningThreadEl = root.querySelector('#running-thread');
+    const runningThreadEl = root.querySelector('#running-thread');
 
-    var timeSlice = cpuSlice.getAssociatedTimeslice();
+    const timeSlice = cpuSlice.getAssociatedTimeslice();
     if (!timeSlice) {
       runningThreadEl.parentElement.style.display = 'none';
     } else {
-      var threadLink = document.createElement('tr-ui-a-analysis-link');
+      const threadLink = document.createElement('tr-ui-a-analysis-link');
       threadLink.selection = new tr.model.EventSet(timeSlice);
       Polymer.dom(threadLink).textContent = 'Click to select';
       runningThreadEl.parentElement.style.display = '';

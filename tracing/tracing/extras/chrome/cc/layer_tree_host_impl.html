@@ -18,10 +18,10 @@ found in the LICENSE file.
  * @fileoverview Provides the LayerTreeHostImpl model-level objects.
  */
 tr.exportTo('tr.e.cc', function() {
-  var constants = tr.e.cc.constants;
+  const constants = tr.e.cc.constants;
 
-  var ObjectSnapshot = tr.model.ObjectSnapshot;
-  var ObjectInstance = tr.model.ObjectInstance;
+  const ObjectSnapshot = tr.model.ObjectSnapshot;
+  const ObjectInstance = tr.model.ObjectInstance;
 
   /**
    * @constructor
@@ -70,9 +70,9 @@ tr.exportTo('tr.e.cc', function() {
      * Get all of tile scales and their associated names.
      */
     getContentsScaleNames() {
-      var scales = {};
-      for (var i = 0; i < this.activeTiles.length; ++i) {
-        var tile = this.activeTiles[i];
+      const scales = {};
+      for (let i = 0; i < this.activeTiles.length; ++i) {
+        const tile = this.activeTiles[i];
         // Return scale -> scale name mappings.
         // Example:
         //  0.25 -> LOW_RESOLUTION
@@ -98,7 +98,7 @@ tr.exportTo('tr.e.cc', function() {
         return this.tilesHaveGpuMemoryUsageInfo_;
       }
 
-      for (var i = 0; i < this.activeTiles.length; i++) {
+      for (let i = 0; i < this.activeTiles.length; i++) {
         if (this.activeTiles[i].gpuMemoryUsageInBytes === undefined) {
           continue;
         }
@@ -112,16 +112,16 @@ tr.exportTo('tr.e.cc', function() {
     get gpuMemoryUsageInBytes() {
       if (!this.tilesHaveGpuMemoryUsageInfo) return;
 
-      var usage = 0;
-      for (var i = 0; i < this.activeTiles.length; i++) {
-        var u = this.activeTiles[i].gpuMemoryUsageInBytes;
+      let usage = 0;
+      for (let i = 0; i < this.activeTiles.length; i++) {
+        const u = this.activeTiles[i].gpuMemoryUsageInBytes;
         if (u !== undefined) usage += u;
       }
       return usage;
     },
 
     get userFriendlyName() {
-      var frameNumber;
+      let frameNumber;
       if (!this.activeTree) {
         frameNumber = this.objectInstance.snapshots.indexOf(this);
       } else {
@@ -156,9 +156,9 @@ tr.exportTo('tr.e.cc', function() {
         return this.allContentsScales_;
       }
 
-      var scales = {};
-      for (var tileID in this.allTileHistories_) {
-        var tileHistory = this.allTileHistories_[tileID];
+      const scales = {};
+      for (const tileID in this.allTileHistories_) {
+        const tileHistory = this.allTileHistories_[tileID];
         scales[tileHistory.contentsScale] = true;
       }
       this.allContentsScales_ = Object.keys(scales);
@@ -169,7 +169,7 @@ tr.exportTo('tr.e.cc', function() {
       if (this.allLayersBBox_) {
         return this.allLayersBBox_;
       }
-      var bbox = new tr.b.math.BBox2();
+      const bbox = new tr.b.math.BBox2();
       function handleTree(tree) {
         tree.renderSurfaceLayerList.forEach(function(layer) {
           bbox.addQuad(layer.layerQuad);

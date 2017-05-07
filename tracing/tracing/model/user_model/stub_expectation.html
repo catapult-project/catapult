@@ -21,7 +21,7 @@ tr.exportTo('tr.model.um', function() {
 
     this.title_ = args.title;
     if (!this.title_) {
-      var defaultTitle = [];
+      const defaultTitle = [];
       if (this.initiatorTitle_) {
         defaultTitle.push(this.initiatorTitle_);
       }
@@ -34,7 +34,7 @@ tr.exportTo('tr.model.um', function() {
     this.normalizedUserComfort_ = args.normalizedUserComfort || 0;
     this.normalizedEfficiency_ = args.normalizedEfficiency || 0;
 
-    var sd = tr.c.TestUtils.getStartAndDurationFromDict(args);
+    const sd = tr.c.TestUtils.getStartAndDurationFromDict(args);
 
     tr.model.um.UserExpectation.call(
         this, args.parentModel, this.initiatorTitle, sd.start, sd.duration);

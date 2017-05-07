@@ -14,14 +14,14 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('instantiate_RelatedHistogramMap', function() {
-    let aHist = new tr.v.Histogram('a', tr.b.Unit.byName.timeDurationInMs);
-    let bHist = new tr.v.Histogram('b', tr.b.Unit.byName.timeDurationInMs);
+    const aHist = new tr.v.Histogram('a', tr.b.Unit.byName.timeDurationInMs);
+    const bHist = new tr.v.Histogram('b', tr.b.Unit.byName.timeDurationInMs);
     aHist.addSample(1);
     bHist.addSample(2);
-    let diagnostic = new tr.v.d.RelatedHistogramMap();
+    const diagnostic = new tr.v.d.RelatedHistogramMap();
     diagnostic.set('foo', aHist);
     diagnostic.set('bar', bHist);
-    let span = tr.v.ui.createDiagnosticSpan(diagnostic);
+    const span = tr.v.ui.createDiagnosticSpan(diagnostic);
     assert.strictEqual('TR-V-UI-RELATED-HISTOGRAM-MAP-SPAN', span.tagName);
     this.addHTMLOutput(span);
     assert.isDefined(tr.b.findDeepElementWithTextContent(span, /Select All/));

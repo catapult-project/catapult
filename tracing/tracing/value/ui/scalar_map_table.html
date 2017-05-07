@@ -39,7 +39,7 @@ Polymer({
       },
       {
         value(row) {
-          let span = tr.v.ui.createScalarSpan(row.value);
+          const span = tr.v.ui.createScalarSpan(row.value);
           if (row.significance !== undefined) {
             span.significance = row.significance;
           } else if (row.anyRowsHaveSignificance) {
@@ -75,8 +75,8 @@ Polymer({
   },
 
   updateContents_() {
-    let rows = [];
-    for (let [key, scalar] of this.scalarMap) {
+    const rows = [];
+    for (const [key, scalar] of this.scalarMap) {
       rows.push({
         name: key,
         value: scalar,

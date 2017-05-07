@@ -14,9 +14,9 @@ found in the LICENSE file.
 /* eslint-disable no-console */
 
 if (tr.isHeadless) {
-  let histograms = new tr.v.HistogramSet();
+  const histograms = new tr.v.HistogramSet();
   histograms.importDicts(JSON.parse(tr.b.getSync('file://' + sys.argv[1])));
-  let csv = new tr.v.CSVBuilder(histograms);
+  const csv = new tr.v.CSVBuilder(histograms);
   csv.build();
   console.log(csv.toString());
 }

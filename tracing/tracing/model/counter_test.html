@@ -15,14 +15,14 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var Counter = tr.model.Counter;
-  var CounterSeries = tr.model.CounterSeries;
-  var CounterSample = tr.model.CounterSample;
+  const Counter = tr.model.Counter;
+  const CounterSeries = tr.model.CounterSeries;
+  const CounterSample = tr.model.CounterSample;
 
-  var createCounterWithTwoSeries = function() {
-    var ctr = new Counter(null, 0, '', 'myCounter');
-    var aSeries = new CounterSeries('a', 0);
-    var bSeries = new CounterSeries('b', 0);
+  const createCounterWithTwoSeries = function() {
+    const ctr = new Counter(null, 0, '', 'myCounter');
+    const aSeries = new CounterSeries('a', 0);
+    const bSeries = new CounterSeries('b', 0);
     ctr.addSeries(aSeries);
     ctr.addSeries(bSeries);
 
@@ -40,8 +40,8 @@ tr.b.unittest.testSuite(function() {
   };
 
   test('getSampleStatisticsWithSingleSelection', function() {
-    var ctr = createCounterWithTwoSeries();
-    var ret = ctr.getSampleStatistics([0]);
+    const ctr = createCounterWithTwoSeries();
+    const ret = ctr.getSampleStatistics([0]);
 
     assert.strictEqual(ret[0].min, 5);
     assert.strictEqual(ret[0].max, 5);
@@ -57,8 +57,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('getSampleStatisticsWithMultipleSelections', function() {
-    var ctr = createCounterWithTwoSeries();
-    var ret = ctr.getSampleStatistics([0, 1]);
+    const ctr = createCounterWithTwoSeries();
+    const ret = ctr.getSampleStatistics([0, 1]);
 
     assert.strictEqual(ret[0].min, 5);
     assert.strictEqual(ret[0].max, 6);
@@ -74,8 +74,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('getSampleStatisticsWithOutofOrderIndices', function() {
-    var ctr = createCounterWithTwoSeries();
-    var ret = ctr.getSampleStatistics([1, 0]);
+    const ctr = createCounterWithTwoSeries();
+    const ret = ctr.getSampleStatistics([1, 0]);
 
     assert.strictEqual(ret[0].min, 5);
     assert.strictEqual(ret[0].max, 6);
@@ -91,8 +91,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('getSampleStatisticsWithAllSelections', function() {
-    var ctr = createCounterWithTwoSeries();
-    var ret = ctr.getSampleStatistics([1, 0, 2, 3]);
+    const ctr = createCounterWithTwoSeries();
+    const ret = ctr.getSampleStatistics([1, 0, 2, 3]);
 
     assert.strictEqual(ret[0].min, 5);
     assert.strictEqual(ret[0].max, 7);
@@ -108,12 +108,12 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('testCounterSortRemainInOrder', function() {
-    var model = new tr.Model();
-    var process = new tr.model.Process(model, 4);
-    var ctr1 = new Counter(process, 0, '', 'a');
-    var ctr2 = new Counter(process, 0, '', 'b');
+    const model = new tr.Model();
+    const process = new tr.model.Process(model, 4);
+    const ctr1 = new Counter(process, 0, '', 'a');
+    const ctr2 = new Counter(process, 0, '', 'b');
 
-    var array = [ctr1, ctr2];
+    const array = [ctr1, ctr2];
     array.sort(tr.model.Counter.compare);
 
     assert.strictEqual(array[0], ctr1);

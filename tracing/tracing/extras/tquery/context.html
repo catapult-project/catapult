@@ -18,14 +18,14 @@ tr.exportTo('tr.e.tquery', function() {
 
   Context.prototype = {
     push(event) {
-      var ctx = new Context();
+      const ctx = new Context();
       ctx.ancestors = this.ancestors.slice();
       ctx.ancestors.push(event);
       return ctx;
     },
 
     pop(event) {
-      var ctx = new Context();
+      const ctx = new Context();
       ctx.event = this.ancestors[this.ancestors.length - 1];
       ctx.ancestors = this.ancestors.slice(0, this.ancestors.length - 1);
       return ctx;

@@ -15,13 +15,13 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var Base64 = tr.b.Base64;
-  var findSliceNamed = tr.c.TestUtils.findSliceNamed;
-  var ORIGINAL_DATA =
+  const Base64 = tr.b.Base64;
+  const findSliceNamed = tr.c.TestUtils.findSliceNamed;
+  const ORIGINAL_DATA =
       '[{"name":"a","args":{},"pid":52,"ts":520,"cat":"foo","tid":53,' +
       '"ph":"B"},{"name":"a","args":{},"pid":52,"ts":520,"cat":"foo",' +
       '"tid":53,"ph":"E"}]\n';
-  var GZIP_DATA_BASE_64 =
+  const GZIP_DATA_BASE_64 =
       'H4sICHr4HVIAA3RyYWNlAIuuVspLzE1VslJKVNJRSixKL1ayqq7VUSrITFGy' +
       'MjXSUSopBtEGOkrJiSVAVWn5+UB1JWBZY6CyDKCYk1KtDhWMcVWqjeUCALak' +
       'EH+QAAAA';
@@ -33,8 +33,8 @@ tr.b.unittest.testSuite(function() {
 
   test('inflateString', function() {
     // Test inflating the data from a string.
-    var gzipData = Base64.atob(GZIP_DATA_BASE_64);
-    var importer = new tr.e.importer.GzipImporter(null, gzipData);
+    const gzipData = Base64.atob(GZIP_DATA_BASE_64);
+    const importer = new tr.e.importer.GzipImporter(null, gzipData);
     assert.isTrue(tr.e.importer.GzipImporter.canImport(gzipData));
     assert.strictEqual(
         importer.extractSubtraces()[0].toString(), ORIGINAL_DATA);
@@ -42,27 +42,27 @@ tr.b.unittest.testSuite(function() {
 
   test('inflateArrayBuffer', function() {
     // Test inflating the data from an ArrayBuffer.
-    var gzipData = Base64.atob(GZIP_DATA_BASE_64);
-    var buffer = new ArrayBuffer(gzipData.length);
-    var view = new Uint8Array(buffer);
-    for (var i = 0; i < gzipData.length; i++) {
+    const gzipData = Base64.atob(GZIP_DATA_BASE_64);
+    const buffer = new ArrayBuffer(gzipData.length);
+    const view = new Uint8Array(buffer);
+    for (let i = 0; i < gzipData.length; i++) {
       view[i] = gzipData.charCodeAt(i);
     }
-    var importer = new tr.e.importer.GzipImporter(null, buffer);
+    const importer = new tr.e.importer.GzipImporter(null, buffer);
     assert.isTrue(tr.e.importer.GzipImporter.canImport(buffer));
     assert.strictEqual(
         importer.extractSubtraces()[0].toString(), ORIGINAL_DATA);
   });
 
   test('import', function() {
-    var gzipData = Base64.atob(GZIP_DATA_BASE_64);
+    const gzipData = Base64.atob(GZIP_DATA_BASE_64);
     assert.isTrue(tr.e.importer.GzipImporter.canImport(gzipData));
 
-    var model = tr.c.TestUtils.newModelWithEvents(gzipData);
-    var threads = model.getAllThreads();
+    const model = tr.c.TestUtils.newModelWithEvents(gzipData);
+    const threads = model.getAllThreads();
     assert.strictEqual(threads.length, 1);
 
-    var slice = findSliceNamed(threads[0].sliceGroup, 'a');
+    const slice = findSliceNamed(threads[0].sliceGroup, 'a');
     assert.strictEqual(slice.category, 'foo');
   });
 
@@ -73,8 +73,8 @@ tr.b.unittest.testSuite(function() {
     }
 
     function createArrayBuffer(values) {
-      var buffer = new ArrayBuffer(values.length);
-      var view = new Uint8Array(buffer);
+      const buffer = new ArrayBuffer(values.length);
+      const view = new Uint8Array(buffer);
       view.set(values);
       return buffer;
     }
@@ -93,7 +93,7 @@ tr.b.unittest.testSuite(function() {
     }
 
     // The browser supports TextDecoder, so we now check the jszip fallback.
-    var oldTextDecoder = TextDecoder;
+    const oldTextDecoder = TextDecoder;
     TextDecoder = undefined;
     try {
       checkTransform('abc012', 'abc012');

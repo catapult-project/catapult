@@ -16,8 +16,8 @@ found in the LICENSE file.
  * userland.
  */
 tr.exportTo('tr.e.importer.linux_perf', function() {
-  var ColorScheme = tr.b.ColorScheme;
-  var Parser = tr.e.importer.linux_perf.Parser;
+  const ColorScheme = tr.b.ColorScheme;
+  const Parser = tr.e.importer.linux_perf.Parser;
 
   /**
    * Parses linux trace mark events that were inserted in the trace by userland.
@@ -36,11 +36,11 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
   }
 
   function parseArgs(argsString) {
-    var args = {};
+    const args = {};
     if (argsString) {
-      var argsArray = argsString.split(';');
-      for (var i = 0; i < argsArray.length; ++i) {
-        var parts = argsArray[i].split('=');
+      const argsArray = argsString.split(';');
+      for (let i = 0; i < argsArray.length; ++i) {
+        const parts = argsArray[i].split('=');
         if (parts[0]) {
           args[parts.shift()] = parts.join('=');
         }
@@ -53,13 +53,13 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     __proto__: Parser.prototype,
 
     openAsyncSlice(thread, category, name, cookie, ts, args) {
-      var asyncSliceConstructor =
+      const asyncSliceConstructor =
          tr.model.AsyncSlice.subTypes.getConstructor(
              category, name);
-      var slice = new asyncSliceConstructor(
+      const slice = new asyncSliceConstructor(
           category, name,
           ColorScheme.getColorIdForGeneralPurposeString(name), ts, args);
-      var key = category + ':' + name + ':' + cookie;
+      const key = category + ':' + name + ':' + cookie;
       slice.id = cookie;
       slice.startThread = thread;
 
@@ -75,14 +75,14 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
         return;
       }
 
-      var key = category + ':' + name + ':' + cookie;
-      var slice = this.openAsyncSlices[key];
+      const key = category + ':' + name + ':' + cookie;
+      const slice = this.openAsyncSlices[key];
       if (!slice) {
         // No async slices w/ this key have been started.
         return;
       }
 
-      for (var arg in args) {
+      for (const arg in args) {
         if (slice.args[arg] !== undefined) {
           this.model_.importWarning({
             type: 'parse_error',
@@ -102,18 +102,16 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
     traceMarkWriteAndroidEvent(eventName, cpuNumber, pid, ts,
         eventBase) {
-      var eventData = eventBase.details.split('|');
+      const eventData = eventBase.details.split('|');
       switch (eventData[0]) {
-        case 'B':
-          var ppid = parseInt(eventData[1]);
-          var title = eventData[2];
-          var args = parseArgs(eventData[3]);
-          var category = eventData[4];
-          if (category === undefined) {
-            category = 'android';
-          }
+        case 'B': {
+          const ppid = parseInt(eventData[1]);
+          const title = eventData[2];
+          const args = parseArgs(eventData[3]);
+          let category = eventData[4];
+          if (category === undefined) category = 'android';
 
-          var thread = this.model_.getOrCreateProcess(ppid)
+          const thread = this.model_.getOrCreateProcess(ppid)
               .getOrCreateThread(pid);
           thread.name = eventBase.threadName;
           if (!thread.sliceGroup.isTimestampValidForBeginOrEnd(ts)) {
@@ -128,25 +126,26 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
           thread.sliceGroup.beginSlice(category, title, ts, args);
 
           break;
+        }
 
-        case 'E':
-          var ppid = this.ppids_[pid];
+        case 'E': {
+          const ppid = this.ppids_[pid];
           if (ppid === undefined) {
             // Silently ignore unmatched E events.
             break;
           }
 
-          var thread = this.model_.getOrCreateProcess(ppid)
+          const thread = this.model_.getOrCreateProcess(ppid)
               .getOrCreateThread(pid);
           if (!thread.sliceGroup.openSliceCount) {
             // Silently ignore unmatched E events.
             break;
           }
 
-          var slice = thread.sliceGroup.endSlice(ts);
+          const slice = thread.sliceGroup.endSlice(ts);
 
-          var args = parseArgs(eventData[3]);
-          for (var arg in args) {
+          const args = parseArgs(eventData[3]);
+          for (const arg in args) {
             if (slice.args[arg] !== undefined) {
               this.model_.importWarning({
                 type: 'parse_error',
@@ -159,15 +158,16 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
           }
 
           break;
+        }
 
-        case 'C':
-          var ppid = parseInt(eventData[1]);
-          var name = eventData[2];
-          var value = parseInt(eventData[3]);
-          var category = eventData[4];
+        case 'C': {
+          const ppid = parseInt(eventData[1]);
+          const name = eventData[2];
+          const value = parseInt(eventData[3]);
+          let category = eventData[4];
           if (category === undefined) category = 'android';
 
-          var ctr = this.model_.getOrCreateProcess(ppid)
+          const ctr = this.model_.getOrCreateProcess(ppid)
               .getOrCreateCounter(category, name);
           // Initialize the counter's series fields if needed.
           if (ctr.numSeries === 0) {
@@ -181,17 +181,17 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
           });
 
           break;
+        }
 
-        case 'S':
-          var ppid = parseInt(eventData[1]);
-          var name = eventData[2];
-          var cookie = parseInt(eventData[3]);
-          var args = parseArgs(eventData[4]);
-          var category = eventData[5];
+        case 'S': {
+          const ppid = parseInt(eventData[1]);
+          const name = eventData[2];
+          const cookie = parseInt(eventData[3]);
+          const args = parseArgs(eventData[4]);
+          let category = eventData[5];
           if (category === undefined) category = 'android';
 
-
-          var thread = this.model_.getOrCreateProcess(ppid)
+          const thread = this.model_.getOrCreateProcess(ppid)
             .getOrCreateThread(pid);
           thread.name = eventBase.threadName;
 
@@ -199,19 +199,20 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
           this.openAsyncSlice(thread, category, name, cookie, ts, args);
 
           break;
+        }
 
-        case 'F':
+        case 'F': {
           // Note: An async slice may end on a different thread from the one
           // that started it so this thread may not have been seen yet.
-          var ppid = parseInt(eventData[1]);
+          const ppid = parseInt(eventData[1]);
 
-          var name = eventData[2];
-          var cookie = parseInt(eventData[3]);
-          var args = parseArgs(eventData[4]);
-          var category = eventData[5];
+          const name = eventData[2];
+          const cookie = parseInt(eventData[3]);
+          const args = parseArgs(eventData[4]);
+          let category = eventData[5];
           if (category === undefined) category = 'android';
 
-          var thread = this.model_.getOrCreateProcess(ppid)
+          const thread = this.model_.getOrCreateProcess(ppid)
             .getOrCreateThread(pid);
           thread.name = eventBase.threadName;
 
@@ -219,6 +220,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
           this.closeAsyncSlice(thread, category, name, cookie, ts, args);
 
           break;
+        }
 
         default:
           return false;

@@ -38,7 +38,7 @@ Polymer({
   is: 'tr-ui-b-color-legend',
 
   ready() {
-    var blackSquareCharCode = 9632;
+    const blackSquareCharCode = 9632;
     this.$.square.innerText = String.fromCharCode(blackSquareCharCode);
     this.label_ = undefined;
 
@@ -61,7 +61,7 @@ Polymer({
       return;
     }
 
-    var colorId = tr.b.ColorScheme.getColorIdForGeneralPurposeString(
+    const colorId = tr.b.ColorScheme.getColorIdForGeneralPurposeString(
         label);
     this.setLabelAndColorId(label, colorId);
   },

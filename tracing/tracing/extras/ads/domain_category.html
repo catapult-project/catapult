@@ -16,18 +16,18 @@ tr.exportTo('tr.e.ads', function() {
     this.category = category;
   }
 
-  var CATEGORY_ADS = 'Ads';
-  var CATEGORY_ANALYTICS = 'Analytics';
-  var CATEGORY_CONTENT_RECOMMENDATION = 'Content Recommendation';
-  var CATEGORY_EXTENSIONS = 'Extensions';
-  var CATEGORY_OTHER = 'Other';
-  var CATEGORY_SOCIAL = 'Social';
-  var CATEGORY_TRACING = 'Tracing';
+  const CATEGORY_ADS = 'Ads';
+  const CATEGORY_ANALYTICS = 'Analytics';
+  const CATEGORY_CONTENT_RECOMMENDATION = 'Content Recommendation';
+  const CATEGORY_EXTENSIONS = 'Extensions';
+  const CATEGORY_OTHER = 'Other';
+  const CATEGORY_SOCIAL = 'Social';
+  const CATEGORY_TRACING = 'Tracing';
 
   // Each rule is a tuple of (RegEx, Category). The first match will be used.
   // For now we only assign 1 category to a domain; it may make sense to
   // generalize this later to labeling domains with several categories.
-  var CATEGORY_DOMAIN_RULES = [
+  const CATEGORY_DOMAIN_RULES = [
     new Rule(/\.googleadservices\.com$/, CATEGORY_ADS),
     new Rule(/\.moatads\.com$/, CATEGORY_ANALYTICS),
     // Yahoo-Bing Contextual Ads
@@ -72,7 +72,7 @@ tr.exportTo('tr.e.ads', function() {
   }
 
   DomainCategory.fromDomain = function(domain) {
-    for (var i = 0; i < CATEGORY_DOMAIN_RULES.length; i++) {
+    for (let i = 0; i < CATEGORY_DOMAIN_RULES.length; i++) {
       if (CATEGORY_DOMAIN_RULES[i].expr.test(domain)) {
         return CATEGORY_DOMAIN_RULES[i].category;
       }

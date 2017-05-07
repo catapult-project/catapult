@@ -14,7 +14,7 @@ found in the LICENSE file.
  * @fileoverview Provides the SelectableItem class.
  */
 tr.exportTo('tr.model', function() {
-  var SelectionState = tr.model.SelectionState;
+  const SelectionState = tr.model.SelectionState;
 
   /**
    * A SelectableItem is the abstract base class for any non-container data that
@@ -38,13 +38,13 @@ tr.exportTo('tr.model', function() {
     },
 
     addToSelection(selection) {
-      var modelItem = this.modelItem_;
+      const modelItem = this.modelItem_;
       if (!modelItem) return;
       selection.push(modelItem);
     },
 
     addToTrackMap(eventToTrackMap, track) {
-      var modelItem = this.modelItem_;
+      const modelItem = this.modelItem_;
       if (!modelItem) return;
       eventToTrackMap.addEvent(modelItem, track);
     }

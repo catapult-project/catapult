@@ -15,17 +15,17 @@ found in the LICENSE file.
  * @fileoverview Provides color scheme related functions.
  */
 tr.exportTo('tr.ui.b', function() {
-  var ColorScheme = tr.b.ColorScheme;
+  const ColorScheme = tr.b.ColorScheme;
 
-  var colors = ColorScheme.colors;
-  var colorsAsStrings = ColorScheme.colorsAsStrings;
+  const colors = ColorScheme.colors;
+  const colorsAsStrings = ColorScheme.colorsAsStrings;
 
-  var SelectionState = tr.model.SelectionState;
+  const SelectionState = tr.model.SelectionState;
 
   /**
    * Provides methods to get view values for events.
    */
-  var EventPresenter = {
+  const EventPresenter = {
     getSelectableItemColorAsString(item) {
       const offset = this.getColorIdOffset_(item);
       const colorId = ColorScheme.getVariantColorId(item.colorId, offset);
@@ -49,7 +49,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     getSliceAlpha(slice, async) {
-      var alpha = 1;
+      let alpha = 1;
       if (async) {
         alpha *= 0.3;
       }

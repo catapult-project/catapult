@@ -14,18 +14,18 @@ found in the LICENSE file.
  * @fileoverview Class for representing SurfaceFlinger process and its Vsyncs.
  */
 tr.exportTo('tr.model.helpers', function() {
-  var findLowIndexInSortedArray = tr.b.math.findLowIndexInSortedArray;
+  const findLowIndexInSortedArray = tr.b.math.findLowIndexInSortedArray;
 
-  var VSYNC_SF_NAME = 'android.VSYNC-sf';
-  var VSYNC_APP_NAME = 'android.VSYNC-app';
-  var VSYNC_FALLBACK_NAME = 'android.VSYNC';
+  const VSYNC_SF_NAME = 'android.VSYNC-sf';
+  const VSYNC_APP_NAME = 'android.VSYNC-app';
+  const VSYNC_FALLBACK_NAME = 'android.VSYNC';
 
   // when sampling vsync, push samples back by this much to ensure
   // frame start samples *between* vsyncs
-  var TIMESTAMP_FUDGE_MS = 0.01;
+  const TIMESTAMP_FUDGE_MS = 0.01;
 
   function getVsyncTimestamps(process, counterName) {
-    var vsync = process.counters[counterName];
+    let vsync = process.counters[counterName];
     if (!vsync) {
       vsync = process.counters[VSYNC_FALLBACK_NAME];
     }
@@ -57,7 +57,7 @@ tr.exportTo('tr.model.helpers', function() {
   }
 
   AndroidSurfaceFlinger.createForProcessIfPossible = function(process) {
-    var mainThread = process.getThread(process.pid);
+    const mainThread = process.getThread(process.pid);
 
     // newer versions - main thread, lowercase name, preceeding forward slash
     if (mainThread && mainThread.name &&
@@ -66,7 +66,7 @@ tr.exportTo('tr.model.helpers', function() {
     }
 
     // older versions - another thread is named SurfaceFlinger
-    var primaryThreads = process.findAllThreadsNamed('SurfaceFlinger');
+    const primaryThreads = process.findAllThreadsNamed('SurfaceFlinger');
     if (primaryThreads.length === 1) {
       return new AndroidSurfaceFlinger(process, primaryThreads[0]);
     }
@@ -83,7 +83,7 @@ tr.exportTo('tr.model.helpers', function() {
         throw new Error('cannot query vsync info without vsyncs');
       }
 
-      var firstGreaterIndex =
+      const firstGreaterIndex =
           findLowIndexInSortedArray(this.appVsyncTimestamps_,
               function(x) { return x; },
               timestamp + TIMESTAMP_FUDGE_MS);
@@ -97,7 +97,7 @@ tr.exportTo('tr.model.helpers', function() {
         throw new Error('cannot query vsync info without vsyncs');
       }
 
-      var firstGreaterIndex =
+      const firstGreaterIndex =
           findLowIndexInSortedArray(this.sfVsyncTimestamps_,
               function(x) { return x; },
               timestamp + this.deadlineDelayMs_);

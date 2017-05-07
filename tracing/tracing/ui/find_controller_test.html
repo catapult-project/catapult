@@ -16,7 +16,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var Task = tr.b.Task;
+  const Task = tr.b.Task;
 
   /*
    * Just enough of the BrushingStateController to support the tests below.
@@ -33,8 +33,8 @@ tr.b.unittest.testSuite(function() {
   FakeBrushingStateController.prototype = {
     addAllEventsMatchingFilterToSelectionAsTask(filter, selection) {
       return new Task(function() {
-        var n = this.addAllEventsMatchingFilterToSelectionReturnValue.length;
-        for (var i = 0; i < n; i++) {
+        const n = this.addAllEventsMatchingFilterToSelectionReturnValue.length;
+        for (let i = 0; i < n; i++) {
           selection.push(
               this.addAllEventsMatchingFilterToSelectionReturnValue[i]);
         }
@@ -61,15 +61,15 @@ tr.b.unittest.testSuite(function() {
   };
 
   test('findControllerNoModel', function() {
-    var brushingStateController = new FakeBrushingStateController();
-    var controller = new tr.ui.FindController(brushingStateController);
+    const brushingStateController = new FakeBrushingStateController();
+    const controller = new tr.ui.FindController(brushingStateController);
     controller.findNext();
     controller.findPrevious();
   });
 
   test('findControllerEmptyHit', function() {
-    var brushingStateController = new FakeBrushingStateController();
-    var controller = new tr.ui.FindController(brushingStateController);
+    const brushingStateController = new FakeBrushingStateController();
+    const controller = new tr.ui.FindController(brushingStateController);
 
     brushingStateController.selection = new tr.model.EventSet();
     brushingStateController.findMatches = new tr.model.EventSet();
@@ -82,10 +82,10 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('findControllerOneHit', function() {
-    var brushingStateController = new FakeBrushingStateController();
-    var controller = new tr.ui.FindController(brushingStateController);
+    const brushingStateController = new FakeBrushingStateController();
+    const controller = new tr.ui.FindController(brushingStateController);
 
-    var s1 = {guid: 1};
+    const s1 = {guid: 1};
     brushingStateController.addAllEventsMatchingFilterToSelectionReturnValue = [
       s1
     ];
@@ -122,12 +122,12 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('findControllerMultipleHits', function() {
-    var brushingStateController = new FakeBrushingStateController();
-    var controller = new tr.ui.FindController(brushingStateController);
+    const brushingStateController = new FakeBrushingStateController();
+    const controller = new tr.ui.FindController(brushingStateController);
 
-    var s1 = {guid: 1};
-    var s2 = {guid: 2};
-    var s3 = {guid: 3};
+    const s1 = {guid: 1};
+    const s2 = {guid: 2};
+    const s3 = {guid: 3};
 
     brushingStateController.addAllEventsMatchingFilterToSelectionReturnValue = [
       s1, s2, s3
@@ -180,13 +180,13 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('findControllerChangeFilterAfterNext', function() {
-    var brushingStateController = new FakeBrushingStateController();
-    var controller = new tr.ui.FindController(brushingStateController);
+    const brushingStateController = new FakeBrushingStateController();
+    const controller = new tr.ui.FindController(brushingStateController);
 
-    var s1 = {guid: 1};
-    var s2 = {guid: 2};
-    var s3 = {guid: 3};
-    var s4 = {guid: 4};
+    const s1 = {guid: 1};
+    const s2 = {guid: 2};
+    const s3 = {guid: 3};
+    const s4 = {guid: 4};
 
     brushingStateController.addAllEventsMatchingFilterToSelectionReturnValue = [
       s1, s2, s3
@@ -213,12 +213,12 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('findControllerSelectsAllItemsFirst', function() {
-    var brushingStateController = new FakeBrushingStateController();
-    var controller = new tr.ui.FindController(brushingStateController);
+    const brushingStateController = new FakeBrushingStateController();
+    const controller = new tr.ui.FindController(brushingStateController);
 
-    var s1 = {guid: 1};
-    var s2 = {guid: 2};
-    var s3 = {guid: 3};
+    const s1 = {guid: 1};
+    const s2 = {guid: 2};
+    const s3 = {guid: 3};
     brushingStateController.addAllEventsMatchingFilterToSelectionReturnValue = [
       s1, s2, s3
     ];
@@ -253,18 +253,18 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('findControllerWithRealTimeline', function() {
-    var model = tr.c.TestUtils.newModel(function(model) {
-      var p1 = model.getOrCreateProcess(1);
-      var t1 = p1.getOrCreateThread(1);
+    const model = tr.c.TestUtils.newModel(function(model) {
+      const p1 = model.getOrCreateProcess(1);
+      const t1 = p1.getOrCreateThread(1);
       t1.sliceGroup.pushSlice(new tr.model.ThreadSlice(
           '', 'a', 0, 1, {}, 3));
       model.t1 = t1;
     });
 
-    var container = document.createElement('track-view-container');
+    const container = document.createElement('track-view-container');
     container.id = 'track_view_container';
 
-    var timeline = document.createElement('tr-ui-timeline-view');
+    const timeline = document.createElement('tr-ui-timeline-view');
     Polymer.dom(timeline).appendChild(container);
 
     // This is for testing only, have to make sure things link up right.
@@ -272,8 +272,8 @@ tr.b.unittest.testSuite(function() {
 
     timeline.model = model;
 
-    var brushingStateController = timeline.brushingStateController;
-    var controller = timeline.findCtl_.controller;
+    const brushingStateController = timeline.brushingStateController;
+    const controller = timeline.findCtl_.controller;
 
     // Test find with no filterText.
     controller.findNext();
@@ -313,12 +313,12 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('findControllerNavigation', function() {
-    var brushingStateController = new FakeBrushingStateController();
-    var controller = new tr.ui.FindController(brushingStateController);
+    const brushingStateController = new FakeBrushingStateController();
+    const controller = new tr.ui.FindController(brushingStateController);
 
-    var navToPositionCallCount = 0;
-    var findTextClearedCallCount = 0;
-    var fakeUIState = {};
+    let navToPositionCallCount = 0;
+    let findTextClearedCallCount = 0;
+    const fakeUIState = {};
     brushingStateController.uiStateFromString = function(string) {
       if (string === '') return undefined;
 
@@ -350,9 +350,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('findControllerClearAfterSet', function() {
-    var brushingStateController = new FakeBrushingStateController();
-    var controller = new tr.ui.FindController(brushingStateController);
-    var findTextChangedToCalled = false;
+    const brushingStateController = new FakeBrushingStateController();
+    const controller = new tr.ui.FindController(brushingStateController);
+    let findTextChangedToCalled = false;
     brushingStateController.findTextChangedTo = function(selection) {
       findTextChangedToCalled = true;
     };

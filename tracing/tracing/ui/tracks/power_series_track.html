@@ -22,8 +22,8 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.tracks', function() {
-  var ColorScheme = tr.b.ColorScheme;
-  var ChartTrack = tr.ui.tracks.ChartTrack;
+  const ColorScheme = tr.b.ColorScheme;
+  const ChartTrack = tr.ui.tracks.ChartTrack;
 
   /**
    * A track that displays a PowerSeries.
@@ -31,7 +31,7 @@ tr.exportTo('tr.ui.tracks', function() {
    * @constructor
    * @extends {ChartTrack}
    */
-  var PowerSeriesTrack = tr.ui.b.define('power-series-track', ChartTrack);
+  const PowerSeriesTrack = tr.ui.b.define('power-series-track', ChartTrack);
 
   PowerSeriesTrack.prototype = {
     __proto__: ChartTrack.prototype,
@@ -61,11 +61,11 @@ tr.exportTo('tr.ui.tracks', function() {
     buildChartSeries_() {
       if (!this.hasVisibleContent) return [];
 
-      var seriesYAxis = new tr.ui.tracks.ChartSeriesYAxis(0, undefined);
-      var pts = this.powerSeries_.samples.map(function(smpl) {
+      const seriesYAxis = new tr.ui.tracks.ChartSeriesYAxis(0, undefined);
+      const pts = this.powerSeries_.samples.map(function(smpl) {
         return new tr.ui.tracks.ChartPoint(smpl, smpl.start, smpl.powerInW);
       });
-      var renderingConfig = {
+      const renderingConfig = {
         chartType: tr.ui.tracks.ChartSeriesType.AREA,
         colorId: ColorScheme.getColorIdForGeneralPurposeString(this.heading)
       };

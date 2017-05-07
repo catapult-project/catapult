@@ -17,18 +17,18 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('instantiate_RelatedHistogramBreakdown', function() {
-    let breakdown = new tr.v.d.RelatedHistogramBreakdown();
+    const breakdown = new tr.v.d.RelatedHistogramBreakdown();
 
-    let qux = new tr.v.Histogram('qux', tr.b.Unit.byName.timeDurationInMs);
+    const qux = new tr.v.Histogram('qux', tr.b.Unit.byName.timeDurationInMs);
     qux.addSample(1);
     breakdown.add(qux);
 
     // The title of the analysis-link should match the histogram name, not the
     // breakdown key.
-    let foo = new tr.v.Histogram('foo', tr.b.Unit.byName.timeDurationInMs);
+    const foo = new tr.v.Histogram('foo', tr.b.Unit.byName.timeDurationInMs);
     breakdown.set('f', foo);
 
-    let bar = new tr.v.Histogram('bar', tr.b.Unit.byName.timeDurationInMs);
+    const bar = new tr.v.Histogram('bar', tr.b.Unit.byName.timeDurationInMs);
     breakdown.add(bar);
 
     for (let i = 0; i < 1e2; ++i) {
@@ -36,7 +36,7 @@ tr.b.unittest.testSuite(function() {
       bar.addSample(Math.random());
     }
 
-    let span = tr.v.ui.createDiagnosticSpan(breakdown);
+    const span = tr.v.ui.createDiagnosticSpan(breakdown);
     assert.strictEqual('TR-V-UI-BREAKDOWN-SPAN', span.tagName);
     this.addHTMLOutput(span);
   });
@@ -63,13 +63,13 @@ tr.b.unittest.testSuite(function() {
     // Test round-tripping.
     breakdown = tr.v.d.Diagnostic.fromDict(breakdown.asDict());
 
-    let span = tr.v.ui.createDiagnosticSpan(breakdown);
+    const span = tr.v.ui.createDiagnosticSpan(breakdown);
     assert.strictEqual('TR-V-UI-BREAKDOWN-SPAN', span.tagName);
     this.addHTMLOutput(span);
   });
 
   test('instantiate_BreakdownWithFixedColorScheme', function() {
-    let colorScheme = tr.b.FixedColorScheme.fromNames([
+    const colorScheme = tr.b.FixedColorScheme.fromNames([
       'foo',
       'bar',
     ]);
@@ -85,7 +85,7 @@ tr.b.unittest.testSuite(function() {
     // Test round-tripping.
     breakdown = tr.v.d.Diagnostic.fromDict(breakdown.asDict());
 
-    let span = tr.v.ui.createDiagnosticSpan(breakdown);
+    const span = tr.v.ui.createDiagnosticSpan(breakdown);
     span.updateContents_();
     assert.strictEqual(
         span.chart_.getDataSeries('foo').color, colorScheme.getColor('foo'));
@@ -93,21 +93,21 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('empty', function() {
-    let breakdown = new tr.v.d.Breakdown();
-    let span = tr.v.ui.createDiagnosticSpan(breakdown);
+    const breakdown = new tr.v.d.Breakdown();
+    const span = tr.v.ui.createDiagnosticSpan(breakdown);
     assert.strictEqual('TR-V-UI-BREAKDOWN-SPAN', span.tagName);
     this.addHTMLOutput(span);
   });
 
   test('emptyExceptForWeirdNumbers', function() {
-    let breakdown = new tr.v.d.Breakdown();
+    const breakdown = new tr.v.d.Breakdown();
     breakdown.set('ba---a', NaN);
     breakdown.set('inf', Infinity);
     breakdown.set('-inf', -Infinity);
     breakdown.set('goose egg', 0);
     breakdown.set('<0', -1);
 
-    let span = tr.v.ui.createDiagnosticSpan(breakdown);
+    const span = tr.v.ui.createDiagnosticSpan(breakdown);
     assert.strictEqual('TR-V-UI-BREAKDOWN-SPAN', span.tagName);
     this.addHTMLOutput(span);
   });

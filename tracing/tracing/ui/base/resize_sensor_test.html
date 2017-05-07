@@ -17,10 +17,10 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('instantiate', function() {
-    var sensor = document.createElement('tr-ui-b-resize-sensor');
+    const sensor = document.createElement('tr-ui-b-resize-sensor');
     Polymer.dom(sensor).appendChild(document.createTextNode('hello'));
 
-    var resizeCount = 0;
+    let resizeCount = 0;
     function onResize(event) {
       resizeCount += 1;
     }

@@ -60,7 +60,7 @@ Polymer({
       return;
     }
 
-    let rows = [];
+    const rows = [];
 
     if (this.diagnostic.benchmarkNames.size) {
       rows.push([
@@ -90,9 +90,9 @@ Polymer({
       rows.push(['label', Array.from(this.diagnostic.labels).join(', ')]);
     }
     if (this.diagnostic.storyGroupingKeys.size) {
-      let gov = document.createElement('tr-ui-a-generic-object-view');
-      let obj = {};
-      for (let [key, value] of this.diagnostic.storyGroupingKeys) {
+      const gov = document.createElement('tr-ui-a-generic-object-view');
+      const obj = {};
+      for (const [key, value] of this.diagnostic.storyGroupingKeys) {
         obj[key] = Array.from(value);
       }
       gov.object = obj;

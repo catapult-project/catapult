@@ -15,7 +15,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var ufcFromEvent = tr.e.chrome.ChromeUserFriendlyCategoryDriver.fromEvent;
+  const ufcFromEvent = tr.e.chrome.ChromeUserFriendlyCategoryDriver.fromEvent;
 
   test('userFriendlyCategory', function() {
     assert.strictEqual(ufcFromEvent({

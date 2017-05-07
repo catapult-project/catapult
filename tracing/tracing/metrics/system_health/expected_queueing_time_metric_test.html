@@ -37,9 +37,9 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('expectedQueueingTime', function() {
-    let model = tr.c.TestUtils.newModel((model) => {
-      let rendererProcess = model.getOrCreateProcess(1984);
-      let mainThread = rendererProcess.getOrCreateThread(2);
+    const model = tr.c.TestUtils.newModel((model) => {
+      const rendererProcess = model.getOrCreateProcess(1984);
+      const mainThread = rendererProcess.getOrCreateThread(2);
       mainThread.name = 'CrRendererMain';
       addInteractiveTimestamp(rendererProcess, mainThread, 200);
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
@@ -61,20 +61,20 @@ tr.b.unittest.testSuite(function() {
         duration: 10,
       }));
     });
-    let histograms = new tr.v.HistogramSet();
+    const histograms = new tr.v.HistogramSet();
     tr.metrics.sh.expectedQueueingTimeMetric(histograms, model);
-    let interactiveEQT = histograms.getHistogramNamed(
+    const interactiveEQT = histograms.getHistogramNamed(
         'interactive:500ms_window:renderer_eqt');
     assert.strictEqual(0.1, interactiveEQT.average);
-    let totalEQT = histograms.getHistogramNamed(
+    const totalEQT = histograms.getHistogramNamed(
         'total:500ms_window:renderer_eqt');
     assert.strictEqual(10, totalEQT.average);
   });
 
   test('expectedQueueingTime_noInteractive', function() {
-    let model = tr.c.TestUtils.newModel((model) => {
-      let rendererProcess = model.getOrCreateProcess(1984);
-      let mainThread = rendererProcess.getOrCreateThread(2);
+    const model = tr.c.TestUtils.newModel((model) => {
+      const rendererProcess = model.getOrCreateProcess(1984);
+      const mainThread = rendererProcess.getOrCreateThread(2);
       mainThread.name = 'CrRendererMain';
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'toplevel',
@@ -95,17 +95,17 @@ tr.b.unittest.testSuite(function() {
         duration: 10,
       }));
     });
-    let histograms = new tr.v.HistogramSet();
+    const histograms = new tr.v.HistogramSet();
     tr.metrics.sh.expectedQueueingTimeMetric(histograms, model);
-    let interactiveEQT = histograms.getHistogramNamed(
+    const interactiveEQT = histograms.getHistogramNamed(
         'interactive:500ms_window:renderer_eqt');
     assert.strictEqual(0, interactiveEQT.numValues);
   });
 
   test('expectedQueueingTime_multipleInteractive', function() {
-    let model = tr.c.TestUtils.newModel((model) => {
-      let rendererProcess = model.getOrCreateProcess(1984);
-      let mainThread = rendererProcess.getOrCreateThread(2);
+    const model = tr.c.TestUtils.newModel((model) => {
+      const rendererProcess = model.getOrCreateProcess(1984);
+      const mainThread = rendererProcess.getOrCreateThread(2);
       mainThread.name = 'CrRendererMain';
       addInteractiveTimestamp(rendererProcess, mainThread, 200);
       addInteractiveTimestamp(rendererProcess, mainThread, 400);
@@ -128,9 +128,9 @@ tr.b.unittest.testSuite(function() {
         duration: 10,
       }));
     });
-    let histograms = new tr.v.HistogramSet();
+    const histograms = new tr.v.HistogramSet();
     tr.metrics.sh.expectedQueueingTimeMetric(histograms, model);
-    let interactiveEQT = histograms.getHistogramNamed(
+    const interactiveEQT = histograms.getHistogramNamed(
         'interactive:500ms_window:renderer_eqt');
     // TODO(ulan): Support multiple interactive time windows when
     // https://crbug.com/692112 is fixed.
@@ -138,9 +138,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('expectedQueueingTime_multipleRenderersAggregates', function() {
-    let model = tr.c.TestUtils.newModel(function(model) {
-      let rendererProcess = model.getOrCreateProcess(1984);
-      let mainThread = rendererProcess.getOrCreateThread(2);
+    const model = tr.c.TestUtils.newModel(function(model) {
+      const rendererProcess = model.getOrCreateProcess(1984);
+      const mainThread = rendererProcess.getOrCreateThread(2);
       mainThread.name = 'CrRendererMain';
       addInteractiveTimestamp(rendererProcess, mainThread, 200);
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
@@ -161,8 +161,8 @@ tr.b.unittest.testSuite(function() {
         start: 9000,
         duration: 10,
       }));
-      let rendererProcess2 = model.getOrCreateProcess(1985);
-      let mainThread2 = rendererProcess2.getOrCreateThread(2);
+      const rendererProcess2 = model.getOrCreateProcess(1985);
+      const mainThread2 = rendererProcess2.getOrCreateThread(2);
       mainThread2.name = 'CrRendererMain';
       addInteractiveTimestamp(rendererProcess2, mainThread2, 200);
       mainThread2.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
@@ -172,17 +172,17 @@ tr.b.unittest.testSuite(function() {
         duration: 0,
       }));
     });
-    let histograms = new tr.v.HistogramSet();
+    const histograms = new tr.v.HistogramSet();
     tr.metrics.sh.expectedQueueingTimeMetric(histograms, model);
-    let eqt = histograms.getHistogramNamed(
+    const eqt = histograms.getHistogramNamed(
         'interactive:500ms_window:renderer_eqt');
     assert.strictEqual(0.05, eqt.average);
   });
 
   test('expectedQueueingTime_relatedV8Histograms', function() {
-    let model = tr.c.TestUtils.newModel((model) => {
-      let rendererProcess = model.getOrCreateProcess(1984);
-      let mainThread = rendererProcess.getOrCreateThread(2);
+    const model = tr.c.TestUtils.newModel((model) => {
+      const rendererProcess = model.getOrCreateProcess(1984);
+      const mainThread = rendererProcess.getOrCreateThread(2);
       mainThread.name = 'CrRendererMain';
       addInteractiveTimestamp(rendererProcess, mainThread, 200);
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
@@ -223,18 +223,18 @@ tr.b.unittest.testSuite(function() {
       }));
       mainThread.sliceGroup.createSubSlices();
     });
-    let histograms = new tr.v.HistogramSet();
+    const histograms = new tr.v.HistogramSet();
     tr.metrics.sh.expectedQueueingTimeMetric(histograms, model);
-    let eqt = histograms.getHistogramNamed(
+    const eqt = histograms.getHistogramNamed(
         'interactive:500ms_window:renderer_eqt');
-    let v8eqt = eqt.diagnostics.get('v8').get('v8');
+    const v8eqt = eqt.diagnostics.get('v8').get('v8');
     assert.strictEqual(0.025, v8eqt.average);
   });
 
   test('expectedQueueingTimeCompileUnoptimized', function() {
-    let model = tr.c.TestUtils.newModel((model) => {
-      let rendererProcess = model.getOrCreateProcess(1984);
-      let mainThread = rendererProcess.getOrCreateThread(2);
+    const model = tr.c.TestUtils.newModel((model) => {
+      const rendererProcess = model.getOrCreateProcess(1984);
+      const mainThread = rendererProcess.getOrCreateThread(2);
       mainThread.name = 'CrRendererMain';
       addInteractiveTimestamp(rendererProcess, mainThread, 200);
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
@@ -309,15 +309,15 @@ tr.b.unittest.testSuite(function() {
   test('contributionToExpectedQueueingTime', function() {
     function filterFunction_(slice) {
       let duration = 0;
-      for (let sub of slice.findTopmostSlicesRelativeToThisSlice(
+      for (const sub of slice.findTopmostSlicesRelativeToThisSlice(
           event => event.title === 'V8.GCFinalizeMC')) {
         duration += sub.duration;
       }
       return {start: slice.start, end: slice.start + duration};
     }
-    let model = tr.c.TestUtils.newModel((model) => {
-      let rendererProcess = model.getOrCreateProcess(1984);
-      let mainThread = rendererProcess.getOrCreateThread(2);
+    const model = tr.c.TestUtils.newModel((model) => {
+      const rendererProcess = model.getOrCreateProcess(1984);
+      const mainThread = rendererProcess.getOrCreateThread(2);
       mainThread.name = 'CrRendererMain';
       addInteractiveTimestamp(rendererProcess, mainThread, 200);
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
@@ -358,15 +358,15 @@ tr.b.unittest.testSuite(function() {
       }));
       mainThread.sliceGroup.createSubSlices();
     });
-    let histograms = new tr.v.HistogramSet();
+    const histograms = new tr.v.HistogramSet();
     const rendererToInteractiveTimestamps =
         tr.e.chrome.getInteractiveTimestamps(model);
-    let contribution = tr.metrics.sh.contributionToExpectedQueueingTime(
+    const contribution = tr.metrics.sh.contributionToExpectedQueueingTime(
         filterFunction_, 'v8:gc', rendererToInteractiveTimestamps, histograms,
         model);
-    let interactiveEQT = contribution.interactive;
+    const interactiveEQT = contribution.interactive;
     assert.strictEqual(0.025, interactiveEQT.average);
-    let totalEQT = contribution.total;
+    const totalEQT = contribution.total;
     assert.strictEqual(2.5, totalEQT.average);
   });
 });

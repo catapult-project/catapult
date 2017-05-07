@@ -17,9 +17,9 @@ found in the LICENSE file.
 tr.exportTo('tr.metrics.v8', function() {
   // The time window size for mutator utilization computation.
   // It is equal to the duration of one frame corresponding to 60 FPS rendering.
-  var TARGET_FPS = 60;
-  var MS_PER_SECOND = 1000;
-  var WINDOW_SIZE_MS = MS_PER_SECOND / TARGET_FPS;
+  const TARGET_FPS = 60;
+  const MS_PER_SECOND = 1000;
+  const WINDOW_SIZE_MS = MS_PER_SECOND / TARGET_FPS;
 
   function gcMetric(histograms, model) {
     addDurationOfTopEvents(histograms, model);
@@ -31,20 +31,20 @@ tr.exportTo('tr.metrics.v8', function() {
 
   tr.metrics.MetricRegistry.register(gcMetric);
 
-  var timeDurationInMs_smallerIsBetter =
+  const timeDurationInMs_smallerIsBetter =
       tr.b.Unit.byName.timeDurationInMs_smallerIsBetter;
-  var percentage_biggerIsBetter =
+  const percentage_biggerIsBetter =
       tr.b.Unit.byName.normalizedPercentage_biggerIsBetter;
-  var percentage_smallerIsBetter =
+  const percentage_smallerIsBetter =
       tr.b.Unit.byName.normalizedPercentage_smallerIsBetter;
 
   // 0.1 steps from 0 to 20 since it is the most common range.
   // Exponentially increasing steps from 20 to 200.
-  var CUSTOM_BOUNDARIES = tr.v.HistogramBinBoundaries.createLinear(0, 20, 200)
+  const CUSTOM_BOUNDARIES = tr.v.HistogramBinBoundaries.createLinear(0, 20, 200)
     .addExponentialBins(200, 100);
 
   function createNumericForTopEventTime(name) {
-    var n = new tr.v.Histogram(name,
+    const n = new tr.v.Histogram(name,
         timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
     n.customizeSummaryOptions({
       avg: true,
@@ -58,7 +58,7 @@ tr.exportTo('tr.metrics.v8', function() {
   }
 
   function createNumericForSubEventTime(name) {
-    var n = new tr.v.Histogram(name,
+    const n = new tr.v.Histogram(name,
         timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
     n.customizeSummaryOptions({
       avg: true,
@@ -73,7 +73,7 @@ tr.exportTo('tr.metrics.v8', function() {
   }
 
   function createNumericForIdleTime(name) {
-    var n = new tr.v.Histogram(name,
+    const n = new tr.v.Histogram(name,
         timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
     n.customizeSummaryOptions({
       avg: true,
@@ -88,7 +88,7 @@ tr.exportTo('tr.metrics.v8', function() {
   }
 
   function createPercentage(name, numerator, denominator, unit) {
-    var hist = new tr.v.Histogram(name, unit);
+    const hist = new tr.v.Histogram(name, unit);
     if (denominator === 0) {
       hist.addSample(0);
     } else {
@@ -129,7 +129,7 @@ tr.exportTo('tr.metrics.v8', function() {
         isNotForcedTopGarbageCollectionEvent,
         tr.metrics.v8.utils.topGarbageCollectionEventName,
         function(name, events) {
-          var cpuDuration = createNumericForTopEventTime(name);
+          const cpuDuration = createNumericForTopEventTime(name);
           events.forEach(function(event) {
             cpuDuration.addSample(event.cpuDuration);
           });
@@ -147,7 +147,7 @@ tr.exportTo('tr.metrics.v8', function() {
         isNotForcedTopGarbageCollectionEvent,
         event => 'v8-gc-total',
         function(name, events) {
-          var cpuDuration = createNumericForTopEventTime(name);
+          const cpuDuration = createNumericForTopEventTime(name);
           events.forEach(function(event) {
             cpuDuration.addSample(event.cpuDuration);
           });
@@ -165,7 +165,7 @@ tr.exportTo('tr.metrics.v8', function() {
         isNotForcedSubGarbageCollectionEvent,
         tr.metrics.v8.utils.subGarbageCollectionEventName,
         function(name, events) {
-          var cpuDuration = createNumericForSubEventTime(name);
+          const cpuDuration = createNumericForSubEventTime(name);
           events.forEach(function(event) {
             cpuDuration.addSample(event.cpuDuration);
           });
@@ -203,17 +203,17 @@ tr.exportTo('tr.metrics.v8', function() {
   }
 
   function addPercentageInV8Execute(histograms, model, name, events) {
-    var cpuDurationInV8Execute = 0;
-    var cpuDurationTotal = 0;
+    let cpuDurationInV8Execute = 0;
+    let cpuDurationTotal = 0;
     events.forEach(function(event) {
-      var v8Execute = tr.metrics.v8.utils.findParent(
+      const v8Execute = tr.metrics.v8.utils.findParent(
           event, tr.metrics.v8.utils.isV8ExecuteEvent);
       if (v8Execute) {
         cpuDurationInV8Execute += event.cpuDuration;
       }
       cpuDurationTotal += event.cpuDuration;
     });
-    var percentage = createPercentage(
+    const percentage = createPercentage(
         name + '_percentage_in_v8_execute', cpuDurationInV8Execute,
         cpuDurationTotal, percentage_smallerIsBetter);
     histograms.addHistogram(percentage);

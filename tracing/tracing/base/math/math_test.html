@@ -29,7 +29,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('interpolatePiecewiseFunction', function() {
-    var points = [[0, 0], [0.1, 0.5], [1, 1]];
+    const points = [[0, 0], [0.1, 0.5], [1, 1]];
     assert.strictEqual(0, vec2.interpolatePiecewiseFunction(points, -1));
     assert.strictEqual(0, vec2.interpolatePiecewiseFunction(points, 0));
     assert.strictEqual(0.25, vec2.interpolatePiecewiseFunction(points, 0.05));

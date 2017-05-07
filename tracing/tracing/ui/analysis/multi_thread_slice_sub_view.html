@@ -51,10 +51,10 @@ Polymer({
     // on frame viewer.
     if (tr.isExported('tr.ui.e.chrome.cc.RasterTaskSelection')) {
       if (tr.ui.e.chrome.cc.RasterTaskSelection.supports(selection)) {
-        var ltvSelection = new tr.ui.e.chrome.cc.RasterTaskSelection(
+        const ltvSelection = new tr.ui.e.chrome.cc.RasterTaskSelection(
             selection);
 
-        var ltv = new tr.ui.e.chrome.cc.LayerTreeHostImplSnapshotView();
+        const ltv = new tr.ui.e.chrome.cc.LayerTreeHostImplSnapshotView();
         ltv.objectSnapshot = ltvSelection.containingSnapshot;
         ltv.selection = ltvSelection;
         ltv.extraHighlightsByLayerId = ltvSelection.extraHighlightsByLayerId;
@@ -69,11 +69,11 @@ Polymer({
 
     Polymer.dom(this.$.content).textContent = '';
 
-    var mesv = document.createElement('tr-ui-a-multi-event-sub-view');
+    const mesv = document.createElement('tr-ui-a-multi-event-sub-view');
     mesv.selection = selection;
     Polymer.dom(this.$.content).appendChild(mesv);
 
-    var relatedEvents = document.createElement('tr-ui-a-related-events');
+    const relatedEvents = document.createElement('tr-ui-a-related-events');
     relatedEvents.setRelatedEvents(selection);
 
     if (relatedEvents.hasRelatedEvents()) {
@@ -83,7 +83,7 @@ Polymer({
 
   get requiresTallView() {
     if (this.$.content.children.length === 0) return false;
-    var childTagName = this.$.content.children[0].tagName;
+    const childTagName = this.$.content.children[0].tagName;
     if (childTagName === 'TR-UI-A-MULTI-EVENT-SUB-VIEW') {
       return false;
     }

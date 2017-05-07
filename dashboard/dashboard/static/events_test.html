@@ -14,7 +14,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   function makeHandler() {
-    var handler = function() {
+    const handler = function() {
       handler.wasCalled = true;
     };
     handler.wasCalled = false;
@@ -22,14 +22,14 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('we can add event listeners as normal', function() {
-    var handler = makeHandler();
+    const handler = makeHandler();
     events.addEventListener(window, 'my-event-name', handler);
     window.dispatchEvent(new CustomEvent('my-event-name'));
     assert.isTrue(handler.wasCalled);
   });
 
   test('we can remove event listeners as normal', function() {
-    var handler = makeHandler();
+    const handler = makeHandler();
     events.addEventListener(window, 'my-event-name2', handler);
     events.removeEventListener(window, 'my-event-name2', handler);
     window.dispatchEvent(new CustomEvent('my-event-name2'));
@@ -37,7 +37,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('siloed listeners can hear events sent from the silo', function() {
-    var handler = makeHandler();
+    const handler = makeHandler();
     events.startSiloingListeners();
     events.addEventListener(window, 'my-event-name3', handler);
     window.dispatchEvent(new CustomEvent('my-event-name3'));
@@ -46,7 +46,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('siloed listeners can\t hear events sent after the silo', function() {
-    var handler = makeHandler();
+    const handler = makeHandler();
     events.startSiloingListeners();
     events.addEventListener(window, 'my-event-name4', handler);
     events.stopSiloingListeners();
@@ -55,7 +55,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('unsiloed listeners are hear events sent from the silo', function() {
-    var handler = makeHandler();
+    const handler = makeHandler();
     events.addEventListener(window, 'my-event-name5', handler);
     events.startSiloingListeners();
     window.dispatchEvent(new CustomEvent('my-event-name5'));
@@ -64,7 +64,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('unsiloed listeners hear events sent after the silo', function() {
-    var handler = makeHandler();
+    const handler = makeHandler();
     events.addEventListener(window, 'my-event-name6', handler);
     events.startSiloingListeners();
     events.stopSiloingListeners();

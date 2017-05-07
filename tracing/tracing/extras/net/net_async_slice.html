@@ -10,7 +10,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.e.net', function() {
-  var AsyncSlice = tr.model.AsyncSlice;
+  const AsyncSlice = tr.model.AsyncSlice;
 
   function NetAsyncSlice() {
     AsyncSlice.apply(this, arguments);
@@ -61,7 +61,7 @@ tr.exportTo('tr.e.net', function() {
           this.args.params.url !== undefined) {
         this.url_ = this.args.params.url;
       } else if (this.subSlices !== undefined && this.subSlices.length > 0) {
-        for (var i = 0; i < this.subSlices.length && ! this.url_; i++) {
+        for (let i = 0; i < this.subSlices.length && ! this.url_; i++) {
           if (this.subSlices[i].url !== undefined) {
             this.url_ = this.subSlices[i].url;
           }
@@ -83,7 +83,7 @@ tr.exportTo('tr.e.net', function() {
            this.args.params.byte_count !== undefined) {
         this.byteCount_ = this.args.params.byte_count;
       }
-      for (var i = 0; i < this.subSlices.length; i++) {
+      for (let i = 0; i < this.subSlices.length; i++) {
         this.byteCount_ += this.subSlices[i].byteCount;
       }
       return this.byteCount_;

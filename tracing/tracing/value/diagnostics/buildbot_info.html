@@ -28,7 +28,7 @@ tr.exportTo('tr.v.d', function() {
     }
 
     clone() {
-      let clone = new tr.v.d.MergedBuildbotInfo();
+      const clone = new tr.v.d.MergedBuildbotInfo();
       clone.addDiagnostic(this);
       return clone;
     }
@@ -85,7 +85,7 @@ tr.exportTo('tr.v.d', function() {
      * @return {*}
      */
     static getField(hist, fieldName, defaultValue) {
-      let buildbot = BuildbotInfo.getFromHistogram(hist);
+      const buildbot = BuildbotInfo.getFromHistogram(hist);
       if (!(buildbot instanceof tr.v.d.BuildbotInfo) ||
           !buildbot[fieldName]) {
         return defaultValue;

@@ -12,8 +12,8 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('groupby-picker', function() {
-    var settingsKey = 'tr-ui-b-grouping-table-groupby-picker-test';
-    var picker = document.createElement(
+    const settingsKey = 'tr-ui-b-grouping-table-groupby-picker-test';
+    const picker = document.createElement(
         'tr-ui-b-grouping-table-groupby-picker');
     tr.b.Settings.set(settingsKey, []);
     picker.settingsKey = settingsKey;
@@ -27,19 +27,19 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual([], picker.currentGroupKeys);
     this.addHTMLOutput(picker);
 
-    var keys = ['a', 'b', 'c', 'd', 'e'];
+    let keys = ['a', 'b', 'c', 'd', 'e'];
     picker.currentGroupKeys = keys;
     assert.deepEqual(keys, picker.currentGroupKeys);
 
-    var keys = ['e', 'd', 'c', 'b', 'a'];
+    keys = ['e', 'd', 'c', 'b', 'a'];
     picker.currentGroupKeys = keys;
     assert.deepEqual(keys, picker.currentGroupKeys);
 
-    var keys = [];
+    keys = [];
     picker.currentGroupKeys = keys;
     assert.deepEqual(keys, picker.currentGroupKeys);
 
-    var keys = ['a', 'b', 'd'];
+    keys = ['a', 'b', 'd'];
     picker.currentGroupKeys = keys;
     assert.deepEqual(keys, picker.currentGroupKeys);
 

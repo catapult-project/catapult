@@ -56,15 +56,16 @@ tr.exportTo('tr.v.d', function() {
         to |parentHist|.
        */
 
-      let parentGroupingPath = tr.v.d.GroupingPath.getFromHistogram(parentHist);
+      const parentGroupingPath = tr.v.d.GroupingPath.getFromHistogram(
+          parentHist);
 
-      for (let [name, otherRelatedHist] of otherDiagnostic) {
-        let mergedTo = otherRelatedHist.diagnostics.get(
+      for (const [name, otherRelatedHist] of otherDiagnostic) {
+        const mergedTo = otherRelatedHist.diagnostics.get(
             tr.v.d.MERGED_TO_DIAGNOSTIC_KEY);
         if (mergedTo === undefined) continue;
 
-        for (let relatedHist of mergedTo) {
-          let relatedGroupingPath = tr.v.d.GroupingPath.getFromHistogram(
+        for (const relatedHist of mergedTo) {
+          const relatedGroupingPath = tr.v.d.GroupingPath.getFromHistogram(
               relatedHist);
           if (relatedGroupingPath === undefined) continue;
           if (!parentGroupingPath.equals(relatedGroupingPath)) continue;
@@ -114,7 +115,7 @@ tr.exportTo('tr.v.d', function() {
     }
 
     * [Symbol.iterator]() {
-      for (let pair of this.histogramsByName_) {
+      for (const pair of this.histogramsByName_) {
         yield pair;
       }
     }
@@ -131,11 +132,11 @@ tr.exportTo('tr.v.d', function() {
      * @param {boolean=} opt_required
      */
     resolve(histograms, opt_required) {
-      for (let [name, hist] of this) {
-        if (!(hist instanceof tr.v.d.HistogramRef)) continue;
+      for (const [name, value] of this) {
+        if (!(value instanceof tr.v.d.HistogramRef)) continue;
 
-        let guid = hist.guid;
-        hist = histograms.lookupHistogram(guid);
+        const guid = value.guid;
+        const hist = histograms.lookupHistogram(guid);
         if (hist instanceof tr.v.Histogram) {
           this.histogramsByName_.set(name, hist);
         } else if (opt_required) {
@@ -146,14 +147,14 @@ tr.exportTo('tr.v.d', function() {
 
     asDictInto_(d) {
       d.values = {};
-      for (let [name, hist] of this) {
+      for (const [name, hist] of this) {
         d.values[name] = hist.guid;
       }
     }
 
     static fromDict(d) {
-      let map = new RelatedHistogramMap();
-      for (let [name, guid] of Object.entries(d.values)) {
+      const map = new RelatedHistogramMap();
+      for (const [name, guid] of Object.entries(d.values)) {
         map.set(name, new tr.v.d.HistogramRef(guid));
       }
       return map;

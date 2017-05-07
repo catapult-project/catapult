@@ -33,7 +33,7 @@ found in the LICENSE file.
 
     updateContents_() {
       Polymer.dom(this).textContent = '';
-      for (let diagnostic of this.diagnostic) {
+      for (const diagnostic of this.diagnostic) {
         Polymer.dom(this).appendChild(tr.v.ui.createDiagnosticSpan(diagnostic));
         Polymer.dom(this).appendChild(document.createElement('br'));
       }

@@ -14,14 +14,14 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var testOptions = {
+  const testOptions = {
     tearDown() {
       testing_common.clearXhrMock();
     }
   };
 
   test('instantiation', function() {
-    var mockResponse = {
+    const mockResponse = {
       'test_path': 'ChromiumPerf/android-nexus-5/sunspider/Total',
       'current_commit_pos': '426441',
       'next_commit_pos': '426480',
@@ -33,7 +33,7 @@ tr.b.unittest.testSuite(function() {
       'next_result': [1, ['failed', 'blah-blah']]
     };
     testing_common.addXhrMock('*', JSON.stringify(mockResponse));
-    var button = document.createElement('stoppage-alert-debug-button');
+    const button = document.createElement('stoppage-alert-debug-button');
     button.alertKey = '12345';
     // Styles are different inside/outside the rest of the polymer elements.
     button.$['debug-dialog'].style.position = 'static';

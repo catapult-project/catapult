@@ -177,7 +177,7 @@ property 'group' sets to the header item name.
   <script>
     'use strict';
 
-    var AutocompleteBoxBehavior = {
+    const AutocompleteBoxBehavior = {
       properties: {
         items: {
           type: Array,
@@ -254,10 +254,10 @@ property 'group' sets to the header item name.
        * to ensure we're not selecting things which are no longer in the list.
        */
       itemsChanged(_itemsChange) {
-        var preservedSelectedItem = null;
-        var items = this.items || [];
+        let preservedSelectedItem = null;
+        const items = this.items || [];
         if (this.selectedItem) {
-          for (var newItem of items) {
+          for (const newItem of items) {
             if (this.itemEquals(this.selectedItem, newItem)) {
               preservedSelectedItem = newItem;
               break;
@@ -272,7 +272,7 @@ property 'group' sets to the header item name.
       },
 
       computeSuggestedItems(query, _itemsChange) {
-        var searcher = new autocomplete.Autocomplete(this.items);
+        const searcher = new autocomplete.Autocomplete(this.items);
         return searcher.search(query);
       },
 
@@ -298,7 +298,7 @@ property 'group' sets to the header item name.
       },
 
       maybeSelectLocus() {
-        var suggestions = this.suggestedItems || [];
+        const suggestions = this.suggestedItems || [];
         if (suggestions.includes(this.locusItem)) {
           this.selectItem(this.locusItem);
           this.set('dropdownOpen', false);
@@ -306,10 +306,10 @@ property 'group' sets to the header item name.
       },
 
       moveLocus(down) {
-        var delta = down ? 1 : -1;
-        var suggestions = this.suggestedItems || [];
-        var n = suggestions.length;
-        var index = suggestions.indexOf(this.locusItem);
+        const delta = down ? 1 : -1;
+        const suggestions = this.suggestedItems || [];
+        const n = suggestions.length;
+        let index = suggestions.indexOf(this.locusItem);
         if (index === -1 && !down) {
           index = 0;
         }
@@ -369,7 +369,7 @@ property 'group' sets to the header item name.
 
       onInputKeydown(event) {
         this.set('dropdownOpen', true);
-        var key = event.keyCode || event.charCode;
+        const key = event.keyCode || event.charCode;
         if (key === 8 || key === 46) {  // Backspace and Delete.
           this.maybeBackspaceSelection();
         } else if (key === 40) {
@@ -384,8 +384,8 @@ property 'group' sets to the header item name.
       },
 
       scrollLocusIntoView() {
-        var elements = this.$.dropdown.items || [];
-        for (var element of elements) {
+        const elements = this.$.dropdown.items || [];
+        for (const element of elements) {
           if (element.item === this.locusItem) {
             element.scrollIntoView(false);
             return;
@@ -402,9 +402,9 @@ property 'group' sets to the header item name.
         (() => {
           this.$.dropdown.selected = undefined;
           if (this.selectedItem === null) return;
-          var selectedItem = this.selectedItem;
-          var menuItemsArray = this.$.dropdown.items || [];
-          for (var i = 0; i < menuItemsArray.length; i++) {
+          const selectedItem = this.selectedItem;
+          const menuItemsArray = this.$.dropdown.items || [];
+          for (let i = 0; i < menuItemsArray.length; i++) {
             if (menuItemsArray[i].item === selectedItem) {
               this.$.dropdown.selected = i;
               return;
@@ -429,8 +429,8 @@ property 'group' sets to the header item name.
       onDropdownSelect(event, detail) {
         if (this.shouldIgnoreSelectionEvents()) return;
         this.$.textbox.focus();
-        var index = this.$.dropdown.indexOf(detail.item);
-        var item = this.suggestedItems[index];
+        const index = this.$.dropdown.indexOf(detail.item);
+        const item = this.suggestedItems[index];
         this.selectItem(item);
       },
     });

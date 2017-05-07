@@ -12,11 +12,11 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  let unitlessNumber = tr.b.Unit.byName.unitlessNumber;
-  let unitlessNumber_smallerIsBetter =
+  const unitlessNumber = tr.b.Unit.byName.unitlessNumber;
+  const unitlessNumber_smallerIsBetter =
       tr.b.Unit.byName.unitlessNumber_smallerIsBetter;
 
-  let TEST_BOUNDARIES = tr.v.HistogramBinBoundaries.createLinear(0, 1000, 10);
+  const TEST_BOUNDARIES = tr.v.HistogramBinBoundaries.createLinear(0, 1000, 10);
 
   function checkBoundaries(boundaries, expectedMinBoundary, expectedMaxBoundary,
       expectedUnit, expectedBinRanges) {
@@ -25,14 +25,14 @@ tr.b.unittest.testSuite(function() {
 
     // Check that the boundaries can be used multiple times.
     for (let i = 0; i < 3; i++) {
-      let hist = new tr.v.Histogram('', expectedUnit, boundaries);
+      const hist = new tr.v.Histogram('', expectedUnit, boundaries);
       assert.instanceOf(hist, tr.v.Histogram);
       assert.strictEqual(hist.unit, expectedUnit);
       assert.strictEqual(hist.numValues, 0);
 
       assert.lengthOf(hist.allBins, expectedBinRanges.length);
       for (let j = 0; j < expectedBinRanges.length; j++) {
-        let bin = hist.allBins[j];
+        const bin = hist.allBins[j];
         assert.strictEqual(bin.count, 0);
         assert.isTrue(bin.range.equals(expectedBinRanges[j]));
       }
@@ -127,7 +127,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('rebin', function() {
-    let hist = new tr.v.Histogram('foo', unitlessNumber_smallerIsBetter,
+    const hist = new tr.v.Histogram('foo', unitlessNumber_smallerIsBetter,
         tr.v.HistogramBinBoundaries.SINGULAR);
     assert.strictEqual(400, hist.maxNumSampleValues);
     for (let i = 0; i < 100; ++i) {
@@ -169,7 +169,7 @@ tr.b.unittest.testSuite(function() {
   test('serializationSize', function() {
     // Ensure that serialized Histograms don't take up too much more space than
     // necessary.
-    let hist = new tr.v.Histogram('', unitlessNumber, TEST_BOUNDARIES);
+    const hist = new tr.v.Histogram('', unitlessNumber, TEST_BOUNDARIES);
 
     // You can change these numbers, but when you do, please explain in your CL
     // description why they changed.
@@ -219,13 +219,13 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('significance', function() {
-    let boundaries = tr.v.HistogramBinBoundaries.createLinear(0, 100, 10);
-    let histA = new tr.v.Histogram(
+    const boundaries = tr.v.HistogramBinBoundaries.createLinear(0, 100, 10);
+    const histA = new tr.v.Histogram(
         '', unitlessNumber_smallerIsBetter, boundaries);
-    let histB = new tr.v.Histogram(
+    const histB = new tr.v.Histogram(
         '', unitlessNumber_smallerIsBetter, boundaries);
 
-    let dontCare = new tr.v.Histogram('', unitlessNumber, boundaries);
+    const dontCare = new tr.v.Histogram('', unitlessNumber, boundaries);
     assert.strictEqual(dontCare.getDifferenceSignificance(dontCare),
         tr.b.math.Statistics.Significance.DONT_CARE);
 
@@ -245,7 +245,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('basic', function() {
-    let hist = new tr.v.Histogram('', unitlessNumber, TEST_BOUNDARIES);
+    const hist = new tr.v.Histogram('', unitlessNumber, TEST_BOUNDARIES);
     assert.strictEqual(hist.getBinForValue(250).range.min, 200);
     assert.strictEqual(hist.getBinForValue(250).range.max, 300);
 
@@ -271,7 +271,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('nans', function() {
-    let hist = new tr.v.Histogram('', unitlessNumber, TEST_BOUNDARIES);
+    const hist = new tr.v.Histogram('', unitlessNumber, TEST_BOUNDARIES);
 
     hist.addSample(undefined, {foo: new tr.v.d.Generic('b')});
     hist.addSample(NaN, {'foo': new tr.v.d.Generic('c')});
@@ -282,14 +282,14 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual(hist.nanDiagnosticMaps.map(dm => dm.get('foo').value),
                                              ['b', 'c']);
 
-    let hist2 = tr.v.Histogram.fromDict(hist.asDict());
+    const hist2 = tr.v.Histogram.fromDict(hist.asDict());
     assert.instanceOf(hist2.nanDiagnosticMaps[0], tr.v.d.DiagnosticMap);
     assert.instanceOf(hist2.nanDiagnosticMaps[0].get('foo'), tr.v.d.Generic);
   });
 
   test('addHistogramsValid', function() {
-    let hist0 = new tr.v.Histogram('', unitlessNumber, TEST_BOUNDARIES);
-    let hist1 = new tr.v.Histogram('', unitlessNumber, TEST_BOUNDARIES);
+    const hist0 = new tr.v.Histogram('', unitlessNumber, TEST_BOUNDARIES);
+    const hist1 = new tr.v.Histogram('', unitlessNumber, TEST_BOUNDARIES);
 
     hist0.addSample(-1, {foo: new tr.v.d.Generic('a0')});
     hist0.addSample(0, {foo: new tr.v.d.Generic('b0')});
@@ -340,7 +340,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(hist0.numValues, 10);
     assert.closeTo(hist0.average, 349.7, 0.1);
 
-    let hist02 = tr.v.Histogram.fromDict(hist0.asDict());
+    const hist02 = tr.v.Histogram.fromDict(hist0.asDict());
     assert.instanceOf(hist02.allBins[0].diagnosticMaps[0],
         tr.v.d.DiagnosticMap);
     assert.instanceOf(hist02.allBins[0].diagnosticMaps[0].get('foo'),
@@ -348,11 +348,11 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('addHistogramsInvalid', function() {
-    let hist0 = new tr.v.Histogram('', tr.b.Unit.byName.timeDurationInMs,
+    const hist0 = new tr.v.Histogram('', tr.b.Unit.byName.timeDurationInMs,
         tr.v.HistogramBinBoundaries.createLinear(0, 1000, 10));
-    let hist1 = new tr.v.Histogram('', tr.b.Unit.byName.timeDurationInMs,
+    const hist1 = new tr.v.Histogram('', tr.b.Unit.byName.timeDurationInMs,
         tr.v.HistogramBinBoundaries.createLinear(0, 1001, 10));
-    let hist2 = new tr.v.Histogram('', tr.b.Unit.byName.timeDurationInMs,
+    const hist2 = new tr.v.Histogram('', tr.b.Unit.byName.timeDurationInMs,
         tr.v.HistogramBinBoundaries.createLinear(0, 1000, 11));
 
     assert.isFalse(hist0.canAddHistogram(hist1));
@@ -367,19 +367,20 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('addHistogramWithNonDiagnosticMapThrows', function() {
-    let hist = new tr.v.Histogram('', unitlessNumber, TEST_BOUNDARIES);
+    const hist = new tr.v.Histogram('', unitlessNumber, TEST_BOUNDARIES);
     assert.throws(hist.addSample.bind(42, 'foo'), Error);
   });
 
   test('getApproximatePercentile', function() {
     function check(array, min, max, bins, precision) {
-      let boundaries = tr.v.HistogramBinBoundaries.createLinear(min, max, bins);
-      let hist = new tr.v.Histogram(
+      const boundaries = tr.v.HistogramBinBoundaries.createLinear(
+          min, max, bins);
+      const hist = new tr.v.Histogram(
           '', tr.b.Unit.byName.timeDurationInMs, boundaries);
       array.forEach((x) => hist.addSample(x, {foo: new tr.v.d.Generic('x')}));
       [0.25, 0.5, 0.75, 0.8, 0.95, 0.99].forEach(function(percent) {
-        let expected = tr.b.math.Statistics.percentile(array, percent);
-        let actual = hist.getApproximatePercentile(percent);
+        const expected = tr.b.math.Statistics.percentile(array, percent);
+        const actual = hist.getApproximatePercentile(percent);
         assert.closeTo(expected, actual, precision);
       });
     }
@@ -392,7 +393,7 @@ tr.b.unittest.testSuite(function() {
     check([1, 2, 3, 4, 5, 5, 6, 7, 8, 9, 10], 0.5, 10.5, 10, 1e-3);
     check([0, 11], 0.5, 10.5, 10, 1);
     check([0, 6, 11], 0.5, 10.5, 10, 1);
-    let array = [];
+    const array = [];
     for (let i = 0; i < 1000; i++) {
       array.push((i * i) % 10 + 1);
     }
@@ -406,7 +407,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('histogramBinBoundaries_addBinBoundary', function() {
-    let b = new tr.v.HistogramBinBoundaries(-100);
+    const b = new tr.v.HistogramBinBoundaries(-100);
     b.addBinBoundary(50);
 
     checkBoundaries(b, -100, 50, tr.b.Unit.byName.timeDurationInMs, [
@@ -428,7 +429,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('histogramBinBoundaries_addLinearBins', function() {
-    let b = new tr.v.HistogramBinBoundaries(1000);
+    const b = new tr.v.HistogramBinBoundaries(1000);
     b.addLinearBins(1200, 5);
 
     checkBoundaries(b, 1000, 1200, tr.b.Unit.byName.powerInWatts, [
@@ -443,7 +444,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('histogramBinBoundaries_addExponentialBins', function() {
-    let b = new tr.v.HistogramBinBoundaries(0.5);
+    const b = new tr.v.HistogramBinBoundaries(0.5);
     b.addExponentialBins(8, 4);
 
     checkBoundaries(b, 0.5, 8, tr.b.Unit.byName.energyInJoules, [
@@ -457,7 +458,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('histogramBinBoundaries_combined', function() {
-    let b = new tr.v.HistogramBinBoundaries(-273.15);
+    const b = new tr.v.HistogramBinBoundaries(-273.15);
     b.addBinBoundary(-50);
     b.addLinearBins(4, 3);
     b.addExponentialBins(16, 2);
@@ -482,7 +483,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('histogramBinBoundaries_throws', function() {
-    let b0 = new tr.v.HistogramBinBoundaries(-7);
+    const b0 = new tr.v.HistogramBinBoundaries(-7);
     assert.throws(function() { b0.addBinBoundary(-10 /* must be > -7 */); });
     assert.throws(function() { b0.addBinBoundary(-7 /* must be > -7 */); });
     assert.throws(function() { b0.addLinearBins(-10 /* must be > -7 */, 10); });
@@ -493,14 +494,14 @@ tr.b.unittest.testSuite(function() {
       b0.addExponentialBins(16, 4);
     });
 
-    let b1 = new tr.v.HistogramBinBoundaries(8);
+    const b1 = new tr.v.HistogramBinBoundaries(8);
     assert.throws(() => b1.addExponentialBins(20, 0 /* must be > 0 */));
     assert.throws(() => b1.addExponentialBins(5 /* must be > 8 */, 3));
     assert.throws(() => b1.addExponentialBins(8 /* must be > 8 */, 3));
   });
 
   test('statisticsScalars', function() {
-    let boundaries = tr.v.HistogramBinBoundaries.createLinear(0, 100, 100);
+    const boundaries = tr.v.HistogramBinBoundaries.createLinear(0, 100, 100);
     let hist = new tr.v.Histogram('', unitlessNumber, boundaries);
 
     hist.addSample(50);
@@ -523,7 +524,7 @@ tr.b.unittest.testSuite(function() {
     // Test round-tripping summaryOptions.
     hist = tr.v.Histogram.fromDict(hist.asDict());
 
-    let stats = hist.statisticsScalars;
+    const stats = hist.statisticsScalars;
     assert.strictEqual(stats.get('nans').unit,
         tr.b.Unit.byName.count_smallerIsBetter);
     assert.strictEqual(stats.get('nans').value, 1);
@@ -548,8 +549,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('statisticsScalarsNoSummaryOptions', function() {
-    let boundaries = tr.v.HistogramBinBoundaries.createLinear(0, 100, 100);
-    let hist = new tr.v.Histogram('', unitlessNumber, boundaries);
+    const boundaries = tr.v.HistogramBinBoundaries.createLinear(0, 100, 100);
+    const hist = new tr.v.Histogram('', unitlessNumber, boundaries);
 
     hist.addSample(50);
     hist.addSample(60);
@@ -569,8 +570,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('statisticsScalarsEmptyHistogram', function() {
-    let boundaries = tr.v.HistogramBinBoundaries.createLinear(0, 100, 100);
-    let hist = new tr.v.Histogram('', unitlessNumber, boundaries);
+    const boundaries = tr.v.HistogramBinBoundaries.createLinear(0, 100, 100);
+    const hist = new tr.v.Histogram('', unitlessNumber, boundaries);
     hist.customizeSummaryOptions({
       count: true,
       min: true,
@@ -581,7 +582,7 @@ tr.b.unittest.testSuite(function() {
       percentile: [0, 0.01, 0.1, 0.5, 0.995, 1]
     });
 
-    let stats = hist.statisticsScalars;
+    const stats = hist.statisticsScalars;
     assert.strictEqual(stats.get('count').value, 0);
     assert.strictEqual(stats.get('min').value, Infinity);
     assert.strictEqual(stats.get('max').value, -Infinity);
@@ -597,16 +598,16 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('sampleValues', function() {
-    let boundaries = tr.v.HistogramBinBoundaries.createLinear(0, 1000, 50);
-    let hist0 = new tr.v.Histogram('', unitlessNumber, boundaries);
-    let hist1 = new tr.v.Histogram('', unitlessNumber, boundaries);
+    const boundaries = tr.v.HistogramBinBoundaries.createLinear(0, 1000, 50);
+    const hist0 = new tr.v.Histogram('', unitlessNumber, boundaries);
+    const hist1 = new tr.v.Histogram('', unitlessNumber, boundaries);
     // maxNumSampleValues defaults to numBins * 10, which, including the
     // underflow bin and overflow bin plus this builder's 10 central bins,
     // is 52 * 10.
     assert.strictEqual(hist0.maxNumSampleValues, 520);
     assert.strictEqual(hist1.maxNumSampleValues, 520);
-    let values0 = [];
-    let values1 = [];
+    const values0 = [];
+    const values1 = [];
     for (let i = 0; i < 10; ++i) {
       values0.push(i);
       hist0.addSample(i);
@@ -619,7 +620,7 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual(hist1.sampleValues, values1);
     hist0.addHistogram(hist1);
     assert.deepEqual(hist0.sampleValues, values0.concat(values1));
-    let hist2 = tr.v.Histogram.fromDict(hist0.asDict());
+    const hist2 = tr.v.Histogram.fromDict(hist0.asDict());
     assert.deepEqual(hist2.sampleValues, values0.concat(values1));
 
     for (let i = 0; i < 500; ++i) {
@@ -627,7 +628,7 @@ tr.b.unittest.testSuite(function() {
     }
     assert.strictEqual(hist0.sampleValues.length, hist0.maxNumSampleValues);
 
-    let hist3 = new tr.v.Histogram('', unitlessNumber, boundaries);
+    const hist3 = new tr.v.Histogram('', unitlessNumber, boundaries);
     hist3.maxNumSampleValues = 10;
     for (let i = 0; i < 100; ++i) {
       hist3.addSample(i);
@@ -636,13 +637,13 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('singularBin', function() {
-    let hist = new tr.v.Histogram('', unitlessNumber,
+    const hist = new tr.v.Histogram('', unitlessNumber,
         tr.v.HistogramBinBoundaries.SINGULAR);
     assert.lengthOf(hist.allBins, 1);
 
-    let dict = hist.asDict();
+    const dict = hist.asDict();
     assert.isUndefined(dict.binBoundaries);
-    let clone = tr.v.Histogram.fromDict(dict);
+    const clone = tr.v.Histogram.fromDict(dict);
     assert.lengthOf(clone.allBins, 1);
     assert.deepEqual(dict, clone.asDict());
 
@@ -672,8 +673,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('mergeSummaryOptions', function() {
-    let hist0 = new tr.v.Histogram('', unitlessNumber);
-    let hist1 = new tr.v.Histogram('', unitlessNumber);
+    const hist0 = new tr.v.Histogram('', unitlessNumber);
+    const hist1 = new tr.v.Histogram('', unitlessNumber);
 
     hist0.customizeSummaryOptions({sum: false, percentile: [0.9]});
     hist1.customizeSummaryOptions({min: false, percentile: [0.95]});

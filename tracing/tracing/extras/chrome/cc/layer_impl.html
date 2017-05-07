@@ -15,8 +15,8 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.e.cc', function() {
-  var constants = tr.e.cc.constants;
-  var ObjectSnapshot = tr.model.ObjectSnapshot;
+  const constants = tr.e.cc.constants;
+  const ObjectSnapshot = tr.model.ObjectSnapshot;
 
   /**
    * @constructor
@@ -70,7 +70,7 @@ tr.exportTo('tr.e.cc', function() {
       // data comes from the new version of cc, otherwise we set the
       // parentLayer as we did before SPv2.
       if (this.children) {
-        for (var i = 0; i < this.children.length; i++) {
+        for (let i = 0; i < this.children.length; i++) {
           this.children[i].parentLayer = this;
         }
       }
@@ -112,7 +112,7 @@ tr.exportTo('tr.e.cc', function() {
       if (this.layerTreeImpl.whichTree === constants.ACTIVE_TREE) {
         return this;
       }
-      var activeTree = this.layerTreeImpl.layerTreeHostImpl.activeTree;
+      const activeTree = this.layerTreeImpl.layerTreeHostImpl.activeTree;
       return activeTree.findLayerWithId(this.layerId);
     },
 
@@ -120,7 +120,7 @@ tr.exportTo('tr.e.cc', function() {
       if (this.layerTreeImpl.whichTree === constants.PENDING_TREE) {
         return this;
       }
-      var pendingTree = this.layerTreeImpl.layerTreeHostImpl.pendingTree;
+      const pendingTree = this.layerTreeImpl.layerTreeHostImpl.pendingTree;
       return pendingTree.findLayerWithId(this.layerId);
     }
   };
@@ -144,9 +144,9 @@ tr.exportTo('tr.e.cc', function() {
       }
       if (this.args.annotatedInvalidationRects) {
         this.annotatedInvalidation = new tr.e.cc.Region();
-        for (var i = 0; i < this.args.annotatedInvalidationRects.length; ++i) {
-          var annotatedRect = this.args.annotatedInvalidationRects[i];
-          var rect = annotatedRect.geometryRect;
+        for (let i = 0; i < this.args.annotatedInvalidationRects.length; ++i) {
+          const annotatedRect = this.args.annotatedInvalidationRects[i];
+          const rect = annotatedRect.geometryRect;
           rect.reason = annotatedRect.reason;
           this.annotatedInvalidation.addRect(rect);
         }
@@ -168,10 +168,10 @@ tr.exportTo('tr.e.cc', function() {
 
       this.tileCoverageRects = [];
       if (this.args.coverageTiles) {
-        for (var i = 0; i < this.args.coverageTiles.length; ++i) {
-          var rect = this.args.coverageTiles[i].geometryRect.scale(
+        for (let i = 0; i < this.args.coverageTiles.length; ++i) {
+          const rect = this.args.coverageTiles[i].geometryRect.scale(
               this.idealContentsScale);
-          var tile = this.args.coverageTiles[i].tile;
+          const tile = this.args.coverageTiles[i].tile;
           this.tileCoverageRects.push(new tr.e.cc.TileCoverageRect(rect, tile));
         }
         delete this.args.coverageTiles;

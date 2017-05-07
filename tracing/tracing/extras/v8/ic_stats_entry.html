@@ -11,7 +11,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.e.v8', function() {
-  var IC_STATS_PROPERTIES = [
+  const IC_STATS_PROPERTIES = [
     'type', 'category', 'scriptName', 'filePosition', 'state', 'isNative',
     'map', 'propertiesMode', 'numberOfOwnProperties', 'instanceType'
   ];
@@ -118,8 +118,8 @@ tr.exportTo('tr.e.v8', function() {
     }
 
     static groupBy(groups, entries, property) {
-      for (let entry of entries) {
-        let key = entry[property];
+      for (const entry of entries) {
+        const key = entry[property];
         let group = groups.get(key);
         if (!group) {
           group = new ICStatsEntryGroup(property, key);
@@ -127,7 +127,7 @@ tr.exportTo('tr.e.v8', function() {
         }
         group.add(entry);
       }
-      for (let group of groups.values()) {
+      for (const group of groups.values()) {
         group.percentage = group.length / entries.length;
       }
     }
@@ -139,9 +139,9 @@ tr.exportTo('tr.e.v8', function() {
     createSubGroup() {
       if (this.subGroup_) return this.subGroup_;
       this.subGroup_ = new Map();
-      for (let property of IC_STATS_PROPERTIES) {
+      for (const property of IC_STATS_PROPERTIES) {
         if (property === this.property_) continue;
-        var groups = new Map();
+        const groups = new Map();
         this.subGroup_.set(property, groups);
         ICStatsEntryGroup.groupBy(groups, this.entries_, property);
       }
@@ -184,7 +184,7 @@ tr.exportTo('tr.e.v8', function() {
       if (this.groupedEntries_.has(property)) {
         return Array.from(this.groupedEntries_.get(property).values());
       }
-      var groups = new Map();
+      const groups = new Map();
       this.groupedEntries_.set(property, groups);
       ICStatsEntryGroup.groupBy(groups, this.entries_, property);
       return Array.from(groups.values());

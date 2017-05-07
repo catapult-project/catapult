@@ -32,10 +32,10 @@ tr.exportTo('tr.b', function() {
       throw new Error('Unrecognized: ' + typeof value);
     }
 
-    var object = value;
+    const object = value;
     if (object instanceof Array) {
-      var res = new Array(object.length);
-      for (var i = 0; i < object.length; i++) {
+      const res = new Array(object.length);
+      for (let i = 0; i < object.length; i++) {
         res[i] = deepCopy(object[i]);
       }
       return res;
@@ -44,8 +44,8 @@ tr.exportTo('tr.b', function() {
     if (object.__proto__ !== Object.prototype) {
       throw new Error('Can only clone simple types');
     }
-    var res = {};
-    for (var key in object) {
+    const res = {};
+    for (const key in object) {
       res[key] = deepCopy(object[key]);
     }
     return res;
@@ -68,7 +68,7 @@ tr.exportTo('tr.b', function() {
       };
     }
 
-    var typeName;
+    let typeName;
     if (e.name) {
       typeName = e.name;
     } else if (e.constructor) {
@@ -81,7 +81,7 @@ tr.exportTo('tr.b', function() {
       typeName = 'ErrorWithNoConstructor';
     }
 
-    var msg = e.message ? e.message : 'Unknown';
+    const msg = e.message ? e.message : 'Unknown';
     return {
       typeName,
       message: msg,
@@ -93,16 +93,16 @@ tr.exportTo('tr.b', function() {
     return new Error().stack + '';
   }
   function stackTrace() {
-    var stack = stackTraceAsString();
+    let stack = stackTraceAsString();
     stack = stack.split('\n');
     return stack.slice(2);
   }
 
   function getUsingPath(path, fromDict) {
-    var parts = path.split('.');
-    var cur = fromDict;
+    const parts = path.split('.');
+    let cur = fromDict;
 
-    for (var part; parts.length && (part = parts.shift());) {
+    for (let part; parts.length && (part = parts.shift());) {
       if (!parts.length) {
         return cur[part];
       } else if (part in cur) {
@@ -163,8 +163,8 @@ tr.exportTo('tr.b', function() {
    * @template T
    */
   function runLengthEncoding(ary) {
-    let encodedArray = [];
-    for (let element of ary) {
+    const encodedArray = [];
+    for (const element of ary) {
       if (encodedArray.length === 0 ||
           encodedArray[encodedArray.length - 1].value !== element) {
         encodedArray.push({

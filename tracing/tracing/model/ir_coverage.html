@@ -13,7 +13,7 @@ found in the LICENSE file.
 
 tr.exportTo('tr.model', function() {
   function getAssociatedEvents(irs) {
-    var allAssociatedEvents = new tr.model.EventSet();
+    const allAssociatedEvents = new tr.model.EventSet();
     irs.forEach(function(ir) {
       ir.associatedEvents.forEach(function(event) {
         // FlowEvents don't have parentContainers or cpuDurations, and it's
@@ -26,14 +26,14 @@ tr.exportTo('tr.model', function() {
   }
 
   function getUnassociatedEvents(model, associatedEvents) {
-    var unassociatedEvents = new tr.model.EventSet();
+    const unassociatedEvents = new tr.model.EventSet();
     // The set of unassociated events contains only events that are not in
     // the set of associated events.
     // Only add event to the set of unassociated events if it is not in
     // the set of associated events.
-    for (var proc of model.getAllProcesses()) {
-      for (var thread of tr.b.dictionaryValues(proc.threads)) {
-        for (var event of thread.sliceGroup.getDescendantEvents()) {
+    for (const proc of model.getAllProcesses()) {
+      for (const thread of tr.b.dictionaryValues(proc.threads)) {
+        for (const event of thread.sliceGroup.getDescendantEvents()) {
           if (!associatedEvents.contains(event)) {
             unassociatedEvents.push(event);
           }
@@ -44,7 +44,7 @@ tr.exportTo('tr.model', function() {
   }
 
   function getTotalCpuDuration(events) {
-    var cpuMs = 0;
+    let cpuMs = 0;
     events.forEach(function(event) {
       // Add up events' cpu self time if they have any.
       if (event.cpuSelfTime) {
@@ -55,19 +55,19 @@ tr.exportTo('tr.model', function() {
   }
 
   function getIRCoverageFromModel(model) {
-    var associatedEvents = getAssociatedEvents(model.userModel.expectations);
+    const associatedEvents = getAssociatedEvents(model.userModel.expectations);
 
     if (!associatedEvents.length) return undefined;
 
-    var unassociatedEvents = getUnassociatedEvents(
+    const unassociatedEvents = getUnassociatedEvents(
         model, associatedEvents);
 
-    var associatedCpuMs = getTotalCpuDuration(associatedEvents);
-    var unassociatedCpuMs = getTotalCpuDuration(unassociatedEvents);
+    const associatedCpuMs = getTotalCpuDuration(associatedEvents);
+    const unassociatedCpuMs = getTotalCpuDuration(unassociatedEvents);
 
-    var totalEventCount = associatedEvents.length + unassociatedEvents.length;
-    var totalCpuMs = associatedCpuMs + unassociatedCpuMs;
-    var coveredEventsCpuTimeRatio = undefined;
+    const totalEventCount = associatedEvents.length + unassociatedEvents.length;
+    const totalCpuMs = associatedCpuMs + unassociatedCpuMs;
+    let coveredEventsCpuTimeRatio = undefined;
     if (totalCpuMs !== 0) {
       coveredEventsCpuTimeRatio = associatedCpuMs / totalCpuMs;
     }

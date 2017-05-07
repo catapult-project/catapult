@@ -93,13 +93,13 @@ Polymer({
   },
 
   _setFocused(focused) {
-    var promptEl = this.$.prompt;
+    const promptEl = this.$.prompt;
     if (focused) {
       promptEl.focus();
       Polymer.dom(this.$.root).classList.add('focused');
       // Move cursor to the end of any existing text.
       if (promptEl.value.length > 0) {
-        var sel = window.getSelection();
+        const sel = window.getSelection();
         sel.collapse(
             Polymer.dom(promptEl).firstChild, promptEl.value.length);
       }
@@ -108,8 +108,8 @@ Polymer({
       Polymer.dom(this.$.root).classList.remove('focused');
       // Workaround for crbug.com/89026 to ensure the prompt doesn't retain
       // keyboard focus.
-      var parent = promptEl.parentElement;
-      var nextEl = Polymer.dom(promptEl).nextSibling;
+      const parent = promptEl.parentElement;
+      const nextEl = Polymer.dom(promptEl).nextSibling;
       promptEl.remove();
       Polymer.dom(parent).insertBefore(promptEl, nextEl);
     }
@@ -130,15 +130,16 @@ Polymer({
     if (!this._isEnterKey(e)) return;
 
     e.preventDefault();
-    var promptEl = this.$.prompt;
-    var command = promptEl.value;
+    const promptEl = this.$.prompt;
+    const command = promptEl.value;
     if (command.length === 0) return;
 
     promptEl.value = '';
     this.addLine_(String.fromCharCode(187) + ' ' + command);
 
+    let result;
     try {
-      var result = this.controller_.executeCommand(command);
+      result = this.controller_.executeCommand(command);
     } catch (e) {
       result = e.stack || e.stackTrace;
     }
@@ -157,7 +158,7 @@ Polymer({
   },
 
   addLine_(line) {
-    var historyEl = this.$.history;
+    const historyEl = this.$.history;
     if (historyEl.innerText.length !== 0) {
       historyEl.innerText += '\n';
     }
@@ -169,7 +170,7 @@ Polymer({
   },
 
   toggleVisibility() {
-    var root = this.$.root;
+    const root = this.$.root;
     if (!this.visible) {
       Polymer.dom(root).classList.remove('hidden');
       this._setFocused(true);
@@ -184,7 +185,7 @@ Polymer({
   },
 
   get visible() {
-    var root = this.$.root;
+    const root = this.$.root;
     return !Polymer.dom(root).classList.contains('hidden');
   },
 

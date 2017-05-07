@@ -30,22 +30,22 @@ tr.exportTo('tr.mre', function() {
       throw new Error('Must provide three arguments');
     }
 
-    var options = {
+    const options = {
       key: args[0],
       fileHandle: tr.mre.FileHandle.fromDict(JSON.parse(args[1])),
       job: tr.mre.Job.fromDict(JSON.parse(args[2]))
     };
 
-    var mapResultsLoaded = options.fileHandle.load();
-    var mapResults = JSON.parse(mapResultsLoaded);
+    const mapResultsLoaded = options.fileHandle.load();
+    const mapResults = JSON.parse(mapResultsLoaded);
 
-    var jobResults = new tr.mre.MreResult();
+    const jobResults = new tr.mre.MreResult();
 
     tr.mre.runAndConvertErrorsToFailures(
         jobResults, options.job, options.job.reduceFunctionHandle,
         undefined,
         function() {
-          var reduceFunction = options.job.reduceFunctionHandle.load();
+          const reduceFunction = options.job.reduceFunctionHandle.load();
           tr.mre.reduceMapResults(jobResults, options.key, mapResults.pairs,
               reduceFunction);
         });

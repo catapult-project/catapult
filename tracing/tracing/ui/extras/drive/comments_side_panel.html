@@ -85,13 +85,13 @@ Polymer({
   },
 
   commentClick(event) {
-    var anchor = event.currentTarget.comment.anchor;
+    const anchor = event.currentTarget.comment.anchor;
     if (!anchor) return;
 
-    var uiState =
+    const uiState =
         JSON.parse(anchor).a[0][tr.ui.e.drive.constants.ANCHOR_NAME];
 
-    var myEvent = new CustomEvent('navigateToUIState', { detail:
+    const myEvent = new CustomEvent('navigateToUIState', { detail:
         new tr.ui.b.UIState(new tr.model.Location(uiState.location.xWorld,
                                               uiState.location.yComponents),
                                               uiState.scaleX)
@@ -101,10 +101,10 @@ Polymer({
     if (this.annotationFromComment_) {
       this.model.removeAnnotation(this.annotationFromComment_);
     }
-    var loc = new tr.model.Location(uiState.location.xWorld,
+    const loc = new tr.model.Location(uiState.location.xWorld,
                                 uiState.location.yComponents);
 
-    var text = sender.comment.author.displayName + ': ' +
+    const text = sender.comment.author.displayName + ': ' +
         sender.comment.content;
     this.annotationFromComment_ =
         new tr.model.CommentBoxAnnotation(loc, text);

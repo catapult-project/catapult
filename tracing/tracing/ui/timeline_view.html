@@ -211,7 +211,7 @@ Polymer({
     this.addEventListener(
         'requestSelectionChange',
         function(e) {
-          var sc = this.brushingStateController_;
+          const sc = this.brushingStateController_;
           sc.changeSelectionFromRequestSelectionChangeEvent(e.selection);
         }.bind(this));
 
@@ -237,20 +237,20 @@ Polymer({
   },
 
   updateDocumentFavicon() {
-    var hue;
+    let hue;
     if (!this.model) {
       hue = 'blue';
     } else {
       hue = this.model.faviconHue;
     }
 
-    var faviconData = tr.ui.b.FaviconsByHue[hue];
+    let faviconData = tr.ui.b.FaviconsByHue[hue];
     if (faviconData === undefined) {
       faviconData = tr.ui.b.FaviconsByHue.blue;
     }
 
     // Find link if its there
-    var link = Polymer.dom(document.head).querySelector(
+    let link = Polymer.dom(document.head).querySelector(
         'link[rel="shortcut icon"]');
     if (!link) {
       link = document.createElement('link');
@@ -283,9 +283,9 @@ Polymer({
   },
 
   initHelpButton_() {
-    var helpButtonEl = this.$.view_help_button;
+    const helpButtonEl = this.$.view_help_button;
 
-    var dlg = new tr.ui.b.Overlay();
+    const dlg = new tr.ui.b.Overlay();
     dlg.title = 'Chrome Tracing Help';
     dlg.visible = false;
     dlg.appendChild(
@@ -301,7 +301,7 @@ Polymer({
   },
 
   initConsoleButton_() {
-    var toggleEl = this.$.view_console_button;
+    const toggleEl = this.$.view_console_button;
 
     function onClick(e) {
       this.scriptingCtl_.toggleVisibility();
@@ -312,13 +312,13 @@ Polymer({
   },
 
   initMetadataButton_() {
-    var showEl = this.$.view_metadata_button;
+    const showEl = this.$.view_metadata_button;
 
     function onClick(e) {
-      var dlg = new tr.ui.b.Overlay();
+      const dlg = new tr.ui.b.Overlay();
       dlg.title = 'Metadata for trace';
 
-      var metadataOverlay = document.createElement(
+      const metadataOverlay = document.createElement(
           'tr-ui-timeline-view-metadata-overlay');
       metadataOverlay.metadata = this.model.metadata;
 
@@ -334,7 +334,7 @@ Polymer({
   },
 
   updateMetadataButtonVisibility_() {
-    var showEl = this.$.view_metadata_button;
+    const showEl = this.$.view_metadata_button;
     showEl.style.display =
         (this.model && this.model.metadata.length) ? '' : 'none';
   },
@@ -374,10 +374,10 @@ Polymer({
   },
 
   set model(model) {
-    var modelInstanceChanged = model !== this.model;
-    var modelValid = model && !model.bounds.isEmpty;
+    const modelInstanceChanged = model !== this.model;
+    const modelValid = model && !model.bounds.isEmpty;
 
-    var importWarningsEl = Polymer.dom(this.root).querySelector(
+    const importWarningsEl = Polymer.dom(this.root).querySelector(
         '#import-warnings');
     Polymer.dom(importWarningsEl).textContent = '';
 
@@ -462,7 +462,7 @@ Polymer({
   },
 
   bindKeyListeners_() {
-    var hkc = this.hotkeyController;
+    const hkc = this.hotkeyController;
 
     // Shortcuts that *can* steal focus from the console and the filter text
     // box.
@@ -524,13 +524,13 @@ Polymer({
   },
 
   onViewportChanged_(e) {
-    var spc = this.sidePanelContainer_;
+    const spc = this.sidePanelContainer_;
     if (!this.trackView_) {
       spc.rangeOfInterest.reset();
       return;
     }
 
-    var vr = this.trackView_.viewport.interestRange.asRangeObject();
+    const vr = this.trackView_.viewport.interestRange.asRangeObject();
     if (!spc.rangeOfInterest.equals(vr)) {
       spc.rangeOfInterest = vr;
     }

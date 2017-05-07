@@ -25,7 +25,7 @@ tr.exportTo('tr.model', function() {
 
   ScopedId.prototype = {
     toString() {
-      var pidStr = this.pid === undefined ? '' : 'pid: ' + this.pid + ', ';
+      const pidStr = this.pid === undefined ? '' : 'pid: ' + this.pid + ', ';
       return '{' + pidStr + 'scope: ' + this.scope + ', id: ' + this.id + '}';
     },
 

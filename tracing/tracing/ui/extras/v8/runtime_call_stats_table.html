@@ -28,8 +28,8 @@ found in the LICENSE file.
 tr.exportTo('tr.ui.e.v8', function() {
   function handleCodeSearch_(event) {
     if (event.target.parentNode === undefined) return;
-    var name = event.target.parentNode.entryName;
-    var url = 'https://cs.chromium.org/search/?sq=package:chromium&type=cs&q=';
+    let name = event.target.parentNode.entryName;
+    let url = 'https://cs.chromium.org/search/?sq=package:chromium&type=cs&q=';
     if (name.startsWith('API_')) name = name.substring(4);
     url += encodeURIComponent(name) + '+file:src/v8/src';
     window.open(url, '_blank');
@@ -49,12 +49,12 @@ tr.exportTo('tr.ui.e.v8', function() {
         {
           title: 'Name',
           value(row) {
-            var typeEl = document.createElement('span');
+            const typeEl = document.createElement('span');
             typeEl.innerText = row.name;
             if (!(row instanceof tr.e.v8.RuntimeStatsGroup)) {
               typeEl.title = 'click ? for code search';
               typeEl.entryName = row.name;
-              var codeSearchEl = document.createElement('span');
+              const codeSearchEl = document.createElement('span');
               codeSearchEl.innerText = '?';
               codeSearchEl.style.float = 'right';
               codeSearchEl.style.borderRadius = '5px';
@@ -71,7 +71,7 @@ tr.exportTo('tr.ui.e.v8', function() {
         {
           title: 'Time',
           value(row) {
-            var typeEl = document.createElement('span');
+            const typeEl = document.createElement('span');
             typeEl.innerText = (row.time / 1000.0).toFixed(3) + ' ms';
             return typeEl;
           },
@@ -83,7 +83,7 @@ tr.exportTo('tr.ui.e.v8', function() {
         {
           title: 'Count',
           value(row) {
-            var typeEl = document.createElement('span');
+            const typeEl = document.createElement('span');
             typeEl.innerText = row.count;
             return typeEl;
           },
@@ -95,7 +95,7 @@ tr.exportTo('tr.ui.e.v8', function() {
         {
           title: 'Percent',
           value(row) {
-            var typeEl = document.createElement('span');
+            const typeEl = document.createElement('span');
             typeEl.innerText = (row.time / totalTime * 100).toFixed(3) + '%';
             return typeEl;
           },
@@ -112,7 +112,7 @@ tr.exportTo('tr.ui.e.v8', function() {
     },
 
     set slices(slices) {
-      var runtimeGroupCollection = new tr.e.v8.RuntimeStatsGroupCollection();
+      const runtimeGroupCollection = new tr.e.v8.RuntimeStatsGroupCollection();
       runtimeGroupCollection.addSlices(slices);
       if (runtimeGroupCollection.totalTime > 0) {
         this.constructTable_(runtimeGroupCollection.totalTime);

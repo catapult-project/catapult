@@ -17,24 +17,24 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var TitleColumn = tr.ui.analysis.TitleColumn;
-  var MemoryColumn = tr.ui.analysis.MemoryColumn;
-  var AggregationMode = MemoryColumn.AggregationMode;
-  var StringMemoryColumn = tr.ui.analysis.StringMemoryColumn;
-  var NumericMemoryColumn = tr.ui.analysis.NumericMemoryColumn;
-  var MemoryCell = tr.ui.analysis.MemoryCell;
-  var expandTableRowsRecursively = tr.ui.analysis.expandTableRowsRecursively;
-  var aggregateTableRowCells = tr.ui.analysis.aggregateTableRowCells;
-  var aggregateTableRowCellsRecursively =
+  const TitleColumn = tr.ui.analysis.TitleColumn;
+  const MemoryColumn = tr.ui.analysis.MemoryColumn;
+  const AggregationMode = MemoryColumn.AggregationMode;
+  const StringMemoryColumn = tr.ui.analysis.StringMemoryColumn;
+  const NumericMemoryColumn = tr.ui.analysis.NumericMemoryColumn;
+  const MemoryCell = tr.ui.analysis.MemoryCell;
+  const expandTableRowsRecursively = tr.ui.analysis.expandTableRowsRecursively;
+  const aggregateTableRowCells = tr.ui.analysis.aggregateTableRowCells;
+  const aggregateTableRowCellsRecursively =
       tr.ui.analysis.aggregateTableRowCellsRecursively;
-  var Scalar = tr.b.Scalar;
-  var sizeInBytes_smallerIsBetter =
+  const Scalar = tr.b.Scalar;
+  const sizeInBytes_smallerIsBetter =
       tr.b.Unit.byName.sizeInBytes_smallerIsBetter;
-  var checkSizeNumericFields = tr.ui.analysis.checkSizeNumericFields;
-  var checkNumericFields = tr.ui.analysis.checkNumericFields;
-  var checkStringFields = tr.ui.analysis.checkStringFields;
-  var createCells = tr.ui.analysis.createCells;
-  var createWarningInfo = tr.ui.analysis.createWarningInfo;
+  const checkSizeNumericFields = tr.ui.analysis.checkSizeNumericFields;
+  const checkNumericFields = tr.ui.analysis.checkNumericFields;
+  const checkStringFields = tr.ui.analysis.checkStringFields;
+  const createCells = tr.ui.analysis.createCells;
+  const createWarningInfo = tr.ui.analysis.createWarningInfo;
 
   function checkPercent(string, expectedPercent) {
     assert.strictEqual(Number(string.slice(0, -1)), expectedPercent);
@@ -43,15 +43,15 @@ tr.b.unittest.testSuite(function() {
 
   function checkMemoryColumnFieldFormat(test, column, fields,
       expectedTextContent, opt_expectedColor) {
-    var value = column.formatMultipleFields(fields);
+    const value = column.formatMultipleFields(fields);
     if (expectedTextContent === undefined) {
       assert.strictEqual(value, '');
       assert.isUndefined(opt_expectedColor);  // Test sanity check.
       return;
     }
 
-    var node = tr.ui.b.asHTMLOrTextNode(value);
-    var spanEl = document.createElement('span');
+    const node = tr.ui.b.asHTMLOrTextNode(value);
+    const spanEl = document.createElement('span');
     Polymer.dom(spanEl).appendChild(node);
     test.addHTMLOutput(spanEl);
 
@@ -74,7 +74,7 @@ tr.b.unittest.testSuite(function() {
 
   function checkNumericMemoryColumnFieldFormat(test, column, fieldValues, unit,
       expectedValue) {
-    var value = column.formatMultipleFields(
+    const value = column.formatMultipleFields(
         buildScalarCell(unit, fieldValues).fields);
     if (expectedValue === undefined) {
       assert.strictEqual(value, '');
@@ -137,7 +137,7 @@ tr.b.unittest.testSuite(function() {
 
   function checkCellValue(
       test, value, expectedText, expectedColor, opt_expectedInfos) {
-    var expectedInfos = opt_expectedInfos || [];
+    const expectedInfos = opt_expectedInfos || [];
     assert.lengthOf(Polymer.dom(value).childNodes, 1 + expectedInfos.length);
     assert.strictEqual(value.style.color, expectedColor);
     if (typeof expectedText === 'string') {
@@ -147,9 +147,9 @@ tr.b.unittest.testSuite(function() {
     } else {
       expectedText(Polymer.dom(value).childNodes[0]);
     }
-    for (var i = 0; i < expectedInfos.length; i++) {
-      var expectedInfo = expectedInfos[i];
-      var infoEl = Polymer.dom(value).childNodes[i + 1];
+    for (let i = 0; i < expectedInfos.length; i++) {
+      const expectedInfo = expectedInfos[i];
+      const infoEl = Polymer.dom(value).childNodes[i + 1];
       assert.strictEqual(Polymer.dom(infoEl).textContent, expectedInfo.icon);
       assert.strictEqual(infoEl.title, expectedInfo.message);
       assert.strictEqual(infoEl.style.color, expectedInfo.color || '');
@@ -170,54 +170,52 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('checkTitleColumn_value', function() {
-    var column = new TitleColumn('column_title');
+    const column = new TitleColumn('column_title');
     assert.strictEqual(column.title, 'column_title');
     assert.isFalse(column.supportsCellSelection);
 
-    var row = {title: 'undefined', contexts: undefined};
+    let row = {title: 'undefined', contexts: undefined};
     assert.strictEqual(column.formatTitle(row), 'undefined');
     assert.strictEqual(column.value(row), 'undefined');
 
-    var row = {title: 'constant', contexts: [{}, {}, {}, {}]};
+    row = {title: 'constant', contexts: [{}, {}, {}, {}]};
     assert.strictEqual(column.formatTitle(row), 'constant');
     assert.strictEqual(column.value(row), 'constant');
 
-    var row = {title: 'added', contexts: [undefined, undefined, undefined, {}]};
+    row = {title: 'added', contexts: [undefined, undefined, undefined, {}]};
     assert.strictEqual(column.formatTitle(row), 'added');
-    var value = column.value(row);
+    let value = column.value(row);
     assert.strictEqual(Polymer.dom(value).textContent, '+++\u00A0added');
     assert.strictEqual(value.style.color, 'red');
 
-    var row = {title: 'removed', contexts: [true, true, undefined, undefined]};
+    row = {title: 'removed', contexts: [true, true, undefined, undefined]};
     assert.strictEqual(column.formatTitle(row), 'removed');
-    var value = column.value(row);
+    value = column.value(row);
     assert.strictEqual(Polymer.dom(value).textContent, '---\u00A0removed');
     assert.strictEqual(value.style.color, 'green');
 
-    var row = {title: 'flaky', contexts: [true, undefined, true, true]};
+    row = {title: 'flaky', contexts: [true, undefined, true, true]};
     assert.strictEqual(column.formatTitle(row), 'flaky');
-    var value = column.value(row);
+    value = column.value(row);
     assert.strictEqual(Polymer.dom(value).textContent, 'flaky');
     assert.strictEqual(value.style.color, 'purple');
 
-    var row =
-        {title: 'added-flaky', contexts: [undefined, {}, undefined, true]};
+    row = {title: 'added-flaky', contexts: [undefined, {}, undefined, true]};
     assert.strictEqual(column.formatTitle(row), 'added-flaky');
-    var value = column.value(row);
+    value = column.value(row);
     assert.strictEqual(Polymer.dom(value).textContent, '+++\u00A0added-flaky');
     assert.strictEqual(value.style.color, 'purple');
 
-    var row =
-        {title: 'removed-flaky', contexts: [true, undefined, {}, undefined]};
+    row = {title: 'removed-flaky', contexts: [true, undefined, {}, undefined]};
     assert.strictEqual(column.formatTitle(row), 'removed-flaky');
-    var value = column.value(row);
+    value = column.value(row);
     assert.strictEqual(
         Polymer.dom(value).textContent, '---\u00A0removed-flaky');
     assert.strictEqual(value.style.color, 'purple');
   });
 
   test('checkTitleColumn_cmp', function() {
-    var column = new TitleColumn('column_title');
+    const column = new TitleColumn('column_title');
 
     assert.isBelow(column.cmp({title: 'a'}, {title: 'b'}), 0);
     assert.strictEqual(column.cmp({title: 'cc'}, {title: 'cc'}), 0);
@@ -249,7 +247,7 @@ tr.b.unittest.testSuite(function() {
       get title() { return 'MockColumn2'; }
     };
 
-    var rules = [
+    const rules = [
       {
         condition: /size/,
         importance: 10,
@@ -273,8 +271,8 @@ tr.b.unittest.testSuite(function() {
       }
     ];
 
-    var rows = buildTestRows();
-    var columns = MemoryColumn.fromRows(rows, {
+    const rows = buildTestRows();
+    const columns = MemoryColumn.fromRows(rows, {
       cellKey: 'fields',
       aggregationMode: AggregationMode.MAX,
       rules,
@@ -282,7 +280,7 @@ tr.b.unittest.testSuite(function() {
     });
     assert.lengthOf(columns, 4);
 
-    var pageSizeColumn = columns[0];
+    const pageSizeColumn = columns[0];
     assert.strictEqual(pageSizeColumn.name, 'page_size');
     assert.strictEqual(pageSizeColumn.title, 'MockColumn0');
     assert.strictEqual(pageSizeColumn.aggregationMode, AggregationMode.MAX);
@@ -291,7 +289,7 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(pageSizeColumn.shouldSetContextGroup);
     assert.instanceOf(pageSizeColumn, MockColumn0);
 
-    var mixedColumn = columns[1];
+    const mixedColumn = columns[1];
     assert.strictEqual(mixedColumn.name, 'mixed');
     assert.strictEqual(mixedColumn.title, 'MockColumn2');
     assert.strictEqual(mixedColumn.aggregationMode, AggregationMode.MAX);
@@ -299,7 +297,7 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(mixedColumn.shouldSetContextGroup);
     assert.instanceOf(mixedColumn, MockColumn2);
 
-    var mixed2Column = columns[2];
+    const mixed2Column = columns[2];
     assert.strictEqual(mixed2Column.name, 'mixed2');
     assert.strictEqual(mixed2Column.title, 'MockColumn2');
     assert.strictEqual(mixed2Column.aggregationMode, AggregationMode.MAX);
@@ -308,7 +306,7 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(mixed2Column.shouldSetContextGroup);
     assert.instanceOf(mixed2Column, MockColumn2);
 
-    var cpuTemperatureColumn = columns[3];
+    const cpuTemperatureColumn = columns[3];
     assert.strictEqual(cpuTemperatureColumn.name, 'cpu_temperature');
     assert.strictEqual(cpuTemperatureColumn.title, 'MockColumn1');
     assert.strictEqual(cpuTemperatureColumn.aggregationMode,
@@ -321,11 +319,11 @@ tr.b.unittest.testSuite(function() {
 
   test('checkMemoryColumn_spaceEqually', function() {
     // Zero columns.
-    var columns = [];
+    let columns = [];
     MemoryColumn.spaceEqually(columns);
 
     // One column.
-    var columns = [
+    columns = [
       {
         title: 'First Column',
         value(row) { return row.firstData; }
@@ -335,7 +333,7 @@ tr.b.unittest.testSuite(function() {
     checkPercent(columns[0].width, 100);
 
     // Two columns.
-    var columns = [
+    columns = [
       {
         title: 'First Column',
         value(row) { return row.firstData; }
@@ -351,7 +349,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkMemoryColumn_instantiate', function() {
-    var c = new MemoryColumn('test_column', ['x'], AggregationMode.MAX);
+    const c = new MemoryColumn('test_column', ['x'], AggregationMode.MAX);
     assert.strictEqual(c.name, 'test_column');
     assert.strictEqual(c.title, 'test_column');
     assert.strictEqual(c.cell({x: 95}), 95);
@@ -360,8 +358,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkMemoryColumn_cell', function() {
-    var c = new MemoryColumn('test_column', ['a', 'b'], AggregationMode.MAX);
-    var cell = new MemoryCell(undefined);
+    const c = new MemoryColumn('test_column', ['a', 'b'], AggregationMode.MAX);
+    const cell = new MemoryCell(undefined);
 
     assert.isUndefined(c.cell(undefined));
     assert.isUndefined(c.cell({b: cell}));
@@ -370,7 +368,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkMemoryColumn_fields', function() {
-    var c = new MemoryColumn('test_column', ['x'],
+    const c = new MemoryColumn('test_column', ['x'],
         AggregationMode.MAX);
 
     // Undefined cell or field inside cell.
@@ -378,24 +376,24 @@ tr.b.unittest.testSuite(function() {
     assert.isUndefined(c.fields({x: new MemoryCell(undefined)}));
 
     // Defined field(s) inside cell.
-    var field1 = new Scalar(tr.b.Unit.byName.powerInWatts, 1013.25);
-    var field2 = new Scalar(tr.b.Unit.byName.powerInWatts, 1065);
-    var row1 = {x: new MemoryCell([field1])};
-    var row2 = {x: new MemoryCell([field1, field2])};
+    const field1 = new Scalar(tr.b.Unit.byName.powerInWatts, 1013.25);
+    const field2 = new Scalar(tr.b.Unit.byName.powerInWatts, 1065);
+    const row1 = {x: new MemoryCell([field1])};
+    const row2 = {x: new MemoryCell([field1, field2])};
     assert.deepEqual(c.fields(row1), [field1]);
     assert.deepEqual(c.fields(row2), [field1, field2]);
   });
 
   test('checkMemoryColumn_hasAllRelevantFieldsUndefined', function() {
     // Single field.
-    var c1 = new MemoryColumn('single_column', ['x'],
+    const c1 = new MemoryColumn('single_column', ['x'],
         undefined /* aggregation mode */);
     assert.isTrue(c1.hasAllRelevantFieldsUndefined([undefined]));
     assert.isFalse(c1.hasAllRelevantFieldsUndefined(
         [new Scalar(sizeInBytes_smallerIsBetter, 16)]));
 
     // Multiple fields, diff aggregation mode.
-    var c2 = new MemoryColumn('diff_column', ['x'],
+    const c2 = new MemoryColumn('diff_column', ['x'],
         AggregationMode.DIFF);
     assert.isTrue(c2.hasAllRelevantFieldsUndefined([undefined, undefined]));
     assert.isTrue(c2.hasAllRelevantFieldsUndefined(
@@ -413,7 +411,7 @@ tr.b.unittest.testSuite(function() {
     ]));
 
     // Multiple fields, max aggregation mode.
-    var c3 = new MemoryColumn('max_column', ['x'],
+    const c3 = new MemoryColumn('max_column', ['x'],
         AggregationMode.MAX);
     assert.isTrue(c3.hasAllRelevantFieldsUndefined([undefined, undefined]));
     assert.isTrue(c3.hasAllRelevantFieldsUndefined(
@@ -430,9 +428,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkMemoryColumn_value_allFieldsUndefined', function() {
-    var c1 = new MemoryColumn('no_color', ['x'],
+    const c1 = new MemoryColumn('no_color', ['x'],
         AggregationMode.MAX);
-    var c2 = new MemoryColumn('color', ['x'],
+    const c2 = new MemoryColumn('color', ['x'],
         AggregationMode.DIFF);
     Object.defineProperty(c2, 'color', {
       get() {
@@ -464,12 +462,12 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkMemoryColumn_getImportance', function() {
-    var c = new NumericMemoryColumn('test_column', ['x']);
+    const c = new NumericMemoryColumn('test_column', ['x']);
 
-    var rules1 = [];
+    const rules1 = [];
     assert.strictEqual(c.getImportance(rules1), 0);
 
-    var rules2 = [
+    const rules2 = [
       {
         condition: 'test',
         importance: 4
@@ -481,7 +479,7 @@ tr.b.unittest.testSuite(function() {
     ];
     assert.strictEqual(c.getImportance(rules2), 1);
 
-    var rules3 = [
+    const rules3 = [
       {
         condition: 'test_column',
         importance: 10
@@ -492,7 +490,7 @@ tr.b.unittest.testSuite(function() {
     ];
     assert.strictEqual(c.getImportance(rules3), 10);
 
-    var rules4 = [
+    const rules4 = [
       {
         condition: 'test_column2',
         importance: 8
@@ -506,7 +504,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkMemoryColumn_nameMatchesCondition', function() {
-    var c = new NumericMemoryColumn('test_column', ['x']);
+    const c = new NumericMemoryColumn('test_column', ['x']);
 
     assert.isTrue(MemoryColumn.nameMatchesCondition('test_column', undefined));
 
@@ -523,15 +521,15 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkStringMemoryColumn_value_singleField', function() {
-    var c = new StringMemoryColumn('', ['x'], AggregationMode.MAX);
+    const c = new StringMemoryColumn('', ['x'], AggregationMode.MAX);
     c.color = function(fields, contexts) {
       if (fields[0] < '0') return 'green';
       if (contexts && contexts[0] % 2 === 0) return 'red';
       return undefined;
     };
 
-    var infos1 = [{ icon: '\u{1F648}', message: 'Some info', color: 'blue' }];
-    var infos2 = [
+    const infos1 = [{ icon: '\u{1F648}', message: 'Some info', color: 'blue' }];
+    const infos2 = [
       { icon: '\u{1F649}', message: 'Start', color: 'cyan' },
       { icon: '\u{1F64A}', message: 'Stop' }
     ];
@@ -543,25 +541,25 @@ tr.b.unittest.testSuite(function() {
       }
     };
 
-    var row = {x: new MemoryCell(['123'])};
+    let row = {x: new MemoryCell(['123'])};
     assert.strictEqual(c.value(row), '123');
 
-    var row = {x: new MemoryCell(['-123']), contexts: [undefined]};
+    row = {x: new MemoryCell(['-123']), contexts: [undefined]};
     checkCellValue(this, c.value(row), '-123', 'green', infos1);
 
-    var row = {x: new MemoryCell(['123']), contexts: [42]};
+    row = {x: new MemoryCell(['123']), contexts: [42]};
     checkCellValue(this, c.value(row), '123', 'red', infos2);
   });
 
   test('checkStringMemoryColumn_value_multipleFields', function() {
-    var c1 = new StringMemoryColumn('test_column1', ['x'],
+    const c1 = new StringMemoryColumn('test_column1', ['x'],
         undefined /* aggregation mode */);
-    var c2 = new StringMemoryColumn('test_column2', ['x'],
+    const c2 = new StringMemoryColumn('test_column2', ['x'],
         AggregationMode.DIFF);
     c2.color = function(fields, contexts) {
       return '#009999';
     };
-    var c3 = new StringMemoryColumn('test_column3', ['x'],
+    const c3 = new StringMemoryColumn('test_column3', ['x'],
         AggregationMode.MAX);
     c3.color = function(fields, contexts) {
       if (fields[0] < '0') {
@@ -572,8 +570,8 @@ tr.b.unittest.testSuite(function() {
       return undefined;
     };
 
-    var infos1 = [{ icon: '\u{1F648}', message: 'Some info', color: 'blue' }];
-    var infos2 = [
+    const infos1 = [{ icon: '\u{1F648}', message: 'Some info', color: 'blue' }];
+    const infos2 = [
       { icon: '\u{1F649}', message: 'Start', color: 'cyan' },
       { icon: '\u{1F64A}', message: 'Stop' }
     ];
@@ -586,12 +584,12 @@ tr.b.unittest.testSuite(function() {
           }
         };
 
-    var row = {x: new MemoryCell(['123', '456'])};
+    let row = {x: new MemoryCell(['123', '456'])};
     checkCellValue(this, c1.value(row), '(unsupported aggregation mode)', '');
     checkCellValue(this, c2.value(row), '123 \u2192 456', 'rgb(0, 153, 153)');
     assert.strictEqual(c3.value(row), '456');
 
-    var row = {
+    row = {
       x: new MemoryCell(['-123', undefined, '+123']),
       contexts: [12, 14, undefined]
     };
@@ -601,7 +599,7 @@ tr.b.unittest.testSuite(function() {
         infos1);
     checkCellValue(this, c3.value(row), '+123', 'green', infos1);
 
-    var row = {
+    row = {
       x: new MemoryCell(['123', undefined, '456']),
       contexts: [31, 7, -2]
     };
@@ -613,7 +611,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkStringMemoryColumn_formatSingleField', function() {
-    var c = new StringMemoryColumn('test_column', ['x'],
+    const c = new StringMemoryColumn('test_column', ['x'],
         undefined /* aggregation mode */);
 
     assert.strictEqual(c.formatSingleField('1024'), '1024');
@@ -621,7 +619,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkStringMemoryColumn_formatMultipleFields_diff', function() {
-    var c = new StringMemoryColumn('test_column', ['x'],
+    const c = new StringMemoryColumn('test_column', ['x'],
         AggregationMode.DIFF);
 
     // Added value.
@@ -647,7 +645,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkStringMemoryColumn_formatMultipleFields_max', function() {
-    var c = new StringMemoryColumn('test_column', ['x'],
+    const c = new StringMemoryColumn('test_column', ['x'],
         AggregationMode.MAX);
 
     // Different values.
@@ -664,7 +662,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkStringMemoryColumn_compareSingleFields', function() {
-    var c = new StringMemoryColumn('test_column', ['x'],
+    const c = new StringMemoryColumn('test_column', ['x'],
         undefined /* aggregation mode */);
 
     assert.isBelow(c.compareSingleFields(
@@ -675,7 +673,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkStringMemoryColumn_compareMultipleFields_diff', function() {
-    var c = new StringMemoryColumn('test_column', ['x'],
+    const c = new StringMemoryColumn('test_column', ['x'],
         AggregationMode.DIFF);
 
     // One field was added.
@@ -708,7 +706,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkStringMemoryColumn_compareMultipleFields_max', function() {
-    var c = new StringMemoryColumn('test_column', ['x'],
+    const c = new StringMemoryColumn('test_column', ['x'],
         AggregationMode.MAX);
 
     // At least one field has multiple values.
@@ -724,7 +722,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkStringMemoryColumn_cmp', function() {
-    var c = new StringMemoryColumn('test_column', ['x'],
+    const c = new StringMemoryColumn('test_column', ['x'],
         AggregationMode.DIFF);
 
     // Cell (or the associated field) undefined in one or both rows.
@@ -754,29 +752,29 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkNumericMemoryColumn_value', function() {
-    var c = new NumericMemoryColumn('test_column', ['x'],
+    const c = new NumericMemoryColumn('test_column', ['x'],
         AggregationMode.DIFF);
     c.color = function(fields, contexts) {
       return '#009999';
     };
-    var infos1 = [createWarningInfo('Attention!')];
+    const infos1 = [createWarningInfo('Attention!')];
     c.addInfos = function(fields, contexts, infos) {
       infos.push.apply(infos, infos1);
     };
 
     // Undefined field values.
-    var row = {x: buildScalarCell(sizeInBytes_smallerIsBetter,
+    let row = {x: buildScalarCell(sizeInBytes_smallerIsBetter,
         [undefined, 1, undefined])};
     assert.strictEqual(c.value(row), '');
 
     // Single field value.
-    var row = {x: buildScalarCell(sizeInBytes_smallerIsBetter,
+    row = {x: buildScalarCell(sizeInBytes_smallerIsBetter,
         [5.4975581e13/* 50 TiB */])};
     checkCellValue(this, c.value(row), sizeSpanMatcher(5.4975581e13),
         'rgb(0, 153, 153)', infos1);
 
     // Multiple field values.
-    var row = {
+    row = {
       x: buildScalarCell(sizeInBytes_smallerIsBetter,
           [5.4975581e13/* 50 TiB */, undefined, 2.1990233e13/* 20 TiB */])
     };
@@ -797,9 +795,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkNumericMemoryColumn_formatSingleField', function() {
-    var c = new NumericMemoryColumn('non_bytes_column', ['x'],
+    let c = new NumericMemoryColumn('non_bytes_column', ['x'],
         undefined /* aggregation mode */);
-    var value = c.formatSingleField(new Scalar(
+    let value = c.formatSingleField(new Scalar(
         tr.b.Unit.byName.unitlessNumber_smallerIsBetter, 123));
     assert.strictEqual(value.tagName, 'TR-V-UI-SCALAR-SPAN');
     assert.strictEqual(value.value, 123);
@@ -808,10 +806,10 @@ tr.b.unittest.testSuite(function() {
     assert.isUndefined(value.contextGroup);
     this.addHTMLOutput(value);
 
-    var c = new NumericMemoryColumn('bytes_column', ['x'],
+    c = new NumericMemoryColumn('bytes_column', ['x'],
         undefined /* aggregation mode */);
     c.shouldSetContextGroup = true;
-    var value = c.formatSingleField(new Scalar(
+    value = c.formatSingleField(new Scalar(
         sizeInBytes_smallerIsBetter, 456));
     assert.strictEqual(value.tagName, 'TR-V-UI-SCALAR-SPAN');
     assert.strictEqual(value.value, 456);
@@ -823,7 +821,7 @@ tr.b.unittest.testSuite(function() {
 
   test('checkNumericMemoryColumn_formatMultipleFields_diff',
       function() {
-        var c = new NumericMemoryColumn(
+        let c = new NumericMemoryColumn(
             'non_bytes_column', ['x'], AggregationMode.DIFF);
         checkNumericMemoryColumnFieldFormat(this, c, [1, 2, 3],
             tr.b.Unit.byName.unitlessNumberDelta_smallerIsBetter, 2);
@@ -835,7 +833,7 @@ tr.b.unittest.testSuite(function() {
             this, c, [2.71828, 2.71829] /* diff within epsilon */,
             tr.b.Unit.byName.unitlessNumberDelta_smallerIsBetter, 0);
 
-        var c = new NumericMemoryColumn(
+        c = new NumericMemoryColumn(
             'bytes_column', ['x'], AggregationMode.DIFF);
         checkNumericMemoryColumnFieldFormat(this, c, [1, 2, 3],
             tr.b.Unit.byName.sizeInBytesDelta_smallerIsBetter, 2);
@@ -850,7 +848,7 @@ tr.b.unittest.testSuite(function() {
 
   test('checkNumericMemoryColumn_formatMultipleFields_max',
       function() {
-        var c = new NumericMemoryColumn(
+        let c = new NumericMemoryColumn(
             'non_bytes_column', ['x'], AggregationMode.MAX);
         checkNumericMemoryColumnFieldFormat(this, c, [1, 2, 3],
             tr.b.Unit.byName.unitlessNumber_smallerIsBetter, 3);
@@ -862,7 +860,7 @@ tr.b.unittest.testSuite(function() {
             this, c, [undefined, 10, 20, undefined],
             tr.b.Unit.byName.unitlessNumber_smallerIsBetter, 20);
 
-        var c = new NumericMemoryColumn(
+        c = new NumericMemoryColumn(
             'bytes_column', ['x'], AggregationMode.MAX);
         checkNumericMemoryColumnFieldFormat(this, c, [1, 2, 3],
             tr.b.Unit.byName.sizeInBytes_smallerIsBetter, 3);
@@ -876,7 +874,7 @@ tr.b.unittest.testSuite(function() {
       });
 
   test('checkNumericMemoryColumn_cmp', function() {
-    var c = new NumericMemoryColumn(
+    const c = new NumericMemoryColumn(
         'test_column', ['x'], AggregationMode.DIFF);
 
     // Undefined field values.
@@ -903,7 +901,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkNumericMemoryColumn_compareSingleFields', function() {
-    var c = new NumericMemoryColumn('test_column', ['x'],
+    const c = new NumericMemoryColumn('test_column', ['x'],
         undefined /* aggregation mode */);
 
     assert.isBelow(c.compareSingleFields(
@@ -920,7 +918,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkNumericMemoryColumn_compareMultipleFields_diff', function() {
-    var c = new NumericMemoryColumn('test_column', ['x'],
+    const c = new NumericMemoryColumn('test_column', ['x'],
         AggregationMode.DIFF);
 
     assert.isBelow(c.compareMultipleFields(
@@ -951,7 +949,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkNumericMemoryColumn_compareMultipleFields_max', function() {
-    var c = new NumericMemoryColumn('test_column', ['x'],
+    const c = new NumericMemoryColumn('test_column', ['x'],
         AggregationMode.MAX);
 
     assert.isBelow(c.compareMultipleFields(
@@ -975,10 +973,10 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkNumericMemoryColumn_getDiffFieldValue', function() {
-    var c = new NumericMemoryColumn('test_column', ['x'],
+    const c = new NumericMemoryColumn('test_column', ['x'],
         AggregationMode.MAX);
     function checkDiffValue(first, last, expectedDiffValue) {
-      var actualDiffValue = c.getDiffFieldValue_(
+      const actualDiffValue = c.getDiffFieldValue_(
           first === undefined ? undefined :
               new Scalar(sizeInBytes_smallerIsBetter, first),
           last === undefined ? undefined :
@@ -1002,7 +1000,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkExpandTableRowsRecursively', function() {
-    var columns = [
+    const columns = [
       {
         title: 'Single column',
         value(row) { return row.data; },
@@ -1010,7 +1008,7 @@ tr.b.unittest.testSuite(function() {
       }
     ];
 
-    var rows = [
+    const rows = [
       {
         data: 'allocated',
         subRows: [
@@ -1057,7 +1055,7 @@ tr.b.unittest.testSuite(function() {
       }
     ];
 
-    var table = document.createElement('tr-ui-b-table');
+    const table = document.createElement('tr-ui-b-table');
     table.tableColumns = columns;
     table.tableRows = rows;
     table.rebuild();
@@ -1093,13 +1091,13 @@ tr.b.unittest.testSuite(function() {
 
     assert.isUndefined(MemoryCell.extractFields(new MemoryCell(undefined)));
 
-    var fields = [new Scalar(sizeInBytes_smallerIsBetter, 1024)];
+    const fields = [new Scalar(sizeInBytes_smallerIsBetter, 1024)];
     assert.strictEqual(
         MemoryCell.extractFields(new MemoryCell(fields)), fields);
   });
 
   test('checkAggregateTableRowCellsRecursively', function() {
-    var row = {
+    const row = {
       testCells: {
         a: buildScalarCell(sizeInBytes_smallerIsBetter, [17])
       },
@@ -1134,17 +1132,17 @@ tr.b.unittest.testSuite(function() {
     };
 
     // Without a predicate.
-    var ca = new NumericMemoryColumn('column_a', ['testCells', 'a']);
-    var cb = new NumericMemoryColumn('column_b', ['testCells', 'b']);
-    var cc = new StringMemoryColumn('column_c', ['testCells', 'c']);
+    const ca = new NumericMemoryColumn('column_a', ['testCells', 'a']);
+    const cb = new NumericMemoryColumn('column_b', ['testCells', 'b']);
+    const cc = new StringMemoryColumn('column_c', ['testCells', 'c']);
     aggregateTableRowCellsRecursively(row, [ca, cb, cc]);
     checkSizeNumericFields(row, ca, [17]);
     checkSizeNumericFields(row, cb, [123]);
     checkStringFields(row, cc, undefined);
 
     // With a predicate.
-    var cd = new NumericMemoryColumn('column_d', ['testCells', 'd']);
-    var ce = new NumericMemoryColumn('column_e', ['testCells', 'e']);
+    const cd = new NumericMemoryColumn('column_d', ['testCells', 'd']);
+    const ce = new NumericMemoryColumn('column_e', ['testCells', 'e']);
     aggregateTableRowCellsRecursively(row, [cd, ce], function(contexts) {
       return contexts === undefined || !contexts[0].startsWith('skip');
     });
@@ -1153,14 +1151,14 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkAggregateTableRowCells', function() {
-    var row = {
+    const row = {
       // Intentionally no testCells.
       otherCells: {
         a: buildScalarCell(tr.b.Unit.byName.unitlessNumber,
             [5, undefined, undefined])
       }
     };
-    var subRows = [
+    const subRows = [
       {
         testCells: {
           a: buildScalarCell(sizeInBytes_smallerIsBetter, [1, 9])
@@ -1186,11 +1184,11 @@ tr.b.unittest.testSuite(function() {
       }
     ];
 
-    var cta = new NumericMemoryColumn('column_test_a', ['testCells', 'a']);
-    var ctb = new NumericMemoryColumn('column_test_b', ['testCells', 'b']);
-    var ctc = new NumericMemoryColumn('column_test_c', ['testCells', 'c']);
-    var coa = new NumericMemoryColumn('column_other_a', ['otherCells', 'a']);
-    var cob = new StringMemoryColumn('column_other_b', ['otherCells', 'b']);
+    const cta = new NumericMemoryColumn('column_test_a', ['testCells', 'a']);
+    const ctb = new NumericMemoryColumn('column_test_b', ['testCells', 'b']);
+    const ctc = new NumericMemoryColumn('column_test_c', ['testCells', 'c']);
+    const coa = new NumericMemoryColumn('column_other_a', ['otherCells', 'a']);
+    const cob = new StringMemoryColumn('column_other_b', ['otherCells', 'b']);
 
     aggregateTableRowCells(row, subRows, [cta, ctb, ctc, coa, cob]);
 
@@ -1204,7 +1202,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkCreateCells', function() {
-    var values = [
+    const values = [
       {
         a: 9,
         b: 314
@@ -1220,11 +1218,11 @@ tr.b.unittest.testSuite(function() {
       }
     ];
 
-    var mockColumn = new MemoryColumn('', [], undefined);
+    const mockColumn = new MemoryColumn('', [], undefined);
 
-    var cells = createCells(values, function(dict) {
-      var fields = {};
-      for (var [key, value] of Object.entries(dict)) {
+    const cells = createCells(values, function(dict) {
+      const fields = {};
+      for (const [key, value] of Object.entries(dict)) {
         if (value === undefined) continue;
         fields[key] = new Scalar(sizeInBytes_smallerIsBetter, value);
       }

@@ -22,13 +22,13 @@ tr.b.unittest.testSuite(function() {
       __proto__: tr.model.ObjectSnapshot.prototype
     };
 
-    var instance = new tr.model.ObjectInstance(
+    const instance = new tr.model.ObjectInstance(
         {}, '0x1000', 'cat', 'MySnapshot', 10);
     try {
       tr.model.ObjectSnapshot.subTypes.register(
           MySnapshot,
           {typeName: 'MySnapshot'});
-      var snapshot = instance.addSnapshot(15, {foo: 'bar'});
+      const snapshot = instance.addSnapshot(15, {foo: 'bar'});
       assert.instanceOf(snapshot, MySnapshot);
       assert.strictEqual(snapshot.myFoo, 'bar');
     } finally {

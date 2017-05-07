@@ -19,10 +19,10 @@ found in the LICENSE file.
  * TimedEvent, and has no duration.
  */
 tr.exportTo('tr.model', function() {
-  var ColorScheme = tr.b.ColorScheme;
-  var Statistics = tr.b.math.Statistics;
+  const ColorScheme = tr.b.ColorScheme;
+  const Statistics = tr.b.math.Statistics;
 
-  var FRAME_PERF_CLASS = {
+  const FRAME_PERF_CLASS = {
     GOOD: 'good',
     BAD: 'bad',
     TERRIBLE: 'terrible',
@@ -69,7 +69,7 @@ tr.exportTo('tr.model', function() {
       this.start += amount;
       this.end += amount;
 
-      for (var i = 0; i < this.threadTimeRanges.length; i++) {
+      for (let i = 0; i < this.threadTimeRanges.length; i++) {
         this.threadTimeRanges[i].start += amount;
         this.threadTimeRanges[i].end += amount;
       }

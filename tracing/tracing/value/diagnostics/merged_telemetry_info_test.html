@@ -15,7 +15,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('merge', function() {
-    let t0 = new tr.v.d.TelemetryInfo({
+    const t0 = new tr.v.d.TelemetryInfo({
       benchmarkName: 'bm0',
       benchmarkStartMs: 0,
       label: 'label0',
@@ -25,7 +25,7 @@ tr.b.unittest.testSuite(function() {
       legacyTIRLabel: 'tir0',
     });
 
-    let t1 = new tr.v.d.TelemetryInfo({
+    const t1 = new tr.v.d.TelemetryInfo({
       benchmarkName: 'bm1',
       benchmarkStartMs: 1,
       label: 'label1',
@@ -38,21 +38,21 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(t0.canAddDiagnostic(new tr.v.d.Generic('')));
     assert.isFalse(t0.canAddDiagnostic(t1));
 
-    let m0 = t0.clone();
+    const m0 = t0.clone();
     assert.instanceOf(m0, tr.v.d.MergedTelemetryInfo);
     assert.isFalse(m0.canAddDiagnostic(new tr.v.d.Generic('')));
     assert.isTrue(m0.canAddDiagnostic(t1));
 
     m0.addDiagnostic(t1);
 
-    let m1 = t1.clone();
+    const m1 = t1.clone();
     m1.addDiagnostic(t0);
 
     assert.isTrue(m1.equals(m0));
     assert.isTrue(m0.equals(m1));
 
     // Test round-tripping.
-    let clone = tr.v.d.Diagnostic.fromDict(m0.asDict());
+    const clone = tr.v.d.Diagnostic.fromDict(m0.asDict());
 
     assert.deepEqual(Array.from(clone.benchmarkNames), ['bm0', 'bm1']);
     assert.deepEqual(
@@ -69,15 +69,15 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('mergeSameBenchmarkStarts', function() {
-    let t0 = new tr.v.d.TelemetryInfo({
+    const t0 = new tr.v.d.TelemetryInfo({
       benchmarkStartMs: 0,
     });
-    let t1 = new tr.v.d.TelemetryInfo({
+    const t1 = new tr.v.d.TelemetryInfo({
       benchmarkStartMs: 0,
     });
-    let merged = t0.clone();
+    const merged = t0.clone();
     merged.addDiagnostic(t1);
-    let startDate = tr.b.getOnlyElement(merged.benchmarkStarts);
+    const startDate = tr.b.getOnlyElement(merged.benchmarkStarts);
     assert.strictEqual(startDate.getTime(), 0);
   });
 });

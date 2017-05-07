@@ -83,7 +83,7 @@ tr.exportTo('tr.model', function() {
      */
     * getDescendantEvents() {
       yield* this.childEvents();
-      for (var container of this.childEventContainers()) {
+      for (const container of this.childEventContainers()) {
         yield* container.getDescendantEvents();
       }
     },
@@ -99,7 +99,7 @@ tr.exportTo('tr.model', function() {
     */
     * getDescendantEventContainers() {
       yield this;
-      for (var container of this.childEventContainers()) {
+      for (const container of this.childEventContainers()) {
         yield* container.getDescendantEventContainers();
       }
     },
@@ -126,7 +126,7 @@ tr.exportTo('tr.model', function() {
      * not itself a top-level slice.
      */
     * findTopmostSlices(eventPredicate) {
-      for (var ec of this.getDescendantEventContainers()) {
+      for (const ec of this.getDescendantEventContainers()) {
         yield* ec.findTopmostSlicesInThisContainer(eventPredicate);
       }
     },

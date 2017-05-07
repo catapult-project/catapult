@@ -11,7 +11,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('tallWithTextContent', function() {
-    var el = document.createElement('tr-ui-b-toolbar-button');
+    const el = document.createElement('tr-ui-b-toolbar-button');
     el.style.width = '100px';
     el.style.height = '40px';
 
@@ -21,7 +21,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('tallWithInnerSpan', function() {
-    var el = document.createElement('tr-ui-b-toolbar-button');
+    const el = document.createElement('tr-ui-b-toolbar-button');
     el.style.width = '100px';
     el.style.height = '40px';
 
@@ -31,7 +31,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('puny', function() {
-    var el = document.createElement('tr-ui-b-toolbar-button');
+    const el = document.createElement('tr-ui-b-toolbar-button');
     Polymer.dom(el).textContent = 'M';
     this.addHTMLOutput(el);
   });

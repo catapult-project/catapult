@@ -14,10 +14,10 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var newSliceEx = tr.c.TestUtils.newSliceEx;
+  const newSliceEx = tr.c.TestUtils.newSliceEx;
 
   function createModel() {
-    var m = tr.c.TestUtils.newModel(function(m) {
+    const m = tr.c.TestUtils.newModel(function(m) {
       m.p1 = m.getOrCreateProcess(1);
       m.t2 = m.p1.getOrCreateThread(2);
 
@@ -51,15 +51,15 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('selectV8ThreadSlice', function() {
-    var m = createModel();
+    const m = createModel();
 
-    var viewEl =
+    const viewEl =
         document.createElement('tr-ui-e-single-v8-thread-slice-sub-view');
-    var selection1 = new tr.model.EventSet();
+    const selection1 = new tr.model.EventSet();
     selection1.push(m.s1);
     viewEl.selection = selection1;
     this.addHTMLOutput(viewEl);
-    var rows = viewEl.$.runtimeCallStats.$.table.tableRows;
+    let rows = viewEl.$.runtimeCallStats.$.table.tableRows;
     assert.lengthOf(rows, 12);
     assert.deepEqual(rows.map(r => r.time), [
       1802,
@@ -76,7 +76,7 @@ tr.b.unittest.testSuite(function() {
       0
     ]);
 
-    var selection2 = new tr.model.EventSet();
+    const selection2 = new tr.model.EventSet();
     selection2.push(m.s2);
     viewEl.selection = selection2;
     rows = viewEl.$.runtimeCallStats.$.table.tableRows;

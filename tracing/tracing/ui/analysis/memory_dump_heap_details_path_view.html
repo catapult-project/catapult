@@ -30,7 +30,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.analysis', function() {
-  var DOWNWARDS_ARROW_WITH_TIP_RIGHTWARDS = String.fromCharCode(0x21B3);
+  const DOWNWARDS_ARROW_WITH_TIP_RIGHTWARDS = String.fromCharCode(0x21B3);
 
   function HeapDetailsPathColumn(title) {
     tr.ui.analysis.HeapDetailsTitleColumn.call(this, title);
@@ -40,20 +40,20 @@ tr.exportTo('tr.ui.analysis', function() {
     __proto__: tr.ui.analysis.HeapDetailsTitleColumn.prototype,
 
     formatTitle(row) {
-      var title = tr.ui.analysis.HeapDetailsTitleColumn.prototype.
+      const title = tr.ui.analysis.HeapDetailsTitleColumn.prototype.
           formatTitle.call(this, row);
       if (row.dimension === tr.ui.analysis.HeapDetailsRowDimension.ROOT) {
         return title;
       }
 
-      var arrowEl = document.createElement('span');
+      const arrowEl = document.createElement('span');
       Polymer.dom(arrowEl).textContent = DOWNWARDS_ARROW_WITH_TIP_RIGHTWARDS;
       arrowEl.style.paddingRight = '2px';
       arrowEl.style.fontWeight = 'bold';
       arrowEl.style.color = tr.b.ColorScheme.getColorForReservedNameAsString(
           'heap_dump_child_node_arrow');
 
-      var rowEl = document.createElement('span');
+      const rowEl = document.createElement('span');
       Polymer.dom(rowEl).appendChild(arrowEl);
       Polymer.dom(rowEl).appendChild(tr.ui.b.asHTMLOrTextNode(title));
       return rowEl;
@@ -112,14 +112,14 @@ tr.exportTo('tr.ui.analysis', function() {
 
       this.$.table.selectionMode = tr.ui.b.TableFormat.SelectionMode.ROW;
       this.$.table.userCanModifySortOrder = false;
-      var rows = this.createRows_(this.selectedNode_);
+      const rows = this.createRows_(this.selectedNode_);
       this.$.table.tableRows = rows;
       this.$.table.tableColumns = this.createColumns_(rows);
       this.$.table.selectedTableRow = rows[rows.length - 1];
     },
 
     createRows_(node) {
-      var rows = [];
+      const rows = [];
       while (node) {
         rows.push(node);
         node = node.parentNode;
@@ -129,10 +129,10 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     createColumns_(rows) {
-      var titleColumn = new HeapDetailsPathColumn('Current path');
+      const titleColumn = new HeapDetailsPathColumn('Current path');
       titleColumn.width = '200px';
 
-      var numericColumns = tr.ui.analysis.MemoryColumn.fromRows(rows, {
+      const numericColumns = tr.ui.analysis.MemoryColumn.fromRows(rows, {
         cellKey: 'cells',
         aggregationMode: this.aggregationMode_,
         rules: tr.ui.analysis.HEAP_DETAILS_COLUMN_RULES,

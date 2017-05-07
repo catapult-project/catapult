@@ -11,9 +11,9 @@ found in the LICENSE file.
 'use strict';
 
 function filterDuplicateTimestamps(timestamps) {
-  var dedupedTimestamps = [];
-  var lastTs = 0;
-  for (var ts of timestamps) {
+  const dedupedTimestamps = [];
+  let lastTs = 0;
+  for (const ts of timestamps) {
     if (ts - lastTs >= 1) {
       dedupedTimestamps.push(ts);
       lastTs = ts;
@@ -23,14 +23,14 @@ function filterDuplicateTimestamps(timestamps) {
 }
 
 tr.exportTo('tr.e.audits', function() {
-  var VSYNC_COUNTER_PRECISIONS = {
+  const VSYNC_COUNTER_PRECISIONS = {
     // Android. Some versions have VSYNC split out into VSYNC-app and VSYNC-sf.
     // Requires "gfx" systrace category to be enabled.
     'android.VSYNC-app': 15,
     'android.VSYNC': 15
   };
 
-  var VSYNC_SLICE_PRECISIONS = {
+  const VSYNC_SLICE_PRECISIONS = {
     // Android.
     'RenderWidgetHostViewAndroid::OnVSync': 5,
     // Android. Very precise. Requires "gfx" systrace category to be enabled.
@@ -41,7 +41,7 @@ tr.exportTo('tr.e.audits', function() {
     'DisplayLinkMac::GetVSyncParameters': 5
   };
 
-  var BEGIN_FRAME_SLICE_PRECISION = {
+  const BEGIN_FRAME_SLICE_PRECISION = {
     'DisplayScheduler::BeginFrame': 10
   };
 
@@ -67,14 +67,14 @@ tr.exportTo('tr.e.audits', function() {
      * Returns an array of the most accurate VSync times available in the model.
      */
     findVSyncTimestamps(model) {
-      var times = [];
+      let times = [];
 
       // Only keep the most precise VSync data.
-      var maxPrecision = Number.NEGATIVE_INFINITY;
-      var maxTitle = undefined;
+      let maxPrecision = Number.NEGATIVE_INFINITY;
+      let maxTitle = undefined;
 
       function useInstead(title, precisions) {
-        var precision = precisions[title];
+        const precision = precisions[title];
         if (precision === undefined) return false;
 
         if (title === maxTitle) return true;
@@ -98,24 +98,24 @@ tr.exportTo('tr.e.audits', function() {
         return true;
       }
 
-      for (var pid in model.processes) {
-        var process = model.processes[pid];
+      for (const pid in model.processes) {
+        const process = model.processes[pid];
         // Traverse process counters.
-        for (var cid in process.counters) {
+        for (const cid in process.counters) {
           if (useInstead(cid, VSYNC_COUNTER_PRECISIONS)) {
-            var counter = process.counters[cid];
-            for (var i = 0; i < counter.series.length; i++) {
-              var series = counter.series[i];
+            const counter = process.counters[cid];
+            for (let i = 0; i < counter.series.length; i++) {
+              const series = counter.series[i];
               Array.prototype.push.apply(times, series.timestamps);
             }
           }
         }
 
         // Traverse thread slices.
-        for (var tid in process.threads) {
-          var thread = process.threads[tid];
-          for (var i = 0; i < thread.sliceGroup.slices.length; i++) {
-            var slice = thread.sliceGroup.slices[i];
+        for (const tid in process.threads) {
+          const thread = process.threads[tid];
+          for (let i = 0; i < thread.sliceGroup.slices.length; i++) {
+            const slice = thread.sliceGroup.slices[i];
             if (useInstead(slice.title, VSYNC_SLICE_PRECISIONS)) {
               times.push(slice.start);
             } else if (useInstead(slice.title, BEGIN_FRAME_SLICE_PRECISION) &&

@@ -21,7 +21,7 @@ tr.exportTo('tr.e.tquery', function() {
     if (filterExpression instanceof String ||
         typeof(filterExpression) === 'string' ||
         filterExpression instanceof RegExp) {
-      var filter = new tr.e.tquery.FilterHasTitle(filterExpression);
+      const filter = new tr.e.tquery.FilterHasTitle(filterExpression);
       return filter;
     }
     return filterExpression;

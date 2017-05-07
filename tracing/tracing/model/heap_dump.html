@@ -51,7 +51,7 @@ tr.exportTo('tr.model', function() {
 
   HeapDump.prototype = {
     addEntry(leafStackFrame, objectTypeName, size, count) {
-      var entry = new HeapEntry(
+      const entry = new HeapEntry(
           this, leafStackFrame, objectTypeName, size, count);
       this.entries.push(entry);
       return entry;

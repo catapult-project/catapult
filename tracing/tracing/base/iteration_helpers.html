@@ -17,13 +17,13 @@ tr.exportTo('tr.b', function() {
    * into an array.
    */
   function asArray(x) {
-    var values = [];
+    const values = [];
     if (x[Symbol.iterator]) {
-      for (var value of x) {
+      for (const value of x) {
         values.push(value);
       }
     } else {
-      for (var i = 0; i < x.length; i++) {
+      for (let i = 0; i < x.length; i++) {
         values.push(x[i]);
       }
     }
@@ -35,14 +35,14 @@ tr.exportTo('tr.b', function() {
    * more than one element, an error is thrown.
    */
   function getOnlyElement(iterable) {
-    var iterator = iterable[Symbol.iterator]();
+    const iterator = iterable[Symbol.iterator]();
 
-    var firstIteration = iterator.next();
+    const firstIteration = iterator.next();
     if (firstIteration.done) {
       throw new Error('getOnlyElement was passed an empty iterable.');
     }
 
-    var secondIteration = iterator.next();
+    const secondIteration = iterator.next();
     if (!secondIteration.done) {
       throw new Error(
           'getOnlyElement was passed an iterable with multiple elements.');
@@ -56,8 +56,8 @@ tr.exportTo('tr.b', function() {
    * error is thrown.
    */
   function getFirstElement(iterable) {
-    var iterator = iterable[Symbol.iterator]();
-    var result = iterator.next();
+    const iterator = iterable[Symbol.iterator]();
+    const result = iterator.next();
     if (result.done) {
       throw new Error('getFirstElement was passed an empty iterable.');
     }
@@ -66,9 +66,10 @@ tr.exportTo('tr.b', function() {
   }
 
   function compareArrays(x, y, elementCmp) {
-    var minLength = Math.min(x.length, y.length);
-    for (var i = 0; i < minLength; i++) {
-      var tmp = elementCmp(x[i], y[i]);
+    const minLength = Math.min(x.length, y.length);
+    let i;
+    for (i = 0; i < minLength; i++) {
+      const tmp = elementCmp(x[i], y[i]);
       if (tmp) return tmp;
     }
     if (x.length === y.length) return 0;
@@ -92,10 +93,10 @@ tr.exportTo('tr.b', function() {
   }
 
   function concatenateObjects(/* arguments */) {
-    var result = {};
-    for (var i = 0; i < arguments.length; i++) {
-      var object = arguments[i];
-      for (var j in object) {
+    const result = {};
+    for (let i = 0; i < arguments.length; i++) {
+      const object = arguments[i];
+      for (const j in object) {
         result[j] = object[j];
       }
     }
@@ -103,23 +104,23 @@ tr.exportTo('tr.b', function() {
   }
 
   function dictionaryValues(dict) {
-    var values = [];
-    for (var key in dict) {
+    const values = [];
+    for (const key in dict) {
       values.push(dict[key]);
     }
     return values;
   }
 
   function dictionaryLength(dict) {
-    var n = 0;
-    for (var key in dict) {
+    let n = 0;
+    for (const key in dict) {
       n++;
     }
     return n;
   }
 
   function dictionaryContainsValue(dict, value) {
-    for (var key in dict) {
+    for (const key in dict) {
       if (dict[key] === value) {
         return true;
       }
@@ -136,10 +137,10 @@ tr.exportTo('tr.b', function() {
    * @param {*=} opt_this
    */
   function group(ary, callback, opt_this, opt_arrayConstructor) {
-    var arrayConstructor = opt_arrayConstructor || Array;
-    var results = {};
-    for (var element of ary) {
-      var key = callback.call(opt_this, element);
+    const arrayConstructor = opt_arrayConstructor || Array;
+    const results = {};
+    for (const element of ary) {
+      const key = callback.call(opt_this, element);
       if (!(key in results)) {
         results[key] = new arrayConstructor();
       }
@@ -157,11 +158,11 @@ tr.exportTo('tr.b', function() {
    * @param {*=} opt_this
    */
   function groupIntoMap(ary, callback, opt_this, opt_arrayConstructor) {
-    var arrayConstructor = opt_arrayConstructor || Array;
-    var results = new Map();
-    for (var element of ary) {
-      var key = callback.call(opt_this, element);
-      var items = results.get(key);
+    const arrayConstructor = opt_arrayConstructor || Array;
+    const results = new Map();
+    for (const element of ary) {
+      const key = callback.call(opt_this, element);
+      let items = results.get(key);
       if (items === undefined) {
         items = new arrayConstructor();
         results.set(key, items);
@@ -184,10 +185,10 @@ tr.exportTo('tr.b', function() {
    */
   function mapItems(dict, fn, opt_this) {
     opt_this = opt_this || this;
-    var result = {};
-    var keys = Object.keys(dict);
-    for (var i = 0; i < keys.length; i++) {
-      var key = keys[i];
+    const result = {};
+    const keys = Object.keys(dict);
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i];
       result[key] = fn.call(opt_this, key, dict[key]);
     }
     return result;
@@ -195,11 +196,11 @@ tr.exportTo('tr.b', function() {
 
   function filterItems(dict, predicate, opt_this) {
     opt_this = opt_this || this;
-    var result = {};
-    var keys = Object.keys(dict);
-    for (var i = 0; i < keys.length; i++) {
-      var key = keys[i];
-      var value = dict[key];
+    const result = {};
+    const keys = Object.keys(dict);
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i];
+      const value = dict[key];
       if (predicate.call(opt_this, key, value)) {
         result[key] = value;
       }
@@ -209,8 +210,8 @@ tr.exportTo('tr.b', function() {
 
   function inPlaceFilter(array, predicate, opt_this) {
     opt_this = opt_this || this;
-    var nextPosition = 0;
-    for (var i = 0; i < array.length; i++) {
+    let nextPosition = 0;
+    for (let i = 0; i < array.length; i++) {
       if (!predicate.call(opt_this, array[i], i)) continue;
       if (nextPosition < i) {
         array[nextPosition] = array[i];  // Move elements only if necessary.
@@ -227,15 +228,15 @@ tr.exportTo('tr.b', function() {
     if (!(object instanceof Object)) return;
 
     if (object instanceof Array) {
-      for (var i = 0; i < object.length; i++) {
+      for (let i = 0; i < object.length; i++) {
         func(object, i, object[i]);
         iterObjectFieldsRecursively(object[i], func);
       }
       return;
     }
 
-    for (var key in object) {
-      var value = object[key];
+    for (const key in object) {
+      const value = object[key];
       func(object, key, value);
       iterObjectFieldsRecursively(value, func);
     }
@@ -275,14 +276,14 @@ tr.exportTo('tr.b', function() {
    */
   function invertArrayOfDicts(array, opt_dictGetter, opt_this) {
     opt_this = opt_this || this;
-    var result = {};
-    for (var i = 0; i < array.length; i++) {
-      var item = array[i];
+    const result = {};
+    for (let i = 0; i < array.length; i++) {
+      const item = array[i];
       if (item === undefined) continue;
-      var dict = opt_dictGetter ? opt_dictGetter.call(opt_this, item) : item;
+      const dict = opt_dictGetter ? opt_dictGetter.call(opt_this, item) : item;
       if (dict === undefined) continue;
-      for (var key in dict) {
-        var valueList = result[key];
+      for (const key in dict) {
+        let valueList = result[key];
         if (valueList === undefined) {
           result[key] = valueList = new Array(array.length);
         }
@@ -307,11 +308,11 @@ tr.exportTo('tr.b', function() {
    */
   function arrayToDict(array, valueToKeyFn, opt_this) {
     opt_this = opt_this || this;
-    var result = {};
-    var length = array.length;
-    for (var i = 0; i < length; i++) {
-      var value = array[i];
-      var key = valueToKeyFn.call(opt_this, value);
+    const result = {};
+    const length = array.length;
+    for (let i = 0; i < length; i++) {
+      const value = array[i];
+      const key = valueToKeyFn.call(opt_this, value);
       result[key] = value;
     }
     return result;
@@ -333,8 +334,8 @@ tr.exportTo('tr.b', function() {
    * @param {*=} opt_this Optional 'this' context for opt_func.
    */
   function findFirstIndexInArray(ary, opt_func, opt_this) {
-    var func = opt_func || identity;
-    for (var i = 0; i < ary.length; i++) {
+    const func = opt_func || identity;
+    for (let i = 0; i < ary.length; i++) {
       if (func.call(opt_this, ary[i], i)) return i;
     }
     return -1;
@@ -351,7 +352,7 @@ tr.exportTo('tr.b', function() {
    * @param {*=} opt_this Optional 'this' context for opt_func.
    */
   function findFirstInArray(ary, opt_func, opt_this) {
-    var i = findFirstIndexInArray(ary, opt_func, opt_func);
+    const i = findFirstIndexInArray(ary, opt_func, opt_func);
     if (i === -1) return undefined;
     return ary[i];
   }
@@ -368,8 +369,8 @@ tr.exportTo('tr.b', function() {
    * @param {*=} opt_this Optional 'this' context for opt_func.
    */
   function findFirstKeyInDictMatching(dict, opt_func, opt_this) {
-    var func = opt_func || identity;
-    for (var key in dict) {
+    const func = opt_func || identity;
+    for (const key in dict) {
       if (func.call(opt_this, key, dict[key])) {
         return key;
       }
@@ -379,8 +380,8 @@ tr.exportTo('tr.b', function() {
 
   /** Returns the values in an ES6 Map object. */
   function mapValues(map) {
-    var values = [];
-    for (var value of map.values()) {
+    const values = [];
+    for (const value of map.values()) {
       values.push(value);
     }
     return values;

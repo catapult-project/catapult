@@ -10,7 +10,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.model', function() {
-  var Settings = tr.b.Settings;
+  const Settings = tr.b.Settings;
 
   /**
    * A way to persist settings specific to parts of a trace model.
@@ -38,16 +38,16 @@ tr.exportTo('tr.model', function() {
 
   ModelSettings.prototype = {
     buildObjectsByKeyMap_() {
-      var objects = [];
+      const objects = [];
       this.model.iterateAllPersistableObjects(function(o) {
         objects.push(o);
       });
 
-      var objectsByKey = {};
-      var NONUNIQUE_KEY = 'nonuniqueKey';
-      for (var i = 0; i < objects.length; i++) {
-        var object = objects[i];
-        var objectKey = object.getSettingsKey();
+      const objectsByKey = {};
+      const NONUNIQUE_KEY = 'nonuniqueKey';
+      for (let i = 0; i < objects.length; i++) {
+        const object = objects[i];
+        const objectKey = object.getSettingsKey();
         if (!objectKey) continue;
         if (objectsByKey[objectKey] === undefined) {
           objectsByKey[objectKey] = object;
@@ -56,7 +56,7 @@ tr.exportTo('tr.model', function() {
         objectsByKey[objectKey] = NONUNIQUE_KEY;
       }
 
-      var nonuniqueKeys = {};
+      const nonuniqueKeys = {};
       Object.keys(objectsByKey).forEach(function(objectKey) {
         if (objectsByKey[objectKey] !== NONUNIQUE_KEY) {
           return;
@@ -70,8 +70,8 @@ tr.exportTo('tr.model', function() {
     },
 
     removeNonuniqueKeysFromSettings_() {
-      var settings = Settings.get('trace_model_settings', {});
-      var settingsChanged = false;
+      const settings = Settings.get('trace_model_settings', {});
+      let settingsChanged = false;
       Object.keys(settings).forEach(function(objectKey) {
         if (!this.nonuniqueKeys[objectKey]) {
           return;
@@ -85,27 +85,27 @@ tr.exportTo('tr.model', function() {
     },
 
     hasUniqueSettingKey(object) {
-      var objectKey = object.getSettingsKey();
+      const objectKey = object.getSettingsKey();
       if (!objectKey) return false;
       return this.objectsByKey_[objectKey] !== undefined;
     },
 
     getSettingFor(object, objectLevelKey, defaultValue) {
-      var objectKey = object.getSettingsKey();
+      const objectKey = object.getSettingsKey();
       if (!objectKey || !this.objectsByKey_[objectKey]) {
-        var settings = this.getEphemeralSettingsFor_(object);
-        var ephemeralValue = settings[objectLevelKey];
+        const settings = this.getEphemeralSettingsFor_(object);
+        const ephemeralValue = settings[objectLevelKey];
         if (ephemeralValue !== undefined) {
           return ephemeralValue;
         }
         return defaultValue;
       }
 
-      var settings = Settings.get('trace_model_settings', {});
+      const settings = Settings.get('trace_model_settings', {});
       if (!settings[objectKey]) {
         settings[objectKey] = {};
       }
-      var value = settings[objectKey][objectLevelKey];
+      const value = settings[objectKey][objectLevelKey];
       if (value !== undefined) {
         return value;
       }
@@ -113,13 +113,13 @@ tr.exportTo('tr.model', function() {
     },
 
     setSettingFor(object, objectLevelKey, value) {
-      var objectKey = object.getSettingsKey();
+      const objectKey = object.getSettingsKey();
       if (!objectKey || !this.objectsByKey_[objectKey]) {
         this.getEphemeralSettingsFor_(object)[objectLevelKey] = value;
         return;
       }
 
-      var settings = Settings.get('trace_model_settings', {});
+      const settings = Settings.get('trace_model_settings', {});
       if (!settings[objectKey]) {
         settings[objectKey] = {};
       }

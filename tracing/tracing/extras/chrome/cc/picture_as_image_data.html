@@ -53,8 +53,8 @@ tr.exportTo('tr.e.cc', function() {
     asCanvas() {
       if (!this.imageData_) return;
 
-      var canvas = document.createElement('canvas');
-      var ctx = canvas.getContext('2d');
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
 
       canvas.width = this.imageData_.width;
       canvas.height = this.imageData_.height;

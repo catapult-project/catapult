@@ -15,20 +15,22 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var Viewport = tr.ui.TimelineViewport;
-  var ProcessMemoryDumpTrack = tr.ui.tracks.ProcessMemoryDumpTrack;
-  var createTestProcessMemoryDumps = tr.ui.tracks.createTestProcessMemoryDumps;
+  const Viewport = tr.ui.TimelineViewport;
+  const ProcessMemoryDumpTrack = tr.ui.tracks.ProcessMemoryDumpTrack;
+  const createTestProcessMemoryDumps =
+    tr.ui.tracks.createTestProcessMemoryDumps;
 
   function instantiateTrack(withVMRegions, withAllocatorDumps,
       expectedTrackCount) {
-    var dumps = createTestProcessMemoryDumps(withVMRegions, withAllocatorDumps);
+    const dumps = createTestProcessMemoryDumps(
+        withVMRegions, withAllocatorDumps);
 
-    var div = document.createElement('div');
-    var viewport = new Viewport(div);
-    var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
+    const div = document.createElement('div');
+    const viewport = new Viewport(div);
+    const drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
     Polymer.dom(div).appendChild(drawingContainer);
 
-    var track = new ProcessMemoryDumpTrack(viewport);
+    const track = new ProcessMemoryDumpTrack(viewport);
     Polymer.dom(drawingContainer).appendChild(track);
     drawingContainer.invalidate();
 
@@ -39,7 +41,7 @@ tr.b.unittest.testSuite(function() {
       this.addHTMLOutput(div);
     }
 
-    var dt = new tr.ui.TimelineDisplayTransform();
+    const dt = new tr.ui.TimelineDisplayTransform();
     dt.xSetWorldBounds(0, 50, track.clientWidth);
     track.viewport.setDisplayTransformImmediately(dt);
 

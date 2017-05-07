@@ -15,21 +15,21 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.tracks', function() {
-  var ColorScheme = tr.b.ColorScheme;
-  var EventPresenter = tr.ui.b.EventPresenter;
-  var SelectionState = tr.model.SelectionState;
+  const ColorScheme = tr.b.ColorScheme;
+  const EventPresenter = tr.ui.b.EventPresenter;
+  const SelectionState = tr.model.SelectionState;
 
   /**
    * The type of a chart series.
    * @enum
    */
-  var ChartSeriesType = {
+  const ChartSeriesType = {
     LINE: 0,
     AREA: 1
   };
 
   // The default rendering configuration for ChartSeries.
-  var DEFAULT_RENDERING_CONFIG = {
+  const DEFAULT_RENDERING_CONFIG = {
     // The type of the chart series.
     chartType: ChartSeriesType.LINE,
 
@@ -72,23 +72,23 @@ tr.exportTo('tr.ui.tracks', function() {
 
   // The virtual width of the last point in a series (whose rectangle has zero
   // width) in world timestamps difference for the purposes of selection.
-  var LAST_POINT_WIDTH = 16;
+  const LAST_POINT_WIDTH = 16;
 
   // Constants for sizing and font of points with dot letters.
-  var DOT_LETTER_RADIUS_PX = 7;
-  var DOT_LETTER_RADIUS_PADDING_PX = 0.5;
-  var DOT_LETTER_SELECTED_OUTLINE_WIDTH_PX = 3;
-  var DOT_LETTER_SELECTED_OUTLINE_DETAIL_WIDTH_PX = 1.5;
-  var DOT_LETTER_UNSELECTED_OUTLINE_WIDTH_PX = 1;
-  var DOT_LETTER_FONT_WEIGHT = 400;
-  var DOT_LETTER_FONT_SIZE_PX = 9;
-  var DOT_LETTER_FONT = 'Arial';
+  const DOT_LETTER_RADIUS_PX = 7;
+  const DOT_LETTER_RADIUS_PADDING_PX = 0.5;
+  const DOT_LETTER_SELECTED_OUTLINE_WIDTH_PX = 3;
+  const DOT_LETTER_SELECTED_OUTLINE_DETAIL_WIDTH_PX = 1.5;
+  const DOT_LETTER_UNSELECTED_OUTLINE_WIDTH_PX = 1;
+  const DOT_LETTER_FONT_WEIGHT = 400;
+  const DOT_LETTER_FONT_SIZE_PX = 9;
+  const DOT_LETTER_FONT = 'Arial';
 
   /**
    * Visual components of a ChartSeries.
    * @enum
    */
-  var ChartSeriesComponent = {
+  const ChartSeriesComponent = {
     BACKGROUND: 0,
     LINE: 1,
     DOTS: 2
@@ -109,12 +109,12 @@ tr.exportTo('tr.ui.tracks', function() {
 
   ChartSeries.prototype = {
     useRenderingConfig_(opt_renderingConfig) {
-      var config = opt_renderingConfig || {};
+      const config = opt_renderingConfig || {};
 
       // Store all configuration flags as private properties.
-      for (var [key, defaultValue] of
+      for (const [key, defaultValue] of
           Object.entries(DEFAULT_RENDERING_CONFIG)) {
-        var value = config[key];
+        let value = config[key];
         if (value === undefined) {
           value = defaultValue;
         }
@@ -127,7 +127,7 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     get range() {
-      var range = new tr.b.math.Range();
+      const range = new tr.b.math.Range();
       this.points.forEach(function(point) {
         range.addValue(point.y);
       }, this);
@@ -159,23 +159,23 @@ tr.exportTo('tr.ui.tracks', function() {
     drawComponent_(ctx, transform, component, highDetails) {
       // We need to consider extra pixels outside the visible area to avoid
       // visual glitches due to non-zero width of dots.
-      var extraPixels = 0;
+      let extraPixels = 0;
       if (component === ChartSeriesComponent.DOTS) {
         extraPixels = Math.max(
             this.selectedPointSize_, this.unselectedPointSize_);
       }
-      var pixelRatio = transform.pixelRatio;
-      var leftViewX = transform.leftViewX - extraPixels * pixelRatio;
-      var rightViewX = transform.rightViewX + extraPixels * pixelRatio;
-      var leftTimestamp = transform.leftTimestamp - extraPixels;
-      var rightTimestamp = transform.rightTimestamp + extraPixels;
+      const pixelRatio = transform.pixelRatio;
+      const leftViewX = transform.leftViewX - extraPixels * pixelRatio;
+      const rightViewX = transform.rightViewX + extraPixels * pixelRatio;
+      const leftTimestamp = transform.leftTimestamp - extraPixels;
+      const rightTimestamp = transform.rightTimestamp + extraPixels;
 
       // Find the index of the first and last (partially) visible points.
-      var firstVisibleIndex = tr.b.math.findLowIndexInSortedArray(
+      const firstVisibleIndex = tr.b.math.findLowIndexInSortedArray(
           this.points,
           function(point) { return point.x; },
           leftTimestamp);
-      var lastVisibleIndex = tr.b.math.findLowIndexInSortedArray(
+      let lastVisibleIndex = tr.b.math.findLowIndexInSortedArray(
           this.points,
           function(point) { return point.x; },
           rightTimestamp);
@@ -191,14 +191,14 @@ tr.exportTo('tr.ui.tracks', function() {
       //   * Unselected dot opacity,
       //   * Selected dot edge color and width, and
       //   * Line component color and width.
-      var viewSkipDistance = this.skipDistance_ * pixelRatio;
-      var selectedCircleRadius;
-      var letterDotRadius;
-      var squareSize;
-      var squareHalfSize;
-      var squareOpacity;
-      var unselectedSeriesColor;
-      var currentStateSeriesColor;
+      const viewSkipDistance = this.skipDistance_ * pixelRatio;
+      let selectedCircleRadius;
+      let letterDotRadius;
+      let squareSize;
+      let squareHalfSize;
+      let squareOpacity;
+      let unselectedSeriesColor;
+      let currentStateSeriesColor;
 
       ctx.save();
       ctx.font =
@@ -209,7 +209,7 @@ tr.exportTo('tr.ui.tracks', function() {
       ctx.textAlign = 'center';
 
       switch (component) {
-        case ChartSeriesComponent.DOTS:
+        case ChartSeriesComponent.DOTS: {
           // Selected (circle) and unselected (square) dot size.
           selectedCircleRadius =
               (this.selectedPointSize_ / 2) * pixelRatio;
@@ -226,13 +226,13 @@ tr.exportTo('tr.ui.tracks', function() {
             squareOpacity = 0;
             break;
           }
-          var visibleIndexRange = lastVisibleIndex - firstVisibleIndex;
+          const visibleIndexRange = lastVisibleIndex - firstVisibleIndex;
           if (visibleIndexRange <= 0) {
             // There is at most one visible point.
             squareOpacity = 1;
             break;
           }
-          var visibleViewXRange =
+          const visibleViewXRange =
               transform.worldXToViewX(this.points[lastVisibleIndex].x) -
               transform.worldXToViewX(this.points[firstVisibleIndex].x);
           if (visibleViewXRange === 0) {
@@ -240,16 +240,17 @@ tr.exportTo('tr.ui.tracks', function() {
             squareOpacity = 1;
             break;
           }
-          var density = visibleIndexRange / visibleViewXRange;
-          var clampedDensity = tr.b.math.clamp(density,
+          const density = visibleIndexRange / visibleViewXRange;
+          const clampedDensity = tr.b.math.clamp(density,
               this.unselectedPointDensityOpaque_,
               this.unselectedPointDensityTransparent_);
-          var densityRange = this.unselectedPointDensityTransparent_ -
+          const densityRange = this.unselectedPointDensityTransparent_ -
               this.unselectedPointDensityOpaque_;
           squareOpacity =
               (this.unselectedPointDensityTransparent_ - clampedDensity) /
               densityRange;
           break;
+        }
 
         case ChartSeriesComponent.LINE:
           // Line component color and width.
@@ -275,16 +276,17 @@ tr.exportTo('tr.ui.tracks', function() {
       // fashion: the rectangle/line that we draw in an iteration corresponds
       // to the *previous* point. This does not apply to the dots, whose
       // position is independent of the surrounding dots.
-      var previousViewX = undefined;
-      var previousViewY = undefined;
-      var previousViewYBase = undefined;
-      var lastSelectionState = undefined;
-      var baseSteps = undefined;
-      var startIndex = Math.max(firstVisibleIndex - 1, 0);
+      let previousViewX = undefined;
+      let previousViewY = undefined;
+      let previousViewYBase = undefined;
+      let lastSelectionState = undefined;
+      let baseSteps = undefined;
+      const startIndex = Math.max(firstVisibleIndex - 1, 0);
+      let currentViewX;
 
-      for (var i = startIndex; i < this.points.length; i++) {
-        var currentPoint = this.points[i];
-        var currentViewX = transform.worldXToViewX(currentPoint.x);
+      for (let i = startIndex; i < this.points.length; i++) {
+        const currentPoint = this.points[i];
+        currentViewX = transform.worldXToViewX(currentPoint.x);
 
         // Stop drawing the points once we are to the right of the visible area.
         if (currentViewX > rightViewX) {
@@ -299,8 +301,8 @@ tr.exportTo('tr.ui.tracks', function() {
         }
 
         if (i + 1 < this.points.length) {
-          var nextPoint = this.points[i + 1];
-          var nextViewX = transform.worldXToViewX(nextPoint.x);
+          const nextPoint = this.points[i + 1];
+          const nextViewX = transform.worldXToViewX(nextPoint.x);
 
           // Skip points that are too close to each other.
           if (previousViewX !== undefined &&
@@ -325,17 +327,18 @@ tr.exportTo('tr.ui.tracks', function() {
           currentViewX = previousViewX + viewSkipDistance;
         }
 
-        var currentViewY = Math.round(transform.worldYToViewY(currentPoint.y));
-        var currentViewYBase;
+        const currentViewY = Math.round(transform.worldYToViewY(
+            currentPoint.y));
+        let currentViewYBase;
         if (currentPoint.yBase === undefined) {
           currentViewYBase = transform.outerBottomViewY;
         } else {
           currentViewYBase = Math.round(
               transform.worldYToViewY(currentPoint.yBase));
         }
-        var currentSelectionState = currentPoint.selectionState;
+        const currentSelectionState = currentPoint.selectionState;
         if (currentSelectionState !== lastSelectionState) {
-          var opacity = currentSelectionState === SelectionState.SELECTED ?
+          const opacity = currentSelectionState === SelectionState.SELECTED ?
               1 : squareOpacity;
           currentStateSeriesColor = EventPresenter.getCounterSeriesColor(
               this.colorId_, currentSelectionState, opacity);
@@ -427,11 +430,11 @@ tr.exportTo('tr.ui.tracks', function() {
             // changes (and at the beginning).
             if (currentSelectionState !== lastSelectionState) {
               if (previousViewX !== undefined) {
-                var previousBaseStepViewX = currentViewX;
-                for (var j = baseSteps.length - 1; j >= 0; j--) {
-                  var baseStep = baseSteps[j];
-                  var baseStepViewX = baseStep.viewX;
-                  var baseStepViewY = baseStep.viewY;
+                let previousBaseStepViewX = currentViewX;
+                for (let j = baseSteps.length - 1; j >= 0; j--) {
+                  const baseStep = baseSteps[j];
+                  const baseStepViewX = baseStep.viewX;
+                  const baseStepViewY = baseStep.viewY;
                   ctx.lineTo(previousBaseStepViewX, baseStepViewY);
                   ctx.lineTo(baseStepViewX, baseStepViewY);
                   previousBaseStepViewX = baseStepViewX;
@@ -479,12 +482,12 @@ tr.exportTo('tr.ui.tracks', function() {
             ctx.stroke();
             break;
 
-          case ChartSeriesComponent.BACKGROUND:
-            var previousBaseStepViewX = currentViewX;
-            for (var j = baseSteps.length - 1; j >= 0; j--) {
-              var baseStep = baseSteps[j];
-              var baseStepViewX = baseStep.viewX;
-              var baseStepViewY = baseStep.viewY;
+          case ChartSeriesComponent.BACKGROUND: {
+            let previousBaseStepViewX = currentViewX;
+            for (let j = baseSteps.length - 1; j >= 0; j--) {
+              const baseStep = baseSteps[j];
+              const baseStepViewX = baseStep.viewX;
+              const baseStepViewY = baseStep.viewY;
               ctx.lineTo(previousBaseStepViewX, baseStepViewY);
               ctx.lineTo(baseStepViewX, baseStepViewY);
               previousBaseStepViewX = baseStepViewX;
@@ -492,6 +495,7 @@ tr.exportTo('tr.ui.tracks', function() {
             ctx.closePath();
             ctx.fill();
             break;
+          }
 
           default:
             throw new Error('Not reachable');
@@ -502,13 +506,13 @@ tr.exportTo('tr.ui.tracks', function() {
 
     addIntersectingEventsInRangeToSelectionInWorldSpace(
         loWX, hiWX, viewPixWidthWorld, selection) {
-      var points = this.points;
+      const points = this.points;
 
       function getPointWidth(point, i) {
         if (i === points.length - 1) {
           return LAST_POINT_WIDTH * viewPixWidthWorld;
         }
-        var nextPoint = points[i + 1];
+        const nextPoint = points[i + 1];
         return nextPoint.x - point.x;
       }
 
@@ -528,12 +532,12 @@ tr.exportTo('tr.ui.tracks', function() {
     addEventNearToProvidedEventToSelection(event, offset, selection) {
       if (this.points === undefined) return false;
 
-      var index = tr.b.findFirstIndexInArray(this.points, function(point) {
+      const index = tr.b.findFirstIndexInArray(this.points, function(point) {
         return point.modelItem === event;
       }, this);
       if (index === -1) return false;
 
-      var newIndex = index + offset;
+      const newIndex = index + offset;
       if (newIndex < 0 || newIndex >= this.points.length) return false;
 
       this.points[newIndex].addToSelection(selection);
@@ -544,7 +548,7 @@ tr.exportTo('tr.ui.tracks', function() {
         selection) {
       if (this.points === undefined) return;
 
-      var item = tr.b.math.findClosestElementInSortedArray(
+      const item = tr.b.math.findClosestElementInSortedArray(
           this.points,
           function(point) { return point.x; },
           worldX,

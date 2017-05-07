@@ -50,8 +50,9 @@ tr.exportTo('tr.model', function() {
         opt_precisionUnit = tr.b.TimeDisplayModes.ms;
       }
 
-      var startsBefore = opt_precisionUnit.roundedLess(that.start, this.start);
-      var endsAfter = opt_precisionUnit.roundedLess(this.end, that.end);
+      const startsBefore = opt_precisionUnit.roundedLess(
+          that.start, this.start);
+      const endsAfter = opt_precisionUnit.roundedLess(this.end, that.end);
       return !startsBefore && !endsAfter;
     }
   };

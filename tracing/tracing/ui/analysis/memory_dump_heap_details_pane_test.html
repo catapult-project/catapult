@@ -21,41 +21,42 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var ViewType = tr.b.MultiDimensionalViewBuilder.ViewType;
-  var TOP_DOWN_TREE_VIEW = ViewType.TOP_DOWN_TREE_VIEW;
-  var TOP_DOWN_HEAVY_VIEW = ViewType.TOP_DOWN_HEAVY_VIEW;
-  var BOTTOM_UP_HEAVY_VIEW = ViewType.BOTTOM_UP_HEAVY_VIEW;
-  var HeapDump = tr.model.HeapDump;
-  var HeapDetailsRowDimension = tr.ui.analysis.HeapDetailsRowDimension;
-  var ROOT = HeapDetailsRowDimension.ROOT;
-  var STACK_FRAME = HeapDetailsRowDimension.STACK_FRAME;
-  var OBJECT_TYPE = HeapDetailsRowDimension.OBJECT_TYPE;
-  var TitleColumn = tr.ui.analysis.TitleColumn;
-  var NumericMemoryColumn = tr.ui.analysis.NumericMemoryColumn;
-  var AggregationMode = tr.ui.analysis.MemoryColumn.AggregationMode;
-  var addGlobalMemoryDump = tr.model.MemoryDumpTestUtils.addGlobalMemoryDump;
-  var addProcessMemoryDump = tr.model.MemoryDumpTestUtils.addProcessMemoryDump;
-  var checkColumns = tr.ui.analysis.checkColumns;
-  var checkNumericFields = tr.ui.analysis.checkNumericFields;
-  var checkSizeNumericFields = tr.ui.analysis.checkSizeNumericFields;
-  var isElementDisplayed = tr.ui.analysis.isElementDisplayed;
-  var count_smallerIsBetter = tr.b.Unit.byName.count_smallerIsBetter;
+  const ViewType = tr.b.MultiDimensionalViewBuilder.ViewType;
+  const TOP_DOWN_TREE_VIEW = ViewType.TOP_DOWN_TREE_VIEW;
+  const TOP_DOWN_HEAVY_VIEW = ViewType.TOP_DOWN_HEAVY_VIEW;
+  const BOTTOM_UP_HEAVY_VIEW = ViewType.BOTTOM_UP_HEAVY_VIEW;
+  const HeapDump = tr.model.HeapDump;
+  const HeapDetailsRowDimension = tr.ui.analysis.HeapDetailsRowDimension;
+  const ROOT = HeapDetailsRowDimension.ROOT;
+  const STACK_FRAME = HeapDetailsRowDimension.STACK_FRAME;
+  const OBJECT_TYPE = HeapDetailsRowDimension.OBJECT_TYPE;
+  const TitleColumn = tr.ui.analysis.TitleColumn;
+  const NumericMemoryColumn = tr.ui.analysis.NumericMemoryColumn;
+  const AggregationMode = tr.ui.analysis.MemoryColumn.AggregationMode;
+  const addGlobalMemoryDump = tr.model.MemoryDumpTestUtils.addGlobalMemoryDump;
+  const addProcessMemoryDump =
+    tr.model.MemoryDumpTestUtils.addProcessMemoryDump;
+  const checkColumns = tr.ui.analysis.checkColumns;
+  const checkNumericFields = tr.ui.analysis.checkNumericFields;
+  const checkSizeNumericFields = tr.ui.analysis.checkSizeNumericFields;
+  const isElementDisplayed = tr.ui.analysis.isElementDisplayed;
+  const count_smallerIsBetter = tr.b.Unit.byName.count_smallerIsBetter;
 
   function createHeapDumps(withCount) {
-    var model = new tr.Model();
-    var process = model.getOrCreateProcess(1);
+    const model = new tr.Model();
+    const process = model.getOrCreateProcess(1);
 
     function addHeapEntry(heapDump, stackFrames, objectTypeName, size, count) {
-      var leafStackFrame = stackFrames === undefined ? undefined :
+      const leafStackFrame = stackFrames === undefined ? undefined :
           tr.c.TestUtils.newStackTrace(model, stackFrames);
       heapDump.addEntry(leafStackFrame, objectTypeName, size,
           withCount ? count : undefined);
     }
 
     // First timestamp.
-    var gmd1 = addGlobalMemoryDump(model, {ts: -10});
-    var pmd1 = addProcessMemoryDump(gmd1, process, {ts: -11});
-    var hd1 = new HeapDump(pmd1, 'partition_alloc');
+    const gmd1 = addGlobalMemoryDump(model, {ts: -10});
+    const pmd1 = addProcessMemoryDump(gmd1, process, {ts: -11});
+    const hd1 = new HeapDump(pmd1, 'partition_alloc');
 
     addHeapEntry(hd1, undefined /* sum over all traces */,
         undefined /* sum over all types */, 4194304 /* 4 MiB */, 1000);
@@ -122,9 +123,9 @@ tr.b.unittest.testSuite(function() {
         undefined /* sum over all types */, 307200 /* 300 KiB */, 300);
 
     // Second timestamp.
-    var gmd2 = addGlobalMemoryDump(model, {ts: 10});
-    var pmd2 = addProcessMemoryDump(gmd2, process, {ts: 11});
-    var hd2 = new HeapDump(pmd2, 'partition_alloc');
+    const gmd2 = addGlobalMemoryDump(model, {ts: 10});
+    const pmd2 = addProcessMemoryDump(gmd2, process, {ts: 11});
+    const hd2 = new HeapDump(pmd2, 'partition_alloc');
 
     addHeapEntry(hd2, undefined /* sum over all traces */,
         undefined /* sum over all types */,
@@ -191,16 +192,16 @@ tr.b.unittest.testSuite(function() {
         displayExpectations.tableAndSplitView);
   }
 
-  var EXPECTED_COLUMNS_WITHOUT_COUNT = [
+  const EXPECTED_COLUMNS_WITHOUT_COUNT = [
     { title: 'Current path', type: TitleColumn, noAggregation: true },
     { title: 'Size', type: NumericMemoryColumn }
   ];
 
-  var EXPECTED_COLUMNS_WITH_COUNT = EXPECTED_COLUMNS_WITHOUT_COUNT.concat([
+  const EXPECTED_COLUMNS_WITH_COUNT = EXPECTED_COLUMNS_WITHOUT_COUNT.concat([
     { title: 'Count', type: NumericMemoryColumn },
   ]);
 
-  var EXPECTED_CELLS = ['Size', 'Count'];
+  const EXPECTED_CELLS = ['Size', 'Count'];
 
   function checkNode(node, expectedNodeStructure, expectedParentNode) {
     assert.strictEqual(node.title, expectedNodeStructure.title);
@@ -208,15 +209,15 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(node.parentNode, expectedParentNode);
 
     // Check that there AREN'T any cells that we are NOT expecting.
-    var cells = node.cells;
+    const cells = node.cells;
     assert.includeMembers(EXPECTED_CELLS, Object.keys(cells));
 
-    var sizeCell = cells.Size;
-    var sizeFields = sizeCell ? sizeCell.fields : undefined;
+    const sizeCell = cells.Size;
+    const sizeFields = sizeCell ? sizeCell.fields : undefined;
     checkSizeNumericFields(sizeFields, undefined, expectedNodeStructure.size);
 
-    var countCell = cells.Count;
-    var countFields = countCell ? countCell.fields : undefined;
+    const countCell = cells.Count;
+    const countFields = countCell ? countCell.fields : undefined;
     checkNumericFields(countFields, undefined, expectedNodeStructure.count,
         count_smallerIsBetter);
 
@@ -250,7 +251,7 @@ tr.b.unittest.testSuite(function() {
 
   function checkNodes(nodes, expectedStructure, expectedParentNode) {
     assert.lengthOf(nodes, expectedStructure.length);
-    for (var i = 0; i < expectedStructure.length; i++) {
+    for (let i = 0; i < expectedStructure.length; i++) {
       checkNode(nodes[i], expectedStructure[i], expectedParentNode);
     }
   }
@@ -264,14 +265,14 @@ tr.b.unittest.testSuite(function() {
 
     // Both the split view and breakdown view should be displaying the same
     // node.
-    var selectedNode = viewEl.$.path_view.selectedNode;
+    const selectedNode = viewEl.$.path_view.selectedNode;
     assert.strictEqual(viewEl.$.breakdown_view.displayedNode, selectedNode);
     checkNodes([selectedNode], expectedStructure,
         undefined /* expectedParentNode */);
 
     // TODO: Add proper tests for tr-ui-a-memory-dump-heap-details-path-view
     // and tr-ui-a-memory-dump-heap-details-breakdown-view.
-    var expectedColumns = expectedConfig.expectedCountColumns ?
+    const expectedColumns = expectedConfig.expectedCountColumns ?
         EXPECTED_COLUMNS_WITH_COUNT : EXPECTED_COLUMNS_WITHOUT_COUNT;
     checkColumns(viewEl.$.path_view.$.table.tableColumns, expectedColumns,
         expectedConfig.expectedAggregationMode);
@@ -296,10 +297,10 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiate_noEntries', function() {
-    var heapDumps = createHeapDumps(false).slice(0, 1);
+    const heapDumps = createHeapDumps(false).slice(0, 1);
     heapDumps[0].entries = [];
 
-    var viewEl = tr.ui.analysis.createTestPane(
+    const viewEl = tr.ui.analysis.createTestPane(
         'tr-ui-a-memory-dump-heap-details-pane');
     viewEl.heapDumps = heapDumps;
     viewEl.rebuild();
@@ -345,9 +346,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiate_single', function() {
-    var heapDumps = createHeapDumps(false).slice(0, 1);
+    const heapDumps = createHeapDumps(false).slice(0, 1);
 
-    var viewEl = tr.ui.analysis.createTestPane(
+    const viewEl = tr.ui.analysis.createTestPane(
         'tr-ui-a-memory-dump-heap-details-pane');
     viewEl.heapDumps = heapDumps;
     viewEl.rebuild();
@@ -2222,9 +2223,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiate_multipleDiff', function() {
-    var heapDumps = createHeapDumps(true /* with allocation counts */);
+    const heapDumps = createHeapDumps(true /* with allocation counts */);
 
-    var viewEl = tr.ui.analysis.createTestPane(
+    const viewEl = tr.ui.analysis.createTestPane(
         'tr-ui-a-memory-dump-heap-details-pane');
     viewEl.heapDumps = heapDumps;
     viewEl.aggregationMode = AggregationMode.DIFF;
@@ -3938,9 +3939,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiate_multipleMax', function() {
-    var heapDumps = createHeapDumps(false);
+    const heapDumps = createHeapDumps(false);
 
-    var viewEl = tr.ui.analysis.createTestPane(
+    const viewEl = tr.ui.analysis.createTestPane(
         'tr-ui-a-memory-dump-heap-details-pane');
     viewEl.heapDumps = heapDumps;
     viewEl.aggregationMode = AggregationMode.MAX;
@@ -3965,10 +3966,10 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiate_multipleWithUndefined', function() {
-    var heapDumps = createHeapDumps(false);
+    const heapDumps = createHeapDumps(false);
     heapDumps.splice(1, 0, undefined);
 
-    var viewEl = tr.ui.analysis.createTestPane(
+    const viewEl = tr.ui.analysis.createTestPane(
         'tr-ui-a-memory-dump-heap-details-pane');
     viewEl.heapDumps = heapDumps;
     viewEl.aggregationMode = AggregationMode.DIFF;

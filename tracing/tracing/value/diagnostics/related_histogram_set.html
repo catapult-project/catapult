@@ -19,7 +19,7 @@ tr.exportTo('tr.v.d', function() {
       this.histogramsByGuid_ = new Map();
 
       if (opt_histograms) {
-        for (let hist of opt_histograms) {
+        for (const hist of opt_histograms) {
           this.add(hist);
         }
       }
@@ -61,16 +61,17 @@ tr.exportTo('tr.v.d', function() {
         from |parentHist|'s merge path, then |relatedHist| should not be related
         to |parentHist|.
        */
-      let parentGroupingPath = tr.v.d.GroupingPath.getFromHistogram(parentHist);
-      for (let otherRelatedHist of otherDiagnostic) {
-        let mergedTo = otherRelatedHist.diagnostics.get(
+      const parentGroupingPath = tr.v.d.GroupingPath.getFromHistogram(
+          parentHist);
+      for (const otherRelatedHist of otherDiagnostic) {
+        const mergedTo = otherRelatedHist.diagnostics.get(
             tr.v.d.MERGED_TO_DIAGNOSTIC_KEY);
         if (mergedTo === undefined) continue;
 
-        for (let relatedHist of mergedTo) {
+        for (const relatedHist of mergedTo) {
           if (this.has(relatedHist)) continue;
 
-          let relatedGroupingPath = tr.v.d.GroupingPath.getFromHistogram(
+          const relatedGroupingPath = tr.v.d.GroupingPath.getFromHistogram(
               relatedHist);
           if (relatedGroupingPath === undefined) continue;
           if (!parentGroupingPath.equals(relatedGroupingPath)) continue;
@@ -106,7 +107,7 @@ tr.exportTo('tr.v.d', function() {
     }
 
     * [Symbol.iterator]() {
-      for (let [guid, hist] of this.histogramsByGuid_) {
+      for (const [guid, hist] of this.histogramsByGuid_) {
         yield hist;
       }
     }
@@ -123,10 +124,10 @@ tr.exportTo('tr.v.d', function() {
      * @param {boolean=} opt_required
      */
     resolve(histograms, opt_required) {
-      for (let [guid, hist] of this.histogramsByGuid_) {
-        if (!(hist instanceof tr.v.d.HistogramRef)) continue;
+      for (const [guid, value] of this.histogramsByGuid_) {
+        if (!(value instanceof tr.v.d.HistogramRef)) continue;
 
-        hist = histograms.lookupHistogram(guid);
+        const hist = histograms.lookupHistogram(guid);
         if (hist instanceof tr.v.Histogram) {
           this.histogramsByGuid_.set(guid, hist);
         } else if (opt_required) {
@@ -137,7 +138,7 @@ tr.exportTo('tr.v.d', function() {
 
     asDictInto_(d) {
       d.guids = [];
-      for (let hist of this) {
+      for (const hist of this) {
         d.guids.push(hist.guid);
       }
     }

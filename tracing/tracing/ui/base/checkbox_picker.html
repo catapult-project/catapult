@@ -58,7 +58,7 @@ Polymer({
 
     this.needsInit_ = false;
 
-    for (var key in this.checkboxes_) {
+    for (const key in this.checkboxes_) {
       this.checkboxes_[key].defaultCheckedValue = false;
       this.checkboxes_[key].settingsKey = this.settingsKey_ + key;
     }
@@ -70,7 +70,7 @@ Polymer({
       if (e.key in this.checkboxes_) {
         throw new Error(e.key + ' already exists');
       }
-      var checkboxEl = document.createElement('tr-ui-b-checkbox');
+      const checkboxEl = document.createElement('tr-ui-b-checkbox');
       checkboxEl.label = e.label;
       this.checkboxes_[e.key] = checkboxEl;
     }.bind(this));
@@ -81,7 +81,7 @@ Polymer({
   maybeRenderCheckboxes_() {
     if (!this.is_ready_) return;
     if (this.checkboxes_ === undefined) return;
-    for (var key in this.checkboxes_) {
+    for (const key in this.checkboxes_) {
       Polymer.dom(this.$.container).appendChild(this.checkboxes_[key]);
     }
   },

@@ -16,24 +16,24 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.e.importer.ddms', function() {
-  var kPid = 0;
-  var kCategory = 'java';
-  var kMethodLutEndMarker = '\n*end\n';
-  var kThreadsStart = '\n*threads\n';
-  var kMethodsStart = '\n*methods\n';
+  const kPid = 0;
+  const kCategory = 'java';
+  const kMethodLutEndMarker = '\n*end\n';
+  const kThreadsStart = '\n*threads\n';
+  const kMethodsStart = '\n*methods\n';
 
-  var kTraceMethodEnter = 0x00;       // method entry
-  var kTraceMethodExit = 0x01;        // method exit
-  var kTraceUnroll = 0x02;            // method exited by exception unrolling
+  const kTraceMethodEnter = 0x00;       // method entry
+  const kTraceMethodExit = 0x01;        // method exit
+  const kTraceUnroll = 0x02;            // method exited by exception unrolling
   // 0x03 currently unused
-  var kTraceMethodActionMask = 0x03;  // two bits
+  const kTraceMethodActionMask = 0x03;  // two bits
 
-  var kTraceHeaderLength = 32;
-  var kTraceMagicValue = 0x574f4c53;
-  var kTraceVersionSingleClock = 2;
-  var kTraceVersionDualClock = 3;
-  var kTraceRecordSizeSingleClock = 10;  // using v2
-  var kTraceRecordSizeDualClock = 14;  // using v3 with two timestamps
+  const kTraceHeaderLength = 32;
+  const kTraceMagicValue = 0x574f4c53;
+  const kTraceVersionSingleClock = 2;
+  const kTraceVersionDualClock = 3;
+  const kTraceRecordSizeSingleClock = 10;  // using v2
+  const kTraceRecordSizeDualClock = 14;  // using v3 with two timestamps
 
   function Reader(stringPayload) {
     this.position_ = 0;
@@ -44,20 +44,20 @@ tr.exportTo('tr.e.importer.ddms', function() {
     __proto__: Object.prototype,
 
     uint8() {
-      var result = this.data_[this.position_];
+      const result = this.data_[this.position_];
       this.position_ += 1;
       return result;
     },
 
     uint16() {
-      var result = 0;
+      let result = 0;
       result += this.uint8();
       result += this.uint8() << 8;
       return result;
     },
 
     uint32() {
-      var result = 0;
+      let result = 0;
       result += this.uint8();
       result += this.uint8() << 8;
       result += this.uint8() << 16;
@@ -67,11 +67,11 @@ tr.exportTo('tr.e.importer.ddms', function() {
 
     uint64() {
       // Javascript isn't able to manage 64-bit numeric values.
-      var low = this.uint32();
-      var high = this.uint32();
-      var lowStr = ('0000000' + low.toString(16)).substr(-8);
-      var highStr = ('0000000' + high.toString(16)).substr(-8);
-      var result = highStr + lowStr;
+      const low = this.uint32();
+      const high = this.uint32();
+      const lowStr = ('0000000' + low.toString(16)).substr(-8);
+      const highStr = ('0000000' + high.toString(16)).substr(-8);
+      const result = highStr + lowStr;
       return result;
     },
 
@@ -100,7 +100,7 @@ tr.exportTo('tr.e.importer.ddms', function() {
    */
   DdmsImporter.canImport = function(data) {
     if (typeof(data) === 'string' || data instanceof String) {
-      var header = data.slice(0, 1000);
+      const header = data.slice(0, 1000);
       return header.startsWith('*version\n') &&
         header.indexOf('\nvm=') >= 0 &&
         header.indexOf(kThreadsStart) >= 0;
@@ -124,15 +124,15 @@ tr.exportTo('tr.e.importer.ddms', function() {
      * Imports the data in this.data_ into this.model_.
      */
     importEvents() {
-      var divider = this.data_.indexOf(kMethodLutEndMarker) +
+      const divider = this.data_.indexOf(kMethodLutEndMarker) +
           kMethodLutEndMarker.length;
       this.metadata_ = this.data_.slice(0, divider);
       this.methods_ = {};
       this.parseThreads();
       this.parseMethods();
 
-      var traceReader = new Reader(this.data_.slice(divider));
-      var magic = traceReader.uint32();
+      const traceReader = new Reader(this.data_.slice(divider));
+      const magic = traceReader.uint32();
       if (magic !== kTraceMagicValue) {
         throw Error('Failed to match magic value');
       }
@@ -140,9 +140,9 @@ tr.exportTo('tr.e.importer.ddms', function() {
       if (this.version_ !== kTraceVersionDualClock) {
         throw Error('Unknown version');
       }
-      var dataOffest = traceReader.uint16();
-      var startDateTime = traceReader.uint64();
-      var recordSize = traceReader.uint16();
+      const dataOffest = traceReader.uint16();
+      const startDateTime = traceReader.uint64();
+      const recordSize = traceReader.uint16();
 
       traceReader.seekTo(dataOffest);
 
@@ -152,13 +152,13 @@ tr.exportTo('tr.e.importer.ddms', function() {
     },
 
     parseTraceEntry(reader) {
-      var tid = reader.uint16();
-      var methodPacked = reader.uint32();
-      var cpuSinceStart = reader.uint32();
-      var wallClockSinceStart = reader.uint32();
-      var method = methodPacked & ~kTraceMethodActionMask;
-      var action = methodPacked & kTraceMethodActionMask;
-      var thread = this.getTid(tid);
+      const tid = reader.uint16();
+      const methodPacked = reader.uint32();
+      const cpuSinceStart = reader.uint32();
+      const wallClockSinceStart = reader.uint32();
+      let method = methodPacked & ~kTraceMethodActionMask;
+      const action = methodPacked & kTraceMethodActionMask;
+      const thread = this.getTid(tid);
       method = this.getMethodName(method);
       if (action === kTraceMethodEnter) {
         thread.sliceGroup.beginSlice(kCategory, method, wallClockSinceStart,
@@ -169,7 +169,7 @@ tr.exportTo('tr.e.importer.ddms', function() {
     },
 
     parseThreads() {
-      var threads = this.metadata_.slice(this.metadata_.indexOf(kThreadsStart) +
+      let threads = this.metadata_.slice(this.metadata_.indexOf(kThreadsStart) +
           kThreadsStart.length);
       threads = threads.slice(0, threads.indexOf('\n*'));
       threads = threads.split('\n');
@@ -177,8 +177,8 @@ tr.exportTo('tr.e.importer.ddms', function() {
     },
 
     parseThread(threadLine) {
-      var tid = threadLine.slice(0, threadLine.indexOf('\t'));
-      var thread = this.getTid(parseInt(tid));
+      const tid = threadLine.slice(0, threadLine.indexOf('\t'));
+      const thread = this.getTid(parseInt(tid));
       thread.name = threadLine.slice(threadLine.indexOf('\t') + 1);
     },
 
@@ -188,7 +188,7 @@ tr.exportTo('tr.e.importer.ddms', function() {
     },
 
     parseMethods() {
-      var methods = this.metadata_.slice(this.metadata_.indexOf(kMethodsStart) +
+      let methods = this.metadata_.slice(this.metadata_.indexOf(kMethodsStart) +
           kMethodsStart.length);
       methods = methods.slice(0, methods.indexOf('\n*'));
       methods = methods.split('\n');
@@ -196,9 +196,9 @@ tr.exportTo('tr.e.importer.ddms', function() {
     },
 
     parseMethod(methodLine) {
-      var data = methodLine.split('\t');
-      var methodId = parseInt(data[0]);
-      var methodName = data[1] + '.' + data[2] + data[3];
+      const data = methodLine.split('\t');
+      const methodId = parseInt(data[0]);
+      const methodName = data[1] + '.' + data[2] + data[3];
       this.addMethod(methodId, methodName);
     },
 

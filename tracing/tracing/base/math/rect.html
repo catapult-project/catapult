@@ -22,7 +22,7 @@ tr.exportTo('tr.b.math', function() {
   }
 
   Rect.fromXYWH = function(x, y, w, h) {
-    var rect = new Rect();
+    const rect = new Rect();
     rect.x = x;
     rect.y = y;
     rect.width = w;
@@ -34,7 +34,7 @@ tr.exportTo('tr.b.math', function() {
     if (ary.length !== 4) {
       throw new Error('ary.length must be 4');
     }
-    var rect = new Rect();
+    const rect = new Rect();
     rect.x = ary[0];
     rect.y = ary[1];
     rect.width = ary[2];
@@ -71,7 +71,7 @@ tr.exportTo('tr.b.math', function() {
     },
 
     clone() {
-      var rect = new Rect();
+      const rect = new Rect();
       rect.x = this.x;
       rect.y = this.y;
       rect.width = this.width;
@@ -80,7 +80,7 @@ tr.exportTo('tr.b.math', function() {
     },
 
     enlarge(pad) {
-      var rect = new Rect();
+      const rect = new Rect();
       this.enlargeFast(rect, pad);
       return rect;
     },
@@ -98,7 +98,7 @@ tr.exportTo('tr.b.math', function() {
     },
 
     scale(s) {
-      var rect = new Rect();
+      const rect = new Rect();
       this.scaleFast(rect, s);
       return rect;
     },
@@ -116,7 +116,7 @@ tr.exportTo('tr.b.math', function() {
     },
 
     translate(v) {
-      var rect = new Rect();
+      const rect = new Rect();
       this.translateFast(rect, v);
       return rect;
     },
@@ -130,7 +130,7 @@ tr.exportTo('tr.b.math', function() {
     },
 
     asUVRectInside(containingRect) {
-      var rect = new Rect();
+      const rect = new Rect();
       rect.x = (this.x - containingRect.x) / containingRect.width;
       rect.y = (this.y - containingRect.y) / containingRect.height;
       rect.width = this.width / containingRect.width;
@@ -139,7 +139,7 @@ tr.exportTo('tr.b.math', function() {
     },
 
     intersects(that) {
-      var ok = true;
+      let ok = true;
       ok &= this.x < that.right;
       ok &= this.right > that.x;
       ok &= this.y < that.bottom;

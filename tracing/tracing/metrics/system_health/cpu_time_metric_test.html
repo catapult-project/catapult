@@ -15,10 +15,10 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   function computeCpuTime(customizeModelCallback, opt_options) {
-    var model = tr.c.TestUtils.newModel(function(model) {
+    const model = tr.c.TestUtils.newModel(function(model) {
       customizeModelCallback(model);
     });
-    var histograms = new tr.v.HistogramSet();
+    const histograms = new tr.v.HistogramSet();
     tr.metrics.sh.cpuTimeMetric(histograms, model, opt_options);
     return tr.b.getOnlyElement(histograms).average;
   }
@@ -26,9 +26,9 @@ tr.b.unittest.testSuite(function() {
   // There are two slices, each of length 50. The total bounds is 3000.
   // This yields total CPU time of 100ms, averaged over 3 seconds is 33ms.
   test('cpuTimeMetric_oneProcess', function() {
-    var sliceDuration = 50;
-    var totalDuration = 3000;
-    var value = computeCpuTime(function(model) {
+    const sliceDuration = 50;
+    const totalDuration = 3000;
+    const value = computeCpuTime(function(model) {
       model.rendererProcess = model.getOrCreateProcess(2);
       model.rendererMain = model.rendererProcess.getOrCreateThread(3);
       model.rendererMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
@@ -54,9 +54,9 @@ tr.b.unittest.testSuite(function() {
   // Normalize against the browser process, whose non-CPU slice goes from 2900
   // to 3000.
   test('cpuTimeMetric_browserProcess', function() {
-    var sliceDuration = 50;
-    var totalDuration = 3000;
-    var model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+    const sliceDuration = 50;
+    const totalDuration = 3000;
+    const model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
       model.browserMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         type: tr.model.ThreadSlice,
         isTopLevel: true,
@@ -80,20 +80,20 @@ tr.b.unittest.testSuite(function() {
         cpuDuration: sliceDuration,
       }));
     });
-    var histograms = new tr.v.HistogramSet();
+    const histograms = new tr.v.HistogramSet();
     tr.metrics.sh.cpuTimeMetric(histograms, model);
-    var value = tr.b.getOnlyElement(histograms).average;
+    const value = tr.b.getOnlyElement(histograms).average;
     assert.closeTo(value, 0.5, 0.001);
   });
 
   // Makes sure that rangeOfInterest works correctly.
   test('cpuTimeMetric_oneProcess_rangeOfInterest', function() {
-    var sliceDuration = 50;
-    var totalDuration = 3000;
-    var rangeOfInterest = new tr.b.math.Range.fromExplicitRange(-10, 30);
-    var options = {};
+    const sliceDuration = 50;
+    const totalDuration = 3000;
+    const rangeOfInterest = new tr.b.math.Range.fromExplicitRange(-10, 30);
+    const options = {};
     options.rangeOfInterest = rangeOfInterest;
-    var value = computeCpuTime(function(model) {
+    const value = computeCpuTime(function(model) {
       model.rendererProcess = model.getOrCreateProcess(2);
       model.rendererMain = model.rendererProcess.getOrCreateThread(3);
       model.rendererMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
@@ -120,9 +120,9 @@ tr.b.unittest.testSuite(function() {
   // 3000. Process 2: There is one slice of length 50.
   // This yields total CPU time of 150ms, averaged over 3 seconds is 50ms.
   test('cpuTimeMetric_twoProcesses', function() {
-    var sliceDuration = 50;
-    var totalDuration = 3000;
-    var value = computeCpuTime(function(model) {
+    const sliceDuration = 50;
+    const totalDuration = 3000;
+    const value = computeCpuTime(function(model) {
       model.rendererProcess = model.getOrCreateProcess(2);
       model.rendererMain = model.rendererProcess.getOrCreateThread(3);
       model.rendererMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
@@ -142,8 +142,8 @@ tr.b.unittest.testSuite(function() {
         cpuDuration: sliceDuration,
       }));
 
-      var otherProcess = model.getOrCreateProcess(3);
-      var otherThread = otherProcess.getOrCreateThread(4);
+      const otherProcess = model.getOrCreateProcess(3);
+      const otherThread = otherProcess.getOrCreateThread(4);
       otherThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         type: tr.model.ThreadSlice,
         isTopLevel: true,

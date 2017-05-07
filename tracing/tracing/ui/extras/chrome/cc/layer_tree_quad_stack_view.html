@@ -73,15 +73,15 @@ found in the LICENSE file.
  * type of layer content shown and info bar for content-loading warnings.
  */
 tr.exportTo('tr.ui.e.chrome.cc', function() {
-  var ColorScheme = tr.b.ColorScheme;
+  const ColorScheme = tr.b.ColorScheme;
 
-  var THIS_DOC = document.currentScript.ownerDocument;
-  var TILE_HEATMAP_TYPE = {};
+  const THIS_DOC = document.currentScript.ownerDocument;
+  const TILE_HEATMAP_TYPE = {};
   TILE_HEATMAP_TYPE.NONE = 'none';
   TILE_HEATMAP_TYPE.SCHEDULED_PRIORITY = 'scheduledPriority';
   TILE_HEATMAP_TYPE.USING_GPU_MEMORY = 'usingGpuMemory';
 
-  var cc = tr.ui.e.chrome.cc;
+  const cc = tr.ui.e.chrome.cc;
 
   function createTileRectsSelectorBaseOptions() {
     return [{label: 'None', value: 'none'},
@@ -92,7 +92,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
   /**
    * @constructor
    */
-  var LayerTreeQuadStackView =
+  const LayerTreeQuadStackView =
       tr.ui.b.define('tr-ui-e-chrome-cc-layer-tree-quad-stack-view');
 
   LayerTreeQuadStackView.prototype = {
@@ -110,15 +110,15 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.extraHighlightsByLayerId_ = undefined;
       this.inputEventImageData_ = undefined;
 
-      var m = tr.ui.b.MOUSE_SELECTOR_MODE;
-      var mms = this.quadStackView_.mouseModeSelector;
+      const m = tr.ui.b.MOUSE_SELECTOR_MODE;
+      const mms = this.quadStackView_.mouseModeSelector;
       mms.settingsKey = 'tr.e.cc.layerTreeQuadStackView.mouseModeSelector';
       mms.setKeyCodeForMode(m.SELECTION, 'Z'.charCodeAt(0));
       mms.setKeyCodeForMode(m.PANSCAN, 'X'.charCodeAt(0));
       mms.setKeyCodeForMode(m.ZOOM, 'C'.charCodeAt(0));
       mms.setKeyCodeForMode(m.ROTATE, 'V'.charCodeAt(0));
 
-      var node = tr.ui.b.instantiateTemplate(
+      const node = tr.ui.b.instantiateTemplate(
           '#tr-ui-e-chrome-cc-layer-tree-quad-stack-view-template', THIS_DOC);
       Polymer.dom(this).appendChild(node);
       Polymer.dom(this).appendChild(this.controls_);
@@ -131,12 +131,12 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           createTileRectsSelectorBaseOptions());
       Polymer.dom(this.controls_).appendChild(this.tileRectsSelector_);
 
-      var tileHeatmapText = tr.ui.b.createSpan({
+      const tileHeatmapText = tr.ui.b.createSpan({
         textContent: 'Tile heatmap:'
       });
       Polymer.dom(this.controls_).appendChild(tileHeatmapText);
 
-      var tileHeatmapSelector = tr.ui.b.createSelector(
+      const tileHeatmapSelector = tr.ui.b.createSelector(
           this, 'tileHeatmapType',
           'layerView.tileHeatmapType', TILE_HEATMAP_TYPE.NONE,
           [{label: 'None',
@@ -148,7 +148,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           ]);
       Polymer.dom(this.controls_).appendChild(tileHeatmapSelector);
 
-      var showOtherLayersCheckbox = tr.ui.b.createCheckBox(
+      const showOtherLayersCheckbox = tr.ui.b.createCheckBox(
           this, 'showOtherLayers',
           'layerView.showOtherLayers', true,
           'Other layers/passes');
@@ -156,7 +156,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           'When checked, show all layers, selected or not.';
       Polymer.dom(this.controls_).appendChild(showOtherLayersCheckbox);
 
-      var showInvalidationsCheckbox = tr.ui.b.createCheckBox(
+      const showInvalidationsCheckbox = tr.ui.b.createCheckBox(
           this, 'showInvalidations',
           'layerView.showInvalidations', true,
           'Invalidations');
@@ -164,7 +164,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           'When checked, compositing invalidations are highlighted in red';
       Polymer.dom(this.controls_).appendChild(showInvalidationsCheckbox);
 
-      var showUnrecordedRegionCheckbox = tr.ui.b.createCheckBox(
+      const showUnrecordedRegionCheckbox = tr.ui.b.createCheckBox(
           this, 'showUnrecordedRegion',
           'layerView.showUnrecordedRegion', true,
           'Unrecorded area');
@@ -172,7 +172,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           'When checked, unrecorded areas are highlighted in yellow';
       Polymer.dom(this.controls_).appendChild(showUnrecordedRegionCheckbox);
 
-      var showBottlenecksCheckbox = tr.ui.b.createCheckBox(
+      const showBottlenecksCheckbox = tr.ui.b.createCheckBox(
           this, 'showBottlenecks',
           'layerView.showBottlenecks', true,
           'Bottlenecks');
@@ -180,7 +180,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           'When checked, scroll bottlenecks are highlighted';
       Polymer.dom(this.controls_).appendChild(showBottlenecksCheckbox);
 
-      var showLayoutRectsCheckbox = tr.ui.b.createCheckBox(
+      const showLayoutRectsCheckbox = tr.ui.b.createCheckBox(
           this, 'showLayoutRects',
           'layerView.showLayoutRects', false,
           'Layout rects');
@@ -188,7 +188,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           'When checked, shows rects for regions where layout happened';
       Polymer.dom(this.controls_).appendChild(showLayoutRectsCheckbox);
 
-      var showContentsCheckbox = tr.ui.b.createCheckBox(
+      const showContentsCheckbox = tr.ui.b.createCheckBox(
           this, 'showContents',
           'layerView.showContents', true,
           'Contents');
@@ -196,7 +196,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           'When checked, show the rendered contents inside the layer outlines';
       Polymer.dom(this.controls_).appendChild(showContentsCheckbox);
 
-      var showAnimationBoundsCheckbox = tr.ui.b.createCheckBox(
+      const showAnimationBoundsCheckbox = tr.ui.b.createCheckBox(
           this, 'showAnimationBounds',
           'layerView.showAnimationBounds', false,
           'Animation Bounds');
@@ -204,7 +204,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           ' a layer showing the extent of its animation.';
       Polymer.dom(this.controls_).appendChild(showAnimationBoundsCheckbox);
 
-      var showInputEventsCheckbox = tr.ui.b.createCheckBox(
+      const showInputEventsCheckbox = tr.ui.b.createCheckBox(
           this, 'showInputEvents',
           'layerView.showInputEvents', true,
           'Input events');
@@ -363,22 +363,22 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     loadDataForImageElement_(image, callback) {
-      var imageContent = window.getComputedStyle(image).backgroundImage;
+      const imageContent = window.getComputedStyle(image).backgroundImage;
       image.src = tr.ui.b.extractUrlString(imageContent);
       image.onload = function() {
-        var canvas = document.createElement('canvas');
-        var ctx = canvas.getContext('2d');
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
         canvas.width = image.width;
         canvas.height = image.height;
         ctx.drawImage(image, 0, 0);
-        var imageData = ctx.getImageData(
+        const imageData = ctx.getImageData(
             0, 0, canvas.width, canvas.height);
         callback(imageData);
       };
     },
 
     onQuadStackViewSelectionChange_(e) {
-      var selectableQuads = e.quads.filter(function(q) {
+      const selectableQuads = e.quads.filter(function(q) {
         return q.selectionToSetIfClicked !== undefined;
       });
       if (selectableQuads.length === 0) {
@@ -388,7 +388,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
       // Sort the quads low to high on stackingGroupId.
       selectableQuads.sort(function(x, y) {
-        var z = x.stackingGroupId - y.stackingGroupId;
+        const z = x.stackingGroupId - y.stackingGroupId;
         if (z !== 0) return z;
 
         return x.selectionToSetIfClicked.specicifity -
@@ -396,7 +396,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       });
 
       // TODO(nduca): Support selecting N things at once.
-      var quadToSelect = selectableQuads[selectableQuads.length - 1];
+      const quadToSelect = selectableQuads[selectableQuads.length - 1];
       this.selection = quadToSelect.selectionToSetIfClicked;
     },
 
@@ -416,12 +416,12 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       }
 
 
-      var status = this.computePictureLoadingStatus_();
+      const status = this.computePictureLoadingStatus_();
       if (!status.picturesComplete) return;
 
-      var lthi = this.layerTreeImpl_.layerTreeHostImpl;
-      var lthiInstance = lthi.objectInstance;
-      var worldViewportRect = tr.b.math.Rect.fromXYWH(
+      const lthi = this.layerTreeImpl_.layerTreeHostImpl;
+      const lthiInstance = lthi.objectInstance;
+      const worldViewportRect = tr.b.math.Rect.fromXYWH(
           0, 0,
           lthi.deviceViewportSize.width, lthi.deviceViewportSize.height);
       this.quadStackView_.deviceRect = worldViewportRect;
@@ -433,10 +433,10 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
       this.updateWhatRasterizedLinkState_();
 
-      var message = '';
+      let message = '';
       if (lthi.tilesHaveGpuMemoryUsageInfo) {
-        var thisTreeUsageInBytes = this.layerTreeImpl_.gpuMemoryUsageInBytes;
-        var otherTreeUsageInBytes = lthi.gpuMemoryUsageInBytes -
+        const thisTreeUsageInBytes = this.layerTreeImpl_.gpuMemoryUsageInBytes;
+        const otherTreeUsageInBytes = lthi.gpuMemoryUsageInBytes -
             thisTreeUsageInBytes;
         message +=
             tr.b.convertUnit(thisTreeUsageInBytes,
@@ -452,7 +452,8 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         }
       } else {
         if (this.layerTreeImpl_) {
-          var thisTreeUsageInBytes = this.layerTreeImpl_.gpuMemoryUsageInBytes;
+          const thisTreeUsageInBytes =
+            this.layerTreeImpl_.gpuMemoryUsageInBytes;
           message +=
               tr.b.convertUnit(thisTreeUsageInBytes,
                   tr.b.UnitPrefixScale.BINARY.NONE,
@@ -473,7 +474,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       }
 
       if (lthi.args.tileManagerBasicState) {
-        var tmgs = lthi.args.tileManagerBasicState.globalState;
+        const tmgs = lthi.args.tileManagerBasicState.globalState;
         message += ' (softMax=' +
             tr.b.convertUnit(tmgs.softMemoryLimitInBytes,
                 tr.b.UnitPrefixScale.BINARY.NONE,
@@ -487,8 +488,8 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         // Old Chromes do not have a globalState on the LTHI dump.
         // But they do issue a DidManage event wiht the globalstate. Find that
         // event so that we show some global state.
-        var thread = lthi.snapshottedOnThread;
-        var didManageTilesSlices = thread.sliceGroup.slices.filter(function(s) {
+        const thread = lthi.snapshottedOnThread;
+        const didManageTilesSlices = thread.sliceGroup.slices.filter(s => {
           if (s.category !== 'tr.e.cc') return false;
 
           if (s.title !== 'DidManage') return false;
@@ -501,8 +502,8 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           return x.end - y.end;
         });
         if (didManageTilesSlices.length > 0) {
-          var newest = didManageTilesSlices[didManageTilesSlices.length - 1];
-          var tmgs = newest.args.state.global_state;
+          const newest = didManageTilesSlices[didManageTilesSlices.length - 1];
+          const tmgs = newest.args.state.global_state;
           message += ' (softMax=' +
             tr.b.convertUnit(tmgs.softMemoryLimitInBytes,
                 tr.b.UnitPrefixScale.BINARY.NONE,
@@ -529,13 +530,13 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     updateTilesSelector_() {
-      var data = createTileRectsSelectorBaseOptions();
+      const data = createTileRectsSelectorBaseOptions();
 
       if (this.layerTreeImpl_) {
         // First get all of the scales information from LTHI.
-        var lthi = this.layerTreeImpl_.layerTreeHostImpl;
-        var scaleNames = lthi.getContentsScaleNames();
-        for (var scale in scaleNames) {
+        const lthi = this.layerTreeImpl_.layerTreeHostImpl;
+        const scaleNames = lthi.getContentsScaleNames();
+        for (const scale in scaleNames) {
           data.push({
             label: 'Scale ' + scale + ' (' + scaleNames[scale] + ')',
             value: scale
@@ -544,7 +545,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       }
 
       // Then create a new selector and replace the old one.
-      var newSelector = tr.ui.b.createSelector(
+      const newSelector = tr.ui.b.createSelector(
           this, 'howToShowTiles',
           'layerView.howToShowTiles', 'none',
           data);
@@ -555,20 +556,20 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     computePictureLoadingStatus_() {
       // Figure out if we can draw the quads yet. While we're at it, figure out
       // if we have any warnings we need to show.
-      var layers = this.layers;
-      var status = {
+      const layers = this.layers;
+      const status = {
         messages: [],
         picturesComplete: true
       };
       if (this.showContents) {
-        var hasPendingRasterizeImage = false;
-        var firstPictureError = undefined;
-        var hasMissingLayerRect = false;
-        var hasUnresolvedPictureRef = false;
-        for (var i = 0; i < layers.length; i++) {
-          var layer = layers[i];
-          for (var ir = 0; ir < layer.pictures.length; ++ir) {
-            var picture = layer.pictures[ir];
+        let hasPendingRasterizeImage = false;
+        let firstPictureError = undefined;
+        let hasMissingLayerRect = false;
+        let hasUnresolvedPictureRef = false;
+        for (let i = 0; i < layers.length; i++) {
+          const layer = layers[i];
+          for (let ir = 0; ir < layer.pictures.length; ++ir) {
+            const picture = layer.pictures[ir];
 
             if (picture.idRef) {
               hasUnresolvedPictureRef = true;
@@ -579,7 +580,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
               continue;
             }
 
-            var pictureAsImageData = this.pictureAsImageData_[picture.guid];
+            const pictureAsImageData = this.pictureAsImageData_[picture.guid];
             if (!pictureAsImageData) {
               hasPendingRasterizeImage = true;
               this.pictureAsImageData_[picture.guid] =
@@ -587,7 +588,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
               picture.rasterize(
                   {stopIndex: undefined},
                   function(pictureImageData) {
-                    var picture_ = pictureImageData.picture;
+                    const picture_ = pictureImageData.picture;
                     this.pictureAsImageData_[picture_.guid] = pictureImageData;
                     this.scheduleUpdateContents_();
                   }.bind(this));
@@ -629,7 +630,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       }
       if (this.showInputEvents && this.layerTreeImpl.tracedInputLatencies &&
           this.inputEventImageData_ === undefined) {
-        var image = Polymer.dom(this).querySelector('#input-event');
+        const image = Polymer.dom(this).querySelector('#input-event');
         if (!image.src) {
           this.loadDataForImageElement_(image, function(imageData) {
             this.inputEventImageData_ = imageData;
@@ -650,16 +651,16 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
     get selectedLayer() {
       if (this.selection) {
-        var selectedLayerId = this.selection.associatedLayerId;
+        const selectedLayerId = this.selection.associatedLayerId;
         return this.layerTreeImpl_.findLayerWithId(selectedLayerId);
       }
     },
 
     get renderPasses() {
-      var renderPasses =
+      let renderPasses =
           this.layerTreeImpl.layerTreeHostImpl.args.frame.renderPasses;
       if (!this.showOtherLayers) {
-        var selectedRenderPass = this.selectedRenderPass;
+        const selectedRenderPass = this.selectedRenderPass;
         if (selectedRenderPass) {
           renderPasses = [selectedRenderPass];
         }
@@ -668,9 +669,9 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     get layers() {
-      var layers = this.layerTreeImpl.renderSurfaceLayerList;
+      let layers = this.layerTreeImpl.renderSurfaceLayerList;
       if (!this.showOtherLayers) {
-        var selectedLayer = this.selectedLayer;
+        const selectedLayer = this.selectedLayer;
         if (selectedLayer) {
           layers = [selectedLayer];
         }
@@ -680,14 +681,14 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
     appendImageQuads_(quads, layer, layerQuad) {
       // Generate image quads for the layer
-      for (var ir = 0; ir < layer.pictures.length; ++ir) {
-        var picture = layer.pictures[ir];
+      for (let ir = 0; ir < layer.pictures.length; ++ir) {
+        const picture = layer.pictures[ir];
         if (!picture.layerRect) continue;
 
-        var unitRect = picture.layerRect.asUVRectInside(layer.bounds);
-        var iq = layerQuad.projectUnitRect(unitRect);
+        const unitRect = picture.layerRect.asUVRectInside(layer.bounds);
+        const iq = layerQuad.projectUnitRect(unitRect);
 
-        var pictureData = this.pictureAsImageData_[picture.guid];
+        const pictureData = this.pictureAsImageData_[picture.guid];
         if (this.showContents && pictureData && pictureData.imageData) {
           iq.imageData = pictureData.imageData;
           iq.borderColor = 'rgba(0,0,0,0)';
@@ -703,8 +704,8 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     appendAnimationQuads_(quads, layer, layerQuad) {
       if (!layer.animationBoundsRect) return;
 
-      var rect = layer.animationBoundsRect;
-      var abq = tr.b.math.Quad.fromRect(rect);
+      const rect = layer.animationBoundsRect;
+      const abq = tr.b.math.Quad.fromRect(rect);
 
       abq.backgroundColor = 'rgba(164,191,48,0.5)';
       abq.borderColor = 'rgba(205,255,0,0.75)';
@@ -719,10 +720,10 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       if (layer.layerTreeImpl.hasSourceFrameBeenDrawnBefore) return;
 
       // Generate the invalidation rect quads.
-      for (var ir = 0; ir < layer.annotatedInvalidation.rects.length; ir++) {
-        var rect = layer.annotatedInvalidation.rects[ir];
-        var unitRect = rect.asUVRectInside(layer.bounds);
-        var iq = layerQuad.projectUnitRect(unitRect);
+      for (let ir = 0; ir < layer.annotatedInvalidation.rects.length; ir++) {
+        const rect = layer.annotatedInvalidation.rects[ir];
+        const unitRect = rect.asUVRectInside(layer.bounds);
+        const iq = layerQuad.projectUnitRect(unitRect);
         iq.backgroundColor = 'rgba(0, 255, 0, 0.1)';
         if (rect.reason === 'renderer insertion') {
           iq.backgroundColor = 'rgba(0, 255, 128, 0.1)';
@@ -737,10 +738,10 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       // Show unannotated invalidation rect quads if no annotated rects are
       // available.
       if (layer.annotatedInvalidation.rects.length === 0) {
-        for (var ir = 0; ir < layer.invalidation.rects.length; ir++) {
-          var rect = layer.invalidation.rects[ir];
-          var unitRect = rect.asUVRectInside(layer.bounds);
-          var iq = layerQuad.projectUnitRect(unitRect);
+        for (let ir = 0; ir < layer.invalidation.rects.length; ir++) {
+          const rect = layer.invalidation.rects[ir];
+          const unitRect = rect.asUVRectInside(layer.bounds);
+          const iq = layerQuad.projectUnitRect(unitRect);
           iq.backgroundColor = 'rgba(0, 255, 0, 0.1)';
           iq.borderColor = 'rgba(0, 255, 0, 1)';
           iq.stackingGroupId = layerQuad.stackingGroupId;
@@ -753,10 +754,10 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
     appendUnrecordedRegionQuads_(quads, layer, layerQuad) {
       // Generate the unrecorded region quads.
-      for (var ir = 0; ir < layer.unrecordedRegion.rects.length; ir++) {
-        var rect = layer.unrecordedRegion.rects[ir];
-        var unitRect = rect.asUVRectInside(layer.bounds);
-        var iq = layerQuad.projectUnitRect(unitRect);
+      for (let ir = 0; ir < layer.unrecordedRegion.rects.length; ir++) {
+        const rect = layer.unrecordedRegion.rects[ir];
+        const unitRect = rect.asUVRectInside(layer.bounds);
+        const iq = layerQuad.projectUnitRect(unitRect);
         iq.backgroundColor = 'rgba(240, 230, 140, 0.3)';
         iq.borderColor = 'rgba(240, 230, 140, 1)';
         iq.stackingGroupId = layerQuad.stackingGroupId;
@@ -768,15 +769,15 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
     appendBottleneckQuads_(quads, layer, layerQuad, stackingGroupId) {
       function processRegion(region, label, borderColor) {
-        var backgroundColor = borderColor.clone();
+        const backgroundColor = borderColor.clone();
         backgroundColor.a = 0.4 * (borderColor.a || 1.0);
 
         if (!region || !region.rects) return;
 
-        for (var ir = 0; ir < region.rects.length; ir++) {
-          var rect = region.rects[ir];
-          var unitRect = rect.asUVRectInside(layer.bounds);
-          var iq = layerQuad.projectUnitRect(unitRect);
+        for (let ir = 0; ir < region.rects.length; ir++) {
+          const rect = region.rects[ir];
+          const unitRect = rect.asUVRectInside(layer.bounds);
+          const iq = layerQuad.projectUnitRect(unitRect);
           iq.backgroundColor = backgroundColor.toString();
           iq.borderColor = borderColor.toString();
           iq.borderWidth = 4.0;
@@ -799,31 +800,31 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         quads, layer, layerQuad, heatmapType) {
       if (!layer.tileCoverageRects) return;
 
-      var tiles = [];
-      for (var ct = 0; ct < layer.tileCoverageRects.length; ++ct) {
-        var tile = layer.tileCoverageRects[ct].tile;
+      const tiles = [];
+      for (let ct = 0; ct < layer.tileCoverageRects.length; ++ct) {
+        const tile = layer.tileCoverageRects[ct].tile;
         if (tile !== undefined) tiles.push(tile);
       }
 
-      var lthi = this.layerTreeImpl_.layerTreeHostImpl;
-      var minMax =
+      const lthi = this.layerTreeImpl_.layerTreeHostImpl;
+      const minMax =
           this.getMinMaxForHeatmap_(lthi.activeTiles, heatmapType);
-      var heatmapResult =
+      const heatmapResult =
           this.computeHeatmapColors_(tiles, minMax, heatmapType);
-      var heatIndex = 0;
+      let heatIndex = 0;
 
-      for (var ct = 0; ct < layer.tileCoverageRects.length; ++ct) {
-        var rect = layer.tileCoverageRects[ct].geometryRect;
+      for (let ct = 0; ct < layer.tileCoverageRects.length; ++ct) {
+        let rect = layer.tileCoverageRects[ct].geometryRect;
         rect = rect.scale(1.0 / layer.geometryContentsScale);
 
-        var tile = layer.tileCoverageRects[ct].tile;
+        const tile = layer.tileCoverageRects[ct].tile;
 
-        var unitRect = rect.asUVRectInside(layer.bounds);
-        var quad = layerQuad.projectUnitRect(unitRect);
+        const unitRect = rect.asUVRectInside(layer.bounds);
+        const quad = layerQuad.projectUnitRect(unitRect);
 
         quad.backgroundColor = 'rgba(0, 0, 0, 0)';
         quad.stackingGroupId = layerQuad.stackingGroupId;
-        var type = tr.e.cc.tileTypes.missing;
+        let type = tr.e.cc.tileTypes.missing;
         if (tile) {
           type = tile.getTypeForLayer(layer);
           quad.backgroundColor = heatmapResult[heatIndex].color;
@@ -832,7 +833,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
         quad.borderColor = tr.e.cc.tileBorder[type].color;
         quad.borderWidth = tr.e.cc.tileBorder[type].width;
-        var label;
+        let label;
         if (tile) {
           label = 'coverageRect';
         } else {
@@ -850,20 +851,19 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         return;
       }
 
-      for (var ct = 0; ct < layer.layoutRects.length; ++ct) {
-        var rect = layer.layoutRects[ct].geometryRect;
+      for (let ct = 0; ct < layer.layoutRects.length; ++ct) {
+        let rect = layer.layoutRects[ct].geometryRect;
         rect = rect.scale(1.0 / layer.geometryContentsScale);
 
-        var unitRect = rect.asUVRectInside(layer.bounds);
-        var quad = layerQuad.projectUnitRect(unitRect);
+        const unitRect = rect.asUVRectInside(layer.bounds);
+        const quad = layerQuad.projectUnitRect(unitRect);
 
         quad.backgroundColor = 'rgba(0, 0, 0, 0)';
         quad.stackingGroupId = layerQuad.stackingGroupId;
 
         quad.borderColor = 'rgba(0, 0, 200, 0.7)';
         quad.borderWidth = 2;
-        var label;
-        label = 'Layout rect';
+        const label = 'Layout rect';
         quad.selectionToSetIfClicked = new cc.LayerRectSelection(
             layer, label, rect);
 
@@ -883,15 +883,15 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     getMinMaxForHeatmap_(tiles, heatmapType) {
-      var range = new tr.b.math.Range();
+      const range = new tr.b.math.Range();
       if (heatmapType === TILE_HEATMAP_TYPE.USING_GPU_MEMORY) {
         range.addValue(0);
         range.addValue(1);
         return range;
       }
 
-      for (var i = 0; i < tiles.length; ++i) {
-        var value = this.getValueForHeatmap_(tiles[i], heatmapType);
+      for (let i = 0; i < tiles.length; ++i) {
+        const value = this.getValueForHeatmap_(tiles[i], heatmapType);
         if (value === undefined) continue;
         range.addValue(value);
       }
@@ -902,20 +902,20 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     computeHeatmapColors_(tiles, minMax, heatmapType) {
-      var min = minMax.min;
-      var max = minMax.max;
+      const min = minMax.min;
+      const max = minMax.max;
 
-      var color = function(value) {
-        var hue = 120 * (1 - (value - min) / (max - min));
+      const color = function(value) {
+        let hue = 120 * (1 - (value - min) / (max - min));
         if (hue < 0) hue = 0;
         return 'hsla(' + hue + ', 100%, 50%, 0.5)';
       };
 
-      var values = [];
-      for (var i = 0; i < tiles.length; ++i) {
-        var tile = tiles[i];
-        var value = this.getValueForHeatmap_(tile, heatmapType);
-        var res = {
+      const values = [];
+      for (let i = 0; i < tiles.length; ++i) {
+        const tile = tiles[i];
+        const value = this.getValueForHeatmap_(tile, heatmapType);
+        const res = {
           value,
           color: value !== undefined ? color(value) : undefined
         };
@@ -927,11 +927,11 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
     appendTilesWithScaleQuads_(
         quads, layer, layerQuad, scale, heatmapType) {
-      var lthi = this.layerTreeImpl_.layerTreeHostImpl;
+      const lthi = this.layerTreeImpl_.layerTreeHostImpl;
 
-      var tiles = [];
-      for (var i = 0; i < lthi.activeTiles.length; ++i) {
-        var tile = lthi.activeTiles[i];
+      const tiles = [];
+      for (let i = 0; i < lthi.activeTiles.length; ++i) {
+        const tile = lthi.activeTiles[i];
 
         if (Math.abs(tile.contentsScale - scale) > 1e-6) {
           continue;
@@ -944,28 +944,28 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         tiles.push(tile);
       }
 
-      var minMax =
+      const minMax =
           this.getMinMaxForHeatmap_(lthi.activeTiles, heatmapType);
-      var heatmapResult =
+      const heatmapResult =
           this.computeHeatmapColors_(tiles, minMax, heatmapType);
 
-      for (var i = 0; i < tiles.length; ++i) {
-        var tile = tiles[i];
-        var rect = tile.layerRect;
+      for (let i = 0; i < tiles.length; ++i) {
+        const tile = tiles[i];
+        const rect = tile.layerRect;
         if (!tile.layerRect) continue;
 
-        var unitRect = rect.asUVRectInside(layer.bounds);
-        var quad = layerQuad.projectUnitRect(unitRect);
+        const unitRect = rect.asUVRectInside(layer.bounds);
+        const quad = layerQuad.projectUnitRect(unitRect);
 
         quad.backgroundColor = 'rgba(0, 0, 0, 0)';
         quad.stackingGroupId = layerQuad.stackingGroupId;
 
-        var type = tile.getTypeForLayer(layer);
+        const type = tile.getTypeForLayer(layer);
         quad.borderColor = tr.e.cc.tileBorder[type].color;
         quad.borderWidth = tr.e.cc.tileBorder[type].width;
 
         quad.backgroundColor = heatmapResult[i].color;
-        var data = {
+        const data = {
           tileType: type
         };
         if (heatmapType !== TILE_HEATMAP_TYPE.NONE) {
@@ -979,19 +979,19 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     appendHighlightQuadsForLayer_(
         quads, layer, layerQuad, highlights) {
       highlights.forEach(function(highlight) {
-        var rect = highlight.rect;
+        const rect = highlight.rect;
 
-        var unitRect = rect.asUVRectInside(layer.bounds);
-        var quad = layerQuad.projectUnitRect(unitRect);
+        const unitRect = rect.asUVRectInside(layer.bounds);
+        const quad = layerQuad.projectUnitRect(unitRect);
 
-        var colorId = ColorScheme.getColorIdForGeneralPurposeString(
+        let colorId = ColorScheme.getColorIdForGeneralPurposeString(
             highlight.colorKey);
         const offset = ColorScheme.properties.brightenedOffsets[0];
         colorId = ColorScheme.getVariantColorId(colorId, offset);
 
-        var color = ColorScheme.colors[colorId];
+        const color = ColorScheme.colors[colorId];
 
-        var quadForDrawing = quad.clone();
+        const quadForDrawing = quad.clone();
         quadForDrawing.backgroundColor = color.withAlpha(0.5).toString();
         quadForDrawing.borderColor = color.withAlpha(1.0).darken().toString();
         quadForDrawing.stackingGroupId = layerQuad.stackingGroupId;
@@ -1001,15 +1001,15 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
     generateRenderPassQuads() {
       if (!this.layerTreeImpl.layerTreeHostImpl.args.frame) return [];
-      var renderPasses = this.renderPasses;
+      const renderPasses = this.renderPasses;
       if (!renderPasses) return [];
 
-      var quads = [];
-      for (var i = 0; i < renderPasses.length; ++i) {
-        var quadList = renderPasses[i].quadList;
-        for (var j = 0; j < quadList.length; ++j) {
-          var drawQuad = quadList[j];
-          var quad = drawQuad.rectAsTargetSpaceQuad.clone();
+      const quads = [];
+      for (let i = 0; i < renderPasses.length; ++i) {
+        const quadList = renderPasses[i].quadList;
+        for (let j = 0; j < quadList.length; ++j) {
+          const drawQuad = quadList[j];
+          const quad = drawQuad.rectAsTargetSpaceQuad.clone();
           quad.borderColor = 'rgb(170, 204, 238)';
           quad.borderWidth = 2;
           quad.stackingGroupId = i;
@@ -1023,32 +1023,32 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.updateContentsPending_ = false;
 
       // Generate the quads for the view.
-      var layers = this.layers;
-      var quads = [];
-      var nextStackingGroupId = 0;
-      var alreadyVisitedLayerIds = {};
+      const layers = this.layers;
+      const quads = [];
+      let nextStackingGroupId = 0;
+      const alreadyVisitedLayerIds = {};
 
 
-      var selectionHighlightsByLayerId;
+      let selectionHighlightsByLayerId;
       if (this.selection) {
         selectionHighlightsByLayerId = this.selection.highlightsByLayerId;
       } else {
         selectionHighlightsByLayerId = {};
       }
 
-      var extraHighlightsByLayerId = this.extraHighlightsByLayerId || {};
+      const extraHighlightsByLayerId = this.extraHighlightsByLayerId || {};
 
-      for (var i = 1; i <= layers.length; i++) {
+      for (let i = 1; i <= layers.length; i++) {
         // Generate quads back-to-front.
-        var layer = layers[layers.length - i];
+        const layer = layers[layers.length - i];
         alreadyVisitedLayerIds[layer.layerId] = true;
         if (layer.objectInstance.name === 'cc::NinePatchLayerImpl') {
           continue;
         }
 
-        var layerQuad = layer.layerQuad.clone();
+        const layerQuad = layer.layerQuad.clone();
         if (layer.usingGpuRasterization) {
-          var pixelRatio = window.devicePixelRatio || 1;
+          const pixelRatio = window.devicePixelRatio || 1;
           layerQuad.borderWidth = 2.0 * pixelRatio;
           layerQuad.borderColor = 'rgba(154,205,50,0.75)';
         } else {
@@ -1092,7 +1092,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
               this.howToShowTiles, this.tileHeatmapType);
         }
 
-        var highlights;
+        let highlights;
         highlights = extraHighlightsByLayerId[layer.layerId];
         if (highlights) {
           this.appendHighlightQuadsForLayer_(
@@ -1110,19 +1110,20 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         if (!this.showOtherLayers && this.selectedLayer !== layer) return;
         if (alreadyVisitedLayerIds[layer.layerId]) return;
 
-        var layerQuad = layer.layerQuad;
-        var stackingGroupId = nextStackingGroupId++;
+        const layerQuad = layer.layerQuad;
+        const stackingGroupId = nextStackingGroupId++;
         if (this.showBottlenecks) {
           this.appendBottleneckQuads_(quads, layer, layerQuad, stackingGroupId);
         }
       }, this);
 
-      var tracedInputLatencies = this.layerTreeImpl.tracedInputLatencies;
+      const tracedInputLatencies = this.layerTreeImpl.tracedInputLatencies;
       if (this.showInputEvents && tracedInputLatencies) {
-        for (var i = 0; i < tracedInputLatencies.length; i++) {
-          var coordinatesArray = tracedInputLatencies[i].args.data.coordinates;
-          for (var j = 0; j < coordinatesArray.length; j++) {
-            var inputQuad = tr.b.math.Quad.fromXYWH(
+        for (let i = 0; i < tracedInputLatencies.length; i++) {
+          const coordinatesArray =
+            tracedInputLatencies[i].args.data.coordinates;
+          for (let j = 0; j < coordinatesArray.length; j++) {
+            const inputQuad = tr.b.math.Quad.fromXYWH(
                 coordinatesArray[j].x - 25,
                 coordinatesArray[j].y - 25,
                 50,
@@ -1142,13 +1143,13 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         this.infoBar_.removeAllButtons();
         this.infoBar_.message = 'Some problems were encountered...';
         this.infoBar_.addButton('More info...', function(e) {
-          var overlay = new tr.ui.b.Overlay();
+          const overlay = new tr.ui.b.Overlay();
           Polymer.dom(overlay).textContent = '';
           infoBarMessages.forEach(function(message) {
-            var title = document.createElement('h3');
+            const title = document.createElement('h3');
             Polymer.dom(title).textContent = message.header;
 
-            var details = document.createElement('div');
+            const details = document.createElement('div');
             Polymer.dom(details).textContent = message.details;
 
             Polymer.dom(overlay).appendChild(title);
@@ -1168,13 +1169,13 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     getWhatRasterized_() {
-      var lthi = this.layerTreeImpl_.layerTreeHostImpl;
-      var renderProcess = lthi.objectInstance.parent;
-      var tasks = [];
-      for (var event of renderProcess.getDescendantEvents()) {
+      const lthi = this.layerTreeImpl_.layerTreeHostImpl;
+      const renderProcess = lthi.objectInstance.parent;
+      const tasks = [];
+      for (const event of renderProcess.getDescendantEvents()) {
         if (!(event instanceof tr.model.Slice)) continue;
 
-        var tile = tr.e.cc.getTileFromRasterTaskSlice(event);
+        const tile = tr.e.cc.getTileFromRasterTaskSlice(event);
         if (tile === undefined) continue;
 
         if (tile.containingSnapshot === lthi) {
@@ -1185,7 +1186,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     updateWhatRasterizedLinkState_() {
-      var tasks = this.getWhatRasterized_();
+      const tasks = this.getWhatRasterized_();
       if (tasks.length) {
         Polymer.dom(this.whatRasterizedLink_).textContent =
             tasks.length + ' raster tasks';
@@ -1197,8 +1198,8 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     onWhatRasterizedLinkClicked_() {
-      var tasks = this.getWhatRasterized_();
-      var event = new tr.model.RequestSelectionChangeEvent();
+      const tasks = this.getWhatRasterized_();
+      const event = new tr.model.RequestSelectionChangeEvent();
       event.selection = new tr.model.EventSet(tasks);
       this.dispatchEvent(event);
     }

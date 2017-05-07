@@ -17,7 +17,7 @@ tr.b.unittest.testSuite(function() {
   test('merge', function() {
     let aSlice;
     let bSlice;
-    let model = tr.c.TestUtils.newModel(function(model) {
+    const model = tr.c.TestUtils.newModel(function(model) {
       aSlice = tr.c.TestUtils.newSliceEx({
         type: tr.model.ThreadSlice,
         title: 'a',
@@ -30,14 +30,14 @@ tr.b.unittest.testSuite(function() {
         start: 1,
         duration: 10
       });
-      let thread = model.getOrCreateProcess(1).getOrCreateThread(2);
+      const thread = model.getOrCreateProcess(1).getOrCreateThread(2);
       thread.sliceGroup.pushSlice(aSlice);
       thread.sliceGroup.pushSlice(bSlice);
     });
     assert.notEqual(aSlice.stableId, bSlice.stableId);
 
-    let aHist = new tr.v.Histogram('a', tr.b.Unit.byName.count);
-    let bHist = new tr.v.Histogram('b', tr.b.Unit.byName.count);
+    const aHist = new tr.v.Histogram('a', tr.b.Unit.byName.count);
+    const bHist = new tr.v.Histogram('b', tr.b.Unit.byName.count);
 
     aHist.diagnostics.set('events', new tr.v.d.RelatedEventSet(aSlice));
     bHist.diagnostics.set('events', new tr.v.d.RelatedEventSet(bSlice));
@@ -54,8 +54,8 @@ tr.b.unittest.testSuite(function() {
     mergedHist.addHistogram(bHist);
     mergedHist = tr.v.Histogram.fromDict(mergedHist.asDict());
 
-    let mergedEvents = mergedHist.diagnostics.get('events');
-    let span = tr.v.ui.createDiagnosticSpan(mergedEvents);
+    const mergedEvents = mergedHist.diagnostics.get('events');
+    const span = tr.v.ui.createDiagnosticSpan(mergedEvents);
     assert.strictEqual(
         'TR-V-UI-COLLECTED-RELATED-EVENT-SET-SPAN', span.tagName);
     this.addHTMLOutput(span);

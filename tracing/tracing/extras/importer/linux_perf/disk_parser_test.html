@@ -13,7 +13,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('diskImport', function() {
-    var lines = [
+    const lines = [
       // NB: spliced from different traces; mismatched timestamps don't matter
       'AsyncTask #2-18830 [000] ...1 154578.668286: ext4_sync_file_enter: ' +
           'dev 259,1 ino 81993 parent 81906 datasync 1',
@@ -45,15 +45,15 @@ tr.b.unittest.testSuite(function() {
       'ContactsProvide-1184 [000] ...1 66.613733: f2fs_write_end: ' +
           'dev = (253,2), ino = 3342, pos = 0, len = 75, copied = 75'
     ];
-    var m = tr.c.TestUtils.newModelWithEvents([lines.join('\n')], {
+    const m = tr.c.TestUtils.newModelWithEvents([lines.join('\n')], {
       shiftWorldToZero: false
     });
     assert.isFalse(m.hasImportWarnings);
 
-    var blockThread = undefined;
-    var ext4Thread = undefined;
-    var f2fsSyncThread = undefined;
-    var f2fsWriteThread = undefined;
+    let blockThread = undefined;
+    let ext4Thread = undefined;
+    let f2fsSyncThread = undefined;
+    let f2fsWriteThread = undefined;
 
     m.getAllThreads().forEach(function(t) {
       switch (t.name) {
@@ -80,7 +80,7 @@ tr.b.unittest.testSuite(function() {
 
     assert.strictEqual(blockThread.asyncSliceGroup.length, 4);
 
-    var slice = blockThread.asyncSliceGroup.slices[0];
+    let slice = blockThread.asyncSliceGroup.slices[0];
     assert.strictEqual(slice.category, 'block');
     assert.strictEqual(slice.title, 'write sync');
     assert.strictEqual(slice.args.device, '179,0');

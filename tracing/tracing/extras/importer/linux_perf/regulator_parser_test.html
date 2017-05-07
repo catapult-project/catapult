@@ -13,7 +13,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('regulatorImport', function() {
-    var lines = [
+    const lines = [
       ' kworker/0:2H-14312 [000] ...1 143713.787749: ' +
         'regulator_set_voltage: name=krait0 (810000-1100000)',
       ' kworker/0:2H-14312 [000] ...1 143713.787778: ' +
@@ -33,7 +33,7 @@ tr.b.unittest.testSuite(function() {
       'kworker/0:1-30321 [000] ...1 144568.654785: ' +
         'regulator_disable_complete: name=8941_smbb_boost'
     ];
-    var m = tr.c.TestUtils.newModelWithEvents([lines.join('\n')], {
+    const m = tr.c.TestUtils.newModelWithEvents([lines.join('\n')], {
       shiftWorldToZero: false
     });
     assert.isFalse(m.hasImportWarnings);

@@ -16,18 +16,18 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   function createModel(start, end, slices) {
-    var opts = {
+    const opts = {
       customizeModelCallback(model) {
-        var process = model.getOrCreateProcess(1);
-        var thread = process.getOrCreateThread(2);
-        var group = thread.sliceGroup;
+        const process = model.getOrCreateProcess(1);
+        const thread = process.getOrCreateThread(2);
+        const group = thread.sliceGroup;
         slices.forEach(function(slice) {
           group.pushSlice(tr.c.TestUtils.newSliceEx(slice));
         });
         group.createSubSlices();
       }
     };
-    var model = tr.c.TestUtils.newModelWithEvents([], opts);
+    const model = tr.c.TestUtils.newModelWithEvents([], opts);
     return model;
   }
 
@@ -36,30 +36,31 @@ tr.b.unittest.testSuite(function() {
   }
 
   function run(slices) {
-    var histograms = new tr.v.HistogramSet();
-    var startTime = slices.reduce((acc, slice) => (Math.min(acc, slice.start)));
-    var endTime = slices.reduce((acc, slice) => (Math.max(acc, slice.end)));
-    var model = createModel(startTime - 1, endTime + 1, slices);
+    const histograms = new tr.v.HistogramSet();
+    const startTime = slices.reduce(
+        (acc, slice) => (Math.min(acc, slice.start)));
+    const endTime = slices.reduce((acc, slice) => (Math.max(acc, slice.end)));
+    const model = createModel(startTime - 1, endTime + 1, slices);
     tr.metrics.blink.blinkGcMetric(histograms, model);
     return histograms;
   }
 
   test('topEvents', function() {
-    var events = {
+    const events = {
       'BlinkGCMarking': 'blink-gc-marking',
       'ThreadState::completeSweep': 'blink-gc-complete-sweep',
       'ThreadState::performIdleLazySweep': 'blink-gc-idle-lazy-sweep'
     };
-    for (var [timelineName, telemetryName] of Object.entries(events)) {
-      var slices = [
+    for (const [timelineName, telemetryName] of Object.entries(events)) {
+      const slices = [
         {
           title: timelineName, args: {}, start: 100, end: 200,
           cpuStart: 100, cpuEnd: 200
         }
       ];
-      var actual = run(slices);
+      const actual = run(slices);
 
-      var value = actual.getHistogramNamed(telemetryName);
+      let value = actual.getHistogramNamed(telemetryName);
       assert.strictEqual(value.running.sum, 100);
       assert.strictEqual(value.numValues, 1);
       assert.strictEqual(value.average, 100);
@@ -84,8 +85,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('idleTimes', function() {
-    var histograms = new tr.v.HistogramSet();
-    var slices = [
+    const histograms = new tr.v.HistogramSet();
+    const slices = [
       {
         title: 'SingleThreadIdleTaskRunner::RunTask',
         args: {'allotted_time_ms': 100}, start: 100, end: 200,
@@ -96,9 +97,9 @@ tr.b.unittest.testSuite(function() {
         cpuStart: 110, cpuEnd: 190
       }
     ];
-    var actual = run(slices);
+    const actual = run(slices);
 
-    var value = actual.getHistogramNamed('blink-gc-marking');
+    let value = actual.getHistogramNamed('blink-gc-marking');
     assert.strictEqual(value.running.sum, 80);
     assert.strictEqual(value.numValues, 1);
     assert.strictEqual(value.average, 80);
@@ -119,8 +120,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('idleTimeOverrun', function() {
-    var histograms = new tr.v.HistogramSet();
-    var slices = [
+    const histograms = new tr.v.HistogramSet();
+    const slices = [
       {
         title: 'SingleThreadIdleTaskRunner::RunTask',
         args: {'allotted_time_ms': 10}, start: 100, end: 200,
@@ -131,9 +132,9 @@ tr.b.unittest.testSuite(function() {
         cpuStart: 110, cpuEnd: 190
       }
     ];
-    var actual = run(slices);
+    const actual = run(slices);
 
-    var value = actual.getHistogramNamed('blink-gc-marking');
+    let value = actual.getHistogramNamed('blink-gc-marking');
     assert.strictEqual(value.running.sum, 80);
     assert.strictEqual(value.numValues, 1);
     assert.strictEqual(value.average, 80);
@@ -154,8 +155,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('total', function() {
-    var histograms = new tr.v.HistogramSet();
-    var slices = [
+    const histograms = new tr.v.HistogramSet();
+    const slices = [
       {
         title: 'BlinkGCMarking', args: {}, start: 100, end: 200,
         cpuStart: 100, cpuEnd: 200
@@ -165,9 +166,9 @@ tr.b.unittest.testSuite(function() {
         end: 290, cpuStart: 210, cpuEnd: 290
       }
     ];
-    var actual = run(slices);
+    const actual = run(slices);
 
-    var value = actual.getHistogramNamed('blink-gc-total');
+    let value = actual.getHistogramNamed('blink-gc-total');
     assert.strictEqual(value.running.sum, 180);
     assert.strictEqual(value.numValues, 2);
     assert.strictEqual(value.average, 90);

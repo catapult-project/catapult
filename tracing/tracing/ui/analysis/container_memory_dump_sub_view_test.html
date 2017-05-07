@@ -18,13 +18,14 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var EventSet = tr.model.EventSet;
-  var extractVmRegions = tr.ui.analysis.extractVmRegions;
-  var extractMemoryAllocatorDumps = tr.ui.analysis.extractMemoryAllocatorDumps;
-  var extractHeapDumps = tr.ui.analysis.extractHeapDumps;
+  const EventSet = tr.model.EventSet;
+  const extractVmRegions = tr.ui.analysis.extractVmRegions;
+  const extractMemoryAllocatorDumps =
+    tr.ui.analysis.extractMemoryAllocatorDumps;
+  const extractHeapDumps = tr.ui.analysis.extractHeapDumps;
 
   function createViewWithSelection(selection, opt_parentElement) {
-    var viewEl = document.createElement(
+    const viewEl = document.createElement(
         'tr-ui-a-container-memory-dump-sub-view');
     if (opt_parentElement) {
       Polymer.dom(opt_parentElement).appendChild(viewEl);
@@ -34,7 +35,7 @@ tr.b.unittest.testSuite(function() {
     } else {
       // Rotate the list of selected dumps to check that the sub-view sorts
       // them properly.
-      var length = selection.length;
+      const length = selection.length;
       viewEl.selection = new tr.model.EventSet(
           selection.slice(length / 2, length).concat(
               selection.slice(0, length / 2)));
@@ -44,7 +45,7 @@ tr.b.unittest.testSuite(function() {
 
   function createAndCheckContainerMemoryDumpView(
       test, containerMemoryDumps, detailsCheckCallback, opt_parentElement) {
-    var viewEl =
+    const viewEl =
         createViewWithSelection(containerMemoryDumps, opt_parentElement);
     if (!opt_parentElement) {
       test.addHTMLOutput(viewEl);
@@ -52,17 +53,16 @@ tr.b.unittest.testSuite(function() {
 
     // The view should contain a stacked pane view with memory dump header and
     // overview panes.
-    var stackedPaneViewEl = tr.b.findDeepElementMatching(
+    const stackedPaneViewEl = tr.b.findDeepElementMatching(
         viewEl, 'tr-ui-a-stacked-pane-view');
-    var headerPaneEl = tr.b.findDeepElementMatching(
+    const headerPaneEl = tr.b.findDeepElementMatching(
         stackedPaneViewEl, 'tr-ui-a-memory-dump-header-pane');
-    var overviewPaneEl = tr.b.findDeepElementMatching(
+    const overviewPaneEl = tr.b.findDeepElementMatching(
         stackedPaneViewEl, 'tr-ui-a-memory-dump-overview-pane');
 
     // Check that the header pane and overview pane are correctly set up.
-    var processMemoryDumps = containerMemoryDumps.map(function(containerDump) {
-      return containerDump.processMemoryDumps;
-    });
+    const processMemoryDumps = containerMemoryDumps.map(
+        containerDump => containerDump.processMemoryDumps);
     assert.deepEqual(
         tr.b.asArray(headerPaneEl.containerMemoryDumps), containerMemoryDumps);
     assert.deepEqual(overviewPaneEl.processMemoryDumps, processMemoryDumps);
@@ -70,11 +70,11 @@ tr.b.unittest.testSuite(function() {
         overviewPaneEl.aggregationMode, headerPaneEl.aggregationMode);
 
     // Get the overview pane table to drive the details pane checks.
-    var overviewTableEl = tr.b.findDeepElementMatching(
+    const overviewTableEl = tr.b.findDeepElementMatching(
         overviewPaneEl, 'tr-ui-b-table');
 
     function checkVmRegionsPane(pid) {
-      var detailsPaneEl = tr.b.findDeepElementMatching(
+      const detailsPaneEl = tr.b.findDeepElementMatching(
           stackedPaneViewEl, 'tr-ui-a-memory-dump-vm-regions-details-pane');
       if (pid === undefined) {
         assert.isUndefined(detailsPaneEl);
@@ -87,7 +87,7 @@ tr.b.unittest.testSuite(function() {
     }
 
     function checkAllocatorPane(pid, allocatorName, withHeapDetailsPane) {
-      var allocatorDetailsPaneEl = tr.b.findDeepElementMatching(
+      const allocatorDetailsPaneEl = tr.b.findDeepElementMatching(
           stackedPaneViewEl, 'tr-ui-a-memory-dump-allocator-details-pane');
       if (pid === undefined) {
         assert.isUndefined(allocatorDetailsPaneEl);
@@ -102,7 +102,7 @@ tr.b.unittest.testSuite(function() {
       assert.strictEqual(
           allocatorDetailsPaneEl.aggregationMode, headerPaneEl.aggregationMode);
 
-      var heapDetailsPaneEl = tr.b.findDeepElementMatching(
+      const heapDetailsPaneEl = tr.b.findDeepElementMatching(
           stackedPaneViewEl, 'tr-ui-a-memory-dump-heap-details-pane');
       if (!withHeapDetailsPane) {
         assert.isUndefined(heapDetailsPaneEl);
@@ -121,18 +121,18 @@ tr.b.unittest.testSuite(function() {
 
   test('instantiate_empty', function() {
     // All these views should be completely empty.
-    var unsetViewEl = document.createElement(
+    const unsetViewEl = document.createElement(
         'tr-ui-a-container-memory-dump-sub-view');
     this.addHTMLOutput(unsetViewEl);
     assert.strictEqual(unsetViewEl.getBoundingClientRect().width, 0);
     assert.strictEqual(unsetViewEl.getBoundingClientRect().height, 0);
 
-    var undefinedViewEl = createViewWithSelection(undefined);
+    const undefinedViewEl = createViewWithSelection(undefined);
     this.addHTMLOutput(undefinedViewEl);
     assert.strictEqual(undefinedViewEl.getBoundingClientRect().width, 0);
     assert.strictEqual(undefinedViewEl.getBoundingClientRect().height, 0);
 
-    var emptyViewEl = createViewWithSelection([]);
+    const emptyViewEl = createViewWithSelection([]);
     this.addHTMLOutput(emptyViewEl);
     assert.strictEqual(emptyViewEl.getBoundingClientRect().width, 0);
     assert.strictEqual(emptyViewEl.getBoundingClientRect().height, 0);
@@ -260,7 +260,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('memory', function() {
-    var containerEl = document.createElement('div');
+    const containerEl = document.createElement('div');
     containerEl.brushingStateController =
         new tr.c.BrushingStateController(undefined);
 
@@ -301,11 +301,11 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiate_differentProcessMemoryDumps', function() {
-    var globalMemoryDumps =
+    const globalMemoryDumps =
         tr.ui.analysis.createMultipleTestGlobalMemoryDumps();
     // 2 dumps in Process 1, 3 dumps in Process 2, and 1 dump in Process 4
     // (intentionally shuffled to check sorting).
-    var differentProcessDumps = [
+    const differentProcessDumps = [
       globalMemoryDumps[1].processMemoryDumps[2],
       globalMemoryDumps[0].processMemoryDumps[1],
       globalMemoryDumps[0].processMemoryDumps[2],
@@ -314,14 +314,14 @@ tr.b.unittest.testSuite(function() {
       globalMemoryDumps[2].processMemoryDumps[2]
     ];
 
-    var viewEl = createViewWithSelection(differentProcessDumps);
+    const viewEl = createViewWithSelection(differentProcessDumps);
     this.addHTMLOutput(viewEl);
 
-    var tableEl = tr.b.findDeepElementMatching(viewEl, 'tr-ui-b-table');
+    const tableEl = tr.b.findDeepElementMatching(viewEl, 'tr-ui-b-table');
     assert.lengthOf(tableEl.tableRows, 3);
     assert.lengthOf(tableEl.tableColumns, 1);
-    var rows = tableEl.tableRows;
-    var col = tableEl.tableColumns[0];
+    const rows = tableEl.tableRows;
+    const col = tableEl.tableColumns[0];
 
     assert.strictEqual(Polymer.dom(col.value(rows[0])).textContent,
         '2 memory dumps in Process 1');
@@ -338,7 +338,7 @@ tr.b.unittest.testSuite(function() {
     ])));
 
     assert.lengthOf(rows[1].subRows, 3);
-    var subRow = rows[1].subRows[0];
+    const subRow = rows[1].subRows[0];
 
     // Check the timestamp.
     assert.strictEqual(col.value(subRow).children[0].value, 42);

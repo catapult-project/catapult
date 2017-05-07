@@ -26,16 +26,16 @@ tr.exportTo('tr.ui.annotations', function() {
     __proto__: tr.ui.annotations.AnnotationView.prototype,
 
     draw(ctx) {
-      var dt = this.viewport_.currentDisplayTransform;
-      var startCoords =
+      const dt = this.viewport_.currentDisplayTransform;
+      const startCoords =
           this.annotation_.startLocation.toViewCoordinates(this.viewport_);
-      var endCoords =
+      const endCoords =
           this.annotation_.endLocation.toViewCoordinates(this.viewport_);
 
       // Prevent drawing into the ruler track by clamping the initial Y
       // point and the rect's Y size.
-      var startY = startCoords.viewY - ctx.canvas.getBoundingClientRect().top;
-      var sizeY = endCoords.viewY - startCoords.viewY;
+      let startY = startCoords.viewY - ctx.canvas.getBoundingClientRect().top;
+      const sizeY = endCoords.viewY - startCoords.viewY;
       if (startY + sizeY < 0) {
         // In this case sizeY is negative. If final Y is negative,
         // overwrite startY so that the rectangle ends at y=0.

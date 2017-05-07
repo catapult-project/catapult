@@ -11,10 +11,10 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var ClockDomainId = tr.model.ClockDomainId;
-  var ClockSyncManager = tr.model.ClockSyncManager;
+  const ClockDomainId = tr.model.ClockDomainId;
+  const ClockSyncManager = tr.model.ClockSyncManager;
 
-  var testOptions = {
+  const testOptions = {
     setUp() {
       // Add a few testing clock domains to the list of permissible domains.
       ClockDomainId.DOMAIN_1 = 'DOMAIN1';
@@ -34,7 +34,7 @@ tr.b.unittest.testSuite(function() {
   };
 
   test('addClockSyncMarker_throwsWithUnknownDomain', function() {
-    var mgr = new ClockSyncManager();
+    const mgr = new ClockSyncManager();
 
     assert.throws(function() {
       mgr.addClockSyncMarker('unknown', 'sync1', 100, 200);
@@ -43,7 +43,7 @@ tr.b.unittest.testSuite(function() {
 
 
   test('addClockSyncMarker_throwsWhenSelfSyncing', function() {
-    var mgr = new ClockSyncManager();
+    const mgr = new ClockSyncManager();
     mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync1', 100, 200);
 
     assert.throws(function() {
@@ -52,7 +52,7 @@ tr.b.unittest.testSuite(function() {
   }, testOptions);
 
   test('addClockSyncMarker_throwsWhenAddingThirdSyncMarkerToSync', function() {
-    var mgr = new ClockSyncManager();
+    const mgr = new ClockSyncManager();
     mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync1', 100);
     mgr.addClockSyncMarker(ClockDomainId.DOMAIN_2, 'sync1', 100);
 
@@ -63,7 +63,7 @@ tr.b.unittest.testSuite(function() {
   }, testOptions);
 
   test('addClockSyncMarker_throwsAfterGetModelTimeTransformer', function() {
-    var mgr = new ClockSyncManager();
+    const mgr = new ClockSyncManager();
     mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync1', 100);
     mgr.addClockSyncMarker(ClockDomainId.DOMAIN_2, 'sync1', 100);
 
@@ -76,14 +76,14 @@ tr.b.unittest.testSuite(function() {
   }, testOptions);
 
   test('getModelTimeTransformer_noMarkers', function() {
-    var mgr = new ClockSyncManager();
+    const mgr = new ClockSyncManager();
 
     assert.strictEqual(
         mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_1)(100), 100);
   }, testOptions);
 
   test('getModelTimeTransformer_noMarkersSecondDomainThrows', function() {
-    var mgr = new ClockSyncManager();
+    const mgr = new ClockSyncManager();
 
     mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_1);
 
@@ -94,7 +94,7 @@ tr.b.unittest.testSuite(function() {
   }, testOptions);
 
   test('getModelTimeTransformer_noMarkersChromeLegacyFirst', function() {
-    var mgr = new ClockSyncManager();
+    const mgr = new ClockSyncManager();
 
     assert.strictEqual(
         mgr.getModelTimeTransformer(ClockDomainId.UNKNOWN_CHROME_LEGACY)(100),
@@ -105,7 +105,7 @@ tr.b.unittest.testSuite(function() {
   }, testOptions);
 
   test('getModelTimeTransformer_noMarkersChromeLegacySecond', function() {
-    var mgr = new ClockSyncManager();
+    const mgr = new ClockSyncManager();
 
     assert.strictEqual(
         mgr.getModelTimeTransformer(ClockDomainId.LINUX_CLOCK_MONOTONIC)(100),
@@ -116,7 +116,7 @@ tr.b.unittest.testSuite(function() {
   }, testOptions);
 
   test('getModelTimeTransformer_oneMarker', function() {
-    var mgr = new ClockSyncManager();
+    const mgr = new ClockSyncManager();
     mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync1', 100);
 
     assert.strictEqual(
@@ -124,7 +124,7 @@ tr.b.unittest.testSuite(function() {
   }, testOptions);
 
   test('getModelTimeTransformer_oneCompleteSync', function() {
-    var mgr = new ClockSyncManager();
+    const mgr = new ClockSyncManager();
     mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync1', 100);
     mgr.addClockSyncMarker(ClockDomainId.DOMAIN_2, 'sync1', 350);
 
@@ -136,7 +136,7 @@ tr.b.unittest.testSuite(function() {
 
   test('getModelTimeTransformer_oneCompleteSyncWithChromeLegacyBefore',
       function() {
-        var mgr = new ClockSyncManager();
+        const mgr = new ClockSyncManager();
         mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync1', 100);
         mgr.addClockSyncMarker(
             ClockDomainId.UNKNOWN_CHROME_LEGACY, 'sync1', 350);
@@ -155,7 +155,7 @@ tr.b.unittest.testSuite(function() {
 
   test('getModelTimeTransformer_oneCompleteSyncWithChromeLegacyAfter',
       function() {
-        var mgr = new ClockSyncManager();
+        const mgr = new ClockSyncManager();
         mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync1', 100);
         mgr.addClockSyncMarker(
             ClockDomainId.LINUX_CLOCK_MONOTONIC, 'sync1', 350);
@@ -173,11 +173,11 @@ tr.b.unittest.testSuite(function() {
       }, testOptions);
 
   test('getModelTimeTransformer_twoCompleteSyncs', function() {
-    var mgr = new ClockSyncManager();
+    const mgr = new ClockSyncManager();
     mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync1', 100);
     mgr.addClockSyncMarker(ClockDomainId.DOMAIN_2, 'sync1', 350);
 
-    var tx = mgr.getTransformerBetween_('DOMAIN1', 'DOMAIN3');
+    const tx = mgr.getTransformerBetween_('DOMAIN1', 'DOMAIN3');
     mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync2', 200);
     mgr.addClockSyncMarker(ClockDomainId.DOMAIN_3, 'sync2', 250);
 
@@ -190,7 +190,7 @@ tr.b.unittest.testSuite(function() {
   }, testOptions);
 
   test('getModelTimeTransformer_twoSyncMarkersWithEndTs', function() {
-    var mgr = new ClockSyncManager();
+    const mgr = new ClockSyncManager();
     mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync1', 100, 200);
     mgr.addClockSyncMarker(ClockDomainId.DOMAIN_2, 'sync1', 350);
 
@@ -202,7 +202,7 @@ tr.b.unittest.testSuite(function() {
 
   test('getModelTimeTransformer_indirectlyConnectedGraph',
       function() {
-        var mgr = new ClockSyncManager();
+        const mgr = new ClockSyncManager();
         mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync1', 100);
         mgr.addClockSyncMarker(ClockDomainId.DOMAIN_2, 'sync1', 200);
 
@@ -216,7 +216,7 @@ tr.b.unittest.testSuite(function() {
       }, testOptions);
 
   test('getModelTimeTransformer_usesPathWithLeastError', function() {
-    var mgr = new ClockSyncManager();
+    const mgr = new ClockSyncManager();
     mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync2', 100, 150);
     mgr.addClockSyncMarker(ClockDomainId.DOMAIN_2, 'sync2', 100);
 
@@ -232,7 +232,7 @@ tr.b.unittest.testSuite(function() {
   // NOTE: This is the same test as the above, but reversed to ensure that
   // the result didn't stem from some ordering coincidence.
   test('getModelTimeTransformer_usesPathWithLeastErrorReverse', function() {
-    var mgr = new ClockSyncManager();
+    const mgr = new ClockSyncManager();
     mgr.addClockSyncMarker(ClockDomainId.DOMAIN_2, 'sync1', 100);
     mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync1', 100, 150);
 
@@ -247,7 +247,7 @@ tr.b.unittest.testSuite(function() {
 
   test('getModelTimeTransformer_battorSyncUsesNormalTimestampWhenFast',
       function() {
-        var mgr = new ClockSyncManager();
+        const mgr = new ClockSyncManager();
         mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync1', 100, 102);
         mgr.addClockSyncMarker(ClockDomainId.BATTOR, 'sync1', 350);
 
@@ -258,7 +258,7 @@ tr.b.unittest.testSuite(function() {
 
   test('getModelTimeTransformer_battorSyncUsesChromeLegacyStartTsWhenTooSlow',
       function() {
-        var mgr = new ClockSyncManager();
+        const mgr = new ClockSyncManager();
         mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync1', 100, 200);
         mgr.addClockSyncMarker(ClockDomainId.BATTOR, 'sync1', 350);
 
@@ -268,7 +268,7 @@ tr.b.unittest.testSuite(function() {
       }, testOptions);
 
   test('getModelTimeTransformer_prefersChromeLegacyDomain', function() {
-    var mgr = new ClockSyncManager();
+    const mgr = new ClockSyncManager();
     mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync1', 100);
     mgr.addClockSyncMarker(ClockDomainId.UNKNOWN_CHROME_LEGACY, 'sync1', 350);
 
@@ -282,7 +282,7 @@ tr.b.unittest.testSuite(function() {
 
   test('getModelTimeTransformer_collapsesUnknownChromeLegacyDomainLinux',
       function() {
-        var mgr = new ClockSyncManager();
+        const mgr = new ClockSyncManager();
         mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync1', 100);
         mgr.addClockSyncMarker(
             ClockDomainId.UNKNOWN_CHROME_LEGACY, 'sync1', 350);
@@ -307,7 +307,7 @@ tr.b.unittest.testSuite(function() {
 
   test('getModelTimeTransformer_collapsesUnknownChromeLegacyDomainMac',
       function() {
-        var mgr = new ClockSyncManager();
+        const mgr = new ClockSyncManager();
         mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync1', 100);
         mgr.addClockSyncMarker(
             ClockDomainId.UNKNOWN_CHROME_LEGACY, 'sync1', 350);
@@ -332,7 +332,7 @@ tr.b.unittest.testSuite(function() {
 
   test('getModelTimeTransformer_collapsesUnknownChromeLegacyDomainWinLoRes',
       function() {
-        var mgr = new ClockSyncManager();
+        const mgr = new ClockSyncManager();
         mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync1', 100);
         mgr.addClockSyncMarker(
             ClockDomainId.UNKNOWN_CHROME_LEGACY, 'sync1', 350);
@@ -357,7 +357,7 @@ tr.b.unittest.testSuite(function() {
 
   test('getModelTimeTransformer_collapsesChromeLegacyDomainWinHiRes',
       function() {
-        var mgr = new ClockSyncManager();
+        const mgr = new ClockSyncManager();
         mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync1', 100);
         mgr.addClockSyncMarker(
             ClockDomainId.UNKNOWN_CHROME_LEGACY, 'sync1', 350);
@@ -378,7 +378,7 @@ tr.b.unittest.testSuite(function() {
       }, testOptions);
 
   test('getModelTimeTransformer_throwsWithTwoDistinctGraphs', function() {
-    var mgr = new ClockSyncManager();
+    const mgr = new ClockSyncManager();
     mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync1', 100);
     mgr.addClockSyncMarker(ClockDomainId.DOMAIN_2, 'sync1', 100);
 

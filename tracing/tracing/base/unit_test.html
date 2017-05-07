@@ -14,14 +14,14 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var ImprovementDirection = tr.b.ImprovementDirection;
-  var Unit = tr.b.Unit;
-  var UnitPrefixScale = tr.b.UnitPrefixScale;
+  const ImprovementDirection = tr.b.ImprovementDirection;
+  const Unit = tr.b.Unit;
+  const UnitPrefixScale = tr.b.UnitPrefixScale;
 
   test('Unit.display-mode-changed', function() {
-    var TimeDisplayModes = tr.b.TimeDisplayModes;
+    const TimeDisplayModes = tr.b.TimeDisplayModes;
 
-    var listenerWasCalled = false;
+    let listenerWasCalled = false;
     function listener(e) {
       listenerWasCalled = true;
     }
@@ -42,11 +42,12 @@ tr.b.unittest.testSuite(function() {
 
   test('Unit.didPreferredTimeDisplayUnitChange', function() {
     if (tr.isHeadless) return;
-    var Unit = tr.b.Unit;
-    var TimeDisplayModes = tr.b.TimeDisplayModes;
+    const Unit = tr.b.Unit;
+    const TimeDisplayModes = tr.b.TimeDisplayModes;
     assert.strictEqual(Unit.currentTimeDisplayMode, TimeDisplayModes.ms);
 
-    var displayUnit = document.createElement('tr-v-ui-preferred-display-unit');
+    const displayUnit = document.createElement(
+        'tr-v-ui-preferred-display-unit');
     displayUnit.preferredTimeDisplayMode = TimeDisplayModes.ns;
     this.addHTMLOutput(displayUnit);
     tr.b.Unit.didPreferredTimeDisplayUnitChange();
@@ -99,12 +100,14 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('sizeInBytes', function() {
-    var SOURCE_VALUES = [0, 1, 1536, 424.5 * 1024 * 1024,
+    const SOURCE_VALUES = [0, 1, 1536, 424.5 * 1024 * 1024,
       1025 * 1024 * 1024 * 1024 * 1024, -2.5 * 1024 * 1024];
-    var EXPECTED_REGULAR_FORMATTED_VALUES = ['0.0 B', '1.0 B', '1.5 KiB',
+    const EXPECTED_REGULAR_FORMATTED_VALUES = ['0.0 B', '1.0 B', '1.5 KiB',
       '424.5 MiB', '1,025.0 TiB', '-2.5 MiB'];
-    var EXPECTED_DELTA_FORMATTED_VALUES = ['\u00B10.0 B', '+1.0 B', '+1.5 KiB',
-      '+424.5 MiB', '+1,025.0 TiB', '-2.5 MiB'];
+    const EXPECTED_DELTA_FORMATTED_VALUES = [
+      '\u00B10.0 B', '+1.0 B', '+1.5 KiB',
+      '+424.5 MiB', '+1,025.0 TiB', '-2.5 MiB',
+    ];
 
     function checkSizeUnit(unit, expectation) {
       assert.strictEqual(unit.unitName, expectation.unitName);

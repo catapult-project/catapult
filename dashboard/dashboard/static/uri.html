@@ -13,12 +13,12 @@ found in the LICENSE file.
 /**
  * Utility functions for dealing with URIs.
  */
-var uri = (function() {
+const uri = (function() {
   /**
    * URI controller.
    * @param {function()} pageStateCallback callback for getting the page state.
    */
-  var Controller = function(pageStateCallback) {
+  const Controller = function(pageStateCallback) {
     this.pageStateCallback_ = pageStateCallback;
     this.stateRequest_ = null;
     this.stateRequestStatus_ = null;
@@ -46,17 +46,17 @@ var uri = (function() {
    * the event detail object.
    */
   Controller.prototype.load = function() {
-    var params = uri.getAllParameters();
-    var sid = uri.getParameter('sid');
+    const params = uri.getAllParameters();
+    const sid = uri.getParameter('sid');
     if (!params || !sid) {
       return;
     }
 
-    var request = new XMLHttpRequest();
+    const request = new XMLHttpRequest();
     request.onload = function() {
-      var pageState = JSON.parse(request.responseText);
-      var params = uri.getAllParameters();
-      var uriLoadEvent = new CustomEvent('uriload', {
+      const pageState = JSON.parse(request.responseText);
+      const params = uri.getAllParameters();
+      const uriLoadEvent = new CustomEvent('uriload', {
         'detail': {
           params,
           'state': pageState
@@ -84,8 +84,8 @@ var uri = (function() {
    * the source that fired the event.
    */
   Controller.prototype.onPageStateChanged = function(event) {
-    var detail = event.detail;
-    var state = {
+    const detail = event.detail;
+    const state = {
       'stateName': detail.stateName,
       'params': detail.params,
       'state': detail.state
@@ -112,12 +112,12 @@ var uri = (function() {
    * @param {Object} state Dictionary containing state data.
    */
   Controller.prototype.updateUri_ = function(state) {
-    var params = uri.getAllParameters();
+    let params = uri.getAllParameters();
     if (!state || !state.params) {
       params = {};
     } else {
-      for (var k in state.params) {
-        var value = state.params[k];
+      for (const k in state.params) {
+        const value = state.params[k];
         if (value) {
           params[k] = value;
         } else {
@@ -125,7 +125,7 @@ var uri = (function() {
         }
       }
     }
-    var URIStr = getCurrentPathWithParams(params);
+    const URIStr = getCurrentPathWithParams(params);
     if (URIStr == window.location.pathname + uri.getQueryString()) {
       return;
     }
@@ -141,8 +141,8 @@ var uri = (function() {
     if (!event.state) {
       return;
     }
-    var state = event.state;
-    var uriChangeEvent = new CustomEvent('urichange', {
+    const state = event.state;
+    const uriChangeEvent = new CustomEvent('urichange', {
       'detail': {
         'id': state.id,
         'stateName': state.stateName,
@@ -164,20 +164,20 @@ var uri = (function() {
     if (this.stateRequest_) {
       this.stateRequest_.abort();
     }
-    var pageState = this.pageStateCallback_();
+    const pageState = this.pageStateCallback_();
     if (!pageState) {
       this.updateUri_(null);
       return;
     }
 
-    var postData = 'page_state=' +
+    const postData = 'page_state=' +
         encodeURIComponent(JSON.stringify(pageState));
 
     this.firePageStateRequestEvent_('loading');
-    var request = new XMLHttpRequest();
+    const request = new XMLHttpRequest();
     request.onload = () => {
-      var response = JSON.parse(request.responseText);
-      var stateId = response.sid;
+      const response = JSON.parse(request.responseText);
+      const stateId = response.sid;
       state.params = state.params || {};
       state.params.sid = stateId;
       this.updateUri_(state);
@@ -198,7 +198,7 @@ var uri = (function() {
    * @param {string} status Status name.
    */
   Controller.prototype.firePageStateRequestEvent_ = function(status) {
-    var event = new CustomEvent('pagestaterequest', {
+    const event = new CustomEvent('pagestaterequest', {
       'detail': {status}
     });
     window.dispatchEvent(event);
@@ -210,10 +210,10 @@ var uri = (function() {
    * @param {?string=} opt_default The default to return.
    * @return {?string} The value of the parameter.
    */
-  var getParameter = function(name, opt_default) {
+  const getParameter = function(name, opt_default) {
     name = name.replace(/[\[]/, '\\\[').replace(/[\]]/, '\\\]');
-    var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
-    var results = regex.exec(uri.getQueryString());
+    const regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+    const results = regex.exec(uri.getQueryString());
     if (results != null) {
       return decodeURIComponent(results[1].replace(/\+/g, ' '));
     }
@@ -225,15 +225,15 @@ var uri = (function() {
    * same name.
    * @return {!Object} Mapping of name->value for URI parameters.
    */
-  var getAllParameters = function() {
-    var params = {};
-    var queryString = uri.getQueryString().replace(/^\?/, '');
+  const getAllParameters = function() {
+    const params = {};
+    const queryString = uri.getQueryString().replace(/^\?/, '');
     if (!queryString) {
       return {};
     }
-    var parts = queryString.split('&');
-    for (var i = 0; i < parts.length; i++) {
-      var pair = parts[i].split('=');
+    const parts = queryString.split('&');
+    for (let i = 0; i < parts.length; i++) {
+      const pair = parts[i].split('=');
       if (pair.length == 1) {
         params[pair[0]] = '';
       } else {
@@ -244,7 +244,7 @@ var uri = (function() {
   };
 
   /** Gets the query string, including "?", in a mockable way. */
-  var getQueryString = function() {
+  const getQueryString = function() {
     return window.location.search;
   };
 
@@ -255,8 +255,8 @@ var uri = (function() {
    * @param {!Object} params Key/value pairs for new query string.
    * @return {string} New URI which can be passed into history.pushState().
    */
-  var getCurrentPathWithParams = function(params) {
-    var pairs = Object.keys(params).map(function(k) {
+  const getCurrentPathWithParams = function(params) {
+    const pairs = Object.keys(params).map(function(k) {
       return k + '=' + encodeURIComponent(params[k]);
     });
     return window.location.pathname + '?' + pairs.join('&');
@@ -266,7 +266,7 @@ var uri = (function() {
    * Gets the second argument after the .com/.
    * @return {string} second path element.
    */
-  var getPathName = function() {
+  const getPathName = function() {
     return window.location.pathname.split('/')[2];
   };
 

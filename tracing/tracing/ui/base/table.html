@@ -15,7 +15,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.b', function() {
-  var TableFormat = {};
+  const TableFormat = {};
 
   TableFormat.SelectionMode = {
     // Selection disabled.
@@ -203,14 +203,14 @@ tr.exportTo('tr.ui.b', function() {
 <script>
 'use strict';
 (function() {
-  var RIGHT_ARROW = String.fromCharCode(0x25b6);
-  var UNSORTED_ARROW = String.fromCharCode(0x25BF);
-  var ASCENDING_ARROW = String.fromCharCode(0x25B4);
-  var DESCENDING_ARROW = String.fromCharCode(0x25BE);
+  const RIGHT_ARROW = String.fromCharCode(0x25b6);
+  const UNSORTED_ARROW = String.fromCharCode(0x25BF);
+  const ASCENDING_ARROW = String.fromCharCode(0x25B4);
+  const DESCENDING_ARROW = String.fromCharCode(0x25BE);
 
-  var SelectionMode = tr.ui.b.TableFormat.SelectionMode;
-  var HighlightStyle = tr.ui.b.TableFormat.HighlightStyle;
-  var ColumnAlignment = tr.ui.b.TableFormat.ColumnAlignment;
+  const SelectionMode = tr.ui.b.TableFormat.SelectionMode;
+  const HighlightStyle = tr.ui.b.TableFormat.HighlightStyle;
+  const ColumnAlignment = tr.ui.b.TableFormat.ColumnAlignment;
 
   Polymer({
     is: 'tr-ui-b-table',
@@ -324,7 +324,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     set emptyValue(emptyValue) {
-      var previousEmptyValue = this.emptyValue_;
+      const previousEmptyValue = this.emptyValue_;
       this.emptyValue_ = emptyValue;
       if (this.tableRows_.length === 0 && emptyValue !== previousEmptyValue) {
         this.scheduleRebuildBody_();
@@ -342,8 +342,8 @@ tr.exportTo('tr.ui.b', function() {
      */
     set tableColumns(columns) {
       // Figure out the columns with expand buttons...
-      var columnsWithExpandButtons = [];
-      for (var i = 0; i < columns.length; i++) {
+      let columnsWithExpandButtons = [];
+      for (let i = 0; i < columns.length; i++) {
         if (columns[i].showExpandButtons) {
           columnsWithExpandButtons.push(i);
         }
@@ -354,13 +354,13 @@ tr.exportTo('tr.ui.b', function() {
       }
 
       // Sanity check columns.
-      for (var i = 0; i < columns.length; i++) {
-        var colInfo = columns[i];
+      for (let i = 0; i < columns.length; i++) {
+        const colInfo = columns[i];
         if (colInfo.width === undefined) continue;
 
-        var hasExpandButton = columnsWithExpandButtons.includes(i);
+        const hasExpandButton = columnsWithExpandButtons.includes(i);
 
-        var w = colInfo.width;
+        const w = colInfo.width;
         if (w) {
           if (/\d+px/.test(w)) {
             continue;
@@ -379,10 +379,10 @@ tr.exportTo('tr.ui.b', function() {
       // This is a 'best-effort' attempt, for example we compare columns by
       // thier titles which can be HTML nodes in which case we might consider
       // them different even if they look the same to the user.
-      var sortIndex = undefined;
-      var currentSortColumn = this.tableColumns[this.sortColumnIndex_];
+      let sortIndex = undefined;
+      const currentSortColumn = this.tableColumns[this.sortColumnIndex_];
       if (currentSortColumn) {
-        for (var [i, column] of columns.entries()) {
+        for (const [i, column] of columns.entries()) {
           if (currentSortColumn.title === column.title) {
             sortIndex = i;
             break;
@@ -439,7 +439,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     set userCanModifySortOrder(userCanModifySortOrder) {
-      var newUserCanModifySortOrder = !!userCanModifySortOrder;
+      const newUserCanModifySortOrder = !!userCanModifySortOrder;
       if (newUserCanModifySortOrder === this.userCanModifySortOrder_) {
         return;
       }
@@ -471,7 +471,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     set sortDescending(value) {
-      var newValue = !!value;
+      const newValue = !!value;
 
       if (newValue !== this.sortDescending_) {
         this.sortDescending_ = newValue;
@@ -486,9 +486,9 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     updateHeaderArrows_() {
-      for (var i = 0; i < this.headerCells_.length; i++) {
-        var headerCell = this.headerCells_[i];
-        var isColumnCurrentlySorted = i === this.sortColumnIndex_;
+      for (let i = 0; i < this.headerCells_.length; i++) {
+        const headerCell = this.headerCells_[i];
+        const isColumnCurrentlySorted = i === this.sortColumnIndex_;
         if (!this.tableColumns_[i].cmp ||
             (!this.userCanModifySortOrder_ && !isColumnCurrentlySorted)) {
           headerCell.sideContent = '';
@@ -506,10 +506,10 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     generateHeaderColumns_() {
-      var selectedTableColumnIndex = this.selectedTableColumnIndex;
+      const selectedTableColumnIndex = this.selectedTableColumnIndex;
       Polymer.dom(this.$.cols).textContent = '';
-      for (var i = 0; i < this.tableColumns_.length; ++i) {
-        var colElement = document.createElement('col');
+      for (let i = 0; i < this.tableColumns_.length; ++i) {
+        const colElement = document.createElement('col');
         if (i === selectedTableColumnIndex) {
           colElement.setAttribute('selected', true);
         }
@@ -520,17 +520,17 @@ tr.exportTo('tr.ui.b', function() {
       Polymer.dom(this.$.head).textContent = '';
       if (!this.showHeader_) return;
 
-      var tr = this.appendNewElement_(this.$.head, 'tr');
-      for (var i = 0; i < this.tableColumns_.length; i++) {
-        var td = this.appendNewElement_(tr, 'td');
+      const tr = this.appendNewElement_(this.$.head, 'tr');
+      for (let i = 0; i < this.tableColumns_.length; i++) {
+        const td = this.appendNewElement_(tr, 'td');
 
-        var headerCell = document.createElement('tr-ui-b-table-header-cell');
+        const headerCell = document.createElement('tr-ui-b-table-header-cell');
         headerCell.column = this.tableColumns_[i];
 
         // If the table can be sorted by this column and the user can modify
         // the sort order, attach a tap callback to the column.
         if (this.tableColumns_[i].cmp) {
-          var isColumnCurrentlySorted = i === this.sortColumnIndex_;
+          const isColumnCurrentlySorted = i === this.sortColumnIndex_;
           if (isColumnCurrentlySorted) {
             headerCell.sideContent = this.sortDescending_ ?
                 DESCENDING_ARROW : ASCENDING_ARROW;
@@ -555,8 +555,8 @@ tr.exportTo('tr.ui.b', function() {
     applySizes_() {
       if (this.tableRows_.length === 0 && !this.showHeader) return;
 
-      var rowToRemoveSizing;
-      var rowToSize;
+      let rowToRemoveSizing;
+      let rowToSize;
       if (this.showHeader) {
         rowToSize = Polymer.dom(this.$.head).children[0];
         rowToRemoveSizing = Polymer.dom(this.$.body).children[0];
@@ -564,17 +564,17 @@ tr.exportTo('tr.ui.b', function() {
         rowToSize = Polymer.dom(this.$.body).children[0];
         rowToRemoveSizing = Polymer.dom(this.$.head).children[0];
       }
-      for (var i = 0; i < this.tableColumns_.length; i++) {
+      for (let i = 0; i < this.tableColumns_.length; i++) {
         if (rowToRemoveSizing && Polymer.dom(rowToRemoveSizing).children[i]) {
-          var tdToRemoveSizing = Polymer.dom(rowToRemoveSizing).children[i];
+          const tdToRemoveSizing = Polymer.dom(rowToRemoveSizing).children[i];
           tdToRemoveSizing.style.minWidth = '';
           tdToRemoveSizing.style.width = '';
         }
 
         // Apply sizing.
-        var td = Polymer.dom(rowToSize).children[i];
+        const td = Polymer.dom(rowToSize).children[i];
 
-        var delta;
+        let delta;
         if (this.columnsWithExpandButtons_.includes(i)) {
           td.style.paddingLeft = this.basicIndentation_ + 'px';
           delta = this.basicIndentation_ + 'px';
@@ -589,7 +589,7 @@ tr.exportTo('tr.ui.b', function() {
           return base;
         }
 
-        var w = this.tableColumns_[i].width;
+        const w = this.tableColumns_[i].width;
         if (w) {
           if (/\d+px/.test(w)) {
             td.style.minWidth = calc(w, delta);
@@ -606,7 +606,7 @@ tr.exportTo('tr.ui.b', function() {
       return function() {
         if (!this.userCanModifySortOrder_) return;
 
-        var previousIndex = this.sortColumnIndex;
+        const previousIndex = this.sortColumnIndex;
         this.sortColumnIndex = columnNumber;
         if (previousIndex !== columnNumber) {
           this.sortDescending = false;
@@ -623,7 +623,7 @@ tr.exportTo('tr.ui.b', function() {
           tableSection === this.$.body) {
         userRows = userRows.slice(); // Don't mess with the input data.
         userRows.sort(function(rowA, rowB) {
-          var c = this.tableColumns_[this.sortColumnIndex_].cmp(
+          let c = this.tableColumns_[this.sortColumnIndex_].cmp(
               rowA, rowB);
           if (this.sortDescending_) {
             c = -c;
@@ -632,11 +632,11 @@ tr.exportTo('tr.ui.b', function() {
         }.bind(this));
       }
 
-      for (var i = 0; i < userRows.length; i++) {
-        var userRow = userRows[i];
-        var rowInfo = this.getOrCreateRowInfoFor_(rowInfoMap, userRow,
+      for (let i = 0; i < userRows.length; i++) {
+        const userRow = userRows[i];
+        const rowInfo = this.getOrCreateRowInfoFor_(rowInfoMap, userRow,
             parentRowInfo);
-        var htmlNode = this.getHTMLNodeForRowInfo_(
+        const htmlNode = this.getHTMLNodeForRowInfo_(
             tableSection, rowInfo, rowInfoMap, indentation);
 
         if (lastAddedRow === undefined) {
@@ -645,7 +645,7 @@ tr.exportTo('tr.ui.b', function() {
               htmlNode, Polymer.dom(tableSection).firstChild);
         } else {
           // This is shorthand for insertAfter(htmlNode, lastAdded).
-          var nextSiblingOfLastAdded = Polymer.dom(lastAddedRow).nextSibling;
+          const nextSiblingOfLastAdded = Polymer.dom(lastAddedRow).nextSibling;
           Polymer.dom(tableSection).insertBefore(
               htmlNode, nextSiblingOfLastAdded);
         }
@@ -662,7 +662,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     getOrCreateRowInfoFor_(rowInfoMap, userRow, parentRowInfo) {
-      var rowInfo = undefined;
+      let rowInfo = undefined;
 
       if (rowInfoMap.has(userRow)) {
         rowInfo = rowInfoMap.get(userRow);
@@ -702,25 +702,25 @@ tr.exportTo('tr.ui.b', function() {
         return rowInfo.htmlNode;
       }
 
-      var INDENT_SPACE = indentation * 16;
-      var INDENT_SPACE_NO_BUTTON = indentation * 16 + this.basicIndentation_;
-      var trElement = this.ownerDocument.createElement('tr');
+      const INDENT_SPACE = indentation * 16;
+      const INDENT_SPACE_NO_BUTTON = indentation * 16 + this.basicIndentation_;
+      const trElement = this.ownerDocument.createElement('tr');
       rowInfo.htmlNode = trElement;
       rowInfo.indentation = indentation;
       trElement.rowInfo = rowInfo;
       this.customizeTableRow_(rowInfo.userRow, trElement);
 
-      var isBodyRow = tableSection === this.$.body;
-      var isExpandableRow = rowInfo.userRow[this.subRowsPropertyName_] &&
+      const isBodyRow = tableSection === this.$.body;
+      const isExpandableRow = rowInfo.userRow[this.subRowsPropertyName_] &&
           rowInfo.userRow[this.subRowsPropertyName_].length;
 
-      for (var i = 0; i < this.tableColumns_.length;) {
-        var td = this.appendNewElement_(trElement, 'td');
+      for (let i = 0; i < this.tableColumns_.length;) {
+        const td = this.appendNewElement_(trElement, 'td');
         td.columnIndex = i;
 
-        var column = this.tableColumns_[i];
-        var value = column.value(rowInfo.userRow);
-        var colSpan = column.colSpan ? column.colSpan : 1;
+        const column = this.tableColumns_[i];
+        const value = column.value(rowInfo.userRow);
+        const colSpan = column.colSpan ? column.colSpan : 1;
         td.style.colSpan = colSpan;
 
         switch (column.align) {
@@ -746,7 +746,7 @@ tr.exportTo('tr.ui.b', function() {
               rowInfo.userRow[this.subRowsPropertyName_].length > 0) {
             td.style.paddingLeft = INDENT_SPACE + 'px';
             td.style.display = 'flex';
-            var expandButton = this.appendNewElement_(td, 'expand-button');
+            const expandButton = this.appendNewElement_(td, 'expand-button');
             Polymer.dom(expandButton).textContent = RIGHT_ARROW;
             if (rowInfo.isExpanded) {
               Polymer.dom(expandButton).classList.add('button-expanded');
@@ -781,8 +781,8 @@ tr.exportTo('tr.ui.b', function() {
           // If the row/cell can be selected and it's not selected yet,
           // select it.
           if (isBodyRow && this.selectionMode_ !== SelectionMode.NONE) {
-            var shouldSelect = false;
-            var shouldFocus = false;
+            let shouldSelect = false;
+            let shouldFocus = false;
             switch (this.selectionMode_) {
               case SelectionMode.ROW:
                 shouldSelect = this.selectedTableRowInfo_ !== rowInfo;
@@ -833,13 +833,13 @@ tr.exportTo('tr.ui.b', function() {
     removeSubNodes_(tableSection, rowInfo, rowInfoMap) {
       if (rowInfo.userRow[this.subRowsPropertyName_] === undefined) return;
 
-      for (var i = 0;
+      for (let i = 0;
            i < rowInfo.userRow[this.subRowsPropertyName_].length; i++) {
-        var subRow = rowInfo.userRow[this.subRowsPropertyName_][i];
-        var subRowInfo = rowInfoMap.get(subRow);
+        const subRow = rowInfo.userRow[this.subRowsPropertyName_][i];
+        const subRowInfo = rowInfoMap.get(subRow);
         if (!subRowInfo) continue;
 
-        var subNode = subRowInfo.htmlNode;
+        const subNode = subRowInfo.htmlNode;
         if (subNode && Polymer.dom(subNode).parentNode === tableSection) {
           Polymer.dom(tableSection).removeChild(subNode);
           this.removeSubNodes_(tableSection, subRowInfo, rowInfoMap);
@@ -877,7 +877,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     rebuild() {
-      var wasBodyOrHeaderDirty = this.headerDirty_ || this.bodyDirty_;
+      const wasBodyOrHeaderDirty = this.headerDirty_ || this.bodyDirty_;
 
       if (this.headerDirty_) {
         this.generateHeaderColumns_();
@@ -890,13 +890,13 @@ tr.exportTo('tr.ui.b', function() {
             this.tableRows_, this.tableRowsInfo_, 0,
             undefined, undefined);
         if (this.tableRows_.length === 0 && this.emptyValue_ !== undefined) {
-          var trElement = this.ownerDocument.createElement('tr');
+          const trElement = this.ownerDocument.createElement('tr');
           Polymer.dom(this.$.body).appendChild(trElement);
           Polymer.dom(trElement).classList.add('empty-row');
-          var td = this.ownerDocument.createElement('td');
+          const td = this.ownerDocument.createElement('td');
           Polymer.dom(trElement).appendChild(td);
           td.colSpan = this.tableColumns_.length;
-          var emptyValue = this.emptyValue_;
+          const emptyValue = this.emptyValue_;
           Polymer.dom(td).appendChild(
               tr.ui.b.asHTMLOrTextNode(emptyValue, this.ownerDocument));
         }
@@ -921,14 +921,14 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     appendNewElement_(parent, tagName) {
-      var element = parent.ownerDocument.createElement(tagName);
+      const element = parent.ownerDocument.createElement(tagName);
       Polymer.dom(parent).appendChild(element);
       return element;
     },
 
     getExpandedForTableRow(userRow) {
       this.rebuildIfNeeded_();
-      var rowInfo = this.tableRowsInfo_.get(userRow);
+      const rowInfo = this.tableRowsInfo_.get(userRow);
       if (rowInfo === undefined) {
         throw new Error('Row has not been seen, must expand its parents');
       }
@@ -950,7 +950,7 @@ tr.exportTo('tr.ui.b', function() {
         return false;
       }
 
-      var rowInfo = this.tableRowsInfo_.get(userRow);
+      const rowInfo = this.tableRowsInfo_.get(userRow);
       if (rowInfo && rowInfo.isExpanded) {
         return true;
       }
@@ -959,7 +959,7 @@ tr.exportTo('tr.ui.b', function() {
         return false;
       }
 
-      var parentUserRow = undefined;
+      let parentUserRow = undefined;
       if (rowInfo && rowInfo.parentRowInfo) {
         parentUserRow = rowInfo.parentRowInfo.userRow;
       }
@@ -970,7 +970,7 @@ tr.exportTo('tr.ui.b', function() {
 
     setExpandedForTableRow(userRow, expanded) {
       this.rebuildIfNeeded_();
-      var rowInfo = this.tableRowsInfo_.get(userRow);
+      const rowInfo = this.tableRowsInfo_.get(userRow);
       if (rowInfo === undefined) {
         throw new Error('Row has not been seen, must expand its parents');
       }
@@ -982,7 +982,7 @@ tr.exportTo('tr.ui.b', function() {
         userRow, expanded) {
       this.rebuildIfNeeded_();
 
-      var rowInfo = rowInfoMap.get(userRow);
+      const rowInfo = rowInfoMap.get(userRow);
       if (rowInfo === undefined) {
         throw new Error('Row has not been seen, must expand its parents');
       }
@@ -999,11 +999,11 @@ tr.exportTo('tr.ui.b', function() {
       }
 
       // Otherwise, rebuild.
-      var expandButton =
+      const expandButton =
           Polymer.dom(rowInfo.htmlNode).querySelector('expand-button');
       if (rowInfo.isExpanded) {
         Polymer.dom(expandButton).classList.add('button-expanded');
-        var lastAddedRow = rowInfo.htmlNode;
+        const lastAddedRow = rowInfo.htmlNode;
         if (rowInfo.userRow[this.subRowsPropertyName_]) {
           this.generateTableRowNodes_(
               tableSection,
@@ -1017,7 +1017,7 @@ tr.exportTo('tr.ui.b', function() {
       }
 
       if (wasExpanded !== rowInfo.isExpanded) {
-        let e = new tr.b.Event('row-expanded-changed');
+        const e = new tr.b.Event('row-expanded-changed');
         e.row = rowInfo.userRow;
         this.dispatchEvent(e);
       }
@@ -1132,7 +1132,7 @@ tr.exportTo('tr.ui.b', function() {
           Polymer.dom(this.$.body).setAttribute('tabindex', 0);
           if (this.selectedTableRowInfo_ &&
               this.selectedColumnIndex_ === undefined) {
-            var i = this.getFirstSelectableColumnIndex_();
+            const i = this.getFirstSelectableColumnIndex_();
             if (i === -1) {
               // No column is selectable.
               this.selectedTableRowInfo_ = undefined;
@@ -1169,7 +1169,7 @@ tr.exportTo('tr.ui.b', function() {
       }
 
       this.removeSelectedState_();
-      var curRowInfo = this.selectedTableRowInfo_;
+      let curRowInfo = this.selectedTableRowInfo_;
       while (curRowInfo && !isVisible(curRowInfo)) {
         curRowInfo = curRowInfo.parentRowInfo;
       }
@@ -1204,7 +1204,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     dispatchStepIntoEvent_(rowInfo, columnIndex) {
-      var e = new tr.b.Event('step-into');
+      const e = new tr.b.Event('step-into');
       e.tableRow = rowInfo.userRow;
       e.tableColumn = this.tableColumns_[columnIndex];
       e.columnIndex = columnIndex;
@@ -1219,13 +1219,13 @@ tr.exportTo('tr.ui.b', function() {
      * @return {undefined|!Object}
      */
     get selectedCell() {
-      var row = this.selectedTableRow;
-      var columnIndex = this.selectedColumnIndex;
+      const row = this.selectedTableRow;
+      const columnIndex = this.selectedColumnIndex;
       if (row === undefined || columnIndex === undefined ||
           this.tableColumns_.length <= columnIndex) {
         return undefined;
       }
-      var column = this.tableColumns_[columnIndex];
+      const column = this.tableColumns_[columnIndex];
       return {
         row,
         column,
@@ -1253,8 +1253,8 @@ tr.exportTo('tr.ui.b', function() {
      * @return {number|undefined}
      */
     get selectedTableColumnIndex() {
-      var cols = Polymer.dom(this.$.cols).children;
-      for (var i = 0; i < cols.length; ++i) {
+      const cols = Polymer.dom(this.$.cols).children;
+      for (let i = 0; i < cols.length; ++i) {
         if (cols[i].getAttribute('selected')) {
           return i;
         }
@@ -1266,8 +1266,8 @@ tr.exportTo('tr.ui.b', function() {
      * @param {number|undefined} index
      */
     set selectedTableColumnIndex(selectedIndex) {
-      var cols = Polymer.dom(this.$.cols).children;
-      for (var i = 0; i < cols.length; ++i) {
+      const cols = Polymer.dom(this.$.cols).children;
+      for (let i = 0; i < cols.length; ++i) {
         if (i === selectedIndex) {
           cols[i].setAttribute('selected', true);
         } else {
@@ -1287,7 +1287,7 @@ tr.exportTo('tr.ui.b', function() {
         throw new Error('Selection is off.');
       }
 
-      var rowInfo;
+      let rowInfo;
       if (userRow === undefined) {
         rowInfo = undefined;
       } else {
@@ -1297,7 +1297,7 @@ tr.exportTo('tr.ui.b', function() {
         }
       }
 
-      var e = this.prepareToChangeSelection_();
+      const e = this.prepareToChangeSelection_();
 
       if (!rowInfo) {
         this.selectedColumnIndex_ = undefined;
@@ -1309,7 +1309,7 @@ tr.exportTo('tr.ui.b', function() {
 
           case SelectionMode.CELL:
             if (this.selectedColumnIndex_ === undefined) {
-              var i = this.getFirstSelectableColumnIndex_();
+              const i = this.getFirstSelectableColumnIndex_();
               if (i === -1) {
                 throw new Error('Cannot find a selectable column.');
               }
@@ -1328,8 +1328,8 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     prepareToChangeSelection_() {
-      var e = new tr.b.Event('selection-changed');
-      var previousSelectedRowInfo = this.selectedTableRowInfo_;
+      const e = new tr.b.Event('selection-changed');
+      const previousSelectedRowInfo = this.selectedTableRowInfo_;
       if (previousSelectedRowInfo) {
         e.previousSelectedTableRow = previousSelectedRowInfo.userRow;
       } else {
@@ -1353,7 +1353,7 @@ tr.exportTo('tr.ui.b', function() {
       if (this.selectedTableRowInfo_ === undefined) return;
 
       // Row selection.
-      var rowNode = this.selectedTableRowInfo_.htmlNode;
+      const rowNode = this.selectedTableRowInfo_.htmlNode;
       if (select) {
         Polymer.dom(rowNode).setAttribute('selected', true);
       } else {
@@ -1361,7 +1361,7 @@ tr.exportTo('tr.ui.b', function() {
       }
 
       // Cell selection (if applicable).
-      var cellNode = Polymer.dom(rowNode).children[this.selectedColumnIndex_];
+      const cellNode = Polymer.dom(rowNode).children[this.selectedColumnIndex_];
       if (!cellNode) return;
       if (select) {
         Polymer.dom(cellNode).setAttribute('selected', true);
@@ -1371,14 +1371,14 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     doesColumnIndexSupportSelection(columnIndex) {
-      var columnInfo = this.tableColumns_[columnIndex];
-      var scs = columnInfo.supportsCellSelection;
+      const columnInfo = this.tableColumns_[columnIndex];
+      const scs = columnInfo.supportsCellSelection;
       if (scs === false) return false;
       return true;
     },
 
     getFirstSelectableColumnIndex_() {
-      for (var i = 0; i < this.tableColumns_.length; i++) {
+      for (let i = 0; i < this.tableColumns_.length; i++) {
         if (this.doesColumnIndexSupportSelection(i)) {
           return i;
         }
@@ -1419,7 +1419,7 @@ tr.exportTo('tr.ui.b', function() {
         throw new Error('Selection is not supported on this column');
       }
 
-      var e = this.prepareToChangeSelection_();
+      const e = this.prepareToChangeSelection_();
       if (this.selectedColumnIndex_ === undefined) {
         this.selectedTableRowInfo_ = undefined;
       } else if (!this.selectedTableRowInfo_) {
@@ -1437,7 +1437,7 @@ tr.exportTo('tr.ui.b', function() {
     onKeyDown_(e) {
       if (this.selectionMode_ === SelectionMode.NONE) return;
 
-      var CODE_TO_COMMAND_NAMES = {
+      const CODE_TO_COMMAND_NAMES = {
         13: 'ENTER',
         32: 'SPACE',
         37: 'ARROW_LEFT',
@@ -1445,7 +1445,7 @@ tr.exportTo('tr.ui.b', function() {
         39: 'ARROW_RIGHT',
         40: 'ARROW_DOWN'
       };
-      var cmdName = CODE_TO_COMMAND_NAMES[e.keyCode];
+      const cmdName = CODE_TO_COMMAND_NAMES[e.keyCode];
       if (cmdName === undefined) return;
 
       e.stopPropagation();
@@ -1546,7 +1546,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     selectPreviousOrFirstRowIfPossible_() {
-      var prev = this.selectedTableRowInfo_ ?
+      const prev = this.selectedTableRowInfo_ ?
           this.selectedTableRowInfo_.htmlNode.previousElementSibling :
           this.$.body.firstChild;
       if (!prev) return;
@@ -1563,7 +1563,7 @@ tr.exportTo('tr.ui.b', function() {
 
     selectNextOrFirstRowIfPossible_() {
       this.getFirstSelectableColumnIndex_;
-      var next = this.selectedTableRowInfo_ ?
+      const next = this.selectedTableRowInfo_ ?
           this.selectedTableRowInfo_.htmlNode.nextElementSibling :
           this.$.body.firstChild;
       if (!next) return;
@@ -1579,7 +1579,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     expandRowAndSelectChildRowIfPossible_() {
-      var selectedRowInfo = this.selectedTableRowInfo_;
+      const selectedRowInfo = this.selectedTableRowInfo_;
       if (!selectedRowInfo ||
           selectedRowInfo.userRow[this.subRowsPropertyName_] === undefined ||
           selectedRowInfo.userRow[this.subRowsPropertyName_].length === 0) {
@@ -1593,7 +1593,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     collapseRowOrSelectParentRowIfPossible_() {
-      var selectedRowInfo = this.selectedTableRowInfo_;
+      const selectedRowInfo = this.selectedTableRowInfo_;
       if (!selectedRowInfo) return;
 
       if (selectedRowInfo.isExpanded) {
@@ -1601,7 +1601,7 @@ tr.exportTo('tr.ui.b', function() {
         this.setExpandedForTableRow(selectedRowInfo.userRow, false);
       } else {
         // If the node is not expanded, select its parent.
-        var parentRowInfo = selectedRowInfo.parentRowInfo;
+        const parentRowInfo = selectedRowInfo.parentRowInfo;
         if (parentRowInfo) {
           this.selectedTableRow = parentRowInfo.userRow;
         }
@@ -1613,7 +1613,7 @@ tr.exportTo('tr.ui.b', function() {
           this.selectedColumnIndex_ === undefined) {
         return;
       }
-      for (var i = this.selectedColumnIndex_ + 1; i < this.tableColumns_.length;
+      for (let i = this.selectedColumnIndex_ + 1; i < this.tableColumns_.length;
            i++) {
         if (this.doesColumnIndexSupportSelection(i)) {
           this.selectedColumnIndex = i;
@@ -1627,7 +1627,7 @@ tr.exportTo('tr.ui.b', function() {
           this.selectedColumnIndex_ === undefined) {
         return;
       }
-      for (var i = this.selectedColumnIndex_ - 1; i >= 0; i--) {
+      for (let i = this.selectedColumnIndex_ - 1; i >= 0; i--) {
         if (this.doesColumnIndexSupportSelection(i)) {
           this.selectedColumnIndex = i;
           return;
@@ -1636,7 +1636,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     toggleRowExpansionStateIfPossible_() {
-      var selectedRowInfo = this.selectedTableRowInfo_;
+      const selectedRowInfo = this.selectedTableRowInfo_;
       if (!selectedRowInfo ||
           selectedRowInfo.userRow[this.subRowsPropertyName_] === undefined ||
           selectedRowInfo.userRow[this.subRowsPropertyName_].length === 0) {
@@ -1653,7 +1653,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     dispatchSortingChangedEvent_() {
-      var e = new tr.b.Event('sort-column-changed');
+      const e = new tr.b.Event('sort-column-changed');
       e.sortColumnIndex = this.sortColumnIndex_;
       e.sortDescending = this.sortDescending_;
       this.dispatchEvent(e);
@@ -1702,7 +1702,7 @@ tr.exportTo('tr.ui.b', function() {
 <script>
 'use strict';
 
-var ColumnAlignment = tr.ui.b.TableFormat.ColumnAlignment;
+const ColumnAlignment = tr.ui.b.TableFormat.ColumnAlignment;
 
 Polymer({
   is: 'tr-ui-b-table-header-cell',
@@ -1732,7 +1732,7 @@ Polymer({
   set cellTitle(value) {
     this.cellTitle_ = value;
 
-    var titleNode = tr.ui.b.asHTMLOrTextNode(
+    const titleNode = tr.ui.b.asHTMLOrTextNode(
         this.cellTitle_, this.ownerDocument);
 
     this.$.title.innerText = '';

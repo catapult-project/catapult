@@ -268,7 +268,7 @@ the bisect process after the user clicks on the bisect button.
         onSendToTrybot(event) {
           event.preventDefault();
           this.loading = true;
-          var params = {
+          const params = {
             'step': 'perform-bisect',
             'bisect_bot': this.bot,
             'suite': this.suite,
@@ -295,7 +295,7 @@ the bisect process after the user clicks on the bisect button.
                 this.fire('display-toast', {'content': this.$.jobsubmitted});
 
                 // Refresh bisect result log element.
-                var bisectLog = document.getElementById('bisect-result-log');
+                const bisectLog = document.getElementById('bisect-result-log');
                 if (bisectLog) {
                   bisectLog.refresh();
                 }

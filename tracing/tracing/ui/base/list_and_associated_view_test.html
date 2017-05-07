@@ -9,9 +9,9 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var ListAndAssociatedView = tr.ui.b.ListAndAssociatedView;
+  const ListAndAssociatedView = tr.ui.b.ListAndAssociatedView;
 
-  var SimpleView = tr.ui.b.define('div');
+  const SimpleView = tr.ui.b.define('div');
   SimpleView.prototype = {
     __proto__: HTMLDivElement.prototype,
 
@@ -28,26 +28,26 @@ tr.b.unittest.testSuite(function() {
   };
 
   test('listViewNamingWithField', function() {
-    var lav = new ListAndAssociatedView();
-    var list = [
+    const lav = new ListAndAssociatedView();
+    const list = [
       {x: '1'},
       {x: '2'},
       {x: '3'}
     ];
-    var view = new SimpleView();
+    const view = new SimpleView();
 
     lav.list = list;
     lav.listProperty = 'x';
     lav.view = view;
     lav.viewProperty = 'item';
 
-    var lavListView = lav.listView;
+    const lavListView = lav.listView;
     assert.strictEqual(lavListView.children.length, 3);
     assert.strictEqual(Polymer.dom(lavListView.children[0]).textContent, '1');
   });
 
   test('listViewNamingWithProperty', function() {
-    var lav = new ListAndAssociatedView();
+    const lav = new ListAndAssociatedView();
 
     function X(x) {
       this.x = x;
@@ -58,37 +58,37 @@ tr.b.unittest.testSuite(function() {
       }
     };
 
-    var list = [
+    const list = [
       new X('1'),
       new X('2'),
       new X('3')
     ];
-    var view = new SimpleView();
+    const view = new SimpleView();
 
     lav.list = list;
     lav.listProperty = 'title';
     lav.view = view;
     lav.viewProperty = 'item';
 
-    var lavListView = lav.listView;
+    const lavListView = lav.listView;
     assert.strictEqual(lavListView.children.length, 3);
     assert.strictEqual(Polymer.dom(lavListView.children[0]).textContent, '1');
   });
 
   test('selectionChangesView', function() {
-    var lav = new ListAndAssociatedView();
-    var list = [
+    const lav = new ListAndAssociatedView();
+    const list = [
       {x: '1'},
       {x: '2'},
       {x: '3'}
     ];
-    var view = new SimpleView();
+    const view = new SimpleView();
 
     lav.list = list;
     lav.listProperty = 'x';
     lav.view = view;
     lav.viewProperty = 'item';
-    var lavListView = lav.listView;
+    const lavListView = lav.listView;
 
     assert.strictEqual(list[0], view.item);
     lavListView.children[1].selected = true;

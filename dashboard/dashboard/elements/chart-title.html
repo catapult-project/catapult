@@ -76,14 +76,14 @@ found in the LICENSE file.
        * Sets the title of the chart based on the current state of the chart.
        */
       update() {
-        var testPaths = this.getTestPaths();
-        var title = this.makeTitleFromTestPaths(testPaths);
-        var selectedSeries = this.getFirstSelectedSeries();
+        const testPaths = this.getTestPaths();
+        const title = this.makeTitleFromTestPaths(testPaths);
+        const selectedSeries = this.getFirstSelectedSeries();
 
-        var parts = title.split('/');
+        const parts = title.split('/');
         // First part of the title groups together of master, bot and test
         // suite.
-        var firstPart = parts.slice(0, 3).join('/');
+        const firstPart = parts.slice(0, 3).join('/');
         this.titleParts = [firstPart].concat(parts.slice(3));
 
         // Determine the current selected index which will be disabled for
@@ -98,7 +98,7 @@ found in the LICENSE file.
       },
 
       onClicked(event) {
-        var index = event.model.index;
+        const index = event.model.index;
         if (index == this.currentIndex) {
           return;
         }
@@ -120,7 +120,7 @@ found in the LICENSE file.
           return testPaths[0];
         }
 
-        var prefix = '';
+        let prefix = '';
         if (testPaths.length > 1) {
           prefix = this.longestCommonTestPathPrefix(testPaths);
         }
@@ -131,21 +131,21 @@ found in the LICENSE file.
       },
 
       getTestPaths() {
-        var testPaths = [];
-        for (var i = 0; i < this.seriesGroupList.length; i++) {
+        const testPaths = [];
+        for (let i = 0; i < this.seriesGroupList.length; i++) {
           testPaths.push(this.seriesGroupList[i].path);
         }
         return testPaths;
       },
 
       getFirstSelectedSeries() {
-        for (var i = 0; i < this.seriesGroupList.length; i++) {
-          var testPath = this.seriesGroupList[i].path;
-          var parts = testPath.split('/');
-          var lastPart = parts[parts.length - 1];
-          var tests = this.seriesGroupList[i].tests;
-          for (var j = 0; j < tests.length; j++) {
-            var test = tests[j];
+        for (let i = 0; i < this.seriesGroupList.length; i++) {
+          const testPath = this.seriesGroupList[i].path;
+          const parts = testPath.split('/');
+          const lastPart = parts[parts.length - 1];
+          const tests = this.seriesGroupList[i].tests;
+          for (let j = 0; j < tests.length; j++) {
+            const test = tests[j];
             if (test.name == lastPart) {
               return null;
             } else if (test.selected) {
@@ -157,18 +157,18 @@ found in the LICENSE file.
       },
 
       getSuitesAndDescriptions() {
-        var suiteDescriptions = {};
-        for (var i = 0; i < this.seriesGroupList.length; i++) {
-          var suite = this.seriesGroupList[i].path.split('/')[2];
+        const suiteDescriptions = {};
+        for (let i = 0; i < this.seriesGroupList.length; i++) {
+          const suite = this.seriesGroupList[i].path.split('/')[2];
           if (this.testSuites &&
               this.testSuites[suite] &&
               this.testSuites[suite].des) {
             suiteDescriptions[suite] = this.testSuites[suite].des;
           }
         }
-        var suiteNames = Object.keys(suiteDescriptions);
-        var returnVal = [];
-        for (var i = 0; i < suiteNames.length; i++) {
+        const suiteNames = Object.keys(suiteDescriptions);
+        const returnVal = [];
+        for (let i = 0; i < suiteNames.length; i++) {
           returnVal.push({
             'suite': suiteNames[i],
             'description': suiteDescriptions[suiteNames[i]]
@@ -182,7 +182,7 @@ found in the LICENSE file.
        * @return {string} The longest test path that is the prefix
        */
       longestCommonTestPathPrefix(testPaths) {
-        var partArrays = testPaths.map(function(path) {
+        const partArrays = testPaths.map(function(path) {
           return path.split('/');
         });
         return this.longestCommonSubArray(partArrays).join('/');
@@ -197,13 +197,13 @@ found in the LICENSE file.
         if (arrays.length == 0) {
           return [];
         }
-        var shortestLength = Math.min.apply(window, arrays.map(function(a) {
+        const shortestLength = Math.min.apply(window, arrays.map(function(a) {
           return a.length;
         }));
-        for (var prefixLength = 0; prefixLength <= shortestLength;
+        for (let prefixLength = 0; prefixLength <= shortestLength;
              prefixLength++) {
-          var value = arrays[0][prefixLength];
-          for (var i = 1; i < arrays.length; i++) {
+          const value = arrays[0][prefixLength];
+          for (let i = 1; i < arrays.length; i++) {
             if (arrays[i][prefixLength] != value) {
               return arrays[0].slice(0, prefixLength);
             }

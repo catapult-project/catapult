@@ -14,14 +14,14 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var SliceTrack = tr.ui.tracks.SliceTrack;
-  var ThreadSlice = tr.model.ThreadSlice;
+  const SliceTrack = tr.ui.tracks.SliceTrack;
+  const ThreadSlice = tr.model.ThreadSlice;
 
   test('modelMapping', function() {
-    var track = new SliceTrack(new tr.ui.TimelineViewport());
-    var slice = new ThreadSlice('', 'a', 0, 1, {}, 1);
+    const track = new SliceTrack(new tr.ui.TimelineViewport());
+    const slice = new ThreadSlice('', 'a', 0, 1, {}, 1);
     track.slices = [slice];
-    var me0 = track.rects[0].modelItem;
+    const me0 = track.rects[0].modelItem;
     assert.strictEqual(slice, me0);
   });
 });

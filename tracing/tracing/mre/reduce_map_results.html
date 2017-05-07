@@ -13,7 +13,7 @@ found in the LICENSE file.
 tr.exportTo('tr.mre', function() {
   function reduceMapResults(jobResults, key, mapResults, reduceFunction) {
     try {
-      var result = reduceFunction(key, mapResults);
+      const result = reduceFunction(key, mapResults);
       jobResults.addPair(key, result);
     } catch (ex) {
       ex.name = 'ReduceFunctionError';

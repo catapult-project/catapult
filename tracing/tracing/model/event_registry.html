@@ -18,12 +18,12 @@ tr.exportTo('tr.model', function() {
   function EventRegistry() {
   }
 
-  var options = new tr.b.ExtensionRegistryOptions(tr.b.BASIC_REGISTRY_MODE);
+  const options = new tr.b.ExtensionRegistryOptions(tr.b.BASIC_REGISTRY_MODE);
   tr.b.decorateExtensionRegistry(EventRegistry, options);
 
   // Enforce all options objects have the right fields.
   EventRegistry.addEventListener('will-register', function(e) {
-    var metadata = e.typeInfo.metadata;
+    const metadata = e.typeInfo.metadata;
     if (metadata.name === undefined) {
       throw new Error('Registered events must provide name metadata');
     }
@@ -35,7 +35,7 @@ tr.exportTo('tr.model', function() {
     // extended
     if (metadata.subTypes === undefined) {
       metadata.subTypes = {};
-      var options = new tr.b.ExtensionRegistryOptions(
+      const options = new tr.b.ExtensionRegistryOptions(
           tr.b.TYPE_BASED_REGISTRY_MODE);
       options.mandatoryBaseClass = e.typeInfo.constructor;
       options.defaultConstructor = e.typeInfo.constructor;
@@ -50,7 +50,7 @@ tr.exportTo('tr.model', function() {
   });
 
   // Helper: lookup Events indexed by type name.
-  var eventsByTypeName = undefined;
+  let eventsByTypeName = undefined;
   EventRegistry.getEventTypeInfoByTypeName = function(typeName) {
     if (eventsByTypeName === undefined) {
       eventsByTypeName = {};
@@ -67,20 +67,20 @@ tr.exportTo('tr.model', function() {
   });
 
   function convertCamelCaseToTitleCase(name) {
-    var result = name.replace(/[A-Z]/g, ' $&');
+    let result = name.replace(/[A-Z]/g, ' $&');
     result = result.charAt(0).toUpperCase() + result.slice(1);
     return result;
   }
 
   EventRegistry.getUserFriendlySingularName = function(typeName) {
-    var typeInfo = EventRegistry.getEventTypeInfoByTypeName(typeName);
-    var str = typeInfo.metadata.name;
+    const typeInfo = EventRegistry.getEventTypeInfoByTypeName(typeName);
+    const str = typeInfo.metadata.name;
     return convertCamelCaseToTitleCase(str);
   };
 
   EventRegistry.getUserFriendlyPluralName = function(typeName) {
-    var typeInfo = EventRegistry.getEventTypeInfoByTypeName(typeName);
-    var str = typeInfo.metadata.pluralName;
+    const typeInfo = EventRegistry.getEventTypeInfoByTypeName(typeName);
+    const str = typeInfo.metadata.pluralName;
     return convertCamelCaseToTitleCase(str);
   };
 

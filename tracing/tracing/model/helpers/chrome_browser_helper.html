@@ -35,7 +35,7 @@ tr.exportTo('tr.model.helpers', function() {
     // TODO(petrcermak): Pass browser name in a metadata event (see
     // crbug.com/605088).
     get browserName() {
-      var hasInProcessRendererThread = this.process.findAllThreadsNamed(
+      const hasInProcessRendererThread = this.process.findAllThreadsNamed(
           'Chrome_InProcRendererThread').length > 0;
       return hasInProcessRendererThread ? 'webview' : 'chrome';
     },
@@ -65,9 +65,9 @@ tr.exportTo('tr.model.helpers', function() {
     },
 
     get hasLatencyEvents() {
-      var hasLatency = false;
-      for (var thread of this.modelHelper.model.getAllThreads()) {
-        for (var event of thread.getDescendantEvents()) {
+      let hasLatency = false;
+      for (const thread of this.modelHelper.model.getAllThreads()) {
+        for (const event of thread.getDescendantEvents()) {
           if (!event.isTopLevel) continue;
           if (!(event instanceof tr.e.cc.InputLatencyAsyncSlice)) {
             continue;
@@ -87,9 +87,9 @@ tr.exportTo('tr.model.helpers', function() {
     },
 
     getAllAsyncSlicesMatching(pred, opt_this) {
-      var events = [];
+      const events = [];
       this.iterAllThreads(function(thread) {
-        for (var slice of thread.getDescendantEvents()) {
+        for (const slice of thread.getDescendantEvents()) {
           if (pred.call(opt_this, slice)) {
             events.push(slice);
           }
@@ -99,13 +99,13 @@ tr.exportTo('tr.model.helpers', function() {
     },
 
     iterAllThreads(func, opt_this) {
-      for (var thread of Object.values(this.process.threads)) {
+      for (const thread of Object.values(this.process.threads)) {
         func.call(opt_this, thread);
       }
 
-      for (var rendererHelper of Object.values(this.rendererHelpers)) {
-        var rendererProcess = rendererHelper.process;
-        for (var thread of Object.values(rendererProcess.threads)) {
+      for (const rendererHelper of Object.values(this.rendererHelpers)) {
+        const rendererProcess = rendererHelper.process;
+        for (const thread of Object.values(rendererProcess.threads)) {
           func.call(opt_this, thread);
         }
       }

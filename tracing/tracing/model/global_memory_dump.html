@@ -31,19 +31,19 @@ tr.exportTo('tr.model', function() {
   }
 
   // Size numeric names.
-  var SIZE_NUMERIC_NAME = tr.model.MemoryAllocatorDump.SIZE_NUMERIC_NAME;
-  var EFFECTIVE_SIZE_NUMERIC_NAME =
+  const SIZE_NUMERIC_NAME = tr.model.MemoryAllocatorDump.SIZE_NUMERIC_NAME;
+  const EFFECTIVE_SIZE_NUMERIC_NAME =
       tr.model.MemoryAllocatorDump.EFFECTIVE_SIZE_NUMERIC_NAME;
 
   // Size numeric info types.
-  var MemoryAllocatorDumpInfoType = tr.model.MemoryAllocatorDumpInfoType;
-  var PROVIDED_SIZE_LESS_THAN_AGGREGATED_CHILDREN =
+  const MemoryAllocatorDumpInfoType = tr.model.MemoryAllocatorDumpInfoType;
+  const PROVIDED_SIZE_LESS_THAN_AGGREGATED_CHILDREN =
       MemoryAllocatorDumpInfoType.PROVIDED_SIZE_LESS_THAN_AGGREGATED_CHILDREN;
-  var PROVIDED_SIZE_LESS_THAN_LARGEST_OWNER =
+  const PROVIDED_SIZE_LESS_THAN_LARGEST_OWNER =
       MemoryAllocatorDumpInfoType.PROVIDED_SIZE_LESS_THAN_LARGEST_OWNER;
 
   function getSize(dump) {
-    var numeric = dump.numerics[SIZE_NUMERIC_NAME];
+    const numeric = dump.numerics[SIZE_NUMERIC_NAME];
     if (numeric === undefined) return 0;
     return numeric.value;
   }
@@ -141,7 +141,7 @@ tr.exportTo('tr.model', function() {
       }
 
       this.iterateContainerDumps(function(containerDump) {
-        var memoryAllocatorDumps = containerDump.memoryAllocatorDumps;
+        const memoryAllocatorDumps = containerDump.memoryAllocatorDumps;
         if (memoryAllocatorDumps !== undefined) {
           removeWeakDumpsFromListRecursively(memoryAllocatorDumps);
         }
@@ -181,7 +181,7 @@ tr.exportTo('tr.model', function() {
       // be defined, i.e. if (1) the current dump's size numeric is defined,
       // (2) the size of at least one of its children is defined or (3) the
       // size of at least one of its owners is defined.
-      var shouldDefineSize = false;
+      let shouldDefineSize = false;
 
       // This helper function returns the value of the size numeric of the
       // given dependent memory allocator dump. If the numeric is defined, the
@@ -189,7 +189,7 @@ tr.exportTo('tr.model', function() {
       // (2) or (3) is satisfied). Otherwise, zero is returned (and the flag is
       // left unchanged).
       function getDependencySize(dependencyDump) {
-        var numeric = dependencyDump.numerics[SIZE_NUMERIC_NAME];
+        const numeric = dependencyDump.numerics[SIZE_NUMERIC_NAME];
         if (numeric === undefined) return 0;
         shouldDefineSize = true;
         return numeric.value;
@@ -198,9 +198,9 @@ tr.exportTo('tr.model', function() {
       // 1. Get the size provided by the dump. If present, define a function
       // for checking dependent size consistency (a dump must always be bigger
       // than all its children aggregated together and/or its largest owner).
-      var sizeNumeric = dump.numerics[SIZE_NUMERIC_NAME];
-      var size = 0;
-      var checkDependencySizeIsConsistent = function() { /* no-op */ };
+      const sizeNumeric = dump.numerics[SIZE_NUMERIC_NAME];
+      let size = 0;
+      let checkDependencySizeIsConsistent = function() { /* no-op */ };
       if (sizeNumeric !== undefined) {
         size = sizeNumeric.value;
         shouldDefineSize = true;
@@ -234,30 +234,30 @@ tr.exportTo('tr.model', function() {
       // 2. Aggregate size of children. The recursive function traverses all
       // descendants and ensures that double-counting due to ownership within a
       // subsystem is avoided.
-      var aggregatedChildrenSize = 0;
+      let aggregatedChildrenSize = 0;
       // Owned child dump name -> (Owner child dump name -> overlapping size).
-      var allOverlaps = {};
+      const allOverlaps = {};
       dump.children.forEach(function(childDump) {
         function aggregateDescendantDump(descendantDump) {
           // Don't count this descendant dump if it owns another descendant of
           // the current dump (would cause double-counting).
-          var ownedDumpLink = descendantDump.owns;
+          const ownedDumpLink = descendantDump.owns;
           if (ownedDumpLink !== undefined &&
               ownedDumpLink.target.isDescendantOf(dump)) {
             // If the target owned dump is a descendant of a *different* child
             // of the the current dump (i.e. not childDump), then we remember
             // the ownership so that we could explain why the size of the
             // current dump is not equal to the sum of its children.
-            var ownedChildDump = ownedDumpLink.target;
+            let ownedChildDump = ownedDumpLink.target;
             while (ownedChildDump.parent !== dump) {
               ownedChildDump = ownedChildDump.parent;
             }
             if (childDump !== ownedChildDump) {
-              var ownedBySiblingSize = getDependencySize(descendantDump);
+              const ownedBySiblingSize = getDependencySize(descendantDump);
               if (ownedBySiblingSize > 0) {
-                var previousTotalOwnedBySiblingSize =
+                const previousTotalOwnedBySiblingSize =
                     ownedChildDump.ownedBySiblingSizes.get(childDump) || 0;
-                var updatedTotalOwnedBySiblingSize =
+                const updatedTotalOwnedBySiblingSize =
                     previousTotalOwnedBySiblingSize + ownedBySiblingSize;
                 ownedChildDump.ownedBySiblingSizes.set(
                     childDump, updatedTotalOwnedBySiblingSize);
@@ -286,10 +286,10 @@ tr.exportTo('tr.model', function() {
           'the aggregated size of its children');
 
       // 3. Calculate the largest owner size.
-      var largestOwnerSize = 0;
+      let largestOwnerSize = 0;
       dump.ownedBy.forEach(function(ownershipLink) {
-        var owner = ownershipLink.source;
-        var ownerSize = getDependencySize(owner);
+        const owner = ownershipLink.source;
+        const ownerSize = getDependencySize(owner);
         largestOwnerSize = Math.max(largestOwnerSize, ownerSize);
       });
       checkDependencySizeIsConsistent(
@@ -317,7 +317,7 @@ tr.exportTo('tr.model', function() {
       // respect to its children (if applicable).
       if (aggregatedChildrenSize < size &&
           dump.children !== undefined && dump.children.length > 0) {
-        var virtualChild = new tr.model.MemoryAllocatorDump(
+        const virtualChild = new tr.model.MemoryAllocatorDump(
             dump.containerMemoryDump, dump.fullName + '/<unspecified>');
         virtualChild.parent = dump;
         dump.children.unshift(virtualChild);
@@ -410,7 +410,7 @@ tr.exportTo('tr.model', function() {
 
       // If the dump is a leaf node, then both sub-sizes are equal to the size.
       if (dump.children === undefined || dump.children.length === 0) {
-        var size = getSize(dump);
+        const size = getSize(dump);
         dump.notOwningSubSize_ = size;
         dump.notOwnedSubSize_ = size;
         return;
@@ -418,7 +418,7 @@ tr.exportTo('tr.model', function() {
 
       // Calculate this dump's not-owning sub-size by summing up the not-owning
       // sub-sizes of children MADs which do not own another MAD.
-      var notOwningSubSize = 0;
+      let notOwningSubSize = 0;
       dump.children.forEach(function(childDump) {
         if (childDump.owns !== undefined) return;
         notOwningSubSize += optional(childDump.notOwningSubSize_, 0);
@@ -426,7 +426,7 @@ tr.exportTo('tr.model', function() {
       dump.notOwningSubSize_ = notOwningSubSize;
 
       // Calculate this dump's not-owned sub-size.
-      var notOwnedSubSize = 0;
+      let notOwnedSubSize = 0;
       dump.children.forEach(function(childDump) {
         // If the child dump is not owned, then add its not-owned sub-size.
         if (childDump.ownedBy.length === 0) {
@@ -435,7 +435,7 @@ tr.exportTo('tr.model', function() {
         }
         // If the child dump is owned, then add the difference between its size
         // and the largest owner.
-        var largestChildOwnerSize = 0;
+        let largestChildOwnerSize = 0;
         childDump.ownedBy.forEach(function(ownershipLink) {
           largestChildOwnerSize = Math.max(
               largestChildOwnerSize, getSize(ownershipLink.source));
@@ -505,7 +505,7 @@ tr.exportTo('tr.model', function() {
 
       // Sort the owners in decreasing order of ownership importance and
       // increasing order of not-owning sub-size (in case of equal importance).
-      var owners = dump.ownedBy.map(function(ownershipLink) {
+      const owners = dump.ownedBy.map(function(ownershipLink) {
         return {
           dump: ownershipLink.source,
           importance: optional(ownershipLink.importance, 0),
@@ -522,13 +522,13 @@ tr.exportTo('tr.model', function() {
       // Loop over the list of owners and distribute the owned dump's not-owned
       // sub-size among them according to their ownership importance and
       // not-owning sub-size.
-      var currentImportanceStartPos = 0;
-      var alreadyAttributedSubSize = 0;
+      let currentImportanceStartPos = 0;
+      let alreadyAttributedSubSize = 0;
       while (currentImportanceStartPos < owners.length) {
-        var currentImportance = owners[currentImportanceStartPos].importance;
+        const currentImportance = owners[currentImportanceStartPos].importance;
 
         // Find the position of the first owner with lower priority.
-        var nextImportanceStartPos = currentImportanceStartPos + 1;
+        let nextImportanceStartPos = currentImportanceStartPos + 1;
         while (nextImportanceStartPos < owners.length &&
                owners[nextImportanceStartPos].importance ===
                   currentImportance) {
@@ -538,11 +538,11 @@ tr.exportTo('tr.model', function() {
         // Visit the owners with the same importance in increasing order of
         // not-owned sub-size, split the owned memory among them appropriately,
         // and calculate their owning coefficients.
-        var attributedNotOwningSubSize = 0;
-        for (var pos = currentImportanceStartPos; pos < nextImportanceStartPos;
+        let attributedNotOwningSubSize = 0;
+        for (let pos = currentImportanceStartPos; pos < nextImportanceStartPos;
              pos++) {
-          var owner = owners[pos];
-          var notOwningSubSize = owner.notOwningSubSize;
+          const owner = owners[pos];
+          const notOwningSubSize = owner.notOwningSubSize;
           if (notOwningSubSize > alreadyAttributedSubSize) {
             attributedNotOwningSubSize +=
                 (notOwningSubSize - alreadyAttributedSubSize) /
@@ -550,7 +550,7 @@ tr.exportTo('tr.model', function() {
             alreadyAttributedSubSize = notOwningSubSize;
           }
 
-          var owningCoefficient = 0;
+          let owningCoefficient = 0;
           if (notOwningSubSize !== 0) {
             owningCoefficient = attributedNotOwningSubSize / notOwningSubSize;
           }
@@ -562,9 +562,9 @@ tr.exportTo('tr.model', function() {
 
       // Attribute the remainder of the owned dump's not-owned sub-size to
       // the dump itself and calculate its owned coefficient.
-      var notOwnedSubSize = optional(dump.notOwnedSubSize_, 0);
-      var remainderSubSize = notOwnedSubSize - alreadyAttributedSubSize;
-      var ownedCoefficient = 0;
+      const notOwnedSubSize = optional(dump.notOwnedSubSize_, 0);
+      const remainderSubSize = notOwnedSubSize - alreadyAttributedSubSize;
+      let ownedCoefficient = 0;
       if (notOwnedSubSize !== 0) {
         ownedCoefficient = remainderSubSize / notOwnedSubSize;
       }
@@ -620,14 +620,14 @@ tr.exportTo('tr.model', function() {
       // Completely skip dumps with undefined size.
       if (!hasSize(dump)) return;
 
-      var cumulativeOwnedCoefficient = optional(dump.ownedCoefficient_, 1);
-      var parent = dump.parent;
+      let cumulativeOwnedCoefficient = optional(dump.ownedCoefficient_, 1);
+      const parent = dump.parent;
       if (dump.parent !== undefined) {
         cumulativeOwnedCoefficient *= dump.parent.cumulativeOwnedCoefficient_;
       }
       dump.cumulativeOwnedCoefficient_ = cumulativeOwnedCoefficient;
 
-      var cumulativeOwningCoefficient;
+      let cumulativeOwningCoefficient;
       if (dump.owns !== undefined) {
         cumulativeOwningCoefficient = dump.owningCoefficient_ *
             dump.owns.target.cumulativeOwningCoefficient_;
@@ -666,7 +666,7 @@ tr.exportTo('tr.model', function() {
         return;
       }
 
-      var effectiveSize;
+      let effectiveSize;
       if (dump.children === undefined || dump.children.length === 0) {
         // Leaf dump.
         effectiveSize = getSize(dump) * dump.cumulativeOwningCoefficient_ *
@@ -696,7 +696,7 @@ tr.exportTo('tr.model', function() {
           this.propagateNumericsAndDiagnosticsRecursively);
 
       // 3. Aggregate numerics in the associated process memory dumps.
-      for (var processMemoryDump of Object.values(this.processMemoryDumps)) {
+      for (const processMemoryDump of Object.values(this.processMemoryDumps)) {
         processMemoryDump.iterateRootAllocatorDumps(function(dump) {
           dump.aggregateNumericsRecursively(this.model);
         }, this);
@@ -705,9 +705,10 @@ tr.exportTo('tr.model', function() {
 
     propagateNumericsAndDiagnosticsRecursively(globalAllocatorDump) {
       ['numerics', 'diagnostics'].forEach(function(field) {
-        for (var [name, value] of Object.entries(globalAllocatorDump[field])) {
+        for (const [name, value] of
+            Object.entries(globalAllocatorDump[field])) {
           globalAllocatorDump.ownedBy.forEach(function(ownershipLink) {
-            var processAllocatorDump = ownershipLink.source;
+            const processAllocatorDump = ownershipLink.source;
             if (processAllocatorDump[field][name] !== undefined) {
               // Numerics and diagnostics provided by process memory allocator
               // dumps themselves have precedence over numerics and diagnostics
@@ -725,7 +726,7 @@ tr.exportTo('tr.model', function() {
     },
 
     setUpTracingOverheadOwnership() {
-      for (var dump of Object.values(this.processMemoryDumps)) {
+      for (const dump of Object.values(this.processMemoryDumps)) {
         dump.setUpTracingOverheadOwnership(this.model);
       }
     },
@@ -733,7 +734,7 @@ tr.exportTo('tr.model', function() {
     discountTracingOverheadFromVmRegions() {
       // TODO(petrcermak): Consider factoring out all the finalization code and
       // constants to a single file.
-      for (var dump of Object.values(this.processMemoryDumps)) {
+      for (const dump of Object.values(this.processMemoryDumps)) {
         dump.discountTracingOverheadFromVmRegions(this.model);
       }
     },
@@ -746,7 +747,7 @@ tr.exportTo('tr.model', function() {
 
     iterateContainerDumps(fn) {
       fn.call(this, this);
-      for (var processDump of Object.values(this.processMemoryDumps)) {
+      for (const processDump of Object.values(this.processMemoryDumps)) {
         fn.call(this, processDump);
       }
     },
@@ -764,8 +765,8 @@ tr.exportTo('tr.model', function() {
      * a cycle.
      */
     traverseAllocatorDumpsInDepthFirstPostOrder(fn) {
-      var visitedDumps = new WeakSet();
-      var openDumps = new WeakSet();
+      const visitedDumps = new WeakSet();
+      const openDumps = new WeakSet();
 
       function visit(dump) {
         if (visitedDumps.has(dump)) return;
@@ -800,7 +801,7 @@ tr.exportTo('tr.model', function() {
      * a cycle.
      */
     traverseAllocatorDumpsInDepthFirstPreOrder(fn) {
-      var visitedDumps = new WeakSet();
+      const visitedDumps = new WeakSet();
 
       function visit(dump) {
         if (visitedDumps.has(dump)) return;

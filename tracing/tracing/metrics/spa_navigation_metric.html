@@ -24,7 +24,7 @@ tr.exportTo('tr.metrics', function() {
    * causing a SPA navigation and the first paint event after it.
    */
   function spaNavigationMetric(histograms, model) {
-    let histogram = new tr.v.Histogram(
+    const histogram = new tr.v.Histogram(
         'spaNavigationStartToFpDuration',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
         SPA_NAVIGATION_START_TO_FIRST_PAINT_DURATION_BIN_BOUNDARY);
@@ -35,25 +35,25 @@ tr.exportTo('tr.metrics', function() {
       sum: false,
     });
 
-    let modelHelper = model.getOrCreateHelper(
+    const modelHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
     if (!modelHelper) {
       // Chrome isn't present.
       return;
     }
-    let rendererHelpers = modelHelper.rendererHelpers;
+    const rendererHelpers = modelHelper.rendererHelpers;
     if (!rendererHelpers) {
       // We couldn't find any renderer processes.
       return;
     }
-    let browserHelper = modelHelper.browserHelper;
-    for (let rendererHelper of Object.values(rendererHelpers)) {
-      let spaNavigations = tr.metrics.findSpaNavigationsOnRenderer(
+    const browserHelper = modelHelper.browserHelper;
+    for (const rendererHelper of Object.values(rendererHelpers)) {
+      const spaNavigations = tr.metrics.findSpaNavigationsOnRenderer(
           rendererHelper, browserHelper);
-      for (let spaNav of spaNavigations) {
+      for (const spaNav of spaNavigations) {
         let beginTs = 0;
         if (spaNav.navStartCandidates.inputLatencyAsyncSlice) {
-          let beginData =
+          const beginData =
               spaNav.navStartCandidates.inputLatencyAsyncSlice.args.data;
           // TODO(sunjian): rename convertTimestampToModelTime to something like
           // convertTraceEventTsToModelTs and get rid of the first parameter.
@@ -69,10 +69,10 @@ tr.exportTo('tr.metrics', function() {
             rendererHelper.process, rangeOfInterest);
         const breakdownDict = tr.metrics.sh.generateWallClockTimeBreakdownTree(
             rendererHelper.mainThread, networkEvents, rangeOfInterest);
-        let breakdownDiagnostic = new tr.v.d.Breakdown();
+        const breakdownDiagnostic = new tr.v.d.Breakdown();
         breakdownDiagnostic.colorScheme =
             tr.v.d.COLOR_SCHEME_CHROME_USER_FRIENDLY_CATEGORY_DRIVER;
-        for (let label in breakdownDict) {
+        for (const label in breakdownDict) {
           breakdownDiagnostic.set(label,
               parseInt(breakdownDict[label].total * 1e3) / 1e3);
         }

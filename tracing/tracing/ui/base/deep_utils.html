@@ -22,8 +22,8 @@ tr.exportTo('tr.b', function() {
       // recursion by avoiding these elements.
       return true;
     }
-    var children = Polymer.dom(element).children;
-    for (var i = 0; i < children.length; i++) {
+    const children = Polymer.dom(element).children;
+    for (let i = 0; i < children.length; i++) {
       if (_iterateElementDeeplyImpl(children[i], cb, thisArg, true)) {
         return true;
       }
@@ -37,9 +37,9 @@ tr.exportTo('tr.b', function() {
   }
 
   function findDeepElementMatchingPredicate(element, predicate) {
-    var foundElement = undefined;
+    let foundElement = undefined;
     function matches(element) {
-      var match = predicate(element);
+      const match = predicate(element);
       if (!match) {
         return false;
       }
@@ -51,9 +51,9 @@ tr.exportTo('tr.b', function() {
   }
 
   function findDeepElementsMatchingPredicate(element, predicate) {
-    var foundElements = [];
+    const foundElements = [];
     function matches(element) {
-      var match = predicate(element);
+      const match = predicate(element);
       if (match) {
         foundElements.push(element);
       }

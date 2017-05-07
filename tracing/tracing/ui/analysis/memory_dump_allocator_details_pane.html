@@ -68,23 +68,23 @@ found in the LICENSE file.
 
 tr.exportTo('tr.ui.analysis', function() {
   // Link to docs.
-  var URL_TO_SIZE_VS_EFFECTIVE_SIZE = 'https://chromium.googlesource.com/chromium/src/+/master/docs/memory-infra/README.md#effective_size-vs_size';
+  const URL_TO_SIZE_VS_EFFECTIVE_SIZE = 'https://chromium.googlesource.com/chromium/src/+/master/docs/memory-infra/README.md#effective_size-vs_size';
 
   // Constant representing the context in suballocation rows.
-  var SUBALLOCATION_CONTEXT = true;
+  const SUBALLOCATION_CONTEXT = true;
 
   // Size numeric info types.
-  var MemoryAllocatorDumpInfoType = tr.model.MemoryAllocatorDumpInfoType;
-  var PROVIDED_SIZE_LESS_THAN_AGGREGATED_CHILDREN =
+  const MemoryAllocatorDumpInfoType = tr.model.MemoryAllocatorDumpInfoType;
+  const PROVIDED_SIZE_LESS_THAN_AGGREGATED_CHILDREN =
       MemoryAllocatorDumpInfoType.PROVIDED_SIZE_LESS_THAN_AGGREGATED_CHILDREN;
-  var PROVIDED_SIZE_LESS_THAN_LARGEST_OWNER =
+  const PROVIDED_SIZE_LESS_THAN_LARGEST_OWNER =
       MemoryAllocatorDumpInfoType.PROVIDED_SIZE_LESS_THAN_LARGEST_OWNER;
 
   // Unicode symbols used for memory cell info icons and messages.
-  var LEFTWARDS_OPEN_HEADED_ARROW = String.fromCharCode(0x21FD);
-  var RIGHTWARDS_OPEN_HEADED_ARROW = String.fromCharCode(0x21FE);
-  var EN_DASH = String.fromCharCode(0x2013);
-  var CIRCLED_LATIN_SMALL_LETTER_I = String.fromCharCode(0x24D8);
+  const LEFTWARDS_OPEN_HEADED_ARROW = String.fromCharCode(0x21FD);
+  const RIGHTWARDS_OPEN_HEADED_ARROW = String.fromCharCode(0x21FE);
+  const EN_DASH = String.fromCharCode(0x2013);
+  const CIRCLED_LATIN_SMALL_LETTER_I = String.fromCharCode(0x24D8);
 
   /** @constructor */
   function AllocatorDumpNameColumn() {
@@ -116,7 +116,7 @@ tr.exportTo('tr.ui.analysis', function() {
    * 1) and the newly created entry is returned.
    */
   function getAndUpdateEntry(map, name, createdCallback) {
-    var entry = map.get(name);
+    let entry = map.get(name);
     if (entry === undefined) {
       entry = {count: 0};
       createdCallback(entry);
@@ -188,7 +188,7 @@ tr.exportTo('tr.ui.analysis', function() {
         }
       } else if (map.size === 1) {
         this.parts_.push(' ');
-        var key = map.keys().next().value;
+        const key = map.keys().next().value;
         itemCallback.call(opt_this, key, map.get(key));
       } else {
         if (hasPluralSuffix) {
@@ -196,7 +196,7 @@ tr.exportTo('tr.ui.analysis', function() {
         }
         this.parts_.push(':');
         this.indent_++;
-        for (var key of map.keys()) {
+        for (const key of map.keys()) {
           this.parts_.push('\n', ' '.repeat(3 * (this.indent_ - 1)), ' - ');
           itemCallback.call(opt_this, key, map.get(key));
         }
@@ -252,39 +252,39 @@ tr.exportTo('tr.ui.analysis', function() {
 
       // Quantified name of an owner dump (of the given dump) -> {count,
       // importanceRange}.
-      var ownerNameToEntry = new Map();
+      const ownerNameToEntry = new Map();
 
       // Quantified name of an owned dump (by the given dump) -> {count,
       // importanceRange, sharerNameToEntry}, where sharerNameToEntry is a map
       // from quantified names of other owners of the owned dump to {count,
       // importanceRange}.
-      var ownedNameToEntry = new Map();
+      const ownedNameToEntry = new Map();
 
-      for (var i = 0; i < numerics.length; i++) {
+      for (let i = 0; i < numerics.length; i++) {
         if (numerics[i] === undefined) continue;
 
-        var dump = memoryAllocatorDumps[i];
+        const dump = memoryAllocatorDumps[i];
         if (dump === SUBALLOCATION_CONTEXT) {
           return;  // No ownership of suballocation internal rows.
         }
 
         // Gather owners of this dump.
         dump.ownedBy.forEach(function(ownerLink) {
-          var ownerDump = ownerLink.source;
+          const ownerDump = ownerLink.source;
           this.getAndUpdateOwnershipEntry_(
               ownerNameToEntry, ownerDump, ownerLink);
         }, this);
 
         // Gather dumps owned by this dump and other owner dumps sharing them
         // (with this dump).
-        var ownedLink = dump.owns;
+        const ownedLink = dump.owns;
         if (ownedLink !== undefined) {
-          var ownedDump = ownedLink.target;
-          var ownedEntry = this.getAndUpdateOwnershipEntry_(ownedNameToEntry,
+          const ownedDump = ownedLink.target;
+          const ownedEntry = this.getAndUpdateOwnershipEntry_(ownedNameToEntry,
               ownedDump, ownedLink, true /* opt_withSharerNameToEntry */);
-          var sharerNameToEntry = ownedEntry.sharerNameToEntry;
+          const sharerNameToEntry = ownedEntry.sharerNameToEntry;
           ownedDump.ownedBy.forEach(function(sharerLink) {
-            var sharerDump = sharerLink.source;
+            const sharerDump = sharerLink.source;
             if (sharerDump === dump) return;
             this.getAndUpdateOwnershipEntry_(
                 sharerNameToEntry, sharerDump, sharerLink);
@@ -294,7 +294,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
       // Emit a single info listing all owners of this dump.
       if (ownerNameToEntry.size > 0) {
-        var messageBuilder = new SizeInfoMessageBuilder();
+        const messageBuilder = new SizeInfoMessageBuilder();
         messageBuilder.append('shared by');
         messageBuilder.appendMap(
             ownerNameToEntry,
@@ -317,7 +317,7 @@ tr.exportTo('tr.ui.analysis', function() {
       // Emit a single info listing all dumps owned by this dump together
       // with list(s) of other owner dumps sharing them with this dump.
       if (ownedNameToEntry.size > 0) {
-        var messageBuilder = new SizeInfoMessageBuilder();
+        const messageBuilder = new SizeInfoMessageBuilder();
         messageBuilder.append('shares');
         messageBuilder.appendMap(
             ownedNameToEntry,
@@ -325,7 +325,7 @@ tr.exportTo('tr.ui.analysis', function() {
             undefined /* emptyText */,
             function(ownedName, ownedEntry) {
               messageBuilder.append(ownedName);
-              var ownedCount = ownedEntry.count;
+              const ownedCount = ownedEntry.count;
               if (ownedCount < numerics.length) {
                 messageBuilder.appendSomeTimestampsQuantifier();
               }
@@ -354,7 +354,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
     getAndUpdateOwnershipEntry_(
         map, dump, link, opt_withSharerNameToEntry) {
-      var entry = getAndUpdateEntry(map, dump.quantifiedName,
+      const entry = getAndUpdateEntry(map, dump.quantifiedName,
           function(newEntry) {
             newEntry.importanceRange = new tr.b.math.Range();
             if (opt_withSharerNameToEntry) {
@@ -392,16 +392,16 @@ tr.exportTo('tr.ui.analysis', function() {
     addOverlapInfo_(numerics, memoryAllocatorDumps, infos) {
       // Sibling allocator dump name -> {count, size}. The latter field (size)
       // is omitted in multi-selection mode.
-      var siblingNameToEntry = new Map();
-      for (var i = 0; i < numerics.length; i++) {
+      const siblingNameToEntry = new Map();
+      for (let i = 0; i < numerics.length; i++) {
         if (numerics[i] === undefined) continue;
-        var dump = memoryAllocatorDumps[i];
+        const dump = memoryAllocatorDumps[i];
         if (dump === SUBALLOCATION_CONTEXT) {
           return;  // No ownership of suballocation internal rows.
         }
-        var ownedBySiblingSizes = dump.ownedBySiblingSizes;
-        for (var siblingDump of ownedBySiblingSizes.keys()) {
-          var siblingName = siblingDump.name;
+        const ownedBySiblingSizes = dump.ownedBySiblingSizes;
+        for (const siblingDump of ownedBySiblingSizes.keys()) {
+          const siblingName = siblingDump.name;
           getAndUpdateEntry(siblingNameToEntry, siblingName,
               function(newEntry) {
                 if (numerics.length === 1 /* single-selection mode */) {
@@ -414,7 +414,7 @@ tr.exportTo('tr.ui.analysis', function() {
       // Emit a single info describing all overlaps with siblings (if
       // applicable).
       if (siblingNameToEntry.size > 0) {
-        var messageBuilder = new SizeInfoMessageBuilder();
+        const messageBuilder = new SizeInfoMessageBuilder();
         messageBuilder.append('overlaps with its sibling');
         messageBuilder.appendMap(
             siblingNameToEntry,
@@ -440,10 +440,10 @@ tr.exportTo('tr.ui.analysis', function() {
       // Info type (see MemoryAllocatorDumpInfoType) -> {count, providedSize,
       // dependencySize}. The latter two fields (providedSize and
       // dependencySize) are omitted in multi-selection mode.
-      var infoTypeToEntry = new Map();
-      for (var i = 0; i < numerics.length; i++) {
+      const infoTypeToEntry = new Map();
+      for (let i = 0; i < numerics.length; i++) {
         if (numerics[i] === undefined) continue;
-        var dump = memoryAllocatorDumps[i];
+        const dump = memoryAllocatorDumps[i];
         if (dump === SUBALLOCATION_CONTEXT) {
           return;  // Suballocation internal rows have no provided size.
         }
@@ -458,12 +458,12 @@ tr.exportTo('tr.ui.analysis', function() {
       }
 
       // Emit a warning info for every info type.
-      for (var infoType of infoTypeToEntry.keys()) {
-        var entry = infoTypeToEntry.get(infoType);
-        var messageBuilder = new SizeInfoMessageBuilder();
+      for (const infoType of infoTypeToEntry.keys()) {
+        const entry = infoTypeToEntry.get(infoType);
+        const messageBuilder = new SizeInfoMessageBuilder();
         messageBuilder.append('provided size');
         messageBuilder.appendSizeIfDefined(entry.providedSize);
-        var dependencyName;
+        let dependencyName;
         switch (infoType) {
           case PROVIDED_SIZE_LESS_THAN_AGGREGATED_CHILDREN:
             dependencyName = 'the aggregated size of the children';
@@ -485,7 +485,7 @@ tr.exportTo('tr.ui.analysis', function() {
     }
   };
 
-  var NUMERIC_COLUMN_RULES = [
+  const NUMERIC_COLUMN_RULES = [
     {
       condition: tr.model.MemoryAllocatorDump.EFFECTIVE_SIZE_NUMERIC_NAME,
       importance: 10,
@@ -513,7 +513,7 @@ tr.exportTo('tr.ui.analysis', function() {
     }
   ];
 
-  var DIAGNOSTIC_COLUMN_RULES = [
+  const DIAGNOSTIC_COLUMN_RULES = [
     {
       importance: 0,
       columnConstructor: tr.ui.analysis.StringMemoryColumn
@@ -592,8 +592,8 @@ tr.exportTo('tr.ui.analysis', function() {
       this.$.info_text.style.display = 'none';
       this.$.table.style.display = 'block';
 
-      var rows = this.createRows_();
-      var columns = this.createColumns_(rows);
+      const rows = this.createRows_();
+      const columns = this.createColumns_(rows);
       rows.forEach(function(rootRow) {
         tr.ui.analysis.aggregateTableRowCellsRecursively(rootRow, columns,
             function(contexts) {
@@ -616,7 +616,7 @@ tr.exportTo('tr.ui.analysis', function() {
         this.childPaneBuilder = undefined;
       } else {
         this.childPaneBuilder = function() {
-          var pane =
+          const pane =
               document.createElement('tr-ui-a-memory-dump-heap-details-pane');
           pane.heapDumps = this.heapDumps_;
           pane.aggregationMode = this.aggregationMode_;
@@ -634,17 +634,17 @@ tr.exportTo('tr.ui.analysis', function() {
     createAllocatorRowRecursively_(dumps) {
       // Get the name of the memory allocator dumps. We can use any defined
       // dump in dumps since they all have the same name.
-      var definedDump = tr.b.findFirstInArray(dumps);
-      var title = definedDump.name;
-      var fullName = definedDump.fullName;
+      const definedDump = tr.b.findFirstInArray(dumps);
+      const title = definedDump.name;
+      const fullName = definedDump.fullName;
 
       // Transform a chronological list of memory allocator dumps into two
       // dictionaries of cells (where each cell contains a chronological list
       // of the values of one of its numerics or diagnostics).
-      var numericCells = tr.ui.analysis.createCells(dumps, function(dump) {
+      const numericCells = tr.ui.analysis.createCells(dumps, function(dump) {
         return dump.numerics;
       });
-      var diagnosticCells = tr.ui.analysis.createCells(dumps, function(dump) {
+      const diagnosticCells = tr.ui.analysis.createCells(dumps, function(dump) {
         return dump.diagnostics;
       });
 
@@ -653,16 +653,16 @@ tr.exportTo('tr.ui.analysis', function() {
       // two underscores, (2) it has an owner from within the same process at
       // some timestamp, and (3) it is undefined, has no owners, or has the
       // same owner (and no other owners) at all other timestamps.
-      var suballocatedBy = undefined;
+      let suballocatedBy = undefined;
       if (title.startsWith('__')) {
-        for (var i = 0; i < dumps.length; i++) {
-          var dump = dumps[i];
+        for (let i = 0; i < dumps.length; i++) {
+          const dump = dumps[i];
           if (dump === undefined || dump.ownedBy.length === 0) {
             // Ignore timestamps where the dump is undefined or doesn't
             // have any owner.
             continue;
           }
-          var ownerDump = dump.ownedBy[0].source;
+          const ownerDump = dump.ownedBy[0].source;
           if (dump.ownedBy.length > 1 ||
               dump.children.length > 0 ||
               ownerDump.containerMemoryDump !== dump.containerMemoryDump) {
@@ -684,7 +684,7 @@ tr.exportTo('tr.ui.analysis', function() {
         }
       }
 
-      var row = {
+      const row = {
         title,
         fullNames: [fullName],
         contexts: dumps,
@@ -695,7 +695,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
       // Child memory dump name (dict key) -> Timestamp (list index) ->
       // Child dump.
-      var childDumpNameToDumps = tr.b.invertArrayOfDicts(dumps,
+      const childDumpNameToDumps = tr.b.invertArrayOfDicts(dumps,
           function(dump) {
             return tr.b.arrayToDict(dump.children, function(child) {
               return child.name;
@@ -703,10 +703,10 @@ tr.exportTo('tr.ui.analysis', function() {
           });
 
       // Recursively create sub-rows for children (if applicable).
-      var subRows = [];
-      var suballocationClassificationRootNode = undefined;
-      for (var childDumps of Object.values(childDumpNameToDumps)) {
-        var childRow = this.createAllocatorRowRecursively_(childDumps);
+      const subRows = [];
+      let suballocationClassificationRootNode = undefined;
+      for (const childDumps of Object.values(childDumpNameToDumps)) {
+        const childRow = this.createAllocatorRowRecursively_(childDumps);
         if (childRow.suballocatedBy === undefined) {
           // Not a suballocation row: just append it.
           subRows.push(childRow);
@@ -720,7 +720,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
       // Build the tree of suballocations (if applicable).
       if (suballocationClassificationRootNode !== undefined) {
-        var suballocationRow = this.createSuballocationRowRecursively_(
+        const suballocationRow = this.createSuballocationRowRecursively_(
             'suballocations', suballocationClassificationRootNode);
         subRows.push(suballocationRow);
       }
@@ -740,29 +740,29 @@ tr.exportTo('tr.ui.analysis', function() {
         };
       }
 
-      var suballocationLevels = suballocationRow.suballocatedBy.split('/');
-      var currentNode = rootNode;
-      for (var i = 0; i < suballocationLevels.length; i++) {
-        var suballocationLevel = suballocationLevels[i];
-        var nextNode = currentNode.children[suballocationLevel];
+      const suballocationLevels = suballocationRow.suballocatedBy.split('/');
+      let currentNode = rootNode;
+      for (let i = 0; i < suballocationLevels.length; i++) {
+        const suballocationLevel = suballocationLevels[i];
+        let nextNode = currentNode.children[suballocationLevel];
         if (nextNode === undefined) {
           currentNode.children[suballocationLevel] = nextNode = {
             children: {},
             row: undefined
           };
         }
-        var currentNode = nextNode;
+        currentNode = nextNode;
       }
 
-      var existingRow = currentNode.row;
+      const existingRow = currentNode.row;
       if (existingRow !== undefined) {
         // On rare occasions it can happen that one dump (e.g. sqlite) owns
         // different suballocations at different timestamps (e.g.
         // malloc/allocated_objects/_7d35 and malloc/allocated_objects/_511e).
         // When this happens, we merge the two suballocations into a single row
         // (malloc/allocated_objects/suballocations/sqlite).
-        for (var i = 0; i < suballocationRow.contexts.length; i++) {
-          var newContext = suballocationRow.contexts[i];
+        for (let i = 0; i < suballocationRow.contexts.length; i++) {
+          const newContext = suballocationRow.contexts[i];
           if (newContext === undefined) continue;
 
           if (existingRow.contexts[i] !== undefined) {
@@ -771,20 +771,20 @@ tr.exportTo('tr.ui.analysis', function() {
 
           existingRow.contexts[i] = newContext;
           ['numericCells', 'diagnosticCells'].forEach(function(cellKey) {
-            var suballocationCells = suballocationRow[cellKey];
+            const suballocationCells = suballocationRow[cellKey];
             if (suballocationCells === undefined) return;
-            for (var [cellName, cell] of Object.entries(suballocationCells)) {
+            for (const [cellName, cell] of Object.entries(suballocationCells)) {
               if (cell === undefined) continue;
-              var fields = cell.fields;
+              const fields = cell.fields;
               if (fields === undefined) continue;
-              var field = fields[i];
+              const field = fields[i];
               if (field === undefined) continue;
-              var existingCells = existingRow[cellKey];
+              let existingCells = existingRow[cellKey];
               if (existingCells === undefined) {
                 existingCells = {};
                 existingRow[cellKey] = existingCells;
               }
-              var existingCell = existingCells[cellName];
+              let existingCell = existingCells[cellName];
               if (existingCell === undefined) {
                 existingCell = new tr.ui.analysis.MemoryCell(
                     new Array(fields.length));
@@ -804,14 +804,14 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     createSuballocationRowRecursively_(name, node) {
-      var childCount = Object.keys(node.children).length;
+      const childCount = Object.keys(node.children).length;
       if (childCount === 0) {
         if (node.row === undefined) {
           throw new Error('Suballocation node must have a row or children');
         }
         // Leaf row of the suballocation tree: Change the row's title from
         // '__MEANINGLESSHASH' to the name of the suballocation owner.
-        var row = node.row;
+        const row = node.row;
         row.title = name;
         row.suballocation = true;
         return row;
@@ -819,7 +819,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
       // Internal row of the suballocation tree: Recursively create its
       // sub-rows.
-      var subRows = tr.b.dictionaryValues(tr.b.mapItems(
+      const subRows = tr.b.dictionaryValues(tr.b.mapItems(
           node.children, this.createSuballocationRowRecursively_, this));
 
       if (node.row !== undefined) {
@@ -830,7 +830,7 @@ tr.exportTo('tr.ui.analysis', function() {
         // 'malloc/allocated_objects/suballocations/skia/<unspecified>' so
         // that 'malloc/allocated_objects/suballocations/skia' could
         // aggregate the numerics of the two suballocations properly.
-        var row = node.row;
+        const row = node.row;
         row.title = '<unspecified>';
         row.suballocation = true;
         subRows.unshift(row);
@@ -839,8 +839,8 @@ tr.exportTo('tr.ui.analysis', function() {
       // An internal row of the suballocation tree is assumed to be defined
       // at a given timestamp if at least one of its sub-rows is defined at
       // the timestamp.
-      var contexts = new Array(subRows[0].contexts.length);
-      for (var i = 0; i < subRows.length; i++) {
+      const contexts = new Array(subRows[0].contexts.length);
+      for (let i = 0; i < subRows.length; i++) {
         subRows[i].contexts.forEach(function(subContext, index) {
           if (subContext !== undefined) {
             contexts[index] = SUBALLOCATION_CONTEXT;
@@ -857,23 +857,23 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     createColumns_(rows) {
-      var titleColumn = new AllocatorDumpNameColumn();
+      const titleColumn = new AllocatorDumpNameColumn();
       titleColumn.width = '200px';
 
-      var numericColumns = tr.ui.analysis.MemoryColumn.fromRows(rows, {
+      const numericColumns = tr.ui.analysis.MemoryColumn.fromRows(rows, {
         cellKey: 'numericCells',
         aggregationMode: this.aggregationMode_,
         rules: NUMERIC_COLUMN_RULES
       });
-      var diagnosticColumns = tr.ui.analysis.MemoryColumn.fromRows(rows, {
+      const diagnosticColumns = tr.ui.analysis.MemoryColumn.fromRows(rows, {
         cellKey: 'diagnosticCells',
         aggregationMode: this.aggregationMode_,
         rules: DIAGNOSTIC_COLUMN_RULES
       });
-      var fieldColumns = numericColumns.concat(diagnosticColumns);
+      const fieldColumns = numericColumns.concat(diagnosticColumns);
       tr.ui.analysis.MemoryColumn.spaceEqually(fieldColumns);
 
-      var columns = [titleColumn].concat(fieldColumns);
+      const columns = [titleColumn].concat(fieldColumns);
       return columns;
     }
   });

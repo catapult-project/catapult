@@ -12,7 +12,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var CompoundEventSelectionState = tr.model.CompoundEventSelectionState;
+  const CompoundEventSelectionState = tr.model.CompoundEventSelectionState;
 
   function checkSquareColor(colorLegend, expectedColor) {
     assert.strictEqual(
@@ -20,48 +20,48 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('noLabelSet', function() {
-    var colorLegend = document.createElement('tr-ui-b-color-legend');
+    const colorLegend = document.createElement('tr-ui-b-color-legend');
     this.addHTMLOutput(colorLegend);
     checkSquareColor(colorLegend, 'rgb(0, 0, 0)');
   });
 
   test('undefinedLabel', function() {
-    var colorLegend = document.createElement('tr-ui-b-color-legend');
+    const colorLegend = document.createElement('tr-ui-b-color-legend');
     colorLegend.label = undefined;
     this.addHTMLOutput(colorLegend);
     checkSquareColor(colorLegend, 'rgb(0, 0, 0)');
   });
 
   test('emptyLabel', function() {
-    var colorLegend = document.createElement('tr-ui-b-color-legend');
+    const colorLegend = document.createElement('tr-ui-b-color-legend');
     colorLegend.label = '';
     this.addHTMLOutput(colorLegend);
     checkSquareColor(colorLegend, 'rgb(122, 98, 135)');
   });
 
   test('nonEmptyLabel', function() {
-    var colorLegend = document.createElement('tr-ui-b-color-legend');
+    const colorLegend = document.createElement('tr-ui-b-color-legend');
     colorLegend.label = 'Frequency';
     this.addHTMLOutput(colorLegend);
     checkSquareColor(colorLegend, 'rgb(83, 150, 97)');
   });
 
   test('longLabel', function() {
-    var colorLegend = document.createElement('tr-ui-b-color-legend');
+    const colorLegend = document.createElement('tr-ui-b-color-legend');
     colorLegend.label = 'Total memory usage';
     this.addHTMLOutput(colorLegend);
     checkSquareColor(colorLegend, 'rgb(96, 128, 137)');
   });
 
   test('directlySetColorId', function() {
-    var colorLegend = document.createElement('tr-ui-b-color-legend');
+    const colorLegend = document.createElement('tr-ui-b-color-legend');
     colorLegend.setLabelAndColorId('hello_world', 7 /* colorId */);
     this.addHTMLOutput(colorLegend);
     checkSquareColor(colorLegend, 'rgb(111, 145, 88)');
   });
 
   test('directlyProvidedLabelElement', function() {
-    var colorLegend = document.createElement('tr-ui-b-color-legend');
+    const colorLegend = document.createElement('tr-ui-b-color-legend');
     colorLegend.setLabelAndColorId(
         tr.ui.b.createSpan({textContent: 'hello',
           className: 'hello-span'}),
@@ -71,7 +71,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('cessObjectSelected', function() {
-    var colorLegend = document.createElement('tr-ui-b-color-legend');
+    const colorLegend = document.createElement('tr-ui-b-color-legend');
     colorLegend.label = 'Object selected';
     colorLegend.compoundEventSelectionState =
         CompoundEventSelectionState.EVENT_SELECTED;
@@ -80,7 +80,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('cessSomeAssociatedObjectsSelected', function() {
-    var colorLegend = document.createElement('tr-ui-b-color-legend');
+    const colorLegend = document.createElement('tr-ui-b-color-legend');
     colorLegend.label = 'Some associated objects selected';
     colorLegend.compoundEventSelectionState =
         CompoundEventSelectionState.SOME_ASSOCIATED_EVENTS_SELECTED;
@@ -90,7 +90,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('cessAllAssociatedObjectsSelected', function() {
-    var colorLegend = document.createElement('tr-ui-b-color-legend');
+    const colorLegend = document.createElement('tr-ui-b-color-legend');
     colorLegend.label = 'All associated objects selected';
     colorLegend.compoundEventSelectionState =
         CompoundEventSelectionState.ALL_ASSOCIATED_EVENTS_SELECTED;
@@ -100,7 +100,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('cessObjectAndSomeAssociatedObjectsSelected', function() {
-    var colorLegend = document.createElement('tr-ui-b-color-legend');
+    const colorLegend = document.createElement('tr-ui-b-color-legend');
     colorLegend.label = 'Object and some associated objects selected';
     colorLegend.compoundEventSelectionState =
         CompoundEventSelectionState.EVENT_AND_SOME_ASSOCIATED_SELECTED;
@@ -110,7 +110,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('cessObjectAndAllAssociatedObjectsSelected', function() {
-    var colorLegend = document.createElement('tr-ui-b-color-legend');
+    const colorLegend = document.createElement('tr-ui-b-color-legend');
     colorLegend.label = 'Object and all associated objects selected';
     colorLegend.compoundEventSelectionState =
         CompoundEventSelectionState.EVENT_AND_ALL_ASSOCIATED_SELECTED;

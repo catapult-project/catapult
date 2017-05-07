@@ -185,7 +185,7 @@ was just clicked.
 
       testPathChanged() {
         if (this.testPath) {
-          var parts = this.testPath.split('/');
+          const parts = this.testPath.split('/');
           this.seriesName = parts.pop();
           this.parentPath = parts.join('/');
         }
@@ -226,8 +226,8 @@ was just clicked.
       },
 
       open() {
-        var oldLeft = this.$.container.offsetLeft;
-        var oldTop = this.$.container.offsetTop;
+        const oldLeft = this.$.container.offsetLeft;
+        const oldTop = this.$.container.offsetTop;
         openAtPosition(oldTop, oldLeft);
       },
 

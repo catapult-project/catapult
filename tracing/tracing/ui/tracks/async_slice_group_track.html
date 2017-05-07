@@ -18,7 +18,7 @@ tr.exportTo('tr.ui.tracks', function() {
    * @constructor
    * @extends {MultiRowTrack}
    */
-  var AsyncSliceGroupTrack = tr.ui.b.define(
+  const AsyncSliceGroupTrack = tr.ui.b.define(
       'async-slice-group-track',
       tr.ui.tracks.MultiRowTrack);
 
@@ -33,7 +33,7 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     addSubTrack_(slices) {
-      var track = new tr.ui.tracks.SliceTrack(this.viewport);
+      const track = new tr.ui.tracks.SliceTrack(this.viewport);
       track.slices = slices;
       Polymer.dom(this).appendChild(track);
       track.asyncStyle = true;
@@ -77,19 +77,19 @@ tr.exportTo('tr.ui.tracks', function() {
       }
 
       // Helper function that returns true if it can put the slice on row n.
-      var findLevel = function(sliceToPut, rows, n) {
+      const findLevel = function(sliceToPut, rows, n) {
         if (n >= rows.length) {
           return true; // We always can make empty rows to put the slice.
         }
-        var subRow = rows[n];
-        var lastSliceInSubRow = subRow[subRow.length - 1];
+        const subRow = rows[n];
+        const lastSliceInSubRow = subRow[subRow.length - 1];
         if (sliceToPut.start >= lastSliceInSubRow.end) {
           if (sliceToPut.subSlices === undefined ||
               sliceToPut.subSlices.length === 0) {
             return true;
           }
           // Make sure nested sub slices can be fitted in as well.
-          for (var subSlice of sliceToPut.subSlices) {
+          for (const subSlice of sliceToPut.subSlices) {
             if (!findLevel(subSlice, rows, n + 1)) {
               return false;
             }
@@ -99,11 +99,11 @@ tr.exportTo('tr.ui.tracks', function() {
         return false;
       };
 
-      var subRows = [];
-      for (var slice of slices) {
-        var found = false;
-        var index = subRows.length;
-        for (var j = 0; j < subRows.length; j++) {
+      const subRows = [];
+      for (const slice of slices) {
+        let found = false;
+        let index = subRows.length;
+        for (let j = 0; j < subRows.length; j++) {
           if (findLevel(slice, subRows, j)) {
             found = true;
             index = j;
@@ -116,14 +116,14 @@ tr.exportTo('tr.ui.tracks', function() {
         subRows[index].push(slice);
 
         // Fit subSlices recursively into rows below parent.
-        var fitSubSlicesRecursively = function(subSlices, level, rows) {
+        const fitSubSlicesRecursively = function(subSlices, level, rows) {
           if (subSlices === undefined || subSlices.length === 0) {
             return;
           }
           if (level === rows.length) {
             rows.push([]);
           }
-          for (var subSlice of subSlices) {
+          for (const subSlice of subSlices) {
             rows[level].push(subSlice);
             fitSubSlicesRecursively(subSlice.subSlices, level + 1, rows);
           }

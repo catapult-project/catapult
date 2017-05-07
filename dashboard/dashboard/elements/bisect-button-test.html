@@ -14,7 +14,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var testOptions = {
+  const testOptions = {
     tearDown() {
       testing_common.clearXhrMock();
       testing_common.clearFixture();
@@ -22,12 +22,12 @@ tr.b.unittest.testSuite(function() {
   };
 
   test('instantiate_basic', function() {
-    var button = document.createElement('bisect-button');
+    const button = document.createElement('bisect-button');
     this.addHTMLOutput(button);
   }, testOptions);
 
   test('onlyOneRevision_ButtonDisabled', function() {
-    var button = document.createElement('bisect-button');
+    const button = document.createElement('bisect-button');
     button.bisectInfo = {
       goodRev: 1,
       badRev: 2,
@@ -38,7 +38,7 @@ tr.b.unittest.testSuite(function() {
   }, testOptions);
 
   test('moreThanOneRevision_ButtonEnabled', function() {
-    var button = document.createElement('bisect-button');
+    const button = document.createElement('bisect-button');
     button.bisectInfo = {
       goodRev: 1,
       badRev: 10,

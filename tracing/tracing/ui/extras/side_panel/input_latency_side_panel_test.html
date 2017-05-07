@@ -16,7 +16,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('basic', function() {
-    var latencyData = [
+    const latencyData = [
       {
         x: 1000,
         latency: 16
@@ -34,13 +34,13 @@ tr.b.unittest.testSuite(function() {
         latency: 23
       }
     ];
-    var lc = document.createElement('tr-ui-e-s-input-latency-side-panel');
-    var container = document.createElement('div');
+    let lc = document.createElement('tr-ui-e-s-input-latency-side-panel');
+    let container = document.createElement('div');
     this.addHTMLOutput(container);
-    var latencyChart = lc.createLatencyLineChart(
+    const latencyChart = lc.createLatencyLineChart(
         latencyData, 'latency', container);
 
-    var frametimeData = [
+    const frametimeData = [
       {
         x: 1000,
         frametime: 16
@@ -58,18 +58,18 @@ tr.b.unittest.testSuite(function() {
         frametime: 23
       }
     ];
-    var lc = document.createElement('tr-ui-e-s-input-latency-side-panel');
-    var container = document.createElement('div');
+    lc = document.createElement('tr-ui-e-s-input-latency-side-panel');
+    container = document.createElement('div');
     this.addHTMLOutput(container);
-    var frametimeChart = lc.createLatencyLineChart(
+    const frametimeChart = lc.createLatencyLineChart(
         frametimeData, 'frametime', container);
   });
 
   test('brushedRangeChange', function() {
-    var events = [];
-    for (var i = 0; i < 10; i++) {
-      var startTs = i * 10000;
-      var endTs = startTs + 1000 * (i % 2);
+    const events = [];
+    for (let i = 0; i < 10; i++) {
+      const startTs = i * 10000;
+      const endTs = startTs + 1000 * (i % 2);
       events.push(
           {
             'cat': 'benchmark',
@@ -120,18 +120,18 @@ tr.b.unittest.testSuite(function() {
       'name': 'thread_name',
       'args': {'name': 'CrBrowserMain'}});
 
-    var panel = document.createElement('tr-ui-e-s-input-latency-side-panel');
+    const panel = document.createElement('tr-ui-e-s-input-latency-side-panel');
     this.addHTMLOutput(panel);
 
-    var selectionChanged = false;
+    let selectionChanged = false;
 
     panel.model = tr.c.TestUtils.newModelWithEvents([events]);
     function listener(e) {
       selectionChanged = true;
       assert.strictEqual(e.selection.length, 3);
-      var predictedStarts = [20, 31, 40];
-      var i = 0;
-      for (var event of e.selection) {
+      const predictedStarts = [20, 31, 40];
+      let i = 0;
+      for (const event of e.selection) {
         assert.strictEqual(event.start, predictedStarts[i++]);
       }
     }

@@ -13,7 +13,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var testOptions = {
+  const testOptions = {
     setUp() {
       // This is an example of what the embedded global variables might look
       // like.
@@ -77,7 +77,7 @@ tr.b.unittest.testSuite(function() {
   }, testOptions);
 
   test('anomalyDescription with valid input', function() {
-    var anomaly = window.ANOMALIES[0];
+    const anomaly = window.ANOMALIES[0];
     assert.strictEqual(
         '30500<br>21.00%', debug_alert.anomalyDescription(anomaly));
   }, testOptions);
@@ -87,7 +87,7 @@ tr.b.unittest.testSuite(function() {
   }, testOptions);
 
   test('makeLabel makes an HTML element', function() {
-    var labelElement = debug_alert.makeLabel('foo', 100, 200);
+    const labelElement = debug_alert.makeLabel('foo', 100, 200);
     assert.isTrue(labelElement instanceof HTMLElement);
     // The element should have its content and position set.
     assert.notEqual('', labelElement.style.left);
@@ -96,14 +96,14 @@ tr.b.unittest.testSuite(function() {
   }, testOptions);
 
   test('addVerticalLine modifies options object', function() {
-    var options = {};
+    const options = {};
     debug_alert.addVerticalLine(options, 30200);
     assert.strictEqual(2, options.grid.markings[0].xaxis.from);
     assert.strictEqual(2, options.grid.markings[0].xaxis.to);
   }, testOptions);
 
   test('addVerticalLine does nothing when given no revision', function() {
-    var options = {};
+    const options = {};
     debug_alert.addVerticalLine(options, undefined);
     assert.isUndefined(options.grid);
   }, testOptions);

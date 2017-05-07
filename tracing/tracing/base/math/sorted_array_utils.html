@@ -32,11 +32,11 @@ tr.exportTo('tr.b.math', function() {
   function findLowIndexInSortedArray(ary, mapFn, loVal) {
     if (ary.length === 0) return 1;
 
-    var low = 0;
-    var high = ary.length - 1;
-    var i;
-    var comparison;
-    var hitPos = -1;
+    let low = 0;
+    let high = ary.length - 1;
+    let i;
+    let comparison;
+    let hitPos = -1;
     while (low <= high) {
       i = Math.floor((low + high) / 2);
       comparison = mapFn(ary[i]) - loVal;
@@ -55,10 +55,10 @@ tr.exportTo('tr.b.math', function() {
 
   // From devtools/front_end/platform/utilities.js upperBound
   function findHighIndexInSortedArray(ary, mapFn, loVal, hiVal) {
-    var lo = loVal || 0;
-    var hi = hiVal !== undefined ? hiVal : ary.length;
+    let lo = loVal || 0;
+    let hi = hiVal !== undefined ? hiVal : ary.length;
     while (lo < hi) {
-      var mid = (lo + hi) >> 1;
+      const mid = (lo + hi) >> 1;
       if (mapFn(ary[mid]) >= 0) {
         lo = mid + 1;
       } else {
@@ -91,7 +91,7 @@ tr.exportTo('tr.b.math', function() {
    *     ary.length if loVal is greater than all the intervals.
    */
   function findIndexInSortedIntervals(ary, mapLoFn, mapWidthFn, loVal) {
-    var first = findLowIndexInSortedArray(ary, mapLoFn, loVal);
+    const first = findLowIndexInSortedArray(ary, mapLoFn, loVal);
     if (first === 0) {
       if (loVal >= mapLoFn(ary[0]) &&
           loVal < mapLoFn(ary[0]) + mapWidthFn(ary[0], 0)) {
@@ -150,7 +150,7 @@ tr.exportTo('tr.b.math', function() {
    *     ary.length if val is greater than all the intervals.
    */
   function findIndexInSortedClosedIntervals(ary, mapLoFn, mapHiFn, val) {
-    var i = findLowIndexInSortedArray(ary, mapLoFn, val);
+    const i = findLowIndexInSortedArray(ary, mapLoFn, val);
     if (i === 0) {
       if (val >= mapLoFn(ary[0], 0) &&
           val <= mapHiFn(ary[0], 0)) {
@@ -207,12 +207,12 @@ tr.exportTo('tr.b.math', function() {
 
     if (loVal > hiVal) return;
 
-    var i = findLowIndexInSortedArray(ary, mapLoFn, loVal);
+    let i = findLowIndexInSortedArray(ary, mapLoFn, loVal);
     if (i === -1) {
       return;
     }
     if (i > 0) {
-      var hi = mapLoFn(ary[i - 1]) + mapWidthFn(ary[i - 1], i - 1);
+      const hi = mapLoFn(ary[i - 1]) + mapWidthFn(ary[i - 1], i - 1);
       if (hi >= loVal) {
         cb(ary[i - 1], i - 1);
       }
@@ -221,8 +221,8 @@ tr.exportTo('tr.b.math', function() {
       return;
     }
 
-    for (var n = ary.length; i < n; i++) {
-      var lo = mapLoFn(ary[i]);
+    for (let n = ary.length; i < n; i++) {
+      const lo = mapLoFn(ary[i]);
       if (lo >= hiVal) break;
       cb(ary[i], i);
     }
@@ -234,7 +234,7 @@ tr.exportTo('tr.b.math', function() {
    * @return {Array} Array of elements in ary that intersect loVal, hiVal.
    */
   function getIntersectingIntervals(ary, mapLoFn, mapWidthFn, loVal, hiVal) {
-    var tmp = [];
+    const tmp = [];
     iterateOverIntersectingIntervals(ary, mapLoFn, mapWidthFn, loVal, hiVal,
         function(d) {
           tmp.push(d);
@@ -259,17 +259,17 @@ tr.exportTo('tr.b.math', function() {
   function findClosestElementInSortedArray(ary, mapFn, val, maxDiff) {
     if (ary.length === 0) return null;
 
-    var aftIdx = findLowIndexInSortedArray(ary, mapFn, val);
-    var befIdx = aftIdx > 0 ? aftIdx - 1 : 0;
+    let aftIdx = findLowIndexInSortedArray(ary, mapFn, val);
+    const befIdx = aftIdx > 0 ? aftIdx - 1 : 0;
 
     if (aftIdx === ary.length) aftIdx -= 1;
 
-    var befDiff = Math.abs(val - mapFn(ary[befIdx]));
-    var aftDiff = Math.abs(val - mapFn(ary[aftIdx]));
+    const befDiff = Math.abs(val - mapFn(ary[befIdx]));
+    const aftDiff = Math.abs(val - mapFn(ary[aftIdx]));
 
     if (befDiff > maxDiff && aftDiff > maxDiff) return null;
 
-    var idx = befDiff < aftDiff ? befIdx : aftIdx;
+    const idx = befDiff < aftDiff ? befIdx : aftIdx;
     return ary[idx];
   }
 
@@ -297,18 +297,18 @@ tr.exportTo('tr.b.math', function() {
       maxDiff) {
     if (ary.length === 0) return null;
 
-    var idx = findLowIndexInSortedArray(ary, mapLoFn, val);
+    let idx = findLowIndexInSortedArray(ary, mapLoFn, val);
     if (idx > 0) idx -= 1;
 
-    var hiInt = ary[idx];
-    var loInt = hiInt;
+    const hiInt = ary[idx];
+    let loInt = hiInt;
 
     if (val > mapHiFn(hiInt) && idx + 1 < ary.length) {
       loInt = ary[idx + 1];
     }
 
-    var loDiff = Math.abs(val - mapLoFn(loInt));
-    var hiDiff = Math.abs(val - mapHiFn(hiInt));
+    const loDiff = Math.abs(val - mapLoFn(loInt));
+    const hiDiff = Math.abs(val - mapHiFn(hiInt));
 
     if (loDiff > maxDiff && hiDiff > maxDiff) return null;
 

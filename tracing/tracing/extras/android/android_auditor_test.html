@@ -16,17 +16,17 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
-  var newSliceEx = tr.c.TestUtils.newSliceEx;
-  var FRAME_PERF_CLASS = tr.model.FRAME_PERF_CLASS;
-  var newThreadSlice = tr.c.TestUtils.newThreadSlice;
-  var Scalar = tr.b.Scalar;
-  var timeDurationInMs = tr.b.Unit.byName.timeDurationInMs;
+  const SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
+  const newSliceEx = tr.c.TestUtils.newSliceEx;
+  const FRAME_PERF_CLASS = tr.model.FRAME_PERF_CLASS;
+  const newThreadSlice = tr.c.TestUtils.newThreadSlice;
+  const Scalar = tr.b.Scalar;
+  const timeDurationInMs = tr.b.Unit.byName.timeDurationInMs;
 
   test('constructorSliceName', function() {
     // verify 'constructor' slice name doesn't break the auditor
-    var model = tr.c.TestUtils.newModelWithAuditor(function(model) {
-      var renderThread = model.getOrCreateProcess(1).getOrCreateThread(2);
+    const model = tr.c.TestUtils.newModelWithAuditor(function(model) {
+      const renderThread = model.getOrCreateProcess(1).getOrCreateThread(2);
       renderThread.name = 'RenderThread';
       renderThread.sliceGroup.pushSlice(newSliceEx(
           {title: 'constructor', start: 200, duration: 5}));
@@ -36,8 +36,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('saveLayerAlert_badAlpha', function() {
-    var model = tr.c.TestUtils.newModelWithAuditor(function(model) {
-      var renderThread = model.getOrCreateProcess(1).getOrCreateThread(2);
+    const model = tr.c.TestUtils.newModelWithAuditor(function(model) {
+      const renderThread = model.getOrCreateProcess(1).getOrCreateThread(2);
       renderThread.name = 'RenderThread';
       renderThread.sliceGroup.pushSlice(newSliceEx(
           {title: 'doFrame', start: 200, duration: 5}));
@@ -54,15 +54,15 @@ tr.b.unittest.testSuite(function() {
 
     assert.strictEqual(model.alerts.length, 1);
 
-    var alert = model.alerts[0];
+    const alert = model.alerts[0];
     assert.strictEqual(alert.args['view name'], 'BadAlphaView');
     assert.strictEqual(alert.args.width, 480);
     assert.strictEqual(alert.args.height, 320);
   });
 
   test('saveLayerAlert_canvas', function() {
-    var model = tr.c.TestUtils.newModelWithAuditor(function(model) {
-      var renderThread = model.getOrCreateProcess(1).getOrCreateThread(2);
+    const model = tr.c.TestUtils.newModelWithAuditor(function(model) {
+      const renderThread = model.getOrCreateProcess(1).getOrCreateThread(2);
       renderThread.name = 'RenderThread';
       renderThread.sliceGroup.pushSlice(newSliceEx(
           {title: 'doFrame', start: 200, duration: 5}));
@@ -72,14 +72,14 @@ tr.b.unittest.testSuite(function() {
 
     assert.strictEqual(model.alerts.length, 1);
 
-    var alert = model.alerts[0];
+    const alert = model.alerts[0];
     assert.strictEqual(alert.args['Clipped saveLayer count'], 1);
     assert.strictEqual(alert.associatedEvents.length, 2);
   });
 
   test('generatePathAlert', function() {
-    var model = tr.c.TestUtils.newModelWithAuditor(function(model) {
-      var renderThread = model.getOrCreateProcess(1).getOrCreateThread(2);
+    const model = tr.c.TestUtils.newModelWithAuditor(function(model) {
+      const renderThread = model.getOrCreateProcess(1).getOrCreateThread(2);
       renderThread.name = 'RenderThread';
       renderThread.sliceGroup.pushSlice(newSliceEx(
           {title: 'doFrame', start: 0, duration: 20}));
@@ -91,15 +91,15 @@ tr.b.unittest.testSuite(function() {
 
     assert.strictEqual(model.alerts.length, 1);
 
-    var alert = model.alerts[0];
+    const alert = model.alerts[0];
     assert.deepEqual(alert.args['Time spent'],
         new Scalar(timeDurationInMs, 9));
     assert.strictEqual(alert.associatedEvents.length, 3);
   });
 
   test('uploadAlert', function() {
-    var model = tr.c.TestUtils.newModelWithAuditor(function(model) {
-      var renderThread = model.getOrCreateProcess(1).getOrCreateThread(2);
+    const model = tr.c.TestUtils.newModelWithAuditor(function(model) {
+      const renderThread = model.getOrCreateProcess(1).getOrCreateThread(2);
       renderThread.name = 'RenderThread';
       renderThread.sliceGroup.pushSlice(newSliceEx(
           {title: 'doFrame', start: 0, duration: 20}));
@@ -109,7 +109,7 @@ tr.b.unittest.testSuite(function() {
 
     assert.strictEqual(model.alerts.length, 1);
 
-    var alert = model.alerts[0];
+    const alert = model.alerts[0];
     assert.strictEqual(alert.args['Pixels uploaded'], '1.00 million');
     assert.deepEqual(alert.args['Time spent'],
         new Scalar(timeDurationInMs, 15));
@@ -117,8 +117,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('listViewAlert', function() {
-    var model = tr.c.TestUtils.newModelWithAuditor(function(model) {
-      var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
+    const model = tr.c.TestUtils.newModelWithAuditor(function(model) {
+      const uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
       uiThread.sliceGroup.pushSlice(newSliceEx(
           {title: 'obtainView', start: 0, duration: 5}));
       uiThread.sliceGroup.pushSlice(newSliceEx(
@@ -149,13 +149,13 @@ tr.b.unittest.testSuite(function() {
     }, tr.e.audits.AndroidAuditor);
 
     assert.strictEqual(model.alerts.length, 2);
-    var alert = model.alerts[0];
+    let alert = model.alerts[0];
     assert.strictEqual(alert.args['ListView items rebound'], 2);
     assert.deepEqual(alert.args['Time spent'],
         new Scalar(timeDurationInMs, 20));
     assert.strictEqual(alert.associatedEvents.length, 5);
 
-    var alert = model.alerts[1];
+    alert = model.alerts[1];
     assert.strictEqual(alert.args['ListView items inflated'], 1);
     assert.deepEqual(alert.args['Time spent'],
         new Scalar(timeDurationInMs, 20));
@@ -164,8 +164,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('measureLayoutAlert', function() {
-    var model = tr.c.TestUtils.newModelWithAuditor(function(model) {
-      var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
+    const model = tr.c.TestUtils.newModelWithAuditor(function(model) {
+      const uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
       uiThread.sliceGroup.pushSlice(newSliceEx(
           {title: 'performTraversals', start: 0, duration: 20}));
       uiThread.sliceGroup.pushSlice(newSliceEx(
@@ -176,15 +176,15 @@ tr.b.unittest.testSuite(function() {
 
     assert.strictEqual(model.alerts.length, 1);
 
-    var alert = model.alerts[0];
+    const alert = model.alerts[0];
     assert.deepEqual(alert.args['Time spent'],
         new Scalar(timeDurationInMs, 10));
     assert.strictEqual(alert.associatedEvents.length, 3);
   });
 
   test('viewDrawAlert', function() {
-    var model = tr.c.TestUtils.newModelWithAuditor(function(model) {
-      var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
+    const model = tr.c.TestUtils.newModelWithAuditor(function(model) {
+      const uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
       // modern naming
       uiThread.sliceGroup.pushSlice(newSliceEx(
           {title: 'performTraversals', start: 0, duration: 20}));
@@ -206,9 +206,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('blockingGcAlert', function() {
-    var model = tr.c.TestUtils.newModelWithAuditor(function(model) {
-      var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
-      var sliceGroup = uiThread.sliceGroup;
+    const model = tr.c.TestUtils.newModelWithAuditor(function(model) {
+      const uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
+      const sliceGroup = uiThread.sliceGroup;
       sliceGroup.pushSlice(newSliceEx(
           {title: 'performTraversals', start: 0, duration: 20}));
       sliceGroup.pushSlice(newSliceEx(
@@ -228,9 +228,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('lockContentionAlert', function() {
-    var model = tr.c.TestUtils.newModelWithAuditor(function(model) {
-      var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
-      var sliceGroup = uiThread.sliceGroup;
+    const model = tr.c.TestUtils.newModelWithAuditor(function(model) {
+      const uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
+      const sliceGroup = uiThread.sliceGroup;
       sliceGroup.pushSlice(newSliceEx(
           {title: 'performTraversals', start: 0, duration: 20}));
       sliceGroup.pushSlice(newSliceEx(
@@ -243,8 +243,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('schedulingAlerts', function() {
-    var model = tr.c.TestUtils.newModelWithAuditor(function(model) {
-      var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
+    let model = tr.c.TestUtils.newModelWithAuditor(function(model) {
+      const uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
       uiThread.sliceGroup.pushSlice(newSliceEx(
           {title: 'performTraversals', start: 0, duration: 20}));
       uiThread.timeSlices = [
@@ -253,13 +253,13 @@ tr.b.unittest.testSuite(function() {
         newThreadSlice(uiThread, SCHEDULING_STATE.RUNNING, 16, 4)];
     }, tr.e.audits.AndroidAuditor);
     assert.strictEqual(model.alerts.length, 1);
-    var alert = model.alerts[0];
+    let alert = model.alerts[0];
     assert.strictEqual(alert.info.title, 'Scheduling delay');
     assert.deepEqual(alert.args['Not scheduled, but runnable'],
         new Scalar(timeDurationInMs, 10));
 
     model = tr.c.TestUtils.newModelWithAuditor(function(model) {
-      var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
+      const uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
       uiThread.sliceGroup.pushSlice(newSliceEx(
           {title: 'performTraversals', start: 0, duration: 20}));
       uiThread.timeSlices = [
@@ -268,17 +268,17 @@ tr.b.unittest.testSuite(function() {
         newThreadSlice(uiThread, SCHEDULING_STATE.RUNNING, 15, 5)];
     }, tr.e.audits.AndroidAuditor);
     assert.strictEqual(model.alerts.length, 1);
-    var alert = model.alerts[0];
+    alert = model.alerts[0];
     assert.strictEqual(alert.info.title, 'Scheduling delay');
     assert.deepEqual(alert.args['Blocking I/O delay'],
         new Scalar(timeDurationInMs, 10));
   });
 
   test('addFramesToModel', function() {
-    var process;
-    var model = tr.c.TestUtils.newModelWithAuditor(function(model) {
+    let process;
+    const model = tr.c.TestUtils.newModelWithAuditor(function(model) {
       process = model.getOrCreateProcess(1);
-      var uiThread = process.getOrCreateThread(1);
+      const uiThread = process.getOrCreateThread(1);
 
       // High level choreographer frame signal
       uiThread.sliceGroup.pushSlice(newSliceEx(
@@ -305,17 +305,17 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('processRenameAndSort', function() {
-    var appProcess;
-    var sfProcess;
-    var model = tr.c.TestUtils.newModelWithAuditor(function(model) {
+    let appProcess;
+    let sfProcess;
+    const model = tr.c.TestUtils.newModelWithAuditor(function(model) {
       appProcess = model.getOrCreateProcess(1);
-      var uiThread = appProcess.getOrCreateThread(1);
+      const uiThread = appProcess.getOrCreateThread(1);
       uiThread.name = 'ndroid.systemui';
       uiThread.sliceGroup.pushSlice(newSliceEx(
           {title: 'performTraversals', start: 0, duration: 8}));
 
       sfProcess = model.getOrCreateProcess(2);
-      var sfThread = sfProcess.getOrCreateThread(2);
+      const sfThread = sfProcess.getOrCreateThread(2);
       sfThread.name = '/system/bin/surfaceflinger';
       sfThread.sliceGroup.pushSlice(newSliceEx(
           {title: 'doComposition', start: 8, duration: 2}));
@@ -331,19 +331,19 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('eventInfo', function() {
-    var eventsExpectingInfo = [];
-    var eventsNotExpectingInfo = [];
+    const eventsExpectingInfo = [];
+    const eventsNotExpectingInfo = [];
 
-    var model = tr.c.TestUtils.newModelWithAuditor(function(model) {
-      var appProcess = model.getOrCreateProcess(1);
-      var uiThread = appProcess.getOrCreateThread(1);
+    const model = tr.c.TestUtils.newModelWithAuditor(function(model) {
+      const appProcess = model.getOrCreateProcess(1);
+      const uiThread = appProcess.getOrCreateThread(1);
       uiThread.name = 'ndroid.systemui';
 
-      var pushInfoSlice = function(slice) {
+      const pushInfoSlice = function(slice) {
         eventsExpectingInfo.push(slice);
         uiThread.sliceGroup.pushSlice(slice);
       };
-      var pushNonInfoSlice = function(slice) {
+      const pushNonInfoSlice = function(slice) {
         eventsNotExpectingInfo.push(slice);
         uiThread.sliceGroup.pushSlice(slice);
       };
@@ -369,12 +369,12 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('drawingThreadPriorities', function() {
-    var uiThread;
-    var renderThread;
-    var workerThread;
-    var otherThread;
-    var model = tr.c.TestUtils.newModelWithAuditor(function(model) {
-      var appProcess = model.getOrCreateProcess(1);
+    let uiThread;
+    let renderThread;
+    let workerThread;
+    let otherThread;
+    const model = tr.c.TestUtils.newModelWithAuditor(function(model) {
+      const appProcess = model.getOrCreateProcess(1);
 
       uiThread = appProcess.getOrCreateThread(1);
       uiThread.name = 'ndroid.systemui';
@@ -403,11 +403,11 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('favicon', function() {
-    var createModelWithJank = function(percentageJank) {
+    const createModelWithJank = function(percentageJank) {
       return tr.c.TestUtils.newModelWithAuditor(function(model) {
-        var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
-        for (var i = 0; i < 100; i++) {
-          var slice = newSliceEx({
+        const uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
+        for (let i = 0; i < 100; i++) {
+          const slice = newSliceEx({
             title: 'performTraversals',
             start: 30 * i,
             duration: i <= percentageJank ? 24 : 8

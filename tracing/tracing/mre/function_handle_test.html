@@ -17,23 +17,23 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('moduleToLoadAsDictTest', function() {
-    var mtl0 = new tr.mre.ModuleToLoad('/foo');
-    var mtl1 = new tr.mre.ModuleToLoad(undefined, 'foo.html');
+    const mtl0 = new tr.mre.ModuleToLoad('/foo');
+    const mtl1 = new tr.mre.ModuleToLoad(undefined, 'foo.html');
 
     assert.deepEqual(mtl0.asDict(), {'href': '/foo'});
     assert.deepEqual(mtl1.asDict(), {'filename': 'foo.html'});
   });
 
   test('moduleToLoadFromDictTest', function() {
-    var moduleDict0 = {
+    const moduleDict0 = {
       href: '/foo'
     };
-    var moduleDict1 = {
+    const moduleDict1 = {
       filename: 'foo.html'
     };
 
-    var mtl0 = tr.mre.ModuleToLoad.fromDict(moduleDict0);
-    var mtl1 = tr.mre.ModuleToLoad.fromDict(moduleDict1);
+    const mtl0 = tr.mre.ModuleToLoad.fromDict(moduleDict0);
+    const mtl1 = tr.mre.ModuleToLoad.fromDict(moduleDict1);
 
     assert.strictEqual(mtl0.href, '/foo');
     assert.isUndefined(mtl0.filename);
@@ -42,8 +42,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('moduleToLoadToStringTest', function() {
-    var mtl0 = new tr.mre.ModuleToLoad('/foo');
-    var mtl1 = new tr.mre.ModuleToLoad(undefined, 'foo.html');
+    const mtl0 = new tr.mre.ModuleToLoad('/foo');
+    const mtl1 = new tr.mre.ModuleToLoad(undefined, 'foo.html');
 
     assert.strictEqual(
         mtl0.toString(),
@@ -62,8 +62,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('asDictTest', function() {
-    var module = new tr.mre.ModuleToLoad('/foo');
-    var handle = new tr.mre.FunctionHandle([module], 'Bar', {'a': 'b'});
+    const module = new tr.mre.ModuleToLoad('/foo');
+    const handle = new tr.mre.FunctionHandle([module], 'Bar', {'a': 'b'});
 
     assert.deepEqual(handle.asDict(), {
       modules_to_load: [{href: '/foo'}],
@@ -73,12 +73,12 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('fromDictTest', function() {
-    var handleDict = {
+    const handleDict = {
       modules_to_load: [{href: '/foo'}],
       function_name: 'Bar'
     };
 
-    var handle = tr.mre.FunctionHandle.fromDict(handleDict);
+    const handle = tr.mre.FunctionHandle.fromDict(handleDict);
 
     assert.strictEqual(handle.modulesToLoad.length, 1);
     assert.strictEqual(handle.modulesToLoad[0].href, '/foo');
@@ -86,31 +86,31 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('hasHrefsTest', function() {
-    var module0 = new tr.mre.ModuleToLoad('/foo');
-    var handle0 = new tr.mre.FunctionHandle([module0], 'Bar');
-    var module1 = new tr.mre.ModuleToLoad(undefined, 'foo.html');
-    var handle1 = new tr.mre.FunctionHandle([module1], 'Bar');
+    const module0 = new tr.mre.ModuleToLoad('/foo');
+    const handle0 = new tr.mre.FunctionHandle([module0], 'Bar');
+    const module1 = new tr.mre.ModuleToLoad(undefined, 'foo.html');
+    const handle1 = new tr.mre.FunctionHandle([module1], 'Bar');
 
     assert.isTrue(handle0.hasHrefs());
     assert.isFalse(handle1.hasHrefs());
   });
 
   test('loadFailsWithHrefs', function() {
-    var module = new tr.mre.ModuleToLoad('/foo');
-    var handle = new tr.mre.FunctionHandle([module], 'railMapFunction');
+    const module = new tr.mre.ModuleToLoad('/foo');
+    const handle = new tr.mre.FunctionHandle([module], 'railMapFunction');
 
     assert.throws(handle.load);
   });
 
   test('loadFailsUnregistered', function() {
-    var handle = new tr.mre.FunctionHandle([], 'Bar');
+    const handle = new tr.mre.FunctionHandle([], 'Bar');
 
     assert.throws(handle.load);
   });
 
   test('toStringTest', function() {
-    var module = new tr.mre.ModuleToLoad('/foo');
-    var handle = new tr.mre.FunctionHandle([module], 'Bar', {'a': 'b'});
+    const module = new tr.mre.ModuleToLoad('/foo');
+    const handle = new tr.mre.FunctionHandle([module], 'Bar', {'a': 'b'});
 
     assert.strictEqual(
         handle.toString(),

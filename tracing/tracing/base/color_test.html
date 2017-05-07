@@ -10,7 +10,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('fromRGB', function() {
-    var c = tr.b.Color.fromString('rgb(1, 2, 3)');
+    const c = tr.b.Color.fromString('rgb(1, 2, 3)');
     assert.strictEqual(c.r, 1);
     assert.strictEqual(c.g, 2);
     assert.strictEqual(c.b, 3);
@@ -18,7 +18,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('fromRGBA', function() {
-    var c = tr.b.Color.fromString('rgba(1, 2, 3, 0.5)');
+    const c = tr.b.Color.fromString('rgba(1, 2, 3, 0.5)');
     assert.strictEqual(c.r, 1);
     assert.strictEqual(c.g, 2);
     assert.strictEqual(c.b, 3);
@@ -26,7 +26,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('fromHex', function() {
-    var c = tr.b.Color.fromString('#010203');
+    const c = tr.b.Color.fromString('#010203');
     assert.strictEqual(c.r, 1);
     assert.strictEqual(c.g, 2);
     assert.strictEqual(c.b, 3);
@@ -34,28 +34,28 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('toStringRGB', function() {
-    var c = new tr.b.Color(1, 2, 3);
+    const c = new tr.b.Color(1, 2, 3);
     assert.strictEqual(c.toString(), 'rgb(1,2,3)');
   });
 
   test('toStringRGBA', function() {
-    var c = new tr.b.Color(1, 2, 3, 0.5);
+    const c = new tr.b.Color(1, 2, 3, 0.5);
     assert.strictEqual(c.toString(), 'rgba(1,2,3,0.5)');
   });
 
   test('lerpRGB', function() {
-    var a = new tr.b.Color(0, 127, 191);
-    var b = new tr.b.Color(255, 255, 255);
-    var x = tr.b.Color.lerpRGB(a, b, 0.25);
+    const a = new tr.b.Color(0, 127, 191);
+    const b = new tr.b.Color(255, 255, 255);
+    const x = tr.b.Color.lerpRGB(a, b, 0.25);
     assert.strictEqual(x.r, 63);
     assert.strictEqual(x.g, 159);
     assert.strictEqual(x.b, 207);
   });
 
   test('lerpRGBA', function() {
-    var a = new tr.b.Color(0, 127, 191, 0.5);
-    var b = new tr.b.Color(255, 255, 255, 1);
-    var x = tr.b.Color.lerpRGBA(a, b, 0.25);
+    const a = new tr.b.Color(0, 127, 191, 0.5);
+    const b = new tr.b.Color(255, 255, 255, 1);
+    const x = tr.b.Color.lerpRGBA(a, b, 0.25);
     assert.strictEqual(x.r, 63);
     assert.strictEqual(x.g, 159);
     assert.strictEqual(x.b, 207);
@@ -63,9 +63,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('blendRGBA', function() {
-    var red = new tr.b.Color(255, 0, 0, 0.5);
-    var white = new tr.b.Color(255, 255, 255, 1);
-    var x = red.blendOver(white);
+    const red = new tr.b.Color(255, 0, 0, 0.5);
+    const white = new tr.b.Color(255, 255, 255, 1);
+    const x = red.blendOver(white);
     assert.strictEqual(x.r, 255);
     assert.strictEqual(x.g, 127);
     assert.strictEqual(x.b, 127);
@@ -73,13 +73,13 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('fromHSL', function() {
-    var reddish = tr.b.Color.fromHSLExplicit(.994, 0.644, .484, 0.8);
+    const reddish = tr.b.Color.fromHSLExplicit(.994, 0.644, .484, 0.8);
     assert.strictEqual(reddish.r, 202);
     assert.strictEqual(reddish.g, 43);
     assert.strictEqual(reddish.b, 49);
     assert.strictEqual(reddish.a, 0.8);
 
-    var gray = tr.b.Color.fromHSLExplicit(0, 0, .50, 1.0);
+    const gray = tr.b.Color.fromHSLExplicit(0, 0, .50, 1.0);
     assert.strictEqual(gray.r, 127);
     assert.strictEqual(gray.g, 127);
     assert.strictEqual(gray.b, 127);
@@ -87,13 +87,13 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('toHSL', function() {
-    var reddish = new tr.b.Color(203, 44, 49, 0.8).toHSL();
+    const reddish = new tr.b.Color(203, 44, 49, 0.8).toHSL();
     assert.closeTo(reddish.h, .994, 0.01);
     assert.closeTo(reddish.s, 0.644, 0.01);
     assert.closeTo(reddish.l, 0.484, 0.01);
     assert.strictEqual(reddish.a, 0.8);
 
-    var gray = new tr.b.Color(128, 128, 128, 1.0).toHSL();
+    const gray = new tr.b.Color(128, 128, 128, 1.0).toHSL();
     assert.strictEqual(gray.h, 0);
     assert.strictEqual(gray.s, 0);
     assert.closeTo(gray.l, .50, 0.01);

@@ -46,14 +46,14 @@ Polymer({
   set selection(selection) {
     this.currentSelection_ = selection;
 
-    var objectEvents = tr.b.asArray(selection).sort(
+    const objectEvents = tr.b.asArray(selection).sort(
         tr.b.math.Range.compareByMinTimes);
 
-    var timeSpanConfig = {
+    const timeSpanConfig = {
       unit: tr.b.Unit.byName.timeStampInMs,
       ownerDocument: this.ownerDocument
     };
-    var table = this.$.content;
+    const table = this.$.content;
     table.tableColumns = [
       {
         title: 'First',
@@ -62,7 +62,7 @@ Polymer({
             return tr.v.ui.createScalarSpan(event.ts, timeSpanConfig);
           }
 
-          var spanEl = document.createElement('span');
+          const spanEl = document.createElement('span');
           Polymer.dom(spanEl).appendChild(tr.v.ui.createScalarSpan(
               event.creationTs, timeSpanConfig));
           Polymer.dom(spanEl).appendChild(tr.ui.b.createSpan({
@@ -81,7 +81,7 @@ Polymer({
       {
         title: 'Second',
         value(event) {
-          var linkEl = document.createElement('tr-ui-a-analysis-link');
+          const linkEl = document.createElement('tr-ui-a-analysis-link');
           linkEl.setSelectionAndContent(function() {
             return new tr.model.EventSet(event);
           }, event.userFriendlyName);

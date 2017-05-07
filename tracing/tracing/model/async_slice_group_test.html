@@ -12,26 +12,26 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var Process = tr.model.Process;
-  var Thread = tr.model.Thread;
-  var AsyncSlice = tr.model.AsyncSlice;
-  var AsyncSliceGroup = tr.model.AsyncSliceGroup;
-  var newAsyncSlice = tr.c.TestUtils.newAsyncSlice;
-  var newAsyncSliceEx = tr.c.TestUtils.newAsyncSliceEx;
-  var newModel = tr.c.TestUtils.newModel;
+  const Process = tr.model.Process;
+  const Thread = tr.model.Thread;
+  const AsyncSlice = tr.model.AsyncSlice;
+  const AsyncSliceGroup = tr.model.AsyncSliceGroup;
+  const newAsyncSlice = tr.c.TestUtils.newAsyncSlice;
+  const newAsyncSliceEx = tr.c.TestUtils.newAsyncSliceEx;
+  const newModel = tr.c.TestUtils.newModel;
 
   test('asyncSliceGroupBounds_Empty', function() {
-    var thread = {};
-    var g = new AsyncSliceGroup(thread);
+    const thread = {};
+    const g = new AsyncSliceGroup(thread);
     g.updateBounds();
     assert.isTrue(g.bounds.isEmpty);
   });
 
   test('asyncSliceGroupBounds_Basic', function() {
-    var model = new tr.Model();
-    var p1 = new Process(model, 1);
-    var t1 = new Thread(p1, 1);
-    var g = new AsyncSliceGroup(t1);
+    const model = new tr.Model();
+    const p1 = new Process(model, 1);
+    const t1 = new Thread(p1, 1);
+    const g = new AsyncSliceGroup(t1);
     g.push(newAsyncSlice(0, 1, t1, t1));
     g.push(newAsyncSlice(1, 1.5, t1, t1));
     assert.strictEqual(g.length, 2);
@@ -41,10 +41,10 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('asyncSliceGroupStableId', function() {
-    var model = new tr.Model();
-    var process = model.getOrCreateProcess(123);
-    var thread = process.getOrCreateThread(456);
-    var group = new AsyncSliceGroup(thread);
+    const model = new tr.Model();
+    const process = model.getOrCreateProcess(123);
+    const thread = process.getOrCreateThread(456);
+    const group = new AsyncSliceGroup(thread);
 
     assert.strictEqual(process.stableId, 123);
     assert.strictEqual(thread.stableId, '123.456');
@@ -52,7 +52,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('asyncSliceParentContainerSetAtPush', function() {
-    var m = newModel(function(m) {
+    const m = newModel(function(m) {
       m.process = m.getOrCreateProcess(123);
       m.thread = m.process.getOrCreateThread(456);
       m.group = new AsyncSliceGroup(m.thread);

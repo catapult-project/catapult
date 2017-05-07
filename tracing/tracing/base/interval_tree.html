@@ -43,10 +43,10 @@ tr.exportTo('tr.b', function() {
      * @param {Object} datum The object to insert.
      */
     insert(datum) {
-      var startPosition = this.beginPositionCb_(datum);
-      var endPosition = this.endPositionCb_(datum);
+      const startPosition = this.beginPositionCb_(datum);
+      const endPosition = this.endPositionCb_(datum);
 
-      var node = new IntervalTreeNode(datum,
+      const node = new IntervalTreeNode(datum,
                                       startPosition, endPosition);
       this.size_++;
 
@@ -85,7 +85,7 @@ tr.exportTo('tr.b', function() {
     },
 
     rotateRight_(node) {
-      var sibling = node.leftNode;
+      const sibling = node.leftNode;
       node.leftNode = sibling.rightNode;
       sibling.rightNode = node;
       sibling.colour = node.colour;
@@ -94,7 +94,7 @@ tr.exportTo('tr.b', function() {
     },
 
     rotateLeft_(node) {
-      var sibling = node.rightNode;
+      const sibling = node.rightNode;
       node.rightNode = sibling.leftNode;
       sibling.leftNode = node;
       sibling.colour = node.colour;
@@ -150,7 +150,7 @@ tr.exportTo('tr.b', function() {
       this.validateFindArguments_(queryLow, queryHigh);
       if (this.root_ === undefined) return [];
 
-      var ret = [];
+      const ret = [];
       this.root_.appendIntersectionsInto_(ret, queryLow, queryHigh);
       return ret;
     },
@@ -179,7 +179,7 @@ tr.exportTo('tr.b', function() {
     }
   };
 
-  var Colour = {
+  const Colour = {
     RED: 'red',
     BLACK: 'black'
   };
@@ -223,7 +223,7 @@ tr.exportTo('tr.b', function() {
       /* We know that this node starts before queryHigh, if any of it's data
        * ends after queryLow we need to add those nodes */
       if (this.highValue > queryLow) {
-        for (var i = (this.data.length - 1); i >= 0; --i) {
+        for (let i = (this.data.length - 1); i >= 0; --i) {
           /* data nodes are sorted by high value, so as soon as we see one
            * before low value we're done. */
           if (this.data[i].high < queryLow) break;
@@ -319,7 +319,7 @@ tr.exportTo('tr.b', function() {
     },
 
     merge(node) {
-      for (var i = 0; i < node.data.length; i++) {
+      for (let i = 0; i < node.data.length; i++) {
         this.data_.push(node.data[i]);
       }
       this.data_.sort(function(a, b) {
@@ -328,7 +328,7 @@ tr.exportTo('tr.b', function() {
     },
 
     dump() {
-      var ret = {};
+      const ret = {};
       if (this.leftNode_) {
         ret.left = this.leftNode_.dump();
       }

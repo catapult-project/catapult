@@ -23,7 +23,7 @@ tr.exportTo('tr.mre', function() {
     get canonicalUrl() { return this.canonicalUrl_; },
 
     asDict() {
-      var d = {
+      const d = {
         canonical_url: this.canonicalUrl_
       };
 
@@ -69,7 +69,7 @@ tr.exportTo('tr.mre', function() {
       try {
         return tr.b.getSync(this.urlToLoad, this.loadAsTraceStream_);
       } catch (ex) {
-        var err = new Error('Could not open ' + this.urlToLoad);
+        const err = new Error('Could not open ' + this.urlToLoad);
         err.name = 'FileLoadingError';
         throw err;
       }

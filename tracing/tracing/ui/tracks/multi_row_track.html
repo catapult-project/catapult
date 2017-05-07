@@ -19,7 +19,7 @@ tr.exportTo('tr.ui.tracks', function() {
    * @constructor
    * @extends {ContainerTrack}
    */
-  var MultiRowTrack = tr.ui.b.define(
+  const MultiRowTrack = tr.ui.b.define(
       'multi-row-track', tr.ui.tracks.ContainerTrack);
 
   MultiRowTrack.prototype = {
@@ -96,7 +96,7 @@ tr.exportTo('tr.ui.tracks', function() {
       this.expanded = !this.expanded;
 
       if (this.groupingSource_) {
-        var modelSettings = new tr.model.ModelSettings(
+        const modelSettings = new tr.model.ModelSettings(
             this.groupingSource_.model);
         modelSettings.setSettingFor(this.groupingSource_, 'expanded',
             this.expanded);
@@ -107,11 +107,11 @@ tr.exportTo('tr.ui.tracks', function() {
 
     updateExpandedStateFromGroupingSource_() {
       if (this.groupingSource_) {
-        var numSubRows = this.subRows.length;
-        var modelSettings = new tr.model.ModelSettings(
+        const numSubRows = this.subRows.length;
+        const modelSettings = new tr.model.ModelSettings(
             this.groupingSource_.model);
         if (numSubRows > 1) {
-          var defaultExpanded;
+          let defaultExpanded;
           if (numSubRows > this.defaultToCollapsedWhenSubRowCountMoreThan) {
             defaultExpanded = false;
           } else {
@@ -126,10 +126,10 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     expandedStateChanged_() {
-      var minH = Math.max(2, Math.ceil(18 / this.children.length));
-      var h = (this.expanded_ ? 18 : minH) + 'px';
+      const minH = Math.max(2, Math.ceil(18 / this.children.length));
+      const h = (this.expanded_ ? 18 : minH) + 'px';
 
-      for (var i = 0; i < this.children.length; i++) {
+      for (let i = 0; i < this.children.length; i++) {
         this.children[i].height = h;
         if (i === 0) {
           this.children[i].arrowVisible = true;
@@ -164,13 +164,13 @@ tr.exportTo('tr.ui.tracks', function() {
         this.currentSubRows_ = [];
         return;
       }
-      var subRows = this.buildSubRows_(this.itemsToGroup_);
+      const subRows = this.buildSubRows_(this.itemsToGroup_);
       this.currentSubRows_ = subRows;
-      for (var srI = 0; srI < subRows.length; srI++) {
-        var subRow = subRows[srI];
+      for (let srI = 0; srI < subRows.length; srI++) {
+        const subRow = subRows[srI];
         if (!subRow.length) continue;
 
-        var track = this.addSubTrack_(subRow);
+        const track = this.addSubTrack_(subRow);
         track.addEventListener(
             'heading-clicked', this.onHeadingClicked_.bind(this));
       }
@@ -204,7 +204,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
       if (a.length !== b.length) return false;
 
-      for (var i = 0; i < a.length; ++i) {
+      for (let i = 0; i < a.length; ++i) {
         if (a[i] !== b[i]) return false;
       }
       return true;

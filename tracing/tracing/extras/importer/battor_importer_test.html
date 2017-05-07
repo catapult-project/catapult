@@ -14,7 +14,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var CHROMIUM_EVENTS = [
+  const CHROMIUM_EVENTS = [
     {
       name: 'a', args: {}, pid: 52, ts: 0,
       cat: 'foo', tid: 53, ph: 'B'
@@ -27,7 +27,7 @@ tr.b.unittest.testSuite(function() {
     }
   ];
 
-  var BATTOR_LINES = [
+  const BATTOR_LINES = [
     '# BattOr',
     '# voltage_range [0.0, 6144.0] mV',
     '# current_range [0.0, 2275.5] mA',
@@ -48,11 +48,11 @@ tr.b.unittest.testSuite(function() {
 
   test('importExplicitClockSync', function() {
     // Add a BattOr sample with an explicit clock sync.
-    var battorLinesWithExplicitSync = BATTOR_LINES.slice();
+    const battorLinesWithExplicitSync = BATTOR_LINES.slice();
     battorLinesWithExplicitSync.push(
         '2.500000 1.000000 4000.000000 <ABCDEF-01234-5678-0A1B2C3D>');
 
-    var m = tr.c.TestUtils.newModelWithEvents(
+    const m = tr.c.TestUtils.newModelWithEvents(
         [CHROMIUM_EVENTS, battorLinesWithExplicitSync.join('\n')]);
 
     // Check to see if power samples were imported successfully.
@@ -66,11 +66,11 @@ tr.b.unittest.testSuite(function() {
     // Add a BattOr sample with an explicit clock sync that occurs on a line
     // with a negative voltage measurement. The sample should be ignored, but
     // the clock sync should be counted.
-    var battorLinesWithExplicitSync = BATTOR_LINES.slice();
+    const battorLinesWithExplicitSync = BATTOR_LINES.slice();
     battorLinesWithExplicitSync.push(
         '2.500000 -1.000000 4000.000000 <ABCDEF-01234-5678-0A1B2C3D>');
 
-    var m = tr.c.TestUtils.newModelWithEvents(
+    const m = tr.c.TestUtils.newModelWithEvents(
         [CHROMIUM_EVENTS, battorLinesWithExplicitSync.join('\n')]);
 
     // Check to see if power samples were imported successfully.
@@ -82,17 +82,17 @@ tr.b.unittest.testSuite(function() {
 
   test('explicitClockSyncWithoutSyncMarkers', function() {
     // Create an empty model.
-    var m = new tr.Model();
-    var io = new tr.importer.ImportOptions();
+    let m = new tr.Model();
+    const io = new tr.importer.ImportOptions();
     io.showImportWarnings = false;
     m.importOptions = io;
 
     // Add a BattOr sample with an explicit clock sync.
-    var battorLinesWithExplicitSync = BATTOR_LINES.slice();
+    const battorLinesWithExplicitSync = BATTOR_LINES.slice();
     battorLinesWithExplicitSync.push(
         '2.500000 1.000000 4000.000000 <ABCDEF-01234-5678-0A1B2C3D>');
 
-    var m = tr.c.TestUtils.newModelWithEvents(
+    m = tr.c.TestUtils.newModelWithEvents(
         [battorLinesWithExplicitSync.join('\n')]);
 
     assert.lengthOf(m.device.powerSeries.samples, 6);

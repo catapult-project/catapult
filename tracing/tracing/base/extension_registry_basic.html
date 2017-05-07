@@ -10,11 +10,11 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.b', function() {
-  var RegisteredTypeInfo = tr.b.RegisteredTypeInfo;
-  var ExtensionRegistryOptions = tr.b.ExtensionRegistryOptions;
+  const RegisteredTypeInfo = tr.b.RegisteredTypeInfo;
+  const ExtensionRegistryOptions = tr.b.ExtensionRegistryOptions;
 
   function decorateBasicExtensionRegistry(registry, extensionRegistryOptions) {
-    var savedStateStack = [];
+    const savedStateStack = [];
     registry.registeredTypeInfos_ = [];
 
     registry.register = function(constructor,
@@ -26,21 +26,21 @@ tr.exportTo('tr.b', function() {
 
       extensionRegistryOptions.validateConstructor(constructor);
 
-      var metadata = {};
-      for (var k in extensionRegistryOptions.defaultMetadata) {
+      const metadata = {};
+      for (const k in extensionRegistryOptions.defaultMetadata) {
         metadata[k] = extensionRegistryOptions.defaultMetadata[k];
       }
       if (opt_metadata) {
-        for (var k in opt_metadata) {
+        for (const k in opt_metadata) {
           metadata[k] = opt_metadata[k];
         }
       }
 
-      var typeInfo = new RegisteredTypeInfo(
+      const typeInfo = new RegisteredTypeInfo(
           constructor,
           metadata);
 
-      var e = new tr.b.Event('will-register');
+      let e = new tr.b.Event('will-register');
       e.typeInfo = typeInfo;
       registry.dispatchEvent(e);
 
@@ -54,19 +54,19 @@ tr.exportTo('tr.b', function() {
       savedStateStack.push(registry.registeredTypeInfos_);
       registry.registeredTypeInfos_ = [];
 
-      var e = new tr.b.Event('registry-changed');
+      const e = new tr.b.Event('registry-changed');
       registry.dispatchEvent(e);
     };
     registry.popCleanStateAfterTest = function() {
       registry.registeredTypeInfos_ = savedStateStack[0];
       savedStateStack.splice(0, 1);
 
-      var e = new tr.b.Event('registry-changed');
+      const e = new tr.b.Event('registry-changed');
       registry.dispatchEvent(e);
     };
 
     registry.findIndexOfRegisteredConstructor = function(constructor) {
-      for (var i = 0; i < registry.registeredTypeInfos_.length; i++) {
+      for (let i = 0; i < registry.registeredTypeInfos_.length; i++) {
         if (registry.registeredTypeInfos_[i].constructor === constructor) {
           return i;
         }
@@ -75,13 +75,13 @@ tr.exportTo('tr.b', function() {
     };
 
     registry.unregister = function(constructor) {
-      var foundIndex = registry.findIndexOfRegisteredConstructor(constructor);
+      const foundIndex = registry.findIndexOfRegisteredConstructor(constructor);
       if (foundIndex === undefined) {
         throw new Error(constructor + ' not registered');
       }
       registry.registeredTypeInfos_.splice(foundIndex, 1);
 
-      var e = new tr.b.Event('registry-changed');
+      const e = new tr.b.Event('registry-changed');
       registry.dispatchEvent(e);
     };
 
@@ -90,7 +90,7 @@ tr.exportTo('tr.b', function() {
     };
 
     registry.findTypeInfo = function(constructor) {
-      var foundIndex = this.findIndexOfRegisteredConstructor(constructor);
+      const foundIndex = this.findIndexOfRegisteredConstructor(constructor);
       if (foundIndex !== undefined) {
         return this.registeredTypeInfos_[foundIndex];
       }
@@ -99,8 +99,8 @@ tr.exportTo('tr.b', function() {
 
     registry.findTypeInfoMatching = function(predicate, opt_this) {
       opt_this = opt_this ? opt_this : undefined;
-      for (var i = 0; i < registry.registeredTypeInfos_.length; ++i) {
-        var typeInfo = registry.registeredTypeInfos_[i];
+      for (let i = 0; i < registry.registeredTypeInfos_.length; ++i) {
+        const typeInfo = registry.registeredTypeInfos_[i];
         if (predicate.call(opt_this, typeInfo)) {
           return typeInfo;
         }
@@ -112,7 +112,7 @@ tr.exportTo('tr.b', function() {
       if (typeof(name) !== 'string') {
         throw new Error('Name is not a string.');
       }
-      var typeInfo = registry.findTypeInfoMatching(function(ti) {
+      const typeInfo = registry.findTypeInfoMatching(function(ti) {
         return ti.constructor.name === name;
       });
       if (typeInfo) return typeInfo;

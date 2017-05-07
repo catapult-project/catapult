@@ -96,7 +96,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     createAnalysis() {
-      var dataView = document.createElement(
+      const dataView = document.createElement(
           'tr-ui-a-generic-object-view-with-label');
       dataView.label = 'RenderPass ' + this.renderPassId_;
       dataView.object = this.renderPass_.args;
@@ -138,7 +138,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     createAnalysis() {
-      var dataView = document.createElement(
+      const dataView = document.createElement(
           'tr-ui-a-generic-object-view-with-label');
       dataView.label = 'Layer ' + this.layer_.layerId;
       if (this.layer_.usingGpuRasterization) {
@@ -153,7 +153,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     findEquivalent(lthi) {
-      var layer = lthi.activeTree.findLayerWithId(this.layer_.layerId) ||
+      const layer = lthi.activeTree.findLayerWithId(this.layer_.layerId) ||
           lthi.pendingTree.findLayerWithId(this.layer_.layerId);
       if (!layer) return undefined;
       return new LayerSelection(layer);
@@ -180,7 +180,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     get highlightsByLayerId() {
-      var highlights = {};
+      const highlights = {};
       highlights[this.tile_.layerId] = [
         {
           colorKey: this.tile_.objectInstance.typeName,
@@ -191,7 +191,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     createAnalysis() {
-      var analysis = document.createElement(
+      const analysis = document.createElement(
           'tr-ui-a-generic-object-view-with-label');
       analysis.label = 'Tile ' + this.tile_.objectInstance.id + ' on layer ' +
           this.tile_.layerId;
@@ -207,12 +207,12 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     findEquivalent(lthi) {
-      var tileInstance = this.tile_.tileInstance;
+      const tileInstance = this.tile_.tileInstance;
       if (lthi.ts < tileInstance.creationTs ||
           lthi.ts >= tileInstance.deletionTs) {
         return undefined;
       }
-      var tileSnapshot = tileInstance.getSnapshotAt(lthi.ts);
+      const tileSnapshot = tileInstance.getSnapshotAt(lthi.ts);
       if (!tileSnapshot) return undefined;
       return new TileSelection(tileSnapshot);
     }
@@ -241,7 +241,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
 
     get highlightsByLayerId() {
-      var highlights = {};
+      const highlights = {};
       highlights[this.layer_.layerId] = [
         {
           colorKey: this.rectType_,
@@ -252,7 +252,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     createAnalysis() {
-      var analysis = document.createElement(
+      const analysis = document.createElement(
           'tr-ui-a-generic-object-view-with-label');
       analysis.label = this.rectType_ + ' on layer ' + this.layer_.layerId;
       analysis.object = this.data_;
@@ -284,7 +284,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     createAnalysis() {
-      var analysis = document.createElement(
+      const analysis = document.createElement(
           'tr-ui-a-generic-object-view-with-label');
       analysis.label = 'Animation Bounds of layer ' + this.layer_.layerId;
       analysis.object = this.rect_;

@@ -39,7 +39,7 @@ tr.exportTo('tr.v', function() {
       this.sharedDiagnosticsByGuid_ = new Map();
 
       if (opt_histograms !== undefined) {
-        for (let hist of opt_histograms) {
+        for (const hist of opt_histograms) {
           this.addHistogram(hist);
         }
       }
@@ -56,11 +56,11 @@ tr.exportTo('tr.v', function() {
 
       if (opt_diagnostics !== undefined) {
         if (opt_diagnostics instanceof tr.v.d.DiagnosticMap) {
-          for (let [name, diagnostic] of opt_diagnostics) {
+          for (const [name, diagnostic] of opt_diagnostics) {
             hist.diagnostics.set(name, diagnostic);
           }
         } else {
-          for (var [name, diagnostic] of Object.entries(opt_diagnostics)) {
+          for (const [name, diagnostic] of Object.entries(opt_diagnostics)) {
             hist.diagnostics.set(name, diagnostic);
           }
         }
@@ -79,7 +79,7 @@ tr.exportTo('tr.v', function() {
     addSharedDiagnostic(name, diagnostic) {
       this.sharedDiagnosticsByGuid_.set(diagnostic.guid, diagnostic);
 
-      for (let hist of this) {
+      for (const hist of this) {
         hist.diagnostics.set(name, diagnostic);
       }
     }
@@ -89,7 +89,7 @@ tr.exportTo('tr.v', function() {
     }
 
     * [Symbol.iterator]() {
-      for (let hist of this.histogramsByGuid_.values()) {
+      for (const hist of this.histogramsByGuid_.values()) {
         yield hist;
       }
     }
@@ -113,7 +113,7 @@ tr.exportTo('tr.v', function() {
      * @return {tr.v.Histogram}
      */
     getHistogramNamed(name) {
-      let histograms = this.getHistogramsNamed(name);
+      const histograms = this.getHistogramsNamed(name);
       if (histograms.length === 0) return undefined;
       if (histograms.length > 1) {
         throw new Error(
@@ -145,7 +145,7 @@ tr.exportTo('tr.v', function() {
 
     resolveRelatedHistograms() {
       const handleDiagnosticMap = dm => {
-        for (let [name, diagnostic] of dm) {
+        for (const [name, diagnostic] of dm) {
           if ((diagnostic instanceof tr.v.d.RelatedHistogramSet) ||
               (diagnostic instanceof tr.v.d.RelatedHistogramMap)) {
             diagnostic.resolve(this);
@@ -153,17 +153,17 @@ tr.exportTo('tr.v', function() {
         }
       };
 
-      for (let hist of this) {
+      for (const hist of this) {
         hist.diagnostics.resolveSharedDiagnostics(this);
 
         handleDiagnosticMap(hist.diagnostics);
 
-        for (let dm of hist.nanDiagnosticMaps) {
+        for (const dm of hist.nanDiagnosticMaps) {
           handleDiagnosticMap(dm);
         }
 
-        for (let bin of hist.allBins) {
-          for (let dm of bin.diagnosticMaps) {
+        for (const bin of hist.allBins) {
+          for (const dm of bin.diagnosticMaps) {
             handleDiagnosticMap(dm);
           }
         }
@@ -178,7 +178,7 @@ tr.exportTo('tr.v', function() {
      * @param {!Object} dicts
      */
     importDicts(dicts) {
-      for (let dict of dicts) {
+      for (const dict of dicts) {
         if (dict.type && tr.v.d.Diagnostic.findTypeInfoWithName(dict.type)) {
           this.sharedDiagnosticsByGuid_.set(dict.guid,
               tr.v.d.Diagnostic.fromDict(dict));
@@ -195,11 +195,11 @@ tr.exportTo('tr.v', function() {
      * @return {!Array.<!Object>}
      */
     asDicts() {
-      let dicts = [];
-      for (let diagnostic of this.sharedDiagnosticsByGuid_.values()) {
+      const dicts = [];
+      for (const diagnostic of this.sharedDiagnosticsByGuid_.values()) {
         dicts.push(diagnostic.asDict());
       }
-      for (let hist of this) {
+      for (const hist of this) {
         dicts.push(hist.asDict());
       }
       return dicts;
@@ -212,31 +212,31 @@ tr.exportTo('tr.v', function() {
      * @return {!Array.<!tr.v.Histogram>}
      */
     get sourceHistograms() {
-      let sourceHistograms = new Map(this.histogramsByGuid_);
+      const sourceHistograms = new Map(this.histogramsByGuid_);
       // If a Histogram is in a RelatedHistogramSet or RelatedHistogramMap,
       // which can be owned either by Histograms or by numeric samples, then it
       // is not a source Histogram.
       function deleteSourceHistograms(diagnosticMap) {
-        for (let [name, diagnostic] of diagnosticMap) {
+        for (const [name, diagnostic] of diagnosticMap) {
           if (diagnostic instanceof tr.v.d.RelatedHistogramSet) {
-            for (let relatedHist of diagnostic) {
+            for (const relatedHist of diagnostic) {
               sourceHistograms.delete(relatedHist.guid);
             }
           } else if (diagnostic instanceof tr.v.d.RelatedHistogramMap) {
-            for (let [name, relatedHist] of diagnostic) {
+            for (const [name, relatedHist] of diagnostic) {
               sourceHistograms.delete(relatedHist.guid);
             }
           }
         }
       }
 
-      for (let hist of this) {
+      for (const hist of this) {
         deleteSourceHistograms(hist.diagnostics);
-        for (let dm of hist.nanDiagnosticMaps) {
+        for (const dm of hist.nanDiagnosticMaps) {
           deleteSourceHistograms(dm);
         }
-        for (let b of hist.allBins) {
-          for (let dm of b.diagnosticMaps) {
+        for (const b of hist.allBins) {
+          for (const dm of b.diagnosticMaps) {
             deleteSourceHistograms(dm);
           }
         }
@@ -268,8 +268,8 @@ tr.exportTo('tr.v', function() {
           return histograms;  // recursion base case
         }
 
-        let grouping = groupings[level];
-        let groupedHistograms = tr.b.groupIntoMap(
+        const grouping = groupings[level];
+        const groupedHistograms = tr.b.groupIntoMap(
             histograms, grouping.callback);
 
         if (opt_skipGroupingCallback && opt_skipGroupingCallback(
@@ -277,7 +277,7 @@ tr.exportTo('tr.v', function() {
           return recurse(histograms, level + 1);
         }
 
-        for (let [key, group] of groupedHistograms) {
+        for (const [key, group] of groupedHistograms) {
           groupedHistograms.set(key, recurse(group, level + 1));
         }
 
@@ -296,29 +296,29 @@ tr.exportTo('tr.v', function() {
      * quickly when merging relationship Diagnostics.
      */
     deduplicateDiagnostics() {
-      let diagnosticsToCounts = new Map();
-      for (let hist of this) {
-        let candidates = [];
+      const diagnosticsToCounts = new Map();
+      for (const hist of this) {
+        const candidates = [];
 
-        let telemetryInfo = tr.v.d.TelemetryInfo.getFromHistogram(hist);
+        const telemetryInfo = tr.v.d.TelemetryInfo.getFromHistogram(hist);
         if (telemetryInfo instanceof tr.v.d.MergedTelemetryInfo) {
           candidates.push(telemetryInfo);
         }
 
-        let buildbotInfo = tr.v.d.BuildbotInfo.getFromHistogram(hist);
+        const buildbotInfo = tr.v.d.BuildbotInfo.getFromHistogram(hist);
         if (buildbotInfo instanceof tr.v.d.MergedBuildbotInfo) {
           candidates.push(buildbotInfo);
         }
 
-        let deviceInfo = tr.v.d.DeviceInfo.getFromHistogram(hist);
+        const deviceInfo = tr.v.d.DeviceInfo.getFromHistogram(hist);
         if (deviceInfo instanceof tr.v.d.MergedDeviceInfo) {
           candidates.push(deviceInfo);
         }
 
-        for (let diagnostic of candidates) {
+        for (const diagnostic of candidates) {
           if (diagnostic === undefined) continue;
           let found = false;
-          for (let [testDiagnostic, count] of diagnosticsToCounts) {
+          for (const [testDiagnostic, count] of diagnosticsToCounts) {
             if (diagnostic.equals(testDiagnostic)) {
               testDiagnostic.addToHistogram(hist);
               diagnosticsToCounts.set(testDiagnostic, count + 1);
@@ -332,7 +332,7 @@ tr.exportTo('tr.v', function() {
         }
       }
 
-      for (let [diagnostic, count] of diagnosticsToCounts) {
+      for (const [diagnostic, count] of diagnosticsToCounts) {
         if (count > 1) {
           this.sharedDiagnosticsByGuid_.set(diagnostic.guid, diagnostic);
         }
@@ -347,7 +347,7 @@ tr.exportTo('tr.v', function() {
      * merge RelatedHistogram diagnostics.
      */
     mergeRelationships() {
-      for (let hist of this) {
+      for (const hist of this) {
         hist.diagnostics.mergeRelationships(hist);
       }
     }

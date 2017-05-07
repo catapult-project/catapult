@@ -14,12 +14,12 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('should be hidden when "missing" attribute is empty', function() {
-    var element = document.createElement('login-warning');
+    const element = document.createElement('login-warning');
     assert.isTrue(element.messageElement.hidden);
   });
 
   test('should become visible when "missing" attribute is set', function() {
-    var element = document.createElement('login-warning');
+    const element = document.createElement('login-warning');
     Polymer.dom(element).setAttribute('missing', 'foo');
     Polymer.dom(document.body).appendChild(element);
     assert.isFalse(element.messageElement.hidden);

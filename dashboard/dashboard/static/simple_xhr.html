@@ -11,28 +11,28 @@ found in the LICENSE file.
 // This variable name is supposed to not be camelCased, in order for it
 // to match up with the file name.
 // eslint-disable-next-line
-var simple_xhr = (function() {
-
-  var LOGIN_ERROR_MESSAGE = 'Please check if you are logged in with a ' +
+const simple_xhr = (function() {
+  const LOGIN_ERROR_MESSAGE = 'Please check if you are logged in with a ' +
                             'google.com or chromium.org account in the ' +
                             'upper right corner of the page.';
 
-  var handleError_ = function(request, callback) {
+  const handleError_ = function(request, callback) {
     callback(LOGIN_ERROR_MESSAGE);
   };
 
   // For abort request, error callback is called without message.
-  var handleAbort_ = function(request, callback) {
+  const handleAbort_ = function(request, callback) {
     callback(null);
   };
 
-  var handleLoad_ = function(request, loadCallback, errorCallback) {
+  const handleLoad_ = function(request, loadCallback, errorCallback) {
     if (request.status != 200) {
       errorCallback('HTTP error ' + request.status);
       return;
     }
+    let response;
     try {
-      var response = JSON.parse(request.responseText);
+      response = JSON.parse(request.responseText);
     } catch (e) {
       errorCallback(LOGIN_ERROR_MESSAGE);
       return;
@@ -44,17 +44,17 @@ var simple_xhr = (function() {
     loadCallback(response);
   };
 
-  var paramString_ = function(params) {
-    var strings = [];
-    for (var name in params) {
+  const paramString_ = function(params) {
+    const strings = [];
+    for (const name in params) {
       strings.push(name + '=' + encodeURIComponent(params[name]));
     }
     return strings.join('&');
   };
 
-  var send = function(url, params, loadCallback, errorCallback) {
-    var postdata = paramString_(params);
-    var request = new XMLHttpRequest();
+  const send = function(url, params, loadCallback, errorCallback) {
+    const postdata = paramString_(params);
+    const request = new XMLHttpRequest();
     request.onerror = handleError_.bind(this, request, errorCallback);
     request.onabort = handleAbort_.bind(this, request, errorCallback);
     request.onload = handleLoad_.bind(
@@ -66,7 +66,7 @@ var simple_xhr = (function() {
     return request;
   };
 
-  var asPromise = function(url, params) {
+  const asPromise = function(url, params) {
     return new Promise((resolve, reject) => {
       simple_xhr.send(
           url, params, response => resolve(response), error => reject(error));
@@ -75,5 +75,4 @@ var simple_xhr = (function() {
 
   return {asPromise, send};
 })();
-
 </script>

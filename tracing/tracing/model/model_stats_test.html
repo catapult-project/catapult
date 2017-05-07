@@ -10,10 +10,10 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var ModelStats = tr.model.ModelStats;
+  const ModelStats = tr.model.ModelStats;
 
   test('getTraceEventStatsByCategory', function() {
-    var modelStats = new ModelStats();
+    const modelStats = new ModelStats();
     modelStats.willProcessBasicTraceEvent('X', 'cat1', 'title1');
     modelStats.willProcessBasicTraceEvent('X', 'cat1', 'title1');
     modelStats.willProcessBasicTraceEvent('X', 'cat2', 'title3');
@@ -28,8 +28,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('getTraceEventStatsInTimeIntervals', function() {
-    var modelStats = new ModelStats();
-    var timeIntervalSizeInUs = modelStats.TIME_INTERVAL_SIZE_IN_MS * 1000;
+    const modelStats = new ModelStats();
+    const timeIntervalSizeInUs = modelStats.TIME_INTERVAL_SIZE_IN_MS * 1000;
     modelStats.willProcessBasicTraceEvent('X', 'cat1', 'title1', 1, 1);
     modelStats.willProcessBasicTraceEvent(
         'X', 'cat1', 'title1', timeIntervalSizeInUs + 1, 2);

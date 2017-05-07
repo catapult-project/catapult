@@ -15,14 +15,14 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var testOptions = {
+  const testOptions = {
     tearDown() {
       testing_common.clearXhrMock();
     }
   };
 
   test('instantiation', function() {
-    var mockResponse = {
+    const mockResponse = {
       'data': {
         'job_id': 12345,
         'configuration': 'configuration',
@@ -36,7 +36,7 @@ tr.b.unittest.testSuite(function() {
       }
     };
     testing_common.addXhrMock('*', JSON.stringify(mockResponse));
-    var page = document.createElement('job-page');
+    const page = document.createElement('job-page');
     this.addHTMLOutput(page);
   }, testOptions);
 });

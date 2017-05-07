@@ -11,9 +11,9 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var SidePanelRegistry = tr.ui.side_panel.SidePanelRegistry;
+  const SidePanelRegistry = tr.ui.side_panel.SidePanelRegistry;
 
-  var testOptions = {
+  const testOptions = {
     setUp() {
       SidePanelRegistry.pushCleanStateBeforeTest();
     },
@@ -31,7 +31,7 @@ tr.b.unittest.testSuite(function() {
       return document.createElement('span');
     });
 
-    var typeInfos = SidePanelRegistry.getAllRegisteredTypeInfos();
+    const typeInfos = SidePanelRegistry.getAllRegisteredTypeInfos();
     assert.strictEqual(typeInfos[0].constructor().tagName, 'DIV');
     assert.strictEqual(typeInfos[1].constructor().tagName, 'SPAN');
     assert.lengthOf(typeInfos, 2);

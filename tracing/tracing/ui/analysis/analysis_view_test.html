@@ -19,18 +19,18 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var EventSet = tr.model.EventSet;
-  var BrushingStateController = tr.c.BrushingStateController;
-  var Model = tr.Model;
-  var Counter = tr.model.Counter;
-  var CounterSeries = tr.model.CounterSeries;
-  var CounterSample = tr.model.CounterSample;
-  var newThreadSlice = tr.c.TestUtils.newThreadSlice;
-  var SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
-  var StubExpectation = tr.model.um.StubExpectation;
+  const EventSet = tr.model.EventSet;
+  const BrushingStateController = tr.c.BrushingStateController;
+  const Model = tr.Model;
+  const Counter = tr.model.Counter;
+  const CounterSeries = tr.model.CounterSeries;
+  const CounterSample = tr.model.CounterSample;
+  const newThreadSlice = tr.c.TestUtils.newThreadSlice;
+  const SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
+  const StubExpectation = tr.model.um.StubExpectation;
 
   function assertEventSet(actualEventSet, expectedEvents) {
-    var expectedEventSet = new EventSet(expectedEvents);
+    const expectedEventSet = new EventSet(expectedEvents);
     assert.isTrue(actualEventSet.equals(expectedEventSet),
         'EventSet objects are not equal');
   }
@@ -42,35 +42,35 @@ tr.b.unittest.testSuite(function() {
 
   test('selectedTabChange', function() {
     // Set up the model.
-    var model = new Model();
-    var process = model.getOrCreateProcess(1);
+    const model = new Model();
+    const process = model.getOrCreateProcess(1);
 
-    var counter = process.getOrCreateCounter('universe', 'planets');
-    var series = counter.addSeries(new CounterSeries('x', 0));
-    var sample1 = series.addCounterSample(0, 100);
-    var sample2 = series.addCounterSample(1, 90);
-    var sample3 = series.addCounterSample(2, 80);
+    const counter = process.getOrCreateCounter('universe', 'planets');
+    const series = counter.addSeries(new CounterSeries('x', 0));
+    const sample1 = series.addCounterSample(0, 100);
+    const sample2 = series.addCounterSample(1, 90);
+    const sample3 = series.addCounterSample(2, 80);
 
-    var thread = process.getOrCreateThread(2);
-    var slice1 = newThreadSlice(thread, SCHEDULING_STATE.RUNNING, 0, 1);
-    var slice2 = newThreadSlice(thread, SCHEDULING_STATE.SLEEPING, 1, 2.718);
+    const thread = process.getOrCreateThread(2);
+    const slice1 = newThreadSlice(thread, SCHEDULING_STATE.RUNNING, 0, 1);
+    const slice2 = newThreadSlice(thread, SCHEDULING_STATE.SLEEPING, 1, 2.718);
     thread.timeSlices = [slice1, slice2];
 
-    var record1 = new StubExpectation(
+    const record1 = new StubExpectation(
         {parentModel: model, initiatorTitle: 'r1', start: 200, duration: 300});
     record1.associatedEvents.push(sample1);
     record1.associatedEvents.push(slice1);
-    var record2 = new StubExpectation(
+    const record2 = new StubExpectation(
         {parentModel: model, initiatorTitle: 'r2', start: 600, duration: 100});
     record2.associatedEvents.push(sample2);
     record2.associatedEvents.push(sample3);
     record2.associatedEvents.push(slice1);
 
     // Set up the analysis views and brushing state controller.
-    var analysisView = document.createElement('tr-ui-a-analysis-view');
+    const analysisView = document.createElement('tr-ui-a-analysis-view');
     this.addHTMLOutput(analysisView);
-    var tabView = analysisView.tabView;
-    var controller = new BrushingStateController(undefined);
+    const tabView = analysisView.tabView;
+    const controller = new BrushingStateController(undefined);
     analysisView.brushingStateController = controller;
 
     function checkSelectedTab(expectedSelectedTab, expectedRelatedEvents) {
@@ -87,11 +87,11 @@ tr.b.unittest.testSuite(function() {
     controller.changeSelectionFromRequestSelectionChangeEvent(
         new EventSet([sample1, slice1, sample2]));
     assert.lengthOf(tabView.tabs, 2);
-    var sampleTab2 = tabView.tabs[0];
+    const sampleTab2 = tabView.tabs[0];
     checkTab(sampleTab2,
         'tr-ui-a-counter-sample-sub-view',
         [sample1, sample2]);
-    var singleThreadSliceTab2 = tabView.tabs[1];
+    const singleThreadSliceTab2 = tabView.tabs[1];
     checkTab(singleThreadSliceTab2,
         'tr-ui-a-single-thread-time-slice-sub-view',
         [slice1]);
@@ -107,15 +107,15 @@ tr.b.unittest.testSuite(function() {
     controller.changeSelectionFromRequestSelectionChangeEvent(
         new EventSet([slice1, slice2, sample3, record1]));
     assert.lengthOf(tabView.tabs, 3);
-    var sampleTab4 = tabView.tabs[1];
+    const sampleTab4 = tabView.tabs[1];
     checkTab(sampleTab4,
         'tr-ui-a-counter-sample-sub-view',
         [sample3]);
-    var singleRecordTab4 = tabView.tabs[2];
+    const singleRecordTab4 = tabView.tabs[2];
     checkTab(singleRecordTab4,
         'tr-ui-a-single-user-expectation-sub-view',
         [record1]);
-    var multiThreadSliceTab4 = tabView.tabs[0];
+    const multiThreadSliceTab4 = tabView.tabs[0];
     checkTab(multiThreadSliceTab4,
         'tr-ui-a-multi-thread-time-slice-sub-view',
         [slice1, slice2]);
@@ -130,7 +130,7 @@ tr.b.unittest.testSuite(function() {
     controller.changeSelectionFromRequestSelectionChangeEvent(
         new EventSet([record2]));
     assert.lengthOf(tabView.tabs, 1);
-    var singleRecordTab6 = tabView.tabs[0];
+    const singleRecordTab6 = tabView.tabs[0];
     checkTab(singleRecordTab6,
         'tr-ui-a-single-user-expectation-sub-view',
         [record2]);

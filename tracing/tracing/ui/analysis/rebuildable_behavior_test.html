@@ -17,8 +17,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('rebuild', function() {
-    var el = document.createElement('tr-ui-analysis-rebuildable-test-element');
-    var didFireOnRebuild;
+    const el = document.createElement(
+        'tr-ui-analysis-rebuildable-test-element');
+    let didFireOnRebuild;
     el.onRebuild_ = function() {
       assert.strictEqual(this, el);
       didFireOnRebuild = true;

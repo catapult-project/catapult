@@ -17,19 +17,19 @@ found in the LICENSE file.
  * canvas.
  */
 tr.exportTo('tr.ui.b', function() {
-  var elidedTitleCache = new tr.ui.b.ElidedTitleCache();
-  var ColorScheme = tr.b.ColorScheme;
-  var colorsAsStrings = ColorScheme.colorsAsStrings;
+  const elidedTitleCache = new tr.ui.b.ElidedTitleCache();
+  const ColorScheme = tr.b.ColorScheme;
+  const colorsAsStrings = ColorScheme.colorsAsStrings;
 
-  var EventPresenter = tr.ui.b.EventPresenter;
-  var blackColorId = ColorScheme.getColorIdForReservedName('black');
+  const EventPresenter = tr.ui.b.EventPresenter;
+  const blackColorId = ColorScheme.getColorIdForReservedName('black');
 
   /**
    * This value is used to allow for consistent style UI elements.
    * Thread time visualisation uses a smaller rectangle that has this height.
    * @const
    */
-  var THIN_SLICE_HEIGHT = 4;
+  const THIN_SLICE_HEIGHT = 4;
 
   /**
    * This value is used to for performance considerations when drawing large
@@ -37,7 +37,7 @@ tr.exportTo('tr.ui.b', function() {
    * width is less than the threshold, we only draw the rectangle as a solid.
    * @const
    */
-  var SLICE_WAITING_WIDTH_DRAW_THRESHOLD = 3;
+  const SLICE_WAITING_WIDTH_DRAW_THRESHOLD = 3;
 
   /**
    * If the slice has mostly been waiting to be scheduled on the cpu, the
@@ -46,7 +46,7 @@ tr.exportTo('tr.ui.b', function() {
    * threshold.
    * @const
    */
-  var SLICE_ACTIVE_WIDTH_DRAW_THRESHOLD = 1;
+  const SLICE_ACTIVE_WIDTH_DRAW_THRESHOLD = 1;
 
   /**
    * Should we elide text on trace labels?
@@ -55,7 +55,7 @@ tr.exportTo('tr.ui.b', function() {
    * This is a default value that can be overridden in tracks for testing.
    * @const
    */
-  var SHOULD_ELIDE_TEXT = true;
+  const SHOULD_ELIDE_TEXT = true;
 
   /**
    * Draw the define line into |ctx|.
@@ -102,16 +102,16 @@ tr.exportTo('tr.ui.b', function() {
    * @param {float} arrowWidth The width of the head.
    */
   function drawArrow(ctx, x1, y1, x2, y2, arrowLength, arrowWidth) {
-    var dx = x2 - x1;
-    var dy = y2 - y1;
-    var len = Math.sqrt(dx * dx + dy * dy);
-    var perc = (len - arrowLength) / len;
-    var bx = x1 + perc * dx;
-    var by = y1 + perc * dy;
-    var ux = dx / len;
-    var uy = dy / len;
-    var ax = uy * arrowWidth;
-    var ay = -ux * arrowWidth;
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const len = Math.sqrt(dx * dx + dy * dy);
+    const perc = (len - arrowLength) / len;
+    const bx = x1 + perc * dx;
+    const by = y1 + perc * dy;
+    const ux = dx / len;
+    const uy = dy / len;
+    const ax = uy * arrowWidth;
+    const ay = -ux * arrowWidth;
 
     ctx.beginPath();
     drawLine(ctx, x1, y1, x2, y2);
@@ -143,40 +143,40 @@ tr.exportTo('tr.ui.b', function() {
    */
   function drawSlices(ctx, dt, viewLWorld, viewRWorld, viewHeight, slices,
       async) {
-    var pixelRatio = window.devicePixelRatio || 1;
-    var pixWidth = dt.xViewVectorToWorld(1);
-    var height = viewHeight * pixelRatio;
+    const pixelRatio = window.devicePixelRatio || 1;
+    const pixWidth = dt.xViewVectorToWorld(1);
+    const height = viewHeight * pixelRatio;
 
-    var darkRectHeight = THIN_SLICE_HEIGHT * pixelRatio;
+    let darkRectHeight = THIN_SLICE_HEIGHT * pixelRatio;
 
     // Not enough space for both colors, use light color only.
     if (height < darkRectHeight) {
       darkRectHeight = 0;
     }
 
-    var lightRectHeight = height - darkRectHeight;
+    const lightRectHeight = height - darkRectHeight;
 
     // Begin rendering in world space.
     ctx.save();
     dt.applyTransformToCanvas(ctx);
 
-    var rect = new tr.ui.b.FastRectRenderer(
+    const rect = new tr.ui.b.FastRectRenderer(
         ctx, 2 * pixWidth, 2 * pixWidth, colorsAsStrings);
     rect.setYandH(0, height);
 
-    var lowSlice = tr.b.math.findLowIndexInSortedArray(
+    const lowSlice = tr.b.math.findLowIndexInSortedArray(
         slices,
         function(slice) { return slice.start + slice.duration; },
         viewLWorld);
 
-    var hadTopLevel = false;
+    let hadTopLevel = false;
 
-    for (var i = lowSlice; i < slices.length; ++i) {
-      var slice = slices[i];
-      var x = slice.start;
+    for (let i = lowSlice; i < slices.length; ++i) {
+      const slice = slices[i];
+      const x = slice.start;
       if (x > viewRWorld) break;
 
-      var w = pixWidth;
+      let w = pixWidth;
       if (slice.duration > 0) {
         w = Math.max(slice.duration, 0.000001);
         if (w < pixWidth) {
@@ -184,9 +184,9 @@ tr.exportTo('tr.ui.b', function() {
         }
       }
 
-      var colorId = EventPresenter.getSliceColorId(slice);
-      var alpha = EventPresenter.getSliceAlpha(slice, async);
-      var lightAlpha = alpha * 0.70;
+      const colorId = EventPresenter.getSliceColorId(slice);
+      const alpha = EventPresenter.getSliceAlpha(slice, async);
+      const lightAlpha = alpha * 0.70;
 
       if (async && slice.isTopLevel) {
         rect.setYandH(3, height - 3);
@@ -203,8 +203,8 @@ tr.exportTo('tr.ui.b', function() {
         continue;
       }
 
-      var activeWidth = w * (slice.cpuDuration / slice.duration);
-      var waitingWidth = w - activeWidth;
+      let activeWidth = w * (slice.cpuDuration / slice.duration);
+      let waitingWidth = w - activeWidth;
 
       // Check if we have enough screen space to draw the whole slice, with
       // both color tones.
@@ -254,14 +254,14 @@ tr.exportTo('tr.ui.b', function() {
       // them from events above it.
       // See https://github.com/google/trace-viewer/issues/725.
       rect.setYandH(2, 1);
-      for (var i = lowSlice; i < slices.length; ++i) {
-        var slice = slices[i];
-        var x = slice.start;
+      for (let i = lowSlice; i < slices.length; ++i) {
+        const slice = slices[i];
+        const x = slice.start;
         if (x > viewRWorld) break;
 
         if (!slice.isTopLevel) continue;
 
-        var w = pixWidth;
+        let w = pixWidth;
         if (slice.duration > 0) {
           w = Math.max(slice.duration, 0.000001);
           if (w < pixWidth) {
@@ -296,10 +296,10 @@ tr.exportTo('tr.ui.b', function() {
    */
   function drawInstantSlicesAsLines(
       ctx, dt, viewLWorld, viewRWorld, viewHeight, slices, lineWidthInPixels) {
-    var pixelRatio = window.devicePixelRatio || 1;
-    var height = viewHeight * pixelRatio;
+    const pixelRatio = window.devicePixelRatio || 1;
+    const height = viewHeight * pixelRatio;
 
-    var pixWidth = dt.xViewVectorToWorld(1);
+    const pixWidth = dt.xViewVectorToWorld(1);
 
     // Begin rendering in world space.
     ctx.save();
@@ -307,14 +307,14 @@ tr.exportTo('tr.ui.b', function() {
     dt.applyTransformToCanvas(ctx);
     ctx.beginPath();
 
-    var lowSlice = tr.b.math.findLowIndexInSortedArray(
+    const lowSlice = tr.b.math.findLowIndexInSortedArray(
         slices,
         function(slice) { return slice.start; },
         viewLWorld);
 
-    for (var i = lowSlice; i < slices.length; ++i) {
-      var slice = slices[i];
-      var x = slice.start;
+    for (let i = lowSlice; i < slices.length; ++i) {
+      const slice = slices[i];
+      const x = slice.start;
       if (x > viewRWorld) break;
 
       ctx.strokeStyle = EventPresenter.getInstantSliceColor(slice);
@@ -347,8 +347,8 @@ tr.exportTo('tr.ui.b', function() {
    */
   function drawLabels(ctx, dt, viewLWorld, viewRWorld, slices, async,
       fontSize, yOffset) {
-    var pixelRatio = window.devicePixelRatio || 1;
-    var pixWidth = dt.xViewVectorToWorld(1);
+    const pixelRatio = window.devicePixelRatio || 1;
+    const pixWidth = dt.xViewVectorToWorld(1);
 
     ctx.save();
 
@@ -360,30 +360,30 @@ tr.exportTo('tr.ui.b', function() {
       ctx.font = 'italic ' + ctx.font;
     }
 
-    var cY = yOffset * pixelRatio;
+    const cY = yOffset * pixelRatio;
 
-    var lowSlice = tr.b.math.findLowIndexInSortedArray(
+    const lowSlice = tr.b.math.findLowIndexInSortedArray(
         slices,
         function(slice) { return slice.start + slice.duration; },
         viewLWorld);
 
     // Don't render text until until it is 20px wide
-    var quickDiscardThresshold = pixWidth * 20;
-    for (var i = lowSlice; i < slices.length; ++i) {
-      var slice = slices[i];
+    const quickDiscardThresshold = pixWidth * 20;
+    for (let i = lowSlice; i < slices.length; ++i) {
+      const slice = slices[i];
       if (slice.start > viewRWorld) break;
 
       if (slice.duration <= quickDiscardThresshold) continue;
 
-      var title = slice.title +
+      const title = slice.title +
           (slice.didNotFinish ? ' (Did Not Finish)' : '');
 
-      var drawnTitle = title;
-      var drawnWidth = elidedTitleCache.labelWidth(ctx, drawnTitle);
-      var fullLabelWidth = elidedTitleCache.labelWidthWorld(
+      let drawnTitle = title;
+      let drawnWidth = elidedTitleCache.labelWidth(ctx, drawnTitle);
+      const fullLabelWidth = elidedTitleCache.labelWidthWorld(
           ctx, drawnTitle, pixWidth);
       if (SHOULD_ELIDE_TEXT && fullLabelWidth > slice.duration) {
-        var elidedValues = elidedTitleCache.get(
+        const elidedValues = elidedTitleCache.get(
             ctx, pixWidth,
             drawnTitle, drawnWidth,
             slice.duration);
@@ -393,7 +393,7 @@ tr.exportTo('tr.ui.b', function() {
 
       if (drawnWidth * pixWidth < slice.duration) {
         ctx.fillStyle = EventPresenter.getTextColor(slice);
-        var cX = dt.xWorldToView(slice.start + 0.5 * slice.duration);
+        const cX = dt.xWorldToView(slice.start + 0.5 * slice.duration);
         ctx.fillText(drawnTitle, cX, cY, drawnWidth);
       }
     }

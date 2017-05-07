@@ -22,7 +22,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     __proto__: tr.ui.e.about_tracing.TracingControllerClient.prototype,
 
     expectRequest(method, generateResponse) {
-      var generateResponseCb;
+      let generateResponseCb;
       if (typeof generateResponse === 'function') {
         generateResponseCb = generateResponse;
       } else {
@@ -38,7 +38,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
 
     _request(method, args) {
       return new Promise(function(resolve) {
-        var requestIndex = this.nextRequestIndex;
+        const requestIndex = this.nextRequestIndex;
         if (requestIndex >= this.requests.length) {
           throw new Error('Unhandled request');
         }
@@ -49,9 +49,9 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
               this.requests.length;
         }
 
-        var req = this.requests[requestIndex];
+        const req = this.requests[requestIndex];
         assert.strictEqual(method, req.method);
-        var resp = req.generateResponseCb(args);
+        const resp = req.generateResponseCb(args);
         resolve(resp);
       }.bind(this));
     },

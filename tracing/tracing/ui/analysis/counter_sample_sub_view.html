@@ -27,7 +27,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 (function() {
-  var COUNTER_SAMPLE_TABLE_COLUMNS = [
+  const COUNTER_SAMPLE_TABLE_COLUMNS = [
     {
       title: 'Counter',
       width: '150px',
@@ -85,16 +85,16 @@ found in the LICENSE file.
      * are shown. In the collapsed state, only the first sample is displayed.
      */
     getRows_(samples) {
-      var samplesByCounter = tr.b.groupIntoMap(
+      const samplesByCounter = tr.b.groupIntoMap(
           samples, sample => sample.series.counter.guid);
 
-      var rows = [];
-      for (var counterSamples of samplesByCounter.values()) {
-        var samplesBySeries = tr.b.groupIntoMap(
+      const rows = [];
+      for (const counterSamples of samplesByCounter.values()) {
+        const samplesBySeries = tr.b.groupIntoMap(
             counterSamples, sample => sample.series.guid);
 
-        for (var seriesSamples of samplesBySeries.values()) {
-          var seriesRows = this.getRowsForSamples_(seriesSamples);
+        for (const seriesSamples of samplesBySeries.values()) {
+          const seriesRows = this.getRowsForSamples_(seriesSamples);
           seriesRows[0].counter = seriesSamples[0].series.counter.name;
           seriesRows[0].series = seriesSamples[0].series.name;
 

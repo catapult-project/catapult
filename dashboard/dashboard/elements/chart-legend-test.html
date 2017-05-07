@@ -14,10 +14,10 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var testOptions = {};
+  const testOptions = {};
 
   function createBasicLegend() {
-    var legend = document.createElement('chart-legend');
+    const legend = document.createElement('chart-legend');
     legend.seriesGroupList = [
       {
         'path': 'mymaster/linux/mybenchmark/foo',
@@ -56,7 +56,7 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('instantiate basic', function() {
-    var legend = createBasicLegend();
+    const legend = createBasicLegend();
     this.addHTMLOutput(legend);
   }, testOptions);
 });

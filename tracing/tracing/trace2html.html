@@ -10,11 +10,11 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-var g_timelineViewEl;
+let g_timelineViewEl;
 
 (function() {
-  var styleEl = document.createElement('style');
-  var lines = [
+  const styleEl = document.createElement('style');
+  const lines = [
     'html, body {',
     '  box-sizing: border-box;',
     '  overflow: hidden;',
@@ -36,7 +36,7 @@ var g_timelineViewEl;
 })();
 
 document.addEventListener('DOMContentLoaded', function() {
-  var container = document.createElement('track-view-container');
+  const container = document.createElement('track-view-container');
   container.id = 'track_view_container';
 
   g_timelineViewEl = document.createElement('tr-ui-timeline-view');
@@ -44,11 +44,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
   Polymer.dom(document.body).appendChild(g_timelineViewEl);
 
-  var traces = [];
-  var viewerDataScripts = Polymer.dom(document).querySelectorAll(
+  const traces = [];
+  const viewerDataScripts = Polymer.dom(document).querySelectorAll(
       '#viewer-data');
-  for (var i = 0; i < viewerDataScripts.length; i++) {
-    var text = Polymer.dom(viewerDataScripts[i]).textContent;
+  for (let i = 0; i < viewerDataScripts.length; i++) {
+    let text = Polymer.dom(viewerDataScripts[i]).textContent;
     // Trim leading newlines off the text. They happen during writing.
     while (text[0] === '\n') {
       text = text.substring(1);
@@ -56,9 +56,9 @@ document.addEventListener('DOMContentLoaded', function() {
     traces.push(tr.b.Base64.atob(text));
   }
 
-  var m = new tr.Model();
-  var i = new tr.importer.Import(m);
-  var p = i.importTracesWithProgressDialog(traces);
+  const m = new tr.Model();
+  const i = new tr.importer.Import(m);
+  const p = i.importTracesWithProgressDialog(traces);
   p.then(
       function() {
         g_timelineViewEl.model = m;
@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', function() {
         g_timelineViewEl.viewTitle = document.title;
       },
       function(err) {
-        var overlay = new tr.ui.b.Overlay();
+        const overlay = new tr.ui.b.Overlay();
         Polymer.dom(overlay).textContent = tr.b.normalizeException(err).message;
         overlay.title = 'Import error';
         overlay.visible = true;

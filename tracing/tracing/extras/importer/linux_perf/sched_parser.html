@@ -15,7 +15,7 @@ found in the LICENSE file.
  * @fileoverview Parses scheduler events in the Linux event trace format.
  */
 tr.exportTo('tr.e.importer.linux_perf', function() {
-  var Parser = tr.e.importer.linux_perf.Parser;
+  const Parser = tr.e.importer.linux_perf.Parser;
 
   /**
    * Parses linux sched trace events.
@@ -34,22 +34,22 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
         SchedParser.prototype.schedCpuHotplugEvent.bind(this));
   }
 
-  var TestExports = {};
+  const TestExports = {};
 
   // Matches the sched_switch record
-  var schedSwitchRE = new RegExp(
+  const schedSwitchRE = new RegExp(
       'prev_comm=(.+) prev_pid=(\\d+) prev_prio=(\\d+) ' +
       'prev_state=(\\S\\+?|\\S\\|\\S) ==> ' +
       'next_comm=(.+) next_pid=(\\d+) next_prio=(\\d+)');
 
   // Matches sched_blocked_reason record
-  var schedBlockedRE = new RegExp('pid=(\\d+) iowait=(\\d) caller=(.+)');
+  const schedBlockedRE = new RegExp('pid=(\\d+) iowait=(\\d) caller=(.+)');
   TestExports.schedSwitchRE = schedSwitchRE;
 
   // Matches the sched_wakeup record
   // success=? is optional not all kernels report it, so don't include
   // it in the capture groups
-  var schedWakeupRE =
+  const schedWakeupRE =
       /comm=(.+) pid=(\d+) prio=(\d+)(?: success=\d+)? target_cpu=(\d+)/;
   TestExports.schedWakeupRE = schedWakeupRE;
 
@@ -60,32 +60,32 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
      * Parses scheduler events and sets up state in the CPUs of the importer.
      */
     schedSwitchEvent(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = schedSwitchRE.exec(eventBase.details);
+      const event = schedSwitchRE.exec(eventBase.details);
       if (!event) return false;
 
-      var prevState = event[4];
-      var nextComm = event[5];
-      var nextPid = parseInt(event[6]);
-      var nextPrio = parseInt(event[7]);
+      const prevState = event[4];
+      const nextComm = event[5];
+      const nextPid = parseInt(event[6]);
+      const nextPrio = parseInt(event[7]);
 
       if (eventBase.tgid !== undefined) {
-        var tgid = parseInt(eventBase.tgid);
-        var process = this.importer.model_.getOrCreateProcess(tgid);
+        const tgid = parseInt(eventBase.tgid);
+        const process = this.importer.model_.getOrCreateProcess(tgid);
         if (!process.getThread(pid)) {
-          var thread = process.getOrCreateThread(pid);
+          const thread = process.getOrCreateThread(pid);
           thread.name = eventBase.threadName;
         }
       }
 
-      var nextThread = this.importer.threadsByLinuxPid[nextPid];
-      var nextName;
+      const nextThread = this.importer.threadsByLinuxPid[nextPid];
+      let nextName;
       if (nextThread) {
         nextName = nextThread.userFriendlyName;
       } else {
         nextName = nextComm;
       }
 
-      var cpu = this.importer.getOrCreateCpu(cpuNumber);
+      const cpu = this.importer.getOrCreateCpu(cpuNumber);
       cpu.switchActiveThread(
           ts,
           {stateWhenDescheduled: prevState},
@@ -101,26 +101,26 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     },
 
     schedWakeupEvent(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = schedWakeupRE.exec(eventBase.details);
+      const event = schedWakeupRE.exec(eventBase.details);
       if (!event) return false;
 
-      var fromPid = pid;
-      var comm = event[1];
-      var pid = parseInt(event[2]);
-      var prio = parseInt(event[3]);
+      const fromPid = pid;
+      const comm = event[1];
+      pid = parseInt(event[2]);
+      const prio = parseInt(event[3]);
       this.importer.markPidRunnable(ts, pid, comm, prio, fromPid);
       return true;
     },
 
     schedCpuHotplugEvent(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = /cpu (\d+) (.+) error=(\d+)/.exec(eventBase.details);
+      const event = /cpu (\d+) (.+) error=(\d+)/.exec(eventBase.details);
       if (!event) return false;
 
-      var cpuNumber = event[1];
-      var state = event[2];
-      var targetCpu = this.importer.getOrCreateCpu(cpuNumber);
+      cpuNumber = event[1];
+      const state = event[2];
+      const targetCpu = this.importer.getOrCreateCpu(cpuNumber);
 
-      var powerCounter = targetCpu.getOrCreateCounter('', 'Cpu Hotplug');
+      const powerCounter = targetCpu.getOrCreateCounter('', 'Cpu Hotplug');
       if (powerCounter.numSeries === 0) {
         powerCounter.addSeries(new tr.model.CounterSeries('State',
             tr.b.ColorScheme.getColorIdForGeneralPurposeString(
@@ -135,12 +135,12 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     },
 
     schedBlockedEvent(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = schedBlockedRE.exec(eventBase.details);
+      const event = schedBlockedRE.exec(eventBase.details);
       if (!event) return false;
 
-      var pid = parseInt(event[1]);
-      var iowait = parseInt(event[2]);
-      var caller = event[3];
+      pid = parseInt(event[1]);
+      const iowait = parseInt(event[2]);
+      const caller = event[3];
 
       this.importer.addPidBlockedReason(ts, pid, iowait, caller);
       return true;

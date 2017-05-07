@@ -20,7 +20,7 @@ tr.exportTo('tr.b.unittest', function() {
   HTMLImportsModuleLoader.prototype = {
     loadModule(testRelpath, moduleName) {
       return new Promise(function(resolve, reject) {
-        var importEl = document.createElement('link');
+        const importEl = document.createElement('link');
         importEl.moduleName = moduleName;
         Polymer.dom(importEl).setAttribute('rel', 'import');
         Polymer.dom(importEl).setAttribute('href', testRelpath);
@@ -42,25 +42,25 @@ tr.exportTo('tr.b.unittest', function() {
       if (!document.currentScript) {
         throw new Error('Cannot call testSuite except during load.');
       }
-      var linkDoc = document.currentScript.ownerDocument;
-      var url = linkDoc.URL;
-      var name = this.guessModuleNameFromURL_(url);
+      const linkDoc = document.currentScript.ownerDocument;
+      const url = linkDoc.URL;
+      const name = this.guessModuleNameFromURL_(url);
       return name;
     },
 
     guessModuleNameFromURL_(url) {
-      var m = /.+?:\/\/.+?(\/.+)/.exec(url);
+      const m = /.+?:\/\/.+?(\/.+)/.exec(url);
       if (!m) {
         throw new Error('Guessing module name failed');
       }
-      var path = m[1];
+      const path = m[1];
       if (path[0] !== '/') {
         throw new Error('malformed path');
       }
       if (path.substring(path.length - 5) !== '.html') {
         throw new Error('Cannot define testSuites outside html imports');
       }
-      var parts = path.substring(1, path.length - 5).split('/');
+      const parts = path.substring(1, path.length - 5).split('/');
       return parts.join('.');
     }
   };
@@ -71,7 +71,7 @@ tr.exportTo('tr.b.unittest', function() {
   HeadlessModuleLoader.prototype = {
     loadModule(testRelpath, moduleName) {
       return Promise.resolve().then(function() {
-        var moduleInfo = {
+        const moduleInfo = {
           testRelpath,
           moduleName
         };
@@ -127,18 +127,18 @@ tr.exportTo('tr.b.unittest', function() {
       this.bindGlobalHooks_();
 
       // Load the modules.
-      var modulePromises = [];
-      for (var i = 0; i < testRelpaths.length; i++) {
-        var testRelpath = testRelpaths[i];
-        var moduleName = testRelpath.split('/').slice(-1)[0];
+      const modulePromises = [];
+      for (let i = 0; i < testRelpaths.length; i++) {
+        const testRelpath = testRelpaths[i];
+        const moduleName = testRelpath.split('/').slice(-1)[0];
 
-        var p = this.currentModuleLoader_.loadModule(testRelpath, moduleName);
+        const p = this.currentModuleLoader_.loadModule(testRelpath, moduleName);
         modulePromises.push(p);
       }
 
-      var allModulesLoadedPromise = new Promise(function(resolve, reject) {
-        var remaining = modulePromises.length;
-        var resolved = false;
+      const allModulesLoadedPromise = new Promise(function(resolve, reject) {
+        let remaining = modulePromises.length;
+        let resolved = false;
         function oneMoreLoaded() {
           if (resolved) return;
           remaining--;
@@ -159,13 +159,13 @@ tr.exportTo('tr.b.unittest', function() {
       });
 
       // Script errors errors abort load;
-      var scriptErrorPromise = new Promise(function(xresolve, xreject) {
+      const scriptErrorPromise = new Promise(function(xresolve, xreject) {
         this.scriptErrorPromiseResolver_ = {
           resolve: xresolve,
           reject: xreject
         };
       }.bind(this));
-      var donePromise = Promise.race([
+      const donePromise = Promise.race([
         allModulesLoadedPromise,
         scriptErrorPromise
       ]);
@@ -208,20 +208,20 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     constructAndRegisterTestSuite(suiteConstructor) {
-      var name = this.currentModuleLoader_.getCurrentlyExecutingModuleName();
+      const name = this.currentModuleLoader_.getCurrentlyExecutingModuleName();
 
-      var testSuite = new tr.b.unittest.TestSuite(
+      const testSuite = new tr.b.unittest.TestSuite(
         name, suiteConstructor);
 
       this.testSuites.push(testSuite);
 
-      var e = new tr.b.Event('suite-loaded');
+      const e = new tr.b.Event('suite-loaded');
       e.testSuite = testSuite;
       this.dispatchEvent(e);
     },
 
     getAllTests() {
-      var tests = [];
+      const tests = [];
       this.testSuites.forEach(function(suite) {
         tests.push.apply(tests, suite.tests);
       });
@@ -229,10 +229,10 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     findTestWithFullyQualifiedName(fullyQualifiedName) {
-      for (var i = 0; i < this.testSuites.length; i++) {
-        var suite = this.testSuites[i];
-        for (var j = 0; j < suite.tests.length; j++) {
-          var test = suite.tests[j];
+      for (let i = 0; i < this.testSuites.length; i++) {
+        const suite = this.testSuites[i];
+        for (let j = 0; j < suite.tests.length; j++) {
+          const test = suite.tests[j];
           if (test.fullyQualifiedName === fullyQualifiedName) return test;
         }
       }

@@ -83,8 +83,8 @@ tr.exportTo('tr.model', function() {
 
     set parentContainer(parentContainer) {
       this.parentContainer_ = parentContainer;
-      for (var i = 0; i < this.subSlices.length; i++) {
-        var subSlice = this.subSlices[i];
+      for (let i = 0; i < this.subSlices.length; i++) {
+        const subSlice = this.subSlices[i];
         if (subSlice.parentContainer === undefined) {
           subSlice.parentContainer = parentContainer;
         }
@@ -101,7 +101,7 @@ tr.exportTo('tr.model', function() {
     },
 
     get stableId() {
-      var parentAsyncSliceGroup = this.parentContainer.asyncSliceGroup;
+      const parentAsyncSliceGroup = this.parentContainer.asyncSliceGroup;
       return parentAsyncSliceGroup.stableId + '.' +
           parentAsyncSliceGroup.slices.indexOf(this);
     },
@@ -111,7 +111,7 @@ tr.exportTo('tr.model', function() {
         yield this;
         return;
       }
-      for (var s of this.subSlices) {
+      for (const s of this.subSlices) {
         yield* s.findTopmostSlicesRelativeToThisSlice(eventPredicate);
       }
     },
@@ -119,21 +119,21 @@ tr.exportTo('tr.model', function() {
     findDescendentSlice(targetTitle) {
       if (!this.subSlices) return undefined;
 
-      for (var i = 0; i < this.subSlices.length; i++) {
+      for (let i = 0; i < this.subSlices.length; i++) {
         if (this.subSlices[i].title === targetTitle) {
           return this.subSlices[i];
         }
-        var slice = this.subSlices[i].findDescendentSlice(targetTitle);
+        const slice = this.subSlices[i].findDescendentSlice(targetTitle);
         if (slice) return slice;
       }
       return undefined;
     },
 
     * enumerateAllDescendents() {
-      for (var slice of this.subSlices) {
+      for (const slice of this.subSlices) {
         yield slice;
       }
-      for (var slice of this.subSlices) {
+      for (const slice of this.subSlices) {
         yield* slice.enumerateAllDescendents();
       }
     },

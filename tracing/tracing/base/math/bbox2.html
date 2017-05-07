@@ -45,7 +45,7 @@ tr.exportTo('tr.b.math', function() {
     },
 
     clone() {
-      var bbox = new BBox2();
+      const bbox = new BBox2();
       bbox.addBBox2(this);
       return bbox;
     },
@@ -107,7 +107,7 @@ tr.exportTo('tr.b.math', function() {
       if (this.isEmpty_) {
         throw new Error('Empty BBox2 has no size');
       }
-      var size = vec2.create();
+      const size = vec2.create();
       vec2.subtract(size, this.max_, this.min_);
       return size;
     },

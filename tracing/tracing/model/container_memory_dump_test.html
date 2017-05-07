@@ -15,23 +15,23 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var ContainerMemoryDump = tr.model.ContainerMemoryDump;
-  var MemoryAllocatorDump = tr.model.MemoryAllocatorDump;
-  var Scalar = tr.b.Scalar;
-  var unitlessNumber_smallerIsBetter =
+  const ContainerMemoryDump = tr.model.ContainerMemoryDump;
+  const MemoryAllocatorDump = tr.model.MemoryAllocatorDump;
+  const Scalar = tr.b.Scalar;
+  const unitlessNumber_smallerIsBetter =
       tr.b.Unit.byName.unitlessNumber_smallerIsBetter;
-  var newAllocatorDump = tr.model.MemoryDumpTestUtils.newAllocatorDump;
-  var addChildDump = tr.model.MemoryDumpTestUtils.addChildDump;
+  const newAllocatorDump = tr.model.MemoryDumpTestUtils.newAllocatorDump;
+  const addChildDump = tr.model.MemoryDumpTestUtils.addChildDump;
 
   test('memoryAllocatorDumps_undefined', function() {
-    var md = new ContainerMemoryDump(42);
+    const md = new ContainerMemoryDump(42);
 
     assert.isUndefined(md.memoryAllocatorDumps);
     assert.isUndefined(md.getMemoryAllocatorDumpByFullName('malloc'));
   });
 
   test('memoryAllocatorDumps_zero', function() {
-    var md = new ContainerMemoryDump(42);
+    const md = new ContainerMemoryDump(42);
     md.memoryAllocatorDumps = [];
 
     assert.lengthOf(md.memoryAllocatorDumps, 0);
@@ -39,14 +39,14 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('memoryAllocatorDumps_flat', function() {
-    var md = new ContainerMemoryDump(42);
+    const md = new ContainerMemoryDump(42);
 
-    var oilpanDump = newAllocatorDump(md, 'oilpan', {
+    const oilpanDump = newAllocatorDump(md, 'oilpan', {
       size: 1024,
       objects_count: new Scalar(unitlessNumber_smallerIsBetter, 7),
       inner_size: 768
     });
-    var v8Dump = newAllocatorDump(md, 'v8', {
+    const v8Dump = newAllocatorDump(md, 'v8', {
       size: 2048,
       objects_count: new Scalar(unitlessNumber_smallerIsBetter, 15),
       inner_size: 1999
@@ -64,33 +64,34 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('memoryAllocatorDumps_nested', function() {
-    var md = new ContainerMemoryDump(42);
+    const md = new ContainerMemoryDump(42);
 
-    var oilpanDump = newAllocatorDump(md, 'oilpan', {
+    const oilpanDump = newAllocatorDump(md, 'oilpan', {
       size: 1024,
       objects_count: new Scalar(unitlessNumber_smallerIsBetter, 7),
       inner_size: 768
     });
 
-    var oilpanBucket1Dump = addChildDump(oilpanDump, 'bucket1', {
+    const oilpanBucket1Dump = addChildDump(oilpanDump, 'bucket1', {
       size: 512,
       objects_count: new Scalar(unitlessNumber_smallerIsBetter, 3),
       inner_size: 256
     });
 
-    var oilpanBucket2Dump = addChildDump(oilpanDump, 'bucket2', {
+    const oilpanBucket2Dump = addChildDump(oilpanDump, 'bucket2', {
       size: 512,
       objects_count: new Scalar(unitlessNumber_smallerIsBetter, 4),
       inner_size: 512
     });
 
-    var oilpanBucket2StringsDump = addChildDump(oilpanBucket2Dump, 'strings', {
-      size: 512,
-      objects_count: new Scalar(unitlessNumber_smallerIsBetter, 4),
-      inner_size: 512
-    });
+    const oilpanBucket2StringsDump = addChildDump(
+        oilpanBucket2Dump, 'strings', {
+          size: 512,
+          objects_count: new Scalar(unitlessNumber_smallerIsBetter, 4),
+          inner_size: 512
+        });
 
-    var v8Dump = newAllocatorDump(md, 'v8', {
+    const v8Dump = newAllocatorDump(md, 'v8', {
       size: 2048,
       objects_count: new Scalar(unitlessNumber_smallerIsBetter, 15),
       inner_size: 1999
@@ -116,15 +117,15 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('iterateRootAllocatorDumps', function() {
-    var containerDump = new ContainerMemoryDump(42);
+    const containerDump = new ContainerMemoryDump(42);
 
-    var oilpanDump = new MemoryAllocatorDump(containerDump, 'oilpan');
-    var v8Dump = new MemoryAllocatorDump(containerDump, 'v8');
+    const oilpanDump = new MemoryAllocatorDump(containerDump, 'oilpan');
+    const v8Dump = new MemoryAllocatorDump(containerDump, 'v8');
     addChildDump(v8Dump, 'heaps');
 
     containerDump.memoryAllocatorDumps = [oilpanDump, v8Dump];
 
-    var visitedAllocatorDumps = [];
+    const visitedAllocatorDumps = [];
     containerDump.iterateRootAllocatorDumps(
         function(dump) { this.visitedAllocatorDumps.push(dump); },
         { visitedAllocatorDumps });
@@ -132,11 +133,11 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('forceRebuildingMemoryAllocatorDumpByFullNameIndex', function() {
-    var containerDump = new ContainerMemoryDump(42);
+    const containerDump = new ContainerMemoryDump(42);
 
-    var v8Dump = new MemoryAllocatorDump(containerDump, 'v8');
-    var v8HeapsDump = addChildDump(v8Dump, 'heaps');
-    var v8HeapSmallDump = addChildDump(v8HeapsDump, 'S');
+    const v8Dump = new MemoryAllocatorDump(containerDump, 'v8');
+    const v8HeapsDump = addChildDump(v8Dump, 'heaps');
+    const v8HeapSmallDump = addChildDump(v8HeapsDump, 'S');
 
     // Setting the memory allocator dumps should update the index properly.
     containerDump.memoryAllocatorDumps = [v8Dump];
@@ -148,7 +149,7 @@ tr.b.unittest.testSuite(function() {
         'v8/heaps/S'), v8HeapSmallDump);
 
     // Add a second grandchild (v8/heaps/L).
-    var v8HeapLargeDump = addChildDump(v8HeapsDump, 'L');
+    const v8HeapLargeDump = addChildDump(v8HeapsDump, 'L');
 
     // Setting the memory allocator dumps again should update the index
     // properly again.

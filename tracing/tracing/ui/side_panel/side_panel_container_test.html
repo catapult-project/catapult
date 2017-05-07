@@ -30,12 +30,12 @@ tr.b.unittest.testSuite(function() {
   };
 
   function createModel() {
-    var m = tr.c.TestUtils.newModelWithEvents([], {
+    const m = tr.c.TestUtils.newModelWithEvents([], {
       shiftWorldToZero: false,
       pruneContainers: false,
       customizeModelCallback(m) {
-        var browserProcess = m.getOrCreateProcess(1);
-        var browserMain = browserProcess.getOrCreateThread(2);
+        const browserProcess = m.getOrCreateProcess(1);
+        const browserMain = browserProcess.getOrCreateThread(2);
         browserMain.sliceGroup.beginSlice('cat', 'Task', 0);
         browserMain.sliceGroup.endSlice(10);
         browserMain.sliceGroup.beginSlice('cat', 'Task', 20);
@@ -46,10 +46,10 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('instantiateCollapsed', function() {
-    var brushingStateController = new FakeBrushingStateController();
+    const brushingStateController = new FakeBrushingStateController();
     brushingStateController.model = createModel();
 
-    var container = document.createElement('tr-ui-side-panel-container');
+    const container = document.createElement('tr-ui-side-panel-container');
     container.brushingStateController = brushingStateController;
     this.addHTMLOutput(container);
   });

@@ -10,7 +10,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.mre', function() {
-  var FunctionRegistry = {
+  const FunctionRegistry = {
     allFunctions_: [],
     allFunctionsByName_: {},
     get allFunctions() { return this.allFunctions_; },
@@ -89,14 +89,14 @@ tr.exportTo('tr.mre', function() {
     },
 
     asUserFriendlyString() {
-      var parts = this.modulesToLoad.map(function(mtl) {return mtl.filename;});
+      const parts = this.modulesToLoad.map(mtl => mtl.filename);
       parts.push(this.functionName);
       parts.push(JSON.stringify(this.options_));
       return parts.join(',');
     },
 
     hasHrefs() {
-      for (var module in this.modulesToLoad) {
+      for (const module in this.modulesToLoad) {
         if (this.modulesToLoad[module].href !== undefined) {
           return true;
         }
@@ -106,15 +106,15 @@ tr.exportTo('tr.mre', function() {
 
     load() {
       if (this.hasHrefs()) {
-        var err = new Error(
+        const err = new Error(
             'FunctionHandle named ' + this.functionName +
             ' specifies hrefs, which cannot be loaded.');
         err.name = 'FunctionLoadingError';
         throw err;
       }
 
-      for (var module in this.modulesToLoad) {
-        var filename = this.modulesToLoad[module].filename;
+      for (const module in this.modulesToLoad) {
+        const filename = this.modulesToLoad[module].filename;
         try {
           HTMLImportsLoader.loadHTMLFile(filename);
         } catch (err) {
@@ -123,9 +123,9 @@ tr.exportTo('tr.mre', function() {
         }
       }
 
-      var func = FunctionRegistry.getFunction(this.functionName);
+      const func = FunctionRegistry.getFunction(this.functionName);
       if (func === undefined) {
-        var err = new Error(
+        const err = new Error(
             'No registered function named ' + this.functionName);
         err.name = 'FunctionNotDefinedError';
         throw err;
@@ -135,7 +135,7 @@ tr.exportTo('tr.mre', function() {
     },
 
     toString() {
-      var modulesToLoadStr = this.modulesToLoad.map(function(module) {
+      const modulesToLoadStr = this.modulesToLoad.map(function(module) {
         return module.toString();
       });
       return 'FunctionHandle(modulesToLoad=[' + modulesToLoadStr + '], ' +
@@ -146,7 +146,7 @@ tr.exportTo('tr.mre', function() {
 
   FunctionHandle.loadFromFilename_ = function(filename) {
     try {
-      var numFunctionsBefore = FunctionRegistry.allFunctions.length;
+      const numFunctionsBefore = FunctionRegistry.allFunctions.length;
       HTMLImportsLoader.loadHTMLFile(filename);
     } catch (err) {
       err.name = 'FunctionLoadingError';
@@ -154,9 +154,10 @@ tr.exportTo('tr.mre', function() {
     }
 
     // Verify a new function was registered.
-    var numFunctionsNow = FunctionRegistry.allFunctions.length;
+    const numFunctionsNow = FunctionRegistry.allFunctions.length;
     if (numFunctionsNow !== (numFunctionsBefore + 1)) {
-      var err = new Error(filename + ' didn\'t call FunctionRegistry.register');
+      const err = new Error(
+          filename + ' didn\'t call FunctionRegistry.register');
       err.name = 'FunctionNotDefinedError';
       throw err;
     }
@@ -165,9 +166,10 @@ tr.exportTo('tr.mre', function() {
   };
 
   FunctionHandle.fromDict = function(handleDict) {
-    var options = handleDict.options;
+    const options = handleDict.options;
+    let modulesToLoad;
     if (handleDict.modules_to_load !== undefined) {
-      var modulesToLoad = handleDict.modules_to_load.map(function(module) {
+      modulesToLoad = handleDict.modules_to_load.map(function(module) {
         return ModuleToLoad.fromDict(module);
       });
     }

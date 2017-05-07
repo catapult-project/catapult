@@ -61,9 +61,9 @@ Polymer({
       return;
     }
 
-    var sample = tr.b.getOnlyElement(this.currentSelection_);
-    var table = this.$.content;
-    var rows = [];
+    const sample = tr.b.getOnlyElement(this.currentSelection_);
+    const table = this.$.content;
+    const rows = [];
 
     rows.push({
       title: 'Title',
@@ -78,7 +78,7 @@ Polymer({
       })
     });
 
-    var callStackTableEl = document.createElement('tr-ui-b-table');
+    const callStackTableEl = document.createElement('tr-ui-b-table');
     callStackTableEl.tableRows = sample.getNodesAsArray().reverse();
     callStackTableEl.tableColumns = [
       {

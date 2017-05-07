@@ -17,7 +17,7 @@ tr.exportTo('tr.mre', function() {
     try {
       cb.call(opt_this);
     } catch (e) {
-      var err = tr.b.normalizeException(e);
+      const err = tr.b.normalizeException(e);
       results.addFailure(new tr.mre.Failure(
           job, functionHandle, traceHandle, err.typeName,
           err.message, err.stack));

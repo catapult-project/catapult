@@ -18,14 +18,14 @@ tr.exportTo('tr.ui.b', function() {
    *     needs to have a {@code decorate} function.
    */
   function decorate(source, constr) {
-    var elements;
+    let elements;
     if (typeof source === 'string') {
       elements = Polymer.dom(tr.doc).querySelectorAll(source);
     } else {
       elements = [source];
     }
 
-    for (var i = 0, el; el = elements[i]; i++) {
+    for (let i = 0, el; el = elements[i]; i++) {
       if (!(el instanceof constr)) {
         constr.decorate(el);
       }
@@ -37,7 +37,7 @@ tr.exportTo('tr.ui.b', function() {
    * the component.
    *
    * tr class:
-   * var List = tr.ui.b.define('list');
+   * const List = tr.ui.b.define('list');
    * List.prototype = {
    *   __proto__: HTMLUListElement.prototype,
    *   decorate: function() {
@@ -47,7 +47,7 @@ tr.exportTo('tr.ui.b', function() {
    * };
    *
    * Derived class:
-   * var CustomList = tr.ui.b.define('custom-list', List);
+   * const CustomList = tr.ui.b.define('custom-list', List);
    * CustomList.prototype = {
    *   __proto__: List.prototype,
    *   decorate: function() {
@@ -78,7 +78,7 @@ tr.exportTo('tr.ui.b', function() {
                       'use (className, opt_parentConstructor) to subclass');
     }
 
-    var className = className.toLowerCase();
+    className = className.toLowerCase();
     if (opt_parentConstructor && !opt_parentConstructor.tagName) {
       throw new Error('opt_parentConstructor was not ' +
                       'created by tr.ui.b.define');
@@ -86,13 +86,13 @@ tr.exportTo('tr.ui.b', function() {
 
     // Walk up the parent constructors until we can find the type of tag
     // to create.
-    var tagName = className;
-    var tagNS = undefined;
+    let tagName = className;
+    let tagNS = undefined;
     if (opt_parentConstructor) {
       if (opt_tagNS) {
         throw new Error('Must not specify tagNS if parentConstructor is given');
       }
-      var parent = opt_parentConstructor;
+      let parent = opt_parentConstructor;
       while (parent && parent.tagName) {
         tagName = parent.tagName;
         tagNS = parent.tagNS;
@@ -117,7 +117,7 @@ tr.exportTo('tr.ui.b', function() {
             'It MUST be the prototype of ' + opt_parentConstructor.tagName);
       }
 
-      var el;
+      let el;
       if (tagNS === undefined) {
         el = tr.doc.createElement(tagName);
       } else {
@@ -155,7 +155,7 @@ tr.exportTo('tr.ui.b', function() {
   function elementIsChildOf(el, potentialParent) {
     if (el === potentialParent) return false;
 
-    var cur = el;
+    let cur = el;
     while (Polymer.dom(cur).parentNode) {
       if (cur === potentialParent) return true;
       cur = Polymer.dom(cur).parentNode;

@@ -13,19 +13,19 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var AndroidModelHelper = tr.model.helpers.AndroidModelHelper;
-  var newAsyncSliceNamed = tr.c.TestUtils.newAsyncSliceNamed;
-  var newSliceEx = tr.c.TestUtils.newSliceEx;
-  var newCounterNamed = tr.c.TestUtils.newCounterNamed;
-  var newCounterSeries = tr.c.TestUtils.newCounterSeries;
+  const AndroidModelHelper = tr.model.helpers.AndroidModelHelper;
+  const newAsyncSliceNamed = tr.c.TestUtils.newAsyncSliceNamed;
+  const newSliceEx = tr.c.TestUtils.newSliceEx;
+  const newCounterNamed = tr.c.TestUtils.newCounterNamed;
+  const newCounterSeries = tr.c.TestUtils.newCounterSeries;
 
   function createSurfaceFlinger(model, vsyncCallback) {
     if (model.getProcess(2)) {
       throw new Error('process already exists');
     }
 
-    var sfProcess = model.getOrCreateProcess(2);
-    var sfThread = sfProcess.getOrCreateThread(2); // main thread, tid = pid
+    const sfProcess = model.getOrCreateProcess(2);
+    const sfThread = sfProcess.getOrCreateThread(2); // main thread, tid = pid
     sfThread.name = '/system/bin/surfaceflinger';
 
       // ensure slicegroup has data
@@ -40,9 +40,9 @@ tr.b.unittest.testSuite(function() {
 
   function createSurfaceFlingerWithVsync(model) {
     createSurfaceFlinger(model, function(sfProcess) {
-      var counter = sfProcess.getOrCreateCounter('android', 'VSYNC');
-      var series = newCounterSeries();
-      for (var i = 0; i <= 10; i++) {
+      const counter = sfProcess.getOrCreateCounter('android', 'VSYNC');
+      const series = newCounterSeries();
+      for (let i = 0; i <= 10; i++) {
         series.addCounterSample(i * 10, i % 2);
       }
       counter.addSeries(series);
@@ -53,10 +53,10 @@ tr.b.unittest.testSuite(function() {
    * List of customizeModelCallbacks which produce different 80ms frames,
    * each starting at 10ms, and with a single important slice
    */
-  var SINGLE_FRAME_CUSTOM_MODELS = [
+  const SINGLE_FRAME_CUSTOM_MODELS = [
     function(model) {
       // UI thread only
-      var uiThread = model.getOrCreateProcess(120).getOrCreateThread(120);
+      const uiThread = model.getOrCreateProcess(120).getOrCreateThread(120);
       uiThread.sliceGroup.pushSlice(newSliceEx(
           {title: 'performTraversals', start: 10, duration: 80}));
 
@@ -65,7 +65,7 @@ tr.b.unittest.testSuite(function() {
 
     function(model) {
       // RenderThread only
-      var renderThread = model.getOrCreateProcess(120).getOrCreateThread(200);
+      const renderThread = model.getOrCreateProcess(120).getOrCreateThread(200);
       renderThread.name = 'RenderThread';
       renderThread.sliceGroup.pushSlice(newSliceEx(
           {title: 'doFrame', start: 10, duration: 80}));
@@ -74,7 +74,7 @@ tr.b.unittest.testSuite(function() {
     },
 
     function(model) {
-      var uiThread = model.getOrCreateProcess(120).getOrCreateThread(120);
+      const uiThread = model.getOrCreateProcess(120).getOrCreateThread(120);
 
       // UI thread time - 19 (from 10 to 29, ignored after)
       uiThread.asyncSliceGroup.push(
@@ -87,7 +87,7 @@ tr.b.unittest.testSuite(function() {
           {title: 'Record View#draw()', start: 20, duration: 8}));
 
       // RenderThread time - 61 (from 29 to 90, ignored after)
-      var renderThread = model.getOrCreateProcess(120).getOrCreateThread(200);
+      const renderThread = model.getOrCreateProcess(120).getOrCreateThread(200);
       renderThread.name = 'RenderThread';
       renderThread.sliceGroup.pushSlice(newSliceEx(
           {title: 'DrawFrame', start: 29, duration: 70}));
@@ -103,8 +103,8 @@ tr.b.unittest.testSuite(function() {
 
   test('getThreads', function() {
     SINGLE_FRAME_CUSTOM_MODELS.forEach(function(customizeModelCallback) {
-      var model = tr.c.TestUtils.newModel(customizeModelCallback);
-      var helper = model.getOrCreateHelper(AndroidModelHelper);
+      const model = tr.c.TestUtils.newModel(customizeModelCallback);
+      const helper = model.getOrCreateHelper(AndroidModelHelper);
       assert.strictEqual(helper.apps[0].uiThread, model.uiThread);
       assert.strictEqual(helper.apps[0].renderThread, model.renderThread);
     });
@@ -112,10 +112,10 @@ tr.b.unittest.testSuite(function() {
 
   test('iterateImportantSlices', function() {
     SINGLE_FRAME_CUSTOM_MODELS.forEach(function(customizeModelCallback) {
-      var model = tr.c.TestUtils.newModel(customizeModelCallback);
-      var helper = model.getOrCreateHelper(AndroidModelHelper);
+      const model = tr.c.TestUtils.newModel(customizeModelCallback);
+      const helper = model.getOrCreateHelper(AndroidModelHelper);
 
-      var seen = 0;
+      let seen = 0;
       helper.iterateImportantSlices(function(importantSlice) {
         assert.isTrue(importantSlice instanceof tr.model.Slice);
         seen++;
@@ -126,11 +126,11 @@ tr.b.unittest.testSuite(function() {
 
   test('getFrames', function() {
     SINGLE_FRAME_CUSTOM_MODELS.forEach(function(customizeModelCallback) {
-      var model = tr.c.TestUtils.newModel(customizeModelCallback);
-      var helper = model.getOrCreateHelper(AndroidModelHelper);
+      const model = tr.c.TestUtils.newModel(customizeModelCallback);
+      const helper = model.getOrCreateHelper(AndroidModelHelper);
       assert.strictEqual(helper.apps.length, 1);
 
-      var frames = helper.apps[0].getFrames();
+      const frames = helper.apps[0].getFrames();
       assert.strictEqual(frames.length, 1);
       assert.closeTo(frames[0].totalDuration, 80, 1e-5);
 
@@ -140,8 +140,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('surfaceFlingerVsyncs', function() {
-    var model = tr.c.TestUtils.newModel(createSurfaceFlingerWithVsync);
-    var helper = model.getOrCreateHelper(AndroidModelHelper);
+    const model = tr.c.TestUtils.newModel(createSurfaceFlingerWithVsync);
+    const helper = model.getOrCreateHelper(AndroidModelHelper);
     assert.isTrue(helper.surfaceFlinger.hasVsyncs);
 
     // test querying the vsyncs
@@ -157,11 +157,11 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('surfaceFlingerShiftedVsyncs', function() {
-    var model = tr.c.TestUtils.newModel(function(model) {
+    const model = tr.c.TestUtils.newModel(function(model) {
       createSurfaceFlinger(model, function(sfProcess) {
-        var appSeries = newCounterSeries();
-        var sfSeries = newCounterSeries();
-        for (var i = 0; i <= 10; i++) {
+        const appSeries = newCounterSeries();
+        const sfSeries = newCounterSeries();
+        for (let i = 0; i <= 10; i++) {
           // SF vsync is 4ms after app
           appSeries.addCounterSample(i * 16, i % 2);
           sfSeries.addCounterSample(i * 16 + 4, i % 2);
@@ -172,7 +172,7 @@ tr.b.unittest.testSuite(function() {
             .addSeries(appSeries);
       });
     });
-    var helper = model.getOrCreateHelper(AndroidModelHelper);
+    const helper = model.getOrCreateHelper(AndroidModelHelper);
     assert.isTrue(helper.surfaceFlinger.hasVsyncs);
 
     // test querying the vsyncs - Frames should have 20ms window
@@ -188,9 +188,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('frameVsyncInterop', function() {
-    var model = tr.c.TestUtils.newModel(function(model) {
+    const model = tr.c.TestUtils.newModel(function(model) {
       // app - 3 good, 3 bad frames
-      var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
+      const uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
       uiThread.sliceGroup.pushSlice(newSliceEx(
           {title: 'performTraversals', start: 1, duration: 8}));
       uiThread.sliceGroup.pushSlice(newSliceEx(
@@ -207,28 +207,28 @@ tr.b.unittest.testSuite(function() {
       // surface flinger - vsync every 10ms
       createSurfaceFlingerWithVsync(model);
     });
-    var helper = model.getOrCreateHelper(AndroidModelHelper);
+    const helper = model.getOrCreateHelper(AndroidModelHelper);
 
-    var frames = helper.apps[0].getFrames();
+    const frames = helper.apps[0].getFrames();
     assert.strictEqual(frames.length, 6);
-    for (var i = 0; i < 6; i++) {
-      var shouldMissDeadline = i >= 3;
-      var missedDeadline = frames[i].args.deadline < frames[i].end;
+    for (let i = 0; i < 6; i++) {
+      const shouldMissDeadline = i >= 3;
+      const missedDeadline = frames[i].args.deadline < frames[i].end;
       assert.strictEqual(shouldMissDeadline, missedDeadline);
     }
   });
 
   test('appInputs', function() {
-    var model = tr.c.TestUtils.newModel(function(model) {
-      var process = model.getOrCreateProcess(120);
-      var uiThread = process.getOrCreateThread(120);
+    const model = tr.c.TestUtils.newModel(function(model) {
+      const process = model.getOrCreateProcess(120);
+      const uiThread = process.getOrCreateThread(120);
       uiThread.sliceGroup.pushSlice(newSliceEx(
           {title: 'performTraversals', start: 20, duration: 4}));
       uiThread.sliceGroup.pushSlice(newSliceEx(
           {title: 'performTraversals', start: 40, duration: 4}));
 
-      var counter = process.getOrCreateCounter('android', 'aq:pending:foo');
-      var series = newCounterSeries();
+      const counter = process.getOrCreateCounter('android', 'aq:pending:foo');
+      const series = newCounterSeries();
       series.addCounterSample(10, 1);
       series.addCounterSample(20, 0);
       series.addCounterSample(30, 1);
@@ -236,10 +236,10 @@ tr.b.unittest.testSuite(function() {
       series.addCounterSample(50, 0);
       counter.addSeries(series);
     });
-    var helper = model.getOrCreateHelper(AndroidModelHelper);
+    const helper = model.getOrCreateHelper(AndroidModelHelper);
     assert.strictEqual(helper.apps.length, 1);
 
-    var inputSamples = helper.apps[0].getInputSamples();
+    const inputSamples = helper.apps[0].getInputSamples();
     assert.strictEqual(inputSamples.length, 3);
     assert.strictEqual(inputSamples[0].timestamp, 10);
     assert.strictEqual(inputSamples[1].timestamp, 30);
@@ -247,18 +247,18 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('appAnimations', function() {
-    var model = tr.c.TestUtils.newModel(function(model) {
-      var process = model.getOrCreateProcess(120);
-      var uiThread = process.getOrCreateThread(120);
+    const model = tr.c.TestUtils.newModel(function(model) {
+      const process = model.getOrCreateProcess(120);
+      const uiThread = process.getOrCreateThread(120);
       uiThread.sliceGroup.pushSlice(newSliceEx(
           {title: 'performTraversals', start: 10, duration: 10}));
       uiThread.asyncSliceGroup.push(newAsyncSliceNamed('animator:foo', 0, 10,
           uiThread, uiThread));
     });
-    var helper = model.getOrCreateHelper(AndroidModelHelper);
+    const helper = model.getOrCreateHelper(AndroidModelHelper);
     assert.strictEqual(helper.apps.length, 1);
 
-    var animations = helper.apps[0].getAnimationAsyncSlices();
+    const animations = helper.apps[0].getAnimationAsyncSlices();
     assert.strictEqual(animations.length, 1);
     assert.strictEqual(animations[0].start, 0);
     assert.strictEqual(animations[0].end, 10);

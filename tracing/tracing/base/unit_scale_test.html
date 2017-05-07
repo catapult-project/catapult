@@ -12,8 +12,8 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var UnitPrefixScale = tr.b.UnitPrefixScale;
-  var UnitScale = tr.b.UnitScale;
+  const UnitPrefixScale = tr.b.UnitPrefixScale;
+  const UnitScale = tr.b.UnitScale;
 
   test('convertUnit', function() {
         // UnitPrefixScale to UnitScale
@@ -94,7 +94,7 @@ tr.b.unittest.testSuite(function() {
 
   test('defineUnitScale', function() {
     assert.strictEqual(UnitPrefixScale.PONY, undefined);
-    var ponyScale = {
+    const ponyScale = {
       SHORT_JUMPS: { value: 1e-3, symbol: 'SJ', baseSymbol: 'J'},
       REGULAR_JUMPS: { value: 1, symbol: 'J', baseSymbol: 'J'},
       LONG_JUMPS: {value: 1e3, symbol: 'LJ', baseSymbol: 'J'},

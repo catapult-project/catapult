@@ -25,15 +25,15 @@ found in the LICENSE file.
  * See http://msdn.microsoft.com/library/windows/desktop/aa364092.aspx
  */
 tr.exportTo('tr.e.importer.etw', function() {
-  var Parser = tr.e.importer.etw.Parser;
+  const Parser = tr.e.importer.etw.Parser;
 
   // Constants for Process events.
-  var guid = '3D6FA8D0-FE05-11D0-9DDA-00C04FD7BA7C';
-  var kProcessStartOpcode = 1;
-  var kProcessEndOpcode = 2;
-  var kProcessDCStartOpcode = 3;
-  var kProcessDCEndOpcode = 4;
-  var kProcessDefunctOpcode = 39;
+  const guid = '3D6FA8D0-FE05-11D0-9DDA-00C04FD7BA7C';
+  const kProcessStartOpcode = 1;
+  const kProcessEndOpcode = 2;
+  const kProcessDCStartOpcode = 3;
+  const kProcessDCEndOpcode = 4;
+  const kProcessDefunctOpcode = 39;
 
   /**
    * Parses Windows process trace events.
@@ -63,56 +63,56 @@ tr.exportTo('tr.e.importer.etw', function() {
         throw new Error('Incompatible Process event version.');
       }
 
-      var pageDirectoryBase;
+      let pageDirectoryBase;
       if (header.version === 1) {
         pageDirectoryBase = decoder.decodeUInteger(header.is64);
       }
 
-      var uniqueProcessKey;
+      let uniqueProcessKey;
       if (header.version >= 2) {
         uniqueProcessKey = decoder.decodeUInteger(header.is64);
       }
 
-      var processId = decoder.decodeUInt32();
-      var parentId = decoder.decodeUInt32();
+      const processId = decoder.decodeUInt32();
+      const parentId = decoder.decodeUInt32();
 
-      var sessionId;
-      var exitStatus;
+      let sessionId;
+      let exitStatus;
       if (header.version >= 1) {
         sessionId = decoder.decodeUInt32();
         exitStatus = decoder.decodeInt32();
       }
 
-      var directoryTableBase;
+      let directoryTableBase;
       if (header.version >= 3) {
         directoryTableBase = decoder.decodeUInteger(header.is64);
       }
 
-      var flags;
+      let flags;
       if (header.version >= 4) {
         flags = decoder.decodeUInt32();
       }
 
-      var userSID = decoder.decodeSID(header.is64);
+      const userSID = decoder.decodeSID(header.is64);
 
-      var imageFileName;
+      let imageFileName;
       if (header.version >= 1) {
         imageFileName = decoder.decodeString();
       }
 
-      var commandLine;
+      let commandLine;
       if (header.version >= 2) {
         commandLine = decoder.decodeW16String();
       }
 
-      var packageFullName;
-      var applicationId;
+      let packageFullName;
+      let applicationId;
       if (header.version >= 4) {
         packageFullName = decoder.decodeW16String();
         applicationId = decoder.decodeW16String();
       }
 
-      var exitTime;
+      let exitTime;
       if (header.version === 5 && header.opcode === kProcessDefunctOpcode) {
         exitTime = decoder.decodeUInt64ToString();
       }
@@ -136,8 +136,8 @@ tr.exportTo('tr.e.importer.etw', function() {
     },
 
     decodeStart(header, decoder) {
-      var fields = this.decodeFields(header, decoder);
-      var process = this.model.getOrCreateProcess(fields.processId);
+      const fields = this.decodeFields(header, decoder);
+      const process = this.model.getOrCreateProcess(fields.processId);
       if (process.hasOwnProperty('has_ended')) {
         // On Windows, a process ID used by a process could be reused as soon as
         // the process ends (there is no pid cycling like on Linux). However, in
@@ -149,15 +149,15 @@ tr.exportTo('tr.e.importer.etw', function() {
     },
 
     decodeEnd(header, decoder) {
-      var fields = this.decodeFields(header, decoder);
-      var process = this.model.getOrCreateProcess(fields.processId);
+      const fields = this.decodeFields(header, decoder);
+      const process = this.model.getOrCreateProcess(fields.processId);
       process.has_ended = true;
       return true;
     },
 
     decodeDCStart(header, decoder) {
-      var fields = this.decodeFields(header, decoder);
-      var process = this.model.getOrCreateProcess(fields.processId);
+      const fields = this.decodeFields(header, decoder);
+      const process = this.model.getOrCreateProcess(fields.processId);
       if (process.hasOwnProperty('has_ended')) {
         throw new Error('Process clash detected.');
       }
@@ -166,14 +166,14 @@ tr.exportTo('tr.e.importer.etw', function() {
     },
 
     decodeDCEnd(header, decoder) {
-      var fields = this.decodeFields(header, decoder);
-      var process = this.model.getOrCreateProcess(fields.processId);
+      const fields = this.decodeFields(header, decoder);
+      const process = this.model.getOrCreateProcess(fields.processId);
       process.has_ended = true;
       return true;
     },
 
     decodeDefunct(header, decoder) {
-      var fields = this.decodeFields(header, decoder);
+      const fields = this.decodeFields(header, decoder);
       // TODO(etienneb): Update the Model with |fields|.
       return true;
     }

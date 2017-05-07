@@ -34,10 +34,10 @@ tr.exportTo('tr.e.audits', function() {
      * Compute the bin size given the start and end times of the trace.
      */
     computeBinSize_(start, end) {
-      var MIN_BIN_SIZE_MS = 1.0;
-      var MAX_NUM_BINS = 100000;
-      var interval = end - start;
-      var binSize = MIN_BIN_SIZE_MS;
+      const MIN_BIN_SIZE_MS = 1.0;
+      const MAX_NUM_BINS = 100000;
+      const interval = end - start;
+      let binSize = MIN_BIN_SIZE_MS;
       while (binSize * MAX_NUM_BINS < interval) binSize *= 2;
       return binSize;
     }
@@ -47,17 +47,17 @@ tr.exportTo('tr.e.audits', function() {
      * Slices are in the format created by getCpuUsage below.
      */
     computeCpuUsageSeries_(start, end, usageRecords) {
-      var series = new tr.model.ResourceUsageSeries();
+      const series = new tr.model.ResourceUsageSeries();
       if (start === undefined) return series;
-      var binSize = this.computeBinSize_(start, end);
-      var numBins = Math.ceil((end - start) / binSize);
-      var arr = new Array(numBins).fill(0);
-      for (var record of usageRecords) {
-        var firstIndex = Math.ceil((record.start - start) / binSize);
-        var lastIndex = Math.floor((record.end - start) / binSize);
-        for (var i = firstIndex; i <= lastIndex; i++) arr[i] += record.usage;
+      const binSize = this.computeBinSize_(start, end);
+      const numBins = Math.ceil((end - start) / binSize);
+      const arr = new Array(numBins).fill(0);
+      for (const record of usageRecords) {
+        const firstIndex = Math.ceil((record.start - start) / binSize);
+        const lastIndex = Math.floor((record.end - start) / binSize);
+        for (let i = firstIndex; i <= lastIndex; i++) arr[i] += record.usage;
       }
-      for (var i = 0; i < numBins; i++) {
+      for (let i = 0; i < numBins; i++) {
         series.addUsageSample(start + (i * binSize), arr[i]);
       }
       return series;
@@ -69,10 +69,10 @@ tr.exportTo('tr.e.audits', function() {
      * e.g. background processes)
      */
     computeCpuUsage_() {
-      var model = this.model_;
-      var result = [];
-      for (var pid in model.processes) {
-        for (var e of model.processes[pid].getDescendantEvents()) {
+      const model = this.model_;
+      const result = [];
+      for (const pid in model.processes) {
+        for (const e of model.processes[pid].getDescendantEvents()) {
           if (!(e instanceof tr.model.ThreadSlice) || e.duration === 0 ||
               e.cpuDuration === undefined) {
             continue;
@@ -93,12 +93,12 @@ tr.exportTo('tr.e.audits', function() {
               e.cpuSelfTime === undefined) {
             continue;
           }
-          var usage = tr.b.math.clamp(e.cpuSelfTime / e.selfTime, 0, 1);
+          const usage = tr.b.math.clamp(e.cpuSelfTime / e.selfTime, 0, 1);
 
           // Go through the area covered by this slice but not its subslices
           // and add the cpuSelfTimeRatio contribution over this area.
-          var lastTime = e.start;
-          for (var subslice of e.subSlices) {
+          let lastTime = e.start;
+          for (const subslice of e.subSlices) {
             result.push({usage, start: lastTime, end: subslice.start});
             lastTime = subslice.end;
           }

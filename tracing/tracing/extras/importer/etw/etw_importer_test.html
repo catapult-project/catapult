@@ -13,34 +13,34 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var Base64 = tr.b.Base64;
+  const Base64 = tr.b.Base64;
 
   test('canImport', function() {
     assert.isFalse(tr.e.importer.etw.EtwImporter.canImport('string'));
     assert.isFalse(tr.e.importer.etw.EtwImporter.canImport([]));
 
     // Must not parse an invalid name.
-    var dummy = { name: 'dummy', content: [] };
+    const dummy = { name: 'dummy', content: [] };
     assert.isFalse(tr.e.importer.etw.EtwImporter.canImport(dummy));
 
     // Must parse  an empty valid trace.
-    var valid = { name: 'ETW', content: [] };
+    const valid = { name: 'ETW', content: [] };
     assert.isTrue(tr.e.importer.etw.EtwImporter.canImport(valid));
   });
 
   test('getModel', function() {
-    var model = 'dummy';
-    var events = [];
-    var importer = new tr.e.importer.etw.EtwImporter(model, events);
+    const model = 'dummy';
+    const events = [];
+    const importer = new tr.e.importer.etw.EtwImporter(model, events);
     assert.strictEqual(importer.model, model);
   });
 
   test('registerEventHandler', function() {
     // Create a dummy EtwImporter.
-    var model = 'dummy';
-    var events = ['events'];
-    var importer = new tr.e.importer.etw.EtwImporter(model, events);
-    var dummyHandler = function() {};
+    const model = 'dummy';
+    const events = ['events'];
+    const importer = new tr.e.importer.etw.EtwImporter(model, events);
+    const dummyHandler = function() {};
 
     // The handler must not exists.
     assert.isUndefined(importer.getEventHandler('ABCDEF', 2));
@@ -56,22 +56,22 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('parseEvent', function() {
-    var model = 'dummy';
-    var events = [];
-    var importer = new tr.e.importer.etw.EtwImporter(model, events);
-    var handlerCalled = false;
-    var dummyHandler = function() { handlerCalled = true; return true; };
+    const model = 'dummy';
+    const events = [];
+    const importer = new tr.e.importer.etw.EtwImporter(model, events);
+    let handlerCalled = false;
+    const dummyHandler = function() { handlerCalled = true; return true; };
 
     // Register a valid handler.
     importer.registerEventHandler('aaaa', 42, dummyHandler);
 
     // Try to parse an invalid event with missing fields.
-    var incompleteEvent = { 'guid': 'aaaa', 'op': 42, 'ver': 0 };
+    const incompleteEvent = { 'guid': 'aaaa', 'op': 42, 'ver': 0 };
     assert.isFalse(importer.parseEvent(incompleteEvent));
     assert.isFalse(handlerCalled);
 
     // Try to parse a valid event.
-    var validEvent = {
+    const validEvent = {
       'guid': 'aaaa', 'op': 42, 'ver': 0, 'cpu': 0, 'ts': 0,
       'payload': Base64.btoa('0')
     };
@@ -80,10 +80,10 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('resetTooSmall', function() {
-    var importer = new tr.e.importer.etw.EtwImporter('dummy', []);
-    var decoder = importer.decoder_;
+    const importer = new tr.e.importer.etw.EtwImporter('dummy', []);
+    const decoder = importer.decoder_;
 
-    var oldByteLength = decoder.payload_.byteLength;
+    const oldByteLength = decoder.payload_.byteLength;
     // Decode a payload too big for the actual buffer.
     decoder.reset('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
                   'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
@@ -92,18 +92,18 @@ tr.b.unittest.testSuite(function() {
                   'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
                   'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
                   'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==');
-    var newByteLength = decoder.payload_.byteLength;
+    const newByteLength = decoder.payload_.byteLength;
 
     // Validate the buffer has been resized.
     assert.isBelow(oldByteLength, newByteLength);
   });
 
   test('decode', function() {
-    var model = 'dummy';
-    var events = [];
-    var importer = new tr.e.importer.etw.EtwImporter(model, events);
+    const model = 'dummy';
+    const events = [];
+    const importer = new tr.e.importer.etw.EtwImporter(model, events);
 
-    var decoder = importer.decoder_;
+    const decoder = importer.decoder_;
 
     decoder.reset('YQBiYw==');
     assert.strictEqual(decoder.decodeInt32(), 0x63620061);
@@ -160,8 +160,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('decodeUInteger', function() {
-    var importer = new tr.e.importer.etw.EtwImporter('dummy', []);
-    var decoder = importer.decoder_;
+    const importer = new tr.e.importer.etw.EtwImporter('dummy', []);
+    const decoder = importer.decoder_;
 
     decoder.reset('AQIDBAUGBwg=');
     assert.strictEqual(decoder.decodeUInteger(false), 0x04030201);
@@ -171,8 +171,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('decodeString', function() {
-    var importer = new tr.e.importer.etw.EtwImporter('dummy', []);
-    var decoder = importer.decoder_;
+    const importer = new tr.e.importer.etw.EtwImporter('dummy', []);
+    const decoder = importer.decoder_;
 
     decoder.reset('dGVzdAA=');
     assert.strictEqual(decoder.decodeString(), 'test');
@@ -182,15 +182,15 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('decodeW16String', function() {
-    var importer = new tr.e.importer.etw.EtwImporter('dummy', []);
-    var decoder = importer.decoder_;
+    const importer = new tr.e.importer.etw.EtwImporter('dummy', []);
+    const decoder = importer.decoder_;
     decoder.reset('dABlAHMAdAAAAA==');
     assert.strictEqual(decoder.decodeW16String(), 'test');
   });
 
   test('decodeFixedW16String', function() {
-    var importer = new tr.e.importer.etw.EtwImporter('dummy', []);
-    var decoder = importer.decoder_;
+    const importer = new tr.e.importer.etw.EtwImporter('dummy', []);
+    const decoder = importer.decoder_;
     decoder.reset('dABlAHMAdAAAAA==');
     assert.strictEqual(decoder.decodeFixedW16String(32), 'test');
     assert.strictEqual(decoder.position_, 64);
@@ -201,23 +201,23 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('decodeBytes', function() {
-    var importer = new tr.e.importer.etw.EtwImporter('dummy', []);
-    var decoder = importer.decoder_;
+    const importer = new tr.e.importer.etw.EtwImporter('dummy', []);
+    const decoder = importer.decoder_;
     decoder.reset('AAECAwQFBgc=');
-    var bytes = decoder.decodeBytes(8);
-    for (var i = 0; i < bytes.length; ++i) {
+    const bytes = decoder.decodeBytes(8);
+    for (let i = 0; i < bytes.length; ++i) {
       assert.strictEqual(bytes[i], i);
     }
   });
 
   test('decodeSID', function() {
-    var importer = new tr.e.importer.etw.EtwImporter('dummy', []);
-    var decoder = importer.decoder_;
+    const importer = new tr.e.importer.etw.EtwImporter('dummy', []);
+    const decoder = importer.decoder_;
 
     // Decode a SID structure with 64-bit pointer.
     decoder.reset(
         'AQIDBAECAwQFBAMCAAAAAAEFAAAAAAAFFQAAAAECAwQFBgcICQoLDA0DAAA=');
-    var sid = decoder.decodeSID(true);
+    const sid = decoder.decodeSID(true);
 
     assert.strictEqual(sid.pSid, '0403020104030201');
     assert.strictEqual(sid.attributes, 0x02030405);
@@ -225,12 +225,12 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('decodeSystemTime', function() {
-    var importer = new tr.e.importer.etw.EtwImporter('dummy', []);
-    var decoder = importer.decoder_;
+    const importer = new tr.e.importer.etw.EtwImporter('dummy', []);
+    const decoder = importer.decoder_;
 
     // Decode a SystemTime structure.
     decoder.reset('AQACAAMABAAFAAYABwAIAA==');
-    var time = decoder.decodeSystemTime();
+    const time = decoder.decodeSystemTime();
     assert.strictEqual(time.wYear, 1);
     assert.strictEqual(time.wMonth, 2);
     assert.strictEqual(time.wDayOfWeek, 3);
@@ -242,8 +242,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('decodeTimeZoneInformation', function() {
-    var importer = new tr.e.importer.etw.EtwImporter('dummy', []);
-    var decoder = importer.decoder_;
+    const importer = new tr.e.importer.etw.EtwImporter('dummy', []);
+    const decoder = importer.decoder_;
 
     // Decode a TimeZoneInformation structure.
     decoder.reset('AQIDBGEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
@@ -251,7 +251,7 @@ tr.b.unittest.testSuite(function() {
                   'MCAWIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
                   'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAIAAwAEAAUABgAHAAgACAgI' +
                   'CA==');
-    var time = decoder.decodeTimeZoneInformation();
+    const time = decoder.decodeTimeZoneInformation();
 
     assert.strictEqual(time.bias, 0x04030201);
     assert.strictEqual(time.standardBias, 0x01020304);
@@ -261,18 +261,18 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('manageThreads', function() {
-    var events = [];
-    var model = 'dummy';
-    var importer = new tr.e.importer.etw.EtwImporter(model, events);
+    const events = [];
+    const model = 'dummy';
+    const importer = new tr.e.importer.etw.EtwImporter(model, events);
 
     // After initialisation, no threads must exists.
     assert.strictEqual(
         Object.getOwnPropertyNames(importer.tidsToPid_).length, 0);
 
     // Add some threads.
-    var thread10 = importer.createThreadIfNeeded(1, 10);
-    var thread11 = importer.createThreadIfNeeded(1, 11);
-    var thread20 = importer.createThreadIfNeeded(2, 20);
+    const thread10 = importer.createThreadIfNeeded(1, 10);
+    const thread11 = importer.createThreadIfNeeded(1, 11);
+    const thread20 = importer.createThreadIfNeeded(2, 20);
 
     assert.strictEqual(
         Object.getOwnPropertyNames(importer.tidsToPid_).length, 3);
@@ -281,9 +281,9 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(importer.tidsToPid_.hasOwnProperty(20));
 
     // Retrieve existing threads and processes.
-    var pid10 = importer.getPidFromWindowsTid(10);
-    var pid11 = importer.getPidFromWindowsTid(11);
-    var pid20 = importer.getPidFromWindowsTid(20);
+    const pid10 = importer.getPidFromWindowsTid(10);
+    const pid11 = importer.getPidFromWindowsTid(11);
+    const pid20 = importer.getPidFromWindowsTid(20);
 
     assert.strictEqual(pid10, 1);
     assert.strictEqual(pid11, 1);

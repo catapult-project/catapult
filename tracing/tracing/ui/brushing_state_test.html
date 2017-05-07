@@ -15,10 +15,10 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var newSliceEx = tr.c.TestUtils.newSliceEx;
+  const newSliceEx = tr.c.TestUtils.newSliceEx;
 
-  var EventSet = tr.model.EventSet;
-  var SelectionState = tr.model.SelectionState;
+  const EventSet = tr.model.EventSet;
+  const SelectionState = tr.model.SelectionState;
 
   function newSimpleModel() {
     return tr.c.TestUtils.newModel(function(m) {
@@ -35,9 +35,9 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('brushingStateSimple', function() {
-    var m = newSimpleModel();
+    const m = newSimpleModel();
 
-    var bs = new tr.ui.b.BrushingState();
+    const bs = new tr.ui.b.BrushingState();
     bs.selection = new EventSet([m.sA]);
 
     bs.applyToEventSelectionStates(m);
@@ -48,9 +48,9 @@ tr.b.unittest.testSuite(function() {
 
 
   test('selectionAndAnalysisHover', function() {
-    var m = newSimpleModel();
+    const m = newSimpleModel();
 
-    var bs = new tr.ui.b.BrushingState();
+    const bs = new tr.ui.b.BrushingState();
     bs.selection = new EventSet([m.sA]);
     bs.analysisLinkHoveredEvents = new EventSet([m.sA, m.sB]);
 
@@ -62,9 +62,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('brushingStateWithFindMatches', function() {
-    var m = newSimpleModel();
+    const m = newSimpleModel();
 
-    var bs = new tr.ui.b.BrushingState();
+    const bs = new tr.ui.b.BrushingState();
     bs.selection = new EventSet([m.sA]);
     bs.findMatches = new EventSet([m.sA, m.sB]);
 
@@ -79,12 +79,12 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('brushingTransfer', function() {
-    var m = newSimpleModel();
+    const m = newSimpleModel();
 
-    var bs = new tr.ui.b.BrushingState();
+    const bs = new tr.ui.b.BrushingState();
     bs.selection = new EventSet([m.sA]);
 
-    var bs2 = bs.clone();
+    const bs2 = bs.clone();
 
     bs.applyToEventSelectionStates(m);
     assert.strictEqual(m.sA.selectionState, SelectionState.SELECTED);
@@ -99,15 +99,15 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('equality', function() {
-    var m = newSimpleModel();
+    const m = newSimpleModel();
 
-    var bs = new tr.ui.b.BrushingState();
+    const bs = new tr.ui.b.BrushingState();
     bs.selection = new EventSet([m.sA]);
     bs.findMatches = new EventSet([m.sB]);
     bs.applyToEventSelectionStates = new EventSet([m.sC]);
 
     // Clone equality, but with shared refs.
-    var bs2 = bs.clone();
+    const bs2 = bs.clone();
     assert.isTrue(bs.equals(bs2));
 
     // Same value, different refs.

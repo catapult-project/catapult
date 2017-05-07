@@ -14,8 +14,8 @@ found in the LICENSE file.
  * @fileoverview Parses exynos events in the Linux event trace format.
  */
 tr.exportTo('tr.e.importer.linux_perf', function() {
-  var ColorScheme = tr.b.ColorScheme;
-  var Parser = tr.e.importer.linux_perf.Parser;
+  const ColorScheme = tr.b.ColorScheme;
+  const Parser = tr.e.importer.linux_perf.Parser;
 
   /**
    * Parses linux exynos trace events.
@@ -37,8 +37,8 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     __proto__: Parser.prototype,
 
     exynosBusfreqSample(name, ts, frequency) {
-      var targetCpu = this.importer.getOrCreateCpu(0);
-      var counter = targetCpu.getOrCreateCounter('', name);
+      const targetCpu = this.importer.getOrCreateCpu(0);
+      const counter = targetCpu.getOrCreateCounter('', name);
       if (counter.numSeries === 0) {
         counter.addSeries(new tr.model.CounterSeries('frequency',
             ColorScheme.getColorIdForGeneralPurposeString(
@@ -53,7 +53,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
      * Parses exynos_busfreq_target_int events and sets up state.
      */
     busfreqTargetIntEvent(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = /frequency=(\d+)/.exec(eventBase.details);
+      const event = /frequency=(\d+)/.exec(eventBase.details);
       if (!event) return false;
 
       this.exynosBusfreqSample('INT Frequency', ts, parseInt(event[1]));
@@ -64,7 +64,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
      * Parses exynos_busfreq_target_mif events and sets up state.
      */
     busfreqTargetMifEvent(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = /frequency=(\d+)/.exec(eventBase.details);
+      const event = /frequency=(\d+)/.exec(eventBase.details);
       if (!event) return false;
 
       this.exynosBusfreqSample('MIF Frequency', ts, parseInt(event[1]));
@@ -72,17 +72,17 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     },
 
     exynosPageFlipStateOpenSlice(ts, pipe, fb, state) {
-      var kthread = this.importer.getOrCreatePseudoThread(
+      const kthread = this.importer.getOrCreatePseudoThread(
           'exynos_flip_state (pipe:' + pipe + ', fb:' + fb + ')');
       kthread.openSliceTS = ts;
       kthread.openSlice = state;
     },
 
     exynosPageFlipStateCloseSlice(ts, pipe, fb, args) {
-      var kthread = this.importer.getOrCreatePseudoThread(
+      const kthread = this.importer.getOrCreatePseudoThread(
           'exynos_flip_state (pipe:' + pipe + ', fb:' + fb + ')');
       if (kthread.openSlice) {
-        var slice = new tr.model.ThreadSlice('', kthread.openSlice,
+        const slice = new tr.model.ThreadSlice('', kthread.openSlice,
             ColorScheme.getColorIdForGeneralPurposeString(kthread.openSlice),
             kthread.openSliceTS,
             args,
@@ -96,12 +96,12 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
      * Parses page_flip_state events and sets up state in the importer.
      */
     pageFlipStateEvent(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = /pipe=(\d+), fb=(\d+), state=(.*)/.exec(eventBase.details);
+      const event = /pipe=(\d+), fb=(\d+), state=(.*)/.exec(eventBase.details);
       if (!event) return false;
 
-      var pipe = parseInt(event[1]);
-      var fb = parseInt(event[2]);
-      var state = event[3];
+      const pipe = parseInt(event[1]);
+      const fb = parseInt(event[2]);
+      const state = event[3];
 
       this.exynosPageFlipStateCloseSlice(ts, pipe, fb,
           {

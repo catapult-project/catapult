@@ -24,7 +24,7 @@ tr.exportTo('tr.metrics.sh', function() {
   // covering the Chrome trace. This is to allow for small deviations
   // due to clock sync latency and the finite sampling rate of the
   // BattOr.
-  var CHROME_POWER_GRACE_PERIOD_MS = 1;
+  const CHROME_POWER_GRACE_PERIOD_MS = 1;
 
   /**
    * Creates an empty histogram to hold data for a given time interval.
@@ -60,12 +60,12 @@ tr.exportTo('tr.metrics.sh', function() {
           histograms);
     }
     if (data.histograms[interval.name].perSecond) {
-      for (var sample of data.model.device.powerSeries.getSamplesWithinRange(
+      for (const sample of data.model.device.powerSeries.getSamplesWithinRange(
           interval.bounds.min, interval.bounds.max)) {
         data.histograms[interval.name].energy.addSample(sample.powerInW);
       }
     } else {
-      var energyInJ = data.model.device.powerSeries.getEnergyConsumedInJ(
+      const energyInJ = data.model.device.powerSeries.getEnergyConsumedInJ(
           interval.bounds.min, interval.bounds.max);
       data.histograms[interval.name].energy.addSample(energyInJ);
     }
@@ -76,14 +76,14 @@ tr.exportTo('tr.metrics.sh', function() {
    * interactive.
    */
   function getNavigationTTIIntervals_(model) {
-    var chromeHelper = model.getOrCreateHelper(
+    const chromeHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
-    var intervals = [];
-    for (var rendererHelper of Object.values(chromeHelper.rendererHelpers)) {
-      var samples = tr.metrics.sh.collectLoadingMetricsForRenderer(
+    const intervals = [];
+    for (const rendererHelper of Object.values(chromeHelper.rendererHelpers)) {
+      const samples = tr.metrics.sh.collectLoadingMetricsForRenderer(
           rendererHelper).firstInteractiveSamples;
-      for (var sample of samples) {
-        var info = sample.diagnostics['Navigation infos'].value;
+      for (const sample of samples) {
+        const info = sample.diagnostics['Navigation infos'].value;
         intervals.push(tr.b.math.Range.fromExplicitRange(
             info.start, info.interactive));
       }
@@ -95,7 +95,7 @@ tr.exportTo('tr.metrics.sh', function() {
    * Creates a histogram suitable for energy data.
    */
   function createEnergyHistogram_(histograms, histogramName, description) {
-    var histogram = new tr.v.Histogram(`${histogramName}:energy`,
+    const histogram = new tr.v.Histogram(`${histogramName}:energy`,
         tr.b.Unit.byName.energyInJoules_smallerIsBetter);
     histogram.customizeSummaryOptions({
       avg: false,
@@ -114,7 +114,7 @@ tr.exportTo('tr.metrics.sh', function() {
    * Creates a histogram suitable for power data.
    */
   function createPowerHistogram_(histograms, histogramName, description) {
-    var histogram = new tr.v.Histogram(`${histogramName}:power`,
+    const histogram = new tr.v.Histogram(`${histogramName}:power`,
         tr.b.Unit.byName.powerInWatts_smallerIsBetter);
     histogram.customizeSummaryOptions({
       avg: true,
@@ -148,9 +148,9 @@ tr.exportTo('tr.metrics.sh', function() {
    *
    */
   function* computeTimeIntervals_(model) {
-    var chromeHelper = model.getOrCreateHelper(
+    const chromeHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
-    var powerSeries = model.device.powerSeries;
+    const powerSeries = model.device.powerSeries;
     if (powerSeries === undefined ||
         powerSeries.samples.length === 0) {
       return;
@@ -164,10 +164,10 @@ tr.exportTo('tr.metrics.sh', function() {
       perSecond: true
     };
 
-    var chromeBounds = computeChromeBounds_(model);
+    const chromeBounds = computeChromeBounds_(model);
     if (chromeBounds.isEmpty) return;
 
-    var powerSeriesBoundsWithGracePeriod = tr.b.math.Range.fromExplicitRange(
+    const powerSeriesBoundsWithGracePeriod = tr.b.math.Range.fromExplicitRange(
         powerSeries.bounds.min - CHROME_POWER_GRACE_PERIOD_MS,
         powerSeries.bounds.max + CHROME_POWER_GRACE_PERIOD_MS);
     if (!powerSeriesBoundsWithGracePeriod.containsRangeExclusive(
@@ -179,7 +179,7 @@ tr.exportTo('tr.metrics.sh', function() {
     // then output the Chrome specific metrics (loading and RAIL stages). Note
     // that only the part of the time interval that overlaps the Chrome bounds
     // should be included.
-    for (var interval of getRailStageIntervals_(model)) {
+    for (const interval of getRailStageIntervals_(model)) {
       yield {
         bounds: interval.bounds.findIntersection(chromeBounds),
         name: interval.name,
@@ -188,7 +188,7 @@ tr.exportTo('tr.metrics.sh', function() {
       };
     }
 
-    for (var interval of getLoadingIntervals_(model, chromeBounds)) {
+    for (const interval of getLoadingIntervals_(model, chromeBounds)) {
       yield {
         bounds: interval.bounds.findIntersection(chromeBounds),
         name: interval.name,
@@ -218,9 +218,9 @@ tr.exportTo('tr.metrics.sh', function() {
    *
    */
   function* getRailStageIntervals_(model) {
-    for (var exp of model.userModel.expectations) {
-      var histogramName = exp.title.toLowerCase().replace(' ', '_');
-      var energyHist = undefined;
+    for (const exp of model.userModel.expectations) {
+      const histogramName = exp.title.toLowerCase().replace(' ', '_');
+      const energyHist = undefined;
       if (histogramName.includes('response')) {
         yield {
           bounds: tr.b.math.Range.fromExplicitRange(exp.start, exp.end),
@@ -260,9 +260,9 @@ tr.exportTo('tr.metrics.sh', function() {
    *
    */
   function* getLoadingIntervals_(model, chromeBounds) {
-    var ttiIntervals = getNavigationTTIIntervals_(model);
-    var lastLoadTime = undefined;
-    for (var ttiInterval of ttiIntervals) {
+    const ttiIntervals = getNavigationTTIIntervals_(model);
+    let lastLoadTime = undefined;
+    for (const ttiInterval of ttiIntervals) {
       yield {
         bounds: ttiInterval,
         name: 'load',
@@ -288,16 +288,16 @@ tr.exportTo('tr.metrics.sh', function() {
    * trace.
    */
   function computeChromeBounds_(model) {
-    var chromeBounds = new tr.b.math.Range();
-    var chromeHelper = model.getOrCreateHelper(
+    const chromeBounds = new tr.b.math.Range();
+    const chromeHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
     if (chromeHelper === undefined) return chromeBounds;
-    for (var helper of chromeHelper.browserHelpers) {
+    for (const helper of chromeHelper.browserHelpers) {
       if (helper.mainThread) {
         chromeBounds.addRange(helper.mainThread.bounds);
       }
     }
-    for (var pid in chromeHelper.rendererHelpers) {
+    for (const pid in chromeHelper.rendererHelpers) {
       if (chromeHelper.rendererHelpers[pid].mainThread) {
         chromeBounds.addRange(
             chromeHelper.rendererHelpers[pid].mainThread.bounds);
@@ -362,11 +362,11 @@ tr.exportTo('tr.metrics.sh', function() {
    * we want to count that as taking the energy over a longer period of time.
    */
   function powerMetric(histograms, model) {
-    var data = {
+    const data = {
       model,
       histograms: {}
     };
-    for (var interval of computeTimeIntervals_(model)) {
+    for (const interval of computeTimeIntervals_(model)) {
       createHistograms_(data, interval, histograms);
     }
   }

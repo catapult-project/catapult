@@ -46,10 +46,10 @@ tr.exportTo('tr.importer', function() {
     }
 
     verify() {
-      var model = tr.e.chrome.ChromeTestUtils.newChromeModel(
+      const model = tr.e.chrome.ChromeTestUtils.newChromeModel(
           this.customizeModelCallback_);
 
-      var failure = undefined;
+      let failure = undefined;
       try {
         this.verifyExpectations_([...model.userModel.expectations]);
         this.verifySegments_(model.userModel.segments);
@@ -62,7 +62,7 @@ tr.exportTo('tr.importer', function() {
 
     verifyExpectations_(expectations) {
       assert.lengthOf(expectations, this.expectedUEs.length);
-      for (var i = 0; i < this.expectedUEs.length; ++i) {
+      for (let i = 0; i < this.expectedUEs.length; ++i) {
         this.verifyExpectation_(
             this.expectedUEs[i], expectations[i], `UEs[${i}]`);
       }
@@ -70,7 +70,7 @@ tr.exportTo('tr.importer', function() {
 
     verifySegments_(segments) {
       assert.lengthOf(segments, this.expectedSegments_.length);
-      for (var i = 0; i < this.expectedSegments_.length; ++i) {
+      for (let i = 0; i < this.expectedSegments_.length; ++i) {
         this.verifySegment_(
             this.expectedSegments_[i], segments[i], `segments[${i}].`);
       }
@@ -96,7 +96,7 @@ tr.exportTo('tr.importer', function() {
       assert.strictEqual(expected.end, actual.end, at + 'end');
       assert.lengthOf(actual.expectations, expected.expectations.length,
           at + 'expectations.length');
-      for (var i = 0; i < expected.expectations.length; ++i) {
+      for (let i = 0; i < expected.expectations.length; ++i) {
         this.verifyExpectation_(
             expected.expectations[i], actual.expectations[i],
             at + `expectations[${i}].`);

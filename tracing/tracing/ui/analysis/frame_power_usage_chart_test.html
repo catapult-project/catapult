@@ -16,52 +16,52 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('instantiate_noSamples', function() {
-    var series = new tr.model.PowerSeries(new tr.Model().device);
+    const series = new tr.model.PowerSeries(new tr.Model().device);
 
-    var chart = document.createElement('tr-ui-a-frame-power-usage-chart');
+    const chart = document.createElement('tr-ui-a-frame-power-usage-chart');
     chart.setData(undefined, [0]);
 
     assert.isUndefined(chart.chart);
   });
 
   test('instantiate_noVSyncs', function() {
-    var series = new tr.model.PowerSeries(new tr.Model().device);
+    const series = new tr.model.PowerSeries(new tr.Model().device);
 
     series.addPowerSample(0, 1);
     series.addPowerSample(1, 2);
     series.addPowerSample(2, 3);
     series.addPowerSample(3, 2);
 
-    var chart = document.createElement('tr-ui-a-frame-power-usage-chart');
+    const chart = document.createElement('tr-ui-a-frame-power-usage-chart');
     chart.setData(new tr.model.EventSet(series.samples), []);
 
     assert.isUndefined(chart.chart);
   });
 
   test('instantiate_noSamplesOrVSyncs', function() {
-    var series = new tr.model.PowerSeries(new tr.Model().device);
+    const series = new tr.model.PowerSeries(new tr.Model().device);
 
-    var chart = document.createElement('tr-ui-a-frame-power-usage-chart');
+    const chart = document.createElement('tr-ui-a-frame-power-usage-chart');
     chart.setData(undefined, []);
 
     assert.isUndefined(chart.chart);
   });
 
   test('instantiate_oneFrame', function() {
-    var series = new tr.model.PowerSeries(new tr.Model().device);
+    const series = new tr.model.PowerSeries(new tr.Model().device);
 
-    var vSyncTimestamps = [0];
+    const vSyncTimestamps = [0];
     series.addPowerSample(0, 1);
     series.addPowerSample(1, 2);
     series.addPowerSample(2, 3);
     series.addPowerSample(3, 2);
 
-    var chart = document.createElement('tr-ui-a-frame-power-usage-chart');
+    const chart = document.createElement('tr-ui-a-frame-power-usage-chart');
     chart.setData(new tr.model.EventSet(series.samples), vSyncTimestamps);
 
     this.addHTMLOutput(chart);
 
-    var expectedChartData = [
+    const expectedChartData = [
       { x: 0, f1: 1 },
       { x: 1, f1: 2 },
       { x: 2, f1: 3 },
@@ -71,9 +71,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiate_twoFrames', function() {
-    var series = new tr.model.PowerSeries(new tr.Model().device);
+    const series = new tr.model.PowerSeries(new tr.Model().device);
 
-    var vSyncTimestamps = [0, 4];
+    const vSyncTimestamps = [0, 4];
     series.addPowerSample(0, 1);
     series.addPowerSample(1, 2);
     series.addPowerSample(2, 3);
@@ -83,12 +83,12 @@ tr.b.unittest.testSuite(function() {
     series.addPowerSample(6, 4);
     series.addPowerSample(7, 3);
 
-    var chart = document.createElement('tr-ui-a-frame-power-usage-chart');
+    const chart = document.createElement('tr-ui-a-frame-power-usage-chart');
     chart.setData(new tr.model.EventSet(series.samples), vSyncTimestamps);
 
     this.addHTMLOutput(chart);
 
-    var expectedChartData = [
+    const expectedChartData = [
       { x: 0, f1: 1 },
       { x: 1, f1: 2 },
       { x: 2, f1: 3 },
@@ -102,10 +102,10 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiate_twoFramesDifferentXValues', function() {
-    var series = new tr.model.PowerSeries(new tr.Model().device);
+    const series = new tr.model.PowerSeries(new tr.Model().device);
 
     // Power samples taken at 0, 1, 2, and 3s after frame start.
-    var vSyncTimestamps = [0, 4];
+    const vSyncTimestamps = [0, 4];
     series.addPowerSample(0, 1);
     series.addPowerSample(1, 2);
     series.addPowerSample(2, 3);
@@ -116,12 +116,12 @@ tr.b.unittest.testSuite(function() {
     series.addPowerSample(6.5, 4);
     series.addPowerSample(7.5, 3);
 
-    var chart = document.createElement('tr-ui-a-frame-power-usage-chart');
+    const chart = document.createElement('tr-ui-a-frame-power-usage-chart');
     chart.setData(new tr.model.EventSet(series.samples), vSyncTimestamps);
 
     this.addHTMLOutput(chart);
 
-    var expectedChartData = [
+    const expectedChartData = [
       { x: 0, f1: 1 },
       { x: 1, f1: 2 },
       { x: 2, f1: 3 },
@@ -135,9 +135,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiate_samplesBeforeFirstVSync', function() {
-    var series = new tr.model.PowerSeries(new tr.Model().device);
+    const series = new tr.model.PowerSeries(new tr.Model().device);
 
-    var vSyncTimestamps = [4];
+    const vSyncTimestamps = [4];
     series.addPowerSample(0, 1);
     series.addPowerSample(1, 2);
     series.addPowerSample(2, 3);
@@ -147,12 +147,12 @@ tr.b.unittest.testSuite(function() {
     series.addPowerSample(6, 4);
     series.addPowerSample(7, 3);
 
-    var chart = document.createElement('tr-ui-a-frame-power-usage-chart');
+    const chart = document.createElement('tr-ui-a-frame-power-usage-chart');
     chart.setData(new tr.model.EventSet(series.samples), vSyncTimestamps);
 
     this.addHTMLOutput(chart);
 
-    var expectedChartData = [
+    const expectedChartData = [
       { x: 0, f1: 2 },
       { x: 1, f1: 3 },
       { x: 2, f1: 4 },
@@ -162,18 +162,18 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiate_allSamplesBeforeFirstVSync', function() {
-    var series = new tr.model.PowerSeries(new tr.Model().device);
+    const series = new tr.model.PowerSeries(new tr.Model().device);
 
-    var vSyncTimestamps = [4];
+    const vSyncTimestamps = [4];
     series.addPowerSample(0, 1);
     series.addPowerSample(1, 2);
     series.addPowerSample(2, 3);
     series.addPowerSample(3, 2);
 
-    var chart = document.createElement('tr-ui-a-frame-power-usage-chart');
+    const chart = document.createElement('tr-ui-a-frame-power-usage-chart');
     chart.setData(new tr.model.EventSet(series.samples), vSyncTimestamps);
 
-    var expectedChartData = [
+    const expectedChartData = [
       { x: 0, f1: 2 },
       { x: 1, f1: 3 },
       { x: 2, f1: 4 },
@@ -183,9 +183,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiate_vSyncsAfterLastPowerSample', function() {
-    var series = new tr.model.PowerSeries(new tr.Model().device);
+    const series = new tr.model.PowerSeries(new tr.Model().device);
 
-    var vSyncTimestamps = [0, 4, 8, 12];
+    const vSyncTimestamps = [0, 4, 8, 12];
     series.addPowerSample(0, 1);
     series.addPowerSample(1, 2);
     series.addPowerSample(2, 3);
@@ -195,12 +195,12 @@ tr.b.unittest.testSuite(function() {
     series.addPowerSample(6, 4);
     series.addPowerSample(7, 3);
 
-    var chart = document.createElement('tr-ui-a-frame-power-usage-chart');
+    const chart = document.createElement('tr-ui-a-frame-power-usage-chart');
     chart.setData(new tr.model.EventSet(series.samples), vSyncTimestamps);
 
     this.addHTMLOutput(chart);
 
-    var expectedChartData = [
+    const expectedChartData = [
       { x: 0, f1: 1 },
       { x: 1, f1: 2 },
       { x: 2, f1: 3 },
@@ -214,9 +214,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiate_onlyVSyncAfterLastPowerSample', function() {
-    var series = new tr.model.PowerSeries(new tr.Model().device);
+    const series = new tr.model.PowerSeries(new tr.Model().device);
 
-    var vSyncTimestamps = [8];
+    const vSyncTimestamps = [8];
     series.addPowerSample(0, 1);
     series.addPowerSample(1, 2);
     series.addPowerSample(2, 3);
@@ -226,7 +226,7 @@ tr.b.unittest.testSuite(function() {
     series.addPowerSample(6, 4);
     series.addPowerSample(7, 3);
 
-    var chart = document.createElement('tr-ui-a-frame-power-usage-chart');
+    const chart = document.createElement('tr-ui-a-frame-power-usage-chart');
     chart.setData(new tr.model.EventSet(series.samples), vSyncTimestamps);
 
     assert.isUndefined(chart.chart);
@@ -234,9 +234,9 @@ tr.b.unittest.testSuite(function() {
 
 
   test('instantiate_samplesNotInChronologicalOrder', function() {
-    var series = new tr.model.PowerSeries(new tr.Model().device);
+    const series = new tr.model.PowerSeries(new tr.Model().device);
 
-    var vSyncTimestamps = [0, 4];
+    const vSyncTimestamps = [0, 4];
     series.addPowerSample(4, 2);
     series.addPowerSample(5, 3);
     series.addPowerSample(6, 4);
@@ -246,12 +246,12 @@ tr.b.unittest.testSuite(function() {
     series.addPowerSample(2, 3);
     series.addPowerSample(3, 2);
 
-    var chart = document.createElement('tr-ui-a-frame-power-usage-chart');
+    const chart = document.createElement('tr-ui-a-frame-power-usage-chart');
     chart.setData(new tr.model.EventSet(series.samples), vSyncTimestamps);
 
     this.addHTMLOutput(chart);
 
-    var expectedChartData = [
+    const expectedChartData = [
       { x: 0, f1: 1 },
       { x: 1, f1: 2 },
       { x: 2, f1: 3 },

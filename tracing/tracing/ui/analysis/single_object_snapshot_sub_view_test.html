@@ -15,15 +15,15 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('instantiate_snapshotView', function() {
-    var i10 = new tr.model.ObjectInstance(
+    const i10 = new tr.model.ObjectInstance(
         {}, '0x1000', 'cat', 'name', 10);
-    var s10 = i10.addSnapshot(10, {foo: 1});
+    const s10 = i10.addSnapshot(10, {foo: 1});
     i10.updateBounds();
 
-    var selection = new tr.model.EventSet();
+    const selection = new tr.model.EventSet();
     selection.push(s10);
 
-    var view =
+    const view =
         document.createElement('tr-ui-a-single-object-snapshot-sub-view');
     view.selection = selection;
     this.addHTMLOutput(view);

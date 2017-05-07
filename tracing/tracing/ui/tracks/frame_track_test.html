@@ -16,23 +16,23 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var Frame = tr.model.Frame;
-  var FrameTrack = tr.ui.tracks.FrameTrack;
-  var EventSet = tr.model.EventSet;
-  var SelectionState = tr.model.SelectionState;
-  var Viewport = tr.ui.TimelineViewport;
+  const Frame = tr.model.Frame;
+  const FrameTrack = tr.ui.tracks.FrameTrack;
+  const EventSet = tr.model.EventSet;
+  const SelectionState = tr.model.SelectionState;
+  const Viewport = tr.ui.TimelineViewport;
 
-  var createFrames = function() {
-    var frames = undefined;
-    var model = tr.c.TestUtils.newModel(function(model) {
-      var process = model.getOrCreateProcess(1);
-      var thread = process.getOrCreateThread(1);
-      for (var i = 1; i < 5; i++) {
-        var slice = tr.c.TestUtils.newSliceEx(
+  const createFrames = function() {
+    let frames = undefined;
+    const model = tr.c.TestUtils.newModel(function(model) {
+      const process = model.getOrCreateProcess(1);
+      const thread = process.getOrCreateThread(1);
+      for (let i = 1; i < 5; i++) {
+        const slice = tr.c.TestUtils.newSliceEx(
             {title: 'work for frame', start: i * 20, duration: 10});
         thread.sliceGroup.pushSlice(slice);
-        var events = [slice];
-        var threadTimeRanges =
+        const events = [slice];
+        const threadTimeRanges =
             [{thread, start: slice.start, end: slice.end}];
         process.frames.push(new Frame(events, threadTimeRanges));
       }
@@ -42,22 +42,22 @@ tr.b.unittest.testSuite(function() {
   };
 
   test('instantiate', function() {
-    var frames = createFrames();
+    const frames = createFrames();
     frames[1].selectionState = SelectionState.SELECTED;
 
-    var div = document.createElement('div');
-    var viewport = new Viewport(div);
-    var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
+    const div = document.createElement('div');
+    const viewport = new Viewport(div);
+    const drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
     Polymer.dom(div).appendChild(drawingContainer);
 
-    var track = FrameTrack(viewport);
+    const track = FrameTrack(viewport);
     Polymer.dom(drawingContainer).appendChild(track);
 
     this.addHTMLOutput(div);
     drawingContainer.invalidate();
 
     track.frames = frames;
-    var dt = new tr.ui.TimelineDisplayTransform();
+    const dt = new tr.ui.TimelineDisplayTransform();
     dt.xSetWorldBounds(0, 50, track.clientWidth);
     track.viewport.setDisplayTransformImmediately(dt);
 
@@ -65,33 +65,33 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('modelMapping', function() {
-    var frames = createFrames();
+    const frames = createFrames();
 
-    var div = document.createElement('div');
-    var viewport = new Viewport(div);
-    var track = FrameTrack(viewport);
+    const div = document.createElement('div');
+    const viewport = new Viewport(div);
+    const track = FrameTrack(viewport);
     track.frames = frames;
 
-    var a0 = track.items[0].modelItem;
+    const a0 = track.items[0].modelItem;
     assert.strictEqual(a0, frames[0]);
   });
 
   test('selectionMapping', function() {
-    var frames = createFrames();
+    const frames = createFrames();
 
-    var div = document.createElement('div');
-    var viewport = new Viewport(div);
-    var track = FrameTrack(viewport);
+    const div = document.createElement('div');
+    const viewport = new Viewport(div);
+    const track = FrameTrack(viewport);
     track.frames = frames;
 
-    var selection = new EventSet();
+    const selection = new EventSet();
     track.items[0].addToSelection(selection);
 
     // select both frame, but not its component slice
     assert.strictEqual(selection.length, 1);
 
-    var frameCount = 0;
-    var eventCount = 0;
+    let frameCount = 0;
+    let eventCount = 0;
     selection.forEach(function(event) {
       if (event instanceof Frame) {
         assert.strictEqual(event, frames[0]);

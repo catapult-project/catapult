@@ -26,11 +26,11 @@ tr.exportTo('tr.e.importer', function() {
     // (empty) -> compiled
     //    ~    -> optimizable
     //    *    -> optimized
-    var rePrefix = /^(\w*:)?([*~]?)(.*)$/m;
-    var tokens = rePrefix.exec(name);
-    var prefix = tokens[1];
-    var state = tokens[2];
-    var body = tokens[3];
+    const rePrefix = /^(\w*:)?([*~]?)(.*)$/m;
+    const tokens = rePrefix.exec(name);
+    const prefix = tokens[1];
+    let state = tokens[2];
+    const body = tokens[3];
 
     if (state === '*') {
       state = tr.model.source_info.JSSourceState.OPTIMIZED;
@@ -42,22 +42,22 @@ tr.exportTo('tr.e.importer', function() {
       state = tr.model.source_info.JSSourceState.UNKNOWN;
     }
 
-    var rawName;
-    var rawUrl;
+    let rawName;
+    let rawUrl;
     if (prefix === 'Script:') {
       rawName = '';
       rawUrl = body;
     } else {
-      var spacePos = body.lastIndexOf(' ');
+      const spacePos = body.lastIndexOf(' ');
       rawName = spacePos !== -1 ? body.substr(0, spacePos) : body;
       rawUrl = spacePos !== -1 ? body.substr(spacePos + 1) : '';
     }
 
     function splitLineAndColumn(url) {
-      var lineColumnRegEx = /(?::(\d+))?(?::(\d+))?$/;
-      var lineColumnMatch = lineColumnRegEx.exec(url);
-      var lineNumber;
-      var columnNumber;
+      const lineColumnRegEx = /(?::(\d+))?(?::(\d+))?$/;
+      const lineColumnMatch = lineColumnRegEx.exec(url);
+      let lineNumber;
+      let columnNumber;
 
       if (typeof(lineColumnMatch[1]) === 'string') {
         lineNumber = parseInt(lineColumnMatch[1], 10);
@@ -76,15 +76,15 @@ tr.exportTo('tr.e.importer', function() {
       };
     }
 
-    var nativeSuffix = ' native';
-    var isNative = rawName.endsWith(nativeSuffix);
+    const nativeSuffix = ' native';
+    const isNative = rawName.endsWith(nativeSuffix);
     this.name_ =
         isNative ? rawName.slice(0, -nativeSuffix.length) : rawName;
 
-    var urlData = splitLineAndColumn(rawUrl);
-    var url = urlData.url || '';
-    var line = urlData.lineNumber || 0;
-    var column = urlData.columnNumber || 0;
+    const urlData = splitLineAndColumn(rawUrl);
+    const url = urlData.url || '';
+    const line = urlData.lineNumber || 0;
+    const column = urlData.columnNumber || 0;
 
     this.sourceInfo_ = new tr.model.source_info.JSSourceInfo(
         url, line, column, isNative, scriptId, state);

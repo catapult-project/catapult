@@ -17,20 +17,20 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.e.chrome.cc', function() {
-  var OPS_TIMING_ITERATIONS = 3; // Iterations to average op timing info over.
-  var ANNOTATION = 'Comment';
-  var BEGIN_ANNOTATION = 'BeginCommentGroup';
-  var END_ANNOTATION = 'EndCommentGroup';
-  var ANNOTATION_ID = 'ID: ';
-  var ANNOTATION_CLASS = 'CLASS: ';
-  var ANNOTATION_TAG = 'TAG: ';
+  const OPS_TIMING_ITERATIONS = 3; // Iterations to average op timing info over.
+  const ANNOTATION = 'Comment';
+  const BEGIN_ANNOTATION = 'BeginCommentGroup';
+  const END_ANNOTATION = 'EndCommentGroup';
+  const ANNOTATION_ID = 'ID: ';
+  const ANNOTATION_CLASS = 'CLASS: ';
+  const ANNOTATION_TAG = 'TAG: ';
 
-  var constants = tr.e.cc.constants;
+  const constants = tr.e.cc.constants;
 
   /**
    * @constructor
    */
-  var PictureOpsListView =
+  const PictureOpsListView =
       tr.ui.b.define('tr-ui-e-chrome-cc-picture-ops-list-view');
 
   PictureOpsListView.prototype = {
@@ -62,26 +62,26 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
       if (!this.picture_) return;
 
-      var ops = this.picture_.getOps();
+      let ops = this.picture_.getOps();
       if (!ops) return;
 
       ops = this.picture_.tagOpsWithTimings(ops);
 
       ops = this.opsTaggedWithAnnotations_(ops);
 
-      for (var i = 0; i < ops.length; i++) {
-        var op = ops[i];
-        var item = document.createElement('div');
+      for (let i = 0; i < ops.length; i++) {
+        const op = ops[i];
+        const item = document.createElement('div');
         item.opIndex = op.opIndex;
         Polymer.dom(item).textContent = i + ') ' + op.cmd_string;
 
         // Display the element info associated with the op, if available.
         if (op.elementInfo.tag || op.elementInfo.id || op.elementInfo.class) {
-          var elementInfo = document.createElement('span');
+          const elementInfo = document.createElement('span');
           Polymer.dom(elementInfo).classList.add('elementInfo');
-          var tag = op.elementInfo.tag ? op.elementInfo.tag : 'unknown';
-          var id = op.elementInfo.id ? 'id=' + op.elementInfo.id : undefined;
-          var className = op.elementInfo.class ? 'class=' +
+          const tag = op.elementInfo.tag ? op.elementInfo.tag : 'unknown';
+          const id = op.elementInfo.id ? 'id=' + op.elementInfo.id : undefined;
+          const className = op.elementInfo.class ? 'class=' +
               op.elementInfo.class : undefined;
           Polymer.dom(elementInfo).textContent =
               '<' + tag + (id ? ' ' : '') +
@@ -94,16 +94,16 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         // FIXME: now that we have structured data, we should format it.
         // (https://github.com/google/trace-viewer/issues/782)
         if (op.info.length > 0) {
-          var infoItem = document.createElement('div');
+          const infoItem = document.createElement('div');
           Polymer.dom(infoItem).textContent = JSON.stringify(op.info);
           Polymer.dom(item).appendChild(infoItem);
         }
 
         // Display the op timing, if available.
         if (op.cmd_time && op.cmd_time >= 0.0001) {
-          var time = document.createElement('span');
+          const time = document.createElement('span');
           Polymer.dom(time).classList.add('time');
-          var rounded = op.cmd_time.toFixed(4);
+          const rounded = op.cmd_time.toFixed(4);
           Polymer.dom(time).textContent = '(' + rounded + 'ms)';
           Polymer.dom(item).appendChild(time);
         }
@@ -113,7 +113,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     onSelectionChanged_(e) {
-      var beforeSelectedOp = true;
+      let beforeSelectedOp = true;
 
       // Deselect on re-selection.
       if (this.opsList_.selectedElement === this.selectedOp_) {
@@ -125,9 +125,9 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.selectedOp_ = this.opsList_.selectedElement;
 
       // Set selection on all previous ops.
-      var ops = this.opsList_.children;
-      for (var i = 0; i < ops.length; i++) {
-        var op = ops[i];
+      const ops = this.opsList_.children;
+      for (let i = 0; i < ops.length; i++) {
+        const op = ops[i];
         if (op === this.selectedOp_) {
           beforeSelectedOp = false;
           this.selectedOpIndex_ = op.opIndex;
@@ -180,10 +180,10 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       // This algorithm works by walking all the ops and pushing any
       // annotations onto a stack. When a non-annotation op is found, the
       // annotations stack is traversed and stored with the op.
-      var annotationGroups = [];
-      var opsWithoutAnnotations = [];
-      for (var opIndex = 0; opIndex < ops.length; opIndex++) {
-        var op = ops[opIndex];
+      const annotationGroups = [];
+      const opsWithoutAnnotations = [];
+      for (let opIndex = 0; opIndex < ops.length; opIndex++) {
+        const op = ops[opIndex];
         op.opIndex = opIndex;
         switch (op.cmd_string) {
           case BEGIN_ANNOTATION:
@@ -195,9 +195,9 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           case ANNOTATION:
             annotationGroups[annotationGroups.length - 1].push(op);
             break;
-          default:
-            var annotations = [];
-            var elementInfo = {};
+          default: {
+            const annotations = [];
+            let elementInfo = {};
             annotationGroups.forEach(function(annotationGroup) {
               elementInfo = {};
               annotationGroup.forEach(function(annotation) {
@@ -223,6 +223,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
             op.annotations = annotations;
             op.elementInfo = elementInfo;
             opsWithoutAnnotations.push(op);
+          }
         }
       }
 

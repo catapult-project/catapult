@@ -12,7 +12,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.model', function() {
-  var CounterSample = tr.model.CounterSample;
+  const CounterSample = tr.model.CounterSample;
 
   /**
    * A container holding all samples of a given measurement over time.
@@ -70,7 +70,7 @@ tr.exportTo('tr.model', function() {
     },
 
     addCounterSample(ts, val) {
-      var sample = new CounterSample(this, ts, val);
+      const sample = new CounterSample(this, ts, val);
       this.addSample(sample);
       return sample;
     },
@@ -81,12 +81,12 @@ tr.exportTo('tr.model', function() {
     },
 
     getStatistics(sampleIndices) {
-      var sum = 0;
-      var min = Number.MAX_VALUE;
-      var max = -Number.MAX_VALUE;
+      let sum = 0;
+      let min = Number.MAX_VALUE;
+      let max = -Number.MAX_VALUE;
 
-      for (var i = 0; i < sampleIndices.length; ++i) {
-        var sample = this.getSample(sampleIndices[i]).value;
+      for (let i = 0; i < sampleIndices.length; ++i) {
+        const sample = this.getSample(sampleIndices[i]).value;
 
         sum += sample;
         min = Math.min(sample, min);
@@ -103,7 +103,7 @@ tr.exportTo('tr.model', function() {
     },
 
     shiftTimestampsForward(amount) {
-      for (var i = 0; i < this.timestamps_.length; ++i) {
+      for (let i = 0; i < this.timestamps_.length; ++i) {
         this.timestamps_[i] += amount;
         this.samples_[i].timestamp = this.timestamps_[i];
       }

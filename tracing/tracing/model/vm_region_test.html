@@ -12,12 +12,12 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var VMRegion = tr.model.VMRegion;
-  var VMRegionClassificationNode = tr.model.VMRegionClassificationNode;
-  var checkVMRegions = tr.model.MemoryDumpTestUtils.checkVMRegions;
+  const VMRegion = tr.model.VMRegion;
+  const VMRegionClassificationNode = tr.model.VMRegionClassificationNode;
+  const checkVMRegions = tr.model.MemoryDumpTestUtils.checkVMRegions;
 
   function checkProtectionFlagsToString(protectionFlags, expectedString) {
-    var vmRegion = VMRegion.fromDict({
+    const vmRegion = VMRegion.fromDict({
       startAddress: 256,
       sizeInBytes: 336,
       protectionFlags,
@@ -31,7 +31,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(vmRegion.protectionFlagsToString, expectedString);
   }
 
-  var TEST_RULES = {
+  const TEST_RULES = {
     name: 'Root',
     children: [
       {
@@ -58,7 +58,7 @@ tr.b.unittest.testSuite(function() {
 
   // Constant representing the expectation that the children of a
   // VMRegionClassificationNode have not been built yet.
-  var CHILDREN_NOT_BUILT_YET = {};
+  const CHILDREN_NOT_BUILT_YET = {};
 
   function checkTree(node, expectedStructure) {
     assert.strictEqual(node.title, expectedStructure.title);
@@ -67,8 +67,8 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual(node.byteStats, expectedStructure.byteStats || {});
     assert.strictEqual(node.isLeafNode, expectedStructure.isLeafNode);
 
-    var actualRegions = node.regions;
-    var expectedRegions = expectedStructure.regions;
+    const actualRegions = node.regions;
+    const expectedRegions = expectedStructure.regions;
     if (expectedRegions === undefined) {
       assert.isUndefined(actualRegions);
     } else {
@@ -76,22 +76,22 @@ tr.b.unittest.testSuite(function() {
       checkVMRegions(actualRegions, expectedRegions);
     }
 
-    var expectedChildren = expectedStructure.children;
+    const expectedChildren = expectedStructure.children;
     if (expectedChildren === CHILDREN_NOT_BUILT_YET) {
       assert.isUndefined(node.children_);
     } else if (expectedChildren === undefined) {
       assert.isUndefined(node.children);
     } else {
-      var actualChildrenMap = new Map();
+      const actualChildrenMap = new Map();
       node.children.forEach(function(childNode) {
         actualChildrenMap.set(childNode.title, childNode);
       });
-      var expectedChildrenMap = new Map();
+      const expectedChildrenMap = new Map();
       expectedChildren.forEach(function(childNode) {
         expectedChildrenMap.set(childNode.title, childNode);
       });
       assert.strictEqual(actualChildrenMap.size, expectedChildrenMap.size);
-      for (var title of expectedChildrenMap.keys()) {
+      for (const title of expectedChildrenMap.keys()) {
         checkTree(actualChildrenMap.get(title),
             expectedChildrenMap.get(title));
       }
@@ -99,14 +99,14 @@ tr.b.unittest.testSuite(function() {
   }
 
   function checkClassificationRules(mappedFile, expectedPath) {
-    var region = VMRegion.fromDict({
+    const region = VMRegion.fromDict({
       mappedFile,
       sizeInBytes: 16,
       byteStats: {
         privateDirtyResident: 7
       }
     });
-    var node = VMRegionClassificationNode.fromRegions([region]);
+    let node = VMRegionClassificationNode.fromRegions([region]);
     expectedPath.forEach(function(title) {
       node = tr.b.findFirstInArray(node.children, function(childNode) {
         return childNode.title === title;
@@ -152,7 +152,7 @@ tr.b.unittest.testSuite(function() {
   // the lazy construction.
 
   test('vmRegionClassificationNode_constructor_addAfterBuild', function() {
-    var rootNode = new VMRegionClassificationNode(TEST_RULES);
+    const rootNode = new VMRegionClassificationNode(TEST_RULES);
 
     // Check the root node and verify that the full tree structure has *not*
     // been constructed yet.
@@ -292,7 +292,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('vmRegionClassificationNode_constructor_addBeforeBuild', function() {
-    var rootNode = new VMRegionClassificationNode(TEST_RULES);
+    const rootNode = new VMRegionClassificationNode(TEST_RULES);
 
     // Add regions to the tree *before* it has been fully built. This should
     // *not* trigger building the full tree (but the total sizeInBytes and
@@ -522,7 +522,7 @@ tr.b.unittest.testSuite(function() {
     // Construct the root node from a list of regions. This should *not*
     // trigger building the full tree (but the total sizeInBytes and byteStats
     // should be updated accordingly).
-    var rootNode = VMRegionClassificationNode.fromRegions([
+    const rootNode = VMRegionClassificationNode.fromRegions([
       VMRegion.fromDict({
         mappedFile: '__42',  // Root/Digits.
         byteStats: {
@@ -705,7 +705,7 @@ tr.b.unittest.testSuite(function() {
     // Construct the root node from a list of regions and then add another
     // region. This should *not* trigger building the full tree (but the total
     // sizeInBytes and byteStats should be updated accordingly).
-    var rootNode = VMRegionClassificationNode.fromRegions([
+    const rootNode = VMRegionClassificationNode.fromRegions([
       VMRegion.fromDict({
         mappedFile: '__42',  // Root/Digits.
         byteStats: {
@@ -913,7 +913,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('vmRegionClassificationNode_someRegion', function() {
-    var rootNode = new VMRegionClassificationNode(TEST_RULES);
+    const rootNode = new VMRegionClassificationNode(TEST_RULES);
 
     // There are no regions in the tree, so the method should always return
     // false.
@@ -947,7 +947,7 @@ tr.b.unittest.testSuite(function() {
     function checkSomeRegion() {
       // Find the order in which the regions are traversed and checked that all
       // regions were visited.
-      var visitedRegionMappedFiles = [];
+      const visitedRegionMappedFiles = [];
       assert.isFalse(rootNode.someRegion(function(region) {
         visitedRegionMappedFiles.push(region.mappedFile);
         return false;
@@ -959,7 +959,7 @@ tr.b.unittest.testSuite(function() {
       // callback returns true, no further regions are visited.
       visitedRegionMappedFiles.forEach(
           function(mappedFileToMatch, index) {
-            var visitedRegionMappedFiles2 = [];
+            const visitedRegionMappedFiles2 = [];
             assert.isTrue(rootNode.someRegion(function(region) {
               this.files.push(region.mappedFile);
               return region.mappedFile === mappedFileToMatch;

@@ -37,11 +37,11 @@ tr.exportTo('tr.e.importer.battor', function() {
     this.parseTrace_(events);
   }
 
-  var battorDataLineRE = new RegExp(
+  const battorDataLineRE = new RegExp(
       '^(-?\\d+\\.\\d+)\\s+(-?\\d+\\.\\d+)\\s+(-?\\d+\\.\\d+)' +
       '(?:\\s+<(\\S+)>)?$'
   );
-  var battorHeaderLineRE = /^# BattOr/;
+  const battorHeaderLineRE = /^# BattOr/;
 
   /**
    * Guesses whether the provided events is a BattOr string.
@@ -72,7 +72,7 @@ tr.exportTo('tr.e.importer.battor', function() {
      * Imports clock sync markers from the trace into into this.model_.
      */
     importClockSyncMarkers() {
-      for (var [syncId, ts] of this.syncTimestampsById_) {
+      for (const [syncId, ts] of this.syncTimestampsById_) {
         this.model_.clockSyncManager.addClockSyncMarker(
             tr.model.ClockDomainId.BATTOR, syncId, ts);
       }
@@ -90,14 +90,14 @@ tr.exportTo('tr.e.importer.battor', function() {
         return;
       }
 
-      var modelTimeTransformer =
+      const modelTimeTransformer =
           this.model_.clockSyncManager.getModelTimeTransformer(
               tr.model.ClockDomainId.BATTOR);
 
-      var powerSeries = this.model_.device.powerSeries =
+      const powerSeries = this.model_.device.powerSeries =
           new tr.model.PowerSeries(this.model_.device);
-      for (var i = 0; i < this.samples_.length; i++) {
-        var sample = this.samples_[i];
+      for (let i = 0; i < this.samples_.length; i++) {
+        const sample = this.samples_[i];
         powerSeries.addPowerSample(
             modelTimeTransformer(sample.ts), sample.powerInW);
       }
@@ -108,9 +108,9 @@ tr.exportTo('tr.e.importer.battor', function() {
      * this.samples_ and this.syncTimestampsById_.
      */
     parseTrace_(trace) {
-      var lines = trace.split('\n');
+      const lines = trace.split('\n');
 
-      for (var line of lines) {
+      for (let line of lines) {
         line = line.trim();
 
         if (line.length === 0) continue;
@@ -118,7 +118,7 @@ tr.exportTo('tr.e.importer.battor', function() {
         if (line.startsWith('#')) continue;
 
         // Parse power sample.
-        var groups = battorDataLineRE.exec(line);
+        const groups = battorDataLineRE.exec(line);
         if (!groups) {
           this.model_.importWarning({
             type: 'parse_error',
@@ -127,14 +127,14 @@ tr.exportTo('tr.e.importer.battor', function() {
           continue;
         }
 
-        var ts = parseFloat(groups[1]);
-        var voltageInV = tr.b.convertUnit(parseFloat(groups[2]),
+        const ts = parseFloat(groups[1]);
+        const voltageInV = tr.b.convertUnit(parseFloat(groups[2]),
             tr.b.UnitPrefixScale.METRIC.MILLI,
             tr.b.UnitPrefixScale.METRIC.NONE);
-        var currentInA = tr.b.convertUnit(parseFloat(groups[3]),
+        const currentInA = tr.b.convertUnit(parseFloat(groups[3]),
             tr.b.UnitPrefixScale.METRIC.MILLI,
             tr.b.UnitPrefixScale.METRIC.NONE);
-        var syncId = groups[4];
+        const syncId = groups[4];
 
         if (syncId) {
           this.syncTimestampsById_.set(syncId, ts);

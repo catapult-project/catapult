@@ -24,7 +24,7 @@ tr.exportTo('tr.ui.tracks', function() {
    * @constructor
    * @extends {Track}
    */
-  var RectTrack = tr.ui.b.define(
+  const RectTrack = tr.ui.b.define(
       'rect-track', tr.ui.tracks.Track);
 
   RectTrack.prototype = {
@@ -108,10 +108,10 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     drawRects_(viewLWorld, viewRWorld) {
-      var ctx = this.context();
+      const ctx = this.context();
 
       ctx.save();
-      var bounds = this.getBoundingClientRect();
+      const bounds = this.getBoundingClientRect();
       tr.ui.b.drawSlices(
           ctx,
           this.viewport.currentDisplayTransform,
@@ -124,8 +124,8 @@ tr.exportTo('tr.ui.tracks', function() {
 
       if (bounds.height <= 6) return;
 
-      var fontSize;
-      var yOffset;
+      let fontSize;
+      let yOffset;
       if (bounds.height < 15) {
         fontSize = 6;
         yOffset = 1.0;
@@ -160,7 +160,7 @@ tr.exportTo('tr.ui.tracks', function() {
         rect.addToSelection(selection);
       }
       onRect = onRect.bind(this);
-      var instantEventWidth = 2 * viewPixWidthWorld;
+      const instantEventWidth = 2 * viewPixWidthWorld;
       tr.b.math.iterateOverIntersectingIntervals(this.rects_,
           function(x) { return x.start; },
           function(x) {
@@ -183,12 +183,12 @@ tr.exportTo('tr.ui.tracks', function() {
      * @private
      */
     addEventNearToProvidedEventToSelection(event, offset, selection) {
-      var index = tr.b.findFirstIndexInArray(this.rects_, function(rect) {
+      const index = tr.b.findFirstIndexInArray(this.rects_, function(rect) {
         return rect.modelItem === event;
       });
       if (index === -1) return false;
 
-      var newIndex = index + offset;
+      const newIndex = index + offset;
       if (newIndex < 0 || newIndex >= this.rects_.length) return false;
 
       this.rects_[newIndex].addToSelection(selection);
@@ -196,11 +196,11 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     addAllEventsMatchingFilterToSelection(filter, selection) {
-      for (var i = 0; i < this.rects_.length; ++i) {
+      for (let i = 0; i < this.rects_.length; ++i) {
         // TODO(petrcermak): Rather than unpacking the proxy item here,
         // we should probably add an addToSelectionIfMatching(selection, filter)
         // method to SelectableItem (#900).
-        var modelItem = this.rects_[i].modelItem;
+        const modelItem = this.rects_[i].modelItem;
         if (!modelItem) continue;
 
         if (filter.matchSlice(modelItem)) {
@@ -211,7 +211,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     addClosestEventToSelection(worldX, worldMaxDist, loY, hiY,
         selection) {
-      var rect = tr.b.math.findClosestIntervalInSortedIntervals(
+      const rect = tr.b.math.findClosestIntervalInSortedIntervals(
           this.rects_,
           function(x) { return x.start; },
           function(x) { return x.end; },

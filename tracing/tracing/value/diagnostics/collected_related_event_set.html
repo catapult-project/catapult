@@ -19,9 +19,9 @@ tr.exportTo('tr.v.d', function() {
 
     asDictInto_(d) {
       d.events = {};
-      for (let [canonicalUrl, eventSet] of this) {
+      for (const [canonicalUrl, eventSet] of this) {
         d.events[canonicalUrl] = [];
-        for (let event of eventSet) {
+        for (const event of eventSet) {
           d.events[canonicalUrl].push({
             stableId: event.stableId,
             title: event.title,
@@ -33,8 +33,8 @@ tr.exportTo('tr.v.d', function() {
     }
 
     static fromDict(d) {
-      let result = new CollectedRelatedEventSet();
-      for (let [canonicalUrl, events] of Object.entries(d.events)) {
+      const result = new CollectedRelatedEventSet();
+      for (const [canonicalUrl, events] of Object.entries(d.events)) {
         result.eventSetsByCanonicalUrl_.set(canonicalUrl, events.map(
             e => new tr.v.d.EventRef(e)));
       }
@@ -50,7 +50,7 @@ tr.exportTo('tr.v.d', function() {
     }
 
     * [Symbol.iterator]() {
-      for (let [canonicalUrl, eventSet] of this.eventSetsByCanonicalUrl_) {
+      for (const [canonicalUrl, eventSet] of this.eventSetsByCanonicalUrl_) {
         yield [canonicalUrl, eventSet];
       }
     }
@@ -66,7 +66,7 @@ tr.exportTo('tr.v.d', function() {
         myEventSet = new Set();
         this.eventSetsByCanonicalUrl_.set(canonicalUrl, myEventSet);
       }
-      for (let event of events) {
+      for (const event of events) {
         myEventSet.add(event);
       }
     }
@@ -74,7 +74,7 @@ tr.exportTo('tr.v.d', function() {
     addDiagnostic(otherDiagnostic) {
       if (otherDiagnostic instanceof tr.v.d.CollectedRelatedEventSet) {
         // Merge Maps of Sets.
-        for (let [canonicalUrl, otherEventSet] of otherDiagnostic) {
+        for (const [canonicalUrl, otherEventSet] of otherDiagnostic) {
           this.addEventSetForCanonicalUrl(canonicalUrl, otherEventSet);
         }
         return;

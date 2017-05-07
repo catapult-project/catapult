@@ -13,9 +13,9 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('instantiate', function() {
-    let span = document.createElement('tr-v-ui-scalar-map-table');
+    const span = document.createElement('tr-v-ui-scalar-map-table');
 
-    let histogram = new tr.v.Histogram('', tr.b.Unit.byName.energyInJoules);
+    const histogram = new tr.v.Histogram('', tr.b.Unit.byName.energyInJoules);
     for (let i = 0; i < 1e2; ++i) {
       histogram.addSample(Math.random() * 1000);
     }

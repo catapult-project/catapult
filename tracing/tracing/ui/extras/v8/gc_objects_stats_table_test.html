@@ -13,10 +13,10 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var newSliceEx = tr.c.TestUtils.newSliceEx;
+  const newSliceEx = tr.c.TestUtils.newSliceEx;
 
   function createModel() {
-    var m = tr.c.TestUtils.newModel(function(m) {
+    const m = tr.c.TestUtils.newModel(function(m) {
       m.p1 = m.getOrCreateProcess(1);
       m.t2 = m.p1.getOrCreateThread(2);
 
@@ -70,54 +70,54 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('GCObjectTableSingleSelection', function() {
-    var m = createModel();
+    const m = createModel();
 
-    var viewEl = document.createElement('tr-ui-e-v8-gc-objects-stats-table');
-    var eventSet = new tr.model.EventSet();
+    const viewEl = document.createElement('tr-ui-e-v8-gc-objects-stats-table');
+    const eventSet = new tr.model.EventSet();
     eventSet.push(m.s1);
     viewEl.selection = eventSet;
     this.addHTMLOutput(viewEl);
     tr.b.forceAllPendingTasksToRunForTest();
-    var rows = viewEl.$.table.tableRows;
+    const rows = viewEl.$.table.tableRows;
     assert.lengthOf(rows, 1);
-    var row = rows[0];
+    const row = rows[0];
     assert.strictEqual(row.overall, 0.0263671875);
     assert.strictEqual(row.count, 21);
     assert.strictEqual(row.overAllocated, 0);
-    var subRows = row.subRows;
-    var live = subRows[0];
+    const subRows = row.subRows;
+    const live = subRows[0];
     assert.strictEqual(live.overall, 0.0224609375);
     assert.strictEqual(live.count, 17);
     assert.strictEqual(live.overAllocated, 0);
-    var dead = subRows[1];
+    const dead = subRows[1];
     assert.strictEqual(dead.overall, 0.00390625);
     assert.strictEqual(dead.count, 4);
     assert.strictEqual(dead.overAllocated, 0);
   });
 
   test('GCObjectTableMultiSelection', function() {
-    var m = createModel();
+    const m = createModel();
 
-    var viewEl = document.createElement('tr-ui-e-v8-gc-objects-stats-table');
-    var eventSet = new tr.model.EventSet();
+    const viewEl = document.createElement('tr-ui-e-v8-gc-objects-stats-table');
+    const eventSet = new tr.model.EventSet();
     eventSet.push(m.s1);
     eventSet.push(m.s2);
     viewEl.selection = eventSet;
     this.addHTMLOutput(viewEl);
     tr.b.forceAllPendingTasksToRunForTest();
-    var rows = viewEl.$.table.tableRows;
+    const rows = viewEl.$.table.tableRows;
     assert.lengthOf(rows, 2);
 
-    var row = rows[0];
+    let row = rows[0];
     assert.strictEqual(row.overall, 0.0146484375);
     assert.strictEqual(row.count, 17);
     assert.strictEqual(row.overAllocated, 0);
-    var subRows = row.subRows;
-    var live = subRows[0];
+    let subRows = row.subRows;
+    let live = subRows[0];
     assert.strictEqual(live.overall, 0.0087890625);
     assert.strictEqual(live.count, 11);
     assert.strictEqual(live.overAllocated, 0);
-    var dead = subRows[1];
+    let dead = subRows[1];
     assert.strictEqual(dead.overall, 0.005859375);
     assert.strictEqual(dead.count, 6);
     assert.strictEqual(dead.overAllocated, 0);
@@ -138,18 +138,18 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('GCObjectTableDiff', function() {
-    var m = createModel();
+    const m = createModel();
 
-    var viewEl = document.createElement('tr-ui-e-v8-gc-objects-stats-table');
-    var eventSet = new tr.model.EventSet();
+    const viewEl = document.createElement('tr-ui-e-v8-gc-objects-stats-table');
+    const eventSet = new tr.model.EventSet();
     eventSet.push(m.s1);
     eventSet.push(m.s2);
     viewEl.selection = eventSet;
     this.addHTMLOutput(viewEl);
     tr.b.forceAllPendingTasksToRunForTest();
-    var rows = viewEl.$.table.tableRows;
+    const rows = viewEl.$.table.tableRows;
     assert.lengthOf(rows, 2);
-    var diffEntry = rows[0].diff(rows[1]);
+    const diffEntry = rows[0].diff(rows[1]);
 
     assert.strictEqual(diffEntry.origin.overall.toFixed(3), '0.015');
     assert.strictEqual(diffEntry.origin.overAllocated, 0);
@@ -160,35 +160,35 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('GCObjectTableGroupEntryWithoutGroupDefined', function() {
-    let m = createModel();
+    const m = createModel();
 
-    let viewEl = document.createElement('tr-ui-e-v8-gc-objects-stats-table');
-    let eventSet = new tr.model.EventSet();
+    const viewEl = document.createElement('tr-ui-e-v8-gc-objects-stats-table');
+    const eventSet = new tr.model.EventSet();
     eventSet.push(m.s3);
     viewEl.selection = eventSet;
     this.addHTMLOutput(viewEl);
     tr.b.forceAllPendingTasksToRunForTest();
-    let rows = viewEl.$.table.tableRows;
+    const rows = viewEl.$.table.tableRows;
     assert.lengthOf(rows, 1);
-    let row = rows[0];
+    const row = rows[0];
     assert.strictEqual(row.overall, 0.013671875);
     assert.strictEqual(row.count, 18);
     assert.strictEqual(row.overAllocated, 0);
-    let subRows = row.subRows;
+    const subRows = row.subRows;
 
-    let live = subRows[0];
+    const live = subRows[0];
     assert.strictEqual(live.overall, 0.0087890625);
     assert.strictEqual(live.count, 12);
     assert.strictEqual(live.overAllocated, 0);
 
     // ungrouped entry should be top level entry.
-    let unGrouped1 = live.getEntryFromTitle('TYPE_DONT_HAVE_GROUP1');
+    const unGrouped1 = live.getEntryFromTitle('TYPE_DONT_HAVE_GROUP1');
     assert.isDefined(unGrouped1);
     assert.strictEqual(unGrouped1.overall, 0.001953125);
     assert.strictEqual(unGrouped1.count, 3);
     assert.strictEqual(unGrouped1.overAllocated, 0);
 
-    let unGrouped2 = live.getEntryFromTitle('TYPE_DONT_HAVE_GROUP2');
+    const unGrouped2 = live.getEntryFromTitle('TYPE_DONT_HAVE_GROUP2');
     assert.isDefined(unGrouped2);
     assert.strictEqual(unGrouped2.overall, 0.001953125);
     assert.strictEqual(unGrouped2.count, 3);

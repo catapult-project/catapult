@@ -19,13 +19,13 @@ tr.b.unittest.testSuite(function() {
     };
   }
   test('simple', function() {
-    var inEvents = [
+    const inEvents = [
       {min: 0, max: 100},
       {min: 100, max: 120},
       {min: 200, max: 220}
     ];
 
-    var merged = tr.b.math.mergeRanges(inEvents, 50, simpleMerger);
+    const merged = tr.b.math.mergeRanges(inEvents, 50, simpleMerger);
 
     assert.strictEqual(merged.length, 2);
     assert.deepEqual(merged[0], {min: 0, max: 120});
@@ -33,13 +33,13 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('overlapping', function() {
-    var inEvents = [
+    const inEvents = [
       {min: 0, max: 100},
       {min: 80, max: 120},
       {min: 200, max: 220}
     ];
 
-    var merged = tr.b.math.mergeRanges(inEvents, 50, simpleMerger);
+    const merged = tr.b.math.mergeRanges(inEvents, 50, simpleMerger);
 
     assert.strictEqual(merged.length, 2);
     assert.deepEqual(merged[0], {min: 0, max: 120});
@@ -47,25 +47,25 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('middleOneIsSmall', function() {
-    var inEvents = [
+    const inEvents = [
       {min: 0, max: 100},
       {min: 40, max: 50},
       {min: 100, max: 120}
     ];
 
-    var merged = tr.b.math.mergeRanges(inEvents, 50, simpleMerger);
+    const merged = tr.b.math.mergeRanges(inEvents, 50, simpleMerger);
 
     assert.strictEqual(merged.length, 1);
     assert.deepEqual(merged[0], {min: 0, max: 120});
   });
 
   test('firstEventIsSplitPoint', function() {
-    var inEvents = [
+    const inEvents = [
       {min: 0, max: 100},
       {min: 150, max: 200}
     ];
 
-    var merged = tr.b.math.mergeRanges(inEvents, 25, simpleMerger);
+    const merged = tr.b.math.mergeRanges(inEvents, 25, simpleMerger);
 
     assert.strictEqual(merged.length, 2);
     assert.deepEqual(merged[0], {min: 0, max: 100});
@@ -73,11 +73,11 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('mergeSingleEvent', function() {
-    var inEvents = [
+    const inEvents = [
       {min: 0, max: 100}
     ];
 
-    var mergeCount = 0;
+    let mergeCount = 0;
     tr.b.math.mergeRanges(inEvents, 25, function(events) {
       assert.deepEqual(events, inEvents);
       mergeCount++;
@@ -86,29 +86,29 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('zeroDurationSplit', function() {
-    var inEvents = [0, 10, 20, 50, 60];
+    let inEvents = [0, 10, 20, 50, 60];
     inEvents = inEvents.map(function(event) {
       return tr.b.math.Range.fromExplicitRange(event, event);
     });
-    var timestampMerger = function(timestamps) {
+    const timestampMerger = function(timestamps) {
       return {
         min: timestamps[0].min,
         max: timestamps[timestamps.length - 1].max
       };
     };
-    var merged = tr.b.math.mergeRanges(inEvents, 15, timestampMerger);
+    const merged = tr.b.math.mergeRanges(inEvents, 15, timestampMerger);
     assert.strictEqual(merged.length, 2);
     assert.deepEqual(merged[0], {min: 0, max: 20});
     assert.deepEqual(merged[1], {min: 50, max: 60});
   });
 
   test('findEmptyRangesBetweenRanges', function() {
-    var events = [
+    const events = [
       {min: 2, max: 4},
       {min: 1, max: 3},
       {min: 6, max: 8}
     ];
-    var ranges = tr.b.math.findEmptyRangesBetweenRanges(
+    const ranges = tr.b.math.findEmptyRangesBetweenRanges(
         events, {min: 0, max: 10});
     assert.strictEqual(3, ranges.length);
     assert.strictEqual(0, ranges[0].min);
@@ -120,7 +120,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('findEmptyRangesWithEmptyInput', function() {
-    var ranges = tr.b.math.findEmptyRangesBetweenRanges(
+    let ranges = tr.b.math.findEmptyRangesBetweenRanges(
         [], {min: 0, max: 10});
     assert.strictEqual(1, ranges.length);
     assert.strictEqual(0, ranges[0].min);

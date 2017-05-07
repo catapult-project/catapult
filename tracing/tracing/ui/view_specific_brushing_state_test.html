@@ -12,10 +12,10 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var BrushingStateController = tr.c.BrushingStateController;
+  const BrushingStateController = tr.c.BrushingStateController;
 
   function setStateElement(containerEl, viewId) {
-    var stateElement = document.createElement(
+    const stateElement = document.createElement(
         'tr-ui-b-view-specific-brushing-state');
     stateElement.viewId = viewId;
     Polymer.dom(containerEl).appendChild(stateElement);
@@ -23,44 +23,44 @@ tr.b.unittest.testSuite(function() {
   }
 
   function addChildDiv(element) {
-    var child = element.ownerDocument.createElement('div');
+    const child = element.ownerDocument.createElement('div');
     Polymer.dom(element).appendChild(child);
     return child;
   }
 
   function addShadowChildDiv(element) {
-    var shadowRoot = element.createShadowRoot();
+    const shadowRoot = element.createShadowRoot();
     return addChildDiv(shadowRoot);
   }
 
   test('instantiate_withoutBrushingStateController', function() {
-    var containerEl = document.createElement('div');
+    const containerEl = document.createElement('div');
 
-    var stateElement1 = setStateElement(containerEl, 'test-view');
+    const stateElement1 = setStateElement(containerEl, 'test-view');
     assert.isUndefined(stateElement1.get());
     stateElement1.set({e: 2.71828});
     assert.isUndefined(stateElement1.get());
   });
 
   test('instantiate_withBrushingStateController', function() {
-    var rootEl = document.createElement('div');
-    var containerEl = addChildDiv(addShadowChildDiv(addChildDiv(rootEl)));
+    const rootEl = document.createElement('div');
+    const containerEl = addChildDiv(addShadowChildDiv(addChildDiv(rootEl)));
     rootEl.brushingStateController = new BrushingStateController(undefined);
 
-    var stateElement1 = setStateElement(containerEl, 'test-view');
+    const stateElement1 = setStateElement(containerEl, 'test-view');
     assert.isUndefined(stateElement1.get());
     stateElement1.set({e: 2.71828});
     assert.deepEqual(stateElement1.get(), {e: 2.71828});
 
-    var stateElement2 = setStateElement(containerEl, 'test-view-2');
+    const stateElement2 = setStateElement(containerEl, 'test-view-2');
     assert.isUndefined(stateElement2.get());
     stateElement2.set({pi: 3.14159});
     assert.deepEqual(stateElement2.get(), {pi: 3.14159});
 
-    var stateElement3 = setStateElement(containerEl, 'test-view');
+    const stateElement3 = setStateElement(containerEl, 'test-view');
     assert.deepEqual(stateElement3.get(), {e: 2.71828});
 
-    var stateElement4 = setStateElement(containerEl, 'test-view-2');
+    const stateElement4 = setStateElement(containerEl, 'test-view-2');
     assert.deepEqual(stateElement4.get(), {pi: 3.14159});
   });
 });

@@ -44,13 +44,13 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
 
   InspectorConnection.prototype = {
     req(method, params) {
-      var id = this.nextRequestId_++;
-      var msg = JSON.stringify({
+      const id = this.nextRequestId_++;
+      const msg = JSON.stringify({
         id,
         method,
         params
       });
-      var devtoolsMessageStr = JSON.stringify(
+      const devtoolsMessageStr = JSON.stringify(
         {id, 'method': 'dispatchProtocolMessage', 'params': [msg]});
       DevToolsHost.sendMessageToEmbedder(devtoolsMessageStr);
 
@@ -67,14 +67,14 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     },
 
     dispatchMessage_(payload) {
-      var isStringPayload = typeof payload === 'string';
+      const isStringPayload = typeof payload === 'string';
       // Special handling for Tracing.dataCollected because it is high
       // bandwidth.
-      var isDataCollectedMessage = isStringPayload ?
+      const isDataCollectedMessage = isStringPayload ?
           payload.includes('"method": "Tracing.dataCollected"') :
           payload.method === 'Tracing.dataCollected';
       if (isDataCollectedMessage) {
-        var listener = this.notificationListenersByMethodName_[
+        const listener = this.notificationListenersByMethodName_[
             'Tracing.dataCollected'];
         if (listener) {
           // FIXME(loislo): trace viewer should be able to process
@@ -86,9 +86,9 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
         }
       }
 
-      var message = isStringPayload ? JSON.parse(payload) : payload;
+      const message = isStringPayload ? JSON.parse(payload) : payload;
       if (message.id) {
-        var resolver = this.pendingRequestResolversId_[message.id];
+        const resolver = this.pendingRequestResolversId_[message.id];
         if (resolver === undefined) {
           return;
         }
@@ -101,10 +101,9 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       }
 
       if (message.method) {
-        var listener = this.notificationListenersByMethodName_[message.method];
-        if (listener === undefined) {
-          return;
-        }
+        const listener = this.notificationListenersByMethodName_[
+          message.method];
+        if (listener === undefined) return;
         listener(message.params);
         return;
       }

@@ -13,11 +13,11 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('bounds_startPrecision', function() {
-    var unit = tr.b.TimeDisplayModes;
+    const unit = tr.b.TimeDisplayModes;
 
-    var outer = new tr.model.TimedEvent(10.0001);
+    const outer = new tr.model.TimedEvent(10.0001);
     outer.duration = 0.9999;
-    var inner = new tr.model.TimedEvent(10.0000);
+    const inner = new tr.model.TimedEvent(10.0000);
     inner.duration = 1.0000;
 
     assert.isTrue(outer.bounds(inner));
@@ -27,11 +27,11 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('bounds_endPrecision', function() {
-    var unit = tr.b.TimeDisplayModes;
+    const unit = tr.b.TimeDisplayModes;
 
-    var outer = new tr.model.TimedEvent(10.0000);
+    const outer = new tr.model.TimedEvent(10.0000);
     outer.duration = 0.9999;
-    var inner = new tr.model.TimedEvent(10.0000);
+    const inner = new tr.model.TimedEvent(10.0000);
     inner.duration = 1.0000;
 
     assert.isTrue(outer.bounds(inner));

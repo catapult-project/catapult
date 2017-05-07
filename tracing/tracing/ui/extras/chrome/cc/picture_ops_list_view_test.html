@@ -17,18 +17,18 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var PictureOpsListView = tr.ui.e.chrome.cc.PictureOpsListView;
+  const PictureOpsListView = tr.ui.e.chrome.cc.PictureOpsListView;
 
   test('instantiate', function() {
     if (!tr.e.cc.PictureSnapshot.CanRasterize()) return;
 
-    var m = new tr.Model(g_catLTHIEvents);
-    var p = tr.b.dictionaryValues(m.processes)[0];
+    const m = new tr.Model(g_catLTHIEvents);
+    const p = tr.b.dictionaryValues(m.processes)[0];
 
-    var instance = p.objects.getAllInstancesNamed('cc::Picture')[0];
-    var snapshot = instance.snapshots[0];
+    const instance = p.objects.getAllInstancesNamed('cc::Picture')[0];
+    const snapshot = instance.snapshots[0];
 
-    var view = new PictureOpsListView();
+    const view = new PictureOpsListView();
     view.picture = snapshot;
     assert.strictEqual(view.opsList_.children.length, 142);
   });
@@ -36,15 +36,15 @@ tr.b.unittest.testSuite(function() {
   test('selection', function() {
     if (!tr.e.cc.PictureSnapshot.CanRasterize()) return;
 
-    var m = new tr.Model(g_catLTHIEvents);
-    var p = tr.b.dictionaryValues(m.processes)[0];
+    const m = new tr.Model(g_catLTHIEvents);
+    const p = tr.b.dictionaryValues(m.processes)[0];
 
-    var instance = p.objects.getAllInstancesNamed('cc::Picture')[0];
-    var snapshot = instance.snapshots[0];
+    const instance = p.objects.getAllInstancesNamed('cc::Picture')[0];
+    const snapshot = instance.snapshots[0];
 
-    var view = new PictureOpsListView();
+    const view = new PictureOpsListView();
     view.picture = snapshot;
-    var didSelectionChange = 0;
+    let didSelectionChange = 0;
     view.addEventListener('selection-changed', function() {
       didSelectionChange = true;
     });

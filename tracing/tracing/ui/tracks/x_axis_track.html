@@ -29,7 +29,7 @@ tr.exportTo('tr.ui.tracks', function() {
    * @constructor
    * @extends {Track}
    */
-  var XAxisTrack = tr.ui.b.define('x-axis-track', tr.ui.tracks.Track);
+  const XAxisTrack = tr.ui.b.define('x-axis-track', tr.ui.tracks.Track);
 
   XAxisTrack.prototype = {
     __proto__: tr.ui.tracks.Track.prototype,
@@ -45,7 +45,7 @@ tr.exportTo('tr.ui.tracks', function() {
       this.viewportChange_ = this.viewportChange_.bind(this);
       viewport.addEventListener('change', this.viewportChange_);
 
-      var heading = document.createElement('tr-ui-b-heading');
+      const heading = document.createElement('tr-ui-b-heading');
       heading.arrowVisible = false;
       Polymer.dom(this).appendChild(heading);
     },
@@ -79,39 +79,38 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     drawGrid_(viewLWorld, viewRWorld) {
-      var ctx = this.context();
-      var pixelRatio = window.devicePixelRatio || 1;
+      const ctx = this.context();
+      const pixelRatio = window.devicePixelRatio || 1;
 
-      var canvasBounds = ctx.canvas.getBoundingClientRect();
-      var trackBounds = this.getBoundingClientRect();
-      var width = canvasBounds.width * pixelRatio;
-      var height = trackBounds.height * pixelRatio;
+      const canvasBounds = ctx.canvas.getBoundingClientRect();
+      const trackBounds = this.getBoundingClientRect();
+      const width = canvasBounds.width * pixelRatio;
+      const height = trackBounds.height * pixelRatio;
 
-      var hasInterestRange = !this.viewport.interestRange.isEmpty;
+      const hasInterestRange = !this.viewport.interestRange.isEmpty;
 
-      var xAxisHeightPx = hasInterestRange ? (height * 2) / 5 : height;
+      const xAxisHeightPx = hasInterestRange ? (height * 2) / 5 : height;
 
-      var vp = this.viewport;
-      var dt = vp.currentDisplayTransform;
+      const vp = this.viewport;
+      const dt = vp.currentDisplayTransform;
 
       vp.updateMajorMarkData(viewLWorld, viewRWorld);
-      var majorMarkDistanceWorld = vp.majorMarkWorldPositions.length > 1 ?
+      const majorMarkDistanceWorld = vp.majorMarkWorldPositions.length > 1 ?
           vp.majorMarkWorldPositions[1] - vp.majorMarkWorldPositions[0] : 0;
 
-      var numTicksPerMajor = 5;
-      var minorMarkDistanceWorld = majorMarkDistanceWorld / numTicksPerMajor;
-      var minorMarkDistancePx = dt.xWorldVectorToView(minorMarkDistanceWorld);
+      const numTicksPerMajor = 5;
+      const minorMarkDistanceWorld = majorMarkDistanceWorld / numTicksPerMajor;
+      const minorMarkDistancePx = dt.xWorldVectorToView(minorMarkDistanceWorld);
 
-      var minorTickHeight = Math.floor(xAxisHeightPx * 0.25);
+      const minorTickHeight = Math.floor(xAxisHeightPx * 0.25);
 
       ctx.save();
 
-      var pixelRatio = window.devicePixelRatio || 1;
       ctx.lineWidth = Math.round(pixelRatio);
 
       // Apply subpixel translate to get crisp lines.
       // http://www.mobtowers.com/html5-canvas-crisp-lines-every-time/
-      var crispLineCorrection = (ctx.lineWidth % 2) / 2;
+      const crispLineCorrection = (ctx.lineWidth % 2) / 2;
       ctx.translate(crispLineCorrection, -crispLineCorrection);
 
       ctx.fillStyle = 'rgb(0, 0, 0)';
@@ -121,12 +120,12 @@ tr.exportTo('tr.ui.tracks', function() {
 
       ctx.font = (9 * pixelRatio) + 'px sans-serif';
 
-      var tickLabels = [];
+      const tickLabels = [];
       ctx.beginPath();
-      for (var i = 0; i < vp.majorMarkWorldPositions.length; i++) {
-        var curXWorld = vp.majorMarkWorldPositions[i];
-        var curXView = dt.xWorldToView(curXWorld);
-        var displayText = vp.majorMarkUnit.format(
+      for (let i = 0; i < vp.majorMarkWorldPositions.length; i++) {
+        const curXWorld = vp.majorMarkWorldPositions[i];
+        const curXView = dt.xWorldToView(curXWorld);
+        const displayText = vp.majorMarkUnit.format(
             curXWorld, {deltaValue: majorMarkDistanceWorld});
         ctx.fillText(displayText, curXView + (2 * pixelRatio), 0);
 
@@ -135,8 +134,8 @@ tr.exportTo('tr.ui.tracks', function() {
 
         // Draw minor marks.
         if (minorMarkDistancePx) {
-          for (var j = 1; j < numTicksPerMajor; ++j) {
-            var xView = Math.floor(curXView + minorMarkDistancePx * j);
+          for (let j = 1; j < numTicksPerMajor; ++j) {
+            const xView = Math.floor(curXView + minorMarkDistancePx * j);
             tr.ui.b.drawLine(ctx,
                 xView, xAxisHeightPx - minorTickHeight,
                 xView, xAxisHeightPx);
@@ -157,31 +156,31 @@ tr.exportTo('tr.ui.tracks', function() {
       ctx.stroke();
 
       // Distance Variables.
-      var displayDistance;
-      var displayTextColor = 'rgb(0,0,0)';
+      let displayDistance;
+      const displayTextColor = 'rgb(0,0,0)';
 
       // Arrow Variables.
-      var arrowSpacing = 10 * pixelRatio;
-      var arrowColor = 'rgb(128,121,121)';
-      var arrowPosY = xAxisHeightPx * 1.75;
-      var arrowWidthView = 3 * pixelRatio;
-      var arrowLengthView = 10 * pixelRatio;
-      var spaceForArrowsView = 2 * (arrowWidthView + arrowSpacing);
+      const arrowSpacing = 10 * pixelRatio;
+      const arrowColor = 'rgb(128,121,121)';
+      const arrowPosY = xAxisHeightPx * 1.75;
+      const arrowWidthView = 3 * pixelRatio;
+      const arrowLengthView = 10 * pixelRatio;
+      const spaceForArrowsView = 2 * (arrowWidthView + arrowSpacing);
 
       ctx.textBaseline = 'middle';
       ctx.font = (14 * pixelRatio) + 'px sans-serif';
-      var textPosY = arrowPosY;
+      const textPosY = arrowPosY;
 
-      var interestRange = vp.interestRange;
+      const interestRange = vp.interestRange;
 
       // If the range is zero, draw it's min timestamp next to the line.
       if (interestRange.range === 0) {
-        var markerWorld = interestRange.min;
-        var markerView = dt.xWorldToView(markerWorld);
+        const markerWorld = interestRange.min;
+        const markerView = dt.xWorldToView(markerWorld);
 
-        var textToDraw = vp.majorMarkUnit.format(markerWorld);
-        var textLeftView = markerView + 4 * pixelRatio;
-        var textWidthView = ctx.measureText(textToDraw).width;
+        const textToDraw = vp.majorMarkUnit.format(markerWorld);
+        let textLeftView = markerView + 4 * pixelRatio;
+        const textWidthView = ctx.measureText(textToDraw).width;
 
         // Put text to the left in case it gets cut off.
         if (textLeftView + textWidthView > width) {
@@ -193,26 +192,26 @@ tr.exportTo('tr.ui.tracks', function() {
         return;
       }
 
-      var leftMarker = interestRange.min;
-      var rightMarker = interestRange.max;
+      const leftMarker = interestRange.min;
+      const rightMarker = interestRange.max;
 
-      var leftMarkerView = dt.xWorldToView(leftMarker);
-      var rightMarkerView = dt.xWorldToView(rightMarker);
+      const leftMarkerView = dt.xWorldToView(leftMarker);
+      const rightMarkerView = dt.xWorldToView(rightMarker);
 
-      var distanceBetweenMarkers = interestRange.range;
-      var distanceBetweenMarkersView =
+      const distanceBetweenMarkers = interestRange.range;
+      const distanceBetweenMarkersView =
           dt.xWorldVectorToView(distanceBetweenMarkers);
-      var positionInMiddleOfMarkersView =
+      const positionInMiddleOfMarkersView =
           leftMarkerView + (distanceBetweenMarkersView / 2);
 
-      var textToDraw = vp.majorMarkUnit.format(distanceBetweenMarkers);
-      var textWidthView = ctx.measureText(textToDraw).width;
-      var spaceForArrowsAndTextView =
+      const textToDraw = vp.majorMarkUnit.format(distanceBetweenMarkers);
+      const textWidthView = ctx.measureText(textToDraw).width;
+      const spaceForArrowsAndTextView =
           textWidthView + spaceForArrowsView + arrowSpacing;
 
       // Set text positions.
-      var textLeftView = positionInMiddleOfMarkersView - textWidthView / 2;
-      var textRightView = textLeftView + textWidthView;
+      let textLeftView = positionInMiddleOfMarkersView - textWidthView / 2;
+      const textRightView = textLeftView + textWidthView;
 
       if (spaceForArrowsAndTextView > distanceBetweenMarkersView) {
         // Print the display distance text right of the 2 markers.
@@ -243,8 +242,8 @@ tr.exportTo('tr.ui.tracks', function() {
             rightMarkerView, arrowPosY,
             arrowLengthView, arrowWidthView);
       } else if (spaceForArrowsView <= distanceBetweenMarkersView) {
-        var leftArrowStart;
-        var rightArrowStart;
+        let leftArrowStart;
+        let rightArrowStart;
         if (spaceForArrowsAndTextView <= distanceBetweenMarkersView) {
           // Print the display distance text.
           ctx.fillStyle = displayTextColor;

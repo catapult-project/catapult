@@ -13,11 +13,11 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var TestUtils = tr.c.TestUtils;
+  const TestUtils = tr.c.TestUtils;
 
   function createModel(opt_customizeModelCallback) {
     return TestUtils.newModel(function(model) {
-      var modelStats = model.stats;
+      const modelStats = model.stats;
       modelStats.willProcessBasicTraceEvent('X', 'cat1', 'title1');
       modelStats.willProcessBasicTraceEvent('X', 'cat1', 'title1');
       modelStats.willProcessBasicTraceEvent('X', 'cat2', 'title1');
@@ -27,7 +27,7 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('instantiate', function() {
-    var panel = document.createElement('tr-ui-sp-file-size-stats-side-panel');
+    const panel = document.createElement('tr-ui-sp-file-size-stats-side-panel');
     panel.model = createModel();
     panel.style.height = '200px';
     this.addHTMLOutput(panel);

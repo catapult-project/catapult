@@ -13,19 +13,19 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('drmImport', function() {
-    var lines = [
+    const lines = [
       ' chrome-2465  [000]    71.653157: drm_vblank_event: crtc=0, seq=4233',
       ' <idle>-0     [000]    71.669851: drm_vblank_event: crtc=0, seq=4234'
     ];
-    var m = tr.c.TestUtils.newModelWithEvents([lines.join('\n')], {
+    const m = tr.c.TestUtils.newModelWithEvents([lines.join('\n')], {
       shiftWorldToZero: false
     });
     assert.isFalse(m.hasImportWarnings);
 
-    var threads = m.getAllThreads();
+    const threads = m.getAllThreads();
     assert.strictEqual(threads.length, 1);
 
-    var vblankThread = threads[0];
+    const vblankThread = threads[0];
     assert.strictEqual(vblankThread.name, 'drm_vblank');
     assert.strictEqual(vblankThread.sliceGroup.length, 2);
   });

@@ -12,10 +12,10 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var Base64 = tr.b.Base64;
+  const Base64 = tr.b.Base64;
 
   test('simple', function() {
-    var htmlLines = [
+    const htmlLines = [
       '<!DOCTYPE html>',
       '<script id="viewer-data" type="application/json">',
       Base64.btoa('hello'),
@@ -25,16 +25,16 @@ tr.b.unittest.testSuite(function() {
       '<\/script>',
       '</html>'
     ];
-    var htmlText = htmlLines.join('\n');
+    const htmlText = htmlLines.join('\n');
     assert.isTrue(tr.e.importer.Trace2HTMLImporter.canImport(htmlText));
 
-    var m = new tr.Model();
-    var imp = new tr.e.importer.Trace2HTMLImporter(m, htmlText);
-    var subTracesAsBuffers = imp.extractSubtraces();
-    var subTracesAsStrings = subTracesAsBuffers.map(function(buffer) {
-      var str = '';
-      var ary = new Uint8Array(buffer);
-      for (var i = 0; i < ary.length; i++) {
+    const m = new tr.Model();
+    const imp = new tr.e.importer.Trace2HTMLImporter(m, htmlText);
+    const subTracesAsBuffers = imp.extractSubtraces();
+    const subTracesAsStrings = subTracesAsBuffers.map(function(buffer) {
+      let str = '';
+      const ary = new Uint8Array(buffer);
+      for (let i = 0; i < ary.length; i++) {
         str += String.fromCharCode(ary[i]);
       }
       return str;

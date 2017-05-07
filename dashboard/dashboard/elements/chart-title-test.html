@@ -13,7 +13,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var testOptions = {
+  const testOptions = {
     setUp() {
     },
     tearDown() {
@@ -21,7 +21,7 @@ tr.b.unittest.testSuite(function() {
   };
 
   test('instantiate basic', function() {
-    var title = document.createElement('chart-title');
+    const title = document.createElement('chart-title');
     title.testSuites = {
       'dromaeo': {'des': 'Description of dromaeo.'},
       'sunspider': {'des': 'Sunspider test.'}
@@ -35,7 +35,7 @@ tr.b.unittest.testSuite(function() {
   }, testOptions);
 
   test('after update is called, suite descriptions are set', function() {
-    var title = document.createElement('chart-title');
+    const title = document.createElement('chart-title');
     title.testSuites = {
       'dromaeo': {'des': 'Description of dromaeo.'},
       'sunspider': {'des': 'Sunspider test.'}

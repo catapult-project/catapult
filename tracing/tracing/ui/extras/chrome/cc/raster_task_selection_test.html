@@ -20,19 +20,19 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('basic', function() {
-    var m = tr.c.TestUtils.newModelWithEvents([g_catLTHIEvents]);
-    var p = m.processes[1];
-    var rasterTasks = p.threads[1].sliceGroup.slices.filter(function(slice) {
+    const m = tr.c.TestUtils.newModelWithEvents([g_catLTHIEvents]);
+    const p = m.processes[1];
+    const rasterTasks = p.threads[1].sliceGroup.slices.filter(function(slice) {
       return slice.title === 'RasterTask';
     });
 
-    var selection = new tr.model.EventSet();
+    let selection = new tr.model.EventSet();
     selection.push(rasterTasks[0]);
     selection.push(rasterTasks[1]);
 
     assert.isTrue(tr.ui.e.chrome.cc.RasterTaskSelection.supports(selection));
-    var selection = new tr.ui.e.chrome.cc.RasterTaskSelection(selection);
-    var highlights = selection.extraHighlightsByLayerId;
+    selection = new tr.ui.e.chrome.cc.RasterTaskSelection(selection);
+    const highlights = selection.extraHighlightsByLayerId;
     assert.strictEqual(tr.b.dictionaryLength(highlights), 1);
   });
 });

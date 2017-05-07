@@ -19,7 +19,7 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('exynosBusfreqImport', function() {
-    var lines = [
+    const lines = [
       '     kworker/1:0-4177  [001] ....  2803.129806: ' +
           'exynos_busfreq_target_int: frequency=200000',
       '     kworker/1:0-4177  [001] ....  2803.229207: ' +
@@ -29,10 +29,10 @@ tr.b.unittest.testSuite(function() {
       '     kworker/1:0-4177  [001] ....  2805.729039: ' +
           'exynos_busfreq_target_mif: frequency=200000'
     ];
-    var m = newModel(lines.join('\n'));
+    const m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
-    var c0 = m.kernel.cpus[0];
+    const c0 = m.kernel.cpus[0];
     assert.strictEqual(c0.slices.length, 0);
     assert.strictEqual(
         c0.counters['.INT Frequency'].series[0].samples.length, 3);
@@ -41,7 +41,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('exynosPageFlipSlowRequestImport', function() {
-    var lines = [
+    const lines = [
       '          <idle>-0     [000] d.h. 1000.000000: ' +
           'exynos_page_flip_state: pipe=0, fb=26, state=wait_kds',
       ' Chrome_IOThread-21603 [000] d.h. 1000.000001: ' +
@@ -59,18 +59,18 @@ tr.b.unittest.testSuite(function() {
       '     kworker/0:1-25931 [000] .... 1000.000007: ' +
           'exynos_page_flip_state: pipe=0, fb=25, state=flipped'
     ];
-    var m = newModel(lines.join('\n'));
+    const m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
-    var threads = m.getAllThreads();
+    const threads = m.getAllThreads();
     // there are 2 threads:
     //   (1) "exynos_flip_state (pipe:0, fb:25)"
     //   (2) "exynos_flip_state (pipe:0, fb:26)"
     assert.strictEqual(threads.length, 2);
 
     // in the test data, event of fb=26 occurs first, so it's thread[0]
-    var gfxFbId26Thread = threads[0]; // thread where fb === 26
-    var gfxFbId25Thread = threads[1]; // thread where fb === 25
+    const gfxFbId26Thread = threads[0]; // thread where fb === 26
+    const gfxFbId25Thread = threads[1]; // thread where fb === 25
     assert.strictEqual(
         gfxFbId25Thread.name, 'exynos_flip_state (pipe:0, fb:25)');
     assert.strictEqual(
@@ -82,7 +82,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('exynosPageFlipFastRequestImport', function() {
-    var lines = [
+    const lines = [
       '          <idle>-0     [000] d.h. 1000.000000: ' +
           'exynos_page_flip_state: pipe=0, fb=26, state=wait_kds',
       ' Chrome_IOThread-21603 [000] d.h. 1000.000001: ' +
@@ -108,18 +108,18 @@ tr.b.unittest.testSuite(function() {
       '          <idle>-0     [000] d.h. 1000.000011: ' +
           'exynos_page_flip_state: pipe=0, fb=26, state=wait_apply'
     ];
-    var m = newModel(lines.join('\n'));
+    const m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
-    var threads = m.getAllThreads();
+    const threads = m.getAllThreads();
     // there are 2 threads:
     //   (1) "exynos_flip_state (pipe:0, fb:25)"
     //   (2) "exynos_flip_state (pipe:0, fb:26)"
     assert.strictEqual(threads.length, 2);
 
     // in the test data, event of fb=26 occurs first, so it's thread[0]
-    var gfxFbId26Thread = threads[0]; // thread where fb === 26
-    var gfxFbId25Thread = threads[1]; // thread where fb === 25
+    const gfxFbId26Thread = threads[0]; // thread where fb === 26
+    const gfxFbId25Thread = threads[1]; // thread where fb === 25
     assert.strictEqual(
         gfxFbId25Thread.name, 'exynos_flip_state (pipe:0, fb:25)');
     assert.strictEqual(

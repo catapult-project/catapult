@@ -26,7 +26,7 @@ found in the LICENSE file.
 'use strict';
 
 function createAnalysisLinkTo(event) {
-  var linkEl = document.createElement('tr-ui-a-analysis-link');
+  const linkEl = document.createElement('tr-ui-a-analysis-link');
   linkEl.setSelectionAndContent(
       new tr.model.EventSet(event), event.userFriendlyName);
   return linkEl;
@@ -55,8 +55,8 @@ Polymer({
    * the rows present in the sub view.
    */
   onCustomizeRows_(e) {
-    var event = tr.b.getOnlyElement(this.currentSelection_);
-    var rows = e.rows;
+    const event = tr.b.getOnlyElement(this.currentSelection_);
+    const rows = e.rows;
 
     rows.unshift({
       name: 'ID',

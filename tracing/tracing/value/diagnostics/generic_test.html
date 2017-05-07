@@ -13,17 +13,17 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('merge', function() {
-    let a = new tr.v.d.Generic('a');
-    let b = new tr.v.d.Generic('b');
+    const a = new tr.v.d.Generic('a');
+    const b = new tr.v.d.Generic('b');
 
     assert.isFalse(a.canAddDiagnostic(b));
     assert.isFalse(b.canAddDiagnostic(a));
 
-    let ab = a.clone();
+    const ab = a.clone();
     ab.addDiagnostic(b);
     assert.deepEqual(ab.value, ['a', 'b']);
 
-    let bab = b.clone();
+    const bab = b.clone();
     bab.addDiagnostic(ab);
     assert.deepEqual(bab.value, ['b', 'a', 'b']);
   });

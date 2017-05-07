@@ -15,50 +15,50 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var Task = tr.b.Task;
+  const Task = tr.b.Task;
 
   function setupTimeline() {
-    var container = document.createElement('track-view-container');
+    const container = document.createElement('track-view-container');
     container.id = 'track_view_container';
 
-    var view = document.createElement('tr-ui-timeline-view');
+    const view = document.createElement('tr-ui-timeline-view');
     Polymer.dom(view).appendChild(container);
     view.trackViewContainer_ = container;
     return view;
   }
 
-  var createFullyPopulatedModel = function(opt_withError, opt_withMetadata) {
-    var withError = opt_withError !== undefined ? opt_withError : true;
-    var withMetadata = opt_withMetadata !== undefined ?
+  const createFullyPopulatedModel = function(opt_withError, opt_withMetadata) {
+    const withError = opt_withError !== undefined ? opt_withError : true;
+    const withMetadata = opt_withMetadata !== undefined ?
         opt_withMetadata : true;
 
-    var numTests = 50;
-    var testIndex = 0;
-    var startTime = 0;
+    const numTests = 50;
+    let testIndex = 0;
+    const startTime = 0;
 
-    var model = new tr.Model();
-    var io = new tr.importer.ImportOptions();
+    const model = new tr.Model();
+    const io = new tr.importer.ImportOptions();
     io.showImportWarnings = false;
     model.importOptions = io;
 
     for (testIndex = 0; testIndex < numTests; ++testIndex) {
-      var process = model.getOrCreateProcess(10000 + testIndex);
+      const process = model.getOrCreateProcess(10000 + testIndex);
       if (testIndex % 2 === 0) {
-        var thread = process.getOrCreateThread('Thread Name Here');
+        const thread = process.getOrCreateThread('Thread Name Here');
         thread.sliceGroup.pushSlice(new tr.model.ThreadSlice(
             'foo', 'a', 0, startTime, {}, 1));
         thread.sliceGroup.pushSlice(new tr.model.ThreadSlice(
             'bar', 'b', 0, startTime + 23, {}, 10));
       } else {
-        var thread = process.getOrCreateThread('Name');
+        const thread = process.getOrCreateThread('Name');
         thread.sliceGroup.pushSlice(new tr.model.ThreadSlice(
             'foo', 'a', 0, startTime + 4, {}, 11));
         thread.sliceGroup.pushSlice(new tr.model.ThreadSlice(
             'bar', 'b', 0, startTime + 22, {}, 14));
       }
     }
-    var p1000 = model.getOrCreateProcess(1000);
-    var objects = p1000.objects;
+    const p1000 = model.getOrCreateProcess(1000);
+    const objects = p1000.objects;
     objects.idWasCreated('0x1000', 'tr.e.cc', 'LayerTreeHostImpl', 10);
     objects.addSnapshot('0x1000', 'tr.e.cc', 'LayerTreeHostImpl', 10,
         'snapshot-1');
@@ -84,37 +84,37 @@ tr.b.unittest.testSuite(function() {
     return model;
   };
 
-  var visibleTracks = function(trackButtons) {
+  const visibleTracks = function(trackButtons) {
     return trackButtons.reduce(function(numVisible, button) {
-      var style = button.parentElement.style;
-      var visible = (style.display.indexOf('none') === -1);
+      const style = button.parentElement.style;
+      const visible = (style.display.indexOf('none') === -1);
       return visible ? numVisible + 1 : numVisible;
     }, 0);
   };
 
-  var modelsEquivalent = function(lhs, rhs) {
+  const modelsEquivalent = function(lhs, rhs) {
     if (lhs.length !== rhs.length) return false;
 
     return lhs.every(function(lhsItem, index) {
-      var rhsItem = rhs[index];
+      const rhsItem = rhs[index];
       return rhsItem.regexpText === lhsItem.regexpText &&
           rhsItem.isOn === lhsItem.isOn;
     });
   };
 
   test('instantiate', function() {
-    var model11 = createFullyPopulatedModel(true, true);
+    const model11 = createFullyPopulatedModel(true, true);
 
-    var view = setupTimeline();
+    const view = setupTimeline();
     view.style.height = '400px';
     view.style.border = '1px solid black';
     view.model = model11;
 
-    var simpleButton1 = document.createElement('tr-ui-b-toolbar-button');
+    const simpleButton1 = document.createElement('tr-ui-b-toolbar-button');
     Polymer.dom(simpleButton1).textContent = 'M';
     Polymer.dom(view.leftControls).appendChild(simpleButton1);
 
-    var simpleButton2 = document.createElement('tr-ui-b-toolbar-button');
+    const simpleButton2 = document.createElement('tr-ui-b-toolbar-button');
     Polymer.dom(simpleButton2).textContent = 'am button';
     Polymer.dom(view.leftControls).appendChild(simpleButton2);
 
@@ -122,10 +122,10 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('changeModelToSomethingDifferent', function() {
-    var model00 = createFullyPopulatedModel(false, false);
-    var model11 = createFullyPopulatedModel(true, true);
+    const model00 = createFullyPopulatedModel(false, false);
+    const model11 = createFullyPopulatedModel(true, true);
 
-    var view = setupTimeline();
+    const view = setupTimeline();
     view.style.height = '400px';
     view.model = model00;
     view.model = undefined;
@@ -134,24 +134,24 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('setModelToSameThingAgain', function() {
-    var model = createFullyPopulatedModel(false, false);
+    const model = createFullyPopulatedModel(false, false);
 
     // Create a view with am model.
-    var view = setupTimeline();
+    const view = setupTimeline();
     view.style.height = '400px';
     view.model = model;
-    var sc = view.brushingStateController;
+    const sc = view.brushingStateController;
 
     // Mutate the model and update the view.
-    var t123 = model.getOrCreateProcess(123).getOrCreateThread(123);
+    const t123 = model.getOrCreateProcess(123).getOrCreateThread(123);
     t123.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
         {title: 'somethingUnusual', start: 0, duration: 5}));
     view.model = model;
 
     // Verify that the new bits of the model show up in the view.
-    var selection = new tr.model.EventSet();
-    var filter = new tr.c.TitleOrCategoryFilter('somethingUnusual');
-    var filterTask = sc.addAllEventsMatchingFilterToSelectionAsTask(
+    const selection = new tr.model.EventSet();
+    const filter = new tr.c.TitleOrCategoryFilter('somethingUnusual');
+    const filterTask = sc.addAllEventsMatchingFilterToSelectionAsTask(
         filter, selection);
     Task.RunSynchronously(filterTask);
     assert.strictEqual(selection.length, 1);

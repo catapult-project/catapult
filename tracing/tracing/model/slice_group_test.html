@@ -13,31 +13,31 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var Slice = tr.model.Slice;
-  var SliceGroup = tr.model.SliceGroup;
-  var newSliceEx = tr.c.TestUtils.newSliceEx;
-  var newThreadSlice = tr.c.TestUtils.newThreadSlice;
-  var newModel = tr.c.TestUtils.newModel;
-  var newFakeThread = tr.c.TestUtils.newFakeThread;
+  const Slice = tr.model.Slice;
+  const SliceGroup = tr.model.SliceGroup;
+  const newSliceEx = tr.c.TestUtils.newSliceEx;
+  const newThreadSlice = tr.c.TestUtils.newThreadSlice;
+  const newModel = tr.c.TestUtils.newModel;
+  const newFakeThread = tr.c.TestUtils.newFakeThread;
 
   test('basicBeginEnd', function() {
-    var group = new SliceGroup(newFakeThread());
+    const group = new SliceGroup(newFakeThread());
     assert.strictEqual(group.openSliceCount, 0);
-    var sliceA = group.beginSlice('', 'a', 1, {a: 1});
+    const sliceA = group.beginSlice('', 'a', 1, {a: 1});
     assert.strictEqual(group.openSliceCount, 1);
     assert.strictEqual(sliceA.title, 'a');
     assert.strictEqual(sliceA.start, 1);
     assert.strictEqual(sliceA.args.a, 1);
 
-    var sliceB = group.endSlice(3);
+    const sliceB = group.endSlice(3);
     assert.strictEqual(sliceA, sliceB);
     assert.strictEqual(sliceB.duration, 2);
   });
 
   test('subSlicesBuilderBasic', function() {
-    var group = new SliceGroup(newFakeThread());
-    var sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 2}));
-    var sB = group.pushSlice(newSliceEx({title: 'b', start: 3, duration: 1}));
+    const group = new SliceGroup(newFakeThread());
+    const sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 2}));
+    const sB = group.pushSlice(newSliceEx({title: 'b', start: 3, duration: 1}));
 
     group.createSubSlices();
 
@@ -52,9 +52,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('subSlicesBuilderBasic2', function() {
-    var group = new SliceGroup(newFakeThread());
-    var sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 4}));
-    var sB = group.pushSlice(newSliceEx({title: 'b', start: 3, duration: 1}));
+    const group = new SliceGroup(newFakeThread());
+    const sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 4}));
+    const sB = group.pushSlice(newSliceEx({title: 'b', start: 3, duration: 1}));
 
     group.createSubSlices();
 
@@ -71,9 +71,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('subSlicesBuilderNestedExactly', function() {
-    var group = new SliceGroup(newFakeThread());
-    var sB = group.pushSlice(newSliceEx({title: 'b', start: 1, duration: 4}));
-    var sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 4}));
+    const group = new SliceGroup(newFakeThread());
+    const sB = group.pushSlice(newSliceEx({title: 'b', start: 1, duration: 4}));
+    const sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 4}));
 
     group.createSubSlices();
 
@@ -96,9 +96,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('subSlicesBuilderInstantEvents', function() {
-    var group = new SliceGroup(newFakeThread());
-    var sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 0}));
-    var sB = group.pushSlice(newSliceEx({title: 'b', start: 2, duration: 0}));
+    const group = new SliceGroup(newFakeThread());
+    const sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 0}));
+    const sB = group.pushSlice(newSliceEx({title: 'b', start: 2, duration: 0}));
 
     group.createSubSlices();
 
@@ -110,9 +110,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('subSlicesBuilderTwoInstantEvents', function() {
-    var group = new SliceGroup(newFakeThread());
-    var sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 0}));
-    var sB = group.pushSlice(newSliceEx({title: 'b', start: 1, duration: 0}));
+    const group = new SliceGroup(newFakeThread());
+    const sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 0}));
+    const sB = group.pushSlice(newSliceEx({title: 'b', start: 1, duration: 0}));
 
     group.createSubSlices();
 
@@ -131,13 +131,13 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('subSlicesBuilderOutOfOrderAddition', function() {
-    var group = new SliceGroup(newFakeThread());
+    const group = new SliceGroup(newFakeThread());
 
     // Pattern being tested:
     // [    a     ][   b   ]
     // Where insertion is done backward.
-    var sB = group.pushSlice(newSliceEx({title: 'b', start: 3, duration: 1}));
-    var sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 2}));
+    const sB = group.pushSlice(newSliceEx({title: 'b', start: 3, duration: 1}));
+    const sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 2}));
 
     group.createSubSlices();
 
@@ -149,14 +149,14 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('subRowBuilderOutOfOrderAddition2', function() {
-    var group = new SliceGroup(newFakeThread());
+    const group = new SliceGroup(newFakeThread());
 
     // Pattern being tested:
     // [    a     ]
     //   [  b   ]
     // Where insertion is done backward.
-    var sB = group.pushSlice(newSliceEx({title: 'b', start: 3, duration: 1}));
-    var sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 5}));
+    const sB = group.pushSlice(newSliceEx({title: 'b', start: 3, duration: 1}));
+    const sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 5}));
 
     group.createSubSlices();
 
@@ -178,14 +178,16 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('subSlicesBuilderOnNestedZeroLength', function() {
-    var group = new SliceGroup(newFakeThread());
+    const group = new SliceGroup(newFakeThread());
 
     // Pattern being tested:
     // [    a    ]
     // [  b1 ]  []<- b2 where b2.duration = 0 and b2.end === a.end.
-    var sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 3}));
-    var sB1 = group.pushSlice(newSliceEx({title: 'b1', start: 1, duration: 2}));
-    var sB2 = group.pushSlice(newSliceEx({title: 'b2', start: 4, duration: 0}));
+    const sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 3}));
+    const sB1 = group.pushSlice(newSliceEx(
+        {title: 'b1', start: 1, duration: 2}));
+    const sB2 = group.pushSlice(newSliceEx(
+        {title: 'b2', start: 4, duration: 0}));
 
     group.createSubSlices();
 
@@ -203,14 +205,15 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('subSlicesBuilderOnGroup1', function() {
-    var group = new SliceGroup(newFakeThread());
+    const group = new SliceGroup(newFakeThread());
 
     // Pattern being tested:
     // [    a     ]   [  c   ]
     //   [  b   ]
-    var sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 3}));
-    var sB = group.pushSlice(newSliceEx({title: 'b', start: 1.5, duration: 1}));
-    var sC = group.pushSlice(newSliceEx({title: 'c', start: 5, duration: 0}));
+    const sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 3}));
+    const sB = group.pushSlice(newSliceEx(
+        {title: 'b', start: 1.5, duration: 1}));
+    const sC = group.pushSlice(newSliceEx({title: 'c', start: 5, duration: 0}));
 
     group.createSubSlices();
 
@@ -230,17 +233,18 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('subSlicesBuilderOnGroup2', function() {
-    var group = new SliceGroup(newFakeThread());
+    const group = new SliceGroup(newFakeThread());
 
     // Pattern being tested:
     // [    a     ]   [  d   ]
     //   [  b   ]
     //    [ c ]
-    var sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 3}));
-    var sB = group.pushSlice(newSliceEx({title: 'b', start: 1.5, duration: 1}));
-    var sC = group.pushSlice(newSliceEx(
+    const sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 3}));
+    const sB = group.pushSlice(newSliceEx(
+        {title: 'b', start: 1.5, duration: 1}));
+    const sC = group.pushSlice(newSliceEx(
         {title: 'c', start: 1.75, duration: 0.5}));
-    var sD = group.pushSlice(newSliceEx(
+    const sD = group.pushSlice(newSliceEx(
         {title: 'd', start: 5, duration: 0.25}));
 
     group.createSubSlices();
@@ -262,14 +266,14 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('findFirstSlice', function() {
-    var group = new SliceGroup(newFakeThread());
+    const group = new SliceGroup(newFakeThread());
     // Pattern being tested:
     // [        a         ] [   d    ]
     // [b]    [   c   ]                 where b is dur=0
-    var sC = group.pushSlice(newSliceEx({title: 'c', start: 2, end: 3}));
-    var sD = group.pushSlice(newSliceEx({title: 'd', start: 5, end: 6}));
-    var sA = group.pushSlice(newSliceEx({title: 'a', start: 1, end: 4}));
-    var sB = group.pushSlice(newSliceEx({title: 'b', start: 1, end: 1}));
+    const sC = group.pushSlice(newSliceEx({title: 'c', start: 2, end: 3}));
+    const sD = group.pushSlice(newSliceEx({title: 'd', start: 5, end: 6}));
+    const sA = group.pushSlice(newSliceEx({title: 'a', start: 1, end: 4}));
+    const sB = group.pushSlice(newSliceEx({title: 'b', start: 1, end: 1}));
 
     assert.throws(group.findFirstSlice);
 
@@ -279,14 +283,14 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('findNextSliceAfterBasic', function() {
-    var group = new SliceGroup(newFakeThread());
+    const group = new SliceGroup(newFakeThread());
     // Pattern being tested:
     // [        a         ] [   d    ]
     // [b]    [   c   ]                 where b is dur=0
-    var sA = group.pushSlice(newSliceEx({title: 'a', start: 1, end: 4}));
-    var sB = group.pushSlice(newSliceEx({title: 'b', start: 1, end: 1}));
-    var sC = group.pushSlice(newSliceEx({title: 'c', start: 2, end: 3}));
-    var sD = group.pushSlice(newSliceEx({title: 'd', start: 5, end: 6}));
+    const sA = group.pushSlice(newSliceEx({title: 'a', start: 1, end: 4}));
+    const sB = group.pushSlice(newSliceEx({title: 'b', start: 1, end: 1}));
+    const sC = group.pushSlice(newSliceEx({title: 'c', start: 2, end: 3}));
+    const sD = group.pushSlice(newSliceEx({title: 'd', start: 5, end: 6}));
 
     group.createSubSlices();
 
@@ -298,13 +302,13 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('subSlicesBuilderTolerateFPInaccuracy', function() {
-    var group = new SliceGroup(newFakeThread());
+    const group = new SliceGroup(newFakeThread());
 
     // Pattern being tested:
     // [  a  ]
     // [  b  ] where b.end contains a tiny FP calculation error.
-    var sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 3}));
-    var sB = group.pushSlice(newSliceEx(
+    const sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 3}));
+    const sB = group.pushSlice(newSliceEx(
         {title: 'b', start: 1, duration: 3.0000000001}));
 
     group.createSubSlices();
@@ -335,15 +339,15 @@ tr.b.unittest.testSuite(function() {
       }
     };
 
-    var thread = newFakeThread();
-    var a = new SliceGroup(thread, TestSlice);
-    var b = new SliceGroup(thread, TestSlice);
+    const thread = newFakeThread();
+    const a = new SliceGroup(thread, TestSlice);
+    const b = new SliceGroup(thread, TestSlice);
     a.beginSlice('', 'one', 1);
     a.endSlice(2);
     b.beginSlice('', 'two', 3);
     b.endSlice(5);
 
-    var m = SliceGroup.merge(a, b);
+    const m = SliceGroup.merge(a, b);
     assert.strictEqual(m.slices.length, 2);
 
     assert.strictEqual(m.slices[0].title, 'one');
@@ -359,15 +363,15 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('nestedMerge', function() {
-    var thread = newFakeThread();
-    var a = new SliceGroup(thread);
-    var b = new SliceGroup(thread);
+    const thread = newFakeThread();
+    const a = new SliceGroup(thread);
+    const b = new SliceGroup(thread);
     a.beginSlice('', 'one', 1);
     a.endSlice(4);
     b.beginSlice('', 'two', 2);
     b.endSlice(3);
 
-    var m = SliceGroup.merge(a, b);
+    const m = SliceGroup.merge(a, b);
     assert.strictEqual(m.slices.length, 2);
 
     assert.strictEqual(m.slices[0].title, 'one');
@@ -380,15 +384,15 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('startSplitMerge', function() {
-    var thread = newFakeThread();
-    var a = new SliceGroup(thread);
-    var b = new SliceGroup(thread);
+    const thread = newFakeThread();
+    const a = new SliceGroup(thread);
+    const b = new SliceGroup(thread);
     a.beginSlice('', 'one', 2);
     a.endSlice(4);
     b.beginSlice('', 'two', 1);
     b.endSlice(3);
 
-    var m = SliceGroup.merge(a, b);
+    const m = SliceGroup.merge(a, b);
     assert.strictEqual(m.slices.length, 3);
 
     assert.strictEqual(m.slices[0].title, 'two');
@@ -405,9 +409,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('startSplitTwoMerge', function() {
-    var thread = newFakeThread();
-    var a = new SliceGroup(thread);
-    var b = new SliceGroup(thread);
+    const thread = newFakeThread();
+    const a = new SliceGroup(thread);
+    const b = new SliceGroup(thread);
     a.beginSlice('', 'one', 3);
     a.endSlice(6);
     b.beginSlice('', 'two', 1);
@@ -415,7 +419,7 @@ tr.b.unittest.testSuite(function() {
     b.endSlice(4);
     b.endSlice(5);
 
-    var m = SliceGroup.merge(a, b);
+    const m = SliceGroup.merge(a, b);
     assert.strictEqual(m.slices.length, 5);
 
     assert.strictEqual(m.slices[0].title, 'two');
@@ -440,9 +444,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('startSplitTwiceMerge', function() {
-    var thread = newFakeThread();
-    var a = new SliceGroup(thread);
-    var b = new SliceGroup(thread);
+    const thread = newFakeThread();
+    const a = new SliceGroup(thread);
+    const b = new SliceGroup(thread);
     a.beginSlice('', 'one', 2);
     a.beginSlice('', 'two', 3);
     a.endSlice(5);
@@ -450,7 +454,7 @@ tr.b.unittest.testSuite(function() {
     b.beginSlice('', 'three', 1);
     b.endSlice(4);
 
-    var m = SliceGroup.merge(a, b);
+    const m = SliceGroup.merge(a, b);
     assert.strictEqual(m.slices.length, 5);
 
     assert.strictEqual(m.slices[0].title, 'three');
@@ -475,15 +479,15 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('endSplitMerge', function() {
-    var thread = newFakeThread();
-    var a = new SliceGroup(thread);
-    var b = new SliceGroup(thread);
+    const thread = newFakeThread();
+    const a = new SliceGroup(thread);
+    const b = new SliceGroup(thread);
     a.beginSlice('', 'one', 1);
     a.endSlice(3);
     b.beginSlice('', 'two', 2);
     b.endSlice(4);
 
-    var m = SliceGroup.merge(a, b);
+    const m = SliceGroup.merge(a, b);
     assert.strictEqual(m.slices.length, 3);
 
     assert.strictEqual(m.slices[0].title, 'one');
@@ -500,9 +504,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('endSplitTwoMerge', function() {
-    var thread = newFakeThread();
-    var a = new SliceGroup(thread);
-    var b = new SliceGroup(thread);
+    const thread = newFakeThread();
+    const a = new SliceGroup(thread);
+    const b = new SliceGroup(thread);
     a.beginSlice('', 'one', 1);
     a.endSlice(4);
     b.beginSlice('', 'two', 2);
@@ -510,7 +514,7 @@ tr.b.unittest.testSuite(function() {
     b.endSlice(5);
     b.endSlice(6);
 
-    var m = SliceGroup.merge(a, b);
+    const m = SliceGroup.merge(a, b);
     assert.strictEqual(m.slices.length, 5);
 
     assert.strictEqual(m.slices[0].title, 'one');
@@ -535,9 +539,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('endSplitTwiceMerge', function() {
-    var thread = newFakeThread();
-    var a = new SliceGroup(thread);
-    var b = new SliceGroup(thread);
+    const thread = newFakeThread();
+    const a = new SliceGroup(thread);
+    const b = new SliceGroup(thread);
     a.beginSlice('', 'one', 1);
     a.beginSlice('', 'two', 2);
     a.endSlice(4);
@@ -545,7 +549,7 @@ tr.b.unittest.testSuite(function() {
     b.beginSlice('', 'three', 3);
     b.endSlice(6);
 
-    var m = SliceGroup.merge(a, b);
+    const m = SliceGroup.merge(a, b);
     assert.strictEqual(m.slices.length, 5);
 
     assert.strictEqual(m.slices[0].title, 'one');
@@ -578,9 +582,9 @@ tr.b.unittest.testSuite(function() {
   //     |    one     | three |     two     |
   //          | three |       | three |
   test('splitTwiceMerge', function() {
-    var thread = newFakeThread();
-    var a = new SliceGroup(thread);
-    var b = new SliceGroup(thread);
+    const thread = newFakeThread();
+    const a = new SliceGroup(thread);
+    const b = new SliceGroup(thread);
     a.beginSlice('', 'one', 1);
     a.endSlice(3);
     a.beginSlice('', 'two', 4);
@@ -588,7 +592,7 @@ tr.b.unittest.testSuite(function() {
     b.beginSlice('', 'three', 2);
     b.endSlice(5);
 
-    var m = SliceGroup.merge(a, b);
+    const m = SliceGroup.merge(a, b);
     assert.strictEqual(m.slices.length, 5);
 
     assert.strictEqual(m.slices[0].title, 'one');
@@ -613,7 +617,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('bounds', function() {
-    var group = new SliceGroup(newFakeThread());
+    const group = new SliceGroup(newFakeThread());
     group.updateBounds();
     assert.isUndefined(group.bounds.min);
     assert.isUndefined(group.bounds.max);
@@ -626,7 +630,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('boundsWithPartial', function() {
-    var group = new SliceGroup(newFakeThread());
+    const group = new SliceGroup(newFakeThread());
     group.beginSlice('', 'a', 7);
     group.updateBounds();
     assert.strictEqual(group.bounds.min, 7);
@@ -634,7 +638,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('boundsWithTwoPartials', function() {
-    var group = new SliceGroup(newFakeThread());
+    const group = new SliceGroup(newFakeThread());
     group.beginSlice('', 'a', 0);
     group.beginSlice('', 'a', 1);
     group.updateBounds();
@@ -643,7 +647,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('boundsWithBothPartialAndRegular', function() {
-    var group = new SliceGroup(newFakeThread());
+    const group = new SliceGroup(newFakeThread());
     group.updateBounds();
     assert.isUndefined(group.bounds.min);
     assert.isUndefined(group.bounds.max);
@@ -656,7 +660,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('autocloserBasic', function() {
-    var group = new SliceGroup(newFakeThread());
+    const group = new SliceGroup(newFakeThread());
     assert.strictEqual(0, group.openSliceCount);
 
     group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 0.5}));
@@ -684,7 +688,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('autocloserWithSubTasks', function() {
-    var group = new SliceGroup(newFakeThread());
+    const group = new SliceGroup(newFakeThread());
     assert.strictEqual(0, group.openSliceCount);
 
     group.beginSlice('', 'a', 1);
@@ -709,7 +713,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('autocloseCompleteSlice', function() {
-    var group = new SliceGroup(newFakeThread());
+    const group = new SliceGroup(newFakeThread());
 
     group.pushCompleteSlice('', 'a', 1, undefined);
     group.pushCompleteSlice('', 'b', 2, 3);
@@ -727,10 +731,10 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('sliceGroupStableId', function() {
-    var model = new tr.Model();
-    var process = model.getOrCreateProcess(123);
-    var thread = process.getOrCreateThread(456);
-    var group = new SliceGroup(thread);
+    const model = new tr.Model();
+    const process = model.getOrCreateProcess(123);
+    const thread = process.getOrCreateThread(456);
+    const group = new SliceGroup(thread);
 
     assert.strictEqual(process.stableId, 123);
     assert.strictEqual(thread.stableId, '123.456');
@@ -738,11 +742,11 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('getSlicesOfName', function() {
-    var group = new SliceGroup(newFakeThread());
-    var expected = [];
+    const group = new SliceGroup(newFakeThread());
+    const expected = [];
 
-    for (var i = 0; i < 10; i++) {
-      var aSlice = newSliceEx({title: 'a', start: i, duration: i + 1});
+    for (let i = 0; i < 10; i++) {
+      const aSlice = newSliceEx({title: 'a', start: i, duration: i + 1});
       group.pushSlice(aSlice);
       group.pushSlice(newSliceEx({title: 'b', start: i + 1, duration: i + 2}));
       expected.push(aSlice);
@@ -752,11 +756,11 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('iterSlicesInTimeRange', function() {
-    var group = new SliceGroup(newFakeThread());
-    var expected = [];
+    const group = new SliceGroup(newFakeThread());
+    const expected = [];
 
-    for (var i = 0; i < 10; i++) {
-      var slice = newSliceEx({title: 'a', start: i, duration: 1});
+    for (let i = 0; i < 10; i++) {
+      const slice = newSliceEx({title: 'a', start: i, duration: 1});
       group.pushSlice(slice);
       if (4 <= i && i <= 7) {
         expected.push(slice);
@@ -764,21 +768,21 @@ tr.b.unittest.testSuite(function() {
     }
     group.createSubSlices();
 
-    var observed = [];
+    const observed = [];
     group.iterSlicesInTimeRange(function(slice) { observed.push(slice); },
         4.5, 7.5);
     assert.deepEqual(observed, expected);
   });
 
   test('computeCpuDurationNoOverlap', function() {
-    var model = new tr.Model();
-    var SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
-    var process = model.getOrCreateProcess(123);
-    var t = process.getOrCreateThread(456);
+    const model = new tr.Model();
+    const SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
+    const process = model.getOrCreateProcess(123);
+    const t = process.getOrCreateThread(456);
     t.timeSlices = [newThreadSlice(t, SCHEDULING_STATE.RUNNING, 20, 20),
       newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 40, 10),
       newThreadSlice(t, SCHEDULING_STATE.RUNNING, 50, 10)];
-    var group = new SliceGroup(t);
+    const group = new SliceGroup(t);
     group.pushSlice(newSliceEx({title: 'draw', start: 0, duration: 20}));
     group.pushSlice(newSliceEx({title: 'render', start: 60, duration: 20}));
     group.createSubSlices();
@@ -787,14 +791,14 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('computeCpuDurationPartialOverlap', function() {
-    var model = new tr.Model();
-    var SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
-    var process = model.getOrCreateProcess(123);
-    var t = process.getOrCreateThread(456);
+    const model = new tr.Model();
+    const SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
+    const process = model.getOrCreateProcess(123);
+    const t = process.getOrCreateThread(456);
     t.timeSlices = [newThreadSlice(t, SCHEDULING_STATE.RUNNING, 20, 20),
       newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 40, 10),
       newThreadSlice(t, SCHEDULING_STATE.RUNNING, 50, 10)];
-    var group = new SliceGroup(t);
+    const group = new SliceGroup(t);
     group.pushSlice(newSliceEx({title: 'draw', start: 10, duration: 30}));
     group.pushSlice(newSliceEx({title: 'render', start: 50, duration: 20}));
     group.createSubSlices();
@@ -803,14 +807,14 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('computeCpuDurationFullOverlap', function() {
-    var model = new tr.Model();
-    var SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
-    var process = model.getOrCreateProcess(123);
-    var t = process.getOrCreateThread(456);
+    const model = new tr.Model();
+    const SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
+    const process = model.getOrCreateProcess(123);
+    const t = process.getOrCreateThread(456);
     t.timeSlices = [newThreadSlice(t, SCHEDULING_STATE.RUNNING, 20, 20),
       newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 40, 10),
       newThreadSlice(t, SCHEDULING_STATE.RUNNING, 50, 20)];
-    var group = new SliceGroup(t);
+    const group = new SliceGroup(t);
     group.pushSlice(newSliceEx({title: 'draw', start: 20, duration: 30}));
     group.pushSlice(newSliceEx({title: 'render', start: 50, duration: 20}));
     group.createSubSlices();
@@ -819,14 +823,14 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('computeCpuSelfDurationWithSubslices', function() {
-    var model = new tr.Model();
-    var SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
-    var process = model.getOrCreateProcess(123);
-    var t = process.getOrCreateThread(456);
+    const model = new tr.Model();
+    const SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
+    const process = model.getOrCreateProcess(123);
+    const t = process.getOrCreateThread(456);
     t.timeSlices = [newThreadSlice(t, SCHEDULING_STATE.RUNNING, 20, 20),
       newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 40, 10),
       newThreadSlice(t, SCHEDULING_STATE.RUNNING, 50, 20)];
-    var group = new SliceGroup(t);
+    const group = new SliceGroup(t);
     group.pushSlice(newSliceEx({title: 'draw', start: 20, duration: 30}));
     group.pushSlice(newSliceEx({title: 'render', start: 21, duration: 8}));
     group.pushSlice(newSliceEx({title: 'flush', start: 29, duration: 11}));
@@ -840,10 +844,10 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('computeCpuDurationSmallTimeslices', function() {
-    var model = new tr.Model();
-    var SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
-    var process = model.getOrCreateProcess(123);
-    var t = process.getOrCreateThread(456);
+    const model = new tr.Model();
+    const SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
+    const process = model.getOrCreateProcess(123);
+    const t = process.getOrCreateThread(456);
     t.timeSlices = [newThreadSlice(t, SCHEDULING_STATE.RUNNING, 20, 1),
       newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 21, 1),
       newThreadSlice(t, SCHEDULING_STATE.RUNNING, 22, 1),
@@ -855,7 +859,7 @@ tr.b.unittest.testSuite(function() {
       newThreadSlice(t, SCHEDULING_STATE.RUNNING, 28, 1),
       newThreadSlice(t, SCHEDULING_STATE.SLEEPING, 29, 1),
       newThreadSlice(t, SCHEDULING_STATE.RUNNING, 30, 1)];
-    var group = new SliceGroup(t);
+    const group = new SliceGroup(t);
     group.pushSlice(newSliceEx(
         {title: 'draw', start: 20, duration: 11})); // 20,[22,24,26,28],30
     group.pushSlice(newSliceEx(
@@ -872,7 +876,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('sliceParentContainerSetAtPush', function() {
-    var m = newModel(function(m) {
+    const m = newModel(function(m) {
       m.process = m.getOrCreateProcess(123);
       m.thread = m.process.getOrCreateThread(456);
       m.group = new SliceGroup(m.thread);

@@ -10,17 +10,17 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var RunningStatistics = tr.b.math.RunningStatistics;
-  var Statistics = tr.b.math.Statistics;
+  const RunningStatistics = tr.b.math.RunningStatistics;
+  const Statistics = tr.b.math.Statistics;
 
   function run(data) {
-    var running = new RunningStatistics();
+    const running = new RunningStatistics();
     data.forEach(x => running.add(x));
     return running;
   }
 
   test('sum', function() {
-    var data;
+    let data;
     data = [];
     assert.closeTo(Statistics.sum(data), run(data).sum, 1e-6);
     data = [1];
@@ -36,7 +36,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('min', function() {
-    var data;
+    let data;
     data = [];
     assert.strictEqual(Statistics.min(data), run(data).min);
     data = [1];
@@ -48,7 +48,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('max', function() {
-    var data;
+    let data;
     data = [];
     assert.strictEqual(Statistics.max(data), run(data).max);
     data = [1];
@@ -60,7 +60,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('mean', function() {
-    var data;
+    let data;
     data = [];
     assert.strictEqual(Statistics.mean(data), run(data).mean);
     data = [1];
@@ -76,7 +76,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('geometricMean', function() {
-    var data;
+    let data;
     data = [];
     assert.strictEqual(Statistics.geometricMean(data), run(data).geometricMean);
     data = [-1];
@@ -92,7 +92,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('variance', function() {
-    var data;
+    let data;
     data = [];
     assert.strictEqual(Statistics.variance(data), run(data).variance);
     data = [1];
@@ -104,7 +104,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('stddev', function() {
-    var data;
+    let data;
     data = [];
     assert.strictEqual(Statistics.stddev(data), run(data).stddev);
     data = [1];
@@ -116,10 +116,10 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('merge', function() {
-    var data1 = [];
-    var data2 = [];
-    var data = data1.concat(data2);
-    var stats = run(data1).merge(run(data2));
+    let data1 = [];
+    let data2 = [];
+    let data = data1.concat(data2);
+    let stats = run(data1).merge(run(data2));
     assert.strictEqual(Statistics.sum(data), stats.sum);
     assert.strictEqual(Statistics.min(data), stats.min);
     assert.strictEqual(Statistics.max(data), stats.max);
@@ -178,10 +178,10 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('serialization', function() {
-    var data = [1, 2, 3];
-    var dict = run(data).asDict();
-    var cloneDict = RunningStatistics.fromDict(dict).asDict();
-    for (var field = 0; field < dict.length; ++field) {
+    const data = [1, 2, 3];
+    const dict = run(data).asDict();
+    const cloneDict = RunningStatistics.fromDict(dict).asDict();
+    for (let field = 0; field < dict.length; ++field) {
       assert.closeTo(dict[field], cloneDict[field], 1e-6);
     }
 

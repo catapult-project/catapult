@@ -113,15 +113,15 @@ found in the LICENSE file.
 <script>
 'use strict';
 tr.exportTo('tr.b.unittest', function() {
-  var THIS_DOC = document.currentScript.ownerDocument;
+  const THIS_DOC = document.currentScript.ownerDocument;
 
-  var TestStatus = tr.b.unittest.TestStatus;
-  var TestTypes = tr.b.unittest.TestTypes;
+  const TestStatus = tr.b.unittest.TestStatus;
+  const TestTypes = tr.b.unittest.TestTypes;
 
   /**
    * @constructor
    */
-  var HTMLTestCaseResult = tr.ui.b.define('x-html-test-case-result');
+  const HTMLTestCaseResult = tr.ui.b.define('x-html-test-case-result');
 
   HTMLTestCaseResult.prototype = {
     __proto__: HTMLDivElement.prototype,
@@ -165,7 +165,7 @@ tr.exportTo('tr.b.unittest', function() {
       this.updateTitle_();
     },
     updateTitle_() {
-      var titleEl = Polymer.dom(this).querySelector('#title');
+      const titleEl = Polymer.dom(this).querySelector('#title');
       if (this.testCase_ === undefined) {
         Polymer.dom(titleEl).textContent = '';
         return;
@@ -181,7 +181,7 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     addError(normalizedException) {
-      var errorEl = document.createElement('x-html-test-case-error');
+      const errorEl = document.createElement('x-html-test-case-error');
       Polymer.dom(errorEl).appendChild(tr.ui.b.instantiateTemplate(
           '#x-html-test-case-error-template', THIS_DOC));
       Polymer.dom(Polymer.dom(errorEl).querySelector('#stack')).
@@ -192,7 +192,7 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     addFlaky() {
-      var flakyEl = document.createElement('x-html-test-case-flaky');
+      const flakyEl = document.createElement('x-html-test-case-flaky');
       Polymer.dom(flakyEl).appendChild(tr.ui.b.instantiateTemplate(
           '#x-html-test-case-flaky-template', THIS_DOC));
       Polymer.dom(Polymer.dom(flakyEl).querySelector('#message'))
@@ -203,7 +203,7 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     addSkipped() {
-      var skippedEl = document.createElement('x-html-test-case-skipped');
+      const skippedEl = document.createElement('x-html-test-case-skipped');
       Polymer.dom(skippedEl).appendChild(tr.ui.b.instantiateTemplate(
           '#x-html-test-case-skipped-template', THIS_DOC));
       Polymer.dom(Polymer.dom(skippedEl).querySelector('#message'))
@@ -214,22 +214,23 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     addHTMLOutput(element) {
-      var htmlResultEl = document.createElement('x-html-test-case-html-result');
+      const htmlResultEl = document.createElement(
+          'x-html-test-case-html-result');
       Polymer.dom(htmlResultEl).appendChild(element);
       Polymer.dom(Polymer.dom(this).querySelector('#details'))
           .appendChild(htmlResultEl);
     },
 
     updateHTMLOutputDisplayState_() {
-      var htmlResults =
+      const htmlResults =
           Polymer.dom(this).querySelectorAll('x-html-test-case-html-result');
-      var display;
+      let display;
       if (this.showHTMLOutput) {
         display = '';
       } else {
         display = (this.testStatus_ === TestStatus.RUNNING) ? '' : 'none';
       }
-      for (var i = 0; i < htmlResults.length; i++) {
+      for (let i = 0; i < htmlResults.length; i++) {
         htmlResults[i].style.display = display;
       }
     },
@@ -266,8 +267,8 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     updateColorAndStatus_() {
-      var colorCls;
-      var status;
+      let colorCls;
+      let status;
       if (this.hadErrors) {
         colorCls = 'unittest-failed';
         status = 'failed';
@@ -288,7 +289,7 @@ tr.exportTo('tr.b.unittest', function() {
         status = 'passed';
       }
 
-      var statusEl = Polymer.dom(this).querySelector('#status');
+      const statusEl = Polymer.dom(this).querySelector('#status');
       if (this.duration_) {
         Polymer.dom(statusEl).textContent = status + ' (' +
             this.duration_.toFixed(2) + 'ms)';
@@ -312,7 +313,7 @@ tr.exportTo('tr.b.unittest', function() {
   /**
    * @constructor
    */
-  var HTMLTestResults = tr.ui.b.define('x-tr-b-unittest-test-results');
+  const HTMLTestResults = tr.ui.b.define('x-tr-b-unittest-test-results');
 
   HTMLTestResults.prototype = {
     __proto__: HTMLUnknownElement.prototype,
@@ -350,9 +351,9 @@ tr.exportTo('tr.b.unittest', function() {
 
     set showHTMLOutput(showHTMLOutput) {
       this.showHTMLOutput_ = showHTMLOutput;
-      var testCaseResults =
+      const testCaseResults =
           Polymer.dom(this).querySelectorAll('x-html-test-case-result');
-      for (var i = 0; i < testCaseResults.length; i++) {
+      for (let i = 0; i < testCaseResults.length; i++) {
         testCaseResults[i].showHTMLOutput = showHTMLOutput;
       }
     },
@@ -364,15 +365,15 @@ tr.exportTo('tr.b.unittest', function() {
     set showPendingAndPassedTests(showPendingAndPassedTests) {
       this.showPendingAndPassedTests_ = showPendingAndPassedTests;
 
-      var testCaseResults =
+      const testCaseResults =
           Polymer.dom(this).querySelectorAll('x-html-test-case-result');
-      for (var i = testCaseResults.length - 1; i >= 0; i--) {
+      for (let i = testCaseResults.length - 1; i >= 0; i--) {
         this.updateDisplayStateForResult_(testCaseResults[i]);
       }
     },
 
     updateDisplayStateForResult_(res) {
-      var display;
+      let display;
       if (this.showPendingAndPassedTests_) {
         if (res.testStatus === TestStatus.RUNNING ||
             res.hadErrors) {
@@ -389,14 +390,14 @@ tr.exportTo('tr.b.unittest', function() {
     willRunTests(testCases) {
       this.timeAtBeginningOfTest_ = window.performance.now();
       testCases.forEach(function(testCase, i) {
-        var testCaseResult = new HTMLTestCaseResult();
+        const testCaseResult = new HTMLTestCaseResult();
         testCaseResult.showHTMLOutput = this.showHTMLOutput_;
         testCaseResult.testCase = testCase;
         if ((i % 2) === 0) {
           Polymer.dom(testCaseResult).classList.add('dark');
         }
 
-        var href = this.getHRefForTestCase(testCase);
+        const href = this.getHRefForTestCase(testCase);
         if (href) {
           testCaseResult.testCaseHRef = href;
         }
@@ -419,7 +420,7 @@ tr.exportTo('tr.b.unittest', function() {
     addErrorForCurrentTest(error) {
       this.log_('\n');
 
-      var normalizedException = tr.b.normalizeException(error);
+      const normalizedException = tr.b.normalizeException(error);
       this.log_('Exception: ' + normalizedException.message + '\n' +
           normalizedException.stack);
 
@@ -450,13 +451,13 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     didCurrentTestEnd() {
-      var now = window.performance.now();
-      var testCaseResult = this.currentTestCaseResult_;
-      var testCaseDuration = now - this.currentTestCaseStartTime_;
+      const now = window.performance.now();
+      const testCaseResult = this.currentTestCaseResult_;
+      const testCaseDuration = now - this.currentTestCaseStartTime_;
       this.currentTestCaseResult_.testStatus = TestStatus.DONE_RUNNING;
       testCaseResult.duration = testCaseDuration;
       this.totalRunTime_ = now - this.timeAtBeginningOfTest_;
-      var resultString;
+      let resultString;
       if (testCaseResult.hadErrors) {
         resultString = 'FAILED';
         this.numTestsThatFailed_ += 1;
@@ -507,9 +508,9 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     notifyTestResultToDevServer_(result, extraMsg) {
-      var req = new XMLHttpRequest();
-      var testName = this.currentTestCaseResult_.testCase.fullyQualifiedName;
-      var data = result + '  ' + testName + ' ' + (extraMsg || '');
+      const req = new XMLHttpRequest();
+      const testName = this.currentTestCaseResult_.testCase.fullyQualifiedName;
+      const data = result + '  ' + testName + ' ' + (extraMsg || '');
       tr.b.postAsync('/tracing/notify_test_result', data);
     },
 

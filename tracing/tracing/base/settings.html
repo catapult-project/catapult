@@ -31,6 +31,7 @@ tr.exportTo('tr.b', function() {
             Settings.setAlternativeStorageInstance(new HeadlessStorage());
           } else {
             Settings.setAlternativeStorageInstance(global.sessionStorage);
+            global.sessionStorage.clear();
           }
         });
   }
@@ -53,7 +54,7 @@ tr.exportTo('tr.b', function() {
      */
     inputClass.get = function(key, opt_default, opt_namespace) {
       key = inputClass.namespace_(key, opt_namespace);
-      var rawVal = inputClass.storage_.getItem(key);
+      const rawVal = inputClass.storage_.getItem(key);
       if (rawVal === null || rawVal === undefined) {
         return opt_default;
       }
@@ -82,7 +83,7 @@ tr.exportTo('tr.b', function() {
       if (value === undefined) {
         throw new Error('Settings.set: value must not be undefined');
       }
-      var v = JSON.stringify({value});
+      const v = JSON.stringify({value});
       inputClass.storage_.setItem(
           inputClass.namespace_(key, opt_namespace), v);
     };
@@ -95,10 +96,10 @@ tr.exportTo('tr.b', function() {
      * begin with this prefix.
      */
     inputClass.keys = function(opt_namespace) {
-      var result = [];
+      const result = [];
       opt_namespace = opt_namespace || '';
-      for (var i = 0; i < inputClass.storage_.length; i++) {
-        var key = inputClass.storage_.key(i);
+      for (let i = 0; i < inputClass.storage_.length; i++) {
+        const key = inputClass.storage_.key(i);
         if (inputClass.isnamespaced_(key, opt_namespace)) {
           result.push(inputClass.unnamespace_(key, opt_namespace));
         }
@@ -157,8 +158,8 @@ tr.exportTo('tr.b', function() {
       if (this.itemsAsArray_ !== undefined) {
         return this.itemsAsArray_;
       }
-      var itemsAsArray = [];
-      for (var k in this.items_) {
+      const itemsAsArray = [];
+      for (const k in this.items_) {
         itemsAsArray.push(k);
       }
       this.itemsAsArray_ = itemsAsArray;
@@ -176,7 +177,7 @@ tr.exportTo('tr.b', function() {
       if (!this.hasItem_[key]) {
         return;
       }
-      var value = this.items_[key];
+      const value = this.items_[key];
       delete this.hasItem_[key];
       delete this.items_[key];
       this.length--;

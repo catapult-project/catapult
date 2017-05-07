@@ -15,11 +15,11 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('longTasksMetric', function() {
-    var model = tr.c.TestUtils.newModel(function(model) {
-      var proc = model.getOrCreateProcess(1);
-      var thread = proc.getOrCreateThread(2);
+    const model = tr.c.TestUtils.newModel(function(model) {
+      const proc = model.getOrCreateProcess(1);
+      const thread = proc.getOrCreateThread(2);
       thread.name = 'CrRendererMain';
-      var longTask = tr.c.TestUtils.newSliceEx({
+      const longTask = tr.c.TestUtils.newSliceEx({
         title: 'foo',
         start: 0,
         duration: 50,
@@ -61,22 +61,22 @@ tr.b.unittest.testSuite(function() {
       model.addUserFriendlyCategoryDriver(
           tr.e.chrome.ChromeUserFriendlyCategoryDriver);
     });
-    var histograms = new tr.v.HistogramSet();
+    const histograms = new tr.v.HistogramSet();
     tr.metrics.sh.longTasksMetric(histograms, model);
-    var longTaskHist = histograms.getHistogramNamed('long tasks');
+    const longTaskHist = histograms.getHistogramNamed('long tasks');
     assert.strictEqual(1, longTaskHist.numValues);
     assert.strictEqual(1, longTaskHist.allBins[1].count);
     assert.lengthOf(longTaskHist.allBins[1].diagnosticMaps, 1);
-    var events =
+    const events =
       longTaskHist.allBins[1].diagnosticMaps[0].get('relatedEvents');
     assert.instanceOf(events, tr.v.d.RelatedEventSet);
     assert.strictEqual(tr.b.getOnlyElement(events).title,
         'foo');
-    var breakdown = longTaskHist.diagnostics.get('category');
+    const breakdown = longTaskHist.diagnostics.get('category');
     assert.instanceOf(breakdown, tr.v.d.RelatedHistogramBreakdown);
     assert.lengthOf(breakdown, 4);
 
-    var hist = breakdown.get('layout');
+    let hist = breakdown.get('layout');
     assert.instanceOf(hist, tr.v.Histogram);
     assert.strictEqual(histograms.getHistogramNamed(hist.name), hist);
     assert.strictEqual(0, hist.name.indexOf(longTaskHist.name));

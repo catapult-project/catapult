@@ -10,11 +10,11 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.e.measure', function() {
-  var AsyncSlice = tr.model.AsyncSlice;
+  const AsyncSlice = tr.model.AsyncSlice;
 
   function MeasureAsyncSlice() {
     this.groupTitle_ = 'Ungrouped Measure';
-    var matched = /([^\/:]+):([^\/:]+)\/?(.*)/.exec(arguments[1]);
+    const matched = /([^\/:]+):([^\/:]+)\/?(.*)/.exec(arguments[1]);
     if (matched !== null) {
       arguments[1] = matched[2];
       this.groupTitle_ = matched[1];

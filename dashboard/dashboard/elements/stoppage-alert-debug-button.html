@@ -156,7 +156,7 @@ found in the LICENSE file.
         // where 'failed' and 'exception' are.
         // This function tries to get the correct string for the result,
         // defaulting to "unknown".
-        var testResult = 'unknown';
+        let testResult = 'unknown';
         if (buildbotStepResult) {
           if (buildbotStepResult[0] == '0') {
             testResult = 'succeeded';
@@ -170,12 +170,12 @@ found in the LICENSE file.
       },
 
       open() {
-        var dialog = this.$['debug-dialog'];
+        const dialog = this.$['debug-dialog'];
         dialog.open();
         this.loading = true;
         this.error = false;
 
-        var params = {};
+        const params = {};
         if (this.alertKey) {
           params.key = this.alertKey;
         } else if (this.testPath && this.testRev) {

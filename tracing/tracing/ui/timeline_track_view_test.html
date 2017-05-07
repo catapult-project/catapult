@@ -15,19 +15,19 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var EventSet = tr.model.EventSet;
-  var SelectionState = tr.model.SelectionState;
-  var Task = tr.b.Task;
+  const EventSet = tr.model.EventSet;
+  const SelectionState = tr.model.SelectionState;
+  const Task = tr.b.Task;
 
   test('instantiate', function() {
-    var numThreads = 500;
-    var model = tr.c.TestUtils.newModelWithEvents([], {
+    const numThreads = 500;
+    const model = tr.c.TestUtils.newModelWithEvents([], {
       shiftWorldToZero: false,
       pruneContainers: false,
       customizeModelCallback(model) {
-        var p100 = model.getOrCreateProcess(100);
-        for (var i = 0; i < numThreads; i++) {
-          var t = p100.getOrCreateThread(101 + i);
+        const p100 = model.getOrCreateProcess(100);
+        for (let i = 0; i < numThreads; i++) {
+          const t = p100.getOrCreateThread(101 + i);
           if (i % 2 === 0) {
             t.sliceGroup.beginSlice('cat', 'a', 100);
             t.sliceGroup.endSlice(110);
@@ -39,112 +39,112 @@ tr.b.unittest.testSuite(function() {
       }
     });
 
-    var timeline = document.createElement('tr-ui-timeline-track-view');
+    const timeline = document.createElement('tr-ui-timeline-track-view');
     timeline.model = model;
     timeline.style.maxHeight = '600px';
     this.addHTMLOutput(timeline);
   });
 
   test('addAllEventsMatchingFilterToSelectionAsTask', function() {
-    var model = new tr.Model();
-    var p1 = model.getOrCreateProcess(1);
-    var t1 = p1.getOrCreateThread(1);
+    const model = new tr.Model();
+    const p1 = model.getOrCreateProcess(1);
+    const t1 = p1.getOrCreateThread(1);
 
     t1.sliceGroup.pushSlice(
         new tr.model.ThreadSlice('', 'a', 0, 1, {}, 3));
     t1.sliceGroup.pushSlice(
         new tr.model.ThreadSlice('', 'b', 0, 1.1, {}, 2.8));
 
-    var t1asg = t1.asyncSliceGroup;
+    const t1asg = t1.asyncSliceGroup;
     t1asg.slices.push(
         tr.c.TestUtils.newAsyncSliceNamed('a', 0, 1, t1, t1));
     t1asg.slices.push(
         tr.c.TestUtils.newAsyncSliceNamed('b', 1, 2, t1, t1));
 
-    var timeline = document.createElement('tr-ui-timeline-track-view');
+    const timeline = document.createElement('tr-ui-timeline-track-view');
     timeline.model = model;
 
-    var expected = new tr.model.EventSet(
+    let expected = new tr.model.EventSet(
         [t1asg.slices[0], t1.sliceGroup.slices[0]]);
-    var result = new tr.model.EventSet;
-    var filterTask = timeline.addAllEventsMatchingFilterToSelectionAsTask(
+    let result = new tr.model.EventSet;
+    let filterTask = timeline.addAllEventsMatchingFilterToSelectionAsTask(
         new tr.c.TitleOrCategoryFilter('a'), result);
     Task.RunSynchronously(filterTask);
     assert.isTrue(result.equals(expected));
 
-    var expected = new tr.model.EventSet(
+    expected = new tr.model.EventSet(
         [t1asg.slices[1], t1.sliceGroup.slices[1]]);
-    var result = new tr.model.EventSet();
-    var filterTask = timeline.addAllEventsMatchingFilterToSelectionAsTask(
+    result = new tr.model.EventSet();
+    filterTask = timeline.addAllEventsMatchingFilterToSelectionAsTask(
         new tr.c.TitleOrCategoryFilter('b'), result);
     Task.RunSynchronously(filterTask);
     assert.isTrue(result.equals(expected));
   });
 
   test('emptyThreadsDeleted', function() {
-    var model = new tr.Model();
-    var p1 = model.getOrCreateProcess(1);
-    var t1 = p1.getOrCreateThread(1);
+    const model = new tr.Model();
+    const p1 = model.getOrCreateProcess(1);
+    const t1 = p1.getOrCreateThread(1);
 
-    var timeline = document.createElement('tr-ui-timeline-track-view');
+    const timeline = document.createElement('tr-ui-timeline-track-view');
     timeline.model = model;
 
     assert.isFalse(timeline.hasVisibleContent);
   });
 
   test('filteredCounters', function() {
-    var model = new tr.Model();
-    var c1 = model.kernel.getOrCreateCpu(0);
+    const model = new tr.Model();
+    const c1 = model.kernel.getOrCreateCpu(0);
     c1.getOrCreateCounter('', 'b');
 
-    var p1 = model.getOrCreateProcess(1);
-    var ctr = p1.getOrCreateCounter('', 'a');
-    var series = new tr.model.CounterSeries('a', 0);
+    const p1 = model.getOrCreateProcess(1);
+    const ctr = p1.getOrCreateCounter('', 'a');
+    const series = new tr.model.CounterSeries('a', 0);
     series.addCounterSample(0, 1);
     ctr.addSeries(series);
 
-    var timeline = document.createElement('tr-ui-timeline-track-view');
+    const timeline = document.createElement('tr-ui-timeline-track-view');
     timeline.model = model;
 
     assert.isTrue(timeline.hasVisibleContent);
   });
 
   test('filteredCpus', function() {
-    var model = new tr.Model();
-    var c1 = model.kernel.getOrCreateCpu(1);
+    const model = new tr.Model();
+    const c1 = model.kernel.getOrCreateCpu(1);
     c1.getOrCreateCounter('', 'a');
 
-    var timeline = document.createElement('tr-ui-timeline-track-view');
+    const timeline = document.createElement('tr-ui-timeline-track-view');
     timeline.model = model;
 
     assert.isTrue(timeline.hasVisibleContent);
   });
 
   test('filteredProcesses', function() {
-    var model = new tr.Model();
-    var p1 = model.getOrCreateProcess(1);
+    const model = new tr.Model();
+    const p1 = model.getOrCreateProcess(1);
     p1.getOrCreateCounter('', 'a');
 
-    var timeline = document.createElement('tr-ui-timeline-track-view');
+    const timeline = document.createElement('tr-ui-timeline-track-view');
     timeline.model = model;
 
     assert.isTrue(timeline.hasVisibleContent);
   });
 
   test('filteredThreads', function() {
-    var model = new tr.Model();
-    var p1 = model.getOrCreateProcess(1);
-    var t1 = p1.getOrCreateThread(2);
+    const model = new tr.Model();
+    const p1 = model.getOrCreateProcess(1);
+    const t1 = p1.getOrCreateThread(2);
     t1.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({start: 0, duration: 1}));
 
-    var timeline = document.createElement('tr-ui-timeline-track-view');
+    const timeline = document.createElement('tr-ui-timeline-track-view');
     timeline.model = model;
 
     assert.isTrue(timeline.hasVisibleContent);
   });
 
   test('interestRange', function() {
-    var events = [
+    const events = [
       {name: 'a', args: {}, pid: 52, ts: 520, cat: 'foo', tid: 53, ph: 'B'},
       {name: 'b', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'B'},
       {name: 'c', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'B'},
@@ -152,17 +152,17 @@ tr.b.unittest.testSuite(function() {
       {name: 'b', args: {}, pid: 52, ts: 631, cat: 'foo', tid: 53, ph: 'E'},
       {name: 'a', args: {}, pid: 52, ts: 634, cat: 'foo', tid: 53, ph: 'E'}
     ];
-    var model = tr.c.TestUtils.newModelWithEvents([events]);
-    var trackView = document.createElement('tr-ui-timeline-track-view');
+    const model = tr.c.TestUtils.newModelWithEvents([events]);
+    const trackView = document.createElement('tr-ui-timeline-track-view');
     trackView.model = model;
     this.addHTMLOutput(trackView);
 
-    var slice = model.processes[52].threads[53].sliceGroup.slices[2];
+    const slice = model.processes[52].threads[53].sliceGroup.slices[2];
     trackView.viewport.interestRange.setMinAndMax(slice.start, slice.end);
   });
 
   test('emptyInterestRange', function() {
-    var events = [
+    const events = [
       {name: 'a', args: {}, pid: 52, ts: 520, cat: 'foo', tid: 53, ph: 'B'},
       {name: 'b', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'B'},
       {name: 'c', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'B'},
@@ -170,8 +170,8 @@ tr.b.unittest.testSuite(function() {
       {name: 'b', args: {}, pid: 52, ts: 631, cat: 'foo', tid: 53, ph: 'E'},
       {name: 'a', args: {}, pid: 52, ts: 634, cat: 'foo', tid: 53, ph: 'E'}
     ];
-    var model = tr.c.TestUtils.newModelWithEvents([events]);
-    var trackView = document.createElement('tr-ui-timeline-track-view');
+    const model = tr.c.TestUtils.newModelWithEvents([events]);
+    const trackView = document.createElement('tr-ui-timeline-track-view');
     trackView.model = model;
     this.addHTMLOutput(trackView);
     trackView.viewport.interestRange.reset();
@@ -179,7 +179,7 @@ tr.b.unittest.testSuite(function() {
 
 
   test('thinnestInterestRange', function() {
-    var events = [
+    const events = [
       {name: 'a', args: {}, pid: 52, ts: 520, cat: 'foo', tid: 53, ph: 'B'},
       {name: 'b', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'B'},
       {name: 'c', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'B'},
@@ -187,13 +187,13 @@ tr.b.unittest.testSuite(function() {
       {name: 'b', args: {}, pid: 52, ts: 631, cat: 'foo', tid: 53, ph: 'E'},
       {name: 'a', args: {}, pid: 52, ts: 634, cat: 'foo', tid: 53, ph: 'E'}
     ];
-    var model = tr.c.TestUtils.newModelWithEvents([events]);
-    var trackView = document.createElement('tr-ui-timeline-track-view');
+    const model = tr.c.TestUtils.newModelWithEvents([events]);
+    const trackView = document.createElement('tr-ui-timeline-track-view');
     trackView.model = model;
     this.addHTMLOutput(trackView);
     trackView.viewport.interestRange.reset();
 
-    var slice = model.processes[52].threads[53].sliceGroup.slices[2];
+    const slice = model.processes[52].threads[53].sliceGroup.slices[2];
     trackView.viewport.interestRange.setMinAndMax(slice.start, slice.start);
   });
 });

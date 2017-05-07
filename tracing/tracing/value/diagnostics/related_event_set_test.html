@@ -15,14 +15,14 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   test('eventSet', function() {
     let slice = undefined;
-    let model = tr.c.TestUtils.newModel(function(model) {
+    const model = tr.c.TestUtils.newModel(function(model) {
       slice = tr.c.TestUtils.newSliceEx({
         type: tr.model.ThreadSlice,
         title: 'foo',
         start: 0,
         duration: 10
       });
-      let thread = model.getOrCreateProcess(1).getOrCreateThread(2);
+      const thread = model.getOrCreateProcess(1).getOrCreateThread(2);
       thread.sliceGroup.pushSlice(slice);
     });
 
@@ -35,7 +35,7 @@ tr.b.unittest.testSuite(function() {
     d = new tr.v.d.RelatedEventSet(new tr.model.EventSet([slice]));
     assert.strictEqual(tr.b.getOnlyElement([...d]), slice);
 
-    let d2 = tr.v.d.Diagnostic.fromDict(d.asDict());
+    const d2 = tr.v.d.Diagnostic.fromDict(d.asDict());
     assert.instanceOf(d2, tr.v.d.RelatedEventSet);
 
     assert.instanceOf(tr.b.getOnlyElement([...d2]), tr.v.d.EventRef);
@@ -48,7 +48,7 @@ tr.b.unittest.testSuite(function() {
   test('merge', function() {
     let aSlice;
     let bSlice;
-    let model = tr.c.TestUtils.newModel(function(model) {
+    const model = tr.c.TestUtils.newModel(function(model) {
       aSlice = tr.c.TestUtils.newSliceEx({
         type: tr.model.ThreadSlice,
         title: 'a',
@@ -61,17 +61,17 @@ tr.b.unittest.testSuite(function() {
         start: 1,
         duration: 10
       });
-      let thread = model.getOrCreateProcess(1).getOrCreateThread(2);
+      const thread = model.getOrCreateProcess(1).getOrCreateThread(2);
       thread.sliceGroup.pushSlice(aSlice);
       thread.sliceGroup.pushSlice(bSlice);
     });
     assert.notEqual(aSlice.stableId, bSlice.stableId);
 
-    let aHist = new tr.v.Histogram('a', tr.b.Unit.byName.count);
-    let bHist = new tr.v.Histogram('b', tr.b.Unit.byName.count);
+    const aHist = new tr.v.Histogram('a', tr.b.Unit.byName.count);
+    const bHist = new tr.v.Histogram('b', tr.b.Unit.byName.count);
 
-    let aEvents = new tr.v.d.RelatedEventSet(aSlice);
-    let bEvents = new tr.v.d.RelatedEventSet(bSlice);
+    const aEvents = new tr.v.d.RelatedEventSet(aSlice);
+    const bEvents = new tr.v.d.RelatedEventSet(bSlice);
     // TODO(benjhayden): Fix this when RelatedEventSet.add() is fixed.
     aEvents.canonicalUrl_ = 'http://a';
     bEvents.canonicalUrl_ = 'http://b';
@@ -83,10 +83,10 @@ tr.b.unittest.testSuite(function() {
     mergedHist.addHistogram(bHist);
     mergedHist = tr.v.Histogram.fromDict(mergedHist.asDict());
 
-    let mergedEvents = mergedHist.diagnostics.get('events');
-    let aSlice2 = tr.b.getOnlyElement(mergedEvents.get('http://a'));
+    const mergedEvents = mergedHist.diagnostics.get('events');
+    const aSlice2 = tr.b.getOnlyElement(mergedEvents.get('http://a'));
     assert.strictEqual(aSlice.stableId, aSlice2.stableId);
-    let bSlice2 = tr.b.getOnlyElement(mergedEvents.get('http://b'));
+    const bSlice2 = tr.b.getOnlyElement(mergedEvents.get('http://b'));
     assert.strictEqual(bSlice.stableId, bSlice2.stableId);
   });
 });

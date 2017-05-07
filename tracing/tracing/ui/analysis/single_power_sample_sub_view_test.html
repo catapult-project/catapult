@@ -16,23 +16,23 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('instantiate', function() {
-    var model = new tr.Model();
-    var series = new tr.model.PowerSeries(model.device);
+    const model = new tr.Model();
+    const series = new tr.model.PowerSeries(model.device);
     series.addPowerSample(1, 1);
 
-    var view = document.createElement('tr-ui-a-single-power-sample-sub-view');
+    const view = document.createElement('tr-ui-a-single-power-sample-sub-view');
     view.selection = new tr.model.EventSet(series.samples);
 
     this.addHTMLOutput(view);
   });
 
   test('setSelection', function() {
-    var model = new tr.Model();
-    var series = new tr.model.PowerSeries(model.device);
+    const model = new tr.Model();
+    const series = new tr.model.PowerSeries(model.device);
     series.addPowerSample(1, 1);
 
-    var view = document.createElement('tr-ui-a-single-power-sample-sub-view');
-    var eventSet = new tr.model.EventSet(series.samples);
+    const view = document.createElement('tr-ui-a-single-power-sample-sub-view');
+    const eventSet = new tr.model.EventSet(series.samples);
     view.selection = eventSet;
 
     assert.deepEqual(view.$.samplesTable.sample,

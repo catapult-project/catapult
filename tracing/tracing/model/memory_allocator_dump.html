@@ -113,13 +113,13 @@ tr.exportTo('tr.model', function() {
     },
 
     aggregateNumericsRecursively(opt_model) {
-      var numericNames = new Set();
+      const numericNames = new Set();
 
       // Aggregate descendants's numerics recursively and gather children's
       // numeric names.
       this.children.forEach(function(child) {
         child.aggregateNumericsRecursively(opt_model);
-        for (var [item, value] of Object.entries(child.numerics)) {
+        for (const [item, value] of Object.entries(child.numerics)) {
           numericNames.add(item, value);
         }
       }, this);
@@ -146,15 +146,15 @@ tr.exportTo('tr.model', function() {
 
   // TODO(petrcermak): Consider moving this to tr.v.Histogram.
   MemoryAllocatorDump.aggregateNumerics = function(numerics, opt_model) {
-    var shouldLogWarning = !!opt_model;
-    var aggregatedUnit = undefined;
-    var aggregatedValue = 0;
+    let shouldLogWarning = !!opt_model;
+    let aggregatedUnit = undefined;
+    let aggregatedValue = 0;
 
     // Aggregate the units and sum up the values of the numerics.
     numerics.forEach(function(numeric) {
       if (numeric === undefined) return;
 
-      var unit = numeric.unit;
+      const unit = numeric.unit;
       if (aggregatedUnit === undefined) {
         aggregatedUnit = unit;
       } else if (aggregatedUnit !== unit) {
@@ -194,7 +194,7 @@ tr.exportTo('tr.model', function() {
    *
    * @enum
    */
-  var MemoryAllocatorDumpInfoType = {
+  const MemoryAllocatorDumpInfoType = {
     // The provided size of a MemoryAllocatorDump was less than the aggregated
     // size of its children.
     //

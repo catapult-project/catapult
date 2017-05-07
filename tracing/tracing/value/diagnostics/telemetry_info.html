@@ -31,7 +31,7 @@ tr.exportTo('tr.v.d', function() {
     }
 
     clone() {
-      let clone = new tr.v.d.MergedTelemetryInfo();
+      const clone = new tr.v.d.MergedTelemetryInfo();
       clone.addDiagnostic(this);
       return clone;
     }
@@ -58,7 +58,8 @@ tr.exportTo('tr.v.d', function() {
       if (info.storyDisplayName) {
         this.storyDisplayName_ = info.storyDisplayName;
       }
-      for (let [name, value] of Object.entries(info.storyGroupingKeys || {})) {
+      for (const [name, value] of Object.entries(
+          info.storyGroupingKeys || {})) {
         this.storyGroupingKeys_.set(name, value);
       }
       if (info.storysetRepeatCounter !== undefined) {
@@ -94,7 +95,7 @@ tr.exportTo('tr.v.d', function() {
       d.storyDisplayName = this.storyDisplayName;
       if (this.storyGroupingKeys.size > 0) {
         d.storyGroupingKeys = {};
-        for (let [name, value] of this.storyGroupingKeys) {
+        for (const [name, value] of this.storyGroupingKeys) {
           d.storyGroupingKeys[name] = value;
         }
       }
@@ -104,7 +105,7 @@ tr.exportTo('tr.v.d', function() {
     }
 
     static fromDict(d) {
-      let info = new TelemetryInfo();
+      const info = new TelemetryInfo();
       info.addInfo(d);
       return info;
     }
@@ -166,7 +167,7 @@ tr.exportTo('tr.v.d', function() {
      * @return {*}
      */
     static getField(hist, fieldName, defaultValue) {
-      let telemetry = tr.v.d.TelemetryInfo.getFromHistogram(hist);
+      const telemetry = tr.v.d.TelemetryInfo.getFromHistogram(hist);
       if (!(telemetry instanceof tr.v.d.TelemetryInfo) ||
           !telemetry[fieldName]) {
         return defaultValue;
@@ -180,7 +181,7 @@ tr.exportTo('tr.v.d', function() {
      * @return {string}
      */
     static getStoryGroupingKeyLabel(hist, storyGroupingKey) {
-      let telemetry = tr.v.d.TelemetryInfo.getFromHistogram(hist);
+      const telemetry = tr.v.d.TelemetryInfo.getFromHistogram(hist);
       if (!(telemetry instanceof tr.v.d.TelemetryInfo)) {
         return storyGroupingKey + ': undefined';
       }

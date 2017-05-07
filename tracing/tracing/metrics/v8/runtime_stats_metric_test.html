@@ -18,18 +18,18 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   function checkRuntimeHistogram_(histograms, name, count, duration,
       breakdownHistograms) {
-    var countHistogram = histograms.getHistogramNamed(`${name}:count`);
+    const countHistogram = histograms.getHistogramNamed(`${name}:count`);
     assert.strictEqual(tr.b.getOnlyElement(countHistogram.sampleValues), count);
-    var durationHistogram = histograms.getHistogramNamed(`${name}:duration`);
+    const durationHistogram = histograms.getHistogramNamed(`${name}:duration`);
     assert.strictEqual(
         tr.b.getOnlyElement(durationHistogram.sampleValues), duration);
 
     if (breakdownHistograms === undefined) return;
-    var countBin = tr.b.getOnlyElement(countHistogram.allBins.filter(
+    const countBin = tr.b.getOnlyElement(countHistogram.allBins.filter(
         bin => bin.diagnosticMaps.length > 0));
-    var durationBin = tr.b.getOnlyElement(durationHistogram.allBins.filter(
+    const durationBin = tr.b.getOnlyElement(durationHistogram.allBins.filter(
         bin => bin.diagnosticMaps.length > 0));
-    for (var name of breakdownHistograms) {
+    for (const name of breakdownHistograms) {
       assert.notEqual(tr.b.getOnlyElement(countBin.diagnosticMaps)
           .get('samples').get(name + ':count'), undefined);
       assert.notEqual(tr.b.getOnlyElement(durationBin.diagnosticMaps)
@@ -46,9 +46,9 @@ tr.b.unittest.testSuite(function() {
     // v                            v                         v
     // First navigation             FMP                       TTI
     // 200                          9200                     15400
-    var model = tr.c.TestUtils.newModel(function(model) {
-      var rendererProcess = model.getOrCreateProcess(1984);
-      var mainThread = rendererProcess.getOrCreateThread(2);
+    const model = tr.c.TestUtils.newModel(function(model) {
+      const rendererProcess = model.getOrCreateProcess(1984);
+      const mainThread = rendererProcess.getOrCreateThread(2);
       mainThread.name = 'CrRendererMain';
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing',
@@ -180,7 +180,7 @@ tr.b.unittest.testSuite(function() {
       }));
     });
 
-    var histograms = new tr.v.HistogramSet();
+    const histograms = new tr.v.HistogramSet();
     tr.metrics.v8.runtimeStatsMetric(histograms, model);
     assert.strictEqual(histograms.length, 48);
     assert.strictEqual(histograms.sourceHistograms.length, 24);
@@ -205,9 +205,9 @@ tr.b.unittest.testSuite(function() {
     // v                      v                      v
     // First navigation      DCL                    DCL
     // 200                   1300                   2400
-    var model = tr.c.TestUtils.newModel(function(model) {
-      var rendererProcess = model.getOrCreateProcess(1984);
-      var mainThread = rendererProcess.getOrCreateThread(2);
+    const model = tr.c.TestUtils.newModel(function(model) {
+      const rendererProcess = model.getOrCreateProcess(1984);
+      const mainThread = rendererProcess.getOrCreateThread(2);
       mainThread.name = 'CrRendererMain';
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing',
@@ -297,7 +297,7 @@ tr.b.unittest.testSuite(function() {
       }));
     });
 
-    var histograms = new tr.v.HistogramSet();
+    const histograms = new tr.v.HistogramSet();
     tr.metrics.v8.runtimeStatsMetric(histograms, model);
     assert.strictEqual(histograms.length, 44);
     assert.strictEqual(histograms.sourceHistograms.length, 24);
@@ -324,9 +324,9 @@ tr.b.unittest.testSuite(function() {
     // nav              RespStart                        IdleStart
     // 200   300         1000      2000       2100       3000        3500
 
-    var model = tr.c.TestUtils.newModel(function(model) {
-      var rendererProcess = model.getOrCreateProcess(1984);
-      var mainThread = rendererProcess.getOrCreateThread(2);
+    const model = tr.c.TestUtils.newModel(function(model) {
+      const rendererProcess = model.getOrCreateProcess(1984);
+      const mainThread = rendererProcess.getOrCreateThread(2);
       mainThread.name = 'CrRendererMain';
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing',
@@ -460,7 +460,7 @@ tr.b.unittest.testSuite(function() {
       }));
     });
 
-    var histograms = new tr.v.HistogramSet();
+    const histograms = new tr.v.HistogramSet();
     tr.metrics.v8.runtimeStatsTotalMetric(histograms, model);
     assert.strictEqual(histograms.length, 120);
 
@@ -494,9 +494,9 @@ tr.b.unittest.testSuite(function() {
     // First navigation
     // 200
 
-    var model = tr.c.TestUtils.newModel(function(model) {
-      var rendererProcess = model.getOrCreateProcess(1984);
-      var mainThread = rendererProcess.getOrCreateThread(2);
+    const model = tr.c.TestUtils.newModel(function(model) {
+      const rendererProcess = model.getOrCreateProcess(1984);
+      const mainThread = rendererProcess.getOrCreateThread(2);
       mainThread.name = 'CrRendererMain';
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing',
@@ -549,7 +549,7 @@ tr.b.unittest.testSuite(function() {
       }));
     });
 
-    var histograms = new tr.v.HistogramSet();
+    const histograms = new tr.v.HistogramSet();
     tr.metrics.v8.runtimeStatsTotalMetric(histograms, model);
     assert.strictEqual(histograms.length, 24);
 

@@ -14,10 +14,10 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var testOptions = {};
+  const testOptions = {};
 
   test('instantiate', function() {
-    var table = document.createElement('alerts-table');
+    const table = document.createElement('alerts-table');
     table.extraColumns = [
       {
         'key': 'percent_changed',
@@ -185,7 +185,7 @@ tr.b.unittest.testSuite(function() {
   }, testOptions);
 
   test('test xsrf token set in alert list', function() {
-    var table = document.createElement('alerts-table');
+    const table = document.createElement('alerts-table');
     table.xsrfToken = 'abcdef012345';
     table.alertList = [
       {

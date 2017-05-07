@@ -16,25 +16,25 @@ found in the LICENSE file.
 /* eslint-disable no-console */
 
 tr.exportTo('tr.mre', function() {
-  var Failure = tr.mre.Failure;
+  const Failure = tr.mre.Failure;
 
   function createModelFromTraceData(traceData,
       canonicalUrl,
       opt_extraImportOptions) {
-    var model = new tr.Model();
+    const model = new tr.Model();
     try {
-      var importOptions = new tr.importer.ImportOptions();
+      const importOptions = new tr.importer.ImportOptions();
       importOptions.pruneEmptyContainers = false;
       importOptions.showImportWarnings = false;
       if (opt_extraImportOptions !== undefined) {
-        for (var property in opt_extraImportOptions) {
+        for (const property in opt_extraImportOptions) {
           if (opt_extraImportOptions.hasOwnProperty(property)) {
             importOptions[property] = opt_extraImportOptions[property];
           }
         }
       }
 
-      var i = new tr.importer.Import(model, importOptions);
+      const i = new tr.importer.Import(model, importOptions);
       i.importTraces([traceData]);
     } catch (ex) {
       ex.name = 'TraceImportError';
@@ -47,17 +47,17 @@ tr.exportTo('tr.mre', function() {
   }
 
   function mapSingleTraceWithResult(options) {
-    var result = new tr.mre.MreResult();
+    const result = new tr.mre.MreResult();
 
     tr.mre.runAndConvertErrorsToFailures(
         result, options.job, options.traceHandle,
         function() {
-          var mapFunction = options.job.mapFunctionHandle.load();
-          var traceData = options.traceHandle.load();
-          var model = createModelFromTraceData(
+          const mapFunction = options.job.mapFunctionHandle.load();
+          const traceData = options.traceHandle.load();
+          const model = createModelFromTraceData(
               traceData, options.traceHandle.canonicalUrl,
               options.extraImportOptions);
-          var opt_options = options.job.mapFunctionHandle.options;
+          const opt_options = options.job.mapFunctionHandle.options;
           tr.mre.mapSingleTrace(result, model, opt_options, mapFunction);
         });
     return result;
@@ -68,13 +68,13 @@ tr.exportTo('tr.mre', function() {
       throw new Error('Must provide two or three arguments.');
     }
 
-    var options = {
+    const options = {
       traceHandle: tr.mre.FileHandle.fromDict(JSON.parse(args[0])),
       job: tr.mre.Job.fromDict(JSON.parse(args[1])),
       extraImportOptions: args.length === 3 ? JSON.parse(args[2]) : undefined
     };
 
-    var result = mapSingleTraceWithResult(options);
+    const result = mapSingleTraceWithResult(options);
 
     console.log('MRE_RESULT: ' + JSON.stringify(result.asDict()));
     return 0;

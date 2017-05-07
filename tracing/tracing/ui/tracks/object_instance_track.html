@@ -19,15 +19,15 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.tracks', function() {
-  var SelectionState = tr.model.SelectionState;
-  var EventPresenter = tr.ui.b.EventPresenter;
+  const SelectionState = tr.model.SelectionState;
+  const EventPresenter = tr.ui.b.EventPresenter;
 
   /**
    * A track that displays an array of Slice objects.
    * @constructor
    * @extends {Track}
    */
-  var ObjectInstanceTrack = tr.ui.b.define(
+  const ObjectInstanceTrack = tr.ui.b.define(
       'object-instance-track', tr.ui.tracks.Track);
 
   ObjectInstanceTrack.prototype = {
@@ -99,39 +99,38 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     drawLetterDots_(viewLWorld, viewRWorld) {
-      var ctx = this.context();
-      var pixelRatio = window.devicePixelRatio || 1;
+      const ctx = this.context();
+      const pixelRatio = window.devicePixelRatio || 1;
 
-      var bounds = this.getBoundingClientRect();
-      var height = bounds.height * pixelRatio;
-      var halfHeight = height * 0.5;
-      var twoPi = Math.PI * 2;
+      const bounds = this.getBoundingClientRect();
+      const height = bounds.height * pixelRatio;
+      const halfHeight = height * 0.5;
+      const twoPi = Math.PI * 2;
 
       // Culling parameters.
-      var dt = this.viewport.currentDisplayTransform;
-      var snapshotRadiusView = this.snapshotRadiusView;
-      var snapshotRadiusWorld = dt.xViewVectorToWorld(height);
-      var loI;
+      const dt = this.viewport.currentDisplayTransform;
+      const snapshotRadiusView = this.snapshotRadiusView;
+      const snapshotRadiusWorld = dt.xViewVectorToWorld(height);
 
       // Begin rendering in world space.
       ctx.save();
       dt.applyTransformToCanvas(ctx);
 
       // Instances
-      var objectInstances = this.objectInstances_;
-      var loI = tr.b.math.findLowIndexInSortedArray(
+      const objectInstances = this.objectInstances_;
+      let loI = tr.b.math.findLowIndexInSortedArray(
           objectInstances,
           function(instance) {
             return instance.deletionTs;
           },
           viewLWorld);
       ctx.strokeStyle = 'rgb(0,0,0)';
-      for (var i = loI; i < objectInstances.length; ++i) {
-        var instance = objectInstances[i];
-        var x = instance.creationTs;
+      for (let i = loI; i < objectInstances.length; ++i) {
+        const instance = objectInstances[i];
+        const x = instance.creationTs;
         if (x > viewRWorld) break;
 
-        var right = instance.deletionTs === Number.MAX_VALUE ?
+        const right = instance.deletionTs === Number.MAX_VALUE ?
             viewRWorld : instance.deletionTs;
         ctx.fillStyle = EventPresenter.getObjectInstanceColor(instance);
         ctx.fillRect(x, pixelRatio, right - x, height - 2 * pixelRatio);
@@ -139,19 +138,19 @@ tr.exportTo('tr.ui.tracks', function() {
       ctx.restore();
 
       // Snapshots. Has to run in worldspace because ctx.arc gets transformed.
-      var objectSnapshots = this.objectSnapshots_;
+      const objectSnapshots = this.objectSnapshots_;
       loI = tr.b.math.findLowIndexInSortedArray(
           objectSnapshots,
           function(snapshot) {
             return snapshot.ts + snapshotRadiusWorld;
           },
           viewLWorld);
-      for (var i = loI; i < objectSnapshots.length; ++i) {
-        var snapshot = objectSnapshots[i];
-        var x = snapshot.ts;
+      for (let i = loI; i < objectSnapshots.length; ++i) {
+        const snapshot = objectSnapshots[i];
+        const x = snapshot.ts;
         if (x - snapshotRadiusWorld > viewRWorld) break;
 
-        var xView = dt.xWorldToView(x);
+        const xView = dt.xWorldToView(x);
 
         ctx.fillStyle = EventPresenter.getObjectSnapshotColor(snapshot);
         ctx.beginPath();
@@ -178,7 +177,7 @@ tr.exportTo('tr.ui.tracks', function() {
       // For performance reasons we only check the SelectionState of the first
       // instance. If it's DIMMED we assume that all are DIMMED.
       // TODO(egraether): Allow partial highlight.
-      var selectionState = SelectionState.NONE;
+      let selectionState = SelectionState.NONE;
       if (objectInstances.length &&
           objectInstances[0].selectionState === SelectionState.DIMMED) {
         selectionState = SelectionState.DIMMED;
@@ -186,7 +185,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
       // Dim the track when there is an active highlight.
       if (selectionState === SelectionState.DIMMED) {
-        var width = bounds.width * pixelRatio;
+        const width = bounds.width * pixelRatio;
         ctx.fillStyle = 'rgba(255,255,255,0.5)';
         ctx.fillRect(0, 0, width, height);
         ctx.restore();
@@ -210,13 +209,13 @@ tr.exportTo('tr.ui.tracks', function() {
     addIntersectingEventsInRangeToSelectionInWorldSpace(
         loWX, hiWX, viewPixWidthWorld, selection) {
       // Pick snapshots first.
-      var foundSnapshot = false;
+      let foundSnapshot = false;
       function onSnapshot(snapshot) {
         selection.push(snapshot);
         foundSnapshot = true;
       }
-      var snapshotRadiusView = this.snapshotRadiusView;
-      var snapshotRadiusWorld = viewPixWidthWorld * snapshotRadiusView;
+      const snapshotRadiusView = this.snapshotRadiusView;
+      const snapshotRadiusWorld = viewPixWidthWorld * snapshotRadiusView;
       tr.b.math.iterateOverIntersectingIntervals(
           this.objectSnapshots_,
           function(x) { return x.ts - snapshotRadiusWorld; },
@@ -245,7 +244,7 @@ tr.exportTo('tr.ui.tracks', function() {
      * @private
      */
     addEventNearToProvidedEventToSelection(event, offset, selection) {
-      var events;
+      let events;
       if (event instanceof tr.model.ObjectSnapshot) {
         events = this.objectSnapshots_;
       } else if (event instanceof tr.model.ObjectInstance) {
@@ -254,8 +253,8 @@ tr.exportTo('tr.ui.tracks', function() {
         throw new Error('Unrecognized event');
       }
 
-      var index = events.indexOf(event);
-      var newIndex = index + offset;
+      const index = events.indexOf(event);
+      const newIndex = index + offset;
       if (newIndex >= 0 && newIndex < events.length) {
         selection.push(events[newIndex]);
         return true;
@@ -268,7 +267,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     addClosestEventToSelection(worldX, worldMaxDist, loY, hiY,
         selection) {
-      var snapshot = tr.b.math.findClosestElementInSortedArray(
+      const snapshot = tr.b.math.findClosestElementInSortedArray(
           this.objectSnapshots_,
           function(x) { return x.ts; },
           worldX,
@@ -285,7 +284,7 @@ tr.exportTo('tr.ui.tracks', function() {
   };
 
 
-  var options = new tr.b.ExtensionRegistryOptions(
+  const options = new tr.b.ExtensionRegistryOptions(
       tr.b.TYPE_BASED_REGISTRY_MODE);
   tr.b.decorateExtensionRegistry(ObjectInstanceTrack, options);
 

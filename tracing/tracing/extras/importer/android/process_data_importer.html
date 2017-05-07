@@ -58,7 +58,7 @@ tr.exportTo('tr.e.importer.android.process_data', function() {
     },
 
     parseEventData(data) {
-      let allDumpedProcesses = {};
+      const allDumpedProcesses = {};
 
       let parseProcesses = false;
       let parseThreads = false;
@@ -153,7 +153,7 @@ tr.exportTo('tr.e.importer.android.process_data', function() {
         modelProcess.name = dumpedProcess.name;
         const processDumpThreads = dumpedProcess.threads;
         if (processDumpThreads !== undefined) {
-          for (let tid in modelProcess.threads) {
+          for (const tid in modelProcess.threads) {
             const modelThread = modelProcess.threads[tid];
             if (Number(pid) === Number(tid)) {
               modelThread.name = 'UI thread';

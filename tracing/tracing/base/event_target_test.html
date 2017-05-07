@@ -11,10 +11,10 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('sync', function() {
-    var listenerCallCount = 0;
+    let listenerCallCount = 0;
     function listener() { listenerCallCount++; }
 
-    var div = new tr.b.EventTarget();
+    const div = new tr.b.EventTarget();
     tr.b.EventTarget.decorate(div);
 
     assert.isFalse(div.hasEventListener('foo'));
@@ -34,13 +34,13 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('async', function() {
-    var listenerCallCount = 0;
+    let listenerCallCount = 0;
     async function listener() {
       listenerCallCount++;
       await Promise.resolve();
     }
 
-    var div = new tr.b.EventTarget();
+    const div = new tr.b.EventTarget();
     tr.b.EventTarget.decorate(div);
 
     assert.isFalse(div.hasEventListener('foo'));

@@ -61,7 +61,7 @@ tr.exportTo('tr.e.importer.etw', function() {
     __proto__: Object.prototype
   };
 
-  var options = new tr.b.ExtensionRegistryOptions(tr.b.BASIC_REGISTRY_MODE);
+  const options = new tr.b.ExtensionRegistryOptions(tr.b.BASIC_REGISTRY_MODE);
   options.mandatoryBaseClass = Parser;
   tr.b.decorateExtensionRegistry(Parser, options);
 

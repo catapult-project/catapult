@@ -157,13 +157,14 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.b.unittest', function() {
-  var THIS_DOC = document.currentScript.ownerDocument;
-  var ALL_TEST_TYPES = 'all';
+  const THIS_DOC = document.currentScript.ownerDocument;
+  const ALL_TEST_TYPES = 'all';
 
   /**
    * @constructor
    */
-  var InteractiveTestRunner = tr.ui.b.define('x-base-interactive-test-runner');
+  const InteractiveTestRunner = tr.ui.b.define(
+      'x-base-interactive-test-runner');
 
   InteractiveTestRunner.prototype = {
     __proto__: HTMLDivElement.prototype,
@@ -194,7 +195,7 @@ tr.exportTo('tr.b.unittest', function() {
 
       Polymer.dom(this).querySelector(
           'input[name=test-type-to-run][value=unit]').checked = true;
-      var testTypeToRunEls = tr.b.asArray(Polymer.dom(this).querySelectorAll(
+      const testTypeToRunEls = tr.b.asArray(Polymer.dom(this).querySelectorAll(
           'input[name=test-type-to-run]'));
 
       testTypeToRunEls.forEach(
@@ -203,7 +204,7 @@ tr.exportTo('tr.b.unittest', function() {
                 'click', this.onTestTypeToRunClick_.bind(this));
           }, this);
 
-      var shortFormatEl = Polymer.dom(this).querySelector('#short-format');
+      const shortFormatEl = Polymer.dom(this).querySelector('#short-format');
       shortFormatEl.checked = this.shortFormat_;
       shortFormatEl.addEventListener(
           'click', this.onShortFormatClick_.bind(this));
@@ -233,14 +234,14 @@ tr.exportTo('tr.b.unittest', function() {
     },
     set testLinks(testLinks) {
       this.testLinks_ = testLinks;
-      var linksEl = Polymer.dom(this).querySelector('#links');
+      const linksEl = Polymer.dom(this).querySelector('#links');
       Polymer.dom(linksEl).textContent = '';
       this.testLinks_.forEach(function(l) {
-        var link = document.createElement('a');
+        const link = document.createElement('a');
         link.href = l.linkPath;
         Polymer.dom(link).textContent = l.title;
 
-        var li = document.createElement('li');
+        const li = document.createElement('li');
         Polymer.dom(li).appendChild(link);
 
         Polymer.dom(linksEl).appendChild(li);
@@ -285,7 +286,7 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     updateShortFormResultsDisplay_() {
-      var display = this.shortFormat_ ? '' : 'none';
+      const display = this.shortFormat_ ? '' : 'none';
       Polymer.dom(this).querySelector('#shortform-results').style.display =
           display;
     },
@@ -307,7 +308,7 @@ tr.exportTo('tr.b.unittest', function() {
 
     set testTypeToRun(testTypeToRun) {
       this.testTypeToRun_ = testTypeToRun;
-      var sel;
+      let sel;
       switch (testTypeToRun) {
         case tr.b.unittest.TestTypes.UNITTEST:
           sel = 'input[name=test-type-to-run][value=unit]';
@@ -355,7 +356,7 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     onTestFailed_() {
-      var span = document.createElement('span');
+      const span = document.createElement('span');
       Polymer.dom(span).classList.add('fail');
       Polymer.dom(span).appendChild(document.createTextNode('F'));
       Polymer.dom(Polymer.dom(this).querySelector('#shortform-results'))
@@ -363,7 +364,7 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     onTestFlaky_() {
-      var span = document.createElement('span');
+      const span = document.createElement('span');
       Polymer.dom(span).classList.add('flaky');
       Polymer.dom(span).appendChild(document.createTextNode('~'));
       Polymer.dom(Polymer.dom(this).querySelector('#shortform-results'))
@@ -371,7 +372,7 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     onTestSkipped_() {
-      var span = document.createElement('span');
+      const span = document.createElement('span');
       Polymer.dom(span).classList.add('skipped');
       Polymer.dom(span).appendChild(document.createTextNode('s'));
       Polymer.dom(Polymer.dom(this).querySelector('#shortform-results'))
@@ -379,10 +380,10 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     onResultsStatsChanged_() {
-      var statsEl = Polymer.dom(this).querySelector('#stats');
-      var stats = this.results_.getStats();
-      var numTestsOverall = this.runner_.testCases.length;
-      var numTestsThatRan = stats.numTestsThatPassed +
+      const statsEl = Polymer.dom(this).querySelector('#stats');
+      const stats = this.results_.getStats();
+      const numTestsOverall = this.runner_.testCases.length;
+      const numTestsThatRan = stats.numTestsThatPassed +
           stats.numTestsThatFailed +
           stats.numFlakyTests +
           stats.numSkippedTests;
@@ -403,7 +404,7 @@ tr.exportTo('tr.b.unittest', function() {
       if (this.runner_) {
         this.rerunPending_ = true;
         this.runner_.beginToStopRunning();
-        var doRerun = function() {
+        const doRerun = function() {
           this.rerunPending_ = false;
           this.scheduleRerun_();
         }.bind(this);
@@ -415,7 +416,7 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     beginRunning_() {
-      var resultsContainer =
+      const resultsContainer =
           Polymer.dom(this).querySelector('#results-container');
       if (this.results_) {
         this.results_.removeEventListener('testpassed', this.onTestPassed_);
@@ -442,8 +443,8 @@ tr.exportTo('tr.b.unittest', function() {
           this.onResultsStatsChanged_);
       Polymer.dom(resultsContainer).appendChild(this.results_);
 
-      var tests = this.allTests_.filter(function(test) {
-        var i = test.fullyQualifiedName.indexOf(this.testFilterString_);
+      const tests = this.allTests_.filter(function(test) {
+        const i = test.fullyQualifiedName.indexOf(this.testFilterString_);
         if (i === -1) return false;
         if (this.testTypeToRun_ !== ALL_TEST_TYPES &&
             test.testType !== this.testTypeToRun_) {
@@ -521,15 +522,15 @@ tr.exportTo('tr.b.unittest', function() {
 
   function loadAndRunTests(runnerConfig) {
     // The test runner no-ops pushState so keep it around.
-    var realWindowHistoryPushState = window.history.pushState.bind(
+    const realWindowHistoryPushState = window.history.pushState.bind(
         window.history);
 
     function stateToSearchString(defaultState, state) {
-      var parts = [];
-      for (var k in state) {
+      const parts = [];
+      for (const k in state) {
         if (state[k] === defaultState[k]) continue;
-        var v = state[k];
-        var kv;
+        const v = state[k];
+        let kv;
         if (v === true) {
           kv = k;
         } else if (v === false) {
@@ -545,12 +546,12 @@ tr.exportTo('tr.b.unittest', function() {
     }
 
     function stateFromSearchString(string) {
-      var state = {};
+      const state = {};
       string.split('&').forEach(function(part) {
         if (part === '') return;
-        var kv = part.split('=');
-        var k;
-        var v;
+        const kv = part.split('=');
+        let k;
+        let v;
         if (kv.length === 1) {
           k = kv[0];
           v = true;
@@ -570,10 +571,10 @@ tr.exportTo('tr.b.unittest', function() {
     function getSuiteRelpathsToLoad(state) {
       if (state.testSuiteName) {
         return new Promise(function(resolve) {
-          var parts = state.testSuiteName.split('.');
-          var testSuiteRelPath = '/' + parts.join('/') + '.html';
+          const parts = state.testSuiteName.split('.');
+          const testSuiteRelPath = '/' + parts.join('/') + '.html';
 
-          var suiteRelpathsToLoad = [testSuiteRelPath];
+          const suiteRelpathsToLoad = [testSuiteRelPath];
           resolve(suiteRelpathsToLoad);
         });
       }
@@ -582,15 +583,15 @@ tr.exportTo('tr.b.unittest', function() {
 
 
     function loadAndRunTestsImpl() {
-      var state = stateFromSearchString(
+      const state = stateFromSearchString(
           window.location.search.substring(1));
       updateTitle(state);
 
 
       showLoadingOverlay();
 
-      var loader;
-      var p = getSuiteRelpathsToLoad(state);
+      let loader;
+      let p = getSuiteRelpathsToLoad(state);
       p = p.then(
           function(suiteRelpathsToLoad) {
             loader = new tr.b.unittest.SuiteLoader(suiteRelpathsToLoad);
@@ -621,7 +622,7 @@ tr.exportTo('tr.b.unittest', function() {
     }
 
     function showLoadingOverlay() {
-      var overlay = document.createElement('div');
+      const overlay = document.createElement('div');
       overlay.id = 'tests-loading-overlay';
       overlay.style.backgroundColor = 'white';
       overlay.style.boxSizing = 'border-box';
@@ -635,7 +636,7 @@ tr.exportTo('tr.b.unittest', function() {
       overlay.style.flexDirection = 'column';
       overlay.style.width = '100%';
 
-      var element = document.createElement('div');
+      const element = document.createElement('div');
       element.style.flex = '1 1 auto';
       element.style.overflow = 'auto';
       Polymer.dom(overlay).appendChild(element);
@@ -644,16 +645,16 @@ tr.exportTo('tr.b.unittest', function() {
       Polymer.dom(document.body).appendChild(overlay);
     }
     function hideLoadingOverlay() {
-      var overlay = Polymer.dom(document.body).querySelector(
+      const overlay = Polymer.dom(document.body).querySelector(
           '#tests-loading-overlay');
       Polymer.dom(document.body).removeChild(overlay);
     }
 
     function updateTitle(state) {
-      var testFilterString = state.testFilterString || '';
-      var testSuiteName = state.testSuiteName || '';
+      const testFilterString = state.testFilterString || '';
+      const testSuiteName = state.testSuiteName || '';
 
-      var title;
+      let title;
       if (testSuiteName && testFilterString.length) {
         title = testFilterString + ' in ' + testSuiteName;
       } else if (testSuiteName) {
@@ -666,13 +667,13 @@ tr.exportTo('tr.b.unittest', function() {
 
       if (state.shortFormat) title += '(s)';
       document.title = title;
-      var runner = Polymer.dom(document).querySelector(
+      const runner = Polymer.dom(document).querySelector(
           'x-base-interactive-test-runner');
       if (runner) runner.title = title;
     }
 
     function runTests(loader, state) {
-      var runner = new tr.b.unittest.InteractiveTestRunner();
+      const runner = new tr.b.unittest.InteractiveTestRunner();
       runner.style.width = '100%';
       runner.style.height = '100%';
       runner.testLinks = runnerConfig.testLinks;
@@ -683,12 +684,13 @@ tr.exportTo('tr.b.unittest', function() {
       updateTitle(state);
 
       runner.addEventListener('statechange', function() {
-        var state = runner.getState();
-        var stateString = stateToSearchString(runner.getDefaultState(), state);
+        const state = runner.getState();
+        const stateString = stateToSearchString(
+            runner.getDefaultState(), state);
         if (window.location.search.substring(1) === stateString) return;
 
         updateTitle(state);
-        var stateURL;
+        let stateURL;
         if (stateString.length > 0) {
           stateURL = window.location.pathname + '?' + stateString;
         } else {
@@ -702,7 +704,7 @@ tr.exportTo('tr.b.unittest', function() {
       });
 
       runner.getHRefForTestCase = function(testCase) {
-        var state = runner.getState();
+        const state = runner.getState();
         if (state.testFilterString === '' &&
             state.testSuiteName === '') {
           state.testSuiteName = testCase.suite.name;
@@ -713,7 +715,8 @@ tr.exportTo('tr.b.unittest', function() {
           state.testFilterString = testCase.name;
           state.shortFormat = false;
         }
-        var stateString = stateToSearchString(runner.getDefaultState(), state);
+        const stateString = stateToSearchString(
+            runner.getDefaultState(), state);
         if (stateString.length > 0) {
           return window.location.pathname + '?' + stateString;
         }

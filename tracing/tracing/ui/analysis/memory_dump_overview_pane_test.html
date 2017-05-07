@@ -20,29 +20,32 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var Scalar = tr.b.Scalar;
-  var sizeInBytes_smallerIsBetter =
+  const Scalar = tr.b.Scalar;
+  const sizeInBytes_smallerIsBetter =
       tr.b.Unit.byName.sizeInBytes_smallerIsBetter;
-  var MemoryAllocatorDump = tr.model.MemoryAllocatorDump;
-  var HeapDump = tr.model.HeapDump;
-  var AggregationMode = tr.ui.analysis.MemoryColumn.AggregationMode;
-  var checkSizeNumericFields = tr.ui.analysis.checkSizeNumericFields;
-  var checkColor = tr.ui.analysis.checkColor;
-  var checkColumns = tr.ui.analysis.checkColumns;
-  var checkColumnInfosAndColor = tr.ui.analysis.checkColumnInfosAndColor;
-  var convertToProcessMemoryDumps = tr.ui.analysis.convertToProcessMemoryDumps;
-  var extractProcessMemoryDumps = tr.ui.analysis.extractProcessMemoryDumps;
-  var extractVmRegions = tr.ui.analysis.extractVmRegions;
-  var extractMemoryAllocatorDumps = tr.ui.analysis.extractMemoryAllocatorDumps;
-  var isElementDisplayed = tr.ui.analysis.isElementDisplayed;
-  var addProcessMemoryDump = tr.model.MemoryDumpTestUtils.addProcessMemoryDump;
-  var addGlobalMemoryDump = tr.model.MemoryDumpTestUtils.addGlobalMemoryDump;
-  var ProcessNameColumn = tr.ui.analysis.ProcessNameColumn;
-  var UsedMemoryColumn = tr.ui.analysis.UsedMemoryColumn;
-  var PeakMemoryColumn = tr.ui.analysis.PeakMemoryColumn;
-  var ByteStatColumn = tr.ui.analysis.ByteStatColumn;
-  var AllocatorColumn = tr.ui.analysis.AllocatorColumn;
-  var TracingColumn = tr.ui.analysis.TracingColumn;
+  const MemoryAllocatorDump = tr.model.MemoryAllocatorDump;
+  const HeapDump = tr.model.HeapDump;
+  const AggregationMode = tr.ui.analysis.MemoryColumn.AggregationMode;
+  const checkSizeNumericFields = tr.ui.analysis.checkSizeNumericFields;
+  const checkColor = tr.ui.analysis.checkColor;
+  const checkColumns = tr.ui.analysis.checkColumns;
+  const checkColumnInfosAndColor = tr.ui.analysis.checkColumnInfosAndColor;
+  const convertToProcessMemoryDumps =
+    tr.ui.analysis.convertToProcessMemoryDumps;
+  const extractProcessMemoryDumps = tr.ui.analysis.extractProcessMemoryDumps;
+  const extractVmRegions = tr.ui.analysis.extractVmRegions;
+  const extractMemoryAllocatorDumps =
+    tr.ui.analysis.extractMemoryAllocatorDumps;
+  const isElementDisplayed = tr.ui.analysis.isElementDisplayed;
+  const addProcessMemoryDump =
+    tr.model.MemoryDumpTestUtils.addProcessMemoryDump;
+  const addGlobalMemoryDump = tr.model.MemoryDumpTestUtils.addGlobalMemoryDump;
+  const ProcessNameColumn = tr.ui.analysis.ProcessNameColumn;
+  const UsedMemoryColumn = tr.ui.analysis.UsedMemoryColumn;
+  const PeakMemoryColumn = tr.ui.analysis.PeakMemoryColumn;
+  const ByteStatColumn = tr.ui.analysis.ByteStatColumn;
+  const AllocatorColumn = tr.ui.analysis.AllocatorColumn;
+  const TracingColumn = tr.ui.analysis.TracingColumn;
 
   function spanMatcher(expectedTitle) {
     return function(actualTitle) {
@@ -60,7 +63,7 @@ tr.b.unittest.testSuite(function() {
     };
   }
 
-  var EXPECTED_COLUMNS = [
+  const EXPECTED_COLUMNS = [
     { title: 'Process', type: ProcessNameColumn, noAggregation: true },
     { title: spanMatcher('Total resident'), type: UsedMemoryColumn },
     { title: spanMatcher('Peak total resident'), type: PeakMemoryColumn },
@@ -79,7 +82,7 @@ tr.b.unittest.testSuite(function() {
   function checkRow(columns, row, expectedTitle, expectedSizes,
       expectedContexts) {
     // Check title.
-    var formattedTitle = columns[0].formatTitle(row);
+    const formattedTitle = columns[0].formatTitle(row);
     if (typeof expectedTitle === 'function') {
       expectedTitle(formattedTitle);
     } else {
@@ -88,7 +91,7 @@ tr.b.unittest.testSuite(function() {
 
     // Check all sizes. The first assert below is a test sanity check.
     assert.lengthOf(expectedSizes, columns.length - 1 /* all except title */);
-    for (var i = 0; i < expectedSizes.length; i++) {
+    for (let i = 0; i < expectedSizes.length; i++) {
       checkSizeNumericFields(row, columns[i + 1], expectedSizes[i]);
     }
 
@@ -108,9 +111,9 @@ tr.b.unittest.testSuite(function() {
       return;
     }
     assert.lengthOf(actualRows, expectedRows.length);
-    for (var i = 0; i < expectedRows.length; i++) {
-      var actualRow = actualRows[i];
-      var expectedRow = expectedRows[i];
+    for (let i = 0; i < expectedRows.length; i++) {
+      const actualRow = actualRows[i];
+      const expectedRow = expectedRows[i];
       checkRow(columns, actualRow, expectedRow.title, expectedRow.sizes,
           expectedRow.contexts);
     }
@@ -130,7 +133,7 @@ tr.b.unittest.testSuite(function() {
   function createAndCheckMemoryDumpOverviewPane(
       test, processMemoryDumps, expectedRows, expectedFooterRows,
       aggregationMode) {
-    var viewEl =
+    const viewEl =
         tr.ui.analysis.createTestPane('tr-ui-a-memory-dump-overview-pane');
     viewEl.processMemoryDumps = processMemoryDumps;
     viewEl.aggregationMode = aggregationMode;
@@ -143,37 +146,37 @@ tr.b.unittest.testSuite(function() {
 
     assert.isUndefined(viewEl.createChildPane());
 
-    var table = viewEl.$.table;
-    var columns = table.tableColumns;
+    const table = viewEl.$.table;
+    const columns = table.tableColumns;
     checkColumns(columns, EXPECTED_COLUMNS, aggregationMode);
-    var rows = table.tableRows;
+    const rows = table.tableRows;
 
     checkRows(columns, table.tableRows, expectedRows);
     checkRows(columns, table.footerRows, expectedFooterRows);
   }
 
-  var FIELD = 1 << 0;
-  var DUMP = 1 << 1;
+  const FIELD = 1 << 0;
+  const DUMP = 1 << 1;
 
   function checkOverviewColumnInfosAndColor(column, fieldAndDumpMask,
       dumpCreatedCallback, expectedInfos, expectedColorReservedName) {
-    var fields = fieldAndDumpMask.map(function(mask, index) {
+    const fields = fieldAndDumpMask.map(function(mask, index) {
       return mask & FIELD ?
           new Scalar(sizeInBytes_smallerIsBetter, 1024 + 32 * index) :
           undefined;
     });
 
-    var contexts;
+    let contexts;
     if (dumpCreatedCallback === undefined) {
       contexts = undefined;
     } else {
       tr.c.TestUtils.newModel(function(model) {
-        var process = model.getOrCreateProcess(1);
+        const process = model.getOrCreateProcess(1);
         fieldAndDumpMask.forEach(function(mask, i) {
-          var timestamp = 10 + i;
-          var gmd = addGlobalMemoryDump(model, {ts: timestamp});
+          const timestamp = 10 + i;
+          const gmd = addGlobalMemoryDump(model, {ts: timestamp});
           if (mask & DUMP) {
-            var pmd = addProcessMemoryDump(gmd, process, {ts: timestamp});
+            const pmd = addProcessMemoryDump(gmd, process, {ts: timestamp});
             dumpCreatedCallback(pmd, mask);
           }
         });
@@ -207,7 +210,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiate_singleGlobalMemoryDump', function() {
-    var processMemoryDumps = convertToProcessMemoryDumps(
+    const processMemoryDumps = convertToProcessMemoryDumps(
         [tr.ui.analysis.createSingleTestGlobalMemoryDump()]);
     createAndCheckMemoryDumpOverviewPane(this,
         processMemoryDumps,
@@ -246,7 +249,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiate_multipleGlobalMemoryDumps', function() {
-    var processMemoryDumps = convertToProcessMemoryDumps(
+    const processMemoryDumps = convertToProcessMemoryDumps(
         tr.ui.analysis.createMultipleTestGlobalMemoryDumps());
     createAndCheckMemoryDumpOverviewPane(this,
         processMemoryDumps,
@@ -303,7 +306,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiate_singleProcessMemoryDump', function() {
-    var processMemoryDumps = convertToProcessMemoryDumps(
+    const processMemoryDumps = convertToProcessMemoryDumps(
         [tr.ui.analysis.createSingleTestProcessMemoryDump()]);
     createAndCheckMemoryDumpOverviewPane(this,
         processMemoryDumps,
@@ -320,7 +323,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiate_multipleProcessMemoryDumps', function() {
-    var processMemoryDumps = convertToProcessMemoryDumps(
+    const processMemoryDumps = convertToProcessMemoryDumps(
         tr.ui.analysis.createMultipleTestProcessMemoryDumps());
     createAndCheckMemoryDumpOverviewPane(this,
         processMemoryDumps,
@@ -341,23 +344,23 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('selection', function() {
-    var processMemoryDumps = convertToProcessMemoryDumps(
+    const processMemoryDumps = convertToProcessMemoryDumps(
         tr.ui.analysis.createMultipleTestGlobalMemoryDumps());
 
-    var viewEl =
+    const viewEl =
         tr.ui.analysis.createTestPane('tr-ui-a-memory-dump-overview-pane');
     viewEl.processMemoryDumps = processMemoryDumps;
     viewEl.aggregationMode = AggregationMode.DIFF;
     viewEl.rebuild();
     this.addHTMLOutput(viewEl);
 
-    var table = viewEl.$.table;
+    const table = viewEl.$.table;
 
     // Simulate clicking on the 'malloc' cell of the second process.
     table.selectedTableRow = table.tableRows[1];
     table.selectedColumnIndex = 9;
     assert.lengthOf(viewEl.requestedChildPanes, 2);
-    var lastChildPane = viewEl.requestedChildPanes[1];
+    let lastChildPane = viewEl.requestedChildPanes[1];
     assert.strictEqual(
         lastChildPane.tagName, 'TR-UI-A-MEMORY-DUMP-ALLOCATOR-DETAILS-PANE');
     assert.strictEqual(lastChildPane.aggregationMode, AggregationMode.DIFF);
@@ -367,27 +370,27 @@ tr.b.unittest.testSuite(function() {
     // Simulate clicking on the 'Oilpan' cell of the second process.
     table.selectedColumnIndex = 10;
     assert.lengthOf(viewEl.requestedChildPanes, 3);
-    var lastChildPane = viewEl.requestedChildPanes[2];
+    lastChildPane = viewEl.requestedChildPanes[2];
     assert.isUndefined(viewEl.lastChildPane);
   });
 
   test('memory', function() {
-    var processMemoryDumps = convertToProcessMemoryDumps(
+    const processMemoryDumps = convertToProcessMemoryDumps(
         tr.ui.analysis.createMultipleTestGlobalMemoryDumps());
-    var containerEl = document.createElement('div');
+    const containerEl = document.createElement('div');
     containerEl.brushingStateController =
         new tr.c.BrushingStateController(undefined);
 
     function simulateView(pids, aggregationMode,
         expectedSelectedCellFieldValues, expectedSelectedRowTitle,
         expectedSelectedColumnIndex, callback) {
-      var viewEl =
+      const viewEl =
           tr.ui.analysis.createTestPane('tr-ui-a-memory-dump-overview-pane');
-      var table = viewEl.$.table;
+      const table = viewEl.$.table;
       Polymer.dom(containerEl).textContent = '';
       Polymer.dom(containerEl).appendChild(viewEl);
 
-      var displayedProcessMemoryDumps = processMemoryDumps.map(
+      const displayedProcessMemoryDumps = processMemoryDumps.map(
           function(memoryDumps) {
             return tr.b.filterItems(memoryDumps, function(pid, pmd) {
               return pids.includes(pmd.process.pid);
@@ -434,7 +437,7 @@ tr.b.unittest.testSuite(function() {
         AggregationMode.MAX,
         [18350080, 18350080, 18350080], 'Process 2', 3, /* PSS */
         function(view, table) {
-          var childPane = view.createChildPane();
+          const childPane = view.createChildPane();
           assert.strictEqual(
               childPane.tagName, 'TR-UI-A-MEMORY-DUMP-VM-REGIONS-DETAILS-PANE');
           assert.deepEqual(tr.b.asArray(childPane.vmRegions),
@@ -455,7 +458,7 @@ tr.b.unittest.testSuite(function() {
         AggregationMode.DIFF,
         [18350080, 18350080, 18350080], 'Process 2', 3, /* PSS */
         function(view, table) {
-          var childPane = view.createChildPane();
+          const childPane = view.createChildPane();
           assert.strictEqual(
               childPane.tagName, 'TR-UI-A-MEMORY-DUMP-VM-REGIONS-DETAILS-PANE');
           assert.deepEqual(tr.b.asArray(childPane.vmRegions),
@@ -484,7 +487,7 @@ tr.b.unittest.testSuite(function() {
         AggregationMode.MAX,
         [31457280, 29884416, undefined], 'Process 1', 1, /* Total resident */
         function(view, table) {
-          var childPane = view.createChildPane();
+          const childPane = view.createChildPane();
           assert.strictEqual(
               childPane.tagName, 'TR-UI-A-MEMORY-DUMP-VM-REGIONS-DETAILS-PANE');
           assert.deepEqual(tr.b.asArray(childPane.vmRegions),
@@ -494,7 +497,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('processNameColumn_formatTitle', function() {
-    var c = new ProcessNameColumn();
+    const c = new ProcessNameColumn();
 
     // With context (total row).
     assert.strictEqual(c.formatTitle({
@@ -503,7 +506,7 @@ tr.b.unittest.testSuite(function() {
     }), 'Total');
 
     // Without context (process row).
-    var title = c.formatTitle({
+    const title = c.formatTitle({
       title: 'Process 1',
       usedMemoryCells: {},
       contexts: [tr.ui.analysis.createSingleTestProcessMemoryDump()]
@@ -512,7 +515,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('usedMemoryColumn', function() {
-    var c = new UsedMemoryColumn('Private', 'bytes', tr.b.identity,
+    const c = new UsedMemoryColumn('Private', 'bytes', tr.b.identity,
         AggregationMode.DIFF);
     checkSpanWithColor(c.title, 'Private',
         UsedMemoryColumn.COLOR /* blue (column title) */);
@@ -521,15 +524,15 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('peakMemoryColumn', function() {
-    var c = new PeakMemoryColumn('Peak', 'bytes', tr.b.identity,
+    const c = new PeakMemoryColumn('Peak', 'bytes', tr.b.identity,
         AggregationMode.MAX);
     checkSpanWithColor(c.title, 'Peak',
         UsedMemoryColumn.COLOR /* blue (column title) */);
     checkColor(c.color(undefined) /* contexts */,
         UsedMemoryColumn.COLOR /* blue (column cells) */);
 
-    var RESETTABLE_PEAK = 1 << 2;
-    var NON_RESETTABLE_PEAK = 1 << 3;
+    const RESETTABLE_PEAK = 1 << 2;
+    const NON_RESETTABLE_PEAK = 1 << 3;
     function checkPeakColumnInfosAndColor(fieldAndDumpMask, expectedInfos) {
       checkOverviewColumnInfosAndColor(c,
           fieldAndDumpMask,
@@ -559,7 +562,7 @@ tr.b.unittest.testSuite(function() {
         UsedMemoryColumn.COLOR /* blue color */);
 
     // All resettable.
-    var EXPECTED_RESETTABLE_INFO = {
+    const EXPECTED_RESETTABLE_INFO = {
       icon: '\u21AA',
       message: 'Peak RSS since previous memory dump.'
     };
@@ -574,7 +577,7 @@ tr.b.unittest.testSuite(function() {
     ], [EXPECTED_RESETTABLE_INFO]);
 
     // All non-resettable.
-    var EXPECTED_NON_RESETTABLE_INFO = {
+    const EXPECTED_NON_RESETTABLE_INFO = {
       icon: '\u21A6',
       message: 'Peak RSS since process startup. Finer grained peaks require ' +
           'a Linux kernel version \u2265 4.0.'
@@ -590,7 +593,7 @@ tr.b.unittest.testSuite(function() {
     ], [EXPECTED_NON_RESETTABLE_INFO]);
 
     // Combination (warning).
-    var EXPECTED_COMBINATION_INFO = {
+    const EXPECTED_COMBINATION_INFO = {
       icon: '\u26A0',
       message: 'Both resettable and non-resettable peak RSS values were ' +
           'provided by the process',
@@ -605,12 +608,12 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('byteStatColumn', function() {
-    var c = new ByteStatColumn('Stat', 'bytes', tr.b.identity,
+    const c = new ByteStatColumn('Stat', 'bytes', tr.b.identity,
         AggregationMode.DIFF);
     checkSpanWithColor(c.title, 'Stat',
         UsedMemoryColumn.COLOR /* blue (column title) */);
 
-    var HAS_OWN_VM_REGIONS = 1 << 2;
+    const HAS_OWN_VM_REGIONS = 1 << 2;
     function checkByteStatColumnInfosAndColor(
         fieldAndDumpMask, expectedInfos, expectedIsOlderColor) {
       checkOverviewColumnInfosAndColor(c,
@@ -626,12 +629,12 @@ tr.b.unittest.testSuite(function() {
               UsedMemoryColumn.COLOR /* blue color */);
     }
 
-    var EXPECTED_ALL_OLDER_VALUES = {
+    const EXPECTED_ALL_OLDER_VALUES = {
       icon: '\u26AF',
       message: 'Older value (only heavy (purple) memory dumps contain ' +
           'memory maps).'
     };
-    var EXPECTED_SOME_OLDER_VALUES = {
+    const EXPECTED_SOME_OLDER_VALUES = {
       icon: '\u26AF',
       message: 'Older value at some selected timestamps (only heavy ' +
           '(purple) memory dumps contain memory maps).'
@@ -683,15 +686,15 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('allocatorColumn', function() {
-    var c = new AllocatorColumn('Allocator', 'bytes', tr.b.identity,
+    const c = new AllocatorColumn('Allocator', 'bytes', tr.b.identity,
         AggregationMode.MAX);
     checkColorLegend(c.title, 'Allocator');
     checkColor(c.color(undefined /* contexts */),
         undefined /* no color (column cells) */);
 
-    var HAS_HEAP_DUMPS = 1 << 2;
-    var HAS_ALLOCATOR_HEAP_DUMP = 1 << 3;
-    var MISSING_SIZE = 1 << 4;
+    const HAS_HEAP_DUMPS = 1 << 2;
+    const HAS_ALLOCATOR_HEAP_DUMP = 1 << 3;
+    const MISSING_SIZE = 1 << 4;
     function checkAllocatorColumnInfosAndColor(fieldAndDumpMask,
         expectedInfos) {
       checkOverviewColumnInfosAndColor(c,
@@ -703,7 +706,7 @@ tr.b.unittest.testSuite(function() {
             if (mask & HAS_ALLOCATOR_HEAP_DUMP) {
               pmd.heapDumps.Allocator = new HeapDump(pmd, 'Allocator');
             }
-            var mad = new MemoryAllocatorDump(pmd, 'Allocator');
+            const mad = new MemoryAllocatorDump(pmd, 'Allocator');
             if (!(mask & MISSING_SIZE)) {
               mad.addNumeric('size',
                   new Scalar(sizeInBytes_smallerIsBetter, 7));
@@ -737,11 +740,11 @@ tr.b.unittest.testSuite(function() {
       FIELD | DUMP
     ], [] /* infos */);
 
-    var EXPECTED_ALL_HAVE_ALLOCATOR_HEAP_DUMP = {
+    const EXPECTED_ALL_HAVE_ALLOCATOR_HEAP_DUMP = {
       icon: '\u2630',
       message: 'Heap dump provided.'
     };
-    var EXPECTED_SOME_HAVE_ALLOCATOR_HEAP_DUMP = {
+    const EXPECTED_SOME_HAVE_ALLOCATOR_HEAP_DUMP = {
       icon: '\u2630',
       message: 'Heap dump provided at some selected timestamps.'
     };
@@ -767,12 +770,12 @@ tr.b.unittest.testSuite(function() {
       FIELD | DUMP | HAS_HEAP_DUMPS | HAS_ALLOCATOR_HEAP_DUMP
     ], [EXPECTED_SOME_HAVE_ALLOCATOR_HEAP_DUMP]);
 
-    var EXPECTED_ALL_MISSING_SIZE = {
+    const EXPECTED_ALL_MISSING_SIZE = {
       icon: '\u26A0',
       message: 'Size was not provided.',
       color: 'red'
     };
-    var EXPECTED_SOME_MISSING_SIZE = {
+    const EXPECTED_SOME_MISSING_SIZE = {
       icon: '\u26A0',
       message: 'Size was not provided at some selected timestamps.',
       color: 'red'
@@ -818,7 +821,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('tracingColumn', function() {
-    var c = new TracingColumn('Tracing', 'bytes', tr.b.identity,
+    const c = new TracingColumn('Tracing', 'bytes', tr.b.identity,
         AggregationMode.DIFF);
     checkSpanWithColor(c.title, 'Tracing',
         TracingColumn.COLOR /* expected column title gray color */);

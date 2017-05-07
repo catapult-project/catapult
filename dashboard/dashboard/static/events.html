@@ -18,9 +18,9 @@ found in the LICENSE file.
  * The code under test must use |events.addEventListener| and
  * |events.removeEventListener| to support this.
  */
-var events = (function() {
-  var shouldIntercept = false;
-  var added = [];
+const events = (function() {
+  let shouldIntercept = false;
+  const added = [];
 
   function startSiloingListeners() {
     if (shouldIntercept) {
@@ -34,9 +34,9 @@ var events = (function() {
       throw new Error('Not currently intercepting new listeners.');
     }
     shouldIntercept = false;
-    var args;
+    let args;
     while (args = added.pop()) {
-      var target = args.shift();
+      const target = args.shift();
       target.removeEventListener.apply(target, args);
     }
   }

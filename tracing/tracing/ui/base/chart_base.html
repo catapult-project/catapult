@@ -38,15 +38,15 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.b', function() {
-  var DataSeriesEnableChangeEventType = 'data-series-enabled-change';
+  const DataSeriesEnableChangeEventType = 'data-series-enabled-change';
 
-  var THIS_DOC = document.currentScript.ownerDocument;
+  const THIS_DOC = document.currentScript.ownerDocument;
 
-  var svgNS = 'http://www.w3.org/2000/svg';
-  var ColorScheme = tr.b.ColorScheme;
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const ColorScheme = tr.b.ColorScheme;
 
   function getColorOfKey(key, selected) {
-    var id = ColorScheme.getColorIdForGeneralPurposeString(key);
+    let id = ColorScheme.getColorIdForGeneralPurposeString(key);
     if (selected) {
       id += ColorScheme.properties.brightenedOffsets[0];
     }
@@ -63,7 +63,7 @@ tr.exportTo('tr.ui.b', function() {
    * @returns {!Object}
    */
   function getSVGTextSize(parentNode, text, opt_callback, opt_this) {
-    var textNode = document.createElementNS(
+    const textNode = document.createElementNS(
         'http://www.w3.org/2000/svg', 'text');
     textNode.setAttributeNS(null, 'x', 0);
     textNode.setAttributeNS(null, 'y', 0);
@@ -73,8 +73,8 @@ tr.exportTo('tr.ui.b', function() {
     if (opt_callback) {
       opt_callback.call(opt_this || parentNode, textNode);
     }
-    var width = textNode.getComputedTextLength();
-    var height = textNode.getBBox().height;
+    const width = textNode.getComputedTextLength();
+    const height = textNode.getBBox().height;
     parentNode.removeChild(textNode);
     return {width, height};
   }
@@ -164,7 +164,7 @@ tr.exportTo('tr.ui.b', function() {
    *
    * @constructor
    */
-  var ChartBase = tr.ui.b.define('svg', undefined, svgNS);
+  const ChartBase = tr.ui.b.define('svg', undefined, svgNS);
 
   ChartBase.prototype = {
     __proto__: HTMLUnknownElement.prototype,
@@ -193,10 +193,10 @@ tr.exportTo('tr.ui.b', function() {
       // This should use tr.ui.b.instantiateTemplate. However, creating
       // svg-namespaced elements inside a template isn't possible. Thus, this
       // hack.
-      var template =
+      const template =
           Polymer.dom(THIS_DOC).querySelector('#chart-base-template');
-      var svgEl = Polymer.dom(template.content).querySelector('svg');
-      for (var i = 0; i < Polymer.dom(svgEl).children.length; i++) {
+      const svgEl = Polymer.dom(template.content).querySelector('svg');
+      for (let i = 0; i < Polymer.dom(svgEl).children.length; i++) {
         Polymer.dom(this).appendChild(
             Polymer.dom(svgEl.children[i]).cloneNode(true));
       }
@@ -273,30 +273,30 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     updateMargins_() {
-      var legendSize = this.computeLegendSize_();
+      const legendSize = this.computeLegendSize_();
       this.margin.right = Math.max(this.margin.right, legendSize.width);
       this.margin.bottom = Math.max(
           this.margin.bottom,
           legendSize.height - this.graphHeight);
 
       if (this.chartTitle_) {
-        var titleSize = getSVGTextSize(this, this.chartTitle_, textNode => {
+        const titleSize = getSVGTextSize(this, this.chartTitle_, textNode => {
           textNode.style.fontSize = '16pt';
         });
         this.margin.top = Math.max(this.margin.top, titleSize.height + 15);
-        var horizontalOverhangPx = (titleSize.width - this.graphWidth) / 2;
+        const horizontalOverhangPx = (titleSize.width - this.graphWidth) / 2;
         this.margin.left = Math.max(this.margin.left, horizontalOverhangPx);
         this.margin.right = Math.max(this.margin.right, horizontalOverhangPx);
       }
     },
 
     computeLegendSize_() {
-      var width = 0;
-      var height = 0;
+      let width = 0;
+      let height = 0;
       if (this.hideLegend) return {width, height};
 
-      for (var series of this.seriesByKey_.values()) {
-        var textSize = getSVGTextSize(this, series.key);
+      for (const series of this.seriesByKey_.values()) {
+        const textSize = getSVGTextSize(this, series.key);
         width = Math.max(width, textSize.width + 20);
         height += textSize.height;
       }
@@ -304,7 +304,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     updateDimensions_() {
-      var thisSel = d3.select(this);
+      const thisSel = d3.select(this);
       thisSel.attr('width', this.totalWidth);
       thisSel.attr('height', this.totalHeight);
 
@@ -321,7 +321,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     updateTitle_() {
-      var titleSel = d3.select(this.chartAreaElement).select('#title');
+      const titleSel = d3.select(this.chartAreaElement).select('#title');
       if (!this.chartTitle_) {
         titleSel.style('display', 'none');
         return;
@@ -336,12 +336,12 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     updateLegend_() {
-      var chartAreaSel = d3.select(this.chartAreaElement);
+      const chartAreaSel = d3.select(this.chartAreaElement);
       chartAreaSel.selectAll('.legend').remove();
       if (this.hideLegend) return;
 
-      var series = [...this.seriesByKey_.values()].reverse();
-      var legendEntriesSel = chartAreaSel.selectAll('.legend').data(series);
+      const series = [...this.seriesByKey_.values()].reverse();
+      const legendEntriesSel = chartAreaSel.selectAll('.legend').data(series);
 
       legendEntriesSel.enter()
           .append('foreignObject')
@@ -405,7 +405,7 @@ tr.exportTo('tr.ui.b', function() {
       const currentHighlightedLegendKey = chart.currentHighlightedLegendKey;
       legendEntriesSel.each(function(key) {
         // NOTE: this = legendEntry
-        var dataSeries = getDataSeries(key);
+        const dataSeries = getDataSeries(key);
         if (key === currentHighlightedLegendKey) {
           this.style.fill = dataSeries.highlightedColor;
           this.style.fontWeight = 'bold';

@@ -14,12 +14,12 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var eventStrings = {};
+  const eventStrings = {};
 
   // @const
-  var TEST_NAMES = ['simple_trace', 'lthi_cats'];
+  const TEST_NAMES = ['simple_trace', 'lthi_cats'];
   // @const
-  var TEST_FILES_PATHS = ['/test_data/simple_trace.json',
+  const TEST_FILES_PATHS = ['/test_data/simple_trace.json',
     '/test_data/lthi_cats.json.gz'];
 
   function getEvents(url) {
@@ -36,8 +36,8 @@ tr.b.unittest.testSuite(function() {
           'Per-test setUp not supported. Trivial to fix if needed.');
     }
 
-    var options = {};
-    for (var k in initialOptions) {
+    const options = {};
+    for (const k in initialOptions) {
       options[k] = initialOptions[k];
     }
     options.setUp = function() {
@@ -49,11 +49,11 @@ tr.b.unittest.testSuite(function() {
     timedPerfTest(name, testFn, options);
   }
 
-  var n110100 = [1, 10, 100];
+  const n110100 = [1, 10, 100];
   n110100.forEach(function(val) {
     timedPerfTestWithEvents(TEST_NAMES[0] + '_' + val, function() {
-      var events = getEvents(TEST_FILES_PATHS[0]);
-      var m = tr.c.TestUtils.newModelWithEvents([events], {
+      const events = getEvents(TEST_FILES_PATHS[0]);
+      const m = tr.c.TestUtils.newModelWithEvents([events], {
         shiftWorldToZero: false,
         pruneContainers: false
       });
@@ -61,8 +61,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   timedPerfTestWithEvents(TEST_NAMES[1] + '_1', function() {
-    var events = getEvents(TEST_FILES_PATHS[1]);
-    var m = tr.c.TestUtils.newModelWithEvents([events], {
+    const events = getEvents(TEST_FILES_PATHS[1]);
+    const m = tr.c.TestUtils.newModelWithEvents([events], {
       shiftWorldToZero: false,
       pruneContainers: false
     });

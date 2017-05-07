@@ -19,8 +19,8 @@ found in the LICENSE file.
  * @fileoverview Provides the ObjectCollection class.
  */
 tr.exportTo('tr.model', function() {
-  var ObjectInstance = tr.model.ObjectInstance;
-  var ObjectSnapshot = tr.model.ObjectSnapshot;
+  const ObjectInstance = tr.model.ObjectInstance;
+  const ObjectSnapshot = tr.model.ObjectSnapshot;
 
   /**
    * A collection of object instances and their snapshots, accessible by id and
@@ -41,7 +41,7 @@ tr.exportTo('tr.model', function() {
     __proto__: tr.model.EventContainer.prototype,
 
     * childEvents() {
-      for (var instance of this.getAllObjectInstances()) {
+      for (const instance of this.getAllObjectInstances()) {
         yield instance;
         yield* instance.snapshots;
       }
@@ -49,12 +49,12 @@ tr.exportTo('tr.model', function() {
 
     createObjectInstance_(
         parent, scopedId, category, name, creationTs, opt_baseTypeName) {
-      var constructor = tr.model.ObjectInstance.subTypes.getConstructor(
+      const constructor = tr.model.ObjectInstance.subTypes.getConstructor(
           category, name);
-      var instance = new constructor(
+      const instance = new constructor(
           parent, scopedId, category, name, creationTs, opt_baseTypeName);
-      var typeName = instance.typeName;
-      var instancesOfTypeName = this.instancesByTypeName_[typeName];
+      const typeName = instance.typeName;
+      let instancesOfTypeName = this.instancesByTypeName_[typeName];
       if (!instancesOfTypeName) {
         instancesOfTypeName = [];
         this.instancesByTypeName_[typeName] = instancesOfTypeName;
@@ -64,14 +64,14 @@ tr.exportTo('tr.model', function() {
     },
 
     getOrCreateInstanceMap_(scopedId) {
-      var dict;
+      let dict;
       if (scopedId.scope in this.instanceMapsByScopedId_) {
         dict = this.instanceMapsByScopedId_[scopedId.scope];
       } else {
         dict = {};
         this.instanceMapsByScopedId_[scopedId.scope] = dict;
       }
-      var instanceMap = dict[scopedId.id];
+      let instanceMap = dict[scopedId.id];
       if (instanceMap) return instanceMap;
       instanceMap = new tr.model.TimeToObjectInstanceMap(
           this.createObjectInstance_, this.parent, scopedId);
@@ -80,17 +80,17 @@ tr.exportTo('tr.model', function() {
     },
 
     idWasCreated(scopedId, category, name, ts) {
-      var instanceMap = this.getOrCreateInstanceMap_(scopedId);
+      const instanceMap = this.getOrCreateInstanceMap_(scopedId);
       return instanceMap.idWasCreated(category, name, ts);
     },
 
     addSnapshot(
         scopedId, category, name, ts, args, opt_baseTypeName) {
-      var instanceMap = this.getOrCreateInstanceMap_(scopedId);
-      var snapshot = instanceMap.addSnapshot(
+      const instanceMap = this.getOrCreateInstanceMap_(scopedId);
+      const snapshot = instanceMap.addSnapshot(
           category, name, ts, args, opt_baseTypeName);
       if (snapshot.objectInstance.category !== category) {
-        var msg = 'Added snapshot name=' + name + ' with cat=' + category +
+        const msg = 'Added snapshot name=' + name + ' with cat=' + category +
             ' impossible. It instance was created/snapshotted with cat=' +
             snapshot.objectInstance.category + ' name=' +
             snapshot.objectInstance.name;
@@ -112,12 +112,12 @@ tr.exportTo('tr.model', function() {
     },
 
     idWasDeleted(scopedId, category, name, ts) {
-      var instanceMap = this.getOrCreateInstanceMap_(scopedId);
-      var deletedInstance = instanceMap.idWasDeleted(category, name, ts);
+      const instanceMap = this.getOrCreateInstanceMap_(scopedId);
+      const deletedInstance = instanceMap.idWasDeleted(category, name, ts);
       if (!deletedInstance) return;
 
       if (deletedInstance.category !== category) {
-        var msg = 'Deleting object ' + deletedInstance.name +
+        const msg = 'Deleting object ' + deletedInstance.name +
             ' with a different category ' +
             'than when it was created. It previous had cat=' +
             deletedInstance.category + ' but the delete command ' +
@@ -133,9 +133,9 @@ tr.exportTo('tr.model', function() {
     },
 
     autoDeleteObjects(maxTimestamp) {
-      for (var imapById of Object.values(this.instanceMapsByScopedId_)) {
-        for (var i2imap of Object.values(imapById)) {
-          var lastInstance = i2imap.lastInstance;
+      for (const imapById of Object.values(this.instanceMapsByScopedId_)) {
+        for (const i2imap of Object.values(imapById)) {
+          const lastInstance = i2imap.lastInstance;
           if (lastInstance.deletionTs !== Number.MAX_VALUE) continue;
           i2imap.idWasDeleted(
               lastInstance.category, lastInstance.name, maxTimestamp);
@@ -147,7 +147,7 @@ tr.exportTo('tr.model', function() {
     },
 
     getObjectInstanceAt(scopedId, ts) {
-      var instanceMap;
+      let instanceMap;
       if (scopedId.scope in this.instanceMapsByScopedId_) {
         instanceMap = this.instanceMapsByScopedId_[scopedId.scope][scopedId.id];
       }
@@ -156,22 +156,22 @@ tr.exportTo('tr.model', function() {
     },
 
     getSnapshotAt(scopedId, ts) {
-      var instance = this.getObjectInstanceAt(scopedId, ts);
+      const instance = this.getObjectInstanceAt(scopedId, ts);
       if (!instance) return undefined;
       return instance.getSnapshotAt(ts);
     },
 
     iterObjectInstances(iter, opt_this) {
       opt_this = opt_this || this;
-      for (var imapById of Object.values(this.instanceMapsByScopedId_)) {
-        for (var i2imap of Object.values(imapById)) {
+      for (const imapById of Object.values(this.instanceMapsByScopedId_)) {
+        for (const i2imap of Object.values(imapById)) {
           i2imap.instances.forEach(iter, opt_this);
         }
       }
     },
 
     getAllObjectInstances() {
-      var instances = [];
+      const instances = [];
       this.iterObjectInstances(function(i) { instances.push(i); });
       return instances;
     },

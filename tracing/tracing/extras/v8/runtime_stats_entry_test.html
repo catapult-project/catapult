@@ -14,7 +14,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('RuntimeStatsEntry', function() {
-    var entry = new tr.e.v8.RuntimeStatsEntry('IC_Entry', 5, 1234);
+    const entry = new tr.e.v8.RuntimeStatsEntry('IC_Entry', 5, 1234);
     assert.strictEqual(entry.name, 'IC_Entry');
     assert.strictEqual(entry.count, 5);
     assert.strictEqual(entry.time, 1234);
@@ -31,20 +31,20 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('RuntimeStatsGroup', function() {
-    var group = new tr.e.v8.RuntimeStatsGroup('IC', /.*IC_.*/);
+    const group = new tr.e.v8.RuntimeStatsGroup('IC', /.*IC_.*/);
     assert.notEqual(group.match('IC_Entry'), undefined);
     assert.notEqual(group.match('CallbackIC_Entry'), undefined);
     assert.strictEqual(group.match('Callback_Entry'), null);
 
-    var entry1a = new tr.e.v8.RuntimeStatsEntry('IC_Entry', 5, 1234);
+    const entry1a = new tr.e.v8.RuntimeStatsEntry('IC_Entry', 5, 1234);
     group.add(entry1a);
     assert.deepEqual(group.values, [entry1a]);
-    var entry2 = new tr.e.v8.RuntimeStatsEntry('IC_Entry2', 2, 2048);
+    const entry2 = new tr.e.v8.RuntimeStatsEntry('IC_Entry2', 2, 2048);
     group.add(entry2);
     assert.deepEqual(group.values, [entry1a, entry2]);
-    var entry1b = new tr.e.v8.RuntimeStatsEntry('IC_Entry', 37, 8766);
+    const entry1b = new tr.e.v8.RuntimeStatsEntry('IC_Entry', 37, 8766);
     group.add(entry1b);
-    var entry1sum = new tr.e.v8.RuntimeStatsEntry('IC_Entry', 42, 10000);
+    const entry1sum = new tr.e.v8.RuntimeStatsEntry('IC_Entry', 42, 10000);
     assert.deepEqual(group.values, [entry1sum, entry2]);
   });
 
@@ -55,7 +55,7 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('RuntimeStatsGroupCollection', function() {
-    var slices = [];
+    const slices = [];
     slices.push(tr.c.TestUtils.newSliceEx({
       title: 'V8.Execute',
       start: 0,
@@ -99,11 +99,11 @@ tr.b.unittest.testSuite(function() {
       }
     }));
 
-    var groupCollection = new tr.e.v8.RuntimeStatsGroupCollection();
+    const groupCollection = new tr.e.v8.RuntimeStatsGroupCollection();
     groupCollection.addSlices(slices);
     assert.strictEqual(groupCollection.totalTime, 1045);
 
-    var groups = groupCollection.runtimeGroups;
+    const groups = groupCollection.runtimeGroups;
     assert.deepEqual(groups.length, 12);
     checkRuntimeGroup_(groups[0], 'Total', 95, 1045);
     checkRuntimeGroup_(groups[1], 'IC', 9, 99);

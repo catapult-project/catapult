@@ -22,8 +22,8 @@ tr.exportTo('tr.model', function() {
   }
 
   CommentBoxAnnotation.fromDict = function(dict) {
-    var args = dict.args;
-    var location =
+    const args = dict.args;
+    const location =
         new tr.model.Location(args.location.xWorld, args.location.yComponents);
     return new tr.model.CommentBoxAnnotation(location, args.text);
   };

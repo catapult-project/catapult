@@ -24,12 +24,12 @@ found in the LICENSE file.
  * @fileoverview Code for the viewport.
  */
 tr.exportTo('tr.ui', function() {
-  var TimelineDisplayTransform = tr.ui.TimelineDisplayTransform;
-  var TimelineInterestRange = tr.ui.TimelineInterestRange;
+  const TimelineDisplayTransform = tr.ui.TimelineDisplayTransform;
+  const TimelineInterestRange = tr.ui.TimelineInterestRange;
 
-  var IDEAL_MAJOR_MARK_DISTANCE_PX = 150;
+  const IDEAL_MAJOR_MARK_DISTANCE_PX = 150;
   // Keep 5 digits of precision when rounding the major mark distances.
-  var MAJOR_MARK_ROUNDING_FACTOR = 100000;
+  const MAJOR_MARK_ROUNDING_FACTOR = 100000;
 
   class AnimationControllerProxy {
     constructor(target) {
@@ -174,7 +174,7 @@ tr.exportTo('tr.ui', function() {
     setDisplayTransformImmediately(displayTransform) {
       this.dtAnimationController_.cancelActiveAnimation();
 
-      var oldDisplayTransform =
+      const oldDisplayTransform =
           this.dtAnimationController_.target.cloneAnimationState();
       this.currentDisplayTransform_.set(displayTransform);
       this.onCurentDisplayTransformChange_(oldDisplayTransform);
@@ -197,8 +197,8 @@ tr.exportTo('tr.ui', function() {
                 this.modelTrackContainer_.clientHeight);
       }
 
-      var changed = !this.currentDisplayTransform.equals(oldDisplayTransform);
-      var yChanged = this.currentDisplayTransform.panY !==
+      const changed = !this.currentDisplayTransform.equals(oldDisplayTransform);
+      const yChanged = this.currentDisplayTransform.panY !==
           oldDisplayTransform.panY;
       if (yChanged) {
         this.modelTrackContainer_.scrollTop = this.currentDisplayTransform.panY;
@@ -213,7 +213,7 @@ tr.exportTo('tr.ui', function() {
           this.dtAnimationController_.activeAnimation.affectsPanY) {
         this.dtAnimationController_.cancelActiveAnimation();
       }
-      var panY = this.modelTrackContainer_.scrollTop;
+      const panY = this.modelTrackContainer_.scrollTop;
       this.currentDisplayTransform_.panY = panY;
     },
 
@@ -315,22 +315,22 @@ tr.exportTo('tr.ui', function() {
     },
 
     updateMajorMarkData(viewLWorld, viewRWorld) {
-      var pixelRatio = window.devicePixelRatio || 1;
-      var dt = this.currentDisplayTransform;
+      const pixelRatio = window.devicePixelRatio || 1;
+      const dt = this.currentDisplayTransform;
 
-      var idealMajorMarkDistancePix =
+      const idealMajorMarkDistancePix =
           IDEAL_MAJOR_MARK_DISTANCE_PX * pixelRatio;
-      var idealMajorMarkDistanceWorld =
+      const idealMajorMarkDistanceWorld =
           dt.xViewVectorToWorld(idealMajorMarkDistancePix);
 
-      var majorMarkDistanceWorld = tr.b.math.preferredNumberLargerThanMin(
+      const majorMarkDistanceWorld = tr.b.math.preferredNumberLargerThanMin(
           idealMajorMarkDistanceWorld);
 
-      var firstMajorMark = Math.floor(
+      const firstMajorMark = Math.floor(
           viewLWorld / majorMarkDistanceWorld) * majorMarkDistanceWorld;
 
       this.majorMarkWorldPositions_ = [];
-      for (var curX = firstMajorMark;
+      for (let curX = firstMajorMark;
            curX < viewRWorld;
            curX += majorMarkDistanceWorld) {
         this.majorMarkWorldPositions_.push(
@@ -346,8 +346,8 @@ tr.exportTo('tr.ui', function() {
       ctx.translate((Math.round(ctx.lineWidth) % 2) / 2, 0);
 
       ctx.beginPath();
-      for (var majorMark of this.majorMarkWorldPositions_) {
-        var x = this.currentDisplayTransform.xWorldToView(majorMark);
+      for (const majorMark of this.majorMarkWorldPositions_) {
+        const x = this.currentDisplayTransform.xWorldToView(majorMark);
         tr.ui.b.drawLine(ctx, x, 0, x, ctx.canvas.height);
       }
       ctx.strokeStyle = '#ddd';
@@ -359,8 +359,8 @@ tr.exportTo('tr.ui', function() {
     drawGridLines(ctx, viewLWorld, viewRWorld) {
       if (!this.gridEnabled) return;
 
-      var dt = this.currentDisplayTransform;
-      var x = this.gridTimebase;
+      const dt = this.currentDisplayTransform;
+      let x = this.gridTimebase;
 
       // Apply subpixel translate to get crisp lines.
       // http://www.mobtowers.com/html5-canvas-crisp-lines-every-time/
@@ -372,7 +372,7 @@ tr.exportTo('tr.ui', function() {
         if (x >= viewLWorld) {
           // Do conversion to viewspace here rather than on
           // x to avoid precision issues.
-          var vx = Math.floor(dt.xWorldToView(x));
+          const vx = Math.floor(dt.xWorldToView(x));
           tr.ui.b.drawLine(ctx, vx, 0, vx, ctx.canvas.height);
         }
 
@@ -392,8 +392,8 @@ tr.exportTo('tr.ui', function() {
      * @return {boolean} true if current selection changed.
      */
     getShiftedSelection(selection, offset) {
-      var newSelection = new tr.model.EventSet();
-      for (var event of selection) {
+      const newSelection = new tr.model.EventSet();
+      for (const event of selection) {
         // If this is a flow event, then move to its slice based on the
         // offset direction.
         if (event instanceof tr.model.FlowEvent) {
@@ -407,7 +407,7 @@ tr.exportTo('tr.ui', function() {
           continue;
         }
 
-        var track = this.trackForEvent(event);
+        const track = this.trackForEvent(event);
         track.addEventNearToProvidedEventToSelection(
             event, offset, newSelection);
       }

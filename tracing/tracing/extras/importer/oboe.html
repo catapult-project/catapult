@@ -26,7 +26,7 @@ if (tr.isVinn) {
 } else if (tr.isNode) {
   // Use the node.js version instead.
   global.window = undefined;
-  var path = HTMLImportsLoader.hrefToAbsolutePath('/oboe/dist/oboe-node.js');
+  const path = HTMLImportsLoader.hrefToAbsolutePath('/oboe/dist/oboe-node.js');
   global.oboe = require(path);
 }
 </script>

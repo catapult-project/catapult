@@ -166,8 +166,8 @@ tr.exportTo('tr.b.math', function() {
     },
 
     findExplicitIntersectionDuration(min, max) {
-      var min = Math.max(this.min, min);
-      var max = Math.min(this.max, max);
+      min = Math.max(this.min, min);
+      max = Math.min(this.max, max);
       if (max < min) return 0;
       return max - min;
     },
@@ -175,8 +175,8 @@ tr.exportTo('tr.b.math', function() {
     findIntersection(range) {
       if (this.isEmpty || range.isEmpty) return new Range();
 
-      var min = Math.max(this.min, range.min);
-      var max = Math.min(this.max, range.max);
+      const min = Math.max(this.min, range.min);
+      const max = Math.min(this.max, range.max);
 
       if (max < min) return new Range();
 
@@ -210,10 +210,10 @@ tr.exportTo('tr.b.math', function() {
       // Binary search. |test| is a function that should return true when we
       // need to explore the left branch and false to explore the right branch.
       function binSearch(test) {
-        var i0 = 0;
-        var i1 = array.length;
+        let i0 = 0;
+        let i1 = array.length;
         while (i0 < i1) {
-          var i = Math.trunc((i0 + i1) / 2);
+          const i = Math.trunc((i0 + i1) / 2);
           if (test(i)) {
             i1 = i;  // Explore the left branch.
           } else {
@@ -223,15 +223,15 @@ tr.exportTo('tr.b.math', function() {
         return i1;
       }
 
-      var keyFunc = opt_keyFunc || tr.b.identity;
+      const keyFunc = opt_keyFunc || tr.b.identity;
       function getValue(index) {
         return keyFunc.call(opt_this, array[index]);
       }
 
-      var first = binSearch(function(i) {
+      const first = binSearch(function(i) {
         return this.min_ === undefined || this.min_ <= getValue(i);
       }.bind(this));
-      var last = binSearch(function(i) {
+      const last = binSearch(function(i) {
         return this.max_ !== undefined && this.max_ < getValue(i);
       }.bind(this));
       return array.slice(first, last);
@@ -241,7 +241,7 @@ tr.exportTo('tr.b.math', function() {
   Range.fromDict = function(d) {
     if (d.isEmpty === true) return new Range();
     if (d.isEmpty === false) {
-      var range = new Range();
+      const range = new Range();
       range.min = d.min;
       range.max = d.max;
       return range;
@@ -250,7 +250,7 @@ tr.exportTo('tr.b.math', function() {
   };
 
   Range.fromExplicitRange = function(min, max) {
-    var range = new Range();
+    const range = new Range();
     range.min = min;
     range.max = max;
     return range;

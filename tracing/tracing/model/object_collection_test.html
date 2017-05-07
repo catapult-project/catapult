@@ -13,7 +13,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var TestObjectInstance = function(
+  const TestObjectInstance = function(
       parent, scopedId, category, name, creationTs) {
     tr.model.ObjectInstance.call(
         this, parent, scopedId, category, name, creationTs);
@@ -30,8 +30,8 @@ tr.b.unittest.testSuite(function() {
         {typeName: 'TestObject'});
 
     try {
-      var collection = new tr.model.ObjectCollection({ });
-      var scopedId = new tr.model.ScopedId('ptr', '0x1000');
+      const collection = new tr.model.ObjectCollection({ });
+      const scopedId = new tr.model.ScopedId('ptr', '0x1000');
       collection.idWasCreated(
           scopedId, 'tr.e.cc', 'Frame', 10);
       collection.idWasDeleted(
@@ -41,11 +41,11 @@ tr.b.unittest.testSuite(function() {
       collection.idWasDeleted(
           scopedId, 'skia', 'TestObject', 25);
 
-      var testFrame = collection.getObjectInstanceAt(scopedId, 10);
+      const testFrame = collection.getObjectInstanceAt(scopedId, 10);
       assert.instanceOf(testFrame, tr.model.ObjectInstance);
       assert.notInstanceOf(testFrame, TestObjectInstance);
 
-      var testObject = collection.getObjectInstanceAt(scopedId, 20);
+      const testObject = collection.getObjectInstanceAt(scopedId, 20);
       assert.instanceOf(testObject, tr.model.ObjectInstance);
       assert.instanceOf(testObject, TestObjectInstance);
     } finally {
@@ -54,8 +54,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('twoSnapshots', function() {
-    var collection = new tr.model.ObjectCollection({});
-    var scopedId = new tr.model.ScopedId('ptr', '0x1000');
+    const collection = new tr.model.ObjectCollection({});
+    const scopedId = new tr.model.ScopedId('ptr', '0x1000');
     collection.idWasCreated(
         scopedId, 'cat', 'Frame', 10);
     collection.addSnapshot(
@@ -67,27 +67,27 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(collection.bounds.min, 10);
     assert.strictEqual(collection.bounds.max, 20);
 
-    var s0 = collection.getSnapshotAt(scopedId, 1);
+    const s0 = collection.getSnapshotAt(scopedId, 1);
     assert.isUndefined(s0);
 
-    var s1 = collection.getSnapshotAt(scopedId, 10);
+    const s1 = collection.getSnapshotAt(scopedId, 10);
     assert.strictEqual(s1.args.foo, 1);
 
-    var s2 = collection.getSnapshotAt(scopedId, 15);
+    const s2 = collection.getSnapshotAt(scopedId, 15);
     assert.strictEqual(s2.args.foo, 1);
     assert.strictEqual(s1, s2);
 
-    var s3 = collection.getSnapshotAt(scopedId, 20);
+    const s3 = collection.getSnapshotAt(scopedId, 20);
     assert.strictEqual(s3.args.foo, 2);
     assert.strictEqual(s1.object, s3.object);
 
-    var s4 = collection.getSnapshotAt(scopedId, 25);
+    const s4 = collection.getSnapshotAt(scopedId, 25);
     assert.strictEqual(s4, s3);
   });
 
   test('twoObjectsSharingOneID', function() {
-    var collection = new tr.model.ObjectCollection({});
-    var scopedId = new tr.model.ScopedId('ptr', '0x1000');
+    const collection = new tr.model.ObjectCollection({});
+    const scopedId = new tr.model.ScopedId('ptr', '0x1000');
     collection.idWasCreated(
         scopedId, 'tr.e.cc', 'Frame', 10);
     collection.idWasDeleted(
@@ -97,15 +97,15 @@ tr.b.unittest.testSuite(function() {
     collection.idWasDeleted(
         scopedId, 'skia', 'Picture', 25);
 
-    var frame = collection.getObjectInstanceAt(scopedId, 10);
+    const frame = collection.getObjectInstanceAt(scopedId, 10);
     assert.strictEqual(frame.category, 'tr.e.cc');
     assert.strictEqual(frame.name, 'Frame');
 
-    var picture = collection.getObjectInstanceAt(scopedId, 20);
+    const picture = collection.getObjectInstanceAt(scopedId, 20);
     assert.strictEqual(picture.category, 'skia');
     assert.strictEqual(picture.name, 'Picture');
 
-    var typeNames = Object.keys(collection.getAllInstancesByTypeName());
+    const typeNames = Object.keys(collection.getAllInstancesByTypeName());
     typeNames.sort();
     assert.deepEqual(
         ['Frame', 'Picture'],
@@ -119,8 +119,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('createSnapDelete', function() {
-    var collection = new tr.model.ObjectCollection({});
-    var scopedId = new tr.model.ScopedId('ptr', '0x1000');
+    const collection = new tr.model.ObjectCollection({});
+    const scopedId = new tr.model.ScopedId('ptr', '0x1000');
     collection.idWasCreated(
         scopedId, 'cat', 'Frame', 10);
     collection.addSnapshot(
@@ -132,15 +132,15 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(collection.bounds.min, 10);
     assert.strictEqual(collection.bounds.max, 15);
 
-    var s10 = collection.getSnapshotAt(scopedId, 10);
-    var i10 = s10.objectInstance;
+    const s10 = collection.getSnapshotAt(scopedId, 10);
+    const i10 = s10.objectInstance;
     assert.strictEqual(i10.creationTs, 10);
     assert.strictEqual(i10.deletionTs, 15);
   });
 
   test('boundsOnUndeletedObject', function() {
-    var collection = new tr.model.ObjectCollection({});
-    var scopedId = new tr.model.ScopedId('ptr', '0x1000');
+    const collection = new tr.model.ObjectCollection({});
+    const scopedId = new tr.model.ScopedId('ptr', '0x1000');
     collection.idWasCreated(
         scopedId, 'cat', 'Frame', 10);
     collection.addSnapshot(
@@ -152,9 +152,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('snapshotWithCustomBaseTypeThenDelete', function() {
-    var collection = new tr.model.ObjectCollection({});
-    var scopedId = new tr.model.ScopedId('ptr', '0x1000');
-    var s10 = collection.addSnapshot(
+    const collection = new tr.model.ObjectCollection({});
+    const scopedId = new tr.model.ScopedId('ptr', '0x1000');
+    const s10 = collection.addSnapshot(
         scopedId, 'cat', 'cc::PictureLayerImpl', 10, {}, 'cc::LayerImpl');
     collection.idWasDeleted(
         scopedId, 'cat', 'cc::LayerImpl', 15);
@@ -166,11 +166,11 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('newWithSnapshotThatChangesBaseType', function() {
-    var collection = new tr.model.ObjectCollection({});
-    var scopedId = new tr.model.ScopedId('ptr', '0x1000');
-    var i10 = collection.idWasCreated(
+    const collection = new tr.model.ObjectCollection({});
+    const scopedId = new tr.model.ScopedId('ptr', '0x1000');
+    const i10 = collection.idWasCreated(
         scopedId, 'cat', 'cc::LayerImpl', 10);
-    var s15 = collection.addSnapshot(
+    const s15 = collection.addSnapshot(
         scopedId, 'cat', 'cc::PictureLayerImpl', 15, {}, 'cc::LayerImpl');
     collection.updateBounds();
     assert.strictEqual(10, collection.bounds.min);
@@ -181,11 +181,11 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('deleteThenSnapshotWithCustomBase', function() {
-    var collection = new tr.model.ObjectCollection({});
-    var scopedId = new tr.model.ScopedId('ptr', '0x1000');
+    const collection = new tr.model.ObjectCollection({});
+    const scopedId = new tr.model.ScopedId('ptr', '0x1000');
     collection.idWasDeleted(
         scopedId, 'cat', 'cc::LayerImpl', 10);
-    var s15 = collection.addSnapshot(
+    const s15 = collection.addSnapshot(
         scopedId, 'cat', 'cc::PictureLayerImpl', 15, {}, 'cc::LayerImpl');
     collection.updateBounds();
     assert.strictEqual(10, collection.bounds.min);
@@ -194,23 +194,23 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('autoDelete', function() {
-    var collection = new tr.model.ObjectCollection({});
-    var scopedId = new tr.model.ScopedId('ptr', '0x1000');
+    const collection = new tr.model.ObjectCollection({});
+    const scopedId = new tr.model.ScopedId('ptr', '0x1000');
     collection.idWasCreated(
         scopedId, 'cat', 'Frame', 10);
     collection.addSnapshot(
         scopedId, 'cat', 'Frame', 10, {foo: 1});
     collection.autoDeleteObjects(15);
 
-    var s10 = collection.getSnapshotAt(scopedId, 10);
-    var i10 = s10.objectInstance;
+    const s10 = collection.getSnapshotAt(scopedId, 10);
+    const i10 = s10.objectInstance;
     assert.strictEqual(15, i10.deletionTs);
   });
 
   test('differentScopes', function() {
-    var collection = new tr.model.ObjectCollection({});
-    var scopedId1 = new tr.model.ScopedId('ptr', '0x1000');
-    var scopedId2 = new tr.model.ScopedId('cc', '0x1000');
+    const collection = new tr.model.ObjectCollection({});
+    const scopedId1 = new tr.model.ScopedId('ptr', '0x1000');
+    const scopedId2 = new tr.model.ScopedId('cc', '0x1000');
     collection.idWasCreated(
         scopedId1, 'cat', 'ptr::object', 10);
     collection.idWasDeleted(
@@ -220,10 +220,10 @@ tr.b.unittest.testSuite(function() {
     collection.idWasDeleted(
         scopedId2, 'cat', 'cc::object', 15);
 
-    var instance = collection.getObjectInstanceAt(scopedId1, 10);
+    let instance = collection.getObjectInstanceAt(scopedId1, 10);
     assert.strictEqual(instance.name, 'ptr::object');
 
-    var instance = collection.getObjectInstanceAt(scopedId2, 10);
+    instance = collection.getObjectInstanceAt(scopedId2, 10);
     assert.strictEqual(instance.name, 'cc::object');
   });
 });

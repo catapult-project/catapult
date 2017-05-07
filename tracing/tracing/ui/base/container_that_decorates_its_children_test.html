@@ -10,7 +10,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   function createChild() {
-    var span = document.createElement('span');
+    const span = document.createElement('span');
     span.decorated = false;
     return span;
   }
@@ -18,7 +18,7 @@ tr.b.unittest.testSuite(function() {
   /**
    * @constructor
    */
-  var SimpleContainer = tr.ui.b.define(
+  const SimpleContainer = tr.ui.b.define(
       'simple-container', tr.ui.b.ContainerThatDecoratesItsChildren);
 
   SimpleContainer.prototype = {
@@ -36,7 +36,7 @@ tr.b.unittest.testSuite(function() {
   };
 
   test('add', function() {
-    var container = new SimpleContainer();
+    const container = new SimpleContainer();
     Polymer.dom(container).appendChild(createChild());
     Polymer.dom(container).appendChild(createChild());
     Polymer.dom(container).appendChild(createChild());
@@ -46,25 +46,25 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('clearUsingTextContent', function() {
-    var c0 = createChild();
-    var container = new SimpleContainer();
+    const c0 = createChild();
+    const container = new SimpleContainer();
     Polymer.dom(container).appendChild(c0);
     Polymer.dom(container).textContent = '';
     assert.isFalse(c0.decorated);
   });
 
   test('clear', function() {
-    var c0 = createChild();
-    var container = new SimpleContainer();
+    const c0 = createChild();
+    const container = new SimpleContainer();
     Polymer.dom(container).appendChild(c0);
     container.clear();
     assert.isFalse(c0.decorated);
   });
 
   test('insertNewBefore', function() {
-    var c0 = createChild();
-    var c1 = createChild();
-    var container = new SimpleContainer();
+    const c0 = createChild();
+    const c1 = createChild();
+    const container = new SimpleContainer();
     Polymer.dom(container).appendChild(c1);
     Polymer.dom(container).insertBefore(c0, c1);
     assert.isTrue(c0.decorated);
@@ -72,9 +72,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('insertExistingBefore', function() {
-    var c0 = createChild();
-    var c1 = createChild();
-    var container = new SimpleContainer();
+    const c0 = createChild();
+    const c1 = createChild();
+    const container = new SimpleContainer();
     Polymer.dom(container).appendChild(c1);
     Polymer.dom(container).appendChild(c0);
     Polymer.dom(container).insertBefore(c0, c1);
@@ -83,9 +83,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('testReplace', function() {
-    var c0 = createChild();
-    var c1 = createChild();
-    var container = new SimpleContainer();
+    const c0 = createChild();
+    const c1 = createChild();
+    const container = new SimpleContainer();
     Polymer.dom(container).appendChild(c0);
     Polymer.dom(container).replaceChild(c1, c0);
     assert.isFalse(c0.decorated);

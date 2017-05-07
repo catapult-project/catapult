@@ -56,12 +56,12 @@ Polymer({
    * a brushingStateController field, this method returns undefined.
    */
   get() {
-    var viewId = this.viewId;
+    const viewId = this.viewId;
     if (!viewId) {
       throw new Error('Element must have a view-id attribute!');
     }
 
-    var brushingStateController =
+    const brushingStateController =
         tr.c.BrushingStateController.getControllerForElement(this);
     if (!brushingStateController) return undefined;
 
@@ -77,12 +77,12 @@ Polymer({
    * this method does nothing.
    */
   set(state) {
-    var viewId = this.viewId;
+    const viewId = this.viewId;
     if (!viewId) {
       throw new Error('Element must have a view-id attribute!');
     }
 
-    var brushingStateController =
+    const brushingStateController =
         tr.c.BrushingStateController.getControllerForElement(this);
     if (!brushingStateController) return;
 

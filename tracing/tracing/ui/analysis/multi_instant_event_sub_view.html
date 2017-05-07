@@ -31,7 +31,7 @@ Polymer({
 
   set selection(selection) {
     Polymer.dom(this.$.content).textContent = '';
-    var realView = document.createElement('tr-ui-a-multi-event-sub-view');
+    const realView = document.createElement('tr-ui-a-multi-event-sub-view');
     realView.eventsHaveDuration = false;
     realView.eventsHaveSubRows = false;
 

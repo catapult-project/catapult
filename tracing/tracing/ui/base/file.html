@@ -12,8 +12,8 @@ found in the LICENSE file.
 tr.exportTo('tr.ui.b', function() {
   function readFile(fileBlob) {
     return new Promise(function(resolve, reject) {
-      var reader = new FileReader();
-      var filename = fileBlob.name;
+      const reader = new FileReader();
+      const filename = fileBlob.name;
       reader.onload = function(data) {
         resolve(data.target.result);
       };
@@ -21,7 +21,7 @@ tr.exportTo('tr.ui.b', function() {
         reject(err);
       };
 
-      var isBinary = filename.endsWith('.gz') || filename.endsWith('.zip');
+      const isBinary = filename.endsWith('.gz') || filename.endsWith('.zip');
       if (isBinary) {
         reader.readAsArrayBuffer(fileBlob);
       } else {

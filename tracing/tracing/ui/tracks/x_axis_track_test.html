@@ -15,106 +15,106 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('instantiate', function() {
-    var div = document.createElement('div');
+    const div = document.createElement('div');
 
-    var viewport = new tr.ui.TimelineViewport(div);
-    var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
+    const viewport = new tr.ui.TimelineViewport(div);
+    const drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
     Polymer.dom(div).appendChild(drawingContainer);
 
-    var track = tr.ui.tracks.XAxisTrack(viewport);
+    const track = tr.ui.tracks.XAxisTrack(viewport);
     Polymer.dom(drawingContainer).appendChild(track);
     this.addHTMLOutput(div);
 
     drawingContainer.invalidate();
 
-    var dt = new tr.ui.TimelineDisplayTransform();
+    const dt = new tr.ui.TimelineDisplayTransform();
     dt.setPanAndScale(0, track.clientWidth / 1000);
     track.viewport.setDisplayTransformImmediately(dt);
   });
 
   test('instantiate_interestRange', function() {
-    var div = document.createElement('div');
+    const div = document.createElement('div');
 
-    var viewport = new tr.ui.TimelineViewport(div);
+    const viewport = new tr.ui.TimelineViewport(div);
     viewport.interestRange.min = 300;
     viewport.interestRange.max = 300;
-    var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
+    const drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
     Polymer.dom(div).appendChild(drawingContainer);
 
-    var track = tr.ui.tracks.XAxisTrack(viewport);
+    const track = tr.ui.tracks.XAxisTrack(viewport);
     Polymer.dom(drawingContainer).appendChild(track);
     this.addHTMLOutput(div);
 
     drawingContainer.invalidate();
 
-    var dt = new tr.ui.TimelineDisplayTransform();
+    const dt = new tr.ui.TimelineDisplayTransform();
     dt.setPanAndScale(0, track.clientWidth / 1000);
     track.viewport.setDisplayTransformImmediately(dt);
   });
 
   test('instantiate_singlePointInterestRange', function() {
-    var div = document.createElement('div');
+    const div = document.createElement('div');
 
-    var viewport = new tr.ui.TimelineViewport(div);
+    const viewport = new tr.ui.TimelineViewport(div);
     viewport.interestRange.min = 300;
     viewport.interestRange.max = 400;
-    var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
+    const drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
     Polymer.dom(div).appendChild(drawingContainer);
 
-    var track = tr.ui.tracks.XAxisTrack(viewport);
+    const track = tr.ui.tracks.XAxisTrack(viewport);
     Polymer.dom(drawingContainer).appendChild(track);
     this.addHTMLOutput(div);
 
     drawingContainer.invalidate();
 
-    var dt = new tr.ui.TimelineDisplayTransform();
+    const dt = new tr.ui.TimelineDisplayTransform();
     dt.setPanAndScale(0, track.clientWidth / 1000);
     track.viewport.setDisplayTransformImmediately(dt);
   });
 
   function testTimeMode(mode, testInstance, numDigits, opt_unit) {
-    var div = document.createElement('div');
+    const div = document.createElement('div');
 
-    var viewport = new tr.ui.TimelineViewport(div);
+    const viewport = new tr.ui.TimelineViewport(div);
     viewport.timeMode = mode;
-    var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
+    const drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
     Polymer.dom(div).appendChild(drawingContainer);
 
-    var trackContext = drawingContainer.ctx_;
-    var oldFillText = trackContext.fillText;
-    var fillTextText = [];
-    var fillTextThis = [];
+    const trackContext = drawingContainer.ctx_;
+    const oldFillText = trackContext.fillText;
+    const fillTextText = [];
+    const fillTextThis = [];
     trackContext.fillText = function(text, xPos, yPos) {
       fillTextText.push(text);
       fillTextThis.push(this);
       return oldFillText.call(this, text, xPos, yPos);
     };
 
-    var track = tr.ui.tracks.XAxisTrack(viewport);
+    const track = tr.ui.tracks.XAxisTrack(viewport);
     Polymer.dom(drawingContainer).appendChild(track);
     testInstance.addHTMLOutput(div);
 
     drawingContainer.invalidate();
     tr.b.forceAllPendingTasksToRunForTest();
 
-    var dt = new tr.ui.TimelineDisplayTransform();
+    const dt = new tr.ui.TimelineDisplayTransform();
     dt.setPanAndScale(0, track.clientWidth / 1000);
     track.viewport.setDisplayTransformImmediately(dt);
 
-    var formatter =
+    const formatter =
         new Intl.NumberFormat(undefined, { numDigits, numDigits });
-    var formatFunction = function(value) {
-      var valueString = value.toLocaleString(undefined, {
+    const formatFunction = function(value) {
+      let valueString = value.toLocaleString(undefined, {
         minimumFractionDigits: 0,
         maximumFractionDigits: numDigits
       });
       if (opt_unit) valueString += opt_unit;
       return valueString;
     };
-    var expectedText = viewport.majorMarkWorldPositions.map(
+    const expectedText = viewport.majorMarkWorldPositions.map(
         formatFunction);
     assert.strictEqual(fillTextText.length, fillTextThis.length);
-    for (var i = 0; i < fillTextText.length; i++) {
+    for (let i = 0; i < fillTextText.length; i++) {
       assert.deepEqual(fillTextText[i], expectedText[i]);
       assert.strictEqual(fillTextThis[i], trackContext);
     }

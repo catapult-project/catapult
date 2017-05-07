@@ -13,21 +13,21 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var newSliceEx = tr.c.TestUtils.newSliceEx;
-  var apiObjectGet = [1, 123];
-  var functionCallback = [2, 234];
-  var compileFullCode = [3, 345];
-  var allocateInTargetSpace = [4, 456];
-  var loadIcMiss = [5, 567];
-  var jsExecution = [6, 678];
-  var optimizeCode = [7, 789];
-  var parseLazy = [8, 890];
-  var handleApiCall = [9, 901];
-  var compileBackground = [1, 101];
-  var parseBackground = [2, 202];
+  const newSliceEx = tr.c.TestUtils.newSliceEx;
+  const apiObjectGet = [1, 123];
+  const functionCallback = [2, 234];
+  const compileFullCode = [3, 345];
+  const allocateInTargetSpace = [4, 456];
+  const loadIcMiss = [5, 567];
+  const jsExecution = [6, 678];
+  const optimizeCode = [7, 789];
+  const parseLazy = [8, 890];
+  const handleApiCall = [9, 901];
+  const compileBackground = [1, 101];
+  const parseBackground = [2, 202];
 
   function createModel() {
-    var m = tr.c.TestUtils.newModel(function(m) {
+    const m = tr.c.TestUtils.newModel(function(m) {
       m.p1 = m.getOrCreateProcess(1);
       m.t2 = m.p1.getOrCreateThread(2);
 
@@ -88,13 +88,14 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('SingleSliceSelection', function() {
-    var m = createModel();
+    const m = createModel();
 
-    var viewEl = document.createElement('tr-ui-e-v8-runtime-call-stats-table');
+    const viewEl = document.createElement(
+        'tr-ui-e-v8-runtime-call-stats-table');
     viewEl.slices = [m.s1];
     this.addHTMLOutput(viewEl);
     tr.b.forceAllPendingTasksToRunForTest();
-    var rows = viewEl.$.table.tableRows;
+    const rows = viewEl.$.table.tableRows;
     assert.lengthOf(rows, 12);
     assert.deepEqual(rows.map(r => r.time), [
       5286,
@@ -113,13 +114,14 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('MultiSliceSelection', function() {
-    var m = createModel();
+    const m = createModel();
 
-    var viewEl = document.createElement('tr-ui-e-v8-runtime-call-stats-table');
+    const viewEl = document.createElement(
+        'tr-ui-e-v8-runtime-call-stats-table');
     viewEl.slices = [m.s1, m.s2];
     this.addHTMLOutput(viewEl);
     tr.b.forceAllPendingTasksToRunForTest();
-    var rows = viewEl.$.table.tableRows;
+    const rows = viewEl.$.table.tableRows;
     assert.lengthOf(rows, 12);
     assert.deepEqual(rows.map(r => r.time), [
       10269,
@@ -153,13 +155,14 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('groupCorrectly', function() {
-    var m = createModel();
+    const m = createModel();
 
-    var viewEl = document.createElement('tr-ui-e-v8-runtime-call-stats-table');
+    const viewEl = document.createElement(
+        'tr-ui-e-v8-runtime-call-stats-table');
     viewEl.slices = [m.s3];
     this.addHTMLOutput(viewEl);
     tr.b.forceAllPendingTasksToRunForTest();
-    var rows = viewEl.$.table.tableRows;
+    const rows = viewEl.$.table.tableRows;
     assert.lengthOf(rows, 12);
     assert.deepEqual(rows.map(r => r.time), [
       333,

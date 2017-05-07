@@ -16,7 +16,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   function createBasicModel() {
-    var lines = [
+    const lines = [
       'Android.launcher-584   [001] d..3 12622.506890: sched_switch: prev_comm=Android.launcher prev_pid=584 prev_prio=120 prev_state=R+ ==> next_comm=Binder_1 next_pid=217 next_prio=120', // @suppress longLineCheck
       '       Binder_1-217   [001] d..3 12622.506918: sched_switch: prev_comm=Binder_1 prev_pid=217 prev_prio=120 prev_state=D ==> next_comm=Android.launcher next_pid=584 next_prio=120', // @suppress longLineCheck
       'Android.launcher-584   [001] d..4 12622.506936: sched_wakeup: comm=Binder_1 pid=217 prio=120 success=1 target_cpu=001', // @suppress longLineCheck
@@ -32,26 +32,26 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('runningSlice', function() {
-    var m = createBasicModel();
+    const m = createBasicModel();
 
-    var cpu = m.kernel.cpus[1];
-    var binderSlice = cpu.slices[0];
+    const cpu = m.kernel.cpus[1];
+    const binderSlice = cpu.slices[0];
     assert.strictEqual(binderSlice.title, 'Binder_1');
-    var launcherSlice = cpu.slices[1];
+    const launcherSlice = cpu.slices[1];
     assert.strictEqual(launcherSlice.title, 'Android.launcher');
 
 
-    var thread = m.findAllThreadsNamed('Binder_1')[0];
+    const thread = m.findAllThreadsNamed('Binder_1')[0];
 
-    var view = document.createElement(
+    const view = document.createElement(
         'tr-ui-a-single-thread-time-slice-sub-view');
-    var selection = new tr.model.EventSet();
+    const selection = new tr.model.EventSet();
     selection.push(thread.timeSlices[0]);
     view.selection = selection;
     this.addHTMLOutput(view);
 
     // Clicking the analysis link should focus the Binder1's timeslice.
-    var didSelectionChangeHappen = false;
+    let didSelectionChangeHappen = false;
     view.addEventListener('requestSelectionChange', function(e) {
       assert.isTrue(e.selection.equals(new tr.model.EventSet(binderSlice)));
       didSelectionChangeHappen = true;
@@ -61,26 +61,26 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('sleepingSlice', function() {
-    var m = createBasicModel();
+    const m = createBasicModel();
 
-    var cpu = m.kernel.cpus[1];
-    var binderSlice = cpu.slices[0];
+    const cpu = m.kernel.cpus[1];
+    const binderSlice = cpu.slices[0];
     assert.strictEqual(binderSlice.title, 'Binder_1');
-    var launcherSlice = cpu.slices[1];
+    const launcherSlice = cpu.slices[1];
     assert.strictEqual(launcherSlice.title, 'Android.launcher');
 
 
-    var thread = m.findAllThreadsNamed('Binder_1')[0];
+    const thread = m.findAllThreadsNamed('Binder_1')[0];
 
-    var view = document.createElement(
+    const view = document.createElement(
         'tr-ui-a-single-thread-time-slice-sub-view');
-    var selection = new tr.model.EventSet();
+    const selection = new tr.model.EventSet();
     selection.push(thread.timeSlices[1]);
     view.selection = selection;
     this.addHTMLOutput(view);
 
     // Clicking the analysis link should focus the Android.launcher slice
-    var didSelectionChangeHappen = false;
+    let didSelectionChangeHappen = false;
     view.addEventListener('requestSelectionChange', function(e) {
       assert.isTrue(e.selection.equals(new tr.model.EventSet(launcherSlice)));
       didSelectionChangeHappen = true;

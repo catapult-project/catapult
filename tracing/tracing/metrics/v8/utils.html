@@ -18,24 +18,24 @@ found in the LICENSE file.
 
 tr.exportTo('tr.metrics.v8.utils', function() {
   // The title of the idle task event.
-  var IDLE_TASK_EVENT = 'SingleThreadIdleTaskRunner::RunTask';
+  const IDLE_TASK_EVENT = 'SingleThreadIdleTaskRunner::RunTask';
 
   // V8 execution event.
-  var V8_EXECUTE = 'V8.Execute';
+  const V8_EXECUTE = 'V8.Execute';
 
   // GC events start with this prefix.
-  var GC_EVENT_PREFIX = 'V8.GC';
+  const GC_EVENT_PREFIX = 'V8.GC';
 
   // Special handling is required for full GCs inside low memory notification.
-  var FULL_GC_EVENT = 'V8.GCCompactor';
+  const FULL_GC_EVENT = 'V8.GCCompactor';
 
-  var LOW_MEMORY_EVENT = 'V8.GCLowMemoryNotification';
+  const LOW_MEMORY_EVENT = 'V8.GCLowMemoryNotification';
 
-  var MAJOR_GC_EVENT = 'MajorGC';
-  var MINOR_GC_EVENT = 'MinorGC';
+  const MAJOR_GC_EVENT = 'MajorGC';
+  const MINOR_GC_EVENT = 'MinorGC';
 
   // Maps the top-level GC events in timeline to telemetry friendly names.
-  var TOP_GC_EVENTS = {
+  const TOP_GC_EVENTS = {
     'V8.GCCompactor': 'v8-gc-full-mark-compactor',
     'V8.GCFinalizeMC': 'v8-gc-latency-mark-compactor',
     'V8.GCFinalizeMCReduceMemory': 'v8-gc-memory-mark-compactor',
@@ -46,13 +46,13 @@ tr.exportTo('tr.metrics.v8.utils', function() {
     'V8.GCScavenger': 'v8-gc-scavenger'
   };
 
-  var LOW_MEMORY_MARK_COMPACTOR = 'v8-gc-low-memory-mark-compactor';
+  const LOW_MEMORY_MARK_COMPACTOR = 'v8-gc-low-memory-mark-compactor';
 
   /**
    * Finds the first parent of the |event| for which the |predicate| holds.
    */
   function findParent(event, predicate) {
-    var parent = event.parentSlice;
+    let parent = event.parentSlice;
     while (parent) {
       if (predicate(parent)) {
         return parent;
@@ -166,10 +166,11 @@ tr.exportTo('tr.metrics.v8.utils', function() {
   }
 
   function subGarbageCollectionEventName(event) {
-    var topEvent = findParent(event, isTopGarbageCollectionEvent);
-    var prefix = topEvent ? topGarbageCollectionEventName(topEvent) : 'unknown';
+    const topEvent = findParent(event, isTopGarbageCollectionEvent);
+    const prefix = topEvent ? topGarbageCollectionEventName(topEvent) :
+      'unknown';
     // Remove redundant prefixes and convert to lower case.
-    var name = event.title.replace('V8.GC_MC_', '')
+    const name = event.title.replace('V8.GC_MC_', '')
                           .replace('V8.GC_SCAVENGER_', '')
                           .replace('V8.GC_', '')
                           .replace(/_/g, '-').toLowerCase();
@@ -187,14 +188,14 @@ tr.exportTo('tr.metrics.v8.utils', function() {
   function groupAndProcessEvents(model, filterCallback,
       nameCallback, processCallback) {
     // Map: name -> [events].
-    var nameToEvents = {};
-    for (var event of model.getDescendantEvents()) {
+    const nameToEvents = {};
+    for (const event of model.getDescendantEvents()) {
       if (!filterCallback(event)) continue;
-      var name = nameCallback(event);
+      const name = nameCallback(event);
       nameToEvents[name] = nameToEvents[name] || [];
       nameToEvents[name].push(event);
     }
-    for (var [name, events] of Object.entries(nameToEvents)) {
+    for (const [name, events] of Object.entries(nameToEvents)) {
       processCallback(name, events);
     }
   }
@@ -218,7 +219,7 @@ tr.exportTo('tr.metrics.v8.utils', function() {
   }
 
   function hasV8Stats(globalMemoryDump) {
-    var v8stats = undefined;
+    let v8stats = undefined;
     globalMemoryDump.iterateContainerDumps(function(dump) {
       v8stats = v8stats || dump.getMemoryAllocatorDumpByFullName('v8');
     });
@@ -226,7 +227,7 @@ tr.exportTo('tr.metrics.v8.utils', function() {
   }
 
   function rangeForMemoryDumps(model) {
-    var startOfFirstDumpWithV8 =
+    const startOfFirstDumpWithV8 =
         model.globalMemoryDumps.filter(hasV8Stats).reduce(
             (start, dump) => Math.min(start, dump.start), Infinity);
     // Empty range.

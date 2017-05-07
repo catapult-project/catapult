@@ -148,7 +148,7 @@ Polymer({
       throw new Error('Cannot activate panel without a model');
     }
 
-    var panel = undefined;
+    let panel = undefined;
     if (panelType) {
       panel = document.createElement(panelType);
     }
@@ -190,7 +190,7 @@ Polymer({
   },
 
   getPanelTypeForConstructor_(constructor) {
-    for (var i = 0; i < this.tabStrip_.children.length; i++) {
+    for (let i = 0; i < this.tabStrip_.children.length; i++) {
       if (this.tabStrip_.children[i].panelType.constructor === constructor) {
         return this.tabStrip_.children[i].panelType;
       }
@@ -198,7 +198,7 @@ Polymer({
   },
 
   getLabelElementForPanelType_(panelType) {
-    for (var i = 0; i < this.tabStrip_.children.length; i++) {
+    for (let i = 0; i < this.tabStrip_.children.length; i++) {
       if (this.tabStrip_.children[i].panelType === panelType) {
         return this.tabStrip_.children[i];
       }
@@ -207,21 +207,21 @@ Polymer({
   },
 
   updateContents_() {
-    var previouslyActivePanelType = this.activePanelType;
+    const previouslyActivePanelType = this.activePanelType;
 
     Polymer.dom(this.tabStrip_).textContent = '';
-    var supportedPanelTypes = [];
+    const supportedPanelTypes = [];
 
-    for (var panelTypeInfo of
+    for (const panelTypeInfo of
         tr.ui.side_panel.SidePanelRegistry.getAllRegisteredTypeInfos()) {
-      var labelEl = document.createElement('tab-strip-label');
-      var panel = panelTypeInfo.constructor();
-      var panelType = panel.tagName;
+      const labelEl = document.createElement('tab-strip-label');
+      const panel = panelTypeInfo.constructor();
+      const panelType = panel.tagName;
 
       Polymer.dom(labelEl).textContent = panel.textLabel;
       labelEl.panelType = panelType;
 
-      var supported = panel.supportsModel(this.model);
+      const supported = panel.supportsModel(this.model);
       if (this.model && supported.supported) {
         supportedPanelTypes.push(panelType);
         Polymer.dom(labelEl).setAttribute('enabled', true);

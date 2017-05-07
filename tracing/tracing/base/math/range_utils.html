@@ -22,23 +22,23 @@ tr.exportTo('tr.b.math', function() {
   }
 
   function mergeRanges(inRanges, mergeThreshold, mergeFunction) {
-    var remainingEvents = inRanges.slice();
+    const remainingEvents = inRanges.slice();
     remainingEvents.sort(function(x, y) {
       return x.min - y.min;
     });
 
     if (remainingEvents.length <= 1) {
-      var merged = [];
+      const merged = [];
       if (remainingEvents.length === 1) {
         merged.push(mergeFunction(remainingEvents));
       }
       return merged;
     }
 
-    var mergedEvents = [];
+    const mergedEvents = [];
 
-    var currentMergeBuffer = [];
-    var rightEdge;
+    let currentMergeBuffer = [];
+    let rightEdge;
     function beginMerging() {
       currentMergeBuffer.push(remainingEvents[0]);
       remainingEvents.splice(0, 1);
@@ -58,9 +58,9 @@ tr.exportTo('tr.b.math', function() {
     beginMerging();
 
     while (remainingEvents.length) {
-      var currentEvent = remainingEvents[0];
+      const currentEvent = remainingEvents[0];
 
-      var distanceFromRightEdge = currentEvent.min - rightEdge;
+      const distanceFromRightEdge = currentEvent.min - rightEdge;
       if (distanceFromRightEdge < mergeThreshold) {
         rightEdge = Math.max(rightEdge, currentEvent.max);
         remainingEvents.splice(0, 1);
@@ -81,7 +81,7 @@ tr.exportTo('tr.b.math', function() {
   function findEmptyRangesBetweenRanges(inRanges, opt_totalRange) {
     if (opt_totalRange && opt_totalRange.isEmpty) opt_totalRange = undefined;
 
-    var emptyRanges = [];
+    const emptyRanges = [];
     if (!inRanges.length) {
       if (opt_totalRange) emptyRanges.push(opt_totalRange);
       return emptyRanges;
@@ -98,9 +98,9 @@ tr.exportTo('tr.b.math', function() {
     }
 
     inRanges.forEach(function(range, index) {
-      for (var otherIndex = 0; otherIndex < inRanges.length; ++otherIndex) {
+      for (let otherIndex = 0; otherIndex < inRanges.length; ++otherIndex) {
         if (index === otherIndex) continue;
-        var other = inRanges[otherIndex];
+        const other = inRanges[otherIndex];
 
         if (other.min > range.max) {
           // |inRanges| is sorted, so |other| is the first range after |range|,

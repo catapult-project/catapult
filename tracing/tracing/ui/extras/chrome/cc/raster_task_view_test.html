@@ -26,13 +26,13 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   function createSelection() {
-    var m = tr.c.TestUtils.newModelWithEvents([g_catLTHIEvents]);
-    var p = m.processes[1];
-    var rasterTasks = p.threads[1].sliceGroup.slices.filter(function(slice) {
+    const m = tr.c.TestUtils.newModelWithEvents([g_catLTHIEvents]);
+    const p = m.processes[1];
+    const rasterTasks = p.threads[1].sliceGroup.slices.filter(function(slice) {
       return slice.title === 'RasterTask' || slice.title === 'AnalyzeTask';
     });
 
-    var selection = new tr.model.EventSet();
+    const selection = new tr.model.EventSet();
     selection.model = m;
 
     selection.push(rasterTasks[0]);
@@ -41,27 +41,27 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('basic', function() {
-    var selection = createSelection();
-    var view = document.createElement('tr-ui-e-chrome-cc-raster-task-view');
+    const selection = createSelection();
+    const view = document.createElement('tr-ui-e-chrome-cc-raster-task-view');
     view.selection = selection;
     this.addHTMLOutput(view);
   });
 
   test('analysisViewIntegration', function() {
-    var selection = createSelection();
+    const selection = createSelection();
 
-    var timelineView = {model: selection.model};
-    var brushingStateController =
+    const timelineView = {model: selection.model};
+    const brushingStateController =
         new tr.c.BrushingStateController(timelineView);
 
-    var analysisEl = document.createElement('tr-ui-a-analysis-view');
+    const analysisEl = document.createElement('tr-ui-a-analysis-view');
     analysisEl.brushingStateController = brushingStateController;
     brushingStateController.changeSelectionFromTimeline(selection);
 
     assert.isDefined(Polymer.dom(analysisEl).querySelector(
         'tr-ui-e-chrome-cc-raster-task-view'));
 
-    var sv = tr.b.findDeepElementMatching(
+    const sv = tr.b.findDeepElementMatching(
         analysisEl, 'tr-ui-a-multi-thread-slice-sub-view');
     assert.isTrue(sv.requiresTallView);
     this.addHTMLOutput(analysisEl);

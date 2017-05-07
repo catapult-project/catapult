@@ -17,7 +17,7 @@ tr.exportTo('tr.ui.e.system_stats', function() {
   /*
    * Displays a system stats snapshot in a human readable form. @constructor
    */
-  var SystemStatsSnapshotView = tr.ui.b.define(
+  const SystemStatsSnapshotView = tr.ui.b.define(
       'tr-ui-e-system-stats-snapshot-view', tr.ui.analysis.ObjectSnapshotView);
 
   SystemStatsSnapshotView.prototype = {
@@ -28,7 +28,7 @@ tr.exportTo('tr.ui.e.system_stats', function() {
     },
 
     updateContents() {
-      var snapshot = this.objectSnapshot_;
+      const snapshot = this.objectSnapshot_;
       if (!snapshot || !snapshot.getStats()) {
         Polymer.dom(this).textContent = 'No system stats snapshot found.';
         return;
@@ -36,7 +36,7 @@ tr.exportTo('tr.ui.e.system_stats', function() {
       // Clear old snapshot view.
       Polymer.dom(this).textContent = '';
 
-      var stats = snapshot.getStats();
+      const stats = snapshot.getStats();
       Polymer.dom(this).appendChild(this.buildList_(stats));
     },
 
@@ -51,10 +51,10 @@ tr.exportTo('tr.ui.e.system_stats', function() {
      * @return {Element} A ul list element.
      */
     buildList_(stats) {
-      var statList = document.createElement('ul');
+      const statList = document.createElement('ul');
 
-      for (var statName in stats) {
-        var statText = document.createElement('li');
+      for (const statName in stats) {
+        const statText = document.createElement('li');
         Polymer.dom(statText).textContent = '' + statName + ': ';
         Polymer.dom(statList).appendChild(statText);
 

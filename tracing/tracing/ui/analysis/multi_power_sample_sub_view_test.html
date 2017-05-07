@@ -15,14 +15,15 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('instantiate_noSamplesOrVSyncs', function() {
-    var viewEl = document.createElement('tr-ui-a-multi-power-sample-sub-view');
+    const viewEl = document.createElement(
+        'tr-ui-a-multi-power-sample-sub-view');
     viewEl.selection = undefined;
     this.addHTMLOutput(viewEl);
   });
 
   test('instantiate_noVSyncs', function() {
-    var model = new tr.Model();
-    var series = new tr.model.PowerSeries(model.device);
+    const model = new tr.Model();
+    const series = new tr.model.PowerSeries(model.device);
 
     model.device.vSyncTimestamps = [];
     series.addPowerSample(1, 1);
@@ -30,8 +31,8 @@ tr.b.unittest.testSuite(function() {
     series.addPowerSample(3, 3);
     series.addPowerSample(4, 2);
 
-    var view = document.createElement('tr-ui-a-multi-power-sample-sub-view');
-    var eventSet = new tr.model.EventSet(series.samples);
+    const view = document.createElement('tr-ui-a-multi-power-sample-sub-view');
+    const eventSet = new tr.model.EventSet(series.samples);
     view.selection = eventSet;
 
     this.addHTMLOutput(view);
@@ -41,8 +42,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiate', function() {
-    var model = new tr.Model();
-    var series = new tr.model.PowerSeries(model.device);
+    const model = new tr.Model();
+    const series = new tr.model.PowerSeries(model.device);
 
     model.device.vSyncTimestamps = [0];
     series.addPowerSample(1, 1);
@@ -50,8 +51,8 @@ tr.b.unittest.testSuite(function() {
     series.addPowerSample(3, 3);
     series.addPowerSample(4, 2);
 
-    var view = document.createElement('tr-ui-a-multi-power-sample-sub-view');
-    var eventSet = new tr.model.EventSet(series.samples);
+    const view = document.createElement('tr-ui-a-multi-power-sample-sub-view');
+    const eventSet = new tr.model.EventSet(series.samples);
     view.selection = eventSet;
 
     this.addHTMLOutput(view);

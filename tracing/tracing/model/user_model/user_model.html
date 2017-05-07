@@ -55,7 +55,7 @@ tr.exportTo('tr.model.um', function() {
 
     updateBounds() {
       this.bounds.reset();
-      for (var expectation of this.expectations) {
+      for (const expectation of this.expectations) {
         expectation.addBoundsToRange(this.bounds);
       }
     }
@@ -70,12 +70,12 @@ tr.exportTo('tr.model.um', function() {
      * @return {!Array.<!tr.model.um.Segment>}
      */
     resegment(getKeyForSegment) {
-      var newSegments = [];
-      var prevKey = undefined;
-      var prevSegment = undefined;
-      for (var i = 0; i < this.segments.length; ++i) {
-        var segment = this.segments[i];
-        var key = getKeyForSegment(segment, i);
+      const newSegments = [];
+      let prevKey = undefined;
+      let prevSegment = undefined;
+      for (let i = 0; i < this.segments.length; ++i) {
+        const segment = this.segments[i];
+        const key = getKeyForSegment(segment, i);
         if (prevSegment !== undefined && key === prevKey) {
           prevSegment.addSegment(segment);
         } else {

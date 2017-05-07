@@ -22,10 +22,10 @@ tr.exportTo('tr.model', function() {
   }
 
   RectAnnotation.fromDict = function(dict) {
-    var args = dict.args;
-    var startLoc =
+    const args = dict.args;
+    const startLoc =
         new tr.model.Location(args.start.xWorld, args.start.yComponents);
-    var endLoc =
+    const endLoc =
         new tr.model.Location(args.end.xWorld, args.end.yComponents);
     return new tr.model.RectAnnotation(startLoc, endLoc);
   };

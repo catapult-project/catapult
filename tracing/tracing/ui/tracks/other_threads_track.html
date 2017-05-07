@@ -22,10 +22,10 @@ tr.exportTo('tr.ui.tracks', function() {
    * @constructor
    * @extends {ContainerTrack}
    */
-  var OtherThreadsTrack = tr.ui.b.define(
+  const OtherThreadsTrack = tr.ui.b.define(
       'other-threads-track', tr.ui.tracks.OtherThreadsTrack);
 
-  var SpacingTrack = tr.ui.tracks.SpacingTrack;
+  const SpacingTrack = tr.ui.tracks.SpacingTrack;
 
   OtherThreadsTrack.prototype = {
 
@@ -86,8 +86,8 @@ tr.exportTo('tr.ui.tracks', function() {
         Polymer.dom(this).appendChild(this.header_);
       }
       if (this.expanded || !this.collapsible_) {
-        for (var thread of this.threads_) {
-          var track = new tr.ui.tracks.ThreadTrack(this.viewport);
+        for (const thread of this.threads_) {
+          const track = new tr.ui.tracks.ThreadTrack(this.viewport);
           track.thread = thread;
           if (!track.hasVisibleContent) return;
 

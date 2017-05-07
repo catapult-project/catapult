@@ -16,7 +16,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.analysis', function() {
-  var AnalysisSubView = {
+  const AnalysisSubView = {
     set tabLabel(label) {
       Polymer.dom(this).setAttribute('tab-label', label);
     },
@@ -47,9 +47,9 @@ tr.exportTo('tr.ui.analysis', function() {
   };
 
   // Basic registry.
-  var allTypeInfosByEventProto = new Map();
-  var onlyRootTypeInfosByEventProto = undefined;
-  var eventProtoToRootTypeInfoMap = undefined;
+  const allTypeInfosByEventProto = new Map();
+  let onlyRootTypeInfosByEventProto = undefined;
+  let eventProtoToRootTypeInfoMap = undefined;
 
   function AnalysisSubViewTypeInfo(eventConstructor, options) {
     if (options.multi === undefined) {
@@ -81,7 +81,7 @@ tr.exportTo('tr.ui.analysis', function() {
   };
 
   AnalysisSubView.register = function(tagName, eventConstructor, options) {
-    var typeInfo = allTypeInfosByEventProto.get(eventConstructor.prototype);
+    let typeInfo = allTypeInfosByEventProto.get(eventConstructor.prototype);
     if (typeInfo === undefined) {
       typeInfo = new AnalysisSubViewTypeInfo(eventConstructor, options);
       allTypeInfosByEventProto.set(typeInfo.eventConstructor.prototype,
@@ -114,16 +114,16 @@ tr.exportTo('tr.ui.analysis', function() {
 
     // Find all root typeInfos.
     allTypeInfosByEventProto.forEach(function(typeInfo, eventProto) {
-      var eventPrototype = typeInfo.eventConstructor.prototype;
+      const eventPrototype = typeInfo.eventConstructor.prototype;
 
-      var lastEventProto = eventPrototype;
-      var curEventProto = eventPrototype.__proto__;
+      let lastEventProto = eventPrototype;
+      let curEventProto = eventPrototype.__proto__;
       while (true) {
         if (!allTypeInfosByEventProto.has(curEventProto)) {
-          var rootTypeInfo = allTypeInfosByEventProto.get(lastEventProto);
-          var rootEventProto = lastEventProto;
+          const rootTypeInfo = allTypeInfosByEventProto.get(lastEventProto);
+          const rootEventProto = lastEventProto;
 
-          var isNew = onlyRootTypeInfosByEventProto.has(rootEventProto);
+          const isNew = onlyRootTypeInfosByEventProto.has(rootEventProto);
           onlyRootTypeInfosByEventProto.set(rootEventProto,
               rootTypeInfo);
           break;
@@ -136,9 +136,9 @@ tr.exportTo('tr.ui.analysis', function() {
 
     // Build the childrenTypeInfos array.
     allTypeInfosByEventProto.forEach(function(typeInfo, eventProto) {
-      var eventPrototype = typeInfo.eventConstructor.prototype;
-      var parentEventProto = eventPrototype.__proto__;
-      var parentTypeInfo = allTypeInfosByEventProto.get(parentEventProto);
+      const eventPrototype = typeInfo.eventConstructor.prototype;
+      const parentEventProto = eventPrototype.__proto__;
+      const parentTypeInfo = allTypeInfosByEventProto.get(parentEventProto);
       if (!parentTypeInfo) return;
       parentTypeInfo.childrenTypeInfos.push(typeInfo);
     });
@@ -146,12 +146,12 @@ tr.exportTo('tr.ui.analysis', function() {
     // Build the eventProto to rootTypeInfo map.
     eventProtoToRootTypeInfoMap = new Map();
     allTypeInfosByEventProto.forEach(function(typeInfo, eventProto) {
-      var eventPrototype = typeInfo.eventConstructor.prototype;
+      const eventPrototype = typeInfo.eventConstructor.prototype;
 
-      var curEventProto = eventPrototype;
+      let curEventProto = eventPrototype;
       while (true) {
         if (onlyRootTypeInfosByEventProto.has(curEventProto)) {
-          var rootTypeInfo = onlyRootTypeInfosByEventProto.get(
+          const rootTypeInfo = onlyRootTypeInfosByEventProto.get(
               curEventProto);
           eventProtoToRootTypeInfoMap.set(eventPrototype,
               rootTypeInfo);
@@ -164,11 +164,11 @@ tr.exportTo('tr.ui.analysis', function() {
 
   function findLowestTypeInfoForEvents(thisTypeInfo, events) {
     if (events.length === 0) return thisTypeInfo;
-    var event0 = tr.b.getFirstElement(events);
+    const event0 = tr.b.getFirstElement(events);
 
-    var candidateSubTypeInfo;
-    for (var i = 0; i < thisTypeInfo.childrenTypeInfos.length; i++) {
-      var childTypeInfo = thisTypeInfo.childrenTypeInfos[i];
+    let candidateSubTypeInfo;
+    for (let i = 0; i < thisTypeInfo.childrenTypeInfos.length; i++) {
+      const childTypeInfo = thisTypeInfo.childrenTypeInfos[i];
       if (event0 instanceof childTypeInfo.eventConstructor) {
         candidateSubTypeInfo = childTypeInfo;
         break;
@@ -177,8 +177,8 @@ tr.exportTo('tr.ui.analysis', function() {
     if (!candidateSubTypeInfo) return thisTypeInfo;
 
     // Validate that all the other events are instances of the candidate type.
-    var allMatch = true;
-    for (var event of events) {
+    let allMatch = true;
+    for (const event of events) {
       if (event instanceof candidateSubTypeInfo.eventConstructor) continue;
       allMatch = false;
       break;
@@ -191,17 +191,17 @@ tr.exportTo('tr.ui.analysis', function() {
     return findLowestTypeInfoForEvents(candidateSubTypeInfo, events);
   }
 
-  var primaryEventProtoToTypeInfoMap = new Map();
+  const primaryEventProtoToTypeInfoMap = new Map();
   function getRootTypeInfoForEvent(event) {
-    var curProto = event.__proto__;
-    var typeInfo = primaryEventProtoToTypeInfoMap.get(curProto);
+    const curProto = event.__proto__;
+    const typeInfo = primaryEventProtoToTypeInfoMap.get(curProto);
     if (typeInfo) return typeInfo;
     return getRootTypeInfoForEventSlow(event);
   }
 
   function getRootTypeInfoForEventSlow(event) {
-    var typeInfo;
-    var curProto = event.__proto__;
+    let typeInfo;
+    let curProto = event.__proto__;
     while (true) {
       if (curProto === Object.prototype) {
         throw new Error('No view registered for ' + event.toString());
@@ -221,7 +221,7 @@ tr.exportTo('tr.ui.analysis', function() {
     }
 
     // Base grouping.
-    var eventsByRootTypeInfo = tr.b.groupIntoMap(
+    const eventsByRootTypeInfo = tr.b.groupIntoMap(
         selection,
         function(event) {
           return getRootTypeInfoForEvent(event);
@@ -243,9 +243,9 @@ tr.exportTo('tr.ui.analysis', function() {
     // ambiguity: is the V8 slice also in the Slices tab? Or is it not? Better,
     // we think, to just only ever show an event in one place at a time, and
     // avoid the possible confusion.
-    var eventsByLowestTypeInfo = new Map();
+    const eventsByLowestTypeInfo = new Map();
     eventsByRootTypeInfo.forEach(function(events, typeInfo) {
-      var lowestTypeInfo = findLowestTypeInfoForEvents(typeInfo, events);
+      const lowestTypeInfo = findLowestTypeInfoForEvents(typeInfo, events);
       eventsByLowestTypeInfo.set(lowestTypeInfo, events);
     });
 

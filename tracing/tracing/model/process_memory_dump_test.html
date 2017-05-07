@@ -18,22 +18,22 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var GlobalMemoryDump = tr.model.GlobalMemoryDump;
-  var ProcessMemoryDump = tr.model.ProcessMemoryDump;
-  var VMRegion = tr.model.VMRegion;
-  var VMRegionClassificationNode = tr.model.VMRegionClassificationNode;
-  var Scalar = tr.b.Scalar;
-  var unitlessNumber_smallerIsBetter =
+  const GlobalMemoryDump = tr.model.GlobalMemoryDump;
+  const ProcessMemoryDump = tr.model.ProcessMemoryDump;
+  const VMRegion = tr.model.VMRegion;
+  const VMRegionClassificationNode = tr.model.VMRegionClassificationNode;
+  const Scalar = tr.b.Scalar;
+  const unitlessNumber_smallerIsBetter =
       tr.b.Unit.byName.unitlessNumber_smallerIsBetter;
-  var newAllocatorDump = tr.model.MemoryDumpTestUtils.newAllocatorDump;
-  var addChildDump = tr.model.MemoryDumpTestUtils.addChildDump;
-  var addOwnershipLink = tr.model.MemoryDumpTestUtils.addOwnershipLink;
-  var checkDumpNumericsAndDiagnostics =
+  const newAllocatorDump = tr.model.MemoryDumpTestUtils.newAllocatorDump;
+  const addChildDump = tr.model.MemoryDumpTestUtils.addChildDump;
+  const addOwnershipLink = tr.model.MemoryDumpTestUtils.addOwnershipLink;
+  const checkDumpNumericsAndDiagnostics =
       tr.model.MemoryDumpTestUtils.checkDumpNumericsAndDiagnostics;
-  var checkVMRegions = tr.model.MemoryDumpTestUtils.checkVMRegions;
+  const checkVMRegions = tr.model.MemoryDumpTestUtils.checkVMRegions;
 
   function createClassificationNode(opt_sizeInBytes, opt_byteStats) {
-    var node = new VMRegionClassificationNode();
+    const node = new VMRegionClassificationNode();
     if (opt_sizeInBytes !== undefined || opt_byteStats !== undefined) {
       node.addRegion(VMRegion.fromDict({
         mappedFile: 'mock.so',
@@ -45,10 +45,10 @@ tr.b.unittest.testSuite(function() {
   }
 
   function createProcessMemoryDump(timestamp, model) {
-    var gmd = new GlobalMemoryDump(model, timestamp);
+    const gmd = new GlobalMemoryDump(model, timestamp);
     model.globalMemoryDumps.push(gmd);
-    var p = model.getOrCreateProcess(123);
-    var pmd = new ProcessMemoryDump(gmd, p, timestamp + 1);
+    const p = model.getOrCreateProcess(123);
+    const pmd = new ProcessMemoryDump(gmd, p, timestamp + 1);
     gmd.processMemoryDumps[123] = pmd;
     p.memoryDumps.push(pmd);
     return pmd;
@@ -63,38 +63,38 @@ tr.b.unittest.testSuite(function() {
   }
 
   function createFinalizedProcessMemoryDumps(timestamps, createdCallback) {
-    var model = tr.c.TestUtils.newModel(function(model) {
-      var pmds = timestamps.map(function(timestamp) {
+    const model = tr.c.TestUtils.newModel(function(model) {
+      const pmds = timestamps.map(function(timestamp) {
         return createProcessMemoryDump(timestamp, model);
       });
       createdCallback(pmds);
     });
-    var pmds = model.getProcess(123).memoryDumps;
+    const pmds = model.getProcess(123).memoryDumps;
     assert.lengthOf(pmds, timestamps.length);
     return pmds;
   }
 
   test('processMemoryDumps', function() {
-    var pmd = createFinalizedProcessMemoryDump(42);
-    var pmds = pmd.processMemoryDumps;
+    const pmd = createFinalizedProcessMemoryDump(42);
+    const pmds = pmd.processMemoryDumps;
     assert.lengthOf(Object.keys(pmds), 1);
     assert.strictEqual(pmds[123], pmd);
   });
 
   test('hookUpMostRecentVmRegionsLinks_emptyArray', function() {
-    var dumps = [];
+    const dumps = [];
     ProcessMemoryDump.hookUpMostRecentVmRegionsLinks(dumps);
     assert.lengthOf(dumps, 0);
   });
 
   test('hookUpMostRecentVmRegionsLinks_nonEmptyArray', function() {
-    var m = new tr.Model();
+    const m = new tr.Model();
 
     // A dump with no VM regions or allocator dumps.
-    var dump1 = createProcessMemoryDump(1, m);
+    const dump1 = createProcessMemoryDump(1, m);
 
     // A dump with VM regions and malloc and Oilpan allocator dumps.
-    var dump2 = createProcessMemoryDump(2, m);
+    const dump2 = createProcessMemoryDump(2, m);
     dump2.vmRegions = createClassificationNode();
     dump2.memoryAllocatorDumps = [
       newAllocatorDump(dump2, 'oilpan', {numerics: {
@@ -110,7 +110,7 @@ tr.b.unittest.testSuite(function() {
     ];
 
     // A dump with malloc and V8 allocator dumps.
-    var dump3 = createProcessMemoryDump(3, m);
+    const dump3 = createProcessMemoryDump(3, m);
     dump3.memoryAllocatorDumps = [
       newAllocatorDump(dump3, 'malloc', {numerics: {
         size: 1024,
@@ -125,10 +125,10 @@ tr.b.unittest.testSuite(function() {
     ];
 
     // A dump with VM regions.
-    var dump4 = createProcessMemoryDump(4, m);
+    const dump4 = createProcessMemoryDump(4, m);
     dump4.vmRegions = createClassificationNode();
 
-    var dumps = [dump1, dump2, dump3, dump4];
+    const dumps = [dump1, dump2, dump3, dump4];
     ProcessMemoryDump.hookUpMostRecentVmRegionsLinks(dumps);
 
     assert.lengthOf(dumps, 4);
@@ -147,7 +147,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkDiscountTracingOverhead_undefinedFields', function() {
-    var pmd = createFinalizedProcessMemoryDump(42, function(pmd) {
+    const pmd = createFinalizedProcessMemoryDump(42, function(pmd) {
       pmd.memoryAllocatorDumps = [
         newAllocatorDump(pmd, 'v8', {numerics: {size: 2048}}),
         newAllocatorDump(pmd, 'tracing', {numerics: {size: 1024}})
@@ -157,13 +157,13 @@ tr.b.unittest.testSuite(function() {
     assert.isUndefined(pmd.totals);
     assert.isUndefined(pmd.vmRegions);
 
-    var v8Dump = pmd.getMemoryAllocatorDumpByFullName('v8');
+    const v8Dump = pmd.getMemoryAllocatorDumpByFullName('v8');
     checkDumpNumericsAndDiagnostics(v8Dump, {
       size: 2048,
       effective_size: 2048
     }, {});
 
-    var tracingDump = pmd.getMemoryAllocatorDumpByFullName('tracing');
+    const tracingDump = pmd.getMemoryAllocatorDumpByFullName('tracing');
     checkDumpNumericsAndDiagnostics(tracingDump, {
       size: 1024,
       effective_size: 1024
@@ -171,7 +171,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkDiscountTracingOverhead_definedFields', function() {
-    var pmd = createFinalizedProcessMemoryDump(42, function(pmd) {
+    const pmd = createFinalizedProcessMemoryDump(42, function(pmd) {
       pmd.totals = {residentBytes: 10240};
       pmd.vmRegions = createClassificationNode(6000, {
         privateDirtyResident: 4096,
@@ -179,11 +179,11 @@ tr.b.unittest.testSuite(function() {
         swapped: 1536
       });
 
-      var mallocDump = newAllocatorDump(pmd, 'malloc',
+      const mallocDump = newAllocatorDump(pmd, 'malloc',
           {numerics: {size: 3072}});
       addChildDump(mallocDump, 'allocated_objects', {numerics: {size: 2560}});
 
-      var tracingDump = newAllocatorDump(
+      const tracingDump = newAllocatorDump(
           pmd, 'tracing', {numerics: {size: 1024, resident_size: 1000}});
 
       pmd.memoryAllocatorDumps = [mallocDump, tracingDump];
@@ -192,7 +192,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(pmd.totals.residentBytes, 9240);
     assert.isUndefined(pmd.totals.peakResidentBytes);
 
-    var vmRegions = pmd.vmRegions;
+    const vmRegions = pmd.vmRegions;
     assert.strictEqual(vmRegions.sizeInBytes, 4976);
     assert.deepEqual(vmRegions.byteStats, {
       privateDirtyResident: 3096,
@@ -220,7 +220,7 @@ tr.b.unittest.testSuite(function() {
       }
     ]);
 
-    var mallocDump = pmd.getMemoryAllocatorDumpByFullName('malloc');
+    const mallocDump = pmd.getMemoryAllocatorDumpByFullName('malloc');
     checkDumpNumericsAndDiagnostics(mallocDump, {
       size: 3072,
       effective_size: 2048
@@ -228,7 +228,7 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(
         mallocDump.children, 2 /* 'allocated_objects' and '<unspecified>' */);
 
-    var allocatedObjectsDump = pmd.getMemoryAllocatorDumpByFullName(
+    const allocatedObjectsDump = pmd.getMemoryAllocatorDumpByFullName(
         'malloc/allocated_objects');
     checkDumpNumericsAndDiagnostics(allocatedObjectsDump, {
       size: 2560,
@@ -238,7 +238,7 @@ tr.b.unittest.testSuite(function() {
         allocatedObjectsDump.children,
         2 /* 'tracing_overhead' and '<unspecified>' */);
 
-    var discountDump = pmd.getMemoryAllocatorDumpByFullName(
+    const discountDump = pmd.getMemoryAllocatorDumpByFullName(
         'malloc/allocated_objects/tracing_overhead');
     assert.strictEqual(discountDump.parent, allocatedObjectsDump);
     assert.include(allocatedObjectsDump.children, discountDump);
@@ -247,7 +247,7 @@ tr.b.unittest.testSuite(function() {
       effective_size: 0
     }, {});
 
-    var tracingDump = pmd.getMemoryAllocatorDumpByFullName('tracing');
+    const tracingDump = pmd.getMemoryAllocatorDumpByFullName('tracing');
     checkDumpNumericsAndDiagnostics(tracingDump, {
       size: 1024,
       effective_size: 1024,
@@ -257,7 +257,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkDiscountTracingOverhead_winheap', function() {
-    var pmd = createFinalizedProcessMemoryDump(42, function(pmd) {
+    const pmd = createFinalizedProcessMemoryDump(42, function(pmd) {
       pmd.memoryAllocatorDumps = [
         newAllocatorDump(pmd, 'tracing', {numerics: {size: 2048}}),
         newAllocatorDump(pmd, 'winheap', {numerics: {size: 5120}})
@@ -267,7 +267,7 @@ tr.b.unittest.testSuite(function() {
     assert.isUndefined(pmd.totals);
     assert.isUndefined(pmd.vmRegions);
 
-    var winheapDump = pmd.getMemoryAllocatorDumpByFullName('winheap');
+    const winheapDump = pmd.getMemoryAllocatorDumpByFullName('winheap');
     checkDumpNumericsAndDiagnostics(winheapDump, {
       size: 5120,
       effective_size: 3072
@@ -275,7 +275,7 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(winheapDump.children,
         2 /* 'allocated_objects' and '<unspecified>' */);
 
-    var allocatedObjectsDump = pmd.getMemoryAllocatorDumpByFullName(
+    const allocatedObjectsDump = pmd.getMemoryAllocatorDumpByFullName(
         'winheap/allocated_objects');
     checkDumpNumericsAndDiagnostics(allocatedObjectsDump, {
       size: 2048,
@@ -284,7 +284,7 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(
         allocatedObjectsDump.children, 1 /* 'tracing_overhead' */);
 
-    var discountDump = pmd.getMemoryAllocatorDumpByFullName(
+    const discountDump = pmd.getMemoryAllocatorDumpByFullName(
         'winheap/allocated_objects/tracing_overhead');
     assert.strictEqual(discountDump.parent, allocatedObjectsDump);
     assert.include(allocatedObjectsDump.children, discountDump);
@@ -293,7 +293,7 @@ tr.b.unittest.testSuite(function() {
       effective_size: 0
     }, {});
 
-    var tracingDump = pmd.getMemoryAllocatorDumpByFullName('tracing');
+    const tracingDump = pmd.getMemoryAllocatorDumpByFullName('tracing');
     checkDumpNumericsAndDiagnostics(tracingDump, {
       size: 2048,
       effective_size: 2048
@@ -302,7 +302,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkDiscountTracingOverhead_withMostRecentVmRegionsLinks', function() {
-    var pmds = createFinalizedProcessMemoryDumps([42, 90], function(pmds) {
+    const pmds = createFinalizedProcessMemoryDumps([42, 90], function(pmds) {
       pmds[0].totals = {residentBytes: 1000, peakResidentBytes: 2000};
       pmds[0].vmRegions = createClassificationNode(6000, {
         privateDirtyResident: 4096
@@ -355,7 +355,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkDiscountTracingOverhead_allDiscountedVmRegionFields', function() {
-    var pmd = createFinalizedProcessMemoryDump(42, function(pmd) {
+    const pmd = createFinalizedProcessMemoryDump(42, function(pmd) {
       pmd.vmRegions = createClassificationNode(10000, {
         privateDirtyResident: 4096,
         proportionalResident: 8192,
@@ -367,7 +367,7 @@ tr.b.unittest.testSuite(function() {
       ];
     });
 
-    var vmRegions = pmd.vmRegions;
+    const vmRegions = pmd.vmRegions;
     assert.strictEqual(vmRegions.sizeInBytes, 9000);
     assert.deepEqual(vmRegions.byteStats, {
       privateDirtyResident: 3072,
@@ -396,7 +396,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkDiscountTracingOverhead_twoDiscountedVmRegionField', function() {
-    var pmd = createFinalizedProcessMemoryDump(42, function(pmd) {
+    const pmd = createFinalizedProcessMemoryDump(42, function(pmd) {
       pmd.vmRegions = createClassificationNode(10000, {
         privateDirtyResident: 4096,
         swapped: 1536
@@ -407,7 +407,7 @@ tr.b.unittest.testSuite(function() {
       ];
     });
 
-    var vmRegions = pmd.vmRegions;
+    const vmRegions = pmd.vmRegions;
     assert.strictEqual(vmRegions.sizeInBytes, 9000);
     assert.deepEqual(vmRegions.byteStats, {
       privateDirtyResident: 3072,
@@ -433,7 +433,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkDiscountTracingOverhead_oneDiscountedVmRegionField', function() {
-    var pmd = createFinalizedProcessMemoryDump(42, function(pmd) {
+    const pmd = createFinalizedProcessMemoryDump(42, function(pmd) {
       pmd.vmRegions = createClassificationNode(10000);
       pmd.memoryAllocatorDumps = [
         newAllocatorDump(pmd, 'tracing',
@@ -441,7 +441,7 @@ tr.b.unittest.testSuite(function() {
       ];
     });
 
-    var vmRegions = pmd.vmRegions;
+    const vmRegions = pmd.vmRegions;
     assert.strictEqual(vmRegions.sizeInBytes, 9000);
     assert.deepEqual(vmRegions.byteStats, {});
     checkVMRegions(vmRegions, [
@@ -457,7 +457,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkDiscountTracingOverhead_noDiscountedVmRegionFields', function() {
-    var pmd = createFinalizedProcessMemoryDump(42, function(pmd) {
+    const pmd = createFinalizedProcessMemoryDump(42, function(pmd) {
       pmd.vmRegions = createClassificationNode(undefined, {
         swapped: 1536
       });
@@ -467,7 +467,7 @@ tr.b.unittest.testSuite(function() {
       ];
     });
 
-    var vmRegions = pmd.vmRegions;
+    const vmRegions = pmd.vmRegions;
     assert.isUndefined(vmRegions.sizeInBytes);
     assert.deepEqual(vmRegions.byteStats, {
       swapped: 1536
@@ -483,7 +483,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkDiscountTracingOverhead_existingLink', function() {
-    var pmd = createFinalizedProcessMemoryDump(42, function(pmd) {
+    const pmd = createFinalizedProcessMemoryDump(42, function(pmd) {
       pmd.totals = {residentBytes: 10240};
 
       pmd.vmRegions = createClassificationNode(6000, {
@@ -492,11 +492,11 @@ tr.b.unittest.testSuite(function() {
         proportionalResident: 5120
       });
 
-      var mallocDump = newAllocatorDump(pmd, 'malloc',
+      const mallocDump = newAllocatorDump(pmd, 'malloc',
           {numerics: {size: 3072}});
-      var tracingDump = newAllocatorDump(pmd, 'tracing',
+      const tracingDump = newAllocatorDump(pmd, 'tracing',
           {numerics: {size: 1024, resident_size: 1000}});
-      var ownedDump = newAllocatorDump(pmd, 'owned');
+      const ownedDump = newAllocatorDump(pmd, 'owned');
 
       // The code for discounting tracing overhead should *not* override an
       // existing ownership.
@@ -508,7 +508,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(pmd.totals.residentBytes, 9240);
     assert.isUndefined(pmd.totals.peakResidentBytes);
 
-    var vmRegions = pmd.vmRegions;
+    const vmRegions = pmd.vmRegions;
     assert.strictEqual(vmRegions.sizeInBytes, 4976);
     assert.deepEqual(vmRegions.byteStats, {
       privateDirtyResident: 3096,
@@ -535,21 +535,21 @@ tr.b.unittest.testSuite(function() {
       }
     ]);
 
-    var mallocDump = pmd.getMemoryAllocatorDumpByFullName('malloc');
+    const mallocDump = pmd.getMemoryAllocatorDumpByFullName('malloc');
     checkDumpNumericsAndDiagnostics(mallocDump, {
       size: 3072,
       effective_size: 3072
     }, {});
     assert.lengthOf(mallocDump.children, 0);
 
-    var ownedDump = pmd.getMemoryAllocatorDumpByFullName('owned');
+    const ownedDump = pmd.getMemoryAllocatorDumpByFullName('owned');
     checkDumpNumericsAndDiagnostics(ownedDump, {
       size: 1024,
       effective_size: 0
     }, {});
     assert.lengthOf(ownedDump.children, 0);
 
-    var tracingDump = pmd.getMemoryAllocatorDumpByFullName('tracing');
+    const tracingDump = pmd.getMemoryAllocatorDumpByFullName('tracing');
     checkDumpNumericsAndDiagnostics(tracingDump, {
       size: 1024,
       effective_size: 1024,

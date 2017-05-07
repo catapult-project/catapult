@@ -19,59 +19,59 @@ tr.b.unittest.testSuite(function() {
   // TODO(benjhayden): Test groupHistogramsRecursively.
 
   test('importDicts', function() {
-    let n = new tr.v.Histogram('foo', tr.b.Unit.byName.unitlessNumber);
-    let histograms = new tr.v.HistogramSet([n]);
-    let histograms2 = new tr.v.HistogramSet();
+    const n = new tr.v.Histogram('foo', tr.b.Unit.byName.unitlessNumber);
+    const histograms = new tr.v.HistogramSet([n]);
+    const histograms2 = new tr.v.HistogramSet();
     histograms2.importDicts(histograms.asDicts());
     assert.isDefined(histograms2.getHistogramNamed('foo'));
   });
 
   test('importDictsWithSampleDiagnostic', function() {
-    let n = new tr.v.Histogram('foo', tr.b.Unit.byName.count);
+    const n = new tr.v.Histogram('foo', tr.b.Unit.byName.count);
     n.addSample(10, {bar: new tr.v.d.Generic('baz')});
 
-    let histograms = new tr.v.HistogramSet([n]);
-    let histograms2 = new tr.v.HistogramSet();
+    const histograms = new tr.v.HistogramSet([n]);
+    const histograms2 = new tr.v.HistogramSet();
     histograms2.importDicts(histograms.asDicts());
     assert.isDefined(histograms2.getHistogramNamed('foo'));
-    let v = histograms2.getHistogramNamed('foo');
+    const v = histograms2.getHistogramNamed('foo');
     assert.lengthOf(v.getBinForValue(10).diagnosticMaps, 1);
-    let dm = v.getBinForValue(10).diagnosticMaps[0];
+    const dm = v.getBinForValue(10).diagnosticMaps[0];
     assert.strictEqual(dm.size, 1);
     assert.instanceOf(dm.get('bar'), tr.v.d.Generic);
     assert.strictEqual(dm.get('bar').value, 'baz');
   });
 
   test('relatedHistogramSetDiagnostic', function() {
-    let unit = tr.b.Unit.byName.unitlessNumber;
-    let a = new tr.v.Histogram('a', unit);
-    let b = new tr.v.Histogram('b', unit);
-    let c = new tr.v.Histogram('c', unit);
+    const unit = tr.b.Unit.byName.unitlessNumber;
+    const a = new tr.v.Histogram('a', unit);
+    const b = new tr.v.Histogram('b', unit);
+    const c = new tr.v.Histogram('c', unit);
     a.diagnostics.set('rvs', new tr.v.d.RelatedHistogramSet([b, c]));
 
     // Don't serialize c just yet.
-    let histograms = new tr.v.HistogramSet([a, b]);
+    const histograms = new tr.v.HistogramSet([a, b]);
 
-    let sourceHistograms = histograms.sourceHistograms;
+    const sourceHistograms = histograms.sourceHistograms;
     assert.strictEqual(tr.b.getOnlyElement(sourceHistograms), a);
 
-    let histograms2 = new tr.v.HistogramSet();
+    const histograms2 = new tr.v.HistogramSet();
     histograms2.importDicts(histograms.asDicts());
     histograms2.resolveRelatedHistograms();
 
-    let a2 = histograms2.getHistogramNamed('a');
+    const a2 = histograms2.getHistogramNamed('a');
     assert.isDefined(a2);
     assert.strictEqual(a2.guid, a.guid);
     assert.instanceOf(a2, tr.v.Histogram);
     assert.notStrictEqual(a2, a);
 
-    let b2 = histograms2.getHistogramNamed('b');
+    const b2 = histograms2.getHistogramNamed('b');
     assert.isDefined(b2);
     assert.strictEqual(b2.guid, b.guid);
     assert.instanceOf(b2, tr.v.Histogram);
     assert.notStrictEqual(b2, b);
 
-    let rvs2 = a2.diagnostics.get('rvs');
+    const rvs2 = a2.diagnostics.get('rvs');
     assert.instanceOf(rvs2, tr.v.d.RelatedHistogramSet);
     assert.lengthOf(rvs2, 2);
 
@@ -91,7 +91,7 @@ tr.b.unittest.testSuite(function() {
     histograms2.importDicts([c.asDict()]);
     histograms2.resolveRelatedHistograms();
 
-    let c2 = histograms2.getHistogramNamed('c');
+    const c2 = histograms2.getHistogramNamed('c');
     assert.isDefined(c2);
     assert.strictEqual(c2.guid, c.guid);
     assert.notStrictEqual(c2, c);
@@ -106,38 +106,38 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('relatedHistogramMapDiagnostic', function() {
-    let unit = tr.b.Unit.byName.unitlessNumber;
-    let a = new tr.v.Histogram('a', unit);
-    let b = new tr.v.Histogram('b', unit);
-    let c = new tr.v.Histogram('c', unit);
-    let rvm = new tr.v.d.RelatedHistogramMap();
+    const unit = tr.b.Unit.byName.unitlessNumber;
+    const a = new tr.v.Histogram('a', unit);
+    const b = new tr.v.Histogram('b', unit);
+    const c = new tr.v.Histogram('c', unit);
+    const rvm = new tr.v.d.RelatedHistogramMap();
     rvm.set('y', b);
     rvm.set('z', c);
     a.diagnostics.set('rvm', rvm);
 
     // Don't serialize c just yet.
-    let histograms = new tr.v.HistogramSet([a, b]);
+    const histograms = new tr.v.HistogramSet([a, b]);
 
-    let sourceHistograms = histograms.sourceHistograms;
+    const sourceHistograms = histograms.sourceHistograms;
     assert.strictEqual(tr.b.getOnlyElement(sourceHistograms), a);
 
-    let histograms2 = new tr.v.HistogramSet();
+    const histograms2 = new tr.v.HistogramSet();
     histograms2.importDicts(histograms.asDicts());
     histograms2.resolveRelatedHistograms();
 
-    let a2 = histograms2.getHistogramNamed('a');
+    const a2 = histograms2.getHistogramNamed('a');
     assert.isDefined(a2);
     assert.strictEqual(a2.guid, a.guid);
     assert.instanceOf(a2, tr.v.Histogram);
     assert.notStrictEqual(a2, a);
 
-    let b2 = histograms2.getHistogramNamed('b');
+    const b2 = histograms2.getHistogramNamed('b');
     assert.isDefined(b2);
     assert.strictEqual(b2.guid, b.guid);
     assert.instanceOf(b2, tr.v.Histogram);
     assert.notStrictEqual(b2, b);
 
-    let rvm2 = a2.diagnostics.get('rvm');
+    const rvm2 = a2.diagnostics.get('rvm');
     assert.instanceOf(rvm2, tr.v.d.RelatedHistogramMap);
     assert.lengthOf(rvm2, 2);
 
@@ -152,7 +152,7 @@ tr.b.unittest.testSuite(function() {
     histograms2.importDicts([c.asDict()]);
     histograms2.resolveRelatedHistograms();
 
-    let c2 = histograms2.getHistogramNamed('c');
+    const c2 = histograms2.getHistogramNamed('c');
     assert.isDefined(c2);
     assert.strictEqual(c2.guid, c.guid);
     assert.instanceOf(c2, tr.v.Histogram);
@@ -166,27 +166,27 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('sourceHistogramsWithSampleDiagnostic', function() {
-    let unit = tr.b.Unit.byName.unitlessNumber;
-    let aHist = new tr.v.Histogram('a', unit);
+    const unit = tr.b.Unit.byName.unitlessNumber;
+    const aHist = new tr.v.Histogram('a', unit);
     aHist.addSample(1);
 
-    let bHist = new tr.v.Histogram('b', tr.b.Unit.byName.unitlessNumber);
+    const bHist = new tr.v.Histogram('b', tr.b.Unit.byName.unitlessNumber);
     bHist.addSample(1, {rvs: new tr.v.d.RelatedHistogramSet([aHist])});
 
-    let histograms = new tr.v.HistogramSet([aHist, bHist]);
+    const histograms = new tr.v.HistogramSet([aHist, bHist]);
     assert.strictEqual(tr.b.getOnlyElement(histograms.sourceHistograms), bHist);
   });
 
   test('sharedDiagnostic', function() {
     // Make a single Histogram, add a shared Diagnostic.
-    let aHist = new tr.v.Histogram('aHist', tr.b.Unit.byName.count);
-    let histograms = new tr.v.HistogramSet([aHist]);
-    let diagnostic = new tr.v.d.Generic('shared');
+    const aHist = new tr.v.Histogram('aHist', tr.b.Unit.byName.count);
+    const histograms = new tr.v.HistogramSet([aHist]);
+    const diagnostic = new tr.v.d.Generic('shared');
     histograms.addSharedDiagnostic('generic', diagnostic);
 
     // Serializing a single Histogram with a single shared diagnostic should
     // produce 2 dicts.
-    let dicts = histograms.asDicts();
+    const dicts = histograms.asDicts();
     assert.lengthOf(dicts, 2);
     assert.deepEqual(diagnostic.asDict(), dicts[0]);
 
@@ -195,10 +195,10 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(dicts[1].diagnostics.generic, diagnostic.guid);
 
     // Deserialize the dicts.
-    let histograms2 = new tr.v.HistogramSet();
+    const histograms2 = new tr.v.HistogramSet();
     histograms2.importDicts(dicts);
     assert.lengthOf(histograms2, 1);
-    let aHist2 = histograms2.getHistogramNamed(aHist.name);
+    const aHist2 = histograms2.getHistogramNamed(aHist.name);
 
     // The diagnostic reference should be deserialized as a DiagnosticRef until
     // resolveRelatedHistograms is called.
@@ -210,79 +210,79 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('getHistogramNamed_noHistogramFound', function() {
-    let aHist = new tr.v.Histogram('aHist', tr.b.Unit.byName.count);
-    let histograms = new tr.v.HistogramSet([aHist]);
+    const aHist = new tr.v.Histogram('aHist', tr.b.Unit.byName.count);
+    const histograms = new tr.v.HistogramSet([aHist]);
 
     assert.isUndefined(histograms.getHistogramNamed('bHist'));
   });
 
   test('getHistogramNamed_oneHistogramFound', function() {
-    let aHist = new tr.v.Histogram('aHist', tr.b.Unit.byName.count);
-    let histograms = new tr.v.HistogramSet([aHist]);
+    const aHist = new tr.v.Histogram('aHist', tr.b.Unit.byName.count);
+    const histograms = new tr.v.HistogramSet([aHist]);
 
     assert.strictEqual(histograms.getHistogramNamed('aHist'), aHist);
   });
 
   test('getHistogramNamed_multipleHistogramsFound', function() {
-    let aHist1 = new tr.v.Histogram('aHist', tr.b.Unit.byName.count);
-    let aHist2 = new tr.v.Histogram('aHist', tr.b.Unit.byName.count);
-    let histograms = new tr.v.HistogramSet([aHist1, aHist2]);
+    const aHist1 = new tr.v.Histogram('aHist', tr.b.Unit.byName.count);
+    const aHist2 = new tr.v.Histogram('aHist', tr.b.Unit.byName.count);
+    const histograms = new tr.v.HistogramSet([aHist1, aHist2]);
 
     assert.throws(() => histograms.getHistogramNamed('aHist'),
         Error, 'Unexpectedly found multiple histograms named "aHist"');
   });
 
   test('deduplicateDiagnostics', function() {
-    let telemetryA = new tr.v.d.TelemetryInfo({
+    const telemetryA = new tr.v.d.TelemetryInfo({
       label: 'iteration A',
       benchmarkStartMs: 1,
     });
-    let telemetryB = new tr.v.d.TelemetryInfo({
+    const telemetryB = new tr.v.d.TelemetryInfo({
       label: 'iteration B',
       benchmarkStartMs: 2,
     });
-    let buildbotA = new tr.v.d.BuildbotInfo({
+    const buildbotA = new tr.v.d.BuildbotInfo({
       buildbotName: 'bot A',
     });
-    let buildbotB = new tr.v.d.BuildbotInfo({
+    const buildbotB = new tr.v.d.BuildbotInfo({
       buildbotName: 'bot B',
     });
-    let deviceA = new tr.v.d.DeviceInfo({
+    const deviceA = new tr.v.d.DeviceInfo({
       osName: 'A',
     });
-    let deviceB = new tr.v.d.DeviceInfo({
+    const deviceB = new tr.v.d.DeviceInfo({
       osName: 'B',
     });
 
-    let aHist = new tr.v.Histogram('a', tr.b.Unit.byName.count);
-    let telemetry0 = new tr.v.d.MergedTelemetryInfo();
+    const aHist = new tr.v.Histogram('a', tr.b.Unit.byName.count);
+    const telemetry0 = new tr.v.d.MergedTelemetryInfo();
     telemetry0.addDiagnostic(telemetryA);
     telemetry0.addDiagnostic(telemetryB);
     telemetry0.addToHistogram(aHist);
-    let buildbot0 = new tr.v.d.MergedBuildbotInfo();
+    const buildbot0 = new tr.v.d.MergedBuildbotInfo();
     buildbot0.addDiagnostic(buildbotA);
     buildbot0.addDiagnostic(buildbotB);
     buildbot0.addToHistogram(aHist);
-    let device0 = new tr.v.d.MergedDeviceInfo();
+    const device0 = new tr.v.d.MergedDeviceInfo();
     device0.addDiagnostic(deviceA);
     device0.addDiagnostic(deviceB);
     device0.addToHistogram(aHist);
 
-    let bHist = new tr.v.Histogram('b', tr.b.Unit.byName.count);
-    let telemetry1 = new tr.v.d.MergedTelemetryInfo();
+    const bHist = new tr.v.Histogram('b', tr.b.Unit.byName.count);
+    const telemetry1 = new tr.v.d.MergedTelemetryInfo();
     telemetry1.addDiagnostic(telemetryA);
     telemetry1.addDiagnostic(telemetryB);
     telemetry1.addToHistogram(bHist);
-    let buildbot1 = new tr.v.d.MergedBuildbotInfo();
+    const buildbot1 = new tr.v.d.MergedBuildbotInfo();
     buildbot1.addDiagnostic(buildbotA);
     buildbot1.addDiagnostic(buildbotB);
     buildbot1.addToHistogram(bHist);
-    let device1 = new tr.v.d.MergedDeviceInfo();
+    const device1 = new tr.v.d.MergedDeviceInfo();
     device1.addDiagnostic(deviceA);
     device1.addDiagnostic(deviceB);
     device1.addToHistogram(bHist);
 
-    let histograms = new tr.v.HistogramSet([aHist, bHist]);
+    const histograms = new tr.v.HistogramSet([aHist, bHist]);
     assert.notStrictEqual(
         tr.v.d.TelemetryInfo.getFromHistogram(aHist),
         tr.v.d.TelemetryInfo.getFromHistogram(bHist));
@@ -314,11 +314,11 @@ tr.b.unittest.testSuite(function() {
         tr.v.d.BuildbotInfo.getFromHistogram(aHist),
         tr.v.d.BuildbotInfo.getFromHistogram(bHist));
 
-    let histograms2 = new tr.v.HistogramSet();
+    const histograms2 = new tr.v.HistogramSet();
     histograms2.importDicts(histograms.asDicts());
     histograms2.resolveRelatedHistograms();
-    let aHist2 = histograms2.getHistogramNamed('a');
-    let bHist2 = histograms2.getHistogramNamed('b');
+    const aHist2 = histograms2.getHistogramNamed('a');
+    const bHist2 = histograms2.getHistogramNamed('b');
 
     assert.strictEqual(
         tr.v.d.TelemetryInfo.getFromHistogram(aHist2),

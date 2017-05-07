@@ -14,8 +14,8 @@ found in the LICENSE file.
  * @fileoverview Parses cpufreq events in the Linux event trace format.
  */
 tr.exportTo('tr.e.importer.linux_perf', function() {
-  var ColorScheme = tr.b.ColorScheme;
-  var Parser = tr.e.importer.linux_perf.Parser;
+  const ColorScheme = tr.b.ColorScheme;
+  const Parser = tr.e.importer.linux_perf.Parser;
 
   /**
    * Parses linux cpufreq trace events.
@@ -44,11 +44,11 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
   function splitData(input) {
     // TODO(sleffler) split by cpu
-    var data = {};
-    var args = input.split(/\s+/);
-    var len = args.length;
-    for (var i = 0; i < len; i++) {
-      var item = args[i].split('=');
+    const data = {};
+    const args = input.split(/\s+/);
+    const len = args.length;
+    for (let i = 0; i < len; i++) {
+      const item = args[i].split('=');
       data[item[0]] = parseInt(item[1]);
     }
     return data;
@@ -59,9 +59,9 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
     cpufreqSlice(ts, eventName, cpu, args) {
       // TODO(sleffler) should be per-cpu
-      var kthread = this.importer.getOrCreatePseudoThread('cpufreq');
+      const kthread = this.importer.getOrCreatePseudoThread('cpufreq');
       kthread.openSlice = eventName;
-      var slice = new tr.model.ThreadSlice('', kthread.openSlice,
+      const slice = new tr.model.ThreadSlice('', kthread.openSlice,
           ColorScheme.getColorIdForGeneralPurposeString(kthread.openSlice),
           ts, args, 0);
 
@@ -69,9 +69,9 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     },
 
     cpufreqBoostSlice(ts, eventName, args) {
-      var kthread = this.importer.getOrCreatePseudoThread('cpufreq_boost');
+      const kthread = this.importer.getOrCreatePseudoThread('cpufreq_boost');
       kthread.openSlice = eventName;
-      var slice = new tr.model.ThreadSlice('', kthread.openSlice,
+      const slice = new tr.model.ThreadSlice('', kthread.openSlice,
           ColorScheme.getColorIdForGeneralPurposeString(kthread.openSlice),
           ts, args, 0);
 
@@ -82,14 +82,14 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
      * Parses cpufreq events and sets up state in the importer.
      */
     cpufreqUpDownEvent(eventName, cpuNumber, pid, ts, eventBase) {
-      var data = splitData(eventBase.details);
+      const data = splitData(eventBase.details);
       this.cpufreqSlice(ts, eventName, data.cpu, data);
       return true;
     },
 
     cpufreqTargetEvent(eventName, cpuNumber, pid, ts,
         eventBase) {
-      var data = splitData(eventBase.details);
+      const data = splitData(eventBase.details);
       this.cpufreqSlice(ts, eventName, data.cpu, data);
       return true;
     },

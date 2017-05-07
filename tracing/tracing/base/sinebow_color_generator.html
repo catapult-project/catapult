@@ -41,7 +41,7 @@ tr.exportTo('tr.b', function() {
     },
 
     nextColor() {
-      var components = SinebowColorGenerator.nthColor(this.colorIndex_++);
+      const components = SinebowColorGenerator.nthColor(this.colorIndex_++);
       return tr.b.Color.fromString(SinebowColorGenerator.calculateColor(
           components[0], components[1], components[2],
           this.a_, this.brightness_));
@@ -53,15 +53,15 @@ tr.exportTo('tr.b', function() {
   SinebowColorGenerator.sinebow_ = function(h) {
     h += 0.5;
     h = -h;
-    var r = Math.sin(Math.PI * h);
-    var g = Math.sin(Math.PI * (h + 1 / 3));
-    var b = Math.sin(Math.PI * (h + 2 / 3));
+    let r = Math.sin(Math.PI * h);
+    let g = Math.sin(Math.PI * (h + 1 / 3));
+    let b = Math.sin(Math.PI * (h + 2 / 3));
     r *= r; g *= g; b *= b;
     // Roughly correct for human perception.
     // https://en.wikipedia.org/wiki/Luma_%28video%29
     // Multiply by 2 to normalize all values to 0.5.
     // (Halfway between black and white.)
-    var y = 2 * (0.2989 * r + 0.5870 * g + 0.1140 * b);
+    const y = 2 * (0.2989 * r + 0.5870 * g + 0.1140 * b);
     r /= y; g /= y; b /= y;
     return [256 * r, 256 * g, 256 * b];
   };

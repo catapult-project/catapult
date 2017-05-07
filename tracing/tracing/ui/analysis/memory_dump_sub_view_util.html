@@ -18,10 +18,10 @@ found in the LICENSE file.
  * @fileoverview Helper code for memory dump sub-views.
  */
 tr.exportTo('tr.ui.analysis', function() {
-  var NO_BREAK_SPACE = String.fromCharCode(160);
-  var RIGHTWARDS_ARROW = String.fromCharCode(8594);
+  const NO_BREAK_SPACE = String.fromCharCode(160);
+  const RIGHTWARDS_ARROW = String.fromCharCode(8594);
 
-  var COLLATOR = new Intl.Collator(undefined, {numeric: true});
+  const COLLATOR = new Intl.Collator(undefined, {numeric: true});
 
   /**
    * A table column for displaying memory dump row titles.
@@ -61,27 +61,27 @@ tr.exportTo('tr.ui.analysis', function() {
      * formatTitle method should be overriden instead when necessary.
      */
     value(row) {
-      var formattedTitle = this.formatTitle(row);
+      const formattedTitle = this.formatTitle(row);
 
-      var contexts = row.contexts;
+      const contexts = row.contexts;
       if (contexts === undefined || contexts.length === 0) {
         return formattedTitle;
       }
 
       // Determine if the row was provided in the first and last row and how
       // many times it changed between being provided and not provided.
-      var firstContext = contexts[0];
-      var lastContext = contexts[contexts.length - 1];
-      var changeDefinedContextCount = 0;
-      for (var i = 1; i < contexts.length; i++) {
+      const firstContext = contexts[0];
+      const lastContext = contexts[contexts.length - 1];
+      let changeDefinedContextCount = 0;
+      for (let i = 1; i < contexts.length; i++) {
         if ((contexts[i] === undefined) !== (contexts[i - 1] === undefined)) {
           changeDefinedContextCount++;
         }
       }
 
       // Determine the color and prefix of the title.
-      var color = undefined;
-      var prefix = undefined;
+      let color = undefined;
+      let prefix = undefined;
       if (!firstContext && lastContext) {
         // The row was added.
         color = 'red';
@@ -100,9 +100,9 @@ tr.exportTo('tr.ui.analysis', function() {
         return formattedTitle;
       }
 
-      var titleEl = document.createElement('span');
+      const titleEl = document.createElement('span');
       if (prefix !== undefined) {
-        var prefixEl = tr.ui.b.createSpan({textContent: prefix});
+        const prefixEl = tr.ui.b.createSpan({textContent: prefix});
         // Enforce same width of '+++' and '---'.
         prefixEl.style.fontFamily = 'monospace';
         Polymer.dom(titleEl).appendChild(prefixEl);
@@ -158,7 +158,7 @@ tr.exportTo('tr.ui.analysis', function() {
    *
    * Example:
    *
-   *   var importanceRules = [
+   *   const importanceRules = [
    *     {
    *       condition: 'page_size',
    *       columnConstructor: NumericMemoryColumn,
@@ -211,20 +211,20 @@ tr.exportTo('tr.ui.analysis', function() {
    */
   MemoryColumn.fromRows = function(rows, config) {
     // Recursively find the names of all cells of the rows (and their sub-rows).
-    var cellNames = new Set();
+    const cellNames = new Set();
     function gatherCellNames(rows) {
       rows.forEach(function(row) {
         if (row === undefined) return;
-        var fieldCells = row[config.cellKey];
+        const fieldCells = row[config.cellKey];
         if (fieldCells !== undefined) {
-          for (var [fieldName, fieldCell] of Object.entries(fieldCells)) {
+          for (const [fieldName, fieldCell] of Object.entries(fieldCells)) {
             if (fieldCell === undefined || fieldCell.fields === undefined) {
               continue;
             }
             cellNames.add(fieldName);
           }
         }
-        var subRows = row.subRows;
+        const subRows = row.subRows;
         if (subRows !== undefined) {
           gatherCellNames(subRows);
         }
@@ -234,12 +234,14 @@ tr.exportTo('tr.ui.analysis', function() {
 
     // Based on the provided list of rules, construct the columns and calculate
     // their importance.
-    var positions = [];
+    const positions = [];
     cellNames.forEach(function(cellName) {
-      var cellPath = [config.cellKey, cellName];
-      var matchingRule = MemoryColumn.findMatchingRule(cellName, config.rules);
-      var constructor = matchingRule.columnConstructor;
-      var column = new constructor(cellName, cellPath, config.aggregationMode);
+      const cellPath = [config.cellKey, cellName];
+      const matchingRule = MemoryColumn.findMatchingRule(
+          cellName, config.rules);
+      const constructor = matchingRule.columnConstructor;
+      const column = new constructor(
+          cellName, cellPath, config.aggregationMode);
       column.shouldSetContextGroup = !!config.shouldSetContextGroup;
       positions.push({
         importance: matchingRule.importance,
@@ -261,15 +263,15 @@ tr.exportTo('tr.ui.analysis', function() {
   };
 
   MemoryColumn.spaceEqually = function(columns) {
-    var columnWidth = (100 / columns.length).toFixed(3) + '%';
+    const columnWidth = (100 / columns.length).toFixed(3) + '%';
     columns.forEach(function(column) {
       column.width = columnWidth;
     });
   };
 
   MemoryColumn.findMatchingRule = function(name, rules) {
-    for (var i = 0; i < rules.length; i++) {
-      var rule = rules[i];
+    for (let i = 0; i < rules.length; i++) {
+      const rule = rules[i];
       if (MemoryColumn.nameMatchesCondition(name, rule.condition)) {
         return rule;
       }
@@ -302,9 +304,9 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     cell(row) {
-      var cell = row;
-      var cellPath = this.cellPath;
-      for (var i = 0; i < cellPath.length; i++) {
+      let cell = row;
+      const cellPath = this.cellPath;
+      for (let i = 0; i < cellPath.length; i++) {
         if (cell === undefined) return undefined;
         cell = cell[cellPath[i]];
       }
@@ -316,7 +318,7 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     fields(row) {
-      var cell = this.cell(row);
+      const cell = this.cell(row);
       if (cell === undefined) return undefined;
       return cell.fields;
     },
@@ -326,17 +328,17 @@ tr.exportTo('tr.ui.analysis', function() {
      * method is not intended to be overriden.
      */
     value(row) {
-      var fields = this.fields(row);
+      const fields = this.fields(row);
       if (this.hasAllRelevantFieldsUndefined(fields)) return '';
 
       // Determine the color and infos of the resulting element.
-      var contexts = row.contexts;
-      var color = this.color(fields, contexts);
-      var infos = [];
+      const contexts = row.contexts;
+      const color = this.color(fields, contexts);
+      const infos = [];
       this.addInfos(fields, contexts, infos);
 
       // Format the actual fields.
-      var formattedFields = this.formatFields(fields);
+      const formattedFields = this.formatFields(fields);
 
       // If no color is specified and there are no infos, there is no need to
       // wrap the value in a span element.#
@@ -345,7 +347,7 @@ tr.exportTo('tr.ui.analysis', function() {
         return formattedFields;
       }
 
-      var fieldEl = document.createElement('span');
+      const fieldEl = document.createElement('span');
       fieldEl.style.display = 'flex';
       fieldEl.style.alignItems = 'center';
       fieldEl.style.justifyContent = 'flex-end';
@@ -354,7 +356,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
       // Add info icons with tooltips.
       infos.forEach(function(info) {
-        var infoEl = document.createElement('span');
+        const infoEl = document.createElement('span');
         infoEl.style.paddingLeft = '4px';
         infoEl.style.cursor = 'help';
         infoEl.style.fontWeight = 'bold';
@@ -459,8 +461,8 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     cmp(rowA, rowB) {
-      var fieldsA = this.fields(rowA);
-      var fieldsB = this.fields(rowB);
+      const fieldsA = this.fields(rowA);
+      const fieldsB = this.fields(rowB);
 
       // Sanity check.
       if (fieldsA !== undefined && fieldsB !== undefined &&
@@ -469,8 +471,8 @@ tr.exportTo('tr.ui.analysis', function() {
       }
 
       // Handle empty fields.
-      var undefinedA = this.hasAllRelevantFieldsUndefined(fieldsA);
-      var undefinedB = this.hasAllRelevantFieldsUndefined(fieldsB);
+      const undefinedA = this.hasAllRelevantFieldsUndefined(fieldsA);
+      const undefinedB = this.hasAllRelevantFieldsUndefined(fieldsB);
       if (undefinedA && undefinedB) return 0;
       if (undefinedA) return -1;
       if (undefinedB) return 1;
@@ -554,15 +556,15 @@ tr.exportTo('tr.ui.analysis', function() {
       if (importanceRules.length === 0) return 0;
 
       // Find the first matching rule.
-      var matchingRule =
+      const matchingRule =
           MemoryColumn.findMatchingRule(this.name, importanceRules);
       if (matchingRule !== undefined) {
         return matchingRule.importance;
       }
 
       // No matching rule. Return lower importance than all rules.
-      var minImportance = importanceRules[0].importance;
-      for (var i = 1; i < importanceRules.length; i++) {
+      let minImportance = importanceRules[0].importance;
+      for (let i = 1; i < importanceRules.length; i++) {
         minImportance = Math.min(minImportance, importanceRules[i].importance);
       }
       return minImportance - 1;
@@ -586,14 +588,14 @@ tr.exportTo('tr.ui.analysis', function() {
     formatMultipleFieldsDiff(firstString, lastString) {
       if (firstString === undefined) {
         // String was added ("+NEW_VALUE" in red).
-        var spanEl = tr.ui.b.createSpan({color: 'red'});
+        const spanEl = tr.ui.b.createSpan({color: 'red'});
         Polymer.dom(spanEl).appendChild(tr.ui.b.asHTMLOrTextNode('+'));
         Polymer.dom(spanEl).appendChild(tr.ui.b.asHTMLOrTextNode(
             this.formatSingleField(lastString)));
         return spanEl;
       } else if (lastString === undefined) {
         // String was removed ("-OLD_VALUE" in green).
-        var spanEl = tr.ui.b.createSpan({color: 'green'});
+        const spanEl = tr.ui.b.createSpan({color: 'green'});
         Polymer.dom(spanEl).appendChild(tr.ui.b.asHTMLOrTextNode('-'));
         Polymer.dom(spanEl).appendChild(tr.ui.b.asHTMLOrTextNode(
             this.formatSingleField(firstString)));
@@ -603,7 +605,7 @@ tr.exportTo('tr.ui.analysis', function() {
         return this.formatSingleField(firstString);
       }
       // String changed ("OLD_VALUE -> NEW_VALUE" in orange).
-      var spanEl = tr.ui.b.createSpan({color: 'DarkOrange'});
+      const spanEl = tr.ui.b.createSpan({color: 'DarkOrange'});
       Polymer.dom(spanEl).appendChild(tr.ui.b.asHTMLOrTextNode(
           this.formatSingleField(firstString)));
       Polymer.dom(spanEl).appendChild(tr.ui.b.asHTMLOrTextNode(
@@ -649,8 +651,8 @@ tr.exportTo('tr.ui.analysis', function() {
         return this.compareSingleFields(firstStringB, firstStringA);
       }
 
-      var areStringsAEqual = firstStringA === lastStringA;
-      var areStringsBEqual = firstStringB === lastStringB;
+      const areStringsAEqual = firstStringA === lastStringA;
+      const areStringsBEqual = firstStringB === lastStringB;
 
       // Consider diffs of strings that did not change to be smaller than diffs
       // of strings that did change.
@@ -682,16 +684,16 @@ tr.exportTo('tr.ui.analysis', function() {
     align: tr.ui.b.TableFormat.ColumnAlignment.RIGHT,
 
     aggregateCells(row, subRows) {
-      var subRowCells = subRows.map(this.cell, this);
+      const subRowCells = subRows.map(this.cell, this);
 
       // Determine if there is at least one defined numeric in the sub-row
       // cells and the timestamp count.
-      var hasDefinedSubRowNumeric = false;
-      var timestampCount = undefined;
+      let hasDefinedSubRowNumeric = false;
+      let timestampCount = undefined;
       subRowCells.forEach(function(subRowCell) {
         if (subRowCell === undefined) return;
 
-        var subRowNumerics = subRowCell.fields;
+        const subRowNumerics = subRowCell.fields;
         if (subRowNumerics === undefined) return;
 
         if (timestampCount === undefined) {
@@ -712,11 +714,11 @@ tr.exportTo('tr.ui.analysis', function() {
       }
 
       // Get or create the row cell.
-      var cellPath = this.cellPath;
-      var rowCell = row;
-      for (var i = 0; i < cellPath.length; i++) {
-        var nextStepName = cellPath[i];
-        var nextStep = rowCell[nextStepName];
+      const cellPath = this.cellPath;
+      let rowCell = row;
+      for (let i = 0; i < cellPath.length; i++) {
+        const nextStepName = cellPath[i];
+        let nextStep = rowCell[nextStepName];
         if (nextStep === undefined) {
           if (i < cellPath.length - 1) {
             nextStep = {};
@@ -734,7 +736,7 @@ tr.exportTo('tr.ui.analysis', function() {
             'Row has a different number of timestamps than sub-rows');
       }
 
-      for (var i = 0; i < timestampCount; i++) {
+      for (let i = 0; i < timestampCount; i++) {
         if (rowCell.fields[i] !== undefined) continue;
         rowCell.fields[i] = tr.model.MemoryAllocatorDump.aggregateNumerics(
             subRowCells.map(function(subRowCell) {
@@ -774,15 +776,15 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     getDiffField_(firstNumeric, lastNumeric) {
-      var definedNumeric = firstNumeric || lastNumeric;
+      const definedNumeric = firstNumeric || lastNumeric;
       return new tr.b.Scalar(definedNumeric.unit.correspondingDeltaUnit,
           this.getDiffFieldValue_(firstNumeric, lastNumeric));
     },
 
     getDiffFieldValue_(firstNumeric, lastNumeric) {
-      var firstValue = firstNumeric === undefined ? 0 : firstNumeric.value;
-      var lastValue = lastNumeric === undefined ? 0 : lastNumeric.value;
-      var diff = lastValue - firstValue;
+      const firstValue = firstNumeric === undefined ? 0 : firstNumeric.value;
+      const lastValue = lastNumeric === undefined ? 0 : lastNumeric.value;
+      const diff = lastValue - firstValue;
       return Math.abs(diff) < NumericMemoryColumn.DIFF_EPSILON ? 0 : diff;
     }
   };
@@ -800,17 +802,17 @@ tr.exportTo('tr.ui.analysis', function() {
   };
 
   /** Limit for the number of sub-rows for recursive table row expansion. */
-  var RECURSIVE_EXPANSION_MAX_VISIBLE_ROW_COUNT = 10;
+  const RECURSIVE_EXPANSION_MAX_VISIBLE_ROW_COUNT = 10;
 
   function expandTableRowsRecursively(table) {
-    var currentLevelRows = table.tableRows;
-    var totalVisibleRowCount = currentLevelRows.length;
+    let currentLevelRows = table.tableRows;
+    let totalVisibleRowCount = currentLevelRows.length;
 
     while (currentLevelRows.length > 0) {
       // Calculate the total number of sub-rows on the current level.
-      var nextLevelRowCount = 0;
+      let nextLevelRowCount = 0;
       currentLevelRows.forEach(function(currentLevelRow) {
-        var subRows = currentLevelRow.subRows;
+        const subRows = currentLevelRow.subRows;
         if (subRows === undefined || subRows.length === 0) return;
         nextLevelRowCount += subRows.length;
       });
@@ -823,10 +825,10 @@ tr.exportTo('tr.ui.analysis', function() {
       }
 
       // Expand all rows on the current level and gather their sub-rows.
-      var nextLevelRows = new Array(nextLevelRowCount);
-      var nextLevelRowIndex = 0;
+      const nextLevelRows = new Array(nextLevelRowCount);
+      let nextLevelRowIndex = 0;
       currentLevelRows.forEach(function(currentLevelRow) {
-        var subRows = currentLevelRow.subRows;
+        const subRows = currentLevelRow.subRows;
         if (subRows === undefined || subRows.length === 0) return;
         table.setExpandedForTableRow(currentLevelRow, true);
         subRows.forEach(function(subRow) {
@@ -841,7 +843,7 @@ tr.exportTo('tr.ui.analysis', function() {
   }
 
   function aggregateTableRowCellsRecursively(row, columns, opt_predicate) {
-    var subRows = row.subRows;
+    const subRows = row.subRows;
     if (subRows === undefined || subRows.length === 0) return;
 
     subRows.forEach(function(subRow) {
@@ -862,7 +864,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
   function createCells(timeToValues, valueFieldsGetter, opt_this) {
     opt_this = opt_this || this;
-    var fieldNameToFields = tr.b.invertArrayOfDicts(
+    const fieldNameToFields = tr.b.invertArrayOfDicts(
         timeToValues, valueFieldsGetter, opt_this);
     return tr.b.mapItems(fieldNameToFields, function(fieldName, fields) {
       return new tr.ui.analysis.MemoryCell(fields);

@@ -64,9 +64,9 @@ Polymer({
   },
 
   updateContents_() {
-    var selection = this.selection_;
-    var rows = [];
-    var hasRange;
+    const selection = this.selection_;
+    const rows = [];
+    let hasRange;
     if (this.selection_ && (!selection.bounds.isEmpty)) {
       hasRange = true;
     } else {

@@ -11,15 +11,15 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var TimelineDisplayTransform = tr.ui.TimelineDisplayTransform;
+  const TimelineDisplayTransform = tr.ui.TimelineDisplayTransform;
 
   test('basics', function() {
-    var a = new TimelineDisplayTransform();
+    const a = new TimelineDisplayTransform();
     a.panX = 0;
     a.panY = 0;
     a.scaleX = 1;
 
-    var b = new TimelineDisplayTransform();
+    const b = new TimelineDisplayTransform();
     b.panX = 10;
     b.panY = 0;
     b.scaleX = 1;
@@ -27,7 +27,7 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(a.equals(b));
     assert.isFalse(a.almostEquals(b));
 
-    var c = b.clone();
+    const c = b.clone();
     assert.isTrue(b.equals(c));
     assert.isTrue(b.almostEquals(c));
 

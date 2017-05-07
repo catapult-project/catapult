@@ -68,7 +68,7 @@ Polymer({
   },
 
   onCustomizeRows_(event) {
-    var ue = tr.b.getOnlyElement(this.selection);
+    const ue = tr.b.getOnlyElement(this.selection);
 
     if (ue.rawCpuMs) {
       event.rows.push({

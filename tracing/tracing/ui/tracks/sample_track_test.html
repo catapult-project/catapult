@@ -15,18 +15,18 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var SampleTrack = tr.ui.tracks.SampleTrack;
-  var Sample = tr.model.Sample;
-  var ProfileNode = tr.model.ProfileNode;
+  const SampleTrack = tr.ui.tracks.SampleTrack;
+  const Sample = tr.model.Sample;
+  const ProfileNode = tr.model.ProfileNode;
 
   test('modelMapping', function() {
-    var track = new SampleTrack(new tr.ui.TimelineViewport());
-    var node = new ProfileNode(1, {
+    const track = new SampleTrack(new tr.ui.TimelineViewport());
+    const node = new ProfileNode(1, {
       functionName: 'a'
     }, undefined);
-    var sample = new Sample(10, 'instructions_retired', node);
+    const sample = new Sample(10, 'instructions_retired', node);
     track.samples = [sample];
-    var me0 = track.rects[0].modelItem;
+    const me0 = track.rects[0].modelItem;
     assert.strictEqual(me0, sample);
   });
 });

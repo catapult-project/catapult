@@ -110,8 +110,8 @@ found in the LICENSE file.
        * Requests new data to update the graph when the test path is set.
        */
       testpathChanged() {
-        var postdata = 'test_path=' + encodeURIComponent(this.testpath);
-        var request = new XMLHttpRequest();
+        const postdata = 'test_path=' + encodeURIComponent(this.testpath);
+        const request = new XMLHttpRequest();
         request.onload = this.onLoadGraph.bind(this, request);
         request.open('post', '/graph_revisions', true);
         request.setRequestHeader(
@@ -130,10 +130,10 @@ found in the LICENSE file.
         this.data = JSON.parse(request.responseText);
         this.selectionMax = this.data.length - 1;
         this.revisionToIndexMap = {};
-        var chartData = [];
-        for (var i = 0; i < this.data.length; i++) {
+        const chartData = [];
+        for (let i = 0; i < this.data.length; i++) {
           chartData.push([i, this.data[i][1]]);
-          var rev = this.data[i][0];
+          const rev = this.data[i][0];
           this.revisionToIndexMap[rev] = i;
         }
         this.chart = $.plot(
@@ -166,8 +166,8 @@ found in the LICENSE file.
           return;
         }
 
-        var startIndex = null;
-        var endIndex = null;
+        let startIndex = null;
+        let endIndex = null;
         if (this.startrev in this.revisionToIndexMap) {
           startIndex = this.revisionToIndexMap[this.startrev];
         } else {
@@ -190,8 +190,8 @@ found in the LICENSE file.
         }
 
         // If the slider is too small, it doesn't render.
-        var ratio = (endIndex - startIndex) / this.data.length;
-        var MIN_RATIO = 0.01;
+        const ratio = (endIndex - startIndex) / this.data.length;
+        const MIN_RATIO = 0.01;
         if (ratio < MIN_RATIO) {
           startIndex = Math.round(endIndex * (1.0 - MIN_RATIO));
         }
@@ -206,7 +206,7 @@ found in the LICENSE file.
        * @return {number} An index number.
        */
       getPreviousIndexForRev(revision) {
-        for (var i = this.data.length - 1; i >= 0; i--) {
+        for (let i = this.data.length - 1; i >= 0; i--) {
           if (revision > this.data[i][0]) {
             return i;
           }
@@ -224,7 +224,7 @@ found in the LICENSE file.
         xValue = Math.max(0, Math.round(xValue));
         xValue = Math.min(xValue, this.data.length - 1);
         if (this.data[xValue] && this.data[xValue][2]) {
-          var d = new Date(this.data[xValue][2]);
+          const d = new Date(this.data[xValue][2]);
           return d.toISOString().substring(0, 10);  // yyyy-mm-dd.
         }
         return String(xValue);
@@ -240,8 +240,8 @@ found in the LICENSE file.
         if (!this.chart) {
           return 'none';
         }
-        var pos = this.getGraphPosFromMouseEvent(event);
-        var selection = this.chart.getSelection();
+        const pos = this.getGraphPosFromMouseEvent(event);
+        const selection = this.chart.getSelection();
         if (!pos || !selection) {
           return 'none';
         }
@@ -280,16 +280,16 @@ found in the LICENSE file.
        * @param {MouseEvent} event Mouse event object.
        */
       getGraphPosFromMouseEvent(event) {
-        var boundingRect = this.$.revisions_container.getBoundingClientRect();
-        var plotOffset = this.chart.getPlotOffset();
-        var posX = event.pageX - boundingRect.left - plotOffset.left;
+        const boundingRect = this.$.revisions_container.getBoundingClientRect();
+        const plotOffset = this.chart.getPlotOffset();
+        let posX = event.pageX - boundingRect.left - plotOffset.left;
         posX = Math.max(0, posX);
         posX = Math.min(posX, this.chart.width());
-        var axes = this.chart.getAxes();
-        var indexX = Math.round(axes.xaxis.c2p(posX));
-        var revisionX = this.data[indexX][0];
-        var pos = {index: indexX, revision: revisionX};
-        var selection = this.chart.getSelection();
+        const axes = this.chart.getAxes();
+        const indexX = Math.round(axes.xaxis.c2p(posX));
+        const revisionX = this.data[indexX][0];
+        const pos = {index: indexX, revision: revisionX};
+        const selection = this.chart.getSelection();
         if (selection) {
           pos.startDist = Math.abs(axes.xaxis.p2c(selection.xaxis.from) - posX);
           pos.endDist = Math.abs(axes.xaxis.p2c(selection.xaxis.to) - posX);
@@ -308,15 +308,15 @@ found in the LICENSE file.
           return;
         }
         if (this.dragType == 'none') {
-          var cursor = this.getCursorForDragType(this.getMouseDragType(event));
+          const cursor = this.getCursorForDragType(this.getMouseDragType(event));
           this.$.revisions_container.style.cursor = cursor;
           return;
         }
 
-        var pos = this.getGraphPosFromMouseEvent(event);
-        var diff = this.selectionStart.index - pos.index;
-        var startIndex = Math.max(0, this.selectionStart.from - diff);
-        var endIndex = Math.min(
+        const pos = this.getGraphPosFromMouseEvent(event);
+        const diff = this.selectionStart.index - pos.index;
+        const startIndex = Math.max(0, this.selectionStart.from - diff);
+        const endIndex = Math.min(
             this.selectionStart.to - diff, this.selectionMax);
 
         // Note: There used to be a constant that determined the max number of
@@ -345,10 +345,10 @@ found in the LICENSE file.
           return;
         }
 
-        var selection = this.chart.getSelection();
-        var from = Math.max(0, Math.round(selection.xaxis.from));
-        var to = Math.min(Math.round(selection.xaxis.to), this.data.length - 1);
-        var pos = this.getGraphPosFromMouseEvent(event);
+        const selection = this.chart.getSelection();
+        const from = Math.max(0, Math.round(selection.xaxis.from));
+        const to = Math.min(Math.round(selection.xaxis.to), this.data.length - 1);
+        const pos = this.getGraphPosFromMouseEvent(event);
         this.selectionStart = {
           index: pos.index,
           from,
@@ -369,14 +369,14 @@ found in the LICENSE file.
           return;
         }
         this.dragType = 'none';
-        var selection = this.chart.getSelection().xaxis;
+        const selection = this.chart.getSelection().xaxis;
         document.body.style.cursor = 'auto';
         this.$.revisions_container.style.cursor = 'auto';
         if (selection.from == this.selectionStart.from &&
             selection.to == this.selectionStart.to) {
           return;
         }
-        var detail = {
+        const detail = {
           start_rev: this.startrev,
           end_rev: this.endrev
         };

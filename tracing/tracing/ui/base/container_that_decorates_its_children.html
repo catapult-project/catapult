@@ -18,7 +18,7 @@ tr.exportTo('tr.ui.b', function() {
   /**
    * @constructor
    */
-  var ContainerThatDecoratesItsChildren = tr.ui.b.define('div');
+  const ContainerThatDecoratesItsChildren = tr.ui.b.define('div');
 
   ContainerThatDecoratesItsChildren.prototype = {
     __proto__: HTMLDivElement.prototype,
@@ -71,16 +71,16 @@ tr.exportTo('tr.ui.b', function() {
 
     didMutate_(records) {
       this.beginDecorating_();
-      for (var i = 0; i < records.length; i++) {
-        var addedNodes = records[i].addedNodes;
+      for (let i = 0; i < records.length; i++) {
+        const addedNodes = records[i].addedNodes;
         if (addedNodes) {
-          for (var j = 0; j < addedNodes.length; j++) {
+          for (let j = 0; j < addedNodes.length; j++) {
             this.decorateChild_(addedNodes[j]);
           }
         }
-        var removedNodes = records[i].removedNodes;
+        const removedNodes = records[i].removedNodes;
         if (removedNodes) {
-          for (var j = 0; j < removedNodes.length; j++) {
+          for (let j = 0; j < removedNodes.length; j++) {
             this.undecorateChild_(removedNodes[j]);
           }
         }

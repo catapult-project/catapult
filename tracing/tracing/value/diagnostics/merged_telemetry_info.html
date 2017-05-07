@@ -25,7 +25,7 @@ tr.exportTo('tr.v.d', function() {
     }
 
     clone() {
-      let clone = new tr.v.d.MergedTelemetryInfo();
+      const clone = new tr.v.d.MergedTelemetryInfo();
       clone.addDiagnostic(this);
       return clone;
     }
@@ -58,7 +58,7 @@ tr.exportTo('tr.v.d', function() {
           new Set(other.storyGroupingKeys.keys()))) {
         return false;
       }
-      for (let [k, vs] of this.storyGroupingKeys) {
+      for (const [k, vs] of this.storyGroupingKeys) {
         if (!tr.b.setsEqual(vs, other.storyGroupingKeys.get(k))) {
           return false;
         }
@@ -74,27 +74,27 @@ tr.exportTo('tr.v.d', function() {
 
     addDiagnostic(otherDiagnostic) {
       if (otherDiagnostic instanceof MergedTelemetryInfo) {
-        for (let name of otherDiagnostic.benchmarkNames) {
+        for (const name of otherDiagnostic.benchmarkNames) {
           this.benchmarkNames.add(name);
         }
-        for (let t of otherDiagnostic.benchmarkStartsMs) {
+        for (const t of otherDiagnostic.benchmarkStartsMs) {
           this.benchmarkStartsMs.add(t);
         }
-        for (let name of otherDiagnostic.labels) {
+        for (const name of otherDiagnostic.labels) {
           this.labels.add(name);
         }
-        for (let name of otherDiagnostic.legacyTIRLabels) {
+        for (const name of otherDiagnostic.legacyTIRLabels) {
           this.legacyTIRLabels.add(name);
         }
-        for (let name of otherDiagnostic.storyDisplayNames) {
+        for (const name of otherDiagnostic.storyDisplayNames) {
           this.storyDisplayNames.add(name);
         }
-        for (let name of otherDiagnostic.storysetRepeatCounters) {
+        for (const name of otherDiagnostic.storysetRepeatCounters) {
           this.storysetRepeatCounters.add(name);
         }
-        for (let [name, value] of otherDiagnostic.storyGroupingKeys) {
+        for (const [name, value] of otherDiagnostic.storyGroupingKeys) {
           if (this.storyGroupingKeys.has(name)) {
-            for (let subValue of value) {
+            for (const subValue of value) {
               this.storyGroupingKeys.get(name).add(subValue);
             }
           } else {
@@ -125,7 +125,7 @@ tr.exportTo('tr.v.d', function() {
       if (otherDiagnostic.storyDisplayName) {
         this.storyDisplayNames.add(otherDiagnostic.storyDisplayName);
       }
-      for (let [name, value] of otherDiagnostic.storyGroupingKeys) {
+      for (const [name, value] of otherDiagnostic.storyGroupingKeys) {
         if (this.storyGroupingKeys.has(name)) {
           this.storyGroupingKeys.get(name).add(value);
         } else {
@@ -155,7 +155,7 @@ tr.exportTo('tr.v.d', function() {
       }
       if (this.storyGroupingKeys.size) {
         d.storyGroupingKeys = {};
-        for (let [name, values] of this.storyGroupingKeys) {
+        for (const [name, values] of this.storyGroupingKeys) {
           d.storyGroupingKeys[name] = Array.from(values);
         }
       }
@@ -165,26 +165,26 @@ tr.exportTo('tr.v.d', function() {
     }
 
     static fromDict(d) {
-      let info = new MergedTelemetryInfo();
-      for (let n of d.benchmarkNames || []) {
+      const info = new MergedTelemetryInfo();
+      for (const n of d.benchmarkNames || []) {
         info.benchmarkNames_.add(n);
       }
-      for (let n of d.benchmarkStartsMs || []) {
+      for (const n of d.benchmarkStartsMs || []) {
         info.benchmarkStartsMs_.add(n);
       }
-      for (let n of d.labels || []) {
+      for (const n of d.labels || []) {
         info.labels_.add(n);
       }
-      for (let n of d.legacyTIRLabels || []) {
+      for (const n of d.legacyTIRLabels || []) {
         info.legacyTIRLabels_.add(n);
       }
-      for (let n of d.storyDisplayNames || []) {
+      for (const n of d.storyDisplayNames || []) {
         info.storyDisplayNames_.add(n);
       }
-      for (let [name, values] of Object.entries(d.storyGroupingKeys || {})) {
+      for (const [name, values] of Object.entries(d.storyGroupingKeys || {})) {
         info.storyGroupingKeys_.set(name, new Set(values));
       }
-      for (let n of d.storysetRepeatCounters || []) {
+      for (const n of d.storysetRepeatCounters || []) {
         info.storysetRepeatCounters_.add(n);
       }
       return info;
@@ -238,7 +238,7 @@ tr.exportTo('tr.v.d', function() {
      * @return {!Array.<!Date>}
      */
     get benchmarkStarts() {
-      let startsMs = Array.from(this.benchmarkStartsMs);
+      const startsMs = Array.from(this.benchmarkStartsMs);
       startsMs.sort((x, y) => x - y);
       return startsMs.map(t => new Date(t));
     }
@@ -257,7 +257,7 @@ tr.exportTo('tr.v.d', function() {
      * @return {*}
      */
     static getField(hist, fieldName, defaultValue) {
-      let telemetry = tr.v.d.TelemetryInfo.getFromHistogram(hist);
+      const telemetry = tr.v.d.TelemetryInfo.getFromHistogram(hist);
       if (!(telemetry instanceof tr.v.d.MergedTelemetryInfo) ||
           !telemetry[fieldName]) {
         return defaultValue;
@@ -271,7 +271,7 @@ tr.exportTo('tr.v.d', function() {
      * @return {string}
      */
     static getStoryGroupingKeyLabel(hist, storyGroupingKey) {
-      let telemetry = tr.v.d.TelemetryInfo.getFromHistogram(hist);
+      const telemetry = tr.v.d.TelemetryInfo.getFromHistogram(hist);
       if (!(telemetry instanceof tr.v.d.MergedTelemetryInfo)) {
         return storyGroupingKey + ': undefined';
       }

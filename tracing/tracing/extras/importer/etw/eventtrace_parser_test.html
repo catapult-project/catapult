@@ -14,10 +14,10 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   // Constants for EventTrace events.
-  var guid = '68FDD900-4A3E-11D1-84F4-0000F80464E3';
-  var kEventTraceHeaderOpcode = 0;
+  const guid = '68FDD900-4A3E-11D1-84F4-0000F80464E3';
+  const kEventTraceHeaderOpcode = 0;
 
-  var kEventTraceHeaderPayload32bitV2 =
+  const kEventTraceHeaderPayload32bitV2 =
       'AAABAAYBAQWwHQAAEAAAABEs1WHICMwBYWECAGQAAAABAAAAAwAAAAEAAAAEAAAAAAAAA' +
       'FoJAAAFAAAABgAAACwBAABAAHQAegByAGUAcwAuAGQAbABsACwALQAxADEAMgAAAAAAAA' +
       'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAALAAAAAQACAAAAAAAAAAAAAABAAHQ' +
@@ -28,7 +28,7 @@ tr.b.unittest.testSuite(function() {
       'yAGMAXABzAGEAdwBiAHUAYwBrAFwAbABvAGcAXwBsAGkAYgBcAHQAZQBzAHQAXwBkAGEA' +
       'dABhAFwAaQBtAGEAZwBlAF8AZABhAHQAYQBfADMAMgBfAHYAMAAuAGUAdABsAAAA';
 
-  var kEventTraceHeaderPayload64bitV2 =
+  const kEventTraceHeaderPayload64bitV2 =
       'AAABAAYBAQWxHQAABAAAADsuzRRYLM8BYWECAAAAAAABAAEAtgEAAAEAAAAIAAAAHwAAA' +
       'KAGAAAAAAAAAAAAAAAAAAAAAAAALAEAAEAAdAB6AHIAZQBzAC4AZABsAGwALAAtADEAMQ' +
       'AyAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAsAAAABAAIAAAAAAAA' +
@@ -38,11 +38,11 @@ tr.b.unittest.testSuite(function() {
       '4AZQBsAC4AZQB0AGwAAAA=';
 
   test('DecodeFields', function() {
-    var importer = new tr.e.importer.etw.EtwImporter('dummy', []);
-    var decoder = importer.decoder_;
-    var parser = new tr.e.importer.etw.EventTraceParser(importer);
-    var header;
-    var fields;
+    const importer = new tr.e.importer.etw.EtwImporter('dummy', []);
+    const decoder = importer.decoder_;
+    const parser = new tr.e.importer.etw.EventTraceParser(importer);
+    let header;
+    let fields;
 
     // Validate a version 2 32-bit payload.
     header = {

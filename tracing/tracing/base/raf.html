@@ -10,24 +10,24 @@ found in the LICENSE file.
 /* eslint-disable no-console */
 
 tr.exportTo('tr.b', function() {
-  var ESTIMATED_IDLE_PERIOD_LENGTH_MILLISECONDS = 10;
+  const ESTIMATED_IDLE_PERIOD_LENGTH_MILLISECONDS = 10;
   // The maximum amount of time that we allow for a task to get scheduled
   // in idle time before forcing the task to run.
-  var REQUEST_IDLE_CALLBACK_TIMEOUT_MILLISECONDS = 100;
+  const REQUEST_IDLE_CALLBACK_TIMEOUT_MILLISECONDS = 100;
 
   // Setting this to true will cause stack traces to get dumped into the
   // tasks. When an exception happens the original stack will be printed.
   //
   // NOTE: This should never be set committed as true.
-  var recordRAFStacks = false;
+  const recordRAFStacks = false;
 
-  var pendingPreAFs = [];
-  var pendingRAFs = [];
-  var pendingIdleCallbacks = [];
-  var currentRAFDispatchList = undefined;
+  let pendingPreAFs = [];
+  let pendingRAFs = [];
+  const pendingIdleCallbacks = [];
+  let currentRAFDispatchList = undefined;
 
-  var rafScheduled = false;
-  var idleWorkScheduled = false;
+  let rafScheduled = false;
+  let idleWorkScheduled = false;
 
   function scheduleRAF() {
     if (rafScheduled) return;
@@ -42,7 +42,7 @@ tr.exportTo('tr.b', function() {
       if (window.requestAnimationFrame) {
         window.requestAnimationFrame(processRequests.bind(this, false));
       } else {
-        var delta = Date.now() - window.performance.now();
+        const delta = Date.now() - window.performance.now();
         window.webkitRequestAnimationFrame(function(domTimeStamp) {
           processRequests(false, domTimeStamp - delta);
         });
@@ -90,13 +90,13 @@ tr.exportTo('tr.b', function() {
   function processRequests(forceAllTasksToRun, frameBeginTime) {
     rafScheduled = false;
 
-    var currentPreAFs = pendingPreAFs;
+    const currentPreAFs = pendingPreAFs;
     currentRAFDispatchList = pendingRAFs;
     pendingPreAFs = [];
     pendingRAFs = [];
-    var hasRAFTasks = currentPreAFs.length || currentRAFDispatchList.length;
+    const hasRAFTasks = currentPreAFs.length || currentRAFDispatchList.length;
 
-    for (var i = 0; i < currentPreAFs.length; i++) {
+    for (let i = 0; i < currentPreAFs.length; i++) {
       runTask(currentPreAFs[i], frameBeginTime);
     }
 
@@ -109,7 +109,7 @@ tr.exportTo('tr.b', function() {
         forceAllTasksToRun) {
       // We assume that we want to do a fixed maximum amount of optional work
       // per frame. Hopefully rAF will eventually pass this in for us.
-      var rafCompletionDeadline =
+      const rafCompletionDeadline =
           frameBeginTime + ESTIMATED_IDLE_PERIOD_LENGTH_MILLISECONDS;
       processIdleWork(
           forceAllTasksToRun, {
@@ -142,7 +142,7 @@ tr.exportTo('tr.b', function() {
   function getStack_() {
     if (!recordRAFStacks) return '';
 
-    var stackLines = tr.b.stackTrace();
+    const stackLines = tr.b.stackTrace();
     // Strip off getStack_.
     stackLines.shift();
     return stackLines.join('\n');

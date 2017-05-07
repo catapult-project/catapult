@@ -16,15 +16,15 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   function createModel(collectionOfFrameTimestamps) {
-    var opts = {
+    const opts = {
       customizeModelCallback(model) {
-        var thread = tr.c.TestUtils.newFakeThread();
+        const thread = tr.c.TestUtils.newFakeThread();
         collectionOfFrameTimestamps.forEach(function(frameTimestamps) {
           frameTimestamps.sort((a, b) => a - b);
-          var ue = new tr.model.um.AnimationExpectation(
+          const ue = new tr.model.um.AnimationExpectation(
               model, 'test', frameTimestamps[0],
               frameTimestamps[frameTimestamps.length - 1]);
-          var group = new tr.model.SliceGroup(thread);
+          const group = new tr.model.SliceGroup(thread);
           frameTimestamps.forEach(function(time) {
             group.pushSlice(tr.c.TestUtils.newSliceEx({
               title: tr.model.helpers.IMPL_RENDERING_STATS,
@@ -50,18 +50,18 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('animationThroughputNoFrames', function() {
-    var model = createModel([[]]);
-    var valueList = new tr.v.HistogramSet();
+    const model = createModel([[]]);
+    const valueList = new tr.v.HistogramSet();
     tr.metrics.sh.responsivenessMetric(valueList, model);
-    var value = valueList.getHistogramNamed('animation throughput');
+    const value = valueList.getHistogramNamed('animation throughput');
     assert.strictEqual(value.numValues, 0);
   });
 
   test('animationThroughputFramesAndNoFrames', function() {
-    var model = createModel([[0, 100], []]);
-    var valueList = new tr.v.HistogramSet();
+    const model = createModel([[0, 100], []]);
+    const valueList = new tr.v.HistogramSet();
     tr.metrics.sh.responsivenessMetric(valueList, model);
-    var value = valueList.getHistogramNamed('animation throughput');
+    const value = valueList.getHistogramNamed('animation throughput');
     assert.strictEqual(value.average, 20);
   });
 });

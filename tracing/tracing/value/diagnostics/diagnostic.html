@@ -83,7 +83,7 @@ tr.exportTo('tr.v.d', function() {
      * @return {!Object}
      */
     asDict() {
-      let result = {type: this.constructor.name};
+      const result = {type: this.constructor.name};
       if (this.guid_ !== undefined) {
         result.guid = this.guid_;
       }
@@ -97,7 +97,7 @@ tr.exportTo('tr.v.d', function() {
     }
 
     static fromDict(d) {
-      let typeInfo = Diagnostic.findTypeInfoWithName(d.type);
+      const typeInfo = Diagnostic.findTypeInfoWithName(d.type);
       if (!typeInfo) {
         throw new Error('Unrecognized diagnostic type: ' + d.type);
       }
@@ -108,13 +108,13 @@ tr.exportTo('tr.v.d', function() {
     }
   }
 
-  let options = new tr.b.ExtensionRegistryOptions(tr.b.BASIC_REGISTRY_MODE);
+  const options = new tr.b.ExtensionRegistryOptions(tr.b.BASIC_REGISTRY_MODE);
   options.defaultMetadata = {};
   options.mandatoryBaseClass = Diagnostic;
   tr.b.decorateExtensionRegistry(Diagnostic, options);
 
   Diagnostic.addEventListener('will-register', function(e) {
-    let constructor = e.typeInfo.constructor;
+    const constructor = e.typeInfo.constructor;
     if (!(constructor.fromDict instanceof Function) ||
         (constructor.fromDict === Diagnostic.fromDict) ||
         (constructor.fromDict.length !== 1)) {

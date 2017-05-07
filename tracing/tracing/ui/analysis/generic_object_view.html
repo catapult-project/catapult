@@ -31,23 +31,23 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-var URL_REGEX = /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)$/;  // eslint-disable-line max-len
+const URL_REGEX = /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)$/;  // eslint-disable-line max-len
 
 function isTable(object) {
   if (!(object instanceof Array) ||
       (object.length < 2)) return false;
-  for (var colName in object[0]) {
+  for (const colName in object[0]) {
     if (typeof colName !== 'string') return false;
   }
-  for (var i = 0; i < object.length; ++i) {
+  for (let i = 0; i < object.length; ++i) {
     if (!(object[i] instanceof Object)) return false;
-    for (var colName in object[i]) {
+    for (const colName in object[i]) {
       if (i && (object[0][colName] === undefined)) return false;
-      var cellType = typeof object[i][colName];
+      const cellType = typeof object[i][colName];
       if (cellType !== 'string' && cellType !== 'number') return false;
     }
     if (i) {
-      for (var colName in object[0]) {
+      for (const colName in object[0]) {
         if (object[i][colName] === undefined) return false;
       }
     }
@@ -95,11 +95,11 @@ Polymer({
     }
 
     if (!(object instanceof Object)) {
-      var type = typeof object;
+      const type = typeof object;
       if (type !== 'string') {
         return this.appendSimpleText_(label, indent, object, suffix);
       }
-      var objectReplaced = false;
+      let objectReplaced = false;
       if ((object[0] === '{' && object[object.length - 1] === '}') ||
           (object[0] === '[' && object[object.length - 1] === ']')) {
         try {
@@ -110,12 +110,12 @@ Polymer({
       }
       if (!objectReplaced) {
         if (object.includes('\n')) {
-          var lines = object.split('\n');
+          const lines = object.split('\n');
           lines.forEach(function(line, i) {
-            var text;
-            var ioff;
-            var ll;
-            var ss;
+            let text;
+            let ioff;
+            let ll;
+            let ss;
             if (i === 0) {
               text = '"' + line;
               ioff = 0;
@@ -133,7 +133,7 @@ Polymer({
               ss = suffix;
             }
 
-            var el = this.appendSimpleText_(
+            const el = this.appendSimpleText_(
                 ll, indent + ioff * label.length + ioff, text, ss);
             el.style.whiteSpace = 'pre';
             return el;
@@ -141,7 +141,7 @@ Polymer({
           return;
         }
         if (object.match(URL_REGEX)) {
-          var link = document.createElement('a');
+          const link = document.createElement('a');
           link.href = object;
           link.textContent = object;
           this.appendElementWithLabel_(label, indent, link, suffix);
@@ -154,14 +154,14 @@ Polymer({
     }
 
     if (object instanceof tr.model.ObjectSnapshot) {
-      var link = document.createElement('tr-ui-a-analysis-link');
+      const link = document.createElement('tr-ui-a-analysis-link');
       link.selection = new tr.model.EventSet(object);
       this.appendElementWithLabel_(label, indent, link, suffix);
       return;
     }
 
     if (object instanceof tr.model.ObjectInstance) {
-      var link = document.createElement('tr-ui-a-analysis-link');
+      const link = document.createElement('tr-ui-a-analysis-link');
       link.selection = new tr.model.EventSet(object);
       this.appendElementWithLabel_(label, indent, link, suffix);
       return;
@@ -173,7 +173,7 @@ Polymer({
     }
 
     if (object instanceof tr.b.Scalar) {
-      var el = this.ownerDocument.createElement('tr-v-ui-scalar-span');
+      const el = this.ownerDocument.createElement('tr-v-ui-scalar-span');
       el.value = object;
       el.inline = true;
       this.appendElementWithLabel_(label, indent, el, suffix);
@@ -198,12 +198,12 @@ Polymer({
     }
 
     if (isTable(object)) {
-      var table = document.createElement('tr-ui-b-table');
-      var columns = [];
-      for (let colName of Object.keys(object[0])) {
-        var allStrings = true;
-        var allNumbers = true;
-        for (var i = 0; i < object.length; ++i) {
+      const table = document.createElement('tr-ui-b-table');
+      const columns = [];
+      for (const colName of Object.keys(object[0])) {
+        let allStrings = true;
+        let allNumbers = true;
+        for (let i = 0; i < object.length; ++i) {
           if (typeof(object[i][colName]) !== 'string') {
             allStrings = false;
           }
@@ -215,7 +215,7 @@ Polymer({
           if (!allStrings && !allNumbers) break;
         }
 
-        var column = {title: colName};
+        const column = {title: colName};
         column.value = function(row) {
           return row[colName];
         };
@@ -243,7 +243,7 @@ Polymer({
         object[0],
         indent, depth + 1, maxDepth,
         object.length > 1 ? ',' : ']' + suffix);
-    for (var i = 1; i < object.length; i++) {
+    for (let i = 1; i < object.length; i++) {
       this.appendElementsForType_(
           '',
           object[i],
@@ -255,7 +255,7 @@ Polymer({
 
   appendElementsForObject_(
       label, object, indent, depth, maxDepth, suffix) {
-    var keys = Object.keys(object);
+    const keys = Object.keys(object);
     if (keys.length === 0) {
       this.appendSimpleText_(label, indent, '{}', suffix);
       return;
@@ -266,7 +266,7 @@ Polymer({
         object[keys[0]],
         indent, depth, maxDepth,
         keys.length > 1 ? ',' : '}' + suffix);
-    for (var i = 1; i < keys.length; i++) {
+    for (let i = 1; i < keys.length; i++) {
       this.appendElementsForType_(
           keys[i] + ': ',
           object[keys[i]],
@@ -276,21 +276,21 @@ Polymer({
   },
 
   appendElementWithLabel_(label, indent, dataElement, suffix) {
-    var row = document.createElement('div');
+    const row = document.createElement('div');
 
-    var indentSpan = document.createElement('span');
+    const indentSpan = document.createElement('span');
     indentSpan.style.whiteSpace = 'pre';
-    for (var i = 0; i < indent; i++) {
+    for (let i = 0; i < indent; i++) {
       Polymer.dom(indentSpan).textContent += ' ';
     }
     Polymer.dom(row).appendChild(indentSpan);
 
-    var labelSpan = document.createElement('span');
+    const labelSpan = document.createElement('span');
     Polymer.dom(labelSpan).textContent = label;
     Polymer.dom(row).appendChild(labelSpan);
 
     Polymer.dom(row).appendChild(dataElement);
-    var suffixSpan = document.createElement('span');
+    const suffixSpan = document.createElement('span');
     Polymer.dom(suffixSpan).textContent = suffix;
     Polymer.dom(row).appendChild(suffixSpan);
 
@@ -299,7 +299,7 @@ Polymer({
   },
 
   appendSimpleText_(label, indent, text, suffix) {
-    var el = this.ownerDocument.createElement('span');
+    const el = this.ownerDocument.createElement('span');
     Polymer.dom(el).textContent = text;
     this.appendElementWithLabel_(label, indent, el, suffix);
     return el;

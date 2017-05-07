@@ -14,30 +14,30 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var Alert = tr.model.Alert;
-  var Event = tr.model.Event;
-  var EventInfo = tr.model.EventInfo;
-  var EventSet = tr.model.EventSet;
-  var ImmutableEventSet = tr.model.ImmutableEventSet;
+  const Alert = tr.model.Alert;
+  const Event = tr.model.Event;
+  const EventInfo = tr.model.EventInfo;
+  const EventSet = tr.model.EventSet;
+  const ImmutableEventSet = tr.model.ImmutableEventSet;
 
   test('checkModelItem', function() {
-    var event = new Event;
+    const event = new Event;
     assert.strictEqual(event.modelItem, event);
   });
 
   test('checkAssociatedAlerts', function() {
-    var event = new Event();
+    const event = new Event();
     assert.strictEqual(event.associatedAlerts, EventSet.IMMUTABLE_EMPTY_SET);
     assert.sameMembers(event.associatedAlerts.toArray(), []);
 
-    var info1 = new EventInfo('Critical', 'Critical alert!!!', []);
-    var alert1 = new Alert(info1, 7);
+    const info1 = new EventInfo('Critical', 'Critical alert!!!', []);
+    const alert1 = new Alert(info1, 7);
     event.addAssociatedAlert(alert1);
     assert.instanceOf(event.associatedAlerts, EventSet);
     assert.sameMembers(event.associatedAlerts.toArray(), [alert1]);
 
-    var info2 = new EventInfo('Warning', 'Warning alert???', []);
-    var alert2 = new Alert(info2, 42);
+    const info2 = new EventInfo('Warning', 'Warning alert???', []);
+    const alert2 = new Alert(info2, 42);
     event.addAssociatedAlert(alert2);
     assert.instanceOf(event.associatedAlerts, EventSet);
     assert.sameMembers(event.associatedAlerts.toArray(), [alert1, alert2]);

@@ -239,7 +239,7 @@ tr.exportTo('tr.v.ui', function() {
       if (this.overviewChart_ === undefined) {
         const data = [];
         let unitString = undefined;
-        for (let [displayLabel, hist] of this.row.columns) {
+        for (const [displayLabel, hist] of this.row.columns) {
           data.push({x: displayLabel, y: hist.average});
           unitString = hist.unit.unitString;
         }

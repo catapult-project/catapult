@@ -36,18 +36,18 @@ tr.exportTo('tr.v', function() {
       this.prepare_();
       this.buildHeader_();
 
-      for (let hist of this.histograms_) {
-        let row = [hist.name, hist.unit.unitString];
+      for (const hist of this.histograms_) {
+        const row = [hist.name, hist.unit.unitString];
         this.table_.push(row);
 
-        let stats = hist.statisticsScalars;
-        for (let name of this.statisticsNames_) {
+        const stats = hist.statisticsScalars;
+        for (const name of this.statisticsNames_) {
           row.push(stats.has(name) ? stats.get(name).value : '');
         }
 
-        let iteration = tr.v.d.TelemetryInfo.getFromHistogram(hist);
+        const iteration = tr.v.d.TelemetryInfo.getFromHistogram(hist);
 
-        for (let name of this.iterationInfoNames_) {
+        for (const name of this.iterationInfoNames_) {
           if (iteration === undefined ||
               iteration[name] === undefined) {
             row.push('');
@@ -56,7 +56,7 @@ tr.exportTo('tr.v', function() {
           }
         }
 
-        for (let key of this.storyGroupingKeys_) {
+        for (const key of this.storyGroupingKeys_) {
           if (iteration === undefined ||
               iteration.storyGroupingKeys.get(key) === undefined) {
             row.push('');
@@ -68,34 +68,34 @@ tr.exportTo('tr.v', function() {
     }
 
     prepare_() {
-      for (let hist of this.histograms_) {
+      for (const hist of this.histograms_) {
         for (const name of hist.statisticsNames) {
           this.statisticsNames_.add(name);
         }
 
-        let iteration = tr.v.d.TelemetryInfo.getFromHistogram(hist);
+        const iteration = tr.v.d.TelemetryInfo.getFromHistogram(hist);
         if (iteration === undefined) continue;
 
-        for (let name of CSV_ITERATION_INFO_NAMES) {
+        for (const name of CSV_ITERATION_INFO_NAMES) {
           if (iteration[name]) {
             this.iterationInfoNames_.add(name);
           }
         }
-        for (let [key, value] of iteration.storyGroupingKeys) {
+        for (const [key, value] of iteration.storyGroupingKeys) {
           this.storyGroupingKeys_.add(key);
         }
       }
     }
 
     buildHeader_() {
-      let header = ['name', 'unit'];
-      for (let name of this.statisticsNames_) {
+      const header = ['name', 'unit'];
+      for (const name of this.statisticsNames_) {
         header.push(name);
       }
-      for (let name of this.iterationInfoNames_) {
+      for (const name of this.iterationInfoNames_) {
         header.push(name);
       }
-      for (let key of this.storyGroupingKeys_) {
+      for (const key of this.storyGroupingKeys_) {
         header.push(key);
       }
       this.table_.push(header);
@@ -103,7 +103,7 @@ tr.exportTo('tr.v', function() {
 
     toString() {
       let str = '';
-      for (let row of this.table_) {
+      for (const row of this.table_) {
         for (let i = 0; i < row.length; ++i) {
           if (i > 0) {
             str += ',';

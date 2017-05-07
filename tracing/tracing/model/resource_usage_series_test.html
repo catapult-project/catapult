@@ -13,36 +13,36 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var Model = tr.Model;
-  var ResourceUsageSeries = tr.model.ResourceUsageSeries;
+  const Model = tr.Model;
+  const ResourceUsageSeries = tr.model.ResourceUsageSeries;
 
   test('stableId', function() {
-    var device = { stableId: 'test' };
-    var series = new ResourceUsageSeries(device);
+    const device = { stableId: 'test' };
+    const series = new ResourceUsageSeries(device);
 
     assert.strictEqual(series.stableId, 'test.ResourceUsageSeries');
   });
 
   test('device', function() {
-    var device = new tr.model.Device(new Model());
-    var series = new ResourceUsageSeries(device);
+    const device = new tr.model.Device(new Model());
+    const series = new ResourceUsageSeries(device);
 
     assert.strictEqual(series.device, device);
   });
 
   test('addUsageSample', function() {
-    var series = new ResourceUsageSeries(new Model().device);
+    const series = new ResourceUsageSeries(new Model().device);
 
     assert.strictEqual(series.samples.length, 0);
 
-    var sample1 = series.addUsageSample(0, 1);
-    var sample2 = series.addUsageSample(1, 2);
+    const sample1 = series.addUsageSample(0, 1);
+    const sample2 = series.addUsageSample(1, 2);
 
     assert.deepEqual(series.samples, [sample1, sample2]);
   });
 
   test('getResourceTimeConsumed_oneInterval', function() {
-    var series = new ResourceUsageSeries(new Model().device);
+    const series = new ResourceUsageSeries(new Model().device);
     series.addUsageSample(0, 1);
     series.addUsageSample(1000, 2);
 
@@ -50,7 +50,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('getResourceTimeConsumed_twoIntervals', function() {
-    var series = new ResourceUsageSeries(new Model().device);
+    const series = new ResourceUsageSeries(new Model().device);
     series.addUsageSample(0, 1);
     series.addUsageSample(1000, 2);
     series.addUsageSample(2000, 2);
@@ -59,14 +59,14 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('getResourceTimeConsumed_oneSample', function() {
-    var series = new ResourceUsageSeries(new Model().device);
+    const series = new ResourceUsageSeries(new Model().device);
     series.addUsageSample(1000, 1);
 
     assert.strictEqual(series.computeResourceTimeConsumedInMs(0, 2000), 0);
   });
 
   test('getResourceTimeConsumed_samplesAfterStart', function() {
-    var series = new ResourceUsageSeries(new Model().device);
+    const series = new ResourceUsageSeries(new Model().device);
     series.addUsageSample(1000, 1);
     series.addUsageSample(2000, 2);
 
@@ -74,7 +74,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('getResourceTimeConsumed_extraSamplesBeforeStart', function() {
-    var series = new ResourceUsageSeries(new Model().device);
+    const series = new ResourceUsageSeries(new Model().device);
     series.addUsageSample(0, 10);
     series.addUsageSample(1000, 1);
     series.addUsageSample(2000, 1);
@@ -85,7 +85,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('getResourceTimeConsumed_extraSamplesAfterEnd', function() {
-    var series = new ResourceUsageSeries(new Model().device);
+    const series = new ResourceUsageSeries(new Model().device);
     series.addUsageSample(0, 1);
     series.addUsageSample(1000, 1);
     series.addUsageSample(2000, 1);
@@ -95,7 +95,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('shiftTimestampsForward', function() {
-    var series = new ResourceUsageSeries(new Model().device);
+    const series = new ResourceUsageSeries(new Model().device);
 
     series.addUsageSample(0, 1);
     series.addUsageSample(1, 2);
@@ -113,7 +113,7 @@ tr.b.unittest.testSuite(function() {
 
 
   test('updateBounds', function() {
-    var series = new ResourceUsageSeries(new Model().device);
+    const series = new ResourceUsageSeries(new Model().device);
 
     series.addUsageSample(0, 1);
     series.addUsageSample(1, 2);
@@ -130,20 +130,20 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('childEvents_empty', function() {
-    var series = new ResourceUsageSeries(new Model().device);
-    var eventsInSeries = [];
-    for (var event of series.childEvents()) {
+    const series = new ResourceUsageSeries(new Model().device);
+    const eventsInSeries = [];
+    for (const event of series.childEvents()) {
       eventsInSeries.push(event);
     }
     assert.deepEqual(eventsInSeries, []);
   });
 
   test('childEvents_nonempty', function() {
-    var series = new ResourceUsageSeries(new Model().device);
-    var sample1 = series.addUsageSample(0, 1);
-    var sample2 = series.addUsageSample(1, 2);
-    var eventsInSeries = [];
-    for (var event of series.childEvents()) {
+    const series = new ResourceUsageSeries(new Model().device);
+    const sample1 = series.addUsageSample(0, 1);
+    const sample2 = series.addUsageSample(1, 2);
+    const eventsInSeries = [];
+    for (const event of series.childEvents()) {
       eventsInSeries.push(event);
     }
     assert.deepEqual(eventsInSeries, [sample1, sample2]);

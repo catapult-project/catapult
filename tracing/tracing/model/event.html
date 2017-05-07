@@ -18,9 +18,9 @@ found in the LICENSE file.
  * @fileoverview Provides the Event class.
  */
 tr.exportTo('tr.model', function() {
-  var SelectableItem = tr.model.SelectableItem;
-  var SelectionState = tr.model.SelectionState;
-  var IMMUTABLE_EMPTY_SET = tr.model.EventSet.IMMUTABLE_EMPTY_SET;
+  const SelectableItem = tr.model.SelectableItem;
+  const SelectionState = tr.model.SelectionState;
+  const IMMUTABLE_EMPTY_SET = tr.model.EventSet.IMMUTABLE_EMPTY_SET;
 
   /**
    * An Event is the base type for any non-container, selectable piece
@@ -48,7 +48,7 @@ tr.exportTo('tr.model', function() {
     },
 
     get range() {
-      var range = new tr.b.math.Range();
+      const range = new tr.b.math.Range();
       this.addBoundsToRange(range);
       return range;
     },

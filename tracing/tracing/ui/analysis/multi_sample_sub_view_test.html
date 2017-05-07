@@ -13,11 +13,11 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var newSampleNamed = tr.c.TestUtils.newSampleNamed;
+  const newSampleNamed = tr.c.TestUtils.newSampleNamed;
 
   function instantiateWithTraces(traces) {
-    var t53;
-    var m = tr.c.TestUtils.newModelWithEvents([], {
+    let t53;
+    const m = tr.c.TestUtils.newModelWithEvents([], {
       shiftWorldToZero: false,
       pruneContainers: false,
       customizeModelCallback(model) {
@@ -29,15 +29,15 @@ tr.b.unittest.testSuite(function() {
       }
     });
 
-    var t53track = {};
+    const t53track = {};
     t53track.thread = t53;
 
-    var selection = new tr.model.EventSet();
-    for (var i = 0; i < t53.samples.length; i++) {
+    const selection = new tr.model.EventSet();
+    for (let i = 0; i < t53.samples.length; i++) {
       selection.push(t53.samples[i]);
     }
 
-    var view = document.createElement('tr-ui-a-multi-sample-sub-view');
+    const view = document.createElement('tr-ui-a-multi-sample-sub-view');
     view.style.height = '500px';
     this.addHTMLOutput(view);
     view.selection = selection;

@@ -101,7 +101,7 @@ found in the LICENSE file.
               }
               this.xsrfToken = response.xsrf_token;
               this.testSuites = response.test_suites;
-              for (var i = 0; i < this.charts.length; i++) {
+              for (let i = 0; i < this.charts.length; i++) {
                 this.setChartData(this.charts[i]);
               }
             }.bind(this),
@@ -179,8 +179,8 @@ found in the LICENSE file.
       addChart(seriesGroups, isPrepend) {
         // TODO(sullivan): This should be done with a polymer template, not
         // JavaScript-built DOM!!
-        var container = this.$['charts-container'];
-        var chart = document.createElement('chart-container');
+        const container = this.$['charts-container'];
+        const chart = document.createElement('chart-container');
         if (isPrepend && Polymer.dom(container).children.length > 0) {
           this.charts.unshift(chart);
           Polymer.dom(container).insertBefore(chart,
@@ -209,8 +209,8 @@ found in the LICENSE file.
        * On chart closed, update URI.
        */
       onChartClosed(event) {
-        var chart = event.target;
-        var index = this.charts.indexOf(chart);
+        const chart = event.target;
+        const index = this.charts.indexOf(chart);
         if (index > -1) {
           this.charts.splice(index, 1);
         }
@@ -223,7 +223,7 @@ found in the LICENSE file.
        */
       fireNumChartChangedEvent() {
         // Send page state change event.
-        var event = document.createEvent('Event');
+        const event = document.createEvent('Event');
         event.initEvent('numchartchanged', true, true);
         event.detail = {
           'stateName': 'numchartchanged',
@@ -245,8 +245,8 @@ found in the LICENSE file.
        * the graphs and the URI.
        */
       onRevisionRangeChanged(_, event) {
-        for (var i = 0; i < this.charts.length; i++) {
-          var chart = this.charts[i];
+        for (let i = 0; i < this.charts.length; i++) {
+          const chart = this.charts[i];
           if (chart == event.target) {
             continue;
           }
@@ -275,9 +275,9 @@ found in the LICENSE file.
        * @return {Object} Dictionary of page state data.
        */
       getPageState() {
-        var chartStates = [];
-        for (var i = 0; i < this.charts.length; i++) {
-          var chart = this.charts[i];
+        const chartStates = [];
+        for (let i = 0; i < this.charts.length; i++) {
+          const chart = this.charts[i];
           chartStates.push(chart.getState());
         }
 
@@ -294,7 +294,7 @@ found in the LICENSE file.
        * Handles displaying loading messages on 'pagestaterequest' event.
        */
       onPageStateRequest(event) {
-        var status = event.detail.status;
+        const status = event.detail.status;
         if (status == 'loading') {
           this.fire('display-toast', {'text': 'Saving report...'});
         } else if (status == 'error') {

@@ -13,32 +13,32 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var MultiDimensionalViewBuilder = tr.b.MultiDimensionalViewBuilder;
-  var MultiDimensionalViewNode = tr.b.MultiDimensionalViewNode;
-  var ViewType = MultiDimensionalViewBuilder.ViewType;
-  var SELF = MultiDimensionalViewBuilder.ValueKind.SELF;
-  var TOTAL = MultiDimensionalViewBuilder.ValueKind.TOTAL;
-  var NOT_PROVIDED = MultiDimensionalViewNode.TotalState.NOT_PROVIDED;
-  var LOWER_BOUND = MultiDimensionalViewNode.TotalState.LOWER_BOUND;
-  var EXACT = MultiDimensionalViewNode.TotalState.EXACT;
-  var RecursionDepthTracker = tr.b.RecursionDepthTracker;
-  var zFunction = tr.b.zFunction;
+  const MultiDimensionalViewBuilder = tr.b.MultiDimensionalViewBuilder;
+  const MultiDimensionalViewNode = tr.b.MultiDimensionalViewNode;
+  const ViewType = MultiDimensionalViewBuilder.ViewType;
+  const SELF = MultiDimensionalViewBuilder.ValueKind.SELF;
+  const TOTAL = MultiDimensionalViewBuilder.ValueKind.TOTAL;
+  const NOT_PROVIDED = MultiDimensionalViewNode.TotalState.NOT_PROVIDED;
+  const LOWER_BOUND = MultiDimensionalViewNode.TotalState.LOWER_BOUND;
+  const EXACT = MultiDimensionalViewNode.TotalState.EXACT;
+  const RecursionDepthTracker = tr.b.RecursionDepthTracker;
+  const zFunction = tr.b.zFunction;
 
   function assertListStrictEqual(a, b) {
     assert.lengthOf(a, b.length);
-    for (var i = 0; i < a.length; i++) {
+    for (let i = 0; i < a.length; i++) {
       assert.strictEqual(a[i], b[i]);
     }
   }
 
   function checkTree(actualTreeRootNode, expectedStructureRootNode) {
     // Build map from expected structure node IDs to expected structure nodes.
-    var expectedStructureNodesById = new Map();
+    const expectedStructureNodesById = new Map();
     addExpectedStructureToMap(
         expectedStructureRootNode, expectedStructureNodesById);
 
     // Recursively check the structure of the actual tree.
-    var actualTreeNodesById = new Map();
+    const actualTreeNodesById = new Map();
     checkTreeStructure(actualTreeRootNode, expectedStructureRootNode,
         actualTreeNodesById, expectedStructureNodesById);
 
@@ -52,16 +52,16 @@ tr.b.unittest.testSuite(function() {
       return;  // Reference to another expected structure node.
     }
 
-    var expectedStructureNodeId = expectedStructureNode.id;
+    const expectedStructureNodeId = expectedStructureNode.id;
     if (expectedStructureNodeId !== undefined) {
       assert.isFalse(map.has(expectedStructureNodeId));
       map.set(expectedStructureNodeId, expectedStructureNode);
     }
 
-    var expectedStructureChildren = expectedStructureNode.children;
-    for (var d = 0; d < expectedStructureChildren.length; d++) {
-      var expectedStructureDimensionChildren = expectedStructureChildren[d];
-      for (var i = 0; i < expectedStructureDimensionChildren.length; i++) {
+    const expectedStructureChildren = expectedStructureNode.children;
+    for (let d = 0; d < expectedStructureChildren.length; d++) {
+      const expectedStructureDimensionChildren = expectedStructureChildren[d];
+      for (let i = 0; i < expectedStructureDimensionChildren.length; i++) {
         addExpectedStructureToMap(expectedStructureDimensionChildren[i], map);
       }
     }
@@ -77,22 +77,23 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual(actualTreeNode.values, expectedStructureNode.values);
 
     // Check the children.
-    var expectedStructureChildNodes = expectedStructureNode.children;
-    var actualTreeChildNodes = actualTreeNode.children;
+    const expectedStructureChildNodes = expectedStructureNode.children;
+    const actualTreeChildNodes = actualTreeNode.children;
     assert.lengthOf(actualTreeChildNodes, expectedStructureChildNodes.length);
 
-    for (var d = 0; d < expectedStructureChildNodes.length; d++) {
-      var expectedStructureDimensionChildNodes = expectedStructureChildNodes[d];
-      var actualTreeDimensionChildNodes = actualTreeChildNodes[d];
+    for (let d = 0; d < expectedStructureChildNodes.length; d++) {
+      const expectedStructureDimensionChildNodes =
+        expectedStructureChildNodes[d];
+      const actualTreeDimensionChildNodes = actualTreeChildNodes[d];
       assert.strictEqual(actualTreeDimensionChildNodes.size,
           expectedStructureDimensionChildNodes.length);
 
-      var expectedStructureDimensionChildNodeTitles = new Set();
+      const expectedStructureDimensionChildNodeTitles = new Set();
 
-      for (var i = 0; i < expectedStructureDimensionChildNodes.length; i++) {
-        var expectedStructureDimensionChildNode =
+      for (let i = 0; i < expectedStructureDimensionChildNodes.length; i++) {
+        let expectedStructureDimensionChildNode =
             expectedStructureDimensionChildNodes[i];
-        var isReference = false;
+        let isReference = false;
 
         // If the expected structure child node is a reference to another
         // expected structure node, resolve it.
@@ -105,19 +106,19 @@ tr.b.unittest.testSuite(function() {
 
         // Check that the expected structure doesn't contain two children with
         // the same title.
-        var childTitle = expectedStructureDimensionChildNode.title[d];
+        const childTitle = expectedStructureDimensionChildNode.title[d];
         assert.isFalse(
             expectedStructureDimensionChildNodeTitles.has(childTitle));
         expectedStructureDimensionChildNodeTitles.add(childTitle);
 
         // Get the associated child node of the actual tree.
-        var actualTreeDimensionChildNode =
+        const actualTreeDimensionChildNode =
             actualTreeDimensionChildNodes.get(childTitle);
         assert.isDefined(actualTreeDimensionChildNode);
 
         // Check that all expected structure nodes with the same ID correspond
         // to the same actual tree node.
-        var childId = expectedStructureDimensionChildNode.id;
+        const childId = expectedStructureDimensionChildNode.id;
         if (childId !== undefined) {
           if (actualTreeNodesById.has(childId)) {
             assert.strictEqual(actualTreeDimensionChildNode,
@@ -143,7 +144,7 @@ tr.b.unittest.testSuite(function() {
   }
 
   function createBuilderWithEntries(dimensions, valueCount, pathEntries) {
-    var builder = new MultiDimensionalViewBuilder(dimensions, valueCount);
+    const builder = new MultiDimensionalViewBuilder(dimensions, valueCount);
     pathEntries.forEach(function(pathEntry) {
       builder.addPath(pathEntry.path, pathEntry.values, pathEntry.kind);
     });
@@ -155,7 +156,7 @@ tr.b.unittest.testSuite(function() {
       expectedBottomUpHeavyViewStructure) {
     test('builder_' + testName, function() {
       // Create a multi-dimensional tree builder and add all paths to it.
-      var builder =
+      const builder =
           createBuilderWithEntries(dimensions, valueCount, pathEntries);
 
       // Build and check the views.
@@ -180,9 +181,9 @@ tr.b.unittest.testSuite(function() {
    * 2**exponent[1]).
    */
   function b(/* exponent1, ..., exponentN */) {
-    var sum = 0;
-    for (var i = 0; i < arguments.length; i++) {
-      var exponent = arguments[i];
+    let sum = 0;
+    for (let i = 0; i < arguments.length; i++) {
+      const exponent = arguments[i];
       if (typeof exponent === 'number') {
         sum += 1 << arguments[i];
       } else {
@@ -223,11 +224,11 @@ tr.b.unittest.testSuite(function() {
       targetTestName, dimensions, valueCount, pathEntries) {
     test('builderTestGenerator_' + targetTestName, function() {
       // Create the builder.
-      var builder =
+      const builder =
           createBuilderWithEntries(dimensions, valueCount, pathEntries);
 
       // Generate the test case source code.
-      var generator = new tr.c.TestUtils.SourceGenerator();
+      const generator = new tr.c.TestUtils.SourceGenerator();
       generator.indentBlock(2, false /* don't break line */, function() {
         // Test name and number of dimensions (first line).
         generator.push('builderTest(\'', targetTestName, '\', ',
@@ -250,15 +251,15 @@ tr.b.unittest.testSuite(function() {
                 function(value) {
                   generator.push(String(value));
                 });
-            var kind = pathEntry.kind === SELF ? 'SELF' : 'TOTAL';
+            const kind = pathEntry.kind === SELF ? 'SELF' : 'TOTAL';
             generator.push(', kind: ', kind, ' }');
           });
           generator.push(',');
           generator.breakLine();
 
           function formatExpectedTreeStructure(root, label) {
-            var nextNodeId = 0;
-            var nodeInfos = new WeakMap();
+            let nextNodeId = 0;
+            const nodeInfos = new WeakMap();
 
             function assignNodeIdsToRepeatedNodes(node) {
               if (nodeInfos.has(node)) {
@@ -277,7 +278,7 @@ tr.b.unittest.testSuite(function() {
               // children.
               nodeInfos.set(node, undefined);
               node.children.forEach(function(singleDimensionChildren) {
-                for (var child of singleDimensionChildren.values()) {
+                for (const child of singleDimensionChildren.values()) {
                   assignNodeIdsToRepeatedNodes(child);
                 }
               });
@@ -286,8 +287,8 @@ tr.b.unittest.testSuite(function() {
 
             // Track the multi-dimensional path to the current node to generate
             // comments.
-            var paths = new Array(dimensions);
-            for (var i = 0; i < paths.length; i++) {
+            const paths = new Array(dimensions);
+            for (let i = 0; i < paths.length; i++) {
               paths[i] = [];
             }
             function withChild(childNode, dimension, callback) {
@@ -319,8 +320,8 @@ tr.b.unittest.testSuite(function() {
             }
 
             function formatExpectedTreeStructureRecursively(node, opt_label) {
-              var nodeId = undefined;
-              var nodeInfo = nodeInfos.get(node);
+              let nodeId = undefined;
+              const nodeInfo = nodeInfos.get(node);
               if (nodeInfo !== undefined) {
                 // This node is referenced multiple times in the expected tree
                 // structure.
@@ -371,7 +372,7 @@ tr.b.unittest.testSuite(function() {
                             generator.push('self: ', String(value.self), ',');
                             generator.breakLine();
                             generator.push('totalState: ');
-                            var totalStateName =
+                            const totalStateName =
                                 tr.b.findFirstKeyInDictMatching(
                                     MultiDimensionalViewNode.TotalState,
                                     (n, s) => s === value.totalState);
@@ -388,7 +389,7 @@ tr.b.unittest.testSuite(function() {
                 generator.breakLine();
 
                 // Node children.
-                var children = node.children;
+                const children = node.children;
                 generator.push('children: ');
                 generator.formatMultiLineList(
                     children,
@@ -12972,11 +12973,11 @@ tr.b.unittest.testSuite(function() {
       });
 
   test('recursionDepthTracker', function() {
-    var MAX_DEPTH = 5;
-    var tracker = new RecursionDepthTracker(MAX_DEPTH, 2 /* dimension */);
+    const MAX_DEPTH = 5;
+    const tracker = new RecursionDepthTracker(MAX_DEPTH, 2 /* dimension */);
 
     function pushNewNode(title) {
-      var node = new MultiDimensionalViewNode(
+      const node = new MultiDimensionalViewNode(
           [undefined, 'ignored dimension', title, 'also ignored'],
           1 /* valueCount (not relevant for this test) */);
       tracker.push(node);
@@ -12984,14 +12985,15 @@ tr.b.unittest.testSuite(function() {
     }
 
     function checkTracker(expectedDefinedViewNodePath, expectedRecursionDepth) {
-      var expectedBottomIndex = MAX_DEPTH - expectedDefinedViewNodePath.length;
+      const expectedBottomIndex = MAX_DEPTH -
+        expectedDefinedViewNodePath.length;
       assert.strictEqual(tracker.bottomIndex, expectedBottomIndex);
       assert.strictEqual(tracker.topIndex, MAX_DEPTH);
 
-      var undefinedPadding = new Array(expectedBottomIndex);
-      var expectedViewNodePath =
+      const undefinedPadding = new Array(expectedBottomIndex);
+      const expectedViewNodePath =
           undefinedPadding.concat(expectedDefinedViewNodePath);
-      var expectedTitlePath =
+      const expectedTitlePath =
           undefinedPadding.concat(expectedDefinedViewNodePath.map(
               function(node) { return node.title[2]; }));
       assertListStrictEqual(tracker.viewNodePath, expectedViewNodePath);
@@ -13001,19 +13003,19 @@ tr.b.unittest.testSuite(function() {
     }
 
     checkTracker([] /* empty stack */, 0);
-    var a1 = pushNewNode('A');
+    const a1 = pushNewNode('A');
     checkTracker([a1], 0);
-    var b1 = pushNewNode('B');
+    const b1 = pushNewNode('B');
     checkTracker([b1, a1], 0);
-    var c1 = pushNewNode('C');
+    const c1 = pushNewNode('C');
     checkTracker([c1, b1, a1], 0);
-    var d1 = pushNewNode('D');
+    const d1 = pushNewNode('D');
     checkTracker([d1, c1, b1, a1], 0);
     tracker.pop();
     checkTracker([c1, b1, a1], 0);
-    var a2 = pushNewNode('A');
+    const a2 = pushNewNode('A');
     checkTracker([a2, c1, b1, a1], 1);
-    var b2 = pushNewNode('B');
+    const b2 = pushNewNode('B');
     checkTracker([b2, a2, c1, b1, a1], 2);
     tracker.pop();
     checkTracker([a2, c1, b1, a1], 1);
@@ -13027,15 +13029,15 @@ tr.b.unittest.testSuite(function() {
     checkTracker([b1, a1], 0);
     tracker.pop();
     checkTracker([a1], 0);
-    var a3 = pushNewNode('A');
+    const a3 = pushNewNode('A');
     checkTracker([a3, a1], 1);
     tracker.push(a2);
     checkTracker([a2, a3, a1], 2);
-    var a4 = pushNewNode('A');
+    const a4 = pushNewNode('A');
     checkTracker([a4, a2, a3, a1], 3);
     tracker.pop();
     checkTracker([a2, a3, a1], 2);
-    var b3 = pushNewNode('B');
+    const b3 = pushNewNode('B');
     checkTracker([b3, a2, a3, a1], 0);
     tracker.push(a4);
     checkTracker([a4, b3, a2, a3, a1], 1);
@@ -13057,7 +13059,7 @@ tr.b.unittest.testSuite(function() {
     checkTracker([a1, b1, a4], 1);
     tracker.pop();
     checkTracker([b1, a4], 0);
-    var c2 = pushNewNode('C');
+    const c2 = pushNewNode('C');
     checkTracker([c2, b1, a4], 0);
     tracker.push(a3);
     checkTracker([a3, c2, b1, a4], 1);

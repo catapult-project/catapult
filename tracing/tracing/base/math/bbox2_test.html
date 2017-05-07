@@ -14,8 +14,8 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('addVec2', function() {
-    var bbox = new tr.b.math.BBox2();
-    var x = vec2.create();
+    const bbox = new tr.b.math.BBox2();
+    const x = vec2.create();
     vec2.set(x, 10, 10);
     bbox.addVec2(x);
     assert.strictEqual(bbox.minVec2[0], 10);

@@ -14,37 +14,37 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var ProcessSummaryTrack = tr.ui.tracks.ProcessSummaryTrack;
+  const ProcessSummaryTrack = tr.ui.tracks.ProcessSummaryTrack;
 
   test('buildRectSimple', function() {
-    var process;
-    var model = tr.c.TestUtils.newModel(function(model) {
+    let process;
+    const model = tr.c.TestUtils.newModel(function(model) {
       process = model.getOrCreateProcess(1);
       // XXXX
       //    XXXX
-      var thread1 = process.getOrCreateThread(1);
+      const thread1 = process.getOrCreateThread(1);
       thread1.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
           {start: 1, duration: 4}));
-      var thread2 = process.getOrCreateThread(2);
+      const thread2 = process.getOrCreateThread(2);
       thread2.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
           {start: 4, duration: 4}));
     });
 
-    var rects = ProcessSummaryTrack.buildRectsFromProcess(process);
+    const rects = ProcessSummaryTrack.buildRectsFromProcess(process);
 
     assert.strictEqual(rects.length, 1);
-    var rect = rects[0];
+    const rect = rects[0];
     assert.closeTo(rect.start, 1, 1e-5);
     assert.closeTo(rect.end, 8, 1e-5);
   });
 
   test('buildRectComplex', function() {
-    var process;
-    var model = tr.c.TestUtils.newModel(function(model) {
+    let process;
+    const model = tr.c.TestUtils.newModel(function(model) {
       process = model.getOrCreateProcess(1);
       // XXXX    X X XX
       //    XXXX XXX    X
-      var thread1 = process.getOrCreateThread(1);
+      const thread1 = process.getOrCreateThread(1);
       thread1.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
           {start: 1, duration: 4}));
       thread1.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
@@ -53,7 +53,7 @@ tr.b.unittest.testSuite(function() {
           {start: 11, duration: 1}));
       thread1.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
           {start: 13, duration: 2}));
-      var thread2 = process.getOrCreateThread(2);
+      const thread2 = process.getOrCreateThread(2);
       thread2.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
           {start: 4, duration: 4}));
       thread2.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
@@ -62,7 +62,7 @@ tr.b.unittest.testSuite(function() {
           {start: 16, duration: 1}));
     });
 
-    var rects = ProcessSummaryTrack.buildRectsFromProcess(process);
+    const rects = ProcessSummaryTrack.buildRectsFromProcess(process);
 
     assert.strictEqual(4, rects.length);
     assert.closeTo(rects[0].start, 1, 1e-5);
@@ -76,13 +76,13 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('buildRectImportantSlice', function() {
-    var process;
-    var model = tr.c.TestUtils.newModel(function(model) {
+    let process;
+    const model = tr.c.TestUtils.newModel(function(model) {
       //    [    unimportant    ]
       //         [important]
-      var a = tr.c.TestUtils.newSliceEx(
+      const a = tr.c.TestUtils.newSliceEx(
           {title: 'unimportant', start: 4, duration: 21});
-      var b = tr.c.TestUtils.newSliceEx(
+      const b = tr.c.TestUtils.newSliceEx(
           {title: 'important', start: 9, duration: 11});
       b.important = true;
       process = model.getOrCreateProcess(1);
@@ -91,7 +91,7 @@ tr.b.unittest.testSuite(function() {
       model.importantSlice = b;
     });
 
-    var rects = ProcessSummaryTrack.buildRectsFromProcess(process);
+    const rects = ProcessSummaryTrack.buildRectsFromProcess(process);
 
     assert.strictEqual(3, rects.length);
     assert.closeTo(rects[0].start, 4, 1e-5);

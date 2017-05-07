@@ -12,7 +12,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('lazy_compile_method', function() {
-    var tce = new tr.e.importer.TraceCodeEntry(
+    const tce = new tr.e.importer.TraceCodeEntry(
         '0x123', 10, 'Handler:timeStamp', 12);
     assert.strictEqual(tce.size, 10);
     assert.strictEqual(tce.name, 'timeStamp');
@@ -23,7 +23,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('non_lazy_compile_method', function() {
-    var tce = new tr.e.importer.TraceCodeEntry(
+    const tce = new tr.e.importer.TraceCodeEntry(
         '0x123', 10, 'Handler:timeStamp', 12);
     assert.strictEqual(tce.size, 10);
     assert.strictEqual(tce.name, 'timeStamp');
@@ -35,7 +35,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('native_matching', function() {
-    var tce = new tr.e.importer.TraceCodeEntry('0x123', 10,
+    const tce = new tr.e.importer.TraceCodeEntry('0x123', 10,
         'LazyCompile:~IsAccessorDescriptor native v8natives.js:183', 12);
     assert.strictEqual(tce.size, 10);
     assert.strictEqual(tce.name, 'IsAccessorDescriptor');
@@ -47,7 +47,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('strips_*_from_name', function() {
-    var tce = new tr.e.importer.TraceCodeEntry('0x123', 10,
+    const tce = new tr.e.importer.TraceCodeEntry('0x123', 10,
         'LazyCompile:*IsAccessorDescriptor native v8natives.js:183', 12);
     assert.strictEqual(tce.size, 10);
     assert.strictEqual(tce.name, 'IsAccessorDescriptor');
@@ -59,7 +59,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('non_native_matching', function() {
-    var tce = new tr.e.importer.TraceCodeEntry('0x123', 10,
+    const tce = new tr.e.importer.TraceCodeEntry('0x123', 10,
         'LazyCompile:~IsAccessorDescriptor v8natives.js:183', 12);
     assert.strictEqual(tce.size, 10);
     assert.strictEqual(tce.name, 'IsAccessorDescriptor');
@@ -70,7 +70,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('lazy_compile_without_script', function() {
-    var tce = new tr.e.importer.TraceCodeEntry(
+    const tce = new tr.e.importer.TraceCodeEntry(
         '0x123', 10, 'LazyCompile:~Object', 12);
     assert.strictEqual(tce.size, 10);
     assert.strictEqual(tce.name, 'Object');
@@ -81,7 +81,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('line_matching_without_script', function() {
-    var tce = new tr.e.importer.TraceCodeEntry('0x123', 10,
+    const tce = new tr.e.importer.TraceCodeEntry('0x123', 10,
         'LazyCompile:~Object :220', 12);
     assert.strictEqual(tce.size, 10);
     assert.strictEqual(tce.name, 'Object');
@@ -92,7 +92,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('unknown_method_name', function() {
-    var tce = new tr.e.importer.TraceCodeEntry('0x123', 10, 'LazyCompile:', 12);
+    let tce = new tr.e.importer.TraceCodeEntry('0x123', 10, 'LazyCompile:', 12);
     assert.strictEqual(tce.size, 10);
     assert.strictEqual(tce.name, '');
     assert.strictEqual(tce.sourceInfo.isNative, false);
@@ -100,7 +100,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(tce.sourceInfo.line, -1);
     assert.strictEqual(tce.sourceInfo.scriptId, 12);
 
-    var tce = new tr.e.importer.TraceCodeEntry(
+    tce = new tr.e.importer.TraceCodeEntry(
         '0x123', 10, 'LazyCompile:~ :37', 12);
     assert.strictEqual(tce.size, 10);
     assert.strictEqual(tce.name, '');
@@ -109,7 +109,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(tce.sourceInfo.line, 36);
     assert.strictEqual(tce.sourceInfo.scriptId, 12);
 
-    var tce = new tr.e.importer.TraceCodeEntry('0x123', 10,
+    tce = new tr.e.importer.TraceCodeEntry('0x123', 10,
         'LazyCompile:~ native liveedit.js:37:10', 12);
     assert.strictEqual(tce.size, 10);
     assert.strictEqual(tce.name, '');
@@ -121,4 +121,3 @@ tr.b.unittest.testSuite(function() {
   });
 });
 </script>
-

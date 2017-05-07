@@ -36,7 +36,7 @@ Polymer({
   },
 
   ready() {
-    var table = this.$.table;
+    const table = this.$.table;
     table.tableColumns = [
       {
         title: 'Label',
@@ -56,7 +56,7 @@ Polymer({
 
     this.hasColumnNamed_[columnName] = true;
 
-    var column = {
+    const column = {
       title: columnName,
       value(row) {
         if (row[columnName] === undefined) return '';
@@ -64,18 +64,18 @@ Polymer({
       }
     };
 
-    var columns = this.$.table.tableColumns;
+    const columns = this.$.table.tableColumns;
     columns.push(column);
 
     // Update widths.
-    var colWidthPercentage;
+    let colWidthPercentage;
     if (columns.length === 1) {
       colWidthPercentage = '100%';
     } else {
       colWidthPercentage = (100 / (columns.length - 1)).toFixed(3) + '%';
     }
 
-    for (var i = 1; i < columns.length; i++) {
+    for (let i = 1; i < columns.length; i++) {
       columns[i].width = colWidthPercentage;
     }
 
@@ -84,14 +84,14 @@ Polymer({
 
   getRowForPage_(page) {
     if (!this.pageToRowMap_.has(page)) {
-      var i = page.url.lastIndexOf('/');
-      var baseName = page.url.substring(i + 1);
+      const i = page.url.lastIndexOf('/');
+      const baseName = page.url.substring(i + 1);
 
-      var link = document.createElement('a');
+      const link = document.createElement('a');
       link.href = 'trace_viewer.html#' + page.url;
       Polymer.dom(link).textContent = baseName;
 
-      var row = {
+      const row = {
         label: link,
         value: '',
         subRows: [],
@@ -113,7 +113,7 @@ Polymer({
     }
 
     this.addColumnIfNeeded_(value.name);
-    var rowForPage = this.getRowForPage_(value.page);
+    const rowForPage = this.getRowForPage_(value.page);
     rowForPage[value.name] = value.value;
 
     // Kick table rebuild.

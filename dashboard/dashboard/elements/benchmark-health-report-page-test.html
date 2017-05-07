@@ -15,13 +15,13 @@ found in the LICENSE file.
 
 
 tr.b.unittest.testSuite(function() {
-  var originalGetParameter;
+  let originalGetParameter;
 
-  var testOptions = {
+  const testOptions = {
     setUp() {
       originalGetParameter = uri.getParameter;
       d.BugDetails.reset();
-      var obj = {};
+      const obj = {};
       obj[12345] = Promise.resolve(mockBugResponse0);
       obj[687592] = Promise.resolve(mockBugResponse1);
       d.BugDetails.prepopulate(obj);
@@ -71,7 +71,7 @@ tr.b.unittest.testSuite(function() {
   };
 
   test('instantiation_list', function() {
-    var mockResponse = {
+    const mockResponse = {
       'benchmarks': [
         {
           'name': 'dromaeo',
@@ -94,12 +94,12 @@ tr.b.unittest.testSuite(function() {
     };
     testing_common.addXhrMock('/benchmark_health_report?master=ChromiumPerf',
         JSON.stringify(mockResponse));
-    var page = document.createElement('benchmark-health-report-page');
+    const page = document.createElement('benchmark-health-report-page');
     this.addHTMLOutput(page);
   }, testOptions);
 
   test('instantiation_benchmark', function() {
-    var mockHealthReportResponse = {
+    const mockHealthReportResponse = {
       'alerts': [{
         'absolute_delta': '54.000000',
         'bot': 'android-nexus7v2',
@@ -204,12 +204,12 @@ tr.b.unittest.testSuite(function() {
         'num_days': '30'
       }[name];
     };
-    var page = document.createElement('benchmark-health-report-page');
+    const page = document.createElement('benchmark-health-report-page');
     this.addHTMLOutput(page);
   }, testOptions);
 
   test('instantiation_benchmark_not_monitored', function() {
-    var mockHealthReportResponse = {
+    const mockHealthReportResponse = {
       'alerts': [],
       'monitored': false,
       'bots': ['linux', 'windows']
@@ -225,7 +225,7 @@ tr.b.unittest.testSuite(function() {
         'num_days': '30'
       }[name];
     };
-    var page = document.createElement('benchmark-health-report-page');
+    const page = document.createElement('benchmark-health-report-page');
     this.addHTMLOutput(page);
   }, testOptions);
 });

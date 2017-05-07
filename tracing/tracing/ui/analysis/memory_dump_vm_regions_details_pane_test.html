@@ -20,28 +20,30 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var newAllocatorDump = tr.model.MemoryDumpTestUtils.newAllocatorDump;
-  var VMRegion = tr.model.VMRegion;
-  var VMRegionClassificationNode = tr.model.VMRegionClassificationNode;
-  var TitleColumn = tr.ui.analysis.TitleColumn;
-  var StringMemoryColumn = tr.ui.analysis.StringMemoryColumn;
-  var NumericMemoryColumn = tr.ui.analysis.NumericMemoryColumn;
-  var AggregationMode = tr.ui.analysis.MemoryColumn.AggregationMode;
-  var addGlobalMemoryDump = tr.model.MemoryDumpTestUtils.addGlobalMemoryDump;
-  var addProcessMemoryDump = tr.model.MemoryDumpTestUtils.addProcessMemoryDump;
-  var checkSizeNumericFields = tr.ui.analysis.checkSizeNumericFields;
-  var checkStringFields = tr.ui.analysis.checkStringFields;
-  var checkColumns = tr.ui.analysis.checkColumns;
-  var isElementDisplayed = tr.ui.analysis.isElementDisplayed;
-  var DETAILED = tr.model.ContainerMemoryDump.LevelOfDetail.DETAILED;
+  const newAllocatorDump = tr.model.MemoryDumpTestUtils.newAllocatorDump;
+  const VMRegion = tr.model.VMRegion;
+  const VMRegionClassificationNode = tr.model.VMRegionClassificationNode;
+  const TitleColumn = tr.ui.analysis.TitleColumn;
+  const StringMemoryColumn = tr.ui.analysis.StringMemoryColumn;
+  const NumericMemoryColumn = tr.ui.analysis.NumericMemoryColumn;
+  const AggregationMode = tr.ui.analysis.MemoryColumn.AggregationMode;
+  const addGlobalMemoryDump = tr.model.MemoryDumpTestUtils.addGlobalMemoryDump;
+  const addProcessMemoryDump =
+    tr.model.MemoryDumpTestUtils.addProcessMemoryDump;
+  const checkSizeNumericFields = tr.ui.analysis.checkSizeNumericFields;
+  const checkStringFields = tr.ui.analysis.checkStringFields;
+  const checkColumns = tr.ui.analysis.checkColumns;
+  const isElementDisplayed = tr.ui.analysis.isElementDisplayed;
+  const DETAILED = tr.model.ContainerMemoryDump.LevelOfDetail.DETAILED;
 
   function createVMRegions() {
-    var model = tr.c.TestUtils.newModel(function(model) {
-      var process = model.getOrCreateProcess(1);
+    const model = tr.c.TestUtils.newModel(function(model) {
+      const process = model.getOrCreateProcess(1);
 
       // First timestamp.
-      var gmd1 = addGlobalMemoryDump(model, {ts: 42, levelOfDetail: DETAILED});
-      var pmd1 = addProcessMemoryDump(gmd1, process, {ts: 42});
+      const gmd1 = addGlobalMemoryDump(
+          model, {ts: 42, levelOfDetail: DETAILED});
+      const pmd1 = addProcessMemoryDump(gmd1, process, {ts: 42});
       pmd1.vmRegions = VMRegionClassificationNode.fromRegions([
         VMRegion.fromDict({
           mappedFile: '/lib/chrome.so',
@@ -116,8 +118,9 @@ tr.b.unittest.testSuite(function() {
       ];
 
       // Second timestamp.
-      var gmd2 = addGlobalMemoryDump(model, {ts: 42, levelOfDetail: DETAILED});
-      var pmd2 = addProcessMemoryDump(gmd2, process, {ts: 42});
+      const gmd2 = addGlobalMemoryDump(
+          model, {ts: 42, levelOfDetail: DETAILED});
+      const pmd2 = addProcessMemoryDump(gmd2, process, {ts: 42});
       pmd2.vmRegions = VMRegionClassificationNode.fromRegions([
         VMRegion.fromDict({
           mappedFile: '/lib/chrome.so',
@@ -210,7 +213,7 @@ tr.b.unittest.testSuite(function() {
     });
   }
 
-  var EXPECTED_COLUMNS = [
+  const EXPECTED_COLUMNS = [
     { title: 'Mapped file', type: TitleColumn, noAggregation: true },
     { title: 'Start address', type: StringMemoryColumn, noAggregation: true },
     { title: 'Virtual size', type: NumericMemoryColumn },
@@ -250,8 +253,8 @@ tr.b.unittest.testSuite(function() {
   function genericMatcher(callback, defined) {
     return function(actualValues) {
       assert.lengthOf(actualValues, defined.length);
-      for (var i = 0; i < defined.length; i++) {
-        var actualValue = actualValues[i];
+      for (let i = 0; i < defined.length; i++) {
+        const actualValue = actualValues[i];
         if (defined[i]) {
           callback(actualValue);
         } else {
@@ -287,9 +290,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiate_single', function() {
-    var vmRegions = createVMRegions().slice(0, 1);
+    const vmRegions = createVMRegions().slice(0, 1);
 
-    var viewEl = document.createElement(
+    const viewEl = document.createElement(
         'tr-ui-a-memory-dump-vm-regions-details-pane');
     viewEl.vmRegions = vmRegions;
     viewEl.rebuild();
@@ -299,57 +302,57 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(isElementDisplayed(viewEl.$.table));
     assert.isFalse(isElementDisplayed(viewEl.$.info_text));
 
-    var table = viewEl.$.table;
-    var columns = table.tableColumns;
+    const table = viewEl.$.table;
+    const columns = table.tableColumns;
     checkColumns(columns, EXPECTED_COLUMNS, undefined /* no aggregation */);
-    var rows = table.tableRows;
+    const rows = table.tableRows;
     assert.lengthOf(rows, 1);
 
     // Check the rows of the table.
-    var totalRow = rows[0];
+    const totalRow = rows[0];
     checkRow(columns, totalRow, 'Total', undefined, [4833935160], undefined,
         [8460], [64], [0], 3, vmRegions);
 
-    var androidRow = totalRow.subRows[0];
+    const androidRow = totalRow.subRows[0];
     checkRow(columns, androidRow, 'Android', undefined, [100], undefined,
         [100], [0], [0], 1, classificationNodesMatcher('Android', [true]));
 
-    var javaRuntimeRow = androidRow.subRows[0];
+    const javaRuntimeRow = androidRow.subRows[0];
     checkRow(columns, javaRuntimeRow, 'Java runtime', undefined, [100],
         undefined, [100], [0], [0], 1,
         classificationNodesMatcher('Java runtime', [true]));
 
-    var spacesRow = javaRuntimeRow.subRows[0];
+    const spacesRow = javaRuntimeRow.subRows[0];
     checkRow(columns, spacesRow, 'Spaces', undefined, [100], undefined, [100],
         [0], [0], 1, classificationNodesMatcher('Spaces', [true]));
 
-    var nativeHeapRow = totalRow.subRows[1];
+    const nativeHeapRow = totalRow.subRows[1];
     checkRow(columns, nativeHeapRow, 'Native heap', undefined, [4294966996],
         undefined, [168], [64], [0], 4,
         classificationNodesMatcher('Native heap', [true]));
 
-    var discountedTracingOverheadRow = nativeHeapRow.subRows[3];
+    const discountedTracingOverheadRow = nativeHeapRow.subRows[3];
     checkRow(columns, discountedTracingOverheadRow,
         '[discounted tracing overhead]', undefined, [-500], undefined, [-32],
         [-32], undefined, undefined,
         vmRegionsMatcher('[discounted tracing overhead]', undefined, [true]));
 
-    var filesRow = totalRow.subRows[2];
+    const filesRow = totalRow.subRows[2];
     checkRow(columns, filesRow, 'Files', undefined, [538968064], undefined,
         [8192], undefined, undefined, 1,
         classificationNodesMatcher('Files', [true]));
 
-    var soRow = filesRow.subRows[0];
+    const soRow = filesRow.subRows[0];
     checkRow(columns, soRow, 'so', undefined, [538968064], undefined,
         [8192], undefined, undefined, 2,
         classificationNodesMatcher('so', [true]));
 
-    var mmapChromeRow = soRow.subRows[0];
+    const mmapChromeRow = soRow.subRows[0];
     checkRow(columns, mmapChromeRow, '/lib/chrome.so', ['0000000000010000'],
         [536870912], ['r-xp'], [8192], undefined, undefined, undefined,
         vmRegionsMatcher('/lib/chrome.so', 65536, [true]));
 
-    var mmapLibX11Row = soRow.subRows[1];
+    const mmapLibX11Row = soRow.subRows[1];
     checkRow(columns, mmapLibX11Row,
         '/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0', ['00007f996fd80000'],
         [2097152], ['---p'], [0], undefined, undefined, undefined,
@@ -358,9 +361,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiate_multipleDiff', function() {
-    var vmRegions = createVMRegions();
+    const vmRegions = createVMRegions();
 
-    var viewEl = document.createElement(
+    const viewEl = document.createElement(
         'tr-ui-a-memory-dump-vm-regions-details-pane');
     viewEl.vmRegions = vmRegions;
     viewEl.aggregationMode = AggregationMode.DIFF;
@@ -371,61 +374,61 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(isElementDisplayed(viewEl.$.table));
     assert.isFalse(isElementDisplayed(viewEl.$.info_text));
 
-    var table = viewEl.$.table;
-    var columns = table.tableColumns;
+    const table = viewEl.$.table;
+    const columns = table.tableColumns;
     checkColumns(columns, EXPECTED_COLUMNS, AggregationMode.DIFF);
-    var rows = table.tableRows;
+    const rows = table.tableRows;
     assert.lengthOf(rows, 1);
 
     // Check the rows of the table.
-    var totalRow = rows[0];
+    const totalRow = rows[0];
     checkRow(columns, totalRow, 'Total', undefined, [4833935160, 5369045293],
         undefined, [8460, 42085], [64, 197], [0, 33], 4, vmRegions);
 
-    var androidRow = totalRow.subRows[0];
+    const androidRow = totalRow.subRows[0];
     checkRow(columns, androidRow, 'Android', undefined, [100, 100], undefined,
         [100, 0], [0, 100], [0, 0], 1,
         classificationNodesMatcher('Android', [true, true]));
 
-    var javaRuntimeRow = androidRow.subRows[0];
+    const javaRuntimeRow = androidRow.subRows[0];
     checkRow(columns, javaRuntimeRow, 'Java runtime', undefined, [100, 100],
         undefined, [100, 0], [0, 100], [0, 0], 1,
         classificationNodesMatcher('Java runtime', [true, true]));
 
-    var spacesRow = javaRuntimeRow.subRows[0];
+    const spacesRow = javaRuntimeRow.subRows[0];
     checkRow(columns, spacesRow, 'Spaces', undefined, [100, 100], undefined,
         [100, 0], [0, 100], [0, 0], 1,
         classificationNodesMatcher('Spaces', [true, true]));
 
-    var nativeHeapRow = totalRow.subRows[1];
+    const nativeHeapRow = totalRow.subRows[1];
     checkRow(columns, nativeHeapRow, 'Native heap', undefined,
         [4294966996, 4294967496], undefined, [168, 100], [64, 96], [0, 32], 4,
         classificationNodesMatcher('Native heap', [true, true]));
 
-    var discountedTracingOverheadRow = nativeHeapRow.subRows[3];
+    const discountedTracingOverheadRow = nativeHeapRow.subRows[3];
     checkRow(columns, discountedTracingOverheadRow,
         '[discounted tracing overhead]', undefined, [-500, undefined],
         undefined, [-32, undefined], [-32, undefined], undefined, undefined,
         vmRegionsMatcher('[discounted tracing overhead]', undefined,
             [true, false]));
 
-    var filesRow = totalRow.subRows[2];
+    const filesRow = totalRow.subRows[2];
     checkRow(columns, filesRow, 'Files', undefined, [538968064, 1074077696],
         undefined, [8192, 41984], undefined, undefined, 2,
         classificationNodesMatcher('Files', [true, true]));
 
-    var soRow = filesRow.subRows[0];
+    const soRow = filesRow.subRows[0];
     checkRow(columns, soRow, 'so', undefined, [538968064, 1073741824],
         undefined, [8192, 19456], undefined, undefined, 3,
         classificationNodesMatcher('so', [true, true]));
 
-    var mmapChromeRow = soRow.subRows[0];
+    const mmapChromeRow = soRow.subRows[0];
     checkRow(columns, mmapChromeRow, '/lib/chrome.so', ['0000000000010000'],
         [536870912, 536870912], ['r-xp', 'r-xp'], [8192, 9216], undefined,
         undefined, undefined,
         vmRegionsMatcher('/lib/chrome.so', 65536, [true, true]));
 
-    var mmapLibX11Row = soRow.subRows[1];
+    const mmapLibX11Row = soRow.subRows[1];
     checkRow(columns, mmapLibX11Row,
         '/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0', ['00007f996fd80000'],
         [2097152, undefined], ['---p', undefined], [0, undefined], undefined,
@@ -433,12 +436,12 @@ tr.b.unittest.testSuite(function() {
         vmRegionsMatcher('/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0',
             140296983150592, [true, false]));
 
-    var otherRow = totalRow.subRows[3];
+    const otherRow = totalRow.subRows[3];
     checkRow(columns, otherRow, 'Other', undefined, [undefined, 1], undefined,
         [undefined, 1], [undefined, 1], [undefined, 1], 1,
         classificationNodesMatcher('Other', [false, true]));
 
-    var anotherMapRow = otherRow.subRows[0];
+    const anotherMapRow = otherRow.subRows[0];
     checkRow(columns, anotherMapRow, 'another-map', ['00bad00bad00bad0'],
         [undefined, 1], undefined, [undefined, 1], [undefined, 1],
         [undefined, 1], undefined,
@@ -446,9 +449,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiate_multipleMax', function() {
-    var vmRegions = createVMRegions();
+    const vmRegions = createVMRegions();
 
-    var viewEl = document.createElement(
+    const viewEl = document.createElement(
         'tr-ui-a-memory-dump-vm-regions-details-pane');
     viewEl.vmRegions = vmRegions;
     viewEl.aggregationMode = AggregationMode.MAX;
@@ -460,18 +463,18 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(isElementDisplayed(viewEl.$.info_text));
 
     // Just check that the aggregation mode was propagated to the columns.
-    var table = viewEl.$.table;
-    var columns = table.tableColumns;
+    const table = viewEl.$.table;
+    const columns = table.tableColumns;
     checkColumns(columns, EXPECTED_COLUMNS, AggregationMode.MAX);
-    var rows = table.tableRows;
+    const rows = table.tableRows;
     assert.lengthOf(rows, 1);
   });
 
   test('instantiate_multipleWithUndefined', function() {
-    var vmRegions = createVMRegions();
+    const vmRegions = createVMRegions();
     vmRegions.splice(1, 0, undefined);
 
-    var viewEl = document.createElement(
+    const viewEl = document.createElement(
         'tr-ui-a-memory-dump-vm-regions-details-pane');
     viewEl.vmRegions = vmRegions;
     viewEl.aggregationMode = AggregationMode.DIFF;
@@ -483,10 +486,10 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(isElementDisplayed(viewEl.$.info_text));
 
     // Just check that the table has the right shape.
-    var table = viewEl.$.table;
-    var columns = table.tableColumns;
+    const table = viewEl.$.table;
+    const columns = table.tableColumns;
     checkColumns(columns, EXPECTED_COLUMNS, AggregationMode.DIFF);
-    var rows = table.tableRows;
+    const rows = table.tableRows;
     assert.lengthOf(rows, 1);
   });
 });

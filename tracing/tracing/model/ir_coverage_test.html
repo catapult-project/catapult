@@ -12,22 +12,22 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var newSliceEx = tr.c.TestUtils.newSliceEx;
+  const newSliceEx = tr.c.TestUtils.newSliceEx;
 
   function createModel() {
     return tr.c.TestUtils.newModel(function(model) {
-      var process = model.getOrCreateProcess(1);
-      var thread = process.getOrCreateThread(2);
-      var s0 = thread.sliceGroup.pushSlice(newSliceEx(
+      const process = model.getOrCreateProcess(1);
+      const thread = process.getOrCreateThread(2);
+      const s0 = thread.sliceGroup.pushSlice(newSliceEx(
           {title: 's0', start: 0.0, duration: 1.0}));
       s0.isTopLevel = true;
-      var unassociatedEvent = thread.sliceGroup.pushSlice(newSliceEx(
+      const unassociatedEvent = thread.sliceGroup.pushSlice(newSliceEx(
           {title: 's1', start: 6.0, duration: 1.0}));
       unassociatedEvent.isTopLevel = true;
-      var s2 = thread.sliceGroup.pushSlice(newSliceEx(
+      const s2 = thread.sliceGroup.pushSlice(newSliceEx(
           {title: 's2', start: 2.0, duration: 1.0}));
       s2.isTopLevel = true;
-      var f0 = tr.c.TestUtils.newFlowEventEx({
+      const f0 = tr.c.TestUtils.newFlowEventEx({
         title: 'test1',
         start: 0,
         end: 10,
@@ -36,7 +36,7 @@ tr.b.unittest.testSuite(function() {
         id: '0x100'
       });
       model.flowEvents.push(f0);
-      var as1 = tr.c.TestUtils.newAsyncSliceEx({
+      const as1 = tr.c.TestUtils.newAsyncSliceEx({
         title: 'InputLatency::GestureTap',
         cat: 'benchmark,latencyInfo',
         start: 2,
@@ -46,7 +46,7 @@ tr.b.unittest.testSuite(function() {
         startThread: thread
       });
       thread.asyncSliceGroup.push(as1);
-      var ir = new tr.model.um.StubExpectation(
+      const ir = new tr.model.um.StubExpectation(
           {parentModel: model, start: 0, duration: 7});
       ir.associatedEvents.push(as1);
       ir.associatedEvents.push(s0);
@@ -57,8 +57,8 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('computeCoverage', function() {
-    var model = createModel();
-    for (var event of model.getDescendantEvents()) {
+    const model = createModel();
+    for (const event of model.getDescendantEvents()) {
       if (event.title === 's0' || event.title === 's2') {
         event.cpuSelfTime = 0.4;
       } else if (event.title === 's1') {
@@ -66,7 +66,7 @@ tr.b.unittest.testSuite(function() {
       }
     }
 
-    var coverage = tr.model.getIRCoverageFromModel(model);
+    const coverage = tr.model.getIRCoverageFromModel(model);
     assert.strictEqual(3, coverage.associatedEventsCount);
     assert.strictEqual(1, coverage.unassociatedEventsCount);
     assert.closeTo(0.75, coverage.coveredEventsCountRatio, 1e-3);
@@ -76,8 +76,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('zeroCPU', function() {
-    var model = createModel();
-    var coverage = tr.model.getIRCoverageFromModel(model);
+    const model = createModel();
+    const coverage = tr.model.getIRCoverageFromModel(model);
     assert.strictEqual(3, coverage.associatedEventsCount);
     assert.strictEqual(1, coverage.unassociatedEventsCount);
     assert.closeTo(0.75, coverage.coveredEventsCountRatio, 1e-3);

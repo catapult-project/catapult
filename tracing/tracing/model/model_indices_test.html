@@ -12,11 +12,11 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var newFlowEventEx = tr.c.TestUtils.newFlowEventEx;
-  var newModel = tr.c.TestUtils.newModel;
+  const newFlowEventEx = tr.c.TestUtils.newFlowEventEx;
+  const newModel = tr.c.TestUtils.newModel;
 
   test('getCorrectModelIndices', function() {
-    var m = newModel(function(m) {
+    const m = newModel(function(m) {
       m.f1 = newFlowEventEx({
         title: 'test1',
         start: 0,
@@ -36,7 +36,7 @@ tr.b.unittest.testSuite(function() {
     });
 
     assert.isDefined(m.modelIndices);
-    var modelIndices = m.modelIndices;
+    const modelIndices = m.modelIndices;
     assert.strictEqual(modelIndices.getFlowEventsWithId('0x100').length, 2);
     assert.strictEqual(
         modelIndices.getFlowEventsWithId('0x100')[0].id, '0x100');

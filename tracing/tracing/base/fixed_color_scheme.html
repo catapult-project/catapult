@@ -29,9 +29,9 @@ tr.exportTo('tr.b', function() {
      * @return {tr.b.FixedColorScheme}
      */
     static fromNames(names) {
-      var namesToColors = new Map();
-      var generator = new tr.b.SinebowColorGenerator();
-      for (var name of names) {
+      const namesToColors = new Map();
+      const generator = new tr.b.SinebowColorGenerator();
+      for (const name of names) {
         namesToColors.set(name, generator.colorForKey(name));
       }
       return new FixedColorScheme(namesToColors);
@@ -43,13 +43,13 @@ tr.exportTo('tr.b', function() {
      * @return {tr.b.Color}
      */
     getColor(name) {
-      var color = this.namesToColors_.get(name);
+      const color = this.namesToColors_.get(name);
       if (color === undefined) throw new Error('Unknown color: ' + name);
       return color;
     }
   }
 
-  var MemoryColumnColorScheme = new FixedColorScheme(new Map([
+  const MemoryColumnColorScheme = new FixedColorScheme(new Map([
       ['used_memory_column', new tr.b.Color(0, 0, 255)],
       ['older_used_memory_column', new tr.b.Color(153, 204, 255)],
       ['tracing_memory_column', new tr.b.Color(153, 153, 153)]
@@ -57,11 +57,11 @@ tr.exportTo('tr.b', function() {
 
   function FixedColorSchemeRegistry() {}
   FixedColorSchemeRegistry.lookUp = function(name) {
-    var info = this.findTypeInfoMatching(info => info.metadata.name === name);
+    const info = this.findTypeInfoMatching(info => info.metadata.name === name);
     if (!info) return undefined;
     return info.constructor();
   };
-  var options = new tr.b.ExtensionRegistryOptions(tr.b.BASIC_REGISTRY_MODE);
+  const options = new tr.b.ExtensionRegistryOptions(tr.b.BASIC_REGISTRY_MODE);
   tr.b.decorateExtensionRegistry(FixedColorSchemeRegistry, options);
 
   return {

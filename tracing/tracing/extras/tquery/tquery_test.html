@@ -16,25 +16,25 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   function createTestModel(sliceCount) {
-    var slices = [];
-    for (var i = 0; i < sliceCount; i++) {
+    const slices = [];
+    for (let i = 0; i < sliceCount; i++) {
       slices.push(tr.c.TestUtils.newSliceEx({start: 1, duration: 2}));
     }
     return createTestModelWithSlices(slices);
   }
 
   function createTestModelWithSlices(slices) {
-    var model = new tr.Model();
-    var cpu = model.kernel.getOrCreateCpu(1);
-    for (var i = 0; i < slices.length; i++) {
+    const model = new tr.Model();
+    const cpu = model.kernel.getOrCreateCpu(1);
+    for (let i = 0; i < slices.length; i++) {
       cpu.slices.push(slices[i]);
     }
     return model;
   }
 
   function getScriptObject(name) {
-    var typeInfos = tr.c.ScriptingObjectRegistry.getAllRegisteredTypeInfos();
-    for (var i = 0; i < typeInfos.length; i++) {
+    const typeInfos = tr.c.ScriptingObjectRegistry.getAllRegisteredTypeInfos();
+    for (let i = 0; i < typeInfos.length; i++) {
       if (typeInfos[i].metadata.name === name) {
         return typeInfos[i].constructor;
       }
@@ -42,8 +42,8 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('tqueryAsyncSelection', function() {
-    var model = createTestModel(3);
-    var tquery = new tr.e.tquery.TQuery(model);
+    const model = createTestModel(3);
+    const tquery = new tr.e.tquery.TQuery(model);
 
     return tquery.ready().then(function(selection) {
       assert.strictEqual(selection.length, 3);
@@ -51,156 +51,156 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('tquerySyncSelection', function() {
-    var model = createTestModel(3);
-    var tquery = new tr.e.tquery.TQuery(model);
+    let model = createTestModel(3);
+    const tquery = new tr.e.tquery.TQuery(model);
 
     assert.strictEqual(tquery.selection.length, 3);
 
     // Selection should get reset when the model changes.
-    var model = createTestModel(5);
+    model = createTestModel(5);
     tquery.onModelChanged(model);
     assert.strictEqual(tquery.selection.length, 5);
   });
 
   test('tqueryPassThroughFiltering', function() {
-    var model = new createTestModel(3);
-    var tquery = new tr.e.tquery.TQuery(model);
+    const model = new createTestModel(3);
+    const tquery = new tr.e.tquery.TQuery(model);
 
-    var result = tquery.filter().filter().selection;
+    const result = tquery.filter().filter().selection;
     assert.strictEqual(result.length, 3);
   });
 
   test('tqueryFilterHasTitle', function() {
-    var hasTitle = getScriptObject('hasTitle');
-    var model = createTestModelWithSlices([
+    const hasTitle = getScriptObject('hasTitle');
+    const model = createTestModelWithSlices([
       {guid: 1, title: 'a'},
       {guid: 2, title: 'b'},
       {guid: 3, title: 'c'}
     ]);
-    var tquery = new tr.e.tquery.TQuery(model);
+    const tquery = new tr.e.tquery.TQuery(model);
 
-    var result = tquery.filter(hasTitle('a')).selection;
+    let result = tquery.filter(hasTitle('a')).selection;
     assert.strictEqual(result.length, 1);
     assert.strictEqual(tr.b.getOnlyElement(result).guid, 1);
 
-    var result = tquery.filter('b').selection;
+    result = tquery.filter('b').selection;
     assert.strictEqual(result.length, 1);
     assert.strictEqual(tr.b.getOnlyElement(result).guid, 2);
 
-    var result = tquery.filter(/^c$/).selection;
+    result = tquery.filter(/^c$/).selection;
     assert.strictEqual(result.length, 1);
     assert.strictEqual(tr.b.getOnlyElement(result).guid, 3);
   });
 
   test('tqueryFilterHasAncestor', function() {
-    var hasAncestor = getScriptObject('hasAncestor');
-    var model = createTestModelWithSlices([
+    const hasAncestor = getScriptObject('hasAncestor');
+    const model = createTestModelWithSlices([
       {guid: 1, title: 'a'},
       {guid: 2, title: 'b', subSlices: [{guid: 4}]},
       {guid: 3, title: 'c'}
     ]);
-    var tquery = new tr.e.tquery.TQuery(model);
+    const tquery = new tr.e.tquery.TQuery(model);
 
-    var result = tquery.filter(hasAncestor('b')).selection;
+    let result = tquery.filter(hasAncestor('b')).selection;
     assert.strictEqual(result.length, 1);
     assert.strictEqual(tr.b.getOnlyElement(result).guid, 4);
 
-    var result = tquery.filter(hasAncestor()).selection;
+    result = tquery.filter(hasAncestor()).selection;
     assert.strictEqual(result.length, 1);
     assert.strictEqual(tr.b.getOnlyElement(result).guid, 4);
 
-    var result = tquery.filter(hasAncestor('a')).selection;
+    result = tquery.filter(hasAncestor('a')).selection;
     assert.strictEqual(result.length, 0);
   });
 
   test('tqueryFilterAllOf', function() {
-    var allOf = getScriptObject('allOf');
-    var model = createTestModelWithSlices([
+    const allOf = getScriptObject('allOf');
+    const model = createTestModelWithSlices([
       {guid: 1, title: 'a1'},
       {guid: 2, title: 'b1'},
       {guid: 3, title: 'c1'}
     ]);
-    var tquery = new tr.e.tquery.TQuery(model);
+    const tquery = new tr.e.tquery.TQuery(model);
 
-    var result = tquery.filter(allOf('a1')).selection;
+    let result = tquery.filter(allOf('a1')).selection;
     assert.strictEqual(result.length, 1);
     assert.strictEqual(tr.b.getOnlyElement(result).guid, 1);
 
-    var result = tquery.filter(allOf('a1', /1/)).selection;
+    result = tquery.filter(allOf('a1', /1/)).selection;
     assert.strictEqual(result.length, 1);
     assert.strictEqual(tr.b.getOnlyElement(result).guid, 1);
 
-    var result = tquery.filter(allOf()).selection;
+    result = tquery.filter(allOf()).selection;
     assert.strictEqual(result.length, 3);
   });
 
   test('tqueryFilterAnyOf', function() {
-    var anyOf = getScriptObject('anyOf');
-    var model = createTestModelWithSlices([
+    const anyOf = getScriptObject('anyOf');
+    const model = createTestModelWithSlices([
       {guid: 1, title: 'a'},
       {guid: 2, title: 'b'},
       {guid: 3, title: 'c'}
     ]);
-    var tquery = new tr.e.tquery.TQuery(model);
+    const tquery = new tr.e.tquery.TQuery(model);
 
-    var result = tquery.filter(anyOf('a', 'b')).selection;
+    let result = tquery.filter(anyOf('a', 'b')).selection;
     assert.strictEqual(result.length, 2);
-    var nextGuid = 1;
-    for (var event of result) {
+    let nextGuid = 1;
+    for (const event of result) {
       assert.strictEqual(event.guid, nextGuid++);
     }
 
-    var result = tquery.filter(anyOf('not there', 'a')).selection;
+    result = tquery.filter(anyOf('not there', 'a')).selection;
     assert.strictEqual(result.length, 1);
     assert.strictEqual(tr.b.getOnlyElement(result).guid, 1);
 
-    var result = tquery.filter(anyOf()).selection;
+    result = tquery.filter(anyOf()).selection;
     assert.strictEqual(result.length, 3);
   });
 
   test('tqueryFilterIsTopLevel', function() {
-    var isTopLevel = getScriptObject('isTopLevel');
-    var model = createTestModelWithSlices([
+    const isTopLevel = getScriptObject('isTopLevel');
+    const model = createTestModelWithSlices([
       {guid: 1, title: 'a'},
       {guid: 2, title: 'b', subSlices: [{guid: 4}]},
       {guid: 3, title: 'c'}
     ]);
-    var tquery = new tr.e.tquery.TQuery(model);
+    const tquery = new tr.e.tquery.TQuery(model);
 
-    var result = tquery.filter(isTopLevel()).selection;
+    let result = tquery.filter(isTopLevel()).selection;
     assert.strictEqual(result.length, 3);
-    var nextGuid = 1;
-    for (var event of result) {
+    let nextGuid = 1;
+    for (const event of result) {
       assert.strictEqual(event.guid, nextGuid++);
     }
 
-    var result = tquery.filter(isTopLevel('a')).selection;
+    result = tquery.filter(isTopLevel('a')).selection;
     assert.strictEqual(result.length, 1);
     assert.strictEqual(tr.b.getOnlyElement(result).guid, 1);
   });
 
   test('tqueryFilterHasDuration', function() {
-    var hasDuration = getScriptObject('hasDuration');
-    var model = createTestModelWithSlices([
+    const hasDuration = getScriptObject('hasDuration');
+    const model = createTestModelWithSlices([
       {guid: 1, title: 'a', duration: 1},
       {guid: 2, title: 'b', duration: 2},
       {guid: 3, title: 'c', duration: 3},
       {guid: 4, title: 'no duration'}
     ]);
-    var tquery = new tr.e.tquery.TQuery(model);
+    const tquery = new tr.e.tquery.TQuery(model);
 
-    var result = tquery.filter(hasDuration(1.5, 2.5)).selection;
+    let result = tquery.filter(hasDuration(1.5, 2.5)).selection;
     assert.strictEqual(result.length, 1);
     assert.strictEqual(tr.b.getOnlyElement(result).guid, 2);
 
-    var result = tquery.filter(hasDuration(3, Infinity)).selection;
+    result = tquery.filter(hasDuration(3, Infinity)).selection;
     assert.strictEqual(result.length, 1);
     assert.strictEqual(tr.b.getOnlyElement(result).guid, 3);
 
-    var result = tquery.filter(hasDuration(-1, 0)).selection;
+    result = tquery.filter(hasDuration(-1, 0)).selection;
     assert.strictEqual(result.length, 0);
 
-    var result = tquery.filter(hasDuration(function(d) {
+    result = tquery.filter(hasDuration(function(d) {
       return d > 2;
     })).selection;
     assert.strictEqual(result.length, 1);
@@ -208,18 +208,18 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('tqueryFilterNot', function() {
-    var not = getScriptObject('not');
-    var model = createTestModelWithSlices([
+    const not = getScriptObject('not');
+    const model = createTestModelWithSlices([
       {guid: 1, title: 'a'},
       {guid: 2, title: 'b'},
       {guid: 3, title: 'c'}
     ]);
-    var tquery = new tr.e.tquery.TQuery(model);
+    const tquery = new tr.e.tquery.TQuery(model);
 
-    var result = tquery.filter(not(/a/)).selection;
+    const result = tquery.filter(not(/a/)).selection;
     assert.strictEqual(result.length, 2);
-    var nextGuid = 2;
-    for (var event of result) {
+    let nextGuid = 2;
+    for (const event of result) {
       assert.strictEqual(event.guid, nextGuid++);
     }
 
@@ -231,15 +231,15 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('tqueryFilterNoneOf', function() {
-    var noneOf = getScriptObject('noneOf');
-    var model = createTestModelWithSlices([
+    const noneOf = getScriptObject('noneOf');
+    const model = createTestModelWithSlices([
       {guid: 1, title: 'a'},
       {guid: 2, title: 'b'},
       {guid: 3, title: 'c'}
     ]);
-    var tquery = new tr.e.tquery.TQuery(model);
+    const tquery = new tr.e.tquery.TQuery(model);
 
-    var result = tquery.filter(noneOf(/a/, /b/)).selection;
+    const result = tquery.filter(noneOf(/a/, /b/)).selection;
     assert.strictEqual(result.length, 1);
     assert.strictEqual(tr.b.getOnlyElement(result).guid, 3);
   });

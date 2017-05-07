@@ -14,44 +14,44 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var EventSet = tr.model.EventSet;
-  var Model = tr.Model;
-  var PowerSeries = tr.model.PowerSeries;
+  const EventSet = tr.model.EventSet;
+  const Model = tr.Model;
+  const PowerSeries = tr.model.PowerSeries;
 
   test('instantiate', function() {
-    var series = new PowerSeries(new Model().device);
+    const series = new PowerSeries(new Model().device);
 
     series.addPowerSample(0, 1);
     series.addPowerSample(1000, 2);
     series.addPowerSample(2000, 3);
     series.addPowerSample(3000, 4);
 
-    var table = document.createElement('tr-ui-a-power-sample-summary-table');
+    const table = document.createElement('tr-ui-a-power-sample-summary-table');
     table.samples = new EventSet(series.samples);
 
     this.addHTMLOutput(table);
   });
 
   test('setSamples_undefinedPowerSamples', function() {
-    var table = document.createElement('tr-ui-a-power-sample-summary-table');
+    const table = document.createElement('tr-ui-a-power-sample-summary-table');
     table.samples = undefined;
 
     assert.lengthOf(table.$.table.tableRows, 0);
   });
 
   test('setSamples_noPowerSamples', function() {
-    var table = document.createElement('tr-ui-a-power-sample-summary-table');
+    const table = document.createElement('tr-ui-a-power-sample-summary-table');
     table.samples = new EventSet([]);
 
     assert.lengthOf(table.$.table.tableRows, 0);
   });
 
   test('setSamples_onePowerSample', function() {
-    var series = new PowerSeries(new Model().device);
+    const series = new PowerSeries(new Model().device);
 
     series.addPowerSample(0, 1);
 
-    var table = document.createElement('tr-ui-a-power-sample-summary-table');
+    const table = document.createElement('tr-ui-a-power-sample-summary-table');
     table.samples = new EventSet(series.samples);
 
     assert.lengthOf(table.$.table.tableRows, 1);
@@ -64,12 +64,12 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('setSamples_twoPowerSamples', function() {
-    var series = new PowerSeries(new Model().device);
+    const series = new PowerSeries(new Model().device);
 
     series.addPowerSample(0, 1);
     series.addPowerSample(1000, 2);
 
-    var table = document.createElement('tr-ui-a-power-sample-summary-table');
+    const table = document.createElement('tr-ui-a-power-sample-summary-table');
     table.samples = new EventSet(series.samples);
 
     assert.lengthOf(table.$.table.tableRows, 1);
@@ -81,13 +81,13 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('setSamples_threePowerSamples', function() {
-    var series = new PowerSeries(new Model().device);
+    const series = new PowerSeries(new Model().device);
 
     series.addPowerSample(0, 1);
     series.addPowerSample(1000, 2);
     series.addPowerSample(2000, 3);
 
-    var table = document.createElement('tr-ui-a-power-sample-summary-table');
+    const table = document.createElement('tr-ui-a-power-sample-summary-table');
     table.samples = new EventSet(series.samples);
 
     assert.lengthOf(table.$.table.tableRows, 1);
@@ -99,17 +99,17 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('setSamples_columnsInitialized', function() {
-    var series = new PowerSeries(new Model().device);
+    const series = new PowerSeries(new Model().device);
 
     series.addPowerSample(0, 1);
     series.addPowerSample(1000, 2);
     series.addPowerSample(2000, 3);
 
-    var table = document.createElement('tr-ui-a-power-sample-summary-table');
+    const table = document.createElement('tr-ui-a-power-sample-summary-table');
     table.samples = new EventSet(series.samples);
 
-    var row = table.$.table.tableRows[0];
-    var columns = table.$.table.tableColumns;
+    const row = table.$.table.tableRows[0];
+    const columns = table.$.table.tableColumns;
 
     assert.lengthOf(columns, 5);
 

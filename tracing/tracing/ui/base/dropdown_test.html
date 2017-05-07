@@ -13,7 +13,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('basic', function() {
-    var dd = document.createElement('tr-ui-b-dropdown');
+    const dd = document.createElement('tr-ui-b-dropdown');
     dd.style.marginLeft = '50px';
     dd.style.width = '50px';
     Polymer.dom(dd.iconElement).textContent =
@@ -25,7 +25,7 @@ tr.b.unittest.testSuite(function() {
     Polymer.dom(dd).appendChild(
         tr.ui.b.createDiv({textContent: 'item 3'}));
 
-    var container = tr.ui.b.createDiv();
+    const container = tr.ui.b.createDiv();
     container.style.height = '100px';
     Polymer.dom(container).appendChild(dd);
     Polymer.dom(container).appendChild(

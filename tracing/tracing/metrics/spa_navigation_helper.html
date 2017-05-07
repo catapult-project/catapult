@@ -43,9 +43,9 @@ tr.exportTo('tr.metrics', function() {
    *  output: {A1: B1, A2: B1, A3: B1, A4: B1}
    */
   function findPrecedingEvents_(eventsA, eventsB) {
-    let events = new Map();
+    const events = new Map();
     let eventsBIndex = 0;
-    for (let eventA of eventsA) {
+    for (const eventA of eventsA) {
       for (; eventsBIndex < eventsB.length; eventsBIndex++) {
         if (eventsB[eventsBIndex].start > eventA.start) break;
       }
@@ -71,9 +71,9 @@ tr.exportTo('tr.metrics', function() {
    *  output: {A1:B1, A2:B1, A3:B1}
    */
   function findFollowingEvents_(eventsA, eventsB) {
-    let events = new Map();
+    const events = new Map();
     let eventsBIndex = 0;
-    for (let eventA of eventsA) {
+    for (const eventA of eventsA) {
       for (; eventsBIndex < eventsB.length; eventsBIndex++) {
         if (eventsB[eventsBIndex].start >= eventA.start) break;
       }
@@ -92,7 +92,7 @@ tr.exportTo('tr.metrics', function() {
    * WebViewImpl::handleInputEvent and NavigationControllerImpl::GoToIndex.
    */
   function getSpaNavigationStartCandidates_(rendererHelper, browserHelper) {
-    let isNavStartEvent = e => {
+    const isNavStartEvent = e => {
       if (e.title === HANDLE_INPUT_EVENT_TITLE && e.args.type === 'MouseUp') {
         return true;
       }
@@ -110,7 +110,7 @@ tr.exportTo('tr.metrics', function() {
    * A SPA navigation event indicates the happening of a SPA navigation.
    */
   function getSpaNavigationEvents_(rendererHelper) {
-    let isNavEvent = e => e.category === 'blink' &&
+    const isNavEvent = e => e.category === 'blink' &&
         e.title === 'FrameLoader::updateForSameDocumentNavigation';
 
     return [...rendererHelper.mainThread.sliceGroup.getDescendantEvents()]
@@ -122,7 +122,7 @@ tr.exportTo('tr.metrics', function() {
    * the browser main thread.
    */
   function getInputLatencyEvents_(browserHelper) {
-    let isInputLatencyEvent = e => e.title === 'InputLatency::MouseUp';
+    const isInputLatencyEvent = e => e.title === 'InputLatency::MouseUp';
 
     return browserHelper.getAllAsyncSlicesMatching(isInputLatencyEvent);
   }
@@ -132,8 +132,8 @@ tr.exportTo('tr.metrics', function() {
    * in each InputLatency event to the respective InputLatency event itself.
    */
   function getInputLatencyEventByBindIdMap_(browserHelper) {
-    let inputLatencyEventByBindIdMap = new Map();
-    for (let event of getInputLatencyEvents_(browserHelper)) {
+    const inputLatencyEventByBindIdMap = new Map();
+    for (const event of getInputLatencyEvents_(browserHelper)) {
       inputLatencyEventByBindIdMap.set(event.args.data.trace_id, event);
     }
     return inputLatencyEventByBindIdMap;
@@ -147,20 +147,20 @@ tr.exportTo('tr.metrics', function() {
    */
   function getSpaNavigationEventToNavigationStartMap_(
       rendererHelper, browserHelper) {
-    let mainThread = rendererHelper.mainThread;
-    let spaNavEvents = getSpaNavigationEvents_(rendererHelper);
-    let navStartCandidates = getSpaNavigationStartCandidates_(
+    const mainThread = rendererHelper.mainThread;
+    const spaNavEvents = getSpaNavigationEvents_(rendererHelper);
+    const navStartCandidates = getSpaNavigationStartCandidates_(
         rendererHelper, browserHelper).sort(tr.importer.compareEvents);
-    let spaNavEventToNavStartCandidateMap =
+    const spaNavEventToNavStartCandidateMap =
         findPrecedingEvents_(spaNavEvents, navStartCandidates);
 
-    let inputLatencyEventByBindIdMap =
+    const inputLatencyEventByBindIdMap =
         getInputLatencyEventByBindIdMap_(browserHelper);
-    let spaNavEventToNavStartEventMap = new Map();
-    for (let [spaNavEvent, navStartCandidate] of
+    const spaNavEventToNavStartEventMap = new Map();
+    for (const [spaNavEvent, navStartCandidate] of
         spaNavEventToNavStartCandidateMap) {
       if (navStartCandidate.title === HANDLE_INPUT_EVENT_TITLE) {
-        let inputLatencySlice = inputLatencyEventByBindIdMap.get(
+        const inputLatencySlice = inputLatencyEventByBindIdMap.get(
             Number(navStartCandidate.parentSlice.bindId));
         if (inputLatencySlice) {
           spaNavEventToNavStartEventMap.set(spaNavEvent, inputLatencySlice);
@@ -176,7 +176,7 @@ tr.exportTo('tr.metrics', function() {
    * @return {Array.<tr.model.Slice>} An array of first paint events.
    */
   function getFirstPaintEvents_(rendererHelper) {
-    let isFirstPaintEvent = e => e.category === 'blink' &&
+    const isFirstPaintEvent = e => e.category === 'blink' &&
         e.title === 'PaintLayerCompositor::updateIfNeededRecursive';
 
     return [...rendererHelper.mainThread.sliceGroup.getDescendantEvents()]
@@ -189,9 +189,9 @@ tr.exportTo('tr.metrics', function() {
    * first paint slice.
    */
   function getSpaNavigationEventToFirstPaintEventMap_(rendererHelper) {
-    let spaNavEvents = getSpaNavigationEvents_(
+    const spaNavEvents = getSpaNavigationEvents_(
         rendererHelper).sort(tr.importer.compareEvents);
-    let firstPaintEvents = getFirstPaintEvents_(
+    const firstPaintEvents = getFirstPaintEvents_(
         rendererHelper).sort(tr.importer.compareEvents);
 
     return findFollowingEvents_(spaNavEvents, firstPaintEvents);
@@ -214,18 +214,19 @@ tr.exportTo('tr.metrics', function() {
    * @returns {Array.<SpaNavObject>}
    */
   function findSpaNavigationsOnRenderer(rendererHelper, browserHelper) {
-    let spaNavEventToNavStartMap =
+    const spaNavEventToNavStartMap =
         getSpaNavigationEventToNavigationStartMap_(
             rendererHelper, browserHelper);
-    let spaNavEventToFirstPaintEventMap =
+    const spaNavEventToFirstPaintEventMap =
         getSpaNavigationEventToFirstPaintEventMap_(rendererHelper);
-    let spaNavigations = [];
-    for (let [spaNavEvent, navStartEvent] of
+    const spaNavigations = [];
+    for (const [spaNavEvent, navStartEvent] of
         spaNavEventToNavStartMap) {
       if (spaNavEventToFirstPaintEventMap.has(spaNavEvent)) {
-        let firstPaintEvent =
+        const firstPaintEvent =
             spaNavEventToFirstPaintEventMap.get(spaNavEvent);
-        let isNavStartAsyncSlice = navStartEvent instanceof tr.model.AsyncSlice;
+        const isNavStartAsyncSlice =
+          navStartEvent instanceof tr.model.AsyncSlice;
         spaNavigations.push({
           navStartCandidates: {
             inputLatencyAsyncSlice:

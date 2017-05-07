@@ -14,8 +14,8 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.b', function() {
-  var EventSet = tr.model.EventSet;
-  var SelectionState = tr.model.SelectionState;
+  const EventSet = tr.model.EventSet;
+  const SelectionState = tr.model.SelectionState;
 
   function BrushingState() {
     this.guid_ = tr.b.GUID.allocateSimple();
@@ -32,7 +32,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     clone() {
-      var that = new BrushingState();
+      const that = new BrushingState();
       that.selection_ = this.selection_;
       that.findMatches_ = this.findMatches_;
       that.analysisViewRelatedEvents_ = this.analysisViewRelatedEvents_;
@@ -153,14 +153,14 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     get dimmedEvents_() {
-      var dimmedEvents = new EventSet();
+      const dimmedEvents = new EventSet();
       dimmedEvents.addEventSet(this.findMatches);
       dimmedEvents.addEventSet(this.analysisViewRelatedEvents_);
       return dimmedEvents;
     },
 
     get brightenedEvents_() {
-      var brightenedEvents = new EventSet();
+      const brightenedEvents = new EventSet();
       brightenedEvents.addEventSet(this.selection_);
       brightenedEvents.addEventSet(this.analysisLinkHoveredEvents_);
       return brightenedEvents;
@@ -190,31 +190,31 @@ tr.exportTo('tr.ui.b', function() {
     applyToEventSelectionStates(model) {
       this.appliedToModel_ = model;
 
-      var dimmedEvents = this.dimmedEvents_;
+      const dimmedEvents = this.dimmedEvents_;
 
       // It's possible for this to get called with an undefined model pointer.
       // If so, skip adjusting the defaults.
       if (model) {
-        var newDefaultState = (
+        const newDefaultState = (
             dimmedEvents.length ? SelectionState.DIMMED0 : SelectionState.NONE);
 
         // Since all the states are the same, we can get the current default
         // state by looking at the first element.
-        var currentDefaultState = tr.b.getFirstElement(
+        const currentDefaultState = tr.b.getFirstElement(
             model.getDescendantEvents()).selectionState;
 
         // If the default state was changed, then we have to iterate through
         // and reset all the events to the new default state.
         if (currentDefaultState !== newDefaultState) {
-          for (var e of model.getDescendantEvents()) {
+          for (const e of model.getDescendantEvents()) {
             e.selectionState = newDefaultState;
           }
         }
       }
 
       // Now we apply the other rules above.
-      var score;
-      for (var e of dimmedEvents) {
+      let score;
+      for (const e of dimmedEvents) {
         score = 0;
         if (this.findMatches_.contains(e)) {
           score++;
@@ -225,7 +225,7 @@ tr.exportTo('tr.ui.b', function() {
         e.selectionState = SelectionState.getFromDimmingLevel(score);
       }
 
-      for (var e of this.brightenedEvents_) {
+      for (const e of this.brightenedEvents_) {
         score = 0;
         if (this.selection_.contains(e)) {
           score++;
@@ -256,17 +256,17 @@ tr.exportTo('tr.ui.b', function() {
       if (!this.appliedToModel_) {
         throw new Error('Not applied');
       }
-      var model = this.appliedToModel_;
+      const model = this.appliedToModel_;
       this.appliedToModel_ = undefined;
 
-      var dimmedEvents = this.dimmedEvents_;
-      var defaultState = (
+      const dimmedEvents = this.dimmedEvents_;
+      const defaultState = (
           dimmedEvents.length ? SelectionState.DIMMED0 : SelectionState.NONE);
 
-      for (var e of this.brightenedEvents_) {
+      for (const e of this.brightenedEvents_) {
         e.selectionState = defaultState;
       }
-      for (var e of dimmedEvents) {
+      for (const e of dimmedEvents) {
         e.selectionState = defaultState;
       }
       return defaultState;

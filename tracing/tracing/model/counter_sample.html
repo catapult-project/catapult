@@ -33,16 +33,16 @@ tr.exportTo('tr.model', function() {
   }
 
   CounterSample.groupByTimestamp = function(samples) {
-    var samplesByTimestamp = tr.b.group(samples, function(sample) {
+    const samplesByTimestamp = tr.b.group(samples, function(sample) {
       return sample.timestamp;
     });
 
-    var timestamps = Object.keys(samplesByTimestamp);
+    const timestamps = Object.keys(samplesByTimestamp);
     timestamps.sort();
-    var groups = [];
-    for (var i = 0; i < timestamps.length; i++) {
-      var ts = timestamps[i];
-      var group = samplesByTimestamp[ts];
+    const groups = [];
+    for (let i = 0; i < timestamps.length; i++) {
+      const ts = timestamps[i];
+      const group = samplesByTimestamp[ts];
       group.sort(function(x, y) {
         return x.series.seriesIndex - y.series.seriesIndex;
       });

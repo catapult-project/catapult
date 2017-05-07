@@ -14,8 +14,8 @@ found in the LICENSE file.
  * @fileoverview Parses Mali DDK/kernel events in the Linux event trace format.
  */
 tr.exportTo('tr.e.importer.linux_perf', function() {
-  var ColorScheme = tr.b.ColorScheme;
-  var Parser = tr.e.importer.linux_perf.Parser;
+  const ColorScheme = tr.b.ColorScheme;
+  const Parser = tr.e.importer.linux_perf.Parser;
 
   /**
    * Parses Mali DDK/kernel trace events.
@@ -38,9 +38,9 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     this.addJMCycles('mali_hwc_GPU_ACTIVE', 'GPU Active');
     this.addJMCycles('mali_hwc_IRQ_ACTIVE', 'IRQ Active');
 
-    for (var i = 0; i < 7; i++) {
-      var jobStr = 'JS' + i;
-      var jobHWCStr = 'mali_hwc_' + jobStr;
+    for (let i = 0; i < 7; i++) {
+      const jobStr = 'JS' + i;
+      const jobHWCStr = 'mali_hwc_' + jobStr;
       this.addJMCounter(jobHWCStr + '_JOBS', jobStr + ' Jobs');
       this.addJMCounter(jobHWCStr + '_TASKS', jobStr + ' Tasks');
       this.addJMCycles(jobHWCStr + '_ACTIVE', jobStr + ' Active');
@@ -223,16 +223,16 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     __proto__: Parser.prototype,
 
     maliDDKOpenSlice(pid, tid, ts, func, blockinfo) {
-      var thread = this.importer.model_.getOrCreateProcess(pid)
+      const thread = this.importer.model_.getOrCreateProcess(pid)
         .getOrCreateThread(tid);
-      var funcArgs = /^([\w\d_]*)(?:\(\))?:?\s*(.*)$/.exec(func);
+      const funcArgs = /^([\w\d_]*)(?:\(\))?:?\s*(.*)$/.exec(func);
       thread.sliceGroup.beginSlice('gpu-driver', funcArgs[1], ts,
           { 'args': funcArgs[2],
             blockinfo });
     },
 
     maliDDKCloseSlice(pid, tid, ts, args, blockinfo) {
-      var thread = this.importer.model_.getOrCreateProcess(pid)
+      const thread = this.importer.model_.getOrCreateProcess(pid)
         .getOrCreateThread(tid);
       if (!thread.sliceGroup.openSliceCount) {
         // Discard unmatched ends.
@@ -249,14 +249,14 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
      */
     autoDetectLineRE(line) {
       // Matches Mali perf events with thread info
-      var lineREWithThread =
+      const lineREWithThread =
           /^\s*\(([\w\-]*)\)\s*(\w+):\s*([\w\\\/\.\-]*@\d*):?\s*(.*)$/;
       if (lineREWithThread.test(line)) {
         return lineREWithThread;
       }
 
       // Matches old-style Mali perf events
-      var lineRENoThread = /^s*()(\w+):\s*([\w\\\/.\-]*):?\s*(.*)$/;
+      const lineRENoThread = /^s*()(\w+):\s*([\w\\\/.\-]*):?\s*(.*)$/;
       if (lineRENoThread.test(line)) {
         return lineRENoThread;
       }
@@ -283,9 +283,9 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
         this.lineRE = this.autoDetectLineRE(eventBase.details);
         if (this.lineRE === null) return false;
       }
-      var maliEvent = this.lineRE.exec(eventBase.details);
+      const maliEvent = this.lineRE.exec(eventBase.details);
       // Old-style Mali perf events have no thread id, so make one.
-      var tid = (maliEvent[1] === '' ? 'mali' : maliEvent[1]);
+      const tid = (maliEvent[1] === '' ? 'mali' : maliEvent[1]);
       switch (maliEvent[2]) {
         case 'cros_trace_print_enter':
           this.maliDDKOpenSlice(pid, tid, ts, maliEvent[4],
@@ -302,8 +302,8 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
      */
 
     dvfsSample(counterName, seriesName, ts, s) {
-      var value = parseInt(s);
-      var counter = this.model_.kernel.
+      const value = parseInt(s);
+      const counter = this.model_.kernel.
           getOrCreateCounter('DVFS', counterName);
       if (counter.numSeries === 0) {
         counter.addSeries(new tr.model.CounterSeries(seriesName,
@@ -315,7 +315,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     },
 
     dvfsEventEvent(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = /utilization=(\d+)/.exec(eventBase.details);
+      const event = /utilization=(\d+)/.exec(eventBase.details);
       if (!event) return false;
 
       this.dvfsSample('DVFS Utilization', 'utilization', ts, event[1]);
@@ -323,7 +323,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     },
 
     dvfsSetClockEvent(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = /frequency=(\d+)/.exec(eventBase.details);
+      const event = /frequency=(\d+)/.exec(eventBase.details);
       if (!event) return false;
 
       this.dvfsSample('DVFS Frequency', 'frequency', ts, event[1]);
@@ -331,7 +331,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     },
 
     dvfsSetVoltageEvent(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = /voltage=(\d+)/.exec(eventBase.details);
+      const event = /voltage=(\d+)/.exec(eventBase.details);
       if (!event) return false;
 
       this.dvfsSample('DVFS Voltage', 'voltage', ts, event[1]);
@@ -339,11 +339,11 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     },
 
     hwcSample(cat, counterName, seriesName, ts, eventBase) {
-      var event = /val=(\d+)/.exec(eventBase.details);
+      const event = /val=(\d+)/.exec(eventBase.details);
       if (!event) return false;
-      var value = parseInt(event[1]);
+      const value = parseInt(event[1]);
 
-      var counter = this.model_.kernel.
+      const counter = this.model_.kernel.
           getOrCreateCounter(cat, counterName);
       if (counter.numSeries === 0) {
         counter.addSeries(new tr.model.CounterSeries(seriesName,

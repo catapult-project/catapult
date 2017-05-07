@@ -13,7 +13,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('exynos5Bus', function() {
-    var lines = [
+    const lines = [
       's3c-fb-vsync-85    [001] d..2  8116.730115: memory_bus_usage: ' +
           'bus=RIGHT rw_bytes=0 r_bytes=0 w_bytes=0 cycles=2681746 ns=16760792',
 
@@ -53,12 +53,12 @@ tr.b.unittest.testSuite(function() {
           'cycles=6690156 ns=16725375'
 
     ];
-    var m = tr.c.TestUtils.newModelWithEvents([lines.join('\n')], {
+    const m = tr.c.TestUtils.newModelWithEvents([lines.join('\n')], {
       shiftWorldToZero: false
     });
     assert.isFalse(m.hasImportWarnings);
 
-    var counters = m.getAllCounters();
+    const counters = m.getAllCounters();
     assert.strictEqual(counters.length, 10);
 
     assert.strictEqual(counters[0].series[0].samples.length, 2);

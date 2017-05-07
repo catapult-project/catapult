@@ -59,7 +59,7 @@ tr.exportTo('tr.metrics.webrtc', function() {
     if (event.title !== WEB_MEDIA_PLAYER_UPDATE_TITLE || !event.args) {
       return false;
     }
-    for (let parameter of REQUIRED_EVENT_ARGS_NAMES) {
+    for (const parameter of REQUIRED_EVENT_ARGS_NAMES) {
       if (!(parameter in event.args)) {
         return false;
       }
@@ -90,8 +90,8 @@ tr.exportTo('tr.metrics.webrtc', function() {
         sum: false,
       };
     }
-    let histogram = new tr.v.Histogram(name, unit);
-    for (let sample of samples) {
+    const histogram = new tr.v.Histogram(name, unit);
+    for (const sample of samples) {
       histogram.addSample(sample);
     }
     histogram.customizeSummaryOptions(summaryOptions);
@@ -99,16 +99,16 @@ tr.exportTo('tr.metrics.webrtc', function() {
   }
 
   function getTimeStats(histograms, streamName, events) {
-    let frameHist = getFrameDistribution(histograms, events);
+    const frameHist = getFrameDistribution(histograms, events);
     addFpsFromFrameDistribution(histograms, frameHist);
     addFreezingScore(histograms, frameHist);
-    let driftTimeStats = getDriftStats(events);
+    const driftTimeStats = getDriftStats(events);
     addHistogram(driftTimeStats.driftTime, histograms,
         'WebRTCRendering_drift_time', timeDurationInMs_smallerIsBetter,
         {count: false, min: false, percentile: [0.75, 0.9]});
     addHistogram([driftTimeStats.renderingLengthError], histograms,
         'WebRTCRendering_rendering_length_error', percentage_smallerIsBetter);
-    let smoothnessStats = getSmoothnessStats(driftTimeStats.driftTime);
+    const smoothnessStats = getSmoothnessStats(driftTimeStats.driftTime);
     addHistogram([smoothnessStats.percentBadlyOutOfSync], histograms,
         'WebRTCRendering_percent_badly_out_of_sync',
         percentage_smallerIsBetter);
@@ -169,7 +169,7 @@ tr.exportTo('tr.metrics.webrtc', function() {
       numberFrames += count;
       numberVsyncs += ticks * count;
     }
-    let meanRatio = numberVsyncs / numberFrames;
+    const meanRatio = numberVsyncs / numberFrames;
     addHistogram([DISPLAY_HERTZ / meanRatio], histograms, 'WebRTCRendering_fps',
         unitlessNumber_biggerIsBetter);
   }
@@ -242,13 +242,13 @@ tr.exportTo('tr.metrics.webrtc', function() {
    * length error.
    */
   function getDriftStats(events) {
-    let driftTime = [];
-    let discrepancy = [];
+    const driftTime = [];
+    const discrepancy = [];
     let oldIdealRender = 0;
     let expectedIdealRender = 0;
 
-    for (let event of events) {
-      let currentIdealRender = event.args[IDEAL_RENDER_INSTANT_NAME];
+    for (const event of events) {
+      const currentIdealRender = event.args[IDEAL_RENDER_INSTANT_NAME];
       // The expected time of the next 'Ideal Render' event begins as the
       // current 'Ideal Render' time and increases by VSYNC_DURATION_US on every
       // frame.
@@ -256,7 +256,7 @@ tr.exportTo('tr.metrics.webrtc', function() {
       if (currentIdealRender === oldIdealRender) {
         continue;
       }
-      let actualRenderBegin = event.args[ACTUAL_RENDER_BEGIN_NAME];
+      const actualRenderBegin = event.args[ACTUAL_RENDER_BEGIN_NAME];
       // When was the frame rendered vs. when it would've been ideal.
       driftTime.push(actualRenderBegin - currentIdealRender);
       // The discrepancy is the absolute difference between the current Ideal
@@ -266,13 +266,14 @@ tr.exportTo('tr.metrics.webrtc', function() {
       oldIdealRender = currentIdealRender;
     }
 
-    let discrepancySum = tr.b.math.Statistics.sum(discrepancy) - discrepancy[0];
-    let lastIdealRender =
+    const discrepancySum = tr.b.math.Statistics.sum(discrepancy) -
+      discrepancy[0];
+    const lastIdealRender =
         events[events.length - 1].args[IDEAL_RENDER_INSTANT_NAME];
-    let firstIdealRender = events[0].args[IDEAL_RENDER_INSTANT_NAME];
-    let idealRenderSpan = lastIdealRender - firstIdealRender;
+    const firstIdealRender = events[0].args[IDEAL_RENDER_INSTANT_NAME];
+    const idealRenderSpan = lastIdealRender - firstIdealRender;
 
-    let renderingLengthError = discrepancySum / idealRenderSpan;
+    const renderingLengthError = discrepancySum / idealRenderSpan;
 
     return {driftTime, renderingLengthError};
   }
@@ -293,25 +294,25 @@ tr.exportTo('tr.metrics.webrtc', function() {
    * percentOutOfSync and smoothnesScore calculated from the driftTimes array.
    */
   function getSmoothnessStats(driftTimes) {
-    let meanDriftTime = tr.b.math.Statistics.mean(driftTimes);
-    let normDriftTimes = driftTimes.map(driftTime =>
+    const meanDriftTime = tr.b.math.Statistics.mean(driftTimes);
+    const normDriftTimes = driftTimes.map(driftTime =>
         Math.abs(driftTime - meanDriftTime));
 
     // How many times is a frame later/earlier than T=2*VSYNC_DURATION_US. Time
     // is in microseconds
-    let framesSeverelyOutOfSync = normDriftTimes
+    const framesSeverelyOutOfSync = normDriftTimes
       .filter(driftTime => driftTime > 2 * VSYNC_DURATION_US)
       .length;
     // How many times is a frame later/earlier than VSYNC_DURATION_US.
-    let framesOutOfSync = normDriftTimes
+    const framesOutOfSync = normDriftTimes
       .filter(driftTime => driftTime > VSYNC_DURATION_US)
       .length;
 
-    let percentBadlyOutOfSync = framesSeverelyOutOfSync /
+    const percentBadlyOutOfSync = framesSeverelyOutOfSync /
       driftTimes.length;
-    let percentOutOfSync = framesOutOfSync / driftTimes.length;
+    const percentOutOfSync = framesOutOfSync / driftTimes.length;
 
-    let framesOutOfSyncOnlyOnce = framesOutOfSync - framesSeverelyOutOfSync;
+    const framesOutOfSyncOnlyOnce = framesOutOfSync - framesSeverelyOutOfSync;
 
     // Calculate smoothness metric. From the formula, we can see that smoothness
     // score can be negative.

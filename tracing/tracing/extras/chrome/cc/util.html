@@ -13,7 +13,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.e.cc', function() {
-  var convertedNameCache = {};
+  const convertedNameCache = {};
   function convertNameToJSConvention(name) {
     if (name in convertedNameCache) {
       return convertedNameCache[name];
@@ -25,13 +25,13 @@ tr.exportTo('tr.e.cc', function() {
       return name;
     }
 
-    var words = name.split('_');
+    const words = name.split('_');
     if (words.length === 1) {
       convertedNameCache[name] = words[0];
       return words[0];
     }
 
-    for (var i = 1; i < words.length; i++) {
+    for (let i = 1; i < words.length; i++) {
       words[i] = words[i][0].toUpperCase() + words[i].substring(1);
     }
 
@@ -62,8 +62,8 @@ tr.exportTo('tr.e.cc', function() {
   }
 
   function moveRequiredFieldsFromArgsToToplevel(object, fields) {
-    for (var i = 0; i < fields.length; i++) {
-      var key = fields[i];
+    for (let i = 0; i < fields.length; i++) {
+      const key = fields[i];
       if (object.args[key] === undefined) {
         throw Error('Expected field ' + key + ' not found in args');
       }
@@ -76,8 +76,8 @@ tr.exportTo('tr.e.cc', function() {
   }
 
   function moveOptionalFieldsFromArgsToToplevel(object, fields) {
-    for (var i = 0; i < fields.length; i++) {
-      var key = fields[i];
+    for (let i = 0; i < fields.length; i++) {
+      const key = fields[i];
       if (object.args[key] === undefined) continue;
       if (object[key] !== undefined) {
         throw Error('Field ' + key + ' already in object');
@@ -95,7 +95,7 @@ tr.exportTo('tr.e.cc', function() {
     if (!(object instanceof Object)) return;
 
     if (object instanceof Array) {
-      for (var i = 0; i < object.length; i++) {
+      for (let i = 0; i < object.length; i++) {
         preInitializeObjectInner(object[i], true);
       }
       return;
@@ -107,10 +107,10 @@ tr.exportTo('tr.e.cc', function() {
       return;
     }
 
-    for (var key in object) {
-      var newKey = convertNameToJSConvention(key);
+    for (let key in object) {
+      const newKey = convertNameToJSConvention(key);
       if (newKey !== key) {
-        var value = object[key];
+        const value = object[key];
         delete object[key];
         object[newKey] = value;
         key = newKey;
@@ -118,7 +118,7 @@ tr.exportTo('tr.e.cc', function() {
 
       // Convert objects with keys ending with Quad to tr.b.math.Quad type.
       if (/Quad$/.test(key) && !(object[key] instanceof tr.b.math.Quad)) {
-        var q;
+        let q;
         try {
           q = tr.b.math.Quad.from8Array(object[key]);
         } catch (e) {
@@ -129,7 +129,7 @@ tr.exportTo('tr.e.cc', function() {
 
       // Convert objects with keys ending with Rect to tr.b.math.Rect type.
       if (/Rect$/.test(key) && !(object[key] instanceof tr.b.math.Rect)) {
-        var r;
+        let r;
         try {
           r = tr.b.math.Rect.fromArray(object[key]);
         } catch (e) {

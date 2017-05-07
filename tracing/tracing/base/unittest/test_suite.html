@@ -14,10 +14,10 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.b.unittest', function() {
-  var TestCase = tr.b.unittest.TestCase;
-  var PerfTestCase = tr.b.unittest.PerfTestCase;
+  const TestCase = tr.b.unittest.TestCase;
+  const PerfTestCase = tr.b.unittest.PerfTestCase;
 
-  var TestTypes = tr.b.unittest.TestTypes;
+  const TestTypes = tr.b.unittest.TestTypes;
 
   function TestSuite(name, suiteConstructor) {
     this.guid = tr.b.GUID.allocateSimple();
@@ -30,7 +30,7 @@ tr.exportTo('tr.b.unittest', function() {
         testCaseOrName.options.flaky = true;
         test(testCaseOrName);
       } else {
-        var options = Object.assign({}, opt_options || {});
+        const options = Object.assign({}, opt_options || {});
         options.flaky = true;
         test(testCaseOrName, opt_testFn, options);
       }
@@ -48,9 +48,9 @@ tr.exportTo('tr.b.unittest', function() {
         return;
       }
 
-      var testName = testCaseOrName;
-      var testFn = opt_testFn;
-      var options = opt_options || {};
+      let testName = testCaseOrName;
+      const testFn = opt_testFn;
+      const options = opt_options || {};
       if (testFn === undefined) {
         throw new Error('Must provide opt_testFn');
       }
@@ -59,10 +59,10 @@ tr.exportTo('tr.b.unittest', function() {
       // that fakes the DPI as the low or hi Dpi version, depending on what
       // we're current using.
       if (options.dpiAware) {
-        var defaultDevicePixelRatio = window.devicePixelRatio;
-        var dpi = defaultDevicePixelRatio > 1 ? 1 : 2;
+        const defaultDevicePixelRatio = window.devicePixelRatio;
+        const dpi = defaultDevicePixelRatio > 1 ? 1 : 2;
 
-        var testWrapper = function() {
+        const testWrapper = function() {
           window.devicePixelRatio = dpi;
           try {
             testFn.bind(this).call();
@@ -71,7 +71,7 @@ tr.exportTo('tr.b.unittest', function() {
           }
         };
 
-        var newName = name;
+        let newName = name;
         if (dpi === 1) {
           newName += '_loDPI';
           testName += '_hiDPI';

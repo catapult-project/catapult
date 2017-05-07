@@ -19,8 +19,8 @@ tr.exportTo('tr.metrics.sh', function() {
   const MAX_DRAW_DELAY_IN_MS = 2000;
 
   function findProcess(processName, model) {
-    for (var pid in model.processes) {
-      var process = model.processes[pid];
+    for (const pid in model.processes) {
+      const process = model.processes[pid];
       if (process.name === processName) {
         return process;
       }
@@ -30,9 +30,9 @@ tr.exportTo('tr.metrics.sh', function() {
 
   function findThreads(process, threadPrefix) {
     if (process === undefined) return undefined;
-    var threads = [];
-    for (var tid in process.threads) {
-      var thread = process.threads[tid];
+    const threads = [];
+    for (const tid in process.threads) {
+      const thread = process.threads[tid];
       if (thread.name.startsWith(threadPrefix)) {
         threads.push(thread);
       }
@@ -42,7 +42,7 @@ tr.exportTo('tr.metrics.sh', function() {
 
   function findUIThread(process) {
     if (process === undefined) return undefined;
-    var threads = findThreads(process, 'UI Thread');
+    const threads = findThreads(process, 'UI Thread');
     if (threads !== undefined && threads.length === 1) {
       return threads[0];
     }
@@ -51,12 +51,12 @@ tr.exportTo('tr.metrics.sh', function() {
 
   // Returns slices with actual app's process startup, excluding other delays.
   function findLaunchSlices(model) {
-    var launches = [];
-    var binders = findThreads(findProcess('system_server', model), 'Binder');
-    for (var binderId in binders) {
-      var binder = binders[binderId];
-      for (var sliceId in binder.asyncSliceGroup.slices) {
-        var slice = binder.asyncSliceGroup.slices[sliceId];
+    const launches = [];
+    const binders = findThreads(findProcess('system_server', model), 'Binder');
+    for (const binderId in binders) {
+      const binder = binders[binderId];
+      for (const sliceId in binder.asyncSliceGroup.slices) {
+        const slice = binder.asyncSliceGroup.slices[sliceId];
         if (slice.title.startsWith('launching:')) {
           launches.push(slice);
         }
@@ -67,12 +67,12 @@ tr.exportTo('tr.metrics.sh', function() {
 
   // Try to find draw event when activity just shown.
   function findDrawSlice(appName, startNotBefore, model) {
-    var drawSlice = undefined;
-    var thread = findUIThread(findProcess(appName, model));
+    let drawSlice = undefined;
+    const thread = findUIThread(findProcess(appName, model));
     if (thread === undefined) return undefined;
 
-    for (var sliceId in thread.sliceGroup.slices) {
-      var slice = thread.sliceGroup.slices[sliceId];
+    for (const sliceId in thread.sliceGroup.slices) {
+      const slice = thread.sliceGroup.slices[sliceId];
       if (slice.start < startNotBefore + MIN_DRAW_DELAY_IN_MS ||
           slice.start > startNotBefore + MAX_DRAW_DELAY_IN_MS) continue;
       if (slice.title !== 'draw') continue;
@@ -86,13 +86,13 @@ tr.exportTo('tr.metrics.sh', function() {
 
   // Try to find input event before a process starts.
   function findInputEventSlice(endNotAfter, model) {
-    var endNotBefore = endNotAfter - MAX_INPUT_EVENT_TO_STARTUP_DELAY_IN_MS;
-    var inputSlice = undefined;
-    var systemUi = findUIThread(findProcess('com.android.systemui', model));
+    const endNotBefore = endNotAfter - MAX_INPUT_EVENT_TO_STARTUP_DELAY_IN_MS;
+    let inputSlice = undefined;
+    const systemUi = findUIThread(findProcess('com.android.systemui', model));
     if (systemUi === undefined) return undefined;
 
-    for (var sliceId in systemUi.asyncSliceGroup.slices) {
-      var slice = systemUi.asyncSliceGroup.slices[sliceId];
+    for (const sliceId in systemUi.asyncSliceGroup.slices) {
+      const slice = systemUi.asyncSliceGroup.slices[sliceId];
       if (slice.end > endNotAfter || slice.end < endNotBefore) continue;
       if (slice.title !== 'deliverInputEvent') continue;
       if (inputSlice === undefined || slice.end > inputSlice.end) {
@@ -103,13 +103,13 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   function computeStartupTimeInMs(appName, launchSlice, model) {
-    var startupStart = launchSlice.start;
-    var startupEnd = launchSlice.end;
-    var drawSlice = findDrawSlice(appName, launchSlice.end, model);
+    let startupStart = launchSlice.start;
+    let startupEnd = launchSlice.end;
+    const drawSlice = findDrawSlice(appName, launchSlice.end, model);
     if (drawSlice !== undefined) {
       startupEnd = drawSlice.end;
     }
-    var inputSlice = findInputEventSlice(launchSlice.start, model);
+    const inputSlice = findInputEventSlice(launchSlice.start, model);
     if (inputSlice !== undefined) {
       startupStart = inputSlice.start;
     }
@@ -118,12 +118,12 @@ tr.exportTo('tr.metrics.sh', function() {
 
   // App startup time metric.
   function measureStartup(values, model) {
-    var launches = findLaunchSlices(model);
-    for (var sliceId in launches) {
-      var launchSlice = launches[sliceId];
-      var appName = launchSlice.title.split(': ')[1];
-      var startupMs = computeStartupTimeInMs(appName, launchSlice, model);
-      var hist = new tr.v.Histogram('android:systrace:startup:' + appName,
+    const launches = findLaunchSlices(model);
+    for (const sliceId in launches) {
+      const launchSlice = launches[sliceId];
+      const appName = launchSlice.title.split(': ')[1];
+      const startupMs = computeStartupTimeInMs(appName, launchSlice, model);
+      const hist = new tr.v.Histogram('android:systrace:startup:' + appName,
           tr.b.Unit.byName.timeDurationInMs_smallerIsBetter);
       hist.addSample(startupMs);
       values.addHistogram(hist);
@@ -134,36 +134,37 @@ tr.exportTo('tr.metrics.sh', function() {
   // The value of metric is a time percentage relative to the length of selected
   // range of interest.
   function measureThreadStates(values, model, rangeOfInterest) {
-    var addHistogram = function(processName, timerName, valueInMs, rangeInMs) {
-      var hist = new tr.v.Histogram(
+    const addHistogram = function(
+        processName, timerName, valueInMs, rangeInMs) {
+      const hist = new tr.v.Histogram(
           'android:systrace:threadtime:' + processName + ':' + timerName,
           tr.b.Unit.byName.normalizedPercentage);
       hist.addSample(valueInMs / rangeInMs);
       values.addHistogram(hist);
     };
 
-    for (var pid in model.processes) {
-      var process = model.processes[pid];
+    for (const pid in model.processes) {
+      const process = model.processes[pid];
       if (process.name === undefined) continue;
 
-      var hasSlices = false;
-      var timeRunning = 0;
-      var timeRunnable = 0;
-      var timeSleeping = 0;
-      var timeUninterruptible = 0;
-      var timeBlockIO = 0;
-      var timeUnknown = 0;
+      let hasSlices = false;
+      let timeRunning = 0;
+      let timeRunnable = 0;
+      let timeSleeping = 0;
+      let timeUninterruptible = 0;
+      let timeBlockIO = 0;
+      let timeUnknown = 0;
 
-      for (var tid in process.threads) {
-        var thread = process.threads[tid];
+      for (const tid in process.threads) {
+        const thread = process.threads[tid];
         if (thread.timeSlices === undefined) continue;
 
-        for (var sliceId in thread.timeSlices) {
-          var slice = thread.timeSlices[sliceId];
-          var sliceRange =
+        for (const sliceId in thread.timeSlices) {
+          const slice = thread.timeSlices[sliceId];
+          const sliceRange =
               tr.b.math.Range.fromExplicitRange(slice.start, slice.end);
-          var intersection = rangeOfInterest.findIntersection(sliceRange);
-          var duration = intersection.duration;
+          const intersection = rangeOfInterest.findIntersection(sliceRange);
+          const duration = intersection.duration;
           if (duration === 0) continue;
           hasSlices = true;
 
@@ -186,7 +187,7 @@ tr.exportTo('tr.metrics.sh', function() {
         // For sake of simplicity we don't count wall time for each
         // thread/process and just calculate relative values against selected
         // range of interest.
-        var wall = rangeOfInterest.max - rangeOfInterest.min;
+        const wall = rangeOfInterest.max - rangeOfInterest.min;
         addHistogram(process.name, 'running', timeRunning, wall);
         addHistogram(process.name, 'runnable', timeRunnable, wall);
         addHistogram(process.name, 'sleeping', timeSleeping, wall);
@@ -203,7 +204,7 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   function androidSystraceMetric(values, model, options) {
-    var rangeOfInterest = model.bounds;
+    let rangeOfInterest = model.bounds;
     if (options !== undefined && options.rangeOfInterest !== undefined) {
       rangeOfInterest = options.rangeOfInterest;
     }

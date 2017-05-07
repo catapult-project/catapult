@@ -32,8 +32,10 @@ tr.exportTo('tr.importer', function() {
 
   ContextProcessor.prototype = {
     enterContext(contextType, scopedId) {
-      var newActiveContexts = [this.getOrCreateContext_(contextType, scopedId)];
-      for (var oldContext of this.activeContexts_) {
+      const newActiveContexts = [
+        this.getOrCreateContext_(contextType, scopedId),
+      ];
+      for (const oldContext of this.activeContexts_) {
         if (oldContext.type === contextType) {
           // If a previous context of the same type is active, it is removed
           // and pushed onto the stack for this type.
@@ -56,11 +58,11 @@ tr.exportTo('tr.importer', function() {
 
     destroyContext(scopedId) {
       // Remove all matching contexts from stacks.
-      for (var stack of Object.values(this.stackPerType_)) {
+      for (const stack of Object.values(this.stackPerType_)) {
         // Perform in-place filtering instead of Array.prototype.filter to
         // prevent creating a new array.
-        var newLength = 0;
-        for (var i = 0; i < stack.length; ++i) {
+        let newLength = 0;
+        for (let i = 0; i < stack.length; ++i) {
           if (stack[i].snapshot.scope !== scopedId.scope ||
               stack[i].snapshot.idRef !== scopedId.id) {
             stack[newLength++] = stack[i];
@@ -76,12 +78,12 @@ tr.exportTo('tr.importer', function() {
     },
 
     leaveContextImpl_(predicate) {
-      var newActiveContexts = [];
-      for (var oldContext of this.activeContexts_) {
+      const newActiveContexts = [];
+      for (const oldContext of this.activeContexts_) {
         if (predicate(oldContext)) {
           // If we left this context, remove it from the active set and
           // restore any previous context of the same type.
-          var previousContext = this.popContext_(oldContext.type);
+          const previousContext = this.popContext_(oldContext.type);
           if (previousContext) {
             newActiveContexts.push(previousContext);
           }
@@ -94,19 +96,19 @@ tr.exportTo('tr.importer', function() {
     },
 
     getOrCreateContext_(contextType, scopedId) {
-      var context = {
+      const context = {
         type: contextType,
         snapshot: {
           scope: scopedId.scope,
           idRef: scopedId.id
         }
       };
-      var key = this.getContextKey_(context);
+      const key = this.getContextKey_(context);
       if (key in this.contextCache_) {
         return this.contextCache_[key];
       }
       this.contextCache_[key] = context;
-      var snapshotKey = this.getSnapshotKey_(scopedId);
+      const snapshotKey = this.getSnapshotKey_(scopedId);
       this.seenSnapshots_[snapshotKey] = true;
       return context;
     },
@@ -144,8 +146,8 @@ tr.exportTo('tr.importer', function() {
       // Keep a single instance for each unique set of active contexts to
       // reduce memory usage.
       if (this.cachedEntryForActiveContexts_ === undefined) {
-        var key = [];
-        for (var context of this.activeContexts_) {
+        let key = [];
+        for (const context of this.activeContexts_) {
           key.push(this.getContextKey_(context));
         }
         key.sort();
@@ -154,8 +156,8 @@ tr.exportTo('tr.importer', function() {
           this.cachedEntryForActiveContexts_ = this.contextSetCache_[key];
         } else {
           this.activeContexts_.sort(function(a, b) {
-            var keyA = this.getContextKey_(a);
-            var keyB = this.getContextKey_(b);
+            const keyA = this.getContextKey_(a);
+            const keyB = this.getContextKey_(b);
             if (keyA < keyB) {
               return -1;
             }
@@ -172,7 +174,7 @@ tr.exportTo('tr.importer', function() {
     },
 
     invalidateContextCacheForSnapshot(scopedId) {
-      var snapshotKey = this.getSnapshotKey_(scopedId);
+      const snapshotKey = this.getSnapshotKey_(scopedId);
       if (!(snapshotKey in this.seenSnapshots_)) return;
 
       this.contextCache_ = {};

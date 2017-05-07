@@ -12,7 +12,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.b', function() {
-  var ScatterChart = tr.ui.b.define('scatter-chart', tr.ui.b.ChartBase2D);
+  const ScatterChart = tr.ui.b.define('scatter-chart', tr.ui.b.ChartBase2D);
 
   // @constructor
   ScatterChart.Dot = function(x, y, radius, color, breadcrumb) {
@@ -48,11 +48,11 @@ tr.exportTo('tr.ui.b', function() {
       super.updateMargins_();
       if (this.data.length === 0) return;
 
-      var rightOverhangPx = tr.b.math.Statistics.max(
+      const rightOverhangPx = tr.b.math.Statistics.max(
           this.data, d => this.xScale_(d.x) + d.radius - this.graphWidth);
       this.margin.right = Math.max(this.margin.right, rightOverhangPx);
 
-      var topOverhangPx = tr.b.math.Statistics.max(
+      const topOverhangPx = tr.b.math.Statistics.max(
           this.data, d => (this.graphHeight - this.yScale_(d.y)) + d.radius) -
         this.graphHeight;
       this.margin.top = Math.max(this.margin.top, topOverhangPx);
@@ -70,7 +70,7 @@ tr.exportTo('tr.ui.b', function() {
       brushSel.selectAll('*').remove();
       if (this.brushedXRange_.isEmpty || this.brushedYRange_.isEmpty) return;
 
-      var brushRectsSel = brushSel.selectAll('rect').data([undefined]);
+      const brushRectsSel = brushSel.selectAll('rect').data([undefined]);
       brushRectsSel.enter().append('rect')
           .attr('x', () => this.xScale_(this.brushedXRange_.min))
           .attr('y', () => this.yScale_(this.brushedYRange_.max))

@@ -254,7 +254,7 @@ tr.exportTo('tr.v.ui', function() {
     },
 
     updateBrushedRange_(binIndex) {
-      let brushedBinRange = new tr.b.math.Range();
+      const brushedBinRange = new tr.b.math.Range();
       brushedBinRange.addValue(tr.b.math.clamp(
           this.mouseDownBinIndex_, 0, this.histogram.allBins.length - 1));
       brushedBinRange.addValue(tr.b.math.clamp(
@@ -297,8 +297,8 @@ tr.exportTo('tr.v.ui', function() {
 
     updateDiagnostics_() {
       let maps = [];
-      for (let bin of this.brushedBins) {
-        for (let map of bin.diagnosticMaps) {
+      for (const bin of this.brushedBins) {
+        for (const map of bin.diagnosticMaps) {
           maps.push(map);
         }
       }
@@ -347,13 +347,13 @@ tr.exportTo('tr.v.ui', function() {
     getDeltaScalars_(statNames, scalarMap) {
       if (!this.histogram.canCompare(this.referenceHistogram)) return;
 
-      let mwu = tr.b.math.Statistics.mwu(
+      const mwu = tr.b.math.Statistics.mwu(
           this.histogram.sampleValues, this.referenceHistogram.sampleValues);
 
-      for (let deltaStatName of tr.v.Histogram.getDeltaStatisticsNames(
+      for (const deltaStatName of tr.v.Histogram.getDeltaStatisticsNames(
           statNames)) {
         if (IGNORE_DELTA_STATISTICS_NAMES.includes(deltaStatName)) continue;
-        let scalar = this.histogram.getStatisticScalar(
+        const scalar = this.histogram.getStatisticScalar(
             deltaStatName, this.referenceHistogram, mwu);
         if (scalar === undefined) continue;
         scalarMap.set(deltaStatName, scalar);
@@ -385,16 +385,16 @@ tr.exportTo('tr.v.ui', function() {
       if (!this.histogram) return;
       this.$.container.style.display = '';
 
-      let scalarMap = new Map();
+      const scalarMap = new Map();
       this.getDeltaScalars_(this.histogram.statisticsNames, scalarMap);
-      for (let [name, scalar] of this.histogram.statisticsScalars) {
+      for (const [name, scalar] of this.histogram.statisticsScalars) {
         scalarMap.set(name, scalar);
       }
       this.$.stats.scalarMap = scalarMap;
 
       if (this.histogram.diagnostics.size > 0) {
-        let diagnosticMap = new tr.v.d.DiagnosticMap();
-        for (let [key, diagnostic] of this.histogram.diagnostics) {
+        const diagnosticMap = new tr.v.d.DiagnosticMap();
+        for (const [key, diagnostic] of this.histogram.diagnostics) {
           // Hide the 'merged from' and 'merged to' diagnostics, which are
           // implementation details.
           if (key !== tr.v.d.MERGED_FROM_DIAGNOSTIC_KEY &&
@@ -460,9 +460,9 @@ tr.exportTo('tr.v.ui', function() {
       this.chart_.brushedRange = this.brushedBinRange;
       this.updateDiagnostics_();
 
-      let chartData = [];
-      let binCounts = [];
-      for (let bin of this.histogram.allBins) {
+      const chartData = [];
+      const binCounts = [];
+      for (const bin of this.histogram.allBins) {
         let x = bin.range.min;
         if (x === -Number.MAX_VALUE) {
           x = '<' + new tr.b.Scalar(
@@ -478,7 +478,7 @@ tr.exportTo('tr.v.ui', function() {
       // largest bin, then set the dataRange max to TRUNCATE_BIN_MARGIN% more
       // than that next largest bin.
       binCounts.sort((x, y) => y - x);
-      let dataRange = tr.b.math.Range.fromExplicitRange(0, binCounts[0]);
+      const dataRange = tr.b.math.Range.fromExplicitRange(0, binCounts[0]);
       if (binCounts[1] > 0 && binCounts[0] > (binCounts[1] * 2)) {
         dataRange.max = binCounts[1] * (1 + TRUNCATE_BIN_MARGIN);
       }

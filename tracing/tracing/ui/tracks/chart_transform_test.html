@@ -14,18 +14,18 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var TimelineDisplayTransform = tr.ui.TimelineDisplayTransform;
-  var ChartTransform = tr.ui.tracks.ChartTransform;
-  var ChartSeriesYAxis = tr.ui.tracks.ChartSeriesYAxis;
+  const TimelineDisplayTransform = tr.ui.TimelineDisplayTransform;
+  const ChartTransform = tr.ui.tracks.ChartTransform;
+  const ChartSeriesYAxis = tr.ui.tracks.ChartSeriesYAxis;
 
   function buildChartTransform() {
-    var displayTransform = new TimelineDisplayTransform();
+    const displayTransform = new TimelineDisplayTransform();
     displayTransform.panX = -20;
     displayTransform.scaleX = 0.5;
 
-    var seriesYAxis = new ChartSeriesYAxis(-100, 100);
+    const seriesYAxis = new ChartSeriesYAxis(-100, 100);
 
-    var chartTransform = new ChartTransform(
+    const chartTransform = new ChartTransform(
         displayTransform,
         seriesYAxis,
         500, /* trackWidth */
@@ -38,7 +38,7 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('checkFields', function() {
-    var t = buildChartTransform();
+    const t = buildChartTransform();
 
     assert.strictEqual(t.pixelRatio, 3);
 
@@ -54,7 +54,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkWorldXToViewX', function() {
-    var t = buildChartTransform();
+    const t = buildChartTransform();
 
     assert.strictEqual(t.worldXToViewX(-100), -60);
     assert.strictEqual(t.worldXToViewX(0), -10);
@@ -64,7 +64,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkViewXToWorldX', function() {
-    var t = buildChartTransform();
+    const t = buildChartTransform();
 
     assert.strictEqual(t.viewXToWorldX(-60), -100);
     assert.strictEqual(t.viewXToWorldX(-10), 0);
@@ -74,7 +74,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkWorldYToViewY', function() {
-    var t = buildChartTransform();
+    const t = buildChartTransform();
 
     assert.strictEqual(t.worldYToViewY(-200), 105);
     assert.strictEqual(t.worldYToViewY(-100), 75);
@@ -84,7 +84,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkViewYToWorldY', function() {
-    var t = buildChartTransform();
+    const t = buildChartTransform();
 
     assert.strictEqual(t.viewYToWorldY(105), -200);
     assert.strictEqual(t.viewYToWorldY(75), -100);
@@ -94,7 +94,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkVectorToWorldDistance', function() {
-    var t = buildChartTransform();
+    const t = buildChartTransform();
 
     assert.strictEqual(t.vectorToWorldDistance(105), 350);
     assert.strictEqual(t.vectorToWorldDistance(75), 250);

@@ -12,10 +12,10 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var KeyEventManager = tr.b.KeyEventManager;
+  const KeyEventManager = tr.b.KeyEventManager;
 
   function newKeyEvent(eventType, dict) {
-    var e = new tr.b.Event(eventType, true, true);
+    const e = new tr.b.Event(eventType, true, true);
     if (dict.keyCode === undefined) {
       throw new Error('keyCode required');
     }
@@ -24,20 +24,20 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('simpleHotkeyManager', function() {
-    var rootElement = document.createElement('div');
+    const rootElement = document.createElement('div');
     Polymer.dom(document.body).appendChild(rootElement);
     try {
-      var elementShadow = rootElement.createShadowRoot();
+      const elementShadow = rootElement.createShadowRoot();
 
-      var hkc = document.createElement('tv-ui-b-hotkey-controller');
+      const hkc = document.createElement('tv-ui-b-hotkey-controller');
       Polymer.dom(elementShadow).appendChild(hkc);
 
-      var subElement = document.createElement('div');
+      const subElement = document.createElement('div');
       Polymer.dom(elementShadow).appendChild(subElement);
 
       assert.strictEqual(tr.b.getHotkeyControllerForElement(subElement), hkc);
 
-      var didGetCalled = false;
+      let didGetCalled = false;
       hkc.addHotKey(new tr.ui.b.HotKey({
         eventType: 'keydown',
         keyCode: 73, useCapture: true,
@@ -47,13 +47,13 @@ tr.b.unittest.testSuite(function() {
       }));
 
       // Ensure it is called when events target the root element.
-      var e = newKeyEvent('keydown', {keyCode: 73});
+      let e = newKeyEvent('keydown', {keyCode: 73});
       rootElement.dispatchEvent(e);
       assert.isTrue(didGetCalled);
 
       // Ensure it is still called when we target the sub element.
       didGetCalled = false;
-      var e = newKeyEvent('keydown', {keyCode: 73});
+      e = newKeyEvent('keydown', {keyCode: 73});
       subElement.dispatchEvent(e);
       assert.isTrue(didGetCalled);
     } finally {
@@ -62,26 +62,26 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('nestedHotkeyController', function() {
-    var rootElement = document.createElement('div');
+    const rootElement = document.createElement('div');
     Polymer.dom(document.body).appendChild(rootElement);
     try {
-      var elementShadow = rootElement.createShadowRoot();
+      const elementShadow = rootElement.createShadowRoot();
 
-      var hkc = document.createElement('tv-ui-b-hotkey-controller');
+      const hkc = document.createElement('tv-ui-b-hotkey-controller');
       Polymer.dom(elementShadow).appendChild(hkc);
 
-      var subElement = document.createElement('div');
+      const subElement = document.createElement('div');
       Polymer.dom(elementShadow).appendChild(subElement);
       assert.strictEqual(
           tr.b.getHotkeyControllerForElement(elementShadow), hkc);
 
-      var subHKC = document.createElement('tv-ui-b-hotkey-controller');
+      const subHKC = document.createElement('tv-ui-b-hotkey-controller');
       Polymer.dom(subElement).appendChild(subHKC);
 
       assert.strictEqual(
           tr.b.getHotkeyControllerForElement(subElement), subHKC);
 
-      var didGetCalled = false;
+      let didGetCalled = false;
       subHKC.addHotKey(new tr.ui.b.HotKey({
         eventType: 'keydown',
         keyCode: 73, useCapture: true,
@@ -91,7 +91,7 @@ tr.b.unittest.testSuite(function() {
       }));
 
       // Ensure it is called when events target the root element.
-      var e = newKeyEvent('keydown', {keyCode: 73});
+      const e = newKeyEvent('keydown', {keyCode: 73});
       rootElement.dispatchEvent(e);
       assert.isTrue(didGetCalled);
     } finally {
@@ -100,18 +100,18 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('inputInsideHKC', function() {
-    var rootElement = document.createElement('div');
+    const rootElement = document.createElement('div');
     Polymer.dom(document.body).appendChild(rootElement);
     try {
-      var elementShadow = rootElement.createShadowRoot();
+      const elementShadow = rootElement.createShadowRoot();
 
-      var hkc = document.createElement('tv-ui-b-hotkey-controller');
+      const hkc = document.createElement('tv-ui-b-hotkey-controller');
       Polymer.dom(elementShadow).appendChild(hkc);
 
-      var inputEl = document.createElement('input');
+      const inputEl = document.createElement('input');
       Polymer.dom(elementShadow).appendChild(inputEl);
 
-      var didGetCalled = false;
+      let didGetCalled = false;
       hkc.addHotKey(new tr.ui.b.HotKey({
         eventType: 'keypress',
         keyCode: 'a'.charCodeAt(0), useCapture: false,
@@ -122,13 +122,13 @@ tr.b.unittest.testSuite(function() {
 
       // Ensure it is called when events target the root element.
       didGetCalled = false;
-      var e = newKeyEvent('keypress', {keyCode: 'a'.charCodeAt(0)});
+      let e = newKeyEvent('keypress', {keyCode: 'a'.charCodeAt(0)});
       rootElement.dispatchEvent(e);
       assert.isTrue(didGetCalled);
 
       // Handler should NOT be called when events target the input element.
       didGetCalled = false;
-      var e = newKeyEvent('keypress', {keyCode: 'a'.charCodeAt(0)});
+      e = newKeyEvent('keypress', {keyCode: 'a'.charCodeAt(0)});
       inputEl.dispatchEvent(e);
       assert.isFalse(didGetCalled);
     } finally {

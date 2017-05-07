@@ -83,9 +83,9 @@ const mockResponseVariation = {
 };
 const errorResponse = new Error('invalid bug!');
 
-var xhrCalls = 0;  // Keeps track of misses on the cache.
+let xhrCalls = 0;  // Keeps track of misses on the cache.
 
-var testOptions = {
+const testOptions = {
   setUp() {
     // TODO(eakuefner) Be able to correctly mock XHR here.
     // See https://github.com/catapult-project/catapult/issues/3449
@@ -100,7 +100,7 @@ var testOptions = {
   }
 };
 
-var testOptionsForError = {
+const testOptionsForError = {
   setUp() {
     d.BugDetails.reset();
     xhrCalls = 0;
@@ -115,11 +115,11 @@ var testOptionsForError = {
 
 tr.b.unittest.testSuite(function() {
   test('benchmarkSuccess', function() {
-    var obj = {};
+    const obj = {};
     obj[12345] = Promise.resolve(mockResponse);
     d.BugDetails.prepopulate(obj);
 
-    var e = document.createElement('bug-details');
+    const e = document.createElement('bug-details');
     e.bugId = 12345;
     this.addHTMLOutput(e);
 
@@ -128,12 +128,12 @@ tr.b.unittest.testSuite(function() {
   }, testOptions);
 
   test('benchmarkErrorAndSuccess', function() {
-    var obj = {};
+    const obj = {};
     obj[12345] = Promise.resolve(mockResponse);
     obj[54321] = Promise.reject(errorResponse);
     d.BugDetails.prepopulate(obj);
 
-    var e = document.createElement('bug-details');
+    let e = document.createElement('bug-details');
     e.bugId = 12345;
     this.addHTMLOutput(e);
 
@@ -150,14 +150,14 @@ tr.b.unittest.testSuite(function() {
   }, testOptions);
 
   test('compactAllInTableErrorAndSuccess', function() {
-    var obj = {};
+    const obj = {};
     obj[1] = Promise.resolve(mockResponse);
     obj[2] = Promise.resolve(mockResponseVariation);
     obj[3] = Promise.reject(errorResponse);
 
     d.BugDetails.prepopulate(obj);
 
-    var e = document.createElement('bug-details');
+    let e = document.createElement('bug-details');
     e.bugId = 1;
     e.compactView = true;
     this.addHTMLOutput(e);
@@ -183,7 +183,7 @@ tr.b.unittest.testSuite(function() {
   }, testOptions);
 
   test('compactNoneInTableSuccess', function() {
-    var e = document.createElement('bug-details');
+    let e = document.createElement('bug-details');
     e.bugId = 1;
     e.compactView = true;
     this.addHTMLOutput(e);
@@ -198,7 +198,7 @@ tr.b.unittest.testSuite(function() {
   }, testOptions);
 
   test('compactNoneInTableError', function() {
-    var e = document.createElement('bug-details');
+    let e = document.createElement('bug-details');
     e.bugId = 1;
     e.compactView = true;
     this.addHTMLOutput(e);

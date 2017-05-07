@@ -13,36 +13,36 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var Model = tr.Model;
-  var PowerSeries = tr.model.PowerSeries;
+  const Model = tr.Model;
+  const PowerSeries = tr.model.PowerSeries;
 
   test('stableId', function() {
-    var device = { stableId: 'test' };
-    var series = new PowerSeries(device);
+    const device = { stableId: 'test' };
+    const series = new PowerSeries(device);
 
     assert.strictEqual(series.stableId, 'test.PowerSeries');
   });
 
   test('device', function() {
-    var device = new tr.model.Device(new Model());
-    var series = new PowerSeries(device);
+    const device = new tr.model.Device(new Model());
+    const series = new PowerSeries(device);
 
     assert.strictEqual(series.device, device);
   });
 
   test('addPowerSample', function() {
-    var series = new PowerSeries(new Model().device);
+    const series = new PowerSeries(new Model().device);
 
     assert.strictEqual(series.samples.length, 0);
 
-    var sample1 = series.addPowerSample(0, 1);
-    var sample2 = series.addPowerSample(1, 2);
+    const sample1 = series.addPowerSample(0, 1);
+    const sample2 = series.addPowerSample(1, 2);
 
     assert.deepEqual(series.samples, [sample1, sample2]);
   });
 
   test('getEnergyConsumed_oneInterval', function() {
-    var series = new PowerSeries(new Model().device);
+    const series = new PowerSeries(new Model().device);
     series.addPowerSample(0, 1);
     series.addPowerSample(1000, 2);
 
@@ -50,7 +50,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('getEnergyConsumed_twoIntervals', function() {
-    var series = new PowerSeries(new Model().device);
+    const series = new PowerSeries(new Model().device);
     series.addPowerSample(0, 1);
     series.addPowerSample(1000, 2);
     series.addPowerSample(2000, 2);
@@ -59,14 +59,14 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('getEnergyConsumed_oneSample', function() {
-    var series = new PowerSeries(new Model().device);
+    const series = new PowerSeries(new Model().device);
     series.addPowerSample(1000, 1);
 
     assert.strictEqual(series.getEnergyConsumedInJ(0, 2000), 0);
   });
 
   test('getEnergyConsumed_samplesAfterStart', function() {
-    var series = new PowerSeries(new Model().device);
+    const series = new PowerSeries(new Model().device);
     series.addPowerSample(1000, 1);
     series.addPowerSample(2000, 2);
 
@@ -74,7 +74,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('getEnergyConsumed_extraSamplesBeforeStart', function() {
-    var series = new PowerSeries(new Model().device);
+    const series = new PowerSeries(new Model().device);
     series.addPowerSample(0, 10);
     series.addPowerSample(1000, 1);
     series.addPowerSample(2000, 1);
@@ -84,7 +84,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('getEnergyConsumed_extraSamplesAfterEnd', function() {
-    var series = new PowerSeries(new Model().device);
+    const series = new PowerSeries(new Model().device);
     series.addPowerSample(0, 1);
     series.addPowerSample(1000, 1);
     series.addPowerSample(2000, 1);
@@ -94,7 +94,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('shiftTimestampsForward', function() {
-    var series = new PowerSeries(new Model().device);
+    const series = new PowerSeries(new Model().device);
 
     series.addPowerSample(0, 1);
     series.addPowerSample(1, 2);
@@ -112,7 +112,7 @@ tr.b.unittest.testSuite(function() {
 
 
   test('updateBounds', function() {
-    var series = new PowerSeries(new Model().device);
+    const series = new PowerSeries(new Model().device);
 
     series.addPowerSample(0, 1);
     series.addPowerSample(1, 2);
@@ -129,20 +129,20 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('childEvents_empty', function() {
-    var series = new PowerSeries(new Model().device);
-    var eventsInSeries = [];
-    for (var event of series.childEvents()) {
+    const series = new PowerSeries(new Model().device);
+    const eventsInSeries = [];
+    for (const event of series.childEvents()) {
       eventsInSeries.push(event);
     }
     assert.deepEqual(eventsInSeries, []);
   });
 
   test('childEvents_nonempty', function() {
-    var series = new PowerSeries(new Model().device);
-    var sample1 = series.addPowerSample(0, 1);
-    var sample2 = series.addPowerSample(1, 2);
-    var eventsInSeries = [];
-    for (var event of series.childEvents()) {
+    const series = new PowerSeries(new Model().device);
+    const sample1 = series.addPowerSample(0, 1);
+    const sample2 = series.addPowerSample(1, 2);
+    const eventsInSeries = [];
+    for (const event of series.childEvents()) {
       eventsInSeries.push(event);
     }
     assert.deepEqual(eventsInSeries, [sample1, sample2]);

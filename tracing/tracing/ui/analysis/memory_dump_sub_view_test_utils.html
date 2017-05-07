@@ -23,37 +23,38 @@ found in the LICENSE file.
  * @fileoverview Helper functions for memory dump analysis sub-view tests.
  */
 tr.exportTo('tr.ui.analysis', function() {
-  var Color = tr.b.Color;
-  var ColorScheme = tr.b.ColorScheme;
-  var GlobalMemoryDump = tr.model.GlobalMemoryDump;
-  var ProcessMemoryDump = tr.model.ProcessMemoryDump;
-  var VMRegion = tr.model.VMRegion;
-  var VMRegionClassificationNode = tr.model.VMRegionClassificationNode;
-  var Scalar = tr.b.Scalar;
-  var sizeInBytes_smallerIsBetter =
+  const Color = tr.b.Color;
+  const ColorScheme = tr.b.ColorScheme;
+  const GlobalMemoryDump = tr.model.GlobalMemoryDump;
+  const ProcessMemoryDump = tr.model.ProcessMemoryDump;
+  const VMRegion = tr.model.VMRegion;
+  const VMRegionClassificationNode = tr.model.VMRegionClassificationNode;
+  const Scalar = tr.b.Scalar;
+  const sizeInBytes_smallerIsBetter =
       tr.b.Unit.byName.sizeInBytes_smallerIsBetter;
-  var unitlessNumber_smallerIsBetter =
+  const unitlessNumber_smallerIsBetter =
       tr.b.Unit.byName.unitlessNumber_smallerIsBetter;
-  var HeapDump = tr.model.HeapDump;
-  var addGlobalMemoryDump = tr.model.MemoryDumpTestUtils.addGlobalMemoryDump;
-  var addProcessMemoryDump = tr.model.MemoryDumpTestUtils.addProcessMemoryDump;
-  var newAllocatorDump = tr.model.MemoryDumpTestUtils.newAllocatorDump;
-  var addOwnershipLink = tr.model.MemoryDumpTestUtils.addOwnershipLink;
+  const HeapDump = tr.model.HeapDump;
+  const addGlobalMemoryDump = tr.model.MemoryDumpTestUtils.addGlobalMemoryDump;
+  const addProcessMemoryDump =
+    tr.model.MemoryDumpTestUtils.addProcessMemoryDump;
+  const newAllocatorDump = tr.model.MemoryDumpTestUtils.newAllocatorDump;
+  const addOwnershipLink = tr.model.MemoryDumpTestUtils.addOwnershipLink;
 
   function createMultipleTestGlobalMemoryDumps() {
-    var model = tr.c.TestUtils.newModel(function(model) {
-      var pA = model.getOrCreateProcess(1);
-      var pB = model.getOrCreateProcess(2);
-      var pC = model.getOrCreateProcess(3);
-      var pD = model.getOrCreateProcess(4);
+    const model = tr.c.TestUtils.newModel(function(model) {
+      const pA = model.getOrCreateProcess(1);
+      const pB = model.getOrCreateProcess(2);
+      const pC = model.getOrCreateProcess(3);
+      const pD = model.getOrCreateProcess(4);
 
       // ======================================================================
       //   First timestamp.
       // ======================================================================
-      var gmd1 = addGlobalMemoryDump(model, {ts: 42});
+      const gmd1 = addGlobalMemoryDump(model, {ts: 42});
 
       // Totals and VM regions.
-      var pmd1A = addProcessMemoryDump(gmd1, pA, {ts: 41});
+      const pmd1A = addProcessMemoryDump(gmd1, pA, {ts: 41});
       pmd1A.totals = {residentBytes: 31457280 /* 30 MiB */};
       pmd1A.vmRegions = VMRegionClassificationNode.fromRegions([
         VMRegion.fromDict({
@@ -70,7 +71,7 @@ tr.exportTo('tr.ui.analysis', function() {
       ]);
 
       // Everything.
-      var pmd1B = addProcessMemoryDump(gmd1, pB, {ts: 42});
+      const pmd1B = addProcessMemoryDump(gmd1, pB, {ts: 42});
       pmd1B.totals = {
         residentBytes: 20971520, /* 20 MiB */
         peakResidentBytes: 41943040, /* 40 MiB */
@@ -115,14 +116,14 @@ tr.exportTo('tr.ui.analysis', function() {
       ];
 
       // Allocator dumps only.
-      var pmd1C = addProcessMemoryDump(gmd1, pC, {ts: 43});
+      const pmd1C = addProcessMemoryDump(gmd1, pC, {ts: 43});
       pmd1C.memoryAllocatorDumps = (function() {
-        var oilpanDump = newAllocatorDump(pmd1C, 'oilpan', {numerics: {
+        const oilpanDump = newAllocatorDump(pmd1C, 'oilpan', {numerics: {
           size: 3221225472 /* 3 GiB */,
           inner_size: 5242880 /* 5 MiB */,
           objects_count: new Scalar(unitlessNumber_smallerIsBetter, 2015)
         }});
-        var v8Dump = newAllocatorDump(pmd1C, 'v8', {numerics: {
+        const v8Dump = newAllocatorDump(pmd1C, 'v8', {numerics: {
           size: 1073741824 /* 1 GiB */,
           inner_size: 2097152 /* 2 MiB */,
           objects_count: new Scalar(unitlessNumber_smallerIsBetter, 204)
@@ -134,7 +135,7 @@ tr.exportTo('tr.ui.analysis', function() {
       })();
       pmd1C.heapDumps = {
         'v8': (function() {
-          var v8HeapDump = new HeapDump(pmd1C, 'v8');
+          const v8HeapDump = new HeapDump(pmd1C, 'v8');
           v8HeapDump.addEntry(
               tr.c.TestUtils.newStackTrace(model,
                   ['V8.Execute', 'UpdateLayoutTree']),
@@ -147,10 +148,10 @@ tr.exportTo('tr.ui.analysis', function() {
       // ======================================================================
       //   Second timestamp.
       // ======================================================================
-      var gmd2 = addGlobalMemoryDump(model, {ts: 68});
+      const gmd2 = addGlobalMemoryDump(model, {ts: 68});
 
       // Everything.
-      var pmd2A = addProcessMemoryDump(gmd2, pA, {ts: 67});
+      const pmd2A = addProcessMemoryDump(gmd2, pA, {ts: 67});
       pmd2A.totals = {residentBytes: 32505856 /* 31 MiB */};
       pmd2A.vmRegions = VMRegionClassificationNode.fromRegions([
         VMRegion.fromDict({
@@ -187,7 +188,7 @@ tr.exportTo('tr.ui.analysis', function() {
       ];
 
       // Totals and allocator dumps only.
-      var pmd2B = addProcessMemoryDump(gmd2, pB, {ts: 69});
+      const pmd2B = addProcessMemoryDump(gmd2, pB, {ts: 69});
       pmd2B.totals = {
         residentBytes: 19922944, /* 19 MiB */
         peakResidentBytes: 41943040, /* 40 MiB */
@@ -217,7 +218,7 @@ tr.exportTo('tr.ui.analysis', function() {
       ];
 
       // Resettable peak total size only.
-      var pmd2D = addProcessMemoryDump(gmd2, pD, {ts: 71});
+      const pmd2D = addProcessMemoryDump(gmd2, pD, {ts: 71});
       pmd2D.totals = {
         peakResidentBytes: 17825792, /* 17 MiB */
         arePeakResidentBytesResettable: true
@@ -226,10 +227,10 @@ tr.exportTo('tr.ui.analysis', function() {
       // ======================================================================
       //   Third timestamp.
       // ======================================================================
-      var gmd3 = addGlobalMemoryDump(model, {ts: 100});
+      const gmd3 = addGlobalMemoryDump(model, {ts: 100});
 
       // Everything.
-      var pmd3B = addProcessMemoryDump(gmd3, pB, {ts: 102});
+      const pmd3B = addProcessMemoryDump(gmd3, pB, {ts: 102});
       pmd3B.totals = {
         residentBytes: 18874368, /* 18 MiB */
         peakResidentBytes: 44040192, /* 42 MiB */
@@ -266,21 +267,21 @@ tr.exportTo('tr.ui.analysis', function() {
           size: 2097152 /* 2 MiB */,
           resident_size: 3145728 /* 3 MiB */
         }}),
-        newAllocatorDump(pmd3C, 'gpu', {numerics: {
+        newAllocatorDump(pmd3B, 'gpu', {numerics: {
           size: 1048576 /* 1 MiB */,
           memtrack_pss: 786432 /* 768 KiB */
         }})
       ];
 
       // Allocator dumps only.
-      var pmd3C = addProcessMemoryDump(gmd3, pC, {ts: 100});
+      const pmd3C = addProcessMemoryDump(gmd3, pC, {ts: 100});
       pmd3C.memoryAllocatorDumps = (function() {
-        var oilpanDump = newAllocatorDump(pmd3C, 'oilpan', {numerics: {
+        const oilpanDump = newAllocatorDump(pmd3C, 'oilpan', {numerics: {
           size: 3221225472 /* 3 GiB */,
           inner_size: 5242880 /* 5 MiB */,
           objects_count: new Scalar(unitlessNumber_smallerIsBetter, 2015)
         }});
-        var v8Dump = newAllocatorDump(pmd3C, 'v8', {numerics: {
+        const v8Dump = newAllocatorDump(pmd3C, 'v8', {numerics: {
           size: 2147483648 /* 2 GiB */,
           inner_size: 2097152 /* 2 MiB */,
           objects_count: new Scalar(unitlessNumber_smallerIsBetter, 204)
@@ -292,7 +293,7 @@ tr.exportTo('tr.ui.analysis', function() {
       })();
       pmd3C.heapDumps = {
         'v8': (function() {
-          var v8HeapDump = new HeapDump(pmd1C, 'v8');
+          const v8HeapDump = new HeapDump(pmd1C, 'v8');
           v8HeapDump.addEntry(
               tr.c.TestUtils.newStackTrace(model,
                   ['V8.Execute', 'UpdateLayoutTree']),
@@ -308,7 +309,7 @@ tr.exportTo('tr.ui.analysis', function() {
       };
 
       // Resettable peak total size only.
-      var pmd3D = addProcessMemoryDump(gmd3, pD, {ts: 99});
+      const pmd3D = addProcessMemoryDump(gmd3, pD, {ts: 99});
       pmd3D.totals = {
         peakResidentBytes: 17825792, /* 17 MiB */
         arePeakResidentBytesResettable: true
@@ -333,7 +334,7 @@ tr.exportTo('tr.ui.analysis', function() {
   }
 
   function checkNumericFields(row, column, expectedValues, expectedUnit) {
-    var fields;
+    let fields;
     if (column === undefined) {
       fields = row;
     } else {
@@ -346,9 +347,9 @@ tr.exportTo('tr.ui.analysis', function() {
     }
 
     assert.lengthOf(fields, expectedValues.length);
-    for (var i = 0; i < fields.length; i++) {
-      var field = fields[i];
-      var expectedValue = expectedValues[i];
+    for (let i = 0; i < fields.length; i++) {
+      const field = fields[i];
+      const expectedValue = expectedValues[i];
       if (expectedValue === undefined) {
         assert.isUndefined(field);
       } else {
@@ -366,7 +367,7 @@ tr.exportTo('tr.ui.analysis', function() {
   }
 
   function checkStringFields(row, column, expectedStrings) {
-    var fields = column.fields(row);
+    const fields = column.fields(row);
 
     if (expectedStrings === undefined) {
       assert.isUndefined(fields);
@@ -388,10 +389,10 @@ tr.exportTo('tr.ui.analysis', function() {
    */
   function checkColumns(columns, expectedColumns, expectedAggregationMode) {
     assert.lengthOf(columns, expectedColumns.length);
-    for (var i = 0; i < expectedColumns.length; i++) {
-      var actualColumn = columns[i];
-      var expectedColumn = expectedColumns[i];
-      var expectedTitle = expectedColumn.title;
+    for (let i = 0; i < expectedColumns.length; i++) {
+      const actualColumn = columns[i];
+      const expectedColumn = expectedColumns[i];
+      const expectedTitle = expectedColumn.title;
       if (typeof expectedTitle === 'function') {
         expectedTitle(actualColumn.title);  // Custom title matcher.
       } else if (actualColumn.title.innerText) {
@@ -415,15 +416,15 @@ tr.exportTo('tr.ui.analysis', function() {
     }
 
     // Check infos.
-    var infos = [];
+    const infos = [];
     column.addInfos(fields, contexts, infos);
     assert.lengthOf(infos, expectedInfos.length);
-    for (var i = 0; i < expectedInfos.length; i++) {
+    for (let i = 0; i < expectedInfos.length; i++) {
       assert.deepEqual(infos[i], expectedInfos[i]);
     }
 
     // Check color.
-    var actualColor = typeof column.color === 'function' ?
+    const actualColor = typeof column.color === 'function' ?
         column.color(fields, contexts) :
         column.color;
     checkColor(actualColor, expectedColorReservedName);
@@ -431,40 +432,40 @@ tr.exportTo('tr.ui.analysis', function() {
 
   function checkColor(actualColorString, expectedColorString) {
     if (actualColorString === undefined) {
-      assert.isUndefined(expectedColor);
+      assert.isUndefined(expectedColorString);
       return;
     }
-    var actualColor = Color.fromString(actualColorString);
-    var expectedColor = Color.fromString(expectedColorString);
+    const actualColor = Color.fromString(actualColorString);
+    const expectedColor = Color.fromString(expectedColorString);
     assert.deepEqual(actualColor, expectedColor);
   }
 
   function createAndCheckEmptyPanes(
       test, paneTagName, propertyName, opt_callback) {
     // Unset property.
-    var unsetViewEl = createTestPane(paneTagName);
+    const unsetViewEl = createTestPane(paneTagName);
     unsetViewEl.rebuild();
     assert.isUndefined(unsetViewEl.createChildPane());
     test.addHTMLOutput(unsetViewEl);
 
     // Undefined property.
-    var undefinedViewEl = createTestPane(paneTagName);
+    const undefinedViewEl = createTestPane(paneTagName);
     undefinedViewEl[propertyName] = undefined;
     undefinedViewEl.rebuild();
     assert.isUndefined(undefinedViewEl.createChildPane());
     test.addHTMLOutput(undefinedViewEl);
 
     // Empty property.
-    var emptyViewEl = createTestPane(paneTagName);
+    const emptyViewEl = createTestPane(paneTagName);
     emptyViewEl[propertyName] = [];
     emptyViewEl.rebuild();
     assert.isUndefined(undefinedViewEl.createChildPane());
     test.addHTMLOutput(emptyViewEl);
 
     // Check that all the panes have the same dimensions.
-    var unsetBounds = unsetViewEl.getBoundingClientRect();
-    var undefinedBounds = undefinedViewEl.getBoundingClientRect();
-    var emptyBounds = emptyViewEl.getBoundingClientRect();
+    const unsetBounds = unsetViewEl.getBoundingClientRect();
+    const undefinedBounds = undefinedViewEl.getBoundingClientRect();
+    const emptyBounds = emptyViewEl.getBoundingClientRect();
     assert.strictEqual(undefinedBounds.width, unsetBounds.width);
     assert.strictEqual(emptyBounds.width, unsetBounds.width);
     assert.strictEqual(undefinedBounds.height, unsetBounds.height);
@@ -479,7 +480,7 @@ tr.exportTo('tr.ui.analysis', function() {
   }
 
   function createTestPane(tagName) {
-    var paneEl = document.createElement(tagName);
+    const paneEl = document.createElement(tagName);
 
     // Store a list of requested child panes (for inspection in tests).
     paneEl.requestedChildPanes = [];
@@ -488,7 +489,7 @@ tr.exportTo('tr.ui.analysis', function() {
     });
 
     paneEl.createChildPane = function() {
-      var childPaneBuilder = this.childPaneBuilder;
+      const childPaneBuilder = this.childPaneBuilder;
       if (childPaneBuilder === undefined) return undefined;
       return childPaneBuilder();
     };
@@ -498,8 +499,8 @@ tr.exportTo('tr.ui.analysis', function() {
 
   // TODO(petrcermak): Consider moving this to tracing/ui/base/dom_helpers.html.
   function isElementDisplayed(element) {
-    var style = getComputedStyle(element);
-    var displayed = style.display;
+    const style = getComputedStyle(element);
+    const displayed = style.display;
     if (displayed === undefined) return true;
     return displayed.indexOf('none') === -1;
   }
@@ -530,7 +531,7 @@ tr.exportTo('tr.ui.analysis', function() {
    */
   function extractVmRegions(processMemoryDumps, pid) {
     return processMemoryDumps.map(function(memoryDumps) {
-      var processMemoryDump = memoryDumps[pid];
+      const processMemoryDump = memoryDumps[pid];
       if (processMemoryDump === undefined) return undefined;
       return processMemoryDump.mostRecentVmRegions;
     });
@@ -543,7 +544,7 @@ tr.exportTo('tr.ui.analysis', function() {
    */
   function extractMemoryAllocatorDumps(processMemoryDumps, pid, allocatorName) {
     return processMemoryDumps.map(function(memoryDumps) {
-      var processMemoryDump = memoryDumps[pid];
+      const processMemoryDump = memoryDumps[pid];
       if (processMemoryDump === undefined) return undefined;
       return processMemoryDump.getMemoryAllocatorDumpByFullName(allocatorName);
     });
@@ -556,7 +557,7 @@ tr.exportTo('tr.ui.analysis', function() {
    */
   function extractHeapDumps(processMemoryDumps, pid, allocatorName) {
     return processMemoryDumps.map(function(memoryDumps) {
-      var processMemoryDump = memoryDumps[pid];
+      const processMemoryDump = memoryDumps[pid];
       if (processMemoryDump === undefined ||
           processMemoryDump.heapDumps === undefined) {
         return undefined;

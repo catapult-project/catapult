@@ -17,17 +17,17 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var AlertTrack = tr.ui.tracks.AlertTrack;
-  var SelectionState = tr.model.SelectionState;
-  var Viewport = tr.ui.TimelineViewport;
+  const AlertTrack = tr.ui.tracks.AlertTrack;
+  const SelectionState = tr.model.SelectionState;
+  const Viewport = tr.ui.TimelineViewport;
 
-  var ALERT_INFO_1 = new tr.model.EventInfo(
+  const ALERT_INFO_1 = new tr.model.EventInfo(
     'Alert 1', 'One alert');
-  var ALERT_INFO_2 = new tr.model.EventInfo(
+  const ALERT_INFO_2 = new tr.model.EventInfo(
     'Alert 2', 'Another alert');
 
-  var createAlerts = function() {
-    var alerts = [
+  const createAlerts = function() {
+    const alerts = [
       new tr.model.Alert(ALERT_INFO_1, 5),
       new tr.model.Alert(ALERT_INFO_1, 20),
       new tr.model.Alert(ALERT_INFO_2, 35),
@@ -37,22 +37,22 @@ tr.b.unittest.testSuite(function() {
   };
 
   test('instantiate', function() {
-    var alerts = createAlerts();
+    const alerts = createAlerts();
     alerts[1].selectionState = SelectionState.SELECTED;
 
-    var div = document.createElement('div');
-    var viewport = new Viewport(div);
-    var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
+    const div = document.createElement('div');
+    const viewport = new Viewport(div);
+    const drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
     Polymer.dom(div).appendChild(drawingContainer);
 
-    var track = AlertTrack(viewport);
+    const track = AlertTrack(viewport);
     Polymer.dom(drawingContainer).appendChild(track);
 
     this.addHTMLOutput(div);
     drawingContainer.invalidate();
 
     track.alerts = alerts;
-    var dt = new tr.ui.TimelineDisplayTransform();
+    const dt = new tr.ui.TimelineDisplayTransform();
     dt.xSetWorldBounds(0, 50, track.clientWidth);
     track.viewport.setDisplayTransformImmediately(dt);
 
@@ -61,14 +61,14 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('modelMapping', function() {
-    var alerts = createAlerts();
+    const alerts = createAlerts();
 
-    var div = document.createElement('div');
-    var viewport = new Viewport(div);
-    var track = AlertTrack(viewport);
+    const div = document.createElement('div');
+    const viewport = new Viewport(div);
+    const track = AlertTrack(viewport);
     track.alerts = alerts;
 
-    var a0 = track.items[0].modelItem;
+    const a0 = track.items[0].modelItem;
     assert.strictEqual(a0, alerts[0]);
   });
 });

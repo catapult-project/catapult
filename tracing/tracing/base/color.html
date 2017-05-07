@@ -21,8 +21,8 @@ tr.exportTo('tr.b', function() {
   }
 
   Color.fromString = function(str) {
-    var tmp;
-    var values;
+    let tmp;
+    let values;
     if (str.substr(0, 4) === 'rgb(') {
       tmp = str.substr(4, str.length - 5);
       values = tmp.split(',').map(function(v) {
@@ -93,9 +93,9 @@ tr.exportTo('tr.b', function() {
    * |a| Alpha in [0, 1]
    */
   Color.fromHSLExplicit = function(h, s, l, a) {
-    var r;
-    var g;
-    var b;
+    let r;
+    let g;
+    let b;
     function hue2rgb(p, q, t) {
       if (t < 0) t += 1;
       if (t > 1) t -= 1;
@@ -108,8 +108,8 @@ tr.exportTo('tr.b', function() {
     if (s === 0) {
       r = g = b = l;
     } else {
-      var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-      var p = 2 * l - q;
+      const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+      const p = 2 * l - q;
       r = hue2rgb(p, q, h + 1 / 3);
       g = hue2rgb(p, q, h);
       b = hue2rgb(p, q, h - 1 / 3);
@@ -126,7 +126,7 @@ tr.exportTo('tr.b', function() {
 
   Color.prototype = {
     clone() {
-      var c = new Color();
+      const c = new Color();
       c.r = this.r;
       c.g = this.g;
       c.b = this.b;
@@ -135,9 +135,9 @@ tr.exportTo('tr.b', function() {
     },
 
     blendOver(bgColor) {
-      var oneMinusThisAlpha = 1 - this.a;
-      var outA = this.a + bgColor.a * oneMinusThisAlpha;
-      var bgBlend = (bgColor.a * oneMinusThisAlpha) / bgColor.a;
+      const oneMinusThisAlpha = 1 - this.a;
+      const outA = this.a + bgColor.a * oneMinusThisAlpha;
+      const bgBlend = (bgColor.a * oneMinusThisAlpha) / bgColor.a;
       return new Color(
           this.r * this.a + bgColor.r * bgBlend,
           this.g * this.a + bgColor.g * bgBlend,
@@ -146,8 +146,7 @@ tr.exportTo('tr.b', function() {
     },
 
     brighten(opt_k) {
-      var k;
-      k = opt_k || 0.45;
+      const k = opt_k || 0.45;
 
       return new Color(
           Math.min(255, this.r + Math.floor(this.r * k)),
@@ -157,14 +156,14 @@ tr.exportTo('tr.b', function() {
     },
 
     lighten(k, opt_maxL) {
-      var maxL = opt_maxL !== undefined ? opt_maxL : 1.0;
-      var hsl = this.toHSL();
+      const maxL = opt_maxL !== undefined ? opt_maxL : 1.0;
+      const hsl = this.toHSL();
       hsl.l = Math.min(hsl.l + k, maxL);
       return Color.fromHSL(hsl);
     },
 
     darken(opt_k) {
-      var k;
+      let k;
       if (opt_k !== undefined) {
         k = opt_k;
       } else {
@@ -179,14 +178,14 @@ tr.exportTo('tr.b', function() {
     },
 
     desaturate(opt_desaturateFactor) {
-      var desaturateFactor;
+      let desaturateFactor;
       if (opt_desaturateFactor !== undefined) {
         desaturateFactor = opt_desaturateFactor;
       } else {
         desaturateFactor = 1;
       }
 
-      var hsl = this.toHSL();
+      const hsl = this.toHSL();
       hsl.s = clamp01(hsl.s * (1 - desaturateFactor));
       return Color.fromHSL(hsl);
     },
@@ -212,21 +211,21 @@ tr.exportTo('tr.b', function() {
      * |a| Alpha in [0, 1]
      */
     toHSL() {
-      var r = this.r / 255;
-      var g = this.g / 255;
-      var b = this.b / 255;
+      const r = this.r / 255;
+      const g = this.g / 255;
+      const b = this.b / 255;
 
-      var max = Math.max(r, g, b);
-      var min = Math.min(r, g, b);
+      const max = Math.max(r, g, b);
+      const min = Math.min(r, g, b);
 
-      var h;
-      var s;
-      var l = (max + min) / 2;
+      let h;
+      let s;
+      const l = (max + min) / 2;
       if (min === max) {
         h = 0;
         s = 0;
       } else {
-        var delta = max - min;
+        const delta = max - min;
         if (l > 0.5) {
           s = delta / (2 - max - min);
         } else {

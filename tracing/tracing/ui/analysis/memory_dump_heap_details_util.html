@@ -12,11 +12,11 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.analysis', function() {
-  var LATIN_SMALL_LETTER_F_WITH_HOOK = String.fromCharCode(0x0192);
-  var CIRCLED_LATIN_CAPITAL_LETTER_T = String.fromCharCode(0x24C9);
+  const LATIN_SMALL_LETTER_F_WITH_HOOK = String.fromCharCode(0x0192);
+  const CIRCLED_LATIN_CAPITAL_LETTER_T = String.fromCharCode(0x24C9);
 
   /** @{enum} */
-  var HeapDetailsRowDimension = {
+  const HeapDetailsRowDimension = {
     ROOT: {},
     STACK_FRAME: {
       label: 'Stack frame',
@@ -43,7 +43,7 @@ tr.exportTo('tr.ui.analysis', function() {
         return row.title;
       }
 
-      var symbolEl = document.createElement('span');
+      const symbolEl = document.createElement('span');
       Polymer.dom(symbolEl).textContent = row.dimension.symbol;
       symbolEl.title = row.dimension.label;
       symbolEl.style.color = tr.b.ColorScheme.getColorForReservedNameAsString(
@@ -52,7 +52,7 @@ tr.exportTo('tr.ui.analysis', function() {
       symbolEl.style.cursor = 'help';
       symbolEl.style.fontWeight = 'bold';
 
-      var titleEl = document.createElement('span');
+      const titleEl = document.createElement('span');
       Polymer.dom(titleEl).appendChild(symbolEl);
       Polymer.dom(titleEl).appendChild(document.createTextNode(row.title));
 
@@ -74,7 +74,7 @@ tr.exportTo('tr.ui.analysis', function() {
     }
   };
 
-  var HEAP_DETAILS_COLUMN_RULES = [
+  const HEAP_DETAILS_COLUMN_RULES = [
     {
       condition: 'Size',
       importance: 2,

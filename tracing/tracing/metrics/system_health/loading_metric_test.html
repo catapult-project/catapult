@@ -14,9 +14,9 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('timeToFirstContentfulPaint', function() {
-    var model = tr.c.TestUtils.newModel(function(model) {
-      var rendererProcess = model.getOrCreateProcess(1);
-      var mainThread = rendererProcess.getOrCreateThread(2);
+    const model = tr.c.TestUtils.newModel(function(model) {
+      const rendererProcess = model.getOrCreateProcess(1);
+      const mainThread = rendererProcess.getOrCreateThread(2);
       mainThread.name = 'CrRendererMain';
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing',
@@ -39,17 +39,17 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
     });
-    var histograms = new tr.v.HistogramSet();
+    const histograms = new tr.v.HistogramSet();
     tr.metrics.sh.loadingMetric(histograms, model);
-    var hist = histograms.getHistogramNamed('timeToFirstContentfulPaint');
+    const hist = histograms.getHistogramNamed('timeToFirstContentfulPaint');
     assert.strictEqual(1, hist.running.count);
     assert.strictEqual(800, hist.running.mean);
   });
 
   test('timeToFirstContentfulPaintIgnoringWarmCache', function() {
-    var model = tr.c.TestUtils.newModel(function(model) {
-      var rendererProcess = model.getOrCreateProcess(1);
-      var mainThread = rendererProcess.getOrCreateThread(2);
+    const model = tr.c.TestUtils.newModel(function(model) {
+      const rendererProcess = model.getOrCreateProcess(1);
+      const mainThread = rendererProcess.getOrCreateThread(2);
       mainThread.name = 'CrRendererMain';
 
       // warm cache navigation
@@ -108,17 +108,17 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
     });
-    var histograms = new tr.v.HistogramSet();
+    const histograms = new tr.v.HistogramSet();
     tr.metrics.sh.loadingMetric(histograms, model);
-    var hist = histograms.getHistogramNamed('timeToFirstContentfulPaint');
+    const hist = histograms.getHistogramNamed('timeToFirstContentfulPaint');
     assert.strictEqual(1, hist.running.count);
     assert.strictEqual(400, hist.running.mean);
   });
 
   test('timeToFirstMeaningfulPaint', function() {
-    var model = tr.c.TestUtils.newModel(function(model) {
-      var rendererProcess = model.getOrCreateProcess(1);
-      var mainThread = rendererProcess.getOrCreateThread(2);
+    const model = tr.c.TestUtils.newModel(function(model) {
+      const rendererProcess = model.getOrCreateProcess(1);
+      const mainThread = rendererProcess.getOrCreateThread(2);
       mainThread.name = 'CrRendererMain';
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing',
@@ -148,9 +148,9 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
     });
-    var histograms = new tr.v.HistogramSet();
+    const histograms = new tr.v.HistogramSet();
     tr.metrics.sh.loadingMetric(histograms, model);
-    var hist = histograms.getHistogramNamed('timeToFirstMeaningfulPaint');
+    const hist = histograms.getHistogramNamed('timeToFirstMeaningfulPaint');
     assert.strictEqual(1, hist.running.count);
     assert.strictEqual(800, hist.running.mean);
   });
@@ -163,9 +163,9 @@ tr.b.unittest.testSuite(function() {
   //                        |                       |
   //                       1160                    1480
   test('cpuTimeToFirstMeaningfulPaint_withEmbeddedSlices', function() {
-    var model = tr.c.TestUtils.newModel(function(model) {
-      var rendererProcess = model.getOrCreateProcess(1);
-      var mainThread = rendererProcess.getOrCreateThread(2);
+    const model = tr.c.TestUtils.newModel(function(model) {
+      const rendererProcess = model.getOrCreateProcess(1);
+      const mainThread = rendererProcess.getOrCreateThread(2);
       mainThread.name = 'CrRendererMain';
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing',
@@ -208,11 +208,11 @@ tr.b.unittest.testSuite(function() {
         cpuDuration: 25,
       }));
     });
-    var histograms = new tr.v.HistogramSet();
+    const histograms = new tr.v.HistogramSet();
     tr.metrics.sh.loadingMetric(histograms, model);
-    var hist = histograms.getHistogramNamed('cpuTimeToFirstMeaningfulPaint');
+    const hist = histograms.getHistogramNamed('cpuTimeToFirstMeaningfulPaint');
     assert.deepEqual(hist.sampleValues, [40]);
-    var histBin = hist.getBinForValue(40);
+    const histBin = hist.getBinForValue(40);
     assert.strictEqual(histBin.diagnosticMaps[0]
         .get('Breakdown of [navStart, FMP]').get('other'), 35);
     assert.strictEqual(histBin.diagnosticMaps[0]
@@ -226,9 +226,9 @@ tr.b.unittest.testSuite(function() {
   //                   |                            |
   //                  1160                         1280
   test('cpuTimeToFirstMeaningfulPaint_withIntersectingBoundary', function() {
-    var model = tr.c.TestUtils.newModel(function(model) {
-      var rendererProcess = model.getOrCreateProcess(1);
-      var mainThread = rendererProcess.getOrCreateThread(2);
+    const model = tr.c.TestUtils.newModel(function(model) {
+      const rendererProcess = model.getOrCreateProcess(1);
+      const mainThread = rendererProcess.getOrCreateThread(2);
       mainThread.name = 'CrRendererMain';
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing',
@@ -271,9 +271,9 @@ tr.b.unittest.testSuite(function() {
         cpuDuration: 100,
       }));
     });
-    var histograms = new tr.v.HistogramSet();
+    const histograms = new tr.v.HistogramSet();
     tr.metrics.sh.loadingMetric(histograms, model);
-    var hist = histograms.getHistogramNamed('cpuTimeToFirstMeaningfulPaint');
+    const hist = histograms.getHistogramNamed('cpuTimeToFirstMeaningfulPaint');
     assert.strictEqual(1, hist.running.count);
     assert.strictEqual(110, hist.running.mean);
   });
@@ -296,9 +296,9 @@ tr.b.unittest.testSuite(function() {
   //                |                            |
   //               1160                         1280
   test('cpuTimeToFirstMeaningfulPaint_multipleRenderers', function() {
-    var model = tr.c.TestUtils.newModel(function(model) {
-      var rendererProcess1 = model.getOrCreateProcess(1);
-      var mainThread = rendererProcess1.getOrCreateThread(2);
+    const model = tr.c.TestUtils.newModel(function(model) {
+      const rendererProcess1 = model.getOrCreateProcess(1);
+      let mainThread = rendererProcess1.getOrCreateThread(2);
       mainThread.name = 'CrRendererMain';
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing',
@@ -333,7 +333,7 @@ tr.b.unittest.testSuite(function() {
         cpuDuration: 50
       }));
 
-      var rendererProcess2 = model.getOrCreateProcess(2);
+      const rendererProcess2 = model.getOrCreateProcess(2);
       mainThread = rendererProcess2.getOrCreateThread(2);
       mainThread.name = 'CrRendererMain';
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
@@ -369,14 +369,14 @@ tr.b.unittest.testSuite(function() {
         cpuDuration: 100,
       }));
     });
-    var histograms = new tr.v.HistogramSet();
+    const histograms = new tr.v.HistogramSet();
     tr.metrics.sh.loadingMetric(histograms, model);
-    var hist = histograms.getHistogramNamed('cpuTimeToFirstMeaningfulPaint');
+    const hist = histograms.getHistogramNamed('cpuTimeToFirstMeaningfulPaint');
     assert.deepEqual(hist.sampleValues, [50, 100]);
-    var histBin1 = hist.getBinForValue(50);
+    const histBin1 = hist.getBinForValue(50);
     assert.strictEqual(histBin1.diagnosticMaps[0]
         .get('Breakdown of [navStart, FMP]').get('resource_loading'), 50);
-    var histBin2 = hist.getBinForValue(100);
+    const histBin2 = hist.getBinForValue(100);
     assert.strictEqual(histBin2.diagnosticMaps[0]
         .get('Breakdown of [navStart, FMP]').get('other'), 100);
   });
@@ -390,9 +390,9 @@ tr.b.unittest.testSuite(function() {
     // v                            v                          v
     // First navigation             FMP                        TTI
     // 200                          9200                      15400
-    var model = tr.c.TestUtils.newModel(function(model) {
-      var rendererProcess = model.getOrCreateProcess(1984);
-      var mainThread = rendererProcess.getOrCreateThread(2);
+    const model = tr.c.TestUtils.newModel(function(model) {
+      const rendererProcess = model.getOrCreateProcess(1984);
+      const mainThread = rendererProcess.getOrCreateThread(2);
       mainThread.name = 'CrRendererMain';
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing',
@@ -459,14 +459,14 @@ tr.b.unittest.testSuite(function() {
         duration: 10,
       }));
     });
-    var histograms = new tr.v.HistogramSet();
+    const histograms = new tr.v.HistogramSet();
     tr.metrics.sh.loadingMetric(histograms, model);
-    var hist = histograms.getHistogramNamed('timeToFirstInteractive');
+    const hist = histograms.getHistogramNamed('timeToFirstInteractive');
     assert.strictEqual(1, hist.running.count);
     assert.strictEqual(15200, hist.running.mean);
-    var binsWithSampleDiagnosticMaps = hist.allBins.filter(
+    const binsWithSampleDiagnosticMaps = hist.allBins.filter(
         bin => bin.diagnosticMaps.length > 0);
-    var diagnostic = binsWithSampleDiagnosticMaps[0].diagnosticMaps[0].get(
+    const diagnostic = binsWithSampleDiagnosticMaps[0].diagnosticMaps[0].get(
         'Navigation infos');
     assert.strictEqual(diagnostic.value.start, 200);
     assert.strictEqual(diagnostic.value.interactive, 15400);
@@ -482,9 +482,9 @@ tr.b.unittest.testSuite(function() {
     // v                   v                    v        v           v
     // 1st navigation   1st FMP              2nd nav   1st TTI   2nd FMP & TTI
     // 200                9200                12000     14500        16000
-    var model = tr.c.TestUtils.newModel(function(model) {
-      var rendererProcess = model.getOrCreateProcess(1984);
-      var mainThread = rendererProcess.getOrCreateThread(2);
+    const model = tr.c.TestUtils.newModel(function(model) {
+      const rendererProcess = model.getOrCreateProcess(1984);
+      const mainThread = rendererProcess.getOrCreateThread(2);
       mainThread.name = 'CrRendererMain';
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing',
@@ -566,18 +566,18 @@ tr.b.unittest.testSuite(function() {
         duration: 10,
       }));
     });
-    var histograms = new tr.v.HistogramSet();
+    const histograms = new tr.v.HistogramSet();
     tr.metrics.sh.loadingMetric(histograms, model);
-    var hist = histograms.getHistogramNamed('timeToFirstInteractive');
+    const hist = histograms.getHistogramNamed('timeToFirstInteractive');
     assert.strictEqual(2, hist.running.count);
     assert.strictEqual(4000, hist.running.min);
     assert.strictEqual(15200, hist.running.max);
   });
 
   test('webView', function() {
-    var model = tr.c.TestUtils.newModel(function(model) {
-      var process = model.getOrCreateProcess(1);
-      var rendererThread = process.getOrCreateThread(2);
+    const model = tr.c.TestUtils.newModel(function(model) {
+      const process = model.getOrCreateProcess(1);
+      const rendererThread = process.getOrCreateThread(2);
       rendererThread.name = 'Chrome_InProcRendererThread';
       rendererThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing',
@@ -608,15 +608,15 @@ tr.b.unittest.testSuite(function() {
       }));
       // This lets ChromeModelHelper recognize this process as a renderer
       // process.
-      var compositorThread = process.getOrCreateThread(3);
+      const compositorThread = process.getOrCreateThread(3);
       compositorThread.name = 'Compositor';
     });
-    var histograms = new tr.v.HistogramSet();
+    const histograms = new tr.v.HistogramSet();
     tr.metrics.sh.loadingMetric(histograms, model);
-    var fcp = histograms.getHistogramNamed('timeToFirstContentfulPaint');
+    const fcp = histograms.getHistogramNamed('timeToFirstContentfulPaint');
     assert.strictEqual(1, fcp.running.count);
     assert.strictEqual(400, fcp.running.mean);
-    var fmp = histograms.getHistogramNamed('timeToFirstMeaningfulPaint');
+    const fmp = histograms.getHistogramNamed('timeToFirstMeaningfulPaint');
     assert.strictEqual(1, fmp.running.count);
     assert.strictEqual(800, fmp.running.mean);
   });

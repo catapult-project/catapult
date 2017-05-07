@@ -13,7 +13,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('resegment', function() {
-    var userModel = new tr.model.um.UserModel(undefined);
+    const userModel = new tr.model.um.UserModel(undefined);
     userModel.segments.push(new tr.model.um.Segment(0, 1));
     userModel.segments.push(new tr.model.um.Segment(1, 1));
     userModel.segments.push(new tr.model.um.Segment(2, 1));
@@ -24,7 +24,7 @@ tr.b.unittest.testSuite(function() {
     userModel.segments[2].expectations.push('c');
     userModel.segments[3].expectations.push('d');
 
-    var newSegments = userModel.resegment(
+    const newSegments = userModel.resegment(
         (segment, index) => Math.floor(index / 2));
 
     assert.lengthOf(newSegments, 2);

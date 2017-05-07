@@ -15,7 +15,7 @@ found in the LICENSE file.
  * @fileoverview Provides the CpuSlice class.
  */
 tr.exportTo('tr.model', function() {
-  var Slice = tr.model.Slice;
+  const Slice = tr.model.Slice;
 
   /**
    * A CpuSlice represents a slice of time on a CPU.
@@ -39,9 +39,9 @@ tr.exportTo('tr.model', function() {
       if (!this.threadThatWasRunning) {
         return undefined;
       }
-      var timeSlices = this.threadThatWasRunning.timeSlices;
-      for (var i = 0; i < timeSlices.length; i++) {
-        var timeSlice = timeSlices[i];
+      const timeSlices = this.threadThatWasRunning.timeSlices;
+      for (let i = 0; i < timeSlices.length; i++) {
+        const timeSlice = timeSlices[i];
         if (timeSlice.start !== this.start) {
           continue;
         }

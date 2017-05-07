@@ -14,32 +14,32 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   function addDumpWithAllocator(model, process, allocator, start) {
-    var gmd = tr.model.MemoryDumpTestUtils.addGlobalMemoryDump(
+    const gmd = tr.model.MemoryDumpTestUtils.addGlobalMemoryDump(
         model, {ts: start});
-    var pmd = tr.model.MemoryDumpTestUtils.addProcessMemoryDump(gmd, process);
+    const pmd = tr.model.MemoryDumpTestUtils.addProcessMemoryDump(gmd, process);
     pmd.memoryAllocatorDumps =
         [tr.model.MemoryDumpTestUtils.newAllocatorDump(pmd, allocator)];
   }
 
   test('rangeForMemoryDumps', function() {
-    var model = tr.c.TestUtils.newModel(function(model) {
-      var process = model.getOrCreateProcess(1);
+    const model = tr.c.TestUtils.newModel(function(model) {
+      const process = model.getOrCreateProcess(1);
       addDumpWithAllocator(model, process, 'dummy', 10);
       addDumpWithAllocator(model, process, 'v8', 20);
     });
-    var range = tr.metrics.v8.utils.rangeForMemoryDumps(model);
+    const range = tr.metrics.v8.utils.rangeForMemoryDumps(model);
     assert.isFalse(range.isEmpty);
     assert.strictEqual(range.min, 20);
     assert.strictEqual(range.max, Infinity);
   });
 
   test('rangeForMemoryDumpsEmpty', function() {
-    var model = tr.c.TestUtils.newModel(function(model) {
-      var process = model.getOrCreateProcess(1);
+    const model = tr.c.TestUtils.newModel(function(model) {
+      const process = model.getOrCreateProcess(1);
       addDumpWithAllocator(model, process, 'dummy', 10);
       addDumpWithAllocator(model, process, 'dummy', 20);
     });
-    var range = tr.metrics.v8.utils.rangeForMemoryDumps(model);
+    const range = tr.metrics.v8.utils.rangeForMemoryDumps(model);
     assert.isTrue(range.isEmpty);
   });
 });

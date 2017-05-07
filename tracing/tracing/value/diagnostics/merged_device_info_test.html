@@ -15,13 +15,13 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('merge', function() {
-    let deviceA = new tr.v.d.DeviceInfo({
+    const deviceA = new tr.v.d.DeviceInfo({
       chromeVersion: '1.2.3.4',
       osName: 'GNU/Linux',
       osVersion: '1.2',
     });
 
-    let deviceB = new tr.v.d.DeviceInfo({
+    const deviceB = new tr.v.d.DeviceInfo({
       chromeVersion: '2.3.4.5',
       osName: 'GNU/Linux',
       osVersion: '2.3',
@@ -31,7 +31,7 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(deviceA.canAddDiagnostic(deviceB));
     assert.isFalse(deviceB.canAddDiagnostic(deviceA));
 
-    let merged = new tr.v.d.MergedDeviceInfo();
+    const merged = new tr.v.d.MergedDeviceInfo();
 
     assert.isFalse(merged.canAddDiagnostic(new tr.v.d.Generic('')));
     assert.isTrue(merged.canAddDiagnostic(deviceA));
@@ -40,7 +40,7 @@ tr.b.unittest.testSuite(function() {
     merged.addDiagnostic(deviceA);
     merged.addDiagnostic(deviceB);
 
-    let clone = tr.v.d.Diagnostic.fromDict(merged.asDict());
+    const clone = tr.v.d.Diagnostic.fromDict(merged.asDict());
 
     assert.deepEqual(Array.from(clone.chromeVersions), ['1.2.3.4', '2.3.4.5']);
     assert.strictEqual(tr.b.getOnlyElement(clone.osNames), 'GNU/Linux');

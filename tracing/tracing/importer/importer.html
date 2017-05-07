@@ -64,13 +64,13 @@ tr.exportTo('tr.importer', function() {
   };
 
 
-  var options = new tr.b.ExtensionRegistryOptions(tr.b.BASIC_REGISTRY_MODE);
+  const options = new tr.b.ExtensionRegistryOptions(tr.b.BASIC_REGISTRY_MODE);
   options.defaultMetadata = {};
   options.mandatoryBaseClass = Importer;
   tr.b.decorateExtensionRegistry(Importer, options);
 
   Importer.findImporterFor = function(eventData) {
-    var typeInfo = Importer.findTypeInfoMatching(function(ti) {
+    const typeInfo = Importer.findTypeInfoMatching(function(ti) {
       return ti.constructor.canImport(eventData);
     });
     if (typeInfo) {

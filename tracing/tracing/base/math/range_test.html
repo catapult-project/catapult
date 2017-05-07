@@ -11,10 +11,10 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var Range = tr.b.math.Range;
+  const Range = tr.b.math.Range;
 
   test('addValue', function() {
-    var range = new Range();
+    const range = new Range();
     assert.isTrue(range.isEmpty);
     range.addValue(1);
     assert.isFalse(range.isEmpty);
@@ -28,42 +28,42 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('addNonEmptyRange', function() {
-    var r1 = new Range();
+    const r1 = new Range();
     r1.addValue(1);
     r1.addValue(2);
 
-    var r = new Range();
+    const r = new Range();
     r.addRange(r1);
     assert.strictEqual(1, r.min);
     assert.strictEqual(2, r.max);
 
-    var r2 = Range.fromDict(r.toJSON());
+    const r2 = Range.fromDict(r.toJSON());
     assert.strictEqual(r2.isEmpty, r.isEmpty);
     assert.strictEqual(r2.max, r.max);
     assert.strictEqual(r2.min, r.min);
   });
 
   test('addEmptyRange', function() {
-    var r1 = new Range();
+    const r1 = new Range();
 
-    var r = new Range();
+    const r = new Range();
     r.addRange(r1);
     assert.isTrue(r.isEmpty);
     assert.isUndefined(r.min);
     assert.isUndefined(r.max);
 
-    var r2 = Range.fromDict(r.toJSON());
+    const r2 = Range.fromDict(r.toJSON());
     assert.strictEqual(r2.isEmpty, r.isEmpty);
     assert.isUndefined(r2.max);
     assert.isUndefined(r2.min);
   });
 
   test('addRangeToRange', function() {
-    var r1 = new Range();
+    const r1 = new Range();
     r1.addValue(1);
     r1.addValue(2);
 
-    var r = new Range();
+    const r = new Range();
     r.addValue(3);
     r.addRange(r1);
 
@@ -73,8 +73,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('containsRange', function() {
-    var r1 = Range.fromExplicitRange(0, 3);
-    var r2 = Range.fromExplicitRange(1, 2);
+    const r1 = Range.fromExplicitRange(0, 3);
+    const r2 = Range.fromExplicitRange(1, 2);
 
     assert.isTrue(r1.containsRangeInclusive(r2));
     assert.isFalse(r2.containsRangeInclusive(r1));
@@ -83,8 +83,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('containsRange_emptyRange', function() {
-    var r1 = Range.fromExplicitRange(0, 3);
-    var r2 = new Range();
+    const r1 = Range.fromExplicitRange(0, 3);
+    const r2 = new Range();
 
     assert.isFalse(r1.containsRangeInclusive(r2));
     assert.isFalse(r2.containsRangeInclusive(r1));
@@ -93,8 +93,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('containsRange_overlapping', function() {
-    var r1 = Range.fromExplicitRange(0, 3);
-    var r2 = Range.fromExplicitRange(2, 4);
+    const r1 = Range.fromExplicitRange(0, 3);
+    const r2 = Range.fromExplicitRange(2, 4);
 
     assert.isFalse(r1.containsRangeInclusive(r2));
     assert.isFalse(r2.containsRangeInclusive(r1));
@@ -103,8 +103,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('containsRange_disjoint', function() {
-    var r1 = Range.fromExplicitRange(0, 2);
-    var r2 = Range.fromExplicitRange(3, 5);
+    const r1 = Range.fromExplicitRange(0, 2);
+    const r2 = Range.fromExplicitRange(3, 5);
 
     assert.isFalse(r1.containsRangeInclusive(r2));
     assert.isFalse(r2.containsRangeInclusive(r1));
@@ -113,8 +113,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('containsRange_singlePointRange', function() {
-    var r1 = Range.fromExplicitRange(0, 2);
-    var r2 = Range.fromExplicitRange(1, 1);
+    const r1 = Range.fromExplicitRange(0, 2);
+    const r2 = Range.fromExplicitRange(1, 1);
 
     assert.isTrue(r1.containsRangeInclusive(r2));
     assert.isFalse(r2.containsRangeInclusive(r1));
@@ -123,8 +123,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('containsRange_singlePointRangeAtBorder', function() {
-    var r1 = Range.fromExplicitRange(0, 2);
-    var r2 = Range.fromExplicitRange(2, 2);
+    const r1 = Range.fromExplicitRange(0, 2);
+    const r2 = Range.fromExplicitRange(2, 2);
 
     assert.isTrue(r1.containsRangeInclusive(r2));
     assert.isFalse(r2.containsRangeInclusive(r1));
@@ -133,8 +133,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('containsExplicitRange', function() {
-    var r1 = Range.fromExplicitRange(0, 3);
-    var r2 = Range.fromExplicitRange(1, 2);
+    const r1 = Range.fromExplicitRange(0, 3);
+    const r2 = Range.fromExplicitRange(1, 2);
 
     assert.isTrue(r1.containsExplicitRangeInclusive(1, 2));
     assert.isFalse(r2.containsExplicitRangeInclusive(0, 3));
@@ -143,8 +143,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('containsExplicitRange_overlapping', function() {
-    var r1 = Range.fromExplicitRange(0, 3);
-    var r2 = Range.fromExplicitRange(2, 4);
+    const r1 = Range.fromExplicitRange(0, 3);
+    const r2 = Range.fromExplicitRange(2, 4);
 
     assert.isFalse(r1.containsExplicitRangeInclusive(2, 4));
     assert.isFalse(r2.containsExplicitRangeInclusive(0, 3));
@@ -153,8 +153,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('containsExplicitRange_disjoint', function() {
-    var r1 = Range.fromExplicitRange(0, 2);
-    var r2 = Range.fromExplicitRange(3, 5);
+    const r1 = Range.fromExplicitRange(0, 2);
+    const r2 = Range.fromExplicitRange(3, 5);
 
     assert.isFalse(r1.containsExplicitRangeInclusive(3, 5));
     assert.isFalse(r2.containsExplicitRangeInclusive(0, 2));
@@ -163,8 +163,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('containsExplicitRange_singlePointRange', function() {
-    var r1 = Range.fromExplicitRange(0, 2);
-    var r2 = Range.fromExplicitRange(1, 1);
+    const r1 = Range.fromExplicitRange(0, 2);
+    const r2 = Range.fromExplicitRange(1, 1);
 
     assert.isTrue(r1.containsExplicitRangeInclusive(1, 1));
     assert.isFalse(r2.containsExplicitRangeInclusive(0, 2));
@@ -173,8 +173,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('containsExplicitRange_singlePointRangeAtBorder', function() {
-    var r1 = Range.fromExplicitRange(0, 2);
-    var r2 = Range.fromExplicitRange(2, 2);
+    const r1 = Range.fromExplicitRange(0, 2);
+    const r2 = Range.fromExplicitRange(2, 2);
 
     assert.isTrue(r1.containsExplicitRangeInclusive(2, 2));
     assert.isFalse(r2.containsExplicitRangeInclusive(0, 2));
@@ -183,8 +183,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('intersectsRange', function() {
-    var r1 = Range.fromExplicitRange(0, 3);
-    var r2 = Range.fromExplicitRange(1, 2);
+    const r1 = Range.fromExplicitRange(0, 3);
+    const r2 = Range.fromExplicitRange(1, 2);
 
     assert.isTrue(r1.intersectsRangeInclusive(r2));
     assert.isTrue(r2.intersectsRangeInclusive(r1));
@@ -193,8 +193,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('intersectsRange_emptyRange', function() {
-    var r1 = Range.fromExplicitRange(0, 3);
-    var r2 = new Range();
+    const r1 = Range.fromExplicitRange(0, 3);
+    const r2 = new Range();
 
     assert.isFalse(r1.intersectsRangeInclusive(r2));
     assert.isFalse(r2.intersectsRangeInclusive(r1));
@@ -203,8 +203,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('intersectsRange_overlapping', function() {
-    var r1 = Range.fromExplicitRange(0, 3);
-    var r2 = Range.fromExplicitRange(2, 4);
+    const r1 = Range.fromExplicitRange(0, 3);
+    const r2 = Range.fromExplicitRange(2, 4);
 
     assert.isTrue(r1.intersectsRangeInclusive(r2));
     assert.isTrue(r2.intersectsRangeInclusive(r1));
@@ -213,8 +213,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('intersectsRange_disjoint', function() {
-    var r1 = Range.fromExplicitRange(0, 2);
-    var r2 = Range.fromExplicitRange(3, 5);
+    const r1 = Range.fromExplicitRange(0, 2);
+    const r2 = Range.fromExplicitRange(3, 5);
 
     assert.isFalse(r1.intersectsRangeInclusive(r2));
     assert.isFalse(r2.intersectsRangeInclusive(r1));
@@ -223,8 +223,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('intersectsRange_singlePointRange', function() {
-    var r1 = Range.fromExplicitRange(0, 2);
-    var r2 = Range.fromExplicitRange(1, 1);
+    const r1 = Range.fromExplicitRange(0, 2);
+    const r2 = Range.fromExplicitRange(1, 1);
 
     assert.isTrue(r1.intersectsRangeInclusive(r2));
     assert.isTrue(r2.intersectsRangeInclusive(r1));
@@ -233,8 +233,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('intersectsRange_singlePointRangeAtBorder', function() {
-    var r1 = Range.fromExplicitRange(0, 2);
-    var r2 = Range.fromExplicitRange(2, 2);
+    const r1 = Range.fromExplicitRange(0, 2);
+    const r2 = Range.fromExplicitRange(2, 2);
 
     assert.isTrue(r1.intersectsRangeInclusive(r2));
     assert.isTrue(r2.intersectsRangeInclusive(r1));
@@ -243,8 +243,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('intersectsExplicitRange', function() {
-    var r1 = Range.fromExplicitRange(0, 3);
-    var r2 = Range.fromExplicitRange(1, 2);
+    const r1 = Range.fromExplicitRange(0, 3);
+    const r2 = Range.fromExplicitRange(1, 2);
 
     assert.isTrue(r1.intersectsExplicitRangeInclusive(1, 2));
     assert.isTrue(r2.intersectsExplicitRangeInclusive(0, 3));
@@ -253,8 +253,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('intersectsExplicitRange_overlapping', function() {
-    var r1 = Range.fromExplicitRange(0, 3);
-    var r2 = Range.fromExplicitRange(2, 4);
+    const r1 = Range.fromExplicitRange(0, 3);
+    const r2 = Range.fromExplicitRange(2, 4);
 
     assert.isTrue(r1.intersectsExplicitRangeInclusive(2, 4));
     assert.isTrue(r2.intersectsExplicitRangeInclusive(0, 3));
@@ -263,8 +263,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('intersectsExplicitRange_disjoint', function() {
-    var r1 = Range.fromExplicitRange(0, 2);
-    var r2 = Range.fromExplicitRange(3, 5);
+    const r1 = Range.fromExplicitRange(0, 2);
+    const r2 = Range.fromExplicitRange(3, 5);
 
     assert.isFalse(r1.intersectsExplicitRangeInclusive(3, 5));
     assert.isFalse(r2.intersectsExplicitRangeInclusive(0, 2));
@@ -273,8 +273,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('intersectsExplicitRange_singlePointRange', function() {
-    var r1 = Range.fromExplicitRange(0, 2);
-    var r2 = Range.fromExplicitRange(1, 1);
+    const r1 = Range.fromExplicitRange(0, 2);
+    const r2 = Range.fromExplicitRange(1, 1);
 
     assert.isTrue(r1.intersectsExplicitRangeInclusive(1, 1));
     assert.isTrue(r2.intersectsExplicitRangeInclusive(0, 2));
@@ -283,8 +283,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('intersectsExplicitRange_singlePointRangeAtBorder', function() {
-    var r1 = Range.fromExplicitRange(0, 2);
-    var r2 = Range.fromExplicitRange(2, 2);
+    const r1 = Range.fromExplicitRange(0, 2);
+    const r2 = Range.fromExplicitRange(2, 2);
 
     assert.isTrue(r1.intersectsExplicitRangeInclusive(2, 2));
     assert.isTrue(r2.intersectsExplicitRangeInclusive(0, 2));
@@ -305,70 +305,70 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('findIntersection_overlapping', function() {
-    var r1 = Range.fromExplicitRange(0, 2);
-    var r2 = Range.fromExplicitRange(1, 3);
+    const r1 = Range.fromExplicitRange(0, 2);
+    const r2 = Range.fromExplicitRange(1, 3);
 
-    var result = Range.fromExplicitRange(1, 2);
+    const result = Range.fromExplicitRange(1, 2);
     assert.deepEqual(r1.findIntersection(r2), result);
     assert.deepEqual(r2.findIntersection(r1), result);
   });
 
   test('findIntersection_bordering', function() {
-    var r1 = Range.fromExplicitRange(0, 2);
-    var r2 = Range.fromExplicitRange(2, 4);
+    const r1 = Range.fromExplicitRange(0, 2);
+    const r2 = Range.fromExplicitRange(2, 4);
 
-    var result = Range.fromExplicitRange(2, 2);
+    const result = Range.fromExplicitRange(2, 2);
     assert.deepEqual(r1.findIntersection(r2), result);
     assert.deepEqual(r2.findIntersection(r1), result);
   });
 
   test('findIntersection_singlePointRange', function() {
-    var r1 = Range.fromExplicitRange(0, 2);
-    var r2 = Range.fromExplicitRange(2, 2);
+    const r1 = Range.fromExplicitRange(0, 2);
+    const r2 = Range.fromExplicitRange(2, 2);
 
-    var result = Range.fromExplicitRange(2, 2);
+    const result = Range.fromExplicitRange(2, 2);
     assert.deepEqual(r1.findIntersection(r2), result);
     assert.deepEqual(r2.findIntersection(r1), result);
   });
 
   test('findIntersection_disjoint', function() {
-    var r1 = Range.fromExplicitRange(0, 2);
-    var r2 = Range.fromExplicitRange(3, 5);
+    const r1 = Range.fromExplicitRange(0, 2);
+    const r2 = Range.fromExplicitRange(3, 5);
 
     assert.isTrue(r1.findIntersection(r2).isEmpty);
     assert.isTrue(r2.findIntersection(r1).isEmpty);
   });
 
   test('findIntersection_emptyRange', function() {
-    var r1 = Range.fromExplicitRange(0, 2);
-    var r2 = new Range();
+    const r1 = Range.fromExplicitRange(0, 2);
+    const r2 = new Range();
 
     assert.isTrue(r1.findIntersection(r2).isEmpty);
     assert.isTrue(r2.findIntersection(r1).isEmpty);
   });
 
   test('findExplicitIntersectionDuration_overlapping', function() {
-    var r = Range.fromExplicitRange(2, 4);
+    const r = Range.fromExplicitRange(2, 4);
     assert.strictEqual(1, r.findExplicitIntersectionDuration(1, 3));
     assert.strictEqual(1, r.findExplicitIntersectionDuration(3, 5));
     assert.strictEqual(2, r.findExplicitIntersectionDuration(0, 5));
   });
 
   test('findExplicitIntersectionDuration_invalidOtherRange', function() {
-    var r = Range.fromExplicitRange(2, 4);
+    const r = Range.fromExplicitRange(2, 4);
     assert.strictEqual(0, r.findExplicitIntersectionDuration(3, 1));
     assert.strictEqual(0, r.findExplicitIntersectionDuration(5, 3));
   });
 
   test('findExplicitIntersectionDuration_disjoint', function() {
-    var r = Range.fromExplicitRange(2, 4);
+    const r = Range.fromExplicitRange(2, 4);
     assert.strictEqual(0, r.findExplicitIntersectionDuration(0, 1));
     assert.strictEqual(0, r.findExplicitIntersectionDuration(4.5, 5));
   });
 
   test('filter_numericField', function() {
-    var r = Range.fromExplicitRange(2, 3);
-    var array = [{start: 1},
+    const r = Range.fromExplicitRange(2, 3);
+    const array = [{start: 1},
                  {start: 2},
                  {start: 3},
                  {start: 4}];
@@ -377,24 +377,24 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('filter_noNumericField', function() {
-    var r = Range.fromExplicitRange(2, 3);
+    const r = Range.fromExplicitRange(2, 3);
     assert.deepEqual([2, 3], r.filterArray([1, 2, 3, 4]));
   });
 
   test('filter_empty', function() {
-    var r = new Range();
+    const r = new Range();
     assert.deepEqual([], r.filterArray([1, 2, 3, 4]));
   });
 
   test('filter_oneSided', function() {
-    var r = new Range();
+    const r = new Range();
     r.min = 2;
     assert.deepEqual([2, 3, 4], r.filterArray([1, 2, 3, 4]));
   });
 
   test('left_boundary_corner_case1', function() {
-    var r = Range.fromExplicitRange(1, 2);
-    var array = [{start: 1},
+    const r = Range.fromExplicitRange(1, 2);
+    const array = [{start: 1},
                  {start: 2},
                  {start: 3},
                  {start: 4}];
@@ -403,8 +403,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('left_boundary_corner_case2', function() {
-    var r = Range.fromExplicitRange(0, 2);
-    var array = [{start: 1},
+    const r = Range.fromExplicitRange(0, 2);
+    const array = [{start: 1},
                  {start: 2},
                  {start: 3},
                  {start: 4}];
@@ -413,8 +413,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('left_boundary_corner_case3', function() {
-    var r = Range.fromExplicitRange(1, 1);
-    var array = [{start: 1},
+    const r = Range.fromExplicitRange(1, 1);
+    const array = [{start: 1},
                  {start: 2},
                  {start: 3},
                  {start: 4}];
@@ -423,8 +423,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('left_boundary_corner_case4', function() {
-    var r = Range.fromExplicitRange(0, 0);
-    var array = [{start: 1},
+    const r = Range.fromExplicitRange(0, 0);
+    const array = [{start: 1},
                  {start: 2},
                  {start: 3},
                  {start: 4}];
@@ -433,8 +433,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('right_boundary_corner_case1', function() {
-    var r = Range.fromExplicitRange(4, 5);
-    var array = [{start: 1},
+    const r = Range.fromExplicitRange(4, 5);
+    const array = [{start: 1},
                  {start: 2},
                  {start: 3},
                  {start: 4}];
@@ -443,8 +443,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('right_boundary_corner_case2', function() {
-    var r = Range.fromExplicitRange(4, 4);
-    var array = [{start: 1},
+    const r = Range.fromExplicitRange(4, 4);
+    const array = [{start: 1},
                  {start: 2},
                  {start: 3},
                  {start: 4}];
@@ -453,8 +453,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('right_boundary_corner_case3', function() {
-    var r = Range.fromExplicitRange(5, 5);
-    var array = [{start: 1},
+    const r = Range.fromExplicitRange(5, 5);
+    const array = [{start: 1},
                  {start: 2},
                  {start: 3},
                  {start: 4}];

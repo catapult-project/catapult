@@ -13,8 +13,8 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var TestUtils = tr.c.TestUtils;
-  var CompoundEventSelectionState = tr.model.CompoundEventSelectionState;
+  const TestUtils = tr.c.TestUtils;
+  const CompoundEventSelectionState = tr.model.CompoundEventSelectionState;
 
   function createModel(opt_customizeModelCallback) {
     return TestUtils.newModel(function(model) {
@@ -45,18 +45,18 @@ tr.b.unittest.testSuite(function() {
     });
   }
   test('notSelected', function() {
-    var model = createModel();
+    const model = createModel();
 
-    var sel = new tr.model.EventSet();
+    const sel = new tr.model.EventSet();
 
     assert.strictEqual(CompoundEventSelectionState.NOT_SELECTED,
         model.ir1.computeCompoundEvenSelectionState(sel));
   });
 
   test('directSelected', function() {
-    var model = createModel();
+    const model = createModel();
 
-    var sel = new tr.model.EventSet();
+    const sel = new tr.model.EventSet();
     sel.push(model.ir1);
 
     assert.strictEqual(CompoundEventSelectionState.EVENT_SELECTED,
@@ -64,9 +64,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('directAndSomeAssociatedSelected', function() {
-    var model = createModel();
+    const model = createModel();
 
-    var sel = new tr.model.EventSet();
+    const sel = new tr.model.EventSet();
     sel.push(model.ir1);
     sel.push(model.s1);
 
@@ -76,9 +76,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('allAssociatedEventsSelected', function() {
-    var model = createModel();
+    const model = createModel();
 
-    var sel = new tr.model.EventSet();
+    const sel = new tr.model.EventSet();
     sel.push(model.s1);
     sel.push(model.s2);
 
@@ -88,9 +88,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('directAndAllAssociated', function() {
-    var model = createModel();
+    const model = createModel();
 
-    var sel = new tr.model.EventSet();
+    const sel = new tr.model.EventSet();
     sel.push(model.ir1);
     sel.push(model.s1);
     sel.push(model.s2);
@@ -101,11 +101,11 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('stableId', function() {
-    var model = TestUtils.newModel();
+    const model = TestUtils.newModel();
 
-    var ir1 = TestUtils.newInteractionRecord(model, 0, 10);
-    var ir2 = TestUtils.newInteractionRecord(model, 10, 10);
-    var ir3 = TestUtils.newInteractionRecord(model, 20, 10);
+    const ir1 = TestUtils.newInteractionRecord(model, 0, 10);
+    const ir2 = TestUtils.newInteractionRecord(model, 10, 10);
+    const ir3 = TestUtils.newInteractionRecord(model, 20, 10);
 
     assert.strictEqual('UserExpectation.' + ir1.guid, ir1.stableId);
     assert.strictEqual('UserExpectation.' + ir2.guid, ir2.stableId);

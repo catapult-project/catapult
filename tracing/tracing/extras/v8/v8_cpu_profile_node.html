@@ -14,7 +14,7 @@ found in the LICENSE file.
  * @fileoverview Provides the V8CpuProfileNode class.
  */
 tr.exportTo('tr.e.v8', function() {
-  var ProfileNode = tr.model.ProfileNode;
+  const ProfileNode = tr.model.ProfileNode;
   /**
    * A V8CpuProfileNode represents a node in the v8 cpu profile tree,
    * it is essentially a frame in the stack when the sample gets recorded.
@@ -23,9 +23,8 @@ tr.exportTo('tr.e.v8', function() {
     ProfileNode.call(this, id, callFrame.functionName, parentNode);
     this.callFrame_ = tr.b.deepCopy(callFrame);
     this.deoptReason_ = '';
-    this.colorId_ =
-      tr.b.ColorScheme.getColorIdForGeneralPurposeString(
-          callFrame.functionName);
+    this.colorId_ = tr.b.ColorScheme.getColorIdForGeneralPurposeString(
+        callFrame.functionName);
   }
 
   V8CpuProfileNode.prototype = {
@@ -43,7 +42,7 @@ tr.exportTo('tr.e.v8', function() {
       if (!this.callFrame_.url) {
         return 'unknown';
       }
-      var url = this.callFrame_.url;
+      let url = this.callFrame_.url;
       if (this.callFrame_.lineNumber === undefined) {
         return url;
       }
@@ -64,7 +63,7 @@ tr.exportTo('tr.e.v8', function() {
     },
 
     get userFriendlyName() {
-      let name = this.functionName + ' url: ' + this.url;
+      const name = this.functionName + ' url: ' + this.url;
       return !this.deoptReason_ ?
         name : name + ' Deoptimized reason: ' + this.deoptReason_;
     },
@@ -75,15 +74,15 @@ tr.exportTo('tr.e.v8', function() {
   };
 
   V8CpuProfileNode.constructFromObject = function(profileTree, node) {
-    let nodeId = node.id;
+    const nodeId = node.id;
     if (nodeId === 1) {
       // Ignore fake root.
       // The node with id 1 is a fake root for the profile tree,
       // since we are using map, we don't really need it.
       return undefined;
     }
-    var parentNode = profileTree.getNode(node.parent);
-    var profileNode = new V8CpuProfileNode(nodeId, node.callFrame,
+    const parentNode = profileTree.getNode(node.parent);
+    const profileNode = new V8CpuProfileNode(nodeId, node.callFrame,
                                            parentNode);
     if (node.deoptReason !== undefined) {
       profileNode.deoptReason = node.deoptReason;

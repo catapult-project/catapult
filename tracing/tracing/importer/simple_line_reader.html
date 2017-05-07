@@ -25,7 +25,7 @@ tr.exportTo('tr.importer', function() {
           this.readLastLine_ = false;
         } else if (this.data_ instanceof tr.b.TraceStream) {
           this.curLine_++;
-          let line = this.data_.readUntilDelimiter('\n');
+          const line = this.data_.readUntilDelimiter('\n');
           lastLine = line.endsWith('\n') ? line.slice(0, -1) : line;
         } else {
           this.curLine_++;
@@ -73,7 +73,7 @@ tr.exportTo('tr.importer', function() {
     }
 
     endSavingLinesAndGetResult() {
-      var tmp = this.savedLines_;
+      const tmp = this.savedLines_;
       this.savedLines_ = undefined;
       return tmp;
     }

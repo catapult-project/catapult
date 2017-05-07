@@ -134,11 +134,11 @@ found in the LICENSE file.
     },
 
     createColumns_(stats) {
-      var columns = [
+      const columns = [
         {
           title: 'Title',
           value(row) {
-            var titleEl = document.createElement('span');
+            const titleEl = document.createElement('span');
             Polymer.dom(titleEl).textContent = row.title;
             titleEl.style.textOverflow = 'ellipsis';
             return titleEl;
@@ -165,9 +165,9 @@ found in the LICENSE file.
         columns.push({
           title: 'Bytes',
           value(row) {
-            var value = new tr.b.Scalar(tr.b.Unit.byName.sizeInBytes,
+            const value = new tr.b.Scalar(tr.b.Unit.byName.sizeInBytes,
                 row.rowStats.totalEventSizeinBytes);
-            var spanEl = tr.v.ui.createScalarSpan(value);
+            const spanEl = tr.v.ui.createScalarSpan(value);
             return spanEl;
           },
           cmp(a, b) {
@@ -181,14 +181,14 @@ found in the LICENSE file.
     },
 
     updateContents_() {
-      var table = this.$.table;
+      const table = this.$.table;
 
-      var columns = this.createColumns_(this.model.stats);
+      const columns = this.createColumns_(this.model.stats);
       table.rowStatsConstructor = function ModelStatsRowStats(row) {
-        var sum = tr.b.math.Statistics.sum(row.data, function(x) {
+        const sum = tr.b.math.Statistics.sum(row.data, function(x) {
           return x.numEvents;
         });
-        var totalEventSizeinBytes = tr.b.math.Statistics.sum(row.data, x =>
+        const totalEventSizeinBytes = tr.b.math.Statistics.sum(row.data, x =>
           x.totalEventSizeinBytes
         );
         return {

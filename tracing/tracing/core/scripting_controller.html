@@ -20,7 +20,7 @@ tr.exportTo('tr.c', function() {
         'model-changed', this.onModelChanged_.bind(this));
 
     // Register all scripting objects.
-    var typeInfos = ScriptingObjectRegistry.getAllRegisteredTypeInfos();
+    const typeInfos = ScriptingObjectRegistry.getAllRegisteredTypeInfos();
     typeInfos.forEach(function(typeInfo) {
       this.addScriptObject(typeInfo.metadata.name, typeInfo.constructor);
       // Also make the object available to the DevTools inspector.
@@ -30,7 +30,7 @@ tr.exportTo('tr.c', function() {
 
   function ScriptingObjectRegistry() {
   }
-  var options = new tr.b.ExtensionRegistryOptions(tr.b.BASIC_REGISTRY_MODE);
+  const options = new tr.b.ExtensionRegistryOptions(tr.b.BASIC_REGISTRY_MODE);
   tr.b.decorateExtensionRegistry(ScriptingObjectRegistry, options);
 
   ScriptingController.prototype = {
@@ -52,7 +52,7 @@ tr.exportTo('tr.c', function() {
     },
 
     executeCommand(command) {
-      var f = new Function(
+      const f = new Function(
           this.scriptObjectNames_, 'return eval(' + command + ')');
       return f.apply(null, this.scriptObjectValues_);
     }

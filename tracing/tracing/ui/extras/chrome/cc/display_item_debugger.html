@@ -122,7 +122,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.e.chrome.cc', function() {
-  var THIS_DOC = document.currentScript.ownerDocument;
+  const THIS_DOC = document.currentScript.ownerDocument;
 
   /**
    * DisplayItemDebugger is a view of a DisplayItemListSnapshot for inspecting
@@ -130,14 +130,14 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
    *
    * @constructor
    */
-  var DisplayItemDebugger = tr.ui.b.define(
+  const DisplayItemDebugger = tr.ui.b.define(
       'tr-ui-e-chrome-cc-display-item-debugger');
 
   DisplayItemDebugger.prototype = {
     __proto__: HTMLDivElement.prototype,
 
     decorate() {
-      var node = tr.ui.b.instantiateTemplate(
+      const node = tr.ui.b.instantiateTemplate(
           '#tr-ui-e-chrome-cc-display-item-debugger-template', THIS_DOC);
 
       Polymer.dom(this).appendChild(node);
@@ -175,13 +175,13 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.skpExportButton_.addEventListener(
           'click', this.onExportSkPictureClicked_.bind(this));
 
-      var leftPanel = Polymer.dom(this).querySelector('left-panel');
+      const leftPanel = Polymer.dom(this).querySelector('left-panel');
 
-      var middleDragHandle = document.createElement('tr-ui-b-drag-handle');
+      const middleDragHandle = document.createElement('tr-ui-b-drag-handle');
       middleDragHandle.horizontal = false;
       middleDragHandle.target = leftPanel;
 
-      var rightPanel = Polymer.dom(this).querySelector('right-panel');
+      const rightPanel = Polymer.dom(this).querySelector('right-panel');
 
       this.infoBar_ = document.createElement('tr-ui-b-info-bar');
       Polymer.dom(this.rasterArea_).insertBefore(
@@ -213,7 +213,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
       this.displayItemListView_.clear();
       this.displayItemList_.items.forEach(function(item) {
-        var listItem = document.createElement(
+        const listItem = document.createElement(
             'tr-ui-e-chrome-cc-display-item-list-item');
         listItem.data = item;
         Polymer.dom(this.displayItemListView_).appendChild(listItem);
@@ -224,17 +224,17 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.picture_ = picture;
 
       // Hide the ops list if we are showing the "main" display item list.
-      var showOpsList = picture && picture !== this.displayItemList_;
+      const showOpsList = picture && picture !== this.displayItemList_;
       this.updateDrawOpsList_(showOpsList);
 
       if (picture) {
-        var size = this.getRasterCanvasSize_();
+        const size = this.getRasterCanvasSize_();
         this.rasterCanvas_.width = size.width;
         this.rasterCanvas_.height = size.height;
       }
 
-      var bounds = this.rasterArea_.getBoundingClientRect();
-      var selectorBounds = this.mouseModeSelector_.getBoundingClientRect();
+      const bounds = this.rasterArea_.getBoundingClientRect();
+      const selectorBounds = this.mouseModeSelector_.getBoundingClientRect();
       this.mouseModeSelector_.pos = {
         x: (bounds.right - selectorBounds.width - 10),
         y: bounds.top
@@ -246,9 +246,9 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     getRasterCanvasSize_() {
-      var style = window.getComputedStyle(this.rasterArea_);
-      var width = parseInt(style.width);
-      var height = parseInt(style.height);
+      const style = window.getComputedStyle(this.rasterArea_);
+      let width = parseInt(style.width);
+      let height = parseInt(style.height);
       if (this.picture_) {
         width = Math.max(width, this.picture_.layerRect.width);
         height = Math.max(height, this.picture_.layerRect.height);
@@ -286,7 +286,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       if (this.pictureAsImageData_.error) {
         this.infoBar_.message = 'Cannot rasterize...';
         this.infoBar_.addButton('More info...', function(e) {
-          var overlay = new tr.ui.b.Overlay();
+          const overlay = new tr.ui.b.Overlay();
           Polymer.dom(overlay).textContent = this.pictureAsImageData_.error;
           overlay.visible = true;
           e.stopPropagation();
@@ -299,7 +299,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     drawPicture_() {
-      var size = this.getRasterCanvasSize_();
+      const size = this.getRasterCanvasSize_();
       if (size.width !== this.rasterCanvas_.width) {
         this.rasterCanvas_.width = size.width;
       }
@@ -311,9 +311,9 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
       if (!this.picture_ || !this.pictureAsImageData_.imageData) return;
 
-      var imgCanvas = this.pictureAsImageData_.asCanvas();
-      var w = imgCanvas.width;
-      var h = imgCanvas.height;
+      const imgCanvas = this.pictureAsImageData_.asCanvas();
+      const w = imgCanvas.width;
+      const h = imgCanvas.height;
       this.rasterCtx_.drawImage(imgCanvas, 0, 0, w, h,
           0, 0, w * this.zoomScaleValue_,
           h * this.zoomScaleValue_);
@@ -335,16 +335,16 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     onDisplayItemListSelection_(e) {
-      var selected = this.displayItemListView_.selectedElement;
+      const selected = this.displayItemListView_.selectedElement;
 
       if (!selected) {
         this.picture = this.displayItemList_;
         return;
       }
 
-      var index = Array.prototype.indexOf.call(
+      const index = Array.prototype.indexOf.call(
           this.displayItemListView_.children, selected);
-      var displayItem = this.displayItemList_.items[index];
+      const displayItem = this.displayItemList_.items[index];
       if (displayItem && displayItem.skp64) {
         this.picture = new tr.e.cc.Picture(
             displayItem.skp64, this.displayItemList_.layerRect);
@@ -405,7 +405,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     onUpdateZoom_(e) {
       if (!this.isZooming_) return;
 
-      var currentMouseViewPos = this.extractRelativeMousePosition_(e);
+      const currentMouseViewPos = this.extractRelativeMousePosition_(e);
 
       // Take the distance the mouse has moved and we want to zoom at about
       // 1/1000th of that speed. 0.01 feels jumpy. This could possibly be tuned
@@ -436,22 +436,22 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       if (!rawData) return;
 
       // Convert this String into an Uint8Array
-      var length = rawData.length;
-      var arrayBuffer = new ArrayBuffer(length);
-      var uint8Array = new Uint8Array(arrayBuffer);
-      for (var c = 0; c < length; c++) {
+      const length = rawData.length;
+      const arrayBuffer = new ArrayBuffer(length);
+      const uint8Array = new Uint8Array(arrayBuffer);
+      for (let c = 0; c < length; c++) {
         uint8Array[c] = rawData.charCodeAt(c);
       }
 
       // Create a blob URL from the binary array.
-      var blob = new Blob([uint8Array], {type: 'application/octet-binary'});
-      var blobUrl = window.URL.createObjectURL(blob);
+      const blob = new Blob([uint8Array], {type: 'application/octet-binary'});
+      const blobUrl = window.URL.createObjectURL(blob);
 
       // Create a link and click on it.
-      var link = document.createElementNS('http://www.w3.org/1999/xhtml', 'a');
+      const link = document.createElementNS('http://www.w3.org/1999/xhtml', 'a');
       link.href = blobUrl;
       link.download = filename;
-      var event = document.createEvent('MouseEvents');
+      const event = document.createEvent('MouseEvents');
       event.initMouseEvent(
           'click', true, false, window, 0, 0, 0, 0, 0,
           false, false, false, false, 0, null);
@@ -459,12 +459,12 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     onExportDisplayListClicked_() {
-      var rawData = JSON.stringify(this.displayItemList_.items);
+      const rawData = JSON.stringify(this.displayItemList_.items);
       this.saveFile_(this.displayListFilename_.value, rawData);
     },
 
     onExportSkPictureClicked_() {
-      var rawData = tr.b.Base64.atob(this.picture_.getBase64SkpData());
+      const rawData = tr.b.Base64.atob(this.picture_.getBase64SkpData());
       this.saveFile_(this.skpFilename_.value, rawData);
     }
   };

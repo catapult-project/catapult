@@ -121,8 +121,8 @@ tr.exportTo('tr.ui.analysis', function() {
         return;
       }
 
-      var containerDumpCount = this.containerMemoryDumps_.length;
-      var isMultiSelection = containerDumpCount > 1;
+      const containerDumpCount = this.containerMemoryDumps_.length;
+      const isMultiSelection = containerDumpCount > 1;
 
       Polymer.dom(this.$.label).appendChild(document.createTextNode(
           'Selected ' + containerDumpCount + ' memory dump' +
@@ -134,7 +134,7 @@ tr.exportTo('tr.ui.analysis', function() {
           tr.b.Unit.byName.timeStampInMs.format(
               this.containerMemoryDumps_[0].start)));
       if (isMultiSelection) {
-        var ELLIPSIS = String.fromCharCode(8230);
+        const ELLIPSIS = String.fromCharCode(8230);
         Polymer.dom(this.$.label).appendChild(
             document.createTextNode(ELLIPSIS));
         Polymer.dom(this.$.label).appendChild(document.createTextNode(
@@ -144,7 +144,7 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     updateAggregationModeSelector_() {
-      var displayStyle;
+      let displayStyle;
       if (this.containerMemoryDumps_ === undefined ||
           this.containerMemoryDumps_.length <= 1) {
         displayStyle = 'none';
@@ -161,7 +161,7 @@ tr.exportTo('tr.ui.analysis', function() {
           return undefined;
         }
 
-        var overviewPane = document.createElement(
+        const overviewPane = document.createElement(
             'tr-ui-a-memory-dump-overview-pane');
         overviewPane.processMemoryDumps = this.containerMemoryDumps_.map(
             function(containerDump) {

@@ -29,7 +29,7 @@ tr.exportTo('tr.model.helpers', function() {
   }
 
   function findChromeGpuProcess(model) {
-    var gpuProcesses = model.getAllProcesses(
+    const gpuProcesses = model.getAllProcesses(
         tr.model.helpers.ChromeGpuHelper.isGpuProcess);
     if (gpuProcesses.length !== 1) return undefined;
     return gpuProcesses[0];
@@ -39,12 +39,12 @@ tr.exportTo('tr.model.helpers', function() {
     this.model_ = model;
 
     // Find browserHelpers.
-    var browserProcesses = findChromeBrowserProcesses(model);
+    const browserProcesses = findChromeBrowserProcesses(model);
     this.browserHelpers_ = browserProcesses.map(
         p => new tr.model.helpers.ChromeBrowserHelper(this, p));
 
     // Find gpuHelper.
-    var gpuProcess = findChromeGpuProcess(model);
+    const gpuProcess = findChromeGpuProcess(model);
     if (gpuProcess) {
       this.gpuHelper_ = new tr.model.helpers.ChromeGpuHelper(
           this, gpuProcess);
@@ -53,11 +53,11 @@ tr.exportTo('tr.model.helpers', function() {
     }
 
     // Find rendererHelpers.
-    var rendererProcesses_ = findChromeRenderProcesses(model);
+    const rendererProcesses_ = findChromeRenderProcesses(model);
 
     this.rendererHelpers_ = {};
     rendererProcesses_.forEach(function(renderProcess) {
-      var rendererHelper = new tr.model.helpers.ChromeRendererHelper(
+      const rendererHelper = new tr.model.helpers.ChromeRendererHelper(
           this, renderProcess);
       this.rendererHelpers_[rendererHelper.pid] = rendererHelper;
     }, this);
@@ -126,9 +126,9 @@ tr.exportTo('tr.model.helpers', function() {
      * renderers in Chrome were opened, and therefore has the largest PID.
      */
     get rendererWithLargestPid() {
-      var largestPid = -1;
-      for (var pid in this.rendererHelpers) {
-        var rendererHelper = this.rendererHelpers[pid];
+      let largestPid = -1;
+      for (const pid in this.rendererHelpers) {
+        const rendererHelper = this.rendererHelpers[pid];
         if (rendererHelper.isChromeTracingUI) continue;
         if (pid > largestPid) largestPid = pid;
       }
@@ -147,7 +147,7 @@ tr.exportTo('tr.model.helpers', function() {
     get chromeBounds() {
       if (!this.chromeBounds_) {
         this.chromeBounds_ = new tr.b.math.Range();
-        for (var browserHelper of
+        for (const browserHelper of
              tr.b.dictionaryValues(this.browserHelpers)) {
           this.chromeBounds_.addRange(browserHelper.process.bounds);
         }

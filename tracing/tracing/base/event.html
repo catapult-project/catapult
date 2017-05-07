@@ -11,7 +11,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.b', function() {
-  var Event;
+  let Event;
   if (tr.isHeadless) {
     /**
      * Creates a new event to be used with tr.b.EventTarget or DOM EventTarget
@@ -58,7 +58,7 @@ tr.exportTo('tr.b', function() {
      * @extends {Event}
      */
     function TrEvent(type, opt_bubbles, opt_preventable) {
-      var e = tr.doc.createEvent('Event');
+      const e = tr.doc.createEvent('Event');
       e.initEvent(type, !!opt_bubbles, !!opt_preventable);
       e.__proto__ = global.Event.prototype;
       return e;
@@ -84,13 +84,13 @@ tr.exportTo('tr.b', function() {
    */
   function dispatchSimpleEvent(target, type, opt_bubbles, opt_cancelable,
       opt_fields) {
-    var e = new tr.b.Event(type, opt_bubbles, opt_cancelable);
+    const e = new tr.b.Event(type, opt_bubbles, opt_cancelable);
     Object.assign(e, opt_fields);
     return target.dispatchEvent(e);
   }
 
   async function dispatchSimpleEventAsync(target, type, opt_fields) {
-    var e = new tr.b.Event(type, false, false);
+    const e = new tr.b.Event(type, false, false);
     Object.assign(e, opt_fields);
     return await target.dispatchAsync(e);
   }

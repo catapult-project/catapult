@@ -15,7 +15,7 @@ found in the LICENSE file.
  */
 tr.exportTo('tr.b', function() {
   // Basic constants...
-  var generalPurposeColors = [
+  const generalPurposeColors = [
     new tr.b.Color(122, 98, 135),
     new tr.b.Color(150, 83, 105),
     new tr.b.Color(44, 56, 189),
@@ -47,7 +47,7 @@ tr.exportTo('tr.b', function() {
     new tr.b.Color(143, 72, 161),
     new tr.b.Color(159, 74, 86)];
 
-  var reservedColorsByName = {
+  const reservedColorsByName = {
     thread_state_uninterruptible: new tr.b.Color(182, 125, 143),
     thread_state_iowait: new tr.b.Color(255, 140, 0),
     thread_state_running: new tr.b.Color(126, 200, 148),
@@ -93,9 +93,9 @@ tr.exportTo('tr.b', function() {
   };
 
   // Some constants we'll need for later lookups.
-  var numGeneralPurposeColorIds = generalPurposeColors.length;
-  var numReservedColorIds = tr.b.dictionaryLength(reservedColorsByName);
-  var numColorsPerVariant = numGeneralPurposeColorIds + numReservedColorIds;
+  const numGeneralPurposeColorIds = generalPurposeColors.length;
+  const numReservedColorIds = tr.b.dictionaryLength(reservedColorsByName);
+  const numColorsPerVariant = numGeneralPurposeColorIds + numReservedColorIds;
 
   function ColorScheme() {
   }
@@ -123,7 +123,7 @@ tr.exportTo('tr.b', function() {
    *     4: Brightened Generic Color 1
    *     5: Brightened Named Color 'foo'
    */
-  var paletteBase = [];
+  const paletteBase = [];
   paletteBase.push.apply(paletteBase, generalPurposeColors);
   paletteBase.push.apply(paletteBase,
       tr.b.dictionaryValues(reservedColorsByName));
@@ -134,7 +134,7 @@ tr.exportTo('tr.b', function() {
   };
 
   function pushVariant(func) {
-    var variantColors = paletteBase.map(func);
+    const variantColors = paletteBase.map(func);
     ColorScheme.colors.push.apply(ColorScheme.colors, variantColors);
   }
 
@@ -182,10 +182,10 @@ tr.exportTo('tr.b', function() {
   });
 
   // Build reservedColorNameToIdMap.
-  var reservedColorNameToIdMap = (function() {
-    var m = new Map();
-    var i = generalPurposeColors.length;
-    for (var key of Object.keys(reservedColorsByName)) {
+  const reservedColorNameToIdMap = (function() {
+    const m = new Map();
+    let i = generalPurposeColors.length;
+    for (const key of Object.keys(reservedColorsByName)) {
       m.set(key, i++);
     }
     return m;
@@ -196,7 +196,7 @@ tr.exportTo('tr.b', function() {
    * @return {Number} The color ID for the given color name.
    */
   ColorScheme.getColorIdForReservedName = function(name) {
-    var id = reservedColorNameToIdMap.get(name);
+    const id = reservedColorNameToIdMap.get(name);
     if (id === undefined) {
       throw new Error('Unrecognized color ' + name);
     }
@@ -204,7 +204,7 @@ tr.exportTo('tr.b', function() {
   };
 
   ColorScheme.getColorForReservedNameAsString = function(reservedName) {
-    var id = ColorScheme.getColorIdForReservedName(reservedName);
+    const id = ColorScheme.getColorIdForReservedName(reservedName);
     return ColorScheme.colorsAsStrings[id];
   };
 
@@ -214,8 +214,8 @@ tr.exportTo('tr.b', function() {
    * @param {string} name The string to hash.
    */
   ColorScheme.getStringHash = function(name) {
-    var hash = 0;
-    for (var i = 0; i < name.length; ++i) {
+    let hash = 0;
+    for (let i = 0; i < name.length; ++i) {
       hash = (hash + 37 * hash + 11 * name.charCodeAt(i)) % 0xFFFFFFFF;
     }
     return hash;
@@ -223,7 +223,7 @@ tr.exportTo('tr.b', function() {
 
   // Previously computed string color IDs. They are based on a stable hash, so
   // it is safe to save them throughout the program time.
-  var stringColorIdCache = new Map();
+  const stringColorIdCache = new Map();
 
   /**
    * @return {Number} A color ID that is stably associated to the provided via
@@ -232,7 +232,7 @@ tr.exportTo('tr.b', function() {
    */
   ColorScheme.getColorIdForGeneralPurposeString = function(string) {
     if (stringColorIdCache.get(string) === undefined) {
-      var hash = ColorScheme.getStringHash(string);
+      const hash = ColorScheme.getStringHash(string);
       stringColorIdCache.set(string, hash % numGeneralPurposeColorIds);
     }
     return stringColorIdCache.get(string);

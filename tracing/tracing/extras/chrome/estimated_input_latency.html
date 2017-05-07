@@ -22,8 +22,8 @@ tr.exportTo('tr.e.chrome', function() {
   }
 
   function getNavStartTimestamps(rendererHelper) {
-    var navStartTimestamps = [];
-    for (var e of rendererHelper.mainThread.sliceGroup.childEvents()) {
+    const navStartTimestamps = [];
+    for (const e of rendererHelper.mainThread.sliceGroup.childEvents()) {
       if (hasTitleAndCategory(e, 'navigationStart', 'blink.user_timing')) {
         navStartTimestamps.push(e.start);
       }
@@ -36,15 +36,15 @@ tr.exportTo('tr.e.chrome', function() {
    * renderer became interactive.
    */
   function getInteractiveTimestamps(model) {
-    var interactiveTimestampsMap = new Map();
-    var chromeHelper = model.getOrCreateHelper(
+    const interactiveTimestampsMap = new Map();
+    const chromeHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
-    for (var rendererHelper of Object.values(chromeHelper.rendererHelpers)) {
-      var timestamps = [];
+    for (const rendererHelper of Object.values(chromeHelper.rendererHelpers)) {
+      const timestamps = [];
       interactiveTimestampsMap.set(rendererHelper.pid, timestamps);
-      var samples = tr.metrics.sh.collectLoadingMetricsForRenderer(
+      const samples = tr.metrics.sh.collectLoadingMetricsForRenderer(
           rendererHelper).firstInteractiveSamples;
-      for (var sample of samples) {
+      for (const sample of samples) {
         timestamps.push(
             sample.diagnostics['Navigation infos'].value.interactive);
       }
@@ -74,10 +74,10 @@ tr.exportTo('tr.e.chrome', function() {
    */
   function getPostInteractiveTaskWindows(
       interactiveTimestamps, navStartTimestamps, traceEndTimestamp) {
-    var navStartTsIndex = 0;
-    var lastTaskWindowEndTs = undefined;
-    var taskWindows = [];
-    for (var currTTI of interactiveTimestamps) {
+    let navStartTsIndex = 0;
+    let lastTaskWindowEndTs = undefined;
+    const taskWindows = [];
+    for (const currTTI of interactiveTimestamps) {
       // Find the first navigation start event after the interactive
       // timestamp.
       while (navStartTsIndex < navStartTimestamps.length &&
@@ -85,7 +85,7 @@ tr.exportTo('tr.e.chrome', function() {
         navStartTsIndex++;
       }
 
-      var taskWindowEndTs = navStartTsIndex < navStartTimestamps.length ?
+      const taskWindowEndTs = navStartTsIndex < navStartTimestamps.length ?
           navStartTimestamps[navStartTsIndex] : traceEndTimestamp;
 
       if (taskWindowEndTs === lastTaskWindowEndTs) {
@@ -126,14 +126,14 @@ tr.exportTo('tr.e.chrome', function() {
    * @returns {number}
    */
   function contributionToEQT(window, task) {
-    var startInWindow = Math.max(window.min, task.start);
-    var endInWindow = Math.min(window.max, task.end);
-    var durationInWindow = endInWindow - startInWindow;
+    const startInWindow = Math.max(window.min, task.start);
+    const endInWindow = Math.min(window.max, task.end);
+    const durationInWindow = endInWindow - startInWindow;
     if (durationInWindow <= 0) return 0;
-    var probabilityOfTask = durationInWindow / (window.max - window.min);
-    var minQueueingTime = task.end - endInWindow;
-    var maxQueueingTime = task.end - startInWindow;
-    var expectedQueueingTimeDueToTask =
+    const probabilityOfTask = durationInWindow / (window.max - window.min);
+    const minQueueingTime = task.end - endInWindow;
+    const maxQueueingTime = task.end - startInWindow;
+    const expectedQueueingTimeDueToTask =
         (maxQueueingTime + minQueueingTime) / 2;
     return probabilityOfTask * expectedQueueingTimeDueToTask;
   }
@@ -159,8 +159,8 @@ tr.exportTo('tr.e.chrome', function() {
    * @returns {number}
    */
   function weightedExpectedQueueingTime(window, weightedTasks) {
-    var result = 0;
-    for (var task of weightedTasks) {
+    let result = 0;
+    for (const task of weightedTasks) {
       result += contributionToEQT(window, task) * task.weight;
     }
     return result;
@@ -232,7 +232,7 @@ tr.exportTo('tr.e.chrome', function() {
        *     tasks). All such tasks are completely inside the window.
        */
       this.innerEQT_ = 0;
-      for (var i = this.firstTaskIndex_ + 1; i < this.lastTaskIndex_; i++) {
+      for (let i = this.firstTaskIndex_ + 1; i < this.lastTaskIndex_; i++) {
         this.innerEQT_ += contributionToEQT(this.range_, sortedTasks[i]);
       }
     }
@@ -241,12 +241,12 @@ tr.exportTo('tr.e.chrome', function() {
      * @returns the EQT for this window.
      */
     get getEQT() {
-      var firstTaskEQT = 0;
+      let firstTaskEQT = 0;
       if (this.firstTaskIndex_ < this.sortedTasks_.length) {
         firstTaskEQT = contributionToEQT(this.range_,
             this.sortedTasks_[this.firstTaskIndex_]);
       }
-      var lastTaskEQT = 0;
+      let lastTaskEQT = 0;
       if (this.firstTaskIndex_ < this.lastTaskIndex_) {
         lastTaskEQT = contributionToEQT(this.range_,
             this.sortedTasks_[this.lastTaskIndex_]);
@@ -308,9 +308,9 @@ tr.exportTo('tr.e.chrome', function() {
       throw Error('The sliding window must fit in the specified time range');
     }
 
-    var sortedTasks = tasks.slice().sort((a, b) => a.start - b.start);
+    const sortedTasks = tasks.slice().sort((a, b) => a.start - b.start);
 
-    for (var i = 1; i < sortedTasks.length; i++) {
+    for (let i = 1; i < sortedTasks.length; i++) {
       // Due to floating-point precision errors it might happen that the end
       // of the previous task is larger than the start of the current task.
       // Here is an example from a real trace of system-health benchmark:
@@ -325,10 +325,10 @@ tr.exportTo('tr.e.chrome', function() {
 
     // Collect all time points that the sliding window needs to stop at.
     // See https://goo.gl/jmWpMl for justification.
-    var endpoints = [];
+    let endpoints = [];
     endpoints.push(startTime);
     endpoints.push(endTime - windowSize);
-    for (var task of tasks) {
+    for (const task of tasks) {
       endpoints.push(task.start - windowSize);
       endpoints.push(task.start);
       endpoints.push(task.end - windowSize);
@@ -339,10 +339,10 @@ tr.exportTo('tr.e.chrome', function() {
     endpoints.sort((a, b) => a - b);
 
     // Slide the window and compute maxEQT.
-    var slidingWindow = new SlidingWindow(
+    const slidingWindow = new SlidingWindow(
         endpoints[0], windowSize, sortedTasks);
-    var maxEQT = 0;
-    for (var t of endpoints) {
+    let maxEQT = 0;
+    for (const t of endpoints) {
       slidingWindow.slide(t);
       maxEQT = Math.max(maxEQT, slidingWindow.getEQT);
     }

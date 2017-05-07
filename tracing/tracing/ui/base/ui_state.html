@@ -11,7 +11,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.b', function() {
-  var Location = tr.model.Location;
+  const Location = tr.model.Location;
 
   /**
    * UIState is a class that represents the current state of the timeline by
@@ -32,13 +32,13 @@ tr.exportTo('tr.ui.b', function() {
    * UIState. Otherwise returns a constructed UIState instance.
    */
   UIState.fromUserFriendlyString = function(model, viewport, stateString) {
-    var navByFinderPattern = /^(-?\d+(\.\d+)?)@(.+)x(\d+(\.\d+)?)$/g;
-    var match = navByFinderPattern.exec(stateString);
+    const navByFinderPattern = /^(-?\d+(\.\d+)?)@(.+)x(\d+(\.\d+)?)$/g;
+    const match = navByFinderPattern.exec(stateString);
     if (!match) return;
 
-    var timestamp = parseFloat(match[1]);
-    var stableId = match[3];
-    var scaleX = parseFloat(match[4]);
+    const timestamp = parseFloat(match[1]);
+    const stableId = match[3];
+    const scaleX = parseFloat(match[4]);
 
     if (scaleX <= 0) {
       throw new Error('Invalid ScaleX value in UI State string.');
@@ -48,7 +48,7 @@ tr.exportTo('tr.ui.b', function() {
       throw new Error('Invalid StableID given in UI State String.');
     }
 
-    var loc = tr.model.Location.fromStableIdAndTimestamp(
+    const loc = tr.model.Location.fromStableIdAndTimestamp(
         viewport, stableId, timestamp);
     return new UIState(loc, scaleX);
   };
@@ -64,10 +64,10 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     toUserFriendlyString(viewport) {
-      var timestamp = this.location_.xWorld;
-      var stableId =
+      const timestamp = this.location_.xWorld;
+      const stableId =
           this.location_.getContainingTrack(viewport).eventContainer.stableId;
-      var scaleX = this.scaleX_;
+      const scaleX = this.scaleX_;
       return timestamp.toFixed(5) + '@' + stableId + 'x' + scaleX.toFixed(5);
     },
 

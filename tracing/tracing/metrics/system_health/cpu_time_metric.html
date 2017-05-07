@@ -18,7 +18,7 @@ tr.exportTo('tr.metrics.sh', function() {
   // is consumed) and an upper bound of 50 (fifty cores are all active
   // for the entire time). We can't use zero exactly for the lower bound with an
   // exponential histogram.
-  var CPU_TIME_PERCENTAGE_BOUNDARIES =
+  const CPU_TIME_PERCENTAGE_BOUNDARIES =
       tr.v.HistogramBinBoundaries.createExponential(0.01, 50, 200);
 
   /**
@@ -31,7 +31,7 @@ tr.exportTo('tr.metrics.sh', function() {
    * @param {!Object=} opt_options
    */
   function cpuTimeMetric(histograms, model, opt_options) {
-    var rangeOfInterest = model.bounds;
+    let rangeOfInterest = model.bounds;
 
     if (opt_options && opt_options.rangeOfInterest) {
       rangeOfInterest = opt_options.rangeOfInterest;
@@ -39,35 +39,35 @@ tr.exportTo('tr.metrics.sh', function() {
       // If no range of interest is provided, limit the relevant range to
       // Chrome processes. This prevents us from normalizing against non-Chrome
       // related slices in the trace.
-      var chromeHelper = model.getOrCreateHelper(
+      const chromeHelper = model.getOrCreateHelper(
           tr.model.helpers.ChromeModelHelper);
       if (chromeHelper) {
-        var chromeBounds = chromeHelper.chromeBounds;
+        const chromeBounds = chromeHelper.chromeBounds;
         if (chromeBounds) {
           rangeOfInterest = chromeBounds;
         }
       }
     }
 
-    var allProcessCpuTime = 0;
+    let allProcessCpuTime = 0;
 
-    for (var pid in model.processes) {
-      var process = model.processes[pid];
+    for (const pid in model.processes) {
+      const process = model.processes[pid];
       if (tr.model.helpers.ChromeRendererHelper.isTracingProcess(process)) {
         continue;
       }
 
-      var processCpuTime = 0;
-      for (var tid in process.threads) {
-        var thread = process.threads[tid];
-        var threadCpuTime = 0;
+      let processCpuTime = 0;
+      for (const tid in process.threads) {
+        const thread = process.threads[tid];
+        let threadCpuTime = 0;
         thread.sliceGroup.topLevelSlices.forEach(function(slice) {
           if (slice.duration === 0) return;
           if (!slice.cpuDuration) return;
-          var sliceRange = tr.b.math.Range.fromExplicitRange(
+          const sliceRange = tr.b.math.Range.fromExplicitRange(
               slice.start, slice.end);
-          var intersection = rangeOfInterest.findIntersection(sliceRange);
-          var fractionOfSliceInsideRangeOfInterest =
+          const intersection = rangeOfInterest.findIntersection(sliceRange);
+          const fractionOfSliceInsideRangeOfInterest =
               intersection.duration / slice.duration;
 
           // We assume that if a slice doesn't lie entirely inside the range of
@@ -82,14 +82,14 @@ tr.exportTo('tr.metrics.sh', function() {
     }
 
     // Normalize cpu time by clock time.
-    var normalizedAllProcessCpuTime = 0;
+    let normalizedAllProcessCpuTime = 0;
     if (rangeOfInterest.duration > 0) {
       normalizedAllProcessCpuTime =
           allProcessCpuTime / rangeOfInterest.duration;
     }
 
-    var unit = tr.b.Unit.byName.normalizedPercentage_smallerIsBetter;
-    var cpuTimeHist = new tr.v.Histogram(
+    const unit = tr.b.Unit.byName.normalizedPercentage_smallerIsBetter;
+    const cpuTimeHist = new tr.v.Histogram(
         'cpu_time_percentage', unit, CPU_TIME_PERCENTAGE_BOUNDARIES);
     cpuTimeHist.description =
         'Percent CPU utilization, normalized against a single core. Can be ' +

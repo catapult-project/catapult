@@ -32,7 +32,7 @@ tr.exportTo('tr.model', function() {
 
     get title() {
       if (this.sourceInfo_) {
-        var src = this.sourceInfo_.toString();
+        const src = this.sourceInfo_.toString();
         return this.title_ + (src === '' ? '' : ' ' + src);
       }
       return this.title_;
@@ -43,7 +43,7 @@ tr.exportTo('tr.model', function() {
      * stack trace or from its ancestors.
      */
     get domain() {
-      var result = 'unknown';
+      let result = 'unknown';
       if (this.sourceInfo_ && this.sourceInfo_.domain) {
         result = this.sourceInfo_.domain;
       }
@@ -72,7 +72,7 @@ tr.exportTo('tr.model', function() {
     },
 
     removeChild(child) {
-      var i = this.children.indexOf(child.id);
+      const i = this.children.indexOf(child.id);
       if (i === -1) {
         throw new Error('omg');
       }
@@ -80,7 +80,7 @@ tr.exportTo('tr.model', function() {
     },
 
     removeAllChildren() {
-      for (var i = 0; i < this.children.length; i++) {
+      for (let i = 0; i < this.children.length; i++) {
         this.children[i].parentFrame_ = undefined;
       }
       this.children.splice(0, this.children.length);
@@ -90,8 +90,8 @@ tr.exportTo('tr.model', function() {
      * Returns stackFrames where the most specific frame is first.
      */
     get stackTrace() {
-      var stack = [this];
-      var cur = this.parentFrame;
+      const stack = [this];
+      let cur = this.parentFrame;
       while (cur) {
         stack.push(cur);
         cur = cur.parentFrame;

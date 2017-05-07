@@ -34,7 +34,7 @@ tr.exportTo('tr.mre', function() {
     }
 
     asDict() {
-      var d = {
+      const d = {
         pairs: this.pairs
       };
 
@@ -50,10 +50,9 @@ tr.exportTo('tr.mre', function() {
     }
 
     static fromDict(resultDict) {
-      if (resultDict.failures !== undefined) {
-        var failures = resultDict.failures.map(tr.mre.Failure.fromDict);
-      }
-      var pairs = resultDict.pairs;
+      const failures = (resultDict.failures !== undefined) ?
+        resultDict.failures.map(tr.mre.Failure.fromDict) : undefined;
+      const pairs = resultDict.pairs;
       return new MreResult(failures, pairs);
     }
   }

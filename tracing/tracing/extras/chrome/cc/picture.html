@@ -17,11 +17,11 @@ found in the LICENSE file.
 /* eslint-disable no-console */
 
 tr.exportTo('tr.e.cc', function() {
-  var ObjectSnapshot = tr.model.ObjectSnapshot;
+  const ObjectSnapshot = tr.model.ObjectSnapshot;
 
   // Number of pictures created. Used as an uniqueId because we are immutable.
-  var PictureCount = 0;
-  var OPS_TIMING_ITERATIONS = 3;
+  const PictureCount = 0;
+  const OPS_TIMING_ITERATIONS = 3;
 
   function Picture(skp64, layerRect) {
     this.skp64_ = skp64;
@@ -53,7 +53,7 @@ tr.exportTo('tr.e.cc', function() {
         return undefined;
       }
 
-      var ops = window.chrome.skiaBenchmarking.getOps({
+      const ops = window.chrome.skiaBenchmarking.getOps({
         skp64: this.skp64_,
         params: {
           layer_rect: this.layerRect_.toArray()
@@ -73,7 +73,7 @@ tr.exportTo('tr.e.cc', function() {
         return undefined;
       }
 
-      var opTimings = window.chrome.skiaBenchmarking.getOpTimings({
+      const opTimings = window.chrome.skiaBenchmarking.getOpTimings({
         skp64: this.skp64_,
         params: {
           layer_rect: this.layerRect_.toArray()
@@ -98,8 +98,8 @@ tr.exportTo('tr.e.cc', function() {
      *         for a given op.
      */
     tagOpsWithTimings(ops) {
-      var opTimings = [];
-      for (var iteration = 0; iteration < OPS_TIMING_ITERATIONS; iteration++) {
+      const opTimings = [];
+      for (let iteration = 0; iteration < OPS_TIMING_ITERATIONS; iteration++) {
         opTimings[iteration] = this.getOpTimings();
         if (!opTimings[iteration] || !opTimings[iteration].cmd_times) {
           return ops;
@@ -109,9 +109,9 @@ tr.exportTo('tr.e.cc', function() {
         }
       }
 
-      for (var opIndex = 0; opIndex < ops.length; opIndex++) {
-        var min = Number.MAX_VALUE;
-        for (var i = 0; i < OPS_TIMING_ITERATIONS; i++) {
+      for (let opIndex = 0; opIndex < ops.length; opIndex++) {
+        let min = Number.MAX_VALUE;
+        for (let i = 0; i < OPS_TIMING_ITERATIONS; i++) {
           min = Math.min(min, opTimings[i].cmd_times[opIndex]);
         }
         ops[opIndex].cmd_time = min;
@@ -137,7 +137,7 @@ tr.exportTo('tr.e.cc', function() {
         return;
       }
 
-      var raster = window.chrome.skiaBenchmarking.rasterize(
+      const raster = window.chrome.skiaBenchmarking.rasterize(
           {
             skp64: this.skp64_,
             params: {
@@ -151,15 +151,15 @@ tr.exportTo('tr.e.cc', function() {
           });
 
       if (raster) {
-        var canvas = document.createElement('canvas');
-        var ctx = canvas.getContext('2d');
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
         canvas.width = raster.width;
         canvas.height = raster.height;
-        var imageData = ctx.createImageData(raster.width, raster.height);
+        const imageData = ctx.createImageData(raster.width, raster.height);
         imageData.data.set(new Uint8ClampedArray(raster.data));
         rasterCompleteCallback(new tr.e.cc.PictureAsImageData(this, imageData));
       } else {
-        var error = 'Failed to rasterize picture. ' +
+        const error = 'Failed to rasterize picture. ' +
                 'Your recording may be from an old Chrome version. ' +
                 'The SkPicture format is not backward compatible.';
         rasterCompleteCallback(new tr.e.cc.PictureAsImageData(this, error));
@@ -196,8 +196,8 @@ tr.exportTo('tr.e.cc', function() {
         height: 0
       };
 
-      for (var i = 0; i < this.pictures_.length; ++i) {
-        var rect = this.pictures_[i].layerRect;
+      for (let i = 0; i < this.pictures_.length; ++i) {
+        const rect = this.pictures_[i].layerRect;
         this.layerRect_.x = Math.min(this.layerRect_.x, rect.x);
         this.layerRect_.y = Math.min(this.layerRect_.y, rect.y);
         this.layerRect_.width =
@@ -217,17 +217,17 @@ tr.exportTo('tr.e.cc', function() {
     },
 
     getOps() {
-      var ops = [];
-      for (var i = 0; i < this.pictures_.length; ++i) {
+      let ops = [];
+      for (let i = 0; i < this.pictures_.length; ++i) {
         ops = ops.concat(this.pictures_[i].getOps());
       }
       return ops;
     },
 
     getOpTimings() {
-      var opTimings = this.pictures_[0].getOpTimings();
-      for (var i = 1; i < this.pictures_.length; ++i) {
-        var timings = this.pictures_[i].getOpTimings();
+      const opTimings = this.pictures_[0].getOpTimings();
+      for (let i = 1; i < this.pictures_.length; ++i) {
+        const timings = this.pictures_[i].getOpTimings();
         opTimings.cmd_times = opTimings.cmd_times.concat(timings.cmd_times);
         opTimings.total_time += timings.total_time;
       }
@@ -235,17 +235,17 @@ tr.exportTo('tr.e.cc', function() {
     },
 
     tagOpsWithTimings(ops) {
-      var opTimings = [];
-      for (var iteration = 0; iteration < OPS_TIMING_ITERATIONS; iteration++) {
+      const opTimings = [];
+      for (let iteration = 0; iteration < OPS_TIMING_ITERATIONS; iteration++) {
         opTimings[iteration] = this.getOpTimings();
         if (!opTimings[iteration] || !opTimings[iteration].cmd_times) {
           return ops;
         }
       }
 
-      for (var opIndex = 0; opIndex < ops.length; opIndex++) {
-        var min = Number.MAX_VALUE;
-        for (var i = 0; i < OPS_TIMING_ITERATIONS; i++) {
+      for (let opIndex = 0; opIndex < ops.length; opIndex++) {
+        let min = Number.MAX_VALUE;
+        for (let i = 0; i < OPS_TIMING_ITERATIONS; i++) {
           min = Math.min(min, opTimings[i].cmd_times[opIndex]);
         }
         ops[opIndex].cmd_time = min;
@@ -255,21 +255,21 @@ tr.exportTo('tr.e.cc', function() {
 
     rasterize(params, rasterCompleteCallback) {
       this.picturesAsImageData_ = [];
-      var rasterCallback = function(pictureAsImageData) {
+      const rasterCallback = function(pictureAsImageData) {
         this.picturesAsImageData_.push(pictureAsImageData);
         if (this.picturesAsImageData_.length !== this.pictures_.length) {
           return;
         }
 
-        var canvas = document.createElement('canvas');
-        var ctx = canvas.getContext('2d');
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
         canvas.width = this.layerRect.width;
         canvas.height = this.layerRect.height;
 
         // TODO(dsinclair): Verify these finish in the order started.
         //   Do the rasterize calls run sync or asyn? As the imageData
         //   going to be in the same order as the pictures_ list?
-        for (var i = 0; i < this.picturesAsImageData_.length; ++i) {
+        for (let i = 0; i < this.picturesAsImageData_.length; ++i) {
           ctx.putImageData(this.picturesAsImageData_[i].imageData,
               this.pictures_[i].layerRect.x,
               this.pictures_[i].layerRect.y);
@@ -281,7 +281,7 @@ tr.exportTo('tr.e.cc', function() {
                 this.layerRect.width, this.layerRect.height)));
       }.bind(this);
 
-      for (var i = 0; i < this.pictures_.length; ++i) {
+      for (let i = 0; i < this.pictures_.length; ++i) {
         this.pictures_[i].rasterize(params, rasterCallback);
       }
     }
@@ -344,7 +344,7 @@ tr.exportTo('tr.e.cc', function() {
       return 'Pictures only work in chrome';
     }
 
-    var usualReason = [
+    const usualReason = [
       'For pictures to show up, you need to have Chrome running with ',
       '--enable-skia-benchmarking. Please restart chrome with this flag ',
       'and try again.'

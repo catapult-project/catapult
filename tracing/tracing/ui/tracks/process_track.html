@@ -13,12 +13,12 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.tracks', function() {
-  var ProcessTrackBase = tr.ui.tracks.ProcessTrackBase;
+  const ProcessTrackBase = tr.ui.tracks.ProcessTrackBase;
 
   /**
    * @constructor
    */
-  var ProcessTrack = tr.ui.b.define('process-track', ProcessTrackBase);
+  const ProcessTrack = tr.ui.b.define('process-track', ProcessTrackBase);
 
   ProcessTrack.prototype = {
     __proto__: ProcessTrackBase.prototype,
@@ -29,24 +29,24 @@ tr.exportTo('tr.ui.tracks', function() {
 
     drawTrack(type) {
       switch (type) {
-        case tr.ui.tracks.DrawType.INSTANT_EVENT:
+        case tr.ui.tracks.DrawType.INSTANT_EVENT: {
           if (!this.processBase.instantEvents ||
               this.processBase.instantEvents.length === 0) {
             break;
           }
 
-          var ctx = this.context();
+          const ctx = this.context();
 
-          var pixelRatio = window.devicePixelRatio || 1;
-          var bounds = this.getBoundingClientRect();
-          var canvasBounds = ctx.canvas.getBoundingClientRect();
+          const pixelRatio = window.devicePixelRatio || 1;
+          const bounds = this.getBoundingClientRect();
+          const canvasBounds = ctx.canvas.getBoundingClientRect();
 
           ctx.save();
           ctx.translate(0, pixelRatio * (bounds.top - canvasBounds.top));
 
-          var dt = this.viewport.currentDisplayTransform;
-          var viewLWorld = dt.xViewToWorld(0);
-          var viewRWorld = dt.xViewToWorld(
+          const dt = this.viewport.currentDisplayTransform;
+          const viewLWorld = dt.xViewToWorld(0);
+          const viewRWorld = dt.xViewToWorld(
               bounds.width * pixelRatio);
 
           tr.ui.b.drawInstantSlicesAsLines(
@@ -61,6 +61,7 @@ tr.exportTo('tr.ui.tracks', function() {
           ctx.restore();
 
           break;
+        }
 
         case tr.ui.tracks.DrawType.BACKGROUND:
           this.drawBackground_();
@@ -73,13 +74,13 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     drawBackground_() {
-      var ctx = this.context();
-      var canvasBounds = ctx.canvas.getBoundingClientRect();
-      var pixelRatio = window.devicePixelRatio || 1;
+      const ctx = this.context();
+      const canvasBounds = ctx.canvas.getBoundingClientRect();
+      const pixelRatio = window.devicePixelRatio || 1;
 
-      var draw = false;
+      let draw = false;
       ctx.fillStyle = '#eee';
-      for (var i = 0; i < this.children.length; ++i) {
+      for (let i = 0; i < this.children.length; ++i) {
         if (!(this.children[i] instanceof tr.ui.tracks.Track) ||
             (this.children[i] instanceof tr.ui.tracks.SpacingTrack)) {
           continue;
@@ -88,7 +89,7 @@ tr.exportTo('tr.ui.tracks', function() {
         draw = !draw;
         if (!draw) continue;
 
-        var bounds = this.children[i].getBoundingClientRect();
+        const bounds = this.children[i].getBoundingClientRect();
         ctx.fillRect(0, pixelRatio * (bounds.top - canvasBounds.top),
             ctx.canvas.width, pixelRatio * bounds.height);
       }
@@ -114,9 +115,9 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     appendMemoryDumpTrack_() {
-      var processMemoryDumps = this.process.memoryDumps;
+      const processMemoryDumps = this.process.memoryDumps;
       if (processMemoryDumps.length) {
-        var pmdt = new tr.ui.tracks.ProcessMemoryDumpTrack(this.viewport_);
+        const pmdt = new tr.ui.tracks.ProcessMemoryDumpTrack(this.viewport_);
         pmdt.memoryDumps = processMemoryDumps;
         Polymer.dom(this).appendChild(pmdt);
       }
@@ -127,7 +128,7 @@ tr.exportTo('tr.ui.tracks', function() {
       function onPickHit(instantEvent) {
         selection.push(instantEvent);
       }
-      var instantEventWidth = 2 * viewPixWidthWorld;
+      const instantEventWidth = 2 * viewPixWidthWorld;
       tr.b.math.iterateOverIntersectingIntervals(this.processBase.instantEvents,
           function(x) { return x.start; },
           function(x) { return x.duration + instantEventWidth; },

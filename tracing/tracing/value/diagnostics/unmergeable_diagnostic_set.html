@@ -21,7 +21,7 @@ tr.exportTo('tr.v.d', function() {
     }
 
     clone() {
-      let clone = new tr.v.d.UnmergeableDiagnosticSet();
+      const clone = new tr.v.d.UnmergeableDiagnosticSet();
       clone.addDiagnostic(this);
       return clone;
     }
@@ -41,8 +41,8 @@ tr.exportTo('tr.v.d', function() {
      */
     addDiagnostic(otherDiagnostic) {
       if (otherDiagnostic instanceof UnmergeableDiagnosticSet) {
-        for (let subOtherDiagnostic of otherDiagnostic) {
-          let clone = subOtherDiagnostic.clone();
+        for (const subOtherDiagnostic of otherDiagnostic) {
+          const clone = subOtherDiagnostic.clone();
           this.addDiagnostic(clone);
         }
         return;
@@ -55,18 +55,18 @@ tr.exportTo('tr.v.d', function() {
         }
       }
 
-      let clone = otherDiagnostic.clone();
+      const clone = otherDiagnostic.clone();
       this._diagnostics.push(clone);
     }
 
     mergeRelationships(otherDiagnostic, parentHist, otherParentHist) {
       if (otherDiagnostic instanceof UnmergeableDiagnosticSet) {
-        for (let subDiagnostic of otherDiagnostic) {
+        for (const subDiagnostic of otherDiagnostic) {
           this.mergeRelationships(subDiagnostic, parentHist, otherParentHist);
         }
         return;
       }
-      for (let subDiagnostic of this) {
+      for (const subDiagnostic of this) {
         if (!(subDiagnostic instanceof tr.v.d.RelatedHistogramSet) &&
             !(subDiagnostic instanceof tr.v.d.RelatedHistogramMap) &&
             !(subDiagnostic instanceof tr.v.d.RelatedHistogramBreakdown)) {
@@ -82,7 +82,7 @@ tr.exportTo('tr.v.d', function() {
     }
 
     * [Symbol.iterator]() {
-      for (let diagnostic of this._diagnostics) yield diagnostic;
+      for (const diagnostic of this._diagnostics) yield diagnostic;
     }
 
     asDictInto_(d) {

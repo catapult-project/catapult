@@ -16,7 +16,7 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('canSpecifyColors', function() {
-    var scheme = new tr.b.FixedColorScheme(new Map([
+    const scheme = new tr.b.FixedColorScheme(new Map([
         ['red', new tr.b.Color(255, 0, 0)],
         ['green', new tr.b.Color(0, 255, 0)],
         ['blue', new tr.b.Color(0, 0, 255)],
@@ -30,29 +30,29 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('namesGetColors', function() {
-    var scheme = tr.b.FixedColorScheme.fromNames(['foo', 'bar', 'baz']);
+    const scheme = tr.b.FixedColorScheme.fromNames(['foo', 'bar', 'baz']);
     assert.isTrue(isColor(scheme.getColor('foo')));
     assert.isTrue(isColor(scheme.getColor('bar')));
     assert.isTrue(isColor(scheme.getColor('baz')));
   });
 
   test('namesGetDifferentColors', function() {
-    var scheme = tr.b.FixedColorScheme.fromNames(['foo', 'bar', 'baz']);
+    const scheme = tr.b.FixedColorScheme.fromNames(['foo', 'bar', 'baz']);
     assert.notEqual(scheme.getColor('foo'), scheme.getColor('bar'));
     assert.notEqual(scheme.getColor('bar'), scheme.getColor('baz'));
     assert.notEqual(scheme.getColor('baz'), scheme.getColor('foo'));
   });
 
   test('sameNamesGetSameColors', function() {
-    var scheme = tr.b.FixedColorScheme.fromNames(['foo', 'bar', 'baz']);
+    const scheme = tr.b.FixedColorScheme.fromNames(['foo', 'bar', 'baz']);
     assert.strictEqual(scheme.getColor('foo'), scheme.getColor('foo'));
     assert.strictEqual(scheme.getColor('bar'), scheme.getColor('bar'));
     assert.strictEqual(scheme.getColor('baz'), scheme.getColor('baz'));
   });
 
   test('differentSchemesGiveTheSameColorsForTheSameNames', function() {
-    var a = tr.b.FixedColorScheme.fromNames(['foo', 'bar', 'baz']);
-    var b = tr.b.FixedColorScheme.fromNames(['foo', 'bar', 'baz']);
+    const a = tr.b.FixedColorScheme.fromNames(['foo', 'bar', 'baz']);
+    const b = tr.b.FixedColorScheme.fromNames(['foo', 'bar', 'baz']);
     assert.strictEqual(
         a.getColor('foo').toString(), b.getColor('foo').toString());
     assert.strictEqual(

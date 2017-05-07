@@ -11,13 +11,12 @@ found in the LICENSE file.
 // This variable name is supposed to not be camelCased, in order for it
 // to match up with the file name.
 // eslint-disable-next-line
-var testing_common = (function() {
+const testing_common = (function() {
+  const originalXMLHttpRequest = window.XMLHttpRequest;
+  let fixture = null;
+  let xhrMock = null;
 
-  var originalXMLHttpRequest = window.XMLHttpRequest;
-  var fixture = null;
-  var xhrMock = null;
-
-  var XMLHttpRequestMock = function() {
+  const XMLHttpRequestMock = function() {
     this.responseMap_ = {};
     window.XMLHttpRequest = MockXMLHttpRequest;
   };
@@ -55,7 +54,7 @@ var testing_common = (function() {
     }
 
     getRegexpResponseMatch(requestStr) {
-      for (var pattern in xhrMock.responseMap_) {
+      for (const pattern in xhrMock.responseMap_) {
         if (pattern == '*') {
           continue;
         }
@@ -76,13 +75,13 @@ var testing_common = (function() {
     }
 
     send(param) {
-      var url = this.url;
+      let url = this.url;
       if (param == null && this.url.indexOf('?') != -1) {
-        var parts = url.split('?');
+        const parts = url.split('?');
         url = parts[0];
         param = parts[1];
       }
-      var requestStr = url + '?' + sortQueryPart(param);
+      const requestStr = url + '?' + sortQueryPart(param);
       if (requestStr in xhrMock.responseMap_) {
         this.responseText = xhrMock.responseMap_[requestStr];
         this.onload();
@@ -122,23 +121,23 @@ var testing_common = (function() {
     }
   }
 
-  var paramString = function(params) {
-    var keys = Object.keys(params).sort();
+  const paramString = function(params) {
+    const keys = Object.keys(params).sort();
     return keys.map(function(key) {
       return key + '=' + encodeURIComponent(params[key]);
     }).join('&');
   };
 
-  var sortQueryPart = function(paramStr) {
-    var params = {};
-    var path = paramStr.substring(0, paramStr.indexOf('?') + 1);
-    var query = paramStr.substring(paramStr.indexOf('?') + 1);
-    var queryParts = query.split('&');
-    for (var i = 0; i < queryParts.length; i++) {
-      var pair = queryParts[i].split('=');
+  const sortQueryPart = function(paramStr) {
+    const params = {};
+    const path = paramStr.substring(0, paramStr.indexOf('?') + 1);
+    let query = paramStr.substring(paramStr.indexOf('?') + 1);
+    const queryParts = query.split('&');
+    for (let i = 0; i < queryParts.length; i++) {
+      const pair = queryParts[i].split('=');
       params[pair[0]] = pair.length == 1 ? '' : pair[1];
     }
-    var keys = Object.keys(params).sort();
+    const keys = Object.keys(params).sort();
     query = keys.map(function(key) {
       return key + '=' + params[key];
     }).join('&');
@@ -146,34 +145,36 @@ var testing_common = (function() {
   };
 
   function mockChartJson(mockData, mockSelectedData, sid) {
+    let selectedParams;
+    let unselectedParams;
     if (sid) {
-      var selectedParams = {
+      selectedParams = {
         sid,
         'test_path_dict': mockData.testPathDict,
         'is_selected': true
       };
-      var unselectedParams = {
+      unselectedParams = {
         sid,
         'test_path_dict': mockData.testPathDict
       };
     } else {
-      var selectedParams = {
+      selectedParams = {
         'test_path_dict': mockData.testPathDict,
         'is_selected': true
       };
-      var unselectedParams = {
+      unselectedParams = {
         'test_path_dict': mockData.testPathDict
       };
     }
-    var selectedGraphQuery = ('/graph_json?graphs=' +
+    const selectedGraphQuery = ('/graph_json?graphs=' +
         encodeURIComponent(JSON.stringify(selectedParams)));
     addXhrMock(selectedGraphQuery, JSON.stringify(
         mockSelectedData || mockData.graphSelectedJson));
-    var unselectedGraphQuery = ('/graph_json?graphs=' +
+    const unselectedGraphQuery = ('/graph_json?graphs=' +
         encodeURIComponent(JSON.stringify(unselectedParams)));
     addXhrMock(
         unselectedGraphQuery, JSON.stringify(mockData.graphUnselectedJson));
-    var revisionQuery = ('/graph_revisions?test_path=' +
+    const revisionQuery = ('/graph_revisions?test_path=' +
         encodeURIComponent(mockData.testPath));
     addXhrMock(
         revisionQuery, JSON.stringify(mockData.graphRevisionJson));
@@ -190,5 +191,4 @@ var testing_common = (function() {
     sortQueryPart
   };
 })();
-
 </script>

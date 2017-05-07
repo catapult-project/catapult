@@ -21,19 +21,19 @@ tr.b.unittest.testSuite(function() {
       'spaNavigationStartToFpDuration';
 
   function createChromeProcessesOnModel(model) {
-    let rendererProcess = model.getOrCreateProcess(RENDERER_PROCESS_ID);
-    let mainThread = rendererProcess.getOrCreateThread(
+    const rendererProcess = model.getOrCreateProcess(RENDERER_PROCESS_ID);
+    const mainThread = rendererProcess.getOrCreateThread(
         RENDERER_PROCESS_MAIN_THREAD_ID);
     mainThread.name = 'CrRendererMain';
-    let browserProcess = model.getOrCreateProcess(BROWSER_PROCESS_ID);
-    let browserMainThread = browserProcess.getOrCreateThread(
+    const browserProcess = model.getOrCreateProcess(BROWSER_PROCESS_ID);
+    const browserMainThread = browserProcess.getOrCreateThread(
         BROWSER_PROCESS_MAIN_THREAD_ID);
     browserMainThread.name = 'CrBrowserMain';
   }
 
   function addSpaNavigationEvent(model, timestamp, args) {
-    let rendererProcess = model.getOrCreateProcess(RENDERER_PROCESS_ID);
-    let mainThread = rendererProcess.getOrCreateThread(
+    const rendererProcess = model.getOrCreateProcess(RENDERER_PROCESS_ID);
+    const mainThread = rendererProcess.getOrCreateThread(
         RENDERER_PROCESS_MAIN_THREAD_ID);
 
     mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
@@ -46,8 +46,8 @@ tr.b.unittest.testSuite(function() {
   }
 
   function addGoToIndexSlice(model, timestamp) {
-    let browserProcess = model.getOrCreateProcess(BROWSER_PROCESS_ID);
-    let browserMainThread = browserProcess.getOrCreateThread(
+    const browserProcess = model.getOrCreateProcess(BROWSER_PROCESS_ID);
+    const browserMainThread = browserProcess.getOrCreateThread(
         BROWSER_PROCESS_MAIN_THREAD_ID);
     browserMainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
       cat: 'browser,navigation,benchmark',
@@ -58,8 +58,8 @@ tr.b.unittest.testSuite(function() {
   }
 
   function addFirstPaintSlice(model, timestamp) {
-    let rendererProcess = model.getOrCreateProcess(RENDERER_PROCESS_ID);
-    let mainThread = rendererProcess.getOrCreateThread(
+    const rendererProcess = model.getOrCreateProcess(RENDERER_PROCESS_ID);
+    const mainThread = rendererProcess.getOrCreateThread(
         RENDERER_PROCESS_MAIN_THREAD_ID);
 
     mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
@@ -71,7 +71,7 @@ tr.b.unittest.testSuite(function() {
   }
 
   function addInputLatencyRelatedSlices(model, timestamp) {
-    let latencyInfoFlowSlice = tr.c.TestUtils.newSliceEx({
+    const latencyInfoFlowSlice = tr.c.TestUtils.newSliceEx({
       cat: 'input,benchmark',
       title: 'LatencyInfo.Flow',
       start: timestamp - 2,
@@ -79,7 +79,7 @@ tr.b.unittest.testSuite(function() {
       bindId: '0x600000057',
       args: {step: 'handleInputEventMain'}
     });
-    let handleInputEventSlice = tr.c.TestUtils.newSliceEx({
+    const handleInputEventSlice = tr.c.TestUtils.newSliceEx({
       cat: 'blink,rail',
       title: 'WebViewImpl::handleInputEvent',
       start: timestamp - 1, // Assume handleInputEvent always delays 1ms.
@@ -87,16 +87,16 @@ tr.b.unittest.testSuite(function() {
       args: {type: 'MouseUp'}
     });
 
-    let rendererProcess = model.getOrCreateProcess(RENDERER_PROCESS_ID);
-    let mainThread = rendererProcess.getOrCreateThread(
+    const rendererProcess = model.getOrCreateProcess(RENDERER_PROCESS_ID);
+    const mainThread = rendererProcess.getOrCreateThread(
         RENDERER_PROCESS_MAIN_THREAD_ID);
 
     handleInputEventSlice.parentSlice = latencyInfoFlowSlice;
     mainThread.sliceGroup.pushSlice(latencyInfoFlowSlice);
     mainThread.sliceGroup.pushSlice(handleInputEventSlice);
 
-    let browserProcess = model.getOrCreateProcess(BROWSER_PROCESS_ID);
-    let browserMainThread = browserProcess.getOrCreateThread(
+    const browserProcess = model.getOrCreateProcess(BROWSER_PROCESS_ID);
+    const browserMainThread = browserProcess.getOrCreateThread(
         BROWSER_PROCESS_MAIN_THREAD_ID);
     browserMainThread.sliceGroup.pushSlice(tr.c.TestUtils.newAsyncSliceEx({
       cat: 'benchmark,latencyInfo,rail',
@@ -115,61 +115,61 @@ tr.b.unittest.testSuite(function() {
   }
 
   function getHistogramNamed(name, model) {
-    let histograms = new tr.v.HistogramSet();
+    const histograms = new tr.v.HistogramSet();
     tr.metrics.spaNavigationMetric(histograms, model);
-    let spaNavigationStartToFpDurationHist = histograms.getHistogramNamed(
+    const spaNavigationStartToFpDurationHist = histograms.getHistogramNamed(
         name);
     return spaNavigationStartToFpDurationHist;
   }
 
   test('spaNavStartToFirstPaintDuration_noChromeProcess', function() {
-    let model = tr.c.TestUtils.newModel();
-    let histogram = getHistogramNamed(
+    const model = tr.c.TestUtils.newModel();
+    const histogram = getHistogramNamed(
         SPA_NAVIGATION_START_TO_FIRST_PAINT_DURATION, model);
     assert(!histogram);
   });
 
   test('spaNavStartToFirstPaintDuration_noSpaNavStart', function() {
-    let model = tr.c.TestUtils.newModel(model => {
+    const model = tr.c.TestUtils.newModel(model => {
       createChromeProcessesOnModel(model);
       addSpaNavigationEvent(model, 100);
       addFirstPaintSlice(model, 101);
     });
-    let histogram = getHistogramNamed(
+    const histogram = getHistogramNamed(
         SPA_NAVIGATION_START_TO_FIRST_PAINT_DURATION, model);
     assert.strictEqual(0, histogram.numValues);
   });
 
   test('spaNavStartToFirstPaintDuration_noFirstPaint', function() {
-    let model = tr.c.TestUtils.newModel(model => {
+    const model = tr.c.TestUtils.newModel(model => {
       createChromeProcessesOnModel(model);
       addInputLatencyRelatedSlices(model, 99);
       addSpaNavigationEvent(model, 100);
     });
-    let histogram = getHistogramNamed(
+    const histogram = getHistogramNamed(
         SPA_NAVIGATION_START_TO_FIRST_PAINT_DURATION, model);
     assert.strictEqual(0, histogram.numValues);
   });
 
   test('spaNavStartToFirstPaintDuration_inputLatencyAsNavStart', function() {
     const URL = 'https://11111';
-    let model = tr.c.TestUtils.newModel(model => {
+    const model = tr.c.TestUtils.newModel(model => {
       createChromeProcessesOnModel(model);
       addInputLatencyRelatedSlices(model, 99);
       addSpaNavigationEvent(model, 100, {url: URL});
       addFirstPaintSlice(model, 101);
     });
-    let histogram = getHistogramNamed(
+    const histogram = getHistogramNamed(
         SPA_NAVIGATION_START_TO_FIRST_PAINT_DURATION, model);
     assert.strictEqual(1, histogram.running.count);
-    let navStartTs = model.convertTimestampToModelTime(
+    const navStartTs = model.convertTimestampToModelTime(
         'traceEventClock', 99 - 3 + 0.1);
-    let expectedDuration = 101 - navStartTs;
+    const expectedDuration = 101 - navStartTs;
     assert.closeTo(expectedDuration, histogram.running.sum, 0.5);
 
-    let binsWithSampleDiagnosticMaps =
+    const binsWithSampleDiagnosticMaps =
         histogram.allBins.filter(bin => bin.diagnosticMaps.length > 0);
-    let diagnostic = binsWithSampleDiagnosticMaps[0].diagnosticMaps[0].get(
+    const diagnostic = binsWithSampleDiagnosticMaps[0].diagnosticMaps[0].get(
         'Navigation infos');
     assert.strictEqual(diagnostic.value.url, URL);
     assert.strictEqual(diagnostic.value.pid, RENDERER_PROCESS_ID);
@@ -179,21 +179,21 @@ tr.b.unittest.testSuite(function() {
 
   test('spaNavStartToFirstPaintDuration_goToIndexAsNavStart', function() {
     const URL = 'https://11111';
-    let model = tr.c.TestUtils.newModel(model => {
+    const model = tr.c.TestUtils.newModel(model => {
       createChromeProcessesOnModel(model);
       addGoToIndexSlice(model, 99);
       addSpaNavigationEvent(model, 100, {url: URL});
       addFirstPaintSlice(model, 101);
     });
-    let histogram = getHistogramNamed(
+    const histogram = getHistogramNamed(
         SPA_NAVIGATION_START_TO_FIRST_PAINT_DURATION, model);
     assert.strictEqual(1, histogram.running.count);
-    let expectedDuration = 101 - 99;
+    const expectedDuration = 101 - 99;
     assert.closeTo(expectedDuration, histogram.running.sum, 0.5);
 
-    let binsWithSampleDiagnosticMaps =
+    const binsWithSampleDiagnosticMaps =
         histogram.allBins.filter(bin => bin.diagnosticMaps.length > 0);
-    let diagnostic = binsWithSampleDiagnosticMaps[0].diagnosticMaps[0].get(
+    const diagnostic = binsWithSampleDiagnosticMaps[0].diagnosticMaps[0].get(
         'Navigation infos');
     assert.strictEqual(diagnostic.value.url, URL);
     assert.strictEqual(diagnostic.value.pid, RENDERER_PROCESS_ID);
@@ -202,7 +202,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('spaNavStartToFirstPaintDuration_multipleSpaNavs', function() {
-    let model = tr.c.TestUtils.newModel(model => {
+    const model = tr.c.TestUtils.newModel(model => {
       createChromeProcessesOnModel(model);
       addInputLatencyRelatedSlices(model, 99);
       addSpaNavigationEvent(model, 100);
@@ -216,14 +216,14 @@ tr.b.unittest.testSuite(function() {
       addSpaNavigationEvent(model, 300);
       addFirstPaintSlice(model, 301);
     });
-    let histogram = getHistogramNamed(
+    const histogram = getHistogramNamed(
         SPA_NAVIGATION_START_TO_FIRST_PAINT_DURATION, model);
     assert.strictEqual(3, histogram.running.count);
-    let expectedDuration1 = 101 - model.convertTimestampToModelTime(
+    const expectedDuration1 = 101 - model.convertTimestampToModelTime(
         'traceEventClock', 99 - 3 + 0.1);
-    let expectedDuration2 = 201 - model.convertTimestampToModelTime(
+    const expectedDuration2 = 201 - model.convertTimestampToModelTime(
         'traceEventClock', 198 - 3 + 0.1);
-    let expectedDuration3 = 301 - model.convertTimestampToModelTime(
+    const expectedDuration3 = 301 - model.convertTimestampToModelTime(
         'traceEventClock', 297 - 3 + 0.1);
     assert.closeTo(expectedDuration1 + expectedDuration2 + expectedDuration3,
         histogram.running.sum, 0.5);

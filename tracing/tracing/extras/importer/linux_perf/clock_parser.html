@@ -16,8 +16,8 @@ found in the LICENSE file.
  * userland.
  */
 tr.exportTo('tr.e.importer.linux_perf', function() {
-  var ColorScheme = tr.b.ColorScheme;
-  var Parser = tr.e.importer.linux_perf.Parser;
+  const ColorScheme = tr.b.ColorScheme;
+  const Parser = tr.e.importer.linux_perf.Parser;
 
   /**
    * Parses linux trace mark events that were inserted in the trace by userland.
@@ -38,13 +38,13 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
     traceMarkWriteClockEvent(eventName, cpuNumber, pid, ts,
         eventBase, threadName) {
-      var event = /(\S+) state=(\d+) cpu_id=(\d+)/.exec(eventBase.details);
+      const event = /(\S+) state=(\d+) cpu_id=(\d+)/.exec(eventBase.details);
 
 
-      var name = event[1];
-      var rate = parseInt(event[2]);
+      const name = event[1];
+      const rate = parseInt(event[2]);
 
-      var ctr = this.model_.kernel
+      const ctr = this.model_.kernel
               .getOrCreateCounter(null, name);
       // Initialize the counter's series fields if needed.
       if (ctr.numSeries === 0) {

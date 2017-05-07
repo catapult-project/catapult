@@ -19,8 +19,8 @@ found in the LICENSE file.
  * @fileoverview Provides the ProcessBase class.
  */
 tr.exportTo('tr.model', function() {
-  var Thread = tr.model.Thread;
-  var Counter = tr.model.Counter;
+  const Thread = tr.model.Thread;
+  const Counter = tr.model.Counter;
 
   /**
    * The ProcessBase is a partial base class, upon which Kernel
@@ -60,7 +60,7 @@ tr.exportTo('tr.model', function() {
 
     iterateAllPersistableObjects(cb) {
       cb(this);
-      for (var tid in this.threads) {
+      for (const tid in this.threads) {
         this.threads[tid].iterateAllPersistableObjects(cb);
       }
     },
@@ -69,8 +69,8 @@ tr.exportTo('tr.model', function() {
      * Gets the number of threads in this process.
      */
     get numThreads() {
-      var n = 0;
-      for (var p in this.threads) {
+      let n = 0;
+      for (const p in this.threads) {
         n++;
       }
       return n;
@@ -81,7 +81,7 @@ tr.exportTo('tr.model', function() {
      * specified.
      */
     shiftTimestampsForward(amount) {
-      for (var child of this.childEventContainers()) {
+      for (const child of this.childEventContainers()) {
         child.shiftTimestampsForward(amount);
       }
     },
@@ -90,8 +90,8 @@ tr.exportTo('tr.model', function() {
      * Closes any open slices.
      */
     autoCloseOpenSlices() {
-      for (var tid in this.threads) {
-        var thread = this.threads[tid];
+      for (const tid in this.threads) {
+        const thread = this.threads[tid];
         thread.autoCloseOpenSlices();
       }
     },
@@ -119,19 +119,19 @@ tr.exportTo('tr.model', function() {
      * Merge slices from the kernel with those from userland for each thread.
      */
     mergeKernelWithUserland() {
-      for (var tid in this.threads) {
-        var thread = this.threads[tid];
+      for (const tid in this.threads) {
+        const thread = this.threads[tid];
         thread.mergeKernelWithUserland();
       }
     },
 
     updateBounds() {
       this.bounds.reset();
-      for (var tid in this.threads) {
+      for (const tid in this.threads) {
         this.threads[tid].updateBounds();
         this.bounds.addRange(this.threads[tid].bounds);
       }
-      for (var id in this.counters) {
+      for (const id in this.counters) {
         this.counters[id].updateBounds();
         this.bounds.addRange(this.counters[id].bounds);
       }
@@ -140,19 +140,19 @@ tr.exportTo('tr.model', function() {
     },
 
     addCategoriesToDict(categoriesDict) {
-      for (var tid in this.threads) {
+      for (const tid in this.threads) {
         this.threads[tid].addCategoriesToDict(categoriesDict);
       }
-      for (var id in this.counters) {
+      for (const id in this.counters) {
         categoriesDict[this.counters[id].category] = true;
       }
       this.objects.addCategoriesToDict(categoriesDict);
     },
 
     findAllThreadsMatching(predicate, opt_this) {
-      var threads = [];
-      for (var tid in this.threads) {
-        var thread = this.threads[tid];
+      const threads = [];
+      for (const tid in this.threads) {
+        const thread = this.threads[tid];
         if (predicate.call(opt_this, thread)) {
           threads.push(thread);
         }
@@ -165,7 +165,7 @@ tr.exportTo('tr.model', function() {
      * @return {Array} An array of all the matched threads.
      */
     findAllThreadsNamed(name) {
-      var threads = this.findAllThreadsMatching(function(thread) {
+      const threads = this.findAllThreadsMatching(function(thread) {
         if (!thread.name) return false;
         return thread.name === name;
       });
@@ -173,7 +173,7 @@ tr.exportTo('tr.model', function() {
     },
 
     findAtMostOneThreadNamed(name) {
-      var threads = this.findAllThreadsNamed(name);
+      const threads = this.findAllThreadsNamed(name);
       if (threads.length === 0) return undefined;
       if (threads.length > 1) {
         throw new Error('Expected no more than one ' + name);
@@ -185,9 +185,9 @@ tr.exportTo('tr.model', function() {
      * Removes threads from the process that are fully empty.
      */
     pruneEmptyContainers() {
-      var threadsToKeep = {};
-      for (var tid in this.threads) {
-        var thread = this.threads[tid];
+      const threadsToKeep = {};
+      for (const tid in this.threads) {
+        const thread = this.threads[tid];
         if (!thread.isEmpty) {
           threadsToKeep[tid] = thread;
         }
@@ -219,7 +219,7 @@ tr.exportTo('tr.model', function() {
      * category/name combination, creating it if it doesn't exist.
      */
     getOrCreateCounter(cat, name) {
-      var id = cat + '.' + name;
+      const id = cat + '.' + name;
       if (!this.counters[id]) {
         this.counters[id] = new Counter(this, id, cat, name);
       }
@@ -231,7 +231,7 @@ tr.exportTo('tr.model', function() {
     },
 
     createSubSlices() {
-      for (var tid in this.threads) {
+      for (const tid in this.threads) {
         this.threads[tid].createSubSlices();
       }
     }

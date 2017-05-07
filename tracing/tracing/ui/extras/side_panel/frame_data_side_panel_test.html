@@ -15,7 +15,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var TestUtils = tr.c.TestUtils;
+  const TestUtils = tr.c.TestUtils;
 
   function topLevelOptions(pid, id) {
     return {
@@ -42,7 +42,7 @@ tr.b.unittest.testSuite(function() {
   }
 
   function frameTreeNodeOptions(pid, id, opt_renderFrame, opt_parentId) {
-    var ans = {
+    const ans = {
       pid,
       id,
       cat: 'navigation',
@@ -70,7 +70,7 @@ tr.b.unittest.testSuite(function() {
    * Creates some independent contexts. Checks if all are present in the panel.
    */
   test('basic', function() {
-    var panel = document.createElement('tr-ui-e-s-frame-data-side-panel');
+    const panel = document.createElement('tr-ui-e-s-frame-data-side-panel');
     panel.model = TestUtils.newModel(function(model) {
       TestUtils.newSnapshot(model, topLevelOptions(1, '0x1'));
       TestUtils.newSnapshot(model, renderFrameOptions(
@@ -89,7 +89,7 @@ tr.b.unittest.testSuite(function() {
    * one row in the panel.
    */
   test('mergeCrossProcessFrameBlameContexts', function() {
-    var panel = document.createElement('tr-ui-e-s-frame-data-side-panel');
+    const panel = document.createElement('tr-ui-e-s-frame-data-side-panel');
     panel.model = TestUtils.newModel(function(model) {
       TestUtils.newSnapshot(model, topLevelOptions(1, '0x1'));
       TestUtils.newSnapshot(model, renderFrameOptions(
@@ -103,7 +103,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   function newAttributedSlice(model, pid, start, duration, context) {
-    var slice = TestUtils.newSliceEx({start, duration});
+    const slice = TestUtils.newSliceEx({start, duration});
     slice.contexts = [{type: 'FrameBlameContext', snapshot: context}];
     model.getOrCreateProcess(pid).getOrCreateThread(1).sliceGroup.pushSlice(
         slice);
@@ -114,10 +114,10 @@ tr.b.unittest.testSuite(function() {
    * Changes the range of interest. Checks if the panel updates correspondingly.
    */
   test('respondToRangeOfInterest', function() {
-    var topLevel;
-    var slice1;
-    var slice2;
-    var panel = document.createElement('tr-ui-e-s-frame-data-side-panel');
+    let topLevel;
+    let slice1;
+    let slice2;
+    const panel = document.createElement('tr-ui-e-s-frame-data-side-panel');
     panel.model = TestUtils.newModel(function(model) {
       topLevel = TestUtils.newSnapshot(model, topLevelOptions(1, '0x1'));
       slice1 = newAttributedSlice(model, 1, 1500, 500, topLevel);
@@ -142,15 +142,15 @@ tr.b.unittest.testSuite(function() {
    * slices attributed to the row are selected.
    */
   test('selectAttributedEvents', function() {
-    var topLevel;
-    var slice;
-    var panel = document.createElement('tr-ui-e-s-frame-data-side-panel');
+    let topLevel;
+    let slice;
+    const panel = document.createElement('tr-ui-e-s-frame-data-side-panel');
     panel.model = TestUtils.newModel(function(model) {
       topLevel = TestUtils.newSnapshot(model, topLevelOptions(1, '0x1'));
       slice = newAttributedSlice(model, 1, 1500, 500, topLevel);
     });
 
-    var selectionChanged = false;
+    let selectionChanged = false;
     panel.addEventListener('requestSelectionChange', function(e) {
       selectionChanged = true;
       assert.isTrue(

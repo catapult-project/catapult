@@ -122,7 +122,7 @@ tr.exportTo('tr.model', function() {
     getSampleStatistics(sampleIndices) {
       sampleIndices.sort();
 
-      var ret = [];
+      const ret = [];
       this.series_.forEach(function(series) {
         ret.push(series.getStatistics(sampleIndices));
       });
@@ -134,7 +134,7 @@ tr.exportTo('tr.model', function() {
      * specified.
      */
     shiftTimestampsForward(amount) {
-      for (var i = 0; i < this.series_.length; ++i) {
+      for (let i = 0; i < this.series_.length; ++i) {
         this.series_[i].shiftTimestampsForward(amount);
       }
     },
@@ -149,19 +149,19 @@ tr.exportTo('tr.model', function() {
 
       if (this.series_.length === 0) return;
 
-      var firstSeries = this.series_[0];
-      var lastSeries = this.series_[this.series_.length - 1];
+      const firstSeries = this.series_[0];
+      const lastSeries = this.series_[this.series_.length - 1];
 
       this.bounds.addValue(firstSeries.getTimestamp(0));
       this.bounds.addValue(lastSeries.getTimestamp(lastSeries.length - 1));
 
-      var numSeries = this.numSeries;
+      const numSeries = this.numSeries;
       this.maxTotal = -Infinity;
 
       // Sum the samples at each timestamp.
       // Note, this assumes that all series have all timestamps.
-      for (var i = 0; i < firstSeries.length; ++i) {
-        var total = 0;
+      for (let i = 0; i < firstSeries.length; ++i) {
+        let total = 0;
         this.series_.forEach(function(series) {
           total += series.getSample(i).value;
           this.totals.push(total);
@@ -176,9 +176,9 @@ tr.exportTo('tr.model', function() {
    * Comparison between counters that orders by parent.compareTo, then name.
    */
   Counter.compare = function(x, y) {
-    var tmp = x.parent.compareTo(y.parent);
+    let tmp = x.parent.compareTo(y.parent);
     if (tmp !== 0) return tmp;
-    var tmp = x.name.localeCompare(y.name);
+    tmp = x.name.localeCompare(y.name);
     if (tmp === 0) return x.tid - y.tid;
     return tmp;
   };

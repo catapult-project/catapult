@@ -12,8 +12,8 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   function stringToUint8Array(str) {
-    let buffer = new ArrayBuffer(str.length);
-    let bufferView = new Uint8Array(buffer);
+    const buffer = new ArrayBuffer(str.length);
+    const bufferView = new Uint8Array(buffer);
     for (let i = 0; i < bufferView.length; i++) {
       bufferView[i] = str.charCodeAt(i);
     }
@@ -21,7 +21,7 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('readUntilDelimiter', function() {
-    let stream = new tr.b.InMemoryTraceStream(
+    const stream = new tr.b.InMemoryTraceStream(
         stringToUint8Array('line 1\nline 2\n'), false);
     assert.strictEqual(stream.readUntilDelimiter('\n'), 'line 1\n');
     assert.strictEqual(stream.readUntilDelimiter('\n'), 'line 2\n');
@@ -29,7 +29,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('readUntilDelimiter_noDelimiter', function() {
-    let stream = new tr.b.InMemoryTraceStream(
+    const stream = new tr.b.InMemoryTraceStream(
         stringToUint8Array('line 1'), false);
     assert.isTrue(stream.hasData);
     assert.strictEqual(stream.readUntilDelimiter('\n'), 'line 1');
@@ -37,20 +37,20 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('readUntilDelimiter_noData', function() {
-    let stream = new tr.b.InMemoryTraceStream(new Uint8Array(0), false);
+    const stream = new tr.b.InMemoryTraceStream(new Uint8Array(0), false);
     assert.isFalse(stream.hasData);
     assert.strictEqual(stream.readUntilDelimiter('\n'), '');
     assert.isFalse(stream.hasData);
   });
 
   test('readUntilDelimiter_multiCharacterDelimiterThrows', function() {
-    let stream = new tr.b.InMemoryTraceStream(
+    const stream = new tr.b.InMemoryTraceStream(
         stringToUint8Array('Line 1'), false);
     assert.throws(stream.readUntilDelimiter.bind(stream, 'xy'));
   });
 
   test('readNumBytes', function() {
-    let stream = new tr.b.InMemoryTraceStream(
+    const stream = new tr.b.InMemoryTraceStream(
         stringToUint8Array('first block second large block and the rest'),
         false);
     assert.isTrue(stream.hasData);
@@ -62,21 +62,23 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('readNumBytes_noData', function() {
-    let stream = new tr.b.InMemoryTraceStream(new Uint8Array(0), false);
+    const stream = new tr.b.InMemoryTraceStream(new Uint8Array(0), false);
     assert.isFalse(stream.hasData);
     assert.strictEqual(stream.readNumBytes(10), '');
     assert.isFalse(stream.hasData);
   });
 
   test('readNumBytes_notEnoughData', function() {
-    let stream = new tr.b.InMemoryTraceStream(stringToUint8Array('bla'), false);
+    const stream = new tr.b.InMemoryTraceStream(
+        stringToUint8Array('bla'), false);
     assert.isTrue(stream.hasData);
     assert.strictEqual(stream.readNumBytes(10), 'bla');
     assert.isFalse(stream.hasData);
   });
 
   test('readNumBytes_negativeSize', function() {
-    let stream = new tr.b.InMemoryTraceStream(stringToUint8Array('bla'), false);
+    const stream = new tr.b.InMemoryTraceStream(
+        stringToUint8Array('bla'), false);
     assert.throws(stream.readNumBytes.bind(stream, -10));
   });
 });

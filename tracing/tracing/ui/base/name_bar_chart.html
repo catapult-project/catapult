@@ -13,9 +13,9 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.b', function() {
-  var NameBarChart = tr.ui.b.define('name-bar-chart', tr.ui.b.BarChart);
+  const NameBarChart = tr.ui.b.define('name-bar-chart', tr.ui.b.BarChart);
 
-  var Y_AXIS_PADDING = 2;
+  const Y_AXIS_PADDING = 2;
 
   NameBarChart.prototype = {
     __proto__: tr.ui.b.BarChart.prototype,
@@ -53,7 +53,7 @@ tr.exportTo('tr.ui.b', function() {
 
       // When we can measure text, we're ready to build the y-axis.
       yAxis.selectAll('*').remove();
-      var nameTexts = yAxis.selectAll('text').data(this.data_);
+      const nameTexts = yAxis.selectAll('text').data(this.data_);
       nameTexts
           .enter()
           .append('text')
@@ -63,9 +63,9 @@ tr.exportTo('tr.ui.b', function() {
           .text(d => d.x);
       nameTexts.exit().remove();
 
-      var previousTop = undefined;
-      for (var text of nameTexts[0]) {
-        var bbox = text.getBBox();
+      let previousTop = undefined;
+      for (const text of nameTexts[0]) {
+        const bbox = text.getBBox();
         if ((previousTop === undefined) ||
             (previousTop > (bbox.y + bbox.height))) {
           previousTop = bbox.y;

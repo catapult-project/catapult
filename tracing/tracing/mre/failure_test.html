@@ -12,7 +12,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('failureAsDictTest', function() {
-    var failure = new tr.mre.Failure(undefined, 'foo.html:Foo',
+    const failure = new tr.mre.Failure(undefined, 'foo.html:Foo',
                                      'file://foo.html', 'err', 'desc', 'stack');
 
     assert.deepEqual(failure.asDict(), {
@@ -25,7 +25,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('failureFromDictTest', function() {
-    var failureDict = {
+    const failureDict = {
       function_handle_string: 'foo.html:Foo',
       trace_canonical_url: 'file://foo.html',
       type: 'err',
@@ -33,7 +33,7 @@ tr.b.unittest.testSuite(function() {
       stack: 'stack'
     };
 
-    var failure = tr.mre.Failure.fromDict(failureDict);
+    const failure = tr.mre.Failure.fromDict(failureDict);
 
     assert.strictEqual(failure.functionHandleString, 'foo.html:Foo');
     assert.strictEqual(failure.traceCanonicalUrl, 'file://foo.html');

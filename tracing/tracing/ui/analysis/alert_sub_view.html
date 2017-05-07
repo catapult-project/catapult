@@ -65,11 +65,11 @@ Polymer({
   },
 
   getRowsForSingleAlert_(alert) {
-    var rows = [];
+    const rows = [];
 
     // Arguments
-    for (var argName in alert.args) {
-      var argView =
+    for (const argName in alert.args) {
+      const argView =
           document.createElement('tr-ui-a-generic-object-view');
       argView.object = alert.args[argName];
       rows.push({ name: argName, value: argView });
@@ -78,11 +78,11 @@ Polymer({
     // Associated events
     if (alert.associatedEvents.length) {
       alert.associatedEvents.forEach(function(event, i) {
-        var linkEl = document.createElement('tr-ui-a-analysis-link');
+        const linkEl = document.createElement('tr-ui-a-analysis-link');
         linkEl.setSelectionAndContent(
             new tr.model.EventSet(event), event.title);
 
-        var valueString = '';
+        let valueString = '';
         if (event instanceof tr.model.TimedEvent) {
           valueString = 'took ' + event.duration.toFixed(2) + 'ms';
         }
@@ -95,7 +95,7 @@ Polymer({
     }
 
     // Description
-    var descriptionEl = tr.ui.b.createDiv({
+    const descriptionEl = tr.ui.b.createDiv({
       textContent: alert.info.description,
       maxWidth: '300px'
     });
@@ -107,7 +107,7 @@ Polymer({
     // Additional Reading Links
     if (alert.info.docLinks) {
       alert.info.docLinks.forEach(function(linkObject) {
-        var linkEl = document.createElement('a');
+        const linkEl = document.createElement('a');
         linkEl.target = '_blank';
         linkEl.href = linkObject.href;
         Polymer.dom(linkEl).textContent = Polymer.dom(linkObject).textContent;
@@ -122,11 +122,12 @@ Polymer({
 
   getRowsForAlerts_(alerts) {
     if (alerts.length === 1) {
-      var rows = [{
+      const rows = [{
         name: 'Alert',
         value: tr.b.getOnlyElement(alerts).title
       }];
-      var detailRows = this.getRowsForSingleAlert_(tr.b.getOnlyElement(alerts));
+      const detailRows = this.getRowsForSingleAlert_(tr.b.getOnlyElement(
+          alerts));
       rows.push.apply(rows, detailRows);
       return rows;
     }
@@ -147,15 +148,15 @@ Polymer({
       return;
     }
 
-    var alerts = this.currentSelection_;
+    const alerts = this.currentSelection_;
     this.$.table.tableRows = this.getRowsForAlerts_(alerts);
     this.$.table.rebuild();
   },
 
   get relatedEventsToHighlight() {
     if (!this.currentSelection_) return undefined;
-    var result = new tr.model.EventSet();
-    for (var event of this.currentSelection_) {
+    const result = new tr.model.EventSet();
+    for (const event of this.currentSelection_) {
       result.addEventSet(event.associatedEvents);
     }
     return result;

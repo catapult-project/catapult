@@ -14,7 +14,7 @@ found in the LICENSE file.
 
 tr.exportTo('tr.ui.e.about_tracing', function() {
   function createResolvedPromise(data) {
-    var promise = new Promise(function(resolve, reject) {
+    const promise = new Promise(function(resolve, reject) {
       if (data) {
         resolve(data);
       } else {
@@ -28,8 +28,8 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     if (typeof messageString !== 'string') {
       throw new Error('Invalid data');
     }
-    var re = /"params":\s*\{\s*"value":\s*\[([^]+)\]\s*\}\s*\}/;
-    var m = re.exec(messageString);
+    const re = /"params":\s*\{\s*"value":\s*\[([^]+)\]\s*\}\s*\}/;
+    const m = re.exec(messageString);
     if (!m) {
       throw new Error('Malformed response');
     }
@@ -78,7 +78,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     },
 
     getCategories() {
-      var res = this.conn_.req('Tracing.getCategories', {});
+      const res = this.conn_.req('Tracing.getCategories', {});
       return res.then(function(result) {
         return result.categories;
       }, function(err) {
@@ -91,7 +91,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
         throw new Error('Already recording');
       }
       this.recording_ = 'starting';
-      var res = this.conn_.req(
+      let res = this.conn_.req(
           'Tracing.start',
           {
             categories: recordingOptions.categoryFilter,
@@ -139,7 +139,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       this.conn_.setNotificationListener(
           'Tracing.dataCollected', this.onDataCollected_.bind(this));
 
-      var clearListeners = function() {
+      const clearListeners = function() {
         this.conn_.setNotificationListener(
             'Tracing.bufferUsage', undefined);
         this.conn_.setNotificationListener(
@@ -154,7 +154,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
           clearListeners();
           this.recording_ = false;
           this.currentTraceTextChunks_.push(']');
-          var traceText = this.currentTraceTextChunks_.join('');
+          const traceText = this.currentTraceTextChunks_.join('');
           this.currentTraceTextChunks_ = undefined;
           resolve(traceText);
         }

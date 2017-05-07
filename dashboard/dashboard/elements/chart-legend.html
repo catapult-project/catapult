@@ -289,8 +289,8 @@ found in the LICENSE file.
       computeSelectionIsAll: seriesGroup => seriesGroup.selection == 'all',
 
       getTestIndexInSeriesGroup(seriesGroupIndex, name) {
-        var tests = this.seriesGroupList[seriesGroupIndex].tests;
-        for (var i = 0; i < tests.length; i++) {
+        const tests = this.seriesGroupList[seriesGroupIndex].tests;
+        for (let i = 0; i < tests.length; i++) {
           if (name == tests[i].name) {
             return i;
           }
@@ -302,9 +302,9 @@ found in the LICENSE file.
        * Event handler for the change event of any of the checkboxes.
        */
       onCheckboxClicked(event, detail) {
-        var test = event.model.test;
-        var seriesGroupIndex = this.$.grouplist.indexForElement(event.target);
-        var testIndex = this.getTestIndexInSeriesGroup(
+        const test = event.model.test;
+        const seriesGroupIndex = this.$.grouplist.indexForElement(event.target);
+        const testIndex = this.getTestIndexInSeriesGroup(
             seriesGroupIndex, test.name);
         if (testIndex !== null) {
           this.set('seriesGroupList.' + seriesGroupIndex + '.tests.' +
@@ -338,9 +338,9 @@ found in the LICENSE file.
        * @param {Object} seriesGroup A group of series.
        */
       updateSeriesGroupCheckedState(seriesGroupIndex) {
-        var allSelected = [];
-        var allUnselected = [];
-        var seriesGroup = this.seriesGroupList[seriesGroupIndex];
+        const allSelected = [];
+        const allUnselected = [];
+        const seriesGroup = this.seriesGroupList[seriesGroupIndex];
         seriesGroup.tests.forEach(function(test) {
           if (test.selected) {
             allSelected.push(test);
@@ -369,9 +369,9 @@ found in the LICENSE file.
        * Returns true if only important series are selected.
        */
       importantSelected(tests) {
-        var hasImportant = false;
-        for (var i = 0; i < tests.length; i++) {
-          var test = tests[i];
+        let hasImportant = false;
+        for (let i = 0; i < tests.length; i++) {
+          const test = tests[i];
           if (test.important) {
             if (!test.selected) {
               return false;
@@ -389,9 +389,9 @@ found in the LICENSE file.
        * number of hidden series link.
        */
       updateNumHidden(seriesGroupIndex) {
-        var numHidden = 0;
-        var numCanHide = 0;
-        var seriesGroup = this.seriesGroupList[seriesGroupIndex];
+        let numHidden = 0;
+        let numCanHide = 0;
+        const seriesGroup = this.seriesGroupList[seriesGroupIndex];
         seriesGroup.tests.forEach(function(test) {
           if (test.hidden) {
             numHidden++;
@@ -417,14 +417,14 @@ found in the LICENSE file.
        * Event handler for the change event of check all checkboxes.
        */
       onCheckAllCheckboxClicked(event, detail) {
-        var sender = event.currentTarget;
-        var groupIndex = event.model.groupIndex;
+        const sender = event.currentTarget;
+        const groupIndex = event.model.groupIndex;
 
         this.set(
             'seriesGroupList.' + groupIndex + '.selection', (
             sender.checked ? 'all' : 'none'));
-        var tests = this.seriesGroupList[groupIndex].tests;
-        for (var i = 0; i < tests.length; i++) {
+        const tests = this.seriesGroupList[groupIndex].tests;
+        for (let i = 0; i < tests.length; i++) {
           if (tests[i].index != undefined) {
             this.set(
                 'seriesGroupList.' + groupIndex + '.tests.' + i + '.selected',
@@ -440,7 +440,7 @@ found in the LICENSE file.
        * Event handler for series group close button clicked.
        */
       onCloseSeriesGroupClicked(event, detail) {
-        var model = event.model;
+        const model = event.model;
         this.fire('seriesgroupclosed', {'groupIndex': model.groupIndex});
       },
 
@@ -448,10 +448,10 @@ found in the LICENSE file.
        * Event handler for click event of expand link.
        */
       onExpandSeriesClicked(event, detail) {
-        var groupIndex = this.$.grouplist.modelForElement(
+        const groupIndex = this.$.grouplist.modelForElement(
             event.target).groupIndex;
-        var isCollapse = event.currentTarget.text == 'less' ? true : false;
-        var seriesGroup = this.seriesGroupList[groupIndex];
+        const isCollapse = event.currentTarget.text == 'less' ? true : false;
+        const seriesGroup = this.seriesGroupList[groupIndex];
         seriesGroup.tests.forEach(function(test, index) {
           if (isCollapse) {
             if (!test.selected && !test.important) {
@@ -485,9 +485,9 @@ found in the LICENSE file.
        */
       onSelectAll(opt_noEvent) {
         this.set('indicesToGraph', []);
-        for (var i = 0; i < this.seriesGroupList.length; i++) {
-          var group = this.seriesGroupList[i];
-          for (var j = 0; j < group.tests.length; j++) {
+        for (let i = 0; i < this.seriesGroupList.length; i++) {
+          const group = this.seriesGroupList[i];
+          for (let j = 0; j < group.tests.length; j++) {
             this.set('seriesGroupList.' + i + '.tests.' + j + '.selected',
                 true);
             this.push('indicesToGraph', group.tests[j].index);
@@ -504,9 +504,9 @@ found in the LICENSE file.
        */
       onDeselectAll(opt_noEvent) {
         this.set('indicesToGraph', []);
-        for (var i = 0; i < this.seriesGroupList.length; i++) {
-          var group = this.seriesGroupList[i];
-          for (var j = 0; j < group.tests.length; j++) {
+        for (let i = 0; i < this.seriesGroupList.length; i++) {
+          const group = this.seriesGroupList[i];
+          for (let j = 0; j < group.tests.length; j++) {
             this.set('seriesGroupList.' + i + '.tests.' + j + '.selected',
                 false);
           }
@@ -524,10 +524,10 @@ found in the LICENSE file.
        */
       onSelectCore(opt_noEvent) {
         this.set('indicesToGraph', []);
-        for (var i = 0; i < this.seriesGroupList.length; i++) {
-          var group = this.seriesGroupList[i];
-          for (var j = 0; j < group.tests.length; j++) {
-            var test = group.tests[j];
+        for (let i = 0; i < this.seriesGroupList.length; i++) {
+          const group = this.seriesGroupList[i];
+          for (let j = 0; j < group.tests.length; j++) {
+            const test = group.tests[j];
             this.set('seriesGroupList.' + i + '.tests.' + j + '.selected',
                 test.important);
             test.selected = test.important;

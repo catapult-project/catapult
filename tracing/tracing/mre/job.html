@@ -33,7 +33,7 @@ tr.exportTo('tr.mre', function() {
   };
 
   Job.fromDict = function(jobDict) {
-    var mapFunctionHandle = null;
+    let mapFunctionHandle = null;
     if (jobDict.map_function_handle !== null) {
       mapFunctionHandle = tr.mre.FunctionHandle.fromDict(
           jobDict.map_function_handle);

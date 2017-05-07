@@ -20,21 +20,21 @@ tr.exportTo('tr.v', function() {
      * @param {!tr.v.HistogramSet} histograms
      */
     static convertChartJson(charts, histograms) {
-      for (var [name, pageValues] of Object.entries(charts.charts)) {
+      for (const [name, pageValues] of Object.entries(charts.charts)) {
         if (name === 'trace') continue;
 
-        let pageValuesCount = tr.b.dictionaryLength(pageValues);
-        for (let [storyName, value] of Object.entries(pageValues)) {
+        const pageValuesCount = tr.b.dictionaryLength(pageValues);
+        for (const [storyName, value] of Object.entries(pageValues)) {
           if (pageValuesCount > 1 && storyName === 'summary') continue;
 
-          let unitInfo = tr.v.LEGACY_UNIT_INFO.get(value.units) || {};
-          let unitName = unitInfo.name || 'unitlessNumber';
-          let unitNameSuffix = tr.b.Unit.nameSuffixForImprovementDirection(
+          const unitInfo = tr.v.LEGACY_UNIT_INFO.get(value.units) || {};
+          const unitName = unitInfo.name || 'unitlessNumber';
+          const unitNameSuffix = tr.b.Unit.nameSuffixForImprovementDirection(
               ChartJsonConverter.convertImprovementDirection(
                   value.improvement_direction));
-          let conversionFactor = unitInfo.conversionFactor || 1;
+          const conversionFactor = unitInfo.conversionFactor || 1;
 
-          let hist = new tr.v.Histogram(
+          const hist = new tr.v.Histogram(
               value.name,
               tr.b.Unit.byName[unitName + unitNameSuffix],
               tr.v.HistogramBinBoundaries.SINGULAR);
@@ -50,10 +50,10 @@ tr.exportTo('tr.v', function() {
           }).addToHistogram(hist);
 
           if (value.type === 'histogram') {
-            for (let bucket of value.buckets) {
+            for (const bucket of value.buckets) {
               // Take the center of the bin. This coarse granularity can amplify
               // noise when a measurement moves from one bin to the next.
-              let sample = conversionFactor * (bucket.high + bucket.low) / 2;
+              const sample = conversionFactor * (bucket.high + bucket.low) / 2;
               for (let i = 0; i < bucket.count; ++i) {
                 hist.addSample(sample);
               }
@@ -62,7 +62,7 @@ tr.exportTo('tr.v', function() {
             // |value.values| is undefined if the list_of_scalar_values is
             // empty.
             if (value.values) {
-              for (let sample of value.values) {
+              for (const sample of value.values) {
                 hist.addSample(sample * conversionFactor);
               }
             }

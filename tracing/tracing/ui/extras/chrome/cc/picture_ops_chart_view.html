@@ -13,20 +13,20 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.e.chrome.cc', function() {
-  var BAR_PADDING = 1;
-  var BAR_WIDTH = 5;
-  var CHART_PADDING_LEFT = 65;
-  var CHART_PADDING_RIGHT = 30;
-  var CHART_PADDING_BOTTOM = 35;
-  var CHART_PADDING_TOP = 20;
-  var AXIS_PADDING_LEFT = 55;
-  var AXIS_PADDING_RIGHT = 30;
-  var AXIS_PADDING_BOTTOM = 35;
-  var AXIS_PADDING_TOP = 20;
-  var AXIS_TICK_SIZE = 5;
-  var AXIS_LABEL_PADDING = 5;
-  var VERTICAL_TICKS = 5;
-  var HUE_CHAR_CODE_ADJUSTMENT = 5.7;
+  const BAR_PADDING = 1;
+  const BAR_WIDTH = 5;
+  const CHART_PADDING_LEFT = 65;
+  const CHART_PADDING_RIGHT = 30;
+  const CHART_PADDING_BOTTOM = 35;
+  const CHART_PADDING_TOP = 20;
+  const AXIS_PADDING_LEFT = 55;
+  const AXIS_PADDING_RIGHT = 30;
+  const AXIS_PADDING_BOTTOM = 35;
+  const AXIS_PADDING_TOP = 20;
+  const AXIS_TICK_SIZE = 5;
+  const AXIS_LABEL_PADDING = 5;
+  const VERTICAL_TICKS = 5;
+  const HUE_CHAR_CODE_ADJUSTMENT = 5.7;
 
   /**
    * Provides a chart showing the cumulative time spent in Skia operations
@@ -34,7 +34,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
    *
    * @constructor
    */
-  var PictureOpsChartView =
+  const PictureOpsChartView =
       tr.ui.b.define('tr-ui-e-chrome-cc-picture-ops-chart-view');
 
   PictureOpsChartView.prototype = {
@@ -121,7 +121,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     processPictureData_() {
       if (this.pictureOps_ === undefined) return;
 
-      var totalOpCost = 0;
+      let totalOpCost = 0;
 
       // Take a copy of the picture ops data for sorting.
       this.opCosts_ = this.pictureOps_.map(function(op) {
@@ -130,7 +130,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       });
       this.opCosts_.sort();
 
-      var ninetyFifthPercentileCostIndex = Math.floor(
+      const ninetyFifthPercentileCostIndex = Math.floor(
           this.opCosts_.length * 0.95);
       this.ninetyFifthPercentileCost_ =
           this.opCosts_[ninetyFifthPercentileCostIndex];
@@ -140,22 +140,22 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     extractBarIndex_(e) {
-      var index = undefined;
+      let index = undefined;
 
       if (this.pictureOps_ === undefined ||
           this.pictureOps_.length === 0) {
         return index;
       }
 
-      var x = e.offsetX;
-      var y = e.offsetY;
+      const x = e.offsetX;
+      const y = e.offsetY;
 
-      var totalBarWidth = (BAR_WIDTH + BAR_PADDING) * this.pictureOps_.length;
+      const totalBarWidth = (BAR_WIDTH + BAR_PADDING) * this.pictureOps_.length;
 
-      var chartLeft = CHART_PADDING_LEFT;
-      var chartTop = 0;
-      var chartBottom = this.chartHeight_ - CHART_PADDING_BOTTOM;
-      var chartRight = chartLeft + totalBarWidth;
+      const chartLeft = CHART_PADDING_LEFT;
+      const chartTop = 0;
+      const chartBottom = this.chartHeight_ - CHART_PADDING_BOTTOM;
+      const chartRight = chartLeft + totalBarWidth;
 
       if (x < chartLeft || x > chartRight || y < chartTop || y > chartBottom) {
         return index;
@@ -170,7 +170,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     onClick_(e) {
-      var barClicked = this.extractBarIndex_(e);
+      const barClicked = this.extractBarIndex_(e);
 
       if (barClicked === undefined) return;
 
@@ -187,7 +187,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     onMouseMove_(e) {
-      var lastBarMouseOverTarget = this.currentBarMouseOverTarget_;
+      const lastBarMouseOverTarget = this.currentBarMouseOverTarget_;
       this.currentBarMouseOverTarget_ = this.extractBarIndex_(e);
 
       if (this.currentBarMouseOverTarget_ === lastBarMouseOverTarget) {
@@ -202,10 +202,10 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         return;
       }
 
-      var width = this.offsetWidth;
-      var left = this.scrollLeft;
-      var right = left + width;
-      var targetLeft = CHART_PADDING_LEFT +
+      const width = this.offsetWidth;
+      const left = this.scrollLeft;
+      const right = left + width;
+      const targetLeft = CHART_PADDING_LEFT +
           (BAR_WIDTH + BAR_PADDING) * this.selectedOpIndex;
 
       if (targetLeft > left && targetLeft < right) {
@@ -226,7 +226,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     updateChartDimensions_() {
       if (!this.pictureOps_) return;
 
-      var width = CHART_PADDING_LEFT + CHART_PADDING_RIGHT +
+      let width = CHART_PADDING_LEFT + CHART_PADDING_RIGHT +
           ((BAR_WIDTH + BAR_PADDING) * this.pictureOps_.length);
 
       if (width < this.offsetWidth) {
@@ -280,21 +280,21 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         return;
       }
 
-      var width = (BAR_WIDTH + BAR_PADDING) * this.selectedOpIndex;
+      const width = (BAR_WIDTH + BAR_PADDING) * this.selectedOpIndex;
       this.chartCtx_.fillStyle = 'rgb(223, 235, 230)';
       this.chartCtx_.fillRect(CHART_PADDING_LEFT, CHART_PADDING_TOP,
           width, this.chartHeight_ - CHART_PADDING_TOP - CHART_PADDING_BOTTOM);
     },
 
     drawChartAxes_() {
-      var min = this.opCosts_[0];
-      var max = this.opCosts_[this.opCosts_.length - 1];
-      var height = this.chartHeight_ - AXIS_PADDING_TOP - AXIS_PADDING_BOTTOM;
+      const min = this.opCosts_[0];
+      const max = this.opCosts_[this.opCosts_.length - 1];
+      const height = this.chartHeight_ - AXIS_PADDING_TOP - AXIS_PADDING_BOTTOM;
 
-      var tickYInterval = height / (VERTICAL_TICKS - 1);
-      var tickYPosition = 0;
-      var tickValInterval = (max - min) / (VERTICAL_TICKS - 1);
-      var tickVal = 0;
+      const tickYInterval = height / (VERTICAL_TICKS - 1);
+      let tickYPosition = 0;
+      const tickValInterval = (max - min) / (VERTICAL_TICKS - 1);
+      let tickVal = 0;
 
       this.chartCtx_.fillStyle = '#333';
       this.chartCtx_.strokeStyle = '#777';
@@ -321,7 +321,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.chartCtx_.textBaseline = 'middle';
 
       this.chartCtx_.beginPath();
-      for (var t = 0; t < VERTICAL_TICKS; t++) {
+      for (let t = 0; t < VERTICAL_TICKS; t++) {
         tickYPosition = Math.round(t * tickYInterval);
         tickVal = (max - t * tickValInterval).toFixed(4);
 
@@ -338,10 +338,10 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     drawLinesAtTickMarks_() {
-      var height = this.chartHeight_ - AXIS_PADDING_TOP - AXIS_PADDING_BOTTOM;
-      var width = this.chartWidth_ - AXIS_PADDING_LEFT - AXIS_PADDING_RIGHT;
-      var tickYInterval = height / (VERTICAL_TICKS - 1);
-      var tickYPosition = 0;
+      const height = this.chartHeight_ - AXIS_PADDING_TOP - AXIS_PADDING_BOTTOM;
+      const width = this.chartWidth_ - AXIS_PADDING_LEFT - AXIS_PADDING_RIGHT;
+      const tickYInterval = height / (VERTICAL_TICKS - 1);
+      let tickYPosition = 0;
 
       this.chartCtx_.save();
 
@@ -349,7 +349,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.chartCtx_.beginPath();
       this.chartCtx_.strokeStyle = 'rgba(0,0,0,0.05)';
 
-      for (var t = 0; t < VERTICAL_TICKS; t++) {
+      for (let t = 0; t < VERTICAL_TICKS; t++) {
         tickYPosition = Math.round(t * tickYInterval);
 
         this.chartCtx_.moveTo(0, tickYPosition);
@@ -371,22 +371,22 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     drawTooltip_() {
-      var tooltipData = this.pictureOps_[this.currentBarMouseOverTarget_];
-      var tooltipTitle = tooltipData.cmd_string;
-      var tooltipTime = tooltipData.cmd_time.toFixed(4);
-      var toolTipTimePercentage =
+      const tooltipData = this.pictureOps_[this.currentBarMouseOverTarget_];
+      const tooltipTitle = tooltipData.cmd_string;
+      const tooltipTime = tooltipData.cmd_time.toFixed(4);
+      const toolTipTimePercentage =
           ((tooltipData.cmd_time / this.totalOpCost_) * 100).toFixed(2);
 
-      var tooltipWidth = 120;
-      var tooltipHeight = 40;
-      var chartInnerWidth = this.chartWidth_ - CHART_PADDING_RIGHT -
+      const tooltipWidth = 120;
+      const tooltipHeight = 40;
+      const chartInnerWidth = this.chartWidth_ - CHART_PADDING_RIGHT -
           CHART_PADDING_LEFT;
-      var barWidth = BAR_WIDTH + BAR_PADDING;
-      var tooltipOffset = Math.round((tooltipWidth - barWidth) * 0.5);
+      const barWidth = BAR_WIDTH + BAR_PADDING;
+      const tooltipOffset = Math.round((tooltipWidth - barWidth) * 0.5);
 
-      var left = CHART_PADDING_LEFT + this.currentBarMouseOverTarget_ *
+      const left = CHART_PADDING_LEFT + this.currentBarMouseOverTarget_ *
           barWidth - tooltipOffset;
-      var top = Math.round((this.chartHeight_ - tooltipHeight) * 0.5);
+      const top = Math.round((this.chartHeight_ - tooltipHeight) * 0.5);
 
       this.chartCtx_.save();
 
@@ -418,24 +418,24 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     drawBars_() {
-      var op;
-      var opColor = 0;
-      var opHeight = 0;
-      var opWidth = BAR_WIDTH + BAR_PADDING;
-      var opHover = false;
+      let op;
+      let opColor = 0;
+      let opHeight = 0;
+      const opWidth = BAR_WIDTH + BAR_PADDING;
+      let opHover = false;
 
-      var bottom = this.chartHeight_ - CHART_PADDING_BOTTOM;
-      var maxHeight = this.chartHeight_ - CHART_PADDING_BOTTOM -
+      const bottom = this.chartHeight_ - CHART_PADDING_BOTTOM;
+      const maxHeight = this.chartHeight_ - CHART_PADDING_BOTTOM -
           CHART_PADDING_TOP;
 
-      var maxValue;
+      let maxValue;
       if (this.usePercentileScale) {
         maxValue = this.ninetyFifthPercentileCost_;
       } else {
         maxValue = this.maxCost_;
       }
 
-      for (var b = 0; b < this.pictureOps_.length; b++) {
+      for (let b = 0; b < this.pictureOps_.length; b++) {
         op = this.pictureOps_[b];
         opHeight = Math.round(
             (op.cmd_time / maxValue) * maxHeight);
@@ -455,11 +455,11 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     getOpColor_(opName, hover) {
-      var characters = opName.split('');
+      const characters = opName.split('');
 
-      var hue = characters.reduce(this.reduceNameToHue, 0) % 360;
-      var saturation = 30;
-      var lightness = hover ? '75%' : '50%';
+      const hue = characters.reduce(this.reduceNameToHue, 0) % 360;
+      const saturation = 30;
+      const lightness = hover ? '75%' : '50%';
 
       return 'hsl(' + hue + ', ' + saturation + '%, ' + lightness + '%)';
     },

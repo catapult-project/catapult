@@ -32,12 +32,12 @@ tr.exportTo('tr.model.source_info', function() {
 
     get domain() {
       if (!this.file_) return undefined;
-      var domain = this.file_.match(/(.*:\/\/[^:\/]*)/i);
+      const domain = this.file_.match(/(.*:\/\/[^:\/]*)/i);
       return domain ? domain[1] : undefined;
     },
 
     toString() {
-      var str = '';
+      let str = '';
 
       if (this.file_) {
         str += this.file_;

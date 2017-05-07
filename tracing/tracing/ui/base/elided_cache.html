@@ -20,8 +20,8 @@ tr.exportTo('tr.ui.b', function() {
    *   value: Another dict whose key is width
    *     and value is an ElidedStringWidthPair.
    */
-  var elidedTitleCacheDict = new Map();
-  var elidedTitleCache = new ElidedTitleCache();
+  const elidedTitleCacheDict = new Map();
+  const elidedTitleCache = new ElidedTitleCache();
 
   /**
    * A cache for elided strings.
@@ -45,22 +45,22 @@ tr.exportTo('tr.ui.b', function() {
      * @return {ElidedStringWidthPair} Elided string and width.
      */
     get(ctx, pixWidth, title, width, sliceDuration) {
-      var elidedDict = elidedTitleCacheDict.get(title);
+      let elidedDict = elidedTitleCacheDict.get(title);
       if (!elidedDict) {
         elidedDict = new Map();
         elidedTitleCacheDict.set(title, elidedDict);
       }
 
-      var elidedDictForPixWidth = elidedDict.get(pixWidth);
+      let elidedDictForPixWidth = elidedDict.get(pixWidth);
       if (!elidedDictForPixWidth) {
         elidedDict.set(pixWidth, new Map());
         elidedDictForPixWidth = elidedDict.get(pixWidth);
       }
 
-      var stringWidthPair = elidedDictForPixWidth.get(sliceDuration);
+      let stringWidthPair = elidedDictForPixWidth.get(sliceDuration);
       if (stringWidthPair === undefined) {
-        var newtitle = title;
-        var elided = false;
+        let newtitle = title;
+        let elided = false;
         while (this.labelWidthWorld(ctx, newtitle, pixWidth) > sliceDuration) {
           if (newtitle.length * 0.75 < 1) break;
           newtitle = newtitle.substring(0, newtitle.length * 0.75);
@@ -79,7 +79,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     quickMeasureText_(ctx, text) {
-      var w = this.textWidthMap.get(text);
+      let w = this.textWidthMap.get(text);
       if (!w) {
         w = ctx.measureText(text).width;
         this.textWidthMap.set(text, w);

@@ -134,7 +134,7 @@ tr.exportTo('tr.v.ui', function() {
       }
       search = search.slice(0, search.length - 1);
 
-      let rowDicts = {};
+      const rowDicts = {};
       for (const [name, rowState] of this.viewState.tableRowStates) {
         const dict = rowState.asCompactDict();
         if (dict === undefined) continue;

@@ -22,7 +22,7 @@ to allow it to show links).
     (function() {
       /** Returns a date string for the given timestamp. */
       function dateDisplay(secondsSinceEpoch) {
-        var d = new Date(secondsSinceEpoch * 1000);
+        const d = new Date(secondsSinceEpoch * 1000);
         return d.toISOString();
       }
 
@@ -38,12 +38,12 @@ to allow it to show links).
        *   ee is the Chrome OS branch branch build number.
        */
       function crosDisplay(pointId) {
-        var digits = zeroFill(pointId, 18);
-        var crBuild = Number(digits.substring(0, 5));
-        var crPatch = Number(digits.substring(5, 8));
-        var crosTipBuild = Number(digits.substring(8, 13));
-        var crosBranchBuild = Number(digits.substring(13, 16));
-        var crosSubbranchBuild = Number(digits.substring(16, 18));
+        const digits = zeroFill(pointId, 18);
+        const crBuild = Number(digits.substring(0, 5));
+        const crPatch = Number(digits.substring(5, 8));
+        const crosTipBuild = Number(digits.substring(8, 13));
+        const crosBranchBuild = Number(digits.substring(13, 16));
+        const crosSubbranchBuild = Number(digits.substring(16, 18));
         return ('Cr ' + crBuild + '.' + crPatch +
                 ' / CrOS ' + crosTipBuild + '.' +
                 crosBranchBuild + '.' + crosSubbranchBuild);
@@ -51,11 +51,11 @@ to allow it to show links).
 
       /** Pads a number with zeroes; returns a string. */
       function zeroFill(num, minWidth) {
-        var widthToFill = minWidth - num.toString().length;
+        const widthToFill = minWidth - num.toString().length;
         if (widthToFill <= 0) {
           return num.toString();
         }
-        for (var i = 0; i < widthToFill; i++) {
+        for (let i = 0; i < widthToFill; i++) {
           num = '0' + num;
         }
         return num.toString();

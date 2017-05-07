@@ -14,11 +14,11 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var TestUtils = tr.c.TestUtils;
+  const TestUtils = tr.c.TestUtils;
 
   test('crossProcessCounterpart', function() {
-    var frameTreeNode;
-    var renderFrame;
+    let frameTreeNode;
+    let renderFrame;
     TestUtils.newModel(function(model) {
       // Add a toplevel to make the context tree consistent with the spec,
       // though its functionality is not tested here.

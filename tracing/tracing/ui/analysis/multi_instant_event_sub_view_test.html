@@ -14,26 +14,26 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var Model = tr.Model;
-  var EventSet = tr.model.EventSet;
+  const Model = tr.Model;
+  const EventSet = tr.model.EventSet;
 
   test('analyzeSelectionWithSingleEvent', function() {
-    var model = new Model();
-    var p52 = model.getOrCreateProcess(52);
-    var t53 = p52.getOrCreateThread(53);
+    const model = new Model();
+    const p52 = model.getOrCreateProcess(52);
+    const t53 = p52.getOrCreateThread(53);
 
-    var ie1 = new tr.model.ProcessInstantEvent('cat', 'title', 7, 10, {});
-    var ie2 = new tr.model.ProcessInstantEvent('cat', 'title', 7, 20, {});
+    const ie1 = new tr.model.ProcessInstantEvent('cat', 'title', 7, 10, {});
+    const ie2 = new tr.model.ProcessInstantEvent('cat', 'title', 7, 20, {});
     p52.instantEvents.push(ie1);
     p52.instantEvents.push(ie2);
 
 
-    var selection = new EventSet();
+    const selection = new EventSet();
     selection.push(ie1);
     selection.push(ie2);
     assert.strictEqual(selection.length, 2);
 
-    var subView =
+    const subView =
         document.createElement('tr-ui-a-multi-instant-event-sub-view');
     subView.selection = selection;
 

@@ -89,8 +89,8 @@ tr.exportTo('tr.b.math', function() {
         this.mean_ = x;
         this.variance_ = 0;
       } else {
-        var oldMean = this.mean_;
-        var oldVariance = this.variance_;
+        const oldMean = this.mean_;
+        const oldVariance = this.variance_;
         // Using the 2nd formula for updating the mean yields better precision
         // but it doesn't work for the case oldMean is Infinity. Hence we handle
         // that case separately.
@@ -104,7 +104,7 @@ tr.exportTo('tr.b.math', function() {
     }
 
     merge(other) {
-      var result = new RunningStatistics();
+      const result = new RunningStatistics();
       result.count_ = this.count_ + other.count_;
       result.sum_ = this.sum_ + other.sum_;
       result.min_ = Math.min(this.min_, other.min_);
@@ -117,7 +117,7 @@ tr.exportTo('tr.b.math', function() {
         // Combine the mean and the variance using the formulas from
         // https://goo.gl/ddcAep.
         result.mean_ = result.sum / result.count;
-        var deltaMean = (this.mean || 0) - (other.mean || 0);
+        const deltaMean = (this.mean || 0) - (other.mean || 0);
         result.variance_ = this.variance_ + other.variance_ +
           (this.count * other.count * deltaMean * deltaMean / result.count);
 
@@ -152,7 +152,7 @@ tr.exportTo('tr.b.math', function() {
     }
 
     static fromDict(dict) {
-      var result = new RunningStatistics();
+      const result = new RunningStatistics();
       if (dict.length !== 7) {
         return result;
       }

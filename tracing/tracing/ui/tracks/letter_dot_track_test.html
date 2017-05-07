@@ -16,13 +16,13 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var LetterDotTrack = tr.ui.tracks.LetterDotTrack;
-  var LetterDot = tr.ui.tracks.LetterDot;
-  var SelectionState = tr.model.SelectionState;
-  var Viewport = tr.ui.TimelineViewport;
+  const LetterDotTrack = tr.ui.tracks.LetterDotTrack;
+  const LetterDot = tr.ui.tracks.LetterDot;
+  const SelectionState = tr.model.SelectionState;
+  const Viewport = tr.ui.TimelineViewport;
 
-  var createItems = function() {
-    var items = [
+  const createItems = function() {
+    const items = [
       new LetterDot({selectionState: SelectionState.SELECTED}, 'a', 7, 5),
       new LetterDot({selectionState: SelectionState.SELECTED}, 'b', 2, 20),
       new LetterDot({selectionState: SelectionState.NONE}, 'c', 4, 35),
@@ -32,38 +32,38 @@ tr.b.unittest.testSuite(function() {
   };
 
   test('instantiate', function() {
-    var items = createItems();
+    const items = createItems();
 
-    var div = document.createElement('div');
+    const div = document.createElement('div');
 
-    var viewport = new Viewport(div);
-    var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
+    const viewport = new Viewport(div);
+    const drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
     Polymer.dom(div).appendChild(drawingContainer);
 
-    var track = LetterDotTrack(viewport);
+    const track = LetterDotTrack(viewport);
     Polymer.dom(drawingContainer).appendChild(track);
 
     this.addHTMLOutput(div);
     drawingContainer.invalidate();
 
     track.items = items;
-    var dt = new tr.ui.TimelineDisplayTransform();
+    const dt = new tr.ui.TimelineDisplayTransform();
     dt.xSetWorldBounds(0, 60, track.clientWidth);
     track.viewport.setDisplayTransformImmediately(dt);
   });
 
   test('selectionHitTesting', function() {
-    var items = createItems();
+    const items = createItems();
 
-    var track = new LetterDotTrack(new Viewport());
+    const track = new LetterDotTrack(new Viewport());
     track.items = items;
 
     // Fake a view pixel size.
-    var devicePixelRatio = window.devicePixelRatio || 1;
-    var viewPixWidthWorld = 0.1 / devicePixelRatio;
+    const devicePixelRatio = window.devicePixelRatio || 1;
+    const viewPixWidthWorld = 0.1 / devicePixelRatio;
 
     // Hit outside range
-    var selection = [];
+    let selection = [];
     track.addIntersectingEventsInRangeToSelectionInWorldSpace(
         3, 4, viewPixWidthWorld, selection);
     assert.strictEqual(selection.length, 0);
@@ -85,33 +85,33 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('addEventNearToProvidedEventToSelection', function() {
-    var items = createItems();
+    const items = createItems();
 
-    var track = new LetterDotTrack(new Viewport());
+    const track = new LetterDotTrack(new Viewport());
     track.items = items;
 
     // Right from the middle of items.
-    var selection1 = [];
+    const selection1 = [];
     assert.isTrue(track.addEventNearToProvidedEventToSelection(
         items[2].modelItem, 1, selection1));
     assert.strictEqual(selection1.length, 1);
     assert.strictEqual(selection1[0], items[3].modelItem);
 
     // Left from the middle of items.
-    var selection2 = [];
+    const selection2 = [];
     assert.isTrue(track.addEventNearToProvidedEventToSelection(
         items[2].modelItem, -1, selection2));
     assert.strictEqual(selection2.length, 1);
     assert.strictEqual(selection2[0], items[1].modelItem);
 
     // Right from the right edge of items.
-    var selection3 = [];
+    const selection3 = [];
     assert.isFalse(track.addEventNearToProvidedEventToSelection(
         items[3].modelItem, 1, selection3));
     assert.strictEqual(selection3.length, 0);
 
     // Left from the left edge of items.
-    var selection4 = [];
+    const selection4 = [];
     assert.isFalse(track.addEventNearToProvidedEventToSelection(
         items[0].modelItem, -1, selection4));
     assert.strictEqual(selection4.length, 0);

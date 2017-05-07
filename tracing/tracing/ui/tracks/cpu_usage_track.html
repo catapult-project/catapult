@@ -22,8 +22,8 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.tracks', function() {
-  var ColorScheme = tr.b.ColorScheme;
-  var ChartTrack = tr.ui.tracks.ChartTrack;
+  const ColorScheme = tr.b.ColorScheme;
+  const ChartTrack = tr.ui.tracks.ChartTrack;
 
   /**
    * A track that displays the cpu usage of a process.
@@ -31,7 +31,7 @@ tr.exportTo('tr.ui.tracks', function() {
    * @constructor
    * @extends {tr.ui.tracks.ChartTrack}
    */
-  var CpuUsageTrack = tr.ui.b.define('cpu-usage-track', ChartTrack);
+  const CpuUsageTrack = tr.ui.b.define('cpu-usage-track', ChartTrack);
 
   CpuUsageTrack.prototype = {
     __proto__: ChartTrack.prototype,
@@ -66,16 +66,16 @@ tr.exportTo('tr.ui.tracks', function() {
     buildChartSeries_(yAxis, color) {
       if (!this.hasVisibleContent) return [];
 
-      var yAxis = new tr.ui.tracks.ChartSeriesYAxis(0, undefined);
-      var usageSamples = this.cpuUsageSeries_.samples;
-      var pts = new Array(usageSamples.length + 1);
-      for (var i = 0; i < usageSamples.length; i++) {
+      yAxis = new tr.ui.tracks.ChartSeriesYAxis(0, undefined);
+      const usageSamples = this.cpuUsageSeries_.samples;
+      const pts = new Array(usageSamples.length + 1);
+      for (let i = 0; i < usageSamples.length; i++) {
         pts[i] = new tr.ui.tracks.ChartPoint(undefined,
             usageSamples[i].start, usageSamples[i].usage);
       }
       pts[usageSamples.length] = new tr.ui.tracks.ChartPoint(undefined,
           usageSamples[usageSamples.length - 1].start, 0);
-      var renderingConfig = {
+      const renderingConfig = {
         chartType: tr.ui.tracks.ChartSeriesType.AREA,
         colorId: color
       };

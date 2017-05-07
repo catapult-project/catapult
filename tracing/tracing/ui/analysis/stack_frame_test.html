@@ -11,19 +11,19 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('instantiate', function() {
-    var model = new tr.Model();
-    var fA = tr.c.TestUtils.newStackTrace(model, ['a1', 'a2', 'a3']);
+    const model = new tr.Model();
+    const fA = tr.c.TestUtils.newStackTrace(model, ['a1', 'a2', 'a3']);
 
-    var stackFrameView = document.createElement('tr-ui-a-stack-frame');
+    const stackFrameView = document.createElement('tr-ui-a-stack-frame');
     stackFrameView.stackFrame = fA;
     this.addHTMLOutput(stackFrameView);
   });
 
   test('clearingStackFrame', function() {
-    var model = new tr.Model();
-    var fA = tr.c.TestUtils.newStackTrace(model, ['a1', 'a2', 'a3']);
+    const model = new tr.Model();
+    const fA = tr.c.TestUtils.newStackTrace(model, ['a1', 'a2', 'a3']);
 
-    var stackFrameView = document.createElement('tr-ui-a-stack-frame');
+    const stackFrameView = document.createElement('tr-ui-a-stack-frame');
     stackFrameView.stackFrame = fA;
     stackFrameView.stackFrame = undefined;
 

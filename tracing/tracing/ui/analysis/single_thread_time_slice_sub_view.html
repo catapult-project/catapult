@@ -105,7 +105,7 @@ Polymer({
   },
 
   set selection(selection) {
-    var timeSlice = tr.b.getOnlyElement(selection);
+    const timeSlice = tr.b.getOnlyElement(selection);
 
     if (!(timeSlice instanceof tr.model.ThreadTimeSlice)) {
       throw new Error('Only supports thread time slices');
@@ -113,12 +113,12 @@ Polymer({
 
     this.currentSelection_ = selection;
 
-    var thread = timeSlice.thread;
+    const thread = timeSlice.thread;
 
-    var root = Polymer.dom(this.root);
+    const root = Polymer.dom(this.root);
     Polymer.dom(root.querySelector('#state')).textContent =
         timeSlice.title;
-    var stateColor = tr.b.ColorScheme.colorsAsStrings[timeSlice.colorId];
+    const stateColor = tr.b.ColorScheme.colorsAsStrings[timeSlice.colorId];
     root.querySelector('#state').style.backgroundColor = stateColor;
 
     Polymer.dom(root.querySelector('#process-name')).textContent =
@@ -131,13 +131,13 @@ Polymer({
     root.querySelector('#duration').setValueAndUnit(
         timeSlice.duration, tr.b.Unit.byName.timeDurationInMs);
 
-    var onCpuEl = root.querySelector('#on-cpu');
+    const onCpuEl = root.querySelector('#on-cpu');
     Polymer.dom(onCpuEl).textContent = '';
-    var runningInsteadEl = root.querySelector('#running-instead');
+    const runningInsteadEl = root.querySelector('#running-instead');
     if (timeSlice.cpuOnWhichThreadWasRunning) {
       Polymer.dom(runningInsteadEl.parentElement).removeChild(runningInsteadEl);
 
-      var cpuLink = document.createElement('tr-ui-a-analysis-link');
+      const cpuLink = document.createElement('tr-ui-a-analysis-link');
       cpuLink.selection = new tr.model.EventSet(
           timeSlice.getAssociatedCpuSlice());
       Polymer.dom(cpuLink).textContent =
@@ -146,9 +146,9 @@ Polymer({
     } else {
       Polymer.dom(onCpuEl.parentElement).removeChild(onCpuEl);
 
-      var cpuSliceThatTookCpu = timeSlice.getCpuSliceThatTookCpu();
+      const cpuSliceThatTookCpu = timeSlice.getCpuSliceThatTookCpu();
       if (cpuSliceThatTookCpu) {
-        var cpuLink = document.createElement('tr-ui-a-analysis-link');
+        const cpuLink = document.createElement('tr-ui-a-analysis-link');
         cpuLink.selection = new tr.model.EventSet(cpuSliceThatTookCpu);
         if (cpuSliceThatTookCpu.thread) {
           Polymer.dom(cpuLink).textContent =
@@ -163,9 +163,9 @@ Polymer({
       }
     }
 
-    var argsEl = root.querySelector('#args');
+    const argsEl = root.querySelector('#args');
     if (tr.b.dictionaryLength(timeSlice.args) > 0) {
-      var argsView =
+      const argsView =
           document.createElement('tr-ui-a-generic-object-view');
       argsView.object = timeSlice.args;
 

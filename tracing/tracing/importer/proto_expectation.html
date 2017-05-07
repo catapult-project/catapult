@@ -42,7 +42,7 @@ tr.exportTo('tr.importer', function() {
    * initiator titles (e.g. a scroll is higher than a touch, because a
    * touch could mean many different things, of which a scroll is one)
    */
-  var INITIATOR_HIERARCHY = [
+  const INITIATOR_HIERARCHY = [
     tr.model.um.INITIATOR_TYPE.PINCH,
     tr.model.um.INITIATOR_TYPE.FLING,
     tr.model.um.INITIATOR_TYPE.MOUSE_WHEEL,
@@ -57,7 +57,7 @@ tr.exportTo('tr.importer', function() {
   ];
 
   function combineInitiatorTypes(title1, title2) {
-    for (var item of INITIATOR_HIERARCHY) {
+    for (const item of INITIATOR_HIERARCHY) {
       if (title1 === item || title2 === item) return item;
     }
     throw new Error('Invalid titles in combineInitiatorTypes');
@@ -88,9 +88,9 @@ tr.exportTo('tr.importer', function() {
         return undefined;
       }
 
-      var duration = this.end - this.start;
+      const duration = this.end - this.start;
 
-      var ir = undefined;
+      let ir = undefined;
       switch (this.type) {
         case ProtoExpectation.RESPONSE_TYPE:
           ir = new tr.model.um.ResponseExpectation(
@@ -176,7 +176,7 @@ tr.exportTo('tr.importer', function() {
 
     // Return a string describing this ProtoExpectation for debugging.
     debug() {
-      var debugString = this.type + '(';
+      let debugString = this.type + '(';
       debugString += parseInt(this.start) + ' ';
       debugString += parseInt(this.end);
       this.associatedEvents.forEach(function(event) {

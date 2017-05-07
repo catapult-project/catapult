@@ -12,11 +12,11 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var ChartPoint = tr.ui.tracks.ChartPoint;
+  const ChartPoint = tr.ui.tracks.ChartPoint;
 
   test('checkFields_withoutYBase', function() {
-    var event = {};
-    var point = new ChartPoint(event, 42, -7);
+    const event = {};
+    const point = new ChartPoint(event, 42, -7);
 
     assert.strictEqual(point.modelItem, event);
     assert.strictEqual(point.x, 42);
@@ -25,8 +25,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('checkFields_withYBase', function() {
-    var event = {};
-    var point = new ChartPoint(event, 111, 222, 333);
+    const event = {};
+    const point = new ChartPoint(event, 111, 222, 333);
 
     assert.strictEqual(point.modelItem, event);
     assert.strictEqual(point.x, 111);

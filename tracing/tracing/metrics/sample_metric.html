@@ -14,12 +14,12 @@ found in the LICENSE file.
 
 tr.exportTo('tr.metrics', function() {
   function sampleMetric(histograms, model) {
-    var hist = new tr.v.Histogram(
+    const hist = new tr.v.Histogram(
         'foo', tr.b.Unit.byName.sizeInBytes_smallerIsBetter);
     hist.addSample(9);
     hist.addSample(91, {bar: new tr.v.d.Generic({hello: 42})});
 
-    for (var expectation of model.userModel.expectations) {
+    for (const expectation of model.userModel.expectations) {
       if (expectation instanceof tr.model.um.ResponseExpectation) {
       } else if (expectation instanceof tr.model.um.AnimationExpectation) {
       } else if (expectation instanceof tr.model.um.IdleExpectation) {
@@ -27,10 +27,10 @@ tr.exportTo('tr.metrics', function() {
       }
     }
 
-    var chromeHelper = model.getOrCreateHelper(
+    const chromeHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
 
-    for (var [pid, process] of Object.entries(model.processes)) {
+    for (const [pid, process] of Object.entries(model.processes)) {
     }
 
     histograms.addHistogram(hist);

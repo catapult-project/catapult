@@ -18,15 +18,15 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var Device = tr.model.Device;
-  var DeviceTrack = tr.ui.tracks.DeviceTrack;
-  var Model = tr.Model;
-  var PowerSeries = tr.model.PowerSeries;
+  const Device = tr.model.Device;
+  const DeviceTrack = tr.ui.tracks.DeviceTrack;
+  const Model = tr.Model;
+  const PowerSeries = tr.model.PowerSeries;
 
-  var createDrawingContainer = function(series) {
-    var div = document.createElement('div');
-    var viewport = new tr.ui.TimelineViewport(div);
-    var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
+  const createDrawingContainer = function(series) {
+    const div = document.createElement('div');
+    const viewport = new tr.ui.TimelineViewport(div);
+    const drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
     Polymer.dom(div).appendChild(drawingContainer);
 
     if (series) {
@@ -41,25 +41,25 @@ tr.b.unittest.testSuite(function() {
    * Sets the mapping between the input range of timestamps and the output range
    * of horizontal pixels.
    */
-  var setDisplayTransformFromBounds = function(viewport, bounds) {
-    var dt = new tr.ui.TimelineDisplayTransform();
-    var pixelRatio = window.devicePixelRatio || 1;
-    var chartPixelWidth =
+  const setDisplayTransformFromBounds = function(viewport, bounds) {
+    const dt = new tr.ui.TimelineDisplayTransform();
+    const pixelRatio = window.devicePixelRatio || 1;
+    const chartPixelWidth =
         (window.innerWidth - tr.ui.b.constants.HEADING_WIDTH) * pixelRatio;
     dt.xSetWorldBounds(bounds.min, bounds.max, chartPixelWidth);
     viewport.setDisplayTransformImmediately(dt);
   };
 
   test('instantiate', function() {
-    var device = new Device(new Model());
+    const device = new Device(new Model());
     device.powerSeries = new PowerSeries(device);
     device.powerSeries.addPowerSample(0, 1);
     device.powerSeries.addPowerSample(0.5, 2);
     device.powerSeries.addPowerSample(1, 3);
     device.powerSeries.addPowerSample(1.5, 4);
 
-    var drawingContainer = createDrawingContainer(device.powerSeries);
-    var track = new DeviceTrack(drawingContainer.viewport);
+    const drawingContainer = createDrawingContainer(device.powerSeries);
+    const track = new DeviceTrack(drawingContainer.viewport);
     track.device = device;
     Polymer.dom(drawingContainer).appendChild(track);
 
@@ -67,10 +67,10 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiate_noPowerSeries', function() {
-    var device = new Device(new Model());
+    const device = new Device(new Model());
 
-    var drawingContainer = createDrawingContainer(device.powerSeries);
-    var track = new DeviceTrack(drawingContainer.viewport);
+    const drawingContainer = createDrawingContainer(device.powerSeries);
+    const track = new DeviceTrack(drawingContainer.viewport);
     track.device = device;
     Polymer.dom(drawingContainer).appendChild(track);
 
@@ -79,18 +79,18 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('setDevice_clearsTrackBeforeUpdating', function() {
-    var device = new Device(new Model());
+    const device = new Device(new Model());
     device.powerSeries = new PowerSeries(device);
     device.powerSeries.addPowerSample(0, 1);
     device.powerSeries.addPowerSample(0.5, 2);
     device.powerSeries.addPowerSample(1, 3);
     device.powerSeries.addPowerSample(1.5, 4);
 
-    var drawingContainer = createDrawingContainer(device.powerSeries);
+    const drawingContainer = createDrawingContainer(device.powerSeries);
 
     // Set the device twice and make sure that this doesn't result in
     // the track appearing twice.
-    var track = new DeviceTrack(drawingContainer.viewport);
+    const track = new DeviceTrack(drawingContainer.viewport);
     track.device = device;
     track.device = device;
     Polymer.dom(drawingContainer).appendChild(track);
@@ -103,15 +103,15 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('addContainersToTrackMap', function() {
-    var device = new Device(new Model());
+    const device = new Device(new Model());
     device.powerSeries = new PowerSeries(device);
     device.powerSeries.addPowerSample(0, 1);
 
-    var drawingContainer = createDrawingContainer(device.series);
-    var track = new DeviceTrack(drawingContainer.viewport);
+    const drawingContainer = createDrawingContainer(device.series);
+    const track = new DeviceTrack(drawingContainer.viewport);
     track.device = device;
 
-    var containerToTrackMap = new tr.ui.tracks.ContainerToTrackMap();
+    const containerToTrackMap = new tr.ui.tracks.ContainerToTrackMap();
     track.addContainersToTrackMap(containerToTrackMap);
 
     assert.strictEqual(containerToTrackMap.getTrackByStableId('Device'), track);
@@ -121,21 +121,21 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('addEventsToTrackMap', function() {
-    var device = new Device(new Model());
+    const device = new Device(new Model());
     device.powerSeries = new PowerSeries(device);
     device.powerSeries.addPowerSample(0, 1);
     device.powerSeries.addPowerSample(0.5, 2);
 
-    var div = document.createElement('div');
-    var viewport = new tr.ui.TimelineViewport(div);
+    const div = document.createElement('div');
+    const viewport = new tr.ui.TimelineViewport(div);
 
-    var track = new DeviceTrack(viewport);
+    const track = new DeviceTrack(viewport);
     track.device = device;
 
-    var eventToTrackMap = new tr.ui.tracks.EventToTrackMap();
+    const eventToTrackMap = new tr.ui.tracks.EventToTrackMap();
     track.addEventsToTrackMap(eventToTrackMap);
 
-    var expected = new tr.ui.tracks.EventToTrackMap();
+    const expected = new tr.ui.tracks.EventToTrackMap();
     expected[device.powerSeries.samples[0].guid] = track.powerSeriesTrack;
     expected[device.powerSeries.samples[1].guid] = track.powerSeriesTrack;
 

@@ -94,8 +94,8 @@ Polymer({
   },
 
   onOuterClick_(e) {
-    var or = this.$.outer.getBoundingClientRect();
-    var inside = true;
+    const or = this.$.outer.getBoundingClientRect();
+    let inside = true;
     inside &= e.clientX >= or.left;
     inside &= e.clientX < or.right;
     inside &= e.clientY >= or.top;
@@ -119,13 +119,13 @@ Polymer({
 
     Polymer.dom(this.$.outer).classList.add('open');
 
-    var ddr = this.$.outer.getBoundingClientRect();
-    var rW = Math.max(ddr.width, 150);
+    const ddr = this.$.outer.getBoundingClientRect();
+    const rW = Math.max(ddr.width, 150);
     this.$.dialog.style.minWidth = rW + 'px';
     this.$.dialog.showModal();
 
-    var ddw = this.$.outer.getBoundingClientRect().width;
-    var w = this.$.dialog.getBoundingClientRect().width;
+    const ddw = this.$.outer.getBoundingClientRect().width;
+    const w = this.$.dialog.getBoundingClientRect().width;
     this.$.dialog.style.top = ddr.bottom - 1 + 'px';
     this.$.dialog.style.left = ddr.left + 'px';
   },

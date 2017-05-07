@@ -85,7 +85,7 @@ tr.exportTo('tr.ui', function() {
     },
 
     asRangeObject() {
-      var range = new tr.b.math.Range();
+      const range = new tr.b.math.Range();
       range.addRange(this.range_);
       return range;
     },
@@ -133,13 +133,13 @@ tr.exportTo('tr.ui', function() {
     draw(ctx, viewLWorld, viewRWorld) {
       if (this.range_.isEmpty) return;
 
-      var dt = this.viewport_.currentDisplayTransform;
+      const dt = this.viewport_.currentDisplayTransform;
 
-      var markerLWorld = this.min;
-      var markerRWorld = this.max;
+      const markerLWorld = this.min;
+      const markerRWorld = this.max;
 
-      var markerLView = Math.round(dt.xWorldToView(markerLWorld));
-      var markerRView = Math.round(dt.xWorldToView(markerRWorld));
+      const markerLView = Math.round(dt.xWorldToView(markerLWorld));
+      const markerRView = Math.round(dt.xWorldToView(markerRWorld));
 
       ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
       if (markerLWorld > viewLWorld) {
@@ -152,7 +152,7 @@ tr.exportTo('tr.ui', function() {
             dt.xWorldToView(viewRWorld), ctx.canvas.height);
       }
 
-      var pixelRatio = window.devicePixelRatio || 1;
+      const pixelRatio = window.devicePixelRatio || 1;
       ctx.lineWidth = Math.round(pixelRatio);
       if (this.range_.range > 0) {
         this.drawLine_(ctx, viewLWorld, viewRWorld,
@@ -170,8 +170,8 @@ tr.exportTo('tr.ui', function() {
     drawLine_(ctx, viewLWorld, viewRWorld, height, ts, selected) {
       if (ts < viewLWorld || ts >= viewRWorld) return;
 
-      var dt = this.viewport_.currentDisplayTransform;
-      var viewX = Math.round(dt.xWorldToView(ts));
+      const dt = this.viewport_.currentDisplayTransform;
+      const viewX = Math.round(dt.xWorldToView(ts));
 
       // Apply subpixel translate to get crisp lines.
       // http://www.mobtowers.com/html5-canvas-crisp-lines-every-time/
@@ -207,19 +207,19 @@ tr.exportTo('tr.ui', function() {
 
     drawIndicator_(ctx, viewLWorld, viewRWorld,
         xWorld, si, selected) {
-      var dt = this.viewport_.currentDisplayTransform;
+      const dt = this.viewport_.currentDisplayTransform;
 
-      var viewX = Math.round(dt.xWorldToView(xWorld));
+      const viewX = Math.round(dt.xWorldToView(xWorld));
 
       // Apply subpixel translate to get crisp lines.
       // http://www.mobtowers.com/html5-canvas-crisp-lines-every-time/
       ctx.save();
       ctx.translate((Math.round(ctx.lineWidth) % 2) / 2, 0);
 
-      var pixelRatio = window.devicePixelRatio || 1;
-      var viewY = si.y * devicePixelRatio;
-      var viewHeight = si.height * devicePixelRatio;
-      var arrowSize = 4 * pixelRatio;
+      const pixelRatio = window.devicePixelRatio || 1;
+      const viewY = si.y * devicePixelRatio;
+      const viewHeight = si.height * devicePixelRatio;
+      const arrowSize = 4 * pixelRatio;
 
       if (selected) {
         ctx.fillStyle = 'rgb(255, 0, 0)';

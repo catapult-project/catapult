@@ -10,10 +10,10 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var MOUSE_SELECTOR_MODE = tr.ui.b.MOUSE_SELECTOR_MODE;
+  const MOUSE_SELECTOR_MODE = tr.ui.b.MOUSE_SELECTOR_MODE;
 
   test('inactive', function() {
-    var icon = document.createElement('tr-ui-b-mouse-mode-icon');
+    const icon = document.createElement('tr-ui-b-mouse-mode-icon');
     icon.mode = MOUSE_SELECTOR_MODE.SELECTION;
     assert.strictEqual(icon.modeName, 'SELECTION');
     icon.acceleratorKey = 'a';
@@ -21,7 +21,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('active', function() {
-    var icon = document.createElement('tr-ui-b-mouse-mode-icon');
+    const icon = document.createElement('tr-ui-b-mouse-mode-icon');
     icon.mode = MOUSE_SELECTOR_MODE.SELECTION;
     assert.strictEqual(icon.modeName, 'SELECTION');
     icon.active = true;
@@ -29,7 +29,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('modeNameSetter', function() {
-    var icon = document.createElement('tr-ui-b-mouse-mode-icon');
+    const icon = document.createElement('tr-ui-b-mouse-mode-icon');
     Polymer.dom(icon).setAttribute('mode-name', 'SELECTION');
     this.addHTMLOutput(icon);
 

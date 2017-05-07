@@ -29,15 +29,15 @@ tr.exportTo('tr.b.unittest', function() {
                 '----------------');
   }
   function loadAndRunTests(suiteRelpathsToLoad) {
-    var results = new tr.b.unittest.TextTestResults();
+    const results = new tr.b.unittest.TextTestResults();
 
-    var loader = new tr.b.unittest.SuiteLoader(suiteRelpathsToLoad);
+    const loader = new tr.b.unittest.SuiteLoader(suiteRelpathsToLoad);
 
-    var p = loader.allSuitesLoadedPromise;
+    let p = loader.allSuitesLoadedPromise;
 
     p = p.then(
         function didAllSuitesLoad() {
-          var tests = loader.getAllTests().filter(function(testCase) {
+          const tests = loader.getAllTests().filter(function(testCase) {
             if (testCase instanceof tr.b.unittest.PerfTestCase) {
               return false;
             }
@@ -49,7 +49,7 @@ tr.exportTo('tr.b.unittest', function() {
             console.log(err.stack);
             quit(1);
           }
-          var runner = new tr.b.unittest.TestRunner(results, tests);
+          const runner = new tr.b.unittest.TestRunner(results, tests);
           return runner.beginRunning();
         },
         function suiteLoadingFailure(err) {

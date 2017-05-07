@@ -18,7 +18,7 @@ tr.exportTo('tr.ui.tracks', function() {
    * @constructor
    * @extends {Track}
    */
-  var StackedBarsTrack = tr.ui.b.define(
+  const StackedBarsTrack = tr.ui.b.define(
       'stacked-bars-track', tr.ui.tracks.Track);
 
   StackedBarsTrack.prototype = {
@@ -47,7 +47,7 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     addEventsToTrackMap(eventToTrackMap) {
-      var objectSnapshots = this.objectInstance_.snapshots;
+      const objectSnapshots = this.objectInstance_.snapshots;
       objectSnapshots.forEach(function(obj) {
         eventToTrackMap.addEvent(obj, this);
       }, this);
@@ -62,8 +62,8 @@ tr.exportTo('tr.ui.tracks', function() {
         selection.push(snapshot);
       }
 
-      var snapshots = this.objectInstance_.snapshots;
-      var maxBounds = this.objectInstance_.parent.model.bounds.max;
+      const snapshots = this.objectInstance_.snapshots;
+      const maxBounds = this.objectInstance_.parent.model.bounds.max;
 
       tr.b.math.iterateOverIntersectingIntervals(
           snapshots,
@@ -97,9 +97,9 @@ tr.exportTo('tr.ui.tracks', function() {
       if (!(event instanceof tr.model.ObjectSnapshot)) {
         throw new Error('Unrecognized event');
       }
-      var objectSnapshots = this.objectInstance_.snapshots;
-      var index = objectSnapshots.indexOf(event);
-      var newIndex = index + offset;
+      const objectSnapshots = this.objectInstance_.snapshots;
+      const index = objectSnapshots.indexOf(event);
+      const newIndex = index + offset;
       if (newIndex >= 0 && newIndex < objectSnapshots.length) {
         selection.push(objectSnapshots[newIndex]);
         return true;
@@ -112,7 +112,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     addClosestEventToSelection(worldX, worldMaxDist, loY, hiY,
         selection) {
-      var snapshot = tr.b.math.findClosestElementInSortedArray(
+      const snapshot = tr.b.math.findClosestElementInSortedArray(
           this.objectInstance_.snapshots,
           function(x) { return x.ts; },
           worldX,

@@ -45,15 +45,15 @@ found in the LICENSE file.
 <script>
 'use strict';
 tr.exportTo('tr.ui.e.s', function() {
-  var BlameContextSnapshot = tr.e.chrome.BlameContextSnapshot;
-  var FrameTreeNodeSnapshot = tr.e.chrome.FrameTreeNodeSnapshot;
-  var RenderFrameSnapshot = tr.e.chrome.RenderFrameSnapshot;
-  var TopLevelSnapshot = tr.e.chrome.TopLevelSnapshot;
+  const BlameContextSnapshot = tr.e.chrome.BlameContextSnapshot;
+  const FrameTreeNodeSnapshot = tr.e.chrome.FrameTreeNodeSnapshot;
+  const RenderFrameSnapshot = tr.e.chrome.RenderFrameSnapshot;
+  const TopLevelSnapshot = tr.e.chrome.TopLevelSnapshot;
 
-  var BlameContextInstance = tr.e.chrome.BlameContextInstance;
-  var FrameTreeNodeInstance = tr.e.chrome.FrameTreeNodeInstance;
-  var RenderFrameInstance = tr.e.chrome.RenderFrameInstance;
-  var TopLevelInstance = tr.e.chrome.TopLevelInstance;
+  const BlameContextInstance = tr.e.chrome.BlameContextInstance;
+  const FrameTreeNodeInstance = tr.e.chrome.FrameTreeNodeInstance;
+  const RenderFrameInstance = tr.e.chrome.RenderFrameInstance;
+  const TopLevelInstance = tr.e.chrome.TopLevelInstance;
 
   /**
    * @constructor
@@ -97,7 +97,7 @@ tr.exportTo('tr.ui.e.s', function() {
     this.url = context.url;
   }
 
-  var groupFunctions = {
+  const groupFunctions = {
     none: rows => rows,
 
     // Group the rows according to the frame tree structure.
@@ -114,8 +114,8 @@ tr.exportTo('tr.ui.e.s', function() {
     tree(rows, rowMap) {
       // Finds the parent of a specific row. When there is conflict between the
       // browser's dump of the frame tree and the renderers', use the browser's.
-      var getParentRow = function(row) {
-        var pivot;
+      const getParentRow = function(row) {
+        let pivot;
         row.contexts.forEach(function(context) {
           if (context instanceof tr.e.chrome.FrameTreeNodeSnapshot) {
             pivot = context;
@@ -127,9 +127,9 @@ tr.exportTo('tr.ui.e.s', function() {
         return undefined;
       };
 
-      var rootRows = [];
+      const rootRows = [];
       rows.forEach(function(row) {
-        var parentRow = getParentRow(row);
+        const parentRow = getParentRow(row);
         if (parentRow === undefined) {
           rootRows.push(row);
           return;
@@ -140,14 +140,14 @@ tr.exportTo('tr.ui.e.s', function() {
         parentRow.subRows.push(row);
       });
 
-      var aggregateAllDescendants = function(row) {
+      const aggregateAllDescendants = function(row) {
         if (!row.subRows) {
           if (getParentRow(row)) {
             row.type = 'Subframe';
           }
           return row;
         }
-        var result = new Row();
+        const result = new Row();
         result.type = 'Frame Tree';
         result.renderer = row.renderer;
         result.url = row.url;
@@ -190,7 +190,7 @@ tr.exportTo('tr.ui.e.s', function() {
     },
 
     selectEventSet_(eventSet) {
-      var event = new tr.model.RequestSelectionChangeEvent();
+      const event = new tr.model.RequestSelectionChangeEvent();
       event.selection = eventSet;
       this.dispatchEvent(event);
     },
@@ -231,9 +231,9 @@ tr.exportTo('tr.ui.e.s', function() {
       if (!this.model_) return [];
 
       // Gather contexts into skeletons of rows.
-      var rows = [];
-      var rowMap = {};
-      for (var proc of Object.values(this.model_.processes)) {
+      const rows = [];
+      const rowMap = {};
+      for (const proc of Object.values(this.model_.processes)) {
         proc.objects.iterObjectInstances(function(objectInstance) {
           if (!(objectInstance instanceof BlameContextInstance)) {
             return;
@@ -241,7 +241,7 @@ tr.exportTo('tr.ui.e.s', function() {
           objectInstance.snapshots.forEach(function(snapshot) {
             if (rowMap[snapshot.guid]) return;
 
-            var row = new Row(snapshot);
+            const row = new Row(snapshot);
             row.contexts.forEach(context => rowMap[context.guid] = row);
             rows.push(row);
           }, this);
@@ -252,14 +252,14 @@ tr.exportTo('tr.ui.e.s', function() {
       // TODO(xiaochengh): We should implement a getter
       // BlameContextSnapshot.attributedEvents, instead of process the model in
       // a UI component.
-      for (var proc of Object.values(this.model_.processes)) {
-        for (var thread of Object.values(proc.threads)) {
+      for (const proc of Object.values(this.model_.processes)) {
+        for (const thread of Object.values(proc.threads)) {
           thread.sliceGroup.iterSlicesInTimeRange(function(topLevelSlice) {
             topLevelSlice.contexts.forEach(function(context) {
               if (!context.snapshot.guid || !rowMap[context.snapshot.guid]) {
                 return;
               }
-              var row = rowMap[context.snapshot.guid];
+              const row = rowMap[context.snapshot.guid];
               row.eventsOfInterest.push(topLevelSlice);
               row.time += topLevelSlice.selfTime || 0;
             });
@@ -268,9 +268,9 @@ tr.exportTo('tr.ui.e.s', function() {
       }
 
       // Apply grouping to rows.
-      var select = this.$.select;
-      var groupOption = select.options[select.selectedIndex].value;
-      var groupFunction = groupFunctions[groupOption];
+      const select = this.$.select;
+      const groupOption = select.options[select.selectedIndex].value;
+      const groupFunction = groupFunctions[groupOption];
       return groupFunction(rows, rowMap);
     },
 
@@ -287,8 +287,8 @@ tr.exportTo('tr.ui.e.s', function() {
         };
       }
 
-      var ans = {supported: false};
-      for (var proc of Object.values(m.processes)) {
+      const ans = {supported: false};
+      for (const proc of Object.values(m.processes)) {
         proc.objects.iterObjectInstances(function(instance) {
           if (instance instanceof BlameContextInstance) {
             ans.supported = true;

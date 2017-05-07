@@ -12,14 +12,14 @@ found in the LICENSE file.
   <script>
   'use strict';
   // The user's XSRF token string, required to submit the form.
-  var XSRF_TOKEN = '{{xsrf_token}}';
+  const XSRF_TOKEN = '{{xsrf_token}}';
 
   /**
    * Initializes the event listeners for events on the form.
    */
   function initialize() {
-    var addListener = function(elementId, eventName, callback) {
-      var element = document.getElementById(elementId);
+    const addListener = function(elementId, eventName, callback) {
+      const element = document.getElementById(elementId);
       element.addEventListener(eventName, callback, true);
     };
     addListener('add-radio', 'change', onRadioChange);
@@ -33,9 +33,9 @@ found in the LICENSE file.
    * @param {Event} _ The focus event for the input, not used.
    */
   function onRadioChange(_) {
-    var addRadio = document.getElementById('add-radio');
-    var addInputs = document.getElementById('add-inputs');
-    var removeInputs = document.getElementById('remove-inputs');
+    const addRadio = document.getElementById('add-radio');
+    const addInputs = document.getElementById('add-inputs');
+    const removeInputs = document.getElementById('remove-inputs');
     if (addRadio.checked) {
       addInputs.style.display = 'block';
       removeInputs.style.display = 'none';

@@ -14,9 +14,9 @@ tr.exportTo('tr.b', function() {
     this.metadata = metadata;
   }
 
-  var BASIC_REGISTRY_MODE = 'BASIC_REGISTRY_MODE';
-  var TYPE_BASED_REGISTRY_MODE = 'TYPE_BASED_REGISTRY_MODE';
-  var ALL_MODES = {BASIC_REGISTRY_MODE: true, TYPE_BASED_REGISTRY_MODE: true};
+  const BASIC_REGISTRY_MODE = 'BASIC_REGISTRY_MODE';
+  const TYPE_BASED_REGISTRY_MODE = 'TYPE_BASED_REGISTRY_MODE';
+  const ALL_MODES = {BASIC_REGISTRY_MODE: true, TYPE_BASED_REGISTRY_MODE: true};
 
   function ExtensionRegistryOptions(mode) {
     if (mode === undefined) {
@@ -79,8 +79,8 @@ tr.exportTo('tr.b', function() {
 
     validateConstructor(constructor) {
       if (!this.mandatoryBaseClass) return;
-      var curProto = constructor.prototype.__proto__;
-      var ok = false;
+      let curProto = constructor.prototype.__proto__;
+      let ok = false;
       while (curProto) {
         if (curProto === this.mandatoryBaseClass.prototype) {
           ok = true;

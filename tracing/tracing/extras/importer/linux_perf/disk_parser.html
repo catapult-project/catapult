@@ -15,8 +15,8 @@ found in the LICENSE file.
  * trace format.
  */
 tr.exportTo('tr.e.importer.linux_perf', function() {
-  var ColorScheme = tr.b.ColorScheme;
-  var Parser = tr.e.importer.linux_perf.Parser;
+  const ColorScheme = tr.b.ColorScheme;
+  const Parser = tr.e.importer.linux_perf.Parser;
 
   /**
    * Parses linux filesystem and block device trace events.
@@ -51,12 +51,12 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     __proto__: Parser.prototype,
 
     openAsyncSlice(ts, category, threadName, pid, key, name) {
-      var kthread = this.importer.getOrCreateKernelThread(
+      const kthread = this.importer.getOrCreateKernelThread(
           category + ':' + threadName, pid);
-      var asyncSliceConstructor =
+      const asyncSliceConstructor =
          tr.model.AsyncSlice.subTypes.getConstructor(
              category, name);
-      var slice = new asyncSliceConstructor(
+      const slice = new asyncSliceConstructor(
           category, name,
           ColorScheme.getColorIdForGeneralPurposeString(name),
           ts);
@@ -69,10 +69,10 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     },
 
     closeAsyncSlice(ts, category, threadName, pid, key, args) {
-      var kthread = this.importer.getOrCreateKernelThread(
+      const kthread = this.importer.getOrCreateKernelThread(
           category + ':' + threadName, pid);
       if (kthread.openAsyncSlices) {
-        var slice = kthread.openAsyncSlices[key];
+        const slice = kthread.openAsyncSlices[key];
         if (slice) {
           slice.duration = ts - slice.start;
           slice.args = args;
@@ -91,30 +91,30 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
      * Parses events and sets up state in the importer.
      */
     f2fsWriteBeginEvent(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = /dev = \((\d+,\d+)\), ino = (\d+), pos = (\d+), len = (\d+), flags = (\d+)/. // @suppress longLineCheck
+      const event = /dev = \((\d+,\d+)\), ino = (\d+), pos = (\d+), len = (\d+), flags = (\d+)/. // @suppress longLineCheck
           exec(eventBase.details);
       if (!event) return false;
-      var device = event[1];
-      var inode = parseInt(event[2]);
-      var pos = parseInt(event[3]);
-      var len = parseInt(event[4]);
-      var key = device + '-' + inode + '-' + pos + '-' + len;
+      const device = event[1];
+      const inode = parseInt(event[2]);
+      const pos = parseInt(event[3]);
+      const len = parseInt(event[4]);
+      const key = device + '-' + inode + '-' + pos + '-' + len;
       this.openAsyncSlice(ts, 'f2fs', eventBase.threadName, eventBase.pid,
           key, 'f2fs_write');
       return true;
     },
 
     f2fsWriteEndEvent(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = /dev = \((\d+,\d+)\), ino = (\d+), pos = (\d+), len = (\d+), copied = (\d+)/. // @suppress longLineCheck
+      const event = /dev = \((\d+,\d+)\), ino = (\d+), pos = (\d+), len = (\d+), copied = (\d+)/. // @suppress longLineCheck
           exec(eventBase.details);
       if (!event) return false;
 
-      var device = event[1];
-      var inode = parseInt(event[2]);
-      var pos = parseInt(event[3]);
-      var len = parseInt(event[4]);
-      var error = parseInt(event[5]) !== len;
-      var key = device + '-' + inode + '-' + pos + '-' + len;
+      const device = event[1];
+      const inode = parseInt(event[2]);
+      const pos = parseInt(event[3]);
+      const len = parseInt(event[4]);
+      const error = parseInt(event[5]) !== len;
+      const key = device + '-' + inode + '-' + pos + '-' + len;
       this.closeAsyncSlice(ts, 'f2fs', eventBase.threadName, eventBase.pid,
           key, {
             device,
@@ -125,30 +125,30 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     },
 
     ext4WriteBeginEvent(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = /dev (\d+,\d+) ino (\d+) pos (\d+) len (\d+) flags (\d+)/.
+      const event = /dev (\d+,\d+) ino (\d+) pos (\d+) len (\d+) flags (\d+)/.
           exec(eventBase.details);
       if (!event) return false;
-      var device = event[1];
-      var inode = parseInt(event[2]);
-      var pos = parseInt(event[3]);
-      var len = parseInt(event[4]);
-      var key = device + '-' + inode + '-' + pos + '-' + len;
+      const device = event[1];
+      const inode = parseInt(event[2]);
+      const pos = parseInt(event[3]);
+      const len = parseInt(event[4]);
+      const key = device + '-' + inode + '-' + pos + '-' + len;
       this.openAsyncSlice(ts, 'ext4', eventBase.threadName, eventBase.pid,
           key, 'ext4_write');
       return true;
     },
 
     ext4WriteEndEvent(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = /dev (\d+,\d+) ino (\d+) pos (\d+) len (\d+) copied (\d+)/.
+      const event = /dev (\d+,\d+) ino (\d+) pos (\d+) len (\d+) copied (\d+)/.
           exec(eventBase.details);
       if (!event) return false;
 
-      var device = event[1];
-      var inode = parseInt(event[2]);
-      var pos = parseInt(event[3]);
-      var len = parseInt(event[4]);
-      var error = parseInt(event[5]) !== len;
-      var key = device + '-' + inode + '-' + pos + '-' + len;
+      const device = event[1];
+      const inode = parseInt(event[2]);
+      const pos = parseInt(event[3]);
+      const len = parseInt(event[4]);
+      const error = parseInt(event[5]) !== len;
+      const key = device + '-' + inode + '-' + pos + '-' + len;
       this.closeAsyncSlice(ts, 'ext4', eventBase.threadName, eventBase.pid,
           key, {
             device,
@@ -159,30 +159,30 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     },
 
     f2fsSyncFileEnterEvent(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = new RegExp(
+      const event = new RegExp(
           'dev = \\((\\d+,\\d+)\\), ino = (\\d+), pino = (\\d+), i_mode = (\\S+), ' + // @suppress longLineCheck
           'i_size = (\\d+), i_nlink = (\\d+), i_blocks = (\\d+), i_advise = (\\d+)'). // @suppress longLineCheck
           exec(eventBase.details);
       if (!event) return false;
 
-      var device = event[1];
-      var inode = parseInt(event[2]);
-      var key = device + '-' + inode;
+      const device = event[1];
+      const inode = parseInt(event[2]);
+      const key = device + '-' + inode;
       this.openAsyncSlice(ts, 'f2fs', eventBase.threadName, eventBase.pid,
           key, 'fsync');
       return true;
     },
 
     f2fsSyncFileExitEvent(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = new RegExp('dev = \\((\\d+,\\d+)\\), ino = (\\d+), checkpoint is (\\S+), ' + // @suppress longLineCheck
+      const event = new RegExp('dev = \\((\\d+,\\d+)\\), ino = (\\d+), checkpoint is (\\S+), ' + // @suppress longLineCheck
           'datasync = (\\d+), ret = (\\d+)').
           exec(eventBase.details.replace('not needed', 'not_needed'));
       if (!event) return false;
 
-      var device = event[1];
-      var inode = parseInt(event[2]);
-      var error = parseInt(event[5]);
-      var key = device + '-' + inode;
+      const device = event[1];
+      const inode = parseInt(event[2]);
+      const error = parseInt(event[5]);
+      const key = device + '-' + inode;
       this.closeAsyncSlice(ts, 'f2fs', eventBase.threadName, eventBase.pid,
           key, {
             device,
@@ -193,28 +193,28 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     },
 
     ext4SyncFileEnterEvent(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = /dev (\d+,\d+) ino (\d+) parent (\d+) datasync (\d+)/.
+      const event = /dev (\d+,\d+) ino (\d+) parent (\d+) datasync (\d+)/.
           exec(eventBase.details);
       if (!event) return false;
 
-      var device = event[1];
-      var inode = parseInt(event[2]);
-      var datasync = (event[4] === '1') || (event[4] === 1);
-      var key = device + '-' + inode;
-      var action = datasync ? 'fdatasync' : 'fsync';
+      const device = event[1];
+      const inode = parseInt(event[2]);
+      const datasync = (event[4] === '1') || (event[4] === 1);
+      const key = device + '-' + inode;
+      const action = datasync ? 'fdatasync' : 'fsync';
       this.openAsyncSlice(ts, 'ext4', eventBase.threadName, eventBase.pid,
           key, action);
       return true;
     },
 
     ext4SyncFileExitEvent(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = /dev (\d+,\d+) ino (\d+) ret (\d+)/.exec(eventBase.details);
+      const event = /dev (\d+,\d+) ino (\d+) ret (\d+)/.exec(eventBase.details);
       if (!event) return false;
 
-      var device = event[1];
-      var inode = parseInt(event[2]);
-      var error = parseInt(event[3]);
-      var key = device + '-' + inode;
+      const device = event[1];
+      const inode = parseInt(event[2]);
+      const error = parseInt(event[3]);
+      const key = device + '-' + inode;
       this.closeAsyncSlice(ts, 'ext4', eventBase.threadName, eventBase.pid,
           key, {
             device,
@@ -225,11 +225,11 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     },
 
     blockRqIssueEvent(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = new RegExp('(\\d+,\\d+) (F)?([DWRN])(F)?(A)?(S)?(M)? ' +
+      const event = new RegExp('(\\d+,\\d+) (F)?([DWRN])(F)?(A)?(S)?(M)? ' +
           '\\d+ \\(.*\\) (\\d+) \\+ (\\d+) \\[.*\\]').exec(eventBase.details);
       if (!event) return false;
 
-      var action;
+      let action;
       switch (event[3]) {
         case 'D':
           action = 'discard';
@@ -263,25 +263,25 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       if (event[7] === 'M') {
         action += ' meta';
       }
-      var device = event[1];
-      var sector = parseInt(event[8]);
-      var numSectors = parseInt(event[9]);
-      var key = device + '-' + sector + '-' + numSectors;
+      const device = event[1];
+      const sector = parseInt(event[8]);
+      const numSectors = parseInt(event[9]);
+      const key = device + '-' + sector + '-' + numSectors;
       this.openAsyncSlice(ts, 'block', eventBase.threadName, eventBase.pid,
           key, action);
       return true;
     },
 
     blockRqCompleteEvent(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = new RegExp('(\\d+,\\d+) (F)?([DWRN])(F)?(A)?(S)?(M)? ' +
+      const event = new RegExp('(\\d+,\\d+) (F)?([DWRN])(F)?(A)?(S)?(M)? ' +
           '\\(.*\\) (\\d+) \\+ (\\d+) \\[(.*)\\]').exec(eventBase.details);
       if (!event) return false;
 
-      var device = event[1];
-      var sector = parseInt(event[8]);
-      var numSectors = parseInt(event[9]);
-      var error = parseInt(event[10]);
-      var key = device + '-' + sector + '-' + numSectors;
+      const device = event[1];
+      const sector = parseInt(event[8]);
+      const numSectors = parseInt(event[9]);
+      const error = parseInt(event[10]);
+      const key = device + '-' + sector + '-' + numSectors;
       this.closeAsyncSlice(ts, 'block', eventBase.threadName, eventBase.pid,
           key, {
             device,

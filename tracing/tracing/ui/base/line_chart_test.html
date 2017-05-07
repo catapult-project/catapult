@@ -10,7 +10,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('instantiation_singleSeries', function() {
-    var chart = new tr.ui.b.LineChart();
+    const chart = new tr.ui.b.LineChart();
     this.addHTMLOutput(chart);
     chart.data = [
       {x: 10, y: 100},
@@ -21,7 +21,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiation_twoSeries', function() {
-    var chart = new tr.ui.b.LineChart();
+    const chart = new tr.ui.b.LineChart();
     this.addHTMLOutput(chart);
     chart.data = [
       {x: 10, alpha: 100, beta: 50},
@@ -30,14 +30,14 @@ tr.b.unittest.testSuite(function() {
       {x: 40, alpha: 50, beta: 125}
     ];
 
-    var r = new tr.b.math.Range();
+    const r = new tr.b.math.Range();
     r.addValue(20);
     r.addValue(40);
     chart.brushedRange = r;
   });
 
   test('instantiation_twoSparseSeriesWithFirstValueSparse', function() {
-    var chart = new tr.ui.b.LineChart();
+    const chart = new tr.ui.b.LineChart();
     this.addHTMLOutput(chart);
     chart.data = [
       {x: 10, alpha: 20, beta: undefined},
@@ -49,7 +49,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiation_twoSparseSeriesWithFirstValueNotSparse', function() {
-    var chart = new tr.ui.b.LineChart();
+    const chart = new tr.ui.b.LineChart();
     this.addHTMLOutput(chart);
     chart.data = [
       {x: 10, alpha: 20, beta: 40},
@@ -61,7 +61,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('brushRangeFromIndices', function() {
-    var chart = new tr.ui.b.LineChart();
+    const chart = new tr.ui.b.LineChart();
     this.addHTMLOutput(chart);
     chart.data = [
       {x: 10, value: 50},
@@ -70,7 +70,7 @@ tr.b.unittest.testSuite(function() {
       {x: 80, value: 80},
       {x: 120, value: 90}
     ];
-    var r = new tr.b.math.Range();
+    let r = new tr.b.math.Range();
 
     // Range min should be 10.
     r = chart.computeBrushRangeFromIndices(-2, 1);
@@ -92,7 +92,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiation_interactiveBrushing', function() {
-    var chart = new tr.ui.b.LineChart();
+    const chart = new tr.ui.b.LineChart();
     this.addHTMLOutput(chart);
     chart.data = [
       {x: 10, value: 50},
@@ -105,8 +105,8 @@ tr.b.unittest.testSuite(function() {
       {x: 80, value: 20}
     ];
 
-    var mouseDownIndex = undefined;
-    var curMouseIndex = undefined;
+    let mouseDownIndex = undefined;
+    let curMouseIndex = undefined;
 
     function updateBrushedRange() {
       if (mouseDownIndex === undefined) {
@@ -134,7 +134,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('overrideDataRange', function() {
-    var chart = new tr.ui.b.LineChart();
+    let chart = new tr.ui.b.LineChart();
     this.addHTMLOutput(chart);
     chart.overrideDataRange = tr.b.math.Range.fromExplicitRange(10, 90);
     chart.data = [

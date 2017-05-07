@@ -11,7 +11,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   function addShowButtonForDialog(dlg) {
-    var btn = document.createElement('button');
+    const btn = document.createElement('button');
     Polymer.dom(btn).textContent = 'Launch Overlay';
     btn.addEventListener('click', function(e) {
       dlg.visible = true;
@@ -22,13 +22,13 @@ tr.b.unittest.testSuite(function() {
   }
 
   function makeButton(title) {
-    var btn = document.createElement('button');
+    const btn = document.createElement('button');
     Polymer.dom(btn).textContent = title;
     return btn;
   }
 
   function makeCloseButton(dlg) {
-    var btn = makeButton('close');
+    const btn = makeButton('close');
     btn.addEventListener('click', function(e) {
       dlg.onClose_(e);
     });
@@ -36,7 +36,7 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('instantiate', function() {
-    var dlg = new tr.ui.b.Overlay();
+    const dlg = new tr.ui.b.Overlay();
     Polymer.dom(dlg).classList.add('example-overlay');
     dlg.title = 'ExampleOverlay';
     Polymer.dom(dlg).innerHTML = 'hello';
@@ -48,7 +48,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiate_noButtons', function() {
-    var dlg = new tr.ui.b.Overlay();
+    const dlg = new tr.ui.b.Overlay();
     Polymer.dom(dlg).classList.add('example-overlay');
     dlg.title = 'ExampleOverlay';
     Polymer.dom(dlg).innerHTML = 'hello';
@@ -56,7 +56,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiate_disableUserClose', function() {
-    var dlg = new tr.ui.b.Overlay();
+    const dlg = new tr.ui.b.Overlay();
     Polymer.dom(dlg).classList.add('example-overlay');
     dlg.userCanClose = false;
     dlg.title = 'Unclosable';
@@ -66,14 +66,14 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiateTall', function() {
-    var dlg = new tr.ui.b.Overlay();
+    const dlg = new tr.ui.b.Overlay();
     dlg.title = 'TallContent';
-    var contentEl = document.createElement('div');
+    const contentEl = document.createElement('div');
     contentEl.style.overflowY = 'auto';
     Polymer.dom(dlg).appendChild(contentEl);
 
-    for (var i = 0; i < 1000; i++) {
-      var el = document.createElement('div');
+    for (let i = 0; i < 1000; i++) {
+      const el = document.createElement('div');
       Polymer.dom(el).textContent = 'line ' + i;
       Polymer.dom(contentEl).appendChild(el);
     }
@@ -84,10 +84,10 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiateTallWithManyDirectChildren', function() {
-    var dlg = new tr.ui.b.Overlay();
+    const dlg = new tr.ui.b.Overlay();
     dlg.title = 'TallContent';
-    for (var i = 0; i < 100; i++) {
-      var el = document.createElement('div');
+    for (let i = 0; i < 100; i++) {
+      const el = document.createElement('div');
       el.style.webkitFlex = '1 0 auto';
       Polymer.dom(el).textContent = 'line ' + i;
       Polymer.dom(dlg).appendChild(el);
@@ -98,12 +98,12 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('closeclickEvent', function() {
-    var dlg = new tr.ui.b.Overlay();
+    const dlg = new tr.ui.b.Overlay();
     dlg.title = 'Test closeclick event';
-    var closeBtn = makeCloseButton(dlg);
+    const closeBtn = makeCloseButton(dlg);
     Polymer.dom(dlg.buttons).appendChild(closeBtn);
 
-    var closeClicked = false;
+    let closeClicked = false;
     dlg.addEventListener('closeclick', function() {
       closeClicked = true;
     });

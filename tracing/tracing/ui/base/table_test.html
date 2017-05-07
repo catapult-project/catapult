@@ -12,10 +12,10 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var THIS_DOC = document.currentScript.ownerDocument;
-  var SelectionMode = tr.ui.b.TableFormat.SelectionMode;
-  var HighlightStyle = tr.ui.b.TableFormat.HighlightStyle;
-  var ColumnAlignment = tr.ui.b.TableFormat.ColumnAlignment;
+  const THIS_DOC = document.currentScript.ownerDocument;
+  const SelectionMode = tr.ui.b.TableFormat.SelectionMode;
+  const HighlightStyle = tr.ui.b.TableFormat.HighlightStyle;
+  const ColumnAlignment = tr.ui.b.TableFormat.ColumnAlignment;
 
   function isSelected(element) {
     if (!element.hasAttribute('selected')) return false;
@@ -24,7 +24,7 @@ tr.b.unittest.testSuite(function() {
 
   function simulateDoubleClick(element) {
     // See https://developer.mozilla.org/en/docs/Web/API/MouseEvent#Example.
-    var event = new MouseEvent('dblclick', {
+    const event = new MouseEvent('dblclick', {
       bubbles: true,
       cancelable: true,
       view: window
@@ -59,7 +59,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiateEmptyTable_withoutEmptyValue', function() {
-    var columns = [
+    const columns = [
       {
         title: 'First Column',
         value(row) { return row.firstData; },
@@ -71,7 +71,7 @@ tr.b.unittest.testSuite(function() {
       }
     ];
 
-    var table = document.createElement('tr-ui-b-table');
+    const table = document.createElement('tr-ui-b-table');
     table.tableColumns = columns;
     table.tableRows = [];
     table.rebuild();
@@ -80,11 +80,11 @@ tr.b.unittest.testSuite(function() {
 
     // Check that the width of the first column was set correctly (despite no
     // body rows).
-    var firstColumnHeader = table.$.head.children[0].children[0];
+    const firstColumnHeader = table.$.head.children[0].children[0];
     assert.closeTo(firstColumnHeader.offsetWidth, 300, 20);
 
     // Check that the first column has a non-empty header.
-    var firstColumnTitle = tr.b.findDeepElementMatchingPredicate(
+    const firstColumnTitle = tr.b.findDeepElementMatchingPredicate(
         firstColumnHeader, function(element) {
           return Polymer.dom(element).textContent === 'First Column';
         });
@@ -95,7 +95,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiateEmptyTable_withEmptyValue', function() {
-    var columns = [
+    const columns = [
       {
         title: 'First Column',
         value(row) { return row.firstData; },
@@ -107,7 +107,7 @@ tr.b.unittest.testSuite(function() {
       }
     ];
 
-    var table = document.createElement('tr-ui-b-table');
+    const table = document.createElement('tr-ui-b-table');
     table.tableColumns = columns;
     table.tableRows = [];
     table.emptyValue = 'This table is left intentionally empty';
@@ -117,7 +117,7 @@ tr.b.unittest.testSuite(function() {
 
     // Check that the width of the first column was set correctly (despite no
     // body rows).
-    var firstColumnHeader = table.$.head.children[0].children[0];
+    const firstColumnHeader = table.$.head.children[0].children[0];
     assert.closeTo(firstColumnHeader.offsetWidth, 300, 20);
 
     // Check that empty value was appended.
@@ -125,7 +125,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiateNestedTableNoNests', function() {
-    var columns = [
+    const columns = [
       {
         title: 'First Column',
         value(row) { return row.firstData; },
@@ -137,7 +137,7 @@ tr.b.unittest.testSuite(function() {
       }
     ];
 
-    var rows = [
+    const rows = [
       {
         firstData: 'A1',
         secondData: 'A2'
@@ -148,7 +148,7 @@ tr.b.unittest.testSuite(function() {
       }
     ];
 
-    var table = document.createElement('tr-ui-b-table');
+    const table = document.createElement('tr-ui-b-table');
     table.tableColumns = columns;
     table.tableRows = rows;
     table.emptyValue = 'THIS SHOULD NOT BE VISIBLE!!!';
@@ -161,7 +161,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('sequentialRebuildsBehaveSanely', function() {
-    var columns = [
+    const columns = [
       {
         title: 'First Column',
         value(row) { return row.firstData; },
@@ -173,7 +173,7 @@ tr.b.unittest.testSuite(function() {
       }
     ];
 
-    var rows = [
+    const rows = [
       {
         firstData: 'A1',
         secondData: 'A2'
@@ -183,7 +183,7 @@ tr.b.unittest.testSuite(function() {
         secondData: 'B2'
       }
     ];
-    var footerRows = [
+    const footerRows = [
       {
         firstData: 'A1',
         secondData: 'A2'
@@ -194,7 +194,7 @@ tr.b.unittest.testSuite(function() {
       }
     ];
 
-    var table = document.createElement('tr-ui-b-table');
+    const table = document.createElement('tr-ui-b-table');
     table.tableColumns = columns;
     table.tableRows = rows;
     table.footerRows = footerRows;
@@ -207,7 +207,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiateNestedTableWithNests', function() {
-    var columns = [
+    const columns = [
       {
         title: 'First Column',
         value(row) { return row.firstData; },
@@ -220,7 +220,7 @@ tr.b.unittest.testSuite(function() {
       }
     ];
 
-    var rows = [
+    const rows = [
       {
         firstData: 'A1',
         secondData: 'A2',
@@ -255,7 +255,7 @@ tr.b.unittest.testSuite(function() {
       }
     ];
 
-    var table = document.createElement('tr-ui-b-table');
+    const table = document.createElement('tr-ui-b-table');
     table.tableColumns = columns;
     table.tableRows = rows;
     table.rebuild();
@@ -264,9 +264,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiateSortingCallbacksWithNests', function() {
-    var table = document.createElement('tr-ui-b-table');
+    const table = document.createElement('tr-ui-b-table');
 
-    var columns = [
+    const columns = [
       {
         title: 'First Column',
         value(row) { return row.firstData; },
@@ -284,7 +284,7 @@ tr.b.unittest.testSuite(function() {
       }
     ];
 
-    var rows = [
+    const rows = [
       {
         firstData: 'A1',
         secondData: 'A2',
@@ -319,7 +319,7 @@ tr.b.unittest.testSuite(function() {
       }
     ];
 
-    var footerRows = [
+    const footerRows = [
       {
         firstData: 'F1',
         secondData: 'F2',
@@ -362,7 +362,7 @@ tr.b.unittest.testSuite(function() {
 
     this.addHTMLOutput(table);
 
-    var button = THIS_DOC.createElement('button');
+    const button = THIS_DOC.createElement('button');
     Polymer.dom(button).textContent = 'Sort By Col 0';
     button.addEventListener('click', function() {
       table.sortDescending = !table.sortDescending;
@@ -375,7 +375,7 @@ tr.b.unittest.testSuite(function() {
 
 
   test('instantiateNestedTableAlreadyExpanded', function() {
-    var columns = [
+    const columns = [
       {
         title: 'a',
         value(row) { return row.a; },
@@ -388,7 +388,7 @@ tr.b.unittest.testSuite(function() {
       }
     ];
 
-    var rows = [
+    const rows = [
       {
         a: 'aToplevel',
         b: 'bToplevel',
@@ -402,24 +402,23 @@ tr.b.unittest.testSuite(function() {
       }
     ];
 
-    var table = document.createElement('tr-ui-b-table');
+    const table = document.createElement('tr-ui-b-table');
     table.tableColumns = columns;
     table.tableRows = rows;
     table.rebuild();
     this.addHTMLOutput(table);
 
-    var a1El = tr.b.findDeepElementMatchingPredicate(table, function(element) {
-      return Polymer.dom(element).textContent === 'a1';
-    });
+    const a1El = tr.b.findDeepElementMatchingPredicate(
+        table, e => Polymer.dom(e).textContent === 'a1');
     assert.isDefined(a1El);
 
-    var bToplevelEl = tr.b.findDeepElementMatchingPredicate(
+    const bToplevelEl = tr.b.findDeepElementMatchingPredicate(
         table,
         function(element) {
           return Polymer.dom(element).textContent === 'bToplevel';
         });
     assert.isDefined(bToplevelEl);
-    var expandButton = Polymer.dom(bToplevelEl.parentElement)
+    const expandButton = Polymer.dom(bToplevelEl.parentElement)
         .querySelector('expand-button');
     assert.isTrue(Polymer.dom(expandButton).classList.contains(
         'button-expanded'));
@@ -427,7 +426,7 @@ tr.b.unittest.testSuite(function() {
 
 
   test('subRowsThatAreRetrievedOnDemand', function() {
-    var columns = [
+    const columns = [
       {
         title: 'a',
         value(row) { return row.a; },
@@ -435,7 +434,7 @@ tr.b.unittest.testSuite(function() {
       }
     ];
 
-    var rows = [
+    const rows = [
       {
         a: 'row1',
         subRows: [
@@ -449,7 +448,7 @@ tr.b.unittest.testSuite(function() {
       }
     ];
 
-    var table = document.createElement('tr-ui-b-table');
+    const table = document.createElement('tr-ui-b-table');
     table.tableColumns = columns;
     table.tableRows = rows;
     table.rebuild();
@@ -458,7 +457,7 @@ tr.b.unittest.testSuite(function() {
 
 
   test('instantiateTableWithHiddenHeader', function() {
-    var columns = [
+    const columns = [
       {
         title: 'a',
         value(row) { return row.a; },
@@ -471,21 +470,21 @@ tr.b.unittest.testSuite(function() {
       }
     ];
 
-    var rows = [
+    const rows = [
       {
         a: 'aToplevel',
         b: 'bToplevel'
       }
     ];
 
-    var table = document.createElement('tr-ui-b-table');
+    const table = document.createElement('tr-ui-b-table');
     table.showHeader = false;
     table.tableColumns = columns;
     table.tableRows = rows;
     table.rebuild();
     this.addHTMLOutput(table);
 
-    var tHead = table.$.head;
+    const tHead = table.$.head;
     assert.strictEqual(table.$.head.children.length, 0);
     assert.strictEqual(0, tHead.getBoundingClientRect().height);
 
@@ -498,7 +497,7 @@ tr.b.unittest.testSuite(function() {
 
 
   test('sortColumnsNotPossibleOnPercentSizedColumns', function() {
-    var columns = [
+    const columns = [
       {
         title: 'Title',
         value(row) { return row.a; },
@@ -512,7 +511,7 @@ tr.b.unittest.testSuite(function() {
       }
     ];
 
-    var table1 = document.createElement('tr-ui-b-table');
+    const table1 = document.createElement('tr-ui-b-table');
     table1.showHeader = true;
 
     assert.throws(function() {
@@ -521,7 +520,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('twoTablesFirstColumnMatching', function() {
-    var columns = [
+    const columns = [
       {
         title: 'Title',
         value(row) { return row.a; },
@@ -534,7 +533,7 @@ tr.b.unittest.testSuite(function() {
       }
     ];
 
-    var table1 = document.createElement('tr-ui-b-table');
+    const table1 = document.createElement('tr-ui-b-table');
     table1.showHeader = true;
     table1.tableColumns = columns;
     table1.tableRows = [
@@ -546,7 +545,7 @@ tr.b.unittest.testSuite(function() {
     table1.rebuild();
     this.addHTMLOutput(table1);
 
-    var table2 = document.createElement('tr-ui-b-table');
+    const table2 = document.createElement('tr-ui-b-table');
     table2.showHeader = false;
     table2.tableColumns = columns;
     table2.tableRows = [
@@ -558,16 +557,16 @@ tr.b.unittest.testSuite(function() {
     table2.rebuild();
     this.addHTMLOutput(table2);
 
-    var h1FirstCol = table1.$.head.children[0].children[0];
-    var h2FirstCol = table2.$.body.children[0].children[0];
+    const h1FirstCol = table1.$.head.children[0].children[0];
+    const h2FirstCol = table2.$.body.children[0].children[0];
     assert.strictEqual(h1FirstCol.getBoundingClientRect().width,
         h2FirstCol.getBoundingClientRect().width);
   });
 
   test('programmaticSorting', function() {
-    var table = document.createElement('tr-ui-b-table');
+    const table = document.createElement('tr-ui-b-table');
 
-    var columns = [
+    const columns = [
       {
         title: 'Column',
         value(row) { return row.value; },
@@ -578,7 +577,7 @@ tr.b.unittest.testSuite(function() {
       }
     ];
 
-    var rows = [
+    const rows = [
       {
         value: 'A1',
         subRows: [
@@ -615,16 +614,16 @@ tr.b.unittest.testSuite(function() {
     table.sortDescending = true;
     table.sortColumnIndex = 0;
     table.rebuild();
-    var r0 = table.$.body.children[0];
+    const r0 = table.$.body.children[0];
     assert.strictEqual(r0.rowInfo.userRow, rows[1]);
 
-    var r1 = table.$.body.children[1];
+    const r1 = table.$.body.children[1];
     assert.strictEqual(r1.rowInfo.userRow, rows[0]);
   });
 
   test('sortDispatchesEvent', function() {
-    var table = document.createElement('tr-ui-b-table');
-    var columns = [
+    const table = document.createElement('tr-ui-b-table');
+    const columns = [
       {
         title: 'Column 0',
         value(row) { return row.value0; },
@@ -637,9 +636,9 @@ tr.b.unittest.testSuite(function() {
       }
     ];
 
-    var sortColumnIndex = undefined;
-    var sortDescending = undefined;
-    var numListenerCalls = 0;
+    let sortColumnIndex = undefined;
+    let sortDescending = undefined;
+    let numListenerCalls = 0;
     table.tableColumns = columns;
     table.addEventListener('sort-column-changed', function(e) {
       sortColumnIndex = e.sortColumnIndex;
@@ -669,9 +668,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('sortingAfterExpand', function() {
-    var table = document.createElement('tr-ui-b-table');
+    const table = document.createElement('tr-ui-b-table');
 
-    var columns = [
+    const columns = [
       {
         title: 'Column',
         value(row) { return row.value; },
@@ -682,7 +681,7 @@ tr.b.unittest.testSuite(function() {
       }
     ];
 
-    var rows = [
+    const rows = [
       {
         value: 'A1',
         isExpanded: true,
@@ -720,22 +719,22 @@ tr.b.unittest.testSuite(function() {
     table.sortDescending = true;
     table.sortColumnIndex = 0;
     table.rebuild();
-    var r0 = table.$.body.children[0];
+    const r0 = table.$.body.children[0];
     assert.strictEqual(r0.rowInfo.userRow, rows[1]);
 
-    var r1 = table.$.body.children[1];
+    const r1 = table.$.body.children[1];
     assert.strictEqual(r1.rowInfo.userRow, rows[0]);
 
-    var r2 = table.$.body.children[2];
+    const r2 = table.$.body.children[2];
     assert.strictEqual(r2.rowInfo.userRow, rows[0].subRows[2]);
 
     assert.isFalse(table.$.body.hasAttribute('tabindex'));
   });
 
   function createSimpleOneColumnNestedTable() {
-    var table = document.createElement('tr-ui-b-table');
+    const table = document.createElement('tr-ui-b-table');
 
-    var columns = [
+    const columns = [
       {
         title: 'Column',
         value(row) { return row.value; },
@@ -746,7 +745,7 @@ tr.b.unittest.testSuite(function() {
       }
     ];
 
-    var rows = [
+    const rows = [
       {
         value: 'A1',
         subRows: [
@@ -780,9 +779,9 @@ tr.b.unittest.testSuite(function() {
   }
 
   function createMultiColumnNestedTable() {
-    var table = document.createElement('tr-ui-b-table');
+    const table = document.createElement('tr-ui-b-table');
 
-    var columns = [
+    const columns = [
       {
         title: 'Title',
         value(row) { return row.value; },
@@ -816,7 +815,7 @@ tr.b.unittest.testSuite(function() {
       }
     ];
 
-    var rows = [
+    const rows = [
       {
         value: 'R1',
         a: 1, b: 2, c: 3, d: 4,
@@ -843,9 +842,9 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('expandAfterRebuild', function() {
-    var table = createSimpleOneColumnNestedTable();
+    const table = createSimpleOneColumnNestedTable();
     table.rebuild();
-    var rows = table.tableRows;
+    const rows = table.tableRows;
 
     this.addHTMLOutput(table);
 
@@ -854,13 +853,13 @@ tr.b.unittest.testSuite(function() {
     table.setExpandedForTableRow(rows[0], true);
     assert.isTrue(table.getExpandedForTableRow(rows[0]));
 
-    var r1 = table.$.body.children[1];
+    const r1 = table.$.body.children[1];
     assert.strictEqual(r1.rowInfo.userRow, rows[0].subRows[0]);
   });
 
   test('tableSelection', function() {
-    var table = createMultiColumnNestedTable();
-    var rows = table.tableRows;
+    const table = createMultiColumnNestedTable();
+    const rows = table.tableRows;
 
     table.selectionMode = SelectionMode.ROW;
     table.selectedTableRow = rows[0];
@@ -891,11 +890,11 @@ tr.b.unittest.testSuite(function() {
 
 
   test('keyMovement_rows', function() {
-    var table = createSimpleOneColumnNestedTable();
+    const table = createSimpleOneColumnNestedTable();
     table.selectionMode = SelectionMode.ROW;
     this.addHTMLOutput(table);
 
-    var rows = table.tableRows;
+    const rows = table.tableRows;
     table.selectedTableRow = rows[0];
 
     table.performKeyCommand_('ARROW_DOWN');
@@ -945,14 +944,14 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('keyMovement_cells', function() {
-    var table = createMultiColumnNestedTable();
+    const table = createMultiColumnNestedTable();
     table.selectionMode = SelectionMode.CELL;
     this.addHTMLOutput(table);
 
     assert.isUndefined(table.selectedTableRow);
     assert.isUndefined(table.selectedColumnIndex);
 
-    var rows = table.tableRows;
+    const rows = table.tableRows;
     table.selectedTableRow = rows[1];
     assert.strictEqual(table.selectedColumnIndex, 1);
 
@@ -1046,7 +1045,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('focus_empty', function() {
-    var table = createSimpleOneColumnNestedTable();
+    const table = createSimpleOneColumnNestedTable();
     table.tableRows = [];
     table.emptyValue = 'This table is left intentionally empty';
     this.addHTMLOutput(table);
@@ -1054,7 +1053,7 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(table.$.body.hasAttribute('tabindex'));
     assert.isFalse(table.isFocused);
 
-    for (var selectionMode of [SelectionMode.ROW, SelectionMode.CELL]) {
+    for (const selectionMode of [SelectionMode.ROW, SelectionMode.CELL]) {
       table.selectionMode = selectionMode;
       assert.strictEqual(table.$.body.getAttribute('tabindex'), '0');
       assert.isFalse(table.isFocused);
@@ -1099,7 +1098,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('focus_rows', function() {
-    var table = createSimpleOneColumnNestedTable();
+    const table = createSimpleOneColumnNestedTable();
     table.selectionMode = SelectionMode.ROW;
     this.addHTMLOutput(table);
 
@@ -1159,7 +1158,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('focus_cells', function() {
-    var table = createMultiColumnNestedTable();
+    const table = createMultiColumnNestedTable();
     table.selectionMode = SelectionMode.CELL;
     this.addHTMLOutput(table);
 
@@ -1226,9 +1225,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('focus_allCellsUnselectable', function() {
-    var table = createMultiColumnNestedTable();
+    const table = createMultiColumnNestedTable();
     table.selectionMode = SelectionMode.CELL;
-    for (var c of table.tableColumns) {
+    for (const c of table.tableColumns) {
       c.supportsCellSelection = false;
     }
     table.tableColumns = table.tableColumns;
@@ -1255,13 +1254,13 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('RightArrowKeyWhenTableSorted', function() {
-    var table = createSimpleOneColumnNestedTable();
+    const table = createSimpleOneColumnNestedTable();
     table.selectionMode = SelectionMode.ROW;
     this.addHTMLOutput(table);
     table.sortDescending = true;
     table.sortColumnIndex = 0;
     table.rebuild();
-    var rows = table.tableRows;
+    const rows = table.tableRows;
 
     // Arrow right should select the first child showing up on the viewer,
     // rather than first child in sub rows since sorted.
@@ -1272,7 +1271,7 @@ tr.b.unittest.testSuite(function() {
 
   test('reduceNumberOfColumnsAfterRebuild', function() {
     // Create a table with two columns.
-    var table = document.createElement('tr-ui-b-table');
+    const table = document.createElement('tr-ui-b-table');
     table.tableColumns = [
       {
         title: 'First Column',
@@ -1300,7 +1299,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('rowHighlightDark', function() {
-    var columns = [
+    const columns = [
       {
         title: 'Title',
         value(row) { return row.a; },
@@ -1324,7 +1323,7 @@ tr.b.unittest.testSuite(function() {
       }
     ];
 
-    var table = document.createElement('tr-ui-b-table');
+    const table = document.createElement('tr-ui-b-table');
     table.showHeader = true;
     table.rowHighlightStyle = HighlightStyle.DARK;
     table.tableColumns = columns;
@@ -1343,7 +1342,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('cellHighlightLight', function() {
-    var columns = [
+    const columns = [
       {
         title: 'Title',
         value(row) { return row.a; },
@@ -1367,7 +1366,7 @@ tr.b.unittest.testSuite(function() {
       }
     ];
 
-    var table = document.createElement('tr-ui-b-table');
+    const table = document.createElement('tr-ui-b-table');
     table.showHeader = true;
     table.cellHighlightStyle = HighlightStyle.LIGHT;
     table.tableColumns = columns;
@@ -1386,7 +1385,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('cellSelectionBasic', function() {
-    var columns = [
+    const columns = [
       {
         title: 'Title',
         value(row) { return row.a; },
@@ -1410,7 +1409,7 @@ tr.b.unittest.testSuite(function() {
       }
     ];
 
-    var table = document.createElement('tr-ui-b-table');
+    const table = document.createElement('tr-ui-b-table');
     table.showHeader = true;
     table.selectionMode = SelectionMode.CELL;
     table.rowHighlightStyle = HighlightStyle.NONE;
@@ -1430,7 +1429,7 @@ tr.b.unittest.testSuite(function() {
 
     table.selectedTableRow = table.tableRows[0];
     assert.strictEqual(table.selectedColumnIndex, 1);
-    var selectedCell = table.selectedCell;
+    let selectedCell = table.selectedCell;
     assert.strictEqual(selectedCell.row, table.tableRows[0]);
     assert.strictEqual(selectedCell.column, columns[1]);
     assert.strictEqual(selectedCell.value, '1');
@@ -1454,7 +1453,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('cellSelectionNested', function() {
-    var columns = [
+    const columns = [
       {
         title: 'Title',
         value(row) { return row.a; },
@@ -1468,7 +1467,7 @@ tr.b.unittest.testSuite(function() {
       }
     ];
 
-    var rows = [
+    const rows = [
       {
         a: 'parent',
         b: '1',
@@ -1481,7 +1480,7 @@ tr.b.unittest.testSuite(function() {
       }
     ];
 
-    var table = document.createElement('tr-ui-b-table');
+    const table = document.createElement('tr-ui-b-table');
     table.showHeader = true;
     table.selectionMode = SelectionMode.CELL;
     table.tableColumns = columns;
@@ -1515,7 +1514,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('resolvedHighlightStyle', function() {
-    var table = document.createElement('tr-ui-b-table');
+    const table = document.createElement('tr-ui-b-table');
 
     // Undefined selection mode.
     assert.strictEqual(table.resolvedRowHighlightStyle, HighlightStyle.NONE);
@@ -1549,12 +1548,12 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('headersWithHtmlElements', function() {
-    var firstColumnTitle = document.createTextNode('First Column');
-    var secondColumnTitle = document.createElement('span');
+    const firstColumnTitle = document.createTextNode('First Column');
+    const secondColumnTitle = document.createElement('span');
     secondColumnTitle.innerText = 'Second Column';
     secondColumnTitle.style.color = 'blue';
 
-    var columns = [
+    const columns = [
       {
         title: firstColumnTitle,
         value(row) { return row.firstData; },
@@ -1566,7 +1565,7 @@ tr.b.unittest.testSuite(function() {
       }
     ];
 
-    var rows = [
+    const rows = [
       {
         firstData: 'A1',
         secondData: 'A2'
@@ -1577,15 +1576,15 @@ tr.b.unittest.testSuite(function() {
       }
     ];
 
-    var table = document.createElement('tr-ui-b-table');
+    const table = document.createElement('tr-ui-b-table');
     table.tableColumns = columns;
     table.tableRows = rows;
     table.rebuild();
 
     this.addHTMLOutput(table);
 
-    var firstColumnHeader = table.$.head.children[0].children[0].children[0];
-    var secondColumnHeader = table.$.head.children[0].children[1].children[0];
+    const firstColumnHeader = table.$.head.children[0].children[0].children[0];
+    const secondColumnHeader = table.$.head.children[0].children[1].children[0];
     assert.strictEqual(Polymer.dom(firstColumnHeader.cellTitle).textContent,
         'First Column');
     assert.strictEqual(Polymer.dom(secondColumnHeader.cellTitle).textContent,
@@ -1593,7 +1592,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('align', function() {
-    var columns = [
+    const columns = [
       {
         title: 'a',
         align: ColumnAlignment.RIGHT,
@@ -1602,9 +1601,9 @@ tr.b.unittest.testSuite(function() {
         }
       }
     ];
-    var rows = [{a: 1}, {a: 'long-row-so-that-alignment-would-be-visible'}];
+    const rows = [{a: 1}, {a: 'long-row-so-that-alignment-would-be-visible'}];
 
-    var table = document.createElement('tr-ui-b-table');
+    const table = document.createElement('tr-ui-b-table');
     table.tableColumns = columns;
     table.tableRows = rows;
     table.rebuild();
@@ -1616,7 +1615,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('subRowsPropertyName', function() {
-    var columns = [
+    const columns = [
       {
         title: 'a',
         value(row) {
@@ -1624,7 +1623,7 @@ tr.b.unittest.testSuite(function() {
         }
       }
     ];
-    var rows = [
+    const rows = [
       {
         a: 1,
         isExpanded: true,
@@ -1634,7 +1633,7 @@ tr.b.unittest.testSuite(function() {
       }
     ];
 
-    var table = document.createElement('tr-ui-b-table');
+    const table = document.createElement('tr-ui-b-table');
     table.subRowsPropertyName = 'children';
     table.tableColumns = columns;
     table.tableRows = rows;
@@ -1647,21 +1646,21 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('shouldNotRenderUndefined', function() {
-    var columns = [
+    const columns = [
       {
         title: 'Column',
         value(row) { return row.firstData; }
       }
     ];
 
-    var rows = [
+    const rows = [
       {
         firstData: undefined,
         secondData: 'A2'
       }
     ];
 
-    var table = document.createElement('tr-ui-b-table');
+    const table = document.createElement('tr-ui-b-table');
     table.tableColumns = columns;
     table.tableRows = rows;
     table.rebuild();
@@ -1673,21 +1672,21 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('customizeTableRowCallback', function() {
-    var columns = [
+    const columns = [
       {
         title: 'Column',
         value(row) { return row.data; }
       }
     ];
 
-    var rows = [
+    const rows = [
       {
         data: 'data'
       }
     ];
 
-    var table = document.createElement('tr-ui-b-table');
-    var callbackCalled = false;
+    const table = document.createElement('tr-ui-b-table');
+    let callbackCalled = false;
     table.tableColumns = columns;
     table.tableRows = rows;
     table.customizeTableRowCallback = function(userRow, trElement) {
@@ -1715,7 +1714,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('selectionEdgeCases', function() {
-    var table = document.createElement('tr-ui-b-table');
+    const table = document.createElement('tr-ui-b-table');
     table.tableColumns = [
       {
         title: 'Column',
@@ -1738,7 +1737,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('defaultExpansionStateCallback', function() {
-    var columns = [
+    const columns = [
       {
         title: 'Name',
         value(row) { return row.name; }
@@ -1749,7 +1748,7 @@ tr.b.unittest.testSuite(function() {
       }
     ];
 
-    var rows = [
+    const rows = [
       {
         name: 'A',
         value: 10,
@@ -1786,20 +1785,20 @@ tr.b.unittest.testSuite(function() {
       }
     ];
 
-    var table = document.createElement('tr-ui-b-table');
+    const table = document.createElement('tr-ui-b-table');
     table.tableColumns = columns;
     table.tableRows = rows;
     table.rebuild();
 
     this.addHTMLOutput(table);
 
-    var cRow = tr.b.findDeepElementMatchingPredicate(
+    let cRow = tr.b.findDeepElementMatchingPredicate(
         table, function(element) {
           return Polymer.dom(element).textContent === 'C';
         });
     assert.strictEqual(cRow, undefined);
 
-    var callbackCalled = false;
+    let callbackCalled = false;
     table.defaultExpansionStateCallback = function(row, parentRow) {
       callbackCalled = true;
 
@@ -1824,7 +1823,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('sortExpanded', function() {
-    var columns = [
+    const columns = [
       {
         title: 'Name',
         value(row) { return row.name; }
@@ -1836,7 +1835,7 @@ tr.b.unittest.testSuite(function() {
       }
     ];
 
-    var rows = [
+    const rows = [
       {
         name: 'A',
         value: 10,
@@ -1853,7 +1852,7 @@ tr.b.unittest.testSuite(function() {
       }
     ];
 
-    var table = document.createElement('tr-ui-b-table');
+    const table = document.createElement('tr-ui-b-table');
     table.tableColumns = columns;
     table.tableRows = rows;
     table.rebuild();
@@ -1885,24 +1884,24 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('shouldPreserveSortWhenColumnsChange', function() {
-    var name = {
+    const name = {
       title: 'Name',
       value(row) { return row.name; },
     };
 
-    var count = {
+    const count = {
       title: 'Count',
       value(row) { return row.count; },
       cmp: (rowA, rowB) => rowA.a - rowB.a,
     };
 
-    var otherCount = {
+    const otherCount = {
       title: 'Count',
       value(row) { return row.count; },
       cmp: (rowA, rowB) => rowA.a - rowB.a,
     };
 
-    var table = document.createElement('tr-ui-b-table');
+    const table = document.createElement('tr-ui-b-table');
     table.tableColumns = [count];
     table.sortColumnIndex = 0;
     table.sortDescending = true;
@@ -1927,7 +1926,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('userCanModifySortOrder', function() {
-    var table = document.createElement('tr-ui-b-table');
+    const table = document.createElement('tr-ui-b-table');
     table.tableColumns = [
       {
         title: 'Name',
@@ -1955,7 +1954,7 @@ tr.b.unittest.testSuite(function() {
     table.rebuild();
     this.addHTMLOutput(table);
 
-    var toggleButton = document.createElement('button');
+    const toggleButton = document.createElement('button');
     Polymer.dom(toggleButton).textContent =
         'Toggle table.userCanModifySortOrder';
     toggleButton.addEventListener('click', function() {
@@ -1963,7 +1962,7 @@ tr.b.unittest.testSuite(function() {
     });
     this.addHTMLOutput(toggleButton);
 
-    var unsetButton = document.createElement('button');
+    const unsetButton = document.createElement('button');
     Polymer.dom(unsetButton).textContent = 'Unset sort order';
     unsetButton.addEventListener('click', function() {
       table.sortColumnIndex = undefined;
@@ -1972,7 +1971,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('columnSelection', function() {
-    var table = document.createElement('tr-ui-b-table');
+    const table = document.createElement('tr-ui-b-table');
     table.tableColumns = [
       {
         title: 'Name',
@@ -2000,7 +1999,7 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(table);
 
     table.selectedTableColumnIndex = 1;
-    var cols = tr.b.findDeepElementMatchingPredicate(table,
+    let cols = tr.b.findDeepElementMatchingPredicate(table,
         e => e.tagName === 'COLGROUP').children;
     assert.isNull(cols[0].getAttribute('selected'));
     assert.strictEqual(cols[1].getAttribute('selected'), 'true');
@@ -2025,7 +2024,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('stepInto', function() {
-    var columns = [
+    const columns = [
       {
         title: 'Title',
         value(row) { return row.a; },
@@ -2048,7 +2047,7 @@ tr.b.unittest.testSuite(function() {
         width: '33%'
       }
     ];
-    var rows = [
+    const rows = [
       {
         a: 'first',
         b: '1'
@@ -2059,9 +2058,9 @@ tr.b.unittest.testSuite(function() {
       }
     ];
 
-    var table = document.createElement('tr-ui-b-table');
+    const table = document.createElement('tr-ui-b-table');
 
-    var firedStepIntoEvents = [];
+    const firedStepIntoEvents = [];
     table.addEventListener('step-into', e => firedStepIntoEvents.push(e));
 
     table.cellHighlightStyle = HighlightStyle.DARK;

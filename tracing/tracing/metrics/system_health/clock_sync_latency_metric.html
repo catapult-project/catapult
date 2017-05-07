@@ -18,15 +18,15 @@ tr.exportTo('tr.metrics.sh', function() {
   // 20 ms is a good upper limit because the highest latencies we've seen are
   // around 10-15 ms, and we expect average latency to go down as we improve
   // the clock sync mechanism.
-  var LATENCY_BOUNDS = tr.v.HistogramBinBoundaries.createLinear(0, 20, 100);
+  const LATENCY_BOUNDS = tr.v.HistogramBinBoundaries.createLinear(0, 20, 100);
 
   function clockSyncLatencyMetric(values, model) {
-    var domains = Array.from(model.clockSyncManager.domainsSeen).sort();
-    for (var i = 0; i < domains.length; i++) {
-      for (var j = i + 1; j < domains.length; j++) {
-        var latency = model.clockSyncManager.getTimeTransformerError(
+    const domains = Array.from(model.clockSyncManager.domainsSeen).sort();
+    for (let i = 0; i < domains.length; i++) {
+      for (let j = i + 1; j < domains.length; j++) {
+        const latency = model.clockSyncManager.getTimeTransformerError(
             domains[i], domains[j]);
-        var hist = new tr.v.Histogram('clock_sync_latency_' +
+        const hist = new tr.v.Histogram('clock_sync_latency_' +
             domains[i].toLowerCase() + '_to_' + domains[j].toLowerCase(),
             tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, LATENCY_BOUNDS);
         hist.customizeSummaryOptions({

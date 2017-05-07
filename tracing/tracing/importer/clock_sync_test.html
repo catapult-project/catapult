@@ -23,20 +23,20 @@ found in the LICENSE file.
  */
 tr.b.unittest.testSuite(function() {
   test('import_noClockDomains', function() {
-    var m = tr.c.TestUtils.newModelWithEvents([]);
+    const m = tr.c.TestUtils.newModelWithEvents([]);
 
     assert.isFalse(m.hasImportWarnings);
   });
 
   test('import_traceEvent', function() {
-    var trace = JSON.stringify({
+    const trace = JSON.stringify({
       traceEvents: [
         {ts: 0, pid: 0, tid: 0, ph: 'i', cat: 'c', name: 'taskA', args: {}},
         {ts: 1000, pid: 0, tid: 0, ph: 'c', cat: 'metadata',
           args: { issue_ts: 500, sync_id: 'abc' }},
         {ts: 2000, pid: 0, tid: 0, ph: 'i', cat: 'c', name: 'taskA', args: {}}
       ]});
-    var m = tr.c.TestUtils.newModelWithEvents([trace]);
+    const m = tr.c.TestUtils.newModelWithEvents([trace]);
 
     assert.isFalse(m.hasImportWarnings);
 
@@ -46,12 +46,12 @@ tr.b.unittest.testSuite(function() {
 
 
   test('import_ftrace', function() {
-    var ftrace =
+    const ftrace =
       'SurfaceFlinger-0  [001] ...1 0.001: 0: B|1|taskA\n' +
       '        chrome-3  [001] ...1 0.010: 0: trace_event_clock_sync: ' +
           'parent_ts=0.020\n';
 
-    var m = tr.c.TestUtils.newModelWithEvents([ftrace]);
+    const m = tr.c.TestUtils.newModelWithEvents([ftrace]);
 
     assert.isFalse(m.hasImportWarnings);
     assert.strictEqual(m.processes[1].threads[0].sliceGroup.slices[0].start, 0);
@@ -61,12 +61,12 @@ tr.b.unittest.testSuite(function() {
     // Include a clock sync marker that indicates the LINUX_CLOCK_MONOTONIC time
     // of 20ms is equal to the LINUX_FTRACE_GLOBAL time of 10ms, effectively
     // shifting all ftrace timestamps forward by 10ms.
-    var ftrace =
+    const ftrace =
       'SurfaceFlinger-0  [001] ...1 0.001: 0: B|1|taskA\n' +
       '        chrome-3  [001] ...1 0.010: 0: trace_event_clock_sync: ' +
           'parent_ts=0.020\n';
 
-    var trace = JSON.stringify({
+    const trace = JSON.stringify({
       traceEvents: [
         {ts: 0, pid: 0, tid: 0, ph: 'i', cat: 'c', name: 'taskA', args: {}},
         {ts: 1000, pid: 0, tid: 0, ph: 'c', cat: 'metadata',
@@ -75,7 +75,7 @@ tr.b.unittest.testSuite(function() {
       ],
       systemTraceEvents: ftrace
     });
-    var m = tr.c.TestUtils.newModelWithEvents([trace]);
+    const m = tr.c.TestUtils.newModelWithEvents([trace]);
 
     assert.isFalse(m.hasImportWarnings);
 
@@ -92,12 +92,12 @@ tr.b.unittest.testSuite(function() {
     // Include a clock sync marker that indicates the LINUX_CLOCK_MONOTONIC time
     // of 20ms is equal to the LINUX_FTRACE_GLOBAL time of 10ms, effectively
     // shifting all ftrace timestamps forward by 10ms.
-    var ftrace =
+    const ftrace =
       'SurfaceFlinger-0  [001] ...1 0.001: 0: B|1|taskA\n' +
       '        chrome-3  [001] ...1 0.010: 0: trace_event_clock_sync: ' +
           'parent_ts=0.020\n';
 
-    var trace = JSON.stringify({
+    const trace = JSON.stringify({
       traceEvents: [
         {ts: 0, pid: 0, tid: 0, ph: 'i', cat: 'c', name: 'taskA', args: {}},
         {ts: 1000, pid: 0, tid: 0, ph: 'c', cat: 'metadata',
@@ -109,7 +109,7 @@ tr.b.unittest.testSuite(function() {
       },
       systemTraceEvents: ftrace
     });
-    var m = tr.c.TestUtils.newModelWithEvents([trace]);
+    const m = tr.c.TestUtils.newModelWithEvents([trace]);
 
     assert.isFalse(m.hasImportWarnings);
 

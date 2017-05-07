@@ -87,9 +87,9 @@ Polymer({
       if (e.key in this.radioButtons_) {
         throw new Error(e.key + ' already exists');
       }
-      var radioButton = document.createElement('div');
-      var input = document.createElement('input');
-      var label = document.createElement('label');
+      const radioButton = document.createElement('div');
+      const input = document.createElement('input');
+      const label = document.createElement('label');
       input.type = 'radio';
       input.id = e.label;
       input.addEventListener('click', function() {
@@ -110,7 +110,7 @@ Polymer({
   maybeRenderRadioButtons_() {
     if (!this.isReady_) return;
     if (this.radioButtons_ === undefined) return;
-    for (var key in this.radioButtons_) {
+    for (const key in this.radioButtons_) {
       Polymer.dom(this.$.container).appendChild(
           this.radioButtons_[key].parentElement);
     }

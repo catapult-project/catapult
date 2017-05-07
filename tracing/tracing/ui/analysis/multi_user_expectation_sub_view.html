@@ -61,7 +61,7 @@ Polymer({
   get relatedEventsToHighlight() {
     if (!this.currentSelection_) return undefined;
 
-    var selection = new tr.model.EventSet();
+    const selection = new tr.model.EventSet();
     this.currentSelection_.forEach(function(ir) {
       ir.associatedEvents.forEach(function(event) {
         selection.push(event);

@@ -13,13 +13,13 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var ResourceUsageSample = tr.model.ResourceUsageSample;
+  const ResourceUsageSample = tr.model.ResourceUsageSample;
 
   test('usageSample', function() {
-    var series = new tr.model.ResourceUsageSeries(new tr.Model().device);
+    const series = new tr.model.ResourceUsageSeries(new tr.Model().device);
 
-    var sample1 = new ResourceUsageSample(series, 0.0, 0.11);
-    var sample2 = new ResourceUsageSample(series, 1.0, 0.22);
+    const sample1 = new ResourceUsageSample(series, 0.0, 0.11);
+    const sample2 = new ResourceUsageSample(series, 1.0, 0.22);
 
     assert.strictEqual(sample1.series, series);
     assert.strictEqual(sample1.start, 0.0);
@@ -31,12 +31,12 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('addBoundsToRange', function() {
-    var series = new tr.model.ResourceUsageSeries(new tr.Model().device);
+    const series = new tr.model.ResourceUsageSeries(new tr.Model().device);
 
-    var sample1 = new ResourceUsageSample(series, 0.0, 0.11);
-    var sample2 = new ResourceUsageSample(series, 1.0, 0.22);
+    const sample1 = new ResourceUsageSample(series, 0.0, 0.11);
+    const sample2 = new ResourceUsageSample(series, 1.0, 0.22);
 
-    var range = new tr.b.math.Range();
+    const range = new tr.b.math.Range();
     sample1.addBoundsToRange(range);
 
     assert.strictEqual(range.min, 0);

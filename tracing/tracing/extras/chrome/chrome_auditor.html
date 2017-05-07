@@ -23,7 +23,7 @@ found in the LICENSE file.
  * @fileoverview Base class for trace data Auditors.
  */
 tr.exportTo('tr.e.audits', function() {
-  var Auditor = tr.c.Auditor;
+  const Auditor = tr.c.Auditor;
 
   /**
    * Auditor for Chrome-specific traces.
@@ -32,7 +32,7 @@ tr.exportTo('tr.e.audits', function() {
   function ChromeAuditor(model) {
     Auditor.call(this, model);
 
-    var modelHelper = this.model.getOrCreateHelper(
+    const modelHelper = this.model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
     if (modelHelper && modelHelper.browserHelper) {
       // Must be a browserHelper in order to do audits.
@@ -48,8 +48,8 @@ tr.exportTo('tr.e.audits', function() {
     runAnnotate() {
       if (!this.modelHelper) return;
 
-      for (var pid in this.modelHelper.rendererHelpers) {
-        var rendererHelper = this.modelHelper.rendererHelpers[pid];
+      for (const pid in this.modelHelper.rendererHelpers) {
+        const rendererHelper = this.modelHelper.rendererHelpers[pid];
 
         if (rendererHelper.isChromeTracingUI) {
           rendererHelper.process.important = false;

@@ -15,39 +15,40 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var Model = tr.Model;
-  var GlobalMemoryDump = tr.model.GlobalMemoryDump;
-  var ProcessMemoryDump = tr.model.ProcessMemoryDump;
-  var StackFrame = tr.model.StackFrame;
-  var HeapEntry = tr.model.HeapEntry;
-  var HeapDump = tr.model.HeapDump;
+  const Model = tr.Model;
+  const GlobalMemoryDump = tr.model.GlobalMemoryDump;
+  const ProcessMemoryDump = tr.model.ProcessMemoryDump;
+  const StackFrame = tr.model.StackFrame;
+  const HeapEntry = tr.model.HeapEntry;
+  const HeapDump = tr.model.HeapDump;
 
   test('heapDumps', function() {
-    var model = new tr.Model();
-    var process = model.getOrCreateProcess(89);
-    var gmd = new GlobalMemoryDump(model, 42);
+    const model = new tr.Model();
+    const process = model.getOrCreateProcess(89);
+    const gmd = new GlobalMemoryDump(model, 42);
     model.globalMemoryDumps.push(gmd);
-    var pmd = new ProcessMemoryDump(gmd, process, 42);
+    const pmd = new ProcessMemoryDump(gmd, process, 42);
     process.memoryDumps.push(pmd);
 
-    var rootFrame = new StackFrame(
+    const rootFrame = new StackFrame(
         undefined, tr.b.GUID.allocateSimple(), undefined);
-    var childFrame = new StackFrame(
+    const childFrame = new StackFrame(
         rootFrame, tr.b.GUID.allocateSimple(), 'draw');
     rootFrame.addChild(childFrame);
 
-    var dump = new HeapDump(pmd);
+    const dump = new HeapDump(pmd);
     assert.strictEqual(dump.processMemoryDump, pmd);
     assert.lengthOf(dump.entries, 0);
 
-    var entry1 = dump.addEntry(childFrame, 'HTMLImportLoader', 1024, undefined);
+    const entry1 = dump.addEntry(
+        childFrame, 'HTMLImportLoader', 1024, undefined);
     assert.strictEqual(entry1.heapDump, dump);
     assert.strictEqual(entry1.leafStackFrame, childFrame);
     assert.strictEqual(entry1.objectTypeName, 'HTMLImportLoader');
     assert.strictEqual(entry1.size, 1024);
     assert.isUndefined(entry1.count);
 
-    var entry2 = dump.addEntry(undefined, undefined, 1048576, 42);
+    const entry2 = dump.addEntry(undefined, undefined, 1048576, 42);
     assert.strictEqual(entry2.heapDump, dump);
     assert.isUndefined(entry2.leafStackFrame);
     assert.isUndefined(entry2.objectTypeName);

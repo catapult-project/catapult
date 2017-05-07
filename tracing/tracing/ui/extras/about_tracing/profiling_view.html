@@ -71,8 +71,8 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
    * @constructor
    * @extends {HTMLDivElement}
    */
-  var ProfilingView = tr.ui.b.define('x-profiling-view');
-  var THIS_DOC = document.currentScript.ownerDocument;
+  const ProfilingView = tr.ui.b.define('x-profiling-view');
+  const THIS_DOC = document.currentScript.ownerDocument;
 
   ProfilingView.prototype = {
     __proto__: HTMLDivElement.prototype,
@@ -93,7 +93,8 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       this.loadButton_ = Polymer.dom(this).querySelector('#load-button');
       this.saveButton_ = Polymer.dom(this).querySelector('#save-button');
 
-      var buttons = Polymer.dom(this).querySelector('x-timeline-view-buttons');
+      const buttons = Polymer.dom(this).querySelector(
+          'x-timeline-view-buttons');
       Polymer.dom(buttons.parentElement).removeChild(buttons);
       Polymer.dom(this.timelineView_.leftControls).appendChild(buttons);
       this.initButtons_();
@@ -142,7 +143,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     },
 
     updateTracingControllerSpecificState_() {
-      var isInspector = this.tracingControllerClient_ instanceof
+      const isInspector = this.tracingControllerClient_ instanceof
           tr.ui.e.about_tracing.InspectorTracingControllerClient;
 
       if (isInspector) {
@@ -157,12 +158,12 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
         throw new Error('Already recording');
       }
       this.isRecording_ = true;
-      var resultPromise = tr.ui.e.about_tracing.beginRecording(
+      const resultPromise = tr.ui.e.about_tracing.beginRecording(
           this.tracingControllerClient_);
       resultPromise.then(
           function(data) {
             this.isRecording_ = false;
-            var traceName = tr.ui.e.about_tracing.defaultTraceName(
+            const traceName = tr.ui.e.about_tracing.defaultTraceName(
                 this.tracingControllerClient_);
             this.setActiveTrace(traceName, data, false);
           }.bind(this),
@@ -198,9 +199,9 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       this.saveButton_.disabled = false;
       this.timelineView_.viewTitle = filename;
 
-      var m = new tr.Model();
-      var i = new tr.importer.Import(m);
-      var p = i.importTracesWithProgressDialog([data]);
+      const m = new tr.Model();
+      const i = new tr.importer.Import(m);
+      const p = i.importTracesWithProgressDialog([data]);
       p.then(
           function() {
             this.timelineView_.model = m;
@@ -233,14 +234,13 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
 
     requestFilename_() {
       // unsafe filename patterns:
-      var illegalRe = /[\/\?<>\\:\*\|":]/g;
-      var controlRe = /[\x00-\x1f\x80-\x9f]/g;
-      var reservedRe = /^\.+$/;
+      const illegalRe = /[\/\?<>\\:\*\|":]/g;
+      const controlRe = /[\x00-\x1f\x80-\x9f]/g;
+      const reservedRe = /^\.+$/;
 
-      var filename;
-      var defaultName = this.activeTrace_.filename;
-      var fileExtension = '.json';
-      var fileRegex = /\.json$/;
+      const defaultName = this.activeTrace_.filename;
+      let fileExtension = '.json';
+      let fileRegex = /\.json$/;
       if (/[.]gz$/.test(defaultName)) {
         fileExtension += '.gz';
         fileRegex = /\.json\.gz$/;
@@ -249,23 +249,23 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
         fileRegex = /\.zip$/;
       }
 
-      var custom = prompt('Filename? (' + fileExtension +
+      const custom = prompt('Filename? (' + fileExtension +
                           ' appended) Or leave blank:');
       if (custom === null) {
         return undefined;
       }
 
-      var name;
+      let name;
       if (custom) {
         name = ' ' + custom;
       } else {
-        var date = new Date();
-        var dateText = ' ' + date.toDateString() +
+        const date = new Date();
+        const dateText = ' ' + date.toDateString() +
                        ' ' + date.toLocaleTimeString();
         name = dateText;
       }
 
-      filename = defaultName.replace(fileRegex, name) + fileExtension;
+      const filename = defaultName.replace(fileRegex, name) + fileExtension;
 
       return filename
           .replace(illegalRe, '.')
@@ -276,14 +276,14 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
 
     onSaveClicked_() {
       // Create a blob URL from the binary array.
-      var blob = new Blob([this.activeTrace_.data],
+      const blob = new Blob([this.activeTrace_.data],
                           {type: 'application/octet-binary'});
-      var blobUrl = window.webkitURL.createObjectURL(blob);
+      const blobUrl = window.webkitURL.createObjectURL(blob);
 
       // Create a link and click on it. BEST API EVAR!
-      var link = document.createElementNS('http://www.w3.org/1999/xhtml', 'a');
+      const link = document.createElementNS('http://www.w3.org/1999/xhtml', 'a');
       link.href = blobUrl;
-      var filename = this.requestFilename_();
+      const filename = this.requestFilename_();
       if (filename) {
         link.download = filename;
         link.click();
@@ -291,18 +291,18 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     },
 
     onLoadClicked_() {
-      var inputElement = document.createElement('input');
+      const inputElement = document.createElement('input');
       inputElement.type = 'file';
       inputElement.multiple = false;
 
-      var changeFired = false;
+      let changeFired = false;
       inputElement.addEventListener(
           'change',
           function(e) {
             if (changeFired) return;
             changeFired = true;
 
-            var file = inputElement.files[0];
+            const file = inputElement.files[0];
             tr.ui.b.readFile(file).then(
                 function(data) {
                   this.setActiveTrace(file.name, data);
@@ -347,7 +347,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       e.stopPropagation();
       e.preventDefault();
 
-      var files = e.dataTransfer.files;
+      const files = e.dataTransfer.files;
       if (files.length !== 1) {
         tr.ui.b.Overlay.showError('1 file supported at a time.');
         return;

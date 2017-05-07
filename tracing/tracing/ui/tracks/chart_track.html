@@ -27,7 +27,7 @@ tr.exportTo('tr.ui.tracks', function() {
    * @constructor
    * @extends {Track}
    */
-  var ChartTrack =
+  const ChartTrack =
       tr.ui.b.define('chart-track', tr.ui.tracks.Track);
 
   ChartTrack.prototype = {
@@ -120,13 +120,13 @@ tr.exportTo('tr.ui.tracks', function() {
         return;
       }
 
-      var axisGuidToAxisData = {};
-      var topPadding = 0;
-      var bottomPadding = 0;
+      const axisGuidToAxisData = {};
+      let topPadding = 0;
+      let bottomPadding = 0;
 
       this.series_.forEach(function(series) {
-        var seriesYAxis = series.seriesYAxis;
-        var axisGuid = seriesYAxis.guid;
+        const seriesYAxis = series.seriesYAxis;
+        const axisGuid = seriesYAxis.guid;
         if (!(axisGuid in axisGuidToAxisData)) {
           axisGuidToAxisData[axisGuid] = {
             axis: seriesYAxis,
@@ -156,21 +156,21 @@ tr.exportTo('tr.ui.tracks', function() {
     drawChart_(viewLWorld, viewRWorld) {
       if (!this.series_) return;
 
-      var ctx = this.context();
+      const ctx = this.context();
 
       // Get track drawing parameters.
-      var displayTransform = this.viewport.currentDisplayTransform;
-      var pixelRatio = window.devicePixelRatio || 1;
-      var bounds = this.getBoundingClientRect();
-      var highDetails = this.viewport.highDetails;
+      const displayTransform = this.viewport.currentDisplayTransform;
+      const pixelRatio = window.devicePixelRatio || 1;
+      const bounds = this.getBoundingClientRect();
+      const highDetails = this.viewport.highDetails;
 
       // Pre-multiply all device-independent pixel parameters with the pixel
       // ratio to avoid unnecessary recomputation in the performance-critical
       // drawing code.
-      var width = bounds.width * pixelRatio;
-      var height = bounds.height * pixelRatio;
-      var topPadding = this.topPadding_ * pixelRatio;
-      var bottomPadding = this.bottomPadding_ * pixelRatio;
+      const width = bounds.width * pixelRatio;
+      const height = bounds.height * pixelRatio;
+      const topPadding = this.topPadding_ * pixelRatio;
+      const bottomPadding = this.bottomPadding_ * pixelRatio;
 
       // Set up clipping.
       ctx.save();
@@ -186,8 +186,8 @@ tr.exportTo('tr.ui.tracks', function() {
             this.axes_.length > 1) {
           throw new Error('Only one axis allowed when showing grid lines.');
         }
-        for (var yAxis of this.axes_) {
-          var chartTransform = new tr.ui.tracks.ChartTransform(
+        for (const yAxis of this.axes_) {
+          const chartTransform = new tr.ui.tracks.ChartTransform(
               displayTransform, yAxis, width, height,
               topPadding, bottomPadding, pixelRatio);
           yAxis.draw(
@@ -196,8 +196,8 @@ tr.exportTo('tr.ui.tracks', function() {
       }
 
       // Draw all series in the increasing z-order.
-      for (var series of this.series) {
-        var chartTransform = new tr.ui.tracks.ChartTransform(
+      for (const series of this.series) {
+        const chartTransform = new tr.ui.tracks.ChartTransform(
             displayTransform, series.seriesYAxis, width, height, topPadding,
             bottomPadding, pixelRatio);
         series.draw(ctx, chartTransform, highDetails);
@@ -226,7 +226,7 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     addEventNearToProvidedEventToSelection(event, offset, selection) {
-      var foundItem = false;
+      let foundItem = false;
       this.series_.forEach(function(series) {
         foundItem = foundItem || series.addEventNearToProvidedEventToSelection(
             event, offset, selection);
@@ -254,9 +254,9 @@ tr.exportTo('tr.ui.tracks', function() {
      * configuration argument flags.
      */
     autoSetAllAxes(opt_config) {
-      for (var axisData of Object.values(this.axisGuidToAxisData_)) {
-        var seriesYAxis = axisData.axis;
-        var series = axisData.series;
+      for (const axisData of Object.values(this.axisGuidToAxisData_)) {
+        const seriesYAxis = axisData.axis;
+        const series = axisData.series;
         seriesYAxis.autoSetFromSeries(series, opt_config);
       }
     },
@@ -269,7 +269,7 @@ tr.exportTo('tr.ui.tracks', function() {
      * configuration argument flags.
      */
     autoSetAxis(seriesYAxis, opt_config) {
-      var series = this.axisGuidToAxisData_[seriesYAxis.guid].series;
+      const series = this.axisGuidToAxisData_[seriesYAxis.guid].series;
       seriesYAxis.autoSetFromSeries(series, opt_config);
     }
   };

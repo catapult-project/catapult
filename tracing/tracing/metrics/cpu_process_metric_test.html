@@ -19,8 +19,8 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('cpuProcessMetric_noData', function() {
-    var histograms = new tr.v.HistogramSet();
-    var events = [
+    const histograms = new tr.v.HistogramSet();
+    const events = [
       {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53, ph: 'B'},
       {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'B'}
     ];
@@ -29,8 +29,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('cpuProcessMetric_singleSnapshots', function() {
-    var histograms = new tr.v.HistogramSet();
-    var events = [
+    const histograms = new tr.v.HistogramSet();
+    const events = [
       {
         'name': 'CPUSnapshots',
         'args': {
@@ -53,8 +53,8 @@ tr.b.unittest.testSuite(function() {
 
     assert.isDefined(histograms.getHistogramNamed('cpu:percent:chrome'));
     assert.isDefined(histograms.getHistogramNamed('cpu:percent:crudd'));
-    var chromeValue = histograms.getHistogramNamed('cpu:percent:chrome');
-    var chromeStatistics = chromeValue.running;
+    const chromeValue = histograms.getHistogramNamed('cpu:percent:chrome');
+    const chromeStatistics = chromeValue.running;
     assert.strictEqual(chromeStatistics.count, 1);
     assert.closeTo(chromeStatistics.mean, 0.011, 1e-5);
     assert.closeTo(chromeStatistics.max, 0.011, 1e-5);
@@ -65,8 +65,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('cpuProcessMetric_multipleSnapshots', function() {
-    var histograms = new tr.v.HistogramSet();
-    var events = [
+    const histograms = new tr.v.HistogramSet();
+    const events = [
       {
         'name': 'CPUSnapshots',
         'args': {
@@ -106,8 +106,8 @@ tr.b.unittest.testSuite(function() {
     assert.isDefined(histograms.getHistogramNamed('cpu:percent:chrome'));
     assert.isDefined(histograms.getHistogramNamed('cpu:percent:crudd'));
     assert.isDefined(histograms.getHistogramNamed('cpu:percent:mnp_logger'));
-    var chromeValue = histograms.getHistogramNamed('cpu:percent:chrome');
-    var chromeStatistics = chromeValue.running;
+    const chromeValue = histograms.getHistogramNamed('cpu:percent:chrome');
+    const chromeStatistics = chromeValue.running;
     assert.strictEqual(chromeStatistics.count, 2);
     assert.closeTo(chromeStatistics.mean, 0.0075, 1e-5);
     assert.strictEqual(chromeStatistics.max, 0.008);

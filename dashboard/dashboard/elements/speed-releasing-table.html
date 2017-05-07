@@ -200,15 +200,15 @@ found in the LICENSE file.
        * Gets the specified value given a rev, bot, test.
        */
       getValue(rev, bot, test) {
-        var value = this.tableConfig.values[rev][bot][test];
+        const value = this.tableConfig.values[rev][bot][test];
         if (value === null || value === undefined) {
           return 'n/a';
         }
-        var unit = this.tableConfig.units[test];
+        const unit = this.tableConfig.units[test];
         if (tr.b.Unit.byName[unit]) {
           return (tr.b.Unit.byName[unit].format(value));
         }
-        var unitInfo = tr.v.LEGACY_UNIT_INFO.get(unit);
+        const unitInfo = tr.v.LEGACY_UNIT_INFO.get(unit);
         if (unitInfo) {
           return (tr.b.Unit.byName[unitInfo.name].format(value));
         }
@@ -223,7 +223,7 @@ found in the LICENSE file.
         // Passes in true; arbitrary choice since either true, false, or any
         // other option would still result in the same positive or negative
         // result.
-        var delta = this.getDelta(bot, test, 'true');
+        let delta = this.getDelta(bot, test, 'true');
         delta = parseInt(delta, 10);
         if (delta < 0) {
           return 'improvement';
@@ -238,31 +238,32 @@ found in the LICENSE file.
        */
       getDelta(bot, test, abs) {
         if (this.tableConfig.revisions.length === 2) {
-          var revA = this.tableConfig.revisions[1];
-          var revB = this.tableConfig.revisions[0];
-          var valueA = this.tableConfig.values[revA][bot][test];
-          var valueB = this.tableConfig.values[revB][bot][test];
+          const revA = this.tableConfig.revisions[1];
+          const revB = this.tableConfig.revisions[0];
+          const valueA = this.tableConfig.values[revA][bot][test];
+          const valueB = this.tableConfig.values[revB][bot][test];
           if (valueA === null || valueA === undefined || valueB === null ||
               valueB === undefined) {
             return 'n/a';
           }
           if (abs === 'true') {
-            var difference = valueB - valueA;
-            var unit = this.tableConfig.units[test];
+            const difference = valueB - valueA;
+            const unit = this.tableConfig.units[test];
 
             if (tr.b.Unit.byName[unit]) {
               return (tr.b.Unit.byName[unit].format(difference));
             }
-            var unitInfo = tr.v.LEGACY_UNIT_INFO.get(unit);
+            const unitInfo = tr.v.LEGACY_UNIT_INFO.get(unit);
             if (unitInfo) {
               return (tr.b.Unit.byName[unitInfo.name].format(difference));
             }
             return difference;
           }
+          let relDiff;
           if (valueA === valueB) {
-            var relDiff = 0;
+            relDiff = 0;
           } else {
-            var relDiff = (valueB / valueA) - 1;
+            relDiff = (valueB / valueA) - 1;
           }
           return (tr.b.Unit.byName.normalizedPercentage.format(relDiff));
         }
@@ -273,12 +274,12 @@ found in the LICENSE file.
       },
 
       getCategory(test, index) {
-        var category = this.tableConfig.layout[test][0];
+        const category = this.tableConfig.layout[test][0];
         return category;
       },
 
       getCategoryCount(test) {
-        var category = this.tableConfig.layout[test][0];
+        const category = this.tableConfig.layout[test][0];
         return this.tableConfig.categories[category];
       },
 
@@ -304,12 +305,12 @@ found in the LICENSE file.
        * based, but dom-repeat's index is).
        */
       isFirstInCategory(index, test) {
-        var category = this.tableConfig.layout[test][0];
-        var keys = Object.keys(this.tableConfig.categories);
-        var categoryIndex = keys.indexOf(category);
+        const category = this.tableConfig.layout[test][0];
+        const keys = Object.keys(this.tableConfig.categories);
+        const categoryIndex = keys.indexOf(category);
 
-        var previousCategoryTotal = 0;
-        for (var i = 0; i < categoryIndex; i++) {
+        let previousCategoryTotal = 0;
+        for (let i = 0; i < categoryIndex; i++) {
           previousCategoryTotal += this.tableConfig.categories[keys[i]];
         }
         if (index === 0 || index === previousCategoryTotal) {
@@ -324,7 +325,7 @@ found in the LICENSE file.
        * categories visually.
        */
       getIsFirstInCategoryClass(index, test) {
-        var isFirstInCategory = this.isFirstInCategory(index, test);
+        const isFirstInCategory = this.isFirstInCategory(index, test);
         if (isFirstInCategory) {
           return 'first-in-category';
         }
@@ -379,20 +380,20 @@ found in the LICENSE file.
       },
 
       ready() {
-        var params = {};
-        var revA = uri.getParameter('revA');
+        const params = {};
+        const revA = uri.getParameter('revA');
         if (revA) {
           params.revA = revA;
         }
-        var revB = uri.getParameter('revB');
+        const revB = uri.getParameter('revB');
         if (revB) {
           params.revB = revB;
         }
-        var m = uri.getParameter('m');
+        const m = uri.getParameter('m');
         if (m) {
           params.m = m;
         }
-        var path = this.tableName;
+        const path = this.tableName;
         this.loading = true;
         simple_xhr.send('/speed_releasing/' + path, params,
             function(response) {

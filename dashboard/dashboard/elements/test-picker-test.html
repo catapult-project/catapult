@@ -13,7 +13,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-var MOCK_RESPONSE = {
+const MOCK_RESPONSE = {
   'select-multiple-add': {
     'has_rows': true,
     'sub_tests': {
@@ -52,7 +52,7 @@ var MOCK_RESPONSE = {
 };
 
 tr.b.unittest.testSuite(function() {
-  var testOptions = {
+  const testOptions = {
     setUp() {
     },
 
@@ -66,7 +66,7 @@ tr.b.unittest.testSuite(function() {
 
   test('instantiate', function() {
     testing_common.addXhrMock('*', JSON.stringify(MOCK_RESPONSE));
-    var testPicker = document.createElement('test-picker');
+    const testPicker = document.createElement('test-picker');
     testPicker.testSuites = {
       'endure': {
         'mas': {'Chromium': {'mac': false, 'win7': true}},
@@ -84,7 +84,7 @@ tr.b.unittest.testSuite(function() {
   }, testOptions);
 
   test('getSuiteItems', function() {
-    var testPicker = document.createElement('test-picker');
+    const testPicker = document.createElement('test-picker');
     testPicker.testSuites = {
       'endure': {
         'mas': {'Chromium': {'mac': false, 'win7': true}},
@@ -98,12 +98,12 @@ tr.b.unittest.testSuite(function() {
         'mon': ['select-multiple-add/select-multiple-add.html']
       }
     };
-    var suiteItems = testPicker.getSuiteItems();
+    const suiteItems = testPicker.getSuiteItems();
     // Test suites should be in the order of monitored, unmonitored,
     // and deprecated.
-    var expectedSuites = ['blink_perf', 'dromaeo', 'endure'];
-    var actualSuites = [];
-    for (var i = 0; i < suiteItems.length; i++) {
+    const expectedSuites = ['blink_perf', 'dromaeo', 'endure'];
+    const actualSuites = [];
+    for (let i = 0; i < suiteItems.length; i++) {
       actualSuites.push(suiteItems[i].name);
     }
     assert.deepEqual(actualSuites, expectedSuites);

@@ -33,7 +33,7 @@ tr.exportTo('tr.ui', function() {
     },
 
     equals(that) {
-      var eq = true;
+      let eq = true;
       if (that === undefined || that === null) {
         return false;
       }
@@ -44,7 +44,7 @@ tr.exportTo('tr.ui', function() {
     },
 
     almostEquals(that) {
-      var eq = true;
+      let eq = true;
       if (that === undefined || that === null) {
         return false;
       }
@@ -82,9 +82,9 @@ tr.exportTo('tr.ui', function() {
     },
 
     xSetWorldBounds(worldMin, worldMax, viewWidth) {
-      var worldWidth = worldMax - worldMin;
-      var scaleX = viewWidth / worldWidth;
-      var panX = -worldMin;
+      const worldWidth = worldMax - worldMin;
+      const scaleX = viewWidth / worldWidth;
+      const panX = -worldMin;
       this.setPanAndScale(panX, scaleX);
     },
 

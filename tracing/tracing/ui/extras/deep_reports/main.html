@@ -19,11 +19,11 @@ tr.exportTo('tr.ui.e.deep_reports', function() {
    * values to the results object.
    */
   function main(results, filesInDir) {
-    var lastP = new Promise(function(resolve) { resolve(); });
+    let lastP = new Promise(function(resolve) { resolve(); });
 
     filesInDir.forEach(function(filename) {
       // TODO(nduca): Make this like telemetry page.
-      var page = {
+      const page = {
         url: filename
       };
       lastP = lastP.then(function() {
@@ -38,11 +38,11 @@ tr.exportTo('tr.ui.e.deep_reports', function() {
 
   function loadModelFromFileAsync(filename) {
     return tr.b.getAsync(filename).then(function(trace) {
-      var io = new tr.ImportOptions();
+      const io = new tr.ImportOptions();
       io.shiftWorldToZero = true;
       io.pruneEmptyContainers = false;
 
-      var m = new tr.Model();
+      const m = new tr.Model();
       try {
         m.importTraces([trace], io);
       } catch (e) {

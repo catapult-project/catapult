@@ -13,9 +13,9 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.b', function() {
-  let deg2rad = tr.b.math.deg2rad;
+  const deg2rad = tr.b.math.deg2rad;
 
-  var constants = {
+  const constants = {
     DEFAULT_SCALE: 0.5,
     DEFAULT_EYE_DISTANCE: 10000,
     MINIMUM_DISTANCE: 1000,
@@ -26,7 +26,7 @@ tr.exportTo('tr.ui.b', function() {
     SETTINGS_NAMESPACE: 'tr.ui_camera'
   };
 
-  var Camera = tr.ui.b.define('camera');
+  const Camera = tr.ui.b.define('camera');
 
   Camera.prototype = {
     __proto__: HTMLUnknownElement.prototype,
@@ -64,19 +64,19 @@ tr.exportTo('tr.ui.b', function() {
 
 
     get modelViewMatrix() {
-      var mvMatrix = mat4.create();
+      const mvMatrix = mat4.create();
 
       mat4.lookAt(mvMatrix, this.eye_, this.gazeTarget_, [0, 1, 0]);
       return mvMatrix;
     },
 
     get projectionMatrix() {
-      var rect =
+      const rect =
           tr.ui.b.windowRectForElement(this.canvas_).
               scaleSize(this.pixelRatio_);
 
-      var aspectRatio = rect.width / rect.height;
-      var matrix = mat4.create();
+      const aspectRatio = rect.width / rect.height;
+      const matrix = mat4.create();
       mat4.perspective(
           matrix, deg2rad(constants.FOV), aspectRatio, 1, 100000);
 
@@ -92,7 +92,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     get stackingDistanceDampening() {
-      var gazeVector = [
+      const gazeVector = [
         this.gazeTarget_[0] - this.eye_[0],
         this.gazeTarget_[1] - this.eye_[1],
         this.gazeTarget_[2] - this.eye_[2]];
@@ -125,15 +125,15 @@ tr.exportTo('tr.ui.b', function() {
       this.gazeTarget_ = [0, 0, 0];
       this.rotation_ = [0, 0];
 
-      var settings = tr.b.SessionSettings();
-      var keys = settings.keys(constants.SETTINGS_NAMESPACE);
+      const settings = tr.b.SessionSettings();
+      const keys = settings.keys(constants.SETTINGS_NAMESPACE);
       if (keys.length !== 0) {
         this.loadCameraFromSettings(settings);
         return;
       }
 
       if (this.deviceRect_) {
-        var rect = tr.ui.b.windowRectForElement(this.canvas_).
+        const rect = tr.ui.b.windowRectForElement(this.canvas_).
             scaleSize(this.pixelRatio_);
 
         this.eye_[0] = this.deviceRect_.width / 2;
@@ -148,37 +148,37 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     updatePanByDelta(delta) {
-      var rect =
+      const rect =
           tr.ui.b.windowRectForElement(this.canvas_).
               scaleSize(this.pixelRatio_);
 
       // Get the eye vector, since we'll be adjusting gazeTarget.
-      var eyeVector = [
+      const eyeVector = [
         this.eye_[0] - this.gazeTarget_[0],
         this.eye_[1] - this.gazeTarget_[1],
         this.eye_[2] - this.gazeTarget_[2]];
-      var length = vec3.length(eyeVector);
+      const length = vec3.length(eyeVector);
       vec3.normalize(eyeVector, eyeVector);
 
-      var halfFov = constants.FOV / 2;
-      var multiplier =
+      const halfFov = constants.FOV / 2;
+      const multiplier =
           2.0 * length * Math.tan(deg2rad(halfFov)) / rect.height;
 
       // Get the up and right vectors.
-      var up = [0, 1, 0];
-      var rotMatrix = mat4.create();
+      const up = [0, 1, 0];
+      const rotMatrix = mat4.create();
       mat4.rotate(
           rotMatrix, rotMatrix, deg2rad(this.rotation_[1]), [0, 1, 0]);
       mat4.rotate(
           rotMatrix, rotMatrix, deg2rad(this.rotation_[0]), [1, 0, 0]);
       vec3.transformMat4(up, up, rotMatrix);
 
-      var right = [0, 0, 0];
+      const right = [0, 0, 0];
       vec3.cross(right, eyeVector, up);
       vec3.normalize(right, right);
 
       // Update the gaze target.
-      for (var i = 0; i < 3; ++i) {
+      for (let i = 0; i < 3; ++i) {
         this.gazeTarget_[i] +=
             delta[0] * multiplier * right[i] - delta[1] * multiplier * up[i];
 
@@ -188,13 +188,13 @@ tr.exportTo('tr.ui.b', function() {
       // If we have some z offset, we need to reposition gazeTarget
       // to be on the plane z = 0 with normal [0, 0, 1].
       if (Math.abs(this.gazeTarget_[2]) > 1e-6) {
-        var gazeVector = [-eyeVector[0], -eyeVector[1], -eyeVector[2]];
-        var newLength = tr.b.math.clamp(
+        const gazeVector = [-eyeVector[0], -eyeVector[1], -eyeVector[2]];
+        const newLength = tr.b.math.clamp(
             -this.eye_[2] / gazeVector[2],
             constants.MINIMUM_DISTANCE,
             constants.MAXIMUM_DISTANCE);
 
-        for (var i = 0; i < 3; ++i) {
+        for (let i = 0; i < 3; ++i) {
           this.gazeTarget_[i] = this.eye_[i] + newLength * gazeVector[i];
         }
       }
@@ -204,14 +204,14 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     updateZoomByDelta(delta) {
-      var deltaY = delta[1];
+      let deltaY = delta[1];
       deltaY = tr.b.math.clamp(deltaY, -50, 50);
-      var scale = 1.0 - deltaY / 100.0;
+      let scale = 1.0 - deltaY / 100.0;
 
-      var eyeVector = [0, 0, 0];
+      const eyeVector = [0, 0, 0];
       vec3.subtract(eyeVector, this.eye_, this.gazeTarget_);
 
-      var length = vec3.length(eyeVector);
+      const length = vec3.length(eyeVector);
 
       // Clamp the length to allowed values by changing the scale.
       if (length * scale < constants.MINIMUM_DISTANCE) {
@@ -238,11 +238,11 @@ tr.exportTo('tr.ui.b', function() {
         return;
       }
 
-      var eyeVector = [0, 0, 0, 0];
+      const eyeVector = [0, 0, 0, 0];
       vec3.subtract(eyeVector, this.eye_, this.gazeTarget_);
 
       // Undo the current rotation.
-      var rotMatrix = mat4.create();
+      const rotMatrix = mat4.create();
       mat4.rotate(
           rotMatrix, rotMatrix, -deg2rad(this.rotation_[0]), [1, 0, 0]);
       mat4.rotate(
@@ -277,7 +277,7 @@ tr.exportTo('tr.ui.b', function() {
     onPanUpdate_(e) {
       if (!this.panning_) return;
 
-      var delta = this.getMouseDelta_(e, this.lastMousePosition_);
+      const delta = this.getMouseDelta_(e, this.lastMousePosition_);
       this.lastMousePosition_ = this.getMousePosition_(e);
       this.updatePanByDelta(delta);
     },
@@ -289,7 +289,7 @@ tr.exportTo('tr.ui.b', function() {
     onZoomBegin_(e) {
       this.zooming_ = true;
 
-      var p = this.getMousePosition_(e);
+      const p = this.getMousePosition_(e);
 
       this.lastMousePosition_ = p;
       this.zoomPoint_ = p;
@@ -298,7 +298,7 @@ tr.exportTo('tr.ui.b', function() {
     onZoomUpdate_(e) {
       if (!this.zooming_) return;
 
-      var delta = this.getMouseDelta_(e, this.lastMousePosition_);
+      const delta = this.getMouseDelta_(e, this.lastMousePosition_);
       this.lastMousePosition_ = this.getMousePosition_(e);
       this.updateZoomByDelta(delta);
     },
@@ -316,7 +316,7 @@ tr.exportTo('tr.ui.b', function() {
     onRotateUpdate_(e) {
       if (!this.rotating_) return;
 
-      var delta = this.getMouseDelta_(e, this.lastMousePosition_);
+      const delta = this.getMouseDelta_(e, this.lastMousePosition_);
       this.lastMousePosition_ = this.getMousePosition_(e);
       this.updateRotateByDelta(delta);
     },
@@ -328,13 +328,13 @@ tr.exportTo('tr.ui.b', function() {
 
     // Misc helper functions.
     getMousePosition_(e) {
-      var rect = tr.ui.b.windowRectForElement(this.canvas_);
+      const rect = tr.ui.b.windowRectForElement(this.canvas_);
       return [(e.clientX - rect.x) * this.pixelRatio_,
         (e.clientY - rect.y) * this.pixelRatio_];
     },
 
     getMouseDelta_(e, p) {
-      var newP = this.getMousePosition_(e);
+      const newP = this.getMousePosition_(e);
       return [newP[0] - p[0], newP[1] - p[1]];
     },
 

@@ -21,7 +21,7 @@ tr.exportTo('tr.ui.b', function() {
   /**
    * @constructor
    */
-  var ListAndAssociatedView = tr.ui.b.define('x-list-and-associated-view');
+  const ListAndAssociatedView = tr.ui.b.define('x-list-and-associated-view');
   ListAndAssociatedView.prototype = {
     __proto__: HTMLDivElement.prototype,
 
@@ -79,7 +79,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     updateChildren_() {
-      var complete = this.list_ &&
+      const complete = this.list_ &&
           this.listProperty_ &&
           this.view_ &&
           this.viewProperty_;
@@ -89,8 +89,8 @@ tr.exportTo('tr.ui.b', function() {
         return;
       }
 
-      for (var i = 0; i < this.list_.length; i++) {
-        var itemEl;
+      for (let i = 0; i < this.list_.length; i++) {
+        let itemEl;
         if (i >= this.listView_.children.length) {
           itemEl = document.createElement('div');
           Polymer.dom(this.listView_).appendChild(itemEl);
@@ -98,7 +98,7 @@ tr.exportTo('tr.ui.b', function() {
           itemEl = this.listView_.children[i];
         }
         itemEl.item = this.list_[i];
-        var getter = this.list_[i].__lookupGetter__(this.listProperty_);
+        const getter = this.list_[i].__lookupGetter__(this.listProperty_);
         if (getter) {
           Polymer.dom(itemEl).textContent = getter.call(this.list_[i]);
         } else {
@@ -117,9 +117,9 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     onSelectionChanged_(e) {
-      var setter = this.view_.__lookupSetter__(this.viewProperty_);
+      let setter = this.view_.__lookupSetter__(this.viewProperty_);
       if (!setter) {
-        var prop = this.viewProperty_;
+        const prop = this.viewProperty_;
         setter = function(value) { this[prop] = value; };
       }
       if (this.listView_.selectedElement) {

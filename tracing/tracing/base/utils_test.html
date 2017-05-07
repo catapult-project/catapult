@@ -11,18 +11,18 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('getUsingPath', function() {
-    var z = tr.b.getUsingPath('x.y.z', {'x': {'y': {'z': 3}}});
+    const z = tr.b.getUsingPath('x.y.z', {'x': {'y': {'z': 3}}});
     assert.strictEqual(z, 3);
 
-    var w = tr.b.getUsingPath('x.w', {'x': {'y': {'z': 3}}});
+    const w = tr.b.getUsingPath('x.w', {'x': {'y': {'z': 3}}});
     assert.isUndefined(w);
   });
 
   test('testExceptionNaming', function() {
-    var err = new Error('asdf');
+    const err = new Error('asdf');
     err.name = 'MyError';
 
-    var ex = tr.b.normalizeException(err);
+    const ex = tr.b.normalizeException(err);
     assert.strictEqual(ex.typeName, 'MyError');
   });
 
@@ -33,7 +33,7 @@ tr.b.unittest.testSuite(function() {
   test('runLengthEncoding', function() {
     assert.deepEqual(tr.b.runLengthEncoding([]), []);
 
-    var encoded = tr.b.runLengthEncoding([1, 1]);
+    let encoded = tr.b.runLengthEncoding([1, 1]);
     assert.deepEqual(encoded.map(x => x.value), [1]);
     assert.deepEqual(encoded.map(x => x.count), [2]);
 

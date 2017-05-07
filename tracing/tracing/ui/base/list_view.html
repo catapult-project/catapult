@@ -22,7 +22,7 @@ tr.exportTo('tr.ui.b', function() {
   /**
    * @constructor
    */
-  var ListView = tr.ui.b.define(
+  const ListView = tr.ui.b.define(
       'x-list-view', tr.ui.b.ContainerThatDecoratesItsChildren);
 
   ListView.prototype = {
@@ -87,7 +87,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     get selectedElement() {
-      var el = Polymer.dom(this).querySelector('.list-item[selected]');
+      const el = Polymer.dom(this).querySelector('.list-item[selected]');
       if (!el) return undefined;
       return el;
     },
@@ -113,7 +113,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     clear() {
-      var changed = this.selectedElement !== undefined;
+      const changed = this.selectedElement !== undefined;
       tr.ui.b.ContainerThatDecoratesItsChildren.prototype.clear.call(this);
       if (changed) {
         tr.b.dispatchSimpleEvent(this, 'selection-changed', false);
@@ -121,11 +121,11 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     onItemClicked_(e) {
-      var currentSelectedElement = this.selectedElement;
+      const currentSelectedElement = this.selectedElement;
       if (currentSelectedElement) {
         Polymer.dom(currentSelectedElement).removeAttribute('selected');
       }
-      var element = e.target;
+      let element = e.target;
       while (element.parentElement !== this) {
         element = element.parentElement;
       }
@@ -139,7 +139,7 @@ tr.exportTo('tr.ui.b', function() {
       if (this.selectedElement === undefined) return;
 
       if (e.keyCode === 38) { // Up arrow.
-        var prev = Polymer.dom(this.selectedElement).previousSibling;
+        const prev = Polymer.dom(this.selectedElement).previousSibling;
         if (prev) {
           prev.selected = true;
           tr.ui.b.scrollIntoViewIfNeeded(prev);
@@ -147,7 +147,7 @@ tr.exportTo('tr.ui.b', function() {
           return true;
         }
       } else if (e.keyCode === 40) { // Down arrow.
-        var next = Polymer.dom(this.selectedElement).nextSibling;
+        const next = Polymer.dom(this.selectedElement).nextSibling;
         if (next) {
           next.selected = true;
           tr.ui.b.scrollIntoViewIfNeeded(next);
@@ -158,7 +158,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     addItem(textContent) {
-      var item = document.createElement('div');
+      const item = document.createElement('div');
       Polymer.dom(item).textContent = textContent;
       Polymer.dom(this).appendChild(item);
       return item;

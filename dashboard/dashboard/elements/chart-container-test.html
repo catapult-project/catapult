@@ -23,14 +23,14 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var testOptions = {
+  const testOptions = {
     tearDown() {
       testing_common.clearXhrMock();
       testing_common.clearFixture();
     }
   };
 
-  var REVISION_INFO = {
+  const REVISION_INFO = {
     r_commit_pos: {
       name: 'Chromium Commit Position',
       url: 'http://test-results.appspot.com/revision_range?start={{R1}}&end={{R2}}' // @supress longLineCheck
@@ -38,33 +38,33 @@ tr.b.unittest.testSuite(function() {
   };
 
   function createChart() {
-    var chart = document.createElement('chart-container');
+    const chart = document.createElement('chart-container');
     chart.set('revisionInfo', REVISION_INFO);
     return chart;
   }
 
   test('instantiate basic', function() {
     testing_common.mockChartJson(dromaeoCharts);
-    var chart = createChart();
+    const chart = createChart();
     this.addHTMLOutput(chart);
     chart.addSeriesGroup(dromaeoCharts.graphParams);
   }, testOptions);
 
   test('data is loaded when a series group is added', function() {
     testing_common.mockChartJson(dromaeoCharts);
-    var chart = createChart();
+    const chart = createChart();
     chart.addSeriesGroup(dromaeoCharts.graphParams);
     this.addHTMLOutput(chart);
     assert.strictEqual(chart.getDataForFlot().length, 3);
   }, testOptions);
 
   test('warning added for stale series', function() {
-    var graphJson = testing_common.deepCopy(dromaeoCharts.graphSelectedJson);
-    for (var annotation in graphJson.annotations['0']) {
+    const graphJson = testing_common.deepCopy(dromaeoCharts.graphSelectedJson);
+    for (const annotation in graphJson.annotations['0']) {
       graphJson.annotations['0'][annotation].timestamp -= 8 * 86400000;
     }
     testing_common.mockChartJson(dromaeoCharts, graphJson);
-    var chart = createChart();
+    const chart = createChart();
     this.addHTMLOutput(chart);
     chart.addSeriesGroup(dromaeoCharts.graphParams);
 
@@ -83,7 +83,7 @@ tr.b.unittest.testSuite(function() {
         dromaeoCharts, dromaeoCharts.graphSelectedJson);
     testing_common.mockChartJson(
         sunspiderCharts, sunspiderCharts.graphSelectedJson);
-    var chart = createChart();
+    const chart = createChart();
     this.addHTMLOutput(chart);
     chart.addSeriesGroup(dromaeoCharts.graphParams);
     chart.addSeriesGroup(sunspiderCharts.graphParams);
@@ -95,7 +95,7 @@ tr.b.unittest.testSuite(function() {
 
   test('unseletected has displayName', function() {
     testing_common.mockChartJson(dromaeoCharts);
-    var chart = createChart();
+    const chart = createChart();
     this.addHTMLOutput(chart);
     chart.addSeriesGroup(dromaeoCharts.graphParams);
     assert.strictEqual(chart.seriesGroupList[0].tests[0].displayName, 'dom');

@@ -46,11 +46,11 @@ tr.exportTo('tr.e.importer', function() {
      * @return {!tr.model.HeapDump} on success or undefined on an error.
      */
     parseRawHeapDump(rawHeapDump, allocatorName) {
-      var model = this.model_;
-      var processMemoryDump = this.processMemoryDump_;
-      var heapDump = new tr.model.HeapDump(processMemoryDump, allocatorName);
+      const model = this.model_;
+      const processMemoryDump = this.processMemoryDump_;
+      const heapDump = new tr.model.HeapDump(processMemoryDump, allocatorName);
 
-      var entries = rawHeapDump.entries;
+      const entries = rawHeapDump.entries;
       if (entries === undefined || entries.length === 0) {
         this.model_.importWarning({
           type: 'memory_dump_parse_error',
@@ -66,17 +66,18 @@ tr.exportTo('tr.e.importer', function() {
       // See https://goo.gl/WYStil
       // TODO(petrcermak): Remove support for the old format once the new
       // format has been around long enough.
-      var isOldFormat = entries[0].bt === undefined;
+      const isOldFormat = entries[0].bt === undefined;
       if (!isOldFormat && this.processObjectTypeNameMap_ === undefined) {
         // Mapping from object type IDs to names must be provided in the new
         // format.
         return undefined;
       }
 
-      for (var i = 0; i < entries.length; i++) {
-        var entry = entries[i];
-        var leafStackFrameIndex = entry.bt;
-        var leafStackFrame;
+      for (let i = 0; i < entries.length; i++) {
+        const entry = entries[i];
+        const size = parseInt(entry.size, 16);
+        const leafStackFrameIndex = entry.bt;
+        let leafStackFrame;
 
         // There are two possible mappings from leaf stack frame indices
         // (provided in the trace) to the corresponding stack frames
@@ -89,7 +90,7 @@ tr.exportTo('tr.e.importer', function() {
             leafStackFrame = undefined; /* root */
           } else {
             // Get the leaf stack frame corresponding to the provided index.
-            var leafStackFrameId = this.idPrefix_ + leafStackFrameIndex;
+            let leafStackFrameId = this.idPrefix_ + leafStackFrameIndex;
             if (leafStackFrameIndex === '') {
               leafStackFrame = undefined; /* root */
             } else {
@@ -134,7 +135,7 @@ tr.exportTo('tr.e.importer', function() {
           }
 
           // Get the leaf stack frame corresponding to the provided index.
-          var leafStackFrameId = this.idPrefix_ + leafStackFrameIndex;
+          const leafStackFrameId = this.idPrefix_ + leafStackFrameIndex;
           if (leafStackFrameIndex === '') {
             leafStackFrame = undefined; /* root */
           } else {
@@ -151,8 +152,8 @@ tr.exportTo('tr.e.importer', function() {
           }
         }
 
-        var objectTypeId = entry.type;
-        var objectTypeName;
+        const objectTypeId = entry.type;
+        let objectTypeName;
         if (objectTypeId === undefined) {
           objectTypeName = undefined; /* total over all types */
         } else if (this.processObjectTypeNameMap_ === undefined) {
@@ -171,8 +172,7 @@ tr.exportTo('tr.e.importer', function() {
           }
         }
 
-        var size = parseInt(entry.size, 16);
-        var count = entry.count === undefined ? undefined :
+        const count = entry.count === undefined ? undefined :
             parseInt(entry.count, 16);
         heapDump.addEntry(leafStackFrame, objectTypeName, size, count);
       }

@@ -106,7 +106,7 @@ tr.exportTo('tr.c', function() {
     __proto__: Filter.prototype,
 
     matchObject_(obj) {
-      for (var key in obj) {
+      for (const key in obj) {
         if (!obj.hasOwnProperty(key)) continue;
         if (this.regex_.test(key)) return true;
         if (this.regex_.test(obj[key])) return true;

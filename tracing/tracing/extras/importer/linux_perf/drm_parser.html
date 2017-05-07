@@ -14,8 +14,8 @@ found in the LICENSE file.
  * @fileoverview Parses drm driver events in the Linux event trace format.
  */
 tr.exportTo('tr.e.importer.linux_perf', function() {
-  var ColorScheme = tr.b.ColorScheme;
-  var Parser = tr.e.importer.linux_perf.Parser;
+  const ColorScheme = tr.b.ColorScheme;
+  const Parser = tr.e.importer.linux_perf.Parser;
 
   /**
    * Parses linux drm trace events.
@@ -32,9 +32,9 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     __proto__: Parser.prototype,
 
     drmVblankSlice(ts, eventName, args) {
-      var kthread = this.importer.getOrCreatePseudoThread('drm_vblank');
+      const kthread = this.importer.getOrCreatePseudoThread('drm_vblank');
       kthread.openSlice = eventName;
-      var slice = new tr.model.ThreadSlice('', kthread.openSlice,
+      const slice = new tr.model.ThreadSlice('', kthread.openSlice,
           ColorScheme.getColorIdForGeneralPurposeString(kthread.openSlice),
           ts, args, 0);
 
@@ -45,11 +45,11 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
      * Parses drm driver events and sets up state in the importer.
      */
     vblankEvent(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = /crtc=(\d+), seq=(\d+)/.exec(eventBase.details);
+      const event = /crtc=(\d+), seq=(\d+)/.exec(eventBase.details);
       if (!event) return false;
 
-      var crtc = parseInt(event[1]);
-      var seq = parseInt(event[2]);
+      const crtc = parseInt(event[1]);
+      const seq = parseInt(event[2]);
       this.drmVblankSlice(ts, 'vblank:' + crtc,
           {
             crtc,

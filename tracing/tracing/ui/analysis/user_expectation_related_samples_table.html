@@ -32,7 +32,7 @@ Polymer({
       {
         title: 'Event(s)',
         value(row) {
-          var typeEl = document.createElement('span');
+          const typeEl = document.createElement('span');
           typeEl.innerText = row.type;
           if (row.tooltip) {
             typeEl.title = row.tooltip;
@@ -45,7 +45,7 @@ Polymer({
         title: 'Link',
         width: '100%',
         value(row) {
-          var linkEl = document.createElement('tr-ui-a-analysis-link');
+          const linkEl = document.createElement('tr-ui-a-analysis-link');
           if (row.name) {
             linkEl.setSelectionAndContent(row.selection, row.name);
           } else {
@@ -63,7 +63,7 @@ Polymer({
 
   set selection(eventSet) {
     this.samples_ = [];
-    var samples = new tr.model.EventSet;
+    const samples = new tr.model.EventSet;
     eventSet.forEach(function(ue) {
       samples.addEventSet(ue.associatedSamples);
     }.bind(this));
@@ -79,7 +79,7 @@ Polymer({
   },
 
   updateContents_() {
-    var table = this.$.table;
+    const table = this.$.table;
     if (this.samples_ && this.samples_.length > 0) {
       table.tableRows = this.samples_.slice();
     } else {

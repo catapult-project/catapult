@@ -130,33 +130,33 @@ found in the LICENSE file.
       },
 
       onPushHistoryState(event, detail) {
-        var sender = event.currentTarget;
+        const sender = event.currentTarget;
         if (!sender) {
           return;
         }
-        var params = uri.getAllParameters();
+        const params = uri.getAllParameters();
         params.sortby = sender.sortBy;
         params.sortdirection = sender.sortDirection;
-        var newUri = uri.getCurrentPathWithParams(params);
+        const newUri = uri.getCurrentPathWithParams(params);
         history.pushState(params, '', newUri);
       },
 
       ready() {
-        var params = {};
-        var revA = uri.getParameter('revA');
+        const params = {};
+        const revA = uri.getParameter('revA');
         if (revA) {
           params.revA = revA;
         }
-        var revB = uri.getParameter('revB');
+        const revB = uri.getParameter('revB');
         if (revB) {
           params.revB = revB;
         }
-        var m = uri.getParameter('m');
+        const m = uri.getParameter('m');
         if (m) {
           params.m = m;
         }
         params.anomalies = true;
-        var path = this.tableName;
+        const path = this.tableName;
         this.loading = true;
         simple_xhr.send('/speed_releasing/' + path, params,
             function(response) {

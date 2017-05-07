@@ -20,16 +20,16 @@ found in the LICENSE file.
  * @fileoverview Helper functions for tests involving memory dumps.
  */
 tr.exportTo('tr.model', function() {
-  var GlobalMemoryDump = tr.model.GlobalMemoryDump;
-  var ProcessMemoryDump = tr.model.ProcessMemoryDump;
-  var MemoryAllocatorDump = tr.model.MemoryAllocatorDump;
-  var MemoryAllocatorDumpLink = tr.model.MemoryAllocatorDumpLink;
-  var VMRegion = tr.model.VMRegion;
-  var VMRegionClassificationNode = tr.model.VMRegionClassificationNode;
-  var Scalar = tr.b.Scalar;
-  var sizeInBytes_smallerIsBetter =
+  const GlobalMemoryDump = tr.model.GlobalMemoryDump;
+  const ProcessMemoryDump = tr.model.ProcessMemoryDump;
+  const MemoryAllocatorDump = tr.model.MemoryAllocatorDump;
+  const MemoryAllocatorDumpLink = tr.model.MemoryAllocatorDumpLink;
+  const VMRegion = tr.model.VMRegion;
+  const VMRegionClassificationNode = tr.model.VMRegionClassificationNode;
+  const Scalar = tr.b.Scalar;
+  const sizeInBytes_smallerIsBetter =
       tr.b.Unit.byName.sizeInBytes_smallerIsBetter;
-  var LIGHT = tr.model.ContainerMemoryDump.LevelOfDetail.LIGHT;
+  const LIGHT = tr.model.ContainerMemoryDump.LevelOfDetail.LIGHT;
 
   function castToScalar(value) {
     if (typeof value === 'number') {
@@ -65,8 +65,8 @@ tr.exportTo('tr.model', function() {
    * @return {!tr.model.GlobalMemoryDump} The newly created global memory dump.
    */
   MemoryDumpTestUtils.addGlobalMemoryDump = function(model, opt_options) {
-    var timestamp = getOption(opt_options, 'ts', 0);
-    var gmd = new GlobalMemoryDump(model, timestamp);
+    const timestamp = getOption(opt_options, 'ts', 0);
+    const gmd = new GlobalMemoryDump(model, timestamp);
     gmd.levelOfDetail = getOption(opt_options, 'levelOfDetail', LIGHT);
     gmd.duration = getOption(opt_options, 'duration', 0);
     model.globalMemoryDumps.push(gmd);
@@ -88,8 +88,8 @@ tr.exportTo('tr.model', function() {
    */
   MemoryDumpTestUtils.addProcessMemoryDump =
       function(gmd, process, opt_options) {
-        var timestamp = getOption(opt_options, 'ts', gmd.start);
-        var pmd = new ProcessMemoryDump(gmd, process, timestamp);
+        const timestamp = getOption(opt_options, 'ts', gmd.start);
+        const pmd = new ProcessMemoryDump(gmd, process, timestamp);
         process.memoryDumps.push(pmd);
         if (process.pid in gmd.processMemoryDumps) {
       // Test sanity check.
@@ -116,11 +116,11 @@ tr.exportTo('tr.model', function() {
    */
   MemoryDumpTestUtils.newAllocatorDump = function(
       containerDump, fullName, opt_options) {
-    var dump = new MemoryAllocatorDump(containerDump, fullName,
+    const dump = new MemoryAllocatorDump(containerDump, fullName,
         getOption(opt_options, 'guid'));
-    var numerics = getOption(opt_options, 'numerics');
+    const numerics = getOption(opt_options, 'numerics');
     if (numerics) {
-      for (var [numericName, value] of Object.entries(numerics)) {
+      for (const [numericName, value] of Object.entries(numerics)) {
         dump.addNumeric(numericName, castToScalar(value));
       }
     }
@@ -143,7 +143,7 @@ tr.exportTo('tr.model', function() {
    *     allocator dump.
    */
   MemoryDumpTestUtils.addChildDump = function(parentDump, name, opt_options) {
-    var childDump = MemoryDumpTestUtils.newAllocatorDump(
+    const childDump = MemoryDumpTestUtils.newAllocatorDump(
         parentDump.containerMemoryDump, parentDump.fullName + '/' + name,
         opt_options);
     childDump.parent = parentDump;
@@ -154,7 +154,7 @@ tr.exportTo('tr.model', function() {
   MemoryDumpTestUtils.addOwnershipLink = function(
       ownerDump, ownedDump, opt_importance) {
     assert.isUndefined(ownerDump.owns);  // Sanity check.
-    var ownershipLink =
+    const ownershipLink =
         new MemoryAllocatorDumpLink(ownerDump, ownedDump, opt_importance);
     ownerDump.owns = ownershipLink;
     ownedDump.ownedBy.push(ownershipLink);
@@ -163,12 +163,12 @@ tr.exportTo('tr.model', function() {
 
   MemoryDumpTestUtils.checkDumpNumericsAndDiagnostics =
       function(dump, expectedNumerics, expectedDiagnostics) {
-        var actualNumerics = dump.numerics;
+        const actualNumerics = dump.numerics;
         assert.sameMembers(
             Object.keys(actualNumerics), Object.keys(expectedNumerics));
-        for (var numericName in actualNumerics) {
-          var actualNumeric = actualNumerics[numericName];
-          var expectedNumeric = castToScalar(expectedNumerics[numericName]);
+        for (const numericName in actualNumerics) {
+          const actualNumeric = actualNumerics[numericName];
+          const expectedNumeric = castToScalar(expectedNumerics[numericName]);
           assert.instanceOf(actualNumeric, tr.b.Scalar);
           assert.strictEqual(actualNumeric.unit, expectedNumeric.unit);
           assert.closeTo(actualNumeric.value, expectedNumeric.value,
@@ -183,22 +183,22 @@ tr.exportTo('tr.model', function() {
       vmRegions = vmRegions.allRegionsForTesting;
     }
 
-    var expectedRegionsMap = new Map();
+    const expectedRegionsMap = new Map();
     expectedRegions.forEach(function(region) {
       if (!(region instanceof VMRegion)) {
         region = VMRegion.fromDict(region);
       }
       expectedRegionsMap.set(region.uniqueIdWithinProcess, region);
     });
-    var actualRegionsMap = new Map();
+    const actualRegionsMap = new Map();
     vmRegions.forEach(function(region) {
       actualRegionsMap.set(region.uniqueIdWithinProcess, region);
     });
 
     assert.strictEqual(actualRegionsMap.size, expectedRegionsMap.size);
-    for (var id of expectedRegionsMap.keys()) {
-      var expectedRegion = expectedRegionsMap.get(id);
-      var actualRegion = actualRegionsMap.get(id);
+    for (const id of expectedRegionsMap.keys()) {
+      const expectedRegion = expectedRegionsMap.get(id);
+      const actualRegion = actualRegionsMap.get(id);
 
       assert.instanceOf(actualRegion, VMRegion);
       assert.strictEqual(actualRegion.startAddress,

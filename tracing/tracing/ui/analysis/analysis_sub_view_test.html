@@ -13,14 +13,14 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('subViewThrowsNotImplementedErrors', function() {
-    var subView = document.createElement('tr-ui-a-sub-view');
+    const subView = document.createElement('tr-ui-a-sub-view');
 
     assert.throw(function() {
       subView.selection = new tr.model.EventSet();
     }, 'Not implemented!');
 
     assert.throw(function() {
-      var viewSelection = subView.selection;
+      const viewSelection = subView.selection;
     }, 'Not implemented!');
 
     subView.tabLabel = 'Tab Label';

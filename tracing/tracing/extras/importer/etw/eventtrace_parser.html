@@ -15,11 +15,11 @@ found in the LICENSE file.
  */
 
 tr.exportTo('tr.e.importer.etw', function() {
-  var Parser = tr.e.importer.etw.Parser;
+  const Parser = tr.e.importer.etw.Parser;
 
   // Constants for EventTrace events.
-  var guid = '68FDD900-4A3E-11D1-84F4-0000F80464E3';
-  var kEventTraceHeaderOpcode = 0;
+  const guid = '68FDD900-4A3E-11D1-84F4-0000F80464E3';
+  const kEventTraceHeaderOpcode = 0;
 
   /**
    * Parses Windows EventTrace trace events.
@@ -41,30 +41,30 @@ tr.exportTo('tr.e.importer.etw', function() {
         throw new Error('Incompatible EventTrace event version.');
       }
 
-      var bufferSize = decoder.decodeUInt32();
-      var version = decoder.decodeUInt32();
-      var providerVersion = decoder.decodeUInt32();
-      var numberOfProcessors = decoder.decodeUInt32();
-      var endTime = decoder.decodeUInt64ToString();
-      var timerResolution = decoder.decodeUInt32();
-      var maxFileSize = decoder.decodeUInt32();
-      var logFileMode = decoder.decodeUInt32();
-      var buffersWritten = decoder.decodeUInt32();
-      var startBuffers = decoder.decodeUInt32();
-      var pointerSize = decoder.decodeUInt32();
-      var eventsLost = decoder.decodeUInt32();
-      var cpuSpeed = decoder.decodeUInt32();
-      var loggerName = decoder.decodeUInteger(header.is64);
-      var logFileName = decoder.decodeUInteger(header.is64);
-      var timeZoneInformation = decoder.decodeTimeZoneInformation();
-      var padding = decoder.decodeUInt32();
-      var bootTime = decoder.decodeUInt64ToString();
-      var perfFreq = decoder.decodeUInt64ToString();
-      var startTime = decoder.decodeUInt64ToString();
-      var reservedFlags = decoder.decodeUInt32();
-      var buffersLost = decoder.decodeUInt32();
-      var sessionNameString = decoder.decodeW16String();
-      var logFileNameString = decoder.decodeW16String();
+      const bufferSize = decoder.decodeUInt32();
+      const version = decoder.decodeUInt32();
+      const providerVersion = decoder.decodeUInt32();
+      const numberOfProcessors = decoder.decodeUInt32();
+      const endTime = decoder.decodeUInt64ToString();
+      const timerResolution = decoder.decodeUInt32();
+      const maxFileSize = decoder.decodeUInt32();
+      const logFileMode = decoder.decodeUInt32();
+      const buffersWritten = decoder.decodeUInt32();
+      const startBuffers = decoder.decodeUInt32();
+      const pointerSize = decoder.decodeUInt32();
+      const eventsLost = decoder.decodeUInt32();
+      const cpuSpeed = decoder.decodeUInt32();
+      const loggerName = decoder.decodeUInteger(header.is64);
+      const logFileName = decoder.decodeUInteger(header.is64);
+      const timeZoneInformation = decoder.decodeTimeZoneInformation();
+      const padding = decoder.decodeUInt32();
+      const bootTime = decoder.decodeUInt64ToString();
+      const perfFreq = decoder.decodeUInt64ToString();
+      const startTime = decoder.decodeUInt64ToString();
+      const reservedFlags = decoder.decodeUInt32();
+      const buffersLost = decoder.decodeUInt32();
+      const sessionNameString = decoder.decodeW16String();
+      const logFileNameString = decoder.decodeW16String();
 
       return {
         bufferSize,
@@ -94,7 +94,7 @@ tr.exportTo('tr.e.importer.etw', function() {
     },
 
     decodeHeader(header, decoder) {
-      var fields = this.decodeFields(header, decoder);
+      const fields = this.decodeFields(header, decoder);
       // TODO(etienneb): Update the Model with |fields|.
       return true;
     }

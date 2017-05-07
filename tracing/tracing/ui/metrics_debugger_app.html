@@ -58,7 +58,7 @@ tr.exportTo('tr.ui', function() {
     },
 
     ready() {
-      var metricSelector = tr.ui.b.createSelector(
+      const metricSelector = tr.ui.b.createSelector(
           this, 'currentMetricName_',
           this.settingsKey_,
           this.metrics_[0].value,
@@ -67,7 +67,7 @@ tr.exportTo('tr.ui', function() {
           metricSelector);
 
       this.$.load_trace.addEventListener('change', function(event) {
-        var file = event.target.files[0];
+        const file = event.target.files[0];
         this.onTraceFileSelected_(file);
       }.bind(this));
       this.$.run_metric.addEventListener(
@@ -82,9 +82,9 @@ tr.exportTo('tr.ui', function() {
         tr.ui.b.Overlay.showError('You must load a trace first!');
         return;
       }
-      var result = new tr.mre.MreResult();
-      var model = this.activeTrace_.model;
-      var options = {metrics: [this.currentMetricName_]};
+      const result = new tr.mre.MreResult();
+      const model = this.activeTrace_.model;
+      const options = {metrics: [this.currentMetricName_]};
       try {
         tr.metrics.metricMapFunction(result, model, options);
         this.set(
@@ -106,13 +106,13 @@ tr.exportTo('tr.ui', function() {
     },
 
     setActiveTrace(filename, data) {
-      var model = new tr.Model();
-      var importOptions = new tr.importer.ImportOptions();
+      const model = new tr.Model();
+      const importOptions = new tr.importer.ImportOptions();
       importOptions.pruneEmptyContainers = false;
       importOptions.showImportWarnings = true;
       importOptions.trackDetailedModelStats = true;
 
-      var i = new tr.importer.Import(model, importOptions);
+      const i = new tr.importer.Import(model, importOptions);
       i.importTracesWithProgressDialog([data]).then(
           function() {
             this.activeTrace_ = {

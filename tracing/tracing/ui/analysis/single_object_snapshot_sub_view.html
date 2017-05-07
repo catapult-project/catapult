@@ -71,7 +71,7 @@ Polymer({
   },
 
   set selection(selection) {
-    var snapshot = tr.b.getOnlyElement(selection);
+    const snapshot = tr.b.getOnlyElement(selection);
     if (!(snapshot instanceof tr.model.ObjectSnapshot)) {
       throw new Error('Only supports object instances');
     }
@@ -79,10 +79,10 @@ Polymer({
     Polymer.dom(this).textContent = '';
     this.currentSelection_ = selection;
 
-    var typeInfo = tr.ui.analysis.ObjectSnapshotView.getTypeInfo(
+    const typeInfo = tr.ui.analysis.ObjectSnapshotView.getTypeInfo(
         snapshot.objectInstance.category, snapshot.objectInstance.typeName);
     if (typeInfo) {
-      var customView = new typeInfo.constructor();
+      const customView = new typeInfo.constructor();
       Polymer.dom(this).appendChild(customView);
       customView.modelEvent = snapshot;
     } else {
@@ -91,16 +91,16 @@ Polymer({
   },
 
   appendGenericAnalysis_(snapshot) {
-    var instance = snapshot.objectInstance;
+    const instance = snapshot.objectInstance;
 
     Polymer.dom(this).textContent = '';
 
-    var titleEl = document.createElement('div');
+    const titleEl = document.createElement('div');
     Polymer.dom(titleEl).classList.add('title');
     Polymer.dom(titleEl).appendChild(document.createTextNode('Snapshot of '));
     Polymer.dom(this).appendChild(titleEl);
 
-    var instanceLinkEl = document.createElement('tr-ui-a-analysis-link');
+    const instanceLinkEl = document.createElement('tr-ui-a-analysis-link');
     instanceLinkEl.selection = new tr.model.EventSet(instance);
     Polymer.dom(titleEl).appendChild(instanceLinkEl);
 
@@ -112,21 +112,21 @@ Polymer({
       inline: true,
     }));
 
-    var tableEl = document.createElement('table');
+    const tableEl = document.createElement('table');
     Polymer.dom(this).appendChild(tableEl);
 
-    var rowEl = document.createElement('tr');
+    const rowEl = document.createElement('tr');
     Polymer.dom(tableEl).appendChild(rowEl);
 
-    var labelEl = document.createElement('td');
+    const labelEl = document.createElement('td');
     Polymer.dom(labelEl).textContent = 'args:';
     Polymer.dom(rowEl).appendChild(labelEl);
 
-    var argsEl = document.createElement('td');
+    const argsEl = document.createElement('td');
     argsEl.id = 'args';
     Polymer.dom(rowEl).appendChild(argsEl);
 
-    var objectViewEl = document.createElement('tr-ui-a-generic-object-view');
+    const objectViewEl = document.createElement('tr-ui-a-generic-object-view');
     objectViewEl.object = snapshot.args;
     Polymer.dom(argsEl).appendChild(objectViewEl);
   }

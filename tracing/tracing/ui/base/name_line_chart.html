@@ -13,10 +13,10 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.b', function() {
-  var LineChart = tr.ui.b.LineChart;
+  const LineChart = tr.ui.b.LineChart;
 
   // @constructor
-  var NameLineChart = tr.ui.b.define('name-line-chart', LineChart);
+  const NameLineChart = tr.ui.b.define('name-line-chart', LineChart);
 
   NameLineChart.prototype = {
     __proto__: LineChart.prototype,
@@ -45,7 +45,7 @@ tr.exportTo('tr.ui.b', function() {
 
       tr.ui.b.NameColumnChart.prototype.updateXAxis_.call(this, xAxis);
 
-      var baseline = xAxis.selectAll('path').data([this]);
+      const baseline = xAxis.selectAll('path').data([this]);
       baseline.enter().append('line')
           .attr('stroke', 'black')
           .attr('x1', this.xScale_(0))

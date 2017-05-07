@@ -16,7 +16,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.model.um', function() {
-  var CompoundEventSelectionState = tr.model.CompoundEventSelectionState;
+  const CompoundEventSelectionState = tr.model.CompoundEventSelectionState;
 
   function UserExpectation(parentModel, initiatorType, start, duration) {
     tr.model.TimedEvent.call(this, start);
@@ -32,7 +32,7 @@ tr.exportTo('tr.model.um', function() {
   }
 
   // Strings used to name UEs.
-  var INITIATOR_TYPE = {
+  const INITIATOR_TYPE = {
     KEYBOARD: 'Keyboard',
     MOUSE: 'Mouse',
     MOUSE_WHEEL: 'MouseWheel',
@@ -50,7 +50,7 @@ tr.exportTo('tr.model.um', function() {
     __proto__: tr.model.TimedEvent.prototype,
 
     computeCompoundEvenSelectionState(selection) {
-      var cess = CompoundEventSelectionState.NOT_SELECTED;
+      let cess = CompoundEventSelectionState.NOT_SELECTED;
       if (selection.contains(this)) {
         cess |= CompoundEventSelectionState.EVENT_SELECTED;
       }
@@ -59,7 +59,7 @@ tr.exportTo('tr.model.um', function() {
         return cess;
       }
 
-      var allContained = this.associatedEvents.every(function(event) {
+      const allContained = this.associatedEvents.every(function(event) {
         return selection.contains(event);
       });
 
@@ -73,7 +73,7 @@ tr.exportTo('tr.model.um', function() {
 
     // Returns samples which are overlapping with V8.Execute
     get associatedSamples() {
-      var samples = new tr.model.EventSet();
+      const samples = new tr.model.EventSet();
       this.associatedEvents.forEach(function(event) {
         if (event instanceof tr.model.ThreadSlice) {
           samples.addEventSet(event.overlappingSamples);
@@ -132,7 +132,7 @@ tr.exportTo('tr.model.um', function() {
      * Returns the sum of the number of CPU ms spent by this UserExpectation.
      */
     get totalCpuMs() {
-      var cpuMs = 0;
+      let cpuMs = 0;
       this.associatedEvents.forEach(function(event) {
         if (event.cpuSelfTime) {
           cpuMs += event.cpuSelfTime;
@@ -142,12 +142,12 @@ tr.exportTo('tr.model.um', function() {
     }
   };
 
-  var subTypes = {};
-  var options = new tr.b.ExtensionRegistryOptions(tr.b.BASIC_REGISTRY_MODE);
+  const subTypes = {};
+  const options = new tr.b.ExtensionRegistryOptions(tr.b.BASIC_REGISTRY_MODE);
   tr.b.decorateExtensionRegistry(subTypes, options);
 
   subTypes.addEventListener('will-register', function(e) {
-    var metadata = e.typeInfo.metadata;
+    const metadata = e.typeInfo.metadata;
 
     if (metadata.stageTitle === undefined) {
       throw new Error('Registered UserExpectations must provide ' +

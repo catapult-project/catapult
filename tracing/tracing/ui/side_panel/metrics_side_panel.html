@@ -65,7 +65,7 @@ tr.exportTo('tr.ui', function() {
 
       this.settingsKey_ = 'metrics-side-panel-metric-name';
       this.currentMetricName_ = 'responsivenessMetric';
-      var metricSelector = tr.ui.b.createSelector(
+      const metricSelector = tr.ui.b.createSelector(
           this, 'currentMetricName_',
           this.settingsKey_,
           this.currentMetricName_,
@@ -184,7 +184,7 @@ tr.exportTo('tr.ui', function() {
         return;
       }
 
-      var options = {metrics: [this.currentMetricName_]};
+      const options = {metrics: [this.currentMetricName_]};
 
       if (this.currentMetricTypeInfo_ &&
           this.currentMetricTypeInfo_.metadata.supportsRangeOfInterest &&
@@ -193,9 +193,10 @@ tr.exportTo('tr.ui', function() {
         options.rangeOfInterest = this.rangeOfInterest;
       }
 
-      var startDate = new Date();
+      const startDate = new Date();
+      let histograms;
       try {
-        var histograms = tr.metrics.runMetrics(this.model_, options);
+        histograms = tr.metrics.runMetrics(this.model_, options);
       } catch (err) {
         Polymer.dom(this.$.error).textContent = err.message;
         return;

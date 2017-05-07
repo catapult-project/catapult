@@ -27,28 +27,28 @@ tr.exportTo('tr.b', function() {
 
   Base64.EncodeArrayBufferToString = function(input) {
     // http://stackoverflow.com/questions/9267899/
-    var binary = '';
-    var bytes = new Uint8Array(input);
-    var len = bytes.byteLength;
-    for (var i = 0; i < len; i++) {
+    let binary = '';
+    const bytes = new Uint8Array(input);
+    const len = bytes.byteLength;
+    for (let i = 0; i < len; i++) {
       binary += String.fromCharCode(bytes[i]);
     }
     return btoa(binary);
   };
 
   Base64.DecodeToTypedArray = function(input, output) {
-    var nInLen = input.length;
-    var nOutLen = nInLen * 3 + 1 >> 2;
-    var nMod3 = 0;
-    var nMod4 = 0;
-    var nUint24 = 0;
-    var nOutIdx = 0;
+    const nInLen = input.length;
+    const nOutLen = nInLen * 3 + 1 >> 2;
+    let nMod3 = 0;
+    let nMod4 = 0;
+    let nUint24 = 0;
+    let nOutIdx = 0;
 
     if (nOutLen > output.byteLength) {
       throw new Error('Output buffer too small to decode.');
     }
 
-    for (var nInIdx = 0; nInIdx < nInLen; nInIdx++) {
+    for (let nInIdx = 0; nInIdx < nInLen; nInIdx++) {
       nMod4 = nInIdx & 3;
       nUint24 |= b64ToUint6(input.charCodeAt(nInIdx)) << 18 - 6 * nMod4;
       if (nMod4 === 3 || nInLen - nInIdx === 1) {

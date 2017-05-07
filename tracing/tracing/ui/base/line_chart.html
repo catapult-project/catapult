@@ -11,7 +11,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.b', function() {
-  var LineChart = tr.ui.b.define('line-chart', tr.ui.b.ChartBase2DBrushX);
+  const LineChart = tr.ui.b.define('line-chart', tr.ui.b.ChartBase2DBrushX);
 
   LineChart.prototype = {
     __proto__: tr.ui.b.ChartBase2DBrushX.prototype,
@@ -26,16 +26,16 @@ tr.exportTo('tr.ui.b', function() {
 
     updateDataContents_(dataSel) {
       dataSel.selectAll('*').remove();
-      var dataBySeriesKey = this.getDataBySeriesKey_();
-      var seriesKeys = [...this.seriesByKey_.keys()];
-      var pathsSel = dataSel.selectAll('path').data(seriesKeys);
+      const dataBySeriesKey = this.getDataBySeriesKey_();
+      const seriesKeys = [...this.seriesByKey_.keys()];
+      const pathsSel = dataSel.selectAll('path').data(seriesKeys);
       pathsSel.enter()
           .append('path')
           .style('fill', 'none')
           .style('stroke-width', '1.5px')
           .style('stroke', key => this.getDataSeries(key).color)
           .attr('d', key => {
-            var line = d3.svg.line()
+            const line = d3.svg.line()
                 .x(d => this.xScale_(d.x))
                 .y(d => this.yScale_(this.dataRange.clamp(d[key])));
             return line(dataBySeriesKey[key]);

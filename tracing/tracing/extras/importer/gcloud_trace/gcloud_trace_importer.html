@@ -29,7 +29,7 @@ tr.exportTo('tr.e.importer.gcloud_trace', function() {
     }
 
     // Slice the data so we don't potentially do a replace on a gigantic string.
-    var normalizedEventData = eventData.slice(0, 20).replace(/\s/g, '');
+    const normalizedEventData = eventData.slice(0, 20).replace(/\s/g, '');
     if (normalizedEventData.length < 14) return false;
 
     return normalizedEventData.slice(0, 14) === '{"projectId":"';
@@ -48,15 +48,15 @@ tr.exportTo('tr.e.importer.gcloud_trace', function() {
      * subtraces are passed on to other importers that can recognize them.
      */
     extractSubtraces() {
-      var traceEvents = this.createEventsForTrace();
+      const traceEvents = this.createEventsForTrace();
       return traceEvents ? [traceEvents] : [];
     },
 
     createEventsForTrace() {
-      var events = [];
-      var trace = JSON.parse(this.eventData_);
-      var spanLength = trace.spans.length;
-      for (var i = 0; i < spanLength; i++) {
+      const events = [];
+      const trace = JSON.parse(this.eventData_);
+      const spanLength = trace.spans.length;
+      for (let i = 0; i < spanLength; i++) {
         events.push(this.createEventForSpan(trace.traceId, trace.spans[i]));
       }
       return {
@@ -65,7 +65,7 @@ tr.exportTo('tr.e.importer.gcloud_trace', function() {
     },
 
     createEventForSpan(traceId, span) {
-      var newArgs = {};
+      let newArgs = {};
       if (span.labels) {
         newArgs = JSON.parse(JSON.stringify(span.labels));
       }

@@ -68,11 +68,11 @@ Polymer({
    * type.
    */
   selectAlertsOfType(alertTypeString) {
-    var alertsOfType = this.model_.alerts.filter(function(alert) {
+    const alertsOfType = this.model_.alerts.filter(function(alert) {
       return alert.title === alertTypeString;
     });
 
-    var event = new tr.model.RequestSelectionChangeEvent();
+    const event = new tr.model.RequestSelectionChangeEvent();
     event.selection = new tr.model.EventSet(alertsOfType);
     this.dispatchEvent(event);
   },
@@ -83,7 +83,7 @@ Polymer({
    * type.
    */
   alertsByType_(alerts) {
-    var alertsByType = {};
+    const alertsByType = {};
     alerts.forEach(function(alert) {
       if (!alertsByType[alert.title]) {
         alertsByType[alert.title] = [];
@@ -119,14 +119,14 @@ Polymer({
   },
 
   createAlertsTable_(alerts) {
-    var alertsByType = this.alertsByType_(alerts);
+    const alertsByType = this.alertsByType_(alerts);
 
-    var table = document.createElement('tr-ui-b-table');
+    const table = document.createElement('tr-ui-b-table');
     table.tableColumns = this.alertsTableColumns_();
     table.tableRows = this.alertsTableRows_(alertsByType);
     table.selectionMode = tr.ui.b.TableFormat.SelectionMode.ROW;
     table.addEventListener('selection-changed', function(e) {
-      var row = table.selectedTableRow;
+      const row = table.selectedTableRow;
       if (row) {
         this.selectAlertsOfType(row.alertType);
       }
@@ -139,7 +139,7 @@ Polymer({
     Polymer.dom(this.$.result_area).textContent = '';
     if (this.model_ === undefined) return;
 
-    var panel = this.createAlertsTable_(this.model_.alerts);
+    const panel = this.createAlertsTable_(this.model_.alerts);
     Polymer.dom(this.$.result_area).appendChild(panel);
   },
 

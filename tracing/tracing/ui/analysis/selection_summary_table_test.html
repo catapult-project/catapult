@@ -16,53 +16,53 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var Model = tr.Model;
-  var EventSet = tr.model.EventSet;
-  var newSliceEx = tr.c.TestUtils.newSliceEx;
+  const Model = tr.Model;
+  const EventSet = tr.model.EventSet;
+  const newSliceEx = tr.c.TestUtils.newSliceEx;
 
   test('noSelection', function() {
-    var summaryTable =
+    const summaryTable =
         document.createElement('tr-ui-a-selection-summary-table');
     summaryTable.selection = undefined;
     this.addHTMLOutput(summaryTable);
 
-    var tableEl = tr.b.findDeepElementMatching(
+    const tableEl = tr.b.findDeepElementMatching(
         summaryTable, 'tr-ui-b-table');
     assert.strictEqual(tableEl.tableRows[0].value, '<empty>');
     assert.strictEqual(tableEl.tableRows[1].value, '<empty>');
   });
 
   test('emptySelection', function() {
-    var summaryTable =
+    const summaryTable =
         document.createElement('tr-ui-a-selection-summary-table');
-    var selection = new EventSet();
+    const selection = new EventSet();
     summaryTable.selection = selection;
     this.addHTMLOutput(summaryTable);
 
-    var tableEl = tr.b.findDeepElementMatching(
+    const tableEl = tr.b.findDeepElementMatching(
         summaryTable, 'tr-ui-b-table');
     assert.strictEqual(tableEl.tableRows[0].value, '<empty>');
     assert.strictEqual(tableEl.tableRows[1].value, '<empty>');
   });
 
   test('selection', function() {
-    var model = new Model();
-    var thread = model.getOrCreateProcess(1).getOrCreateThread(2);
-    var tsg = thread.sliceGroup;
+    const model = new Model();
+    const thread = model.getOrCreateProcess(1).getOrCreateThread(2);
+    const tsg = thread.sliceGroup;
 
     tsg.pushSlice(newSliceEx({title: 'a', start: 0, end: 3}));
     tsg.pushSlice(newSliceEx({title: 'b', start: 1, end: 2}));
 
-    var selection = new EventSet();
+    const selection = new EventSet();
     selection.push(tsg.slices[0]);
     selection.push(tsg.slices[1]);
 
-    var summaryTable =
+    const summaryTable =
         document.createElement('tr-ui-a-selection-summary-table');
     summaryTable.selection = selection;
     this.addHTMLOutput(summaryTable);
 
-    var tableEl = tr.b.findDeepElementMatching(
+    const tableEl = tr.b.findDeepElementMatching(
         summaryTable, 'tr-ui-b-table');
     assert.strictEqual(tableEl.tableRows[0].value.value, 0);
     assert.strictEqual(tableEl.tableRows[0].value.unit,

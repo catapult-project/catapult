@@ -12,8 +12,8 @@ found in the LICENSE file.
 
 tr.exportTo('tr.ui.e.about_tracing', function() {
   function beginRecording(tracingControllerClient) {
-    var finalPromiseResolver;
-    var finalPromise = new Promise(function(resolve, reject) {
+    let finalPromiseResolver;
+    const finalPromise = new Promise(function(resolve, reject) {
       finalPromiseResolver = {
         resolve,
         reject
@@ -40,7 +40,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
 
     // Step 1: Get categories.
     function getCategories() {
-      var p = tracingControllerClient.getCategories().then(
+      const p = tracingControllerClient.getCategories().then(
           showTracingDialog,
           beginRecordingError);
       p.catch(function(err) {
@@ -49,7 +49,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     }
 
     // Step 2: Show tracing dialog.
-    var selectionDlg;
+    let selectionDlg;
     function showTracingDialog(categories) {
       selectionDlg = new tr.ui.e.about_tracing.RecordSelectionDialog();
       selectionDlg.categories = categories;
@@ -68,8 +68,8 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     }
 
     // Step 2: Do the actual tracing dialog.
-    var progressDlg;
-    var bufferPercentFullDiv;
+    let progressDlg;
+    let bufferPercentFullDiv;
     function startTracing() {
       progressDlg = new tr.ui.b.Overlay();
       Polymer.dom(progressDlg).textContent = 'Recording...';
@@ -78,14 +78,14 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       bufferPercentFullDiv = document.createElement('div');
       Polymer.dom(progressDlg).appendChild(bufferPercentFullDiv);
 
-      var stopButton = document.createElement('button');
+      const stopButton = document.createElement('button');
       Polymer.dom(stopButton).textContent = 'Stop';
       progressDlg.clickStopButton = function() {
         stopButton.click();
       };
       Polymer.dom(progressDlg).appendChild(stopButton);
 
-      var recordingOptions = {
+      const recordingOptions = {
         categoryFilter: selectionDlg.categoryFilter(),
         useSystemTracing: selectionDlg.useSystemTracing,
         tracingRecordMode: selectionDlg.tracingRecordMode,
@@ -93,7 +93,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       };
 
 
-      var requestPromise = tracingControllerClient.beginRecording(
+      const requestPromise = tracingControllerClient.beginRecording(
           recordingOptions);
       requestPromise.then(
           function() {
@@ -111,7 +111,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
         // for tracingComplete event instead of being unresponsive. (For
         // now, I disable the "stop" button, since clicking on the button
         // again now cause exception.)
-        var recordingPromise = endRecording(tracingControllerClient);
+        const recordingPromise = endRecording(tracingControllerClient);
         recordingPromise.then(
             recordFinished,
             recordFailed);
@@ -144,7 +144,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       if (!bufferPercentFullDiv) return;
 
       percentFull = Math.round(100 * parseFloat(percentFull));
-      var newText = 'Buffer usage: ' + percentFull + '%';
+      const newText = 'Buffer usage: ' + percentFull + '%';
       if (Polymer.dom(bufferPercentFullDiv).textContent !== newText) {
         Polymer.dom(bufferPercentFullDiv).textContent = newText;
       }

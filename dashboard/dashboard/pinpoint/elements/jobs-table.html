@@ -225,8 +225,8 @@ found in the LICENSE file.
        * Update the table headers to indicate the current table sorting.
        */
       updateHeaders() {
-        var headers = Polymer.dom(this.$.jobs).querySelectorAll('th');
-        for (var i = 0; i < headers.length; i++) {
+        const headers = Polymer.dom(this.$.jobs).querySelectorAll('th');
+        for (let i = 0; i < headers.length; i++) {
           if (headers[i].id == this.sortBy) {
             Polymer.dom(headers[i]).setAttribute('data-sort-direction',
                 this.sortDescending);
@@ -241,12 +241,12 @@ found in the LICENSE file.
        * sortDirection and sortBy.
        */
       sort() {
-        var sortBy = this.sortBy;
+        const sortBy = this.sortBy;
 
-        var jobs = this.jobsList.slice();
+        const jobs = this.jobsList.slice();
         jobs.sort(function(a, b) {
-          var valA = String(a[sortBy]).toLowerCase();
-          var valB = String(b[sortBy]).toLowerCase();
+          const valA = String(a[sortBy]).toLowerCase();
+          const valB = String(b[sortBy]).toLowerCase();
           return valA.localeCompare(valB);
         });
         if (this.sortDescending) {

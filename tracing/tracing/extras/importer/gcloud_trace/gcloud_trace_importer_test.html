@@ -15,22 +15,22 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var GcloudTraceImporter = tr.e.importer.gcloud_trace.GcloudTraceImporter;
+  const GcloudTraceImporter = tr.e.importer.gcloud_trace.GcloudTraceImporter;
 
   test('noSpans', function() {
-    var trace = {projectId: 'My Project', traceId: '123', spans: []};
+    const trace = {projectId: 'My Project', traceId: '123', spans: []};
 
-    var model = new tr.Model();
-    var importer = new tr.e.importer.gcloud_trace.GcloudTraceImporter(model,
+    const model = new tr.Model();
+    const importer = new tr.e.importer.gcloud_trace.GcloudTraceImporter(model,
         JSON.stringify(trace));
-    var subtraces = importer.extractSubtraces();
+    const subtraces = importer.extractSubtraces();
     assert.strictEqual(1, subtraces.length);
     // Note there are, in fact, use cases for traces with no events (spans).
     assert.deepEqual([], subtraces[0].traceEvents);
   });
 
   test('typicalTrace', function() {
-    var span1 = {
+    const span1 = {
       'spanId': '1',
       'kind': 'RPC_CLIENT',
       'name': '/first',
@@ -41,7 +41,7 @@ tr.b.unittest.testSuite(function() {
         'key2': 'value2'
       }
     };
-    var span2 = {
+    const span2 = {
       'spanId': '2',
       'kind': 'RPC_SERVER',
       'name': '/second',
@@ -53,17 +53,17 @@ tr.b.unittest.testSuite(function() {
         'key2': 'value4'
       }
     };
-    var trace = {projectId: 'My Project', traceId: '123',
+    const trace = {projectId: 'My Project', traceId: '123',
       spans: [span1, span2]};
 
-    var model = new tr.Model();
-    var importer = new tr.e.importer.gcloud_trace.GcloudTraceImporter(model,
+    const model = new tr.Model();
+    const importer = new tr.e.importer.gcloud_trace.GcloudTraceImporter(model,
         JSON.stringify(trace));
-    var subtraces = importer.extractSubtraces();
+    const subtraces = importer.extractSubtraces();
     assert.strictEqual(1, subtraces.length);
     assert.strictEqual(2, subtraces[0].traceEvents.length);
 
-    var span1Event = subtraces[0].traceEvents[0];
+    const span1Event = subtraces[0].traceEvents[0];
     assert.strictEqual('tracespan', span1Event.cat);
     assert.strictEqual('/first', span1Event.name);
     assert.strictEqual(1441298400841000, span1Event.ts);
@@ -78,7 +78,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(
         '2015-09-03T16:40:00.856599389Z', span1Event.args['End Time']);
 
-    var span2Event = subtraces[0].traceEvents[1];
+    const span2Event = subtraces[0].traceEvents[1];
     assert.strictEqual('tracespan', span2Event.cat);
     assert.strictEqual('/second', span2Event.name);
     assert.strictEqual(1441298400842000, span2Event.ts);

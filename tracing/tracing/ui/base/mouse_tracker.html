@@ -78,7 +78,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     remakeEvent_(e, newType) {
-      var remade = new tr.b.Event(newType, true, true);
+      const remade = new tr.b.Event(newType, true, true);
       remade.x = e.x;
       remade.y = e.y;
       remade.offsetX = e.offsetX;

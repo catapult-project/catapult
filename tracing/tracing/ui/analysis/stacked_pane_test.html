@@ -12,8 +12,8 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('changeChildPane', function() {
-    var pane = document.createElement('tr-ui-a-stacked-pane');
-    var didFireEvent;
+    const pane = document.createElement('tr-ui-a-stacked-pane');
+    let didFireEvent;
     pane.addEventListener('request-child-pane-change', function() {
       didFireEvent = true;
     });

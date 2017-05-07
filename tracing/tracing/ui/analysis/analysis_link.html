@@ -131,7 +131,7 @@ Polymer({
 
     clickEvent.stopPropagation();
 
-    var event = new tr.model.RequestSelectionChangeEvent();
+    const event = new tr.model.RequestSelectionChangeEvent();
     event.selection = this.getCurrentSelection_();
     this.dispatchEvent(event);
   },

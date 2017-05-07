@@ -35,22 +35,22 @@ tr.exportTo('tr.e.importer.v8', function() {
    * @param {string} line Input line.
    */
   CsvParser.prototype.parseLine = function(line) {
-    var fieldRe = CsvParser.CSV_FIELD_RE_;
-    var doubleQuoteRe = CsvParser.DOUBLE_QUOTE_RE_;
-    var pos = 0;
-    var endPos = line.length;
-    var fields = [];
+    const fieldRe = CsvParser.CSV_FIELD_RE_;
+    const doubleQuoteRe = CsvParser.DOUBLE_QUOTE_RE_;
+    let pos = 0;
+    const endPos = line.length;
+    const fields = [];
     if (endPos > 0) {
       do {
-        var fieldMatch = fieldRe.exec(line.substr(pos));
+        const fieldMatch = fieldRe.exec(line.substr(pos));
         if (typeof fieldMatch[1] === 'string') {
-          var field = fieldMatch[1];
+          const field = fieldMatch[1];
           pos += field.length + 3;  // Skip comma and quotes.
           fields.push(field.replace(doubleQuoteRe, '"'));
         } else {
           // The second field pattern will match anything, thus
           // in the worst case the match will be an empty string.
-          var field = fieldMatch[2];
+          const field = fieldMatch[2];
           pos += field.length + 1;  // Skip comma.
           fields.push(field);
         }
@@ -122,11 +122,11 @@ tr.exportTo('tr.e.importer.v8', function() {
    * @return {Array.<number>} Processed stack.
    */
   LogReader.prototype.processStack = function(pc, func, stack) {
-    var fullStack = func ? [pc, func] : [pc];
-    var prevFrame = pc;
-    for (var i = 0, n = stack.length; i < n; ++i) {
-      var frame = stack[i];
-      var firstChar = frame.charAt(0);
+    const fullStack = func ? [pc, func] : [pc];
+    let prevFrame = pc;
+    for (let i = 0, n = stack.length; i < n; ++i) {
+      const frame = stack[i];
+      const firstChar = frame.charAt(0);
       if (firstChar === '+' || firstChar === '-') {
         // An offset from the previous frame.
         prevFrame += parseInt(frame, 16);
@@ -157,19 +157,19 @@ tr.exportTo('tr.e.importer.v8', function() {
    */
   LogReader.prototype.dispatchLogRow_ = function(fields) {
     // Obtain the dispatch.
-    var command = fields[0];
+    const command = fields[0];
     if (!(command in this.dispatchTable_)) return;
 
-    var dispatch = this.dispatchTable_[command];
+    const dispatch = this.dispatchTable_[command];
 
     if (dispatch === null || this.skipDispatch(dispatch)) {
       return;
     }
 
     // Parse fields.
-    var parsedFields = [];
-    for (var i = 0; i < dispatch.parsers.length; ++i) {
-      var parser = dispatch.parsers[i];
+    const parsedFields = [];
+    for (let i = 0; i < dispatch.parsers.length; ++i) {
+      const parser = dispatch.parsers[i];
       if (parser === null) {
         parsedFields.push(fields[1 + i]);
       } else if (typeof parser === 'function') {
@@ -192,13 +192,13 @@ tr.exportTo('tr.e.importer.v8', function() {
    * @private
    */
   LogReader.prototype.processLog_ = function(lines) {
-    for (var i = 0, n = lines.length; i < n; ++i, ++this.lineNum_) {
-      var line = lines[i];
+    for (let i = 0, n = lines.length; i < n; ++i, ++this.lineNum_) {
+      const line = lines[i];
       if (!line) {
         continue;
       }
       try {
-        var fields = this.csvParser_.parseLine(line);
+        const fields = this.csvParser_.parseLine(line);
         this.dispatchLogRow_(fields);
       } catch (e) {
         this.printError('line ' + (this.lineNum_ + 1) + ': ' +

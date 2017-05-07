@@ -11,7 +11,7 @@ found in the LICENSE file.
   <title>Migrate Test Names</title>
   <script>
     'use strict';
-    var XSRF_TOKEN = '{{xsrf_token}}';
+    const XSRF_TOKEN = '{{xsrf_token}}';
 
     /**
      * Loads and displays tests that match the "old pattern".
@@ -19,15 +19,15 @@ found in the LICENSE file.
      */
     function listTests() {
       function showPatternMatch() {
-        var arr = JSON.parse(xhr.responseText);
+        const arr = JSON.parse(xhr.responseText);
         document.getElementById('test-list').innerHTML = arr.join('<br>');
         if (arr.length > 0) {
           document.getElementById('form-submit').disabled = false;
         }
       }
 
-      var pattern = document.getElementById('old-pattern').value;
-      var xhr = new XMLHttpRequest();
+      const pattern = document.getElementById('old-pattern').value;
+      const xhr = new XMLHttpRequest();
       xhr.onload = showPatternMatch;
       xhr.open('POST', '/list_tests');
       xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');

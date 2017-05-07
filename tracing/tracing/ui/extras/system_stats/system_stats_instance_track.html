@@ -18,11 +18,11 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.e.system_stats', function() {
-  var EventPresenter = tr.ui.b.EventPresenter;
+  const EventPresenter = tr.ui.b.EventPresenter;
 
-  var statCount;
+  let statCount;
 
-  var excludedStats = {'meminfo': {
+  const excludedStats = {'meminfo': {
     'pswpin': 0,
     'pswpout': 0,
     'pgmajfault': 0},
@@ -48,7 +48,7 @@ tr.exportTo('tr.ui.e.system_stats', function() {
    * @extends {StackedBarsTrack}
    */
 
-  var SystemStatsInstanceTrack = tr.ui.b.define(
+  const SystemStatsInstanceTrack = tr.ui.b.define(
       'tr-ui-e-system-stats-instance-track', tr.ui.tracks.StackedBarsTrack);
 
   SystemStatsInstanceTrack.prototype = {
@@ -78,11 +78,10 @@ tr.exportTo('tr.ui.e.system_stats', function() {
     },
 
     computeRates_(snapshots) {
-      for (var i = 0; i < snapshots.length; i++) {
-        var snapshot = snapshots[i];
-        var stats = snapshot.getStats();
-        var prevSnapshot;
-        var prevStats;
+      for (let i = 0; i < snapshots.length; i++) {
+        const snapshot = snapshots[i];
+        const stats = snapshot.getStats();
+        let prevSnapshot;
 
         if (i === 0) {
           // Deltas will be zero.
@@ -90,8 +89,8 @@ tr.exportTo('tr.ui.e.system_stats', function() {
         } else {
           prevSnapshot = snapshots[i - 1];
         }
-        prevStats = prevSnapshot.getStats();
-        var timeIntervalSeconds = (snapshot.ts - prevSnapshot.ts) / 1000;
+        const prevStats = prevSnapshot.getStats();
+        let timeIntervalSeconds = (snapshot.ts - prevSnapshot.ts) / 1000;
         // Prevent divide by zero.
         if (timeIntervalSeconds === 0) {
           timeIntervalSeconds = 1;
@@ -104,7 +103,7 @@ tr.exportTo('tr.ui.e.system_stats', function() {
 
     computeRatesRecursive_(prevStats, stats,
         timeIntervalSeconds) {
-      for (var statName in stats) {
+      for (const statName in stats) {
         if (stats[statName] instanceof Object) {
           this.computeRatesRecursive_(prevStats[statName],
               stats[statName],
@@ -141,12 +140,12 @@ tr.exportTo('tr.ui.e.system_stats', function() {
     },
 
     computeMaxStats_(snapshots) {
-      var maxStats = {};
+      const maxStats = {};
       statCount = 0;
 
-      for (var i = 0; i < snapshots.length; i++) {
-        var snapshot = snapshots[i];
-        var stats = snapshot.getStats();
+      for (let i = 0; i < snapshots.length; i++) {
+        const snapshot = snapshots[i];
+        const stats = snapshot.getStats();
 
         this.computeMaxStatsRecursive_(stats, maxStats,
             excludedStats);
@@ -156,13 +155,13 @@ tr.exportTo('tr.ui.e.system_stats', function() {
     },
 
     computeMaxStatsRecursive_(stats, maxStats, excludedStats) {
-      for (var statName in stats) {
+      for (const statName in stats) {
         if (stats[statName] instanceof Object) {
           if (!(statName in maxStats)) {
             maxStats[statName] = {};
           }
 
-          var excludedNested;
+          let excludedNested;
           if (excludedStats && statName in excludedStats) {
             excludedNested = excludedStats[statName];
           } else {
@@ -204,21 +203,21 @@ tr.exportTo('tr.ui.e.system_stats', function() {
     },
 
     drawStatBars_(viewLWorld, viewRWorld) {
-      var ctx = this.context();
-      var pixelRatio = window.devicePixelRatio || 1;
+      const ctx = this.context();
+      const pixelRatio = window.devicePixelRatio || 1;
 
-      var bounds = this.getBoundingClientRect();
-      var width = bounds.width * pixelRatio;
-      var height = (bounds.height * pixelRatio) / statCount;
+      const bounds = this.getBoundingClientRect();
+      const width = bounds.width * pixelRatio;
+      const height = (bounds.height * pixelRatio) / statCount;
 
       // Culling parameters.
-      var vp = this.viewport.currentDisplayTransform;
+      const vp = this.viewport.currentDisplayTransform;
 
       // Scale by the size of the largest snapshot.
-      var maxStats = this.maxStats_;
+      const maxStats = this.maxStats_;
 
-      var objectSnapshots = this.objectInstance_.snapshots;
-      var lowIndex = tr.b.math.findLowIndexInSortedArray(
+      const objectSnapshots = this.objectInstance_.snapshots;
+      let lowIndex = tr.b.math.findLowIndexInSortedArray(
           objectSnapshots,
           function(snapshot) {
             return snapshot.ts;
@@ -228,19 +227,19 @@ tr.exportTo('tr.ui.e.system_stats', function() {
       // Assure that the stack with the left edge off screen still gets drawn
       if (lowIndex > 0) lowIndex -= 1;
 
-      for (var i = lowIndex; i < objectSnapshots.length; ++i) {
-        var snapshot = objectSnapshots[i];
-        var trace = snapshot.getStats();
-        var currentY = height;
+      for (let i = lowIndex; i < objectSnapshots.length; ++i) {
+        const snapshot = objectSnapshots[i];
+        const trace = snapshot.getStats();
+        const currentY = height;
 
-        var left = snapshot.ts;
+        const left = snapshot.ts;
         if (left > viewRWorld) break;
 
-        var leftView = vp.xWorldToView(left);
+        let leftView = vp.xWorldToView(left);
         if (leftView < 0) leftView = 0;
 
         // Compute the edges for the column graph bar.
-        var right;
+        let right;
         if (i !== objectSnapshots.length - 1) {
           right = objectSnapshots[i + 1].ts;
         } else {
@@ -255,7 +254,7 @@ tr.exportTo('tr.ui.e.system_stats', function() {
           }
         }
 
-        var rightView = vp.xWorldToView(right);
+        let rightView = vp.xWorldToView(right);
         if (rightView > width) {
           rightView = width;
         }
@@ -287,9 +286,9 @@ tr.exportTo('tr.ui.e.system_stats', function() {
         stats,
         maxStats,
         currentY) {
-      var ctx = this.context();
+      const ctx = this.context();
 
-      for (var statName in maxStats) {
+      for (const statName in maxStats) {
         if (stats[statName] instanceof Object) {
           // Use the y-position returned from the recursive call.
           currentY = this.drawStatBarsRecursive_(snapshot,
@@ -300,15 +299,14 @@ tr.exportTo('tr.ui.e.system_stats', function() {
               maxStats[statName],
               currentY);
         } else {
-          var maxStat = maxStats[statName];
+          const maxStat = maxStats[statName];
 
           // Draw a bar for the stat. The height of the bar is scaled
           // against the largest value of the stat across all snapshots.
           ctx.fillStyle = EventPresenter.getBarSnapshotColor(
               snapshot, Math.round(currentY / height));
 
-          var barHeight;
-
+          let barHeight;
           if (maxStat > 0) {
             barHeight = height * Math.max(stats[statName], 0) / maxStat;
           } else {
@@ -327,17 +325,17 @@ tr.exportTo('tr.ui.e.system_stats', function() {
     },
 
     drawStatNames_(leftView, height, currentY, prefix, maxStats) {
-      var ctx = this.context();
+      const ctx = this.context();
 
       ctx.textAlign = 'end';
       ctx.font = '12px Arial';
       ctx.fillStyle = '#000000';
-      for (var statName in maxStats) {
+      for (const statName in maxStats) {
         if (maxStats[statName] instanceof Object) {
           currentY = this.drawStatNames_(leftView, height, currentY,
               statName, maxStats[statName]);
         } else {
-          var fullname = statName;
+          let fullname = statName;
 
           if (prefix !== '') {
             fullname = prefix + ' :: ' + statName;

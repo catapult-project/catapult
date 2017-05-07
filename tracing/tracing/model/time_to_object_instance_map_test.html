@@ -13,13 +13,14 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var createObjectInstance = function(parent, id, category, name, creationTs) {
+  const createObjectInstance = function(
+      parent, id, category, name, creationTs) {
     return new tr.model.ObjectInstance(
         parent, id, category, name, creationTs);
   };
 
   test('timeToObjectInstanceMap', function() {
-    var m = new tr.model.TimeToObjectInstanceMap(
+    const m = new tr.model.TimeToObjectInstanceMap(
         createObjectInstance, {}, 7);
     m.addSnapshot('cat', 'name', 10, 'a1');
     m.addSnapshot('cat', 'name', 20, 'a2');
@@ -28,8 +29,8 @@ tr.b.unittest.testSuite(function() {
 
     assert.strictEqual(m.instances.length, 2);
 
-    var i0 = m.getInstanceAt(0);
-    var i10 = m.getInstanceAt(10);
+    const i0 = m.getInstanceAt(0);
+    const i10 = m.getInstanceAt(10);
     assert.strictEqual(i0, i10);
 
     assert.isDefined(i10);
@@ -39,31 +40,31 @@ tr.b.unittest.testSuite(function() {
 
     assert.strictEqual(i10.deletionTs, 30);
 
-    var i15 = m.getInstanceAt(15);
+    const i15 = m.getInstanceAt(15);
     assert.strictEqual(i15, i10);
 
-    var i20 = m.getInstanceAt(20);
+    const i20 = m.getInstanceAt(20);
     assert.strictEqual(i20, i10);
 
-    var i30 = m.getInstanceAt(30);
+    const i30 = m.getInstanceAt(30);
     assert.isUndefined(i30);
 
-    var i35 = m.getInstanceAt(35);
+    const i35 = m.getInstanceAt(35);
     assert.isUndefined(i35);
 
-    var i40 = m.getInstanceAt(40);
+    const i40 = m.getInstanceAt(40);
     assert.isDefined(i40);
     assert.notEqual(i40, i10);
     assert.strictEqual(i40.snapshots.length, 1);
     assert.strictEqual(i40.creationTs, 40);
     assert.strictEqual(i40.deletionTs, Number.MAX_VALUE);
 
-    var i41 = m.getInstanceAt(41);
+    const i41 = m.getInstanceAt(41);
     assert.strictEqual(i40, i41);
   });
 
   test('timeToObjectInstanceMapsBoundsLogic', function() {
-    var m = new tr.model.TimeToObjectInstanceMap(
+    const m = new tr.model.TimeToObjectInstanceMap(
         createObjectInstance, {}, 7);
     m.addSnapshot('cat', 'name', 10, 'a1');
     m.addSnapshot('cat', 'name', 20, 'a2');
@@ -73,19 +74,19 @@ tr.b.unittest.testSuite(function() {
 
     m.instances.forEach(function(i) { i.updateBounds(); });
 
-    var iA = m.getInstanceAt(10);
+    const iA = m.getInstanceAt(10);
     assert.strictEqual(iA.bounds.min, 10);
     assert.strictEqual(iA.bounds.max, 30);
 
-    var iB = m.getInstanceAt(40);
+    const iB = m.getInstanceAt(40);
     assert.strictEqual(iB.bounds.min, 40);
     assert.strictEqual(iB.bounds.max, 41);
   });
 
   test('earlySnapshot', function() {
-    var m = new tr.model.TimeToObjectInstanceMap(
+    const m = new tr.model.TimeToObjectInstanceMap(
         createObjectInstance, {}, 7);
-    var i10 = m.idWasCreated('cat', 'name', 10, 'a1');
+    const i10 = m.idWasCreated('cat', 'name', 10, 'a1');
     m.idWasDeleted('cat', 'name', 20);
 
     assert.throws(function() {
@@ -96,36 +97,36 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('earlySnapshotWithImplicitCreate', function() {
-    var m = new tr.model.TimeToObjectInstanceMap(
+    const m = new tr.model.TimeToObjectInstanceMap(
         createObjectInstance, {}, 7);
-    var i10 = m.idWasDeleted('cat', 'name', 20);
+    const i10 = m.idWasDeleted('cat', 'name', 20);
     m.addSnapshot('cat', 'name', 5, 'a1');
     assert.strictEqual(i10.creationTs, 5);
     assert.strictEqual(i10.deletionTs, 20);
   });
 
   test('getInstanceBeforeCreationImplicitCreate', function() {
-    var m = new tr.model.TimeToObjectInstanceMap(
+    const m = new tr.model.TimeToObjectInstanceMap(
         createObjectInstance, {}, 7);
-    var i10 = m.idWasCreated('cat', 'name', 10, 'a1');
+    const i10 = m.idWasCreated('cat', 'name', 10, 'a1');
     m.idWasDeleted('cat', 'name', 20);
     assert.isUndefined(m.getInstanceAt(5));
   });
 
   test('getInstanceBeforeCreationImplicitCreateWithSnapshot', function() {
-    var m = new tr.model.TimeToObjectInstanceMap(
+    const m = new tr.model.TimeToObjectInstanceMap(
         createObjectInstance, {}, 7);
-    var s5 = m.addSnapshot('cat', 'name', 5, 'a1');
-    var i10 = m.idWasDeleted('cat', 'name', 20);
+    const s5 = m.addSnapshot('cat', 'name', 5, 'a1');
+    const i10 = m.idWasDeleted('cat', 'name', 20);
     assert.strictEqual(m.getInstanceAt(5), i10);
   });
 
   test('successiveDeletions', function() {
-    var m = new tr.model.TimeToObjectInstanceMap(
+    const m = new tr.model.TimeToObjectInstanceMap(
         createObjectInstance, {}, 7);
-    var i20 = m.idWasDeleted('cat', 'name', 20);
-    var i30 = m.idWasDeleted('cat', 'name', 30);
-    var i40 = m.idWasDeleted('cat', 'name', 40);
+    const i20 = m.idWasDeleted('cat', 'name', 20);
+    const i30 = m.idWasDeleted('cat', 'name', 30);
+    const i40 = m.idWasDeleted('cat', 'name', 40);
     assert.strictEqual(i20.creationTs, 20);
     assert.isFalse(i20.creationTsWasExplicit);
     assert.strictEqual(i20.deletionTs, 20);
@@ -144,13 +145,13 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('snapshotAfterDeletion', function() {
-    var m = new tr.model.TimeToObjectInstanceMap(
+    const m = new tr.model.TimeToObjectInstanceMap(
         createObjectInstance, {}, 7);
-    var i10 = m.idWasCreated('cat', 'name', 10, 'a1');
+    const i10 = m.idWasCreated('cat', 'name', 10, 'a1');
     m.idWasDeleted('cat', 'name', 20);
 
-    var s25 = m.addSnapshot('cat', 'name', 25, 'a1');
-    var i25 = s25.objectInstance;
+    const s25 = m.addSnapshot('cat', 'name', 25, 'a1');
+    const i25 = s25.objectInstance;
 
     assert.strictEqual(i10.creationTs, 10);
     assert.strictEqual(i10.deletionTs, 20);

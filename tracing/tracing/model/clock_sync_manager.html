@@ -11,7 +11,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.model', function() {
-  var ClockDomainId = {
+  const ClockDomainId = {
     BATTOR: 'BATTOR',
 
     // NOTE: Exists for backwards compatibility with old Chrome traces which
@@ -38,7 +38,7 @@ tr.exportTo('tr.model', function() {
     TELEMETRY: 'TELEMETRY'
   };
 
-  var POSSIBLE_CHROME_CLOCK_DOMAINS = new Set([
+  const POSSIBLE_CHROME_CLOCK_DOMAINS = new Set([
     ClockDomainId.UNKNOWN_CHROME_LEGACY,
     ClockDomainId.LINUX_CLOCK_MONOTONIC,
     ClockDomainId.MAC_MACH_ABSOLUTE_TIME,
@@ -50,7 +50,7 @@ tr.exportTo('tr.model', function() {
   // considered "fast", and it's more accurate to use the sync start timestamp
   // instead of the normal sync timestamp due to a bug in the Chrome serial code
   // making serial reads too slow.
-  var BATTOR_FAST_SYNC_THRESHOLD_MS = 3;
+  const BATTOR_FAST_SYNC_THRESHOLD_MS = 3;
 
   /**
    * A ClockSyncManager holds clock sync markers and uses them to shift
@@ -105,14 +105,14 @@ tr.exportTo('tr.model', function() {
             'a model time transformer.');
       }
 
-      var marker = new ClockSyncMarker(domainId, startTs, opt_endTs);
+      const marker = new ClockSyncMarker(domainId, startTs, opt_endTs);
 
       if (!this.markersBySyncId_.has(syncId)) {
         this.markersBySyncId_.set(syncId, [marker]);
         return;
       }
 
-      var markers = this.markersBySyncId_.get(syncId);
+      const markers = this.markersBySyncId_.get(syncId);
 
       if (markers.length === 2) {
         throw new Error('Clock sync with ID "' + syncId + '" is already ' +
@@ -170,7 +170,7 @@ tr.exportTo('tr.model', function() {
     },
 
     getTimeTransformerRaw_(fromDomainId, toDomainId) {
-      var transformer =
+      const transformer =
           this.getTransformerBetween_(fromDomainId, toDomainId);
       if (!transformer) {
         throw new Error('No clock sync markers exist pairing clock domain "' +
@@ -188,9 +188,9 @@ tr.exportTo('tr.model', function() {
     getTransformerBetween_(fromDomainId, toDomainId) {
       // Do a breadth-first search from the "from" domain until we reach the
       // "to" domain.
-      var visitedDomainIds = new Set();
+      const visitedDomainIds = new Set();
       // Keep a queue of nodes to visit, starting with the "from" domain.
-      var queue = [{
+      const queue = [{
         domainId: fromDomainId,
         transformer: Transformer.IDENTITY
       }];
@@ -202,7 +202,7 @@ tr.exportTo('tr.model', function() {
         queue.sort((domain1, domain2) =>
             domain1.transformer.error - domain2.transformer.error);
 
-        var current = queue.shift();
+        const current = queue.shift();
 
         if (current.domainId === toDomainId) {
           return current.transformer;
@@ -213,19 +213,20 @@ tr.exportTo('tr.model', function() {
         }
         visitedDomainIds.add(current.domainId);
 
-        var outgoingTransformers =
+        const outgoingTransformers =
             this.transformerMapByDomainId_[current.domainId];
 
         if (!outgoingTransformers) continue;
 
         // Add all nodes that are directly connected to this one to the queue.
-        for (var outgoingDomainId in outgoingTransformers) {
+        for (const outgoingDomainId in outgoingTransformers) {
           // We have two transformers: one to get us from the "from" domain to
           // the current domain, and another to get us from the current domain
           // to the next domain. By composing those two transformers, we can
           // create one that gets us from the "from" domain to the next domain.
-          var toNextDomainTransformer = outgoingTransformers[outgoingDomainId];
-          var toCurrentDomainTransformer = current.transformer;
+          const toNextDomainTransformer =
+            outgoingTransformers[outgoingDomainId];
+          const toCurrentDomainTransformer = current.transformer;
 
           queue.push({
             domainId: outgoingDomainId,
@@ -255,14 +256,14 @@ tr.exportTo('tr.model', function() {
       // While we're migrating to the new clock sync system, we have to make
       // sure to prefer the Chrome clock domain because legacy clock sync
       // mechanisms assume that's the case.
-      for (var chromeDomainId of POSSIBLE_CHROME_CLOCK_DOMAINS) {
+      for (const chromeDomainId of POSSIBLE_CHROME_CLOCK_DOMAINS) {
         if (this.domainsSeen_.has(chromeDomainId)) {
           this.modelDomainId_ = chromeDomainId;
           return;
         }
       }
 
-      var domainsSeenArray = Array.from(this.domainsSeen_);
+      const domainsSeenArray = Array.from(this.domainsSeen_);
       domainsSeenArray.sort();
       this.modelDomainId_ = domainsSeenArray[0];
     },
@@ -271,8 +272,8 @@ tr.exportTo('tr.model', function() {
     ensureAllDomainsAreConnected_() {
       // NOTE: this is a ridiculously inefficient way to do this. Given how few
       // clock domains we're likely to have, this shouldn't be a problem.
-      var firstDomainId = undefined;
-      for (var domainId of this.domainsSeen_) {
+      let firstDomainId = undefined;
+      for (const domainId of this.domainsSeen_) {
         if (!firstDomainId) {
           firstDomainId = domainId;
           continue;
@@ -298,7 +299,7 @@ tr.exportTo('tr.model', function() {
         // This makes sure that we don't have two separate clock sync graphs:
         // one attached to UNKNOWN_CHROME_LEGACY and the other attached to the
         // real Chrome clock domain.
-        for (var chromeDomainId of POSSIBLE_CHROME_CLOCK_DOMAINS) {
+        for (const chromeDomainId of POSSIBLE_CHROME_CLOCK_DOMAINS) {
           if (chromeDomainId === ClockDomainId.UNKNOWN_CHROME_LEGACY) {
             continue;
           }
@@ -316,10 +317,10 @@ tr.exportTo('tr.model', function() {
      * |marker2|.
      */
     onSyncCompleted_(marker1, marker2) {
-      var forwardTransformer = Transformer.fromMarkers(marker1, marker2);
-      var backwardTransformer = Transformer.fromMarkers(marker2, marker1);
+      const forwardTransformer = Transformer.fromMarkers(marker1, marker2);
+      const backwardTransformer = Transformer.fromMarkers(marker2, marker1);
 
-      var existingTransformer =
+      const existingTransformer =
           this.getOrCreateTransformerMap_(marker1.domainId)[marker2.domainId];
       if (!existingTransformer ||
           forwardTransformer.error < existingTransformer.error) {
@@ -432,8 +433,8 @@ tr.exportTo('tr.model', function() {
    * returns a timestamp in |toMarker|'s domain.
    */
   Transformer.fromMarkers = function(fromMarker, toMarker) {
-    var fromTs = fromMarker.ts;
-    var toTs = toMarker.ts;
+    let fromTs = fromMarker.ts;
+    let toTs = toMarker.ts;
 
     // TODO(charliea): Usually, we estimate that the clock sync marker is
     // issued by the agent exactly in the middle of the controller's start and
@@ -453,7 +454,7 @@ tr.exportTo('tr.model', function() {
       fromTs = fromMarker.startTs;
     }
 
-    var tsShift = toTs - fromTs;
+    const tsShift = toTs - fromTs;
     return new Transformer(
         (ts) => ts + tsShift, fromMarker.duration + toMarker.duration);
   };

@@ -16,56 +16,56 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var HighlightInstantEvent = tr.model.ThreadHighlightInstantEvent;
-  var Process = tr.model.Process;
-  var EventSet = tr.model.EventSet;
-  var StackFrame = tr.model.StackFrame;
-  var Sample = tr.model.Sample;
-  var Thread = tr.model.Thread;
-  var ThreadSlice = tr.model.ThreadSlice;
-  var ThreadTrack = tr.ui.tracks.ThreadTrack;
-  var Viewport = tr.ui.TimelineViewport;
-  var newAsyncSlice = tr.c.TestUtils.newAsyncSlice;
-  var newAsyncSliceNamed = tr.c.TestUtils.newAsyncSliceNamed;
-  var newSliceEx = tr.c.TestUtils.newSliceEx;
+  const HighlightInstantEvent = tr.model.ThreadHighlightInstantEvent;
+  const Process = tr.model.Process;
+  const EventSet = tr.model.EventSet;
+  const StackFrame = tr.model.StackFrame;
+  const Sample = tr.model.Sample;
+  const Thread = tr.model.Thread;
+  const ThreadSlice = tr.model.ThreadSlice;
+  const ThreadTrack = tr.ui.tracks.ThreadTrack;
+  const Viewport = tr.ui.TimelineViewport;
+  const newAsyncSlice = tr.c.TestUtils.newAsyncSlice;
+  const newAsyncSliceNamed = tr.c.TestUtils.newAsyncSliceNamed;
+  const newSliceEx = tr.c.TestUtils.newSliceEx;
 
   test('selectionHitTestingWithThreadTrack', function() {
-    var model = new tr.Model();
-    var p1 = model.getOrCreateProcess(1);
-    var t1 = p1.getOrCreateThread(1);
+    const model = new tr.Model();
+    const p1 = model.getOrCreateProcess(1);
+    const t1 = p1.getOrCreateThread(1);
     t1.sliceGroup.pushSlice(new ThreadSlice('', 'a', 0, 1, {}, 4));
     t1.sliceGroup.pushSlice(new ThreadSlice('', 'b', 0, 5.1, {}, 4));
 
-    var testEl = document.createElement('div');
+    const testEl = document.createElement('div');
     Polymer.dom(testEl).appendChild(
         tr.ui.b.createScopedStyle('heading { width: 100px; }'));
     testEl.style.width = '600px';
 
-    var viewport = new Viewport(testEl);
-    var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
+    const viewport = new Viewport(testEl);
+    const drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
     Polymer.dom(testEl).appendChild(drawingContainer);
 
-    var track = new ThreadTrack(viewport);
+    const track = new ThreadTrack(viewport);
     Polymer.dom(drawingContainer).appendChild(track);
     drawingContainer.updateCanvasSizeIfNeeded_();
     track.thread = t1;
 
-    var y = track.getBoundingClientRect().top;
-    var h = track.getBoundingClientRect().height;
-    var wW = 10;
-    var vW = drawingContainer.canvas.getBoundingClientRect().width;
-    var dt = new tr.ui.TimelineDisplayTransform();
+    const y = track.getBoundingClientRect().top;
+    const h = track.getBoundingClientRect().height;
+    const wW = 10;
+    const vW = drawingContainer.canvas.getBoundingClientRect().width;
+    const dt = new tr.ui.TimelineDisplayTransform();
     dt.xSetWorldBounds(0, wW, vW);
     track.viewport.setDisplayTransformImmediately(dt);
 
-    var selection = new EventSet();
-    var x = (1.5 / wW) * vW;
+    let selection = new EventSet();
+    const x = (1.5 / wW) * vW;
     track.addIntersectingEventsInRangeToSelection(
         x, x + 1, y, y + 1, selection);
     assert.isTrue(selection.equals(
         new EventSet([t1.sliceGroup.slices[0], t1.sliceGroup.slices[1]])));
 
-    var selection = new EventSet();
+    selection = new EventSet();
     track.addIntersectingEventsInRangeToSelection(
         (1.5 / wW) * vW, (1.8 / wW) * vW,
         y, y + h, selection);
@@ -74,13 +74,12 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('filterThreadSlices', function() {
-    var model = new tr.Model();
-    var thread = new Thread(new Process(model, 7), 1);
+    const model = new tr.Model();
+    const thread = new Thread(new Process(model, 7), 1);
     thread.sliceGroup.pushSlice(newSliceEx(
         {title: 'a', start: 0, duration: 0}));
-    thread.asyncSliceGroup.push(newAsyncSliceNamed('a', 0, 5, t, t));
-
-    var t = new ThreadTrack(new tr.ui.TimelineViewport());
+    thread.asyncSliceGroup.push(newAsyncSliceNamed('a', 0, 5, thread, thread));
+    const t = new ThreadTrack(new tr.ui.TimelineViewport());
     t.thread = thread;
 
     assert.strictEqual(t.tracks_.length, 2);
@@ -89,19 +88,19 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('sampleThreadSlices', function() {
-    var thread;
-    var cpu;
-    var model = tr.c.TestUtils.newModelWithEvents([], {
+    let thread;
+    let cpu;
+    const model = tr.c.TestUtils.newModelWithEvents([], {
       shiftWorldToZero: false,
       pruneContainers: false,
       customizeModelCallback(model) {
         cpu = model.kernel.getOrCreateCpu(1);
         thread = model.getOrCreateProcess(1).getOrCreateThread(2);
 
-        var nodeA = tr.c.TestUtils.newProfileNode(model, 'a');
-        var nodeB = tr.c.TestUtils.newProfileNode(model, 'b', nodeA);
-        var nodeC = tr.c.TestUtils.newProfileNode(model, 'c', nodeB);
-        var nodeD = tr.c.TestUtils.newProfileNode(model, 'd', nodeA);
+        const nodeA = tr.c.TestUtils.newProfileNode(model, 'a');
+        const nodeB = tr.c.TestUtils.newProfileNode(model, 'b', nodeA);
+        const nodeC = tr.c.TestUtils.newProfileNode(model, 'c', nodeB);
+        const nodeD = tr.c.TestUtils.newProfileNode(model, 'd', nodeA);
 
         model.samples.push(new Sample(10, 'instructions_retired', nodeC, thread,
                                       undefined, 10));
@@ -119,12 +118,12 @@ tr.b.unittest.testSuite(function() {
       }
     });
 
-    var t = new ThreadTrack(new tr.ui.TimelineViewport());
+    const t = new ThreadTrack(new tr.ui.TimelineViewport());
     t.thread = thread;
     assert.strictEqual(t.tracks_.length, 2);
 
     // Instructions retired
-    var t0 = t.tracks_[0];
+    const t0 = t.tracks_[0];
     assert.notEqual(t0.heading.indexOf('instructions_retired'), -1);
     assert.instanceOf(t0, tr.ui.tracks.SampleTrack);
     assert.strictEqual(t0.samples.length, 4);
@@ -133,7 +132,7 @@ tr.b.unittest.testSuite(function() {
     });
 
     // page_fault
-    var t1 = t.tracks_[1];
+    const t1 = t.tracks_[1];
     assert.notEqual(t1.heading.indexOf('page_fault'), -1);
     assert.instanceOf(t1, tr.ui.tracks.SampleTrack);
     assert.strictEqual(t1.samples.length, 2);

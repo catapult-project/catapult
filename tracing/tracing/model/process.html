@@ -15,10 +15,10 @@ found in the LICENSE file.
  * @fileoverview Provides the Process class.
  */
 tr.exportTo('tr.model', function() {
-  var ProcessBase = tr.model.ProcessBase;
-  var ProcessInstantEvent = tr.model.ProcessInstantEvent;
-  var Frame = tr.model.Frame;
-  var ProcessMemoryDump = tr.model.ProcessMemoryDump;
+  const ProcessBase = tr.model.ProcessBase;
+  const ProcessInstantEvent = tr.model.ProcessInstantEvent;
+  const Frame = tr.model.Frame;
+  const ProcessMemoryDump = tr.model.ProcessMemoryDump;
 
   /**
    * The Process represents a single userland process in the
@@ -47,7 +47,7 @@ tr.exportTo('tr.model', function() {
    * Comparison between processes that orders by pid.
    */
   Process.compare = function(x, y) {
-    var tmp = tr.model.ProcessBase.compare(x, y);
+    let tmp = tr.model.ProcessBase.compare(x, y);
     if (tmp) return tmp;
 
     tmp = tr.b.comparePossiblyUndefinedValues(
@@ -81,14 +81,14 @@ tr.exportTo('tr.model', function() {
     },
 
     addLabelIfNeeded(labelName) {
-      for (var i = 0; i < this.labels.length; i++) {
+      for (let i = 0; i < this.labels.length; i++) {
         if (this.labels[i] === labelName) return;
       }
       this.labels.push(labelName);
     },
 
     get userFriendlyName() {
-      var res;
+      let res;
       if (this.name) {
         res = this.name + ' (pid ' + this.pid + ')';
       } else {
@@ -117,19 +117,19 @@ tr.exportTo('tr.model', function() {
     },
 
     shiftTimestampsForward(amount) {
-      for (var i = 0; i < this.instantEvents.length; i++) {
+      for (let i = 0; i < this.instantEvents.length; i++) {
         this.instantEvents[i].start += amount;
       }
 
-      for (var i = 0; i < this.frames.length; i++) {
+      for (let i = 0; i < this.frames.length; i++) {
         this.frames[i].shiftTimestampsForward(amount);
       }
 
-      for (var i = 0; i < this.memoryDumps.length; i++) {
+      for (let i = 0; i < this.memoryDumps.length; i++) {
         this.memoryDumps[i].shiftTimestampsForward(amount);
       }
 
-      for (var i = 0; i < this.activities.length; i++) {
+      for (let i = 0; i < this.activities.length; i++) {
         this.activities[i].shiftTimestampsForward(amount);
       }
 
@@ -140,15 +140,15 @@ tr.exportTo('tr.model', function() {
     updateBounds() {
       tr.model.ProcessBase.prototype.updateBounds.apply(this);
 
-      for (var i = 0; i < this.frames.length; i++) {
+      for (let i = 0; i < this.frames.length; i++) {
         this.frames[i].addBoundsToRange(this.bounds);
       }
 
-      for (var i = 0; i < this.memoryDumps.length; i++) {
+      for (let i = 0; i < this.memoryDumps.length; i++) {
         this.memoryDumps[i].addBoundsToRange(this.bounds);
       }
 
-      for (var i = 0; i < this.activities.length; i++) {
+      for (let i = 0; i < this.activities.length; i++) {
         this.activities[i].addBoundsToRange(this.bounds);
       }
     },

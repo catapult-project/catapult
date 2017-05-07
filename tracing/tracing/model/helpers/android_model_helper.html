@@ -19,20 +19,20 @@ found in the LICENSE file.
  * such as rendering apps, frames rendered, and SurfaceFlinger.
  */
 tr.exportTo('tr.model.helpers', function() {
-  var AndroidApp = tr.model.helpers.AndroidApp;
-  var AndroidSurfaceFlinger = tr.model.helpers.AndroidSurfaceFlinger;
+  const AndroidApp = tr.model.helpers.AndroidApp;
+  const AndroidSurfaceFlinger = tr.model.helpers.AndroidSurfaceFlinger;
 
-  var IMPORTANT_SURFACE_FLINGER_SLICES = {
+  const IMPORTANT_SURFACE_FLINGER_SLICES = {
     'doComposition': true,
     'updateTexImage': true,
     'postFramebuffer': true
   };
-  var IMPORTANT_UI_THREAD_SLICES = {
+  const IMPORTANT_UI_THREAD_SLICES = {
     'Choreographer#doFrame': true,
     'performTraversals': true,
     'deliverInputEvent': true
   };
-  var IMPORTANT_RENDER_THREAD_SLICES = {
+  const IMPORTANT_RENDER_THREAD_SLICES = {
     'doFrame': true
   };
 
@@ -55,14 +55,14 @@ tr.exportTo('tr.model.helpers', function() {
     this.apps = [];
     this.surfaceFlinger = undefined;
 
-    var processes = model.getAllProcesses();
-    for (var i = 0; i < processes.length && !this.surfaceFlinger; i++) {
+    const processes = model.getAllProcesses();
+    for (let i = 0; i < processes.length && !this.surfaceFlinger; i++) {
       this.surfaceFlinger =
           AndroidSurfaceFlinger.createForProcessIfPossible(processes[i]);
     }
 
     model.getAllProcesses().forEach(function(process) {
-      var app = AndroidApp.createForProcessIfPossible(
+      const app = AndroidApp.createForProcessIfPossible(
           process, this.surfaceFlinger);
       if (app) {
         this.apps.push(app);

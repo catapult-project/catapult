@@ -14,45 +14,45 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   // Constants for Process events.
-  var guid = '3D6FA8D0-FE05-11D0-9DDA-00C04FD7BA7C';
-  var kProcessStartOpcode = 1;
-  var kProcessDefunctOpcode = 39;
+  const guid = '3D6FA8D0-FE05-11D0-9DDA-00C04FD7BA7C';
+  const kProcessStartOpcode = 1;
+  const kProcessDefunctOpcode = 39;
 
-  var kProcessStartPayload32bitV1 =
+  const kProcessStartPayload32bitV1 =
       'AAAAAPAGAADcAwAAAQAAAAMBAAAAAAAAAAAAAAEFAAAAAAAFFQAAAJYs7Cxo/TEG8dyk0' +
       '+gDAABub3RlcGFkLmV4ZQA=';
 
-  var kProcessStartPayload32bitV2 =
+  const kProcessStartPayload32bitV2 =
       'AAAAAPAGAADcAwAAAQAAAAMBAAAAAAAAAAAAAAEFAAAAAAAFFQAAAJYs7Cxo/TEG8dyk0' +
       '+gDAABub3RlcGFkLmV4ZQAiAEMAOgBcAFcAaQBuAGQAbwB3AHMAXABzAHkAcwB0AGUAbQ' +
       'AzADIAXABuAG8AdABlAHAAYQBkAC4AZQB4AGUAIgAgAAAA';
 
-  var kProcessStartPayload32bitV3 =
+  const kProcessStartPayload32bitV3 =
       'AAAAAPAGAADcAwAAAQAAAAMBAAAAAAAAAAAAAAAAAAABBQAAAAAABRUAAACWLOwsaP0xB' +
       'vHcpNPoAwAAbm90ZXBhZC5leGUAIgBDADoAXABXAGkAbgBkAG8AdwBzAFwAcwB5AHMAdA' +
       'BlAG0AMwAyAFwAbgBvAHQAZQBwAGEAZAAuAGUAeABlACIAIAAAAA==';
 
-  var kProcessStartPayload64bitV3 =
+  const kProcessStartPayload64bitV3 =
       'YIBiD4D6//8AGgAAoBwAAAEAAAADAQAAAPBDHQEAAAAwVlMVoPj//wAAAACg+P//AQUAA' +
       'AAAAAUVAAAAAgMBAgMEBQYHCAkKCwwAAHhwZXJmLmV4ZQB4AHAAZQByAGYAIAAgAC0AZA' +
       'AgAG8AdQB0AC4AZQB0AGwAAAA=';
 
-  var kProcessStartPayload64bitV4 =
+  const kProcessStartPayload64bitV4 =
       'gED8GgDg//+MCgAACBcAAAUAAAADAQAAALCiowAAAAAAAAAAkPBXBADA//8AAAAAAAAAA' +
       'AEFAAAAAAAFFQAAAAECAwQFBgcICQoLBukDAAB4cGVyZi5leGUAeABwAGUAcgBmACAAIA' +
       'AtAHMAdABvAHAAAAAAAAAA';
 
-  var kProcessDefunctPayload64bitV5 =
+  const kProcessDefunctPayload64bitV5 =
       'wMXyBgDg//9IGQAAEAgAAAEAAAAAAAAAAGDLTwAAAAAAAAAA8OU7AwDA//8AAAAAAAAMA' +
       'AEFAAAAAAAFFQAAAMDBwsPExcbH0NHS09QDAABjaHJvbWUuZXhlAAAAAAAAAI1Jovns+s' +
       '4B';
 
   test('DecodeFields', function() {
-    var importer = new tr.e.importer.etw.EtwImporter('dummy', []);
-    var decoder = importer.decoder_;
-    var parser = new tr.e.importer.etw.ProcessParser(importer);
-    var header;
-    var fields;
+    const importer = new tr.e.importer.etw.EtwImporter('dummy', []);
+    const decoder = importer.decoder_;
+    const parser = new tr.e.importer.etw.ProcessParser(importer);
+    let header;
+    let fields;
 
     // Validate a version 1 32-bit payload.
     header = { guid, opcode: kProcessStartOpcode, version: 1, is64: 0 };

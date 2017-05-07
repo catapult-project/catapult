@@ -185,7 +185,7 @@ the trace process after the user clicks on the trace button.
          * Gets the currently selected rerun option from the select menu.
          */
         getRerunOptions() {
-          var selected = this.$['rerun-options'].selectedOptions[0];
+          const selected = this.$['rerun-options'].selectedOptions[0];
           if (selected) {
             return selected.value;
           }
@@ -198,7 +198,7 @@ the trace process after the user clicks on the trace button.
         onSendToTrybot(event) {
           event.preventDefault();
           this.loading = true;
-          var params = {
+          const params = {
             'step': 'perform-perf-try',
             'bisect_bot': this.bot,
             'suite': this.suite,

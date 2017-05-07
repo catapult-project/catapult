@@ -23,7 +23,7 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   function filterExpectationsByRange(irs, opt_range) {
-    var filteredExpectations = [];
+    const filteredExpectations = [];
     irs.forEach(function(ir) {
       if (!(ir instanceof tr.model.um.UserExpectation)) return;
 

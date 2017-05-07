@@ -22,7 +22,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-var REPORT_JSON = {
+const REPORT_JSON = {
   'login_url': 'https:do/not/click',
   'revision_info': {
     'r_commit_pos': {
@@ -63,13 +63,13 @@ var REPORT_JSON = {
   'xsrf_token': 'aaaaa'
 };
 
-var SHORT_URI_JSON = {
+const SHORT_URI_JSON = {
   'charts': [[
     ['ChromiumPerf/chromium-rel-mac11/dromaeo.domcoreattr/dom', ['dom']]
   ]]
 };
 
-var SUNSPIDER_MENU_JSON = {
+const SUNSPIDER_MENU_JSON = {
   'Total': {
     'has_rows': true,
     'sub_tests': {
@@ -90,7 +90,7 @@ var SUNSPIDER_MENU_JSON = {
   }
 };
 
-var DROMAEO_MENU_JSON = {
+const DROMAEO_MENU_JSON = {
   'dom': {
     'has_rows': true,
     'sub_tests': {
@@ -111,9 +111,9 @@ var DROMAEO_MENU_JSON = {
 };
 
 tr.b.unittest.testSuite(function() {
-  var originalGetQueryString;
+  let originalGetQueryString;
 
-  var testOptions = {
+  const testOptions = {
     setUp() {
       events.startSiloingListeners();
       originalGetQueryString = uri.getQueryString;
@@ -155,7 +155,7 @@ tr.b.unittest.testSuite(function() {
     testing_common.mockChartJson(sunspiderCharts, null, '12345');
 
     // The report-page uses all these elements.
-    var page = document.createElement('report-page');
+    const page = document.createElement('report-page');
     this.addHTMLOutput(page);
   }, testOptions);
 });

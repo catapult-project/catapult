@@ -13,9 +13,9 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.e.chrome', function() {
-  var SAME_AS_PARENT = 'same-as-parent';
+  const SAME_AS_PARENT = 'same-as-parent';
 
-  var TITLES_FOR_USER_FRIENDLY_CATEGORY = {
+  const TITLES_FOR_USER_FRIENDLY_CATEGORY = {
     composite: [
       'CompositingInputsUpdater::update',
       'ThreadProxy::SetNeedsUpdateLayers',
@@ -141,10 +141,10 @@ tr.exportTo('tr.e.chrome', function() {
     ]
   };
 
-  var COLOR_FOR_USER_FRIENDLY_CATEGORY = new tr.b.SinebowColorGenerator();
-  var USER_FRIENDLY_CATEGORY_FOR_TITLE = new Map();
+  const COLOR_FOR_USER_FRIENDLY_CATEGORY = new tr.b.SinebowColorGenerator();
+  const USER_FRIENDLY_CATEGORY_FOR_TITLE = new Map();
 
-  for (var category in TITLES_FOR_USER_FRIENDLY_CATEGORY) {
+  for (const category in TITLES_FOR_USER_FRIENDLY_CATEGORY) {
     TITLES_FOR_USER_FRIENDLY_CATEGORY[category].forEach(function(title) {
       USER_FRIENDLY_CATEGORY_FOR_TITLE.set(title, category);
     });
@@ -152,7 +152,7 @@ tr.exportTo('tr.e.chrome', function() {
 
   // keys: event.category part
   // values: user friendly category
-  var USER_FRIENDLY_CATEGORY_FOR_EVENT_CATEGORY = {
+  const USER_FRIENDLY_CATEGORY_FOR_EVENT_CATEGORY = {
     netlog: 'net',
     overhead: 'overhead',
     startup: 'startup',
@@ -163,7 +163,7 @@ tr.exportTo('tr.e.chrome', function() {
   }
 
   ChromeUserFriendlyCategoryDriver.fromEvent = function(event) {
-    var userFriendlyCategory =
+    let userFriendlyCategory =
         USER_FRIENDLY_CATEGORY_FOR_TITLE.get(event.title);
     if (userFriendlyCategory) {
       if (userFriendlyCategory === SAME_AS_PARENT) {
@@ -175,9 +175,9 @@ tr.exportTo('tr.e.chrome', function() {
       }
     }
 
-    var eventCategoryParts = tr.b.getCategoryParts(event.category);
-    for (var i = 0; i < eventCategoryParts.length; ++i) {
-      var eventCategory = eventCategoryParts[i];
+    const eventCategoryParts = tr.b.getCategoryParts(event.category);
+    for (let i = 0; i < eventCategoryParts.length; ++i) {
+      const eventCategory = eventCategoryParts[i];
       userFriendlyCategory = USER_FRIENDLY_CATEGORY_FOR_EVENT_CATEGORY[
           eventCategory];
       if (userFriendlyCategory) {
@@ -193,11 +193,11 @@ tr.exportTo('tr.e.chrome', function() {
   };
 
   ChromeUserFriendlyCategoryDriver.ALL_TITLES = ['other'];
-  for (var category in TITLES_FOR_USER_FRIENDLY_CATEGORY) {
+  for (const category in TITLES_FOR_USER_FRIENDLY_CATEGORY) {
     if (category === SAME_AS_PARENT) continue;
     ChromeUserFriendlyCategoryDriver.ALL_TITLES.push(category);
   }
-  for (var category of tr.b.dictionaryValues(
+  for (const category of tr.b.dictionaryValues(
       USER_FRIENDLY_CATEGORY_FOR_EVENT_CATEGORY)) {
     ChromeUserFriendlyCategoryDriver.ALL_TITLES.push(category);
   }
@@ -205,7 +205,7 @@ tr.exportTo('tr.e.chrome', function() {
 
   // Prime the color generator by iterating through all UFCs in alphabetical
   // order.
-  for (var category of ChromeUserFriendlyCategoryDriver.ALL_TITLES) {
+  for (const category of ChromeUserFriendlyCategoryDriver.ALL_TITLES) {
     ChromeUserFriendlyCategoryDriver.getColor(category);
   }
 

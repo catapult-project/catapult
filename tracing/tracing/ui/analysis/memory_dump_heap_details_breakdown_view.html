@@ -33,9 +33,9 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.analysis', function() {
-  var RESONABLE_NUMBER_OF_ROWS = 200;
+  const RESONABLE_NUMBER_OF_ROWS = 200;
 
-  var TabUiState = {
+  const TabUiState = {
     NO_LONG_TAIL: 0,
     HIDING_LONG_TAIL: 1,
     SHOWING_LONG_TAIL: 2,
@@ -81,21 +81,21 @@ tr.exportTo('tr.ui.analysis', function() {
 
     set aggregationMode(aggregationMode) {
       this.aggregationMode_ = aggregationMode;
-      for (var tab of this.$.tabs.tabs) {
+      for (const tab of this.$.tabs.tabs) {
         tab.aggregationMode = aggregationMode;
       }
     },
 
     onRebuild_() {
-      var previouslySelectedTab = this.$.tabs.selectedSubView;
-      var previouslySelectedTabFocused = false;
-      var previouslySelectedDimension = undefined;
+      const previouslySelectedTab = this.$.tabs.selectedSubView;
+      let previouslySelectedTabFocused = false;
+      let previouslySelectedDimension = undefined;
       if (previouslySelectedTab) {
         previouslySelectedTabFocused = previouslySelectedTab.isFocused;
         previouslySelectedDimension = previouslySelectedTab.dimension;
       }
 
-      for (var tab of this.$.tabs.tabs) {
+      for (const tab of this.$.tabs.tabs) {
         tab.nodes = undefined;
       }
       this.$.tabs.clearSubViews();
@@ -105,12 +105,12 @@ tr.exportTo('tr.ui.analysis', function() {
         return;
       }
 
-      for (var [dimension, children] of this.displayedNode_.childNodes) {
+      for (const [dimension, children] of this.displayedNode_.childNodes) {
         if (!this.dimensionToTab_.has(dimension)) {
           this.dimensionToTab_.set(dimension, document.createElement(
               'tr-ui-a-memory-dump-heap-details-breakdown-view-tab'));
         }
-        var tab = this.dimensionToTab_.get(dimension);
+        const tab = this.dimensionToTab_.get(dimension);
         tab.aggregationMode = this.aggregationMode_;
         tab.dimension = dimension;
         tab.nodes = children;
@@ -134,26 +134,30 @@ tr.exportTo('tr.ui.analysis', function() {
     onKeyDown_(keyEvent) {
       if (!this.displayedNode_) return;
 
-      var keyHandled = false;
+      let keyHandled = false;
       switch (keyEvent.keyCode) {
-        case 8:  // Backspace.
+        case 8: {
+          // Backspace.
           if (!this.displayedNode_.parentNode) break;
 
           // Enter the parent node upon pressing backspace.
-          var viewEvent = new tr.b.Event('enter-node');
+          const viewEvent = new tr.b.Event('enter-node');
           viewEvent.node = this.displayedNode_.parentNode;
           this.dispatchEvent(viewEvent);
           keyHandled = true;
           break;
+        }
 
         case 37:  // Left arrow.
         case 39:  // Right arrow.
-          var wasFocused = this.$.tabs.selectedSubView.isFocused;
-          keyHandled = keyEvent.keyCode === 37 ?
-              this.$.tabs.selectPreviousTabIfPossible() :
-              this.$.tabs.selectNextTabIfPossible();
-          if (wasFocused && keyHandled) {
-            this.$.tabs.selectedSubView.focus();  // Restore focus to new tab.
+          {
+            const wasFocused = this.$.tabs.selectedSubView.isFocused;
+            keyHandled = keyEvent.keyCode === 37 ?
+                this.$.tabs.selectPreviousTabIfPossible() :
+                this.$.tabs.selectNextTabIfPossible();
+            if (wasFocused && keyHandled) {
+              this.$.tabs.selectedSubView.focus();  // Restore focus to new tab.
+            }
           }
       }
 
@@ -176,7 +180,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
     ready() {
       this.$.table.addEventListener('step-into', function(tableEvent) {
-        var viewEvent = new tr.b.Event('enter-node');
+        const viewEvent = new tr.b.Event('enter-node');
         viewEvent.node = tableEvent.tableRow;
         this.dispatchEvent(viewEvent);
       }.bind(this));
@@ -220,7 +224,7 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     get tabLabel() {
-      var nodeCount = 0;
+      let nodeCount = 0;
       if (this.nodes_) {
         nodeCount = this.nodes_.length;
       }
@@ -264,10 +268,10 @@ tr.exportTo('tr.ui.analysis', function() {
       this.$.table.selectionMode = tr.ui.b.TableFormat.SelectionMode.ROW;
       this.$.table.emptyValue = 'Cannot break down by ' +
           this.dimensionLabel_.toLowerCase() + ' any further.';
-      var [state, rows] = this.getRows_();
-      var total = this.nodes.length;
-      var displayed = rows.length;
-      var hidden = total - displayed;
+      const [state, rows] = this.getRows_();
+      const total = this.nodes.length;
+      const displayed = rows.length;
+      const hidden = total - displayed;
       this.updateInfoBar_(state, [total, displayed, hidden]);
       this.$.table.tableRows = rows;
       this.$.table.tableColumns = this.createColumns_(rows);
@@ -279,11 +283,11 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     createColumns_(rows) {
-      var titleColumn = new tr.ui.analysis.HeapDetailsTitleColumn(
+      const titleColumn = new tr.ui.analysis.HeapDetailsTitleColumn(
           this.dimensionLabel_);
       titleColumn.width = '400px';
 
-      var numericColumns = tr.ui.analysis.MemoryColumn.fromRows(rows, {
+      const numericColumns = tr.ui.analysis.MemoryColumn.fromRows(rows, {
         cellKey: 'cells',
         aggregationMode: this.aggregationMode_,
         rules: tr.ui.analysis.HEAP_DETAILS_COLUMN_RULES,
@@ -294,18 +298,18 @@ tr.exportTo('tr.ui.analysis', function() {
       }
       tr.ui.analysis.MemoryColumn.spaceEqually(numericColumns);
 
-      var columns = [titleColumn].concat(numericColumns);
+      const columns = [titleColumn].concat(numericColumns);
       return columns;
     },
 
     getRows_() {
-      var rows = this.nodes;
+      let rows = this.nodes;
       if (rows.length <= RESONABLE_NUMBER_OF_ROWS) {
         return [TabUiState.NO_LONG_TAIL, rows];
       } else if (this.displayLongTail) {
         return [TabUiState.SHOWING_LONG_TAIL, rows];
       }
-      var absSize = row => Math.max(row.cells.Size.fields[0].value);
+      const absSize = row => Math.max(row.cells.Size.fields[0].value);
       rows.sort((a, b) => absSize(b) - absSize(a));
       rows = rows.slice(0, RESONABLE_NUMBER_OF_ROWS);
       return [TabUiState.HIDING_LONG_TAIL, rows];
@@ -322,17 +326,17 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     longTailVisibleInfoBar_(rowStats) {
-      var [total, visible, hidden] = rowStats;
-      var couldHide = total - RESONABLE_NUMBER_OF_ROWS;
+      const [total, visible, hidden] = rowStats;
+      const couldHide = total - RESONABLE_NUMBER_OF_ROWS;
       this.$.info.message = 'Showing ' + total + ' rows. This may be slow.';
       this.$.info.removeAllButtons();
-      var buttonText = 'Hide ' + couldHide + ' rows.';
+      const buttonText = 'Hide ' + couldHide + ' rows.';
       this.$.info.addButton(buttonText, () => this.displayLongTail = false);
       this.$.info.visible = true;
     },
 
     longTailHiddenInfoBar_(rowStats) {
-      var [total, visible, hidden] = rowStats;
+      const [total, visible, hidden] = rowStats;
       this.$.info.message = 'Hiding the smallest ' + hidden + ' rows.';
       this.$.info.removeAllButtons();
       this.$.info.addButton('Show all.', () => this.displayLongTail = true);

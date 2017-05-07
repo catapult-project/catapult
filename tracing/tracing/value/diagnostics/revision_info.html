@@ -30,7 +30,7 @@ tr.exportTo('tr.v.d', function() {
     }
 
     clone() {
-      let clone = new tr.v.d.MergedRevisionInfo();
+      const clone = new tr.v.d.MergedRevisionInfo();
       clone.addDiagnostic(this);
       return clone;
     }

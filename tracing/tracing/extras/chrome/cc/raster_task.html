@@ -10,7 +10,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.e.cc', function() {
-  var knownRasterTaskNames = [
+  const knownRasterTaskNames = [
     'TileManager::RunRasterTask',
     'RasterWorkerPoolTaskImpl::RunRasterOnThread',
     'RasterWorkerPoolTaskImpl::Raster',
@@ -19,7 +19,7 @@ tr.exportTo('tr.e.cc', function() {
     'RasterTask'
   ];
 
-  var knownAnalysisTaskNames = [
+  const knownAnalysisTaskNames = [
     'TileManager::RunAnalyzeTask',
     'RasterWorkerPoolTaskImpl::RunAnalysisOnThread',
     'RasterWorkerPoolTaskImpl::Analyze',
@@ -33,7 +33,7 @@ tr.exportTo('tr.e.cc', function() {
       return undefined;
     }
 
-    var tileData;
+    let tileData;
     if (slice.args.data) {
       tileData = slice.args.data;
     } else {
@@ -42,7 +42,7 @@ tr.exportTo('tr.e.cc', function() {
     if (tileData === undefined) return undefined;
     if (tileData.tile_id) return tileData.tile_id;
 
-    var tile = tileData.tileId;
+    const tile = tileData.tileId;
     if (!(tile instanceof tr.e.cc.TileSnapshot)) {
       return undefined;
     }

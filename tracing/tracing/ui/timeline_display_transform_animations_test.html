@@ -13,21 +13,21 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var TimelineDisplayTransform = tr.ui.TimelineDisplayTransform;
-  var TimelineDisplayTransformPanAnimation =
+  const TimelineDisplayTransform = tr.ui.TimelineDisplayTransform;
+  const TimelineDisplayTransformPanAnimation =
       tr.ui.TimelineDisplayTransformPanAnimation;
-  var TimelineDisplayTransformZoomToAnimation =
+  const TimelineDisplayTransformZoomToAnimation =
       tr.ui.TimelineDisplayTransformZoomToAnimation;
 
   test('panBasic', function() {
-    var target = new TimelineDisplayTransform();
+    const target = new TimelineDisplayTransform();
     target.cloneAnimationState = function() {
       return this.clone();
     };
 
-    var a = new TimelineDisplayTransformPanAnimation(10, 20, 100);
+    const a = new TimelineDisplayTransformPanAnimation(10, 20, 100);
 
-    var controller = new tr.ui.b.AnimationController();
+    const controller = new tr.ui.b.AnimationController();
     controller.target = target;
     controller.queueAnimation(a, 0);
 
@@ -41,15 +41,15 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('zoomBasic', function() {
-    var target = new TimelineDisplayTransform();
+    const target = new TimelineDisplayTransform();
     target.panY = 30;
     target.cloneAnimationState = function() {
       return this.clone();
     };
 
-    var a = new TimelineDisplayTransformZoomToAnimation(10, 20, 30, 5, 100);
+    const a = new TimelineDisplayTransformZoomToAnimation(10, 20, 30, 5, 100);
 
-    var controller = new tr.ui.b.AnimationController();
+    const controller = new tr.ui.b.AnimationController();
     controller.target = target;
     controller.queueAnimation(a, 0);
 
@@ -59,15 +59,15 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('panTakeover', function() {
-    var target = new TimelineDisplayTransform();
+    const target = new TimelineDisplayTransform();
     target.cloneAnimationState = function() {
       return this.clone();
     };
 
-    var b = new TimelineDisplayTransformPanAnimation(10, 0, 100);
-    var a = new TimelineDisplayTransformPanAnimation(10, 0, 100);
+    const b = new TimelineDisplayTransformPanAnimation(10, 0, 100);
+    const a = new TimelineDisplayTransformPanAnimation(10, 0, 100);
 
-    var controller = new tr.ui.b.AnimationController();
+    const controller = new tr.ui.b.AnimationController();
     controller.target = target;
     controller.queueAnimation(a, 0);
 

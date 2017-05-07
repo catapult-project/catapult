@@ -14,53 +14,53 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.importer', function() {
-  var ProtoExpectation = tr.importer.ProtoExpectation;
-  var INITIATOR_TYPE = tr.model.um.INITIATOR_TYPE;
-  var INPUT_TYPE = tr.e.cc.INPUT_EVENT_TYPE_NAMES;
+  const ProtoExpectation = tr.importer.ProtoExpectation;
+  const INITIATOR_TYPE = tr.model.um.INITIATOR_TYPE;
+  const INPUT_TYPE = tr.e.cc.INPUT_EVENT_TYPE_NAMES;
 
-  var KEYBOARD_TYPE_NAMES = [
+  const KEYBOARD_TYPE_NAMES = [
     INPUT_TYPE.CHAR,
     INPUT_TYPE.KEY_DOWN_RAW,
     INPUT_TYPE.KEY_DOWN,
     INPUT_TYPE.KEY_UP
   ];
-  var MOUSE_RESPONSE_TYPE_NAMES = [
+  const MOUSE_RESPONSE_TYPE_NAMES = [
     INPUT_TYPE.CLICK,
     INPUT_TYPE.CONTEXT_MENU
   ];
-  var MOUSE_WHEEL_TYPE_NAMES = [
+  const MOUSE_WHEEL_TYPE_NAMES = [
     INPUT_TYPE.MOUSE_WHEEL
   ];
-  var MOUSE_DRAG_TYPE_NAMES = [
+  const MOUSE_DRAG_TYPE_NAMES = [
     INPUT_TYPE.MOUSE_DOWN,
     INPUT_TYPE.MOUSE_MOVE,
     INPUT_TYPE.MOUSE_UP
   ];
-  var TAP_TYPE_NAMES = [
+  const TAP_TYPE_NAMES = [
     INPUT_TYPE.TAP,
     INPUT_TYPE.TAP_CANCEL,
     INPUT_TYPE.TAP_DOWN
   ];
-  var PINCH_TYPE_NAMES = [
+  const PINCH_TYPE_NAMES = [
     INPUT_TYPE.PINCH_BEGIN,
     INPUT_TYPE.PINCH_END,
     INPUT_TYPE.PINCH_UPDATE
   ];
-  var FLING_TYPE_NAMES = [
+  const FLING_TYPE_NAMES = [
     INPUT_TYPE.FLING_CANCEL,
     INPUT_TYPE.FLING_START
   ];
-  var TOUCH_TYPE_NAMES = [
+  const TOUCH_TYPE_NAMES = [
     INPUT_TYPE.TOUCH_END,
     INPUT_TYPE.TOUCH_MOVE,
     INPUT_TYPE.TOUCH_START
   ];
-  var SCROLL_TYPE_NAMES = [
+  const SCROLL_TYPE_NAMES = [
     INPUT_TYPE.SCROLL_BEGIN,
     INPUT_TYPE.SCROLL_END,
     INPUT_TYPE.SCROLL_UPDATE
   ];
-  var ALL_HANDLED_TYPE_NAMES = [].concat(
+  const ALL_HANDLED_TYPE_NAMES = [].concat(
       KEYBOARD_TYPE_NAMES,
       MOUSE_RESPONSE_TYPE_NAMES,
       MOUSE_WHEEL_TYPE_NAMES,
@@ -72,10 +72,10 @@ tr.exportTo('tr.importer', function() {
       SCROLL_TYPE_NAMES
   );
 
-  var RENDERER_FLING_TITLE = 'InputHandlerProxy::HandleGestureFling::started';
-  var PLAYBACK_EVENT_TITLE = 'VideoPlayback';
+  const RENDERER_FLING_TITLE = 'InputHandlerProxy::HandleGestureFling::started';
+  const PLAYBACK_EVENT_TITLE = 'VideoPlayback';
 
-  var CSS_ANIMATION_TITLE = 'Animation';
+  const CSS_ANIMATION_TITLE = 'Animation';
 
   /**
    * If there's less than this much time between the end of one event and the
@@ -84,20 +84,20 @@ tr.exportTo('tr.importer', function() {
    * reason to change it, then please do so. It might also be good to split this
    * into multiple values.
    */
-  var INPUT_MERGE_THRESHOLD_MS = 200;
-  var ANIMATION_MERGE_THRESHOLD_MS = 32;   // 2x 60FPS frames
+  const INPUT_MERGE_THRESHOLD_MS = 200;
+  const ANIMATION_MERGE_THRESHOLD_MS = 32;   // 2x 60FPS frames
 
   /**
    * If two MouseWheel events begin this close together, then they're an
    * Animation, not two responses.
    */
-  var MOUSE_WHEEL_THRESHOLD_MS = 40;
+  const MOUSE_WHEEL_THRESHOLD_MS = 40;
 
   /**
    * If two MouseMoves are more than this far apart, then they're two Responses,
    * not Animation.
    */
-  var MOUSE_MOVE_THRESHOLD_MS = 40;
+  const MOUSE_MOVE_THRESHOLD_MS = 40;
 
   // TODO(benjhayden) Find a better home for this.
   function compareEvents(x, y) {
@@ -127,8 +127,8 @@ tr.exportTo('tr.importer', function() {
   }
 
   function getSortedFrameEventsByProcess(modelHelper) {
-    var frameEventsByPid = {};
-    for (var [pid, rendererHelper] of
+    const frameEventsByPid = {};
+    for (const [pid, rendererHelper] of
         Object.entries(modelHelper.rendererHelpers)) {
       frameEventsByPid[pid] = rendererHelper.getFrameEventsInRange(
           tr.model.helpers.IMPL_FRAMETIME_TYPE, modelHelper.model.bounds);
@@ -137,12 +137,12 @@ tr.exportTo('tr.importer', function() {
   }
 
   function getSortedInputEvents(modelHelper) {
-    var inputEvents = [];
+    const inputEvents = [];
 
-    var browserProcess = modelHelper.browserHelper.process;
-    var mainThread = browserProcess.findAtMostOneThreadNamed(
+    const browserProcess = modelHelper.browserHelper.process;
+    const mainThread = browserProcess.findAtMostOneThreadNamed(
         'CrBrowserMain');
-    for (var slice of mainThread.asyncSliceGroup.getDescendantEvents()) {
+    for (const slice of mainThread.asyncSliceGroup.getDescendantEvents()) {
       if (!slice.isTopLevel) continue;
 
       if (!(slice instanceof tr.e.cc.InputLatencyAsyncSlice)) continue;
@@ -162,9 +162,9 @@ tr.exportTo('tr.importer', function() {
   }
 
   function findProtoExpectations(modelHelper, sortedInputEvents) {
-    var protoExpectations = [];
+    const protoExpectations = [];
     // This order is not important. Handlers are independent.
-    var handlers = [
+    const handlers = [
       handleKeyboardEvents,
       handleMouseResponseEvents,
       handleMouseWheelEvents,
@@ -190,9 +190,9 @@ tr.exportTo('tr.importer', function() {
    * Every keyboard event is a Response.
    */
   function handleKeyboardEvents(modelHelper, sortedInputEvents) {
-    var protoExpectations = [];
+    const protoExpectations = [];
     forEventTypesIn(sortedInputEvents, KEYBOARD_TYPE_NAMES, function(event) {
-      var pe = new ProtoExpectation(
+      const pe = new ProtoExpectation(
           ProtoExpectation.RESPONSE_TYPE, INITIATOR_TYPE.KEYBOARD);
       pe.pushEvent(event);
       protoExpectations.push(pe);
@@ -204,10 +204,10 @@ tr.exportTo('tr.importer', function() {
    * Some mouse events can be translated directly into Responses.
    */
   function handleMouseResponseEvents(modelHelper, sortedInputEvents) {
-    var protoExpectations = [];
+    const protoExpectations = [];
     forEventTypesIn(
         sortedInputEvents, MOUSE_RESPONSE_TYPE_NAMES, function(event) {
-          var pe = new ProtoExpectation(
+          const pe = new ProtoExpectation(
           ProtoExpectation.RESPONSE_TYPE, INITIATOR_TYPE.MOUSE);
           pe.pushEvent(event);
           protoExpectations.push(pe);
@@ -227,13 +227,13 @@ tr.exportTo('tr.importer', function() {
    * with the start time of the next.
    */
   function handleMouseWheelEvents(modelHelper, sortedInputEvents) {
-    var protoExpectations = [];
-    var currentPE = undefined;
-    var prevEvent_ = undefined;
+    const protoExpectations = [];
+    let currentPE = undefined;
+    let prevEvent_ = undefined;
     forEventTypesIn(
         sortedInputEvents, MOUSE_WHEEL_TYPE_NAMES, function(event) {
       // Switch prevEvent in one place so that we can early-return later.
-          var prevEvent = prevEvent_;
+          const prevEvent = prevEvent_;
           prevEvent_ = event;
 
           if (currentPE &&
@@ -271,16 +271,16 @@ tr.exportTo('tr.importer', function() {
    * DDD MMM MMM MMM MMM MMM UUU
    */
   function handleMouseDragEvents(modelHelper, sortedInputEvents) {
-    var protoExpectations = [];
-    var currentPE = undefined;
-    var mouseDownEvent = undefined;
+    const protoExpectations = [];
+    let currentPE = undefined;
+    let mouseDownEvent = undefined;
     forEventTypesIn(
         sortedInputEvents, MOUSE_DRAG_TYPE_NAMES, function(event) {
           switch (event.typeName) {
             case INPUT_TYPE.MOUSE_DOWN:
               if (causedFrame(event)) {
-                var pe = new ProtoExpectation(
-                ProtoExpectation.RESPONSE_TYPE, INITIATOR_TYPE.MOUSE);
+                const pe = new ProtoExpectation(
+                    ProtoExpectation.RESPONSE_TYPE, INITIATOR_TYPE.MOUSE);
                 pe.pushEvent(event);
                 protoExpectations.push(pe);
               } else {
@@ -305,7 +305,7 @@ tr.exportTo('tr.importer', function() {
               if (!causedFrame(event)) {
             // Ignore MouseMoves that do not affect the screen. They are not
             // part of an interaction record by definition.
-                var pe = new ProtoExpectation(ProtoExpectation.IGNORED_TYPE);
+                const pe = new ProtoExpectation(ProtoExpectation.IGNORED_TYPE);
                 pe.pushEvent(event);
                 protoExpectations.push(pe);
               } else if (!currentPE ||
@@ -335,10 +335,10 @@ tr.exportTo('tr.importer', function() {
 
             case INPUT_TYPE.MOUSE_UP:
               if (!mouseDownEvent) {
-                var pe = new ProtoExpectation(
-                causedFrame(event) ? ProtoExpectation.RESPONSE_TYPE :
-                ProtoExpectation.IGNORED_TYPE,
-                INITIATOR_TYPE.MOUSE);
+                const pe = new ProtoExpectation(
+                    causedFrame(event) ? ProtoExpectation.RESPONSE_TYPE :
+                    ProtoExpectation.IGNORED_TYPE,
+                    INITIATOR_TYPE.MOUSE);
                 pe.pushEvent(event);
                 protoExpectations.push(pe);
                 break;
@@ -389,8 +389,8 @@ tr.exportTo('tr.importer', function() {
    * DDD CCC
    **/
   function handleTapResponseEvents(modelHelper, sortedInputEvents) {
-    var protoExpectations = [];
-    var currentPE = undefined;
+    const protoExpectations = [];
+    let currentPE = undefined;
     forEventTypesIn(sortedInputEvents, TAP_TYPE_NAMES, function(event) {
       switch (event.typeName) {
         case INPUT_TYPE.TAP_DOWN:
@@ -416,7 +416,7 @@ tr.exportTo('tr.importer', function() {
 
         case INPUT_TYPE.TAP_CANCEL:
           if (!currentPE) {
-            var pe = new ProtoExpectation(ProtoExpectation.IGNORED_TYPE);
+            const pe = new ProtoExpectation(ProtoExpectation.IGNORED_TYPE);
             pe.pushEvent(event);
             protoExpectations.push(pe);
             break;
@@ -445,10 +445,10 @@ tr.exportTo('tr.importer', function() {
    * BBB UUU UUU UUU UUU UUU EEE
    */
   function handlePinchEvents(modelHelper, sortedInputEvents) {
-    var protoExpectations = [];
-    var currentPE = undefined;
-    var sawFirstUpdate = false;
-    var modelBounds = modelHelper.model.bounds;
+    const protoExpectations = [];
+    let currentPE = undefined;
+    let sawFirstUpdate = false;
+    const modelBounds = modelHelper.model.bounds;
     forEventTypesIn(sortedInputEvents, PINCH_TYPE_NAMES, function(event) {
       switch (event.typeName) {
         case INPUT_TYPE.PINCH_BEGIN:
@@ -489,7 +489,7 @@ tr.exportTo('tr.importer', function() {
           if (currentPE) {
             currentPE.pushEvent(event);
           } else {
-            var pe = new ProtoExpectation(ProtoExpectation.IGNORED_TYPE);
+            const pe = new ProtoExpectation(ProtoExpectation.IGNORED_TYPE);
             pe.pushEvent(event);
             protoExpectations.push(pe);
           }
@@ -515,14 +515,14 @@ tr.exportTo('tr.importer', function() {
    * SSS        CCC
    */
   function handleFlingEvents(modelHelper, sortedInputEvents) {
-    var protoExpectations = [];
-    var currentPE = undefined;
+    const protoExpectations = [];
+    let currentPE = undefined;
 
     function isRendererFling(event) {
       return event.title === RENDERER_FLING_TITLE;
     }
-    var browserHelper = modelHelper.browserHelper;
-    var flingEvents = browserHelper.getAllAsyncSlicesMatching(
+    const browserHelper = modelHelper.browserHelper;
+    const flingEvents = browserHelper.getAllAsyncSlicesMatching(
         isRendererFling);
 
     forEventTypesIn(sortedInputEvents, FLING_TYPE_NAMES, function(event) {
@@ -576,7 +576,7 @@ tr.exportTo('tr.importer', function() {
             currentPE.end = event.start;
             currentPE = undefined;
           } else {
-            var pe = new ProtoExpectation(ProtoExpectation.IGNORED_TYPE);
+            const pe = new ProtoExpectation(ProtoExpectation.IGNORED_TYPE);
             pe.pushEvent(event);
             protoExpectations.push(pe);
           }
@@ -606,9 +606,9 @@ tr.exportTo('tr.importer', function() {
    * SSS EEE
    */
   function handleTouchEvents(modelHelper, sortedInputEvents) {
-    var protoExpectations = [];
-    var currentPE = undefined;
-    var sawFirstMove = false;
+    const protoExpectations = [];
+    let currentPE = undefined;
+    let sawFirstMove = false;
     forEventTypesIn(sortedInputEvents, TOUCH_TYPE_NAMES, function(event) {
       switch (event.typeName) {
         case INPUT_TYPE.TOUCH_START:
@@ -645,7 +645,7 @@ tr.exportTo('tr.importer', function() {
               !currentPE.isNear(event, INPUT_MERGE_THRESHOLD_MS)) {
             // If there's already a touchmove in the currentPE or it's not
             // near event, then finish it and start a new animation.
-            var prevEnd = currentPE.end;
+            const prevEnd = currentPE.end;
             currentPE = new ProtoExpectation(
                 ProtoExpectation.ANIMATION_TYPE, INITIATOR_TYPE.TOUCH);
             currentPE.pushEvent(event);
@@ -661,7 +661,7 @@ tr.exportTo('tr.importer', function() {
 
         case INPUT_TYPE.TOUCH_END:
           if (!currentPE) {
-            var pe = new ProtoExpectation(ProtoExpectation.IGNORED_TYPE);
+            const pe = new ProtoExpectation(ProtoExpectation.IGNORED_TYPE);
             pe.pushEvent(event);
             protoExpectations.push(pe);
             break;
@@ -669,7 +669,7 @@ tr.exportTo('tr.importer', function() {
           if (currentPE.isNear(event, INPUT_MERGE_THRESHOLD_MS)) {
             currentPE.pushEvent(event);
           } else {
-            var pe = new ProtoExpectation(ProtoExpectation.IGNORED_TYPE);
+            const pe = new ProtoExpectation(ProtoExpectation.IGNORED_TYPE);
             pe.pushEvent(event);
             protoExpectations.push(pe);
           }
@@ -688,9 +688,9 @@ tr.exportTo('tr.importer', function() {
    * BBB UUU UUU UUU UUU UUU EEE
    */
   function handleScrollEvents(modelHelper, sortedInputEvents) {
-    var protoExpectations = [];
-    var currentPE = undefined;
-    var sawFirstUpdate = false;
+    const protoExpectations = [];
+    let currentPE = undefined;
+    let sawFirstUpdate = false;
     forEventTypesIn(sortedInputEvents, SCROLL_TYPE_NAMES, function(event) {
       switch (event.typeName) {
         case INPUT_TYPE.SCROLL_BEGIN:
@@ -733,7 +733,7 @@ tr.exportTo('tr.importer', function() {
               message: 'Please file a bug with this trace: ScrollEnd',
               showToUser: true
             });
-            var pe = new ProtoExpectation(ProtoExpectation.IGNORED_TYPE);
+            const pe = new ProtoExpectation(ProtoExpectation.IGNORED_TYPE);
             pe.pushEvent(event);
             protoExpectations.push(pe);
             break;
@@ -753,10 +753,10 @@ tr.exportTo('tr.importer', function() {
    * to VideoFrameCompositor::Stop calls)
    */
   function handleVideoAnimations(modelHelper, sortedInputEvents) {
-    var events = [];
-    for (var pid in modelHelper.rendererHelpers) {
-      for (var tid in modelHelper.rendererHelpers[pid].process.threads) {
-        for (var asyncSlice of
+    const events = [];
+    for (const pid in modelHelper.rendererHelpers) {
+      for (const tid in modelHelper.rendererHelpers[pid].process.threads) {
+        for (const asyncSlice of
             modelHelper.rendererHelpers[pid].process.threads[tid]
                 .asyncSliceGroup.slices) {
           if (asyncSlice.title === PLAYBACK_EVENT_TITLE) {
@@ -768,9 +768,9 @@ tr.exportTo('tr.importer', function() {
 
     events.sort(tr.importer.compareEvents);
 
-    var protoExpectations = [];
-    for (var event of events) {
-      var currentPE = new ProtoExpectation(
+    const protoExpectations = [];
+    for (const event of events) {
+      const currentPE = new ProtoExpectation(
           ProtoExpectation.ANIMATION_TYPE, INITIATOR_TYPE.VIDEO);
       currentPE.start = event.start;
       currentPE.end = event.end;
@@ -786,7 +786,7 @@ tr.exportTo('tr.importer', function() {
    */
   function handleCSSAnimations(modelHelper, sortedInputEvents) {
     // First find all the top-level CSS Animation async events.
-    var animationEvents = modelHelper.browserHelper.
+    const animationEvents = modelHelper.browserHelper.
         getAllAsyncSlicesMatching(function(event) {
           return ((event.title === CSS_ANIMATION_TITLE) &&
                   event.isTopLevel &&
@@ -796,12 +796,12 @@ tr.exportTo('tr.importer', function() {
 
     // Time ranges where animations are actually running will be collected here.
     // Each element will contain {min, max, animation}.
-    var animationRanges = [];
+    const animationRanges = [];
 
     // This helper function will be called when a time range is found
     // during which the animation is actually running.
     function pushAnimationRange(start, end, animation) {
-      var range = tr.b.math.Range.fromExplicitRange(start, end);
+      const range = tr.b.math.Range.fromExplicitRange(start, end);
       range.animation = animation;
       animationRanges.push(range);
     }
@@ -813,7 +813,7 @@ tr.exportTo('tr.importer', function() {
         // Now run a state machine over the animation's subSlices, which
         // indicate the animations running/paused/finished states, in order to
         // find ranges where the animation was actually running.
-        var start = undefined;
+        let start = undefined;
         animation.subSlices.forEach(function(sub) {
           if ((sub.args.data.state === 'running') &&
               (start === undefined)) {
@@ -853,7 +853,7 @@ tr.exportTo('tr.importer', function() {
     // after findFrameEventsForAnimations removes frame-less animations.
 
     return animationRanges.map(function(range) {
-      var protoExpectation = new ProtoExpectation(
+      const protoExpectation = new ProtoExpectation(
           ProtoExpectation.ANIMATION_TYPE, INITIATOR_TYPE.CSS);
       protoExpectation.start = range.min;
       protoExpectation.end = range.max;
@@ -872,7 +872,7 @@ tr.exportTo('tr.importer', function() {
    * modifies mailboxEvents and animationEvents.
    */
   function findWebGLEvents(modelHelper, mailboxEvents, animationEvents) {
-    for (var event of modelHelper.model.getDescendantEvents()) {
+    for (const event of modelHelper.model.getDescendantEvents()) {
       if (event.title === 'DrawingBuffer::prepareMailbox') {
         mailboxEvents.push(event);
       } else if (event.title === 'PageAnimator::serviceScriptedAnimations') {
@@ -891,14 +891,14 @@ tr.exportTo('tr.importer', function() {
 
     mailboxEvents.sort(compareEvents);
     animationEvents.sort(compareEvents);
-    var animationIterator = animationEvents[Symbol.iterator]();
-    var animationEvent = animationIterator.next().value;
+    const animationIterator = animationEvents[Symbol.iterator]();
+    let animationEvent = animationIterator.next().value;
 
-    var filteredEvents = [];
+    const filteredEvents = [];
 
     // We iterate through the mailboxEvents. With each event, we check if
     // there is a animationEvent near it, and if so, add it to the result.
-    for (var event of mailboxEvents) {
+    for (const event of mailboxEvents) {
       // If the current animationEvent is too far before the mailboxEvent,
       // we advance until we get to the next animationEvent that is not too
       // far before the animationEvent.
@@ -929,9 +929,9 @@ tr.exportTo('tr.importer', function() {
    * will not end up in the associatedEvents.
    */
   function createProtoExpectationsFromMailboxEvents(mailboxEvents) {
-    var protoExpectations = [];
-    var currentPE = undefined;
-    for (var event of mailboxEvents) {
+    const protoExpectations = [];
+    let currentPE = undefined;
+    for (const event of mailboxEvents) {
       if (currentPE === undefined || !currentPE.isNear(
           event, ANIMATION_MERGE_THRESHOLD_MS)) {
         currentPE = new ProtoExpectation(
@@ -950,11 +950,11 @@ tr.exportTo('tr.importer', function() {
   // and consecutive frames are merged into the same animation.
   function handleWebGLAnimations(modelHelper, sortedInputEvents) {
     // Get the prepareMailbox and scriptedAnimation events.
-    var prepareMailboxEvents = [];
-    var scriptedAnimationEvents = [];
+    const prepareMailboxEvents = [];
+    const scriptedAnimationEvents = [];
 
     findWebGLEvents(modelHelper, prepareMailboxEvents, scriptedAnimationEvents);
-    var webGLMailboxEvents = findMailboxEventsNearAnimationEvents(
+    const webGLMailboxEvents = findMailboxEventsNearAnimationEvents(
         prepareMailboxEvents, scriptedAnimationEvents);
 
     return createProtoExpectationsFromMailboxEvents(webGLMailboxEvents);
@@ -988,16 +988,16 @@ tr.exportTo('tr.importer', function() {
    * Returns a modified set of ProtoExpectations.
    */
   function mergeIntersectingResponses(protoExpectations) {
-    var newPEs = [];
+    const newPEs = [];
     while (protoExpectations.length) {
-      var pe = protoExpectations.shift();
+      const pe = protoExpectations.shift();
       newPEs.push(pe);
 
       // Only consider Responses for now.
       if (pe.type !== ProtoExpectation.RESPONSE_TYPE) continue;
 
-      for (var i = 0; i < protoExpectations.length; ++i) {
-        var otherPE = protoExpectations[i];
+      for (let i = 0; i < protoExpectations.length; ++i) {
+        const otherPE = protoExpectations[i];
 
         if (otherPE.type !== pe.type) continue;
 
@@ -1006,7 +1006,7 @@ tr.exportTo('tr.importer', function() {
         // Don't merge together Responses of the same type.
         // If handleTouchEvents wanted two of its Responses to be merged, then
         // it would have made them that way to begin with.
-        var typeNames = pe.associatedEvents.map(function(event) {
+        const typeNames = pe.associatedEvents.map(function(event) {
           return event.typeName;
         });
         if (otherPE.containsTypeNames(typeNames)) continue;
@@ -1034,20 +1034,20 @@ tr.exportTo('tr.importer', function() {
    * Returns a modified set of ProtoExpectations.
    */
   function mergeIntersectingAnimations(protoExpectations) {
-    var newPEs = [];
+    const newPEs = [];
     while (protoExpectations.length) {
-      var pe = protoExpectations.shift();
+      const pe = protoExpectations.shift();
       newPEs.push(pe);
 
       // Only consider Animations for now.
       if (pe.type !== ProtoExpectation.ANIMATION_TYPE) continue;
 
-      var isCSS = pe.initiatorType === INITIATOR_TYPE.CSS;
-      var isFling = pe.containsTypeNames([INPUT_TYPE.FLING_START]);
-      var isVideo = pe.initiatorType === INITIATOR_TYPE.VIDEO;
+      const isCSS = pe.initiatorType === INITIATOR_TYPE.CSS;
+      const isFling = pe.containsTypeNames([INPUT_TYPE.FLING_START]);
+      const isVideo = pe.initiatorType === INITIATOR_TYPE.VIDEO;
 
-      for (var i = 0; i < protoExpectations.length; ++i) {
-        var otherPE = protoExpectations[i];
+      for (let i = 0; i < protoExpectations.length; ++i) {
+        const otherPE = protoExpectations[i];
 
         if (otherPE.type !== pe.type) continue;
 
@@ -1132,21 +1132,21 @@ tr.exportTo('tr.importer', function() {
               !pe.containsTypeNames([
                 INPUT_TYPE.SCROLL_UPDATE, INPUT_TYPE.PINCH_UPDATE]);
     }
-    var newPEs = [];
+    const newPEs = [];
     while (protoExpectations.length) {
-      var pe = protoExpectations.shift();
+      const pe = protoExpectations.shift();
       newPEs.push(pe);
 
       // protoExpectations are sorted by start time, and we don't know whether
       // the Tap Response or the Touch Animation will be first
-      var peIsTapResponse = isTapResponse(pe);
-      var peIsTouchAnimation = isTouchAnimation(pe);
+      const peIsTapResponse = isTapResponse(pe);
+      const peIsTouchAnimation = isTouchAnimation(pe);
       if (!peIsTapResponse && !peIsTouchAnimation) {
         continue;
       }
 
-      for (var i = 0; i < protoExpectations.length; ++i) {
-        var otherPE = protoExpectations[i];
+      for (let i = 0; i < protoExpectations.length; ++i) {
+        const otherPE = protoExpectations[i];
 
         if (!otherPE.intersects(pe)) continue;
 
@@ -1168,19 +1168,19 @@ tr.exportTo('tr.importer', function() {
   }
 
   function findFrameEventsForAnimations(modelHelper, protoExpectations) {
-    var newPEs = [];
-    var frameEventsByPid = getSortedFrameEventsByProcess(modelHelper);
+    const newPEs = [];
+    const frameEventsByPid = getSortedFrameEventsByProcess(modelHelper);
 
-    for (var pe of protoExpectations) {
+    for (const pe of protoExpectations) {
       if (pe.type !== ProtoExpectation.ANIMATION_TYPE) {
         newPEs.push(pe);
         continue;
       }
 
-      var frameEvents = [];
+      const frameEvents = [];
       // TODO(benjhayden): Use frame blame contexts here.
-      for (var pid of Object.keys(modelHelper.rendererHelpers)) {
-        var range = tr.b.math.Range.fromExplicitRange(pe.start, pe.end);
+      for (const pid of Object.keys(modelHelper.rendererHelpers)) {
+        const range = tr.b.math.Range.fromExplicitRange(pe.start, pe.end);
         frameEvents.push.apply(frameEvents,
             range.filterArray(frameEventsByPid[pid], e => e.start));
       }
@@ -1213,7 +1213,7 @@ tr.exportTo('tr.importer', function() {
    */
   function checkAllInputEventsHandled(
       modelHelper, sortedInputEvents, protoExpectations) {
-    var handledEvents = [];
+    const handledEvents = [];
     protoExpectations.forEach(function(protoExpectation) {
       protoExpectation.associatedEvents.forEach(function(event) {
         // Ignore CSS Animations that might have multiple active ranges.
@@ -1252,17 +1252,17 @@ tr.exportTo('tr.importer', function() {
    * Find ProtoExpectations, post-process them, convert them to real UEs.
    */
   function findInputExpectations(modelHelper) {
-    var sortedInputEvents = getSortedInputEvents(modelHelper);
-    var protoExpectations = findProtoExpectations(
+    const sortedInputEvents = getSortedInputEvents(modelHelper);
+    let protoExpectations = findProtoExpectations(
         modelHelper, sortedInputEvents);
     protoExpectations = postProcessProtoExpectations(
         modelHelper, protoExpectations);
     checkAllInputEventsHandled(
         modelHelper, sortedInputEvents, protoExpectations);
 
-    var expectations = [];
+    const expectations = [];
     protoExpectations.forEach(function(protoExpectation) {
-      var ir = protoExpectation.createInteractionRecord(modelHelper.model);
+      const ir = protoExpectation.createInteractionRecord(modelHelper.model);
       if (ir) {
         expectations.push(ir);
       }

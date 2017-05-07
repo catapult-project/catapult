@@ -39,9 +39,9 @@ Polymer({
   buildRow_(rows, label, revisions, host) {
     if (revisions.length === 0) return;
 
-    let valueSpan = document.createElement('span');
-    for (let revs of revisions) {
-      let anchor = document.createElement('a');
+    const valueSpan = document.createElement('span');
+    for (const revs of revisions) {
+      const anchor = document.createElement('a');
       anchor.innerText = revs[0];
 
       if (revs.length === 1) {
@@ -67,14 +67,14 @@ Polymer({
       return;
     }
 
-    let rows = [];
+    const rows = [];
     if (this.diagnostic.chromiumCommitPosition) {
-      let positions = Array.from(this.diagnostic.chromiumCommitPositions);
+      const positions = Array.from(this.diagnostic.chromiumCommitPositions);
       positions.sort((x, y) => x - y);
       rows.push(['chromiumCommitPositions', positions.join(', ')]);
     }
     if (this.diagnostic.v8CommitPosition) {
-      let positions = Array.from(this.diagnostic.v8CommitPositions);
+      const positions = Array.from(this.diagnostic.v8CommitPositions);
       rows.push(['v8CommitPositions', positions.join(', ')]);
     }
     this.buildRow_(rows, 'chromium', this.diagnostic.chromium,

@@ -416,7 +416,7 @@ tr.b.unittest.testSuite(function() {
       newHistogram('a', {samples: [1]}),
     ]);
     const table = await buildTable(this, histograms);
-    let cell = tr.b.getOnlyElement(getTableCells(table));
+    const cell = tr.b.getOnlyElement(getTableCells(table));
     assert.isFalse(cell.isHistogramOpen);
 
     await table.viewState.tableRowStates.get('a').cells.get('Value').update(
@@ -509,7 +509,7 @@ tr.b.unittest.testSuite(function() {
       {isOpen: true});
     await table.viewState.tableRowStates.get('a').cells.get('Value').update(
         {brushedBinRange: tr.b.math.Range.fromExplicitRange(0, 10)});
-    let histSpan = tr.b.findDeepElementMatchingPredicate(table, e =>
+    const histSpan = tr.b.findDeepElementMatchingPredicate(table, e =>
         e.tagName === 'TR-V-UI-HISTOGRAM-SPAN');
     assert.isTrue(histSpan.mergeSampleDiagnostics);
 
@@ -713,32 +713,34 @@ tr.b.unittest.testSuite(function() {
 
     for (let i = 0; i < 2; ++i) {
       for (let j = 0; j < 2; ++j) {
-        let telemetry = new tr.v.d.TelemetryInfo({
+        const telemetry = new tr.v.d.TelemetryInfo({
           storyDisplayName: 'story' + i,
           benchmarkName: 'bench' + j,
           benchmarkStartMs,
           label: 'Value',
         });
 
-        let sample = (i * 100) + (j * 10);
+        const sample = (i * 100) + (j * 10);
 
-        let sourceHist = new tr.v.Histogram(
+        const sourceHist = new tr.v.Histogram(
             'source', tr.b.Unit.byName.count, boundaries);
         sourceHist.addSample(sample);
         telemetry.addToHistogram(sourceHist);
         histograms.addHistogram(sourceHist);
 
-        let aHist = new tr.v.Histogram('a', tr.b.Unit.byName.count, boundaries);
+        const aHist = new tr.v.Histogram(
+            'a', tr.b.Unit.byName.count, boundaries);
         aHist.addSample(sample / 10);
         telemetry.addToHistogram(aHist);
         histograms.addHistogram(aHist);
 
-        let bHist = new tr.v.Histogram('b', tr.b.Unit.byName.count, boundaries);
+        const bHist = new tr.v.Histogram(
+            'b', tr.b.Unit.byName.count, boundaries);
         bHist.addSample(sample * 9 / 10);
         telemetry.addToHistogram(bHist);
         histograms.addHistogram(bHist);
 
-        let breakdown = new tr.v.d.RelatedHistogramBreakdown();
+        const breakdown = new tr.v.d.RelatedHistogramBreakdown();
         breakdown.add(aHist);
         breakdown.add(bHist);
         sourceHist.diagnostics.set('breakdown', breakdown);
@@ -754,13 +756,13 @@ tr.b.unittest.testSuite(function() {
     // https://github.com/catapult-project/catapult/issues/3281
     const histograms = new tr.v.HistogramSet();
 
-    let telemetryA = new tr.v.d.TelemetryInfo({label: 'A'});
-    let telemetryB = new tr.v.d.TelemetryInfo({label: 'B'});
+    const telemetryA = new tr.v.d.TelemetryInfo({label: 'A'});
+    const telemetryB = new tr.v.d.TelemetryInfo({label: 'B'});
 
     tr.b.Settings.set(tr.v.ui.REFERENCE_DISPLAY_LABEL_KEY, telemetryA.label);
     tr.b.Settings.set(tr.v.ui.DISPLAY_STATISTIC_KEY, 'z-score');
 
-    let hist0a = new tr.v.Histogram('foo',
+    const hist0a = new tr.v.Histogram('foo',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     for (let i = 0; i < 100; ++i) {
       hist0a.addSample(Math.random() * 1e3);
@@ -768,7 +770,7 @@ tr.b.unittest.testSuite(function() {
     histograms.addHistogram(hist0a);
     telemetryA.addToHistogram(hist0a);
 
-    let hist1a = new tr.v.Histogram('bar',
+    const hist1a = new tr.v.Histogram('bar',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     for (let i = 0; i < 100; ++i) {
       hist1a.addSample(Math.random() * 1e3);
@@ -776,7 +778,7 @@ tr.b.unittest.testSuite(function() {
     histograms.addHistogram(hist1a);
     telemetryA.addToHistogram(hist1a);
 
-    let hist0b = new tr.v.Histogram('foo',
+    const hist0b = new tr.v.Histogram('foo',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     for (let i = 0; i < 100; ++i) {
       hist0b.addSample(Math.random() * 1e3);
@@ -784,7 +786,7 @@ tr.b.unittest.testSuite(function() {
     histograms.addHistogram(hist0b);
     telemetryB.addToHistogram(hist0b);
 
-    let hist1b = new tr.v.Histogram('bar',
+    const hist1b = new tr.v.Histogram('bar',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     for (let i = 0; i < 100; ++i) {
       hist1b.addSample(Math.random() * 1e3);
@@ -798,14 +800,14 @@ tr.b.unittest.testSuite(function() {
 
   test('sortByDisplayStatistic', async function() {
     const histograms = new tr.v.HistogramSet();
-    let now = new Date().getTime();
+    const now = new Date().getTime();
 
-    let barHist = new tr.v.Histogram('bar',
+    const barHist = new tr.v.Histogram('bar',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     barHist.addSample(0);
     barHist.addSample(10);
 
-    let fooHist = new tr.v.Histogram('foo',
+    const fooHist = new tr.v.Histogram('foo',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     fooHist.addSample(5);
 
@@ -845,9 +847,9 @@ tr.b.unittest.testSuite(function() {
 
   test('displayStatistic', async function() {
     const histograms = new tr.v.HistogramSet();
-    let now = new Date().getTime();
+    const now = new Date().getTime();
 
-    let barHist = new tr.v.Histogram('a',
+    const barHist = new tr.v.Histogram('a',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     barHist.addSample(1);
     barHist.addSample(2);
@@ -857,7 +859,7 @@ tr.b.unittest.testSuite(function() {
       benchmarkStartMs: now,
     }).addToHistogram(barHist);
 
-    let fooHist = new tr.v.Histogram('a',
+    const fooHist = new tr.v.Histogram('a',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     fooHist.addSample(10);
     fooHist.addSample(20);
@@ -868,7 +870,7 @@ tr.b.unittest.testSuite(function() {
     }).addToHistogram(fooHist);
 
     // Add a Histogram with another name so that the table displays the scalars.
-    let quxHist = new tr.v.Histogram('qux',
+    const quxHist = new tr.v.Histogram('qux',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     new tr.v.d.TelemetryInfo({
       label: 'foo',
@@ -885,8 +887,8 @@ tr.b.unittest.testSuite(function() {
       // This is not an exhaustive equality check. This only tests the fields
       // that are distinguishing for this test().
       if (a.name !== b.name) return false;
-      let aTelemetry = tr.v.d.TelemetryInfo.getFromHistogram(a);
-      let bTelemetry = tr.v.d.TelemetryInfo.getFromHistogram(b);
+      const aTelemetry = tr.v.d.TelemetryInfo.getFromHistogram(a);
+      const bTelemetry = tr.v.d.TelemetryInfo.getFromHistogram(b);
       if (!aTelemetry || !bTelemetry) return false;
       // In this test(), |a| is always a merged Histogram and |b| is never a
       // merged Histogram.
@@ -976,17 +978,17 @@ tr.b.unittest.testSuite(function() {
   test('requestSelectionChange', async function() {
     const histograms = new tr.v.HistogramSet();
 
-    let barHist = new tr.v.Histogram('bar',
+    const barHist = new tr.v.Histogram('bar',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     barHist.addSample(1);
 
-    let fooHist = new tr.v.Histogram('foo',
+    const fooHist = new tr.v.Histogram('foo',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     fooHist.addSample(1);
-    let breakdown = new tr.v.d.RelatedHistogramBreakdown();
+    const breakdown = new tr.v.d.RelatedHistogramBreakdown();
     breakdown.set('bar', barHist);
 
-    let quxHist = new tr.v.Histogram('qux',
+    const quxHist = new tr.v.Histogram('qux',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     histograms.addHistogram(quxHist);
     breakdown.set('qux', quxHist);
@@ -1011,7 +1013,7 @@ tr.b.unittest.testSuite(function() {
 
     fooCell.isHistogramOpen = true;
 
-    let barLink = tr.b.findDeepElementMatchingPredicate(
+    const barLink = tr.b.findDeepElementMatchingPredicate(
         table, elem => elem.tagName === 'TR-UI-A-ANALYSIS-LINK');
     assert.isDefined(barLink);
     barLink.click();
@@ -1033,7 +1035,7 @@ tr.b.unittest.testSuite(function() {
 
     fooCell.isHistogramOpen = true;
 
-    let selectAllLink = tr.b.findDeepElementMatchingPredicate(
+    const selectAllLink = tr.b.findDeepElementMatchingPredicate(
         table, elem => (
           (elem.tagName === 'TR-UI-A-ANALYSIS-LINK') &&
           (elem.textContent === 'Select All')));
@@ -1055,7 +1057,7 @@ tr.b.unittest.testSuite(function() {
           (elem.histogram.name === 'bar')));
     assert.isDefined(barCell);
 
-    let quxCell = tr.b.findDeepElementMatchingPredicate(
+    const quxCell = tr.b.findDeepElementMatchingPredicate(
         table, elem => (
           (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
           (elem.histogram.name === 'qux')));
@@ -1065,11 +1067,11 @@ tr.b.unittest.testSuite(function() {
   test('search', async function() {
     const histograms = new tr.v.HistogramSet();
 
-    let barHist = new tr.v.Histogram('bar',
+    const barHist = new tr.v.Histogram('bar',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     barHist.addSample(1);
 
-    let fooHist = new tr.v.Histogram('foo',
+    const fooHist = new tr.v.Histogram('foo',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     fooHist.addSample(1);
 
@@ -1141,10 +1143,10 @@ tr.b.unittest.testSuite(function() {
     // ambiguity that arises when Histograms can have multiple different
     // "names".
 
-    let now = new Date().getTime();
+    const now = new Date().getTime();
     const histograms = new tr.v.HistogramSet();
 
-    let histA = new tr.v.Histogram('long name',
+    const histA = new tr.v.Histogram('long name',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     for (let i = 0; i < 100; ++i) {
       histA.addSample(Math.random() * 1e3);
@@ -1156,7 +1158,7 @@ tr.b.unittest.testSuite(function() {
     }).addToHistogram(histA);
     histograms.addHistogram(histA);
 
-    let histB = new tr.v.Histogram('short name',
+    const histB = new tr.v.Histogram('short name',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     for (let i = 0; i < 100; ++i) {
       histB.addSample(Math.random() * 1e3);
@@ -1180,10 +1182,10 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('emptyAndMissing', async function() {
-    let now = new Date().getTime();
+    const now = new Date().getTime();
     const histograms = new tr.v.HistogramSet();
 
-    let histA = new tr.v.Histogram('histogram A',
+    const histA = new tr.v.Histogram('histogram A',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     for (let i = 0; i < 100; ++i) {
       histA.addSample(Math.random() * 1e3);
@@ -1194,7 +1196,7 @@ tr.b.unittest.testSuite(function() {
     }).addToHistogram(histA);
     histograms.addHistogram(histA);
 
-    let histB = new tr.v.Histogram('histogram B',
+    const histB = new tr.v.Histogram('histogram B',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     for (let i = 0; i < 100; ++i) {
       histB.addSample(Math.random() * 1e3);
@@ -1205,7 +1207,7 @@ tr.b.unittest.testSuite(function() {
     }).addToHistogram(histB);
     histograms.addHistogram(histB);
 
-    let histC = new tr.v.Histogram('histogram A',
+    const histC = new tr.v.Histogram('histogram A',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     new tr.v.d.TelemetryInfo({
       label: 'iteration B',
@@ -1224,7 +1226,7 @@ tr.b.unittest.testSuite(function() {
   test('instantiate_1x1', async function() {
     const histograms = new tr.v.HistogramSet();
 
-    let hist = new tr.v.Histogram('foo',
+    const hist = new tr.v.Histogram('foo',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     for (let i = 0; i < 100; ++i) {
       hist.addSample(Math.random() * 1e3);
@@ -1236,7 +1238,7 @@ tr.b.unittest.testSuite(function() {
     const baseTable = getBaseTable(table);
     assert.strictEqual(baseTable.tableRows.length, 1);
 
-    let cell = tr.b.findDeepElementMatchingPredicate(table, elem =>
+    const cell = tr.b.findDeepElementMatchingPredicate(table, elem =>
         elem.tagName === 'TR-V-UI-SCALAR-SPAN');
     cell.click();
 
@@ -1264,7 +1266,7 @@ tr.b.unittest.testSuite(function() {
     const histograms = new tr.v.HistogramSet();
 
     for (let i = 0; i < 5; ++i) {
-      let hist = new tr.v.Histogram('foo',
+      const hist = new tr.v.Histogram('foo',
           tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
       for (let i = 0; i < 100; ++i) {
         hist.addSample(Math.random() * 1e3);
@@ -1339,7 +1341,7 @@ tr.b.unittest.testSuite(function() {
     // statistic.
     await table.viewState.update({sortColumnIndex: 2});
     let nameCell = getNameCells(table)[0];
-    let originalFirstRow = nameCell.row.name;
+    const originalFirstRow = nameCell.row.name;
     // This is either 'foo' or 'bar' depending on Math.random() above.
 
     await table.viewState.update({
@@ -1419,7 +1421,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual('label A', baseTable.tableColumns[1].title.textContent);
     assert.strictEqual('label B', baseTable.tableColumns[2].title.textContent);
 
-    let nameCell = tr.b.getOnlyElement(getNameCells(table));
+    const nameCell = tr.b.getOnlyElement(getNameCells(table));
     assert.closeTo(346, nameCell.getBoundingClientRect().width, 1);
 
     nameHeaderCell.children[1].click();
@@ -1440,10 +1442,10 @@ tr.b.unittest.testSuite(function() {
     // the particular row is needed. This code would be a bit simpler if each
     // row were given a named variable, but the path to each subRow would still
     // need to be tracked in order to provide for diagnosing.
-    let subRowPath = [];
+    const subRowPath = [];
     function getSubRow() {
       let row = baseTable.tableRows[0];
-      for (let index of subRowPath) {
+      for (const index of subRowPath) {
         row = row.subRows[index];
       }
       return row;

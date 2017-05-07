@@ -14,7 +14,7 @@ found in the LICENSE file.
  * @fileoverview Parses drm driver events in the Linux event trace format.
  */
 tr.exportTo('tr.e.importer.linux_perf', function() {
-  var Parser = tr.e.importer.linux_perf.Parser;
+  const Parser = tr.e.importer.linux_perf.Parser;
 
   /**
    * Parses linux vmscan trace events.
@@ -35,19 +35,19 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
   // Matches the mm_vmscan_kswapd_wake record
   //  mm_vmscan_kswapd_wake: nid=%d order=%d
-  var kswapdWakeRE = /nid=(\d+) order=(\d+)/;
+  const kswapdWakeRE = /nid=(\d+) order=(\d+)/;
 
   // Matches the mm_vmscan_kswapd_sleep record
   //  mm_vmscan_kswapd_sleep: order=%d
-  var kswapdSleepRE = /nid=(\d+)/;
+  const kswapdSleepRE = /nid=(\d+)/;
 
   // Matches the mm_vmscan_direct_reclaim_begin record
   //  mm_vmscan_direct_reclaim_begin: order=%d may_writepage=%d gfp_flags=%s
-  var reclaimBeginRE = /order=(\d+) may_writepage=\d+ gfp_flags=(.+)/;
+  const reclaimBeginRE = /order=(\d+) may_writepage=\d+ gfp_flags=(.+)/;
 
   // Matches the mm_vmscan_direct_reclaim_end record
   //  mm_vmscan_direct_reclaim_end: nr_reclaimed=%lu
-  var reclaimEndRE = /nr_reclaimed=(\d+)/;
+  const reclaimEndRE = /nr_reclaimed=(\d+)/;
 
   MemReclaimParser.prototype = {
     __proto__: Parser.prototype,
@@ -56,15 +56,15 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
      * Parses memreclaim events and sets up state in the importer.
      */
     kswapdWake(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = kswapdWakeRE.exec(eventBase.details);
+      const event = kswapdWakeRE.exec(eventBase.details);
       if (!event) return false;
 
-      var tgid = parseInt(eventBase.tgid);
+      const tgid = parseInt(eventBase.tgid);
 
-      var nid = parseInt(event[1]);
-      var order = parseInt(event[2]);
+      const nid = parseInt(event[1]);
+      const order = parseInt(event[2]);
 
-      var kthread = this.importer.getOrCreateKernelThread(
+      const kthread = this.importer.getOrCreateKernelThread(
           eventBase.threadName, tgid, pid);
 
       if (kthread.openSliceTS) {
@@ -79,9 +79,9 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     },
 
     kswapdSleep(eventName, cpuNumber, pid, ts, eventBase) {
-      var tgid = parseInt(eventBase.tgid);
+      const tgid = parseInt(eventBase.tgid);
 
-      var kthread = this.importer.getOrCreateKernelThread(
+      const kthread = this.importer.getOrCreateKernelThread(
           eventBase.threadName, tgid, pid);
 
       if (kthread.openSliceTS) {
@@ -98,14 +98,14 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     },
 
     reclaimBegin(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = reclaimBeginRE.exec(eventBase.details);
+      const event = reclaimBeginRE.exec(eventBase.details);
       if (!event) return false;
 
-      var order = parseInt(event[1]);
-      var gfp = event[2];
-      var tgid = parseInt(eventBase.tgid);
+      const order = parseInt(event[1]);
+      const gfp = event[2];
+      const tgid = parseInt(eventBase.tgid);
 
-      var kthread = this.importer.getOrCreateKernelThread(
+      const kthread = this.importer.getOrCreateKernelThread(
           eventBase.threadName, tgid, pid);
 
       kthread.openSliceTS = ts;
@@ -115,13 +115,13 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     },
 
     reclaimEnd(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = reclaimEndRE.exec(eventBase.details);
+      const event = reclaimEndRE.exec(eventBase.details);
       if (!event) return false;
 
-      var nrReclaimed = parseInt(event[1]);
-      var tgid = parseInt(eventBase.tgid);
+      const nrReclaimed = parseInt(event[1]);
+      const tgid = parseInt(eventBase.tgid);
 
-      var kthread = this.importer.getOrCreateKernelThread(
+      const kthread = this.importer.getOrCreateKernelThread(
           eventBase.threadName, tgid, pid);
 
       if (kthread.openSliceTS !== undefined) {

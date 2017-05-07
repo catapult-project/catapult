@@ -11,7 +11,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('group-instantiate', function() {
-    var infoBarGroup = document.createElement('tr-ui-b-info-bar-group');
+    const infoBarGroup = document.createElement('tr-ui-b-info-bar-group');
     infoBarGroup.addMessage(
         'Message 1',
         [{buttonText: 'ok', onClick() {}}]);
@@ -22,7 +22,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('group-populate-then-clear', function() {
-    var infoBarGroup = document.createElement('tr-ui-b-info-bar-group');
+    const infoBarGroup = document.createElement('tr-ui-b-info-bar-group');
     infoBarGroup.addMessage(
         'Message 1',
         [{buttonText: 'ok', onClick() {}}]);
@@ -34,7 +34,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('group-populate-clear-repopulate', function() {
-    var infoBarGroup = document.createElement('tr-ui-b-info-bar-group');
+    const infoBarGroup = document.createElement('tr-ui-b-info-bar-group');
     infoBarGroup.addMessage(
         'Message 1',
         [{buttonText: 'ok', onClick() {}}]);

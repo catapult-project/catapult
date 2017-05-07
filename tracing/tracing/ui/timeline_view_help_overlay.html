@@ -234,10 +234,10 @@ Polymer({
   is: 'tr-ui-timeline-view-help-overlay',
 
   ready() {
-    var mod = tr.isMac ? 'cmd ' : 'ctrl';
-    var spans = Polymer.dom(this.root).querySelectorAll(
+    const mod = tr.isMac ? 'cmd ' : 'ctrl';
+    const spans = Polymer.dom(this.root).querySelectorAll(
         'span.mod');
-    for (var i = 0; i < spans.length; i++) {
+    for (let i = 0; i < spans.length; i++) {
       Polymer.dom(spans[i]).textContent = mod;
     }
   }

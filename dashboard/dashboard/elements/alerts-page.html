@@ -300,12 +300,12 @@ found in the LICENSE file.
       getLabel: toggleState => (toggleState ? 'hide' : 'show'),
 
       onSheriffChange(e) {
-        var sheriff = e.detail.item.label;
+        const sheriff = e.detail.item.label;
         if (!sheriff) {
           return;
         }
-        var params = uri.getAllParameters();
-        var oldSheriff = params.sheriff || 'Chromium Perf Sheriff';
+        const params = uri.getAllParameters();
+        const oldSheriff = params.sheriff || 'Chromium Perf Sheriff';
         if (oldSheriff === sheriff) {
           return;
         }
@@ -316,7 +316,7 @@ found in the LICENSE file.
       },
 
       onToggleTriaged(e) {
-        var params = uri.getAllParameters();
+        const params = uri.getAllParameters();
         if (params.triaged) {
           delete params.triaged;
         } else {
@@ -328,7 +328,7 @@ found in the LICENSE file.
       },
 
       onToggleImprovements(e) {
-        var params = uri.getAllParameters();
+        const params = uri.getAllParameters();
         if (params.improvements) {
           delete params.improvements;
         } else {
@@ -346,14 +346,14 @@ found in the LICENSE file.
        * returning up to 500 more anomalies.
        */
       onShowMoreAnomalies() {
-        var params = uri.getAllParameters();
+        const params = uri.getAllParameters();
         if (this.anomalyCursor != null) {
           params.anomaly_cursor = this.anomalyCursor;
         }
         this.anomaliesLoading = true;
         simple_xhr.send('/alerts', params,
             function(response) {
-              var allAnomalies =
+              const allAnomalies =
                   this.anomalies.concat(response.anomaly_list);
               this.set('anomalies', allAnomalies);
               this.totalAnomalyCount = response.anomaly_count;
@@ -375,14 +375,14 @@ found in the LICENSE file.
        * alerts.
        */
       onShowMoreStoppageAlerts() {
-        var params = uri.getAllParameters();
+        const params = uri.getAllParameters();
         if (this.stoppageAlertCursor != null) {
           params.stoppage_alert_cursor = this.stoppageAlertCursor;
         }
         this.stoppageAlertsLoading = true;
         simple_xhr.send('/alerts', params,
             function(response) {
-              var allStoppageAlerts =
+              const allStoppageAlerts =
                   this.stoppageAlerts.concat(response.stoppage_alert_list);
               this.set('stoppageAlerts', allStoppageAlerts);
               this.totalStoppageAlertCount = response.stoppage_alert_count;
@@ -409,14 +409,14 @@ found in the LICENSE file.
       },
 
       onPushHistoryState(event, detail) {
-        var sender = event.currentTarget;
+        const sender = event.currentTarget;
         if (!sender) {
           return;
         }
-        var params = uri.getAllParameters();
+        const params = uri.getAllParameters();
         params.sortby = sender.sortBy;
         params.sortdirection = sender.sortDirection;
-        var newUri = uri.getCurrentPathWithParams(params);
+        const newUri = uri.getCurrentPathWithParams(params);
         history.pushState(params, '', newUri);
       },
 
@@ -438,7 +438,7 @@ found in the LICENSE file.
       },
 
       getCount(isStoppage, trueLength) {
-        var totalCount = isStoppage ? this.totalStoppageAlertCount :
+        const totalCount = isStoppage ? this.totalStoppageAlertCount :
           this.totalAnomalyCount;
         if (trueLength < totalCount) {
           return trueLength + ' of ' + totalCount;
@@ -450,7 +450,7 @@ found in the LICENSE file.
         this.sheriff = uri.getParameter('sheriff', 'Chromium Perf Sheriff');
         this.showImprovements = uri.getParameter('improvements', false);
         this.showTriaged = uri.getParameter('triaged', false);
-        var params = {
+        const params = {
           'sheriff': this.sheriff
         };
         if (this.showImprovements) {

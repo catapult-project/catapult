@@ -15,7 +15,7 @@ found in the LICENSE file.
  * @fileoverview Provides the SelectionState class.
  */
 tr.exportTo('tr.model', function() {
-  var ColorScheme = tr.b.ColorScheme;
+  const ColorScheme = tr.b.ColorScheme;
 
   /**
    * Describes the level of visual highlighting to apply to an event when shown.
@@ -28,7 +28,7 @@ tr.exportTo('tr.model', function() {
    * Thus, the values here must be kept in sync with color_scheme's palette
    * layout.
    */
-  var SelectionState = {
+  const SelectionState = {
     NONE: 0,
 
     // Legacy names.
@@ -46,7 +46,7 @@ tr.exportTo('tr.model', function() {
     DIMMED2: ColorScheme.properties.dimmedOffsets[2]
   };
 
-  var brighteningLevels = [
+  const brighteningLevels = [
     SelectionState.NONE,
     SelectionState.BRIGHTENED0,
     SelectionState.BRIGHTENED1,
@@ -56,7 +56,7 @@ tr.exportTo('tr.model', function() {
     return brighteningLevels[level];
   };
 
-  var dimmingLevels = [
+  const dimmingLevels = [
     SelectionState.DIMMED0,
     SelectionState.DIMMED1,
     SelectionState.DIMMED2

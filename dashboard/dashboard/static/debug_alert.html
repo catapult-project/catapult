@@ -18,9 +18,9 @@ found in the LICENSE file.
 // This variable name is supposed to not be camelCased, in order for it
 // to match up with the file name.
 // eslint-disable-next-line
-var debug_alert = (function() {
+const debug_alert = (function() {
 
-  var ANOMALY_POINTS_INDEX = 1;
+  const ANOMALY_POINTS_INDEX = 1;
 
   /**
    * Plots the main data series and related anomaly information.
@@ -35,8 +35,8 @@ var debug_alert = (function() {
    *
    * There is also expected to be an element on the page with ID "plot".
    */
-  var initialize = function() {
-    var chartOptions = {
+  const initialize = function() {
+    const chartOptions = {
       xaxis: {
         tickFormatter: xAxisTickFormatter
       }
@@ -44,9 +44,9 @@ var debug_alert = (function() {
     if (window.REVISION) {
       addVerticalLine(chartOptions, window.REVISION);
     }
-    var container = window.$('#plot');
-    var plot = window.$.plot(container, window.DATA, chartOptions);
-    var anomalyPoints = window.DATA[ANOMALY_POINTS_INDEX].data;
+    const container = window.$('#plot');
+    const plot = window.$.plot(container, window.DATA, chartOptions);
+    const anomalyPoints = window.DATA[ANOMALY_POINTS_INDEX].data;
     addAnomalyLabels(container, plot, anomalyPoints);
   };
 
@@ -62,12 +62,12 @@ var debug_alert = (function() {
    * @param {Object} chartOptions A Flot chart options object.
    * @param {number} revision The revision at which to put the vertical line.
    */
-  var addVerticalLine = function(chartOptions, revision) {
+  const addVerticalLine = function(chartOptions, revision) {
     if (!window.LOOKUP || !revision) {
       // Can't get the index of the given revision.
       return;
     }
-    var x = indexOfClosest(window.LOOKUP, revision);
+    const x = indexOfClosest(window.LOOKUP, revision);
     chartOptions.grid = {
       'markings': [
         {
@@ -82,11 +82,11 @@ var debug_alert = (function() {
   /**
    * Returns the index of the number that's closest to the target.
    */
-  var indexOfClosest = function(numArray, target) {
-    var distances = numArray.map(function(x) {
+  const indexOfClosest = function(numArray, target) {
+    const distances = numArray.map(function(x) {
       return Math.abs(x - target);
     });
-    var minDistance = Math.min.apply(window, distances);
+    const minDistance = Math.min.apply(window, distances);
     return distances.indexOf(minDistance);
   };
 
@@ -101,7 +101,7 @@ var debug_alert = (function() {
    * @param {Object} unusedAxis A Flot axis object, not used here.
    * @return {number|undefined} A revision number to display.
    */
-  var xAxisTickFormatter = function(val, unusedAxis) {
+  const xAxisTickFormatter = function(val, unusedAxis) {
     val = Math.round(val);
     val = Math.max(0, val);
     return window.LOOKUP[val];
@@ -113,35 +113,35 @@ var debug_alert = (function() {
    * @param {Object} plot The Plot object returned by $.plot.
    * @param {Array} anomalyPoints array of [x, y] points for each anomaly.
    */
-  var addAnomalyLabels = function(container, plot, anomalyPoints) {
+  const addAnomalyLabels = function(container, plot, anomalyPoints) {
     // First we need to get a few attributes of the plot; for details,
     // see https://github.com/flot/flot/blob/master/API.md#plot-methods.
-    var axes = plot.getAxes();
-    var xp2c = axes.xaxis.p2c;
-    var yp2c = axes.yaxis.p2c;
-    var flotTickLabelWidth = axes.yaxis.labelWidth;
+    const axes = plot.getAxes();
+    const xp2c = axes.xaxis.p2c;
+    const yp2c = axes.yaxis.p2c;
+    const flotTickLabelWidth = axes.yaxis.labelWidth;
 
-    for (var i = 0; i < anomalyPoints.length; i++) {
+    for (let i = 0; i < anomalyPoints.length; i++) {
       // Calculate the distance from the left to position the label. Here we
       // take into account some extra space on the left side of the canvas.
-      var anomalyX = anomalyPoints[i][0];
-      var leftBasePos = Math.round(xp2c(anomalyX));
-      var leftPos = leftBasePos + flotTickLabelWidth + 6;
+      const anomalyX = anomalyPoints[i][0];
+      const leftBasePos = Math.round(xp2c(anomalyX));
+      const leftPos = leftBasePos + flotTickLabelWidth + 6;
 
       // Calculate the distance from the top of the canvas to position
       // the label. Here we alternate showing the label below and above
       // the point, so that the labels can be seen more clearly.
-      var anomalyY = anomalyPoints[i][1];
-      var topBasePos = Math.round(yp2c(anomalyY));
-      var offset = (i % 2 == 0 ? 20 : -50);
-      var topPos = topBasePos + offset;
+      const anomalyY = anomalyPoints[i][1];
+      const topBasePos = Math.round(yp2c(anomalyY));
+      const offset = (i % 2 == 0 ? 20 : -50);
+      const topPos = topBasePos + offset;
 
       // Below we are assuming that the anomaly data series and
       // ANOMALIES array are the same size and contain information about
       // corresponding anomalies.
-      var anomaly = window.ANOMALIES[i];
-      var labelContent = anomalyDescription(anomaly);
-      var labelElement = makeLabel(labelContent, leftPos, topPos);
+      const anomaly = window.ANOMALIES[i];
+      const labelContent = anomalyDescription(anomaly);
+      const labelElement = makeLabel(labelContent, leftPos, topPos);
       container.append(labelElement);
     }
   };
@@ -151,10 +151,10 @@ var debug_alert = (function() {
    * @param {Object} anomaly An object with anomaly information.
    * @return {string} An HTML string to put in a label.
    */
-  var anomalyDescription = function(anomaly) {
-    var index = anomaly.x_value;
-    var revision = window.LOOKUP[index];
-    var percentChanged = 100 * anomaly.relative_change;
+  const anomalyDescription = function(anomaly) {
+    const index = anomaly.x_value;
+    const revision = window.LOOKUP[index];
+    const percentChanged = 100 * anomaly.relative_change;
     return revision + '<br>' + percentChanged.toFixed(2) + '%';
   };
 
@@ -165,12 +165,12 @@ var debug_alert = (function() {
    * @param {number} topPos Distance from the top of the canvas in px.
    * @return {Element} An element with its position and contents set.
    */
-  var makeLabel = function(content, leftPos, topPos) {
-    var div = document.createElement('div');
+  const makeLabel = function(content, leftPos, topPos) {
+    const div = document.createElement('div');
     div.className = 'label';
     Polymer.dom(div).innerHTML = content;
-    var halfWidth = Math.round(div.offsetWidth / 2);
-    var halfHeight = Math.round(div.offsetHeight / 2);
+    const halfWidth = Math.round(div.offsetWidth / 2);
+    const halfHeight = Math.round(div.offsetHeight / 2);
     div.style.left = leftPos - halfWidth + 'px';
     div.style.top = topPos - halfHeight + 'px';
     return div;

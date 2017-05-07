@@ -109,7 +109,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.e.chrome.cc', function() {
-  var THIS_DOC = document.currentScript.ownerDocument;
+  const THIS_DOC = document.currentScript.ownerDocument;
 
   /**
    * PictureDebugger is a view of a PictureSnapshot for inspecting
@@ -117,13 +117,13 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
    *
    * @constructor
    */
-  var PictureDebugger = tr.ui.b.define('tr-ui-e-chrome-cc-picture-debugger');
+  const PictureDebugger = tr.ui.b.define('tr-ui-e-chrome-cc-picture-debugger');
 
   PictureDebugger.prototype = {
     __proto__: HTMLDivElement.prototype,
 
     decorate() {
-      var node = tr.ui.b.instantiateTemplate(
+      const node = tr.ui.b.instantiateTemplate(
           '#tr-ui-e-chrome-cc-picture-debugger-template', THIS_DOC);
 
       Polymer.dom(this).appendChild(node);
@@ -152,17 +152,17 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
       this.trackMouse_();
 
-      var overdrawCheckbox = tr.ui.b.createCheckBox(
+      const overdrawCheckbox = tr.ui.b.createCheckBox(
           this, 'showOverdraw',
           'pictureView.showOverdraw', false,
           'Show overdraw');
 
-      var chartCheckbox = tr.ui.b.createCheckBox(
+      const chartCheckbox = tr.ui.b.createCheckBox(
           this, 'showSummaryChart',
           'pictureView.showSummaryChart', false,
           'Show timing summary');
 
-      var pictureInfo = Polymer.dom(this).querySelector('picture-info');
+      const pictureInfo = Polymer.dom(this).querySelector('picture-info');
       Polymer.dom(pictureInfo).appendChild(overdrawCheckbox);
       Polymer.dom(pictureInfo).appendChild(chartCheckbox);
 
@@ -170,15 +170,15 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.drawOpsView_.addEventListener(
           'selection-changed', this.onChangeDrawOps_.bind(this));
 
-      var leftPanel = Polymer.dom(this).querySelector('left-panel');
+      const leftPanel = Polymer.dom(this).querySelector('left-panel');
       Polymer.dom(leftPanel).appendChild(this.drawOpsChartSummaryView_);
       Polymer.dom(leftPanel).appendChild(this.drawOpsView_);
 
-      var middleDragHandle = document.createElement('tr-ui-b-drag-handle');
+      const middleDragHandle = document.createElement('tr-ui-b-drag-handle');
       middleDragHandle.horizontal = false;
       middleDragHandle.target = leftPanel;
 
-      var rightPanel = Polymer.dom(this).querySelector('right-panel');
+      const rightPanel = Polymer.dom(this).querySelector('right-panel');
       rightPanel.replaceChild(
           this.drawOpsChartView_, Polymer.dom(rightPanel)
               .querySelector('tr-ui-e-chrome-cc-picture-ops-chart-view'));
@@ -190,7 +190,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
       this.picture_ = undefined;
 
-      var hkc = document.createElement('tv-ui-b-hotkey-controller');
+      const hkc = document.createElement('tv-ui-b-hotkey-controller');
       hkc.addHotKey(new tr.ui.b.HotKey({
         eventType: 'keypress',
         thisArg: this,
@@ -219,7 +219,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     onMutation_(mutations) {
-      for (var m = 0; m < mutations.length; m++) {
+      for (let m = 0; m < mutations.length; m++) {
         // A style change would indicate that the element has resized
         // so we should re-render the chart.
         if (mutations[m].attributeName === 'style') {
@@ -235,25 +235,25 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
     onSaveAsSkPictureClicked_() {
       // Decode base64 data into a String
-      var rawData = tr.b.Base64.atob(this.picture_.getBase64SkpData());
+      const rawData = tr.b.Base64.atob(this.picture_.getBase64SkpData());
 
       // Convert this String into an Uint8Array
-      var length = rawData.length;
-      var arrayBuffer = new ArrayBuffer(length);
-      var uint8Array = new Uint8Array(arrayBuffer);
-      for (var c = 0; c < length; c++) {
+      const length = rawData.length;
+      const arrayBuffer = new ArrayBuffer(length);
+      const uint8Array = new Uint8Array(arrayBuffer);
+      for (let c = 0; c < length; c++) {
         uint8Array[c] = rawData.charCodeAt(c);
       }
 
       // Create a blob URL from the binary array.
-      var blob = new Blob([uint8Array], {type: 'application/octet-binary'});
-      var blobUrl = window.webkitURL.createObjectURL(blob);
+      const blob = new Blob([uint8Array], {type: 'application/octet-binary'});
+      const blobUrl = window.webkitURL.createObjectURL(blob);
 
       // Create a link and click on it. BEST API EVAR!
-      var link = document.createElementNS('http://www.w3.org/1999/xhtml', 'a');
+      const link = document.createElementNS('http://www.w3.org/1999/xhtml', 'a');
       link.href = blobUrl;
       link.download = this.filename_.value;
-      var event = document.createEvent('MouseEvents');
+      const event = document.createEvent('MouseEvents');
       event.initMouseEvent(
           'click', true, false, window, 0, 0, 0, 0, 0,
           false, false, false, false, 0, null);
@@ -273,13 +273,13 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.exportButton_.disabled = !this.picture_.canSave;
 
       if (picture) {
-        var size = this.getRasterCanvasSize_();
+        const size = this.getRasterCanvasSize_();
         this.rasterCanvas_.width = size.width;
         this.rasterCanvas_.height = size.height;
       }
 
-      var bounds = this.rasterArea_.getBoundingClientRect();
-      var selectorBounds = this.mouseModeSelector_.getBoundingClientRect();
+      const bounds = this.rasterArea_.getBoundingClientRect();
+      const selectorBounds = this.mouseModeSelector_.getBoundingClientRect();
       this.mouseModeSelector_.pos = {
         x: (bounds.right - selectorBounds.width - 10),
         y: bounds.top
@@ -291,10 +291,10 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     getRasterCanvasSize_() {
-      var style = window.getComputedStyle(this.rasterArea_);
-      var width =
+      const style = window.getComputedStyle(this.rasterArea_);
+      const width =
           Math.max(parseInt(style.width), this.picture_.layerRect.width);
-      var height =
+      const height =
           Math.max(parseInt(style.height), this.picture_.layerRect.height);
 
       return {
@@ -332,7 +332,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       if (this.pictureAsImageData_.error) {
         this.infoBar_.message = 'Cannot rasterize...';
         this.infoBar_.addButton('More info...', function(e) {
-          var overlay = new tr.ui.b.Overlay();
+          const overlay = new tr.ui.b.Overlay();
           Polymer.dom(overlay).textContent = this.pictureAsImageData_.error;
           overlay.visible = true;
           e.stopPropagation();
@@ -345,7 +345,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     drawPicture_() {
-      var size = this.getRasterCanvasSize_();
+      const size = this.getRasterCanvasSize_();
       if (size.width !== this.rasterCanvas_.width) {
         this.rasterCanvas_.width = size.width;
       }
@@ -357,9 +357,9 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
       if (!this.pictureAsImageData_.imageData) return;
 
-      var imgCanvas = this.pictureAsImageData_.asCanvas();
-      var w = imgCanvas.width;
-      var h = imgCanvas.height;
+      const imgCanvas = this.pictureAsImageData_.asCanvas();
+      const w = imgCanvas.width;
+      const h = imgCanvas.height;
       this.rasterCtx_.drawImage(imgCanvas, 0, 0, w, h,
           0, 0, w * this.zoomScaleValue_,
           h * this.zoomScaleValue_);
@@ -461,7 +461,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     onUpdateZoom_(e) {
       if (!this.isZooming_) return;
 
-      var currentMouseViewPos = this.extractRelativeMousePosition_(e);
+      const currentMouseViewPos = this.extractRelativeMousePosition_(e);
 
       // Take the distance the mouse has moved and we want to zoom at about
       // 1/1000th of that speed. 0.01 feels jumpy. This could possibly be tuned

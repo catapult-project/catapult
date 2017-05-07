@@ -13,7 +13,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('kernelFunctionParser', function() {
-    var lines = [
+    const lines = [
       'Binder_2-127  ( 127) [001] ....  3431.906759: graph_ent: func=sys_write',
       'Binder_2-127  ( 127) [001] ....  3431.906769: graph_ret: func=sys_write',
       'Binder_2-127  ( 127) [001] ....  3431.906785: graph_ent: func=sys_write',
@@ -26,18 +26,18 @@ tr.b.unittest.testSuite(function() {
       'Binder_2-127  ( 127) [001] ....  3431.906896: graph_ent: func=sys_write',
       'Binder_2-127  ( 127) [001] ....  3431.906906: graph_ret: func=sys_write'
     ];
-    var m = tr.c.TestUtils.newModelWithEvents([lines.join('\n')], {
+    const m = tr.c.TestUtils.newModelWithEvents([lines.join('\n')], {
       shiftWorldToZero: false
     });
     assert.isFalse(m.hasImportWarnings);
 
-    var process = m.processes[127];
+    const process = m.processes[127];
     assert.isDefined(process);
 
-    var thread = process.threads[127];
+    const thread = process.threads[127];
     assert.isDefined(thread);
 
-    var slices = thread.sliceGroup.slices;
+    const slices = thread.sliceGroup.slices;
     assert.strictEqual(thread.sliceGroup.length, 7);
 
     // Slice 0 is an un-split sys_write

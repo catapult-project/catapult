@@ -14,13 +14,14 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var SelectionState = tr.model.SelectionState;
-  var createTestGlobalMemoryDumps = tr.ui.tracks.createTestGlobalMemoryDumps;
-  var createTestProcessMemoryDumps = tr.ui.tracks.createTestProcessMemoryDumps;
+  const SelectionState = tr.model.SelectionState;
+  const createTestGlobalMemoryDumps = tr.ui.tracks.createTestGlobalMemoryDumps;
+  const createTestProcessMemoryDumps =
+    tr.ui.tracks.createTestProcessMemoryDumps;
 
   test('buildMemoryLetterDots_withoutVMRegions', function() {
-    var dumps = createTestGlobalMemoryDumps(false, false);
-    var items = tr.ui.tracks.buildMemoryLetterDots(dumps);
+    const dumps = createTestGlobalMemoryDumps(false, false);
+    const items = tr.ui.tracks.buildMemoryLetterDots(dumps);
 
     assert.lengthOf(items, 5);
     assert.strictEqual(items[0].start, 0);
@@ -36,8 +37,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('buildMemoryLetterDots_withVMRegions', function() {
-    var dumps = createTestGlobalMemoryDumps(false, false);
-    var items = tr.ui.tracks.buildMemoryLetterDots(dumps);
+    const dumps = createTestGlobalMemoryDumps(false, false);
+    const items = tr.ui.tracks.buildMemoryLetterDots(dumps);
 
     assert.lengthOf(items, 5);
     assert.strictEqual(items[0].start, 0);
@@ -53,21 +54,21 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('buildGlobalUsedMemoryChartSeries_withoutVMRegions', function() {
-    var dumps = createTestGlobalMemoryDumps(false, false);
-    var series = tr.ui.tracks.buildGlobalUsedMemoryChartSeries(dumps);
+    const dumps = createTestGlobalMemoryDumps(false, false);
+    const series = tr.ui.tracks.buildGlobalUsedMemoryChartSeries(dumps);
 
     assert.isUndefined(series);
   });
 
   test('buildGlobalUsedMemoryChartSeries_withVMRegions', function() {
-    var dumps = createTestGlobalMemoryDumps(true, false);
-    var series = tr.ui.tracks.buildGlobalUsedMemoryChartSeries(dumps);
+    const dumps = createTestGlobalMemoryDumps(true, false);
+    const series = tr.ui.tracks.buildGlobalUsedMemoryChartSeries(dumps);
 
     assert.lengthOf(series, 3);
 
-    var sa = series[2];
-    var sb = series[1];
-    var sc = series[0];
+    const sa = series[2];
+    const sb = series[1];
+    const sc = series[0];
 
     assert.lengthOf(sa.points, 5);
     assert.lengthOf(sb.points, 5);
@@ -144,21 +145,23 @@ tr.b.unittest.testSuite(function() {
 
   test('buildGlobalAllocatedMemoryChartSeries_withoutMemoryAllocatorDumps',
       function() {
-        var dumps = createTestGlobalMemoryDumps(false, false);
-        var series = tr.ui.tracks.buildGlobalAllocatedMemoryChartSeries(dumps);
+        const dumps = createTestGlobalMemoryDumps(false, false);
+        const series = tr.ui.tracks.buildGlobalAllocatedMemoryChartSeries(
+            dumps);
 
         assert.isUndefined(series);
       });
 
   test('buildGlobalAllocatedMemoryChartSeries_withMemoryAllocatorDumps',
       function() {
-        var dumps = createTestGlobalMemoryDumps(false, true);
-        var series = tr.ui.tracks.buildGlobalAllocatedMemoryChartSeries(dumps);
+        const dumps = createTestGlobalMemoryDumps(false, true);
+        const series = tr.ui.tracks.buildGlobalAllocatedMemoryChartSeries(
+            dumps);
 
         assert.lengthOf(series, 2);
 
-        var so = series[1];
-        var sv = series[0];
+        const so = series[1];
+        const sv = series[0];
 
         assert.lengthOf(so.points, 5);
         assert.lengthOf(sv.points, 5);
@@ -215,23 +218,25 @@ tr.b.unittest.testSuite(function() {
 
   test('buildProcessAllocatedMemoryChartSeries_withoutMemoryAllocatorDumps',
       function() {
-        var dumps = createTestProcessMemoryDumps(false, false);
-        var series = tr.ui.tracks.buildProcessAllocatedMemoryChartSeries(dumps);
+        const dumps = createTestProcessMemoryDumps(false, false);
+        const series = tr.ui.tracks.buildProcessAllocatedMemoryChartSeries(
+            dumps);
 
         assert.isUndefined(series);
       });
 
   test('buildProcessAllocatedMemoryChartSeries_withMemoryAllocatorDumps',
       function() {
-        var dumps = createTestProcessMemoryDumps(false, true);
-        var series = tr.ui.tracks.buildProcessAllocatedMemoryChartSeries(dumps);
+        const dumps = createTestProcessMemoryDumps(false, true);
+        const series = tr.ui.tracks.buildProcessAllocatedMemoryChartSeries(
+            dumps);
 
     // There should be only 2 series (because 'tracing' is not shown in the
     // charts).
         assert.lengthOf(series, 2);
 
-        var so = series[1];
-        var sv = series[0];
+        const so = series[1];
+        const sv = series[0];
 
         assert.lengthOf(so.points, 2);
         assert.lengthOf(sv.points, 2);

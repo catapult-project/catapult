@@ -14,8 +14,8 @@ found in the LICENSE file.
  * @fileoverview Parses workqueue events in the Linux event trace format.
  */
 tr.exportTo('tr.e.importer.linux_perf', function() {
-  var ColorScheme = tr.b.ColorScheme;
-  var Parser = tr.e.importer.linux_perf.Parser;
+  const ColorScheme = tr.b.ColorScheme;
+  const Parser = tr.e.importer.linux_perf.Parser;
 
   /**
    * Parses linux workqueue trace events.
@@ -36,11 +36,11 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
   // Matches the workqueue_execute_start record
   //  workqueue_execute_start: work struct c7a8a89c: function MISRWrapper
-  var workqueueExecuteStartRE = /work struct (.+): function (\S+)/;
+  const workqueueExecuteStartRE = /work struct (.+): function (\S+)/;
 
   // Matches the workqueue_execute_start record
   //  workqueue_execute_end: work struct c7a8a89c
-  var workqueueExecuteEndRE = /work struct (.+)/;
+  const workqueueExecuteEndRE = /work struct (.+)/;
 
   WorkqueueParser.prototype = {
     __proto__: Parser.prototype,
@@ -49,24 +49,24 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
      * Parses workqueue events and sets up state in the importer.
      */
     executeStartEvent(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = workqueueExecuteStartRE.exec(eventBase.details);
+      const event = workqueueExecuteStartRE.exec(eventBase.details);
       if (!event) return false;
 
-      var kthread = this.importer.getOrCreateKernelThread(eventBase.threadName,
-          pid, pid);
+      const kthread = this.importer.getOrCreateKernelThread(
+          eventBase.threadName, pid, pid);
       kthread.openSliceTS = ts;
       kthread.openSlice = event[2];
       return true;
     },
 
     executeEndEvent(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = workqueueExecuteEndRE.exec(eventBase.details);
+      const event = workqueueExecuteEndRE.exec(eventBase.details);
       if (!event) return false;
 
-      var kthread = this.importer.getOrCreateKernelThread(eventBase.threadName,
-          pid, pid);
+      const kthread = this.importer.getOrCreateKernelThread(
+          eventBase.threadName, pid, pid);
       if (kthread.openSlice) {
-        var slice = new tr.model.ThreadSlice('', kthread.openSlice,
+        const slice = new tr.model.ThreadSlice('', kthread.openSlice,
             ColorScheme.getColorIdForGeneralPurposeString(kthread.openSlice),
             kthread.openSliceTS,
             {},

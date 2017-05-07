@@ -34,7 +34,7 @@ tr.exportTo('tr.e.tquery', function() {
   };
   tr.c.ScriptingObjectRegistry.register(
       function() {
-        var exprs = Array.prototype.slice.call(arguments);
+        const exprs = Array.prototype.slice.call(arguments);
         if (exprs.length !== 1) {
           throw new Error('not() must have exactly one subexpression');
         }

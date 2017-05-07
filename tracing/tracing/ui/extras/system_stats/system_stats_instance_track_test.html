@@ -14,15 +14,16 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var SystemStatsInstanceTrack = tr.ui.e.system_stats.SystemStatsInstanceTrack;
-  var Viewport = tr.ui.TimelineViewport;
+  const SystemStatsInstanceTrack =
+    tr.ui.e.system_stats.SystemStatsInstanceTrack;
+  const Viewport = tr.ui.TimelineViewport;
 
-  var createObjects = function() {
-    var objectInstance = new tr.model.ObjectInstance({});
-    var snapshots = [];
+  const createObjects = function() {
+    const objectInstance = new tr.model.ObjectInstance({});
+    const snapshots = [];
 
-    var stats1 = {};
-    var stats2 = {};
+    const stats1 = {};
+    const stats2 = {};
 
     stats1.committed_memory = 2000000;
     stats2.committed_memory = 3000000;
@@ -43,15 +44,15 @@ tr.b.unittest.testSuite(function() {
   };
 
   test('instantiate', function() {
-    var objectInstances = [];
+    const objectInstances = [];
     objectInstances.push(createObjects());
 
-    var div = document.createElement('div');
-    var viewport = new Viewport(div);
-    var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
+    const div = document.createElement('div');
+    const viewport = new Viewport(div);
+    const drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
     Polymer.dom(div).appendChild(drawingContainer);
 
-    var track = new SystemStatsInstanceTrack(viewport);
+    const track = new SystemStatsInstanceTrack(viewport);
     track.objectInstances = objectInstances;
     Polymer.dom(drawingContainer).appendChild(track);
 
@@ -59,7 +60,7 @@ tr.b.unittest.testSuite(function() {
     drawingContainer.invalidate();
 
     track.heading = 'testBasic';
-    var dt = new tr.ui.TimelineDisplayTransform();
+    const dt = new tr.ui.TimelineDisplayTransform();
     dt.xSetWorldBounds(0, 50, track.clientWidth);
     track.viewport.setDisplayTransformImmediately(dt);
   });

@@ -16,18 +16,18 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.metrics.v8', function() {
-  var COUNT_CUSTOM_BOUNDARIES = tr.v.HistogramBinBoundaries
+  const COUNT_CUSTOM_BOUNDARIES = tr.v.HistogramBinBoundaries
       .createExponential(1, 1000000, 50);
-  var DURATION_CUSTOM_BOUNDARIES = tr.v.HistogramBinBoundaries
+  const DURATION_CUSTOM_BOUNDARIES = tr.v.HistogramBinBoundaries
       .createExponential(0.1, 10000, 50);
 
   function computeDomContentLoadedTime_(model) {
-    var chromeHelper = model.getOrCreateHelper(
+    const chromeHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
-    var domContentLoadedTime = 0;
+    let domContentLoadedTime = 0;
 
-    for (var rendererHelper of Object.values(chromeHelper.rendererHelpers)) {
-      for (var ev of rendererHelper.mainThread.sliceGroup.childEvents()) {
+    for (const rendererHelper of Object.values(chromeHelper.rendererHelpers)) {
+      for (const ev of rendererHelper.mainThread.sliceGroup.childEvents()) {
         if (ev.title === 'domContentLoadedEventEnd' &&
             ev.start > domContentLoadedTime) {
           domContentLoadedTime = ev.start;
@@ -38,11 +38,11 @@ tr.exportTo('tr.metrics.v8', function() {
   }
 
   function computeInteractiveTime_(model) {
-    var chromeHelper = model.getOrCreateHelper(
+    const chromeHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
-    var interactiveTime = 0;
-    for (var rendererHelper of Object.values(chromeHelper.rendererHelpers)) {
-      var samples = tr.metrics.sh.collectLoadingMetricsForRenderer(
+    let interactiveTime = 0;
+    for (const rendererHelper of Object.values(chromeHelper.rendererHelpers)) {
+      const samples = tr.metrics.sh.collectLoadingMetricsForRenderer(
           rendererHelper).firstInteractiveSamples;
       // TODO(fmeawad): Support multiple navigations.
       if (samples.length === 0) continue;
@@ -54,7 +54,7 @@ tr.exportTo('tr.metrics.v8', function() {
   }
 
   function createDurationHistogram_(name) {
-    var histogram = new tr.v.Histogram(name + ':duration',
+    const histogram = new tr.v.Histogram(name + ':duration',
       tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
       DURATION_CUSTOM_BOUNDARIES);
     histogram.customizeSummaryOptions({
@@ -64,7 +64,7 @@ tr.exportTo('tr.metrics.v8', function() {
   }
 
   function createCountHistogram_(name) {
-    var histogram = new tr.v.Histogram(name + ':count',
+    const histogram = new tr.v.Histogram(name + ':count',
       tr.b.Unit.byName.count_smallerIsBetter,
       COUNT_CUSTOM_BOUNDARIES);
     histogram.customizeSummaryOptions({
@@ -81,29 +81,29 @@ tr.exportTo('tr.metrics.v8', function() {
   // TODO(crbug.com/688342): Remove this function when runtimeStatsMetric is
   // removed.
   function computeRuntimeStats(histograms, slices) {
-    var runtimeGroupCollection = new tr.e.v8.RuntimeStatsGroupCollection();
+    const runtimeGroupCollection = new tr.e.v8.RuntimeStatsGroupCollection();
     runtimeGroupCollection.addSlices(slices);
 
-    for (var runtimeGroup of runtimeGroupCollection.runtimeGroups) {
-      var durationSamples = new tr.v.d.RelatedHistogramBreakdown();
-      var countSamples = new tr.v.d.RelatedHistogramBreakdown();
-      for (var entry of runtimeGroup.values) {
-        var durationSampleHistogram = createDurationHistogram_(entry.name);
+    for (const runtimeGroup of runtimeGroupCollection.runtimeGroups) {
+      const durationSamples = new tr.v.d.RelatedHistogramBreakdown();
+      const countSamples = new tr.v.d.RelatedHistogramBreakdown();
+      for (const entry of runtimeGroup.values) {
+        const durationSampleHistogram = createDurationHistogram_(entry.name);
         durationSampleHistogram.addSample(convertMicroToMilli_(entry.time));
         durationSamples.set(entry.name + ':duration', durationSampleHistogram);
         histograms.addHistogram(durationSampleHistogram);
 
-        var countSampleHistogram = createCountHistogram_(entry.name);
+        const countSampleHistogram = createCountHistogram_(entry.name);
         countSampleHistogram.addSample(entry.count);
         countSamples.set(entry.name + ':count', countSampleHistogram);
         histograms.addHistogram(countSampleHistogram);
       }
 
-      var durationHistogram = createDurationHistogram_(runtimeGroup.name);
+      const durationHistogram = createDurationHistogram_(runtimeGroup.name);
       durationHistogram.addSample(convertMicroToMilli_(runtimeGroup.time), {
         samples: durationSamples
       });
-      var countHistogram = createCountHistogram_(runtimeGroup.name);
+      const countHistogram = createCountHistogram_(runtimeGroup.name);
       countHistogram.addSample(runtimeGroup.count, {
         samples: countSamples
       });
@@ -116,37 +116,37 @@ tr.exportTo('tr.metrics.v8', function() {
   // TODO(crbug.com/688342): Remove this metric and use runtimeStatsTotalMetric
   // instead when the runtimeStatsTotalMetric is stable.
   function runtimeStatsMetric(histograms, model) {
-    var interactiveTime = computeInteractiveTime_(model);
-    var domContentLoadedTime = computeDomContentLoadedTime_(model);
-    var endTime = Math.max(interactiveTime, domContentLoadedTime);
-    var slices = [...model.getDescendantEvents()].filter(event =>
+    const interactiveTime = computeInteractiveTime_(model);
+    const domContentLoadedTime = computeDomContentLoadedTime_(model);
+    const endTime = Math.max(interactiveTime, domContentLoadedTime);
+    const slices = [...model.getDescendantEvents()].filter(event =>
           event instanceof tr.e.v8.V8ThreadSlice && event.start <= endTime);
     computeRuntimeStats(histograms, slices);
   }
 
   function computeRuntimeStatsBucketOnUE(histograms, slices,
       v8SlicesBucketOnUEMap) {
-    let durationRelatedHistsByGroupName = new Map();
-    let countRelatedHistsByGroupName = new Map();
+    const durationRelatedHistsByGroupName = new Map();
+    const countRelatedHistsByGroupName = new Map();
 
     // Compute runtimeStats in each of the UE buckets. Also record the
     // histograms in RelatedHistogramMap. These histograms are added to the
     // corresponding histograms in the total bucket as a diagnostic. This keeps
     // the data grouped.
-    for (var [name, slicesUE] of v8SlicesBucketOnUEMap) {
-      var runtimeGroupCollection = new tr.e.v8.RuntimeStatsGroupCollection();
+    for (const [name, slicesUE] of v8SlicesBucketOnUEMap) {
+      const runtimeGroupCollection = new tr.e.v8.RuntimeStatsGroupCollection();
       runtimeGroupCollection.addSlices(slicesUE);
 
-      for (var runtimeGroup of runtimeGroupCollection.runtimeGroups) {
-        var histogramName = name + '_' + runtimeGroup.name;
-        var durationHistogram = createDurationHistogram_(histogramName);
+      for (const runtimeGroup of runtimeGroupCollection.runtimeGroups) {
+        const histogramName = name + '_' + runtimeGroup.name;
+        const durationHistogram = createDurationHistogram_(histogramName);
         durationHistogram.addSample(convertMicroToMilli_(runtimeGroup.time));
         histograms.addHistogram(durationHistogram);
 
         // Record this histogram in RelatedHistogramMap.
         if (durationRelatedHistsByGroupName.get(runtimeGroup.name) ===
             undefined) {
-          var durationHistogramMap = new tr.v.d.RelatedHistogramMap();
+          const durationHistogramMap = new tr.v.d.RelatedHistogramMap();
           durationHistogramMap.set(name, durationHistogram);
           durationRelatedHistsByGroupName.set(runtimeGroup.name,
               durationHistogramMap);
@@ -155,13 +155,13 @@ tr.exportTo('tr.metrics.v8', function() {
               durationHistogram);
         }
 
-        var countHistogram = createCountHistogram_(histogramName);
+        const countHistogram = createCountHistogram_(histogramName);
         countHistogram.addSample(runtimeGroup.count);
         histograms.addHistogram(countHistogram);
 
         // Record this histogram in RelatedHistogramMap.
         if (countRelatedHistsByGroupName.get(runtimeGroup.name) === undefined) {
-          var countHistogramMap = new tr.v.d.RelatedHistogramMap();
+          const countHistogramMap = new tr.v.d.RelatedHistogramMap();
           countHistogramMap.set(name, countHistogram);
           countRelatedHistsByGroupName.set(runtimeGroup.name,
               countHistogramMap);
@@ -175,27 +175,27 @@ tr.exportTo('tr.metrics.v8', function() {
     // Add the runtimeStats for all the samples. Please note, the values in
     // the UE buckets may not add upto the values computed here. Since UEs
     // can overlap, we count some of the samples in multiple UE buckets.
-    var runtimeGroupCollection = new tr.e.v8.RuntimeStatsGroupCollection();
+    const runtimeGroupCollection = new tr.e.v8.RuntimeStatsGroupCollection();
     runtimeGroupCollection.addSlices(slices);
-    for (var runtimeGroup of runtimeGroupCollection.runtimeGroups) {
-      var histogramName = runtimeGroup.name;
-      var durationHistogram = createDurationHistogram_(histogramName);
+    for (const runtimeGroup of runtimeGroupCollection.runtimeGroups) {
+      const histogramName = runtimeGroup.name;
+      const durationHistogram = createDurationHistogram_(histogramName);
       durationHistogram.addSample(convertMicroToMilli_(runtimeGroup.time));
       histograms.addHistogram(durationHistogram);
       // Add UE histograms as a diagnostic, so they can be hidden in the main
       // view, and the data across UE buckets can be grouped together.
-      var durationRelatedHistogram = durationRelatedHistsByGroupName.get(
+      const durationRelatedHistogram = durationRelatedHistsByGroupName.get(
           runtimeGroup.name);
       if (durationRelatedHistogram !== undefined) {
         durationHistogram.diagnostics.set('RAIL stages',
             durationRelatedHistogram);
       }
 
-      var countHistogram = createCountHistogram_(histogramName);
+      const countHistogram = createCountHistogram_(histogramName);
       countHistogram.addSample(runtimeGroup.count);
       // Add UE histograms as a diagnostic, so they can be hidden in the main
       // view, and the data across UE buckets can be grouped together.
-      var countRelatedHistogram = countRelatedHistsByGroupName.get(
+      const countRelatedHistogram = countRelatedHistsByGroupName.get(
           runtimeGroup.name);
       if (countRelatedHistogram !== undefined) {
         countHistogram.diagnostics.set('RAIL stages', countRelatedHistogram);
@@ -205,16 +205,16 @@ tr.exportTo('tr.metrics.v8', function() {
   }
 
   function runtimeStatsTotalMetric(histograms, model) {
-    var v8ThreadSlices = [...model.getDescendantEvents()].filter(event =>
+    const v8ThreadSlices = [...model.getDescendantEvents()].filter(event =>
           event instanceof tr.e.v8.V8ThreadSlice).sort((e1, e2) =>
           e1.start - e2.start);
-    var v8SlicesBucketOnUEMap = new Map();
+    const v8SlicesBucketOnUEMap = new Map();
     // User expectations can sometime overlap. So, certain v8 slices can be
     // included in more than one expectation. We count such slices in each
     // of the expectations. This is done so as to minimize the noise due to
     // the differences in the extent of overlap between the runs.
-    for (var expectation of model.userModel.expectations) {
-      var slices = expectation.range.filterArray(v8ThreadSlices,
+    for (const expectation of model.userModel.expectations) {
+      const slices = expectation.range.filterArray(v8ThreadSlices,
           event => event.start);
       if (slices.length === 0) continue;
       // filterArray filters the array that intersects the range inclusively.
@@ -222,7 +222,7 @@ tr.exportTo('tr.metrics.v8', function() {
       // [1, 2). v8ThreadSlices that start at 1 should be counted only in [1,2)
       // bucket. Filter out sample at the boundary so that they are not counted
       // twice.
-      var lastSlice = slices[slices.length - 1];
+      const lastSlice = slices[slices.length - 1];
       if (!expectation.range.intersectsRangeExclusive(lastSlice.range)) {
         slices.pop();
       }
@@ -230,7 +230,7 @@ tr.exportTo('tr.metrics.v8', function() {
       if (v8SlicesBucketOnUEMap.get(expectation.stageTitle) === undefined) {
         v8SlicesBucketOnUEMap.set(expectation.stageTitle, slices);
       } else {
-        var totalSlices = v8SlicesBucketOnUEMap.get(expectation.stageTitle)
+        const totalSlices = v8SlicesBucketOnUEMap.get(expectation.stageTitle)
                                                .concat(slices);
         v8SlicesBucketOnUEMap.set(expectation.stageTitle, totalSlices);
       }

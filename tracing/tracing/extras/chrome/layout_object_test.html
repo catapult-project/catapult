@@ -21,8 +21,8 @@ tr.b.unittest.testSuite(function() {
   };
 
   test('instantiate', function() {
-    var snapshot = new FakeSnapshot();
-    var layoutObject = new tr.e.chrome.LayoutObject(snapshot, {
+    const snapshot = new FakeSnapshot();
+    const layoutObject = new tr.e.chrome.LayoutObject(snapshot, {
       address: 'deadbeef',
       name: 'LayoutView',
       other: 1,
@@ -42,7 +42,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(1, layoutObject.otherPropertyNames.length);
     assert.strictEqual(1, layoutObject.getProperty('other'));
     assert.isTrue(layoutObject.hasChildLayoutObjects);
-    var child = layoutObject.childLayoutObjects[0];
+    const child = layoutObject.childLayoutObjects[0];
     assert.strictEqual('LayoutBlockFlow', child.name);
     assert.strictEqual('beef2', child.id);
     assert.strictEqual(1, child.otherPropertyNames.length);
@@ -51,17 +51,17 @@ tr.b.unittest.testSuite(function() {
     assert.isUndefined(layoutObject.previousSnapshotLayoutObject);
     assert.isUndefined(layoutObject.nextSnapshotLayoutObject);
 
-    var count = 0;
+    let count = 0;
     layoutObject.traverseTree(function(node) {
       count += 1;
     });
     assert.strictEqual(2, count);
 
-    var nextSnapshot = new FakeSnapshot();
+    const nextSnapshot = new FakeSnapshot();
     nextSnapshot.previousSnapshot = snapshot;
     snapshot.nextSnapshot = nextSnapshot;
 
-    var nextLayoutObject = new tr.e.chrome.LayoutObject(nextSnapshot, {
+    const nextLayoutObject = new tr.e.chrome.LayoutObject(nextSnapshot, {
       address: 'deadbeef',
       name: 'LayoutView'
     });

@@ -42,7 +42,7 @@ tr.b.unittest.testSuite(function() {
     };
   }
 
-  var testOptions = {
+  const testOptions = {
     setUp() {
       this.actual_window_XMLHttpRequest = window.XMLHttpRequest;
     },
@@ -53,7 +53,7 @@ tr.b.unittest.testSuite(function() {
   };
 
   test('onRemoveBug sends request with parameters', function() {
-    var box = document.createElement('alert-remove-box');
+    const box = document.createElement('alert-remove-box');
     box.key = 'alert-key';
     box.xsrfToken = 'xsrf-token';
     window.XMLHttpRequest = new XMLHttpRequestMock(
@@ -69,8 +69,8 @@ tr.b.unittest.testSuite(function() {
   }, testOptions);
 
   test('onRemoveBug causes an "untriaged" event to be fired', function() {
-    var box = document.createElement('alert-remove-box');
-    var untriagedEventFired = false;
+    const box = document.createElement('alert-remove-box');
+    let untriagedEventFired = false;
     window.XMLHttpRequest = new XMLHttpRequestMock('{"bug_id": "REMOVE"}');
     box.addEventListener('untriaged', function() {
       untriagedEventFired = true;

@@ -13,12 +13,12 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var INPUT_TYPE = tr.e.cc.INPUT_EVENT_TYPE_NAMES;
-  var ChromeTestUtils = tr.e.chrome.ChromeTestUtils;
-  var UserExpectationVerifier = tr.importer.UserExpectationVerifier;
+  const INPUT_TYPE = tr.e.cc.INPUT_EVENT_TYPE_NAMES;
+  const ChromeTestUtils = tr.e.chrome.ChromeTestUtils;
+  const UserExpectationVerifier = tr.importer.UserExpectationVerifier;
 
   function addFrameEventForInput(model, event) {
-    var frame = ChromeTestUtils.addFrameEvent(model,
+    const frame = ChromeTestUtils.addFrameEvent(model,
         {start: event.start, end: event.end, isTopLevel: true});
     model.flowEvents.push(tr.c.TestUtils.newFlowEventEx({
       id: event.id,
@@ -30,7 +30,7 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('empty', function() {
-    var verifier = new UserExpectationVerifier();
+    const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
     };
     verifier.expectedUEs = [];
@@ -39,7 +39,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('videoExpectations_gapInMiddle', function() {
-    var verifier = new UserExpectationVerifier();
+    const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx(
           {title: 'VideoPlayback', start: 0, end: 100, isTopLevel: true}));
@@ -62,7 +62,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('videoExpectations_overlapping', function() {
-    var verifier = new UserExpectationVerifier();
+    const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx(
           {title: 'VideoPlayback', start: 0, end: 200, isTopLevel: true}));
@@ -81,7 +81,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('videoExpectations_oneInTheOther', function() {
-    var verifier = new UserExpectationVerifier();
+    const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx(
           {title: 'VideoPlayback', start: 0, end: 300, isTopLevel: true}));
@@ -126,11 +126,11 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('slowMouseMoveResponses', function() {
-    var verifier = new UserExpectationVerifier();
+    const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       ChromeTestUtils.addInputEvent(
           model, INPUT_TYPE.MOUSE_DOWN, {start: 0, end: 10});
-      var mouseMove = ChromeTestUtils.addInputEvent(
+      let mouseMove = ChromeTestUtils.addInputEvent(
           model, INPUT_TYPE.MOUSE_MOVE, {start: 10, end: 20, id: '0x100'});
       addFrameEventForInput(model, mouseMove);
 
@@ -162,17 +162,17 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('mouseEventResponses', function() {
-    var verifier = new UserExpectationVerifier();
+    const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
-      var mouseDown = ChromeTestUtils.addInputEvent(
+      const mouseDown = ChromeTestUtils.addInputEvent(
           model, INPUT_TYPE.MOUSE_DOWN, {start: 0, end: 50, id: '0x100'});
       addFrameEventForInput(model, mouseDown);
 
-      var mouseUp = ChromeTestUtils.addInputEvent(model, INPUT_TYPE.MOUSE_UP,
+      const mouseUp = ChromeTestUtils.addInputEvent(model, INPUT_TYPE.MOUSE_UP,
           {start: 50, end: 100, id: '0x101'});
       addFrameEventForInput(model, mouseUp);
 
-      var mouseMove = ChromeTestUtils.addInputEvent(
+      const mouseMove = ChromeTestUtils.addInputEvent(
           model, INPUT_TYPE.MOUSE_MOVE, {start: 200, end: 250, id: '0x102'});
       addFrameEventForInput(model, mouseMove);
     };
@@ -192,7 +192,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('mouseEventsIgnored', function() {
-    var verifier = new UserExpectationVerifier();
+    const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       ChromeTestUtils.addInputEvent(model, INPUT_TYPE.MOUSE_MOVE,
           {start: 0, end: 50});
@@ -212,14 +212,14 @@ tr.b.unittest.testSuite(function() {
     // Unassociated ThreadSlices that start during an Idle should be associated
     // with it. Expect the IdleExpectation to have 2 associated events: both of
     // the ThreadSlices in the model.
-    var verifier = new UserExpectationVerifier();
+    const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
-      var start = tr.c.TestUtils.newSliceEx(
+      const start = tr.c.TestUtils.newSliceEx(
           {title: 'model start', start: 0, end: 1, type: tr.model.ThreadSlice});
       start.isTopLevel = true;
       model.browserMain.sliceGroup.pushSlice(start);
 
-      var end = tr.c.TestUtils.newSliceEx(
+      const end = tr.c.TestUtils.newSliceEx(
           {title: 'model end', start: 9, end: 10, type: tr.model.ThreadSlice});
       end.isTopLevel = true;
       model.browserMain.sliceGroup.pushSlice(end);
@@ -234,7 +234,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('stillLoading', function() {
-    var verifier = new UserExpectationVerifier();
+    const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       ChromeTestUtils.addFrameEvent(model, {start: 0, end: 10});
       ChromeTestUtils.addNavigationStartEvent(model, {start: 10});
@@ -252,7 +252,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('overlappingIdleAndLoadCollectUnassociatedEvents', function() {
-    var verifier = new UserExpectationVerifier();
+    const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       ChromeTestUtils.addFrameEvent(model, {start: 0, end: 10});
       ChromeTestUtils.addNavigationStartEvent(model, {start: 10});
@@ -282,7 +282,7 @@ tr.b.unittest.testSuite(function() {
     // This trace gave me so many different kinds of trouble that I'm just going
     // to copy it straight in here, without trying to clarify it at all.
     // measurmt-traces/mobile/cnet_fling_up_fling_down_motox_2013.json
-    var verifier = new UserExpectationVerifier();
+    const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       ChromeTestUtils.addFrameEvent(model, {start: 0, end: 10});
       ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_START,
@@ -380,7 +380,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('keyboardEvents', function() {
-    var verifier = new UserExpectationVerifier();
+    const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       ChromeTestUtils.addInputEvent(model, INPUT_TYPE.KEY_DOWN_RAW,
           {start: 0, end: 45});
@@ -397,7 +397,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('mouseResponses', function() {
-    var verifier = new UserExpectationVerifier();
+    const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       ChromeTestUtils.addInputEvent(model, INPUT_TYPE.CLICK,
           {start: 0, end: 100});
@@ -425,7 +425,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('mouseWheelAnimation', function() {
-    var verifier = new UserExpectationVerifier();
+    const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       ChromeTestUtils.addInputEvent(model, INPUT_TYPE.MOUSE_WHEEL,
           {start: 0, end: 20});
@@ -486,7 +486,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('mouseDownUpResponse', function() {
-    var verifier = new UserExpectationVerifier();
+    const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       ChromeTestUtils.addInputEvent(model, INPUT_TYPE.MOUSE_DOWN,
           {start: 0, end: 100});
@@ -505,7 +505,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('ignoreLoneMouseMoves', function() {
-    var verifier = new UserExpectationVerifier();
+    const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       ChromeTestUtils.addInputEvent(model, INPUT_TYPE.MOUSE_MOVE,
           {start: 0, end: 100});
@@ -520,11 +520,11 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('mouseDrags', function() {
-    var verifier = new UserExpectationVerifier();
+    const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       ChromeTestUtils.addInputEvent(
           model, INPUT_TYPE.MOUSE_DOWN, {start: 0, end: 100});
-      var mouseMove = ChromeTestUtils.addInputEvent(
+      let mouseMove = ChromeTestUtils.addInputEvent(
           model, INPUT_TYPE.MOUSE_MOVE, {start: 200, end: 215});
       addFrameEventForInput(model, mouseMove);
       mouseMove = ChromeTestUtils.addInputEvent(
@@ -548,7 +548,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('twoScrollsNoFling', function() {
-    var verifier = new UserExpectationVerifier();
+    const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       ChromeTestUtils.addInputEvent(model, INPUT_TYPE.SCROLL_BEGIN,
           {start: 0, end: 100});
@@ -597,7 +597,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('webGLAnimations_oneAnimation', function() {
-    var verifier = new UserExpectationVerifier();
+    const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx(
           {title: 'DrawingBuffer::prepareMailbox', start: 0, end: 2}));
@@ -627,7 +627,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('webGLAnimations_twoAnimations', function() {
-    var verifier = new UserExpectationVerifier();
+    const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx(
           {title: 'DrawingBuffer::prepareMailbox', start: 0, end: 2}));
@@ -676,7 +676,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('webGLAnimations_oneWithAnimationEventsOneWithout', function() {
-    var verifier = new UserExpectationVerifier();
+    const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx(
           {title: 'DrawingBuffer::prepareMailbox', start: 0, end: 2}));
@@ -714,7 +714,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('webGLAnimations_noAnimationEvents', function() {
-    var verifier = new UserExpectationVerifier();
+    const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx(
           {title: 'DrawingBuffer::prepareMailbox', start: 0, end: 2}));
@@ -741,7 +741,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('webGLAnimations_animationEventsOnly', function() {
-    var verifier = new UserExpectationVerifier();
+    const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx(
           {title: 'PageAnimator::serviceScriptedAnimations',
@@ -763,7 +763,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('webGLAnimations_oneEvent', function() {
-    var verifier = new UserExpectationVerifier();
+    const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx(
           {title: 'DrawingBuffer::prepareMailbox', start: 0, end: 2}));
@@ -786,7 +786,7 @@ tr.b.unittest.testSuite(function() {
     // CSS Animations happen on the renderer process, not the browser process.
     // They are merged if they overlap.
     // They are merged with other kinds of animations.
-    var verifier = new UserExpectationVerifier();
+    const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx(
           {title: 'Animation', start: 0, end: 130, isTopLevel: true}));
@@ -814,12 +814,12 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('cssAnimationStatesRunningAtEnd', function() {
-    var verifier = new UserExpectationVerifier();
+    const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       // If a top-level Animation async slice has state-change instant
       // events and the last one is a "running" event, then it will run
       // to the end of the top level event.
-      var animationA = tr.c.TestUtils.newAsyncSliceEx(
+      const animationA = tr.c.TestUtils.newAsyncSliceEx(
           {title: 'Animation', start: 0, end: 500, isTopLevel: true});
       animationA.subSlices.push(tr.c.TestUtils.newInstantEvent(
           {title: 'Animation', start: 100, args: {data: {state: 'running'}}}));
@@ -856,7 +856,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('cssAnimationStates', function() {
-    var verifier = new UserExpectationVerifier();
+    const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       // If a top-level Animation async slice does not have state-change instant
       // subSlices, then assume that the animation was running throughout the
@@ -873,7 +873,7 @@ tr.b.unittest.testSuite(function() {
       // actually running.
 
       // This animation was running from 10-40 and 50-60.
-      var animationA = tr.c.TestUtils.newAsyncSliceEx(
+      const animationA = tr.c.TestUtils.newAsyncSliceEx(
           {title: 'Animation', start: 50, end: 500, isTopLevel: true});
       animationA.subSlices.push(tr.c.TestUtils.newInstantEvent(
           {title: 'Animation', start: 71, args: {data: {state: 'running'}}}));
@@ -892,7 +892,7 @@ tr.b.unittest.testSuite(function() {
       ChromeTestUtils.addFrameEvent(model, {start: 290, end: 300});
 
       // An animation without a frame event isn't really an animation.
-      var animationC = tr.c.TestUtils.newAsyncSliceEx(
+      const animationC = tr.c.TestUtils.newAsyncSliceEx(
           {title: 'Animation', start: 350, end: 382, isTopLevel: true});
       model.rendererMain.asyncSliceGroup.push(animationC);
       animationA.subSlices.push(tr.c.TestUtils.newInstantEvent(
@@ -900,7 +900,7 @@ tr.b.unittest.testSuite(function() {
 
       // This animation was running from model.bounds.min-50 and
       // 70-model.bounds.max.
-      var animationB = tr.c.TestUtils.newAsyncSliceEx(
+      const animationB = tr.c.TestUtils.newAsyncSliceEx(
           {title: 'Animation', start: 0, end: 500, isTopLevel: true});
       animationB.subSlices.push(tr.c.TestUtils.newInstantEvent(
           {title: 'Animation', start: 40, args: {data: {state: 'finished'}}}));
@@ -924,7 +924,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('flingThatIsntstopped', function() {
-    var verifier = new UserExpectationVerifier();
+    const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       ChromeTestUtils.addInputEvent(model, INPUT_TYPE.FLING_START,
           {start: 32, end: 100});
@@ -944,7 +944,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('flingThatIsStopped', function() {
-    var verifier = new UserExpectationVerifier();
+    const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       ChromeTestUtils.addInputEvent(model, INPUT_TYPE.FLING_START,
           {start: 32, end: 100});
@@ -966,7 +966,7 @@ tr.b.unittest.testSuite(function() {
 
   test('flingFling', function() {
     // measurmt-traces/mobile/facebook_obama_scroll_dialog_box.html
-    var verifier = new UserExpectationVerifier();
+    const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       ChromeTestUtils.addInputEvent(model, INPUT_TYPE.FLING_START,
           {start: 0, end: 30});
@@ -1007,7 +1007,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('load', function() {
-    var verifier = new UserExpectationVerifier();
+    const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       ChromeTestUtils.addNavigationStartEvent(model, {start: 0});
       ChromeTestUtils.addFirstContentfulPaintEvent(model, {start: 20});
@@ -1022,7 +1022,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('loadStartup', function() {
-    var verifier = new UserExpectationVerifier();
+    const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       ChromeTestUtils.addRenderingEvent(model, {start: 2, end: 3});
       ChromeTestUtils.addCreateThreadsEvent(model, {start: 5, end: 10});
@@ -1043,7 +1043,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('totalIdle', function() {
-    var verifier = new UserExpectationVerifier();
+    const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       ChromeTestUtils.addFrameEvent(model, {start: 0, end: 10});
     };
@@ -1057,7 +1057,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('multipleIdles', function() {
-    var verifier = new UserExpectationVerifier();
+    const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       ChromeTestUtils.addFrameEvent(model, {start: 0, end: 1});
       ChromeTestUtils.addNavigationStartEvent(model, {start: 1});
@@ -1078,7 +1078,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('touchStartTouchEndTap', function() {
-    var verifier = new UserExpectationVerifier();
+    const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_START,
           {start: 0, end: 10});
@@ -1096,7 +1096,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('touchMoveResponseAnimation', function() {
-    var verifier = new UserExpectationVerifier();
+    const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_START,
           {start: 0, end: 10});
@@ -1121,7 +1121,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('tapEvents', function() {
-    var verifier = new UserExpectationVerifier();
+    const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TAP,
           {start: 0, end: 50});
@@ -1144,7 +1144,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('tapAndTapCancelResponses', function() {
-    var verifier = new UserExpectationVerifier();
+    const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TAP_DOWN,
           {start: 0, end: 100});
@@ -1165,7 +1165,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('tapCancelResponse', function() {
-    var verifier = new UserExpectationVerifier();
+    const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TAP_DOWN,
           {start: 0, end: 100});
@@ -1182,7 +1182,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('pinchResponseAnimation', function() {
-    var verifier = new UserExpectationVerifier();
+    const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       ChromeTestUtils.addFrameEvent(model, {start: 0, end: 10});
       ChromeTestUtils.addInputEvent(model, INPUT_TYPE.PINCH_BEGIN,
@@ -1226,7 +1226,7 @@ tr.b.unittest.testSuite(function() {
 
   test('tapThenScroll', function() {
     // measurmt-traces/mobile/google_io_instrument_strumming.json
-    var verifier = new UserExpectationVerifier();
+    const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_START,
           {start: 0, end: 20});
@@ -1260,7 +1260,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('pinchFlingTapTouchEventsOverlap', function() {
-    var verifier = new UserExpectationVerifier();
+    const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       ChromeTestUtils.addFrameEvent(model, {start: 0, end: 10});
       ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_START,
@@ -1323,7 +1323,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('scrollThenFling', function() {
-    var verifier = new UserExpectationVerifier();
+    const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       ChromeTestUtils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
           {start: 0, end: 40});
@@ -1354,7 +1354,7 @@ tr.b.unittest.testSuite(function() {
     /test_data/measurmt-traces/mobile/fling_HN_to_rest.json
    */
   test('flingHNToRest', function() {
-    var verifier = new UserExpectationVerifier();
+    const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       ChromeTestUtils.addEvent(model.browserMain,
           {title: 'model start', start: 0, end: 1});
@@ -1423,7 +1423,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('TapResponseOverlappingTouchAnimation', function() {
-    var verifier = new UserExpectationVerifier();
+    const verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
           {start: 0, end: 10});

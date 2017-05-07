@@ -13,13 +13,13 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var ALERT_INFO_1 = new tr.model.EventInfo(
+  const ALERT_INFO_1 = new tr.model.EventInfo(
     'Alert 1', 'Critical alert');
-  var ALERT_INFO_2 = new tr.model.EventInfo(
+  const ALERT_INFO_2 = new tr.model.EventInfo(
     'Alert 2', 'Warning alert');
 
   test('instantiate', function() {
-    var panel = document.createElement('tr-ui-e-s-alerts-side-panel');
+    const panel = document.createElement('tr-ui-e-s-alerts-side-panel');
     panel.model = createModelWithAlerts([
       new tr.model.Alert(ALERT_INFO_1, 5),
       new tr.model.Alert(ALERT_INFO_2, 35)
@@ -30,19 +30,19 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('selectAlertsOfType', function() {
-    var panel = document.createElement('tr-ui-e-s-alerts-side-panel');
-    var alerts = [
+    const panel = document.createElement('tr-ui-e-s-alerts-side-panel');
+    const alerts = [
       new tr.model.Alert(ALERT_INFO_1, 1),
       new tr.model.Alert(ALERT_INFO_1, 2),
       new tr.model.Alert(ALERT_INFO_2, 3)
     ];
 
-    var predictedAlerts = new tr.model.EventSet([alerts[0], alerts[1]]);
+    const predictedAlerts = new tr.model.EventSet([alerts[0], alerts[1]]);
     panel.model = createModelWithAlerts(alerts);
     panel.style.height = '100px';
     this.addHTMLOutput(panel);
 
-    var selectionChanged = false;
+    let selectionChanged = false;
     panel.addEventListener('requestSelectionChange', function(e) {
       selectionChanged = true;
       assert.isTrue(e.selection.equals(predictedAlerts));
@@ -53,7 +53,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   function createModelWithAlerts(alerts) {
-    var m = new tr.Model();
+    const m = new tr.Model();
     m.alerts = alerts;
     return m;
   }

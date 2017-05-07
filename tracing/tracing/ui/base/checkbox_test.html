@@ -13,7 +13,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('basicUnchecked', function() {
-    var checkbox = document.createElement('tr-ui-b-checkbox');
+    const checkbox = document.createElement('tr-ui-b-checkbox');
     checkbox.label = 'Yo like pizza?';
     this.addHTMLOutput(checkbox);
     assert.strictEqual(checkbox.label, 'Yo like pizza?');
@@ -21,7 +21,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('basicChecked', function() {
-    var checkbox = document.createElement('tr-ui-b-checkbox');
+    const checkbox = document.createElement('tr-ui-b-checkbox');
     checkbox.label = 'Yo like cookie?';
     checkbox.checked = true;
     this.addHTMLOutput(checkbox);
@@ -30,7 +30,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('testPersistentStateOneSetSettingsKeyBeforeAddToDom', function() {
-    var checkbox = document.createElement('tr-ui-b-checkbox');
+    const checkbox = document.createElement('tr-ui-b-checkbox');
     checkbox.settingsKey = 'checkbox-basic-test-one';
     checkbox.label = 'I like sushi';
     checkbox.defaultCheckedValue = false;
@@ -38,7 +38,7 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(checkbox.checked);
     checkbox.checked = true;
 
-    var checkbox2 = document.createElement('tr-ui-b-checkbox');
+    const checkbox2 = document.createElement('tr-ui-b-checkbox');
     checkbox2.label = 'I like sushi';
     checkbox2.defaultCheckedValue = false;
     checkbox2.settingsKey = 'checkbox-basic-test-one';
@@ -47,7 +47,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('testPersistentStateTwoSetSettingsKeyAfterAddToDom', function() {
-    var checkbox = document.createElement('tr-ui-b-checkbox');
+    const checkbox = document.createElement('tr-ui-b-checkbox');
     this.addHTMLOutput(checkbox);
     checkbox.label = 'I like Ramen';
     checkbox.settingsKey = 'checkbox-basic-test-two';
@@ -55,7 +55,7 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(checkbox.checked);
     checkbox.checked = true;
 
-    var checkbox2 = document.createElement('tr-ui-b-checkbox');
+    const checkbox2 = document.createElement('tr-ui-b-checkbox');
     this.addHTMLOutput(checkbox2);
     checkbox2.label = 'I like Ramen';
     checkbox2.defaultCheckedValue = false;

@@ -18,11 +18,11 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('forceAllPendingTasksToRunForTest', function() {
-    var rafRan = false;
+    let rafRan = false;
     tr.b.requestAnimationFrame(function() {
       rafRan = true;
     });
-    var idleRan = false;
+    let idleRan = false;
     tr.b.requestIdleCallback(function() {
       idleRan = true;
     });
@@ -34,11 +34,11 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('forcePendingRAFTasksToRun', function() {
-    var rafRan = false;
+    let rafRan = false;
     tr.b.requestAnimationFrame(function() {
       rafRan = true;
     });
-    var idleRan = false;
+    let idleRan = false;
     tr.b.requestIdleCallback(function() {
       idleRan = true;
     });
@@ -47,9 +47,9 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(idleRan);
   });
 
-  var fakeNow = undefined;
+  let fakeNow = undefined;
   function withFakeWindowPerformanceNow(func) {
-    var oldNow = window.performance.now;
+    const oldNow = window.performance.now;
     try {
       window.performance.now = function() { return fakeNow; };
       func();
@@ -62,7 +62,7 @@ tr.b.unittest.testSuite(function() {
   // callbacks natively. Nevertheless, run them without native idle support to
   // make sure the fallback keeps working.
   function withoutNativeIdleCallbacks(func) {
-    var oldRIC = window.requestIdleCallback;
+    const oldRIC = window.requestIdleCallback;
     try {
       window.requestIdleCallback = undefined;
       func();
@@ -81,11 +81,11 @@ tr.b.unittest.testSuite(function() {
     withMockedScheduling(function() {
       tr.b.forceAllPendingTasksToRunForTest();
 
-      var rafRan = false;
+      let rafRan = false;
       tr.b.requestAnimationFrame(function() {
         rafRan = true;
       });
-      var idleRan = false;
+      let idleRan = false;
       tr.b.requestIdleCallback(function() {
         idleRan = true;
       });
@@ -102,8 +102,8 @@ tr.b.unittest.testSuite(function() {
     withMockedScheduling(function() {
       tr.b.forceAllPendingTasksToRunForTest();
 
-      var idle1Ran = false;
-      var idle2Ran = false;
+      let idle1Ran = false;
+      let idle2Ran = false;
       tr.b.requestIdleCallback(function() {
         fakeNow += 1;
         idle1Ran = true;
@@ -124,8 +124,8 @@ tr.b.unittest.testSuite(function() {
     withMockedScheduling(function() {
       tr.b.forceAllPendingTasksToRunForTest();
 
-      var idle1Ran = false;
-      var idle2Ran = false;
+      let idle1Ran = false;
+      let idle2Ran = false;
       tr.b.requestIdleCallback(function() {
         fakeNow += 100;
         idle1Ran = true;
@@ -153,8 +153,8 @@ tr.b.unittest.testSuite(function() {
     withMockedScheduling(function() {
       tr.b.forcePendingRAFTasksToRun();  // Clear current RAF task queue.
 
-      var idle1Ran = false;
-      var idle2Ran = false;
+      let idle1Ran = false;
+      let idle2Ran = false;
       tr.b.requestIdleCallback(function() {
         fakeNow += 100;
         idle1Ran = true;
@@ -179,11 +179,11 @@ tr.b.unittest.testSuite(function() {
   });
 
   function withFixedIdleTimeRemaining(idleTime, func) {
-    var oldRIC = window.requestIdleCallback;
+    const oldRIC = window.requestIdleCallback;
     try {
-      var pendingIdleCallbacks = [];
+      const pendingIdleCallbacks = [];
       window.requestIdleCallback = function(callback) {
-        var deadline = {
+        const deadline = {
           timeRemaining() {
             return idleTime;
           }
@@ -200,8 +200,8 @@ tr.b.unittest.testSuite(function() {
 
   test('idleCallbackWithIdletime', function() {
     withFixedIdleTimeRemaining(1000, function(pendingIdleCallbacks) {
-      var idle1Ran = false;
-      var idle2Ran = false;
+      let idle1Ran = false;
+      let idle2Ran = false;
       tr.b.requestIdleCallback(function() {
         idle1Ran = true;
       });
@@ -219,8 +219,8 @@ tr.b.unittest.testSuite(function() {
 
   test('idleCallbackWithoutIdletime', function() {
     withFixedIdleTimeRemaining(0, function(pendingIdleCallbacks) {
-      var idle1Ran = false;
-      var idle2Ran = false;
+      let idle1Ran = false;
+      let idle2Ran = false;
       tr.b.requestIdleCallback(function() {
         idle1Ran = true;
       });

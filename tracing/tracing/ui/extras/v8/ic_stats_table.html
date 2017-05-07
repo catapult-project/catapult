@@ -51,11 +51,11 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.e.v8', function() {
-  var PROPERTIES = tr.e.v8.IC_STATS_PROPERTIES.map(
+  const PROPERTIES = tr.e.v8.IC_STATS_PROPERTIES.map(
       x => {return {label: x, value: x};});
-  var ICStatsEntry = tr.e.v8.ICStatsEntry;
-  var ICStatsEntryGroup = tr.e.v8.ICStatsEntryGroup;
-  var ICStatsCollection = tr.e.v8.ICStatsCollection;
+  const ICStatsEntry = tr.e.v8.ICStatsEntry;
+  const ICStatsEntryGroup = tr.e.v8.ICStatsEntryGroup;
+  const ICStatsCollection = tr.e.v8.ICStatsCollection;
 
   Polymer({
     is: 'tr-ui-e-v8-ic-stats-table',
@@ -85,29 +85,29 @@ tr.exportTo('tr.ui.e.v8', function() {
           title: '',
           value: row => {
             let expanded = false;
-            let buttonEl = tr.ui.b.createButton('details', function() {
-              let previousSibling = Polymer.dom(this).parentNode.parentNode;
-              let parentNode = previousSibling.parentNode;
+            const buttonEl = tr.ui.b.createButton('details', function() {
+              const previousSibling = Polymer.dom(this).parentNode.parentNode;
+              const parentNode = previousSibling.parentNode;
               if (expanded) {
-                let trEls = parentNode.getElementsByClassName('subTable');
+                const trEls = parentNode.getElementsByClassName('subTable');
                 Array.from(trEls).map(x => x.parentNode.removeChild(x));
                 expanded = false;
                 return;
               }
               expanded = true;
-              let subGroups = row.createSubGroup();
-              let tr = document.createElement('tr');
+              const subGroups = row.createSubGroup();
+              const tr = document.createElement('tr');
               tr.classList.add('subTable');
               tr.appendChild(document.createElement('td'));
-              let td = document.createElement('td');
+              const td = document.createElement('td');
               td.colSpan = 3;
-              for (let subGroup of subGroups) {
-                let property = subGroup[0];
-                let all = Array.from(subGroup[1].values());
-                let group = all.slice(0, 20);
-                let divEl = document.createElement('div');
-                let spanEl = document.createElement('span');
-                let subTableEl = document.createElement('tr-ui-b-table');
+              for (const subGroup of subGroups) {
+                const property = subGroup[0];
+                const all = Array.from(subGroup[1].values());
+                const group = all.slice(0, 20);
+                const divEl = document.createElement('div');
+                const spanEl = document.createElement('span');
+                const subTableEl = document.createElement('tr-ui-b-table');
 
                 spanEl.innerText = `Top 20 out of ${all.length}`;
                 spanEl.style.fontWeight = 'bold';
@@ -129,7 +129,7 @@ tr.exportTo('tr.ui.e.v8', function() {
         {
           title: 'Percentage',
           value(row) {
-            let spanEl = document.createElement('span');
+            const spanEl = document.createElement('span');
             spanEl.innerText = (row.percentage * 100).toFixed(3) + '%';
             return spanEl;
           },
@@ -138,7 +138,7 @@ tr.exportTo('tr.ui.e.v8', function() {
         {
           title: 'Count',
           value(row) {
-            let spanEl = document.createElement('span');
+            const spanEl = document.createElement('span');
             spanEl.innerText = row.length;
             return spanEl;
           },
@@ -147,7 +147,7 @@ tr.exportTo('tr.ui.e.v8', function() {
         {
           title: groupKey,
           value(row) {
-            let spanEl = document.createElement('span');
+            const spanEl = document.createElement('span');
             spanEl.innerText = row.key ? row.key : '';
             return spanEl;
           }
@@ -165,9 +165,9 @@ tr.exportTo('tr.ui.e.v8', function() {
     },
 
     set selection(slices) {
-      for (let slice of slices) {
-        for (let icStatsObj of slice.icStats) {
-          let entry = new ICStatsEntry(icStatsObj);
+      for (const slice of slices) {
+        for (const icStatsObj of slice.icStats) {
+          const entry = new ICStatsEntry(icStatsObj);
           this.icStatsCollection_.add(entry);
         }
       }

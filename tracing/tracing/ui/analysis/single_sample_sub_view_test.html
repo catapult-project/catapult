@@ -16,13 +16,13 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var Model = tr.Model;
-  var EventSet = tr.model.EventSet;
-  var newSampleNamed = tr.c.TestUtils.newSampleNamed;
+  const Model = tr.Model;
+  const EventSet = tr.model.EventSet;
+  const newSampleNamed = tr.c.TestUtils.newSampleNamed;
 
   test('instantiate_withSingleSample', function() {
-    var t53;
-    var model = tr.c.TestUtils.newModelWithEvents([], {
+    let t53;
+    const model = tr.c.TestUtils.newModelWithEvents([], {
       shiftWorldToZero: false,
       pruneContainers: false,
       customizeModelCallback(model) {
@@ -32,29 +32,29 @@ tr.b.unittest.testSuite(function() {
       }
     });
 
-    var t53track = {};
+    const t53track = {};
     t53track.thread = t53;
 
-    var selection = new EventSet();
+    const selection = new EventSet();
 
     assert.strictEqual(selection.length, 0);
     selection.push(t53.samples[0]);
     assert.strictEqual(selection.length, 1);
 
-    var view = document.createElement('tr-ui-a-single-sample-sub-view');
+    const view = document.createElement('tr-ui-a-single-sample-sub-view');
     view.selection = selection;
     this.addHTMLOutput(view);
 
-    var table = tr.b.findDeepElementMatching(
+    const table = tr.b.findDeepElementMatching(
         view, 'tr-ui-b-table');
 
-    var rows = table.tableRows;
+    const rows = table.tableRows;
     assert.strictEqual(rows.length, 3);
     assert.strictEqual(rows[0].value, 'X');
     assert.strictEqual(rows[1].value.value, 0.184);
     assert.strictEqual(rows[1].value.unit, tr.b.Unit.byName.timeStampInMs);
 
-    var callStackRows = rows[2].value.tableRows;
+    const callStackRows = rows[2].value.tableRows;
     assert.lengthOf(callStackRows, 3);
     assert.deepEqual(callStackRows.map(x => x.title), ['a', 'b', 'c']);
   });

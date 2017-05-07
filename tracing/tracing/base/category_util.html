@@ -14,7 +14,7 @@ found in the LICENSE file.
  */
 tr.exportTo('tr.b', function() {
   // Cached values for getCategoryParts.
-  var categoryPartsFor = {};
+  const categoryPartsFor = {};
 
   /**
    * Categories are stored in comma-separated form, e.g: 'a,b' meaning
@@ -26,7 +26,7 @@ tr.exportTo('tr.b', function() {
    * Do not mutate the returned array!!!!
    */
   function getCategoryParts(category) {
-    var parts = categoryPartsFor[category];
+    let parts = categoryPartsFor[category];
     if (parts !== undefined) return parts;
     parts = category.split(',');
     categoryPartsFor[category] = parts;

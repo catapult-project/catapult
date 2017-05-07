@@ -15,8 +15,8 @@ found in the LICENSE file.
  * @fileoverview Parses power events in the Linux event trace format.
  */
 tr.exportTo('tr.e.importer.linux_perf', function() {
-  var ColorScheme = tr.b.ColorScheme;
-  var Parser = tr.e.importer.linux_perf.Parser;
+  const ColorScheme = tr.b.ColorScheme;
+  const Parser = tr.e.importer.linux_perf.Parser;
 
   /**
    * Parses linux power trace events.
@@ -43,8 +43,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     __proto__: Parser.prototype,
 
     cpuStateSlice(ts, targetCpuNumber, eventType, cpuState) {
-      var targetCpu = this.importer.getOrCreateCpu(targetCpuNumber);
-      var powerCounter;
+      const targetCpu = this.importer.getOrCreateCpu(targetCpuNumber);
       if (eventType !== '1') {
         this.importer.model.importWarning({
           type: 'parse_error',
@@ -53,7 +52,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
         });
         return;
       }
-      powerCounter = targetCpu.getOrCreateCounter('', 'C-State');
+      const powerCounter = targetCpu.getOrCreateCounter('', 'C-State');
       if (powerCounter.numSeries === 0) {
         powerCounter.addSeries(new tr.model.CounterSeries('state',
             ColorScheme.getColorIdForGeneralPurposeString(
@@ -65,22 +64,22 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     },
 
     cpuIdleSlice(ts, targetCpuNumber, cpuState) {
-      var targetCpu = this.importer.getOrCreateCpu(targetCpuNumber);
-      var powerCounter = targetCpu.getOrCreateCounter('', 'C-State');
+      const targetCpu = this.importer.getOrCreateCpu(targetCpuNumber);
+      const powerCounter = targetCpu.getOrCreateCounter('', 'C-State');
       if (powerCounter.numSeries === 0) {
         powerCounter.addSeries(new tr.model.CounterSeries('state',
             ColorScheme.getColorIdForGeneralPurposeString(powerCounter.name)));
       }
       // NB: 4294967295/-1 means an exit from the current state
-      var val = (cpuState !== 4294967295 ? cpuState + 1 : 0);
+      const val = (cpuState !== 4294967295 ? cpuState + 1 : 0);
       powerCounter.series.forEach(function(series) {
         series.addCounterSample(ts, val);
       });
     },
 
     cpuFrequencySlice(ts, targetCpuNumber, powerState) {
-      var targetCpu = this.importer.getOrCreateCpu(targetCpuNumber);
-      var powerCounter =
+      const targetCpu = this.importer.getOrCreateCpu(targetCpuNumber);
+      const powerCounter =
           targetCpu.getOrCreateCounter('', 'Clock Frequency');
       if (powerCounter.numSeries === 0) {
         powerCounter.addSeries(new tr.model.CounterSeries('state',
@@ -93,8 +92,8 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     },
 
     cpuFrequencyLimitsSlice(ts, targetCpuNumber, minFreq, maxFreq) {
-      var targetCpu = this.importer.getOrCreateCpu(targetCpuNumber);
-      var powerCounter =
+      const targetCpu = this.importer.getOrCreateCpu(targetCpuNumber);
+      const powerCounter =
           targetCpu.getOrCreateCounter('', 'Clock Frequency Limits');
       if (powerCounter.numSeries === 0) {
         powerCounter.addSeries(new tr.model.CounterSeries('Min Frequency',
@@ -118,53 +117,54 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
      * Parses power events and sets up state in the importer.
      */
     powerStartEvent(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = /type=(\d+) state=(\d) cpu_id=(\d+)/.exec(eventBase.details);
+      const event = /type=(\d+) state=(\d) cpu_id=(\d+)/.exec(
+          eventBase.details);
       if (!event) return false;
 
-      var targetCpuNumber = parseInt(event[3]);
-      var cpuState = parseInt(event[2]);
+      const targetCpuNumber = parseInt(event[3]);
+      const cpuState = parseInt(event[2]);
       this.cpuStateSlice(ts, targetCpuNumber, event[1], cpuState);
       return true;
     },
 
     powerFrequencyEvent(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = /type=(\d+) state=(\d+) cpu_id=(\d+)/
+      const event = /type=(\d+) state=(\d+) cpu_id=(\d+)/
           .exec(eventBase.details);
       if (!event) return false;
 
-      var targetCpuNumber = parseInt(event[3]);
-      var powerState = parseInt(event[2]);
+      const targetCpuNumber = parseInt(event[3]);
+      const powerState = parseInt(event[2]);
       this.cpuFrequencySlice(ts, targetCpuNumber, powerState);
       return true;
     },
 
     cpuFrequencyEvent(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = /state=(\d+) cpu_id=(\d+)/.exec(eventBase.details);
+      const event = /state=(\d+) cpu_id=(\d+)/.exec(eventBase.details);
       if (!event) return false;
 
-      var targetCpuNumber = parseInt(event[2]);
-      var powerState = parseInt(event[1]);
+      const targetCpuNumber = parseInt(event[2]);
+      const powerState = parseInt(event[1]);
       this.cpuFrequencySlice(ts, targetCpuNumber, powerState);
       return true;
     },
 
     cpuFrequencyLimitsEvent(eventName, cpu, pid, ts, eventBase) {
-      var event = /min=(\d+) max=(\d+) cpu_id=(\d+)/.exec(eventBase.details);
+      const event = /min=(\d+) max=(\d+) cpu_id=(\d+)/.exec(eventBase.details);
       if (!event) return false;
 
-      var targetCpuNumber = parseInt(event[3]);
-      var minFreq = parseInt(event[1]);
-      var maxFreq = parseInt(event[2]);
+      const targetCpuNumber = parseInt(event[3]);
+      const minFreq = parseInt(event[1]);
+      const maxFreq = parseInt(event[2]);
       this.cpuFrequencyLimitsSlice(ts, targetCpuNumber, minFreq, maxFreq);
       return true;
     },
 
     cpuIdleEvent(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = /state=(\d+) cpu_id=(\d+)/.exec(eventBase.details);
+      const event = /state=(\d+) cpu_id=(\d+)/.exec(eventBase.details);
       if (!event) return false;
 
-      var targetCpuNumber = parseInt(event[2]);
-      var cpuState = parseInt(event[1]);
+      const targetCpuNumber = parseInt(event[2]);
+      const cpuState = parseInt(event[1]);
       this.cpuIdleSlice(ts, targetCpuNumber, cpuState);
       return true;
     }

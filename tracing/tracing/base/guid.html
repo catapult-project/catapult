@@ -9,11 +9,11 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.b', function() {
-  var nextGUID = 1;
+  let nextGUID = 1;
 
-  var UUID4_PATTERN = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx';
+  const UUID4_PATTERN = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx';
 
-  var GUID = {
+  const GUID = {
     /* Allocate an integer GUID.
      *
      * These GUIDs are not unique between loads, but are fast to generate, and
@@ -48,7 +48,7 @@ tr.exportTo('tr.b', function() {
      */
     allocateUUID4() {
       return UUID4_PATTERN.replace(/[xy]/g, function(c) {
-        var r = parseInt(Math.random() * 16);
+        let r = parseInt(Math.random() * 16);
         if (c === 'y') r = (r & 3) + 8;
         return r.toString(16);
       });

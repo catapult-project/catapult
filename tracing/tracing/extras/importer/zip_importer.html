@@ -31,7 +31,7 @@ tr.exportTo('tr.e.importer', function() {
    * @return {boolean} Whether eventData looks like zip compressed data.
    */
   ZipImporter.canImport = function(eventData) {
-    var header;
+    let header;
     if (eventData instanceof ArrayBuffer) {
       header = new Uint8Array(eventData.slice(0, 2));
     } else if (typeof(eventData) === 'string' || eventData instanceof String) {
@@ -54,9 +54,9 @@ tr.exportTo('tr.e.importer', function() {
     },
 
     extractSubtraces() {
-      var zip = new JSZip(this.eventData_);
-      var subtraces = [];
-      for (var idx in zip.files) {
+      const zip = new JSZip(this.eventData_);
+      const subtraces = [];
+      for (const idx in zip.files) {
         subtraces.push(zip.files[idx].asBinary());
       }
       return subtraces;

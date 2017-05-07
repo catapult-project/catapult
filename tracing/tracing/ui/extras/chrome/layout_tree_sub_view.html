@@ -39,7 +39,7 @@ tr.exportTo('tr.ui.analysis', function() {
       this.set('$.content.textContent', '');
       if (!this.currentSelection_) return;
 
-      var columns = [
+      const columns = [
         {
           title: 'Tag/Name',
           value(layoutObject) {
@@ -193,7 +193,7 @@ tr.exportTo('tr.ui.analysis', function() {
         }
       ];
 
-      var table = this.ownerDocument.createElement('tr-ui-b-table');
+      const table = this.ownerDocument.createElement('tr-ui-b-table');
       table.defaultExpansionStateCallback = function(
           layoutObject, parentLayoutObject) {
         return true;
