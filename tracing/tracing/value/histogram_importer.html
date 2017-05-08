@@ -50,6 +50,7 @@ tr.exportTo('tr.v', function() {
       this.jsonEls_ = jsonEls;
       this.view_ = view;
       this.view_.helpHref = 'https://github.com/catapult-project/catapult/blob/master/docs/metrics-results-ui.md';
+      this.view_.feedbackHref = 'https://docs.google.com/a/google.com/forms/d/e/1FAIpQLSfXvMvm_z2F9-khFaKyH_LHVZ6caPPkxI27BZqMnEt4XjyJ3g/viewform';
 
       await this.update_(`Loading Histogram 0 of ${this.jsonEls_.length}`);
       await this.loadSomeHistograms_();

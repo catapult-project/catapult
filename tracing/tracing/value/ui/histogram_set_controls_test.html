@@ -28,6 +28,15 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(help.href, 'data:text/html,hello');
   });
 
+  test('feedbackHref', function() {
+    const controls = buildControls(this);
+    controls.feedbackHref = 'data:text/html,hello';
+    const feedback = tr.b.findDeepElementMatchingPredicate(
+        controls, e => e.id === 'feedback');
+    assert.strictEqual(feedback.style.display, 'inline');
+    assert.strictEqual(feedback.href, 'data:text/html,hello');
+  });
+
   test('displayLabels', function() {
     const controls = buildControls(this);
     const selector = tr.b.findDeepElementMatchingPredicate(controls, e =>
