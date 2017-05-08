@@ -224,6 +224,15 @@ class DeviceUtilsPushDeleteFilesTest(device_test_case.DeviceTestCase):
     new_adbd_pid = get_adbd_pid()
     self.assertNotEqual(old_adbd_pid, new_adbd_pid)
 
+  def testEnableRoot(self):
+    self.device.SetProp('service.adb.root', '0')
+    self.device.RestartAdbd()
+    self.assertFalse(self.device.HasRoot())
+    self.assertIn(self.device.GetProp('service.adb.root'), ('', '0'))
+    self.device.EnableRoot()
+    self.assertTrue(self.device.HasRoot())
+    self.assertEquals(self.device.GetProp('service.adb.root'), '1')
+
 
 if __name__ == '__main__':
   unittest.main()

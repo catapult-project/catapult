@@ -456,7 +456,15 @@ class DeviceUtils(object):
       else:
         raise  # Failed probably due to some other reason.
 
-    self.WaitUntilFullyBooted()
+    def device_online_with_root():
+      try:
+        self.adb.WaitForDevice()
+        return self.GetProp('service.adb.root', cache=False) == '1'
+      except (device_errors.AdbCommandFailedError,
+              device_errors.DeviceUnreachableError):
+        return False
+
+    timeout_retry.WaitFor(device_online_with_root, wait_period=1)
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def IsUserBuild(self, timeout=None, retries=None):
