@@ -60,12 +60,36 @@ class PossibleDesktopBrowser(possible_browser.PossibleBrowser):
 
     self._InitPlatformIfNeeded()
 
-    browser_backend = desktop_browser_backend.DesktopBrowserBackend(
-        self._platform_backend,
-        finder_options.browser_options, self._local_executable,
-        self._flash_path, self._is_content_shell, self._browser_directory)
-    return browser.Browser(
-        browser_backend, self._platform_backend, self._credentials_path)
+    num_retries = 3
+    for x in range(0, num_retries):
+      returned_browser = None
+      try:
+        returned_browser = None
+
+        browser_backend = desktop_browser_backend.DesktopBrowserBackend(
+            self._platform_backend,
+            finder_options.browser_options, self._local_executable,
+            self._flash_path, self._is_content_shell, self._browser_directory)
+
+        returned_browser = browser.Browser(
+            browser_backend, self._platform_backend, self._credentials_path)
+
+        return returned_browser
+      except Exception:
+        report = 'Browser creation failed (attempt %d of %d)' % (
+            (x + 1), num_retries)
+        if x < num_retries - 1:
+          report += ', retrying'
+        logging.warning(report)
+        # Attempt to clean up things left over from the failed browser startup.
+        try:
+          if returned_browser:
+            returned_browser.Close()
+        except Exception:
+          pass
+        # Re-raise the exception the last time through.
+        if x == num_retries - 1:
+          raise
 
   def SupportsOptions(self, browser_options):
     if ((len(browser_options.extensions_to_load) != 0)
