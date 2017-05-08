@@ -37,6 +37,7 @@ def IsBattOrConnected(test_platform, android_device=None,
 
     if not android_device_map:
       device_tree = find_usb_devices.GetBusNumberToDeviceTreeMap()
+      logging.warning('Device tree:', device_tree)
       if len(battor_device_mapping.GetBattOrList(device_tree)) == 1:
         return True
       if android_device_file:
@@ -45,7 +46,9 @@ def IsBattOrConnected(test_platform, android_device=None,
       else:
         try:
           android_device_map = battor_device_mapping.GenerateSerialMap()
+          logging.warning('Android device map:', android_device_map)
         except battor_error.BattOrError:
+          logging.exception('Error generating serial map')
           return False
 
     # If neither if statement above is triggered, it means that an
