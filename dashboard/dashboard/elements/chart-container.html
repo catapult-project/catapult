@@ -712,6 +712,14 @@ triaging functionality in the chart.
           const selectedPaths = seriesGroup.selectedPaths;
           const unselectedPaths = seriesGroup.unselectedPaths;
 
+          const testPaths = selectedPaths.concat(unselectedPaths);
+          testPaths.sort();
+          for (const testPath of testPaths) {
+            // XHRs are asynchronous, so the data can arrive in any order.
+            // Pre-compute colors for testPaths in a deterministic order.
+            GENERATOR.colorForKey(testPath);
+          }
+
           // Checks if test path already exists.
           const testPathSet = new Set(
               this.seriesGroupList.map(group => group.path));
