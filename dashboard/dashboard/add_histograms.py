@@ -55,31 +55,86 @@ def ProcessHistogramSet(histogram_dicts):
   histograms.ResolveRelatedHistograms()
   InlineDenseSharedDiagnostics(histograms)
 
-  test_path = ComputeTestPath(histograms)
   revision = ComputeRevision(histograms)
 
   task_list = []
-  for d in histograms.AsDicts():
-    task_list.append(taskqueue.Task(
-        url='/add_histograms_queue', params={
-            'data': json.dumps(d),
-            'test_path': test_path,
-            'revision': revision}))
+
+  suite_path = ComputeSuitePath(histograms)
+
+  for diagnostic in histograms.shared_diagnostics:
+    # We'll skip the histogram-level sparse diagnostics because we need to
+    # handle those with the histograms, below, so that we can properly assign
+    # test paths.
+    if type(diagnostic) in SUITE_LEVEL_SPARSE_DIAGNOSTIC_TYPES:
+      task_list.append(_MakeTask(diagnostic, suite_path, revision))
+
+  for histogram in histograms:
+    guid = histogram.guid
+    objects = FindHistogramLevelSparseDiagnostics(guid, histograms)
+    test_path = ComputeTestPath(guid, histograms)
+    # We need to queue the histogram in addition to its dense shared
+    # diagnostics.
+    objects.append(histogram)
+    # TODO(eakuefner): Batch these better than one per task.
+    for obj in objects:
+      task_list.append(_MakeTask(obj, test_path, revision))
 
   queue = taskqueue.Queue(TASK_QUEUE_NAME)
   queue.add(task_list)
 
 
-def ComputeTestPath(histograms):
-  # TODO(eakuefner): Make this implementation less bogus
-  del histograms
-  return 'TestMaster/TestBot/TestSuite/TestMetric'
+def _MakeTask(obj, test_path, revision):
+  return taskqueue.Task(
+      url='/add_histograms_queue', params={
+          'data': json.dumps(obj.AsDict()),
+          'test_path': test_path,
+          'revision': revision})
+
+
+def FindHistogramLevelSparseDiagnostics(guid, histograms):
+  histogram = histograms.LookupHistogram(guid)
+  diagnostics = []
+  for diagnostic in histogram.diagnostics.itervalues():
+    if type(diagnostic) in HISTOGRAM_LEVEL_SPARSE_DIAGNOSTIC_TYPES:
+      diagnostics.append(diagnostic)
+  return diagnostics
+
+
+def ComputeSuitePath(histograms):
+  assert len(histograms) > 0
+  return _ComputeSuitePathFromHistogram(histograms.GetFirstHistogram())
+
+
+def ComputeTestPath(guid, histograms):
+  histogram = histograms.LookupHistogram(guid)
+  suite_path = _ComputeSuitePathFromHistogram(histogram)
+  telemetry_info = histogram.diagnostics[histogram_module.TelemetryInfo.NAME]
+  story_display_name = telemetry_info.story_display_name
+
+  path = '%s/%s' % (suite_path, histogram.name)
+
+  if story_display_name != '':
+    path += '/%s' % story_display_name
+
+  return path
+
+
+def _ComputeSuitePathFromHistogram(histogram):
+  buildbot_info = histogram.diagnostics[histogram_module.BuildbotInfo.NAME]
+  telemetry_info = histogram.diagnostics[histogram_module.TelemetryInfo.NAME]
+
+  master = buildbot_info.display_master_name
+  bot = buildbot_info.display_bot_name
+  benchmark = telemetry_info.benchmark_name
+
+  return '%s/%s/%s' % (master, bot, benchmark)
 
 
 def ComputeRevision(histograms):
-  # TODO(eakuefner): Make this implementation less bogus
-  del histograms
-  return 123456
+  assert len(histograms) > 0
+  revision_info = histograms.GetFirstHistogram().diagnostics[
+      histogram_module.RevisionInfo.NAME]
+  return revision_info.chromium_commit_position
 
 
 def InlineDenseSharedDiagnostics(histograms):

@@ -639,6 +639,9 @@ class BuildbotInfo(Diagnostic):
 
 
 class RevisionInfo(Diagnostic):
+
+  NAME = 'revisions'
+
   def __init__(self, info):
     super(RevisionInfo, self).__init__()
     self._chromium_commit_position = info.get('chromiumCommitPosition', None)
@@ -1604,6 +1607,10 @@ class HistogramSet(object):
     for hist in histograms:
       self.AddHistogram(hist)
 
+  @property
+  def shared_diagnostics(self):
+    return self._shared_diagnostics_by_guid.itervalues()
+
   def AddHistogram(self, hist, diagnostics=None):
     if hist.guid in self._histograms_by_guid:
       raise ValueError('Cannot add same Histogram twice')
@@ -1619,6 +1626,10 @@ class HistogramSet(object):
 
     for hist in self:
       hist.diagnostics[name] = diagnostic
+
+  def GetFirstHistogram(self):
+    for histogram in self._histograms_by_guid.itervalues():
+      return histogram
 
   def GetHistogramsNamed(self, name):
     return [h for h in self if h.name == name]
