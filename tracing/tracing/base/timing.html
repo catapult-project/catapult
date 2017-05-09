@@ -6,30 +6,89 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/guid.html">
+<link rel="import" href="/tracing/base/iteration_helpers.html">
 
 <script>
 'use strict';
 tr.exportTo('tr.b', function() {
+  class Mark {
+    constructor(groupName, functionName) {
+      if (tr.isHeadless) return;
+
+      this.groupName_ = groupName;
+      this.functionName_ = functionName;
+      const guid = tr.b.GUID.allocateSimple();
+      this.measureName_ = `${groupName} ${functionName}`;
+      this.startMarkName_ = `${this.measureName} ${guid} start`;
+      this.endMarkName_ = `${this.measureName} ${guid} end`;
+
+      window.performance.mark(this.startMarkName_);
+    }
+
+    get groupName() {
+      return this.groupName_;
+    }
+
+    get functionName() {
+      return this.functionName_;
+    }
+
+    get measureName() {
+      return this.measureName_;
+    }
+
+    get startMark() {
+      return tr.b.getOnlyElement(window.performance.getEntriesByName(
+          this.startMarkName_));
+    }
+
+    get endMark() {
+      return tr.b.getOnlyElement(window.performance.getEntriesByName(
+          this.endMarkName_));
+    }
+
+    get durationMs() {
+      // There may be many measures named `this.measureName`, but the start and
+      // end mark names contain a GUID so they are unique.
+      return this.endMark.startTime - this.startMark.startTime;
+    }
+
+    end() {
+      if (tr.isHeadless) return;
+
+      window.performance.mark(this.endMarkName_);
+      window.performance.measure(
+          this.measureName_, this.startMarkName_, this.endMarkName_);
+
+      if (!(window.ga instanceof Function)) return;
+      // Google Analytics
+      ga('send', {
+        hitType: 'event',
+        eventCategory: this.groupName,
+        eventAction: this.functionName,
+        eventValue: this.durationMs,
+      });
+    }
+  }
+
   class Timing {
     static mark(groupName, functionName) {
-      if (tr.isHeadless) {
-        return {
-          end() {}
-        };
-      }
-      const guid = tr.b.GUID.allocateSimple();
-      const markName = `${groupName} ${functionName}`;
-      const startMarkName = `${markName} ${guid} start`;
-      const endMarkName = `${markName} ${guid} end`;
+      return new Mark(groupName, functionName);
+    }
 
-      window.performance.mark(startMarkName);
+    static instant(groupName, functionName, opt_value) {
+      const valueString = opt_value === undefined ? '' : ' ' + opt_value;
+      // eslint-disable-next-line no-console
+      console.timeStamp(`${groupName} ${functionName}${valueString}`);
 
-      return {
-        end() {
-          window.performance.mark(endMarkName);
-          window.performance.measure(markName, startMarkName, endMarkName);
-        }
-      };
+      if (!(window.ga instanceof Function)) return;
+      // Google Analytics
+      ga('send', {
+        hitType: 'event',
+        eventCategory: groupName,
+        eventAction: functionName,
+        eventValue: opt_value,
+      });
     }
   }
 
