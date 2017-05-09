@@ -78,7 +78,8 @@ class IsolateLookupTest(_FindIsolatedTest):
   def testChangeHasPatch(self):
     change = change_module.Change(
         change_module.Dep('src', 'f9f2b720'),
-        patch='rietveld/codereview.chromium.org/2570613003/1')
+        patch=change_module.Patch('https://codereview.chromium.org',
+                                  2570613003, 1))
     execution = find_isolated.FindIsolated('Mac Pro Perf').Start(change)
     execution.Poll()
 

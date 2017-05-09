@@ -24,14 +24,14 @@ class ChangeTest(unittest.TestCase):
   def testChange(self):
     base_commit = change.Dep('src', 'aaa7336')
     dep = change.Dep('catapult', 'e0a2efb')
-    patch = 'rietveld/codereview.chromium.org/2565263002/20001'
+    patch = change.Patch('https://codereview.chromium.org', 2565263002, 20001)
 
     # Also test the deps conversion to tuple.
     c = change.Change(base_commit, [dep], patch)
 
     self.assertEqual(c, change.Change(base_commit, (dep,), patch))
     string = ('src@aaa7336 catapult@e0a2efb + '
-              'rietveld/codereview.chromium.org/2565263002/20001')
+              'https://codereview.chromium.org/2565263002/20001')
     self.assertEqual(str(c), string)
     self.assertEqual(c.base_commit, base_commit)
     self.assertEqual(c.deps, (dep,))
@@ -65,8 +65,9 @@ class ChangeTest(unittest.TestCase):
 
   def testMidpointRaisesWithDifferingPatch(self):
     change_a = change.Change(change.Dep('src', '0e57e2b'))
-    change_b = change.Change(change.Dep('src', 'babe852'),
-                             patch='rietveld/example.org/2565263002/20001')
+    change_b = change.Change(
+        change.Dep('src', 'babe852'),
+        patch=change.Patch('https://codereview.chromium.org', 2565263002, 20001))
     with self.assertRaises(change.NonLinearError):
       change.Change.Midpoint(change_a, change_b)
 

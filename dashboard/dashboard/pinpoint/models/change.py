@@ -31,22 +31,15 @@ class Change(collections.namedtuple('Change',
           file at that commit implies the default commits for any dependencies.
       deps: An optional iterable of Deps to override the dependencies implied
           by base_commit.
-      patch: An optional patch to apply to the Change. A string of the format:
-          <gerrit or rietveld>/<server hostname>/<change id>/<patch set>
+      patch: An optional Patch to apply to the Change.
     """
-    if patch and len(patch.split('/')) != 4:
-      raise ValueError(
-          'patch must be a string of the format: '
-          '<gerrit or rietveld>/<server hostname>/<change id>/<patch set>. '
-          'Got "%s".' % patch)
-
     # TODO: deps is unordered. Make it a frozenset.
     return super(Change, cls).__new__(cls, base_commit, tuple(deps), patch)
 
   def __str__(self):
     string = ' '.join(str(dep) for dep in self.all_deps)
     if self.patch:
-      string += ' + ' + self.patch
+      string += ' + ' + str(self.patch)
     return string
 
   @property
@@ -146,6 +139,13 @@ class Dep(collections.namedtuple('Dep', ('repository', 'git_hash'))):
     commits = commits[1:]  # Remove dep_b from the range.
 
     return cls(dep_a.repository, commits[len(commits) / 2]['commit'])
+
+
+class Patch(collections.namedtuple('Patch', ('server', 'issue', 'patchset'))):
+  """A patch in Rietveld."""
+
+  def __str__(self):
+    return '%s/%d/%d' % (self.server, self.issue, self.patchset)
 
 
 def _ValidateChangeLinearity(change_a, change_b):
