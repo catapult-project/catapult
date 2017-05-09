@@ -3,9 +3,15 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import argparse
+import os
 import re
 import sys
-import argparse
+
+if __name__ == '__main__':
+  sys.path.append(
+      os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                   '..', '..')))
 
 from devil.utils import cmd_helper
 from devil.utils import usb_hubs
