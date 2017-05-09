@@ -19,7 +19,6 @@ from telemetry.web_perf.metrics import gpu_timeline
 from telemetry.web_perf.metrics import indexeddb_timeline
 from telemetry.web_perf.metrics import layout
 from telemetry.web_perf.metrics import smoothness
-from telemetry.web_perf.metrics import text_selection
 from telemetry.web_perf import smooth_gesture_util
 from telemetry.web_perf import story_test
 from telemetry.web_perf import timeline_interaction_record as tir_module
@@ -47,7 +46,6 @@ def _GetAllLegacyTimelineBasedMetrics():
           layout.LayoutMetric(),
           gpu_timeline.GPUTimelineMetric(),
           blob_timeline.BlobTimelineMetric(),
-          text_selection.TextSelectionMetric(),
           indexeddb_timeline.IndexedDBTimelineMetric(),
           webrtc_rendering_timeline.WebRtcRenderingTimelineMetric())
 
