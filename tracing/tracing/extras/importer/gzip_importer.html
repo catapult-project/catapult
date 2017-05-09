@@ -133,7 +133,14 @@ tr.exportTo('tr.e.importer', function() {
       return GzipImporter.transformToStream(inflatedData);
     }
 
-    const string = GzipImporter.transformToString(inflatedData);
+    let string;
+    try {
+      string = GzipImporter.transformToString(inflatedData);
+    } catch (err) {
+      // It may be the case that inflated data does not fit into a V8 string. In
+      // that case, try to transform to a trace stream.
+      return GzipImporter.transformToStream(inflatedData);
+    }
 
     if (inflatedData.length > 0 && string.length === 0) {
       throw new RangeError('Inflated gzip data too long to fit into a string' +

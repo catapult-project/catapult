@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/base64.html">
+<link rel="import" href="/tracing/base/trace_stream.html">
 <link rel="import" href="/tracing/importer/importer.html">
 <link rel="import" href="/tracing/importer/simple_line_reader.html">
 <link rel="import" href="/tracing/model/model.html">
@@ -59,6 +60,7 @@ tr.exportTo('tr.e.importer', function() {
   }
 
   Trace2HTMLImporter.canImport = function(events) {
+    if (events instanceof tr.b.TraceStream) return false;
     return _canImportFromHTML(events);
   };
 
