@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import httplib
 import json
 import mock
 import unittest
@@ -79,6 +80,14 @@ class IssueTrackerServiceTest(testing_common.TestCase):
     bug_id = response['bug_id']
     self.assertEqual(1, service._ExecuteRequest.call_count)
     self.assertEqual(333, bug_id)
+
+  def testNewBug_Failure_HTTPException(self):
+    service = issue_tracker_service.IssueTrackerService(mock.MagicMock())
+    service._ExecuteRequest = mock.Mock(
+        side_effect=httplib.HTTPException('reason'))
+    response = service.NewBug('Bug title', 'body', owner='someone@chromium.org')
+    self.assertEqual(1, service._ExecuteRequest.call_count)
+    self.assertIn('error', response)
 
   def testNewBug_Failure_NewBugReturnsError(self):
     service = issue_tracker_service.IssueTrackerService(mock.MagicMock())

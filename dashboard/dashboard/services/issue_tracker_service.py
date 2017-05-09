@@ -4,6 +4,7 @@
 
 """Provides a layer of abstraction for the issue tracker API."""
 
+import httplib
 import json
 import logging
 
@@ -172,6 +173,8 @@ class IssueTrackerService(object):
     except errors.HttpError as e:
       reason = _GetErrorReason(e)
       return {'error': reason}
+    except httplib.HTTPException as e:
+      return {'error': str(e)}
     return {'error': 'Unknown failure creating issue.'}
 
   def GetIssueComments(self, bug_id):
