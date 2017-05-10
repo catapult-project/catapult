@@ -215,7 +215,6 @@ class InspectorBackend(object):
     statement = js_template.Render(statement, **kwargs)
     self._runtime.Execute(statement, context_id, timeout)
 
-  @_HandleInspectorWebSocketExceptions
   def EvaluateJavaScript(self, expression, **kwargs):
     """Returns the result of evaluating a given JavaScript expression.
 
@@ -241,7 +240,7 @@ class InspectorBackend(object):
     timeout = kwargs.pop('timeout', None) or 60
     context_id = kwargs.pop('context_id', None)
     expression = js_template.Render(expression, **kwargs)
-    return self._runtime.Evaluate(expression, context_id, timeout)
+    return self._EvaluateJavaScript(expression, context_id, timeout)
 
   def WaitForJavaScriptCondition(self, condition, **kwargs):
     """Wait for a JavaScript condition to become truthy.
@@ -275,7 +274,7 @@ class InspectorBackend(object):
     condition = js_template.Render(condition, **kwargs)
 
     def IsJavaScriptExpressionTrue():
-      return self._runtime.Evaluate(condition, context_id, timeout)
+      return self._EvaluateJavaScript(condition, context_id, timeout)
 
     try:
       return py_utils.WaitFor(IsJavaScriptExpressionTrue, timeout)
@@ -502,6 +501,10 @@ class InspectorBackend(object):
       )
     error.AddDebuggingMessage(msg)
     error.AddDebuggingMessage('Debugger url: %s' % self.debugger_url)
+
+  @_HandleInspectorWebSocketExceptions
+  def _EvaluateJavaScript(self, expression, context_id, timeout):
+    return self._runtime.Evaluate(expression, context_id, timeout)
 
   @_HandleInspectorWebSocketExceptions
   def CollectGarbage(self):
