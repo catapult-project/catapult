@@ -262,7 +262,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual('none', hideOverview.style.display);
   });
 
-  test('controlIsOverviewed', function() {
+  test('controlIsOverviewed', async function() {
     const controls = buildControls(this);
     const showOverview = tr.b.findDeepElementMatchingPredicate(controls, e =>
         e.id === 'show_overview');
@@ -277,13 +277,13 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual('inline', showOverview.style.display);
     assert.strictEqual('none', hideOverview.style.display);
 
-    showOverview.dispatchEvent(new MouseEvent('click'));
+    await controls.toggleOverviewLineCharts_();
     assert.strictEqual('none', showOverview.style.display);
     assert.strictEqual('inline', hideOverview.style.display);
     assert.isTrue(controls.viewState.tableRowStates.get('a').isOverviewed);
     assert.isTrue(controls.viewState.tableRowStates.get('b').isOverviewed);
 
-    hideOverview.dispatchEvent(new MouseEvent('click'));
+    await controls.toggleOverviewLineCharts_();
     assert.strictEqual('inline', showOverview.style.display);
     assert.strictEqual('none', hideOverview.style.display);
     assert.isFalse(controls.viewState.tableRowStates.get('a').isOverviewed);

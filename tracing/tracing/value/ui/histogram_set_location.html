@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/timing.html">
 <link rel="import" href="/tracing/base/url_json.html">
 <link rel="import" href="/tracing/value/histogram_set.html">
 <link rel="import" href="/tracing/value/ui/histogram_set_view_state.html">
@@ -111,6 +112,7 @@ tr.exportTo('tr.v.ui', function() {
 
     pushState_() {
       if (this.poppingState_) return;
+      const mark = tr.b.Timing.mark('HistogramSetLocation', 'pushState');
 
       const params = new Map();
       if (this.viewState.searchQuery) {
@@ -150,13 +152,18 @@ tr.exportTo('tr.v.ui', function() {
         }
       }
 
-      if (search === this.location_.search) return;
+      if (search === this.location_.search) {
+        mark.end();
+        return;
+      }
 
       this.location_.pushState(
           this.location_.origin + this.location_.pathname + search);
+      mark.end();
     }
 
     async onPopState_() {
+      const mark = tr.b.Timing.mark('HistogramSetLocation', 'onPopState');
       this.poppingState_ = true;
 
       const params = new Map();
@@ -207,6 +214,7 @@ tr.exportTo('tr.v.ui', function() {
       }
 
       this.poppingState_ = false;
+      mark.end();
     }
   }
 

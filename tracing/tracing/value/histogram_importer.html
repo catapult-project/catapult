@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/raf.html">
+<link rel="import" href="/tracing/base/timing.html">
 <link rel="import" href="/tracing/value/histogram_set.html">
 
 <script>
@@ -21,6 +22,7 @@ tr.exportTo('tr.v', function() {
       this.jsonEls_ = [];
       this.jsonDivIndex_ = 0;
       this.view_ = undefined;
+      this.fmpMark_ = tr.b.Timing.mark('HistogramImporter', 'fmp');
 
       this.loadingEl_.textContent = 'Parsing HTML...';
       // The json divs appear after this script tag in results2.html, so the
@@ -51,12 +53,24 @@ tr.exportTo('tr.v', function() {
       this.view_ = view;
       this.view_.helpHref = 'https://github.com/catapult-project/catapult/blob/master/docs/metrics-results-ui.md';
       this.view_.feedbackHref = 'https://docs.google.com/a/google.com/forms/d/e/1FAIpQLSfXvMvm_z2F9-khFaKyH_LHVZ6caPPkxI27BZqMnEt4XjyJ3g/viewform';
+      tr.b.Timing.instant(
+          'HistogramImporter', 'jsonCount', this.jsonEls_.length);
 
-      await this.update_(`Loading Histogram 0 of ${this.jsonEls_.length}`);
-      await this.loadSomeHistograms_();
+      if (this.jsonEls_.length > 0) {
+        await this.update_(`Loading Histogram 0 of ${this.jsonEls_.length}`);
+        const loadMark = tr.b.Timing.mark(
+            'HistogramImporter', 'loadHistograms');
+        await this.loadSomeHistograms_();
+        loadMark.end();
+        tr.b.Timing.instant('HistogramImporter', 'nsPerJson',
+            parseInt(1e3 * loadMark.durationMs / this.jsonEls_.length));
+      }
 
       await this.update_('Resolving Histogram relationships...');
+      const relatedMark = tr.b.Timing.mark(
+          'HistogramImporter', 'resolveRelatedHistograms');
       await this.histograms_.resolveRelatedHistograms();
+      relatedMark.end();
 
       await this.update_('Displaying Histogram table...');
       await this.displayHistograms_();
@@ -87,9 +101,11 @@ tr.exportTo('tr.v', function() {
     }
 
     async displayHistograms_() {
-      this.view_.addEventListener('display-ready', () => {
+      this.view_.addEventListener('display-ready', async () => {
         this.loadingEl_.style.display = 'none';
         this.view_.style.display = 'block';
+        await tr.b.animationFrame();
+        this.fmpMark_.end();
       });
 
       await this.view_.build(

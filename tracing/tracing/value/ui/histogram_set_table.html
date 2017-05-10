@@ -108,6 +108,9 @@ tr.exportTo('tr.v.ui', function() {
         }
       ].concat(displayLabels.map(l => this.buildColumn_(l)));
 
+      tr.b.Timing.instant('histogram-set-table', 'columnCount',
+          this.$.table.tableColumns.length);
+
       // updateContents_() displays its own progress.
       await this.updateContents_();
 
@@ -213,6 +216,9 @@ tr.exportTo('tr.v.ui', function() {
         this.tableRows_ = filteredHierarchies.map(hierarchy =>
             new tr.v.ui.HistogramSetTableRow(
               hierarchy, this.$.table, this.viewState));
+
+        tr.b.Timing.instant('histogram-set-table', 'rootRowCount',
+            this.tableRows_.length);
 
         const namesToRowStates = new Map();
         for (const row of this.tableRows_) {

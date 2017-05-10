@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/timing.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
 <link rel="import" href="/tracing/ui/base/grouping_table_groupby_picker.html">
 <link rel="import" href="/tracing/value/ui/histogram_set_view_state.html">
@@ -167,9 +168,24 @@ tr.exportTo('tr.v.ui', function() {
       // viewState first and then update it.
     },
 
-    onUserChange_() {
+    async onUserChange_() {
       if (!this.viewState) return;
       if (this.isInOnViewStateUpdate_) return;
+
+      const marks = [];
+      if (this.searchQuery !== this.viewState.searchQuery) {
+        marks.push(tr.b.Timing.mark('histogram-set-controls', 'search'));
+      }
+      if (this.showAll !== this.viewState.showAll) {
+        marks.push(tr.b.Timing.mark('histogram-set-controls', 'showAll'));
+      }
+      if (this.referenceDisplayLabel !== this.viewState.referenceDisplayLabel) {
+        marks.push(tr.b.Timing.mark(
+            'histogram-set-controls', 'referenceColumn'));
+      }
+      if (this.displayStatisticName !== this.viewState.displayStatisticName) {
+        marks.push(tr.b.Timing.mark('histogram-set-controls', 'statistic'));
+      }
 
       let displayStatisticName = this.displayStatisticName;
       if (this.viewState.referenceDisplayLabel === '' &&
@@ -194,16 +210,12 @@ tr.exportTo('tr.v.ui', function() {
       }
 
       // Propagate updates from the user to the view state.
-      this.viewState.update({
+      await this.viewState.update({
         searchQuery: this.searchQuery,
         showAll: this.showAll,
         referenceDisplayLabel: this.referenceDisplayLabel,
         displayStatisticName,
       });
-
-      if (this.displayStatisticName !== displayStatisticName) {
-        this.displayStatisticName = displayStatisticName;
-      }
 
       if (this.referenceDisplayLabel &&
           this.statisticNames.length === this.baseStatisticNames.length) {
@@ -217,6 +229,8 @@ tr.exportTo('tr.v.ui', function() {
         // be available.
         this.statisticNames = this.baseStatisticNames;
       }
+
+      for (const mark of marks) mark.end();
     },
 
     onViewStateUpdate_(event) {
@@ -357,16 +371,21 @@ tr.exportTo('tr.v.ui', function() {
       return false;
     },
 
-    toggleOverviewLineCharts_() {
+    async toggleOverviewLineCharts_() {
       const showOverviews = !this.anyOverviewCharts_;
+      const mark = tr.b.Timing.mark('histogram-set-controls',
+          (showOverviews ? 'show' : 'hide') + 'OverviewCharts');
 
       for (const row of tr.v.ui.HistogramSetTableRowState.walkAll(
           this.viewState.tableRowStates.values())) {
-        row.isOverviewed = showOverviews;
+        await row.update({isOverviewed: showOverviews});
       }
 
       this.$.hide_overview.style.display = showOverviews ? 'inline' : 'none';
       this.$.show_overview.style.display = showOverviews ? 'none' : 'inline';
+
+      await tr.b.animationFrame();
+      mark.end();
     },
 
     set helpHref(href) {

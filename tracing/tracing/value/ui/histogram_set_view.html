@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/timing.html">
 <link rel="import" href="/tracing/ui/null_brushing_state_controller.html">
 <link rel="import" href="/tracing/value/csv_builder.html">
 <link rel="import" href="/tracing/value/histogram_parameter_collector.html">
@@ -104,26 +105,37 @@ tr.exportTo('tr.v.ui', function() {
       this.$.container.style.display = 'block';
       this.$.container.style.maxHeight = (window.innerHeight - 16) + 'px';
 
+      const buildMark = tr.b.Timing.mark('histogram-set-view', 'build');
       await progress('Finding important Histograms...');
+      const sourceHistogramsMark = tr.b.Timing.mark(
+          'histogram-set-view', 'sourceHistograms');
       const sourceHistograms = histograms.sourceHistograms;
+      sourceHistogramsMark.end();
       // Disable show_all if all values are sourceHistograms.
       this.$.controls.showAllEnabled = (
           sourceHistograms.length !== histograms.length);
 
       await progress('Collecting parameters...');
+      const collectParametersMark = tr.b.Timing.mark(
+          'histogram-set-view', 'collectParameters');
       const parameterCollector = new tr.v.HistogramParameterCollector();
       parameterCollector.process(histograms);
       this.$.controls.baseStatisticNames = parameterCollector.statisticNames;
       this.$.controls.possibleGroupings = parameterCollector.possibleGroupings;
       const displayLabels = parameterCollector.labels;
       this.$.controls.displayLabels = displayLabels;
+      collectParametersMark.end();
 
       // Table.build() displays its own progress.
       await this.$.table.build(
           histograms, sourceHistograms, displayLabels, progress);
+
+      buildMark.end();
     },
 
     downloadCSV_() {
+      const downloadCSVMark = tr.b.Timing.mark(
+          'histogram-set-view', 'downloadCSV');
       const anchor = document.createElement('a');
 
       const path = window.location.pathname.split('/');
@@ -136,6 +148,7 @@ tr.exportTo('tr.v.ui', function() {
       anchor.href = window.URL.createObjectURL(blob);
 
       anchor.click();
+      downloadCSVMark.end();
     }
   });
 
