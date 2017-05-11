@@ -313,13 +313,20 @@ tr.exportTo('tr.e.chrome', function() {
     for (let i = 1; i < sortedTasks.length; i++) {
       // Due to floating-point precision errors it might happen that the end
       // of the previous task is larger than the start of the current task.
-      // Here is an example from a real trace of system-health benchmark:
-      // Task 1: start=1932.0179090499878 end=1932.070909049988.
-      // Task 2: start=1932.0709090232850 end=1932.118909023285.
+      // Here is an example from a real trace:
+      // Task 1: start=25851.0181016922 end=25851.0481016922
+      // Task 2: start=25851.0251016616 end=34496.0291013717.
       // To account for precision errors we consider tasks as overlapping
       // if the overlap is sufficiently large.
-      if (sortedTasks[i - 1].end > sortedTasks[i].start + 1e-3) {
+      const PRECISION_MS = 0.1;
+      if (sortedTasks[i - 1].end > sortedTasks[i].start + PRECISION_MS) {
         throw Error('Tasks must not overlap');
+      }
+      // Ensure that the previous task finishes not later than the current task.
+      if (sortedTasks[i - 1].end > sortedTasks[i].start) {
+        const midpoint = (sortedTasks[i - 1].end + sortedTasks[i].start) / 2;
+        sortedTasks[i - 1].end = midpoint;
+        sortedTasks[i].start = midpoint;
       }
     }
 
