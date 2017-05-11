@@ -308,18 +308,19 @@ class TestMetadata(internal_only_model.CreateHookInternalOnlyModel):
       test_suite.put()
 
     # Set the anomaly threshold config to the first one that has a test pattern
-    # that matches this test, if there is one. Anomaly configs are sorted by
-    # name, so that a config with a name that comes earlier lexicographically
-    # is considered higher-priority.
+    # that matches this test, if there is one. Anomaly configs with a pattern
+    # that more specifically matches the test are given higher priority.
+    # ie. */*/*/foo is chosen over */*/*/*
     self.overridden_anomaly_config = None
     anomaly_configs = anomaly_config.AnomalyConfig.query().fetch()
-    anomaly_configs.sort(key=lambda config: config.key.string_id())
-    for anomaly_config_entity in anomaly_configs:
-      for pattern in anomaly_config_entity.patterns:
-        if utils.TestMatchesPattern(self, pattern):
-          self.overridden_anomaly_config = anomaly_config_entity.key
-      if self.overridden_anomaly_config:
-        break
+    anomaly_data_list = []
+    for e in anomaly_configs:
+      for p in e.patterns:
+        anomaly_data_list.append((p, e))
+    anomaly_config_to_use = utils.MostSpecificMatchingPattern(
+        self, anomaly_data_list)
+    if anomaly_config_to_use:
+      self.overridden_anomaly_config = anomaly_config_to_use.key
 
   def CreateCallback(self):
     """Called when the entity is first saved."""

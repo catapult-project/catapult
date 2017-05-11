@@ -617,6 +617,37 @@ class AddPointTest(testing_common.TestCase):
         'TestMetadata', 'ChromiumWebkit/win7/dromaeo/jslib').get()
     self.assertIsNone(no_config_test.overridden_anomaly_config)
 
+  def testPost_NewTest_ClosestsAnomlyConfigIsUsed(self):
+    anomaly_config.AnomalyConfig(
+        id='anomaly_config1', config='',
+        patterns=['ChromiumPerf/*/dromaeo/*']).put()
+    anomaly_config2 = anomaly_config.AnomalyConfig(
+        id='anomaly_config2', config='',
+        patterns=['ChromiumPerf/*/dromaeo/benchmark_duration']).put()
+    anomaly_config.AnomalyConfig(
+        id='anomaly_config3', config='',
+        patterns=['ChromiumPerf/*/*/*']).put()
+
+    data_param = json.dumps([
+        {
+            'master': 'ChromiumPerf',
+            'bot': 'win',
+            'test': 'dromaeo/benchmark_duration',
+            'revision': 123456,
+            'value': 700,
+        }
+    ])
+    self.testapp.post(
+        '/add_point', {'data': data_param},
+        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+
+    self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
+
+    anomaly_config1_test = ndb.Key(
+        'TestMetadata', 'ChromiumPerf/win/dromaeo/benchmark_duration').get()
+    self.assertEqual(
+        anomaly_config2, anomaly_config1_test.overridden_anomaly_config)
+
   def testPost_NewTest_AddsUnits(self):
     """Checks units and improvement direction are added for new TestMetadata."""
     data_param = json.dumps([

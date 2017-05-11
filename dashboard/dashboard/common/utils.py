@@ -163,6 +163,58 @@ def OldStyleTestKey(key_or_string):
   return ndb.Key(*key_parts)
 
 
+def MostSpecificMatchingPattern(test, pattern_data_tuples):
+  """Takes a test and a list of (pattern, data) tuples and returns the data
+  for the pattern which most closely matches the test. It does this by
+  ordering the matching patterns, and choosing the one with the most specific
+  top level match.
+
+  For example, if there was a test Master/Bot/Foo/Bar, then:
+
+  */*/*/Bar would match more closely than */*/*/*
+  */*/*/Bar would match more closely than */*/*/Bar.*
+  */*/*/Bar.* would match more closely than */*/*/*
+  """
+  matching_patterns = []
+  for p, v in pattern_data_tuples:
+    if not TestMatchesPattern(test, p):
+      continue
+    matching_patterns.append([p, v])
+
+  if not matching_patterns:
+    return None
+
+  if type(test) is ndb.Key:
+    test_path = TestPath(test)
+  else:
+    test_path = test.test_path
+  test_path_parts = test_path.split('/')
+
+  # This ensures the ordering puts the closest match at index 0
+  def CmpPatterns(a, b):
+    a_parts = a[0].split('/')
+    b_parts = b[0].split('/')
+    for a_part, b_part, test_part in reversed(
+        zip(a_parts, b_parts, test_path_parts)):
+      # We favour a specific match over a partial match, and a partial
+      # match over a catch-all * match.
+      if a_part == b_part:
+        continue
+      if a_part == test_part:
+        return -1
+      if b_part == test_part:
+        return 1
+      if a_part != '*':
+        return -1
+      if b_part != '*':
+        return 1
+      return 0
+
+  matching_patterns.sort(cmp=CmpPatterns)
+
+  return matching_patterns[0][1]
+
+
 def TestMatchesPattern(test, pattern):
   """Checks whether a test matches a test path pattern.
 

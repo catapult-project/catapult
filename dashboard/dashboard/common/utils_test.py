@@ -77,6 +77,46 @@ class UtilsTest(testing_common.TestCase):
         'ChromiumPerf/cros-one/dromaeo.top25/Total',
         'ChromiumPerf/cros-one/dromaeo.top25/otal*')
 
+  def testMostSpecificMatchingPattern_SpecificVsGeneral(self):
+    test_key = utils.TestKey('M/B/S/Total')
+
+    result = utils.MostSpecificMatchingPattern(
+        test_key,
+        [('*/*/*/*', 1), ('*/*/*/Total', 2), ('*/*/*/Foo', 3)])
+    self.assertEqual(2, result)
+
+  def testMostSpecificMatchingPattern_PartialVsGeneral(self):
+    test_key = utils.TestKey('M/B/S/Total')
+
+    result = utils.MostSpecificMatchingPattern(
+        test_key,
+        [('*/*/*/*', 1), ('*/*/*/To*al', 2), ('*/*/*/Foo', 3)])
+    self.assertEqual(2, result)
+
+  def testMostSpecificMatchingPattern_2ndLevel(self):
+    test_key = utils.TestKey('M/B/S/Total')
+
+    result = utils.MostSpecificMatchingPattern(
+        test_key,
+        [('*/*/*/*', 1), ('*/*/S/*', 2), ('*/*/*/Foo', 3)])
+    self.assertEqual(2, result)
+
+  def testMostSpecificMatchingPattern_TopLevelSpecificOverLowerSpecific(self):
+    test_key = utils.TestKey('M/B/S/Total')
+
+    result = utils.MostSpecificMatchingPattern(
+        test_key,
+        [('*/*/S/*', 1), ('*/*/*/Total', 2), ('*/*/*/Foo', 3)])
+    self.assertEqual(2, result)
+
+  def testMostSpecificMatchingPattern_TopLevelPartialOverLowerSpecific(self):
+    test_key = utils.TestKey('M/B/S/Total')
+
+    result = utils.MostSpecificMatchingPattern(
+        test_key,
+        [('*/*/S/*', 1), ('*/*/*/To*al', 2), ('*/*/*/Foo', 3)])
+    self.assertEqual(2, result)
+
   def _PutEntitiesAllExternal(self):
     """Puts entities (none internal-only) and returns the keys."""
     master = graph_data.Master(id='M').put()
