@@ -106,7 +106,7 @@ found in the LICENSE file.
        *
        * @return {Array.<Object>} List of alerts.
        */
-      getCheckedOrAllAlerts(alerts, minRevRange) {
+      getCheckedOrAllAlerts() {
         let alerts = this.alertsTable.checkedAlerts;
         if (!alerts || alerts.length == 0) {
           alerts = this.alertsTable.alertList.filter(
