@@ -107,21 +107,46 @@ class MigrateTestNamesHandler(request_handler.RequestHandler):
 
     old_pattern = self.request.get('old_pattern')
     new_pattern = self.request.get('new_pattern')
+    kicked_off = self.request.get('kicked_off')
     old_test_key = self.request.get('old_test_key')
     new_test_key = self.request.get('new_test_key')
 
     if old_pattern and new_pattern:
-      try:
+      if not kicked_off:
+        try:
+          _AddKickoffTask(old_pattern, new_pattern)
+          self.RenderHtml('result.html', {
+              'headline': 'Test name migration task started.'
+          })
+        except BadInputPatternError as error:
+          self.ReportError('Error: %s' % error.message, status=400)
+      else:
         _AddTasksForPattern(old_pattern, new_pattern)
-        self.RenderHtml('result.html', {
-            'headline': 'Test name migration task started.'
-        })
-      except BadInputPatternError as error:
-        self.ReportError('Error: %s' % error.message, status=400)
     elif old_test_key and new_test_key:
       _MigrateOldTest(old_test_key, new_test_key)
     else:
       self.ReportError('Missing required parameters of /migrate_test_names.')
+
+
+def _AddKickoffTask(old_pattern, new_pattern):
+  _ValidateTestPatterns(old_pattern, new_pattern)
+
+  task_params = {
+      'old_pattern': old_pattern,
+      'new_pattern': new_pattern,
+      'kicked_off': '1',
+  }
+  taskqueue.add(
+      url='/migrate_test_names',
+      params=task_params,
+      queue_name=_TASK_QUEUE_NAME)
+
+
+def _ValidateTestPatterns(old_pattern, new_pattern):
+  tests = list_tests.GetTestsMatchingPattern(old_pattern, list_entities=True)
+  for test in tests:
+    old_path = utils.TestPath(test.key)
+    _ValidateAndGetNewTestPath(old_path, new_pattern)
 
 
 def _AddTasksForPattern(old_pattern, new_pattern):
@@ -152,7 +177,7 @@ def _AddTaskForTest(test, new_pattern):
     new_pattern: A test path pattern which determines the new name.
   """
   old_path = utils.TestPath(test.key)
-  new_path = _GetNewTestPath(old_path, new_pattern)
+  new_path = _ValidateAndGetNewTestPath(old_path, new_pattern)
 
   # Copy the new test from the old test. The new parent should exist.
   new_test_key = _CreateRenamedEntityIfNotExists(
@@ -167,7 +192,7 @@ def _AddTaskForTest(test, new_pattern):
       queue_name=_TASK_QUEUE_NAME)
 
 
-def _GetNewTestPath(old_path, new_pattern):
+def _ValidateAndGetNewTestPath(old_path, new_pattern):
   """Returns the destination test path that a test should be renamed to.
 
   The given |new_pattern| consists of a sequence of parts separated by slashes,

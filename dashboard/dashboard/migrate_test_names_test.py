@@ -321,47 +321,50 @@ class MigrateTestNamesTest(testing_common.TestCase):
   def testGetNewTestPath_WithAsterisks(self):
     self.assertEqual(
         'A/b/c/X',
-        migrate_test_names._GetNewTestPath('A/b/c/d', '*/*/*/X'))
+        migrate_test_names._ValidateAndGetNewTestPath('A/b/c/d', '*/*/*/X'))
     self.assertEqual(
         'A/b/c/d',
-        migrate_test_names._GetNewTestPath('A/b/c/d', '*/*/*/*'))
+        migrate_test_names._ValidateAndGetNewTestPath('A/b/c/d', '*/*/*/*'))
     self.assertEqual(
         'A/b/c',
-        migrate_test_names._GetNewTestPath('A/b/c/d', '*/*/*'))
+        migrate_test_names._ValidateAndGetNewTestPath('A/b/c/d', '*/*/*'))
 
   def testGetNewTestPath_WithBrackets(self):
     # Brackets are just used to delete parts of names, no other functionality.
     self.assertEqual(
         'A/b/c/x',
-        migrate_test_names._GetNewTestPath('A/b/c/xxxx', '*/*/*/[xxx]'))
+        migrate_test_names._ValidateAndGetNewTestPath(
+            'A/b/c/xxxx', '*/*/*/[xxx]'))
     self.assertEqual(
         'A/b/c',
-        migrate_test_names._GetNewTestPath('A/b/c/xxxx', '*/*/*/[xxxx]'))
+        migrate_test_names._ValidateAndGetNewTestPath(
+            'A/b/c/xxxx', '*/*/*/[xxxx]'))
     self.assertEqual(
         'A/b/c/x',
-        migrate_test_names._GetNewTestPath('A/b/c/x', '*/*/*/[]'))
+        migrate_test_names._ValidateAndGetNewTestPath('A/b/c/x', '*/*/*/[]'))
     self.assertEqual(
         'A/b/c/d',
-        migrate_test_names._GetNewTestPath('AA/bb/cc/dd', '[A]/[b]/[c]/[d]'))
+        migrate_test_names._ValidateAndGetNewTestPath(
+            'AA/bb/cc/dd', '[A]/[b]/[c]/[d]'))
 
   def testGetNewTestPath_NewPathHasDifferentLength(self):
     self.assertEqual(
         'A/b/c',
-        migrate_test_names._GetNewTestPath('A/b/c/d', 'A/*/c'))
+        migrate_test_names._ValidateAndGetNewTestPath('A/b/c/d', 'A/*/c'))
     self.assertEqual(
         'A/b/c/d',
-        migrate_test_names._GetNewTestPath('A/b/c', 'A/*/c/d'))
+        migrate_test_names._ValidateAndGetNewTestPath('A/b/c', 'A/*/c/d'))
     self.assertRaises(
         migrate_test_names.BadInputPatternError,
-        migrate_test_names._GetNewTestPath, 'A/b/c', 'A/b/c/*')
+        migrate_test_names._ValidateAndGetNewTestPath, 'A/b/c', 'A/b/c/*')
 
   def testGetNewTestPath_InvalidArgs(self):
     self.assertRaises(
         AssertionError,
-        migrate_test_names._GetNewTestPath, 'A/b/*/d', 'A/b/c/d')
+        migrate_test_names._ValidateAndGetNewTestPath, 'A/b/*/d', 'A/b/c/d')
     self.assertRaises(
         migrate_test_names.BadInputPatternError,
-        migrate_test_names._GetNewTestPath, 'A/b/c/d', 'A/b/c/d*')
+        migrate_test_names._ValidateAndGetNewTestPath, 'A/b/c/d', 'A/b/c/d*')
 
 
 if __name__ == '__main__':
