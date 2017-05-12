@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/multi_dimensional_view.html">
+<link rel="import" href="/tracing/extras/chrome/chrome_processes.html">
 <link rel="import" href="/tracing/model/helpers/chrome_model_helper.html">
 <link rel="import" href="/tracing/model/helpers/chrome_renderer_helper.html">
 
@@ -119,9 +120,88 @@ tr.exportTo('tr.e.chrome.cpuTime', function() {
     return stageToInitiatorToRanges;
   }
 
+  /**
+   * Returns a map of range in |ranges| to total cpu time used by |thread|
+   * during that range.
+   *
+   * Ranges are not interned like Strings, so if you call get() on this Map, you
+   * must use the Range objects from |ranges| as the key. You cannot construct a
+   * new range object with the same bounds as a range in |ranges| and retrieve
+   * the cpu time.
+   *
+   * @param {!Iterable.<!tr.b.math.Range>} ranges
+   * @param {!Iterable.<!tr.model.Thread>} thread
+   * @returns {!Map.<!tr.b.math.Range, !tr.model.Thread>}
+   */
+  function computeCpuTimesForRanges_(ranges, thread) {
+    const rangeToCpuTime = new Map();
+    for (const range of ranges) {
+      rangeToCpuTime.set(range, getCpuTimeForThread(thread, range));
+    }
+    return rangeToCpuTime;
+  }
+
+  /**
+   * Returns the root node of a MultiDimensionalView in TopDownTreeView for cpu
+   * time.
+   *
+   * The returned tree view is three dimensional (processType, threadType, and
+   * railStage + initiator). Rail stage and initiator are not separate
+   * dimensions because they are not independent - there is no such thing as CSS
+   * Response or Scroll Load.
+   *
+   * Each node in the tree view contains two values - cpuUsage and cpuTotal.
+   *
+   * See cpu_time_multidimensinoal_view.md for more details about the returned
+   * multidimensional view.
+   *
+   * @param {!tr.Model} model
+   * @param {!tr.b.math.Range} rangeOfInterest
+   * @returns {!tr.b.MultiDimensionalViewNode}
+   */
+  function constructMultiDimensionalView(model, rangeOfInterest) {
+    const mdvBuilder = new tr.b.MultiDimensionalViewBuilder(
+      3 /* dimensions (process, thread and rail stage / initiator) */,
+      2 /* valueCount (cpuUsage and cpuTotal) */);
+
+    const stageToInitiatorToRanges =
+        getStageToInitiatorToSegmentBounds(
+            model.userModel.segments, rangeOfInterest);
+
+    const allSegmentBoundsInRange =
+        stageToInitiatorToRanges.get('all_stages').get('all_initiators');
+
+    for (const [pid, process] of Object.entries(model.processes)) {
+      const processType =
+          tr.e.chrome.chrome_processes.canonicalizeProcessName(process.name);
+      for (const [tid, thread] of Object.entries(process.threads)) {
+        // Cache cpuTime for each segment bound.
+        const rangeToCpuTime = computeCpuTimesForRanges_(
+            allSegmentBoundsInRange, thread);
+
+        for (const [stage, initiatorToRanges] of stageToInitiatorToRanges) {
+          for (const [initiator, ranges] of initiatorToRanges) {
+            const cpuTime = tr.b.math.Statistics.sum(ranges,
+                range => rangeToCpuTime.get(range));
+            const duration = tr.b.math.Statistics.sum(ranges,
+                range => range.duration);
+            const cpuTimePerSecond = cpuTime / duration;
+            mdvBuilder.addPath(
+                [[processType], [thread.type], [stage, initiator]],
+                [cpuTimePerSecond, cpuTime],
+                tr.b.MultiDimensionalViewBuilder.ValueKind.TOTAL);
+          }
+        }
+      }
+    }
+
+    return mdvBuilder.buildTopDownTreeView();
+  }
+
   return {
     getCpuTimeForThread,
     getStageToInitiatorToSegmentBounds,
+    constructMultiDimensionalView,
   };
 });
 </script>
