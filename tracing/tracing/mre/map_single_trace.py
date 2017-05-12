@@ -7,6 +7,7 @@ import re
 import sys
 import tempfile
 import types
+import platform
 
 import tracing_project
 import vinn
@@ -94,12 +95,18 @@ def MapSingleTrace(trace_handle,
     if extra_import_options:
       js_args.append(json.dumps(extra_import_options))
 
+    # Use 8gb heap space to make sure we don't OOM'ed on big trace, but not
+    # on ARM devices since we use 32-bit d8 binary.
+    if platform.machine() == 'armv7l' or platform.machine() == 'aarch64':
+      v8_args = None
+    else:
+      v8_args = ['--max-old-space-size=8192']
+
     res = vinn.RunFile(
         _MAP_SINGLE_TRACE_CMDLINE_PATH,
         source_paths=all_source_paths,
         js_args=js_args,
-        # Use 8gb heap space to make sure we don't OOM'ed on big trace.
-        v8_args=['--max-old-space-size=8192'])
+        v8_args=v8_args)
 
   if res.returncode != 0:
     sys.stderr.write(res.stdout)
