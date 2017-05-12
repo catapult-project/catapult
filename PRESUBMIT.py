@@ -25,6 +25,7 @@ _EXCLUDED_PATHS = (
     r'.*LICENSE$',
     r'.*OWNERS$',
     r'.*README\.md$',
+    r'^dashboard[\\/]dashboard[\\/]api[\\/]examples[\\/].*.js',
     r'^dashboard[\\/]dashboard[\\/]templates[\\/].*',
     r'^experimental[\\/]heatmap[\\/].*',
     r'^experimental[\\/]trace_on_tap[\\/]third_party[\\/].*',

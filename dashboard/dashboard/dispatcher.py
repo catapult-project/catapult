@@ -60,6 +60,7 @@ from dashboard import stoppage_alert_debugging_info
 from dashboard import test_buildbucket
 from dashboard import update_bug_with_results
 from dashboard import update_test_suites
+from dashboard.api import alerts as api_alerts
 
 
 _URL_MAPPING = [
@@ -67,6 +68,7 @@ _URL_MAPPING = [
     ('/add_point', add_point.AddPointHandler),
     ('/add_point_queue', add_point_queue.AddPointQueueHandler),
     ('/alerts', alerts.AlertsHandler),
+    (r'/api/alerts/(.*)', api_alerts.AlertsHandler),
     ('/associate_alerts', associate_alerts.AssociateAlertsHandler),
     ('/auto_bisect', auto_bisect.AutoBisectHandler),
     ('/auto_triage', auto_triage.AutoTriageHandler),
