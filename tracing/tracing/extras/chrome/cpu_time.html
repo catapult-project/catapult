@@ -40,8 +40,88 @@ tr.exportTo('tr.e.chrome.cpuTime', function() {
     return totalCpuTime;
   }
 
+  /**
+   * Returns two level map of rail stage to initiator type to set of bounds of
+   * associated segments, intersected with |rangeOfInterest|.
+   *
+   * For each rail stage, we additionally have a key 'all_initiators' that
+   * returns all the segment bounds associated with that rail stage across all
+   * initiator types. For completeness, there is an additional rail stage
+   * 'all_stages' that has all the segment bounds across all rail stages.
+   *
+   * If a segment is not contained within |rangeOfInterest| it is not included.
+   *
+   * There is a unique segment bound for each segment in the map. For example,
+   * assume
+   * - |segmentA| is associated with both Click Response and Scroll Animation
+   * - |bound1| is the interesting bound of |segmentA| in Response -> Click set.
+   * - |bound2| is the interesting bound of |segmentA| in Animation -> Scroll
+        set.
+   * Then bound1 === bound2. These segment bounds can therefore be used as keys
+   * in a map to represent the segment.
+   *
+   * Example return value (all bounds are intersected with |rangeOfInterest|):
+   *
+   * {
+   *   'Animation': {
+   *     'CSS': {Segment bounds for CSS Animation},
+   *     'Video': {Segment bounds for Video Animation},
+   *     ...
+   *     'all_initiators': {All Animation segment bounds}
+   *   },
+   *   'Response': {
+   *     'Click': {Segment bounds for Click Response},
+   *     'Scroll': {Segment bounds for Scroll Response},
+   *     ...
+   *     'all_initiators': {All Response segment bounds}
+   *   },
+   *   ...
+   *   'all_stages': {
+   *     'all_initiators': {All segment bounds}
+   *   }
+   * }
+   *
+   * @param {!Array.<!tr.model.um.Segment>} segments
+   * @param {!Array.<!tr.b.math.Range>} rangeOfInterest
+   * @returns {!Map.<string, Map.<string, Set.<!tr.b.math.Range>>}
+   */
+  function getStageToInitiatorToSegmentBounds(segments, rangeOfInterest) {
+    const stageToInitiatorToRanges = new Map();
+    stageToInitiatorToRanges.set('all_stages',
+        new Map([['all_initiators', new Set()]]));
+    const allRanges =
+        stageToInitiatorToRanges.get('all_stages').get('all_initiators');
+
+    for (const segment of segments) {
+      if (!rangeOfInterest.intersectsRangeInclusive(segment.range)) continue;
+      const intersectingRange = rangeOfInterest.findIntersection(segment.range);
+      allRanges.add(intersectingRange);
+
+      for (const expectation of segment.expectations) {
+        const stageTitle = expectation.stageTitle;
+        if (!stageToInitiatorToRanges.has(stageTitle)) {
+          stageToInitiatorToRanges.set(stageTitle,
+              new Map([['all_initiators', new Set()]]));
+        }
+
+        const initiatorToRanges = stageToInitiatorToRanges.get(stageTitle);
+        initiatorToRanges.get('all_initiators').add(intersectingRange);
+
+        const initiatorType = expectation.initiatorType;
+        if (initiatorType) {
+          if (!initiatorToRanges.has(initiatorType)) {
+            initiatorToRanges.set(initiatorType, new Set());
+          }
+          initiatorToRanges.get(initiatorType).add(intersectingRange);
+        }
+      }
+    }
+    return stageToInitiatorToRanges;
+  }
+
   return {
     getCpuTimeForThread,
+    getStageToInitiatorToSegmentBounds,
   };
 });
 </script>

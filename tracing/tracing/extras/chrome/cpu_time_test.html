@@ -12,6 +12,11 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
+  const getStageToInitiatorToSegmentBounds =
+      tr.e.chrome.cpuTime.getStageToInitiatorToSegmentBounds;
+
+  const INITIATOR_TYPE = tr.model.um.INITIATOR_TYPE;
+
   test('getCpuTimeForThread', () => {
     const model = tr.c.TestUtils.newModel(function(model) {
       const thread = model.getOrCreateProcess(1).getOrCreateThread(1);
@@ -40,6 +45,120 @@ tr.b.unittest.testSuite(function() {
     // to allow for floating point errors.
     assert.closeTo(tr.e.chrome.cpuTime.getCpuTimeForThread(thread, bounds),
         expectedCpuTime, 1e-7);
+  });
+
+  test('getStageToInitiatorToSegmentBounds', () => {
+    const model = tr.c.TestUtils.newModel(function(model) {
+      const thread = model.getOrCreateProcess(1).getOrCreateThread(1);
+      // This is needed for a model to have segments.
+      thread.name = 'CrBrowserMain';
+
+      model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
+        model, INITIATOR_TYPE.CSS,
+        100, // start time.
+        300 // duration.
+      ));
+      model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
+        model, INITIATOR_TYPE.VIDEO, 300, 100));
+      model.userModel.expectations.push(new tr.model.um.ResponseExpectation(
+        model, INITIATOR_TYPE.SCROLL, 400, 200));
+    });
+
+    const segments = model.userModel.segments;
+
+    const map = getStageToInitiatorToSegmentBounds(
+        model.userModel.segments, model.bounds);
+
+    // Ignoring Idle Expectations, we have the following segments:
+    // [100, 300]: CSS Animation
+    // [300, 400]: CSS Animation, Video Animation
+    // [400, 600]: Scroll Response
+    const allSegments = [...map.get('all_stages').get('all_initiators')];
+    assert.sameDeepMembers(
+        allSegments.map(s => [s.min, s.max]),
+        [[100, 300], [300, 400], [400, 600]]);
+
+    const videoAnimationSegments =
+        [...map.get('Animation').get(INITIATOR_TYPE.VIDEO)];
+    assert.sameDeepMembers(
+        videoAnimationSegments.map(s => [s.min, s.max]),
+        [[300, 400]]);
+
+    const cssAnimationSegments =
+        [...map.get('Animation').get(INITIATOR_TYPE.CSS)];
+    assert.sameDeepMembers(
+        cssAnimationSegments.map(s => [s.min, s.max]),
+        [[100, 300], [300, 400]]);
+
+    const allAnimationSegments =
+        [...map.get('Animation').get('all_initiators')];
+    assert.sameDeepMembers(
+        allAnimationSegments.map(s => [s.min, s.max]),
+        [[100, 300], [300, 400]]);
+
+    const scrollResponseSegments =
+          [...map.get('Response').get(INITIATOR_TYPE.SCROLL)];
+    assert.sameDeepMembers(
+        scrollResponseSegments.map(s => [s.min, s.max]),
+        [[400, 600]]);
+
+    const allResponseSegments =
+          [...map.get('Response').get('all_initiators')];
+    assert.sameDeepMembers(
+        allResponseSegments.map(s => [s.min, s.max]),
+        [[400, 600]]);
+  });
+
+  test('getStageToInitiatorToSegmentBounds-rangeOfInterest', () => {
+    const model = tr.c.TestUtils.newModel(function(model) {
+      const thread = model.getOrCreateProcess(1).getOrCreateThread(1);
+      // This is needed for a model to have segments.
+      thread.name = 'CrBrowserMain';
+
+      model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
+        model, INITIATOR_TYPE.CSS,
+        100, // start time.
+        300 // duration.
+      ));
+      model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
+        model, INITIATOR_TYPE.VIDEO, 300, 100));
+      model.userModel.expectations.push(new tr.model.um.ResponseExpectation(
+        model, INITIATOR_TYPE.SCROLL, 400, 200));
+    });
+
+    const segments = model.userModel.segments;
+
+    const map = getStageToInitiatorToSegmentBounds(model.userModel.segments,
+        tr.b.math.Range.fromExplicitRange(150, 350));
+
+    // Ignoring Idle Expectations, we have the following segments in range:
+    // [150, 300]: CSS Animation
+    // [300, 350]: CSS Animation, Video Animation
+    const allSegments = [...map.get('all_stages').get('all_initiators')];
+    assert.sameDeepMembers(
+        allSegments.map(s => [s.min, s.max]),
+        [[150, 300], [300, 350]]);
+
+    const videoAnimationSegments =
+        [...map.get('Animation').get(INITIATOR_TYPE.VIDEO)];
+    assert.sameDeepMembers(
+        videoAnimationSegments.map(s => [s.min, s.max]),
+        [[300, 350]]);
+
+    const cssAnimationSegments =
+        [...map.get('Animation').get(INITIATOR_TYPE.CSS)];
+    assert.sameDeepMembers(
+        cssAnimationSegments.map(s => [s.min, s.max]),
+        [[150, 300], [300, 350]]);
+
+    const allAnimationSegments =
+        [...map.get('Animation').get('all_initiators')];
+    assert.sameDeepMembers(
+        allAnimationSegments.map(s => [s.min, s.max]),
+        [[150, 300], [300, 350]]);
+
+    // There should be no Response segments
+    assert.isFalse(map.has('Response'));
   });
 });
 </script>
