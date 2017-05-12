@@ -51,14 +51,14 @@ def _IsInspectorWebsocketAvailable(inspector_websocket_instance, port):
   try:
     inspector_websocket_instance.Connect(
         BROWSER_INSPECTOR_WEBSOCKET_URL % port, timeout=10)
-  except websocket.WebSocketException:
+  except (websocket.WebSocketException, socket.error) as exc:
+    logging.info(
+        'Websocket at port %i not yet available: %s', port, exc)
     return False
-  except socket.error:
-    return False
-  except Exception as e:
-    sys.stderr.write('Unidentified exception while checking if wesocket is'
-                     'available on port %i. Exception message: %s\n' %
-                     (port, e.message))
+  except Exception as exc:
+    logging.exception(
+        'Unidentified exception while checking if websocket at port %i is '
+        'available.', port)
     return False
   else:
     return True
@@ -69,7 +69,8 @@ def _IsInspectorWebsocketAvailable(inspector_websocket_instance, port):
 def _IsDevToolsAgentAvailable(devtools_http_instance):
   try:
     devtools_http_instance.Request('')
-  except devtools_http.DevToolsClientConnectionError:
+  except devtools_http.DevToolsClientConnectionError as exc:
+    logging.info('Devtools client not yet ready: %s', exc)
     return False
   else:
     return True

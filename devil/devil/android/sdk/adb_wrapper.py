@@ -629,7 +629,9 @@ class AdbWrapper(object):
     if not allow_rebind:
       cmd.append('--no-rebind')
     cmd.extend([str(local), str(remote)])
-    self._RunDeviceAdbCmd(cmd, timeout, retries)
+    output = self._RunDeviceAdbCmd(cmd, timeout, retries).strip()
+    if output:
+      logger.warning('Unexpected output from "adb forward": %s', output)
 
   def ForwardRemove(self, local, timeout=DEFAULT_TIMEOUT,
                     retries=DEFAULT_RETRIES):
