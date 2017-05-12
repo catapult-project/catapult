@@ -82,6 +82,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(10, hist.getStatisticScalar('count').value);
     assert.closeTo(18.371, hist.getStatisticScalar('pct_025').value, 1e-3);
     assert.closeTo(55.48, hist.getStatisticScalar('pct_075').value, 1e-3);
+    assert.closeTo(37.108, hist.getStatisticScalar('ipr_025_075').value, 1e-3);
 
     assert.strictEqual(40.5, hist.getStatisticScalar(
         tr.v.DELTA + 'avg', ref).value);
@@ -103,6 +104,8 @@ tr.b.unittest.testSuite(function() {
         tr.v.DELTA + 'pct_025', ref).value, 1e-3);
     assert.closeTo(49.396, hist.getStatisticScalar(
         tr.v.DELTA + 'pct_075', ref).value, 1e-3);
+    assert.closeTo(33.04, hist.getStatisticScalar(
+        tr.v.DELTA + 'ipr_025_075', ref).value, 1e-3);
 
     assert.strictEqual(9, hist.getStatisticScalar(
         `%${tr.v.DELTA}avg`, ref).value);
@@ -124,6 +127,8 @@ tr.b.unittest.testSuite(function() {
         `%${tr.v.DELTA}pct_025`, ref).value, 1e-3);
     assert.closeTo(8.12, hist.getStatisticScalar(
         `%${tr.v.DELTA}pct_075`, ref).value, 1e-3);
+    assert.closeTo(8.12, hist.getStatisticScalar(
+        `%${tr.v.DELTA}ipr_025_075`, ref).value, 1e-3);
   });
 
   test('rebin', function() {
@@ -676,26 +681,59 @@ tr.b.unittest.testSuite(function() {
     const hist0 = new tr.v.Histogram('', unitlessNumber);
     const hist1 = new tr.v.Histogram('', unitlessNumber);
 
-    hist0.customizeSummaryOptions({sum: false, percentile: [0.9]});
-    hist1.customizeSummaryOptions({min: false, percentile: [0.95]});
+    hist0.customizeSummaryOptions({
+      sum: false,
+      percentile: [0.1, 0.9],
+      iprs: [
+        tr.b.math.Range.fromExplicitRange(0.1, 0.9),
+        tr.b.math.Range.fromExplicitRange(0.25, 0.75),
+      ],
+    });
+    hist1.customizeSummaryOptions({
+      min: false,
+      percentile: [0.1, 0.95],
+      iprs: [
+        tr.b.math.Range.fromExplicitRange(0.1, 0.9),
+        tr.b.math.Range.fromExplicitRange(0.2, 0.8),
+      ],
+    });
 
-    let merged = hist1.clone();
-
-    assert.isFalse(merged.summaryOptions.get('min'));
-    assert.isTrue(merged.summaryOptions.get('sum'));
-    assert.deepEqual(merged.summaryOptions.get('percentile'), [0.95]);
-
-    merged = hist0.clone();
-
+    let merged = tr.v.Histogram.fromDict(hist0.asDict());
+    let mergedIprs = merged.summaryOptions.get('iprs');
     assert.isTrue(merged.summaryOptions.get('min'));
     assert.isFalse(merged.summaryOptions.get('sum'));
-    assert.deepEqual(merged.summaryOptions.get('percentile'), [0.9]);
+    assert.deepEqual(merged.summaryOptions.get('percentile'), [0.1, 0.9]);
+    assert.lengthOf(merged.summaryOptions.get('iprs'), 2);
+    tr.b.assertRangeEquals(
+        mergedIprs[0], tr.b.math.Range.fromExplicitRange(0.1, 0.9));
+    tr.b.assertRangeEquals(
+        mergedIprs[1], tr.b.math.Range.fromExplicitRange(0.25, 0.75));
 
+    merged = tr.v.Histogram.fromDict(hist1.asDict());
+    mergedIprs = merged.summaryOptions.get('iprs');
+    assert.isFalse(merged.summaryOptions.get('min'));
+    assert.isTrue(merged.summaryOptions.get('sum'));
+    assert.deepEqual(merged.summaryOptions.get('percentile'), [0.1, 0.95]);
+    assert.lengthOf(merged.summaryOptions.get('iprs'), 2);
+    tr.b.assertRangeEquals(
+        mergedIprs[0], tr.b.math.Range.fromExplicitRange(0.1, 0.9));
+    tr.b.assertRangeEquals(
+        mergedIprs[1], tr.b.math.Range.fromExplicitRange(0.2, 0.8));
+
+    merged = hist0.clone();
     merged.addHistogram(hist1);
 
     assert.isTrue(merged.summaryOptions.get('min'));
     assert.isTrue(merged.summaryOptions.get('sum'));
-    assert.deepEqual(merged.summaryOptions.get('percentile'), [0.9, 0.95]);
+    assert.deepEqual(merged.summaryOptions.get('percentile'), [0.1, 0.9, 0.95]);
+    mergedIprs = merged.summaryOptions.get('iprs');
+    assert.lengthOf(mergedIprs, 3);
+    tr.b.assertRangeEquals(
+        mergedIprs[0], tr.b.math.Range.fromExplicitRange(0.1, 0.9));
+    tr.b.assertRangeEquals(
+        mergedIprs[1], tr.b.math.Range.fromExplicitRange(0.25, 0.75));
+    tr.b.assertRangeEquals(
+        mergedIprs[2], tr.b.math.Range.fromExplicitRange(0.2, 0.8));
   });
 });
 </script>

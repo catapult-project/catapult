@@ -34,9 +34,10 @@ tr.exportTo('tr.v', function() {
   /**
    * Converts the given percent to a string in the format specified above.
    * @param {number} percent The percent must be between 0.0 and 1.0.
+   * @param {boolean=} opt_force3 Whether to force the result to be 3 chars long
    * @return {string}
    */
-  function percentToString(percent) {
+  function percentToString(percent, opt_force3) {
     if (percent < 0 || percent > 1) {
       throw new Error('percent must be in [0,1]');
     }
@@ -48,7 +49,14 @@ tr.exportTo('tr.v', function() {
     }
     // Pad short strings with zeros.
     str = str + '0'.repeat(Math.max(4 - str.length, 0));
-    if (str.length > 4) str = str.slice(0, 4) + '_' + str.slice(4);
+
+    if (str.length > 4) {
+      if (opt_force3) {
+        str = str.slice(0, 4);
+      } else {
+        str = str.slice(0, 4) + '_' + str.slice(4);
+      }
+    }
     return '0' + str.slice(2);
   }
 
@@ -124,9 +132,9 @@ tr.exportTo('tr.v', function() {
     ['nans', false],
     ['std', true],
     ['sum', true],
-    // Don't include 'percentile' here. Its default value is [], which is
-    // modifiable. Callers may push to it, so there must be a different Array
-    // instance for each Histogram instance.
+    // Don't include 'percentile' or 'iprs' here. Their default values are [],
+    // which is mutable. Callers may push to it, so there must be a different
+    // Array instance for each Histogram instance.
   ]);
 
   /**
@@ -174,6 +182,7 @@ tr.exportTo('tr.v', function() {
       this.shortName = undefined;
       this.summaryOptions = new Map(DEFAULT_SUMMARY_OPTIONS);
       this.summaryOptions.set('percentile', []);
+      this.summaryOptions.set('iprs', []);
       this.unit = unit;
     }
 
@@ -243,6 +252,12 @@ tr.exportTo('tr.v', function() {
         hist.running_ = tr.b.math.RunningStatistics.fromDict(dict.running);
       }
       if (dict.summaryOptions) {
+        if (dict.summaryOptions.iprs) {
+          // Range.fromDict() requires isEmpty, which is unnecessarily verbose
+          // for this use case.
+          dict.summaryOptions.iprs = dict.summaryOptions.iprs.map(
+              r => tr.b.math.Range.fromExplicitRange(r[0], r[1]));
+        }
         hist.customizeSummaryOptions(dict.summaryOptions);
       }
       if (dict.maxNumSampleValues !== undefined) {
@@ -511,11 +526,19 @@ tr.exportTo('tr.v', function() {
 
       for (const [stat, option] of other.summaryOptions) {
         if (stat === 'percentile') {
+          const percentiles = this.summaryOptions.get(stat);
           for (const percent of option) {
-            const percentiles = this.summaryOptions.get(stat);
-            if (percentiles.indexOf(percent) < 0) {
-              percentiles.push(percent);
+            if (!percentiles.includes(percent)) percentiles.push(percent);
+          }
+        } else if (stat === 'iprs') {
+          const thisIprs = this.summaryOptions.get(stat);
+          for (const ipr of option) {
+            let found = false;
+            for (const thisIpr of thisIprs) {
+              found = ipr.equals(thisIpr);
+              if (found) break;
             }
+            if (!found) thisIprs.push(ipr);
           }
         } else if (option && !this.summaryOptions.get(stat)) {
           this.summaryOptions.set(stat, true);
@@ -537,6 +560,8 @@ tr.exportTo('tr.v', function() {
      * @param {boolean=} summaryOptions.std
      * @param {boolean=} summaryOptions.sum
      * @param {!Array.<number>=} summaryOptions.percentile Numbers in (0,1)
+     * @param {!Array.<!tr.b.Range>=} summaryOptions.iprs Ranges of numbers in
+     *     (0,1).
      */
     customizeSummaryOptions(summaryOptions) {
       for (const [key, value] of Object.entries(summaryOptions)) {
@@ -583,6 +608,16 @@ tr.exportTo('tr.v', function() {
         if (this.numValues === 0) return undefined;
         const percentile = this.getApproximatePercentile(percent);
         return new tr.b.Scalar(this.unit, percentile);
+      }
+      if (statName.substr(0, 4) === 'ipr_') {
+        let lower = percentFromString(statName.substr(4, 3));
+        let upper = percentFromString(statName.substr(8));
+        if (lower >= upper) {
+          throw new Error('Invalid inter-percentile range: ' + statName);
+        }
+        lower = this.getApproximatePercentile(lower);
+        upper = this.getApproximatePercentile(upper);
+        return new tr.b.Scalar(this.unit, upper - lower);
       }
 
       if (!this.canCompare(opt_referenceHistogram)) {
@@ -639,6 +674,12 @@ tr.exportTo('tr.v', function() {
         if (statName === 'percentile') {
           for (const pctile of option) {
             statisticsNames.add('pct_' + tr.v.percentToString(pctile));
+          }
+        } else if (statName === 'iprs') {
+          for (const range of option) {
+            statisticsNames.add(
+                'ipr_' + tr.v.percentToString(range.min, true) +
+                '_' + tr.v.percentToString(range.max, true));
           }
         } else if (option) {
           statisticsNames.add(statName);
@@ -734,8 +775,8 @@ tr.exportTo('tr.v', function() {
           this.binBoundariesDict_);
       const hist = new Histogram(this.name, this.unit, binBoundaries);
       for (const [stat, option] of this.summaryOptions) {
-        // Copy arrays.
-        if (stat === 'percentile') {
+        // Copy arrays, but not ipr Ranges.
+        if (stat === 'percentile' || stat === 'iprs') {
           hist.summaryOptions.set(stat, Array.from(option));
         } else {
           hist.summaryOptions.set(stat, option);
@@ -815,10 +856,12 @@ tr.exportTo('tr.v', function() {
       for (const [name, value] of this.summaryOptions) {
         let option;
         if (name === 'percentile') {
-          if (value.length === 0) {
-            continue;
-          }
+          if (value.length === 0) continue;
           option = Array.from(value);
+        } else if (name === 'iprs') {
+          // Use a more compact JSON format than Range supports.
+          if (value.length === 0) continue;
+          option = value.map(r => [r.min, r.max]);
         } else if (value === DEFAULT_SUMMARY_OPTIONS.get(name)) {
           continue;
         } else {
