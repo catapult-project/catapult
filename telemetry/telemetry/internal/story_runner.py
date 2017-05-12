@@ -69,6 +69,8 @@ def ProcessCommandLineArgs(parser, args):
 def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
   def ProcessError(description=None):
     state.DumpStateUponFailure(story, results)
+    # Note: adding the FailureValue to the results object also normally
+    # cause the progress_reporter to log it in the output.
     results.AddValue(failure.FailureValue(story, sys.exc_info(), description))
   try:
     # TODO(mikecase): Remove this logging once Android perf bots are swarmed.

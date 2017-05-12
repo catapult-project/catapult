@@ -126,14 +126,16 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
       return browser.Browser(
           browser_backend, self._platform_backend, self._credentials_path)
     except Exception:
-      logging.exception('Failure while creating Android browser.')
-      original_exception = sys.exc_info()
+      exc_info = sys.exc_info()
+      logging.error(
+          'Failed with %s while creating Android browser.',
+          exc_info[0].__name__)
       try:
         browser_backend.Close()
       except Exception:
         logging.exception('Secondary failure while closing browser backend.')
 
-      raise original_exception[0], original_exception[1], original_exception[2]
+      raise exc_info[0], exc_info[1], exc_info[2]
 
   def SupportsOptions(self, browser_options):
     if len(browser_options.extensions_to_load) != 0:

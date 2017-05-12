@@ -62,7 +62,9 @@ class Browser(app.App):
           self._browser_backend.profiling_controller_backend)
     except Exception:
       exc_info = sys.exc_info()
-      logging.exception('Failure while starting browser backend.')
+      logging.error(
+        'Failed with %s while starting the browser backend.',
+        exc_info[0].__name__)  # Show the exception name only.
       try:
         self._platform_backend.WillCloseBrowser(self, self._browser_backend)
       except Exception:
