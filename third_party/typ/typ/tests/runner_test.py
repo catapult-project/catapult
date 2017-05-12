@@ -147,8 +147,8 @@ class TestWinMultiprocessing(TestCase):
             result = self.call([],
                                win_multiprocessing=WinMultiprocessing.ignore)
             ret, out, err = result
-            self.assertEqual(ret, 1)
-            self.assertEqual(out, 'No tests to run.\n')
+            self.assertEqual(ret, 0)
+            self.assertEqual(out, '0 tests passed, 0 skipped, 0 failures.\n')
             self.assertEqual(err, '')
 
     def test_real_unimportable_main(self):
@@ -205,14 +205,14 @@ class TestWinMultiprocessing(TestCase):
 
     def test_single_job(self):
         ret, out, err = self.call(['-j', '1'], platform='win32')
-        self.assertEqual(ret, 1)
-        self.assertIn('No tests to run.', out)
+        self.assertEqual(ret, 0)
+        self.assertEqual('0 tests passed, 0 skipped, 0 failures.\n', out )
         self.assertEqual(err, '')
 
     def test_spawn(self):
         ret, out, err = self.call([])
-        self.assertEqual(ret, 1)
-        self.assertIn('No tests to run.', out)
+        self.assertEqual(ret, 0)
+        self.assertEqual('0 tests passed, 0 skipped, 0 failures.\n', out)
         self.assertEqual(err, '')
 
 

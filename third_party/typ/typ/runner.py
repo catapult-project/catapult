@@ -422,9 +422,6 @@ class Runner(object):
 
     def _run_tests(self, result_set, test_set):
         h = self.host
-        if not test_set.parallel_tests and not test_set.isolated_tests:
-            self.print_('No tests to run.')
-            return 1, None
 
         all_tests = [ti.name for ti in
                      _sort_inputs(test_set.parallel_tests +
@@ -592,8 +589,9 @@ class Runner(object):
         self.printer.flush()
 
     def _summarize(self, full_results):
-        num_tests = self.stats.finished
+        num_passes = json_results.num_passes(full_results)
         num_failures = json_results.num_failures(full_results)
+        num_skips = json_results.num_skips(full_results)
 
         if self.args.quiet and num_failures == 0:
             return
@@ -603,10 +601,11 @@ class Runner(object):
                                            self.stats.started_time)
         else:
             timing_clause = ''
-        self.update('%d test%s run%s, %d failure%s.' %
-                    (num_tests,
-                     '' if num_tests == 1 else 's',
+        self.update('%d test%s passed%s, %d skipped, %d failure%s.' %
+                    (num_passes,
+                     '' if num_passes == 1 else 's',
                      timing_clause,
+                     num_skips,
                      num_failures,
                      '' if num_failures == 1 else 's'), elide=False)
         self.print_()

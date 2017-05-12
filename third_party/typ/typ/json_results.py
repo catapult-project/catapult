@@ -123,6 +123,14 @@ def num_failures(full_results):
     return full_results['num_failures_by_type']['FAIL']
 
 
+def num_passes(full_results):
+    return full_results['num_failures_by_type']['PASS']
+
+
+def num_skips(full_results):
+    return full_results['num_failures_by_type']['SKIP']
+
+
 def failed_test_names(results):
     names = set()
     for r in results.results:
