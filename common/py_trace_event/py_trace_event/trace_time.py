@@ -125,6 +125,8 @@ def IsQPCUsable():
   info = platform.processor()
   if 'AuthenticAMD' in info and 'Family 15' in info:
     return False
+  if not hasattr(ctypes, 'windll'):
+    return False
   try:  # If anything goes wrong during this, assume QPC isn't available.
     frequency = ctypes.c_int64()
     ctypes.windll.Kernel32.QueryPerformanceFrequency(
