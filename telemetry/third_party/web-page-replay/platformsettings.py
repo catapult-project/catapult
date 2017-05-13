@@ -767,7 +767,7 @@ def _new_platform_settings(system, release):
     return _LinuxPlatformSettings()
   if system == 'Windows' and release == 'XP':
     return _WindowsXpPlatformSettings()
-  if system == 'Windows':
+  if system == 'Windows' or system.startswith('CYGWIN'):
     return _WindowsPlatformSettings()
   if system == 'FreeBSD':
     return _FreeBSDPlatformSettings()
