@@ -160,6 +160,8 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
     binderLock(eventName, cpuNumber, pid, ts, eventBase) {
       const tgid = parseInt(eventBase.tgid);
+      if (isNaN(tgid)) return false;
+
       this.doNameMappings(pid, tgid, eventName.threadName);
 
       const kthread = this.importer_.
@@ -171,8 +173,10 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     },
 
     binderLocked(eventName, cpuNumber, pid, ts, eventBase) {
-      const binderThread = isBinderThread(eventBase.threadName);
       const tgid = parseInt(eventBase.tgid);
+      if (isNaN(tgid)) return false;
+
+      const binderThread = isBinderThread(eventBase.threadName);
       const name = eventBase.threadName;
 
       const kthread = this.importer_.
@@ -197,6 +201,8 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
     binderUnlock(eventName, cpuNumber, pid, ts, eventBase) {
       const tgid = parseInt(eventBase.tgid);
+      if (isNaN(tgid)) return false;
+
       const kthread = this.importer_.
           getOrCreateBinderKernelThread(
           eventBase.threadName, tgid, pid);
@@ -321,6 +327,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       if (event === undefined) return false;
 
       const tgid = parseInt(eventBase.tgid);
+      if (isNaN(tgid)) return false;
 
       this.doNameMappings(pid, tgid, eventBase.threadName);
 
@@ -378,11 +385,11 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     binderTransactionReceived(eventName, cpuNumber, pid, ts,
         eventBase) {
       const event = binderTransReceivedRE.exec(eventBase.details);
-
       if (event === undefined) return false;
+      const tgid = parseInt(eventBase.tgid);
+      if (isNaN(tgid)) return false;
 
       const transactionkey = parseInt(event[1]);
-      const tgid = parseInt(eventBase.tgid);
       const kthread = this.importer_.
           getOrCreateBinderKernelThread(eventBase.threadName, tgid, pid);
 
