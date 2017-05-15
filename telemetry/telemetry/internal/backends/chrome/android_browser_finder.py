@@ -34,10 +34,16 @@ CHROME_PACKAGE_NAMES = {
       ['org.chromium.webview_shell',
        android_browser_backend_settings.WebviewBackendSettings,
        None],
+  # 'android-webview-shell' is deprecated, use
+  # 'android-webview-instrumentation below instead.
   'android-webview-shell':
       ['org.chromium.android_webview.shell',
        android_browser_backend_settings.WebviewShellBackendSettings,
        'AndroidWebView.apk'],
+  'android-webview-instrumentation':
+      ['org.chromium.android_webview.shell',
+       android_browser_backend_settings.WebviewShellBackendSettings,
+       'WebViewInstrumentation.apk'],
   'android-chromium':
       ['org.chromium.chrome',
        android_browser_backend_settings.ChromeBackendSettings,
