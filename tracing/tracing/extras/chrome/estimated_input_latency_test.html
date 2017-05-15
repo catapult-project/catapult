@@ -56,13 +56,20 @@ tr.b.unittest.testSuite(function() {
    * Adds a FrameLoader snapshot to rendererProcess that is used by test FMP
    * candidate slices.
    */
-  function addTestFrame(rendererProcess) {
+  function addTestFrame(rendererProcess, mainThread) {
     rendererProcess.objects.addSnapshot(
         'ptr', 'loading', 'FrameLoader', 300, {
           isLoadingMainFrame: true,
           frame: {id_ref: '0xdeadbeef'},
           documentLoaderURL: 'http://example.com'
         });
+    mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+      cat: 'loading',
+      title: 'markAsMainFrame',
+      start: 300,
+      duration: 0.0,
+      args: {frame: '0xdeadbeef'}
+    }));
   }
 
   function addNavigationStart(mainThread, startNavTime) {
@@ -123,9 +130,8 @@ tr.b.unittest.testSuite(function() {
    */
   test('getInteractiveTimestamps', () => {
     const model = createTestModel(rendererProcess => {
-      addTestFrame(rendererProcess);
-
       const mainThread = rendererProcess.getOrCreateThread(MAIN_THREAD_ID);
+      addTestFrame(rendererProcess, mainThread);
       addNavigationStart(mainThread, 0);
       addFMPCandidate(mainThread, 5000);
 
@@ -155,7 +161,7 @@ tr.b.unittest.testSuite(function() {
         const mainThread = rendererProcess.getOrCreateThread(pid + 10);
         mainThread.name = 'CrRendererMain';
 
-        addTestFrame(rendererProcess);
+        addTestFrame(rendererProcess, mainThread);
         addNavigationStart(mainThread, pid * 1000);
         addFMPCandidate(mainThread, pid * 1000 + 2000);
         addNavigationStart(mainThread, pid * 2000);
