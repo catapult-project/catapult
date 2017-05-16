@@ -358,8 +358,8 @@ class StoryRunnerTest(unittest.TestCase):
                                STATE_WILL_RUN_STORY,
                                STATE_RUN_STORY,
                                TEST_MEASURE,
-                               STATE_DID_RUN_STORY,
-                               TEST_DID_RUN_STORY]
+                               TEST_DID_RUN_STORY,
+                               STATE_DID_RUN_STORY]
 
     class TestStoryTest(story_test.StoryTest):
       def WillRunStory(self, platform):
@@ -849,8 +849,8 @@ class StoryRunnerTest(unittest.TestCase):
       mock.call.state.CanRunStory(root_mock.story),
       mock.call.state.RunStory(root_mock.results),
       mock.call.test.Measure(root_mock.state.platform, root_mock.results),
-      mock.call.state.DidRunStory(root_mock.results),
       mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
+      mock.call.state.DidRunStory(root_mock.results),
       mock.call.state.platform.GetOSName(),
     ])
 
@@ -865,8 +865,8 @@ class StoryRunnerTest(unittest.TestCase):
       mock.call.state.WillRunStory(root_mock.story),
       mock.call.state.CanRunStory(root_mock.story),
       mock.call.state.RunStory(root_mock.results),
-      mock.call.state.DidRunStory(root_mock.results),
       mock.call.test.DidRunPage(root_mock.state.platform),
+      mock.call.state.DidRunStory(root_mock.results),
       mock.call.state.platform.GetOSName(),
     ])
 
@@ -884,8 +884,8 @@ class StoryRunnerTest(unittest.TestCase):
       mock.call.state.WillRunStory(root_mock.story),
       mock.call.state.DumpStateUponFailure(root_mock.story, root_mock.results),
       mock.call.results.AddValue(FailureValueMatcher('foo')),
-      mock.call.state.DidRunStory(root_mock.results),
       mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
+      mock.call.state.DidRunStory(root_mock.results),
       mock.call.state.platform.GetOSName(),
     ])
 
@@ -905,8 +905,8 @@ class StoryRunnerTest(unittest.TestCase):
       mock.call.state.CanRunStory(root_mock.story),
       mock.call.state.DumpStateUponFailure(root_mock.story, root_mock.results),
       mock.call.results.AddValue(FailureValueMatcher('foo')),
-      mock.call.state.DidRunStory(root_mock.results),
       mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
+      mock.call.state.DidRunStory(root_mock.results),
       mock.call.state.platform.GetOSName(),
     ])
 
@@ -925,8 +925,8 @@ class StoryRunnerTest(unittest.TestCase):
       mock.call.state.CanRunStory(root_mock.story),
       mock.call.state.RunStory(root_mock.results),
       mock.call.results.AddValue(SkipValueMatcher()),
-      mock.call.state.DidRunStory(root_mock.results),
       mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
+      mock.call.state.DidRunStory(root_mock.results),
       mock.call.state.platform.GetOSName(),
     ])
 
@@ -944,8 +944,8 @@ class StoryRunnerTest(unittest.TestCase):
       mock.call.test.WillRunStory(root_mock.state.platform),
       mock.call.state.DumpStateUponFailure(root_mock.story, root_mock.results),
       mock.call.results.AddValue(FailureValueMatcher('foo')),
-      mock.call.state.DidRunStory(root_mock.results),
       mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
+      mock.call.state.DidRunStory(root_mock.results),
       mock.call.state.platform.GetOSName(),
     ])
 
@@ -965,6 +965,7 @@ class StoryRunnerTest(unittest.TestCase):
       mock.call.state.CanRunStory(root_mock.story),
       mock.call.state.RunStory(root_mock.results),
       mock.call.test.Measure(root_mock.state.platform, root_mock.results),
+      mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
       mock.call.state.DidRunStory(root_mock.results),
       mock.call.state.DumpStateUponFailure(root_mock.story, root_mock.results)
     ])
@@ -986,6 +987,7 @@ class StoryRunnerTest(unittest.TestCase):
       mock.call.state.RunStory(root_mock.results),
       mock.call.state.DumpStateUponFailure(root_mock.story, root_mock.results),
       mock.call.results.AddValue(FailureValueMatcher('foo')),
+      mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
       mock.call.state.DidRunStory(root_mock.results)
     ])
 
@@ -1005,7 +1007,6 @@ class StoryRunnerTest(unittest.TestCase):
       mock.call.state.WillRunStory(root_mock.story),
       mock.call.state.DumpStateUponFailure(root_mock.story, root_mock.results),
       mock.call.results.AddValue(FailureValueMatcher('foo')),
-      mock.call.state.DidRunStory(root_mock.results),
       mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results)
     ])
 
@@ -1023,6 +1024,7 @@ class StoryRunnerTest(unittest.TestCase):
       mock.call.state.platform.GetOSName(),
       mock.call.test.WillRunStory(root_mock.state.platform),
       mock.call.results.AddValue(SkipValueMatcher()),
+      mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results),
       mock.call.state.DidRunStory(root_mock.results)
     ])
 
@@ -1045,7 +1047,6 @@ class StoryRunnerTest(unittest.TestCase):
       mock.call.test.Measure(root_mock.state.platform, root_mock.results),
       mock.call.state.DumpStateUponFailure(root_mock.story, root_mock.results),
       mock.call.results.AddValue(FailureValueMatcher('foo')),
-      mock.call.state.DidRunStory(root_mock.results),
       mock.call.test.DidRunStory(root_mock.state.platform, root_mock.results)
     ])
 

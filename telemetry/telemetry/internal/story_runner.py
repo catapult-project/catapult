@@ -106,13 +106,17 @@ def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
   finally:
     has_existing_exception = (sys.exc_info() != (None, None, None))
     try:
-      state.DidRunStory(results)
-      # if state.DidRunStory raises exception, things are messed up badly and we
-      # do not need to run test.DidRunStory at that point.
+      # We attempt to stop tracing and/or metric collecting before possibly
+      # closing the browser. Closing the browser first and stopping tracing
+      # later appeared to cause issues where subsequent browser instances would
+      # not launch correctly on some devices (see: crbug.com/720317).
+      # The following normally cause tracing and/or metric collecting to stop.
       if isinstance(test, story_test.StoryTest):
         test.DidRunStory(state.platform, results)
       else:
         test.DidRunPage(state.platform)
+      # And the following normally causes the browser to be closed.
+      state.DidRunStory(results)
       # TODO(mikecase): Remove this logging once Android perf bots are swarmed.
       # crbug.com/678282
       if state.platform.GetOSName() == 'android':
