@@ -29,13 +29,6 @@ tr.b.unittest.testSuite(function() {
         });
     mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
       cat: 'loading',
-      title: 'markAsMainFrame',
-      start: timestamp,
-      duration: 0.0,
-      args: {frame: '0xdeadbeef'}
-    }));
-    mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-      cat: 'loading',
       title: 'firstMeaningfulPaintCandidate',
       start: timestamp,
       duration: 0.0,

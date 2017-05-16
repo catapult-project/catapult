@@ -19,155 +19,11 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.metrics.sh', function() {
-  const PLUGIN_URL = 'data:text/html,pluginplaceholderdata';
   const RESPONSIVENESS_THRESHOLD_MS = 50;
   const INTERACTIVE_WINDOW_SIZE_MS = 5 * 1000;
   const timeDurationInMs_smallerIsBetter =
       tr.b.Unit.byName.timeDurationInMs_smallerIsBetter;
   const RelatedEventSet = tr.v.d.RelatedEventSet;
-
-
-  /**
-   * Helper class for detecting whether a frame is the main frame.
-   *
-   * The class uses frame loader snapshots and special main frame markers in the
-   * trace to compute the isMainFrame predicate. A frame with the given frame id
-   * F is the main frame at the given time T if the following conditions hold:
-   * 1) There is a frame loader with the frame id F that is alive at time T.
-   * 2) There is an event (category='loading', title='markAsMainFrame') with the
-   *    frame id F that occurs during the lifetime of the frame loader.
-   * 3) The frame is not a plug-in frame, i.e. the frame loader does not have a
-   *    snapshot with the URL equal to the PLUGIN_URL.
-   * See https://bugs.chromium.org/p/chromium/issues/detail?id=692112#c10 for
-   * more info on main frame detection.
-   */
-  class MainFrameHelper {
-    /**
-     * @param {!tr.model.helpers.ChromeRendererHelper} rendererHelper
-     */
-    constructor(rendererHelper) {
-      this.frameLoaders_ = rendererHelper.process.objects
-          .getAllInstancesNamed('FrameLoader') || [];
-      this.mainFrameMarkers_ = this.findMainFrameMarkers_(rendererHelper);
-      this.mainFrameLiveRanges_ = this.findMainFrameLiveRanges_(rendererHelper);
-    }
-
-    /**
-     * Returns true if the frame with the given frameId is the main frame at
-     * given time.
-     * @param {string} frameId
-     * @param {number} timestamp
-     * @returns {boolean}
-     */
-    isMainFrame(frameId, timestamp) {
-      for (const {frameId: mainFrameId, liveRange} of
-           this.mainFrameLiveRanges_) {
-        if (mainFrameId === frameId &&
-            liveRange.containsExplicitRangeInclusive(timestamp, timestamp)) {
-          return true;
-        }
-      }
-      return false;
-    }
-
-    /**
-     * Returns the document URL that this being loaded in the given frame at the
-     * given time.
-     * @param {string} frameId
-     * @param {number} timestamp
-     * @returns {string}
-     */
-    getURL(frameId, timestamp) {
-      for (const frameLoader of this.frameLoaders_) {
-        if (!frameLoader.isAliveAt(timestamp)) continue;
-        const snapshot = frameLoader.getSnapshotAt(timestamp);
-        if (frameId === snapshot.args.frame.id_ref) {
-          return snapshot.args.documentLoaderURL;
-        }
-      }
-      return undefined;
-    }
-
-    /**
-     * Returns a list of main frame markers.
-     * @private
-     * @param {!tr.model.helpers.ChromeRendererHelper} rendererHelper
-     * @returns {!Array.<{frameId: string, timestamp: number}>}
-     */
-    findMainFrameMarkers_(rendererHelper) {
-      return findAllEvents(rendererHelper, 'loading', 'markAsMainFrame').
-          map(event => {
-            return {frameId: event.args.frame, timestamp: event.start};
-          });
-    }
-
-    /**
-     * Returns a list of main frame ids and live ranges.
-     * @private
-     * @returns {!Array.<{frameId: string, liveRange: !tr.b.Range}>}
-     */
-    findMainFrameLiveRanges_() {
-      const result = [];
-      for (const frameLoader of this.frameLoaders_) {
-        if (frameLoader.snapshots.length > 0 &&
-            this.isMarkedAsMainFrame_(frameLoader) &&
-            !this.isPluginFrame_(frameLoader)) {
-          result.push({
-            frameId: this.getFrameId_(frameLoader),
-            liveRange: frameLoader.bounds
-          });
-        }
-      }
-      return result;
-    }
-
-    /**
-     * Checks if the given frame loader has a main frame marker event.
-     * @private
-     * @param {!FrameLoader} frameLoader
-     * @returns {boolean}
-     */
-    isMarkedAsMainFrame_(frameLoader) {
-      const currentFrameId = this.getFrameId_(frameLoader);
-      frameLoader.updateBounds();
-      const liveRange = frameLoader.bounds;
-      for (const {frameId, timestamp} of this.mainFrameMarkers_) {
-        if (currentFrameId === frameId &&
-          liveRange.containsExplicitRangeInclusive(timestamp, timestamp)) {
-          return true;
-        }
-      }
-      return false;
-    }
-
-    /**
-     * Checks if the given frame loader loads the PLUGIN_URL.
-     * @private
-     * @param {!FrameLoader} frameLoader
-     * @returns {boolean}
-     */
-    isPluginFrame_(frameLoader) {
-      for (const snapshot of frameLoader.snapshots) {
-        if (snapshot.args.documentLoaderURL === PLUGIN_URL) return true;
-      }
-      return false;
-    }
-
-    /**
-     * @private
-     * @param {!FrameLoader} frameLoader
-     * @returns {number} the frame id corresponding to the given frame loader.
-     */
-    getFrameId_(frameLoader) {
-      const result = frameLoader.snapshots[0].args.frame.id_ref;
-      for (const snapshot of frameLoader.snapshots) {
-        if (snapshot.args.frame.id_ref !== result) {
-          throw new Error('Snapshots have different frame ids.');
-        }
-      }
-      return result;
-    }
-  }
 
   /**
    * @param  {!tr.model.Process} process
@@ -223,18 +79,18 @@ tr.exportTo('tr.metrics.sh', function() {
       if (!hasCategoryAndName(ev, 'blink.user_timing', 'navigationStart')) {
         continue;
       }
-      const frameId = ev.args.frame;
-      let list = this.navigationStartsForFrameId_[frameId];
+      const frameIdRef = ev.args.frame;
+      let list = this.navigationStartsForFrameId_[frameIdRef];
       if (list === undefined) {
-        this.navigationStartsForFrameId_[frameId] = list = [];
+        this.navigationStartsForFrameId_[frameIdRef] = list = [];
       }
       list.unshift(ev);
     }
   }
 
   NavigationStartFinder.prototype = {
-    findNavigationStartEventForFrameBeforeTimestamp(frameId, ts) {
-      const list = this.navigationStartsForFrameId_[frameId];
+    findNavigationStartEventForFrameBeforeTimestamp(frameIdRef, ts) {
+      const list = this.navigationStartsForFrameId_[frameIdRef];
       if (list === undefined) return undefined;
       let eventBeforeTimestamp;
       for (const ev of list) {
@@ -267,6 +123,22 @@ tr.exportTo('tr.metrics.sh', function() {
     return histogram;
   }
 
+  function findFrameLoaderSnapshotAt(rendererHelper, frameIdRef, ts) {
+    const objects = rendererHelper.process.objects;
+    const frameLoaderInstances = objects.instancesByTypeName_.FrameLoader;
+    if (frameLoaderInstances === undefined) return undefined;
+
+    let snapshot;
+    for (const instance of frameLoaderInstances) {
+      if (!instance.isAliveAt(ts)) continue;
+      const maybeSnapshot = instance.getSnapshotAt(ts);
+      if (frameIdRef !== maybeSnapshot.args.frame.id_ref) continue;
+      snapshot = maybeSnapshot;
+    }
+
+    return snapshot;
+  }
+
   function findAllEvents(rendererHelper, category, title) {
     const targetEvents = [];
 
@@ -285,21 +157,21 @@ tr.exportTo('tr.metrics.sh', function() {
         continue;
       }
       if (rendererHelper.isTelemetryInternalEvent(ev)) continue;
-      const frameId = ev.args.frame;
-      if (frameId === undefined) continue;
-      let list = candidatesForFrameId[frameId];
+      const frameIdRef = ev.args.frame;
+      if (frameIdRef === undefined) continue;
+      let list = candidatesForFrameId[frameIdRef];
       if (list === undefined) {
-        candidatesForFrameId[frameId] = list = [];
+        candidatesForFrameId[frameIdRef] = list = [];
       }
       list.push(ev);
     }
     return candidatesForFrameId;
   }
 
-  // TODO(ulan): Remove URL blacklist.
   const URL_BLACKLIST = [
     'about:blank',
     // Chrome on Android creates main frames with the below URL for plugins.
+    'data:text/html,pluginplaceholderdata',
     // Special URL used to start a navigation to an unreachable error page.
     'data:text/html,chromewebdata'
   ];
@@ -308,18 +180,20 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   function collectTimeToEvent(
-      category, eventName, rendererHelper,
-      navigationStartFinder, mainFrameHelper) {
+      category, eventName, rendererHelper, navigationStartFinder) {
     const targetEvents = findAllEvents(rendererHelper, category, eventName);
     const samples = [];
     for (const ev of targetEvents) {
       if (rendererHelper.isTelemetryInternalEvent(ev)) continue;
-      const frameId = ev.args.frame;
-      if (!mainFrameHelper.isMainFrame(frameId, ev.start)) continue;
-      const url = mainFrameHelper.getURL(frameId, ev.start);
-      if (url === undefined || shouldIgnoreURL(url)) continue;
+      const frameIdRef = ev.args.frame;
+      const snapshot =
+        findFrameLoaderSnapshotAt(rendererHelper, frameIdRef, ev.start);
+      if (snapshot === undefined || !snapshot.args.isLoadingMainFrame) continue;
+      const url = snapshot.args.documentLoaderURL;
+      if (shouldIgnoreURL(url)) continue;
       const navigationStartEvent = navigationStartFinder.
-          findNavigationStartEventForFrameBeforeTimestamp(frameId, ev.start);
+        findNavigationStartEventForFrameBeforeTimestamp(
+          frameIdRef, ev.start);
       // Ignore layout w/o preceding navigationStart, as they are not
       // attributed to any time-to-X metric.
       if (navigationStartEvent === undefined) continue;
@@ -334,7 +208,13 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   function addFirstMeaningfulPaintSample(samples, rendererHelper,
-      navigationStart, fmpMarkerEvent, url) {
+      frameIdRef, navigationStart, fmpMarkerEvent) {
+    const snapshot = findFrameLoaderSnapshotAt(
+        rendererHelper, frameIdRef, fmpMarkerEvent.start);
+    if (!snapshot || !snapshot.args.isLoadingMainFrame) return;
+    const url = snapshot.args.documentLoaderURL;
+    if (shouldIgnoreURL(url)) return;
+
     const navStartToFMPRange = tr.b.math.Range.fromExplicitRange(
         navigationStart.start, fmpMarkerEvent.start);
     const networkEvents = getNetworkEventsInRange(
@@ -361,9 +241,15 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   function addFirstMeaningfulPaintCpuTimeSample(samples, rendererHelper,
-      navigationStart, fmpMarkerEvent, url) {
+      frameIdRef, navigationStart, fmpMarkerEvent) {
     const navStartToFMPCpuRange = tr.b.math.Range.fromExplicitRange(
         navigationStart.cpuStart, fmpMarkerEvent.cpuStart);
+    const snapshot = findFrameLoaderSnapshotAt(
+        rendererHelper, frameIdRef, fmpMarkerEvent.start);
+    if (!snapshot || !snapshot.args.isLoadingMainFrame) return;
+    const url = snapshot.args.documentLoaderURL;
+    if (shouldIgnoreURL(url)) return;
+
     const mainThreadCpuTime = getMainThreadCpuTime(
         rendererHelper, navStartToFMPCpuRange);
 
@@ -401,6 +287,7 @@ tr.exportTo('tr.metrics.sh', function() {
 
   function addFirstInteractiveSample(samples, rendererHelper,
       navigationStart, firstMeaningfulPaint, url) {
+    if (shouldIgnoreURL(url)) return;
     const navigationStartTime = navigationStart.start;
     let firstInteractive = Infinity;
     let firstInteractiveCandidate = firstMeaningfulPaint;
@@ -477,21 +364,18 @@ tr.exportTo('tr.metrics.sh', function() {
    * Design doc: https://goo.gl/ISWndc
    */
   function collectFirstMeaningfulPaintAndTimeToInteractiveForRenderer(
-      rendererHelper, navigationStartFinder, mainFrameHelper) {
+      rendererHelper, navigationStartFinder) {
     const firstMeaningfulPaintSamples = [];
     const firstMeaningfulPaintCpuTimeSamples = [];
     const firstInteractiveSamples = [];
 
-    function addSamples(frameId, navigationStart, fmpMarkerEvent) {
-      if (!mainFrameHelper.isMainFrame(frameId, fmpMarkerEvent.start)) return;
-      const url = mainFrameHelper.getURL(frameId, fmpMarkerEvent.start);
-      if (url === undefined || shouldIgnoreURL(url)) return;
+    function addSamples(frameIdRef, navigationStart, fmpMarkerEvent) {
       const data = addFirstMeaningfulPaintSample(
           firstMeaningfulPaintSamples, rendererHelper,
-          navigationStart, fmpMarkerEvent, url);
+          frameIdRef, navigationStart, fmpMarkerEvent);
       addFirstMeaningfulPaintCpuTimeSample(
           firstMeaningfulPaintCpuTimeSamples, rendererHelper,
-          navigationStart, fmpMarkerEvent, url);
+          frameIdRef, navigationStart, fmpMarkerEvent);
       if (data !== undefined) {
         addFirstInteractiveSample(
             firstInteractiveSamples, rendererHelper,
@@ -502,15 +386,15 @@ tr.exportTo('tr.metrics.sh', function() {
     const candidatesForFrameId =
         findFirstMeaningfulPaintCandidates(rendererHelper);
 
-    for (const frameId in candidatesForFrameId) {
+    for (const frameIdRef in candidatesForFrameId) {
       let navigationStart = undefined;
       let lastCandidate = undefined;
 
       // Iterate over the FMP candidates, remembering the last one.
-      for (const ev of candidatesForFrameId[frameId]) {
+      for (const ev of candidatesForFrameId[frameIdRef]) {
         const navigationStartForThisCandidate = navigationStartFinder.
           findNavigationStartEventForFrameBeforeTimestamp(
-            frameId, ev.start);
+            frameIdRef, ev.start);
         // Ignore candidate w/o preceding navigationStart, as they are not
         // attributed to any TTFMP.
         if (navigationStartForThisCandidate === undefined) continue;
@@ -519,7 +403,7 @@ tr.exportTo('tr.metrics.sh', function() {
           // New navigation is found. Compute TTFMP for current navigation,
           // and reset the state variables.
           if (navigationStart !== undefined && lastCandidate !== undefined) {
-            addSamples(frameId, navigationStart, lastCandidate);
+            addSamples(frameIdRef, navigationStart, lastCandidate);
           }
           navigationStart = navigationStartForThisCandidate;
         }
@@ -528,7 +412,7 @@ tr.exportTo('tr.metrics.sh', function() {
 
       // Compute TTFMP for the last navigation.
       if (lastCandidate !== undefined) {
-        addSamples(frameId, navigationStart, lastCandidate);
+        addSamples(frameIdRef, navigationStart, lastCandidate);
       }
     }
     return {
@@ -540,18 +424,17 @@ tr.exportTo('tr.metrics.sh', function() {
 
   function collectLoadingMetricsForRenderer(rendererHelper) {
     const navigationStartFinder = new NavigationStartFinder(rendererHelper);
-    const mainFrameHelper = new MainFrameHelper(rendererHelper);
 
     const firstContentfulPaintSamples = collectTimeToEvent(
         'loading', 'firstContentfulPaint',
-        rendererHelper, navigationStartFinder, mainFrameHelper);
+        rendererHelper, navigationStartFinder);
     const onLoadSamples = collectTimeToEvent(
         'blink.user_timing', 'loadEventStart',
-        rendererHelper, navigationStartFinder, mainFrameHelper);
+        rendererHelper, navigationStartFinder);
     const {firstMeaningfulPaintSamples, firstMeaningfulPaintCpuTimeSamples,
         firstInteractiveSamples} =
         collectFirstMeaningfulPaintAndTimeToInteractiveForRenderer(
-            rendererHelper, navigationStartFinder, mainFrameHelper);
+            rendererHelper, navigationStartFinder);
     return {
       firstContentfulPaintSamples,
       onLoadSamples,
@@ -623,7 +506,6 @@ tr.exportTo('tr.metrics.sh', function() {
     collectLoadingMetricsForRenderer,
     RESPONSIVENESS_THRESHOLD_MS,
     INTERACTIVE_WINDOW_SIZE_MS,
-    MainFrameHelper, // For testing.
   };
 });
 </script>
