@@ -44,8 +44,23 @@ from telemetry.wpr import archive_info
 
 # pylint: disable=too-many-lines
 
+class FakePlatform(object):
+  def CanMonitorThermalThrottling(self):
+    return False
+
+  def GetOSName(self):
+    pass
+
+  def WaitForBatteryTemperature(self, _):
+    pass
+
+  def GetDeviceTypeName(self):
+    return "GetDeviceTypeName"
 
 class TestSharedState(story_module.SharedState):
+
+  _platform = FakePlatform()
+
   @classmethod
   def SetTestPlatform(cls, platform):
     cls._platform = platform
@@ -55,7 +70,6 @@ class TestSharedState(story_module.SharedState):
         test, options, story_set)
     self._test = test
     self._current_story = None
-    self._platform = fakes.FakePlatform()
 
   @property
   def platform(self):
@@ -718,7 +732,7 @@ class StoryRunnerTest(unittest.TestCase):
       self, num_failing_stories, runner_max_failures, options_max_failures,
       expected_num_failures):
     class SimpleSharedState(story_module.SharedState):
-      _fake_platform = fakes.FakePlatform()
+      _fake_platform = FakePlatform()
       _current_story = None
 
       @property
