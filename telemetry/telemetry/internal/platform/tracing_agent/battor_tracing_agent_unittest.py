@@ -8,6 +8,7 @@ from battor import battor_error
 from battor import battor_wrapper
 from devil.android import battery_utils
 from telemetry.internal.platform.tracing_agent import battor_tracing_agent
+from telemetry.testing import fakes
 from telemetry.timeline import trace_data
 from telemetry.timeline import tracing_config
 from tracing.trace_data import trace_data
@@ -26,28 +27,6 @@ class FakeBatteryUtils(object):
 
   def GetCharging(self):
     return self._charging_state
-
-
-class FakePlatformBackend(object):
-  def GetOSName(self):
-    return ''
-
-
-class FakeAndroidPlatformBackend(FakePlatformBackend):
-  def __init__(self):
-    super(FakeAndroidPlatformBackend, self).__init__()
-    self.device = 'fake_device'
-
-  def GetOSName(self):
-    return 'android'
-
-
-class FakeDesktopPlatformBackend(FakePlatformBackend):
-  def __init__(self):
-    self.platform = 'win'
-
-  def GetOSName(self):
-    return self.platform
 
 
 class FakeBattOr(object):
@@ -103,8 +82,10 @@ class BattOrTracingAgentTest(unittest.TestCase):
     battery_utils.BatteryUtils = FakeBatteryUtils
 
     # Agents and backends.
-    self.android_backend = FakeAndroidPlatformBackend()
-    self.desktop_backend = FakeDesktopPlatformBackend()
+    self.android_backend = fakes.FakePlatform()
+    self.android_backend.SetOSName('android')
+    self.desktop_backend = fakes.FakePlatform()
+    self.desktop_backend.SetOSName('win')
     self.android_agent = (
         battor_tracing_agent.BattOrTracingAgent(self.android_backend))
     self.desktop_agent = (
@@ -115,10 +96,9 @@ class BattOrTracingAgentTest(unittest.TestCase):
     battery_utils.BatteryUtils = self._battery_utils
 
   def testInit(self):
-    self.assertTrue(isinstance(self.android_agent._platform_backend,
-                               FakeAndroidPlatformBackend))
-    self.assertTrue(isinstance(self.desktop_agent._platform_backend,
-                               FakeDesktopPlatformBackend))
+    self.assertEqual(
+        self.android_agent._platform_backend.GetOSName(), 'android')
+    self.assertEqual(self.desktop_agent._platform_backend.GetOSName(), 'win')
 
   def testIsSupportedAndroid(self):
     self.assertTrue(battor_tracing_agent.BattOrTracingAgent.IsSupported(

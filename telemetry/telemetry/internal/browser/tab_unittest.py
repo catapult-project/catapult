@@ -3,12 +3,11 @@
 # found in the LICENSE file.
 
 import logging
-import tempfile
 import time
 
 from telemetry.core import exceptions
 from telemetry import decorators
-from telemetry.internal.image_processing import video
+from telemetry.testing import fakes
 from telemetry.testing import tab_test_case
 from telemetry.timeline import model
 from telemetry.timeline import tracing_config
@@ -20,34 +19,6 @@ import py_utils
 
 def _IsDocumentVisible(tab):
   return not tab.EvaluateJavaScript('document.hidden || document.webkitHidden')
-
-
-class FakePlatformBackend(object):
-  def __init__(self):
-    self.platform = FakePlatform()
-
-  def DidStartBrowser(self, _, _2):
-    pass
-
-  def WillCloseBrowser(self, _, _2):
-    pass
-
-
-class FakePlatform(object):
-  def __init__(self):
-    self._is_video_capture_running = False
-
-  #pylint: disable=unused-argument
-  def StartVideoCapture(self, min_bitrate_mbps):
-    self._is_video_capture_running = True
-
-  def StopVideoCapture(self):
-    self._is_video_capture_running = False
-    return video.Video(tempfile.NamedTemporaryFile())
-
-  @property
-  def is_video_capture_running(self):
-    return self._is_video_capture_running
 
 
 class TabTest(tab_test_case.TabTestCase):
@@ -107,7 +78,7 @@ class TabTest(tab_test_case.TabTestCase):
   def testIsVideoCaptureRunning(self):
     original_platform_backend = self._tab.browser._platform_backend
     try:
-      self._tab.browser._platform_backend = FakePlatformBackend()
+      self._tab.browser._platform_backend = fakes.FakePlatformBackend()
       self.assertFalse(self._tab.is_video_capture_running)
       self._tab.StartVideoCapture(min_bitrate_mbps=2)
       self.assertTrue(self._tab.is_video_capture_running)

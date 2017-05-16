@@ -10,8 +10,11 @@ underscore are intended to be implementation details, and should not
 be subclassed; however, some, like _FakeBrowser, have public APIs that
 may need to be called in tests.
 """
+import tempfile
+
 from telemetry.internal.backends.chrome_inspector import websocket
 from telemetry.internal.browser import browser_options
+from telemetry.internal.image_processing import video
 from telemetry.internal.platform import system_info
 from telemetry.page import shared_page_state
 from telemetry.util import image_util
@@ -22,12 +25,37 @@ from types import ModuleType
 # Classes and functions which are intended to be part of the public
 # fakes API.
 
+class FakePlatformBackend(object):
+  def __init__(self):
+    self.platform = FakePlatform()
+
+  def DidStartBrowser(self, browser, browser_backend):
+    del browser, browser_backend # unused
+
+  def WillCloseBrowser(self, browser, browser_backend):
+    del browser, browser_backend # unused
+
+
 class FakePlatform(object):
   def __init__(self):
     self._network_controller = None
     self._tracing_controller = None
     self._has_battor = False
     self._os_name = 'FakeOS'
+    self.device = 'fake_device'
+    self._is_video_capture_running = False
+
+  def StartVideoCapture(self, min_bitrate_mbps):
+    del min_bitrate_mbps # unused
+    self._is_video_capture_running = True
+
+  def StopVideoCapture(self):
+    self._is_video_capture_running = False
+    return video.Video(tempfile.NamedTemporaryFile())
+
+  @property
+  def is_video_capture_running(self):
+    return self._is_video_capture_running
 
   @property
   def is_host_platform(self):
@@ -554,4 +582,3 @@ class FakeTimer(object):
       self._module.time = self._actual_time
       self._module = None
       self._actual_time = None
-
