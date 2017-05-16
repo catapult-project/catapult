@@ -61,7 +61,7 @@ class IsBattOrConnectedTest(unittest.TestCase):
 
     self._get_bus_number_to_device_tree_map = (
         find_usb_devices.GetBusNumberToDeviceTreeMap)
-    find_usb_devices.GetBusNumberToDeviceTreeMap = lambda fast=None: None
+    find_usb_devices.GetBusNumberToDeviceTreeMap = lambda fast=None: {}
 
     self._get_battor_list_return = []
     self._get_battor_list = battor_device_mapping.GetBattOrList
