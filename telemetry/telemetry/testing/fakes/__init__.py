@@ -26,6 +26,8 @@ class FakePlatform(object):
   def __init__(self):
     self._network_controller = None
     self._tracing_controller = None
+    self._has_battor = False
+    self._os_name = 'FakeOS'
 
   @property
   def is_host_platform(self):
@@ -61,8 +63,11 @@ class FakePlatform(object):
   def GetArchName(self):
     raise NotImplementedError
 
+  def SetOSName(self, name):
+    self._os_name = name
+
   def GetOSName(self):
-    return 'FakeOS'
+    return self._os_name
 
   def GetOSVersionName(self):
     raise NotImplementedError
@@ -75,6 +80,13 @@ class FakePlatform(object):
 
   def WaitForBatteryTemperature(self, _):
     pass
+
+  def HasBattOrConnected(self):
+    return self._has_battor
+
+  def SetBattOrDetected(self, b):
+    assert isinstance(b, bool)
+    self._has_battor = b
 
 
 class FakeLinuxPlatform(FakePlatform):

@@ -8,6 +8,7 @@ from telemetry import decorators
 from telemetry.internal import story_runner
 from telemetry.internal.util import command_line
 from telemetry.page import legacy_page_test
+from telemetry.story import expectations
 from telemetry.web_perf import timeline_based_measurement
 
 Disabled = decorators.Disabled
@@ -264,6 +265,14 @@ class Benchmark(command_line.Command):
     if not self.page_set:
       raise NotImplementedError('This test has no "page_set" attribute.')
     return self.page_set()  # pylint: disable=not-callable
+
+  def GetExpectations(self):
+    """Returns a StoryExpectation object.
+
+    This object is used to determine what stories are disabled. This needs to be
+    overridden by the subclass. It defaults to an empty expectations object.
+    """
+    return expectations.StoryExpectations()
 
 
 def AddCommandLineArgs(parser):

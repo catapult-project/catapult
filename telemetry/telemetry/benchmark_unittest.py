@@ -159,3 +159,9 @@ class BenchmarkTest(unittest.TestCase):
       story_runner.Run = original_run_fn
 
     self.assertTrue(validPredicate[0])
+
+  def testBenchmarkExpectations(self):
+    b = TestBenchmark(story_module.Story(
+        shared_state_class=shared_page_state.SharedPageState))
+    self.assertIsInstance(
+        b.GetExpectations(), story_module.expectations.StoryExpectations)
