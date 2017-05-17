@@ -11,8 +11,8 @@ class StoryExpectations(object):
   Example Usage:
   class FooBenchmarkExpectations(expectations.StoryExpectations):
     def SetExpectations(self):
-      self.DisableBenchmark([expectations.ALL_WIN], 'crbug.com/123')
-      self.DisableBenchmark([expectations.ALL_MOBILE], 'Desktop Benchmark')
+      self.PermanentlyDisableBenchmark(
+          [expectations.ALL_MOBILE], 'Desktop Benchmark')
       self.DisableStory('story_name1', [expectations.ALL_MAC], 'crbug.com/456')
       self.DisableStory('story_name2', [expectations.ALL], 'crbug.com/789')
       ...
@@ -33,12 +33,17 @@ class StoryExpectations(object):
   def _Freeze(self):
     self._frozen = True
 
-  def DisableBenchmark(self, conditions, reason):
-    """Disable benchmark under the given conditions.
+  def PermanentlyDisableBenchmark(self, conditions, reason):
+    """Permanently Disable benchmark under the given conditions.
+
+    This means that even if --also-run-disabled-tests is passed, the benchmark
+    will not run. Some benchmarks (such as system_health.mobile_* benchmarks)
+    contain android specific commands and as such, cannot run on desktop
+    platforms under any condition.
 
     Example:
-      DisableBenchmark([expectations.ALL_MOBILE], 'Desktop benchmark')
-      DisableBenchmark([expectations.ALL_WIN], 'crbug.com/123')
+      PermanentlyDisableBenchmark(
+          [expectations.ALL_MOBILE], 'Desktop benchmark')
 
     Args:
       conditions: List of _TestCondition subclasses.
@@ -61,7 +66,7 @@ class StoryExpectations(object):
     for conditions, reason in self._disabled_platforms:
       for condition in conditions:
         if condition.ShouldDisable(platform):
-          logging.info('Benchmark disabled on %s due to %s.',
+          logging.info('Benchmark permanently disabled on %s due to %s.',
                        condition, reason)
           return reason
     return None
