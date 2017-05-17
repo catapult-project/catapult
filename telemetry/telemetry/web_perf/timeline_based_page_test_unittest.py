@@ -10,7 +10,6 @@ from telemetry.testing import page_test_test_case
 from telemetry.timeline import chrome_trace_category_filter
 from telemetry.util import wpr_modes
 from telemetry.web_perf import timeline_based_measurement as tbm_module
-from telemetry.web_perf.metrics import gpu_timeline
 from telemetry.web_perf.metrics import smoothness
 
 class TestTimelinebasedMeasurementPage(page_module.Page):
@@ -78,32 +77,6 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
     v = results.FindAllPageSpecificValuesFromIRNamed(
         'DrawerAnimation', 'frame_time_discrepancy')
     self.assertEquals(len(v), 1)
-
-  # This test should eventually work on all platforms, but currently this
-  # this metric is flaky on desktop: crbug.com/453131
-  # https://github.com/catapult-project/catapult/issues/3099 (Android)
-  @decorators.Disabled('all')
-  def testGPUTimesTimelineBasedMeasurementForSmoke(self):
-    ps = self.CreateEmptyPageSet()
-    ps.AddStory(TestTimelinebasedMeasurementPage(
-        ps, ps.base_dir, trigger_animation=True))
-
-    cat_filter = chrome_trace_category_filter.ChromeTraceCategoryFilter(
-        'disabled-by-default-gpu.service')
-    tbm_option = tbm_module.Options(overhead_level=cat_filter)
-    tbm_option.SetLegacyTimelineBasedMetrics([gpu_timeline.GPUTimelineMetric()])
-    tbm = tbm_module.TimelineBasedMeasurement(tbm_option)
-    results = self.RunMeasurement(tbm, ps, options=self._options)
-
-    self.assertEquals(0, len(results.failures))
-    v = results.FindAllPageSpecificValuesFromIRNamed(
-        'CenterAnimation', 'browser_compositor_max_cpu_time')
-    self.assertEquals(len(v), 1)
-    self.assertGreater(v[0].value, 0)
-    v = results.FindAllPageSpecificValuesFromIRNamed(
-        'DrawerAnimation', 'browser_compositor_max_cpu_time')
-    self.assertEquals(len(v), 1)
-    self.assertGreater(v[0].value, 0)
 
   # win: crbug.com/520781, chromeos: crbug.com/483212.
   @decorators.Disabled('win', 'chromeos')
