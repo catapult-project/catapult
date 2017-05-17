@@ -199,10 +199,10 @@ class FakeSharedPageState(shared_page_state.SharedPageState):
 
 
 class FakeSystemInfo(system_info.SystemInfo):
-  def __init__(self, model_name='', gpu_dict=None):
+  def __init__(self, model_name='', gpu_dict=None, command_line=''):
     if gpu_dict == None:
       gpu_dict = fake_gpu_info.FAKE_GPU_INFO
-    super(FakeSystemInfo, self).__init__(model_name, gpu_dict)
+    super(FakeSystemInfo, self).__init__(model_name, gpu_dict, command_line)
 
 
 class _FakeBrowserFinderOptions(browser_options.BrowserFinderOptions):

@@ -7,11 +7,12 @@ from telemetry.internal.platform import gpu_info
 class SystemInfo(object):
   """Provides low-level system information."""
 
-  def __init__(self, model_name, gpu_dict):
+  def __init__(self, model_name, gpu_dict, command_line):
     if (model_name == None) or (gpu_dict == None):
       raise Exception("Missing model_name or gpu_dict argument")
     self._model_name = model_name
     self._gpu = gpu_info.GPUInfo.FromDict(gpu_dict)
+    self._command_line = command_line
 
   @classmethod
   def FromDict(cls, attrs):
@@ -27,7 +28,7 @@ class SystemInfo(object):
     model_version = attrs.get('model_version', '')
     if model_name and model_version:
       model_name += ' ' + model_version
-    return cls(model_name, attrs["gpu"])
+    return cls(model_name, attrs["gpu"], attrs.get('command_line', ''))
 
   @property
   def model_name(self):
@@ -43,3 +44,8 @@ class SystemInfo(object):
   def gpu(self):
     """A GPUInfo object describing the graphics processor(s) on the system."""
     return self._gpu
+
+  @property
+  def command_line(self):
+    """A string containing the command line used to launch the browser."""
+    return self._command_line

@@ -123,6 +123,8 @@ class Browser(app.App):
       system_info = self.GetSystemInfo()
       if system_info.model_name:
         logging.info('Model: %s', system_info.model_name)
+      if system_info.command_line:
+        logging.info('Browser command line: %s', system_info.command_line)
       if system_info.gpu:
         for i, device in enumerate(system_info.gpu.devices):
           logging.info('GPU device %d: %s', i, device)
