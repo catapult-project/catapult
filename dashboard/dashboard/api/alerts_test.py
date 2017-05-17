@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import mock
+import datetime
 import unittest
 
 import webapp2
@@ -37,15 +38,18 @@ class AlertsTest(testing_common.TestCase):
 
   def _AddAnomalyEntities(
       self, revision_ranges, test_key, sheriff_key, bug_id=None,
-      internal_only=False):
+      internal_only=False, timestamp=None):
     """Adds a group of Anomaly entities to the datastore."""
     urlsafe_keys = []
     for start_rev, end_rev in revision_ranges:
-      anomaly_key = anomaly.Anomaly(
+      anomaly_entity = anomaly.Anomaly(
           start_revision=start_rev, end_revision=end_rev,
           test=test_key, bug_id=bug_id, sheriff=sheriff_key,
           median_before_anomaly=100, median_after_anomaly=200,
-          internal_only=internal_only).put()
+          internal_only=internal_only)
+      if timestamp:
+        anomaly_entity.timestamp = timestamp
+      anomaly_key = anomaly_entity.put()
       urlsafe_keys.append(anomaly_key.urlsafe())
     return urlsafe_keys
 
@@ -200,6 +204,23 @@ class AlertsTest(testing_common.TestCase):
     mock_oauth.get_client_id.return_value = 'invalid'
     self.testapp.post('/api/alerts/bug_id/12345', status=403)
 
+  @mock.patch.object(oauth, 'oauth')
+  def testPost_WithHistoryParameter_ListsAlerts(self, mock_oauth):
+    self._SetGooglerOAuth(mock_oauth)
+    test_keys = self._AddTests()
+    sheriff_key = self._AddSheriff()
+    test_keys = self._AddTests()
+    recent_ranges = [(300, 500), (500, 600), (600, 800)]
+    old_ranges = [(100, 200)]
+    old_time = datetime.datetime.now() - datetime.timedelta(days=6)
+    self._AddAnomalyEntities(recent_ranges, test_keys[0], sheriff_key)
+    self._AddAnomalyEntities(
+        old_ranges, test_keys[0], sheriff_key, timestamp=old_time)
+
+    response = self.testapp.post(
+        '/api/alerts/history/5')
+    anomalies = self.GetJsonValue(response, 'anomalies')
+    self.assertEqual(3, len(anomalies))
 
 
 if __name__ == '__main__':
