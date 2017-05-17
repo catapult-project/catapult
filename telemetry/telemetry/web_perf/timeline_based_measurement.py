@@ -14,6 +14,7 @@ from telemetry.value import trace
 from telemetry.value import common_value_helpers
 from telemetry.web_perf.metrics import timeline_based_metric
 from telemetry.web_perf.metrics import blob_timeline
+from telemetry.web_perf.metrics import webrtc_rendering_timeline
 from telemetry.web_perf.metrics import gpu_timeline
 from telemetry.web_perf.metrics import indexeddb_timeline
 from telemetry.web_perf.metrics import layout
@@ -45,7 +46,9 @@ def _GetAllLegacyTimelineBasedMetrics():
           layout.LayoutMetric(),
           gpu_timeline.GPUTimelineMetric(),
           blob_timeline.BlobTimelineMetric(),
-          indexeddb_timeline.IndexedDBTimelineMetric())
+          indexeddb_timeline.IndexedDBTimelineMetric(),
+          webrtc_rendering_timeline.WebRtcRenderingTimelineMetric())
+
 
 class InvalidInteractions(Exception):
   pass
