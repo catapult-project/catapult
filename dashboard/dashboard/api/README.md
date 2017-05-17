@@ -30,7 +30,7 @@ with the following fields:
  * `test`: Test path of the test the alert was fired on. This contains the
     benchmark/metric/page, like page_cycler/time_to_load/cnn.
  * `ref_test`: If there was a ref build, the test_path of the ref build.
- * `test_suite`: Name of the benchmark the aler was fired on.
+ * `testsuite`: Name of the benchmark the aler was fired on.
  * `recovered`: Whether the dashboard was able to detect that the alert
     recovered. Note that this is not possible to detect perfectly, as perf
     graphs are noisy and there may be multiple performance changes. The
