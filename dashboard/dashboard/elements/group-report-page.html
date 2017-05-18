@@ -362,7 +362,8 @@ found in the LICENSE file.
           chart.graphParams = graphParams;
           chart.alertKey = alert.key;
           chart.addSeriesGroup([this.getTestPathAndSelectedSeries(alert)]);
-          chart.addEventListener('chartclosed', this.onGraphClose, false);
+          chart.addEventListener(
+              'chartclosed', this.onGraphClose.bind(this), false);
           chart.addEventListener('alertChangedRevisions',
               this.alertChangedRevisions, true);
           this.setChartData(chart);

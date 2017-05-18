@@ -196,6 +196,8 @@ triaging functionality in the chart.
                       show-delta="{{showDelta}}">
       </div>
 
+      <canvas hidden id="text_measurement"></canvas>
+
     </div>
   </template>
   <script>
@@ -474,9 +476,7 @@ triaging functionality in the chart.
                   lineWidth: 0.3
                 },
                 xaxis: {},
-                yaxis: {
-                  labelWidth: 60
-                },
+                yaxis: {},
                 selection: {
                   mode: 'y'
                 }
@@ -1453,6 +1453,72 @@ triaging functionality in the chart.
           }
         },
 
+        getYAxisLabelWidth_() {
+          // Measure the width of the yaxis tick labels so that they don't
+          // overlap the yaxis-label. (Flot should support yaxis-labels, and it
+          // should automatically size the labelWidth correctly...)
+          // If we don't specify a tickGenerator, flot will use a default
+          // generator. However, flot doesn't provide any way to access that
+          // generator before building the chart, so we copy-paste it from
+          // flot's source. The tickGenerator requires tickSize, which defaults
+          // using another inaccessible algorithm. AAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
+          const opts = this.chartOptions.yaxis;
+
+          const delta = (opts.max - opts.min) / 5;
+          const decimals = Math.floor(Math.log(delta) / Math.LN10);
+          const orderOfMagnitude = Math.pow(10, decimals);
+          const norm = delta / orderOfMagnitude;  // between 1.0 and 10.0
+
+          // Use the 1-2-5 series of preferred numbers.
+          let tickSize;
+          if (norm < 1.5) {
+            tickSize = 1;
+          } else if (norm < 3) {
+            tickSize = 2;
+          } else if (norm < 7.5) {
+            tickSize = 5;
+          } else {
+            tickSize = 10;
+          }
+          tickSize *= orderOfMagnitude;
+
+          if (opts.minTickSize && tickSize < opts.minTickSize) {
+            tickSize = opts.minTickSize;
+          }
+          opts.tickSize = tickSize;
+
+          const tickValues = [];
+          const start = tickSize * Math.floor(opts.min / tickSize);
+          let i = 0;
+          let v = Number.NaN;
+          let prev;
+          do {
+            prev = v;
+            v = start + i * tickSize;
+            tickValues.push(v);
+            ++i;
+          } while (v < opts.max && v != prev);
+
+          opts.ticks = tickValues;
+
+          const scratchCanvasContext = this.$.text_measurement.getContext('2d');
+          let maxTickLabelWidth = 0;
+          for (const tickValue of tickValues) {
+            const formattedValue = opts.tickFormatter(tickValue);
+            const valueWidth = Math.ceil(scratchCanvasContext.measureText(
+                formattedValue).width);
+            maxTickLabelWidth = Math.max(maxTickLabelWidth, valueWidth);
+          }
+
+          const axisLabelWidth =
+            this.querySelector('#chart-yaxis-label').offsetHeight;
+
+          const padding = 5;
+
+          return axisLabelWidth + maxTickLabelWidth + padding;
+        },
+
         /**
          * Updates the currently displayed chart.
          */
@@ -1483,6 +1549,9 @@ triaging functionality in the chart.
           }
 
           this.createFixedXAxis(data);
+
+          this.chartOptions.yaxis.labelWidth = this.getYAxisLabelWidth_();
+
           this.chart = $.plot(this.$.plot, data, this.chartOptions);
           this.showAlerts();
           this.updateWarningsForSelectedSeries();
@@ -1648,10 +1717,9 @@ triaging functionality in the chart.
         /**
          * Formats numbers that are displayed at ticks on the Y-axis.
          * @param {(number|string)} val A Y-value.
-         * @param {Object} axis Not used.
          * @return {string} A string.
          */
-        formatYAxis(val, axis) {
+        formatYAxis(val) {
           return formatNumber(val);
         },
 
