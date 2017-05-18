@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/timing.html">
 <link rel="import" href="/tracing/ui/base/table.html">
 <link rel="import" href="/tracing/value/histogram_set.html">
 <link rel="import" href="/tracing/value/histogram_set_hierarchy.html">
@@ -150,14 +151,17 @@ tr.exportTo('tr.v.ui', function() {
     },
 
     toggleNameColumnWidth_(opt_event) {
-      if (opt_event !== undefined) {
-        opt_event.stopPropagation();
-        opt_event.preventDefault();
-      }
-
       this.viewState.update({
         constrainNameColumn: !this.viewState.constrainNameColumn,
       });
+
+      if (opt_event !== undefined) {
+        opt_event.stopPropagation();
+        opt_event.preventDefault();
+        tr.b.Timing.instant('histogram-set-table', 'nameColumn' +
+            (this.viewState.constrainNameColumn ? 'Constrained' :
+             'Unconstrained'));
+      }
     },
 
     buildColumn_(displayLabel) {
@@ -267,6 +271,8 @@ tr.exportTo('tr.v.ui', function() {
     async onRowExpandedChanged_(event) {
       event.row.viewState.isExpanded =
         this.$.table.getExpandedForTableRow(event.row);
+      tr.b.Timing.instant('histogram-set-table',
+          'row' + (event.row.viewState.isExpanded ? 'Expanded' : 'Collapsed'));
 
       // When the user expands a row, the table builds subRows' name-cells.
       // If a subRow's name isOverflowing even though none of the top-level rows
@@ -385,6 +391,7 @@ tr.exportTo('tr.v.ui', function() {
     },
 
     onSortColumnChanged_(event) {
+      tr.b.Timing.instant('histogram-set-table', 'sortColumn');
       this.viewState.update({
         sortColumnIndex: event.sortColumnIndex,
         sortDescending: event.sortDescending,
@@ -397,6 +404,8 @@ tr.exportTo('tr.v.ui', function() {
       if (event.selection instanceof tr.model.EventSet) return;
 
       event.stopPropagation();
+      tr.b.Timing.instant('histogram-set-table', 'selectHistogramNames');
+
       let histogramNames = event.selection;
       histogramNames.sort();
       histogramNames = histogramNames.map(escapeRegExp).join('|');

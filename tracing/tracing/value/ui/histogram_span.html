@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/math/statistics.html">
+<link rel="import" href="/tracing/base/timing.html">
 <link rel="import" href="/tracing/ui/base/box_chart.html">
 <link rel="import" href="/tracing/ui/base/drag_handle.html">
 <link rel="import" href="/tracing/ui/base/name_bar_chart.html">
@@ -290,7 +291,10 @@ tr.exportTo('tr.v.ui', function() {
       if (this.prevBrushedBinRange_.range === 1 &&
           this.brushedBinRange.range === 1 &&
           this.prevBrushedBinRange_.min === this.brushedBinRange.min) {
+        tr.b.Timing.instant('histogram-span', 'clearBrushedBins');
         this.brushedBinRange = new tr.b.math.Range();
+      } else {
+        tr.b.Timing.instant('histogram-span', 'brushBins');
       }
       this.mouseDownBinIndex_ = undefined;
     },
@@ -308,7 +312,13 @@ tr.exportTo('tr.v.ui', function() {
         return;
       }
 
-      this.viewState.mergeSampleDiagnostics = this.mergeSampleDiagnostics;
+      if (this.mergeSampleDiagnostics !==
+          this.viewState.mergeSampleDiagnostics) {
+        tr.b.Timing.instant('histogram-span',
+            (this.mergeSampleDiagnostics ? 'merge' : 'split') +
+             'SampleDiagnostics');
+        this.viewState.mergeSampleDiagnostics = this.mergeSampleDiagnostics;
+      }
 
       if (this.mergeSampleDiagnostics) {
         const merged = new tr.v.d.DiagnosticMap();

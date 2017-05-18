@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/timing.html">
 <link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/ui/base/name_line_chart.html">
 <link rel="import" href="/tracing/value/ui/histogram_span.html">
@@ -257,10 +258,12 @@ tr.exportTo('tr.v.ui', function() {
 
     openHistogram_() {
       this.isHistogramOpen = true;
+      tr.b.Timing.instant('histogram-set-table-cell', 'open');
     },
 
     closeHistogram_() {
       this.isHistogramOpen = false;
+      tr.b.Timing.instant('histogram-set-table-cell', 'close');
     },
 
     updateContents_() {

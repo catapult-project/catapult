@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/timing.html">
 <link rel="import" href="/tracing/ui/base/name_line_chart.html">
 
 <dom-module id="tr-v-ui-histogram-set-table-name-cell">
@@ -230,6 +231,7 @@ tr.exportTo('tr.v.ui', function() {
 
       if (opt_event !== undefined) {
         opt_event.stopPropagation();
+        tr.b.Timing.instant('histogram-set-table-name-cell', 'hideOverview');
         this.row.viewState.isOverviewed = this.isOverviewed;
       }
     },
@@ -259,12 +261,14 @@ tr.exportTo('tr.v.ui', function() {
 
       if (opt_event !== undefined) {
         opt_event.stopPropagation();
+        tr.b.Timing.instant('histogram-set-table-name-cell', 'showOverview');
         this.row.viewState.isOverviewed = this.isOverviewed;
       }
     },
 
     openHistograms_(event) {
       event.stopPropagation();
+      tr.b.Timing.instant('histogram-set-table-name-cell', 'openHistograms');
       for (const cell of this.row.cells.values()) {
         cell.isHistogramOpen = true;
       }
@@ -274,6 +278,7 @@ tr.exportTo('tr.v.ui', function() {
 
     closeHistograms_(event) {
       event.stopPropagation();
+      tr.b.Timing.instant('histogram-set-table-name-cell', 'closeHistograms');
       for (const cell of this.row.cells.values()) {
         cell.isHistogramOpen = false;
       }
