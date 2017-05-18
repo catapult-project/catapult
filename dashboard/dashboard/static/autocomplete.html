@@ -10,17 +10,19 @@ found in the LICENSE file.
 
 /** Support for fuzzy autocomplete suggestions. */
 const autocomplete = (function() {
-  const Autocomplete = function(sourceList) {
+  const Autocomplete = function(sourceList, opt_ignoreCase) {
     this.sourceList_ = sourceList;
     this.headItems_ = sourceList.filter(item => item.head);
     this.items_ = sourceList.filter(item => !item.head);
+    this.ignoreCase_ = opt_ignoreCase || false;
   };
 
   Autocomplete.prototype.search = function(target) {
     if (target == null || target == undefined) {
       return this.sourceList_;
     }
-    const selector = new FuzzySelect(target, item => item.name);
+    const selector = new FuzzySelect(
+        target, item => item.name, this.ignoreCase_);
     const items = selector.filter(this.items_);
     const groups = new Set(items.map(item => item.group));
     const headItems = this.headItems_.filter(item => groups.has(item.name));
@@ -48,10 +50,12 @@ const autocomplete = (function() {
    * strings. It is passed an item and should return a string for use in
    * testing against the query.
    */
-  const FuzzySelect = function(query, opt_accessor) {
+  const FuzzySelect = function(query, opt_accessor, opt_ignoreCase) {
     this.accessor = opt_accessor || (s => s);
     query = query.replace(new RegExp(' +'), ' ');
-    this.rs = query.split(' ').map(part => new RegExp(part));
+    let flags = '';
+    if (opt_ignoreCase) flags += 'i';
+    this.rs = query.split(' ').map(part => new RegExp(part, flags));
   };
 
   FuzzySelect.prototype.filter = function(items) {

@@ -272,7 +272,8 @@ property 'group' sets to the header item name.
       },
 
       computeSuggestedItems(query, _itemsChange) {
-        const searcher = new autocomplete.Autocomplete(this.items);
+        const ignoreCase = true;
+        const searcher = new autocomplete.Autocomplete(this.items, ignoreCase);
         return searcher.search(query);
       },
 
