@@ -20,13 +20,6 @@ from telemetry.internal.platform.profiler import android_prebuilt_profiler_helpe
 from devil.android import md5sum  # pylint: disable=import-error
 
 
-try:
-  import sqlite3
-except ImportError:
-  sqlite3 = None
-
-
-
 _TEXT_SECTION = '.text'
 
 
@@ -145,27 +138,6 @@ def GetRequiredLibrariesForPerfProfile(profile_file):
         continue
       libs.add(lib)
   return libs
-
-
-def GetRequiredLibrariesForVTuneProfile(profile_file):
-  """Returns the set of libraries necessary to symbolize a given VTune profile.
-
-  Args:
-    profile_file: Path to VTune profile to analyse.
-
-  Returns:
-    A set of required library file names.
-  """
-  db_file = os.path.join(profile_file, 'sqlite-db', 'dicer.db')
-  conn = sqlite3.connect(db_file)
-
-  try:
-    # The 'dd_module_file' table lists all libraries on the device. Only the
-    # ones with 'bin_located_path' are needed for the profile.
-    query = 'SELECT bin_path, bin_located_path FROM dd_module_file'
-    return set(row[0] for row in conn.cursor().execute(query) if row[1])
-  finally:
-    conn.close()
 
 
 def _FileMetadataMatches(filea, fileb):
