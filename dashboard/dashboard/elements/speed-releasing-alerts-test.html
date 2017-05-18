@@ -18,11 +18,11 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   const testOptions = {
     setUp() {
-      d.BugDetails.reset();
-      const obj = {};
-      obj[12345] = Promise.resolve(mockBug);
-      obj[54321] = Promise.resolve(mockBug);
-      d.BugDetails.prepopulate(obj);
+      d.BUG_DETAILS.reset();
+      d.BUG_DETAILS.populateForTest(new Map([
+        [12345, Promise.resolve(mockBug)],
+        [54321, Promise.resolve(mockBug)],
+      ]));
     },
     tearDown() {
       testing_common.clearXhrMock();

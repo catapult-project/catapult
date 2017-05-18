@@ -124,11 +124,11 @@ tr.b.unittest.testSuite(function() {
         'mon': ['select-multiple-add/select-multiple-add.html']
       }
     };
-    testPicker.subtests.prepopulate({
-      'Chromium/mac/blink_perf': [{name: 'textarea-edit'}],
-      'Chromium/mac/blink_perf/textarea-edit': [
-        {name: 'textarea_edit.html'}]
-    });
+    testPicker.subtests.populateForTest(new Map([
+      ['Chromium/mac/blink_perf', [{name: 'textarea-edit'}]],
+      ['Chromium/mac/blink_perf/textarea-edit', [
+        {name: 'textarea_edit.html'}]],
+    ]));
 
     const suiteMenu = testPicker.getSelectionMenu(0);
     suiteMenu.selectedItem = suiteMenu.items[0];
@@ -184,16 +184,16 @@ tr.b.unittest.testSuite(function() {
 
   test('prepopulateSubtests', async function() {
     const testPicker = document.createElement('test-picker');
-    testPicker.subtests.prepopulate({foo: 'bar'});
+    testPicker.subtests.populateForTest(new Map([['foo', 'bar']]));
     assert.strictEqual(
-        await testPicker.subtests.getSubtestsForPath('foo'), 'bar');
+        await testPicker.subtests.get('foo'), 'bar');
   });
 
   test('getSubtestsForPath', async function() {
     testing_common.addXhrMock('*', JSON.stringify(['foo/bar']));
     const testPicker = document.createElement('test-picker');
     assert.deepEqual(
-        await testPicker.subtests.getSubtestsForPath('foo'), [{name: 'bar'}]);
+        await testPicker.subtests.get('foo'), [{name: 'bar'}]);
     testing_common.clearXhrMock();
   });
 
@@ -201,7 +201,7 @@ tr.b.unittest.testSuite(function() {
     testing_common.addXhrMock('*', JSON.stringify(['foo/bar']));
     const testPicker = document.createElement('test-picker');
     assert.instanceOf(
-        testPicker.subtests.getSubtestsForPath('foo'), Promise);
+        testPicker.subtests.get('foo'), Promise);
     testing_common.clearXhrMock();
   });
 });

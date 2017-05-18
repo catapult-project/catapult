@@ -89,9 +89,9 @@ const testOptions = {
   setUp() {
     // TODO(eakuefner) Be able to correctly mock XHR here.
     // See https://github.com/catapult-project/catapult/issues/3449
-    d.BugDetails.reset();
+    d.BUG_DETAILS.reset();
     xhrCalls = 0;
-    d.BugDetails.makeMonorailCall = async function(bugId) {
+    d.BUG_DETAILS.process_ = async function(bugId) {
       xhrCalls = xhrCalls + 1;
       return await mockResponse;
     };
@@ -102,9 +102,9 @@ const testOptions = {
 
 const testOptionsForError = {
   setUp() {
-    d.BugDetails.reset();
+    d.BUG_DETAILS.reset();
     xhrCalls = 0;
-    d.BugDetails.makeMonorailCall = async function(bugId) {
+    d.BUG_DETAILS.process_ = async function(bugId) {
       xhrCalls = xhrCalls + 1;
       return Promise.reject(errorResponse);
     };
@@ -115,23 +115,22 @@ const testOptionsForError = {
 
 tr.b.unittest.testSuite(function() {
   test('benchmarkSuccess', function() {
-    const obj = {};
-    obj[12345] = Promise.resolve(mockResponse);
-    d.BugDetails.prepopulate(obj);
+    d.BUG_DETAILS.populateForTest(new Map(
+        [[12345, Promise.resolve(mockResponse)]]));
 
     const e = document.createElement('bug-details');
     e.bugId = 12345;
     this.addHTMLOutput(e);
 
     assert.strictEqual(xhrCalls, 0);
-    assert.strictEqual(d.BugDetails.getAllDetailsSize(), 1);
+    assert.strictEqual(d.BUG_DETAILS.size, 1);
   }, testOptions);
 
   test('benchmarkErrorAndSuccess', function() {
-    const obj = {};
-    obj[12345] = Promise.resolve(mockResponse);
-    obj[54321] = Promise.reject(errorResponse);
-    d.BugDetails.prepopulate(obj);
+    d.BUG_DETAILS.populateForTest(new Map([
+      [12345, Promise.resolve(mockResponse)],
+      [54321, Promise.reject(errorResponse)],
+    ]));
 
     let e = document.createElement('bug-details');
     e.bugId = 12345;
@@ -146,16 +145,15 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(e);  // This should show an error.
 
     assert.strictEqual(xhrCalls, 0);
-    assert.strictEqual(d.BugDetails.getAllDetailsSize(), 2);
+    assert.strictEqual(d.BUG_DETAILS.size, 2);
   }, testOptions);
 
   test('compactAllInTableErrorAndSuccess', function() {
-    const obj = {};
-    obj[1] = Promise.resolve(mockResponse);
-    obj[2] = Promise.resolve(mockResponseVariation);
-    obj[3] = Promise.reject(errorResponse);
-
-    d.BugDetails.prepopulate(obj);
+    d.BUG_DETAILS.populateForTest(new Map([
+      [1, Promise.resolve(mockResponse)],
+      [2, Promise.resolve(mockResponseVariation)],
+      [3, Promise.reject(errorResponse)],
+    ]));
 
     let e = document.createElement('bug-details');
     e.bugId = 1;
@@ -179,7 +177,7 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(e);  // This won't appear (because it's compact view).
 
     assert.strictEqual(xhrCalls, 0);  // 0 because everything was in the cache.
-    assert.strictEqual(d.BugDetails.getAllDetailsSize(), 3);
+    assert.strictEqual(d.BUG_DETAILS.size, 3);
   }, testOptions);
 
   test('compactNoneInTableSuccess', function() {
@@ -194,7 +192,7 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(e);
 
     assert.strictEqual(xhrCalls, 2);  // 2 because nothing was in the cache.
-    assert.strictEqual(d.BugDetails.getAllDetailsSize(), 2);
+    assert.strictEqual(d.BUG_DETAILS.size, 2);
   }, testOptions);
 
   test('compactNoneInTableError', function() {
@@ -215,7 +213,7 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(e);  // This won't appear.
 
     assert.strictEqual(xhrCalls, 2);  // 2 because nothing was in the cache.
-    assert.strictEqual(d.BugDetails.getAllDetailsSize(), 2);
+    assert.strictEqual(d.BUG_DETAILS.size, 2);
   }, testOptionsForError);
 });
 </script>

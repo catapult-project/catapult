@@ -20,11 +20,11 @@ tr.b.unittest.testSuite(function() {
   const testOptions = {
     setUp() {
       originalGetParameter = uri.getParameter;
-      d.BugDetails.reset();
-      const obj = {};
-      obj[12345] = Promise.resolve(mockBugResponse0);
-      obj[687592] = Promise.resolve(mockBugResponse1);
-      d.BugDetails.prepopulate(obj);
+      d.BUG_DETAILS.reset();
+      d.BUG_DETAILS.populateForTest(new Map([
+        [12345, Promise.resolve(mockBugResponse0)],
+        [687592, Promise.resolve(mockBugResponse1)],
+      ]));
     },
     tearDown() {
       uri.getParameter = originalGetParameter;

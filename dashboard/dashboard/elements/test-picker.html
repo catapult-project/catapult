@@ -10,6 +10,7 @@ found in the LICENSE file.
 <link rel="import" href="/components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="/components/paper-spinner/paper-spinner.html">
 <link rel="import" href="/dashboard/elements/autocomplete-box.html">
+<link rel="import" href="/dashboard/static/async_map.html">
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 
 <dom-module id="test-picker">
@@ -84,34 +85,15 @@ found in the LICENSE file.
     // TODO(eakuefner): generalize this request memoization pattern. See
     // https://github.com/catapult-project/catapult/issues/3441.
     tr.exportTo('d', function() {
-      class Subtests {
-        constructor() {
-          this.subtestPromises_ = new Map();
-        }
-
-        // TODO(eakuefner): implemement cancellation by wrapping
-        async getSubtestsForPath(path) {
-          if (this.subtestPromises_.has(path)) {
-            return await this.subtestPromises_.get(path);
-          }
-          const subtests = this.fetchAndProcessSubtests_(path);
-          this.subtestPromises_[path] = subtests;
-          return await subtests;
-        }
-
-        prepopulate(obj) {
-          for (const [path, subtests] of Object.entries(obj)) {
-            this.subtestPromises_.set(path, Promise.resolve(subtests));
-          }
-        }
-
-        async fetchAndProcessSubtests_(path) {
+      class Subtests extends d.AsyncMap {
+        async process_(path) {
           const params = {
-            type: 'pattern'
+            type: 'pattern',
+            p: path + '/*',
           };
-          params.p = `${path}/*`;
           const fullSubtests = await simple_xhr.asPromise(
               '/list_tests', params);
+
           // TODO(eakuefner): Standardize logic for dealing with test paths on
           // the client side. See
           // https://github.com/catapult-project/catapult/issues/3443.
@@ -124,7 +106,9 @@ found in the LICENSE file.
         }
       }
 
-      return {Subtests};
+      return {
+        Subtests,
+      };
     });
 
     Polymer({
@@ -335,7 +319,7 @@ found in the LICENSE file.
        * Updates all subtest menus starting at 'startIndex'.
        */
       async updateSubtestMenus(startIndex) {
-        let subtests = await this.subtests.getSubtestsForPath(
+        let subtests = await this.subtests.get(
             this.getCurrentSelectedPathUpTo(startIndex));
 
         // Update existing subtest menu.
@@ -355,7 +339,7 @@ found in the LICENSE file.
           if (menu.selectedItem) {
             const selectedPath = this.getCurrentSelectedPathUpTo(i + 1, false);
             if (selectedPath !== undefined) {
-              subtests = await this.subtests.getSubtestsForPath(selectedPath);
+              subtests = await this.subtests.get(selectedPath);
             } else {
               subtests = [];
             }
