@@ -7,14 +7,12 @@ import os
 
 from telemetry.internal.platform import cros_device
 from telemetry.internal.platform import device
-from telemetry.internal.platform.profiler import monsoon
 
 from devil.android import device_blacklist
 from devil.android import device_errors
 from devil.android import device_utils
 from devil.android.sdk import adb_wrapper
 
-import py_utils
 
 class AndroidDevice(device.Device):
   """ Class represents information for connecting to an android device.
@@ -57,33 +55,7 @@ def GetDeviceSerials(blacklist):
   If a preferred device has been set with ANDROID_SERIAL, it will be first in
   the returned list. The arguments specify what devices to include in the list.
   """
-
   device_serials = _ListSerialsOfHealthyOnlineDevices(blacklist)
-
-  # The monsoon provides power for the device, so for devices with no
-  # real battery, we need to turn them on after the monsoon enables voltage
-  # output to the device.
-  if not device_serials:
-    try:
-      m = monsoon.Monsoon(wait=False)
-      m.SetUsbPassthrough(1)
-      m.SetVoltage(3.8)
-      m.SetMaxCurrent(8)
-      logging.warn("""
-Monsoon power monitor detected, but no Android devices.
-
-The Monsoon's power output has been enabled. Please now ensure that:
-
-  1. The Monsoon's front and back USB are connected to the host.
-  2. The device is connected to the Monsoon's main and USB channels.
-  3. The device is turned on.
-
-Waiting for device...
-""")
-      py_utils.WaitFor(_ListSerialsOfHealthyOnlineDevices(blacklist), 600)
-      device_serials = _ListSerialsOfHealthyOnlineDevices(blacklist)
-    except IOError:
-      return []
 
   preferred_device = os.environ.get('ANDROID_SERIAL')
   if preferred_device in device_serials:
