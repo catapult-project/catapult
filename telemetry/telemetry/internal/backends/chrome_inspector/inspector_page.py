@@ -138,7 +138,12 @@ class InspectorPage(object):
 
   def CaptureScreenshot(self, timeout=60):
     request = {
-        'method': 'Page.captureScreenshot'
+        'method': 'Page.captureScreenshot',
+        # TODO(rmistry): when Chrome is running in headless mode, this
+        # will need to pass True. Telemetry needs to understand
+        # whether the browser is in headless mode, and pass that
+        # knowledge down to this method.
+        'fromSurface': False
         }
     # "Google API are missing..." infobar might cause a viewport resize
     # which invalidates screenshot request. See crbug.com/459820.
