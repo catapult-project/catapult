@@ -32,7 +32,7 @@ tr.exportTo('tr.model', function() {
     // Only add event to the set of unassociated events if it is not in
     // the set of associated events.
     for (const proc of model.getAllProcesses()) {
-      for (const thread of tr.b.dictionaryValues(proc.threads)) {
+      for (const thread of Object.values(proc.threads)) {
         for (const event of thread.sliceGroup.getDescendantEvents()) {
           if (!associatedEvents.contains(event)) {
             unassociatedEvents.push(event);

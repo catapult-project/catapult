@@ -48,7 +48,7 @@ tr.exportTo('tr.b', function() {
     // the 'BINARY' UnitScale the absolute formatted value closest to the
     // [1, 1024) interval as possible is used. So 1023 and 1024 bytes are
     // displayed as "1,023.0 B" and "1.0 KiB", respectively.
-    unitScale.AUTO = tr.b.dictionaryValues(unitScale);
+    unitScale.AUTO = Object.values(unitScale);
     unitScale.AUTO.sort((a, b) => a.value - b.value);
 
     if (name) UnitScale[name] = unitScale;

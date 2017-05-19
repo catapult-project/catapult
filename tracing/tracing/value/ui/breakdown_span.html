@@ -322,7 +322,7 @@ Polymer({
       this.$.table.rebuild();
     }
 
-    if (tr.b.dictionaryLength(chartData) > 1) {
+    if (Object.keys(chartData).length > 1) {
       this.$.container.style.display = 'block';
       this.$.empty.style.display = 'none';
       this.chart_.data = [chartData];

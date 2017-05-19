@@ -180,7 +180,7 @@ tr.exportTo('tr.ui.analysis', function() {
       if (!selection) return;
 
       const eventsByTitle = selection.getEventsOrganizedByTitle();
-      const numTitles = tr.b.dictionaryLength(eventsByTitle);
+      const numTitles = Object.keys(eventsByTitle).length;
 
       this.$.eventSummaryTable.configure({
         showTotals: numTitles > 1,

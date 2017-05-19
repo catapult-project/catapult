@@ -229,7 +229,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     appendCounterTracks_() {
       // Add counter tracks for this process.
-      const counters = tr.b.dictionaryValues(this.processBase.counters);
+      const counters = Object.values(this.processBase.counters);
       counters.sort(tr.model.Counter.compare);
 
       // Create the counters for this process.
@@ -243,7 +243,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     appendThreadTracks_() {
       // Get a sorted list of threads.
-      const threads = tr.b.dictionaryValues(this.processBase.threads);
+      const threads = Object.values(this.processBase.threads);
       threads.sort(tr.model.Thread.compare);
 
       // Create the threads.

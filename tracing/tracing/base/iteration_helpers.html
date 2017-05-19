@@ -103,22 +103,6 @@ tr.exportTo('tr.b', function() {
     return result;
   }
 
-  function dictionaryValues(dict) {
-    const values = [];
-    for (const key in dict) {
-      values.push(dict[key]);
-    }
-    return values;
-  }
-
-  function dictionaryLength(dict) {
-    let n = 0;
-    for (const key in dict) {
-      n++;
-    }
-    return n;
-  }
-
   function dictionaryContainsValue(dict, value) {
     for (const key in dict) {
       if (dict[key] === value) {
@@ -402,8 +386,6 @@ tr.exportTo('tr.b', function() {
     concatenateObjects,
     compareArrays,
     comparePossiblyUndefinedValues,
-    dictionaryLength,
-    dictionaryValues,
     dictionaryContainsValue,
     getOnlyElement,
     getFirstElement,

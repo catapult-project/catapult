@@ -256,7 +256,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
       // Child node ID (list index) -> Timestamp (list index) ->
       // VM region classification node.
-      const childNodeIdToTimeToNode = tr.b.dictionaryValues(
+      const childNodeIdToTimeToNode = Object.values(
           tr.b.invertArrayOfDicts(timeToNode, function(node) {
             const children = node.children;
             if (children === undefined) return undefined;
@@ -274,7 +274,7 @@ tr.exportTo('tr.ui.analysis', function() {
           }, this);
 
       // Region ID (list index) -> Timestamp (list index) -> VM region.
-      const regionIdToTimeToRegion = tr.b.dictionaryValues(
+      const regionIdToTimeToRegion = Object.values(
           tr.b.invertArrayOfDicts(timeToNode, function(node) {
             const regions = node.regions;
             if (regions === undefined) return undefined;

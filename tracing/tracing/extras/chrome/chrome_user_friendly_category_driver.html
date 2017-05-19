@@ -197,7 +197,7 @@ tr.exportTo('tr.e.chrome', function() {
     if (category === SAME_AS_PARENT) continue;
     ChromeUserFriendlyCategoryDriver.ALL_TITLES.push(category);
   }
-  for (const category of tr.b.dictionaryValues(
+  for (const category of Object.values(
       USER_FRIENDLY_CATEGORY_FOR_EVENT_CATEGORY)) {
     ChromeUserFriendlyCategoryDriver.ALL_TITLES.push(category);
   }

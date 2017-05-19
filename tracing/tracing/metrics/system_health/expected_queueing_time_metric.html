@@ -144,7 +144,7 @@ tr.exportTo('tr.metrics.sh', function() {
         `interactive:${WINDOW_SIZE_MS}ms_window:renderer_eqt`,
         `The maximum EQT in a ${WINDOW_SIZE_MS}ms sliding window` +
         ' for a given renderer while the page is interactive');
-    const rendererHelpers = tr.b.dictionaryValues(chromeHelper.rendererHelpers);
+    const rendererHelpers = Object.values(chromeHelper.rendererHelpers);
     const rendererToInteractiveTimestamps =
         tr.e.chrome.getInteractiveTimestamps(model);
     for (const rendererHelper of rendererHelpers) {
@@ -267,7 +267,7 @@ tr.exportTo('tr.metrics.sh', function() {
         ' for a given renderer while the page is interactive. It is computed' +
         ` as the maximum EQT in a ${WINDOW_SIZE_MS}ms sliding window after` +
         ` shrinking top-level tasks to contain only ${eventName} subevents`);
-    const rendererHelpers = tr.b.dictionaryValues(chromeHelper.rendererHelpers);
+    const rendererHelpers = Object.values(chromeHelper.rendererHelpers);
     for (const rendererHelper of rendererHelpers) {
       if (rendererHelper.isChromeTracingUI) continue;
       const tasks = rendererHelper.mainThread.sliceGroup.topLevelSlices

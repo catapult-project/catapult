@@ -86,7 +86,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
     buildViewForSingleContainerName_() {
       const containerMemoryDumps =
-          tr.b.dictionaryValues(this.dumpsByContainerName_)[0];
+          Object.values(this.dumpsByContainerName_)[0];
       const dumpView = this.ownerDocument.createElement(
           'tr-ui-a-stacked-pane-view');
       Polymer.dom(this.$.content).appendChild(dumpView);
@@ -102,7 +102,7 @@ tr.exportTo('tr.ui.analysis', function() {
       // TODO(petrcermak): Provide a more sophisticated view for this case.
       const ownerDocument = this.ownerDocument;
 
-      const rows = tr.b.dictionaryValues(tr.b.mapItems(
+      const rows = Object.values(tr.b.mapItems(
           this.dumpsByContainerName_, function(containerName, dumps) {
             return {
               containerName,

@@ -34,7 +34,7 @@ tr.exportTo('tr.mre', function() {
 
   function mapSingleTrace(result, model, options, mapFunction) {
     // Map the function.
-    const numPairsBeforeMapping = tr.b.dictionaryLength(result.pairs);
+    const numPairsBeforeMapping = Object.keys(result.pairs).length;
     const numFailuresBeforeMapping = result.failures.length;
     try {
       mapFunction(result, model, options);
@@ -43,7 +43,7 @@ tr.exportTo('tr.mre', function() {
       throw ex;
     }
 
-    const addedPairs = (tr.b.dictionaryLength(result.pairs) >
+    const addedPairs = (Object.keys(result.pairs).length >
         numPairsBeforeMapping);
     const addedFailures = result.failures.length > numFailuresBeforeMapping;
     if (!(addedPairs || addedFailures)) {

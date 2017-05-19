@@ -94,7 +94,7 @@ tr.exportTo('tr.b', function() {
 
   // Some constants we'll need for later lookups.
   const numGeneralPurposeColorIds = generalPurposeColors.length;
-  const numReservedColorIds = tr.b.dictionaryLength(reservedColorsByName);
+  const numReservedColorIds = Object.keys(reservedColorsByName).length;
   const numColorsPerVariant = numGeneralPurposeColorIds + numReservedColorIds;
 
   function ColorScheme() {
@@ -125,8 +125,7 @@ tr.exportTo('tr.b', function() {
    */
   const paletteBase = [];
   paletteBase.push.apply(paletteBase, generalPurposeColors);
-  paletteBase.push.apply(paletteBase,
-      tr.b.dictionaryValues(reservedColorsByName));
+  paletteBase.push.apply(paletteBase, Object.values(reservedColorsByName));
   ColorScheme.colors = [];
   ColorScheme.properties = {};
   ColorScheme.properties = {

@@ -55,7 +55,7 @@ tr.exportTo('tr.metrics.sh', function() {
     const modelHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
     if (modelHelper !== undefined) {
-      tr.b.dictionaryValues(modelHelper.rendererHelpers).forEach(
+      Object.values(modelHelper.rendererHelpers).forEach(
           function(rendererHelper) {
             if (!rendererHelper.mainThread) return;
 

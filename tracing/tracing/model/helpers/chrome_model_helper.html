@@ -148,7 +148,7 @@ tr.exportTo('tr.model.helpers', function() {
       if (!this.chromeBounds_) {
         this.chromeBounds_ = new tr.b.math.Range();
         for (const browserHelper of
-             tr.b.dictionaryValues(this.browserHelpers)) {
+             Object.values(this.browserHelpers)) {
           this.chromeBounds_.addRange(browserHelper.process.bounds);
         }
       }

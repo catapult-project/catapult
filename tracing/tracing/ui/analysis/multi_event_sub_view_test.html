@@ -46,7 +46,7 @@ tr.b.unittest.testSuite(function() {
     const summaryTableEl = tr.b.findDeepElementMatching(
         viewEl, 'tr-ui-a-multi-event-summary-table');
     assert.isTrue(summaryTableEl.showTotals);
-    assert.strictEqual(tr.b.dictionaryLength(summaryTableEl.eventsByTitle), 2);
+    assert.lengthOf(Object.keys(summaryTableEl.eventsByTitle), 2);
 
     const selectionSummaryTableEl = tr.b.findDeepElementMatching(
         viewEl, 'tr-ui-a-selection-summary-table');
@@ -80,7 +80,7 @@ tr.b.unittest.testSuite(function() {
     const summaryTableEl = tr.b.findDeepElementMatching(
         viewEl, 'tr-ui-a-multi-event-summary-table');
     assert.isFalse(summaryTableEl.showTotals);
-    assert.strictEqual(tr.b.dictionaryLength(summaryTableEl.eventsByTitle), 1);
+    assert.lengthOf(Object.keys(summaryTableEl.eventsByTitle), 1);
 
     const selectionSummaryTableEl = tr.b.findDeepElementMatching(
         viewEl, 'tr-ui-a-selection-summary-table');

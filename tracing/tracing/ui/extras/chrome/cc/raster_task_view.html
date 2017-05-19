@@ -203,14 +203,14 @@ Polymer({
 
     // Apply to the table.
     this.updateColumns_(hadCpuDurations);
-    table.tableRows = tr.b.dictionaryValues(costsByLayerId);
+    table.tableRows = Object.values(costsByLayerId);
     table.rebuild();
 
     // Footer.
     table.footerRows = [
       {
         isTotals: true,
-        numTiles: tr.b.dictionaryLength(tilesThatWeHaveSeen),
+        numTiles: Object.keys(tilesThatWeHaveSeen).length,
         numAnalysisTasks: totalNumAnalyzeTasks,
         numRasterTasks: totalNumRasterizeTasks,
         duration: totalDuration,

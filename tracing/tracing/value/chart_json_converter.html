@@ -23,7 +23,7 @@ tr.exportTo('tr.v', function() {
       for (const [name, pageValues] of Object.entries(charts.charts)) {
         if (name === 'trace') continue;
 
-        const pageValuesCount = tr.b.dictionaryLength(pageValues);
+        const pageValuesCount = Object.keys(pageValues).length;
         for (const [storyName, value] of Object.entries(pageValues)) {
           if (pageValuesCount > 1 && storyName === 'summary') continue;
 

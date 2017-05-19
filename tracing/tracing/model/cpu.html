@@ -77,7 +77,7 @@ tr.exportTo('tr.model', function() {
     },
 
     * childEventContainers() {
-      yield* tr.b.dictionaryValues(this.counters);
+      yield* Object.values(this.counters);
     },
 
     /**

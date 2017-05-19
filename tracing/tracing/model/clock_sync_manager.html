@@ -95,7 +95,7 @@ tr.exportTo('tr.model', function() {
     addClockSyncMarker(domainId, syncId, startTs, opt_endTs) {
       this.onDomainSeen_(domainId);
 
-      if (tr.b.dictionaryValues(ClockDomainId).indexOf(domainId) < 0) {
+      if (Object.values(ClockDomainId).indexOf(domainId) < 0) {
         throw new Error('"' + domainId + '" is not in the list of known ' +
             'clock domain IDs.');
       }

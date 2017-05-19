@@ -33,7 +33,7 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(tr.ui.e.chrome.cc.RasterTaskSelection.supports(selection));
     selection = new tr.ui.e.chrome.cc.RasterTaskSelection(selection);
     const highlights = selection.extraHighlightsByLayerId;
-    assert.strictEqual(tr.b.dictionaryLength(highlights), 1);
+    assert.lengthOf(Object.keys(highlights), 1);
   });
 });
 </script>

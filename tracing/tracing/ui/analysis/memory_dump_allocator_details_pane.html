@@ -819,7 +819,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
       // Internal row of the suballocation tree: Recursively create its
       // sub-rows.
-      const subRows = tr.b.dictionaryValues(tr.b.mapItems(
+      const subRows = Object.values(tr.b.mapItems(
           node.children, this.createSuballocationRowRecursively_, this));
 
       if (node.row !== undefined) {

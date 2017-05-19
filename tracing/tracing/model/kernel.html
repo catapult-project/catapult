@@ -89,7 +89,7 @@ tr.exportTo('tr.model', function() {
      * software measured cpu count.
      */
     get bestGuessAtCpuCount() {
-      const realCpuCount = tr.b.dictionaryLength(this.cpus);
+      const realCpuCount = Object.keys(this.cpus).length;
       if (realCpuCount !== 0) {
         return realCpuCount;
       }
@@ -126,7 +126,7 @@ tr.exportTo('tr.model', function() {
 
     * childEventContainers() {
       yield* ProcessBase.prototype.childEventContainers.call(this);
-      yield* tr.b.dictionaryValues(this.cpus);
+      yield* Object.values(this.cpus);
     },
   };
 

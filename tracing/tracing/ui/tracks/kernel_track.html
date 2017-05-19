@@ -55,7 +55,7 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     willAppendTracks_() {
-      const cpus = tr.b.dictionaryValues(this.kernel.cpus);
+      const cpus = Object.values(this.kernel.cpus);
       cpus.sort(tr.model.Cpu.compare);
 
       let didAppendAtLeastOneTrack = false;

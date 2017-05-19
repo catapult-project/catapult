@@ -610,7 +610,7 @@ tr.b.unittest.testSuite(function() {
     const m = newModel(lines.join('\n'));
     assert.isFalse(m.hasImportWarnings);
 
-    assert.strictEqual(tr.b.dictionaryLength(m.kernel.cpus), 2);
+    assert.lengthOf(Object.keys(m.kernel.cpus), 2);
     assert.strictEqual(m.kernel.bestGuessAtCpuCount, 2);
   });
 });

@@ -579,7 +579,7 @@ tr.exportTo('tr.ui.analysis', function() {
           timeToPidToProcessMemoryDump);
 
       // Process (list index) -> Component (dict key) -> Cell.
-      return tr.b.dictionaryValues(tr.b.mapItems(
+      return Object.values(tr.b.mapItems(
           pidToTimeToProcessMemoryDump, function(pid, timeToDump) {
             // Get the process associated with the dumps. We can use any defined
             // process memory dump in timeToDump since they all have the same

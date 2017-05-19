@@ -159,7 +159,7 @@ tr.exportTo('tr', function() {
       yield this.userModel;
       yield this.device;
       yield this.kernel;
-      yield* tr.b.dictionaryValues(this.processes);
+      yield* Object.values(this.processes);
     },
 
     /**
@@ -299,9 +299,9 @@ tr.exportTo('tr', function() {
     getAllCounters() {
       const counters = [];
       counters.push.apply(
-          counters, tr.b.dictionaryValues(this.device.counters));
+          counters, Object.values(this.device.counters || {}));
       counters.push.apply(
-          counters, tr.b.dictionaryValues(this.kernel.counters));
+          counters, Object.values(this.kernel.counters || {}));
       for (const pid in this.processes) {
         const process = this.processes[pid];
         for (const tid in process.counters) {
@@ -331,7 +331,7 @@ tr.exportTo('tr', function() {
     },
 
     getAllAnnotations() {
-      return tr.b.dictionaryValues(this.annotationsByGuid_);
+      return Object.values(this.annotationsByGuid_);
     },
 
     addUserFriendlyCategoryDriver(ufcd) {

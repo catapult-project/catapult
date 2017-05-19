@@ -66,7 +66,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
       if (cpu.samples && cpu.samples.length) return true;
 
-      if (tr.b.dictionaryLength(cpu.counters) > 0) return true;
+      if (Object.keys(cpu.counters).length > 0) return true;
 
       return false;
     },

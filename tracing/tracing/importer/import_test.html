@@ -45,7 +45,7 @@ tr.b.unittest.testSuite(function() {
     });
 
     const m = tr.c.TestUtils.newModelWithEvents([combined]);
-    assert.strictEqual(tr.b.dictionaryValues(m.processes).length, 1);
+    assert.strictEqual(Object.values(m.processes).length, 1);
 
     const p1 = m.processes[1];
     assert.isDefined(p1);
@@ -67,7 +67,7 @@ tr.b.unittest.testSuite(function() {
         'H4sIACKfFVUC/wsuLUpLTE51y8nMS08t0jVSUIg2MDCMV' +
         'dDT0zNUMDQwMNAzsFIAIqcaw5qSxOJsR65gfDqMEDpcATiC61ZbAAAA');
     const m = tr.c.TestUtils.newModelWithEvents([compressedTrace]);
-    assert.strictEqual(1, tr.b.dictionaryValues(m.processes).length);
+    assert.strictEqual(1, Object.values(m.processes).length);
 
     const p1 = m.processes[1];
     assert.isDefined(p1);
@@ -107,7 +107,7 @@ tr.b.unittest.testSuite(function() {
     });
 
     const m = tr.c.TestUtils.newModelWithEvents([outerTrace]);
-    assert.strictEqual(tr.b.dictionaryValues(m.processes).length, 1);
+    assert.strictEqual(Object.values(m.processes).length, 1);
 
     const p1 = m.processes[1];
     assert.isDefined(p1);

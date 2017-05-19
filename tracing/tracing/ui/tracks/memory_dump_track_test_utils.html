@@ -73,7 +73,7 @@ tr.exportTo('tr.ui.tracks', function() {
       addOwnershipLink(ownerDump, ownedDump);
     }
 
-    return tr.b.dictionaryValues(allocatorDumps);
+    return Object.values(allocatorDumps);
   }
 
   function addProcessMemoryDumpWithFields(globalMemoryDump, process, start,

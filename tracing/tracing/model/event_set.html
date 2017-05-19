@@ -205,7 +205,7 @@ tr.exportTo('tr.model', function() {
         return tr.b.getOnlyElement(this.events_).userFriendlyName;
       }
 
-      const numEventTypes = tr.b.dictionaryLength(eventsByBaseType);
+      const numEventTypes = Object.keys(eventsByBaseType).length;
       if (numEventTypes !== 1) {
         return this.length + ' events of various types';
       }

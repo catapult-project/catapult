@@ -124,7 +124,7 @@ tr.exportTo('tr.model', function() {
           }
           subGroupsByTitle[subGroupTitle].push(slice);
         }
-        this.viewSubGroups_ = tr.b.dictionaryValues(subGroupsByTitle);
+        this.viewSubGroups_ = Object.values(subGroupsByTitle);
         this.viewSubGroups_.sort(function(a, b) {
           return a.slices[0].compareTo(b.slices[0]);
         });
