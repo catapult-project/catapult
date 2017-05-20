@@ -66,6 +66,12 @@
           "download_path": "../../third_party/cv2/lib/cv2.zip",
           "path_within_archive": ".",
           "version_in_cs": "2.4.13.2"
+        },
+        "win_AMD64": {
+          "cloud_storage_hash": "d94d3574832f062cd8431c81955f5a3034bf1c4b",
+          "download_path": "../../third_party/cv2/lib/cv2.zip",
+          "path_within_archive": ".",
+          "version_in_cs": "2.4.12.3"
         }
       }
     },
@@ -257,6 +263,12 @@
         },
         "mac_x86_64": {
           "cloud_storage_hash": "6d7e32ab79a73c91b4c3c0a708a3790818be6e78",
+          "download_path": "../../third_party/numpy/lib/numpy.zip",
+          "path_within_archive": ".",
+          "version_in_cs": "1.11.3"
+        },
+        "win_AMD64": {
+          "cloud_storage_hash": "55eac39ca132ee3128e285f0cf08bb397ec12079",
           "download_path": "../../third_party/numpy/lib/numpy.zip",
           "path_within_archive": ".",
           "version_in_cs": "1.11.3"

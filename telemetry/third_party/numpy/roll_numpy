@@ -24,6 +24,9 @@ from telemetry.core import platform as platform_module
 sys.path.append(os.path.join(CATAPULT_ROOT, 'dependency_manager'))
 from dependency_manager import base_config
 
+class RollError(Exception):
+  pass
+
 # Dependency update helper
 def update_dependency(dependency, path, version):
   config = os.path.join(CATAPULT_ROOT, 'telemetry', 'telemetry', 'internal',
@@ -34,11 +37,26 @@ def update_dependency(dependency, path, version):
   platform = "{}_{}".format(os_name, arch_name)
 
   c = base_config.BaseConfig(config, writable=True)
-  c.AddCloudStorageDependencyUpdateJob(
-      dependency, platform, path, version=version, execute_job=True)
+  try:
+    old_version = c.GetVersion(dependency, platform)
+    print 'Updating from version: {}'.format(old_version)
+  except ValueError:
+    raise RollError(
+        ('binary_dependencies.json entry for {} missing or invalid; please add '
+        'it first! (need download_path and path_within_archive)')
+        .format(platform))
+
+  if path:
+    c.AddCloudStorageDependencyUpdateJob(
+        dependency, platform, path, version=version, execute_job=True)
+
+def verify_dependency_entry(dependency):
+  update_dependency(dependency, None, None)
 
 # Main
 def main(version):
+  verify_dependency_entry('numpy')
+
   outdir = os.path.join(SCRIPT_DIR, 'lib')
   if os.path.exists(outdir):
     shutil.rmtree(outdir)
@@ -48,12 +66,24 @@ def main(version):
   zip_result = None
 
   with sh.ScopedTempDir():
-    virtualenv.create_environment('env')
+    virtualenv.create_environment('env', site_packages=False)
     with sh.ScopedChangeDir('env'):
-      sh.CallProgram(['bin', 'pip'], 'install', 'numpy=={}'.format(version))
-      root_dir = glob.glob(os.path.join('lib', 'python2.*', 'site-packages'))
+      if os.path.isdir('bin'):  # Linux/Mac
+        bin_dir = 'bin'
+        root_dir = glob.glob(os.path.join('lib', 'python2.*', 'site-packages'))
+      elif os.path.isdir('Scripts'):  # Windows
+        bin_dir = 'Scripts'
+        root_dir = glob.glob(os.path.join('Lib', 'site-packages'))
+      else:
+        raise RollError("Can't find the bin directory at bin/ or Scripts/")
+
+      activate_this = os.path.join(bin_dir, 'activate_this.py')
+      execfile(activate_this, dict(__file__=activate_this))
+
+      sh.CallProgram(['pip'], 'install', 'numpy=={}'.format(version))
       if len(root_dir) != 1:
-        raise Exception('Expected one glob match, found ' + len(root_dir))
+        raise RollError(
+            'Expected one glob match, found {}'.format(len(root_dir)))
       root_dir = root_dir[0]
       print 'Zipping result...'
       zip_result = shutil.make_archive(
@@ -64,7 +94,7 @@ def main(version):
     print 'Uploading zip...'
     update_dependency('numpy', zip_result, version)
 
-    print '''\
+  print '''\
   Don't forget to run:
   $ GYP_DEFINES=fetch_telemetry_dependencies=1 \
   bin/fetch_telemetry_binary_dependencies
@@ -84,6 +114,6 @@ if __name__ == '__main__':
 
     os.chdir(SCRIPT_DIR)
     main(args.version)
-  except Exception as e:
+  except RollError as e:
     print '{}: {}'.format(type(e).__name__, e.message)
     sys.exit(1)
