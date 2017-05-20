@@ -21,6 +21,7 @@ def _AddDirToPythonPath(*path_parts):
 _AddDirToPythonPath(CATAPULT_PATH, 'common', 'py_utils')
 _AddDirToPythonPath(CATAPULT_THIRD_PARTY_PATH, 'mock')
 _AddDirToPythonPath(CATAPULT_THIRD_PARTY_PATH, 'pyfakefs')
+_AddDirToPythonPath(CATAPULT_THIRD_PARTY_PATH, 'zipfile')
 _AddDirToPythonPath(DEPENDENCY_MANAGER_PATH)
 
 

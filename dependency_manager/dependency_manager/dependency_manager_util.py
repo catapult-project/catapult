@@ -6,7 +6,7 @@ import os
 import shutil
 import stat
 import sys
-import zipfile
+import zipfile_2_7_13 as zipfile
 
 from dependency_manager import exceptions
 
