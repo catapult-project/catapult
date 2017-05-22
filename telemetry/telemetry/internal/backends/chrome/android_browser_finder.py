@@ -33,7 +33,7 @@ CHROME_PACKAGE_NAMES = {
   'android-webview':
       ['org.chromium.webview_shell',
        android_browser_backend_settings.WebviewBackendSettings,
-       None],
+       'SystemWebViewShell.apk'],
   'android-webview-instrumentation':
       ['org.chromium.android_webview.shell',
        android_browser_backend_settings.WebviewShellBackendSettings,
