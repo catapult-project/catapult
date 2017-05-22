@@ -47,31 +47,19 @@ _RIETVELD_BUG_ID_RE = re.compile(r'[1-9]\d*')
 _RIETVELD_REPOSITORY_NAMES = frozenset({'chromium', 'v8', 'angleproject'})
 
 def CheckChangeLogBug(input_api, output_api):
-  # Show a presubmit message if there is no BUG= line.
-  if input_api.change.BUG is None:
+  # Show a presubmit message if there is no Bug line or an empty Bug line.
+  if not input_api.change.BugsFromDescription():
     return [output_api.PresubmitNotifyResult(
         'If this change has associated Catapult and/or Rietveld bug(s), add a '
-        '"BUG=<bug>(, <bug>)*" line to the patch description where <bug> can '
+        '"Bug: <bug>(, <bug>)*" line to the patch description where <bug> can '
         'be one of the following: catapult:#NNNN, ' +
-        ', '.join('%s:NNNNNN' % n for n in _RIETVELD_REPOSITORY_NAMES) + '.')]
-
-  # Throw a presubmit error if the BUG= line is provided but empty.
-  if input_api.change.BUG.strip() == '':
-    return [output_api.PresubmitError(
-        'Empty BUG= line. Either remove it, or, preferably, change it to '
-        '"BUG=<bug>(, <bug>)*" where <bug> can be one of the following: ' +
-        'catapult:#NNNN, ' +
         ', '.join('%s:NNNNNN' % n for n in _RIETVELD_REPOSITORY_NAMES) + '.')]
 
   # Check that each bug in the BUG= line has the correct format.
   error_messages = []
   catapult_bug_provided = False
-  append_repository_order_error = False
 
-  for index, bug in enumerate(input_api.change.BUG.split(',')):
-    if index > 0:
-      bug = bug.lstrip()  # Allow spaces after commas.
-
+  for index, bug in enumerate(input_api.change.BugsFromDescription()):
     # Check if the bug can be split into a repository name and a bug ID (e.g.
     # 'catapult:#1234' -> 'catapult' and '#1234').
     bug_parts = bug.split(':')
@@ -93,18 +81,9 @@ def CheckChangeLogBug(input_api, output_api):
                               'repository should be provided in the '
                               '"%s:NNNNNN" format.' % (bug, repository_name,
                                                        repository_name))
-      if catapult_bug_provided:
-        append_repository_order_error = True
     else:
       error_messages.append('Invalid bug "%s". Unknown repository "%s".' % (
           bug, repository_name))
-
-  if append_repository_order_error:
-    error_messages.append('Please list Rietveld bugs (' +
-                          ', '.join('%s:NNNNNN' % n
-                                    for n in _RIETVELD_REPOSITORY_NAMES) +
-                          ') before Catapult bugs (catapult:#NNNN) so '
-                          'that Rietveld would display them as hyperlinks.')
 
   return map(output_api.PresubmitError, error_messages)
 
