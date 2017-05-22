@@ -178,14 +178,13 @@ def _GetParentTest(row_dict, bot_whitelist):
   units = row_dict.get('units')
   higher_is_better = row_dict.get('higher_is_better')
   improvement_direction = _ImprovementDirection(higher_is_better)
-  internal_only = _BotInternalOnly(bot_name, bot_whitelist)
+  internal_only = BotInternalOnly(bot_name, bot_whitelist)
   benchmark_description = row_dict.get('benchmark_description')
 
-  parent_test = _GetOrCreateAncestors(
-      master_name, bot_name, test_name, units=units,
-      improvement_direction=improvement_direction,
-      internal_only=internal_only,
-      benchmark_description=benchmark_description)
+  parent_test = GetOrCreateAncestors(
+      master_name, bot_name, test_name, internal_only=internal_only,
+      benchmark_description=benchmark_description, units=units,
+      improvement_direction=improvement_direction)
 
   return parent_test
 
@@ -197,7 +196,7 @@ def _ImprovementDirection(higher_is_better):
   return anomaly.UP if higher_is_better else anomaly.DOWN
 
 
-def _BotInternalOnly(bot_name, bot_whitelist):
+def BotInternalOnly(bot_name, bot_whitelist):
   """Checks whether a given bot name is internal-only.
 
   If a bot name is internal only, then new data for that bot should be marked
@@ -211,9 +210,9 @@ def _BotInternalOnly(bot_name, bot_whitelist):
   return bot_name not in bot_whitelist
 
 
-def _GetOrCreateAncestors(
-    master_name, bot_name, test_name, units=None,
-    improvement_direction=None, internal_only=True, benchmark_description=''):
+def GetOrCreateAncestors(
+    master_name, bot_name, test_name, internal_only=True,
+    benchmark_description='', units=None, improvement_direction=None):
   """Gets or creates all parent Master, Bot, TestMetadata entities for a Row."""
 
   master_entity = _GetOrCreateMaster(master_name)
@@ -230,10 +229,10 @@ def _GetOrCreateAncestors(
     is_leaf_test = (index == len(ancestor_test_parts) - 1)
     test_properties = {
         'units': units if is_leaf_test else None,
-        'improvement_direction': (improvement_direction
-                                  if is_leaf_test else None),
         'internal_only': internal_only,
     }
+    if is_leaf_test and improvement_direction is not None:
+      test_properties['improvement_direction'] = improvement_direction
     ancestor_test = _GetOrCreateTest(
         ancestor_test_name, test_path, test_properties)
     if index == 0:
@@ -297,10 +296,14 @@ def _GetOrCreateTest(name, parent_test_path, properties):
 
   if not existing:
     # Add improvement direction if this is a new test.
-    if 'units' in properties:
+    if 'units' in properties and 'improvement_direction' not in properties:
       units = properties['units']
       direction = units_to_direction.GetImprovementDirection(units)
       properties['improvement_direction'] = direction
+    elif 'units' not in properties or properties['units'] is None:
+      properties['improvement_direction'] = anomaly.UNKNOWN
+    else:
+      print properties
     new_entity = graph_data.TestMetadata(id=test_path, **properties)
     new_entity.put()
     # TODO(sullivan): Consider putting back Test entity in a scoped down

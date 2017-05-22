@@ -6,12 +6,14 @@
 
 import json
 
-from dashboard import add_histograms
+# TODO(eakuefner): Move these helpers so we don't have to import add_point_queue
+# directly.
+from dashboard import add_point_queue
 from dashboard.common import datastore_hooks
 from dashboard.common import request_handler
-from dashboard.common import utils
+from dashboard.common import stored_object
+from dashboard.models import anomaly
 from dashboard.models import histogram
-
 
 class AddHistogramsQueueHandler(request_handler.RequestHandler):
   """Request handler to process a histogram and add it to the datastore.
@@ -43,12 +45,26 @@ class AddHistogramsQueueHandler(request_handler.RequestHandler):
     datastore_hooks.SetPrivilegedRequest()
 
     data = self.request.get('data')
-    data_dict = json.loads(data)
     revision = int(self.request.get('revision'))
-    test_key = utils.TestKey(self.request.get('test_path'))
-    guid = data_dict['guid']
+    test_path = self.request.get('test_path')
 
-    if data_dict.get('type') in add_histograms.SPARSE_DIAGNOSTIC_TYPES:
+    data_dict = json.loads(data)
+    guid = data_dict['guid']
+    is_diagnostic = 'type' in data_dict
+
+    test_path_parts = test_path.split('/')
+    master = test_path_parts[0]
+    bot = test_path_parts[1]
+    test_name = '/'.join(test_path_parts[2:])
+    bot_whitelist = stored_object.Get(add_point_queue.BOT_WHITELIST_KEY)
+    internal_only = add_point_queue.BotInternalOnly(bot, bot_whitelist)
+    extra_args = {} if is_diagnostic else GetUnitArgs(data_dict['unit'])
+    # TDOO(eakuefner): Populate benchmark_description once it appears in
+    # diagnostics.
+    test_key = add_point_queue.GetOrCreateAncestors(
+        master, bot, test_name, internal_only, **extra_args).key
+
+    if is_diagnostic:
       entity = histogram.SparseDiagnostic(
           id=guid, data=data, test=test_key, start_revision=revision,
           end_revision=revision)
@@ -57,3 +73,18 @@ class AddHistogramsQueueHandler(request_handler.RequestHandler):
           id=guid, data=data, test=test_key, revision=revision)
 
     entity.put()
+
+
+def GetUnitArgs(unit):
+  unit_args = {
+      'units': unit
+  }
+  # TODO(eakuefner): Port unit system to Python and use that here
+  histogram_improvement_direction = unit.split('_')[-1]
+  if histogram_improvement_direction == 'biggerIsBetter':
+    unit_args['improvement_direction'] = anomaly.UP
+  elif histogram_improvement_direction == 'smallerIsBetter':
+    unit_args['improvement_direction'] = anomaly.DOWN
+  else:
+    unit_args['improvement_direction'] = anomaly.UNKNOWN
+  return unit_args

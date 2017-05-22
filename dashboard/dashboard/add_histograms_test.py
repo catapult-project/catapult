@@ -22,7 +22,7 @@ class AddHistogramsTest(testing_common.TestCase):
     testing_common.SetIsInternalUser('foo@bar.com', True)
     self.SetCurrentUser('foo@bar.com', is_admin=True)
 
-  def testPostSetsTestPathAndRevision(self):
+  def testPostHistogramSetsTestPathAndRevision(self):
     data = json.dumps([
         {
             'benchmarkName': 'benchmark',

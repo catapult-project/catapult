@@ -6,18 +6,32 @@ import json
 import webapp2
 import webtest
 
+from google.appengine.ext import ndb
+
 from dashboard import add_histograms_queue
 from dashboard.common import testing_common
 from dashboard.common import utils
+from dashboard.models import anomaly
+from dashboard.models import graph_data
 from dashboard.models import histogram
-
 
 
 TEST_HISTOGRAM = json.dumps({
     'guid': 'a5dd1360-fed5-4872-9f0e-c1c079b2ae26',
     'binBoundaries': [1, [1, 1000, 20]],
     'name': 'foo',
-    'unit': 'count'
+    'unit': 'count_biggerIsBetter'
+})
+
+
+TEST_SPARSE_DIAGNOSTIC = json.dumps({
+    'guid': 'ec2c0cdc-cd9f-4736-82b4-6ffc3d76e3eb',
+    'benchmarkName': 'myBenchmark',
+    'canonicalUrl': 'myCanonicalUrl',
+    'label': 'myLabel',
+    'legacyTIRLabel': 'myLegacyTIRLabel',
+    'storyDisplayName': 'myStoryDisplayName',
+    'type': 'TelemetryInfo'
 })
 
 
@@ -30,17 +44,30 @@ class AddHistogramsQueueTest(testing_common.TestCase):
     self.testapp = webtest.TestApp(app)
     self.SetCurrentUser('foo@bar.com', is_admin=True)
 
-  def testPost(self):
+  def testPostHistogram(self):
     test_path = 'Chromium/win7/suite/metric'
     params = {
         'data': TEST_HISTOGRAM,
         'test_path': test_path,
         'revision': 123
     }
-    test_key = utils.TestKey(test_path)
     self.testapp.post('/add_histograms_queue', params)
 
+    test_key = utils.TestKey(test_path)
     original_histogram = json.loads(TEST_HISTOGRAM)
+
+    test = test_key.get()
+    self.assertEqual(test.units, 'count_biggerIsBetter')
+    self.assertEqual(test.improvement_direction, anomaly.UP)
+
+    master = ndb.Key('Master', 'Chromium').get()
+    self.assertIsNotNone(master)
+
+    bot = ndb.Key('Master', 'Chromium', 'Bot', 'win7').get()
+    self.assertIsNotNone(bot)
+
+    tests = graph_data.TestMetadata.query().fetch()
+    self.assertEqual(2, len(tests))
 
     histograms = histogram.Histogram.query().fetch()
     self.assertEqual(1, len(histograms))
@@ -50,3 +77,29 @@ class AddHistogramsQueueTest(testing_common.TestCase):
     self.assertEqual(TEST_HISTOGRAM, h.data)
     self.assertEqual(test_key, h.test)
     self.assertEqual(123, h.revision)
+
+  def testPostSparseDiagnostic(self):
+    test_path = 'Chromium/win7/suite/metric'
+    params = {
+        'data': TEST_SPARSE_DIAGNOSTIC,
+        'test_path': test_path,
+        'revision': 123
+    }
+    self.testapp.post('/add_histograms_queue', params)
+
+    test_key = utils.TestKey(test_path)
+
+    test = test_key.get()
+    self.assertIsNone(test.units)
+
+  def testGetUnitArgs_Up(self):
+    unit_args = add_histograms_queue.GetUnitArgs('count_biggerIsBetter')
+    self.assertEquals(anomaly.UP, unit_args['improvement_direction'])
+
+  def testGetUnitArgs_Down(self):
+    unit_args = add_histograms_queue.GetUnitArgs('count_smallerIsBetter')
+    self.assertEquals(anomaly.DOWN, unit_args['improvement_direction'])
+
+  def testGetUnitArgs_Unknown(self):
+    unit_args = add_histograms_queue.GetUnitArgs('count')
+    self.assertEquals(anomaly.UNKNOWN, unit_args['improvement_direction'])
