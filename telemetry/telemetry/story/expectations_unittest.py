@@ -22,6 +22,15 @@ class MockStory(object):
     return self._name
 
 
+class MockStorySet(object):
+  def __init__(self, stories):
+    self._stories = stories
+
+  @property
+  def stories(self):
+    return self._stories
+
+
 class TestConditionTest(unittest.TestCase):
 
   def setUp(self):
@@ -156,3 +165,24 @@ class StoryExpectationsTest(unittest.TestCase):
 
     with self.assertRaises(AssertionError):
       FooExpectations()
+
+  def testValidateAgainstStorySetNotMatching(self):
+    class FooExpectations(expectations.StoryExpectations):
+      def SetExpectations(self):
+        self.DisableStory('bad_name', [expectations.ALL], 'crbug.com/123')
+
+    e = FooExpectations()
+    s = MockStorySet([MockStory('good_name')])
+    with self.assertRaises(TypeError):
+      e.ValidateAgainstStorySet(s)
+
+  def testValidateAgainstStorySetMatching(self):
+    class FooExpectations(expectations.StoryExpectations):
+      def SetExpectations(self):
+        self.DisableStory('good_name', [expectations.ALL], 'crbug.com/123')
+
+    e = FooExpectations()
+    s = MockStorySet([MockStory('good_name')])
+    e.ValidateAgainstStorySet(s)
+    # If no exception is thrown, then it means that the validation passed.
+

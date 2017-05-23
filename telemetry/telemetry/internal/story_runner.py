@@ -315,7 +315,7 @@ def RunBenchmark(benchmark, finder_options):
 
   benchmark_metadata = benchmark.GetMetadata()
   possible_browser = browser_finder.FindBrowser(finder_options)
-  expectations = benchmark.GetExpectations()
+  expectations = benchmark.InitializeExpectations()
 
   if not possible_browser:
     print ('Cannot find browser of type %s. To list out all '
@@ -382,6 +382,11 @@ def RunBenchmark(benchmark, finder_options):
           benchmark.ShouldTearDownStateAfterEachStorySetRun(),
           expectations=expectations)
       return_code = min(254, len(results.failures))
+      # We want to make sure that all expectations are linked to real stories,
+      # but we also do not want bad expectations to stop a run completely. Doing
+      # the check here allows us to return a failure code for bad expectations,
+      # while still collecting perf data.
+      benchmark.ValidateExpectations(stories)
     except Exception:
       exception_formatter.PrintFormattedException()
       return_code = 255

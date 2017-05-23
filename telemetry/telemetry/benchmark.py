@@ -67,6 +67,7 @@ class Benchmark(command_line.Command):
       max_failures: The number of story run's failures before bailing
           from executing subsequent page runs. If None, we never bail.
     """
+    self._expectations = None
     self._max_failures = max_failures
     self._has_original_tbm_options = (
         self.CreateTimelineBasedMeasurementOptions.__func__ ==
@@ -266,6 +267,24 @@ class Benchmark(command_line.Command):
       raise NotImplementedError('This test has no "page_set" attribute.')
     return self.page_set()  # pylint: disable=not-callable
 
+  def ValidateExpectations(self, story_set):
+    self.InitializeExpectations()
+    if self._expectations:
+      self._expectations.ValidateAgainstStorySet(story_set)
+
+  # TODO(rnephew): Rename InitializeExpectations to GetExpectations
+  def InitializeExpectations(self):
+    """Returns StoryExpectation object.
+
+    This is a wrapper for GetExpectations. The user overrides GetExpectatoins
+    in the benchmark class to have it use the correct expectations. This is what
+    story_runner.py uses to get the expectations.
+    """
+    if not self._expectations:
+      self._expectations = self.GetExpectations()
+    return self._expectations
+
+  # TODO(rnephew): Rename GetExpectations to CreateExpectations
   def GetExpectations(self):
     """Returns a StoryExpectation object.
 

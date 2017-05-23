@@ -24,6 +24,12 @@ class StoryExpectations(object):
     self.SetExpectations()
     self._Freeze()
 
+  def ValidateAgainstStorySet(self, story_set):
+    stories = [s.display_name for s in story_set.stories]
+    for expectation in self._expectations:
+      if expectation not in stories:
+        raise TypeError('Story %s is not in the story set.' % expectation)
+
   def SetExpectations(self):
     """Sets the Expectations for test disabling
 

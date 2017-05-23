@@ -168,6 +168,7 @@ class FakeBenchmark(benchmark.Benchmark):
   def __init__(self):
     super(FakeBenchmark, self).__init__()
     self._disabled = False
+    self._story_disabled = False
 
   @classmethod
   def Name(cls):
@@ -179,16 +180,27 @@ class FakeBenchmark(benchmark.Benchmark):
     return story_module.StorySet()
 
   @property
-  def Disabled(self):
+  def disabled(self):
     return self._disabled
 
-  @Disabled.setter
-  def Disabled(self, b):
+  @disabled.setter
+  def disabled(self, b):
     assert isinstance(b, bool)
     self._disabled = b
 
+  @property
+  def story_disabled(self):
+    return self._story_disabled
+
+  @story_disabled.setter
+  def story_disabled(self, b):
+    assert isinstance(b, bool)
+    self._story_disabled = b
+
   def GetExpectations(self):
-    if self.Disabled:
+    if self.story_disabled:
+      return _DisableStoryExpectations()
+    if self.disabled:
       return _DisableBenchmarkExpectations()
     return story_module.expectations.StoryExpectations()
 
@@ -1151,7 +1163,7 @@ class StoryRunnerTest(unittest.TestCase):
 
   def testRunBenchmarkDisabledBenchmark(self):
     fake_benchmark = FakeBenchmark()
-    fake_benchmark.Disabled = True
+    fake_benchmark.disabled = True
     options = self._GenerateBaseBrowserFinderOptions()
     tmp_path = tempfile.mkdtemp()
     try:
@@ -1165,7 +1177,7 @@ class StoryRunnerTest(unittest.TestCase):
 
   def testRunBenchmarkDisabledBenchmarkCannotOverriddenByCommandLine(self):
     fake_benchmark = FakeBenchmark()
-    fake_benchmark.Disabled = True
+    fake_benchmark.disabled = True
     options = self._GenerateBaseBrowserFinderOptions()
     options.run_disabled_tests = True
     temp_path = tempfile.mkdtemp()
@@ -1203,3 +1215,17 @@ class StoryRunnerTest(unittest.TestCase):
         self.assertAlmostEqual(duration, 1)
       finally:
         shutil.rmtree(tmp_path)
+
+  def testRunBenchmarkDisabledStoryWithBadName(self):
+    fake_benchmark = FakeBenchmark()
+    fake_benchmark.story_disabled = True
+    options = self._GenerateBaseBrowserFinderOptions()
+    tmp_path = tempfile.mkdtemp()
+    try:
+      options.output_dir = tmp_path
+      rc = story_runner.RunBenchmark(fake_benchmark, options)
+      # The exception from not having a matching name is caught and the return
+      # code is set to a failure code.
+      self.assertEqual(rc, 255)
+    finally:
+      shutil.rmtree(tmp_path)
