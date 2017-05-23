@@ -151,6 +151,28 @@ class _AllTestCondition(_TestCondition):
     return 'All Platforms'
 
 
+class _TestConditionAndroidSvelte(_TestCondition):
+  """Matches android devices with a svelte (low-memory) build."""
+  def ShouldDisable(self, platform):
+    return platform.GetOSName() == 'android' and platform.IsSvelte()
+
+  def __str__(self):
+    return 'Android Svelte'
+
+
+class _TestConditionByAndroidModel(_TestCondition):
+  def __init__(self, model, name=None):
+    self._model = model
+    self._name = name if name else model
+
+  def ShouldDisable(self, platform):
+    return (platform.GetOSName() == 'android' and
+            self._model in platform.GetDeviceTypeName())
+
+  def __str__(self):
+    return self._name
+
+
 ALL = _AllTestCondition()
 ALL_MAC = _TestConditionByPlatformList(['mac'], 'Mac Platforms')
 ALL_WIN = _TestConditionByPlatformList(['win'], 'Win Platforms')
@@ -159,3 +181,11 @@ ALL_ANDROID = _TestConditionByPlatformList(['android'], 'Android Platforms')
 ALL_DESKTOP = _TestConditionByPlatformList(
     ['mac', 'linux', 'win'], 'Desktop Platforms')
 ALL_MOBILE = _TestConditionByPlatformList(['android'], 'Mobile Platforms')
+ANDROID_NEXUS5 = _TestConditionByAndroidModel('Nexus 5')
+ANDROID_NEXUS5X = _TestConditionByAndroidModel('Nexus 5X')
+ANDROID_NEXUS6 = _TestConditionByAndroidModel('Nexus 6')
+ANDROID_NEXUS6P = _TestConditionByAndroidModel('Nexus 6P')
+ANDROID_NEXUS7 = _TestConditionByAndroidModel('Nexus 7')
+ANDROID_ONE = _TestConditionByAndroidModel(
+    'W6210', 'Cherry Mobile Android One')
+ANDROID_SVELTE = _TestConditionAndroidSvelte()

@@ -32,7 +32,6 @@ class MockStorySet(object):
 
 
 class TestConditionTest(unittest.TestCase):
-
   def setUp(self):
     self._platform = fakes.FakePlatform()
 
@@ -94,6 +93,100 @@ class TestConditionTest(unittest.TestCase):
     for plat in true_platforms:
       self._platform.SetOSName(plat)
       self.assertTrue(expectations.ALL_MOBILE.ShouldDisable(self._platform))
+
+  def testAndroidNexus5ReturnsFalseOnNotAndroid(self):
+    self._platform.SetOSName('not_android')
+    self.assertFalse(expectations.ANDROID_NEXUS5.ShouldDisable(self._platform))
+
+  def testAndroidNexus5XReturnsFalseOnNotAndroid(self):
+    self._platform.SetOSName('not_android')
+    self.assertFalse(expectations.ANDROID_NEXUS5X.ShouldDisable(self._platform))
+
+  def testAndroidNexus6ReturnsFalseOnNotAndroid(self):
+    self._platform.SetOSName('not_android')
+    self.assertFalse(expectations.ANDROID_NEXUS6.ShouldDisable(self._platform))
+
+  def testAndroidNexus6PReturnsFalseOnNotAndroid(self):
+    self._platform.SetOSName('not_android')
+    self.assertFalse(expectations.ANDROID_NEXUS6.ShouldDisable(self._platform))
+
+  def testAndroidNexus7ReturnsFalseOnNotAndroid(self):
+    self._platform.SetOSName('not_android')
+    self.assertFalse(expectations.ANDROID_NEXUS7.ShouldDisable(self._platform))
+
+  def testAndroidCherryMobileReturnsFalseOnNotAndroid(self):
+    self._platform.SetOSName('not_android')
+    self.assertFalse(
+        expectations.ANDROID_ONE.ShouldDisable(self._platform))
+
+  def testAndroidSvelteReturnsFalseOnNotAndroid(self):
+    self._platform.SetOSName('not_android')
+    self.assertFalse(expectations.ANDROID_SVELTE.ShouldDisable(self._platform))
+
+  def testAndroidNexus5ReturnsFalseOnAndroidNotNexus5(self):
+    self._platform.SetOSName('android')
+    self.assertFalse(expectations.ANDROID_NEXUS5.ShouldDisable(self._platform))
+
+  def testAndroidNexus5XReturnsFalseOnAndroidNotNexus5X(self):
+    self._platform.SetOSName('android')
+    self.assertFalse(expectations.ANDROID_NEXUS5X.ShouldDisable(self._platform))
+
+  def testAndroidNexus6ReturnsFalseOnAndroidNotNexus6(self):
+    self._platform.SetOSName('android')
+    self.assertFalse(expectations.ANDROID_NEXUS6.ShouldDisable(self._platform))
+
+  def testAndroidNexus6PReturnsFalseOnAndroidNotNexus6P(self):
+    self._platform.SetOSName('android')
+    self.assertFalse(expectations.ANDROID_NEXUS6.ShouldDisable(self._platform))
+
+  def testAndroidNexus7ReturnsFalseOnAndroidNotNexus7(self):
+    self._platform.SetOSName('android')
+    self.assertFalse(expectations.ANDROID_NEXUS7.ShouldDisable(self._platform))
+
+  def testAndroidCherryMobileReturnsFalseOnAndroidNotCherryMobile(self):
+    self._platform.SetOSName('android')
+    self.assertFalse(
+        expectations.ANDROID_ONE.ShouldDisable(self._platform))
+
+  def testAndroidSvelteReturnsFalseOnAndroidNotSvelte(self):
+    self._platform.SetOSName('android')
+    self.assertFalse(expectations.ANDROID_SVELTE.ShouldDisable(self._platform))
+
+  def testAndroidNexus5ReturnsTrueOnAndroidNexus5(self):
+    self._platform.SetOSName('android')
+    self._platform.SetDeviceTypeName('Nexus 5')
+    self.assertTrue(expectations.ANDROID_NEXUS5.ShouldDisable(self._platform))
+
+  def testAndroidNexus5XReturnsTrueOnAndroidNexus5X(self):
+    self._platform.SetOSName('android')
+    self._platform.SetDeviceTypeName('Nexus 5X')
+    self.assertTrue(expectations.ANDROID_NEXUS5X.ShouldDisable(self._platform))
+
+  def testAndroidNexus6ReturnsTrueOnAndroidNexus6(self):
+    self._platform.SetOSName('android')
+    self._platform.SetDeviceTypeName('Nexus 6')
+    self.assertTrue(expectations.ANDROID_NEXUS6.ShouldDisable(self._platform))
+
+  def testAndroidNexus6PReturnsTrueOnAndroidNexus6P(self):
+    self._platform.SetOSName('android')
+    self._platform.SetDeviceTypeName('Nexus 6P')
+    self.assertTrue(expectations.ANDROID_NEXUS6.ShouldDisable(self._platform))
+
+  def testAndroidNexus7ReturnsTrueOnAndroidNexus7(self):
+    self._platform.SetOSName('android')
+    self._platform.SetDeviceTypeName('Nexus 7')
+    self.assertTrue(expectations.ANDROID_NEXUS7.ShouldDisable(self._platform))
+
+  def testAndroidCherryMobileReturnsTrueOnAndroidCherryMobile(self):
+    self._platform.SetOSName('android')
+    self._platform.SetDeviceTypeName('W6210')
+    self.assertTrue(
+        expectations.ANDROID_ONE.ShouldDisable(self._platform))
+
+  def testAndroidSvelteReturnsTrueOnAndroidSvelte(self):
+    self._platform.SetOSName('android')
+    self._platform.SetIsSvelte(True)
+    self.assertTrue(expectations.ANDROID_SVELTE.ShouldDisable(self._platform))
 
 
 class StoryExpectationsTest(unittest.TestCase):

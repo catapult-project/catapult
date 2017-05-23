@@ -28,6 +28,8 @@ class FakePlatform(object):
     self._tracing_controller = None
     self._has_battor = False
     self._os_name = 'FakeOS'
+    self._device_type_name = 'abc'
+    self._is_svelte = False
 
   @property
   def is_host_platform(self):
@@ -57,9 +59,6 @@ class FakePlatform(object):
   def HasBeenThermallyThrottled(self):
     return False
 
-  def GetDeviceTypeName(self):
-    return 'FakeDevice'
-
   def GetArchName(self):
     raise NotImplementedError
 
@@ -88,6 +87,21 @@ class FakePlatform(object):
     assert isinstance(b, bool)
     self._has_battor = b
 
+  # TODO(rnephew): Investigate moving from setters to @property.
+  def SetDeviceTypeName(self, name):
+    self._device_type_name = name
+
+  def GetDeviceTypeName(self):
+    return self._device_type_name
+
+  def SetIsSvelte(self, b):
+    assert isinstance(b, bool)
+    self._is_svelte = b
+
+  def IsSvelte(self):
+    if self._os_name != 'android':
+      raise NotImplementedError
+    return self._is_svelte
 
 class FakeLinuxPlatform(FakePlatform):
   def __init__(self):
