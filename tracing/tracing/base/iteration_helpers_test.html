@@ -102,24 +102,6 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(getFirstElement([1, 2]), 1);
   });
 
-  test('group', function() {
-    // Empty array
-    let srcArray = [];
-    const fn = function(curr) { return (curr % 2); };
-    let dstDict = {};
-
-    assert.deepEqual(tr.b.group(srcArray, fn), dstDict);
-
-    // Non-empty array
-    srcArray = [0, 1, 2, 3, 4, 5, 6];
-    dstDict = {
-      0: [0, 2, 4, 6],
-      1: [1, 3, 5]
-    };
-
-    assert.deepEqual(tr.b.group(srcArray, fn), dstDict);
-  });
-
   test('groupIntoMap', function() {
     // Empty array
     let srcArray = [];

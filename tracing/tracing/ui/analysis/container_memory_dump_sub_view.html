@@ -52,9 +52,9 @@ tr.exportTo('tr.ui.analysis', function() {
 
       // Group the selected memory dumps by container name and sort them
       // chronologically.
-      this.dumpsByContainerName_ = tr.b.group(
+      this.dumpsByContainerName_ = tr.b.groupIntoMap(
           this.currentSelection_.toArray(), dump => dump.containerName);
-      for (const dumps of Object.values(this.dumpsByContainerName_)) {
+      for (const dumps of this.dumpsByContainerName_.values()) {
         dumps.sort((a, b) => a.start - b.start);
       }
 
@@ -74,7 +74,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
       if (this.dumpsByContainerName_ === undefined) return;
 
-      const containerNames = Object.keys(this.dumpsByContainerName_);
+      const containerNames = Array.from(this.dumpsByContainerName_.keys());
       if (containerNames.length === 0) return;
 
       if (containerNames.length > 1) {
@@ -85,8 +85,8 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     buildViewForSingleContainerName_() {
-      const containerMemoryDumps =
-          Object.values(this.dumpsByContainerName_)[0];
+      const containerMemoryDumps = tr.b.getFirstElement(
+          this.dumpsByContainerName_.values());
       const dumpView = this.ownerDocument.createElement(
           'tr-ui-a-stacked-pane-view');
       Polymer.dom(this.$.content).appendChild(dumpView);
@@ -102,14 +102,14 @@ tr.exportTo('tr.ui.analysis', function() {
       // TODO(petrcermak): Provide a more sophisticated view for this case.
       const ownerDocument = this.ownerDocument;
 
-      const rows = Object.values(tr.b.mapItems(
-          this.dumpsByContainerName_, function(containerName, dumps) {
-            return {
-              containerName,
-              subRows: dumps,
-              isExpanded: true
-            };
-          }));
+      const rows = [];
+      for (const [containerName, dumps] of this.dumpsByContainerName_) {
+        rows.push({
+          containerName,
+          subRows: dumps,
+          isExpanded: true,
+        });
+      }
       rows.sort(function(a, b) {
         return a.containerName.localeCompare(b.containerName);
       });

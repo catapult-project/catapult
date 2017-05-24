@@ -113,27 +113,6 @@ tr.exportTo('tr.b', function() {
   }
 
   /**
-   * Returns a new dictionary with items grouped by the return value of the
-   * specified function being called on each item.
-   * @param {!Array.<!*>} ary The array being iterated through
-   * @param {!function(!*):!*} callback The mapping function between the array
-   * value and the map key.
-   * @param {*=} opt_this
-   */
-  function group(ary, callback, opt_this, opt_arrayConstructor) {
-    const arrayConstructor = opt_arrayConstructor || Array;
-    const results = {};
-    for (const element of ary) {
-      const key = callback.call(opt_this, element);
-      if (!(key in results)) {
-        results[key] = new arrayConstructor();
-      }
-      results[key].push(element);
-    }
-    return results;
-  }
-
-  /**
    * Returns a new Map with items grouped by the return value of the
    * specified function being called on each item.
    * @param {!Array.<!*>} ary The array being iterated through
@@ -389,7 +368,6 @@ tr.exportTo('tr.b', function() {
     dictionaryContainsValue,
     getOnlyElement,
     getFirstElement,
-    group,
     groupIntoMap,
     mapItems,
     filterItems,

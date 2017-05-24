@@ -177,11 +177,15 @@ tr.exportTo('tr.model', function() {
     /**
      * @param {!function(!tr.model.Event):string} cb
      * @param {*=} opt_this
-     * @return {!Object}
+     * @return {!Object} TODO(benjhayden) return Map
      */
     getEventsOrganizedByCallback(cb, opt_this) {
-      const groupedEvents = tr.b.group(this, cb, opt_this || this);
-      return tr.b.mapItems(groupedEvents, (_, events) => new EventSet(events));
+      const groupedEvents = tr.b.groupIntoMap(this, cb, opt_this || this);
+      const groupedEventsDict = {};
+      for (const [k, events] of groupedEvents) {
+        groupedEventsDict[k] = new EventSet(events);
+      }
+      return groupedEventsDict;
     },
 
     enumEventsOfType(type, func) {
