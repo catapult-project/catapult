@@ -110,8 +110,8 @@ class CpuTracingAgentTest(unittest.TestCase):
     self._agent.StopAgentTracing()
     self._agent.CollectAgentTraceData(builder)
     builder = builder.AsData()
-    data = json.loads(builder.GetTracesFor(trace_data.CPU_TRACE_DATA)[0])
-    self.assertTrue(data)
+    data = json.loads(builder.GetTraceFor(trace_data.CPU_TRACE_DATA))
+
     self.assertEquals(set(data[0].keys()), set(TRACE_EVENT_KEYS))
     self.assertEquals(set(data[0]['args']['snapshot'].keys()),
                       set(['processes']))
@@ -127,8 +127,8 @@ class CpuTracingAgentTest(unittest.TestCase):
     self._agent.StopAgentTracing()
     self._agent.CollectAgentTraceData(builder)
     builder = builder.AsData()
-    data = json.loads(builder.GetTracesFor(trace_data.CPU_TRACE_DATA)[0])
-    self.assertTrue(data)
+    data = json.loads(builder.GetTraceFor(trace_data.CPU_TRACE_DATA))
+
     for snapshot in data:
       found_unittest_process = False
       processes = snapshot['args']['snapshot']['processes']
