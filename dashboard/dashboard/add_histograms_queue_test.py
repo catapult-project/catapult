@@ -9,6 +9,8 @@ import webtest
 from google.appengine.ext import ndb
 
 from dashboard import add_histograms_queue
+from dashboard import add_point_queue
+from dashboard.common import stored_object
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import anomaly
@@ -45,6 +47,9 @@ class AddHistogramsQueueTest(testing_common.TestCase):
     self.SetCurrentUser('foo@bar.com', is_admin=True)
 
   def testPostHistogram(self):
+    stored_object.Set(
+        add_point_queue.BOT_WHITELIST_KEY, ['win7'])
+
     test_path = 'Chromium/win7/suite/metric'
     params = {
         'data': TEST_HISTOGRAM,
@@ -77,8 +82,37 @@ class AddHistogramsQueueTest(testing_common.TestCase):
     self.assertEqual(TEST_HISTOGRAM, h.data)
     self.assertEqual(test_key, h.test)
     self.assertEqual(123, h.revision)
+    self.assertFalse(h.internal_only)
+
+  def testPostHistogram_Internal(self):
+    stored_object.Set(
+        add_point_queue.BOT_WHITELIST_KEY, ['mac'])
+
+    test_path = 'Chromium/win7/suite/metric'
+    params = {
+        'data': TEST_HISTOGRAM,
+        'test_path': test_path,
+        'revision': 123
+    }
+    self.testapp.post('/add_histograms_queue', params)
+
+    test_key = utils.TestKey(test_path)
+    original_histogram = json.loads(TEST_HISTOGRAM)
+
+    histograms = histogram.Histogram.query().fetch()
+    self.assertEqual(1, len(histograms))
+    self.assertEqual(original_histogram['guid'], histograms[0].key.id())
+
+    h = histograms[0]
+    self.assertEqual(TEST_HISTOGRAM, h.data)
+    self.assertEqual(test_key, h.test)
+    self.assertEqual(123, h.revision)
+    self.assertTrue(h.internal_only)
 
   def testPostSparseDiagnostic(self):
+    stored_object.Set(
+        add_point_queue.BOT_WHITELIST_KEY, ['win7'])
+
     test_path = 'Chromium/win7/suite/metric'
     params = {
         'data': TEST_SPARSE_DIAGNOSTIC,
@@ -91,6 +125,33 @@ class AddHistogramsQueueTest(testing_common.TestCase):
 
     test = test_key.get()
     self.assertIsNone(test.units)
+
+    original_diagnostic = json.loads(TEST_SPARSE_DIAGNOSTIC)
+    diagnostic_entity = ndb.Key(
+        'SparseDiagnostic', original_diagnostic['guid']).get()
+    self.assertFalse(diagnostic_entity.internal_only)
+
+  def testPostSparseDiagnostic_Internal(self):
+    stored_object.Set(
+        add_point_queue.BOT_WHITELIST_KEY, ['mac'])
+
+    test_path = 'Chromium/win7/suite/metric'
+    test_key = utils.TestKey(test_path)
+
+    params = {
+        'data': TEST_SPARSE_DIAGNOSTIC,
+        'test_path': test_path,
+        'revision': 123
+    }
+    self.testapp.post('/add_histograms_queue', params)
+
+    test = test_key.get()
+    self.assertIsNone(test.units)
+
+    original_diagnostic = json.loads(TEST_SPARSE_DIAGNOSTIC)
+    diagnostic_entity = ndb.Key(
+        'SparseDiagnostic', original_diagnostic['guid']).get()
+    self.assertTrue(diagnostic_entity.internal_only)
 
   def testGetUnitArgs_Up(self):
     unit_args = add_histograms_queue.GetUnitArgs('count_biggerIsBetter')

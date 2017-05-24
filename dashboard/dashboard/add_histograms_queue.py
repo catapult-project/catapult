@@ -67,10 +67,11 @@ class AddHistogramsQueueHandler(request_handler.RequestHandler):
     if is_diagnostic:
       entity = histogram.SparseDiagnostic(
           id=guid, data=data, test=test_key, start_revision=revision,
-          end_revision=revision)
+          end_revision=revision, internal_only=internal_only)
     else:
       entity = histogram.Histogram(
-          id=guid, data=data, test=test_key, revision=revision)
+          id=guid, data=data, test=test_key, revision=revision,
+          internal_only=internal_only)
 
     entity.put()
 
