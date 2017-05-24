@@ -368,13 +368,15 @@ def run(config=('package.cfg',), ext=None, script_args=None, manifest_only=0):
         keywords = keywords.split()
     revision = pkg.get('version.revision', '').strip()
     if revision:
-        revision = "-r%s" % (revision,)
+        revision = int(revision)
+    else:
+        revision = 0
 
     kwargs = {
         'name': pkg['name'],
         'version': "%s%s" % (
             pkg['version.number'],
-            ["", "-dev%s" % (revision,)][_util.humanbool(
+            ["", ".dev%d" % (revision,)][_util.humanbool(
                 'version.dev', pkg.get('version.dev', 'false')
             )],
         ),

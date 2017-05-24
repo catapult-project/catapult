@@ -22,6 +22,7 @@ _setup/py3/shell.py
 _setup/py3/util.py
 bench
 bench.sh
+bench/DateTimeShortcuts.js
 bench/__init__.py
 bench/apiviewer.js
 bench/bootstrap.js

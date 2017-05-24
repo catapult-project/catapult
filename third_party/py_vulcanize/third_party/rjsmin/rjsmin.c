@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 - 2014
+ * Copyright 2011 - 2015
  * Andr\xe9 Malo or his licensors, as applicable
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,15 +18,16 @@
 #include "cext.h"
 EXT_INIT_FUNC;
 
-#define RJSMIN_DULL_BIT          (1 << 0)
-#define RJSMIN_PRE_REGEX_BIT     (1 << 1)
-#define RJSMIN_REGEX_DULL_BIT    (1 << 2)
-#define RJSMIN_REGEX_CC_DULL_BIT (1 << 3)
-#define RJSMIN_ID_LIT_BIT        (1 << 4)
-#define RJSMIN_ID_LIT_O_BIT      (1 << 5)
-#define RJSMIN_ID_LIT_C_BIT      (1 << 6)
-#define RJSMIN_STRING_DULL_BIT   (1 << 7)
-#define RJSMIN_SPACE_BIT         (1 << 8)
+#define RJSMIN_DULL_BIT           (1 << 0)
+#define RJSMIN_PRE_REGEX_BIT      (1 << 1)
+#define RJSMIN_REGEX_DULL_BIT     (1 << 2)
+#define RJSMIN_REGEX_CC_DULL_BIT  (1 << 3)
+#define RJSMIN_ID_LIT_BIT         (1 << 4)
+#define RJSMIN_ID_LIT_O_BIT       (1 << 5)
+#define RJSMIN_ID_LIT_C_BIT       (1 << 6)
+#define RJSMIN_STRING_DULL_BIT    (1 << 7)
+#define RJSMIN_SPACE_BIT          (1 << 8)
+#define RJSMIN_POST_REGEX_OFF_BIT (1 << 9)
 
 #ifdef EXT3
 typedef Py_UNICODE rchar;
@@ -56,6 +57,9 @@ typedef unsigned char rchar;
 #define RJSMIN_IS_ID_LITERAL_CLOSE(c) ((U(c) > 127) || \
     (rjsmin_charmask[U(c) & 0x7F] & RJSMIN_ID_LIT_C_BIT))
 
+#define RJSMIN_IS_POST_REGEX_OFF(c) ((U(c) > 127) || \
+    (rjsmin_charmask[U(c) & 0x7F] & RJSMIN_POST_REGEX_OFF_BIT))
+
 #define RJSMIN_IS_SPACE(c) ((U(c) <= 127) && \
     (rjsmin_charmask[U(c) & 0x7F] & RJSMIN_SPACE_BIT))
 
@@ -68,31 +72,37 @@ static const unsigned short rjsmin_charmask[128] = {
     396, 396,   2, 396, 396,   2, 396, 396,
     396, 396, 396, 396, 396, 396, 396, 396,
     396, 396, 396, 396, 396, 396, 396, 396,
-    396, 175,  76, 141, 253, 141, 143,  76,
-    175, 205, 141, 237, 143, 237, 141, 136,
-    253, 253, 253, 253, 253, 253, 253, 253,
-    253, 253, 143, 143, 141, 143, 141, 143,
-    141, 253, 253, 253, 253, 253, 253, 253,
-    253, 253, 253, 253, 253, 253, 253, 253,
-    253, 253, 253, 253, 253, 253, 253, 253,
-    253, 253, 253, 171,   1, 197, 141, 253,
-    141, 253, 253, 253, 253, 253, 253, 253,
-    253, 253, 253, 253, 253, 253, 253, 253,
-    253, 253, 253, 253, 253, 253, 253, 253,
-    253, 253, 253, 175, 143, 207, 141, 253
+    396, 687, 588, 653, 765, 653, 143, 588,
+    687, 205, 653, 237, 143, 237, 141, 648,
+    765, 765, 765, 765, 765, 765, 765, 765,
+    765, 765, 143, 143, 653, 143, 653, 143,
+    653, 765, 765, 765, 765, 765, 765, 765,
+    765, 765, 765, 765, 765, 765, 765, 765,
+    765, 765, 765, 765, 765, 765, 765, 765,
+    765, 765, 765, 683, 513, 197, 653, 765,
+    653, 765, 765, 765, 765, 765, 765, 765,
+    765, 765, 765, 765, 765, 765, 765, 765,
+    765, 765, 765, 765, 765, 765, 765, 765,
+    765, 765, 765, 687, 143, 207, 653, 765
 };
 
 static Py_ssize_t
 rjsmin(const rchar *source, rchar *target, Py_ssize_t length,
        int keep_bang_comments)
 {
-    const rchar *reset, *sentinel = source + length;
+    const rchar *reset, *pcreset = NULL, *pctoken = NULL, *xtarget,
+                *sentinel = source + length;
     rchar *tstart = target;
-    rchar c, quote;
+    int post_regex = 0;
+    rchar c, quote, spaced = U(' ');
 
     while (source < sentinel) {
         c = *source++;
         if (RJSMIN_IS_DULL(c)) {
+            if (post_regex) post_regex = 0;
+            if (pctoken) pctoken = NULL;
+            if (spaced == U('\n')) spaced = U(' ');
+
             *target++ = c;
             continue;
         }
@@ -100,6 +110,10 @@ rjsmin(const rchar *source, rchar *target, Py_ssize_t length,
 
         /* String */
         case U('\''): case U('"'):
+            if (post_regex) post_regex = 0;
+            if (pctoken) pctoken = NULL;
+            if (spaced == U('\n')) spaced = U(' ');
+
             reset = source;
             *target++ = quote = c;
             while (source < sentinel) {
@@ -131,6 +145,10 @@ rjsmin(const rchar *source, rchar *target, Py_ssize_t length,
         /* Comment or Regex or something else entirely */
         case U('/'):
             if (!(source < sentinel)) {
+                if (post_regex) post_regex = 0;
+                if (pctoken) pctoken = NULL;
+                if (spaced == U('\n')) spaced = U(' ');
+
                 *target++ = c;
             }
             else {
@@ -140,24 +158,36 @@ rjsmin(const rchar *source, rchar *target, Py_ssize_t length,
                     goto skip_or_copy_ws;
 
                 default:
+                    xtarget = NULL;
                     if (   target == tstart
-                        || RJSMIN_IS_PRE_REGEX_1(*(target - 1))
+                        || RJSMIN_IS_PRE_REGEX_1(*((pctoken ? pctoken : target)
+                                                   - 1))
                         || (
-                            (target - tstart >= 6)
-                            && *(target - 1) == U('n')
-                            && *(target - 2) == U('r')
-                            && *(target - 3) == U('u')
-                            && *(target - 4) == U('t')
-                            && *(target - 5) == U('e')
-                            && *(target - 6) == U('r')
+                            (xtarget = pctoken ? pctoken : target)
+                            && (xtarget - tstart >= 6)
+                            && *(xtarget - 1) == U('n')
+                            && *(xtarget - 2) == U('r')
+                            && *(xtarget - 3) == U('u')
+                            && *(xtarget - 4) == U('t')
+                            && *(xtarget - 5) == U('e')
+                            && *(xtarget - 6) == U('r')
                             && (
-                                   target - tstart == 6
-                                || !RJSMIN_IS_ID_LITERAL(*(target - 7))
+                                   xtarget - tstart == 6
+                                || !RJSMIN_IS_ID_LITERAL(*(xtarget - 7))
                             )
                         )) {
 
             /* Regex */
+                        if (post_regex) post_regex = 0;
+                        if (pctoken) pctoken = NULL;
+
                         reset = source;
+                        if (spaced == U('\n')) {
+                            spaced = U(' ');
+                            if (xtarget)
+                                *target++ = U('\n');
+                        }
+
                         *target++ = U('/');
                         while (source < sentinel) {
                             c = *source++;
@@ -166,6 +196,7 @@ rjsmin(const rchar *source, rchar *target, Py_ssize_t length,
                                 continue;
                             switch (c) {
                             case U('/'):
+                                post_regex = 1;
                                 goto cont;
                             case U('\\'):
                                 if (source < sentinel) {
@@ -205,6 +236,10 @@ rjsmin(const rchar *source, rchar *target, Py_ssize_t length,
                     }
                     else {
             /* Just a slash */
+                        if (post_regex) post_regex = 0;
+                        if (pctoken) pctoken = NULL;
+                        if (spaced == U('\n')) spaced = U(' ');
+
                         *target++ = c;
                     }
                     continue;
@@ -233,6 +268,11 @@ rjsmin(const rchar *source, rchar *target, Py_ssize_t length,
                             /* copy bang comment, if requested */
                             if (   keep_bang_comments && source < sentinel
                                 && *source == U('!')) {
+                                if (!pctoken) {
+                                    pctoken = target;
+                                    pcreset = reset;
+                                }
+
                                 *target++ = U('/');
                                 *target++ = U('*');
                                 *target++ = *source++;
@@ -248,8 +288,14 @@ rjsmin(const rchar *source, rchar *target, Py_ssize_t length,
                                 }
                                 if (!reset)
                                     continue;
+
                                 target -= source - reset;
                                 source = reset;
+                                if (pcreset == reset) {
+                                    pctoken = NULL;
+                                    pcreset = NULL;
+                                }
+
                             }
                             /* strip regular comment */
                             else {
@@ -294,20 +340,28 @@ rjsmin(const rchar *source, rchar *target, Py_ssize_t length,
                 break;
             }
 
-            if ((tstart < target && source < sentinel)
+            if ((tstart < (pctoken ? pctoken : target) && source < sentinel)
                 && ((quote == U('\n')
-                    && RJSMIN_IS_ID_LITERAL_CLOSE(*(target - 1))
-                    && RJSMIN_IS_ID_LITERAL_OPEN(*source))
+                     && ((RJSMIN_IS_ID_LITERAL_CLOSE(*((pctoken ?
+                                                        pctoken : target) - 1))
+                          && RJSMIN_IS_ID_LITERAL_OPEN(*source))
+                         || (post_regex
+                             && RJSMIN_IS_POST_REGEX_OFF(*source)
+                             && !(post_regex = 0))))
                     ||
-                    (quote == U(' ')
-                    && ((RJSMIN_IS_ID_LITERAL(*(target - 1))
-                         && RJSMIN_IS_ID_LITERAL(*source))
-                        || (source < sentinel
-                            && ((*(target - 1) == U('+')
-                                 && *source == U('+'))
-                                || (*(target - 1) == U('-')
-                                    && *source == U('-'))))))))
+                    (quote == U(' ') && !pctoken
+                     && ((RJSMIN_IS_ID_LITERAL(*(target - 1))
+                          && RJSMIN_IS_ID_LITERAL(*source))
+                         || (source < sentinel
+                             && ((*(target - 1) == U('+')
+                                  && *source == U('+'))
+                                 || (*(target - 1) == U('-')
+                                     && *source == U('-')))))))) {
                 *target++ = quote;
+            }
+
+            pcreset = NULL;
+            spaced = quote;
         }
     cont:
         continue;

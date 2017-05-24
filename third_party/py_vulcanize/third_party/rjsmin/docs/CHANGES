@@ -1,3 +1,25 @@
+Changes with version 1.0.12
+
+ *) Benchmark updates, dropped slimit benchmarks, because of installation
+    trouble
+
+ *) Reworked handling of comments starting with exclamation marks. The matcher
+    should no longer get out of sync, even if they appear in the middle of other
+    matches.
+
+ *) Handle line terminators before and after regex literals more sensible
+
+
+Changes with version 1.0.11
+
+ *) Benchmark updates
+
+ *) Lifted max restrictions for CPython and Jython as well.
+
+ *) Lifted max restrictions for pypy versions. Added pypy3 support.
+    Submitted by https://github.com/tony
+
+
 Changes with version 1.0.10
 
  *) Added support for pypy 2.2

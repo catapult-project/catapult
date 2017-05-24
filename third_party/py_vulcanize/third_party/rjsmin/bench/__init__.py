@@ -8,7 +8,7 @@ Benchmark jsmin implementations.
 
 :Copyright:
 
- Copyright 2011 - 2014
+ Copyright 2011 - 2015
  Andr\xe9 Malo or his licensors, as applicable
 
 :License:

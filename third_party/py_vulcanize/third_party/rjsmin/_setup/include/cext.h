@@ -62,6 +62,18 @@
 
 #define EXT3
 
+#ifndef Py_TPFLAGS_HAVE_CLASS
+#define Py_TPFLAGS_HAVE_CLASS (0)
+#endif
+
+#ifndef Py_TPFLAGS_HAVE_WEAKREFS
+#define Py_TPFLAGS_HAVE_WEAKREFS (0)
+#endif
+
+#ifndef Py_TPFLAGS_HAVE_ITER
+#define Py_TPFLAGS_HAVE_ITER (0)
+#endif
+
 #ifndef PyMODINIT_FUNC
 #define EXT_INIT_FUNC PyObject *CONCATENATE(PyInit_, EXT_MODULE)(void)
 #else
@@ -85,9 +97,16 @@ static struct PyModuleDef EXT_DEFINE_VAR = { \
 #define EXT_INIT_ERROR(module) do {Py_XDECREF(module); return NULL;} while(0)
 #define EXT_INIT_RETURN(module) return module
 
+#define EXT_DOC_UNICODE(m)
+
 #else /* end py3k */
 
 #define EXT2
+
+#ifndef PyVarObject_HEAD_INIT
+    #define PyVarObject_HEAD_INIT(type, size) \
+        PyObject_HEAD_INIT(type) size,
+#endif
 
 #ifndef PyMODINIT_FUNC
 #define EXT_INIT_FUNC void CONCATENATE(init, EXT_MODULE)(void)
@@ -116,6 +135,25 @@ static struct EXT_DEFINE__STRUCT EXT_DEFINE_VAR = { \
 )
 #define EXT_INIT_ERROR(module) return
 #define EXT_INIT_RETURN(module) return
+
+#define EXT_DOC_UNICODE(m) do {                                         \
+    PyObject *doc__, *uni__;                                            \
+    int res__;                                                          \
+                                                                        \
+    if ((doc__ = PyObject_GetAttrString(m, "__doc__"))) {               \
+        uni__ = PyUnicode_FromEncodedObject(doc__, "utf-8", "strict");  \
+        Py_DECREF(doc__);                                               \
+        if (!uni__)                                                     \
+            EXT_INIT_ERROR(m);                                          \
+        res__ = PyObject_SetAttrString(m, "__doc__", uni__);            \
+        Py_DECREF(uni__);                                               \
+        if (res__ == -1)                                                \
+            EXT_INIT_ERROR(m);                                          \
+    }                                                                   \
+    else if (!(PyErr_Occurred()                                         \
+               && PyErr_ExceptionMatches(PyExc_AttributeError)))        \
+        EXT_INIT_ERROR(m);                                              \
+} while(0)
 
 #endif /* end py2K */
 
@@ -232,13 +270,17 @@ typedef int Py_ssize_t;
 #define PyType_IS_GC(t) PyType_HasFeature((t), Py_TPFLAGS_HAVE_GC)
 #endif
 
-#define DEFINE_GENERIC_DEALLOC(prefix)                      \
-static void prefix##_dealloc(void *self)                    \
-{                                                           \
-    if (PyType_IS_GC(((PyObject *)self)->ob_type))          \
-        PyObject_GC_UnTrack(self);                          \
-    (void)prefix##_clear(self);                             \
-    ((PyObject *)self)->ob_type->tp_free((PyObject *)self); \
+#ifndef Py_TYPE
+#define Py_TYPE(ob) (((PyObject*)(ob))->ob_type)
+#endif
+
+#define DEFINE_GENERIC_DEALLOC(prefix)          \
+static void prefix##_dealloc(void *self)        \
+{                                               \
+    if (PyType_IS_GC(Py_TYPE(self)))            \
+        PyObject_GC_UnTrack(self);              \
+    (void)prefix##_clear(self);                 \
+    (Py_TYPE(self))->tp_free((PyObject *)self); \
 }
 
 #endif /* SETUP_CEXT_H */

@@ -9,7 +9,7 @@ Benchmark jsmin implementations.
 
 :Copyright:
 
- Copyright 2011 - 2014
+ Copyright 2011 - 2015
  Andr\xe9 Malo or his licensors, as applicable
 
 :License:
@@ -54,21 +54,6 @@ class jsmins(object):
             "jsmin_2_0_9 available for python 2.4 and later..."
         )
         print(import_notes[-1])
-    try:
-        import slimit as _slimit_0_8_1
-    except (ImportError, SyntaxError):
-        import_notes.append("slimit_0_8_1 could not be imported")
-        print(import_notes[-1])
-    else:
-        class p_03_slimit_0_8_1(object):
-            pass
-        p_03_slimit_0_8_1 = p_03_slimit_0_8_1()
-        p_03_slimit_0_8_1.jsmin = _slimit_0_8_1.minify
-        class p_04_slimit_0_8_1_mangle(object):
-            pass
-        p_04_slimit_0_8_1_mangle = p_04_slimit_0_8_1_mangle()
-        p_04_slimit_0_8_1_mangle.jsmin = \
-            lambda x, s=_slimit_0_8_1: s.minify(x, True)
 
     import rjsmin as p_05_rjsmin
     try:

@@ -9,7 +9,7 @@ Write benchmark results.
 
 :Copyright:
 
- Copyright 2014
+ Copyright 2014 - 2015
  Andr\xe9 Malo or his licensors, as applicable
 
 :License:
@@ -83,8 +83,6 @@ def write_table(filename, results):
     names = [
         ('simple_port', 'Simple Port'),
         ('jsmin_2_0_9', 'jsmin 2.0.9'),
-        ('slimit_0_8_1', 'slimit 0.8.1'),
-        ('slimit_0_8_1_mangle', 'slimit 0.8.1 (mangle)'),
         ('rjsmin', '|rjsmin|'),
         ('_rjsmin', r'_\ |rjsmin|'),
     ]

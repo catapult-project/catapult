@@ -34,6 +34,7 @@ same results as the original ``jsmin.c``. It differs in the following ways:
 - Newline characters are not allowed inside string and regex literals, except
   for line continuations in string literals (ECMA-5).
 - "return /regex/" is recognized correctly.
+- Line terminators after regex literals are handled more sensibly
 - "+ +" and "- -" sequences are not collapsed to '++' or '--'
 - Newlines before ! operators are removed more sensibly
 - Comments starting with an exclamation mark (``!``) can be kept optionally
@@ -56,7 +57,7 @@ rjsmin.c is a reimplementation of rjsmin.py in C and speeds it up even more.
 COPYRIGHT AND LICENSE
 ---------------------
 
-Copyright 2011 - 2014
+Copyright 2011 - 2015
 André Malo or his licensors, as applicable.
 
 The whole package (except for the files in the bench/ directory)
