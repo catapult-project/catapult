@@ -34,6 +34,7 @@ from dashboard import email_summary
 from dashboard import file_bug
 from dashboard import generate_benchmark_health_report
 from dashboard import get_logs
+from dashboard import get_histogram
 from dashboard import graph_csv
 from dashboard import graph_json
 from dashboard import graph_revisions
@@ -95,6 +96,7 @@ _URL_MAPPING = [
     ('/file_bug', file_bug.FileBugHandler),
     ('/generate_benchmark_health_report',
      generate_benchmark_health_report.GenerateBenchmarkHealthReportHandler),
+    ('/get_histogram', get_histogram.GetHistogramHandler),
     ('/get_logs', get_logs.GetLogsHandler),
     ('/graph_csv', graph_csv.GraphCsvHandler),
     ('/graph_json', graph_json.GraphJsonHandler),
