@@ -110,7 +110,8 @@ class CpuTracingAgentTest(unittest.TestCase):
     self._agent.StopAgentTracing()
     self._agent.CollectAgentTraceData(builder)
     builder = builder.AsData()
-    data = json.loads(builder.GetTraceFor(trace_data.CPU_TRACE_DATA))
+    data = json.loads(
+        builder.GetTraceFor(trace_data.CPU_TRACE_DATA)['traceEvents'])
 
     self.assertEquals(set(data[0].keys()), set(TRACE_EVENT_KEYS))
     self.assertEquals(set(data[0]['args']['snapshot'].keys()),
@@ -127,7 +128,8 @@ class CpuTracingAgentTest(unittest.TestCase):
     self._agent.StopAgentTracing()
     self._agent.CollectAgentTraceData(builder)
     builder = builder.AsData()
-    data = json.loads(builder.GetTraceFor(trace_data.CPU_TRACE_DATA))
+    data = json.loads(
+        builder.GetTraceFor(trace_data.CPU_TRACE_DATA)['traceEvents'])
 
     for snapshot in data:
       found_unittest_process = False
@@ -137,6 +139,16 @@ class CpuTracingAgentTest(unittest.TestCase):
           found_unittest_process = True
 
       self.assertTrue(found_unittest_process)
+
+  @decorators.Enabled('linux', 'mac', 'win')
+  def testTraceSpecifiesTelemetryClockDomain(self):
+    builder = trace_data.TraceDataBuilder()
+    self._agent.StartAgentTracing(self._config, 0)
+    self._agent.StopAgentTracing()
+    self._agent.CollectAgentTraceData(builder)
+    cpu_trace = builder.AsData().GetTraceFor(trace_data.CPU_TRACE_DATA)
+
+    self.assertEqual(cpu_trace['metadata']['clock-domain'], 'TELEMETRY')
 
   @decorators.Enabled('win')
   def testWindowsCanHandleProcessesWithSpaces(self):

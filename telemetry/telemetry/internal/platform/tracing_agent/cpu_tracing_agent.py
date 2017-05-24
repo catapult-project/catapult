@@ -305,7 +305,12 @@ class CpuTracingAgent(tracing_agent.TracingAgent):
            'Agent is still taking snapshots when data is collected.')
     self._snapshot_ongoing = False
     data = json.dumps(self._FormatSnapshotsData())
-    trace_data_builder.AddTraceFor(trace_data.CPU_TRACE_DATA, data)
+    trace_data_builder.AddTraceFor(trace_data.CPU_TRACE_DATA, {
+        "traceEvents": data,
+        "metadata": {
+            "clock-domain": "TELEMETRY"
+        }
+    })
 
   def _FormatSnapshotsData(self):
     """Format raw data into Object Event specified in Trace Format document."""
