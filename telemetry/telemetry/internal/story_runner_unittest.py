@@ -1224,8 +1224,7 @@ class StoryRunnerTest(unittest.TestCase):
     try:
       options.output_dir = tmp_path
       rc = story_runner.RunBenchmark(fake_benchmark, options)
-      # The exception from not having a matching name is caught and the return
-      # code is set to a failure code.
-      self.assertEqual(rc, 255)
+      # Test should return 0 since only error messages are logged.
+      self.assertEqual(rc, 0)
     finally:
       shutil.rmtree(tmp_path)

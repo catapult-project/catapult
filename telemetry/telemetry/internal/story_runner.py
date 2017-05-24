@@ -383,10 +383,8 @@ def RunBenchmark(benchmark, finder_options):
           expectations=expectations)
       return_code = min(254, len(results.failures))
       # We want to make sure that all expectations are linked to real stories,
-      # but we also do not want bad expectations to stop a run completely. Doing
-      # the check here allows us to return a failure code for bad expectations,
-      # while still collecting perf data.
-      benchmark.ValidateExpectations(stories)
+      # this will log error messages if names do not match what is in the set.
+      benchmark.GetBrokenExpectations(stories)
     except Exception:
       exception_formatter.PrintFormattedException()
       return_code = 255

@@ -267,10 +267,11 @@ class Benchmark(command_line.Command):
       raise NotImplementedError('This test has no "page_set" attribute.')
     return self.page_set()  # pylint: disable=not-callable
 
-  def ValidateExpectations(self, story_set):
+  def GetBrokenExpectations(self, story_set):
     self.InitializeExpectations()
     if self._expectations:
-      self._expectations.ValidateAgainstStorySet(story_set)
+      return self._expectations.GetBrokenExpectations(story_set)
+    return []
 
   # TODO(rnephew): Rename InitializeExpectations to GetExpectations
   def InitializeExpectations(self):

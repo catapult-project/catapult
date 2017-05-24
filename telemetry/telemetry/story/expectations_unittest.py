@@ -259,23 +259,20 @@ class StoryExpectationsTest(unittest.TestCase):
     with self.assertRaises(AssertionError):
       FooExpectations()
 
-  def testValidateAgainstStorySetNotMatching(self):
+  def testGetBrokenExpectationsNotMatching(self):
     class FooExpectations(expectations.StoryExpectations):
       def SetExpectations(self):
         self.DisableStory('bad_name', [expectations.ALL], 'crbug.com/123')
 
     e = FooExpectations()
     s = MockStorySet([MockStory('good_name')])
-    with self.assertRaises(TypeError):
-      e.ValidateAgainstStorySet(s)
+    self.assertEqual(e.GetBrokenExpectations(s), ['bad_name'])
 
-  def testValidateAgainstStorySetMatching(self):
+  def testGetBrokenExpectationsMatching(self):
     class FooExpectations(expectations.StoryExpectations):
       def SetExpectations(self):
         self.DisableStory('good_name', [expectations.ALL], 'crbug.com/123')
 
     e = FooExpectations()
     s = MockStorySet([MockStory('good_name')])
-    e.ValidateAgainstStorySet(s)
-    # If no exception is thrown, then it means that the validation passed.
-
+    self.assertEqual(e.GetBrokenExpectations(s), [])
