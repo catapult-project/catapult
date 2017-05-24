@@ -67,10 +67,20 @@ found in the LICENSE file.
          * Determines whether or not this is bisectable.
          */
         computeCanBisect(bisectInfo) {
+          if (bisectInfo == null || !bisectInfo.canBisect) {
+            return false;
+          }
+
+          // We can't check how big the range is if they're git hashes, so just
+          // let them bisect since bisectInfo.canBisect is true.
+          if (typeof bisectInfo.badRev == 'string' ||
+              typeof bisectInfo.goodRev == 'string') {
+            return true;
+          }
+
           // If there's only a single revision in the range, bisecting
           // is pointless and the button should be disabled.
-          return (bisectInfo != null && bisectInfo.canBisect &&
-              (bisectInfo.badRev > bisectInfo.goodRev + 1));
+          return (bisectInfo.badRev > bisectInfo.goodRev + 1);
         },
 
         /**

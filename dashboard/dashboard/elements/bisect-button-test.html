@@ -47,5 +47,16 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(button);
     assert.isFalse(button.$.button.disabled);
   }, testOptions);
+
+  test('strings_ButtonEnabled', function() {
+    const button = document.createElement('bisect-button');
+    button.bisectInfo = {
+      goodRev: 'abc123',
+      badRev: 'def456',
+      canBisect: true
+    };
+    this.addHTMLOutput(button);
+    assert.isFalse(button.$.button.disabled);
+  }, testOptions);
 });
 </script>
