@@ -521,6 +521,11 @@ class ListTestsTest(testing_common.TestCase):
   def testPost_GetTestsForTestPath_Selected_Preselected(self):
     self._AddSampleData()
 
+    test = utils.TestKey(
+        'Chromium/win7/scrolling/commit_time/www.yahoo.com').get()
+    test.has_rows = True
+    test.put()
+
     response = self.testapp.post('/list_tests', {
         'type': 'test_path_dict',
         'test_path_dict': json.dumps({
@@ -529,8 +534,7 @@ class ListTestsTest(testing_common.TestCase):
         'return_selected': '1'})
 
     self.assertEqual(
-        ['Chromium/win7/scrolling/commit_time',
-         'Chromium/win7/scrolling/commit_time/www.yahoo.com'],
+        ['Chromium/win7/scrolling/commit_time/www.yahoo.com'],
         json.loads(response.body))
 
   def testPost_GetTestsForTestPath_Selected_All(self):
@@ -548,8 +552,7 @@ class ListTestsTest(testing_common.TestCase):
         'return_selected': '1'})
 
     self.assertEqual(
-        ['Chromium/win7/scrolling/commit_time',
-         'Chromium/win7/scrolling/commit_time/www.cnn.com'],
+        ['Chromium/win7/scrolling/commit_time/www.cnn.com'],
         json.loads(response.body))
 
   def testPost_GetTestsForTestPath_Unselected_Core_NoParent(self):
