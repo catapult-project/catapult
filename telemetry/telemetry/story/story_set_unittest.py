@@ -118,3 +118,12 @@ class StorySetTest(unittest.TestCase):
     story_set.AddStory(foo_story)
     story_set.RemoveStory(foo_story)
     story_set.AddStory(foo_story)
+
+  def testAddStoryAndVerifyName(self):
+    story_set = story.StorySet(verify_names=True)
+    named_story = StoryFoo(name='foo')
+    unnamed_story = StoryFoo()
+
+    story_set.AddStory(named_story)
+    with self.assertRaises(AssertionError):
+      story_set.AddStory(unnamed_story)
