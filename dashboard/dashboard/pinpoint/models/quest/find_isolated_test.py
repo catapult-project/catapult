@@ -21,10 +21,9 @@ class _FindIsolatedTest(unittest.TestCase):
     self.testbed.init_memcache_stub()
     ndb.get_context().clear_cache()
 
+    change = change_module.Change(change_module.Dep('src', 'f9f2b720'))
     isolated.Put((
-        ('Mac Builder', 'f9f2b720', 'telemetry_perf_tests', '7c7e90be'),
-        ('Mac Builder', 'githash2', 'telemetry_perf_tests', 'isohash2'),
-        ('Mac Builder', 'githash3', 'telemetry_perf_tests', 'isohash3'),
+        ('Mac Builder', change, 'telemetry_perf_tests', '7c7e90be'),
     ))
 
   def tearDown(self):
@@ -53,38 +52,6 @@ class IsolateLookupTest(_FindIsolatedTest):
     self.assertExecutionSuccess(execution)
     self.assertEqual(execution.result_arguments, {'isolated_hash': '7c7e90be'})
 
-  def testIsolateLookupSuccessWithOneDep(self):
-    base_commit = change_module.Dep('src', 'f9f2b720')
-    deps = (change_module.Dep('repository 2', 'githash2'),)
-    change = change_module.Change(base_commit, deps)
-    execution = find_isolated.FindIsolated('Mac Pro Perf').Start(change)
-    execution.Poll()
-
-    self.assertExecutionSuccess(execution)
-    self.assertEqual(execution.result_arguments, {'isolated_hash': 'isohash2'})
-
-  def testChangeHasMultipleDeps(self):
-    base_commit = change_module.Dep('src', 'f9f2b720')
-    deps = (
-        change_module.Dep('repository 2', 'githash2'),
-        change_module.Dep('repository 3', 'githash3')
-    )
-    change = change_module.Change(base_commit, deps)
-    execution = find_isolated.FindIsolated('Mac Pro Perf').Start(change)
-    execution.Poll()
-
-    self.assertExecutionFailure(execution)
-
-  def testChangeHasPatch(self):
-    change = change_module.Change(
-        change_module.Dep('src', 'f9f2b720'),
-        patch=change_module.Patch('https://codereview.chromium.org',
-                                  2570613003, 1))
-    execution = find_isolated.FindIsolated('Mac Pro Perf').Start(change)
-    execution.Poll()
-
-    self.assertExecutionFailure(execution)
-
   def testNoIsolatedAvailable(self):
     change = change_module.Change(change_module.Dep('src', 'bad_hash'))
     execution = find_isolated.FindIsolated('Mac Pro Perf').Start(change)
@@ -106,12 +73,12 @@ class BuilderLookupTest(_FindIsolatedTest):
         ('Win x64 Builder', 'Win Zenbook Perf'),
     )
 
+    change = change_module.Change(change_module.Dep('src', 'git hash'))
     isolated.Put(
-        (builder, 'git hash', 'telemetry_perf_tests', hex(hash(builder)))
+        (builder, change, 'telemetry_perf_tests', hex(hash(builder)))
         for builder, _ in builder_testers)
 
     for builder, tester in builder_testers:
-      change = change_module.Change(change_module.Dep('src', 'git hash'))
       execution = find_isolated.FindIsolated(tester).Start(change)
       execution.Poll()
 

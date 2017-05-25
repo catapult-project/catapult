@@ -15,6 +15,7 @@ import json
 import webapp2
 
 from dashboard.common import utils
+from dashboard.pinpoint.models import change as change_module
 from dashboard.pinpoint.models import isolated
 
 
@@ -26,9 +27,31 @@ class Isolated(webapp2.RequestHandler):
   A get request looks up an isolated hash from the builder, commit, and target.
   """
 
-  def get(self, builder_name, git_hash, target):
+  def get(self):
+    """Look up an isolated hash.
+
+    Args:
+      builder_name: The name of the builder that produced the isolated.
+      change: The Change the isolated is for, as a JSON string.
+      target: The isolated target.
+    """
+    # Get parameters.
+    parameters = (
+        ('builder_name', str),
+        ('change', lambda x: change_module.Change.FromDict(json.loads(x))),
+        ('target', str),
+    )
     try:
-      isolated_hash = isolated.Get(builder_name, git_hash, target)
+      # pylint: disable=unbalanced-tuple-unpacking
+      builder_name, change, target = self._ValidateParameters(parameters)
+    except (KeyError, TypeError, ValueError) as e:
+      self.response.set_status(400)
+      self.response.write(e)
+      return
+
+    # Get.
+    try:
+      isolated_hash = isolated.Get(builder_name, change, target)
     except KeyError as e:
       self.response.set_status(404)
       self.response.write(e)
@@ -41,8 +64,7 @@ class Isolated(webapp2.RequestHandler):
 
     Args:
       builder_name: The name of the builder that produced the isolated.
-      git_hash: The git hash of the commit the isolated is for. If the isolated
-          is for a DEPS roll, it's the git hash of the commit inside the roll.
+      change: The Change the isolated is for, as a JSON string.
       isolated_map: A JSON dict mapping the target names to the isolated hashes.
     """
     # Check permissions.
@@ -52,38 +74,56 @@ class Isolated(webapp2.RequestHandler):
       return
 
     # Get parameters.
-    required_parameters = ('builder_name', 'git_hash', 'isolated_map')
-
-    for given_parameter in self.request.POST:
-      if given_parameter not in required_parameters:
-        self.response.set_status(400)
-        self.response.write('Unknown parameter: %s' % given_parameter)
-        return
-
-    for required_parameter in required_parameters:
-      if required_parameter not in self.request.POST:
-        self.response.set_status(400)
-        self.response.write('Missing parameter: %s' % required_parameter)
-        return
-
-      if not self.request.get(required_parameter):
-        self.response.set_status(400)
-        self.response.write('Empty parameter: %s' % required_parameter)
-        return
-
-    builder_name = self.request.get('builder_name')
-    git_hash = self.request.get('git_hash')
-    isolated_map = self.request.get('isolated_map')
-
-    # Validate parameters.
+    parameters = (
+        ('builder_name', str),
+        ('change', lambda x: change_module.Change.FromDict(json.loads(x))),
+        ('isolated_map', json.loads),
+    )
     try:
-      isolated_map = json.loads(isolated_map)
-    except ValueError:
+      # pylint: disable=unbalanced-tuple-unpacking
+      builder_name, change, isolated_map = self._ValidateParameters(parameters)
+    except (KeyError, TypeError, ValueError) as e:
       self.response.set_status(400)
-      self.response.write('isolated_map is not valid JSON: %s' % isolated_map)
+      self.response.write(e)
       return
 
     # Put information into the datastore.
-    isolated_infos = {(builder_name, git_hash, target, isolated_hash)
+    isolated_infos = {(builder_name, change, target, isolated_hash)
                       for target, isolated_hash in isolated_map.iteritems()}
     isolated.Put(isolated_infos)
+
+  def _ValidateParameters(self, parameters):
+    """Ensure the right parameters are present and valid.
+
+    Args:
+      parameters: Iterable of (name, converter) tuples where name is the
+                  parameter name and converter is a function used to validate
+                  and convert that parameter into its internal representation.
+
+    Returns:
+      A list of parsed parameter values.
+
+    Raises:
+      TypeError: The wrong parameters are present.
+      ValueError: The parameters have invalid values.
+    """
+    parameter_names = tuple(parameter_name for parameter_name, _ in parameters)
+    for given_parameter in self.request.params:
+      if given_parameter not in parameter_names:
+        raise TypeError('Unknown parameter: %s' % given_parameter)
+
+    parameter_values = []
+
+    for parameter_name, parameter_converter in parameters:
+      if parameter_name not in self.request.params:
+        raise TypeError('Missing parameter: %s' % parameter_name)
+
+      parameter_value = self.request.get(parameter_name)
+      if not parameter_value:
+        raise ValueError('Empty parameter: %s' % parameter_name)
+
+      parameter_value = parameter_converter(parameter_value)
+
+      parameter_values.append(parameter_value)
+
+    return parameter_values

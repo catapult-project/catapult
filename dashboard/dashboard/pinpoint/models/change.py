@@ -46,9 +46,17 @@ class Change(collections.namedtuple('Change',
   def all_deps(self):
     return tuple([self.base_commit] + list(self.deps))
 
-  @property
-  def most_specific_commit(self):
-    return self.deps[-1] if self.deps else self.base_commit
+  @classmethod
+  def FromDict(cls, data):
+    base_commit = Dep.FromDict(data['base_commit'])
+
+    kwargs = {}
+    if 'deps' in data:
+      kwargs['deps'] = tuple(Dep.FromDict(dep) for dep in data['deps'])
+    if 'patch' in data:
+      kwargs['patch'] = Patch.FromDict(data['patch'])
+
+    return cls(base_commit, **kwargs)
 
   @classmethod
   def Midpoint(cls, change_a, change_b):
@@ -109,6 +117,10 @@ class Dep(collections.namedtuple('Dep', ('repository', 'git_hash'))):
     gitiles_service.CommitInfo(self.repository_url, self.git_hash)
 
   @classmethod
+  def FromDict(cls, data):
+    return cls(data['repository'], data['git_hash'])
+
+  @classmethod
   def Midpoint(cls, dep_a, dep_b):
     """Return a Dep halfway between the two given Deps.
 
@@ -146,6 +158,10 @@ class Patch(collections.namedtuple('Patch', ('server', 'issue', 'patchset'))):
 
   def __str__(self):
     return '%s/%d/%d' % (self.server, self.issue, self.patchset)
+
+  @classmethod
+  def FromDict(cls, data):
+    return cls(data['server'], data['issue'], data['patchset'])
 
 
 def _ValidateChangeLinearity(change_a, change_b):

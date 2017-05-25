@@ -36,7 +36,6 @@ class ChangeTest(unittest.TestCase):
     self.assertEqual(c.base_commit, base_commit)
     self.assertEqual(c.deps, (dep,))
     self.assertEqual(c.all_deps, (base_commit, dep))
-    self.assertEqual(c.most_specific_commit, dep)
     self.assertEqual(c.patch, patch)
 
   @mock.patch('dashboard.services.gitiles_service.CommitRange')

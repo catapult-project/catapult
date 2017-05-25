@@ -32,7 +32,13 @@ class _FindIsolatedExecution(execution.Execution):
 
   def _Poll(self):
     # Look for the .isolated in our cache.
-    isolated_hash = _LookUpIsolated(self._builder_name, self._change)
+    # TODO: Support other isolated targets.
+    target = 'telemetry_perf_tests'
+    try:
+      isolated_hash = isolated.Get(self._builder_name, self._change, target)
+    except KeyError:
+      isolated_hash = None
+
     if isolated_hash:
       self._Complete(result_arguments={'isolated_hash': isolated_hash})
       return
@@ -40,30 +46,6 @@ class _FindIsolatedExecution(execution.Execution):
     # TODO: Request a fresh build using Buildbucket.
     raise NotImplementedError('Building commits outside of the Perf '
                               'waterfall is not implemented yet.')
-
-
-def _LookUpIsolated(builder_name, change):
-  # The continuous builders build most commits, so find out if the .isolated we
-  # want has already been built and cached.
-
-  # The continuous builders build commits as they land. If the commit is a DEPS
-  # roll, the builder may break up the roll into its component commits and build
-  # each one individually. It does not descend into rolls recurisvely. So we'll
-  # only find the Change if it has no patches and at most one dep.
-
-  if len(change.deps) > 1:
-    return None
-
-  if change.patch:
-    return None
-
-  git_hash = change.most_specific_commit.git_hash
-  target = 'telemetry_perf_tests'  # TODO: Support other isolated targets.
-
-  try:
-    return isolated.Get(builder_name, git_hash, target)
-  except KeyError:
-    return None
 
 
 def _BuilderNameForConfiguration(configuration):
