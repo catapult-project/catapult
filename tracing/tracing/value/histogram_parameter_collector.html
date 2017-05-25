@@ -64,8 +64,11 @@ tr.exportTo('tr.v', function() {
         }
         const displayLabel = getDisplayLabel(hist);
 
-        this.labelsToStartTimes_.set(displayLabel, Math.min(
-            startTime, this.labelsToStartTimes_.get(displayLabel, 0)));
+        if (this.labelsToStartTimes_.has(displayLabel)) {
+          startTime = Math.min(startTime,
+              this.labelsToStartTimes_.get(displayLabel));
+        }
+        this.labelsToStartTimes_.set(displayLabel, startTime);
 
         if (!telemetry) continue;
 
