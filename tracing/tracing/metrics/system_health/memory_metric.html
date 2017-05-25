@@ -68,7 +68,7 @@ tr.exportTo('tr.metrics.sh', function() {
    *
    * @param {!tr.Model} model The trace model from which the global dumps
    *     should be extracted.
-   * @param {!tr.b.math.Range=} opt_rangeOfInterest If proided, global memory
+   * @param {!tr.b.math.Range=} opt_rangeOfInterest If provided, global memory
    *     dumps that do not inclusively intersect the range will be skipped.
    * @return {!Map<string, !Array<!tr.model.GlobalMemoryDump>} A map from
    *     browser names to the associated global memory dumps.
@@ -409,6 +409,19 @@ tr.exportTo('tr.metrics.sh', function() {
     }
   };
 
+  const SHIM_ALLOCATED_OBJECTS_SIZE = {
+    name: 'shim_allocated_objects_size',
+    unit: sizeInBytes_smallerIsBetter,
+    buildDescriptionPrefix(componentPath, processName) {
+      return buildChromeValueDescriptionPrefix(componentPath, processName, {
+        userFriendlyPropertyName: 'size of all objects allocated through shim',
+        totalUserFriendlyPropertyName:
+            'size of all allocated objects through shim',
+        componentPreposition: 'by'
+      });
+    }
+  };
+
   const LOCKED_SIZE = {
     name: 'locked_size',
     unit: sizeInBytes_smallerIsBetter,
@@ -445,6 +458,7 @@ tr.exportTo('tr.metrics.sh', function() {
   const CHROME_VALUE_PROPERTIES = [
     EFFECTIVE_SIZE,
     ALLOCATED_OBJECTS_SIZE,
+    SHIM_ALLOCATED_OBJECTS_SIZE,
     LOCKED_SIZE,
     PEAK_SIZE
   ];
@@ -835,7 +849,7 @@ tr.exportTo('tr.metrics.sh', function() {
    *       component: ['system', 'native_heap'],
    *       property: 'proportional_resident_size',
    *       value: pssExtractedFromProcessDump2,
-   *       descriptionPrefixBuilder: function(componentPath) {
+   *       descriptionPrefixBuilder(componentPath) {
    *         return 'PSS of ' + componentPath.join('/') + ' in';
    *       }
    *     });

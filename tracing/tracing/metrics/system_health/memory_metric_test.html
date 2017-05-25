@@ -392,7 +392,8 @@ tr.b.unittest.testSuite(function() {
     pmdBrowser1.memoryAllocatorDumps = [
       newAllocatorDump(pmdBrowser1, 'malloc', {numerics: {
         size: 8,
-        allocated_objects_size: 4
+        allocated_objects_size: 4,
+        shim_allocated_objects_size: 3,
       }})
     ];
     pmdBrowser1.totals = {
@@ -544,7 +545,8 @@ tr.b.unittest.testSuite(function() {
     pmdBrowser3.memoryAllocatorDumps = [
       newAllocatorDump(pmdBrowser3, 'malloc', {numerics: {
         size: 8000,
-        allocated_objects_size: 4000
+        allocated_objects_size: 4000,
+        shim_allocated_objects_size: 3000
       }})
     ];
     const pmdRendererB3 = addProcessMemoryDump(gmd3, pRendererB, {ts: 61});
@@ -626,6 +628,13 @@ tr.b.unittest.testSuite(function() {
       description: 'total size of all allocated objects reported by Chrome ' +
           'for all processes in Chrome'
     },
+    'memory:chrome:all_processes:reported_by_chrome:shim_allocated_objects_size':
+    {
+      value: [3, 0, 3000, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total size of all allocated objects through shim ' +
+          'reported by Chrome for all processes in Chrome'
+    },
     'memory:chrome:all_processes:reported_by_chrome:peak_size':
     {
       value: [0, 2 + 20 + 200, 0, 0],
@@ -674,6 +683,13 @@ tr.b.unittest.testSuite(function() {
       value: [8 + 16, 120 - 40, 8000, 80000],
       unit: sizeInBytes_smallerIsBetter,
       description: 'effective size of malloc in all processes in Chrome'
+    },
+    'memory:chrome:all_processes:reported_by_chrome:malloc:shim_allocated_objects_size':
+    {
+      value: [3, 0, 3000, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'size of all objects allocated through shim by malloc in ' +
+              'all processes in Chrome'
     },
     'memory:chrome:all_processes:reported_by_chrome:malloc:allocated_objects_size':
     {
@@ -871,6 +887,13 @@ tr.b.unittest.testSuite(function() {
       description: 'total size of all allocated objects reported by Chrome ' +
           'for the browser process in Chrome'
     },
+    'memory:chrome:browser_process:reported_by_chrome:shim_allocated_objects_size':
+    {
+      value: [3, 0, 3000, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total size of all allocated objects through shim ' +
+          'reported by Chrome for the browser process in Chrome'
+    },
     'memory:chrome:browser_process:reported_by_chrome:malloc:effective_size': {
       value: [8, 120 - 40, 8000, 80000],
       unit: sizeInBytes_smallerIsBetter,
@@ -882,6 +905,13 @@ tr.b.unittest.testSuite(function() {
       unit: sizeInBytes_smallerIsBetter,
       description: 'size of all objects allocated by malloc in the ' +
               'browser process in Chrome'
+    },
+    'memory:chrome:browser_process:reported_by_chrome:malloc:shim_allocated_objects_size':
+    {
+      value: [3, 0, 3000, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'size of all objects allocated through shim by malloc in ' +
+              'the browser process in Chrome'
     },
     'memory:chrome:browser_process:reported_by_chrome:tracing:effective_size': {
       value: [0, 40, 0, 0],
