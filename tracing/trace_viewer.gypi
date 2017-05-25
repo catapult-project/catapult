@@ -540,6 +540,7 @@
       'tracing/value/diagnostics/related_histogram_set.html',
       'tracing/value/diagnostics/revision_info.html',
       'tracing/value/diagnostics/scalar.html',
+      'tracing/value/diagnostics/tag_map.html',
       'tracing/value/diagnostics/telemetry_info.html',
       'tracing/value/diagnostics/unmergeable_diagnostic_set.html',
       'tracing/value/histogram.html',

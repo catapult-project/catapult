@@ -589,6 +589,42 @@ class RelatedHistogramBreakdown(RelatedHistogramMap):
     return result
 
 
+class TagMap(Diagnostic):
+  NAME = 'tagmap'
+
+  def __init__(self, info):
+    super(TagMap, self).__init__()
+    self._tags_to_story_display_names = dict(
+        (k, set(v)) for k, v in info.get(
+            'tagsToStoryDisplayNames', {}).iteritems())
+
+  def _AsDictInto(self, d):
+    d['tagsToStoryDisplayNames'] = dict(
+        (k, list(v)) for k, v in self.tags_to_story_display_names.iteritems())
+
+  @staticmethod
+  def FromDict(d):
+    return TagMap(d)
+
+  @property
+  def tags_to_story_display_names(self):
+    return self._tags_to_story_display_names
+
+  def CanAddDiagnostic(self, other_diagnostic, unused_name,
+                       unused_parent_hist, unused_other_parent_hist):
+    return isinstance(other_diagnostic, TagMap)
+
+  def AddDiagnostic(self, other_diagnostic, unused_name,
+                    unused_parent_hist, unused_other_parent_hist):
+    for name, story_display_names in\
+        other_diagnostic.tags_to_story_display_names.iteritems():
+      if not name in self.tags_to_story_display_names:
+        self.tags_to_story_display_names[name] = set()
+
+      for t in story_display_names:
+        self.tags_to_story_display_names[name].add(t)
+
+
 class BuildbotInfo(Diagnostic):
   NAME = 'buildbot'
 

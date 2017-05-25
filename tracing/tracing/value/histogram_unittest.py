@@ -547,6 +547,76 @@ class BreakdownUnittest(unittest.TestCase):
     self.assertEqual(clone.Get('ninf'), float('-inf'))
 
 
+class TagMapUnittest(unittest.TestCase):
+  def testRoundtrip(self):
+    tags = {
+        'tag1': ['path1', 'path2', 'path3'],
+        'tag2': ['path1', 'path4'],
+        'tag3': ['path5'],
+    }
+    info = histogram.TagMap({'tagsToStoryDisplayNames': tags})
+    d = info.AsDict()
+    clone = histogram.Diagnostic.FromDict(d)
+    self.assertEqual(ToJSON(d), ToJSON(clone.AsDict()))
+    self.assertSetEqual(
+        clone.tags_to_story_display_names['tag1'], set(tags['tag1']))
+    self.assertSetEqual(
+        clone.tags_to_story_display_names['tag2'], set(tags['tag2']))
+    self.assertSetEqual(
+        clone.tags_to_story_display_names['tag3'], set(tags['tag3']))
+
+  def testMerge(self):
+    t0 = histogram.TagMap({
+        'tagsToStoryDisplayNames': {
+            'press': ['story0', 'story1'],
+            'desktop': ['story0', 'story1', 'story2']
+        }})
+
+    t1 = histogram.TagMap({
+        'tagsToStoryDisplayNames': {
+            'press': ['story3', 'story4'],
+            'android': ['story3', 'story4', 'story5']
+        }})
+
+    self.assertFalse(t0.CanAddDiagnostic(
+        histogram.Generic(''), None, None, None))
+    self.assertTrue(t0.CanAddDiagnostic(t1, None, None, None))
+
+    m0 = histogram.Diagnostic.FromDict(t0.AsDict())
+
+    self.assertTrue(isinstance(m0, histogram.TagMap))
+    self.assertFalse(
+        m0.CanAddDiagnostic(histogram.Generic(''), None, None, None))
+    self.assertTrue(m0.CanAddDiagnostic(t1, None, None, None))
+
+    m0.AddDiagnostic(t1, None, None, None)
+
+    m1 = histogram.Diagnostic.FromDict(t1.AsDict())
+    m1.AddDiagnostic(t0, None, None, None)
+
+    self.assertDictEqual(m0.AsDict(), m1.AsDict())
+
+    m2 = histogram.Diagnostic.FromDict(t1.AsDict())
+
+    self.assertNotEqual(m2.AsDict(), m0.AsDict())
+
+    # Test round-tripping of merged diagnostic
+    clone = histogram.Diagnostic.FromDict(m0.AsDict())
+
+    self.assertSetEqual(
+        set(clone.tags_to_story_display_names.keys()),
+        set(['press', 'desktop', 'android']))
+    self.assertSetEqual(
+        clone.tags_to_story_display_names.get('press'),
+        set(['story0', 'story1', 'story3', 'story4']))
+    self.assertSetEqual(
+        clone.tags_to_story_display_names.get('desktop'),
+        set(['story0', 'story1', 'story2']))
+    self.assertSetEqual(
+        clone.tags_to_story_display_names.get('android'),
+        set(['story3', 'story4', 'story5']))
+
+
 class BuildbotInfoUnittest(unittest.TestCase):
   def testRoundtrip(self):
     info = histogram.BuildbotInfo({

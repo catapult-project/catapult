@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/base/utils.html">
+<link rel="import" href="/tracing/value/diagnostics/diagnostic.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.v.d', function() {
+  class TagMap extends tr.v.d.Diagnostic {
+    constructor(opt_info) {
+      super();
+      this.tagsToStoryDisplayNames_ = new Map();
+
+      if (opt_info) {
+        for (const [tag, storyDisplayNames] of Object.entries(
+            opt_info.tagsToStoryDisplayNames || {})) {
+          this.tagsToStoryDisplayNames.set(tag, new Set(storyDisplayNames));
+        }
+      }
+    }
+
+    clone() {
+      const clone = new TagMap();
+      clone.addDiagnostic(this);
+      return clone;
+    }
+
+    addToHistogram(hist) {
+      hist.diagnostics.set(tr.v.d.TagMap.NAME, this);
+    }
+
+    equals(other) {
+      if (!(other instanceof TagMap)) return false;
+
+      const keys1 = new Set(this.tagsToStoryDisplayNames.keys());
+      const keys2 = new Set(other.tagsToStoryDisplayNames.keys());
+      if (!tr.b.setsEqual(keys1, keys2)) {
+        return false;
+      }
+
+      for (const key of keys1) {
+        if (!tr.b.setsEqual(
+            this.tagsToStoryDisplayNames.get(key),
+            other.tagsToStoryDisplayNames.get(key))) {
+          return false;
+        }
+      }
+
+      return true;
+    }
+
+    canAddDiagnostic(otherDiagnostic) {
+      return otherDiagnostic instanceof TagMap;
+    }
+
+    addDiagnostic(otherDiagnostic) {
+      for (const [name, storyDisplayNames] of
+          otherDiagnostic.tagsToStoryDisplayNames) {
+        if (!this.tagsToStoryDisplayNames.has(name)) {
+          this.tagsToStoryDisplayNames.set(name, new Set());
+        }
+        for (const t of storyDisplayNames) {
+          this.tagsToStoryDisplayNames.get(name).add(t);
+        }
+      }
+
+      return this;
+    }
+
+    asDictInto_(d) {
+      d.tagsToStoryDisplayNames = {};
+      for (const [name, value] of this.tagsToStoryDisplayNames) {
+        d.tagsToStoryDisplayNames[name] = Array.from(value);
+      }
+    }
+
+    /**
+     * @returns {Map.<string, Set.<string>>} A map of tag names to sets of story
+     * display names.
+     */
+    get tagsToStoryDisplayNames() {
+      return this.tagsToStoryDisplayNames_;
+    }
+
+    static fromDict(d) {
+      const info = new TagMap();
+
+      for (const [name, values] of
+          Object.entries(d.tagsToStoryDisplayNames || {})) {
+        info.tagsToStoryDisplayNames.set(name, new Set(values));
+      }
+
+      return info;
+    }
+  }
+
+  // Diagnostics generally do not need a constant name or getFromHistogram().
+  // TagMap is a special kind of Diagnostic that is produced by the
+  // benchmark to map tags to sets of story display names.
+
+  // Histograms produced by telemetry all have a single TagMap at this key
+  // in their DiagnosticMap.
+  TagMap.NAME = 'tagmap';
+
+  tr.v.d.Diagnostic.register(TagMap);
+
+  return {
+    TagMap,
+  };
+});
+</script>
