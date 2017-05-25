@@ -482,6 +482,36 @@ found in the LICENSE file.
         return this.currentSelectedPath_;
       },
 
+      async setCurrentSelectedPath(testPath) {
+        this.updatingSubtestMenus = true;
+        for (let boxIndex = 0; boxIndex < testPath.length; ++boxIndex) {
+          const menu = this.getSelectionMenu(boxIndex);
+          const name = testPath[boxIndex];
+          let found = false;
+
+          for (const menuItem of menu.items) {
+            if (menuItem.name === name) {
+              found = true;
+              menu.selectedItem = menuItem;
+              break;
+            }
+          }
+
+          if (!found) {
+            this.updatingSubtestMenus = false;
+            throw new Error(`Invalid testPath ${testPath} @ ${boxIndex}`);
+          }
+
+          if (boxIndex == 0) {
+            this.updateTestSuiteDescription();
+            await this.updateBotMenu();
+          } else {
+            await this.updateSubtestMenus(boxIndex + 1);
+          }
+        }
+        this.updatingSubtestMenus = false;
+      },
+
       getCurrentUnselected() {
         return this.currentUnselectedTests_;
       },

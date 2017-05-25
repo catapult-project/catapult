@@ -41,8 +41,12 @@ found in the LICENSE file.
   <script>
     'use strict';
     Polymer({
-
       is: 'report-page',
+
+      listeners: {
+        populateTestPicker: 'populateTestPicker_',
+      },
+
       properties: {
         charts: {
           type: Array,
@@ -119,6 +123,11 @@ found in the LICENSE file.
         events.addEventListener(window, 'uriload', this.onUriLoad.bind(this));
         this.uriController = new uri.Controller(this.getPageState.bind(this));
         this.uriController.load();
+      },
+
+      async populateTestPicker_(event) {
+        this.testPicker.scrollIntoViewIfNeeded();
+        await this.testPicker.setCurrentSelectedPath(event.detail.testPath);
       },
 
       /**

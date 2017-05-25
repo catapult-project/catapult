@@ -23,7 +23,21 @@ found in the LICENSE file.
         text-decoration: none;
         cursor: default;
       }
+      paper-button {
+        color: white;
+        font-weight: bold;
+        min-width: initial;
+        padding: 5px;
+        margin: 0;
+        background: #4285f4;
+        font-size: 18px;
+      }
+      h3 {
+        display: inline-block;
+      }
     </style>
+
+    <paper-button raised on-click="populateTestPicker_">&#8632;</paper-button>
 
     <h3>
       <template is="dom-repeat" items="{{titleParts}}">
@@ -95,6 +109,21 @@ found in the LICENSE file.
           this.currentIndex = this.titleParts.length - 1;
         }
         this.suiteDescriptions = this.getSuitesAndDescriptions();
+      },
+
+      populateTestPicker_(event) {
+        // chart-title's testPaths have a different structure from test-picker's
+        // testPaths.
+        let testPath = [];
+        for (const part of this.titleParts) {
+          testPath.push.apply(testPath, part.split('/'));
+        }
+
+        // chart-title's testPaths are in a different order from test-picker's
+        // testPaths.
+        testPath = [testPath[2], testPath[1]].concat(testPath.slice(3));
+
+        this.fire('populateTestPicker', {testPath});
       },
 
       onClicked(event) {
