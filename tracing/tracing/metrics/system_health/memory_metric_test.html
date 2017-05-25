@@ -3624,6 +3624,48 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(breakdown.get('gpu_process'), undefined);
   });
 
+  test('componentsHaveBreakdowns', function() {
+    const model = tr.c.TestUtils.newModel(function(model) {
+      const pBrowser = createChromeBrowserProcess(model);
+
+      const gmd = addGlobalMemoryDump(model, {ts: 20});
+      const pmdBrowser = addProcessMemoryDump(gmd, pBrowser, {ts: 19});
+      const v8Dump = newAllocatorDump(pmdBrowser, 'v8', {numerics: {
+        size: 10,
+      }});
+
+      const isolateDumpA = addChildDump(v8Dump, 'isolate_A');
+      addChildDump(isolateDumpA, 'malloc', {numerics: {
+        size: 1,
+        peak_size: 2
+      }});
+
+      const heapDumpA = addChildDump(isolateDumpA, 'heap_spaces', {numerics: {
+        size: 42,
+        allocated_objects_size: 36
+      }});
+
+      addChildDump(heapDumpA, 'code_space', {numerics: {
+        allocated_objects_size: 1,
+        size: 2
+      }});
+
+      pmdBrowser.memoryAllocatorDumps = [v8Dump];
+    });
+
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.memoryMetric(histograms, model);
+    const prefix = 'memory:chrome:';
+    const suffix = ':reported_by_chrome:v8:effective_size';
+    const browserHistogram =
+        histograms.getHistogramNamed(`${prefix}browser_process${suffix}`);
+
+    const codeSpace = browserHistogram
+      .diagnostics.get('components').get('heap')
+      .diagnostics.get('components').get('code_space');
+    assert.strictEqual(codeSpace.average, 2);
+  });
+
   test('dumpIdBrowserClashThrows', function() {
     const model = tr.c.TestUtils.newModel(function(model) {
       const pWebView = createWebViewProcess(model);

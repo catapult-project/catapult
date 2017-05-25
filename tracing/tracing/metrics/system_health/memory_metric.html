@@ -54,8 +54,8 @@ tr.exportTo('tr.metrics.sh', function() {
       tr.e.chrome.chrome_processes.CHROME_PROCESS_NAMES;
 
   function memoryMetric(values, model, opt_options) {
-    const rangeOfInterest = opt_options ? opt_options.rangeOfInterest :
-      undefined;
+    const rangeOfInterest =
+      opt_options ? opt_options.rangeOfInterest : undefined;
     const browserNameToGlobalDumps =
         splitGlobalDumpsByBrowserName(model, rangeOfInterest);
     addGeneralMemoryDumpValues(browserNameToGlobalDumps, values);
@@ -1060,14 +1060,16 @@ tr.exportTo('tr.metrics.sh', function() {
       propertyToBuilder.forEach(function(builders, property) {
         const tree = builders.buildTopDownTreeView();
         reportComponentDataAsValues(browserName, sourceName, property,
-            [] /* componentPath */, tree, values, customComponentTreeModifier);
+            [] /* processPath */, [] /* componentPath */, tree, values,
+            customComponentTreeModifier);
       });
     });
   }
 
   /**
    * For the given |browserName| (e.g. 'chrome'), |property|
-   * (e.g. EFFECTIVE_SIZE), |componentPath| (e.g. ['v8']), add
+   * (e.g. EFFECTIVE_SIZE), |processPath| (e.g. ['browser_process']),
+   * |componentPath| (e.g. ['v8']), add
    * a tr.v.Histogram with |unit| aggregating the total
    * values of the associated |componentNode| across all timestamps
    * (corresponding to global memory dumps associated with the given browser)
@@ -1079,39 +1081,61 @@ tr.exportTo('tr.metrics.sh', function() {
    * See addMemoryDumpValues for more details.
    */
   function reportComponentDataAsValues(browserName, sourceName, property,
-      componentPath, tree, values, customComponentTreeModifier) {
-    const breakdown = new tr.v.d.RelatedHistogramBreakdown();
-    breakdown.colorScheme =
-        tr.e.chrome.chrome_processes.PROCESS_COLOR_SCHEME_NAME;
+      processPath, componentPath, tree, values, customComponentTreeModifier,
+      opt_cachedHistograms) {
+    const cachedHistograms = opt_cachedHistograms || new Map();
+    function recurse(processPath, componentPath, node) {
+      return reportComponentDataAsValues(browserName, sourceName, property,
+          processPath, componentPath, node, values,
+          customComponentTreeModifier, cachedHistograms);
+    }
 
-    // For each process report the value for this component.
-    tree.children[0].forEach(function(processTree, processName) {
-      customComponentTreeModifier(processTree);
-      const numeric = buildNamedMemoryNumericFromNode(browserName,
-          sourceName, property, processName, componentPath, processTree);
-      // Report the memory value.
-      values.addHistogram(numeric);
-      // Add it to the breakdown.
-      breakdown.set(processName, numeric);
-    });
+    function buildHistogram(processPath, componentPath, node) {
+      return buildNamedMemoryNumericFromNode(
+          browserName,
+          sourceName,
+          property,
+          processPath.length === 0 ? 'all_processes' : processPath[0],
+          componentPath,
+          node);
+    }
 
-    // Report the total over 'all' processes.
     customComponentTreeModifier(tree);
-    const numeric = buildNamedMemoryNumericFromNode(browserName, sourceName,
-        property, 'all_processes', componentPath, tree);
-    numeric.diagnostics.set('processes', breakdown);
-    values.addHistogram(numeric);
+    const histogram = buildHistogram(processPath, componentPath, tree);
+    if (cachedHistograms.has(histogram.name)) {
+      return cachedHistograms.get(histogram.name);
+    }
+    cachedHistograms.set(histogram.name, histogram);
 
-    // Recursively report memory values for sub-components.
-    const depth = componentPath.length;
-    componentPath.push(undefined);
-    tree.children[1].forEach(function(childNode, childName) {
-      componentPath[depth] = childName;
-      reportComponentDataAsValues(
-          browserName, sourceName, property, componentPath,
-          childNode, values, customComponentTreeModifier);
-    });
-    componentPath.pop();
+    const processBreakdown = new tr.v.d.RelatedHistogramBreakdown();
+    processBreakdown.colorScheme =
+      tr.e.chrome.chrome_processes.PROCESS_COLOR_SCHEME_NAME;
+    for (const [childProcessName, childProcessNode] of tree.children[0]) {
+      processPath.push(childProcessName);
+      const childProcessHistogram =
+        recurse(processPath, componentPath, childProcessNode);
+      processBreakdown.set(childProcessName, childProcessHistogram);
+      processPath.pop();
+    }
+
+    const componentBreakdown = new tr.v.d.RelatedHistogramBreakdown();
+    for (const [childComponentName, childComponentNode] of tree.children[1]) {
+      componentPath.push(childComponentName);
+      const childComponentHistogram =
+        recurse(processPath, componentPath, childComponentNode);
+      componentBreakdown.set(childComponentName, childComponentHistogram);
+      componentPath.pop();
+    }
+
+    values.addHistogram(histogram);
+    if (tree.children[0].size > 0) {
+      histogram.diagnostics.set('processes', processBreakdown);
+    }
+    if (tree.children[1].size > 0) {
+      histogram.diagnostics.set('components', componentBreakdown);
+    }
+
+    return histogram;
   }
 
   /**
