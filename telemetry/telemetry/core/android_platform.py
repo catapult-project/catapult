@@ -33,6 +33,9 @@ class AndroidPlatform(platform.Platform):
   def IsSvelte(self):
     return self._platform_backend.IsSvelte()
 
+  def IsAosp(self):
+    return self._platform_backend.IsAosp()
+
   def LaunchAndroidApplication(self,
                                start_intent,
                                is_app_ready_predicate=None,

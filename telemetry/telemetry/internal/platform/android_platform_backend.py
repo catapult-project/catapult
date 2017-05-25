@@ -159,8 +159,14 @@ class AndroidPlatformBackend(
     description = self._device.GetProp('ro.build.description', cache=True)
     if description is not None:
       return 'svelte' in description
-    else:
-      return False
+    return False
+
+  def IsAosp(self):
+    description = self._device.GetProp('ro.build.description', cache=True)
+    if description is not None:
+      return 'aosp' in description
+    return False
+
 
   def GetRemotePort(self, port):
     return forwarder.Forwarder.DevicePortForHostPort(port) or 0

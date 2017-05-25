@@ -58,6 +58,22 @@ class AndroidPlatformBackendTest(unittest.TestCase):
       self.assertFalse(backend.IsSvelte())
 
   @decorators.Disabled('chromeos', 'mac', 'win')
+  def testIsAosp(self):
+    with mock.patch('devil.android.device_utils.DeviceUtils.GetProp',
+                    return_value='aosp'):
+      backend = android_platform_backend.AndroidPlatformBackend(
+          android_device.AndroidDevice('12345'))
+      self.assertTrue(backend.IsAosp())
+
+  @decorators.Disabled('chromeos', 'mac', 'win')
+  def testIsNotAosp(self):
+    with mock.patch('devil.android.device_utils.DeviceUtils.GetProp',
+                    return_value='foo'):
+      backend = android_platform_backend.AndroidPlatformBackend(
+          android_device.AndroidDevice('12345'))
+      self.assertFalse(backend.IsAosp())
+
+  @decorators.Disabled('chromeos', 'mac', 'win')
   def testGetCpuStats(self):
     proc_stat_content = (
         '7702 (.android.chrome) S 167 167 0 0 -1 1077936448 '
