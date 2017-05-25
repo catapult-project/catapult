@@ -243,6 +243,20 @@ UI element tests that make sure that an element is instantiable should have
 names that start with “`instantiate`”. These tests should, as a general rule,
 should not make assertions.
 
+Assertions should specify the actual value before the expected value.
+
+```javascript
+assert.strictEqual(value.get(), 42);
+assert.isBelow(value.get(), 42);
+assert.isAbove(value.get(), 42);
+assert.lengthOf(value.get(), 42);
+```
+
+```python
+self.assertEqual(value.Get(), 42)
+self.assertLess(value.Get(), 42)
+```
+
 ### ECMAScript 2015 (ES6) features
 
 **Use of ES6 features is prohibited unless explicitly approved in the table below.** However, we're currently working to allow them.
