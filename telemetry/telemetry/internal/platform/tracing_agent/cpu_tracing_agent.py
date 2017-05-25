@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import json
 import os
 import re
 import subprocess
@@ -304,9 +303,8 @@ class CpuTracingAgent(tracing_agent.TracingAgent):
     assert not self._snapshot_ongoing, (
            'Agent is still taking snapshots when data is collected.')
     self._snapshot_ongoing = False
-    data = json.dumps(self._FormatSnapshotsData())
     trace_data_builder.AddTraceFor(trace_data.CPU_TRACE_DATA, {
-        "traceEvents": data,
+        "traceEvents": self._FormatSnapshotsData(),
         "metadata": {
             "clock-domain": "TELEMETRY"
         }

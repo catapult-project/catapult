@@ -1,7 +1,6 @@
 # Copyright 2016 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import json
 import sys
 import time
 import unittest
@@ -110,8 +109,7 @@ class CpuTracingAgentTest(unittest.TestCase):
     self._agent.StopAgentTracing()
     self._agent.CollectAgentTraceData(builder)
     builder = builder.AsData()
-    data = json.loads(
-        builder.GetTraceFor(trace_data.CPU_TRACE_DATA)['traceEvents'])
+    data = builder.GetTraceFor(trace_data.CPU_TRACE_DATA)['traceEvents']
 
     self.assertEquals(set(data[0].keys()), set(TRACE_EVENT_KEYS))
     self.assertEquals(set(data[0]['args']['snapshot'].keys()),
@@ -128,8 +126,7 @@ class CpuTracingAgentTest(unittest.TestCase):
     self._agent.StopAgentTracing()
     self._agent.CollectAgentTraceData(builder)
     builder = builder.AsData()
-    data = json.loads(
-        builder.GetTraceFor(trace_data.CPU_TRACE_DATA)['traceEvents'])
+    data = builder.GetTraceFor(trace_data.CPU_TRACE_DATA)['traceEvents']
 
     for snapshot in data:
       found_unittest_process = False
