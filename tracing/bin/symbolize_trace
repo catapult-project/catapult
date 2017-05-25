@@ -980,7 +980,6 @@ class Symbolizer(object):
       symbolized_name = sym_info.name if sym_info.name else unsymbolized_name
       for frame in frames:
         frame.name = symbolized_name
-        frame.ext.source_path = sym_info.source_path
 
     symbolizer = elf_symbolizer.ELFSymbolizer(symfile.symbolizable_path,
                                               self.symbolizer_path,
