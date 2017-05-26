@@ -27,9 +27,9 @@ tr.exportTo('tr.mre', function() {
         canonical_url: this.canonicalUrl_
       };
 
-      this._asDictInto(d);
+      this.asDictInto_(d);
       if (d.type === undefined) {
-        throw new Error('_asDictInto must set type field');
+        throw new Error('asDictInto_ must set type field');
       }
     },
 
@@ -60,7 +60,7 @@ tr.exportTo('tr.mre', function() {
   URLFileHandle.prototype = {
     __proto__: FileHandle.prototype,
 
-    _asDictInto(handleDict) {
+    asDictInto_(handleDict) {
       handleDict.urlToLoad = this.urlToLoad;
       handleDict.type = 'url';
     },
@@ -89,7 +89,7 @@ tr.exportTo('tr.mre', function() {
   InMemoryFileHandle.prototype = {
     __proto__: FileHandle.prototype,
 
-    _asDictInto(handleDict) {
+    asDictInto_(handleDict) {
       handleDict.data = this.fileData;
       handleDict.type = 'in-memory';
     },

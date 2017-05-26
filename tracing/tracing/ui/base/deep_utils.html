@@ -11,12 +11,12 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.b', function() {
-  function _iterateElementDeeplyImpl(element, cb, thisArg, includeElement) {
+  function iterateElementDeeplyImpl(element, cb, thisArg, includeElement) {
     if (includeElement && cb.call(thisArg, element)) return true;
 
     if (element.root &&
         element.root !== element &&
-        _iterateElementDeeplyImpl(element.root, cb, thisArg, false)) {
+        iterateElementDeeplyImpl(element.root, cb, thisArg, false)) {
       // Some elements, most notably Polymer template dom-repeat='...'
       // elements, are their own shadow root. Make sure that we avoid infinite
       // recursion by avoiding these elements.
@@ -24,7 +24,7 @@ tr.exportTo('tr.b', function() {
     }
     const children = Polymer.dom(element).children;
     for (let i = 0; i < children.length; i++) {
-      if (_iterateElementDeeplyImpl(children[i], cb, thisArg, true)) {
+      if (iterateElementDeeplyImpl(children[i], cb, thisArg, true)) {
         return true;
       }
     }
@@ -33,7 +33,7 @@ tr.exportTo('tr.b', function() {
   }
 
   function iterateElementDeeply(element, cb, thisArg) {
-    _iterateElementDeeplyImpl(element, cb, thisArg, false);
+    iterateElementDeeplyImpl(element, cb, thisArg, false);
   }
 
   function findDeepElementMatchingPredicate(element, predicate) {

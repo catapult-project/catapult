@@ -121,7 +121,7 @@ tr.exportTo('tr.v.ui', function() {
         throw new Error('Scalar span already registered with group: ' + group);
       }
       context.spans.add(span);
-      this._markGroupDirtyAndScheduleUpdate(group);
+      this.markGroupDirtyAndScheduleUpdate_(group);
     },
 
     onScalarSpanRemoved(group, span) {
@@ -130,7 +130,7 @@ tr.exportTo('tr.v.ui', function() {
         throw new Error('Scalar span not registered with group: ' + group);
       }
       context.spans.delete(span);
-      this._markGroupDirtyAndScheduleUpdate(group);
+      this.markGroupDirtyAndScheduleUpdate_(group);
     },
 
     onScalarSpanUpdated(group, span) {
@@ -138,10 +138,10 @@ tr.exportTo('tr.v.ui', function() {
       if (!context.spans.has(span)) {
         throw new Error('Scalar span not registered with group: ' + group);
       }
-      this._markGroupDirtyAndScheduleUpdate(group);
+      this.markGroupDirtyAndScheduleUpdate_(group);
     },
 
-    _markGroupDirtyAndScheduleUpdate(group) {
+    markGroupDirtyAndScheduleUpdate_(group) {
       const alreadyDirty = this.dirtyGroups_.size > 0;
       this.dirtyGroups_.add(group);
       if (!alreadyDirty) {
