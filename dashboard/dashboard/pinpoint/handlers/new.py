@@ -12,22 +12,39 @@ class New(webapp2.RequestHandler):
   """Handler that cooks up a fresh Pinpoint job."""
 
   def post(self):
+    """Start a new Pinpoint job."""
+
     # TODO(dtu): Read the parameters from the request object.
     # Not doing it for now because it's easier to run tests this way.
     configuration = 'Mac Pro 10.11 Perf'
     test_suite = 'speedometer'
     test = None
     metric = None
-    deps = (change.Dep('src', '2c1f8ed028edcb44c954cb2a0625a8f278933481'),
-            change.Dep('src', '858ceafc7cf4f11a6549b8c1ace839a45d943d68'),)
+    auto_explore = True
+
+    change_1 = {
+        'base_commit': {
+            'repository': 'src',
+            'git_hash': '2c1f8ed028edcb44c954cb2a0625a8f278933481',
+        }
+    }
+    change_2 = {
+        'base_commit': {
+            'repository': 'src',
+            'git_hash': '858ceafc7cf4f11a6549b8c1ace839a45d943d68',
+        }
+    }
 
     # Validate parameters.
-    if metric and not test_suite:
-      raise ValueError("Specified a metric but there's no test_suite to run.")
-
-    # Validate commit hashes.
-    for dep in deps:
-      dep.Validate()
+    try:
+      if metric and not test_suite:
+        raise ValueError("Specified a metric but there's no test_suite to run.")
+      changes = (change.Change.FromDict(change_1),
+                 change.Change.FromDict(change_2))
+    except (KeyError, ValueError) as e:
+      self.response.set_status(400)
+      self.response.write(e)
+      return
 
     # Convert parameters to canonical internal representation.
 
@@ -37,11 +54,11 @@ class New(webapp2.RequestHandler):
         test_suite=test_suite,
         test=test,
         metric=metric,
-        auto_explore=True)
+        auto_explore=auto_explore)
 
     # Add changes.
-    for dep in deps:
-      job.AddChange(change.Change(dep))
+    for c in changes:
+      job.AddChange(c)
 
     # Put job into datastore.
     job_id = job.put().urlsafe()
@@ -50,6 +67,4 @@ class New(webapp2.RequestHandler):
     job.Start()
     job.put()
 
-    # Show status page.
-    # TODO: Should return a JSON result instead. Use Cloud Endpoints.
-    self.redirect('/job/' + job_id)
+    self.response.write(job_id)
