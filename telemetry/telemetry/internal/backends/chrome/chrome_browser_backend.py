@@ -12,7 +12,6 @@ from telemetry.core import util
 from telemetry import decorators
 from telemetry.internal.backends import browser_backend
 from telemetry.internal.backends.chrome import extension_backend
-from telemetry.internal.backends.chrome import system_info_backend
 from telemetry.internal.backends.chrome import tab_list_backend
 from telemetry.internal.backends.chrome_inspector import devtools_client_backend
 from telemetry.internal.browser import user_agent
@@ -38,7 +37,6 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
 
     self._supports_tab_control = supports_tab_control
     self._devtools_client = None
-    self._system_info_backend = None
 
     self._output_profile_path = browser_options.output_profile_path
     self._extensions_to_load = browser_options.extensions_to_load
@@ -267,14 +265,11 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     return self.GetSystemInfo() != None
 
   def GetSystemInfo(self):
-    if self._system_info_backend is None:
-      self._system_info_backend = system_info_backend.SystemInfoBackend(
-          self._port)
     # TODO(crbug.com/706336): Remove this condional branch once crbug.com/704024
     # is fixed.
     if util.IsRunningOnCrosDevice():
-      return self._system_info_backend.GetSystemInfo(timeout=30)
-    return self._system_info_backend.GetSystemInfo()
+      return self.devtools_client.GetSystemInfo(timeout=30)
+    return self.devtools_client.GetSystemInfo(timeout=10)
 
   @property
   def supports_memory_dumping(self):

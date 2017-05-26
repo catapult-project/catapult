@@ -9,7 +9,6 @@ import re
 import urllib2
 
 from telemetry.internal.backends.chrome import chrome_browser_backend
-from telemetry.internal.backends.chrome import system_info_backend
 
 import py_utils
 
@@ -29,7 +28,6 @@ class IosBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._webviews = []
     self._port = None
     self._page = None
-    self._system_info_backend = None
     self.UpdateRunningBrowsersInfo()
 
   def UpdateRunningBrowsersInfo(self):
@@ -103,10 +101,7 @@ class IosBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     return debug_urls
 
   def GetSystemInfo(self):
-    if self._system_info_backend is None:
-      self._system_info_backend = system_info_backend.SystemInfoBackend(
-          self._port, self._page)
-    return self._system_info_backend.GetSystemInfo()
+    return None
 
   def IsBrowserRunning(self):
     return bool(self._webviews)

@@ -14,6 +14,7 @@ from telemetry.internal.backends.chrome_inspector import devtools_http
 from telemetry.internal.backends.chrome_inspector import inspector_backend
 from telemetry.internal.backends.chrome_inspector import inspector_websocket
 from telemetry.internal.backends.chrome_inspector import memory_backend
+from telemetry.internal.backends.chrome_inspector import system_info_backend
 from telemetry.internal.backends.chrome_inspector import tracing_backend
 from telemetry.internal.backends.chrome_inspector import websocket
 from telemetry.internal.platform.tracing_agent import chrome_tracing_agent
@@ -101,6 +102,7 @@ class DevToolsClientBackend(object):
     self._browser_inspector_websocket = None
     self._tracing_backend = None
     self._memory_backend = None
+    self._system_info_backend = None
     self._app_backend = app_backend
     self._devtools_context_map_backend = _DevToolsContextMapBackend(
         self._app_backend, self)
@@ -184,6 +186,9 @@ class DevToolsClientBackend(object):
     if self._memory_backend:
       self._memory_backend.Close()
       self._memory_backend = None
+    if self._system_info_backend:
+      self._system_info_backend.Close()
+      self._system_info_backend = None
 
     if self._devtools_context_map_backend:
       self._devtools_context_map_backend.Clear()
@@ -315,6 +320,12 @@ class DevToolsClientBackend(object):
       self._memory_backend = memory_backend.MemoryBackend(
           self._browser_inspector_websocket)
 
+  def _CreateSystemInfoBackendIfNeeded(self):
+    if not self._system_info_backend:
+      self._CreateAndConnectBrowserInspectorWebsocketIfNeeded()
+      self._system_info_backend = system_info_backend.SystemInfoBackend(
+          self._browser_inspector_websocket)
+
   def _CreateAndConnectBrowserInspectorWebsocketIfNeeded(self):
     if not self._browser_inspector_websocket:
       self._browser_inspector_websocket = (
@@ -369,6 +380,10 @@ class DevToolsClientBackend(object):
       self._tab_ids = None
     finally:
       self._tracing_backend.CollectTraceData(trace_data_builder, timeout)
+
+  def GetSystemInfo(self, timeout):
+    self._CreateSystemInfoBackendIfNeeded()
+    return self._system_info_backend.GetSystemInfo(timeout)
 
   def DumpMemory(self, timeout=30):
     """Dumps memory.
