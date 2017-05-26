@@ -7,13 +7,11 @@
 from telemetry.internal.platform import android_device
 from telemetry.internal.platform import cros_device
 from telemetry.internal.platform import desktop_device
-from telemetry.internal.platform import ios_device
 
 DEVICES = [
   android_device,
   cros_device,
   desktop_device,
-  ios_device,
 ]
 
 
