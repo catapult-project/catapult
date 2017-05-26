@@ -13,7 +13,9 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/base/utils.html">
 <link rel="import" href="/tracing/extras/importer/heap_dump_trace_event_importer.html">
+<link rel="import" href="/tracing/extras/importer/legacy_heap_dump_trace_event_importer.html">
 <link rel="import" href="/tracing/extras/importer/oboe.html">
+<link rel="import" href="/tracing/extras/importer/profiling_dictionary_reader.html">
 <link rel="import" href="/tracing/extras/importer/trace_code_entry.html">
 <link rel="import" href="/tracing/extras/importer/trace_code_map.html">
 <link rel="import" href="/tracing/extras/importer/v8/codemap.html">
@@ -49,6 +51,10 @@ tr.exportTo('tr.e.importer', function() {
   const deepCopy = tr.b.deepCopy;
   const ColorScheme = tr.b.ColorScheme;
   const HeapDumpTraceEventImporter = tr.e.importer.HeapDumpTraceEventImporter;
+  const LegacyHeapDumpTraceEventImporter =
+      tr.e.importer.LegacyHeapDumpTraceEventImporter;
+  const StreamingEventExpander = tr.e.importer.StreamingEventExpander;
+  const ProfilingDictionaryReader = tr.e.importer.ProfilingDictionaryReader;
 
   function getEventColor(event, opt_customName) {
     if (event.cname) {
@@ -169,6 +175,10 @@ tr.exportTo('tr.e.importer', function() {
 
     // Dump ID -> PID -> [process memory dump events].
     this.allMemoryDumpEvents_ = {};
+
+    // Unpacks size, count, stackId and heapId from 'P' events. Also remembers
+    // stack frame and type information.
+    this.heapProfileExpander = new ProfilingDictionaryReader();
 
     // PID -> Object type ID -> Object type name.
     this.objectTypeNameMap_ = {};
@@ -2786,8 +2796,31 @@ tr.exportTo('tr.e.importer', function() {
     },
 
     parseMemoryDumpHeapDumps_(processMemoryDump, dumps, pid, dumpId) {
-      const rawHeapDumps = dumps.heaps;
-      if (rawHeapDumps === undefined) return;
+      const idPrefix = 'p' + pid + ':';
+      let importer;
+      if (dumps.heaps) {
+        const processTypeMap = this.objectTypeNameMap_[pid];
+        if (processTypeMap === undefined) {
+          this.model_.importWarning({
+            type: 'memory_dump_parse_error',
+            message: 'Missing mapping from object type IDs to names.'
+          });
+        }
+        importer = new LegacyHeapDumpTraceEventImporter(this.model_,
+            processMemoryDump, processTypeMap, idPrefix, dumpId, dumps.heaps);
+      } else if (dumps.heaps_v2) {
+        const data = dumps.heaps_v2;
+        this.heapProfileExpander = this.heapProfileExpander.expandData(data);
+        // TODO(hjd): Unify how we are reading & inflating stack frame data.
+        this.addNewStackFramesFromExpander_(this.heapProfileExpander, idPrefix);
+        importer = new HeapDumpTraceEventImporter(this.heapProfileExpander,
+            this.model_.stackFrames, processMemoryDump, idPrefix, this.model_);
+      }
+
+      if (!importer) return;
+
+      const heapDumps = importer.parse();
+      if (!heapDumps) return;
 
       if (processMemoryDump.heapDumps !== undefined) {
         this.model_.importWarning({
@@ -2799,35 +2832,24 @@ tr.exportTo('tr.e.importer', function() {
         return;
       }
 
-      const processTypeMap = this.objectTypeNameMap_[pid];
-      if (processTypeMap === undefined) {
-        this.model_.importWarning({
-          type: 'memory_dump_parse_error',
-          message: 'Missing mapping from object type IDs to names.'
-        });
-      }
-
-      const idPrefix = 'p' + pid + ':';
-      const heapDumps = {};
-
-      const importer = new HeapDumpTraceEventImporter(
-          this.model_, processMemoryDump, processTypeMap, idPrefix, dumpId);
-
-      for (const allocatorName in rawHeapDumps) {
-        const rawHeapDump = rawHeapDumps[allocatorName];
-        const heapDump = importer.parseRawHeapDump(rawHeapDump, allocatorName);
-
-        // Throw away heap dumps with no entries. This can happen if all raw
-        // entries in the trace are skipped for some reason (e.g. invalid leaf
-        // stack frame ID).
-        if (heapDump !== undefined && heapDump.entries.length > 0) {
-          heapDumps[allocatorName] = heapDump;
-        }
-      }
-
       if (Object.keys(heapDumps).length > 0) {
         processMemoryDump.heapDumps = heapDumps;
       }
+    },
+
+    addNewStackFramesFromExpander_(expander, idPrefix) {
+      const nodeMap = expander.getNewMap('nodes');
+      const newStackFrames = {};
+      for (const [id, stackFrame] of nodeMap.entries()) {
+        if (!this.model_.stackFrames[idPrefix + id]) {
+          newStackFrames[id] = {
+            id,
+            name: expander.getString(stackFrame.name_sid),
+          };
+          if (stackFrame.parent) newStackFrames[id].parent = stackFrame.parent;
+        }
+      }
+      this.importStackFrames_(newStackFrames, idPrefix);
     },
 
     parseMemoryDumpLevelOfDetail_(levelsOfDetail, dumps, pid,

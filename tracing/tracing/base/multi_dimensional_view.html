@@ -294,6 +294,7 @@ tr.exportTo('tr.b', function() {
     this.topDownTreeViewRoot_ = undefined;
     this.topDownHeavyViewRoot_ = undefined;
     this.bottomUpHeavyViewNode_ = undefined;
+    this.complete_ = false;
 
     this.maxDimensionDepths_ = new Array(dimensions);
     for (let d = 0; d < dimensions; d++) {
@@ -404,6 +405,35 @@ tr.exportTo('tr.b', function() {
           nodeValue.totalState = Math.max(nodeValue.totalState, LOWER_BOUND);
         }
       }
+    },
+
+
+    get complete() {
+      return this.complete_;
+    },
+
+    /**
+     * Force all MultiDimensionalViewNode's to have totalState EXACT.
+     * Set to true only if all SELF paths for the tree have been provided.
+     * Setting unnecessary if providing TOTAL values.
+     *
+     * MultiDimensionalViewBuilder allows both 'self' and 'total' values to be
+     * entered for paths then later when the veiws are constructed it
+     * determines the total and whether that total is exact or a lower bound
+     * for each node. When total values are provided we know that that total
+     * is exact however when self values are provided the computed totals
+     * *could* be complete ...if the user has provided the all the self
+     * values for the whole tree. We can't know this within the
+     * MultiDimensionalViewBuilder so this flag allows the user to specify
+     * that this is the case.
+     *
+     * Important: Can't be set once any view has been built.
+     */
+    set complete(isComplete) {
+      if (this.buildRoot_ === undefined) {
+        throw new Error('Can\'t set complete after any view has been built.');
+      }
+      this.complete_ = isComplete;
     },
 
     buildView(viewType) {
@@ -747,7 +777,9 @@ tr.exportTo('tr.b', function() {
             const residual = childNodeValues[v].total -
                 childNodeSelfSums[this.dimensions_ - 1][v];
             childResidualSums[v] += residual;
-            if (childNodeValues[v].totalState > NOT_PROVIDED) {
+            if (this.complete) {
+              nodeValues[v].totalState = EXACT;
+            } else if (childNodeValues[v].totalState > NOT_PROVIDED) {
               nodeValues[v].totalState = Math.max(
                   nodeValues[v].totalState, LOWER_BOUND);
             }
@@ -1029,7 +1061,9 @@ tr.exportTo('tr.b', function() {
         targetNodeValue.self += sourceNodeValue.self;
         if (addTotal) {
           targetNodeValue.total += sourceNodeValue.total;
-          if (sourceNodeValue.totalState > NOT_PROVIDED) {
+          if (this.complete) {
+            targetNodeValue.totalState = EXACT;
+          } else if (sourceNodeValue.totalState > NOT_PROVIDED) {
             targetNodeValue.totalState = Math.max(
                 targetNodeValue.totalState, LOWER_BOUND);
           }

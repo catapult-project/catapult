@@ -151,13 +151,14 @@ tr.b.unittest.testSuite(function() {
     return builder;
   }
 
-  function builderTest(testName, dimensions, valueCount, pathEntries,
-      expectedTopDownTreeViewStructure, expectedTopDownHeavyViewStructure,
-      expectedBottomUpHeavyViewStructure) {
+  function builderTest(testName, dimensions, valueCount, setComplete,
+      pathEntries, expectedTopDownTreeViewStructure,
+      expectedTopDownHeavyViewStructure, expectedBottomUpHeavyViewStructure) {
     test('builder_' + testName, function() {
       // Create a multi-dimensional tree builder and add all paths to it.
       const builder =
           createBuilderWithEntries(dimensions, valueCount, pathEntries);
+      builder.complete = setComplete;
 
       // Build and check the views.
       checkTree(
@@ -433,6 +434,7 @@ tr.b.unittest.testSuite(function() {
   }
 
   builderTest('zeroDimensions_noPaths', 0 /* dimensions */, 1 /* valueCount */,
+      false /* setComplete */,
       [],
       {  // Top-down tree view.
         title: [],
@@ -470,6 +472,7 @@ tr.b.unittest.testSuite(function() {
 
   builderTest('zeroDimensions_withPaths', 0 /* dimensions */,
       1 /* valueCount */,
+      false /* setComplete */,
       [
         { path: [], values: [2], kind: SELF },
         { path: [], values: [3], kind: TOTAL },
@@ -511,6 +514,7 @@ tr.b.unittest.testSuite(function() {
       });
 
   builderTest('oneDimension_noPaths', 1 /* dimensions */, 1 /* valueCount */,
+      false /* setComplete */,
       [],
       {  // Top-down tree view.
         title: [undefined],
@@ -554,6 +558,7 @@ tr.b.unittest.testSuite(function() {
 
   builderTest('oneDimension_zeroLengthPath', 1 /* dimensions */,
       1 /* valueCount */,
+      false /* setComplete */,
       [
         { path: [[]], values: [42], kind: SELF }
       ],
@@ -599,6 +604,7 @@ tr.b.unittest.testSuite(function() {
 
   builderTest('oneDimension_noRecursion', 1 /* dimensions */,
       1 /* valueCount */,
+      false /* setComplete */,
       [
         { path: [['A', 'B', 'C']], values: [10], kind: SELF },
         { path: [['A', 'B']], values: [20], kind: SELF },
@@ -1014,6 +1020,7 @@ tr.b.unittest.testSuite(function() {
 
   builderTest('oneDimension_simpleRecursion', 1 /* dimensions */,
       1 /* valueCount */,
+      false /* setComplete */,
       [
         { path: [['A']], values: [10], kind: SELF },
         { path: [['A', 'A', 'A']], values: [20], kind: SELF },
@@ -1230,6 +1237,7 @@ tr.b.unittest.testSuite(function() {
 
   builderTest('oneDimension_complexRecursion', 1 /* dimensions */,
       1 /* valueCount */,
+      false /* setComplete */,
       [
         { path: [['A', 'B', 'C']], values: [10], kind: SELF },
         { path: [['A', 'D', 'B', 'C', 'A', 'B', 'C']], values: [20],
@@ -2482,6 +2490,7 @@ tr.b.unittest.testSuite(function() {
 
   builderTest('oneDimension_withTotalSizes', 1 /* dimensions */,
       1 /* valueCount */,
+      false /* setComplete */,
       [
         { path: [['B', 'C']], values: [10], kind: TOTAL },
         { path: [['B', 'C', 'D']], values: [5], kind: TOTAL },
@@ -2789,6 +2798,7 @@ tr.b.unittest.testSuite(function() {
       });
 
   builderTest('oneDimension_protoTitle', 1 /* dimensions */, 1 /* valueCount */,
+      false /* setComplete */,
       [
         { path: [['__proto__']], values: [45], kind: SELF },
         { path: [['A']], values: [18], kind: SELF },
@@ -2963,6 +2973,7 @@ tr.b.unittest.testSuite(function() {
   // documentation).
   builderTest('oneDimension_documentationExample', 1 /* dimensions */,
       1 /* valueCount */,
+      false /* setComplete */,
       [
         { path: [['A']], values: [10], kind: SELF },
         { path: [['A']], values: [30], kind: TOTAL },
@@ -3301,6 +3312,7 @@ tr.b.unittest.testSuite(function() {
       });
 
   builderTest('twoDimensions_noPaths', 2 /* dimensions */, 1 /* valueCount */,
+      false /* setComplete */,
       [],
       {  // Top-down tree view.
         title: [undefined, undefined],
@@ -3349,6 +3361,7 @@ tr.b.unittest.testSuite(function() {
   // (MultiDimensionalViewNode.finalizeTotalValues_ documentation).
   builderTest('twoDimensions_totalCalculation', 2 /* dimensions */,
       1 /* valueCount */,
+      false /* setComplete */,
       [
         { path: [[], []], values: [10], kind: SELF },
         { path: [['A'], []], values: [21], kind: SELF },
@@ -3581,6 +3594,7 @@ tr.b.unittest.testSuite(function() {
   // (MultiDimensionalViewNode documentation).
   builderTest('twoDimensions_documentationExample1', 2 /* dimensions */,
       1 /* valueCount */,
+      false /* setComplete */,
       [
         { path: [['A', 'B'], ['T1', 'T2']], values: [1], kind: TOTAL },
         { path: [['A', 'B'], ['T1']], values: [2], kind: TOTAL },
@@ -4259,6 +4273,7 @@ tr.b.unittest.testSuite(function() {
   // (MultiDimensionalViewBuilder documentation).
   builderTest('twoDimensions_documentationExample2', 2 /* dimensions */,
       1 /* valueCount */,
+      false /* setComplete */,
       [
         { path: [['Saturday'], ['Cooking']], values: [1], kind: SELF },
         { path: [['Saturday'], ['Sports', 'Football']], values: [2],
@@ -4962,6 +4977,7 @@ tr.b.unittest.testSuite(function() {
   // See https://goo.gl/KY7zVE.
   builderTest('twoDimensions_heapDumpExample', 2 /* dimensions */,
       1 /* valueCount */,
+      false /* setComplete */,
       [
         { path: [['BrMain', 'Init'], ['T']], values: [151], kind: TOTAL },
         { path: [['BrMain', 'Init'], ['W']], values: [83], kind: TOTAL },
@@ -6228,6 +6244,7 @@ tr.b.unittest.testSuite(function() {
 
   builderTest('twoDimensions_oneRecursiveDimension', 2 /* dimensions */,
       1 /* valueCount */,
+      false /* setComplete */,
       [
         { path: [['A', 'B'], []], values: [1500], kind: TOTAL },
         { path: [['A', 'B', 'A'], []], values: [200], kind: TOTAL },
@@ -7197,6 +7214,7 @@ tr.b.unittest.testSuite(function() {
 
   builderTest('twoDimensions_twoRecursiveDimensions', 2 /* dimensions */,
       1 /* valueCount */,
+      false /* setComplete */,
       [
         { path: [['A', 'A', 'B'], ['1', '2', '2']], values: [10], kind: SELF },
         { path: [['A', 'A'], ['1', '2']], values: [40], kind: TOTAL },
@@ -9539,6 +9557,7 @@ tr.b.unittest.testSuite(function() {
       });
 
   builderTest('threeDimensions', 3 /* dimensions */, 1 /* valueCount */,
+      false /* setComplete */,
       [
         { path: [['A', 'B'], ['C', 'D'], ['E', 'F']], values: [b(0)],
           kind: SELF },
@@ -12464,8 +12483,241 @@ tr.b.unittest.testSuite(function() {
         ]
       });
 
+  builderTest('twoDimensionsComplete_totalCalculation', 2 /* dimensions */,
+      1 /* valueCount */,
+      true /* setComplete */,
+      [
+        { path: [[], []], values: [10], kind: SELF },
+        { path: [['A'], []], values: [21], kind: SELF },
+        { path: [['A'], []], values: [30], kind: TOTAL },
+        { path: [['B'], []], values: [25], kind: SELF },
+        { path: [['B'], []], values: [32], kind: TOTAL },
+        { path: [[], ['1']], values: [3], kind: SELF },
+        { path: [[], ['1']], values: [15], kind: TOTAL },
+        { path: [[], ['2']], values: [40], kind: SELF },
+        { path: [[], ['2']], values: [41], kind: TOTAL }
+      ],
+      {  // Top-down tree view.
+        title: [undefined, undefined],
+        values: [
+          {
+            total: 115,
+            self: 10,
+            totalState: EXACT
+          }
+        ],
+        children: [
+          [
+            {  // A, *.
+              title: ['A', undefined],
+              values: [
+                {
+                  total: 30,
+                  self: 21,
+                  totalState: EXACT
+                }
+              ],
+              children: [
+                [],
+                []
+              ]
+            },
+            {  // B, *.
+              title: ['B', undefined],
+              values: [
+                {
+                  total: 32,
+                  self: 25,
+                  totalState: EXACT
+                }
+              ],
+              children: [
+                [],
+                []
+              ]
+            }
+          ],
+          [
+            {  // *, 1.
+              title: [undefined, '1'],
+              values: [
+                {
+                  total: 15,
+                  self: 3,
+                  totalState: EXACT
+                }
+              ],
+              children: [
+                [],
+                []
+              ]
+            },
+            {  // *, 2.
+              title: [undefined, '2'],
+              values: [
+                {
+                  total: 41,
+                  self: 40,
+                  totalState: EXACT
+                }
+              ],
+              children: [
+                [],
+                []
+              ]
+            }
+          ]
+        ]
+      },
+      {  // Top-down heavy view.
+        title: [undefined, undefined],
+        values: [
+          {
+            total: 115,
+            self: 10,
+            totalState: EXACT
+          }
+        ],
+        children: [
+          [
+            {  // A, *.
+              title: ['A', undefined],
+              values: [
+                {
+                  total: 30,
+                  self: 21,
+                  totalState: EXACT
+                }
+              ],
+              children: [
+                [],
+                []
+              ]
+            },
+            {  // B, *.
+              title: ['B', undefined],
+              values: [
+                {
+                  total: 32,
+                  self: 25,
+                  totalState: EXACT
+                }
+              ],
+              children: [
+                [],
+                []
+              ]
+            }
+          ],
+          [
+            {  // *, 1.
+              title: [undefined, '1'],
+              values: [
+                {
+                  total: 15,
+                  self: 3,
+                  totalState: EXACT
+                }
+              ],
+              children: [
+                [],
+                []
+              ]
+            },
+            {  // *, 2.
+              title: [undefined, '2'],
+              values: [
+                {
+                  total: 41,
+                  self: 40,
+                  totalState: EXACT
+                }
+              ],
+              children: [
+                [],
+                []
+              ]
+            }
+          ]
+        ]
+      },
+      {  // Bottom-up heavy view.
+        title: [undefined, undefined],
+        values: [
+          {
+            total: 115,
+            self: 10,
+            totalState: EXACT
+          }
+        ],
+        children: [
+          [
+            {  // A, *.
+              title: ['A', undefined],
+              values: [
+                {
+                  total: 30,
+                  self: 21,
+                  totalState: EXACT
+                }
+              ],
+              children: [
+                [],
+                []
+              ]
+            },
+            {  // B, *.
+              title: ['B', undefined],
+              values: [
+                {
+                  total: 32,
+                  self: 25,
+                  totalState: EXACT
+                }
+              ],
+              children: [
+                [],
+                []
+              ]
+            }
+          ],
+          [
+            {  // *, 1.
+              title: [undefined, '1'],
+              values: [
+                {
+                  total: 15,
+                  self: 3,
+                  totalState: EXACT
+                }
+              ],
+              children: [
+                [],
+                []
+              ]
+            },
+            {  // *, 2.
+              title: [undefined, '2'],
+              values: [
+                {
+                  total: 41,
+                  self: 40,
+                  totalState: EXACT
+                }
+              ],
+              children: [
+                [],
+                []
+              ]
+            }
+          ]
+        ]
+      });
+
+
   builderTest('threeDimensions_twoValues', 3 /* dimensions */,
       2 /* valueCount */,
+      false /* setComplete */,
       [
         { path: [[], [], []], values: [1, 89], kind: SELF },
         { path: [['A'], [], []], values: [2, 34], kind: SELF },

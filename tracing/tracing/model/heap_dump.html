@@ -19,9 +19,14 @@ tr.exportTo('tr.model', function() {
    * particular context, which consists of a codepath (e.g. drawQuad <- draw <-
    * MessageLoop::RunTask) and an object type (e.g. HTMLImportLoader).
    *
+   * If |valuesAreTotals| is true the size and count of this entry are totals
+   * for this and all more specific entries, otherwise they are values just for
+   * this specific entry.
+   *
    * @{constructor}
    */
-  function HeapEntry(heapDump, leafStackFrame, objectTypeName, size, count) {
+  function HeapEntry(
+      heapDump, leafStackFrame, objectTypeName, size, count, valuesAreTotals) {
     this.heapDump = heapDump;
 
     // The leaf stack frame of the associated backtrace (e.g. drawQuad for the
@@ -35,6 +40,7 @@ tr.exportTo('tr.model', function() {
 
     this.size = size;
     this.count = count;
+    this.valuesAreTotals = valuesAreTotals;
   }
 
   /**
@@ -43,16 +49,20 @@ tr.exportTo('tr.model', function() {
    *
    * @{constructor}
    */
-  function HeapDump(processMemoryDump, allocatorName) {
+  function HeapDump(processMemoryDump, allocatorName, isComplete) {
     this.processMemoryDump = processMemoryDump;
     this.allocatorName = allocatorName;
+    this.isComplete = isComplete;
     this.entries = [];
   }
 
   HeapDump.prototype = {
-    addEntry(leafStackFrame, objectTypeName, size, count) {
+    addEntry(
+        leafStackFrame, objectTypeName, size, count, opt_valuesAreTotals) {
+      if (opt_valuesAreTotals === undefined) opt_valuesAreTotals = true;
+      const valuesAreTotals = opt_valuesAreTotals;
       const entry = new HeapEntry(
-          this, leafStackFrame, objectTypeName, size, count);
+          this, leafStackFrame, objectTypeName, size, count, valuesAreTotals);
       this.entries.push(entry);
       return entry;
     }

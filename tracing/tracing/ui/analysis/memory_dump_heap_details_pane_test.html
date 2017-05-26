@@ -181,6 +181,34 @@ tr.b.unittest.testSuite(function() {
     return [hd1, hd2];
   }
 
+  function createSelfHeapDumps(withCount) {
+    const model = new tr.Model();
+    const process = model.getOrCreateProcess(1);
+
+    function addHeapEntry(heapDump, stackFrames, objectTypeName, size, count) {
+      const leafStackFrame = stackFrames === undefined ? undefined :
+          tr.c.TestUtils.newStackTrace(model, stackFrames);
+      heapDump.addEntry(leafStackFrame, objectTypeName, size,
+          withCount ? count : undefined, false /* valuesAreTotals */);
+    }
+
+    // First timestamp.
+    const gmd1 = addGlobalMemoryDump(model, {ts: -10});
+    const pmd1 = addProcessMemoryDump(gmd1, process, {ts: -11});
+    const hd1 = new HeapDump(pmd1, 'partition_alloc');
+    hd1.isComplete = true;
+
+    addHeapEntry(hd1, ['MessageLoop::RunTask', 'a', 'AllocSomething'],
+        'v8::Context', 1024, 100);
+    addHeapEntry(hd1, ['MessageLoop::RunTask', 'a', 'b', 'AllocSomething'],
+        'v8::Context', 1024, 100);
+    addHeapEntry(hd1, ['MessageLoop::RunTask', 'a', 'b', 'c', 'AllocSomething'],
+        'v8::Context', 1024, 100);
+
+    return [hd1];
+  }
+
+
   function checkDisplayedElements(viewEl, displayExpectations) {
     assert.strictEqual(isElementDisplayed(viewEl.$.info_text),
         displayExpectations.infoText);
@@ -3986,6 +4014,30 @@ tr.b.unittest.testSuite(function() {
             size: [4194304, undefined, 4954521],
             defined: [true, false, true],
             children: 5  // No need to check the full structure again.
+          }
+        ]);
+  });
+
+  test('instantiate_selfHeapSingle', function() {
+    const heapDumps = createSelfHeapDumps(true).slice(0, 1);
+
+    const viewEl = tr.ui.analysis.createTestPane(
+        'tr-ui-a-memory-dump-heap-details-pane');
+    viewEl.heapDumps = heapDumps;
+    viewEl.rebuild();
+    this.addHTMLOutput(viewEl);
+
+    // Top-down tree view (default).
+    checkSplitView(viewEl,
+        { expectedCountColumns: true },
+        [
+          {
+            dimension: ROOT,
+            title: 'partition_alloc',
+            size: [1024 * 3],
+            count: [300],
+            defined: [true],
+            children: 2  // No need to check the full structure again.
           }
         ]);
   });

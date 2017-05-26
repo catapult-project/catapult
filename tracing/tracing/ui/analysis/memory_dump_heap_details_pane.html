@@ -190,7 +190,6 @@ tr.exportTo('tr.ui.analysis', function() {
     convertStackFrameNodeDimensionToChildDict_(
         stackFrameNode, dimensionIndex) {
       const childDict = {};
-
       let displayedChildrenTotalSize = 0;
       let displayedChildrenTotalCount = 0;
       let hasDisplayedChildren = false;
@@ -432,11 +431,16 @@ tr.exportTo('tr.ui.analysis', function() {
         const objectTypeNamePath = objectTypeName === undefined ?
             [] : [objectTypeName];
 
+        const valueKind = entry.valuesAreTotals ?
+            MultiDimensionalViewBuilder.ValueKind.TOTAL :
+            MultiDimensionalViewBuilder.ValueKind.SELF;
+
         builder.addPath([stackTracePath, objectTypeNamePath],
             [entry.size, entry.count],
-            MultiDimensionalViewBuilder.ValueKind.TOTAL);
+            valueKind);
       }
 
+      builder.complete = heapDump.isComplete;
       this.cachedBuilders_.set(heapDump, builder);
       return builder;
     },
