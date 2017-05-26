@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link type="text/css" rel="stylesheet" href="/dashboard/static/base.css">
+
+<link rel="import" href="/components/app-route/app-route.html">
+<link rel="import" href="/components/iron-form/iron-form.html">
+<link rel="import" href="/components/paper-button/paper-button.html">
+<link rel="import" href="/components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="/components/paper-input/paper-input.html">
+<link rel="import" href="/components/polymer/polymer.html">
+
+<dom-module id="new-page">
+  <template>
+    <style>
+    form > paper-button {
+      margin-top: 20px;
+    }
+    form > paper-button:not([disabled]) {
+      background: var(--paper-green-700);
+      color: white;
+    }
+    </style>
+
+    <app-route route="{{route}}" pattern=":configuration" query-params="{{queryParams}}"></app-route>
+
+    <form is="iron-form" id="form" method="post" action="/api/new">
+      <paper-input name="configuration" label="configuration" value="{{queryParams.configuration}}" required auto-validate></paper-input>
+      <paper-input name="test_suite" label="test_suite"></paper-input>
+      <paper-input name="test" label="test"></paper-input>
+      <paper-input name="metric" label="metric"></paper-input>
+      <paper-input name="start_repository" label="start_repository"></paper-input><paper-input name="start_git_hash" label="start_git_hash"></paper-input>
+      <paper-input name="end_repository" label="end_repository"></paper-input><paper-input name="end_git_hash" label="end_git_hash"></paper-input>
+      <paper-checkbox name="auto_explore" checked required>Automatically explore</paper-checkbox><br>
+      <paper-button id="submit" raised disabled onclick="_submit(event)">Create</paper-button>
+    </form>
+  </template>
+  <script>
+    'use strict';
+    Polymer({
+      is: 'new-page'
+    });
+
+    form.addEventListener('change', function(event) {
+      submit.disabled = !form.validate();
+    });
+
+    function _submit(event) {
+      Polymer.dom(event).localTarget.parentElement.submit();
+    }
+  </script>
+</dom-module>
