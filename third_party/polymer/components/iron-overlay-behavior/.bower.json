@@ -34,14 +34,14 @@
     "webcomponentsjs": "webcomponents/webcomponentsjs#^0.7.0"
   },
   "ignore": [],
-  "homepage": "https://github.com/polymerelements/iron-overlay-behavior",
+  "homepage": "https://github.com/PolymerElements/iron-overlay-behavior",
   "_release": "1.10.4",
   "_resolution": {
     "type": "version",
     "tag": "v1.10.4",
     "commit": "67713dbb5a65f18ae4ee01407e7264cc286cabca"
   },
-  "_source": "https://github.com/polymerelements/iron-overlay-behavior.git",
+  "_source": "https://github.com/PolymerElements/iron-overlay-behavior.git",
   "_target": "^1.0.0",
-  "_originalSource": "polymerelements/iron-overlay-behavior"
+  "_originalSource": "PolymerElements/iron-overlay-behavior"
 }

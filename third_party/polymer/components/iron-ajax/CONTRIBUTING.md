@@ -8,7 +8,7 @@ If you edit this file, your changes will get overridden :)
 You can however override the jsbin link with one that's customized to this
 specific element:
 
-jsbin=https://jsbin.com/cagaye/edit?html,output
+jsbin=https://jsbin.com/zeriha/2/edit?html,output
 -->
 
 # Polymer Elements
@@ -46,7 +46,7 @@ Polymer Elements are built in the open, and the Polymer authors eagerly encourag
  3. Click the `paper-foo` element.
  ```
 
- 2. **A reduced test case that demonstrates the problem.** If possible, please include the test case as a JSBin. Start with this template to easily import and use relevant Polymer Elements: [https://jsbin.com/cagaye/edit?html,output](https://jsbin.com/cagaye/edit?html,output).
+ 2. **A reduced test case that demonstrates the problem.** If possible, please include the test case as a JSBin. Start with this template to easily import and use relevant Polymer Elements: [https://jsbin.com/zeriha/2/edit?html,output](https://jsbin.com/zeriha/2/edit?html,output).
 
  3. **A list of browsers where the problem occurs.** This can be skipped if the problem is the same across all browsers.
 
