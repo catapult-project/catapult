@@ -22,6 +22,7 @@
 class TracingController {
   static get ATTACH_TIMEOUT_MS() { return 3000; }
   static get FLUSH_TIMEOUT_MS() { return 20000; }
+  static get WAIT_FOR_DUMP_TIMEOUT_MS() { return 200000; }
   static get STATE() {
     return {
       IDLE: 'idle',
@@ -43,6 +44,9 @@ class TracingController {
     this.events_ = [];
     this.trace_stream_handle_ = undefined;
     this.state_ = TracingController.STATE.IDLE;
+    this.memoryDumpInProgress = false;
+    this.waitForTraceInProgress = false;
+    this.waitForDumpTimer = undefined;
     chrome.debugger.onEvent.addListener(this.onEvent_.bind(this));
     chrome.debugger.onDetach.addListener(this.onDetach_.bind(this));
   }
@@ -85,10 +89,40 @@ class TracingController {
     this.detach_();
   }
 
+  onWaitForTraceFinished() {
+    if (this.state_ !== TracingController.STATE.TRACING) {
+      return;
+    }
+    this.waitForTraceInProgress = false;
+    clearTimeout(this.timer_);
+    if (!this.memoryDumpInProgress) {
+      this.stop();
+    }
+  }
+
+  onMemoryDumpFinished(success, dumpGuid) {
+    if (this.state_ !== TracingController.STATE.TRACING) {
+      return;
+    }
+    this.memoryDumpInProgress = false;
+    if (!this.waitForTraceInProgress) {
+      this.stop();
+    }
+  }
+
+  onWaitForDumpTimerFired() {
+    if (this.state_ !== TracingController.STATE.TRACING) {
+      return;
+    }
+    this.stop();
+  }
+
   stop() {
     if (this.state_ !== TracingController.STATE.TRACING) {
       return;
     }
+    clearTimeout(this.waitForDumpTimer);
+    this.waitForDumpTimer = undefined;
     clearTimeout(this.timer_);
     this.timer_ = setTimeout(
         this.detach_.bind(this),
@@ -106,7 +140,8 @@ class TracingController {
       return;
     }
     this.checkForErrors_();
-    let params = {categories: this.categories_, transferMode: 'ReturnAsStream'};
+    const params =
+        {categories: this.categories_, transferMode: 'ReturnAsStream'};
     chrome.debugger.sendCommand(
         this.target_,
         'Tracing.start',
@@ -118,7 +153,23 @@ class TracingController {
     this.checkForErrors_();
     clearTimeout(this.timer_);
     this.updateState_(TracingController.STATE.TRACING);
-    this.timer_ = setTimeout(this.stop.bind(this), this.traceDurationMs_);
+
+    // Wait for two events before stopping.
+    //   1. Grab a single memory dump.
+    //   2. Wait traceDurationMs_ to capture other trace events.
+    this.memoryDumpInProgress = true;
+    this.waitForTraceInProgress = true;
+    this.waitForDumpTimer = setTimeout(
+        this.onWaitForDumpTimerFired.bind(this),
+        TracingController.WAIT_FOR_DUMP_TIMEOUT_MS);
+    chrome.debugger.sendCommand(
+        this.target_,
+        'Tracing.requestMemoryDump',
+        this.onMemoryDumpFinished.bind(this));
+
+    this.timer_ = setTimeout(
+        this.onWaitForTraceFinished.bind(this),
+        this.traceDurationMs_);
   }
 
   detach_() {
@@ -172,7 +223,8 @@ class TracingController {
 
   updateState_(state) {
     this.state_ = state;
-    console.log('TracingController state: ' + state);
+    chrome.extension.getBackgroundPage().console.log(
+        'TracingController state: ' + state);
     if (this.onStateChange !== undefined) {
       this.onStateChange(state);
     }
