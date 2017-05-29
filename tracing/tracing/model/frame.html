@@ -78,6 +78,14 @@ tr.exportTo('tr.model', function() {
     addBoundsToRange(range) {
       range.addValue(this.start);
       range.addValue(this.end);
+    },
+
+    contains: function() {
+      return false;
+    },
+
+    equals: function(that) {
+      return this === that;
     }
   };
 
