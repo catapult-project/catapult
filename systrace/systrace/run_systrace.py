@@ -34,6 +34,8 @@ _CATAPULT_DIR = os.path.join(
 _DEVIL_DIR = os.path.join(_CATAPULT_DIR, 'devil')
 if _DEVIL_DIR not in sys.path:
   sys.path.insert(0, _DEVIL_DIR)
+  # Force systrace to use adb from devil to avoid conflict with default adb
+  os.environ["PATH"] = _DEVIL_DIR + '/bin/deps/linux2/x86_64/bin/' + os.pathsep + os.environ["PATH"]
 if _SYSTRACE_DIR not in sys.path:
   sys.path.insert(0, _SYSTRACE_DIR)
 
