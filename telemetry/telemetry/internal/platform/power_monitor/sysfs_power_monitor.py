@@ -77,7 +77,7 @@ class SysfsPowerMonitor(power_monitor.PowerMonitor):
             self._platform.ParseCStateSample(self._final_cstate))
         for cpu in frequencies:
           out[cpu] = {'frequency_percent': frequencies.get(cpu)}
-          out[cpu] = {'cstate_residency_percent': cstates.get(cpu)}
+          out[cpu].update({'cstate_residency_percent': cstates.get(cpu)})
       if self._standalone:
         return self.CombineResults(out, {})
       return out
