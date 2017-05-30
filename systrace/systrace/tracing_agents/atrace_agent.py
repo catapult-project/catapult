@@ -277,10 +277,10 @@ class AtraceAgent(tracing_agents.TracingAgent):
       sys.exit(1)
 
     if _FIX_MISSING_TGIDS:
-      # Issue printf command to device and patch tgids
+      # Gather proc data from device and patch tgids
       procfs_dump = self._device_utils.RunShellCommand(
-          'printf "%s\n" /proc/[0-9]*/task/[0-9]*',
-          shell=True, check_return=True)
+          'echo -n /proc/[0-9]*/task/[0-9]*',
+          shell=True, check_return=True)[0].split(' ')
       pid2_tgid = extract_tgids(procfs_dump)
       trace_data = fix_missing_tgids(trace_data, pid2_tgid)
 
