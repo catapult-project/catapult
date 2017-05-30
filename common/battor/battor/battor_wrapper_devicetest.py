@@ -16,6 +16,7 @@ if __name__ == '__main__':
 from battor import battor_wrapper
 from devil.utils import battor_device_mapping
 from devil.utils import find_usb_devices
+from py_utils import cloud_storage
 
 
 _SUPPORTED_CQ_PLATFORMS = ['win', 'linux', 'mac']
@@ -49,8 +50,9 @@ class BattOrWrapperDeviceTest(unittest.TestCase):
 
     battor_path = (None if not self._battor_list
                    else '/dev/%s' % self._battor_list[0])
-    battor = battor_wrapper.BattOrWrapper(self._platform,
-                                          battor_path=battor_path)
+    battor = battor_wrapper.BattOrWrapper(
+        self._platform, battor_path=battor_path,
+        serial_log_bucket=cloud_storage.TELEMETRY_OUTPUT)
     try:
       battor.StartShell()
       self.assertTrue(isinstance(battor.GetFirmwareGitHash(), basestring))

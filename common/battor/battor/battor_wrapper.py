@@ -248,6 +248,7 @@ class BattOrWrapper(object):
     # The BattOr shell terminates after returning the results.
     if timeout is None:
       timeout = self._stop_tracing_time - self._start_tracing_time
+    py_utils.WaitFor(lambda: self.GetShellReturnCode() != None, timeout)
 
     # TODO(charliea): Once we understand why BattOrs are crashing, only do
     # this on failure.

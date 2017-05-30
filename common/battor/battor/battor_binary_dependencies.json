@@ -60,35 +60,35 @@
       "cloud_storage_bucket": "chromium-telemetry",
       "file_info": {
         "darwin_x86_64": {
-          "cloud_storage_hash": "ea35fa0b56cf1e2e774218498b244be167c2d61c",
+          "cloud_storage_hash": "276b3507a1c617c01734d85a2133ed200f2a477b",
           "download_path": "../bin/darwin/x86_64/battor_agent",
           "local_paths": [
             "../bin/override/battor_agent"
           ]
         },
         "linux2_x86_64": {
-          "cloud_storage_hash": "7280345d3c31e1185c03492082a98b2eb4dccaae",
+          "cloud_storage_hash": "582cfe85971ca84aa75cf078bafb737d0cbdfb31",
           "download_path": "../bin/linux2/x86_64/battor_agent",
           "local_paths": [
             "../bin/override/battor_agent"
           ]
         },
         "win32_AMD64": {
-          "cloud_storage_hash": "e1b3630f94bbacb58b2d254543ee94073f072dc0",
+          "cloud_storage_hash": "609c5f79a03b347ddbfd6e544d229a56851c0f66",
           "download_path": "../bin/win/AMD64/battor_agent.exe",
           "local_paths": [
             "../bin/override/battor_agent.exe"
           ]
         },
         "win32_x86": {
-          "cloud_storage_hash": "e1b3630f94bbacb58b2d254543ee94073f072dc0",
+          "cloud_storage_hash": "609c5f79a03b347ddbfd6e544d229a56851c0f66",
           "download_path": "../bin/win/x86_64/battor_agent.exe",
           "local_paths": [
             "../bin/override/battor_agent.exe"
           ]
         },
         "win_AMD64": {
-          "cloud_storage_hash": "e1b3630f94bbacb58b2d254543ee94073f072dc0",
+          "cloud_storage_hash": "609c5f79a03b347ddbfd6e544d229a56851c0f66",
           "download_path": "../bin/win/AMD64/battor_agent.exe",
           "local_paths": [
             "../bin/override/battor_agent.exe"
