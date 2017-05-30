@@ -66,7 +66,7 @@ class AtraceFromFileAgent(tracing_agents.TracingAgent):
     return trace_result.TraceResult('trace-data', self._trace_data)
 
   def _read_trace_data(self):
-    with open(self._filename, 'r') as f:
+    with open(self._filename, 'rb') as f:
       result = f.read()
     data_start = re.search(TRACE_START_REGEXP, result).end(0)
     data = re.sub(ADB_IGNORE_REGEXP, '', result[data_start:])

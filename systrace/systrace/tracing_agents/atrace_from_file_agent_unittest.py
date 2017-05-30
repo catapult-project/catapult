@@ -10,6 +10,7 @@ import unittest
 
 from systrace import decorators
 from systrace import run_systrace
+from systrace import update_systrace_trace_viewer
 from systrace import util
 
 TEST_DIR = os.path.join(os.path.dirname(__file__), '..', 'test_data')
@@ -20,9 +21,11 @@ DECOMPRESSED_ATRACE_DATA = os.path.join(TEST_DIR,
 NON_EXISTENT_DATA = os.path.join(TEST_DIR, 'THIS_FILE_DOES_NOT_EXIST.txt')
 
 class AtraceFromFileAgentTest(unittest.TestCase):
-  # TODO(ccraik): fix test on windows
-  @decorators.LinuxMacTest
+  @decorators.HostOnlyTest
   def test_from_file(self):
+    update_systrace_trace_viewer.update(force_update=True)
+    self.assertTrue(os.path.exists(
+        update_systrace_trace_viewer.SYSTRACE_TRACE_VIEWER_HTML_FILE))
     output_file_name = util.generate_random_filename_for_test()
     try:
       # use from-file to create a specific expected output
@@ -40,12 +43,12 @@ class AtraceFromFileAgentTest(unittest.TestCase):
     except:
       raise
     finally:
+      os.remove(update_systrace_trace_viewer.SYSTRACE_TRACE_VIEWER_HTML_FILE)
       if os.path.exists(output_file_name):
         os.remove(output_file_name)
 
 
-  # TODO(ccraik): fix test on windows
-  @decorators.LinuxMacTest
+  @decorators.HostOnlyTest
   def test_missing_file(self):
     try:
       run_systrace.main_impl(['./run_systrace.py',
