@@ -18,8 +18,10 @@ When talking about multidimensional tree views, a useful abstration is "path",
 which uniquely determines a node in the tree: A path is a 3 element array, and
 each of these three elements is a possibly empty array of strings. Here is an
 example path:
+```
 [ ['browser_process'], ['CrBrowserMain'], ['Animation', 'CSS'] ]
     Dimension 1          Dimension 2          Dimension 3
+```
 
 We can arrive at the node denoted by this path in many different ways starting
 from the root node, so this path is not to be confused with the graph theoretic
