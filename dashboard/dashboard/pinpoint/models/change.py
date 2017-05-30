@@ -23,7 +23,7 @@ class Change(collections.namedtuple('Change',
   then apply patch 2423293002.
   """
 
-  def __new__(cls, base_commit, deps=(), patch=None):
+  def __new__(cls, base_commit, deps=frozenset(), patch=None):
     """Create a Change.
 
     Args:
@@ -33,8 +33,7 @@ class Change(collections.namedtuple('Change',
           by base_commit.
       patch: An optional Patch to apply to the Change.
     """
-    # TODO: deps is unordered. Make it a frozenset.
-    return super(Change, cls).__new__(cls, base_commit, tuple(deps), patch)
+    return super(Change, cls).__new__(cls, base_commit, frozenset(deps), patch)
 
   def __str__(self):
     string = ' '.join(str(dep) for dep in self.all_deps)
@@ -44,7 +43,7 @@ class Change(collections.namedtuple('Change',
 
   @property
   def all_deps(self):
-    return tuple([self.base_commit] + list(self.deps))
+    return tuple([self.base_commit] + sorted(self.deps))
 
   @classmethod
   def FromDict(cls, data):

@@ -26,7 +26,7 @@ class ChangeTest(unittest.TestCase):
     dep = change.Dep('catapult', 'e0a2efb')
     patch = change.Patch('https://codereview.chromium.org', 2565263002, 20001)
 
-    # Also test the deps conversion to tuple.
+    # Also test the deps conversion to frozenset.
     c = change.Change(base_commit, [dep], patch)
 
     self.assertEqual(c, change.Change(base_commit, (dep,), patch))
@@ -34,7 +34,7 @@ class ChangeTest(unittest.TestCase):
               'https://codereview.chromium.org/2565263002/20001')
     self.assertEqual(str(c), string)
     self.assertEqual(c.base_commit, base_commit)
-    self.assertEqual(c.deps, (dep,))
+    self.assertEqual(c.deps, frozenset((dep,)))
     self.assertEqual(c.all_deps, (base_commit, dep))
     self.assertEqual(c.patch, patch)
 
