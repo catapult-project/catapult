@@ -42,11 +42,6 @@ handlers:
   upload: dashboard/pinpoint/elements/.*\.html$
   secure: always
 
-- url: /dashboard/pinpoint/static/
-  static_dir: dashboard/pinpoint/static/
-  secure: always
-  application_readable: true
-
 - url: /favicon.ico
   static_files: dashboard/static/favicon.ico
   upload: dashboard/static/favicon.ico
