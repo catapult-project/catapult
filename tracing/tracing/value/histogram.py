@@ -389,6 +389,38 @@ def RegisterDiagnosticTypes(baseclass=Diagnostic):
     RegisterDiagnosticTypes(subclass)
 
 
+class Ownership(Diagnostic):
+  def __init__(self, emails, component=None):
+    super(Ownership, self).__init__()
+
+    emails = emails or []
+
+    self._emails = emails[:]
+    print str(self._emails)
+
+    if (component is None) or (isinstance(component, str)):
+      self._component = component
+    else:
+      raise TypeError('component must either be None or a string')
+
+  @property
+  def emails(self):
+    return self._emails[:]
+
+  @property
+  def component(self):
+    return self._component
+
+  def _AsDictInto(self, dct):
+    dct['emails'] = self.emails
+
+    if self.component is not None:
+      dct['component'] = self.component
+
+  @staticmethod
+  def FromDict(dct):
+    return Ownership(dct.get('emails'), dct.get('component'))
+
 class Breakdown(Diagnostic):
   def __init__(self):
     super(Breakdown, self).__init__()
