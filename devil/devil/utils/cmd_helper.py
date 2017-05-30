@@ -15,11 +15,6 @@ import subprocess
 import sys
 import time
 
-# fcntl is not available on Windows.
-try:
-  import fcntl
-except ImportError:
-  fcntl = None
 
 logger = logging.getLogger(__name__)
 
@@ -96,13 +91,15 @@ def ShrinkToSnippet(cmd_parts, var_name, var_value):
 def Popen(args, stdout=None, stderr=None, shell=None, cwd=None, env=None):
   # preexec_fn isn't supported on windows.
   if sys.platform == 'win32':
+    close_fds = (stdout is None and stderr is None)
     preexec_fn = None
   else:
+    close_fds = True
     preexec_fn = lambda: signal.signal(signal.SIGPIPE, signal.SIG_DFL)
 
   return subprocess.Popen(
       args=args, cwd=cwd, stdout=stdout, stderr=stderr,
-      shell=shell, close_fds=True, env=env, preexec_fn=preexec_fn)
+      shell=shell, close_fds=close_fds, env=env, preexec_fn=preexec_fn)
 
 
 def Call(args, stdout=None, stderr=None, shell=None, cwd=None, env=None):
@@ -219,31 +216,11 @@ class TimeoutError(Exception):
     return self._output
 
 
-def _IterProcessStdout(process, iter_timeout=None, timeout=None,
-                       buffer_size=4096, poll_interval=1):
-  """Iterate over a process's stdout.
-
-  This is intentionally not public.
-
-  Args:
-    process: The process in question.
-    iter_timeout: An optional length of time, in seconds, to wait in
-      between each iteration. If no output is received in the given
-      time, this generator will yield None.
-    timeout: An optional length of time, in seconds, during which
-      the process must finish. If it fails to do so, a TimeoutError
-      will be raised.
-    buffer_size: The maximum number of bytes to read (and thus yield) at once.
-    poll_interval: The length of time to wait in calls to `select.select`.
-      If iter_timeout is set, the remaining length of time in the iteration
-      may take precedence.
-  Raises:
-    TimeoutError: if timeout is set and the process does not complete.
-  Yields:
-    basestrings of data or None.
-  """
-
-  assert fcntl, 'fcntl module is required'
+def _IterProcessStdoutFcntl(
+    process, iter_timeout=None, timeout=None, buffer_size=4096,
+    poll_interval=1):
+  """An fcntl-based implementation of _IterProcessStdout."""
+  import fcntl
   try:
     # Enable non-blocking reads from the child's stdout.
     child_fd = process.stdout.fileno()
@@ -285,6 +262,86 @@ def _IterProcessStdout(process, iter_timeout=None, timeout=None,
     except OSError:
       pass
     process.wait()
+
+
+def _IterProcessStdoutQueue(
+    process, iter_timeout=None, timeout=None, buffer_size=4096,
+    poll_interval=1):
+  """A Queue.Queue-based implementation of _IterProcessStdout.
+
+  TODO(jbudorick): Evaluate whether this is a suitable replacement for
+  _IterProcessStdoutFcntl on all platforms.
+  """
+  # pylint: disable=unused-argument
+  import Queue
+  import threading
+
+  stdout_queue = Queue.Queue()
+
+  def read_process_stdout():
+    # TODO(jbudorick): Pick an appropriate read size here.
+    while True:
+      try:
+        output_chunk = os.read(process.stdout.fileno(), buffer_size)
+      except IOError:
+        break
+      stdout_queue.put(output_chunk, True)
+      if not output_chunk and process.poll() is not None:
+        break
+
+  reader_thread = threading.Thread(target=read_process_stdout)
+  reader_thread.start()
+
+  end_time = (time.time() + timeout) if timeout else None
+
+  try:
+    while True:
+      if end_time and time.time() > end_time:
+        raise TimeoutError()
+      try:
+        s = stdout_queue.get(True, iter_timeout)
+        if not s:
+          break
+        yield s
+      except Queue.Empty:
+        yield None
+  finally:
+    try:
+      if process.returncode is None:
+        # Make sure the process doesn't stick around if we fail with an
+        # exception.
+        process.kill()
+    except OSError:
+      pass
+    process.wait()
+    reader_thread.join()
+
+
+_IterProcessStdout = (
+    _IterProcessStdoutQueue
+    if sys.platform == 'win32'
+    else _IterProcessStdoutFcntl)
+"""Iterate over a process's stdout.
+
+This is intentionally not public.
+
+Args:
+  process: The process in question.
+  iter_timeout: An optional length of time, in seconds, to wait in
+    between each iteration. If no output is received in the given
+    time, this generator will yield None.
+  timeout: An optional length of time, in seconds, during which
+    the process must finish. If it fails to do so, a TimeoutError
+    will be raised.
+  buffer_size: The maximum number of bytes to read (and thus yield) at once.
+  poll_interval: The length of time to wait in calls to `select.select`.
+    If iter_timeout is set, the remaining length of time in the iteration
+    may take precedence.
+Raises:
+  TimeoutError: if timeout is set and the process does not complete.
+Yields:
+  basestrings of data or None.
+"""
 
 
 def GetCmdStatusAndOutputWithTimeout(args, timeout, cwd=None, shell=False,

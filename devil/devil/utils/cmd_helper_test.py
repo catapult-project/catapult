@@ -7,6 +7,7 @@
 
 import unittest
 import subprocess
+import sys
 import time
 
 from devil import devil_env
@@ -175,11 +176,12 @@ class _MockProcess(object):
 
     # Set up but *do not start* the mocks.
     self._mocks = [
-      mock.patch('fcntl.fcntl'),
       mock.patch('os.read', new=mock_read),
       mock.patch('select.select', new=mock_select),
       mock.patch('time.time', new=mock_time),
     ]
+    if sys.platform != 'win32':
+      self._mocks.append(mock.patch('fcntl.fcntl'))
 
   def __enter__(self):
     for m in self._mocks:
