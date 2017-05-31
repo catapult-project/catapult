@@ -31,9 +31,18 @@ class MockStorySet(object):
     return self._stories
 
 class MockBrowserFinderOptions(object):
-  # This class will be populated later by TestConditions that require
-  # BrowserFinderOptions such as Webview Test Conditions.
-  pass
+  def __init__(self):
+    self._browser_type = None
+
+  @property
+  def browser_type(self):
+    return self._browser_type
+
+  @browser_type.setter
+  def browser_type(self, t):
+    assert isinstance(t, basestring)
+    self._browser_type = t
+
 
 class TestConditionTest(unittest.TestCase):
   def setUp(self):
@@ -253,12 +262,32 @@ class TestConditionTest(unittest.TestCase):
         expectations.ANDROID_SVELTE.ShouldDisable(self._platform,
                                                   self._finder_options))
 
+  def testAndroidWebviewReturnsTrueOnAndroidWebview(self):
+    self._platform.SetOSName('android')
+    self._platform.SetIsAosp(True)
+    self._finder_options.browser_type = 'android-webview'
+    self.assertTrue(
+        expectations.ANDROID_WEBVIEW.ShouldDisable(self._platform,
+                                                   self._finder_options))
+
+  def testAndroidWebviewReturnsFalseOnAndroidNotWebview(self):
+    self._platform.SetOSName('android')
+    self._platform.SetIsAosp(False)
+    self.assertFalse(
+        expectations.ANDROID_WEBVIEW.ShouldDisable(self._platform,
+                                                   self._finder_options))
+
+  def testAndroidWebviewReturnsFalseOnNotAndroid(self):
+    self._platform.SetOSName('not_android')
+    self.assertFalse(
+        expectations.ANDROID_WEBVIEW.ShouldDisable(self._platform,
+                                                   self._finder_options))
+
 
 class StoryExpectationsTest(unittest.TestCase):
   def setUp(self):
     self.platform = fakes.FakePlatform()
     self.finder_options = MockBrowserFinderOptions()
-
 
   def testCantDisableAfterInit(self):
     e = expectations.StoryExpectations()

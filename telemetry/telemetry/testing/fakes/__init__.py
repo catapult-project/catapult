@@ -30,6 +30,7 @@ class FakePlatform(object):
     self._os_name = 'FakeOS'
     self._device_type_name = 'abc'
     self._is_svelte = False
+    self._is_aosp = True
 
   @property
   def is_host_platform(self):
@@ -102,6 +103,14 @@ class FakePlatform(object):
     if self._os_name != 'android':
       raise NotImplementedError
     return self._is_svelte
+
+  def SetIsAosp(self, b):
+    assert isinstance(b, bool)
+    self._is_aosp = b
+
+  def IsAosp(self):
+    return self._is_aosp and self._os_name == 'android'
+
 
 class FakeLinuxPlatform(FakePlatform):
   def __init__(self):
