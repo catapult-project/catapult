@@ -154,6 +154,8 @@ class Dep(collections.namedtuple('Dep', ('repository', 'git_hash'))):
 
 class Patch(collections.namedtuple('Patch', ('server', 'issue', 'patchset'))):
   """A patch in Rietveld."""
+  # TODO: Support Gerrit.
+  # https://github.com/catapult-project/catapult/issues/3599
 
   def __str__(self):
     return '%s/%d/%d' % (self.server, self.issue, self.patchset)

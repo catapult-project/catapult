@@ -4,9 +4,12 @@
 
 import unittest
 
+import mock
+
 from google.appengine.ext import ndb
 from google.appengine.ext import testbed
 
+from dashboard.common import namespaced_stored_object
 from dashboard.pinpoint.models import change as change_module
 from dashboard.pinpoint.models import isolated
 from dashboard.pinpoint.models.quest import find_isolated
@@ -26,14 +29,23 @@ class _FindIsolatedTest(unittest.TestCase):
         ('Mac Builder', change, 'telemetry_perf_tests', '7c7e90be'),
     ))
 
+    namespaced_stored_object.Set('repositories', {
+        'src': {
+            'repository_url': 'https://chromium.googlesource.com/chromium/src'
+        },
+        'v8': {
+            'repository_url': 'https://chromium.googlesource.com/v8/v8'
+        },
+    })
+
   def tearDown(self):
     self.testbed.deactivate()
 
-  def assertExecutionFailure(self, execution):
+  def assertExecutionFailure(self, execution, exception_class):
     self.assertTrue(execution.completed)
     self.assertTrue(execution.failed)
     self.assertEqual(len(execution.result_values), 1)
-    self.assertIsInstance(execution.result_values[0], Exception)
+    self.assertIsInstance(execution.result_values[0], exception_class)
     self.assertEqual(execution.result_arguments, {})
 
   def assertExecutionSuccess(self, execution):
@@ -51,13 +63,6 @@ class IsolateLookupTest(_FindIsolatedTest):
 
     self.assertExecutionSuccess(execution)
     self.assertEqual(execution.result_arguments, {'isolated_hash': '7c7e90be'})
-
-  def testNoIsolatedAvailable(self):
-    change = change_module.Change(change_module.Dep('src', 'bad_hash'))
-    execution = find_isolated.FindIsolated('Mac Pro Perf').Start(change)
-
-    execution.Poll()
-    self.assertExecutionFailure(execution)
 
 
 class BuilderLookupTest(_FindIsolatedTest):
@@ -89,3 +94,117 @@ class BuilderLookupTest(_FindIsolatedTest):
   def testUnknownBuilder(self):
     with self.assertRaises(NotImplementedError):
       find_isolated.FindIsolated('Unix Perf')
+
+
+@mock.patch('dashboard.services.buildbucket_service.GetJobStatus')
+@mock.patch('dashboard.services.buildbucket_service.Put')
+class BuildTest(_FindIsolatedTest):
+
+  def testBuildLifecycle(self, put, get_job_status):
+    change = change_module.Change(
+        change_module.Dep('src', 'base git hash'),
+        (change_module.Dep('v8', 'dep git hash'),),
+        patch=change_module.Patch('https://example.org', 2565263002, 20001))
+    execution = find_isolated.FindIsolated('Mac Pro Perf').Start(change)
+
+    # Request a build.
+    put.return_value = {'build': {'id': 'build_id'}}
+    execution.Poll()
+
+    self.assertFalse(execution.completed)
+    put.assert_called_once_with(find_isolated.BUCKET, {
+        'builder_name': 'Mac Builder',
+        'properties': {
+            'clobber': True,
+            'parent_got_revision': 'base git hash',
+            'deps_revision_overrides': {
+                'https://chromium.googlesource.com/v8/v8': 'dep git hash',
+            },
+            'patch_storage': 'rietveld',
+            'rietveld': 'https://example.org',
+            'issue': 2565263002,
+            'patchset': 20001,
+        }
+    })
+
+    # Check build status.
+    get_job_status.return_value = {'build': {'status': 'STARTED'}}
+    execution.Poll()
+
+    self.assertFalse(execution.completed)
+    get_job_status.assert_called_once_with('build_id')
+
+    # Look up isolated hash.
+    isolated.Put((('Mac Builder', change,
+                   'telemetry_perf_tests', 'isolated git hash'),))
+    execution.Poll()
+
+    self.assertExecutionSuccess(execution)
+
+  def testBuildFailure(self, put, get_job_status):
+    change = change_module.Change(
+        change_module.Dep('src', 'base git hash'),
+        (change_module.Dep('v8', 'dep git hash'),),
+        patch=change_module.Patch('https://example.org', 2565263002, 20001))
+    execution = find_isolated.FindIsolated('Mac Pro Perf').Start(change)
+
+    # Request a build.
+    put.return_value = {'build': {'id': 'build_id'}}
+    execution.Poll()
+
+    # Check build status.
+    get_job_status.return_value = {
+        'build': {
+            'status': 'COMPLETED',
+            'result': 'FAILURE',
+            'failure_reason': 'BUILD_FAILURE',
+        }
+    }
+    execution.Poll()
+
+    self.assertExecutionFailure(execution, find_isolated.BuildError)
+
+  def testBuildCanceled(self, put, get_job_status):
+    change = change_module.Change(
+        change_module.Dep('src', 'base git hash'),
+        (change_module.Dep('v8', 'dep git hash'),),
+        patch=change_module.Patch('https://example.org', 2565263002, 20001))
+    execution = find_isolated.FindIsolated('Mac Pro Perf').Start(change)
+
+    # Request a build.
+    put.return_value = {'build': {'id': 'build_id'}}
+    execution.Poll()
+
+    # Check build status.
+    get_job_status.return_value = {
+        'build': {
+            'status': 'COMPLETED',
+            'result': 'CANCELED',
+            'cancelation_reason': 'TIMEOUT',
+        }
+    }
+    execution.Poll()
+
+    self.assertExecutionFailure(execution, find_isolated.BuildError)
+
+  def testBuildSucceededButIsolateIsMissing(self, put, get_job_status):
+    change = change_module.Change(
+        change_module.Dep('src', 'base git hash'),
+        (change_module.Dep('v8', 'dep git hash'),),
+        patch=change_module.Patch('https://example.org', 2565263002, 20001))
+    execution = find_isolated.FindIsolated('Mac Pro Perf').Start(change)
+
+    # Request a build.
+    put.return_value = {'build': {'id': 'build_id'}}
+    execution.Poll()
+
+    # Check build status.
+    get_job_status.return_value = {
+        'build': {
+            'status': 'COMPLETED',
+            'result': 'SUCCESS',
+        }
+    }
+    execution.Poll()
+
+    self.assertExecutionFailure(execution, find_isolated.BuildError)

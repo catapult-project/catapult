@@ -5,6 +5,14 @@
 from dashboard.pinpoint.models import isolated
 from dashboard.pinpoint.models.quest import execution
 from dashboard.pinpoint.models.quest import quest
+from dashboard.services import buildbucket_service
+
+
+BUCKET = 'master.tryserver.chromium.perf'
+
+
+class BuildError(Exception):
+  """Raised when the build fails."""
 
 
 class FindIsolated(quest.Quest):
@@ -29,6 +37,7 @@ class _FindIsolatedExecution(execution.Execution):
     super(_FindIsolatedExecution, self).__init__()
     self._builder_name = builder_name
     self._change = change
+    self._build = None
 
   def _Poll(self):
     # Look for the .isolated in our cache.
@@ -43,9 +52,28 @@ class _FindIsolatedExecution(execution.Execution):
       self._Complete(result_arguments={'isolated_hash': isolated_hash})
       return
 
-    # TODO: Request a fresh build using Buildbucket.
-    raise NotImplementedError('Building commits outside of the Perf '
-                              'waterfall is not implemented yet.')
+    # Check the status of a previously requested build.
+    if self._build:
+      status = buildbucket_service.GetJobStatus(self._build)
+
+      if status['build']['status'] != 'COMPLETED':
+        return
+
+      if status['build']['result'] == 'FAILURE':
+        raise BuildError('Build failed: ' + status['build']['failure_reason'])
+      elif status['build']['result'] == 'CANCELED':
+        raise BuildError('Build was canceled: ' +
+                         status['build']['cancelation_reason'])
+      else:
+        # It's possible for there to be a race condition if the builder uploads
+        # the isolate and completes the build between the above isolate lookup
+        # and buildbucket lookup, but right now, it takes builds a few minutes
+        # to package the build, so that doesn't happen.
+        raise BuildError('Buildbucket says the build completed successfully, '
+                         "but Pinpoint can't find the isolated hash.")
+
+    # Request a build!
+    self._build = _RequestBuild(self._builder_name, self._change)['build']['id']
 
 
 def _BuilderNameForConfiguration(configuration):
@@ -76,3 +104,28 @@ def _BuilderNameForConfiguration(configuration):
   else:
     raise NotImplementedError('Could not figure out what OS this configuration '
                               'is for: %s' % configuration)
+
+
+def _RequestBuild(builder_name, change):
+  deps_overrides = {dep.repository_url: dep.git_hash for dep in change.deps}
+  parameters = {
+      'builder_name': builder_name,
+      'properties': {
+          'clobber': True,
+          'parent_got_revision': change.base_commit.git_hash,
+          'deps_revision_overrides': deps_overrides,
+      },
+  }
+
+  if change.patch:
+    # TODO: Support Gerrit.
+    # https://github.com/catapult-project/catapult/issues/3599
+    parameters['properties'].update({
+        'patch_storage': 'rietveld',
+        'rietveld': change.patch.server,
+        'issue': change.patch.issue,
+        'patchset': change.patch.patchset,
+    })
+
+  # TODO: Look up Buildbucket bucket from builder_name.
+  return buildbucket_service.Put(BUCKET, parameters)
