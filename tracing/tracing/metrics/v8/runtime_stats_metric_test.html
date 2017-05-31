@@ -462,16 +462,20 @@ tr.b.unittest.testSuite(function() {
 
     const histograms = new tr.v.HistogramSet();
     tr.metrics.v8.runtimeStatsTotalMetric(histograms, model);
-    assert.strictEqual(histograms.length, 120);
+    assert.strictEqual(histograms.length, 130);
 
     // Check total:
     checkRuntimeHistogram_(histograms, 'IC', 20, 0.109);
     checkRuntimeHistogram_(histograms, 'API', 45, 0.234);
     checkRuntimeHistogram_(histograms, 'Total', 225, 1.21);
+    checkRuntimeHistogram_(histograms, 'Blink C++', 35, 0.184);
+    checkRuntimeHistogram_(histograms, 'V8-Only', 190, 1.026);
 
     // Check Load bucket:
     checkRuntimeHistogram_(histograms, 'Load_Parse', 5, 0.014);
     checkRuntimeHistogram_(histograms, 'Load_JavaScript', 1, 0.01);
+    checkRuntimeHistogram_(histograms, 'Load_Blink C++', 7, 0.016);
+    checkRuntimeHistogram_(histograms, 'Load_V8-Only', 38, 0.11);
 
     // Check Response bucket:
     checkRuntimeHistogram_(histograms, 'Response_Parse', 10, 0.06);
@@ -551,13 +555,15 @@ tr.b.unittest.testSuite(function() {
 
     const histograms = new tr.v.HistogramSet();
     tr.metrics.v8.runtimeStatsTotalMetric(histograms, model);
-    assert.strictEqual(histograms.length, 24);
+    assert.strictEqual(histograms.length, 26);
 
     // Check total:
     checkRuntimeHistogram_(histograms, 'IC', 8, 0.057);
     checkRuntimeHistogram_(histograms, 'API', 18, 0.117);
     checkRuntimeHistogram_(histograms, 'Parse', 10, 0.069);
     checkRuntimeHistogram_(histograms, 'Total', 90, 0.621);
+    checkRuntimeHistogram_(histograms, 'Blink C++', 14, 0.093);
+    checkRuntimeHistogram_(histograms, 'V8-Only', 76, 0.528);
   });
 });
 </script>

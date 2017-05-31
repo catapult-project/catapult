@@ -115,6 +115,10 @@ tr.exportTo('tr.e.v8', function() {
       return this.groups_[0].time;
     }
 
+    get totalCount() {
+      return this.groups_[0].count;
+    }
+
     get runtimeGroups() {
       return this.groups_;
     }
