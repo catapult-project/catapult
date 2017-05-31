@@ -324,7 +324,7 @@ class DevToolsClientBackend(object):
     if not self._system_info_backend:
       self._CreateAndConnectBrowserInspectorWebsocketIfNeeded()
       self._system_info_backend = system_info_backend.SystemInfoBackend(
-          self._browser_inspector_websocket)
+          self._devtools_port)
 
   def _CreateAndConnectBrowserInspectorWebsocketIfNeeded(self):
     if not self._browser_inspector_websocket:
