@@ -225,6 +225,10 @@ class WebContents(object):
       py_utils.TimeoutException
       exceptions.DevtoolsTargetCrashException
     """
+    if not script_to_evaluate_on_commit:
+      script_to_evaluate_on_commit = ''
+    script_to_evaluate_on_commit = (
+        self._quiescence_js + ';' + script_to_evaluate_on_commit)
     self._inspector_backend.Navigate(url, script_to_evaluate_on_commit, timeout)
 
   def IsAlive(self):
