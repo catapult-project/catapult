@@ -24,8 +24,10 @@ from devil.android import device_list
 from devil.android import device_utils
 from devil.android.sdk import adb_wrapper
 from devil.constants import exit_codes
+from devil.utils import find_usb_devices
 from devil.utils import lsusb
 from devil.utils import run_tests_helper
+from devil.utils import usb_hubs
 
 logger = logging.getLogger(__name__)
 
@@ -107,6 +109,12 @@ def DeviceStatus(devices, blacklist):
   }
   usb_devices = set(lsusb.get_android_devices())
 
+  port_mapping = {}
+  for hub in find_usb_devices.GetAllPhysicalPortToSerialMaps(
+      usb_hubs.ALL_HUBS, fast=True):
+    # Reverse the mapping.
+    port_mapping.update({device: port for port, device in hub.iteritems()})
+
   def blacklisting_device_status(device):
     serial = device.adb.GetDeviceSerial()
     adb_status = (
@@ -118,6 +126,7 @@ def DeviceStatus(devices, blacklist):
       'serial': serial,
       'adb_status': adb_status,
       'usb_status': usb_status,
+      'physical_port': port_mapping.get(serial, 'unknown'),
     }
 
     if not IsBlacklisted(serial, blacklist):
