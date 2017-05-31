@@ -14,16 +14,16 @@ class ReadValue(quest.Quest):
   def __str__(self):
     return 'Value of ' + self._metric
 
-  def Start(self, isolated_hash):
-    return _ReadValueExecution(self._metric, isolated_hash)
+  def Start(self, isolate_hash):
+    return _ReadValueExecution(self._metric, isolate_hash)
 
 
 class _ReadValueExecution(execution.Execution):
 
-  def __init__(self, metric, isolated_hash):
+  def __init__(self, metric, isolate_hash):
     super(_ReadValueExecution, self).__init__()
     self._metric = metric
-    self._isolated_hash = isolated_hash
+    self._isolate_hash = isolate_hash
 
   def _Poll(self):
     # TODO

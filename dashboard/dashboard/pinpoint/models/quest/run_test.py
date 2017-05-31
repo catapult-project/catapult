@@ -83,7 +83,7 @@ class RunTest(quest.Quest):
   def retry_count(self):
     return 4
 
-  def Start(self, isolated_hash):
+  def Start(self, isolate_hash):
     if not self._bot_id and self._execution:
       # If the Execution fails, this resets the state, so we can try again with
       # the next Execution.
@@ -91,7 +91,7 @@ class RunTest(quest.Quest):
       self._execution = None
 
     execution = _RunTestExecution(self._configuration, self._test_suite,
-                                  self._test, isolated_hash,
+                                  self._test, isolate_hash,
                                   bot_id=self._bot_id)
 
     if not self._bot_id:
@@ -102,13 +102,13 @@ class RunTest(quest.Quest):
 
 class _RunTestExecution(execution_module.Execution):
 
-  def __init__(self, configuration, test_suite, test, isolated_hash,
+  def __init__(self, configuration, test_suite, test, isolate_hash,
                bot_id=None):
     super(_RunTestExecution, self).__init__()
     self._configuration = configuration
     self._test_suite = test_suite
     self._test = test
-    self._isolated_hash = isolated_hash
+    self._isolate_hash = isolate_hash
     self._bot_id = bot_id
 
     self._task_id = None
@@ -137,7 +137,7 @@ class _RunTestExecution(execution_module.Execution):
     if result['failure']:
       raise SwarmingTestError(self._task_id, result['exit_code'])
 
-    result_arguments = {'isolated_hash': result['outputs_ref']['isolated']}
+    result_arguments = {'isolate_hash': result['outputs_ref']['isolated']}
     self._Complete(result_arguments=result_arguments)
 
 
@@ -169,7 +169,7 @@ class _RunTestExecution(execution_module.Execution):
         'priority': '100',
         'expiration_secs': '600',
         'properties': {
-            'inputs_ref': {'isolated': self._isolated_hash},
+            'inputs_ref': {'isolated': self._isolate_hash},
             'extra_args': extra_args,
             'dimensions': dimensions,
             'execution_timeout_secs': '3600',

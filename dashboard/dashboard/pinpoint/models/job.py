@@ -65,7 +65,7 @@ class Job(ndb.Model):
   @classmethod
   def New(cls, configuration, test_suite, test, metric, auto_explore):
     # Get list of quests.
-    quests = [quest_module.FindIsolated(configuration)]
+    quests = [quest_module.FindIsolate(configuration)]
     if test_suite:
       quests.append(quest_module.RunTest(configuration, test_suite, test))
     if metric:

@@ -2,9 +2,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-"""Service for tracking .isolateds and looking them up by builder and commit.
+"""Service for tracking isolates and looking them up by builder and commit.
 
-An .isolated file is a way to describe the dependencies of a specific build.
+An isolate is a way to describe the dependencies of a specific build.
 
 More about isolates:
 https://github.com/luci/luci-py/blob/master/appengine/isolate/doc/client/Design.md
@@ -16,24 +16,24 @@ import webapp2
 
 from dashboard.common import utils
 from dashboard.pinpoint.models import change as change_module
-from dashboard.pinpoint.models import isolated
+from dashboard.pinpoint.models import isolate
 
 
 # TODO: Use Cloud Endpoints to make a proper API with a proper response.
-class Isolated(webapp2.RequestHandler):
-  """Handler for managing isolateds.
+class Isolate(webapp2.RequestHandler):
+  """Handler for managing isolates.
 
-  A post request adds new isolated information.
-  A get request looks up an isolated hash from the builder, commit, and target.
+  A post request adds new isolate information.
+  A get request looks up an isolate hash from the builder, commit, and target.
   """
 
   def get(self):
-    """Look up an isolated hash.
+    """Look up an isolate hash.
 
     Args:
-      builder_name: The name of the builder that produced the isolated.
-      change: The Change the isolated is for, as a JSON string.
-      target: The isolated target.
+      builder_name: The name of the builder that produced the isolate.
+      change: The Change the isolate is for, as a JSON string.
+      target: The isolate target.
     """
     # Get parameters.
     parameters = (
@@ -51,21 +51,21 @@ class Isolated(webapp2.RequestHandler):
 
     # Get.
     try:
-      isolated_hash = isolated.Get(builder_name, change, target)
+      isolate_hash = isolate.Get(builder_name, change, target)
     except KeyError as e:
       self.response.set_status(404)
       self.response.write(e)
       return
 
-    self.response.write(isolated_hash)
+    self.response.write(isolate_hash)
 
   def post(self):
-    """Add new isolated information.
+    """Add new isolate information.
 
     Args:
-      builder_name: The name of the builder that produced the isolated.
-      change: The Change the isolated is for, as a JSON string.
-      isolated_map: A JSON dict mapping the target names to the isolated hashes.
+      builder_name: The name of the builder that produced the isolate.
+      change: The Change the isolate is for, as a JSON string.
+      isolate_map: A JSON dict mapping the target names to the isolate hashes.
     """
     # Check permissions.
     if self.request.remote_addr not in utils.GetIpWhitelist():
@@ -77,20 +77,20 @@ class Isolated(webapp2.RequestHandler):
     parameters = (
         ('builder_name', str),
         ('change', lambda x: change_module.Change.FromDict(json.loads(x))),
-        ('isolated_map', json.loads),
+        ('isolate_map', json.loads),
     )
     try:
       # pylint: disable=unbalanced-tuple-unpacking
-      builder_name, change, isolated_map = self._ValidateParameters(parameters)
+      builder_name, change, isolate_map = self._ValidateParameters(parameters)
     except (KeyError, TypeError, ValueError) as e:
       self.response.set_status(400)
       self.response.write(e)
       return
 
     # Put information into the datastore.
-    isolated_infos = {(builder_name, change, target, isolated_hash)
-                      for target, isolated_hash in isolated_map.iteritems()}
-    isolated.Put(isolated_infos)
+    isolate_infos = {(builder_name, change, target, isolate_hash)
+                     for target, isolate_hash in isolate_map.iteritems()}
+    isolate.Put(isolate_infos)
 
   def _ValidateParameters(self, parameters):
     """Ensure the right parameters are present and valid.

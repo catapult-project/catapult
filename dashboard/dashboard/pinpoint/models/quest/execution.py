@@ -57,7 +57,7 @@ class Execution(object):
   def result_arguments(self):
     """A dict of information passed on to the next Execution.
 
-    For example, the Build Execution passes the isolated hash to the Test
+    For example, the Build Execution passes the isolate hash to the Test
     Execution.
     """
     assert self.completed

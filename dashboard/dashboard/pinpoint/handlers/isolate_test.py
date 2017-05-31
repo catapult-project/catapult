@@ -10,16 +10,16 @@ import webtest
 
 from dashboard.common import namespaced_stored_object
 from dashboard.common import testing_common
-from dashboard.pinpoint.handlers import isolated
+from dashboard.pinpoint.handlers import isolate
 
 
-class _IsolatedTest(testing_common.TestCase):
+class _IsolateTest(testing_common.TestCase):
 
   def setUp(self):
-    super(_IsolatedTest, self).setUp()
+    super(_IsolateTest, self).setUp()
 
     app = webapp2.WSGIApplication([
-        webapp2.Route(r'/isolated', isolated.Isolated),
+        webapp2.Route(r'/isolate', isolate.Isolate),
     ])
     self.testapp = webtest.TestApp(app)
     self.testapp.extra_environ.update({'REMOTE_ADDR': 'remote_ip'})
@@ -37,7 +37,7 @@ class _IsolatedTest(testing_common.TestCase):
     })
 
 
-class FunctionalityTest(_IsolatedTest):
+class FunctionalityTest(_IsolateTest):
 
   def testPostAndGet(self):
     testing_common.SetIpWhitelist(['remote_ip'])
@@ -45,37 +45,37 @@ class FunctionalityTest(_IsolatedTest):
     builder_name = 'Mac Builder'
     change = '{"base_commit": {"repository": "src", "git_hash": "git hash"}}'
     target = 'telemetry_perf_tests'
-    isolated_hash = 'a0c28d99182661887feac644317c94fa18eccbbb'
+    isolate_hash = 'a0c28d99182661887feac644317c94fa18eccbbb'
 
     params = {
         'builder_name': builder_name,
         'change': change,
-        'isolated_map': json.dumps({target: isolated_hash}),
+        'isolate_map': json.dumps({target: isolate_hash}),
     }
-    self.testapp.post('/isolated', params, status=200)
+    self.testapp.post('/isolate', params, status=200)
 
     params = {
         'builder_name': builder_name,
         'change': change,
         'target': target,
     }
-    response = self.testapp.get('/isolated', params, status=200)
-    self.assertEqual(response.normal_body, isolated_hash)
+    response = self.testapp.get('/isolate', params, status=200)
+    self.assertEqual(response.normal_body, isolate_hash)
 
-  def testGetUnknownIsolated(self):
+  def testGetUnknownIsolate(self):
     params = {
         'builder_name': 'Mac Builder',
         'change': '{"base_commit": {"repository": "src", "git_hash": "hash"}}',
         'target': 'not a real target',
     }
-    self.testapp.get('/isolated', params, status=404)
+    self.testapp.get('/isolate', params, status=404)
 
   def testPostPermissionDenied(self):
     testing_common.SetIpWhitelist([])
-    self.testapp.post('/isolated', status=403)
+    self.testapp.post('/isolate', status=403)
 
 
-class ParameterValidationTest(_IsolatedTest):
+class ParameterValidationTest(_IsolateTest):
 
   def testExtraParameter(self):
     params = {
@@ -84,14 +84,14 @@ class ParameterValidationTest(_IsolatedTest):
         'target': 'telemetry_perf_tests',
         'extra_parameter': '',
     }
-    self.testapp.get('/isolated', params, status=400)
+    self.testapp.get('/isolate', params, status=400)
 
   def testMissingParameter(self):
     params = {
         'builder_name': 'Mac Builder',
         'change': '{"base_commit": {"repository": "src", "git_hash": "hash"}}',
     }
-    self.testapp.get('/isolated', params, status=400)
+    self.testapp.get('/isolate', params, status=400)
 
   def testEmptyParameter(self):
     params = {
@@ -99,7 +99,7 @@ class ParameterValidationTest(_IsolatedTest):
         'change': '{"base_commit": {"repository": "src", "git_hash": "hash"}}',
         'target': '',
     }
-    self.testapp.get('/isolated', params, status=400)
+    self.testapp.get('/isolate', params, status=400)
 
   def testBadJson(self):
     params = {
@@ -107,7 +107,7 @@ class ParameterValidationTest(_IsolatedTest):
         'change': '',
         'target': 'telemetry_perf_tests',
     }
-    self.testapp.get('/isolated', params, status=400)
+    self.testapp.get('/isolate', params, status=400)
 
   def testBadChange(self):
     params = {
@@ -115,7 +115,7 @@ class ParameterValidationTest(_IsolatedTest):
         'change': '{"base_commit": {}}',
         'target': 'telemetry_perf_tests',
     }
-    self.testapp.get('/isolated', params, status=400)
+    self.testapp.get('/isolate', params, status=400)
 
   def testGetInvalidChangeBecauseOfUnknownRepository(self):
     params = {
@@ -123,7 +123,7 @@ class ParameterValidationTest(_IsolatedTest):
         'change': '{"base_commit": {"repository": "foo", "git_hash": "hash"}}',
         'target': 'telemetry_perf_tests',
     }
-    self.testapp.get('/isolated', params, status=400)
+    self.testapp.get('/isolate', params, status=400)
 
   def testPostInvalidChangeBecauseOfUnknownRepository(self):
     testing_common.SetIpWhitelist(['remote_ip'])
@@ -131,6 +131,6 @@ class ParameterValidationTest(_IsolatedTest):
     params = {
         'builder_name': 'Mac Builder',
         'change': '{"base_commit": {"repository": "foo", "git_hash": "hash"}}',
-        'isolated_map': '{"telemetry_perf_tests": "a0c28d9"}',
+        'isolate_map': '{"telemetry_perf_tests": "a0c28d9"}',
     }
-    self.testapp.post('/isolated', params, status=400)
+    self.testapp.post('/isolate', params, status=400)

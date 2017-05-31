@@ -7,10 +7,10 @@ import unittest
 from google.appengine.ext import ndb
 from google.appengine.ext import testbed
 
-from dashboard.pinpoint.models import isolated
+from dashboard.pinpoint.models import isolate
 
 
-class IsolatedTest(unittest.TestCase):
+class IsolateTest(unittest.TestCase):
 
   def setUp(self):
     self.testbed = testbed.Testbed()
@@ -23,13 +23,13 @@ class IsolatedTest(unittest.TestCase):
     self.testbed.deactivate()
 
   def testPutAndGet(self):
-    isolated.Put((
+    isolate.Put((
         ('Mac Builder', 'f9f2b720', 'telemetry_perf', '7c7e90be'),
         ('Mac Builder', 'f35be4f1', 'telemetry_perf', '38e2f262')))
 
-    isolated_hash = isolated.Get('Mac Builder', 'f9f2b720', 'telemetry_perf')
-    self.assertEqual(isolated_hash, '7c7e90be')
+    isolate_hash = isolate.Get('Mac Builder', 'f9f2b720', 'telemetry_perf')
+    self.assertEqual(isolate_hash, '7c7e90be')
 
-  def testUnknownIsolated(self):
+  def testUnknownIsolate(self):
     with self.assertRaises(KeyError):
-      isolated.Get('Wrong Builder', 'f9f2b720', 'telemetry_perf')
+      isolate.Get('Wrong Builder', 'f9f2b720', 'telemetry_perf')

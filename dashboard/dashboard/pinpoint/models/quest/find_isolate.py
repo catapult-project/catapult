@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from dashboard.pinpoint.models import isolated
+from dashboard.pinpoint.models import isolate
 from dashboard.pinpoint.models.quest import execution
 from dashboard.pinpoint.models.quest import quest
 from dashboard.services import buildbucket_service
@@ -15,7 +15,7 @@ class BuildError(Exception):
   """Raised when the build fails."""
 
 
-class FindIsolated(quest.Quest):
+class FindIsolate(quest.Quest):
 
   def __init__(self, configuration):
     self._builder_name = _BuilderNameForConfiguration(configuration)
@@ -28,28 +28,28 @@ class FindIsolated(quest.Quest):
     return 1
 
   def Start(self, change):
-    return _FindIsolatedExecution(self._builder_name, change)
+    return _FindIsolateExecution(self._builder_name, change)
 
 
-class _FindIsolatedExecution(execution.Execution):
+class _FindIsolateExecution(execution.Execution):
 
   def __init__(self, builder_name, change):
-    super(_FindIsolatedExecution, self).__init__()
+    super(_FindIsolateExecution, self).__init__()
     self._builder_name = builder_name
     self._change = change
     self._build = None
 
   def _Poll(self):
-    # Look for the .isolated in our cache.
-    # TODO: Support other isolated targets.
+    # Look for the .isolate in our cache.
+    # TODO: Support other isolate targets.
     target = 'telemetry_perf_tests'
     try:
-      isolated_hash = isolated.Get(self._builder_name, self._change, target)
+      isolate_hash = isolate.Get(self._builder_name, self._change, target)
     except KeyError:
-      isolated_hash = None
+      isolate_hash = None
 
-    if isolated_hash:
-      self._Complete(result_arguments={'isolated_hash': isolated_hash})
+    if isolate_hash:
+      self._Complete(result_arguments={'isolate_hash': isolate_hash})
       return
 
     # Check the status of a previously requested build.
@@ -70,7 +70,7 @@ class _FindIsolatedExecution(execution.Execution):
         # and buildbucket lookup, but right now, it takes builds a few minutes
         # to package the build, so that doesn't happen.
         raise BuildError('Buildbucket says the build completed successfully, '
-                         "but Pinpoint can't find the isolated hash.")
+                         "but Pinpoint can't find the isolate hash.")
 
     # Request a build!
     self._build = _RequestBuild(self._builder_name, self._change)['build']['id']

@@ -11,11 +11,11 @@ from google.appengine.ext import testbed
 
 from dashboard.common import namespaced_stored_object
 from dashboard.pinpoint.models import change as change_module
-from dashboard.pinpoint.models import isolated
-from dashboard.pinpoint.models.quest import find_isolated
+from dashboard.pinpoint.models import isolate
+from dashboard.pinpoint.models.quest import find_isolate
 
 
-class _FindIsolatedTest(unittest.TestCase):
+class _FindIsolateTest(unittest.TestCase):
 
   def setUp(self):
     self.testbed = testbed.Testbed()
@@ -25,7 +25,7 @@ class _FindIsolatedTest(unittest.TestCase):
     ndb.get_context().clear_cache()
 
     change = change_module.Change(change_module.Dep('src', 'f9f2b720'))
-    isolated.Put((
+    isolate.Put((
         ('Mac Builder', change, 'telemetry_perf_tests', '7c7e90be'),
     ))
 
@@ -54,18 +54,18 @@ class _FindIsolatedTest(unittest.TestCase):
     self.assertEqual(execution.result_values, (0,))
 
 
-class IsolateLookupTest(_FindIsolatedTest):
+class IsolateLookupTest(_FindIsolateTest):
 
   def testIsolateLookupSuccess(self):
     change = change_module.Change(change_module.Dep('src', 'f9f2b720'))
-    execution = find_isolated.FindIsolated('Mac Pro Perf').Start(change)
+    execution = find_isolate.FindIsolate('Mac Pro Perf').Start(change)
     execution.Poll()
 
     self.assertExecutionSuccess(execution)
-    self.assertEqual(execution.result_arguments, {'isolated_hash': '7c7e90be'})
+    self.assertEqual(execution.result_arguments, {'isolate_hash': '7c7e90be'})
 
 
-class BuilderLookupTest(_FindIsolatedTest):
+class BuilderLookupTest(_FindIsolateTest):
 
   def testSuccesfulBuilderLookupForAllBuilders(self):
     builder_testers = (
@@ -79,40 +79,40 @@ class BuilderLookupTest(_FindIsolatedTest):
     )
 
     change = change_module.Change(change_module.Dep('src', 'git hash'))
-    isolated.Put(
+    isolate.Put(
         (builder, change, 'telemetry_perf_tests', hex(hash(builder)))
         for builder, _ in builder_testers)
 
     for builder, tester in builder_testers:
-      execution = find_isolated.FindIsolated(tester).Start(change)
+      execution = find_isolate.FindIsolate(tester).Start(change)
       execution.Poll()
 
       self.assertExecutionSuccess(execution)
       self.assertEqual(execution.result_arguments,
-                       {'isolated_hash': hex(hash(builder))})
+                       {'isolate_hash': hex(hash(builder))})
 
   def testUnknownBuilder(self):
     with self.assertRaises(NotImplementedError):
-      find_isolated.FindIsolated('Unix Perf')
+      find_isolate.FindIsolate('Unix Perf')
 
 
 @mock.patch('dashboard.services.buildbucket_service.GetJobStatus')
 @mock.patch('dashboard.services.buildbucket_service.Put')
-class BuildTest(_FindIsolatedTest):
+class BuildTest(_FindIsolateTest):
 
   def testBuildLifecycle(self, put, get_job_status):
     change = change_module.Change(
         change_module.Dep('src', 'base git hash'),
         (change_module.Dep('v8', 'dep git hash'),),
         patch=change_module.Patch('https://example.org', 2565263002, 20001))
-    execution = find_isolated.FindIsolated('Mac Pro Perf').Start(change)
+    execution = find_isolate.FindIsolate('Mac Pro Perf').Start(change)
 
     # Request a build.
     put.return_value = {'build': {'id': 'build_id'}}
     execution.Poll()
 
     self.assertFalse(execution.completed)
-    put.assert_called_once_with(find_isolated.BUCKET, {
+    put.assert_called_once_with(find_isolate.BUCKET, {
         'builder_name': 'Mac Builder',
         'properties': {
             'clobber': True,
@@ -134,9 +134,9 @@ class BuildTest(_FindIsolatedTest):
     self.assertFalse(execution.completed)
     get_job_status.assert_called_once_with('build_id')
 
-    # Look up isolated hash.
-    isolated.Put((('Mac Builder', change,
-                   'telemetry_perf_tests', 'isolated git hash'),))
+    # Look up isolate hash.
+    isolate.Put((('Mac Builder', change,
+                  'telemetry_perf_tests', 'isolate git hash'),))
     execution.Poll()
 
     self.assertExecutionSuccess(execution)
@@ -146,7 +146,7 @@ class BuildTest(_FindIsolatedTest):
         change_module.Dep('src', 'base git hash'),
         (change_module.Dep('v8', 'dep git hash'),),
         patch=change_module.Patch('https://example.org', 2565263002, 20001))
-    execution = find_isolated.FindIsolated('Mac Pro Perf').Start(change)
+    execution = find_isolate.FindIsolate('Mac Pro Perf').Start(change)
 
     # Request a build.
     put.return_value = {'build': {'id': 'build_id'}}
@@ -162,14 +162,14 @@ class BuildTest(_FindIsolatedTest):
     }
     execution.Poll()
 
-    self.assertExecutionFailure(execution, find_isolated.BuildError)
+    self.assertExecutionFailure(execution, find_isolate.BuildError)
 
   def testBuildCanceled(self, put, get_job_status):
     change = change_module.Change(
         change_module.Dep('src', 'base git hash'),
         (change_module.Dep('v8', 'dep git hash'),),
         patch=change_module.Patch('https://example.org', 2565263002, 20001))
-    execution = find_isolated.FindIsolated('Mac Pro Perf').Start(change)
+    execution = find_isolate.FindIsolate('Mac Pro Perf').Start(change)
 
     # Request a build.
     put.return_value = {'build': {'id': 'build_id'}}
@@ -185,14 +185,14 @@ class BuildTest(_FindIsolatedTest):
     }
     execution.Poll()
 
-    self.assertExecutionFailure(execution, find_isolated.BuildError)
+    self.assertExecutionFailure(execution, find_isolate.BuildError)
 
   def testBuildSucceededButIsolateIsMissing(self, put, get_job_status):
     change = change_module.Change(
         change_module.Dep('src', 'base git hash'),
         (change_module.Dep('v8', 'dep git hash'),),
         patch=change_module.Patch('https://example.org', 2565263002, 20001))
-    execution = find_isolated.FindIsolated('Mac Pro Perf').Start(change)
+    execution = find_isolate.FindIsolate('Mac Pro Perf').Start(change)
 
     # Request a build.
     put.return_value = {'build': {'id': 'build_id'}}
@@ -207,4 +207,4 @@ class BuildTest(_FindIsolatedTest):
     }
     execution.Poll()
 
-    self.assertExecutionFailure(execution, find_isolated.BuildError)
+    self.assertExecutionFailure(execution, find_isolate.BuildError)

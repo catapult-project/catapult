@@ -28,7 +28,7 @@ class _RunTestTest(unittest.TestCase):
         'priority': '100',
         'expiration_secs': '600',
         'properties': {
-            'inputs_ref': {'isolated': 'input isolated hash'},
+            'inputs_ref': {'isolated': 'input isolate hash'},
             'extra_args': _SWARMING_TASK_EXTRA_ARGS,
             'dimensions': [
                 {'key': 'pool', 'value': 'Chrome-perf-pinpoint'},
@@ -52,7 +52,7 @@ class _RunTestTest(unittest.TestCase):
         'priority': '100',
         'expiration_secs': '600',
         'properties': {
-            'inputs_ref': {'isolated': 'input isolated hash'},
+            'inputs_ref': {'isolated': 'input isolate hash'},
             'extra_args': _SWARMING_TASK_EXTRA_ARGS,
             'dimensions': [
                 {'key': 'pool', 'value': 'Chrome-perf-pinpoint'},
@@ -77,7 +77,7 @@ class RunTestFullTest(_RunTestTest):
 
     # Call RunTest.Start() to create an Execution.
     quest = run_test.RunTest('Mac Pro 10.11 Perf', 'test_suite', 'test')
-    execution = quest.Start('input isolated hash')
+    execution = quest.Start('input isolate hash')
 
     swarming_task_result.assert_not_called()
     swarming_tasks_new.assert_not_called()
@@ -103,7 +103,7 @@ class RunTestFullTest(_RunTestTest):
         'bot_id': 'bot id',
         'exit_code': 0,
         'failure': False,
-        'outputs_ref': {'isolated': 'output isolated hash'},
+        'outputs_ref': {'isolated': 'output isolate hash'},
         'state': 'COMPLETED',
     }
     execution.Poll()
@@ -112,11 +112,11 @@ class RunTestFullTest(_RunTestTest):
     self.assertFalse(execution.failed)
     self.assertEqual(execution.result_values, (0,))
     self.assertEqual(execution.result_arguments,
-                     {'isolated_hash': 'output isolated hash'})
+                     {'isolate_hash': 'output isolate hash'})
 
     # Start a second Execution to check bot_id handling. We get a bot_id from
     # Swarming from the first Execution and reuse it in subsequent Executions.
-    execution = quest.Start('input isolated hash')
+    execution = quest.Start('input isolate hash')
     execution.Poll()
 
     self.assertNewTaskHasBotId(swarming_tasks_new)
@@ -128,7 +128,7 @@ class SwarmingTaskStartTest(_RunTestTest):
 
   def testUnknownConfig(self, swarming_task_result, swarming_tasks_new):
     quest = run_test.RunTest('configuration', 'test_suite', 'test')
-    execution = quest.Start('input isolated hash')
+    execution = quest.Start('input isolate hash')
     execution.Poll()
 
     swarming_task_result.assert_not_called()
@@ -149,7 +149,7 @@ class SwarmingTaskStatusTest(_RunTestTest):
     swarming_tasks_new.return_value = {'task_id': 'task id'}
 
     quest = run_test.RunTest('Mac Pro 10.11 Perf', 'test_suite', 'test')
-    execution = quest.Start('input isolated hash')
+    execution = quest.Start('input isolate hash')
     execution.Poll()
     execution.Poll()
 
@@ -169,7 +169,7 @@ class SwarmingTaskStatusTest(_RunTestTest):
     swarming_tasks_new.return_value = {'task_id': 'task id'}
 
     quest = run_test.RunTest('Mac Pro 10.11 Perf', 'test_suite', 'test')
-    execution = quest.Start('isolated_hash')
+    execution = quest.Start('isolate_hash')
     execution.Poll()
     execution.Poll()
 
@@ -189,7 +189,7 @@ class BotIdHandlingTest(_RunTestTest):
     swarming_task_result.return_value = {'state': 'EXPIRED'}
 
     quest = run_test.RunTest('Mac Pro 10.11 Perf', 'test_suite', 'test')
-    execution = quest.Start('input isolated hash')
+    execution = quest.Start('input isolate hash')
     execution.Poll()
     execution.Poll()
 
@@ -197,16 +197,16 @@ class BotIdHandlingTest(_RunTestTest):
         'bot_id': 'bot id',
         'exit_code': 0,
         'failure': False,
-        'outputs_ref': {'isolated': 'output isolated hash'},
+        'outputs_ref': {'isolated': 'output isolate hash'},
         'state': 'COMPLETED',
     }
-    execution = quest.Start('input isolated hash')
+    execution = quest.Start('input isolate hash')
     execution.Poll()
     execution.Poll()
 
     self.assertNewTaskHasDimensions(swarming_tasks_new)
 
-    execution = quest.Start('input isolated hash')
+    execution = quest.Start('input isolate hash')
     execution.Poll()
 
     self.assertNewTaskHasBotId(swarming_tasks_new)
