@@ -3,42 +3,47 @@
 # found in the LICENSE file.
 
 import json
-import unittest
 
 import mock
 import webapp2
 import webtest
 
-from google.appengine.ext import ndb
-from google.appengine.ext import testbed
-
+from dashboard.common import namespaced_stored_object
+from dashboard.common import testing_common
 from dashboard.pinpoint.handlers import isolated
 
 
-class IsolatedTest(unittest.TestCase):
+class _IsolatedTest(testing_common.TestCase):
 
   def setUp(self):
+    super(_IsolatedTest, self).setUp()
+
     app = webapp2.WSGIApplication([
         webapp2.Route(r'/isolated', isolated.Isolated),
     ])
     self.testapp = webtest.TestApp(app)
     self.testapp.extra_environ.update({'REMOTE_ADDR': 'remote_ip'})
 
-    self.testbed = testbed.Testbed()
-    self.testbed.activate()
-    self.testbed.init_datastore_v3_stub()
-    self.testbed.init_memcache_stub()
-    ndb.get_context().clear_cache()
+    patcher = mock.patch('dashboard.services.gitiles_service.CommitInfo')
+    self.addCleanup(patcher.stop)
+    patcher.start()
 
-  def tearDown(self):
-    self.testbed.deactivate()
+    self.SetCurrentUser('internal@chromium.org', is_admin=True)
 
-  @mock.patch('dashboard.common.utils.GetIpWhitelist')
-  def testPostAndGet(self, mock_get_ip_whitelist):
-    mock_get_ip_whitelist.return_value = {'remote_ip'}
+    namespaced_stored_object.Set('repositories', {
+        'src': {
+            'repository_url': 'https://chromium.googlesource.com/chromium/src'
+        }
+    })
+
+
+class FunctionalityTest(_IsolatedTest):
+
+  def testPostAndGet(self):
+    testing_common.SetIpWhitelist(['remote_ip'])
 
     builder_name = 'Mac Builder'
-    change = '{"base_commit": {"repository": "repo", "git_hash": "git hash"}}'
+    change = '{"base_commit": {"repository": "src", "git_hash": "git hash"}}'
     target = 'telemetry_perf_tests'
     isolated_hash = 'a0c28d99182661887feac644317c94fa18eccbbb'
 
@@ -60,66 +65,72 @@ class IsolatedTest(unittest.TestCase):
   def testGetUnknownIsolated(self):
     params = {
         'builder_name': 'Mac Builder',
-        'change': '{"base_commit": {"repository": "repo", "git_hash": "hash"}}',
+        'change': '{"base_commit": {"repository": "src", "git_hash": "hash"}}',
         'target': 'not a real target',
     }
     self.testapp.get('/isolated', params, status=404)
 
-  @mock.patch('dashboard.common.utils.GetIpWhitelist')
-  def testPostPermissionDenied(self, _):
+  def testPostPermissionDenied(self):
+    testing_common.SetIpWhitelist([])
     self.testapp.post('/isolated', status=403)
 
-  @mock.patch('dashboard.common.utils.GetIpWhitelist')
-  def testPostExtraParameter(self, mock_get_ip_whitelist):
-    mock_get_ip_whitelist.return_value = {'remote_ip'}
 
+class ParameterValidationTest(_IsolatedTest):
+
+  def testExtraParameter(self):
     params = {
         'builder_name': 'Mac Builder',
-        'change': '{"base_commit": {"repository": "repo", "git_hash": "hash"}}',
-        'isolated_map': '{}',
-        'extra_parameters': '',
+        'change': '{"base_commit": {"repository": "src", "git_hash": "hash"}}',
+        'target': 'telemetry_perf_tests',
+        'extra_parameter': '',
     }
-    self.testapp.post('/isolated', params, status=400)
+    self.testapp.get('/isolated', params, status=400)
 
-  @mock.patch('dashboard.common.utils.GetIpWhitelist')
-  def testPostMissingParameter(self, mock_get_ip_whitelist):
-    mock_get_ip_whitelist.return_value = {'remote_ip'}
-
+  def testMissingParameter(self):
     params = {
         'builder_name': 'Mac Builder',
-        'change': '{"base_commit": {"repository": "repo", "git_hash": "hash"}}',
+        'change': '{"base_commit": {"repository": "src", "git_hash": "hash"}}',
     }
-    self.testapp.post('/isolated', params, status=400)
+    self.testapp.get('/isolated', params, status=400)
 
-  @mock.patch('dashboard.common.utils.GetIpWhitelist')
-  def testPostEmptyParameter(self, mock_get_ip_whitelist):
-    mock_get_ip_whitelist.return_value = {'remote_ip'}
-
+  def testEmptyParameter(self):
     params = {
         'builder_name': 'Mac Builder',
-        'change': '{"base_commit": {"repository": "repo", "git_hash": "hash"}}',
-        'isolated_map': '',
+        'change': '{"base_commit": {"repository": "src", "git_hash": "hash"}}',
+        'target': '',
     }
-    self.testapp.post('/isolated', params, status=400)
+    self.testapp.get('/isolated', params, status=400)
 
-  @mock.patch('dashboard.common.utils.GetIpWhitelist')
-  def testPostBadJson(self, mock_get_ip_whitelist):
-    mock_get_ip_whitelist.return_value = {'remote_ip'}
-
+  def testBadJson(self):
     params = {
         'builder_name': 'Mac Builder',
-        'change': '{"base_commit": {"repository": "repo", "git_hash": "hash"}}',
-        'isolated_map': 'this is not valid json',
+        'change': '',
+        'target': 'telemetry_perf_tests',
     }
-    self.testapp.post('/isolated', params, status=400)
+    self.testapp.get('/isolated', params, status=400)
 
-  @mock.patch('dashboard.common.utils.GetIpWhitelist')
-  def testGetBadChange(self, mock_get_ip_whitelist):
-    mock_get_ip_whitelist.return_value = {'remote_ip'}
-
+  def testBadChange(self):
     params = {
         'builder_name': 'Mac Builder',
         'change': '{"base_commit": {}}',
-        'isolated_map': '{}',
+        'target': 'telemetry_perf_tests',
+    }
+    self.testapp.get('/isolated', params, status=400)
+
+  def testGetInvalidChangeBecauseOfUnknownRepository(self):
+    params = {
+        'builder_name': 'Mac Builder',
+        'change': '{"base_commit": {"repository": "foo", "git_hash": "hash"}}',
+        'target': 'telemetry_perf_tests',
+    }
+    self.testapp.get('/isolated', params, status=400)
+
+  def testPostInvalidChangeBecauseOfUnknownRepository(self):
+    testing_common.SetIpWhitelist(['remote_ip'])
+
+    params = {
+        'builder_name': 'Mac Builder',
+        'change': '{"base_commit": {"repository": "foo", "git_hash": "hash"}}',
+        'isolated_map': '{"telemetry_perf_tests": "a0c28d9"}',
     }
     self.testapp.post('/isolated', params, status=400)

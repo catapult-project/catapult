@@ -106,18 +106,34 @@ class Dep(collections.namedtuple('Dep', ('repository', 'git_hash'))):
     repositories = namespaced_stored_object.Get(_REPOSITORIES_KEY)
     return repositories[self.repository]['repository_url']
 
-  def Validate(self):
-    """Validate the Dep to ensure it has a valid repository and git hash.
-
-    Raises:
-      KeyError: The repository name is not in the local datastore.
-      gitiles_service.NotFoundError: The git hash is not valid.
-    """
-    gitiles_service.CommitInfo(self.repository_url, self.git_hash)
-
   @classmethod
   def FromDict(cls, data):
-    return cls(data['repository'], data['git_hash'])
+    """Create a Dep from a dict.
+
+    If the repository is a repository URL, it will be translated to its short
+    form name.
+
+    Raises:
+      KeyError: The repository name is not in the local datastore,
+                or the git hash is not valid.
+    """
+    repository = data['repository']
+
+    # Translate repository if it's a URL.
+    repositories = namespaced_stored_object.Get(_REPOSITORIES_KEY)
+    for repo_label, repo_info in repositories.iteritems():
+      if repository == repo_info['repository_url']:
+        repository = repo_label
+        break
+
+    dep = cls(repository, data['git_hash'])
+
+    try:
+      gitiles_service.CommitInfo(dep.repository_url, dep.git_hash)
+    except gitiles_service.NotFoundError as e:
+      raise KeyError(e)
+
+    return dep
 
   @classmethod
   def Midpoint(cls, dep_a, dep_b):
@@ -162,6 +178,7 @@ class Patch(collections.namedtuple('Patch', ('server', 'issue', 'patchset'))):
 
   @classmethod
   def FromDict(cls, data):
+    # TODO: Validate to ensure the patch exists on the server.
     return cls(data['server'], data['issue'], data['patchset'])
 
 

@@ -16,9 +16,13 @@ class ChangeTest(unittest.TestCase):
     self.addCleanup(patcher.stop)
     get = patcher.start()
     get.return_value = {
+        'catapult': {
+            'repository_url': 'https://chromium.googlesource.com/'
+                              'external/github.com/catapult-project/catapult'
+        },
         'src': {
             'repository_url': 'https://chromium.googlesource.com/chromium/src'
-        }
+        },
     }
 
   def testChange(self):
@@ -37,6 +41,33 @@ class ChangeTest(unittest.TestCase):
     self.assertEqual(c.deps, frozenset((dep,)))
     self.assertEqual(c.all_deps, (base_commit, dep))
     self.assertEqual(c.patch, patch)
+
+  @mock.patch('dashboard.services.gitiles_service.CommitInfo')
+  def testFromDictWithJustBaseCommit(self, _):
+    c = change.Change.FromDict({
+        'base_commit': {'repository': 'src', 'git_hash': 'aaa7336'},
+    })
+
+    expected = change.Change(change.Dep('src', 'aaa7336'))
+    self.assertEqual(c, expected)
+
+  @mock.patch('dashboard.services.gitiles_service.CommitInfo')
+  def testFromDictWithAllFields(self, _):
+    c = change.Change.FromDict({
+        'base_commit': {'repository': 'src', 'git_hash': 'aaa7336'},
+        'deps': ({'repository': 'catapult', 'git_hash': 'e0a2efb'},),
+        'patch': {
+            'server': 'https://codereview.chromium.org',
+            'issue': 2565263002,
+            'patchset': 20001,
+        },
+    })
+
+    base_commit = change.Dep('src', 'aaa7336')
+    deps = (change.Dep('catapult', 'e0a2efb'),)
+    patch = change.Patch('https://codereview.chromium.org', 2565263002, 20001)
+    expected = change.Change(base_commit, deps, patch)
+    self.assertEqual(c, expected)
 
   @mock.patch('dashboard.services.gitiles_service.CommitRange')
   def testMidpointSuccess(self, commit_range):
@@ -121,22 +152,41 @@ class DepTest(unittest.TestCase):
                      'https://chromium.googlesource.com/chromium/src')
 
   @mock.patch('dashboard.services.gitiles_service.CommitInfo')
-  def testValidateSuccess(self, _):
-    dep = change.Dep('src', '0e57e2b')
-    dep.Validate()
+  def testFromDict(self, _):
+    dep = change.Dep.FromDict({
+        'repository': 'src',
+        'git_hash': 'aaa7336',
+    })
 
-  def testValidateFailureFromUnknownRepo(self):
-    dep = change.Dep('catapult', '0e57e2b')
-    with self.assertRaises(KeyError):
-      dep.Validate()
+    expected = change.Dep('src', 'aaa7336')
+    self.assertEqual(dep, expected)
 
   @mock.patch('dashboard.services.gitiles_service.CommitInfo')
-  def testValidateFailureFromUnknownCommit(self, commit_info):
+  def testFromDictWithRepositoryUrl(self, _):
+    dep = change.Dep.FromDict({
+        'repository': 'https://chromium.googlesource.com/chromium/src',
+        'git_hash': 'aaa7336',
+    })
+
+    expected = change.Dep('src', 'aaa7336')
+    self.assertEqual(dep, expected)
+
+  def testFromDictFailureFromUnknownRepo(self):
+    with self.assertRaises(KeyError):
+      change.Dep.FromDict({
+          'repository': 'unknown repo',
+          'git_hash': 'git hash',
+      })
+
+  @mock.patch('dashboard.services.gitiles_service.CommitInfo')
+  def testFromDictFailureFromUnknownCommit(self, commit_info):
     commit_info.side_effect = KeyError()
 
-    dep = change.Dep('src', '0e57e2b')
     with self.assertRaises(KeyError):
-      dep.Validate()
+      change.Dep.FromDict({
+          'repository': 'src',
+          'git_hash': 'unknown git hash',
+      })
 
   @mock.patch('dashboard.services.gitiles_service.CommitRange')
   def testMidpointSuccess(self, commit_range):
@@ -174,3 +224,23 @@ class DepTest(unittest.TestCase):
     dep_b = change.Dep('src', 'b57345e')
     dep_a = change.Dep('src', '949b36d')
     self.assertIsNone(change.Dep.Midpoint(dep_a, dep_b))
+
+
+class PatchTest(unittest.TestCase):
+
+  def testPatch(self):
+    patch = change.Patch('https://codereview.chromium.org', 2851943002, 40001)
+
+    string = 'https://codereview.chromium.org/2851943002/40001'
+    self.assertEqual(str(patch), string)
+
+  def testFromDict(self):
+    patch = change.Patch.FromDict({
+        'server': 'https://codereview.chromium.org',
+        'issue': 2851943002,
+        'patchset': 40001,
+    })
+
+    expected = change.Patch('https://codereview.chromium.org',
+                            2851943002, 40001)
+    self.assertEqual(patch, expected)

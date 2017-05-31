@@ -51,6 +51,7 @@ class TestCase(unittest.TestCase):
     self.testbed.init_mail_stub()
     self.mail_stub = self.testbed.get_stub(testbed.MAIL_SERVICE_NAME)
     self.testbed.init_memcache_stub()
+    ndb.get_context().clear_cache()
     self.testbed.init_taskqueue_stub(root_path=_QUEUE_YAML_DIR)
     self.testbed.init_user_stub()
     self.testbed.init_urlfetch_stub()
