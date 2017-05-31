@@ -66,7 +66,7 @@ class StoryExpectations(object):
 
     self._disabled_platforms.append((conditions, reason))
 
-  def IsBenchmarkDisabled(self, platform):
+  def IsBenchmarkDisabled(self, platform, finder_options):
     """Returns the reason the benchmark was disabled, or None if not disabled.
 
     Args:
@@ -74,7 +74,7 @@ class StoryExpectations(object):
     """
     for conditions, reason in self._disabled_platforms:
       for condition in conditions:
-        if condition.ShouldDisable(platform):
+        if condition.ShouldDisable(platform, finder_options):
           logging.info('Benchmark permanently disabled on %s due to %s.',
                        condition, reason)
           return reason
@@ -107,7 +107,7 @@ class StoryExpectations(object):
       self._expectations[story_name] = []
     self._expectations[story_name].append((conditions, reason))
 
-  def IsStoryDisabled(self, story, platform):
+  def IsStoryDisabled(self, story, platform, finder_options):
     """Returns the reason the story was disabled, or None if not disabled.
 
     Args:
@@ -119,7 +119,7 @@ class StoryExpectations(object):
     """
     for conditions, reason in self._expectations.get(story.display_name, []):
       for condition in conditions:
-        if condition.ShouldDisable(platform):
+        if condition.ShouldDisable(platform, finder_options):
           logging.info('%s is disabled on %s due to %s.',
                        story.display_name, condition, reason)
           return reason
@@ -127,7 +127,7 @@ class StoryExpectations(object):
 
 
 class _TestCondition(object):
-  def ShouldDisable(self, platform):
+  def ShouldDisable(self, platform, finder_options):
     raise NotImplementedError
 
   def __str__(self):
@@ -139,7 +139,8 @@ class _TestConditionByPlatformList(_TestCondition):
     self._platforms = platforms
     self._name = name
 
-  def ShouldDisable(self, platform):
+  def ShouldDisable(self, platform, finder_options):
+    del finder_options  # Unused.
     return platform.GetOSName() in self._platforms
 
   def __str__(self):
@@ -147,7 +148,8 @@ class _TestConditionByPlatformList(_TestCondition):
 
 
 class _AllTestCondition(_TestCondition):
-  def ShouldDisable(self, _):
+  def ShouldDisable(self, platform, finder_options):
+    del platform, finder_options  # Unused.
     return True
 
   def __str__(self):
@@ -156,7 +158,8 @@ class _AllTestCondition(_TestCondition):
 
 class _TestConditionAndroidSvelte(_TestCondition):
   """Matches android devices with a svelte (low-memory) build."""
-  def ShouldDisable(self, platform):
+  def ShouldDisable(self, platform, finder_options):
+    del finder_options  # Unused.
     return platform.GetOSName() == 'android' and platform.IsSvelte()
 
   def __str__(self):
@@ -168,7 +171,7 @@ class _TestConditionByAndroidModel(_TestCondition):
     self._model = model
     self._name = name if name else model
 
-  def ShouldDisable(self, platform):
+  def ShouldDisable(self, platform, finder_options):
     return (platform.GetOSName() == 'android' and
             self._model in platform.GetDeviceTypeName())
 

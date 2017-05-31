@@ -240,7 +240,8 @@ def Run(test, story_set, finder_options, results, max_failures=None,
           results.WillRunPage(story, storyset_repeat_counter)
 
           if expectations:
-            disabled = expectations.IsStoryDisabled(story, state.platform)
+            disabled = expectations.IsStoryDisabled(
+                story, state.platform, finder_options)
             if disabled and not finder_options.run_disabled_tests:
               results.AddValue(skip.SkipValue(story, disabled))
               results.DidRunPage(story)
@@ -324,7 +325,7 @@ def RunBenchmark(benchmark, finder_options):
     return 1
 
   permanently_disabled = expectations.IsBenchmarkDisabled(
-      possible_browser.platform)
+      possible_browser.platform, finder_options)
   # TODO(rnephew): Remove decorators.IsBenchmarkEnabled when deprecated.
   temporarily_disabled = not decorators.IsBenchmarkEnabled(
       benchmark, possible_browser)

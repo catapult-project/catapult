@@ -30,168 +30,235 @@ class MockStorySet(object):
   def stories(self):
     return self._stories
 
+class MockBrowserFinderOptions(object):
+  # This class will be populated later by TestConditions that require
+  # BrowserFinderOptions such as Webview Test Conditions.
+  pass
 
 class TestConditionTest(unittest.TestCase):
   def setUp(self):
     self._platform = fakes.FakePlatform()
+    self._finder_options = MockBrowserFinderOptions()
 
   def testAllAlwaysReturnsTrue(self):
-    self.assertTrue(expectations.ALL.ShouldDisable(self._platform))
+    self.assertTrue(
+        expectations.ALL.ShouldDisable(self._platform, self._finder_options))
 
   def testAllWinReturnsTrueOnWindows(self):
     self._platform.SetOSName('win')
-    self.assertTrue(expectations.ALL_WIN.ShouldDisable(self._platform))
+    self.assertTrue(
+        expectations.ALL_WIN.ShouldDisable(self._platform,
+                                           self._finder_options))
 
   def testAllWinReturnsFalseOnOthers(self):
     self._platform.SetOSName('not_windows')
-    self.assertFalse(expectations.ALL_WIN.ShouldDisable(self._platform))
+    self.assertFalse(
+        expectations.ALL_WIN.ShouldDisable(self._platform,
+                                           self._finder_options))
 
   def testAllLinuxReturnsTrueOnLinux(self):
     self._platform.SetOSName('linux')
-    self.assertTrue(expectations.ALL_LINUX.ShouldDisable(self._platform))
+    self.assertTrue(expectations.ALL_LINUX.ShouldDisable(self._platform,
+                                                         self._finder_options))
 
   def testAllLinuxReturnsFalseOnOthers(self):
     self._platform.SetOSName('not_linux')
-    self.assertFalse(expectations.ALL_LINUX.ShouldDisable(self._platform))
+    self.assertFalse(expectations.ALL_LINUX.ShouldDisable(self._platform,
+                                                          self._finder_options))
 
   def testAllMacReturnsTrueOnMac(self):
     self._platform.SetOSName('mac')
-    self.assertTrue(expectations.ALL_MAC.ShouldDisable(self._platform))
+    self.assertTrue(expectations.ALL_MAC.ShouldDisable(self._platform,
+                                                       self._finder_options))
 
   def testAllMacReturnsFalseOnOthers(self):
     self._platform.SetOSName('not_mac')
-    self.assertFalse(expectations.ALL_MAC.ShouldDisable(self._platform))
+    self.assertFalse(expectations.ALL_MAC.ShouldDisable(self._platform,
+                                                        self._finder_options))
 
   def testAllAndroidReturnsTrueOnAndroid(self):
     self._platform.SetOSName('android')
-    self.assertTrue(expectations.ALL_ANDROID.ShouldDisable(self._platform))
+    self.assertTrue(
+        expectations.ALL_ANDROID.ShouldDisable(self._platform,
+                                               self._finder_options))
 
   def testAllAndroidReturnsFalseOnOthers(self):
     self._platform.SetOSName('not_android')
-    self.assertFalse(expectations.ALL_ANDROID.ShouldDisable(self._platform))
+    self.assertFalse(
+        expectations.ALL_ANDROID.ShouldDisable(self._platform,
+                                               self._finder_options))
 
   def testAllDesktopReturnsFalseOnNonDesktop(self):
     false_platforms = ['android']
     for plat in false_platforms:
       self._platform.SetOSName(plat)
-      self.assertFalse(expectations.ALL_DESKTOP.ShouldDisable(self._platform))
+      self.assertFalse(
+          expectations.ALL_DESKTOP.ShouldDisable(self._platform,
+                                                 self._finder_options))
 
   def testAllDesktopReturnsTrueOnDesktop(self):
     true_platforms = ['win', 'mac', 'linux']
     for plat in true_platforms:
       self._platform.SetOSName(plat)
-      self.assertTrue(expectations.ALL_DESKTOP.ShouldDisable(self._platform))
+      self.assertTrue(
+          expectations.ALL_DESKTOP.ShouldDisable(self._platform,
+                                                 self._finder_options))
 
   def testAllMobileReturnsFalseOnNonMobile(self):
     false_platforms = ['win', 'mac', 'linux']
     for plat in false_platforms:
       self._platform.SetOSName(plat)
-      self.assertFalse(expectations.ALL_MOBILE.ShouldDisable(self._platform))
+      self.assertFalse(
+          expectations.ALL_MOBILE.ShouldDisable(self._platform,
+                                                self._finder_options))
 
   def testAllMobileReturnsTrueOnMobile(self):
     true_platforms = ['android']
     for plat in true_platforms:
       self._platform.SetOSName(plat)
-      self.assertTrue(expectations.ALL_MOBILE.ShouldDisable(self._platform))
+      self.assertTrue(
+          expectations.ALL_MOBILE.ShouldDisable(self._platform,
+                                                self._finder_options))
 
   def testAndroidNexus5ReturnsFalseOnNotAndroid(self):
     self._platform.SetOSName('not_android')
-    self.assertFalse(expectations.ANDROID_NEXUS5.ShouldDisable(self._platform))
+    self.assertFalse(
+        expectations.ANDROID_NEXUS5.ShouldDisable(self._platform,
+                                                  self._finder_options))
 
   def testAndroidNexus5XReturnsFalseOnNotAndroid(self):
     self._platform.SetOSName('not_android')
-    self.assertFalse(expectations.ANDROID_NEXUS5X.ShouldDisable(self._platform))
+    self.assertFalse(
+        expectations.ANDROID_NEXUS5X.ShouldDisable(self._platform,
+                                                   self._finder_options))
 
   def testAndroidNexus6ReturnsFalseOnNotAndroid(self):
     self._platform.SetOSName('not_android')
-    self.assertFalse(expectations.ANDROID_NEXUS6.ShouldDisable(self._platform))
+    self.assertFalse(
+        expectations.ANDROID_NEXUS6.ShouldDisable(self._platform,
+                                                  self._finder_options))
 
   def testAndroidNexus6PReturnsFalseOnNotAndroid(self):
     self._platform.SetOSName('not_android')
-    self.assertFalse(expectations.ANDROID_NEXUS6.ShouldDisable(self._platform))
+    self.assertFalse(
+        expectations.ANDROID_NEXUS6.ShouldDisable(self._platform,
+                                                  self._finder_options))
 
   def testAndroidNexus7ReturnsFalseOnNotAndroid(self):
     self._platform.SetOSName('not_android')
-    self.assertFalse(expectations.ANDROID_NEXUS7.ShouldDisable(self._platform))
+    self.assertFalse(
+        expectations.ANDROID_NEXUS7.ShouldDisable(self._platform,
+                                                  self._finder_options))
 
   def testAndroidCherryMobileReturnsFalseOnNotAndroid(self):
     self._platform.SetOSName('not_android')
     self.assertFalse(
-        expectations.ANDROID_ONE.ShouldDisable(self._platform))
+        expectations.ANDROID_ONE.ShouldDisable(self._platform,
+                                               self._finder_options))
 
   def testAndroidSvelteReturnsFalseOnNotAndroid(self):
     self._platform.SetOSName('not_android')
-    self.assertFalse(expectations.ANDROID_SVELTE.ShouldDisable(self._platform))
+    self.assertFalse(
+        expectations.ANDROID_SVELTE.ShouldDisable(self._platform,
+                                                  self._finder_options))
 
   def testAndroidNexus5ReturnsFalseOnAndroidNotNexus5(self):
     self._platform.SetOSName('android')
-    self.assertFalse(expectations.ANDROID_NEXUS5.ShouldDisable(self._platform))
+    self.assertFalse(
+        expectations.ANDROID_NEXUS5.ShouldDisable(self._platform,
+                                                  self._finder_options))
 
   def testAndroidNexus5XReturnsFalseOnAndroidNotNexus5X(self):
     self._platform.SetOSName('android')
-    self.assertFalse(expectations.ANDROID_NEXUS5X.ShouldDisable(self._platform))
+    self.assertFalse(
+        expectations.ANDROID_NEXUS5X.ShouldDisable(self._platform,
+                                                   self._finder_options))
 
   def testAndroidNexus6ReturnsFalseOnAndroidNotNexus6(self):
     self._platform.SetOSName('android')
-    self.assertFalse(expectations.ANDROID_NEXUS6.ShouldDisable(self._platform))
+    self.assertFalse(
+        expectations.ANDROID_NEXUS6.ShouldDisable(self._platform,
+                                                  self._finder_options))
 
   def testAndroidNexus6PReturnsFalseOnAndroidNotNexus6P(self):
     self._platform.SetOSName('android')
-    self.assertFalse(expectations.ANDROID_NEXUS6.ShouldDisable(self._platform))
+    self.assertFalse(
+        expectations.ANDROID_NEXUS6.ShouldDisable(self._platform,
+                                                  self._finder_options))
 
   def testAndroidNexus7ReturnsFalseOnAndroidNotNexus7(self):
     self._platform.SetOSName('android')
-    self.assertFalse(expectations.ANDROID_NEXUS7.ShouldDisable(self._platform))
+    self.assertFalse(
+        expectations.ANDROID_NEXUS7.ShouldDisable(self._platform,
+                                                  self._finder_options))
 
   def testAndroidCherryMobileReturnsFalseOnAndroidNotCherryMobile(self):
     self._platform.SetOSName('android')
     self.assertFalse(
-        expectations.ANDROID_ONE.ShouldDisable(self._platform))
+        expectations.ANDROID_ONE.ShouldDisable(self._platform,
+                                               self._finder_options))
 
   def testAndroidSvelteReturnsFalseOnAndroidNotSvelte(self):
     self._platform.SetOSName('android')
-    self.assertFalse(expectations.ANDROID_SVELTE.ShouldDisable(self._platform))
+    self.assertFalse(
+        expectations.ANDROID_SVELTE.ShouldDisable(self._platform,
+                                                  self._finder_options))
 
   def testAndroidNexus5ReturnsTrueOnAndroidNexus5(self):
     self._platform.SetOSName('android')
     self._platform.SetDeviceTypeName('Nexus 5')
-    self.assertTrue(expectations.ANDROID_NEXUS5.ShouldDisable(self._platform))
+    self.assertTrue(
+        expectations.ANDROID_NEXUS5.ShouldDisable(self._platform,
+                                                  self._finder_options))
 
   def testAndroidNexus5XReturnsTrueOnAndroidNexus5X(self):
     self._platform.SetOSName('android')
     self._platform.SetDeviceTypeName('Nexus 5X')
-    self.assertTrue(expectations.ANDROID_NEXUS5X.ShouldDisable(self._platform))
+    self.assertTrue(
+        expectations.ANDROID_NEXUS5X.ShouldDisable(self._platform,
+                                                   self._finder_options))
 
   def testAndroidNexus6ReturnsTrueOnAndroidNexus6(self):
     self._platform.SetOSName('android')
     self._platform.SetDeviceTypeName('Nexus 6')
-    self.assertTrue(expectations.ANDROID_NEXUS6.ShouldDisable(self._platform))
+    self.assertTrue(
+        expectations.ANDROID_NEXUS6.ShouldDisable(self._platform,
+                                                  self._finder_options))
 
   def testAndroidNexus6PReturnsTrueOnAndroidNexus6P(self):
     self._platform.SetOSName('android')
     self._platform.SetDeviceTypeName('Nexus 6P')
-    self.assertTrue(expectations.ANDROID_NEXUS6.ShouldDisable(self._platform))
+    self.assertTrue(
+        expectations.ANDROID_NEXUS6.ShouldDisable(self._platform,
+                                                  self._finder_options))
 
   def testAndroidNexus7ReturnsTrueOnAndroidNexus7(self):
     self._platform.SetOSName('android')
     self._platform.SetDeviceTypeName('Nexus 7')
-    self.assertTrue(expectations.ANDROID_NEXUS7.ShouldDisable(self._platform))
+    self.assertTrue(
+        expectations.ANDROID_NEXUS7.ShouldDisable(self._platform,
+                                                  self._finder_options))
 
   def testAndroidCherryMobileReturnsTrueOnAndroidCherryMobile(self):
     self._platform.SetOSName('android')
     self._platform.SetDeviceTypeName('W6210')
     self.assertTrue(
-        expectations.ANDROID_ONE.ShouldDisable(self._platform))
+        expectations.ANDROID_ONE.ShouldDisable(self._platform,
+                                               self._finder_options))
 
   def testAndroidSvelteReturnsTrueOnAndroidSvelte(self):
     self._platform.SetOSName('android')
     self._platform.SetIsSvelte(True)
-    self.assertTrue(expectations.ANDROID_SVELTE.ShouldDisable(self._platform))
+    self.assertTrue(
+        expectations.ANDROID_SVELTE.ShouldDisable(self._platform,
+                                                  self._finder_options))
 
 
 class StoryExpectationsTest(unittest.TestCase):
   def setUp(self):
     self.platform = fakes.FakePlatform()
+    self.finder_options = MockBrowserFinderOptions()
+
 
   def testCantDisableAfterInit(self):
     e = expectations.StoryExpectations()
@@ -209,11 +276,11 @@ class StoryExpectationsTest(unittest.TestCase):
     e = FooExpectations()
     self.platform.SetOSName('win')
 
-    reason = e.IsBenchmarkDisabled(self.platform)
+    reason = e.IsBenchmarkDisabled(self.platform, self.finder_options)
     self.assertEqual(reason, 'crbug.com/123')
 
     self.platform.SetOSName('android')
-    reason = e.IsBenchmarkDisabled(self.platform)
+    reason = e.IsBenchmarkDisabled(self.platform, self.finder_options)
     self.assertIsNone(reason)
 
   def testDisableStoryMultipleConditions(self):
@@ -228,7 +295,7 @@ class StoryExpectationsTest(unittest.TestCase):
 
     self.platform.SetOSName('mac')
     reason = e.IsStoryDisabled(
-        MockStory('multi'), self.platform)
+        MockStory('multi'), self.platform, self.finder_options)
     self.assertEqual(reason, 'crbug.com/456')
 
   def testDisableStoryOneCondition(self):
@@ -241,11 +308,11 @@ class StoryExpectationsTest(unittest.TestCase):
 
     self.platform.SetOSName('win')
     reason = e.IsStoryDisabled(
-        MockStory('disable'), self.platform)
+        MockStory('disable'), self.platform, self.finder_options)
     self.assertEqual(reason, 'crbug.com/123')
     self.platform.SetOSName('mac')
     reason = e.IsStoryDisabled(
-        MockStory('disabled'), self.platform)
+        MockStory('disabled'), self.platform, self.finder_options)
     self.assertFalse(reason)
     self.assertIsNone(reason)
 
