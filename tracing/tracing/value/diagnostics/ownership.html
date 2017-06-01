@@ -48,6 +48,10 @@ tr.exportTo('tr.v.d.', function() {
     }
   }
 
-  return { Ownership };
+  tr.v.d.Diagnostic.register(Ownership);
+
+  return {
+    Ownership,
+  };
 });
 </script>

@@ -25,6 +25,21 @@ def _CheckRegisteredMetrics(input_api, output_api):
   return results
 
 
+def _CheckRegisteredDiagnostics(input_api, output_api):
+  """Check that all Diagnostic subclasses are registered."""
+  results = []
+  tracing_dir = input_api.PresubmitLocalPath()
+  out, return_code = _RunArgs(
+      [input_api.python_executable,
+       input_api.os_path.join(tracing_dir, 'bin', 'validate_all_diagnostics')],
+      input_api)
+  if return_code:
+    results.append(output_api.PresubmitError(
+        'Failed validate_all_diagnostics: ', long_text=out))
+  return results
+
+
+
 def CheckChangeOnUpload(input_api, output_api):
   return _CheckChange(input_api, output_api)
 
@@ -51,6 +66,7 @@ def _CheckChange(input_api, output_api):
       pylintrc='../pylintrc'))
 
   results += _CheckRegisteredMetrics(input_api, output_api)
+  results += _CheckRegisteredDiagnostics(input_api, output_api)
 
   return results
 
