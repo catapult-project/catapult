@@ -77,6 +77,8 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
             '--allow-failed-policy-fetch-for-test',
             # Skip user image selection screen, and post login screens.
             '--oobe-skip-postlogin',
+            # Disable chrome logging redirect. crbug.com/724273.
+            '--disable-logging-redirect',
             # Debug logging.
             vmodule])
 
