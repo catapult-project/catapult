@@ -249,7 +249,7 @@ class AtraceAgent(tracing_agents.TracingAgent):
     """Reads the output from atrace and stops the trace."""
     dump_cmd = self._tracer_args + ['--async_dump']
     result = self._device_utils.RunShellCommand(
-        dump_cmd, raw_output=True, check_return=True)
+        dump_cmd, raw_output=True, large_output=True, check_return=True)
 
     data_start = re.search(TRACE_START_REGEXP, result)
     if data_start:
