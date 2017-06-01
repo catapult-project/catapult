@@ -12,5 +12,7 @@ class Run(webapp2.RequestHandler):
 
   def post(self, job_id):
     job = job_module.JobFromId(job_id)
-    job.Run()
-    job.put()
+    try:
+      job.Run()
+    finally:
+      job.put()

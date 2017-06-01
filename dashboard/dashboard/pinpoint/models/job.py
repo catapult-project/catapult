@@ -46,9 +46,13 @@ class Job(ndb.Model):
   created = ndb.DateTimeProperty(required=True, auto_now_add=True)
   updated = ndb.DateTimeProperty(required=True, auto_now=True)
 
-  # The name of the Task Queue task this job is running on. If it's not present,
-  # the job isn't running.
+  # The name of the Task Queue task this job is running on. If it's present, the
+  # job is running. The task is also None for Task Queue retries.
   task = ndb.StringProperty()
+
+  # The string contents of any Exception that was thrown to the top level.
+  # If it's present, the job failed.
+  exception = ndb.StringProperty()
 
   # Request parameters.
   configuration = ndb.StringProperty(required=True)
@@ -85,8 +89,14 @@ class Job(ndb.Model):
     return self.key.urlsafe()
 
   @property
-  def running(self):
-    return bool(self.task)
+  def status(self):
+    if self.task:
+      return 'Running'
+
+    if self.exception:
+      return 'Failed'
+
+    return 'Completed'
 
   def AddChange(self, change):
     self.state.AddChange(change)
@@ -97,22 +107,22 @@ class Job(ndb.Model):
     self.task = task.name
 
   def Run(self):
-    if self.auto_explore:
-      self.state.Explore()
-    work_left = self.state.ScheduleWork()
+    self.exception = None  # In case the Job succeeds on retry.
+    self.task = None  # In case an exception is thrown.
 
-    # Schedule moar task.
-    if work_left:
-      self.Start()
-    else:
-      self.task = None
+    try:
+      if self.auto_explore:
+        self.state.Explore()
+      work_left = self.state.ScheduleWork()
+
+      # Schedule moar task.
+      if work_left:
+        self.Start()
+    except BaseException as e:
+      self.exception = str(e)
+      raise
 
   def AsDict(self):
-    if self.running:
-      status = 'RUNNING'
-    else:
-      status = 'COMPLETED'
-
     return {
         'job_id': self.job_id,
 
@@ -124,7 +134,7 @@ class Job(ndb.Model):
 
         'created': self.created.strftime('%Y-%m-%d %H:%M:%S %Z'),
         'updated': self.updated.strftime('%Y-%m-%d %H:%M:%S %Z'),
-        'status': status,
+        'status': self.status,
 
         'state': self.state.AsDict(),
     }
