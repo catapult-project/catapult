@@ -361,6 +361,7 @@ found in the LICENSE file.
             <input type="checkbox"
                    id="{{item.key}}"
                    checked="{{item.selected::change}}"
+                   on-click="onCheckboxClick"
                    on-change="onCheckboxChange">
           </td>
 
@@ -1077,11 +1078,44 @@ found in the LICENSE file.
         }
       },
 
+      /*
+       * Intercept shift-click on checkboxes to select all checkboxes between
+       * the previous checkbox and the current checkbox.
+       * Ignore all types of clicks other than shift-click.
+       */
+      onCheckboxClick(event) {
+        if (!event.shiftKey) return;
+
+        const allCheckboxes = Array.from(this.querySelectorAll(
+            'input[type=checkbox]'));
+
+        // If the user hasn't clicked on any checkboxes yet, start from the
+        // first checkbox, skipping #header-checkbox.
+        let previousCheckboxIndex = 1;
+        if (this.currentCheckboxId !== null) {
+          previousCheckboxIndex = allCheckboxes.indexOf(
+              this.querySelector('#' + this.currentCheckboxId));
+        }
+
+        const currentCheckboxIndex = allCheckboxes.indexOf(event.target);
+
+        const firstCheckboxIndex = Math.min(
+            previousCheckboxIndex, currentCheckboxIndex);
+        const lastCheckboxIndex = Math.max(
+            previousCheckboxIndex, currentCheckboxIndex);
+
+        for (let i = firstCheckboxIndex; i <= lastCheckboxIndex; ++i) {
+          const checkbox = allCheckboxes[i];
+          checkbox.checked = true;
+          this.onCheckboxChange({currentTarget: checkbox});
+        }
+      },
+
       /**
        * Event handler for the change event of any of the checkboxes for any
        * alert in the table.
        */
-      onCheckboxChange(event, detail) {
+      onCheckboxChange(event) {
         if (event && event.currentTarget) {
           // Checks group member rows.
           const alertIndex = Polymer.dom(Polymer.dom(
