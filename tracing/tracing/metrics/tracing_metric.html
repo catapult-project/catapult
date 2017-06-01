@@ -25,22 +25,9 @@ tr.exportTo('tr.metrics', function() {
   const COUNT_BOUNDARIES = tr.v.HistogramBinBoundaries.createExponential(
       1, 1e5, 30);
 
-  function addTimeDurationHistogram(
-      histogramName, duration, histograms, opt_description) {
-    const hist = new tr.v.Histogram(histogramName,
-        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TIME_BOUNDARIES);
-    hist.addSample(duration);
-    hist.customizeSummaryOptions({
-      count: false,
-      min: false,
-      max: false,
-      sum: false,
-      avg: true,
-      std: false
-    });
-    histograms.addHistogram(hist);
-    if (opt_description) hist.description = opt_description;
-  }
+  // By default, we store a single value, so we only need one of the
+  // statistics to keep track. We choose the average for that.
+  const SUMMARY_OPTIONS = tr.v.Histogram.AVERAGE_ONLY_SUMMARY_OPTIONS;
 
   // Adds histograms specific to memory-infra dumps.
   function addMemoryInfraHistograms(
@@ -74,20 +61,33 @@ tr.exportTo('tr.metrics', function() {
       }
     }
 
-    addTimeDurationHistogram(
-        'memory_dump_cpu_overhead',
-        totalOverhead / memoryDumpCount, histograms,
-        'Average CPU overhead on all threads per memory-infra dump');
-    addTimeDurationHistogram(
-        'nonmemory_thread_memory_dump_cpu_overhead',
-        nonMemoryInfraThreadOverhead / memoryDumpCount, histograms,
-        'Average CPU overhead on non-memory-infra threads per memory-infra ' +
-            'dump');
+    histograms.createHistogram('memory_dump_cpu_overhead',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
+        totalOverhead / memoryDumpCount, {
+          binBoundaries: TIME_BOUNDARIES,
+          description:
+            'Average CPU overhead on all threads per memory-infra dump',
+          summaryOptions: SUMMARY_OPTIONS,
+        });
+
+    histograms.createHistogram('nonmemory_thread_memory_dump_cpu_overhead',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
+        nonMemoryInfraThreadOverhead / memoryDumpCount, {
+          binBoundaries: TIME_BOUNDARIES,
+          description: 'Average CPU overhead on non-memory-infra threads ' +
+            'per memory-infra dump',
+          summaryOptions: SUMMARY_OPTIONS,
+        });
+
     for (const [providerName, overhead] of Object.entries(overheadByProvider)) {
-      addTimeDurationHistogram(
-          `${providerName}_memory_dump_cpu_overhead`,
-          overhead.duration / overhead.count, histograms,
-          'Average CPU overhead of ' + providerName + ' per OnMemoryDump call');
+      histograms.createHistogram(`${providerName}_memory_dump_cpu_overhead`,
+          tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
+          overhead.duration / overhead.count, {
+            binBoundaries: TIME_BOUNDARIES,
+            description:
+              `Average CPU overhead of ${providerName} per OnMemoryDump call`,
+            summaryOptions: SUMMARY_OPTIONS,
+          });
     }
 
     const memoryInfraEventsSize =
@@ -97,14 +97,7 @@ tr.exportTo('tr.metrics', function() {
         tr.b.Unit.byName.sizeInBytes_smallerIsBetter, BYTE_BOUNDARIES);
     memoryInfraTraceBytesValue.description =
         'Total trace size of memory-infra dumps in bytes';
-    memoryInfraTraceBytesValue.customizeSummaryOptions({
-      count: false,
-      min: false,
-      max: false,
-      sum: false,
-      avg: true,
-      std: false
-    });
+    memoryInfraTraceBytesValue.customizeSummaryOptions(SUMMARY_OPTIONS);
     memoryInfraTraceBytesValue.addSample(memoryInfraEventsSize);
     histograms.addHistogram(memoryInfraTraceBytesValue);
 
@@ -113,14 +106,7 @@ tr.exportTo('tr.metrics', function() {
         tr.b.Unit.byName.sizeInBytes_smallerIsBetter, BYTE_BOUNDARIES);
     traceBytesPerDumpValue.description =
         'Average trace size of memory-infra dumps in bytes';
-    traceBytesPerDumpValue.customizeSummaryOptions({
-      count: false,
-      min: false,
-      max: false,
-      sum: false,
-      avg: true,
-      std: false
-    });
+    traceBytesPerDumpValue.customizeSummaryOptions(SUMMARY_OPTIONS);
     traceBytesPerDumpValue.addSample(memoryInfraEventsSize / memoryDumpCount);
     histograms.addHistogram(traceBytesPerDumpValue);
   }
@@ -131,9 +117,14 @@ tr.exportTo('tr.metrics', function() {
   // second').
   // https://github.com/catapult-project/catapult/issues/3233
   function tracingMetric(histograms, model) {
-    addTimeDurationHistogram(
-        'trace_import_duration', model.stats.traceImportDurationMs, histograms,
-        'Duration that trace viewer required to import the trace');
+    histograms.createHistogram('trace_import_duration',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
+        model.stats.traceImportDurationMs, {
+          binBoundaries: TIME_BOUNDARIES,
+          description:
+            'Duration that trace viewer required to import the trace',
+          summaryOptions: SUMMARY_OPTIONS,
+        });
 
     if (!model.stats.hasEventSizesinBytes) return;
 
@@ -199,40 +190,19 @@ tr.exportTo('tr.metrics', function() {
         'peak_event_rate', tr.b.Unit.byName.count_smallerIsBetter,
         COUNT_BOUNDARIES);
     maxEventCountPerSecValue.description = 'Max number of events per second';
-    maxEventCountPerSecValue.customizeSummaryOptions({
-      count: false,
-      min: false,
-      max: false,
-      sum: false,
-      avg: true,
-      std: false
-    });
+    maxEventCountPerSecValue.customizeSummaryOptions(SUMMARY_OPTIONS);
     maxEventCountPerSecValue.addSample(maxEventCountPerSec);
 
     const maxEventBytesPerSecValue = new tr.v.Histogram(
         'peak_event_size_rate', tr.b.Unit.byName.sizeInBytes_smallerIsBetter,
         BYTE_BOUNDARIES);
     maxEventBytesPerSecValue.description = 'Max event size in bytes per second';
-    maxEventBytesPerSecValue.customizeSummaryOptions({
-      count: false,
-      min: false,
-      max: false,
-      sum: false,
-      avg: true,
-      std: false
-    });
+    maxEventBytesPerSecValue.customizeSummaryOptions(SUMMARY_OPTIONS);
     maxEventBytesPerSecValue.addSample(maxEventBytesPerSec);
 
     const totalTraceBytesValue = new tr.v.Histogram('trace_size',
         tr.b.Unit.byName.sizeInBytes_smallerIsBetter, BYTE_BOUNDARIES);
-    totalTraceBytesValue.customizeSummaryOptions({
-      count: false,
-      min: false,
-      max: false,
-      sum: false,
-      avg: true,
-      std: false
-    });
+    totalTraceBytesValue.customizeSummaryOptions(SUMMARY_OPTIONS);
     totalTraceBytesValue.addSample(totalTraceBytes);
 
     const biggestCategory = {

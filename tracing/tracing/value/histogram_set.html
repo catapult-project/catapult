@@ -46,6 +46,34 @@ tr.exportTo('tr.v', function() {
     }
 
     /**
+     * Create a Histogram, configure it, add samples to it, and add it to this
+     * HistogramSet.
+     *
+     * |samples| can be either
+     *  0. a number, or
+     *  1. a dictionary {value: number, diagnostics: dictionary}, or
+     *  2. an array of
+     *     2a. number, or
+     *     2b. dictionaries {value, diagnostics}.
+     *
+     * @param {string} name
+     * @param {!tr.b.Unit} unit
+     * @param {number|!Object|!Array.<(number|!Object)>} samples
+     * @param {!Object=} opt_options
+     * @param {!tr.v.HistogramBinBoundaries} opt_options.binBoundaries
+     * @param {!Object|!Map} opt_options.summaryOptions
+     * @param {!Object|!Map} opt_options.diagnostics
+     * @param {string} opt_options.description
+     * @param {string} opt_options.shortName
+     * @return {!tr.v.Histogram}
+     */
+    createHistogram(name, unit, samples, opt_options) {
+      const hist = tr.v.Histogram.create(name, unit, samples, opt_options);
+      this.addHistogram(hist);
+      return hist;
+    }
+
+    /**
      * @param {!tr.v.Histogram} hist
      * @param {(!Object|!tr.v.d.DiagnosticMap)=} opt_diagnostics
      */
@@ -55,14 +83,11 @@ tr.exportTo('tr.v', function() {
       }
 
       if (opt_diagnostics !== undefined) {
-        if (opt_diagnostics instanceof tr.v.d.DiagnosticMap) {
-          for (const [name, diagnostic] of opt_diagnostics) {
-            hist.diagnostics.set(name, diagnostic);
-          }
-        } else {
-          for (const [name, diagnostic] of Object.entries(opt_diagnostics)) {
-            hist.diagnostics.set(name, diagnostic);
-          }
+        if (!(opt_diagnostics instanceof Map)) {
+          opt_diagnostics = Object.entries(opt_diagnostics);
+        }
+        for (const [name, diagnostic] of opt_diagnostics) {
+          hist.diagnostics.set(name, diagnostic);
         }
       }
 

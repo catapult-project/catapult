@@ -38,6 +38,10 @@ tr.exportTo('tr.metrics.webrtc', function() {
     STREAM_ID_NAME
   ];
 
+  // By default, we store a single value, so we only need one of the
+  // statistics to keep track. We choose the average for that.
+  const SUMMARY_OPTIONS = tr.v.Histogram.AVERAGE_ONLY_SUMMARY_OPTIONS;
+
   const count_smallerIsBetter =
         tr.b.Unit.byName.count_smallerIsBetter;
   const percentage_biggerIsBetter =
@@ -77,50 +81,52 @@ tr.exportTo('tr.metrics.webrtc', function() {
 
   tr.metrics.MetricRegistry.register(webrtcRenderingMetric);
 
-  function addHistogram(samples, histograms, name, unit, opt_summaryOptions) {
-    let summaryOptions = opt_summaryOptions;
-    if (!summaryOptions) {
-      // By default, we store a single value, so we only need one of the
-      // statistics to keep track. We choose the average for that.
-      summaryOptions = {
-        count: false,
-        max: false,
-        min: false,
-        std: false,
-        sum: false,
-      };
-    }
-    const histogram = new tr.v.Histogram(name, unit);
-    for (const sample of samples) {
-      histogram.addSample(sample);
-    }
-    histogram.customizeSummaryOptions(summaryOptions);
-    histograms.addHistogram(histogram);
-  }
 
   function getTimeStats(histograms, streamName, events) {
     const frameHist = getFrameDistribution(histograms, events);
     addFpsFromFrameDistribution(histograms, frameHist);
     addFreezingScore(histograms, frameHist);
+
     const driftTimeStats = getDriftStats(events);
-    addHistogram(driftTimeStats.driftTime, histograms,
-        'WebRTCRendering_drift_time', timeDurationInMs_smallerIsBetter,
-        {count: false, min: false, percentile: [0.75, 0.9]});
-    addHistogram([driftTimeStats.renderingLengthError], histograms,
-        'WebRTCRendering_rendering_length_error', percentage_smallerIsBetter);
+    histograms.createHistogram('WebRTCRendering_drift_time',
+        timeDurationInMs_smallerIsBetter, driftTimeStats.driftTime, {
+          summaryOptions: {
+            count: false,
+            min: false,
+            percentile: [0.75, 0.9],
+          },
+        });
+    histograms.createHistogram('WebRTCRendering_rendering_length_error',
+        percentage_smallerIsBetter,
+        driftTimeStats.renderingLengthError, {
+          summaryOptions: SUMMARY_OPTIONS,
+        });
+
     const smoothnessStats = getSmoothnessStats(driftTimeStats.driftTime);
-    addHistogram([smoothnessStats.percentBadlyOutOfSync], histograms,
-        'WebRTCRendering_percent_badly_out_of_sync',
-        percentage_smallerIsBetter);
-    addHistogram([smoothnessStats.percentOutOfSync], histograms,
-        'WebRTCRendering_percent_out_of_sync', percentage_smallerIsBetter);
-    addHistogram([smoothnessStats.smoothnessScore], histograms,
-        'WebRTCRendering_smoothness_score', percentage_biggerIsBetter);
-    addHistogram([smoothnessStats.framesOutOfSync], histograms,
-        'WebRTCRendering_frames_out_of_sync', count_smallerIsBetter);
-    addHistogram([smoothnessStats.framesSeverelyOutOfSync], histograms,
-        'WebRTCRendering_frames_badly_out_of_sync', count_smallerIsBetter);
+    histograms.createHistogram('WebRTCRendering_percent_badly_out_of_sync',
+        percentage_smallerIsBetter, smoothnessStats.percentBadlyOutOfSync, {
+          summaryOptions: SUMMARY_OPTIONS,
+        });
+    histograms.createHistogram('WebRTCRendering_percent_out_of_sync',
+        percentage_smallerIsBetter, smoothnessStats.percentOutOfSync, {
+          summaryOptions: SUMMARY_OPTIONS,
+        });
+    histograms.createHistogram('WebRTCRendering_smoothness_score',
+        percentage_biggerIsBetter, smoothnessStats.smoothnessScore, {
+          summaryOptions: SUMMARY_OPTIONS,
+        });
+    histograms.createHistogram('WebRTCRendering_frames_out_of_sync',
+        count_smallerIsBetter, smoothnessStats.framesOutOfSync, {
+          summaryOptions: SUMMARY_OPTIONS,
+        });
+    histograms.createHistogram('WebRTCRendering_frames_badly_out_of_sync',
+        count_smallerIsBetter, smoothnessStats.framesSeverelyOutOfSync, {
+          summaryOptions: SUMMARY_OPTIONS,
+        });
   }
+
+  const FRAME_DISTRIBUTION_BIN_BOUNDARIES =
+    tr.v.HistogramBinBoundaries.createLinear(1, 50, 49);
 
   /**
    * Create the frame distribution.
@@ -139,15 +145,13 @@ tr.exportTo('tr.metrics.webrtc', function() {
   function getFrameDistribution(histograms, events) {
     const cadence = tr.b.runLengthEncoding(
         events.map(e => e.args[IDEAL_RENDER_INSTANT_NAME]));
-    const frameHist = new tr.v.Histogram('WebRTCRendering_frame_distribution',
-        count_smallerIsBetter,
-        tr.v.HistogramBinBoundaries.createLinear(1, 50, 49));
-    for (const ticks of cadence) {
-      frameHist.addSample(ticks.count);
-    }
-    frameHist.customizeSummaryOptions({percentile: [0.75, 0.9]});
-    histograms.addHistogram(frameHist);
-    return frameHist;
+    return histograms.createHistogram('WebRTCRendering_frame_distribution',
+        count_smallerIsBetter, cadence.map(ticks => ticks.count), {
+          binBoundaries: FRAME_DISTRIBUTION_BIN_BOUNDARIES,
+          summaryOptions: {
+            percentile: [0.75, 0.9],
+          },
+        });
   }
 
   /**
@@ -170,8 +174,10 @@ tr.exportTo('tr.metrics.webrtc', function() {
       numberVsyncs += ticks * count;
     }
     const meanRatio = numberVsyncs / numberFrames;
-    addHistogram([DISPLAY_HERTZ / meanRatio], histograms, 'WebRTCRendering_fps',
-        unitlessNumber_biggerIsBetter);
+    histograms.createHistogram('WebRTCRendering_fps',
+        unitlessNumber_biggerIsBetter, DISPLAY_HERTZ / meanRatio, {
+          summaryOptions: SUMMARY_OPTIONS,
+        });
   }
 
   /**
@@ -220,10 +226,14 @@ tr.exportTo('tr.metrics.webrtc', function() {
     if (freezingScore < 0) {
       freezingScore = 0;
     }
-    addHistogram([frozenFramesCount], histograms,
-        'WebRTCRendering_frozen_frames_count', count_smallerIsBetter);
-    addHistogram([freezingScore], histograms, 'WebRTCRendering_freezing_score',
-        percentage_biggerIsBetter);
+    histograms.createHistogram('WebRTCRendering_frozen_frames_count',
+        count_smallerIsBetter, frozenFramesCount, {
+          summaryOptions: SUMMARY_OPTIONS,
+        });
+    histograms.createHistogram('WebRTCRendering_freezing_score',
+        percentage_biggerIsBetter, freezingScore, {
+          summaryOptions: SUMMARY_OPTIONS,
+        });
   }
 
   /**

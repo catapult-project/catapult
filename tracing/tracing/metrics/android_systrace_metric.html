@@ -117,32 +117,21 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   // App startup time metric.
-  function measureStartup(values, model) {
+  function measureStartup(histograms, model) {
     const launches = findLaunchSlices(model);
     for (const sliceId in launches) {
       const launchSlice = launches[sliceId];
       const appName = launchSlice.title.split(': ')[1];
       const startupMs = computeStartupTimeInMs(appName, launchSlice, model);
-      const hist = new tr.v.Histogram('android:systrace:startup:' + appName,
-          tr.b.Unit.byName.timeDurationInMs_smallerIsBetter);
-      hist.addSample(startupMs);
-      values.addHistogram(hist);
+      histograms.createHistogram(`android:systrace:startup:${appName}`,
+          tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, startupMs);
     }
   }
 
   // Metric which measures time spent by process threads in each thread state.
   // The value of metric is a time percentage relative to the length of selected
   // range of interest.
-  function measureThreadStates(values, model, rangeOfInterest) {
-    const addHistogram = function(
-        processName, timerName, valueInMs, rangeInMs) {
-      const hist = new tr.v.Histogram(
-          'android:systrace:threadtime:' + processName + ':' + timerName,
-          tr.b.Unit.byName.normalizedPercentage);
-      hist.addSample(valueInMs / rangeInMs);
-      values.addHistogram(hist);
-    };
-
+  function measureThreadStates(histograms, model, rangeOfInterest) {
     for (const pid in model.processes) {
       const process = model.processes[pid];
       if (process.name === undefined) continue;
@@ -188,29 +177,40 @@ tr.exportTo('tr.metrics.sh', function() {
         // thread/process and just calculate relative values against selected
         // range of interest.
         const wall = rangeOfInterest.max - rangeOfInterest.min;
-        addHistogram(process.name, 'running', timeRunning, wall);
-        addHistogram(process.name, 'runnable', timeRunnable, wall);
-        addHistogram(process.name, 'sleeping', timeSleeping, wall);
-        addHistogram(process.name, 'blockio', timeBlockIO, wall);
-        addHistogram(process.name, 'uninterruptible',
-            timeUninterruptible, wall);
+        histograms.createHistogram(
+            `android:systrace:threadtime:${process.name}:running`,
+            tr.b.Unit.byName.normalizedPercentage, timeRunning / wall);
+        histograms.createHistogram(
+            `android:systrace:threadtime:${process.name}:runnable`,
+            tr.b.Unit.byName.normalizedPercentage, timeRunnable / wall);
+        histograms.createHistogram(
+            `android:systrace:threadtime:${process.name}:sleeping`,
+            tr.b.Unit.byName.normalizedPercentage, timeSleeping / wall);
+        histograms.createHistogram(
+            `android:systrace:threadtime:${process.name}:blockio`,
+            tr.b.Unit.byName.normalizedPercentage, timeBlockIO / wall);
+        histograms.createHistogram(
+            `android:systrace:threadtime:${process.name}:uninterruptible`,
+            tr.b.Unit.byName.normalizedPercentage, timeUninterruptible / wall);
 
         // In case of changing names in systrace and importer.
         if (timeUnknown > 0) {
-          addHistogram(process.name, 'unknown', timeUnknown, wall);
+          histograms.createHistogram(
+              `android:systrace:threadtime:${process.name}:unknown`,
+              tr.b.Unit.byName.normalizedPercentage, timeUnknown / wall);
         }
       }
     }
   }
 
-  function androidSystraceMetric(values, model, options) {
+  function androidSystraceMetric(histograms, model, options) {
     let rangeOfInterest = model.bounds;
     if (options !== undefined && options.rangeOfInterest !== undefined) {
       rangeOfInterest = options.rangeOfInterest;
     }
 
-    measureStartup(values, model);
-    measureThreadStates(values, model, rangeOfInterest);
+    measureStartup(histograms, model);
+    measureThreadStates(histograms, model, rangeOfInterest);
   }
 
   tr.metrics.MetricRegistry.register(androidSystraceMetric, {

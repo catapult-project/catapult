@@ -186,6 +186,67 @@ tr.exportTo('tr.v', function() {
       this.unit = unit;
     }
 
+    /**
+     * Create a Histogram, configure it, and add samples to it.
+     *
+     * |samples| can be either
+     *  0. a number, or
+     *  1. a dictionary {value: number, diagnostics: dictionary}, or
+     *  2. an array of
+     *     2a. number, or
+     *     2b. dictionaries {value, diagnostics}.
+     *
+     * @param {string} name
+     * @param {!tr.b.Unit} unit
+     * @param {number|!Object|!Array.<(number|!Object)>} samples
+     * @param {!Object=} opt_options
+     * @param {!tr.v.HistogramBinBoundaries} opt_options.binBoundaries
+     * @param {!Object|!Map} opt_options.summaryOptions
+     * @param {!Object|!Map} opt_options.diagnostics
+     * @param {string} opt_options.description
+     * @param {string} opt_options.shortName
+     * @return {!tr.v.Histogram}
+     */
+    static create(name, unit, samples, opt_options) {
+      const options = opt_options || {};
+      const hist = new Histogram(name, unit, options.binBoundaries);
+
+      if (options.description) hist.description = options.description;
+      if (options.shortName) hist.shortName = options.shortName;
+
+      if (options.summaryOptions) {
+        let summaryOptions = options.summaryOptions;
+        if (!(summaryOptions instanceof Map)) {
+          summaryOptions = Object.entries(summaryOptions);
+        }
+        for (const [name, value] of summaryOptions) {
+          hist.summaryOptions.set(name, value);
+        }
+      }
+
+      if (options.diagnostics !== undefined) {
+        let diagnostics = options.diagnostics;
+        if (!(diagnostics instanceof Map)) {
+          diagnostics = Object.entries(diagnostics);
+        }
+        for (const [name, diagnostic] of diagnostics) {
+          hist.diagnostics.set(name, diagnostic);
+        }
+      }
+
+      if (!(samples instanceof Array)) samples = [samples];
+
+      for (const sample of samples) {
+        if (typeof sample === 'object') {
+          hist.addSample(sample.value, sample.diagnostics);
+        } else {
+          hist.addSample(sample);
+        }
+      }
+
+      return hist;
+    }
+
     get running() {
       return this.running_;
     }
@@ -927,6 +988,16 @@ tr.exportTo('tr.v', function() {
           this.allBins.length, DEFAULT_REBINNED_COUNT);
     }
   }
+
+  // Some metrics only want to report average. This dictionary is provided to
+  // facilitate disabling all other statistics.
+  Histogram.AVERAGE_ONLY_SUMMARY_OPTIONS = {
+    count: false,
+    max: false,
+    min: false,
+    std: false,
+    sum: false,
+  };
 
   const HISTOGRAM_BIN_BOUNDARIES_CACHE = new Map();
 

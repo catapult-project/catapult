@@ -43,14 +43,35 @@ tr.exportTo('tr.metrics.sh', function() {
     if (interval.perSecond) {
       return {
         perSecond: true,
-        energy: createPowerHistogram_(
-            histograms, interval.name, interval.description)
+        energy: histograms.createHistogram(`${interval.name}:power`,
+            tr.b.Unit.byName.powerInWatts_smallerIsBetter, [], {
+              description:
+                `Energy consumption rate for ${interval.description}`,
+              summaryOptions: {
+                avg: true,
+                count: false,
+                max: true,
+                min: true,
+                std: false,
+                sum: false,
+              },
+            }),
       };
     }
     return {
       perSecond: false,
-      energy: createEnergyHistogram_(
-          histograms, interval.name, interval.description)
+      energy: histograms.createHistogram(`${interval.name}:energy`,
+          tr.b.Unit.byName.energyInJoules_smallerIsBetter, [], {
+            description: `Energy consumed in ${interval.description}`,
+            summaryOptions: {
+              avg: false,
+              count: false,
+              max: true,
+              min: true,
+              std: false,
+              sum: true,
+            },
+          }),
     };
   }
 
@@ -89,44 +110,6 @@ tr.exportTo('tr.metrics.sh', function() {
       }
     }
     return intervals.sort((x, y) => x.min - y.min);
-  }
-
-  /**
-   * Creates a histogram suitable for energy data.
-   */
-  function createEnergyHistogram_(histograms, histogramName, description) {
-    const histogram = new tr.v.Histogram(`${histogramName}:energy`,
-        tr.b.Unit.byName.energyInJoules_smallerIsBetter);
-    histogram.customizeSummaryOptions({
-      avg: false,
-      count: false,
-      max: true,
-      min: true,
-      std: false,
-      sum: true,
-    });
-    histogram.description = 'Energy consumed in ' + description;
-    histograms.addHistogram(histogram);
-    return histogram;
-  }
-
-  /**
-   * Creates a histogram suitable for power data.
-   */
-  function createPowerHistogram_(histograms, histogramName, description) {
-    const histogram = new tr.v.Histogram(`${histogramName}:power`,
-        tr.b.Unit.byName.powerInWatts_smallerIsBetter);
-    histogram.customizeSummaryOptions({
-      avg: true,
-      count: false,
-      max: true,
-      min: true,
-      std: false,
-      sum: false,
-    });
-    histogram.description = 'Energy consumption rate for ' + description;
-    histograms.addHistogram(histogram);
-    return histogram;
   }
 
   /**

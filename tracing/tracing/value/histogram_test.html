@@ -39,6 +39,49 @@ tr.b.unittest.testSuite(function() {
     }
   }
 
+  test('createWithNameUnitNumber', function() {
+    const hist = tr.v.Histogram.create('a', unitlessNumber, 1);
+    assert.strictEqual(hist.name, 'a');
+    assert.strictEqual(hist.unit, unitlessNumber);
+    assert.lengthOf(hist.sampleValues, 1);
+    assert.strictEqual(hist.average, 1);
+  });
+
+  test('createWithSamples', function() {
+    const hist = tr.v.Histogram.create('', unitlessNumber, [
+      1,
+      {value: 3, diagnostics: {a: new tr.v.d.Generic('b')}},
+    ]);
+    assert.lengthOf(hist.sampleValues, 2);
+    assert.strictEqual(hist.average, 2);
+
+    const bin = hist.getBinForValue(3);
+    assert.lengthOf(bin.diagnosticMaps, 1);
+    const sampleDiagnostics = tr.b.getOnlyElement(bin.diagnosticMaps);
+    assert.strictEqual(sampleDiagnostics.get('a').value, 'b');
+  });
+
+  test('createWithOptions', function() {
+    const hist = tr.v.Histogram.create('', unitlessNumber, [], {
+      binBoundaries: tr.v.HistogramBinBoundaries.SINGULAR,
+      description: 'foo',
+      shortName: 'shorty',
+      diagnostics: {
+        generic: new tr.v.d.Generic('occam'),
+      },
+      summaryOptions: {
+        count: false,
+        percentile: [0.5],
+      }
+    });
+    assert.strictEqual(hist.description, 'foo');
+    assert.strictEqual(hist.shortName, 'shorty');
+    assert.strictEqual(hist.diagnostics.get('generic').value, 'occam');
+    assert.isFalse(hist.summaryOptions.get('count'));
+    assert.strictEqual(tr.b.getOnlyElement(
+        hist.summaryOptions.get('percentile')), 0.5);
+  });
+
   test('getStatisticScalar', function() {
     const hist = new tr.v.Histogram('', unitlessNumber);
     // getStatisticScalar should work even when the statistics are disabled.
