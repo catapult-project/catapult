@@ -133,12 +133,12 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual(fixture.get('selectedItem'), this.bar);
   }, testOptions);
 
-  test('selecting_clears_the_query', function() {
+  test('selecting_doesnt_clear_the_query', function() {
     const fixture = document.createElement('autocomplete-box-test-fixture');
     fixture.set('items', [this.foo, this.fooish, this.bar]);
     fixture.set('query', 'foo');
     fixture.selectItem(this.foo);
-    assert.strictEqual(fixture.get('query'), '');
+    assert.strictEqual(fixture.get('query'), 'Foo');
   }, testOptions);
 
   test('has_suggestions', function() {
@@ -166,7 +166,7 @@ tr.b.unittest.testSuite(function() {
     fixture.set('items', [this.foo, this.fooish, this.bar]);
     fixture.set('selectedItem', this.foo);
     fixture.maybeBackspaceSelection();
-    assert.deepEqual(fixture.get('selectedItem'), null);
+    assert.deepEqual(fixture.get('selectedItem'), this.foo);
   }, testOptions);
 
   test('maybe_select_locus', function() {

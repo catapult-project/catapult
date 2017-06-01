@@ -17,7 +17,7 @@ found in the LICENSE file.
   <template>
     <style include="iron-flex iron-flex-alignment">
       #container * {
-        margin-right: 3px;
+        margin-right: 1em;
       }
 
       #dnd-btn {
@@ -260,7 +260,7 @@ found in the LICENSE file.
       /**
        * Handles dropdown menu select; updates the subsequent menu accordingly.
        */
-      onDropdownSelect(event) {
+      async onDropdownSelect(event) {
         const model = event.model;
         const boxIndex = model.index;
         if (this.updatingSubtestMenus) return;
@@ -268,11 +268,15 @@ found in the LICENSE file.
           return;
         } else if (boxIndex == 0) {
           this.updateTestSuiteDescription();
-          this.updateBotMenu();
+          await this.updateBotMenu();
         } else {
           // Update all the next dropdown menus for subtests.
-          this.updateSubtestMenus(boxIndex + 1);
+          await this.updateSubtestMenus(boxIndex + 1);
         }
+
+        // Focus the next menu so the user can go ahead and start typing in it.
+        const nextMenu = this.getSelectionMenu(boxIndex + 1);
+        if (nextMenu) nextMenu.focus();
       },
 
       updateTestSuiteDescription() {

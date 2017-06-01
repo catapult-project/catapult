@@ -52,6 +52,12 @@ property 'group' sets to the header item name.
 <dom-module id="autocomplete-box">
   <template>
     <style include="iron-flex">
+      :host {
+        --paper-input-container-input: {
+          text-overflow: ellipsis;
+        }
+      }
+
       #dropdown-container {
         position: absolute;
         background-color: white;
@@ -141,11 +147,6 @@ property 'group' sets to the header item name.
                      disabled$="{{disabled}}"
                      id="textbox"
                      value="{{query::input}}">
-          <div prefix class="selected">
-            <template is="dom-if" if="[[selectedItem]]">
-              <span>[[selectedItem.name]]</span>
-            </template>
-          </div>
         </paper-input>
       </div>
       <paper-material
@@ -269,6 +270,9 @@ property 'group' sets to the header item name.
 
       selectedItemChanged(_selectedItemsChange) {
         this.fire('dropdownselect');
+        if (this.selectedItem) this.set('query', this.selectedItem.name);
+        if (!this.$) return;
+        this.$.textbox.readonly = true;
       },
 
       computeSuggestedItems(query, _itemsChange) {
@@ -287,7 +291,6 @@ property 'group' sets to the header item name.
 
       selectItem(item) {
         if (item.head) return;
-        this.set('query', '');
         this.set('dropdownOpen', false);
         this.set('selectedItem', item);
       },
@@ -354,18 +357,25 @@ property 'group' sets to the header item name.
         return this.muffleSelection;
       },
 
+      focus() {
+        this.querySelector('input').focus();
+      },
+
       onClickInput() {
         // Sometimes the dropbox is closed even when the input has focus
         // tries to click on the input to re-open it so we support that:
         this.set('dropdownOpen', true);
+        this.$.textbox.readonly = false;
       },
 
       onFocusInput() {
         this.set('dropdownOpen', true);
+        this.$.textbox.readonly = false;
       },
 
       onBlurInput() {
         this.set('dropdownOpen', false);
+        this.$.textbox.readonly = true;
       },
 
       onInputKeydown(event) {

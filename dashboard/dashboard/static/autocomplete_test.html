@@ -13,6 +13,20 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
+  test('string_matching', function() {
+    const selector = new autocomplete.FuzzySelect('ab?c');
+    assert.isTrue(selector.match('ab?c'));
+    assert.isFalse(selector.match('abc'));
+    assert.isFalse(selector.match('ab_c'));
+  });
+
+  test('ignorecase', function() {
+    const accessor = undefined;
+    const ignoreCase = true;
+    const selector = new autocomplete.FuzzySelect('abc', accessor, ignoreCase);
+    assert.isTrue(selector.match('ABC'));
+  });
+
   test('it_matches_text_when_it_contains_the_query', function() {
     const selector = new autocomplete.FuzzySelect('abc');
     assert.isTrue(selector.match('abc'));

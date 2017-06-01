@@ -43,38 +43,58 @@ const autocomplete = (function() {
 
   /**
    * FuzzySelect tests items to see if they match a query.
-   * An item matches a query if all space seperated parts from the query are
-   * present in the item.
    *
-   * The optional accessor function can be provided if the items are not plain
-   * strings. It is passed an item and should return a string for use in
-   * testing against the query.
+   * @param {string} query Space-separated sequence of strings, all of which
+   *     must be in an item for the item to match the query.
+   * @param {function(*):string=} opt_accessor If items are not strings, this
+   *     function must be supplied to access strings from items.
+   * @param {boolean=} opt_ignoreCase If true, case is ignored when matching.
    */
-  const FuzzySelect = function(query, opt_accessor, opt_ignoreCase) {
-    this.accessor = opt_accessor || (s => s);
-    query = query.replace(new RegExp(' +'), ' ');
-    let flags = '';
-    if (opt_ignoreCase) flags += 'i';
-    this.rs = query.split(' ').map(part => new RegExp(part, flags));
-  };
+  class FuzzySelect {
+    constructor(query, opt_accessor, opt_ignoreCase) {
+      const accessor = opt_accessor || (s => s);
 
-  FuzzySelect.prototype.filter = function(items) {
-    return items.filter(item => this.match(item));
-  };
+      if (opt_ignoreCase) {
+        query = query.toLowerCase();
+        this.accessor_ = item => accessor(item).toLowerCase();
+      } else {
+        this.accessor_ = accessor;
+      }
 
-  FuzzySelect.prototype.match = function(item) {
-    return this.rs.every(r => r.exec(this.accessor(item)));
-  };
-
-  FuzzySelect.prototype.score = function(item) {
-    let score = 0; // Smaller is better.
-    for (const r of this.rs) {
-      const m = r.exec(this.accessor(item));
-      if (!m) return Number.POSITIVE_INFINITY;
-      score += m.index;
+      this.queryParts_ = query.replace(new RegExp(' +'), ' ').split(' ');
     }
-    return score;
-  };
+
+    /**
+     * @param {!Array} items
+     * @return {!Array} elements from items that match the query.
+     */
+    filter(items) {
+      return items.filter(item => this.match(item));
+    }
+
+    /**
+     * @param {*} item
+     * @return {boolean} Whether item matches the query.
+     */
+    match(item) {
+      return this.score(item) < Number.POSITIVE_INFINITY;
+    }
+
+    /**
+     * @param {*} item
+     * @return {number} How well item matches the query, smaller is better.
+     * If item does not match the query, return positive Infinity.
+     */
+    score(item) {
+      let score = 0;
+      for (const q of this.queryParts_) {
+        const index = this.accessor_(item).indexOf(q);
+        if (index < 0) return Number.POSITIVE_INFINITY;
+        score += index;
+      }
+      return score;
+    }
+  }
 
   return {
     Autocomplete,
