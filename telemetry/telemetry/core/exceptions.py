@@ -167,17 +167,25 @@ class ProfilingException(Error):
   pass
 
 
+class StoryActionError(Error):
+  """Represents an error when trying to perform an action on a story."""
+
+
+class TracingException(Error):
+  """Represents an error that ocurred while collecting or flushing traces."""
+
+
 class PathMissingError(Error):
-  """ Represents an exception thrown when an expected path doesn't exist. """
+  """Represents an exception thrown when an expected path doesn't exist."""
 
 
 class UnknownPackageError(Error):
-  """ Represents an exception when encountering an unsupported Android APK. """
+  """Represents an exception when encountering an unsupported Android APK."""
 
 
 class PackageDetectionError(Error):
-  """ Represents an error when parsing an Android APK's package. """
+  """Represents an error when parsing an Android APK's package."""
 
 
 class AndroidDeviceParsingError(Error):
-  """Represents an error when parsing output from an android device"""
+  """Represents an error when parsing output from an android device."""

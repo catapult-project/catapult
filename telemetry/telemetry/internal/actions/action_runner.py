@@ -157,7 +157,7 @@ class ActionRunner(object):
       self.Wait(_DUMP_WAIT_TIME)
     dump_id = self.tab.browser.DumpMemory()
     if not dump_id:
-      raise exceptions.Error('Unable to obtain memory dump')
+      raise exceptions.StoryActionError('Unable to obtain memory dump')
     return dump_id
 
   def Navigate(self, url, script_to_evaluate_on_commit=None,

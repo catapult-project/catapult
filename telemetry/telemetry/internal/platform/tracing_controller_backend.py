@@ -135,7 +135,7 @@ class TracingControllerBackend(object):
     self._current_state = None
 
     if raised_exception_messages:
-      raise exceptions.Error(
+      raise exceptions.TracingException(
           'Exceptions raised when trying to stop tracing:\n' +
           '\n'.join(raised_exception_messages))
 
@@ -161,7 +161,7 @@ class TracingControllerBackend(object):
             ''.join(traceback.format_exception(*sys.exc_info())))
 
     if raised_exception_messages:
-      raise exceptions.Error(
+      raise exceptions.TracingException(
           'Exceptions raised when trying to flush tracing:\n' +
           '\n'.join(raised_exception_messages))
 
