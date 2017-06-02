@@ -700,6 +700,48 @@ class BuildbotInfoUnittest(unittest.TestCase):
     self.assertEqual(clone.build_number, 42)
     self.assertEqual(clone.log_uri, 'uri')
 
+  def testEquality(self):
+    info0 = histogram.BuildbotInfo({
+        'displayMasterName': 'dmn',
+        'displayBotName': 'dbn',
+        'buildbotMasterName': 'bbmn',
+        'buildbotName': 'bbn',
+        'buildNumber': 42,
+        'logUri': 'uri',
+        'guid': 'abc'
+    })
+    info1 = histogram.BuildbotInfo({
+        'displayMasterName': 'dmn',
+        'displayBotName': 'dbn',
+        'buildbotMasterName': 'bbmn',
+        'buildbotName': 'bbn',
+        'buildNumber': 42,
+        'logUri': 'uri',
+        'guid': 'def'
+    })
+    self.assertEqual(info0, info1)
+
+  def testInequality(self):
+    info0 = histogram.BuildbotInfo({
+        'displayMasterName': 'dmn0',
+        'displayBotName': 'dbn',
+        'buildbotMasterName': 'bbmn',
+        'buildbotName': 'bbn',
+        'buildNumber': 42,
+        'logUri': 'uri',
+        'guid': 'abc'
+    })
+    info1 = histogram.BuildbotInfo({
+        'displayMasterName': 'dmn1',
+        'displayBotName': 'dbn',
+        'buildbotMasterName': 'bbmn',
+        'buildbotName': 'bbn',
+        'buildNumber': 42,
+        'logUri': 'uri',
+        'guid': 'def'
+    })
+    self.assertNotEqual(info0, info1)
+
 
 class RevisionInfoUnittest(unittest.TestCase):
   def testRoundtrip(self):
@@ -749,6 +791,56 @@ class TelemetryInfoUnittest(unittest.TestCase):
     self.assertEqual(clone.storyset_repeat_counter, 1)
     self.assertEqual(clone.legacy_tir_label, 'tir')
 
+  def testEquality(self):
+    info0 = histogram.TelemetryInfo()
+    info0.AddInfo({
+        'benchmarkName': 'foo',
+        'benchmarkStartMs': 42,
+        'label': 'lbl',
+        'storyDisplayName': 'story',
+        'storyGroupingKeys': {'a': 'b'},
+        'storysetRepeatCounter': 1,
+        'legacyTIRLabel': 'tir',
+    })
+    info0.guid = 'abc'
+    info1 = histogram.TelemetryInfo()
+    info1.AddInfo({
+        'benchmarkName': 'foo',
+        'benchmarkStartMs': 42,
+        'label': 'lbl',
+        'storyDisplayName': 'story',
+        'storyGroupingKeys': {'a': 'b'},
+        'storysetRepeatCounter': 1,
+        'legacyTIRLabel': 'tir',
+    })
+    info1.guid = 'def'
+    self.assertEqual(info0, info1)
+
+  def testInequality(self):
+    info0 = histogram.TelemetryInfo()
+    info0.AddInfo({
+        'benchmarkName': 'foo',
+        'benchmarkStartMs': 42,
+        'label': 'lbl',
+        'storyDisplayName': 'story',
+        'storyGroupingKeys': {'a': 'b'},
+        'storysetRepeatCounter': 1,
+        'legacyTIRLabel': 'tir',
+    })
+    info0.guid = 'abc'
+    info1 = histogram.TelemetryInfo()
+    info1.AddInfo({
+        'benchmarkName': 'baz',
+        'benchmarkStartMs': 42,
+        'label': 'lbl',
+        'storyDisplayName': 'story',
+        'storyGroupingKeys': {'a': 'b'},
+        'storysetRepeatCounter': 1,
+        'legacyTIRLabel': 'tir',
+    })
+    info1.guid = 'def'
+    self.assertNotEqual(info0, info1)
+
 
 class DeviceInfoUnittest(unittest.TestCase):
   def testRoundtrip(self):
@@ -768,6 +860,44 @@ class DeviceInfoUnittest(unittest.TestCase):
     self.assertEqual(clone.gpu_info['some'], 'stuff')
     self.assertEqual(clone.arch['more'], 'stuff')
     self.assertEqual(clone.ram, 42)
+
+  def testEquality(self):
+    info0 = histogram.DeviceInfo()
+    info0.chrome_version = '1.2.3.4'
+    info0.os_name = 'linux'
+    info0.os_version = '5.6.7'
+    info0.gpu_info = {'some': 'stuff'}
+    info0.arch = {'more': 'stuff'}
+    info0.ram = 42
+    info0.guid = 'abc'
+    info1 = histogram.DeviceInfo()
+    info1.chrome_version = '1.2.3.4'
+    info1.os_name = 'linux'
+    info1.os_version = '5.6.7'
+    info1.gpu_info = {'some': 'stuff'}
+    info1.arch = {'more': 'stuff'}
+    info1.ram = 42
+    info1.guid = 'def'
+    self.assertEqual(info0, info1)
+
+  def testInequality(self):
+    info0 = histogram.DeviceInfo()
+    info0.chrome_version = '1.2.3.4'
+    info0.os_name = 'linux'
+    info0.os_version = '5.6.7'
+    info0.gpu_info = {'some': 'stuff'}
+    info0.arch = {'more': 'stuff'}
+    info0.ram = 42
+    info0.guid = 'abc'
+    info1 = histogram.DeviceInfo()
+    info1.chrome_version = '1.2.3.4'
+    info1.os_name = 'mac'
+    info1.os_version = '5.6.7'
+    info1.gpu_info = {'some': 'stuff'}
+    info1.arch = {'more': 'stuff'}
+    info1.ram = 42
+    info1.guid = 'def'
+    self.assertNotEqual(info0, info1)
 
 
 class RelatedEventSetUnittest(unittest.TestCase):

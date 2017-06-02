@@ -669,6 +669,24 @@ class BuildbotInfo(Diagnostic):
     self._build_number = info.get('buildNumber', 0)
     self._log_uri = info.get('logUri', '')
 
+  def __eq__(self, other):
+    if self.display_master_name != other.display_master_name:
+      return False
+    if self.display_bot_name != other.display_bot_name:
+      return False
+    if self.buildbot_master_name != other.buildbot_master_name:
+      return False
+    if self.buildbot_name != other.buildbot_name:
+      return False
+    if self.build_number != other.build_number:
+      return False
+    if self.log_uri != other.log_uri:
+      return False
+    return True
+
+  def __ne__(self, other):
+    return not self == other
+
   def _AsDictInto(self, d):
     d['displayMasterName'] = self.display_master_name
     d['displayBotName'] = self.display_bot_name
@@ -783,6 +801,28 @@ class TelemetryInfo(Diagnostic):
     self._story_url = ''
     self._storyset_repeat_counter = None
 
+  def __eq__(self, other):
+    if self.benchmark_name != other.benchmark_name:
+      return False
+    if self.benchmark_start != other.benchmark_start:
+      return False
+    if self.label != other.label:
+      return False
+    if self.legacy_tir_label != other.legacy_tir_label:
+      return False
+    if self.story_display_name != other.story_display_name:
+      return False
+    if self.story_grouping_keys != other.story_grouping_keys:
+      return False
+    if self.story_url != other.story_url:
+      return False
+    if self.storyset_repeat_counter != other.storyset_repeat_counter:
+      return False
+    return True
+
+  def __ne__(self, other):
+    return not self == other
+
   def AddInfo(self, info):
     if 'benchmarkName' in info:
       self._benchmark_name = info['benchmarkName']
@@ -858,6 +898,24 @@ class DeviceInfo(Diagnostic):
     self._gpu_info = None
     self._arch = None
     self._ram = 0
+
+  def __eq__(self, other):
+    if self.chrome_version != other.chrome_version:
+      return False
+    if self.os_name != other.os_name:
+      return False
+    if self.os_version != other.os_version:
+      return False
+    if self.gpu_info != other.gpu_info:
+      return False
+    if self.arch != other.arch:
+      return False
+    if self.ram != other.ram:
+      return False
+    return True
+
+  def __ne__(self, other):
+    return not self == other
 
   @staticmethod
   def FromDict(d):
