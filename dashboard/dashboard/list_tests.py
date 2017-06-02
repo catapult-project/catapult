@@ -397,26 +397,20 @@ def _GetSelectedTestPathsForDict(test_path_dict):
     if selection == 'core':
       paths.extend(_GetCoreTestPathsForTest(path, True))
     elif selection == 'all':
+      paths.append(path)
       paths.extend(GetTestsMatchingPattern(
           '%s/*' % path, only_with_rows=True))
     elif isinstance(selection, list):
       parent_test_name = path.split('/')[-1]
-      test_key_futures = []
       for part in selection:
         if part == parent_test_name:
           # When the element in the selected list is the same as the last part
           # of the path, it's meant to mean just the path.
           # TODO(eakuefner): Disambiguate this by making it explicit.
-          part_path = path
+          paths.append(path)
         else:
-          part_path = '%s/%s' % (path, part)
-        test_key_futures.append(utils.TestKey(part_path).get_async())
-
-      ndb.Future.wait_all(test_key_futures)
-      for test_key_future in test_key_futures:
-        test_key = test_key_future.get_result()
-        if test_key.has_rows:
-          paths.append(test_key.test_path)
+          # Otherwise, the element is intended to be appended to the path.
+          paths.append('%s/%s' % (path, part))
     else:
       raise BadRequestError("selected must be 'all', 'core', or a list of "
                             "subtests")
