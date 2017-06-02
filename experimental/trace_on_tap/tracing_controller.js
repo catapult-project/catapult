@@ -21,7 +21,7 @@
 //                  event stream and passes it to the client via |onTraceChunk|.
 class TracingController {
   static get ATTACH_TIMEOUT_MS() { return 3000; }
-  static get FLUSH_TIMEOUT_MS() { return 20000; }
+  static get FLUSH_TIMEOUT_MS() { return 200000; }
   static get WAIT_FOR_DUMP_TIMEOUT_MS() { return 200000; }
   static get STATE() {
     return {
@@ -125,7 +125,7 @@ class TracingController {
     this.waitForDumpTimer = undefined;
     clearTimeout(this.timer_);
     this.timer_ = setTimeout(
-        this.detach_.bind(this),
+        this.detachFromFlushTimeout_.bind(this),
         TracingController.FLUSH_TIMEOUT_MS);
     chrome.debugger.sendCommand(this.target_, 'Tracing.end');
     this.updateState_(TracingController.STATE.STOPPING);
@@ -170,6 +170,11 @@ class TracingController {
     this.timer_ = setTimeout(
         this.onWaitForTraceFinished.bind(this),
         this.traceDurationMs_);
+  }
+
+  detachFromFlushTimeout_() {
+    chrome.extension.getBackgroundPage().console.log('Flush timeout');
+    this.detach_();
   }
 
   detach_() {
