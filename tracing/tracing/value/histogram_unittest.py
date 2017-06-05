@@ -943,7 +943,7 @@ class DiagnosticMapUnittest(unittest.TestCase):
     _ = generic.guid  # First access sets guid
     hist.diagnostics['foo'] = generic
     generic.Inline()
-    self.assertTrue(generic.is_inline)
+    self.assertFalse(generic.has_guid)
     hist_dict = hist.AsDict()
     diag_dict = hist_dict['diagnostics']['foo']
     self.assertIsInstance(diag_dict, dict)

@@ -158,4 +158,4 @@ class AddHistogramsTest(testing_common.TestCase):
         'logUri': 'uri',
     }))
     add_histograms.InlineDenseSharedDiagnostics(histograms)
-    self.assertFalse(histogram.diagnostics['foo'].is_inline)
+    self.assertTrue(histogram.diagnostics['foo'].has_guid)

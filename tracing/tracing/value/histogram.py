@@ -331,8 +331,8 @@ class Diagnostic(object):
     self._guid = g
 
   @property
-  def is_inline(self):
-    return self._guid is None
+  def has_guid(self):
+    return self._guid is not None
 
   def AsDictOrReference(self):
     if self._guid:
@@ -1021,6 +1021,10 @@ class DiagnosticRef(object):
   @property
   def guid(self):
     return self._guid
+
+  @property
+  def has_guid(self):
+    return True
 
   def AsDict(self):
     return self.guid
