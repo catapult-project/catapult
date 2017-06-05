@@ -66,6 +66,7 @@ class AddPointQueueHandler(request_handler.RequestHandler):
       except add_point.BadRequestError as e:
         logging.error('Could not add %s, it was invalid.', e.message)
       except datastore_errors.BadRequestError as e:
+        logging.info('While trying to store %s', row_dict)
         logging.error('Datastore request failed: %s.', e.message)
         return
 
