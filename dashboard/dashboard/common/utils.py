@@ -343,7 +343,7 @@ def IsInternalUser():
   cached = GetCachedIsInternalUser(username)
   if cached is not None:
     return cached
-  is_internal_user = IsGroupMember(identity=username, group='googlers')
+  is_internal_user = IsGroupMember(identity=username, group='chromeperf-access')
   SetCachedIsInternalUser(username, is_internal_user)
   return is_internal_user
 
