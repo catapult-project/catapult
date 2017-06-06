@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import datetime
 import json
 import math
 import random
@@ -153,6 +154,12 @@ class Range(object):
   def center(self):
     return (self._min + self._max) * 0.5
 
+  @property
+  def duration(self):
+    if self.empty:
+      return 0
+    return self._max - self._min
+
   def AddValue(self, x):
     if self._empty:
       self._empty = False
@@ -162,6 +169,12 @@ class Range(object):
 
     self._max = max(x, self._max)
     self._min = min(x, self._min)
+
+  def AddRange(self, other):
+    if other.empty:
+      return
+    self.AddValue(other.min)
+    self.AddValue(other.max)
 
 
 # This class computes statistics online in O(1).
@@ -490,6 +503,45 @@ class Generic(Diagnostic):
   def FromDict(dct):
     return Generic(dct['value'])
 
+
+class DateRange(Diagnostic):
+  def __init__(self, ms):
+    super(DateRange, self).__init__()
+    self._range = Range()
+    self._range.AddValue(ms)
+
+  @property
+  def min_date(self):
+    return datetime.datetime.fromtimestamp(self._range.min / 1000)
+
+  @property
+  def max_date(self):
+    return datetime.datetime.fromtimestamp(self._range.max / 1000)
+
+  @property
+  def duration_ms(self):
+    return self._range.duration
+
+  def _AsDictInto(self, dct):
+    dct['min'] = self._range.min
+    if self.duration_ms == 0:
+      return
+    dct['max'] = self._range.max
+
+  @staticmethod
+  def FromDict(dct):
+    dr = DateRange(dct['min'])
+    if 'max' in dct:
+      dr._range.AddValue(dct['max'])
+    return dr
+
+  def CanAddDiagnostic(self, other_diagnostic, unused_name=None,
+                       unused_parent_hist=None, unused_other_parent_hist=None):
+    return isinstance(other_diagnostic, DateRange)
+
+  def AddDiagnostic(self, other_diagnostic, unused_name=None,
+                    unused_parent_hist=None, unused_other_parent_hist=None):
+    self._range.AddRange(other_diagnostic._range)
 
 class HistogramRef(object):
   def __init__(self, guid):

@@ -258,3 +258,10 @@ specific event or set of events in a trace.
 
  * `events`: array of dictionaries containing `stableId`, `title`, `start`,
    `duration` fields of Events
+
+### DateRange
+
+This is a Range of Dates.
+
+ * `min`: Unix timestamp in ms
+ * `max`: optional Unix timestamp in ms

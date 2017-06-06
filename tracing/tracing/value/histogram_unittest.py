@@ -4,6 +4,7 @@
 
 import json
 import math
+import time
 import unittest
 
 from tracing.value import histogram
@@ -932,6 +933,17 @@ class RelatedHistogramBreakdownUnittest(unittest.TestCase):
     self.assertEqual(ToJSON(d), ToJSON(clone.AsDict()))
     self.assertEqual(hista.guid, clone.Get('a').guid)
     self.assertEqual(histb.guid, clone.Get('b').guid)
+
+
+class DateRangeUnittest(unittest.TestCase):
+  def testRoundtrip(self):
+    dr = histogram.DateRange(1496693745000)
+    dr.AddDiagnostic(histogram.DateRange(1496693746000))
+    self.assertEqual(time.mktime(dr.min_date.timetuple()), 1496693745)
+    self.assertEqual(time.mktime(dr.max_date.timetuple()), 1496693746)
+    clone = histogram.Diagnostic.FromDict(dr.AsDict())
+    self.assertEqual(clone.min_date, dr.min_date)
+    self.assertEqual(clone.max_date, dr.max_date)
 
 
 class DiagnosticMapUnittest(unittest.TestCase):

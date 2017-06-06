@@ -168,6 +168,10 @@ The types of Diagnostics are
    performance testing buildbots. Structurally, it's a class with explicit named
    fields. Conceptually, it contains information about the buildbot process that
    ran telemetry. Visually, it is displayed as a table.
+ * [DateRange](/tracing/tracing/value/diagnostics/date_range.html):
+   This is a Range of Dates. It cannot be empty, but the minDate could be the
+   same as the maxDate. Telemetry automatically adds 2 shared DateRanges to all
+   results: 'benchmark start' and 'trace start'.
  * [Scalar](/tracing/tracing/value/diagnostics/scalar.html):
    Metrics must not use this, since it is incapable of being merged. It is
    mentioned here for completeness. It wraps a Scalar, which is just a
