@@ -38,6 +38,8 @@ from telemetry.value import summary as summary_module
 from telemetry.web_perf import story_test
 from telemetry.web_perf import timeline_based_measurement
 from telemetry.wpr import archive_info
+from tracing.value import histogram as histogram_module
+
 
 # This linter complains if we define classes nested inside functions.
 # pylint: disable=bad-super-call
@@ -121,9 +123,9 @@ class EmptyMetadataForTest(benchmark.BenchmarkMetadata):
 
 
 class DummyLocalStory(story_module.Story):
-  def __init__(self, shared_state_class, name=''):
+  def __init__(self, shared_state_class, name='', tags=None):
     super(DummyLocalStory, self).__init__(
-        shared_state_class, name=name)
+        shared_state_class, name=name, tags=tags)
 
   def Run(self, shared_state):
     pass
@@ -319,7 +321,7 @@ class StoryRunnerTest(unittest.TestCase):
   def RunStoryTest(self, s, expected_successes):
     test = DummyTest()
     story_runner.Run(
-        test, s, self.options, self.results)
+        test, s, self.options, self.results, metadata=EmptyMetadataForTest())
     self.assertEquals(0, len(self.results.failures))
     self.assertEquals(expected_successes,
                       GetNumberOfSuccessfulPageRuns(self.results))
@@ -394,7 +396,8 @@ class StoryRunnerTest(unittest.TestCase):
     story_set.AddStory(DummyLocalStory(TestSharedTbmState, name='bar'))
     story_set.AddStory(DummyLocalStory(TestSharedTbmState, name='baz'))
     story_runner.Run(
-        test, story_set, self.options, self.results)
+        test, story_set, self.options, self.results,
+        metadata=EmptyMetadataForTest())
     self.assertEquals(0, len(self.results.failures))
     self.assertEquals(3, GetNumberOfSuccessfulPageRuns(self.results))
 
@@ -451,7 +454,8 @@ class StoryRunnerTest(unittest.TestCase):
       test = TestStoryTest()
       story_set = story_module.StorySet()
       story_set.AddStory(DummyLocalStory(TestSharedStateForStoryTest))
-      story_runner.Run(test, story_set, self.options, self.results)
+      story_runner.Run(test, story_set, self.options, self.results,
+          metadata=EmptyMetadataForTest())
       return [call[0] for call in manager.mock_calls]
 
     calls_in_order = GetCallsInOrder() # pylint: disable=no-value-for-parameter
@@ -473,18 +477,21 @@ class StoryRunnerTest(unittest.TestCase):
     story_set.AddStory(DummyLocalStory(TestSharedStateForTearDown, name='baz'))
 
     TestSharedStateForTearDown.num_of_tear_downs = 0
-    story_runner.Run(mock.MagicMock(), story_set, self.options, self.results)
+    story_runner.Run(mock.MagicMock(), story_set, self.options, self.results,
+                     metadata=EmptyMetadataForTest())
     self.assertEquals(TestSharedStateForTearDown.num_of_tear_downs, 1)
 
     TestSharedStateForTearDown.num_of_tear_downs = 0
     story_runner.Run(mock.MagicMock(), story_set, self.options, self.results,
-                     tear_down_after_story=True)
+                     tear_down_after_story=True,
+                     metadata=EmptyMetadataForTest())
     self.assertEquals(TestSharedStateForTearDown.num_of_tear_downs, 3)
 
     self.options.pageset_repeat = 5
     TestSharedStateForTearDown.num_of_tear_downs = 0
     story_runner.Run(mock.MagicMock(), story_set, self.options, self.results,
-                     tear_down_after_story_set=True)
+                     tear_down_after_story_set=True,
+                     metadata=EmptyMetadataForTest())
     self.assertEquals(TestSharedStateForTearDown.num_of_tear_downs, 5)
 
   def testTearDownIsCalledOnceForEachStoryGroupWithPageSetRepeat(self):
@@ -542,7 +549,8 @@ class StoryRunnerTest(unittest.TestCase):
     story_set.AddStory(DummyLocalStory(
           SharedStoryThatCausesAppCrash))
     story_runner.Run(
-        DummyTest(), story_set, self.options, self.results)
+        DummyTest(), story_set, self.options, self.results,
+        metadata=EmptyMetadataForTest())
     self.assertEquals(1, len(self.results.failures))
     self.assertEquals(0, GetNumberOfSuccessfulPageRuns(self.results))
     self.assertIn('App Foo crashes', self.fake_stdout.getvalue())
@@ -558,7 +566,8 @@ class StoryRunnerTest(unittest.TestCase):
           SharedStoryThatCausesAppCrash))
     with self.assertRaises(TestOnlyException):
       story_runner.Run(
-          DummyTest(), story_set, self.options, self.results)
+          DummyTest(), story_set, self.options, self.results,
+          metadata=EmptyMetadataForTest())
 
   def testUnknownExceptionIsFatal(self):
     self.SuppressExceptionFormatting()
@@ -590,7 +599,8 @@ class StoryRunnerTest(unittest.TestCase):
     test = Test()
     with self.assertRaises(UnknownException):
       story_runner.Run(
-          test, story_set, self.options, self.results)
+          test, story_set, self.options, self.results,
+          metadata=EmptyMetadataForTest())
     self.assertEqual(set([s2]), self.results.pages_that_failed)
     self.assertEqual(set([s1]), self.results.pages_that_succeeded)
     self.assertIn('FooBarzException', self.fake_stdout.getvalue())
@@ -618,7 +628,8 @@ class StoryRunnerTest(unittest.TestCase):
     story_set.AddStory(DummyLocalStory(TestSharedPageState, name='bar'))
     test = Test()
     story_runner.Run(
-        test, story_set, self.options, self.results)
+        test, story_set, self.options, self.results,
+        metadata=EmptyMetadataForTest())
     self.assertEquals(2, test.run_count)
     self.assertEquals(1, len(self.results.failures))
     self.assertEquals(1, GetNumberOfSuccessfulPageRuns(self.results))
@@ -661,7 +672,8 @@ class StoryRunnerTest(unittest.TestCase):
 
     with self.assertRaises(DidRunTestError):
       story_runner.Run(
-          test, story_set, self.options, self.results)
+          test, story_set, self.options, self.results,
+          metadata=EmptyMetadataForTest())
     self.assertEqual(['app-crash', 'dump-state', 'tear-down-state'],
                      unit_test_events)
     # The AppCrashException gets added as a failure.
@@ -680,7 +692,8 @@ class StoryRunnerTest(unittest.TestCase):
     self.options.output_formats = []
     results = results_options.CreateResults(
       EmptyMetadataForTest(), self.options)
-    story_runner.Run(_Measurement(), story_set, self.options, results)
+    story_runner.Run(_Measurement(), story_set, self.options, results,
+        metadata=EmptyMetadataForTest())
     summary = summary_module.Summary(results.all_page_specific_values)
     values = summary.interleaved_computed_per_page_values_and_summaries
 
@@ -710,7 +723,8 @@ class StoryRunnerTest(unittest.TestCase):
         EmptyMetadataForTest(), self.options)
 
     story_runner.Run(_Measurement(), story_set, self.options, results,
-                     expectations=_DisableStoryExpectations())
+                     expectations=_DisableStoryExpectations(),
+                     metadata=EmptyMetadataForTest())
     summary = summary_module.Summary(results.all_page_specific_values)
     values = summary.interleaved_computed_per_page_values_and_summaries
 
@@ -729,7 +743,8 @@ class StoryRunnerTest(unittest.TestCase):
         EmptyMetadataForTest(), self.options)
 
     story_runner.Run(_Measurement(), story_set, self.options, results,
-                     expectations=_DisableStoryExpectations())
+                     expectations=_DisableStoryExpectations(),
+                     metadata=EmptyMetadataForTest())
     summary = summary_module.Summary(results.all_page_specific_values)
     values = summary.interleaved_computed_per_page_values_and_summaries
 
@@ -747,7 +762,8 @@ class StoryRunnerTest(unittest.TestCase):
         EmptyMetadataForTest(), self.options)
 
     story_runner.Run(_Measurement(), story_set, self.options, results,
-                     expectations=_DisableStoryExpectations())
+                     expectations=_DisableStoryExpectations(),
+                     metadata=EmptyMetadataForTest())
     summary = summary_module.Summary(results.all_page_specific_values)
     values = summary.interleaved_computed_per_page_values_and_summaries
 
@@ -755,6 +771,37 @@ class StoryRunnerTest(unittest.TestCase):
     self.assertEquals(0, GetNumberOfSkippedPageRuns(results))
     self.assertEquals(0, len(results.failures))
     self.assertEquals(2, len(values))
+
+  def testRunStoryPopulatesHistograms(self):
+    self.SuppressExceptionFormatting()
+    story_set = story_module.StorySet()
+
+    class Test(legacy_page_test.LegacyPageTest):
+      def __init__(self, *args):
+        super(Test, self).__init__(*args)
+
+      # pylint: disable=unused-argument
+      def RunPage(self, _, _2, results):
+        results.histograms.ImportDicts([
+            histogram_module.Histogram('hist', 'count').AsDict()])
+
+      def ValidateAndMeasurePage(self, page, tab, results):
+        pass
+
+    s1 = DummyLocalStory(TestSharedPageState, name='foo')
+    story_set.AddStory(s1)
+    test = Test()
+    story_runner.Run(
+        test, story_set, self.options, self.results,
+        metadata=EmptyMetadataForTest())
+
+    hs = self.results.histograms
+
+    self.assertEqual(1, len(hs))
+
+    h = hs.GetFirstHistogram()
+
+    self.assertEqual('hist', h.name)
 
   @decorators.Disabled('chromeos')  # crbug.com/483212
   def testUpdateAndCheckArchives(self):
@@ -886,7 +933,8 @@ class StoryRunnerTest(unittest.TestCase):
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
     story_runner.Run(
         DummyTest(), story_set, options,
-        results, max_failures=runner_max_failures)
+        results, max_failures=runner_max_failures,
+        metadata=EmptyMetadataForTest())
     self.assertEquals(0, GetNumberOfSuccessfulPageRuns(results))
     self.assertEquals(expected_num_failures, len(results.failures))
     for ii, story in enumerate(story_set.stories):
@@ -1154,6 +1202,7 @@ class StoryRunnerTest(unittest.TestCase):
     options.upload_results = None
     options.suppress_gtest_report = False
     options.results_label = None
+    options.reset_results = False
     options.use_live_sites = False
     options.max_failures = 100
     options.pageset_repeat = 1

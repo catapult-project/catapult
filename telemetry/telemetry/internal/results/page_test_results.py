@@ -25,6 +25,7 @@ from telemetry.value import skip
 from telemetry.value import trace
 
 from tracing.value import convert_chart_json
+from tracing.value import histogram
 
 class TelemetryInfo(object):
   def __init__(self):
@@ -141,10 +142,7 @@ class PageTestResults(object):
     self._pages_to_profiling_files = collections.defaultdict(list)
     self._pages_to_profiling_files_cloud_url = collections.defaultdict(list)
 
-    # You'd expect this to be a set(), but Values are dictionaries, which are
-    # unhashable. We could wrap Values with custom __eq/hash__, but we don't
-    # actually need set-ness in python.
-    self._value_set = []
+    self._histograms = histogram.HistogramSet()
 
     self._telemetry_info = TelemetryInfo()
 
@@ -156,12 +154,16 @@ class PageTestResults(object):
     return self._telemetry_info
 
   @property
-  def value_set(self):
-    return self._value_set
+  def histograms(self):
+    return self._histograms
 
-  def AsHistogramDicts(self, benchmark_metadata):
-    if self.value_set:
-      return self.value_set
+  def AsHistogramDicts(self):
+    return self.histograms.AsDicts()
+
+  def PopulateHistogramSet(self, benchmark_metadata):
+    if self.histograms:
+      return
+
     chart_json = chart_json_output_formatter.ResultsAsChartDict(
         benchmark_metadata, self.all_page_specific_values,
         self.all_summary_values)
@@ -181,7 +183,7 @@ class PageTestResults(object):
       logging.error('Error converting chart json to Histograms:\n' +
           vinn_result.stdout)
       return []
-    return json.loads(vinn_result.stdout)
+    self.histograms.ImportDicts(json.loads(vinn_result.stdout))
 
   def __copy__(self):
     cls = self.__class__

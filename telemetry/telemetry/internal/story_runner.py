@@ -188,7 +188,7 @@ def StoriesGroupedByStateClass(story_set, allow_multiple_groups):
 
 def Run(test, story_set, finder_options, results, max_failures=None,
         tear_down_after_story=False, tear_down_after_story_set=False,
-        expectations=None):
+        expectations=None, metadata=None):
   """Runs a given test against a given page_set with the given options.
 
   Stop execution for unexpected exceptions such as KeyboardInterrupt.
@@ -285,6 +285,8 @@ def Run(test, story_set, finder_options, results, max_failures=None,
           state.TearDownState()
           state = None
     finally:
+      results.PopulateHistogramSet(metadata)
+
       if state:
         has_existing_exception = sys.exc_info() != (None, None, None)
         try:
@@ -381,7 +383,7 @@ def RunBenchmark(benchmark, finder_options):
       Run(pt, stories, finder_options, results, benchmark.max_failures,
           should_tear_down_state_after_each_story_run,
           benchmark.ShouldTearDownStateAfterEachStorySetRun(),
-          expectations=expectations)
+          expectations=expectations, metadata=benchmark.GetMetadata())
       return_code = min(254, len(results.failures))
       # We want to make sure that all expectations are linked to real stories,
       # this will log error messages if names do not match what is in the set.

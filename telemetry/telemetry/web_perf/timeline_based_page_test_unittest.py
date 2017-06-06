@@ -127,16 +127,15 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
     results = self.RunMeasurement(tbm, ps, self._options)
 
     self.assertEquals(0, len(results.failures))
-    self.assertEquals(2, len(results.value_set))
-    diagnostics = results.value_set[1]['diagnostics']
+    self.assertEquals(1, len(results.histograms))
+    diagnostics = [d for d in results.histograms.shared_diagnostics]
     self.assertEquals(1, len(diagnostics))
-    telemetry_info = results.value_set[0]
-    self.assertEquals(telemetry_info['guid'], diagnostics['telemetry'])
+    telemetry_info = diagnostics[0].AsDict()
     self.assertEqual('TelemetryInfo', telemetry_info['type'])
     self.assertEqual('', telemetry_info['benchmarkName'])
     self.assertEqual('interaction_enabled_page.html',
                      telemetry_info['storyDisplayName'])
-    self.assertNotIn('storyGroupingKeys', telemetry_info)
+    self.assertIn('storyGroupingKeys', telemetry_info)
     self.assertEqual(0, telemetry_info['storysetRepeatCounter'])
     v_foo = results.FindAllPageSpecificValuesNamed('foo_avg')
     self.assertEquals(len(v_foo), 1)

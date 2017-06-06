@@ -20,6 +20,7 @@ from telemetry.value import scalar
 from telemetry.value import skip
 from telemetry.value import trace
 from tracing.trace_data import trace_data
+from tracing.value import histogram as histogram_module
 
 
 class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
@@ -380,6 +381,67 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     results.PrintSummary()
     self.assertEquals(output_stream.output_data,
       "{\n  \"enabled\": false,\n  \"benchmark_name\": \"benchmark_name\"\n}\n")
+
+  def testAddSharedDiagnostic(self):
+    results = page_test_results.PageTestResults()
+    results.WillRunPage(self.pages[0])
+    results.DidRunPage(self.pages[0])
+    results.CleanUp()
+    results.histograms.AddSharedDiagnostic(
+        histogram_module.TelemetryInfo.NAME, histogram_module.TelemetryInfo())
+
+    benchmark_metadata = benchmark.BenchmarkMetadata(
+      'benchmark_name', 'benchmark_description')
+    results.PopulateHistogramSet(benchmark_metadata)
+
+    histogram_dicts = results.AsHistogramDicts()
+    self.assertEquals(1, len(histogram_dicts))
+
+    diagnostic = histogram_module.Diagnostic.FromDict(histogram_dicts[0])
+    self.assertIsInstance(diagnostic, histogram_module.TelemetryInfo)
+
+  def testPopulateHistogramSet_UsesScalarValueData(self):
+    results = page_test_results.PageTestResults()
+    results.WillRunPage(self.pages[0])
+    results.AddValue(scalar.ScalarValue(
+        self.pages[0], 'a', 'seconds', 3,
+        improvement_direction=improvement_direction.UP))
+    results.DidRunPage(self.pages[0])
+    results.CleanUp()
+
+    benchmark_metadata = benchmark.BenchmarkMetadata(
+      'benchmark_name', 'benchmark_description')
+    results.PopulateHistogramSet(benchmark_metadata)
+
+    histogram_dicts = results.AsHistogramDicts()
+    self.assertEquals(1, len(histogram_dicts))
+
+    h = histogram_module.Histogram.FromDict(histogram_dicts[0])
+    self.assertEquals('a', h.name)
+
+  def testPopulateHistogramSet_UsesHistogramSetData(self):
+    original_diagnostic = histogram_module.TelemetryInfo()
+
+    results = page_test_results.PageTestResults()
+    results.WillRunPage(self.pages[0])
+    results.histograms.AddHistogram(histogram_module.Histogram('foo', 'count'))
+    results.histograms.AddSharedDiagnostic(
+        histogram_module.TelemetryInfo.NAME, original_diagnostic)
+    results.DidRunPage(self.pages[0])
+    results.CleanUp()
+
+    benchmark_metadata = benchmark.BenchmarkMetadata(
+      'benchmark_name', 'benchmark_description')
+    results.PopulateHistogramSet(benchmark_metadata)
+
+    histogram_dicts = results.AsHistogramDicts()
+    self.assertEquals(2, len(histogram_dicts))
+
+    hs = histogram_module.HistogramSet()
+    hs.ImportDicts(histogram_dicts)
+
+    diagnostic = hs.LookupDiagnostic(original_diagnostic.guid)
+    self.assertIsInstance(diagnostic, histogram_module.TelemetryInfo)
 
 
 class PageTestResultsFilterTest(unittest.TestCase):

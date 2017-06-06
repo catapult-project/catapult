@@ -48,7 +48,7 @@ class HtmlOutputFormatter(output_formatter.OutputFormatter):
     return json.loads(vinn_result.stdout)
 
   def Format(self, page_test_results):
-    histograms = page_test_results.value_set
+    histograms = page_test_results.histograms
     if not histograms:
       histograms = self._ConvertChartJson(page_test_results)
 

@@ -15,7 +15,7 @@ class HistogramSetJsonOutputFormatter(output_formatter.OutputFormatter):
     self._reset_results = reset_results
 
   def Format(self, page_test_results):
-    histograms = page_test_results.AsHistogramDicts(self._metadata)
+    histograms = page_test_results.AsHistogramDicts()
     self._output_stream.seek(0)
     if not self._reset_results:
       existing = self._output_stream.read()

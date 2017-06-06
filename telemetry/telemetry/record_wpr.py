@@ -159,11 +159,15 @@ class WprRecorder(object):
     options.browser_options.wpr_mode = wpr_modes.WPR_RECORD
     return options
 
-  def CreateResults(self):
+  def _CreateBenchmarkMetadata(self):
     if self._benchmark is not None:
       benchmark_metadata = self._benchmark.GetMetadata()
     else:
       benchmark_metadata = benchmark.BenchmarkMetadata('record_wpr')
+    return benchmark_metadata
+
+  def CreateResults(self):
+    benchmark_metadata = self._CreateBenchmarkMetadata()
 
     return results_options.CreateResults(benchmark_metadata, self._options)
 
@@ -232,7 +236,7 @@ class WprRecorder(object):
     self._story_set.wpr_archive_info.AddNewTemporaryRecording()
     self._record_page_test.CustomizeBrowserOptions(self._options)
     story_runner.Run(self._record_page_test, self._story_set,
-        self._options, results)
+        self._options, results, metadata=self._CreateBenchmarkMetadata())
 
   def HandleResults(self, results, upload_to_cloud_storage):
     if results.failures or results.skipped_values:
