@@ -409,7 +409,6 @@ class Ownership(Diagnostic):
     emails = emails or []
 
     self._emails = emails[:]
-    print str(self._emails)
 
     if (component is None) or (isinstance(component, str)):
       self._component = component
