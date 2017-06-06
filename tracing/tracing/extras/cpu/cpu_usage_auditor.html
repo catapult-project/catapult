@@ -48,7 +48,7 @@ tr.exportTo('tr.e.audits', function() {
      */
     computeCpuUsageSeries_(start, end, usageRecords) {
       const series = new tr.model.ResourceUsageSeries();
-      if (start === undefined) return series;
+      if (start === undefined || usageRecords.length === 0) return series;
       const binSize = this.computeBinSize_(start, end);
       const numBins = Math.ceil((end - start) / binSize);
       const arr = new Array(numBins).fill(0);
