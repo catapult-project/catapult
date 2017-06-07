@@ -15,6 +15,7 @@ from telemetry.internal.results import output_formatter
 
 from tracing import results_renderer
 from tracing.value import convert_chart_json
+from tracing.value import histogram
 
 
 class HtmlOutputFormatter(output_formatter.OutputFormatter):
@@ -51,6 +52,8 @@ class HtmlOutputFormatter(output_formatter.OutputFormatter):
     histograms = page_test_results.histograms
     if not histograms:
       histograms = self._ConvertChartJson(page_test_results)
+    if isinstance(histograms, histogram.HistogramSet):
+      histograms = histograms.AsDicts()
 
     results_renderer.RenderHTMLView(histograms,
         self._output_stream, self._reset_results)

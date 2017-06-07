@@ -161,7 +161,7 @@ class PageTestResults(object):
     return self.histograms.AsDicts()
 
   def PopulateHistogramSet(self, benchmark_metadata):
-    if self.histograms:
+    if len(self.histograms):
       return
 
     chart_json = chart_json_output_formatter.ResultsAsChartDict(
@@ -184,6 +184,7 @@ class PageTestResults(object):
           vinn_result.stdout)
       return []
     self.histograms.ImportDicts(json.loads(vinn_result.stdout))
+    self.histograms.ResolveRelatedHistograms()
 
   def __copy__(self):
     cls = self.__class__
