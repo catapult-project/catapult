@@ -15,11 +15,6 @@ def main():
     print "Usage: {}".format(sys.argv[0])
     return
 
-  gyp_defines = os.environ.get('GYP_DEFINES', '')
-  if not 'fetch_telemetry_dependencies=1' in gyp_defines:
-    print "GYP_DEFINES doesn't specify fetch_telemetry_dependencies=1, skipping"
-    return
-
   # telemetry/internal/binary_dependencies.json will be loaded by default
   client_configs = []
   platform = platform_module.GetHostPlatform()
