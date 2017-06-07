@@ -14,7 +14,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   const getStageToInitiatorToSegmentBounds =
-      tr.e.chrome.cpuTime.getStageToInitiatorToSegmentBounds;
+      tr.e.chrome.CpuTime.getStageToInitiatorToSegmentBounds;
 
   const INITIATOR_TYPE = tr.model.um.INITIATOR_TYPE;
 
@@ -22,7 +22,7 @@ tr.b.unittest.testSuite(function() {
         tr.e.chrome.chrome_processes.CHROME_PROCESS_NAMES;
 
   const constructMultiDimensionalView =
-        tr.e.chrome.cpuTime.constructMultiDimensionalView;
+        tr.e.chrome.CpuTime.constructMultiDimensionalView;
 
   const buildModelFromSpec = tr.e.chrome.cpuTimeTestUtils.buildModelFromSpec;
 
@@ -52,7 +52,7 @@ tr.b.unittest.testSuite(function() {
 
     // Should be essentially equal, but choosing a very small epsilon 1e-7
     // to allow for floating point errors.
-    assert.closeTo(tr.e.chrome.cpuTime.getCpuTimeForThread(thread, bounds),
+    assert.closeTo(tr.e.chrome.CpuTime.getCpuTimeForThread(thread, bounds),
         expectedCpuTime, 1e-7);
   });
 

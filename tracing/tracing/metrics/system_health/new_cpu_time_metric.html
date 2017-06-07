@@ -61,7 +61,7 @@ tr.exportTo('tr.metrics.sh', function() {
     const rangeOfInterest = opt_options && opt_options.rangeOfInterest ?
        opt_options.rangeOfInterest : model.bounds;
 
-    const rootNode = tr.e.chrome.cpuTime.constructMultiDimensionalView(
+    const rootNode = tr.e.chrome.CpuTime.constructMultiDimensionalView(
         model, rangeOfInterest);
 
     tr.metrics.sh.CpuTimeTreeDataReporter.reportToHistogramSet(
