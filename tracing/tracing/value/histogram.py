@@ -1858,3 +1858,12 @@ class HistogramSet(object):
     for h in self:
       dcts.append(h.AsDict())
     return dcts
+
+  def ReplaceSharedDiagnostic(self, old_guid, new_diagnostic):
+    if not isinstance(new_diagnostic, DiagnosticRef):
+      self._shared_diagnostics_by_guid[new_diagnostic.guid] = new_diagnostic
+
+    for hist in self:
+      for name, diagnostic in hist.diagnostics.iteritems():
+        if diagnostic.has_guid and diagnostic.guid == old_guid:
+          hist.diagnostics[name] = new_diagnostic

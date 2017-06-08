@@ -1177,3 +1177,33 @@ class HistogramSetUnittest(unittest.TestCase):
     self.assertIsInstance(
         hist2.diagnostics.get('generic'), histogram.Generic)
     self.assertEqual(diag.value, hist2.diagnostics.get('generic').value)
+
+  def testReplaceSharedDiagnostic(self):
+    hist = histogram.Histogram('', 'unitless')
+    hists = histogram.HistogramSet([hist])
+    diag0 = histogram.Generic('shared0')
+    diag1 = histogram.Generic('shared1')
+    hists.AddSharedDiagnostic('generic0', diag0)
+    hists.AddSharedDiagnostic('generic1', diag1)
+
+    guid0 = diag0.guid
+    guid1 = diag1.guid
+
+    hists.ReplaceSharedDiagnostic(guid0, histogram.DiagnosticRef('fakeGuid'))
+
+    self.assertEqual(hist.diagnostics['generic0'].guid, 'fakeGuid')
+    self.assertEqual(hist.diagnostics['generic1'].guid, guid1)
+
+  def testReplaceSharedDiagnostic_NonRefAddsToMap(self):
+    hist = histogram.Histogram('', 'unitless')
+    hists = histogram.HistogramSet([hist])
+    diag0 = histogram.Generic('shared0')
+    diag1 = histogram.Generic('shared1')
+    hists.AddSharedDiagnostic('generic0', diag0)
+
+    guid0 = diag0.guid
+    guid1 = diag1.guid
+
+    hists.ReplaceSharedDiagnostic(guid0, diag1)
+
+    self.assertIsNotNone(hists.LookupDiagnostic(guid1))
