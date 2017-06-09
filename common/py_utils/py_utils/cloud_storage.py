@@ -50,7 +50,6 @@ _GSUTIL_PATH = os.path.join(py_utils.GetCatapultDir(), 'third_party', 'gsutil',
 # TODO(tbarzic): A workaround for http://crbug.com/386416 and
 #     http://crbug.com/359293. See |_RunCommand|.
 _CROS_GSUTIL_HOME_WAR = '/home/chromeos-test/'
-_CROS_GSUTIL_BOTO_PATH = '/home/chrome-bot/.boto'
 
 
 # If Environment variables has DISABLE_CLOUD_STORAGE_IO set to '1', any method
@@ -125,15 +124,12 @@ def _RunCommand(args):
   # which is not writable. gsutil will attempt to create a download tracker dir
   # in home dir and fail. To avoid this, override HOME dir to something writable
   # when running on cros device.
-  # We also need to set BOTO_CONFIG to point at the .boto file in the actual
-  # HOME directory.
   #
   # TODO(tbarzic): Figure out a better way to handle gsutil on cros.
   #     http://crbug.com/386416, http://crbug.com/359293.
   gsutil_env = None
   if py_utils.IsRunningOnCrosDevice():
     gsutil_env = os.environ.copy()
-    gsutil_env['BOTO_CONFIG'] = _CROS_GSUTIL_BOTO_PATH
     gsutil_env['HOME'] = _CROS_GSUTIL_HOME_WAR
 
   if os.name == 'nt':
