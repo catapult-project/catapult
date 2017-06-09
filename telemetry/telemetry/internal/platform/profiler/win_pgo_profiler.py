@@ -15,6 +15,9 @@ _PGOSWEEP_EXECUTABLE = 'pgosweep.exe'
 class WinPGOProfiler(profiler.Profiler):
   """A profiler that run the Visual Studio PGO utility 'pgosweep.exe' before
   terminating a browser or a renderer process.
+
+  TODO(sebmarchand): Stop relying on Telemetry to do this, move this logic to
+  Chrome.
   """
 
   def __init__(self, browser_backend, platform_backend, output_path, state):
@@ -89,6 +92,9 @@ class WinPGOProfiler(profiler.Profiler):
     # The sandbox need to be disabled if we want to be able to gather the
     # profile data.
     options.AppendExtraBrowserArgs('--no-sandbox')
+    # Augment the startup timeout as a PGO instrumented build takes more time to
+    # start than a regular build.
+    options.browser_options.browser_startup_timeout *= 4
 
   def CollectProfile(self):
     """Collect the profile data for the current processes."""
