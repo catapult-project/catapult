@@ -144,6 +144,8 @@ class RecordWprUnitTests(tab_test_case.TabTestCase):
     flags = ['--browser', self._browser.browser_type,
              '--remote', self._test_options.cros_remote,
              '--device', self._device]
+    if self._browser.browser_type == 'exact':
+      flags += ['--browser-executable', self._test_options.browser_executable]
     if self._test_options.chrome_root:
       flags += ['--chrome-root', self._test_options.chrome_root]
     return flags
