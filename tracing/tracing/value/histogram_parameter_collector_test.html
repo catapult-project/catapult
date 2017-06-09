@@ -12,14 +12,111 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   test('empty', function() {
     const collector = new tr.v.HistogramParameterCollector();
-    collector.process([
-    ]);
+    collector.process([]);
     assert.strictEqual('avg', tr.b.getOnlyElement(collector.statisticNames));
     assert.strictEqual('name',
         tr.b.getOnlyElement(collector.possibleGroupings).key);
     assert.lengthOf(collector.labels, 0);
   });
 
-  // TODO(benjhayden): More tests.
+  test('sortLabels', function() {
+    const collector = new tr.v.HistogramParameterCollector();
+    collector.process([
+      tr.v.Histogram.create('', tr.b.Unit.byName.count, 0, {
+        diagnostics: {telemetry: new tr.v.d.TelemetryInfo({
+          label: 'A',
+          benchmarkStartMs: 1000,
+        })},
+      }),
+      tr.v.Histogram.create('', tr.b.Unit.byName.count, 0, {
+        diagnostics: {telemetry: new tr.v.d.TelemetryInfo({
+          label: 'B',
+          benchmarkStartMs: 3000,
+        })},
+      }),
+      tr.v.Histogram.create('', tr.b.Unit.byName.count, 0, {
+        diagnostics: {telemetry: new tr.v.d.TelemetryInfo({
+          label: 'C',
+          benchmarkStartMs: 2000,
+        })},
+      }),
+    ]);
+    const labels = collector.labels;
+    assert.lengthOf(labels, 3);
+    assert.strictEqual(labels[0], 'A');
+    assert.strictEqual(labels[1], 'C');
+    assert.strictEqual(labels[2], 'B');
+  });
+
+  test('possibleGroupings', function() {
+    const collector = new tr.v.HistogramParameterCollector();
+    collector.process([
+      tr.v.Histogram.create('a', tr.b.Unit.byName.count, 0, {
+        diagnostics: {
+          telemetry: new tr.v.d.TelemetryInfo({
+            label: 'A',
+            benchmarkStartMs: 1000,
+            storysetRepeatCounter: 0,
+            storyDisplayName: 'R',
+          }),
+          buildbot: new tr.v.d.BuildbotInfo({
+            buildbotMasterName: 'V',
+            buildNumber: 57,
+          }),
+        },
+      }),
+      tr.v.Histogram.create('b', tr.b.Unit.byName.count, 0, {
+        diagnostics: {
+          telemetry: new tr.v.d.TelemetryInfo({
+            label: 'B',
+            benchmarkStartMs: 3000,
+            benchmarkName: 'N',
+            storysetRepeatCounter: 1,
+            legacyTIRLabel: 'T',
+          }),
+          buildbot: new tr.v.d.BuildbotInfo({
+            buildbotMasterName: 'W',
+            buildbotName: 'Y',
+          }),
+        },
+      }),
+      tr.v.Histogram.create('c', tr.b.Unit.byName.count, 0, {
+        diagnostics: {
+          telemetry: new tr.v.d.TelemetryInfo({
+            label: 'C',
+            benchmarkStartMs: 2000,
+            benchmarkName: 'M',
+            storyDisplayName: 'P',
+            legacyTIRLabel: 'S',
+          }),
+          buildbot: new tr.v.d.BuildbotInfo({
+            buildbotName: 'X',
+            buildNumber: 42,
+          }),
+        },
+      }),
+    ]);
+    const possibleGroupingKeys = new Set(
+        collector.possibleGroupings.map(g => g.key));
+    assert.strictEqual(possibleGroupingKeys.size, 9);
+    assert.isTrue(possibleGroupingKeys.has(
+        tr.v.HistogramSet.GROUPINGS.HISTOGRAM_NAME.key));
+    assert.isTrue(possibleGroupingKeys.has(
+        tr.v.HistogramSet.GROUPINGS.BENCHMARK_NAME.key));
+    assert.isTrue(possibleGroupingKeys.has(
+        tr.v.HistogramSet.GROUPINGS.STORYSET_REPEAT.key));
+    assert.isTrue(possibleGroupingKeys.has(
+        tr.v.HistogramSet.GROUPINGS.STORY_NAME.key));
+    assert.isTrue(possibleGroupingKeys.has(
+        tr.v.HistogramSet.GROUPINGS.LEGACY_TIR_LABEL.key));
+    assert.isTrue(possibleGroupingKeys.has(
+        tr.v.HistogramSet.GROUPINGS.MASTER_NAME.key));
+    assert.isTrue(possibleGroupingKeys.has(
+        tr.v.HistogramSet.GROUPINGS.SLAVE_NAME.key));
+    assert.isTrue(possibleGroupingKeys.has(
+        tr.v.HistogramSet.GROUPINGS.BUILD_NUMBER.key));
+    assert.isFalse(possibleGroupingKeys.has(
+        tr.v.HistogramSet.GROUPINGS.DISPLAY_LABEL.key));
+  });
 });
 </script>
