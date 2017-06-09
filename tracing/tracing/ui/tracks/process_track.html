@@ -46,8 +46,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
           const dt = this.viewport.currentDisplayTransform;
           const viewLWorld = dt.xViewToWorld(0);
-          const viewRWorld = dt.xViewToWorld(
-              bounds.width * pixelRatio);
+          const viewRWorld = dt.xViewToWorld(canvasBounds.width * pixelRatio);
 
           tr.ui.b.drawInstantSlicesAsLines(
               ctx,

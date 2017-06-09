@@ -367,13 +367,18 @@ tr.exportTo('tr.ui.b', function() {
         function(slice) { return slice.start + slice.duration; },
         viewLWorld);
 
-    // Don't render text until until it is 20px wide
-    const quickDiscardThresshold = pixWidth * 20;
+    // Don't render text until it is 20px wide
+    const quickDiscardThreshold = pixWidth * 20;
     for (let i = lowSlice; i < slices.length; ++i) {
       const slice = slices[i];
       if (slice.start > viewRWorld) break;
 
-      if (slice.duration <= quickDiscardThresshold) continue;
+      if (slice.duration <= quickDiscardThreshold) continue;
+
+      // Clip slice boundaries to viewport.
+      const xLeftClipped = Math.max(slice.start, viewLWorld);
+      const xRightClipped = Math.min(slice.start + slice.duration, viewRWorld);
+      const visibleWidth = xRightClipped - xLeftClipped;
 
       const title = slice.title +
           (slice.didNotFinish ? ' (Did Not Finish)' : '');
@@ -382,18 +387,18 @@ tr.exportTo('tr.ui.b', function() {
       let drawnWidth = elidedTitleCache.labelWidth(ctx, drawnTitle);
       const fullLabelWidth = elidedTitleCache.labelWidthWorld(
           ctx, drawnTitle, pixWidth);
-      if (SHOULD_ELIDE_TEXT && fullLabelWidth > slice.duration) {
+      if (SHOULD_ELIDE_TEXT && fullLabelWidth > visibleWidth) {
         const elidedValues = elidedTitleCache.get(
             ctx, pixWidth,
             drawnTitle, drawnWidth,
-            slice.duration);
+            visibleWidth);
         drawnTitle = elidedValues.string;
         drawnWidth = elidedValues.width;
       }
 
-      if (drawnWidth * pixWidth < slice.duration) {
+      if (drawnWidth * pixWidth < visibleWidth) {
         ctx.fillStyle = EventPresenter.getTextColor(slice);
-        const cX = dt.xWorldToView(slice.start + 0.5 * slice.duration);
+        const cX = dt.xWorldToView((xLeftClipped + xRightClipped) / 2);
         ctx.fillText(drawnTitle, cX, cY, drawnWidth);
       }
     }
