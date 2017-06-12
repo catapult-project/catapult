@@ -98,7 +98,7 @@ class SmoothGestureUtilTest(unittest.TestCase):
 
 class ScrollingPage(page_module.Page):
   def __init__(self, url, page_set, base_dir):
-    super(ScrollingPage, self).__init__(url, page_set, base_dir)
+    super(ScrollingPage, self).__init__(url, page_set, base_dir, name=url)
 
   def RunPageInteractions(self, action_runner):
     with action_runner.CreateGestureInteraction('ScrollAction'):

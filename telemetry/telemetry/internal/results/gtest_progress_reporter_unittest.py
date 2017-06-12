@@ -22,19 +22,25 @@ _GROUPING_KEY_DEFAULT = {'1': '2'}
 def _MakeStorySet():
   story_set = story.StorySet(base_dir=os.path.dirname(__file__))
   story_set.AddStory(
-      page_module.Page('http://www.foo.com/', story_set, story_set.base_dir))
+      page_module.Page('http://www.foo.com/', story_set, story_set.base_dir,
+                       name='http://www.foo.com/'))
   story_set.AddStory(
-      page_module.Page('http://www.bar.com/', story_set, story_set.base_dir))
+      page_module.Page('http://www.bar.com/', story_set, story_set.base_dir,
+                       name='http://www.bar.com/'))
   story_set.AddStory(
-      page_module.Page('http://www.baz.com/', story_set, story_set.base_dir))
+      page_module.Page('http://www.baz.com/', story_set, story_set.base_dir,
+                       name='http://www.baz.com/'))
   story_set.AddStory(
-      page_module.Page('http://www.roz.com/', story_set, story_set.base_dir))
+      page_module.Page('http://www.roz.com/', story_set, story_set.base_dir,
+                       name='http://www.roz.com/'))
   story_set.AddStory(
       page_module.Page('http://www.fus.com/', story_set, story_set.base_dir,
-                       grouping_keys=_GROUPING_KEY_DEFAULT))
+                       grouping_keys=_GROUPING_KEY_DEFAULT,
+                       name='http://www.fus.com/'))
   story_set.AddStory(
       page_module.Page('http://www.ro.com/', story_set, story_set.base_dir,
-                       grouping_keys=_GROUPING_KEY_DEFAULT))
+                       grouping_keys=_GROUPING_KEY_DEFAULT,
+                       name='http://www.ro.com/'))
   return story_set
 
 

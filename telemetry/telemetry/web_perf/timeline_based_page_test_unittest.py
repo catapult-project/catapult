@@ -18,7 +18,8 @@ class TestTimelinebasedMeasurementPage(page_module.Page):
                trigger_jank=False, trigger_slow=False,
                trigger_scroll_gesture=False):
     super(TestTimelinebasedMeasurementPage, self).__init__(
-        'file://interaction_enabled_page.html', ps, base_dir)
+        'file://interaction_enabled_page.html', ps, base_dir,
+        name='interaction_enabled_page.html')
     self._trigger_animation = trigger_animation
     self._trigger_jank = trigger_jank
     self._trigger_slow = trigger_slow
@@ -42,7 +43,8 @@ class FailedTimelinebasedMeasurementPage(page_module.Page):
 
   def __init__(self, ps, base_dir):
     super(FailedTimelinebasedMeasurementPage, self).__init__(
-        'file://interaction_enabled_page.html', ps, base_dir)
+        'file://interaction_enabled_page.html', ps, base_dir,
+        name='interaction_enabled_page.html')
 
   def RunPageInteractions(self, action_runner):
     action_runner.TapElement('#does-not-exist')

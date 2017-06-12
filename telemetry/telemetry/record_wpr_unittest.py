@@ -21,7 +21,8 @@ class MockPage(page_module.Page):
   def __init__(self, story_set, url):
     super(MockPage, self).__init__(url=url,
                                    page_set=story_set,
-                                   base_dir=util.GetUnittestDataDir())
+                                   base_dir=util.GetUnittestDataDir(),
+                                   name=url)
     self.func_calls = []
 
   def RunNavigateSteps(self, action_runner):

@@ -71,7 +71,8 @@ class SharedPageStateTests(unittest.TestCase):
       self, shared_page_state_class, expected_user_agent):
     story = page.Page(
         'http://www.google.com',
-        shared_page_state_class=shared_page_state_class)
+        shared_page_state_class=shared_page_state_class,
+        name='Google')
     test = DummyTest()
     story_set = story_module.StorySet()
     story_set.AddStory(story)
@@ -100,13 +101,16 @@ class SharedPageStateTests(unittest.TestCase):
     story_set = story_module.StorySet()
     google_page = page.Page(
         'http://www.google.com',
-        startup_url='http://www.google.com', page_set=story_set)
+        startup_url='http://www.google.com', page_set=story_set,
+        name='google')
     example_page = page.Page(
         'https://www.example.com',
-        startup_url='https://www.example.com', page_set=story_set)
+        startup_url='https://www.example.com', page_set=story_set,
+        name='example')
     gmail_page = page.Page(
         'https://www.gmail.com',
-        startup_url='https://www.gmail.com', page_set=story_set)
+        startup_url='https://www.gmail.com', page_set=story_set,
+        name='gmail')
 
     for p in (google_page, example_page, gmail_page):
       story_set.AddStory(p)

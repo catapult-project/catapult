@@ -21,8 +21,10 @@ from tracing.trace_data import trace_data
 
 def _MakeStorySet():
   ps = story.StorySet(base_dir=os.path.dirname(__file__))
-  ps.AddStory(page_module.Page('http://www.foo.com/', ps, ps.base_dir))
-  ps.AddStory(page_module.Page('http://www.bar.com/', ps, ps.base_dir))
+  ps.AddStory(page_module.Page(
+      'http://www.foo.com/', ps, ps.base_dir, name='http://www.foo.com/'))
+  ps.AddStory(page_module.Page(
+      'http://www.bar.com/', ps, ps.base_dir, name='http://www.bar.com/'))
   return ps
 
 class ChartJsonTest(unittest.TestCase):

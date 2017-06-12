@@ -61,7 +61,8 @@ class PageTestWithAction(legacy_page_test.LegacyPageTest):
 class PageWithAction(page_module.Page):
 
   def __init__(self, url, story_set):
-    super(PageWithAction, self).__init__(url, story_set, story_set.base_dir)
+    super(PageWithAction, self).__init__(url, story_set, story_set.base_dir,
+                                         name=url)
     self.run_test_action_called = False
 
   def RunPageInteractions(self, _):

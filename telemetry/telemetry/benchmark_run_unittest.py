@@ -30,6 +30,7 @@ class FakePage(page_module.Page):
   def __init__(self, page_set):
     super(FakePage, self).__init__(
       url='http://nonexistentserver.com/nonexistentpage.html',
+      name='fake page',
       page_set=page_set,
       shared_page_state_class=fakes.FakeSharedPageState)
     self.RunNavigateSteps = mock.Mock()

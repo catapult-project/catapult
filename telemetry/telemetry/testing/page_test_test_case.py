@@ -18,8 +18,8 @@ from telemetry.testing import options_for_unittests
 
 
 class BasicTestPage(page_module.Page):
-  def __init__(self, url, story_set, base_dir):
-    super(BasicTestPage, self).__init__(url, story_set, base_dir)
+  def __init__(self, url, story_set, base_dir, name=''):
+    super(BasicTestPage, self).__init__(url, story_set, base_dir, name=name)
 
   def RunPageInteractions(self, action_runner):
     with action_runner.CreateGestureInteraction('ScrollAction'):
@@ -36,7 +36,8 @@ class PageTestTestCase(unittest.TestCase):
 
   def CreateStorySetFromFileInUnittestDataDir(self, test_filename):
     ps = self.CreateEmptyPageSet()
-    page = BasicTestPage('file://' + test_filename, ps, base_dir=ps.base_dir)
+    page = BasicTestPage('file://' + test_filename, ps, base_dir=ps.base_dir,
+                         name=test_filename)
     ps.AddStory(page)
     return ps
 

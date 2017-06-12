@@ -124,6 +124,8 @@ class EmptyMetadataForTest(benchmark.BenchmarkMetadata):
 
 class DummyLocalStory(story_module.Story):
   def __init__(self, shared_state_class, name='', tags=None):
+    if name == '':
+      name = 'dummy local story'
     super(DummyLocalStory, self).__init__(
         shared_state_class, name=name, tags=tags)
 
@@ -329,7 +331,8 @@ class StoryRunnerTest(unittest.TestCase):
   def testRunStoryWithMissingArchiveFile(self):
     story_set = story_module.StorySet(archive_data_file='data/hi.json')
     story_set.AddStory(page_module.Page(
-        'http://www.testurl.com', story_set, story_set.base_dir))
+        'http://www.testurl.com', story_set, story_set.base_dir,
+        name='http://www.testurl.com'))
     test = DummyTest()
     self.assertRaises(story_runner.ArchiveError, story_runner.Run, test,
                       story_set, self.options, self.results)
@@ -356,7 +359,7 @@ class StoryRunnerTest(unittest.TestCase):
                       self.options, self.results)
 
   def testRunStoryWithLongURLPage(self):
-    story_set = story_module.StorySet()
+    story_set = story_module.StorySet(verify_names=False)
     story_set.AddStory(page_module.Page('file://long' + 'g' * 180, story_set))
     test = DummyTest()
     self.assertRaises(ValueError, story_runner.Run, test, story_set,
@@ -813,7 +816,8 @@ class StoryRunnerTest(unittest.TestCase):
     try:
       story_set = story_module.StorySet()
       story_set.AddStory(page_module.Page(
-          'http://www.testurl.com', story_set, story_set.base_dir))
+          'http://www.testurl.com', story_set, story_set.base_dir,
+          name='http://www.testurl.com'))
       # Page set missing archive_data_file.
       self.assertRaises(
           story_runner.ArchiveError,
@@ -825,7 +829,8 @@ class StoryRunnerTest(unittest.TestCase):
       story_set = story_module.StorySet(
           archive_data_file='missing_archive_data_file.json')
       story_set.AddStory(page_module.Page(
-          'http://www.testurl.com', story_set, story_set.base_dir))
+          'http://www.testurl.com', story_set, story_set.base_dir,
+          name='http://www.testurl.com'))
       # Page set missing json file specified in archive_data_file.
       self.assertRaises(
           story_runner.ArchiveError,
@@ -838,13 +843,15 @@ class StoryRunnerTest(unittest.TestCase):
           archive_data_file=os.path.join(archive_data_dir, 'test.json'),
           cloud_storage_bucket=cloud_storage.PUBLIC_BUCKET)
       story_set.AddStory(page_module.Page(
-          'http://www.testurl.com', story_set, story_set.base_dir))
+          'http://www.testurl.com', story_set, story_set.base_dir,
+          name='http://www.testurl.com'))
       # Page set with valid archive_data_file.
       self.assertTrue(story_runner._UpdateAndCheckArchives(
             story_set.archive_data_file, story_set.wpr_archive_info,
             story_set.stories))
       story_set.AddStory(page_module.Page(
-          'http://www.google.com', story_set, story_set.base_dir))
+          'http://www.google.com', story_set, story_set.base_dir,
+          name='http://www.google.com'))
       # Page set with an archive_data_file which exists but is missing a page.
       self.assertRaises(
           story_runner.ArchiveError,
@@ -858,9 +865,11 @@ class StoryRunnerTest(unittest.TestCase):
               os.path.join(archive_data_dir, 'test_missing_wpr_file.json'),
           cloud_storage_bucket=cloud_storage.PUBLIC_BUCKET)
       story_set.AddStory(page_module.Page(
-          'http://www.testurl.com', story_set, story_set.base_dir))
+          'http://www.testurl.com', story_set, story_set.base_dir,
+          name='http://www.testurl.com'))
       story_set.AddStory(page_module.Page(
-          'http://www.google.com', story_set, story_set.base_dir))
+          'http://www.google.com', story_set, story_set.base_dir,
+          name='http://www.google.com'))
       # Page set with an archive_data_file which exists and contains all pages
       # but fails to find a wpr file.
       self.assertRaises(

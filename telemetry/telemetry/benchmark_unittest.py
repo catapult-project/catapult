@@ -38,6 +38,7 @@ class BenchmarkTest(unittest.TestCase):
 
   def testPageTestWithIncompatibleStory(self):
     b = TestBenchmark(story_module.Story(
+        name='test story',
         shared_state_class=shared_page_state.SharedPageState))
     with self.assertRaisesRegexp(
         Exception, 'containing only telemetry.page.Page stories'):
@@ -45,12 +46,14 @@ class BenchmarkTest(unittest.TestCase):
 
     state_class = story_module.SharedState
     b = TestBenchmark(story_module.Story(
+        name='test benchmark',
         shared_state_class=state_class))
     with self.assertRaisesRegexp(
         Exception, 'containing only telemetry.page.Page stories'):
       b.Run(options_for_unittests.GetCopy())
 
-    b = TestBenchmark(android.AndroidStory(start_intent=None))
+    b = TestBenchmark(android.AndroidStory(
+        name='test benchmark', start_intent=None))
     with self.assertRaisesRegexp(
         Exception, 'containing only telemetry.page.Page stories'):
       b.Run(options_for_unittests.GetCopy())
@@ -71,7 +74,7 @@ class BenchmarkTest(unittest.TestCase):
       benchmark.AddCommandLineArgs(parser)
       options.MergeDefaultValues(parser.get_default_values())
 
-      b = TestBenchmark(page.Page(url='about:blank'))
+      b = TestBenchmark(page.Page(url='about:blank', name='about:blank'))
       b.Run(options)
     finally:
       story_runner.Run = original_run_fn
@@ -153,7 +156,7 @@ class BenchmarkTest(unittest.TestCase):
       benchmark.AddCommandLineArgs(parser)
       options.MergeDefaultValues(parser.get_default_values())
 
-      b = PredicateBenchmark(page.Page(url='about:blank'))
+      b = PredicateBenchmark(page.Page(url='about:blank', name='about:blank'))
       b.Run(options)
     finally:
       story_runner.Run = original_run_fn
@@ -162,6 +165,7 @@ class BenchmarkTest(unittest.TestCase):
 
   def testBenchmarkExpectations(self):
     b = TestBenchmark(story_module.Story(
+        name='test name',
         shared_state_class=shared_page_state.SharedPageState))
     self.assertIsInstance(
         b.GetExpectations(), story_module.expectations.StoryExpectations)

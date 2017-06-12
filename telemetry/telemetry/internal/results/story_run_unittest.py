@@ -26,7 +26,7 @@ class StoryFoo(story_module.Story):
 class StoryRunTest(unittest.TestCase):
   def setUp(self):
     self.story_set = story_set.StorySet()
-    self.story_set.AddStory(StoryFoo())
+    self.story_set.AddStory(StoryFoo(name='foo'))
 
   @property
   def stories(self):

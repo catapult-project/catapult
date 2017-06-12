@@ -100,7 +100,8 @@ class TimelineBasedMetricTestData(object):
       tbm_module._GetRendererThreadsToInteractionRecordsMap(self._model))
     self._story_set = story.StorySet(base_dir=os.path.dirname(__file__))
     self._story_set.AddStory(page_module.Page(
-        'http://www.bar.com/', self._story_set, self._story_set.base_dir))
+        'http://www.bar.com/', self._story_set, self._story_set.base_dir,
+        name='http://www.bar.com/'))
     self._results.WillRunPage(self._story_set.stories[0])
 
   def AddResults(self):
