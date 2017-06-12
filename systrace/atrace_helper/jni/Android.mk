@@ -15,6 +15,7 @@ LOCAL_LDLIBS := -fPIE -pie -llog
 LOCAL_SRC_FILES := \
     main.cc \
     file_utils.cc \
+    libmemtrack_wrapper.cc \
     process_info.cc \
     process_memory_stats.cc
 

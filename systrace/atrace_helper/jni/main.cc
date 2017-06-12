@@ -24,9 +24,12 @@ using ProcessMap = std::map<int, std::unique_ptr<ProcessInfo>>;
 
 int g_timer;
 
-std::unique_ptr<ProcessMap> CollectStatsForAllProcs(bool full_mem_stats) {
+std::unique_ptr<ProcessMap> CollectStatsForAllProcs(bool full_mem_stats,
+                                                    bool gpu_mem_stats) {
   std::unique_ptr<ProcessMap> procs(new ProcessMap());
-  file_utils::ForEachPidInProcPath("/proc", [&procs, full_mem_stats](int pid) {
+  file_utils::ForEachPidInProcPath("/proc",
+      [&procs, full_mem_stats, gpu_mem_stats](int pid) {
+
     if (!ProcessInfo::IsProcess(pid))
       return;
     CHECK(procs->count(pid) == 0);
@@ -42,6 +45,10 @@ std::unique_ptr<ProcessMap> CollectStatsForAllProcs(bool full_mem_stats) {
       if (!pinfo->memory()->ReadLightStats())
         return;
     }
+    if (gpu_mem_stats) {
+      // It might fail on some devices.
+      pinfo->memory()->ReadMemtrackStats();
+    }
     (*procs)[pid] = std::move(pinfo);
   });
   return procs;
@@ -49,7 +56,8 @@ std::unique_ptr<ProcessMap> CollectStatsForAllProcs(bool full_mem_stats) {
 
 void SerializeSnapshot(const ProcessMap& procs,
                        FILE* stream,
-                       bool full_mem_stats) {
+                       bool full_mem_stats,
+                       bool gpu_mem_stats) {
   struct timespec ts = {};
   CHECK(clock_gettime(CLOCK_MONOTONIC_COARSE, &ts) == 0);
   fprintf(stream, "{\n");
@@ -77,9 +85,18 @@ void SerializeSnapshot(const ProcessMap& procs,
       fprintf(stream,
               ", \"pss\": %llu, \"swp\": %llu, \"pc\": %llu, \"pd\": %llu, "
               "\"sc\": %llu, \"sd\": %llu",
-              mem_info->rss_kb(), mem_info->swapped_kb(),
+              mem_info->pss_kb(), mem_info->swapped_kb(),
               mem_info->private_clean_kb(), mem_info->private_dirty_kb(),
               mem_info->shared_clean_kb(), mem_info->shared_dirty_kb());
+    }
+    if (gpu_mem_stats) {
+      fprintf(stream,
+              ", \"gpu\": %llu, \"gpu_pss\": %llu"
+              ", \"gpu_gl\": %llu, \"gpu_gl_pss\": %llu"
+              ", \"gpu_etc\": %llu, \"gpu_etc_pss\": %llu",
+              mem_info->gpu_graphics_kb(), mem_info->gpu_graphics_pss_kb(),
+              mem_info->gpu_gl_kb(), mem_info->gpu_gl_pss_kb(),
+              mem_info->gpu_other_kb(), mem_info->gpu_other_pss_kb());
     }
     fprintf(stream, "}");
 
@@ -106,15 +123,19 @@ int main(int argc, char** argv) {
   char out_file[PATH_MAX] = {};
   bool dump_to_file = false;
   bool full_mem_stats = false;
+  bool gpu_mem_stats = false;
   int count = std::numeric_limits<int>::max();
   int opt;
-  while ((opt = getopt(argc, argv, "bmt:o:c:")) != -1) {
+  while ((opt = getopt(argc, argv, "bmgt:o:c:")) != -1) {
     switch (opt) {
       case 'b':
         background = true;
         break;
       case 'm':
         full_mem_stats = true;
+        break;
+      case 'g':
+        gpu_mem_stats = true;
         break;
       case 't':
         dump_interval_ms = atoi(optarg);
@@ -130,8 +151,8 @@ int main(int argc, char** argv) {
         break;
       default:
         fprintf(stderr,
-                "Usage: %s [-b] [-t dump_interval_ms] [-c dumps_count] "
-                "[-o out.json]\n",
+                "Usage: %s [-b] [-m] [-g] [-t dump_interval_ms] "
+                "[-c dumps_count] [-o out.json]\n",
                 argv[0]);
         exit(EXIT_FAILURE);
     }
@@ -187,8 +208,9 @@ int main(int argc, char** argv) {
       fprintf(out_stream, ",");
     is_first_snapshot = false;
 
-    std::unique_ptr<ProcessMap> procs = CollectStatsForAllProcs(full_mem_stats);
-    SerializeSnapshot(*procs, out_stream, full_mem_stats);
+    std::unique_ptr<ProcessMap> procs =
+        CollectStatsForAllProcs(full_mem_stats, gpu_mem_stats);
+    SerializeSnapshot(*procs, out_stream, full_mem_stats, gpu_mem_stats);
     fflush(out_stream);
   }
   fprintf(out_stream, "]}\n");

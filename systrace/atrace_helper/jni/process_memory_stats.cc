@@ -10,9 +10,11 @@
 #include <memory>
 
 #include "file_utils.h"
+#include "libmemtrack_wrapper.h"
 #include "logging.h"
 
 namespace {
+
 const int kKbPerPage = 4;
 
 // Takes a C string buffer and chunks it into lines without creating any
@@ -129,4 +131,15 @@ bool ProcessMemoryStats::ReadFullStats() {
     }
   }
   return true;
+}
+
+bool ProcessMemoryStats::ReadMemtrackStats() {
+  MemtrackProc mt(pid_);
+  gpu_graphics_kb_ = mt.graphics_total() / 1024;
+  gpu_graphics_pss_kb_ = mt.graphics_pss() / 1024;
+  gpu_gl_kb_ = mt.gl_total() / 1024;
+  gpu_gl_pss_kb_ = mt.gl_pss() / 1024;
+  gpu_other_kb_ = mt.other_total() / 1024;
+  gpu_other_pss_kb_ = mt.other_pss() / 1024;
+  return !mt.has_errors();
 }

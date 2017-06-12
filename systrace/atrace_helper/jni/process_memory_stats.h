@@ -32,17 +32,27 @@ class ProcessMemoryStats {
 
   bool ReadLightStats();
   bool ReadFullStats();
+  bool ReadMemtrackStats();
 
   // Available after ReadLightStats().
   uint64_t virt_kb() const { return virt_kb_; }
   uint64_t rss_kb() const { return rss_kb_; }
 
   // Available after ReadFullStats().
+  uint64_t pss_kb() const { return pss_kb_; }
   uint64_t private_clean_kb() const { return private_clean_kb_; }
   uint64_t private_dirty_kb() const { return private_dirty_kb_; }
   uint64_t shared_clean_kb() const { return shared_clean_kb_; }
   uint64_t shared_dirty_kb() const { return shared_dirty_kb_; }
   uint64_t swapped_kb() const { return swapped_kb_; }
+
+  // Available after ReadMemtrackStats().
+  uint64_t gpu_graphics_kb() const { return gpu_graphics_kb_; }
+  uint64_t gpu_graphics_pss_kb() const { return gpu_graphics_pss_kb_; }
+  uint64_t gpu_gl_kb() const { return gpu_gl_kb_; }
+  uint64_t gpu_gl_pss_kb() const { return gpu_gl_pss_kb_; }
+  uint64_t gpu_other_kb() const { return gpu_other_kb_; }
+  uint64_t gpu_other_pss_kb() const { return gpu_other_pss_kb_; }
 
  private:
   ProcessMemoryStats(const ProcessMemoryStats&) = delete;
@@ -61,6 +71,14 @@ class ProcessMemoryStats {
   uint64_t shared_clean_kb_ = 0;
   uint64_t shared_dirty_kb_ = 0;
   uint64_t swapped_kb_ = 0;
+
+  // Graphics stats.
+  uint64_t gpu_graphics_kb_ = 0;
+  uint64_t gpu_graphics_pss_kb_ = 0;
+  uint64_t gpu_gl_kb_ = 0;
+  uint64_t gpu_gl_pss_kb_ = 0;
+  uint64_t gpu_other_kb_ = 0;
+  uint64_t gpu_other_pss_kb_ = 0;
 
   std::map<uintptr_t, std::unique_ptr<MmapInfo>> mmaps_;
 };
