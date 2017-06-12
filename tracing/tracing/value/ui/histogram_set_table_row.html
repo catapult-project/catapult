@@ -158,8 +158,10 @@ tr.exportTo('tr.v.ui', function() {
           this.rootViewState.displayStatisticName, referenceCellA);
       const statisticB = cellB.getAvailableStatisticName(
           this.rootViewState.displayStatisticName, referenceCellB);
-      const valueA = cellA.getStatisticScalar(statisticA, referenceCellA).value;
-      const valueB = cellB.getStatisticScalar(statisticB, referenceCellB).value;
+      const scalarA = cellA.getStatisticScalar(statisticA, referenceCellA);
+      const scalarB = cellB.getStatisticScalar(statisticB, referenceCellB);
+      const valueA = scalarA ? scalarA.value : undefined;
+      const valueB = scalarB ? scalarB.value : undefined;
 
       return valueA - valueB;
     }

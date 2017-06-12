@@ -264,6 +264,18 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(table.viewState.sortDescending);
   });
 
+  test('sortUndefinedStatistics', async function() {
+    // The 'avg' statistic Scalar of an empty histogram is undefined, so
+    // HistogramSetTableRow.compareCells must not throw when it encounters
+    // undefined Scalars.
+    const histograms = new tr.v.HistogramSet([
+      newHistogram('a', {samples: [1]}),
+      newHistogram('b'),
+    ]);
+    const table = await buildTable(this, histograms);
+    await table.viewState.update({sortColumnIndex: 1});
+  });
+
   test('viewConstrainNameColumn', async function() {
     const histograms = new tr.v.HistogramSet([
       newHistogram('a'.repeat(100)),
