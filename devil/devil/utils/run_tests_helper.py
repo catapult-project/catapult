@@ -30,8 +30,13 @@ class CustomFormatter(logging.Formatter):
     return '%s %8.3fs %s' % (record.levelname[0], timediff, msg)
 
 
-def SetLogLevel(verbose_count):
-  """Sets log level as |verbose_count|."""
+def SetLogLevel(verbose_count, add_handler=True):
+  """Sets log level as |verbose_count|.
+
+  Args:
+    verbose_count: Verbosity level.
+    add_handler: If true, adds a handler with |CustomFormatter|.
+  """
   log_level = logging.WARNING  # Default.
   if verbose_count == 1:
     log_level = logging.INFO
@@ -39,6 +44,7 @@ def SetLogLevel(verbose_count):
     log_level = logging.DEBUG
   logger = logging.getLogger()
   logger.setLevel(log_level)
-  custom_handler = logging.StreamHandler(sys.stdout)
-  custom_handler.setFormatter(CustomFormatter())
-  logging.getLogger().addHandler(custom_handler)
+  if add_handler:
+    custom_handler = logging.StreamHandler(sys.stdout)
+    custom_handler.setFormatter(CustomFormatter())
+    logging.getLogger().addHandler(custom_handler)
