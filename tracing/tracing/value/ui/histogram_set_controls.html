@@ -317,6 +317,7 @@ tr.exportTo('tr.v.ui', function() {
       for (const displayLabel of labels) {
         const option = document.createElement('option');
         option.textContent = displayLabel;
+        option.value = displayLabel;
         this.$.reference_display_label.appendChild(option);
       }
 

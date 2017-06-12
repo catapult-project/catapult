@@ -49,18 +49,22 @@ tr.b.unittest.testSuite(function() {
     controls.displayLabels = ['Value'];
     assert.strictEqual('none', getComputedStyle(selector).display);
 
-    controls.displayLabels = ['a', 'b'];
+    controls.displayLabels = ['a', 'b\nc'];
     assert.strictEqual('inline-block', getComputedStyle(selector).display);
     assert.strictEqual('', selector.children[0].value);
     assert.strictEqual('a', selector.children[1].value);
-    assert.strictEqual('b', selector.children[2].value);
     assert.strictEqual('a', selector.children[1].textContent);
-    assert.strictEqual('b', selector.children[2].textContent);
+
+    // displayLabels can contain newlines, which <option> replace with spaces.
+    // histogram-set-controls must set option.value in order for selector.value
+    // to contain the newlines.
+    assert.strictEqual('b\nc', selector.children[2].value);
+    assert.strictEqual('b\nc', selector.children[2].textContent);
+    selector.selectedIndex = 2;
+    assert.strictEqual('b\nc', selector.value);
 
     controls.displayLabels = ['Value'];
     assert.strictEqual('none', getComputedStyle(selector).display);
-
-    controls.displayLabels = ['a', 'b'];
   });
 
   test('baseStatisticNames', function() {
