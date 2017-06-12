@@ -1,0 +1,32 @@
+Requires go 1.5. Not tested with earlier or later versions of go.
+
+SAMPLE USAGE
+
+Terminal 1:
+$ cd to this directory
+$ export GOPATH=$PWD
+$ go run src/wpr.go record --http_port=8080 --https_port=8081 /tmp/archive.json
+...
+Ctrl-C
+$ go run src/wpr.go replay --http_port=8080 --https_port=8081 /tmp/archive.json
+
+Terminal 2:
+$ google-chrome-beta --user-data-dir=$foo \
+  --host-resolver-rules="MAP *:80 127.0.0.1:8080,MAP *:443 127.0.0.1:8081,EXCLUDE localhost"
+... wait for record servers to start
+load a page
+... wait for replay servers to start
+... clear cache
+load the page again
+
+HTTP-to-HTTP2 PROXY:
+
+Terminal 1:
+$ go run src/wpr.go replay --https_port=8081 --https_to_http_port=8082 \
+  /tmp/archive.json
+
+Terminal 2:
+$ google-chrome-beta --user-data-dir=$foo \
+  --host-resolver-rules="MAP *:443 127.0.0.1:8081,EXCLUDE localhost" \
+  --proxy-server=http=https://127.0.0.1:8082 \
+  --trusted-spdy-proxy=127.0.0.1:8082
