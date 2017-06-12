@@ -118,12 +118,18 @@ class BrowserFinderOptions(optparse.Values):
 
     # Platform options
     group = optparse.OptionGroup(parser, 'Platform options')
-    group.add_option('--no-performance-mode', action='store_true',
+    group.add_option(
+        '--no-performance-mode', action='store_true',
         help='Some platforms run on "full performance mode" where the '
         'test is executed at maximum CPU speed in order to minimize noise '
         '(specially important for dashboards / continuous builds). '
         'This option prevents Telemetry from tweaking such platform settings.')
+    group.add_option(
+        '--webview-embedder-apk',
+        help='When running tests on android webview, more than one apk needs to'
+        ' be installed. The apk running the test is said to embed webview.')
     parser.add_option_group(group)
+
 
     # Remote platform options
     group = optparse.OptionGroup(parser, 'Remote platform options')

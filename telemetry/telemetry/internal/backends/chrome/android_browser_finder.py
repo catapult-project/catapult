@@ -33,7 +33,7 @@ CHROME_PACKAGE_NAMES = {
   'android-webview':
       ['org.chromium.webview_shell',
        android_browser_backend_settings.WebviewBackendSettings,
-       'SystemWebViewShell.apk'],
+       'SystemWebView.apk'],
   'android-webview-instrumentation':
       ['org.chromium.android_webview.shell',
        android_browser_backend_settings.WebviewShellBackendSettings,
@@ -67,7 +67,6 @@ CHROME_PACKAGE_NAMES = {
        android_browser_backend_settings.ChromeBackendSettings,
        None],
 }
-
 
 class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
   """A launchable android browser instance."""
@@ -111,6 +110,12 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
         newest_apk_path = sorted(candidate_apks)[-1][1]
         self._local_apk = newest_apk_path
 
+    self._webview_embedder_apk = None
+    if finder_options.webview_embedder_apk:
+      self._webview_embedder_apk = finder_options.webview_embedder_apk
+      assert os.path.exists(self._webview_embedder_apk), (
+          '%s does not exist.' % self._webview_embedder_apk)
+
   def __repr__(self):
     return 'PossibleAndroidBrowser(browser_type=%s)' % self.browser_type
 
@@ -145,11 +150,19 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
   def HaveLocalAPK(self):
     return self._local_apk and os.path.exists(self._local_apk)
 
+  def HaveWebViewEmbedderAPK(self):
+    return bool(self._webview_embedder_apk)
+
   @decorators.Cache
   def UpdateExecutableIfNeeded(self):
     if self.HaveLocalAPK():
       logging.warn('Installing %s on device if needed.' % self._local_apk)
       self.platform.InstallApplication(self._local_apk)
+
+    if self.HaveWebViewEmbedderAPK():
+      logging.warn('Installing %s on device if needed.' % (
+          self._webview_embedder_apk))
+      self.platform.InstallApplication(self._webview_embedder_apk)
 
   def last_modification_time(self):
     if self.HaveLocalAPK():
