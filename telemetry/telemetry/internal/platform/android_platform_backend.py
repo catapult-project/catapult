@@ -63,24 +63,6 @@ _DEVICE_COPY_SCRIPT_FILE = os.path.abspath(os.path.join(
 _DEVICE_COPY_SCRIPT_LOCATION = (
     '/data/local/tmp/efficient_android_directory_copy.sh')
 
-# TODO(nednguyen): Remove this method and update the client config to point to
-# the correct binary instead.
-def _FindLocallyBuiltPath(binary_name):
-  """Finds the most recently built |binary_name|."""
-  command = None
-  command_mtime = 0
-  required_mode = os.X_OK
-  if binary_name.endswith('.apk'):
-    required_mode = os.R_OK
-  for build_path in util.GetBuildDirectories():
-    candidate = os.path.join(build_path, binary_name)
-    if os.path.isfile(candidate) and os.access(candidate, required_mode):
-      candidate_mtime = os.stat(candidate).st_mtime
-      if candidate_mtime > command_mtime:
-        command = candidate
-        command_mtime = candidate_mtime
-  return command
-
 
 class AndroidPlatformBackend(
     linux_based_platform_backend.LinuxBasedPlatformBackend):
@@ -748,6 +730,10 @@ class AndroidPlatformBackend(
       arch = self.GetArchName()
       arch = _ARCH_TO_STACK_TOOL_ARCH.get(arch, arch)
       cmd.append('--arch=%s' % arch)
+      for build_path in util.GetBuildDirectories():
+        if os.path.exists(build_path):
+          cmd.append('--output-directory=%s' % build_path)
+          break
       p = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
       ret += Decorate('Stack from Logcat', p.communicate(input=logcat)[0])
 
