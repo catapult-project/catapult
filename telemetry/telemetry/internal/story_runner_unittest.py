@@ -289,6 +289,10 @@ class StoryRunnerTest(unittest.TestCase):
 
   def tearDown(self):
     sys.stdout = self.actual_stdout
+    results_file_path = os.path.join(os.path.dirname(__file__), '..',
+                                     'testing', 'results.html')
+    if os.path.isfile(results_file_path):
+      os.remove(results_file_path)
     self.RestoreExceptionFormatter()
 
   def testStoriesGroupedByStateClass(self):
