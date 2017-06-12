@@ -164,6 +164,7 @@ class BattOrWrapper(object):
     except ValueError:
       logging.exception('Git hash returned from BattOr was not as expected: %s'
                         % self._git_hash)
+      self.StopShell()
 
     finally:
       if not self._battor_shell:
