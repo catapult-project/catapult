@@ -1142,6 +1142,16 @@ class HistogramSetUnittest(unittest.TestCase):
     self.assertIs(b2, rhm2.Get('y'))
     self.assertIs(c2, rhm2.Get('z'))
 
+  def testGetSharedDiagnosticsOfType(self):
+    d0 = histogram.Generic('foo')
+    d1 = histogram.TelemetryInfo()
+    hs = histogram.HistogramSet()
+    hs.AddSharedDiagnostic('generic', d0)
+    hs.AddSharedDiagnostic('generic', d1)
+    diagnostics = hs.GetSharedDiagnosticsOfType(histogram.Generic)
+    self.assertEqual(len(diagnostics), 1)
+    self.assertIsInstance(diagnostics[0], histogram.Generic)
+
   def testImportDicts(self):
     hist = histogram.Histogram('', 'unitless')
     hists = histogram.HistogramSet([hist])

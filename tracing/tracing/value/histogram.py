@@ -1820,6 +1820,9 @@ class HistogramSet(object):
   def GetHistogramsNamed(self, name):
     return [h for h in self if h.name == name]
 
+  def GetSharedDiagnosticsOfType(self, typ):
+    return [d for d in self.shared_diagnostics if isinstance(d, typ)]
+
   def LookupHistogram(self, guid):
     return self._histograms_by_guid.get(guid)
 
