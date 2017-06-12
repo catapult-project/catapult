@@ -9,6 +9,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/extras/chrome/chrome_user_friendly_category_driver.html">
 <link rel="import" href="/tracing/metrics/all_fixed_color_schemes.html">
 <link rel="import" href="/tracing/ui/base/column_chart.html">
+<link rel="import" href="/tracing/ui/base/dom_helpers.html">
 <link rel="import" href="/tracing/ui/base/table.html">
 
 <dom-module id="tr-v-ui-breakdown-span">
@@ -68,6 +69,10 @@ class BreakdownTableSummaryRow {
     return this.keySpan_;
   }
 
+  get name() {
+    return 'Sum';
+  }
+
   get displayElement() {
     return this.displayElement_;
   }
@@ -93,6 +98,16 @@ class BreakdownTableRow {
     const hsl = this.color.toHSL();
     hsl.l *= 0.85;
     this.highlightedColor_ = tr.b.Color.fromHSL(hsl);
+
+    if (this.isHistogram) {
+      this.displayElement_ = tr.v.ui.createScalarSpan(this.numberValue, {
+        unit: this.value.unit,
+      });
+    } else {
+      this.displayElement_ = tr.ui.b.createSpan({
+        textContent: this.value.toString(),
+      });
+    }
   }
 
   get isHistogram() {
@@ -156,13 +171,7 @@ class BreakdownTableRow {
   }
 
   get displayElement() {
-    if (this.numberValue === undefined) return this.value.toString();
-    if (this.isHistogram) {
-      return tr.v.ui.createScalarSpan(this.numberValue, {
-        unit: this.value.unit,
-      });
-    }
-    return this.numberValue;
+    return this.displayElement_;
   }
 
   compare(other) {
@@ -202,17 +211,17 @@ Polymer({
   onRectMouseEnter_(event) {
     for (const row of this.$.table.tableRows) {
       if (row.name === event.rect.key) {
-        row.keySpan.parentNode.nextSibling.style.background = event.rect.color;
+        row.displayElement.style.background = event.rect.color;
         row.keySpan.scrollIntoViewIfNeeded();
       } else {
-        row.keySpan.parentNode.nextSibling.style.background = '';
+        row.displayElement.style.background = '';
       }
     }
   },
 
   onRectMouseLeave_(event) {
     for (const row of this.$.table.tableRows) {
-      row.keySpan.parentNode.nextSibling.style.background = '';
+      row.displayElement.style.background = '';
     }
   },
 
@@ -295,6 +304,9 @@ Polymer({
       if (unit !== undefined) {
         summaryDisplayElement = unit.format(tableSum);
       }
+      summaryDisplayElement = tr.ui.b.createSpan({
+        textContent: summaryDisplayElement,
+      });
       tableRows.unshift(new BreakdownTableSummaryRow(
           summaryDisplayElement, histogramNames));
     }

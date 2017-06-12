@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/assert_utils.html">
 <link rel="import" href="/tracing/ui/base/deep_utils.html">
 <link rel="import" href="/tracing/value/histogram.html">
 <link rel="import" href="/tracing/value/ui/histogram_span.html">
@@ -46,7 +47,106 @@ tr.b.unittest.testSuite(function() {
     span.histogram = h;
   });
 
-  test('mergeSampleDiagnostics', function() {
+  test('viewBrushedBinRange', async function() {
+    const span = document.createElement('tr-v-ui-histogram-span');
+    this.addHTMLOutput(span);
+    span.histogram = tr.v.Histogram.create('a', tr.b.Unit.byName.count,
+        [0, 1, 2, 3, 4]);
+    assert.isTrue(span.viewState.brushedBinRange.isEmpty);
+
+    await span.viewState.update({
+      brushedBinRange: tr.b.math.Range.fromExplicitRange(5, 10),
+    });
+    const chart = tr.b.findDeepElementMatchingPredicate(
+        span, e => e.tagName === 'svg');
+    assert.strictEqual(5, chart.brushedRange.min);
+    assert.strictEqual(10, chart.brushedRange.max);
+  });
+
+  test('controlBrushedBinRange', async function() {
+    const span = document.createElement('tr-v-ui-histogram-span');
+    this.addHTMLOutput(span);
+    span.histogram = tr.v.Histogram.create('a', tr.b.Unit.byName.count,
+        [0, 1, 2, 3, 4]);
+    assert.isTrue(span.viewState.brushedBinRange.isEmpty);
+
+    span.onMouseDown_({
+      stopPropagation: () => undefined,
+      y: 21,
+    });
+    span.onMouseUp_({
+      stopPropagation: () => undefined,
+      y: 0,
+    });
+    tr.b.assertRangeEquals(span.viewState.brushedBinRange,
+        tr.b.math.Range.fromExplicitRange(0, 22));
+  });
+
+  test('viewMergeSampleDiagnostics', async function() {
+    const span = document.createElement('tr-v-ui-histogram-span');
+    this.addHTMLOutput(span);
+    const samples = [];
+    for (let i = 0; i < 5; ++i) {
+      samples.push({
+        value: i,
+        diagnostics: {
+          breakdown: tr.v.d.Breakdown.fromDict({
+            values: {
+              a: 5 - i,
+              b: i + 5,
+              c: i,
+            },
+          }),
+        },
+      });
+    }
+    span.histogram = tr.v.Histogram.create('', tr.b.Unit.byName.count, samples);
+    await span.viewState.update({brushedBinRange:
+      tr.b.math.Range.fromExplicitRange(0, 10)});
+    const merge = tr.b.findDeepElementMatchingPredicate(span, e =>
+        e.id === 'merge_sample_diagnostics');
+    assert.isTrue(merge.checked);
+
+    await span.viewState.update({mergeSampleDiagnostics: false});
+    assert.isFalse(merge.checked);
+
+    await span.viewState.update({mergeSampleDiagnostics: true});
+    assert.isTrue(merge.checked);
+  });
+
+  test('controlMergeSampleDiagnostics', async function() {
+    const span = document.createElement('tr-v-ui-histogram-span');
+    this.addHTMLOutput(span);
+    const samples = [];
+    for (let i = 0; i < 5; ++i) {
+      samples.push({
+        value: i,
+        diagnostics: {
+          breakdown: tr.v.d.Breakdown.fromDict({
+            values: {
+              a: 5 - i,
+              b: i + 5,
+              c: i,
+            },
+          }),
+        },
+      });
+    }
+    span.histogram = tr.v.Histogram.create('', tr.b.Unit.byName.count, samples);
+    await span.viewState.update({brushedBinRange:
+      tr.b.math.Range.fromExplicitRange(0, 10)});
+    const merge = tr.b.findDeepElementMatchingPredicate(span, e =>
+        e.id === 'merge_sample_diagnostics');
+    assert.isTrue(merge.checked);
+
+    merge.click();
+    assert.isFalse(span.viewState.mergeSampleDiagnostics);
+
+    merge.click();
+    assert.isTrue(span.viewState.mergeSampleDiagnostics);
+  });
+
+  test('mergeSampleDiagnostics', async function() {
     // Add several samples with sample diagnostics to a Histogram, brush all of
     // the bins, test that the sample diagnostics are merged.
     const h = new tr.v.Histogram('', tr.b.Unit.byName.normalizedPercentage);
@@ -59,8 +159,8 @@ tr.b.unittest.testSuite(function() {
     const span = document.createElement('tr-v-ui-histogram-span');
     this.addHTMLOutput(span);
     span.histogram = h;
-    span.brushedBinRange = tr.b.math.Range.fromExplicitRange(
-        0, h.allBins.length);
+    await span.viewState.update({
+      brushedBinRange: tr.b.math.Range.fromExplicitRange(0, h.allBins.length)});
     let breakdowns = tr.b.findDeepElementsMatchingPredicate(
         span, e => e.tagName === 'TR-V-UI-BREAKDOWN-SPAN');
     assert.lengthOf(breakdowns, 1);
@@ -73,7 +173,7 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(breakdowns, 5);
   });
 
-  test('cannotMergeSampleDiagnostics', function() {
+  test('cannotMergeSampleDiagnostics', async function() {
     // Add several samples with sample diagnostics to a Histogram, brush all of
     // the bins, test that the sample diagnostics are not merged.
     const h = new tr.v.Histogram('', tr.b.Unit.byName.normalizedPercentage);
@@ -87,8 +187,8 @@ tr.b.unittest.testSuite(function() {
     span.canMergeSampleDiagnostics = false;
     this.addHTMLOutput(span);
     span.histogram = h;
-    span.brushedBinRange = tr.b.math.Range.fromExplicitRange(
-        0, h.allBins.length);
+    await span.viewState.update({
+      brushedBinRange: tr.b.math.Range.fromExplicitRange(0, h.allBins.length)});
     const breakdowns = tr.b.findDeepElementsMatchingPredicate(
         span, e => e.tagName === 'TR-V-UI-BREAKDOWN-SPAN');
     assert.lengthOf(breakdowns, 5);

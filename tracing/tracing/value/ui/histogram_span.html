@@ -102,11 +102,19 @@ tr.exportTo('tr.v.ui', function() {
 
     onViewStateUpdate_(event) {
       if (event.delta.brushedBinRange) {
-        this.brushedBinRange = this.viewState.brushedBinRange;
+        if (this.chart_ !== undefined) {
+          this.chart_.brushedRange = this.viewState.brushedBinRange;
+        }
+        this.updateDiagnostics_();
       }
-      if (event.delta.mergeSampleDiagnostics) {
-        this.mergeSampleDiagnostics = this.canMergeSampleDiagnostics &&
+
+      if (event.delta.mergeSampleDiagnostics &&
+          (this.viewState.mergeSampleDiagnostics !==
+           this.$.merge_sample_diagnostics.checked)) {
+        this.$.merge_sample_diagnostics.checked =
+          this.canMergeSampleDiagnostics &&
           this.viewState.mergeSampleDiagnostics;
+        this.updateDiagnostics_();
       }
     },
 
@@ -126,6 +134,7 @@ tr.exportTo('tr.v.ui', function() {
 
     set canMergeSampleDiagnostics(merge) {
       this.canMergeSampleDiagnostics_ = merge;
+      if (!merge) this.viewState.mergeSampleDiagnostics = false;
       this.$.merge_sample_diagnostics_container.style.display = (
           merge ? '' : 'none');
     },
@@ -221,78 +230,49 @@ tr.exportTo('tr.v.ui', function() {
 
     get brushedBins() {
       const bins = [];
-      if (this.histogram && !this.brushedBinRange.isEmpty) {
-        for (let i = this.brushedBinRange.min;
-            i < this.brushedBinRange.max; ++i) {
+      if (this.histogram && !this.viewState.brushedBinRange.isEmpty) {
+        for (let i = this.viewState.brushedBinRange.min;
+            i < this.viewState.brushedBinRange.max; ++i) {
           bins.push(this.histogram.allBins[i]);
         }
       }
       return bins;
     },
 
-    get brushedBinRange() {
-      return this.viewState.brushedBinRange;
-    },
-
-    set brushedBinRange(r) {
-      if (this.chart_ === undefined) return;
-
-      const current = this.brushedBinRange;
-      if (r.min === current.min && r.max === current.max) return;
-
-      this.chart_.brushedRange = r;
-      this.viewState.brushedBinRange = r;
-      this.updateDiagnostics_();
-    },
-
-    get mergeSampleDiagnostics() {
-      return this.canMergeSampleDiagnostics &&
-          this.$.merge_sample_diagnostics.checked;
-    },
-
-    set mergeSampleDiagnostics(m) {
-      this.$.merge_sample_diagnostics.checked = m;
-    },
-
-    updateBrushedRange_(binIndex) {
+    async updateBrushedRange_(binIndex) {
       const brushedBinRange = new tr.b.math.Range();
       brushedBinRange.addValue(tr.b.math.clamp(
           this.mouseDownBinIndex_, 0, this.histogram.allBins.length - 1));
       brushedBinRange.addValue(tr.b.math.clamp(
           binIndex, 0, this.histogram.allBins.length - 1));
       brushedBinRange.max += 1;
-      this.brushedBinRange = brushedBinRange;
+      await this.viewState.update({brushedBinRange});
     },
 
     onMouseDown_(chartEvent) {
       chartEvent.stopPropagation();
-      if (!this.histogram) {
-        return;
-      }
-      this.prevBrushedBinRange_ = this.brushedBinRange;
+      if (!this.histogram) return;
+      this.prevBrushedBinRange_ = this.viewState.brushedBinRange;
       this.mouseDownBinIndex_ = chartEvent.y;
       this.updateBrushedRange_(chartEvent.y);
     },
 
     onMouseMove_(chartEvent) {
       chartEvent.stopPropagation();
-      if (!this.histogram) {
-        return;
-      }
+      if (!this.histogram) return;
       this.updateBrushedRange_(chartEvent.y);
     },
 
     onMouseUp_(chartEvent) {
       chartEvent.stopPropagation();
-      if (!this.histogram) {
-        return;
-      }
+      if (!this.histogram) return;
       this.updateBrushedRange_(chartEvent.y);
       if (this.prevBrushedBinRange_.range === 1 &&
-          this.brushedBinRange.range === 1 &&
-          this.prevBrushedBinRange_.min === this.brushedBinRange.min) {
+          this.viewState.brushedBinRange.range === 1 &&
+          (this.prevBrushedBinRange_.min ===
+           this.viewState.brushedBinRange.min)) {
         tr.b.Timing.instant('histogram-span', 'clearBrushedBins');
-        this.brushedBinRange = new tr.b.math.Range();
+        this.viewState.update({brushedBinRange: new tr.b.math.Range()});
       } else {
         tr.b.Timing.instant('histogram-span', 'brushBins');
       }
@@ -312,15 +292,13 @@ tr.exportTo('tr.v.ui', function() {
         return;
       }
 
-      if (this.mergeSampleDiagnostics !==
+      if (this.$.merge_sample_diagnostics.checked !==
           this.viewState.mergeSampleDiagnostics) {
-        tr.b.Timing.instant('histogram-span',
-            (this.mergeSampleDiagnostics ? 'merge' : 'split') +
-             'SampleDiagnostics');
-        this.viewState.mergeSampleDiagnostics = this.mergeSampleDiagnostics;
+        this.viewState.update({
+          mergeSampleDiagnostics: this.$.merge_sample_diagnostics.checked});
       }
 
-      if (this.mergeSampleDiagnostics) {
+      if (this.viewState.mergeSampleDiagnostics) {
         const merged = new tr.v.d.DiagnosticMap();
         for (const map of maps) {
           merged.addDiagnostics(map);
@@ -328,8 +306,12 @@ tr.exportTo('tr.v.ui', function() {
         maps = [merged];
       }
 
+      const mark = tr.b.Timing.mark('histogram-span',
+          (this.viewState.mergeSampleDiagnostics ? 'merge' : 'split') +
+           'SampleDiagnostics');
       this.$.sample_diagnostics_container.style.display = 'block';
       this.$.sample_diagnostics.diagnosticMaps = maps;
+      mark.end();
     },
 
     get histogram() {
@@ -380,12 +362,11 @@ tr.exportTo('tr.v.ui', function() {
       this.chart_.isYLogScale = logScale;
     },
 
-    updateContents_() {
+    async updateContents_() {
       this.$.chart.style.display = 'none';
       this.$.drag_handle.style.display = 'none';
       this.$.sample_diagnostics_container.style.display = 'none';
       this.$.container.style.justifyContent = '';
-      this.brushedBinRange = new tr.b.math.Range();
 
       while (Polymer.dom(this.$.chart).lastChild) {
         Polymer.dom(this.$.chart).removeChild(
@@ -419,9 +400,9 @@ tr.exportTo('tr.v.ui', function() {
       }
 
       if (this.histogram.numValues <= 1) {
-        this.brushedBinRange = tr.b.math.Range.fromExplicitRange(
-            0, this.histogram.allBins.length);
-        this.updateDiagnostics_();
+        await this.viewState.update({
+          brushedBinRange: tr.b.math.Range.fromExplicitRange(
+              0, this.histogram.allBins.length)});
         this.$.container.style.justifyContent = 'flex-end';
         return;
       }
@@ -448,9 +429,9 @@ tr.exportTo('tr.v.ui', function() {
             }
           ];
         }
-        this.brushedBinRange = tr.b.math.Range.fromExplicitRange(
-            0, this.histogram.allBins.length);
-        this.updateDiagnostics_();
+        await this.viewState.update({
+          brushedBinRange: tr.b.math.Range.fromExplicitRange(
+              0, this.histogram.allBins.length)});
         return;
       }
 
@@ -467,7 +448,7 @@ tr.exportTo('tr.v.ui', function() {
       this.chart_.hideLegend = true;
       this.chart_.getDataSeries('y').color = 'blue';
       this.chart_.xAxisLabel = '#';
-      this.chart_.brushedRange = this.brushedBinRange;
+      this.chart_.brushedRange = this.viewState.brushedBinRange;
       this.updateDiagnostics_();
 
       const chartData = [];
