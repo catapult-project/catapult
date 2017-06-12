@@ -618,26 +618,39 @@ class TagMapUnittest(unittest.TestCase):
         'tag2': ['path1', 'path4'],
         'tag3': ['path5'],
     }
-    info = histogram.TagMap({'tagsToStoryDisplayNames': tags})
+    info = histogram.TagMap({'tagsToStoryNames': tags})
     d = info.AsDict()
     clone = histogram.Diagnostic.FromDict(d)
     self.assertEqual(ToJSON(d), ToJSON(clone.AsDict()))
     self.assertSetEqual(
-        clone.tags_to_story_display_names['tag1'], set(tags['tag1']))
+        clone.tags_to_story_names['tag1'], set(tags['tag1']))
     self.assertSetEqual(
-        clone.tags_to_story_display_names['tag2'], set(tags['tag2']))
+        clone.tags_to_story_names['tag2'], set(tags['tag2']))
     self.assertSetEqual(
-        clone.tags_to_story_display_names['tag3'], set(tags['tag3']))
+        clone.tags_to_story_names['tag3'], set(tags['tag3']))
+
+  def AddTagAndStoryDisplayName(self):
+    tagmap = histogram.TagMap({})
+    self.assertDictEqual({}, tagmap.tags_to_story_names)
+
+    tagmap.AddTagAndStoryDisplayName('foo', 'bar')
+    self.assertListEqual(['foo'], tagmap.tags_to_story_names.keys())
+    self.assertSetEqual(set(['bar']), tagmap.tags_to_story_names['foo'])
+
+    tagmap.AddTagAndStoryDisplayName('foo', 'bar2')
+    self.assertListEqual(['foo'], tagmap.tags_to_story_names.keys())
+    self.assertSetEqual(
+        set(['bar', 'bar2']), tagmap.tags_to_story_names['foo'])
 
   def testMerge(self):
     t0 = histogram.TagMap({
-        'tagsToStoryDisplayNames': {
+        'tagsToStoryNames': {
             'press': ['story0', 'story1'],
             'desktop': ['story0', 'story1', 'story2']
         }})
 
     t1 = histogram.TagMap({
-        'tagsToStoryDisplayNames': {
+        'tagsToStoryNames': {
             'press': ['story3', 'story4'],
             'android': ['story3', 'story4', 'story5']
         }})
@@ -668,16 +681,16 @@ class TagMapUnittest(unittest.TestCase):
     clone = histogram.Diagnostic.FromDict(m0.AsDict())
 
     self.assertSetEqual(
-        set(clone.tags_to_story_display_names.keys()),
+        set(clone.tags_to_story_names.keys()),
         set(['press', 'desktop', 'android']))
     self.assertSetEqual(
-        clone.tags_to_story_display_names.get('press'),
+        clone.tags_to_story_names.get('press'),
         set(['story0', 'story1', 'story3', 'story4']))
     self.assertSetEqual(
-        clone.tags_to_story_display_names.get('desktop'),
+        clone.tags_to_story_names.get('desktop'),
         set(['story0', 'story1', 'story2']))
     self.assertSetEqual(
-        clone.tags_to_story_display_names.get('android'),
+        clone.tags_to_story_names.get('android'),
         set(['story3', 'story4', 'story5']))
 
 

@@ -677,21 +677,26 @@ class TagMap(Diagnostic):
 
   def __init__(self, info):
     super(TagMap, self).__init__()
-    self._tags_to_story_display_names = dict(
+    self._tags_to_story_names = dict(
         (k, set(v)) for k, v in info.get(
-            'tagsToStoryDisplayNames', {}).iteritems())
+            'tagsToStoryNames', {}).iteritems())
 
   def _AsDictInto(self, d):
-    d['tagsToStoryDisplayNames'] = dict(
-        (k, list(v)) for k, v in self.tags_to_story_display_names.iteritems())
+    d['tagsToStoryNames'] = dict(
+        (k, list(v)) for k, v in self.tags_to_story_names.iteritems())
 
   @staticmethod
   def FromDict(d):
     return TagMap(d)
 
   @property
-  def tags_to_story_display_names(self):
-    return self._tags_to_story_display_names
+  def tags_to_story_names(self):
+    return self._tags_to_story_names
+
+  def AddTagAndStoryDisplayName(self, tag, story_display_name):
+    if not tag in self.tags_to_story_names:
+      self.tags_to_story_names[tag] = set()
+    self.tags_to_story_names[tag].add(story_display_name)
 
   def CanAddDiagnostic(self, other_diagnostic, unused_name,
                        unused_parent_hist, unused_other_parent_hist):
@@ -700,12 +705,12 @@ class TagMap(Diagnostic):
   def AddDiagnostic(self, other_diagnostic, unused_name,
                     unused_parent_hist, unused_other_parent_hist):
     for name, story_display_names in\
-        other_diagnostic.tags_to_story_display_names.iteritems():
-      if not name in self.tags_to_story_display_names:
-        self.tags_to_story_display_names[name] = set()
+        other_diagnostic.tags_to_story_names.iteritems():
+      if not name in self.tags_to_story_names:
+        self.tags_to_story_names[name] = set()
 
       for t in story_display_names:
-        self.tags_to_story_display_names[name].add(t)
+        self.tags_to_story_names[name].add(t)
 
 
 class BuildbotInfo(Diagnostic):

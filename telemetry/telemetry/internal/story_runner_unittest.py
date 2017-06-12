@@ -806,6 +806,66 @@ class StoryRunnerTest(unittest.TestCase):
 
     self.assertEqual('hist', h.name)
 
+  def testRunStoryAddsTagMap(self):
+    story_set = story_module.StorySet()
+    story_set.AddStory(DummyLocalStory(FooStoryState, 'foo', ['bar']))
+    story_runner.Run(DummyTest(), story_set, self.options, self.results,
+        metadata=EmptyMetadataForTest())
+
+    hs = self.results.histograms
+    tagmap = None
+    for diagnostic in hs.shared_diagnostics:
+      if type(diagnostic) == histogram_module.TagMap:
+        tagmap = diagnostic
+        break
+
+    self.assertIsNotNone(tagmap)
+    self.assertListEqual(['bar'], tagmap.tags_to_story_names.keys())
+    self.assertSetEqual(set(['foo']), tagmap.tags_to_story_names['bar'])
+
+  def testRunStoryAddsTagMapEvenInFatalException(self):
+    self.SuppressExceptionFormatting()
+    story_set = story_module.StorySet()
+
+    class UnknownException(Exception):
+      pass
+
+    class Test(legacy_page_test.LegacyPageTest):
+      def __init__(self, *args):
+        super(Test, self).__init__(*args)
+
+      def RunPage(self, *_):
+        raise UnknownException('FooBarzException')
+
+      def ValidateAndMeasurePage(self, page, tab, results):
+        pass
+
+    s1 = DummyLocalStory(TestSharedPageState, name='foo', tags=['footag'])
+    s2 = DummyLocalStory(TestSharedPageState, name='bar', tags=['bartag'])
+    story_set.AddStory(s1)
+    story_set.AddStory(s2)
+    test = Test()
+    with self.assertRaises(UnknownException):
+      story_runner.Run(
+          test, story_set, self.options, self.results,
+          metadata=EmptyMetadataForTest())
+    self.assertIn('FooBarzException', self.fake_stdout.getvalue())
+
+    hs = self.results.histograms
+    tagmap = None
+    for diagnostic in hs.shared_diagnostics:
+      if type(diagnostic) == histogram_module.TagMap:
+        tagmap = diagnostic
+        break
+
+    self.assertIsNotNone(tagmap)
+    self.assertSetEqual(set(['footag', 'bartag']),
+        set(tagmap.tags_to_story_names.keys()))
+    self.assertSetEqual(set(['foo']),
+        tagmap.tags_to_story_names['footag'])
+    self.assertSetEqual(set(['bar']),
+        tagmap.tags_to_story_names['bartag'])
+
   @decorators.Disabled('chromeos')  # crbug.com/483212
   def testUpdateAndCheckArchives(self):
     usr_stub = system_stub.Override(story_runner, ['cloud_storage'])

@@ -15,12 +15,12 @@ tr.exportTo('tr.v.d', function() {
   class TagMap extends tr.v.d.Diagnostic {
     constructor(opt_info) {
       super();
-      this.tagsToStoryDisplayNames_ = new Map();
+      this.tagsToStoryNames_ = new Map();
 
       if (opt_info) {
         for (const [tag, storyDisplayNames] of Object.entries(
-            opt_info.tagsToStoryDisplayNames || {})) {
-          this.tagsToStoryDisplayNames.set(tag, new Set(storyDisplayNames));
+            opt_info.tagsToStoryNames || {})) {
+          this.tagsToStoryNames.set(tag, new Set(storyDisplayNames));
         }
       }
     }
@@ -38,16 +38,16 @@ tr.exportTo('tr.v.d', function() {
     equals(other) {
       if (!(other instanceof TagMap)) return false;
 
-      const keys1 = new Set(this.tagsToStoryDisplayNames.keys());
-      const keys2 = new Set(other.tagsToStoryDisplayNames.keys());
+      const keys1 = new Set(this.tagsToStoryNames.keys());
+      const keys2 = new Set(other.tagsToStoryNames.keys());
       if (!tr.b.setsEqual(keys1, keys2)) {
         return false;
       }
 
       for (const key of keys1) {
         if (!tr.b.setsEqual(
-            this.tagsToStoryDisplayNames.get(key),
-            other.tagsToStoryDisplayNames.get(key))) {
+            this.tagsToStoryNames.get(key),
+            other.tagsToStoryNames.get(key))) {
           return false;
         }
       }
@@ -61,12 +61,12 @@ tr.exportTo('tr.v.d', function() {
 
     addDiagnostic(otherDiagnostic) {
       for (const [name, storyDisplayNames] of
-          otherDiagnostic.tagsToStoryDisplayNames) {
-        if (!this.tagsToStoryDisplayNames.has(name)) {
-          this.tagsToStoryDisplayNames.set(name, new Set());
+          otherDiagnostic.tagsToStoryNames) {
+        if (!this.tagsToStoryNames.has(name)) {
+          this.tagsToStoryNames.set(name, new Set());
         }
         for (const t of storyDisplayNames) {
-          this.tagsToStoryDisplayNames.get(name).add(t);
+          this.tagsToStoryNames.get(name).add(t);
         }
       }
 
@@ -74,9 +74,9 @@ tr.exportTo('tr.v.d', function() {
     }
 
     asDictInto_(d) {
-      d.tagsToStoryDisplayNames = {};
-      for (const [name, value] of this.tagsToStoryDisplayNames) {
-        d.tagsToStoryDisplayNames[name] = Array.from(value);
+      d.tagsToStoryNames = {};
+      for (const [name, value] of this.tagsToStoryNames) {
+        d.tagsToStoryNames[name] = Array.from(value);
       }
     }
 
@@ -84,16 +84,16 @@ tr.exportTo('tr.v.d', function() {
      * @returns {Map.<string, Set.<string>>} A map of tag names to sets of story
      * display names.
      */
-    get tagsToStoryDisplayNames() {
-      return this.tagsToStoryDisplayNames_;
+    get tagsToStoryNames() {
+      return this.tagsToStoryNames_;
     }
 
     static fromDict(d) {
       const info = new TagMap();
 
       for (const [name, values] of
-          Object.entries(d.tagsToStoryDisplayNames || {})) {
-        info.tagsToStoryDisplayNames.set(name, new Set(values));
+          Object.entries(d.tagsToStoryNames || {})) {
+        info.tagsToStoryNames.set(name, new Set(values));
       }
 
       return info;

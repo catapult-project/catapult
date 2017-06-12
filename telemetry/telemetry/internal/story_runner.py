@@ -25,6 +25,7 @@ from telemetry.value import failure
 from telemetry.value import skip
 from telemetry.value import scalar
 from telemetry.web_perf import story_test
+from tracing.value import histogram
 
 
 class ArchiveError(Exception):
@@ -64,6 +65,14 @@ def ProcessCommandLineArgs(parser, args):
 
   if args.pageset_repeat < 1:
     parser.error('--pageset-repeat must be a positive integer.')
+
+
+def _GenerateTagMapFromStorySet(stories):
+  tagmap = histogram.TagMap({})
+  for s in stories:
+    for t in s.tags:
+      tagmap.AddTagAndStoryDisplayName(t, s.name)
+  return tagmap
 
 
 def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
@@ -286,6 +295,9 @@ def Run(test, story_set, finder_options, results, max_failures=None,
           state = None
     finally:
       results.PopulateHistogramSet(metadata)
+      tagmap = _GenerateTagMapFromStorySet(stories)
+      if tagmap.tags_to_story_names:
+        results.histograms.AddSharedDiagnostic(histogram.TagMap.NAME, tagmap)
 
       if state:
         has_existing_exception = sys.exc_info() != (None, None, None)

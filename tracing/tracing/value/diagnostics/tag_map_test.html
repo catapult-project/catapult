@@ -15,14 +15,14 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   test('merge', function() {
     const t0 = new tr.v.d.TagMap({
-      tagsToStoryDisplayNames: {
+      tagsToStoryNames: {
         press: ['story0', 'story1'],
         desktop: ['story0', 'story1', 'story2']
       }
     });
 
     const t1 = new tr.v.d.TagMap({
-      tagsToStoryDisplayNames: {
+      tagsToStoryNames: {
         press: ['story3', 'story4'],
         android: ['story3', 'story4', 'story5']
       }
@@ -57,13 +57,13 @@ tr.b.unittest.testSuite(function() {
     // Test round-tripping of merged diagnostic
     const clone = tr.v.d.Diagnostic.fromDict(m0.asDict());
 
-    assert.deepEqual(Array.from(clone.tagsToStoryDisplayNames.keys()), [
+    assert.deepEqual(Array.from(clone.tagsToStoryNames.keys()), [
       'press', 'desktop', 'android']);
-    assert.deepEqual(Array.from(clone.tagsToStoryDisplayNames.get('press')), [
+    assert.deepEqual(Array.from(clone.tagsToStoryNames.get('press')), [
       'story0', 'story1', 'story3', 'story4']);
-    assert.deepEqual(Array.from(clone.tagsToStoryDisplayNames.get('desktop')), [
+    assert.deepEqual(Array.from(clone.tagsToStoryNames.get('desktop')), [
       'story0', 'story1', 'story2']);
-    assert.deepEqual(Array.from(clone.tagsToStoryDisplayNames.get('android')), [
+    assert.deepEqual(Array.from(clone.tagsToStoryNames.get('android')), [
       'story3', 'story4', 'story5']);
   });
 });
