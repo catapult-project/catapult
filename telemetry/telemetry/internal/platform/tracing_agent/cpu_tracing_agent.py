@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import logging
 import os
 import re
 import subprocess
@@ -136,9 +137,13 @@ class WindowsProcessCollector(ProcessCollector):
     return int(raw_output.strip().split('\n')[1])
 
   def _GetProcessesAsStrings(self):
-    # Skip the header and total rows and strip the trailing newline.
-    return subprocess.check_output(
-        self._GET_PERF_DATA_SHELL_COMMAND).strip().split('\n')[2:]
+    try:
+      # Skip the header and total rows and strip the trailing newline.
+      return subprocess.check_output(
+          self._GET_PERF_DATA_SHELL_COMMAND).strip().split('\n')[2:]
+    except subprocess.CalledProcessError as e:
+      logging.warning('Error when running wmic command, which gave output: %s',
+                      e.output)
 
   def _ParseProcessString(self, proc_string):
     assert self._physicalMemoryBytes, 'Must call Init() before using collector'
