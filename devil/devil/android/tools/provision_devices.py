@@ -542,17 +542,13 @@ def main(raw_args):
 
   parser = argparse.ArgumentParser(
       description='Provision Android devices with settings required for bots.')
+  script_common.AddDeviceArguments(parser)
   parser.add_argument(
       '--adb-key-files', type=str, nargs='+',
       help='list of adb keys to push to device')
   parser.add_argument(
       '--adb-path',
       help='Absolute path to the adb binary to use.')
-  parser.add_argument('--blacklist-file', help='Device blacklist JSON file.')
-  parser.add_argument(
-      '-d', '--device', metavar='SERIAL', action='append', dest='devices',
-      help='the serial number of the device to be provisioned '
-           '(the default is to provision all devices attached)')
   parser.add_argument(
       '--disable-location', action='store_true',
       help='disable Google location services on devices')

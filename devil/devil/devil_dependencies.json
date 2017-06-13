@@ -51,6 +51,16 @@
         }
       }
     },
+    "empty_system_webview": {
+      "cloud_storage_base_folder": "binary_dependencies",
+      "cloud_storage_bucket": "chromium-telemetry",
+      "file_info": {
+        "android_armeabi-v7a": {
+          "cloud_storage_hash": "220ff3ba1a6c3c81877997e32784ffd008f293a5",
+          "download_path": "../bin/deps/android/armeabi-v7a/apks/EmptySystemWebView.apk"
+        }
+      }
+    },
     "fastboot": {
       "cloud_storage_base_folder": "binary_dependencies",
       "cloud_storage_bucket": "chromium-telemetry",

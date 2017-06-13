@@ -22,9 +22,7 @@ logger = logging.getLogger(__name__)
 def main():
   # Parse options.
   parser = argparse.ArgumentParser(description=__doc__)
-  parser.add_argument('-d', '--device', dest='devices', action='append',
-                      help='Serial number of Android device to use.')
-  parser.add_argument('--blacklist-file', help='Device blacklist JSON file.')
+  script_common.AddDeviceArguments(parser)
   parser.add_argument('-f', '--file', metavar='FILE',
                       help='Save result to file instead of generating a '
                            'timestamped file name.')

@@ -24,13 +24,11 @@ logger = logging.getLogger(__name__)
 def main():
   parser = argparse.ArgumentParser()
   parser.add_argument('build_path', help='Path to android build.')
-  parser.add_argument('-d', '--device', dest='devices', action='append',
-                      help='Device(s) to flash.')
   parser.add_argument('-v', '--verbose', default=0, action='count',
                       help='Verbose level (multiple times for more)')
   parser.add_argument('-w', '--wipe', action='store_true',
                        help='If set, wipes user data')
-  parser.add_argument('--blacklist-file', help='Device blacklist file.')
+  script_common.AddDeviceArguments(parser)
   args = parser.parse_args()
   run_tests_helper.SetLogLevel(args.verbose)
 

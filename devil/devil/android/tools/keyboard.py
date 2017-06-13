@@ -80,12 +80,6 @@ def Keyboard(device, stream_itr):
     pass
 
 
-def AddArguments(parser):
-  parser.add_argument('-d', '--device', action='append', dest='devices',
-                      metavar='DEVICE', help='device serial')
-  parser.add_argument('-v', '--verbose', action='count', help='print more')
-
-
 class MultipleDevicesError(base_error.BaseError):
   def __init__(self, devices):
     super(MultipleDevicesError, self).__init__(
@@ -95,7 +89,8 @@ class MultipleDevicesError(base_error.BaseError):
 def main(raw_args):
   parser = argparse.ArgumentParser(
       description="Use your keyboard as your phone's keyboard.")
-  AddArguments(parser)
+  script_common.AddDeviceArguments(parser)
+  parser.add_argument('-v', '--verbose', action='count', help='print more')
   args = parser.parse_args(raw_args)
 
   run_tests_helper.SetLogLevel(args.verbose)

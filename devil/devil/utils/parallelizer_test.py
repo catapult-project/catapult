@@ -1,16 +1,23 @@
+#! /usr/bin/env python
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
 """Unit tests for the contents of parallelizer.py."""
 
-# pylint: disable=W0212
-# pylint: disable=W0613
+# pylint: disable=protected-access
+# pylint: disable=unused-argument
 
+import contextlib
 import os
 import tempfile
 import time
+import sys
 import unittest
+
+if __name__ == '__main__':
+  sys.path.append(os.path.abspath(
+      os.path.join(os.path.dirname(__file__), '..', '..')))
 
 from devil.utils import parallelizer
 
@@ -155,6 +162,27 @@ class ParallelizerTest(unittest.TestCase):
     devices = [ParallelizerTestObject(range(i, i + 10)) for i in xrange(0, 10)]
     results = ParallelizerTestObject.parallel(devices)[9].pGet(1)
     self.assertEquals(range(9, 19), results)
+
+
+class SyncParallelizerTest(unittest.TestCase):
+
+  def testContextManager(self):
+    in_context = [False for i in xrange(10)]
+
+    @contextlib.contextmanager
+    def enter_into_context(i):
+      in_context[i] = True
+      try:
+        yield
+      finally:
+        in_context[i] = False
+
+    parallelized_context = parallelizer.SyncParallelizer(
+        [enter_into_context(i) for i in xrange(10)])
+
+    with parallelized_context:
+      self.assertTrue(all(in_context))
+    self.assertFalse(any(in_context))
 
 
 if __name__ == '__main__':

@@ -7,7 +7,16 @@ from devil.android import device_errors
 from devil.android import device_utils
 
 
+def AddDeviceArguments(parser):
+  """Adds device and blacklist arguments to the provided parser."""
+  parser.add_argument(
+      '-d', '--device', dest='devices', action='append',
+      help='Serial number of the Android device to use. (default: use all)')
+  parser.add_argument('--blacklist-file', help='Device blacklist JSON file.')
+
+
 def GetDevices(requested_devices, blacklist_file):
+  """Gets a list of healthy devices matching the given parameters."""
   if not isinstance(blacklist_file, device_blacklist.Blacklist):
     blacklist_file = (device_blacklist.Blacklist(blacklist_file)
                       if blacklist_file
