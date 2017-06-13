@@ -29,10 +29,20 @@ tr.exportTo('tr.v', function() {
 
           const unitInfo = tr.v.LEGACY_UNIT_INFO.get(value.units) || {};
           const unitName = unitInfo.name || 'unitlessNumber';
-          const unitNameSuffix = tr.b.Unit.nameSuffixForImprovementDirection(
-              ChartJsonConverter.convertImprovementDirection(
-                  value.improvement_direction));
           const conversionFactor = unitInfo.conversionFactor || 1;
+
+          let improvementDirection = tr.b.ImprovementDirection.DONT_CARE;
+          if (unitInfo.defaultImprovementDirection !== undefined) {
+            improvementDirection = unitInfo.defaultImprovementDirection;
+          }
+          // Metrics have the final say.
+          if (value.improvement_direction !== undefined) {
+            improvementDirection =
+              ChartJsonConverter.convertImprovementDirection(
+                  value.improvement_direction);
+          }
+          const unitNameSuffix = tr.b.Unit.nameSuffixForImprovementDirection(
+              improvementDirection);
 
           const hist = new tr.v.Histogram(
               value.name,

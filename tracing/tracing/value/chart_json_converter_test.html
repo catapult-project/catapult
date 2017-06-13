@@ -175,7 +175,8 @@ tr.b.unittest.testSuite(function() {
         tr.v.HistogramSet.GROUPINGS.STORY_NAME.callback(hist));
     assert.strictEqual(20, hist.average);
     assert.strictEqual(4, hist.numValues);
-    assert.strictEqual(tr.b.Unit.byName.timeDurationInMs, hist.unit);
+    assert.strictEqual(tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
+        hist.unit);
   });
 });
 </script>
