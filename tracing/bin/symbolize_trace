@@ -685,7 +685,7 @@ class StackFrameMap(NodeWrapper):
     self._heap_dump_version = heap_dump_version
     self._stack_frames_nodes.append(stack_frames_node)
 
-    self._frame_by_id = frame_by_id
+    self._frame_by_id.update(frame_by_id)
 
   def ApplyModifications(self, string_map, force=False):
     """Applies modifications back to nodes (see NodeWrapper)."""
