@@ -60,7 +60,12 @@ class AddHistogramsTest(testing_common.TestCase):
             },
             'guid': '4989617a-14d6-4f80-8f75-dafda2ff13b0',
             'name': 'foo',
-            'unit': 'count'}
+            'unit': 'count'
+        }, {
+            'type': 'Ownership',
+            'guid': 'eb212e80-db58-4cbd-b331-c2245ecbb826',
+            'emails': ['alice@chromium.org', 'bob@chromium.org'],
+            'component': 'fooBar'}
     ])
     self.testapp.post('/add_histograms', {'data': data})
     tasks = self.GetTaskQueueTasks(add_histograms.TASK_QUEUE_NAME)
@@ -70,7 +75,7 @@ class AddHistogramsTest(testing_common.TestCase):
       guid = json.loads(params['data'][0])['guid']
       params_by_guid[guid] = params
 
-    self.assertEqual(3, len(params_by_guid))
+    self.assertEqual(4, len(params_by_guid))
     self.assertEqual(
         'master/bot/benchmark/foo/story',
         params_by_guid['4989617a-14d6-4f80-8f75-dafda2ff13b0']['test_path'][0])
@@ -89,6 +94,12 @@ class AddHistogramsTest(testing_common.TestCase):
     self.assertEqual(
         '424242',
         params_by_guid['0bc1021b-8107-4db7-bc8c-49d7cf53c5ae']['revision'][0])
+    self.assertEqual(
+        'master/bot/benchmark',
+        params_by_guid['eb212e80-db58-4cbd-b331-c2245ecbb826']['test_path'][0])
+    self.assertEqual(
+        '424242',
+        params_by_guid['eb212e80-db58-4cbd-b331-c2245ecbb826']['revision'][0])
 
   def testFindHistogramLevelSparseDiagnostics(self):
     histogram = histogram_module.Histogram('hist', 'count')

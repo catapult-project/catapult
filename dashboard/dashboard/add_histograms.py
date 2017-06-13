@@ -14,7 +14,8 @@ from tracing.value import histogram as histogram_module
 
 
 SUITE_LEVEL_SPARSE_DIAGNOSTIC_TYPES = set(
-    [histogram_module.BuildbotInfo, histogram_module.DeviceInfo])
+    [histogram_module.BuildbotInfo, histogram_module.DeviceInfo,
+     histogram_module.Ownership])
 HISTOGRAM_LEVEL_SPARSE_DIAGNOSTIC_TYPES = set(
     [histogram_module.TelemetryInfo])
 SPARSE_DIAGNOSTIC_TYPES = SUITE_LEVEL_SPARSE_DIAGNOSTIC_TYPES.union(
