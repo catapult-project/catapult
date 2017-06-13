@@ -107,10 +107,6 @@ tr.exportTo('tr.ui', function() {
 
     xViewVectorToWorld(x) {
       return x / this.scaleX;
-    },
-
-    applyTransformToCanvas(ctx) {
-      ctx.transform(this.scaleX, 0, 0, 1, this.panX * this.scaleX, 0);
     }
   };
 

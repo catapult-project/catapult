@@ -93,12 +93,12 @@ tr.exportTo('tr.ui.tracks', function() {
     draw(type, viewLWorld, viewRWorld) {
       switch (type) {
         case tr.ui.tracks.DrawType.GENERAL_EVENT:
-          this.drawLetterDots_(viewLWorld, viewRWorld);
+          this.drawObjectInstances_(viewLWorld, viewRWorld);
           break;
       }
     },
 
-    drawLetterDots_(viewLWorld, viewRWorld) {
+    drawObjectInstances_(viewLWorld, viewRWorld) {
       const ctx = this.context();
       const pixelRatio = window.devicePixelRatio || 1;
 
@@ -112,10 +112,6 @@ tr.exportTo('tr.ui.tracks', function() {
       const snapshotRadiusView = this.snapshotRadiusView;
       const snapshotRadiusWorld = dt.xViewVectorToWorld(height);
 
-      // Begin rendering in world space.
-      ctx.save();
-      dt.applyTransformToCanvas(ctx);
-
       // Instances
       const objectInstances = this.objectInstances_;
       let loI = tr.b.math.findLowIndexInSortedArray(
@@ -124,6 +120,7 @@ tr.exportTo('tr.ui.tracks', function() {
             return instance.deletionTs;
           },
           viewLWorld);
+      ctx.save();
       ctx.strokeStyle = 'rgb(0,0,0)';
       for (let i = loI; i < objectInstances.length; ++i) {
         const instance = objectInstances[i];
@@ -132,8 +129,10 @@ tr.exportTo('tr.ui.tracks', function() {
 
         const right = instance.deletionTs === Number.MAX_VALUE ?
             viewRWorld : instance.deletionTs;
+        const xView = dt.xWorldToView(x);
+        const widthView = dt.xWorldVectorToView(right - x);
         ctx.fillStyle = EventPresenter.getObjectInstanceColor(instance);
-        ctx.fillRect(x, pixelRatio, right - x, height - 2 * pixelRatio);
+        ctx.fillRect(xView, pixelRatio, widthView, height - 2 * pixelRatio);
       }
       ctx.restore();
 

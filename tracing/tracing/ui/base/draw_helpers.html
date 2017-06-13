@@ -144,7 +144,6 @@ tr.exportTo('tr.ui.b', function() {
   function drawSlices(ctx, dt, viewLWorld, viewRWorld, viewHeight, slices,
       async) {
     const pixelRatio = window.devicePixelRatio || 1;
-    const pixWidth = dt.xViewVectorToWorld(1);
     const height = viewHeight * pixelRatio;
 
     let darkRectHeight = THIN_SLICE_HEIGHT * pixelRatio;
@@ -156,12 +155,8 @@ tr.exportTo('tr.ui.b', function() {
 
     const lightRectHeight = height - darkRectHeight;
 
-    // Begin rendering in world space.
     ctx.save();
-    dt.applyTransformToCanvas(ctx);
-
-    const rect = new tr.ui.b.FastRectRenderer(
-        ctx, 2 * pixWidth, 2 * pixWidth, colorsAsStrings);
+    const rect = new tr.ui.b.FastRectRenderer(ctx, 2, 2, colorsAsStrings);
     rect.setYandH(0, height);
 
     const lowSlice = tr.b.math.findLowIndexInSortedArray(
@@ -176,12 +171,11 @@ tr.exportTo('tr.ui.b', function() {
       const x = slice.start;
       if (x > viewRWorld) break;
 
-      let w = pixWidth;
+      const xView = dt.xWorldToView(x);
+      let wView = 1;
       if (slice.duration > 0) {
-        w = Math.max(slice.duration, 0.000001);
-        if (w < pixWidth) {
-          w = pixWidth;
-        }
+        const w = Math.max(slice.duration, 0.000001);
+        wView = Math.max(dt.xWorldVectorToView(w), 1);
       }
 
       const colorId = EventPresenter.getSliceColorId(slice);
@@ -199,25 +193,25 @@ tr.exportTo('tr.ui.b', function() {
       // amount of cpu time taken.
       if (!slice.cpuDuration) {
         // No cpuDuration available, draw using only one alpha.
-        rect.fillRect(x, w, colorId, alpha);
+        rect.fillRect(xView, wView, colorId, alpha);
         continue;
       }
 
-      let activeWidth = w * (slice.cpuDuration / slice.duration);
-      let waitingWidth = w - activeWidth;
+      let activeWidth = wView * (slice.cpuDuration / slice.duration);
+      let waitingWidth = wView - activeWidth;
 
       // Check if we have enough screen space to draw the whole slice, with
       // both color tones.
       //
       // Truncate the activeWidth to 0 if it is less than 'threshold' pixels.
-      if (activeWidth < SLICE_ACTIVE_WIDTH_DRAW_THRESHOLD * pixWidth) {
+      if (activeWidth < SLICE_ACTIVE_WIDTH_DRAW_THRESHOLD) {
         activeWidth = 0;
-        waitingWidth = w;
+        waitingWidth = wView;
       }
 
       // Truncate the waitingWidth to 0 if it is less than 'threshold' pixels.
-      if (waitingWidth < SLICE_WAITING_WIDTH_DRAW_THRESHOLD * pixWidth) {
-        activeWidth = w;
+      if (waitingWidth < SLICE_WAITING_WIDTH_DRAW_THRESHOLD) {
+        activeWidth = wView;
         waitingWidth = 0;
       }
 
@@ -227,22 +221,22 @@ tr.exportTo('tr.ui.b', function() {
       //
       // First draw the solid color, representing the 'active' part.
       if (activeWidth > 0) {
-        rect.fillRect(x, activeWidth, colorId, alpha);
+        rect.fillRect(xView, activeWidth, colorId, alpha);
       }
 
       // Next draw the two toned 'idle' part.
-      // NOTE: Substracting pixWidth and drawing one extra pixel is done to
-      // prevent drawing artifacts. Without it, the two parts of the slice,
+      // NOTE: We subtract 1 from the left-hand edge and draw one extra pixel to
+      // prevent drawing artifacts. Without this, the two parts of the slice
       // ('active' and 'idle') may appear split apart.
       if (waitingWidth > 0) {
         // First draw the light toned top part.
         rect.setYandH(0, lightRectHeight);
-        rect.fillRect(x + activeWidth - pixWidth,
-            waitingWidth + pixWidth, colorId, lightAlpha);
+        rect.fillRect(xView + activeWidth - 1,
+            waitingWidth + 1, colorId, lightAlpha);
         // Then the solid bottom half.
         rect.setYandH(lightRectHeight, darkRectHeight);
-        rect.fillRect(x + activeWidth - pixWidth,
-            waitingWidth + pixWidth, colorId, alpha);
+        rect.fillRect(xView + activeWidth - 1,
+            waitingWidth + 1, colorId, alpha);
         // Reset for the next slice.
         rect.setYandH(0, height);
       }
@@ -261,15 +255,14 @@ tr.exportTo('tr.ui.b', function() {
 
         if (!slice.isTopLevel) continue;
 
-        let w = pixWidth;
+        const xView = dt.xWorldToView(x);
+        let wView = 1;
         if (slice.duration > 0) {
-          w = Math.max(slice.duration, 0.000001);
-          if (w < pixWidth) {
-            w = pixWidth;
-          }
+          const w = Math.max(slice.duration, 0.000001);
+          wView = Math.max(dt.xWorldVectorToView(w), 1);
         }
 
-        rect.fillRect(x, w, blackColorId, 0.7);
+        rect.fillRect(xView, wView, blackColorId, 0.7);
       }
       rect.flush();
     }
@@ -299,13 +292,8 @@ tr.exportTo('tr.ui.b', function() {
     const pixelRatio = window.devicePixelRatio || 1;
     const height = viewHeight * pixelRatio;
 
-    const pixWidth = dt.xViewVectorToWorld(1);
-
-    // Begin rendering in world space.
     ctx.save();
-    ctx.lineWidth = pixWidth * lineWidthInPixels * pixelRatio;
-    dt.applyTransformToCanvas(ctx);
-    ctx.beginPath();
+    ctx.lineWidth = lineWidthInPixels * pixelRatio;
 
     const lowSlice = tr.b.math.findLowIndexInSortedArray(
         slices,
@@ -319,9 +307,11 @@ tr.exportTo('tr.ui.b', function() {
 
       ctx.strokeStyle = EventPresenter.getInstantSliceColor(slice);
 
+      const xView = dt.xWorldToView(x);
+
       ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, height);
+      ctx.moveTo(xView, 0);
+      ctx.lineTo(xView, height);
       ctx.stroke();
     }
     ctx.restore();

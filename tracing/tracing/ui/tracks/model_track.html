@@ -324,14 +324,10 @@ tr.exportTo('tr.ui.tracks', function() {
 
     drawFlowArrows_(viewLWorld, viewRWorld) {
       const ctx = this.context();
-      const dt = this.viewport.currentDisplayTransform;
-      dt.applyTransformToCanvas(ctx);
-
-      const pixWidth = dt.xViewVectorToWorld(1);
 
       ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
       ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
-      ctx.lineWidth = pixWidth > 1.0 ? 1 : pixWidth;
+      ctx.lineWidth = 1;
 
       const events =
           this.model_.flowIntervalTree.findIntersection(viewLWorld, viewRWorld);
@@ -345,12 +341,12 @@ tr.exportTo('tr.ui.tracks', function() {
             events[i].selectionState !== SelectionState.HIGHLIGHTED) {
           continue;
         }
-        this.drawFlowArrow_(ctx, events[i], canvasBounds, pixWidth);
+        this.drawFlowArrow_(ctx, events[i], canvasBounds);
       }
     },
 
-    drawFlowArrow_(ctx, flowEvent,
-        canvasBounds, pixWidth) {
+    drawFlowArrow_(ctx, flowEvent, canvasBounds) {
+      const dt = this.viewport.currentDisplayTransform;
       const pixelRatio = window.devicePixelRatio || 1;
 
       const startTrack = this.viewport.trackForEvent(flowEvent.startSlice);
@@ -409,21 +405,24 @@ tr.exportTo('tr.ui.tracks', function() {
 
       const pixelStartY = pixelRatio * startY;
       const pixelEndY = pixelRatio * endY;
-      const half = (flowEvent.end - flowEvent.start) / 2;
+
+      const startXView = dt.xWorldToView(flowEvent.start);
+      const endXView = dt.xWorldToView(flowEvent.end);
+      const midXView = (startXView + endXView) / 2;
 
       ctx.beginPath();
-      ctx.moveTo(flowEvent.start, pixelStartY);
+      ctx.moveTo(startXView, pixelStartY);
       ctx.bezierCurveTo(
-          flowEvent.start + half, pixelStartY,
-          flowEvent.start + half, pixelEndY,
-          flowEvent.end, pixelEndY);
+          midXView, pixelStartY,
+          midXView, pixelEndY,
+          endXView, pixelEndY);
       ctx.stroke();
 
-      const arrowWidth = 5 * pixWidth * pixelRatio;
-      const distance = flowEvent.end - flowEvent.start;
+      const arrowWidth = 5 * pixelRatio;
+      const distance = endXView - startXView;
       if (distance <= (2 * arrowWidth)) return;
 
-      const tipX = flowEvent.end;
+      const tipX = endXView;
       const tipY = pixelEndY;
       const arrowHeight = (endBounds.height / 4) * pixelRatio;
       tr.ui.b.drawTriangle(ctx,
