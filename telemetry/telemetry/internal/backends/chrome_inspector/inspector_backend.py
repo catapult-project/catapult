@@ -4,7 +4,6 @@
 
 import functools
 import logging
-import os
 import socket
 import sys
 
@@ -135,11 +134,6 @@ class InspectorBackend(object):
   @property
   @decorators.Cache
   def screenshot_supported(self):
-    if (self.app.platform.GetOSName() == 'linux' and (
-        os.getenv('DISPLAY') not in [':0', ':0.0'])):
-      # Displays other than 0 mean we are likely running in something like
-      # xvfb where screenshotting doesn't work.
-      return False
     return True
 
   @_HandleInspectorWebSocketExceptions
