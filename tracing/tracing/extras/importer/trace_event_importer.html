@@ -2513,9 +2513,32 @@ tr.exportTo('tr.e.importer', function() {
       }, this);
     },
 
+    // Takes an object of type: PID -> [process memory dump events]
+    // Returns smallest timestamp among events or Infinity if there are none.
+    minimalTimestampInPidToEvents_(pidToEvents) {
+      let smallestTs = Infinity;
+      for (const events of Object.values(pidToEvents)) {
+        for (const event of events) {
+          if (event.ts < smallestTs) {
+            smallestTs = event.ts;
+          }
+        }
+      }
+      return smallestTs;
+    },
+
     createMemoryDumps_() {
-      for (const dumpId in this.allMemoryDumpEvents_) {
-        this.createGlobalMemoryDump_(this.allMemoryDumpEvents_[dumpId], dumpId);
+      // We must create the global dumps in chronological order since later
+      // heap dumps can depend on earlier ones. Not all events within a single
+      // global dump have the same timestamp but events for two different
+      // global dumps can not be interspersed. However, for consistency,
+      // we sort the global dumps by the earliest timestamp present in an event
+      // in that dump.
+      const pairs = Object.entries(this.allMemoryDumpEvents_);
+      const key = x => this.minimalTimestampInPidToEvents_(x);
+      pairs.sort((x, y) => key(x[1]) - key(y[1]));
+      for (const [dumpId, pidToEvents] of pairs) {
+        this.createGlobalMemoryDump_(pidToEvents, dumpId);
       }
     },
 
