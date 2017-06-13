@@ -85,6 +85,7 @@ tr.exportTo('tr.v.ui', function() {
       this.mouseDownBin_ = undefined;
       this.prevBrushedBinRange_ = new tr.b.math.Range();
       this.canMergeSampleDiagnostics_ = true;
+      this.alpha_ = undefined;
     },
 
     get viewState() {
@@ -336,11 +337,19 @@ tr.exportTo('tr.v.ui', function() {
       if (this.histogram) this.updateContents_();
     },
 
+    set alpha(a) {
+      if (tr.b.math.approximately(a, this.alpha_)) return;
+      this.alpha_ = a;
+      if (this.referenceHistogram) this.updateContents_();
+    },
+
     getDeltaScalars_(statNames, scalarMap) {
       if (!this.histogram.canCompare(this.referenceHistogram)) return;
 
       const mwu = tr.b.math.Statistics.mwu(
-          this.histogram.sampleValues, this.referenceHistogram.sampleValues);
+          this.histogram.sampleValues,
+          this.referenceHistogram.sampleValues,
+          this.alpha_);
 
       for (const deltaStatName of tr.v.Histogram.getDeltaStatisticsNames(
           statNames)) {

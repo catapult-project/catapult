@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/math/math.html">
 <link rel="import" href="/tracing/base/timing.html">
 <link rel="import" href="/tracing/base/url_json.html">
 <link rel="import" href="/tracing/value/histogram_set.html">
@@ -129,6 +130,9 @@ tr.exportTo('tr.v.ui', function() {
       }
       if (this.viewState.sortDescending) params.set('d', '');
       if (!this.viewState.constrainNameColumn) params.set('n', '0');
+      if (!tr.b.math.approximately(this.viewState.alpha, 0.01)) {
+        params.set('p', ('' + this.viewState.alpha).substr(0, 5));
+      }
 
       let search = '?';
       for (const [key, value] of params) {
@@ -193,6 +197,10 @@ tr.exportTo('tr.v.ui', function() {
       }
       delta.set('sortDescending', params.has('d'));
       delta.set('constrainNameColumn', params.get('n') !== '0');
+      if (params.has('p')) {
+        delta.set('alpha', parseFloat(params.get('p')));
+      }
+
       await this.viewState.update(delta);
 
       if (params.has('t')) {

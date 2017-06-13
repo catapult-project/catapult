@@ -204,6 +204,17 @@ displayed:
 ![Select a reference column.
 ](/docs/images/metrics-results-ui-reference-column.png)
 
+### The Significance Threshold Slider
+
+This slider allows you to adjust the threshold of statistical significance when
+comparing results in one column against the reference column. Raising the
+threshold causes more changes to be considered significant, and display green
+grinning or red frowning emoji. Lowering the threshold causes fewer changes to
+be considered significant, and display a neutral emoji.
+
+![Slide the significance threshold
+](/docs/images/metrics-results-ui-significance-threshold-slider.png)
+
 ### The Summary Statistic Selector
 
 This selector controls which statistics are displayed in the table. You can

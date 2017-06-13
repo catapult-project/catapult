@@ -62,6 +62,30 @@ found in the LICENSE file.
       margin-right: 20px;
     }
 
+    #alpha, #alpha_slider_container {
+      display: none;
+    }
+
+    #alpha {
+      margin-right: 20px;
+    }
+
+    #alpha_slider_container {
+      background: white;
+      border: 1px solid black;
+      flex-direction: column;
+      padding: 0.5em;
+      position: absolute;
+      z-index: 10; /* scalar-span uses z-index :-( */
+    }
+
+    #alpha_slider {
+      -webkit-appearance: slider-vertical;
+      align-self: center;
+      height: 200px;
+      width: 30px;
+    }
+
     #statistic {
       display: none;
       margin-right: 20px;
@@ -91,6 +115,11 @@ found in the LICENSE file.
         <option value="">Select a reference column</option>
       </select>
 
+      <button id="alpha" on-click="openAlphaSlider_">&#945;=[[alphaString]]</button>
+      <div id="alpha_slider_container">
+        <input type="range" id="alpha_slider" value="{{alphaIndex::change}}" min="0" max="18" on-blur="closeAlphaSlider_" on-input="updateAlpha_">
+      </div>
+
       <select id="statistic" value="{{displayStatisticName::change}}">
       </select>
 
@@ -111,6 +140,11 @@ found in the LICENSE file.
 <script>
 'use strict';
 tr.exportTo('tr.v.ui', function() {
+  const ALPHA_OPTIONS = [];
+  for (let i = 1; i < 10; ++i) ALPHA_OPTIONS.push(i * 1e-3);
+  for (let i = 1; i < 10; ++i) ALPHA_OPTIONS.push(i * 1e-2);
+  ALPHA_OPTIONS.push(0.01);
+
   Polymer({
     is: 'tr-v-ui-histogram-set-controls',
 
@@ -133,6 +167,15 @@ tr.exportTo('tr.v.ui', function() {
       displayStatisticName: {
         type: String,
         value: '',
+        observer: 'onUserChange_',
+      },
+      alphaString: {
+        type: String,
+        computed: 'getAlphaString_(alphaIndex)',
+      },
+      alphaIndex: {
+        type: Number,
+        value: 9,
         observer: 'onUserChange_',
       },
     },
@@ -186,6 +229,9 @@ tr.exportTo('tr.v.ui', function() {
       if (this.displayStatisticName !== this.viewState.displayStatisticName) {
         marks.push(tr.b.Timing.mark('histogram-set-controls', 'statistic'));
       }
+      if (parseInt(this.alphaIndex) !== this.getAlphaIndexFromViewState_()) {
+        marks.push(tr.b.Timing.mark('histogram-set-controls', 'alpha'));
+      }
 
       let displayStatisticName = this.displayStatisticName;
       if (this.viewState.referenceDisplayLabel === '' &&
@@ -215,6 +261,7 @@ tr.exportTo('tr.v.ui', function() {
         showAll: this.showAll,
         referenceDisplayLabel: this.referenceDisplayLabel,
         displayStatisticName,
+        alpha: ALPHA_OPTIONS[this.alphaIndex],
       });
 
       if (this.referenceDisplayLabel &&
@@ -235,15 +282,20 @@ tr.exportTo('tr.v.ui', function() {
 
     onViewStateUpdate_(event) {
       this.isInOnViewStateUpdate_ = true;
+
       if (event.delta.searchQuery) {
         this.searchQuery = this.viewState.searchQuery;
       }
+
       if (event.delta.showAll) this.showAll = this.viewState.showAll;
+
       if (event.delta.displayStatisticName) {
         this.displayStatisticName = this.viewState.displayStatisticName;
       }
+
       if (event.delta.referenceDisplayLabel) {
         this.referenceDisplayLabel = this.viewState.referenceDisplayLabel;
+        this.$.alpha.style.display = this.referenceDisplayLabel ? 'inline' : '';
       }
 
       if (event.delta.groupings) {
@@ -261,6 +313,11 @@ tr.exportTo('tr.v.ui', function() {
         this.$.hide_overview.style.display = anyShowing ? 'inline' : 'none';
         this.$.show_overview.style.display = anyShowing ? 'none' : 'inline';
       }
+
+      if (event.delta.alpha) {
+        this.alphaIndex = this.getAlphaIndexFromViewState_();
+      }
+
       this.isInOnViewStateUpdate_ = false;
       this.onUserChange_();
     },
@@ -401,7 +458,35 @@ tr.exportTo('tr.v.ui', function() {
 
     downloadCSV_(event) {
       this.dispatchEvent(new tr.b.Event('download-csv'));
-    }
+    },
+
+    getAlphaString_(alphaIndex) {
+      // (9 * 1e-3).toString() is "0.009000000000000001", so truncate.
+      return ('' + ALPHA_OPTIONS[alphaIndex]).substr(0, 5);
+    },
+
+    openAlphaSlider_() {
+      const alphaButtonRect = this.$.alpha.getBoundingClientRect();
+      this.$.alpha_slider_container.style.display = 'flex';
+      this.$.alpha_slider_container.style.top = alphaButtonRect.bottom + 'px';
+      this.$.alpha_slider_container.style.left = alphaButtonRect.left + 'px';
+      this.$.alpha_slider.focus();
+    },
+
+    closeAlphaSlider_() {
+      this.$.alpha_slider_container.style.display = '';
+    },
+
+    updateAlpha_() {
+      this.alphaIndex = this.$.alpha_slider.value;
+    },
+
+    getAlphaIndexFromViewState_() {
+      for (let i = 0; i < ALPHA_OPTIONS.length; ++i) {
+        if (ALPHA_OPTIONS[i] >= this.viewState.alpha) return i;
+      }
+      return ALPHA_OPTIONS.length - 1;
+    },
   });
 
   return {
