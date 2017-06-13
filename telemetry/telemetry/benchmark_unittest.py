@@ -15,6 +15,8 @@ from telemetry.page import shared_page_state
 from telemetry import story as story_module
 from telemetry.web_perf import timeline_based_measurement
 
+from tracing.value import histogram
+
 
 class DummyPageTest(legacy_page_test.LegacyPageTest):
   def ValidateAndMeasurePage(self, *_):
@@ -169,3 +171,27 @@ class BenchmarkTest(unittest.TestCase):
         shared_state_class=shared_page_state.SharedPageState))
     self.assertIsInstance(
         b.GetExpectations(), story_module.expectations.StoryExpectations)
+
+  def testBenchmarkOwnership(self):
+    @benchmark.Owner(emails=['alice@chromium.org'])
+    class FooBenchmark(benchmark.Benchmark):
+      @classmethod
+      def Name(cls):
+        return "foo"
+
+    @benchmark.Owner(emails=['bob@chromium.org'], component='xyzzyx')
+    class BarBenchmark(benchmark.Benchmark):
+      @classmethod
+      def Name(cls):
+        return "bar"
+
+    fooOwnerDiangostic = FooBenchmark(None).GetOwnership()
+    barOwnerDiangostic = BarBenchmark(None).GetOwnership()
+
+    self.assertIsInstance(fooOwnerDiangostic, histogram.Ownership)
+    self.assertItemsEqual(fooOwnerDiangostic.emails, ['alice@chromium.org'])
+    self.assertIsNone(fooOwnerDiangostic.component)
+
+    self.assertIsInstance(barOwnerDiangostic, histogram.Ownership)
+    self.assertItemsEqual(barOwnerDiangostic.emails, ['bob@chromium.org'])
+    self.assertEqual(barOwnerDiangostic.component, 'xyzzyx')

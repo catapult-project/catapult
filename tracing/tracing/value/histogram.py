@@ -403,6 +403,9 @@ def RegisterDiagnosticTypes(baseclass=Diagnostic):
 
 
 class Ownership(Diagnostic):
+
+  NAME = 'owners'
+
   def __init__(self, emails, component=None):
     super(Ownership, self).__init__()
 
@@ -410,10 +413,10 @@ class Ownership(Diagnostic):
 
     self._emails = emails[:]
 
-    if (component is None) or (isinstance(component, str)):
+    if (component is None) or isinstance(component, basestring):
       self._component = component
     else:
-      raise TypeError('component must either be None or a string')
+      raise TypeError('component must be None or string')
 
   @property
   def emails(self):

@@ -10,6 +10,7 @@ from telemetry.internal.util import command_line
 from telemetry.page import legacy_page_test
 from telemetry.story import expectations
 from telemetry.web_perf import timeline_based_measurement
+from tracing.value import histogram
 
 Disabled = decorators.Disabled
 Enabled = decorators.Enabled
@@ -217,6 +218,15 @@ class Benchmark(command_line.Command):
   def GetMetadata(self):
     return BenchmarkMetadata(
         self.Name(), self.__doc__, self.GetTraceRerunCommands())
+
+  def GetOwnership(self):
+    """Returns an Ownership Diagnostic containing the benchmark's information.
+
+    Returns:
+      Diagnostic with the benchmark's owners' e-mails and component name
+    """
+    return histogram.Ownership(decorators.GetEmails(self),
+                               decorators.GetComponent(self))
 
   def CreateTimelineBasedMeasurementOptions(self):
     """Return the TimelineBasedMeasurementOptions for this Benchmark.

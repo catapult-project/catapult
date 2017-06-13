@@ -1312,6 +1312,78 @@ class StoryRunnerTest(unittest.TestCase):
     finally:
       shutil.rmtree(temp_path)
 
+  def testRunBenchmark_AddsOwnership_WithoutComponent(self):
+    @benchmark.Owner(emails=['alice@chromium.org'])
+    class FakeBenchmarkWithOwner(FakeBenchmark):
+      def __init__(self):
+        super(FakeBenchmark, self).__init__()
+        self._disabled = False
+        self._story_disabled = False
+
+    fake_benchmark = FakeBenchmarkWithOwner()
+    options = self._GenerateBaseBrowserFinderOptions()
+    options.output_formats = ['histograms']
+    temp_path = tempfile.mkdtemp()
+    try:
+      options.output_dir = temp_path
+      story_runner.RunBenchmark(fake_benchmark, options)
+
+      with open(os.path.join(temp_path, 'histograms.json')) as f:
+        data = json.load(f)
+
+      histogram_set = histogram_module.HistogramSet()
+      histogram_set.ImportDicts(data)
+
+      ownership_diagnostics = histogram_set.GetSharedDiagnosticsOfType(
+        histogram_module.Ownership)
+
+      self.assertGreater(len(ownership_diagnostics), 0)
+
+      ownership_diagnostic = ownership_diagnostics[0]
+
+      self.assertIsInstance(ownership_diagnostic, histogram_module.Ownership)
+      self.assertIsNone(ownership_diagnostic.component)
+      self.assertItemsEqual(['alice@chromium.org'], ownership_diagnostic.emails)
+    finally:
+      shutil.rmtree(temp_path)
+
+  def testRunBenchmark_AddsOwnership_WithComponent(self):
+    @benchmark.Owner(emails=['alice@chromium.org', 'bob@chromium.org'],
+                     component='fooBar')
+    class FakeBenchmarkWithOwner(FakeBenchmark):
+      def __init__(self):
+        super(FakeBenchmark, self).__init__()
+        self._disabled = False
+        self._story_disabled = False
+
+    fake_benchmark = FakeBenchmarkWithOwner()
+    options = self._GenerateBaseBrowserFinderOptions()
+    options.output_formats = ['histograms']
+    temp_path = tempfile.mkdtemp()
+    try:
+      options.output_dir = temp_path
+      story_runner.RunBenchmark(fake_benchmark, options)
+
+      with open(os.path.join(temp_path, 'histograms.json')) as f:
+        data = json.load(f)
+
+      histogram_set = histogram_module.HistogramSet()
+      histogram_set.ImportDicts(data)
+
+      ownership_diagnostics = histogram_set.GetSharedDiagnosticsOfType(
+        histogram_module.Ownership)
+
+      self.assertGreater(len(ownership_diagnostics), 0)
+
+      ownership_diagnostic = ownership_diagnostics[0]
+
+      self.assertIsInstance(ownership_diagnostic, histogram_module.Ownership)
+      self.assertEqual('fooBar', ownership_diagnostic.component)
+      self.assertItemsEqual(['alice@chromium.org', 'bob@chromium.org'],
+                            ownership_diagnostic.emails)
+    finally:
+      shutil.rmtree(temp_path)
+
   def testRunBenchmarkTimeDuration(self):
     fake_benchmark = FakeBenchmark()
     options = self._GenerateBaseBrowserFinderOptions()

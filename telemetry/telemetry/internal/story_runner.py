@@ -404,6 +404,9 @@ def RunBenchmark(benchmark, finder_options):
       exception_formatter.PrintFormattedException()
       return_code = 255
 
+    results.histograms.AddSharedDiagnostic(
+        histogram.Ownership.NAME, benchmark.GetOwnership())
+
     try:
       if finder_options.upload_results:
         bucket = finder_options.upload_bucket
