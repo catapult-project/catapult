@@ -387,7 +387,7 @@ tr.exportTo('tr.v', function() {
         h => tr.v.d.TelemetryInfo.getField(h, 'benchmarkName', '')),
 
     BENCHMARK_START: new HistogramGrouping(
-        'time',
+        'benchmark start',
         h => tr.v.d.TelemetryInfo.getField(h, 'benchmarkStartString', '')),
 
     STORYSET_REPEAT: new HistogramGrouping(
@@ -418,7 +418,12 @@ tr.exportTo('tr.v', function() {
 
     DISPLAY_LABEL: new HistogramGrouping(
         'label',
-        h => tr.v.d.TelemetryInfo.getField(h, 'displayLabel', 'Value'))
+        h => tr.v.d.TelemetryInfo.getField(h, 'displayLabel', 'Value')),
+
+    TRACE_START: new HistogramGrouping(
+        'trace start',
+        h => (!h.diagnostics.has(tr.v.d.DateRange.TRACE_START_NAME) ? '' :
+            h.diagnostics.get(tr.v.d.DateRange.TRACE_START_NAME).toString())),
   };
 
   return {

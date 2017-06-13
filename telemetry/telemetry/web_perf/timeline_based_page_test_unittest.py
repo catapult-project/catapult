@@ -11,6 +11,7 @@ from telemetry.timeline import chrome_trace_category_filter
 from telemetry.util import wpr_modes
 from telemetry.web_perf import timeline_based_measurement as tbm_module
 from telemetry.web_perf.metrics import smoothness
+from tracing.value import histogram
 
 class TestTimelinebasedMeasurementPage(page_module.Page):
 
@@ -129,16 +130,20 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
     results = self.RunMeasurement(tbm, ps, self._options)
 
     self.assertEquals(0, len(results.failures))
+
     self.assertEquals(1, len(results.histograms))
-    diagnostics = [d for d in results.histograms.shared_diagnostics]
-    self.assertEquals(1, len(diagnostics))
-    telemetry_info = diagnostics[0].AsDict()
-    self.assertEqual('TelemetryInfo', telemetry_info['type'])
-    self.assertEqual('', telemetry_info['benchmarkName'])
+    telemetry_infos = results.histograms.GetSharedDiagnosticsOfType(
+        histogram.TelemetryInfo)
+    self.assertEquals(1, len(telemetry_infos))
+    telemetry_info = telemetry_infos[0]
+    self.assertEqual('', telemetry_info.benchmark_name)
     self.assertEqual('interaction_enabled_page.html',
-                     telemetry_info['storyDisplayName'])
-    self.assertIn('storyGroupingKeys', telemetry_info)
-    self.assertEqual(0, telemetry_info['storysetRepeatCounter'])
+                     telemetry_info.story_display_name)
+    self.assertEqual(0, telemetry_info.storyset_repeat_counter)
+    hist = list(results.histograms)[0]
+    trace_start = hist.diagnostics.get('trace start')
+    self.assertIsInstance(trace_start, histogram.DateRange)
+
     v_foo = results.FindAllPageSpecificValuesNamed('foo_avg')
     self.assertEquals(len(v_foo), 1)
     self.assertEquals(v_foo[0].value, 50)

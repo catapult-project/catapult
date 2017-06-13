@@ -11,6 +11,7 @@ import os
 import random
 import sys
 import tempfile
+import time
 import traceback
 
 from py_utils import cloud_storage  # pylint: disable=import-error
@@ -35,6 +36,7 @@ class TelemetryInfo(object):
     self._story_display_name = ''
     self._story_grouping_keys = {}
     self._storyset_repeat_counter = 0
+    self._trace_start_ms = None
 
   @property
   def benchmark_name(self):
@@ -55,6 +57,10 @@ class TelemetryInfo(object):
     assert self.benchmark_start_ms is None, (
       'benchmark_start_ms must be set exactly once')
     self._benchmark_start_ms = benchmark_start_ms
+
+  @property
+  def trace_start_ms(self):
+    return self._trace_start_ms
 
   @property
   def label(self):
@@ -78,6 +84,7 @@ class TelemetryInfo(object):
     return self._storyset_repeat_counter
 
   def WillRunStory(self, story, storyset_repeat_counter):
+    self._trace_start_ms = 1000 * time.time()
     self._story_display_name = story.display_name
     if story.grouping_keys:
       self._story_grouping_keys = story.grouping_keys
@@ -96,6 +103,7 @@ class TelemetryInfo(object):
     d['storyDisplayName'] = self.story_display_name
     d['storyGroupingKeys'] = self.story_grouping_keys
     d['storysetRepeatCounter'] = self.storyset_repeat_counter
+    d['traceStartMs'] = self.trace_start_ms
     return d
 
 

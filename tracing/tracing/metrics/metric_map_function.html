@@ -54,6 +54,10 @@ tr.exportTo('tr.metrics', function() {
 
       if (metadata.value.telemetry) {
         telemetry.addInfo(metadata.value.telemetry);
+
+        histograms.addSharedDiagnostic(
+            tr.v.d.DateRange.TRACE_START_NAME,
+            new tr.v.d.DateRange(metadata.value.telemetry.traceStartMs));
       }
     }
     histograms.addSharedDiagnostic(tr.v.d.TelemetryInfo.NAME, telemetry);
