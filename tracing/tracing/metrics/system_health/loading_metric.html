@@ -424,7 +424,9 @@ tr.exportTo('tr.metrics.sh', function() {
 
   function collectLoadingMetricsForRenderer(rendererHelper) {
     const navigationStartFinder = new NavigationStartFinder(rendererHelper);
-
+    const firstPaintSamples = collectTimeToEvent(
+        'loading', 'firstPaint',
+        rendererHelper, navigationStartFinder);
     const firstContentfulPaintSamples = collectTimeToEvent(
         'loading', 'firstContentfulPaint',
         rendererHelper, navigationStartFinder);
@@ -436,6 +438,7 @@ tr.exportTo('tr.metrics.sh', function() {
         collectFirstMeaningfulPaintAndTimeToInteractiveForRenderer(
             rendererHelper, navigationStartFinder);
     return {
+      firstPaintSamples,
       firstContentfulPaintSamples,
       onLoadSamples,
       firstMeaningfulPaintSamples,
@@ -451,6 +454,10 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   function loadingMetric(histograms, model) {
+    const firstPaintHistogram = createHistogram(
+        'timeToFirstPaint');
+    firstPaintHistogram.description =
+        'time to first paint';
     const firstContentfulPaintHistogram = createHistogram(
         'timeToFirstContentfulPaint');
     firstContentfulPaintHistogram.description =
@@ -475,22 +482,23 @@ tr.exportTo('tr.metrics.sh', function() {
       const rendererHelper = chromeHelper.rendererHelpers[pid];
       if (rendererHelper.isChromeTracingUI) continue;
 
-      const {firstContentfulPaintSamples, onLoadSamples,
-           firstMeaningfulPaintSamples, firstMeaningfulPaintCpuTimeSamples,
-           firstInteractiveSamples} =
+      const samplesSet =
           collectLoadingMetricsForRenderer(rendererHelper);
 
-      addSamplesToHistogram(firstContentfulPaintSamples,
+      addSamplesToHistogram(samplesSet.firstPaintSamples,
+          firstPaintHistogram);
+      addSamplesToHistogram(samplesSet.firstContentfulPaintSamples,
           firstContentfulPaintHistogram);
-      addSamplesToHistogram(onLoadSamples, onLoadHistogram);
-      addSamplesToHistogram(firstMeaningfulPaintSamples,
+      addSamplesToHistogram(samplesSet.onLoadSamples, onLoadHistogram);
+      addSamplesToHistogram(samplesSet.firstMeaningfulPaintSamples,
           firstMeaningfulPaintHistogram);
-      addSamplesToHistogram(firstMeaningfulPaintCpuTimeSamples,
+      addSamplesToHistogram(samplesSet.firstMeaningfulPaintCpuTimeSamples,
           firstMeaningfulPaintCpuTimeHistogram);
-      addSamplesToHistogram(firstInteractiveSamples,
+      addSamplesToHistogram(samplesSet.firstInteractiveSamples,
           firstInteractiveHistogram);
     }
 
+    histograms.addHistogram(firstPaintHistogram);
     histograms.addHistogram(firstContentfulPaintHistogram);
     histograms.addHistogram(onLoadHistogram);
     histograms.addHistogram(firstMeaningfulPaintHistogram);

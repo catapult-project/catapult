@@ -13,6 +13,40 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
+  test('timeToFirstPaint', function() {
+    const model = tr.c.TestUtils.newModel(function(model) {
+      const rendererProcess = model.getOrCreateProcess(1);
+      const mainThread = rendererProcess.getOrCreateThread(2);
+      mainThread.name = 'CrRendererMain';
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 200,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
+      rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
+          {
+            isLoadingMainFrame: true,
+            frame: {id_ref: '0xdeadbeef'},
+            documentLoaderURL: 'http://example.com'
+          });
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'rail,loading,devtools.timeline',
+        title: 'firstPaint',
+        start: 1001,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
+    });
+    const histograms = new tr.v.HistogramSet();
+    tr.metrics.sh.loadingMetric(histograms, model);
+    const hist = histograms.getHistogramNamed('timeToFirstPaint');
+    assert.strictEqual(1, hist.running.count);
+    assert.strictEqual(801, hist.running.mean);
+  });
+
+
   test('timeToFirstContentfulPaint', function() {
     const model = tr.c.TestUtils.newModel(function(model) {
       const rendererProcess = model.getOrCreateProcess(1);
