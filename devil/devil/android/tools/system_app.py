@@ -41,8 +41,9 @@ def RemoveSystemApps(device, package_names):
     package_name: (iterable of strs) the names of the packages to remove.
   """
   system_package_paths = _FindSystemPackagePaths(device, package_names)
-  with EnableSystemAppModification(device):
-    device.RemovePath(system_package_paths, force=True, recursive=True)
+  if system_package_paths:
+    with EnableSystemAppModification(device):
+      device.RemovePath(system_package_paths, force=True, recursive=True)
 
 
 @contextlib.contextmanager
