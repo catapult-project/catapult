@@ -28,7 +28,7 @@ class TranslateCommonValuesTest(unittest.TestCase):
     job = job_module.Job(map_function_handle, '1')
 
     story_set = story.StorySet(base_dir=os.path.dirname(__file__))
-    p = page.Page('http://www.foo.com/', story_set, story_set.base_dir)
+    p = page.Page('http://www.foo.com/', story_set, story_set.base_dir, name='foo')
 
     f = failure.Failure(job, 'foo', '/a.json', 'MyFailure', 'failure', 'stack')
     fv = common_value_helpers.TranslateMreFailure(f, p)
@@ -37,7 +37,7 @@ class TranslateCommonValuesTest(unittest.TestCase):
 
   def testTranslateScalarValue(self):
     story_set = story.StorySet(base_dir=os.path.dirname(__file__))
-    p = page.Page('http://www.foo.com/', story_set, story_set.base_dir)
+    p = page.Page('http://www.foo.com/', story_set, story_set.base_dir, name='foo')
 
     scalar_value = {
         'type': 'numeric',
@@ -62,7 +62,7 @@ class TranslateCommonValuesTest(unittest.TestCase):
 
   def testTranslateScalarNoneValue(self):
     story_set = story.StorySet(base_dir=os.path.dirname(__file__))
-    p = page.Page('http://www.foo.com/', story_set, story_set.base_dir)
+    p = page.Page('http://www.foo.com/', story_set, story_set.base_dir, name='foo')
 
     scalar_value = {
         'type': 'numeric',

@@ -20,7 +20,7 @@ READ_EVENT_NAME = 'BlobRequest'
 
 def GetBlobMetrics(events, interactions):
   results = page_test_results.PageTestResults()
-  test_page = page.Page('file://blank.html')
+  test_page = page.Page('file://blank.html', name='blank.html')
   results.WillRunPage(test_page)
   blob_timeline.BlobTimelineMetric()._AddWriteResultsInternal(
       events, interactions, results)  # pylint:disable=protected-access

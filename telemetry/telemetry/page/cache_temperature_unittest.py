@@ -44,7 +44,7 @@ class CacheTempeartureTests(browser_test_case.BrowserTestCase):
     with self.captureTrace():
       story_set = story.StorySet()
       page = page_module.Page('http://google.com', page_set=story_set,
-          cache_temperature=cache_temperature.ANY)
+          cache_temperature=cache_temperature.ANY, name='http://google.com')
       cache_temperature.EnsurePageCacheTemperature(page, self._browser)
 
     markers = self.traceMarkers()
@@ -57,7 +57,7 @@ class CacheTempeartureTests(browser_test_case.BrowserTestCase):
     with self.captureTrace():
       story_set = story.StorySet()
       page = page_module.Page('http://google.com', page_set=story_set,
-          cache_temperature=cache_temperature.PCV1_COLD)
+          cache_temperature=cache_temperature.PCV1_COLD, name='http://google.com')
       cache_temperature.EnsurePageCacheTemperature(page, self._browser)
 
     markers = self.traceMarkers()
@@ -69,12 +69,12 @@ class CacheTempeartureTests(browser_test_case.BrowserTestCase):
     with self.captureTrace():
       story_set = story.StorySet()
       page = page_module.Page('http://google.com', page_set=story_set,
-          cache_temperature=cache_temperature.PCV1_COLD)
+          cache_temperature=cache_temperature.PCV1_COLD, name='http://google.com')
       cache_temperature.EnsurePageCacheTemperature(page, self._browser)
 
       previous_page = page
       page = page_module.Page('http://google.com', page_set=story_set,
-          cache_temperature=cache_temperature.PCV1_WARM)
+          cache_temperature=cache_temperature.PCV1_WARM, name='http://google.com')
       cache_temperature.EnsurePageCacheTemperature(page, self._browser,
           previous_page)
 
@@ -87,7 +87,7 @@ class CacheTempeartureTests(browser_test_case.BrowserTestCase):
     with self.captureTrace():
       story_set = story.StorySet()
       page = page_module.Page('http://google.com', page_set=story_set,
-          cache_temperature=cache_temperature.PCV1_WARM)
+          cache_temperature=cache_temperature.PCV1_WARM, name='http://google.com')
       cache_temperature.EnsurePageCacheTemperature(page, self._browser)
 
     markers = self.traceMarkers()

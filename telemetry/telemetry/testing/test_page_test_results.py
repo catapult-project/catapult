@@ -13,7 +13,7 @@ class TestPageTestResults(
   def __init__(self, test):
     super(TestPageTestResults, self).__init__()
     self.test = test
-    page = page_module.Page("http://www.google.com", {})
+    page = page_module.Page("http://www.google.com", {}, name='http://www.google.com')
     self.WillRunPage(page)
 
   def GetPageSpecificValueNamed(self, name):

@@ -23,7 +23,7 @@ class SingleEventTestMetric(single_event._SingleEventMetric):
 
 def GetSingleEventMetrics(events, interactions):
   results = page_test_results.PageTestResults()
-  results.WillRunPage(page.Page('file://blank.html'))
+  results.WillRunPage(page.Page('file://blank.html', name='blank.html'))
   SingleEventTestMetric()._AddResultsInternal(events, interactions, results)
   return dict((value.name, value.values) for value in
               results.current_page_run.values)

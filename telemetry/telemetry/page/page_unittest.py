@@ -158,17 +158,9 @@ class TestPage(unittest.TestCase):
     self.assertEquals(story_set[0].display_name, 'foo')
 
   def testPagesHaveDifferentIds(self):
-    p0 = page.Page("http://example.com")
-    p1 = page.Page("http://example.com")
+    p0 = page.Page("http://example.com", name='example1')
+    p1 = page.Page("http://example.com", name='example2')
     self.assertNotEqual(p0.id, p1.id)
-
-  def testNamelessPageAsDict(self):
-    nameless_dict = page.Page('http://example.com/').AsDict()
-    self.assertIn('id', nameless_dict)
-    del nameless_dict['id']
-    self.assertEquals({
-                      'url': 'http://example.com/',
-                      }, nameless_dict)
 
   def testNamedPageAsDict(self):
     named_dict = page.Page('http://example.com/', name='Example').AsDict()
@@ -180,16 +172,16 @@ class TestPage(unittest.TestCase):
                       }, named_dict)
 
   def testIsLocal(self):
-    p = page.Page('file://foo.html')
+    p = page.Page('file://foo.html', name='foo.html')
     self.assertTrue(p.is_local)
 
-    p = page.Page('chrome://extensions')
+    p = page.Page('chrome://extensions', name='extensions')
     self.assertTrue(p.is_local)
 
-    p = page.Page('about:blank')
+    p = page.Page('about:blank', name='about:blank')
     self.assertTrue(p.is_local)
 
-    p = page.Page('http://foo.com')
+    p = page.Page('http://foo.com', name='http://foo.com')
     self.assertFalse(p.is_local)
 
 
@@ -197,7 +189,7 @@ class TestPageRun(unittest.TestCase):
 
   def testFiveGarbageCollectionCallsByDefault(self):
     mock_shared_state = mock.Mock()
-    p = page.Page('file://foo.html')
+    p = page.Page('file://foo.html', name='foo.html')
     p.Run(mock_shared_state)
     expected = [mock.call.current_tab.CollectGarbage(),
                 mock.call.current_tab.CollectGarbage(),
@@ -218,7 +210,7 @@ class TestPageRun(unittest.TestCase):
     class NonGarbageCollectPage(page.Page):
 
       def __init__(self, url):
-        super(NonGarbageCollectPage, self).__init__(url)
+        super(NonGarbageCollectPage, self).__init__(url, name=url)
         self._collect_garbage_before_run = False
 
     p = NonGarbageCollectPage('file://foo.html')

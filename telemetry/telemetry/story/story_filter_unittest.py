@@ -21,7 +21,7 @@ class FilterTest(unittest.TestCase):
       name='ShareA.smiles_too', tags=['tag1'])
     self.p3 = page.Page(
       url='file://share_a/smile/too.html', page_set=story_set,
-      tags=['tag2'])
+      name='share_a/smile/too.html', tags=['tag2'])
     self.pages = [self.p1, self.p2, self.p3]
 
   @staticmethod

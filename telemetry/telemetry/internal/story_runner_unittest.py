@@ -364,10 +364,12 @@ class StoryRunnerTest(unittest.TestCase):
 
   def testRunStoryWithLongURLPage(self):
     story_set = story_module.StorySet(verify_names=False)
-    story_set.AddStory(page_module.Page('file://long' + 'g' * 180, story_set))
+    story_set.AddStory(page_module.Page('file://long' + 'g' * 180,
+                                        story_set, name='test'))
     test = DummyTest()
-    self.assertRaises(ValueError, story_runner.Run, test, story_set,
-                      self.options, self.results)
+    story_runner.Run(test, story_set,
+                      self.options, self.results,
+                      metadata=EmptyMetadataForTest())
 
   def testSuccessfulTimelineBasedMeasurementTest(self):
     """Check that PageTest is not required for story_runner.Run.

@@ -25,10 +25,6 @@ class StoryTest(unittest.TestCase):
     s1 = story.Story(SharedStateBar, 'bar')
     self.assertNotEqual(s0.id, s1.id)
 
-  def testNamelessStoryDisplayName(self):
-    s = StoryFoo()
-    self.assertEquals('StoryFoo', s.display_name)
-
   def testNamedStoryDisplayName(self):
     s = StoryFoo('Bar')
     self.assertEquals('Bar', s.display_name)
@@ -37,12 +33,6 @@ class StoryTest(unittest.TestCase):
     s = StoryFoo('Foo Bar:Baz~0')
     self.assertEquals('Foo_Bar_Baz_0', s.file_safe_name)
 
-  def testNamelessStoryAsDict(self):
-    s = story.Story(SharedStateBar)
-    s_dict = s.AsDict()
-    self.assertEquals(s_dict['id'], s.id)
-    self.assertNotIn('name', s_dict)
-
   def testNamedStoryAsDict(self):
     s = story.Story(SharedStateBar, 'Foo')
     s_dict = s.AsDict()
@@ -50,37 +40,39 @@ class StoryTest(unittest.TestCase):
     self.assertEquals('Foo', s_dict['name'])
 
   def testMakeJavaScriptDeterministic(self):
-    s = story.Story(SharedStateBar)
+    s = story.Story(SharedStateBar, name='story')
     self.assertTrue(s.make_javascript_deterministic)
 
-    s = story.Story(SharedStateBar, make_javascript_deterministic=False)
+    s = story.Story(SharedStateBar, make_javascript_deterministic=False,
+                    name='story')
     self.assertFalse(s.make_javascript_deterministic)
 
-    s = story.Story(SharedStateBar, make_javascript_deterministic=True)
+    s = story.Story(SharedStateBar, make_javascript_deterministic=True,
+                    name='story')
     self.assertTrue(s.make_javascript_deterministic)
 
   def testInvalidTags(self):
     with self.assertRaises(ValueError):
-      story.Story(SharedStateBar, tags=['a@'])
+      story.Story(SharedStateBar, tags=['a@'], name='story')
     with self.assertRaises(ValueError):
-      story.Story(SharedStateBar, tags=['a:b'])
+      story.Story(SharedStateBar, tags=['a:b'], name='story')
     with self.assertRaises(ValueError):
-      story.Story(SharedStateBar, tags=['tags with space'])
+      story.Story(SharedStateBar, tags=['tags with space'], name='story')
     with self.assertRaises(ValueError):
-      story.Story(SharedStateBar, tags=['a:b'])
+      story.Story(SharedStateBar, tags=['a:b'], name='story')
     with self.assertRaises(ValueError):
-      story.Story(SharedStateBar, tags=[''])
+      story.Story(SharedStateBar, tags=[''], name='story')
     with self.assertRaises(ValueError):
-      story.Story(SharedStateBar, tags=['aaaaaa~1'])
+      story.Story(SharedStateBar, tags=['aaaaaa~1'], name='story')
     with self.assertRaises(ValueError):
-      story.Story(SharedStateBar, tags=['tag-with-dash'])
+      story.Story(SharedStateBar, tags=['tag-with-dash'], name='story')
     with self.assertRaises(ValueError):
-      story.Story(SharedStateBar, tags=['a'*51])
+      story.Story(SharedStateBar, tags=['a'*51], name='story')
 
 
   def testValidTags(self):
-    story.Story(SharedStateBar, tags=['abc'])
-    story.Story(SharedStateBar, tags=['a'*50, 'b'*25 + 'a'*25])
-    story.Story(SharedStateBar, tags=['a_b'])
-    story.Story(SharedStateBar, tags=['_1'])
-    story.Story(SharedStateBar, tags=['1honda_2tesla_3airplanes'])
+    story.Story(SharedStateBar, tags=['abc'], name='story')
+    story.Story(SharedStateBar, tags=['a'*50, 'b'*25 + 'a'*25], name='story')
+    story.Story(SharedStateBar, tags=['a_b'], name='story')
+    story.Story(SharedStateBar, tags=['_1'], name='story')
+    story.Story(SharedStateBar, tags=['1honda_2tesla_3airplanes'], name='story')

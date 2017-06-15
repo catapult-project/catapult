@@ -32,7 +32,7 @@ class SmoothnessMetricUnitTest(unittest.TestCase):
 
   def setUp(self):
     self.metric = smoothness.SmoothnessMetric()
-    self.page = page_module.Page('file://blank.html')
+    self.page = page_module.Page('file://blank.html', name='blank.html')
     self.good_timestamps = [[10, 20], [30, 40, 50]]
     self.not_enough_frames_timestamps = [[10], [20, 30, 40]]
 
