@@ -219,9 +219,11 @@ import itertools
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tarfile
+import zipfile
 
 _SYMBOLS_PATH = os.path.abspath(os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
@@ -796,6 +798,9 @@ class Trace(NodeWrapper):
     self._heap_dump_version = None
     self._version = None
     self._is_chromium = True
+    self._is_64bit = False
+    self._is_win = False
+    self._is_mac = False
 
     # Misc per-process information needed only during parsing.
     class ProcessExt(object):
@@ -814,7 +819,21 @@ class Trace(NodeWrapper):
       self._version = product_version.split('/', 1)[-1]
 
       command_line = metadata['command_line']
-      self._is_chromium = re.search('chromium', command_line, re.IGNORECASE)
+      self._is_win = re.search('windows', metadata['os-name'] , re.IGNORECASE)
+      self._is_mac = re.search('mac', metadata['os-name'] , re.IGNORECASE)
+
+      if self._is_win:
+        self._is_chromium = (
+          not re.search('Chrome SxS\\\\Application\\\\chrome.exe', command_line,
+                        re.IGNORECASE) and
+          not re.search('Chrome\\\\Application\\\\chrome.exe', command_line,
+                        re.IGNORECASE))
+directly      if self._is_mac:
+        self._is_chromium = re.search('chromium', command_line, re.IGNORECASE)
+
+      self._is_64bit = (
+        re.search('x86_64', metadata['os-arch'] , re.IGNORECASE) and
+        not re.search('WOW64', metadata['user-agent'] , re.IGNORECASE))
 
     # Android traces produced via 'chrome://inspect/?tracing#devices' are
     # just list of events.
@@ -912,6 +931,18 @@ class Trace(NodeWrapper):
   @property
   def is_chromium(self):
     return self._is_chromium
+
+  @property
+  def is_mac(self):
+    return self._is_mac
+
+  @property
+  def is_win(self):
+    return self._is_win
+
+  @property
+  def is_64bit(self):
+    return self._is_64bit
 
   def ApplyModifications(self):
     """Propagates modifications back to the trace JSON."""
@@ -1043,7 +1074,7 @@ class Symbolizer(object):
     chars_for_other_arguments = len(' '.join(cmd_base)) + 1
 
     # The maximum number of inputs that can be processed at once is limited by
-    # ARG_MAX. This currently evalutes to ~13000 on macOS.
+    # ARG_MAX. This currently evaluates to ~13000 on macOS.
     max_inputs = (chars_max - chars_for_other_arguments) / chars_per_address
 
     all_keys = symfile.frames_by_address.keys()
@@ -1071,7 +1102,7 @@ class Symbolizer(object):
     any process using the symbol API for files do not have a local PDB.
 
     Thus, even though the windows symbolizer binary can be make command line
-    compatible with the POSIX addr2line interface, paralellizing the
+    compatible with the POSIX addr2line interface, parallelizing the
     symbolization does not yield the same performance effects. Running
     just one symbolizer seems good enough for now. Can optimize later
     if this becomes a bottleneck.
@@ -1149,7 +1180,7 @@ def SymbolizeFiles(symfiles, symbolizer):
 
     _SubPrintf('Symbolizing {} PCs from {}...',
                len(symfile.frames_by_address),
-               symfile.path)
+               symfile.symbolizable_path)
 
     symbolizer.Symbolize(symfile, unsymbolized_name)
 
@@ -1196,6 +1227,15 @@ def RemapMacFiles(symfiles, symbol_base_directory, version):
     if symfile.path.endswith("Google Chrome Framework"):
       symfile.symbolizable_path = symbolizable_path
 
+def RemapWinFiles(symfiles, symbol_base_directory, version, is64bit):
+  folder = "win64" if is64bit else "win"
+  symbol_sub_dir = os.path.join(symbol_base_directory,
+                                "chrome-" + folder + "-" + version)
+  for symfile in symfiles:
+    image = os.path.join(symbol_sub_dir, os.path.basename(symfile.path))
+    symbols = image + ".pdb"
+    if os.path.isfile(image) and os.path.isfile(symbols):
+      symfile.symbolizable_path = image
 
 def Symbolize(options, trace, symbolizer):
   symfiles = ResolveSymbolizableFiles(trace.processes)
@@ -1208,9 +1248,13 @@ def Symbolize(options, trace, symbolizer):
                'specify output directory to properly symbolize it.')
     RemapAndroidFiles(symfiles, os.path.abspath(options.output_directory))
 
-  if symbolizer.is_mac:
-    if not trace.is_chromium:
+
+  if not trace.is_chromium:
+    if symbolizer.is_mac:
       RemapMacFiles(symfiles, options.symbol_base_directory, trace.version)
+    if symbolizer.is_win:
+      RemapWinFiles(symfiles, options.symbol_base_directory, trace.version,
+                    trace.is_64bit)
 
   SymbolizeFiles(symfiles, symbolizer)
 
@@ -1222,7 +1266,7 @@ def OpenTraceFile(file_path, mode):
     return open(file_path, mode + 't')
 
 
-def FetchAndExtractSymbols(symbol_base_directory, version):
+def FetchAndExtractSymbolsMac(symbol_base_directory, version):
   def GetLocalPath(base_dir, version):
     return os.path.join(base_dir, version + ".tar.bz2")
   def GetSymbolsPath(version):
@@ -1241,11 +1285,60 @@ def FetchAndExtractSymbols(symbol_base_directory, version):
 
     _CLOUD_STORAGE_BUCKET = "chrome-unsigned"
     if not cloud_storage.Exists(_CLOUD_STORAGE_BUCKET, GetSymbolsPath(version)):
+      print "Can't find symbols on GCS."
       return False
+    print "Downloading symbols files from GCS, please wait."
     cloud_storage.Get(_CLOUD_STORAGE_BUCKET, GetSymbolsPath(version), bzip_path)
 
   ExtractSymbolTarFile(symbol_sub_dir, bzip_path)
+  return True
 
+
+def FetchAndExtractSymbolsWin(symbol_base_directory, version, is64bit):
+  def DownloadAndExtractZipFile(zip_path, source, destination):
+    if not os.path.isfile(zip_path):
+      _CLOUD_STORAGE_BUCKET = "chrome-unsigned"
+      if not cloud_storage.Exists(_CLOUD_STORAGE_BUCKET, source):
+        print "Can't find symbols on GCS."
+        return False
+      print "Downloading symbols files from GCS, please wait."
+      cloud_storage.Get(_CLOUD_STORAGE_BUCKET, source, zip_path)
+      if not os.path.isfile(zip_path):
+        print "Can't download symbols on GCS."
+        return False
+    with zipfile.ZipFile(zip_path, "r") as zip:
+      for member in zip.namelist():
+         filename = os.path.basename(member)
+         # Skip directories.
+         if not filename:
+           continue
+         # Extract archived files.
+         source = zip.open(member)
+         target = file(os.path.join(symbol_sub_dir, filename), "wb")
+         with source, target:
+           shutil.copyfileobj(source, target)
+
+  folder = "win64" if is64bit else "win"
+  gcs_folder = "desktop-*/" + version + "/" + folder + "-pgo/"
+
+  symbol_sub_dir = os.path.join(symbol_base_directory,
+                                "chrome-" + folder + "-" + version)
+  if os.path.isdir(symbol_sub_dir):
+    return True
+
+  os.makedirs(symbol_sub_dir)
+  DownloadAndExtractZipFile(
+      os.path.join(symbol_base_directory,
+                   "chrome-" + folder + "-" + version + "-syms.zip"),
+      gcs_folder + "chrome-win32-syms.zip",
+      symbol_sub_dir)
+  DownloadAndExtractZipFile(
+      os.path.join(symbol_base_directory,
+                   "chrome-" + folder + "-" + version + ".zip"),
+      gcs_folder + "chrome-" + folder + "-pgo.zip",
+      symbol_sub_dir)
+
+  return True
 
 # Suffix used for backup files.
 BACKUP_FILE_TAG = '.BACKUP'
@@ -1283,13 +1376,26 @@ def main():
   with OpenTraceFile(trace_file_path, 'r') as trace_file:
     trace = Trace(json.load(trace_file))
 
-  if symbolizer.is_mac:
-    # If the trace is from Chromium, assume that symbols are already present.
-    # Otherwise the trace is from Google Chrome. Assume that this is not a local
-    # build of Google Chrome with symbols, and that we need to fetch symbols
-    # from gcs.
-    if not trace.is_chromium:
-      FetchAndExtractSymbols(options.symbol_base_directory, trace.version)
+  # Perform some sanity checks.
+  if trace.is_win and sys.platform != 'win32':
+    print "Cannot symbolize a windows trace on this architecture!"
+    return False
+
+  # If the trace is from Chromium, assume that symbols are already present.
+  # Otherwise the trace is from Google Chrome. Assume that this is not a local
+  # build of Google Chrome with symbols, and that we need to fetch symbols
+  # from gcs.
+  if not trace.is_chromium:
+    has_symbols = False
+    if symbolizer.is_mac:
+      has_symbols = FetchAndExtractSymbolsMac(options.symbol_base_directory,
+                                              trace.version)
+    if symbolizer.is_win:
+      has_symbols = FetchAndExtractSymbolsWin(options.symbol_base_directory,
+                                              trace.version, trace.is_64bit)
+    if not has_symbols:
+      print 'Cannot fetch symbols from GCS'
+      return False
 
   Symbolize(options, trace, symbolizer)
 
