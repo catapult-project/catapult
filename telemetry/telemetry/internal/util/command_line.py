@@ -5,7 +5,7 @@
 import argparse
 import optparse
 
-from telemetry.internal.util import camel_case
+from py_utils import camel_case
 
 
 class ArgumentHandlerMixIn(object):

@@ -4,7 +4,7 @@
 
 import unittest
 
-from telemetry.internal.util import camel_case
+from py_utils import camel_case
 
 
 class CamelCaseTest(unittest.TestCase):

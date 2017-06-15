@@ -4,7 +4,7 @@
 
 from telemetry.internal.backends.chrome_inspector import inspector_websocket
 from telemetry.internal.platform import system_info
-from telemetry.internal.util import camel_case
+from py_utils import camel_case
 
 
 class SystemInfoBackend(object):

@@ -8,7 +8,7 @@ import os
 import re
 import sys
 
-from telemetry.internal.util import camel_case
+from py_utils import camel_case
 from telemetry.internal.util import classes as classes_module
 
 
