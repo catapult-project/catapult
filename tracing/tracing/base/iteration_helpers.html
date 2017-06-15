@@ -187,24 +187,6 @@ tr.exportTo('tr.b', function() {
     }
   }
 
-  function iterObjectFieldsRecursively(object, func) {
-    if (!(object instanceof Object)) return;
-
-    if (object instanceof Array) {
-      for (let i = 0; i < object.length; i++) {
-        func(object, i, object[i]);
-        iterObjectFieldsRecursively(object[i], func);
-      }
-      return;
-    }
-
-    for (const key in object) {
-      const value = object[key];
-      func(object, key, value);
-      iterObjectFieldsRecursively(value, func);
-    }
-  }
-
   /**
    * Convert an array of dictionaries to a dictionary of arrays.
    *
@@ -372,7 +354,6 @@ tr.exportTo('tr.b', function() {
     mapItems,
     filterItems,
     inPlaceFilter,
-    iterObjectFieldsRecursively,
     invertArrayOfDicts,
     arrayToDict,
     identity,

@@ -39,28 +39,6 @@ tr.exportTo('tr.e.cc', function() {
     return convertedNameCache[name];
   }
 
-  function convertObjectFieldNamesToJSConventions(object) {
-    tr.b.iterObjectFieldsRecursively(
-        object,
-        function(object, fieldName, fieldValue) {
-          delete object[fieldName];
-          object[newFieldName] = fieldValue;
-          return newFieldName;
-        });
-  }
-
-  function convertQuadSuffixedTypesToQuads(object) {
-    tr.b.iterObjectFieldsRecursively(
-        object,
-        function(object, fieldName, fieldValue) {
-        });
-  }
-
-  function convertObject(object) {
-    convertObjectFieldNamesToJSConventions(object);
-    convertQuadSuffixedTypesToQuads(object);
-  }
-
   function moveRequiredFieldsFromArgsToToplevel(object, fields) {
     for (let i = 0; i < fields.length; i++) {
       const key = fields[i];
