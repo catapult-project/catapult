@@ -14,12 +14,12 @@ import re
 import subprocess
 import sys
 
-_SYMBOLS_PATH = os.path.abspath(os.path.join(
+sys.path.append(os.path.abspath(os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
-    '..',
-    'third_party',
-    'symbols'))
-sys.path.append(_SYMBOLS_PATH)
+    '..', '..', '..', 'tracing', 'bin')))
+sys.path.append(os.path.abspath(os.path.join(
+    os.path.dirname(os.path.realpath(__file__)),
+    '..', '..', '..', 'tracing', 'third_party', 'symbols')))
 # pylint: disable=import-error
 import symbols.elf_symbolizer as elf_symbolizer
 
