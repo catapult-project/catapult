@@ -11,6 +11,7 @@ import webtest
 from dashboard import add_histograms
 from dashboard.common import testing_common
 from tracing.value import histogram as histogram_module
+from tracing.value import histogram_set
 
 
 class AddHistogramsTest(testing_common.TestCase):
@@ -103,7 +104,7 @@ class AddHistogramsTest(testing_common.TestCase):
 
   def testFindHistogramLevelSparseDiagnostics(self):
     histogram = histogram_module.Histogram('hist', 'count')
-    histograms = histogram_module.HistogramSet([histogram])
+    histograms = histogram_set.HistogramSet([histogram])
     histograms.AddSharedDiagnostic('foo', histogram_module.Generic('bar'))
     histograms.AddSharedDiagnostic(
         'telemetry', histogram_module.TelemetryInfo())
@@ -115,7 +116,7 @@ class AddHistogramsTest(testing_common.TestCase):
 
   def testComputeTestPathWithStory(self):
     histogram = histogram_module.Histogram('hist', 'count')
-    histograms = histogram_module.HistogramSet([histogram])
+    histograms = histogram_set.HistogramSet([histogram])
     telemetry_info = histogram_module.TelemetryInfo()
     telemetry_info.AddInfo({
         'storyDisplayName': 'story',
@@ -133,7 +134,7 @@ class AddHistogramsTest(testing_common.TestCase):
 
   def testComputeTestPathWithoutStory(self):
     histogram = histogram_module.Histogram('hist', 'count')
-    histograms = histogram_module.HistogramSet([histogram])
+    histograms = histogram_set.HistogramSet([histogram])
     telemetry_info = histogram_module.TelemetryInfo()
     telemetry_info.AddInfo({
         'benchmarkName': 'benchmark'
@@ -150,7 +151,7 @@ class AddHistogramsTest(testing_common.TestCase):
 
   def testComputeRevision(self):
     histogram = histogram_module.Histogram('hist', 'count')
-    histograms = histogram_module.HistogramSet([histogram])
+    histograms = histogram_set.HistogramSet([histogram])
     revision_info = histogram_module.RevisionInfo({
         'chromiumCommitPosition': 424242
     })
@@ -159,7 +160,7 @@ class AddHistogramsTest(testing_common.TestCase):
 
   def testSparseDiagnosticsAreNotInlined(self):
     histogram = histogram_module.Histogram('hist', 'count')
-    histograms = histogram_module.HistogramSet([histogram])
+    histograms = histogram_set.HistogramSet([histogram])
     histograms.AddSharedDiagnostic('foo', histogram_module.BuildbotInfo({
         'displayMasterName': 'dmn',
         'displayBotName': 'dbn',

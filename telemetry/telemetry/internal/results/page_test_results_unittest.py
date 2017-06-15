@@ -21,6 +21,7 @@ from telemetry.value import skip
 from telemetry.value import trace
 from tracing.trace_data import trace_data
 from tracing.value import histogram as histogram_module
+from tracing.value import histogram_set
 
 
 class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
@@ -443,7 +444,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     histogram_dicts = results.AsHistogramDicts()
     self.assertEquals(2, len(histogram_dicts))
 
-    hs = histogram_module.HistogramSet()
+    hs = histogram_set.HistogramSet()
     hs.ImportDicts(histogram_dicts)
 
     diagnostic = hs.LookupDiagnostic(original_diagnostic.guid)

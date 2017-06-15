@@ -26,7 +26,7 @@ from telemetry.value import skip
 from telemetry.value import trace
 
 from tracing.value import convert_chart_json
-from tracing.value import histogram
+from tracing.value import histogram_set
 
 class TelemetryInfo(object):
   def __init__(self):
@@ -150,7 +150,7 @@ class PageTestResults(object):
     self._pages_to_profiling_files = collections.defaultdict(list)
     self._pages_to_profiling_files_cloud_url = collections.defaultdict(list)
 
-    self._histograms = histogram.HistogramSet()
+    self._histograms = histogram_set.HistogramSet()
 
     self._telemetry_info = TelemetryInfo()
 

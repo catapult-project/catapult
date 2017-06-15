@@ -39,6 +39,7 @@ from telemetry.web_perf import story_test
 from telemetry.web_perf import timeline_based_measurement
 from telemetry.wpr import archive_info
 from tracing.value import histogram as histogram_module
+from tracing.value import histogram_set
 
 
 # This linter complains if we define classes nested inside functions.
@@ -1333,10 +1334,10 @@ class StoryRunnerTest(unittest.TestCase):
       with open(os.path.join(temp_path, 'histograms.json')) as f:
         data = json.load(f)
 
-      histogram_set = histogram_module.HistogramSet()
-      histogram_set.ImportDicts(data)
+      hs = histogram_set.HistogramSet()
+      hs.ImportDicts(data)
 
-      ownership_diagnostics = histogram_set.GetSharedDiagnosticsOfType(
+      ownership_diagnostics = hs.GetSharedDiagnosticsOfType(
         histogram_module.Ownership)
 
       self.assertGreater(len(ownership_diagnostics), 0)
@@ -1369,10 +1370,10 @@ class StoryRunnerTest(unittest.TestCase):
       with open(os.path.join(temp_path, 'histograms.json')) as f:
         data = json.load(f)
 
-      histogram_set = histogram_module.HistogramSet()
-      histogram_set.ImportDicts(data)
+      hs = histogram_set.HistogramSet()
+      hs.ImportDicts(data)
 
-      ownership_diagnostics = histogram_set.GetSharedDiagnosticsOfType(
+      ownership_diagnostics = hs.GetSharedDiagnosticsOfType(
         histogram_module.Ownership)
 
       self.assertGreater(len(ownership_diagnostics), 0)

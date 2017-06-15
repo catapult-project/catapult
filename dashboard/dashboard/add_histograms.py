@@ -11,6 +11,7 @@ from google.appengine.api import taskqueue
 from dashboard import post_data_handler
 from dashboard.common import datastore_hooks
 from tracing.value import histogram as histogram_module
+from tracing.value import histogram_set
 
 
 SUITE_LEVEL_SPARSE_DIAGNOSTIC_TYPES = set(
@@ -51,7 +52,7 @@ class AddHistogramsHandler(post_data_handler.PostDataHandler):
 def ProcessHistogramSet(histogram_dicts):
   if not isinstance(histogram_dicts, list):
     raise BadRequestError('HistogramSet JSON much be a list of dicts')
-  histograms = histogram_module.HistogramSet()
+  histograms = histogram_set.HistogramSet()
   histograms.ImportDicts(histogram_dicts)
   histograms.ResolveRelatedHistograms()
   InlineDenseSharedDiagnostics(histograms)
