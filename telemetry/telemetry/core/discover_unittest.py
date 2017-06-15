@@ -107,3 +107,41 @@ class DiscoverTest(unittest.TestCase):
             'DummyExceptionWithParameterImpl1',
     }
     self.assertEqual(actual_classes, expected_classes)
+
+
+class ClassWithoutInitDefOne:  # pylint: disable=old-style-class, no-init
+  pass
+
+
+class ClassWithoutInitDefTwo(object):
+  pass
+
+
+class ClassWhoseInitOnlyHasSelf(object):
+  def __init__(self):
+    pass
+
+
+class ClassWhoseInitWithDefaultArguments(object):
+  def __init__(self, dog=1, cat=None, cow=None, fud='a'):
+    pass
+
+
+class ClassWhoseInitWithDefaultArgumentsAndNonDefaultArguments(object):
+  def __init__(self, x, dog=1, cat=None, fish=None, fud='a'):
+    pass
+
+
+class IsDirectlyConstructableTest(unittest.TestCase):
+
+  def testIsDirectlyConstructableReturnsTrue(self):
+    self.assertTrue(discover.IsDirectlyConstructable(ClassWithoutInitDefOne))
+    self.assertTrue(discover.IsDirectlyConstructable(ClassWithoutInitDefTwo))
+    self.assertTrue(discover.IsDirectlyConstructable(ClassWhoseInitOnlyHasSelf))
+    self.assertTrue(
+        discover.IsDirectlyConstructable(ClassWhoseInitWithDefaultArguments))
+
+  def testIsDirectlyConstructableReturnsFalse(self):
+    self.assertFalse(
+        discover.IsDirectlyConstructable(
+            ClassWhoseInitWithDefaultArgumentsAndNonDefaultArguments))

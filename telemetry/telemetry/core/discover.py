@@ -9,7 +9,6 @@ import re
 import sys
 
 from py_utils import camel_case
-from telemetry.internal.util import classes as classes_module
 
 
 def DiscoverModules(start_dir, top_level_dir, pattern='*'):
@@ -155,8 +154,7 @@ def DiscoverClassesInModule(module,
       key_name = camel_case.ToUnderscore(obj.__name__)
     else:
       key_name = module.__name__.split('.')[-1]
-    if (not directly_constructable or
-        classes_module.IsDirectlyConstructable(obj)):
+    if not directly_constructable or IsDirectlyConstructable(obj):
       if key_name in classes and index_by_class_name:
         assert classes[key_name] is obj, (
           'Duplicate key_name with different objs detected: '
@@ -165,6 +163,23 @@ def DiscoverClassesInModule(module,
         classes[key_name] = obj
 
   return classes
+
+
+def IsDirectlyConstructable(cls):
+  """Returns True if instance of |cls| can be construct without arguments."""
+  assert inspect.isclass(cls)
+  if not hasattr(cls, '__init__'):
+    # Case |class A: pass|.
+    return True
+  if cls.__init__ is object.__init__:
+    # Case |class A(object): pass|.
+    return True
+  # Case |class (object):| with |__init__| other than |object.__init__|.
+  args, _, _, defaults = inspect.getargspec(cls.__init__)
+  if defaults is None:
+    defaults = ()
+  # Return true if |self| is only arg without a default.
+  return len(args) == len(defaults) + 1
 
 
 _counter = [0]
