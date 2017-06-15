@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/metrics/system_health/time_to_interactive.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  const findConsistentlyInteractiveTimestamp =
+      tr.metrics.sh.findConsistentlyInteractiveTimestamp;
+
+  test('findConsistentlyInteractiveTimestamp_' +
+       'doesNotWaitForTasksFarAwayWithoutNetworkRequests', () => {
+    const longTasks = [
+      {start: 50, end: 200},
+      {start: 300, end: 400},
+      // More than 5000ms gap here.
+      {start: 7000, end: 7200}
+    ].map(options => tr.c.TestUtils.newSliceEx(options));
+
+    assert.closeTo(
+        findConsistentlyInteractiveTimestamp(0, 10000, 50, longTasks, []),
+        400, 1e-7);
+  });
+
+  test('findConsistentlyInteractiveTimestamp_' +
+       'waitsForTasksFarAwayWhenNetworkIsBusy', () => {
+    const longTasks = [
+      {start: 50, end: 200},
+      {start: 300, end: 400},
+      // More than 5000ms gap here.
+      {start: 7000, end: 7200}
+    ].map(options => tr.c.TestUtils.newSliceEx(options));
+
+    const networkRequests = [
+      {start: 300, end: 3000},
+      {start: 500, end: 2900},
+      {start: 600, end: 3100},
+    ].map(options => tr.c.TestUtils.newSliceEx(options));
+
+    // Last network 2-quiet region starts at 2900, while the next long task
+    // starts at 7000. We don't have 5 seconds of quiet window before that long
+    // task.
+    assert.closeTo(findConsistentlyInteractiveTimestamp(
+        0, 20000, 50, longTasks, networkRequests), 7200, 1e-7);
+  });
+
+  test('findConsistentlyInteractiveTimestamp_' +
+       'noQuietWindowBecauseOfLongTask', () => {
+    const longTasks = [
+      {start: 50, end: 200},
+      {start: 300, end: 400},
+    ].map(options => tr.c.TestUtils.newSliceEx(options));
+
+    // windowEnd is 2400, so we don't get 5 seconds on quiet window after 400.
+    assert.isUndefined(findConsistentlyInteractiveTimestamp(
+        0, 2400, 50, longTasks, []));
+  });
+
+  test('findConsistentlyInteractiveTimestamp_' +
+       'noQuietWindowBecauseOfNetwork', () => {
+    const networkRequests = [
+      {start: 50, end: 200},
+      {start: 51, end: 300},
+      {start: 52, end: 400},
+    ].map(options => tr.c.TestUtils.newSliceEx(options));
+
+    // windowEnd is 2200, and beginning of last network 2-quiet region is 200.
+    // We don't have a 5 second quiet window.
+    assert.isUndefined(findConsistentlyInteractiveTimestamp(
+        0, 2200, 50, [], networkRequests));
+  });
+
+  test('findConsistentlyInteractiveTimestamp_' +
+       'network2QuietHappensAfterLastLongTask', () => {
+    const longTasks = [
+      {start: 50, end: 200},
+      {start: 300, end: 400},
+      // More than 5000ms gap here.
+      {start: 7000, end: 7200}
+    ].map(options => tr.c.TestUtils.newSliceEx(options));
+
+    const networkRequests = [
+      {start: 300, end: 8000},
+      {start: 500, end: 8100},
+      {start: 600, end: 8300},
+    ].map(options => tr.c.TestUtils.newSliceEx(options));
+
+    assert.closeTo(findConsistentlyInteractiveTimestamp(
+        0, 20000, 50, longTasks, networkRequests), 7200, 1e-7);
+  });
+
+
+  test('findConsistentlyInteractiveTimestamp_' +
+       'longEnoughNetwork2QuietBeforeLastLongTask', () => {
+    const longTasks = [
+      {start: 50, end: 200},
+      {start: 300, end: 400},
+      // More than 5000ms gap here.
+      {start: 7000, end: 7200}
+    ].map(options => tr.c.TestUtils.newSliceEx(options));
+
+    const networkRequests = [
+      {start: 300, end: 1000},
+      {start: 500, end: 1100},
+      {start: 600, end: 1200},
+    ].map(options => tr.c.TestUtils.newSliceEx(options));
+
+
+    // 1000ms is the beginning of last network 2-quiet region, and we have a 5s
+    // window between that and the start of next long task.
+    assert.closeTo(findConsistentlyInteractiveTimestamp(
+        0, 20000, 50, longTasks, networkRequests), 400, 1e-7);
+  });
+
+  test('findConsistentlyInteractiveTimestamp_' +
+       'isLowerBoundedAtDCL', () => {
+    const longTasks = [
+      {start: 50, end: 200}
+    ].map(options => tr.c.TestUtils.newSliceEx(options));
+
+    // End of last long task is 200, but FCI is still 5000 because of
+    // DOMContentLoadedEnd being at 5000.
+    assert.closeTo(findConsistentlyInteractiveTimestamp(
+        0, 20000, 5000, longTasks, []), 5000, 1e-7);
+  });
+
+
+  test('findConsistentlyInteractiveTimestamp_' +
+       'returnsWindowStartWhenNoLongTasks', () => {
+    // Note that it is possible for DOMContentLoadedEnd to happen before
+    // windowStart, since windowStart is usually First Meaningful Paint. If
+    // there are no long tasks, and DCL is before windowStart, FCI should be
+    // windowStart.
+    assert.closeTo(findConsistentlyInteractiveTimestamp(
+        1000, 20000, 500, [], []), 1000, 1e-7);
+  });
+
+  test('findConsistentlyInteractiveTimestamp' +
+       'networkRequestStartsBeforeWindowStart', () => {
+    const longTasks = [
+      {start: 7000, end: 7200}
+    ].map(options => tr.c.TestUtils.newSliceEx(options));
+
+    const networkRequests = [
+      {start: 0, end: 6000},
+      {start: 10, end: 6100},
+      {start: 20, end: 6200}
+    ].map(options => tr.c.TestUtils.newSliceEx(options));
+
+    // windowStart is now 1000. All three network requests start before
+    // windowStart, but should still manage to block netowrk 2-quiet.
+    assert.closeTo(findConsistentlyInteractiveTimestamp(
+        1000, 20000, 1050, longTasks, networkRequests), 7200, 1e-7);
+  });
+});
+</script>

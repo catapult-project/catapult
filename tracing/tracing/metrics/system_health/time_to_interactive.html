@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/base/base.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.metrics.sh', function() {
+  // Required quiet window size for Time to Consistently Interactive.
+  const CONSISTENTLY_INTERACTIVE_WINDOW_SIZE_MS = 5000;
+
+  // Number of requests tolerated before network is considered busy.
+  const ACTIVE_REQUEST_TOLERANCE = 2;
+
+  /**
+   * Enum for endpoint types.
+   * @enum {string}
+   */
+  const ENDPOINT_TYPES = {
+    LONG_TASK_START: 'LONG_TASK_START',
+    LONG_TASK_END: 'LONG_TASK_END',
+    REQUEST_START: 'REQUEST_START',
+    REQUEST_END: 'REQUEST_END'
+  };
+
+  /**
+   * @typedef {Object} Endpoint
+   * @property {number} time - timestamp of endpoint.
+   * @property {string} type - A type defined in |ENDPOINT_TYPES|.
+   * originates from.
+   */
+
+  /**
+   * Returns an array of endpoints. An endpoint is either the start or end
+   * timestamp of a TimedEvent.
+   *
+   * @param {Array.<!tr.model.TimedEvent>} events - Events to extract endpoints
+   * from.
+   * @param {string} startType - Endpoint type for a start time endpoint.
+   * @param {string} endType - Endpoint type for an end time endpoint.
+   * @returns {Array.<!Endpoint>}
+   */
+  function getEndpoints_(events, startType, endType) {
+    const endpoints = [];
+    for (const event of events) {
+      endpoints.push({
+        time: event.start,
+        type: startType
+      });
+      endpoints.push({
+        time: event.end,
+        type: endType
+      });
+    }
+
+    return endpoints;
+  }
+
+  /**
+   * Returns true if at time |timestamp| we have a long enough quiet window for
+   * determining Time to Consistently Interactive.
+   *
+   * @param {number} timestamp - Timestamp of interest.
+   * @param {number} networkQuietWindowStart - Most recent timestamp when the
+   * renderer became network 2-quiet. Undefined if renderer is not network
+   * 2-quiet at |timestamp|.
+   * @param {number} mainThreadQuietWindowStart - End of most recent long task.
+   * Undefined if a long task is in progress at |timestamp|.
+   * @returns {boolean}
+   */
+  function reachedFCIQuiescense_(timestamp,
+      networkQuietWindowStart, mainThreadQuietWindowStart) {
+    if (networkQuietWindowStart === undefined ||
+        mainThreadQuietWindowStart === undefined) {
+      return false;
+    }
+
+    const mainThreadQuietForLongEnough =
+          timestamp - mainThreadQuietWindowStart >=
+          CONSISTENTLY_INTERACTIVE_WINDOW_SIZE_MS;
+
+    const networkQuietForLongEnough =
+          timestamp - networkQuietWindowStart >=
+          CONSISTENTLY_INTERACTIVE_WINDOW_SIZE_MS;
+
+    return mainThreadQuietForLongEnough && networkQuietForLongEnough;
+  }
+
+  /**
+   * Returns the timestamp for when the page first becomes Consistently
+     Interactive.
+   *
+   * See https://goo.gl/IN68jL for detailed explanation of definition and
+   * motivations. To summarize, we look for a 5 second window starting from
+   * between |searchBegin| and |searchEnd| such that there is no long task
+   * overlapping with that window, and the entire window is network 2-quiet. A
+   * long task is defined as a main thread task with wall duration longer than
+   * 50ms, and network 2-quiet means the window never has more than 2 concurrent
+   * in-flight network requests. FCI 'candidate' is defined as end of the last
+   * long task before this quiet window, or as |searchBegin| if there is no long
+   * task before that window. We define FCI as max of FCI candidate and
+   * DOMContentLoadedEnd.
+   *
+   * Returns undefined if no suitable quiet window is found.
+   *
+   * @param {number} searchBegin - The left boundary for our search for quiet
+   * window. Ideally, this is First Meaningful Paint, but if FMP is not
+   * available, First Contentful Paint or DOMContentLoadedEnd may be used as an
+   * approximation.
+   * @param {number} searchEnd - The right boundary for our search for quiet
+   * window. This is either the start of next navigationStart request, or end of
+   * traces.
+   * @param {number} DOMContentLoadedEnd - Timestamp of DOMContentLoadedEnd
+   * event for the main loading frame.
+   * @param {Array.<!tr.model.TimedEvent>} longTasks - Main thread tasks longer
+   * than 50ms overlapping with the search window.
+   * @param {Array.<!tr.model.TimedEvent>} networkRequests - Resource
+   * requests overlapping with the search window.
+   * @returns {number|undefined}
+   */
+  function findConsistentlyInteractiveTimestamp(searchBegin, searchEnd,
+      DOMContentLoadedEnd, longTasksInWindow, networkRequests) {
+    // It is sufficient to only look at the end points of long tasks and network
+    // requests. These are the points where any meaningful changes happen.
+    const longTaskEndpoints = getEndpoints_(longTasksInWindow,
+        ENDPOINT_TYPES.LONG_TASK_START, ENDPOINT_TYPES.LONG_TASK_END);
+    const networkRequestEndpoints = getEndpoints_(networkRequests,
+        ENDPOINT_TYPES.REQUEST_START, ENDPOINT_TYPES.REQUEST_END);
+    const endpoints = longTaskEndpoints.concat(networkRequestEndpoints);
+    endpoints.sort((a, b) => a.time - b.time);
+
+    let networkQuietWindowStart = searchBegin;
+    let mainThreadQuietWindowStart = searchBegin;
+    let fciCandidate = undefined;
+    let activeRequests = 0;
+
+    for (const endpoint of endpoints) {
+      if (reachedFCIQuiescense_(endpoint.time,
+          networkQuietWindowStart, mainThreadQuietWindowStart)) {
+        fciCandidate = mainThreadQuietWindowStart;
+        break;
+      }
+
+      switch (endpoint.type) {
+        case ENDPOINT_TYPES.LONG_TASK_START:
+          mainThreadQuietWindowStart = undefined;
+          break;
+        case ENDPOINT_TYPES.LONG_TASK_END:
+          mainThreadQuietWindowStart = endpoint.time;
+          break;
+        case ENDPOINT_TYPES.REQUEST_START:
+          activeRequests++;
+          if (activeRequests > ACTIVE_REQUEST_TOLERANCE) {
+            networkQuietWindowStart = undefined;
+          }
+          break;
+        case ENDPOINT_TYPES.REQUEST_END:
+          activeRequests--;
+          if (activeRequests === ACTIVE_REQUEST_TOLERANCE) {
+            // Just became network 2-quiet.
+            networkQuietWindowStart = endpoint.time;
+          }
+          break;
+        default:
+          // This should never happen.
+          throw new Error('Internal Error: Unhandled endpoint type.');
+      }
+    }
+
+    if (reachedFCIQuiescense_(searchEnd,
+        networkQuietWindowStart, mainThreadQuietWindowStart)) {
+      fciCandidate = mainThreadQuietWindowStart;
+    }
+
+    if (fciCandidate === undefined) return undefined;
+
+    return Math.max(fciCandidate, DOMContentLoadedEnd);
+  }
+
+  return {
+    findConsistentlyInteractiveTimestamp,
+  };
+});
+</script>
