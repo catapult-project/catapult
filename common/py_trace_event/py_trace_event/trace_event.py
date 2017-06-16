@@ -61,6 +61,11 @@ def trace_can_enable():
   """
   return trace_event_impl != None
 
+# Default TracedMetaClass to type incase trace_event_impl is not defined.
+# This is to avoid exception during import time since TracedMetaClass typically
+# used in class definition scope.
+TracedMetaClass = type
+
 if trace_event_impl:
   import time
 
