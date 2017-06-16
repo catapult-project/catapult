@@ -24,6 +24,7 @@ if sys.version_info < (2, 7):
 def _JoinPath(*path_parts):
   return os.path.abspath(os.path.join(*path_parts))
 
+
 def _InsertPath(path):
   assert os.path.isdir(path), 'Not a valid path: %s' % path
   if path not in sys.path:
@@ -32,9 +33,11 @@ def _InsertPath(path):
     # after sys.path[0].
     sys.path.insert(1, path)
 
+
 def _AddDirToPythonPath(*path_parts):
   path = _JoinPath(*path_parts)
   _InsertPath(path)
+
 
 # Matches only 0 or 1 glob results
 def _AddOptionalSingleGlobToPythonPath(*match_path_parts):
