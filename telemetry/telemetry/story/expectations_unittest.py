@@ -355,6 +355,14 @@ class StoryExpectationsTest(unittest.TestCase):
     with self.assertRaises(AssertionError):
       FooExpectations()
 
+  def testDisableStoryWithLongNameStartsWithHttp(self):
+    class FooExpectations(expectations.StoryExpectations):
+      def SetExpectations(self):
+        self.DisableStory(
+            'http123456789012345678901234567890123456789012345678901',
+            [expectations.ALL], 'Too Long')
+    FooExpectations()
+
   def testGetBrokenExpectationsNotMatching(self):
     class FooExpectations(expectations.StoryExpectations):
       def SetExpectations(self):

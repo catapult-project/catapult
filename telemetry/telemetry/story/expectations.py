@@ -92,13 +92,16 @@ class StoryExpectations(object):
       reason: Reason for disabling the story.
     """
     assert reason, 'A reason for disabling must be given.'
-    assert len(story_name) < 50, (
-        "Story name exceeds limit of 50 characters. This limit is in place to "
-        "encourage Telemetry benchmark owners to use short, simple story names "
-        "(e.g. 'google_search_images', not "
-        "'http://www.google.com/images/1234/abc')."
+    # TODO(rnephew): Remove http check when old stories that use urls as names
+    # are removed.
+    if not story_name.startswith('http'):
+      assert len(story_name) < 50, (
+          "Story name exceeds limit of 50 characters. This limit is in place to"
+          " encourage Telemetry benchmark owners to use short, simple story "
+          "names (e.g. 'google_search_images', not "
+          "'http://www.google.com/images/1234/abc')."
 
-    )
+      )
     assert not self._frozen, ('Cannot disable stories on a frozen '
                               'StoryExpectation object.')
     for condition in conditions:
