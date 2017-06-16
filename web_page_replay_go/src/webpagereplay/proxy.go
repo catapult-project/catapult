@@ -4,7 +4,7 @@
 
 package webpagereplay
 
-mport (
+import (
 	"bytes"
 	"fmt"
 	"io"
