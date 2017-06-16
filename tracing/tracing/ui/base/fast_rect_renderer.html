@@ -17,16 +17,10 @@ found in the LICENSE file.
  * we never issue a canvas fillRect for them. It turns out Javascript can
  * do this quite efficiently, compared to asking Canvas2D to do the same.
  *
- * A few extra things are done by this class in the name of speed:
- * - Viewport culling: off-viewport rectangles are discarded.
- *
- * - The actual discarding operation is done in world space,
- *   e.g. pre-transform.
- *
- * - Rather than expending compute cycles trying to figure out an average
- *   color for fused rectangles from css strings, you instead draw using
- *   palletized colors. The fused rect color is choosen from the rectangle with
- *   the higher alpha value, if equal the max pallete index encountered.
+ * Rather than expending compute cycles trying to figure out an average
+ * color for fused rectangles from css strings, you instead draw using
+ * palettized colors. The fused rect color is chosen from the rectangle with
+ * the higher alpha value, if equal the max palette index encountered.
  *
  * Make sure to flush the trackRenderer before finishing drawing in order
  * to commit any queued drawing operations.
@@ -34,22 +28,32 @@ found in the LICENSE file.
 tr.exportTo('tr.ui.b', function() {
   /**
    * Creates a fast rect renderer with a specific set of culling rules
-   * and color pallette.
+   * and color palette.
+   *
+   * Rectangles that are drawn will be clipped horizontally to the range
+   * [xMin, xMax]; this is done because CanvasRenderingContext2D does not draw
+   * rectangles with coordinates of very large magnitude correctly.
+   *
    * @param {GraphicsContext2D} ctx Canvas2D drawing context.
+   * @param {number} xMin Left border of the viewport (pre-transformation).
+   * @param {number} xMax Right border of the viewport (pre-transformation).
    * @param {number} minRectSize Only rectangles with width < minRectSize are
    *    considered for merging.
-   * @param {number} maxMergeDist Controls how many successive small rectangles
-   *    can be merged together before issuing a rectangle.
-   * @param {Array} pallette The color pallete for drawing. Pallette slots
+   * @param {number} maxMergeDist Only rectangles that are at most this far
+        apart are considered for merging.
+   * @param {Array} palette The color palette for drawing. Palette slots
    *    should map to valid Canvas fillStyle strings.
    *
    * @constructor
    */
-  function FastRectRenderer(ctx, minRectSize, maxMergeDist, pallette) {
+  function FastRectRenderer(
+      ctx, xMin, xMax, minRectSize, maxMergeDist, palette) {
     this.ctx_ = ctx;
+    this.xMin_ = xMin;
+    this.xMax_ = xMax;
     this.minRectSize_ = minRectSize;
     this.maxMergeDist_ = maxMergeDist;
-    this.pallette_ = pallette;
+    this.palette_ = palette;
   }
 
   FastRectRenderer.prototype = {
@@ -63,7 +67,7 @@ tr.exportTo('tr.ui.b', function() {
 
     /**
      * Changes the y position and height for subsequent fillRect
-     * calls. x and width are specifieid on the fillRect calls.
+     * calls. x and width are specified on the fillRect calls.
      */
     setYandH(y, h) {
       if (this.y_ === y &&
@@ -80,7 +84,7 @@ tr.exportTo('tr.ui.b', function() {
      * rectangle is subpixel, it will be merged with adjacent rectangles.
      * The drawing operation may not take effect until flush is called.
      * @param {number} colorId The color of this rectangle, as an index
-     *     in the renderer's color pallete.
+     *     in the renderer's color palette.
      * @param {number} alpha The opacity of the rectangle as 0.0-1.0 number.
      */
     fillRect(x, w, colorId, alpha) {
@@ -108,9 +112,13 @@ tr.exportTo('tr.ui.b', function() {
         if (this.merging_) {
           this.flush();
         }
-        this.ctx_.fillStyle = this.pallette_[colorId];
+        this.ctx_.fillStyle = this.palette_[colorId];
         this.ctx_.globalAlpha = alpha;
-        this.ctx_.fillRect(x, this.y_, w, this.h_);
+        const xLeft = Math.max(x, this.xMin_);
+        const xRight = Math.min(r, this.xMax_);
+        if (xLeft < xRight) {
+          this.ctx_.fillRect(xLeft, this.y_, xRight - xLeft, this.h_);
+        }
       }
     },
 
@@ -120,10 +128,13 @@ tr.exportTo('tr.ui.b', function() {
      */
     flush() {
       if (this.merging_) {
-        this.ctx_.fillStyle = this.pallette_[this.mergedColorId_];
+        this.ctx_.fillStyle = this.palette_[this.mergedColorId_];
         this.ctx_.globalAlpha = this.mergedAlpha_;
-        this.ctx_.fillRect(this.mergeStartX_, this.y_,
-            this.mergeCurRight_ - this.mergeStartX_, this.h_);
+        const xLeft = Math.max(this.mergeStartX_, this.xMin_);
+        const xRight = Math.min(this.mergeCurRight_, this.xMax_);
+        if (xLeft < xRight) {
+          this.ctx_.fillRect(xLeft, this.y_, xRight - xLeft, this.h_);
+        }
         this.merging_ = false;
       }
     }

@@ -145,6 +145,8 @@ tr.exportTo('tr.ui.b', function() {
       async) {
     const pixelRatio = window.devicePixelRatio || 1;
     const height = viewHeight * pixelRatio;
+    const viewL = dt.xWorldToView(viewLWorld);
+    const viewR = dt.xWorldToView(viewRWorld);
 
     let darkRectHeight = THIN_SLICE_HEIGHT * pixelRatio;
 
@@ -156,7 +158,8 @@ tr.exportTo('tr.ui.b', function() {
     const lightRectHeight = height - darkRectHeight;
 
     ctx.save();
-    const rect = new tr.ui.b.FastRectRenderer(ctx, 2, 2, colorsAsStrings);
+    const rect = new tr.ui.b.FastRectRenderer(
+        ctx, viewL, viewR, 2, 2, colorsAsStrings);
     rect.setYandH(0, height);
 
     const lowSlice = tr.b.math.findLowIndexInSortedArray(
