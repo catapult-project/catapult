@@ -268,8 +268,19 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     onFocusIn_(e) {
-      if (e.target === this) return;
+      // Prevent focus from leaving the overlay.
 
+      let node = e.target;
+      while (node) {
+        if (node === this) {
+          // |this| contains |e.target|, so nothing needs to be done. Allow
+          // focus to move from |this| to |e.target|.
+          return;
+        }
+        node = node.parentNode;
+      }
+
+      // |e.target| is outside of |this|, so focus |this|.
       tr.b.timeout(0).then(() => this.focus());
       e.preventDefault();
       e.stopPropagation();
