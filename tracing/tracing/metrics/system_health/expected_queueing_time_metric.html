@@ -32,67 +32,6 @@ tr.exportTo('tr.metrics.sh', function() {
   const WINDOW_SIZE_MS = 500;
   const EQT_BOUNDARIES = tr.v.HistogramBinBoundaries
       .createExponential(0.01, WINDOW_SIZE_MS, 50);
-  const V8_EVENT_NAMES_TO_FILTERS = new Map([
-    ['v8', fromPredicate_(tr.metrics.v8.utils.isV8Event)],
-    ['v8:compile', fromPredicate_(tr.metrics.v8.utils.isCompileEvent)],
-    [
-      'v8:compile:optimize',
-      fromPredicate_(tr.metrics.v8.utils.isCompileOptimizeEvent)
-    ],
-    [
-      'v8:compile:parse',
-      fromPredicate_(tr.metrics.v8.utils.isCompileParseEvent)
-    ],
-    [
-      'v8:compile:compile-unoptimize',
-      filterCompileUnoptimizeAndSubtractParseEvents_
-    ],
-    ['v8:execute', fromPredicate_(tr.metrics.v8.utils.isV8ExecuteEvent)],
-    ['v8:gc', fromPredicate_(tr.metrics.v8.utils.isGarbageCollectionEvent)],
-    [
-      'v8:gc:full-mark-compactor',
-      fromPredicate_(tr.metrics.v8.utils.isFullMarkCompactorEvent)
-    ],
-    [
-      'v8:gc:incremental-marking',
-      fromPredicate_(tr.metrics.v8.utils.isIncrementalMarkingEvent)
-    ],
-    [
-      'v8:gc:latency-mark-compactor',
-      fromPredicate_(tr.metrics.v8.utils.isLatencyMarkCompactorEvent)
-    ],
-    [
-      'v8:gc:memory-mark-compactor',
-      fromPredicate_(tr.metrics.v8.utils.isMemoryMarkCompactorEvent)
-    ],
-    ['v8:gc:scavenger', fromPredicate_(tr.metrics.v8.utils.isScavengerEvent)]
-  ]);
-
-  /**
-   * @param {function} function to filter sub slices withnin a slice.
-   * @returns {function} function to compute the duration corresponding to the
-   *     sub slices that satisfy the eventPredicate in a given slice.
-   */
-  function fromPredicate_(eventPredicate) {
-    return function(slice) {
-      const duration = durationOfTopmostSubSlices(slice, eventPredicate);
-      return {start: slice.start, end: slice.start + duration};
-    };
-  }
-
-  /**
-   * @param {!tr.model.Slice} The slice which has to be filtered.
-   * @returns {{start:number, end:number}} A range whose duration is the total
-   *     duration of the compile unoptimize events after subtracting the
-   *     duration of any parse events within the slice. The start of the slice
-   *     is same as the original slice.
-   */
-  function filterCompileUnoptimizeAndSubtractParseEvents_(slice) {
-    const duration = durationOfTopmostSubSlices(slice,
-        tr.metrics.v8.utils.isCompileUnoptimizeEvent,
-        tr.metrics.v8.utils.isCompileParseEvent);
-    return {start: slice.start, end: slice.start + duration};
-  }
 
   /**
    * Returns true if the slice contains a forced GC event. Some stories force
@@ -105,8 +44,8 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   /**
-   * @param {string} name Name of the histogram.
-   * @param {string} description Description of the histogram.
+   * @param {!string} name Name of the histogram.
+   * @param {!string} description Description of the histogram.
    * @returns {!tr.v.Histogram}
    */
   function createHistogramForEQT_(name, description) {
@@ -126,32 +65,73 @@ tr.exportTo('tr.metrics.sh', function() {
 
   /**
    * Computes the maximum expected queueing time in the sliding time window
-   * of size 500ms (WINDOW_SIZE_MS). The function produces two Histograms:
+   * of size 500ms (WINDOW_SIZE_MS). The function produces four Histograms:
    * - total:500ms_window:renderer_eqt,
+   * - total:500ms_window:renderer_eqt_cpu,
    * - interactive:500ms_window:renderer_eqt.
-   * The former is the metric computed for the whole trace. The latter is
-   * the metric computed for the tme while the page is interactive.
-   * Each renderer process adds one sample to the histograms.
+   * - interactive:500ms_window:renderer_eqt_cpu.
+   * The 'total' histograms are computed for the whole trace. The 'interactive'
+   * histograms are computed for the time while the page is interactive.
+   * The 'cpu' histograms use the CPU time of the events instead of the wall-
+   * clock times. Each renderer process adds one sample to the histograms.
    */
   function expectedQueueingTimeMetric(histograms, model) {
     const chromeHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
-    const totalHistogram = createHistogramForEQT_(
-        `total:${WINDOW_SIZE_MS}ms_window:renderer_eqt`,
-        `The maximum EQT in a ${WINDOW_SIZE_MS}ms sliding window` +
-        ' for a given renderer');
-    const interactiveHistogram = createHistogramForEQT_(
-        `interactive:${WINDOW_SIZE_MS}ms_window:renderer_eqt`,
-        `The maximum EQT in a ${WINDOW_SIZE_MS}ms sliding window` +
-        ' for a given renderer while the page is interactive');
     const rendererHelpers = Object.values(chromeHelper.rendererHelpers);
     const rendererToInteractiveTimestamps =
         tr.e.chrome.getInteractiveTimestamps(model);
+    addExpectedQueueingTimeMetric_(
+        'renderer_eqt',
+        event => {return {start: event.start, duration: event.duration};},
+        rendererHelpers, rendererToInteractiveTimestamps, histograms, model);
+    addExpectedQueueingTimeMetric_(
+        'renderer_eqt_cpu',
+        event => {return {start: event.cpuStart, duration: event.cpuDuration};},
+        rendererHelpers, rendererToInteractiveTimestamps, histograms, model);
+  }
+
+  /**
+  * @callback EventTimesCallback
+  * @param {!tr.b.Event} event
+  * @return {{start: !number, duration: !number}} event start time and duration.
+  */
+
+  /**
+   * The actual implementation of the EQT metric.
+   * @param {!string} eqtName the metric name part of the histogram name.
+   * @param {!EventTimesCallback} getEventTimes.
+   * @param {!Array.<tr.model.helpers.ChromeRendererHelper>} rendererHelpers.
+   * @param {!Map.<number, Array.<number>>} rendererToInteractiveTimestamps
+   *     a map from renderer pid to an array of interactive timestamps.
+   */
+  function addExpectedQueueingTimeMetric_(eqtName, getEventTimes,
+      rendererHelpers, rendererToInteractiveTimestamps, histograms, model) {
+    /**
+     * Extracts tasks for EQT computation from the given renderer.
+     * A task is a pair of {start, end} times.
+     */
+    function getTasks(rendererHelper) {
+      const tasks = [];
+      for (const slice of rendererHelper.mainThread.sliceGroup.topLevelSlices) {
+        const times = getEventTimes(slice);
+        if (times.duration > 0 && !containsForcedGC_(slice)) {
+          tasks.push({start: times.start, end: times.start + times.duration});
+        }
+      }
+      return tasks;
+    }
+    const totalHistogram = createHistogramForEQT_(
+        `total:${WINDOW_SIZE_MS}ms_window:${eqtName}`,
+        `The maximum EQT in a ${WINDOW_SIZE_MS}ms sliding window` +
+        ' for a given renderer');
+    const interactiveHistogram = createHistogramForEQT_(
+        `interactive:${WINDOW_SIZE_MS}ms_window:${eqtName}`,
+        `The maximum EQT in a ${WINDOW_SIZE_MS}ms sliding window` +
+        ' for a given renderer while the page is interactive');
     for (const rendererHelper of rendererHelpers) {
       if (rendererHelper.isChromeTracingUI) continue;
-      const tasks = rendererHelper.mainThread.sliceGroup.topLevelSlices
-          .filter(slice => slice.duration > 0 && !containsForcedGC_(slice))
-          .map(slice => {return {start: slice.start, end: slice.end};});
+      const tasks = getTasks(rendererHelper);
       totalHistogram.addSample(
           tr.e.chrome.maxExpectedQueueingTimeInSlidingWindow(
               rendererHelper.mainThread.bounds.min,
@@ -173,9 +153,9 @@ tr.exportTo('tr.metrics.sh', function() {
               interactiveWindow.min, interactiveWindow.max,
               WINDOW_SIZE_MS, tasks));
     }
-    addV8ContributionToExpectedQueueingTime(
-        totalHistogram, interactiveHistogram, rendererToInteractiveTimestamps,
-        histograms, model);
+    addV8ContributionToExpectedQueueingTime_(
+        eqtName, getEventTimes, totalHistogram, interactiveHistogram,
+        rendererToInteractiveTimestamps, histograms, model);
     histograms.addHistogram(totalHistogram);
     histograms.addHistogram(interactiveHistogram);
   }
@@ -188,20 +168,24 @@ tr.exportTo('tr.metrics.sh', function() {
    * - total:500ms_window:renderer_eqt:v8:gc,
    * - interactive:500ms_window:renderer_eqt:v8:gc:scavenger,
    * - interactive:500ms_window:renderer_eqt:v8:compile.
-   * @param totalEqtHistogram the main total EQT histogram.
-   * @param interactiveEqtHistogram the main interactive EQT histogram.
-   * @param rendererToInteractiveTimestamps a map from renderer pid to an array
-   *     of interactive timestamps.
+   * @param {!string} eqtName the metric name part of the histogram name.
+   * @param {!EventTimesCallback} getEventTimes.
+   * @param {!tr.v.Histogram} totalEqtHistogram.
+   * @param {!tr.v.Histogram} interactiveEqtHistogram.
+   * @param {!Map.<number, Array.<number>>} rendererToInteractiveTimestamps
+   *     a map from renderer pid to an array of interactive timestamps.
    */
-  function addV8ContributionToExpectedQueueingTime(
-      totalEqtHistogram, interactiveEqtHistogram,
+  function addV8ContributionToExpectedQueueingTime_(
+      eqtName, getEventTimes, totalEqtHistogram, interactiveEqtHistogram,
       rendererToInteractiveTimestamps, histograms, model) {
     if (!model.categories.includes('v8')) return;
     const breakdownForTotal = new tr.v.d.RelatedHistogramMap();
     const breakdownForInteractive = new tr.v.d.RelatedHistogramMap();
-    for (const [eventName, filterFunction] of V8_EVENT_NAMES_TO_FILTERS) {
-      const contribution = contributionToExpectedQueueingTime(
-          filterFunction, eventName, rendererToInteractiveTimestamps,
+    const eventNamesWithTaskExtractors =
+        getV8EventNamesWithTaskExtractors_(getEventTimes);
+    for (const [eventName, getTasks] of eventNamesWithTaskExtractors) {
+      const contribution = contributionToExpectedQueueingTime_(
+          eqtName, eventName, getTasks, rendererToInteractiveTimestamps,
           histograms, model);
       breakdownForTotal.set(eventName, contribution.total);
       breakdownForInteractive.set(eventName, contribution.interactive);
@@ -211,19 +195,113 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   /**
-   * @returns {number} the total duration of topmost subslices of the given
-   *     slice that satisfy the given predicate after filtering out any
-         events that satisfy the subEventPredicate in the subslices.
+  * @callback TaskExtractor
+  * @param {!tr.model.helpers.ChromeRendererHelper} rendererHelper
+  * @return {Array.<{start: !number, end: !number}>}
+  */
+
+  /**
+   * @param {!EventTimesCallback} getEventTimes.
+   * @returns {!Map.<string, TaskExtractor>} a map from V8 event names to
+   *     the corresponding task extractor functions.
    */
-  function durationOfTopmostSubSlices(slice, predicate, subEventPredicate) {
-    let duration = 0;
-    for (const sub of slice.findTopmostSlicesRelativeToThisSlice(predicate)) {
-      duration += sub.duration;
-      if (subEventPredicate !== null && subEventPredicate !== undefined) {
-        duration -= durationOfTopmostSubSlices(sub, subEventPredicate);
+  function getV8EventNamesWithTaskExtractors_(getEventTimes) {
+    /**
+     * @param {!tr.b.Event} slice.
+     * @param {!function(tr.b.Event): boolean} predicate that selects V8 events.
+     * @param {function(tr.b.Event): boolean} excludePredicate that excludes
+     *     V8 events.
+     * @returns {!number} the total duration of topmost subslices of the given
+     *     slice that satisfy the given |predicate| after filtering out any
+     *     events that satisfy the |excludePredicate| in the subslices.
+     */
+    function durationOfTopmostSubSlices(slice, predicate, excludePredicate) {
+      let duration = 0;
+      for (const sub of slice.findTopmostSlicesRelativeToThisSlice(predicate)) {
+        duration += getEventTimes(sub).duration;
+        if (excludePredicate !== null && excludePredicate !== undefined) {
+          duration -= durationOfTopmostSubSlices(sub, excludePredicate);
+        }
       }
+      return duration;
     }
-    return duration;
+
+    /**
+     * @param {!function(tr.b.Event): boolean} predicate that selects V8 events.
+     * @param {function(tr.b.Event): boolean} excludePredicate that excludes
+     *     V8 events.
+     * @returns {!TaskExtractor} a function that extracts tasks from the given
+     *     renderer. Each task is a pair of {start, end} times and its duration
+     *     represents the contribution of the events selected by the
+     *     given |predicate| and |excludePredicate|.
+     */
+    function taskExtractor(predicate, excludePredicate) {
+      return function(rendererHelper) {
+        const slices = rendererHelper.mainThread.sliceGroup.topLevelSlices;
+        const result = [];
+        for (const slice of slices) {
+          const times = getEventTimes(slice);
+          if (times.duration > 0 && !containsForcedGC_(slice)) {
+            const duration = durationOfTopmostSubSlices(
+                slice, predicate, excludePredicate);
+            result.push({start: times.start, end: times.start + duration});
+          }
+        }
+        return result;
+      };
+    }
+
+    return new Map([
+      [
+        'v8',
+        taskExtractor(tr.metrics.v8.utils.isV8Event)
+      ],
+      [
+        'v8:compile',
+        taskExtractor(tr.metrics.v8.utils.isCompileEvent)
+      ],
+      [
+        'v8:compile:optimize',
+        taskExtractor(tr.metrics.v8.utils.isCompileOptimizeEvent)
+      ],
+      [
+        'v8:compile:parse',
+        taskExtractor(tr.metrics.v8.utils.isCompileParseEvent)
+      ],
+      [
+        'v8:compile:compile-unoptimize',
+        taskExtractor(tr.metrics.v8.utils.isCompileUnoptimizeEvent,
+            tr.metrics.v8.utils.isCompileParseEvent)
+      ],
+      [
+        'v8:execute',
+        taskExtractor(tr.metrics.v8.utils.isV8ExecuteEvent)
+      ],
+      [
+        'v8:gc',
+        taskExtractor(tr.metrics.v8.utils.isGarbageCollectionEvent)
+      ],
+      [
+        'v8:gc:full-mark-compactor',
+        taskExtractor(tr.metrics.v8.utils.isFullMarkCompactorEvent)
+      ],
+      [
+        'v8:gc:incremental-marking',
+        taskExtractor(tr.metrics.v8.utils.isIncrementalMarkingEvent)
+      ],
+      [
+        'v8:gc:latency-mark-compactor',
+        taskExtractor(tr.metrics.v8.utils.isLatencyMarkCompactorEvent)
+      ],
+      [
+        'v8:gc:memory-mark-compactor',
+        taskExtractor(tr.metrics.v8.utils.isMemoryMarkCompactorEvent)
+      ],
+      [
+        'v8:gc:scavenger',
+        taskExtractor(tr.metrics.v8.utils.isScavengerEvent)
+      ]
+    ]);
   }
 
   /**
@@ -242,27 +320,29 @@ tr.exportTo('tr.metrics.sh', function() {
    * Each renderer process adds one sample to the histograms.
    * Both histograms are added to the given histogram set.
    *
-   * @param filterFunction a function to compute the duration of the sub
-   *     slices satisfying a particular predicate within the given slice.
-   * @param eventName the name describing the selected events. This name will be
-   *     added to metric names.
-   * @param rendererToInteractiveTimestamps a map from renderer pid to an array
-   *     of interactive timestamps.
+   * @param {!string} eqtName the metric name part of the histogram name.
+   * @param {!string} eventName the name describing the selected events. This
+   *     name will be added to metric names.
+   * @param {!TaskExtractor} getTasks a function that given a renderer returns
+   *     tasks for computing the EQT taking into account the contribution of
+   *     the selected events.
+   * @param {!Map.<number, Array.<number>>} rendererToInteractiveTimestamps
+   *     a map from renderer pid to an array of interactive timestamps.
    * @returns {{total: !tr.v.Histogram, interactive: !tr.v.Histogram}}
    */
-  function contributionToExpectedQueueingTime(
-      filterFunction, eventName, rendererToInteractiveTimestamps, histograms,
-      model) {
+  function contributionToExpectedQueueingTime_(
+      eqtName, eventName, getTasks,
+      rendererToInteractiveTimestamps, histograms, model) {
     const chromeHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
     const totalHistogram = createHistogramForEQT_(
-        `total:${WINDOW_SIZE_MS}ms_window:renderer_eqt:${eventName}`,
+        `total:${WINDOW_SIZE_MS}ms_window:${eqtName}:${eventName}`,
         `Contribution to the expected queueing time by ${eventName}` +
         ' for a given renderer. It is computed as the maximum EQT in' +
         ` a ${WINDOW_SIZE_MS}ms sliding window after shrinking top-level` +
         ` tasks to contain only ${eventName} subevents`);
     const interactiveHistogram = createHistogramForEQT_(
-        `interactive:${WINDOW_SIZE_MS}ms_window:renderer_eqt:${eventName}`,
+        `interactive:${WINDOW_SIZE_MS}ms_window:${eqtName}:${eventName}`,
         `Contribution to the expected queueing time by ${eventName}` +
         ' for a given renderer while the page is interactive. It is computed' +
         ` as the maximum EQT in a ${WINDOW_SIZE_MS}ms sliding window after` +
@@ -270,9 +350,7 @@ tr.exportTo('tr.metrics.sh', function() {
     const rendererHelpers = Object.values(chromeHelper.rendererHelpers);
     for (const rendererHelper of rendererHelpers) {
       if (rendererHelper.isChromeTracingUI) continue;
-      const tasks = rendererHelper.mainThread.sliceGroup.topLevelSlices
-          .filter(slice => slice.duration > 0 && !containsForcedGC_(slice))
-          .map(filterFunction);
+      const tasks = getTasks(rendererHelper);
       totalHistogram.addSample(
           tr.e.chrome.maxExpectedQueueingTimeInSlidingWindow(
               rendererHelper.mainThread.bounds.min,
@@ -306,7 +384,6 @@ tr.exportTo('tr.metrics.sh', function() {
 
   return {
     expectedQueueingTimeMetric,
-    contributionToExpectedQueueingTime,
   };
 });
 </script>
