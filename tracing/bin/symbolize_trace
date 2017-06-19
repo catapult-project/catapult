@@ -224,6 +224,7 @@ import subprocess
 import sys
 import tarfile
 import zipfile
+import tempfile
 
 _SYMBOLS_PATH = os.path.abspath(os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
@@ -1065,39 +1066,27 @@ class Symbolizer(object):
 
 
   def _SymbolizeMac(self, symfile):
-    chars_max = int(subprocess.check_output("getconf ARG_MAX", shell=True))
-
-    # 16 for the address, 2 for "0x", 1 for the space
-    chars_per_address = 19
-
     load_address = (symbolize_trace_macho_reader.
         ReadMachOTextLoadAddress(symfile.symbolizable_path))
     assert load_address is not None
 
-    cmd_base = [self.symbolizer_path, '-arch', 'x86_64', '-l',
-                '0x%x' % load_address, '-o',
-                symfile.symbolizable_path]
-    chars_for_other_arguments = len(' '.join(cmd_base)) + 1
+    address_os_file, address_file_path = tempfile.mkstemp()
+    try:
+      with os.fdopen(address_os_file, 'w') as address_file:
+        for address in symfile.frames_by_address.iterkeys():
+          address_file.write('{:x} '.format(address + load_address))
 
-    # The maximum number of inputs that can be processed at once is limited by
-    # ARG_MAX. This currently evaluates to ~13000 on macOS.
-    max_inputs = (chars_max - chars_for_other_arguments) / chars_per_address
-
-    all_keys = symfile.frames_by_address.keys()
-    processed_keys_count = 0
-    while len(all_keys):
-      input_count = min(len(all_keys), max_inputs)
-      keys_to_process = all_keys[0:input_count]
-      cmd = list(cmd_base)
-      cmd.extend([hex(int(x) + load_address)
-          for x in keys_to_process])
+      cmd = [self.symbolizer_path, '-arch', 'x86_64', '-l',
+             '0x%x' % load_address, '-o', symfile.symbolizable_path,
+             '-f', address_file_path]
       output_array = subprocess.check_output(cmd).split('\n')
-      for i in range(len(keys_to_process)):
-        for frame in (symfile.frames_by_address.values()
-            [i + processed_keys_count]):
-          frame.name = self._matcher.Match(output_array[i])
-      processed_keys_count += len(keys_to_process)
-      all_keys = all_keys[input_count:]
+
+      for i, frames in enumerate(symfile.frames_by_address.itervalues()):
+        symbolized_name = self._matcher.Match(output_array[i])
+        for frame in frames:
+          frame.name = symbolized_name
+    finally:
+      os.remove(address_file_path)
 
   def _SymbolizeWin(self, symfile):
     """Invoke symbolizer binary on windows and write all input in one go.
