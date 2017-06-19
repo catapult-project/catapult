@@ -343,7 +343,7 @@ class MemoryMap(NodeWrapper):
         raise Exception('Cannot compare with %s' % type(other))
       if self._start_address < other_start_address:
         return -1
-      else if self._start_address > other_start_address:
+      elif self._start_address > other_start_address:
         return 1
       else:
         return 0
@@ -835,7 +835,7 @@ class Trace(NodeWrapper):
                         re.IGNORECASE) and
           not re.search('Chrome\\\\Application\\\\chrome.exe', command_line,
                         re.IGNORECASE))
-directly      if self._is_mac:
+      if self._is_mac:
         self._is_chromium = re.search('chromium', command_line, re.IGNORECASE)
 
       self._is_64bit = (
