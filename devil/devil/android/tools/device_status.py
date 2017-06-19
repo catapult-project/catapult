@@ -59,21 +59,6 @@ def _BatteryStatus(device, blacklist):
   return battery_info
 
 
-def _IMEISlice(device):
-  imei_slice = ''
-  try:
-    for l in device.RunShellCommand(['dumpsys', 'iphonesubinfo'],
-                                    check_return=True, timeout=5):
-      m = _RE_DEVICE_ID.match(l)
-      if m:
-        imei_slice = m.group(1)[-6:]
-  except (device_errors.CommandFailedError,
-          device_errors.DeviceUnreachableError):
-    logger.exception('Failed to get IMEI slice for %s', str(device))
-
-  return imei_slice
-
-
 def DeviceStatus(devices, blacklist):
   """Generates status information for the given devices.
 
@@ -129,7 +114,7 @@ def DeviceStatus(devices, blacklist):
           build_description = device.build_description
           wifi_ip = device.GetProp('dhcp.wlan0.ipaddress')
           battery_info = _BatteryStatus(device, blacklist)
-          imei_slice = _IMEISlice(device)
+          imei_slice = device.GetIMEI()
 
           if (device.product_name == 'mantaray' and
               battery_info.get('AC powered', None) != 'true'):

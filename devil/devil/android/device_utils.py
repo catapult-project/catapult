@@ -175,6 +175,16 @@ _SPECIAL_ROOT_DEVICE_LIST = [
     'marlin',
     'sailfish',
 ]
+_IMEI_RE = re.compile(r'  Device ID = (.+)$')
+# The following regex is used to match result parcels like:
+"""
+Result: Parcel(
+  0x00000000: 00000000 0000000f 00350033 00360033 '........3.5.3.6.'
+  0x00000010: 00360032 00370030 00300032 00300039 '2.6.0.7.2.0.9.0.'
+  0x00000020: 00380033 00000039                   '3.8.9...        ')
+"""
+_PARCEL_RESULT_RE = re.compile(
+    r'0x[0-9a-f]{8}\: (?:[0-9a-f]{8}\s+){1,4}\'(.{16})\'')
 
 
 @decorators.WithExplicitTimeoutAndRetries(
@@ -505,6 +515,47 @@ class DeviceUtils(object):
       raise device_errors.CommandFailedError('$EXTERNAL_STORAGE is not set',
                                              str(self))
     return self._cache['external_storage']
+
+  @decorators.WithTimeoutAndRetriesFromInstance()
+  def GetIMEI(self, timeout=None, retries=None):
+    """Get the device's IMEI.
+
+    Args:
+      timeout: timeout in seconds
+      retries: number of retries
+
+    Returns:
+      The device's IMEI.
+
+    Raises:
+      AdbCommandFailedError on error
+    """
+    if self._cache.get('imei') is not None:
+      return self._cache.get('imei')
+
+    if self.build_version_sdk < 21:
+      out = self.RunShellCommand(['dumpsys', 'iphonesubinfo'],
+                                 raw_output=True, check_return=True)
+      if out:
+        match = re.search(_IMEI_RE, out)
+        if match:
+          self._cache['imei'] = match.group(1)
+          return self._cache['imei']
+    else:
+      out = self.RunShellCommand(['service', 'call', 'iphonesubinfo', '1'],
+                                 check_return=True)
+      if out:
+        imei = ''
+        for line in out:
+          match = re.search(_PARCEL_RESULT_RE, line)
+          if match:
+            imei = imei + match.group(1)
+        imei = imei.replace('.', '').strip()
+        if imei:
+          self._cache['imei'] = imei
+          return self._cache['imei']
+
+    raise device_errors.CommandFailedError('Unable to fetch IMEI.')
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def GetApplicationPaths(self, package, timeout=None, retries=None):
