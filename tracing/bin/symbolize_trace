@@ -335,11 +335,17 @@ class MemoryMap(NodeWrapper):
 
     def __cmp__(self, other):
       if isinstance(other, type(self)):
-        return long(self._start_address).__cmp__(long(other._start_address))
+        other_start_address = other._start_address
       elif isinstance(other, (long, int)):
-        return long(self._start_address).__cmp__(long(other))
+        other_start_address = other
       else:
         raise Exception('Cannot compare with %s' % type(other))
+      if self._start_address < other_start_address:
+        return -1
+      else if self._start_address > other_start_address:
+        return 1
+      else:
+        return 0
 
     def __repr__(self):
       return 'Region(0x{:X} - 0x{:X}, {})'.format(
