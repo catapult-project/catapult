@@ -94,6 +94,25 @@ func transformResponseBody(resp *http.Response, f func([]byte) []byte) error {
 	return nil
 }
 
+// Decompresses Response Body in place.
+func DecompressResponse(resp *http.Response) error {
+	ce := strings.ToLower(resp.Header.Get("Content-Encoding"))
+	isCompressed := (ce != "" || ce != "identity")
+	if isCompressed {
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		resp.Body.Close()
+		body, err = decompressBody(ce, body)
+		if err != nil {
+			return err
+		}
+		resp.Body = ioutil.NopCloser(bytes.NewReader(body))
+	}
+	return nil
+}
+
 // decompressBody reads a response body and decompresses according to the given Content-Encoding.
 func decompressBody(ce string, compressed []byte) ([]byte, error) {
 	var r io.ReadCloser

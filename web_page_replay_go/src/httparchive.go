@@ -79,6 +79,10 @@ func list(cfg *Config, a *webpagereplay.Archive, printFull bool) {
 			fmt.Fprint(os.Stdout, "----------------------------------------\n")
 			req.Write(os.Stdout)
 			fmt.Fprint(os.Stdout, "\n")
+			err := webpagereplay.DecompressResponse(resp)
+			if err != nil {
+				fail(fmt.Sprint("Unable to decompress body %v", err))
+			}
 			resp.Write(os.Stdout)
 			fmt.Fprint(os.Stdout, "\n")
 		} else {
