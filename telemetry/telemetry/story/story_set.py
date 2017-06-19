@@ -17,7 +17,7 @@ class StorySet(object):
   """
 
   def __init__(self, archive_data_file='', cloud_storage_bucket=None,
-               base_dir=None, serving_dirs=None, verify_names=False):
+               base_dir=None, serving_dirs=None, verify_names=True):
     """Creates a new StorySet.
 
     Args:
