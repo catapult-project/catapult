@@ -92,6 +92,10 @@ class GroupReportTest(testing_common.TestCase):
         '/group_report?keys=%s' % ','.join(selected_keys))
     alert_list = self.GetJsonValue(response, 'alert_list')
 
+    # Confirm the first N keys are the selected keys.
+    first_keys = [alert_list[i]['key'] for i in xrange(len(selected_keys))]
+    self.assertSetEqual(set(selected_keys), set(first_keys))
+
     # Expect selected alerts + overlapping alerts,
     # but not the non-overlapping alert.
     self.assertEqual(5, len(alert_list))
@@ -115,10 +119,9 @@ class GroupReportTest(testing_common.TestCase):
     response = self.testapp.post('/group_report?sid=%s' % state_id)
     alert_list = self.GetJsonValue(response, 'alert_list')
 
-    self.assertEqual(unicode(selected_keys[1], 'utf-8'),
-                     alert_list[0].get('key'))
-    self.assertEqual(unicode(selected_keys[0], 'utf-8'),
-                     alert_list[1].get('key'))
+    # Confirm the first N keys are the selected keys.
+    first_keys = [alert_list[i]['key'] for i in xrange(len(selected_keys))]
+    self.assertSetEqual(set(selected_keys), set(first_keys))
     self.assertEqual(2, len(alert_list))
 
   def testPost_WithKeyOfNonExistentAlert_ShowsError(self):

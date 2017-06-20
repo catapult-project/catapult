@@ -199,14 +199,19 @@ def GetAlertsForKeys(keys):
     # Filter out anomalies that have been marked as invalid or ignore.
     # Include all anomalies with an overlapping revision range that have
     # been associated with a bug, or are not yet triaged.
-    anomalies = [a for a in anomalies if a.bug_id is None or a.bug_id > 0]
+    requested_anomalies_set = set([a.key for a in requested_anomalies])
+    def _IsValidAlert(a):
+      if a.key in requested_anomalies_set:
+        return False
+      return a.bug_id is None or a.bug_id > 0
+
+    anomalies = [a for a in anomalies if _IsValidAlert(a)]
     anomalies = _GetOverlaps(anomalies, min_range[0], min_range[1])
 
     # Make sure alerts in specified param "keys" are included.
-    key_set = {a.key for a in anomalies}
-    for anomaly_entity in requested_anomalies:
-      if anomaly_entity.key not in key_set:
-        anomalies.append(anomaly_entity)
+    # We actually only send the first _DISPLAY_LIMIT alerts to the UI, so we
+    # need to include those keys at the start of the list.
+    anomalies = requested_anomalies + anomalies
   else:
     anomalies = requested_anomalies
   return anomalies, extra_columns
