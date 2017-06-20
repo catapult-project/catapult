@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+# pylint: disable=too-many-lines
+
 import copy
 import json
 import unittest
@@ -139,13 +141,14 @@ Revision      Result        N
 To Run This Test
   src/tools/perf/run_benchmark foo
 
-Debug Info
+More information on addressing performance regressions:
+  https://chromium.googlesource.com/chromium/src/+/master/docs/speed/addressing_performance_regressions.md
+
+Debug information about this bisect:
   https://test-rietveld.appspot.com/200039
 
 
-| O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
-|  X  | for more information addressing perf regression bugs. For feedback,
-| / \ | file a bug with component Speed>Bisection.  Thank you!"""
+For feedback, file a bug with component Speed>Bisection"""
     self.assertEqual(log_with_culprit, bisect_report.GetReport(job))
 
   def testGetReport_CompletedWithCulprit_Memory(self):
@@ -190,13 +193,14 @@ Please refer to the following doc on diagnosing memory regressions:
 To Run This Test
   src/tools/perf/run_benchmark system_health.memory_foo
 
-Debug Info
+More information on addressing performance regressions:
+  https://chromium.googlesource.com/chromium/src/+/master/docs/speed/addressing_performance_regressions.md
+
+Debug information about this bisect:
   https://test-rietveld.appspot.com/200039
 
 
-| O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
-|  X  | for more information addressing perf regression bugs. For feedback,
-| / \ | file a bug with component Speed>Bisection.  Thank you!"""
+For feedback, file a bug with component Speed>Bisection"""
     self.assertEqual(log_with_culprit, bisect_report.GetReport(job))
 
   def testGetReport_CompletedWithCulpritReturnCode(self):
@@ -236,13 +240,14 @@ Revision      Exit Code      N
 To Run This Test
   src/tools/perf/run_benchmark foo
 
-Debug Info
+More information on addressing performance regressions:
+  https://chromium.googlesource.com/chromium/src/+/master/docs/speed/addressing_performance_regressions.md
+
+Debug information about this bisect:
   https://test-rietveld.appspot.com/200039
 
 
-| O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
-|  X  | for more information addressing perf regression bugs. For feedback,
-| / \ | file a bug with component Speed>Bisection.  Thank you!"""
+For feedback, file a bug with component Speed>Bisection"""
 
     self.assertEqual(expected_output, bisect_report.GetReport(job))
 
@@ -276,13 +281,14 @@ Revision      Result        N
 To Run This Test
   src/tools/perf/run_benchmark foo
 
-Debug Info
+More information on addressing performance regressions:
+  https://chromium.googlesource.com/chromium/src/+/master/docs/speed/addressing_performance_regressions.md
+
+Debug information about this bisect:
   https://test-rietveld.appspot.com/200039
 
 
-| O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
-|  X  | for more information addressing perf regression bugs. For feedback,
-| / \ | file a bug with component Speed>Bisection.  Thank you!"""
+For feedback, file a bug with component Speed>Bisection"""
 
     self.assertEqual(log_without_culprit, bisect_report.GetReport(job))
 
@@ -324,13 +330,14 @@ Revision      Result        N
 To Run This Test
   src/tools/perf/run_benchmark foo
 
-Debug Info
+More information on addressing performance regressions:
+  https://chromium.googlesource.com/chromium/src/+/master/docs/speed/addressing_performance_regressions.md
+
+Debug information about this bisect:
   https://test-rietveld.appspot.com/200039
 
 
-| O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
-|  X  | for more information addressing perf regression bugs. For feedback,
-| / \ | file a bug with component Speed>Bisection.  Thank you!"""
+For feedback, file a bug with component Speed>Bisection"""
 
     self.assertEqual(log_without_culprit, bisect_report.GetReport(job))
 
@@ -378,13 +385,14 @@ Revision      Result      N
 To Run This Test
   src/tools/perf/run_benchmark foo
 
-Debug Info
+More information on addressing performance regressions:
+  https://chromium.googlesource.com/chromium/src/+/master/docs/speed/addressing_performance_regressions.md
+
+Debug information about this bisect:
   https://test-rietveld.appspot.com/200039
 
 
-| O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
-|  X  | for more information addressing perf regression bugs. For feedback,
-| / \ | file a bug with component Speed>Bisection.  Thank you!"""
+For feedback, file a bug with component Speed>Bisection"""
 
     self.assertEqual(expected_output, bisect_report.GetReport(job))
 
@@ -429,13 +437,14 @@ Revision      Result        N
 To Run This Test
   src/tools/perf/run_benchmark foo
 
-Debug Info
+More information on addressing performance regressions:
+  https://chromium.googlesource.com/chromium/src/+/master/docs/speed/addressing_performance_regressions.md
+
+Debug information about this bisect:
   https://test-rietveld.appspot.com/200039
 
 
-| O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
-|  X  | for more information addressing perf regression bugs. For feedback,
-| / \ | file a bug with component Speed>Bisection.  Thank you!"""
+For feedback, file a bug with component Speed>Bisection"""
 
     self.assertEqual(log_without_culprit, bisect_report.GetReport(job))
 
@@ -463,13 +472,14 @@ Bisect Details
 To Run This Test
   src/tools/perf/run_benchmark foo
 
-Debug Info
+More information on addressing performance regressions:
+  https://chromium.googlesource.com/chromium/src/+/master/docs/speed/addressing_performance_regressions.md
+
+Debug information about this bisect:
   https://test-rietveld.appspot.com/200039
 
 
-| O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
-|  X  | for more information addressing perf regression bugs. For feedback,
-| / \ | file a bug with component Speed>Bisection.  Thank you!"""
+For feedback, file a bug with component Speed>Bisection"""
 
     self.assertEqual(log_without_culprit, bisect_report.GetReport(job))
 
@@ -497,13 +507,14 @@ Bisect Details
 To Run This Test
   src/tools/perf/run_benchmark foo
 
-Debug Info
+More information on addressing performance regressions:
+  https://chromium.googlesource.com/chromium/src/+/master/docs/speed/addressing_performance_regressions.md
+
+Debug information about this bisect:
   https://test-rietveld.appspot.com/200039
 
 
-| O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
-|  X  | for more information addressing perf regression bugs. For feedback,
-| / \ | file a bug with component Speed>Bisection.  Thank you!"""
+For feedback, file a bug with component Speed>Bisection"""
 
     self.assertEqual(log_without_culprit, bisect_report.GetReport(job))
 
@@ -552,13 +563,14 @@ Revision      Result        N
 To Run This Test
   src/tools/perf/run_benchmark foo
 
-Debug Info
+More information on addressing performance regressions:
+  https://chromium.googlesource.com/chromium/src/+/master/docs/speed/addressing_performance_regressions.md
+
+Debug information about this bisect:
   https://test-rietveld.appspot.com/200039
 
 
-| O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
-|  X  | for more information addressing perf regression bugs. For feedback,
-| / \ | file a bug with component Speed>Bisection.  Thank you!"""
+For feedback, file a bug with component Speed>Bisection"""
 
     self.assertEqual(expected_output, bisect_report.GetReport(job))
 
@@ -618,13 +630,14 @@ Revision      Result        N
 To Run This Test
   src/tools/perf/run_benchmark foo
 
-Debug Info
+More information on addressing performance regressions:
+  https://chromium.googlesource.com/chromium/src/+/master/docs/speed/addressing_performance_regressions.md
+
+Debug information about this bisect:
   https://test-rietveld.appspot.com/200039
 
 
-| O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
-|  X  | for more information addressing perf regression bugs. For feedback,
-| / \ | file a bug with component Speed>Bisection.  Thank you!"""
+For feedback, file a bug with component Speed>Bisection"""
 
     self.assertEqual(expected_output, bisect_report.GetReport(job))
 
@@ -649,13 +662,14 @@ Bisect Details
 To Run This Test
   src/tools/perf/run_benchmark foo
 
-Debug Info
+More information on addressing performance regressions:
+  https://chromium.googlesource.com/chromium/src/+/master/docs/speed/addressing_performance_regressions.md
+
+Debug information about this bisect:
   https://test-rietveld.appspot.com/200039
 
 
-| O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
-|  X  | for more information addressing perf regression bugs. For feedback,
-| / \ | file a bug with component Speed>Bisection.  Thank you!"""
+For feedback, file a bug with component Speed>Bisection"""
 
     self.assertEqual(expected_output, bisect_report.GetReport(job))
 
@@ -685,13 +699,14 @@ Bisect Details
 To Run This Test
   src/tools/perf/run_benchmark foo
 
-Debug Info
+More information on addressing performance regressions:
+  https://chromium.googlesource.com/chromium/src/+/master/docs/speed/addressing_performance_regressions.md
+
+Debug information about this bisect:
   https://test-rietveld.appspot.com/200039
 
 
-| O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
-|  X  | for more information addressing perf regression bugs. For feedback,
-| / \ | file a bug with component Speed>Bisection.  Thank you!"""
+For feedback, file a bug with component Speed>Bisection"""
 
     self.assertEqual(expected_output, bisect_report.GetReport(job))
 
@@ -731,13 +746,14 @@ Revision      Result        N
 To Run This Test
   src/tools/perf/run_benchmark foo
 
-Debug Info
+More information on addressing performance regressions:
+  https://chromium.googlesource.com/chromium/src/+/master/docs/speed/addressing_performance_regressions.md
+
+Debug information about this bisect:
   https://test-rietveld.appspot.com/200039
 
 
-| O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
-|  X  | for more information addressing perf regression bugs. For feedback,
-| / \ | file a bug with component Speed>Bisection.  Thank you!"""
+For feedback, file a bug with component Speed>Bisection"""
 
     self.assertEqual(expected_output, bisect_report.GetReport(job))
 
@@ -780,13 +796,14 @@ Revision      Result        N
 To Run This Test
   src/tools/perf/run_benchmark foo
 
-Debug Info
+More information on addressing performance regressions:
+  https://chromium.googlesource.com/chromium/src/+/master/docs/speed/addressing_performance_regressions.md
+
+Debug information about this bisect:
   https://test-rietveld.appspot.com/200039
 
 
-| O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
-|  X  | for more information addressing perf regression bugs. For feedback,
-| / \ | file a bug with component Speed>Bisection.  Thank you!"""
+For feedback, file a bug with component Speed>Bisection"""
 
     self.assertEqual(expected_output, bisect_report.GetReport(job))
 
@@ -832,13 +849,14 @@ Revision      Result        N
 To Run This Test
   src/tools/perf/run_benchmark foo
 
-Debug Info
+More information on addressing performance regressions:
+  https://chromium.googlesource.com/chromium/src/+/master/docs/speed/addressing_performance_regressions.md
+
+Debug information about this bisect:
   https://test-rietveld.appspot.com/200039
 
 
-| O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
-|  X  | for more information addressing perf regression bugs. For feedback,
-| / \ | file a bug with component Speed>Bisection.  Thank you!"""
+For feedback, file a bug with component Speed>Bisection"""
 
     self.assertEqual(expected_output, bisect_report.GetReport(job))
 
@@ -879,13 +897,14 @@ Revision      Result        N
 To Run This Test
   src/tools/perf/run_benchmark foo
 
-Debug Info
+More information on addressing performance regressions:
+  https://chromium.googlesource.com/chromium/src/+/master/docs/speed/addressing_performance_regressions.md
+
+Debug information about this bisect:
   https://test-rietveld.appspot.com/200039
 
 
-| O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
-|  X  | for more information addressing perf regression bugs. For feedback,
-| / \ | file a bug with component Speed>Bisection.  Thank you!"""
+For feedback, file a bug with component Speed>Bisection"""
 
     self.assertEqual(expected_output, bisect_report.GetReport(job))
 
@@ -931,13 +950,14 @@ Revision      Result      N
 To Run This Test
   src/tools/perf/run_benchmark foo
 
-Debug Info
+More information on addressing performance regressions:
+  https://chromium.googlesource.com/chromium/src/+/master/docs/speed/addressing_performance_regressions.md
+
+Debug information about this bisect:
   https://test-rietveld.appspot.com/200039
 
 
-| O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
-|  X  | for more information addressing perf regression bugs. For feedback,
-| / \ | file a bug with component Speed>Bisection.  Thank you!"""
+For feedback, file a bug with component Speed>Bisection"""
 
     self.assertEqual(expected_output, bisect_report.GetReport(job))
 
@@ -952,7 +972,6 @@ Debug Info
             ]),
         good_revision=100, bad_revision=103, bug_id=6789)
     job = self._AddTryJob(results_data, bug_id=6789)
-    job_id = job.key.id()
 
     expected_output = r"""
 === BISECT JOB RESULTS ===
@@ -965,7 +984,7 @@ Bisect Details
   Configuration: staging_android_nexus5X_perf_bisect
   Benchmark    : foo
   Metric       : Total/Score
-  Change       : 7.35%% | 100 -> 200
+  Change       : 7.35% | 100 -> 200
 
 Suspected Commit Range
   1 commits in range
@@ -981,16 +1000,14 @@ Revision      Result        N
 To Run This Test
   src/tools/perf/run_benchmark foo
 
-Debug Info
+More information on addressing performance regressions:
+  https://chromium.googlesource.com/chromium/src/+/master/docs/speed/addressing_performance_regressions.md
+
+Debug information about this bisect:
   https://test-rietveld.appspot.com/200039
 
-Is this bisect wrong?
-  https://chromeperf.appspot.com/bad_bisect?try_job_id=%s
 
-
-| O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
-|  X  | for more information addressing perf regression bugs. For feedback,
-| / \ | file a bug with component Speed>Bisection.  Thank you!""" % job_id
+For feedback, file a bug with component Speed>Bisection"""
 
     self.assertEqual(expected_output, bisect_report.GetReport(job))
 
