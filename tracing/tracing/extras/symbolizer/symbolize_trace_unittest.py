@@ -3,17 +3,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import imp
-import os
 import unittest
 
-# 'symbolize_trace' script which we're testing doesn't have .py extension,
-# so we're importing it manually.
-# pylint: disable=invalid-name
-symbolize_trace = imp.load_source(
-    'symbolize_trace',
-    os.path.join(os.path.dirname(__file__), 'symbolize_trace'))
-
+import symbolize_trace
 
 class StackFrameMapTest(unittest.TestCase):
 
