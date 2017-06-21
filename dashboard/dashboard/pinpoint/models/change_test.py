@@ -6,24 +6,27 @@ import unittest
 
 import mock
 
+from dashboard.common import namespaced_stored_object
+from dashboard.common import testing_common
 from dashboard.pinpoint.models import change
 
 
-class ChangeTest(unittest.TestCase):
+_CATAPULT_URL = ('https://chromium.googlesource.com/'
+                 'external/github.com/catapult-project/catapult')
+_SRC_URL = 'https://chromium.googlesource.com/chromium/src'
+
+
+class ChangeTest(testing_common.TestCase):
 
   def setUp(self):
-    patcher = mock.patch('dashboard.common.namespaced_stored_object.Get')
-    self.addCleanup(patcher.stop)
-    get = patcher.start()
-    get.return_value = {
-        'catapult': {
-            'repository_url': 'https://chromium.googlesource.com/'
-                              'external/github.com/catapult-project/catapult'
-        },
-        'src': {
-            'repository_url': 'https://chromium.googlesource.com/chromium/src'
-        },
-    }
+    super(ChangeTest, self).setUp()
+
+    self.SetCurrentUser('internal@chromium.org', is_admin=True)
+
+    namespaced_stored_object.Set('repositories', {
+        'catapult': {'repository_url': _CATAPULT_URL},
+        'src': {'repository_url': _SRC_URL},
+    })
 
   def testChange(self):
     base_commit = change.Dep('src', 'aaa7336')
@@ -86,12 +89,64 @@ class ChangeTest(unittest.TestCase):
                      change.Change(change.Dep('src', '949b36d'),
                                    (change.Dep('catapult', 'e0a2efb'),)))
 
-  def testMidpointRaisesWithDifferingNumberOfDeps(self):
+  @mock.patch('dashboard.services.gitiles_service.FileContents')
+  @mock.patch('dashboard.services.gitiles_service.CommitRange')
+  def testMidpointWithDepsRoll(self, commit_range, file_contents):
+    def _CommitRange(repository_url, first_git_hash, last_git_hash):
+      del repository_url
+      if first_git_hash == '0e57e2b' and last_git_hash == 'babe852':
+        return [{'commit': 'babe852'}]
+      if first_git_hash == '0000000' and last_git_hash == '2222222':
+        return [{'commit': '2222222'}, {'commit': '1111111'}]
+      raise NotImplementedError()
+    commit_range.side_effect = _CommitRange
+
+    def _FileContents(repository_url, git_hash, path):
+      del repository_url
+      del path
+      if git_hash == '0e57e2b':
+        return 'deps = {"src/catapult": "%s@0000000"}' % _CATAPULT_URL
+      if git_hash == 'babe852':
+        return 'deps = {"src/catapult": "%s@2222222"}' % _CATAPULT_URL
+      raise NotImplementedError()
+    file_contents.side_effect = _FileContents
+
     change_a = change.Change(change.Dep('src', '0e57e2b'))
-    change_b = change.Change(change.Dep('src', 'babe852'),
-                             (change.Dep('catapult', 'e0a2efb'),))
-    with self.assertRaises(change.NonLinearError):
-      change.Change.Midpoint(change_a, change_b)
+    change_b = change.Change(change.Dep('src', 'babe852'))
+    expected = change.Change(change.Dep('src', '0e57e2b'),
+                             (change.Dep('catapult', '1111111'),))
+
+    self.assertEqual(change.Change.Midpoint(change_a, change_b), expected)
+
+  @mock.patch('dashboard.services.gitiles_service.FileContents')
+  @mock.patch('dashboard.services.gitiles_service.CommitRange')
+  def testMidpointAcrossDepsRoll(self, commit_range, file_contents):
+    def _CommitRange(repository_url, first_git_hash, last_git_hash):
+      del repository_url
+      if first_git_hash == '0e57e2b' and last_git_hash == 'babe852':
+        return [{'commit': 'babe852'}]
+      if first_git_hash == '1111111' and last_git_hash == '3333333':
+        return [{'commit': '3333333'}, {'commit': '2222222'}]
+      raise NotImplementedError()
+    commit_range.side_effect = _CommitRange
+
+    def _FileContents(repository_url, git_hash, path):
+      del repository_url
+      del path
+      if git_hash == '0e57e2b':
+        return 'deps = {"src/catapult": "%s@0000000"}' % _CATAPULT_URL
+      if git_hash == 'babe852':
+        return 'deps = {"src/catapult": "%s@3333333"}' % _CATAPULT_URL
+      raise NotImplementedError()
+    file_contents.side_effect = _FileContents
+
+    change_a = change.Change(change.Dep('src', '0e57e2b'),
+                             (change.Dep('catapult', '1111111'),))
+    change_b = change.Change(change.Dep('src', 'babe852'))
+    expected = change.Change(change.Dep('src', '0e57e2b'),
+                             (change.Dep('catapult', '2222222'),))
+
+    self.assertEqual(change.Change.Midpoint(change_a, change_b), expected)
 
   def testMidpointRaisesWithDifferingPatch(self):
     change_a = change.Change(change.Dep('src', '0e57e2b'))
@@ -107,39 +162,63 @@ class ChangeTest(unittest.TestCase):
     with self.assertRaises(change.NonLinearError):
       change.Change.Midpoint(change_a, change_b)
 
-  def testMidpointRaisesWithTheSameChange(self):
-    c = change.Change(change.Dep('src', '0e57e2b'))
-    with self.assertRaises(change.NonLinearError):
-      change.Change.Midpoint(c, c)
+  @mock.patch('dashboard.services.gitiles_service.FileContents')
+  @mock.patch('dashboard.services.gitiles_service.CommitRange')
+  def testMidpointRaisesAcrossDepsRollWhenDepAlreadyOverridden(
+      self, commit_range, file_contents):
+    def _CommitRange(repository_url, first_git_hash, last_git_hash):
+      del repository_url
+      if first_git_hash == '0e57e2b' and last_git_hash == 'babe852':
+        return [{'commit': 'babe852'}]
+      if first_git_hash == '1111111' and last_git_hash == '3333333':
+        return [{'commit': '3333333'}, {'commit': '2222222'}]
+      raise NotImplementedError()
+    commit_range.side_effect = _CommitRange
 
-  def testMidpointRaisesWithMultipleDifferingCommits(self):
+    def _FileContents(repository_url, git_hash, path):
+      del repository_url
+      del path
+      if git_hash == '0e57e2b':
+        return 'deps = {"src/catapult": "%s@0000000"}' % _CATAPULT_URL
+      if git_hash == 'babe852':
+        return 'deps = {"src/catapult": "%s@4444444"}' % _CATAPULT_URL
+      raise NotImplementedError()
+    file_contents.side_effect = _FileContents
+
     change_a = change.Change(change.Dep('src', '0e57e2b'),
-                             (change.Dep('catapult', 'e0a2efb'),))
+                             (change.Dep('catapult', '1111111'),))
     change_b = change.Change(change.Dep('src', 'babe852'),
-                             (change.Dep('catapult', 'bfa19de'),))
+                             (change.Dep('catapult', '3333333'),))
+
     with self.assertRaises(change.NonLinearError):
       change.Change.Midpoint(change_a, change_b)
 
+  def testMidpointReturnsNoneWithTheSameChange(self):
+    c = change.Change(change.Dep('src', '0e57e2b'))
+    self.assertIsNone(change.Change.Midpoint(c, c))
+
+  @mock.patch('dashboard.services.gitiles_service.FileContents')
   @mock.patch('dashboard.services.gitiles_service.CommitRange')
-  def testMidpointReturnsNoneWithAdjacentCommits(self, commit_range):
+  def testMidpointReturnsNoneWithAdjacentCommitsAndNoDepsRoll(
+      self, commit_range, file_contents):
     commit_range.return_value = [{'commit': 'b57345e'}]
+    file_contents.return_value = 'deps = {}'
 
     change_a = change.Change(change.Dep('src', '949b36d'))
     change_b = change.Change(change.Dep('src', 'b57345e'))
     self.assertIsNone(change.Change.Midpoint(change_a, change_b))
 
 
-class DepTest(unittest.TestCase):
+class DepTest(testing_common.TestCase):
 
   def setUp(self):
-    patcher = mock.patch('dashboard.common.namespaced_stored_object.Get')
-    self.addCleanup(patcher.stop)
-    get = patcher.start()
-    get.return_value = {
-        'src': {
-            'repository_url': 'https://chromium.googlesource.com/chromium/src'
-        }
-    }
+    super(DepTest, self).setUp()
+
+    self.SetCurrentUser('internal@chromium.org', is_admin=True)
+
+    namespaced_stored_object.Set('repositories', {
+        'src': {'repository_url': _SRC_URL},
+    })
 
   def testDep(self):
     dep = change.Dep('src', 'aaa7336')
@@ -150,6 +229,30 @@ class DepTest(unittest.TestCase):
     self.assertEqual(dep.git_hash, 'aaa7336')
     self.assertEqual(dep.repository_url,
                      'https://chromium.googlesource.com/chromium/src')
+
+  @mock.patch('dashboard.services.gitiles_service.FileContents')
+  def testDeps(self, file_contents):
+    file_contents.return_value = """
+vars = {
+  'chromium_git': 'https://chromium.googlesource.com',
+}
+deps = {
+  'src/v8': Var('chromium_git') + '/v8/v8.git' + '@' + 'c092edb',
+}
+deps_os = {
+  'win': {
+    'src/third_party/cygwin':
+      Var('chromium_git') + '/chromium/deps/cygwin.git' + '@' + 'c89e446',
+  }
+}
+    """
+
+    dep = change.Dep('src', 'aaa7336')
+    expected = frozenset((
+        change.Dep('cygwin', 'c89e446'),
+        change.Dep('v8', 'c092edb'),
+    ))
+    self.assertEqual(dep.Deps(), expected)
 
   @mock.patch('dashboard.services.gitiles_service.CommitInfo')
   def testFromDict(self, _):

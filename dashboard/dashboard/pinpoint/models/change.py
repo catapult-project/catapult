@@ -62,8 +62,14 @@ class Change(collections.namedtuple('Change',
     """Return a Change halfway between the two given Changes.
 
     A NonLinearError is raised if the Changes are not linear. The Changes are
-    linear iff they are identical except for exactly one git hash. See
-    change_test.py for examples of linear and nonlinear Changes.
+    not linear if any of the following is true:
+      * They have different base repositories.
+      * They have different patches.
+      * Their repositories differ even after expanding DEPS rolls.
+    See change_test.py for examples of linear and nonlinear Changes.
+
+    The behavior is undefined if either of the Changes have multiple Deps with
+    the same repository.
 
     Args:
       change_a: The first Change in the range.
@@ -77,21 +83,79 @@ class Change(collections.namedtuple('Change',
     Raises:
       NonLinearError: The Changes are not linear.
     """
-    # TODO: Handle DEPS rolls, including nested ones.
-    _ValidateChangeLinearity(change_a, change_b)
+    if change_a.base_commit.repository != change_b.base_commit.repository:
+      raise NonLinearError(
+          'Change A has base repo "%s" and Change B has base repo "%s".' %
+          (change_a.base_commit.repository, change_b.base_commit.repository))
 
-    midpoint_all_deps = []
-    for dep_a, dep_b in zip(change_a.all_deps, change_b.all_deps):
-      if dep_a.git_hash == dep_b.git_hash:
-        midpoint_dep = dep_a
-      else:
-        midpoint_dep = Dep.Midpoint(dep_a, dep_b)
-        if not midpoint_dep:
-          return None
+    if change_a.patch != change_b.patch:
+      raise NonLinearError(
+          'Change A has patch "%s" and Change B has patch "%s".' %
+          (change_a.patch, change_b.patch))
 
-      midpoint_all_deps.append(midpoint_dep)
+    if change_a == change_b:
+      return None
 
-    return cls(midpoint_all_deps[0], midpoint_all_deps[1:], change_a.patch)
+    # Find the midpoint of every pair of Deps, expanding DEPS rolls as we go.
+    midpoint_deps = {}
+
+    repositories_a = {dep.repository: dep for dep in change_a.all_deps}
+    repositories_b = {dep.repository: dep for dep in change_b.all_deps}
+
+    # Match up all the Deps by repository.
+    while frozenset(repositories_a.iterkeys()).intersection(
+        frozenset(repositories_b.iterkeys())):
+      # Choose an arbitrary pair of Deps with the same repository.
+      shared_repositories = set(repositories_a.iterkeys()).intersection(
+          set(repositories_b.iterkeys()))
+      repository = shared_repositories.pop()
+      dep_a = repositories_a.pop(repository)
+      dep_b = repositories_b.pop(repository)
+
+      if dep_a == dep_b:
+        # The Deps are the same.
+        midpoint_deps[repository] = dep_a
+        continue
+
+      midpoint_dep = Dep.Midpoint(dep_a, dep_b)
+      if midpoint_dep:
+        # The Deps are not adjacent.
+        midpoint_deps[repository] = midpoint_dep
+        continue
+
+      # The Deps are adjacent. Figure out if it's a DEPS roll.
+      deps_a = dep_a.Deps()
+      deps_b = dep_b.Deps()
+      if deps_a == deps_b:
+        # Not a DEPS roll. The Changes really are adjacent.
+        return None
+
+      # DEPS roll! Expand the roll.
+      for dep in deps_a.difference(deps_b):
+        if dep.repository in midpoint_deps:
+          raise NonLinearError('Tried to take the midpoint across a DEPS roll, '
+                               'but the underlying Dep is already overriden in '
+                               'both Changes.')
+        if dep.repository not in repositories_a:
+          repositories_a[dep.repository] = dep
+      for dep in deps_b.difference(deps_a):
+        if dep.repository in midpoint_deps:
+          raise NonLinearError('Tried to take the midpoint across a DEPS roll, '
+                               'but the underlying Dep is already overriden in '
+                               'both Changes.')
+        if dep.repository not in repositories_b:
+          repositories_b[dep.repository] = dep
+      midpoint_deps[repository] = dep_a
+
+    # Now that the DEPS are expanded, check to see if the repositories differ.
+    if repositories_a or repositories_b:
+      raise NonLinearError(
+          'Repositories differ between Change A and Change B: %s' %
+          ', '.join(sorted(repositories_a.keys() + repositories_b.keys())))
+
+    # Create our new Change!
+    base_commit = midpoint_deps.pop(change_a.base_commit.repository)
+    return cls(base_commit, midpoint_deps.itervalues(), change_a.patch)
 
 
 class Dep(collections.namedtuple('Dep', ('repository', 'git_hash'))):
@@ -105,6 +169,37 @@ class Dep(collections.namedtuple('Dep', ('repository', 'git_hash'))):
     """The HTTPS URL of the repository as passed to `git clone`."""
     repositories = namespaced_stored_object.Get(_REPOSITORIES_KEY)
     return repositories[self.repository]['repository_url']
+
+  def Deps(self):
+    """Return the DEPS of this Dep as a frozenset of Deps."""
+    # Download and execute DEPS file.
+    deps_file_contents = gitiles_service.FileContents(
+        self.repository_url, self.git_hash, 'DEPS')
+    deps_data = {'Var': lambda variable: deps_data['vars'][variable]}
+    exec deps_file_contents in deps_data  # pylint: disable=exec-used
+
+    # Pull out deps dict, including OS-specific deps.
+    deps_dict = deps_data['deps']
+    for deps_os in deps_data.get('deps_os', {}).itervalues():
+      deps_dict.update(deps_os)
+
+    # Convert deps strings to Dep objects.
+    deps = []
+    for dep_string in deps_dict.itervalues():
+      dep_string_parts = dep_string.split('@')
+      if len(dep_string_parts) < 2:
+        continue  # Dep is not pinned to any particular revision.
+      if len(dep_string_parts) > 2:
+        raise NotImplementedError('Unknown DEP format: ' + dep_string)
+
+      repository_url, git_hash = dep_string_parts
+      repository = _Repository(repository_url)
+      if not repository:
+        _AddRepository(repository_url)
+        repository = _Repository(repository_url)
+      deps.append(Dep(repository, git_hash))
+
+    return frozenset(deps)
 
   @classmethod
   def FromDict(cls, data):
@@ -120,11 +215,9 @@ class Dep(collections.namedtuple('Dep', ('repository', 'git_hash'))):
     repository = data['repository']
 
     # Translate repository if it's a URL.
-    repositories = namespaced_stored_object.Get(_REPOSITORIES_KEY)
-    for repo_label, repo_info in repositories.iteritems():
-      if repository == repo_info['repository_url']:
-        repository = repo_label
-        break
+    repository_from_url = _Repository(repository)
+    if repository_from_url:
+      repository = repository_from_url
 
     dep = cls(repository, data['git_hash'])
 
@@ -182,26 +275,24 @@ class Patch(collections.namedtuple('Patch', ('server', 'issue', 'patchset'))):
     return cls(data['server'], data['issue'], data['patchset'])
 
 
-def _ValidateChangeLinearity(change_a, change_b):
-  if len(change_a.deps) != len(change_b.deps):
-    raise NonLinearError('Change A has %d deps and Change B has %d deps' %
-                         (len(change_a.deps), len(change_b.deps)))
+def _Repository(repository_url):
+  repositories = namespaced_stored_object.Get(_REPOSITORIES_KEY)
+  for repo_label, repo_info in repositories.iteritems():
+    if repository_url == repo_info['repository_url']:
+      return repo_label
 
-  if change_a.patch != change_b.patch:
-    raise NonLinearError('Change A has patch "%s" and Change B has patch "%s"'
-                         % (change_a.patch, change_b.patch))
+  return None
 
-  differences = 0
-  for dep_a, dep_b in zip(change_a.all_deps, change_b.all_deps):
-    if dep_a.repository != dep_b.repository:
-      raise NonLinearError('Change A has repository "%s" and '
-                           'Change B has repository "%s"' %
-                           (dep_a.repository, dep_b.repository))
 
-    if dep_a.git_hash != dep_b.git_hash:
-      differences += 1
+def _AddRepository(repository_url):
+  repositories = namespaced_stored_object.Get(_REPOSITORIES_KEY)
+  repository = repository_url.split('/')[-1]
+  if repository.endswith('.git'):
+    repository = repository[:-4]
 
-  if differences == 0:
-    raise NonLinearError('The Changes are the same.')
-  elif differences > 1:
-    raise NonLinearError('The Changes have multiple differing commits.')
+  if repository in repositories:
+    raise AssertionError("Attempted to add a repository that's already in the "
+                         'Datastore: %s: %s' % (repository, repository_url))
+
+  repositories[repository] = {'repository_url': repository_url}
+  namespaced_stored_object.Set(_REPOSITORIES_KEY, repositories)
