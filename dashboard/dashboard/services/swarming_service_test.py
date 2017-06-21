@@ -2,8 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import httplib
-import json
 import unittest
 
 import mock
@@ -14,97 +12,73 @@ from dashboard.services import swarming_service
 class _SwarmingTest(unittest.TestCase):
 
   def setUp(self):
-    patcher = mock.patch('dashboard.common.utils.ServiceAccountHttp')
-    self.__http = mock.MagicMock()
-    service_account_http = patcher.start()
-    service_account_http.return_value = self.__http
+    patcher = mock.patch('dashboard.services.request.RequestJson')
+    self._request_json = patcher.start()
     self.addCleanup(patcher.stop)
 
-  def _Set200ReturnValue(self):
-    self.__SetRequestReturnValue({'status': '200'}, {'content': {}})
+    self._request_json.return_value = {'content': {}}
 
-  def _Set500ReturnValue(self):
-    self.__SetRequestReturnValue({'status': '500'}, {'errors': {}})
-
-  def _SetSideEffect(self, side_effect):
-    self.__http.request.side_effect = side_effect
-
-  def _Assert200Response(self, content):
+  def _AssertCorrectResponse(self, content):
     self.assertEqual(content, {'content': {}})
 
-  def _AssertRequestMade(self, path, *args, **kwargs):
-    self.__http.request.assert_called_with(
-        swarming_service.API_BASE_URL + path, *args, **kwargs)
-
   def _AssertRequestMadeOnce(self, path, *args, **kwargs):
-    self.__http.request.assert_called_once_with(
+    self._request_json.assert_called_once_with(
         swarming_service.API_BASE_URL + path, *args, **kwargs)
-
-  def __SetRequestReturnValue(self, response, content):
-    self.__http.request.return_value = (response, json.dumps(content))
 
 
 class BotTest(_SwarmingTest):
 
   def testGet(self):
-    self._Set200ReturnValue()
     response = swarming_service.Bot('bot_id').Get()
-    self._Assert200Response(response)
-    self._AssertRequestMadeOnce('bot/bot_id/get', method='GET')
+    self._AssertCorrectResponse(response)
+    self._AssertRequestMadeOnce('bot/bot_id/get')
 
   def testTasks(self):
-    self._Set200ReturnValue()
     response = swarming_service.Bot('bot_id').Tasks()
-    self._Assert200Response(response)
-    self._AssertRequestMadeOnce('bot/bot_id/tasks', method='GET')
+    self._AssertCorrectResponse(response)
+    self._AssertRequestMadeOnce('bot/bot_id/tasks')
 
 
 class BotsTest(_SwarmingTest):
 
   def testList(self):
-    self._Set200ReturnValue()
     response = swarming_service.Bots().List(
         'CkMSPWoQ', {'pool': 'Chrome-perf', 'a': 'b'}, False, 1, True)
-    self._Assert200Response(response)
+    self._AssertCorrectResponse(response)
 
-    path = ('bots/list?cursor=CkMSPWoQ&dimensions=a%3Ab&'
-            'dimensions=pool%3AChrome-perf&is_dead=false&'
-            'limit=1&quarantined=true')
-    self._AssertRequestMadeOnce(path, method='GET')
+    path = ('bots/list')
+    self._AssertRequestMadeOnce(path, cursor='CkMSPWoQ',
+                                dimensions=('a:b', 'pool:Chrome-perf'),
+                                is_dead=False, limit=1, quarantined=True)
 
 
 class TaskTest(_SwarmingTest):
 
   def testCancel(self):
-    self._Set200ReturnValue()
     response = swarming_service.Task('task_id').Cancel()
-    self._Assert200Response(response)
+    self._AssertCorrectResponse(response)
     self._AssertRequestMadeOnce('task/task_id/cancel', method='POST')
 
   def testRequest(self):
-    self._Set200ReturnValue()
     response = swarming_service.Task('task_id').Request()
-    self._Assert200Response(response)
-    self._AssertRequestMadeOnce('task/task_id/request', method='GET')
+    self._AssertCorrectResponse(response)
+    self._AssertRequestMadeOnce('task/task_id/request')
 
   def testResult(self):
-    self._Set200ReturnValue()
     response = swarming_service.Task('task_id').Result()
-    self._Assert200Response(response)
-    self._AssertRequestMadeOnce('task/task_id/result', method='GET')
+    self._AssertCorrectResponse(response)
+    self._AssertRequestMadeOnce('task/task_id/result')
 
   def testResultWithPerformanceStats(self):
-    self._Set200ReturnValue()
     response = swarming_service.Task('task_id').Result(True)
-    self._Assert200Response(response)
-    self._AssertRequestMadeOnce(
-        'task/task_id/result?include_performance_stats=true', method='GET')
+    self._AssertCorrectResponse(response)
+    self._AssertRequestMadeOnce('task/task_id/result',
+                                include_performance_stats=True)
 
   def testStdout(self):
-    self._Set200ReturnValue()
     response = swarming_service.Task('task_id').Stdout()
-    self._Assert200Response(response)
-    self._AssertRequestMadeOnce('task/task_id/stdout', method='GET')
+    self._AssertCorrectResponse(response)
+    self._AssertRequestMadeOnce('task/task_id/stdout')
 
 
 class TasksTest(_SwarmingTest):
@@ -133,24 +107,6 @@ class TasksTest(_SwarmingTest):
         ],
     }
 
-    self._Set200ReturnValue()
     response = swarming_service.Tasks().New(body)
-    self._Assert200Response(response)
-    self._AssertRequestMade('tasks/new', method='POST',
-                            body=json.dumps(body),
-                            headers={'Content-Type': 'application/json'})
-
-
-class FailureTest(_SwarmingTest):
-
-  def testBotGet(self):
-    self._Set500ReturnValue()
-    with self.assertRaises(swarming_service.SwarmingError):
-      swarming_service.Bot('bot_id').Get()
-    self._AssertRequestMade('bot/bot_id/get', method='GET')
-
-  def testRetryHttpException(self):
-    return_value = ({'status': '200'}, json.dumps({'content': {}}))
-    self._SetSideEffect((httplib.HTTPException, return_value))
-    response = swarming_service.Bot('bot_id').Get()
-    self._Assert200Response(response)
+    self._AssertCorrectResponse(response)
+    self._AssertRequestMadeOnce('tasks/new', method='POST', body=body)

@@ -10,18 +10,10 @@ a test run.
 API explorer: https://goo.gl/uxPUZo
 """
 
-import httplib
-import json
-import urllib
-
-from dashboard.common import utils
+from dashboard.services import request
 
 
 API_BASE_URL = 'https://chromium-swarm.appspot.com/_ah/api/swarming/v1/'
-
-
-class SwarmingError(Exception):
-  pass
 
 
 class Bot(object):
@@ -40,9 +32,9 @@ class Bot(object):
     """Lists a given bot's tasks within the specified date range."""
     return self._Request('tasks')
 
-  def _Request(self, path, method='GET', body=None, **parameters):
-    return _Request('bot/%s/%s' % (self._bot_id, path),
-                    method, body, **parameters)
+  def _Request(self, path, **kwargs):
+    return request.RequestJson(
+        API_BASE_URL + 'bot/%s/%s' % (self._bot_id, path), **kwargs)
 
 
 class Bots(object):
@@ -54,8 +46,9 @@ class Bots(object):
       dimensions = tuple(':'.join(dimension)
                          for dimension in dimensions.iteritems())
 
-    return _Request('bots/list', cursor=cursor, dimensions=dimensions,
-                    is_dead=is_dead, limit=limit, quarantined=quarantined)
+    return request.RequestJson(API_BASE_URL + 'bots/list', cursor=cursor,
+                               dimensions=dimensions, is_dead=is_dead,
+                               limit=limit, quarantined=quarantined)
 
 
 class Task(object):
@@ -67,7 +60,7 @@ class Task(object):
     """Cancels a task.
 
     If a bot was running the task, the bot will forcibly cancel the task."""
-    return self._Request('cancel', 'POST')
+    return self._Request('cancel', method='POST')
 
   def Request(self):
     """Returns the task request corresponding to a task ID."""
@@ -88,9 +81,9 @@ class Task(object):
     """Returns the output of the task corresponding to a task ID."""
     return self._Request('stdout')
 
-  def _Request(self, path, method='GET', body=None, **parameters):
-    return _Request('task/%s/%s' % (self._task_id, path),
-                    method, body, **parameters)
+  def _Request(self, path, **kwargs):
+    return request.RequestJson(
+        API_BASE_URL + 'task/%s/%s' % (self._task_id, path), **kwargs)
 
 
 class Tasks(object):
@@ -102,41 +95,5 @@ class Tasks(object):
     earliest opportunity by a bot that has at least the dimensions as described
     in the task request.
     """
-    return _Request('tasks/new', 'POST', body)
-
-
-def _Request(path, method='GET', body=None, **parameters):
-  if parameters:
-    for key, value in parameters.iteritems():
-      if value is None:
-        del parameters[key]
-      if isinstance(value, bool):
-        parameters[key] = str(value).lower()
-    path += '?' + urllib.urlencode(sorted(parameters.iteritems()), doseq=True)
-
-  url = API_BASE_URL + path
-  if body:
-    body = json.dumps(body)
-    headers = {'Content-Type': 'application/json'}
-    content = _RequestWithRetry(url, method=method, body=body, headers=headers)
-  else:
-    content = _RequestWithRetry(url, method=method)
-
-  return json.loads(content)
-
-
-def _RequestWithRetry(*args, **kwargs):
-  try:
-    return _RequestAndProcessHttpErrors(*args, **kwargs)
-  except (httplib.HTTPException, SwarmingError):
-    return _RequestAndProcessHttpErrors(*args, **kwargs)
-
-
-def _RequestAndProcessHttpErrors(*args, **kwargs):
-  """Requests a URL, converting HTTP errors to Python exceptions."""
-  http = utils.ServiceAccountHttp(timeout=10)
-  response, content = http.request(*args, **kwargs)
-  if not response['status'].startswith('2'):
-    raise SwarmingError(content)
-
-  return content
+    return request.RequestJson(API_BASE_URL + 'tasks/new',
+                               method='POST', body=body)
