@@ -108,7 +108,9 @@ tr.exportTo('tr.v.d', function() {
   // in their DiagnosticMap.
   TagMap.NAME = 'tagmap';
 
-  tr.v.d.Diagnostic.register(TagMap);
+  tr.v.d.Diagnostic.register(TagMap, {
+    elementName: 'tr-v-ui-tag-map-span'
+  });
 
   return {
     TagMap,

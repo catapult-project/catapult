@@ -584,6 +584,7 @@
       'tracing/value/ui/scalar_diagnostic_span.html',
       'tracing/value/ui/scalar_map_table.html',
       'tracing/value/ui/scalar_span.html',
+      'tracing/value/ui/tag_map_span.html',
       'tracing/value/ui/telemetry_info_span.html',
       'tracing/value/ui/unmergeable_diagnostic_set_span.html',
     ],
