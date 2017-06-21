@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<!--
+Copyright 2017 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/base/base.html">
+
+<script>
+'use strict';
+tr.exportTo('d', function() {
+  /**
+   * @typedef {Object} Alert
+   * @property {string} testsuite
+   * @property {number} start_revision
+   * @property {number} end_revision
+   */
+
+  /**
+   * @param {!Alert} a
+   * @param {!Alert} b
+   * @return {boolean}
+   */
+  function shouldMerge(a, b) {
+    return a.testsuite === b.testsuite &&
+      rangeIntersects(
+          a.start_revision, a.end_revision,
+          b.start_revision, b.end_revision);
+  }
+
+  function rangeIntersects(aMin, aMax, bMin, bMax) {
+    return aMin <= bMax && bMin <= aMax;
+  }
+
+  /**
+   * Groups Alerts such that all alerts in each group have overlapping revision
+   * ranges and the same test suite.
+   *
+   * @param {!Array.<!Alert>} alerts
+   * @return {!Array.<!Array.<!Alert>>}
+   */
+  function groupAlerts(alerts) {
+    const groups = [];
+    for (const alert of alerts) {
+      let merged = false;
+      for (const group of groups) {
+        let doMerge = true;
+        for (const other of group) {
+          const should = shouldMerge(alert, other);
+          if (!should) {
+            doMerge = false;
+            break;
+          }
+        }
+        if (doMerge) {
+          group.push(alert);
+          merged = true;
+          break;
+        }
+      }
+
+      if (!merged) {
+        groups.push([alert]);
+      }
+    }
+    return groups;
+  }
+
+  return {
+    groupAlerts,
+  };
+});
+</script>

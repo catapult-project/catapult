@@ -15,6 +15,7 @@ found in the LICENSE file.
 <link rel="import" href="/dashboard/elements/revision-range.html">
 <link rel="import" href="/dashboard/elements/stoppage-alert-debug-button.html">
 <link rel="import" href="/dashboard/elements/triage-dialog.html">
+<link rel="import" href="/dashboard/static/group_alerts.html">
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 <link rel="import" href="/dashboard/static/uri.html">
 
@@ -634,6 +635,17 @@ found in the LICENSE file.
        * Displays alerts in groups.
        */
       showAlertsGrouped() {
+        if (uri.getParameter('3651') === 'y') {
+          // https://github.com/catapult-project/catapult/issues/3651
+          const groupedAlerts = d.groupAlerts(this.alertList);
+
+          for (let i = 0; i < groupedAlerts.length; ++i) {
+            for (const alert of groupedAlerts[i]) {
+              alert.group = 'group' + i;
+            }
+          }
+        }
+
         const groupMap = {};
         const alertOrder = [];
         // Normally we should modify values in alertsList via
