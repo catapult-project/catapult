@@ -393,6 +393,48 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(nameCells[0].isOverviewed);
   });
 
+  test('overviewSorted', async function() {
+    const histograms = new tr.v.HistogramSet([
+      newHistogram('a', {samples: [4], telemetry: {
+        storyDisplayName: 'D'}}),
+      newHistogram('a', {samples: [2], telemetry: {
+        storyDisplayName: 'B'}}),
+      newHistogram('a', {samples: [3], telemetry: {
+        storyDisplayName: 'C'}}),
+      newHistogram('a', {samples: [1], telemetry: {
+        storyDisplayName: 'A'}}),
+    ]);
+    const table = await buildTable(this, histograms);
+    await table.viewState.update({
+      groupings: [
+        tr.v.HistogramSet.GROUPINGS.HISTOGRAM_NAME,
+        tr.v.HistogramSet.GROUPINGS.STORY_NAME,
+      ],
+      sortColumnIndex: 0,
+      sortDescending: true,
+    });
+    await table.viewState.tableRowStates.get('a').update({isOverviewed: true});
+
+    let cells = getTableCells(table);
+    let chart = tr.b.findDeepElementMatchingPredicate(cells[0], e =>
+        e.tagName === 'svg' && e.parentNode.id === 'overview_container');
+    assert.strictEqual('D', chart.data[0].x);
+    assert.strictEqual('C', chart.data[1].x);
+    assert.strictEqual('B', chart.data[2].x);
+    assert.strictEqual('A', chart.data[3].x);
+
+    await table.viewState.update({
+      sortDescending: false,
+    });
+    cells = getTableCells(table);
+    chart = tr.b.findDeepElementMatchingPredicate(cells[0], e =>
+        e.tagName === 'svg' && e.parentNode.id === 'overview_container');
+    assert.strictEqual('A', chart.data[0].x);
+    assert.strictEqual('B', chart.data[1].x);
+    assert.strictEqual('C', chart.data[2].x);
+    assert.strictEqual('D', chart.data[3].x);
+  });
+
   test('controlIsOverviewed', async function() {
     const histograms = new tr.v.HistogramSet([
       newHistogram('a', {samples: [1], telemetry: {

@@ -247,6 +247,13 @@ tr.exportTo('tr.v.ui', function() {
           event.delta.alpha) {
         this.updateContents_();
       }
+      if ((event.delta.sortColumnIndex ||
+           event.delta.sortDescending) &&
+          this.row.viewState.isOverviewed) {
+        this.$.overview_container.removeChild(this.overviewChart_);
+        this.overviewChart_ = undefined;
+        this.showOverview();
+      }
     },
 
     onClick_(event) {
@@ -332,6 +339,8 @@ tr.exportTo('tr.v.ui', function() {
     showOverview() {
       this.$.overview_container.style.display = 'block';
       if (this.overviewChart_ !== undefined) return;
+
+      this.row.sortSubRows();
 
       const data = [];
       let unitString;

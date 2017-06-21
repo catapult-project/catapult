@@ -208,6 +208,16 @@ tr.exportTo('tr.v.ui', function() {
         await row.restoreState(previousState);
       }
     }
+
+    sortSubRows() {
+      const sortColumn = this.baseTable_.tableColumns[
+        this.rootViewState_.sortColumnIndex];
+      if (sortColumn === undefined) return;
+      this.subRows_.sort(sortColumn.cmp);
+      if (this.rootViewState_.sortDescending) {
+        this.subRows_.reverse();
+      }
+    }
   }
 
   return {
