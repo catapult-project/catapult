@@ -119,25 +119,32 @@ histogram.addSample(number, {name: diagnostic})
    [generic-object-view](/tracing/tracing/ui/analysis/generic_object_view.html),
    which is quite smart about displaying tabular data using tables, URLs using
    HTML anchor tags, pretty-printing, recursive data structures, and more.
+
    ![](/docs/images/how-to-write-metrics-generic.png)
+
  * [Breakdown](/tracing/tracing/value/diagnostics/breakdown.html):
    Structurally, these are Maps from strings to numbers. Conceptually, they
    describe what fraction of a whole (either a Histogram or a sample) is due to
    some sort of category - either a category of event, CPU sample, memory
    consumer, whathaveyou. Visually, they are a stacked bar chart with a single
    bar, which is spiritually a pie chart, but less misleading.
+
    ![](/docs/images/how-to-write-metrics-breakdown.png)
+
  * [RelatedEventSet](/tracing/tracing/value/diagnostics/related_event_set.html):
    This is a Set of references to Events in the trace model. Visually, they
    are displayed as HTML links which, when clicked in the metrics-side-panel,
    select the referenced Events in the trace viewer's timeline view. When
    clicked in results2.html, they currently do nothing, but should eventually
    open the trace that contains the events and select them.
+
    ![](/docs/images/how-to-write-metrics-related-event-set.png)
+
  * [DateRange](/tracing/tracing/value/diagnostics/date_range.html):
    This is a Range of Dates. It cannot be empty, but the minDate could be the
    same as the maxDate. Telemetry automatically adds 2 shared DateRanges to all
    results: 'benchmark start' and 'trace start'.
+
    ![](/docs/images/how-to-write-metrics-date-range.png)
 
 ### Histogram Relationship Diagnostics
@@ -146,7 +153,9 @@ histogram.addSample(number, {name: diagnostic})
    These are Sets of references to other Histograms. Visually, they are a set
    of HTML links which, when clicked, select the contained Histograms. The text
    content of the HTML link is the name of the referenced Histogram.
+
    ![](/docs/images/how-to-write-metrics-related-histogram-set.png)
+
  * [RelatedHistogramMap](/tracing/tracing/value/diagnostics/related_histogram_map.html):
    These are Maps from strings to references to other Histograms. Visually, they
    are a set of HTML links similar to RelatedHistogramSet, but the text content of
@@ -155,13 +164,16 @@ histogram.addSample(number, {name: diagnostic})
    rather by merging together other Histograms, then it will have a
    RelatedHistogramMap named 'merged from' that refers to the Histograms that were
    merged by their grouping key, e.g. the telemetry story name.
+
    ![](/docs/images/how-to-write-metrics-related-histogram-map.png)
+
  * [RelatedHistogramBreakdown](/tracing/tracing/value/diagnostics/related_histogram_breakdown.html):
    Structurally, this is a RelatedHistogramMap, but conceptually and visually, this
    is a Breakdown. Whereas Breakdown's stacked bar chart derives its data from
    the numbers contained explicitly in the Breakdown, a
    RelatedHistogramBreakdown's stacked
    bar chart derives its data from the referenced Histograms' sums.
+
    ![](/docs/images/how-to-write-metrics-related-histogram-breakdown.png)
 
 ### Environment Information Diagnostics
@@ -173,14 +185,18 @@ histogram.addSample(number, {name: diagnostic})
    consumed by the metric that produced the Histogram, such as the benchmark
    name, story name, benchmark start timestamp, etc.
    Visually, TelemetryInfos are displayed as a table.
+
    ![](/docs/images/how-to-write-metrics-telemetry.png)
+
  * [DeviceInfo](/tracing/tracing/value/diagnostics/device_info.html):
    This is automatically attached to every Histogram produced by buildbots.
    Structurally, it's a class with explicit named fields. Conceptually, it
    contains information about the machine that produced the trace that was
    consumed by the metric that produced the Histogram, such as the OS version,
    Chrome version, etc. Visually, DeviceInfos are displayed as a table.
+
    ![](/docs/images/how-to-write-metrics-device.png)
+
  * [RevisionInfo](/tracing/tracing/value/diagnostics/revision_info.html):
    This is automatically attached to every Histogram produced by telemetry.
    Structurally, it's a class with explicit named fields. Conceptually, it
@@ -188,12 +204,15 @@ histogram.addSample(number, {name: diagnostic})
    was consumed by the metric that produced the Histogram, such as the Chromium
    revision, v8 revision, and catapult revision. Visually, RevisionInfos are
    displayed as a table.
+
    ![](/docs/images/how-to-write-metrics-revision.png)
+
  * [BuildbotInfo](/tracing/tracing/value/diagnostics/buildbot_info.html):
    This is automatically attached to every Histogram produced by Chrome's
    performance testing buildbots. Structurally, it's a class with explicit named
    fields. Conceptually, it contains information about the buildbot process that
    ran telemetry. Visually, it is displayed as a table.
+
    ![](/docs/images/how-to-write-metrics-buildbot.png)
 
 ### Other Diagnostics
