@@ -114,7 +114,11 @@ def DeviceStatus(devices, blacklist):
           build_description = device.build_description
           wifi_ip = device.GetProp('dhcp.wlan0.ipaddress')
           battery_info = _BatteryStatus(device, blacklist)
-          imei_slice = device.GetIMEI()
+          try:
+            imei_slice = device.GetIMEI()
+          except device_errors.CommandFailedError:
+            logging.exception('Unable to fetch IMEI for %s.', str(device))
+            imei_slice = 'unknown'
 
           if (device.product_name == 'mantaray' and
               battery_info.get('AC powered', None) != 'true'):
