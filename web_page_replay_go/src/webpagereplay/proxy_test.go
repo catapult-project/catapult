@@ -72,7 +72,8 @@ func TestEndToEnd(t *testing.T) {
 	if err != nil {
 		t.Fatalf("OpenWritableArchive: %v", err)
 	}
-	recordServer := httptest.NewServer(NewRecordingProxy(recordArchive, "http"))
+	var transformers []ResponseTransformer
+	recordServer := httptest.NewServer(NewRecordingProxy(recordArchive, "http", transformers))
 	recordTransport := &http.Transport{
 		Proxy: func(*http.Request) (*url.URL, error) {
 			return url.Parse(recordServer.URL)
@@ -135,7 +136,7 @@ func TestEndToEnd(t *testing.T) {
 	if err != nil {
 		t.Fatalf("OpenArchive: %v", err)
 	}
-	replayServer := httptest.NewServer(NewReplayingProxy(replayArchive, "http"))
+	replayServer := httptest.NewServer(NewReplayingProxy(replayArchive, "http", transformers))
 	replayTransport := &http.Transport{
 		Proxy: func(*http.Request) (*url.URL, error) {
 			return url.Parse(replayServer.URL)
