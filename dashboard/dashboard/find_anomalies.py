@@ -9,7 +9,9 @@ points in a test for potential regressions or improvements, and creates
 new Anomaly entities.
 """
 
+import json
 import logging
+import sys
 
 from google.appengine.ext import ndb
 
@@ -20,6 +22,7 @@ from dashboard.models import alert_group
 from dashboard.models import anomaly
 from dashboard.models import anomaly_config
 from dashboard.models import graph_data
+from dashboard.models import histogram
 
 # Number of points to fetch and pass to FindChangePoints. A different number
 # may be used if a test has a "max_window_size" anomaly config parameter.
@@ -340,7 +343,8 @@ def _MakeAnomalyEntity(change_point, test, rows):
       internal_only=test.internal_only,
       units=test.units,
       display_start=display_start,
-      display_end=display_end)
+      display_end=display_end,
+      ownership=GetMostRecentDiagnosticData(test.key, 'Ownership'))
 
 
 def FindChangePointsForTest(rows, config_dict):
@@ -375,3 +379,28 @@ def _IsImprovement(test, median_before, median_after):
       test.improvement_direction == anomaly.DOWN):
     return True
   return False
+
+
+def GetMostRecentDiagnosticData(test_key, diagnostic_type):
+  """Gets the data in the latest sparse diagnostic for the given
+     diagnostic type.
+
+  Args:
+    test_key: The TestKey entity to lookup the diagnostics by
+    diagnostic_type: The type of the diagnostics being looked up
+
+  Returns:
+    A JSON containing the diagnostic's data.
+    None if no diagnostics of the given type are found.
+  """
+
+  diagnostics = histogram.SparseDiagnostic.query(ndb.AND(
+      histogram.SparseDiagnostic.end_revision == sys.maxint,
+      histogram.SparseDiagnostic.test == test_key)).fetch()
+
+  for diagnostic in diagnostics:
+    diagnostic_data = json.loads(diagnostic.data)
+    if diagnostic_data['type'] == diagnostic_type:
+      return diagnostic_data
+
+  return None

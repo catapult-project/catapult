@@ -56,6 +56,10 @@ class Alert(internal_only_model.InternalOnlyModel):
   display_start = ndb.IntegerProperty(indexed=False)
   display_end = ndb.IntegerProperty(indexed=False)
 
+  # Ownership data, mapping e-mails to the benchmark's owners' emails and
+  # component as the benchmark's Monorail component
+  ownership = ndb.JsonProperty()
+
   def GetTestMetadataKey(self):
     """Get the key for the TestMetadata entity of this alert.
 
