@@ -73,7 +73,7 @@ class Job(ndb.Model):
     if test_suite:
       quests.append(quest_module.RunTest(configuration, test_suite, test))
     if metric:
-      quests.append(quest_module.ReadValue(metric))
+      quests.append(quest_module.ReadValue(metric, test))
 
     # Create job.
     return cls(
