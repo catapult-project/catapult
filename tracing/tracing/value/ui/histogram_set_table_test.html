@@ -566,6 +566,20 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(cells[1].histogram.allBins[41].range.min, 200);
   });
 
+  test('leafHistograms', async function() {
+    const histograms = new tr.v.HistogramSet([
+      newHistogram('a', {telemetry: {storyDisplayName: 'A'}}),
+      newHistogram('a', {telemetry: {storyDisplayName: 'B'}}),
+    ]);
+    const table = await buildTable(this, histograms);
+    assert.lengthOf(table.leafHistograms, 1);
+    await table.viewState.update({groupings: [
+      tr.v.HistogramSet.GROUPINGS.HISTOGRAM_NAME,
+      tr.v.HistogramSet.GROUPINGS.STORY_NAME,
+    ]});
+    assert.lengthOf(table.leafHistograms, 2);
+  });
+
   test('nameCellOverflow', async function() {
     const histograms = new tr.v.HistogramSet([
       newHistogram('a'.repeat(100)),

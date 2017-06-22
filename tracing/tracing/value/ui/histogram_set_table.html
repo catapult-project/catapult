@@ -415,12 +415,15 @@ tr.exportTo('tr.v.ui', function() {
       });
     },
 
+    /**
+     * @return {!tr.v.HistogramSet}
+     */
     get leafHistograms() {
       const histograms = new tr.v.HistogramSet();
       for (const row of
           tr.v.ui.HistogramSetTableRow.walkAll(this.$.table.tableRows)) {
         if (row.subRows.length) continue;
-        for (const hist of this.columns.values()) {
+        for (const hist of row.columns.values()) {
           if (!(hist instanceof tr.v.Histogram)) continue;
 
           histograms.addHistogram(hist);
