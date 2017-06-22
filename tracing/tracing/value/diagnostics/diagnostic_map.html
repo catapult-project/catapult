@@ -39,6 +39,11 @@ tr.exportTo('tr.v.d', function() {
       Map.prototype.set.call(this, name, diagnostic);
     }
 
+    delete(name) {
+      if (name === undefined) throw new Error('missing name');
+      Map.prototype.delete.call(this, name);
+    }
+
     /**
      * Add Diagnostics from a dictionary of dictionaries.
      *

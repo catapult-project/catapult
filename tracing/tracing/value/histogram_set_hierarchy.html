@@ -10,6 +10,18 @@ found in the LICENSE file.
 <script>
 'use strict';
 tr.exportTo('tr.v', function() {
+  function deleteMergedToDiagnostics(histogramArrayMap) {
+    for (const [name, histograms] of histogramArrayMap) {
+      if (histograms instanceof Array) {
+        for (const histogram of histograms) {
+          histogram.diagnostics.delete(tr.v.d.MERGED_TO_DIAGNOSTIC_KEY);
+        }
+      } else if (histograms instanceof Map) {
+        deleteMergedToDiagnostics(histograms);
+      }
+    }
+  }
+
   /*
    * See also HistogramSet.groupHistogramsRecursively().
    * See also tr.v.ui.HistogramSetTableRow.
@@ -69,23 +81,7 @@ tr.exportTo('tr.v', function() {
       // Delete "merged to" diagnostics from the original Histograms, or else
       // they'll accumulate as the user re-groups them, and slow down future
       // mergeRelationships operations.
-      for (const row of HistogramSetHierarchy.walkAll(rootRows)) {
-        // Walk directly down to the leaves in order to avoid touching
-        // original Histograms more than once.
-        if (row.subRows.length) continue;
-
-        for (const hist of row.columns.values()) {
-          if (!(hist instanceof tr.v.Histogram)) continue;
-
-          const mergedFrom = hist.diagnostics.get(
-              tr.v.MERGED_FROM_DIAGNOSTIC_KEY);
-          if (mergedFrom !== undefined) {
-            for (const other of mergedFrom) {
-              other.diagnostics.delete(tr.v.MERGED_TO_DIAGNOSTIC_KEY);
-            }
-          }
-        }
-      }
+      deleteMergedToDiagnostics(histogramArrayMap);
 
       for (const row of HistogramSetHierarchy.walkAll(rootRows)) {
         row.maybeRebin_();

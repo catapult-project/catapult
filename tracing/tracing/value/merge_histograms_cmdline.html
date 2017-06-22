@@ -64,8 +64,8 @@ function mergeLeafHistograms(groupedHistograms, mergedHistograms) {
 
 function stripInternalDiagnostics(mergedHistograms) {
   for (const hist of mergedHistograms) {
-    hist.diagnostics.delete(tr.v.MERGED_FROM_DIAGNOSTIC_KEY);
-    hist.diagnostics.delete(tr.v.MERGED_TO_DIAGNOSTIC_KEY);
+    hist.diagnostics.delete(tr.v.d.MERGED_FROM_DIAGNOSTIC_KEY);
+    hist.diagnostics.delete(tr.v.d.MERGED_TO_DIAGNOSTIC_KEY);
     hist.diagnostics.delete(tr.v.d.GroupingPath.NAME);
   }
 }
