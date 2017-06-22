@@ -179,6 +179,9 @@ will remain the same, but the values displayed in the "B" Value column will
 change to display the differences between the values in the "B" column and the
 corresponding values in the "A" column.
 
+![Select a reference column.
+](/docs/images/metrics-results-ui-reference-column.png)
+
 When you open a histogram in a non-reference Value column, in addition to the
 statistics produced by the Histogram such as "avg", "stddev", "min", "max", etc.
 the Histogram statistic table will also display statistics about the delta
@@ -192,17 +195,71 @@ statistics include
  * U-statistic: a number produced and consumed by the [Mann-Whitney U hypothesis
    test](https://en.wikipedia.org/wiki/Mann%E2%80%93Whitney_U_test)
 
-To the right of the table of statistics, an emoji (smiley) face will be
-displayed:
- * a green grinning face when the current Histogram is statistically
-   significantly better than the reference column, or
- * a red frowning face when the current Histogram is statistically significantly
-   worse than the reference column, or
- * a neutral face when the current Histogram is not statistically significantly
-   different from the reference column.
+#### Significance
 
-![Select a reference column.
-](/docs/images/metrics-results-ui-reference-column.png)
+In order to decide whether a regression is significant enough that you should
+avoid committing a change, you need to know how to interpret the delta
+statistics. To begin, there are actually two different kinds of "significance",
+and you need to evaluate both independently.
+
+##### Statistical Significance
+
+Basically, low p-value = more confidence that two Histograms are statistically
+significantly different.
+
+For more detail, the p-value is the probability under the null hypothesis
+of obtaining results more extreme than your actual results. The null hypothesis
+in this case states that
+ * The sample distributions in the two Histograms (reference and non-reference)
+   could have been taken from the same underlying true population of
+   measurements (be they memory, power, time, etc.).
+
+If the p-value is low enough, this is sufficient statistical evidence for us to
+reject the null hypothesis. If the p-value is high, then we fail to reject the
+null hypothesis since there is not enough statistical evidence to provide
+confidence that the samples are from different populations. In context,
+rejecting the null hypothesis means that the two histograms were actually taken
+from different populations: a pre-regression state and a post-regression state.
+
+"Low" is subjective, but results.html defaults to "less than &#945;=0.01", but
+you could argue that &#945; should be as high as 0.1 or as low as 0.001 for your
+metric.
+
+In order to make it easy for you to quickly visually find statistically
+significantly different results, an emoji is displayed in cells in non-reference
+columns when a reference column is selected.
+ * A green grinning face means that the current Histogram is statistically
+   significantly (p-value < 0.01) better than the reference column.
+ * A red frowning face means that the current Histogram is statistically significantly
+   (p-value < 0.01) worse than the reference column.
+ * A neutral face means that the current Histogram is not statistically significantly
+   different (p-value >= 0.01) from the reference column, or else the metric
+   did not indicate whether up is better or down is better.
+
+For more detail on how p-values are computed, see the [Mann-Whitney U
+test](https://en.wikipedia.org/wiki/Mann%E2%80%93Whitney_U_test).
+
+##### Significant Magnitude
+
+It is possible for a regression to be statistically significant, but small
+enough that you shouldn't worry about it.
+When sample distributions have very low deviation, then even tiny changes can be
+detected statistically.
+
+Results.html cannot yet automatically determine whether the magnitude of a
+regression or improvement is significant.
+
+There are currently a few options for manual ways to decide whether the
+magnitude of a regression is significant:
+ * Ask somebody who is familiar with the metric that produced the results.
+ * If the benchmark is monitored, you can look at the history of the metric on
+   [the dashboard](https://chromeperf.appspot.com/report). You might not
+   be able to directly compare the numbers on the dashboard with your numbers
+   since they are recorded on specific machines in a lab environment, but you
+   can see how stable the metric has been over time: Does the metric routinely
+   fluctuate by 5%?
+ * Look at the %&#916;avg. A 1% regression is probably not significant, but a
+   10% regression probably is.
 
 ### The Significance Threshold Slider
 
