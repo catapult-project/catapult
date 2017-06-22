@@ -65,4 +65,4 @@ class Isolate(ndb.Model):
 
 def _Key(builder_name, change, target):
   string = '\n'.join((builder_name, repr(change), target))
-  return hashlib.sha512(string).hexdigest()
+  return hashlib.sha256(string).hexdigest()
