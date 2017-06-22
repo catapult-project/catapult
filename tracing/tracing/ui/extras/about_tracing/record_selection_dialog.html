@@ -455,48 +455,36 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       }
     },
 
-    categoryFilter() {
+    includedAndExcludedCategories() {
+      let includedCategories = [];
+      let excludedCategories = [];
       if (this.usingPreset_()) {
-        const categories = [];
         const allCategories = this.allCategories_();
         for (const category in allCategories) {
-          const disabled = category.indexOf('disabled-by-default-') === 0;
+          const disabledByDefault =
+              category.indexOf('disabled-by-default-') === 0;
           if (this.currentlyChosenPreset_.indexOf(category) >= 0) {
-            if (disabled) {
-              categories.push(category);
+            if (disabledByDefault) {
+              includedCategories.push(category);
             }
           } else {
-            if (!disabled) {
-              categories.push('-' + category);
+            if (!disabledByDefault) {
+              excludedCategories.push(category);
             }
           }
         }
-        return categories.join(',');
+        return {
+          included: includedCategories,
+          excluded: excludedCategories
+        };
       }
 
-      let categories = this.unselectedCategories_();
-      const categoriesLength = categories.length;
-      const negatedCategories = [];
-      for (let i = 0; i < categoriesLength; ++i) {
-        // Skip any category with a , as it will cause issues when we negate.
-        // Both sides should have been added as separate categories, these can
-        // only come from settings.
-        if (categories[i].match(/,/)) continue;
-        negatedCategories.push('-' + categories[i]);
-      }
-      categories = negatedCategories.join(',');
-
-      let disabledCategories = this.enabledDisabledByDefaultCategories_();
-      disabledCategories = disabledCategories.join(',');
-
-      const results = [];
-      if (categories !== '') {
-        results.push(categories);
-      }
-      if (disabledCategories !== '') {
-        results.push(disabledCategories);
-      }
-      return results.join(',');
+      excludedCategories = this.unselectedCategories_();
+      includedCategories = this.enabledDisabledByDefaultCategories_();
+      return {
+        included: includedCategories,
+        excluded: excludedCategories
+      };
     },
 
     clickRecordButton() {

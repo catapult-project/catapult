@@ -32,10 +32,10 @@ tr.b.unittest.testSuite(function() {
       return ['a', 'b', 'c'];
     });
     mock.expectRequest('beginRecording', function(recordingOptions) {
-      assert.typeOf(recordingOptions.categoryFilter, 'string');
-      assert.typeOf(recordingOptions.useSystemTracing, 'boolean');
-      assert.typeOf(recordingOptions.useSampling, 'boolean');
-      assert.typeOf(recordingOptions.tracingRecordMode, 'string');
+      assert.typeOf(recordingOptions.included_categories, 'array');
+      assert.typeOf(recordingOptions.excluded_categories, 'array');
+      assert.typeOf(recordingOptions.enable_systrace, 'boolean');
+      assert.typeOf(recordingOptions.record_mode, 'string');
       tr.b.timeout(10).then(() =>
         recordingPromise.progressDlg.clickStopButton());
       return '';

@@ -85,13 +85,13 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       };
       Polymer.dom(progressDlg).appendChild(stopButton);
 
+      const categories = selectionDlg.includedAndExcludedCategories();
       const recordingOptions = {
-        categoryFilter: selectionDlg.categoryFilter(),
-        useSystemTracing: selectionDlg.useSystemTracing,
-        tracingRecordMode: selectionDlg.tracingRecordMode,
-        useSampling: selectionDlg.useSampling
+        included_categories: categories.included,
+        excluded_categories: categories.excluded,
+        enable_systrace: selectionDlg.useSystemTracing,
+        record_mode: selectionDlg.tracingRecordMode,
       };
-
 
       const requestPromise = tracingControllerClient.beginRecording(
           recordingOptions);

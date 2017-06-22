@@ -11,48 +11,72 @@ found in the LICENSE file.
 <script>
 'use strict';
 
+function makeController() {
+  const controller =
+      new tr.ui.e.about_tracing.InspectorTracingControllerClient();
+  controller.conn_ = new (function() {
+    this.req = function(method, params) {
+      const msg = JSON.stringify({
+        id: 1,
+        method,
+        params
+      });
+      return new (function() {
+        this.msg = msg;
+        this.then = function(m1, m2) {
+          return this;
+        };
+      })();
+    };
+    this.setNotificationListener = function(method, listener) {
+    };
+  })();
+  return controller;
+}
+
 tr.b.unittest.testSuite(function() {
   test('beginRecording_sendCategoriesAndOptions', function() {
-    const controller =
-        new tr.ui.e.about_tracing.InspectorTracingControllerClient();
-    controller.conn_ = new (function() {
-      this.req = function(method, params) {
-        const msg = JSON.stringify({
-          id: 1,
-          method,
-          params
-        });
-        return new (function() {
-          this.msg = msg;
-          this.then = function(m1, m2) {
-            return this;
-          };
-        })();
-      };
-      this.setNotificationListener = function(method, listener) {
-      };
-    })();
+    const controller = makeController();
 
     const recordingOptions = {
-      categoryFilter: JSON.stringify(['a', 'b', 'c']),
-      useSystemTracing: false,
-      tracingRecordMode: 'test-mode',
-      useSampling: true
+      included_categories: ['a', 'b', 'c'],
+      excluded_categories: ['e'],
+      enable_systrace: false,
+      record_mode: 'record-until-full',
     };
 
     const result = JSON.parse(controller.beginRecording(recordingOptions).msg);
+    assert.deepEqual(
+        result.params.traceConfig.includedCategories, ['a', 'b', 'c']);
+    assert.deepEqual(
+        result.params.traceConfig.excludedCategories, ['e']);
     assert.strictEqual(
-        result.params.categories, JSON.stringify(['a', 'b', 'c']));
-    const options = result.params.options.split(',');
-    let tracingRecordTestMode = false;
-    let sampleFlag = false;
-    for (const s in options) {
-      if (options[s] === 'test-mode') tracingRecordTestMode = true;
-      else if (options[s] === 'enable-sampling') sampleFlag = true;
-      else assert.strictEqual(options[s], '');
-    }
-    assert.isTrue(tracingRecordTestMode);
-    assert.isTrue(sampleFlag);
+        result.params.traceConfig.recordMode, 'recordUntilFull');
+    assert.isFalse(
+        result.params.traceConfig.enableSystrace);
+    assert.isTrue(
+        result.params.traceConfig.memoryDumpConfig.triggers.length === 0);
+  });
+
+  test('beginRecording_sendCategoriesAndOptionsWithMemoryInfra', function() {
+    const controller = makeController();
+
+    const recordingOptions = {
+      included_categories: ['c', 'disabled-by-default-memory-infra', 'a'],
+      excluded_categories: ['e'],
+      enable_systrace: false,
+      record_mode: 'test-mode',
+    };
+
+    const result = JSON.parse(controller.beginRecording(recordingOptions).msg);
+    assert.isTrue(
+        result.params.traceConfig.memoryDumpConfig.triggers.length === 1);
+    assert.isTrue(
+        result.params.traceConfig.memoryDumpConfig.triggers.length === 1);
+    assert.strictEqual(result.params.traceConfig.memoryDumpConfig.
+        triggers[0].mode, 'detailed');
+    assert.strictEqual(result.params.traceConfig.memoryDumpConfig.
+        triggers[0].periodic_interval_ms, 10000);
   });
 
   test('oldFormat', function() {
