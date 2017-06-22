@@ -141,6 +141,8 @@ class SharedPageState(story.SharedState):
   def DidRunStory(self, results):
     if self._finder_options.profiler:
       self._StopProfiling(results)
+    if self._finder_options.interactive:
+      raw_input("Interacting... Press Enter to continue.")
     # We might hang while trying to close the connection, and need to guarantee
     # the page will get cleaned up to avoid future tests failing in weird ways.
     try:
