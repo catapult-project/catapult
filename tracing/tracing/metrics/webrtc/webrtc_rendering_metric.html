@@ -10,7 +10,9 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/utils.html">
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/metrics/v8/utils.html">
+<link rel="import" href="/tracing/model/helpers/chrome_model_helper.html">
 <link rel="import" href="/tracing/value/histogram.html">
+
 
 <script>
 'use strict';
@@ -24,7 +26,7 @@ tr.exportTo('tr.metrics.webrtc', function() {
   // How many vsyncs a frame should be displayed to be considered frozen.
   const FROZEN_FRAME_VSYNC_COUNT_THRESHOLD = 6;
 
-  const WEB_MEDIA_PLAYER_UPDATE_TITLE = 'WebMediaPlayerMS::UpdateCurrentFrame';
+  const WEB_MEDIA_PLAYER_UPDATE_TITLE = 'UpdateCurrentFrame';
   // These four are args for WebMediaPlayerMS update events.
   const IDEAL_RENDER_INSTANT_NAME = 'Ideal Render Instant';
   const ACTUAL_RENDER_BEGIN_NAME = 'Actual Render Begin';
@@ -56,7 +58,7 @@ tr.exportTo('tr.metrics.webrtc', function() {
   /*
    * Verify that the event is a valid event.
    *
-   * An event is valid if it is a WebMediaPlayerMS::UpdateCurrentFrame event,
+   * An event is valid if it is a UpdateCurrentFrame event,
    * and has all of the mandatory arguments. See MANDATORY above.
    */
   function isValidEvent(event) {
@@ -72,15 +74,27 @@ tr.exportTo('tr.metrics.webrtc', function() {
   }
 
   function webrtcRenderingMetric(histograms, model) {
-    tr.metrics.v8.utils.groupAndProcessEvents(model,
-        isValidEvent,
-        event => event.args[STREAM_ID_NAME],
-        (streamName, events) => getTimeStats(histograms, streamName, events)
+    const modelHelper = model.getOrCreateHelper(
+        tr.model.helpers.ChromeModelHelper);
+    let webMediaPlayerMSEvents = [];
+    for (const rendererPid in modelHelper.rendererHelpers) {
+      const rendererHelper = modelHelper.rendererHelpers[rendererPid];
+      const compositorThread = rendererHelper.compositorThread;
+      if (compositorThread !== undefined) {
+        webMediaPlayerMSEvents = webMediaPlayerMSEvents.concat(
+            compositorThread.sliceGroup.slices.filter(isValidEvent));
+      }
+    }
+    const eventsByStreamName = tr.b.groupIntoMap(
+        webMediaPlayerMSEvents,
+        event => event.args[STREAM_ID_NAME]
     );
+    for (const [streamName, events] of eventsByStreamName) {
+      getTimeStats(histograms, streamName, events);
+    }
   }
 
   tr.metrics.MetricRegistry.register(webrtcRenderingMetric);
-
 
   function getTimeStats(histograms, streamName, events) {
     const frameHist = getFrameDistribution(histograms, events);

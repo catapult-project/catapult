@@ -28,7 +28,7 @@ tr.b.unittest.testSuite(function() {
    */
   function eventFromPair(pair) {
     return {
-      title: 'WebMediaPlayerMS::UpdateCurrentFrame',
+      title: 'UpdateCurrentFrame',
       start: pair[1],
       duration: 1,
       args: {
@@ -123,6 +123,7 @@ tr.b.unittest.testSuite(function() {
     function customizeModelCallback(model) {
       const rendererProcess = model.getOrCreateProcess(1);
       const mainThread = rendererProcess.getOrCreateThread(2);
+      mainThread.name = 'Compositor';
       for (const event of fakeEvents) {
         mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(event));
       }
