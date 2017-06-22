@@ -136,6 +136,9 @@ def ComputeRevision(histograms):
   assert len(histograms) > 0
   revision_info = histograms.GetFirstHistogram().diagnostics[
       histogram_module.RevisionInfo.NAME]
+  # TODO(eakuefner): Allow users to specify other types of revisions to be used
+  # for computing revisions of dashboard points. See
+  # https://github.com/catapult-project/catapult/issues/3623.
   return revision_info.chromium_commit_position
 
 

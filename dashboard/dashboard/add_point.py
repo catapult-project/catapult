@@ -160,7 +160,7 @@ class AddPointHandler(post_data_handler.PostDataHandler):
         _ValidateRowId(data[0], test_map)
 
       for row_dict in data:
-        _ValidateRowDict(row_dict)
+        ValidateRowDict(row_dict)
       _AddTasks(data)
     except BadRequestError as error:
       # If any of the data was invalid, abort immediately and return an error.
@@ -558,7 +558,7 @@ def _ConstructTestPathMap(row_dicts):
           for r in last_added_revision_entities if r is not None}
 
 
-def _ValidateRowDict(row):
+def ValidateRowDict(row):
   """Checks all fields in the input dictionary.
 
   Args:
