@@ -5,7 +5,7 @@
 
 import unittest
 
-import symbolize_trace
+from . import symbolize_trace
 
 class StackFrameMapTest(unittest.TestCase):
 

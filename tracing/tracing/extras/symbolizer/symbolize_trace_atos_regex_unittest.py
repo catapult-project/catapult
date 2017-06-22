@@ -3,12 +3,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import os
 import sys
 import unittest
 
-sys.path.insert(0, os.path.dirname(__file__))
-import symbolize_trace_atos_regex
+from . import symbolize_trace_atos_regex
 
 
 class AtosRegexTest(unittest.TestCase):

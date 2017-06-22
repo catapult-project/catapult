@@ -237,8 +237,8 @@ sys.path.append(_SYMBOLS_PATH)
 # pylint: disable=import-error
 import symbols.elf_symbolizer as elf_symbolizer
 
-import symbolize_trace_atos_regex
-import symbolize_trace_macho_reader
+from . import symbolize_trace_atos_regex
+from . import symbolize_trace_macho_reader
 
 _PY_UTILS_PATH = os.path.abspath(os.path.join(
     _TRACING_DIR,
