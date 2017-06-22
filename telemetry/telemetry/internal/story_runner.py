@@ -44,6 +44,9 @@ def AddCommandLineArgs(parser):
                    help='Maximum number of test failures before aborting '
                    'the run. Defaults to the number specified by the '
                    'PageTest.')
+  group.add_option('--interactive', dest='interactive', default=False,
+                   action='store_true', help='Let the user interact with '
+                   'the page after the test has run.')
   parser.add_option_group(group)
 
   # WPR options
