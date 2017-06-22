@@ -22,8 +22,9 @@ Merge* family of methods for this kind of aggregation.
 """
 import os
 
-from telemetry.core import discover
 from telemetry.core import util
+
+from py_utils import discover
 
 # When converting a Value to its buildbot equivalent, the context in which the
 # value is being interpreted actually affects the conversion. This is insane,

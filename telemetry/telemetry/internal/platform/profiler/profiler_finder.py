@@ -4,10 +4,10 @@
 
 import os
 
-from telemetry.core import discover
 from telemetry.internal.platform import profiler
 from telemetry.core import util
 
+from py_utils import discover
 
 def _DiscoverProfilers():
   profiler_dir = os.path.dirname(__file__)

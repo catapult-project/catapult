@@ -14,7 +14,7 @@ import traceback
 import uuid
 
 from py_trace_event import trace_event
-from telemetry.core import discover
+from py_utils import discover
 from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.internal.platform import tracing_agent

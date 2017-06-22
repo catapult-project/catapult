@@ -9,7 +9,7 @@
 # Suppress complaints about unable to import class.  The directory path is
 # added at runtime by telemetry test runner.
 #pylint: disable=import-error
-from telemetry.internal.testing.discoverable_classes import discover_dummyclass
+from discoverable_classes import discover_dummyclass
 
 
 class _PrivateDummyException(discover_dummyclass.DummyException):

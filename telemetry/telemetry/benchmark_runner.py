@@ -14,7 +14,6 @@ import os
 import sys
 
 from telemetry import benchmark
-from telemetry.core import discover
 from telemetry import decorators
 from telemetry.internal.browser import browser_finder
 from telemetry.internal.browser import browser_options
@@ -24,6 +23,7 @@ from telemetry.internal.util import ps_util
 from telemetry.util import matching
 from telemetry.util import bot_utils
 
+from py_utils import discover
 
 # Right now, we only have one of each of our power perf bots. This means that
 # all eligible Telemetry benchmarks are run unsharded, which results in very

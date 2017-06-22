@@ -7,13 +7,13 @@ import re
 import sys
 import json
 
-from telemetry.core import discover
 from telemetry.internal.browser import browser_options
 from telemetry.internal.platform import android_device
 from telemetry.internal.util import binary_manager
 from telemetry.testing import browser_test_context
 from telemetry.testing import serially_executed_browser_test_case
 
+from py_utils import discover
 import typ
 from typ import arg_parser
 

@@ -5,7 +5,6 @@ import logging as real_logging
 import os
 import sys
 
-from telemetry.core import discover
 from telemetry.core import local_server
 from telemetry.core import memory_cache_http_server
 from telemetry.core import network_controller
@@ -13,6 +12,8 @@ from telemetry.core import tracing_controller
 from telemetry.core import util
 from telemetry.internal.platform import (platform_backend as
                                          platform_backend_module)
+
+from py_utils import discover
 
 _host_platform = None
 # Remote platform is a dictionary from device ids to remote platform instances.

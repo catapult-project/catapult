@@ -4,14 +4,13 @@
 import os
 import unittest
 
-from telemetry.core import discover
-from telemetry.core import util
+from py_utils import discover
 
 
 class DiscoverTest(unittest.TestCase):
 
   def setUp(self):
-    self._base_dir = util.GetUnittestDataDir()
+    self._base_dir = os.path.join(os.path.dirname(__file__), 'test_data')
     self._start_dir = os.path.join(self._base_dir, 'discoverable_classes')
     self._base_class = Exception
 

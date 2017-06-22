@@ -6,13 +6,13 @@ import logging
 import os
 import unittest
 
-from telemetry.core import discover
 from telemetry.internal.browser import browser_credentials
 from telemetry.internal import story_runner
 from telemetry import page
 from telemetry import story as story_module
 from telemetry.wpr import archive_info
 
+from py_utils import discover
 
 class StorySetSmokeTest(unittest.TestCase):
 

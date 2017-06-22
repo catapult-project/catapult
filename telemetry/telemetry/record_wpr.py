@@ -8,7 +8,6 @@ import sys
 
 from telemetry import benchmark
 from telemetry import story
-from telemetry.core import discover
 from telemetry.internal.browser import browser_options
 from telemetry.internal.results import results_options
 from telemetry.internal import story_runner
@@ -19,6 +18,7 @@ from telemetry.util import wpr_modes
 from telemetry.web_perf import timeline_based_measurement
 from telemetry.web_perf import timeline_based_page_test
 
+from py_utils import discover
 import py_utils
 
 DEFAULT_LOG_FORMAT = (
