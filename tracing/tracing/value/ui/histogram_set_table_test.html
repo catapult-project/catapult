@@ -276,6 +276,28 @@ tr.b.unittest.testSuite(function() {
     await table.viewState.update({sortColumnIndex: 1});
   });
 
+  test('sortByDeltaStatistic', async function() {
+    const telemetry0 = {label: 'L0', benchmarkStartMs: 0};
+    const telemetry1 = {label: 'L1', benchmarkStartMs: 1};
+    const table = await buildTable(this, new tr.v.HistogramSet([
+      newHistogram('a', {samples: [0], telemetry: telemetry0}),
+      newHistogram('b', {samples: [0], telemetry: telemetry0}),
+      newHistogram('c', {samples: [3], telemetry: telemetry0}),
+      newHistogram('a', {samples: [1], telemetry: telemetry1}),
+      newHistogram('b', {samples: [2], telemetry: telemetry1}),
+      newHistogram('c', {samples: [3], telemetry: telemetry1}),
+    ]));
+    await table.viewState.update({
+      displayStatisticName: tr.v.DELTA + 'avg',
+      referenceDisplayLabel: 'L0',
+      sortColumnIndex: 2,
+    });
+    const nameCells = getNameCells(table);
+    assert.strictEqual('c', nameCells[0].row.name);
+    assert.strictEqual('a', nameCells[1].row.name);
+    assert.strictEqual('b', nameCells[2].row.name);
+  });
+
   test('viewConstrainNameColumn', async function() {
     const histograms = new tr.v.HistogramSet([
       newHistogram('a'.repeat(100)),

@@ -135,7 +135,7 @@ tr.exportTo('tr.v.ui', function() {
       return this.name.localeCompare(other.name);
     }
 
-    compareCells(other, displayLabel, referenceDisplayLabel) {
+    compareCells(other, displayLabel) {
       const cellA = this.columns.get(displayLabel);
       const cellB = other.columns.get(displayLabel);
       if (!(cellA instanceof tr.v.Histogram) ||
@@ -148,6 +148,7 @@ tr.exportTo('tr.v.ui', function() {
 
       // If a reference column is selected, compare the absolute deltas
       // between the two cells and their references.
+      const referenceDisplayLabel = this.rootViewState.referenceDisplayLabel;
       if (referenceDisplayLabel &&
           referenceDisplayLabel !== displayLabel) {
         referenceCellA = this.columns.get(referenceDisplayLabel);
