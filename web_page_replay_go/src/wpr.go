@@ -14,7 +14,9 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/codegangsta/cli"
 	"webpagereplay"
@@ -139,7 +141,10 @@ func (common *CommonConfig) CheckArgs(c *cli.Context) error {
 	}
 	for _, scriptFile := range strings.Split(common.injectScripts, ",") {
 		log.Printf("Loading script from %v\n", scriptFile)
-		si, err := webpagereplay.NewScriptInjectorFromFile(scriptFile)
+		// Replace {{WPR_TIME_SEED_TIMESTAMP}} with current timestamp.
+		current_time_ms := time.Now().Unix() * 1000
+		replacements := map[string]string{"{{WPR_TIME_SEED_TIMESTAMP}}": strconv.FormatInt(current_time_ms, 10)}
+		si, err := webpagereplay.NewScriptInjectorFromFile(scriptFile, replacements)
 		if err != nil {
 			return fmt.Errorf("error opening script %s: %v", scriptFile, err)
 		}

@@ -65,8 +65,13 @@ func transformResponseBody(resp *http.Response, f func([]byte) []byte) error {
 	}
 	resp.Body.Close()
 
-	ce := strings.ToLower(resp.Header.Get("Content-Encoding"))
-	isCompressed := (ce != "" || ce != "identity")
+	var isCompressed bool
+	var ce string
+	if encodings, ok := resp.Header["Content-Encoding"]; ok && len(encodings) > 0 {
+		// TODO(xunjieli): Use the last CE for now. Support chained CEs.
+		ce = strings.ToLower(encodings[len(encodings)-1])
+		isCompressed = (ce != "" || ce != "identity")
+	}
 
 	// Decompress as needed.
 	if isCompressed {
@@ -176,10 +181,13 @@ type ResponseTransformer interface {
 // NewScriptInjector constructs a transformer that injects the given script after
 // the first <head>, <html>, or <!doctype html> tag. Statements in script must be
 // ';' terminated. The script is lightly minified before injection.
-func NewScriptInjector(script []byte) ResponseTransformer {
+func NewScriptInjector(script []byte, replacements map[string]string) ResponseTransformer {
 	// Remove C-style comments.
 	script = jsMultilineCommentRE.ReplaceAllLiteral(script, []byte(""))
 	script = jsSinglelineCommentRE.ReplaceAllLiteral(script, []byte(""))
+	for oldstr, newstr := range replacements {
+		script = bytes.Replace(script, []byte(oldstr), []byte(newstr), -1)
+	}
 	// Remove line breaks.
 	script = bytes.Replace(script, []byte("\r\n"), []byte(""), -1)
 	// Add HTML tags.
@@ -190,12 +198,12 @@ func NewScriptInjector(script []byte) ResponseTransformer {
 }
 
 // NewScriptInjectorFromFile creates a script injector from a script stored in a file.
-func NewScriptInjectorFromFile(filename string) (ResponseTransformer, error) {
+func NewScriptInjectorFromFile(filename string, replacements map[string]string) (ResponseTransformer, error) {
 	script, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
-	return NewScriptInjector(script), nil
+	return NewScriptInjector(script, replacements), nil
 }
 
 var (

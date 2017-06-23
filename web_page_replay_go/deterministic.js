@@ -31,7 +31,9 @@
   var date_count = 0;
   var date_count_threshold = 25;
   var orig_date = Date;
-  var time_seed = 1204251968254;
+  // Time since epoch in milliseconds. This is replaced by script injector with
+  // the date when the recording is done.
+  var time_seed = {{WPR_TIME_SEED_TIMESTAMP}};
   Date = function() {
     if (this instanceof Date) {
       date_count++;
