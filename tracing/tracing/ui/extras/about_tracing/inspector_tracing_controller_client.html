@@ -91,12 +91,6 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
         throw new Error('Already recording');
       }
       this.recording_ = 'starting';
-      const memoryConfig = { triggers: [] };
-      if (recordingOptions.included_categories.indexOf(
-          'disabled-by-default-memory-infra') !== -1) {
-        memoryConfig.triggers.push(
-            {'mode': 'detailed', 'periodic_interval_ms': 10000});
-      }
 
       // The devtools and tracing endpoints have slightly different parameter
       // configurations. Noteably, recordMode has different spelling
@@ -117,10 +111,12 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       const traceConfigStr = {
         includedCategories: recordingOptions.included_categories,
         excludedCategories: recordingOptions.excluded_categories,
-        memoryDumpConfig: memoryConfig,
         recordMode: RewriteRecordMode(recordingOptions.record_mode),
         enableSystrace: recordingOptions.enable_systrace
       };
+      if ('memory_dump_config' in recordingOptions) {
+        traceConfigStr.memoryDumpConfig = recordingOptions.memory_dump_config;
+      }
       let res = this.conn_.req(
           'Tracing.start',
           {

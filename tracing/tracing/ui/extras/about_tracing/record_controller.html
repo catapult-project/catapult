@@ -92,6 +92,13 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
         enable_systrace: selectionDlg.useSystemTracing,
         record_mode: selectionDlg.tracingRecordMode,
       };
+      if (categories.included.indexOf(
+          'disabled-by-default-memory-infra') !== -1) {
+        const memoryConfig = { triggers: [] };
+        memoryConfig.triggers.push(
+            {'mode': 'detailed', 'periodic_interval_ms': 10000});
+        recordingOptions.memory_dump_config = memoryConfig;
+      }
 
       const requestPromise = tracingControllerClient.beginRecording(
           recordingOptions);

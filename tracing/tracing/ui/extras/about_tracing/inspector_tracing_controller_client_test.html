@@ -54,23 +54,24 @@ tr.b.unittest.testSuite(function() {
         result.params.traceConfig.recordMode, 'recordUntilFull');
     assert.isFalse(
         result.params.traceConfig.enableSystrace);
-    assert.isTrue(
-        result.params.traceConfig.memoryDumpConfig.triggers.length === 0);
+    assert.isFalse('memoryDumpConfig' in result.params.traceConfig);
   });
 
   test('beginRecording_sendCategoriesAndOptionsWithMemoryInfra', function() {
     const controller = makeController();
 
+    const memoryConfig = { triggers: [] };
+    memoryConfig.triggers.push(
+        {'mode': 'detailed', 'periodic_interval_ms': 10000});
     const recordingOptions = {
       included_categories: ['c', 'disabled-by-default-memory-infra', 'a'],
       excluded_categories: ['e'],
       enable_systrace: false,
       record_mode: 'test-mode',
+      memory_dump_config: memoryConfig,
     };
 
     const result = JSON.parse(controller.beginRecording(recordingOptions).msg);
-    assert.isTrue(
-        result.params.traceConfig.memoryDumpConfig.triggers.length === 1);
     assert.isTrue(
         result.params.traceConfig.memoryDumpConfig.triggers.length === 1);
     assert.strictEqual(result.params.traceConfig.memoryDumpConfig.
