@@ -215,6 +215,12 @@ histogram.addSample(number, {name: diagnostic})
 
    ![](/docs/images/how-to-write-metrics-buildbot.png)
 
+ * [Ownership](/tracing/tracing/value/diagnostics/ownership.html):
+   This is automatically attached to every Histogram produced by Temeletry.
+   Structurally, it's a class with explicit named fields. Conceptually, it
+   contains information about the owners of benchmarks run by Telemetry, such
+   as the owners' emails addresses and Monorail component.
+
 ### Other Diagnostics
 
  * [Scalar](/tracing/tracing/value/diagnostics/scalar.html):
