@@ -1281,6 +1281,7 @@ class StoryRunnerTest(unittest.TestCase):
     options.reset_results = False
     options.use_live_sites = False
     options.max_failures = 100
+    options.pause = None
     options.pageset_repeat = 1
     options.output_formats = ['chartjson']
     options.run_disabled_tests = False

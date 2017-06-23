@@ -27,6 +27,10 @@ from telemetry.value import scalar
 from telemetry.web_perf import story_test
 from tracing.value import histogram
 
+# Allowed stages to pause for user interaction at.
+_PAUSE_STAGES = ('before-start-browser', 'after-start-browser',
+                 'before-run-story', 'after-run-story')
+
 
 class ArchiveError(Exception):
   pass
@@ -44,6 +48,10 @@ def AddCommandLineArgs(parser):
                    help='Maximum number of test failures before aborting '
                    'the run. Defaults to the number specified by the '
                    'PageTest.')
+  group.add_option('--pause', dest='pause', default=None,
+                   choices=_PAUSE_STAGES,
+                   help='Pause for interaction at the specified stage. '
+                   'Valid stages are %s.' % ', '.join(_PAUSE_STAGES))
   parser.add_option_group(group)
 
   # WPR options

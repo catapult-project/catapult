@@ -31,6 +31,7 @@ class SharedPageStateTests(unittest.TestCase):
 
   def setUp(self):
     self.options = fakes.CreateBrowserFinderOptions()
+    self.options.pause = None
     self.options.use_live_sites = False
     self.options.output_formats = ['none']
     self.options.suppress_gtest_report = True
