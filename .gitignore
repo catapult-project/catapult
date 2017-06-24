@@ -31,3 +31,6 @@ perf_insights/perf_insights/download_traces.py
 
 # battor's binary dependency download folder.
 /common/battor/bin/battor/
+
+# Downloaded binaries
+catapult_base/catapult_base/bin/
