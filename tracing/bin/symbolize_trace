@@ -8,8 +8,6 @@ import sys
 
 if __name__ == '__main__':
   tracing_path = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-  symbolizer_path = os.path.join(tracing_path, 'tracing', 'extras',
-                                 'symbolizer')
-  sys.path.append(symbolizer_path)
-  import symbolize_trace
+  sys.path.append(tracing_path)
+  from tracing.extras.symbolizer import symbolize_trace
   sys.exit(symbolize_trace.main(sys.argv[1:]))

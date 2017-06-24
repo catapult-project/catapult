@@ -9,7 +9,7 @@ import os
 import sys
 
 
-def Run(top_level_dir, path=None):
+def Run(top_level_dir, path=None, suffixes=None):
   """Runs a set of Python tests using typ.
 
   Args:
@@ -19,6 +19,8 @@ def Run(top_level_dir, path=None):
   Returns:
     An exit code (0 for success, otherwise non-zero).
   """
+  if not suffixes:
+    suffixes = ['*_test.py', '*_unittest.py']
   typ_path = os.path.abspath(os.path.join(
       os.path.dirname(__file__), os.path.pardir, 'third_party', 'typ'))
   _AddToPathIfNeeded(typ_path)
@@ -26,7 +28,8 @@ def Run(top_level_dir, path=None):
   return typ.main(
       top_level_dir=top_level_dir,
       path=(path or []),
-      coverage_source=[top_level_dir])
+      coverage_source=[top_level_dir],
+      suffixes=suffixes)
 
 
 def _AddToPathIfNeeded(path):

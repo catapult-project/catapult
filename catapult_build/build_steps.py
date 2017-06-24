@@ -91,6 +91,11 @@ _CATAPULT_TESTS = [
         'disabled': ['android'],
     },
     {
+        'name': 'Native Heap Symbolizer Tests',
+        'path': 'tracing/bin/run_symbolizer_tests',
+        'disabled': ['android'],
+    },
+    {
         'name': 'Py-vulcanize Tests',
         'path': 'third_party/py_vulcanize/bin/run_py_tests',
         'additional_args': ['--no-install-hooks'],

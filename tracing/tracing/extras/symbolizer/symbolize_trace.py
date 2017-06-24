@@ -237,8 +237,8 @@ sys.path.append(_SYMBOLS_PATH)
 # pylint: disable=import-error
 import symbols.elf_symbolizer as elf_symbolizer
 
-from . import symbolize_trace_atos_regex
-from . import symbolize_trace_macho_reader
+from tracing.extras.symbolizer import symbolize_trace_atos_regex
+from tracing.extras.symbolizer import symbolize_trace_macho_reader
 
 _PY_UTILS_PATH = os.path.abspath(os.path.join(
     _TRACING_DIR,
@@ -248,6 +248,9 @@ _PY_UTILS_PATH = os.path.abspath(os.path.join(
 sys.path.append(_PY_UTILS_PATH)
 # pylint: disable=import-error
 import py_utils.cloud_storage as cloud_storage
+
+_UNNAMED_FILE = 'unnamed'
+
 
 class NodeWrapper(object):
   """Wraps an event data node(s).
@@ -317,7 +320,7 @@ class MemoryMap(NodeWrapper):
     def __init__(self, start_address, size, file_path):
       self._start_address = start_address
       self._size = size
-      self._file_path = file_path
+      self._file_path = file_path if file_path else _UNNAMED_FILE
 
     @property
     def start_address(self):
@@ -986,6 +989,7 @@ class SymbolizableFile(object):
     self.path = file_path
     self.symbolizable_path = file_path # path to use for symbolization
     self.frames_by_address = collections.defaultdict(list)
+    self.skip_symbolization = False
 
 
 def ResolveSymbolizableFiles(processes):
@@ -1009,7 +1013,8 @@ def ResolveSymbolizableFiles(processes):
 
       symfile = symfile_by_path.get(region.file_path)
       if symfile is None:
-        symfile = SymbolizableFile(region.file_path)
+        file_path = region.file_path
+        symfile = SymbolizableFile(file_path)
         symfile_by_path[symfile.path] = symfile
 
       relative_pc = frame.pc - region.start_address
@@ -1041,13 +1046,14 @@ class Symbolizer(object):
       self.binary = 'addr2line'
     self.symbolizer_path = FindInSystemPath(self.binary)
 
-  def _SymbolizeLinuxAndAndroid(self, symfile, unsymbolized_name):
+  def _SymbolizeLinuxAndAndroid(self, symfile):
     def _SymbolizerCallback(sym_info, frames):
       # Unwind inline chain to the top.
       while sym_info.inlined_by:
         sym_info = sym_info.inlined_by
 
-      symbolized_name = sym_info.name if sym_info.name else unsymbolized_name
+      symbolized_name = (sym_info.name if sym_info.name else
+                         '<{}>'.format(symfile.path))
       for frame in frames:
         frame.name = symbolized_name
 
@@ -1121,13 +1127,25 @@ class Symbolizer(object):
         # the function name as line info is not always available.
         frame.name = stdout_data[i * 2]
 
-  def Symbolize(self, symfile, unsymbolized_name):
+  def SymbolizeSymfile(self, symfile):
+    if symfile.skip_symbolization:
+      for address, frames in symfile.frames_by_address.iteritems():
+        unsymbolized_name = ('<' + os.path.basename(symfile.symbolizable_path)
+                             + '>')
+        # Only append the address if there's a library.
+        if symfile.symbolizable_path != _UNNAMED_FILE:
+          unsymbolized_name += ' + ' + str(hex(address))
+
+        for frame in frames:
+          frame.name = unsymbolized_name
+      return
+
     if self.is_mac:
       self._SymbolizeMac(symfile)
     elif self.is_win:
       self._SymbolizeWin(symfile)
     else:
-      self._SymbolizeLinuxAndAndroid(symfile, unsymbolized_name)
+      self._SymbolizeLinuxAndAndroid(symfile)
 
   def IsSymbolizableFile(self, file_path):
     if self.is_win:
@@ -1154,9 +1172,6 @@ def SymbolizeFiles(symfiles, symbolizer):
     print ('  ' + message).format(*args)
 
   for symfile in symfiles:
-    unsymbolized_name = '<{}>'.format(
-        symfile.path if symfile.path else 'unnamed')
-
     problem = None
     if not os.path.isabs(symfile.symbolizable_path):
       problem = 'not a file'
@@ -1165,20 +1180,16 @@ def SymbolizeFiles(symfiles, symbolizer):
     elif not symbolizer.IsSymbolizableFile(symfile.symbolizable_path):
       problem = 'file is not symbolizable'
     if problem:
-      _SubPrintf("Won't symbolize {} PCs for '{}': {}.",
-                 len(symfile.frames_by_address),
+      _SubPrintf("Problem with '{}': {}.",
                  symfile.symbolizable_path,
                  problem)
-      for frames in symfile.frames_by_address.itervalues():
-        for frame in frames:
-          frame.name = unsymbolized_name
-      continue
+      symfile.skip_symbolization = True
 
     _SubPrintf('Symbolizing {} PCs from {}...',
                len(symfile.frames_by_address),
                symfile.symbolizable_path)
 
-    symbolizer.Symbolize(symfile, unsymbolized_name)
+    symbolizer.SymbolizeSymfile(symfile)
 
 
 # Matches Android library paths, supports both K (/data/app-lib/<>/lib.so)
@@ -1213,7 +1224,8 @@ def RemapAndroidFiles(symfiles, output_path):
       symfile.symbolizable_path = 'android://{}'.format(symfile.path)
 
 
-def RemapMacFiles(symfiles, symbol_base_directory, version):
+def RemapMacFiles(symfiles, symbol_base_directory, version,
+                  only_symbolize_chrome_symbols):
   suffix = ("Google Chrome Framework.dSYM/Contents/Resources/DWARF/"
             "Google Chrome Framework")
   symbol_sub_dir = os.path.join(symbol_base_directory, version)
@@ -1222,8 +1234,11 @@ def RemapMacFiles(symfiles, symbol_base_directory, version):
   for symfile in symfiles:
     if symfile.path.endswith("Google Chrome Framework"):
       symfile.symbolizable_path = symbolizable_path
+    elif only_symbolize_chrome_symbols:
+      symfile.skip_symbolization = True
 
-def RemapWinFiles(symfiles, symbol_base_directory, version, is64bit):
+def RemapWinFiles(symfiles, symbol_base_directory, version, is64bit,
+                  only_symbolize_chrome_symbols):
   folder = "win64" if is64bit else "win"
   symbol_sub_dir = os.path.join(symbol_base_directory,
                                 "chrome-" + folder + "-" + version)
@@ -1232,8 +1247,10 @@ def RemapWinFiles(symfiles, symbol_base_directory, version, is64bit):
     symbols = image + ".pdb"
     if os.path.isfile(image) and os.path.isfile(symbols):
       symfile.symbolizable_path = image
+    elif only_symbolize_chrome_symbols:
+      symfile.skip_symbolization = True
 
-def Symbolize(options, trace, symbolizer):
+def SymbolizeTrace(options, trace, symbolizer):
   symfiles = ResolveSymbolizableFiles(trace.processes)
 
   # Android trace files don't have any indication they are from Android.
@@ -1246,11 +1263,16 @@ def Symbolize(options, trace, symbolizer):
 
 
   if not trace.is_chromium:
+    # A non-chromium trace probably is not coming from the current machine.
+    # Don't attempt to symbolize system symbols, as that will produce the wrong
+    # results.
+    options.only_symbolize_chrome_symbols = True
     if symbolizer.is_mac:
-      RemapMacFiles(symfiles, options.symbol_base_directory, trace.version)
+      RemapMacFiles(symfiles, options.symbol_base_directory, trace.version,
+                    options.only_symbolize_chrome_symbols)
     if symbolizer.is_win:
       RemapWinFiles(symfiles, options.symbol_base_directory, trace.version,
-                    trace.is_64bit)
+                    trace.is_64bit, options.only_symbolize_chrome_symbols)
 
   SymbolizeFiles(symfiles, symbolizer)
 
@@ -1262,7 +1284,8 @@ def OpenTraceFile(file_path, mode):
     return open(file_path, mode + 't')
 
 
-def FetchAndExtractSymbolsMac(symbol_base_directory, version):
+def FetchAndExtractSymbolsMac(symbol_base_directory, version,
+                              cloud_storage_bucket):
   def GetLocalPath(base_dir, version):
     return os.path.join(base_dir, version + ".tar.bz2")
   def GetSymbolsPath(version):
@@ -1279,7 +1302,6 @@ def FetchAndExtractSymbolsMac(symbol_base_directory, version):
   bzip_path = GetLocalPath(symbol_base_directory, version)
   if not os.path.isfile(bzip_path):
 
-    cloud_storage_bucket = "chrome-unsigned"
     if not cloud_storage.Exists(cloud_storage_bucket, GetSymbolsPath(version)):
       print "Can't find symbols on GCS."
       return False
@@ -1290,10 +1312,10 @@ def FetchAndExtractSymbolsMac(symbol_base_directory, version):
   return True
 
 
-def FetchAndExtractSymbolsWin(symbol_base_directory, version, is64bit):
+def FetchAndExtractSymbolsWin(symbol_base_directory, version, is64bit,
+                              cloud_storage_bucket):
   def DownloadAndExtractZipFile(zip_path, source, destination):
     if not os.path.isfile(zip_path):
-      cloud_storage_bucket = "chrome-unsigned"
       if not cloud_storage.Exists(cloud_storage_bucket, source):
         print "Can't find symbols on GCS."
         return False
@@ -1353,6 +1375,16 @@ def main(args):
       '--output-directory',
       help='The path to the build output directory, such as out/Debug.')
 
+  parser.add_argument(
+      '--only-symbolize-chrome-symbols',
+      action='store_true',
+      help='Prevents symbolization of non-Chrome [system] symbols.')
+
+  parser.add_argument(
+      '--cloud-storage-bucket', default='chrome-unsigned',
+      help="Bucket that holds symbols for official Chrome builds. "
+           "Used by tests, which don't have access to the default bucket.")
+
   home_dir = os.path.expanduser('~')
   default_dir = os.path.join(home_dir, "symbols")
   parser.add_argument(
@@ -1385,15 +1417,17 @@ def main(args):
     has_symbols = False
     if symbolizer.is_mac:
       has_symbols = FetchAndExtractSymbolsMac(options.symbol_base_directory,
-                                              trace.version)
+                                              trace.version,
+                                              options.cloud_storage_bucket)
     if symbolizer.is_win:
       has_symbols = FetchAndExtractSymbolsWin(options.symbol_base_directory,
-                                              trace.version, trace.is_64bit)
+                                              trace.version, trace.is_64bit,
+                                              options.cloud_storage_bucket)
     if not has_symbols:
       print 'Cannot fetch symbols from GCS'
       return False
 
-  Symbolize(options, trace, symbolizer)
+  SymbolizeTrace(options, trace, symbolizer)
 
   if trace.modified:
     trace.ApplyModifications()
@@ -1408,6 +1442,7 @@ def main(args):
       json.dump(trace.node, trace_file)
   else:
     print 'No modifications were made - not updating the trace file.'
+  return True
 
 
 if __name__ == '__main__':
