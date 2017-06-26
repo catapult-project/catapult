@@ -486,6 +486,58 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(table.viewState.tableRowStates.get('a').isOverviewed);
   });
 
+  test('overviewStatistic', async function() {
+    const histograms = new tr.v.HistogramSet([
+      newHistogram('a', {samples: [1], telemetry: {
+        storyDisplayName: 'X', label: 'A'}}),
+      newHistogram('a', {samples: [1, 1], telemetry: {
+        storyDisplayName: 'Y', label: 'A'}}),
+      newHistogram('a', {samples: [1, 1, 1], telemetry: {
+        storyDisplayName: 'X', label: 'B'}}),
+      newHistogram('a', {samples: [1, 1, 1, 1], telemetry: {
+        storyDisplayName: 'Y', label: 'B'}}),
+    ]);
+    const table = await buildTable(this, histograms);
+    await table.viewState.update({
+      displayStatisticName: 'count',
+      groupings: [
+        tr.v.HistogramSet.GROUPINGS.HISTOGRAM_NAME,
+        tr.v.HistogramSet.GROUPINGS.STORY_NAME,
+      ],
+    });
+    await table.viewState.tableRowStates.get('a').update({isOverviewed: true});
+
+    let charts = tr.b.findDeepElementsMatchingPredicate(table, e =>
+        e.tagName === 'svg' && e.parentNode.id === 'overview_container');
+    assert.lengthOf(charts, 3);
+    assert.lengthOf(charts[0].data, 2);
+    assert.lengthOf(charts[1].data, 2);
+    assert.lengthOf(charts[2].data, 2);
+    assert.strictEqual(charts[0].data[0].y, 3);
+    assert.strictEqual(charts[0].data[1].y, 7);
+    assert.strictEqual(charts[1].data[0].y, 1);
+    assert.strictEqual(charts[1].data[1].y, 2);
+    assert.strictEqual(charts[2].data[0].y, 3);
+    assert.strictEqual(charts[2].data[1].y, 4);
+
+    await table.viewState.update({
+      displayStatisticName: tr.v.DELTA + 'count',
+      referenceDisplayLabel: 'A',
+    });
+    charts = tr.b.findDeepElementsMatchingPredicate(table, e =>
+        e.tagName === 'svg' && e.parentNode.id === 'overview_container');
+    assert.lengthOf(charts, 3);
+    assert.lengthOf(charts[0].data, 2);
+    assert.lengthOf(charts[1].data, 2);
+    assert.lengthOf(charts[2].data, 2);
+    assert.strictEqual(charts[0].data[0].y, 3);
+    assert.strictEqual(charts[0].data[1].y, 7);
+    assert.strictEqual(charts[1].data[0].y, 1);
+    assert.strictEqual(charts[1].data[1].y, 2);
+    assert.strictEqual(charts[2].data[0].y, 2);
+    assert.strictEqual(charts[2].data[1].y, 2);
+  });
+
   // TODO(benjhayden): Move this to a unit test for table-cell.
   test('viewCellOpen', async function() {
     const histograms = new tr.v.HistogramSet([

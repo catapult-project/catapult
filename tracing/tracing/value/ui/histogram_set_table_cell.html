@@ -247,9 +247,11 @@ tr.exportTo('tr.v.ui', function() {
           event.delta.alpha) {
         this.updateContents_();
       }
-      if ((event.delta.sortColumnIndex ||
-           event.delta.sortDescending) &&
-          this.row.viewState.isOverviewed) {
+      if (this.row.viewState.isOverviewed &&
+          (event.delta.sortColumnIndex ||
+           event.delta.sortDescending ||
+           event.delta.displayStatisticName ||
+           event.delta.referenceDisplayLabel)) {
         this.$.overview_container.removeChild(this.overviewChart_);
         this.overviewChart_ = undefined;
         this.showOverview();
@@ -341,14 +343,33 @@ tr.exportTo('tr.v.ui', function() {
       if (this.overviewChart_ !== undefined) return;
 
       this.row.sortSubRows();
-
+      let referenceDisplayLabel =
+        this.row.rootViewState.referenceDisplayLabel;
+      if (referenceDisplayLabel === this.displayLabel_) {
+        referenceDisplayLabel = undefined;
+      }
+      const displayStatisticName = this.row.rootViewState.displayStatisticName;
       const data = [];
       let unitString;
+
       for (const subRow of this.row.subRows) {
         const subHist = subRow.columns.get(this.displayLabel_);
         if (!(subHist instanceof tr.v.Histogram)) continue;
-        data.push({x: subRow.name, y: subHist.average});
-        unitString = subHist.unit.unitString;
+
+        if (unitString === undefined) unitString = subHist.unit.unitString;
+
+        const refHist = subRow.columns.get(referenceDisplayLabel);
+        const statName = subHist.getAvailableStatisticName(
+            displayStatisticName, refHist);
+        const statScalar = subHist.getStatisticScalar(
+            statName, refHist);
+
+        if (statScalar !== undefined) {
+          data.push({
+            x: subRow.name,
+            y: statScalar.value,
+          });
+        }
       }
       if (data.length < 2) return;
 

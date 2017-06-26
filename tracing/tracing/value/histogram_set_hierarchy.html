@@ -36,7 +36,6 @@ tr.exportTo('tr.v', function() {
       this.depth = 0;
       this.subRows = [];
       this.columns = new Map();
-      this.overviewDataRange_ = undefined;
       this.mergeRelationshipsForColumn_ = new Map();
     }
 
@@ -279,30 +278,9 @@ tr.exportTo('tr.v', function() {
         clone.subRows = filteredSubRows;
         // Don't need to clone Histograms.
         clone.columns = row.columns;
-        clone.overviewDataRange_ = row.overviewDataRange_;
         results.push(clone);
       }
       return results;
-    }
-
-    get overviewDataRange() {
-      if (this.overviewDataRange_ === undefined) {
-        this.overviewDataRange_ = new tr.b.math.Range();
-        for (const [displayLabel, hist] of this.columns) {
-          if (hist instanceof tr.v.Histogram &&
-              hist.average !== undefined) {
-            this.overviewDataRange_.addValue(hist.average);
-          }
-
-          for (const subRow of this.subRows) {
-            const subHist = subRow.columns.get(displayLabel);
-            if (!(subHist instanceof tr.v.Histogram)) continue;
-            if (subHist.average === undefined) continue;
-            this.overviewDataRange_.addValue(subHist.average);
-          }
-        }
-      }
-      return this.overviewDataRange_;
     }
   }
 

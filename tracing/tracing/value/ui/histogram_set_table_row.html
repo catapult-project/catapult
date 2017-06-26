@@ -23,7 +23,7 @@ tr.exportTo('tr.v.ui', function() {
       this.rootViewState_ = rootViewState;
       this.viewState_ = new tr.v.ui.HistogramSetTableRowState();
       this.viewState_.addUpdateListener(this.onViewStateUpdate_.bind(this));
-
+      this.overviewDataRange_ = undefined;
       this.nameCell_ = undefined;
       this.cells_ = new Map();
       this.subRows_ = [];
@@ -74,7 +74,64 @@ tr.exportTo('tr.v.ui', function() {
      * @return {!tr.b.Range}
      */
     get overviewDataRange() {
-      return this.hierarchy_.overviewDataRange;
+      if (this.overviewDataRange_ === undefined) {
+        this.overviewDataRange_ = new tr.b.math.Range();
+
+        const displayStatisticName =
+          this.rootViewState.displayStatisticName;
+        const referenceDisplayLabel =
+          this.rootViewState.referenceDisplayLabel;
+
+        for (const [displayLabel, hist] of this.columns) {
+          if (hist instanceof tr.v.Histogram) {
+            const statName = hist.getAvailableStatisticName(
+                displayStatisticName);
+            const statScalar = hist.getStatisticScalar(statName);
+            if (statScalar !== undefined) {
+              this.overviewDataRange_.addValue(statScalar.value);
+            }
+          }
+
+          for (const subRow of this.subRows) {
+            const subHist = subRow.columns.get(displayLabel);
+            if (!(subHist instanceof tr.v.Histogram)) continue;
+
+            const refHist = subRow.columns.get(referenceDisplayLabel);
+            const statName = subHist.getAvailableStatisticName(
+                displayStatisticName, refHist);
+            const statScalar = subHist.getStatisticScalar(
+                statName, refHist);
+
+            if (statScalar !== undefined) {
+              this.overviewDataRange_.addValue(statScalar.value);
+            }
+          }
+        }
+      }
+      return this.overviewDataRange_;
+    }
+
+    /**
+     * overviewDataRange is used by histogram-set-table-cell (hstc) and
+     * histogram-set-table-name-cell (hstnc) to display overview line charts
+     * with consistent y-axes.
+     * overviewDataRange depends on HistogramSetViewState.displayStatisticName
+     * and referenceDisplayLabel, so it must be recomputed when either of those
+     * changes.
+     * overviewDataRange should not be recomputed for each hstc in the row; it
+     * should only be computed once when necessary, and cached.
+     * HistogramSetTableRow (HSTR) cannot listen to HistogramSetViewState
+     * (HSVS) updates because there is no way for it to remove the listener.
+     * However, Polymer has detached callbacks, so dom-modules can listen to
+     * HSVS updates without leaking memory.
+     * overviewDataRange should be recomputed only once whenever
+     * displayStatisticName or referenceDisplayLabel changes.
+     * There is exactly one hstnc per row.
+     * histogram-set-table-name-cell resets overviewDataRange when
+     * displayStatisticName or referenceDisplayLabel changes.
+     */
+    resetOverviewDataRange() {
+      this.overviewDataRange_ = undefined;
     }
 
     /**

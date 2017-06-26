@@ -248,11 +248,24 @@ tr.exportTo('tr.v.ui', function() {
       this.$.show_overview.style.display = 'none';
 
       if (this.overviewChart_ === undefined) {
+        const displayStatisticName =
+          this.row.rootViewState.displayStatisticName;
         const data = [];
-        let unitString = undefined;
+        let unitString;
+
         for (const [displayLabel, hist] of this.row.columns) {
-          data.push({x: displayLabel, y: hist.average});
-          unitString = hist.unit.unitString;
+          if (!(hist instanceof tr.v.Histogram)) continue;
+          if (unitString === undefined) unitString = hist.unit.unitString;
+
+          const statName = hist.getAvailableStatisticName(displayStatisticName);
+          const statScalar = hist.getStatisticScalar(statName);
+
+          if (statScalar !== undefined) {
+            data.push({
+              x: displayLabel,
+              y: statScalar.value,
+            });
+          }
         }
         if (data.length < 2) {
           return;
@@ -290,6 +303,13 @@ tr.exportTo('tr.v.ui', function() {
     onRootStateUpdate_(event) {
       if (event.delta.constrainNameColumn) {
         this.constrainWidth = this.row.rootViewState.constrainNameColumn;
+      }
+      if (this.row.viewState.isOverviewed &&
+          event.delta.displayStatisticName) {
+        this.row.resetOverviewDataRange();
+        this.$.overview_container.removeChild(this.overviewChart_);
+        this.overviewChart_ = undefined;
+        this.showOverview_();
       }
     },
 
