@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -76,20 +77,20 @@ func (common *CommonConfig) Flags() []cli.Flag {
 		},
 		cli.IntFlag{
 			Name:        "http_port",
-			Value:       0,
-			Usage:       "Port number to listen on for HTTP requests, or 0 to disable.",
+			Value:       -1,
+			Usage:       "Port number to listen on for HTTP requests, 0 to use any port, or -1 to disable.",
 			Destination: &common.httpPort,
 		},
 		cli.IntFlag{
 			Name:        "https_port",
-			Value:       0,
-			Usage:       "Port number to listen on for HTTPS requests, or 0 to disable.",
+			Value:       -1,
+			Usage:       "Port number to listen on for HTTPS requests, 0 to use any port, or -1 to disable.",
 			Destination: &common.httpsPort,
 		},
 		cli.IntFlag{
 			Name:        "https_to_http_port",
-			Value:       0,
-			Usage:       "Port number to listen on for HTTP proxy requests over an HTTPS connection, or 0 to disable.",
+			Value:       -1,
+			Usage:       "Port number to listen on for HTTP proxy requests over an HTTPS connection, 0 to use any port, or -1 to disable.",
 			Destination: &common.httpSecureProxyPort,
 		},
 		cli.StringFlag{
@@ -123,7 +124,7 @@ func (common *CommonConfig) CheckArgs(c *cli.Context) error {
 	if len(c.Args()) != 1 {
 		return errors.New("must specify archive_file")
 	}
-	if common.httpPort == 0 && common.httpsPort == 0 && common.httpSecureProxyPort == 0 {
+	if common.httpPort == -1 && common.httpsPort == -1 && common.httpSecureProxyPort == -1 {
 		return errors.New("must specify at least one port flag")
 	}
 
@@ -168,6 +169,19 @@ func (r *ReplayCommand) Flags() []cli.Flag {
 		})
 }
 
+func getAvailablePort() int {
+	addr, err := net.ResolveTCPAddr("tcp", "localhost:0")
+	if err != nil {
+		panic(err)
+	}
+	listener, err := net.ListenTCP("tcp", addr)
+	if err != nil {
+		panic(err)
+	}
+	defer listener.Close()
+	return listener.Addr().(*net.TCPAddr).Port
+}
+
 func startServers(tlsconfig *tls.Config, httpHandler, httpsHandler http.Handler, common *CommonConfig) {
 	type Server struct {
 		Scheme string
@@ -175,7 +189,11 @@ func startServers(tlsconfig *tls.Config, httpHandler, httpsHandler http.Handler,
 	}
 
 	servers := []*Server{}
-	if common.httpPort > 0 {
+
+	if common.httpPort > -1 {
+		if common.httpPort == 0 {
+			common.httpPort = getAvailablePort()
+		}
 		servers = append(servers, &Server{
 			Scheme: "http",
 			Server: &http.Server{
@@ -184,7 +202,10 @@ func startServers(tlsconfig *tls.Config, httpHandler, httpsHandler http.Handler,
 			},
 		})
 	}
-	if common.httpsPort > 0 {
+	if common.httpsPort > -1 {
+		if common.httpsPort == 0 {
+			common.httpsPort = getAvailablePort()
+		}
 		servers = append(servers, &Server{
 			Scheme: "https",
 			Server: &http.Server{
@@ -194,7 +215,10 @@ func startServers(tlsconfig *tls.Config, httpHandler, httpsHandler http.Handler,
 			},
 		})
 	}
-	if common.httpSecureProxyPort > 0 {
+	if common.httpSecureProxyPort > -1 {
+		if common.httpSecureProxyPort == 0 {
+			common.httpSecureProxyPort = getAvailablePort()
+		}
 		servers = append(servers, &Server{
 			Scheme: "https",
 			Server: &http.Server{
