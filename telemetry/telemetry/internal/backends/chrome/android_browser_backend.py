@@ -44,19 +44,6 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._saved_sslflag = ''
     self._app_ui = None
 
-    # Stop old browser, if any.
-    self._StopBrowser()
-
-    if self.device.HasRoot() or self.device.NeedsSU():
-      if self.browser_options.profile_dir:
-        self.platform_backend.PushProfile(
-            self._backend_settings.package,
-            self.browser_options.profile_dir)
-      elif not self.browser_options.dont_override_profile:
-        self.platform_backend.RemoveProfile(
-            self._backend_settings.package,
-            self._backend_settings.profile_ignore_list)
-
     # Set the debug app if needed.
     self.platform_backend.SetDebugApp(self._backend_settings.package)
 
@@ -102,6 +89,21 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     command_line_name = self._backend_settings.command_line_name
     with flag_changer.CustomCommandLineFlags(
         self.device, command_line_name, browser_startup_args):
+      # Stop existing browser, if any. This is done *after* setting the
+      # command line flags, in case some other Android process manages to
+      # trigger Chrome's startup before we do.
+      self._StopBrowser()
+
+      if self.device.HasRoot() or self.device.NeedsSU():
+        if self.browser_options.profile_dir:
+          self.platform_backend.PushProfile(
+              self._backend_settings.package,
+              self.browser_options.profile_dir)
+        elif not self.browser_options.dont_override_profile:
+          self.platform_backend.RemoveProfile(
+              self._backend_settings.package,
+              self._backend_settings.profile_ignore_list)
+
       self.device.StartActivity(
           intent.Intent(package=self._backend_settings.package,
                         activity=self._backend_settings.activity,
