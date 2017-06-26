@@ -63,6 +63,7 @@ def get_device_status_unsafe(device):
         'build.id': 'ABC12D',
         'product.device': 'chickenofthesea'
       },
+      'imei': 123456789,
       'mem': {
         'avail': 1000000,
         'total': 1234567,
@@ -148,6 +149,12 @@ def get_device_status_unsafe(device):
     status['uptime'] = float(uptimes[0]) # Take the first field (actual uptime)
   except (device_errors.AdbShellCommandFailedError, ValueError):
     logging.exception('Unable to read /proc/uptime')
+
+  try:
+    status['imei'] = device.GetIMEI()
+  except device_errors.CommandFailedError:
+    logging.exception('Unable to read IMEI')
+    status['imei'] = 'unknown'
 
   status['state'] = 'available'
   return status

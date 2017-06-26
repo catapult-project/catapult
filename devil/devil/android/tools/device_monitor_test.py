@@ -25,7 +25,8 @@ class DeviceMonitorTest(unittest.TestCase):
 
   def setUp(self):
     self.device = mock.Mock(spec=device_utils.DeviceUtils,
-        serial='device_cereal', build_id='abc123', build_product='clownfish')
+        serial='device_cereal', build_id='abc123', build_product='clownfish',
+        GetIMEI=lambda: '123456789')
     self.file_contents = {
         '/proc/meminfo': """
                          MemTotal:        1234567 kB
@@ -76,6 +77,7 @@ class DeviceMonitorTest(unittest.TestCase):
            'build.id': 'abc123',
            'product.device': 'clownfish',
          },
+         'imei': '123456789',
          'state': 'available',
       }
     }
