@@ -364,7 +364,7 @@ class StoryRunnerTest(unittest.TestCase):
                       self.options, self.results)
 
   def testRunStoryWithLongURLPage(self):
-    story_set = story_module.StorySet(verify_names=False)
+    story_set = story_module.StorySet()
     story_set.AddStory(page_module.Page('file://long' + 'g' * 180,
                                         story_set, name='test'))
     test = DummyTest()

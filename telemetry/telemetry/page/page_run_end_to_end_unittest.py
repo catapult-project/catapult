@@ -143,7 +143,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
 
   def testRaiseBrowserGoneExceptionFromRestartBrowserBeforeEachPage(self):
     self.CaptureFormattedException()
-    story_set = story.StorySet(verify_names=True)
+    story_set = story.StorySet()
     story_set.AddStory(page_module.Page(
         'file://blank.html', story_set, base_dir=util.GetUnittestDataDir(),
         name='foo'))
@@ -187,7 +187,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
 
   def testNeedsBrowserRestartAfterEachPage(self):
     self.CaptureFormattedException()
-    story_set = story.StorySet(verify_names=True)
+    story_set = story.StorySet()
     story_set.AddStory(page_module.Page(
         'file://blank.html', story_set, base_dir=util.GetUnittestDataDir(),
         name='foo'))
@@ -237,7 +237,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     assert did_run
 
   def runCredentialsTest(self, credentials_backend):
-    story_set = story.StorySet(verify_names=True)
+    story_set = story.StorySet()
     did_run = [False]
 
     try:
@@ -278,7 +278,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
 
   @decorators.Disabled('chromeos')  # crbug.com/483212
   def testUserAgent(self):
-    story_set = story.StorySet(verify_names=True)
+    story_set = story.StorySet()
     page = page_module.Page(
         'file://blank.html', story_set, base_dir=util.GetUnittestDataDir(),
         shared_page_state_class=shared_page_state.SharedTabletPageState,
@@ -312,7 +312,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
   # Ensure that story_runner forces exactly 1 tab before running a page.
   @decorators.Enabled('has tabs')
   def testOneTab(self):
-    story_set = story.StorySet(verify_names=True)
+    story_set = story.StorySet()
     page = page_module.Page(
         'file://blank.html', story_set, base_dir=util.GetUnittestDataDir(),
         name='blank.html')
@@ -338,7 +338,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
 
   @decorators.Disabled('chromeos')  # crbug.com/652385
   def testTrafficSettings(self):
-    story_set = story.StorySet(verify_names=True)
+    story_set = story.StorySet()
     slow_page = page_module.Page(
         'file://green_rect.html', story_set, base_dir=util.GetUnittestDataDir(),
         name='slow',
@@ -382,7 +382,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
   # Ensure that story_runner allows the test to customize the browser
   # before it launches.
   def testBrowserBeforeLaunch(self):
-    story_set = story.StorySet(verify_names=True)
+    story_set = story.StorySet()
     page = page_module.Page(
         'file://blank.html', story_set, base_dir=util.GetUnittestDataDir(),
         name='blank.html')
@@ -424,7 +424,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
         super(TestSharedState, self)._StopBrowser()
         num_times_browser_closed[0] += 1
 
-    story_set = story.StorySet(verify_names=True)
+    story_set = story.StorySet()
     page = page_module.Page(
         'file://blank.html', story_set, base_dir=util.GetUnittestDataDir(),
         startup_url='about:blank', shared_page_state_class=TestSharedState,
@@ -458,7 +458,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
 
   # Ensure that story_runner calls cleanUp when a page run fails.
   def testCleanUpPage(self):
-    story_set = story.StorySet(verify_names=True)
+    story_set = story.StorySet()
     page = page_module.Page(
         'file://blank.html', story_set, base_dir=util.GetUnittestDataDir(),
         name='blank.html')
@@ -489,7 +489,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
 
   # Ensure skipping the test if shared state cannot be run on the browser.
   def testSharedPageStateCannotRunOnBrowser(self):
-    story_set = story.StorySet(verify_names=True)
+    story_set = story.StorySet()
 
     class UnrunnableSharedState(shared_page_state.SharedPageState):
       def CanRunOnBrowser(self, browser_info, page):
@@ -533,7 +533,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     self.assertEquals(0, len(results.failures))
 
   def testRunPageWithProfilingFlag(self):
-    story_set = story.StorySet(verify_names=True)
+    story_set = story.StorySet()
     story_set.AddStory(page_module.Page(
         'file://blank.html', story_set, base_dir=util.GetUnittestDataDir(),
         name='blank.html'))
@@ -570,7 +570,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
       def RunNavigateSteps(self, _):
         raise exceptions.AppCrashException
 
-    story_set = story.StorySet(verify_names=True)
+    story_set = story.StorySet()
     for i in range(5):
       story_set.AddStory(
           TestPage('file://blank.html', story_set,
@@ -650,7 +650,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
           chrome_version_screen_shot[0] = action_runner.tab.Screenshot()
         raise exceptions.AppCrashException
 
-    story_set = story.StorySet(verify_names=True)
+    story_set = story.StorySet()
     story_set.AddStory(page_module.Page('file://blank.html', story_set,
                                         name='blank.html'))
     failing_page = FailingTestPage('chrome://version', story_set,
@@ -688,7 +688,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
         action_runner.Navigate(self._url)
         raise exceptions.AppCrashException
 
-    story_set = story.StorySet(verify_names=True)
+    story_set = story.StorySet()
     story_set.AddStory(page_module.Page('file://blank.html', story_set,
                                         name='blank.html'))
     failing_page = FailingTestPage('chrome://version', story_set,
@@ -722,7 +722,7 @@ class FakePageRunEndToEndTests(unittest.TestCase):
       def RunNavigateSteps(self, action_runner):
         raise exceptions.AppCrashException
 
-    story_set = story.StorySet(verify_names=True)
+    story_set = story.StorySet()
     story_set.AddStory(page_module.Page('file://blank.html', story_set,
                                         name='blank.html'))
     failing_page = FailingTestPage('chrome://version', story_set,
@@ -750,7 +750,7 @@ class FakePageRunEndToEndTests(unittest.TestCase):
 
       def RunNavigateSteps(self, action_runner):
         raise exceptions.AppCrashException
-    story_set = story.StorySet(verify_names=True)
+    story_set = story.StorySet()
     story_set.AddStory(page_module.Page('file://blank.html', story_set,
                                         name='blank.html'))
     failing_page = FailingTestPage('chrome://version', story_set,
