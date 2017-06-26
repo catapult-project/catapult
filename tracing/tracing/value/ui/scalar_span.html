@@ -254,6 +254,7 @@ Polymer({
     this.shouldSearchForContextController_ = false;
     this.lazyContextController_ = undefined;
     this.onContextUpdated_ = this.onContextUpdated_.bind(this);
+    this.updateContents_ = this.updateContents_.bind(this);
 
     // The span can specify a custom context range, which will override the
     // values from the context controller.
@@ -335,14 +336,14 @@ Polymer({
 
   attached() {
     tr.b.Unit.addEventListener(
-        'display-mode-changed', this.updateContents_.bind(this));
+        'display-mode-changed', this.updateContents_);
     this.shouldSearchForContextController_ = true;
     this.attachToContextControllerIfPossible_(this.contextGroup);
   },
 
   detached() {
     tr.b.Unit.removeEventListener(
-        'display-mode-changed', this.updateContents_.bind(this));
+        'display-mode-changed', this.updateContents_);
     this.detachFromContextControllerIfPossible_(this.contextGroup);
     this.shouldSearchForContextController_ = false;
     this.lazyContextController_ = undefined;
