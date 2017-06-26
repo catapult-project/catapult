@@ -76,3 +76,7 @@ class StoryTest(unittest.TestCase):
     story.Story(SharedStateBar, tags=['a_b'], name='story')
     story.Story(SharedStateBar, tags=['_1'], name='story')
     story.Story(SharedStateBar, tags=['1honda_2tesla_3airplanes'], name='story')
+
+  def testHasName(self):
+    with self.assertRaises(AssertionError):
+      story.Story(SharedStateBar)
