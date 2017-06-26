@@ -38,8 +38,12 @@ class Fastboot(object):
     self._default_timeout = default_timeout
     self._default_retries = default_retries
 
-  def _RunFastbootCommand(self, cmd):
-    """Run a command line command using the fastboot android tool.
+  def __str__(self):
+    return self._device_serial
+
+  @classmethod
+  def _RunFastbootCommand(cls, cmd):
+    """Run a generic fastboot command.
 
     Args:
       cmd: Command to run. Must be list of args, the first one being the command
@@ -51,15 +55,30 @@ class Fastboot(object):
       TypeError: If cmd is not of type list.
     """
     if type(cmd) == list:
-      cmd = [self._fastboot_path.read(), '-s', self._device_serial] + cmd
+      cmd = [cls._fastboot_path.read()] + cmd
     else:
       raise TypeError(
-          'Command for _RunFastbootCommand must be a list.')
+          'Command for _RunDeviceFastbootCommand must be a list.')
     status, output = cmd_helper.GetCmdStatusAndOutput(cmd)
     if int(status) != 0:
-      raise device_errors.FastbootCommandFailedError(
-          cmd, output, status, self._device_serial)
+      raise device_errors.FastbootCommandFailedError(cmd, output, status)
     return output
+
+  def _RunDeviceFastbootCommand(self, cmd):
+    """Run a fastboot command on the device associated with this object.
+
+    Args:
+      cmd: Command to run. Must be list of args, the first one being the command
+
+    Returns:
+      output of command.
+
+    Raises:
+      TypeError: If cmd is not of type list.
+    """
+    if type(cmd) == list:
+      cmd = ['-s', self._device_serial] + cmd
+    return self._RunFastbootCommand(cmd)
 
   @decorators.WithTimeoutAndRetriesDefaults(_FLASH_TIMEOUT, 0)
   def Flash(self, partition, image, timeout=None, retries=None):
@@ -69,23 +88,28 @@ class Fastboot(object):
       partition: Partition to be flashed.
       image: location of image to flash with.
     """
-    self._RunFastbootCommand(['flash', partition, image])
+    self._RunDeviceFastbootCommand(['flash', partition, image])
 
-  @decorators.WithTimeoutAndRetriesFromInstance()
-  def Devices(self, timeout=None, retries=None):
-    """Outputs list of devices in fastboot mode."""
-    output = self._RunFastbootCommand(['devices'])
-    return [line.split()[0] for line in output.splitlines()]
+  @classmethod
+  @decorators.WithTimeoutAndRetriesDefaults(_DEFAULT_TIMEOUT, _DEFAULT_RETRIES)
+  def Devices(cls, timeout=None, retries=None):
+    """Outputs list of devices in fastboot mode.
+
+    Returns:
+      List of Fastboot objects, one for each device in fastboot.
+    """
+    output = cls._RunFastbootCommand(['devices'])
+    return [Fastboot(line.split()[0]) for line in output.splitlines()]
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def RebootBootloader(self, timeout=None, retries=None):
     """Reboot from fastboot, into fastboot."""
-    self._RunFastbootCommand(['reboot-bootloader'])
+    self._RunDeviceFastbootCommand(['reboot-bootloader'])
 
   @decorators.WithTimeoutAndRetriesDefaults(_FLASH_TIMEOUT, 0)
   def Reboot(self, timeout=None, retries=None):
     """Reboot from fastboot to normal usage"""
-    self._RunFastbootCommand(['reboot'])
+    self._RunDeviceFastbootCommand(['reboot'])
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def SetOemOffModeCharge(self, value, timeout=None, retries=None):
@@ -94,5 +118,5 @@ class Fastboot(object):
     Args:
       value: boolean value to set off-mode-charging on or off.
     """
-    self._RunFastbootCommand(
+    self._RunDeviceFastbootCommand(
         ['oem', 'off-mode-charge', str(int(value))])
