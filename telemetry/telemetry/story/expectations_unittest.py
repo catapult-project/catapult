@@ -349,7 +349,8 @@ class StoryExpectationsTest(unittest.TestCase):
     class FooExpectations(expectations.StoryExpectations):
       def SetExpectations(self):
         self.DisableStory(
-            '123456789012345678901234567890123456789012345678901',
+            '123456789012345678901234567890123456789012345678901234567890123456'
+            '789012345',
             [expectations.ALL], 'Too Long')
 
     with self.assertRaises(AssertionError):
@@ -359,7 +360,8 @@ class StoryExpectationsTest(unittest.TestCase):
     class FooExpectations(expectations.StoryExpectations):
       def SetExpectations(self):
         self.DisableStory(
-            'http123456789012345678901234567890123456789012345678901',
+            'http12345678901234567890123456789012345678901234567890123456789012'
+            '3456789012345',
             [expectations.ALL], 'Too Long')
     FooExpectations()
 

@@ -95,8 +95,9 @@ class StoryExpectations(object):
     # TODO(rnephew): Remove http check when old stories that use urls as names
     # are removed.
     if not story_name.startswith('http'):
-      assert len(story_name) < 50, (
-          "Story name exceeds limit of 50 characters. This limit is in place to"
+      # Decrease to 50 after we shorten names of existing tests.
+      assert len(story_name) < 75, (
+          "Story name exceeds limit of 75 characters. This limit is in place to"
           " encourage Telemetry benchmark owners to use short, simple story "
           "names (e.g. 'google_search_images', not "
           "'http://www.google.com/images/1234/abc')."
