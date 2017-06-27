@@ -209,8 +209,11 @@ tr.exportTo('tr.ui.b', function() {
   const DESCENDING_ARROW = String.fromCharCode(0x25BE);
 
   const SelectionMode = tr.ui.b.TableFormat.SelectionMode;
+  const SelectionModeValues = new Set(Object.values(SelectionMode));
   const HighlightStyle = tr.ui.b.TableFormat.HighlightStyle;
+  const HighlightStyleValues = new Set(Object.values(HighlightStyle));
   const ColumnAlignment = tr.ui.b.TableFormat.ColumnAlignment;
+  const ColumnAlignmentValues = new Set(Object.values(ColumnAlignment));
 
   Polymer({
     is: 'tr-ui-b-table',
@@ -1030,7 +1033,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     set selectionMode(selectionMode) {
-      if (!tr.b.dictionaryContainsValue(SelectionMode, selectionMode)) {
+      if (!SelectionModeValues.has(selectionMode)) {
         throw new Error('Invalid selection mode ' + selectionMode);
       }
       this.rebuildIfNeeded_();
@@ -1043,7 +1046,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     set rowHighlightStyle(rowHighlightStyle) {
-      if (!tr.b.dictionaryContainsValue(HighlightStyle, rowHighlightStyle)) {
+      if (!HighlightStyleValues.has(rowHighlightStyle)) {
         throw new Error('Invalid row highlight style ' + rowHighlightStyle);
       }
       this.rebuildIfNeeded_();
@@ -1072,7 +1075,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     set cellHighlightStyle(cellHighlightStyle) {
-      if (!tr.b.dictionaryContainsValue(HighlightStyle, cellHighlightStyle)) {
+      if (!HighlightStyleValues.has(cellHighlightStyle)) {
         throw new Error('Invalid cell highlight style ' + cellHighlightStyle);
       }
       this.rebuildIfNeeded_();

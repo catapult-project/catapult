@@ -84,15 +84,6 @@ tr.exportTo('tr.b', function() {
     return result;
   }
 
-  function dictionaryContainsValue(dict, value) {
-    for (const key in dict) {
-      if (dict[key] === value) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   /**
    * Returns a new Map with items grouped by the return value of the
    * specified function being called on each item.
@@ -322,7 +313,6 @@ tr.exportTo('tr.b', function() {
     concatenateObjects,
     compareArrays,
     comparePossiblyUndefinedValues,
-    dictionaryContainsValue,
     getOnlyElement,
     getFirstElement,
     groupIntoMap,

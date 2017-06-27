@@ -254,18 +254,6 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(k, undefined);
   });
 
-  test('dictionaryContainsValue', function() {
-    const emptyDict = {};
-    assert.isFalse(tr.b.dictionaryContainsValue(emptyDict, 'missing'));
-
-    const nonEmptyDict = {a: 42, b: 'value'};
-    assert.isTrue(tr.b.dictionaryContainsValue(nonEmptyDict, 42));
-    assert.isTrue(tr.b.dictionaryContainsValue(nonEmptyDict, 'value'));
-    assert.isFalse(tr.b.dictionaryContainsValue(nonEmptyDict, 'a'));
-    assert.isFalse(tr.b.dictionaryContainsValue(nonEmptyDict, 'b'));
-    assert.isFalse(tr.b.dictionaryContainsValue(nonEmptyDict, 'missing'));
-  });
-
   test('mapValues', function() {
     const map = new Map();
     map.set('a', 1);
