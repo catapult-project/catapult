@@ -28,7 +28,7 @@ git commit -a -m "New files"
 
 Once you're ready for a review do:
 
-`git cl upload`
+`git cl upload --rietveld`
 
 Once uploaded you can view the CL in Rietveld and **request a review** by
 clicking the 'publish & mail' link, and adding a reviewer from the
