@@ -223,7 +223,7 @@ tr.exportTo('tr.b.math', function() {
         return i1;
       }
 
-      const keyFunc = opt_keyFunc || tr.b.identity;
+      const keyFunc = opt_keyFunc || (x => x);
       function getValue(index) {
         return keyFunc.call(opt_this, array[index]);
       }

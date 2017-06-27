@@ -667,7 +667,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('effectiveSizeColumn_noContext', function() {
-    const c = new EffectiveSizeColumn('Effective Size', 'bytes', tr.b.identity,
+    const c = new EffectiveSizeColumn('Effective Size', 'bytes', (x => x),
         AggregationMode.DIFF);
 
     // Single selection.
@@ -686,7 +686,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('effectiveSizeColumn_suballocationContext', function() {
-    const c = new EffectiveSizeColumn('Effective Size', 'bytes', tr.b.identity,
+    const c = new EffectiveSizeColumn('Effective Size', 'bytes', (x => x),
         AggregationMode.MAX);
 
     // Single selection.
@@ -706,7 +706,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('effectiveSizeColumn_dumpContext_noOwnership', function() {
-    const c = new EffectiveSizeColumn('Effective Size', 'bytes', tr.b.identity,
+    const c = new EffectiveSizeColumn('Effective Size', 'bytes', (x => x),
         AggregationMode.DIFF);
     const pmds = buildProcessMemoryDumps(4 /* count */, function(pmds) {
       addRootDumps(pmds[0], ['v8'], function(v8Dump) {
@@ -739,7 +739,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('effectiveSizeColumn_dumpContext_singleOwnership', function() {
-    const c = new EffectiveSizeColumn('Effective Size', 'bytes', tr.b.identity,
+    const c = new EffectiveSizeColumn('Effective Size', 'bytes', (x => x),
         AggregationMode.MAX);
     const pmds = buildProcessMemoryDumps(5 /* count */, function(pmds) {
       addRootDumps(pmds[0], ['v8', 'oilpan'], function(v8Dump, oilpanDump) {
@@ -847,7 +847,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('effectiveSizeColumn_dumpContext_multipleOwnerships', function() {
-    const c = new EffectiveSizeColumn('Effective Size', 'bytes', tr.b.identity,
+    const c = new EffectiveSizeColumn('Effective Size', 'bytes', (x => x),
         AggregationMode.DIFF);
     const pmds = buildProcessMemoryDumps(6 /* count */, function(pmds) {
       addRootDumps(pmds[0], ['v8', 'oilpan'], function(v8Dump, oilpanDump) {
@@ -1011,7 +1011,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('sizeColumn_noContext', function() {
-    const c = new SizeColumn('Size', 'bytes', tr.b.identity,
+    const c = new SizeColumn('Size', 'bytes', (x => x),
         AggregationMode.DIFF);
 
     // Single selection.
@@ -1030,7 +1030,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('sizeColumn_suballocationContext', function() {
-    const c = new SizeColumn('Size', 'bytes', tr.b.identity,
+    const c = new SizeColumn('Size', 'bytes', (x => x),
         AggregationMode.MAX);
 
     // Single selection.
@@ -1049,8 +1049,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('sizeColumn_dumpContext', function() {
-    const c = new SizeColumn('Size', 'bytes', tr.b.identity,
-        AggregationMode.DIFF);
+    const c = new SizeColumn('Size', 'bytes', (x => x), AggregationMode.DIFF);
     const pmds = buildProcessMemoryDumps(7 /* count */, function(pmds) {
       addRootDumps(pmds[0], ['v8'], function(v8Dump) {
         // Single direct overlap (v8/objects -> v8/heaps).

@@ -59,8 +59,8 @@ tr.exportTo('tr.ui.tracks', function() {
     if (times.length === 0) return [];
 
     // Find the lowest and highest index within the viewport.
-    const lowIndex =
-        tr.b.math.findLowIndexInSortedArray(times, tr.b.identity, minTime);
+    const lowIndex = tr.b.math.findLowIndexInSortedArray(
+        times, (x => x), minTime);
     let highIndex = lowIndex - 1;
     while (times[highIndex + 1] <= maxTime) {
       highIndex++;

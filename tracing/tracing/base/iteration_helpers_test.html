@@ -254,22 +254,6 @@ tr.b.unittest.testSuite(function() {
     });
   });
 
-  test('identity', function() {
-    // Undefined value.
-    assert.isUndefined(tr.b.identity(undefined));
-
-    // Primitive value.
-    assert.strictEqual(tr.b.identity(-273.15), -273.15);
-
-    // List.
-    const list = ['list', 'with', 1, undefined, 'value'];
-    assert.strictEqual(tr.b.identity(list), list);
-
-    // Object.
-    const object = {'hasItems': true};
-    assert.strictEqual(tr.b.identity(object), object);
-  });
-
   test('findFirstKeyInDictMatching', function() {
     const dict = {a: 1, b: 2, c: 3};
 

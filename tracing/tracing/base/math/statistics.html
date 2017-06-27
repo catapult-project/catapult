@@ -36,8 +36,6 @@ found in the LICENSE file.
 /* eslint-disable catapult-camelcase */
 
 tr.exportTo('tr.b.math', function() {
-  const identity = x => x;
-
   const Statistics = {};
 
   /* Returns the quotient, or zero if the denominator is zero.*/
@@ -47,7 +45,7 @@ tr.exportTo('tr.b.math', function() {
   };
 
   Statistics.sum = function(ary, opt_func, opt_this) {
-    const func = opt_func || identity;
+    const func = opt_func || (x => x);
     let ret = 0;
     let i = 0;
     for (const elt of ary) {
@@ -57,7 +55,7 @@ tr.exportTo('tr.b.math', function() {
   };
 
   Statistics.mean = function(ary, opt_func, opt_this) {
-    const func = opt_func || identity;
+    const func = opt_func || (x => x);
     let sum = 0;
     let i = 0;
 
@@ -71,7 +69,7 @@ tr.exportTo('tr.b.math', function() {
   };
 
   Statistics.geometricMean = function(ary, opt_func, opt_this) {
-    const func = opt_func || identity;
+    const func = opt_func || (x => x);
     let i = 0;
     let logsum = 0;
 
@@ -91,7 +89,7 @@ tr.exportTo('tr.b.math', function() {
   // Returns undefined if the sum of the weights is zero.
   Statistics.weightedMean = function(
       ary, weightCallback, opt_valueCallback, opt_this) {
-    const valueCallback = opt_valueCallback || identity;
+    const valueCallback = opt_valueCallback || (x => x);
     let numerator = 0;
     let denominator = 0;
     let i = -1;
@@ -113,7 +111,7 @@ tr.exportTo('tr.b.math', function() {
   Statistics.variance = function(ary, opt_func, opt_this) {
     if (ary.length === 0) return undefined;
     if (ary.length === 1) return 0;
-    const func = opt_func || identity;
+    const func = opt_func || (x => x);
     const mean = Statistics.mean(ary, func, opt_this);
     const sumOfSquaredDistances = Statistics.sum(
         ary,
@@ -132,7 +130,7 @@ tr.exportTo('tr.b.math', function() {
   };
 
   Statistics.max = function(ary, opt_func, opt_this) {
-    const func = opt_func || identity;
+    const func = opt_func || (x => x);
     let ret = -Infinity;
     let i = 0;
     for (const elt of ary) {
@@ -142,7 +140,7 @@ tr.exportTo('tr.b.math', function() {
   };
 
   Statistics.min = function(ary, opt_func, opt_this) {
-    const func = opt_func || identity;
+    const func = opt_func || (x => x);
     let ret = Infinity;
     let i = 0;
     for (const elt of ary) {
@@ -152,7 +150,7 @@ tr.exportTo('tr.b.math', function() {
   };
 
   Statistics.range = function(ary, opt_func, opt_this) {
-    const func = opt_func || identity;
+    const func = opt_func || (x => x);
     const ret = new tr.b.math.Range();
     let i = 0;
     for (const elt of ary) {
@@ -166,7 +164,7 @@ tr.exportTo('tr.b.math', function() {
       throw new Error('percent must be [0,1]');
     }
 
-    const func = opt_func || identity;
+    const func = opt_func || (x => x);
     const tmp = new Array(ary.length);
     let i = 0;
     for (const elt of ary) {

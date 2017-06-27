@@ -515,7 +515,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('usedMemoryColumn', function() {
-    const c = new UsedMemoryColumn('Private', 'bytes', tr.b.identity,
+    const c = new UsedMemoryColumn('Private', 'bytes', (x => x),
         AggregationMode.DIFF);
     checkSpanWithColor(c.title, 'Private',
         UsedMemoryColumn.COLOR /* blue (column title) */);
@@ -524,7 +524,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('peakMemoryColumn', function() {
-    const c = new PeakMemoryColumn('Peak', 'bytes', tr.b.identity,
+    const c = new PeakMemoryColumn('Peak', 'bytes', (x => x),
         AggregationMode.MAX);
     checkSpanWithColor(c.title, 'Peak',
         UsedMemoryColumn.COLOR /* blue (column title) */);
@@ -608,7 +608,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('byteStatColumn', function() {
-    const c = new ByteStatColumn('Stat', 'bytes', tr.b.identity,
+    const c = new ByteStatColumn('Stat', 'bytes', (x => x),
         AggregationMode.DIFF);
     checkSpanWithColor(c.title, 'Stat',
         UsedMemoryColumn.COLOR /* blue (column title) */);
@@ -686,7 +686,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('allocatorColumn', function() {
-    const c = new AllocatorColumn('Allocator', 'bytes', tr.b.identity,
+    const c = new AllocatorColumn('Allocator', 'bytes', (x => x),
         AggregationMode.MAX);
     checkColorLegend(c.title, 'Allocator');
     checkColor(c.color(undefined /* contexts */),
@@ -821,7 +821,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('tracingColumn', function() {
-    const c = new TracingColumn('Tracing', 'bytes', tr.b.identity,
+    const c = new TracingColumn('Tracing', 'bytes', (x => x),
         AggregationMode.DIFF);
     checkSpanWithColor(c.title, 'Tracing',
         TracingColumn.COLOR /* expected column title gray color */);

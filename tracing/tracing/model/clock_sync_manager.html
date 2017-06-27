@@ -410,7 +410,7 @@ tr.exportTo('tr.model', function() {
     this.error = error;
   }
 
-  Transformer.IDENTITY = new Transformer(tr.b.identity, 0);
+  Transformer.IDENTITY = new Transformer((x => x), 0);
 
   /**
    * Given two transformers, creates a third that's a composition of the two.

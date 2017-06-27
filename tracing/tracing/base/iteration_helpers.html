@@ -263,11 +263,6 @@ tr.exportTo('tr.b', function() {
     return result;
   }
 
-  /** Returns the value passed in. */
-  function identity(d) {
-    return d;
-  }
-
   /**
    * Returns the index of the first element in |ary| for which |opt_func|
    * returns a truthy value.
@@ -279,7 +274,7 @@ tr.exportTo('tr.b', function() {
    * @param {*=} opt_this Optional 'this' context for opt_func.
    */
   function findFirstIndexInArray(ary, opt_func, opt_this) {
-    const func = opt_func || identity;
+    const func = opt_func || (x => x);
     for (let i = 0; i < ary.length; i++) {
       if (func.call(opt_this, ary[i], i)) return i;
     }
@@ -314,7 +309,7 @@ tr.exportTo('tr.b', function() {
    * @param {*=} opt_this Optional 'this' context for opt_func.
    */
   function findFirstKeyInDictMatching(dict, opt_func, opt_this) {
-    const func = opt_func || identity;
+    const func = opt_func || (x => x);
     for (const key in dict) {
       if (func.call(opt_this, key, dict[key])) {
         return key;
@@ -356,7 +351,6 @@ tr.exportTo('tr.b', function() {
     inPlaceFilter,
     invertArrayOfDicts,
     arrayToDict,
-    identity,
     findFirstIndexInArray,
     findFirstInArray,
     findFirstKeyInDictMatching,

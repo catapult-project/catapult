@@ -44,7 +44,7 @@ tr.exportTo('tr.metrics', function() {
       line = line.replace(/^ */, '').split(':');
       if (line.length < 4) return '';
       return line[line.length - 3].split('/');
-    }).filter(tr.b.identity);
+    }).filter(x => x);
   }
 
   MetricRegistry.checkFilename = function(metricName, opt_metricPathForTest) {
