@@ -239,15 +239,5 @@ tr.b.unittest.testSuite(function() {
       'key_test': 'test'
     });
   });
-
-  test('mapValues', function() {
-    const map = new Map();
-    map.set('a', 1);
-    map.set('b', 2);
-    map.set('c', 3);
-    const values = tr.b.mapValues(map);
-    assert.strictEqual(values.length, 3);
-    assert.sameMembers([1, 2, 3], values);
-  });
 });
 </script>

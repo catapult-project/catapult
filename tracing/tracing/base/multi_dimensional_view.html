@@ -183,7 +183,7 @@ tr.exportTo('tr.b', function() {
   MultiDimensionalViewNode.prototype = {
     /** Duck type <tr-ui-b-table> rows. */
     get subRows() {
-      return tr.b.mapValues(this.children[0]);
+      return Array.from(this.children[0].values());
     }
   };
 

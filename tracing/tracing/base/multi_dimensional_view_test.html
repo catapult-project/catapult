@@ -401,7 +401,7 @@ tr.b.unittest.testSuite(function() {
                     children,
                     function(singleDimensionChildren, dimension) {
                       generator.formatMultiLineList(
-                          tr.b.mapValues(singleDimensionChildren),
+                          Array.from(singleDimensionChildren.values()),
                           function(child, childIndex) {
                             withChild(child, dimension, function() {
                               formatExpectedTreeStructureRecursively(child);
