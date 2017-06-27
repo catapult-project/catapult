@@ -269,27 +269,6 @@ tr.exportTo('tr.b', function() {
     return ary[i];
   }
 
-  /**
-   * Returns the key of the first dictionary entry for which |opt_func| returns
-   * a truthy value.
-   *
-   * @param {!Object} dict The dictionary being searched.
-   * @param {function(*, *): *=} opt_func The test function which accepts a
-   *     dictionary key as its first parameter, the corresponding dictionary
-   *     value as its second parameter, and returns a value that is coerced to a
-   *     boolean. Defaults to the identity function (which returns the key).
-   * @param {*=} opt_this Optional 'this' context for opt_func.
-   */
-  function findFirstKeyInDictMatching(dict, opt_func, opt_this) {
-    const func = opt_func || (x => x);
-    for (const key in dict) {
-      if (func.call(opt_this, key, dict[key])) {
-        return key;
-      }
-    }
-    return undefined;
-  }
-
   /** Returns the values in an ES6 Map object. */
   function mapValues(map) {
     const values = [];
@@ -323,7 +302,6 @@ tr.exportTo('tr.b', function() {
     arrayToDict,
     findFirstIndexInArray,
     findFirstInArray,
-    findFirstKeyInDictMatching,
     mapValues,
     setsEqual,
   };

@@ -240,20 +240,6 @@ tr.b.unittest.testSuite(function() {
     });
   });
 
-  test('findFirstKeyInDictMatching', function() {
-    const dict = {a: 1, b: 2, c: 3};
-
-    let k = tr.b.findFirstKeyInDictMatching(dict, function(key, value) {
-      return value === 2;
-    }, this);
-    assert.strictEqual(k, 'b');
-
-    k = tr.b.findFirstKeyInDictMatching(dict, function(key, value) {
-      return false;
-    }, this);
-    assert.strictEqual(k, undefined);
-  });
-
   test('mapValues', function() {
     const map = new Map();
     map.set('a', 1);

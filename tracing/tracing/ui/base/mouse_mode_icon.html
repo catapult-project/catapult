@@ -51,15 +51,10 @@ Polymer({
 
   set mode(mode) {
     const modeInfo = tr.ui.b.MOUSE_SELECTOR_MODE_INFOS[mode];
-    const modeName = tr.b.findFirstKeyInDictMatching(
-        tr.ui.b.MOUSE_SELECTOR_MODE,
-        function(modeName, candidateMode) {
-          return candidateMode === mode;
-        });
-    if (modeName === undefined) {
+    if (modeInfo === undefined) {
       throw new Error('Unknown mode');
     }
-    this.modeName = modeName;
+    this.modeName = modeInfo.name;
   },
 
   modeNameChanged() {
