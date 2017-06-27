@@ -64,5 +64,7 @@ class Isolate(ndb.Model):
 
 
 def _Key(builder_name, change, target):
-  string = '\n'.join((builder_name, repr(change), target))
+  # The key must be stable across machines, platforms,
+  # Python versions, and Python invocations.
+  string = '\n'.join((builder_name, change.id_string, target))
   return hashlib.sha256(string).hexdigest()

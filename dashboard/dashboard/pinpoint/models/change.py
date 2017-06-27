@@ -42,6 +42,13 @@ class Change(collections.namedtuple('Change',
     return string
 
   @property
+  def id_string(self):
+    string = ' '.join(dep.id_string for dep in self.all_deps)
+    if self.patch:
+      string += ' + ' + self.patch.id_string
+    return string
+
+  @property
   def all_deps(self):
     return tuple([self.base_commit] + sorted(self.deps))
 
@@ -165,6 +172,10 @@ class Dep(collections.namedtuple('Dep', ('repository', 'git_hash'))):
     return self.repository + '@' + self.git_hash[:7]
 
   @property
+  def id_string(self):
+    return self.repository + '@' + self.git_hash
+
+  @property
   def repository_url(self):
     """The HTTPS URL of the repository as passed to `git clone`."""
     repositories = namespaced_stored_object.Get(_REPOSITORIES_KEY)
@@ -267,6 +278,10 @@ class Patch(collections.namedtuple('Patch', ('server', 'issue', 'patchset'))):
   # https://github.com/catapult-project/catapult/issues/3599
 
   def __str__(self):
+    return self.id_string
+
+  @property
+  def id_string(self):
     return '%s/%d/%d' % (self.server, self.issue, self.patchset)
 
   @classmethod

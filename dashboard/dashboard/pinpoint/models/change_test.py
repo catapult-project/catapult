@@ -29,8 +29,8 @@ class ChangeTest(testing_common.TestCase):
     })
 
   def testChange(self):
-    base_commit = change.Dep('src', 'aaa7336')
-    dep = change.Dep('catapult', 'e0a2efb')
+    base_commit = change.Dep('src', 'aaa7336c821888839f759c6c0a36b56c6678bbc0')
+    dep = change.Dep('catapult', 'e0a2efbb3d1a81aac3c90041eefec24f066d26ba')
     patch = change.Patch('https://codereview.chromium.org', 2565263002, 20001)
 
     # Also test the deps conversion to frozenset.
@@ -39,7 +39,11 @@ class ChangeTest(testing_common.TestCase):
     self.assertEqual(c, change.Change(base_commit, (dep,), patch))
     string = ('src@aaa7336 catapult@e0a2efb + '
               'https://codereview.chromium.org/2565263002/20001')
+    id_string = ('src@aaa7336c821888839f759c6c0a36b56c6678bbc0 '
+                 'catapult@e0a2efbb3d1a81aac3c90041eefec24f066d26ba + '
+                 'https://codereview.chromium.org/2565263002/20001')
     self.assertEqual(str(c), string)
+    self.assertEqual(c.id_string, id_string)
     self.assertEqual(c.base_commit, base_commit)
     self.assertEqual(c.deps, frozenset((dep,)))
     self.assertEqual(c.all_deps, (base_commit, dep))
@@ -221,12 +225,15 @@ class DepTest(testing_common.TestCase):
     })
 
   def testDep(self):
-    dep = change.Dep('src', 'aaa7336')
+    dep = change.Dep('src', 'aaa7336c821888839f759c6c0a36b56c6678bbc0')
 
-    self.assertEqual(dep, change.Dep('src', 'aaa7336'))
+    other_dep = change.Dep(u'src', u'aaa7336c821888839f759c6c0a36b56c6678bbc0')
+    self.assertEqual(dep, other_dep)
     self.assertEqual(str(dep), 'src@aaa7336')
+    self.assertEqual(dep.id_string,
+                     'src@aaa7336c821888839f759c6c0a36b56c6678bbc0')
     self.assertEqual(dep.repository, 'src')
-    self.assertEqual(dep.git_hash, 'aaa7336')
+    self.assertEqual(dep.git_hash, 'aaa7336c821888839f759c6c0a36b56c6678bbc0')
     self.assertEqual(dep.repository_url,
                      'https://chromium.googlesource.com/chromium/src')
 
@@ -334,8 +341,12 @@ class PatchTest(unittest.TestCase):
   def testPatch(self):
     patch = change.Patch('https://codereview.chromium.org', 2851943002, 40001)
 
+    other_patch = change.Patch(u'https://codereview.chromium.org',
+                               2851943002, 40001)
+    self.assertEqual(patch, other_patch)
     string = 'https://codereview.chromium.org/2851943002/40001'
     self.assertEqual(str(patch), string)
+    self.assertEqual(patch.id_string, string)
 
   def testFromDict(self):
     patch = change.Patch.FromDict({
