@@ -171,6 +171,10 @@ def trace_begin(name, args=None):
 def trace_end(name, args=None):
   add_trace_event("E", trace_time.Now(), "python", name, args)
 
+def trace_set_thread_name(thread_name):
+  add_trace_event("M", trace_time.Now(), "__metadata", "thread_name",
+                  {"name": thread_name})
+
 def _trace_disable_atexit():
   trace_disable()
 

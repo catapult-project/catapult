@@ -90,6 +90,10 @@ if trace_event_impl:
   def trace_end(name):
     trace_event_impl.add_trace_event("E", trace_time.Now(), "python", name)
 
+  def trace_set_thread_name(thread_name):
+    trace_event_impl.add_trace_event("M", trace_time.Now(), "__metadata",
+                                     "thread_name", {"name": thread_name})
+
   def trace(name, **kwargs):
     return trace_event_impl.trace(name, **kwargs)
 
@@ -140,6 +144,10 @@ else:
 
   def trace_end(name):
     del name # unused.
+    pass
+
+  def trace_set_thread_name(thread_name):
+    del thread_name # unused.
     pass
 
   @contextlib.contextmanager
@@ -231,6 +239,9 @@ trace_end.__doc__ = """Records the end of an event of the given name.
   Make sure to issue a trace_end for every trace_begin issued. Failure to pair
   these calls will lead to bizarrely tall looking traces in the
   trace_event_viewer UI.
+  """
+
+trace_set_thread_name.__doc__ = """Sets the trace's name for the current thread.
   """
 
 trace.__doc__ = """Traces a block of code using a with statement.
