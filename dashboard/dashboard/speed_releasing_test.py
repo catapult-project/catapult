@@ -23,6 +23,11 @@ _SAMPLE_LAYOUT = ('{ "my_test_suite/my_test": ["Foreground", '
                   '"Pretty Name 1"],"my_test_suite/my_other_test": '
                   ' ["Foreground", "Pretty Name 2"]}')
 
+
+RECENT_REV = speed_releasing.CHROMIUM_MILESTONES[
+    speed_releasing.CURRENT_MILESTONE][0] + 42
+
+
 class SpeedReleasingTest(testing_common.TestCase):
 
   def setUp(self):
@@ -140,7 +145,7 @@ class SpeedReleasingTest(testing_common.TestCase):
 
   def _AddRows(self, keys):
     for key in keys:
-      testing_common.AddRows(utils.TestPath(key), [1, 2, 3, 455588])
+      testing_common.AddRows(utils.TestPath(key), [1, 2, 3, RECENT_REV])
 
   def _AddDownstreamRows(self, keys):
     revisions = [1, 2, 1485025126, 1485099999]
@@ -247,10 +252,20 @@ class SpeedReleasingTest(testing_common.TestCase):
   def testPost_TableWithNewestMilestoneParam(self):
     keys = self._AddTableConfigDataStore('BestTable', True)
     self._AddRows(keys)
-    response = self.testapp.post('/speed_releasing/BestTable?m=58')
-    self.assertIn('"revisions": [455588, 454523]', response)
-    self.assertIn('"display_milestones": [58, 58]', response)
-    self.assertIn('"navigation_milestones": [57, null]', response)
+    current_milestone = speed_releasing.CURRENT_MILESTONE
+    response = self.testapp.post('/speed_releasing/BestTable?m=%s' %
+                                 current_milestone)
+    current_milestone_start_rev = speed_releasing.CHROMIUM_MILESTONES[
+        current_milestone][0]
+    self.assertIn(
+        '"revisions": [%s, %s]' % (
+            RECENT_REV, current_milestone_start_rev), response)
+    self.assertIn(
+        '"display_milestones": [%s, %s]' % (
+            current_milestone, current_milestone), response)
+    self.assertIn(
+        '"navigation_milestones": [%s, null]' % (
+            current_milestone - 1), response)
 
   def testPost_TableWithHighMilestoneParam(self):
     keys = self._AddTableConfigDataStore('BestTable', True)
@@ -268,7 +283,11 @@ class SpeedReleasingTest(testing_common.TestCase):
     keys = self._AddTableConfigDataStore('BestTable', True)
     self._AddRows(keys)
     response = self.testapp.post('/speed_releasing/BestTable')
-    self.assertIn('"revisions": [455588, 454523]', response)
+    current_milestone_start_rev = speed_releasing.CHROMIUM_MILESTONES[
+        speed_releasing.CURRENT_MILESTONE][0]
+    self.assertIn(
+        '"revisions": [%s, %s]' % (
+            RECENT_REV, current_milestone_start_rev), response)
 
   def testPost_TableWithRevParamEndRevAlsoStartRev(self):
     keys = self._AddTableConfigDataStore('BestTable', True)
@@ -287,8 +306,8 @@ class SpeedReleasingTest(testing_common.TestCase):
   def testPost_TableWithOneRevParamBetweenMilestones(self):
     keys = self._AddTableConfigDataStore('BestTable', True)
     self._AddRows(keys)
-    response = self.testapp.post('/speed_releasing/BestTable?revB=425000')
-    self.assertIn('"revisions": [455588, 425000]', response)
+    response = self.testapp.post('/speed_releasing/BestTable?revB=455000')
+    self.assertIn('"revisions": [463842, 455000]', response)
     self.assertIn('"display_milestones": [58, 58]', response)
 
   def testPost_TableWithRevParamMiddleRev(self):
@@ -302,15 +321,17 @@ class SpeedReleasingTest(testing_common.TestCase):
     keys = self._AddTableConfigDataStore('BestTable', True)
     self._AddRows(keys)
     response = self.testapp.post('/speed_releasing/BestTable?revB=50000000')
-    self.assertIn('"revisions": [50000000, 455588]', response)
-    self.assertIn('"display_milestones": [58, 58]', response)
+    self.assertIn('"revisions": [50000000, %s]' % RECENT_REV, response)
+    self.assertIn('"display_milestones": [%s, %s]' % ((
+        speed_releasing.CURRENT_MILESTONE,)*2), response)
 
   def testPost_TableWithRevParamLowRev(self):
     keys = self._AddTableConfigDataStore('BestTable', True)
     self._AddRows(keys)
     response = self.testapp.post('/speed_releasing/BestTable?revB=1')
-    self.assertIn('"revisions": [455588, 1]', response)
-    self.assertIn('"display_milestones": [58, 58]', response)
+    self.assertIn('"revisions": [%s, 1]' % RECENT_REV, response)
+    self.assertIn('"display_milestones": [%s, %s]' % ((
+        speed_releasing.CURRENT_MILESTONE,)*2), response)
 
   def testPost_TableWithRevsParamTwoMilestones(self):
     keys = self._AddTableConfigDataStore('BestTable', True)
@@ -327,7 +348,8 @@ class SpeedReleasingTest(testing_common.TestCase):
     response = self.testapp.post('/speed_releasing/BestTable?'
                                  'revA=50000000&revB=60000000')
     self.assertIn('"revisions": [60000000, 50000000]', response)
-    self.assertIn('"display_milestones": [58, 58]', response)
+    self.assertIn('"display_milestones": [%s, %s]' % ((
+        speed_releasing.CURRENT_MILESTONE,)*2), response)
 
   def testPost_TableWithRevsParamSelfContained(self):
     keys = self._AddTableConfigDataStore('BestTable', True)
