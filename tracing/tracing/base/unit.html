@@ -216,7 +216,7 @@ tr.exportTo('tr.b', function() {
     // TODO(aiolos): base should not depend on ui. Move the functionality of
     //     searching for preferred-display-unit out of Unit.
     // https://github.com/catapult-project/catapult/issues/3092
-    const els = tr.b.findDeepElementsMatching(document.body,
+    const els = tr.ui.b.findDeepElementsMatching(document.body,
         'tr-v-ui-preferred-display-unit');
     els.forEach(function(el) {
       largest = max(largest, el.preferredTimeDisplayMode);

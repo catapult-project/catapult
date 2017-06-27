@@ -61,7 +61,7 @@ tr.b.unittest.testSuite(function() {
     assert.isDefined(Polymer.dom(analysisEl).querySelector(
         'tr-ui-e-chrome-cc-raster-task-view'));
 
-    const sv = tr.b.findDeepElementMatching(
+    const sv = tr.ui.b.findDeepElementMatching(
         analysisEl, 'tr-ui-a-multi-thread-slice-sub-view');
     assert.isTrue(sv.requiresTallView);
     this.addHTMLOutput(analysisEl);

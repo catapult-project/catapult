@@ -43,7 +43,7 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(chart);
     chart.data = [{x: 0, foo: 3, lorem_ipsum: 5, bar: 1, qux: 2}];
 
-    assert.isDefined(tr.b.findDeepElementMatchingPredicate(
+    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(
         chart, function(element) {
           return element.tagName === 'TR-UI-B-CHART-LEGEND-KEY' &&
              element.textContent === 'lorem_ipsum' &&

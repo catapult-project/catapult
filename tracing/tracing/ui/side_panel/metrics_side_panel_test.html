@@ -43,7 +43,7 @@ tr.b.unittest.testSuite(function() {
     metricsPanel.currentMetricName_ = 'testMetric';
     await metricsPanel.build(createModel());
 
-    assert.isDefined(tr.b.findDeepElementMatchingPredicate(
+    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(
         metricsPanel, elem => elem.textContent === 'test histogram'));
   });
 });

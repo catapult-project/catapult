@@ -26,7 +26,7 @@ tr.b.unittest.testSuite(function() {
     summaryTable.selection = undefined;
     this.addHTMLOutput(summaryTable);
 
-    const tableEl = tr.b.findDeepElementMatching(
+    const tableEl = tr.ui.b.findDeepElementMatching(
         summaryTable, 'tr-ui-b-table');
     assert.strictEqual(tableEl.tableRows[0].value, '<empty>');
     assert.strictEqual(tableEl.tableRows[1].value, '<empty>');
@@ -39,7 +39,7 @@ tr.b.unittest.testSuite(function() {
     summaryTable.selection = selection;
     this.addHTMLOutput(summaryTable);
 
-    const tableEl = tr.b.findDeepElementMatching(
+    const tableEl = tr.ui.b.findDeepElementMatching(
         summaryTable, 'tr-ui-b-table');
     assert.strictEqual(tableEl.tableRows[0].value, '<empty>');
     assert.strictEqual(tableEl.tableRows[1].value, '<empty>');
@@ -62,7 +62,7 @@ tr.b.unittest.testSuite(function() {
     summaryTable.selection = selection;
     this.addHTMLOutput(summaryTable);
 
-    const tableEl = tr.b.findDeepElementMatching(
+    const tableEl = tr.ui.b.findDeepElementMatching(
         summaryTable, 'tr-ui-b-table');
     assert.strictEqual(tableEl.tableRows[0].value.value, 0);
     assert.strictEqual(tableEl.tableRows[0].value.unit,

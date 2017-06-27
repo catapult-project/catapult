@@ -45,24 +45,23 @@ found in the LICENSE file.
   <script>
   'use strict';
 
-  var Timing = tr.b.Timing;
-  var timelineViewEl;
-  var selectEl;
+  let timelineViewEl;
+  let selectEl;
 
   function loadTraces(filenames, onTracesLoaded) {
-    var loadTracesMakedTimer = Timing.mark('TraceImport', 'loadTraces');
-    var traces = [];
-    for (var i = 0; i < filenames.length; i++) {
+    const loadTracesMark = tr.b.Timing.mark('TraceImport', 'loadTraces');
+    const traces = [];
+    for (let i = 0; i < filenames.length; i++) {
       traces.push(undefined);
     }
-    var numTracesPending = filenames.length;
+    let numTracesPending = filenames.length;
 
     filenames.forEach(function(filename, i) {
       getAsync(filename, function(trace) {
         traces[i] = trace;
         numTracesPending--;
         if (numTracesPending === 0) {
-          loadTracesMakedTimer.end();
+          loadTracesMark.end();
           onTracesLoaded(filenames, traces);
         }
       });
@@ -75,16 +74,16 @@ found in the LICENSE file.
   }
 
   function createViewFromTraces(filenames, traces) {
-    var createViewFromTracesTimer = Timing.mark(
+    const createViewFromTracesTimer = tr.b.Timing.mark(
         'TraceImport', 'createViewFromTraces');
-    var m = new tr.Model();
+    const m = new tr.Model();
 
-    var trackDetailedModelStatsEl = tr.b.findDeepElementMatching(
+    const trackDetailedModelStatsEl = tr.ui.b.findDeepElementMatching(
         document.body, '#track-detailed-model-stats');
-    var importOptions = new tr.importer.ImportOptions();
+    const importOptions = new tr.importer.ImportOptions();
     importOptions.trackDetailedModelStats = trackDetailedModelStatsEl.checked;
-    var i = new tr.importer.Import(m, importOptions);
-    var p = i.importTracesWithProgressDialog(traces);
+    const i = new tr.importer.Import(m, importOptions);
+    const p = i.importTracesWithProgressDialog(traces);
 
     p.then(
         function() {
@@ -95,7 +94,7 @@ found in the LICENSE file.
           createViewFromTracesTimer.end();
         },
         function(err) {
-          var overlay = new tr.ui.b.Overlay();
+          const overlay = new tr.ui.b.Overlay();
           overlay.textContent = tr.b.normalizeException(err).message;
           overlay.title = 'Import error';
           overlay.visible = true;
@@ -108,9 +107,9 @@ found in the LICENSE file.
   }
 
   function onHashChange() {
-    var file = window.location.hash.substr(1);
+    const file = window.location.hash.substr(1);
     if (selectEl[selectEl.selectedIndex].value !== file) {
-      for (var i = 0; i < selectEl.children.length; i++) {
+      for (let i = 0; i < selectEl.children.length; i++) {
         if (selectEl.children[i].value === file) {
           selectEl.selectedIndex = i;
           break;
@@ -121,8 +120,8 @@ found in the LICENSE file.
   }
 
   function cleanFilename(file) {
-    var m = /\/tracing\/test_data\/(.+)/.exec(file);
-    var rest = m[1];
+    const m = /\/tracing\/test_data\/(.+)/.exec(file);
+    const rest = m[1];
 
     function upcase(letter) {
       return ' ' + letter.toUpperCase();
@@ -141,7 +140,7 @@ found in the LICENSE file.
   window.addEventListener('hashchange', onHashChange);
 
   function onLoad() {
-    var onLoadTimer = Timing.mark('TraceImport', 'onLoad');
+    const onLoadTimer = tr.b.Timing.mark('TraceImport', 'onLoad');
     timelineViewEl = document.querySelector('tr-ui-timeline-view');
     timelineViewEl.globalMode = true;
 
@@ -150,9 +149,9 @@ found in the LICENSE file.
     timelineViewEl.leftControls.appendChild(selectEl);
 
     getAsync('/tracing/test_data/__file_list__', function(data) {
-      var files = JSON.parse(data);
-      for (var i = 0; i < files.length; ++i) {
-        var opt = document.createElement('option');
+      const files = JSON.parse(data);
+      for (let i = 0; i < files.length; ++i) {
+        const opt = document.createElement('option');
         opt.value = files[i];
         opt.textContent = cleanFilename(files[i]);
         selectEl.appendChild(opt);
@@ -168,7 +167,7 @@ found in the LICENSE file.
       }
     }).then(onLoadTimer.end.call(this));
 
-    var trackDetailedModelStatsEl = tr.ui.b.createCheckBox(
+    const trackDetailedModelStatsEl = tr.ui.b.createCheckBox(
         this, 'trackDetailedModelStats',
         'traceViewer.trackDetailedModelStats', false,
         'Detailed file size stats',

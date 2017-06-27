@@ -78,17 +78,17 @@ tr.b.unittest.testSuite(function() {
   }
 
   function getBaseTable(table) {
-    return tr.b.findDeepElementMatchingPredicate(table, e =>
+    return tr.ui.b.findDeepElementMatchingPredicate(table, e =>
         e.tagName === 'TR-UI-B-TABLE');
   }
 
   function getNameCells(table) {
-    return tr.b.findDeepElementsMatchingPredicate(table, e =>
+    return tr.ui.b.findDeepElementsMatchingPredicate(table, e =>
         e.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-NAME-CELL');
   }
 
   function getTableCells(table) {
-    return tr.b.findDeepElementsMatchingPredicate(table, e =>
+    return tr.ui.b.findDeepElementsMatchingPredicate(table, e =>
         e.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL');
   }
 
@@ -127,7 +127,7 @@ tr.b.unittest.testSuite(function() {
     const table = await buildTable(this, histograms);
     await table.viewState.tableRowStates.get('a').cells.get('Value').update(
       {isOpen: true});
-    const link = tr.b.findDeepElementMatchingPredicate(
+    const link = tr.ui.b.findDeepElementMatchingPredicate(
         table, e => e.tagName === 'TR-UI-A-ANALYSIS-LINK');
     link.click();
     assert.strictEqual('^(b)$', table.viewState.searchQuery);
@@ -159,14 +159,14 @@ tr.b.unittest.testSuite(function() {
       newHistogram('a', {samples: range(10, 20), telemetry: {label: 'B'}}),
     ]);
     const table = await buildTable(this, histograms);
-    let scalarSpans = tr.b.findDeepElementsMatchingPredicate(table, e =>
+    let scalarSpans = tr.ui.b.findDeepElementsMatchingPredicate(table, e =>
         e.tagName === 'TR-V-UI-SCALAR-SPAN');
     assert.lengthOf(scalarSpans, 2);
     assert.strictEqual('5', scalarSpans[0].unit.format(scalarSpans[0].value));
     assert.strictEqual('15', scalarSpans[1].unit.format(scalarSpans[1].value));
 
     await table.viewState.update({displayStatisticName: 'std'});
-    scalarSpans = tr.b.findDeepElementsMatchingPredicate(table, e =>
+    scalarSpans = tr.ui.b.findDeepElementsMatchingPredicate(table, e =>
         e.tagName === 'TR-V-UI-SCALAR-SPAN');
     assert.lengthOf(scalarSpans, 2);
     assert.strictEqual('3', scalarSpans[0].unit.format(scalarSpans[0].value));
@@ -219,11 +219,11 @@ tr.b.unittest.testSuite(function() {
 
     assert.strictEqual(0, table.viewState.sortColumnIndex);
 
-    tr.b.findDeepElementsMatchingPredicate(
+    tr.ui.b.findDeepElementsMatchingPredicate(
         table, e => e.tagName === 'TR-UI-B-TABLE-HEADER-CELL')[0].click();
     assert.strictEqual(0, table.viewState.sortColumnIndex);
 
-    tr.b.findDeepElementsMatchingPredicate(
+    tr.ui.b.findDeepElementsMatchingPredicate(
         table, e => e.tagName === 'TR-UI-B-TABLE-HEADER-CELL')[1].click();
     assert.strictEqual(1, table.viewState.sortColumnIndex);
   });
@@ -255,11 +255,11 @@ tr.b.unittest.testSuite(function() {
 
     assert.isFalse(table.viewState.sortDescending);
 
-    tr.b.findDeepElementsMatchingPredicate(
+    tr.ui.b.findDeepElementsMatchingPredicate(
         table, e => e.tagName === 'TR-UI-B-TABLE-HEADER-CELL')[0].click();
     assert.isTrue(table.viewState.sortDescending);
 
-    tr.b.findDeepElementsMatchingPredicate(
+    tr.ui.b.findDeepElementsMatchingPredicate(
         table, e => e.tagName === 'TR-UI-B-TABLE-HEADER-CELL')[0].click();
     assert.isFalse(table.viewState.sortDescending);
   });
@@ -307,7 +307,7 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(nameCell.isOverflowing);
     assert.isAbove(350, nameCell.getBoundingClientRect().width);
     assert.isTrue(table.viewState.constrainNameColumn);
-    const dots = tr.b.findDeepElementMatchingPredicate(
+    const dots = tr.ui.b.findDeepElementMatchingPredicate(
         table, e => e.textContent === tr.v.ui.MIDLINE_HORIZONTAL_ELLIPSIS);
     assert.strictEqual('block', dots.style.display);
 
@@ -329,18 +329,18 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(nameCell.isOverflowing);
     assert.isAbove(350, nameCell.getBoundingClientRect().width);
     assert.isTrue(table.viewState.constrainNameColumn);
-    const dots = tr.b.findDeepElementMatchingPredicate(
+    const dots = tr.ui.b.findDeepElementMatchingPredicate(
         table, e => e.textContent === tr.v.ui.MIDLINE_HORIZONTAL_ELLIPSIS);
     assert.strictEqual('block', dots.style.display);
 
-    tr.b.findDeepElementMatchingPredicate(table, e =>
+    tr.ui.b.findDeepElementMatchingPredicate(table, e =>
         e.textContent === tr.v.ui.MIDLINE_HORIZONTAL_ELLIPSIS).click();
     assert.isFalse(table.viewState.constrainNameColumn);
     await tr.b.animationFrame();
     assert.isFalse(nameCell.isOverflowing);
     assert.isBelow(350, nameCell.getBoundingClientRect().width);
 
-    tr.b.findDeepElementMatchingPredicate(table, e =>
+    tr.ui.b.findDeepElementMatchingPredicate(table, e =>
         e.textContent === tr.v.ui.MIDLINE_HORIZONTAL_ELLIPSIS).click();
     assert.isTrue(table.viewState.constrainNameColumn);
     await tr.b.animationFrame();
@@ -438,7 +438,7 @@ tr.b.unittest.testSuite(function() {
     await table.viewState.tableRowStates.get('a').update({isOverviewed: true});
 
     let cells = getTableCells(table);
-    let chart = tr.b.findDeepElementMatchingPredicate(cells[0], e =>
+    let chart = tr.ui.b.findDeepElementMatchingPredicate(cells[0], e =>
         e.tagName === 'svg' && e.parentNode.id === 'overview_container');
     assert.strictEqual('D', chart.data[0].x);
     assert.strictEqual('C', chart.data[1].x);
@@ -449,7 +449,7 @@ tr.b.unittest.testSuite(function() {
       sortDescending: false,
     });
     cells = getTableCells(table);
-    chart = tr.b.findDeepElementMatchingPredicate(cells[0], e =>
+    chart = tr.ui.b.findDeepElementMatchingPredicate(cells[0], e =>
         e.tagName === 'svg' && e.parentNode.id === 'overview_container');
     assert.strictEqual('A', chart.data[0].x);
     assert.strictEqual('B', chart.data[1].x);
@@ -477,11 +477,11 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(table.viewState.tableRowStates.get('a').isOverviewed);
 
     const nameCells = getNameCells(table);
-    tr.b.findDeepElementMatchingPredicate(nameCells[0], e =>
+    tr.ui.b.findDeepElementMatchingPredicate(nameCells[0], e =>
         e.id === 'show_overview').click();
     assert.isTrue(table.viewState.tableRowStates.get('a').isOverviewed);
 
-    tr.b.findDeepElementMatchingPredicate(nameCells[0], e =>
+    tr.ui.b.findDeepElementMatchingPredicate(nameCells[0], e =>
         e.id === 'hide_overview').click();
     assert.isFalse(table.viewState.tableRowStates.get('a').isOverviewed);
   });
@@ -507,7 +507,7 @@ tr.b.unittest.testSuite(function() {
     });
     await table.viewState.tableRowStates.get('a').update({isOverviewed: true});
 
-    let charts = tr.b.findDeepElementsMatchingPredicate(table, e =>
+    let charts = tr.ui.b.findDeepElementsMatchingPredicate(table, e =>
         e.tagName === 'svg' && e.parentNode.id === 'overview_container');
     assert.lengthOf(charts, 3);
     assert.lengthOf(charts[0].data, 2);
@@ -524,7 +524,7 @@ tr.b.unittest.testSuite(function() {
       displayStatisticName: tr.v.DELTA + 'count',
       referenceDisplayLabel: 'A',
     });
-    charts = tr.b.findDeepElementsMatchingPredicate(table, e =>
+    charts = tr.ui.b.findDeepElementsMatchingPredicate(table, e =>
         e.tagName === 'svg' && e.parentNode.id === 'overview_container');
     assert.lengthOf(charts, 3);
     assert.lengthOf(charts[0].data, 2);
@@ -568,24 +568,24 @@ tr.b.unittest.testSuite(function() {
         .isOpen);
     const cells = getTableCells(table);
 
-    tr.b.findDeepElementMatchingPredicate(cells[0], e =>
+    tr.ui.b.findDeepElementMatchingPredicate(cells[0], e =>
         e.tagName === 'TR-V-UI-SCALAR-SPAN').click();
     assert.isTrue(table.viewState.tableRowStates.get('a').cells.get('A')
         .isOpen);
 
-    tr.b.findDeepElementMatchingPredicate(cells[0], e =>
+    tr.ui.b.findDeepElementMatchingPredicate(cells[0], e =>
         e.id === 'close_histogram').click();
     assert.isFalse(table.viewState.tableRowStates.get('a').cells.get('A')
         .isOpen);
 
-    tr.b.findDeepElementMatchingPredicate(table, e =>
+    tr.ui.b.findDeepElementMatchingPredicate(table, e =>
         e.id === 'open_histograms').click();
     assert.isTrue(table.viewState.tableRowStates.get('a').cells.get('A')
         .isOpen);
     assert.isTrue(table.viewState.tableRowStates.get('a').cells.get('B')
         .isOpen);
 
-    tr.b.findDeepElementMatchingPredicate(table, e =>
+    tr.ui.b.findDeepElementMatchingPredicate(table, e =>
         e.id === 'close_histograms').click();
     assert.isFalse(table.viewState.tableRowStates.get('a').cells.get('A')
         .isOpen);
@@ -641,7 +641,7 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(nameCell.isOverflowing);
     assert.isAbove(350, nameCell.getBoundingClientRect().width);
 
-    const dots = tr.b.findDeepElementMatchingPredicate(
+    const dots = tr.ui.b.findDeepElementMatchingPredicate(
         table, e => e.textContent === tr.v.ui.MIDLINE_HORIZONTAL_ELLIPSIS);
     assert.strictEqual('block', dots.style.display);
     dots.click();
@@ -662,14 +662,14 @@ tr.b.unittest.testSuite(function() {
       tr.v.HistogramSet.GROUPINGS.STORY_NAME,
     ]});
 
-    const dots = tr.b.findDeepElementMatchingPredicate(
+    const dots = tr.ui.b.findDeepElementMatchingPredicate(
         table, e => e.textContent === tr.v.ui.MIDLINE_HORIZONTAL_ELLIPSIS);
     assert.strictEqual('none', dots.style.display);
 
     const baseTable = getBaseTable(table);
     await table.viewState.tableRowStates.get('a').update({isExpanded: true});
 
-    const nameCell = tr.b.findDeepElementMatchingPredicate(table, e =>
+    const nameCell = tr.ui.b.findDeepElementMatchingPredicate(table, e =>
         e.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-NAME-CELL' &&
         e.row.name === '0'.repeat(100));
     await tr.b.animationFrame();
@@ -719,7 +719,7 @@ tr.b.unittest.testSuite(function() {
       await row.update({isOverviewed: true});
     }
 
-    let charts = tr.b.findDeepElementsMatchingPredicate(
+    let charts = tr.ui.b.findDeepElementsMatchingPredicate(
         table, e => ((e.id === 'overview_container') &&
                      (e.style.display !== 'none')));
     charts = charts.map(div => div.children[0]);
@@ -759,7 +759,7 @@ tr.b.unittest.testSuite(function() {
       await row.update({isOverviewed: false});
     }
 
-    charts = tr.b.findDeepElementsMatchingPredicate(
+    charts = tr.ui.b.findDeepElementsMatchingPredicate(
         table, e => ((e.id === 'overview_container') &&
                      (e.style.display !== 'none')));
     assert.lengthOf(charts, 0);
@@ -954,23 +954,23 @@ tr.b.unittest.testSuite(function() {
       return tr.b.getOnlyElement(aTelemetry.labels) === bTelemetry.label;
     }
 
-    let fooCell = tr.b.findDeepElementMatchingPredicate(table, elem => (
+    let fooCell = tr.ui.b.findDeepElementMatchingPredicate(table, elem => (
       (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
       elem.histogram &&
       histogramsEqual(elem.histogram, fooHist)));
     assert.isDefined(fooCell);
 
-    let fooContent = tr.b.findDeepElementMatchingPredicate(
+    let fooContent = tr.ui.b.findDeepElementMatchingPredicate(
         fooCell, elem => elem.id === 'content');
     assert.isDefined(fooContent);
 
-    let barCell = tr.b.findDeepElementMatchingPredicate(table, elem => (
+    let barCell = tr.ui.b.findDeepElementMatchingPredicate(table, elem => (
       (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
       elem.histogram &&
       histogramsEqual(elem.histogram, barHist)));
     assert.isDefined(barCell);
 
-    let barContent = tr.b.findDeepElementMatchingPredicate(
+    let barContent = tr.ui.b.findDeepElementMatchingPredicate(
         barCell, elem => elem.id === 'content');
     assert.isDefined(barContent);
 
@@ -980,23 +980,23 @@ tr.b.unittest.testSuite(function() {
 
     await table.viewState.update({referenceDisplayLabel: 'foo'});
 
-    fooCell = tr.b.findDeepElementMatchingPredicate(table, elem => (
+    fooCell = tr.ui.b.findDeepElementMatchingPredicate(table, elem => (
       (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
       elem.histogram &&
       histogramsEqual(elem.histogram, fooHist)));
     assert.isDefined(fooCell);
 
-    fooContent = tr.b.findDeepElementMatchingPredicate(
+    fooContent = tr.ui.b.findDeepElementMatchingPredicate(
         fooCell, elem => elem.id === 'content');
     assert.isDefined(fooContent);
 
-    barCell = tr.b.findDeepElementMatchingPredicate(table, elem => (
+    barCell = tr.ui.b.findDeepElementMatchingPredicate(table, elem => (
       (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
       elem.histogram &&
       histogramsEqual(elem.histogram, barHist)));
     assert.isDefined(barCell);
 
-    barContent = tr.b.findDeepElementMatchingPredicate(
+    barContent = tr.ui.b.findDeepElementMatchingPredicate(
         barCell, elem => elem.id === 'content');
     assert.isDefined(barContent);
 
@@ -1008,23 +1008,23 @@ tr.b.unittest.testSuite(function() {
 
     await table.viewState.update({displayStatisticName: `%${tr.v.DELTA}avg`});
 
-    fooCell = tr.b.findDeepElementMatchingPredicate(table, elem => (
+    fooCell = tr.ui.b.findDeepElementMatchingPredicate(table, elem => (
       (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
       elem.histogram &&
       histogramsEqual(elem.histogram, fooHist)));
     assert.isDefined(fooCell);
 
-    fooContent = tr.b.findDeepElementMatchingPredicate(
+    fooContent = tr.ui.b.findDeepElementMatchingPredicate(
         fooCell, elem => elem.id === 'content');
     assert.isDefined(fooContent);
 
-    barCell = tr.b.findDeepElementMatchingPredicate(table, elem => (
+    barCell = tr.ui.b.findDeepElementMatchingPredicate(table, elem => (
       (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
       elem.histogram &&
       histogramsEqual(elem.histogram, barHist)));
     assert.isDefined(barCell);
 
-    barContent = tr.b.findDeepElementMatchingPredicate(
+    barContent = tr.ui.b.findDeepElementMatchingPredicate(
         barCell, elem => elem.id === 'content');
     assert.isDefined(barContent);
 
@@ -1058,13 +1058,13 @@ tr.b.unittest.testSuite(function() {
 
     const table = await buildTable(this, histograms);
 
-    let fooCell = tr.b.findDeepElementMatchingPredicate(
+    let fooCell = tr.ui.b.findDeepElementMatchingPredicate(
         table, elem => (
           (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
           (elem.histogram.name === 'foo')));
     assert.isDefined(fooCell);
 
-    let barCell = tr.b.findDeepElementMatchingPredicate(
+    let barCell = tr.ui.b.findDeepElementMatchingPredicate(
         table, elem => (
           (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
           (elem.histogram.name === 'bar')));
@@ -1072,13 +1072,13 @@ tr.b.unittest.testSuite(function() {
 
     fooCell.isHistogramOpen = true;
 
-    const barLink = tr.b.findDeepElementMatchingPredicate(
+    const barLink = tr.ui.b.findDeepElementMatchingPredicate(
         table, elem => elem.tagName === 'TR-UI-A-ANALYSIS-LINK');
     assert.isDefined(barLink);
     barLink.click();
 
     await tr.b.animationFrame();
-    barCell = tr.b.findDeepElementMatchingPredicate(
+    barCell = tr.ui.b.findDeepElementMatchingPredicate(
         table, elem => (
           (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
           (elem.histogram.name === 'bar')));
@@ -1086,7 +1086,7 @@ tr.b.unittest.testSuite(function() {
 
     await table.viewState.update({searchQuery: ''});
 
-    fooCell = tr.b.findDeepElementMatchingPredicate(
+    fooCell = tr.ui.b.findDeepElementMatchingPredicate(
         table, elem => (
           (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
           (elem.histogram.name === 'foo')));
@@ -1094,7 +1094,7 @@ tr.b.unittest.testSuite(function() {
 
     fooCell.isHistogramOpen = true;
 
-    const selectAllLink = tr.b.findDeepElementMatchingPredicate(
+    const selectAllLink = tr.ui.b.findDeepElementMatchingPredicate(
         table, elem => (
           (elem.tagName === 'TR-UI-A-ANALYSIS-LINK') &&
           (elem.textContent === 'Select All')));
@@ -1104,19 +1104,19 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(table.viewState.searchQuery, '^(bar|qux)$');
 
     await tr.b.animationFrame();
-    fooCell = tr.b.findDeepElementMatchingPredicate(
+    fooCell = tr.ui.b.findDeepElementMatchingPredicate(
         table, elem => (
           (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
           (elem.histogram.name === 'foo')));
     assert.isUndefined(fooCell);
 
-    barCell = tr.b.findDeepElementMatchingPredicate(
+    barCell = tr.ui.b.findDeepElementMatchingPredicate(
         table, elem => (
           (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
           (elem.histogram.name === 'bar')));
     assert.isDefined(barCell);
 
-    const quxCell = tr.b.findDeepElementMatchingPredicate(
+    const quxCell = tr.ui.b.findDeepElementMatchingPredicate(
         table, elem => (
           (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
           (elem.histogram.name === 'qux')));
@@ -1139,13 +1139,13 @@ tr.b.unittest.testSuite(function() {
 
     const table = await buildTable(this, histograms);
 
-    let fooCell = tr.b.findDeepElementMatchingPredicate(
+    let fooCell = tr.ui.b.findDeepElementMatchingPredicate(
         table, elem => (
           (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
           (elem.histogram.name === 'foo')));
     assert.isDefined(fooCell);
 
-    let barCell = tr.b.findDeepElementMatchingPredicate(
+    let barCell = tr.ui.b.findDeepElementMatchingPredicate(
         table, elem => (
           (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
           (elem.histogram.name === 'bar')));
@@ -1153,13 +1153,13 @@ tr.b.unittest.testSuite(function() {
 
     await table.viewState.update({searchQuery: 'bar'});
 
-    fooCell = tr.b.findDeepElementMatchingPredicate(
+    fooCell = tr.ui.b.findDeepElementMatchingPredicate(
         table, elem => (
           (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
           (elem.histogram.name === 'foo')));
     assert.isUndefined(fooCell);
 
-    barCell = tr.b.findDeepElementMatchingPredicate(
+    barCell = tr.ui.b.findDeepElementMatchingPredicate(
         table, elem => (
           (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
           (elem.histogram.name === 'bar')));
@@ -1167,13 +1167,13 @@ tr.b.unittest.testSuite(function() {
 
     await table.viewState.update({searchQuery: 'foo'});
 
-    fooCell = tr.b.findDeepElementMatchingPredicate(
+    fooCell = tr.ui.b.findDeepElementMatchingPredicate(
         table, elem => (
           (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
           (elem.histogram.name === 'foo')));
     assert.isDefined(fooCell);
 
-    barCell = tr.b.findDeepElementMatchingPredicate(
+    barCell = tr.ui.b.findDeepElementMatchingPredicate(
         table, elem => (
           (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
           (elem.histogram.name === 'bar')));
@@ -1183,13 +1183,13 @@ tr.b.unittest.testSuite(function() {
     // When the search is an invalid regex, just ignore it.
     await table.viewState.update({searchQuery: '[a-'});
 
-    fooCell = tr.b.findDeepElementMatchingPredicate(
+    fooCell = tr.ui.b.findDeepElementMatchingPredicate(
         table, elem => (
           (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
           (elem.histogram.name === 'foo')));
     assert.isDefined(fooCell);
 
-    barCell = tr.b.findDeepElementMatchingPredicate(
+    barCell = tr.ui.b.findDeepElementMatchingPredicate(
         table, elem => (
           (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
           (elem.histogram.name === 'bar')));
@@ -1233,9 +1233,9 @@ tr.b.unittest.testSuite(function() {
     // TODO(benjhayden): The shortName version of GROUPINGS.HISTOGRAM_NAME moved
     // to histogram_set_view. Move this test to histogram_set_view_test.
     /*
-    assert.isDefined(tr.b.findDeepElementMatchingPredicate(
+    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(
         table, e => e.textContent === 'short name'));
-    assert.isUndefined(tr.b.findDeepElementMatchingPredicate(
+    assert.isUndefined(tr.ui.b.findDeepElementMatchingPredicate(
         table, e => e.textContent === 'long name'));
     */
   });
@@ -1276,9 +1276,9 @@ tr.b.unittest.testSuite(function() {
 
     const table = await buildTable(this, histograms);
 
-    assert.isDefined(tr.b.findDeepElementMatchingPredicate(
+    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(
         table, e => e.textContent === '(empty)'));
-    assert.isDefined(tr.b.findDeepElementMatchingPredicate(
+    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(
         table, e => e.textContent === '(missing)'));
   });
 
@@ -1297,11 +1297,11 @@ tr.b.unittest.testSuite(function() {
     const baseTable = getBaseTable(table);
     assert.strictEqual(baseTable.tableRows.length, 1);
 
-    const cell = tr.b.findDeepElementMatchingPredicate(table, elem =>
+    const cell = tr.ui.b.findDeepElementMatchingPredicate(table, elem =>
         elem.tagName === 'TR-V-UI-SCALAR-SPAN');
     cell.click();
 
-    const yAxisText = tr.b.findDeepElementMatchingPredicate(table, e =>
+    const yAxisText = tr.ui.b.findDeepElementMatchingPredicate(table, e =>
         e.tagName === 'text' && e.textContent === '<0.000 ms');
     assert.isBelow(0, yAxisText.getBBox().width);
   });

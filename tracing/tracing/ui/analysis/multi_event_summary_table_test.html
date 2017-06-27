@@ -67,9 +67,9 @@ tr.b.unittest.testSuite(function() {
     });
     this.addHTMLOutput(viewEl);
 
-    const totals = tr.b.findDeepElementMatchingPredicate(
+    const totals = tr.ui.b.findDeepElementMatchingPredicate(
         viewEl, e => e.tagName === 'TFOOT');
-    const scalars = tr.b.findDeepElementsMatchingPredicate(
+    const scalars = tr.ui.b.findDeepElementsMatchingPredicate(
         totals, e => e.tagName === 'TR-V-UI-SCALAR-SPAN');
     assert.strictEqual(scalars[0].value, 5);
     assert.closeTo(scalars[1].value, 4.5, 1e-6);

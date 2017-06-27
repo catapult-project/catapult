@@ -20,15 +20,15 @@ tr.b.unittest.testSuite(function() {
     const span = tr.v.ui.createDiagnosticSpan(diagnostic);
     assert.strictEqual('TR-V-UI-RELATED-HISTOGRAM-SET-SPAN', span.tagName);
     this.addHTMLOutput(span);
-    assert.isDefined(tr.b.findDeepElementMatchingPredicate(
+    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(
         span, function(element) {
           return element.textContent === 'Select All';
         }));
-    assert.isDefined(tr.b.findDeepElementMatchingPredicate(
+    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(
         span, function(element) {
           return element.textContent === 'foo';
         }));
-    assert.isDefined(tr.b.findDeepElementMatchingPredicate(
+    assert.isDefined(tr.ui.b.findDeepElementMatchingPredicate(
         span, function(element) {
           return element.textContent === 'bar';
         }));

@@ -22,7 +22,7 @@ tr.b.unittest.testSuite(function() {
   test('helpHref', function() {
     const controls = buildControls(this);
     controls.helpHref = 'data:text/html,hello';
-    const help = tr.b.findDeepElementMatchingPredicate(
+    const help = tr.ui.b.findDeepElementMatchingPredicate(
         controls, e => e.id === 'help');
     assert.strictEqual(help.style.display, 'inline');
     assert.strictEqual(help.href, 'data:text/html,hello');
@@ -31,7 +31,7 @@ tr.b.unittest.testSuite(function() {
   test('feedbackHref', function() {
     const controls = buildControls(this);
     controls.feedbackHref = 'data:text/html,hello';
-    const feedback = tr.b.findDeepElementMatchingPredicate(
+    const feedback = tr.ui.b.findDeepElementMatchingPredicate(
         controls, e => e.id === 'feedback');
     assert.strictEqual(feedback.style.display, 'inline');
     assert.strictEqual(feedback.href, 'data:text/html,hello');
@@ -39,7 +39,7 @@ tr.b.unittest.testSuite(function() {
 
   test('displayLabels', function() {
     const controls = buildControls(this);
-    const selector = tr.b.findDeepElementMatchingPredicate(controls, e =>
+    const selector = tr.ui.b.findDeepElementMatchingPredicate(controls, e =>
         e.id === 'reference_display_label');
     assert.strictEqual('none', getComputedStyle(selector).display);
 
@@ -70,7 +70,7 @@ tr.b.unittest.testSuite(function() {
   test('baseStatisticNames', function() {
     const controls = buildControls(this);
     controls.baseStatisticNames = ['avg', 'std'];
-    const selector = tr.b.findDeepElementMatchingPredicate(controls, e =>
+    const selector = tr.ui.b.findDeepElementMatchingPredicate(controls, e =>
         e.id === 'statistic');
     assert.strictEqual('inline-block', getComputedStyle(selector).display);
     assert.lengthOf(selector.children, 2);
@@ -84,7 +84,7 @@ tr.b.unittest.testSuite(function() {
   test('viewDisplayStatisticName', function() {
     const controls = buildControls(this);
     controls.baseStatisticNames = ['avg', 'std'];
-    const selector = tr.b.findDeepElementMatchingPredicate(controls, e =>
+    const selector = tr.ui.b.findDeepElementMatchingPredicate(controls, e =>
         e.id === 'statistic');
     controls.viewState.displayStatisticName = 'std';
     assert.strictEqual('std', selector.value);
@@ -93,7 +93,7 @@ tr.b.unittest.testSuite(function() {
   test('controlDisplayStatisticName', function() {
     const controls = buildControls(this);
     controls.baseStatisticNames = ['avg', 'std'];
-    const selector = tr.b.findDeepElementMatchingPredicate(controls, e =>
+    const selector = tr.ui.b.findDeepElementMatchingPredicate(controls, e =>
         e.id === 'statistic');
     selector.value = 'std';
     const changeEvent = document.createEvent('HTMLEvents');
@@ -105,14 +105,14 @@ tr.b.unittest.testSuite(function() {
   test('viewSearchQuery', function() {
     const controls = buildControls(this);
     controls.viewState.searchQuery = 'foo';
-    const search = tr.b.findDeepElementMatchingPredicate(
+    const search = tr.ui.b.findDeepElementMatchingPredicate(
         controls, e => e.id === 'search');
     assert.strictEqual(search.value, 'foo');
   });
 
   test('controlSearchQuery', function() {
     const controls = buildControls(this);
-    const search = tr.b.findDeepElementMatchingPredicate(
+    const search = tr.ui.b.findDeepElementMatchingPredicate(
         controls, e => e.id === 'search');
     search.value = 'x';
     const keyupEvent = document.createEvent('KeyboardEvent');
@@ -123,7 +123,7 @@ tr.b.unittest.testSuite(function() {
 
   test('viewShowAll', function() {
     const controls = buildControls(this);
-    const showAll = tr.b.findDeepElementMatchingPredicate(
+    const showAll = tr.ui.b.findDeepElementMatchingPredicate(
         controls, e => e.id === 'show_all');
     assert.strictEqual(controls.viewState.showAll, false);
     assert.strictEqual(showAll.checked, false);
@@ -133,14 +133,14 @@ tr.b.unittest.testSuite(function() {
 
   test('controlShowAll', function() {
     const controls = buildControls(this);
-    const showAll = tr.b.findDeepElementMatchingPredicate(
+    const showAll = tr.ui.b.findDeepElementMatchingPredicate(
         controls, e => e.id === 'show_all');
     assert.strictEqual(controls.viewState.showAll, false);
     assert.strictEqual(showAll.checked, false);
     showAll.click();
     assert.strictEqual(showAll.checked, true);
     assert.strictEqual(controls.viewState.showAll, true);
-    const showAllLabel = tr.b.findDeepElementMatchingPredicate(
+    const showAllLabel = tr.ui.b.findDeepElementMatchingPredicate(
         controls, e => e.tagName === 'LABEL' && e.htmlFor === 'show_all');
     showAllLabel.click();
     assert.strictEqual(showAll.checked, false);
@@ -150,7 +150,7 @@ tr.b.unittest.testSuite(function() {
   test('viewReferenceDisplayLabel', function() {
     const controls = buildControls(this);
     controls.displayLabels = ['a', 'b'];
-    const selector = tr.b.findDeepElementMatchingPredicate(controls, e =>
+    const selector = tr.ui.b.findDeepElementMatchingPredicate(controls, e =>
         e.id === 'reference_display_label');
 
     assert.strictEqual('', selector.value);
@@ -169,7 +169,7 @@ tr.b.unittest.testSuite(function() {
   test('controlReferenceDisplayLabel', function() {
     const controls = buildControls(this);
     controls.displayLabels = ['a', 'b'];
-    const selector = tr.b.findDeepElementMatchingPredicate(controls, e =>
+    const selector = tr.ui.b.findDeepElementMatchingPredicate(controls, e =>
         e.id === 'reference_display_label');
     assert.strictEqual('', selector.value);
     assert.strictEqual('', controls.viewState.referenceDisplayLabel);
@@ -195,7 +195,7 @@ tr.b.unittest.testSuite(function() {
     const groupings = Object.values(tr.v.HistogramSet.GROUPINGS);
     groupings.push(fooGrouping);
     controls.possibleGroupings = groupings;
-    const picker = tr.b.findDeepElementMatchingPredicate(controls, e =>
+    const picker = tr.ui.b.findDeepElementMatchingPredicate(controls, e =>
         e.tagName === 'TR-UI-B-GROUPING-TABLE-GROUPBY-PICKER');
     assert.lengthOf(picker.currentGroupKeys, 1);
     assert.strictEqual(picker.currentGroupKeys[0],
@@ -225,7 +225,7 @@ tr.b.unittest.testSuite(function() {
     const groupings = Object.values(tr.v.HistogramSet.GROUPINGS);
     groupings.push(fooGrouping);
     controls.possibleGroupings = groupings;
-    const picker = tr.b.findDeepElementMatchingPredicate(controls, e =>
+    const picker = tr.ui.b.findDeepElementMatchingPredicate(controls, e =>
         e.tagName === 'TR-UI-B-GROUPING-TABLE-GROUPBY-PICKER');
     assert.lengthOf(picker.currentGroupKeys, 1);
     assert.strictEqual(controls.viewState.groupings[0],
@@ -246,9 +246,9 @@ tr.b.unittest.testSuite(function() {
 
   test('viewIsOverviewed', function() {
     const controls = buildControls(this);
-    const showOverview = tr.b.findDeepElementMatchingPredicate(controls, e =>
+    const showOverview = tr.ui.b.findDeepElementMatchingPredicate(controls, e =>
         e.id === 'show_overview');
-    const hideOverview = tr.b.findDeepElementMatchingPredicate(controls, e =>
+    const hideOverview = tr.ui.b.findDeepElementMatchingPredicate(controls, e =>
         e.id === 'hide_overview');
     controls.viewState.tableRowStates = new Map([
       ['a', new tr.v.ui.HistogramSetTableRowState()],
@@ -268,9 +268,9 @@ tr.b.unittest.testSuite(function() {
 
   test('controlIsOverviewed', async function() {
     const controls = buildControls(this);
-    const showOverview = tr.b.findDeepElementMatchingPredicate(controls, e =>
+    const showOverview = tr.ui.b.findDeepElementMatchingPredicate(controls, e =>
         e.id === 'show_overview');
-    const hideOverview = tr.b.findDeepElementMatchingPredicate(controls, e =>
+    const hideOverview = tr.ui.b.findDeepElementMatchingPredicate(controls, e =>
         e.id === 'hide_overview');
     controls.viewState.tableRowStates = new Map([
       ['a', new tr.v.ui.HistogramSetTableRowState()],

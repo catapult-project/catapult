@@ -38,7 +38,7 @@ tr.b.unittest.testSuite(function() {
         subView.relatedEventsToHighlight.equals(alert.associatedEvents));
     this.addHTMLOutput(subView);
 
-    const table = tr.b.findDeepElementMatching(
+    const table = tr.ui.b.findDeepElementMatching(
         subView, 'tr-ui-b-table');
 
     const rows = table.tableRows;

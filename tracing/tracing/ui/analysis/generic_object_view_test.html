@@ -134,7 +134,7 @@ tr.b.unittest.testSuite(function() {
     view.object = [{col0: 'object', col1: 0},
                    {col2: 'Object', col3: 1}];
     this.addHTMLOutput(view);
-    assert.strictEqual(undefined, tr.b.findDeepElementMatching(
+    assert.strictEqual(undefined, tr.ui.b.findDeepElementMatching(
         view.$.content, 'table'));
   });
 
@@ -142,7 +142,7 @@ tr.b.unittest.testSuite(function() {
     const view = document.createElement('tr-ui-a-generic-object-view');
     view.object = [{key: {deep: 'object values make isTable() return false'}}];
     this.addHTMLOutput(view);
-    assert.strictEqual(undefined, tr.b.findDeepElementMatching(
+    assert.strictEqual(undefined, tr.ui.b.findDeepElementMatching(
         view.$.content, 'table'));
   });
 
@@ -154,7 +154,8 @@ tr.b.unittest.testSuite(function() {
     ];
     this.addHTMLOutput(view);
 
-    const table = tr.b.findDeepElementMatching(view.$.content, 'tr-ui-b-table');
+    const table = tr.ui.b.findDeepElementMatching(
+        view.$.content, 'tr-ui-b-table');
     assert.strictEqual('col0', table.tableColumns[0].title);
     assert.strictEqual('col1', table.tableColumns[1].title);
     assert.strictEqual(
@@ -183,7 +184,7 @@ tr.b.unittest.testSuite(function() {
     view.object =
         new tr.b.Scalar(tr.b.Unit.byName.timeDurationInMs, 3);
     this.addHTMLOutput(view);
-    assert.isDefined(tr.b.findDeepElementMatching(
+    assert.isDefined(tr.ui.b.findDeepElementMatching(
         view.$.content, 'tr-v-ui-scalar-span'));
   });
 
@@ -191,7 +192,7 @@ tr.b.unittest.testSuite(function() {
     const view = document.createElement('tr-ui-a-generic-object-view');
     view.object = new tr.b.Scalar(tr.b.Unit.byName.timeStampInMs, 3);
     this.addHTMLOutput(view);
-    assert.isDefined(tr.b.findDeepElementMatching(
+    assert.isDefined(tr.ui.b.findDeepElementMatching(
         view.$.content, 'tr-v-ui-scalar-span'));
   });
 
@@ -200,7 +201,7 @@ tr.b.unittest.testSuite(function() {
     view.object =
         new tr.b.Scalar(tr.b.Unit.byName.normalizedPercentage, .3);
     this.addHTMLOutput(view);
-    const m = tr.b.findDeepElementMatching(
+    const m = tr.ui.b.findDeepElementMatching(
         view.$.content, 'tr-v-ui-scalar-span');
     assert.isDefined(m);
     assert.strictEqual(m.value, .3);
@@ -212,7 +213,7 @@ tr.b.unittest.testSuite(function() {
     const url = 'https://google.com/chrome';
     view.object = {a: url};
     this.addHTMLOutput(view);
-    const a = tr.b.findDeepElementMatching(view.$.content, 'a');
+    const a = tr.ui.b.findDeepElementMatching(view.$.content, 'a');
     assert.isDefined(a);
     assert.strictEqual(url, a.href);
     assert.strictEqual(url, a.textContent);

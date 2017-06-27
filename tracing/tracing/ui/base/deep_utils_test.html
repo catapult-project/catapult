@@ -52,7 +52,7 @@ tr.b.unittest.testSuite(function() {
   test('testFindDeepElementMatching', function() {
     const d = document.createElement('tr-ui-b-deep-utils-test-d');
 
-    const b = tr.b.findDeepElementMatching(d, 'tr-ui-b-deep-utils-test-b.x');
+    const b = tr.ui.b.findDeepElementMatching(d, 'tr-ui-b-deep-utils-test-b.x');
     assert.isDefined(b);
     assert.strictEqual(b.tagName, 'TR-UI-B-DEEP-UTILS-TEST-B');
   });
@@ -60,7 +60,8 @@ tr.b.unittest.testSuite(function() {
   test('testFindDeepElementsMatching', function() {
     const d = document.createElement('tr-ui-b-deep-utils-test-d');
 
-    const a = tr.b.findDeepElementsMatching(d, 'tr-ui-b-deep-utils-test-a.x');
+    const a = tr.ui.b.findDeepElementsMatching(
+        d, 'tr-ui-b-deep-utils-test-a.x');
     assert.isDefined(a);
     assert.strictEqual(a[0].tagName, 'TR-UI-B-DEEP-UTILS-TEST-A');
     assert.strictEqual(a[1].tagName, 'TR-UI-B-DEEP-UTILS-TEST-A');

@@ -104,7 +104,7 @@ tr.b.unittest.testSuite(function() {
     subView.selection = selection;
     this.addHTMLOutput(subView);
 
-    const gov = tr.b.findDeepElementMatching(subView,
+    const gov = tr.ui.b.findDeepElementMatching(subView,
         'tr-ui-a-generic-object-view');
     assert.isDefined(gov);
   });
@@ -126,7 +126,7 @@ tr.b.unittest.testSuite(function() {
     analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
 
-    const e = tr.b.findDeepElementWithTextContent(
+    const e = tr.ui.b.findDeepElementWithTextContent(
         analysisEl, /Start Stack Trace/);
     assert.isDefined(e);
     assert.isDefined(Polymer.dom(e).nextSibling.children[0].stackFrame);
@@ -140,7 +140,7 @@ tr.b.unittest.testSuite(function() {
     analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
 
-    const e = tr.b.findDeepElementWithTextContent(
+    const e = tr.ui.b.findDeepElementWithTextContent(
         analysisEl, /End Stack Trace/);
     assert.isDefined(e);
     assert.isDefined(Polymer.dom(e).nextSibling.children[0].stackFrame);
@@ -157,14 +157,14 @@ tr.b.unittest.testSuite(function() {
     analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
 
-    const eA = tr.b.findDeepElementWithTextContent(
+    const eA = tr.ui.b.findDeepElementWithTextContent(
         analysisEl, /Start Stack Trace/);
     assert.isDefined(eA);
     assert.isDefined(Polymer.dom(eA).nextSibling.children[0].stackFrame);
     assert.strictEqual(
         Polymer.dom(eA).nextSibling.children[0].stackFrame.title, 'a2');
 
-    const eB = tr.b.findDeepElementWithTextContent(
+    const eB = tr.ui.b.findDeepElementWithTextContent(
         analysisEl, /End Stack Trace/);
     assert.isDefined(eB);
     assert.isDefined(Polymer.dom(eB).nextSibling.children[0].stackFrame);
@@ -181,7 +181,7 @@ tr.b.unittest.testSuite(function() {
     analysisEl.selection = selection;
     this.addHTMLOutput(analysisEl);
 
-    const e = tr.b.findDeepElementWithTextContent(
+    const e = tr.ui.b.findDeepElementWithTextContent(
         analysisEl, /Start\+End Stack Trace/);
     assert.isDefined(e);
     assert.isDefined(Polymer.dom(e).nextSibling.children[0].stackFrame);
@@ -195,7 +195,7 @@ tr.b.unittest.testSuite(function() {
     subView.selection = selection;
     this.addHTMLOutput(subView);
 
-    const table = tr.b.findDeepElementMatching(
+    const table = tr.ui.b.findDeepElementMatching(
         subView, 'tr-ui-b-table');
     assert.strictEqual(table.tableRows.length, 3);
     assert.strictEqual(table.tableRows[0].value, 'b');
@@ -214,7 +214,7 @@ tr.b.unittest.testSuite(function() {
     subView.selection = selection;
     this.addHTMLOutput(subView);
 
-    const table = tr.b.findDeepElementMatching(
+    const table = tr.ui.b.findDeepElementMatching(
         subView, 'tr-ui-b-table');
     assert.strictEqual(table.tableRows.length, 4);
     assert.strictEqual(table.tableRows[0].value, 'b');
@@ -248,7 +248,7 @@ tr.b.unittest.testSuite(function() {
     subView.selection = selection;
     this.addHTMLOutput(subView);
 
-    const analysisLink = tr.b.findDeepElementMatching(subView,
+    const analysisLink = tr.ui.b.findDeepElementMatching(subView,
         'tr-ui-a-analysis-link');
     assert.isDefined(analysisLink);
   });

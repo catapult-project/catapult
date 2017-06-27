@@ -53,11 +53,11 @@ tr.b.unittest.testSuite(function() {
 
     // The view should contain a stacked pane view with memory dump header and
     // overview panes.
-    const stackedPaneViewEl = tr.b.findDeepElementMatching(
+    const stackedPaneViewEl = tr.ui.b.findDeepElementMatching(
         viewEl, 'tr-ui-a-stacked-pane-view');
-    const headerPaneEl = tr.b.findDeepElementMatching(
+    const headerPaneEl = tr.ui.b.findDeepElementMatching(
         stackedPaneViewEl, 'tr-ui-a-memory-dump-header-pane');
-    const overviewPaneEl = tr.b.findDeepElementMatching(
+    const overviewPaneEl = tr.ui.b.findDeepElementMatching(
         stackedPaneViewEl, 'tr-ui-a-memory-dump-overview-pane');
 
     // Check that the header pane and overview pane are correctly set up.
@@ -70,11 +70,11 @@ tr.b.unittest.testSuite(function() {
         overviewPaneEl.aggregationMode, headerPaneEl.aggregationMode);
 
     // Get the overview pane table to drive the details pane checks.
-    const overviewTableEl = tr.b.findDeepElementMatching(
+    const overviewTableEl = tr.ui.b.findDeepElementMatching(
         overviewPaneEl, 'tr-ui-b-table');
 
     function checkVmRegionsPane(pid) {
-      const detailsPaneEl = tr.b.findDeepElementMatching(
+      const detailsPaneEl = tr.ui.b.findDeepElementMatching(
           stackedPaneViewEl, 'tr-ui-a-memory-dump-vm-regions-details-pane');
       if (pid === undefined) {
         assert.isUndefined(detailsPaneEl);
@@ -87,7 +87,7 @@ tr.b.unittest.testSuite(function() {
     }
 
     function checkAllocatorPane(pid, allocatorName, withHeapDetailsPane) {
-      const allocatorDetailsPaneEl = tr.b.findDeepElementMatching(
+      const allocatorDetailsPaneEl = tr.ui.b.findDeepElementMatching(
           stackedPaneViewEl, 'tr-ui-a-memory-dump-allocator-details-pane');
       if (pid === undefined) {
         assert.isUndefined(allocatorDetailsPaneEl);
@@ -102,7 +102,7 @@ tr.b.unittest.testSuite(function() {
       assert.strictEqual(
           allocatorDetailsPaneEl.aggregationMode, headerPaneEl.aggregationMode);
 
-      const heapDetailsPaneEl = tr.b.findDeepElementMatching(
+      const heapDetailsPaneEl = tr.ui.b.findDeepElementMatching(
           stackedPaneViewEl, 'tr-ui-a-memory-dump-heap-details-pane');
       if (!withHeapDetailsPane) {
         assert.isUndefined(heapDetailsPaneEl);
@@ -317,7 +317,7 @@ tr.b.unittest.testSuite(function() {
     const viewEl = createViewWithSelection(differentProcessDumps);
     this.addHTMLOutput(viewEl);
 
-    const tableEl = tr.b.findDeepElementMatching(viewEl, 'tr-ui-b-table');
+    const tableEl = tr.ui.b.findDeepElementMatching(viewEl, 'tr-ui-b-table');
     assert.lengthOf(tableEl.tableRows, 3);
     assert.lengthOf(tableEl.tableColumns, 1);
     const rows = tableEl.tableRows;

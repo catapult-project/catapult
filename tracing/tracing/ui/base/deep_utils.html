@@ -10,7 +10,7 @@ found in the LICENSE file.
 
 'use strict';
 
-tr.exportTo('tr.b', function() {
+tr.exportTo('tr.ui.b', function() {
   function iterateElementDeeplyImpl(element, cb, thisArg, includeElement) {
     if (includeElement && cb.call(thisArg, element)) return true;
 
@@ -79,8 +79,8 @@ tr.exportTo('tr.b', function() {
       return re.test(Polymer.dom(element).textContent);
     });
   }
+
   return {
-    iterateElementDeeply,
     findDeepElementMatching,
     findDeepElementsMatching,
     findDeepElementMatchingPredicate,

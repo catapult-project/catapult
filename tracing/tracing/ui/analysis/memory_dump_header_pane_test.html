@@ -76,7 +76,7 @@ tr.b.unittest.testSuite(function() {
     }
 
     assert.isTrue(aggregationModeContainerVisible);
-    const selector = tr.b.findDeepElementMatching(viewEl, 'select');
+    const selector = tr.ui.b.findDeepElementMatching(viewEl, 'select');
 
     selector.selectedValue = AggregationMode.MAX;
     viewEl.rebuild();

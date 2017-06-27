@@ -307,7 +307,7 @@ tr.b.unittest.testSuite(function() {
   }
 
   function changeView(viewEl, viewType) {
-    tr.b.findDeepElementMatching(viewEl, 'select').selectedValue = viewType;
+    tr.ui.b.findDeepElementMatching(viewEl, 'select').selectedValue = viewType;
     viewEl.rebuild();
   }
 

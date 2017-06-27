@@ -57,7 +57,7 @@ tr.b.unittest.testSuite(function() {
     await span.viewState.update({
       brushedBinRange: tr.b.math.Range.fromExplicitRange(5, 10),
     });
-    const chart = tr.b.findDeepElementMatchingPredicate(
+    const chart = tr.ui.b.findDeepElementMatchingPredicate(
         span, e => e.tagName === 'svg');
     assert.strictEqual(5, chart.brushedRange.min);
     assert.strictEqual(10, chart.brushedRange.max);
@@ -103,7 +103,7 @@ tr.b.unittest.testSuite(function() {
     span.histogram = tr.v.Histogram.create('', tr.b.Unit.byName.count, samples);
     await span.viewState.update({brushedBinRange:
       tr.b.math.Range.fromExplicitRange(0, 10)});
-    const merge = tr.b.findDeepElementMatchingPredicate(span, e =>
+    const merge = tr.ui.b.findDeepElementMatchingPredicate(span, e =>
         e.id === 'merge_sample_diagnostics');
     assert.isTrue(merge.checked);
 
@@ -135,7 +135,7 @@ tr.b.unittest.testSuite(function() {
     span.histogram = tr.v.Histogram.create('', tr.b.Unit.byName.count, samples);
     await span.viewState.update({brushedBinRange:
       tr.b.math.Range.fromExplicitRange(0, 10)});
-    const merge = tr.b.findDeepElementMatchingPredicate(span, e =>
+    const merge = tr.ui.b.findDeepElementMatchingPredicate(span, e =>
         e.id === 'merge_sample_diagnostics');
     assert.isTrue(merge.checked);
 
@@ -161,14 +161,14 @@ tr.b.unittest.testSuite(function() {
     span.histogram = h;
     await span.viewState.update({
       brushedBinRange: tr.b.math.Range.fromExplicitRange(0, h.allBins.length)});
-    let breakdowns = tr.b.findDeepElementsMatchingPredicate(
+    let breakdowns = tr.ui.b.findDeepElementsMatchingPredicate(
         span, e => e.tagName === 'TR-V-UI-BREAKDOWN-SPAN');
     assert.lengthOf(breakdowns, 1);
 
-    const merge = tr.b.findDeepElementMatchingPredicate(
+    const merge = tr.ui.b.findDeepElementMatchingPredicate(
         span, e => e.id === 'merge_sample_diagnostics');
     merge.click();
-    breakdowns = tr.b.findDeepElementsMatchingPredicate(
+    breakdowns = tr.ui.b.findDeepElementsMatchingPredicate(
         span, e => e.tagName === 'TR-V-UI-BREAKDOWN-SPAN');
     assert.lengthOf(breakdowns, 5);
   });
@@ -189,7 +189,7 @@ tr.b.unittest.testSuite(function() {
     span.histogram = h;
     await span.viewState.update({
       brushedBinRange: tr.b.math.Range.fromExplicitRange(0, h.allBins.length)});
-    const breakdowns = tr.b.findDeepElementsMatchingPredicate(
+    const breakdowns = tr.ui.b.findDeepElementsMatchingPredicate(
         span, e => e.tagName === 'TR-V-UI-BREAKDOWN-SPAN');
     assert.lengthOf(breakdowns, 5);
   });
